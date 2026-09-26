@@ -160,7 +160,7 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 - La barre d’actions place Annuler à gauche et Confirmer à droite. Chaque action possède une cible tactile de `48 × 48` points ; sa représentation est un cercle de `38 × 38`, gris neutre avec une croix sombre pour Annuler, bleu primaire avec une coche blanche pour Confirmer, contenant une icône `24 × 24`. Le conteneur de mise en page peut mesurer `48 × 53` pour conserver `7,5` points de respiration verticale autour du cercle : cette hauteur ne redéfinit pas la cible tactile, qui reste `48 × 48`. La barre est placée en haut conformément aux usages iOS : les actions sont identifiées avant le défilement et restent éloignées de l’indicateur d’accueil.
 - La roulette conserve deux zones de sélection grises distinctes, une par colonne numérique. Chaque zone mesure `56 × 34` points, avec un rayon de `17`, et couvre uniquement les chiffres centrés. Les unités `min`, `s` ou `h` restent hors de ces zones, en gras, rapprochées de leur colonne et alignées verticalement sur la valeur centrée. Aucun cadre gris continu ni cadre bleu supplémentaire ne doit apparaître.
 - Toucher une valeur ou la zone de sélection ne ferme pas la roulette. Le défilement modifie uniquement un brouillon local. Annuler ferme sans enregistrer ; Confirmer enregistre exactement les valeurs centrées puis ferme. Toute carte ou synthèse liée reste inchangée pendant le défilement et n’est actualisée qu’après confirmation. Une réouverture restitue la dernière valeur confirmée.
-- Tout contrôle historique de type `pull-up`, `pull-down` ou menu numérique ouvre désormais la variante `Type=Numeric wheel` du composant DSF `Picker / Popover — Source exact`. Cette variante native OS comporte une seule colonne, mesure `144 × 203`, conserve une zone de sélection de `56 × 34` et les deux actions canoniques Annuler/Confirmer. Le contrôle fermé continue d’afficher uniquement la dernière valeur confirmée.
+- Les durées utilisent la variante de roulette en modale basse du DSF. Conformément à D-219, les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent un stepper inline et n’ouvrent aucune roulette.
 
 ### Modales basses / bottom sheets
 
@@ -613,7 +613,7 @@ L’état révélant les actions d’un Exercice est illustré par :
 | Écran 3d | Étiquettes ouvertes | — | Sélection de l’Étiquette ; la couleur de la Séance est celle de l’Étiquette | `2028:11204` |
 | Écran 3e | Compte à rebours ouvert | ![[images/ecran-3e-composition-compte-rebours-ouvert.png\|220]] | Réglage minutes/secondes avec Annuler et Confirmer circulaires | `2028:11375` |
 | Écran 3f | Fin de séance ouverte | ![[images/ecran-3f-composition-fin-seance-ouverte.png\|220]] | Réglage indépendant avec Annuler et Confirmer circulaires | `2028:11457` |
-| Écran 3g | Nombre de Tours | ![[images/ecran-3g-composition-nombre-tours.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `2028:11580` |
+| Écran 3g | Nombre de Tours | ![[images/ecran-3g-composition-nombre-tours.png\|220]] | Stepper inline ; aucune modale/roulette | `2028:11580` |
 | Écran 3h | Appui long — carte soulevée | ![[images/ecran-3h-composition-appui-long.png\|220]] | État transitoire précédant et accompagnant le déplacement d’un Exercice | `3518:4576` |
 | Écran 3i | Point d’arrêt | — | Point d’arrêt inséré dans la Composition, sans écran dédié ; élément déplaçable | `3722:5061` |
 | Écran 3j | Nouvelle étiquette | — | Création d’une Étiquette depuis la modale | `4640:6308` |
@@ -659,13 +659,13 @@ L’ouverture de la modale Étiquettes conserve la Composition en arrière-plan 
 
 L’icône affichée à gauche de `Nombre de tours` est exclusivement une instance de `Icon / Tour` (`3066:4685`). Son dessin canonique est celui validé dans `Composition séance — Nom saisi` (`2028:12003`) ; l’ancienne sous-référence graphique supprimée n’est plus utilisée comme preuve active : cadre visuel `18 × 18`, quatre tracés, trait `1,35`, couleur `color.textPrimary` (`#141414`). Les copies vectorielles locales et l’ancien pictogramme Tour ne sont pas autorisés. L’actif exportable correspondant est uniquement `assets/icons/icon-tour.svg`, clé de registre `icon.tour`.
 
-Le Tour possède un nombre de répétitions compris entre **1 et 99**, avec **1** comme valeur par défaut.
+Le Circuit possède un nombre de Tours compris entre **1 et 99**, avec **1** comme valeur par défaut.
 
 Dans l’interface, le nombre est affiché sans préfixe `x` ni signe `×`, dans un contrôle compact placé à droite du bloc de textes. Le bord droit du contrôle est aligné avec le bord droit des cartes d’Exercice. Ce bloc affiche `Nombre de tours`, puis immédiatement dessous la synthèse calculée `N exercice(s) · X min`. Cette synthèse compte uniquement les Exercices et additionne uniquement leurs durées déterminables ; elle exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Circuit. La synthèse reprend le format du sous-libellé d’une carte : Inter Regular `11/13`, couleur secondaire et espacement vertical de `4` points sous le titre. Le bloc de textes est centré verticalement avec le sélecteur `66 × 34` ; le carré violet mesure `28 × 28` et conserve `3` points de marge en haut, à droite et en bas. L’icône du sélecteur reprend strictement la couleur de la référence `Nouvelle séance — Nom renseigné` (`2028:12003`, vecteur `2028:12051`, `#CDCEFA`). Aucun chevron de repli pointant vers le haut n’est affiché dans cet en-tête.
 
 La synthèse n’est plus affichée isolément au bas de l’écran. Elle est recalculée uniquement après une modification validée qui affecte les Exercices ou le nombre de Tours. La confirmation du `Compte à rebours initial` ou de la `Fin de séance` actualise seulement le jalon structurel concerné et ne modifie jamais cette synthèse. Celle-ci reste attachée au conteneur Circuit dans ses états applicables.
 
-Un appui sur le contrôle de valeur ouvre `Picker / Popover — Source exact`, variante `Type=Numeric wheel` (`3210:49`). Le défilement ne modifie qu’un brouillon ; Annuler ferme sans enregistrer et Confirmer applique la valeur centrée.
+Le contrôle du nombre de Tours est un stepper inline : les actions d’incrément/décrément modifient directement le brouillon de Composition dans les bornes `1..99`; aucune modale de roulette n’est ouverte.
 
 ### Retour haptique des roulettes
 
@@ -757,8 +757,8 @@ La frame `3542:4656` et plusieurs états `3553:*` / `3580:*` sont des référenc
 | Écran 4b | Mode À l’échec | ![[images/ecran-4b-creation-activite-a-l-echec.png\|220]] | Aucun objectif chiffré ; aucune Durée totale affichée dans le texte éditable | `3561:7802` |
 | Écran 4c | Durée ouverte | ![[images/ecran-4c-creation-activite-duree-ouverte.png\|220]] | Roulette compacte minutes/secondes avec validation explicite | `3556:7645` |
 | Écran 4d | Pause ouverte | ![[images/ecran-4d-creation-activite-pause-ouverte.png\|220]] | Réglage de la Pause entre Séries avec validation explicite | `3556:7712` |
-| Écran 4e | Nombre de Séries ouvert | ![[images/ecran-4e-creation-activite-series-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `3556:7801` |
-| Écran 4f | Répétitions ouvertes | ![[images/ecran-4f-creation-activite-repetitions-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `3561:7673` |
+| Écran 4e | Nombre de Séries — stepper | ![[images/ecran-4e-creation-activite-series-ouvert.png\|220]] | Stepper inline ; aucune modale/roulette | `3556:7801` |
+| Écran 4f | Répétitions — stepper | ![[images/ecran-4f-creation-activite-repetitions-ouvert.png\|220]] | Stepper inline ; aucune modale/roulette | `3561:7673` |
 | Écran 4g | Description déployée | ![[images/ecran-4g-creation-activite-description.png\|220]] | Copie documentaire historique ; comportement Description toujours valide | ancien node supprimé |
 | Écran 4h | Zone corporelle déployée | ![[images/ecran-4h-creation-activite-zone-corporelle.png\|220]] | Copie documentaire historique ; la sélection courante utilise `4478:7209` | ancien node supprimé |
 | Écran 4i | Séries pilote | ![[images/ecran-4i-creation-activite-series-pilote.png\|220]] | Copie documentaire historique ; règle de calcul toujours valide | ancien node supprimé |
@@ -835,13 +835,13 @@ L’utilisateur choisit entre :
 - `Répétitions` ;
 - `À l’échec`.
 
-En mode `Durée`, la section comporte des roulettes de sélection pour la cible de durée, la Pause, le nombre de Séries, la Récupération et la Durée totale.
+En mode `Durée`, les durées utilisent des roulettes en modale basse ; le Nombre de Séries utilise un stepper inline. La Pause au changement de côté n’est proposée qu’en bilatéral.
 
-En mode `Répétition`, la Durée est remplacée par le Nombre de répétitions. Le Nombre de répétitions, la Pause et le Nombre de Séries sont sélectionnés par roulettes. `Durée totale >=` reste visible comme borne connue.
+En mode `Répétition`, la Durée est remplacée par le Nombre de répétitions. Nombre de répétitions et Nombre de Séries utilisent des steppers inline ; les durées de Pause utilisent des roulettes. `Durée totale >=` reste visible comme borne connue.
 
-En mode `À l’échec`, aucun contrôle Durée ou Nombre de répétitions n’est affiché. La rangée conserve trois emplacements : `Séries` à gauche, cadre informatif transparent bordé portant `à l’échec` au centre, puis `Pause` à droite. La seconde rangée conserve `Changement de côté`, `Récupération` et `Durée totale >=`.
+En mode `À l’échec`, aucun contrôle Durée ou Nombre de répétitions n’est affiché. La rangée conserve trois emplacements : `Séries` à gauche, cadre informatif transparent bordé portant `à l’échec` au centre, puis `Pause` à droite. La seconde rangée conserve `Changement de côté` et, en bilatéral, `Pause au changement de côté` ; aucune `Durée totale` n’est affichée en mode À l’échec.
 
-Le nombre de Séries est toujours compris entre 1 et 99 (D-092). Pour toute nouvelle Exercice, sa valeur par défaut est `1`.
+Le nombre de Séries est toujours compris entre 1 et 99 (D-092). Pour tout nouvel Exercice, sa valeur par défaut est `1`.
 
 Une Série correspond à l’Exécution de la cible du mode. Pour un Exercice bilatéral autonome, le nombre de Séries est un nombre par côté. La Pause est exécutée exactement entre les Séries successives d’un même côté, soit `C−1` fois. En bilatéral, la **Pause au changement de côté** éventuelle est exécutée une seule fois entre les Séries du premier et du second côté.
 
@@ -1739,7 +1739,7 @@ Cette règle s’applique aux valeurs initiales comme aux valeurs créées ensui
 
 ### Contrôles à roulette – Compte à rebours et fins
 
-Toutes les roulettes utilisent désormais une **modale basse standardisée**. Dans la Composition, `Compte à rebours initial`, `Fin de séance` et `Nombre de tours` réutilisent cette famille. Dans l’éditeur d’Exercice, les paramètres numériques, y compris le Compte à rebours d’Exercice et la Fin d’exercice lorsqu’ils sont réglés, suivent le même standard.
+Toutes les **durées** réglées par roulette utilisent une modale basse standardisée. Les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent des steppers inline conformément à D-219. Les sélections d’objets utilisent leurs modales dédiées.
 
 Dans le Profil, les contrôles `Compte à rebours initial`, `Fin de séance`, `Compte à rebours d’exercice` (`4179:9550`) et `Fin d’exercice` (`4179:9556`) servent de préférences proposées à la création de nouveaux contenus. Les valeurs ne sont appliquées qu’après `Confirmer`.
 
@@ -1840,7 +1840,7 @@ Le contrôle a également identifié des références documentaires devenues ine
 
 Le contrôle Exercice porte le libellé `Changement de côté` et propose `Aucun`, `D→G`, `G→D`. Sa géométrie suit le Figma courant et le DSF actif. Aucun contrôle de changement de côté n’est exposé au niveau du Circuit.
 
-Dans la Composition actuelle, aucun contrôle de changement de côté n’est affiché dans l’en-tête du Tour. Le cadre `Nombre de tours` reste la seule commande de ce groupe ; les anciennes références Figma de direction Tour sont historiques et ne constituent plus la cible active.
+Dans la Composition actuelle, aucun contrôle de changement de côté n’est affiché dans l’en-tête du Circuit. Le stepper `Nombre de tours` reste la seule commande numérique de ce groupe ; les anciennes références Figma de direction Tour sont historiques et ne constituent plus la cible active.
 
 Aucune confirmation d’activation bilatérale du Tour n’est exposée dans la version actuelle. Le support technique historique du côté Tour reste conservé pour non-régression, fixé à `UNILATERAL` et non modifiable.
 
