@@ -30,7 +30,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Phase de récupération** | Phase d’Exécution positive matérialisée soit par `SIDE_RECOVERY`, entre les deux côtés d’une Activité bilatérale, soit par `POST_ACTIVITY_RECOVERY`, après une occurrence de Séance/Parcours. Elles ont des porteurs et positions distincts et ne sont pas comptées comme des Activités. | |
 | **Durée totale de l’Activité** | Durée intrinsèque calculée d’une Activité en mode Durée : `C×A+(C−1)×B` en unilatéral ; `2×[C×A+(C−1)×B]+S` en bilatéral, avec `S=sideRecoverySeconds`. La Récupération après exercice est exclue. En Répétitions, l’estimation applique la même séparation ; en À l’échec, la Durée totale n’est pas affichée. | |
 | **Tour** | Conteneur ordonné d’Exercices appartenant à une Séance. Le MVP contient exactement un Tour visible, répété de 1 à 99 fois. | Mobilité → gainage, répété 3 fois |
-| **Cycle** | Structure technique unique qui enveloppe les Exercices placées avant le Tour, le Tour et les Exercices placées après le Tour. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur. | Cycle technique × 1 |
+| **Cycle** | Structure technique unique qui enveloppe les Exercices placées avant le Circuit, le Circuit et les Exercices placées après le Circuit. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur. | Cycle technique × 1 |
 | **Routine** | Planification d’un contenu autonome. Dans le MVP, la source est une Séance ou un Exercice persistant ; lorsqu’un Parcours devient planifiable, il utilise la même Routine. Elle est unique ou périodique et possède zéro ou un rappel. | Squats chaque lundi à 8 h |
 | **Occurrence planifiée** | Instance temporelle calculée à partir d’une Routine, pour une Séance ou un Exercice. Une occurrence future peut être exécutée en avance ; une occurrence passée sans Exécution disparaît de l’interface du MVP. | Exercice prévu mardi à 18 h |
 | **Exécution** ou **Exécution de séance** | Réalisation effective d’un contenu. Une Exécution d’origine `SESSION` repose sur un Instantané de séance ; une Exécution directe d’origine `ACTIVITY` repose sur un Instantané autonome d’Activité. | Exécution démarrée à 18 h 03 |
@@ -52,9 +52,9 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Fin de séance** | Phase structurelle chronométrée suivant la dernière Activité. Elle correspond au type d’étape `SESSION_END` du Plan d’Exécution d’une Séance. Sa valeur initiale est 5 s ; 0 s la rend instantanée. Son achèvement termine l’Exécution de Séance. Ce n’est pas une Activité et elle n’est pas déplaçable. |
 | **Série** | Exécution d’une Activité selon sa durée cible, ses Répétitions cibles ou jusqu’à l’échec. Pour une Activité bilatérale autonome, le nombre de Séries s’entend par côté. Pour `C` Séries d’un même côté, une Pause éventuelle intervient exactement `C − 1` fois, uniquement entre Séries successives. La Série n’est pas une entité métier autonome. |
 | **Répétition** | Unité quantitative d’un Exercice non chronométré. Le pluriel `Répétitions` désigne également ce mode d’Exercice dans l’interface. |
-| **Activité avant le Tour** | Activité exécutée une seule fois avant la première répétition du Tour. |
-| **Activité dans le Tour** | Activité exécutée à chaque répétition du Tour. |
-| **Activité après le Tour** | Activité exécutée une seule fois après la dernière répétition du Tour et avant la Fin de séance. |
+| **Exercice avant le Circuit** | Activité exécutée une seule fois avant la première répétition du Tour. |
+| **Activité dans le Circuit** | Activité exécutée à chaque répétition du Tour. |
+| **Exercice après le Circuit** | Activité exécutée une seule fois après la dernière répétition du Tour et avant la Fin de séance. |
 
 ### Direction propre et direction héritée
 
