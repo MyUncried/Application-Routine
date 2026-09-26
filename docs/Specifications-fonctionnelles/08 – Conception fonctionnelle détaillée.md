@@ -197,10 +197,10 @@ Ouvert depuis le Catalogue, `Terminer` crée ou met à jour un Exercice persista
 
 ## 2 bis.3 Ajouter un Exercice à une Séance
 
-Depuis la Composition, `Ajouter une exercice` ouvre directement la sélection des Exercices du Catalogue. La capacité technique et fonctionnelle de créer un Exercice local à la Séance reste conservée mais n’est pas exposée dans le parcours courant.
+Depuis la Composition, `Ajouter un exercice` ouvre directement la sélection des Exercices du Catalogue. La capacité technique et fonctionnelle de créer un Exercice local à la Séance reste conservée mais n’est pas exposée dans le parcours courant.
 
 - `Une nouvelle exercice` ouvre l’éditeur d’une copie appartenant uniquement à la Séance ;
-- `Une exercice existante` ouvre la sélection multiple du Catalogue d’Exercices ;
+- `Un exercice existante` ouvre la sélection multiple du Catalogue d’Exercices ;
 - `Annuler` ferme les options sans modifier le brouillon.
 
 La sélection multiple affiche le nombre `N`, désactive l’ajout pour `N = 0` et insère les copies selon l’ordre courant de présentation dans la liste filtrée au moment de la validation. L’ordre des touchers n’est pas conservé. Chaque copie reprend toutes les propriétés métier et associations média de la référence puis évolue indépendamment. Un Exercice créée dans une Séance n’est pas enregistrée automatiquement dans la bibliothèque.
@@ -256,11 +256,11 @@ Une séance contient obligatoirement un Cycle et un Tour et doit contenir au min
 
 ## 3.3 Les exercices
 
-Une exercice représente une étape élémentaire de la séance.
+Un exercice représente une étape élémentaire de la séance.
 
 Chaque exercice est indépendante des autres.
 
-Une exercice possède notamment :
+Un exercice possède notamment :
 
 - un nom ;
 - une durée cible, un nombre de répétitions cible ou le mode À l’échec sans cible chiffrée ;
@@ -326,7 +326,7 @@ La réorganisation est enregistrée automatiquement.
 
 Une séance est considérée comme valide lorsqu'elle contient au minimum un Exercice.
 
-Une exercice est valide lorsque toutes les informations obligatoires correspondant à son type sont renseignées.
+Un exercice est valide lorsque toutes les informations obligatoires correspondant à son type sont renseignées.
 
 Les exercices incomplètes sont signalées à l'utilisateur.
 
@@ -347,7 +347,7 @@ La durée estimée d’exécution correspond à la somme de toutes les durées d
 Le calcul tient compte :
 
 - du Compte à rebours initial et de la Fin de séance ;
-- de toutes les occurrences d'Exercices chronométrées ;
+- de toutes les occurrences d'Exercices chronométrés ;
 - des Pauses entre Séries effectivement insérées dans le plan ;
 - de `sideRecoverySeconds` dans la durée intrinsèque de chaque Exercice bilatéral ;
 - de `postActivityRecoverySeconds` après chaque occurrence de Séance/Parcours, répété avec l’occurrence lorsqu’elle appartient à un Tour ;
@@ -421,7 +421,7 @@ Le Cycle technique est exécuté une seule fois. Le Tour répète automatiquemen
 
 Les Exercices placés après le Circuit sont exécutés une seule fois après le dernier Tour du Circuit.
 
-Lorsque la dernier Exercice est terminée, le Plan passe à la phase structurelle `SESSION_END`. La Séance n’est considérée comme terminée qu’après l’achèvement de cette phase.
+Lorsque le dernier Exercice est terminée, le Plan passe à la phase structurelle `SESSION_END`. La Séance n’est considérée comme terminée qu’après l’achèvement de cette phase.
 
 ## 4.4 Informations affichées
 
@@ -444,7 +444,7 @@ Le **temps total écoulé** correspond au temps actif réellement passé dans l'
 Il inclut notamment :
 
 - le temps réellement passé dans les Exercices en mode Répétitions ou À l’échec ;
-- les Exercices chronométrées ;
+- les Exercices chronométrés ;
 - les Pauses entre Séries effectivement exécutées ;
 - les phases `SIDE_RECOVERY` et `POST_ACTIVITY_RECOVERY` effectivement exécutées ;
 - les phases chronométrées du Compte à rebours initial et de la Fin de séance.
@@ -461,11 +461,11 @@ Son calcul s'appuie cependant sur les occurrences d'Exercices du plan d'Exécuti
 
 - `N` = nombre total d'Exercices à exécuter dans le plan ;
 - `R` = nombre d’occurrences d’Exercices sans durée cible, en mode Répétitions ou À l’échec ;
-- `T` = somme des durées des occurrences d'Exercices chronométrées du plan.
+- `T` = somme des durées des occurrences d'Exercices chronométrés du plan.
 
 Chaque occurrence d’Exercice en mode Répétitions ou À l’échec reçoit un poids de `1 / N` dans la barre.
 
-La part restante, `1 - R / N`, est répartie entre les occurrences d'Exercices chronométrées proportionnellement à leur durée. Pour un Exercice chronométré de durée `d`, son poids est donc :
+La part restante, `1 - R / N`, est répartie entre les occurrences d'Exercices chronométrés proportionnellement à leur durée. Pour un Exercice chronométré de durée `d`, son poids est donc :
 
 `(1 - R / N) × d / T`
 
@@ -493,7 +493,7 @@ Pendant l'exécution, l'utilisateur peut :
 
 Toutes les autres informations sont consultatives.
 
-## 4.6 Réinitialisation d'une exercice
+## 4.6 Réinitialisation d'un exercice
 
 L'utilisateur peut décider de recommencer l'exercice en cours depuis son début.
 Lorsque cette action est demandée, l'application affiche une demande de confirmation.
@@ -587,7 +587,7 @@ La durée de 30 minutes pourra devenir un paramètre utilisateur dans une versio
 
 ## 4.11 Fin de séance
 
-Lorsque la dernier Exercice est terminée, la phase chronométrée `SESSION_END` démarre. Lorsqu’elle est configurée à `0 s`, elle s’achève immédiatement. Ce n’est qu’après son achèvement que :
+Lorsque le dernier Exercice est terminée, la phase chronométrée `SESSION_END` démarre. Lorsqu’elle est configurée à `0 s`, elle s’achève immédiatement. Ce n’est qu’après son achèvement que :
 
 - l’Exécution est clôturée et enregistrée dans l'historique ;
 - son statut est déterminé automatiquement ;
@@ -806,7 +806,7 @@ Le MVP distingue les statuts suivants :
 |Statut|Description|
 |---|---|
 |Terminée|Toutes les Exercices ont été terminées normalement et `SESSION_END` a été achevée.|
-|Partielle|La séance est arrivée à son terme, mais au moins une exercice chronométrée a été interrompue avant la fin de sa durée.|
+|Partielle|La séance est arrivée à son terme, mais au moins un exercice chronométrée a été interrompue avant la fin de sa durée.|
 |Interrompue|La séance a été arrêtée avant la fin de son exécution.|
 
 Le statut est déterminé automatiquement lors de la fin de la séance.
@@ -931,7 +931,7 @@ Le nom, l’Étiquette/couleur et la Composition sont réunis dans le même écr
 | Exercices | Chaque occurrence est suivie d’une ligne `Récupération {durée}`, y compris `0 s`. Cette ligne porte `postActivityRecoverySeconds`, appartient à l’occurrence et accompagne déplacement, duplication et suppression. Le corps principal de la carte affiche le nom, la Catégorie et les Zones corporelles ; toucher ouvre la modification. |
 | Fin de séance | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 5 s. |
 | Résumé | `N exercice(s) · durée des Exercices`, placé dans l’en-tête du conteneur Tour immédiatement sous `Nombre de tours`. Le nombre porte sur les Exercices seulement ; la durée de Séance intègre les durées intrinsèques des Exercices ainsi que leurs récupérations après exercice. Le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide, affiche exactement `0 exercice · 0 min`, au singulier — exception locale à cet écran (D-091). |
-| Ajouter une exercice | Un seul bouton secondaire `+ Ajouter une exercice`, placé en haut. |
+| Ajouter un exercice | Un seul bouton secondaire `+ Ajouter un exercice`, placé en haut. |
 | Continuer | Désactivé lorsque le nom est vide ou qu’aucun Exercice valide n’est présente ; valide et enregistre la Séance avec son Étiquette éventuelle. |
 
 Le Cycle reste présent dans le modèle avec une répétition toujours égale à 1, mais il n’est jamais affiché ni modifiable dans le MVP. La condition métier d’exécutabilité demeure la présence d’au moins un Exercice valide.
@@ -974,7 +974,7 @@ L’Étiquette est gérée directement dans la Composition via une modale basse.
 | Élément affiché           | Type              | Visible                            | Obligatoire | Valeur par défaut              | Contraintes                                    | Source   | Action         | Remarques                                                                                                                                                                                                                              |
 | ------------------------- | ----------------- | ---------------------------------- | ----------- | ------------------------------ | ---------------------------------------------- | -------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Bouton Retour             | Bouton            | Toujours                           | Oui         | Visible                        | Confirmation si modifications non enregistrées | Système  | Retour         |                                                                                                                                                                                                                                        |
-| Titre de l'écran          | Texte             | Toujours                           | Oui         | "Ajouter une exercice"            | Texte fixe                                     | Statique | Aucune         | En modification : "Modifier une exercice"                                                                                                                                                                                                 |
+| Titre de l'écran          | Texte             | Toujours                           | Oui         | "Ajouter un exercice"            | Texte fixe                                     | Statique | Aucune         | En modification : "Modifier un exercice"                                                                                                                                                                                                 |
 | Nom                       | Champ texte       | Toujours                           | Oui         | Vide                           | 1 à 80 caractères | Exercice | Saisie | Premier élément du bandeau bleu ; même hauteur et alignement que `Nom de la séance` en Composition |
 | Catégorie | Bouton / sélection | Toujours | Non | Aucune | Une Catégorie d’Exercice | Exercice | Ouvrir la modale de sélection | Icône `+` séparée du libellé `Catégorie` |
 | Zones corporelles | Bouton / sélection | Toujours | Non | Aucune | Sélection multiple | Exercice | Ouvrir la modale de sélection | Icône `+` séparée du libellé `Zones corporelles` |
