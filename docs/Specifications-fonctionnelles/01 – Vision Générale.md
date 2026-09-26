@@ -160,4 +160,4 @@ La cible produit considère **Séances, Exercices persistants et Parcours** comm
 
 ## Consolidation du 26 septembre 2026
 
-La terminologie cible distingue **Parcours** (contenu autonome), **Circuit** (groupe répété interne à une Séance) et **Tour** (une répétition du Circuit). La classification n’influence pas l’Exécution : un Exercice requiert une Catégorie et au moins une Zone corporelle ; l’Étiquette de Séance reste facultative. Les préférences Profil initialisent les nouveaux objets sans rétroexercice. Une Séance peut globalement appliquer ou ignorer les Compte à rebours et Fins propres à ses Exercices.
+La terminologie cible distingue **Parcours** (contenu autonome), **Circuit** (groupe répété interne à une Séance) et **Tour** (une répétition du Circuit). La classification n’influence pas l’Exécution : un Exercice requiert une Catégorie et au moins une Zone corporelle ; l’Étiquette de Séance reste facultative. Les préférences Profil initialisent les nouveaux objets sans rétroactivité. Une Séance peut globalement appliquer ou ignorer les Compte à rebours et Fins propres à ses Exercices.
