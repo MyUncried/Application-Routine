@@ -146,7 +146,7 @@ Les Parcours restent préparés conceptuellement et techniquement mais ne sont n
 
 ## Vision de la bilatéralité
 
-La configuration permet de choisir `Aucun`, droite puis gauche, ou gauche puis droite sur un Exercice. Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Tour ; le Tour reste fonctionnellement `UNILATERAL`. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Exercice. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
+La configuration permet de choisir `Aucun`, droite puis gauche, ou gauche puis droite sur un Exercice. Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Circuit ; le Circuit n’a pas de bilatéralité fonctionnelle. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Exercice. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
 
 ## Vision cible — médias pendant l’Exécution
 
