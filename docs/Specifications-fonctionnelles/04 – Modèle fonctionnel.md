@@ -77,7 +77,7 @@ Un **Tour** est un groupe ordonné d'Exercices exécuté intégralement un nombr
 
 ## Exercice
 
-Une **Exercice** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, elle peut exister comme définition persistante autonome du Catalogue des exercices (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération`. Il distingue désormais la **Pause au changement de côté**, propriété intrinsèque éventuelle d’un Exercice bilatéral, et la **Récupération après exercice**, propriété contextuelle d’une occurrence `SessionActivity`/occurrence de Parcours.
+Un **Exercice** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, il peut exister comme définition persistante autonome du Catalogue des exercices (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération`. Il distingue désormais la **Pause au changement de côté**, propriété intrinsèque éventuelle d’un Exercice bilatéral, et la **Récupération après exercice**, propriété contextuelle d’une occurrence `SessionActivity`/occurrence de Parcours.
 
 Un Exercice possède un nombre de **Séries** propre, entier et supérieur ou égal à 1.
 
@@ -201,7 +201,7 @@ Le **Cycle** contient le **Circuit unique** et les Exercices ordonnés avant et 
 
 Le **Circuit** regroupe une suite ordonnée d'Exercices. Les Exercices placés hors du Circuit sont exécutés une seule fois, avant le premier Tour ou après le dernier Tour selon leur position. Dans la version actuelle, aucun réglage de changement de côté n’est exposé au niveau du Circuit ; tout support technique historique de cette propriété reste fixé à `UNILATERAL` et non modifiable. La bilatéralité reste portée par les Exercices.
 
-Une **Exercice** possède un mode `Durée`, `Répétitions` ou `À l’échec`, un nombre de Séries propre, une Pause facultative entre Séries et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative entre les deux côtés. La Récupération après exercice n’est pas une propriété intrinsèque de l’Exercice : elle appartient à l’occurrence contextualisée. L’Exercice peut également définir un Compte à rebours propre et une Fin d’exercice propre, distincts des phases structurelles de la Séance.
+Un **Exercice** possède un mode `Durée`, `Répétitions` ou `À l’échec`, un nombre de Séries propre, une Pause facultative entre Séries et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative entre les deux côtés. La Récupération après exercice n’est pas une propriété intrinsèque de l’Exercice : elle appartient à l’occurrence contextualisée. L’Exercice peut également définir un Compte à rebours propre et une Fin d’exercice propre, distincts des phases structurelles de la Séance.
 
 Dans le MVP :
 - une Séance contient exactement un Cycle technique ;
@@ -240,7 +240,7 @@ Dans l’interface de Composition, un appui long sur la carte d’une **Exercice
 
 # 4.5 Structure d'un Exercice
 
-Une **Exercice** est une unité exécutable autonome dans son modèle fonctionnel, qu’elle soit définie comme `ActivityDefinition` dans le Catalogue ou copiée comme `SessionActivity` dans une Séance.
+Un **Exercice** est une unité exécutable autonome dans son modèle fonctionnel, qu’elle soit définie comme `ActivityDefinition` dans le Catalogue ou copiée comme `SessionActivity` dans une Séance.
 
 Les propriétés intrinsèques communes portent notamment :
 - une identité, un nom et une Description facultative ;
