@@ -81,7 +81,7 @@ L'utilisateur peut consulter et sélectionner les Étiquettes de Séance et les 
 ## Référentiel des zones corporelles
 
 Les zones corporelles permettent de caractériser les exercices selon les parties du corps principalement sollicitées.
-Un Exercice peut être associée à zéro, une ou plusieurs zones corporelles.
+Un Exercice valide possède une ou plusieurs Zones corporelles ; la sélection reste multiple.
 
 Dans le MVP, les Zones corporelles constituent un référentiel utilisateur administrable, initialisé avec dix valeurs par défaut. L’utilisateur peut consulter et sélectionner plusieurs Zones corporelles lors de la création ou de la modification d’un Exercice. Il peut également créer une nouvelle Zone corporelle, renommer une Zone existante et supprimer une Zone. Lorsqu’une Zone supprimée est utilisée par des Exercices courants, ses associations sont retirées après confirmation ; les Instantanés et Exécutions historiques restent inchangés.
 
