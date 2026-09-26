@@ -36,7 +36,7 @@ Elle ne déclenche aucun export PNG. Elle constitue la base de contrôle de la p
 | # | Node Figma | Frame | Nature | Copie dans 06 ? | Copie actuelle | Action | Cible PNG proposée | Réf. dans 06 | Justification |
 |---:|---|---|---|:---:|---|---|---|---:|---|
 | 1 | `1992:375` | Profil — Vue d'ensemble - Vibration désactivée | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-1-profil.png | REMPLACER | images/ecran-1-profil.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
-| 2 | `1992:469` | Splash — Kodjo (proposition métallisée) | À CLARIFIER | À CLARIFIER | images/ecran-0-splash-kodjo.png | À CLARIFIER | images/ecran-0-splash-kodjo.png | 1 | La frame est nommée `proposition métallisée` dans Figma mais sert actuellement de Splash actif dans le chapitre 06. Aucun remplacement/suppression silencieux avant arbitrage. |
+| 2 | `1992:469` | Splash — Kodjo | ACTIF | RÉFÉRENCE | images/ecran-0-splash-kodjo.png | À RECOPIER lors du prochain réexport | images/ecran-0-splash-kodjo.png | 1 | Splash actif unique de la page Prototype MVP ; D-218 clôt l’ancien À CLARIFIER. |nommée `proposition métallisée` dans Figma mais sert actuellement de Splash actif dans le chapitre 06. Aucun remplacement/suppression silencieux avant arbitrage. |
 | 3 | `1992:474` | Profil — Roulette compte à rebours initial ouverte | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-1c-profil-compte-rebours-ouvert.png | REMPLACER | images/ecran-1c-profil-compte-rebours-ouvert.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 4 | `1992:579` | Profil — Roulette fin de séance ouverte | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-1d-profil-fin-seance-ouverte.png | REMPLACER | images/ecran-1d-profil-fin-seance-ouverte.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 5 | `1992:684` | Profil — Vue d'ensemble - Vibration activée | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-1b-profil-vibration-activee.png | REMPLACER | images/ecran-1b-profil-vibration-activee.png | 2 | Frame active de premier niveau représentant un état utilisateur distinct. |
@@ -162,7 +162,7 @@ Elle ne déclenche aucun export PNG. Elle constitue la base de contrôle de la p
 
 ### Splash `1992:469`
 
-La frame `1992:469 — Splash — Kodjo (proposition métallisée)` est explicitement nommée **proposition** dans Figma, alors que le chapitre 06 l’utilise actuellement comme `Écran 0 – Splash KODJO`. Statut : **À CLARIFIER**. Aucun arbitrage n’est inféré.
+La frame `1992:469 — Splash — Kodjo` est la référence active et unique du Splash dans `Prototype MVP` (D-218).nt nommée **proposition** dans Figma, alors que le chapitre 06 l’utilise actuellement comme `Écran 0 – Splash KODJO`. Statut : **À CLARIFIER**. Aucun arbitrage n’est inféré.
 
 ## Référentiels — suppression par appui long
 
@@ -173,7 +173,7 @@ Les trois nouveaux états Figma suivants matérialisent D-200 et doivent être r
 
 ## Utilisation pour la phase de réexport
 
-1. résoudre le seul point `À CLARIFIER` avant export global ;
+1. aucun arbitrage Splash ne reste ouvert ; utiliser la frame active `1992:469` ;
 2. exporter uniquement les lignes `Copie dans 06 ? = OUI` depuis leur node Figma courant ;
 3. remplacer les fichiers existants indiqués `REMPLACER` sans changer leurs noms ;
 4. créer uniquement les nouveaux PNG indiqués `AJOUTER` ;
