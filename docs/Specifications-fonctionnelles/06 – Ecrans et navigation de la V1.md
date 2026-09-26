@@ -374,7 +374,7 @@ Les mêmes termes sont utilisés dans toute l’application :
 - `Récupération après exercice` : durée contextuelle portée par chaque occurrence d’Activité dans une Séance/Parcours, visible y compris à `0 s` et exécutée après l’occurrence lorsqu’elle est positive ;
 - `Série` : répétition propre à un Exercice ;
 - `Tour` : groupe ordonné d’Exercices exécuté intégralement un nombre défini de fois ;
-- `Cycle` : structure technique unique, fixée à une répétition et jamais affichée dans le MVP ; elle ordonne les Exercices placées avant le Tour, le Tour et les Exercices placées après le Tour ;
+- `Cycle` : structure technique unique, fixée à une répétition et jamais affichée dans le MVP ; elle ordonne les Exercices placées avant le Circuit, le Tour et les Exercices placées après le Circuit ;
 - `Exécution de séance` : réalisation effective d’une Séance.
 
 ## Écran 1 – Profil
@@ -633,9 +633,9 @@ La Composition est présentée comme une structure hiérarchique ordonnée et no
 Elle comprend dans le MVP :
 
 - un `Compte à rebours initial` ;
-- zéro, une ou plusieurs Exercices placées avant le Tour ;
+- zéro, une ou plusieurs Exercices placées avant le Circuit ;
 - un `Tour` unique, qui peut lui-même contenir des Exercices ;
-- zéro, une ou plusieurs Exercices placées après le Tour ;
+- zéro, une ou plusieurs Exercices placées après le Circuit ;
 - une `Fin de séance`.
 
 Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Exercices. Ils sont non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
@@ -675,11 +675,11 @@ Toute roulette numérique de l’application produit un retour haptique léger e
 
 Un seul bouton secondaire `+ Ajouter une activité` est affiché en haut de l’écran de Composition.
 
-Aucun bouton `＋` intermédiaire n’est affiché dans le Tour ou entre les Exercices.
+Aucun bouton `＋` intermédiaire n’est affiché dans le Circuit ou entre les Exercices.
 
 Un appui sur `Ajouter une activité` ouvre directement la sélection multiple des références persistantes du Catalogue. La validation est désactivée lorsque la sélection est vide et les Exercices validées sont insérées dans l’ordre courant de la liste filtrée, non dans l’ordre des touchers. Le mécanisme de création directe d’une Activité locale à la Séance est conservé dans le produit mais n’est pas proposé par l’enchaînement d’écrans courant.
 
-La première Activité créée est insérée immédiatement après le Compte à rebours initial et avant le Tour. Les Exercices suivantes sont insérées après la dernière Activité ajoutée, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Tour, dans le Tour ou après le Tour. La réorganisation est déclenchée par un appui long sur l’ensemble de la carte ; la poignée reste un indicateur visuel et ne constitue pas la seule zone de déclenchement.
+La première Activité créée est insérée immédiatement après le Compte à rebours initial et avant le Circuit. Les Exercices suivantes sont insérées après la dernière Activité ajoutée, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Circuit, dans le Circuit ou après le Circuit. La réorganisation est déclenchée par un appui long sur l’ensemble de la carte ; la poignée reste un indicateur visuel et ne constitue pas la seule zone de déclenchement.
 
 La poignée de chaque carte d’Activité est exclusivement une instance du composant DSF `Icon / Structure / Movable` (`3066:4676`) : dessin `20 × 20` centré dans un slot `28 × 28`, opacité `50 %`, couleur `color.iconNeutral`. Le dessin local historique `icon/réorganiser` en `16 × 16` et l’application du token `icon.compact` à cette poignée sont interdits.
 
@@ -717,7 +717,7 @@ Dans l’état Figma `Composition d’une séance — actions glissées` (`2028:
 
 ### Réorganisation
 
-Les Exercices peuvent être réorganisées dans leur zone ou déplacées par glisser-déposer avant le Tour, dans le Tour ou après le Tour. Le geste commence par un appui long sur le bloc complet ; l’occurrence et sa ligne de Récupération après exercice passent ensemble dans l’état soulevé, puis suivent le glissement jusqu’à une position de dépose valide. Un toucher court conserve son comportement d’ouverture de l’Activité en modification. Le déplacement conserve l’identifiant et tous les paramètres, met à jour la position structurelle et renumérote continûment les positions de chaque zone. Il ne persiste rien avant l’enregistrement final.
+Les Exercices peuvent être réorganisées dans leur zone ou déplacées par glisser-déposer avant le Circuit, dans le Circuit ou après le Circuit. Le geste commence par un appui long sur le bloc complet ; l’occurrence et sa ligne de Récupération après exercice passent ensemble dans l’état soulevé, puis suivent le glissement jusqu’à une position de dépose valide. Un toucher court conserve son comportement d’ouverture de l’Activité en modification. Le déplacement conserve l’identifiant et tous les paramètres, met à jour la position structurelle et renumérote continûment les positions de chaque zone. Il ne persiste rien avant l’enregistrement final.
 
 L’état Figma `Composition d'une séance — Appui long — carte soulevée` (`3518:4576`) matérialise ce retour visuel. Avec Récupération, le bloc actif passe de `354 × 93` à `362 × 97`, reste centré dans la section (`x = 6`, contre `x = 10` au repos), utilise le fond bleu très clair `#F7F7FF`, un contenu atténué, un contour `1` point `#D1D1D6`, un rayon `12` et une ombre périphérique `#14171F` à `22 %`, décalage `0 / 0`, flou `10`, étalement `2`. L’ombre et le contour entourent l’Activité et sa Récupération. Les autres cartes et éléments structurels restent inchangés.
 
@@ -1792,7 +1792,7 @@ Lorsqu’une nouvelle frame de premier niveau est ajoutée au `Prototype MVP`, e
 
 ### État des lieux Figma ↔ chapitre 06 — 24 septembre 2026
 
-Un contrôle direct de la page Figma `Prototype MVP` recense actuellement **122 frames de premier niveau**, dont **13** explicitement nommées `HISTORIQUE`, `PROPOSITION`/`Proposition`, `Comparaison` ou `Avant / Après`. Après ces exclusions nominales, **109 frames de premier niveau actives** restent à qualifier. Le Splash `1992:469`, bien que nommé `proposition métallisée`, reste traité séparément comme `À CLARIFIER` car il est actuellement utilisé comme référence active dans ce chapitre.
+Un contrôle direct de la page Figma `Prototype MVP` recense actuellement **122 frames de premier niveau**, dont **13** explicitement nommées `HISTORIQUE`, `PROPOSITION`/`Proposition`, `Comparaison` ou `Avant / Après`. Après ces exclusions nominales, **109 frames de premier niveau actives** restent à qualifier. Le Splash `1992:469` est la référence active et unique de la page `Prototype MVP` conformément à D-218.
 
 Avant cette passe, **77** de ces frames étaient déjà référencées par leur node dans le chapitre 06 et **30** ne l’étaient pas. La présente mise à jour traite ces 30 écarts selon leur nature. Après correction, les **109 frames actives** sont toutes soit référencées explicitement dans ce chapitre, soit classées comme planches de référence de composant lorsqu’elles ne constituent pas un écran autonome.
 
