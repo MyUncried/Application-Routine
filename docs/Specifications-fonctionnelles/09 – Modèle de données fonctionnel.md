@@ -248,7 +248,7 @@ Le Cycle et le Circuit sont des structures internes de la Séance et ne peuvent 
 | Position              | Position du Cycle dans la Séance         | Obligatoire | Entier déterminant l’ordre d’exécution ; valeur 1 dans le MVP                            |
 | Nombre de répétitions | Nombre d’exécutions successives du Cycle | Obligatoire | Valeur imposée **1** dans le MVP ; non modifiable et non exposée dans l’interface       |
 | Tours                 | Collection ordonnée des Tours du Cycle   | Obligatoire | Exactement 1 Tour dans le MVP ; extensible à plusieurs Tours dans une version ultérieure |
-| Exercices hors Tour   | Exercices ordonnés avant ou après le Circuit | Obligatoire | Zéro ou plusieurs ; exécutées une seule fois selon leur position structurelle |
+| Exercices hors Circuit   | Exercices ordonnés avant ou après le Circuit | Obligatoire | Zéro ou plusieurs ; exécutées une seule fois selon leur position structurelle |
 #### Attributs fonctionnels du Tour
 
 | Attribut              | Description                               |  Caractère  | Règle principale                                              |
