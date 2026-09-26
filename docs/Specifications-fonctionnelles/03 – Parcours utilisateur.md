@@ -13,22 +13,22 @@ Le MVP permet à l'utilisateur :
 - de gérer les Étiquettes de Séances, les Catégories d’Exercices et le référentiel de Zones corporelles, puis de sélectionner les Zones corporelles applicables aux Exercices ;
 - de créer, réorganiser et exécuter une séance ;
 - de créer une séance à partir de la duplication d'une séance existante ;
-- de planifier directement une Séance **ou une Exercice persistante** au moyen d'une Routine ;
+- de planifier directement une Séance **ou un Exercice persistante** au moyen d'une Routine ;
 - de modifier ou supprimer une routine ;
 - de gérer une séance partiellement réalisée ou interrompue ;
 - de consulter les Exécutions enregistrées dans le Suivi ;
 - d’accéder au Catalogue des Exercices, d’y créer et modifier des Exercices persistantes ;
-- de sélectionner plusieurs Exercices existantes pour les insérer dans une Séance ;
-- d’exécuter directement une Exercice avec préparation, Synthèse et Suivi.
+- de sélectionner plusieurs Exercices existants pour les insérer dans une Séance ;
+- d’exécuter directement un Exercice avec préparation, Synthèse et Suivi.
 ## Parcours de référence
 
 | Tranche          | Besoin utilisateur                            | Parcours de référence                                                          | Statut documentaire   |
 | ---------------- | --------------------------------------------- | ------------------------------------------------------------------------------ | --------------------- |
 | T01–T02          | Gérer Étiquettes, Catégories et Zones corporelles | Gestion des référentiels utilisateur                                        | Spécifié MVP          |
 | T01–T02          | Créer et réorganiser une Séance               | Parcours principal — Créer une Séance                                          | Spécifié MVP          |
-| T03              | Gérer des Exercices persistantes              | Accéder au Catalogue des Exercices ; créer, consulter ou modifier une Exercice | Spécifié MVP          |
-| T03              | Ajouter des Exercices existantes à une Séance | Sélectionner plusieurs Exercices existantes depuis la Composition              | Spécifié MVP          |
-| T03              | Exécuter directement une Exercice             | Préparation de 5 s, Exécution, Synthèse obligatoire et retour au Catalogue     | Spécifié MVP          |
+| T03              | Gérer des Exercices persistantes              | Accéder au Catalogue des Exercices ; créer, consulter ou modifier un Exercice | Spécifié MVP          |
+| T03              | Ajouter des Exercices existants à une Séance | Sélectionner plusieurs Exercices existants depuis la Composition              | Spécifié MVP          |
+| T03              | Exécuter directement un Exercice             | Préparation de 5 s, Exécution, Synthèse obligatoire et retour au Catalogue     | Spécifié MVP          |
 | T04              | Exécuter une Séance                           | Exécution guidée fondamentale, auparavant T03                                  | Spécifié MVP          |
 | T05 et suivantes | Dupliquer, planifier et suivre les Séances    | Parcours complémentaires 1 à 4                                                 | Spécifié MVP          |
 | Hors MVP         | Créer et exécuter un Parcours                  | Parcours de création et d’exécution d’un Parcours                                                               | Partiel — à compléter |
@@ -64,7 +64,7 @@ Les référentiels utilisés dans le MVP sont de deux natures :
 ## Gestion des Étiquettes et des Catégories
 
 Les Étiquettes classent les Séances et portent leur couleur. Les Catégories classent les Exercices et portent leur couleur sémantique. Les Zones corporelles restent un référentiel distinct.
-Une Séance utilise son Étiquette pour son classement et sa couleur. Une Exercice utilise sa Catégorie ; les Zones corporelles restent indépendantes. La gestion détaillée de ces référentiels suit les écrans et contrats actifs.
+Une Séance utilise son Étiquette pour son classement et sa couleur. Un Exercice utilise sa Catégorie ; les Zones corporelles restent indépendantes. La gestion détaillée de ces référentiels suit les écrans et contrats actifs.
 
 L'utilisateur peut consulter et sélectionner les Étiquettes de Séance et les Catégories d’Exercice selon le contexte d’écran.
 
@@ -76,14 +76,14 @@ L'utilisateur peut consulter et sélectionner les Étiquettes de Séance et les 
 4. Créer ou sélectionner une Catégorie depuis l’éditeur d’Exercice ; les Zones corporelles restent un référentiel distinct.
 5. Ouvrir la sélection `Zones corporelles`, sélectionner une ou plusieurs Zones existantes ou créer une nouvelle Zone directement depuis la modale. La gestion du référentiel autorise également le renommage et la suppression des Zones existantes.
 6. Dans les modales `Étiquettes`, `Catégorie` et `Zones corporelles`, un appui court conserve sa fonction de sélection/désélection. Un appui long sur une option n’en modifie pas la sélection et ouvre une confirmation de suppression.
-7. La confirmation propose `Annuler` et `Supprimer`. Toutes les options sont supprimables, y compris les valeurs initiales fournies par KODJO. Après `Supprimer`, l’option disparaît du référentiel et de la sélection courante. Si elle est utilisée par des Séances ou Exercices existantes, ses associations courantes sont retirées ; les Instantanés et Exécutions historiques restent inchangés.
+7. La confirmation propose `Annuler` et `Supprimer`. Toutes les options sont supprimables, y compris les valeurs initiales fournies par KODJO. Après `Supprimer`, l’option disparaît du référentiel et de la sélection courante. Si elle est utilisée par des Séances ou Exercices existants, ses associations courantes sont retirées ; les Instantanés et Exécutions historiques restent inchangés.
 
 ## Référentiel des zones corporelles
 
 Les zones corporelles permettent de caractériser les exercices selon les parties du corps principalement sollicitées.
-Une Exercice peut être associée à zéro, une ou plusieurs zones corporelles.
+Un Exercice peut être associée à zéro, une ou plusieurs zones corporelles.
 
-Dans le MVP, les Zones corporelles constituent un référentiel utilisateur administrable, initialisé avec dix valeurs par défaut. L’utilisateur peut consulter et sélectionner plusieurs Zones corporelles lors de la création ou de la modification d’une Exercice. Il peut également créer une nouvelle Zone corporelle, renommer une Zone existante et supprimer une Zone. Lorsqu’une Zone supprimée est utilisée par des Exercices courantes, ses associations sont retirées après confirmation ; les Instantanés et Exécutions historiques restent inchangés.
+Dans le MVP, les Zones corporelles constituent un référentiel utilisateur administrable, initialisé avec dix valeurs par défaut. L’utilisateur peut consulter et sélectionner plusieurs Zones corporelles lors de la création ou de la modification d’un Exercice. Il peut également créer une nouvelle Zone corporelle, renommer une Zone existante et supprimer une Zone. Lorsqu’une Zone supprimée est utilisée par des Exercices courants, ses associations sont retirées après confirmation ; les Instantanés et Exécutions historiques restent inchangés.
 
 # Parcours principal — Créer et exécuter une séance
 
@@ -105,7 +105,7 @@ Il peut créer une séance entièrement nouvelle ou partir d'une copie d'une sé
 
 L'utilisateur crée une nouvelle séance depuis le Catalogue.
 
-Dans l’écran unique `Composition d’une séance`, il renseigne son nom, sélectionne éventuellement son Étiquette — dont la couleur devient la couleur affichée de la Séance — puis construit progressivement la Composition. La Composition peut contenir un Point d’arrêt déplaçable ; son attente ne compte pas dans la durée. Une Exercice peut définir son propre Compte à rebours et sa propre Fin d’exercice, distincts des phases structurelles de la Séance. Les Exercices peuvent être placées avant le Circuit, dans le Circuit ou après le Circuit. Le premier Exercice ajouté est inséré après le Compte à rebours initial et avant le Circuit. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
+Dans l’écran unique `Composition d’une séance`, il renseigne son nom, sélectionne éventuellement son Étiquette — dont la couleur devient la couleur affichée de la Séance — puis construit progressivement la Composition. La Composition peut contenir un Point d’arrêt déplaçable ; son attente ne compte pas dans la durée. Un Exercice peut définir son propre Compte à rebours et sa propre Fin d’exercice, distincts des phases structurelles de la Séance. Les Exercices peuvent être placées avant le Circuit, dans le Circuit ou après le Circuit. Le premier Exercice ajouté est inséré après le Compte à rebours initial et avant le Circuit. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
 
 Pour chaque Exercice, un écran unique permet de renseigner le nom, la Catégorie, les Zones corporelles, le mode Durée, Répétitions ou À l’échec, la cible éventuelle, le nombre de Séries, la Pause entre Séries, le Changement de côté, la **Pause au changement de côté** lorsque l’Exercice est bilatérale, le Compte à rebours propre et la Fin d’exercice propre. La Description reste facultative. L’action `Terminer` enregistre l’Exercice.
 
@@ -282,7 +282,7 @@ La séance peut avoir été lancée directement ou à partir d'une routine plani
 6. Lorsque l'écran de Synthèse est présenté, l'utilisateur doit renseigner un ressenti et peut ajouter un commentaire facultatif de **200 caractères maximum**. En cas d'interruption technique sans passage par la Synthèse, le ressenti peut être absent.
 7. La séance est enregistrée dans l'historique avec son statut :
 - Terminée : toutes les Exercices ont été terminées normalement et la phase `SESSION_END` a été achevée.
-- Partielle : la phase `SESSION_END` a été achevée, mais au moins une Exercice a été interrompue ou ignorée.
+- Partielle : la phase `SESSION_END` a été achevée, mais au moins un Exercice a été interrompue ou ignorée.
 - Interrompue : l'Exécution a été arrêtée avant l'achèvement de `SESSION_END`, y compris pendant cette phase.
 ## Points d'attention
 
@@ -335,7 +335,7 @@ L'utilisateur dispose d'un historique fiable de toutes ses exécutions et peut s
 1. Ouvrir le Catalogue puis sélectionner `Exercices`.
 2. Consulter la liste des Exercices persistantes.
 3. Utiliser la surface d’une carte pour ouvrir l’Exercice en consultation ou modification.
-4. Utiliser le bouton Lecture pour lancer directement une Exercice valide.
+4. Utiliser le bouton Lecture pour lancer directement un Exercice valide.
 5. Utiliser `Créer` pour ouvrir directement la création correspondant au Catalogue courant.
 
 La recherche, les filtres et la position de défilement appartiennent à l’état du Catalogue et sont restaurés au retour d’une consultation, d’une modification ou d’une Exécution directe.
@@ -344,13 +344,13 @@ La recherche, les filtres et la position de défilement appartiennent à l’ét
 
 `Créer` est contextuel au Catalogue affiché et ne présente aucun écran ni arbre intermédiaire :
 
-1. dans le Catalogue `Exercices`, `Créer` ouvre directement le formulaire de création d’une Exercice persistante ;
+1. dans le Catalogue `Exercices`, `Créer` ouvre directement le formulaire de création d’un Exercice persistante ;
 2. dans le Catalogue `Séances`, `Créer` ouvre directement une nouvelle Composition de Séance ;
 3. dans le Catalogue `Parcours`, le même principe ouvre directement la création d’un Parcours lorsque ce Catalogue devient fonctionnel.
 
 Dans T03/MVP, `Parcours` reste désactivé : cette règle n’active ni le Catalogue ni la création de Parcours.
 
-## Créer ou modifier une Exercice
+## Créer ou modifier un Exercice
 
 1. Depuis le Catalogue des Exercices, utiliser `Créer` pour ouvrir une nouvelle `ActivityDefinition`, ou toucher une carte existante pour la modifier.
 2. Renseigner le nom de l’Exercice.
@@ -370,11 +370,11 @@ Dans T03/MVP, `Parcours` reste désactivé : cette règle n’active ni le Catal
 
 Les paramètres métier restent identiques entre création et modification ; seule l’organisation de l’écran et le contexte de retour diffèrent.
 
-### Déroulement d’une Exercice
+### Déroulement d’un Exercice
 
 Lorsqu’elle est exécutée, l’Exercice suit son propre enchaînement intrinsèque : Compte à rebours d’Exercice éventuel → Séries du premier côté → Pause au changement de côté éventuelle → Séries du second côté → Fin d’exercice éventuelle. Les Pauses n’existent qu’entre Séries successives d’un même côté. Dans une Séance/Parcours, la Récupération après exercice de l’occurrence est exécutée ensuite ; en Exécution directe, elle n’existe pas.
 
-## Ajouter une Exercice depuis une Composition
+## Ajouter un Exercice depuis une Composition
 
 1. Appuyer sur `Ajouter une exercice`.
 2. Le parcours actuellement exposé ouvre directement la sélection des Exercices du Catalogue.
@@ -382,9 +382,9 @@ Lorsqu’elle est exécutée, l’Exercice suit son propre enchaînement intrins
 4. Valider avec `Ajouter N exercice(s)`.
 5. Les copies sont insérées dans la Composition et deviennent indépendantes de leur `ActivityDefinition` source.
 
-La capacité existante de créer directement une Exercice locale à la Séance, non enregistrée dans le Catalogue, reste fonctionnellement et techniquement conservée mais n’est pas exposée dans cet enchaînement d’écrans du MVP courant.
+La capacité existante de créer directement un Exercice locale à la Séance, non enregistrée dans le Catalogue, reste fonctionnellement et techniquement conservée mais n’est pas exposée dans cet enchaînement d’écrans du MVP courant.
 
-## Utiliser une Exercice de référence
+## Utiliser un Exercice de référence
 
 1. Ouvrir `Exercices` dans le Catalogue.
 2. Créer une référence d’Exercice persistante, réutilisable et directement exécutable.
@@ -392,7 +392,7 @@ La capacité existante de créer directement une Exercice locale à la Séance, 
 4. L’application copie ses données et ses associations média dans la Séance.
 5. Modifier librement la copie sans modifier la référence ni les autres copies.
 
-Une Exercice créée directement dans une Séance ne rejoint pas le catalogue. L’action `Enregistrer dans mes exercices` est reportée au-delà de la première version de la bibliothèque.
+Un Exercice créée directement dans une Séance ne rejoint pas le catalogue. L’action `Enregistrer dans mes exercices` est reportée au-delà de la première version de la bibliothèque.
 
 ## Exécuter un Exercice À l’échec — MVP
 
@@ -415,13 +415,13 @@ En cas d’arrêt confirmé, le Parcours, la Séance courante et les résultats 
 2. Aucun réglage de côté n’est exposé au niveau du Tour dans la version actuelle ; le support technique historique est conservé mais reste fixé à `UNILATERAL` et non modifiable.
 3. Une carte d’Exercice affiche sa direction propre `D→G` ou `G→D` lorsqu’elle est bilatérale ; elle n’affiche rien avec `Aucun`.
 4. À l’Exécution, `Côté droit` ou `Côté gauche` apparaît pour le passage concerné, sans compteur `1/2` ou `2/2`.
-5. Une Exercice bilatérale termine toutes ses Séries du premier côté puis toutes celles du second.
+5. Un Exercice bilatérale termine toutes ses Séries du premier côté puis toutes celles du second.
 6. La modale générique de passage à l’Exercice suivante reste inchangée. Confirmée pendant le premier côté, elle enregistre ce côté comme partiel et ouvre le second côté ; confirmée pendant le second, elle poursuit le Plan d’Exécution.
 
-## Exécuter directement une Exercice — MVP T03
+## Exécuter directement un Exercice — MVP T03
 
 1. Ouvrir `Exercices` dans le Catalogue.
-2. Appuyer sur l’action `Exécuter` d’une Exercice valide.
+2. Appuyer sur l’action `Exécuter` d’un Exercice valide.
 3. Le système fige un instantané autonome et affiche une préparation de `5 s`.
 4. Après la préparation système, exécuter le Compte à rebours propre éventuel de l’Exercice, puis les Séries, Pauses, côtés, la Récupération et la Fin d’exercice éventuelle selon la définition figée.
 5. Après la dernière phase propre à l’Exercice, entendre le signal de fin et ouvrir immédiatement la Synthèse.
@@ -429,7 +429,7 @@ En cas d’arrêt confirmé, le Parcours, la Séance courante et les résultats 
 7. Appuyer sur `Terminer` pour enregistrer l’Exécution dans le Suivi général avec l’origine `ACTIVITY`.
 8. Revenir au Catalogue des Exercices avec recherche, filtres et position de défilement restaurés.
 
-## Consulter ou modifier une Exercice depuis le Catalogue — MVP T03
+## Consulter ou modifier un Exercice depuis le Catalogue — MVP T03
 
 1. Ouvrir `Exercices` dans le Catalogue.
 2. Appuyer sur la surface de la carte, hors bouton Lecture.
@@ -438,7 +438,7 @@ En cas d’arrêt confirmé, le Parcours, la Séance courante et les résultats 
 
 Le bouton Lecture reste réservé à l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé à l’Exercice, sans modifier l’action principale de la carte.
 
-## Ajouter plusieurs Exercices existantes à une Composition — MVP T03
+## Ajouter plusieurs Exercices existants à une Composition — MVP T03
 
 1. Depuis `Ajouter une exercice` dans la Composition, ouvrir le Catalogue d’Exercices présenté pour la sélection.
 2. Rechercher ou filtrer le Catalogue.
@@ -447,7 +447,7 @@ Le bouton Lecture reste réservé à l’Exécution directe. Le contrôle `Dépl
 5. Appuyer sur `Ajouter N exercice(s)`.
 6. Retrouver la Composition avec les copies insérées selon l’ordre de présentation qu’avaient les Exercices dans la liste filtrée au moment de la validation.
 
-`Annuler` ferme le panneau sans insertion et restaure la Composition, sa position de défilement et ses valeurs déjà saisies. Le mécanisme existant de création directe d’une Exercice locale à la Séance reste conservé fonctionnellement et techniquement, mais il n’est pas exposé dans cet enchaînement d’écrans du MVP courant.
+`Annuler` ferme le panneau sans insertion et restaure la Composition, sa position de défilement et ses valeurs déjà saisies. Le mécanisme existant de création directe d’un Exercice locale à la Séance reste conservé fonctionnellement et techniquement, mais il n’est pas exposé dans cet enchaînement d’écrans du MVP courant.
 
 # Parcours prévus pour une phase ultérieure
 
