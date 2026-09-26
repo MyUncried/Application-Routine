@@ -117,10 +117,10 @@ En mode Durée, l’utilisateur peut confirmer soit `Séries`, soit `Durée tota
 À tout moment, l'utilisateur peut revenir modifier une séance existante.
 
 Il peut notamment :
-- ajouter une exercice ;
-- supprimer une exercice ;
-- modifier une exercice ;
-- déplacer une exercice par appui long sur sa carte, puis glissement vers la position cible ;
+- ajouter un exercice ;
+- supprimer un exercice ;
+- modifier un exercice ;
+- déplacer un exercice par appui long sur sa carte, puis glissement vers la position cible ;
 - modifier le nombre de Tours du Circuit ;
 - modifier les paramètres généraux de la séance.
 
@@ -265,13 +265,13 @@ La séance peut avoir été lancée directement ou à partir d'une routine plani
     - mettre la séance en pause ;
     - reprendre la séance ;
     - passer directement à l'exercice suivante ;
-    - ignorer une exercice ;
-    - terminer une exercice avant son terme ;
+    - ignorer un exercice ;
+    - terminer un exercice avant son terme ;
     - interrompre complètement la séance.
 3. En cas d'interruption volontaire, l'application lui propose :
     - de reprendre immédiatement ;
     - d'arrêter définitivement la séance.
-4. Si la séance est reprise, l'exécution reprend à la dernière exercice enregistrée.
+4. Si la séance est reprise, l'exécution reprend à le dernier exercice enregistrée.
 5. Lorsque la séance est terminée ou abandonnée, l'application présente un récapitulatif indiquant notamment :
     - les exercices réalisées ;
     - les exercices partiellement réalisées ;
@@ -376,7 +376,7 @@ Lorsqu’elle est exécutée, l’Exercice suit son propre enchaînement intrins
 
 ## Ajouter un Exercice depuis une Composition
 
-1. Appuyer sur `Ajouter une exercice`.
+1. Appuyer sur `Ajouter un exercice`.
 2. Le parcours actuellement exposé ouvre directement la sélection des Exercices du Catalogue.
 3. Rechercher ou filtrer les Exercices puis sélectionner une ou plusieurs références.
 4. Valider avec `Ajouter N exercice(s)`.
@@ -440,7 +440,7 @@ Le bouton Lecture reste réservé à l’Exécution directe. Le contrôle `Dépl
 
 ## Ajouter plusieurs Exercices existants à une Composition — MVP T03
 
-1. Depuis `Ajouter une exercice` dans la Composition, ouvrir le Catalogue d’Exercices présenté pour la sélection.
+1. Depuis `Ajouter un exercice` dans la Composition, ouvrir le Catalogue d’Exercices présenté pour la sélection.
 2. Rechercher ou filtrer le Catalogue.
 3. Sélectionner une ou plusieurs cartes ; l’ordre des touchers est libre.
 4. Vérifier le nombre indiqué par `Ajouter N exercice(s)`.
