@@ -89,7 +89,7 @@ UTILISATEUR
 ├── possède 0..n SÉANCES
 │       │
 │       ├── porte une ÉTIQUETTE de Séance
-│       ├── contient 0..n ACTIVITÉS AVANT LE CYCLE
+│       ├── contient 0..n EXERCICES AVANT LE CYCLE
 │       ├── contient 1 CYCLE
 │       │      │
 │       │      ├── nombre de répétitions
@@ -98,7 +98,7 @@ UTILISATEUR
 │       │      │      ├── nombre de répétitions
 │       │      │      └── contient 0..n EXERCICES DANS LE CIRCUIT
 │       │      └── contient 0..n EXERCICES APRÈS LE CIRCUIT ET DANS LE CYCLE
-│       └── contient 0..n ACTIVITÉS APRÈS LE CYCLE ET AVANT LA FIN DE SÉANCE
+│       └── contient 0..n EXERCICES APRÈS LE CYCLE ET AVANT LA FIN DE SÉANCE
 │
 ├── possède 0..n ROUTINES
 │       └── planifie 1 SÉANCE
