@@ -121,7 +121,7 @@ Il peut notamment :
 - supprimer une exercice ;
 - modifier une exercice ;
 - déplacer une exercice par appui long sur sa carte, puis glissement vers la position cible ;
-- modifier le nombre de répétitions du Tour ;
+- modifier le nombre de Tours du Circuit ;
 - modifier les paramètres généraux de la séance.
 
 Les modifications sont immédiatement prises en compte pour les futures exécutions.
@@ -412,7 +412,7 @@ En cas d’arrêt confirmé, le Parcours, la Séance courante et les résultats 
 ## Parcours bilatéral
 
 1. Dans l’éditeur d’Exercice, `Changement de côté` propose `Aucun`, `D→G` ou `G→D`.
-2. Aucun réglage de côté n’est exposé au niveau du Tour dans la version actuelle ; le support technique historique est conservé mais reste fixé à `UNILATERAL` et non modifiable.
+2. Aucun réglage de côté n’est exposé au niveau du Circuit dans la version actuelle ; le support technique historique est conservé mais reste fixé à `UNILATERAL` et non modifiable.
 3. Une carte d’Exercice affiche sa direction propre `D→G` ou `G→D` lorsqu’elle est bilatérale ; elle n’affiche rien avec `Aucun`.
 4. À l’Exécution, `Côté droit` ou `Côté gauche` apparaît pour le passage concerné, sans compteur `1/2` ou `2/2`.
 5. Un Exercice bilatérale termine toutes ses Séries du premier côté puis toutes celles du second.
@@ -515,7 +515,7 @@ Un Parcours fonctionnel pourra être planifié directement. Le parcours utilisat
 
 ### Règles de Composition liées à la récupération après exercice
 
-Toute `SessionActivity` possède `postActivityRecoverySeconds`. La valeur `0 s` est valide et reste représentée. La dernière occurrence avant `SESSION_END` conserve et exécute sa récupération. Dans un Tour répété, chaque occurrence exécute sa récupération à chaque passage. L’insertion d’une référence du Catalogue crée une nouvelle valeur contextuelle depuis le défaut global ; elle ne copie aucune récupération post-exercice depuis l’`ActivityDefinition`.
+Toute `SessionActivity` possède `postActivityRecoverySeconds`. La valeur `0 s` est valide et reste représentée. La dernière occurrence avant `SESSION_END` conserve et exécute sa récupération. Lorsque l’occurrence appartient au Circuit, chaque occurrence exécute sa récupération à chaque passage. L’insertion d’une référence du Catalogue crée une nouvelle valeur contextuelle depuis le défaut global ; elle ne copie aucune récupération post-exercice depuis l’`ActivityDefinition`.
 
 ## Parcours consolidés — 26 septembre 2026
 
