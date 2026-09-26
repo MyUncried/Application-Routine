@@ -17,7 +17,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | Terme | Définition | Exemple |
 | --- | --- | --- |
 | **Utilisateur** | Propriétaire local des données. Dans le MVP, un seul Utilisateur local existe, sans compte distant obligatoire. | Utilisateur de l’appareil |
-| **Séance** | Modèle de contenu exécutable. Elle possède un nom, une couleur et une Composition comprenant un Compte à rebours initial, des Exercices, un Tour unique, un Cycle technique et une Fin de séance. Elle peut être exécutée directement ou planifiée par une Routine. | `Renforcement du genou` |
+| **Séance** | Modèle de contenu exécutable. Elle possède un nom, une couleur et une Composition comprenant un Compte à rebours initial, des Exercices, un Circuit répété en Tours et une Fin de séance. Elle peut être exécutée directement ou planifiée par une Routine. | `Renforcement du genou` |
 | **Activité** | Plus petite unité fonctionnelle définie par l’utilisateur. Elle est exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec. Elle porte une Pause entre Séries et peut porter une **Pause au changement de côté** lorsqu’elle est bilatérale. Une `ActivityDefinition` ne porte jamais de Récupération après exercice ; cette dernière appartient uniquement à l’occurrence contextualisée dans une Séance/Parcours. Dans le MVP T03, l’Activité existe soit comme `ActivityDefinition` persistante autonome du Catalogue, soit comme `SessionActivity` propre à une Séance. | 3 Séries de 12 squats |
 | **Point d’arrêt** | Élément de Composition qui suspend l’enchaînement jusqu’à une reprise explicite, sans écran dédié. Le temps passé au Point d’arrêt n’entre pas dans la durée de la Séance. | |
 | **Compte à rebours d’Activité** | Phase optionnelle propre à une Activité, distincte du Compte à rebours initial de la Séance. | |
@@ -37,8 +37,8 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Résultat d’Activité** | Résultat enregistré pour une occurrence d’Activité effectivement atteinte dans le Plan d’Exécution. | Gainage terminé en 30 s |
 | **Instantané de séance** | Copie fonctionnelle immuable de la Séance au démarrage d’une Exécution. Il garantit la restitution de l’historique après modification, archivage ou suppression de la Séance source. | Version de `Renforcement du genou` exécutée lundi |
 | **Étiquette** | Classement d’une Séance. L’Étiquette porte la couleur affichée de la Séance. | Hyrox |
-| **Catégorie** | Classement d’une Activité, distinct de ses Zones corporelles. La Catégorie porte la couleur sémantique affichée pour l’Activité. | Renforcement |
-| **Zone corporelle** | Valeur facultative d’un référentiel utilisateur administrable pouvant être associée à une Activité. Le référentiel est initialisé avec des valeurs par défaut et peut être enrichi, renommé ou nettoyé par l’utilisateur. | Genou |
+| **Catégorie** | Classement obligatoire d’un Exercice, distinct de ses Zones corporelles. Un Exercice valide possède exactement une Catégorie. La Catégorie porte la couleur sémantique affichée pour l’Activité. | Renforcement |
+| **Zone corporelle** | Valeur d’un référentiel utilisateur administrable. Un Exercice valide en possède une ou plusieurs ; la sélection est multiple. Le référentiel est initialisé avec des valeurs par défaut et peut être enrichi, renommé ou nettoyé par l’utilisateur. | Genou |
 | **Préférences** | Réglages globaux de l’application : Sons, Annonces vocales, Vibration, Compte à rebours initial, Fin de séance et Notifications. | Fin de séance : 5 s |
 | **Ressenti** | Évaluation obligatoire sélectionnée sur la Synthèse lorsqu’elle est présentée. | Positif, moyen ou difficile |
 | **Commentaire de Synthèse** | Texte facultatif associé à une Exécution, limité à 200 caractères. | `Douleur légère au genou` |
