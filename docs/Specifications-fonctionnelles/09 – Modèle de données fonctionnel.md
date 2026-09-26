@@ -31,7 +31,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 - Un Circuit contient une suite ordonnée d'Exercices ; un Tour est une répétition complète de ce Circuit.
 - Un Exercice ne possède pas de type `Exercice` ou `Récupération`.
 - Un Exercice possède un nombre de Séries propre, de 1 à 99 (D-092), une Pause entre Séries d’un même côté et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative exécutée entre les deux côtés. La récupération post-exercice appartient à l’occurrence, pas à l’`ActivityDefinition`.
-- Une **Exécution** est créée au démarrage d’une source exécutable : une Séance ou, à partir de T03, un Exercice persistante dans le MVP.
+- Une **Exécution** est créée au démarrage d’une source exécutable : une Séance ou, à partir de T03, un Exercice persistant dans le MVP.
 - Chaque Exécution conserve un **instantané fonctionnel** immuable et allégé de sa source.
 - Toute modification ultérieure d'une séance ou d'une routine est sans effet sur les exécutions déjà enregistrées.
 - Les structures utilisées par le moteur d'exécution sont distinctes des entités métier.
@@ -236,7 +236,7 @@ Dans le MVP, le Circuit contient :
 - son nombre de répétitions, supérieur ou égal à 1 ;
 - une suite ordonnée d’Exercices.
 
-Le Cycle technique est exécuté une fois : les Exercices placés avant le Circuit sont exécutées une fois, le Circuit est exécuté selon son nombre de Tours, puis les Exercices placés après le Circuit sont exécutées une fois. La Fin de séance est ensuite exécutée.
+Le Cycle technique est exécuté une fois : les Exercices placés avant le Circuit sont exécutés une fois, le Circuit est exécuté selon son nombre de Tours, puis les Exercices placés après le Circuit sont exécutés une fois. La Fin de séance est ensuite exécutée.
 
 Le Cycle et le Circuit sont des structures internes de la Séance et ne peuvent pas être supprimés. Le Cycle n’est jamais exposé à l’utilisateur ; seul le nombre de Tours du Circuit est modifiable.
 
@@ -550,7 +550,7 @@ Elle ne contient pas directement :
 | Compte à rebours d’Exercice | Durée propre précédant le travail              |        Facultatif         | Distinct du Compte à rebours initial de Séance                                 |
 | Fin d’exercice            | Durée propre suivant les phases de l’Exercice   |        Facultatif         | Distincte de la Fin de séance                                                   |
 | Mode d'exécution           | Durée, Répétitions ou À l’échec                 |        Obligatoire        | À l’échec n’a ni durée ni répétitions cibles                                  |
-| Durée                      | Durée                                           |       Conditionnel        | Exercice chronométrée                                                         |
+| Durée                      | Durée                                           |       Conditionnel        | Exercice chronométré                                                         |
 | Nombre de répétitions      | Répétitions                                     |       Conditionnel        | Mode Répétitions                                                              |
 | Nombre de Séries           | Entier canonique persisté                       |        Obligatoire        | Valeur de 1 à 99 ; valeur par défaut 1                                        |
 | Pause entre Séries         | Durée                                           |        Obligatoire        | Valeur canonique `0 s` ; insérée `nombreDeSéries − 1` fois                     |
@@ -644,14 +644,14 @@ Une Exécution possède directement :
 | Dernière sauvegarde | Date de sauvegarde | Obligatoire | Technique |
 | Ressenti | Ressenti général renseigné dans la Synthèse | Conditionnel | Obligatoire dès lors que la Synthèse est présentée ; peut être absent après interruption technique sans Synthèse |
 | Commentaire | Commentaire libre de Synthèse | Facultatif | **200 caractères maximum** |
-| Nombre d’Exercices exécutées | Nombre de Résultats d’Exercice exécutée effectivement créés | Calculé | Un Exercice `Partielle` compte comme exécutée ; un Exercice jamais atteinte ne compte pas ; utilisé notamment pour le Suivi et les indicateurs historiques |
+| Nombre d’Exercices exécutés | Nombre de Résultats d’Exercice exécutée effectivement créés | Calculé | Un Exercice `Partielle` compte comme exécutée ; un Exercice jamais atteinte ne compte pas ; utilisé notamment pour le Suivi et les indicateurs historiques |
 | Occurrence planifiée satisfaite | Occurrence future éventuellement satisfaite par une Exécution anticipée | Facultatif | Renseignée lorsqu’une occurrence future est démarrée en avance |
 
 ## Structures internes
 
 ### Instantané de source
 
-L’Instantané de source est une copie figée et allégée de la Séance ou de l’Exercice persistante au moment du démarrage de l’Exécution.
+L’Instantané de source est une copie figée et allégée de la Séance ou de l’Exercice persistant au moment du démarrage de l’Exécution.
 
 Il contient uniquement les informations nécessaires pour :
 - reconstruire l’ordre et le contenu de la Séance exécutée ;
@@ -748,7 +748,7 @@ Chaque occurrence d’Exercice parcourue pendant une Exécution produit un **Ré
 | Pause au changement de côté prévue/écoulée | Durées de la phase intrinsèque éventuelle | Conditionnel | Champs distincts rattachés à `SIDE_RECOVERY` lorsqu’elle existe |
 | Récupération après exercice prévue/écoulée | Durées de la phase contextuelle | Obligatoire / calculé | Planifiée depuis `postActivityRecoverySeconds`; `0` reste une valeur de donnée, temps écoulé nul si aucune phase positive |
 
-Ces résultats sont conservés avec l’Exécution et permettent de calculer le **Nombre d’Exercices exécutées** et les indicateurs de Suivi.
+Ces résultats sont conservés avec l’Exécution et permettent de calculer le **Nombre d’Exercices exécutés** et les indicateurs de Suivi.
 
 # 09.8 Structures internes du moteur d'exécution
 
@@ -1110,7 +1110,7 @@ Création → En cours → Suspendue → Reprise → Terminée, Partielle ou Int
 
 ### Règles métier
 
-- Une Exécution est créée au démarrage effectif d’une Séance ou d’un Exercice persistante, depuis son Catalogue ou depuis une occurrence planifiée de Routine.
+- Une Exécution est créée au démarrage effectif d’une Séance ou d’un Exercice persistant, depuis son Catalogue ou depuis une occurrence planifiée de Routine.
 - Une seule exécution peut être en cours simultanément.
 - Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance`. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. `Arrêter la séance` clôt l’Exécution avec le statut `Interrompue` puis ouvre la fin minimale dans T04, ou la Synthèse lorsqu’elle est livrée.
 - Une exécution terminée, partielle ou interrompue est conservée dans le suivi.
@@ -1119,7 +1119,7 @@ Création → En cours → Suspendue → Reprise → Terminée, Partielle ou Int
 
 | Donnée | Type et règle |
 |---|---|
-| `activity.sideMode` | `UNILATERAL | RIGHT_LEFT | LEFT_RIGHT`, non nul, défaut `UNILATERAL`; présent sur l’Exercice persistante et sur son occurrence de Séance. |
+| `activity.sideMode` | `UNILATERAL | RIGHT_LEFT | LEFT_RIGHT`, non nul, défaut `UNILATERAL`; présent sur l’Exercice persistant et sur son occurrence de Séance. |
 | `tour.sideMode` | Champ technique historique conservé pour compatibilité et non-régression ; dans la version actuelle il reste fixé à `UNILATERAL` et n’est pas exposé ni modifiable. |
 | `executionPlanNode.effectiveSideMode` | Valeur figée dans l’instantané, résolue depuis l’Exercice dans la version actuelle. |
 | `executionPlanNode.executionSide` | `NONE | RIGHT | LEFT`; `NONE` uniquement pour une exécution unilatérale ou une phase structurelle sans côté. |
