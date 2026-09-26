@@ -30,7 +30,7 @@ Le fonctionnement de l’application repose sur les concepts principaux suivants
 L'utilisateur est propriétaire de l'ensemble de ses données.
 Il possède notamment :
 - ses séances ;
-- ses Exercices persistantes ;
+- ses Exercices persistants ;
 - ses routines ;
 - ses catégories ;
 - ses zones corporelles ;
@@ -111,7 +111,7 @@ Dans le MVP T03, une **Exercice de référence** (`ActivityDefinition`) est une 
 
 Une **Exercice de Séance** (`SessionActivity`) est une copie indépendante placée avant, dans ou après le Circuit d’une Séance. L’insertion depuis le Catalogue copie les propriétés intrinsèques applicables de la référence au moment de l’insertion, notamment nom, Description, mode/cible, Séries, Pause, `sideRecoverySeconds`, Zones corporelles et direction propre. Elle initialise séparément `postActivityRecoverySeconds` à partir du défaut global de récupération après exercice ; cette valeur ne provient jamais de l’`ActivityDefinition`. La copie devient ensuite indépendante : modifier, archiver ou supprimer la source ne modifie jamais la copie, et inversement.
 
-Un Exercice créée directement dans une Séance ne devient pas automatiquement une référence de Catalogue. La migration T03 ne promeut pas les `SessionActivity` historiques en `ActivityDefinition`.
+Un Exercice créé directement dans une Séance ne devient pas automatiquement une référence de Catalogue. La migration T03 ne promeut pas les `SessionActivity` historiques en `ActivityDefinition`.
 
 La suppression définitive d’une `ActivityDefinition` ne cascade pas vers les `SessionActivity` déjà copiées ni vers les Instantanés, Exécutions et résultats historiques.
 
