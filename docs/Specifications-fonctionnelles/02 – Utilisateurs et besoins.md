@@ -222,3 +222,7 @@ Lorsqu’un Parcours est fonctionnel, l’utilisateur doit pouvoir le planifier 
 - Conserver cette récupération avec l’occurrence lors d’un déplacement ou d’une duplication ; la supprimer avec l’occurrence.
 - Exécuter la récupération de la dernière Activité avant la Fin de séance, et celle de la dernière Activité d’un Tour à chaque répétition du Tour.
 - Ne pas ajouter de récupération post-activité lors de l’Exécution directe depuis le Catalogue.
+
+## Besoins consolidés — 26 septembre 2026
+
+L’utilisateur doit pouvoir classer chaque nouvel Exercice avec exactement une Catégorie et une ou plusieurs Zones corporelles, sans que ces métadonnées conditionnent son exécution. Il peut retirer des valeurs des référentiels sans casser les objets existants. Dans une Séance, il peut décider globalement d’appliquer ou non les Compte à rebours et Fins propres aux Exercices, sans gérer ces paramètres occurrence par occurrence. Les Points d’arrêt restent positionnables dans la séquence selon D-217 et sont rejoués à chaque Tour lorsqu’ils appartiennent au Circuit.
