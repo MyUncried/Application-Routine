@@ -266,7 +266,7 @@ Une exercice possède notamment :
 - une durée cible, un nombre de répétitions cible ou le mode À l’échec sans cible chiffrée ;
 - une **Pause entre Séries** facultative, appliquée uniquement entre deux Séries successives, soit `C−1` fois par côté ;
 - une **Pause au changement de côté** facultative, visible uniquement en `D→G/G→D` et exécutée une seule fois entre les deux côtés ;
-- une Description et des Zones corporelles d’exécution facultatives ;
+- une Description facultative et une ou plusieurs Zones corporelles obligatoires ;
 - un média associé peut être affiché dans la carte déployée du Catalogue dans le MVP ; les mécanismes d’import/capture et la gestion multiple restent régis par leur périmètre propre.
 
 Les exercices sont exécutées dans l'ordre où elles apparaissent dans la séance.
