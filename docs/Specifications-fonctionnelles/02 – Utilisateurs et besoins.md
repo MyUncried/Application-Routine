@@ -47,7 +47,7 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 - Définir le nombre de Séries et une Pause éventuelle entre les Séries ; pour un Exercice bilatérale, régler séparément la **Pause au changement de côté**.
 - Saisir soit le nombre de Séries, soit une Durée totale cible, puis comprendre immédiatement la valeur entière recalculée par l’application.
 - Organiser les Exercices avant le Circuit, dans le Circuit ou après le Circuit.
-- Répéter le Tour de 1 à 99 fois ; aucun changement de côté n’est exposé au niveau du Tour dans la version actuelle.
+- Exécuter le Circuit de 1 à 99 Tours ; aucun changement de côté n’est exposé au niveau du Circuit dans la version actuelle.
 - Régler le `Changement de côté` propre à un Exercice sur `Aucun`, `D→G` ou `G→D`, puis voir cette direction sur sa carte et dans sa synthèse.
 - Réordonner manuellement les Exercices par glisser-déposer ; leur Récupération après exercice se déplace avec l’occurrence sans recalcul.
 - Régler le Compte à rebours initial et la Fin de séance.
@@ -220,7 +220,7 @@ Lorsqu’un Parcours est fonctionnel, l’utilisateur doit pouvoir le planifier 
 - Dans l’éditeur d’Exercice, n’exposer la Pause au changement de côté que lorsque le Changement de côté vaut `D→G` ou `G→D`.
 - Dans la Composition, voir sous chaque occurrence une ligne `Récupération {durée}`, y compris `Récupération 0 s`, et pouvoir modifier cette durée.
 - Conserver cette récupération avec l’occurrence lors d’un déplacement ou d’une duplication ; la supprimer avec l’occurrence.
-- Exécuter la récupération de la dernier Exercice avant la Fin de séance, et celle de la dernier Exercice d’un Tour à chaque répétition du Tour.
+- Exécuter la récupération de la dernier Exercice avant la Fin de séance, et celle de la dernier Exercice du Circuit à chaque Tour.
 - Ne pas ajouter de récupération post-exercice lors de l’Exécution directe depuis le Catalogue.
 
 ## Besoins consolidés — 26 septembre 2026
