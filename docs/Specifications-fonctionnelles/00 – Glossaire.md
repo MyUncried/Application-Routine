@@ -23,7 +23,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Compte à rebours d’Exercice** | Phase optionnelle propre à un Exercice, distincte du Compte à rebours initial de la Séance. | |
 | **Fin d’exercice** | Phase optionnelle propre à un Exercice, distincte de la Fin de séance. | |
 | **Plan d’Exécution** | Liste ordonnée calculée au démarrage après développement des Séries, Pauses, phases `SIDE_RECOVERY`/`POST_ACTIVITY_RECOVERY` applicables et Tours du Circuit. | |
-| **Exercice** | **Exercice (anciennement Exercice)** : Synonyme fonctionnel de l’Exercice exécutée. `Exercice` n’est plus une valeur d’un type opposé à `Récupération`. | 3 Séries de 12 squats |
+| **Exercice** | **Exercice (anciennement Exercice)** : Synonyme fonctionnel de l’Exercice exécuté. `Exercice` n’est plus une valeur d’un type opposé à `Récupération`. | 3 Séries de 12 squats |
 | **Pause entre les Séries** | Durée facultative rattachée aux Séries d’un même côté. Pour `C` Séries, elle est toujours exécutée exactement `C − 1` fois, uniquement entre deux Séries successives. Elle est indépendante des deux récupérations et n’est jamais exécutée après la dernière Série. | 15 s entre deux Séries |
 | **Pause au changement de côté** | Durée intrinsèque facultative d’un Exercice bilatérale, portée par `sideRecoverySeconds`. Elle n’a de sens qu’avec `D→G` ou `G→D`, s’exécute une seule fois entre toutes les Séries du premier côté et toutes celles du second, et entre dans la durée intrinsèque de l’Exercice. Avec `Aucun`, elle est sans objet. Sa valeur initiale lors de l’activation bilatérale provient du défaut global **Pause au changement de côté** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice. | 30 s entre côté droit et côté gauche |
 | **Récupération après exercice** | Durée contextuelle portée par chaque occurrence d’Exercice dans une Séance ou un Parcours via `postActivityRecoverySeconds`. Elle existe toujours, y compris à `0 s`, reste visible dans la Composition, se déplace/duplique/supprime avec l’occurrence et s’exécute après celle-ci. Elle n’existe pas sur `ActivityDefinition` et n’entre pas dans la durée intrinsèque de l’Exercice. | Récupération 30 s après Squats |
@@ -52,9 +52,9 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Fin de séance** | Phase structurelle chronométrée suivant la dernier Exercice. Elle correspond au type d’étape `SESSION_END` du Plan d’Exécution d’une Séance. Sa valeur initiale est 5 s ; 0 s la rend instantanée. Son achèvement termine l’Exécution de Séance. Ce n’est pas un Exercice et elle n’est pas déplaçable. |
 | **Série** | Exécution d’un Exercice selon sa durée cible, ses Répétitions cibles ou jusqu’à l’échec. Pour un Exercice bilatérale autonome, le nombre de Séries s’entend par côté. Pour `C` Séries d’un même côté, une Pause éventuelle intervient exactement `C − 1` fois, uniquement entre Séries successives. La Série n’est pas une entité métier autonome. |
 | **Répétition** | Unité quantitative d’un Exercice non chronométré. Le pluriel `Répétitions` désigne également ce mode d’Exercice dans l’interface. |
-| **Exercice avant le Circuit** | Exercice exécutée une seule fois avant la première Tour du Circuit. |
-| **Exercice dans le Circuit** | Exercice exécutée à chaque Tour du Circuit. |
-| **Exercice après le Circuit** | Exercice exécutée une seule fois après la dernière Tour du Circuit et avant la Fin de séance. |
+| **Exercice avant le Circuit** | Exercice exécuté une seule fois avant la première Tour du Circuit. |
+| **Exercice dans le Circuit** | Exercice exécuté à chaque Tour du Circuit. |
+| **Exercice après le Circuit** | Exercice exécuté une seule fois après la dernière Tour du Circuit et avant la Fin de séance. |
 
 ### Direction propre et direction héritée
 
@@ -87,7 +87,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Suivi** | Écran affichant l’historique des Exécutions terminées, partielles ou interrompues. |
 | **Nombre d’Exercices de la Composition** | Nombre d’Exercices définies par l’utilisateur, sans développement des Séries ou Tours et sans compter leurs phases de Récupération. |
 | **Nombre total d’Exercices à exécuter** | Nombre d’occurrences d’Exercices du Plan développé. Les Pauses et phases de Récupération, le Compte à rebours initial et la Fin de séance ne sont pas des Exercices et ne sont pas comptés. |
-| **Nombre d’Exercices exécutées** | Nombre de Résultats d’Exercice enregistrés. Un Exercice Partielle compte ; un Exercice jamais atteinte ne compte pas. |
+| **Nombre d’Exercices exécutés** | Nombre de Résultats d’Exercice enregistrés. Un Exercice Partielle compte ; un Exercice jamais atteinte ne compte pas. |
 | **Durée estimée d’exécution** | Somme des durées déterminables du Plan d’Exécution complet : Compte à rebours initial, Exercices, Pauses, phases de Récupération et Fin de séance pour une Exécution de Séance. En présence d’un Exercice en Répétitions ou À l’échec, elle devient une borne minimale précédée de `≥`. |
 | **Durée synthétique des Exercices** | Somme des durées déterminables des occurrences d’Exercices, de leurs Séries, Pauses, Récupérations et Tours du Circuit. Elle exclut toujours le Compte à rebours initial et la Fin de séance. Elle est utilisée dans le Catalogue et dans la synthèse du Circuit de la Composition. |
 | **Durée réelle** | Temps actif effectivement exécuté, Compte à rebours initial et Fin de séance inclus lorsqu’ils appartiennent au Plan exécuté, hors Pauses déclenchées manuellement par l’utilisateur. |
