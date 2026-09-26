@@ -253,11 +253,11 @@ Aucune Routine n’est créée automatiquement. La transition canonique d’avan
 
 ### Parcours du Catalogue des Exercices — MVP T03
 
-Depuis le Catalogue, l’utilisateur sélectionne `Exercices` pour consulter la bibliothèque persistante. La surface d’une carte ouvre l’Exercice en consultation ou modification ; son bouton Lecture lance l’Exécution directe. L’action `Créer` est contextuelle : dans le Catalogue des Exercices, elle ouvre directement la création d’un Exercice persistante, sans écran ni arbre intermédiaire.
+Depuis le Catalogue, l’utilisateur sélectionne `Exercices` pour consulter la bibliothèque persistante. La surface d’une carte ouvre l’Exercice en consultation ou modification ; son bouton Lecture lance l’Exécution directe. L’action `Créer` est contextuelle : dans le Catalogue des Exercices, elle ouvre directement la création d’un Exercice persistant, sans écran ni arbre intermédiaire.
 
 La rangée commune de commandes d’entrée est `Créer / Filtrer / Trier`. Le contrôle Filtrer démarre replié et blanc sans filtre. Un appui l’étend et affiche `Filtres / Aucun` sans modifier la liste ; un filtre sélectionné est conservé pendant la session courante, puis réinitialisé à `Aucun` au relaunch. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec `8 pt` entre contrôles et un ensemble centré (`x=31`, `147`, `263` comme mesures de preuve uniquement, jamais comme coordonnées absolues RN). Les cibles tactiles restent ≥ `48 × 48 pt`. Pour `Exercices`, les critères contextuels sont statut (`Actives` / `Archivées`), Catégories et Zones corporelles. Pour `Séances`, le filtre couvre le statut et les Étiquettes. `Trier` reste visible mais désactivé et le tri appliqué reste `updatedAt DESC`. Recherche, filtre appliqué, tri implicite et scroll sont conservés pendant la session courante ; au relaunch, le filtre revient à `Aucun`.
 
-Depuis la Composition d’une Séance, `Ajouter une exercice` ouvre directement la sélection multiple du Catalogue des Exercices. La validation copie les Exercices dans leur ordre visible et restaure la Composition. La capacité historique de création directe d’un Exercice locale à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans ce parcours courant.
+Depuis la Composition d’une Séance, `Ajouter une exercice` ouvre directement la sélection multiple du Catalogue des Exercices. La validation copie les Exercices dans leur ordre visible et restaure la Composition. La capacité historique de création directe d’un Exercice local à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans ce parcours courant.
 
 ### Parcours d’ouverture et de modification d’une Séance
 
@@ -308,7 +308,7 @@ Les écrans principaux ajoutés ou activés en T03 sont :
 12. `Catalogue des Exercices — Liste` ;
 13. supprimé — ancien `Catalogue — Créer — Arbre d’actions`, conservé uniquement comme évidence historique ;
 14. `Composition — Sélectionner plusieurs Exercices existants` ;
-15. `Création / modification d’un Exercice persistante`, qui réutilise l’éditeur d’Exercice ;
+15. `Création / modification d’un Exercice persistant`, qui réutilise l’éditeur d’Exercice ;
 16. `Exécution directe d’un Exercice — Préparation 5 s` ;
 17. `Exécution directe d’un Exercice — En cours` ;
 18. `Synthèse d’un Exercice directe`, avant et après sélection du Ressenti.
@@ -356,7 +356,7 @@ L’utilisateur dispose de trois commandes principales :
 
 - `Réinitialiser l’exercice` ;
 - `Pause` ;
-- `Exercice suivante`.
+- `Exercice suivant`.
 
 Il n’existe pas de bouton `Quitter` ou `Arrêter` directement sur l’écran d’Exécution. L’action `Arrêter la séance` est accessible uniquement depuis la modale de pause.
 
@@ -370,7 +370,7 @@ Les mêmes termes sont utilisés dans toute l’application :
 - `Routine` : planification d’une Séance ou d’un Exercice persistant ;
 - `Exercice` : action élémentaire exécutée en mode Durée, Répétitions ou À l’échec, avec Pause entre Séries et, en bilatéral, Pause au changement de côté éventuelle ;
 - `Exercice` : Exercice physique ;
-- `Pause au changement de côté` : durée intrinsèque facultative d’un Exercice bilatérale, exécutée une seule fois entre le premier et le second côté ;
+- `Pause au changement de côté` : durée intrinsèque facultative d’un Exercice bilatéral, exécutée une seule fois entre le premier et le second côté ;
 - `Récupération après exercice` : durée contextuelle portée par chaque occurrence d’Exercice dans une Séance/Parcours, visible y compris à `0 s` et exécutée après l’occurrence lorsqu’elle est positive ;
 - `Série` : répétition propre à un Exercice ;
 - `Tour` : groupe ordonné d’Exercices exécuté intégralement un nombre défini de fois ;
@@ -677,7 +677,7 @@ Un seul bouton secondaire `+ Ajouter une exercice` est affiché en haut de l’�
 
 Aucun bouton `＋` intermédiaire n’est affiché dans le Circuit ou entre les Exercices.
 
-Un appui sur `Ajouter une exercice` ouvre directement la sélection multiple des références persistantes du Catalogue. La validation est désactivée lorsque la sélection est vide et les Exercices validées sont insérées dans l’ordre courant de la liste filtrée, non dans l’ordre des touchers. Le mécanisme de création directe d’un Exercice locale à la Séance est conservé dans le produit mais n’est pas proposé par l’enchaînement d’écrans courant.
+Un appui sur `Ajouter une exercice` ouvre directement la sélection multiple des références persistantes du Catalogue. La validation est désactivée lorsque la sélection est vide et les Exercices validées sont insérées dans l’ordre courant de la liste filtrée, non dans l’ordre des touchers. Le mécanisme de création directe d’un Exercice local à la Séance est conservé dans le produit mais n’est pas proposé par l’enchaînement d’écrans courant.
 
 La premier Exercice créée est insérée immédiatement après le Compte à rebours initial et avant le Circuit. Les Exercices suivantes sont insérées après la dernier Exercice ajoutée, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Circuit, dans le Circuit ou après le Circuit. La réorganisation est déclenchée par un appui long sur l’ensemble de la carte ; la poignée reste un indicateur visuel et ne constitue pas la seule zone de déclenchement.
 
@@ -789,7 +789,7 @@ L’écran est ouvert lorsque l’utilisateur :
 
 Le contexte d’ouverture détermine la destination de retour et le type d’objet édité ; il ne doit jamais être déduit de la seule apparence de l’écran.
 
-Dans le parcours courant de Composition, l’interface expose la sélection d’Exercices du Catalogue. La capacité existante de créer directement un Exercice locale à la Séance reste conservée mais n’est pas exposée dans cet enchaînement d’écrans.
+Dans le parcours courant de Composition, l’interface expose la sélection d’Exercices du Catalogue. La capacité existante de créer directement un Exercice local à la Séance reste conservée mais n’est pas exposée dans cet enchaînement d’écrans.
 
 ### Contenu et sections
 
@@ -843,7 +843,7 @@ En mode `À l’échec`, aucun contrôle Durée ou Nombre de répétitions n’e
 
 Le nombre de Séries est toujours compris entre 1 et 99 (D-092). Pour toute nouvelle Exercice, sa valeur par défaut est `1`.
 
-Une Série correspond à l’Exécution de la cible du mode. Pour un Exercice bilatérale autonome, le nombre de Séries est un nombre par côté. La Pause est exécutée exactement entre les Séries successives d’un même côté, soit `C−1` fois. En bilatéral, la **Pause au changement de côté** éventuelle est exécutée une seule fois entre les Séries du premier et du second côté.
+Une Série correspond à l’Exécution de la cible du mode. Pour un Exercice bilatéral autonome, le nombre de Séries est un nombre par côté. La Pause est exécutée exactement entre les Séries successives d’un même côté, soit `C−1` fois. En bilatéral, la **Pause au changement de côté** éventuelle est exécutée une seule fois entre les Séries du premier et du second côté.
 
 ### Dépendance Séries / Durée totale
 
@@ -1077,8 +1077,8 @@ L’écran affiche, de haut en bas :
 - l’indicateur temporel principal ;
 - la Série sous l’indicateur principal, à gauche, et le Tour à droite. À partir de `360` points et avec le texte à `100 %` ou `135 %`, les deux valeurs restent sur une même ligne dans deux zones flexibles symétriques, séparées par un repère central de largeur fixe ;
 - une progression discrète du Tour ;
-- la zone `À suivre` avec le nom et la durée ou le nombre de reps de l’Exercice suivante ;
-- les commandes `Réinitialiser`, `Pause` et `Exercice suivante` ;
+- la zone `À suivre` avec le nom et la durée ou le nombre de reps de l’Exercice suivant ;
+- les commandes `Réinitialiser`, `Pause` et `Exercice suivant` ;
 - le temps total écoulé et la durée estimée d’exécution de la Séance ; le temps écoulé inclut toutes les phases effectivement exécutées, Compte à rebours initial et Fin de séance compris, mais exclut les Pauses manuelles ; si le plan contient au moins un Exercice en mode Répétitions ou À l’échec, la durée estimée d’exécution est affichée sous forme de borne minimale, par exemple `≥ 18 min` ;
 - une barre de progression globale structurée en segments correspondant aux Tours, conformément au prototype Figma. Elle occupe exactement la largeur utile sans débordement. Les segments se répartissent dans cette largeur après déduction des espacements et ne conservent jamais la largeur fixe du gabarit `402`. Le remplissage représente l’avancement dans le Plan d’Exécution complet, Compte à rebours initial et `SESSION_END` compris, selon la pondération définie dans les chapitres 08 et 10 ; il n’est pas le simple rapport `temps écoulé / durée estimée d’exécution`. Il atteint `100 %` uniquement à l’achèvement de `SESSION_END`. Dans T04, les étapes chronométrées sont pondérées par leur durée planifiée ; la part d’une occurrence en Répétitions ou À l’échec est acquise avec `Suivant`. Les Pauses manuelles n’augmentent pas le remplissage.
 
@@ -1092,7 +1092,7 @@ Pour un Exercice en mode Durée ou une phase de Récupération, le temps est pr�
 
 Lorsque le compte à rebours atteint zéro, l’Exercice se termine normalement et l’Exécution passe à la suite.
 
-Si l’utilisateur appuie sur `Exercice suivante` avant zéro, une confirmation est demandée. Après confirmation, l’Exercice est enregistrée avec le statut métier `Partielle` et l’Exécution continue.
+Si l’utilisateur appuie sur `Exercice suivant` avant zéro, une confirmation est demandée. Après confirmation, l’Exercice est enregistrée avec le statut métier `Partielle` et l’Exécution continue.
 
 ### Exercice définie par un nombre de répétitions
 
@@ -1125,7 +1125,7 @@ T04 développe toutes les Séries, les répétitions de Tour et les passages de 
 
 ### Récupérations
 
-Deux phases distinctes peuvent exister. `SIDE_RECOVERY` matérialise la Pause au changement de côté d’un Exercice bilatérale et intervient entre le premier et le second côté. `POST_ACTIVITY_RECOVERY` matérialise la Récupération après exercice portée par l’occurrence de Séance ; elle intervient après l’occurrence, y compris après la dernier Exercice avant `SESSION_END` et après chaque passage dans le Circuit à chaque Tour.
+Deux phases distinctes peuvent exister. `SIDE_RECOVERY` matérialise la Pause au changement de côté d’un Exercice bilatéral et intervient entre le premier et le second côté. `POST_ACTIVITY_RECOVERY` matérialise la Récupération après exercice portée par l’occurrence de Séance ; elle intervient après l’occurrence, y compris après la dernier Exercice avant `SESSION_END` et après chaque passage dans le Circuit à chaque Tour.
 
 La valeur `postActivityRecoverySeconds = 0` reste visible dans la Composition mais ne crée pas de phase chronométrée positive. La zone `À suivre` prépare l’élément qui succède à la phase courante. Les données de résultat distinguent la pause au changement de côté de la récupération après occurrence.
 
@@ -1135,7 +1135,7 @@ Les trois emplacements de commande restent identiques. Pendant un Exercice, ils 
 
 - `Réinitialiser l’exercice` ;
 - `Pause` ;
-- `Exercice suivante`.
+- `Exercice suivant`.
 
 Pendant la Récupération, la première commande devient `Réinitialiser la récupération`.
 
@@ -1148,7 +1148,7 @@ L’action ouvre la modale de confirmation.
 Après confirmation :
 
 - la Série / Exercice courante recommence depuis son état initial ;
-- pour un Exercice chronométrée, le compte à rebours retrouve sa durée initiale ;
+- pour un Exercice chronométré, le compte à rebours retrouve sa durée initiale ;
 - pour un Exercice en Répétitions ou À l’échec, le chronomètre d’Exercice revient à `00:00` ;
 - la cible de répétitions n’est pas modifiée ;
 - le temps total déjà écoulé dans la Séance reste conservé ;
@@ -1179,14 +1179,14 @@ La modale propose :
 
 Il n’existe pas de commande directe d’arrêt depuis l’écran principal d’Exécution.
 
-### Exercice suivante
+### Exercice suivant
 
 Le comportement dépend de la phase courante :
 
-- **Exercice en Répétitions ou À l’échec** : termine normalement la Série courante et passe à la pause, à la Série suivante ou à l’Exercice suivante selon le plan ;
-- **Exercice chronométrée avant zéro** : ouvre la modale de confirmation ; après confirmation, l’Exercice est enregistrée avec le statut `Partielle`, puis l’Exécution continue ;
+- **Exercice en Répétitions ou À l’échec** : termine normalement la Série courante et passe à la pause, à la Série suivante ou à l’Exercice suivant selon le plan ;
+- **Exercice chronométré avant zéro** : ouvre la modale de confirmation ; après confirmation, l’Exercice est enregistrée avec le statut `Partielle`, puis l’Exécution continue ;
 - **Phase de récupération avant zéro** : ouvre la même confirmation ; après confirmation, la durée partielle de la phase courante (`SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`) est conservée et le Plan poursuit vers son étape suivante ;
-- **Exercice chronométrée arrivée à zéro** : la transition est automatique.
+- **Exercice chronométré arrivée à zéro** : la transition est automatique.
 
 ### Navigation pendant l’Exécution
 
@@ -1209,13 +1209,13 @@ Pour un Exercice en Répétitions ou À l’échec, aucun signal de fin de compt
 Si l’application passe en arrière-plan ou si l’écran se verrouille :
 
 - le Plan d’Exécution continue selon ses horodatages de référence ;
-- l’Exercice chronométrée ne se fige pas ;
+- l’Exercice chronométré ne se fige pas ;
 - au retour, l’application reconstitue l’Exercice et la position temporelle qui auraient dû être atteintes, plutôt que de reprendre le compteur à l’endroit où l’interface a été suspendue ;
 - les sons et annonces sont maintenus dans la mesure permise par iOS et Android.
 
 Une mise en pause de sécurité est appliquée en cas d’inactivité prolongée :
 
-- pour un Exercice chronométrée, si aucune interaction n’a eu lieu 30 minutes après sa fin théorique ;
+- pour un Exercice chronométré, si aucune interaction n’a eu lieu 30 minutes après sa fin théorique ;
 - pour un Exercice en Répétitions ou À l’échec, après 2 heures sans interaction depuis son démarrage.
 
 Le comportement précis fait l’objet du spike technique prévu avant le développement complet du moteur d’Exécution.
@@ -1399,7 +1399,7 @@ L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle 
 L’écran/arbre intermédiaire `Une nouvelle exercice / Une séance / Un parcours / Annuler` est supprimé par D-187.
 
 Dans chaque Catalogue, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant :
-- `Catalogue des Exercices` → création d’un Exercice persistante ;
+- `Catalogue des Exercices` → création d’un Exercice persistant ;
 - `Catalogue des Séances` → création d’une Séance ;
 - `Catalogue des Parcours` → création d’un Parcours lorsque ce Catalogue devient fonctionnel.
 
@@ -1415,7 +1415,7 @@ Les Exercices sont insérées selon leur ordre courant de présentation dans la 
 
 *Écran 14 — Composition — Sélectionner plusieurs Exercices existants — Figma `3789:5349`*
 
-### Écran 15 — Création ou modification d’un Exercice persistante
+### Écran 15 — Création ou modification d’un Exercice persistant
 
 L’écran réutilise l’Écran 4 et ses composants. Ouvert depuis le Catalogue, il crée ou modifie un Exercice de référence persistante ; ouvert depuis une Composition, il agit uniquement sur la copie de Séance. Le contexte d’ouverture détermine la destination de retour et interdit toute propagation implicite entre référence et copie.
 
@@ -1607,7 +1607,7 @@ L’Exécution est suspendue pendant l’affichage de la modale.
 Après confirmation :
 
 - l’Exercice / Série courante reste l’Exercice courante ;
-- un Exercice chronométrée retrouve sa durée initiale ;
+- un Exercice chronométré retrouve sa durée initiale ;
 - un Exercice en Répétitions ou À l’échec retrouve un chronomètre d’Exercice à `00:00` ;
 - la cible de répétitions reste inchangée ;
 - le temps global déjà écoulé dans la Séance est conservé ;
@@ -1618,7 +1618,7 @@ Après confirmation :
 
 Les deux boutons `147 × 48` sont alignés sur une ligne avec un écart de `12`. Les libellés sont centrés horizontalement et verticalement. La dernière ligne du message et les actions sont séparées par `spacing/16`.
 
-### Modale 6 – Passage à l’Exercice suivante
+### Modale 6 – Passage à l’Exercice suivant
 
 ![[images/modale-6-activite-suivante.png|260]]
 
@@ -1628,11 +1628,11 @@ Référence Figma : `1992:8326`, `Modal — Passer à l’exercice suivante`. Le
 
 #### Objectif
 
-Confirmer l’interruption anticipée d’un Exercice chronométrée.
+Confirmer l’interruption anticipée d’un Exercice chronométré.
 
 #### Ouverture
 
-Cette modale s’affiche lorsque l’utilisateur appuie sur `Exercice suivante` avant la fin d’un Exercice chronométrée.
+Cette modale s’affiche lorsque l’utilisateur appuie sur `Exercice suivant` avant la fin d’un Exercice chronométré.
 
 Elle ne s’affiche pas pour un Exercice en mode Répétitions ou À l’échec : dans ce cas, `Suivant` constitue la validation normale de la Série courante.
 
@@ -1655,11 +1655,11 @@ Elle ne s’affiche pas pour un Exercice en mode Répétitions ou À l’échec 
 
 Après confirmation :
 
-- l’Exercice chronométrée est arrêtée avant son terme ;
+- l’Exercice chronométré est arrêtée avant son terme ;
 - sa durée réellement exécutée est conservée ;
 - son statut métier devient `Partielle` ;
 - la progression est mise à jour ;
-- l’Exercice suivante démarre selon les règles normales du Plan d’Exécution.
+- l’Exercice suivant démarre selon les règles normales du Plan d’Exécution.
 
 `Annuler` ferme la modale et reprend l’Exercice en cours.
 
@@ -1707,7 +1707,7 @@ Les deux boutons `147 × 48` sont alignés sur une ligne avec un écart de `12`.
 
 Ferme la modale et reprend l’Exercice à l’état exact où elle a été suspendue.
 
-Pour un Exercice chronométrée, le compte à rebours reprend.  
+Pour un Exercice chronométré, le compte à rebours reprend.  
 Pour un Exercice en Répétitions ou À l’échec, le chronomètre croissant reprend.
 
 #### Arrêter la séance
