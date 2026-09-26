@@ -44,7 +44,7 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 - Choisir parmi 12 couleurs prédéfinies, avec une couleur initialement proposée.
 - Ajouter des Exercices ; chaque occurrence créée dans la Composition possède automatiquement une **Récupération après exercice**, y compris à `0 s`, initialisée depuis le défaut global.
 - Définir un Exercice par une Durée, un nombre de Répétitions ou jusqu’à l’échec.
-- Définir le nombre de Séries et une Pause éventuelle entre les Séries ; pour un Exercice bilatérale, régler séparément la **Pause au changement de côté**.
+- Définir le nombre de Séries et une Pause éventuelle entre les Séries ; pour un Exercice bilatéral, régler séparément la **Pause au changement de côté**.
 - Saisir soit le nombre de Séries, soit une Durée totale cible, puis comprendre immédiatement la valeur entière recalculée par l’application.
 - Organiser les Exercices avant le Circuit, dans le Circuit ou après le Circuit.
 - Exécuter le Circuit de 1 à 99 Tours ; aucun changement de côté n’est exposé au niveau du Circuit dans la version actuelle.
@@ -62,7 +62,7 @@ Le Cycle technique n’est ni manipulé ni affiché dans le MVP.
 #### Planifier une Séance ou un Exercice
 
 - Visualiser le Calendrier en vues Jour, Semaine et Mois.
-- Créer une planification unique ou périodique pour une Séance ou un Exercice persistante du Catalogue des exercices.
+- Créer une planification unique ou périodique pour une Séance ou un Exercice persistant du Catalogue des exercices.
 - Définir la date, l’heure, la fréquence, les jours concernés et la date de fin selon le type de planification.
 - Configurer zéro ou un rappel.
 - N’être sollicité pour l’autorisation système des notifications qu’au moment de la première activation d’un rappel.
@@ -72,10 +72,10 @@ Le Cycle technique n’est ni manipulé ni affiché dans le MVP.
 
 - Démarrer une Séance depuis son contexte de consultation ou depuis une occurrence planifiée.
 - Être guidé visuellement, par des sons et par des annonces vocales.
-- Voir l’Exercice en cours, la Série, le Tour, l’Exercice suivante, le temps et la progression.
-- Mettre l’Exécution en pause, reprendre, réinitialiser l’Exercice courante ou passer à l’Exercice suivante.
+- Voir l’Exercice en cours, la Série, le Tour, l’Exercice suivant, le temps et la progression.
+- Mettre l’Exécution en pause, reprendre, réinitialiser l’Exercice courant ou passer à l’Exercice suivant.
 - Terminer normalement chaque Série d’un Exercice en Répétitions ou À l’échec avec `Suivant`.
-- Être averti avant de quitter un Exercice chronométrée non terminée, qui devient alors `Partielle` après confirmation.
+- Être averti avant de quitter un Exercice chronométré non terminé, qui devient alors `Partielle` après confirmation.
 - Continuer l’Exécution lorsque l’application est en arrière-plan ou l’écran verrouillé.
 - Retrouver un état temporel recalculé au retour.
 - Être protégé contre une Exécution laissée sans interaction trop longtemps.
@@ -193,11 +193,11 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 L’utilisateur doit pouvoir :
 
 - ouvrir le Catalogue des Exercices depuis le sélecteur de type ;
-- créer, consulter et modifier un Exercice persistante ;
+- créer, consulter et modifier un Exercice persistant ;
 - distinguer l’ouverture de la carte du bouton Lecture réservé à l’Exécution directe ;
 - utiliser `Créer` comme action contextuelle : dans chaque Catalogue, ouvrir directement la création de l’objet correspondant au Catalogue courant, sans écran ni arbre intermédiaire ;
 - depuis une Composition, choisir entre une nouvelle Exercice, une ou plusieurs Exercices existants et l’annulation ;
-- lancer un Exercice persistante, disposer de `5 s` pour se préparer et être guidé selon tous ses paramètres ;
+- lancer un Exercice persistant, disposer de `5 s` pour se préparer et être guidé selon tous ses paramètres ;
 - renseigner le Ressenti obligatoire dans la Synthèse ;
 - retrouver l’Exécution dans le Suivi général sous le type Exercice ;
 - revenir au Catalogue avec recherche, filtres et position restaurés.
