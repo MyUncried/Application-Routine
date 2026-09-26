@@ -350,7 +350,7 @@ Le calcul tient compte :
 - de toutes les occurrences d'Exercices chronométrés ;
 - des Pauses entre Séries effectivement insérées dans le plan ;
 - de `sideRecoverySeconds` dans la durée intrinsèque de chaque Exercice bilatéral ;
-- de `postActivityRecoverySeconds` après chaque occurrence de Séance/Parcours, répété avec l’occurrence lorsqu’elle appartient à un Tour ;
+- de `postActivityRecoverySeconds` après chaque occurrence de Séance/Parcours, répété avec l’occurrence lorsqu’elle appartient au Circuit, à chaque Tour ;
 - des Séries ;
 - des Tours du Circuit ;
 - des répétitions du Cycle ;
