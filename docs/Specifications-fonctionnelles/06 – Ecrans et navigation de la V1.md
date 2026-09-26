@@ -202,7 +202,7 @@ Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` utilisent la mêm
 | Planification | `Aucun` et `Personnalisé` restent fixes aux extrémités du contrôle de rappel. Les raccourcis intermédiaires occupent une zone horizontale défilante et extensible. Le récapitulatif de planification reste contenu dans son cadre avec ses marges internes. |
 | Calendrier Semaine | La barre des jours reste lisible sur la largeur compacte ; les sept jours se répartissent la largeur disponible sans défilement horizontal. La liste journalière défile verticalement, utilise `8` points entre ses cartes et s’arrête `16` points avant la séparation de navigation. |
 | Calendrier Mois | Les sept colonnes se répartissent la largeur disponible ; une cellule peut grandir verticalement mais ne défile pas horizontalement. |
-| Exécution | Les commandes essentielles restent visibles sans défilement à la taille de texte standard. Le libellé du temps écoulé est séparé de la progression par Tours de `24` points. Avec agrandissement accessible, le contenu peut défiler, mais l’Exercice courante, le temps et les commandes restent atteignables. |
+| Exécution | Les commandes essentielles restent visibles sans défilement à la taille de texte standard. Le libellé du temps écoulé est séparé de la progression par Tours de `24` points. Avec agrandissement accessible, le contenu peut défiler, mais l’Exercice courant, le temps et les commandes restent atteignables. |
 | Synthèse | Le choix du ressenti reste composé de trois options de largeur égale. Les séparations verticales structurantes utilisent `16` points entre statut et date, `32` points avant la section Ressenti et `24` points avant la section Commentaire. Sur écran compact ou texte agrandi, les libellés explicatifs se placent sous les icônes sans réduire leur cible tactile. |
 | Suivi | `Séances` et `Vue d’ensemble` occupent deux segments égaux. Le groupe `Filtrer / Trier` est centré comme un ensemble et précède la liste de `32` points. Les groupes de dates sont séparés de `16` points. Les actions de chaque carte restent ancrées à droite et la liste défile dans une zone arrêtée au moins `16` points avant la navigation basse. |
 | Recherche globale | Le champ utilise la largeur disponible entre Retour et les limites sûres ; les résultats défilent indépendamment de l’en-tête. Dans l’état `1992:10129 — Recherche globale — Champ déployé`, la rangée Catalogue `Créer / Filtrer / Trier` reste visible dans le Catalogue d’arrière-plan. |
@@ -679,7 +679,7 @@ Aucun bouton `＋` intermédiaire n’est affiché dans le Circuit ou entre les 
 
 Un appui sur `Ajouter un exercice` ouvre directement la sélection multiple des références persistantes du Catalogue. La validation est désactivée lorsque la sélection est vide et les Exercices validées sont insérées dans l’ordre courant de la liste filtrée, non dans l’ordre des touchers. Le mécanisme de création directe d’un Exercice local à la Séance est conservé dans le produit mais n’est pas proposé par l’enchaînement d’écrans courant.
 
-La premier Exercice créée est insérée immédiatement après le Compte à rebours initial et avant le Circuit. Les Exercices suivantes sont insérées après le dernier Exercice ajoutée, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Circuit, dans le Circuit ou après le Circuit. La réorganisation est déclenchée par un appui long sur l’ensemble de la carte ; la poignée reste un indicateur visuel et ne constitue pas la seule zone de déclenchement.
+La premier Exercice créé est insérée immédiatement après le Compte à rebours initial et avant le Circuit. Les Exercices suivants sont insérées après le dernier Exercice ajouté, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Circuit, dans le Circuit ou après le Circuit. La réorganisation est déclenchée par un appui long sur l’ensemble de la carte ; la poignée reste un indicateur visuel et ne constitue pas la seule zone de déclenchement.
 
 La poignée de chaque carte d’Exercice est exclusivement une instance du composant DSF `Icon / Structure / Movable` (`3066:4676`) : dessin `20 × 20` centré dans un slot `28 × 28`, opacité `50 %`, couleur `color.iconNeutral`. Le dessin local historique `icon/réorganiser` en `16 × 16` et l’application du token `icon.compact` à cette poignée sont interdits.
 
@@ -855,7 +855,7 @@ La Description est facultative. Au moins une Zone corporelle est obligatoire ; p
 
 ### Modification d’un Exercice
 
-Lorsqu’un Exercice existante est modifiée, ses valeurs sont préremplies. Le nombre de Séries persistant rétablit la Durée totale calculée.
+Lorsqu’un Exercice existant est modifié, ses valeurs sont préremplies. Le nombre de Séries persistant rétablit la Durée totale calculée.
 
 Les Exécutions déjà historisées ne sont jamais modifiées.
 
@@ -1147,7 +1147,7 @@ L’action ouvre la modale de confirmation.
 
 Après confirmation :
 
-- la Série / Exercice courante recommence depuis son état initial ;
+- la Série / Exercice courant recommence depuis son état initial ;
 - pour un Exercice chronométré, le compte à rebours retrouve sa durée initiale ;
 - pour un Exercice en Répétitions ou À l’échec, le chronomètre d’Exercice revient à `00:00` ;
 - la cible de répétitions n’est pas modifiée ;
@@ -1371,7 +1371,7 @@ Si aucune Exécution n’existe encore, l’écran affiche : `Vous verrez ici vo
 
 ### Écran 12 — Catalogue des Exercices — Liste
 
-La frame `3786:5093` utilise le même Screen Shell et le même contrôle de type que le Catalogue des Séances, avec `Exercices` sélectionné. La liste contient les Exercices persistantes et conserve recherche, filtres, tri implicite et position de défilement dans l’état de navigation du parcours courant.
+La frame `3786:5093` utilise le même Screen Shell et le même contrôle de type que le Catalogue des Séances, avec `Exercices` sélectionné. La liste contient les Exercices persistants et conserve recherche, filtres, tri implicite et position de défilement dans l’état de navigation du parcours courant.
 
 La rangée `Créer / Filtrer / Trier` est identique au Catalogue des Séances : trois contrôles `108 × 32 pt`, gap `8 pt`, ensemble centré en référence `402 pt`, cibles tactiles ≥ `48 × 48 pt`. `Filtrer` propose les critères contextuels validés et ses panneaux ouverts sont définis dans Figma ; `Trier` reste visible disabled.
 
@@ -1531,7 +1531,7 @@ La modale s’affiche lorsque l’utilisateur tente de quitter l’écran `Ajout
 
 `Annuler` ferme la modale et conserve le brouillon d’Exercice. `Confirmer` abandonne la création locale en cours et revient au contexte d’origine sans modifier les autres données de la Composition ou du Catalogue.
 
-La confirmation d’abandon d’une **modification** d’Exercice existante reste un comportement fonctionnel distinct lorsqu’il est requis ; elle ne doit pas être déduite de cette frame de création.
+La confirmation d’abandon d’une **modification** d’Exercice existant reste un comportement fonctionnel distinct lorsqu’il est requis ; elle ne doit pas être déduite de cette frame de création.
 
 ### Modale 3 – Confirmer la suppression d’une Séance archivée
 
@@ -1606,7 +1606,7 @@ L’Exécution est suspendue pendant l’affichage de la modale.
 
 Après confirmation :
 
-- l’Exercice / Série courante reste l’Exercice courante ;
+- l’Exercice / Série courante reste l’Exercice courant ;
 - un Exercice chronométré retrouve sa durée initiale ;
 - un Exercice en Répétitions ou À l’échec retrouve un chronomètre d’Exercice à `00:00` ;
 - la cible de répétitions reste inchangée ;
