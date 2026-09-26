@@ -257,7 +257,7 @@ Depuis le Catalogue, l’utilisateur sélectionne `Exercices` pour consulter la 
 
 La rangée commune de commandes d’entrée est `Créer / Filtrer / Trier`. Le contrôle Filtrer démarre replié et blanc sans filtre. Un appui l’étend et affiche `Filtres / Aucun` sans modifier la liste ; un filtre sélectionné est conservé pendant la session courante, puis réinitialisé à `Aucun` au relaunch. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec `8 pt` entre contrôles et un ensemble centré (`x=31`, `147`, `263` comme mesures de preuve uniquement, jamais comme coordonnées absolues RN). Les cibles tactiles restent ≥ `48 × 48 pt`. Pour `Exercices`, les critères contextuels sont statut (`Actives` / `Archivées`), Catégories et Zones corporelles. Pour `Séances`, le filtre couvre le statut et les Étiquettes. `Trier` reste visible mais désactivé et le tri appliqué reste `updatedAt DESC`. Recherche, filtre appliqué, tri implicite et scroll sont conservés pendant la session courante ; au relaunch, le filtre revient à `Aucun`.
 
-Depuis la Composition d’une Séance, `Ajouter une exercice` ouvre directement la sélection multiple du Catalogue des Exercices. La validation copie les Exercices dans leur ordre visible et restaure la Composition. La capacité historique de création directe d’un Exercice local à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans ce parcours courant.
+Depuis la Composition d’une Séance, `Ajouter un exercice` ouvre directement la sélection multiple du Catalogue des Exercices. La validation copie les Exercices dans leur ordre visible et restaure la Composition. La capacité historique de création directe d’un Exercice local à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans ce parcours courant.
 
 ### Parcours d’ouverture et de modification d’une Séance
 
@@ -673,13 +673,13 @@ Toute roulette numérique de l’application produit un retour haptique léger e
 
 ### Ajout d’un Exercice
 
-Un seul bouton secondaire `+ Ajouter une exercice` est affiché en haut de l’écran de Composition.
+Un seul bouton secondaire `+ Ajouter un exercice` est affiché en haut de l’écran de Composition.
 
 Aucun bouton `＋` intermédiaire n’est affiché dans le Circuit ou entre les Exercices.
 
-Un appui sur `Ajouter une exercice` ouvre directement la sélection multiple des références persistantes du Catalogue. La validation est désactivée lorsque la sélection est vide et les Exercices validées sont insérées dans l’ordre courant de la liste filtrée, non dans l’ordre des touchers. Le mécanisme de création directe d’un Exercice local à la Séance est conservé dans le produit mais n’est pas proposé par l’enchaînement d’écrans courant.
+Un appui sur `Ajouter un exercice` ouvre directement la sélection multiple des références persistantes du Catalogue. La validation est désactivée lorsque la sélection est vide et les Exercices validées sont insérées dans l’ordre courant de la liste filtrée, non dans l’ordre des touchers. Le mécanisme de création directe d’un Exercice local à la Séance est conservé dans le produit mais n’est pas proposé par l’enchaînement d’écrans courant.
 
-La premier Exercice créée est insérée immédiatement après le Compte à rebours initial et avant le Circuit. Les Exercices suivantes sont insérées après la dernier Exercice ajoutée, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Circuit, dans le Circuit ou après le Circuit. La réorganisation est déclenchée par un appui long sur l’ensemble de la carte ; la poignée reste un indicateur visuel et ne constitue pas la seule zone de déclenchement.
+La premier Exercice créée est insérée immédiatement après le Compte à rebours initial et avant le Circuit. Les Exercices suivantes sont insérées après le dernier Exercice ajoutée, dans la même zone. L’utilisateur peut ensuite les déplacer manuellement avant le Circuit, dans le Circuit ou après le Circuit. La réorganisation est déclenchée par un appui long sur l’ensemble de la carte ; la poignée reste un indicateur visuel et ne constitue pas la seule zone de déclenchement.
 
 La poignée de chaque carte d’Exercice est exclusivement une instance du composant DSF `Icon / Structure / Movable` (`3066:4676`) : dessin `20 × 20` centré dans un slot `28 × 28`, opacité `50 %`, couleur `color.iconNeutral`. Le dessin local historique `icon/réorganiser` en `16 × 16` et l’application du token `icon.compact` à cette poignée sont interdits.
 
@@ -764,10 +764,10 @@ La frame `3542:4656` et plusieurs états `3553:*` / `3580:*` sont des référenc
 | Écran 4i | Séries pilote | ![[images/ecran-4i-creation-activite-series-pilote.png\|220]] | Copie documentaire historique ; règle de calcul toujours valide | ancien node supprimé |
 | Écran 4j | Durée totale pilote | ![[images/ecran-4j-creation-activite-duree-totale-pilote.png\|220]] | Copie documentaire historique ; règle de calcul toujours valide | ancien node supprimé |
 | Écran 4k | Durée ajustée | ![[images/ecran-4k-creation-activite-duree-ajustee.png\|220]] | Message temporaire après arrondi à un nombre entier de Séries | `3580:4957` |
-| Écran 4l | Ajouter une exercice — paramètres repliés | — | État courant de l’éditeur avant déploiement des paramètres | `4217:6980` |
+| Écran 4l | Ajouter un exercice — paramètres repliés | — | État courant de l’éditeur avant déploiement des paramètres | `4217:6980` |
 | Écran 4m | Paramètres dépliés — vue défilée | — | Organisation actuelle des paramètres d’exécution | `4279:7044` |
 | Écran 4n | Invitation à paramétrer | — | État replié avec action `Cliquez pour paramétrer` | `4294:7075` |
-| Écran 4o | Modifier une exercice | — | Variante modification de l’éditeur courant | `4734:6342` |
+| Écran 4o | Modifier un exercice | — | Variante modification de l’éditeur courant | `4734:6342` |
 | Écran 4p | Durée de l’Exercice — roulette ouverte | — | Roulette en modale basse dans le nouvel éditeur | `4332:7095` |
 | Écran 4q | Catégorie — nouvelle catégorie — clavier ouvert | — | Création d’une Catégorie depuis l’éditeur | `4474:7157` |
 | Écran 4r | Zones corporelles | — | Sélection des Zones corporelles | `4478:7209` |
@@ -793,7 +793,7 @@ Dans le parcours courant de Composition, l’interface expose la sélection d’
 
 ### Contenu et sections
 
-L’en-tête fixe porte un titre fonctionnel : `Ajouter une exercice` en création et `Modifier une exercice` en modification. Le nom de la Séance n’est pas utilisé comme titre d’écran.
+L’en-tête fixe porte un titre fonctionnel : `Ajouter un exercice` en création et `Modifier un exercice` en modification. Le nom de la Séance n’est pas utilisé comme titre d’écran.
 
 Sous l’en-tête, un bandeau bleu de `402 × 115` points, sans espace avec le séparateur horizontal de l’en-tête, contient uniquement :
 
@@ -1125,7 +1125,7 @@ T04 développe toutes les Séries, les répétitions de Tour et les passages de 
 
 ### Récupérations
 
-Deux phases distinctes peuvent exister. `SIDE_RECOVERY` matérialise la Pause au changement de côté d’un Exercice bilatéral et intervient entre le premier et le second côté. `POST_ACTIVITY_RECOVERY` matérialise la Récupération après exercice portée par l’occurrence de Séance ; elle intervient après l’occurrence, y compris après la dernier Exercice avant `SESSION_END` et après chaque passage dans le Circuit à chaque Tour.
+Deux phases distinctes peuvent exister. `SIDE_RECOVERY` matérialise la Pause au changement de côté d’un Exercice bilatéral et intervient entre le premier et le second côté. `POST_ACTIVITY_RECOVERY` matérialise la Récupération après exercice portée par l’occurrence de Séance ; elle intervient après l’occurrence, y compris après le dernier Exercice avant `SESSION_END` et après chaque passage dans le Circuit à chaque Tour.
 
 La valeur `postActivityRecoverySeconds = 0` reste visible dans la Composition mais ne crée pas de phase chronométrée positive. La zone `À suivre` prépare l’élément qui succède à la phase courante. Les données de résultat distinguent la pause au changement de côté de la récupération après occurrence.
 
@@ -1200,7 +1200,7 @@ Dans T04, Sons et Annonces vocales sont activés par défaut au début de chaque
 
 Au début d’un Exercice, son nom peut être annoncé vocalement lorsque les Annonces vocales sont actives. Au début d’une phase de récupération chronométrée (`SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`), l’annonce est `Récupération`.
 
-Pour les Exercices chronométrées, les signaux sonores de fin de compte à rebours sont appliqués conformément aux règles métier définies pour le MVP.
+Pour les Exercices chronométrés, les signaux sonores de fin de compte à rebours sont appliqués conformément aux règles métier définies pour le MVP.
 
 Pour un Exercice en Répétitions ou À l’échec, aucun signal de fin de compte à rebours n’est utilisé puisqu’il n’existe pas de temps cible. Un bip fixe est toutefois émis à chaque minute écoulée dans le MVP.
 
@@ -1407,7 +1407,7 @@ Cette règle n’active pas les Parcours dans T03/MVP. Les anciennes frames Figm
 
 ### Écran 14 — Composition — Sélectionner plusieurs Exercices existants
 
-Depuis `Ajouter une exercice`, la frame `3789:5349` ouvre directement la sélection des Exercices du Catalogue au-dessus de la Composition grisée. La liste seule défile. Les boutons fixes sont `Annuler` à gauche et `Ajouter N exercice(s)` à droite.
+Depuis `Ajouter un exercice`, la frame `3789:5349` ouvre directement la sélection des Exercices du Catalogue au-dessus de la Composition grisée. La liste seule défile. Les boutons fixes sont `Annuler` à gauche et `Ajouter N exercice(s)` à droite.
 
 Les Exercices sont insérées selon leur ordre courant de présentation dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers. La Recherche utilise `Icon / Search`; l’état sélectionné utilise `Icon / Selection Check`. Aucun glyphe texte ne peut les remplacer.
 
@@ -1419,7 +1419,7 @@ Les Exercices sont insérées selon leur ordre courant de présentation dans la 
 
 L’écran réutilise l’Écran 4 et ses composants. Ouvert depuis le Catalogue, il crée ou modifie un Exercice de référence persistante ; ouvert depuis une Composition, il agit uniquement sur la copie de Séance. Le contexte d’ouverture détermine la destination de retour et interdit toute propagation implicite entre référence et copie.
 
-Les références actives sont désormais `4217:6980 — Ajouter une exercice — paramètres repliés` pour la création et `4734:6342 — Modifier une exercice — Squats sautés` pour la modification. Les anciennes références `3879:5947` et `3879:6079` n’existent plus dans le Figma courant et restent historiques.
+Les références actives sont désormais `4217:6980 — Ajouter un exercice — paramètres repliés` pour la création et `4734:6342 — Modifier un exercice — Squats sautés` pour la modification. Les anciennes références `3879:5947` et `3879:6079` n’existent plus dans le Figma courant et restent historiques.
 
 ![[images/ecran-15-creation-activite-persistante.png|260]]
 
@@ -1510,7 +1510,7 @@ Ce comportement concerne uniquement le parcours de création. Pour une Séance e
 
 #### Ouverture
 
-La modale s’affiche lorsque l’utilisateur tente de quitter l’écran `Ajouter une exercice` alors qu’une création non enregistrée contient des informations saisies.
+La modale s’affiche lorsque l’utilisateur tente de quitter l’écran `Ajouter un exercice` alors qu’une création non enregistrée contient des informations saisies.
 
 #### Contenu
 
@@ -1726,8 +1726,8 @@ Cette famille de modales est ouverte par appui long sur une option dans les sél
 
 Références Figma :
 - Étiquette : `4861:6145 — Composition séance — Étiquettes — Appui long — Confirmation suppression` ;
-- Catégorie : `4861:6259 — Ajouter une exercice — Catégorie — Appui long — Confirmation suppression` ;
-- Zone corporelle : `4861:6348 — Ajouter une exercice — Zones corporelles — Appui long — Confirmation suppression`.
+- Catégorie : `4861:6259 — Ajouter un exercice — Catégorie — Appui long — Confirmation suppression` ;
+- Zone corporelle : `4861:6348 — Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression`.
 
 Le dialogue utilise la variante destructive à deux actions de `Overlay / Decision Dialog`. Le titre reprend la valeur concernée sous la forme `Supprimer « {nom} » ?`. Le message précise, lorsque la valeur est utilisée, qu’elle sera retirée des objets courants concernés et que l’historique restera inchangé.
 
@@ -1804,10 +1804,10 @@ Avant cette passe, **77** de ces frames étaient déjà référencées par leur 
 | `4168:11149` | Catalogue Séances — Filtrer — Panneau ouvert | Référencée dans Écran 2 |
 | `4168:11262` | Catalogue Exercices — Filtrer — Panneau ouvert | Référencée dans Écran 12 |
 | `4593:6285` | Confirmer l’archivage d’une séance planifiée | Référencée dans les modales |
-| `4217:6980` | Ajouter une exercice — paramètres repliés | Référencée dans Écran 4 |
-| `4279:7044` | Ajouter une exercice — paramètres dépliés | Référencée dans Écran 4 |
-| `4294:7075` | Ajouter une exercice — invitation à paramétrer | Référencée dans Écran 4 |
-| `4734:6342` | Modifier une exercice — Squats sautés | Référencée dans Écran 4 |
+| `4217:6980` | Ajouter un exercice — paramètres repliés | Référencée dans Écran 4 |
+| `4279:7044` | Ajouter un exercice — paramètres dépliés | Référencée dans Écran 4 |
+| `4294:7075` | Ajouter un exercice — invitation à paramétrer | Référencée dans Écran 4 |
+| `4734:6342` | Modifier un exercice — Squats sautés | Référencée dans Écran 4 |
 | `4332:7095` | Durée de l’Exercice — roulette ouverte | Référencée dans Écran 4 |
 | `4474:7157` | Catégorie — Nouvelle catégorie — clavier | Référencée dans Écran 4 |
 | `4478:7209` | Zones corporelles | Référencée dans Écran 4 |
@@ -1889,8 +1889,8 @@ Le parcours générique de planification est conçu pour accepter à terme un Pa
 Sous chaque occurrence d’Exercice de la Composition, afficher systématiquement une ligne légère `Récupération {durée}`, y compris lorsque la durée vaut `0 s`. Un tap sur la durée ouvre la roulette basse de modification. Cette ligne accompagne l’occurrence lors du déplacement, de la duplication et de la suppression.
 
 La règle vaut également :
-- après la dernier Exercice d’un Tour ;
+- après le dernier Exercice d’un Tour ;
 - à chaque Tour du Circuit ;
-- après la dernier Exercice de la Séance, avant la Fin de séance.
+- après le dernier Exercice de la Séance, avant la Fin de séance.
 
 Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est remplacé par `Pause au changement de côté` et n’est exposé que lorsque `Changement de côté` vaut `D→G` ou `G→D`. La récupération après exercice ne figure ni dans l’éditeur ni dans la synthèse intrinsèque de l’Exercice.
