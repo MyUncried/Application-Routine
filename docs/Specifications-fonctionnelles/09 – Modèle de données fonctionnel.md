@@ -900,7 +900,7 @@ Une **Catégorie** classe une **Exercice** et porte sa couleur sémantique. Elle
 
 ## Périmètre
 
-Une Catégorie possède son identité, son libellé, sa couleur et son ordre d’affichage. Un Exercice référence zéro ou une Catégorie.
+Une Catégorie possède son identité, son libellé, sa couleur et son ordre d’affichage. Un nouvel Exercice valide référence exactement une Catégorie.
 
 ## Attributs fonctionnels
 
@@ -916,7 +916,7 @@ Une Catégorie possède son identité, son libellé, sa couleur et son ordre d�
 
 ## Règles métier
 
-- un Exercice peut ne porter aucune Catégorie ;
+- un nouvel Exercice valide porte exactement une Catégorie ;
 - un Exercice porte au plus une Catégorie dans le modèle courant ;
 - la Catégorie et les Zones corporelles sont deux dimensions indépendantes ;
 - la couleur de la Catégorie est utilisée comme repère sémantique de l’Exercice dans les cartes et l’éditeur ;
@@ -939,7 +939,7 @@ Une Zone corporelle possède directement :
 - son nom ;
 - son ordre d’affichage.
 
-Les exercices référencent zéro, une ou plusieurs zones corporelles. Une zone corporelle ne contient pas directement les exercices qui l’utilisent.
+Un nouvel Exercice valide référence une ou plusieurs Zones corporelles. Une zone corporelle ne contient pas directement les exercices qui l’utilisent.
 
 ## Attributs fonctionnels
 
@@ -951,7 +951,7 @@ Les exercices référencent zéro, une ou plusieurs zones corporelles. Une zone 
 
 ## Règles métier
 
-- Un Exercice peut être associée à zéro, une ou plusieurs Zones corporelles.
+- Un nouvel Exercice valide est associé à une ou plusieurs Zones corporelles ; la sélection reste multiple.
 - Les Zones corporelles constituent un référentiel utilisateur administrable.
 - L’utilisateur peut créer, renommer et supprimer une Zone corporelle.
 - Toutes les Zones, y compris les dix valeurs initiales fournies par KODJO, sont supprimables.
@@ -994,7 +994,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 - Toute Routine référence exactement une source `SESSION` ou `ACTIVITY`.
 - Toute Exécution référence exactement une source selon son origine.
 - Toute Étiquette et toute Catégorie appartient au référentiel de l’Utilisateur local ; l’origine initiale ou personnalisée n’affecte pas les droits de suppression.
-- Une Séance référence au plus une Étiquette ; un Exercice référence au plus une Catégorie.
+- Une Séance référence au plus une Étiquette ; un nouvel Exercice valide référence exactement une Catégorie.
 - La couleur affichée d’une Séance dérive uniquement de son Étiquette. La couleur sémantique d’un Exercice dérive uniquement de sa Catégorie.
 - Les Zones corporelles appartiennent au référentiel utilisateur local. Elles sont administrables par l’utilisateur local et restent référencées par identifiant stable.
 
