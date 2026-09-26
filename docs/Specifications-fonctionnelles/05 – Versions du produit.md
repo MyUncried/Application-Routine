@@ -21,7 +21,7 @@ Permettre à un utilisateur de créer des Séances structurées et des Exercices
 - afficher dans le MVP le média associé à une Activité lorsque sa carte Catalogue est déployée ; la gestion multiple et les mécanismes d’acquisition suivent leur périmètre propre ;
 - ordonner les exercices d’un Tour ;
 - utiliser un Cycle technique unique, toujours fixé à une répétition et jamais affiché ;
-- ordonner les Exercices dans le Tour visible, dont le nombre de répétitions est compris entre 1 et 99 ;
+- ordonner les Exercices dans le Circuit visible, dont le nombre de répétitions est compris entre 1 et 99 ;
 - exécuter immédiatement une séance ;
 - guider l’utilisateur visuellement et sonorement pendant l’exécution ;
 - annoncer vocalement le nom de chaque Activité au moment où elle commence et `Récupération` au démarrage d’une phase `SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY` lorsqu’elle existe ;
@@ -52,7 +52,7 @@ Permettre à un utilisateur de créer des Séances structurées et des Exercices
 - renseigner facultativement un Commentaire de **200 caractères maximum** ;
 - retrouver les Exécutions enregistrées sous forme de cartes condensées ou déployées individuellement dans le Suivi ; afficher `Vue d’ensemble`, `Filtrer` et `Trier` comme commandes désactivées.
 
-Dans cette version, l’échauffement et le retour au calme utilisent des Exercices ordinaires, placées selon le besoin avant le Tour, dans le Tour ou après le Tour. `Retour au calme` n’est pas un type structurel particulier.
+Dans cette version, l’échauffement et le retour au calme utilisent des Exercices ordinaires, placées selon le besoin avant le Circuit, dans le Circuit ou après le Circuit. `Retour au calme` n’est pas un type structurel particulier.
 
 Le guidage sonore doit, dans la mesure permise par le système d’exploitation, continuer lorsque l’écran est verrouillé ou que l’application fonctionne en arrière-plan.
 
