@@ -211,7 +211,7 @@ Elle ne contient pas directement :
 | Nombre total d’Exercices à exécuter     | Nombre d’occurrences d’Exercices prévues dans le plan d’Exécution complet |           Calculé            | Calculé après développement des Séries, Tours du Circuit et du Cycle ; exclut `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY`, le Compte à rebours initial et la Fin de séance, qui ne sont pas des Exercices |
 | Durée du compte à rebours initial       | Durée de la phase précédant la première exercice                          |         Obligatoire          | Valeur en secondes ; 0 s rend la phase instantanée                                                                                                                                                                                                     |
 | Texte vocal du compte à rebours initial | Texte annoncé vocalement pendant ou au début du compte à rebours initial  |          Facultatif          | Valeur initiale issue des Préférences globales ; peut être vide                                                                                                                                                                                        |
-| Durée de la fin de séance               | Durée de la phase suivant la dernière exercice                            |         Obligatoire          | Valeur en secondes ; 0 s rend la phase instantanée                                                                                                                                                                                                     |
+| Durée de la fin de séance               | Durée de la phase suivant le dernier exercice                            |         Obligatoire          | Valeur en secondes ; 0 s rend la phase instantanée                                                                                                                                                                                                     |
 | Texte vocal de la fin de séance         | Texte annoncé vocalement pendant ou au début de la fin de séance          |          Facultatif          | Valeur initiale issue des Préférences globales ; peut être vide                                                                                                                                                                                        |
 ## Structure interne de la séance
 
@@ -221,7 +221,7 @@ La structure d’une séance est composée, dans l’ordre, de :
 3. zéro, une ou plusieurs Exercices placés avant le Circuit ;
 4. un Circuit unique contenant une suite ordonnée d’Exercices et répété de 1 à 99 fois ;
 5. zéro, une ou plusieurs Exercices placés après le Circuit ;
-6. une Fin de séance obligatoire, exécutée une seule fois après la dernier Exercice.
+6. une Fin de séance obligatoire, exécutée une seule fois après le dernier Exercice.
 
 Dans le MVP, le Cycle contient :
 - son identifiant ;
@@ -511,7 +511,7 @@ Le nom « Récupération » n’a aucune sémantique technique : un Exercice ain
 
 ## Périmètre
 
-Une exercice possède directement :
+Un exercice possède directement :
 
 - son identité ;
 - son nom ;
@@ -602,8 +602,8 @@ Un `MediaAsset` possède son identité et ses informations techniques. Les liens
 ## Règles métier
 
 - Un fichier média peut être référencé par plusieurs associations appartenant chacune à un Exercice.
-- Une exercice peut ne posséder aucun média.
-- Une exercice possède zéro à plusieurs associations média ordonnées.
+- Un exercice peut ne posséder aucun média.
+- Un exercice possède zéro à plusieurs associations média ordonnées.
 - La duplication d’un Exercice ou d’une Séance crée une nouvelle association/entité Média pour l’Exercice dupliquée ; cette association peut référencer le même fichier physique local.
 - Retirer un média d’un Exercice supprime uniquement son association. Le fichier physique est supprimé seulement lorsqu’aucun Exercice ni aucun instantané ne le référence.
 
@@ -644,7 +644,7 @@ Une Exécution possède directement :
 | Dernière sauvegarde | Date de sauvegarde | Obligatoire | Technique |
 | Ressenti | Ressenti général renseigné dans la Synthèse | Conditionnel | Obligatoire dès lors que la Synthèse est présentée ; peut être absent après interruption technique sans Synthèse |
 | Commentaire | Commentaire libre de Synthèse | Facultatif | **200 caractères maximum** |
-| Nombre d’Exercices exécutés | Nombre de Résultats d’Exercice exécutée effectivement créés | Calculé | Un Exercice `Partielle` compte comme exécutée ; un Exercice jamais atteinte ne compte pas ; utilisé notamment pour le Suivi et les indicateurs historiques |
+| Nombre d’Exercices exécutés | Nombre de Résultats d’Exercice exécuté effectivement créés | Calculé | Un Exercice `Partielle` compte comme exécutée ; un Exercice jamais atteinte ne compte pas ; utilisé notamment pour le Suivi et les indicateurs historiques |
 | Occurrence planifiée satisfaite | Occurrence future éventuellement satisfaite par une Exécution anticipée | Facultatif | Renseignée lorsqu’une occurrence future est démarrée en avance |
 
 ## Structures internes
@@ -709,7 +709,7 @@ Contient notamment :
 | `ActivityDefinition` | MVP T03 | Référence persistante autonome sans type d’Exercice, directement exécutable et copiable dans une Séance. |
 | `SessionActivity` | MVP | Copie complète appartenant à une seule Séance ; contient sa position et son ordre. |
 | `MediaAsset` | V2 | Fichier local immuable et métadonnées techniques ; peut être partagé. |
-| `ActivityMedia` | V2 | Association ordonnée entre une exercice et un `MediaAsset`. |
+| `ActivityMedia` | V2 | Association ordonnée entre un exercice et un `MediaAsset`. |
 | `Parcours` | V2 | Racine persistante avec nom, couleur et configuration de transition. |
 | `CircuitSession` | V2 | Étape ordonnée référençant une Séance ; plusieurs lignes peuvent viser la même Séance. |
 | `CircuitExecution` | V2 | Exécution globale et instantané immuable du Parcours. |
@@ -732,9 +732,9 @@ Un Parcours validé possède au moins deux `CircuitSession`. Il n’existe aucun
 Au lancement, l’instantané contient le Parcours ordonné et l’instantané de chaque Séance. Une Exécution interrompue conserve les étapes terminées, l’étape courante interrompue et aucune ligne d’Exécution de Séance pour les étapes non commencées.
 
 
-# 09.7.1 Résultat d’Exercice exécutée
+# 09.7.1 Résultat d’Exercice exécuté
 
-Chaque occurrence d’Exercice parcourue pendant une Exécution produit un **Résultat d’Exercice exécutée** distinct. Il permet de distinguer les occurrences issues des Séries, répétitions de Tour et répétitions de Cycle.
+Chaque occurrence d’Exercice parcourue pendant une Exécution produit un **Résultat d’Exercice exécuté** distinct. Il permet de distinguer les occurrences issues des Séries, répétitions de Tour et répétitions de Cycle.
 
 | Attribut | Description | Caractère | Règle principale |
 | --- | --- | :---: | --- |
@@ -797,7 +797,7 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 - Le plan d'exécution est généré automatiquement au démarrage de chaque exécution de séance.
 - Il est construit exclusivement à partir de l'instantané de séance.
 - Toute modification ultérieure de la séance ou de la routine est sans effet.
-- La fin de la dernier Exercice active `SESSION_END`. L’Exécution n’est terminée qu’après l’achèvement de cette dernière étape ; une durée de `0 s` l’achève immédiatement.
+- La fin de le dernier Exercice active `SESSION_END`. L’Exécution n’est terminée qu’après l’achèvement de cette dernière étape ; une durée de `0 s` l’achève immédiatement.
 - Les Tours du Circuit et du cycle sont résolues lors de la génération.
 - Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` n’existe qu’entre Séries successives. `SIDE_RECOVERY` est insérée entre les côtés si nécessaire ; `POST_ACTIVITY_RECOVERY` est insérée après chaque occurrence de Séance/Parcours si sa durée contextuelle est positive.
 - T04 développe les Séries multiples, les répétitions de Tour et les passages de côté avant démarrage. Le Plan obtenu est figé dans l’instantané.
@@ -837,7 +837,7 @@ Elles ne contiennent pas directement :
 | Notifications                                      | Autorisation effective des rappels locaux                                  | Obligatoire | Non autorisées par défaut ; demande système lors de la première activation d’un rappel |
 | Vibration                                          | Active les vibrations fonctionnelles de séance                             | Facultatif  | Valeur initiale activée ; n'affecte pas le feedback haptique systématique des roulettes numériques |
 | Écran maintenu actif                               | Empêche la mise en veille pendant une exécution de séance                  | Facultatif  | Pendant l'exécution uniquement                                           |
-| Durée par défaut d'une exercice Exercice           | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                                                      |
+| Durée par défaut d'un exercice Exercice           | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                                                      |
 | Pause au changement de côté par défaut              | Valeur globale du Profil utilisée pour initialiser `sideRecoverySeconds` lors de l’activation `D→G` ou `G→D` d’un Exercice | Facultatif | `10 s` dans le Figma de référence ; valeur proposée à la création/activation bilatérale puis modifiable dans l’éditeur |
 | Récupération après exercice par défaut              | Valeur globale utilisée pour initialiser `postActivityRecoverySeconds` lors de la création d’une occurrence | Facultatif | `30 s` dans le Figma de référence ; création de l’occurrence uniquement ; une modification ultérieure ne change pas les occurrences existantes |
 | Pause entre Séries par défaut                      | Valeur proposée entre deux Séries d'un Exercice                           | Facultatif  | Création uniquement                                                      |
@@ -1012,7 +1012,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 - Copie du Cycle, du Tour, des Exercices et de leurs Catégories ; les associations média suivent leur règle de copie propre.
 - Les routines et les exécutions de séance ne sont jamais copiées.
 
-## Duplication d'une exercice
+## Duplication d'un exercice
 
 - Nouvelle exercice avec un nouvel identifiant.
 - Nom `{nom d’origine} (copie)`, puis `{nom d’origine} (copie 2)`, `(copie 3)`, etc., en utilisant le premier suffixe disponible.
@@ -1080,7 +1080,7 @@ Création → Édition → Active
 - Une séance archivée n'est plus proposée pour créer une nouvelle routine ou être exécutée directement.
 - La duplication crée une nouvelle séance indépendante.
 
-## Cycle de vie d'une exercice
+## Cycle de vie d'un exercice
 
 Une `ActivityDefinition` persistante du Catalogue suit le cycle :
 
