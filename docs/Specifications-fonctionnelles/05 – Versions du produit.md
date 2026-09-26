@@ -16,9 +16,9 @@ Permettre à un utilisateur de créer des Séances structurées et des Exercices
   - une durée, un nombre de répétitions ou le mode À l’échec ;
   - un nombre de Séries propre à l'Exercice ;
   - une Pause éventuelle appliquée uniquement entre deux Séries successives, donc `C−1` fois par côté ;
-  - une Pause au changement de côté éventuelle, uniquement pour une Exercice bilatérale ;
+  - une Pause au changement de côté éventuelle, uniquement pour un Exercice bilatérale ;
   - en mode Durée, une Durée totale calculée et dépendante du nombre de Séries ;
-- afficher dans le MVP le média associé à une Exercice lorsque sa carte Catalogue est déployée ; la gestion multiple et les mécanismes d’acquisition suivent leur périmètre propre ;
+- afficher dans le MVP le média associé à un Exercice lorsque sa carte Catalogue est déployée ; la gestion multiple et les mécanismes d’acquisition suivent leur périmètre propre ;
 - ordonner les exercices d’un Tour ;
 - utiliser un Cycle technique unique, toujours fixé à une répétition et jamais affiché ;
 - ordonner les Exercices dans le Circuit visible, dont le nombre de répétitions est compris entre 1 et 99 ;
@@ -193,14 +193,14 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - troisième mode d’Exercice `À l’échec`, exécuté comme le mode Répétitions avec `Suivant` ;
 - Catalogue affichant `Exercices / Séances / Parcours` ; `Séances` est actif dès T01 et `Exercices` devient actif dans le MVP avec T03 ; `Parcours` reste visible mais désactivé ;
 - carte d’Exercice du Catalogue déployable/repliable pour afficher le média associé dans le MVP ; l’activation de cet affichage n’implique pas de nouveau mécanisme d’import ou de capture.
-- nouvelle structure d’édition d’une Exercice : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Pause au changement de côté / Durée totale`, la pause au changement de côté étant conditionnelle à `D→G/G→D` ;
+- nouvelle structure d’édition d’un Exercice : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Pause au changement de côté / Durée totale`, la pause au changement de côté étant conditionnelle à `D→G/G→D` ;
 - référentiels Étiquettes / Catégories / Zones corporelles administrables dans le MVP : toutes les valeurs, initiales comme personnalisées, sont supprimables par appui long puis confirmation ; création et renommage suivent les parcours propres à chaque référentiel ;
 - modèle D-208 : `ActivityDefinition` porte seulement la pause au changement de côté éventuelle ; chaque occurrence de Séance/Parcours porte sa récupération après exercice, y compris à `0 s`, exécutée après l’occurrence et exclue de la durée intrinsèque de l’Exercice.
 
 ### MVP — complément T03
 
 - Catalogue et cycle de vie des Exercices de référence ;
-- création, consultation et modification d’une Exercice persistante ;
+- création, consultation et modification d’un Exercice persistante ;
 - ajout dans une Séance par copie indépendante et sélection multiple ; pas d’action `Enregistrer dans mes exercices` dans la première livraison ;
 - Exécution directe avec préparation fixe de `5 s`, Synthèse à Ressenti obligatoire, Suivi général et statistiques compatibles.
 
@@ -231,7 +231,7 @@ T04 développe ensuite le Plan d’Exécution par Séries, Tours et côtés port
 
 ## MVP T03 — Exercice directement exécutable
 
-La première version fonctionnelle du Catalogue des Exercices inclut l’exécution directe d’une référence persistante : action sur la carte, préparation fixe de `5 s`, moteur commun, Synthèse, Suivi général typé et statistiques compatibles. Cette capacité appartient désormais au MVP T03. Le MVP n’est donc plus centré exclusivement sur les Séances : une Exercice persistante valide constitue aussi une source exécutable.
+La première version fonctionnelle du Catalogue des Exercices inclut l’exécution directe d’une référence persistante : action sur la carte, préparation fixe de `5 s`, moteur commun, Synthèse, Suivi général typé et statistiques compatibles. Cette capacité appartient désormais au MVP T03. Le MVP n’est donc plus centré exclusivement sur les Séances : un Exercice persistante valide constitue aussi une source exécutable.
 
 ### Précision MVP T03 — Carte d’Exercice ; médias hors périmètre
 
