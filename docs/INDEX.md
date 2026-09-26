@@ -92,7 +92,7 @@ La maquette Figma constitue la référence visuelle et interactive. Les document
 - `3841:8375` — historique/supersédé — ancien Catalogue des séances — Créer — arbre d’actions ;
 - `3561:4695`, `3561:7673`, `3561:7802` — éditeur Exercice Répétitions/À l’échec et roulette ;
 - `3943:6064` — éditeur Exercice — état vide ;
-- `3788:5258` — Composition — Ajouter une exercice — arbre ;
+- `3788:5258` — Composition — Ajouter un exercice — arbre ;
 - `3789:5349` et `3789:5405` — sélection multiple d’Exercices existants ;
 - `3879:5947` / `3879:6079` — création/modification d’un Exercice persistante ;
 - `2028:11700` / `2028:11808` — Composition et actions glissées ;
@@ -175,7 +175,7 @@ Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
 - distinction entre **Pause entre Séries**, **Pause au changement de côté** et **Récupération après exercice** ;
 - temps actif et Durée réelle hors Pause utilisateur ;
 - distinction entre Nombre d’Exercices de la Composition, Nombre total d’Exercices à exécuter et Nombre d’Exercices exécutées ;
-- progression hybride des Exercices chronométrées et des Exercices en Répétitions ou À l’échec ;
+- progression hybride des Exercices chronométrés et des Exercices en Répétitions ou À l’échec ;
 - calcul déterministe des occurrences périodiques.
 
 Les chapitres 00 à 13 et les matrices transverses constituent la baseline documentaire préparée pour T03. Le chapitre 13 couvre explicitement les contenus élémentaires E01 à E73 ; E70 reste un invariant de migration non visuel rattaché au chapitre 09 et aux contrats de persistance concernés.
