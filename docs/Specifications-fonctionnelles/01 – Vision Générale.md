@@ -23,7 +23,7 @@ La classification est dissociée : une **Étiquette** qualifie la Séance et por
 
 - un espace `Catalogues` pour les contenus ;
 - la création et la modification de Séances structurées ;
-- à partir de T03, un Catalogue des exercices persistantes et leur Exécution directe ;
+- à partir de T03, un Catalogue des exercices persistants et leur Exécution directe ;
 - un calendrier et la planification individuelle ;
 - une Exécution guidée, adaptée aux Exercices chronométrés, en Répétitions ou À l’échec ;
 - des signaux sonores, des annonces vocales et des vibrations fonctionnelles configurables ;
