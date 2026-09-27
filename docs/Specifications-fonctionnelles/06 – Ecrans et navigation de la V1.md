@@ -445,18 +445,12 @@ Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est 
 
 *Écran 2 — Catalogue des séances — Liste par défaut — Figma `1992:9910`*
 
-L’état de résultats de la recherche globale est illustré par :
-
-![[images/ecran-2a-recherche-globale-resultats.png|260]]
-
-*Écran 2a — Recherche globale — Résultats affichés — Figma `1992:10320`*
 
 ### États Figma de référence
 
 | N° | État | Capture | Règle matérialisée | Node Figma |
 | --- | --- | --- | --- | --- |
 | Écran 2b | Séance déployée | ![[images/ecran-2b-catalogue-seance-deployee.png\|220]] | Consultation de la Composition sans quitter le Catalogue | `1992:10014` |
-| Écran 2c | Champ de recherche déployé | ![[images/ecran-2c-recherche-globale-champ.png\|220]] | État de saisie précédant les résultats globaux ; la rangée `Créer / Filtrer / Trier` reste visible dans le Catalogue d’arrière-plan (`1992:10129`) | `1992:10129` |
 | Écran 2d | Carte condensée avec actions | ![[images/ecran-2d-catalogue-condense-actions.png\|220]] | La carte se déplace avec le glissement et révèle `Planifier`, `Dupliquer` et `Archiver` derrière | `1992:10518` |
 | Écran 2e | Carte déployée avec actions | ![[images/ecran-2e-catalogue-deployee-actions.png\|220]] | Même convention de glissement avec déplacement réel de la carte | `1992:10628` |
 | Écran 2f | Liste des Séances archivées | ![[images/ecran-2f-catalogue-archivees.png\|220]] | Contexte dans lequel restauration et suppression deviennent disponibles | `4549:6742` |
@@ -470,7 +464,7 @@ Référence complémentaire de variante d’actions glissées : `4592:6217 — C
 
 ### Objectif
 
-Permettre à l’utilisateur de consulter son Catalogue de Séances, d’effectuer une recherche globale, de créer une nouvelle Séance et d’accéder rapidement à la modification, à l’Exécution, à la consultation détaillée ou aux actions de gestion.
+Permettre à l’utilisateur de consulter son Catalogue de Séances, de le filtrer et le trier selon les fonctions disponibles, de créer une nouvelle Séance et d’accéder rapidement à la modification, à l’Exécution, à la consultation détaillée ou aux actions de gestion.
 
 Cet écran constitue l’accueil de l’application.
 
