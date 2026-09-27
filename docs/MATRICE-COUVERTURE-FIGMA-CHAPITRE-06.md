@@ -175,11 +175,11 @@ Les trois nouveaux états Figma suivants matérialisent D-200 et doivent être r
 
 | Node | Frame | Classification | Documentée | Référence documentaire | Statut |
 | --- | --- | --- | :---: | --- | --- |
-| `4997:6015` | Test 2 Exécution d’une séance — Initial — Bascule (info) | ÉTAT DE CONCEPTION POST-MVP | OUI | Chapitre 06 ; CE-MEDIA-EXEC-01 ; CONCEPTION-EXECUTION-MEDIA.md | COUVERT |
+| `4997:6015` | Test 2 Exécution d’une séance — Initial — Bascule (info) | TRACE DE CONCEPTION POST-MVP — NODE ABSENT | NON VÉRIFIABLE DANS FIGMA ACTUEL | Chapitre 06 ; CE-MEDIA-EXEC-01 ; CONCEPTION-EXECUTION-MEDIA.md | CONSERVER TRACE — PAS DE RÉEXPORT |
 | `4997:6113` | Test 2 Exécution d’une séance — Initial — Bascule (média) | ÉTAT DE CONCEPTION POST-MVP | OUI | Chapitre 06 ; CE-MEDIA-EXEC-01 ; CONCEPTION-EXECUTION-MEDIA.md | COUVERT |
 | `5009:6069` | Test 2 Exécution d’une séance — Média plein écran | ÉTAT DE CONCEPTION POST-MVP | OUI | Chapitre 06 ; CE-MEDIA-EXEC-02 ; CONCEPTION-EXECUTION-MEDIA.md | COUVERT |
 
-Ces frames sont des évidences de la conception validée D-203 et ne constituent pas, à elles seules, une décision d’entrée dans le MVP.
+`4997:6113` et `5009:6069` restent présents comme frames de premier niveau du Prototype MVP. `4997:6015` n’est plus retrouvé dans Figma au contrôle du 28/09/2026 : sa référence est conservée uniquement pour traçabilité documentaire et ne doit pas être réexportée. Ces références ne constituent pas, à elles seules, une décision d’entrée dans le MVP.
 
 ## Réserve D-208 — récupération
 
