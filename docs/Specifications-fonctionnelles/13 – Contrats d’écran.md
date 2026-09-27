@@ -158,7 +158,7 @@ Références Figma : `4861:6145` (Étiquette), `4861:6259` (Catégorie), `4861:6
 | Bloc | B1 |
 | États | S01 + état vide/liste + retour Catégories |
 | T03-E | E01, E02, E04, E05, E06, E19, E67, E68, E69 |
-| Frames | `2117:86`, `1992:9910`, `1992:10129` |
+| Frames | `2117:86`, `1992:9910` |
 | Shell | `Shell / Screen`, Context On, Bottom Navigation |
 | Nature | Écran existant modifié |
 
@@ -201,7 +201,7 @@ Segmenté sur largeur utile. Rangée Catalogue conforme §4.5 : trois contrôles
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Appliquer §4.2. Segmenté flexible ; libellés complets ; contenu liste scrollable. Dans `Recherche globale — Champ déployé`, le clavier/contexte de recherche ne supprime pas la rangée du Catalogue d’arrière-plan et ne réduit pas ses cibles tactiles sous `48 × 48 pt`.
+Appliquer §4.2. Segmenté flexible ; libellés complets ; contenu liste scrollable. Cibles tactiles ≥ `48 × 48 pt`.
 
 ### 11. États de l’écran
 
@@ -241,11 +241,11 @@ Séances = défaut/relaunch ; Exercices = actif T03 ; Parcours = disabled ; bott
 
 ### 20. Recette déterministe
 
-Tester 0/N Séances, segment initial, navigation Exercices, Parcours impossible, géométrie `Créer / Filtrer / Trier`, `Trier` disabled, `Créer` ouvrant directement la création d’une Séance sans intermédiaire, archivage sans Routine sans confirmation avec snackbar `Séance archivée` + `Annuler`, annulation de cet archivage, archivage avec ≥ 1 Routine avec confirmation puis suppression des Routines et absence de snackbar d’annulation, Recherche globale `1992:10129`, retour Catégories, relaunch, 360/402/440, texte agrandi. Négatifs : écran/arbre intermédiaire après `Créer`, absence Filtrer/Trier, `Trier` actif, `Séances` en bottom nav, Parcours activable, persistance du segment Exercices après relaunch.
+Tester 0/N Séances, segment initial, navigation Exercices, Parcours impossible, géométrie `Créer / Filtrer / Trier`, `Trier` disabled, `Créer` ouvrant directement la création d’une Séance sans intermédiaire, archivage sans Routine sans confirmation avec snackbar `Séance archivée` + `Annuler`, annulation de cet archivage, archivage avec ≥ 1 Routine avec confirmation puis suppression des Routines et absence de snackbar d’annulation, retour Catégories, relaunch, 360/402/440, texte agrandi. Négatifs : écran/arbre intermédiaire après `Créer`, absence Filtrer/Trier, `Trier` actif, `Séances` en bottom nav, Parcours activable, persistance du segment Exercices après relaunch.
 
 ### 21. Traçabilité
 
-E01–E06 → D-167/D-179/D-184/D-187 ; E67–E69 → D-168/D-178 ; Figma `2117:86`, `1992:9910`, `1992:10129`; l’ancienne frame d’arbre `3841:8375` est historique/supersédée.
+E01–E06 → D-167/D-179/D-184/D-187 ; E67–E69 → D-168/D-178 ; Figma `2117:86`, `1992:9910`; l’ancienne frame d’arbre `3841:8375` est historique/supersédée.
 
 ---
 
@@ -1847,7 +1847,7 @@ Les contrats de ce chapitre peuvent uniquement citer :
 - le node Figma correspondant ;
 - le statut courant, historique ou supersédé lorsque nécessaire.
 
-Les références Figma courantes utiles aux contrats T03 comprennent notamment : `3786:5093`, `1992:9910`, `1992:10129`, `4168:11149`, `4168:11262`, `4217:6980`, `4279:7044`, `4734:6342`, `4738:6209`, `4738:6355`, `1992:8132`, `1992:8626`, `1992:8224`, `1992:8326` et `1992:8428`.
+Les références Figma courantes utiles aux contrats T03 comprennent notamment : `3786:5093`, `1992:9910`, `4168:11149`, `4168:11262`, `4217:6980`, `4279:7044`, `4734:6342`, `4738:6209`, `4738:6355`, `1992:8132`, `1992:8626`, `1992:8224`, `1992:8326` et `1992:8428`.
 
 Les frames historiques explicitement marquées `HISTORIQUE` dans Figma ne constituent pas des cibles d’implémentation. Les frames `PROPOSITION` ne deviennent une référence active que lorsqu’une décision validée les adopte et que le chapitre 06 les rattache à un écran ou état de production.
 
