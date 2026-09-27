@@ -74,13 +74,13 @@ Les noms d’Exercices/Séances, catégories, zones corporelles, durées, nombre
 
 ### 4.3 Navigation globale
 
-Destination basse permanente : `Catalogues`, `Calendrier`, `Suivi`, `Profil` + Recherche.
+Destination basse permanente : `Catalogues`, `Calendrier`, `Suivi`, `Profil`. Aucun contrôle Recherche n’est présent dans le MVP (D-221/D-225).
 
 Composant : `Navigation / Bottom — Source exact` (`2537:214`). Les quatre dessins de destination mesurent au maximum `24 pt`, centrés dans une boîte optique `32 × 32 pt`. Aucune substitution par glyphe/emoji/système.
 
 ### 4.4 Conservation d’état Catalogue
 
-Recherche, filtre appliqué, tri implicite et scroll sont conservés pendant la session applicative courante et les allers-retours. Au relaunch, aucun filtre n’est appliqué et le Catalogue revient au segment `Séances`.
+Filtre appliqué, tri implicite et scroll sont conservés pendant la session applicative courante et les allers-retours. Au relaunch, aucun filtre n’est appliqué et le Catalogue revient au segment `Séances`.
 
 ### 4.5 Commandes Catalogue `Créer` / `Filtrer` / `Trier`
 
@@ -105,7 +105,7 @@ Pour T03 / `Exercices` :
 - aucune préférence de tri n’est persistée ;
 - aucun critère non arbitré n’est inventé.
 
-`Créer` est contextuel au Catalogue affiché : un tap ouvre directement la création de l’objet correspondant, sans écran ni arbre intermédiaire. Dans `1992:10129 — Recherche globale — Champ déployé`, la rangée `Créer / Filtrer / Trier` reste visible dans le Catalogue d’arrière-plan sous le contexte de recherche et le clavier.
+`Créer` est contextuel au Catalogue affiché : un tap ouvre directement la création de l’objet correspondant, sans écran ni arbre intermédiaire.
 
 Les **contrôles d’entrée** et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. `Trier` reste visible mais désactivé dans le périmètre T03.
 
@@ -156,7 +156,7 @@ Références Figma : `4861:6145` (Étiquette), `4861:6259` (Catégorie), `4861:6
 | Propriété | Valeur |
 |---|---|
 | Bloc | B1 |
-| États | S01 + état vide/liste + retour Catégories + recherche globale déployée |
+| États | S01 + état vide/liste + retour Catégories |
 | T03-E | E01, E02, E04, E05, E06, E19, E67, E68, E69 |
 | Frames | `2117:86`, `1992:9910`, `1992:10129` |
 | Shell | `Shell / Screen`, Context On, Bottom Navigation |
@@ -177,7 +177,6 @@ Entrées : fin Splash, tap `Catalogues`, retour d’un parcours Séance, retour 
 - Parcours → aucune navigation ;
 - Créer → règle contextuelle `CE-T03-03` puis création directe d’une Séance ;
 - carte Séance → parcours existant T01/T02 ;
-- Recherche → expérience de Recherche globale existante ;
 - navigation basse → destination choisie.
 
 ### 5. Données affichées et source de vérité
@@ -186,11 +185,11 @@ Liste issue des services/repositories Séance. Noms, catégories, zones, durées
 
 ### 6. Classification des valeurs Figma
 
-`Catalogue des séances`, `Exercices`, `Séances`, `Parcours`, `Créer`, `Filtrer`, `Trier`, `Catalogues` = statiques. Contenus de cartes et valeur de recherche = dynamiques/démonstration.
+`Catalogue des séances`, `Exercices`, `Séances`, `Parcours`, `Créer`, `Filtrer`, `Trier`, `Catalogues` = statiques. Contenus de cartes = dynamiques/démonstration.
 
 ### 7. Structure de l’écran
 
-Header fixe → segmenté trois types → rangée commandes Catalogue (`Créer`, `Filtrer`, `Trier`) → liste/état vide → Bottom Navigation. En recherche globale déployée, cette structure reste le contexte d’arrière-plan représenté par `1992:10129`.
+Header fixe → segmenté trois types → rangée commandes Catalogue (`Créer`, `Filtrer`, `Trier`) → liste/état vide → Bottom Navigation.
 
 ### 8. Éléments obligatoires
 
@@ -206,7 +205,7 @@ Appliquer §4.2. Segmenté flexible ; libellés complets ; contenu liste scrolla
 
 ### 11. États de l’écran
 
-Vide réel ; liste ; recherche globale déployée ; retour Catégories ; retour d’un sous-parcours ; relaunch sur Séances.
+Vide réel ; liste ; retour Catégories ; retour d’un sous-parcours ; relaunch sur Séances.
 
 ### 12. Contrôles et interactions
 
@@ -226,7 +225,7 @@ Aucun état de segment persisté au relaunch. Le brouillon de création de Séan
 
 ### 16. Navigation et conservation d’état
 
-Retour Catégories impose `Catalogue des séances` / Séances. Les autres retours suivent leur contrat. Transition canonique §4.9. La recherche/filtres/tri implicite/scroll ne sont conservés que pendant l’aller-retour courant.
+Retour Catégories impose `Catalogue des séances` / Séances. Les autres retours suivent leur contrat. Transition canonique §4.9. Les filtres, le tri implicite et le scroll ne sont conservés que pendant l’aller-retour courant.
 
 ### 17. Erreurs et cas limites
 
@@ -250,7 +249,7 @@ E01–E06 → D-167/D-179/D-184/D-187 ; E67–E69 → D-168/D-178 ; Figma `2117:
 
 ---
 
-## CE-T03-02 — Catalogue des exercices — liste, recherche, filtres et cartes
+## CE-T03-02 — Catalogue des exercices — liste, filtres et cartes
 
 > Mise à jour 24/09/2026 : actions glissées actives = `Planifier / Dupliquer / Archiver`; dans les archives = `Supprimer`. Le média déployé fait partie du MVP.
 
@@ -261,7 +260,7 @@ E01–E06 → D-167/D-179/D-184/D-187 ; E67–E69 → D-168/D-178 ; Figma `2117:
 | Bloc | B1 |
 | États | S02–S12 |
 | T03-E | E03, E07–E12, E32–E36, E58–E62, E73 |
-| Frames | `3786:5093`, recherche globale `1992:10129` pour le pattern de fond Catalogue |
+| Frames | `3786:5093` |
 | Déployer | `2537:1033` |
 | Navigation | `2537:214` |
 | Nature | Nouvel écran T03 |
@@ -270,7 +269,7 @@ L’ancienne référence `3787:5209` n’existe plus dans l’état Figma couran
 
 ### 2. Finalité fonctionnelle
 
-Lister les `ActivityDefinition`, permettre recherche, accès aux archives, consultation/modification, affichage média déployé et lancement direct, tout en séparant surface carte, Déployer et Lecture.
+Lister les `ActivityDefinition`, permettre filtrage, accès aux archives, consultation/modification, affichage média déployé et lancement direct, tout en séparant surface carte, Déployer et Lecture.
 
 ### 3. Contexte d’entrée
 
@@ -302,11 +301,11 @@ Rangée Catalogue : `Créer`, `Filtrer`, `Trier` visibles chacun en `108 × 32 p
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-§4.2. Liste et cartes prennent largeur utile. Recherche gère clavier sans masquer le contexte nécessaire ; le pattern `1992:10129` montre la rangée Catalogue conservée en arrière-plan. Cibles ≥48 même pour les commandes visuelles hautes de 32 pt. Texte long peut passer sur plusieurs lignes selon DSF.
+§4.2. Liste et cartes prennent la largeur utile. Cibles ≥48 même pour les commandes visuelles hautes de 32 pt. Texte long peut passer sur plusieurs lignes selon DSF.
 
 ### 11. États de l’écran
 
-Liste active ; vide ; recherche ; filtre étendu `Aucun` ; filtre contextuel appliqué ; Archives appliqué ; Trier visible disabled ; carte en swipe ; carte média déployée ; retour restauré ; relaunch sans filtre.
+Liste active ; vide ; filtre étendu `Aucun` ; filtre contextuel appliqué ; Archives appliqué ; Trier visible disabled ; carte en swipe ; carte média déployée ; retour restauré ; relaunch sans filtre.
 
 ### 12. Contrôles et interactions
 
@@ -322,11 +321,11 @@ Lecture seulement si définition exécutable. Filtrer>Archivées ne modifie aucu
 
 ### 15. Brouillon et persistance
 
-Recherche/filtre/scroll = état UI mémoire du parcours. Aucun stockage persistant après relaunch. Aucun tri utilisateur persisté.
+Filtre/scroll = état UI mémoire du parcours. Aucun stockage persistant après relaunch. Aucun tri utilisateur persisté.
 
 ### 16. Navigation et conservation d’état
 
-Édition/Execution/Archives puis retour : restaurer recherche, filtre, tri implicite et scroll. Relaunch : perdre état et revenir globalement Séances.
+Édition/Execution/Archives puis retour : restaurer filtre, tri implicite et scroll. Relaunch : perdre état et revenir globalement Séances.
 
 ### 17. Erreurs et cas limites
 
@@ -342,11 +341,11 @@ Rangée `Créer / Filtrer / Trier` conforme §4.5 ; Déployer actif pour le méd
 
 ### 20. Recette déterministe
 
-0/N cartes ; récupération 0/>0 ; géométrie rangée ; surface/Lecture/Déployer ; média condensé/déployé ; Filtrer contextuel ; Trier sans action ; recherche ; swipe `Planifier / Dupliquer / Archiver` sur actives et `Supprimer` dans archives ; retour état ; relaunch sans filtre ; responsive.
+0/N cartes ; récupération 0/>0 ; géométrie rangée ; surface/Lecture/Déployer ; média condensé/déployé ; Filtrer contextuel ; Trier sans action ; swipe `Planifier / Dupliquer / Archiver` sur actives et `Supprimer` dans archives ; retour état ; relaunch sans filtre ; responsive.
 
 ### 21. Traçabilité
 
-E03/E07–E12 → D-167/D-168/D-169/D-184 ; E32–E36 → D-173 ; E58–E62 → D-175 ; Figma `3786:5093`, pattern recherche `1992:10129`; `API-CAT-01`.
+E03/E07–E12 → D-167/D-168/D-169/D-184 ; E32–E36 → D-173 ; E58–E62 → D-175 ; Figma `3786:5093`; `API-CAT-01`.
 
 
 
@@ -574,7 +573,7 @@ Réutiliser composants partagés des archives Séances lorsque génériques. Auc
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-360/402/440 ; cibles ≥48 ; liste scrollable ; aucun clavier sauf recherche si utilisée conjointement.
+360/402/440 ; cibles ≥48 ; liste scrollable ; aucun clavier de recherche Catalogue.
 
 ### 11. États de l’écran
 
@@ -740,7 +739,7 @@ Noms/paramètres = dynamiques. Compteur = calculé. Libellés/actions = statique
 
 ### 7. Structure de l’écran
 
-Modale/liste, recherche, éventuels filtres déjà définis pour ce contexte, indicateurs de sélection, compteur, Annuler/Valider.
+Modale/liste, éventuels filtres déjà définis pour ce contexte, indicateurs de sélection, compteur, Annuler/Valider.
 
 ### 8. Éléments obligatoires
 
@@ -756,11 +755,11 @@ Liste scrollable ; action de validation accessible ; aucun chevauchement. Ne pas
 
 ### 11. États de l’écran
 
-0 sélection ; 1 ; N ; recherche ; liste filtrée ; Valider disabled/active ; retour après validation.
+0 sélection ; 1 ; N ; liste filtrée ; Valider disabled/active ; retour après validation.
 
 ### 12. Contrôles et interactions
 
-Tap ligne toggle ; recherche/filtre conserve IDs ; Valider = une seule soumission ; Annuler = zéro mutation.
+Tap ligne toggle ; filtre conserve les IDs sélectionnés ; Valider = une seule soumission ; Annuler = zéro mutation.
 
 ### 13. Gestes
 
@@ -792,7 +791,7 @@ Ordre liste filtrée, pas ordre tap ; copies indépendantes ; aucune synchronisa
 
 ### 20. Recette déterministe
 
-Sélection B puis A alors que liste A/B → insertion A/B ; recherche/filtre avec sélection conservée ; 0 sélection ; rollback ; modifier source puis copie. Négatif : ordre taps, insertion partielle, lien dynamique.
+Sélection B puis A alors que liste A/B → insertion A/B ; filtre avec sélection conservée ; 0 sélection ; rollback ; modifier source puis copie. Négatif : ordre taps, insertion partielle, lien dynamique.
 
 ### 21. Traçabilité
 
@@ -1629,7 +1628,7 @@ Tous écrans utilisant Shell Bottom=Navigation.
 
 ### 4. Contexte de sortie / destinations
 
-Tap sur destination active/inactive ouvre la route racine correspondante selon navigation existante ; Recherche ouvre son expérience dédiée.
+Tap sur destination active/inactive ouvre la route racine correspondante selon navigation existante.
 
 ### 5. Données affichées et source de vérité
 
@@ -1641,7 +1640,7 @@ Aucune donnée métier. État active dérivé de route.
 
 ### 7. Structure de l’écran
 
-Barre Bottom Navigation + contrôle Recherche distinct selon composant canonique.
+Barre Bottom Navigation canonique à quatre destinations.
 
 ### 8. Éléments obligatoires
 
@@ -1651,7 +1650,6 @@ Barre Bottom Navigation + contrôle Recherche distinct selon composant canonique
 | Calendrier | `2537:118` | 32×32 | ≤24 centré | ≥48×48 |
 | Suivi | `2537:150` | 32×32 | ≤24 centré | ≥48×48 |
 | Profil | `2537:182` | 32×32 | ≤24 centré | ≥48×48 |
-| Recherche | `2736:2` | contrôle 58×58 | vecteur DSF | 58×58 |
 
 ### 9. Layout déterministe
 
@@ -1718,9 +1716,8 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E05 | Navigation basse `Catalogues` |
 | E06 | Icônes navigation conformes DSF |
 | E07 | Lister ActivityDefinition |
-| E08 | Recherche Catalogue exercices |
 | E09 | Rangée Catalogue `Créer / Filtrer / Trier` commune ; Filtrer Archives défini pour Exercices ; Trier disabled ; autres options non définies |
-| E10 | Préserver recherche/filtres/tri/scroll pendant aller-retour |
+| E10 | Préserver filtres/tri/scroll pendant aller-retour |
 | E11 | Ne pas conserver au relaunch |
 | E12 | Ouvrir ActivityDefinition en consultation/modification |
 | E13 | Créer ActivityDefinition depuis Catalogue |
@@ -1959,3 +1956,8 @@ Le Catalogue des Parcours, lorsqu’il devient fonctionnel et planifiable, appli
 
 
 **Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant ouvre une bulle de retrait ; un appui ailleurs referme la bulle sans modification. La Récupération après exercice et le Point d’arrêt peuvent partager une même ligne visuelle mais restent deux zones et deux concepts distincts.
+
+
+## Addendum contrats — clôture Figma / DSF 28 septembre 2026
+
+Les contrats actifs appliquent D-221 à D-230. En particulier : aucune recherche globale ou locale dans les Catalogues ; sélection simple d’un objet planifiable par radio exclusif avec fermeture au toucher et sans CTA bas ; sélection multiple de Composition par cases à cocher avec CTA `Sélectionner`; filtres avec validation explicite. Le titre de planification est contextuel selon D-223. Les dimensions, couleurs, ombres, halos, fonds, dégradés, steppers, badges, roulettes, navigation et règles de clipping sont des critères de recette DSF selon D-224 à D-230.
