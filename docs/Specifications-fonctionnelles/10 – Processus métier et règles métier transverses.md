@@ -20,7 +20,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-010 | Après restauration, un message `Séance restaurée` propose temporairement `Annuler`. |
 | RM-011 | Une Séance archivée peut être supprimée définitivement après confirmation explicite. Cette suppression ne supprime pas ses Exécutions historiques. |
 | RM-012 | Le glissement gauche déplace visiblement la carte avec le geste et révèle progressivement les actions placées derrière. Une fois ouverte, la carte se referme uniquement par un glissement droit commencé sur cette même carte ; un glissement droit ailleurs, un appui sur le fond ou un appui sur sa surface principale hors options n’a aucun effet de fermeture. Une seule carte peut exposer simultanément ses actions, sans désactiver les autres contrôles de l’écran. |
-| RM-013 | La recherche globale ne modifie pas la collection. Retour ramène au contexte depuis lequel la recherche a été ouverte. |
+| RM-013 | **Supersédée par D-221.** Aucune recherche globale ni recherche locale de Catalogue n’est incluse dans le MVP. |
 | RM-014 | L’état vide du Catalogue permet de lancer la création de la première Séance. |
 
 ## 2. Création et modification d’une Séance
@@ -267,3 +267,7 @@ Ces règles décrivent une conception post-MVP à planifier.
 | RM-219 | Après un Exercice, la Récupération après exercice est exécutée avant un éventuel Point d’arrêt. Aucun Point d’arrêt juste après le Compte à rebours initial ni juste avant la Fin de séance. |
 | RM-220 | Un Point d’arrêt peut être placé avant/après le Circuit et entre ses Exercices ; s’il est dans le Circuit, il est rencontré à chaque Tour. |
 | RM-221 | Dans le texte éditable, Durée affiche toujours `Durée totale`; Répétitions affiche la borne `>=`; À l’échec n’affiche pas de Durée totale numérique. |
+
+| RM-221 | Les Catalogues du MVP ne proposent aucune recherche globale ou locale ; filtres et tri restent les mécanismes de réduction/organisation disponibles selon leur périmètre. |
+| RM-222 | Une sélection simple d’objet planifiable est exclusive, validée au toucher et ferme la modale sans CTA `Sélectionner`; une sélection multiple de Composition conserve cases à cocher et validation explicite. |
+| RM-223 | Le titre de planification est `Planifier` tant que le type n’est pas connu, puis `Planifier une séance` ou `Planifier une activité` selon la source. |
