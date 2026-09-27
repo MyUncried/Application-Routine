@@ -133,11 +133,9 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 
 - La région de navigation du Screen Shell mesure `77` points dans le gabarit `402 × 874`. Elle contient la barre principale visuelle de `66` points et la place réservée à l’inset inférieur de référence. À l’exécution, la navigation est positionnée avec l’inset inférieur réel, qui n’est jamais codé en dur.
 - Sa largeur s’adapte à la largeur disponible. Les positions horizontales des quatre destinations ne sont pas codées depuis le gabarit Figma.
-- La recherche conserve un bouton circulaire distinct. La barre principale absorbe la variation de largeur tandis que la recherche conserve sa cible tactile.
-- Les quatre destinations principales occupent quatre emplacements répartis régulièrement entre les marges internes de la barre principale. Leur distribution est recalculée à partir de la largeur réelle de cette barre ; elle n’inclut pas la zone réservée à la recherche.
-- Les pictogrammes conservent leur taille visuelle. Sur écran compact, c’est l’espacement entre leurs emplacements qui diminue ; aucun pictogramme, libellé actif ou halo de sélection ne peut chevaucher la recherche.
+- Les quatre destinations principales `Catalogues`, `Calendrier`, `Suivi`, `Profil` occupent les quatre emplacements du composant de navigation. Aucun contrôle Recherche n’est présent dans le MVP (D-221/D-225).
 - L’onglet actif peut afficher son libellé ; les autres conservent uniquement leur pictogramme. Le libellé actif ne doit pas chevaucher les pictogrammes voisins avec l’agrandissement du texte.
-- Le composant canonique est `Navigation / Bottom — Source exact` (`2537:214`). Les destinations utilisent les variantes `2537:86` Catalogues, `2537:118` Calendrier, `2537:150` Suivi et `2537:182` Profil. Chaque dessin reste ≤ `24 pt`, centré dans une boîte optique `32 × 32 pt`, avec cible tactile ≥ `48 × 48 pt`. La Recherche utilise `2736:2` dans un contrôle `58 × 58 pt`. Aucun glyphe, emoji ou pictogramme système ne remplace ces vecteurs DSF.
+- Le composant canonique est `Navigation / Bottom — Source exact` (`2537:214`). Les destinations utilisent les variantes `2537:86` Catalogues, `2537:118` Calendrier, `2537:150` Suivi et `2537:182` Profil. Chaque dessin reste ≤ `24 pt`, centré dans une boîte optique `32 × 32 pt`, avec cible tactile ≥ `48 × 48 pt`. Aucun glyphe, emoji ou pictogramme système ne remplace ces vecteurs DSF.
 
 ### Listes et cartes
 
@@ -205,7 +203,6 @@ Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` utilisent la mêm
 | Exécution | Les commandes essentielles restent visibles sans défilement à la taille de texte standard. Le libellé du temps écoulé est séparé de la progression par Tours de `24` points. Avec agrandissement accessible, le contenu peut défiler, mais l’Exercice courant, le temps et les commandes restent atteignables. |
 | Synthèse | Le choix du ressenti reste composé de trois options de largeur égale. Les séparations verticales structurantes utilisent `16` points entre statut et date, `32` points avant la section Ressenti et `24` points avant la section Commentaire. Sur écran compact ou texte agrandi, les libellés explicatifs se placent sous les icônes sans réduire leur cible tactile. |
 | Suivi | `Séances` et `Vue d’ensemble` occupent deux segments égaux. Le groupe `Filtrer / Trier` est centré comme un ensemble et précède la liste de `32` points. Les groupes de dates sont séparés de `16` points. Les actions de chaque carte restent ancrées à droite et la liste défile dans une zone arrêtée au moins `16` points avant la navigation basse. |
-| Recherche globale | Le champ utilise la largeur disponible entre Retour et les limites sûres ; les résultats défilent indépendamment de l’en-tête. Dans l’état `1992:10129 — Recherche globale — Champ déployé`, la rangée Catalogue `Créer / Filtrer / Trier` reste visible dans le Catalogue d’arrière-plan. |
 | Modales d’Exécution ou de suppression | Les actions passent en pile verticale si elles ne tiennent pas horizontalement ; l’ordre fonctionnel défini par le Figma est conservé. |
 
 Ces règles communes prévalent sur les coordonnées des captures. Une exception non décrite doit être résolue avec les mêmes tokens et principes, puis ajoutée à ce chapitre si elle affecte le comportement utilisateur.
@@ -255,7 +252,7 @@ Aucune Routine n’est créée automatiquement. La transition canonique d’avan
 
 Depuis le Catalogue, l’utilisateur sélectionne `Exercices` pour consulter la bibliothèque persistante. La surface d’une carte ouvre l’Exercice en consultation ou modification ; son bouton Lecture lance l’Exécution directe. L’action `Créer` est contextuelle : dans le Catalogue des Exercices, elle ouvre directement la création d’un Exercice persistant, sans écran ni arbre intermédiaire.
 
-La rangée commune de commandes d’entrée est `Créer / Filtrer / Trier`. Le contrôle Filtrer démarre replié et blanc sans filtre. Un appui l’étend et affiche `Filtres / Aucun` sans modifier la liste ; un filtre sélectionné est conservé pendant la session courante, puis réinitialisé à `Aucun` au relaunch. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec `8 pt` entre contrôles et un ensemble centré (`x=31`, `147`, `263` comme mesures de preuve uniquement, jamais comme coordonnées absolues RN). Les cibles tactiles restent ≥ `48 × 48 pt`. Pour `Exercices`, les critères contextuels sont statut (`Actives` / `Archivées`), Catégories et Zones corporelles. Pour `Séances`, le filtre couvre le statut et les Étiquettes. `Trier` reste visible mais désactivé et le tri appliqué reste `updatedAt DESC`. Recherche, filtre appliqué, tri implicite et scroll sont conservés pendant la session courante ; au relaunch, le filtre revient à `Aucun`.
+La rangée commune de commandes d’entrée est `Créer / Filtrer / Trier`. Le contrôle Filtrer démarre replié et blanc sans filtre. Un appui l’étend et affiche `Filtres / Aucun` sans modifier la liste ; un filtre sélectionné est conservé pendant la session courante, puis réinitialisé à `Aucun` au relaunch. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec `8 pt` entre contrôles et un ensemble centré (`x=31`, `147`, `263` comme mesures de preuve uniquement, jamais comme coordonnées absolues RN). Les cibles tactiles restent ≥ `48 × 48 pt`. Pour `Exercices`, les critères contextuels sont statut (`Actives` / `Archivées`), Catégories et Zones corporelles. Pour `Séances`, le filtre couvre le statut et les Étiquettes. `Trier` reste visible mais désactivé et le tri appliqué reste `updatedAt DESC`. Filtre appliqué, tri implicite et scroll sont conservés pendant la session courante ; au relaunch, le filtre revient à `Aucun`. Aucune recherche Catalogue n’est incluse dans le MVP.
 
 Depuis la Composition d’une Séance, `Ajouter un exercice` ouvre directement la sélection multiple du Catalogue des Exercices. La validation copie les Exercices dans leur ordre visible et restaure la Composition. La capacité historique de création directe d’un Exercice local à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans ce parcours courant.
 
@@ -477,13 +474,9 @@ Permettre à l’utilisateur de consulter son Catalogue de Séances, d’effectu
 
 Cet écran constitue l’accueil de l’application.
 
-### Recherche et filtres
+### Filtres
 
-Le Catalogue présente le sélecteur `Exercices / Séances / Parcours`, avec `Séances` sélectionné par défaut, `Exercices` actif en T03 et `Parcours` visible mais désactivé. Sous ce sélecteur, la rangée commune `Créer / Filtrer / Trier` utilise trois contrôles visuels de `108 × 32 pt`, séparés de `8 pt` et centrés comme ensemble dans la référence `402 pt`; les cibles tactiles restent ≥ `48 × 48 pt`. Les panneaux ouverts de `Filtrer` sont définis dans Figma et contextuels au Catalogue. `Trier` reste visible mais désactivé en T03.
-
-La recherche globale possède un état de saisie puis un écran de résultats. Une même Séance peut y apparaître sous les formes `Catalogue`, `Planifiée`, `Exécutée` et `Archivée`, identifiées par leurs badges.
-
-L’écran de résultats n’affiche pas de sous-titre. Dans l’application, Retour ramène à l’écran depuis lequel la recherche a été ouverte ; dans le prototype MVP, il revient au Catalogue condensé.
+Les Catalogues du MVP ne comportent aucune recherche globale ni recherche locale. Les filtres restent contextuels au Catalogue et suivent les règles décrites ci-dessous.
 
 Les Séances archivées restent exclues de la liste active et ne sont accessibles que par le mécanisme de filtrage prévu. T03 n’invente aucune option de filtre supplémentaire propre aux Séances au-delà de ce qui est explicitement arbitré.
 
@@ -588,7 +581,6 @@ Si aucune Séance n’a encore été créée, l’écran affiche : `Vous verrez 
 
 Le filtre `Archivées` possède également un état vide lorsque aucune Séance n’est archivée. Il conserve l’en-tête et les commandes du Catalogue, remplace la liste par un message d’absence de Séance archivée et ne propose pas d’action de suppression ou de restauration.
 
-Lorsque la recherche globale ne retourne aucun résultat, l’écran conserve le bouton Retour, le titre et la requête saisie, puis affiche un message d’absence de correspondance. Aucun résultat fictif, filtre supplémentaire ou sous-titre n’est ajouté.
 
 Ces deux états sont fonctionnellement requis mais ne possèdent pas de frame dédiée dans le `Prototype MVP`. Ils réutilisent le composant d’état vide et la structure de leurs écrans parents ; aucune capture non issue de Figma n’est créée.
 
@@ -1371,7 +1363,7 @@ Si aucune Exécution n’existe encore, l’écran affiche : `Vous verrez ici vo
 
 ### Écran 12 — Catalogue des Exercices — Liste
 
-La frame `3786:5093` utilise le même Screen Shell et le même contrôle de type que le Catalogue des Séances, avec `Exercices` sélectionné. La liste contient les Exercices persistants et conserve recherche, filtres, tri implicite et position de défilement dans l’état de navigation du parcours courant.
+La frame `3786:5093` utilise le même Screen Shell et le même contrôle de type que le Catalogue des Séances, avec `Exercices` sélectionné. La liste contient les Exercices persistants et conserve filtres, tri implicite et position de défilement dans l’état de navigation du parcours courant.
 
 La rangée `Créer / Filtrer / Trier` est identique au Catalogue des Séances : trois contrôles `108 × 32 pt`, gap `8 pt`, ensemble centré en référence `402 pt`, cibles tactiles ≥ `48 × 48 pt`. `Filtrer` propose les critères contextuels validés et ses panneaux ouverts sont définis dans Figma ; `Trier` reste visible disabled.
 
@@ -1409,7 +1401,7 @@ Cette règle n’active pas les Parcours dans T03/MVP. Les anciennes frames Figm
 
 Depuis `Ajouter un exercice`, la frame `3789:5349` ouvre directement la sélection des Exercices du Catalogue au-dessus de la Composition grisée. La liste seule défile. Les boutons fixes sont `Annuler` à gauche et `Ajouter N exercice(s)` à droite.
 
-Les Exercices sont insérées selon leur ordre courant de présentation dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers. La Recherche utilise `Icon / Search`; l’état sélectionné utilise `Icon / Selection Check`. Aucun glyphe texte ne peut les remplacer.
+Les Exercices sont insérées selon leur ordre courant de présentation dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers. L’état sélectionné de la sélection multiple utilise le composant DSF dédié ; aucun glyphe texte ne peut le remplacer.
 
 ![[images/ecran-14-selection-activites-existantes.png|260]]
 
@@ -1772,7 +1764,6 @@ Les preuves d’usage sont distinctes de la preuve du composant et ne s’y subs
 | --- | --- | --- | --- |
 | Écran 11 | Suivi : Séances — Liste condensée | `Terminée`, `Partielle`, `Interrompue` | `1992:8843` |
 | Écran 11a | Suivi : Séances — Vue déployée | `Terminée`, `Partielle`, `Interrompue` | `1992:8996` |
-| Écran 2a | Recherche globale — Résultats affichés | `Catalogue`, `Planifiée`, `Exécutée`, `Archivée` | `1992:10320` |
 
 ## Couverture du Prototype MVP et exclusions justifiées
 
@@ -1850,7 +1841,7 @@ Dans l’Écran 9, un Exercice effectivement bilatérale affiche `Côté droit` 
 
 ### Évidences Figma T03 — état courant du 16 septembre 2026
 
-Les contrôles d’entrée `Créer / Filtrer / Trier` restent conçus et vérifiables dans Figma pour leur rendu. Les références courantes principales sont `3786:5093` (Catalogue Exercices), `1992:9910` (Catalogue Séances), `1992:10129` (Recherche globale — Champ déployé), `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` (éditeur Exercice), `2537:1033` (Déployer) et `2537:214` (Navigation Bottom). Les anciennes frames d’arbre `3787:5148` et `3841:8375` sont supersédées fonctionnellement par D-187.
+Les contrôles d’entrée `Créer / Filtrer / Trier` restent conçus et vérifiables dans Figma pour leur rendu. Les références courantes principales sont `3786:5093` (Catalogue Exercices), `1992:9910` (Catalogue Séances), `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` (éditeur Exercice), `2537:1033` (Déployer) et `2537:214` (Navigation Bottom). Les anciennes frames d’arbre `3787:5148` et `3841:8375` sont supersédées fonctionnellement par D-187.
 
 L’ancienne référence `3787:5209 — Catalogue — action contextuelle directe` n’existe plus dans le Figma courant et ne constitue plus une évidence active. Les panneaux ouverts de `Filtrer` sont désormais conçus et vérifiables dans Figma ; `Trier` reste disabled T03.
 
@@ -1900,3 +1891,13 @@ Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est re
 
 
 **Contexte d’Exécution (D-220).** La ligne immédiatement sous le nom de l’Exercice est toujours renseignée : nom de Séance et Catégorie de l’Exercice lors d’une Exécution de Séance, Catégorie de l’Exercice seule en Exécution directe. L’indication du côté courant, lorsqu’elle existe, reste distincte.
+
+
+## Clôture Figma / DSF — 28 septembre 2026
+
+- **Navigation** : quatre destinations actives seulement — `Catalogues`, `Calendrier`, `Suivi`, `Profil`. Les écrans de Recherche globale sont archivés ; aucune recherche locale de Catalogue n’est active (D-221/D-225).
+- **Sélection en modale** : sélection simple = radio exclusif, validation au toucher et fermeture immédiate, sans CTA bas ; sélection multiple de Composition = cases à cocher + `Sélectionner` ; filtres = validation explicite + `Réinitialiser` (D-222/D-228).
+- **Planifier** : titre `Planifier` avant connaissance du type, puis `Planifier une séance` ou `Planifier une activité`. La modale suit le gabarit D-229.
+- **Fondations DSF** : fond `#FFFFFF` sauf Splash `#0006F1` et média plein écran `#0A0A0C`; zone de contexte `#EAEAFF`→transparent sur les familles couvertes ; navigation, halo, boutons circulaires, steppers et badges selon D-224 à D-227.
+- **Listes/modales** : listes scrollables avec rognage ; feuilles longues alignées en haut sur la zone de contexte ; comportements et dégradés bas selon D-228.
+- **Composants spécialisés** : Point d’arrêt, Ressenti, Profil, Exécution et carte média déployée suivent les variantes DSF V2 validées par D-230.
