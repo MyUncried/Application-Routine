@@ -88,7 +88,7 @@ La maquette Figma constitue la référence visuelle et interactive. Les document
 - `3786:5093` — Catalogue des exercices — liste ;
 - `3787:5148` — historique/supersédé — ancien Catalogue des exercices — Créer — arbre d’actions ;
 - `1992:9910` — Catalogue des séances — liste par défaut ;
-- `1992:10129` — Recherche globale — Champ déployé ;
+- `1992:10129` et `1992:10320` — Recherche globale — **archivés / hors Prototype MVP actif** (D-221) ;
 - `3841:8375` — historique/supersédé — ancien Catalogue des séances — Créer — arbre d’actions ;
 - `3561:4695`, `3561:7673`, `3561:7802` — éditeur Exercice Répétitions/À l’échec et roulette ;
 - `3943:6064` — éditeur Exercice — état vide ;
@@ -243,3 +243,6 @@ Le document décrit une **cible post-MVP à planifier** ; il ne requalifie pas �
 > Décisions du 26 septembre 2026 — D-209 à D-218 : Circuit = groupe répété interne à une Séance, Tour = une répétition du Circuit, Parcours = entité autonome ; suppression des référentiels sans rupture des affectations existantes ; Catégorie obligatoire unique et Zones corporelles obligatoires multiples pour un nouvel Exercice ; Étiquette de Séance facultative ; couleur portée par Étiquette/Catégorie ; défauts Profil sans rétroactivité ; réglage global de Séance pour appliquer/ignorer Compte à rebours + Fin propres aux Exercices ; Durée totale toujours affichée en mode Durée dans le texte éditable ; bouton Lecture vidéo compact masqué pendant lecture ; règles de placement/exécution du Point d’arrêt ; Splash Prototype MVP unique et actif.
 
 > Décision du 26 septembre 2026 — D-219 : durées = roulettes en modale basse ; sélections d’objets = modales dédiées ; entiers simples `Nombre de Séries`, `Nombre de répétitions`, `Nombre de Tours` = steppers inline sans roulette. Les dialogues de confirmation restent centrés.
+
+
+> Clôture Figma / DSF du 28 septembre 2026 — D-221 à D-230 : aucune recherche globale ou locale dans le MVP ; quatre destinations `Catalogues / Calendrier / Suivi / Profil` ; sélection simple validée au toucher versus sélection multiple avec `Sélectionner` ; titre `Planifier` contextuel ; fonds/zones de contexte, navigation basse, halos/actions circulaires, steppers/badges, modales/listes, roulettes et états spécialisés alignés sur DSF V2.
