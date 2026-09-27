@@ -996,7 +996,7 @@ Les espacements sont appliqués par `gap`, `padding`, `margin` ou par la structu
 | `20` | Modale compacte, notamment `Choisir une séance` et les modales de planification validées |
 | `24` | Bouton principal de hauteur minimale `48` |
 
-Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes ont été rationalisées respectivement vers `10`, `16` ou `20` selon le composant. Le token sémantique `radius/20` est lié à la primitive `dimension/20`. Les valeurs `28`, `29` et `33` ne complètent pas l’échelle fixe : elles correspondent à la moitié de la hauteur ou du diamètre d’une destination active, de la recherche globale ou de la navigation principale. Les cercles, capsules, indicateurs graphiques de demi-hauteur et rayons supérieurs propres aux bottom sheets restent calculés depuis la géométrie du composant et ne sont jamais arrondis mécaniquement vers un token fixe.
+Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes ont été rationalisées respectivement vers `10`, `16` ou `20` selon le composant. Le token sémantique `radius/20` est lié à la primitive `dimension/20`. Les valeurs de demi-hauteur ou demi-diamètre propres aux destinations actives et à la navigation principale ne complètent pas l’échelle fixe. Les cercles, capsules, indicateurs graphiques de demi-hauteur et rayons supérieurs propres aux bottom sheets restent calculés depuis la géométrie du composant et ne sont jamais arrondis mécaniquement vers un token fixe.
 
 #### Dimensions structurantes
 
