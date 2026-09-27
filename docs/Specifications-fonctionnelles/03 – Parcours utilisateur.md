@@ -338,7 +338,7 @@ L'utilisateur dispose d'un historique fiable de toutes ses exécutions et peut s
 4. Utiliser le bouton Lecture pour lancer directement un Exercice valide.
 5. Utiliser `Créer` pour ouvrir directement la création correspondant au Catalogue courant.
 
-La recherche, les filtres et la position de défilement appartiennent à l’état du Catalogue et sont restaurés au retour d’une consultation, d’une modification ou d’une Exécution directe.
+Les filtres et la position de défilement appartiennent à l’état du Catalogue et sont restaurés au retour d’une consultation, d’une modification ou d’une Exécution directe. Le MVP n’inclut pas de recherche Catalogue.
 
 ## Créer un contenu depuis le Catalogue
 
@@ -378,7 +378,7 @@ Lorsqu’elle est exécutée, l’Exercice suit son propre enchaînement intrins
 
 1. Appuyer sur `Ajouter un exercice`.
 2. Le parcours actuellement exposé ouvre directement la sélection des Exercices du Catalogue.
-3. Rechercher ou filtrer les Exercices puis sélectionner une ou plusieurs références.
+3. Filtrer si nécessaire les Exercices puis sélectionner une ou plusieurs références.
 4. Valider avec `Ajouter N exercice(s)`.
 5. Les copies sont insérées dans la Composition et deviennent indépendantes de leur `ActivityDefinition` source.
 
@@ -427,7 +427,7 @@ En cas d’arrêt confirmé, le Parcours, la Séance courante et les résultats 
 5. Après la dernière phase propre à l’Exercice, entendre le signal de fin et ouvrir immédiatement la Synthèse.
 6. Sélectionner obligatoirement un Ressenti ; le Commentaire reste facultatif.
 7. Appuyer sur `Terminer` pour enregistrer l’Exécution dans le Suivi général avec l’origine `ACTIVITY`.
-8. Revenir au Catalogue des Exercices avec recherche, filtres et position de défilement restaurés.
+8. Revenir au Catalogue des Exercices avec filtres et position de défilement restaurés.
 
 ## Consulter ou modifier un Exercice depuis le Catalogue — MVP T03
 
@@ -441,7 +441,7 @@ Le bouton Lecture reste réservé à l’Exécution directe. Le contrôle `Dépl
 ## Ajouter plusieurs Exercices existants à une Composition — MVP T03
 
 1. Depuis `Ajouter un exercice` dans la Composition, ouvrir le Catalogue d’Exercices présenté pour la sélection.
-2. Rechercher ou filtrer le Catalogue.
+2. Filtrer le Catalogue si nécessaire.
 3. Sélectionner une ou plusieurs cartes ; l’ordre des touchers est libre.
 4. Vérifier le nombre indiqué par `Ajouter N exercice(s)`.
 5. Appuyer sur `Ajouter N exercice(s)`.
@@ -520,3 +520,8 @@ Toute `SessionActivity` possède `postActivityRecoverySeconds`. La valeur `0 s` 
 ## Parcours consolidés — 26 septembre 2026
 
 Création Exercice : choisir exactement une Catégorie et au moins une Zone corporelle avant validation. Les valeurs par défaut du Profil sont proposées à la création puis deviennent indépendantes. Création/modification Séance : le groupe répété est le **Circuit**, son nombre de répétitions est le nombre de **Tours** ; un réglage global activé par défaut contrôle la prise en compte des Compte à rebours/Fins propres aux Exercices. L’insertion d’un Point d’arrêt ne propose jamais la position immédiatement après le Compte à rebours initial ni immédiatement avant la Fin de séance ; un Point d’arrêt placé dans le Circuit est rencontré à chaque Tour.
+
+
+### Clôture de parcours Figma — 28 septembre 2026
+
+Le MVP ne comporte aucune recherche globale ni recherche locale dans les Catalogues (D-221). La sélection simple d’une Séance ou d’un Exercice à planifier se valide au toucher et ferme la modale ; la sélection multiple utilisée pour composer une Séance conserve les cases à cocher et le CTA `Sélectionner` (D-222). Le titre de planification devient `Planifier une séance` ou `Planifier une activité` lorsque le type de source est connu (D-223).
