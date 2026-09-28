@@ -1,7 +1,7 @@
 # Spécification fonctionnelle — Phrase de synthèse des paramètres d'exécution
 
 **Périmètre** : champ « Paramètres d'exécution » des écrans « Ajouter un exercice » et « Modifier un exercice ».
-**Statut** : proposition à valider — v10.2, 28/09/2026 (classeur v10).
+**Statut** : spécification v10.2, 28/09/2026 (classeur v10) ; arbitrages V1/MVP D-232 et condition d'ajustement confirmée.
 **Sources de vérité** : classeur `generateur-phrase-activite_v10.xlsx` — feuille « Générateur » pour les calculs, feuille « Bibliothèque de textes » pour les textes. En cas d'écart entre ce document et le classeur, le classeur fait foi.
 
 ---
@@ -26,12 +26,12 @@ Le compte à rebours et la fin d'exercice **n'apparaissent jamais** dans la phra
 |---|---|---|---|---|---|
 | Mode d'exécution | — | Durée · Répétitions · À l'échec | toujours | **aucun** (non sélectionné) | 3 pastilles |
 | Nombre de séries | N | entier ≥ 1 | dès qu'un mode est choisi | **1** | stepper intégré dans la phrase, sur le nombre seul |
-| Durée par série | d | secondes, > 0 | mode Durée | 1 min *(d'après le prototype — à confirmer)* | sélecteur roulette |
+| Durée par série | d | secondes, > 0 | mode Durée | 1 min (D-232) | sélecteur roulette |
 | Répétitions par série | R | entier ≥ 1 | mode Répétitions | **1** | stepper intégré dans la phrase, sur le nombre seul |
 | Durée standard d'une répétition | r | V1 : constante = 2 s (« paramètre défini en dur ») ; V2 : paramètre du profil (§7.7) | mode Répétitions (calcul du minimum) | 2 s | non éditable en V1 |
 | Pause entre séries | pS | secondes, ≥ 0 | N > 1 | **5 s** (valeur fixe : le profil n'a pas de réglage équivalent) | sélecteur roulette |
-| Changement de côté | — | Aucun · D→G · G→D | dès qu'un mode est choisi | Aucun *(d'après le prototype)* | contrôle segmenté « Sans changement · Droite puis gauche · Gauche puis droite » dans le champ |
-| Pause entre côtés | pC | secondes, ≥ 0 | changement de côté ≠ Aucun | **valeur du profil** (réglage « Pause au changement de côté » : 10 s dans le prototype) | à confirmer |
+| Changement de côté | — | Aucun · D→G · G→D | dès qu'un mode est choisi | Aucun (D-232) | contrôle segmenté « Sans changement · Droite puis gauche · Gauche puis droite » dans le champ |
+| Pause entre côtés | pC | secondes, ≥ 0 | changement de côté ≠ Aucun | **valeur du profil** (réglage « Pause au changement de côté » : 10 s dans le prototype) | stepper selon D-232 |
 
 Grandeur dérivée : **k = 2** si un changement de côté est défini (côté ≠ Aucun), sinon **k = 1**.
 
@@ -132,9 +132,9 @@ L'état sans mode existe uniquement à l'ouverture de la création d'un nouvel E
 
 **7.2 Édition de la durée totale (mode Durée uniquement).** L'utilisateur fixe une durée visée `Tv` (sélecteur minutes / secondes). L'application en déduit le nombre entier de séries le plus proche :
 
-`N = max(1, arrondi( (Tv − côté + k × pS) / (k × (d + pS)) ))`
+`N = max(1, arrondi( (Tv − côté + k × pS) / (k × (d + pS)) ))` (arrondi au plus proche ; à `.5`, vers le haut ; Séries bornées à `1..99` selon D-232)
 
-La durée par série et les pauses ne changent pas. La durée effective `T(N)` peut différer de `Tv` ; le prototype affiche alors un message temporaire : « Durée ajustée à 5 min pour respecter un nombre entier de séries. »
+La durée par série et les pauses ne changent pas. Une fois le nombre entier de Séries `N` calculé, la durée effectivement réalisable `T(N)` est recalculée. **Si `T(N) ≠ Tv`**, afficher temporairement : « Durée ajustée à {T(N)} pour respecter un nombre entier de Séries. » **Si `T(N) = Tv`**, ne pas afficher ce message. La valeur affichée après confirmation est toujours `T(N)`. La comparaison porte sur les durées numériques, avant formatage.
 
 La durée totale n'étant affichée que lorsqu'il y a plusieurs séries ou un changement de côté, elle n'est éditable qu'à ces conditions.
 
@@ -161,17 +161,15 @@ Tant qu'un contrôle est ouvert, la valeur correspondante prend l'état visuel �
 - `r` en **secondes entières**, comme les autres durées du profil (pas de fraction de seconde, qui obligerait à revoir le format et les arrondis) ;
 - cette fonction est la seule utilisée partout où une durée d'activité est estimée (à vérifier : durées de séance du catalogue, telles que « ≥ 11 min 3 s »).
 
-À noter : `r` n'est pas un paramètre de l'activité ; il est lu dans le profil au moment du calcul. Comme rien n'est stocké (§7.5), un changement de `r` dans le profil modifierait l'estimation « ≥ » de **toutes** les activités existantes (voir §8, point 1).
+À noter : `r` n'est pas un paramètre éditable de l'Exercice. En V1, sa valeur est fixée à 2 s. La stratégie V2 de lecture dynamique depuis le Profil ou de copie dans chaque Exercice reste à arbitrer (§8) ; seule la lecture dynamique ferait évoluer l'estimation « ≥ » des Exercices existants après un changement du Profil.
 
-## 8. Points à valider avant développement
+## 8. Décisions V1/MVP et point V2 hors MVP
 
-1. **Durée standard d'une répétition (V2) : lue ou copiée ?** Les défauts issus du profil sont copiés dans l'activité (§7.5). Pour `r`, qui n'est pas un paramètre modifiable de l'activité, l'estimation « ≥ » doit-elle suivre le profil (lecture au moment du calcul, hypothèse de cette spécification) ou être figée à la création (copie de `r` dans chaque activité) ? Sans effet en V1, où `r` est une constante.
-2. **Format des durées** : « 1 min » (spécification) ou « 1 minute » dans les autres contextes de l'interface ? Le précédent écran initial invoqué ici a été remplacé.
-3. **Valeurs par défaut à confirmer** : durée par série (1 min) et côté (Aucun), repris du prototype.
-4. **Après la sélection initiale — partiellement arbitré** : l'état « Choisir un mode » est réservé à l'ouverture de la création d'un nouvel Exercice. Après la première sélection, il n'est plus accessible pour cet Exercice ; en modification, un mode est par définition déjà sélectionné. À déterminer : en cas de changement de mode, les valeurs communes (séries, pause, côté) sont-elles conservées ou réinitialisées ? Le bouton « Terminer » est-il inactif avant le choix initial du mode ?
-5. **Alignement du prototype — corrections constatées dans le lot 3** : l'état initial vide et « Choisir un mode », l'exclusion du nom de l'Exercice, le minimum de « ≥ 2 min 45 s » de l'exemple Répétitions à 2 s par répétition, le badge « Répétitions » et la minuscule de « séries » dans le message d'ajustement ont été reportés au prototype. La phrase de départ générée après la sélection initiale reste définie ici, sans écran dédié dans le prototype.
-6. **Bornes non spécifiées** : minimum et maximum du nombre de séries, des durées et des répétitions.
-7. **À confirmer** : le contrôle de la pause entre côtés et la condition exacte d'affichage du message d'ajustement (supposée : quand `T(N) ≠ Tv`).
+**Aucun point fonctionnel V1/MVP du générateur de phrase ne reste À CLARIFIER.** Les arbitrages V1/MVP sont actés par D-232 : format de durée « 1 min » ; durée par Série initiale 1 min ; côté initial Aucun ; valeurs communes conservées lors d'un changement de mode et dernière valeur propre à chaque mode conservée pendant l'édition ; impossibilité de revenir à « Choisir un mode » après la première sélection ; « Terminer » désactivé avant ce choix ; bornes et pas des contrôles définis dans D-232. La valeur initiale de la pause au changement de côté vient du Profil et est copiée quand la bilatéralité devient applicable. La condition du message temporaire d'ajustement est confirmée au §7.2.
+
+**Seul point ouvert, V2 hors MVP :** la durée standard d'une répétition `r`, devenue un réglage du Profil en V2, sera-t-elle lue dynamiquement lors de chaque calcul ou figée/copiée pour chaque Exercice ? En V1/MVP, `r = 2 s` ; ce choix V2 n'empêche pas la mise en œuvre V1.
+
+**Alignement visuel du prototype :** l'état initial vide, l'exclusion du nom de l'Exercice, l'estimation « ≥ 2 min 45 s » de l'exemple Répétitions et le badge « Répétitions » sont illustrés dans le lot 3. Les écrans après choix du mode montrent des valeurs cibles et non les phrases de départ définies au §3. Les différences éventuelles de libellé ou de contrôle entre le prototype et D-232 relèvent d'un audit de présentation ; elles ne rouvrent pas les décisions fonctionnelles V1.
 
 ---
 
