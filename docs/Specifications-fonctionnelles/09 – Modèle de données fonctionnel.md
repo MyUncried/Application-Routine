@@ -717,7 +717,7 @@ Contient notamment :
 
 ## Contraintes d’Exercice
 
-`executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}`. `DURATION` exige une durée cible et interdit les répétitions cibles ; `REPETITIONS` exige des répétitions cibles et interdit la durée cible ; `TO_FAILURE` interdit les deux. Pause, nombre de Séries et Récupération restent disponibles dans les trois modes. La Durée totale exacte est dérivée en mode `DURATION` et n’est incluse dans la phrase que pour plusieurs Séries ; en `REPETITIONS`, une borne minimale dérivée est affichée avec `r=2 s` par répétition ; en `TO_FAILURE`, aucune durée totale n’est affichée. La phrase elle-même n’est pas persistée comme source de vérité (D-232).
+`executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}`. `DURATION` exige une durée cible et interdit les répétitions cibles ; `REPETITIONS` exige des répétitions cibles et interdit la durée cible ; `TO_FAILURE` interdit les deux. Pause, nombre de Séries et Récupération restent disponibles dans les trois modes. La Durée totale exacte est dérivée en mode `DURATION` et n’est incluse dans la phrase que pour plusieurs Séries ou un changement de côté ; en `REPETITIONS`, une borne minimale dérivée est affichée avec `r=2 s` par répétition ; en `TO_FAILURE`, aucune durée totale n’est affichée. La phrase elle-même n’est pas persistée comme source de vérité (D-232).
 
 L’ajout d’une définition copie nom, description, zones corporelles, mode, durée ou répétitions, Séries, Pause, Récupération et associations média. La copie n’a plus de lien fonctionnel avec la définition. La position `BEFORE_TOUR`, `IN_TOUR` ou `AFTER_TOUR` n’existe que sur `SessionActivity`.
 
