@@ -8,29 +8,29 @@
 
 ## 1. Objet
 
-La phrase de synthèse décrit en langage naturel la façon dont une activité s'exécute. Elle est **générée** à partir de paramètres : à chaque modification d'un paramètre, elle est recalculée. Chaque valeur qu'elle contient est modifiable directement (badge « Valeur modifiable »).
+La phrase de synthèse décrit en langage naturel la façon dont une activité s'exécute. Elle est **générée** à partir de paramètres : à chaque modification d'un paramètre, elle est recalculée. Ses valeurs éditables se modifient par les contrôles indiqués au §2 ; la durée totale estimée en mode Répétitions reste en lecture seule.
 
 **Le mode d'exécution n'entre pas dans le texte de la phrase** : il est affiché séparément (dans le prototype, par un badge à côté du titre « Paramètres d'exécution »).
 
-**À la création d'un Exercice, aucun mode d'exécution n'est présélectionné.** Le champ du mode d'exécution affiche alors **« Choisir un mode »**. Le champ éditable « Paramètres d'exécution » est présent mais vide : il ne contient aucun texte, ni phrase ni durée totale. Cette absence de contenu concerne uniquement le sélecteur de mode et le champ éditable ; le reste de l'écran de création (nom de l'Exercice, autres paramètres, compte à rebours, fin de séance, etc.) reste affiché normalement.
+**À la création d'un Exercice, aucun mode d'exécution n'est présélectionné.** Le champ du mode d'exécution affiche alors **« Choisir un mode »**. Le champ éditable « Paramètres d'exécution » est présent mais vide : il ne contient aucun texte, ni phrase ni durée totale. Cette absence de contenu concerne uniquement le sélecteur de mode et le champ éditable ; le reste de l'écran de création (nom de l'Exercice, autres paramètres, compte à rebours, fin d'exercice, etc.) reste affiché normalement.
 
 Dès que l'utilisateur sélectionne pour la première fois un mode (`Durée`, `Répétitions` ou `À l'échec`), **« Choisir un mode » n'est plus jamais affiché pour cet Exercice**. Un mode reste ensuite toujours sélectionné, y compris lorsque l'utilisateur change de mode.
 
 **En modification d'un Exercice existant, cet état initial sans mode ne s'applique pas** : un Exercice existant possède par définition un mode d'exécution, et son mode enregistré est affiché à l'ouverture.
 
-Le compte à rebours et la fin de séance **n'apparaissent jamais** dans la phrase et **ne sont pas comptés dans la durée totale** : ce sont des lignes distinctes, dont les valeurs par défaut viennent du profil.
+Le compte à rebours et la fin d'exercice **n'apparaissent jamais** dans la phrase et **ne sont pas comptés dans la durée totale** : ce sont des lignes distinctes, dont les valeurs par défaut (10 s et 5 s dans le prototype) sont copiées du profil dans l'Exercice à la création ; la pause entre côtés est copiée lorsqu'elle devient applicable (§7.5).
 
 ## 2. Paramètres
 
 | Paramètre | Notation | Valeurs | Utilisé quand | Valeur par défaut | Contrôle (prototype) |
 |---|---|---|---|---|---|
 | Mode d'exécution | — | Durée · Répétitions · À l'échec | toujours | **aucun** (non sélectionné) | 3 pastilles |
-| Nombre de séries | N | entier ≥ 1 | dès qu'un mode est choisi | **1** | stepper |
+| Nombre de séries | N | entier ≥ 1 | dès qu'un mode est choisi | **1** | stepper intégré dans la phrase, sur le nombre seul |
 | Durée par série | d | secondes, > 0 | mode Durée | 1 min *(d'après le prototype — à confirmer)* | sélecteur roulette |
-| Répétitions par série | R | entier ≥ 1 | mode Répétitions | **1** | stepper (− / +) |
+| Répétitions par série | R | entier ≥ 1 | mode Répétitions | **1** | stepper intégré dans la phrase, sur le nombre seul |
 | Durée standard d'une répétition | r | V1 : constante = 2 s (« paramètre défini en dur ») ; V2 : paramètre du profil (§7.7) | mode Répétitions (calcul du minimum) | 2 s | non éditable en V1 |
 | Pause entre séries | pS | secondes, ≥ 0 | N > 1 | **5 s** (valeur fixe : le profil n'a pas de réglage équivalent) | sélecteur roulette |
-| Changement de côté | — | Aucun · D→G · G→D | dès qu'un mode est choisi | Aucun *(d'après le prototype)* | 3 pastilles |
+| Changement de côté | — | Aucun · D→G · G→D | dès qu'un mode est choisi | Aucun *(d'après le prototype)* | contrôle segmenté « Sans changement · Droite puis gauche · Gauche puis droite » dans le champ |
 | Pause entre côtés | pC | secondes, ≥ 0 | changement de côté ≠ Aucun | **valeur du profil** (réglage « Pause au changement de côté » : 10 s dans le prototype) | à confirmer |
 
 Grandeur dérivée : **k = 2** si un changement de côté est défini (côté ≠ Aucun), sinon **k = 1**.
@@ -41,7 +41,7 @@ Une pause n'est pas affichée tant qu'elle ne s'applique pas (pause entre série
 
 | État | Contenu du champ |
 |---|---|
-| **0 — Aucun mode sélectionné** (état initial de création uniquement) | Le sélecteur de mode affiche **« Choisir un mode »**. Le champ éditable est vide : aucun texte, aucune durée totale. Les autres éléments de l'écran restent affichés normalement. |
+| **0 — Aucun mode sélectionné** (état initial de création uniquement) | Le sélecteur de mode affiche **« Choisir un mode »**. Le champ éditable est vide : aucun texte, aucune durée totale. Les autres éléments de l'écran restent affichés normalement ; le cadre vide conserve la hauteur d'une ligne. |
 | **1 — Un mode vient d'être sélectionné** | **« Choisir un mode » disparaît définitivement pour cet Exercice.** La **phrase de départ** du mode apparaît aussitôt, avec les valeurs par défaut. Elle commence par le nombre de séries. |
 | **2 — Paramètres saisis** | L'utilisateur modifie les valeurs ; la phrase est recalculée à chaque modification. |
 
@@ -53,7 +53,7 @@ Phrases de départ (valeurs par défaut du §2) :
 | Répétitions | `1 série de 1 répétition, sans changement de côté. Durée totale ≥ 2 s.` |
 | À l'échec | `1 série jusqu'à l'échec, sans changement de côté.` |
 
-Le mode lui-même n'apparaît pas dans ces phrases. Avec une seule série et sans changement de côté, la clause « pause entre séries » n'apparaît pas et la clause « changement de côté » indique « sans changement de côté ».
+Le prototype ne montre pas ces phrases de départ : ses écrans situés après le choix du mode illustrent directement des valeurs cibles. Le mode lui-même n'apparaît pas dans ces phrases. Avec une seule série et sans changement de côté, la clause « pause entre séries » n'apparaît pas et la clause « changement de côté » indique « sans changement de côté ».
 
 Première apparition d'une pause, depuis une phrase de départ (pause entre séries : 5 s ; pause entre côtés : valeur du profil, 10 s dans le prototype) :
 
@@ -84,7 +84,7 @@ Notons `côté = pC` si un changement de côté est défini, sinon `0`.
 | Répétitions | **Tmin = k × (N × R × r + (N − 1) × pS) + côté** | minimum estimé, précédé de « ≥ » |
 | À l'échec | aucune | **jamais affichée** |
 
-**La durée totale n'inclut ni le compte à rebours, ni la fin de séance.** Exemple du prototype : 3 séries de 1 min 30 s avec 15 s de pause donnent 5 min, alors que le compte à rebours (10 s) et la fin de séance (3 s) sont affichés à part.
+**La durée totale n'inclut ni le compte à rebours, ni la fin d'exercice.** Exemple du prototype : 3 séries de 1 min 30 s avec 15 s de pause donnent 5 min ; le compte à rebours (10 s) et la fin d'exercice (5 s) sont affichés à part.
 
 **Déroulé avec changement de côté (k = 2) : un bloc de séries par côté.** Toutes les séries sont d'abord exécutées sur un côté, avec leurs pauses entre séries ; vient ensuite la pause entre côtés ; puis toutes les séries sont exécutées sur l'autre côté, avec leurs pauses entre séries.
 
@@ -112,7 +112,7 @@ La phrase est la concaténation de clauses, dans cet ordre. Chaque clause est un
 | 6 · Durée totale | Durée et (N > 1 ou côté défini) → 6A · Durée, N = 1 et côté Aucun → 6C (vide) · Répétitions et Tmin > 0 → 6B · Répétitions et Tmin = 0 → 6D · **À l'échec → 6E (vide)** |
 | 7 · Point final | si la clause 6 est vide → 7A (« . ») |
 
-La numérotation des fragments (2A à 7A) est conservée : la clause 1 n'a plus de fragment. La phrase commence donc directement par le nombre de séries, sans espace initiale.
+La numérotation des fragments (2A à 7A) est conservée : la clause 1 n'a plus de fragment. La phrase commence donc directement par le nombre de séries, sans espace initial.
 
 Variables : `{N}` nombre de séries · `{R}` répétitions · `{durée}` durée d'une série · `{pause}` pause entre séries · `{côté}` sens du changement de côté · `{pause côtés}` pause entre côtés · `{total}` durée totale (exacte en mode Durée, minimale en mode Répétitions).
 
@@ -126,7 +126,7 @@ Le fragment 6D (mode Répétitions, minimum nul) est un filet de sécurité : il
 
 ## 7. Comportements
 
-**7.1 Régénération.** La phrase est recalculée à chaque modification d'un paramètre, à partir de la sélection d'un mode.
+**7.1 Régénération.** La phrase est recalculée à chaque modification d'un paramètre, à partir de la sélection d'un mode. Le nom de l'Exercice ne fait pas partie de la phrase.
 
 L'état sans mode existe uniquement à l'ouverture de la création d'un nouvel Exercice. Après la première sélection, l'utilisateur peut changer de mode mais ne revient pas à l'état « Choisir un mode ». En modification d'un Exercice existant, le mode enregistré est déjà sélectionné à l'ouverture.
 
@@ -134,9 +134,15 @@ L'état sans mode existe uniquement à l'ouverture de la création d'un nouvel E
 
 `N = max(1, arrondi( (Tv − côté + k × pS) / (k × (d + pS)) ))`
 
-La durée par série et les pauses ne changent pas. La durée effective `T(N)` peut différer de `Tv` ; le prototype affiche alors un message temporaire : « Durée ajustée à 5 min pour respecter un nombre entier de Séries. »
+La durée par série et les pauses ne changent pas. La durée effective `T(N)` peut différer de `Tv` ; le prototype affiche alors un message temporaire : « Durée ajustée à 5 min pour respecter un nombre entier de séries. »
 
 La durée totale n'étant affichée que lorsqu'il y a plusieurs séries ou un changement de côté, elle n'est éditable qu'à ces conditions.
+
+**7.2 bis Contrôles d'édition et fragments activables (prototype).** Le nombre de séries et le nombre de répétitions s'éditent au moyen d'un stepper intégré dans la phrase qui remplace la valeur numérique, tandis que « séries » et « répétitions » restent du texte. La durée par série, la pause entre séries et la durée totale en mode Durée s'éditent au moyen d'une roulette. Le mode se choisit par trois pastilles. Le compte à rebours s'édite par un stepper sur sa ligne, séparée de la phrase ; pendant cette édition, « Fin d'exercice » passe à la ligne suivante.
+
+Pour le changement de côté, le contrôle segmenté est affiché dans le champ, sous la phrase et avant « Durée totale ». Ses options sont « Sans changement », « Droite puis gauche » et « Gauche puis droite ». Dans le fragment 5A, seul « sans » est activable ; dans les fragments 5B et 5C, seule la valeur « D→G » ou « G→D » est activable. Un clic ouvre le contrôle : « Sans changement » maintient la formule « sans changement de côté », les autres options affichent respectivement « D→G » ou « G→D » dans la phrase. Les textes des fragments 5A, 5B et 5C dans l'annexe A restent inchangés.
+
+Tant qu'un contrôle est ouvert, la valeur correspondante prend l'état visuel édité. Lorsqu'un stepper est ouvert, il remplace le badge de valeur.
 
 **7.3 Mode Répétitions.** La durée totale affichée est une estimation en **lecture seule**.
 
@@ -160,16 +166,12 @@ La durée totale n'étant affichée que lorsqu'il y a plusieurs séries ou un ch
 ## 8. Points à valider avant développement
 
 1. **Durée standard d'une répétition (V2) : lue ou copiée ?** Les défauts issus du profil sont copiés dans l'activité (§7.5). Pour `r`, qui n'est pas un paramètre modifiable de l'activité, l'estimation « ≥ » doit-elle suivre le profil (lecture au moment du calcul, hypothèse de cette spécification) ou être figée à la création (copie de `r` dans chaque activité) ? Sans effet en V1, où `r` est une constante.
-2. **Format des durées** : « 1 min » (spécification) ou « 1 minute » (écran initial du prototype) ?
+2. **Format des durées** : « 1 min » (spécification) ou « 1 minute » dans les autres contextes de l'interface ? Le précédent écran initial invoqué ici a été remplacé.
 3. **Valeurs par défaut à confirmer** : durée par série (1 min) et côté (Aucun), repris du prototype.
-4. **Après la sélection initiale — partiellement arbitré** : l'état « Choisir un mode » est réservé à l'ouverture de la création d'un nouvel Exercice. Après la première sélection, il n'est plus accessible pour cet Exercice ; en modification, un mode est par définition déjà sélectionné. Les autres sous-points de cette ligne ne sont pas modifiés par la présente clarification.
-5. **Alignement du prototype** avec cette spécification :
-   - l'écran « Ajouter un exercice — Initial » présélectionne « Durée » avec une phrase ; il faut un état initial **vide** avec le choix du mode ;
-   - la phrase actuelle est de la forme « 3 séries de 1 min 30 s de Squats sautés, avec 15 s de pause… » ; la nouvelle forme est « 3 séries de 1 min 30 s, avec 15 s de pause… » et **ne contient plus le nom de l'exercice** ;
-   - l'écran « Répétitions » affiche « Durée totale ≥ 1 min 45 s » pour 4 séries de 15 répétitions, calculé à 1 s par répétition ; à `r = 2 s`, le minimum serait de 2 min 45 s ;
-   - le message d'ajustement écrit « Séries » avec une majuscule.
+4. **Après la sélection initiale — partiellement arbitré** : l'état « Choisir un mode » est réservé à l'ouverture de la création d'un nouvel Exercice. Après la première sélection, il n'est plus accessible pour cet Exercice ; en modification, un mode est par définition déjà sélectionné. À déterminer : en cas de changement de mode, les valeurs communes (séries, pause, côté) sont-elles conservées ou réinitialisées ? Le bouton « Terminer » est-il inactif avant le choix initial du mode ?
+5. **Alignement du prototype — corrections constatées dans le lot 3** : l'état initial vide et « Choisir un mode », l'exclusion du nom de l'Exercice, le minimum de « ≥ 2 min 45 s » de l'exemple Répétitions à 2 s par répétition, le badge « Répétitions » et la minuscule de « séries » dans le message d'ajustement ont été reportés au prototype. La phrase de départ générée après la sélection initiale reste définie ici, sans écran dédié dans le prototype.
 6. **Bornes non spécifiées** : minimum et maximum du nombre de séries, des durées et des répétitions.
-7. **À confirmer dans le prototype** : le contrôle de la pause entre côtés, et la condition exacte d'affichage du message d'ajustement (supposée : quand `T(N) ≠ Tv`).
+7. **À confirmer** : le contrôle de la pause entre côtés et la condition exacte d'affichage du message d'ajustement (supposée : quand `T(N) ≠ Tv`).
 
 ---
 
