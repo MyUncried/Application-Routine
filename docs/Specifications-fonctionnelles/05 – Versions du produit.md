@@ -239,7 +239,7 @@ Dans le Catalogue des Exercices, l’appui sur la carte ouvre la consultation ou
 
 ## Évolution conçue — consultation média pendant l’Exécution
 
-La consultation des médias pendant l’Exécution est **conçue mais non affectée à une tranche de livraison**. Tant qu’une décision de roadmap ne la requalifie pas, elle reste post-MVP conformément à la règle existante sur les médias multiples fonctionnels.
+La consultation des médias pendant l’Exécution fait partie du MVP, conformément à la confirmation du 28/09/2026 (D-203, états `4997:6113` et `5009:6069`).
 
 La cible comprend la bascule Information/Média, la galerie ordonnée, la vidéo avec son actif par défaut et baisse temporaire pendant les annonces vocales, le plein écran orientable et le cadre flottant d’Exécution.
 
