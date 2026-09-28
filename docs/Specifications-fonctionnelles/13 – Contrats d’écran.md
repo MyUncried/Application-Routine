@@ -449,7 +449,7 @@ E19–E21/E72 → D-187, D-167, D-183 ; anciennes frames `3787:5148` et `3841:83
 
 ### 1. Identification
 
-Bloc B2 ; états S18–S27 ; T03-E E12–E14, E30, E41, E50–E57, E71 ; références courantes `4217:6980` (création, paramètres repliés), `4279:7044` (paramètres dépliés), `4734:6342` (modification), `4332:7095` (roulette Durée), modèles de paramètres `4367:7128`, `4367:7276`, `4367:7906`, `4367:8052`, `4367:8193`, `4490:6757`, `4490:6903`, sélection Catégorie `4474:7157`, Zones corporelles `4478:7209` et création de zone `4683:6336`.
+Bloc B2 ; états S18–S27 ; T03-E E12–E14, E30, E41, E50–E57, E71 ; références courantes `4217:6980` (création, paramètres repliés), `4279:7044` (paramètres dépliés), `4734:6342` (modification), `4332:7095` (sélection Catégorie ; la roulette de Durée dans l’éditeur courant n’est pas identifiée), modèles de paramètres `4367:7128`, `4367:7276`, `4367:7906`, `4367:8052`, `4367:8193`, `4490:6757`, `4490:6903`, sélection Catégorie `4474:7157`, Zones corporelles `4478:7209` et création de zone `4683:6336`.
 
 ### 2. Finalité fonctionnelle
 
@@ -1968,7 +1968,7 @@ Les contrats actifs appliquent D-221 à D-230. En particulier : aucune recherche
 - **Navigation basse** : pilule `322 × 62 px`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur/rayon 10 offset `0,2`; token `color/navigation/pill`. Icône Profil `famicons:people-sharp` 24×24 dans boîte 32×32 ; actif `#0508E5`, inactif `#5C636E`. Cadre actif `76 × 50 px`, bleu `#0508E5` à 10 %. Boîtes d’icônes aux abscisses 68/146/224/302 dans la référence 402 px, soit 28 px entre bord de pilule et boîte extrême et 78 px entre centres. Intégration écran : 16 px sous la pilule, bande opaque 16 px puis dégradé transparent→fond sur 40 px ; ces bandes appartiennent à l’écran.
 - **Fond / contexte** : écran ordinaire `#FFFFFF`; Splash `#0006F1`; média plein écran `#0A0A0C`. Zone de contexte `#EAEAFF`→transparent sur les 20 % inférieurs pour Catalogues, Composition, Calendrier, Suivi, Profil et Ajout d’exercice. Le séparateur 1 px n’est retiré que si ce dégradé assure la séparation.
 - **Halo et action circulaire** : halo Annuler/Retour blanc opaque `59,28 px`, placé devant la zone de contexte et hors du conteneur clippé ; bouton circulaire clair `32 × 32`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur 10 offset `0,2`.
-- **Stepper / valeur** : variante lavande `#F2F2FF` pour Profil/paramètres, variante blanche pour Tours de Composition ; `−/+` ronds bleus, 12 px autour de la valeur centrale. Le stepper remplace la valeur sur la même ligne sans étirer le groupe ; un seul stepper actif à la fois. Badge replié `#F4F4F8`, texte bleu Semi Bold 13 px, rayon 10, padding 10×4 px. Le nombre de semaines utilise la pilule de stepper rayon 18.
+- **Stepper / valeur** : variante lavande `#F2F2FF` pour Profil/paramètres, variante blanche pour Tours de Composition ; `−/+` ronds bleus, 12 px autour de la valeur centrale. Le stepper remplace la valeur sur la même ligne sans étirer le groupe ; un seul stepper actif à la fois. Badge replié `#F4F4F8`, texte bleu Semi Bold 13 px, rayon 6 px, marges 8 px horizontales et 2 px verticales ; contour bleu `#0508E5` 1,5 px seulement quand le contrôle est ouvert. Le nombre de semaines utilise la pilule de stepper rayon 18.
 - **Point d’arrêt** : bouton rond blanc opaque, icône Pause, contour 1 px `#0508E5`; l’action complète porte le contour. Les occurrences de Composition utilisent cette référence commune.
 - **Ressenti** : ne pas confondre contrôle de choix et pictogramme de résultat. Résultats : vert Bien, orange Neutre, rouge Mal ; rouge source `#EF4444`. Aucun état actif Figma ne prouve un contrôle « Mal sélectionné ».
 - **Profil** : titres de section Semi Bold 16 px ; `Modifier` en `#0508E5`; groupes blancs 126 px ; zone de contexte 115 px ; ouverture d’un stepper sans étirement du groupe.
@@ -1983,4 +1983,20 @@ La phrase est vide tant qu’aucun mode n’est sélectionné. Le mode reste aff
 
 ### Critères d’acceptation v10.2 — D-232
 
-État initial : aucun mode, phrase vide, `Terminer` désactivé. Première sélection : impossible ensuite de revenir à aucun mode. Changement de mode : paramètres communs conservés et dernière valeur spécifique de chaque mode restaurée pendant l’édition. Séries `1..99`; Répétitions `1..100`; Durée par Série `1 s..99 min 59 s`. Pauses inter-Séries et inter-côtés dans l'Exercice : roulette `0..5 min`, valeurs proposées par `5 s` jusqu’à `2 min`, puis par `30 s` jusqu’à `5 min` ; les réglages du Profil utilisent un stepper. Pause inter-côtés initialisée par copie de la valeur Profil. La phrase omet la Durée totale seulement en Durée avec `N=1` et côté `Aucun`; elle l’affiche si `N>1` ou si un changement de côté est défini. Compte à rebours et Fin de séance ne sont ni dans la phrase ni dans la Durée totale.
+État initial : aucun mode, phrase vide, `Terminer` désactivé. Sur la copie `5088:6398`, le bouton paraît visuellement actif : état interactif et rendu à vérifier dans Figma avant validation visuelle. Première sélection : impossible ensuite de revenir à aucun mode. Changement de mode : paramètres communs conservés et dernière valeur spécifique de chaque mode restaurée pendant l’édition. Séries `1..99`; Répétitions `1..100`; Durée par Série `1 s..99 min 59 s`. Pauses inter-Séries et inter-côtés dans l'Exercice : roulette `0..5 min`, valeurs proposées par `5 s` jusqu’à `2 min`, puis par `30 s` jusqu’à `5 min` ; les réglages du Profil utilisent un stepper. Pause inter-côtés initialisée par copie de la valeur Profil. La phrase omet la Durée totale seulement en Durée avec `N=1` et côté `Aucun`; elle l’affiche si `N>1` ou si un changement de côté est défini. Compte à rebours et Fin d'exercice ne sont ni dans la phrase ni dans la Durée totale.
+
+
+## Audit transverse des copies du 28 septembre 2026
+
+Les 96 PNG de la campagne ont été remplacés ou ajoutés dans le chapitre 06 ; les deux variantes D-203 `4997:6113` et `5009:6069` sont exportées comme références de conception post MVP. Le chapitre 13 décrit le comportement et ne contient aucune copie d’écran. Les rubriques de chaque contrat restent la référence de développement ; les images illustrent les états, sans supplanter D-232 ni les décisions applicables.
+
+| Famille de copies | Contrat applicable | Résultat de rapprochement |
+|---|---|---|
+| Profil et planification `1992:474`, `1992:579`, `1992:7537` | Contrats Profil et planification existants | Steppers confirmés visuellement ; légendes du chapitre 06 corrigées. |
+| Éditeur `4217:6980`, `4279:7044`, `4332:7095`, `5088:6398` | `CE-T03-04` et D-232 | Catégorie ouverte correctement identifiée ; roulette de Durée du nouvel éditeur à identifier ; apparence de `Terminer` sans mode à contrôler. |
+| Catalogues et sélection simple `4738:6355`, `5451:4272` | `CE-T03-02`, contrats de planification | Média déployé et sélection simple illustrés ; pas de bouton de confirmation pour la sélection simple. |
+| Composition et synthèse `5301:5443`, `4760:6448`, `4760:6500` | Contrats Composition et synthèse existants | États distincts documentés par leurs captures. |
+| Exécution directe `4968:8188`, `5588:4363`, `5021:5994`, `5581:4257` | Contrat d’Exécution et règles DSF d’action circulaire | Variantes d’écran distinctes, sans création d’un contrat par capture. |
+| Média `4997:6113`, `5009:6069` | `CE-MEDIA-EXEC-01/02`, D-203 | Références visuelles documentées ; statut post MVP conservé. |
+
+**Contrôles ouverts avant validation visuelle intégrale :** identifier une roulette ouverte dans l’éditeur courant ; vérifier l’état interactif et l’aspect désactivé de `Terminer` sans mode sur `5088:6398`. Les règles fonctionnelles V1 restent tranchées. La stratégie V2 de `r` demeure hors MVP.
