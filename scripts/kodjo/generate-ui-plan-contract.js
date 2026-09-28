@@ -41,7 +41,7 @@ function decode(phase, response, scan) {
   // acceptance enforce all intrinsic rules and coverage, without pretending
   // that the not-yet-computed closure is already known.
   const targets=result.ui_criteria_matrix.criteria.flatMap(x=>x.change_targets);
-  validateMatrix(result.ui_criteria_matrix,{scope:new Set(targets),uiPaths});
+  validateMatrix(result.ui_criteria_matrix,{scope:new Set(targets),uiPaths,requireAssertions:true});
   const tag=(name,value)=>'\n<KODJO_'+name+'_JSON>\n'+JSON.stringify(value,null,2)+'\n</KODJO_'+name+'_JSON>\n';
   return result.plan_markdown+'\n'+tag(phase==='draft'?'MODIFIED_MODULES':'PLAN_DECISIONS',phase==='draft'?modified:result.decisions)+
     tag('UI_CRITERIA_MATRIX',result.ui_criteria_matrix)+'\nPLAN_STATUS: '+result.plan_status+'\n';

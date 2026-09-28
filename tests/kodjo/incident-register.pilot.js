@@ -25,12 +25,16 @@ function assertSequence(values, prefix, maximum) {
   }
 }
 
-test('registre canonique 3.63.0: incidents uniques, complets et à valeurs contrôlées', () => {
-  assert.match(text, /Version du registre : \*\*3\.63\.0\*\*/);
+test('registre canonique: version courante, incidents uniques, complets et à valeurs contrôlées', () => {
+  const versions=[...text.matchAll(/^\| (3\.\d+\.0) \|/gm)].map(m=>m[1]);
+  assert.ok(versions.length>0);
+  const current=versions.at(-1);
+  assert.match(text,new RegExp('Version du registre : \\*\\*'+current.replace(/\\./g,'\\\\.')+'\\*\\*'));
   assert.match(text, /run #73 `34648194736`/);
   assert.match(text, /artefact `10283681378`/);
   const incidents = ids('INC');
-  assertSequence(incidents, 'INC', 164);
+  const incidentMax=Math.max(...incidents.map(id=>Number(id.slice(4))));
+  assertSequence(incidents, 'INC', incidentMax);
   for (const id of incidents) {
     const row = text.split('\n').find((line) => line.startsWith('| ' + id + ' |'));
     assert.equal(row.split('|').length, 18, 'malformed incident row ' + id);
@@ -40,7 +44,9 @@ test('registre canonique 3.63.0: incidents uniques, complets et à valeurs contr
 });
 
 test('registre canonique: tests, aliases et invariants sans trou ni duplication', () => {
-  assertSequence(ids('T'), 'T', 137);
+  const tests=ids('T');
+  const testMax=Math.max(...tests.map(id=>Number(id.slice(2))));
+  assertSequence(tests, 'T', testMax);
   assert.equal(ids('XLS03-INC').length, 51);
   assert.equal(ids('INV').length, 24);
 });

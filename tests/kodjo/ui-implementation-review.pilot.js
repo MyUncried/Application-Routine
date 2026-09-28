@@ -147,6 +147,85 @@ test('implementation review: refuse une frontière PRESERVE ou FORBIDDEN non dé
   assert.match(r.stderr,/UI_IMPLEMENTATION_REVIEW_BOUNDARY_COVERAGE_INCOMPLETE/);
 });
 
+
+function fixtureV2() {
+  const matrix={
+    schema:'kodjo.ui-criteria.v2',
+    criteria:[{
+      criterion_id:'UI-ATOMIC',
+      source:{path:'docs/ui.md',locator:'TREE',requirement:'Arbre conforme.'},
+      risk_types:['FUNCTIONAL','VISUAL','DEVICE'],
+      reuse_search:['src/shared/ui'],
+      component_decision:'EXTEND',
+      selected_component:'Tree',
+      decision_justification:'Composant existant.',
+      change_targets:['src/features/example/ExampleScreen.tsx'],
+      tests:['src/features/example/__tests__/ExampleScreen.test.tsx'],
+      proof_required:['FUNCTIONAL_TEST','VISUAL_COMPARE','DEVICE_CHECK'],
+      assertions:[
+        {assertion_id:'UI-ATOMIC-A01',source:{path:'docs/ui.md',locator:'TREE/content'},property_type:'CONTENT',expected:'Options et libellés exacts.',proof_required:['FUNCTIONAL_TEST']},
+        {assertion_id:'UI-ATOMIC-A02',source:{path:'docs/ui.md',locator:'TREE/geometry'},property_type:'GEOMETRY',expected:'Dimensions et rayon conformes.',proof_required:['VISUAL_COMPARE','DEVICE_CHECK']},
+      ],
+    }],
+    preservation:{preserve:[],change:[{target:'Tree',justification:'Correction.'}],forbidden:[]},
+  };
+  const assertionIds=matrix.criteria[0].assertions.map(a=>a.assertion_id).sort();
+  const contract={schema:'kodjo.ui-plan-contract.v1',contract_version:2,protocol_commit:'a'.repeat(40),
+    scan_revision:'b'.repeat(40),ui_applicable:true,ui_paths:['src/features/example/ExampleScreen.tsx'],
+    criterion_count:1,assertion_count:2,assertion_ids_sha256:sha256(assertionIds),matrix_sha256:matrixFingerprint(matrix)};
+  return '# Plan\n<KODJO_UI_CRITERIA_MATRIX_JSON>\n'+JSON.stringify(matrix)+'\n</KODJO_UI_CRITERIA_MATRIX_JSON>\n'+
+    '<KODJO_UI_PLAN_CONTRACT_JSON>\n'+JSON.stringify(contract)+'\n</KODJO_UI_PLAN_CONTRACT_JSON>\n';
+}
+function validAtomicReview() {
+  return {
+    schema:'kodjo.ui-implementation-review.v1',verdict:'APPROVE',device_gate_required:true,
+    criteria:[{
+      criterion_id:'UI-ATOMIC',implementation_status:'NON_VERIFIABLE',preserve_status:'PASS',evidence:'Deux assertions évaluées séparément.',
+      proof_results:[
+        {proof_type:'FUNCTIONAL_TEST',status:'PASS',evidence:'Test contenu PASS.'},
+        {proof_type:'VISUAL_COMPARE',status:'PENDING_DEVICE',evidence:'Comparaison device requise.'},
+        {proof_type:'DEVICE_CHECK',status:'PENDING_DEVICE',evidence:'Contrôle appareil requis.'},
+      ],
+      assertion_results:[
+        {assertion_id:'UI-ATOMIC-A01',status:'CONFORME',evidence:'Contenu vérifié.',proof_results:[
+          {proof_type:'FUNCTIONAL_TEST',status:'PASS',evidence:'Test contenu PASS.'},
+        ]},
+        {assertion_id:'UI-ATOMIC-A02',status:'PENDING_DEVICE',evidence:'Géométrie non certifiable automatiquement.',proof_results:[
+          {proof_type:'VISUAL_COMPARE',status:'PENDING_DEVICE',evidence:'Comparaison device requise.'},
+          {proof_type:'DEVICE_CHECK',status:'PENDING_DEVICE',evidence:'Contrôle appareil requis.'},
+        ]},
+      ],
+    }],
+    boundary_results:[],
+  };
+}
+test('atomic review v2: prépare les assertions et dérive le statut du critère',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-atomic-review-'));
+  const plan=path.join(dir,'plan.md'),changed=path.join(dir,'changed.txt'),input=path.join(dir,'input.json'),review=path.join(dir,'review.json'),out=path.join(dir,'out.json');
+  fs.writeFileSync(plan,fixtureV2());fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n');
+  let r=run(['prepare',plan,changed,input],dir);assert.equal(r.status,0,r.stderr);
+  const prepared=JSON.parse(fs.readFileSync(input,'utf8'));
+  assert.equal(prepared.assertion_mode,true);assert.equal(prepared.assertion_count,2);
+  fs.writeFileSync(review,JSON.stringify(validAtomicReview()));
+  r=run(['validate',plan,changed,review,out],dir);assert.equal(r.status,0,r.stderr);
+});
+test('atomic review v2: refuse un verdict global plus favorable que ses assertions',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-atomic-review-'));
+  const plan=path.join(dir,'plan.md'),changed=path.join(dir,'changed.txt'),review=path.join(dir,'review.json'),out=path.join(dir,'out.json');
+  fs.writeFileSync(plan,fixtureV2());fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n');
+  const value=validAtomicReview();value.criteria[0].implementation_status='CONFORME';
+  fs.writeFileSync(review,JSON.stringify(value));
+  const r=run(['validate',plan,changed,review,out],dir);assert.notEqual(r.status,0);assert.match(r.stderr,/CRITERION_DERIVATION_MISMATCH/);
+});
+test('atomic review v2: refuse omission ou fusion d assertion',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-atomic-review-'));
+  const plan=path.join(dir,'plan.md'),changed=path.join(dir,'changed.txt'),review=path.join(dir,'review.json'),out=path.join(dir,'out.json');
+  fs.writeFileSync(plan,fixtureV2());fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n');
+  const value=validAtomicReview();value.criteria[0].assertion_results.pop();
+  fs.writeFileSync(review,JSON.stringify(value));
+  const r=run(['validate',plan,changed,review,out],dir);assert.notEqual(r.status,0);assert.match(r.stderr,/ASSERTION_COVERAGE_INCOMPLETE/);
+});
+
 test('workflow: V2 ajoute le contrat de revue sans modifier le transport ni le chemin legacy', () => {
   const wf=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-implementation-review.yml'),'utf8');
   assert.match(wf,/Prepare criterion-complete UI review input/);
@@ -157,6 +236,8 @@ test('workflow: V2 ajoute le contrat de revue sans modifier le transport ni le c
   assert.match(wf,/review_scope=AFFECTED or INHERITED/);
   assert.match(wf,/KODJO_UI_IMPLEMENTATION_REVIEW_JSON/);
   assert.match(wf,/device_gate_required/);
+  assert.match(wf,/assertion_mode/);
+  assert.match(wf,/assertion_results/);
   assert.match(wf,/legacy path unchanged/);
   assert.match(wf,/v2_operation_kind=LEGACY/);
   assert.match(wf,/v2_operation_kind=\$\(jq -r '\.operation_kind \/\/ "IMPLEMENT"'/);

@@ -5,9 +5,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { canonicalJson, extractTaggedJson, normalizeRepoPath, sha256, fail } = require('./lib/plan-impact');
 
-const { validateMatrix, isUiPath } = require('./lib/ui-criteria-contract');
+const { validateMatrix, isUiPath, MATRIX_SCHEMA_V2 } = require('./lib/ui-criteria-contract');
 const CONTRACT_SCHEMA = 'kodjo.ui-plan-contract.v1';
-const CONTRACT_VERSION = 1;
+const CONTRACT_VERSION_V1 = 1;
+const CONTRACT_VERSION_V2 = 2;
 
 function validateProtocolCommit(value) {
   if (!/^[0-9a-f]{40}$/i.test(String(value || ''))) fail('UI_PLAN_PROTOCOL_PROVENANCE_MISSING', 'protocol_commit absent ou invalide');
@@ -35,9 +36,12 @@ try {
   const uiApplicable = uiPaths.length > 0;
 
   const matrix = extractTaggedJson(markdown, 'KODJO_UI_CRITERIA_MATRIX_JSON', 'UI_PLAN_CRITERIA_MISSING');
-  const normalizedMatrix = validateMatrix(matrix, {scope, uiPaths});
+  const normalizedMatrix = validateMatrix(matrix, {scope, uiPaths, requireAssertions: mode === 'produce'});
   const normalizedCriteria = normalizedMatrix.criteria;
   const matrixSha256 = sha256(normalizedMatrix);
+  const assertionIds = normalizedCriteria.flatMap((criterion) => Array.isArray(criterion.assertions) ? criterion.assertions.map((a) => a.assertion_id) : []).sort();
+  const assertionMode = normalizedMatrix.schema === MATRIX_SCHEMA_V2;
+  const contractVersion = assertionMode ? CONTRACT_VERSION_V2 : CONTRACT_VERSION_V1;
 
   const hasEmbeddedContract = /<KODJO_UI_PLAN_CONTRACT_JSON>[\s\S]*?<\/KODJO_UI_PLAN_CONTRACT_JSON>/.test(markdown);
   const consume = mode === 'consume' || hasEmbeddedContract;
@@ -48,7 +52,7 @@ try {
     } catch {
       fail('UI_PLAN_PROTOCOL_STALE', 'plan sans KODJO_UI_PLAN_CONTRACT_JSON versionne');
     }
-    if (embedded.schema !== CONTRACT_SCHEMA || Number(embedded.contract_version) < CONTRACT_VERSION) {
+    if (embedded.schema !== CONTRACT_SCHEMA || Number(embedded.contract_version) < contractVersion) {
       fail('UI_PLAN_PROTOCOL_STALE', 'contrat UI ancien ou inconnu');
     }
     validateProtocolCommit(embedded.protocol_commit);
@@ -56,24 +60,26 @@ try {
         embedded.matrix_sha256 !== matrixSha256 ||
         Boolean(embedded.ui_applicable) !== uiApplicable ||
         canonicalJson(embedded.ui_paths || []) !== canonicalJson(uiPaths) ||
-        Number(embedded.criterion_count) !== normalizedCriteria.length) {
+        Number(embedded.criterion_count) !== normalizedCriteria.length ||
+        (assertionMode && (Number(embedded.assertion_count) !== assertionIds.length || embedded.assertion_ids_sha256 !== sha256(assertionIds)))) {
       fail('UI_PLAN_CONTRACT_DRIFT', 'contrat UI embarque != contrat recalcule');
     }
   }
 
   const contract = {
     schema: CONTRACT_SCHEMA,
-    contract_version: CONTRACT_VERSION,
+    contract_version: contractVersion,
     protocol_commit: protocolCommit,
     scan_revision: impact.scan_revision,
     ui_applicable: uiApplicable,
     ui_paths: uiPaths,
     criterion_count: normalizedCriteria.length,
+    ...(assertionMode ? { assertion_count: assertionIds.length, assertion_ids_sha256: sha256(assertionIds) } : {}),
     matrix_sha256: matrixSha256,
   };
   fs.mkdirSync(path.dirname(path.resolve(outputFile)), { recursive: true });
   fs.writeFileSync(outputFile, JSON.stringify(contract, null, 2) + '\n', 'utf8');
-  process.stdout.write('[KODJO_V2] UI plan criteria verified — mode=' + (consume ? 'consume' : 'produce') + ' applicable=' + uiApplicable + ' criteria=' + normalizedCriteria.length + '\n');
+  process.stdout.write('[KODJO_V2] UI plan criteria verified — mode=' + (consume ? 'consume' : 'produce') + ' applicable=' + uiApplicable + ' criteria=' + normalizedCriteria.length + ' assertions=' + assertionIds.length + '\n');
 } catch (error) {
   process.stderr.write(String(error && error.message ? error.message : error) + '\n');
   process.exit(1);
