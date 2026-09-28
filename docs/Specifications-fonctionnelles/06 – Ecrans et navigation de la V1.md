@@ -1776,11 +1776,9 @@ Lorsqu’une nouvelle frame de premier niveau est ajoutée au `Prototype MVP`, e
 
 ## Traçabilité documentaire et contrôles historiques
 
-### État des lieux Figma ↔ chapitre 06 — 24 septembre 2026
+### Audit historique Figma ↔ chapitre 06 — 24 septembre 2026
 
-Un contrôle direct de la page Figma `Prototype MVP` recense actuellement **122 frames de premier niveau**, dont **13** explicitement nommées `HISTORIQUE`, `PROPOSITION`/`Proposition`, `Comparaison` ou `Avant / Après`. Après ces exclusions nominales, **109 frames de premier niveau actives** restent à qualifier. Le Splash `1992:469` est la référence active et unique de la page `Prototype MVP` conformément à D-218.
-
-Avant cette passe, **77** de ces frames étaient déjà référencées par leur node dans le chapitre 06 et **30** ne l’étaient pas. La présente mise à jour traite ces 30 écarts selon leur nature. Après correction, les **109 frames actives** sont toutes soit référencées explicitement dans ce chapitre, soit classées comme planches de référence de composant lorsqu’elles ne constituent pas un écran autonome.
+Ce relevé conserve la réconciliation effectuée le 24 septembre 2026 : ses décomptes `122 / 109` et `77 / 30` sont historiques et ne décrivent plus l’inventaire courant. Au contrôle du 28 septembre, la matrice dédiée recense **113 frames de premier niveau** et constitue la référence pour leur classification et leur couverture. Le Splash `1992:469` reste la référence active unique conformément à D-218.
 
 | Node Figma | Frame | Traitement documentaire |
 | --- | --- | --- |
