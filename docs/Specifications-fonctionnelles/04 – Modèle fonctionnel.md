@@ -103,7 +103,7 @@ La Pause et la Pause au changement de côté sont indépendantes. Avec `Aucun`, 
 
 En mode Durée, avec `C` le nombre de Séries par côté, `A` la durée cible par Série, `B` la Pause et `S` la Pause au changement de côté : en unilatéral, `Dexercice = C × A + (C − 1) × B` ; en bilatéral, `Dexercice = 2 × [C × A + (C − 1) × B] + S`. La Récupération après exercice n’entre jamais dans `Dexercice`. Le nombre de Séries est la valeur canonique persistée ; la Durée totale est dérivée.
 
-En mode Répétitions, la phrase présente `Durée totale ≥ {estimation}`. Pour cette estimation uniquement, chaque répétition vaut conventionnellement **2 secondes**. La formule est `Tmin = k × (N × R × 2 + (N − 1) × pS) + côté`, avec `k=2` si changement de côté sinon `1`, et `côté=pC` si applicable sinon `0`. En mode À l’échec, aucune Durée totale n’est affichée. En mode Durée avec une seule Série, la clause Durée totale est omise car redondante (D-231).
+En mode Répétitions, la phrase présente `Durée totale ≥ {estimation}`. Pour cette estimation uniquement, chaque répétition vaut conventionnellement **2 secondes**. La formule est `Tmin = k × (N × R × 2 + (N − 1) × pS) + côté`, avec `k=2` si changement de côté sinon `1`, et `côté=pC` si applicable sinon `0`. En mode À l’échec, aucune Durée totale n’est affichée. En mode Durée avec une seule Série **sans changement de côté**, la clause Durée totale est omise car redondante. Dès qu’un changement de côté est défini, elle est affichée car la durée totale diffère de la durée par Série (D-232).
 
 ### Exercice de référence et Exercice de Séance
 
@@ -428,4 +428,6 @@ Le Point d’arrêt reste un élément structurel distinct de la Récupération.
 
 ### Phrase de synthèse des paramètres d’exécution
 
-La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, pause entre Séries si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Source normative : D-231 / spécification v9.
+La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, pause entre Séries si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Source normative : D-232 / spécification v9.
+
+Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série `1..100`, Durée par Série `1 s..99 min 59 s`, Pause entre Séries et Pause au changement de côté `0..5 min`. Ces deux pauses utilisent un stepper à pas variable : `5 s` jusqu’à `2 min`, puis `30 s` jusqu’à `5 min`. La Pause au changement de côté est copiée depuis le Profil lorsqu’elle devient applicable.
