@@ -138,7 +138,7 @@ Dans la phrase de synthèse des paramètres d’exécution, le mode est affiché
 
 Le Compte à rebours initial et la Fin de séance sont structurels et non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
 
-Dans le MVP, un Exercice peut afficher ses médias associés dans le Catalogue : la carte se déploie et se replie pour afficher ou masquer le média. Cette décision n’introduit pas à elle seule de nouveau mécanisme d’import ou de capture dans l’éditeur. Les médias multiples ordonnés restent post-MVP.
+Dans le MVP, les médias déjà associés à un Exercice peuvent être consultés dans le Catalogue et pendant l’Exécution. Pendant l’Exécution, la galerie ordonnée, la pagination et le plein écran suivent D-203. Cette décision n’introduit pas de mécanisme d’ajout/import dans l’éditeur ; les décisions de stockage et de non-duplication restent portées par D-066/D-068.
 
 ### Exécution d’une Séance
 
@@ -455,11 +455,11 @@ Pour la spécification et la validation UI, la composition documentaire de réf�
 
 ## 14. Évolution conçue — Média pendant l’Exécution
 
-Une évolution post-MVP actuellement conçue permet de basculer, pendant l’Exécution, entre une face Information et une face Média de l’Exercice. La face Média respecte l’ordre de la galerie, affiche un média à la fois, permet le swipe horizontal unitaire, la lecture vidéo et l’ouverture plein écran sans suspendre le moteur d’Exécution. En plein écran, un cadre flottant conserve les informations et commandes essentielles d’Exécution.
+Pendant l’Exécution MVP, l’utilisateur peut basculer entre les faces Information et Média d’un Exercice disposant déjà de médias. La face Média respecte l’ordre de la galerie, affiche un média à la fois, permet le swipe horizontal unitaire, la lecture vidéo et l’ouverture plein écran sans suspendre le moteur d’Exécution. En plein écran, un cadre flottant conserve les informations et commandes essentielles d’Exécution.
 
 L’état de face et le média courant sont mémorisés uniquement pendant la séance en cours et sont réinitialisés entre deux séances. Une vidéo ne démarre jamais automatiquement. Le son vidéo est actif par défaut et son volume est temporairement abaissé pendant les annonces vocales KODJO.
 
-Cette conception **ne modifie pas le périmètre MVP courant** : les médias multiples fonctionnels restent post-MVP tant qu’une décision de roadmap distincte ne les requalifie pas.
+Les états média `4997:6113` et `5009:6069` font partie du MVP selon la confirmation du 28/09/2026. L’ajout/import de média dans l’éditeur n’est pas inclus ; les règles de stockage restent définies par D-068.
 
 Référence de conception : [CONCEPTION-EXECUTION-MEDIA.md](./CONCEPTION-EXECUTION-MEDIA.md).
 
