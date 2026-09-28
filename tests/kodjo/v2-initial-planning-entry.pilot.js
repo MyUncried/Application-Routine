@@ -57,6 +57,7 @@ test('0.6.29 + hotfix — le draft ferme d abord les racines puis la matrice UI 
   assert.doesNotMatch(workflow, /generate-ui-plan-contract\.js decode draft/);
   assert.match(workflow, /scan-plan-impact\.js" scan/);
   assert.match(workflow, /generate-ui-plan-contract\.js request final/);
+  assert.match(workflow, /generate-ui-plan-contract\.js request final .*scan\.json/);
   assert.match(workflow, /generate-ui-plan-contract\.js decode final/);
   assert.ok(workflow.indexOf('scan-plan-impact.js" scan') < workflow.indexOf('generate-ui-plan-contract.js request final'));
   assert.ok(workflow.indexOf('generate-ui-plan-contract.js decode final') < workflow.indexOf('verify-ui-plan-criteria.js'));
