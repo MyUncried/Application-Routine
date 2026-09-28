@@ -43,8 +43,10 @@ test('KPB-001 all matrix producers share the exact nested contract and executabl
   const root=path.resolve(__dirname,'../..');
   const initial=fs.readFileSync(path.join(root,'.github/workflows/kodjo-v2-slice-initial-plan.yml'),'utf8');
   const revised=fs.readFileSync(path.join(root,'.github/workflows/kodjo-v2-slice-plan.yml'),'utf8');
-  assert.ok(initial.includes('generate-ui-plan-contract.js request draft'));
-  assert.ok(initial.includes('generate-ui-plan-contract.js decode draft'));
+  assert.ok(!initial.includes('generate-ui-plan-contract.js request draft'));
+  assert.ok(!initial.includes('generate-ui-plan-contract.js decode draft'));
+  assert.ok(initial.includes('generate-ui-plan-contract.js request final'));
+  assert.ok(initial.includes('generate-ui-plan-contract.js decode final'));
   for (const phase of ['draft','final']) for (const verb of ['request','decode']) assert.ok(revised.includes('generate-ui-plan-contract.js '+verb+' '+phase));
   assert.ok(!initial.includes('ui_criteria_matrix_json'));
 });
