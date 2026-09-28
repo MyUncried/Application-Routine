@@ -8,7 +8,7 @@
 >
 > Mise à jour fonctionnelle et Figma du 24 septembre 2026 — D-188 à D-198 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Exercice ; changement de côté non exposé au niveau Tour ; Point d’arrêt ; Compte à rebours et Fin propres à l’Exercice ; filtre mémorisé uniquement dans la session courante ; roulettes en modale basse ; parcours de composition exposant la sélection depuis le Catalogue sans suppression de la création locale existante ; média déployable dans le Catalogue des Exercices ; actions `Planifier / Dupliquer / Archiver`, puis `Supprimer` dans les archives ; nouveau layout/typographie d’Exécution.
 >
-> Mise à jour Figma/documentation du 24 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. Les options de filtre sont contextuelles au Catalogue ; `Trier` reste visible disabled T03. L’éditeur Exercice applique D-204 dans le texte éditable : Répétitions affiche `Durée totale >= {estimation}` avec 1 seconde conventionnelle par répétition ; À l’échec n’affiche pas de Durée totale ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’exercice` l’état vide/placeholder.
+> Mise à jour Figma/documentation du 24 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. Les options de filtre sont contextuelles au Catalogue ; `Trier` reste visible disabled T03. L’éditeur Exercice applique D-232 : Répétitions affiche `Durée totale ≥ {estimation}` avec 2 secondes par répétition en V1 ; À l’échec n’affiche pas de Durée totale ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’exercice` l’état vide/placeholder.
 >
 > Décision du 24 septembre 2026 — D-199 : les Zones corporelles constituent désormais un référentiel utilisateur administrable. L’utilisateur peut créer, renommer et supprimer des Zones corporelles ; la liste initiale de dix zones devient un jeu de valeurs par défaut et non une liste fermée. La frame Figma `4683:6336` matérialise la création inline d’une nouvelle zone.
 >
@@ -170,7 +170,7 @@ Obsidian reste l’outil de rédaction de la documentation fonctionnelle. Le dos
 
 Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
 - Durée estimée et borne minimale `≥` en présence d’Exercices en Répétitions ou À l’échec ;
-- affichage de la `Durée totale` dans le texte éditable selon D-204 : inchangé en Durée ; estimation `>=` en Répétitions avec 1 seconde conventionnelle par répétition ; aucune Durée totale en À l’échec ;
+- phrase de synthèse selon D-232 : Durée totale en Durée si plusieurs Séries ou changement de côté ; estimation `≥` en Répétitions avec 2 s/répétition en V1 ; aucune Durée totale en À l’échec ;
 - les noms d’Exercice visibles dans les maquettes renseignées sont des données de démonstration ; `Nom de l’exercice` représente l’état vide/placeholder ;
 - distinction entre **Pause entre Séries**, **Pause au changement de côté** et **Récupération après exercice** ;
 - temps actif et Durée réelle hors Pause utilisateur ;
