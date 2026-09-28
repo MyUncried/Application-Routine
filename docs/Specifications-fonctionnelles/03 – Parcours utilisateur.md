@@ -109,7 +109,7 @@ Dans l’écran unique `Composition d’une séance`, il renseigne son nom, sél
 
 Pour chaque Exercice, un écran unique permet de renseigner le nom, la Catégorie, les Zones corporelles, le mode Durée, Répétitions ou À l’échec, la cible éventuelle, le nombre de Séries, la Pause entre Séries, le Changement de côté, la **Pause au changement de côté** lorsque l’Exercice est bilatérale, le Compte à rebours propre et la Fin d’exercice propre. La Description reste facultative. L’action `Terminer` enregistre l’Exercice.
 
-En mode Durée, l’utilisateur peut confirmer soit `Séries`, soit `Durée totale`. Le contrôle confirmé devient pilote ; l’autre est recalculé. Si une Durée totale cible n’est pas compatible avec un nombre entier de Séries, l’application arrondit au nombre entier le plus proche, avec `.5` vers le haut, recalcule la durée réellement atteignable et affiche un message temporaire.
+En mode Durée, l’utilisateur peut confirmer soit `Séries`, soit `Durée totale`. Le contrôle confirmé devient pilote ; l’autre est recalculé. Après saisie d'une Durée totale cible `Tv`, l’application arrondit au nombre entier de Séries le plus proche, avec `.5` vers le haut, puis recalcule `T(N)`. Si `T(N) ≠ Tv`, elle affiche temporairement « Durée ajustée à {T(N)} pour respecter un nombre entier de Séries. » ; si `T(N) = Tv`, elle n'affiche pas ce message.
 
 `Continuer` reste désactivé tant que le nom n’est pas renseigné ou qu’aucun Exercice valide n’est présent. L’Étiquette éventuelle est déjà gérée dans la Composition ; `Continuer` valide et enregistre la Séance avec sa Composition et son Étiquette.
 ### 2. Réorganiser une séance
