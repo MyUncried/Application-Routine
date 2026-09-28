@@ -52,6 +52,15 @@
       "planning_application_head": "55a5b618181b98fde7d52684a975d5b4af2b3bb9",
       "bootstrap_path": ".github/orchestration/v2-slices/V2-E2E-20260919/slice-bootstrap.json",
       "slice_bootstrap_sha256": "10d160ed9f1fd15f6aeb0e407ca191cc0c701b4837aaefd83fecfc44c7e2ab29"
+    },
+    {
+      "slice_id": "V2-PRE-1",
+      "status": "ACTIVE",
+      "issue_number": 249,
+      "baseline_head": "e216294506bed87dd80855937e3fabfbfa322b82",
+      "planning_application_head": "e216294506bed87dd80855937e3fabfbfa322b82",
+      "bootstrap_path": ".github/orchestration/v2-slices/V2-PRE-1/slice-bootstrap.json",
+      "slice_bootstrap_sha256": "8ba79d4b71b029ce78cf0d380d34425b7094b4ddbea18c6e00b4b35d0e4f0776"
     }
   ]
 }

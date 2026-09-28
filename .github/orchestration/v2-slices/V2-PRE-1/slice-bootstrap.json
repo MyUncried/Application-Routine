@@ -1,0 +1,27 @@
+{
+  "schema_version": "kodjo.protocol.v2.slice-bootstrap.0.6.12",
+  "slice_id": "V2-PRE-1",
+  "issue_number": 249,
+  "repository": "MyUncried/Application-Routine",
+  "target_branch": "main",
+  "baseline_head": "e216294506bed87dd80855937e3fabfbfa322b82",
+  "planning_application_head": "e216294506bed87dd80855937e3fabfbfa322b82",
+  "protocol_version": "0.6.12",
+  "protocol_commit": "e216294506bed87dd80855937e3fabfbfa322b82",
+  "activation_registry": ".github/orchestration/v2-activation-registry.json",
+  "previous_slice_id": null,
+  "previous_checkpoint": null,
+  "product_sources": [
+    {
+      "path": ".github/orchestration/v2-slices/V2-PRE-1/qualification-spec.md",
+      "sha256": "3277de221b5541345006aa4dbf10b65c4c1498bd9f13fc7e3b08827a1a78e73e"
+    }
+  ],
+  "authorized_actors": [
+    "user",
+    "chatgpt-protocole",
+    "claude-local"
+  ],
+  "created_at": "2026-09-28T16:32:02Z",
+  "slice_bootstrap_sha256": "8ba79d4b71b029ce78cf0d380d34425b7094b4ddbea18c6e00b4b35d0e4f0776"
+}
