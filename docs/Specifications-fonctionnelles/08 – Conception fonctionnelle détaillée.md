@@ -1015,7 +1015,7 @@ Les roulettes ouvertes de `Durée`, `Pause entre Séries`, `Pause au changement 
 Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles`, un appui court sélectionne/désélectionne l’option. Un appui long ouvre une confirmation destructrice sans modifier la sélection. Toutes les valeurs, initiales comme ajoutées ensuite, sont supprimables. Après confirmation, la valeur est retirée des choix futurs mais ses affectations existantes sont conservées ; les Instantanés et Exécutions historiques restent inchangés. La modale de sélection reste ouverte et reflète immédiatement la suppression.
 | Validation        | Impossible tant que les champs obligatoires ne sont pas renseignés.                                                                                                                                                                                                                                                                                                                        |
 | Retour            | Si des modifications non enregistrées existent, une confirmation est demandée.                                                                                                                                                                                                                                                                                                             |
-| Synthèse          | Cadre immuable, indépendant du déploiement des sections et placé en bas du contenu à `spacing/24` de l’action finale. Style `KODJO / Body` (`14/20`). La phrase commence par le nombre de Séries et ne répète pas le mode. À l’échec ajoute `jusqu’à l’échec`. La pause est omise à `0 s` ; `entre les séries` est ajouté uniquement pour plusieurs Séries. La synthèse intrinsèque n’affiche jamais la Récupération après exercice ; la Pause au changement de côté peut être mentionnée lorsqu’elle est positive et que l’Exercice est bilatérale. |
+| Synthèse          | Cadre immuable, indépendant du déploiement des sections et placé en bas du contenu à `spacing/24` de l’action finale. Style `KODJO / Body` (`14/20`). La phrase commence par le nombre de Séries et ne répète pas le mode. Sans mode sélectionné, elle est vide. Elle suit les fragments conditionnels D-231, se régénère à chaque modification et exclut nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité.
 ## Exécution d'une séance
 
 ### Éléments affichés
@@ -1210,7 +1210,7 @@ La Composition porte `postActivityRecoverySeconds` sur chaque occurrence. La lig
 
 La Composition présente un **Circuit** interne à la Séance et un nombre de **Tours**. Le terme `Parcours` est réservé au contenu autonome du Catalogue. Le réglage global de Séance `Appliquer compte à rebours et fin des exercices` est activé par défaut et agit sur tous les Exercices de la Séance ; aucun contrôle équivalent n’est ajouté sur chaque occurrence.
 
-L’éditeur d’Exercice exige exactement une Catégorie et au moins une Zone corporelle. Dans le texte éditable, `Durée totale` est toujours présent en mode Durée, même pour une seule Série. Les valeurs Profil utilisées à la création deviennent propres à l’Exercice après initialisation.
+L’éditeur d’Exercice exige exactement une Catégorie et au moins une Zone corporelle. Dans la phrase de synthèse, `Durée totale` est omise en mode Durée avec une seule Série conformément à D-231. Les valeurs Profil utilisées à la création deviennent propres à l’Exercice après initialisation.
 
 Dans la Composition, la ligne visuelle Récupération / Point d’arrêt ne fusionne pas les concepts. Si les deux sont actifs : `Exercice → Récupération après exercice → Point d’arrêt → suite`. Les positions immédiatement après le Compte à rebours initial et immédiatement avant la Fin de séance ne sont jamais proposées. Les positions avant/après Circuit et entre Exercices du Circuit sont autorisées ; un Point d’arrêt interne est répété à chaque Tour.
 
@@ -1223,3 +1223,8 @@ Dans la face Média compacte, le bouton Lecture central est affiché avant lectu
 ## 12. Clôture Figma / DSF — 28 septembre 2026
 
 D-221 retire la recherche globale et toute recherche locale des Catalogues du MVP. D-222 distingue sélection simple auto-validée et sélection multiple avec validation explicite. D-223 rend le titre de Planifier contextuel. Les règles de rendu communes sont celles de D-224 à D-230 : fonds/zones de contexte, navigation, halo et actions circulaires, steppers/badges, listes/modales, roulettes et composants spécialisés. Elles ne modifient le métier que lorsqu’un comportement est explicitement décrit.
+
+
+### 8.x Générateur de phrase de synthèse v9
+
+La phrase est une projection dérivée des paramètres et n’est pas une donnée canonique persistée. Sa construction concatène les fragments 2A–7A définis par la spécification v9. Formules : `T=k×(N×d+(N−1)×pS)+côté` en Durée ; `Tmin=k×(N×R×2+(N−1)×pS)+côté` en Répétitions ; aucune durée totale en À l’échec. L’édition d’une durée totale cible en mode Durée déduit `N=max(1, arrondi((Tv−côté+k×pS)/(k×(d+pS))))`, puis réaffiche la durée effectivement réalisable. Les 7 états d’entrée et 36 cas du classeur v9 constituent le jeu de tests de référence.
