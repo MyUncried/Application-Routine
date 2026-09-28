@@ -125,7 +125,43 @@ Lorsqu’un échec est transitoire ou externe et que la relance est sûre, le co
 
 ---
 
-## 6. Critères d’acceptation
+## 6. R6 — Réduction systématique de la non-détermination
+
+### 6.1 Validation déterministe des chemins
+
+Toute sortie de planification contenant des modules `MODIFY` ou `CREATE` doit être validée mécaniquement avant les traitements coûteux.
+
+Règles minimales :
+
+- `MODIFY` : le chemin exact doit exister dans `git ls-files` au `source_head` ;
+- `CREATE` : le chemin exact ne doit pas exister au `source_head` ;
+- casse, Unicode et chemin POSIX comparés exactement ;
+- diagnostic machine précis en cas d’écart ;
+- éventuel retry borné à la correction d’identité de chemin, sans réinterprétation fonctionnelle.
+
+### 6.2 Révision sans reconstruction inutile
+
+Après `VERDICT: REVISE`, le protocole distingue les éléments rejetés, les éléments déjà validés, les dépendances devenues invalides et les éléments réellement affectés par un changement de contrat.
+
+Sans changement de contrat ni dépendance imposant une reconstruction, la révision préserve les éléments validés et corrige uniquement le delta rejeté. Les validateurs complets sont ensuite rejoués sur le plan résultant.
+
+### 6.3 Audit transversal des opérations non déterministes
+
+La prochaine évolution doit cartographier chaque transition/sous-étape selon :
+
+- `DETERMINISTIC` ;
+- `MODEL_ASSISTED` ;
+- `HUMAN_DECISION`.
+
+Pour chaque étape `MODEL_ASSISTED`, l’audit détermine si tout ou partie du résultat peut être dérivé mécaniquement depuis Git, contrats, schémas, décisions et preuves.
+
+La sortie attendue est une matrice contenant au minimum : étape, entrées, résultat actuel, source de non-détermination, possibilité de déterminisation, garde-fou proposé, coût, risque, preuve de qualification et priorité.
+
+L’objectif est de mécaniser ce qui est calculable et de réserver l’IA aux analyses réellement sémantiques.
+
+---
+
+## 7. Critères d’acceptation
 
 L’évolution n’est conforme que si les scénarios suivants sont démontrés :
 
@@ -143,7 +179,7 @@ L’évolution n’est conforme que si les scénarios suivants sont démontrés 
 
 ---
 
-## 7. Non-régression recherchée
+## 8. Non-régression recherchée
 
 Cette évolution ne doit pas :
 
@@ -157,11 +193,12 @@ Cette évolution ne doit pas :
 
 ---
 
-## 8. Ordre recommandé d’intégration
+## 9. Ordre recommandé d’intégration
 
 1. R1 — handoff explicite ;
 2. R4 — clôture canonique ;
 3. R5 — continuité opératoire / refresh GitHub ;
-4. R3 / PE-28 — correction visuelle directe bornée.
+4. R6 — réduction systématique de la non-détermination (PE-32/33/34) ;
+5. R3 / PE-28 — correction visuelle directe bornée.
 
 PE-27 reste une évolution distincte déjà implémentée dans la PR #243 ; elle doit être qualifiée puis activée avant la planification de PRE-2.
