@@ -28,17 +28,40 @@ jobs:
       APP_VARIANT: development
 
     steps:
-      - name: Checkout requested ref
+      - name: Checkout current environment tooling
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout requested application ref
         uses: actions/checkout@v4
         with:
           ref: ${{ inputs.target_ref }}
-          fetch-depth: 1
+          fetch-depth: 0
           persist-credentials: false
+          path: delivery
 
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: "24"
+
+      - name: Materialize Routine Dev review environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          application_head="$(git -C delivery rev-parse HEAD)"
+          application_base="$(git -C delivery rev-parse HEAD^)"
+          protocol_head="$(git rev-parse HEAD)"
+          compatibility="${RUNNER_TEMP}/routine-dev-compatibility.json"
+          contract="${RUNNER_TEMP}/routine-dev-environment-contract.json"
+          (
+            cd delivery
+            node ../scripts/kodjo/classify-environment-update.js "$application_base" "$application_head" "$compatibility"
+          )
+          node scripts/kodjo/materialize-review-environment.js             delivery             "$compatibility"             "$contract"             "$protocol_head"             "$application_head"
 
       - name: Verify Expo authentication
         shell: bash
@@ -50,10 +73,12 @@ jobs:
           }
 
       - name: Install project dependencies
+        working-directory: delivery
         shell: bash
         run: npm ci --no-audit --no-fund
 
       - name: Verify Routine Dev review configuration
+        working-directory: delivery
         shell: bash
         run: |
           set -euo pipefail
@@ -74,6 +99,7 @@ jobs:
 
       - name: Submit Routine Dev review build
         id: build
+        working-directory: delivery
         shell: bash
         run: |
           set -euo pipefail

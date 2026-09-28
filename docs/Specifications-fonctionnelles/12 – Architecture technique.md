@@ -116,12 +116,14 @@ Les API fonctionnelles du chapitre 11 sont mises en œuvre par les services inte
 | Service | Responsabilité |
 |---|---|
 | `SessionService` | Création, lecture, modification, duplication, archivage et restauration des Séances |
-| `CompositionService` | Gestion des Cycles, Tours, Activités et de leur ordre |
+| `CompositionService` | Gestion des Cycles, Tours, Exercices et de leur ordre |
 | `PlanningService` | Gestion des Routines et calcul des occurrences |
 | `ExecutionService` | Génération du plan d’exécution, timer, progression et commandes pendant l’Exécution |
 | `HistoryService` | Exécutions, Instantanés, occurrences historisées et consultation de l’historique |
 | `PreferencesService` | Lecture et modification des Préférences globales |
-| `ReferenceDataService` | Gestion des Catégories et consultation du référentiel des Zones corporelles |
+| `ReferenceDataService` | Gestion des Étiquettes de Séance, des Catégories d’Activité et du référentiel administrable des Zones corporelles |
+
+La couche de référentiels ne distingue pas, pour le droit de suppression, les valeurs initiales des valeurs créées ensuite par l’utilisateur. La suppression d’une valeur et le retrait de ses associations courantes constituent une opération atomique ; les Instantanés historiques ne sont jamais réécrits.
 
 Ces services sont des composants logiques internes à l’application.
 
@@ -136,7 +138,7 @@ La couche Domaine contient :
 - les transitions d’état ;
 - les calculs indépendants de l’interface et du stockage.
 
-Les calculs de Durée estimée d’exécution, Durée synthétique des Activités, Durée réelle, nombres d’Activités, progression globale et occurrences périodiques sont implémentés comme des règles déterministes distinctes du Domaine conformément au chapitre 10. L’interface ne peut substituer l’une de ces deux métriques estimées à l’autre : le Catalogue et la Composition consomment la Durée synthétique des Activités, tandis que l’Exécution consomme la Durée estimée d’exécution. La progression couvre le Plan complet, `INITIAL_COUNTDOWN` et `SESSION_END` compris, et ne vaut `100 %` qu’après l’achèvement de `SESSION_END` ; dans T04, les étapes chronométrées sont pondérées par leur durée planifiée et la part d’une occurrence en Répétitions ou À l’échec est acquise avec `Suivant`. Les Pauses manuelles sont exclues. Ces règles ne doivent pas être redéfinies dans l’interface ou la couche de persistance.
+Les calculs de Durée estimée d’exécution, Durée synthétique des Exercices, Durée réelle, nombres d’Exercices, progression globale et occurrences périodiques sont implémentés comme des règles déterministes distinctes du Domaine conformément au chapitre 10. L’interface ne peut substituer l’une de ces deux métriques estimées à l’autre : le Catalogue et la Composition consomment la Durée synthétique des Exercices, tandis que l’Exécution consomme la Durée estimée d’exécution. La progression couvre le Plan complet, `INITIAL_COUNTDOWN` et `SESSION_END` compris, et ne vaut `100 %` qu’après l’achèvement de `SESSION_END` ; dans T04, les étapes chronométrées sont pondérées par leur durée planifiée et la part d’une occurrence en Répétitions ou À l’échec est acquise avec `Suivant`. Les Pauses manuelles sont exclues. Ces règles ne doivent pas être redéfinies dans l’interface ou la couche de persistance.
 
 Les objets du domaine ne doivent pas dépendre directement :
 - de l’interface utilisateur ;
@@ -177,14 +179,16 @@ Sont notamment persistés :
 - Séances ;
 - Cycles ;
 - Tours ;
-- Activités ;
+- Exercices ;
 - Routines ;
-- Catégories ;
+- Étiquettes de Séance ;
+- Catégories d’Activité ;
+- Zones corporelles ;
 - Exécutions ;
 - Instantanés d’Exécution ;
 - Occurrences historisées.
 
-Les Zones corporelles constituent un référentiel applicatif prédéfini.
+Les Zones corporelles constituent un référentiel utilisateur persistant et administrable, initialisé avec des valeurs par défaut. Leur identité reste stable à travers les renommages ; leur suppression retire les associations courantes selon les règles du chapitre 10.
 
 ### Repositories
 
@@ -283,8 +287,9 @@ Le moteur gère ensuite :
 - l’étape courante ;
 - les répétitions du Tour et le Cycle technique fixé à une répétition ;
 - les Séries propres à chaque Activité ;
-- l’insertion d’une étape `SERIES_PAUSE` après chaque Série lorsque `R = 0`, ou uniquement entre Séries successives lorsque `R > 0` ;
-- l’insertion d’une étape `RECOVERY` après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral lorsque sa durée est positive ;
+- l’insertion d’une étape `SERIES_PAUSE` uniquement entre Séries successives, donc `C−1` fois par côté ;
+- l’insertion éventuelle d’une phase `SIDE_RECOVERY` entre les deux côtés lorsque `sideRecoverySeconds > 0` ;
+- l’insertion d’une phase `POST_ACTIVITY_RECOVERY` après chaque occurrence de Séance/Parcours lorsque `postActivityRecoverySeconds > 0` ;
 - la progression dans le Tour ;
 - la progression interne du Cycle, non exposée dans l’interface MVP ;
 - les temps écoulés ;
@@ -295,7 +300,7 @@ Le moteur gère ensuite :
 - l’arrêt anticipé ;
 - la terminaison normale.
 
-Le Plan utilise les types de phase `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Activité. Une phase `RECOVERY` conserve la référence de l’Activité parente afin d’alimenter `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Après la dernière Activité et sa Récupération éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T04, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
+Le Plan distingue les phases `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Activité. `SIDE_RECOVERY` conserve la référence de l’Activité bilatérale ; `POST_ACTIVITY_RECOVERY` conserve la référence de l’occurrence. Leurs métriques planifiées/écoulées sont distinctes. Après la dernière Activité et sa récupération post-activité éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T04, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
 
 La logique du moteur doit être indépendante des composants graphiques afin de pouvoir être testée automatiquement.
 
@@ -375,7 +380,7 @@ Lorsqu’une Routine est :
 - créée ;
 - modifiée ;
 - supprimée ;
-- ou supprimée à la suite de l’archivage de sa Séance ;
+- ou supprimée à la suite de l’archivage de sa source ;
 
 les notifications futures correspondantes doivent être recalculées ou supprimées.
 
@@ -383,7 +388,7 @@ L’application ne demande pas l’autorisation de notification au lancement. El
 
 ## 12.14 Médias
 
-Les médias sont hors périmètre du MVP. Aucune image ou vidéo n’est associée aux Activités dans cette version.
+Les médias sont hors périmètre du MVP. Aucune image ou vidéo n’est associée aux Exercices dans cette version.
 
 L’architecture doit permettre `0..n` associations média ordonnées par Activité en V2. La copie d’une Activité ou d’une Séance ne duplique pas le fichier physique : plusieurs associations peuvent référencer le même fichier local immuable.
 
@@ -423,7 +428,7 @@ Les opérations modifiant plusieurs objets liés doivent être atomiques lorsque
 Exemples :
 - création d’une Séance et de sa structure initiale ;
 - archivage d’une Séance et suppression de ses Routines ;
-- à partir du MVP bis, suppression d’une Catégorie et retrait de ses associations ;
+- suppression d’une Étiquette, d’une Catégorie ou d’une Zone corporelle et retrait atomique de ses associations courantes ;
 - création d’une Exécution et de son Instantané.
 
 Une opération atomique :
@@ -591,9 +596,9 @@ Les technologies du MVP sont évaluées selon les critères suivants :
 - Le contrôle technique initial du moteur d’Exécution est intégré au début du premier lot T04 ; aucun spike ni prototype séparé ne précède ce lot.
 - Les tests audio sur appareils physiques iOS et Android sont réalisés dans le second lot T04.
 - L’ajout de `expo-audio`, `expo-speech` et de leur configuration native impose la production d’un nouveau development build iOS et Android ; Expo Go ne constitue pas la preuve finale pour ces comportements natifs.
-- T02-S02 consomme définitivement la migration SQLite additive `004` et fixe `DATABASE_VERSION = 4`. Cette migration ajoute la Récupération attachée à l’Activité, corrige les données nécessaires au calcul des Pauses et migre les anciennes lignes techniques `RECOVERY` vers l’Activité précédente compatible ; une ligne orpheline est ignorée. Elle ne persiste ni la Durée totale ni le pilote d’interface.
-- La configuration de la bilatéralité `V2-BILAT-01` utilise ensuite la migration SQLite additive `005` et fixe `DATABASE_VERSION = 5`. Elle ajoute les champs `side_mode` nécessaires à l’Activité persistante, à son occurrence de Séance et au Tour, avec `UNILATERAL` non nul par défaut pour les données existantes. Elle n’ajoute aucune donnée d’Exécution ni de Résultat.
-- La persistance propre à T04 utilise la migration SQLite additive `006` et fixe `DATABASE_VERSION = 6`. Elle ajoute les données d’Exécution et de Résultats, notamment les Résultats de Récupération et l’identification du côté exécuté, sans revendiquer de nouveau les migrations `004` ou `005`. La séquence canonique est donc `004` pour T02-S02, `005` pour `V2-BILAT-01`, puis `006` pour T04. Les migrations conservent sans perte les Séances existantes et sont testées depuis chaque version de base encore supportée.
+- T02-S02 et sa migration `004` constituent désormais un **état historique** supersédé sur la récupération par D-208. Le schéma cible n’utilise plus une récupération générique attachée à l’Activité.
+- Pour D-208, la base de développement peut être **réinitialisée** : le schéma cible doit être créé directement avec `side_recovery_seconds` sur l’Activité et `post_activity_recovery_seconds` sur l’occurrence de Séance/Parcours. Aucune exigence de migration utilisateur de l’ancien `recovery_seconds` n’est portée par cette conception.
+- Les migrations `005`/`006` restent des traces de l’état technique antérieur et des évolutions déjà réalisées ; elles ne doivent pas être interprétées comme le scénario cible de migration D-208. Lors de l’implémentation de D-208, la version de schéma et les éventuels scripts techniques doivent être recalés sur la baseline de base réinitialisée.
 - L’archivage, la restauration et la suppression restent hors du périmètre de livraison T04 ; leur modèle existant n’est pas supprimé.
 | Backend | **Aucun dans le MVP** | Architecture local-first et réduction de la complexité |
 | Authentification | **Aucune dans le MVP ; Apple/Google préparés** | Évite la complexité des comptes tout en préservant l’évolution future |
@@ -778,7 +783,9 @@ La page Figma `Prototype MVP` contient `74` frames de production. Le contrôle d
 
 ### Composants et contrôles réutilisables
 
-Les composants ci-dessous constituent le catalogue structurel actuellement vérifié dans la page Figma `Design system — Fondations`. Leur nom Figma est conservé pour permettre une correspondance déterministe.
+Les composants ci-dessous constituent le catalogue structurel actuellement vérifié
+
+Pour l’Exécution, les composants textuels du contenu utilisent **Roboto Condensed** ; le titre supérieur de Séance et les dialogues de décision utilisent **Inter**. Les écrans d’Exécution réutilisent une seule instance d’en-tête canonique. dans la page Figma `Design system — Fondations`. Leur nom Figma est conservé pour permettre une correspondance déterministe.
 
 | Famille | Composant ou set Figma | Variantes ou propriétés génériques vérifiées |
 | --- | --- | --- |
@@ -800,7 +807,7 @@ Les composants ci-dessous constituent le catalogue structurel actuellement véri
 | Calendrier | `Calendar / Scheduled Session Card — Source exact` | `State=Collapsed/Expanded` |
 | Suivi | `Tracking / Execution Card — Source exact` | `State=Collapsed/Expanded` |
 | Composition | `Composition / Activity Row with Recovery` (`3572:64`) | bloc `354 × 93` lorsque Récupération > 0 ; carte principale puis sous-carte attachée `Récupération X min Y s` ; Nom / Zones corporelles / Synthèse ; déplacement, duplication et suppression portent sur le bloc entier |
-| Composition | `Composition / Tour Section — Source exact` | section Tour, synthèse calculée des activités et répétition contextuelle |
+| Composition | `Composition / Tour Section — Source exact` | section Tour, synthèse calculée des exercices et répétition contextuelle |
 | Composition | `Composition / Boundary Activity — Source exact` | `Type=Initial countdown/End session` |
 | Activité | `Activity / Name Field — Source exact` (`3382:4303`) | champ Nom canonique placé en tête du bandeau bleu |
 | Activité | `Activity / Parameter Row — Source exact` et `Controls / Segmented` (`2586:2759`) | `Mode=Duration/Repetitions/ToFailure` ; ordre invariant `Séries` → cible → `Pause` ; `ToFailure` remplace la cible par le cadre informatif `à l’échec` ; seconde rangée `Récupération` → `Durée totale`, cette dernière étant masquée sans déplacement hors mode Durée |
@@ -930,6 +937,20 @@ Les caractères typographiques `+`, `×`, `‹`, `›` et les coches ne sont pas
 
 Le choix d’un token existant est obligatoire. Une nouvelle valeur ne peut être ajoutée que si aucun token ne permet de reproduire une différence réellement visible et intentionnelle du Figma.
 
+##### Modales basses — géométrie canonique du contenu
+
+Les modales basses réutilisent les tokens du DSF Figma et ne déduisent pas leurs marges à partir de la hauteur d’un contenu particulier :
+
+| Token DSF | Valeur | Règle |
+| --- | ---: | --- |
+| `size/modal-header-height` | `60` | Hauteur canonique de l’en-tête de la modale basse |
+| `size/modal-width` | `378` | Largeur utile interne à la largeur de référence `402`, soit `12` points de marge latérale de chaque côté |
+| `spacing/modal-content-top-inset` | `16` | Espace vertical obligatoire entre le bas de l’en-tête et le premier élément fonctionnel visible du contenu |
+| `spacing/modal-bottom-inset` | `22` | Espace vertical obligatoire entre le dernier élément fonctionnel visible du contenu et le bas de la modale |
+
+La hauteur totale d’une modale basse suit son contenu, dans la limite de hauteur définie pour cette famille. Les cibles tactiles restent indépendantes de la boîte visuelle : un contrôle peut disposer d’une cible `48 × 48` alors que son élément visible est plus petit. En conséquence, les espacements visuels entre groupes se mesurent entre les boîtes visuelles des éléments, et non entre les limites transparentes de leurs cibles tactiles. Une cible tactile plus grande ne doit donc jamais créer artificiellement un espacement visuel supérieur au token demandé.
+
+
 ##### Échelle et usages des espacements
 
 | Token | Usage canonique |
@@ -996,8 +1017,8 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 | Destination active | Hauteur visuelle `56`, rayon `28` |
 | Recherche globale | Diamètre visuel `58`, rayon `29` |
 | Carte standard | Largeur utile ; rayon canonique `12` sauf variante Figma explicitement documentée |
-| Roulette compacte à deux colonnes — `Type=Duration` | `330 × 203` = barre d’actions `53` + contenu natif `150` ; overlay centré dans la zone utile, indépendant du déclencheur et du défilement. Les sélecteurs de Planification gardent leur géométrie Figma propre, d’environ `310 × 201`. |
-| Roulette numérique compacte à une colonne | `144 × 203` ; largeur déterminée par deux cibles tactiles de largeur `48` et une colonne sélectionnée `56 × 34` centrée ; même overlay d’écran bloquant |
+| Roulette compacte à deux colonnes — `Type=Duration` | Contenu de roulette rendu dans la modale basse canonique ; barre d’actions `Annuler / Confirmer`, contenu natif et dimensions internes selon Figma/DSF actifs. Aucun overlay centré ad hoc. |
+| Roulette numérique compacte à une colonne | Variante numérique du contenu de la même modale basse canonique ; mêmes règles de brouillon et de confirmation |
 | Action de roulette | Cible tactile `48 × 48` ; cercle visuel `38 × 38` ; icône `24 × 24` ; Annuler à gauche et Confirmer à droite dans la barre supérieure ; cadre de mise en page `48 × 53` autorisé pour les marges, sans modification de la cible tactile |
 | Sélection de roulette à deux colonnes | Deux cadres gris séparés de `56 × 34`, rayon `17`, couvrant uniquement les chiffres ; unités hors cadres |
 | Dialogue de décision | Largeur `354`, rayon `18`, centré ; actions `147 × 48` avec écart horizontal `12`; variante trois choix avec `Annuler` `306 × 48` sur une seconde ligne, écart vertical `12` |
@@ -1010,7 +1031,7 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 | Sélecteur du nombre de tours | `66 × 34` ; valeur numérique sans `x` ni `×` ; bord droit aligné avec celui des cartes d’Activité ; carré violet `28 × 28` avec `3` points de marge en haut, à droite et en bas ; icône `#CDCEFA` issue de la référence `2028:12051` ; aucun chevron de repli |
 | Icône Tour | composant DSF `Icon / Tour` (`3066:4685`) ; dessin `18 × 18` ; trait `1,35` ; `color.textPrimary` (`#141414`) ; actif `assets/icons/icon-tour.svg` ; clé `icon.tour` |
 
-Dans `Composition / Tour Section`, le groupe `Nombre de tours` + synthèse mesure `33` points de haut et est centré verticalement face au sélecteur. La synthèse utilise `type.caption` (`11/13`), `color.textSecondary` et un espacement vertical de `4` points sous le titre. Son calcul consomme la Durée synthétique des Activités et exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Tour. Ces valeurs réemploient les tokens existants ; aucun nouveau token n’est créé. Les variantes `State=Collapsed` et `State=Expanded` partagent strictement cet en-tête.
+Dans `Composition / Tour Section`, le groupe `Nombre de tours` + synthèse mesure `33` points de haut et est centré verticalement face au sélecteur. La synthèse utilise `type.caption` (`11/13`), `color.textSecondary` et un espacement vertical de `4` points sous le titre. Son calcul consomme la Durée synthétique des Exercices et exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Tour. Ces valeurs réemploient les tokens existants ; aucun nouveau token n’est créé. Les variantes `State=Collapsed` et `State=Expanded` partagent strictement cet en-tête.
 
 ##### Source canonique de l’icône Tour
 
@@ -1087,7 +1108,7 @@ Il doit vérifier :
 - verrouillage et déverrouillage de l’écran ;
 - suspension et reprise de l’application, y compris après une interruption prolongée ;
 - reconstruction exacte de l’état au retour au premier plan ;
-- transitions automatiques entre Activités ;
+- transitions automatiques entre Exercices ;
 - déclenchement des sons ;
 - synthèse vocale ;
 - vibrations ;
@@ -1232,13 +1253,13 @@ Ordre de développement retenu :
 
 1. **Socle technique** : React Native / Expo, TypeScript, SQLite, architecture, tests, design tokens et préparation i18n.
 2. **Spike technique critique** : timer, arrière-plan, écran verrouillé, audio, voix et vibrations sur iOS et Android.
-3. **Séance simple** : création et modification d’une Séance avec quelques Activités et un Cycle technique déjà fixé à 1.
+3. **Séance simple** : création et modification d’une Séance avec quelques Exercices et un Cycle technique déjà fixé à 1.
 4. **Premier moteur d’Exécution bout-en-bout** : démarrage, timer, pause, Activité suivante, arrêt et fin.
 5. **Structure complète du MVP** : Tour et ses répétitions, Cycle technique masqué, Récupération, Compte à rebours initial et Fin de Séance.
 6. **Exécution complète** : règles, sons, annonces, confirmations, interruptions et Instantané.
 7. **Historique / Suivi**.
 8. **Planification / Agenda / notifications locales**.
-9. **Catégories, Zones corporelles et Préférences (écran Profil)** : CRUD des Catégories ; Zones corporelles utilisées comme référentiel prédéfini, sélectionnable et associable aux Exercices, sans création, modification ni suppression des valeurs du référentiel dans le MVP ; Profil et Préférences.
+9. **Catégories, Zones corporelles et Préférences (écran Profil)** : CRUD des Catégories ; référentiel persistant des Zones corporelles administrable par l’utilisateur (lister, créer, renommer, supprimer) et sélection multiple sur les Exercices ; Profil et Préférences.
 10. **Robustesse, accessibilité, responsive, tests end-to-end et stabilisation**.
 
 Chaque étape doit être fonctionnelle et testée avant de servir de base à la suivante. Les validations sur appareils réels sont réalisées dès qu’un comportement dépend d’iOS ou Android. Figma reste la référence UI cible ; l’ordre de développement ne modifie pas le périmètre fonctionnel du MVP.
@@ -1247,27 +1268,27 @@ Chaque étape doit être fonctionnelle et testée avant de servir de base à la 
 
 Si l’application est interrompue alors qu’une Exécution est `En cours`, celle-ci n’est pas clôturée automatiquement. Au retour au premier plan ou au prochain démarrage, l’état sauvegardé est détecté et l’utilisateur doit choisir entre **Reprendre la séance** et **Arrêter la séance**. Tant que ce choix n’est pas effectué, le démarrage d’une nouvelle Exécution est bloqué. `Arrêter la séance` clôt l’Exécution au statut `Interrompue` et ouvre la fin minimale dans T04 ; la Synthèse appartient à la tranche qui la livre.
 
-## 12.34 Architecture cible — Activités, Médias et Circuits
+## 12.34 Architecture cible — Exercices, Médias et Parcours
 
-SQLite porte les définitions d’Activités, les copies de Séance, les associations ordonnées, les Circuits, leurs étapes et les métadonnées média. Les photos et vidéos résident dans le stockage interne de l’application sous URI stable ; aucun binaire n’est enregistré en base. Un service de références compte les usages actifs et historiques avant tout nettoyage physique.
+SQLite porte les définitions d’Exercices, les copies de Séance, les associations ordonnées, les Parcours, leurs étapes et les métadonnées média. Les photos et vidéos résident dans le stockage interne de l’application sous URI stable ; aucun binaire n’est enregistré en base. Un service de références compte les usages actifs et historiques avant tout nettoyage physique.
 
 Le domaine sépare `ActivityDefinitionRepository`, `SessionActivityRepository`, `MediaAssetRepository` et `CircuitRepository`. `CompositionService` orchestre la copie complète d’une définition dans une Séance. `CircuitExecutionService` fige les instantanés, crée les Exécutions de Séance liées et pilote l’écran de transition.
 
-Le schéma d’Activité utilise `executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}` et ne porte aucun type `Exercice`/`Récupération`. Il persiste le nombre de Séries canonique, la Pause entre Séries, la Récupération et `sideMode`. La Durée totale et le pilote Séries/Durée totale sont calculés et ne sont pas persistés. Les Résultats portent `executionSide`, `recoveryPlannedSeconds` et `recoveryElapsedSeconds`. Les migrations conservent les Activités MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias de la cible post-T05 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
+Le schéma d’`ActivityDefinition` utilise `executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}` et persiste le nombre de Séries canonique, la Pause entre Séries, `sideRecoverySeconds` et `sideMode`. `SessionActivity` ajoute `postActivityRecoverySeconds`. La Durée totale et le pilote Séries/Durée totale restent dérivés. Les Résultats distinguent les métriques des phases `SIDE_RECOVERY` et `POST_ACTIVITY_RECOVERY`. Les migrations conservent les Exercices MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias de la cible post-T05 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
 
 ### Sources de données du Catalogue
 
 | Segment | MVP | V2 |
 |---|---|---|
-| Activités | désactivé, aucune requête | `ActivityDefinitionRepository` |
+| Exercices | désactivé, aucune requête | `ActivityDefinitionRepository` |
 | Séances | `SessionRepository` | `SessionRepository` |
-| Circuits | désactivé, aucune requête | `CircuitRepository` |
+| Parcours | désactivé, aucune requête | `CircuitRepository` |
 
 Le filtrage et le tri sont des paramètres de requête indépendants du segment. L’ordre par défaut est `updatedAt DESC`; l’exécution d’une Séance ne modifie jamais `updatedAt`.
 
 ### Composants et tokens Figma
 
-Les composants `Activity / Name Field — Source exact` (`3382:4303`), `Action / Add Media — Source exact` (`3382:60`), `Media / Preview` (`3382:59`), `Media / Gallery — Source exact` (`3382:64`), `Media / Section — Source exact` (`3382:71`), `Controls / Segmented` (`2586:2759`) et `Composition / Activity Row with Recovery` (`3572:64`) constituent la cible. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
+Les composants d’éditeur et de Composition restent la base visuelle, mais le composant historique `Composition / Activity Row with Recovery` (`3572:64`) est **supersédé sur la sémantique récupération par D-208** : la ligne post-activité devient systématique, y compris à `0 s`, et l’éditeur utilise une récupération entre côtés conditionnelle. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
 
 Les alias Figma sont bijectifs et explicites :
 
@@ -1282,9 +1303,9 @@ Toutes les roulettes ouvertes recouvrent le shell par `color/overlay/scrim`; auc
 
 ## Architecture de la bilatéralité
 
-Le domaine expose `sideMode` avec les valeurs exactes `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`, et `executionSide` avec `NONE`, `RIGHT`, `LEFT`. Les repositories persistants ajoutent `side_mode` à l’Activité de catalogue, à l’occurrence de Séance et au Tour, avec `UNILATERAL` non nul par défaut. Les nœuds d’instantané conservent la direction effective ; les résultats conservent le côté.
+Le domaine expose `sideMode` avec les valeurs exactes `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`, et `executionSide` avec `NONE`, `RIGHT`, `LEFT`. Les repositories persistants conservent `side_mode` sur l’Activité de catalogue et l’occurrence de Séance. Le champ historique équivalent du Tour est conservé pour compatibilité/non-régression, reste `UNILATERAL` et n’est pas exposé à la mutation utilisateur dans la version actuelle. Les nœuds d’instantané conservent la direction effective de l’Activité ; les résultats conservent le côté.
 
-Le générateur de Plan est l’unique composant autorisé à développer les passages. Il applique la priorité du Tour, empêche tout double multiplicateur et produit des identifiants stables incluant répétition de Tour, Activité, Série et côté. La commande d’activation recherche d’abord les enfants propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Sans enfant concerné, elle met directement le Tour à jour. Avec enfant concerné et confirmation, une transaction met à jour le parent et remet uniquement ces enfants à `UNILATERAL`; une annulation n’écrit rien. La migration affecte `UNILATERAL` et `NONE` aux données historiques sans créer de duplicata.
+Le générateur de Plan est l’unique composant autorisé à développer les passages. Dans la version actuelle, il ne développe aucune bilatéralité portée par le Tour : le Tour est traité fonctionnellement `UNILATERAL`. La capacité technique historique est conservée sans être exposée ni modifiée par l’utilisateur. Il applique la priorité du Tour, empêche tout double multiplicateur et produit des identifiants stables incluant répétition de Tour, Activité, Série et côté. La commande d’activation recherche d’abord les enfants propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Sans enfant concerné, elle met directement le Tour à jour. Avec enfant concerné et confirmation, une transaction met à jour le parent et remet uniquement ces enfants à `UNILATERAL`; une annulation n’écrit rien. La migration affecte `UNILATERAL` et `NONE` aux données historiques sans créer de duplicata.
 
 Les services de calcul utilisent des fonctions pures couvrant les deux valeurs de `L`, l’arrondi `.5` vers le haut, les bornes et le recalcul. Les tests combinent trois modes × trois réglages × Activité/Tour × Séries × Pauses/Récupérations × interruptions. Les tests d’intégration vérifient l’ordre `D→G` et `G→D`, l’idempotence des résultats, la reprise, la progression monotone, les annonces uniques et la préservation du premier côté lors d’une réinitialisation du second.
 
@@ -1292,11 +1313,11 @@ Le DSF normalise `Controls / Sides — Source exact` (`3704:5021`) à `74 × 42 
 
 Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le nom de l’Activité pour le côté courant. Les écrans unilatéraux le masquent. Cette présentation réutilise les couleurs et la typographie existantes ; aucun nouveau token n’est requis.
 
-## Architecture MVP T03 — Catalogue des Activités et moteur multi-origine
+## Architecture MVP T03 — Catalogue des Exercices et moteur multi-origine
 
-T03 livre le Catalogue des Activités et le sous-ensemble du moteur nécessaire à l’Exécution directe d’une Activité. T04 étend ensuite ce moteur partagé à l’Exécution structurée des Séances, sans dupliquer la machine à états. Le Catalogue des Activités réutilise le Shell du Catalogue et sépare les responsabilités existantes : lecture et cycle de vie des `ActivityDefinition`, copie ordonnée par `CompositionService`, lancement par `ExecutionService` et retour d’état de navigation par la couche de présentation. Aucun service réseau ni stockage parallèle n’est introduit.
+T03 livre le Catalogue des Exercices et le sous-ensemble du moteur nécessaire à l’Exécution directe d’une Activité. T04 étend ensuite ce moteur partagé à l’Exécution structurée des Séances, sans dupliquer la machine à états. Le Catalogue des Exercices réutilise le Shell du Catalogue et sépare les responsabilités existantes : lecture et cycle de vie des `ActivityDefinition`, copie ordonnée par `CompositionService`, lancement par `ExecutionService` et retour d’état de navigation par la couche de présentation. Aucun service réseau ni stockage parallèle n’est introduit.
 
-Pour la couche de présentation du Catalogue et de l’éditeur autonome, `src/features/activities/` est le périmètre feature dédié : écrans, composants et adaptateurs UI propres aux Activités persistantes y résident. Le domaine reste dans `src/domain/activities/` et l’accès SQLite dans `src/infrastructure/database/`; aucune règle métier ni persistance n’est dupliquée dans la feature. Les composants réellement partagés avec la Composition ou les autres écrans restent dans les espaces partagés existants. Cette séparation justifie l’introduction de `src/features/activities/` sans créer un second domaine.
+Pour la couche de présentation du Catalogue et de l’éditeur autonome, `src/features/activities/` est le périmètre feature dédié : écrans, composants et adaptateurs UI propres aux Exercices persistantes y résident. Le domaine reste dans `src/domain/activities/` et l’accès SQLite dans `src/infrastructure/database/`; aucune règle métier ni persistance n’est dupliquée dans la feature. Les composants réellement partagés avec la Composition ou les autres écrans restent dans les espaces partagés existants. Cette séparation justifie l’introduction de `src/features/activities/` sans créer un second domaine.
 
 ### Moteur d’Exécution multi-origine
 
@@ -1317,3 +1338,42 @@ Les pictogrammes de `CE-COMP-SEL-01` proviennent des composants locaux DSF du fi
 | Activité sélectionnée | `Icon / Selection Check` | `3847:5512` / `27a55ca50eec5411d0e087bbf6bd6f0222c0ebf4` | fond `color/selection` — `VariableID:2290:52` ; liseré et coche blancs — `VariableID:2290:5` |
 
 Chaque composant possède un cadre vectoriel `24 × 24 pt`. L’implémentation réutilise l’asset exporté ou son équivalent code connecté au composant, sans caractère Unicode, emoji, glyphe de police, icône système ni redessin approximatif. La cible tactile appartient au contrôle hôte et reste au minimum `48 × 48 pt`.
+
+## Architecture cible — média pendant l’Exécution
+
+La conception D-203 impose des propriétés techniques observables sans imposer de bibliothèque :
+- le lecteur média est découplé du moteur d’Exécution ; afficher ou lire un média ne suspend pas le moteur ;
+- la galerie consomme un ordre déterministe des médias ;
+- la face et l’index courant vivent dans un état de séance transitoire, non dans les données métier persistées ;
+- l’animation de retournement reste purement UI ;
+- le lecteur vidéo gère pause/reprise explicite et absence d’autoplay ;
+- le mixage audio permet un **ducking** temporaire de la vidéo pendant les annonces vocales KODJO ;
+- le plein écran autorise la rotation de l’appareil et conserve un overlay d’Exécution alimenté par l’état courant du moteur ;
+- une transition de fin d’Exercice ferme tout média de l’Exercice terminé avant d’afficher l’étape suivante ;
+- une erreur de chargement média reste confinée au média concerné.
+
+Cette cible reste post-MVP tant qu’une tranche d’implémentation n’est pas décidée.
+
+## 12.35 Source polymorphe des Routines — D-206
+
+La persistance des Routines doit représenter une **source discriminée** : `SESSION` ou `ACTIVITY`, avec exactement un identifiant de source associé. Le choix physique des colonnes reste technique, mais le modèle ne doit pas dupliquer deux moteurs de planification distincts.
+
+Les services de calcul d’occurrences, rappels locaux, prochaine occurrence et historique d’occurrence consomment cette source générique. Au démarrage depuis une occurrence :
+- une source `SESSION` crée une Exécution d’origine `SESSION` et son Instantané de Séance ;
+- une source `ACTIVITY` crée une Exécution d’origine `ACTIVITY` et son Instantané autonome d’Exercice.
+
+La suppression ou l’archivage de la source doit arrêter ses occurrences futures selon les règles métier, sans supprimer les Exécutions ni Instantanés historiques. Les noms physiques de champs et migrations seront définis au développement ; l’exigence produit est l’unicité de la source et l’absence de second système de planification propre aux Exercices.
+
+## 12.36 Extensibilité de la source Routine — Parcours
+
+Le discriminateur de source de Routine doit rester extensible. L’implémentation MVP couvre `SESSION` et `ACTIVITY`; la version qui livre la planification des Parcours ajoute `CIRCUIT` comme troisième valeur technique. Cette extension doit réutiliser le même stockage de Routine, le même calcul d’occurrences, le même ordonnanceur de rappels et les mêmes services de Calendrier. Aucun schéma ou moteur parallèle dédié aux Parcours ne doit être introduit.
+
+## 12.37 Schéma cible des récupérations — D-208
+
+Le champ historique générique `recovery_seconds` ne constitue plus le schéma cible. La persistance cible sépare :
+- `ActivityDefinition.side_recovery_seconds` — récupération intrinsèque entre côtés, pertinente uniquement en bilatéral ;
+- `SessionActivity.post_activity_recovery_seconds` — récupération contextuelle après occurrence, valeur obligatoire pouvant être `0`.
+
+Le même principe s’applique aux occurrences d’Activité d’un Parcours lorsque ce modèle est livré. La base étant réinitialisable pour cette évolution, aucune migration utilisateur n’est exigée dans la documentation cible ; l’implémentation doit néanmoins produire directement le schéma cible.
+
+Le moteur ne déduit jamais une récupération post-activité à partir de l’adjacence. Il lit la valeur portée par l’occurrence. Une Exécution directe d’`ActivityDefinition` ignore toute récupération post-activité et ne peut produire que `SIDE_RECOVERY` lorsqu’elle est bilatérale.

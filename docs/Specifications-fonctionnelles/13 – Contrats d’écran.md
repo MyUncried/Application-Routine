@@ -1,4 +1,6 @@
-# 13 – Contrats d’écran
+# 13
+
+> **Règle documentaire :** le chapitre 13 ne contient aucune copie d’écran. Les captures et copies physiques d’écrans/modales sont centralisées exclusivement dans le chapitre 06. Le chapitre 13 conserve uniquement les contrats, états, règles et références de nodes Figma nécessaires à la recette. – Contrats d’écran
 
 ## 1. Objet et statut normatif
 
@@ -58,7 +60,7 @@ Toute valeur visible est classée :
 - `DONNÉE MÉTIER DYNAMIQUE` : valeur provenant du modèle, d’un brouillon ou d’un calcul ;
 - `VALEUR DE DÉMONSTRATION FIGMA` : valeur uniquement illustrative, interdite en dur.
 
-Les noms d’Activités/Séances, catégories, zones corporelles, durées, nombres de Séries/répétitions, commentaires, ressentis, dates et ordre des cartes montrés dans les maquettes sont dynamiques/démonstratifs sauf mention contraire.
+Les noms d’Exercices/Séances, catégories, zones corporelles, durées, nombres de Séries/répétitions, commentaires, ressentis, dates et ordre des cartes montrés dans les maquettes sont dynamiques/démonstratifs sauf mention contraire.
 
 ### 4.2 Responsive
 
@@ -78,7 +80,7 @@ Composant : `Navigation / Bottom — Source exact` (`2537:214`). Les quatre dess
 
 ### 4.4 Conservation d’état Catalogue
 
-Recherche, filtres, tri implicite et scroll sont conservés pendant l’aller-retour courant. Ils ne survivent pas à un relaunch complet. Un relaunch revient au segment `Séances`.
+Recherche, filtre appliqué, tri implicite et scroll sont conservés pendant la session applicative courante et les allers-retours. Au relaunch, aucun filtre n’est appliqué et le Catalogue revient au segment `Séances`.
 
 ### 4.5 Commandes Catalogue `Créer` / `Filtrer` / `Trier`
 
@@ -92,12 +94,11 @@ Recherche, filtres, tri implicite et scroll sont conservés pendant l’aller-re
 
 Les positions Figma vérifiées `x=31`, `147`, `263` sur la largeur `402 pt` sont des **preuves de rendu**, pas des coordonnées absolues d’implémentation React Native. Le responsive suit §4.2 et chaque action conserve une cible tactile ≥ `48 × 48 pt` même si sa forme visible mesure `32 pt` de haut.
 
-`Filtrer` et `Trier` sont communs à `Activités / Séances / Circuits`; leur représentation d’entrée est commune, leurs options peuvent être contextuelles. `Créer` reste actif. `Trier` reste visible mais disabled en T03.
+`Filtrer` et `Trier` sont communs à `Exercices / Séances / Parcours`; leur représentation d’entrée est commune, leurs options peuvent être contextuelles. Le filtre inactif est un bouton rond blanc. Un appui l’étend en `Filtres / Aucun` sans modifier la liste. Après sélection d’un critère, le contrôle actif est bleu et étendu ; le rond bleu retire le filtre, tandis que la zone texte ouvre la modale. `Réinitialiser` revient à `Aucun`. `Créer` reste actif. `Trier` reste visible mais disabled en T03.
 
-Pour T03 / `Activités` :
+Pour T03 / `Exercices` :
 
-- `Filtrer` est fonctionnel au minimum pour `Archivées` ;
-- aucune autre option de filtre n’est définie ;
+- `Filtrer` propose les critères contextuels validés : statut (`Actives` / `Archivées`), Catégories et Zones corporelles ;
 - `Trier` est visible mais disabled ;
 - le tri réellement appliqué reste `updatedAt DESC` ;
 - aucun menu de tri n’est ouvert ;
@@ -106,11 +107,13 @@ Pour T03 / `Activités` :
 
 `Créer` est contextuel au Catalogue affiché : un tap ouvre directement la création de l’objet correspondant, sans écran ni arbre intermédiaire. Dans `1992:10129 — Recherche globale — Champ déployé`, la rangée `Créer / Filtrer / Trier` reste visible dans le Catalogue d’arrière-plan sous le contexte de recherche et le clavier.
 
-Les **contrôles d’entrée** sont conçus et vérifiables dans Figma. Seul le détail graphique des **panneaux/options ouverts** `Filtrer` et `Trier` n’existe pas encore : conformité visuelle détaillée `NON VÉRIFIABLE` / `À CLARIFIER` pour ces panneaux uniquement.
+Les **contrôles d’entrée** et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. `Trier` reste visible mais désactivé dans le périmètre T03.
 
 ### 4.6 Roulettes
 
-Roulette ouverte : scrim bloquant arrière-plan et scroll ; CTA principal fixe reste visuellement normal mais fonctionnellement et accessibilité-inactif ; `Annuler` restaure ; `Confirmer` applique puis recalcule. Les valeurs restent brouillon jusqu’à confirmation.
+Toutes les roulettes actives utilisent la famille de **modales basses** du DSF. Les anciennes représentations centrées ne constituent plus une référence active.
+
+Roulette ouverte : **modale basse standardisée** avec scrim bloquant arrière-plan et scroll ; CTA principal fixe reste visuellement normal mais fonctionnellement et accessibilité-inactif ; `Annuler` restaure ; `Confirmer` applique puis recalcule. Les valeurs restent brouillon jusqu’à confirmation.
 
 ### 4.7 Swipe contextuel
 
@@ -123,6 +126,24 @@ Swipe gauche : la carte suit le doigt et révèle progressivement les actions de
 ### 4.9 Transition canonique
 
 Avancement vers l’écran suivant : cible entre depuis la droite, écran courant sort vers la gauche. Ne pas recréer localement une autre animation.
+
+### 4.10 Référentiels — appui long et suppression
+
+Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` partagent le même contrat :
+
+- appui court sur une option : sélection/désélection selon le contexte ;
+- appui long : aucun changement de sélection et ouverture d’un `Overlay / Decision Dialog` destructif à deux actions ;
+- titre dynamique : `Supprimer « {nom} » ?` ;
+- message dynamique : si la valeur est utilisée, préciser qu’elle sera retirée des objets courants qui l’utilisent et que l’historique restera inchangé ;
+- actions : `Annuler` à gauche, `Supprimer` à droite ;
+- toutes les valeurs sont concernées, y compris les valeurs initiales fournies par KODJO ;
+- après `Supprimer`, revenir à la modale de sélection restée ouverte, avec la valeur supprimée absente ;
+- la suppression retire aussi la valeur de la sélection courante lorsqu’elle y était sélectionnée ;
+- aucune restauration automatique d’une valeur initiale supprimée.
+
+La recette doit couvrir au minimum une Étiquette, une Catégorie et une Zone corporelle, chacune dans un cas utilisé et non utilisé.
+
+Références Figma : `4861:6145` (Étiquette), `4861:6259` (Catégorie), `4861:6348` (Zone corporelle).
 
 ---
 
@@ -143,17 +164,17 @@ Avancement vers l’écran suivant : cible entre depuis la droite, écran couran
 
 ### 2. Finalité fonctionnelle
 
-Faire du Catalogue des séances le segment d’entrée par défaut du Catalogue multi-type, avec navigation `Catalogues`, segment Activités désormais actif, Circuits visible disabled, rangée déterministe `Créer / Filtrer / Trier` et action `Créer` contextuelle.
+Faire du Catalogue des séances le segment d’entrée par défaut du Catalogue multi-type, avec navigation `Catalogues`, segment Exercices désormais actif, Parcours visible disabled, rangée déterministe `Créer / Filtrer / Trier` et action `Créer` contextuelle.
 
 ### 3. Contexte d’entrée
 
-Entrées : fin Splash, tap `Catalogues`, retour d’un parcours Séance, retour après enregistrement depuis Catégories. Au relaunch, segment = `Séances` même si l’utilisateur avait quitté sur `Activités`.
+Entrées : fin Splash, tap `Catalogues`, retour d’un parcours Séance, retour après enregistrement depuis Catégories. Au relaunch, segment = `Séances` même si l’utilisateur avait quitté sur `Exercices`.
 
 ### 4. Contexte de sortie / destinations
 
-- segment Activités → `CE-T03-02` ;
+- segment Exercices → `CE-T03-02` ;
 - segment Séances → reste ;
-- Circuits → aucune navigation ;
+- Parcours → aucune navigation ;
 - Créer → règle contextuelle `CE-T03-03` puis création directe d’une Séance ;
 - carte Séance → parcours existant T01/T02 ;
 - Recherche → expérience de Recherche globale existante ;
@@ -165,7 +186,7 @@ Liste issue des services/repositories Séance. Noms, catégories, zones, durées
 
 ### 6. Classification des valeurs Figma
 
-`Catalogue des séances`, `Activités`, `Séances`, `Circuits`, `Créer`, `Filtrer`, `Trier`, `Catalogues` = statiques. Contenus de cartes et valeur de recherche = dynamiques/démonstration.
+`Catalogue des séances`, `Exercices`, `Séances`, `Parcours`, `Créer`, `Filtrer`, `Trier`, `Catalogues` = statiques. Contenus de cartes et valeur de recherche = dynamiques/démonstration.
 
 ### 7. Structure de l’écran
 
@@ -173,11 +194,11 @@ Header fixe → segmenté trois types → rangée commandes Catalogue (`Créer`,
 
 ### 8. Éléments obligatoires
 
-Titre contextuel ; segments égaux ; Séances selected ; Activités enabled ; Circuits disabled ; rangée `Créer / Filtrer / Trier` ; navigation basse `Catalogues`. `Trier` visible disabled T03 ; `Filtrer` suit le comportement défini pour le contexte sans inventer d’options non arbitrées.
+Titre contextuel ; segments égaux ; Séances selected ; Exercices enabled ; Parcours disabled ; rangée `Créer / Filtrer / Trier` ; navigation basse `Catalogues`. `Trier` visible disabled T03 ; `Filtrer` suit le comportement défini pour le contexte sans inventer d’options non arbitrées.
 
 ### 9. Layout déterministe
 
-Segmenté sur largeur utile. Rangée Catalogue conforme §4.5 : trois contrôles visibles `108 × 32 pt`, gap `8 pt`, ensemble centré dans la référence `402 pt`. Liste dans Body scrollable, jamais sous navigation. La géométrie est commune à celle du Catalogue des activités ; elle ne devient pas un jeu de coordonnées absolues RN.
+Segmenté sur largeur utile. Rangée Catalogue conforme §4.5 : trois contrôles visibles `108 × 32 pt`, gap `8 pt`, ensemble centré dans la référence `402 pt`. Liste dans Body scrollable, jamais sous navigation. La géométrie est commune à celle du Catalogue des exercices ; elle ne devient pas un jeu de coordonnées absolues RN.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -189,7 +210,7 @@ Vide réel ; liste ; recherche globale déployée ; retour Catégories ; retour 
 
 ### 12. Contrôles et interactions
 
-Activités navigue ; Séances maintient ; Circuits disabled ; `Créer` initialise directement le parcours de création d’une Séance. `Trier` reste non déclenchable en T03. T03 n’invente aucune nouvelle option Filtrer/Trier propre aux Séances.
+Exercices navigue ; Séances maintient ; Parcours disabled ; `Créer` initialise directement le parcours de création d’une Séance. Sur une Séance active, `Archiver` agit immédiatement lorsqu’aucune Routine n’est associée et affiche ensuite un snackbar `Séance archivée` avec `Annuler`. Si au moins une Routine est associée, une confirmation explicite précède obligatoirement l’archivage et la suppression de ces Routines ; après confirmation, aucun snackbar d’annulation n’est affiché. `Trier` reste non déclenchable en T03. T03 n’invente aucune nouvelle option Filtrer/Trier propre aux Séances.
 
 ### 13. Gestes
 
@@ -197,7 +218,7 @@ Cartes de Séance utilisant des actions contextuelles suivent §4.7. Aucun geste
 
 ### 14. Validation
 
-Aucune validation pour changer de segment. Circuits et `Trier` ne déclenchent aucun événement métier. Créer n’écrit aucune donnée à l’ouverture.
+Aucune validation pour changer de segment. Parcours et `Trier` ne déclenchent aucun événement métier. Créer n’écrit aucune donnée à l’ouverture. Pour `Archiver`, la confirmation est requise si et seulement si au moins une Routine est associée à la Séance. Le snackbar d’annulation est affiché si et seulement si l’archivage a été réalisé sans dialogue de confirmation.
 
 ### 15. Brouillon et persistance
 
@@ -213,15 +234,15 @@ Erreur de chargement : afficher état d’erreur prévu, pas un faux état vide.
 
 ### 18. Accessibilité
 
-Circuits annonce disabled ; Séances selected ; `Catalogues` est le label accessible du premier onglet ; `Trier` annonce disabled ; focus cohérent et cibles ≥48 malgré la hauteur visuelle `32 pt` des commandes.
+Parcours annonce disabled ; Séances selected ; `Catalogues` est le label accessible du premier onglet ; `Trier` annonce disabled ; focus cohérent et cibles ≥48 malgré la hauteur visuelle `32 pt` des commandes.
 
 ### 19. Invariants
 
-Séances = défaut/relaunch ; Activités = actif T03 ; Circuits = disabled ; bottom label = `Catalogues`, jamais `Séances` ; rangée Catalogue = trois commandes présentes selon §4.5 ; `Trier` disabled.
+Séances = défaut/relaunch ; Exercices = actif T03 ; Parcours = disabled ; bottom label = `Catalogues`, jamais `Séances` ; rangée Catalogue = trois commandes présentes selon §4.5 ; `Trier` disabled.
 
 ### 20. Recette déterministe
 
-Tester 0/N Séances, segment initial, navigation Activités, Circuit impossible, géométrie `Créer / Filtrer / Trier`, `Trier` disabled, `Créer` ouvrant directement la création d’une Séance sans intermédiaire, Recherche globale `1992:10129`, retour Catégories, relaunch, 360/402/440, texte agrandi. Négatifs : écran/arbre intermédiaire après `Créer`, absence Filtrer/Trier, `Trier` actif, `Séances` en bottom nav, Circuit activable, persistance du segment Activités après relaunch.
+Tester 0/N Séances, segment initial, navigation Exercices, Parcours impossible, géométrie `Créer / Filtrer / Trier`, `Trier` disabled, `Créer` ouvrant directement la création d’une Séance sans intermédiaire, archivage sans Routine sans confirmation avec snackbar `Séance archivée` + `Annuler`, annulation de cet archivage, archivage avec ≥ 1 Routine avec confirmation puis suppression des Routines et absence de snackbar d’annulation, Recherche globale `1992:10129`, retour Catégories, relaunch, 360/402/440, texte agrandi. Négatifs : écran/arbre intermédiaire après `Créer`, absence Filtrer/Trier, `Trier` actif, `Séances` en bottom nav, Parcours activable, persistance du segment Exercices après relaunch.
 
 ### 21. Traçabilité
 
@@ -229,7 +250,9 @@ E01–E06 → D-167/D-179/D-184/D-187 ; E67–E69 → D-168/D-178 ; Figma `2117:
 
 ---
 
-## CE-T03-02 — Catalogue des activités — liste, recherche, filtres et cartes
+## CE-T03-02 — Catalogue des exercices — liste, recherche, filtres et cartes
+
+> Mise à jour 24/09/2026 : actions glissées actives = `Planifier / Dupliquer / Archiver`; dans les archives = `Supprimer`. Le média déployé fait partie du MVP.
 
 ### 1. Identification
 
@@ -247,11 +270,11 @@ L’ancienne référence `3787:5209` n’existe plus dans l’état Figma couran
 
 ### 2. Finalité fonctionnelle
 
-Lister les `ActivityDefinition`, permettre recherche, accès aux archives, consultation/modification et lancement direct, tout en séparant surface carte, Déployer disabled et Lecture active.
+Lister les `ActivityDefinition`, permettre recherche, accès aux archives, consultation/modification, affichage média déployé et lancement direct, tout en séparant surface carte, Déployer et Lecture.
 
 ### 3. Contexte d’entrée
 
-Segment Activités depuis Catalogue ; retour éditeur ; retour Exécution directe ; retour archives. L’état du parcours courant est restitué.
+Segment Exercices depuis Catalogue ; retour éditeur ; retour Exécution directe ; retour archives. L’état du parcours courant est restitué.
 
 ### 4. Contexte de sortie / destinations
 
@@ -259,7 +282,7 @@ Surface carte → `CE-T03-04`; Lecture → `CE-T03-09`; `Créer` → règle cont
 
 ### 5. Données affichées et source de vérité
 
-Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées, `updatedAt DESC`. Exécuter ne modifie pas `updatedAt`. Récupération affichée seulement si présente sur la définition.
+Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées, `updatedAt DESC`. Exécuter ne modifie pas `updatedAt`. Le Catalogue n’affiche aucune récupération post-activité, car elle n’existe pas sur `ActivityDefinition`; seule la récupération entre côtés éventuelle relève de la définition.
 
 ### 6. Classification des valeurs Figma
 
@@ -271,11 +294,11 @@ Header → segmenté → rangée commandes Catalogue (`Créer`, `Filtrer`, `Trie
 
 ### 8. Éléments obligatoires
 
-Barre bleue ; zone droite constante ; Déployer visible disabled ; Lecture active indépendante ; aucune poignée ; `Créer` actif ; Filtrer actif ; Trier visible disabled ; rangée commune conforme §4.5.
+Barre de Catégorie colorée ; zone droite constante ; Déployer actif pour afficher/masquer le média ; Lecture active indépendante ; aucune poignée ; `Créer` actif ; Filtrer actif ; Trier visible disabled ; rangée commune conforme §4.5.
 
 ### 9. Layout déterministe
 
-Rangée Catalogue : `Créer`, `Filtrer`, `Trier` visibles chacun en `108 × 32 pt`, gap `8 pt`, ensemble centré dans la référence `402 pt`, avec même représentation que Catalogue des séances. Déployer et Lecture sont ancrés selon Figma/DSF avec même largeur utile pour toutes les cartes. Cartes peuvent croître verticalement si texte. Seuls les panneaux/options ouverts Filtrer/Trier restent non définis visuellement : aucun layout local n’est inventé.
+Rangée Catalogue : `Créer`, `Filtrer`, `Trier` visibles chacun en `108 × 32 pt`, gap `8 pt`, ensemble centré dans la référence `402 pt`, avec même représentation que Catalogue des séances. Déployer et Lecture sont ancrés selon Figma/DSF avec même largeur utile pour toutes les cartes. Cartes peuvent croître verticalement si texte. Les panneaux ouverts de `Filtrer` suivent les frames Figma courantes ; `Trier` reste disabled T03.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -283,15 +306,15 @@ Rangée Catalogue : `Créer`, `Filtrer`, `Trier` visibles chacun en `108 × 32 p
 
 ### 11. États de l’écran
 
-Liste active ; vide ; recherche ; Filtrer ouvert lorsque son panneau sera défini ; Archives appliqué ; Trier visible disabled ; carte en swipe ; carte ouverte ; retour restauré ; relaunch perdu.
+Liste active ; vide ; recherche ; filtre étendu `Aucun` ; filtre contextuel appliqué ; Archives appliqué ; Trier visible disabled ; carte en swipe ; carte média déployée ; retour restauré ; relaunch sans filtre.
 
 ### 12. Contrôles et interactions
 
-Surface carte = ouvrir/modifier. Lecture = direct execution. Déployer = aucun événement. Filtrer = ouvre le contrôle partagé ; `Archivées` est la seule option dont le comportement est défini T03. Trier = aucun événement. `Créer` ouvre directement la création d’une Activité persistante.
+Surface carte = ouvrir/modifier. Lecture = direct execution. Déployer = afficher/masquer le média associé. Filtrer = ouvre les options contextuelles validées pour le Catalogue courant ; `Archivées` reste un critère disponible lorsque pertinent. Trier = aucun événement. `Créer` ouvre directement la création d’une Activité persistante.
 
 ### 13. Gestes
 
-Swipe selon §4.7. Aucun appui long/drag de carte Catalogue. Tap Déployer disabled ne déclenche rien.
+Swipe selon §4.7. Aucun appui long/drag de carte Catalogue. Tap Déployer alterne l’état média condensé/déployé.
 
 ### 14. Validation
 
@@ -311,23 +334,21 @@ Définition supprimée entre rendu et action : rafraîchir et indiquer indisponi
 
 ### 18. Accessibilité
 
-Carte : `Ouvrir l’activité <nom>` ; Lecture : `Exécuter l’activité <nom>` ; Déployer disabled ; Filtrer bouton actif avec état appliqué ; Trier disabled/non déclenchable par technologie d’assistance ; commandes de la rangée conservent des cibles ≥48.
+Carte : `Ouvrir l’activité <nom>` ; Lecture : `Exécuter l’activité <nom>` ; Déployer annonce l’état condensé/déployé ; Filtrer expose son état ; Trier reste disabled/non déclenchable par technologie d’assistance ; commandes de la rangée conservent des cibles ≥48.
 
 ### 19. Invariants
 
-Rangée `Créer / Filtrer / Trier` conforme §4.5 ; Déployer visible disabled ; Lecture indépendante ; aucune poignée ; Filtrer donne accès à Archivées ; Trier disabled ; tri effectif `updatedAt DESC`; aucune option supplémentaire inventée.
+Rangée `Créer / Filtrer / Trier` conforme §4.5 ; Déployer actif pour le média ; Lecture indépendante ; aucune poignée ; Filtrer utilise les options contextuelles validées ; Trier disabled ; tri effectif `updatedAt DESC`.
 
 ### 20. Recette déterministe
 
-0/N cartes ; récupération 0/>0 ; géométrie rangée 108/108/108 avec gap 8 et centrage ; surface/Lecture/Déployer ; Filtrer>Archivées ; Trier tap/clavier/VoiceOver sans action ; recherche avec rangée d’arrière-plan ; swipe ; retour état ; relaunch ; ordre updatedAt DESC ; responsive. Négatifs : `Créer` seul centré, Filtrer/Trier absents, Déployer actif/absent, Trier fonctionnel, option de filtre inventée, poignée, récupération forcée première carte.
+0/N cartes ; récupération 0/>0 ; géométrie rangée ; surface/Lecture/Déployer ; média condensé/déployé ; Filtrer contextuel ; Trier sans action ; recherche ; swipe `Planifier / Dupliquer / Archiver` sur actives et `Supprimer` dans archives ; retour état ; relaunch sans filtre ; responsive.
 
 ### 21. Traçabilité
 
 E03/E07–E12 → D-167/D-168/D-169/D-184 ; E32–E36 → D-173 ; E58–E62 → D-175 ; Figma `3786:5093`, pattern recherche `1992:10129`; `API-CAT-01`.
 
-![Catalogue des activités](./images/ecran-12-catalogue-activites-liste.png)
 
-*Export du 16 septembre 2026, node `3786:5093`, 402 × 874 px.*
 
 ---
 
@@ -347,11 +368,11 @@ Tap `Créer` depuis le Catalogue courant. Le type de Catalogue affiché détermi
 
 ### 4. Contexte de sortie / destinations
 
-- Catalogue `Activités` → `CE-T03-04` en création ;
+- Catalogue `Exercices` → `CE-T03-04` en création ;
 - Catalogue `Séances` → parcours de création d’une Séance ;
-- Catalogue `Circuits` → parcours de création d’un Circuit lorsque ce Catalogue devient fonctionnel.
+- Catalogue `Parcours` → parcours de création d’un Parcours lorsque ce Catalogue devient fonctionnel.
 
-Dans T03/MVP, `Circuits` reste désactivé : cette règle n’active ni le Catalogue ni la création de Circuit.
+Dans T03/MVP, `Parcours` reste désactivé : cette règle n’active ni le Catalogue ni la création de Parcours.
 
 ### 5. Données affichées et source de vérité
 
@@ -359,7 +380,7 @@ Aucun écran intermédiaire et aucune donnée métier intermédiaire. La destina
 
 ### 6. Classification des valeurs Figma
 
-`Créer` est un libellé statique obligatoire. Les anciennes valeurs de l’arbre `Une nouvelle activité / Une séance / Un circuit / Annuler` ne sont plus des contrôles de l’interface des Catalogues.
+`Créer` est un libellé statique obligatoire. Les anciennes valeurs de l’arbre `Une nouvelle activité / Une séance / Un parcours / Annuler` ne sont plus des contrôles de l’interface des Catalogues.
 
 ### 7. Structure de l’écran
 
@@ -379,7 +400,7 @@ Appliquer les règles du Catalogue courant. Aucun layout responsive propre à un
 
 ### 11. États de l’écran
 
-Action disponible depuis les Catalogues actifs. Dans T03 : `Activités` et `Séances` ; `Circuits` reste disabled.
+Action disponible depuis les Catalogues actifs. Dans T03 : `Exercices` et `Séances` ; `Parcours` reste disabled.
 
 ### 12. Contrôles et interactions
 
@@ -411,11 +432,11 @@ Si le parcours cible ne peut pas être initialisé, aucune donnée partielle n�
 
 ### 19. Invariants
 
-Destination déterminée par le Catalogue courant ; aucun écran/arbre intermédiaire ; aucun choix transversal d’un autre type d’objet ; Circuits non activés par cette règle en T03.
+Destination déterminée par le Catalogue courant ; aucun écran/arbre intermédiaire ; aucun choix transversal d’un autre type d’objet ; Parcours non activés par cette règle en T03.
 
 ### 20. Recette déterministe
 
-Depuis `Activités`, tap `Créer` → éditeur ActivityDefinition en création. Depuis `Séances`, tap `Créer` → création de Séance. Vérifier l’absence totale de l’ancien arbre. Négatifs : apparition de `Une nouvelle activité / Une séance / Un circuit / Annuler`, création d’un type différent du Catalogue courant, activation implicite de Circuits.
+Depuis `Exercices`, tap `Créer` → éditeur ActivityDefinition en création. Depuis `Séances`, tap `Créer` → création de Séance. Vérifier l’absence totale de l’ancien arbre. Négatifs : apparition de `Une nouvelle activité / Une séance / Un parcours / Annuler`, création d’un type différent du Catalogue courant, activation implicite de Parcours.
 
 ### 21. Traçabilité
 
@@ -429,11 +450,11 @@ E19–E21/E72 → D-187, D-167, D-183 ; anciennes frames `3787:5148` et `3841:83
 
 ### 1. Identification
 
-Bloc B2 ; états S18–S27 ; T03-E E12–E14, E30, E41, E50–E57, E71 ; frames `3879:5947`, `3879:6079`, `3542:4656`, `3561:4695`, `3561:7802`, `3679:4880`, `3724:5428`, roulettes `3556:7645`, `3556:7712`, `3556:7801`, `3561:7673`, état vide `3943:6064`; responsive `2296:91/173/255`.
+Bloc B2 ; états S18–S27 ; T03-E E12–E14, E30, E41, E50–E57, E71 ; références courantes `4217:6980` (création, paramètres repliés), `4279:7044` (paramètres dépliés), `4734:6342` (modification), `4332:7095` (roulette Durée), modèles de paramètres `4367:7128`, `4367:7276`, `4367:7906`, `4367:8052`, `4367:8193`, `4490:6757`, `4490:6903`, sélection Catégorie `4474:7157`, Zones corporelles `4478:7209` et création de zone `4683:6336`.
 
 ### 2. Finalité fonctionnelle
 
-Créer/modifier une définition persistante complète, en réutilisant l’éditeur d’Activité et les règles de calcul existantes, sans média fonctionnel T03.
+Créer/modifier une définition persistante complète, en réutilisant l’éditeur d’Activité et les règles de calcul existantes. L’éditeur courant n’expose plus de bouton `Ajouter un média` ; la zone Média reste affichable selon les données et le rendu Figma courant.
 
 ### 3. Contexte d’entrée
 
@@ -445,7 +466,7 @@ Création depuis CE-T03-03 ou modification depuis CE-T03-02. Création = nouveau
 
 ### 5. Données affichées et source de vérité
 
-Nom, Description, mode, cible, Séries, Pause, Récupération, zones, sideMode, Durée totale. Source = brouillon ; persistance seulement à validation.
+Nom, Description, Catégorie, Zones corporelles, mode, cible, Séries, Pause, Récupération, `Changement de côté`, Durée totale, Compte à rebours d’Activité, Fin d’activité et données média affichables. Source = brouillon ; persistance seulement à validation.
 
 ### 6. Classification des valeurs Figma
 
@@ -453,15 +474,15 @@ Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement 
 
 ### 7. Structure de l’écran
 
-Nom → Ajouter média disabled → sections/accordéons → paramètres Séries/cible/Pause → deuxième rangée Côté/Récupération/Durée totale → Synthèse fixe → Terminer.
+Nom → accès Catégorie / Zones corporelles → paramètres Séries/cible/Pause → deuxième rangée Changement de côté/Récupération/Durée totale → zone Média → Synthèse fixe → Terminer.
 
 ### 8. Éléments obligatoires
 
-Mode 3 options égales ; Durée totale visible tous modes ; en mode Durée le contrôle porte `Durée totale`; en Répétitions/À l’échec le contrôle porte **`Durée totale >=`** ; la Synthèse conserve la formulation **`Durée totale : ≥ {durée connue}`** ; nom en gras dans Synthèse uniquement ; section Médias visible et repliable, contrôle `Déployer / Condenser` et placeholder média désactivés, aucune fonction média réelle ; contrôle Côté 74×42 hors Tour ; roulettes Annuler/Confirmer.
+Mode 3 options égales ; en mode Durée, affichage `Durée totale` inchangé ; en Répétitions, texte éditable **`Durée totale >= {estimation}`** avec 1 seconde conventionnelle par répétition ; en À l’échec, aucune Durée totale affichée ; nom en gras dans Synthèse uniquement ; accès `Catégorie` et `Zones corporelles` distincts ; zone Média conforme au Figma courant et placée sous la Synthèse en cas de chevauchement ; contrôle Changement de côté avec `Aucun / D→G / G→D` au niveau Activité uniquement ; roulettes en modale basse Annuler/Confirmer.
 
 ### 9. Layout déterministe
 
-DSF/grilles sans compensation locale. En Répétitions/À l’échec, `Durée totale >=` est le troisième élément de la deuxième rangée, après `Côté` puis `Récupération`, conformément aux frames `3561:4695`, `3561:7673`, `3561:7802`. Centrer nombre répétitions ; sélection Mode coïncide avec contrôle externe. La valeur Figma `5 min 30 s`, lorsqu’elle apparaît, est illustrative et ne devient pas une valeur métier par défaut.
+DSF/grilles sans compensation locale. En Répétitions, `Durée totale >= {estimation}` apparaît dans le texte éditable selon D-204. En À l’échec, aucun élément `Durée totale` n’est affiché. Les frames `3561:4695` et `3561:7802` matérialisent ces deux états. Centrer nombre répétitions ; sélection Mode coïncide avec contrôle externe. La valeur Figma `5 min 30 s`, lorsqu’elle apparaît, est illustrative et ne devient pas une valeur métier par défaut.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -469,11 +490,11 @@ Références 360/402/440. Formulaire scrollable ; synthèse/action restent acces
 
 ### 11. États de l’écran
 
-Création/modification ; état vide avec `Nom de l’activité` ; états renseignés avec nom métier ; DURATION/REPS/FAILURE ; UNILATERAL/D→G/G→D ; roulettes ouvertes ; Séries pilote ; Durée totale pilote ; message ajustement ; Description/Zone ouverts.
+Création/modification ; état vide avec `Nom de l’activité` ; états renseignés avec nom métier ; DURATION/REPS/FAILURE ; `Aucun` / `D→G` / `G→D` ; roulettes ouvertes ; Séries pilote ; Durée totale pilote ; message ajustement ; Description/Zone ouverts. ; sélection Zones corporelles ; création inline d’une Zone avec clavier.
 
 ### 12. Contrôles et interactions
 
-Tous les champs modifient le brouillon. Le champ Nom affiche la donnée du brouillon et non un libellé de démonstration. Roulettes selon §4.6. Terminer actif seulement si brouillon valide. Ajouter média disabled.
+Tous les champs modifient le brouillon. Le champ Nom affiche la donnée du brouillon et non un libellé de démonstration. Roulettes selon §4.6. `Terminer` est actif seulement si le brouillon est valide. Aucun bouton `Ajouter un média` n’est exposé dans l’éditeur courant. La modale `Zones corporelles` permet la sélection multiple et la création inline d’une nouvelle Zone ; la frame `4683:6336` matérialise l’état de saisie avec clavier. Le référentiel autorise aussi le renommage et la suppression d’une Zone ; ces deux opérations sont fonctionnellement requises mais ne disposent pas de frame dédiée dans le Prototype MVP.
 
 ### 13. Gestes
 
@@ -481,7 +502,7 @@ Tap, scroll, saisie ; pas de swipe métier ; haptique roulette par cran selon d�
 
 ### 14. Validation
 
-Nom requis ; mode valide ; cible selon mode ; Séries 1..99 ; Pause/Récupération ≥0 ; FAILURE sans cible chiffrée ; calculs D-155/D-156. Le signe `>=` du libellé UI n’ajoute aucune nouvelle règle de calcul : il rend visible la borne déjà définie.
+Nom requis ; mode valide ; cible selon mode ; Séries 1..99 ; Pause ≥0 ; `sideRecoverySeconds` ≥0 uniquement en bilatéral ; FAILURE sans cible chiffrée ; calculs D-204/D-208. Le signe `>=` du libellé UI n’ajoute aucune nouvelle règle de calcul : il rend visible la borne déjà définie. Une nouvelle Zone corporelle exige un nom non vide et unique ; un renommage conserve l’identifiant ; une suppression utilisée demande confirmation et ne modifie pas l’historique.
 
 ### 15. Brouillon et persistance
 
@@ -489,7 +510,7 @@ Création persiste ActivityDefinition à Terminer uniquement. Modification atomi
 
 ### 16. Navigation et conservation d’état
 
-Succès → Catalogue activités restauré. Aucun SessionActivity créé dans ce contexte.
+Succès → Catalogue exercices restauré. Aucun SessionActivity créé dans ce contexte.
 
 ### 17. Erreurs et cas limites
 
@@ -501,15 +522,15 @@ Modes selected ; contrôles disabled annoncés ; wheel bloque focus arrière-pla
 
 ### 19. Invariants
 
-Aucun média fonctionnel ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’activité` réservé à l’état vide/placeholder représenté ; Durée totale toujours visible ; contrôle Reps/Échec = `Durée totale >=` ; Synthèse Reps/Échec = `Durée totale : ≥ {durée connue}` ; pas de nouvelle formule bilatérale ; ActivityDefinition distincte d’une SessionActivity.
+Aucun média fonctionnel ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’activité` réservé à l’état vide/placeholder représenté ; Durée totale inchangée en Durée ; Répétitions = `Durée totale >= {estimation}` avec 1 s par répétition ; À l’échec = aucune Durée totale ; calcul intrinsèque conforme à D-208 avec `C−1` Pauses par côté et `sideRecoverySeconds` uniquement en bilatéral ; `postActivityRecoverySeconds` exclu ; ActivityDefinition distincte d’une SessionActivity.
 
 ### 20. Recette déterministe
 
-Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier absence de nom démo codé en dur, vérifier `Durée totale` en Durée et `Durée totale >=` en Reps/Échec, vérifier Synthèse `Durée totale : ≥ …`, roues Annuler/Confirmer, calculs, échec DB, abandon, responsive, texte agrandi. Négatifs : `Renforcement du genou` statique, `Nom de l’activité` sur état renseigné, Durée totale masquée, libellé Reps/Échec sans `>=`, CTA wheel activable, média fonctionnel, nom non gras Synthèse.
+Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier absence de nom démo codé en dur, vérifier `Durée totale` en Durée, `Durée totale >= {estimation}` en Répétitions et aucune Durée totale en À l’échec ; vérifier `Récupération entre côtés` seulement en bilatéral, son exclusion en `Aucun`, les calculs D-208, les roues Annuler/Confirmer, l’échec DB, l’abandon, le responsive et le texte agrandi. Négatifs : `Renforcement du genou` statique, `Nom de l’activité` sur état renseigné, ancienne formule D-156, récupération post-activité dans `ActivityDefinition`, CTA wheel activable, média fonctionnel, nom non gras Synthèse.
 
 ### 21. Traçabilité
 
-E12–E14/E30 → D-169/D-171 ; E41 → D-143..156 ; E50–E57 → D-174/D-181/D-182 ; API-ACT-REF/API-ACT ; Figma `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` et autres frames citées.
+E12–E14/E30 → D-169/D-171/D-208 ; E41 → D-143..D-156 avec D-156 supersédée par D-208 ; E50–E57 → D-174/D-181/D-182 ; API-ACT-REF/API-ACT ; Figma `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` et autres frames citées.
 
 ---
 
@@ -577,7 +598,7 @@ Actions écrivent immédiatement de façon atomique après confirmation requise.
 
 ### 16. Navigation et conservation d’état
 
-Filtre Archives et scroll conservés pendant parcours courant. Après restaurer/supprimer, rester Archives. Relaunch perd filtre.
+Filtre Archives et scroll conservés pendant la session courante. Après restaurer/supprimer, rester Archives. Au relaunch, le filtre revient à `Aucun`.
 
 ### 17. Erreurs et cas limites
 
@@ -597,101 +618,101 @@ Archiver → disparition active ; Filtrer>Archivées ; Restaurer ; Supprimer/Ann
 
 ### 21. Traçabilité
 
-E15–E18 → D-169/D-184 ; E58–E62 → D-175 ; modèle 09 bis ; API-ACT-REF/API-CAT-01 ; pattern Figma Séances cité.
+E15–E18 → D-169/D-184 ; E58–E62 → D-175 ; modèle 09 ; API-ACT-REF/API-CAT-01 ; pattern Figma Séances cité.
 
 ---
 
 # 7. B3/B4 — Ajout depuis Composition et sélection multiple
 
-## CE-T03-06 — Composition — arbre `Ajouter une activité`
+## CE-T03-06 — Composition — `Ajouter une activité` vers le Catalogue
 
 ### 1. Identification
 
-Bloc B3 ; états S34–S36 ; T03-E E22–E24 ; frame `3788:5258`.
+Bloc B3 ; parcours courant de Composition ; frame cible `3789:5349`. Les anciennes frames d’arbre `3788:5258` et `3933:5780` sont historiques/supersédées et ne constituent plus une cible d’implémentation.
 
 ### 2. Finalité fonctionnelle
 
-Choisir entre création Session-only et insertion depuis Catalogue, sans mutation préalable de la Composition.
+Ouvrir directement la sélection des Exercices persistantes du Catalogue depuis la Composition, sans arbre intermédiaire.
 
 ### 3. Contexte d’entrée
 
-Tap `+ Ajouter une activité` dans Composition.
+Tap `+ Ajouter une activité` dans la Composition.
 
 ### 4. Contexte de sortie / destinations
 
-Nouvelle activité → éditeur SessionActivity ; activité existante → CE-T03-07 ; Annuler → Composition inchangée.
+Ouverture directe de CE-T03-07 ; `Annuler` dans CE-T03-07 restitue la Composition inchangée.
 
 ### 5. Données affichées et source de vérité
 
-Aucune donnée métier créée à l’ouverture. Fond = draft Composition réel.
+Aucune donnée métier n’est créée à l’ouverture. Le brouillon de Composition existant est conservé.
 
 ### 6. Classification des valeurs Figma
 
-Trois libellés = statiques ; contenu Composition = dynamique/démonstration.
+Les anciennes options `Une nouvelle activité / Une activité existante / Annuler` appartiennent à des frames historiques et ne sont plus des contrôles du parcours courant.
 
 ### 7. Structure de l’écran
 
-Fond Composition + arbre contextuel à trois options.
+Aucun écran intermédiaire : transition directe de la Composition vers la sélection Catalogue.
 
 ### 8. Éléments obligatoires
 
-`Une nouvelle activité`, `Une activité existante`, `Annuler`; Annuler gris ; vecteurs DSF uniquement.
+Action `Ajouter une activité` dans la Composition ; écran de sélection CE-T03-07.
 
 ### 9. Layout déterministe
 
-Conforme frame ; les deux actions principales utilisent la disposition représentée ; arbre dans Safe Area.
+Aucun layout d’arbre contextuel à implémenter.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-360/402/440 ; libellés complets ; cibles ≥48 ; aucun clavier.
+Conforme à la Composition puis à CE-T03-07.
 
 ### 11. États de l’écran
 
-Ouvert ; Annuler ; navigation nouvelle ; navigation existante.
+Composition → sélection Catalogue → retour/validation.
 
 ### 12. Contrôles et interactions
 
-Chaque ligne active ouvre son sous-parcours ; Annuler ferme. Aucun tap fond ne modifie draft.
+Le tap ouvre CE-T03-07. Aucun choix préalable n’est demandé.
 
 ### 13. Gestes
 
-Tap uniquement.
+Tap sur `Ajouter une activité`.
 
 ### 14. Validation
 
-Aucune validation métier avant choix. Sous-parcours fait sa propre validation.
+La validation métier est portée par CE-T03-07 ; aucune mutation à l’ouverture.
 
 ### 15. Brouillon et persistance
 
-Nouvelle activité crée seulement un brouillon SessionActivity. Aucun ActivityDefinition, aucune action Enregistrer dans Catalogue T03.
+Le brouillon de Composition est conservé. La capacité existante de création directe d’une `SessionActivity` locale reste fonctionnellement et techniquement conservée mais n’est pas exposée dans cet enchaînement.
 
 ### 16. Navigation et conservation d’état
 
-Retour sous-parcours restitue Composition et scroll. Annuler exact.
+`Annuler` depuis CE-T03-07 restitue Composition et scroll ; valider insère les copies puis revient à la Composition.
 
 ### 17. Erreurs et cas limites
 
-Échec ouverture sous-parcours → Composition inchangée.
+Échec d’ouverture du Catalogue → Composition inchangée.
 
 ### 18. Accessibilité
 
-Ordre focus visuel ; Annuler explicite ; aucune option cachée.
+`Ajouter une activité` annonce l’ouverture de la sélection d’Exercices.
 
 ### 19. Invariants
 
-Nouvelle = Session-only ; Existante = copie depuis références ; aucun save-to-catalogue.
+Aucun arbre intermédiaire ; aucune suppression du mécanisme technique de `SessionActivity` locale.
 
 ### 20. Recette déterministe
 
-Tester trois choix, abandon, retour, draft intact. Négatif : création ActivityDefinition depuis Nouvelle activité.
+Vérifier l’ouverture directe de CE-T03-07 et l’absence de l’ancien arbre.
 
 ### 21. Traçabilité
 
-E22–E24 → D-170 ; Figma `3788:5258`; API-COM-03 / API-COMP-SEL.
+D-194 ; Figma `3789:5349` ; anciennes frames `3788:5258` / `3933:5780` historiques ; API-COMP-SEL.
 
 ---
 
-## CE-T03-07 — Sélection multiple d’Activités existantes
+## CE-T03-07 — Sélection multiple d’Exercices existantes
 
 ### 1. Identification
 
@@ -703,7 +724,7 @@ Sélectionner 0..N ActivityDefinition et insérer des copies indépendantes dans
 
 ### 3. Contexte d’entrée
 
-`Une activité existante` depuis CE-T03-06.
+Ouverture directe depuis `Ajouter une activité` dans CE-T03-06.
 
 ### 4. Contexte de sortie / destinations
 
@@ -775,13 +796,14 @@ Sélection B puis A alors que liste A/B → insertion A/B ; recherche/filtre ave
 
 ### 21. Traçabilité
 
-E25–E31 → D-165/D-171 ; 09 bis ; `API-COMP-SEL-01..03`; Figma `3789:5349`, `3789:5405`.
+E25–E31 → D-165/D-171 ; 09 ; `API-COMP-SEL-01..03`; Figma `3789:5349`, `3789:5405`.
 
-![Sélection Activités](./images/ecran-14-selection-activites-existantes.png)
 
 ---
 
 ## CE-T03-08 — Composition après insertion et corrections UX
+
+> Mise à jour 24/09/2026 : le parcours exposé sélectionne les Exercices dans le Catalogue ; la capacité de création locale à la Séance reste conservée mais n’est pas proposée dans cet enchaînement. La Composition accepte aussi le Point d’arrêt, ainsi que les Compte à rebours / Fin propres aux Exercices.
 
 ### 1. Identification
 
@@ -801,7 +823,7 @@ Tap Activity → éditeur ; long press Activity → déplacement ; swipe → act
 
 ### 5. Données affichées et source de vérité
 
-Draft Session. Direction propre hors Tour bilatéral : D→G/G→D ; rien en UNILATERAL ; dans Tour bilatéral, aucune répétition direction sur carte.
+Draft Session. Direction propre de l’Activité : D→G/G→D ; rien avec `Aucun`. Aucun changement de côté n’est exposé au niveau Tour.
 
 ### 6. Classification des valeurs Figma
 
@@ -809,11 +831,11 @@ Noms/paramètres = dynamiques ; titres structurels = statiques ; positions de ca
 
 ### 7. Structure de l’écran
 
-CR initial → activités avant Tour → Tour → activités après Tour → Fin séance. Actions contextualisées derrière Activity.
+CR initial → exercices / Points d’arrêt avant Tour → Tour → exercices / Points d’arrêt après Tour → Fin séance. Actions contextualisées derrière Activity.
 
 ### 8. Éléments obligatoires
 
-CR/Fin sans poignée ; Dupliquer arrondi ; gap fond Tour ; indicateur direction court ; contrôle Tour selon décisions bilatérales existantes.
+CR/Fin sans poignée ; Dupliquer arrondi ; gap fond Tour ; indicateur de direction propre sur les cartes Activité ; aucun contrôle de changement de côté exposé au niveau Tour.
 
 ### 9. Layout déterministe
 
@@ -867,7 +889,6 @@ Drag Activity oui ; CR/Fin non ; swipe progressif/ouvert/fermeture droite ; tap 
 
 E53 → D-154/D-182 ; E58–E63 → D-175/D-176 ; E64–E66 → D-177 ; Figma `2028:11700`, `2028:11808`, `3518:4576`.
 
-![Actions glissées](./images/ecran-3a-composition-actions-glissees.png)
 
 ---
 
@@ -957,13 +978,14 @@ Vérifier 5 s, snapshot, origin, source supprimée après lancement, absence Ses
 
 ### 21. Traçabilité
 
-E37–E39/E42 → D-157/D-172/D-180 ; 09 bis ; API-ACT-EXE-01/02.
+E37–E39/E42 → D-157/D-172/D-180 ; 09 ; API-ACT-EXE-01/02.
 
-![Préparation](./images/ecran-16-preparation-directe-5-s.png)
 
 ---
 
 ## CE-T03-10 — Exécution directe — Durée unilatérale
+
+> Standard typographique d’Exécution : contenu = Roboto Condensed ; titre supérieur et dialogues = Inter. Pour l’Exécution de Séance, le layout courant regroupe chrono circulaire, côté, cible `Sur`, Série/Tour, progression segmentée et bloc `Temps écoulé / À suivre`.
 
 ### 1. Identification
 
@@ -971,7 +993,7 @@ Bloc B5 ; état S56 ; T03-E E37–E43 ; Shell visuel `1992:8132` adapté ; preuv
 
 ### 2. Finalité fonctionnelle
 
-Exécuter une ActivityDefinition DURATION en autonomie avec Séries, Pauses et Récupération, sans orchestration Session.
+Exécuter une ActivityDefinition DURATION en autonomie avec Séries et Pauses, sans orchestration Session. En unilatéral, aucune phase de récupération n’est ajoutée.
 
 ### 3. Contexte d’entrée
 
@@ -995,7 +1017,7 @@ Shell Execution, informations Activity, timer, série, commandes moteur. Pas d�
 
 ### 8. Éléments obligatoires
 
-Nom ; timer ; série si C>1 ; Pause/Récupération selon plan ; commandes pause/réinit/suivant selon moteur commun.
+Nom ; timer ; série si C>1 ; Pause entre Séries selon plan ; commandes pause/réinit/suivant selon moteur commun. Aucune récupération post-activité.
 
 ### 9. Layout déterministe
 
@@ -1043,13 +1065,12 @@ Aucun Tour/Cycle/SESSION_END ; calculs existants inchangés.
 
 ### 20. Recette déterministe
 
-C=1/N ; Pause R=0/R>0 ; Recovery ; reset ; passage anticipé ; pause/reprise ; background. Négatifs : Tour/Cycle/SESSION_END, relecture source modifiée.
+C=1/N ; exactement C−1 Pauses ; aucune récupération en unilatéral ; reset ; passage anticipé ; pause/reprise ; background. Négatifs : `POST_ACTIVITY_RECOVERY`, Tour/Cycle/SESSION_END, relecture source modifiée.
 
 ### 21. Traçabilité
 
-E40/E43 → D-139/D-140/D-156/D-172 ; API-ACT-EXE-03 ; modèle Execution.
+E40/E43 → D-139/D-140/D-172/D-208 ; API-ACT-EXE-03 ; modèle Execution.
 
-![Exécution directe](./images/ecran-17-execution-directe-en-cours.png)
 
 ---
 
@@ -1069,7 +1090,7 @@ Fin préparation CE-T03-09 avec mode REPS ou TO_FAILURE.
 
 ### 4. Contexte de sortie / destinations
 
-Suivant → fin Série → Pause/Récupération/Série suivante ou CE-T03-13.
+Suivant → fin Série → Pause / Série suivante / `SIDE_RECOVERY` éventuelle selon le côté et le plan, puis CE-T03-13 ; jamais `POST_ACTIVITY_RECOVERY`.
 
 ### 5. Données affichées et source de vérité
 
@@ -1085,7 +1106,7 @@ Shell Execution avec variante de contenu adaptée au mode, commandes communes.
 
 ### 8. Éléments obligatoires
 
-REPS : nombre cible ; Failure : libellé mode sans nombre cible ; Série ; Suivant ; Pause/Récupération si configurées.
+REPS : nombre cible ; Failure : libellé mode sans nombre cible ; Série ; Suivant ; Pause entre Séries ; `SIDE_RECOVERY` uniquement si l’Activité est bilatérale et configurée ; jamais de post-récupération.
 
 ### 9. Layout déterministe
 
@@ -1097,7 +1118,7 @@ Même architecture visuelle que CE-T03-10 ; ne jamais combler un espace Failure 
 
 ### 11. États de l’écran
 
-REPS série ; FAILURE série ; Pause ; Recovery ; série suivante ; fin.
+REPS série ; FAILURE série ; Pause ; `SIDE_RECOVERY` éventuelle entre côtés ; série suivante ; fin.
 
 ### 12. Contrôles et interactions
 
@@ -1173,7 +1194,7 @@ Shell Execution + nom + sous-titre côté + information Série/mode + commandes.
 
 ### 8. Éléments obligatoires
 
-Sous-titre côté ; aucun `1/2`/`2/2`; même rang logique Activity entre côtés ; Pause selon Séries ; Récupération finale autonome.
+Sous-titre côté ; aucun `1/2`/`2/2`; même rang logique Activity entre côtés ; Pause uniquement entre Séries ; récupération entre côtés éventuelle avant le second passage.
 
 ### 9. Layout déterministe
 
@@ -1185,7 +1206,7 @@ Sous-titre côté sous nom, centré selon Shell. Ne pas ajouter un bloc latéral
 
 ### 11. États de l’écran
 
-Premier côté ; Pause intra-côté ; second côté ; Partial side ; Recovery finale ; fin.
+Premier côté ; Pause intra-côté ; récupération entre côtés éventuelle ; second côté ; Partial side ; fin intrinsèque.
 
 ### 12. Contrôles et interactions
 
@@ -1197,7 +1218,7 @@ Tap commandes uniquement.
 
 ### 14. Validation
 
-Aucune Pause ajoutée entre côtés. Ordre sideMode strict. Recovery après second côté pour Activité autonome.
+Aucune Pause ajoutée entre côtés. Ordre sideMode strict. Une récupération entre côtés éventuelle peut intervenir avant le second côté ; aucune récupération post-activité en Exécution directe.
 
 ### 15. Brouillon et persistance
 
@@ -1225,7 +1246,7 @@ D→G/G→D, C=1/N, R=0/>0, skip premier côté, reset second, interruption/repr
 
 ### 21. Traçabilité
 
-E41 → D-143..D-150/D-156/D-172 ; API-SIDE/API-ACT-EXE ; executionSide modèle 09.
+E41 → D-143..D-150/D-172/D-208 ; API-SIDE/API-ACT-EXE ; executionSide modèle 09.
 
 ---
 
@@ -1293,7 +1314,7 @@ Sauvegarder Execution/results avant navigation ; ne pas perdre résultats en cas
 
 ### 16. Navigation et conservation d’état
 
-Synthèse puis Terminer → Catalogue activités avec état aller-retour. Relaunch ultérieur ne restaure pas ce contexte UI.
+Synthèse puis Terminer → Catalogue exercices avec état aller-retour. Relaunch ultérieur ne restaure pas ce contexte UI.
 
 ### 17. Erreurs et cas limites
 
@@ -1405,9 +1426,7 @@ Terminer vide/non vide ; commentaire 0/200/201 ; double tap ; erreur save ; reto
 
 E45/E46/E49 → D-160/D-163/D-172 ; API-ACT-EXE-04/05 ; modèle Execution.
 
-![Synthèse Ressenti requis](./images/ecran-18-synthese-directe-ressenti-requis.png)
 
-![Synthèse Ressenti sélectionné](./images/ecran-18a-synthese-directe-ressenti-selectionne.png)
 
 ---
 
@@ -1499,9 +1518,7 @@ Execution directe → Suivi ; source supprimée ; mix Session/Activity ; bilater
 
 E47–E48 → D-161/D-162/D-169 ; modèle snapshot ; API Suivi/Execution.
 
-![Suivi condensé](./images/ecran-11-suivi-condense.png)
 
-![Suivi déployé](./images/ecran-11a-suivi-deploye.png)
 
 ---
 
@@ -1571,7 +1588,7 @@ Transaction Session+Composition+catégories ; erreur = rollback et brouillon int
 
 ### 16. Navigation et conservation d’état
 
-Succès impose `Catalogue des séances`, Séances, transition §4.9, même si dernier segment global était Activités.
+Succès impose `Catalogue des séances`, Séances, transition §4.9, même si dernier segment global était Exercices.
 
 ### 17. Erreurs et cas limites
 
@@ -1583,17 +1600,16 @@ Saving/disabled annoncé ; erreur live region ; focus clavier correct.
 
 ### 19. Invariants
 
-Destination jamais Catalogue Activités ; segment Séances ; une seule sauvegarde.
+Destination jamais Catalogue Exercices ; segment Séances ; une seule sauvegarde.
 
 ### 20. Recette déterministe
 
-Créer/modifier, save, double tap, erreur, destination/animation, dernier segment Activités préalable. Négatif : retour Activités après save.
+Créer/modifier, save, double tap, erreur, destination/animation, dernier segment Exercices préalable. Négatif : retour Exercices après save.
 
 ### 21. Traçabilité
 
 E67–E69 → D-168/D-178 ; API-SEA-03/04 ; Figma `2028:11204`.
 
-![Catégories](./images/ecran-6-categories-seance.png)
 
 ---
 
@@ -1695,15 +1711,15 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 
 | ID | Contenu élémentaire |
 |---|---|
-| E01 | Catalogue multi-type `Activités / Séances / Circuits` |
+| E01 | Catalogue multi-type `Exercices / Séances / Parcours` |
 | E02 | Séances sélectionné par défaut/relaunch |
-| E03 | Activités actif T03 |
-| E04 | Circuits visible disabled |
+| E03 | Exercices actif T03 |
+| E04 | Parcours visible disabled |
 | E05 | Navigation basse `Catalogues` |
 | E06 | Icônes navigation conformes DSF |
 | E07 | Lister ActivityDefinition |
-| E08 | Recherche Catalogue activités |
-| E09 | Rangée Catalogue `Créer / Filtrer / Trier` commune ; Filtrer Archives défini pour Activités ; Trier disabled ; autres options non définies |
+| E08 | Recherche Catalogue exercices |
+| E09 | Rangée Catalogue `Créer / Filtrer / Trier` commune ; Filtrer Archives défini pour Exercices ; Trier disabled ; autres options non définies |
 | E10 | Préserver recherche/filtres/tri/scroll pendant aller-retour |
 | E11 | Ne pas conserver au relaunch |
 | E12 | Ouvrir ActivityDefinition en consultation/modification |
@@ -1714,7 +1730,7 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E17 | Supprimer définitivement depuis archives |
 | E18 | Aucune cascade vers copies/historique |
 | E19 | Créer contextuel Catalogue |
-| E20 | Activités → création directe ActivityDefinition |
+| E20 | Exercices → création directe ActivityDefinition |
 | E21 | Séances → création directe Séance |
 | E22 | Arbre Ajouter depuis Composition |
 | E23 | Nouvelle activité depuis Composition = SessionActivity |
@@ -1743,10 +1759,10 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E46 | Commentaire facultatif |
 | E47 | Suivi type Activité |
 | E48 | Stats compatibles sans compter Séance |
-| E49 | Retour Catalogue activités état restauré |
+| E49 | Retour Catalogue exercices état restauré |
 | E50 | Nom Activity gras Synthèse éditeur ; nom Figma renseigné = donnée de démonstration |
-| E51 | Durée totale visible trois modes ; contrôle Reps/Failure libellé `Durée totale >=` |
-| E52 | Synthèse Reps/Failure `Durée totale : ≥ {durée connue}` |
+| E51 | Répétitions : texte éditable `Durée totale >= {estimation}` avec 1 s par répétition |
+| E52 | À l’échec : aucune Durée totale dans le texte éditable |
 | E53 | Pas texte direction développé cartes Composition |
 | E54 | Roulette bloque arrière-plan |
 | E55 | CTA visible normal mais fonctionnel/accessibilité disabled |
@@ -1766,7 +1782,7 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E69 | Transition canonique droite→gauche |
 | E70 | Migration sans promotion SessionActivity |
 | E71 | Médias multiples hors T03 |
-| E72 | Circuits fonctionnels hors T03 |
+| E72 | Parcours fonctionnels hors T03 |
 | E73 | Valeurs Figma démo non codées en dur |
 
 # 13. Couverture des contenus élémentaires
@@ -1786,7 +1802,7 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E58–E63 | CE-T03-02/05/08 |
 | E64–E66 | CE-T03-08 |
 | E67–E69 | CE-T03-01/16 |
-| E70 | invariant non visuel 09 bis + contrats de persistance |
+| E70 | invariant non visuel 09 + contrats de persistance |
 | E71 | CE-T03-03/04 |
 | E72 | CE-T03-01/03 |
 | E73 | règle commune §4.1 + tous contrats données |
@@ -1803,7 +1819,7 @@ T03 ne doit pas implémenter au titre de cette tranche :
 
 - orchestration complète Session ;
 - Compte à rebours Session comme phase du plan Session ;
-- Activités avant/dans/après Tour dans une Execution ACTIVITY ;
+- Exercices avant/dans/après Tour dans une Execution ACTIVITY ;
 - répétitions Tour/Cycle dans ACTIVITY ;
 - progression globale Session ;
 - `SESSION_END` dans ACTIVITY ;
@@ -1825,28 +1841,110 @@ Pour chaque contrat :
 
 Statuts : `CONFORME`, `PARTIELLEMENT CONFORME`, `NON CONFORME`, `NON VÉRIFIABLE`, `À CLARIFIER`.
 
-# 16. Évidences Figma embarquées
+# 16. Références Figma
 
-Les fichiers historiques suivants restent physiquement présents dans le dépôt mais ne sont plus embarqués comme preuve courante ; leur statut est détaillé dans `images/README-T03-FIGMA.md` :
+Le chapitre 13 ne contient et ne référence **aucune copie physique d’écran ou de modale**. Toutes les copies d’écran utilisées dans les spécifications sont centralisées exclusivement dans le chapitre 06.
 
-- `./images/CE-ACT-EXE-01a-catalogue-activites-liste-t03.jpg` — **superseded** : remplacé comme preuve courante par `./images/ecran-12-catalogue-activites-liste.png`, réexporté le 16 septembre 2026 depuis `3786:5093`.
-- `./images/CE-ACT-EXE-01b-catalogue-creer-arbre-actions-t03.jpg` et `./images/ecran-13-catalogue-activites-creer-arbre.png` — **historiques/superseded** : ils documentent l’ancien écran intermédiaire supprimé par D-187.
-- `./images/CE-ACT-EXE-01c-catalogue-action-contextuelle-t03.jpg` — **historique uniquement**, le node source `3787:5209` n’existe plus dans le Figma courant.
+Les contrats de ce chapitre peuvent uniquement citer :
+- le nom fonctionnel de l’état ;
+- le node Figma correspondant ;
+- le statut courant, historique ou supersédé lorsque nécessaire.
 
-Les preuves suivantes ont été réexportées depuis le Figma courant le 16 septembre 2026, au format documentaire `402 × 874 px` :
+Les références Figma courantes utiles aux contrats T03 comprennent notamment : `3786:5093`, `1992:9910`, `1992:10129`, `4168:11149`, `4168:11262`, `4217:6980`, `4279:7044`, `4734:6342`, `4738:6209`, `4738:6355`, `1992:8132`, `1992:8626`, `1992:8224`, `1992:8326` et `1992:8428`.
 
-- `./images/ecran-14-selection-activites-existantes.png` — `3789:5349`, binaire modifié.
-- `./images/ecran-16-preparation-directe-5-s.png` — `3835:5385`, binaire inchangé : l’export courant est identique à l’existant.
-- `./images/ecran-17-execution-directe-en-cours.png` — `3835:5465`, binaire inchangé.
-- `./images/ecran-18-synthese-directe-ressenti-requis.png` — `3836:5437`, binaire inchangé.
-- `./images/ecran-18a-synthese-directe-ressenti-selectionne.png` — `3836:5503`, binaire inchangé.
-- `./images/ecran-3a-composition-actions-glissees.png` — `2028:11808`, binaire modifié.
-- `./images/ecran-6-categories-seance.png` — `2028:11204`, binaire modifié.
-- `./images/ecran-11-suivi-condense.png` — `1992:8843`, binaire modifié.
-- `./images/ecran-11a-suivi-deploye.png` — `1992:8996`, binaire modifié.
+Les frames historiques explicitement marquées `HISTORIQUE` dans Figma ne constituent pas des cibles d’implémentation. Les frames `PROPOSITION` ne deviennent une référence active que lorsqu’une décision validée les adopte et que le chapitre 06 les rattache à un écran ou état de production.
 
-Évidences Figma **courantes vérifiées** le 16 septembre 2026 : `3786:5093`, `1992:9910`, `1992:10129`, `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064`, `2537:1033`, `2537:214`. Les frames `3787:5148` et `3841:8375` restent conservées comme évidences historiques de l’ancien arbre `Créer`, supersédé fonctionnellement par D-187.
+Figma reste la source visuelle courante. Le chapitre 06 porte l’inventaire des écrans, états, modales et leurs copies documentaires ; le présent chapitre porte seulement les contrats déterministes de comportement et de recette.
 
-Le composant transverse `Status / Badge — Source exact` (`3959:5970`) et ses sept variantes constituent une preuve de composant distincte des preuves d’usage. Sa capture canonique est `./images/status-badge-composant.png` (PNG ×2, `1374 × 128 px`). Ses trois preuves d’usage sont `1992:8843`, `1992:8996` et `1992:10320`.
+## CE-MEDIA-EXEC-01 — Bascule Information / Média pendant l’Exécution
 
-Figma reste la source visuelle courante. Les contrôles d’entrée `Créer / Filtrer / Trier` sont vérifiables ; seul le détail des panneaux/options ouverts `Filtrer`/`Trier` reste `NON VÉRIFIABLE` / `À CLARIFIER` tant qu’aucune frame dédiée n’est validée.
+### 1. Identification
+
+Conception D-203 ; statut post-MVP à planifier. Évidences Figma :
+- `4997:6015` — Test 2 Exécution d’une séance — Initial — Bascule (info) ;
+- `4997:6113` — Test 2 Exécution d’une séance — Initial — Bascule (média).
+
+### 2. Finalité fonctionnelle
+
+Consulter les médias de l’Exercice en cours sans quitter ni suspendre l’Exécution.
+
+### 3. Conditions d’affichage
+
+Le bouton de changement de face existe uniquement si l’Exercice possède au moins un média. Face Information par défaut au début d’une nouvelle séance.
+
+### 4. Interactions
+
+Bouton dédié → retournement 3D. Swipe horizontal en face Média → média précédent/suivant, exactement un par geste. La galerie ne boucle pas. Un appui sur le média → CE-MEDIA-EXEC-02.
+
+### 5. État
+
+Face et média courant sont mémorisés par Exercice pendant la séance uniquement. Une vidéo ne démarre jamais automatiquement.
+
+### 6. Critères de contrôle
+
+Absence bouton sans média ; ordre galerie ; pagination ; une transition par swipe ; bornes résistantes ; cadrage intégral ; vidéo sans autoplay ; aucune pause du moteur.
+
+---
+
+## CE-MEDIA-EXEC-02 — Média plein écran avec cadre flottant d’Exécution
+
+### 1. Identification
+
+Conception D-203 ; évidence Figma `5009:6069` — Test 2 Exécution d’une séance — Média plein écran.
+
+### 2. Finalité fonctionnelle
+
+Agrandir le média tout en conservant le suivi et les commandes essentielles de l’Exécution.
+
+### 3. Structure fonctionnelle
+
+Le média occupe le plein écran avec ratio conservé. Une couche flottante d’Exécution présente le nom, le côté applicable, le chrono, Série/Tour et les commandes essentielles d’Exécution. La barre média reste distincte et porte Fermer, Lecture/Pause et progression vidéo.
+
+### 4. Comportement
+
+L’orientation suit l’appareil. Le moteur d’Exécution continue. Fermer revient au même média. La fin de l’Exercice ferme automatiquement le plein écran et poursuit la transition normale.
+
+### 5. Audio et erreur
+
+Son vidéo actif par défaut ; ducking pendant les annonces vocales KODJO. Une erreur média reste locale et n’arrête pas l’Exécution.
+
+## Complément D-206 — Planification depuis les Catalogues
+
+### Catalogue des Exercices
+
+Une carte d’Exercice active expose l’action `Planifier` au même niveau fonctionnel qu’une carte de Séance. Cette action ouvre le parcours de planification avec l’Exercice prérempli comme source `ACTIVITY`. La carte affiche la **prochaine planification** lorsqu’au moins une occurrence future existe ; aucune ligne ni réserve d’espace n’est affichée en son absence.
+
+### Catalogue des Séances
+
+La même règle s’applique aux Séances avec une source `SESSION`. Lorsqu’une occurrence future existe, la carte affiche la plus proche comme **prochaine planification** ; elle est absente sinon. Cette ligne suit la même hiérarchie typographique et le même emplacement relatif dans les deux Catalogues.
+
+### Parcours de planification
+
+Le même contrat fonctionnel de planification sert aux deux sources. Lorsque le parcours est ouvert depuis le Calendrier, l’utilisateur choisit une Séance ou un Exercice persistant. Lorsqu’il est ouvert depuis une carte de Catalogue, la source est préremplie. Les frames Figma actuellement nommées `Planifier une séance` documentent la variante Séance ; l’état équivalent pour un Exercice reste à matérialiser visuellement sans créer un second parcours fonctionnel.
+
+## Complément D-207 — Parcours planifiable
+
+Le Catalogue des Parcours, lorsqu’il devient fonctionnel et planifiable, applique la même convention que les deux autres Catalogues : action `Planifier`, ouverture du parcours commun avec la source préremplie et affichage conditionnel de la prochaine planification lorsqu’une occurrence future existe. Tant que la planification des Parcours n’est pas livrée, ces contrôles restent absents ou explicitement désactivés conformément à la roadmap.
+
+## Complément D-208 — contrats Récupération
+
+### Éditeur Exercice
+- Le contrôle visible est `Récupération entre côtés`.
+- Il est absent/inactif en `Aucun` et disponible en `D→G/G→D`.
+- La synthèse intrinsèque de l’Exercice n’affiche jamais de récupération post-activité.
+- **À CLARIFIER :** valeur initiale lors de l’activation bilatérale.
+
+### Composition
+- Chaque occurrence affiche une ligne `Récupération {durée}`, y compris `0 s`.
+- Tap sur la durée → roulette basse de modification.
+- La ligne suit déplacement, duplication et suppression.
+- La dernière Activité du Tour conserve cette ligne ; elle est exécutée à chaque Tour.
+- La dernière Activité de Séance conserve cette ligne avant la Fin de séance.
+
+### Exécution directe
+- Aucun état de récupération post-activité.
+- Si bilatéral, la récupération entre côtés éventuelle intervient entre les deux passages.
+
+### Exécution de Séance
+- Distinguer explicitement récupération entre côtés et récupération après occurrence.
+- La récupération post-activité est exécutée après chaque occurrence, y compris après la dernière et après chaque répétition de la dernière Activité du Tour.

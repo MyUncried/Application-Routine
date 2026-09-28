@@ -84,6 +84,27 @@ export type SessionCategoryRow = {
  * `initial_countdown_seconds`/`final_phase_seconds` disparaissent : le Compte
  * à rebours initial et la Fin de séance sont exclus de la durée affichée.
  */
+/** Une ligne par `ActivityDefinition` persistée (V2-CAT-01, `migration006`). */
+export type ActivityDefinitionRow = {
+  id: string;
+  name: string;
+  description: string | null;
+  execution_mode: ExerciseExecutionMode;
+  duration_seconds: number | null;
+  repetition_count: number | null;
+  series_count: number;
+  pause_seconds: number;
+  recovery_seconds: number;
+  side_mode: SideMode;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ActivityDefinitionBodyZoneRow = {
+  activity_definition_id: string;
+  body_zone_id: string;
+};
+
 export type SessionSummaryRow = {
   id: string;
   name: string;

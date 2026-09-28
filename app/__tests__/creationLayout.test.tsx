@@ -59,8 +59,13 @@ describe("CreationLayout — geste horizontal natif de changement d'écran (T02-
    * imbriqué, c'est le navigateur PARENT qui traite le geste. Le contrat de
    * ce dernier est vérifié par `rootLayoutGesture.test.tsx`, et les deux
    * tests sont indissociables.
+   *
+   * V2-CAT-01 : `activity-selection` (sélection d'une Activité existante
+   * depuis la Composition) rejoint le même `Stack`, sous le même
+   * `screenOptions` hérité — aucune route du parcours n'est laissée avec le
+   * geste natif.
    */
-  it("covers composition, exercise AND categories — no route of the flow is left with the native gesture", () => {
+  it("covers composition, exercise, categories AND activity-selection — no route of the flow is left with the native gesture", () => {
     stackCalls.length = 0;
     screenCalls.length = 0;
     render(<CreationLayout />);
@@ -69,6 +74,7 @@ describe("CreationLayout — geste horizontal natif de changement d'écran (T02-
       "composition",
       "exercise",
       "categories",
+      "activity-selection",
     ]);
     // Aucune route ne RÉACTIVE le geste par une option locale : la
     // désactivation héritée reste donc effective partout.

@@ -19,18 +19,20 @@ Les exercices et séances sont souvent communiqués oralement, sur papier, par m
 
 KODJO réunit dans une même application :
 
+La classification est dissociée : une **Étiquette** qualifie la Séance et porte sa couleur ; une **Catégorie** qualifie l’Activité et porte sa couleur. Les Zones corporelles restent une information distincte de l’Activité.
+
 - un espace `Catalogues` pour les contenus ;
 - la création et la modification de Séances structurées ;
-- à partir de T03, un Catalogue des activités persistantes et leur Exécution directe ;
+- à partir de T03, un Catalogue des exercices persistantes et leur Exécution directe ;
 - un calendrier et la planification individuelle ;
-- une Exécution guidée, adaptée aux Activités chronométrées, en Répétitions ou À l’échec ;
+- une Exécution guidée, adaptée aux Exercices chronométrées, en Répétitions ou À l’échec ;
 - des signaux sonores, des annonces vocales et des vibrations fonctionnelles configurables ;
 - un Suivi des Exécutions terminées, partielles ou interrompues ;
 - des Préférences globales simples.
 
 ## Utilisateur prioritaire du MVP
 
-Le MVP s’adresse en priorité à une personne qui crée ses propres Séances et Activités, planifie ses Séances, les exécute et consulte leur historique sur son appareil.
+Le MVP s’adresse en priorité à une personne qui crée ses propres Séances et Exercices, planifie directement ses Séances **ou ses Exercices**, les exécute et consulte leur historique sur son appareil.
 
 Il fonctionne :
 
@@ -47,9 +49,9 @@ L’architecture textuelle repose néanmoins sur un lexique centralisé et des c
 
 Le `Catalogue des séances` est l’état par défaut de l’espace `Catalogues` après le splash et après une relance complète. Il permet de rechercher une Séance, d’ouvrir sa carte en modification, de la planifier, de la dupliquer ou de l’archiver. Une Séance active ne peut pas être supprimée directement : elle doit d’abord être archivée. Depuis la liste des Séances archivées, elle peut être restaurée ou supprimée après confirmation.
 
-### Catalogue des activités — T03
+### Catalogue des exercices — T03
 
-T03 rend le segment `Activités` fonctionnel. Il permet de créer, consulter, modifier, archiver, restaurer et supprimer définitivement une Activité persistante, de l’ajouter à une Séance par copie indépendante et de l’exécuter directement. Le segment `Circuits` reste visible mais désactivé.
+T03 rend le segment `Exercices` fonctionnel. Il permet de créer, consulter, modifier, archiver, restaurer et supprimer définitivement une Activité persistante, de l’ajouter à une Séance par copie indépendante, de l’exécuter directement **et de la planifier directement** au même titre qu’une Séance. Le segment `Parcours` reste visible mais désactivé.
 
 Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Une Exécution directe d’Activité utilise l’origine `ACTIVITY`, un instantané autonome et une préparation fixe de `5 s`, sans Séance artificielle ni `SESSION_END`.
 
@@ -60,16 +62,18 @@ La création est réalisée dans un écran unique `Composition d’une séance`.
 Une Séance contient :
 
 1. un Compte à rebours initial ;
-2. des Activités éventuellement placées avant le Tour ;
+2. des Exercices éventuellement placées avant le Tour ;
 3. un Tour unique, visible et répétable de 1 à 99 fois ;
-4. des Activités éventuellement placées après le Tour ;
+4. des Exercices éventuellement placées après le Tour ;
 5. une Fin de séance.
+
+Une Activité peut également porter son propre Compte à rebours et sa propre Fin d’activité. La Composition peut contenir un Point d’arrêt déplaçable ; son attente n’est pas comptabilisée dans la durée d’exécution.
 
 Le Cycle est conservé uniquement dans le modèle technique pour l’évolutivité. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur.
 
-Une Activité est une action exécutée en mode Durée, Répétitions ou À l’échec. Elle comprend au moins une Série, peut inclure une Pause selon la règle D-156 et une Récupération chronométrée facultative. Cette Récupération intervient une fois après tous les côtés d’une Activité autonome, ou une fois par passage de côté dans un Tour bilatéral. `Récupération` n’est plus un type d’Activité distinct.
+Une Activité est une action exécutée en mode Durée, Répétitions ou À l’échec. Elle comprend au moins une Série et peut inclure une Pause entre Séries. Une Activité bilatérale peut en outre définir une **Récupération entre côtés**, exécutée une seule fois entre le premier et le second côté. La **Récupération après activité** n’est pas intrinsèque à l’Activité : elle appartient à son occurrence lorsqu’elle est placée dans une Séance ou un Parcours.
 
-En mode Durée, le nombre entier de Séries et la Durée totale de l’Activité sont des contrôles dépendants. La Durée totale inclut les Séries, les Pauses applicables, le multiplicateur de côté éventuel et la Récupération finale. En Répétitions et À l’échec, le libellé `Durée totale` reste visible sous forme de borne minimale `≥` calculée à partir des temps connus. T04 porte l’orchestration complète d’Exécution des Séances, y compris Séries, Tours et passages bilatéraux conformément au Plan d’Exécution.
+En mode Durée, le nombre entier de Séries et la Durée totale de l’Activité sont des contrôles dépendants. La durée intrinsèque inclut les Séries, exactement `C−1` Pauses par côté et, en bilatéral, la Récupération entre côtés éventuelle. Elle exclut toujours la Récupération après activité. Dans le texte éditable, le mode Répétitions affiche `Durée totale >= {estimation}` en comptant conventionnellement 1 seconde par répétition ; l’estimation applique toujours `C−1` Pauses par côté, ajoute `sideRecoverySeconds` uniquement en bilatéral et exclut la Récupération après activité. En mode À l’échec, la Durée totale n’est pas affichée dans le texte éditable. T04 porte l’orchestration complète d’Exécution des Séances, y compris Séries, Tours et passages bilatéraux conformément au Plan d’Exécution.
 
 Les valeurs initiales de l’application sont de 10 secondes pour le Compte à rebours initial et de 5 secondes pour la Fin de séance. L’utilisateur peut choisir 0 seconde, ce qui rend la phase instantanée sans la supprimer du modèle. Ces deux cartes structurelles ne sont pas déplaçables.
 
@@ -99,7 +103,7 @@ Les Sons, les Annonces vocales et les Vibrations fonctionnelles sont indépendan
 
 - interface mobile en portrait, compatible avec les Safe Areas du système ;
 - navigation principale fixe : `Catalogues`, `Calendrier`, `Suivi`, `Profil` ;
-- l’espace `Catalogues` utilise les titres contextuels `Catalogue des séances`, `Catalogue des activités` et `Catalogue des circuits` ;
+- l’espace `Catalogues` utilise les titres contextuels `Catalogue des séances`, `Catalogue des exercices` et `Catalogue des parcours` ;
 - libellé affiché uniquement sous l’onglet actif ;
 - actions contextuelles cohérentes entre les listes ;
 - sauvegarde immédiate des Préférences ;
@@ -126,20 +130,30 @@ Ces perspectives orientent l’architecture, mais ne doivent pas être présent�
 
 ### Catalogue multi-type
 
-Le Catalogue constitue l’accès central aux contenus. Il distingue `Activités`, `Séances` et `Circuits`. `Séances` est sélectionné par défaut à l’ouverture initiale et après relance complète ; `Activités` est fonctionnel à partir de T03 ; `Circuits` reste visible mais désactivé. Une version post-MVP rendra les Circuits fonctionnels sans créer de destination principale supplémentaire.
+Le Catalogue constitue l’accès central aux contenus. Il distingue `Exercices`, `Séances` et `Parcours`. `Séances` est sélectionné par défaut à l’ouverture initiale et après relance complète ; `Exercices` est fonctionnel à partir de T03 ; `Parcours` reste visible mais désactivé. Une version post-MVP rendra les Parcours fonctionnels sans créer de destination principale supplémentaire.
 
-### Catalogue des activités — MVP T03
+### Catalogue des exercices — MVP T03
 
-La tranche MVP T03 apporte un Catalogue d’Activités persistantes. Le Catalogue des activités permet de créer, consulter, modifier, archiver/restaurer et exécuter directement une Activité de référence. Dès T03, depuis la Composition d’une Séance, l’utilisateur peut également sélectionner plusieurs Activités existantes ; chacune est copiée dans la Séance et devient indépendante de sa référence.
+La tranche MVP T03 apporte un Catalogue d’Exercices persistantes. Le Catalogue des exercices permet de créer, consulter, modifier, archiver/restaurer et exécuter directement une Activité de référence. Dès T03, depuis la Composition d’une Séance, l’utilisateur peut également sélectionner plusieurs Exercices existantes ; chacune est copiée dans la Séance et devient indépendante de sa référence.
 
-Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Les médias multiples ordonnés restent post-MVP ; le contrôle `Déployer` est visible mais fonctionnellement désactivé en T03 et sera activé dans une évolution Médias distincte.
+Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Cette capacité locale reste conservée mais n’est pas exposée dans le parcours courant de composition, qui propose la sélection depuis le Catalogue. Dans le MVP, une carte d’Activité du Catalogue peut être déployée pour afficher le média associé ; cette activation n’ajoute pas implicitement de nouveau mécanisme d’import ou de capture.
 
 L’Exécution directe réutilise le sous-ensemble moteur autonome avec une origine `ACTIVITY`, commence par une préparation standard de `5 s`, n’ajoute ni Séance artificielle ni phase `SESSION_END`, puis affiche une Synthèse avec Ressenti obligatoire. Le Suivi identifie cette Exécution comme une Activité et applique les statistiques compatibles sans compter une Séance.
 
-### Circuits — post-MVP
+### Parcours — post-MVP
 
-Les Circuits restent préparés conceptuellement et techniquement mais ne sont ni créables ni exécutables dans T03. Leur planification appartient à une évolution ultérieure distincte.
+Les Parcours restent préparés conceptuellement et techniquement mais ne sont ni créables ni exécutables dans T03. Leur planification appartient à une évolution ultérieure distincte.
 
 ## Vision de la bilatéralité
 
-La configuration permet de choisir une exécution unilatérale, droite puis gauche, ou gauche puis droite sur une Activité autonome ou sur un Tour. Un Tour bilatéral porte seul la direction effective de son contenu : toutes ses Activités sont présentées avec leur contrôle unilatéral désactivé. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Activité. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
+La configuration permet de choisir `Aucun`, droite puis gauche, ou gauche puis droite sur une Activité. Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Tour ; le Tour reste fonctionnellement `UNILATERAL`. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Activité. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
+
+## Vision cible — médias pendant l’Exécution
+
+La cible post-MVP permet de consulter les médias de l’Exercice sans quitter l’Exécution ni interrompre son moteur. L’utilisateur peut retourner la zone d’information vers une face Média, parcourir une galerie ordonnée, lancer une vidéo à la demande et ouvrir le média en plein écran. Le plein écran conserve un cadre flottant de suivi et de commande de l’Exécution.
+
+Cette cible est conçue mais n’est pas ajoutée au périmètre MVP courant sans décision de roadmap distincte. Voir `../CONCEPTION-EXECUTION-MEDIA.md`.
+
+### Cible de planification commune
+
+La cible produit considère **Séances, Exercices persistants et Parcours** comme des contenus autonomes pouvant être planifiés directement. Le MVP active cette capacité pour les Séances et les Exercices ; la planification des Parcours reste rattachée à la version prévue pour cette fonctionnalité. Le principe fonctionnel demeure unique : une Routine planifie une source, quel que soit son type.

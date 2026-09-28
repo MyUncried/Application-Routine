@@ -10,8 +10,8 @@ L’application remplace l’usage dispersé de notes, vidéos, alarmes et minut
 
 Le MVP est conçu pour un utilisateur individuel qui :
 - crée ses propres séances ;
-- crée et réutilise des Activités persistantes à partir de T03 ;
-- les exécute immédiatement ou planifie ses Séances ;
+- crée et réutilise des Exercices persistantes à partir de T03 ;
+- les exécute immédiatement ou planifie directement ses Séances et Exercices persistants ;
 - consulte l’historique détaillé de ses exécutions ;
 - utilise l’application sans compte et sans synchronisation cloud.
 
@@ -25,24 +25,23 @@ Une Séance est un contenu exécutable défini par l’utilisateur.
 
 Elle possède notamment :
 - un nom ;
-- une couleur ;
-- zéro, une ou plusieurs catégories ;
+- une Étiquette de Séance lorsqu’elle est renseignée ; la couleur affichée de la Séance est la couleur de cette Étiquette ;
 - une Composition présentée autour d’un Tour unique ;
 - des paramètres de guidage et d’exécution.
 
 ### Routine
 
-Une Routine est la planification d’une Séance.
+Une Routine est la planification d’un **contenu planifiable**. Dans le MVP, une Routine cible soit une Séance (`SESSION`), soit une Activité persistante du Catalogue des exercices (`ACTIVITY`). Lorsqu’un Parcours deviendra fonctionnel et planifiable, il utilisera le **même mécanisme de Routine** ; son type technique de source restera `CIRCUIT` tant que les identifiants techniques ne sont pas renommés.
 
-Une même Séance peut être utilisée par plusieurs Routines. Une Routine ne contient pas de copie de la Séance et reprend sa couleur.
+Une même Séance ou une même Activité peut être utilisée par plusieurs Routines. Une Routine ne contient pas de copie de sa source : elle référence la source persistante et ses occurrences utilisent son état courant jusqu’au démarrage de l’Exécution, moment où l’Instantané immuable est créé.
 
 Dans le MVP, une Routine possède zéro ou un rappel.
 
 ### Activité
 
-Une Activité est une définition d’Exercice. Dans le MVP, elle existe comme copie intégrée à une Séance et, à partir de T03, comme référence persistante autonome dans le Catalogue des activités ; son ajout à une Séance crée une copie indépendante.
+Une Activité est une définition d’Exercice. Dans le MVP, elle existe comme copie intégrée à une Séance et, à partir de T03, comme référence persistante autonome dans le Catalogue des exercices ; son ajout à une Séance crée une copie indépendante.
 
-Une Activité utilise l’un des trois modes `Durée`, `Répétitions` ou `À l’échec`. Elle porte un réglage de côté parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, avec `UNILATERAL` par défaut. Elle peut définir une Pause entre les Séries d’un même côté et une Récupération optionnelle. Pour une Activité autonome, cette Récupération est exécutée une seule fois après tous ses côtés ; dans un Tour bilatéral, elle est exécutée une fois après chaque passage de côté. `Récupération` n’est plus un type d’Activité.
+Une Activité utilise l’un des trois modes `Durée`, `Répétitions` ou `À l’échec`. Elle porte un `Changement de côté` parmi `Aucun` (`UNILATERAL`), `D→G` (`RIGHT_LEFT`) et `G→D` (`LEFT_RIGHT`), avec `Aucun` par défaut. Elle définit une Pause entre Séries et peut définir une **Récupération entre côtés** (`sideRecoverySeconds`) uniquement lorsqu’elle est bilatérale. Une `ActivityDefinition` ne porte jamais de récupération après activité. `Récupération` n’est plus un type d’Activité.
 
 Une Activité peut être placée avant le Tour, dans le Tour ou après le Tour et peut être réordonnée entre ces zones.
 
@@ -52,15 +51,15 @@ Une Série désigne la répétition d’un même Exercice.
 
 Le Nombre de Séries est un paramètre de l’Exercice et ne constitue pas un conteneur structurel de la Séance.
 
-Une Pause entre Séries peut être définie pour une Activité. Pour `C` Séries d’un même côté, elle est comptée `C` fois lorsque la Récupération `R` vaut `0`, y compris après la dernière Série, ou `C − 1` fois lorsque `R > 0`, la Récupération remplaçant alors la dernière Pause. Aucune Pause supplémentaire n’est ajoutée spécifiquement entre les deux côtés. Une Récupération distincte peut être définie ; elle appartient à l’Activité, n’augmente jamais le nombre d’Activités de la Composition et s’exécute après tous les côtés d’une Activité autonome ou après chaque passage de côté dans un Tour bilatéral.
+Une Pause entre Séries peut être définie pour une Activité. Pour `C` Séries d’un même côté, le nombre de Pauses est **toujours `C − 1`** : aucune Pause n’est exécutée après la dernière Série. La Pause est indépendante des deux récupérations.
 
-Pour une Activité autonome, le nombre de Séries s’entend par côté. En mode Durée, sa Durée totale globale est calculée par `D = L × [C × A + P(C,R) × B] + R`, avec `P(C,R) = C` lorsque `R = 0`, sinon `P(C,R) = C − 1`, avec `L = 1` en unilatéral et `L = 2` en bilatéral, `C` le nombre de Séries par côté, `A` la durée par Série, `B` la Pause et `R` la Récupération. `Séries` et `Durée totale` sont deux entrées dépendantes : la dernière valeur confirmée pilote le calcul, tandis que le nombre entier de Séries reste la donnée canonique persistée.
+Pour une Activité autonome, le nombre de Séries s’entend par côté. En mode Durée, sa durée intrinsèque vaut `Dactivité = C × A + (C − 1) × B` en unilatéral. En bilatéral, avec `S` la Récupération entre côtés, `Dactivité = 2 × [C × A + (C − 1) × B] + S`. La **Récupération après activité** n’entre jamais dans `Dactivité`. `Séries` et `Durée totale` restent deux entrées dépendantes ; le nombre entier de Séries reste la donnée canonique persistée.
 
 ### Tour et Cycle
 
 Le MVP contient exactement un Tour visible et un Cycle technique.
 
-Le Tour est un groupe ordonné d’Activités exécuté intégralement de 1 à 99 fois. Il porte lui aussi un réglage de côté. À chaque répétition, un Tour bilatéral exécute toutes ses Activités pour le premier côté, puis toutes pour le second, selon la direction choisie. Le Tour porte alors seul la direction effective : les réglages propres de ses Activités sont remis à `UNILATERAL`, affichés désactivés et ne sont pas restaurés si le Tour redevient unilatéral.
+Le Tour est un groupe ordonné d’Exercices exécuté intégralement de 1 à 99 fois. Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Tour : le Tour reste fonctionnellement `UNILATERAL` et son support technique historique éventuel est conservé sans être modifiable ni visible. La bilatéralité reste portée par les Exercices.
 
 Le Cycle est conservé dans le modèle pour l’évolutivité, mais son nombre de répétitions vaut toujours `1`, n’est pas modifiable et n’est jamais affiché à l’utilisateur dans le MVP.
 
@@ -77,59 +76,70 @@ Pour un plan bilatéral, cet instantané conserve la direction effective et chaq
 ### Catalogue des séances
 
 Le MVP permet de :
-- créer une Séance avec un nom et une couleur obligatoires ;
+- créer une Séance avec un nom obligatoire, au moins une Activité valide et une Étiquette facultative dont la couleur devient la couleur affichée de la Séance ;
 - composer et modifier une Séance ;
-- associer zéro, une ou plusieurs Catégories ;
-- afficher dans chaque carte du Catalogue les Catégories associées et l’union dédupliquée des Zones corporelles de tous ses Exercices ;
+- associer l’Étiquette de la Séance ;
+- afficher dans chaque carte du Catalogue l’Étiquette de Séance et la Catégorie d’Activité selon les contrats d’écran actifs ;
 - dupliquer et archiver une Séance active ;
 - restaurer ou supprimer une Séance archivée, la suppression exigeant donc un archivage préalable ;
 - effectuer une recherche globale sur les formes Catalogue, Planifiée, Exécutée et Archivée d’une Séance ;
-- empêcher l’exécution d’une Séance invalide ou vide.
+- empêcher l’exécution d’une Séance invalide ou vide ;
+- afficher sur la carte la **prochaine planification** lorsqu’une occurrence future existe, sans réserver de ligne lorsqu’il n’y en a aucune.
 
-### Catalogue des activités — T03
+### Catalogue des exercices — T03
 
 À partir de T03, le MVP permet de :
-- ouvrir le segment `Activités` du Catalogue ;
+- ouvrir le segment `Exercices` du Catalogue ;
 - créer, consulter et modifier une `ActivityDefinition` persistante ;
 - archiver une Activité, accéder aux définitions archivées via `Filtrer > Archivées`, la restaurer et la supprimer définitivement depuis les archives ;
 - préserver les copies `SessionActivity` et les Instantanés/Exécutions historiques lorsqu’une définition est supprimée ;
-- ajouter une ou plusieurs Activités existantes à une Composition par copie indépendante ;
+- ajouter une ou plusieurs Exercices existantes à une Composition par copie indépendante ;
 - exécuter directement une Activité valide depuis son bouton Lecture ;
+- planifier directement une Activité persistante depuis son action `Planifier`, avec le même mécanisme de Routine que pour une Séance ;
+- afficher sur la carte la **prochaine planification** lorsqu’une occurrence future existe, sans réserver de ligne lorsqu’il n’y en a aucune ;
 - préserver recherche, filtres, tri implicite et position de défilement pendant l’aller-retour courant, sans les persister après relance complète ;
 - afficher `Trier` comme contrôle commun visible mais désactivé en T03 ; le tri appliqué reste la dernière modification décroissante.
 
-La rangée de commandes Catalogue est commune aux écrans représentés `Séances` et `Activités` : `Créer`, `Filtrer` et `Trier` sont alignés horizontalement ; dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec `8 pt` d’espace entre contrôles et un ensemble centré. Cette géométrie est une contrainte de rendu/recette, pas une instruction de coordonnées absolues React Native ; les cibles tactiles restent ≥ `48 × 48 pt`. `Trier` reste visible disabled T03. `Filtrer` est actif là où le comportement est défini.
+La rangée de commandes Catalogue est commune aux écrans représentés `Séances` et `Exercices` : `Créer`, `Filtrer` et `Trier` sont alignés horizontalement ; dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec `8 pt` d’espace entre contrôles et un ensemble centré. Cette géométrie est une contrainte de rendu/recette, pas une instruction de coordonnées absolues React Native ; les cibles tactiles restent ≥ `48 × 48 pt`. `Trier` reste visible disabled T03. `Filtrer` est actif là où le comportement est défini.
 
-`Filtrer` et `Trier` sont des contrôles communs aux trois Catalogues. Le contenu complet de leurs options peut dépendre du segment actif et n’est pas encore défini. Pour T03 Activités, seule l’option `Archivées` est fonctionnellement exigée dans `Filtrer`; aucune autre option ne doit être inventée. Les **contrôles d’entrée** sont désormais conçus dans Figma ; seul le détail visuel de leurs **panneaux/options ouverts** reste à définir.
+`Filtrer` et `Trier` sont des contrôles communs aux trois Catalogues. Les options de filtre sont contextuelles et les panneaux ouverts sont définis dans Figma. Pour `Exercices`, le filtre couvre le statut (`Actives` / `Archivées`), les Catégories et les Zones corporelles. Pour `Séances`, il couvre le statut des Séances et les Étiquettes. `Trier` reste visible mais désactivé dans le périmètre T03.
 
 `Créer` est contextuel au Catalogue affiché : il ouvre directement la création de l’objet correspondant, sans écran ni arbre intermédiaire. L’état `Recherche globale — Champ déployé` conserve la rangée `Créer / Filtrer / Trier` dans le Catalogue visible en arrière-plan.
 
-Une Activité créée directement dans une Composition reste propre à cette Séance. T03 n’expose aucune action `Enregistrer dans mes activités` ou `Enregistrer dans le catalogue`.
+`Filtrer` est contextuel au Catalogue. À l’ouverture d’une nouvelle session applicative, aucun filtre n’est appliqué. Le bouton blanc replié s’étend sur appui et affiche `Filtres / Aucun` sans modifier la liste ; un critère n’est appliqué qu’après sélection. Un filtre appliqué est conservé pendant la session courante et lors des allers-retours, puis revient à `Aucun` après relance complète.
+
+
+Une Activité créée directement dans une Composition reste propre à cette Séance. T03 n’expose aucune action `Enregistrer dans mes exercices` ou `Enregistrer dans le catalogue`.
+
+Dans le parcours utilisateur actuellement exposé pour composer une Séance, l’ajout passe par la sélection d’une Activité du Catalogue. La capacité existante de créer directement une Activité locale à la Séance reste fonctionnellement et techniquement conservée, sans modification de modèle ni d’API ; elle n’est simplement pas exposée dans cet enchaînement d’écrans.
+
+Une Activité peut définir un Compte à rebours propre et une Fin d’activité propre, distincts du Compte à rebours initial et de la Fin de séance. Un Point d’arrêt peut être inséré dans la Composition ; il suspend l’enchaînement jusqu’à reprise explicite et son temps d’attente n’entre pas dans la durée de la Séance.
+
 
 ### Composition d’une Séance
 
 La structure affichée comprend, dans l’ordre :
 1. un Compte à rebours initial structurellement présent, éventuellement instantané à `0 s` ;
-2. zéro, une ou plusieurs Activités avant le Tour ;
-3. un Tour unique contenant zéro, une ou plusieurs Activités et répété de 1 à 99 fois ;
-4. zéro, une ou plusieurs Activités après le Tour ;
+2. zéro, une ou plusieurs Exercices avant le Tour ;
+3. un Tour unique contenant zéro, une ou plusieurs Exercices et répété de 1 à 99 fois ;
+4. zéro, une ou plusieurs Exercices après le Tour ;
 5. une Fin de séance structurellement présente, d’une durée initiale de `5 s` et pouvant être réglée à `0 s`.
 
 Le Cycle technique unique enveloppe ce plan avec une répétition fixée à `1`.
 
 Une Séance est exécutable lorsqu’elle contient au moins un Exercice valide.
 
-Aucune Récupération n’est ajoutée implicitement entre deux Activités. Une Récupération est exécutée uniquement lorsqu’une durée non nulle est configurée sur l’Activité ; elle intervient après tous les côtés d’une Activité autonome ou après chaque passage de côté d’un Tour bilatéral, y compris pour la dernière Activité avant `SESSION_END`.
+Chaque occurrence d’Exercice dans une Séance porte explicitement une **Récupération après activité** (`postActivityRecoverySeconds`), y compris avec la valeur `0 s`. Cette donnée appartient à l’occurrence, pas à l’`ActivityDefinition`. Lorsqu’elle est positive, elle est exécutée après l’occurrence, y compris après la dernière Activité d’un Tour et après la dernière Activité de la Séance avant `SESSION_END`; dans un Tour répété, elle est exécutée à chaque passage. Elle se déplace, se duplique et se supprime avec l’occurrence sans recalcul lié à l’adjacence.
 
-Le contrôle `Côté` cycle entre Unilatéral, `D→G` et `G→D` sur une Activité comme sur un Tour. Dans la Composition, le contrôle du Tour est placé dans l’en-tête du Tour, sur la même ligne que `Nombre de tours`, immédiatement à droite du cadre numérique, avec un espace de `8 pt`; il conserve la géométrie Figma `42 × 34 pt`, affiche intégralement `D→G` ou `G→D` et ne porte aucun titre `Côté` ou `Côtés`. En état `UNILATERAL`, il affiche un tiret `–` centré. L’activation bilatérale est directe si le Tour est vide ou si toutes ses Activités sont propres `UNILATERAL`. Une confirmation n’est affichée que si au moins une Activité possède encore un réglage propre `RIGHT_LEFT` ou `LEFT_RIGHT` qui sera remplacé. Le dialogue porte le titre `Exécuter chaque Tour des deux côtés ?` et le message `À chaque Tour, toutes les Activités sont exécutées une fois d’un côté, puis une fois de l’autre, selon l’ordre choisi. Ce réglage remplace tout réglage de côté défini individuellement pour une Activité.` `Confirmer` applique atomiquement la direction au Tour et remet les seules Activités concernées à `UNILATERAL`, tandis qu’`Annuler` ne modifie rien. Il n’existe aucune propriété ni validation d’Activité « latéralisable » : toutes les Activités du Tour héritent de sa direction effective.
+Le contrôle utilisateur `Changement de côté` d’une Activité propose `Aucun`, `D→G` et `G→D`. Aucun contrôle de changement de côté n’est exposé sur le Tour dans la version actuelle ; le support technique historique du Tour reste conservé mais fixé à `UNILATERAL` et non modifiable.
 
-Dans la Composition, une carte hors Tour bilatéral affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien en `UNILATERAL`. L’indicateur respecte la géométrie Figma `42 × 20 pt` à `x=311`, `y=24,5` dans la carte `354 × 69 pt`. Dans un Tour bilatéral, la carte ne répète jamais la direction portée par le Tour. Le texte de la carte de Composition ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Ajouter/Modifier une Activité, la synthèse ajoute `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode et avant la Pause ; elle omet cette clause en unilatéral ou lorsque la bilatéralité vient seulement du Tour. Le nom de l’Activité est en gras dans cette Synthèse.
+Dans la Composition, une carte affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien avec `Aucun`. L’indicateur respecte la géométrie Figma validée. Le texte de la carte ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Ajouter/Modifier une Activité, la synthèse ajoute `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode et avant la Pause ; elle omet cette clause avec `Aucun`. Le nom de l’Activité est en gras dans cette Synthèse.
 
-Dans l’éditeur, le contrôle est visible dans les trois modes : `Durée totale` en mode Durée et `Durée totale >=` en Répétitions / À l’échec. Cette forme courte du contrôle ne modifie pas la règle fonctionnelle : la Synthèse reste formulée `Durée totale : ≥ {durée connue}` lorsque la durée complète n’est pas déterminable. Le nom `Renforcement du genou` utilisé dans les maquettes renseignées est une valeur de démonstration Figma et ne constitue jamais un libellé statique ; l’état vide conserve `Nom de l’activité` comme placeholder/état vide.
+Dans le texte éditable des paramètres d’exécution, l’affichage de la `Durée totale` dépend du mode. En mode Durée, la règle existante reste inchangée. En mode Répétitions, afficher `Durée totale >= {estimation}` ; l’estimation attribue conventionnellement **1 seconde à chaque répétition** et applique D-208 : en unilatéral `D_est = C × N + (C − 1) × B` ; en bilatéral `D_est = 2 × [C × N + (C − 1) × B] + S`, avec `N` le nombre de répétitions par Série interprété en secondes conventionnelles et `S = sideRecoverySeconds`. `postActivityRecoverySeconds` est toujours exclu de cette estimation intrinsèque. En mode À l’échec, la `Durée totale` n’est pas affichée dans le texte éditable. Le nom `Renforcement du genou` utilisé dans les maquettes renseignées est une valeur de démonstration Figma et ne constitue jamais un libellé statique ; l’état vide conserve `Nom de l’activité` comme placeholder/état vide.
 
 Le Compte à rebours initial et la Fin de séance sont structurels et non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
 
-Une Activité ne possède aucun média fonctionnel dans le MVP. La section Médias est visible et repliable dans l’éditeur ; son contrôle `Déployer / Condenser` et son placeholder média restent désactivés, sans import, capture, lecture ni stockage. Les médias multiples ordonnés restent post-MVP.
+Dans le MVP, une Activité peut afficher ses médias associés dans le Catalogue : la carte se déploie et se replie pour afficher ou masquer le média. Cette décision n’introduit pas à elle seule de nouveau mécanisme d’import ou de capture dans l’éditeur. Les médias multiples ordonnés restent post-MVP.
 
 ### Exécution d’une Séance
 
@@ -149,9 +159,9 @@ Pour une Activité chronométrée passée avant son terme, une confirmation est 
 
 Pour un Exercice en mode Répétitions ou À l’échec, le bouton `Suivant` termine normalement la Série courante et ne demande pas de confirmation.
 
-Une Activité bilatérale autonome exécute toutes ses Séries du premier côté puis toutes celles du second. Un Tour bilatéral exécute, à chaque répétition, tout son contenu du premier côté puis tout son contenu du second. La modale générique de passage anticipé reste inchangée : depuis le premier côté, confirmer conserve le résultat partiel de ce côté et conduit au second. Une réinitialisation ne concerne que le côté courant et préserve le résultat de l’autre côté.
+Une Activité bilatérale exécute toutes ses Séries du premier côté puis toutes celles du second. La modale générique de passage anticipé reste inchangée : depuis le premier côté, confirmer conserve le résultat partiel de ce côté et conduit au second. Une réinitialisation ne concerne que le côté courant et préserve le résultat de l’autre côté.
 
-Une Récupération d’Activité est une phase chronométrée. Elle annonce `Récupération`, se termine automatiquement à zéro et peut être quittée avec `Activité suivante` après confirmation. L’Exercice reste alors terminé et la Récupération est enregistrée partiellement. `Réinitialiser la récupération` recommence uniquement cette phase. Un arrêt pendant la Récupération produit une Exécution `Interrompue`.
+Le moteur distingue deux phases de récupération. `SIDE_RECOVERY`, lorsqu’elle existe, intervient une seule fois entre les deux côtés d’une Activité bilatérale. `POST_ACTIVITY_RECOVERY`, lorsqu’elle existe, intervient après l’occurrence d’Activité dans une Séance/Parcours. Une phase de récupération chronométrée annonce `Récupération`, se termine automatiquement à zéro et peut être quittée avec `Activité suivante` après confirmation ; l’Exercice reste alors terminé et la récupération est enregistrée partiellement. `Réinitialiser la récupération` recommence uniquement la phase courante. Un arrêt pendant une phase de récupération produit une Exécution `Interrompue`.
 
 Un arrêt volontaire confirmé produit une Exécution `Interrompue` et ouvre la Synthèse. Une interruption technique ou système peut produire une Exécution `Interrompue` sans affichage de la Synthèse et donc sans Ressenti.
 
@@ -159,7 +169,7 @@ Aucun retour à l’Activité précédente n’est inclus dans le MVP.
 
 ### Exécution directe d’une Activité — T03
 
-Le bouton Lecture d’une carte d’Activité valide lance une Exécution d’origine `ACTIVITY` sans créer de Séance artificielle. L’Exécution repose sur un instantané autonome, commence par une préparation système fixe de `5 s`, applique les règles existantes de Séries, Pauses, directions `UNILATERAL | RIGHT_LEFT | LEFT_RIGHT` et Récupération, puis se clôt sans Tour, Cycle ni phase `SESSION_END`. Le signal de fin ouvre la Synthèse.
+Le bouton Lecture d’une carte d’Activité valide lance une Exécution d’origine `ACTIVITY` sans créer de Séance artificielle. L’Exécution repose sur un instantané autonome, commence par une préparation système fixe de `5 s`, applique les Séries, les Pauses et les directions `UNILATERAL | RIGHT_LEFT | LEFT_RIGHT`. Si l’Activité est bilatérale, sa Récupération entre côtés éventuelle est exécutée une seule fois entre le premier et le second côté. **Aucune Récupération après activité n’est ajoutée en Exécution directe.** Le signal de fin ouvre ensuite la Synthèse.
 
 Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentaire reste facultatif. L’Exécution rejoint le Suivi général sous le type Activité et alimente les statistiques compatibles sans augmenter le nombre de Séances. T03 ne développe que ce sous-ensemble autonome réutilisable du moteur ; l’orchestration complète de Séance relève de T04.
 
@@ -171,15 +181,15 @@ Aucune durée conventionnelle n’est attribuée aux Exercices en mode Répétit
 
 Le temps total écoulé et la Durée réelle excluent les périodes de Pause utilisateur.
 
-Trois indicateurs d’Activités sont distingués :
-- Nombre d’Activités de la Composition ;
-- Nombre total d’Activités à exécuter ;
-- Nombre d’Activités exécutées.
+Trois indicateurs d’Exercices sont distingués :
+- Nombre d’Exercices de la Composition ;
+- Nombre total d’Exercices à exécuter ;
+- Nombre d’Exercices exécutées.
 
 La barre de progression utilise une pondération hybride :
-- les Activités chronométrées sont pondérées proportionnellement à leur durée ;
-- chaque occurrence d’Exercice en mode Répétitions ou À l’échec reçoit un poids `1/N`, où `N` est le Nombre total d’Activités à exécuter ;
-- la part restante est répartie entre les Activités chronométrées proportionnellement à leur durée.
+- les Exercices chronométrées sont pondérées proportionnellement à leur durée ;
+- chaque occurrence d’Exercice en mode Répétitions ou À l’échec reçoit un poids `1/N`, où `N` est le Nombre total d’Exercices à exécuter ;
+- la part restante est répartie entre les Exercices chronométrées proportionnellement à leur durée.
 
 La barre est visuellement continue, sans frontière de segment visible.
 
@@ -190,7 +200,7 @@ La progression globale tient compte de tous les passages développés. `Activit�
 Le guidage comprend :
 - l’annonce vocale du nom de l’Activité au démarrage ;
 - l’annonce du côté au début du premier passage et une seule fois lors du passage au second côté ;
-- les sons prévus pendant les Activités chronométrées, dont le bip grave de rythme ;
+- les sons prévus pendant les Exercices chronométrées, dont le bip grave de rythme ;
 - le signal des trois dernières secondes ;
 - un réglage global des sons dans le MVP ;
 - un réglage séparé des annonces vocales ;
@@ -206,8 +216,8 @@ En arrière-plan ou écran verrouillé, le Plan d’Exécution continue selon se
 La planification est incluse dans le MVP.
 
 Le MVP permet de :
-- créer une Routine depuis le Calendrier ;
-- sélectionner la Séance associée ;
+- créer une Routine depuis le Calendrier ou depuis l’action `Planifier` d’une carte de Catalogue ;
+- sélectionner ou conserver la source planifiée, qui est soit une Séance soit une Activité persistante ;
 - définir une Date de début et une Heure ;
 - choisir entre `Aucune` et `Périodique` ;
 - pour `Périodique`, définir une fréquence en semaines, sélectionner un ou plusieurs jours et définir une Date de fin obligatoire ;
@@ -228,18 +238,18 @@ Chaque Exécution conserve notamment :
 - la date et l’heure ;
 - la Durée réelle ;
 - le statut ;
-- les Résultats d’Activités exécutées ;
+- les Résultats d’Exercices exécutées ;
 - le côté de chaque Résultat lorsque l’Activité est effectivement bilatérale ;
 - le Ressenti obligatoire lorsque la Synthèse est présentée ;
 - un Commentaire facultatif limité à 200 caractères.
 
 Les statuts d’Exécution sont : Terminée, Partielle, Interrompue.
 
-Une Activité `Partielle` compte comme exécutée dans le Nombre d’Activités exécutées. Une Activité jamais atteinte ne compte pas.
+Une Activité `Partielle` compte comme exécutée dans le Nombre d’Exercices exécutées. Une Activité jamais atteinte ne compte pas.
 
 Le Suivi du MVP comprend une liste chronologique du plus récent au plus ancien, une vue condensée ou déployée et le détail d’Exécution directement dans la carte déployée.
 
-Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` du Suivi restent visibles mais désactivées. Cette règle du Suivi est distincte de D-184 pour les Catalogues : dans le Catalogue des activités, `Filtrer` est fonctionnel pour `Archivées`.
+Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` du Suivi restent visibles mais désactivées. Cette règle du Suivi est distincte de D-184 pour les Catalogues : dans le Catalogue des exercices, `Filtrer` est fonctionnel pour `Archivées`.
 
 ### Profil et préférences
 
@@ -259,7 +269,7 @@ Le MVP comporte quatre destinations principales :
 - `Suivi` ;
 - `Profil`.
 
-`Catalogues` est le libellé permanent de navigation. Dans cet espace, les titres contextuels sont `Catalogue des séances`, `Catalogue des activités` et `Catalogue des circuits`. Le Catalogue s’ouvre et se réinitialise après relance complète sur le segment `Séances`.
+`Catalogues` est le libellé permanent de navigation. Dans cet espace, les titres contextuels sont `Catalogue des séances`, `Catalogue des exercices` et `Catalogue des parcours`. Le Catalogue s’ouvre et se réinitialise après relance complète sur le segment `Séances`.
 
 Le composant DSF canonique de navigation est `Navigation / Bottom — Source exact` (`2537:214`). Les dessins des quatre destinations ont une dimension maximale de `24 pt`, sont centrés dans leur boîte optique `32 × 32 pt` et conservent une cible tactile conforme aux règles communes.
 
@@ -277,7 +287,7 @@ Le composant DSF canonique de navigation est `Navigation / Bottom — Source exa
 - Séances imbriquées ;
 - structures comportant plusieurs Tours ou plusieurs Cycles ;
 - modification individuelle d’une occurrence de Calendrier ;
-- Circuits fonctionnels ;
+- Parcours fonctionnels ;
 - médias multiples fonctionnels ;
 - options avancées de filtre/tri Catalogue non encore arbitrées.
 
@@ -290,15 +300,15 @@ Le composant DSF canonique de navigation est `Navigation / Bottom — Source exa
 5. La suppression d’une Routine ne supprime jamais l’historique.
 6. La suppression d’une Séance supprime ses Routines mais conserve les Exécutions passées.
 7. La suppression définitive d’une `ActivityDefinition` n’altère ni les copies de Séance ni les Instantanés/Exécutions historiques.
-8. Les catégories qualifient les Séances.
-9. Les zones corporelles qualifient les Activités ; elles restent facultatives.
-10. La couleur appartient à la Séance et est reprise par ses Routines.
+8. Les Étiquettes qualifient les Séances et portent leur couleur.
+9. Les Étiquettes, Catégories et Zones corporelles sont des référentiels utilisateur administrables. Toutes leurs valeurs, y compris celles fournies initialement par KODJO, peuvent être supprimées. Dans une modale de sélection, un appui court sélectionne/désélectionne une valeur ; un appui long ouvre une confirmation de suppression. La suppression retire les associations des objets courants concernés sans altérer les Instantanés/Exécutions historiques.
+10. La couleur affichée d’une Séance est celle de son Étiquette et est reprise par ses Routines.
 11. Le plan d’Exécution est calculé au démarrage et n’est pas manipulé directement par l’utilisateur.
 12. Le Compte à rebours initial et la Fin de séance sont structurellement présents ; `0 s` signifie phase instantanée.
 13. Les occurrences du Calendrier sont calculées dynamiquement.
 14. Toutes les données du MVP sont stockées localement sur l’appareil.
 15. Les règles de calcul fonctionnelles sont déterministes et centralisées dans les spécifications.
-16. Une direction bilatérale n’est appliquée qu’à un seul niveau : celle du Tour prévaut, sinon celle de l’Activité.
+16. Dans la version actuelle, la direction bilatérale active est portée par l’Activité ; aucun changement de côté n’est exposé au niveau du Tour.
 17. Les Résultats bilatéraux sont séparés par côté ; un seul côté partiellement réalisé rend l’Activité globale partielle.
 
 ## 8. Écrans de référence
@@ -306,16 +316,16 @@ Le composant DSF canonique de navigation est `Navigation / Bottom — Source exa
 Les principaux écrans du MVP sont :
 - Profil ;
 - Catalogue des séances ;
-- Catalogue des activités ;
+- Catalogue des exercices ;
 - création contextuelle directe depuis le Catalogue ;
-- sélection multiple d’Activités existantes ;
+- sélection multiple d’Exercices existantes ;
 - création du nom et de la couleur d’une Séance ;
 - Composition d’une Séance ;
 - création ou modification d’une Activité ;
 - options d’une Activité ;
-- catégories de la Séance ;
+- Étiquette de la Séance ;
 - Calendrier semaine et mois ;
-- planification d’une Séance ;
+- planification d’un contenu — Séance ou Exercice ;
 - Exécution d’une Séance ;
 - Exécution directe d’une Activité ;
 - modales d’interruption ;
@@ -324,7 +334,7 @@ Les principaux écrans du MVP sont :
 
 Les maquettes Figma validées définissent la présentation de référence. La spécification UI déterministe combine les Screen Shells et composants communs décrits au chapitre 12 avec les règles fonctionnelles du chapitre 06 et les contrats d’écran du chapitre 13. Une règle métier propre à un écran ne devient pas une règle générique du Design System.
 
-Les contrôles d’entrée `Créer / Filtrer / Trier` des Catalogues sont conçus et vérifiables dans Figma. Seul le détail visuel des panneaux/options ouverts `Filtrer` et `Trier` n’est pas encore conçu ; il reste `NON VÉRIFIABLE` / `À CLARIFIER` jusqu’à création des frames correspondantes. Ce manque ne permet pas d’inventer un composant visuel local.
+Les contrôles d’entrée `Créer / Filtrer / Trier` et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. Les options de filtre sont contextuelles au Catalogue. `Trier` reste visible mais désactivé dans le périmètre T03.
 
 ## 9. Contraintes techniques initiales
 
@@ -360,34 +370,34 @@ Les versions futures pourront notamment introduire :
 - structures de Séances plus complexes ;
 - réglages sonores plus fins ;
 - association de `0..n` photos ou vidéos ordonnées par Activité ;
-- activation de `Déployer` sur les cartes du Catalogue des activités avec le lot Médias ;
-- Circuits persistants composés d’au moins deux Séances ordonnées et exécutables manuellement ; leur planification est reportée en V3 ;
+
+- Parcours persistants composés d’au moins deux Séances ordonnées et exécutables manuellement ; leur planification est reportée en V3 ;
 - planification périodique étendue, notamment mensuelle ;
 - intelligence artificielle d’aide à la création, à l’adaptation et à l’analyse des Séances.
 
-## 11. Activités, Catalogue et Circuits
+## 11. Exercices, Catalogue et Parcours
 
 ### Catalogue multi-type
 
-Le Catalogue conserve un seul espace mais distingue `Activités`, `Séances` et `Circuits`. `Séances` est le segment sélectionné par défaut ; `Activités` devient fonctionnel en T03 ; `Circuits` reste visible mais désactivé. Une fermeture/reprise complète ne mémorise pas le dernier segment et revient à `Séances`.
+Le Catalogue conserve un seul espace mais distingue `Exercices`, `Séances` et `Parcours`. `Séances` est le segment sélectionné par défaut ; `Exercices` devient fonctionnel en T03 ; `Parcours` reste visible mais désactivé. Une fermeture/reprise complète ne mémorise pas le dernier segment et revient à `Séances`.
 
-`Créer`, `Filtrer` et `Trier` constituent la rangée commune de commandes d’entrée. Dans la maquette de référence `402 pt`, chacun est dessiné en `108 × 32 pt`, les gaps sont de `8 pt` et l’ensemble est centré. `Filtrer` et `Trier` sont communs aux trois contextes de Catalogue ; le contenu des options peut dépendre du segment actif. Pour T03 / Activités, `Filtrer` est fonctionnel au minimum pour `Archivées`, `Trier` est visible mais désactivé, et le tri appliqué reste la dernière modification décroissante. Toute autre option est hors contrat tant qu’elle n’est pas arbitrée.
+`Créer`, `Filtrer` et `Trier` constituent la rangée commune de commandes d’entrée. Dans la maquette de référence `402 pt`, chacun est dessiné en `108 × 32 pt`, les gaps sont de `8 pt` et l’ensemble est centré. `Filtrer` et `Trier` sont communs aux trois contextes de Catalogue ; le contenu des options peut dépendre du segment actif. Pour T03 / Exercices, `Filtrer` est fonctionnel au minimum pour `Archivées`, `Trier` est visible mais désactivé, et le tri appliqué reste la dernière modification décroissante. Toute autre option est hors contrat tant qu’elle n’est pas arbitrée.
 
-### Activités persistantes — MVP T03
+### Exercices persistantes — MVP T03
 
 Une Activité de Catalogue est une référence persistante `ActivityDefinition`. L’utilisateur peut la créer, la consulter, la modifier, l’archiver, accéder aux archives par `Filtrer > Archivées`, la restaurer, la supprimer définitivement depuis les archives, l’exécuter directement ou la sélectionner depuis une Composition.
 
 Son insertion dans une Séance copie toutes les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles, direction propre et autres champs persistants applicables. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. Une Activité créée dans une Séance ne rejoint pas automatiquement le Catalogue. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.
 
-Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Activité persistante depuis `Activités`, Séance depuis `Séances`, et Circuit depuis `Circuits` lorsque ce Catalogue devient fonctionnel. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Circuits dans T03/MVP. Depuis `Ajouter une activité` dans une Composition, les choix restent `Une nouvelle activité`, `Une activité existante` et `Annuler`. La sélection multiple insère les Activités selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
+Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Activité persistante depuis `Exercices`, Séance depuis `Séances`, et Parcours depuis `Parcours` lorsque ce Catalogue devient fonctionnel. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Parcours dans T03/MVP. Depuis `Ajouter une activité` dans une Composition, le parcours actuellement exposé ouvre la sélection d’Exercices du Catalogue. La capacité existante de création directe d’une Activité locale à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans cet enchaînement. La sélection multiple insère les Exercices selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
 
-Les cartes du Catalogue des activités portent une barre verticale bleue. La surface principale ouvre la consultation/modification. Le bouton Lecture lance exclusivement l’Exécution directe. Le contrôle `Déployer` reste **visible mais fonctionnellement désactivé** en T03 ; il réutilise exactement le composant DSF du Catalogue des séances `2537:1033 — State=Collapsed`, avec la même zone réservée sur toutes les cartes. Aucune poignée de déplacement n’est affichée. `Déployer` ne devient fonctionnel qu’avec une évolution Médias ultérieure.
+Les cartes du Catalogue des exercices portent la couleur de leur Catégorie. La surface principale ouvre la consultation/modification. Le bouton Lecture lance exclusivement l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé. Un glissement gauche expose `Planifier`, `Dupliquer` et `Archiver` sur une Activité active ; dans la liste des Exercices archivées, il expose `Supprimer`. Aucune poignée de déplacement n’est affichée.
 
 ### Exécution directe d’une Activité — MVP T03
 
 Une Exécution directe d’origine `ACTIVITY` crée un instantané autonome et immuable, applique une préparation fixe de `5 s`, développe Séries, Pauses, côtés et Récupération selon les règles existantes puis se termine sans `SESSION_END`. Le signal de fin ouvre immédiatement la Synthèse.
 
-Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentaire est facultatif. L’Exécution rejoint le Suivi général sous le type Activité et alimente toutes les statistiques compatibles sans augmenter le nombre de Séances. `Terminer` restaure l’état du Catalogue des activités du parcours courant. Cet état n’est pas conservé après relance complète.
+Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentaire est facultatif. L’Exécution rejoint le Suivi général sous le type Activité et alimente toutes les statistiques compatibles sans augmenter le nombre de Séances. `Terminer` restaure l’état du Catalogue des exercices du parcours courant. Cet état n’est pas conservé après relance complète.
 
 ### Corrections UX communes T03
 
@@ -396,23 +406,23 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 - seul un swipe droit commencé sur la carte contextuellement ouverte la referme ;
 - les autres contrôles restent actifs, mais une seule carte peut exposer simultanément ses actions ;
 - le Compte à rebours initial et la Fin de séance ne sont pas déplaçables et n’acceptent aucun appui long de déplacement ;
-- après enregistrement depuis Catégories, la cible est `Catalogue des séances`, segment `Séances` ;
+- après validation de la Composition, la cible est `Catalogue des séances`, segment `Séances` ;
 - la navigation d’avancement canonique fait entrer la cible depuis la droite et sortir l’écran courant vers la gauche ;
-- dans le Catalogue, la rangée `Créer / Filtrer / Trier` suit la géométrie commune validée ; dans Activités, `Filtrer` permet `Archivées`, tandis que `Trier` reste visible disabled jusqu’à arbitrage de ses options ;
-- dans l’éditeur Activité, `Renforcement du genou` est une donnée de démonstration, l’état vide affiche `Nom de l’activité`, et Répétitions/À l’échec affichent le contrôle `Durée totale >=` sans modifier la Synthèse fonctionnelle `Durée totale : ≥ {durée connue}`.
+- dans le Catalogue, la rangée `Créer / Filtrer / Trier` suit la géométrie commune validée ; les options de `Filtrer` sont contextuelles et `Trier` reste visible disabled dans T03 ;
+- dans l’éditeur Activité, `Renforcement du genou` est une donnée de démonstration et l’état vide affiche `Nom de l’activité` ; dans le texte éditable, Répétitions affiche `Durée totale >= {estimation}` avec 1 seconde conventionnelle par répétition, tandis que À l’échec n’affiche pas de Durée totale.
 
-### Médias et Circuits
+### Médias et Parcours
 
-Les médias multiples `0..n` sont post-MVP. Le contrôle `Déployer` visible en T03 est préparatoire et reste désactivé.
+L’affichage du média associé dans la carte déployée du Catalogue des Exercices appartient au MVP. Les médias multiples ordonnés ainsi que les mécanismes d’import/capture suivent leur périmètre d’évolution propre.
 
-Un Circuit reste conceptualisé et préparé dans le modèle/architecture, mais T03 ne développe ni création, ni modification, ni Exécution, ni planification de Circuit. Le segment `Circuits` est visible et désactivé.
+Un Parcours reste conceptualisé et préparé dans le modèle/architecture, mais T03 ne développe ni création, ni modification, ni Exécution, ni planification de Parcours. Le segment `Parcours` est visible et désactivé. **La cible fonctionnelle prévoit qu’un Parcours soit, lui aussi, directement planifiable** lorsqu’il entrera dans la version qui livre cette capacité ; cette planification réutilisera les Routines communes et ne créera pas un système distinct. **La cible fonctionnelle prévoit qu’un Parcours soit, lui aussi, directement planifiable** lorsqu’il entrera dans la version qui livre cette capacité ; cette planification réutilisera les Routines communes et ne créera pas un système distinct.
 
 ## 12. Roadmap des tranches MVP
 
 | Tranche | Périmètre de référence |
 |---|---|
 | T01–T02 | Création, modification et Composition des Séances. |
-| T03 | Catalogue des activités : persistance et cycle de vie, liste, accès aux archives, création contextuelle directe, sélection multiple, copie indépendante dans une Séance, Exécution directe autonome et corrections UX associées. |
+| T03 | Catalogue des exercices : persistance et cycle de vie, liste, accès aux archives, création contextuelle directe, sélection multiple, copie indépendante dans une Séance, Exécution directe autonome et corrections UX associées. |
 | T04 | Moteur d’Exécution complet des Séances ; ancienne T03, lots 1 et 2. |
 | T05 et suivantes | Ancienne T04 et tranches ultérieures, décalées d’un rang sans modification implicite de contenu. |
 
@@ -435,7 +445,7 @@ En cas de contradiction, l’ordre de référence est :
 Pour T03, les références explicites de cette mise à jour sont :
 - `06 – Ecrans et navigation de la V1.md`, qui intègre directement les corrections UX T03 ;
 - `07 – Registre des décisions de conception.md`, qui intègre D-167 à D-187 ;
-- `09 bis – Modèle et migration T03 Catalogue.md` ;
+- `09 – Modèle de données fonctionnel.md` — inclut désormais le modèle et la migration T03 Catalogue ;
 - `13 – Contrats d’écran.md`, unique référence des contrats d’écran T03 ;
 - `MATRICE-TRACABILITE-T03-CATALOGUE-ACTIVITES.md` ;
 - `Specifications-fonctionnelles/images/README-T03-FIGMA.md` pour les évidences Figma embarquées.
@@ -443,3 +453,19 @@ Pour T03, les références explicites de cette mise à jour sont :
 Toute évolution fonctionnelle doit préciser son impact sur Figma, la documentation fonctionnelle, le modèle de données, les règles métier, les API ou services, l’architecture technique, les contrats d’écran et la version du produit.
 
 Pour la spécification et la validation UI, la composition documentaire de référence est : `Screen Shell → composant ou contrôle du Design System → règle spécifique → contrat d’écran`. Une règle commune n’est pas recopiée inutilement ; une exception locale doit être explicitement identifiée et justifiée par Figma ou par une décision fonctionnelle validée.
+
+## 14. Évolution conçue — Média pendant l’Exécution
+
+Une évolution post-MVP actuellement conçue permet de basculer, pendant l’Exécution, entre une face Information et une face Média de l’Exercice. La face Média respecte l’ordre de la galerie, affiche un média à la fois, permet le swipe horizontal unitaire, la lecture vidéo et l’ouverture plein écran sans suspendre le moteur d’Exécution. En plein écran, un cadre flottant conserve les informations et commandes essentielles d’Exécution.
+
+L’état de face et le média courant sont mémorisés uniquement pendant la séance en cours et sont réinitialisés entre deux séances. Une vidéo ne démarre jamais automatiquement. Le son vidéo est actif par défaut et son volume est temporairement abaissé pendant les annonces vocales KODJO.
+
+Cette conception **ne modifie pas le périmètre MVP courant** : les médias multiples fonctionnels restent post-MVP tant qu’une décision de roadmap distincte ne les requalifie pas.
+
+Référence de conception : [CONCEPTION-EXECUTION-MEDIA.md](./CONCEPTION-EXECUTION-MEDIA.md).
+
+### Récupération après occurrence dans une Séance ou un Parcours — D-208
+
+Toute occurrence d’Activité intégrée à une Séance porte une propriété contextuelle `postActivityRecoverySeconds`, distincte de l’`ActivityDefinition`. Cette récupération existe toujours, y compris avec la valeur `0 s`, reste visible dans la Composition, se déplace avec l’occurrence, est copiée lors d’une duplication et disparaît avec l’occurrence supprimée. Elle est exécutée après l’occurrence, y compris après la dernière Activité d’un Tour et après la dernière Activité de la Séance avant la Fin de séance. Dans un Tour répété, elle est exécutée à chaque passage de l’occurrence. Sa valeur initiale provient du défaut global de récupération après activité ; les occurrences existantes ne sont pas modifiées lorsque ce défaut change.
+
+**À CLARIFIER :** la valeur initiale de `sideRecoverySeconds` lors du passage de `Aucun` à `D→G` ou `G→D` n’est pas arbitrée.

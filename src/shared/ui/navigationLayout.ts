@@ -1,4 +1,4 @@
-import { spacing, type } from "@/shared/ui/tokens";
+import { dimensions, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Géométrie réelle de la barre de navigation basse (SHELL-R02, contre-recette
@@ -10,13 +10,12 @@ import { spacing, type } from "@/shared/ui/tokens";
  * centrage (`CatalogueScreen.tsx`, CAT-R04) — jamais deux estimations
  * indépendantes de la même hauteur.
  *
- * `NAVIGATION_CONTENT_HEIGHT` remplace l'usage de
- * `dimensions.mainNavigation.visualHeight` (`66`) pour la hauteur réelle :
- * ce token n'a jamais été vérifié contre un rendu réel et s'est révélé trop
- * grand à la contre-recette iPhone (SHELL-R02-E). La valeur ici est dérivée
- * du contenu réel d'un item de navigation (slot d'icône + écart + hauteur
- * de ligne du libellé + espacement vertical DS), donc exacte par
- * construction plutôt qu'une estimation séparée.
+ * `NAVIGATION_CONTENT_HEIGHT` reste la hauteur du seul CONTENU d'un item de
+ * navigation (slot d'icône + écart + hauteur de ligne du libellé +
+ * espacement vertical DS), dérivée par construction plutôt qu'estimée. La
+ * hauteur RÉELLE de la barre elle-même (`NAVIGATION_BAR_HEIGHT`, plus bas)
+ * est un token DSF distinct — voir sa note de tête pour l'historique de
+ * cette distinction (SHELL-R02-E, puis la revue iPhone qui l'a révisée).
  */
 // N-01 (contre-recette iPhone, `[ChatGPT] DEVICE NO-GO — PHASE02 REWORK03
 // CUMULATIVE CORRECTION`, 2026-09-03) : réduit légèrement et uniformément
@@ -33,6 +32,27 @@ export const NAVIGATION_CONTENT_HEIGHT =
   NAVIGATION_LABEL_GAP +
   type.navLabel.lineHeight +
   NAVIGATION_ITEM_VERTICAL_PADDING * 2;
+
+/**
+ * VISUAL_CORRECTION (revue iPhone du HEAD `d6ce731`, obligation 1) : la
+ * hauteur RÉELLE de la barre (`tabsGroup`) redevient
+ * `dimensions.mainNavigation.visualHeight` (`66`) — le token canonique
+ * abandonné par SHELL-R02-E au profit de `NAVIGATION_CONTENT_HEIGHT`
+ * (`56`, hauteur du seul CONTENU d'un item, jamais celle de la barre elle-
+ * même). La contre-recette avait alors jugé ce token « jamais vérifié
+ * contre un rendu réel » ; la revue iPhone la plus récente constate au
+ * contraire une marge insuffisante entre le haut des icônes et le bord
+ * supérieur du cadre — la barre doit donc rester strictement plus haute que
+ * son contenu, pour ménager cette marge par construction (`alignItems:
+ * "center"` centre alors le contenu dans l'espace excédentaire), plutôt que
+ * d'égaler exactement sa hauteur.
+ *
+ * Le cadre actif (`activeIndicator`, `app/(tabs)/_layout.tsx`) reprend la
+ * hauteur `dimensions.activeDestination.visualHeight` (`56`, exactement
+ * `NAVIGATION_CONTENT_HEIGHT`) et reste centré verticalement dans ce cadre
+ * global désormais plus haut — jamais étiré sur toute sa hauteur.
+ */
+export const NAVIGATION_BAR_HEIGHT = dimensions.mainNavigation.visualHeight;
 
 /**
  * Marge horizontale de la rangée de navigation (gauche/droite) et écart
@@ -75,5 +95,5 @@ export const NAVIGATION_BAR_BOTTOM_RESIDUAL = NAVIGATION_ROW_HORIZONTAL_MARGIN;
  * espace (`CatalogueScreen.tsx`, CAT-R04).
  */
 export function navigationBarTotalHeight(): number {
-  return NAVIGATION_BAR_BOTTOM_RESIDUAL + NAVIGATION_CONTENT_HEIGHT;
+  return NAVIGATION_BAR_BOTTOM_RESIDUAL + NAVIGATION_BAR_HEIGHT;
 }

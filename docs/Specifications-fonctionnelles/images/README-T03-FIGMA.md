@@ -63,8 +63,8 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 | Écran 4i | Séries pilote | `3580:4733` | `ecran-4i-creation-activite-series-pilote.png` | `402 × 874` | écran | COURANT |
 | Écran 4j | Durée totale pilote | `3580:4845` | `ecran-4j-creation-activite-duree-totale-pilote.png` | `402 × 874` | écran | COURANT |
 | Écran 4k | Durée ajustée | `3580:4957` | `ecran-4k-creation-activite-duree-ajustee.png` | `402 × 874` | écran | COURANT |
-| Écran 6 | Catégories de la séance | `2028:11204` | `ecran-6-categories-seance.png` | `402 × 874` | écran | COURANT |
-| Écran 6a | Catégories — Nouvelle catégorie inline | `2028:11248` | `ecran-6a-categories-nouvelle-inline.png` | `402 × 874` | écran | COURANT |
+| Écran 6 | Composition séance — Étiquettes | `2028:11204` | `ecran-6-categories-seance.png` | `402 × 874` | écran | COURANT — binaire historique à ne pas substituer à Figma |
+| Écran 6a | Composition séance — Nouvelle étiquette | `4640:6308` | `ecran-6a-categories-nouvelle-inline.png` | `402 × 874` | écran | COURANT — binaire historique à ne pas substituer à Figma |
 | Écran 7 | Calendrier — Jour | `1992:5510` | `ecran-7-calendrier-jour.png` | `402 × 874` | écran | COURANT |
 | Écran 7a | Calendrier — Semaine | `1992:5101` | `ecran-7a-calendrier-semaine.png` | `402 × 874` | écran | COURANT |
 | Écran 7b | Calendrier — Mois | `1992:5237` | `ecran-7b-calendrier-mois.png` | `402 × 874` | écran | COURANT |
@@ -95,10 +95,10 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 | Écran 11 | Suivi : Séances — Liste condensée | `1992:8843` | `ecran-11-suivi-condense.png` | `402 × 874` | écran | COURANT |
 | Écran 11a | Suivi : Séances — Vue déployée | `1992:8996` | `ecran-11a-suivi-deploye.png` | `402 × 874` | écran | COURANT |
 | Écran 11b | Suivi : Séances — État vide | `2117:190` | `ecran-11b-suivi-vide.png` | `402 × 874` | écran | COURANT |
-| Écran 12 | Catalogue des Activités — Liste | `3786:5093` | `ecran-12-catalogue-activites-liste.png` | `402 × 874` | écran | COURANT |
-| Écran 13 | Ancien Catalogue des Activités — Créer — Arbre d’actions | `3787:5148` | `ecran-13-catalogue-activites-creer-arbre.png` | `402 × 874` | écran | SUPERSEDED |
+| Écran 12 | Catalogue des Exercices — Liste | `3786:5093` | `ecran-12-catalogue-activites-liste.png` | `402 × 874` | écran | COURANT |
+| Écran 13 | Ancien Catalogue des Exercices — Créer — Arbre d’actions | `3787:5148` | `ecran-13-catalogue-activites-creer-arbre.png` | `402 × 874` | écran | SUPERSEDED |
 | Écran 13a | Ancien Catalogue des Séances — Créer — Arbre d’actions | `3841:8375` | `ecran-13a-catalogue-seances-creer-arbre.png` | `402 × 874` | écran | SUPERSEDED |
-| Écran 14 | Composition — Sélectionner plusieurs Activités existantes | `3789:5349` | `ecran-14-selection-activites-existantes.png` | `402 × 874` | écran | COURANT |
+| Écran 14 | Composition — Sélectionner plusieurs Exercices existantes | `3789:5349` | `ecran-14-selection-activites-existantes.png` | `402 × 874` | écran | COURANT |
 | Écran 15 | Créer une Activité persistante | `3879:5947` | `ecran-15-creation-activite-persistante.png` | `402 × 874` | écran | COURANT |
 | Écran 15a | Modifier une Activité persistante | `3879:6079` | `ecran-15a-modification-activite-persistante.png` | `402 × 874` | écran | COURANT |
 | Écran 16 | Exécution directe — Préparation fixe de 5 s | `3835:5385` | `ecran-16-preparation-directe-5-s.png` | `402 × 874` | écran | COURANT |
@@ -106,7 +106,7 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 | Écran 18 | Synthèse d’une Activité directe — Ressenti requis | `3836:5437` | `ecran-18-synthese-directe-ressenti-requis.png` | `402 × 874` | écran | COURANT |
 | Écran 18a | Synthèse d’une Activité directe — Ressenti sélectionné | `3836:5503` | `ecran-18a-synthese-directe-ressenti-selectionne.png` | `402 × 874` | écran | COURANT |
 | Modale 1 | Abandonner la création de la séance | `2028:11298` | `modale-1-abandon-creation-seance.png` | `402 × 874` | écran | COURANT |
-| Modale 2 | Abandonner les modifications d’une Activité | — | `modale-2-abandon-modifications-activite.png` | `402 × 874` | écran | À CLARIFIER |
+| Modale 2 | Abandonner la création d’une Activité | `4714:6241` | `modale-2-abandon-modifications-activite.png` | `402 × 874` | écran | COURANT |
 | Modale 3 | Séance archivée — Action Supprimer révélée | `2234:88` | `modale-3-seance-archivee-action-supprimer.png` | `402 × 874` | écran | COURANT |
 | Modale 3a | Confirmer la suppression d’une séance archivée | `2234:189` | `modale-3a-confirmer-suppression-seance-archivee.png` | `402 × 874` | écran | COURANT |
 | Modale 4 | Supprimer une planification unique | `1992:5365` | `modale-4-suppression-planification-unique.png` | `402 × 874` | écran | COURANT |
@@ -156,14 +156,13 @@ Les sept variantes ont été contrôlées visuellement sur l’export `status-ba
 | `creation-activite-recuperation.png` | non documenté | HISTORIQUE | Idem. |
 | `creation-recuperation-duree-ouverte.png` | non documenté | HISTORIQUE | Idem. |
 
-## 6. Points `NON VÉRIFIABLE` / `À CLARIFIER`
+## 6. Résolutions et point restant `À CLARIFIER`
 
-1. **Modale 2 — `modale-2-abandon-modifications-activite.png`.** Le chapitre 06 cite le node `3224:4082`, `Modal — Abandonner les modifications d’une activité`. Ce node **n’existe plus** dans le fichier Figma courant et aucune frame équivalente n’a été trouvée sur les deux pages du fichier. La capture existante est conservée sans remplacement et n’est pas déclarée courante. Statut : `À CLARIFIER`.
-2. **Panneaux/options ouverts `Filtrer` et `Trier`.** Les contrôles d’entrée sont conçus et vérifiables ; le détail des panneaux ouverts reste `NON VÉRIFIABLE` faute de frame dédiée validée. Aucune modale, feuille, popover ou liste d’options ne doit être inventée avant arbitrage.
-3. **Section Médias de l’éditeur d’Activité.** Arbitrage V2-CAT-01 résolu : les frames courantes `3542:4656`, `3561:4695`, `3561:7802`, `3553:4704`, `3553:4768`, `3556:7645`, `3556:7712`, `3556:7801`, `3561:7673`, `3580:4733`, `3580:4845`, `3580:4957`, `3879:5947` et `3879:6079` constituent l’évidence visuelle de la section Médias repliable. La section est visible dans le MVP, mais son contrôle `Déployer / Condenser` et son placeholder restent désactivés ; aucune fonction média réelle n’est activée. Voir D-185.
+1. **Modale d’abandon de création d’Activité.** Le Figma courant contient `4714:6241 — Modal — Abandonner la création de l’activité`. Cette frame remplace l’ancienne référence disparue `3224:4082` pour le parcours de création courant.
+2. **Panneaux ouverts `Filtrer`.** Ils sont conçus et vérifiables dans Figma avec des options contextuelles selon le Catalogue. `Trier` reste visible mais disabled dans le périmètre T03.
+3. **Médias Activité.** Le média associé peut être affiché dans la carte déployée du Catalogue des Exercices dans le MVP. L’éditeur suit les frames courantes ; l’import/capture et la gestion multiple restent régis par leur périmètre propre. Voir D-195.
 4. **Ancien arbre `Créer` des Catalogues.** D-187 supprime cet écran intermédiaire : `Créer` est désormais contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant. Les frames `3787:5148` et `3841:8375` sont conservées comme évidences historiques/supersédées ; D-186 reste une décision historique.
 5. **Écran 1e — `ecran-1e-profil-parcours-vide.png`.** L’export de la frame `2139:86`, `Profil — Vue d’ensemble — Parcours vide`, est **strictement identique** (même empreinte binaire) à l’export de la frame `1992:684`, `Profil — Vue d’ensemble - Vibration activée`. L’état « parcours vide » n’est pas visuellement distinguable dans le Figma courant. Les deux nodes existent et sont conservés tels quels.
-6. **Écran 2h — `ecran-2h-catalogue-apres-archivage.png`.** La frame `1992:10937`, nommée `Catalogue des séances — Liste sans Renforcement du genou`, affiche la snackbar `Séance supprimée`, alors que la légende du chapitre 06 décrit un retrait par archivage.
 
 ## 7. Géométrie de la rangée Catalogue
 
@@ -183,12 +182,12 @@ La présence de la rangée `Créer / Filtrer / Trier` et l’état `disabled` de
 
 `Renforcement du genou` est une **valeur de démonstration Figma**, jamais un libellé statique. Seul l’état vide `3943:6064` conserve `Nom de l’activité` comme état vide/placeholder. Les frames `3879:5947` et `3879:6079` utilisent respectivement `Étirement du quadriceps` et `Squat assisté` comme valeurs de démonstration.
 
-En Répétitions et À l’échec, le contrôle visible porte `Durée totale >=`. La Synthèse fonctionnelle reste formulée `Durée totale : ≥ {durée connue}` : le libellé court du contrôle ne modifie pas la règle métier. Ce point a été recontrôlé visuellement sur `3561:4695` et `3561:7802`.
+Selon D-204, le texte éditable distingue désormais les modes : en Répétitions, il affiche `Durée totale >= {estimation}` avec 1 seconde conventionnelle par répétition ; en À l’échec, il n’affiche pas de Durée totale. Les frames `3561:4695` et `3561:7802` matérialisent ces deux états.
 
 ## 9. Historique des exports
 
 État du 15 septembre 2026 :
-- le contrôle `Déployer` des cartes Activité réutilisait le composant DSF canonique `2537:1033 — State=Collapsed`, visible mais fonctionnellement désactivé en T03 ;
+- le contrôle `Déployer` des cartes Activité était encore désactivé à cette date historique ; D-195 l’a depuis rendu actif dans le MVP pour afficher/masquer le média associé ;
 - le composant `Navigation / Bottom — Source exact` (`2537:214`) utilisait des dessins de destination de dimension maximale `24 pt`, recentrés dans les boîtes optiques `32 × 32 pt` ;
 - les trois fichiers `CE-ACT-EXE-01a/01b/01c` avaient alors été réexportés après ces deux corrections.
 
@@ -210,3 +209,7 @@ Figma reste la source du rendu visuel courant. Une vérification Figma ne vaut p
 - `Créer` devient contextuel à chaque Catalogue et ouvre directement la création de l’objet correspondant ;
 - l’écran/arbre intermédiaire des Catalogues est supprimé ;
 - les frames `3787:5148` et `3841:8375` et leurs captures sont conservées comme historiques/supersédées, sans suppression physique.
+
+## Réserve D-208 — récupération
+
+À compter du 25/09/2026, les captures montrant l’ancien modèle de récupération générique attachée à l’Activité ne font plus foi sur cet axe. D-208 impose une récupération entre côtés conditionnelle dans l’éditeur et une ligne `Récupération {durée}` systématique sous chaque occurrence de Composition, y compris `0 s`. Les captures concernées doivent être réexportées après alignement du Figma ; jusqu’alors leur statut visuel est **PARTIELLEMENT CONFORME** sur le seul axe récupération.

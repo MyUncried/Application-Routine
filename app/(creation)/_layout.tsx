@@ -23,7 +23,22 @@ import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
  *
  * `categories` ajoutée en T01-S09 (CE-T01-11), même patron — `Enregistrer
  * la séance` réinitialise le brouillon partagé (`resetDraft`) puis quitte
- * ce `Stack` entièrement (`router.dismissTo("/")`) vers le Catalogue.
+ * ce `Stack` entièrement (`router.dismissTo(...)`) vers le Catalogue,
+ * segment `Séances` (UI-CAT-R-005/006, signal `catalogueSegment` consommé
+ * par `CatalogueScreen`).
+ *
+ * VISUAL_CORRECTION (revue indépendante 5753653735, point 4) : une
+ * tentative antérieure posait `animation: "slide_from_left"` sur
+ * `categories` pour que la SORTIE (`Enregistrer la séance`) glisse vers la
+ * gauche — mais l'option d'un écran de `Stack` régit SYMÉTRIQUEMENT son
+ * ENTRÉE et sa SORTIE (native-stack ne distingue pas les deux) : elle
+ * dégradait donc l'ENTRÉE (`Continuer`, composition → catégories), qui
+ * glissait alors, à tort, depuis la gauche au lieu de la droite. Retirée :
+ * `categories` reprend la transition STANDARD de la pile (`Continuer`
+ * entre depuis la droite ; `Retour` en ressort vers la droite), déjà
+ * contractuelle et correcte pour les deux transitions, sans régression de
+ * l'une pour corriger l'autre. La destination et les règles métier de
+ * `router.dismissTo` restent inchangées.
  *
  * `gestureEnabled: false` (correctif T02, 2026-09-08, point 3 ; **étendu à
  * TOUT le parcours par T02-S02, continuation après recette visuelle**) — le
@@ -54,6 +69,7 @@ export default function CreationLayout() {
         <Stack.Screen name="composition" />
         <Stack.Screen name="exercise" />
         <Stack.Screen name="categories" />
+        <Stack.Screen name="activity-selection" />
       </Stack>
     </SessionDraftProvider>
   );

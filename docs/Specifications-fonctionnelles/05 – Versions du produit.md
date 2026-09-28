@@ -1,30 +1,32 @@
 ## V1 – KODJO MVP : séance structurée et exécution locale
 
+> Mise à jour du 24 septembre 2026 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Activité ; Point d’arrêt ; Compte à rebours et Fin propres à l’Activité ; changement de côté non exposé au niveau Tour ; roulettes en modale basse ; média déployable dans le Catalogue des Exercices.
+
 ### Objectif
 
-Permettre à un utilisateur de créer une séance structurée, la planifier si nécessaire, l’exécuter en étant guidé et conserver un historique local, sans compte utilisateur ni synchronisation.
+Permettre à un utilisateur de créer des Séances structurées et des Exercices persistants, **planifier directement l’un ou l’autre**, les exécuter en étant guidé et conserver un historique local, sans compte utilisateur ni synchronisation.
 
 ### Fonctionnalités
 
 - créer, modifier, dupliquer et archiver une Séance ; supprimer une Séance uniquement depuis les archives ;
-- créer des Activités sans sélection de type ;
+- créer des Exercices sans sélection de type ;
 - définir pour chaque exercice :
   - un nom ;
   - une consigne ;
   - une durée, un nombre de répétitions ou le mode À l’échec ;
   - un nombre de Séries propre à l'Exercice ;
-  - une Pause éventuelle appliquée uniquement entre les Séries ;
-  - une Récupération éventuelle exécutée après tous les côtés d’une Activité autonome ou après chaque passage de Tour bilatéral ;
+  - une Pause éventuelle appliquée uniquement entre deux Séries successives, donc `C−1` fois par côté ;
+  - une Récupération entre côtés éventuelle, uniquement pour une Activité bilatérale ;
   - en mode Durée, une Durée totale calculée et dépendante du nombre de Séries ;
-- ne pas associer de média à une Activité dans le MVP ; afficher l’action désactivée et préparer `0..n` médias ordonnés en V2 ;
-- ordonner les activités d’un Tour ;
+- afficher dans le MVP le média associé à une Activité lorsque sa carte Catalogue est déployée ; la gestion multiple et les mécanismes d’acquisition suivent leur périmètre propre ;
+- ordonner les exercices d’un Tour ;
 - utiliser un Cycle technique unique, toujours fixé à une répétition et jamais affiché ;
-- ordonner les Activités dans le Tour visible, dont le nombre de répétitions est compris entre 1 et 99 ;
+- ordonner les Exercices dans le Tour visible, dont le nombre de répétitions est compris entre 1 et 99 ;
 - exécuter immédiatement une séance ;
 - guider l’utilisateur visuellement et sonorement pendant l’exécution ;
-- annoncer vocalement le nom de chaque Activité au moment où elle commence et `Récupération` au démarrage de sa phase de Récupération éventuelle ;
+- annoncer vocalement le nom de chaque Activité au moment où elle commence et `Récupération` au démarrage d’une phase `SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY` lorsqu’elle existe ;
 - émettre un bip grave à chaque seconde pendant les exercices chronométrés ;
-- ne pas émettre de bip de rythme pendant les Pauses entre Séries ni pendant la phase de Récupération après l’Activité ;
+- ne pas émettre de bip de rythme pendant les Pauses entre Séries ni pendant les phases de récupération ;
 - émettre un bip aigu pendant chacune des trois dernières secondes de toute étape chronométrée ;
 - remplacer, pendant les trois dernières secondes d’un exercice, le bip grave par le bip aigu ;
 - passer automatiquement à l’étape suivante à la fin d’une étape chronométrée ;
@@ -41,8 +43,8 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
   - la date de la séance ;
   - sa durée ;
   - son statut ;
-  - les Activités terminées, Partielles ou interrompues ;
-  - les Tours et Activités réalisés ;
+  - les Exercices terminées, Partielles ou interrompues ;
+  - les Tours et Exercices réalisés ;
   - la version de la séance ;
   - la routine éventuelle ;
 - consulter un historique simple des séances ;
@@ -50,15 +52,15 @@ Permettre à un utilisateur de créer une séance structurée, la planifier si n
 - renseigner facultativement un Commentaire de **200 caractères maximum** ;
 - retrouver les Exécutions enregistrées sous forme de cartes condensées ou déployées individuellement dans le Suivi ; afficher `Vue d’ensemble`, `Filtrer` et `Trier` comme commandes désactivées.
 
-Dans cette version, l’échauffement et le retour au calme utilisent des Activités ordinaires, placées selon le besoin avant le Tour, dans le Tour ou après le Tour. `Retour au calme` n’est pas un type structurel particulier.
+Dans cette version, l’échauffement et le retour au calme utilisent des Exercices ordinaires, placées selon le besoin avant le Tour, dans le Tour ou après le Tour. `Retour au calme` n’est pas un type structurel particulier.
 
 Le guidage sonore doit, dans la mesure permise par le système d’exploitation, continuer lorsque l’écran est verrouillé ou que l’application fonctionne en arrière-plan.
 
 Toutes les données sont enregistrées uniquement sur l’appareil.
 
 La V1 permet également :
-- de créer une routine ;
-- d'associer une séance à une routine ;
+- de créer une Routine ;
+- d'associer une Séance **ou un Exercice persistant** à une Routine ;
 - de définir une planification `Aucune` ou `Périodique` ; dans le MVP, le mode Périodique utilise une périodicité hebdomadaire jusqu'à une date de fin ;
 - d'ajouter un rappel facultatif (0 ou 1 rappel par Routine).
 
@@ -66,9 +68,9 @@ Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → 
 
 ---
 
-## MVP bis – Compléments immédiats
+## Complément intégré au MVP
 
-- permettre de supprimer une Catégorie personnalisée créée par erreur depuis la gestion dédiée ; cette action n’est pas disponible dans l’interface S09 de sélection des Catégories.
+- D-200 intègre directement au MVP la suppression des Étiquettes, Catégories et Zones corporelles depuis leurs modales de sélection par appui long puis confirmation ; toutes les valeurs, initiales comme personnalisées, sont concernées.
 
 ## V2 – Réutilisation avancée des séances
 
@@ -83,7 +85,7 @@ Enrichir rapidement la construction et l’exécution des routines, sans modifie
 - copier son contenu afin qu’il devienne indépendant de la séance source ;
 - développer, replier et modifier une séance intégrée ;
 - enrichir les structures d’échauffement et de fin de séance si les tests montrent ce besoin ;
-- calculer distinctement la Durée estimée d’exécution du Plan complet et la Durée synthétique des Activités affichée dans le Catalogue et la Composition ;
+- calculer distinctement la Durée estimée d’exécution du Plan complet et la Durée synthétique des Exercices affichée dans le Catalogue et la Composition ;
 - afficher la progression dans les structures et séances intégrées ;
 - enregistrer les structures imbriquées et les éléments réellement effectués.
 - ajouter des filtres avancés du Suivi (catégories, zones corporelles, période, statut) et, si utile, des critères de tri supplémentaires.
@@ -110,7 +112,7 @@ La structure d'une séance pourra être étendue afin de permettre :
  - plusieurs Tours ordonnés dans un même Cycle ;
  - un nombre de répétitions propre à chaque Cycle et à chaque Tour.
  
- Cette évolution ne rend pas les Cycles, Tours ou copies `SessionActivity` réutilisables entre plusieurs Séances. Le Catalogue des Activités du MVP T03 permet séparément de copier une `ActivityDefinition` autonome dans plusieurs Séances ; chaque copie devient ensuite indépendante.
+ Cette évolution ne rend pas les Cycles, Tours ou copies `SessionActivity` réutilisables entre plusieurs Séances. Le Catalogue des Exercices du MVP T03 permet séparément de copier une `ActivityDefinition` autonome dans plusieurs Séances ; chaque copie devient ensuite indépendante.
 
 ## V3 – Synchronisation et relation avec un kinésithérapeute
 
@@ -156,7 +158,7 @@ Développer les fonctions avancées, sociales et intelligentes de l’applicatio
 - génération assistée de séances ;
 - recommandations personnalisées ;
 - adaptation des séances selon l'historique ;
-- aide à la création d'activités ;
+- aide à la création d'exercices ;
 
 
 - suivi détaillé de la douleur, de la fatigue et de la progression ;
@@ -182,54 +184,63 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 ### V1 (MVP)
 - Gestion des séances actives et archivées.
-- Gestion des routines de planification.
+- Gestion des Routines de planification pour les Séances **et les Exercices persistants**.
 
 ## Répartition validée — 6 septembre 2026
 
 ### MVP
 
 - troisième mode d’Exercice `À l’échec`, exécuté comme le mode Répétitions avec `Suivant` ;
-- Catalogue affichant `Activités / Séances / Circuits` ; `Séances` est actif dès T01 et `Activités` devient actif dans le MVP avec T03 ; `Circuits` reste visible mais désactivé ;
-- section Médias visible et repliable dans l’éditeur, avec contrôle `Déployer / Condenser` et placeholder média désactivés ; aucune fonction média réelle dans le MVP.
-- nouvelle structure d’édition d’une Activité : suppression du type, sections repliables Description et Zone corporelle, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Côté / Récupération / Durée totale`, synthèse fixe et action `Terminer` ;
-- modèle et calculs de Récupération après l’Activité préparés avant T04.
+- Catalogue affichant `Exercices / Séances / Parcours` ; `Séances` est actif dès T01 et `Exercices` devient actif dans le MVP avec T03 ; `Parcours` reste visible mais désactivé ;
+- carte d’Activité du Catalogue déployable/repliable pour afficher le média associé dans le MVP ; l’activation de cet affichage n’implique pas de nouveau mécanisme d’import ou de capture.
+- nouvelle structure d’édition d’une Activité : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Récupération entre côtés / Durée totale`, la récupération entre côtés étant conditionnelle à `D→G/G→D` ;
+- référentiels Étiquettes / Catégories / Zones corporelles administrables dans le MVP : toutes les valeurs, initiales comme personnalisées, sont supprimables par appui long puis confirmation ; création et renommage suivent les parcours propres à chaque référentiel ;
+- modèle D-208 : `ActivityDefinition` porte seulement la récupération entre côtés éventuelle ; chaque occurrence de Séance/Parcours porte sa récupération après activité, y compris à `0 s`, exécutée après l’occurrence et exclue de la durée intrinsèque de l’Activité.
 
 ### MVP — complément T03
 
-- Catalogue et cycle de vie des Activités de référence ;
+- Catalogue et cycle de vie des Exercices de référence ;
 - création, consultation et modification d’une Activité persistante ;
-- ajout dans une Séance par copie indépendante et sélection multiple ; pas d’action `Enregistrer dans mes activités` dans la première livraison ;
+- ajout dans une Séance par copie indépendante et sélection multiple ; pas d’action `Enregistrer dans mes exercices` dans la première livraison ;
 - Exécution directe avec préparation fixe de `5 s`, Synthèse à Ressenti obligatoire, Suivi général et statistiques compatibles.
 
 ### V2
 
 - `0..n` photos ou vidéos ordonnées, ajoutées par capture ou photothèque, stockées localement et lisibles manuellement ;
-- création, modification, archivage, suppression et exécution manuelle des Circuits ;
+- création, modification, archivage, suppression et exécution manuelle des Parcours ;
 - écran de transition obligatoire entre Séances, manuel ou automatique avec durée globale de `30 s` par défaut.
 
 ### V3
 
-- planification, récurrences, calendrier, rappels et notifications des Circuits.
+- planification, récurrences, calendrier, rappels et notifications des Parcours, **via le même mécanisme de Routine que les Séances et Exercices**, avec une source Parcours distincte.
 
 ## Roadmap des tranches MVP après arbitrage du 14 septembre 2026
 
 | Tranche | Périmètre |
 |---|---|
 | T01–T02 | Création, modification et Composition des Séances selon les contrats existants. |
-| T03 | Catalogue des Activités : liste, cycle de vie persistant, création contextuelle directe, sélection multiple, copie dans une Séance et Exécution directe complète. |
+| T03 | Catalogue des Exercices : liste, cycle de vie persistant, création contextuelle directe, sélection multiple, copie dans une Séance et Exécution directe complète. |
 | T04 | Moteur d’Exécution des Séances, correspondant à l’ancienne T03 et à ses anciens lots 1 et 2. |
 | T05 et suivantes | Ancienne T04 et tranches ultérieures, décalées d’un rang sans changement automatique de périmètre. |
 
 ## Tranche Bilatéralité et révision de T04
 
-Une tranche spécifique précède l’Exécution T04. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT`, la copie et la duplication, les calculs, les synthèses, les contrôles Activité et Tour, la confirmation conditionnelle d’activation d’un Tour et la résolution propre/effective. Elle n’exécute encore aucun passage.
+Une tranche spécifique précède l’Exécution T04. Elle livre la configuration et la persistance `UNILATERAL` / `RIGHT_LEFT` / `LEFT_RIGHT` au niveau Activité, ainsi que la copie, la duplication, les calculs et les synthèses associés. Le support technique historique du côté au niveau Tour est conservé pour non-régression mais n’est pas exposé ni modifiable dans la version actuelle.
 
-T04 est ensuite révisée pour développer le Plan d’Exécution par Séries, Tours et côtés, afficher le sous-titre du côté courant, pondérer la progression globale, émettre les annonces vocales de côté, réinitialiser uniquement le passage courant et persister des résultats séparés par côté. Les anciennes exclusions d’une Série unique ou d’un Tour unique sont supprimées des contrats T04.
+T04 développe ensuite le Plan d’Exécution par Séries, Tours et côtés portés par les Exercices, affiche le côté courant, pondère la progression globale, émet les annonces vocales de côté, réinitialise uniquement le passage courant et persiste des résultats séparés par côté.
 
 ## MVP T03 — Activité directement exécutable
 
-La première version fonctionnelle du Catalogue des Activités inclut l’exécution directe d’une référence persistante : action sur la carte, préparation fixe de `5 s`, moteur commun, Synthèse, Suivi général typé et statistiques compatibles. Cette capacité appartient désormais au MVP T03. Le MVP n’est donc plus centré exclusivement sur les Séances : une Activité persistante valide constitue aussi une source exécutable.
+La première version fonctionnelle du Catalogue des Exercices inclut l’exécution directe d’une référence persistante : action sur la carte, préparation fixe de `5 s`, moteur commun, Synthèse, Suivi général typé et statistiques compatibles. Cette capacité appartient désormais au MVP T03. Le MVP n’est donc plus centré exclusivement sur les Séances : une Activité persistante valide constitue aussi une source exécutable.
 
 ### Précision MVP T03 — Carte d’Activité ; médias hors périmètre
 
-Dans le Catalogue des Activités, l’appui sur la carte ouvre la consultation ou la modification et le bouton Lecture lance l’Exécution directe. Le contrôle `Déployer` reste visible mais fonctionnellement désactivé en T03 ; il réutilise le composant DSF canonique du Catalogue des séances et conserve une zone réservée identique sur toutes les cartes. Son activation pour afficher les médias reste une évolution post-MVP distincte.
+Dans le Catalogue des Exercices, l’appui sur la carte ouvre la consultation ou la modification et le bouton Lecture lance l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé ; il réutilise le composant DSF canonique du Catalogue des séances et conserve une zone réservée identique sur toutes les cartes. L’affichage du média dans la carte déployée appartient au MVP.
+
+## Évolution conçue — consultation média pendant l’Exécution
+
+La consultation des médias pendant l’Exécution est **conçue mais non affectée à une tranche de livraison**. Tant qu’une décision de roadmap ne la requalifie pas, elle reste post-MVP conformément à la règle existante sur les médias multiples fonctionnels.
+
+La cible comprend la bascule Information/Média, la galerie ordonnée, la vidéo avec son actif par défaut et baisse temporaire pendant les annonces vocales, le plein écran orientable et le cadre flottant d’Exécution.
+
+Spécification de synthèse : `../CONCEPTION-EXECUTION-MEDIA.md`.

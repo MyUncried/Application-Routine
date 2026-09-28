@@ -4,10 +4,12 @@ import { StyleSheet, Text } from "react-native";
 
 import {
   NAVIGATION_BAR_BOTTOM_RESIDUAL,
+  NAVIGATION_BAR_HEIGHT,
+  NAVIGATION_CONTENT_HEIGHT,
   NAVIGATION_ICON_SLOT,
   NAVIGATION_ROW_HORIZONTAL_MARGIN,
 } from "@/shared/ui/navigationLayout";
-import { icon, minTouchTarget } from "@/shared/ui/tokens";
+import { dimensions, icon, minTouchTarget } from "@/shared/ui/tokens";
 import { strings } from "@/shared/i18n";
 
 /**
@@ -109,7 +111,10 @@ describe("Navigation basse — rangée unique, quatre destinations + Recherche (
     expect(screen.getByTestId("navigation-tab-calendar")).toBeTruthy();
     expect(screen.getByTestId("navigation-tab-history")).toBeTruthy();
     expect(screen.getByTestId("navigation-tab-profile")).toBeTruthy();
-    expect(screen.getByLabelText(strings.nav.sessions)).toBeTruthy();
+    // V2-CAT-01 (plan §4.5) : la destination basse porte désormais le
+    // libellé permanent `Catalogues` (`strings.screens.sessions.navLabel`),
+    // distinct de `strings.nav.sessions` (« Séances »).
+    expect(screen.getByLabelText(strings.screens.sessions.navLabel)).toBeTruthy();
     expect(screen.getByLabelText(strings.nav.calendar)).toBeTruthy();
     expect(screen.getByLabelText(strings.nav.history)).toBeTruthy();
     expect(screen.getByLabelText(strings.nav.profile)).toBeTruthy();
@@ -146,6 +151,63 @@ describe("Navigation basse — rangée unique, quatre destinations + Recherche (
 
     fireEvent.press(screen.getByTestId("navigation-tab-profile"));
     expect(screen.getByText("profile-screen")).toBeTruthy();
+  });
+});
+
+/**
+ * V2-CAT-01 (plan §4.5, revue 5732014381 obligation 1) : « Le cadre actif de
+ * navigation reste visible et glisse continûment entre destinations. »
+ */
+describe("Navigation basse — cadre actif animé (V2-CAT-01)", () => {
+  it("renders the active frame once destinations are measured, without a hard-coded position", () => {
+    renderTabsLayout();
+
+    fireEvent(screen.getByTestId("navigation-tab-index"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 80, height: 48 } },
+    });
+
+    expect(screen.getByTestId("navigation-active-indicator")).toBeTruthy();
+  });
+
+  it("remains present (never masked) across a destination change", () => {
+    renderTabsLayout();
+
+    fireEvent(screen.getByTestId("navigation-tab-index"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 80, height: 48 } },
+    });
+    fireEvent(screen.getByTestId("navigation-tab-calendar"), "layout", {
+      nativeEvent: { layout: { x: 80, y: 0, width: 80, height: 48 } },
+    });
+
+    fireEvent.press(screen.getByTestId("navigation-tab-calendar"));
+
+    expect(screen.getByTestId("navigation-active-indicator")).toBeTruthy();
+  });
+
+  /**
+   * VISUAL_CORRECTION (revue iPhone du HEAD `d6ce731`, obligation 1) : la
+   * barre retrouve une hauteur strictement supérieure au contenu d'un item
+   * (marge visible en haut/bas), et le cadre actif reste centré
+   * verticalement DANS ce cadre global désormais plus haut — jamais étiré
+   * sur toute sa hauteur.
+   */
+  it("gives the bar a height strictly greater than the item content, and centers the active frame vertically within it", () => {
+    renderTabsLayout();
+
+    const tabsGroup = screen.getByTestId("navigation-tabs-group");
+    expect(StyleSheet.flatten(tabsGroup.props.style).height).toBe(NAVIGATION_BAR_HEIGHT);
+    expect(NAVIGATION_BAR_HEIGHT).toBeGreaterThan(NAVIGATION_CONTENT_HEIGHT);
+
+    fireEvent(screen.getByTestId("navigation-tab-index"), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 80, height: 48 } },
+    });
+
+    const indicator = screen.getByTestId("navigation-active-indicator");
+    const flattened = StyleSheet.flatten(indicator.props.style);
+    expect(flattened.height).toBe(dimensions.activeDestination.visualHeight);
+    const marginTop = flattened.top as number;
+    const marginBottom = NAVIGATION_BAR_HEIGHT - (marginTop + dimensions.activeDestination.visualHeight);
+    expect(marginBottom).toBe(marginTop);
   });
 });
 
