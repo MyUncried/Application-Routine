@@ -103,7 +103,7 @@ La Pause et la Pause au changement de côté sont indépendantes. Avec `Aucun`, 
 
 En mode Durée, avec `C` le nombre de Séries par côté, `A` la durée cible par Série, `B` la Pause et `S` la Pause au changement de côté : en unilatéral, `Dexercice = C × A + (C − 1) × B` ; en bilatéral, `Dexercice = 2 × [C × A + (C − 1) × B] + S`. La Récupération après exercice n’entre jamais dans `Dexercice`. Le nombre de Séries est la valeur canonique persistée ; la Durée totale est dérivée.
 
-En mode Répétitions, le texte éditable présente `Durée totale >= {estimation}`. Pour cette estimation uniquement, chaque répétition vaut conventionnellement 1 seconde. L’estimation utilise `C−1` Pauses par côté et ajoute `sideRecoverySeconds` uniquement en bilatéral ; elle exclut toujours `postActivityRecoverySeconds`. Cette convention ne transforme pas les répétitions en durée cible d’Exécution. En mode À l’échec, aucune Durée totale n’est affichée dans le texte éditable.
+En mode Répétitions, la phrase présente `Durée totale ≥ {estimation}`. Pour cette estimation uniquement, chaque répétition vaut conventionnellement **2 secondes**. La formule est `Tmin = k × (N × R × 2 + (N − 1) × pS) + côté`, avec `k=2` si changement de côté sinon `1`, et `côté=pC` si applicable sinon `0`. En mode À l’échec, aucune Durée totale n’est affichée. En mode Durée avec une seule Série, la clause Durée totale est omise car redondante (D-231).
 
 ### Exercice de référence et Exercice de Séance
 
@@ -424,3 +424,8 @@ La suppression d’une valeur de référentiel la rend inactive pour les nouvell
 Les préférences du Profil initialisent les nouveaux objets puis sont découplées. Une Séance porte en outre un booléen global, activé par défaut, déterminant si les Compte à rebours d’exercice et Fin d’exercice propres à ses Exercices sont inclus dans son Plan. Ce booléen s’applique à tous les Exercices de la Séance.
 
 Le Point d’arrêt reste un élément structurel distinct de la Récupération. Lorsqu’ils coexistent après un Exercice, la récupération est exécutée avant le Point d’arrêt. Aucun Point d’arrêt n’est permis juste après le Compte à rebours initial ni juste avant la Fin de séance. Un Point d’arrêt interne au Circuit est rejoué à chaque Tour.
+
+
+### Phrase de synthèse des paramètres d’exécution
+
+La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, pause entre Séries si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Source normative : D-231 / spécification v9.
