@@ -1406,4 +1406,9 @@ L’implémentation de la navigation et des composants visuels respecte D-224 à
 
 ### Générateur de phrase v9
 
-Implémenter le générateur comme fonction pure au-dessus des paramètres de l’Exercice. La bibliothèque de fragments et les règles de sélection sont celles de D-231 ; le calcul Répétitions utilise la constante `r=2 s`. Le jeu de 7 états d’entrée + 36 cas du classeur v9 doit être transcrit en tests paramétrés. Aucun texte Figma ne doit être utilisé comme source de vérité fonctionnelle.
+Implémenter le générateur comme fonction pure au-dessus des paramètres de l’Exercice. La bibliothèque de fragments et les règles de sélection sont celles de D-232 ; le calcul Répétitions utilise la constante `r=2 s`. Le jeu de 7 états d’entrée + 36 cas du classeur v9 doit être transcrit en tests paramétrés. Aucun texte Figma ne doit être utilisé comme source de vérité fonctionnelle.
+
+
+### Validation du générateur v10.1
+
+Le générateur est une fonction pure et déterministe conforme à D-232. Les bornes sont validées au domaine : Séries `1..99`, Répétitions `1..100`, Durée par Série `1..5999 s`, pauses inter-Séries/inter-côtés `0..300 s`. Le composant stepper des pauses applique `±5 s` jusqu’à `120 s`, puis `±30 s` jusqu’à `300 s`, avec transition `115 s → 120 s → 150 s`. La valeur Profil de pause au changement de côté est copiée dans l’Exercice lors de sa première applicabilité. En V1, `r=2 s` est fourni à l’unique fonction de calcul ; la stratégie V2 de lecture/copie depuis le Profil reste hors périmètre MVP et À CLARIFIER.
