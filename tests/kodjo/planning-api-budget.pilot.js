@@ -14,7 +14,7 @@ const bind='\nslice_id=S\napplication_head='+head+'\napplication_pr=2\n';
 const plan=comment(10,'[KODJO_V2] PLAN_OUTPUT'+bind+'PLAN');
 const review=comment(11,'[KODJO_V2] PLAN_REVIEW_OUTPUT'+bind+'source_plan_comment_id=10\nREVIEW');
 const command='[KODJO_V2] START_PLAN_REVISION'+bind+'base_plan_comment_id=10\nbase_review_comment_id=11\n';
-const args={command,commandId:20,issueUrl:url,slice:'S',applicationHead:head,applicationPr:2,mode:'revision'};
+const args={command,commandId:20,issueUrl:url,slice:'S',sourceHead:head,applicationHead:head,applicationPr:2,mode:'revision'};
 const base=[plan,review,comment(20,command,'MyUncried')];
 test('canonical selection excludes unlimited history and keeps exact plan/review',()=>{
  const selected=select({...args,commandId:2000,comments:[plan,review,comment(2000,command,'MyUncried'),...Array.from({length:1000},(_,i)=>comment(100+i,'UNRELATED'.repeat(100)))]});
@@ -39,6 +39,21 @@ test('targeted success is included without global approval',()=>{
  assert.throws(()=>select({...args,comments:[...base,c]}),/TARGETED_SCOPE/);
 });
 test('initial planning keeps command and no revision history',()=>assert.deepEqual(select({...args,mode:'initial',comments:base}),[]));
+test('initial planning after REVISE binds the latest reviewed plan instead of rebuilding from history',()=>{
+ const initialBind='\nslice_id=S\nsource_head='+head+'\nplanning_mode=INITIAL\n';
+ const initialPlan=comment(30,'[KODJO_V2] PLAN_OUTPUT'+initialBind+'STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\nPLAN');
+ const initialReview=comment(31,'[KODJO_V2] PLAN_REVIEW_OUTPUT\nslice_id=S\nsource_head='+head+'\nsource_plan_comment_id=30\nverdict=REVISE\nSTATUT : PLAN_REVISION_REQUIRED\nREVIEW');
+ const initialCommand='[KODJO_V2] START_INITIAL_PLAN\nslice_id=S\nsource_head='+head+'\n';
+ const out=select({comments:[initialPlan,initialReview,comment(40,initialCommand,'MyUncried')],command:initialCommand,commandId:40,issueUrl:url,slice:'S',sourceHead:head,mode:'initial'});
+ assert.deepEqual(out.map(x=>[x.role,x.id]),[['BASE_PLAN','30'],['INDEPENDENT_REVIEW','31']]);
+});
+test('initial planning refuses to rebuild an already approved latest plan',()=>{
+ const initialBind='\nslice_id=S\nsource_head='+head+'\nplanning_mode=INITIAL\n';
+ const initialPlan=comment(30,'[KODJO_V2] PLAN_OUTPUT'+initialBind+'STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\nPLAN');
+ const initialReview=comment(31,'[KODJO_V2] PLAN_REVIEW_OUTPUT\nslice_id=S\nsource_head='+head+'\nsource_plan_comment_id=30\nverdict=APPROVE\nSTATUT : PLAN_REVIEW_APPROVED\nREVIEW');
+ const initialCommand='[KODJO_V2] START_INITIAL_PLAN\nslice_id=S\nsource_head='+head+'\n';
+ assert.throws(()=>select({comments:[initialPlan,initialReview,comment(40,initialCommand,'MyUncried')],command:initialCommand,commandId:40,issueUrl:url,slice:'S',sourceHead:head,mode:'initial'}),/INITIAL_PLAN_ALREADY_APPROVED/);
+});
 test('budget measures deterministic complete payload including schema and output reserve',()=>{
  const a=measure(request),b=measure({...request,text:{format:{schema:{description:'normative '.repeat(100)}}}});
  assert.equal(a.status,'PASS');assert.deepEqual(measure(request),a);
