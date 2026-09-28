@@ -481,7 +481,7 @@ Mode 3 options égales ; sans mode, phrase vide ; mode affiché hors phrase ; en
 
 ### 9. Layout déterministe
 
-DSF/grilles sans compensation locale. En Répétitions, `Durée totale ≥ {estimation}` apparaît dans la phrase selon D-231. En À l’échec, aucun élément `Durée totale` n’est affiché. Les frames `3561:4695` et `3561:7802` matérialisent ces deux états. Centrer nombre répétitions ; sélection Mode coïncide avec contrôle externe. La valeur Figma `5 min 30 s`, lorsqu’elle apparaît, est illustrative et ne devient pas une valeur métier par défaut.
+DSF/grilles sans compensation locale. En Répétitions, `Durée totale ≥ {estimation}` apparaît dans la phrase selon D-232. En À l’échec, aucun élément `Durée totale` n’est affiché. Les frames `3561:4695` et `3561:7802` matérialisent ces deux états. Centrer nombre répétitions ; sélection Mode coïncide avec contrôle externe. La valeur Figma `5 min 30 s`, lorsqu’elle apparaît, est illustrative et ne devient pas une valeur métier par défaut.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -521,7 +521,7 @@ Modes selected ; contrôles disabled annoncés ; wheel bloque focus arrière-pla
 
 ### 19. Invariants
 
-Aucun média fonctionnel ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’exercice` réservé à l’état vide/placeholder représenté ; Durée : clause Durée totale uniquement pour plusieurs Séries ; Répétitions = `Durée totale ≥ {estimation}` avec 2 s par répétition ; À l’échec = aucune Durée totale ; calcul intrinsèque conforme à D-208 avec `C−1` Pauses par côté et `sideRecoverySeconds` uniquement en bilatéral ; `postActivityRecoverySeconds` exclu ; ActivityDefinition distincte d’une SessionActivity.
+Aucun média fonctionnel ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’exercice` réservé à l’état vide/placeholder représenté ; Durée : clause Durée totale si plusieurs Séries ou changement de côté ; Répétitions = `Durée totale ≥ {estimation}` avec 2 s par répétition ; À l’échec = aucune Durée totale ; calcul intrinsèque conforme à D-208 avec `C−1` Pauses par côté et `sideRecoverySeconds` uniquement en bilatéral ; `postActivityRecoverySeconds` exclu ; ActivityDefinition distincte d’une SessionActivity.
 
 ### 20. Recette déterministe
 
@@ -1948,7 +1948,7 @@ Le Catalogue des Parcours, lorsqu’il devient fonctionnel et planifiable, appli
 
 ## Complément contrats — D-209 à D-218
 
-- **Éditeur Exercice** : exactement une Catégorie et `1..n` Zones corporelles sont requises pour `Terminer`. La phrase de synthèse suit D-231 ; en mode Durée avec une seule Série, la clause `Durée totale` est omise.
+- **Éditeur Exercice** : exactement une Catégorie et `1..n` Zones corporelles sont requises pour `Terminer`. La phrase de synthèse suit D-232 ; en mode Durée avec une seule Série, la clause `Durée totale` est omise.
 - **Référentiels** : une suppression confirmée retire la valeur des choix futurs mais ne retire pas les affectations existantes. Les messages Figma doivent exprimer cette conservation. Une valeur inactive déjà affectée reste affichable et conservable lors d’un enregistrement.
 - **Composition** : employer Circuit pour le groupe répété et Tours pour son nombre de répétitions. Le réglage global de prise en compte des Compte à rebours/Fins d’exercice est activé par défaut. Les positions de Point d’arrêt juste après le Compte à rebours initial et juste avant la Fin de séance sont absentes. Récupération précède Point d’arrêt sur leur ligne commune.
 - **Média compact** : bouton Lecture central avant lecture, masqué pendant lecture ; retour Information met la vidéo en pause.
@@ -1978,4 +1978,9 @@ Les contrats actifs appliquent D-221 à D-230. En particulier : aucune recherche
 
 ### Contrat de phrase de synthèse v9
 
-La phrase est vide tant qu’aucun mode n’est sélectionné. Le mode reste affiché séparément. Toute modification d’un paramètre régénère la phrase. Le texte concatène les fragments conditionnels définis par D-231 et ne persiste pas comme donnée autonome. Le nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité sont exclus. Les cas du classeur v9 constituent les tests d’acceptation textuels. Les points du §8 de la spécification restent À CLARIFIER.
+La phrase est vide tant qu’aucun mode n’est sélectionné. Le mode reste affiché séparément. Toute modification d’un paramètre régénère la phrase. Le texte concatène les fragments conditionnels définis par D-232 et ne persiste pas comme donnée autonome. Le nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité sont exclus. Les cas du classeur v9 constituent les tests d’acceptation textuels. Les points du §8 de la spécification restent À CLARIFIER.
+
+
+### Critères d’acceptation v10.1 — D-232
+
+État initial : aucun mode, phrase vide, `Terminer` désactivé. Première sélection : impossible ensuite de revenir à aucun mode. Changement de mode : paramètres communs conservés et dernière valeur spécifique de chaque mode restaurée pendant l’édition. Séries `1..99`; Répétitions `1..100`; Durée par Série `1 s..99 min 59 s`. Pauses inter-Séries et inter-côtés : stepper `0..5 min`, `5 s` par pas jusqu’à `2 min`, puis `30 s` jusqu’à `5 min`. Pause inter-côtés initialisée par copie de la valeur Profil. La phrase omet la Durée totale seulement en Durée avec `N=1` et côté `Aucun`; elle l’affiche si `N>1` ou si un changement de côté est défini. Compte à rebours et Fin de séance ne sont ni dans la phrase ni dans la Durée totale.
