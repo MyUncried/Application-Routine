@@ -395,9 +395,6 @@ Les états complémentaires suivants font partie de la référence de développe
 | Écran 1b | Vibration activée | ![[images/ecran-1b-profil-vibration-activee.png\|220]] | Valeur initiale fonctionnelle de la préférence `Vibration` | `1992:684` |
 | Écran 1c | Stepper — Pause au changement de côté | ![[images/ecran-1c-profil-compte-rebours-ouvert.png\|220]] | Réglage numérique du Profil par stepper | `1992:474` |
 | Écran 1d | Stepper — Récupération après un exercice | ![[images/ecran-1d-profil-fin-seance-ouverte.png\|220]] | Réglage numérique du Profil par stepper | `1992:579` |
-| Écran 1e | Profil d’un parcours encore vide | ![[images/ecran-1e-profil-parcours-vide.png\|220]] | Présentation du Profil avant que l’utilisateur ait créé du contenu | `2139:86` |
-| Contrôle 1f | Compte à rebours d’Exercice | — | Valeur globale proposée pour le Compte à rebours propre d’une nouvelle Exercice ; pas de frame plein écran distincte | `4179:9550` |
-| Contrôle 1g | Fin d’exercice | — | Valeur globale proposée pour la Fin propre d’une nouvelle Exercice ; pas de frame plein écran distincte | `4179:9556` |
 
 ### Objectif
 
@@ -1841,9 +1838,7 @@ L’ancienne référence `3787:5209 — Catalogue — action contextuelle direct
 
 ### Résolutions postérieures au contrôle visuel du 16 septembre 2026
 
-Les points suivants ont été résolus depuis ce contrôle : la modale d’abandon de création d’Exercice est représentée par `4714:6241`; les panneaux ouverts de `Filtrer` sont conçus ; l’affichage média déployé du Catalogue des Exercices appartient au MVP ; l’ancien arbre `Créer` reste historique ; la création inline d’une Zone corporelle dans `4683:6336` est désormais cohérente avec D-199. Un point d’évidence visuelle reste **NON VÉRIFIABLE** et devra être traité lors de l’inventaire Figma avant réexport :
-
-1. **Écran 1e — Profil, parcours encore vide.** La frame `2139:86` produit un export strictement identique à celui de la frame `1992:684` (`Vibration activée`). La documentation n’en déduit aucune règle fonctionnelle supplémentaire.
+Les points suivants ont été résolus depuis ce contrôle : la modale d’abandon de création d’Exercice est représentée par `4714:6241`; les panneaux ouverts de `Filtrer` sont conçus ; l’affichage média déployé du Catalogue des Exercices appartient au MVP ; l’ancien arbre `Créer` reste historique ; la création inline d’une Zone corporelle dans `4683:6336` est désormais cohérente avec D-199. Le contrôle de l’état `2139:86` a confirmé qu’il est redondant avec `1992:684` (`Vibration activée`) ; il n’est plus présenté comme un état d’écran distinct dans le chapitre 06.
 
 ## États Figma — conception média pendant l’Exécution
 
