@@ -38,7 +38,11 @@ test('targeted success is included without global approval',()=>{
  c.body=c.body.replace('"global_approval":false','"global_approval":true');
  assert.throws(()=>select({...args,comments:[...base,c]}),/TARGETED_SCOPE/);
 });
-test('initial planning keeps command and no revision history',()=>assert.deepEqual(select({...args,mode:'initial',comments:base}),[]));
+test('initial planning keeps command and no revision history',()=>{
+ const initialCommand='[KODJO_V2] START_INITIAL_PLAN\nslice_id=S\nsource_head='+head+'\n';
+ const initialArgs={command:initialCommand,commandId:20,issueUrl:url,slice:'S',sourceHead:head,mode:'initial'};
+ assert.deepEqual(select({...initialArgs,comments:[comment(20,initialCommand,'MyUncried')]}),[]);
+});
 test('initial planning after REVISE binds the latest reviewed plan instead of rebuilding from history',()=>{
  const initialBind='\nslice_id=S\nsource_head='+head+'\nplanning_mode=INITIAL\n';
  const initialPlan=comment(30,'[KODJO_V2] PLAN_OUTPUT'+initialBind+'STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\nPLAN');
