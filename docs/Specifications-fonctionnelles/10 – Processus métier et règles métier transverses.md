@@ -70,7 +70,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-129 | En mode Durée, la durée intrinsèque d’un Exercice vaut `C×A + (C−1)×B` en unilatéral et `2×[C×A + (C−1)×B] + S` en bilatéral, avec `S = sideRecoverySeconds`. `postActivityRecoverySeconds` n’entre jamais dans cette durée. |
 | RM-130 | Si Séries pilote, toute modification de `A`, `B`, `C`, du `sideMode` ou de `sideRecoverySeconds` recalcule la durée intrinsèque. Si la Durée totale pilote, l’inversion utilise la formule D-208 correspondante puis arrondit `C` au plus proche avec `.5` vers le haut, minimum `1`, avant recalcul de la durée réalisable. |
 | RM-131 | Séries et Durée totale ne pilotent jamais simultanément. Séries est le pilote implicite initial sans contour ; le dernier contrôle confirmé devient le pilote et reçoit le contour `color/selection`. Le pilote n’est pas persisté. |
-| RM-132 | Dans le texte éditable : mode Durée inchangé ; mode Répétitions = `Durée totale >= {estimation}` avec 1 seconde conventionnelle par répétition. L’estimation vaut `C×N+(C−1)×B` en unilatéral et `2×[C×N+(C−1)×B]+S` en bilatéral, avec `S=sideRecoverySeconds`; `postActivityRecoverySeconds` est exclu. Mode À l’échec = aucune Durée totale affichée. |
+| RM-132 | **Supersédée par RM-231 / D-231** pour la phrase de synthèse v9. |
 
 ## 5. Planification et Calendrier
 
@@ -208,7 +208,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-150 | Les résultats sont séparés par côté ; l’état global est partiel dès qu’un côté est partiel ou manquant après avancement. |
 | RM-151 | Dans la Composition, une carte affiche sa direction propre `D→G` ou `G→D` lorsqu’elle est bilatérale ; aucune indication avec `Aucun`. Le Tour ne porte pas de direction exposée. |
 | RM-152 | Dans l’écran Ajouter/Modifier un Exercice, la synthèse bilatérale place la direction développée après la cible du mode et avant la Pause. Cette clause est absente avec `Aucun`. Dans une carte de Composition, le petit indicateur `D→G` ou `G→D` porte seul la direction. |
-| RM-153 | Le libellé `Durée totale` reste inchangé en mode Durée. En Répétitions, `>=` signale une estimation fondée sur 1 seconde conventionnelle par répétition ; en À l’échec, le libellé et la valeur ne sont pas affichés dans le texte éditable. |
+| RM-153 | **Supersédée par RM-231 / D-231** pour la phrase de synthèse v9. |
 
 ## 12. Règles métier — Exécution directe d’un Exercice — MVP T03
 
@@ -266,8 +266,10 @@ Ces règles décrivent une conception post-MVP à planifier.
 | RM-218 | Une Séance applique par défaut les Compte à rebours d’exercice et Fin d’exercice. Son réglage global peut neutraliser ensemble ces deux phases pour tous ses Exercices sans modifier leurs définitions. |
 | RM-219 | Après un Exercice, la Récupération après exercice est exécutée avant un éventuel Point d’arrêt. Aucun Point d’arrêt juste après le Compte à rebours initial ni juste avant la Fin de séance. |
 | RM-220 | Un Point d’arrêt peut être placé avant/après le Circuit et entre ses Exercices ; s’il est dans le Circuit, il est rencontré à chaque Tour. |
-| RM-221 | Dans le texte éditable, Durée affiche toujours `Durée totale`; Répétitions affiche la borne `>=`; À l’échec n’affiche pas de Durée totale numérique. |
+| RM-221 | **Supersédée par RM-231 / D-231** pour la phrase de synthèse v9. |
 
 | RM-221 | Les Catalogues du MVP ne proposent aucune recherche globale ou locale ; filtres et tri restent les mécanismes de réduction/organisation disponibles selon leur périmètre. |
 | RM-222 | Une sélection simple d’objet planifiable est exclusive, validée au toucher et ferme la modale sans CTA `Sélectionner`; une sélection multiple de Composition conserve cases à cocher et validation explicite. |
 | RM-223 | Le titre de planification est `Planifier` tant que le type n’est pas connu, puis `Planifier une séance` ou `Planifier une activité` selon la source. |
+
+| RM-231 | Phrase de synthèse v9 : aucun mode → champ vide ; mode affiché hors phrase ; recalcul à chaque modification ; `N=1` en Durée → pas de clause Durée totale ; Répétitions → minimum estimé avec `r=2 s` par répétition ; À l’échec → aucune Durée totale. Avec changement de côté, chaque côté exécute son bloc complet de Séries et pauses inter-séries ; la pause entre côtés n’est comptée qu’une fois. Le nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité sont exclus de la phrase. |
