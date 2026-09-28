@@ -1869,7 +1869,7 @@ Le bouton de changement de face existe uniquement si l’Exercice possède au mo
 
 ### 4. Interactions
 
-Bouton dédié → retournement 3D. Swipe horizontal en face Média → média précédent/suivant, exactement un par geste. La galerie ne boucle pas. Un appui sur le média → CE-MEDIA-EXEC-02. Le libellé Série/Tour suit le motif d’Exécution à 24 px ; la capture `4997:6113` montre encore 17 px et constitue un écart visuel à corriger dans Figma avant gel des références.
+Bouton dédié → retournement 3D. Swipe horizontal en face Média → média précédent/suivant, exactement un par geste. La galerie ne boucle pas. Un appui sur le média → CE-MEDIA-EXEC-02. La taille du libellé Série/Tour dépend de la variante d’Exécution : `17 px` sur la variante à bascule basse avec cercle (`4997:6113`) ; `24 px` sur la variante à bascule haute avec média (`5588:4363`), où il est aligné sur « Côté droit ». Ces deux tailles sont conformes au prototype.
 
 ### 5. État
 
@@ -1970,7 +1970,7 @@ Les contrats actifs appliquent D-221 à D-230. En particulier : aucune recherche
 - **Point d’arrêt** : bouton rond blanc opaque, icône Pause, contour 1 px `#0508E5`; l’action complète porte le contour. Les occurrences de Composition utilisent cette référence commune.
 - **Ressenti** : ne pas confondre contrôle de choix et pictogramme de résultat. Résultats : vert Bien, orange Neutre, rouge Mal ; rouge source `#EF4444`. Aucun état actif Figma ne prouve un contrôle « Mal sélectionné ».
 - **Profil** : titres de section Semi Bold 16 px ; `Modifier` en `#0508E5`; groupes blancs 126 px ; zone de contexte 115 px ; ouverture d’un stepper sans étirement du groupe.
-- **Exécution** : sur les cinq écrans portant `Zone — Progression et suite`, début `y=449`, hauteur `305 px`. Dans la variante haute avec texte, conserver 95 px avant la zone. Variante média : `Série X/3 • Tour X/3` en Roboto Condensed Medium 24 px.
+- **Exécution** : sur les cinq écrans portant `Zone — Progression et suite`, début `y=449`, hauteur `305 px`. Dans la variante haute avec texte, conserver 95 px avant la zone. Typographie de Série/Tour selon la variante : `17 px` pour la bascule basse avec cercle (`4997:6113`) ; `24 px`, Roboto Condensed Medium, pour la bascule haute avec média (`5588:4363`).
 - **Carte média déployée** : état réellement déployé avec carte et barre latérale étendues, chevron haut, deux aperçus réduits, chevron entre eux, marge droite 16 px et cartes suivantes repositionnées ; ne pas utiliser l’ancienne carte condensée comme référence de cet état.
 
 
@@ -1997,4 +1997,4 @@ Les 96 états de la campagne principale et les deux états média D-203 (soit 98
 | Exécution directe `4968:8188`, `5588:4363`, `5021:5994`, `5581:4257` | Contrat d’Exécution et règles DSF d’action circulaire | Variantes d’écran distinctes, sans création d’un contrat par capture. |
 | Média `4997:6113`, `5009:6069` | `CE-MEDIA-EXEC-01/02`, D-203 | Références visuelles MVP ; écart typographique à corriger sur `4997:6113`. |
 
-**Écart visuel restant à lever :** le texte Série/Tour de `4997:6113` est à 17 px au lieu de 24 px. La roulette de Durée est visible sur le frame de référence `4367:8193`; les CTA désactivés ont été corrigés sur `4217:6980` et `5088:6398`. Les règles V1/MVP de D-232 sont tranchées ; la seule décision fonctionnelle ouverte reste la stratégie V2 de `r`, hors MVP.
+La revue visuelle est clôturée : le libellé Série/Tour à 17 px sur `4997:6113` est conforme à sa variante. La roulette de Durée est visible sur le frame de référence `4367:8193` ; les CTA désactivés ont été corrigés sur `4217:6980` et `5088:6398`. Les règles V1/MVP de D-232 sont tranchées ; la seule décision fonctionnelle ouverte reste la stratégie V2 de `r`, hors MVP.
