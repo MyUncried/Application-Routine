@@ -6,13 +6,13 @@ Sources contrôlées directement : Figma `G6RY5Ebhgwb4AHIOYDwwvg`, page `Prototy
 
 ## Objet
 
-Cette matrice couvre l’inventaire contrôlé des **113 frames de premier niveau** actuellement présentes dans `Prototype MVP` au 28 septembre 2026. Les références historiques/archivées conservées hors premier niveau restent tracées séparément et ne sont pas comptées comme écrans actifs.
+Cette matrice couvre l’inventaire contrôlé des **113 frames de premier niveau** actuellement présentes dans `Prototype MVP` au 28 septembre 2026. Les références historiques/archivées conservées hors premier niveau restent tracées séparément et ne sont pas comptées comme écrans actifs. Après confirmation du 28/09/2026 que les deux états média D-203 sont dans le MVP, la couverture documentaire requise est de **98 états MVP** (96 états déjà qualifiés + `4997:6113` + `5009:6069`).
 
 Les PNG des écrans qualifiés ont été exportés dans la PR #247 ; les chemins et légendes ont été réconciliés avec la page Figma courante.
 
 ## Synthèse
 
-Le contrôle exhaustif du 28 septembre 2026 recense **113 frames de premier niveau** présentes dans `Prototype MVP`, tous statuts confondus (écrans, références et variantes). La matrice conserve en plus des traces historiques/archivées qui ne sont pas comptées parmi les 113 frames. La réconciliation node-id par node-id est détaillée en fin de document ; elle aboutit à une couverture **113/113** des frames de premier niveau.
+Le contrôle exhaustif du 28 septembre 2026 recense **113 frames de premier niveau** présentes dans `Prototype MVP`, tous statuts confondus (écrans, références et variantes), dont **98 états MVP nécessitant une copie** après inclusion des deux variantes média. La matrice conserve en plus des traces historiques/archivées qui ne sont pas comptées parmi les 113 frames. La réconciliation node-id par node-id est détaillée en fin de document ; elle aboutit à une couverture **113/113** des frames de premier niveau.
 
 ### Règles de qualification
 
@@ -176,10 +176,10 @@ Les trois nouveaux états Figma suivants matérialisent D-200 et doivent être r
 | Node | Frame | Classification | Documentée | Référence documentaire | Statut |
 | --- | --- | --- | :---: | --- | --- |
 | `4997:6015` | Test 2 Exécution d’une séance — Initial — Bascule (info) | TRACE DE CONCEPTION POST-MVP — NODE ABSENT | NON VÉRIFIABLE DANS FIGMA ACTUEL | Chapitre 06 ; CE-MEDIA-EXEC-01 ; CONCEPTION-EXECUTION-MEDIA.md | CONSERVER TRACE — PAS DE RÉEXPORT |
-| `4997:6113` | Test 2 Exécution d’une séance — Initial — Bascule (média) | ÉTAT DE CONCEPTION POST-MVP | OUI | Chapitre 06 ; CE-MEDIA-EXEC-01 ; CONCEPTION-EXECUTION-MEDIA.md | COUVERT |
-| `5009:6069` | Test 2 Exécution d’une séance — Média plein écran | ÉTAT DE CONCEPTION POST-MVP | OUI | Chapitre 06 ; CE-MEDIA-EXEC-02 ; CONCEPTION-EXECUTION-MEDIA.md | COUVERT |
+| `4997:6113` | Test 2 Exécution d’une séance — Initial — Bascule (média) | ÉTAT MVP — MÉDIA | OUI | Chapitre 06 ; CE-MEDIA-EXEC-01 ; CONCEPTION-EXECUTION-MEDIA.md | COUVERT |
+| `5009:6069` | Test 2 Exécution d’une séance — Média plein écran | ÉTAT MVP — MÉDIA PLEIN ÉCRAN | OUI | Chapitre 06 ; CE-MEDIA-EXEC-02 ; CONCEPTION-EXECUTION-MEDIA.md | COUVERT |
 
-`4997:6113` et `5009:6069` restent présents comme frames de premier niveau du Prototype MVP. `4997:6015` n’est plus retrouvé dans Figma au contrôle du 28/09/2026 : sa référence est conservée uniquement pour traçabilité documentaire et ne doit pas être réexportée. Ces références ne constituent pas, à elles seules, une décision d’entrée dans le MVP.
+`4997:6113` et `5009:6069` restent présents comme frames de premier niveau du Prototype MVP et sont inclus au périmètre MVP de consultation média par D-203 (confirmation du 28/09/2026). `4997:6015` n’est plus retrouvé dans Figma au contrôle du 28/09/2026 : sa référence est conservée uniquement pour traçabilité documentaire et ne doit pas être réexportée. La décision D-203 confirmée le 28/09/2026 inclut ces deux états dans le MVP ; l’ajout/import dans l’éditeur reste hors périmètre.
 
 ## Réserve D-208 — récupération
 
@@ -191,7 +191,7 @@ D-208 modifie le comportement et le rendu attendus de la récupération. Tant qu
 
 ## Complément de réconciliation exhaustive — 28 septembre 2026
 
-Les 12 frames ci-dessous étaient absentes de la matrice précédente ; deux variantes d’exécution supplémentaires (`4997:6113`, `5009:6069`) ont été repérées lors de la seconde passe et ajoutées après le tableau. Elles sont intégrées à l’inventaire et à la campagne de réexport.
+Les 12 frames ci-dessous étaient absentes de la matrice précédente ; les deux états d’exécution média (`4997:6113`, `5009:6069`) ont été repérés lors de la seconde passe et ajoutés après le tableau. Ils sont inclus au MVP par D-203 et à la campagne de réexport.
 
 | # | Node Figma | Frame | Nature | Copie dans 06 ? | Copie actuelle | Action | Cible PNG proposée | Réf. dans 06 | Justification |
 |---:|---|---|---|:---:|---|---|---|---:|---|
@@ -208,8 +208,8 @@ Les 12 frames ci-dessous étaient absentes de la matrice précédente ; deux var
 | 133 | `5301:5443` | Composition séance — Retirer un point d’arrêt | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/figma-5301-5443.png | EXPORTÉ — AJOUTÉ | Specifications-fonctionnelles/images/figma-5301-5443.png | 1 | Frame active ajoutée au parcours de Composition ; état intermédiaire de retrait d’un Point d’arrêt. |
 | 134 | `5451:4272` | Modal — Choisir un exercice — Planification — Liste longue | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/figma-5451-4272.png | EXPORTÉ — AJOUTÉ | Specifications-fonctionnelles/images/figma-5451-4272.png | 1 | Frame active de premier niveau ; sélection simple exclusive pour la planification. |
 
-| 135 | `4997:6113` | Exécution d'un exercice — Initial — Bascule basse (média) avec Cercle | CONCEPTION POST-MVP | RÉFÉRENCE | images/figma-4997-6113.png | EXPORTÉ | Specifications-fonctionnelles/images/figma-4997-6113.png | 1 | Variante média documentée par D-203 ; présence sur la page sans décision d’entrée dans le MVP. |
-| 136 | `5009:6069` | Exécution d'un exercice — Média plein écran | CONCEPTION POST-MVP | RÉFÉRENCE | images/figma-5009-6069.png | EXPORTÉ | Specifications-fonctionnelles/images/figma-5009-6069.png | 1 | Variante média documentée par D-203 ; présence sur la page sans décision d’entrée dans le MVP. |
+| 135 | `4997:6113` | Exécution d'un exercice — Initial — Bascule basse (média) avec Cercle | ÉTAT MVP — MÉDIA | OUI | images/figma-4997-6113.png | EXPORTÉ | Specifications-fonctionnelles/images/figma-4997-6113.png | 1 | État MVP inclus par D-203 ; copie requise et présente. |
+| 136 | `5009:6069` | Exécution d'un exercice — Média plein écran | ÉTAT MVP — MÉDIA PLEIN ÉCRAN | OUI | images/figma-5009-6069.png | EXPORTÉ | Specifications-fonctionnelles/images/figma-5009-6069.png | 1 | État MVP inclus par D-203 ; copie requise et présente. |
 
 ### Résultat de réconciliation
 
