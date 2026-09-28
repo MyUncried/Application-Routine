@@ -118,8 +118,10 @@ test('UI plan: consume refuse un contrat embarque divergent', () => {
 test('workflows: INITIAL et REVISION produisent la matrice et les revues la rejouent avant Claude', () => {
   const initial=fs.readFileSync(path.join(root,'.github','workflows','kodjo-v2-slice-initial-plan.yml'),'utf8');
   const revision=fs.readFileSync(path.join(root,'.github','workflows','kodjo-v2-slice-plan.yml'),'utf8');
+  assert.match(initial,/generate-ui-plan-contract\.js request final/);
+  assert.match(initial,/generate-ui-plan-contract\.js decode final/);
+  assert.match(revision,/KODJO_UI_CRITERIA_MATRIX_JSON/);
   for (const source of [initial,revision]) {
-    assert.match(source,/KODJO_UI_CRITERIA_MATRIX_JSON/);
     assert.match(source,/verify-ui-plan-criteria\.js/);
     assert.match(source,/KODJO_UI_PLAN_CONTRACT_JSON/);
   }

@@ -10,7 +10,7 @@ function field(body,key,required=false) {
   if(hits.length>1 || (required&&!hits.length)) throw new Error('CONTEXT_FIELD_INVALID:'+key);
   return hits[0]?.[1].trim()||null;
 }
-function select({comments,command,commandId,issueUrl,slice,applicationHead,applicationPr,mode}) {
+function select({comments,command,commandId,issueUrl,slice,sourceHead,applicationHead,applicationPr,mode}) {
   if(!['initial','revision'].includes(mode)) throw new Error('CONTEXT_MODE_INVALID');
   if(!Array.isArray(comments)) throw new Error('CONTEXT_COMMENTS_INVALID');
   const ordered=[...comments].sort((a,b)=>Number(a.id)-Number(b.id));
@@ -28,6 +28,7 @@ function select({comments,command,commandId,issueUrl,slice,applicationHead,appli
   }
   const matches=(c,marker)=>normalize(c.body).startsWith(marker+'\n') && field(c.body,'slice_id')===slice;
   const bound=c=>field(c.body,'application_head')===applicationHead && field(c.body,'application_pr')===String(applicationPr);
+  const initialBound=c=>field(c.body,'source_head')===sourceHead && field(c.body,'planning_mode')==='INITIAL';
   const latest=items=>items.at(-1);
   const selected=[];
   function add(role,c,author='github-actions[bot]') {
@@ -39,6 +40,37 @@ function select({comments,command,commandId,issueUrl,slice,applicationHead,appli
   const pinnedPlan=field(command,'base_plan_comment_id');
   const pinnedReview=field(command,'base_review_comment_id');
   if(Boolean(pinnedPlan)!==Boolean(pinnedReview)) throw new Error('CONTEXT_PLAN_REVIEW_PAIR_REQUIRED');
+  if(mode==='initial') {
+    const plans=eligible.filter(c=>matches(c,'[KODJO_V2] PLAN_OUTPUT')&&initialBound(c));
+    const findLatestReview=(plan)=>latest(eligible.filter(c=>matches(c,'[KODJO_V2] PLAN_REVIEW_OUTPUT')&&
+      field(c.body,'source_head')===sourceHead&&field(c.body,'source_plan_comment_id')===String(plan.id)));
+    if(pinnedPlan) {
+      const plan=plans.find(c=>String(c.id)===pinnedPlan);
+      if(!plan) throw new Error('CONTEXT_BASE_PLAN_INVALID');
+      const review=findLatestReview(plan);
+      if(!review || String(review.id)!==pinnedReview) throw new Error('CONTEXT_LATEST_REVIEW_REQUIRED');
+      if(field(review.body,'verdict')!=='REVISE' || !/^STATUT : PLAN_REVISION_REQUIRED$/m.test(normalize(review.body))) {
+        throw new Error('CONTEXT_INITIAL_REVISE_REQUIRED');
+      }
+      add('BASE_PLAN',plan);
+      add('INDEPENDENT_REVIEW',review);
+    } else {
+      const plan=latest(plans);
+      if(plan) {
+        const review=findLatestReview(plan);
+        if(!review) throw new Error('CONTEXT_INITIAL_PLAN_PENDING_REVIEW');
+        const verdict=field(review.body,'verdict');
+        if(verdict==='REVISE' && /^STATUT : PLAN_REVISION_REQUIRED$/m.test(normalize(review.body))) {
+          add('BASE_PLAN',plan);
+          add('INDEPENDENT_REVIEW',review);
+        } else if(verdict==='APPROVE') {
+          throw new Error('CONTEXT_INITIAL_PLAN_ALREADY_APPROVED');
+        } else {
+          throw new Error('CONTEXT_INITIAL_REVIEW_INVALID');
+        }
+      }
+    }
+  }
   if(mode==='revision') {
     const plans=eligible.filter(c=>matches(c,'[KODJO_V2] PLAN_OUTPUT')&&bound(c));
     const plan=pinnedPlan?plans.find(c=>String(c.id)===pinnedPlan):latest(plans);
@@ -81,7 +113,7 @@ function build(directory,env=process.env) {
   const issue=JSON.parse(read('issue.json'));
   if(Number(issue.number)!==Number(b.issue_number) || issue.url!==`https://api.github.com/repos/${b.repository}/issues/${b.issue_number}`) throw new Error('CONTEXT_ISSUE_MISMATCH');
   const selected=select({comments:JSON.parse(read('comments.json')),command,commandId:env.COMMAND_COMMENT_ID,
-    issueUrl:issue.url,slice:b.slice_id,applicationHead:env.APPLICATION_HEAD,applicationPr:env.APPLICATION_PR,mode});
+    issueUrl:issue.url,slice:b.slice_id,sourceHead:env.SOURCE_HEAD,applicationHead:env.APPLICATION_HEAD,applicationPr:env.APPLICATION_PR,mode});
   const sections=[], manifest={schema:'kodjo.planning-context.v1',slice_id:b.slice_id,mode,
     source_head:env.SOURCE_HEAD,application_head:env.APPLICATION_HEAD||env.SOURCE_HEAD,
     command_comment_id:env.COMMAND_COMMENT_ID||null,selection:selected.map(({body,...rest})=>rest),sections:[]};
@@ -96,7 +128,7 @@ function build(directory,env=process.env) {
   if(mode==='revision' && !selected.some(c=>c.role==='BASE_PLAN')) {
     for(const file of ['prior-technical-plan.md','prior-independent-review.md']) append(file,read(file),file);
   }
-  if(mode==='initial' && fs.existsSync(path.join(directory,'non-opposable-seed-plan.md'))) append('NON_OPPOSABLE_SEED',read('non-opposable-seed-plan.md'),'non-opposable-seed-plan.md');
+  if(mode==='initial' && !selected.some(c=>c.role==='BASE_PLAN') && fs.existsSync(path.join(directory,'non-opposable-seed-plan.md'))) append('NON_OPPOSABLE_SEED',read('non-opposable-seed-plan.md'),'non-opposable-seed-plan.md');
   for(const c of selected) append(c.role,c.body,'comment:'+c.id);
   const packet=sections.join('');
   manifest.utf8_bytes=Buffer.byteLength(packet);manifest.sha256=digest(packet);

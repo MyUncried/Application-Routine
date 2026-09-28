@@ -50,20 +50,19 @@ test('0.6.29 — les activations futures hachent le blob Git du HEAD et non les 
   assert.doesNotMatch(activation, /sha256File\(abs\)/);
 });
 
-test('0.6.29 — les sorties génératives du plan initial sont structurées puis assemblées mécaniquement', () => {
+test('0.6.29 + hotfix — le draft ferme d abord les racines puis la matrice UI est générée sur le scan réel', () => {
   const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan.yml');
-  // Draft schema/rendering now come from the shared executable contract.
-  assert.match(workflow, /generate-ui-plan-contract\.js request draft/);
-  assert.match(workflow, /generate-ui-plan-contract\.js decode draft/);
-  assert.equal((workflow.match(/type:"json_schema"/g) || []).length, 1);
-  assert.match(workflow, /name:"kodjo_initial_plan_decisions"/);
-  const {request}=require('../../scripts/kodjo/generate-ui-plan-contract');
-  const format=request('draft','mission').text.format;
-  assert.equal(format.type,'json_schema');
-  assert.equal(format.strict,true);
-  assert.equal(format.schema.properties.ui_criteria_matrix.type,'object');
-  assert.match(workflow, /JSON\.parse\(fs\.readFileSync\('\/tmp\/kodjo-v2-initial\/decisions\.json'/);
-  assert.doesNotMatch(workflow, /Return exactly one block and nothing else/);
+  assert.match(workflow, /name:"kodjo_initial_plan_draft"/);
+  assert.doesNotMatch(workflow, /generate-ui-plan-contract\.js request draft/);
+  assert.doesNotMatch(workflow, /generate-ui-plan-contract\.js decode draft/);
+  assert.match(workflow, /scan-plan-impact\.js" scan/);
+  assert.match(workflow, /generate-ui-plan-contract\.js request final/);
+  assert.match(workflow, /generate-ui-plan-contract\.js decode final/);
+  assert.ok(workflow.indexOf('scan-plan-impact.js" scan') < workflow.indexOf('generate-ui-plan-contract.js request final'));
+  assert.ok(workflow.indexOf('generate-ui-plan-contract.js decode final') < workflow.indexOf('verify-ui-plan-criteria.js'));
+  assert.match(workflow, /The UI criteria matrix is generated NOW, after the deterministic scan/);
+  assert.match(workflow, /preservation entries must be unique/);
+  assert.doesNotMatch(workflow, /name:"kodjo_initial_plan_decisions"/);
 });
 
 test('0.6.29 — le premier plan ferme le périmètre sur un seul niveau d importateurs directs', () => {
@@ -175,6 +174,27 @@ test('0.6.29 — un plan initial peut être republié après REVISE sans changer
   assert.match(spec, /nouvelle invocation `START_INITIAL_PLAN`/);
   assert.match(spec, /PLAN_REVIEW_OUTPUT/);
   assert.match(spec, /nouvel identifiant de commentaire de plan/);
+});
+
+test('hotfix — START_INITIAL_PLAN après REVISE conserve le plan et la revue comme base causale', () => {
+  const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan.yml');
+  const context = read('scripts/kodjo/build-planning-context.js');
+  assert.match(context, /mode==='initial'/);
+  assert.match(context, /CONTEXT_INITIAL_REVISE_REQUIRED/);
+  assert.match(context, /add\('BASE_PLAN',plan\)/);
+  assert.match(context, /add\('INDEPENDENT_REVIEW',review\)/);
+  assert.match(context, /CONTEXT_INITIAL_PLAN_ALREADY_APPROVED/);
+  assert.match(workflow, /this is a bounded correction of that reviewed plan, not a new planning pass/i);
+  assert.match(workflow, /Do not rebuild the plan from scratch/);
+  assert.match(workflow, /preserve all unaffected content and validated decisions from BASE_PLAN/i);
+});
+
+test('hotfix — INITIAL conserve le contrat direct à un niveau tout en couvrant les consommateurs UI classés MODIFY', () => {
+  const workflow = read('.github/workflows/kodjo-v2-slice-initial-plan.yml');
+  assert.equal((workflow.match(/scan-plan-impact\.js" scan/g) || []).length, 1);
+  assert.doesNotMatch(workflow, /for iteration in 1 2 3 4/);
+  assert.match(workflow, /each UI scan candidate classified MODIFY/);
+  assert.match(workflow, /contract=ONE_LEVEL_DIRECT_IMPORTS/);
 });
 
 test('0.6.29 — le parcours de révision V2 historique est conservé séparément', () => {
