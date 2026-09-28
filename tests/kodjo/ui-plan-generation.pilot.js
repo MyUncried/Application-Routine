@@ -50,6 +50,38 @@ test('KPB-001 all matrix producers share the exact nested contract and executabl
   for (const phase of ['draft','final']) for (const verb of ['request','decode']) assert.ok(revised.includes('generate-ui-plan-contract.js '+verb+' '+phase));
   assert.ok(!initial.includes('ui_criteria_matrix_json'));
 });
+test('INITIAL final schema binds every decision to the deterministic scan path set',()=>{
+  const scan={
+    modified_modules:[{path:'scripts/example.js',change:'MODIFY'}],
+    candidates:[
+      {path:'src/domain/example/Consumer.ts',candidate_kind:'CONSUMER'},
+      {path:'src/domain/example/__tests__/Consumer.test.ts',candidate_kind:'TEST'},
+    ],
+  };
+  const req=request('final','Mission',scan);
+  const props=req.text.format.schema.properties;
+  assert.ok(props.decision_classifications);
+  assert.ok(!props.decisions);
+  assert.deepEqual(Object.keys(props.decision_classifications.properties),scan.candidates.map(x=>x.path));
+  assert.deepEqual(props.decision_classifications.properties['src/domain/example/Consumer.ts'].properties.classification.enum,
+    ['MODIFY','CONSUMER_UNAFFECTED','REQUIRES_CLARIFICATION']);
+  assert.deepEqual(props.decision_classifications.properties['src/domain/example/__tests__/Consumer.test.ts'].properties.classification.enum,
+    ['TEST_MUST_ADAPT','TEST_UNAFFECTED','REQUIRES_CLARIFICATION']);
+  const result={
+    plan_markdown:'# Plan complet',
+    decision_classifications:{
+      'src/domain/example/Consumer.ts':{classification:'CONSUMER_UNAFFECTED',justification:'Contrat inchangé.'},
+      'src/domain/example/__tests__/Consumer.test.ts':{classification:'TEST_UNAFFECTED',justification:'Aucune adaptation requise.'},
+    },
+    ui_criteria_matrix:{schema:'kodjo.ui-criteria.v1',criteria:[],preservation:{preserve:[],change:[],forbidden:[]}},
+    plan_status:'READY_FOR_INDEPENDENT_REVIEW',
+  };
+  const out=decode('final',response(result),scan);
+  assert.match(out,/"path": "src\/domain\/example\/Consumer\.ts"/);
+  assert.match(out,/"path": "src\/domain\/example\/__tests__\/Consumer\.test\.ts"/);
+  assert.equal((out.match(/"path":/g)||[]).length,2);
+});
+
 test('KPB-001 valid draft and closure output preserve the complete matrix',()=>{
   const value=payload();
   assert.ok(decode('draft',response(value)).includes('KODJO_UI_CRITERIA_MATRIX_JSON'));
