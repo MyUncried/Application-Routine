@@ -37,7 +37,7 @@ Dans les écrans d'ajout ou de modification de l'Exercice, la ligne s'appelle «
 | Exercice | Pause au changement de côté ; Compte à rebours d'un exercice ; Fin d'exercice |
 | Séance | Récupération après un exercice ; Compte à rebours de la séance ; Fin de séance |
 
-Le titre du groupe est « Exercice », et non « Activité ». **Écart de vocabulaire à suivre :** l'entité métier reste nommée « Activité » dans une partie de la documentation ; ces libellés d'interface ne la renomment pas à eux seuls.
+Le titre du groupe est « Exercice », et non « Activité ». **Vocabulaire :** le glossaire de la PR #247 définit déjà l'objet métier « Exercice » ; conserver les identifiants techniques existants et signaler toute occurrence documentaire résiduelle d’« Activité » selon son contexte.
 
 ## T6 — Groupe de réglages Profil
 
