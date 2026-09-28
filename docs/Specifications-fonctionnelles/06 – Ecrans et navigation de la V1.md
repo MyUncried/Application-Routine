@@ -805,13 +805,13 @@ Le nom est obligatoire.
 
 Le contrôle `Durée / Répétitions / À l’échec` partage sa largeur en trois zones égales. Le texte de chaque option reste centré. Les titres des sections utilisent la même typographie que `Mode d’exécution` et le chevron DSF de déploiement. Le contenu central défile indépendamment de la synthèse et du bouton final. Le texte récapitulatif utilise `KODJO / Body` (`14/20`, Regular), occupe la largeur utile complète et conserve sa position fixe ; le contenu défilant maintient au moins `spacing/16` avant la synthèse.
 
-Dans le premier cadre, l’ordre horizontal est invariant : `Séries` à gauche, cible du mode au centre (`Durée`, `Répétitions` ou cadre informatif `à l’échec`), puis `Pause` à droite. Cet ordre reste inchangé lorsqu’une roulette est ouverte. Dans la seconde ligne du même cadre bleu, `Changement de côté` occupe le premier emplacement, puis `Récupération` et `Durée totale`. La géométrie suit le Figma courant et le DSF actif. Dans le texte éditable, le mode Durée conserve l’affichage actuel de `Durée totale`. En Répétitions, afficher **`Durée totale >= {estimation}`**, l’estimation comptant 1 seconde par répétition et les Pauses/Récupération selon les règles existantes. En À l’échec, ne pas afficher de Durée totale.
+Dans le premier cadre, l’ordre horizontal est invariant : `Séries` à gauche, cible du mode au centre (`Durée`, `Répétitions` ou cadre informatif `à l’échec`), puis `Pause` à droite. Cet ordre reste inchangé lorsqu’une roulette est ouverte. Dans la seconde ligne du même cadre bleu, `Changement de côté` occupe le premier emplacement, puis `Récupération` et `Durée totale`. La géométrie suit le Figma courant et le DSF actif. Dans la phrase de synthèse, le mode est affiché hors phrase. Sans mode, le champ est vide. En Durée, la clause `Durée totale` est présente uniquement pour plusieurs Séries ; en Répétitions, `Durée totale ≥ {estimation}` utilise 2 s par répétition ; en À l’échec elle est absente. La phrase est régénérée à chaque modification (D-231).
 
 La synthèse ne préfixe jamais la phrase par le type d’Exercice ni par le mode d’exécution. Le **nom de l’Exercice est en gras uniquement dans cette Synthèse**. Elle suit les formes fonctionnelles existantes pour les Séries, cibles, directions, Pauses et Récupération.
 
 Pour une direction propre bilatérale, ajouter après la cible du mode — après `jusqu’à l’échec` — et avant toute Pause : `, à droite, puis à gauche` ou `, à gauche, puis à droite`. Ne rien ajouter en `UNILATERAL` ni pour une direction seulement héritée du Tour.
 
-Lorsque la Récupération est non nulle, ajouter `, puis {récupération} de récupération`. En mode Durée, conserver `Durée totale : {durée totale}`. En mode Répétitions, afficher **`Durée totale >= {estimation}`** dans le texte éditable, avec 1 seconde conventionnelle par répétition. En mode À l’échec, omettre toute ligne ou clause `Durée totale`.
+La phrase intrinsèque n’inclut jamais la Récupération post-activité. Elle mentionne la pause entre Séries seulement si plusieurs Séries, et la pause au changement de côté seulement si un changement de côté est défini et que cette pause est positive. Les fragments et la ponctuation suivent D-231.
 
 ### Mode d’Exécution
 
@@ -823,7 +823,7 @@ L’utilisateur choisit entre :
 
 En mode `Durée`, les durées utilisent des roulettes en modale basse ; le Nombre de Séries utilise un stepper inline. La Pause au changement de côté n’est proposée qu’en bilatéral.
 
-En mode `Répétition`, la Durée est remplacée par le Nombre de répétitions. Nombre de répétitions et Nombre de Séries utilisent des steppers inline ; les durées de Pause utilisent des roulettes. `Durée totale >=` reste visible comme borne connue.
+En mode `Répétition`, la Durée est remplacée par le Nombre de répétitions. Nombre de répétitions et Nombre de Séries utilisent des steppers inline ; les durées de Pause utilisent des roulettes. `Durée totale ≥` reste visible comme borne connue, calculée à 2 s par répétition.
 
 En mode `À l’échec`, aucun contrôle Durée ou Nombre de répétitions n’est affiché. La rangée conserve trois emplacements : `Séries` à gauche, cadre informatif transparent bordé portant `à l’échec` au centre, puis `Pause` à droite. La seconde rangée conserve `Changement de côté` et, en bilatéral, `Pause au changement de côté` ; aucune `Durée totale` n’est affichée en mode À l’échec.
 
@@ -1908,3 +1908,8 @@ Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est re
 - **Profil** : titres de section Semi Bold 16 px ; `Modifier` en `#0508E5`; groupes blancs 126 px ; zone de contexte 115 px ; ouverture d’un stepper sans étirement du groupe.
 - **Exécution** : sur les cinq écrans portant `Zone — Progression et suite`, début `y=449`, hauteur `305 px`. Dans la variante haute avec texte, conserver 95 px avant la zone. Variante média : `Série X/3 • Tour X/3` en Roboto Condensed Medium 24 px.
 - **Carte média déployée** : état réellement déployé avec carte et barre latérale étendues, chevron haut, deux aperçus réduits, chevron entre eux, marge droite 16 px et cartes suivantes repositionnées ; ne pas utiliser l’ancienne carte condensée comme référence de cet état.
+
+
+### Phrase de synthèse v9 — règle fonctionnelle
+
+Le rendu Figma n’est pas la table de vérité du texte. La phrase suit D-231 : vide avant sélection d’un mode ; mode affiché séparément ; ordre `Séries → valeur/jusqu'à l'échec → pause séries → changement de côté → Durée totale éventuelle`; recalcul immédiat à chaque changement. Le classeur v9 fournit les fragments et cas de test de référence. Les points explicitement ouverts dans le §8 de la spécification restent À CLARIFIER avant développement.
