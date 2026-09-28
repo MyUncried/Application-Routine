@@ -134,7 +134,7 @@ Le contrôle utilisateur `Changement de côté` d’un Exercice propose `Aucun`,
 
 Dans la Composition, une carte affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien avec `Aucun`. L’indicateur respecte la géométrie Figma validée. Le texte de la carte ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Ajouter/Modifier un Exercice, la synthèse ajoute `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode et avant la Pause ; elle omet cette clause avec `Aucun`. Le nom de l’Exercice est en gras dans cette Synthèse.
 
-Dans la phrase de synthèse des paramètres d’exécution, le mode est affiché séparément et la phrase commence par le nombre de Séries. Tant qu’aucun mode n’est sélectionné, le champ est vide. En Durée, la clause `Durée totale` n’est affichée que pour plusieurs Séries ; en Répétitions, `Durée totale ≥ {estimation}` utilise conventionnellement **2 secondes par répétition** ; en À l’échec, aucune Durée totale n’est affichée. La phrase est régénérée à chaque modification et suit D-232.
+Dans la phrase de synthèse des paramètres d’exécution, le mode est affiché séparément et la phrase commence par le nombre de Séries. Tant qu’aucun mode n’est sélectionné, le champ est vide. En Durée, la clause `Durée totale` est affichée pour plusieurs Séries ou un changement de côté ; en Répétitions, `Durée totale ≥ {estimation}` utilise conventionnellement **2 secondes par répétition** ; en À l’échec, aucune Durée totale n’est affichée. La phrase est régénérée à chaque modification et suit D-232.
 
 Le Compte à rebours initial et la Fin de séance sont structurels et non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
 
@@ -408,7 +408,7 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 - après validation de la Composition, la cible est `Catalogue des séances`, segment `Séances` ;
 - la navigation d’avancement canonique fait entrer la cible depuis la droite et sortir l’écran courant vers la gauche ;
 - dans le Catalogue, la rangée `Créer / Filtrer / Trier` suit la géométrie commune validée ; les options de `Filtrer` sont contextuelles et `Trier` reste visible disabled dans T03 ;
-- dans l’éditeur Exercice, `Renforcement du genou` est une donnée de démonstration et l’état vide affiche `Nom de l’exercice` ; dans la phrase de synthèse, Répétitions affiche `Durée totale ≥ {estimation}` avec 2 secondes conventionnelles par répétition, tandis que Durée avec une seule Série et À l’échec n’affichent pas de clause Durée totale (D-232).
+- dans l’éditeur Exercice, `Renforcement du genou` est une donnée de démonstration et l’état vide affiche `Nom de l’exercice` ; dans la phrase de synthèse, Répétitions affiche `Durée totale ≥ {estimation}` avec 2 secondes conventionnelles par répétition, tandis que Durée avec une seule Série sans changement de côté et À l’échec n’affichent pas de clause Durée totale (D-232).
 
 ### Médias et Parcours
 
@@ -477,7 +477,7 @@ Toute occurrence d’Exercice intégrée à une Séance porte une propriété co
 - La couleur est une propriété de l’Étiquette/Catégorie, source de vérité commune : modifier la couleur modifie l’affichage de tous les objets qui la référencent. Les Zones corporelles n’ont pas de couleur.
 - Les valeurs du Profil sont des valeurs initiales proposées, sans rétroactivité : Pause au changement de côté, Compte à rebours d’exercice et Fin d’exercice pour un nouvel Exercice ; Récupération après exercice pour une nouvelle occurrence de Séance.
 - Une Séance possède un réglage global unique, **activé par défaut**, pour appliquer ou ignorer ensemble les Compte à rebours d’exercice et Fin d’exercice de tous ses Exercices. Aucun réglage occurrence par occurrence n’est exposé.
-- La phrase de synthèse suit D-232 : champ vide sans mode ; mode hors phrase ; Durée totale seulement pour Durée avec plusieurs Séries ; Répétitions = `Durée totale ≥ {estimation}` à 2 s/répétition ; À l’échec = aucune Durée totale.
+- La phrase de synthèse suit D-232 : champ vide sans mode ; mode hors phrase ; Durée totale en mode Durée avec plusieurs Séries ou changement de côté ; Répétitions = `Durée totale ≥ {estimation}` à 2 s/répétition ; À l’échec = aucune Durée totale.
 - Point d’arrêt : ordre `Exercice → Récupération après exercice → Point d’arrêt → suite`; interdit immédiatement après le Compte à rebours initial et immédiatement avant la Fin de séance ; autorisé aux frontières et à l’intérieur du Circuit ; lorsqu’il est dans le Circuit, il est exécuté à chaque Tour.
 - Média d’Exécution compact : le bouton Lecture central disparaît pendant la lecture vidéo ; le retour à Information met la vidéo en pause ; le plein écran n’interrompt pas l’Exécution.
 
@@ -495,6 +495,6 @@ Le Prototype MVP comporte exactement quatre destinations principales : `Catalogu
 Les fondations visuelles et composants communs suivent DSF V2 : fonds et zones de contexte D-224, navigation basse D-225, actions flottantes et boutons circulaires D-226, steppers/badges D-227, modales D-228, roulettes et modale Planifier D-229, listes et états spécialisés D-230. Ces prescriptions sont des contraintes de rendu/recette lorsqu’elles ne portent pas un comportement métier.
 
 
-### Générateur de phrase — v10.1
+### Générateur de phrase — v10.2
 
-Le générateur suit D-232. En mode Durée, la clause `Durée totale` est omise uniquement pour `1` Série sans changement de côté ; elle est affichée dès qu’il y a plusieurs Séries ou un changement de côté. Compte à rebours et Fin de séance restent hors phrase et hors calcul de Durée totale. Les pauses d’Exercice utilisent des steppers `0..5 min` : pas `5 s` jusqu’à `2 min`, puis `30 s` jusqu’à `5 min`. Séries = `1..99`, Répétitions = `1..100`, Durée par Série = `1 s..99 min 59 s`.
+Le générateur suit D-232. En mode Durée, la clause `Durée totale` est omise uniquement pour `1` Série sans changement de côté ; elle est affichée dès qu’il y a plusieurs Séries ou un changement de côté. Compte à rebours et Fin d'exercice restent hors phrase et hors calcul de Durée totale. Les pauses d’Exercice utilisent des steppers `0..5 min` : pas `5 s` jusqu’à `2 min`, puis `30 s` jusqu’à `5 min`. Séries = `1..99`, Répétitions = `1..100`, Durée par Série = `1 s..99 min 59 s`.
