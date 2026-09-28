@@ -717,7 +717,7 @@ Contient notamment :
 
 ## Contraintes d’Exercice
 
-`executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}`. `DURATION` exige une durée cible et interdit les répétitions cibles ; `REPETITIONS` exige des répétitions cibles et interdit la durée cible ; `TO_FAILURE` interdit les deux. Pause, nombre de Séries et Récupération restent disponibles dans les trois modes. La Durée totale calculée n’est visible qu’en mode `DURATION`.
+`executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}`. `DURATION` exige une durée cible et interdit les répétitions cibles ; `REPETITIONS` exige des répétitions cibles et interdit la durée cible ; `TO_FAILURE` interdit les deux. Pause, nombre de Séries et Récupération restent disponibles dans les trois modes. La Durée totale exacte est dérivée en mode `DURATION` et n’est incluse dans la phrase que pour plusieurs Séries ; en `REPETITIONS`, une borne minimale dérivée est affichée avec `r=2 s` par répétition ; en `TO_FAILURE`, aucune durée totale n’est affichée. La phrase elle-même n’est pas persistée comme source de vérité (D-231).
 
 L’ajout d’une définition copie nom, description, zones corporelles, mode, durée ou répétitions, Séries, Pause, Récupération et associations média. La copie n’a plus de lien fonctionnel avec la définition. La position `BEFORE_TOUR`, `IN_TOUR` ou `AFTER_TOUR` n’existe que sur `SessionActivity`.
 
@@ -1222,3 +1222,6 @@ Le plan distingue au minimum la phase de pause au changement de côté de la pha
 - Les défauts Profil sont lus uniquement à l’initialisation : aucune provenance `hérité/personnalisé` n’est nécessaire et aucune mise à jour rétroactive n’est effectuée.
 - `Session` porte un booléen global, activé par défaut, de prise en compte des phases propres `Compte à rebours d’exercice + Fin d’exercice`. Il n’existe pas de surcharge de ce booléen par occurrence.
 - Un Point d’arrêt placé dans le Circuit appartient au contenu répété et est donc développé à chaque Tour.
+
+
+La phrase de synthèse des paramètres d’exécution est une **valeur dérivée non persistée**. Elle est régénérée depuis `executionMode`, nombre de Séries, cible du mode, pause entre Séries, `sideMode` et `sideRecoverySeconds`. Aucun champ de stockage autonome de la phrase n’est requis (D-231).
