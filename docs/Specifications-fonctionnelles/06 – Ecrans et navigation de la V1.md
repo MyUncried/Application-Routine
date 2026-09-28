@@ -750,10 +750,10 @@ La frame `3542:4656` et plusieurs états `3553:*` / `3580:*` sont des référenc
 | Écran 4i | Séries pilote | ![[images/ecran-4i-creation-activite-series-pilote.png\|220]] | Copie documentaire historique ; règle de calcul toujours valide | ancien node supprimé |
 | Écran 4j | Durée totale pilote | ![[images/ecran-4j-creation-activite-duree-totale-pilote.png\|220]] | Copie documentaire historique ; règle de calcul toujours valide | ancien node supprimé |
 | Écran 4k | Durée ajustée | ![[images/ecran-4k-creation-activite-duree-ajustee.png\|220]] | Message temporaire après arrondi à un nombre entier de Séries | `3580:4957` |
-| Écran 4l | Ajouter un exercice — paramètres repliés | — | État courant de l’éditeur avant déploiement des paramètres | `4217:6980` |
-| Écran 4m | Paramètres dépliés — vue défilée | — | Organisation actuelle des paramètres d’exécution | `4279:7044` |
+| Écran 4l | Ajouter un exercice — paramètres repliés | ![[images/ecran-15-creation-activite-persistante.png\|220]] | État courant de l’éditeur avant déploiement des paramètres | `4217:6980` |
+| Écran 4m | Paramètres dépliés — vue défilée | ![[images/figma-4279-7044.png\|220]] | Organisation actuelle des paramètres d’exécution | `4279:7044` |
 | Écran 4n | Invitation à paramétrer | — | État replié avec action `Cliquez pour paramétrer` | `4294:7075` |
-| Écran 4o | Modifier un exercice | — | Variante modification de l’éditeur courant | `4734:6342` |
+| Écran 4o | Modifier un exercice | ![[images/ecran-15a-modification-activite-persistante.png\|220]] | Variante modification de l’éditeur courant | `4734:6342` |
 | Écran 4p | Catégories — sélection ouverte | ![[images/figma-4332-7095.png\|220]] | Sélection de Catégorie depuis l’éditeur courant | `4332:7095` |
 | Écran 4q | Catégorie — nouvelle catégorie — clavier ouvert | — | Création d’une Catégorie depuis l’éditeur | `4474:7157` |
 | Écran 4r | Zones corporelles | — | Sélection des Zones corporelles | `4478:7209` |
@@ -1409,11 +1409,11 @@ Les références actives sont désormais `4217:6980 — Ajouter un exercice — 
 
 ![[images/ecran-15-creation-activite-persistante.png|260]]
 
-*Écran 15 — ancienne copie documentaire ; la référence Figma active de création est `4217:6980`.*
+*Écran 15 — copie réexportée depuis la frame courante de création `4217:6980`.*
 
 ![[images/ecran-15a-modification-activite-persistante.png|260]]
 
-*Écran 15a — ancienne copie documentaire ; la référence Figma active de modification est `4734:6342`.*
+*Écran 15a — copie réexportée depuis la frame courante de modification `4734:6342`.*
 
 ### Écran 16 — Préparation d’un Exercice directe
 
