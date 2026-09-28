@@ -80,3 +80,25 @@ Après fusion :
 ## 6. Statut
 
 `CORRIGÉ SOUS RÉSERVE DE CERTIFICATION` jusqu’à qualification complète de la PR #251 et replay réel PRE-1.
+## 6. Qualification du hotfix — 28/09/2026
+
+Run de qualification : `36493461067`, HEAD `099292c813a275164ac6d162c9a85f1a08c1ebf8`.
+
+Évidences vérifiées :
+
+- suite protocolaire Linux : **PASS** ;
+- invariants exécutables : **PASS** ;
+- suite protocolaire complète Windows : **PASS** ;
+- chemin Lean Queue isolé sous Windows PowerShell 5.1 : **PASS** ;
+- préflight jetable complet sans Claude : **PASS** ;
+- accès GitHub privé et verrou du runner Windows : **PASS**.
+
+Le run global reste rouge pour deux causes externes au périmètre T-138 :
+
+1. l'artefact historique `kodjo-v2-recovery-34606534268-1` du run `34606534268` n'existe plus après le nettoyage des artefacts anciens ; sa recertification historique est donc **NON VÉRIFIABLE** dans ce run ;
+2. GitHub refuse encore les nouveaux uploads avec `Artifact storage quota has been hit` pendant la fenêtre de recalcul du quota.
+
+Pour permettre l'exécution des contrôles Windows malgré le quota, quatre étapes d'upload ont été temporairement marquées `continue-on-error` uniquement sur le HEAD de qualification. Ces exceptions sont retirées avant fusion ; aucun affaiblissement du workflow de production n'est conservé.
+
+Conclusion : **T-138 PASS sur son périmètre**. La preuve réelle restante est le replay PRE-1 sur la baseline produit inchangée `e216294506bed87dd80855937e3fabfbfa322b82`.
+
