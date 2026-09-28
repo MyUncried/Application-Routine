@@ -453,11 +453,13 @@ Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est 
 | Écran 2f | Liste des Séances archivées | ![[images/ecran-2f-catalogue-archivees.png\|220]] | Contexte dans lequel restauration et suppression deviennent disponibles | `4549:6742` |
 | Écran 2g | Séance restaurée | ![[images/ecran-2g-catalogue-seance-restauree.png\|220]] | Snackbar de restauration et action `Annuler` | `1992:10848` |
 | Écran 2h | Catalogue après archivage | ![[images/ecran-2h-catalogue-apres-archivage.png\|220]] | Résultat attendu après retrait de `Renforcement du genou` de la liste active | `1992:10937` |
-| Écran 2i | Filtres — panneau ouvert | — | Modale de filtres contextuels Séances : statut et Étiquettes | `4168:11149` |
-| Écran 2j | Filtre inactif étendu | — | État `Filtres / Aucun`, liste inchangée | `4549:6382` |
-| Écran 2k | Filtre actif `Archivées` | — | État actif du contrôle et liste filtrée | `4549:6742` |
+| Écran 2i | Filtres — panneau ouvert | ![[images/figma-4168-11149.png\|220]] | Modale de filtres contextuels Séances : statut et Étiquettes | `4168:11149` |
+| Écran 2j | Filtre inactif étendu | ![[images/figma-4549-6382.png\|220]] | État `Filtres / Aucun`, liste inchangée | `4549:6382` |
+| Écran 2k | Filtre actif `Archivées` | ![[images/ecran-2f-catalogue-archivees.png\|220]] | État actif du contrôle et liste filtrée | `4549:6742` |
 
-Référence complémentaire de variante d’actions glissées : `4592:6217 — Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité`. Cette frame matérialise le même contrat d’actions que l’Écran 2d et ne crée pas un nouvel écran fonctionnel.
+Variante complémentaire d’actions glissées — même contrat que l’Écran 2d, sans nouvel état fonctionnel : `4592:6217 — Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité`.
+
+![[images/figma-4592-6217.png\|220]]
 
 ### Objectif
 
@@ -593,15 +595,15 @@ L’état révélant les actions d’un Exercice est illustré par :
 | --- | --- | --- | --- | --- |
 | Écran 3b | Composition initiale | ![[images/ecran-3b-composition-etat-initial.png\|220]] | Nom vide, Tour initial avec synthèse intégrée et action principale désactivée | `2028:11137` |
 | Écran 3c | Nom renseigné | ![[images/ecran-3c-composition-nom-renseigne.png\|220]] | Le nom seul ne suffit pas à activer `Continuer` | `2028:12003` |
-| Écran 3d | Étiquettes ouvertes | — | Sélection de l’Étiquette ; la couleur de la Séance est celle de l’Étiquette | `2028:11204` |
+| Écran 3d | Étiquettes ouvertes | ![[images/figma-2028-11204.png\|220]] | Sélection de l’Étiquette ; la couleur de la Séance est celle de l’Étiquette | `2028:11204` |
 | Écran 3e | Compte à rebours ouvert | ![[images/ecran-3e-composition-compte-rebours-ouvert.png\|220]] | Réglage minutes/secondes avec Annuler et Confirmer circulaires | `2028:11375` |
 | Écran 3f | Fin de séance ouverte | ![[images/ecran-3f-composition-fin-seance-ouverte.png\|220]] | Réglage indépendant avec Annuler et Confirmer circulaires | `2028:11457` |
 | Écran 3g | Nombre de Tours | ![[images/ecran-3g-composition-nombre-tours.png\|220]] | Stepper inline ; aucune modale/roulette | `2028:11580` |
 | Écran 3h | Appui long — carte soulevée | ![[images/ecran-3h-composition-appui-long.png\|220]] | État transitoire précédant et accompagnant le déplacement d’un Exercice | `3518:4576` |
-| Écran 3i | Point d’arrêt | — | Point d’arrêt inséré dans la Composition, sans écran dédié ; élément déplaçable | `3722:5061` |
-| Écran 3j | Nouvelle étiquette | — | Création d’une Étiquette depuis la modale | `4640:6308` |
-| Écran 3k | Étiquette sélectionnée | — | Étiquette et couleur visibles dans la Composition | `4581:6404` |
-| Écran 3l | Étiquette — confirmation de suppression | — | Appui long sur une Étiquette ; confirmation destructive `Annuler / Supprimer` | `4861:6145` |
+| Écran 3i | Point d’arrêt | ![[images/figma-3722-5061.png\|220]] | Point d’arrêt inséré dans la Composition, sans écran dédié ; élément déplaçable | `3722:5061` |
+| Écran 3j | Nouvelle étiquette | ![[images/figma-4640-6308.png\|220]] | Création d’une Étiquette depuis la modale | `4640:6308` |
+| Écran 3k | Étiquette sélectionnée | ![[images/figma-4581-6404.png\|220]] | Étiquette et couleur visibles dans la Composition | `4581:6404` |
+| Écran 3l | Étiquette — confirmation de suppression | ![[images/figma-4861-6145.png\|220]] | Appui long sur une Étiquette ; confirmation destructive `Annuler / Supprimer` | `4861:6145` |
 
 ### Objectif
 
@@ -749,14 +751,14 @@ La frame `3542:4656` et plusieurs états `3553:*` / `3580:*` sont des référenc
 | Écran 4k | Durée ajustée | ![[images/ecran-4k-creation-activite-duree-ajustee.png\|220]] | Message temporaire après arrondi à un nombre entier de Séries | `3580:4957` |
 | Écran 4l | Ajouter un exercice — paramètres repliés | ![[images/ecran-15-creation-activite-persistante.png\|220]] | État courant de l’éditeur avant déploiement des paramètres | `4217:6980` |
 | Écran 4m | Paramètres dépliés — vue défilée | ![[images/figma-4279-7044.png\|220]] | Organisation actuelle des paramètres d’exécution | `4279:7044` |
-| Écran 4n | Invitation à paramétrer | — | État replié avec action `Cliquez pour paramétrer` | `4294:7075` |
+
 | Écran 4o | Modifier un exercice | ![[images/ecran-15a-modification-activite-persistante.png\|220]] | Variante modification de l’éditeur courant | `4734:6342` |
 | Écran 4p | Catégories — sélection ouverte | ![[images/figma-4332-7095.png\|220]] | Sélection de Catégorie depuis l’éditeur courant | `4332:7095` |
-| Écran 4q | Catégorie — nouvelle catégorie — clavier ouvert | — | Création d’une Catégorie depuis l’éditeur | `4474:7157` |
-| Écran 4r | Zones corporelles | — | Sélection des Zones corporelles | `4478:7209` |
-| Écran 4s | Nouvelle zone corporelle — clavier ouvert | — | Création inline d’une Zone corporelle dans le référentiel administrable | `4683:6336` |
-| Écran 4t | Catégorie — confirmation de suppression | — | Appui long sur une Catégorie ; confirmation destructive `Annuler / Supprimer` | `4861:6259` |
-| Écran 4u | Zone corporelle — confirmation de suppression | — | Appui long sur une Zone corporelle ; confirmation destructive `Annuler / Supprimer` | `4861:6348` |
+| Écran 4q | Catégorie — nouvelle catégorie — clavier ouvert | ![[images/figma-4474-7157.png\|220]] | Création d’une Catégorie depuis l’éditeur | `4474:7157` |
+| Écran 4r | Zones corporelles | ![[images/ecran-4h-creation-activite-zone-corporelle.png\|220]] | Sélection des Zones corporelles | `4478:7209` |
+| Écran 4s | Nouvelle zone corporelle — clavier ouvert | ![[images/figma-4683-6336.png\|220]] | Création inline d’une Zone corporelle dans le référentiel administrable | `4683:6336` |
+| Écran 4t | Catégorie — confirmation de suppression | ![[images/figma-4861-6259.png\|220]] | Appui long sur une Catégorie ; confirmation destructive `Annuler / Supprimer` | `4861:6259` |
+| Écran 4u | Zone corporelle — confirmation de suppression | ![[images/figma-4861-6348.png\|220]] | Appui long sur une Zone corporelle ; confirmation destructive `Annuler / Supprimer` | `4861:6348` |
 
 ### Objectif
 
@@ -1751,14 +1753,16 @@ Les sept variantes se répartissent en deux familles sémantiques, sans que cett
 
 Les preuves d’usage sont distinctes de la preuve du composant et ne s’y substituent pas :
 
-| N° | Écran | Variantes visibles | Node Figma |
-| --- | --- | --- | --- |
-| Écran 11 | Suivi : Séances — Liste condensée | `Terminée`, `Partielle`, `Interrompue` | `1992:8843` |
-| Écran 11a | Suivi : Séances — Vue déployée | `Terminée`, `Partielle`, `Interrompue` | `1992:8996` |
+| N° | Écran | Capture | Variantes visibles | Node Figma |
+| --- | --- | --- | --- | --- |
+| Écran 11 | Suivi : Séances — Liste condensée | ![[images/ecran-11-suivi-condense.png\|220]] | `Terminée`, `Partielle`, `Interrompue` | `1992:8843` |
+| Écran 11a | Suivi : Séances — Vue déployée | ![[images/ecran-11a-suivi-deploye.png\|220]] | `Terminée`, `Partielle`, `Interrompue` | `1992:8996` |
 
 ## Couverture du Prototype MVP et exclusions justifiées
 
 ### Périmètre intégré
+
+Les tableaux d’états d’écran contiennent une capture lorsqu’une copie courante existe. Les tableaux de traçabilité plus bas répertorient les node-id et leur traitement documentaire ; ils ne sont pas une galerie. Les références sans copie sont explicitement historiques, absentes de Figma ou des composants sans écran autonome.
 
 La page Figma `Prototype MVP` (`510:101`) constitue la source visuelle des frames de production. Une capture ne remplace pas la règle écrite : le présent chapitre définit les comportements, tandis que les captures et le chapitre 13 définissent les références visuelles et critères déterministes.
 
@@ -1788,7 +1792,6 @@ Avant cette passe, **77** de ces frames étaient déjà référencées par leur 
 | `4593:6285` | Confirmer l’archivage d’une séance planifiée | Référencée dans les modales |
 | `4217:6980` | Ajouter un exercice — paramètres repliés | Référencée dans Écran 4 |
 | `4279:7044` | Ajouter un exercice — paramètres dépliés | Référencée dans Écran 4 |
-| `4294:7075` | Ajouter un exercice — invitation à paramétrer | Référencée dans Écran 4 |
 | `4734:6342` | Modifier un exercice — Squats sautés | Référencée dans Écran 4 |
 | `4332:7095` | Catégories — sélection ouverte | Copie intégrée dans Écran 4p |
 | `4474:7157` | Catégorie — Nouvelle catégorie — clavier | Référencée dans Écran 4 |
@@ -1802,7 +1805,7 @@ Avant cette passe, **77** de ces frames étaient déjà référencées par leur 
 | `4544:6651` | Exercices — Filtre actif étendu | Référencée dans Écran 12 |
 | `4549:6382` | Séances — Filtre inactif étendu | Référencée dans Écran 2 |
 | `4549:6742` | Séances — Filtre actif Archivées | Référencée dans Écran 2 |
-| `4592:6217` | Séances — actions glissées — Dos et mobilité | Couvert par la famille Écran 2d ; référence complémentaire |
+| `4592:6217` | Séances — actions glissées — Dos et mobilité | Variante illustrée ci-dessus ; même contrat d’actions que l’Écran 2d, pas un nouvel écran fonctionnel |
 | `4738:6209` | Exercices — actions glissées | Référencée dans Écran 12 |
 | `4738:6355` | Exercices — carte déployée — Média | Référencée dans Écran 12 |
 | `4367:7128` | Modèle paramètre — Mode Durée | **Pas un écran utilisateur** : planche de référence |
@@ -1844,13 +1847,12 @@ Les points suivants ont été résolus depuis ce contrôle : la modale d’aband
 
 > **Statut roadmap : conception post-MVP à planifier.** Ces frames sont des évidences visuelles de la cible et ne requalifient pas le périmètre MVP courant.
 
-| État | Node Figma | Conséquence fonctionnelle |
-| --- | --- | --- |
-| Test 2 Exécution d’une séance — Initial — Bascule (info) | `4997:6015` | Face Information ; bouton de changement de face lorsque des médias existent. |
-| Test 2 Exécution d’une séance — Initial — Bascule (média) | `4997:6113` | Face Média ; un média à la fois ; bouton de retour ; pagination de galerie. |
-| Test 2 Exécution d’une séance — Média plein écran | `5009:6069` | Média plein écran avec contrôles média distincts et cadre flottant d’Exécution. |
+| État | Capture | Node Figma | Conséquence fonctionnelle |
+| --- | --- | --- | --- |
+| Test 2 Exécution d’une séance — Initial — Bascule (média) | ![[images/figma-4997-6113.png\|220]] | `4997:6113` | Face Média ; un média à la fois ; bouton de retour ; pagination de galerie. |
+| Test 2 Exécution d’une séance — Média plein écran | ![[images/figma-5009-6069.png\|220]] | `5009:6069` | Média plein écran avec contrôles média distincts et cadre flottant d’Exécution. |
 
-La navigation et les comportements associés sont définis par D-203 et `../CONCEPTION-EXECUTION-MEDIA.md`.
+La variante Information anciennement référencée par `4997:6015` n’existe plus dans le Figma contrôlé ; elle est exclue des références visuelles courantes et reste tracée dans la matrice d’audit. La navigation et les comportements associés sont définis par D-203 et `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 ### Planification depuis les Catalogues — D-206
 
