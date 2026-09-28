@@ -327,3 +327,10 @@ Les 96 PNG ci-dessous ont été rendus à partir des nodes de la matrice du 28 s
 | `5009:6069` | `figma-5009-6069.png` | Conception post MVP, copie exportée | 402 × 874 | `710c5a60bee4baed9737dbb90d695458b284371f` |
 
 Les captures `4332:7095` (Catégorie) et `5088:6398` (état sans mode) révèlent les deux contrôles ouverts détaillés dans le chapitre 13. Les anciennes roulettes `3556:7645` et `3556:7712` restent des références historiques et ne reçoivent pas de nouveau PNG courant.
+
+
+### Capture complémentaire — variante d’actions glissées
+
+| Node | Copie relative au chapitre 06 | Usage | Dimensions | SHA du contenu PNG |
+|---|---|---|---|---|
+| `4592:6217` | `figma-4592-6217.png` | Variante d’actions glissées complémentaire à l’Écran 2d ; ne constitue pas un nouvel écran fonctionnel | 402 × 874 | `4cf1487eca50c27f9a7e483cd21da01e4e057bc5` |
