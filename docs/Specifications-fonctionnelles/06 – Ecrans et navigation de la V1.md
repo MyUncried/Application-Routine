@@ -739,7 +739,7 @@ La frame `3542:4656` et plusieurs états `3553:*` / `3580:*` sont des référenc
 
 | N° | État | Capture | Règle matérialisée | Node Figma |
 | --- | --- | --- | --- | --- |
-| Écran 4a | Mode Répétitions | ![[images/ecran-4a-creation-activite-repetitions.png\|220]] | Nombre de répétitions avec stepper ; texte éditable `Durée totale >= {estimation}` fondé sur 1 s par répétition | `3561:4695` |
+| Écran 4a | Mode Répétitions | ![[images/ecran-4a-creation-activite-repetitions.png\|220]] | Copie historique ; règle fonctionnelle v9 = `Durée totale ≥ {estimation}` fondée sur 2 s par répétition | `3561:4695` |
 | Écran 4b | Mode À l’échec | ![[images/ecran-4b-creation-activite-a-l-echec.png\|220]] | Aucun objectif chiffré ; aucune Durée totale affichée dans le texte éditable | `3561:7802` |
 | Écran 4c | Durée ouverte | ![[images/ecran-4c-creation-activite-duree-ouverte.png\|220]] | Roulette compacte minutes/secondes avec validation explicite | `3556:7645` |
 | Écran 4d | Pause ouverte | ![[images/ecran-4d-creation-activite-pause-ouverte.png\|220]] | Réglage de la Pause entre Séries avec validation explicite | `3556:7712` |
