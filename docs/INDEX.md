@@ -202,7 +202,7 @@ Le cycle de vie d’une `ActivityDefinition` comprend archivage, restauration et
 
 La migration T03 crée les structures de Catalogue et l’origine `ACTIVITY` sans promouvoir les `SessionActivity` historiques.
 
-Les Parcours fonctionnels et les médias multiples restent hors MVP.
+Les Parcours fonctionnels restent hors MVP. La consultation des médias déjà associés à un Exercice pendant l’Exécution est incluse au MVP par D-203 ; l’ajout/import et le stockage des médias restent gouvernés par D-066/D-068.
 
 ## 11. Matrices et rapports de traçabilité
 
@@ -219,10 +219,11 @@ Les Parcours fonctionnels et les médias multiples restent hors MVP.
 
 ### [CONCEPTION-EXECUTION-MEDIA.md](./CONCEPTION-EXECUTION-MEDIA.md)
 
-Conception fonctionnelle et UX de la consultation des médias pendant l’Exécution : bascule Information/Média, galerie ordonnée, vidéo, plein écran, mémoire limitée à la séance et cadre flottant d’Exécution. Les évidences Figma sont `4997:6015`, `4997:6113` et `5009:6069`.
+Conception fonctionnelle et UX de la consultation des médias pendant l’Exécution : bascule Information/Média, galerie ordonnée, vidéo, plein écran, mémoire limitée à la séance et cadre flottant d’Exécution. Les états MVP présents sont `4997:6113` et `5009:6069`. La référence `4997:6015` est absente du Figma courant.
 
-Le document décrit une **cible post-MVP à planifier** ; il ne requalifie pas à lui seul le périmètre du MVP.
+La consultation média pendant l’Exécution décrite ici est **incluse au MVP** (confirmation du 28/09/2026). L’ajout/import dans l’éditeur n’est pas couvert par cette décision.
 
+> Décision du 28 septembre 2026 — D-203 : les états de consultation média pendant l’Exécution `4997:6113` et `5009:6069` font partie du MVP ; l’ajout/import dans l’éditeur n’est pas inclus.  
 > Décision du 25 septembre 2026 — D-206 : une Séance et un Exercice persistant sont tous deux des contenus autonomes exécutables et planifiables directement. Les Routines utilisent une source générique `SESSION` ou `ACTIVITY`; les Catalogues peuvent afficher conditionnellement la prochaine planification pour les deux types. Les anciennes formulations limitant la planification aux seules Séances sont supersédées.
 
 > Décision du 25 septembre 2026 — D-207 : la notion de contenu planifiable est commune aux **Séances, Exercices persistants et Parcours**. Le MVP planifie `SESSION` et `ACTIVITY`; la planification d’un Parcours reste dans sa version prévue (actuellement V3) et réutilisera la même entité Routine avec la source technique `CIRCUIT`, sans second moteur de planification.
