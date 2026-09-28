@@ -178,7 +178,7 @@ jobs:
           name: kodjo-v2-recovery-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ steps.diag.outputs.dir }}/recovery-package/
           if-no-files-found: warn
-          retention-days: ${{ vars.KODJO_RECOVERY_RETENTION_DAYS || 14 }}
+          retention-days: 14
 
       # La métadonnée n'existe que lorsqu'une VISUAL_CORRECTION a été réellement
       # committée, poussée et observée sur la PR existante. Le publisher exige en
