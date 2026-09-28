@@ -453,7 +453,7 @@ Bloc B2 ; états S18–S27 ; T03-E E12–E14, E30, E41, E50–E57, E71 ; référ
 
 ### 2. Finalité fonctionnelle
 
-Créer/modifier une définition persistante complète, en réutilisant l’éditeur d’Exercice et les règles de calcul existantes. L’éditeur courant n’expose plus de bouton `Ajouter un média` ; la zone Média reste affichable selon les données et le rendu Figma courant.
+Créer/modifier une définition persistante complète, en réutilisant l’éditeur d’Exercice et les règles de calcul existantes. L’éditeur courant n’expose pas de bouton `Ajouter un média`. Le MVP permet de consulter pendant l’Exécution les médias déjà associés à l’Exercice ; le parcours d’ajout/import dans l’éditeur reste hors périmètre de D-203.
 
 ### 3. Contexte d’entrée
 
@@ -469,7 +469,7 @@ Nom, Description, Catégorie, Zones corporelles, mode, cible, Séries, Pause ent
 
 ### 6. Classification des valeurs Figma
 
-Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement du genou` est une `VALEUR DE DÉMONSTRATION FIGMA` du nom d’Exercice** dans les états renseignés et ne doit jamais être codée en dur. `Nom de l’exercice` est l’état vide/placeholder visible dans `3943:6064`. Titres, modes, Séries, Pause entre Séries, Pause au changement de côté, libellés de Durée totale et Terminer = statiques.
+Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement du genou` est une `VALEUR DE DÉMONSTRATION FIGMA` du nom d’Exercice** dans les états renseignés et ne doit jamais être codée en dur. L’état vide/placeholder `Nom de l’exercice` n’a pas de référence visuelle active identifiée dans le Prototype MVP ; `3943:6064` est une référence historique, non une preuve actuelle. Titres, modes, Séries, Pause entre Séries, Pause au changement de côté, libellés de Durée totale et Terminer = statiques.
 
 ### 7. Structure de l’écran
 
@@ -477,11 +477,11 @@ Nom → accès Catégorie / Zones corporelles → paramètres Séries/cible/Paus
 
 ### 8. Éléments obligatoires
 
-Mode 3 options égales ; sans mode, phrase vide ; mode affiché hors phrase ; en Durée, clause `Durée totale` seulement si plusieurs Séries ; en Répétitions, phrase **`Durée totale ≥ {estimation}`** avec 2 secondes conventionnelles par répétition ; en À l’échec, aucune Durée totale affichée ; nom en gras dans Synthèse uniquement ; accès `Catégorie` et `Zones corporelles` distincts ; zone Média conforme au Figma courant et placée sous la Synthèse en cas de chevauchement ; contrôle Changement de côté avec `Aucun / D→G / G→D` au niveau Exercice uniquement ; roulettes en modale basse Annuler/Confirmer.
+Mode 3 options égales ; sans mode, phrase vide ; mode affiché hors phrase ; en Durée, clause `Durée totale` si plusieurs Séries **ou** changement de côté (`D→G`/`G→D`) ; l’omettre uniquement pour une Série avec `Aucun` changement de côté ; en Répétitions, phrase **`Durée totale ≥ {estimation}`** avec 2 secondes conventionnelles par répétition ; en À l’échec, aucune Durée totale affichée ; nom en gras dans Synthèse uniquement ; accès `Catégorie` et `Zones corporelles` distincts ; zone Média conforme au Figma courant et placée sous la Synthèse en cas de chevauchement ; contrôle Changement de côté avec `Aucun / D→G / G→D` au niveau Exercice uniquement ; roulettes en modale basse Annuler/Confirmer.
 
 ### 9. Layout déterministe
 
-DSF/grilles sans compensation locale. En Répétitions, `Durée totale ≥ {estimation}` apparaît dans la phrase selon D-232. En À l’échec, aucun élément `Durée totale` n’est affiché. Les frames `3561:4695` et `3561:7802` matérialisent ces deux états. Centrer nombre répétitions ; sélection Mode coïncide avec contrôle externe. La valeur Figma `5 min 30 s`, lorsqu’elle apparaît, est illustrative et ne devient pas une valeur métier par défaut.
+DSF/grilles sans compensation locale. En Répétitions, `Durée totale ≥ {estimation}` apparaît dans la phrase selon D-232. En À l’échec, aucun élément `Durée totale` n’est affiché. Les états REPS et FAILURE restent définis par D-232/v10.2 ; aucune frame active actuelle ne les matérialise. `3561:4695` et `3561:7802` sont des références historiques, non des preuves visuelles MVP. Centrer nombre répétitions ; sélection Mode coïncide avec contrôle externe. La valeur Figma `5 min 30 s`, lorsqu’elle apparaît, est illustrative et ne devient pas une valeur métier par défaut.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -501,7 +501,7 @@ Tap, scroll, saisie ; pas de swipe métier ; haptique roulette par cran selon d�
 
 ### 14. Validation
 
-Nom requis ; exactement une Catégorie ; au moins une Zone corporelle ; mode valide ; cible selon mode ; Séries 1..99 ; Pause ≥0 ; `sideRecoverySeconds` ≥0 uniquement en bilatéral ; FAILURE sans cible chiffrée ; calculs D-204/D-208. Le signe `>=` du libellé UI n’ajoute aucune nouvelle règle de calcul : il rend visible la borne déjà définie. Une nouvelle Zone corporelle exige un nom non vide et unique ; un renommage conserve l’identifiant ; une suppression utilisée demande confirmation, retire la valeur des choix futurs mais conserve les affectations existantes et ne modifie pas l’historique.
+Nom requis ; exactement une Catégorie ; au moins une Zone corporelle ; mode valide ; cible selon mode ; Séries 1..99 ; Pause ≥0 ; `sideRecoverySeconds` ≥0 uniquement en bilatéral ; FAILURE sans cible chiffrée ; calculs D-208 ; règles de phrase et d’ajustement D-232. Le signe `>=` du libellé UI n’ajoute aucune nouvelle règle de calcul : il rend visible la borne déjà définie. Une nouvelle Zone corporelle exige un nom non vide et unique ; un renommage conserve l’identifiant ; une suppression utilisée demande confirmation, retire la valeur des choix futurs mais conserve les affectations existantes et ne modifie pas l’historique.
 
 ### 15. Brouillon et persistance
 
@@ -525,11 +525,11 @@ Aucun média fonctionnel ; nom gras Synthèse ; `Renforcement du genou` jamais s
 
 ### 20. Recette déterministe
 
-Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier absence de nom démo codé en dur, vérifier absence de phrase sans mode, absence de clause Durée totale en Durée avec une seule Série, présence de `Durée totale ≥ {estimation}` en Répétitions à 2 s/répétition et aucune Durée totale en À l’échec ; vérifier `Pause au changement de côté` seulement en bilatéral, son exclusion en `Aucun`, les calculs D-208, les roues Annuler/Confirmer, l’échec DB, l’abandon, le responsive et le texte agrandi. Négatifs : `Renforcement du genou` statique, `Nom de l’exercice` sur état renseigné, ancienne formule D-156, récupération post-exercice dans `ActivityDefinition`, CTA wheel activable, média fonctionnel, nom non gras Synthèse.
+Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier absence de nom démo codé en dur, vérifier absence de phrase sans mode, absence de clause Durée totale en Durée avec une seule Série et `Aucun` changement de côté ; présence de cette clause avec une seule Série en bilatéral ; présence de `Durée totale ≥ {estimation}` en Répétitions à 2 s/répétition et aucune Durée totale en À l’échec ; vérifier `Pause au changement de côté` seulement en bilatéral, son exclusion en `Aucun`, les calculs D-208, les roues Annuler/Confirmer, l’échec DB, l’abandon, le responsive et le texte agrandi. Négatifs : `Renforcement du genou` statique, `Nom de l’exercice` sur état renseigné, ancienne formule D-156, récupération post-exercice dans `ActivityDefinition`, CTA wheel activable, média fonctionnel, nom non gras Synthèse.
 
 ### 21. Traçabilité
 
-E12–E14/E30 → D-169/D-171/D-208 ; E41 → D-143..D-156 avec D-156 supersédée par D-208 ; E50–E57 → D-174/D-181/D-182 ; API-ACT-REF/API-ACT ; Figma `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064` et autres frames citées.
+E12–E14/E30 → D-169/D-171/D-208 ; E41 → D-143..D-156 avec D-156 supersédée par D-208 ; E50–E57 → D-174/D-181/D-182 ; API-ACT-REF/API-ACT ; Figma actuel : `4217:6980`, `4279:7044`, `4734:6342`, `5088:6398`; références historiques non probantes : `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064`.
 
 ---
 
@@ -1857,7 +1857,7 @@ Figma reste la source visuelle courante. Le chapitre 06 porte l’inventaire des
 
 ### 1. Identification
 
-Conception D-203 ; statut post-MVP à planifier. Évidence visuelle actuelle : `4997:6113` — Test 2 Exécution d’une séance — Initial — Bascule (média). La frame Information précédemment référencée (`4997:6015`) est absente du Figma contrôlé le 28/09/2026 ; aucune capture actuelle ne l’étaye.
+D-203 — média pendant l’Exécution, inclus au MVP pour les états média explicitement représentés. Évidence visuelle active : `4997:6113` (face Média) et `5009:6069` (plein écran). La frame Information précédemment référencée (`4997:6015`) est absente du Figma contrôlé le 28/09/2026 ; elle ne constitue pas une capture actuelle. Le MVP couvre la consultation des médias déjà associés à l’Exercice ; l’ajout/import de médias dans l’éditeur n’est pas inclus par cette décision.
 
 ### 2. Finalité fonctionnelle
 
@@ -1869,7 +1869,7 @@ Le bouton de changement de face existe uniquement si l’Exercice possède au mo
 
 ### 4. Interactions
 
-Bouton dédié → retournement 3D. Swipe horizontal en face Média → média précédent/suivant, exactement un par geste. La galerie ne boucle pas. Un appui sur le média → CE-MEDIA-EXEC-02.
+Bouton dédié → retournement 3D. Swipe horizontal en face Média → média précédent/suivant, exactement un par geste. La galerie ne boucle pas. Un appui sur le média → CE-MEDIA-EXEC-02. Le libellé Série/Tour suit le motif d’Exécution à 24 px ; la capture `4997:6113` montre encore 17 px et constitue un écart visuel à corriger dans Figma avant gel des références.
 
 ### 5. État
 
@@ -1885,7 +1885,7 @@ Absence bouton sans média ; ordre galerie ; pagination ; une transition par swi
 
 ### 1. Identification
 
-Conception D-203 ; évidence Figma `5009:6069` — Test 2 Exécution d’une séance — Média plein écran.
+D-203 — état plein écran inclus au MVP ; évidence Figma active `5009:6069` — Test 2 Exécution d’une séance — Média plein écran.
 
 ### 2. Finalité fonctionnelle
 
@@ -1981,20 +1981,20 @@ La phrase est vide tant qu’aucun mode n’est sélectionné. Le mode reste aff
 
 ### Critères d’acceptation v10.2 — D-232
 
-État initial : aucun mode, phrase vide, `Terminer` désactivé. Sur la copie `5088:6398`, le bouton paraît visuellement actif : état interactif et rendu à vérifier dans Figma avant validation visuelle. Première sélection : impossible ensuite de revenir à aucun mode. Changement de mode : paramètres communs conservés et dernière valeur spécifique de chaque mode restaurée pendant l’édition. Séries `1..99`; Répétitions `1..100`; Durée par Série `1 s..99 min 59 s`. Pauses inter-Séries et inter-côtés dans l'Exercice : roulette `0..5 min`, valeurs proposées par `5 s` jusqu’à `2 min`, puis par `30 s` jusqu’à `5 min` ; les réglages du Profil utilisent un stepper. Pause inter-côtés initialisée par copie de la valeur Profil. La phrase omet la Durée totale seulement en Durée avec `N=1` et côté `Aucun`; elle l’affiche si `N>1` ou si un changement de côté est défini. Compte à rebours et Fin d'exercice ne sont ni dans la phrase ni dans la Durée totale.
+État initial : aucun mode, phrase vide, `Terminer` désactivé. Sur `4217:6980` et `5088:6398`, `Terminer` paraît visuellement actif alors qu’il doit être désactivé : écart visuel Figma à corriger (la règle fonctionnelle est tranchée). Première sélection : impossible ensuite de revenir à aucun mode. Changement de mode : paramètres communs conservés et dernière valeur spécifique de chaque mode restaurée pendant l’édition. Séries `1..99`; Répétitions `1..100`; Durée par Série `1 s..99 min 59 s`. Pauses inter-Séries et inter-côtés dans l'Exercice : roulette `0..5 min`, valeurs proposées par `5 s` jusqu’à `2 min`, puis par `30 s` jusqu’à `5 min` ; les réglages du Profil utilisent un stepper. Pause inter-côtés initialisée par copie de la valeur Profil. La phrase omet la Durée totale seulement en Durée avec `N=1` et côté `Aucun`; elle l’affiche si `N>1` ou si un changement de côté est défini. Compte à rebours et Fin d'exercice ne sont ni dans la phrase ni dans la Durée totale.
 
 
 ## Audit transverse des copies du 28 septembre 2026
 
-Les 96 PNG de la campagne ont été remplacés ou ajoutés dans le chapitre 06 ; les deux variantes D-203 `4997:6113` et `5009:6069` sont exportées comme références de conception post MVP. Le chapitre 13 décrit le comportement et ne contient aucune copie d’écran. Les rubriques de chaque contrat restent la référence de développement ; les images illustrent les états, sans supplanter D-232 ni les décisions applicables.
+Les 96 états de la campagne principale et les deux états média D-203 (soit 98 captures requises) sont référencés dans le chapitre 06 ; `4997:6113` et `5009:6069` sont des captures MVP. Le chapitre 13 décrit le comportement et ne contient aucune copie d’écran. Les rubriques de chaque contrat restent la référence de développement ; les images illustrent les états, sans supplanter D-232 ni les décisions applicables.
 
 | Famille de copies | Contrat applicable | Résultat de rapprochement |
 |---|---|---|
 | Profil et planification `1992:474`, `1992:579`, `1992:7537` | Contrats Profil et planification existants | Steppers confirmés visuellement ; légendes du chapitre 06 corrigées. |
-| Éditeur `4217:6980`, `4279:7044`, `4332:7095`, `5088:6398` | `CE-T03-04` et D-232 | Catégorie ouverte correctement identifiée ; roulette de Durée du nouvel éditeur à identifier ; apparence de `Terminer` sans mode à contrôler. |
+| Éditeur `4217:6980`, `4279:7044`, `4332:7095`, `5088:6398` | `CE-T03-04` et D-232 | Catégorie ouverte correctement identifiée ; aucune capture active ne montre la roulette de Durée ouverte ; `Terminer` paraît actif sur `4217:6980` et `5088:6398` malgré la règle D-232 qui le désactive sans mode. |
 | Catalogues et sélection simple `4738:6355`, `5451:4272` | `CE-T03-02`, contrats de planification | Média déployé et sélection simple illustrés ; pas de bouton de confirmation pour la sélection simple. |
 | Composition et synthèse `5301:5443`, `4760:6448`, `4760:6500` | Contrats Composition et synthèse existants | États distincts documentés par leurs captures. |
 | Exécution directe `4968:8188`, `5588:4363`, `5021:5994`, `5581:4257` | Contrat d’Exécution et règles DSF d’action circulaire | Variantes d’écran distinctes, sans création d’un contrat par capture. |
-| Média `4997:6113`, `5009:6069` | `CE-MEDIA-EXEC-01/02`, D-203 | Références visuelles documentées ; statut post MVP conservé. |
+| Média `4997:6113`, `5009:6069` | `CE-MEDIA-EXEC-01/02`, D-203 | Références visuelles MVP ; écart typographique à corriger sur `4997:6113`. |
 
-**Contrôles ouverts avant validation visuelle intégrale :** identifier une roulette ouverte dans l’éditeur courant ; vérifier l’état interactif et l’aspect désactivé de `Terminer` sans mode sur `5088:6398`. Les règles fonctionnelles V1 restent tranchées. La stratégie V2 de `r` demeure hors MVP.
+**Écarts et preuves visuels restant à lever :** aucune capture active ne montre la roulette de Durée ouverte ; le bouton `Terminer` paraît actif sur `4217:6980` et `5088:6398` alors que D-232 le désactive sans mode ; le texte Série/Tour de `4997:6113` est à 17 px au lieu de 24 px. Ce sont des écarts de preuve ou de rendu, pas des décisions fonctionnelles. Les règles V1/MVP de D-232 sont tranchées ; la seule décision fonctionnelle ouverte reste la stratégie V2 de `r`, hors MVP.
