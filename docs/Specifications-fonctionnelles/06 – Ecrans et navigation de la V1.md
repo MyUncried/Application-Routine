@@ -739,7 +739,7 @@ La frame `3542:4656` et plusieurs états `3553:*` / `3580:*` sont des référenc
 
 | N° | État | Capture | Règle matérialisée | Node Figma |
 | --- | --- | --- | --- | --- |
-| Écran 4a | Mode Répétitions | ![[images/ecran-4a-creation-activite-repetitions.png\|220]] | Copie historique ; règle fonctionnelle v9 = `Durée totale ≥ {estimation}` fondée sur 2 s par répétition | `3561:4695` |
+| Écran 4a | Mode Répétitions | ![[images/ecran-4a-creation-activite-repetitions.png\|220]] | Copie historique ; règle fonctionnelle v10.1 = `Durée totale ≥ {estimation}` fondée sur 2 s par répétition | `3561:4695` |
 | Écran 4b | Mode À l’échec | ![[images/ecran-4b-creation-activite-a-l-echec.png\|220]] | Aucun objectif chiffré ; aucune Durée totale affichée dans le texte éditable | `3561:7802` |
 | Écran 4c | Durée ouverte | ![[images/ecran-4c-creation-activite-duree-ouverte.png\|220]] | Roulette compacte minutes/secondes avec validation explicite | `3556:7645` |
 | Écran 4d | Pause ouverte | ![[images/ecran-4d-creation-activite-pause-ouverte.png\|220]] | Réglage de la Pause entre Séries avec validation explicite | `3556:7712` |
@@ -1910,9 +1910,9 @@ Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est re
 - **Carte média déployée** : état réellement déployé avec carte et barre latérale étendues, chevron haut, deux aperçus réduits, chevron entre eux, marge droite 16 px et cartes suivantes repositionnées ; ne pas utiliser l’ancienne carte condensée comme référence de cet état.
 
 
-### Phrase de synthèse v9 — règle fonctionnelle
+### Phrase de synthèse v10.1 — règle fonctionnelle
 
-Le rendu Figma n’est pas la table de vérité du texte. La phrase suit D-232 : vide avant sélection d’un mode ; mode affiché séparément ; ordre `Séries → valeur/jusqu'à l'échec → pause séries → changement de côté → Durée totale éventuelle`; recalcul immédiat à chaque changement. Le classeur v9 fournit les fragments et cas de test de référence. Les points explicitement ouverts dans le §8 de la spécification restent À CLARIFIER avant développement.
+Le rendu Figma n’est pas la table de vérité du texte. La phrase suit D-232 : vide avant sélection d’un mode ; mode affiché séparément ; ordre `Séries → valeur/jusqu'à l'échec → pause séries → changement de côté → Durée totale éventuelle`; recalcul immédiat à chaque changement. Le classeur v10 fournit les fragments et cas de test de référence. Les arbitrages V1 sont consolidés par D-232 ; seul le choix V2 de lecture/copie de `r` reste À CLARIFIER hors MVP.
 
 
 #### Contrôles numériques validés — D-232
