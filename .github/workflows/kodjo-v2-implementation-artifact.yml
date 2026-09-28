@@ -282,7 +282,7 @@ jobs:
           name: ${{ env.RECOVERY_ARTIFACT }}
           path: ${{ runner.temp }}/kodjo/delivery/recovery/
           if-no-files-found: error
-          retention-days: 90
+          retention-days: 14
 
       - name: Retry the recovery upload once if the first deposit failed
         id: recovery_upload_retry
@@ -293,7 +293,7 @@ jobs:
           name: ${{ env.RECOVERY_ARTIFACT }}-retry
           path: ${{ runner.temp }}/kodjo/delivery/recovery/
           if-no-files-found: error
-          retention-days: 90
+          retention-days: 14
 
       - name: Jest
         id: jest
@@ -348,7 +348,7 @@ jobs:
             ${{ runner.temp }}/kodjo/delivery/adapter.json
             ${{ runner.temp }}/kodjo/implementation-plan-gate.json
           if-no-files-found: warn
-          retention-days: 90
+          retention-days: 14
 
       - name: Publish structured issue result
         id: publish
@@ -366,7 +366,7 @@ jobs:
           name: ${{ env.RECEIPT_ARTIFACT }}
           path: ${{ runner.temp }}/kodjo/delivery/receipt/
           if-no-files-found: warn
-          retention-days: 90
+          retention-days: 14
 
       - name: Return run status after preservation and publication
         id: exit_status
