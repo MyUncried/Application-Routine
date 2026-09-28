@@ -25,7 +25,7 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 
 | N° | Titre | Node Figma | Fichier | Dimensions | Type | Statut |
 | --- | --- | ---: | --- | --- | --- | --- |
-| Écran 0 | Splash KODJO | `1992:469` | `ecran-0-splash-kodjo.png` | `402 × 874` | écran | COURANT |
+| Écran 0 | Splash KODJO | `1992:469` | `ecran-0-splash-kodjo.png` | `402 × 874` | écran | COURANT — réexporté le 28/09/2026 |
 | Écran 1 | Profil — Vue d’ensemble (Vibration désactivée) | `1992:375` | `ecran-1-profil.png` | `402 × 874` | écran | COURANT |
 | Écran 1a | Profil — Modifier le profil | `1992:778` | `ecran-1a-modifier-profil.png` | `402 × 874` | écran | COURANT |
 | Écran 1b | Vibration activée | `1992:684` | `ecran-1b-profil-vibration-activee.png` | `402 × 874` | écran | COURANT |
@@ -334,3 +334,10 @@ Les captures `4332:7095` (Catégorie) et `5088:6398` (état sans mode) révèlen
 | Node | Copie relative au chapitre 06 | Usage | Dimensions | SHA du contenu PNG |
 |---|---|---|---|---|
 | `4592:6217` | `figma-4592-6217.png` | Variante d’actions glissées complémentaire à l’Écran 2d ; ne constitue pas un nouvel écran fonctionnel | 402 × 874 | `4cf1487eca50c27f9a7e483cd21da01e4e057bc5` |
+
+
+### Réexport du Splash actif — 28 septembre 2026
+
+| Node | Copie relative au chapitre 06 | Dimensions | SHA du contenu PNG | Statut |
+|---|---|---|---|---|
+| `1992:469` | `ecran-0-splash-kodjo.png` | 402 × 874 | `6b0730794fa14d507a89d728c3ccf32d91cdd4e4` | Réexporté depuis la frame active du Prototype MVP |
