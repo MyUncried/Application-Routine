@@ -31,7 +31,7 @@ Le compte à rebours et la fin d'exercice **n'apparaissent jamais** dans la phra
 | Durée standard d'une répétition | r | V1 : constante = 2 s (« paramètre défini en dur ») ; V2 : paramètre du profil (§7.7) | mode Répétitions (calcul du minimum) | 2 s | non éditable en V1 |
 | Pause entre séries | pS | secondes, ≥ 0 | N > 1 | **5 s** (valeur fixe : le profil n'a pas de réglage équivalent) | sélecteur roulette |
 | Changement de côté | — | Aucun · D→G · G→D | dès qu'un mode est choisi | Aucun (D-232) | contrôle segmenté « Sans changement · Droite puis gauche · Gauche puis droite » dans le champ |
-| Pause entre côtés | pC | secondes, ≥ 0 | changement de côté ≠ Aucun | **valeur du profil** (réglage « Pause au changement de côté » : 10 s dans le prototype) | stepper selon D-232 |
+| Pause entre côtés | pC | secondes, ≥ 0 | changement de côté ≠ Aucun | **valeur du profil** (réglage « Pause au changement de côté » : 10 s dans le prototype) | sélecteur roulette dans l'Exercice |
 
 Grandeur dérivée : **k = 2** si un changement de côté est défini (côté ≠ Aucun), sinon **k = 1**.
 
@@ -168,6 +168,8 @@ Tant qu'un contrôle est ouvert, la valeur correspondante prend l'état visuel �
 **Aucun point fonctionnel V1/MVP du générateur de phrase ne reste À CLARIFIER.** Les arbitrages V1/MVP sont actés par D-232 : format de durée « 1 min » ; durée par Série initiale 1 min ; côté initial Aucun ; valeurs communes conservées lors d'un changement de mode et dernière valeur propre à chaque mode conservée pendant l'édition ; impossibilité de revenir à « Choisir un mode » après la première sélection ; « Terminer » désactivé avant ce choix ; bornes et pas des contrôles définis dans D-232. La valeur initiale de la pause au changement de côté vient du Profil et est copiée quand la bilatéralité devient applicable. La condition du message temporaire d'ajustement est confirmée au §7.2.
 
 **Seul point ouvert, V2 hors MVP :** la durée standard d'une répétition `r`, devenue un réglage du Profil en V2, sera-t-elle lue dynamiquement lors de chaque calcul ou figée/copiée pour chaque Exercice ? En V1/MVP, `r = 2 s` ; ce choix V2 n'empêche pas la mise en œuvre V1.
+
+**Contrôles selon le contexte :** les durées de pause de l'Exercice sont choisies par roulette dans le parcours d'ajout/modification ; les réglages du Profil utilisent un stepper. Ils manipulent les mêmes valeurs et contraintes documentées par D-232.
 
 **Alignement visuel du prototype :** l'état initial vide, l'exclusion du nom de l'Exercice, l'estimation « ≥ 2 min 45 s » de l'exemple Répétitions et le badge « Répétitions » sont illustrés dans le lot 3. Les écrans après choix du mode montrent des valeurs cibles et non les phrases de départ définies au §3. Les différences éventuelles de libellé ou de contrôle entre le prototype et D-232 relèvent d'un audit de présentation ; elles ne rouvrent pas les décisions fonctionnelles V1.
 
