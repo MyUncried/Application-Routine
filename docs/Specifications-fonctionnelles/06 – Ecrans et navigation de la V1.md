@@ -1843,14 +1843,14 @@ Les points suivants ont été résolus depuis ce contrôle : la modale d’aband
 
 ## États Figma — conception média pendant l’Exécution
 
-> **Statut roadmap : conception post-MVP à planifier.** Ces frames sont des évidences visuelles de la cible et ne requalifient pas le périmètre MVP courant.
+**Statut : états média inclus au MVP selon D-203.** Les captures matérialisent les états retenus ; elles n’ajoutent pas de parcours d’import dans l’éditeur.
 
 | État | Capture | Node Figma | Conséquence fonctionnelle |
 | --- | --- | --- | --- |
-| Test 2 Exécution d’une séance — Initial — Bascule (média) | ![[images/figma-4997-6113.png\|220]] | `4997:6113` | Face Média ; un média à la fois ; bouton de retour ; pagination de galerie. |
-| Test 2 Exécution d’une séance — Média plein écran | ![[images/figma-5009-6069.png\|220]] | `5009:6069` | Média plein écran avec contrôles média distincts et cadre flottant d’Exécution. |
+| Test 2 Exécution d’une séance — Initial — Bascule (média) | ![[images/figma-4997-6113.png\|220]] | `4997:6113` | État MVP : Face Média, un média à la fois, bascule de retour et pagination de galerie. |
+| Test 2 Exécution d’une séance — Média plein écran | ![[images/figma-5009-6069.png\|220]] | `5009:6069` | État MVP : média plein écran, contrôles média distincts et cadre flottant d’Exécution. |
 
-La variante Information anciennement référencée par `4997:6015` n’existe plus dans le Figma contrôlé ; elle est exclue des références visuelles courantes et reste tracée dans la matrice d’audit. La navigation et les comportements associés sont définis par D-203 et `../CONCEPTION-EXECUTION-MEDIA.md`.
+La variante Information anciennement référencée par `4997:6015` n’existe plus dans le Figma contrôlé ; elle n’est pas une preuve visuelle courante, mais le comportement de la face Information est défini par D-203 et CE-MEDIA-EXEC-01. La navigation et les comportements associés sont définis par D-203 et `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 ### Planification depuis les Catalogues — D-206
 
@@ -1923,7 +1923,7 @@ Le rendu Figma n’est pas la table de vérité du texte. La phrase suit D-232 :
 
 ## Copies d’écran intégrées — campagne du 28 septembre 2026
 
-Ces copies proviennent des frames actives de `Prototype MVP` classées « écran / état utilisateur » dans la matrice de couverture. Les variantes historiques et écrans archivés restent hors export. Deux variantes d’exécution média relèvent de la conception post MVP (D-203) et sont identifiées comme telles ci-dessous. Chaque copie est rendue à l’échelle native `402 × 874 px`. Le registre des évidences consigne le node et l’empreinte Git du PNG ; la revue des contrats est tracée séparément au chapitre 13.
+Ces copies proviennent des frames actives de `Prototype MVP` classées « écran / état utilisateur » dans la matrice de couverture. Les variantes historiques et écrans archivés restent hors export. Les deux états d’exécution média du MVP (D-203) sont identifiés ci-dessous. Chaque copie est rendue à l’échelle native `402 × 874 px`. Le registre des évidences consigne le node et l’empreinte Git du PNG ; la revue des contrats est tracée séparément au chapitre 13.
 
 ### Catalogues et sélection
 
@@ -1976,8 +1976,8 @@ Ces copies proviennent des frames actives de `Prototype MVP` classées « écran
 | 131 | Exécution d'un exercice — Initial - Cercle avec Texte | ![[images/figma-5021-5994.png\|220]] | `5021:5994` |
 | 132 | Exécution d'un exercice — Démarré —  Bascule haute avec texte | ![[images/figma-5581-4257.png\|220]] | `5581:4257` |
 
-| 135 | Exécution d'un exercice — Initial — Bascule basse (média) avec Cercle (conception post MVP) | ![[images/figma-4997-6113.png\|220]] | `4997:6113` |
-| 136 | Exécution d'un exercice — Média plein écran (conception post MVP) | ![[images/figma-5009-6069.png\|220]] | `5009:6069` |
+| 135 | Exécution d'un exercice — Initial — Bascule basse (média) avec Cercle (MVP) | ![[images/figma-4997-6113.png\|220]] | `4997:6113` |
+| 136 | Exécution d'un exercice — Média plein écran (MVP) | ![[images/figma-5009-6069.png\|220]] | `5009:6069` |
 
 ### Synthèse de séance
 
