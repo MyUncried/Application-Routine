@@ -449,7 +449,7 @@ E19–E21/E72 → D-187, D-167, D-183 ; anciennes frames `3787:5148` et `3841:83
 
 ### 1. Identification
 
-Bloc B2 ; états S18–S27 ; T03-E E12–E14, E30, E41, E50–E57, E71 ; références courantes `4217:6980` (création, paramètres repliés), `4279:7044` (paramètres dépliés), `4734:6342` (modification), `4332:7095` (sélection Catégorie ; la roulette de Durée dans l’éditeur courant n’est pas identifiée), modèles de paramètres `4367:7128`, `4367:7276`, `4367:7906`, `4367:8052`, `4367:8193`, `4490:6757`, `4490:6903`, sélection Catégorie `4474:7157`, Zones corporelles `4478:7209` et création de zone `4683:6336`.
+Bloc B2 ; états S18–S27 ; T03-E E12–E14, E30, E41, E50–E57, E71 ; références courantes `4217:6980` (création, paramètres repliés), `4279:7044` (paramètres dépliés), `4734:6342` (modification), `4332:7095` (sélection Catégorie), roulette de Durée ouverte `4367:8193` (Modèle paramètre — Durée totale — Roulette ouverte), modèles de paramètres `4367:7128`, `4367:7276`, `4367:7906`, `4367:8052`, `4490:6757`, `4490:6903`, sélection Catégorie `4474:7157`, Zones corporelles `4478:7209` et création de zone `4683:6336`.
 
 ### 2. Finalité fonctionnelle
 
@@ -493,7 +493,7 @@ Création/modification ; état vide avec `Nom de l’exercice` ; états renseign
 
 ### 12. Contrôles et interactions
 
-Tous les champs modifient le brouillon. Le champ Nom affiche la donnée du brouillon et non un libellé de démonstration. Roulettes de durée et steppers selon §4.6. `Terminer` est actif seulement si le brouillon est valide. Aucun bouton `Ajouter un média` n’est exposé dans l’éditeur courant. La modale `Zones corporelles` permet la sélection multiple, impose au moins une Zone pour valider un nouvel Exercice et autorise la création inline d’une nouvelle Zone ; la frame `4683:6336` matérialise l’état de saisie avec clavier. Le référentiel autorise aussi le renommage et la suppression d’une Zone ; ces deux opérations sont fonctionnellement requises mais ne disposent pas de frame dédiée dans le Prototype MVP.
+Tous les champs modifient le brouillon. Le champ Nom affiche la donnée du brouillon et non un libellé de démonstration. Roulettes de durée et steppers selon §4.6. `Terminer` est actif seulement si le brouillon est valide. Sans mode, les boutons sont visuellement désactivés à 40 % d’opacité sur `4217:6980` et `5088:6398`. Aucun bouton `Ajouter un média` n’est exposé dans l’éditeur courant. La modale `Zones corporelles` permet la sélection multiple, impose au moins une Zone pour valider un nouvel Exercice et autorise la création inline d’une nouvelle Zone ; la frame `4683:6336` matérialise l’état de saisie avec clavier. Le référentiel autorise aussi le renommage et la suppression d’une Zone ; ces deux opérations sont fonctionnellement requises mais ne disposent pas de frame dédiée dans le Prototype MVP.
 
 ### 13. Gestes
 
@@ -1991,10 +1991,10 @@ Les 96 états de la campagne principale et les deux états média D-203 (soit 98
 | Famille de copies | Contrat applicable | Résultat de rapprochement |
 |---|---|---|
 | Profil et planification `1992:474`, `1992:579`, `1992:7537` | Contrats Profil et planification existants | Steppers confirmés visuellement ; légendes du chapitre 06 corrigées. |
-| Éditeur `4217:6980`, `4279:7044`, `4332:7095`, `5088:6398` | `CE-T03-04` et D-232 | Catégorie ouverte correctement identifiée ; aucune capture active ne montre la roulette de Durée ouverte ; `Terminer` paraît actif sur `4217:6980` et `5088:6398` malgré la règle D-232 qui le désactive sans mode. |
+| Éditeur `4217:6980`, `4279:7044`, `4332:7095`, `5088:6398` | `CE-T03-04` et D-232 | Catégorie ouverte correctement identifiée ; roulette de Durée ouverte référencée par `4367:8193` ; état désactivé de `Terminer` corrigé à 40 % d’opacité sur `4217:6980` et `5088:6398`. |
 | Catalogues et sélection simple `4738:6355`, `5451:4272` | `CE-T03-02`, contrats de planification | Média déployé et sélection simple illustrés ; pas de bouton de confirmation pour la sélection simple. |
 | Composition et synthèse `5301:5443`, `4760:6448`, `4760:6500` | Contrats Composition et synthèse existants | États distincts documentés par leurs captures. |
 | Exécution directe `4968:8188`, `5588:4363`, `5021:5994`, `5581:4257` | Contrat d’Exécution et règles DSF d’action circulaire | Variantes d’écran distinctes, sans création d’un contrat par capture. |
 | Média `4997:6113`, `5009:6069` | `CE-MEDIA-EXEC-01/02`, D-203 | Références visuelles MVP ; écart typographique à corriger sur `4997:6113`. |
 
-**Écarts et preuves visuels restant à lever :** aucune capture active ne montre la roulette de Durée ouverte ; le bouton `Terminer` paraît actif sur `4217:6980` et `5088:6398` alors que D-232 le désactive sans mode ; le texte Série/Tour de `4997:6113` est à 17 px au lieu de 24 px. Ce sont des écarts de preuve ou de rendu, pas des décisions fonctionnelles. Les règles V1/MVP de D-232 sont tranchées ; la seule décision fonctionnelle ouverte reste la stratégie V2 de `r`, hors MVP.
+**Écart visuel restant à lever :** le texte Série/Tour de `4997:6113` est à 17 px au lieu de 24 px. La roulette de Durée est visible sur le frame de référence `4367:8193`; les CTA désactivés ont été corrigés sur `4217:6980` et `5088:6398`. Les règles V1/MVP de D-232 sont tranchées ; la seule décision fonctionnelle ouverte reste la stratégie V2 de `r`, hors MVP.
