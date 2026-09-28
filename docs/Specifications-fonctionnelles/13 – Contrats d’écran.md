@@ -477,11 +477,11 @@ Nom → accès Catégorie / Zones corporelles → paramètres Séries/cible/Paus
 
 ### 8. Éléments obligatoires
 
-Mode 3 options égales ; en mode Durée, `Durée totale` toujours affichée ; en Répétitions, texte éditable **`Durée totale >= {estimation}`** avec 1 seconde conventionnelle par répétition ; en À l’échec, aucune Durée totale affichée ; nom en gras dans Synthèse uniquement ; accès `Catégorie` et `Zones corporelles` distincts ; zone Média conforme au Figma courant et placée sous la Synthèse en cas de chevauchement ; contrôle Changement de côté avec `Aucun / D→G / G→D` au niveau Exercice uniquement ; roulettes en modale basse Annuler/Confirmer.
+Mode 3 options égales ; sans mode, phrase vide ; mode affiché hors phrase ; en Durée, clause `Durée totale` seulement si plusieurs Séries ; en Répétitions, phrase **`Durée totale ≥ {estimation}`** avec 2 secondes conventionnelles par répétition ; en À l’échec, aucune Durée totale affichée ; nom en gras dans Synthèse uniquement ; accès `Catégorie` et `Zones corporelles` distincts ; zone Média conforme au Figma courant et placée sous la Synthèse en cas de chevauchement ; contrôle Changement de côté avec `Aucun / D→G / G→D` au niveau Exercice uniquement ; roulettes en modale basse Annuler/Confirmer.
 
 ### 9. Layout déterministe
 
-DSF/grilles sans compensation locale. En Répétitions, `Durée totale >= {estimation}` apparaît dans le texte éditable selon D-204. En À l’échec, aucun élément `Durée totale` n’est affiché. Les frames `3561:4695` et `3561:7802` matérialisent ces deux états. Centrer nombre répétitions ; sélection Mode coïncide avec contrôle externe. La valeur Figma `5 min 30 s`, lorsqu’elle apparaît, est illustrative et ne devient pas une valeur métier par défaut.
+DSF/grilles sans compensation locale. En Répétitions, `Durée totale ≥ {estimation}` apparaît dans la phrase selon D-231. En À l’échec, aucun élément `Durée totale` n’est affiché. Les frames `3561:4695` et `3561:7802` matérialisent ces deux états. Centrer nombre répétitions ; sélection Mode coïncide avec contrôle externe. La valeur Figma `5 min 30 s`, lorsqu’elle apparaît, est illustrative et ne devient pas une valeur métier par défaut.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -521,11 +521,11 @@ Modes selected ; contrôles disabled annoncés ; wheel bloque focus arrière-pla
 
 ### 19. Invariants
 
-Aucun média fonctionnel ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’exercice` réservé à l’état vide/placeholder représenté ; Durée totale inchangée en Durée ; Répétitions = `Durée totale >= {estimation}` avec 1 s par répétition ; À l’échec = aucune Durée totale ; calcul intrinsèque conforme à D-208 avec `C−1` Pauses par côté et `sideRecoverySeconds` uniquement en bilatéral ; `postActivityRecoverySeconds` exclu ; ActivityDefinition distincte d’une SessionActivity.
+Aucun média fonctionnel ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’exercice` réservé à l’état vide/placeholder représenté ; Durée : clause Durée totale uniquement pour plusieurs Séries ; Répétitions = `Durée totale ≥ {estimation}` avec 2 s par répétition ; À l’échec = aucune Durée totale ; calcul intrinsèque conforme à D-208 avec `C−1` Pauses par côté et `sideRecoverySeconds` uniquement en bilatéral ; `postActivityRecoverySeconds` exclu ; ActivityDefinition distincte d’une SessionActivity.
 
 ### 20. Recette déterministe
 
-Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier absence de nom démo codé en dur, vérifier `Durée totale` en Durée, `Durée totale >= {estimation}` en Répétitions et aucune Durée totale en À l’échec ; vérifier `Pause au changement de côté` seulement en bilatéral, son exclusion en `Aucun`, les calculs D-208, les roues Annuler/Confirmer, l’échec DB, l’abandon, le responsive et le texte agrandi. Négatifs : `Renforcement du genou` statique, `Nom de l’exercice` sur état renseigné, ancienne formule D-156, récupération post-exercice dans `ActivityDefinition`, CTA wheel activable, média fonctionnel, nom non gras Synthèse.
+Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier absence de nom démo codé en dur, vérifier absence de phrase sans mode, absence de clause Durée totale en Durée avec une seule Série, présence de `Durée totale ≥ {estimation}` en Répétitions à 2 s/répétition et aucune Durée totale en À l’échec ; vérifier `Pause au changement de côté` seulement en bilatéral, son exclusion en `Aucun`, les calculs D-208, les roues Annuler/Confirmer, l’échec DB, l’abandon, le responsive et le texte agrandi. Négatifs : `Renforcement du genou` statique, `Nom de l’exercice` sur état renseigné, ancienne formule D-156, récupération post-exercice dans `ActivityDefinition`, CTA wheel activable, média fonctionnel, nom non gras Synthèse.
 
 ### 21. Traçabilité
 
@@ -1758,7 +1758,7 @@ E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
 | E48 | Stats compatibles sans compter Séance |
 | E49 | Retour Catalogue exercices état restauré |
 | E50 | Nom Activity gras Synthèse éditeur ; nom Figma renseigné = donnée de démonstration |
-| E51 | Répétitions : texte éditable `Durée totale >= {estimation}` avec 1 s par répétition |
+| E51 | Répétitions : phrase `Durée totale ≥ {estimation}` avec 2 s par répétition |
 | E52 | À l’échec : aucune Durée totale dans le texte éditable |
 | E53 | Pas texte direction développé cartes Composition |
 | E54 | Roulette bloque arrière-plan |
@@ -1948,7 +1948,7 @@ Le Catalogue des Parcours, lorsqu’il devient fonctionnel et planifiable, appli
 
 ## Complément contrats — D-209 à D-218
 
-- **Éditeur Exercice** : exactement une Catégorie et `1..n` Zones corporelles sont requises pour `Terminer`. En mode Durée, le texte éditable affiche toujours `Durée totale`, y compris pour une Série.
+- **Éditeur Exercice** : exactement une Catégorie et `1..n` Zones corporelles sont requises pour `Terminer`. La phrase de synthèse suit D-231 ; en mode Durée avec une seule Série, la clause `Durée totale` est omise.
 - **Référentiels** : une suppression confirmée retire la valeur des choix futurs mais ne retire pas les affectations existantes. Les messages Figma doivent exprimer cette conservation. Une valeur inactive déjà affectée reste affichable et conservable lors d’un enregistrement.
 - **Composition** : employer Circuit pour le groupe répété et Tours pour son nombre de répétitions. Le réglage global de prise en compte des Compte à rebours/Fins d’exercice est activé par défaut. Les positions de Point d’arrêt juste après le Compte à rebours initial et juste avant la Fin de séance sont absentes. Récupération précède Point d’arrêt sur leur ligne commune.
 - **Média compact** : bouton Lecture central avant lecture, masqué pendant lecture ; retour Information met la vidéo en pause.
@@ -1974,3 +1974,8 @@ Les contrats actifs appliquent D-221 à D-230. En particulier : aucune recherche
 - **Profil** : titres de section Semi Bold 16 px ; `Modifier` en `#0508E5`; groupes blancs 126 px ; zone de contexte 115 px ; ouverture d’un stepper sans étirement du groupe.
 - **Exécution** : sur les cinq écrans portant `Zone — Progression et suite`, début `y=449`, hauteur `305 px`. Dans la variante haute avec texte, conserver 95 px avant la zone. Variante média : `Série X/3 • Tour X/3` en Roboto Condensed Medium 24 px.
 - **Carte média déployée** : état réellement déployé avec carte et barre latérale étendues, chevron haut, deux aperçus réduits, chevron entre eux, marge droite 16 px et cartes suivantes repositionnées ; ne pas utiliser l’ancienne carte condensée comme référence de cet état.
+
+
+### Contrat de phrase de synthèse v9
+
+La phrase est vide tant qu’aucun mode n’est sélectionné. Le mode reste affiché séparément. Toute modification d’un paramètre régénère la phrase. Le texte concatène les fragments conditionnels définis par D-231 et ne persiste pas comme donnée autonome. Le nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité sont exclus. Les cas du classeur v9 constituent les tests d’acceptation textuels. Les points du §8 de la spécification restent À CLARIFIER.
