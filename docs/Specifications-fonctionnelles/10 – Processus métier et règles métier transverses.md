@@ -70,7 +70,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-129 | En mode Durée, la durée intrinsèque d’un Exercice vaut `C×A + (C−1)×B` en unilatéral et `2×[C×A + (C−1)×B] + S` en bilatéral, avec `S = sideRecoverySeconds`. `postActivityRecoverySeconds` n’entre jamais dans cette durée. |
 | RM-130 | Si Séries pilote, toute modification de `A`, `B`, `C`, du `sideMode` ou de `sideRecoverySeconds` recalcule la durée intrinsèque. Si la Durée totale pilote, l’inversion utilise la formule D-208 correspondante puis arrondit `C` au plus proche avec `.5` vers le haut, minimum `1`, avant recalcul de la durée réalisable. |
 | RM-131 | Séries et Durée totale ne pilotent jamais simultanément. Séries est le pilote implicite initial sans contour ; le dernier contrôle confirmé devient le pilote et reçoit le contour `color/selection`. Le pilote n’est pas persisté. |
-| RM-132 | **Supersédée par RM-231 / D-232** pour la phrase de synthèse v9. |
+| RM-132 | **Supersédée par RM-232 / D-232** pour la phrase de synthèse v10.1. |
 
 ## 5. Planification et Calendrier
 
@@ -273,7 +273,7 @@ Ces règles décrivent une conception post-MVP à planifier.
 | RM-223 | Le titre de planification est `Planifier` tant que le type n’est pas connu, puis `Planifier une séance` ou `Planifier une activité` selon la source. |
 
 | RM-231 | **Supersédée par RM-232 / D-232.** | 
-| RM-232 | Phrase de synthèse v9 : aucun mode → champ vide ; mode affiché hors phrase ; recalcul à chaque modification ; `N=1` en Durée → pas de clause Durée totale ; Répétitions → minimum estimé avec `r=2 s` par répétition ; À l’échec → aucune Durée totale. Avec changement de côté, chaque côté exécute son bloc complet de Séries et pauses inter-séries ; la pause entre côtés n’est comptée qu’une fois. Le nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité sont exclus de la phrase. |
+| RM-232 | Phrase de synthèse v10.1 : aucun mode → champ vide ; mode affiché hors phrase ; recalcul à chaque modification. En Durée, la clause Durée totale est omise uniquement pour `N=1` avec côté `Aucun`; elle est affichée si `N>1` ou si un changement de côté est défini. Répétitions → minimum estimé avec `r=2 s` en V1 ; À l’échec → aucune Durée totale. Avec changement de côté, chaque côté exécute son bloc complet de Séries et pauses inter-Séries ; la pause entre côtés n’est comptée qu’une fois. Nom d’Exercice, Compte à rebours, Fin de séance et Récupération post-activité sont exclus de la phrase ; Compte à rebours et Fin de séance sont aussi exclus du calcul de Durée totale. |
 
 | RM-233 | Au changement de mode, conserver les paramètres communs et, pendant l’édition, la dernière valeur spécifique de chaque mode. Après la première sélection, aucun retour à l’état « aucun mode » ; `Terminer` reste désactivé avant cette première sélection. |
 | RM-234 | Séries `1..99`; Répétitions `1..100`; Durée par Série `1..5999 s`; pauses inter-Séries/inter-côtés `0..300 s`. Les deux pauses utilisent un stepper : pas `5 s` jusqu’à `120 s`, puis `30 s` jusqu’à `300 s`. |
