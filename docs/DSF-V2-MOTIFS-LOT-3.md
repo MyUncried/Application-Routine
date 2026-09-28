@@ -9,7 +9,7 @@ Dans les dix écrans situés avant le choix du mode, y compris « Mode d'exécut
 
 ## T2 — Exemples de phrases paramétrées
 
-Aucun composant supplémentaire. Dans les exemples du DSF, exclure le nom de l'Exercice de la phrase, conserver la ponctuation sans espace avant la virgule, écrire « jusqu'à l'échec, avec… » si la pause suit, « Répétitions » sur le badge, « ≥ 2 min 45 s » pour l'exemple corrigé et « séries » en minuscule dans le message d'ajustement.
+Aucun composant supplémentaire. Dans les exemples du DSF, exclure le nom de l'Exercice de la phrase, conserver la ponctuation sans espace avant la virgule, écrire « jusqu'à l'échec, avec… » si la pause suit, « Répétitions » sur le badge, « ≥ 2 min 45 s » pour l'exemple corrigé et « Séries » avec majuscule dans le message d'ajustement, conformément à l'arbitrage complémentaire du 28/09/2026 ; l'ancienne graphie en minuscule du lot 3 est supersédée.
 
 ## T3 — Contrôles intégrés
 
