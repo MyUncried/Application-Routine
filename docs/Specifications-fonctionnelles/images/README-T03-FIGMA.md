@@ -217,7 +217,7 @@ Figma reste la source du rendu visuel courant. Une vérification Figma ne vaut p
 
 ## 10. Campagne d’export Prototype MVP — 28 septembre 2026
 
-Les 96 PNG ci-dessous ont été rendus à partir des nodes de la matrice du 28 septembre et intégrés dans la PR #247 : 34 ajouts et 62 remplacements. Contrôle automatique réalisé : 96/96 fichiers au format PNG `402 × 874 px`, node et chemin uniques. **Statut : EXPORTÉ ; dimensions, chemins et identifiants contrôlés automatiquement ; échantillon visuel vérifié ; conformité visuelle exhaustive restant à vérifier.** Ce statut ne vaut pas `COURANT` au sens du §2 tant que le contenu et les liens n'ont pas été contrôlés visuellement.
+Les 96 PNG de la campagne principale ont été rendus à partir des nodes de la matrice du 28 septembre et intégrés dans la PR #247 : 34 ajouts et 62 remplacements. Les deux PNG média D-203 `4997:6113` et `5009:6069` complètent les 96 captures de campagne, soit 98 états requis et référencés. Contrôle automatique réalisé pour les 96 fichiers de campagne : PNG `402 × 874 px`, node et chemin uniques ; les deux fichiers média sont également recensés avec leurs dimensions et empreintes ci-dessous. **Statut : EXPORTÉ ; dimensions, chemins et identifiants contrôlés automatiquement ; échantillon visuel vérifié ; conformité visuelle exhaustive restant à vérifier.** Les deux captures média possèdent aussi un PNG, une dimension et une empreinte répertoriés. Ce statut ne vaut pas `COURANT` au sens du §2 tant que le contenu et les liens n'ont pas été contrôlés visuellement.
 
 | N° matrice | Node | Copie relative au chapitre 06 | Opération | Dimensions | SHA du contenu PNG |
 |---:|---|---|---|---|---|
@@ -323,8 +323,8 @@ Les 96 PNG ci-dessous ont été rendus à partir des nodes de la matrice du 28 s
 
 | Node | Copie relative au chapitre 06 | Classification | Dimensions | SHA du contenu PNG |
 |---|---|---|---|---|
-| `4997:6113` | `figma-4997-6113.png` | Conception post MVP, copie exportée | 402 × 874 | `84f7592f9cdd08458d70063b632909ab0013a6a4` |
-| `5009:6069` | `figma-5009-6069.png` | Conception post MVP, copie exportée | 402 × 874 | `710c5a60bee4baed9737dbb90d695458b284371f` |
+| `4997:6113` | `figma-4997-6113.png` | MVP — copie exportée | 402 × 874 | `84f7592f9cdd08458d70063b632909ab0013a6a4` |
+| `5009:6069` | `figma-5009-6069.png` | MVP — copie exportée | 402 × 874 | `710c5a60bee4baed9737dbb90d695458b284371f` |
 
 Les captures `4332:7095` (Catégorie) et `5088:6398` (état sans mode) révèlent les deux contrôles ouverts détaillés dans le chapitre 13. Les anciennes roulettes `3556:7645` et `3556:7712` restent des références historiques et ne reçoivent pas de nouveau PNG courant.
 
