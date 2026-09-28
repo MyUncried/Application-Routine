@@ -192,6 +192,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Preserve real runner certification
         if: always()
+        continue-on-error: true # TEMP QUALIF ONLY — external artifact quota; revert before merge.
         uses: actions/upload-artifact@v4
         with:
           name: kodjo-v2-runner-certification-${{ github.run_id }}-${{ github.run_attempt }}
@@ -243,6 +244,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Preserve disposable preflight evidence
         if: always()
+        continue-on-error: true # TEMP QUALIF ONLY — external artifact quota; revert before merge.
         uses: actions/upload-artifact@v4
         with:
           name: kodjo-v2-disposable-preflight-${{ github.run_id }}-${{ github.run_attempt }}
@@ -286,6 +288,7 @@ jobs:
           }
       - name: Upload real recovery certification
         if: always()
+        continue-on-error: true # TEMP QUALIF ONLY — external artifact quota; revert before merge.
         uses: actions/upload-artifact@v4
         with:
           name: kodjo-v2-real-recovery-certification-${{ github.run_id }}-${{ github.run_attempt }}
