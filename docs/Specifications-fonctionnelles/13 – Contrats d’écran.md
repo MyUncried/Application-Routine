@@ -1857,9 +1857,7 @@ Figma reste la source visuelle courante. Le chapitre 06 porte l’inventaire des
 
 ### 1. Identification
 
-Conception D-203 ; statut post-MVP à planifier. Évidences Figma :
-- `4997:6015` — Test 2 Exécution d’une séance — Initial — Bascule (info) ;
-- `4997:6113` — Test 2 Exécution d’une séance — Initial — Bascule (média).
+Conception D-203 ; statut post-MVP à planifier. Évidence visuelle actuelle : `4997:6113` — Test 2 Exécution d’une séance — Initial — Bascule (média). La frame Information précédemment référencée (`4997:6015`) est absente du Figma contrôlé le 28/09/2026 ; aucune capture actuelle ne l’étaye.
 
 ### 2. Finalité fonctionnelle
 
