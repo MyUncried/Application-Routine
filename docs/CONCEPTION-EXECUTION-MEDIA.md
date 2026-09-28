@@ -2,9 +2,9 @@
 
 Date de conception : 25 septembre 2026  
 Baseline documentaire de départ : `main@5be88b695771566459fdcba61441cfeae7bce284`  
-Décision de conception : **D-203**  
+Décision : **D-203**  
 Statut fonctionnel : **conception validée**  
-Statut roadmap : **version à planifier ; le périmètre MVP actuel n’est pas étendu par ce document**.
+Statut produit : **consultation des médias pendant l’Exécution incluse au MVP**, pour les états représentés par `4997:6113` et `5009:6069`. L’ajout/import dans l’éditeur reste hors périmètre de D-203.
 
 ## 1. Objet
 
@@ -143,7 +143,7 @@ Sans imposer une bibliothèque particulière, l’implémentation devra garantir
 
 ## 13. Périmètre produit
 
-La documentation active antérieure classe la gestion fonctionnelle de plusieurs médias comme **post-MVP**. La présente conception ne change pas ce classement : elle définit la cible fonctionnelle et UX de l’évolution, sans décider de sa tranche de livraison.
+La consultation de plusieurs médias déjà associés à un Exercice pendant l’Exécution fait partie du MVP, conformément à D-203. La conception ne définit pas leur ajout/import dans l’éditeur ni les détails de stockage, qui restent gouvernés par D-066/D-068.
 
 Toute entrée dans le MVP ou dans une tranche précise exige une décision de roadmap distincte.
 
