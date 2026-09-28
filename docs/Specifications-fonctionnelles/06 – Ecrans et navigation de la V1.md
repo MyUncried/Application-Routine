@@ -1920,7 +1920,7 @@ Le rendu Figma n’est pas la table de vérité du texte. La phrase suit D-232 :
 - Séries : stepper `1..99`.
 - Répétitions : stepper `1..100`.
 - Durée par Série : roulette `1 s..99 min 59 s`.
-- Pause entre Séries et Pause au changement de côté : stepper `0..5 min`, pas `5 s` jusqu’à `2 min`, puis `30 s` jusqu’à `5 min`.
+- Pause entre Séries et Pause au changement de côté : roulette dans l'Exercice, `0..5 min`, valeurs proposées par `5 s` jusqu’à `2 min`, puis `30 s` jusqu’à `5 min` ; les réglages de durée du Profil utilisent un stepper.
 - Pause entre Séries : valeur initiale `5 s` lorsqu’elle devient applicable.
 - Pause au changement de côté : valeur courante du Profil copiée dans l’Exercice lorsqu’elle devient applicable.
 - Compte à rebours : contrôle séparé de la phrase ; sa valeur et la Fin de séance n’entrent pas dans le calcul de Durée totale.
