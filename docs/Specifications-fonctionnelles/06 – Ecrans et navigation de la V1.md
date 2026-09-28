@@ -393,8 +393,8 @@ Les états complémentaires suivants font partie de la référence de développe
 | N° | État | Capture | Règle matérialisée | Node Figma |
 | --- | --- | --- | --- | --- |
 | Écran 1b | Vibration activée | ![[images/ecran-1b-profil-vibration-activee.png\|220]] | Valeur initiale fonctionnelle de la préférence `Vibration` | `1992:684` |
-| Écran 1c | Sélecteur du compte à rebours | ![[images/ecran-1c-profil-compte-rebours-ouvert.png\|220]] | Choix intégré des secondes, avec `10 s` sélectionné | `1992:474` |
-| Écran 1d | Sélecteur de fin de séance | ![[images/ecran-1d-profil-fin-seance-ouverte.png\|220]] | Choix intégré des secondes, avec `5 s` sélectionné | `1992:579` |
+| Écran 1c | Stepper — Pause au changement de côté | ![[images/ecran-1c-profil-compte-rebours-ouvert.png\|220]] | Réglage numérique du Profil par stepper | `1992:474` |
+| Écran 1d | Stepper — Récupération après un exercice | ![[images/ecran-1d-profil-fin-seance-ouverte.png\|220]] | Réglage numérique du Profil par stepper | `1992:579` |
 | Écran 1e | Profil d’un parcours encore vide | ![[images/ecran-1e-profil-parcours-vide.png\|220]] | Présentation du Profil avant que l’utilisateur ait créé du contenu | `2139:86` |
 | Contrôle 1f | Compte à rebours d’Exercice | — | Valeur globale proposée pour le Compte à rebours propre d’une nouvelle Exercice ; pas de frame plein écran distincte | `4179:9550` |
 | Contrôle 1g | Fin d’exercice | — | Valeur globale proposée pour la Fin propre d’une nouvelle Exercice ; pas de frame plein écran distincte | `4179:9556` |
@@ -754,7 +754,7 @@ La frame `3542:4656` et plusieurs états `3553:*` / `3580:*` sont des référenc
 | Écran 4m | Paramètres dépliés — vue défilée | — | Organisation actuelle des paramètres d’exécution | `4279:7044` |
 | Écran 4n | Invitation à paramétrer | — | État replié avec action `Cliquez pour paramétrer` | `4294:7075` |
 | Écran 4o | Modifier un exercice | — | Variante modification de l’éditeur courant | `4734:6342` |
-| Écran 4p | Durée de l’Exercice — roulette ouverte | — | Roulette en modale basse dans le nouvel éditeur | `4332:7095` |
+| Écran 4p | Catégories — sélection ouverte | ![[images/figma-4332-7095.png\|220]] | Sélection de Catégorie depuis l’éditeur courant | `4332:7095` |
 | Écran 4q | Catégorie — nouvelle catégorie — clavier ouvert | — | Création d’une Catégorie depuis l’éditeur | `4474:7157` |
 | Écran 4r | Zones corporelles | — | Sélection des Zones corporelles | `4478:7209` |
 | Écran 4s | Nouvelle zone corporelle — clavier ouvert | — | Création inline d’une Zone corporelle dans le référentiel administrable | `4683:6336` |
@@ -960,7 +960,7 @@ La suppression ou modification d’une Routine agit sur les occurrences futures 
 | Écran 8b | Heure ouverte | ![[images/ecran-8b-planifier-heure-ouverte.png\|220]] | Roulette compacte heures/minutes avec validation explicite | `1992:7006` |
 | Écran 8c | Rappel personnalisé ouvert | ![[images/ecran-8c-planifier-rappel-ouvert.png\|220]] | Réglage compact du délai de rappel avec validation explicite | `1992:7187` |
 | Écran 8d | Rappel personnalisé sélectionné | ![[images/ecran-8d-planifier-rappel-selectionne.png\|220]] | Valeur répercutée dans le formulaire avant enregistrement | `1992:7369` |
-| Écran 8e | Nombre de semaines ouvert | ![[images/ecran-8e-planifier-semaines-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `1992:7537` |
+| Écran 8e | Nombre de semaines ouvert | ![[images/ecran-8e-planifier-semaines-ouvert.png\|220]] | Stepper du nombre de semaines dans le formulaire de planification | `1992:7537` |
 | Écran 8f | Aucune répétition | ![[images/ecran-8f-planifier-sans-repetition.png\|220]] | Variante de planification unique | `1992:7716` |
 | Écran 8g | Changer la Séance | ![[images/ecran-8g-planifier-changer-seance.png\|220]] | Liste de remplacement de la Séance associée | `1992:7861` |
 
@@ -1793,7 +1793,7 @@ Avant cette passe, **77** de ces frames étaient déjà référencées par leur 
 | `4279:7044` | Ajouter un exercice — paramètres dépliés | Référencée dans Écran 4 |
 | `4294:7075` | Ajouter un exercice — invitation à paramétrer | Référencée dans Écran 4 |
 | `4734:6342` | Modifier un exercice — Squats sautés | Référencée dans Écran 4 |
-| `4332:7095` | Durée de l’Exercice — roulette ouverte | Référencée dans Écran 4 |
+| `4332:7095` | Catégories — sélection ouverte | Copie intégrée dans Écran 4p |
 | `4474:7157` | Catégorie — Nouvelle catégorie — clavier | Référencée dans Écran 4 |
 | `4478:7209` | Zones corporelles | Référencée dans Écran 4 |
 | `4683:6336` | Nouvelle zone corporelle — clavier | Référencée dans Écran 4 ; création inline conforme au référentiel administrable |
@@ -1928,7 +1928,7 @@ Le rendu Figma n’est pas la table de vérité du texte. La phrase suit D-232 :
 
 ## Copies d’écran intégrées — campagne du 28 septembre 2026
 
-Ces copies proviennent des frames actives de `Prototype MVP` classées « écran / état utilisateur » dans la matrice de couverture. Les variantes historiques, planches de conception et écrans archivés restent hors export. Chaque copie est rendue à l’échelle native `402 × 874 px`. Le registre des évidences consigne le node et l’empreinte Git du PNG ; la revue des contrats est tracée séparément au chapitre 13.
+Ces copies proviennent des frames actives de `Prototype MVP` classées « écran / état utilisateur » dans la matrice de couverture. Les variantes historiques et écrans archivés restent hors export. Deux variantes d’exécution média relèvent de la conception post MVP (D-203) et sont identifiées comme telles ci-dessous. Chaque copie est rendue à l’échelle native `402 × 874 px`. Le registre des évidences consigne le node et l’empreinte Git du PNG ; la revue des contrats est tracée séparément au chapitre 13.
 
 ### Catalogues et sélection
 
@@ -1948,13 +1948,13 @@ Ces copies proviennent des frames actives de `Prototype MVP` classées « écran
 
 | N° matrice | État Figma | Copie intégrée | Node |
 |---:|---|---|---|
-| 93 | Ajouter une activité — Squats sautés — Paramètres dépliés — Vue défilée | ![[images/figma-4279-7044.png\|220]] | `4279:7044` |
-| 96 | Ajouter une activité — Squats sautés — Durée de l’activité — Roulette ouverte | ![[images/figma-4332-7095.png\|220]] | `4332:7095` |
-| 102 | Ajouter une activité — Squats sautés — Catégorie — Nouvelle catégorie — Clavier ouvert | ![[images/figma-4474-7157.png\|220]] | `4474:7157` |
-| 114 | Ajouter une activité — Squats sautés — Zones corporelles — Nouvelle zone corporelle — Clavier ouvert | ![[images/figma-4683-6336.png\|220]] | `4683:6336` |
+| 93 | Ajouter un exercice — Phrase éditée | ![[images/figma-4279-7044.png\|220]] | `4279:7044` |
+| 96 | Ajouter un exercice — Catégories | ![[images/figma-4332-7095.png\|220]] | `4332:7095` |
+| 102 | Ajouter un exercice — Nouvelle catégorie | ![[images/figma-4474-7157.png\|220]] | `4474:7157` |
+| 114 | Ajouter un exercice — Nouvelle zone corporelle | ![[images/figma-4683-6336.png\|220]] | `4683:6336` |
 | 115 | Modal — Abandonner la création de l’activité | ![[images/figma-4714-6241.png\|220]] | `4714:6241` |
-| 120 | Ajouter une activité — Catégorie — Appui long — Confirmation suppression | ![[images/figma-4861-6259.png\|220]] | `4861:6259` |
-| 121 | Ajouter une activité — Zones corporelles — Appui long — Confirmation suppression | ![[images/figma-4861-6348.png\|220]] | `4861:6348` |
+| 120 | Ajouter un exercice — Catégorie — Appui long — Confirmation suppression | ![[images/figma-4861-6259.png\|220]] | `4861:6259` |
+| 121 | Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression | ![[images/figma-4861-6348.png\|220]] | `4861:6348` |
 | 127 | Ajouter un exercice — Catégorie renseignée | ![[images/figma-5088-6398.png\|220]] | `5088:6398` |
 
 ### Composition de séance
@@ -1975,11 +1975,14 @@ Ces copies proviennent des frames actives de `Prototype MVP` classées « écran
 | N° matrice | État Figma | Copie intégrée | Node |
 |---:|---|---|---|
 | 123 | Exécution d'un exercice — Démarrée | ![[images/figma-4968-8188.png\|220]] | `4968:8188` |
-| 124 | Synthèse d'exécution — Exercice Terminé — Évaluation initiale | ![[images/figma-4968-8055.png\|220]] | `4968:8055` |
-| 125 | Synthèse d'exécution — Exercice Terminé — Ressenti sélectionné | ![[images/figma-4968-8105.png\|220]] | `4968:8105` |
+| 124 | Synthèse d'exécution — Exercice Terminé —  Évaluation initiale | ![[images/figma-4968-8055.png\|220]] | `4968:8055` |
+| 125 | Synthèse d'exécution — Exercice Terminé —  Ressenti sélectionné | ![[images/figma-4968-8105.png\|220]] | `4968:8105` |
 | 130 | Exécution d'un exercice — Initial — Bascule haute avec média | ![[images/figma-5588-4363.png\|220]] | `5588:4363` |
 | 131 | Exécution d'un exercice — Initial - Cercle avec Texte | ![[images/figma-5021-5994.png\|220]] | `5021:5994` |
-| 132 | Exécution d'un exercice — Démarré — Bascule haute avec texte | ![[images/figma-5581-4257.png\|220]] | `5581:4257` |
+| 132 | Exécution d'un exercice — Démarré —  Bascule haute avec texte | ![[images/figma-5581-4257.png\|220]] | `5581:4257` |
+
+| 135 | Exécution d'un exercice — Initial — Bascule basse (média) avec Cercle (conception post MVP) | ![[images/figma-4997-6113.png\|220]] | `4997:6113` |
+| 136 | Exécution d'un exercice — Média plein écran (conception post MVP) | ![[images/figma-5009-6069.png\|220]] | `5009:6069` |
 
 ### Synthèse de séance
 
@@ -1993,3 +1996,8 @@ Ces copies proviennent des frames actives de `Prototype MVP` classées « écran
 | N° matrice | État Figma | Copie intégrée | Node |
 |---:|---|---|---|
 | 91 | Modal — Confirmer l’archivage d’une séance planifiée | ![[images/figma-4593-6285.png\|220]] | `4593:6285` |
+
+
+### Écart de référence visuelle à arbitrer avant développement
+
+La frame `4332:7095` est une sélection de Catégorie, pas une roulette de Durée. Les anciennes frames `3556:7645` (Durée) et `3556:7712` (Pause) montrent des roulettes dans une ancienne organisation de l’éditeur ; elles servent d’illustration historique du contrôle, sans valider sa mise en place dans l’éditeur courant. Une capture de roulette ouverte sur le nouvel éditeur reste à fournir ou à identifier dans Figma. Dans `5088:6398`, le bouton `Terminer` paraît visuellement actif alors que l’état sans mode est censé le désactiver ; son état interactif doit être vérifié dans le prototype ou corrigé visuellement. Ces deux écarts ne changent pas les règles fonctionnelles de D-232.
