@@ -1976,9 +1976,9 @@ Les contrats actifs appliquent D-221 à D-230. En particulier : aucune recherche
 - **Carte média déployée** : état réellement déployé avec carte et barre latérale étendues, chevron haut, deux aperçus réduits, chevron entre eux, marge droite 16 px et cartes suivantes repositionnées ; ne pas utiliser l’ancienne carte condensée comme référence de cet état.
 
 
-### Contrat de phrase de synthèse v9
+### Contrat de phrase de synthèse v10.1
 
-La phrase est vide tant qu’aucun mode n’est sélectionné. Le mode reste affiché séparément. Toute modification d’un paramètre régénère la phrase. Le texte concatène les fragments conditionnels définis par D-232 et ne persiste pas comme donnée autonome. Le nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité sont exclus. Les cas du classeur v9 constituent les tests d’acceptation textuels. Les points du §8 de la spécification restent À CLARIFIER.
+La phrase est vide tant qu’aucun mode n’est sélectionné. Le mode reste affiché séparément. Toute modification d’un paramètre régénère la phrase. Le texte concatène les fragments conditionnels définis par D-232 et ne persiste pas comme donnée autonome. Le nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité sont exclus. Les cas du classeur v10 constituent les tests d’acceptation textuels. Les arbitrages V1 sont consolidés par D-232 ; la stratégie V2 de `r` reste À CLARIFIER hors MVP.
 
 
 ### Critères d’acceptation v10.1 — D-232
