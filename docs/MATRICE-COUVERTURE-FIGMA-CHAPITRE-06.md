@@ -12,7 +12,7 @@ Les PNG des écrans qualifiés ont été exportés dans la PR #247 ; les chemins
 
 ## Synthèse
 
-Le contrôle exhaustif du 28 septembre 2026 recense **113 frames de premier niveau** dans `Prototype MVP`. La matrice conserve en plus des traces historiques/archivées qui ne sont pas comptées parmi les 113 frames. La réconciliation node-id par node-id est détaillée en fin de document ; elle aboutit à une couverture **113/113** des frames de premier niveau.
+Le contrôle exhaustif du 28 septembre 2026 recense **113 frames de premier niveau** présentes dans `Prototype MVP`, tous statuts confondus (écrans, références et variantes). La matrice conserve en plus des traces historiques/archivées qui ne sont pas comptées parmi les 113 frames. La réconciliation node-id par node-id est détaillée en fin de document ; elle aboutit à une couverture **113/113** des frames de premier niveau.
 
 ### Règles de qualification
 
