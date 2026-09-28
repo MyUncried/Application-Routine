@@ -111,7 +111,7 @@ jobs:
           name: KODJO-CLAUDE-SESSION-RESUME-01-BASE-execution
           path: ${{ steps.claude.outputs.execution_file }}
           if-no-files-found: warn
-          retention-days: 30
+          retention-days: 14
       - name: Dispatch distinct RESUME run
         if: steps.persist.outputs.dispatch_resume == 'true'
         env:
@@ -194,4 +194,4 @@ jobs:
           name: KODJO-CLAUDE-SESSION-RESUME-01-RESUME-execution
           path: ${{ steps.claude.outputs.execution_file }}
           if-no-files-found: warn
-          retention-days: 30
+          retention-days: 14
