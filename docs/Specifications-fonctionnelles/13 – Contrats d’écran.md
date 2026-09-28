@@ -1976,11 +1976,11 @@ Les contrats actifs appliquent D-221 à D-230. En particulier : aucune recherche
 - **Carte média déployée** : état réellement déployé avec carte et barre latérale étendues, chevron haut, deux aperçus réduits, chevron entre eux, marge droite 16 px et cartes suivantes repositionnées ; ne pas utiliser l’ancienne carte condensée comme référence de cet état.
 
 
-### Contrat de phrase de synthèse v10.1
+### Contrat de phrase de synthèse v10.2
 
-La phrase est vide tant qu’aucun mode n’est sélectionné. Le mode reste affiché séparément. Toute modification d’un paramètre régénère la phrase. Le texte concatène les fragments conditionnels définis par D-232 et ne persiste pas comme donnée autonome. Le nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité sont exclus. Les cas du classeur v10 constituent les tests d’acceptation textuels. Les arbitrages V1 sont consolidés par D-232 ; la stratégie V2 de `r` reste À CLARIFIER hors MVP.
+La phrase est vide tant qu’aucun mode n’est sélectionné. Le mode reste affiché séparément. Toute modification d’un paramètre régénère la phrase. Le texte concatène les fragments conditionnels définis par D-232 et ne persiste pas comme donnée autonome. Le nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité sont exclus. Les cas du classeur v10 constituent les tests d’acceptation textuels. Après saisie de `Tv`, afficher « Durée ajustée à {T(N)} pour respecter un nombre entier de Séries. » si et seulement si `T(N) ≠ Tv` ; aucun message si égalité. Les arbitrages V1 sont consolidés par D-232 ; seule la stratégie V2 de `r` reste À CLARIFIER hors MVP.
 
 
-### Critères d’acceptation v10.1 — D-232
+### Critères d’acceptation v10.2 — D-232
 
 État initial : aucun mode, phrase vide, `Terminer` désactivé. Première sélection : impossible ensuite de revenir à aucun mode. Changement de mode : paramètres communs conservés et dernière valeur spécifique de chaque mode restaurée pendant l’édition. Séries `1..99`; Répétitions `1..100`; Durée par Série `1 s..99 min 59 s`. Pauses inter-Séries et inter-côtés : stepper `0..5 min`, `5 s` par pas jusqu’à `2 min`, puis `30 s` jusqu’à `5 min`. Pause inter-côtés initialisée par copie de la valeur Profil. La phrase omet la Durée totale seulement en Durée avec `N=1` et côté `Aucun`; elle l’affiche si `N>1` ou si un changement de côté est défini. Compte à rebours et Fin de séance ne sont ni dans la phrase ni dans la Durée totale.
