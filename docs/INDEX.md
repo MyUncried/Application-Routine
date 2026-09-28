@@ -246,3 +246,6 @@ Le document décrit une **cible post-MVP à planifier** ; il ne requalifie pas �
 
 
 > Clôture Figma / DSF du 28 septembre 2026 — D-221 à D-230 : aucune recherche globale ou locale dans le MVP ; quatre destinations `Catalogues / Calendrier / Suivi / Profil` ; sélection simple validée au toucher versus sélection multiple avec `Sélectionner` ; titre `Planifier` contextuel ; fonds/zones de contexte, navigation basse, halos/actions circulaires, steppers/badges, modales/listes, roulettes et états spécialisés alignés sur DSF V2.
+
+
+> Générateur de phrase des paramètres d’exécution : règles actives consolidées par D-232 (classeur v10 / spécification v10.1 + arbitrages du 28/09/2026). La stratégie V2 de la durée standard d’une répétition reste À CLARIFIER et n’affecte pas la V1.
