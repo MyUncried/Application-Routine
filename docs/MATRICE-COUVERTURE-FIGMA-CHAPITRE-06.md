@@ -12,7 +12,7 @@ Les PNG des écrans qualifiés ont été exportés dans la PR #247 ; les chemins
 
 ## Synthèse
 
-Le contrôle exhaustif du 28 septembre 2026 recense **113 frames de premier niveau actives** dans `Prototype MVP`. La matrice conserve en plus des traces historiques/archivées qui ne sont pas comptées dans ces 114 frames. La réconciliation node-id par node-id est détaillée en fin de document ; elle aboutit à une couverture **113/113** des frames de premier niveau.
+Le contrôle exhaustif du 28 septembre 2026 recense **113 frames de premier niveau** dans `Prototype MVP`. La matrice conserve en plus des traces historiques/archivées qui ne sont pas comptées parmi les 113 frames. La réconciliation node-id par node-id est détaillée en fin de document ; elle aboutit à une couverture **113/113** des frames de premier niveau.
 
 ### Règles de qualification
 
@@ -111,7 +111,7 @@ Le contrôle exhaustif du 28 septembre 2026 recense **113 frames de premier nive
 | 82 | `3788:5258` | HISTORIQUE — Composition — ancien arbre Ajouter une activité — supersédé D-205 | NODE ABSENT — TRACE HISTORIQUE | NON | — | AUCUNE | — | 0 | Node non retrouvé dans Figma au contrôle exhaustif du 28/09/2026 ; conserver la ligne pour traçabilité, ne pas réexporter. |
 | 83 | `3789:5349` | Composition séance — Sélection exercices | ÉCRAN / ÉTAT UTILISATEUR | OUI | images/ecran-14-selection-activites-existantes.png | EXPORTÉ — REMPLACÉ | images/ecran-14-selection-activites-existantes.png | 1 | Frame active de premier niveau représentant un état utilisateur distinct. |
 | 84 | `3841:8375` | HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187 | ARCHIVÉ / HORS PROTOTYPE ACTIF | NON | — | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | — | 0 | Node présent sous « Archives — Écrans retirés du prototype » au contrôle du 28/09/2026 ; non compté parmi les 113 frames actives. |
-| 85 | `3933:5780` | HISTORIQUE — Composition — ancien arbre Ajouter une activité — supersédé D-205 | ARCHIVÉ / HORS PROTOTYPE ACTIF | NON | — | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | — | 0 | Node présent sous « Archives — Écrans retirés du prototype » au contrôle du 28/09/2026 ; non compté parmi les 114 frames actives. |
+| 85 | `3933:5780` | HISTORIQUE — Composition — ancien arbre Ajouter une activité — supersédé D-205 | ARCHIVÉ / HORS PROTOTYPE ACTIF | NON | — | CONSERVER HISTORIQUE — PAS DE RÉEXPORT | — | 0 | Node présent sous « Archives — Écrans retirés du prototype » au contrôle du 28/09/2026 ; non compté parmi les 113 frames de premier niveau. |
 | 86 | `3967:5953` | Comparaison — pastille Archivée | NODE ABSENT — TRACE HISTORIQUE | NON | — | AUCUNE | — | 0 | Node non retrouvé dans Figma au contrôle exhaustif du 28/09/2026 ; conserver la ligne pour traçabilité, ne pas réexporter. |
 | 87 | `3972:5953` | Avant / Après — modifications du 16 septembre | NODE ABSENT — TRACE HISTORIQUE | NON | — | AUCUNE | — | 0 | Node non retrouvé dans Figma au contrôle exhaustif du 28/09/2026 ; conserver la ligne pour traçabilité, ne pas réexporter. |
 | 88 | `4091:6136` | PROPOSITION — Exécution activité directe — Informations regroupées | NODE ABSENT — TRACE HISTORIQUE | NON | — | AUCUNE | — | 0 | Node non retrouvé dans Figma au contrôle exhaustif du 28/09/2026 ; conserver la ligne pour traçabilité, ne pas réexporter. |
