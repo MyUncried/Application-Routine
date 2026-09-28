@@ -521,7 +521,7 @@ Modes selected ; contrôles disabled annoncés ; wheel bloque focus arrière-pla
 
 ### 19. Invariants
 
-Aucun média fonctionnel ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’exercice` réservé à l’état vide/placeholder représenté ; Durée : clause Durée totale si plusieurs Séries ou changement de côté ; Répétitions = `Durée totale ≥ {estimation}` avec 2 s par répétition ; À l’échec = aucune Durée totale ; calcul intrinsèque conforme à D-208 avec `C−1` Pauses par côté et `sideRecoverySeconds` uniquement en bilatéral ; `postActivityRecoverySeconds` exclu ; ActivityDefinition distincte d’une SessionActivity.
+Aucun ajout/import de média dans l’éditeur ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’exercice` réservé à l’état vide/placeholder représenté ; Durée : clause Durée totale si plusieurs Séries ou changement de côté ; Répétitions = `Durée totale ≥ {estimation}` avec 2 s par répétition ; À l’échec = aucune Durée totale ; calcul intrinsèque conforme à D-208 avec `C−1` Pauses par côté et `sideRecoverySeconds` uniquement en bilatéral ; `postActivityRecoverySeconds` exclu ; ActivityDefinition distincte d’une SessionActivity.
 
 ### 20. Recette déterministe
 
@@ -1865,7 +1865,7 @@ Consulter les médias de l’Exercice en cours sans quitter ni suspendre l’Ex�
 
 ### 3. Conditions d’affichage
 
-Le bouton de changement de face existe uniquement si l’Exercice possède au moins un média. Face Information par défaut au début d’une nouvelle séance.
+Le bouton de changement de face existe uniquement si l’Exercice possède au moins un média. Face Information par défaut au début d’une nouvelle séance. Le modèle d’exécution porte deux boutons symétriques de bascule de côté (haut près du chrono, bas près du média) ; chacun mesure 32 × 32 px et utilise l’icône `bitcoin-icons:flip-horizontal-filled` noire sur le fond circulaire standard du DSF.
 
 ### 4. Interactions
 
