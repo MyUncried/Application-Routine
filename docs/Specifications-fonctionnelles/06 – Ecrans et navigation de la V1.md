@@ -1924,3 +1924,72 @@ Le rendu Figma n’est pas la table de vérité du texte. La phrase suit D-232 :
 - Pause entre Séries : valeur initiale `5 s` lorsqu’elle devient applicable.
 - Pause au changement de côté : valeur courante du Profil copiée dans l’Exercice lorsqu’elle devient applicable.
 - Compte à rebours : contrôle séparé de la phrase ; sa valeur et la Fin de séance n’entrent pas dans le calcul de Durée totale.
+
+
+## Copies d’écran intégrées — campagne du 28 septembre 2026
+
+Ces copies proviennent des frames actives de `Prototype MVP` classées « écran / état utilisateur » dans la matrice de couverture. Les variantes historiques, planches de conception et écrans archivés restent hors export. Chaque copie est rendue à l’échelle native `402 × 874 px`. Le registre des évidences consigne le node et l’empreinte Git du PNG ; la revue des contrats est tracée séparément au chapitre 13.
+
+### Catalogues et sélection
+
+| N° matrice | État Figma | Copie intégrée | Node |
+|---:|---|---|---|
+| 89 | Catalogue des séances — Filtrer — Panneau ouvert | ![[images/figma-4168-11149.png\|220]] | `4168:11149` |
+| 90 | Catalogue des Exercices — Filtrer — Panneau ouvert | ![[images/figma-4168-11262.png\|220]] | `4168:11262` |
+| 106 | Catalogue des exercices — État vide | ![[images/figma-4521-6220.png\|220]] | `4521:6220` |
+| 108 | Catalogue des Exercices — Liste — Filtre inactif étendu | ![[images/figma-4544-6344.png\|220]] | `4544:6344` |
+| 109 | Catalogue des Exercices — Liste — Filtre actif étendu | ![[images/figma-4544-6651.png\|220]] | `4544:6651` |
+| 110 | Catalogue des séances — Liste — Filtre inactif étendu | ![[images/figma-4549-6382.png\|220]] | `4549:6382` |
+| 116 | Catalogue des Exercices — Liste — actions glissées | ![[images/figma-4738-6209.png\|220]] | `4738:6209` |
+| 117 | Catalogue des Exercices — Liste — Première carte déployée — Média | ![[images/figma-4738-6355.png\|220]] | `4738:6355` |
+| 134 | Modal — Choisir un exercice — Planification — Liste longue | ![[images/figma-5451-4272.png\|220]] | `5451:4272` |
+
+### Éditeur d'Exercice
+
+| N° matrice | État Figma | Copie intégrée | Node |
+|---:|---|---|---|
+| 93 | Ajouter une activité — Squats sautés — Paramètres dépliés — Vue défilée | ![[images/figma-4279-7044.png\|220]] | `4279:7044` |
+| 96 | Ajouter une activité — Squats sautés — Durée de l’activité — Roulette ouverte | ![[images/figma-4332-7095.png\|220]] | `4332:7095` |
+| 102 | Ajouter une activité — Squats sautés — Catégorie — Nouvelle catégorie — Clavier ouvert | ![[images/figma-4474-7157.png\|220]] | `4474:7157` |
+| 114 | Ajouter une activité — Squats sautés — Zones corporelles — Nouvelle zone corporelle — Clavier ouvert | ![[images/figma-4683-6336.png\|220]] | `4683:6336` |
+| 115 | Modal — Abandonner la création de l’activité | ![[images/figma-4714-6241.png\|220]] | `4714:6241` |
+| 120 | Ajouter une activité — Catégorie — Appui long — Confirmation suppression | ![[images/figma-4861-6259.png\|220]] | `4861:6259` |
+| 121 | Ajouter une activité — Zones corporelles — Appui long — Confirmation suppression | ![[images/figma-4861-6348.png\|220]] | `4861:6348` |
+| 127 | Ajouter un exercice — Catégorie renseignée | ![[images/figma-5088-6398.png\|220]] | `5088:6398` |
+
+### Composition de séance
+
+| N° matrice | État Figma | Copie intégrée | Node |
+|---:|---|---|---|
+| 47 | Composition séance — Étiquettes | ![[images/figma-2028-11204.png\|220]] | `2028:11204` |
+| 75 | Composition séance — Point d’arrêt | ![[images/figma-3722-5061.png\|220]] | `3722:5061` |
+| 76 | Composition séance — Étiquette sélectionnée | ![[images/figma-4581-6404.png\|220]] | `4581:6404` |
+| 113 | Composition séance — Nouvelle étiquette | ![[images/figma-4640-6308.png\|220]] | `4640:6308` |
+| 119 | Composition séance — Étiquettes — Appui long — Confirmation suppression | ![[images/figma-4861-6145.png\|220]] | `4861:6145` |
+| 126 | Modification d'une séance | ![[images/figma-5271-5455.png\|220]] | `5271:5455` |
+| 128 | Composition d’une séance — Placement d’un point d’arrêt | ![[images/figma-4893-6675.png\|220]] | `4893:6675` |
+| 133 | Composition séance — Retirer un point d’arrêt | ![[images/figma-5301-5443.png\|220]] | `5301:5443` |
+
+### Exécution directe et synthèse
+
+| N° matrice | État Figma | Copie intégrée | Node |
+|---:|---|---|---|
+| 123 | Exécution d'un exercice — Démarrée | ![[images/figma-4968-8188.png\|220]] | `4968:8188` |
+| 124 | Synthèse d'exécution — Exercice Terminé — Évaluation initiale | ![[images/figma-4968-8055.png\|220]] | `4968:8055` |
+| 125 | Synthèse d'exécution — Exercice Terminé — Ressenti sélectionné | ![[images/figma-4968-8105.png\|220]] | `4968:8105` |
+| 130 | Exécution d'un exercice — Initial — Bascule haute avec média | ![[images/figma-5588-4363.png\|220]] | `5588:4363` |
+| 131 | Exécution d'un exercice — Initial - Cercle avec Texte | ![[images/figma-5021-5994.png\|220]] | `5021:5994` |
+| 132 | Exécution d'un exercice — Démarré — Bascule haute avec texte | ![[images/figma-5581-4257.png\|220]] | `5581:4257` |
+
+### Synthèse de séance
+
+| N° matrice | État Figma | Copie intégrée | Node |
+|---:|---|---|---|
+| 34 | Synthèse de séance — Partielle — Évaluation initiale | ![[images/figma-4760-6448.png\|220]] | `4760:6448` |
+| 35 | Synthèse de séance — Partielle — Ressenti sélectionné | ![[images/figma-4760-6500.png\|220]] | `4760:6500` |
+
+### Autres
+
+| N° matrice | État Figma | Copie intégrée | Node |
+|---:|---|---|---|
+| 91 | Modal — Confirmer l’archivage d’une séance planifiée | ![[images/figma-4593-6285.png\|220]] | `4593:6285` |
