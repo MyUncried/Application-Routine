@@ -1402,3 +1402,8 @@ L’implémentation de la navigation et des composants visuels respecte D-224 à
 - **Profil** : titres de section Semi Bold 16 px ; `Modifier` en `#0508E5`; groupes blancs 126 px ; zone de contexte 115 px ; ouverture d’un stepper sans étirement du groupe.
 - **Exécution** : sur les cinq écrans portant `Zone — Progression et suite`, début `y=449`, hauteur `305 px`. Dans la variante haute avec texte, conserver 95 px avant la zone. Variante média : `Série X/3 • Tour X/3` en Roboto Condensed Medium 24 px.
 - **Carte média déployée** : état réellement déployé avec carte et barre latérale étendues, chevron haut, deux aperçus réduits, chevron entre eux, marge droite 16 px et cartes suivantes repositionnées ; ne pas utiliser l’ancienne carte condensée comme référence de cet état.
+
+
+### Générateur de phrase v9
+
+Implémenter le générateur comme fonction pure au-dessus des paramètres de l’Exercice. La bibliothèque de fragments et les règles de sélection sont celles de D-231 ; le calcul Répétitions utilise la constante `r=2 s`. Le jeu de 7 états d’entrée + 36 cas du classeur v9 doit être transcrit en tests paramétrés. Aucun texte Figma ne doit être utilisé comme source de vérité fonctionnelle.
