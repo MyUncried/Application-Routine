@@ -805,13 +805,13 @@ Le nom est obligatoire.
 
 Le contrôle `Durée / Répétitions / À l’échec` partage sa largeur en trois zones égales. Le texte de chaque option reste centré. Les titres des sections utilisent la même typographie que `Mode d’exécution` et le chevron DSF de déploiement. Le contenu central défile indépendamment de la synthèse et du bouton final. Le texte récapitulatif utilise `KODJO / Body` (`14/20`, Regular), occupe la largeur utile complète et conserve sa position fixe ; le contenu défilant maintient au moins `spacing/16` avant la synthèse.
 
-Dans le premier cadre, l’ordre horizontal est invariant : `Séries` à gauche, cible du mode au centre (`Durée`, `Répétitions` ou cadre informatif `à l’échec`), puis `Pause` à droite. Cet ordre reste inchangé lorsqu’une roulette est ouverte. Dans la seconde ligne du même cadre bleu, `Changement de côté` occupe le premier emplacement, puis `Récupération` et `Durée totale`. La géométrie suit le Figma courant et le DSF actif. Dans la phrase de synthèse, le mode est affiché hors phrase. Sans mode, le champ est vide. En Durée, la clause `Durée totale` est présente uniquement pour plusieurs Séries ; en Répétitions, `Durée totale ≥ {estimation}` utilise 2 s par répétition ; en À l’échec elle est absente. La phrase est régénérée à chaque modification (D-231).
+Dans le premier cadre, l’ordre horizontal est invariant : `Séries` à gauche, cible du mode au centre (`Durée`, `Répétitions` ou cadre informatif `à l’échec`), puis `Pause` à droite. Cet ordre reste inchangé lorsqu’une roulette est ouverte. Dans la seconde ligne du même cadre bleu, `Changement de côté` occupe le premier emplacement, puis `Récupération` et `Durée totale`. La géométrie suit le Figma courant et le DSF actif. Dans la phrase de synthèse, le mode est affiché hors phrase. Sans mode, le champ est vide. En Durée, la clause `Durée totale` est présente dès qu’il y a plusieurs Séries ou un changement de côté ; en Répétitions, `Durée totale ≥ {estimation}` utilise 2 s par répétition ; en À l’échec elle est absente. La phrase est régénérée à chaque modification (D-232).
 
 La synthèse ne préfixe jamais la phrase par le type d’Exercice ni par le mode d’exécution. Le **nom de l’Exercice est en gras uniquement dans cette Synthèse**. Elle suit les formes fonctionnelles existantes pour les Séries, cibles, directions, Pauses et Récupération.
 
 Pour une direction propre bilatérale, ajouter après la cible du mode — après `jusqu’à l’échec` — et avant toute Pause : `, à droite, puis à gauche` ou `, à gauche, puis à droite`. Ne rien ajouter en `UNILATERAL` ni pour une direction seulement héritée du Tour.
 
-La phrase intrinsèque n’inclut jamais la Récupération post-activité. Elle mentionne la pause entre Séries seulement si plusieurs Séries, et la pause au changement de côté seulement si un changement de côté est défini et que cette pause est positive. Les fragments et la ponctuation suivent D-231.
+La phrase intrinsèque n’inclut jamais la Récupération post-activité. Elle mentionne la pause entre Séries seulement si plusieurs Séries, et la pause au changement de côté seulement si un changement de côté est défini et que cette pause est positive. Les fragments et la ponctuation suivent D-232.
 
 ### Mode d’Exécution
 
@@ -1912,4 +1912,15 @@ Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est re
 
 ### Phrase de synthèse v9 — règle fonctionnelle
 
-Le rendu Figma n’est pas la table de vérité du texte. La phrase suit D-231 : vide avant sélection d’un mode ; mode affiché séparément ; ordre `Séries → valeur/jusqu'à l'échec → pause séries → changement de côté → Durée totale éventuelle`; recalcul immédiat à chaque changement. Le classeur v9 fournit les fragments et cas de test de référence. Les points explicitement ouverts dans le §8 de la spécification restent À CLARIFIER avant développement.
+Le rendu Figma n’est pas la table de vérité du texte. La phrase suit D-232 : vide avant sélection d’un mode ; mode affiché séparément ; ordre `Séries → valeur/jusqu'à l'échec → pause séries → changement de côté → Durée totale éventuelle`; recalcul immédiat à chaque changement. Le classeur v9 fournit les fragments et cas de test de référence. Les points explicitement ouverts dans le §8 de la spécification restent À CLARIFIER avant développement.
+
+
+#### Contrôles numériques validés — D-232
+
+- Séries : stepper `1..99`.
+- Répétitions : stepper `1..100`.
+- Durée par Série : roulette `1 s..99 min 59 s`.
+- Pause entre Séries et Pause au changement de côté : stepper `0..5 min`, pas `5 s` jusqu’à `2 min`, puis `30 s` jusqu’à `5 min`.
+- Pause entre Séries : valeur initiale `5 s` lorsqu’elle devient applicable.
+- Pause au changement de côté : valeur courante du Profil copiée dans l’Exercice lorsqu’elle devient applicable.
+- Compte à rebours : contrôle séparé de la phrase ; sa valeur et la Fin de séance n’entrent pas dans le calcul de Durée totale.
