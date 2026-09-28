@@ -120,6 +120,7 @@ jobs:
           tar --exclude=.git --exclude=node_modules -czf "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz" .
           sha256sum "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz" > "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz.sha256"
       - name: Preserve complete source snapshot
+        continue-on-error: true # TEMP QUALIF ONLY — external artifact quota; revert before merge.
         uses: actions/upload-artifact@v4
         with:
           name: kodjo-v2-complete-source-${{ github.event.pull_request.head.sha || github.sha }}
