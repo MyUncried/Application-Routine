@@ -4,7 +4,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
-const { canonicalJson, extractTaggedJson, normalizeRepoPath, fail } = require('./lib/plan-impact');
+const { canonicalJson, extractTaggedJson, normalizeRepoPath, sha256, fail } = require('./lib/plan-impact');
+const { verifyEmbedded: verifyRequirementContracts } = require('./lib/requirement-contract');
 
 const CURRENT_CONTRACT_VERSION = 2;
 const CURRENT_SCHEMA = 'kodjo.plan-contract-consistency.v2';
@@ -21,7 +22,7 @@ function extractPaths(text) {
 }
 function stripMachineBlocks(markdown) {
   let out = String(markdown);
-  for (const tag of ['KODJO_MODIFIED_MODULES_JSON', 'KODJO_PLAN_DECISIONS_JSON', 'KODJO_PLAN_IMPACT_JSON', 'KODJO_PLAN_CONTRACT_JSON', 'KODJO_UI_CRITERIA_MATRIX_JSON', 'KODJO_UI_PLAN_CONTRACT_JSON']) {
+  for (const tag of ['KODJO_MODIFIED_MODULES_JSON', 'KODJO_PLAN_DECISIONS_JSON', 'KODJO_PLAN_IMPACT_JSON', 'KODJO_PLAN_CONTRACT_JSON', 'KODJO_UI_CRITERIA_MATRIX_JSON', 'KODJO_UI_PLAN_CONTRACT_JSON', 'KODJO_NON_UI_REQUIREMENTS_JSON', 'KODJO_REQUIREMENT_CONTRACT_JSON', 'KODJO_TEST_CONTRACT_JSON', 'KODJO_BOUNDARY_CONTRACT_JSON', 'KODJO_PLAN_CLARIFICATIONS_JSON']) {
     out = out.replace(new RegExp('<' + tag + '>[\\s\\S]*?</' + tag + '>', 'g'), '');
   }
   return out;
@@ -96,6 +97,14 @@ try {
   }
 
   const requiredTestWrites = [...requiredWrites].sort();
+  const hasRequirementContract = /<KODJO_REQUIREMENT_CONTRACT_JSON>[\s\S]*?<\/KODJO_REQUIREMENT_CONTRACT_JSON>/.test(markdown);
+  const requirementContracts = hasRequirementContract ? verifyRequirementContracts(markdown) : null;
+  const requirementProof = requirementContracts ? {
+    requirement_contract_sha256: sha256(requirementContracts.requirement_contract),
+    test_contract_sha256: sha256(requirementContracts.test_contract),
+    boundary_contract_sha256: sha256(requirementContracts.boundary_contract),
+    requirement_count: requirementContracts.requirement_contract.requirement_count,
+  } : null;
   const hasEmbeddedContract = /<KODJO_PLAN_CONTRACT_JSON>[\s\S]*?<\/KODJO_PLAN_CONTRACT_JSON>/.test(markdown);
   const consume = mode === 'consume' || hasEmbeddedContract;
   if (consume) {
@@ -112,6 +121,11 @@ try {
     if (embedded.scan_revision !== matrix.scan_revision || canonicalJson(embedded.write_scope || []) !== canonicalJson(scope) || canonicalJson(embedded.required_test_writes || []) !== canonicalJson(requiredTestWrites)) {
       fail('PLAN_CONTRACT_DRIFT', 'contrat embarque != contrat recalcule');
     }
+    if (requirementProof) {
+      for (const [key,value] of Object.entries(requirementProof)) {
+        if (embedded[key] !== value) fail('PLAN_REQUIREMENT_CONTRACT_DRIFT', key);
+      }
+    }
   }
 
   const contract = {
@@ -121,6 +135,7 @@ try {
     scan_revision: matrix.scan_revision,
     write_scope: scope,
     required_test_writes: requiredTestWrites,
+    ...(requirementProof || {}),
   };
   fs.mkdirSync(path.dirname(path.resolve(outputFile)), { recursive: true });
   fs.writeFileSync(outputFile, JSON.stringify(contract, null, 2) + '\n', 'utf8');
