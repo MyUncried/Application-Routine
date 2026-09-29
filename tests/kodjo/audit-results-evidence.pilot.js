@@ -29,6 +29,6 @@ test('audit F13: current manifest points to the highest existing specification w
   const dir=path.resolve(__dirname,'../../.github/orchestration');
   const versions=fs.readdirSync(dir).filter(n=>/^KODJO_PROTOCOL_V2_SPEC_0\.6\.\d+\.md$/.test(n)).sort((a,b)=>Number(a.match(/0\.6\.(\d+)/)[1])-Number(b.match(/0\.6\.(\d+)/)[1]));
   const manifest=fs.readFileSync(path.join(dir,'PACKAGE_MANIFEST.md'),'utf8');
-  assert.ok(manifest.includes(versions.at(-1)+'` | Spécification normative courante'));
+  assert.ok(manifest.includes(versions.at(-1)+'` | Spécification normative candidate'));\n  assert.match(manifest,/NON RETESTÉE/);\n  assert.match(manifest,/0\.6\.47.*dernière base normative fusionnée|0\.6\.47.*Base normative actuellement fusionnée/);
   assert.match(manifest,/hérit/);assert.doesNotMatch(manifest,/contenu version 3\.22\.0|spécification `0\.6\.21` complétant/);
 });
