@@ -16,6 +16,7 @@ const {closeRegistry}=require('../../scripts/kodjo/close-v2-activation');
 const {classify,inventory}=require('../../scripts/kodjo/lib/artifact-policy');
 const {resolveImplementationReviewPolicy}=require('../../scripts/kodjo/resolve-implementation-review-policy');
 const {repoPath}=require('../../scripts/kodjo/verify-test-contract-results');
+const {verify:verifyIndependentAudit,EXPECTED_MATRIX_IDS}=require('../../scripts/kodjo/verify-independent-protocol-audit');
 
 function atomicMatrix(){
   return {
@@ -172,4 +173,46 @@ test('planning workflows use structured findings and valid atomic revision hered
   assert.doesNotMatch(revision,/EOF\s+cat \/tmp\/kodjo-v2-plan\/current-command\.txt/);
   assert.match(revision,/kodjo\.ui-criteria\.v2/);
   assert.match(revision,/validate-plan-module-paths\.js/);
+});
+
+
+test('independent Claude audit is manual, exact-HEAD, read-only and artifact-free',()=>{
+  const workflow=read('.github/workflows/kodjo-v2-next-evolution-independent-audit.yml');
+  assert.match(workflow,/workflow_dispatch:/);
+  assert.doesNotMatch(workflow,/pull_request:/);
+  assert.match(workflow,/candidate_sha:/);
+  assert.match(workflow,/Candidate PR moved/);
+  assert.match(workflow,/node tests\/kodjo\/run-all\.js/);
+  assert.match(workflow,/node scripts\/kodjo\/validate-workflows\.js/);
+  assert.match(workflow,/Remove-Item Env:GH_TOKEN/);
+  assert.match(workflow,/Independent auditor modified checkout/);
+  assert.doesNotMatch(workflow,/actions\/upload-artifact/);
+  assert.match(workflow,/NEXT_EVOLUTION_INDEPENDENT_AUDIT/);
+});
+
+test('independent Claude audit mission covers the entire 64-ID determinism matrix',()=>{
+  const matrix=read('.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_MATRIX.md');
+  const ids=[...matrix.matchAll(/\| ((?:P|D|T)-\d{2}|DET-\d{2}) \|/g)].map(m=>m[1]);
+  assert.equal(new Set(ids).size,EXPECTED_MATRIX_IDS);
+  const mission=read('.github/orchestration/reports/2026-09-29_PROTOCOL_EVOLUTION_CLAUDE_AUDIT_MISSION.md');
+  assert.match(mission,/Pour chaque ligne P-xx, D-xx, T-xx et DET-xx/);
+  assert.match(mission,/Une validation tardive d’une sortie libre n’est pas équivalente à une déterminisation en amont/);
+  assert.match(mission,/Faux déterminismes/);
+  assert.match(mission,/Sur-déterminisation/);
+});
+
+test('independent audit output contract refuses incomplete matrix coverage and approve with uncovered IDs',()=>{
+  const body=(overrides={})=>{
+    const value={
+      schema:'kodjo.protocol-independent-audit.v1',verdict:'APPROVE',
+      blocking_findings:0,major_findings:0,minor_findings:0,
+      matrix_ids_total:64,matrix_ids_covered:64,matrix_ids_partial:0,
+      matrix_ids_not_covered:0,matrix_ids_non_verifiable:0,
+      ...overrides,
+    };
+    return 'VERDICT: '+value.verdict+'\n<KODJO_INDEPENDENT_PROTOCOL_AUDIT_JSON>\n'+JSON.stringify(value)+'\n</KODJO_INDEPENDENT_PROTOCOL_AUDIT_JSON>\n';
+  };
+  assert.doesNotThrow(()=>verifyIndependentAudit(body()));
+  assert.throws(()=>verifyIndependentAudit(body({matrix_ids_total:63,matrix_ids_covered:63})),/MATRIX_COVERAGE_INVALID/);
+  assert.throws(()=>verifyIndependentAudit(body({matrix_ids_covered:63,matrix_ids_not_covered:1})),/APPROVE_WITH_UNCOVERED/);
 });
