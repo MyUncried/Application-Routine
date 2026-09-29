@@ -2,6 +2,7 @@
 const crypto=require('node:crypto');
 const {REQUIRED_STOPS}=require('./implementation-contract');
 const FIELDS=['implementation_status','files_or_symbols','component_used','tests_run','proof_status','preserve_status','residual_status'];
+const REQUIREMENT_FIELDS=['implementation_status','files_or_symbols','tests_run','proof_status','residual_status'];
 const ASSERTION_IMPLEMENTATION_STATUSES=new Set(['IMPLEMENTED','NOT_IMPLEMENTED','PENDING_DEVICE','NON_VERIFIABLE']);
 function block(text,tag){
   const matches=[...String(text||'').matchAll(new RegExp('<'+tag+'>\\s*([\\s\\S]*?)\\s*</'+tag+'>','g'))];
@@ -9,17 +10,21 @@ function block(text,tag){
   return JSON.parse(matches[0][1]);
 }
 function expectedShape(expected){
-  if(!expected)return {ids:null,assertions:new Map()};
-  if(Array.isArray(expected)&&expected.every(x=>typeof x==='string'))return {ids:[...expected],assertions:new Map()};
-  if(Array.isArray(expected)){
-    const ids=expected.map(x=>String(x&&x.criterion_id||''));
-    const assertions=new Map(expected.map(x=>[
+  let criteria=expected,requirements=null;
+  if(expected&&!Array.isArray(expected)&&typeof expected==='object'){
+    criteria=expected.criteria||[]; requirements=expected.requirements||[];
+  }
+  if(!criteria)return {ids:null,assertions:new Map(),requirement_ids:requirements?requirements.map(r=>String(r&&r.requirement_id||'')):null};
+  if(Array.isArray(criteria)&&criteria.every(x=>typeof x==='string'))return {ids:[...criteria],assertions:new Map(),requirement_ids:requirements?requirements.map(r=>String(r&&r.requirement_id||'')):null};
+  if(Array.isArray(criteria)){
+    const ids=criteria.map(x=>String(x&&x.criterion_id||''));
+    const assertions=new Map(criteria.map(x=>[
       String(x&&x.criterion_id||''),
       Array.isArray(x&&x.assertions)?x.assertions.map(a=>String(a&&a.assertion_id||'')).sort():[]
     ]));
-    return {ids,assertions};
+    return {ids,assertions,requirement_ids:requirements?requirements.map(r=>String(r&&r.requirement_id||'')):null};
   }
-  return {ids:null,assertions:new Map()};
+  return {ids:null,assertions:new Map(),requirement_ids:null};
 }
 function inspectReport(text,expected){
   const errors=[];let rows=[];
@@ -53,7 +58,19 @@ function inspectReport(text,expected){
       }
     }
   }catch(e){errors.push('REPORT_NOT_STRUCTURED:'+e.message);}
-  return {status:errors.length?'NON_VERIFIABLE':'COMPLETE',errors,criterion_ids:rows.map(r=>r&&r.criterion_id)};
+  let requirementRows=[];
+  if(shape.requirement_ids){
+    try{
+      const value=block(text,'KODJO_REQUIREMENT_CONFORMANCE');
+      if(!value||!Array.isArray(value.requirements))throw Error('REQUIREMENTS_MISSING');
+      requirementRows=value.requirements;
+      const ids=requirementRows.map(r=>String(r&&r.requirement_id||''));
+      if(ids.some(id=>!id)||new Set(ids).size!==ids.length)errors.push('REQUIREMENTS_INVALID_OR_DUPLICATED');
+      if(JSON.stringify([...ids].sort())!==JSON.stringify([...shape.requirement_ids].sort()))errors.push('REQUIREMENT_COVERAGE_MISMATCH');
+      for(const row of requirementRows){for(const field of REQUIREMENT_FIELDS){const v=row&&row[field];if(!(typeof v==='string'&&v.trim()||Array.isArray(v)&&v.length&&v.every(x=>typeof x==='string'&&x.trim())))errors.push(String(row&&row.requirement_id)+':MISSING_'+field);}}
+    }catch(e){errors.push('REQUIREMENT_REPORT_NOT_STRUCTURED:'+e.message);}
+  }
+  return {status:errors.length?'NON_VERIFIABLE':'COMPLETE',errors,criterion_ids:rows.map(r=>r&&r.criterion_id),requirement_ids:requirementRows.map(r=>r&&r.requirement_id)};
 }
 function inspectImplementation(body,expected){
   try{
@@ -63,7 +80,10 @@ function inspectImplementation(body,expected){
     if(e.request_id!==field('v2_request_id')||e.source_head!==field('base_head'))report.errors.push('REPORT_IDENTITY_MISMATCH');
     if(e.truncated!==false)report.errors.push('REPORT_TRUNCATED_OR_UNKNOWN');
     if(typeof e.report_text!=='string'||crypto.createHash('sha256').update(e.report_text||'').digest('hex')!==e.original_text_sha256)report.errors.push('REPORT_TEXT_HASH_MISMATCH');
+    const machine=e.machine_evidence;
+    if(!machine||!Array.isArray(machine.modified_files)||!Array.isArray(machine.checks)||!Array.isArray(machine.out_of_scope_files))report.errors.push('MACHINE_EVIDENCE_MISSING');
+    report.machine_evidence=machine||null;
     report.status=report.errors.length?'NON_VERIFIABLE':'COMPLETE';return report;
   }catch(e){return {status:'NON_VERIFIABLE',errors:['REPORT_ENVELOPE_INVALID:'+e.message],criterion_ids:[]};}
 }
-module.exports={inspectReport,inspectImplementation,FIELDS,ASSERTION_IMPLEMENTATION_STATUSES};
+module.exports={inspectReport,inspectImplementation,FIELDS,REQUIREMENT_FIELDS,ASSERTION_IMPLEMENTATION_STATUSES};
