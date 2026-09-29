@@ -152,8 +152,8 @@ test('0.6.29 — les frontières aval de la revue initiale sont ordonnées et ut
   for (const token of [
     "@('-p','--output-format','json','--dangerously-skip-permissions')",
     'if (!$json.session_id -or !$json.result)',
-    "VERDICT:\\s*APPROVE",
-    "VERDICT:\\s*REVISE",
+    '<KODJO_REVIEW_FINDINGS_JSON>',
+    'normalize-review-findings.js',
     'PLAN_REVIEW_APPROVED',
     'PLAN_REVISION_REQUIRED',
     'gh issue comment $env:ISSUE_NUMBER',
