@@ -10,7 +10,9 @@ on:
       # Le backlog d'évolution est explicitement non normatif : une PR qui ne
       # modifie que ce fichier ne qualifie aucun exécutable du protocole.
       - '!.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'
-      - '!.github/orchestration/reports/**'
+      - '!.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_AUDIT.md'
+      - '!.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_MATRIX.md'
+      - '!.github/orchestration/reports/2026-09-29_PROTOCOL_EVOLUTION_CLAUDE_AUDIT_MISSION.md'
       - '!.github/orchestration/KODJO_PROTOCOL_NEXT_EVOLUTION_*.md'
       - '.github/workflows/kodjo-v2-*.yml'
       - '.github/workflows/kodjo-slice-plan.yml'
