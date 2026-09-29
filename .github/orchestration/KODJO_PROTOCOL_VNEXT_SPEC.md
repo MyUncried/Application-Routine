@@ -372,3 +372,140 @@ Le gate est franchissable uniquement si :
 - aucune expansion non démontrée n’est présente.
 
 Le `PlanContract` reste interdit tant que ce gate n’est pas franchi.
+
+
+## 14. VNext-04 — PlanContract canonique
+
+### 14.1 Contrat
+
+VNext-04 introduit :
+
+`kodjo.vnext.plan-contract.v1`
+
+Le PlanContract devient l’unique contrat canonique du plan VNext.
+
+Les contrôles historiques de scope, tests, preuve, provenance et boundaries sont conservés comme exigences de comportement, mais ne constituent plus des contrats parallèles concurrents dans VNext.
+
+### 14.2 Chaîne obligatoire
+
+Pour chaque requirement :
+
+`Requirement → Impact → Change → Test → Proof → Boundary`
+
+Aucune exigence active ne peut exister uniquement en prose.
+
+Chaque `plan_item` est lié à exactement un `requirement_id` existant et reprend mécaniquement tous ses `impact_id`.
+
+### 14.3 Change items
+
+Les changements sont dérivés exclusivement des impacts :
+
+- `MODIFY`
+- `CREATE`
+- `DELETE`
+
+Le modèle fournit uniquement un `intent` sémantique pour chaque impact modifié.
+
+Le path, le candidate_id, le change_kind, le change_id et le scope sont calculés par la machine.
+
+Tout changement sans `implementation_intent` est bloquant.
+
+### 14.4 Obligations de test
+
+Chaque requirement possède au moins une obligation de test.
+
+Une obligation cible :
+
+- un `impact_id` de test existant ; ou
+- `null` avec justification explicite de non-testabilité automatique.
+
+L’action est dérivée mécaniquement depuis l’impact :
+
+- NO_CHANGE → RUN_EXISTING
+- MODIFY → ADAPT
+- CREATE → CREATE
+- DELETE → REMOVE
+- cible null → NONE_WITH_JUSTIFICATION
+
+Chaque changement doit être couvert explicitement par au moins une obligation de test.
+
+Un test indiqué comme affecté dans ImpactGraph doit avoir son propre impact et une obligation de test correspondante.
+
+### 14.5 Obligations de preuve
+
+Types fermés :
+
+- `FUNCTIONAL_TEST`
+- `STATIC_ANALYSIS`
+- `VISUAL_COMPARE`
+- `ACCESSIBILITY_CHECK`
+- `DEVICE_CHECK`
+
+Chaque changement doit être couvert explicitement par au moins une preuve.
+
+Une preuve `FUNCTIONAL_TEST` doit référencer une obligation de test réelle et sa couverture ne peut pas dépasser celle du test associé.
+
+Un test supprimé ou une absence justifiée de test automatique exige une preuve alternative non `FUNCTIONAL_TEST`.
+
+### 14.6 Boundaries
+
+Les boundaries sont calculées mécaniquement depuis ImpactGraph et CandidateManifest :
+
+- `write_scope` = candidats portant MODIFY / CREATE / DELETE ;
+- `preserve_scope` = candidats existants explicitement marqués à préserver ;
+- `forbidden_policy = ALL_OUTSIDE_WRITE_SCOPE`.
+
+Un candidat ne peut être simultanément CHANGE et PRESERVE.
+
+Le modèle ne fournit aucun path de boundary.
+
+### 14.7 Disposition
+
+La disposition du requirement est calculée :
+
+- au moins un impact MODIFY / CREATE / DELETE → `CHANGE`
+- uniquement des impacts NO_CHANGE → `NO_CHANGE`
+
+L’IA ne choisit pas cette disposition.
+
+### 14.8 Projection Markdown
+
+Le JSON `PlanContract` est la source canonique.
+
+Le Markdown est généré mécaniquement depuis ce contrat et embarque exactement :
+
+`<KODJO_VNEXT_PLAN_CONTRACT_JSON> ... </KODJO_VNEXT_PLAN_CONTRACT_JSON>`
+
+Toute différence entre la projection attendue et le Markdown consommé produit :
+
+`VNEXT_PLAN_MARKDOWN_PROJECTION_DRIFT`
+
+### 14.9 Réutilisation de l’existant
+
+VNext-04 conserve les comportements qualifiés de :
+
+- `verify-plan-contract-consistency.js` pour cohérence scope/tests/provenance ;
+- `requirement-contract.js` candidat pour la séparation requirement/test/boundary ;
+- les validations de paths et de scope existantes ;
+- les bindings d’autorisation du handoff existant.
+
+Ces mécanismes ne sont pas copiés tels quels lorsque leur modèle est incompatible avec le registre source-first VNext.
+
+Ils sont absorbés dans le PlanContract canonique avec les identités VNext.
+
+### 14.10 Gate PLAN_READY_FOR_REVIEW
+
+Le gate est franchissable uniquement si :
+
+- RequirementRegistry est READY ;
+- ImpactGraph est lié au même RequirementRegistry et CandidateManifest ;
+- chaque requirement possède exactement un plan_item ;
+- tous ses impacts sont repris ;
+- chaque changement possède un intent ;
+- chaque changement est couvert par un test ;
+- chaque changement est couvert par une preuve ;
+- chaque test affecté est explicitement lié ;
+- boundaries calculées sans contradiction ;
+- la projection Markdown est strictement dérivable du JSON canonique.
+
+La review reste interdite tant que ce gate n’est pas franchi.
