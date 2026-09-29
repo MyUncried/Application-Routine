@@ -2,9 +2,11 @@
 
 const { matrixFingerprint, MATRIX_SCHEMA_V1, MATRIX_SCHEMA_V2 } = require('./ui-criteria-contract');
 const { extractTaggedJson, sha256, fail } = require('./plan-impact');
+const { verifyEmbedded: verifyRequirementContracts } = require('./requirement-contract');
 
 const IMPLEMENTATION_CONTRACT_SCHEMA_V1 = 'kodjo.ui-implementation-contract.v1';
 const IMPLEMENTATION_CONTRACT_SCHEMA_V2 = 'kodjo.ui-implementation-contract.v2';
+const IMPLEMENTATION_CONTRACT_SCHEMA_V3 = 'kodjo.implementation-contract.v3';
 const UI_PLAN_CONTRACT_SCHEMA = 'kodjo.ui-plan-contract.v1';
 const REQUIRED_STOPS = Object.freeze([
   'CHANGE_REQUEST_REQUIRED',
@@ -58,6 +60,8 @@ function deriveImplementationContract(planBody, planBlobOid) {
       fail('IMPLEMENTATION_UI_ASSERTION_CONTRACT_MISMATCH', 'assertions != contrat UI approuve');
     }
   }
+  const hasRequirementContract = /<KODJO_REQUIREMENT_CONTRACT_JSON>[\s\S]*?<\/KODJO_REQUIREMENT_CONTRACT_JSON>/.test(planBody);
+  const requirementContracts = hasRequirementContract ? verifyRequirementContracts(planBody) : null;
   const preservation = matrix.preservation;
   if (!preservation || typeof preservation !== 'object' || Array.isArray(preservation)) {
     fail('IMPLEMENTATION_PRESERVATION_INVALID', 'PRESERVE/CHANGE/FORBIDDEN absent');
@@ -66,7 +70,7 @@ function deriveImplementationContract(planBody, planBlobOid) {
     if (!Array.isArray(preservation[key])) fail('IMPLEMENTATION_PRESERVATION_INVALID', key + ' absent');
   }
   return {
-    schema: assertionMode ? IMPLEMENTATION_CONTRACT_SCHEMA_V2 : IMPLEMENTATION_CONTRACT_SCHEMA_V1,
+    schema: requirementContracts ? IMPLEMENTATION_CONTRACT_SCHEMA_V3 : (assertionMode ? IMPLEMENTATION_CONTRACT_SCHEMA_V2 : IMPLEMENTATION_CONTRACT_SCHEMA_V1),
     plan_blob_oid: String(planBlobOid).toLowerCase(),
     ui_plan_contract_schema: planContract.schema,
     ui_matrix_sha256: matrixHash,
@@ -77,6 +81,13 @@ function deriveImplementationContract(planBody, planBlobOid) {
       ui_assertion_ids_sha256: sha256(assertionIds),
     } : {}),
     ui_preservation_sha256: sha256(preservation),
+    ...(requirementContracts ? {
+      requirement_count: requirementContracts.requirement_contract.requirement_count,
+      requirement_ids_sha256: requirementContracts.requirement_contract.requirement_ids_sha256,
+      requirement_contract_sha256: sha256(requirementContracts.requirement_contract),
+      test_contract_sha256: sha256(requirementContracts.test_contract),
+      boundary_contract_sha256: sha256(requirementContracts.boundary_contract),
+    } : {}),
     ui_applicable: Boolean(planContract.ui_applicable),
     assertion_mode: assertionMode,
     required_stops: [...REQUIRED_STOPS],
@@ -101,11 +112,22 @@ function renderImplementationMission(sliceId, planBody, planBlobOid) {
       'ui_assertion_ids_sha256=' + contract.ui_assertion_ids_sha256,
     ] : []),
     'ui_preservation_sha256=' + contract.ui_preservation_sha256,
+    ...(contract.requirement_contract_sha256 ? [
+      'requirement_count=' + contract.requirement_count,
+      'requirement_ids_sha256=' + contract.requirement_ids_sha256,
+      'requirement_contract_sha256=' + contract.requirement_contract_sha256,
+      'test_contract_sha256=' + contract.test_contract_sha256,
+      'boundary_contract_sha256=' + contract.boundary_contract_sha256,
+    ] : []),
     'required_stops=' + contract.required_stops.join(','),
     '',
     '## Contrat de développement opposable',
     '',
     '- Lire avant tout code le bloc exact `KODJO_UI_CRITERIA_MATRIX_JSON` de `technical-plan.md`. Cette matrice approuvée est la seule source du contrat UI de cette implémentation ; ne pas la recopier, réencoder ni reconstruire depuis la mémoire.',
+    ...(contract.requirement_contract_sha256 ? [
+      '- Lire aussi `KODJO_REQUIREMENT_CONTRACT_JSON`, `KODJO_TEST_CONTRACT_JSON` et `KODJO_BOUNDARY_CONTRACT_JSON`. Chaque `requirement_id` doit être traité exactement une fois ; les exigences non-UI ne doivent jamais être reconstruites depuis la prose.',
+      '- Les bindings requirement→test et les boundaries adressables sont opposables. Ne pas inventer un test, un chemin ou une relation qui n’existe pas dans ces contrats.',
+    ] : []),
     '- Appliquer chaque `criterion_id` sans omission et respecter sa décision `REUSE | EXTEND | CREATE`, ses `change_targets`, ses tests et ses `proof_required`.',
     ...(contract.assertion_mode ? [
       '- Pour chaque critère, appliquer chaque `assertion_id` exactement une fois. Une assertion représente un invariant observable indépendamment falsifiable ; aucune assertion ne peut être fusionnée, omise ou reformulée en verdict global.',
@@ -133,6 +155,9 @@ function renderImplementationMission(sliceId, planBody, planBlobOid) {
     ]),
     'Chaque champ est explicite et non vide ; pour un test non exécuté, indiquer NOT_RUN et sa raison. Cet encodage rend contrôlable le rapport déjà obligatoire, sans nouvel état ni gate runtime.',
     'Aucun critère ne peut disparaître du rapport. Toute preuve visuelle/device non exécutée reste `PENDING_DEVICE` ou `NON_VERIFIABLE`.',
+    ...(contract.requirement_contract_sha256 ? [
+      'Le rapport final doit aussi contenir exactement un bloc `KODJO_REQUIREMENT_CONFORMANCE` couvrant chaque `requirement_id` avec `implementation_status`, `files_or_symbols`, `tests_run`, `proof_status` et `residual_status`. Les faits Git/tests seront recoupés mécaniquement par le superviseur.',
+    ] : []),
     '',
     '- scope : la propriété `scope_allow` de la Lean Request reste opposable ; aucun élargissement n’est autorisé.',
     '- contrôles : exécuter uniquement les checks déclarés dans la Lean Request.',
@@ -155,6 +180,11 @@ function verifyImplementationMission(missionText, planBody, expectedPlanBlobOid)
     ui_assertion_count: derived.assertion_mode ? Number(lineField(missionText, 'ui_assertion_count')) : undefined,
     ui_assertion_ids_sha256: derived.assertion_mode ? lineField(missionText, 'ui_assertion_ids_sha256') : undefined,
     ui_preservation_sha256: lineField(missionText, 'ui_preservation_sha256'),
+    requirement_count: derived.requirement_contract_sha256 ? Number(lineField(missionText, 'requirement_count')) : undefined,
+    requirement_ids_sha256: derived.requirement_contract_sha256 ? lineField(missionText, 'requirement_ids_sha256') : undefined,
+    requirement_contract_sha256: derived.requirement_contract_sha256 ? lineField(missionText, 'requirement_contract_sha256') : undefined,
+    test_contract_sha256: derived.requirement_contract_sha256 ? lineField(missionText, 'test_contract_sha256') : undefined,
+    boundary_contract_sha256: derived.requirement_contract_sha256 ? lineField(missionText, 'boundary_contract_sha256') : undefined,
     required_stops: lineField(missionText, 'required_stops').split(',').filter(Boolean),
   };
   if (observed.schema !== derived.schema ||
@@ -166,6 +196,11 @@ function verifyImplementationMission(missionText, planBody, expectedPlanBlobOid)
       (derived.assertion_mode && (observed.ui_assertion_count !== derived.ui_assertion_count ||
         observed.ui_assertion_ids_sha256 !== derived.ui_assertion_ids_sha256)) ||
       observed.ui_preservation_sha256 !== derived.ui_preservation_sha256 ||
+      (derived.requirement_contract_sha256 && (observed.requirement_count !== derived.requirement_count ||
+        observed.requirement_ids_sha256 !== derived.requirement_ids_sha256 ||
+        observed.requirement_contract_sha256 !== derived.requirement_contract_sha256 ||
+        observed.test_contract_sha256 !== derived.test_contract_sha256 ||
+        observed.boundary_contract_sha256 !== derived.boundary_contract_sha256)) ||
       JSON.stringify(observed.required_stops) !== JSON.stringify(derived.required_stops)) {
     fail('IMPLEMENTATION_CONTRACT_DRIFT', 'mission != plan UI approuve');
   }
@@ -176,6 +211,7 @@ function verifyImplementationMission(missionText, planBody, expectedPlanBlobOid)
     'KODJO_IMPLEMENTATION_CONFORMANCE',
     'Une suite Jest verte ne constitue jamais à elle seule',
     ...(derived.assertion_mode ? ['assertion_results','assertion_id'] : []),
+    ...(derived.requirement_contract_sha256 ? ['KODJO_REQUIREMENT_CONFORMANCE','requirement_id'] : []),
   ];
   for (const fragment of requiredFragments) {
     if (!String(missionText).includes(fragment)) fail('IMPLEMENTATION_CONTRACT_INCOMPLETE', fragment);
@@ -187,6 +223,7 @@ module.exports = {
   IMPLEMENTATION_CONTRACT_SCHEMA: IMPLEMENTATION_CONTRACT_SCHEMA_V1,
   IMPLEMENTATION_CONTRACT_SCHEMA_V1,
   IMPLEMENTATION_CONTRACT_SCHEMA_V2,
+  IMPLEMENTATION_CONTRACT_SCHEMA_V3,
   UI_PLAN_CONTRACT_SCHEMA,
   REQUIRED_STOPS,
   deriveImplementationContract,
