@@ -56,3 +56,16 @@ Le plan doit au minimum :
 La tranche doit s’arrêter avant toute construction du `ExecutionPlan`.
 
 La planification PRE-2 ne doit commencer qu’après clôture PRE-1 et activation de PE-27 afin que les futures exigences UI soient définies avec des assertions atomiques.
+
+## Correction technique de planification — chemins DatabaseRows
+
+Le HEAD produit immuable `e216294506bed87dd80855937e3fabfbfa322b82` contient le fichier :
+
+- `src/infrastructure/database/types/DatabaseRows.ts`
+
+Le chemin suivant n’existe pas à cette baseline et ne doit jamais être déclaré `MODIFY` :
+
+- `src/infrastructure/database/DatabaseRows.ts`
+
+Toute adaptation de `DatabaseRows` requise par PRE-1 doit donc viser exclusivement le chemin réel sous `types/`. Cette correction est un fait de code vérifié, pas une nouvelle décision fonctionnelle.
+
