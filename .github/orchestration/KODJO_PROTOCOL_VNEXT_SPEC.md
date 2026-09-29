@@ -767,9 +767,8 @@ Chaque catégorie possède une liste fermée de types de cible compatibles.
 
 ### 16.6 Identité et caractère bloquant
 
-`finding_id` est calculé par la machine depuis :
+**Supersédé par VNext-07 pour l’identité inter-revues :** `finding_id` est calculé par la machine depuis les caractéristiques stables du finding, sans `review_context_hash` :
 
-- review_context_hash ;
 - category ;
 - target_type ;
 - target_id ;
@@ -777,6 +776,8 @@ Chaque catégorie possède une liste fermée de types de cible compatibles.
 - evidence ;
 - required_correction ;
 - dependency_target_ids.
+
+Cette identité reste liée au `ReviewReport` exact par le contrat de report, tout en permettant de reconnaître le même défaut lors d’une revue suivante.
 
 Toutes les catégories sont bloquantes sauf `SUGGESTION`.
 
@@ -851,3 +852,203 @@ Le gate est franchi uniquement si :
 - `verdict = APPROVE` calculé par la machine.
 
 Aucun commentaire ou texte de reviewer ne peut contourner ce gate.
+
+
+## 17. VNext-07 — Révision bornée
+
+### 17.1 Contrats
+
+VNext-07 introduit :
+
+- `kodjo.vnext.allowed-change-set.v1`
+- `kodjo.vnext.revision-patch.v1`
+- `kodjo.vnext.revision-application.v1`
+- `kodjo.vnext.revision-outcome.v1`
+
+Le flux est :
+
+`ReviewReport → AllowedChangeSet → RevisionPatch → RevisionApplication → réentrée minimale → reconstruction canonique → contrôle de préservation → nouvelle Review`
+
+### 17.2 AllowedChangeSet
+
+Le `AllowedChangeSet` est construit exclusivement par la machine à partir du `ReviewReport` exact et du graphe d’objets exact qui a été revu.
+
+Il contient trois classes disjointes :
+
+1. `authorized_targets` : cibles que la correction sémantique peut adresser ;
+2. `derived_targets` : objets susceptibles d’être recalculés mécaniquement en aval ;
+3. `preserved_targets` : objets qui doivent rester strictement identiques.
+
+Chaque objet porte son `object_hash`.
+
+Le graphe complet de départ est lui-même scellé par `base_target_graph_hash`.
+
+### 17.3 Ancres immuables
+
+`SOURCE_UNIT` et `CANDIDATE` sont des ancres immuables.
+
+Un finding peut les utiliser pour autoriser l’ajout d’un objet manquant lors de la réentrée, mais cela :
+
+- n’autorise pas la modification de l’ancre ;
+- ne rend pas automatiquement ses descendants existants modifiables ;
+- ne supprime aucune garantie de préservation sur les objets existants.
+
+### 17.4 Dépendances dérivées
+
+Une cible sémantiquement modifiable peut entraîner la reconstruction mécanique de ses descendants causaux.
+
+Exemples :
+
+- REQUIREMENT → IMPACT → PLAN_ITEM → TEST / PROOF → PLAN_CONTRACT ;
+- IMPACT → PLAN_ITEM et dépendances du plan ;
+- PLAN_ITEM → TEST / PROOF → PLAN_CONTRACT ;
+- PROOF → Criterion / Assertion qui consomment cette preuve ;
+- Criterion → Assertions.
+
+Ces objets deviennent `MACHINE_DERIVED`, pas éditables librement par l’IA.
+
+Une dépendance explicitement citée par le reviewer devient en revanche une cible autorisée, liée au finding causal.
+
+### 17.5 Réentrée minimale
+
+L’étape de réentrée est calculée depuis les findings bloquants.
+
+Priorité :
+
+1. `REQUIREMENTS`
+2. `IMPACT`
+3. `PLAN`
+
+La réentrée la plus amont nécessaire l’emporte lorsqu’il existe plusieurs findings.
+
+`PRODUCT_AMBIGUITY` ne produit pas un RevisionPatch : il reste `CLARIFICATION_REQUIRED` et nécessite une décision utilisateur.
+
+### 17.6 Findings trop larges
+
+Un finding ciblant directement `PLAN_CONTRACT` n’autorise jamais une reconstruction globale.
+
+Il doit fournir des `dependency_target_ids` précis.
+
+Sans cible dépendante explicite :
+
+`VNEXT_REVISION_PLAN_ROOT_TOO_BROAD`
+
+Le plan complet n’est jamais une autorisation de modification globale.
+
+### 17.7 RevisionPatch
+
+Le `RevisionPatch` ne contient pas de remplacement arbitraire de JSON canonique.
+
+Le reviewer/correcteur fournit uniquement, pour chaque cible autorisée :
+
+- `target_type`
+- `target_id`
+- `finding_ids`
+- `correction` sémantique
+
+La machine produit `correction_id`.
+
+Le schéma ne permet pas :
+
+- path libre ;
+- nouvel ID libre ;
+- verdict ;
+- nouveau scope libre ;
+- remplacement brut d’un contrat.
+
+Chaque finding bloquant doit être couvert par au moins une correction.
+
+Une cible absente du `AllowedChangeSet` est refusée.
+
+### 17.8 Application mécanique du patch
+
+L’application du patch produit un `RevisionApplication` fermé avec :
+
+- étape de réentrée ;
+- cibles éditables ;
+- cibles uniquement dérivées par la machine ;
+- hash des objets préservés ;
+- corrections causales.
+
+Le builder canonique de l’étape de réentrée reconstruit ensuite les contrats normaux VNext.
+
+Il ne s’agit jamais d’un second modèle de données concurrent.
+
+### 17.9 Identités stables nécessaires à la préservation
+
+VNext-07 fixe deux dépendances révélées par la révision bornée :
+
+- `finding_id` ne dépend plus du hash du ReviewContext ; le même finding sur la même cible conserve son identité entre deux revues ;
+- `plan_item_id` dépend du `requirement_id`, pas des hashes globaux RequirementRegistry / ImpactGraph.
+
+Ainsi, une correction locale ne renouvelle pas artificiellement les identités de tous les objets non concernés.
+
+### 17.10 Contrôle de préservation après reconstruction
+
+Après réentrée et reconstruction :
+
+- chaque cible `PRESERVE_EXACT` doit encore exister ;
+- son type doit être identique ;
+- son `object_hash` doit être strictement identique.
+
+Toute différence produit :
+
+`PRESERVATION_REGRESSION`
+
+Les objets nouveaux sont acceptés uniquement s’ils sont causalement rattachés à :
+
+- une cible autorisée ;
+- un descendant machine autorisé ;
+- ou une nouvelle identité remplaçant un objet autorisé sous le même parent causal.
+
+Tout nouvel objet sans cette causalité produit :
+
+`VNEXT_REVISION_UNAUTHORIZED_NEW_TARGET`
+
+### 17.11 Anti-loop
+
+Après reconstruction et nouvelle review :
+
+- si un `finding_id` bloquant précédent réapparaît → `REVISION_STALLED` ;
+- si un nouveau finding bloquant cible un objet qui devait être préservé → `PRESERVATION_REGRESSION` ;
+- si le verdict devient APPROVE → `RESOLVED` ;
+- si de nouveaux findings légitimes apparaissent uniquement dans le périmètre autorisé/dérivé → `REVIEW_AGAIN` ;
+- si une ambiguïté produit apparaît → `CLARIFICATION_REQUIRED`.
+
+Aucune boucle automatique supplémentaire n’est déclenchée après `REVISION_STALLED`.
+
+### 17.12 Réutilisation de l’existant
+
+VNext-07 conserve de #251 :
+
+- le principe de correction bornée après REVISE ;
+- la conservation des décisions et sections non concernées ;
+- l’interdiction de reconstruire opportunistement le plan.
+
+VNext-07 conserve de #250 :
+
+- le contrôle explicite des modifications ciblées ;
+- la notion de findings structurés comme base d’autorisation.
+
+VNext-07 remplace :
+
+- la simple consigne textuelle de préservation ;
+- la comparaison partielle de contrats ;
+- la reconstruction complète suivie d’un contrôle tardif.
+
+La préservation devient un contrat mécanique d’objets et de hashes.
+
+### 17.13 Gate REVISION_READY
+
+Le gate de sortie de révision est franchissable uniquement si :
+
+- le ReviewReport causal vaut REVISE ;
+- l’AllowedChangeSet est valide ;
+- tous les findings bloquants sont couverts par le RevisionPatch ;
+- aucune correction ne vise une cible non autorisée ;
+- la réentrée a eu lieu à l’étape calculée ;
+- tous les objets préservés sont inchangés ;
+- aucun nouvel objet non causal n’est apparu ;
+- la nouvelle review ne produit ni REVISION_STALLED ni PRESERVATION_REGRESSION.
+
+La révision ne peut être considérée résolue que si la nouvelle review calcule `APPROVE`.

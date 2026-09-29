@@ -443,8 +443,6 @@ function buildPlanContract({
 
     rows.set(input.requirement_id, {
       plan_item_id: V.stableId('PLAN', [
-        requirementRegistry.contract_hash,
-        impactGraph.contract_hash,
         input.requirement_id,
       ]),
       requirement_id: input.requirement_id,
