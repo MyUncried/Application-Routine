@@ -95,6 +95,12 @@ jobs:
           persist-credentials: false
           clean: true
 
+      - name: Install isolated planning tokenizer for deterministic pre-audit
+        run: |
+          $ErrorActionPreference='Stop'
+          npm ci --prefix scripts/kodjo/openai-runtime --ignore-scripts --no-audit --no-fund
+          if($LASTEXITCODE-ne0){throw 'Planning tokenizer installation failed'}
+
       - name: Verify exact checkout and deterministic pre-audit
         env:
           BASE_SHA: ${{ steps.target.outputs.base_sha }}
