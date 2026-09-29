@@ -81,7 +81,9 @@ test('workflow pilote qualifie et archive le HEAD de PR, pas le merge temporaire
   const expected = 'ref: ${{ github.event.pull_request.head.sha || github.sha }}';
   assert.equal(workflow.split(expected).length - 1, 2);
   assert.match(workflow, /test "\$\(git rev-parse HEAD\)" = "\$SOURCE_SHA"/);
-  assert.doesNotMatch(workflow, /kodjo-v2-complete-source-/);\n  assert.match(workflow, /Record immutable qualification identity/);\n  assert.match(workflow, /source_tree_manifest_sha256/);
+  assert.doesNotMatch(workflow, /kodjo-v2-complete-source-/);
+  assert.match(workflow, /Record immutable qualification identity/);
+  assert.match(workflow, /source_tree_manifest_sha256/);
 });
 
 test('workflow jetable: dispatch manuel, consommation durable déclarée et aucune publication de code', () => {
