@@ -204,7 +204,7 @@ test('independent Claude audit mission covers the entire 64-ID determinism matri
 });
 
 test('independent audit output contract refuses incomplete matrix coverage and approve with uncovered IDs',()=>{
-  const ids=[...read('.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_MATRIX.md').matchAll(/^\\| ((?:P|D|T)-\\d{2}|DET-\\d{2}) \\|/gm)].map(m=>m[1]);
+  const ids=[...read('.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_MATRIX.md').matchAll(/^\| ((?:P|D|T)-\d{2}|DET-\d{2}) \|/gm)].map(m=>m[1]);
   const rows=ids.map(id=>({id,status:'COVERED',evidence:'Verified source and implementation for '+id}));
   const body=(overrides={})=>{
     const value={
