@@ -566,7 +566,7 @@ Les chemins ne sont jamais fournis librement par l’IA.
 
 Les cibles de changement sont exclusivement des `impact_id`.
 
-La recherche de réutilisation référence uniquement des `candidate_id` existants.
+La recherche de réutilisation référence uniquement des `candidate_id` existants correspondant à des candidats UI.
 
 REUSE et EXTEND exigent que le composant sélectionné appartienne au périmètre réellement recherché.
 
