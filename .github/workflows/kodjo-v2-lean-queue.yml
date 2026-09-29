@@ -13,7 +13,7 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
-  actions: read
+  actions: write
 
 concurrency:
   group: kodjo-v2-lean-windows
@@ -129,6 +129,7 @@ jobs:
           if($LASTEXITCODE-ne0){exit $LASTEXITCODE}
 
       - name: Select and execute immutable request
+        id: execute
         env:
           GH_TOKEN: ${{ github.token }}
           KODJO_EVENT_BEFORE: ${{ steps.boundary.outputs.before_sha }}
@@ -143,6 +144,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $selected = & node scripts/kodjo/verify-queue-admission.js $env:KODJO_EVENT_BEFORE $env:KODJO_EVENT_AFTER --selection-only
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          [IO.File]::AppendAllText($env:GITHUB_OUTPUT, "selected_queue=$selected`n", (New-Object Text.UTF8Encoding($false)))
           $preflight = Join-Path $env:RUNNER_TEMP ("kodjo-preflight-{0}-{1}.json" -f $env:GITHUB_RUN_ID, $env:GITHUB_RUN_ATTEMPT)
           & node scripts/kodjo/verify-queue-preflight.js $selected $env:KODJO_EVENT_BEFORE $env:KODJO_EVENT_AFTER $preflight
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -184,6 +186,7 @@ jobs:
           retention-days: 7
 
       - name: Preserve KODJO recovery package
+        id: recovery_package
         if: always() && steps.diag.outputs.dir != ''
         uses: actions/upload-artifact@v4
         with:
