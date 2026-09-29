@@ -152,10 +152,10 @@ jobs:
             echo "planning_application_head=$PLANNING_APPLICATION_HEAD"
             if [ -n "$SUPERSEDES" ]; then echo "supersedes_plan_blob_oid=$SUPERSEDES"; fi
             echo 'approval_action=ADD_REACTION_+1'
-            echo 'next_action=WAIT_USER_APPROVAL'
+            echo 'next_action=ADD_REACTION_THEN_COMMENT'
             echo 'STATUT : USER_APPROVAL_REQUIRED'
             echo
-            echo 'Action utilisateur requise : ajouter une reaction 👍 sur CE commentaire pour autoriser la Lean Request.'
+            echo 'Action utilisateur requise : ajouter une reaction 👍 sur CE commentaire, puis publier sur cette issue la commande indiquee ci-dessous.'
           } > "${RUNNER_TEMP}/handoff-ready.md"
           CREATED="$(gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat "${RUNNER_TEMP}/handoff-ready.md")")"
           HANDOFF_ID="$(printf '%s' "$CREATED" | jq -r '.id')"
@@ -165,6 +165,9 @@ jobs:
           {
             cat "${RUNNER_TEMP}/handoff-ready.md"
             echo "approval_url=$HANDOFF_URL"
+            echo "handoff_comment_id=$HANDOFF_ID"
+            echo '[KODJO_V2] VALIDATE_PLAN_HANDOFF'
+            echo "handoff_comment_id=$HANDOFF_ID"
           } > "${RUNNER_TEMP}/handoff-ready-final.md"
           gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$HANDOFF_ID" -f body="$(cat "${RUNNER_TEMP}/handoff-ready-final.md")" >/dev/null
           echo "PLAN_HANDOFF_READY: $HANDOFF_URL"

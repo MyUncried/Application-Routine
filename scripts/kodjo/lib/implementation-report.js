@@ -94,12 +94,14 @@ function inspectImplementation(body,expected){
       const observed=new Set(machine.checks.map(x=>String(x&&x.check||'')));
       const claimed=[...(block(e.report_text,'KODJO_IMPLEMENTATION_CONFORMANCE').criteria||[])];
       if(shapeHasRequirements(expected))claimed.push(...(block(e.report_text,'KODJO_REQUIREMENT_CONFORMANCE').requirements||[]));
+      const declared=new Set();
       for(const row of claimed){
         const id=String(row.criterion_id||row.requirement_id||'unknown');
         if(row.tests_not_run!==undefined&&(!Array.isArray(row.tests_not_run)||row.tests_not_run.some(x=>!x||typeof x.check!=='string'||!x.check.trim()||typeof x.reason!=='string'||!x.reason.trim())))report.errors.push(id+':TESTS_NOT_RUN_INVALID');
         if(row.symbols!==undefined&&(!Array.isArray(row.symbols)||row.symbols.some(x=>typeof x!=='string'||!x.trim())))report.errors.push(id+':SYMBOLS_INVALID');
         for(const value of Array.isArray(row.files_or_symbols)?row.files_or_symbols:[row.files_or_symbols]){
           const p=String(value||'').replace(/\\/g,'/');
+          if(p)declared.add(p);
           if(!modified.has(p))report.errors.push(id+':DECLARED_FILE_NOT_MODIFIED:'+p);
         }
         for(const value of Array.isArray(row.tests_run)?row.tests_run:[row.tests_run]){
@@ -107,6 +109,7 @@ function inspectImplementation(body,expected){
           if(!observed.has(check))report.errors.push(id+':DECLARED_CHECK_NOT_RUN:'+check);
         }
       }
+      for(const file of modified)if(!declared.has(file))report.errors.push('MODIFIED_FILE_NOT_DECLARED:'+file);
     }
     report.machine_evidence=machine||null;
     report.status=report.errors.length?'NON_VERIFIABLE':'COMPLETE';return report;

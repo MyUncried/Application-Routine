@@ -61,6 +61,7 @@ function deriveImplementationContract(planBody, planBlobOid) {
     }
   }
   const hasRequirementContract = /<KODJO_REQUIREMENT_CONTRACT_JSON>[\s\S]*?<\/KODJO_REQUIREMENT_CONTRACT_JSON>/.test(planBody);
+  if(assertionMode&&!hasRequirementContract)fail('REQUIREMENT_CONTRACT_REQUIRED_FOR_V2');
   const requirementContracts = hasRequirementContract ? verifyRequirementContracts(planBody) : null;
   const preservation = matrix.preservation;
   if (!preservation || typeof preservation !== 'object' || Array.isArray(preservation)) {

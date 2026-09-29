@@ -277,7 +277,8 @@ test('PE-28 visual correction distinguishes unchanged and changed contract',()=>
 test('PE-29 handoff is explicitly actionable',()=>{
   const w=read('.github/workflows/kodjo-v2-plan-handoff-materialize.yml');
   assert.match(w,/approval_action=ADD_REACTION_\+1/);
-  assert.match(w,/next_action=WAIT_USER_APPROVAL/);
+  assert.match(w,/next_action=ADD_REACTION_THEN_COMMENT/);
+  assert.match(w,/\[KODJO_V2\] VALIDATE_PLAN_HANDOFF/);
   assert.match(w,/approval_url=\$HANDOFF_URL/);
 });
 

@@ -9,6 +9,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const { sha256 } = require('../../scripts/kodjo/lib/plan-impact');
+const {buildRequirementContract,buildTestContract,buildBoundaryContract}=require('../../scripts/kodjo/lib/requirement-contract');
 
 const root = path.resolve(__dirname, '..', '..');
 const verifier = path.join(root, 'scripts', 'kodjo', 'verify-ui-implementation-review.js');
@@ -173,8 +174,17 @@ function fixtureV2() {
   const contract={schema:'kodjo.ui-plan-contract.v1',contract_version:2,protocol_commit:'a'.repeat(40),
     scan_revision:'b'.repeat(40),ui_applicable:true,ui_paths:['src/features/example/ExampleScreen.tsx'],
     criterion_count:1,assertion_count:2,assertion_ids_sha256:sha256(assertionIds),matrix_sha256:matrixFingerprint(matrix)};
+  const scope=new Set([...matrix.criteria[0].change_targets,...matrix.criteria[0].tests]);
+  const requirements=buildRequirementContract(matrix,[],scope);
+  const tags=[
+    ['KODJO_PLAN_IMPACT_JSON',{scope_allow:[...scope]}],
+    ['KODJO_NON_UI_REQUIREMENTS_JSON',[]],
+    ['KODJO_REQUIREMENT_CONTRACT_JSON',requirements],
+    ['KODJO_TEST_CONTRACT_JSON',buildTestContract(requirements)],
+    ['KODJO_BOUNDARY_CONTRACT_JSON',buildBoundaryContract(matrix)],
+  ].map(([name,value])=>'<' + name + '>\n'+JSON.stringify(value)+'\n</'+name+'>\n').join('');
   return '# Plan\n<KODJO_UI_CRITERIA_MATRIX_JSON>\n'+JSON.stringify(matrix)+'\n</KODJO_UI_CRITERIA_MATRIX_JSON>\n'+
-    '<KODJO_UI_PLAN_CONTRACT_JSON>\n'+JSON.stringify(contract)+'\n</KODJO_UI_PLAN_CONTRACT_JSON>\n';
+    '<KODJO_UI_PLAN_CONTRACT_JSON>\n'+JSON.stringify(contract)+'\n</KODJO_UI_PLAN_CONTRACT_JSON>\n'+tags;
 }
 function validAtomicReview() {
   return {
@@ -355,7 +365,7 @@ test('delta review: le diff immédiat affecte uniquement ses critères et hérit
     const inherited=value.criteria.find(c=>c.criterion_id==='UI-002');
     assert.equal(inherited.review_scope,'INHERITED');
     assert.deepEqual(inherited.affected_paths,[]);
-    assert.equal(inherited.inherited_result.implementation_status,'CONFORME');
+    assert.equal(inherited.inherited_result.implementation_status,'NON_VERIFIABLE');
     assert.equal(inherited.inherited_result.proof_results.find(p=>p.proof_type==='ACCESSIBILITY_CHECK').status,'PENDING_DEVICE');
   });
 });

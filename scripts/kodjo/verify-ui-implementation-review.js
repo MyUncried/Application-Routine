@@ -19,16 +19,21 @@ const PROOF_STATUSES = new Set(['PASS','FAIL','PENDING_DEVICE','NON_VERIFIABLE']
 const PRESERVE_STATUSES = new Set(['PASS','FAIL','NON_VERIFIABLE']);
 
 function componentEvidence(criterion, changedSet, cwd){
-  if(!criterion.selected_component||typeof criterion.selected_component!=='object')return null;
   const decision=criterion.component_decision;
-  if(decision==='CREATE')return {status:'NOT_APPLICABLE'};
+  if(decision==='CREATE')return (criterion.change_targets||[]).length>0 &&
+    (criterion.change_targets||[]).every(target=>changedSet.has(target)&&fs.existsSync(path.resolve(cwd,target)))
+    ? {status:'PASS',reason:'CREATED_TARGET_PRESENT_IN_DELTA'}
+    : {status:'FAIL',reason:'CREATED_TARGET_NOT_DELIVERED'};
+  if(!criterion.selected_component||typeof criterion.selected_component!=='object')return null;
   const selected=criterion.selected_component;
   const component=path.resolve(cwd,selected.path);
   if(!fs.existsSync(component))return {status:'FAIL',reason:'SELECTED_COMPONENT_MISSING'};
   if(decision==='EXTEND')return changedSet.has(selected.path)
     ? {status:'PASS',reason:'SELECTED_COMPONENT_CHANGED'}
     : {status:'FAIL',reason:'SELECTED_COMPONENT_NOT_CHANGED'};
-  // Resolve literal relative imports. Aliases and re-exports remain NON_VERIFIABLE.
+  // Resolve literal relative imports and repository aliases before checking use.
+  let aliases={};
+  try { aliases=JSON.parse(fs.readFileSync(path.join(cwd,'tsconfig.json'),'utf8').replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g,'')).compilerOptions?.paths||{}; } catch {}
   for(const target of criterion.change_targets||[]){
     const absolute=path.resolve(cwd,target);
     if(!changedSet.has(target)||!fs.existsSync(absolute))continue;
@@ -36,8 +41,17 @@ function componentEvidence(criterion, changedSet, cwd){
     const imports=[...source.matchAll(/\bimport\s+([^;\n]+?)\s+from\s+['"]([^'"]+)['"]/g)];
     for(const match of imports){
       const spec=match[2],binding=match[1];
-      if(!spec.startsWith('.'))continue;
-      const resolved=path.resolve(path.dirname(absolute),spec);
+      let resolved;
+      if(spec.startsWith('.'))resolved=path.resolve(path.dirname(absolute),spec);
+      else for(const [pattern,targets] of Object.entries(aliases)){
+        const [prefix,suffix]=pattern.split('*');
+        if(!spec.startsWith(prefix)||!spec.endsWith(suffix||''))continue;
+        const middle=spec.slice(prefix.length,suffix? -suffix.length:undefined);
+        const target=String(targets?.[0]||'').replace('*',middle);
+        resolved=path.resolve(cwd,target);
+        break;
+      }
+      if(!resolved)continue;
       if(![component,component.replace(/\.[cm]?[jt]sx?$/,''),path.join(component,'index')].includes(resolved))continue;
       const name=selected.export;
       const bound=name==='default' ? binding.match(/^\s*([A-Za-z_$][\w$]*)/)?.[1]
@@ -47,7 +61,7 @@ function componentEvidence(criterion, changedSet, cwd){
       if(new RegExp('\\b'+bound+'\\b').test(remainder))return {status:'PASS',reason:'EXACT_IMPORT_AND_USE',target};
     }
   }
-  return {status:'NON_VERIFIABLE',reason:'SELECTED_COMPONENT_USE_NOT_PROVEN'};
+  return {status:'FAIL',reason:'SELECTED_COMPONENT_USE_NOT_PROVEN'};
 }
 
 function readJson(file) {
@@ -86,13 +100,6 @@ function canonicalCriterionResult(row) {
 }
 function normalizeInheritedResult(row) {
   const normalized = canonicalCriterionResult(row);
-  if (normalized.assertion_results) return normalized;
-  const deviceOnlyGap = normalized.preserve_status === 'PASS' && normalized.proof_results.length > 0 &&
-    normalized.proof_results.every((proof) =>
-      proof.status === 'PASS' || (DEFERABLE_PROOFS.has(proof.proof_type) && proof.status === 'PENDING_DEVICE'));
-  if (normalized.implementation_status === 'NON_VERIFIABLE' && deviceOnlyGap) {
-    normalized.implementation_status = 'CONFORME';
-  }
   return normalized;
 }
 function readPreviousReview(file) {
@@ -109,6 +116,7 @@ function buildInput(planBody, changedFiles, previousReview) {
   if (!planContract || planContract.schema !== 'kodjo.ui-plan-contract.v1') fail('UI_IMPLEMENTATION_REVIEW_PLAN_CONTRACT_INVALID', 'schema contrat invalide');
   if (planContract.matrix_sha256 !== matrixFingerprint(matrix)) fail('UI_IMPLEMENTATION_REVIEW_PLAN_DRIFT', 'matrice != contrat approuve');
   const hasRequirementContract=/<KODJO_REQUIREMENT_CONTRACT_JSON>[\s\S]*?<\/KODJO_REQUIREMENT_CONTRACT_JSON>/.test(planBody);
+  if(matrix.schema===MATRIX_SCHEMA_V2&&!hasRequirementContract)fail('REQUIREMENT_CONTRACT_REQUIRED_FOR_V2');
   const requirementContracts=hasRequirementContract?verifyRequirementContracts(planBody):null;
   const nonUiSource=requirementContracts?requirementContracts.requirement_contract.requirements.filter((row)=>row.domain==='NON_UI'):[];
   const uiRequirementByCriterion=new Map(requirementContracts?requirementContracts.requirement_contract.requirements
@@ -365,7 +373,8 @@ function exactFunctionalTestStatus(input,id){
   if(!evidence||evidence.schema!=='kodjo.test-contract-evidence.v1'||!Array.isArray(evidence.bindings))return null;
   let requirementId=String(id||'');
   if(!requirementId.startsWith('REQ-')){
-    const criterion=(input.criteria||[]).find((row)=>String(row&&row.criterion_id||'')===requirementId);
+    const criterion=(input.criteria||[]).find((row)=>String(row&&row.criterion_id||'')===requirementId||
+      (row.assertions||[]).some((assertion)=>assertion.assertion_id===requirementId));
     requirementId=String(criterion&&criterion.requirement_id||'');
   }
   if(!requirementId)return 'NON_VERIFIABLE';
