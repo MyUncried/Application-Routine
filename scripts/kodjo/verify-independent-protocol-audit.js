@@ -4,7 +4,12 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
+const MATRIX_PATH = path.resolve(__dirname, '../../.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_MATRIX.md');
+const matrixIds = [...fs.readFileSync(MATRIX_PATH, 'utf8').matchAll(/^\| ((?:P|D|T)-\d{2}|DET-\d{2}) \|/gm)].map(m => m[1]);
 const EXPECTED_MATRIX_IDS = 64;
+if (matrixIds.length !== EXPECTED_MATRIX_IDS || new Set(matrixIds).size !== EXPECTED_MATRIX_IDS) throw new Error('INDEPENDENT_AUDIT_SOURCE_MATRIX_INVALID');
+const EXPECTED_IDS = new Set(matrixIds);
+const MATRIX_STATUSES = new Set(['COVERED','PARTIAL','NOT_COVERED','NON_VERIFIABLE']);
 
 function fail(code, detail) { throw new Error(code + (detail ? ': ' + detail : '')); }
 
@@ -18,6 +23,16 @@ function verify(text) {
   try { data = JSON.parse(blocks[0][1]); } catch (error) { fail('INDEPENDENT_AUDIT_JSON_INVALID', error.message); }
   if (!data || data.schema !== 'kodjo.protocol-independent-audit.v1') fail('INDEPENDENT_AUDIT_SCHEMA_INVALID');
   if (data.verdict !== verdicts[0]) fail('INDEPENDENT_AUDIT_VERDICT_MISMATCH');
+  if (!Array.isArray(data.matrix_rows)) fail('INDEPENDENT_AUDIT_MATRIX_ROWS_MISSING');
+  const observed = new Set();
+  const derived = {COVERED:0,PARTIAL:0,NOT_COVERED:0,NON_VERIFIABLE:0};
+  for (const row of data.matrix_rows) {
+    if (!row || !EXPECTED_IDS.has(row.id) || observed.has(row.id)) fail('INDEPENDENT_AUDIT_MATRIX_ID_INVALID', String(row && row.id));
+    if (!MATRIX_STATUSES.has(row.status) || typeof row.evidence !== 'string' || !row.evidence.trim()) fail('INDEPENDENT_AUDIT_MATRIX_ROW_INVALID', row.id);
+    observed.add(row.id);
+    derived[row.status] += 1;
+  }
+  if (observed.size !== EXPECTED_MATRIX_IDS) fail('INDEPENDENT_AUDIT_MATRIX_COVERAGE_INVALID', String(observed.size));
   const fields = [
     'blocking_findings','major_findings','minor_findings','matrix_ids_total',
     'matrix_ids_covered','matrix_ids_partial','matrix_ids_not_covered','matrix_ids_non_verifiable',
@@ -28,6 +43,9 @@ function verify(text) {
   const sum = data.matrix_ids_covered + data.matrix_ids_partial + data.matrix_ids_not_covered + data.matrix_ids_non_verifiable;
   if (sum !== data.matrix_ids_total) fail('INDEPENDENT_AUDIT_MATRIX_COUNT_MISMATCH');
   if (data.matrix_ids_total !== EXPECTED_MATRIX_IDS) fail('INDEPENDENT_AUDIT_MATRIX_COVERAGE_INVALID', String(data.matrix_ids_total));
+  for (const [field,status] of [['matrix_ids_covered','COVERED'],['matrix_ids_partial','PARTIAL'],['matrix_ids_not_covered','NOT_COVERED'],['matrix_ids_non_verifiable','NON_VERIFIABLE']]) {
+    if (data[field] !== derived[status]) fail('INDEPENDENT_AUDIT_MATRIX_COUNT_MISMATCH', field);
+  }
   if (data.verdict === 'APPROVE' && data.blocking_findings !== 0) fail('INDEPENDENT_AUDIT_APPROVE_WITH_BLOCKING');
   if (data.verdict === 'APPROVE' && data.matrix_ids_not_covered !== 0) fail('INDEPENDENT_AUDIT_APPROVE_WITH_UNCOVERED');
   return data;
