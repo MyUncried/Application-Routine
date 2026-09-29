@@ -169,7 +169,7 @@ jobs:
           [{"path":"relative/posix/path.ts","change":"MODIFY|CREATE"}]
           </KODJO_MODIFIED_MODULES_JSON>
           Use repository-relative POSIX paths only. This is a draft pending the deterministic direct-import scan.
-          Preserve or rebuild exactly one <KODJO_UI_CRITERIA_MATRIX_JSON> block with schema kodjo.ui-criteria.v1. UI requirements must remain atomic and traceable to their current normative source; search existing components before proposing CREATE and explicitly classify PRESERVE / CHANGE / FORBIDDEN. The final closure prompt will revalidate this block.
+          Produce the UI criteria through the current atomic contract `kodjo.ui-criteria.v2`. UI requirements must remain atomic and traceable to their current normative source; search existing components before proposing CREATE and explicitly classify PRESERVE / CHANGE / FORBIDDEN. Do not invent `criterion_id` or `assertion_id`: the workflow derives stable identities mechanically. The final closure prompt will revalidate this contract.
           EOF
           if [ -f "$RUNNER_TEMP/requalification-trigger.txt.proof.json" ]; then
             echo "FULL SLICE REQUALIFICATION REQUIRED. Audit every normative requirement; the targeted proof is not global approval." >> /tmp/kodjo-v2-plan/draft-prompt.txt
@@ -206,7 +206,8 @@ jobs:
           Every test obligation must be bound to an exact repository path. Every new test must use CREATE and an allowed repository location.
           The workflow derives scope_allow, stable requirement IDs, requirement/test/boundary contracts and final plan status mechanically.
           Keep narrative sections in French and do not emit KODJO machine tags yourself.
-          EOF            cat /tmp/kodjo-v2-plan/current-command.txt >> /tmp/kodjo-v2-plan/final-prompt.txt
+          EOF
+            cat /tmp/kodjo-v2-plan/current-command.txt >> /tmp/kodjo-v2-plan/final-prompt.txt
             printf '\n===== DRAFT %s — CLOSURE ITERATION %s =====\n' "$SLICE_ID" "$iteration" >> /tmp/kodjo-v2-plan/final-prompt.txt
             cat /tmp/kodjo-v2-plan/plan-draft.md >> /tmp/kodjo-v2-plan/final-prompt.txt
             printf '\n===== DETERMINISTIC DIRECT IMPORT SCAN =====\n' >> /tmp/kodjo-v2-plan/final-prompt.txt
