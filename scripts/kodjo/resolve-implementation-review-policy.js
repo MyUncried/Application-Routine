@@ -28,6 +28,15 @@ function resolveImplementationReviewPolicy(input) {
   const priorReviewCompleted = requireBoolean(input, 'prior_slice_review_completed');
 
   if (!sameSlice || !sameBinding || !withinScope || introducesRequirement) {
+    if (operation === 'VISUAL_CORRECTION') {
+      return {
+        status: 'REVIEW_REQUIRED',
+        reason: 'CONTRACT_CHANGED',
+        contract_status: 'CONTRACT_CHANGED',
+        review_required: true,
+        plan_revision_required: true,
+      };
+    }
     return {
       status: 'REVIEW_REQUIRED',
       reason: 'NEW_SLICE_OR_SCOPE_EXTENSION',
@@ -53,6 +62,7 @@ function resolveImplementationReviewPolicy(input) {
     return {
       status: 'VISUAL_CORRECTION_REQUIRED',
       reason: 'VISUAL_CORRECTION_WITHIN_APPROVED_SCOPE',
+      contract_status: 'CONTRACT_UNCHANGED',
       route: 'VISUAL_CORRECTION',
       review_required: false,
       plan_revision_forbidden: true,
