@@ -17,7 +17,7 @@ Implémenter l’atomicité UI VNext en réutilisant les contrôles pertinents d
   - source normative dérivée du Requirement parent ;
   - règles d’autorité VISUAL / FUNCTIONAL / DECISION ;
   - couverture complète des changements UI ;
-  - REUSE / EXTEND / CREATE avec recherche de réutilisation liée aux candidats réels.
+  - REUSE / EXTEND / CREATE avec recherche de réutilisation limitée aux candidats UI réels.
 
 - `tests/kodjo/vnext-ui-atomicity.pilot.js`
   - chaîne UI complète et IDs mécaniques ;
