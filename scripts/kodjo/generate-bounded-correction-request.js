@@ -8,6 +8,10 @@ const {validateQueueRequest}=require('./lib/queue-contract');
 const {classify}=require('./lib/error-policy');
 
 function fail(code,detail){throw new Error(code+(detail?': '+detail:''));}
+function deterministicUuid(seed){
+  const hex=crypto.createHash('sha256').update(String(seed),'utf8').digest('hex');
+  return hex.slice(0,8)+'-'+hex.slice(8,12)+'-5'+hex.slice(13,16)+'-8'+hex.slice(17,20)+'-'+hex.slice(20,32);
+}
 
 function generate(queue,result,runId,recoveryAvailable){
   if(!queue||!result)fail('AUTO_CORRECTION_INPUT_INVALID');
@@ -35,8 +39,10 @@ function generate(queue,result,runId,recoveryAvailable){
     code:'CHECKS_FAILED',
     detail:'Automatic bounded correction of failed checks: '+failed.slice().sort().join(', '),
   };
-  retry.request_id=crypto.randomUUID();
-  retry.created_at=new Date().toISOString();
+  retry.request_id=deterministicUuid(String(queue.request_id)+'|'+String(runId)+'|CHECKS_FAILED');
+  const sourceTime=String(result.claude_finished_at||result.finished_at||queue.created_at||'');
+  if(!sourceTime||Number.isNaN(Date.parse(sourceTime)))fail('AUTO_CORRECTION_CREATED_AT_UNAVAILABLE');
+  retry.created_at=new Date(sourceTime).toISOString();
   delete retry.initial_restart;
   delete retry.materialized_recovery;
 
@@ -62,4 +68,4 @@ if(require.main===module){
   }
 }
 
-module.exports={generate};
+module.exports={deterministicUuid,generate};
