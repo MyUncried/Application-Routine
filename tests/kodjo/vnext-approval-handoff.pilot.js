@@ -323,6 +323,33 @@ test('VNext-08 exige une action utilisateur explicite liée au hash exact', () =
   }), /VNEXT_APPROVAL_TARGET_REFERENCE_MISMATCH/);
 });
 
+test('VNext-08 refuse un ApprovalTarget re-signé avec une identité interne falsifiée', () => {
+  const fx = buildFixture();
+  const target = structuredClone(Approval.buildApprovalTarget(artifacts(fx)));
+  target.approval_target_id = 'APRT-' + 'f'.repeat(24);
+  delete target.contract_hash;
+  target.contract_hash = V.canonicalHash(target);
+
+  assert.throws(() => Approval.validateApprovalTarget(target), /VNEXT_APPROVAL_TARGET_ID_MISMATCH/);
+});
+
+test('VNext-08 refuse un ApprovalRecord re-signé avec une identité interne falsifiée', () => {
+  const fx = buildFixture();
+  const target = Approval.buildApprovalTarget(artifacts(fx));
+  const record = structuredClone(Approval.buildApprovalRecord({
+    approvalTarget: target,
+    evidence: approvalEvidence(target),
+  }));
+  record.approval_record_id = 'APRV-' + 'e'.repeat(24);
+  delete record.contract_hash;
+  record.contract_hash = V.canonicalHash(record);
+
+  assert.throws(
+    () => Approval.validateApprovalRecord(record, target),
+    /VNEXT_APPROVAL_RECORD_ID_MISMATCH/,
+  );
+});
+
 test('VNext-08 une décision REJECTED bloque toujours le handoff', () => {
   const fx = buildFixture();
   const target = Approval.buildApprovalTarget(artifacts(fx));
