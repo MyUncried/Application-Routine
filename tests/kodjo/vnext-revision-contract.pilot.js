@@ -390,6 +390,11 @@ test('VNext-07 SOURCE_UNIT reste un anchor et non un objet librement mutable', (
   });
   assert.equal(allowed.reentry_stage, 'REQUIREMENTS');
   assert.equal(allowed.authorized_targets[0].mutation_mode, 'ANCHOR_ONLY');
+  const existingRequirementIds = new Set(base.requirementRegistry.requirements.map((row) => row.requirement_id));
+  assert.equal(
+    allowed.preserved_targets.filter((row) => existingRequirementIds.has(row.target_id)).length,
+    existingRequirementIds.size,
+  );
 });
 
 test('VNext-07 refuse une correction sur une cible hors AllowedChangeSet', () => {
