@@ -249,6 +249,8 @@ jobs:
           if-no-files-found: error
           retention-days: 90
       - name: Download the real run 16 recovery package
+        id: historical_recovery
+        continue-on-error: true # Expired historical diagnostic is not a gate for the current HEAD.
         uses: actions/download-artifact@v4
         with:
           name: kodjo-v2-recovery-34606534268-1
@@ -256,6 +258,7 @@ jobs:
           github-token: ${{ github.token }}
           run-id: 34606534268
       - name: Certify historical run 16 recovery without gating the disposable slice
+        if: steps.historical_recovery.outcome == 'success'
         continue-on-error: true
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
@@ -274,7 +277,7 @@ jobs:
           if (-not (Test-Path -LiteralPath 'real-recovery-certification.json')) {
             $proof = [ordered]@{
               status = 'FAIL'
-              reason = 'HISTORICAL_RECOVERY_CERTIFICATION_FAILED'
+              reason = 'HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE_OR_CERTIFICATION_FAILED'
               claude_invoked = $false
               run_id = '${{ github.run_id }}'
               run_attempt = '${{ github.run_attempt }}'
