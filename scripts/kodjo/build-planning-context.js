@@ -6,7 +6,7 @@ const crypto=require('node:crypto');
 const digest=s=>crypto.createHash('sha256').update(s).digest('hex');
 const normalize=s=>String(s||'').replace(/\r/g,'');
 function taggedJson(body,tag,required=false){
-  const escaped=tag.replace(/[.*+?^${}()|[\]\\]/g,'\\const normalize=s=>String(s||'').replace(/\r/g,'');');
+  const escaped=tag.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   const hits=[...normalize(body).matchAll(new RegExp('<'+escaped+'>\\s*([\\s\\S]*?)\\s*</'+escaped+'>','g'))];
   if(hits.length===0&&!required)return null;
   if(hits.length!==1)throw new Error('CONTEXT_TAG_INVALID:'+tag);
