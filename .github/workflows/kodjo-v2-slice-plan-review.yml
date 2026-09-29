@@ -231,7 +231,17 @@ jobs:
           $migration=$nl+'<KODJO_PLAN_REVIEW_TRANSITION_JSON>'+$nl+$transition.Trim()+$nl+'</KODJO_PLAN_REVIEW_TRANSITION_JSON>'+$nl
                     $findingsProof=$nl+'<KODJO_PLAN_REVIEW_FINDINGS_JSON>'+$nl+(Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-plan-review-findings.json" -Encoding UTF8).Trim()+$nl+'</KODJO_PLAN_REVIEW_FINDINGS_JSON>'+$nl
           [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-v2-plan-review-comment.md",$header+$review+$impact+$contractProof+$uiContractProof+$migration+$findingsProof,(New-Object Text.UTF8Encoding($false)))
-          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\kodjo-v2-plan-review-comment.md"
+          $commentPath=Join-Path $env:RUNNER_TEMP 'kodjo-v2-plan-review-comment.md'
+          $commentBody=Get-Content -Raw -LiteralPath $commentPath -Encoding UTF8
+          $payloadPath=Join-Path $env:RUNNER_TEMP 'kodjo-v2-plan-review-publish.json'
+          [IO.File]::WriteAllText($payloadPath,(@{body=$commentBody}|ConvertTo-Json -Depth 3),(New-Object Text.UTF8Encoding($false)))
+          $created=gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments" --input $payloadPath|ConvertFrom-Json
+          if($LASTEXITCODE-ne0-or$null-eq$created-or-not$created.id){throw 'Plan review publication failed'}
+          $reviewCommentId=[string]$created.id
+          if($verdict -eq 'APPROVE'){
+            gh workflow run kodjo-v2-plan-handoff-materialize.yml --ref main -f "issue_number=$env:ISSUE_NUMBER" -f "review_comment_id=$reviewCommentId"
+            if($LASTEXITCODE-ne0){throw 'Plan handoff materialization dispatch failed'}
+          }
 
       - name: Preserve V2 review evidence
         if: always()
