@@ -161,6 +161,8 @@ Avant une exécution coûteuse dépendant d’un nouvel upload, le workflow vér
 
 La preuve durable reste distincte de l’artifact Actions temporaire.
 
+La certification facultative d’un ancien artifact de recovery expiré produit un diagnostic explicite ; son absence ne bloque pas la qualification du HEAD courant. Les contrôles de recovery et les preuves requis par cette qualification restent bloquants.
+
 ## 10. Efficience des qualifications — PE-37/PE-38
 
 ### 10.1 Supersession
