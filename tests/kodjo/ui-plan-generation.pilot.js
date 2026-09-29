@@ -109,7 +109,7 @@ test('KPB-001 incomplete, refused, duplicate markers and ambiguous responses rej
   assert.throws(()=>decode('draft',duplicate));
 });
 test('KPB-001 non-UI and FUNCTIONAL static-analysis alternative stay supported',()=>{
-  const value=payload({schema:'kodjo.ui-criteria.v1',criteria:[],preservation:{preserve:[],change:[],forbidden:[]}});
+  const value=payload({schema:'kodjo.ui-criteria.v2',criteria:[],preservation:{preserve:[],change:[],forbidden:[]}});
   value.modified_modules=[{path:'scripts/example.js',change:'MODIFY'}];
   value.non_ui_requirements=[{source:{path:'docs/example.md',locator:'§1',requirement:'Le script conserve le comportement.'},requirement_type:'TECHNICAL',change_targets:['scripts/example.js'],tests:[],proof_required:['STATIC_ANALYSIS'],status:'DEFINED'}];
   assert.doesNotThrow(()=>decode('draft',response(value)));
