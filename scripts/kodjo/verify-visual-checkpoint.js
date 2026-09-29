@@ -4,6 +4,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { verifyTransition } = require('./verify-plan-review-transition');
 
 const COMMENT_REF = /^issue_comment:([1-9][0-9]*)$/;
 
@@ -55,12 +56,18 @@ function verify(queueFile, options = {}) {
   const body = String(comment.body || '');
   if (!body.includes('[KODJO_V2] APPLICATION_CHECKPOINT')) throw new Error('KODJO_QUEUE_DELIVERY_CHECKPOINT_MARKER_MISSING');
   const fields = parseFields(body);
+  const gateRef = String(queue.user_gate && queue.user_gate.gate_ref || '');
+  const gateMatch = COMMENT_REF.exec(gateRef);
+  if (!gateMatch) throw new Error('VISUAL_CORRECTION_GATE_REF_INVALID');
   const expected = {
     status: 'CERTIFIED',
     slice_id: String(queue.slice_id),
     checkpoint_ref: String(cp.checkpoint_ref),
     application_pr: String(target.application_pr),
     application_head: String(target.application_head),
+    plan_blob_oid: String(queue.authorized_plan && queue.authorized_plan.plan_blob_oid || ''),
+    review_blob_oid: String(queue.independent_review && queue.independent_review.review_blob_oid || ''),
+    gate_comment_id: String(gateMatch[1]),
     protocol_head: String(queue.source_head),
     package_run_id: String(cp.package_run_id),
     package_artifact_id: String(cp.package_artifact_id),
@@ -76,12 +83,29 @@ function verify(queueFile, options = {}) {
       String(queue.recovery_migration.attestation_blob_oid || '') !== String(cp.attestation_blob_oid)) {
     throw new Error('KODJO_QUEUE_DELIVERY_CHECKPOINT_ATTESTATION_MISMATCH');
   }
+
+  const transition = options.transitionVerifier || verifyTransition;
+  let transitionProof;
+  try {
+    transitionProof = transition({
+      cwd,
+      sourceHead: String(queue.authorized_plan && queue.authorized_plan.approved_at_commit || ''),
+      executionHead: String(queue.source_head || ''),
+      bootstrapPath: String(queue.slice_bootstrap_file || ''),
+      outputPath: options.transitionProofPath,
+    });
+  } catch (error) {
+    throw new Error('VISUAL_CORRECTION_CONTRACT_CHANGED: ' + String(error && error.message ? error.message : error));
+  }
+
   return {
     status: 'CERTIFIED',
+    contract_status: 'CONTRACT_UNCHANGED',
     checkpoint_ref: cp.checkpoint_ref,
     application_pr: target.application_pr,
     application_head: target.application_head,
     protocol_head: queue.source_head,
+    transition_status: transitionProof && transitionProof.status || 'PASS',
   };
 }
 
