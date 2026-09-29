@@ -241,6 +241,9 @@ jobs:
           if($verdict -eq 'APPROVE'){
             gh workflow run kodjo-v2-plan-handoff-materialize.yml --ref main -f "issue_number=$env:ISSUE_NUMBER" -f "review_comment_id=$reviewCommentId"
             if($LASTEXITCODE-ne0){throw 'Plan handoff materialization dispatch failed'}
+          }else{
+            gh workflow run kodjo-v2-slice-plan.yml --ref main -f "issue_number=$env:ISSUE_NUMBER" -f "review_comment_id=$reviewCommentId"
+            if($LASTEXITCODE-ne0){throw 'Bounded plan revision dispatch failed'}
           }
 
       - name: Preserve V2 review evidence
