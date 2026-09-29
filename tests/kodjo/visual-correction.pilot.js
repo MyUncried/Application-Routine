@@ -131,6 +131,9 @@ test('le checkpoint GitHub est relu et lié au commentaire certifié exact', () 
     'checkpoint_ref=' + queue.delivery_checkpoint.checkpoint_ref,
     'application_pr=142',
     'application_head=' + applicationHead,
+    'plan_blob_oid=' + queue.authorized_plan.plan_blob_oid,
+    'review_blob_oid=' + queue.independent_review.review_blob_oid,
+    'gate_comment_id=5678273155',
     'protocol_head=' + protocolHead,
     'package_run_id=34948992572',
     'package_artifact_id=10389171562',
@@ -142,11 +145,18 @@ test('le checkpoint GitHub est relu et lié au commentaire certifié exact', () 
     issue_url: 'https://api.github.com/repos/MyUncried/Application-Routine/issues/52',
     body,
   };
-  assert.equal(V.verify(file, { cwd: dir, repository: 'MyUncried/Application-Routine', comment }).status, 'CERTIFIED');
+  const verified=V.verify(file, { cwd: dir, repository: 'MyUncried/Application-Routine', comment, transitionVerifier:()=>({status:'PASS'}) });
+  assert.equal(verified.status, 'CERTIFIED');
+  assert.equal(verified.contract_status, 'CONTRACT_UNCHANGED');
   assert.throws(() => V.verify(file, {
-    cwd: dir, repository: 'MyUncried/Application-Routine',
+    cwd: dir, repository: 'MyUncried/Application-Routine', transitionVerifier:()=>({status:'PASS'}),
     comment: { ...comment, body: body.replace('delivery_head=' + applicationHead, 'delivery_head=' + '7'.repeat(40)) },
   }), /KODJO_QUEUE_DELIVERY_CHECKPOINT_FIELD_MISMATCH: delivery_head/);
+
+  assert.throws(() => V.verify(file, {
+    cwd: dir, repository: 'MyUncried/Application-Routine', comment,
+    transitionVerifier:()=>{ throw new Error('PLAN_REVIEW_PRODUCT_INPUT_CHANGED'); },
+  }), /VISUAL_CORRECTION_CONTRACT_CHANGED/);
 });
 
 test('la reprise visuelle matérialise un recovery vide sur le HEAD applicatif au lieu de rejouer le paquet historique', () => {
