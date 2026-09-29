@@ -181,7 +181,7 @@ test('planning workflows use structured findings and valid atomic revision hered
 test('independent Claude audit requires exact qualified HEAD, remains read-only and artifact-free',()=>{
   const workflow=read('.github/workflows/kodjo-v2-next-evolution-independent-audit.yml');
   assert.match(workflow,/workflow_dispatch:/);
-  assert.match(workflow,/pull_request:\n\s+paths:\n\s+- '\.github\/workflows\/kodjo-v2-next-evolution-independent-audit\.yml'/);
+  assert.match(workflow,/pull_request:\r?\n\s+paths:\r?\n\s+- '\.github\/workflows\/kodjo-v2-next-evolution-independent-audit\.yml'/);
   assert.match(workflow,/github\.event\.pull_request\.number == 250/);
   assert.match(workflow,/needs: await_qualified_head/);
   assert.match(workflow,/if \[ "\$state" = 'completed:success' \]/);
