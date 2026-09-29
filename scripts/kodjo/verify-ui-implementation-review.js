@@ -6,6 +6,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { extractTaggedJson, sha256, fail } = require('./lib/plan-impact');
 const {inspectImplementation}=require('./lib/implementation-report');
+const {verifyEmbedded:verifyRequirementContracts}=require('./lib/requirement-contract');
 
 const INPUT_SCHEMA = 'kodjo.ui-implementation-review-input.v1';
 const REVIEW_SCHEMA = 'kodjo.ui-implementation-review.v1';
