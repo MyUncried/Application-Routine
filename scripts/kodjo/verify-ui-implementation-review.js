@@ -238,10 +238,11 @@ function validateProof(id, proof) {
   }
   return {type,status};
 }
-function deriveAssertionStatus(assertion,proofs) {
+function deriveAssertionStatus(input,assertion,proofs) {
   let pending=false;
   for(const proof of proofs){
     const {type,status}=validateProof(assertion.assertion_id,proof);
+    enforceMachineProof(input,assertion.assertion_id,type,status);
     if(status==='FAIL')return 'NON_CONFORME';
     if(BLOCKING_PROOFS.has(type)&&status!=='PASS')return 'NON_VERIFIABLE';
     if(type==='ACCESSIBILITY_CHECK'&&status==='NON_VERIFIABLE')return 'NON_VERIFIABLE';
@@ -255,7 +256,7 @@ function aggregateProofStatus(statuses) {
   if(statuses.includes('PENDING_DEVICE'))return 'PENDING_DEVICE';
   return 'PASS';
 }
-function deriveCriterionFromAssertions(expected,row) {
+function deriveCriterionFromAssertions(input,expected,row) {
   const observed=Array.isArray(row.assertion_results)?row.assertion_results:null;
   if(!observed)fail('UI_IMPLEMENTATION_REVIEW_ASSERTION_RESULTS_MISSING',expected.criterion_id);
   const expectedIds=expected.assertions.map(a=>a.assertion_id).sort();
@@ -282,7 +283,7 @@ function deriveCriterionFromAssertions(expected,row) {
     if(JSON.stringify(expectedProofs)!==JSON.stringify(observedProofs)) {
       fail('UI_IMPLEMENTATION_REVIEW_ASSERTION_PROOF_COVERAGE_INCOMPLETE',id);
     }
-    const derived=deriveAssertionStatus(assertion,proofs);
+    const derived=deriveAssertionStatus(input,assertion,proofs);
     if(String(result.status)!==derived) {
       fail('UI_IMPLEMENTATION_REVIEW_ASSERTION_STATUS_DERIVATION_MISMATCH',id+': attendu '+derived);
     }
@@ -307,7 +308,8 @@ function deriveCriterionFromAssertions(expected,row) {
     fail('UI_IMPLEMENTATION_REVIEW_PROOF_COVERAGE_INCOMPLETE',expected.criterion_id);
   }
   for(const proof of criterionProofs){
-    validateProof(expected.criterion_id,proof);
+    const validated=validateProof(expected.criterion_id,proof);
+    enforceMachineProof(input,expected.criterion_id,validated.type,validated.status);
     const statuses=proofStatuses.get(String(proof.proof_type))||[];
     if(!statuses.length)fail('UI_IMPLEMENTATION_REVIEW_ASSERTION_PROOF_COVERAGE_INCOMPLETE',expected.criterion_id+':'+proof.proof_type);
     const aggregate=aggregateProofStatus(statuses);
@@ -374,7 +376,7 @@ function validateReview(input, review) {
     if (String(row.preserve_status) !== 'PASS') blocking = true;
 
     if (input.assertion_mode) {
-      const derived=deriveCriterionFromAssertions(expected,row);
+      const derived=deriveCriterionFromAssertions(input,expected,row);
       if(['NON_CONFORME','NON_VERIFIABLE'].includes(derived.criterionStatus)&&!derived.pendingOnly)blocking=true;
     } else {
       if (['PARTIELLEMENT_CONFORME','NON_CONFORME'].includes(String(row.implementation_status))) blocking = true;
@@ -387,6 +389,7 @@ function validateReview(input, review) {
       }
       for (const proof of proofs) {
         const {type,status}=validateProof(id,proof);
+        enforceMachineProof(input,id,type,status);
         if (DEVICE_PROOFS.has(type)&&status==='FAIL') blocking=true;
         else if(type==='ACCESSIBILITY_CHECK'&&status==='FAIL')blocking=true;
         else if(BLOCKING_PROOFS.has(type)&&status!=='PASS')blocking=true;
@@ -410,6 +413,7 @@ function validateReview(input, review) {
   if (JSON.stringify(expectedBoundaries) !== JSON.stringify(observedBoundaries)) {
     fail('UI_IMPLEMENTATION_REVIEW_BOUNDARY_COVERAGE_INCOMPLETE', 'PRESERVE/FORBIDDEN incomplet');
   }
+  const boundaryByKey=new Map(input.boundary_requirements.map((row)=>[row.category+':'+row.target,row]));
   for (const row of boundaries) {
     if (!['PRESERVE','FORBIDDEN'].includes(String(row.category))) {
       fail('UI_IMPLEMENTATION_REVIEW_BOUNDARY_INVALID', 'categorie inconnue');
@@ -417,13 +421,55 @@ function validateReview(input, review) {
     if (!PRESERVE_STATUSES.has(String(row.status))) {
       fail('UI_IMPLEMENTATION_REVIEW_BOUNDARY_INVALID', String(row.category) + ':' + String(row.target));
     }
+    const key=String(row.category)+':'+String(row.target);
+    const expectedBoundary=boundaryByKey.get(key);
+    if(expectedBoundary&&expectedBoundary.machine_status&&String(row.status)!==String(expectedBoundary.machine_status)){
+      fail('UI_IMPLEMENTATION_REVIEW_BOUNDARY_MACHINE_MISMATCH',key+': attendu '+expectedBoundary.machine_status);
+    }
     if (String(row.status) !== 'PASS') blocking = true;
     if (typeof row.evidence !== 'string' || !row.evidence.trim()) {
       fail('UI_IMPLEMENTATION_REVIEW_BOUNDARY_INVALID', 'evidence absente');
     }
   }
 
-  if (!input.ui_applicable) {
+  if (input.non_ui_requirement_count > 0) {
+    const assessment=review.non_ui_plan_assessment;
+    const statuses=new Set(['CONFORME','NON_CONFORME','NON_VERIFIABLE']);
+    const text=value=>typeof value==='string'&&value.trim();
+    if(!assessment||!Array.isArray(assessment.requirements)){
+      fail('NON_UI_PLAN_ASSESSMENT_REQUIRED','requirement review required');
+    }
+    const expectedIds=input.non_ui_requirements.map((row)=>row.requirement_id).sort();
+    const observedIds=assessment.requirements.map((row)=>String(row&&row.requirement_id||'')).sort();
+    if(JSON.stringify(expectedIds)!==JSON.stringify(observedIds)){
+      fail('NON_UI_REQUIREMENT_COVERAGE_MISMATCH','reviewer requirements != plan');
+    }
+    const expectedById=new Map(input.non_ui_requirements.map((row)=>[row.requirement_id,row]));
+    let nonUiBlocking=false;
+    for(const row of assessment.requirements){
+      const id=String(row.requirement_id);
+      const expected=expectedById.get(id);
+      if(!statuses.has(String(row.status))||!text(row.evidence))fail('NON_UI_PLAN_ASSESSMENT_INVALID',id);
+      if(expected.review_scope==='INHERITED'){
+        if(JSON.stringify(row)!==JSON.stringify(expected.inherited_result))fail('NON_UI_REQUIREMENT_INHERITED_DRIFT',id);
+      }else{
+        const proofs=Array.isArray(row.proof_results)?row.proof_results:null;
+        if(!proofs)fail('NON_UI_REQUIREMENT_PROOF_INVALID',id);
+        const expectedProofs=[...(expected.proof_required||[])].sort();
+        const observedProofs=proofs.map((proof)=>String(proof&&proof.proof_type||'')).sort();
+        if(JSON.stringify(expectedProofs)!==JSON.stringify(observedProofs))fail('NON_UI_REQUIREMENT_PROOF_COVERAGE_MISMATCH',id);
+        for(const proof of proofs){
+          const validated=validateProof(id,proof);
+          enforceMachineProof(input,id,validated.type,validated.status);
+          if(validated.status==='FAIL'||(BLOCKING_PROOFS.has(validated.type)&&validated.status!=='PASS'))nonUiBlocking=true;
+        }
+      }
+      if(String(row.status)!=='CONFORME')nonUiBlocking=true;
+    }
+    assessment.status=nonUiBlocking?'NON_CONFORME':'CONFORME';
+    if(!text(assessment.evidence))assessment.evidence='Derived from requirement-level results.';
+    if(nonUiBlocking)blocking=true;
+  } else if (!input.ui_applicable) {
     const assessment = review.non_ui_plan_assessment;
     const statuses = new Set(['CONFORME','NON_CONFORME','NON_VERIFIABLE']);
     const text = value => typeof value === 'string' && value.trim();
@@ -450,10 +496,7 @@ function validateReview(input, review) {
     }
     blocking = true;
   }
-  const verdict = String(review.verdict || '');
-  if (!['APPROVE','REVISE'].includes(verdict)) fail('UI_IMPLEMENTATION_REVIEW_VERDICT_INVALID', verdict);
-  if (blocking && verdict !== 'REVISE') fail('UI_IMPLEMENTATION_REVIEW_VERDICT_INCONSISTENT', 'blocking => REVISE');
-  if (!blocking && verdict !== 'APPROVE') fail('UI_IMPLEMENTATION_REVIEW_VERDICT_INCONSISTENT', 'non-blocking => APPROVE');
+  review.verdict=blocking?'REVISE':'APPROVE';
   return review;
 }
 
@@ -470,7 +513,10 @@ try {
   const previousFile = mode === 'prepare' ? args[5] : args[6];
   const input = buildInput(planBody, changedFiles, readPreviousReview(previousFile));
   if (evidenceFile) input.implementation_report = inspectImplementation(
-    fs.readFileSync(path.resolve(evidenceFile),'utf8'), input.ui_applicable ? input.criteria : undefined);
+    fs.readFileSync(path.resolve(evidenceFile),'utf8'), {
+      criteria: input.criteria,
+      requirements: input.non_ui_requirements,
+    });
   if (mode === 'prepare') {
     fs.writeFileSync(path.resolve(third), JSON.stringify(input, null, 2) + '\n', 'utf8');
     process.stdout.write('[KODJO_V2] UI implementation review input prepared — criteria=' + input.criterion_count + ' assertions=' + (input.assertion_count||0) + ' device=' + input.device_gate_required + ' mode=' + input.review_mode + '\n');
