@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/kodjo-v2-next-evolution-independent-audit.yml'
       - 'tests/kodjo/next-evolution-determinism.pilot.js'
+      - 'tests/kodjo/independent-audit-publication.pilot.js'
   workflow_dispatch:
     inputs:
       pr_number:

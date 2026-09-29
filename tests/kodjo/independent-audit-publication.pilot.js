@@ -142,7 +142,8 @@ test('workflow separates read-only auditor and durable publication; no success f
 test('remote writer scanner admits only the declared archive job and keeps other writes forbidden', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-audit-writer-'));
   const workflowPath = '.github/workflows/kodjo-v2-next-evolution-independent-audit.yml';
-  const workflow = fs.readFileSync(path.join(root, workflowPath), 'utf8');
+  // Git checkouts use CRLF on Windows; mutations must address the same logical lines.
+  const workflow = fs.readFileSync(path.join(root, workflowPath), 'utf8').replace(/\r\n/g, '\n');
   const scanner = require('../../scripts/kodjo/scan-remote-write-capability');
   const permission = '      contents: write # Isolated audit evidence writer; never passed to Claude.';
   const scan = (source, filename = workflowPath) => {
@@ -176,6 +177,7 @@ test('remote writer scanner admits only the declared archive job and keeps other
         '          set -euo pipefail\n          git push origin HEAD:main\n          node scripts/kodjo/publish-independent-protocol-audit.js'),
     ];
     for (const source of hostile) {
+      assert.notEqual(source, workflow, 'the negative fixture must actually mutate the workflow');
       const result = scan(source);
       assert.equal(result.status, 1, result.stderr);
       assert.match(result.stderr, /REMOTE_FUNCTIONAL_WRITE_CAPABILITY_FOUND/);
