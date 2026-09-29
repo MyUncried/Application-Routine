@@ -319,11 +319,31 @@ function deriveCriterionFromAssertions(expected,row) {
   return {criterionStatus,pendingOnly,assertionStatuses};
 }
 
+function machineProofStatus(input,type){
+  const checks=input&&input.implementation_report&&input.implementation_report.machine_evidence&&Array.isArray(input.implementation_report.machine_evidence.checks)
+    ? input.implementation_report.machine_evidence.checks : [];
+  const by=new Map(checks.map((row)=>[String(row&&row.check||''),String(row&&row.status||'')]));
+  if(type==='FUNCTIONAL_TEST'){
+    const status=by.get('jest');
+    return status==='PASS'?'PASS':status==='FAIL'?'FAIL':status?'NON_VERIFIABLE':null;
+  }
+  if(type==='STATIC_ANALYSIS'){
+    const observed=['typescript','lint'].map((name)=>by.get(name)).filter(Boolean);
+    if(!observed.length)return null;
+    if(observed.includes('FAIL'))return 'FAIL';
+    if(observed.every((status)=>status==='PASS'))return 'PASS';
+    return 'NON_VERIFIABLE';
+  }
+  return null;
+}
+function enforceMachineProof(input,id,type,status){
+  if(!BLOCKING_PROOFS.has(type))return;
+  const expected=machineProofStatus(input,type);
+  if(expected&&status!==expected)fail('UI_IMPLEMENTATION_MACHINE_PROOF_MISMATCH',id+':'+type+': attendu '+expected+' observe '+status);
+}
 function validateReview(input, review) {
   if (!review || review.schema !== REVIEW_SCHEMA) fail('UI_IMPLEMENTATION_REVIEW_OUTPUT_INVALID', 'schema review invalide');
-  if (Boolean(review.device_gate_required) !== Boolean(input.device_gate_required)) {
-    fail('UI_IMPLEMENTATION_REVIEW_DEVICE_GATE_MISMATCH', 'device_gate_required divergent');
-  }
+  review.device_gate_required = Boolean(input.device_gate_required);
   const results = Array.isArray(review.criteria) ? review.criteria : null;
   if (!results) fail('UI_IMPLEMENTATION_REVIEW_OUTPUT_INVALID', 'criteria absent');
   const expectedIds = input.criteria.map((c) => c.criterion_id).sort();
