@@ -1,0 +1,308 @@
+[
+  {
+    "id": "e2e-orchestration-test-v1-3",
+    "path": ".github/workflows/kodjo-e2e-orchestration-test-v1-3.yml",
+    "gate": "(github.event.issue.number == 17 && contains(github.event.comment.body, '[KODJO_E2E_AUTOMATION_TEST]'))",
+    "permissions": {
+      "contents": "write",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "e2e-t1-t6-v1-3",
+    "path": ".github/workflows/kodjo-e2e-t1-t6-v1-3.yml",
+    "gate": "(github.event_name == 'issue_comment' && github.event.issue.number == 17 && contains(github.event.comment.body, '[KODJO_E2E_T1_T6_REAL_CLAUDE_TEST]')) || (github.event_name == 'repository_dispatch' && github.event.action == 'kodjo-e2e-t2-claude-real')",
+    "permissions": {
+      "contents": "write",
+      "issues": "write",
+      "id-token": "write"
+    }
+  },
+  {
+    "id": "event-router-v1-3",
+    "path": ".github/workflows/kodjo-event-router-v1-3.yml",
+    "gate": "(github.event.issue.number == 17 && ( contains(github.event.comment.body, '[KODJO_TEST_EVENT]') || contains(github.event.comment.body, '[KODJO_ORCHESTRATOR_DRY_RUN_TEST]') || (github.event.comment.user.login == 'github-actions[bot]' && contains(github.event.comment.body, 'STATUT : PLAN_READY_FOR_REVIEW')) || (github.event.comment.user.login == 'github-actions[bot]' && contains(github.event.comment.body, 'STATUT : IMPLEMENTATION_READY_FOR_REVIEW')) || contains(github.event.comment.body, '[KODJO_USER_INPUT]') ))",
+    "permissions": {
+      "issues": "write",
+      "contents": "read"
+    }
+  },
+  {
+    "id": "slice-finalize",
+    "path": ".github/workflows/kodjo-slice-finalize.yml",
+    "gate": "(github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_SLICE] VISUAL_APPROVED'))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write",
+      "pull-requests": "read"
+    }
+  },
+  {
+    "id": "slice-implementation-publication-recovery",
+    "path": ".github/workflows/kodjo-slice-implementation-publication-recovery.yml",
+    "gate": "(github.event.comment.user.login == 'MyUncried' && startsWith(github.event.comment.body, format('[KODJO_SLICE] RECOVER_IMPLEMENTATION_PUBLICATION{0}', fromJSON('\"\\n\"'))))",
+    "permissions": {
+      "contents": "write",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "implementation-review",
+    "path": ".github/workflows/kodjo-slice-implementation-review.yml",
+    "gate": "((github.event_name == 'issue_comment' && ((github.event.comment.user.login == 'github-actions[bot]' && startsWith(github.event.comment.body, format('[KODJO_SLICE] IMPLEMENTATION_OUTPUT{0}', fromJSON('\"\\n\"')))) || (github.event.comment.user.login == 'MyUncried' && startsWith(github.event.comment.body, format('[KODJO_SLICE] START_IMPLEMENTATION_REVIEW{0}', fromJSON('\"\\n\"')))))) || (github.event_name == 'repository_dispatch' && github.event.action == 'kodjo_implementation_ready'))",
+    "permissions": {
+      "contents": "read",
+      "actions": "read",
+      "issues": "write",
+      "pull-requests": "read"
+    }
+  },
+  {
+    "id": "slice-implementation",
+    "path": ".github/workflows/kodjo-slice-implementation.yml",
+    "gate": "(github.event.comment.user.login == 'MyUncried' && (startsWith(github.event.comment.body, format('[KODJO_SLICE] START_IMPLEMENTATION{0}', fromJSON('\"\\n\"'))) || startsWith(github.event.comment.body, format('[KODJO_SLICE] IMPLEMENTATION_REVISION{0}', fromJSON('\"\\n\"'))) || startsWith(github.event.comment.body, format('[KODJO_SLICE] VISUAL_CORRECTION{0}', fromJSON('\"\\n\"')))))",
+    "permissions": {
+      "contents": "write",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "slice-plan-review",
+    "path": ".github/workflows/kodjo-slice-plan-review.yml",
+    "gate": "(github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_SLICE] START_PLAN_REVIEW'))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "slice-plan",
+    "path": ".github/workflows/kodjo-slice-plan.yml",
+    "gate": "(github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_SLICE] START_PLAN') && !contains(github.event.comment.body, '[KODJO_SLICE] START_PLAN_REVIEW'))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "slice-recover",
+    "path": ".github/workflows/kodjo-slice-recover.yml",
+    "gate": "(github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_SLICE] RECOVER_WORKTREE'))",
+    "permissions": {
+      "contents": "write",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "t8-work-arbitration",
+    "path": ".github/workflows/kodjo-t8-work-arbitration.yml",
+    "gate": "(github.event.issue.pull_request && github.event.issue.number == 18 && github.event.comment.user.login == 'MyUncried' && (contains(github.event.comment.body, '[KODJO_T8_USER_ARBITRATION]') || contains(github.event.comment.body, '[KODJO_T8_TECHNICAL_RETRY]')) && contains(github.event.comment.body, 'choice=A') && contains(github.event.comment.body, 'source=CHATGPT_WORK_SAME_THREAD'))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write",
+      "pull-requests": "write",
+      "id-token": "write"
+    }
+  },
+  {
+    "id": "v1-3-integrated-t1-t9",
+    "path": ".github/workflows/kodjo-v1-3-integrated-t1-t9.yml",
+    "gate": "(github.event.issue.pull_request && github.event.issue.number == 19 && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, 'test_id=KODJO-V13-T1T9-20260829-01') && (contains(github.event.comment.body, '[KODJO_T1T9_START]') || contains(github.event.comment.body, '[KODJO_T1T9_REVIEW_CHANGES_REQUESTED]') || contains(github.event.comment.body, '[KODJO_T1T9_REVIEW_RETEST_REQUIRED]') || contains(github.event.comment.body, '[KODJO_T1T9_DECISION_MID]') || contains(github.event.comment.body, '[KODJO_T1T9_DECISION_LOOP3]'))) || (github.event.issue.pull_request && github.event.issue.number == 19 && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_T1T9_RESUME_AFTER_TRANSPORT_FIX]') && contains(github.event.comment.body, 'test_id=KODJO-V13-T1T9-20260829-01')) || (github.event.issue.pull_request && github.event.issue.number == 19 && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_T1T9_SIGNAL_EXISTING_RETEST]') && contains(github.event.comment.body, 'test_id=KODJO-V13-T1T9-20260829-01')) || (github.event.issue.pull_request && github.event.issue.number == 19 && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, 'test_id=KODJO-V13-T1T9-20260829-01') && (contains(github.event.comment.body, '[KODJO_T1T9_DECISION_LOOP1]') || contains(github.event.comment.body, '[KODJO_T1T9_DECISION_LOOP2]')))",
+    "permissions": {
+      "contents": "write",
+      "issues": "write",
+      "pull-requests": "write",
+      "id-token": "write"
+    }
+  },
+  {
+    "id": "v14-s09-dev",
+    "path": ".github/workflows/kodjo-v14-s09-dev.yml",
+    "gate": "(github.event.issue.number == 17 && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V14_S09] START_DEV_S09'))",
+    "permissions": {
+      "contents": "write",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "v14-s09-finalize",
+    "path": ".github/workflows/kodjo-v14-s09-finalize.yml",
+    "gate": "(github.event.issue.number == 17 && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V14_S09] VISUAL_APPROVED'))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "v14-s09-implementation-local",
+    "path": ".github/workflows/kodjo-v14-s09-implementation-local.yml",
+    "gate": "(github.event.issue.number == 17 && (contains(github.event.comment.body, '[KODJO_V14_S09] PLAN_APPROVED') || contains(github.event.comment.body, '[KODJO_V14_S09] IMPLEMENTATION_REVISION') || contains(github.event.comment.body, '[KODJO_V14_S09] VISUAL_CORRECTION') || contains(github.event.comment.body, '[KODJO_V14_S09] CORRECT')))",
+    "permissions": {
+      "contents": "write",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "v14-s09-plan-local",
+    "path": ".github/workflows/kodjo-v14-s09-plan-local.yml",
+    "gate": "(github.event.issue.number == 17 && github.event.comment.user.login == 'MyUncried' && ( contains(github.event.comment.body, '[KODJO_V14_S09] START_PLAN_OPENAI') || contains(github.event.comment.body, '[KODJO_V14_S09] PLAN_REVISION_OPENAI') ))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "v14-s09-plan-review-independent",
+    "path": ".github/workflows/kodjo-v14-s09-plan-review-independent.yml",
+    "gate": "(github.event.issue.number == 17 && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V14_S09] START_PLAN_REVIEW_CLAUDE'))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "v14-s09-protocol-audit",
+    "path": ".github/workflows/kodjo-v14-s09-protocol-audit.yml",
+    "gate": "(github.event.issue.number == 17 && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V14_S09] AUDIT_PROTOCOL'))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "v14-s09-recover-worktree",
+    "path": ".github/workflows/kodjo-v14-s09-recover-worktree.yml",
+    "gate": "(github.event.issue.number == 17 && contains(github.event.comment.body, '[KODJO_V14_S09] RECOVER_WORKTREE')) || (github.event.issue.number == 17 && contains(github.event.comment.body, '[KODJO_V14_S09] REPAIR_RECOVERY'))",
+    "permissions": {
+      "contents": "write",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "v14-s09-review",
+    "path": ".github/workflows/kodjo-v14-s09-review.yml",
+    "gate": "(github.event.issue.number == 17 && github.event.comment.user.login == 'github-actions[bot]' && contains(github.event.comment.body, '[KODJO_S09_PLAN_OUTPUT]') && contains(github.event.comment.body, 'plan_builder=OPENAI')) || (github.event.issue.number == 17 && (github.event.comment.user.login == 'github-actions[bot]' || github.event.comment.user.login == 'MyUncried') && contains(github.event.comment.body, '[KODJO_S09_IMPLEMENTATION_OUTPUT]'))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "v14-s09-validate-integration",
+    "path": ".github/workflows/kodjo-v14-s09-validate-integration.yml",
+    "gate": "(github.event.issue.number == 17 && contains(github.event.comment.body, '[KODJO_V14_S09] VALIDATE_INTEGRATION'))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "v2-plan-handoff-materialize",
+    "path": ".github/workflows/kodjo-v2-plan-handoff-materialize.yml",
+    "gate": "((github.event.comment.user.login == 'github-actions[bot]' && contains(github.event.comment.body, '[KODJO_V2] PLAN_REVIEW_OUTPUT') && contains(github.event.comment.body, 'verdict=APPROVE') && contains(github.event.comment.body, 'STATUT : PLAN_REVIEW_APPROVED')) || (github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] MATERIALIZE_PLAN_HANDOFF')))",
+    "permissions": {
+      "contents": "write",
+      "issues": "write",
+      "pull-requests": "read"
+    }
+  },
+  {
+    "id": "v2-plan-handoff-queue",
+    "path": ".github/workflows/kodjo-v2-plan-handoff-queue.yml",
+    "gate": "(github.event.comment.user.login == 'MyUncried' && (contains(github.event.comment.body, '[KODJO_V2] VALIDATE_PLAN_HANDOFF') || contains(github.event.comment.body, '[KODJO_V2] QUEUE_APPROVED_PLAN')))",
+    "permissions": {
+      "contents": "write",
+      "issues": "write",
+      "pull-requests": "read",
+      "actions": "write"
+    }
+  },
+  {
+    "id": "v2-review-existing-delivery-bridge",
+    "path": ".github/workflows/kodjo-v2-review-existing-delivery-bridge.yml",
+    "gate": "(github.event.comment.user.login == 'MyUncried' && startsWith(github.event.comment.body, format('[KODJO_V2] REVIEW_EXISTING_DELIVERY{0}', fromJSON('\"\\n\"'))))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write",
+      "pull-requests": "read"
+    }
+  },
+  {
+    "id": "v2-slice-initial-plan-review",
+    "path": ".github/workflows/kodjo-v2-slice-initial-plan-review.yml",
+    "gate": "(github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN_REVIEW'))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "v2-slice-initial-plan",
+    "path": ".github/workflows/kodjo-v2-slice-initial-plan.yml",
+    "gate": "(github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN') && !contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN_REVIEW'))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "v2-slice-minor-plan-clarification",
+    "path": ".github/workflows/kodjo-v2-slice-minor-plan-clarification.yml",
+    "gate": "(github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_MINOR_PLAN_CLARIFICATION'))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write"
+    }
+  },
+  {
+    "id": "v2-slice-plan-review",
+    "path": ".github/workflows/kodjo-v2-slice-plan-review.yml",
+    "gate": "(github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_PLAN_REVIEW'))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write",
+      "pull-requests": "read"
+    }
+  },
+  {
+    "id": "v2-slice-plan",
+    "path": ".github/workflows/kodjo-v2-slice-plan.yml",
+    "gate": "((github.event_name == 'issue_comment' && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_PLAN_REVISION')) || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write",
+      "pull-requests": "read"
+    }
+  },
+  {
+    "id": "v2-targeted-requalification",
+    "path": ".github/workflows/kodjo-v2-targeted-requalification.yml",
+    "gate": "(github.event.comment.user.login == 'MyUncried' && startsWith(github.event.comment.body, '[KODJO_SLICE] TARGETED_VISUAL_APPROVED_REQUALIFY'))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write",
+      "pull-requests": "read",
+      "actions": "write"
+    }
+  },
+  {
+    "id": "t01-s09-implementation-v1-3-temporary",
+    "path": ".github/workflows/t01-s09-implementation-v1-3-temporary.yml",
+    "gate": "(github.event.issue.number == 17 && contains(github.event.comment.body, '@claude-t01-s09-implement-v1-3-phase-a'))",
+    "permissions": {
+      "contents": "write",
+      "issues": "write",
+      "id-token": "write"
+    }
+  },
+  {
+    "id": "t01-s09-plan-revision-v1-3-temporary",
+    "path": ".github/workflows/t01-s09-plan-revision-v1-3-temporary.yml",
+    "gate": "(github.event.issue.number == 17 && contains(github.event.comment.body, '@claude-t01-s09-plan-revision-v1-3'))",
+    "permissions": {
+      "contents": "read",
+      "issues": "write",
+      "id-token": "write"
+    }
+  }
+]

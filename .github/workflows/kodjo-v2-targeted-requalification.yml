@@ -1,7 +1,6 @@
 name: KODJO V2 — Targeted validation and full requalification
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 permissions:
   contents: read
   issues: write

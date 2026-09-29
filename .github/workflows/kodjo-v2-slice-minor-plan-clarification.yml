@@ -2,8 +2,7 @@ name: KODJO V2 — Minor Plan Clarification
 run-name: KODJO V2 / MINOR-PLAN-CLARIFICATION / ${{ github.event.comment.id }}
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 
 permissions:
   contents: read

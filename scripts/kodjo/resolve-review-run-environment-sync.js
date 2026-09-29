@@ -8,12 +8,25 @@ function gh(repository,suffix,paginate=false){
   if(r.error||r.status!==0)throw Error('ENV_SYNC_GITHUB_READ_FAILED');
   return JSON.parse(r.stdout);
 }
-function selectReview(run,comments,repository,expectedRunId=run?.id,expectedAttempt=run?.run_attempt){
+function selectReview(run,comments,repository,expectedRunId=run?.id,expectedAttempt=run?.run_attempt,jobs=[]){
   if(String(run?.id)!==String(expectedRunId)||String(run?.run_attempt)!==String(expectedAttempt))throw Error('ENV_SYNC_REVIEW_RUN_IDENTITY_MISMATCH');
-  if(!run || run.path!=='.github/workflows/kodjo-slice-implementation-review.yml' ||
+  const routed=run?.path==='.github/workflows/kodjo-v2-comment-router.yml' && run.event==='issue_comment';
+  if(!run || (!routed && run.path!=='.github/workflows/kodjo-slice-implementation-review.yml') ||
      run.head_repository?.full_name!==repository || !['issue_comment','repository_dispatch'].includes(run.event))throw Error('ENV_SYNC_REVIEW_RUN_INVALID');
-  if(run.status!=='completed'||run.conclusion!=='success')return null;
-  const start=Date.parse(run.run_started_at),end=Date.parse(run.updated_at);
+  let reviewEnd=run.updated_at;
+  if(routed){
+    if(!['in_progress','completed'].includes(run.status))return null;
+    if(run.status==='completed' && run.conclusion!=='success')return null;
+    // The API is queried for this exact attempt. Parent success alone is insufficient:
+    // ordinary comments also complete successfully without executing a review.
+    const reviews=jobs.filter(j=>j.name==='Generic implementation review / review');
+    if(reviews.length!==1)return null;
+    const job=reviews[0];
+    if(String(job.run_id)!==String(run.id)||job.status!=='completed'||job.conclusion!=='success')return null;
+    if(!Number.isFinite(Date.parse(job.started_at))||Date.parse(job.started_at)<Date.parse(run.run_started_at))throw Error('ENV_SYNC_REVIEW_JOB_TIME_INVALID');
+    reviewEnd=job.completed_at;
+  }else if(run.status!=='completed'||run.conclusion!=='success')return null;
+  const start=Date.parse(run.run_started_at),end=Date.parse(reviewEnd);
   if(!Number.isFinite(start)||!Number.isFinite(end)||end<start)throw Error('ENV_SYNC_REVIEW_RUN_TIME_INVALID');
   const matches=comments.filter(c=>{
     const body=String(c.body||'').replace(/\r/g,'');
@@ -34,7 +47,10 @@ function main(argv){
   if(!/^[\w.-]+\/[\w.-]+$/.test(repository||'')||!/^\d+$/.test(runId||'')||! /^[1-9]\d*$/.test(runAttempt||'')||!outputFile)throw Error('ENV_SYNC_REVIEW_RUN_INPUT_INVALID');
   const run=gh(repository,'actions/runs/'+runId+'/attempts/'+runAttempt);
   const pages=gh(repository,'issues/comments?per_page=100&since='+encodeURIComponent(run.run_started_at),true);
-  const review=selectReview(run,pages.flat(),repository,runId,runAttempt);
+  const jobs=run.path==='.github/workflows/kodjo-v2-comment-router.yml'
+    ? gh(repository,'actions/runs/'+runId+'/attempts/'+runAttempt+'/jobs?per_page=100',true).flatMap(p=>p.jobs)
+    : [];
+  const review=selectReview(run,pages.flat(),repository,runId,runAttempt,jobs);
   let result={schema:'kodjo.environment.review-sync.v1',applicable:false,source_review_run_id:runId};
   if(review){
     const implementation=gh(repository,'issues/comments/'+one(review.body,'source_implementation_comment_id'));

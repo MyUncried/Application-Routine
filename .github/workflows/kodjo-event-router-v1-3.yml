@@ -2,8 +2,7 @@ name: KODJO Event Router V1.3
 run-name: KODJO event router — Issue #${{ github.event.issue.number }}
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 
 permissions:
   issues: write

@@ -3,8 +3,7 @@ name: KODJO V1.3 Integrated T1-T9 Test
 run-name: KODJO T1-T9 — ${{ github.event.comment.id }}
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 
 permissions:
   contents: write

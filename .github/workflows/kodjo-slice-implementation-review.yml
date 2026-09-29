@@ -2,8 +2,7 @@ name: KODJO — Generic Slice Implementation Review
 run-name: KODJO SLICE / IMPLEMENTATION-REVIEW / ${{ github.event.comment.id || github.event.client_payload.source_comment_id }}
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
   repository_dispatch:
     types: [kodjo_implementation_ready]
 

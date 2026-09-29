@@ -2,8 +2,7 @@ name: KODJO — Generic Slice Implementation
 run-name: KODJO SLICE / IMPLEMENTATION / ${{ github.event.comment.id }}
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 
 permissions:
   contents: write
