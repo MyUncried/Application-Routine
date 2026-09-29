@@ -32,12 +32,10 @@ test('F12: real collector CLI -> prepared review -> consumer refuses approval fo
       assert.equal(input.implementation_report.status,name==='complete'?'COMPLETE':'NON_VERIFIABLE',name);
       fs.writeFileSync(path.join(dir,'review.json'),JSON.stringify(review()));
       const v=run(verifier,['validate','plan.md','changed.txt','review.json','out.json','implementation.md'],dir);
-      if(name==='complete')assert.equal(v.status,0,v.stderr);
-      else{
-        assert.notEqual(v.status,0,name);assert.match(v.stderr,/IMPLEMENTATION_REPORT_UNVERIFIABLE/);
-        fs.writeFileSync(path.join(dir,'review.json'),JSON.stringify(review('NON_VERIFIABLE')));
-        const negative=run(verifier,['validate','plan.md','changed.txt','review.json','out.json','implementation.md'],dir);assert.equal(negative.status,0,negative.stderr);
-      }
+      assert.equal(v.status,0,v.stderr);
+      const result=JSON.parse(fs.readFileSync(path.join(dir,'out.json')));
+      assert.equal(result.verdict,name==='complete'?'APPROVE':'REVISE',name);
+      assert.equal(result.report_status,name==='complete'?'COMPLETE':'NON_VERIFIABLE',name);
     }
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });

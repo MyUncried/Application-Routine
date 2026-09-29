@@ -559,7 +559,7 @@ function validateReview(input, review) {
     blocking = true;
   }
   const machineEvidence=input.implementation_report?.machine_evidence;
-  if(machineEvidence?.out_of_scope_files?.length||machineEvidence?.post_check_drift){
+  if(machineEvidence?.out_of_scope_files?.length||machineEvidence?.post_check_drift?.length){
     blocking=true;
     review.scope_status='SCOPE_EXPANSION_REQUIRED';
   }

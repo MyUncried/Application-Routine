@@ -79,7 +79,7 @@ test('superviseur sans double encodage UTF-8 connu', () => {
 test('workflow pilote qualifie et archive le HEAD de PR, pas le merge temporaire', () => {
   const workflow = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'kodjo-v2-pilot-tests.yml'), 'utf8');
   const expected = 'ref: ${{ github.event.pull_request.head.sha || github.sha }}';
-  assert.equal(workflow.split(expected).length - 1, 2);
+  assert.equal(workflow.split(expected).length - 1, 3);
   assert.match(workflow, /test "\$\(git rev-parse HEAD\)" = "\$SOURCE_SHA"/);
   assert.doesNotMatch(workflow, /kodjo-v2-complete-source-/);
   assert.match(workflow, /Record immutable qualification identity/);
@@ -145,7 +145,8 @@ test('qualification jetable: cache Jest isolée et cache lint désactivée dans 
   assert.ok(pilotWorkflow.includes('id: change_class'));
   assert.ok(pilotWorkflow.includes('full_windows_required: ${{ steps.change_class.outputs.full_windows_required }}'));
   assert.match(pilotWorkflow,/classify-protocol-impact\.js/);
-  assert.ok(pilotWorkflow.includes("- '!.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'"));
+  assert.match(pilotWorkflow,/full_required: \$\{\{ steps\.change_class\.outputs\.full_required \}\}/);
+  assert.match(pilotWorkflow,/if: needs\.classify\.outputs\.full_required == 'true'/);
   assert.ok(pilotWorkflow.includes("if: needs.protocol.outputs.full_windows_required == 'true'"));
   assert.ok(pilotWorkflow.includes('timeout-minutes: 25'));
   assert.match(pilotWorkflow, /needs: \[protocol, protocol-windows-preflight\]/);
