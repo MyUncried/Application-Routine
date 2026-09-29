@@ -156,11 +156,18 @@ function validateCandidateManifest(manifest) {
       ]);
     if (candidate.candidate_id !== expectedId) V.fail('VNEXT_IMPACT_CANDIDATE_ID_MISMATCH', candidate.candidate_id);
     if (candidate.origin === 'GIT_TREE') {
+      if (candidate.candidate_kind !== candidateKind(candidate.path)) {
+        V.fail('VNEXT_IMPACT_CANDIDATE_KIND_MISMATCH', candidate.path);
+      }
       if (candidate.policy_id !== null || candidate.policy_hash !== null) V.fail('VNEXT_IMPACT_GIT_CANDIDATE_POLICY_FORBIDDEN');
       if (V.canonicalStringify(candidate.allowed_change_kinds) !== V.canonicalStringify(EXISTING_CHANGE_KINDS)) {
         V.fail('VNEXT_IMPACT_EXISTING_CHANGE_KINDS_INVALID', candidate.path);
       }
     } else if (candidate.origin === 'CREATE_SLOT_POLICY') {
+      if (candidate.candidate_kind !== 'CREATE_SLOT') V.fail('VNEXT_IMPACT_CREATE_SLOT_KIND_INVALID', candidate.path);
+      if (!CREATE_ROOTS.some((root) => candidate.path.startsWith(root))) {
+        V.fail('VNEXT_CREATE_SLOT_ROOT_FORBIDDEN', candidate.path);
+      }
       V.assertNonEmptyString(candidate.policy_id, 'VNEXT_CREATE_SLOT_POLICY_INVALID', 'policy_id');
       V.assertSha64(candidate.policy_hash, 'VNEXT_CREATE_SLOT_POLICY_HASH_INVALID', 'policy_hash');
       if (V.canonicalStringify(candidate.allowed_change_kinds) !== V.canonicalStringify(CREATE_CHANGE_KINDS)) {
