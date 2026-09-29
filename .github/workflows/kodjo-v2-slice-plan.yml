@@ -320,35 +320,7 @@ jobs:
           } > /tmp/kodjo-v2-plan/out.md
           CREATED="$(gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/kodjo-v2-plan/out.md)")"
           PLAN_ID="$(printf '%s' "$CREATED" | jq -r '.id')"
-          printf '%s' "$PLAN_ID" | grep -Eq '^[1-9][0-9]*
-
-      - name: Preserve V2 planning evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: kodjo-v2-slice-plan-${{ github.run_id }}
-          path: |
-            /tmp/kodjo-v2-plan/*api-evidence*.json
-            /tmp/kodjo-v2-plan/context-manifest.json
-            /tmp/kodjo-v2-plan/context-error.json
-            /tmp/kodjo-v2-plan/slice-bootstrap.json
-            /tmp/kodjo-v2-plan/planning-mission.md
-            /tmp/kodjo-v2-plan/prior-technical-plan.md
-            /tmp/kodjo-v2-plan/prior-independent-review.md
-            /tmp/kodjo-v2-plan/plan-draft.md
-            /tmp/kodjo-v2-plan/modified-modules.json
-            /tmp/kodjo-v2-plan/direct-import-scan.json
-            /tmp/kodjo-v2-plan/direct-import-scan.sha256
-            /tmp/kodjo-v2-plan/technical-plan-with-decisions.md
-            /tmp/kodjo-v2-plan/plan-impact-closure.json
-            /tmp/kodjo-v2-plan/technical-plan.md
-            /tmp/kodjo-v2-plan/plan-impact-replay.json
-            /tmp/kodjo-v2-plan/plan-contract.json
-            /tmp/kodjo-v2-plan/ui-plan-contract.json
-            /tmp/kodjo-v2-plan-transition.json
-          if-no-files-found: warn
-          retention-days: 14
-
+          printf '%s' "$PLAN_ID" | grep -Eq '^[1-9][0-9]*$'
           gh workflow run kodjo-v2-slice-plan-review.yml --ref main \
             -f issue_number="$ISSUE_NUMBER" \
             -f slice_id="$SLICE_ID" \
