@@ -767,9 +767,8 @@ Chaque catégorie possède une liste fermée de types de cible compatibles.
 
 ### 16.6 Identité et caractère bloquant
 
-`finding_id` est calculé par la machine depuis :
+**Supersédé par VNext-07 pour l’identité inter-revues :** `finding_id` est calculé par la machine depuis les caractéristiques stables du finding, sans `review_context_hash` :
 
-- review_context_hash ;
 - category ;
 - target_type ;
 - target_id ;
@@ -777,6 +776,8 @@ Chaque catégorie possède une liste fermée de types de cible compatibles.
 - evidence ;
 - required_correction ;
 - dependency_target_ids.
+
+Cette identité reste liée au `ReviewReport` exact par le contrat de report, tout en permettant de reconnaître le même défaut lors d’une revue suivante.
 
 Toutes les catégories sont bloquantes sauf `SUGGESTION`.
 
