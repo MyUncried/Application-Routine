@@ -15,16 +15,6 @@ const STAGE_PRIORITY = Object.freeze({
 });
 
 const ANCHOR_TYPES = new Set(['SOURCE_UNIT', 'CANDIDATE']);
-const PATCHABLE_TYPES = new Set([
-  'REQUIREMENT',
-  'IMPACT',
-  'PLAN_ITEM',
-  'TEST',
-  'PROOF',
-  'CRITERION',
-  'ASSERTION',
-]);
-
 function record(targetType, targetId, payload, parentIds = []) {
   V.assertNonEmptyString(targetId, 'VNEXT_REVISION_TARGET_ID_INVALID', targetType);
   const parents = [...new Set(parentIds.filter(Boolean).map(String))].sort();
@@ -260,7 +250,10 @@ function buildAllowedChangeSet({
   }
 
   const authorizedIds = new Set(authorizedReasons.keys());
-  const derivedIds = descendants(authorizedIds, graph.outgoing);
+  const derivedSeeds = new Set(
+    [...authorizedIds].filter((id) => !ANCHOR_TYPES.has(graph.records.get(id).target_type)),
+  );
+  const derivedIds = descendants(derivedSeeds, graph.outgoing);
   const preservedIds = new Set(
     [...graph.records.keys()].filter((id) => !authorizedIds.has(id) && !derivedIds.has(id)),
   );
@@ -525,10 +518,6 @@ function applyRevisionPatch({ allowedChangeSet, revisionPatch }) {
     preserved_target_hash: allowedChangeSet.preservation_hash,
     corrections: revisionPatch.corrections,
   });
-}
-
-function targetMap(graph) {
-  return new Map([...graph.records.values()].map((row) => [row.target_id, row]));
 }
 
 function sameParent(left, right) {
