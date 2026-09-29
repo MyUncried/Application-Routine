@@ -90,11 +90,16 @@ function normalizeTestObligations(rows, requirementId, requirementImpacts) {
     V.fail('VNEXT_PLAN_TEST_OBLIGATIONS_EMPTY', requirementId);
   }
   const impactById = new Map(requirementImpacts.map((impact) => [impact.impact_id, impact]));
+  const changedImpactIds = new Set(
+    requirementImpacts
+      .filter((impact) => ['MODIFY', 'CREATE', 'DELETE'].includes(impact.change_kind))
+      .map((impact) => impact.impact_id),
+  );
   const seenTargets = new Set();
   const normalized = rows.map((row, index) => {
     V.assertExactKeys(
       row,
-      ['target_impact_id', 'expected', 'justification'],
+      ['target_impact_id', 'covered_change_impact_ids', 'expected', 'justification'],
       [],
       'VNEXT_PLAN_TEST_OBLIGATION_KEYS_INVALID',
     );
@@ -109,8 +114,18 @@ function normalizeTestObligations(rows, requirementId, requirementImpacts) {
       `test_obligations[${index}].justification`,
     );
 
+    const coveredChangeImpactIds = uniqueIds(
+      row.covered_change_impact_ids,
+      'VNEXT_PLAN_TEST_COVERAGE_INVALID',
+      `test_obligations[${index}].covered_change_impact_ids`,
+      { allowEmpty: changedImpactIds.size === 0 },
+    ).sort();
+    for (const impactId of coveredChangeImpactIds) {
+      if (!changedImpactIds.has(impactId)) V.fail('VNEXT_PLAN_TEST_COVERAGE_IMPACT_INVALID', impactId);
+    }
+
     if (row.target_impact_id === null) {
-      const key = '<NONE>';
+      const key = '<NONE>:' + coveredChangeImpactIds.join(',');
       if (seenTargets.has(key)) V.fail('VNEXT_PLAN_TEST_OBLIGATION_DUPLICATE', key);
       seenTargets.add(key);
       return {
@@ -119,6 +134,7 @@ function normalizeTestObligations(rows, requirementId, requirementImpacts) {
         target_candidate_id: null,
         path: null,
         action: 'NONE_WITH_JUSTIFICATION',
+        covered_change_impact_ids: coveredChangeImpactIds,
         expected: row.expected,
         justification: row.justification,
       };
@@ -143,18 +159,24 @@ function normalizeTestObligations(rows, requirementId, requirementImpacts) {
       target_candidate_id: impact.candidate_id,
       path: impact.path,
       action,
+      covered_change_impact_ids: coveredChangeImpactIds,
       expected: row.expected,
       justification: row.justification,
     };
   });
 
   const targetIds = new Set(normalized.filter((row) => row.target_impact_id !== null).map((row) => row.target_impact_id));
+  const coveredChanges = new Set(normalized.flatMap((row) => row.covered_change_impact_ids));
   const changedTests = requirementImpacts.filter((impact) =>
     isTestPath(impact.path) && ['MODIFY', 'CREATE', 'DELETE'].includes(impact.change_kind));
   for (const impact of changedTests) {
     if (!targetIds.has(impact.impact_id)) {
       V.fail('VNEXT_PLAN_CHANGED_TEST_UNBOUND', impact.impact_id);
     }
+  }
+
+  for (const impactId of changedImpactIds) {
+    if (!coveredChanges.has(impactId)) V.fail('VNEXT_PLAN_CHANGE_WITHOUT_TEST_COVERAGE', impactId);
   }
 
   const affectedCandidateIds = new Set();
@@ -179,13 +201,14 @@ function normalizeProofObligations(rows, requirementId, tests) {
       .filter((test) => test.target_impact_id !== null)
       .map((test) => [test.target_impact_id, test]),
   );
+  const allChangedImpactIds = new Set(tests.flatMap((test) => test.covered_change_impact_ids));
   const normalized = [];
   const seen = new Set();
 
   rows.forEach((row, index) => {
     V.assertExactKeys(
       row,
-      ['proof_type', 'target_test_impact_id', 'expected', 'justification'],
+      ['proof_type', 'target_test_impact_id', 'covered_change_impact_ids', 'expected', 'justification'],
       [],
       'VNEXT_PLAN_PROOF_OBLIGATION_KEYS_INVALID',
     );
@@ -201,14 +224,29 @@ function normalizeProofObligations(rows, requirementId, tests) {
       `proof_obligations[${index}].justification`,
     );
 
+    const coveredChangeImpactIds = uniqueIds(
+      row.covered_change_impact_ids,
+      'VNEXT_PLAN_PROOF_COVERAGE_INVALID',
+      `proof_obligations[${index}].covered_change_impact_ids`,
+      { allowEmpty: allChangedImpactIds.size === 0 },
+    ).sort();
+    for (const impactId of coveredChangeImpactIds) {
+      if (!allChangedImpactIds.has(impactId)) V.fail('VNEXT_PLAN_PROOF_COVERAGE_IMPACT_INVALID', impactId);
+    }
+
     if (row.proof_type === 'FUNCTIONAL_TEST') {
       V.assertNonEmptyString(
         row.target_test_impact_id,
         'VNEXT_PLAN_FUNCTIONAL_PROOF_TARGET_REQUIRED',
         'target_test_impact_id',
       );
-      if (!testByImpact.has(row.target_test_impact_id)) {
-        V.fail('VNEXT_PLAN_FUNCTIONAL_PROOF_TEST_UNKNOWN', row.target_test_impact_id);
+      const targetTest = testByImpact.get(row.target_test_impact_id);
+      if (!targetTest) V.fail('VNEXT_PLAN_FUNCTIONAL_PROOF_TEST_UNKNOWN', row.target_test_impact_id);
+      if (targetTest.action === 'REMOVE') V.fail('VNEXT_PLAN_FUNCTIONAL_PROOF_REMOVE_FORBIDDEN', row.target_test_impact_id);
+      for (const impactId of coveredChangeImpactIds) {
+        if (!targetTest.covered_change_impact_ids.includes(impactId)) {
+          V.fail('VNEXT_PLAN_FUNCTIONAL_PROOF_COVERAGE_MISMATCH', impactId);
+        }
       }
     } else if (row.target_test_impact_id !== null) {
       V.fail('VNEXT_PLAN_NON_TEST_PROOF_TARGET_FORBIDDEN', row.proof_type);
@@ -217,6 +255,7 @@ function normalizeProofObligations(rows, requirementId, tests) {
     const key = V.canonicalStringify([
       row.proof_type,
       row.target_test_impact_id,
+      coveredChangeImpactIds,
       row.expected,
     ]);
     if (seen.has(key)) V.fail('VNEXT_PLAN_PROOF_DUPLICATE', row.proof_type);
@@ -231,6 +270,7 @@ function normalizeProofObligations(rows, requirementId, tests) {
       ]),
       proof_type: row.proof_type,
       target_test_impact_id: row.target_test_impact_id,
+      covered_change_impact_ids: coveredChangeImpactIds,
       expected: row.expected,
       justification: row.justification,
     });
@@ -242,12 +282,19 @@ function normalizeProofObligations(rows, requirementId, tests) {
       .map((proof) => proof.target_test_impact_id),
   );
   for (const test of tests) {
-    if (test.target_impact_id !== null && !functionalTargets.has(test.target_impact_id)) {
+    if (test.target_impact_id !== null
+        && test.action !== 'REMOVE'
+        && !functionalTargets.has(test.target_impact_id)) {
       V.fail('VNEXT_PLAN_FUNCTIONAL_PROOF_MISSING', test.target_impact_id);
     }
   }
 
-  if (tests.some((test) => test.action === 'NONE_WITH_JUSTIFICATION')
+  const proofCoveredChanges = new Set(normalized.flatMap((proof) => proof.covered_change_impact_ids));
+  for (const impactId of allChangedImpactIds) {
+    if (!proofCoveredChanges.has(impactId)) V.fail('VNEXT_PLAN_CHANGE_WITHOUT_PROOF_COVERAGE', impactId);
+  }
+
+  if (tests.some((test) => ['NONE_WITH_JUSTIFICATION', 'REMOVE'].includes(test.action))
       && !normalized.some((proof) => proof.proof_type !== 'FUNCTIONAL_TEST')) {
     V.fail('VNEXT_PLAN_ALTERNATIVE_PROOF_REQUIRED', requirementId);
   }
@@ -465,12 +512,14 @@ function validatePlanContract(planContract, {
     })),
     test_obligations: item.test_obligations.map((test) => ({
       target_impact_id: test.target_impact_id,
+      covered_change_impact_ids: test.covered_change_impact_ids,
       expected: test.expected,
       justification: test.justification,
     })),
     proof_obligations: item.proof_obligations.map((proof) => ({
       proof_type: proof.proof_type,
       target_test_impact_id: proof.target_test_impact_id,
+      covered_change_impact_ids: proof.covered_change_impact_ids,
       expected: proof.expected,
       justification: proof.justification,
     })),
