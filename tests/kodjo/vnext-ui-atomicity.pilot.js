@@ -490,6 +490,21 @@ test('VNext-05 refuse qu’un requirement non-UI porte silencieusement un change
   }), /VNEXT_PLAN_REQUIREMENT_REGISTRY_HASH_MISMATCH|VNEXT_UI_REQUIREMENT_MISSING_FOR_UI_CHANGE/);
 });
 
+test('VNext-05 limite la recherche de réutilisation aux candidats UI', () => {
+  const fx = buildFixture();
+  const criterion = visualCriterion(fx);
+  criterion.reuse_search_candidate_ids = [fx.screenTest.candidate_id];
+  criterion.selected_component_candidate_id = fx.screenTest.candidate_id;
+
+  assert.throws(() => Ui.buildUiAtomicityContract({
+    requirementRegistry: fx.requirementRegistry,
+    impactGraph: fx.impactGraph,
+    candidateManifest: fx.candidateManifest,
+    planContract: fx.planContract,
+    criteria: [criterion],
+  }), /VNEXT_UI_REUSE_CANDIDATE_NOT_UI/);
+});
+
 test('VNext-05 impose une recherche de réutilisation et lie REUSE/EXTEND au candidat sélectionné', () => {
   const fx = buildFixture();
   const criterion = visualCriterion(fx);
