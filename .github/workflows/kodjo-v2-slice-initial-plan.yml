@@ -4,6 +4,23 @@ run-name: KODJO V2 / INITIAL-PLAN / ${{ github.event.comment.id }}
 on:
   issue_comment:
     types: [created]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        required: true
+        type: string
+      slice_id:
+        required: true
+        type: string
+      bootstrap_path:
+        required: true
+        type: string
+      source_head:
+        required: true
+        type: string
+      command_comment_id:
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -16,13 +33,16 @@ concurrency:
 
 jobs:
   plan:
-    if: github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN') && !contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN_REVIEW')
+    if: (github.event_name == 'issue_comment' && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN') && !contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN_REVIEW')) || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      TRIGGER_BODY: ${{ github.event.comment.body }}
-      ISSUE_NUMBER: ${{ github.event.issue.number }}
+      TRIGGER_BODY: ${{ github.event.comment.body || '' }}
+      ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
+      DISPATCH_SLICE_ID: ${{ inputs.slice_id || '' }}
+      DISPATCH_BOOTSTRAP_PATH: ${{ inputs.bootstrap_path || '' }}
+      DISPATCH_SOURCE_HEAD: ${{ inputs.source_head || '' }}
     steps:
       - name: Checkout protocol
         uses: actions/checkout@v6
@@ -36,9 +56,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          SLICE_ID=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^slice_id=//p' | head -n1)
-          BOOTSTRAP_PATH=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^bootstrap_path=//p' | head -n1)
-          SOURCE_HEAD=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^source_head=//p' | head -n1)
+          if [ -n "$DISPATCH_SLICE_ID" ]; then
+            SLICE_ID="$DISPATCH_SLICE_ID"
+            BOOTSTRAP_PATH="$DISPATCH_BOOTSTRAP_PATH"
+            SOURCE_HEAD="$DISPATCH_SOURCE_HEAD"
+          else
+            SLICE_ID=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^slice_id=//p' | head -n1)
+            BOOTSTRAP_PATH=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^bootstrap_path=//p' | head -n1)
+            SOURCE_HEAD=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^source_head=//p' | head -n1)
+          fi
           test -n "$SLICE_ID"
           test "$BOOTSTRAP_PATH" = ".github/orchestration/v2-slices/$SLICE_ID/slice-bootstrap.json"
           printf '%s' "$SOURCE_HEAD" | grep -Eq '^[0-9a-f]{40}$'
@@ -78,7 +104,7 @@ jobs:
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
           MISSION_PATH: ${{ steps.gate.outputs.mission_path }}
           SEED_PATH: ${{ steps.gate.outputs.seed_path }}
-          COMMAND_COMMENT_ID: ${{ github.event.comment.id }}
+          COMMAND_COMMENT_ID: ${{ github.event.comment.id || inputs.command_comment_id }}
           PLANNING_MODE: initial
         run: |
           set -euo pipefail
