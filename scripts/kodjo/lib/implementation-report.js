@@ -12,7 +12,7 @@ function block(text,tag){
 function expectedShape(expected){
   let criteria=expected,requirements=null;
   if(expected&&!Array.isArray(expected)&&typeof expected==='object'){
-    criteria=expected.criteria||[]; requirements=expected.requirements||[];
+    criteria=expected.criteria||[]; requirements=Array.isArray(expected.requirements)&&expected.requirements.length?expected.requirements:null;
   }
   if(!criteria)return {ids:null,assertions:new Map(),requirement_ids:requirements?requirements.map(r=>String(r&&r.requirement_id||'')):null};
   if(Array.isArray(criteria)&&criteria.every(x=>typeof x==='string'))return {ids:[...criteria],assertions:new Map(),requirement_ids:requirements?requirements.map(r=>String(r&&r.requirement_id||'')):null};
