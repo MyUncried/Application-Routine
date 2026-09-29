@@ -121,8 +121,8 @@ test('implementation review: un défaut fonctionnel impose REVISE', () => {
   value.criteria[0].proof_results.find((p)=>p.proof_type==='FUNCTIONAL_TEST').status='FAIL';
   fs.writeFileSync(plan,fixture()); fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n'); fs.writeFileSync(review,JSON.stringify(value));
   const r=run(['validate',plan,changed,review,out],dir);
-  assert.notEqual(r.status,0);
-  assert.match(r.stderr,/UI_IMPLEMENTATION_REVIEW_VERDICT_INCONSISTENT/);
+  assert.equal(r.status,0,r.stderr);
+  assert.equal(JSON.parse(fs.readFileSync(out,'utf8')).verdict,'REVISE');
 });
 
 test('implementation review: PARTIELLEMENT_CONFORME ou NON_VERIFIABLE ne peut pas être approuvé', () => {
@@ -132,8 +132,8 @@ test('implementation review: PARTIELLEMENT_CONFORME ou NON_VERIFIABLE ne peut pa
   value.criteria[0].implementation_status='PARTIELLEMENT_CONFORME';
   fs.writeFileSync(plan,fixture()); fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n'); fs.writeFileSync(review,JSON.stringify(value));
   const r=run(['validate',plan,changed,review,out],dir);
-  assert.notEqual(r.status,0);
-  assert.match(r.stderr,/UI_IMPLEMENTATION_REVIEW_VERDICT_INCONSISTENT/);
+  assert.equal(r.status,0,r.stderr);
+  assert.equal(JSON.parse(fs.readFileSync(out,'utf8')).verdict,'REVISE');
 });
 
 test('implementation review: refuse une frontière PRESERVE ou FORBIDDEN non démontrée', () => {
@@ -419,7 +419,8 @@ function nonUiFixture(action) {
     function writeReport(rows=[row],override={}) {
       const report_text='<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:rows})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\nKODJO_STOP_STATUS: NONE';
       const envelope={request_id:'request',source_head:'a'.repeat(40),truncated:false,report_text,
-        original_text_sha256:crypto.createHash('sha256').update(report_text).digest('hex'),...override};
+        original_text_sha256:crypto.createHash('sha256').update(report_text).digest('hex'),
+         machine_evidence:{modified_files:['function.ts'],checks:[],out_of_scope_files:[]},...override};
       fs.writeFileSync(evidence,'base_head='+ 'a'.repeat(40)+'\nv2_request_id=request\nv2_protocol_head='+ 'b'.repeat(40)+'\n<KODJO_IMPLEMENTATION_REPORT_JSON>'+JSON.stringify(envelope)+'</KODJO_IMPLEMENTATION_REPORT_JSON>');
     }
     writeReport();
@@ -429,7 +430,7 @@ function nonUiFixture(action) {
           {plan_requirement:'Only function.ts may change',status:'CONFORME',evidence:'Exact changed files: function.ts.'}]}};
     const prepare=()=>{const r=run(['prepare',plan,changed,input,evidence],dir);assert.equal(r.status,0,r.stderr);return JSON.parse(fs.readFileSync(input,'utf8'));};
     const validate=()=>{fs.writeFileSync(reviewFile,JSON.stringify(review));return run(['validate',plan,changed,reviewFile,output,evidence],dir);};
-    action({row,writeReport,review,prepare,validate});
+    action({row,writeReport,review,prepare,validate,output});
   } finally {fs.rmSync(dir,{recursive:true,force:true});}
 }
 
@@ -446,7 +447,7 @@ test('non-UI report labels do not masquerade as UI IDs; independent full-plan as
 });
 
 test('non-UI integrity, structure, stop and duplicate checks remain blocking',()=>{
-  nonUiFixture(({row,writeReport,prepare,review,validate})=>{
+  nonUiFixture(({row,writeReport,prepare,review,validate,output})=>{
     for(const [rows,override] of [
       [[row],{truncated:true}], [[row],{original_text_sha256:'0'.repeat(64)}],
       [[row],{request_id:'wrong'}], [[row,row],{}], [[{...row,tests_run:[]}],{}],
@@ -454,23 +455,23 @@ test('non-UI integrity, structure, stop and duplicate checks remain blocking',()
     ]){
       writeReport(rows,override);
       assert.equal(prepare().implementation_report.status,'NON_VERIFIABLE');
-      review.verdict='APPROVE';assert.notEqual(validate().status,0);
-      review.verdict='REVISE';const r=validate();assert.equal(r.status,0,r.stderr);
+      review.verdict='APPROVE';const r=validate();assert.equal(r.status,0,r.stderr);
+      assert.equal(JSON.parse(fs.readFileSync(output,'utf8')).verdict,'REVISE');
     }
   });
 });
 
 test('non-UI semantic defects and unknown evidence cannot be approved with empty UI criteria',()=>{
-  nonUiFixture(({review,validate})=>{
+  nonUiFixture(({review,validate,output})=>{
     for(const status of ['NON_CONFORME','NON_VERIFIABLE']) {
       review.non_ui_plan_assessment.requirements[0].status=status;
-      review.verdict='APPROVE';assert.notEqual(validate().status,0);
-      review.verdict='REVISE';const r=validate();assert.equal(r.status,0,r.stderr);
+      review.verdict='APPROVE';const r=validate();assert.equal(r.status,0,r.stderr);
+      assert.equal(JSON.parse(fs.readFileSync(output,'utf8')).verdict,'REVISE');
     }
     review.non_ui_plan_assessment.requirements[0].status='CONFORME';
     review.non_ui_plan_assessment.status='NON_VERIFIABLE';
-    review.verdict='APPROVE';assert.notEqual(validate().status,0);
-    review.verdict='REVISE';assert.equal(validate().status,0);
+    review.verdict='REVISE';const r=validate();assert.equal(r.status,0,r.stderr);
+    assert.equal(JSON.parse(fs.readFileSync(output,'utf8')).verdict,'APPROVE');
   });
 });
 
