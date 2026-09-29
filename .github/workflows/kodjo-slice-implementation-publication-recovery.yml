@@ -2,8 +2,7 @@ name: KODJO — Recover Implementation Publication
 run-name: KODJO SLICE / RECOVER-IMPLEMENTATION-PUBLICATION / ${{ github.event.comment.id }}
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 
 permissions:
   contents: write

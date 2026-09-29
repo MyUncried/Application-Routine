@@ -82,6 +82,8 @@ test('F12: protocol consumer remains effective when application HEAD contains an
       'scripts/kodjo/lib/ui-criteria-contract.js',
       'scripts/kodjo/lib/plan-impact.js',
       'scripts/kodjo/lib/requirement-contract.js',
+      'scripts/kodjo/lib/boundary-proof.js',
+      'scripts/kodjo/lib/ui-identities.js',
     ]) assert.ok(sources.includes(required), 'missing frozen reviewer dependency '+required);
     const runtime=path.join(dir,'frozen');fs.mkdirSync(path.join(runtime,'lib'),{recursive:true});
     for(const source of sources)fs.copyFileSync(path.join(root,source),path.join(runtime,source.replace('scripts/kodjo/','')));

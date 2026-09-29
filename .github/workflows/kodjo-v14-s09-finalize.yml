@@ -2,8 +2,7 @@ name: KODJO V1.4 S09 — Finalize
 run-name: T01-S09 / FINALIZE / ${{ github.event.comment.id }}
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 
 permissions:
   contents: read

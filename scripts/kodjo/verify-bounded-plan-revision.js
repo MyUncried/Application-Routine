@@ -29,7 +29,10 @@ function verify(basePlan,baseReview,candidate){
   if(!review){
     if(/^(?:verdict=APPROVE|VERDICT:\s*APPROVE|Verdict\s*:\s*`?APPROVED`?|STATUT\s*:\s*PLAN_REVIEW_APPROVED)\s*$/m.test(baseReview))return {status:'APPROVED_BASE_NEW_CYCLE'};
     if(/^(?:verdict=REVISE|VERDICT:\s*REVISE|Verdict\s*:\s*`?REVISE`?|STATUT\s*:\s*PLAN_REVIEW_REVISE)\s*$/m.test(baseReview))
+    {
+      if (basePlan.includes('<KODJO_REQUIREMENT_CONTRACT_JSON>') || /kodjo\.ui-criteria\.v[23]/.test(basePlan)) throw new Error('PLAN_REVISION_STRUCTURED_FINDINGS_REQUIRED');
       return {status:'LEGACY_UNBOUNDED',reason:'Legacy review has no structured findings; full independent revalidation required'};
+    }
     throw new Error('PLAN_REVISION_STRUCTURED_FINDINGS_REQUIRED');
   }
   if(review.verdict!=='REVISE'||!Array.isArray(review.findings))throw new Error('PLAN_REVISION_REVIEW_INVALID');
@@ -90,9 +93,10 @@ function verify(basePlan,baseReview,candidate){
 }
 if(require.main===module){
   try{
-    const [baseFile,reviewFile,candidateFile]=process.argv.slice(2);
+    const [baseFile,reviewFile,candidateFile,outputFile]=process.argv.slice(2);
     if(!baseFile||!reviewFile||!candidateFile)throw new Error('USAGE: verify-bounded-plan-revision.js <base-plan> <base-review> <candidate-plan>');
     const result=verify(...[baseFile,reviewFile,candidateFile].map(p=>fs.readFileSync(p,'utf8')));
+    if(outputFile)fs.writeFileSync(outputFile,JSON.stringify(result,null,2)+'\n');
     process.stdout.write('[KODJO_V2] plan revision '+result.status+'\n');
   }catch(e){console.error(e.message);process.exitCode=1;}
 }

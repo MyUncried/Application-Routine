@@ -147,7 +147,7 @@ test('PE-38 rename classification includes both source and destination',()=>{
 
 test('DET-08 plan status is computed, never requested from the model',()=>{
   for(const phase of ['draft','final']){
-    const schema=schemaFor(phase);
+    const schema=schemaFor(phase,{candidates:[]});
     assert.equal(Object.hasOwn(schema.properties,'plan_status'),false);
     assert.equal(schema.required.includes('plan_status'),false);
   }
@@ -182,7 +182,7 @@ test('P-11 invented test paths are rejected at the exact source HEAD',()=>{
 });
 
 test('P-13 new plans require explicit non-UI coverage and source references',()=>{
-  const schema=schemaFor('final');
+  const schema=schemaFor('final',{candidates:[]});
   assert.ok(schema.required.includes('non_ui_coverage'));
   assert.deepEqual(schema.properties.non_ui_coverage.required,['status','reason','source_paths']);
   for(const workflow of ['kodjo-v2-slice-initial-plan-review.yml','kodjo-v2-slice-plan-review.yml']){
@@ -294,7 +294,7 @@ test('PE-37/38 prevent obsolete and report-only heavy pilot work',()=>{
   const w=read('.github/workflows/kodjo-v2-pilot-tests.yml');
   assert.match(w,/group: kodjo-v2-pilot-/);
   assert.match(w,/cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}/);
-  assert.doesNotMatch(w,/!\.github\/orchestration\/reports\/\*\*/);
+  assert.match(w,/!\.github\/orchestration\/reports\/\*\*/);
   assert.doesNotMatch(w,/!\.github\/orchestration\/reports\/2026-09-29_PROTOCOL_DETERMINISM_MATRIX\.md/);
   assert.doesNotMatch(w,/!\.github\/orchestration\/reports\/2026-09-29_PROTOCOL_DETERMINISM_AUDIT\.md/);
   assert.doesNotMatch(w,/kodjo-v2-complete-source-/);

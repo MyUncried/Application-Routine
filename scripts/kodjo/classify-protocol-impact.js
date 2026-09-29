@@ -2,12 +2,16 @@
 'use strict';
 const {spawnSync}=require('node:child_process');
 
+const fs=require('node:fs');
+const path=require('node:path');
+const manifest=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../.github/orchestration/normative-inputs.json'),'utf8'));
+if(manifest.schema!=='kodjo.normative-inputs.v1'||!Array.isArray(manifest.files)||manifest.files.some(p=>typeof p!=='string'||p.includes('..')||p.includes('*'))||new Set(manifest.files).size!==manifest.files.length)throw new Error('CI_NORMATIVE_MANIFEST_INVALID');
+const NORMATIVE_FILES=new Set(manifest.files);
 const CATEGORIES=new Set(['RUNTIME_PROTOCOL_CHANGE','NORMATIVE_PROTOCOL_CHANGE','NON_NORMATIVE_DOCUMENTATION','UNKNOWN']);
 function classifyPath(file){
   if(/^(?:scripts\/kodjo\/|tests\/kodjo\/|\.github\/workflows\/kodjo(?:-v2|-slice)[^/]*\.ya?ml$)/.test(file))return 'RUNTIME_PROTOCOL_CHANGE';
-  if(file==='.github/AI_ORCHESTRATION.md'||
-     /^\.github\/orchestration\/(?:KODJO_PROTOCOL_V2_SPEC[^/]*\.md|reports\/2026-09-29_PROTOCOL_(?:DETERMINISM_(?:MATRIX|AUDIT)|EVOLUTION_CLAUDE_AUDIT_MISSION)\.md|v2-slices\/[^/]+\/(?:slice-bootstrap\.json|technical-plan\.md|planning-mission\.md|independent-review\.md))$/.test(file))return 'NORMATIVE_PROTOCOL_CHANGE';
-  if(file==='.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md')return 'NON_NORMATIVE_DOCUMENTATION';
+  if(NORMATIVE_FILES.has(file)||/^\.github\/orchestration\/(?:KODJO_PROTOCOL_V2_SPEC[^/]*\.md|v2-slices\/[^/]+\/(?:slice-bootstrap\.json|technical-plan\.md|planning-mission\.md|independent-review\.md))$/.test(file))return 'NORMATIVE_PROTOCOL_CHANGE';
+  if(file==='.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'||file.startsWith('.github/orchestration/reports/'))return 'NON_NORMATIVE_DOCUMENTATION';
   return 'UNKNOWN';
 }
 function classifyFiles(files){

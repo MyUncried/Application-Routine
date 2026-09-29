@@ -3,8 +3,7 @@ name: KODJO T8 Work Arbitration Transport
 run-name: KODJO T8 — Work response to real Claude Cloud
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 
 permissions:
   contents: read

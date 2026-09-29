@@ -2,8 +2,7 @@ name: KODJO V2 — Initial Slice Plan
 run-name: KODJO V2 / INITIAL-PLAN / ${{ github.event.comment.id }}
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
   workflow_dispatch:
     inputs:
       issue_number:
@@ -226,7 +225,16 @@ jobs:
           cat /tmp/kodjo-v2-initial/matrix.json >> /tmp/kodjo-v2-initial/technical-plan.md
           printf '</KODJO_PLAN_IMPACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
           if test -f /tmp/kodjo-v2-initial/base-plan-for-revision.md; then
-            node scripts/kodjo/verify-bounded-plan-revision.js /tmp/kodjo-v2-initial/base-plan-for-revision.md /tmp/kodjo-v2-initial/base-review-for-revision.md /tmp/kodjo-v2-initial/technical-plan.md
+            node scripts/kodjo/verify-bounded-plan-revision.js /tmp/kodjo-v2-initial/base-plan-for-revision.md /tmp/kodjo-v2-initial/base-review-for-revision.md /tmp/kodjo-v2-initial/technical-plan.md /tmp/kodjo-v2-initial/plan-revision-status.json
+            revision_status=$(jq -er '.status' /tmp/kodjo-v2-initial/plan-revision-status.json)
+            case "$revision_status" in
+              BOUNDED|APPROVED_BASE_NEW_CYCLE) ;;
+              LEGACY_UNBOUNDED) echo 'Historical plan: full independent revalidation required' >> "$GITHUB_STEP_SUMMARY" ;;
+              *) echo 'PLAN_REVISION_STATUS_INVALID' >&2; exit 1 ;;
+            esac
+            printf "\n<KODJO_PLAN_REVISION_STATUS_JSON>\n" >> /tmp/kodjo-v2-initial/technical-plan.md
+            cat /tmp/kodjo-v2-initial/plan-revision-status.json >> /tmp/kodjo-v2-initial/technical-plan.md
+            printf "</KODJO_PLAN_REVISION_STATUS_JSON>\n" >> /tmp/kodjo-v2-initial/technical-plan.md
           fi
           node scripts/kodjo/verify-ui-plan-criteria.js /tmp/kodjo-v2-initial/technical-plan.md "$SOURCE_HEAD" /tmp/kodjo-v2-initial/source /tmp/kodjo-v2-initial/ui-plan-contract.json
           printf '\n<KODJO_UI_PLAN_CONTRACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
@@ -289,6 +297,7 @@ jobs:
             /tmp/kodjo-v2-initial/context-error.json
             /tmp/kodjo-v2-initial/error-classification.json
             /tmp/kodjo-v2-initial/technical-plan.md
+            /tmp/kodjo-v2-initial/plan-revision-status.json
             /tmp/kodjo-v2-initial/scan.json
             /tmp/kodjo-v2-initial/matrix.json
             /tmp/kodjo-v2-initial/proof.json

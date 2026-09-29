@@ -1,8 +1,7 @@
 name: KODJO V2 — Approved Plan Handoff Queue
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 
 permissions:
   contents: write

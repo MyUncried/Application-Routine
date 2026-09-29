@@ -145,11 +145,14 @@ test('le checkpoint GitHub est relu et lié au commentaire certifié exact', () 
     issue_url: 'https://api.github.com/repos/MyUncried/Application-Routine/issues/52',
     body,
   };
-  const verified=V.verify(file, { cwd: dir, repository: 'MyUncried/Application-Routine', comment, transitionVerifier:()=>({status:'PASS'}) });
+  const verified=V.verify(file, { cwd: dir, repository: 'MyUncried/Application-Routine', comment, transitionVerifier:()=>({status:'PASS',protected_blobs:[{source_oid:'f'.repeat(40),execution_oid:'f'.repeat(40)}]}) });
   assert.equal(verified.status, 'CERTIFIED');
+  assert.equal(verified.review_policy.plan_revision_forbidden,true);
+  assert.equal(verified.review_policy.review_required,false);
   assert.equal(verified.contract_status, 'CONTRACT_UNCHANGED');
+  assert.throws(()=>V.verify(file,{cwd:dir,repository:'MyUncried/Application-Routine',comment,transitionVerifier:()=>({status:'PASS'})}),/VISUAL_CORRECTION_TRANSITION_PROOF_REQUIRED/);
   assert.throws(() => V.verify(file, {
-    cwd: dir, repository: 'MyUncried/Application-Routine', transitionVerifier:()=>({status:'PASS'}),
+    cwd: dir, repository: 'MyUncried/Application-Routine', transitionVerifier:()=>({status:'PASS',protected_blobs:[{source_oid:'f'.repeat(40),execution_oid:'f'.repeat(40)}]}),
     comment: { ...comment, body: body.replace('delivery_head=' + applicationHead, 'delivery_head=' + '7'.repeat(40)) },
   }), /KODJO_QUEUE_DELIVERY_CHECKPOINT_FIELD_MISMATCH: delivery_head/);
 

@@ -10,8 +10,16 @@ const EXPECTED_MATRIX_IDS = 64;
 if (matrixIds.length !== EXPECTED_MATRIX_IDS || new Set(matrixIds).size !== EXPECTED_MATRIX_IDS) throw new Error('INDEPENDENT_AUDIT_SOURCE_MATRIX_INVALID');
 const EXPECTED_IDS = new Set(matrixIds);
 const MATRIX_STATUSES = new Set(['COVERED','PARTIAL','NOT_COVERED','NON_VERIFIABLE']);
-// These are explicitly deferred P2 capabilities in the published matrix.
-const DEFERRED_IDS = new Set(['P-16','T-17','DET-10']);
+// Deferrals preserve the source priority; they never silently relabel a P1 as P2.
+const deferrals=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../.github/orchestration/audit-deferrals.json'),'utf8'));
+const matrixText=fs.readFileSync(MATRIX_PATH,'utf8');
+if(deferrals.schema!=='kodjo.audit-deferrals.v1'||!Array.isArray(deferrals.entries))throw new Error('INDEPENDENT_AUDIT_DEFERRALS_INVALID');
+const DEFERRED_IDS=new Set();
+for(const row of deferrals.entries){
+  const line=matrixText.split('\n').find(line=>line.startsWith('| '+row.id+' |'));
+  if(!EXPECTED_IDS.has(row.id)||DEFERRED_IDS.has(row.id)||!row.reason||!line||(!row.id.startsWith('DET-')&&!line.endsWith('| '+row.priority+' |')))throw new Error('INDEPENDENT_AUDIT_DEFERRALS_INVALID');
+  DEFERRED_IDS.add(row.id);
+}
 
 function fail(code, detail) { throw new Error(code + (detail ? ': ' + detail : '')); }
 

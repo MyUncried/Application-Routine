@@ -3,11 +3,11 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-const {request,decode}=require('../../scripts/kodjo/generate-ui-plan-contract');
+const {request,decode,stabilizeUiIdentities}=require('../../scripts/kodjo/generate-ui-plan-contract');
 const {matrixSchema,validateMatrix,contractPrompt}=require('../../scripts/kodjo/lib/ui-criteria-contract');
 function validMatrix() {
-  return {
-    schema:'kodjo.ui-criteria.v2',
+  const matrix = {
+    schema:'kodjo.ui-criteria.v3',
     criteria:[{
       criterion_id:'UI-001',
       source:{path:'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md',locator:'CE-X',requirement:'Afficher le contrôle canonique.'},
@@ -25,11 +25,14 @@ function validMatrix() {
       ],
     }],
     preservation:{
-      preserve:[{target:'Navigation existante',justification:'Hors changement demandé.'}],
+      preserve:[{locator:{kind:'SEMANTIC',path:'NONE',symbol:'NONE',invariant_type:'SEMANTIC_REVIEW',expected:'UNCHANGED',semantic_justification:'Cette limite porte sur le comportement général hors modification et ne possède pas de fichier ni de symbole unique.'},target:'Navigation existante',justification:'Hors changement demandé.'}],
       change:[{target:'ExampleScreen',justification:'Contrôle UI explicitement modifié.'}],
-      forbidden:[{target:'Remplacement du shell',justification:'Aucune refonte autorisée.'}],
+      forbidden:[{locator:{kind:'SEMANTIC',path:'NONE',symbol:'NONE',invariant_type:'SEMANTIC_REVIEW',expected:'UNCHANGED',semantic_justification:'Cette limite porte sur le comportement général hors modification et ne possède pas de fichier ni de symbole unique.'},target:'Remplacement du shell',justification:'Aucune refonte autorisée.'}],
     },
   };
+  const canonical=stabilizeUiIdentities(matrix);
+  canonical.criteria[0].assertions.sort((a,b)=>a.property_type.localeCompare(b.property_type));
+  return canonical;
 }
 function payload(matrix=validMatrix()) {
   return {plan_markdown:'# Plan complet',modified_modules:[{path:'src/features/example/ExampleScreen.tsx',change:'MODIFY'}],ui_criteria_matrix:matrix,non_ui_requirements:[],non_ui_coverage:{status:'NONE',reason:'Les sources consultées ne contiennent que des obligations visuelles et aucune exigence métier non visuelle applicable.',source_paths:['docs/Specifications-fonctionnelles/13 – Contrats d’écran.md']},clarifications:[]};
@@ -39,7 +42,7 @@ function validate(matrix) {return validateMatrix(matrix,{scope:new Set(['src/fea
 
 test('KPB-001 all matrix producers share the exact nested contract and executable prompt',()=>{
   for (const phase of ['draft','final']) {
-    const req=request(phase,'Mission');
+    const req=request(phase,'Mission',{candidates:[]});
     assert.equal(req.text.format.strict,true);
     assert.deepEqual(req.text.format.schema.properties.ui_criteria_matrix,matrixSchema);
     assert.ok(req.input.includes(contractPrompt()));
@@ -109,11 +112,11 @@ test('KPB-001 incomplete, refused, duplicate markers and ambiguous responses rej
   assert.throws(()=>decode('draft',duplicate));
 });
 test('KPB-001 non-UI and FUNCTIONAL static-analysis alternative stay supported',()=>{
-  const value=payload({schema:'kodjo.ui-criteria.v2',criteria:[],preservation:{preserve:[],change:[],forbidden:[]}});
+  const value=payload({schema:'kodjo.ui-criteria.v3',criteria:[],preservation:{preserve:[],change:[],forbidden:[]}});
   value.modified_modules=[{path:'scripts/example.js',change:'MODIFY'}];
-  value.non_ui_requirements=[{source:{path:'docs/example.md',locator:'§1',requirement:'Le script conserve le comportement.'},requirement_type:'TECHNICAL',change_targets:['scripts/example.js'],tests:[],proof_required:['STATIC_ANALYSIS'],status:'DEFINED'}];
+  value.non_ui_requirements=[{source:{path:'docs/example.md',locator:'§1',requirement:'Le script conserve le comportement.'},requirement_type:'TECHNICAL',change_targets:['scripts/example.js'],tests:[],proof_required:['STATIC_ANALYSIS'],status:'DEFINED',no_automated_test_reason:'La preuve porte sur un invariant statique dont le contrôle ne requiert aucune exécution automatisée.'}];
   value.non_ui_coverage={status:'ENUMERATED',reason:'Obligation technique inventoriée.',source_paths:['docs/example.md']};
   assert.doesNotThrow(()=>decode('draft',response(value)));
   const m=validMatrix();m.criteria[0].proof_required[0]='STATIC_ANALYSIS';m.criteria[0].assertions[0].proof_required[0]='STATIC_ANALYSIS';
-  assert.doesNotThrow(()=>validate(m));
+  assert.doesNotThrow(()=>validate(stabilizeUiIdentities(m)));
 });

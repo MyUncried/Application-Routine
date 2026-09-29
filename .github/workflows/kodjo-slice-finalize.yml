@@ -2,8 +2,7 @@ name: KODJO — Generic Slice Finalize
 run-name: KODJO SLICE / FINALIZE / ${{ github.event.comment.id }}
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 
 permissions:
   contents: write
@@ -117,6 +116,7 @@ jobs:
             [IO.File]::WriteAllText($changedFile,$changedText,$utf8NoBom)
 
             if([string]$meta.review_mode-eq'CRITERION_COMPLETE'){
+              $env:KODJO_REQUIRE_COMPONENT_PROOF='1'
               $reviewContractFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-contract.json'
               $reviewContractMatch=[regex]::Match($reviewBody,'(?s)<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>\s*(.*?)\s*</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>')
               if(-not$reviewContractMatch.Success){throw 'V2 review contract missing'}
@@ -136,8 +136,20 @@ jobs:
               }
 
               $reviewReplay=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-replayed.json'
-              node scripts/kodjo/verify-ui-implementation-review.js validate $planFile $changedFile $reviewContractFile $reviewReplay $implFile
-              if($LASTEXITCODE-ne0){throw 'V2 implementation review replay failed'}
+              $finalApplication=Join-Path $env:RUNNER_TEMP ('kodjo-final-proof-'+[guid]::NewGuid().ToString())
+              $reviewVerifier=Join-Path $env:GITHUB_WORKSPACE 'scripts/kodjo/verify-ui-implementation-review.js'
+              git worktree add --detach -- $finalApplication $head
+              if($LASTEXITCODE-ne0){throw 'Exact application HEAD unavailable for final proof'}
+              Push-Location $finalApplication
+              try{
+                if((git rev-parse HEAD).Trim()-ne$head){throw 'Final proof checkout HEAD mismatch'}
+                node $reviewVerifier validate $planFile $changedFile $reviewContractFile $reviewReplay $implFile
+                if($LASTEXITCODE-ne0){throw 'V2 implementation review replay failed'}
+              }finally{
+                Pop-Location
+                git worktree remove -- $finalApplication
+                if($LASTEXITCODE-ne0){throw 'Final proof worktree cleanup failed'}
+              }
               $replayed=Get-Content -LiteralPath $reviewReplay -Raw -Encoding UTF8|ConvertFrom-Json
               if([string]$replayed.verdict-ne'APPROVE'){throw 'V2 implementation review replay is not APPROVE'}
             } elseif([string]$meta.review_mode-ne'VISUAL_CORRECTION_DELTA'){

@@ -7,6 +7,7 @@ const TEST_SCHEMA = 'kodjo.test-contract.v1';
 const BOUNDARY_SCHEMA = 'kodjo.boundary-contract.v1';
 const NON_UI_TYPES = new Set(['FUNCTIONAL','DATA','TECHNICAL','MIGRATION','PRESERVATION']);
 const PROOF_TYPES = new Set(['FUNCTIONAL_TEST','STATIC_ANALYSIS','VISUAL_COMPARE','ACCESSIBILITY_CHECK','DEVICE_CHECK']);
+const { TEST_PATH } = require('./ui-criteria-contract');
 const PATH_TARGET = /^(?:app|src|tests|assets|docs|scripts)\//;
 
 function text(value, code, label) {
@@ -26,7 +27,7 @@ function requirementId(domain, type, source) {
   });
   return 'REQ-' + sha256(identity).slice(0,16).toUpperCase();
 }
-function normalizeNonUiRequirements(rows, scope) {
+function normalizeNonUiRequirements(rows, scope, requireNoTestReason=false) {
   if (!Array.isArray(rows)) fail('REQUIREMENT_CONTRACT_INVALID','non_ui_requirements must be an array');
   const ids = new Set();
   return rows.map((row,index) => {
@@ -46,12 +47,14 @@ function normalizeNonUiRequirements(rows, scope) {
     const proofs = Array.isArray(row.proof_required) ? row.proof_required.map(String).sort() : [];
     if (!proofs.length || proofs.some((p)=>!PROOF_TYPES.has(p)) || new Set(proofs).size!==proofs.length) fail('REQUIREMENT_PROOF_INVALID',String(index));
     if (proofs.includes('FUNCTIONAL_TEST') && tests.length === 0) fail('REQUIREMENT_FUNCTIONAL_TEST_BINDING_MISSING',String(index));
+    const noAutomatedTestReason = row.no_automated_test_reason;
+    if (requireNoTestReason && !tests.length && (typeof noAutomatedTestReason !== 'string' || noAutomatedTestReason.trim().length < 40)) fail('REQUIREMENT_NO_TEST_REASON_REQUIRED',String(index));
     const status = String(row.status || 'DEFINED');
     if (!['DEFINED','CLARIFICATION_REQUIRED'].includes(status)) fail('REQUIREMENT_STATUS_INVALID',status);
     const id = requirementId('NON_UI',type,normalizedSource);
     if (ids.has(id)) fail('REQUIREMENT_ID_COLLISION',id);
     ids.add(id);
-    return {requirement_id:id,domain:'NON_UI',requirement_type:type,source:normalizedSource,change_targets:targets,tests,proof_required:proofs,status};
+    return {requirement_id:id,domain:'NON_UI',requirement_type:type,source:normalizedSource,change_targets:targets,tests,proof_required:proofs,status,...(noAutomatedTestReason!==undefined?{no_automated_test_reason:String(noAutomatedTestReason).trim()}: {})};
   }).sort((a,b)=>a.requirement_id.localeCompare(b.requirement_id));
 }
 function uiRequirements(matrix) {
@@ -72,10 +75,12 @@ function uiRequirements(matrix) {
   });
 }
 function buildRequirementContract(uiMatrix, nonUiRows, scope) {
-  const rows=[...uiRequirements(uiMatrix),...normalizeNonUiRequirements(nonUiRows,scope)].sort((a,b)=>a.requirement_id.localeCompare(b.requirement_id));
+  const rows=[...uiRequirements(uiMatrix),...normalizeNonUiRequirements(nonUiRows,scope,uiMatrix?.schema==='kodjo.ui-criteria.v3')].sort((a,b)=>a.requirement_id.localeCompare(b.requirement_id));
   if (!rows.length) fail('REQUIREMENT_CONTRACT_EMPTY');
   const ids=rows.map(r=>r.requirement_id);
   if(new Set(ids).size!==ids.length)fail('REQUIREMENT_ID_DUPLICATE');
+  const covered = new Set(rows.flatMap(row=>row.change_targets));
+  for (const target of scope) if (!TEST_PATH.test(target) && !covered.has(target)) fail('NON_UI_SCOPE_COVERAGE_INCOMPLETE',target);
   return {schema:REQUIREMENT_SCHEMA,requirement_count:rows.length,requirement_ids_sha256:sha256(ids),requirements:rows};
 }
 function buildTestContract(requirementContract) {
@@ -84,11 +89,16 @@ function buildTestContract(requirementContract) {
     for(const testPath of req.tests||[]) bindings.push({requirement_id:req.requirement_id,test_path:testPath,proof_type:'FUNCTIONAL_TEST'});
   }
   bindings.sort((a,b)=>(a.requirement_id+':'+a.test_path).localeCompare(b.requirement_id+':'+b.test_path));
-  return {schema:TEST_SCHEMA,binding_count:bindings.length,bindings};
+  const exemptions=requirementContract.requirements.filter(req=>!req.tests.length&&req.no_automated_test_reason).map(req=>({requirement_id:req.requirement_id,status:'NO_AUTOMATED_TEST',justification:req.no_automated_test_reason}));
+  return {schema:TEST_SCHEMA,binding_count:bindings.length,bindings,...(exemptions.length?{no_automated_tests:exemptions}: {})};
 }
-function boundaryEntry(category, entry) {
+function boundaryEntry(category, entry, structured=false) {
   const target=text(entry && entry.target,'BOUNDARY_INVALID',category+'.target');
   const justification=text(entry && entry.justification,'BOUNDARY_INVALID',category+'.justification');
+  if(structured){
+    const {normalizeBoundaryLocator}=require('./ui-criteria-contract');
+    return {category,target,justification,locator:normalizeBoundaryLocator(entry.locator,target)};
+  }
   let locator={kind:'SEMANTIC',value:target};
   if(PATH_TARGET.test(target)){
     const value=normalizeRepoPath(target,category+'.target');
@@ -99,8 +109,8 @@ function boundaryEntry(category, entry) {
 function buildBoundaryContract(uiMatrix) {
   const p=(uiMatrix&&uiMatrix.preservation)||{preserve:[],forbidden:[]};
   const rows=[
-    ...(Array.isArray(p.preserve)?p.preserve.map(x=>boundaryEntry('PRESERVE',x)):[]),
-    ...(Array.isArray(p.forbidden)?p.forbidden.map(x=>boundaryEntry('FORBIDDEN',x)):[]),
+    ...(Array.isArray(p.preserve)?p.preserve.map(x=>boundaryEntry('PRESERVE',x,uiMatrix.schema==='kodjo.ui-criteria.v3')):[]),
+    ...(Array.isArray(p.forbidden)?p.forbidden.map(x=>boundaryEntry('FORBIDDEN',x,uiMatrix.schema==='kodjo.ui-criteria.v3')):[]),
   ].sort((a,b)=>(a.category+':'+a.target).localeCompare(b.category+':'+b.target));
   return {schema:BOUNDARY_SCHEMA,boundary_count:rows.length,boundaries:rows};
 }
@@ -113,6 +123,10 @@ function verifyEmbedded(markdown) {
   const ui=extractTaggedJson(markdown,'KODJO_UI_CRITERIA_MATRIX_JSON');
   const nonUi=extractTaggedJson(markdown,'KODJO_NON_UI_REQUIREMENTS_JSON');
   const scope=new Set((impact.scope_allow||[]).map(p=>normalizeRepoPath(p,'scope_allow')));
+  if(ui.schema==='kodjo.ui-criteria.v3'){
+    const {validateMatrix,isUiPath}=require('./ui-criteria-contract');
+    validateMatrix(ui,{scope,uiPaths:[...scope].filter(isUiPath),requireAssertions:true});
+  }
   const expectedReq=buildRequirementContract(ui,nonUi,scope);
   const expectedTests=buildTestContract(expectedReq);
   const expectedBoundaries=buildBoundaryContract(ui);

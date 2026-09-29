@@ -2,8 +2,7 @@ name: Claude T01-S09 Implementation V1.3 [TEMPORAIRE]
 run-name: T01-S09 — implementation V1.3 — Phase A
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 
 permissions:
   contents: write

@@ -3,6 +3,8 @@ const { normalizeRepoPath, sha256, fail } = require('./plan-impact');
 
 const MATRIX_SCHEMA_V1 = 'kodjo.ui-criteria.v1';
 const MATRIX_SCHEMA_V2 = 'kodjo.ui-criteria.v2';
+const MATRIX_SCHEMA_V3 = 'kodjo.ui-criteria.v3';
+const {criterionIdentity,assertionIdentity}=require('./ui-identities');
 const RISK_TYPES = new Set(['FUNCTIONAL','VISUAL','ACCESSIBILITY','DEVICE']);
 const PROOF_TYPES = new Set(['FUNCTIONAL_TEST','STATIC_ANALYSIS','VISUAL_COMPARE','ACCESSIBILITY_CHECK','DEVICE_CHECK']);
 const COMPONENT_DECISIONS = new Set(['REUSE','EXTEND','CREATE']);
@@ -91,6 +93,7 @@ function normalizeAssertions(criterion, criterionProofs, matrixSchemaName) {
         fail('UI_PLAN_ASSERTION_PROOF_INVALID', id + ': preuve absente du critere parent: ' + proof);
       }
     }
+    if(matrixSchemaName===MATRIX_SCHEMA_V3 && id!==assertionIdentity(criterionId,assertion))fail('UI_PLAN_CANONICAL_ASSERTION_ID_INVALID',id);
     assertionMandatoryProofs(propertyType, proofs, id);
     return {
       assertion_id:id,
@@ -110,10 +113,10 @@ function normalizeAssertions(criterion, criterionProofs, matrixSchemaName) {
 
 function normalizeMatrix(matrix, {scope, uiPaths, requireAssertions=false}) {
   const uiApplicable = uiPaths.length > 0;
-  if (!matrix || ![MATRIX_SCHEMA_V1,MATRIX_SCHEMA_V2].includes(matrix.schema)) {
+  if (!matrix || ![MATRIX_SCHEMA_V1,MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3].includes(matrix.schema)) {
     fail('UI_PLAN_CRITERIA_INVALID', 'schema attendu ' + MATRIX_SCHEMA_V1 + ' ou ' + MATRIX_SCHEMA_V2);
   }
-  if (requireAssertions && uiApplicable && matrix.schema !== MATRIX_SCHEMA_V2) {
+  if (requireAssertions && uiApplicable && ![MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3].includes(matrix.schema)) {
     fail('UI_PLAN_ATOMICITY_REQUIRED', 'les nouveaux plans UI doivent utiliser ' + MATRIX_SCHEMA_V2);
   }
 
@@ -133,6 +136,7 @@ function normalizeMatrix(matrix, {scope, uiPaths, requireAssertions=false}) {
   const coveredTargets = new Set();
   const normalizedCriteria = criteria.map((criterion, index) => {
     if (!criterion || typeof criterion !== 'object' || Array.isArray(criterion)) fail('UI_PLAN_CRITERIA_INVALID', 'criterion[' + index + '] invalide');
+    if(matrix.schema===MATRIX_SCHEMA_V3 && criterion.criterion_id!==criterionIdentity(criterion.source))fail('UI_PLAN_CANONICAL_ID_INVALID',String(criterion.criterion_id));
     const id = requireText(criterion.criterion_id, 'UI_PLAN_CRITERIA_INVALID', 'criterion_id');
     if (!/^[A-Z0-9][A-Z0-9._-]{2,63}$/.test(id)) fail('UI_PLAN_CRITERIA_INVALID', 'criterion_id invalide: ' + id);
     if (criterionIds.has(id)) fail('UI_PLAN_CRITERIA_INVALID', 'criterion_id duplique: ' + id);
@@ -151,11 +155,11 @@ function normalizeMatrix(matrix, {scope, uiPaths, requireAssertions=false}) {
     if (reuseSearch.length === 0) fail('UI_PLAN_REUSE_INVALID', id + ': reuse_search vide');
     const decision = requireText(criterion.component_decision, 'UI_PLAN_REUSE_INVALID', id + '.component_decision');
     if (!COMPONENT_DECISIONS.has(decision)) fail('UI_PLAN_REUSE_INVALID', id + ': component_decision inconnu');
-    const selectedComponent = matrix.schema === MATRIX_SCHEMA_V2
+    const selectedComponent = matrix.schema !== MATRIX_SCHEMA_V1
       ? criterion.selected_component
       : requireText(criterion.selected_component, 'UI_PLAN_REUSE_INVALID', id + '.selected_component');
     const decisionJustification = requireText(criterion.decision_justification, 'UI_PLAN_REUSE_INVALID', id + '.decision_justification');
-    if(matrix.schema===MATRIX_SCHEMA_V2){
+    if(matrix.schema!==MATRIX_SCHEMA_V1){
       if(!selectedComponent||typeof selectedComponent!=='object'||Array.isArray(selectedComponent))fail('UI_PLAN_REUSE_INVALID',id+': composant structure requis');
       if(decision==='CREATE'){
         if(selectedComponent.path!=='NONE'||selectedComponent.export!=='NONE')fail('UI_PLAN_REUSE_INVALID',id+': CREATE exige NONE');
@@ -207,7 +211,7 @@ function normalizeMatrix(matrix, {scope, uiPaths, requireAssertions=false}) {
       tests: [...tests].sort(),
       proof_required: [...proofRequired].sort(),
     };
-    if (matrix.schema === MATRIX_SCHEMA_V2) normalized.assertions = assertions;
+    if (matrix.schema !== MATRIX_SCHEMA_V1) normalized.assertions = assertions;
     return normalized;
   }).sort((a,b) => a.criterion_id.localeCompare(b.criterion_id));
 
@@ -224,11 +228,24 @@ function normalizeMatrix(matrix, {scope, uiPaths, requireAssertions=false}) {
       const justification = requireText(entry.justification, 'UI_PLAN_PRESERVATION_INVALID', key + '.justification');
       if (seen.has(target)) fail('UI_PLAN_PRESERVATION_INVALID', key + ' cible dupliquee: ' + target);
       seen.add(target);
-      return { target, justification };
+      return { target, justification,...(matrix.schema===MATRIX_SCHEMA_V3 && key!=='change' ? {locator:normalizeBoundaryLocator(entry.locator,target)} : {}) };
     }).sort((a,b) => a.target.localeCompare(b.target));
   }
 
   return { schema: matrix.schema, criteria: normalizedCriteria, preservation: normalizedPreservation };
+}
+
+function normalizeBoundaryLocator(value,target){
+  if(!value||typeof value!=='object')fail('BOUNDARY_LOCATOR_REQUIRED',target);
+  const {kind,path,symbol,invariant_type,expected,semantic_justification}=value;
+  if(kind==='SEMANTIC'){
+    if(path!=='NONE'||symbol!=='NONE'||invariant_type!=='SEMANTIC_REVIEW'||expected!=='UNCHANGED'||typeof semantic_justification!=='string'||semantic_justification.trim().length<40)fail('BOUNDARY_SEMANTIC_JUSTIFICATION_REQUIRED',target);
+    if(/(?:app|src|tests|assets|docs|scripts|\.github)\/[A-Za-z0-9_.\/-]+/.test((target+' '+semantic_justification).replace(/\\/g,'/')))fail('BOUNDARY_PATH_DISGUISED_AS_SEMANTIC',target);
+  }else if(kind==='PATH'||kind==='SYMBOL'){
+    normalizeRepoPath(path,'boundary.path');
+    if(expected!=='UNCHANGED'||invariant_type!==(kind==='PATH'?'FILE_UNCHANGED':'SYMBOL_UNCHANGED')||semantic_justification!=='NONE'||(kind==='PATH'?symbol!=='NONE':!/^[$A-Z_a-z][$\w]*$/.test(symbol)))fail('BOUNDARY_INVARIANT_INVALID',target);
+  }else fail('BOUNDARY_LOCATOR_KIND_INVALID',target);
+  return {kind,path,symbol,invariant_type,expected,semantic_justification};
 }
 
 const text = {type:'string', minLength:1, pattern:'\\S'};
@@ -265,7 +282,10 @@ const matrixSchemaV2 = object({
   criteria:array(object({...baseCriterionProperties,selected_component:object({path:text,export:text}),assertions:array(assertionSchema,1)})),
   preservation:object({preserve:array(preservationEntry), change:array(preservationEntry), forbidden:array(preservationEntry)}),
 });
-const matrixSchema = matrixSchemaV2;
+const boundaryLocatorSchema=object({kind:enumeration(['PATH','SYMBOL','SEMANTIC']),path:text,symbol:text,invariant_type:enumeration(['FILE_UNCHANGED','SYMBOL_UNCHANGED','SEMANTIC_REVIEW']),expected:enumeration(['UNCHANGED']),semantic_justification:text});
+const structuredPreservationEntry=object({target:text,justification:text,locator:boundaryLocatorSchema});
+const matrixSchemaV3=object({...matrixSchemaV2.properties,schema:enumeration([MATRIX_SCHEMA_V3]),preservation:object({preserve:array(structuredPreservationEntry),change:array(preservationEntry),forbidden:array(structuredPreservationEntry)})});
+const matrixSchema = matrixSchemaV3;
 
 function validateShape(value, schema, at='$') {
   const supported = new Set(['type','additionalProperties','required','properties','items','minItems','minLength','pattern','enum']);
@@ -287,7 +307,7 @@ function validateShape(value, schema, at='$') {
   }
 }
 function schemaForMatrix(matrix) {
-  return matrix && matrix.schema === MATRIX_SCHEMA_V1 ? matrixSchemaV1 : matrixSchemaV2;
+  return matrix && matrix.schema === MATRIX_SCHEMA_V1 ? matrixSchemaV1 : matrix?.schema===MATRIX_SCHEMA_V3 ? matrixSchemaV3 : matrixSchemaV2;
 }
 function validateMatrix(matrix, context) {
   const normalized = normalizeMatrix(matrix, context);
@@ -301,13 +321,13 @@ function matrixFingerprint(matrix) {
   return sha256(validateMatrix(matrix, { scope: new Set(normalizedTargets), uiPaths: [...new Set(normalizedTargets)] }));
 }
 function contractPrompt() {
-  return 'Authoritative '+MATRIX_SCHEMA_V2+' contract for every NEW UI plan:\n'+JSON.stringify(matrixSchemaV2)+
+  return 'Authoritative '+MATRIX_SCHEMA_V3+' contract for every NEW UI plan:\n'+JSON.stringify(matrixSchemaV3)+
     '\nAtomic assertion derivation is mandatory. For every normative UI requirement, identify contract-bearing elements and relations, then create one assertion for each independently falsifiable observable invariant. Split properties when one can fail while another passes, when proof types differ, or when corrections can be independent. Use property_type only from PRESENCE/CONTENT/STATE/GEOMETRY/RELATION/STYLE/LAYERING/INTERACTION/RESPONSIVE. Relations and layering are first-class assertions. Do not create assertions for implementation nodes or decorative details without a normative source. Every assertion must cite an exact source locator and expected observable result. Every criterion proof_required must be allocated to at least one assertion. Never invent geometry or styling absent from Figma, tokens, contracts or validated decisions; use CLARIFICATION_REQUIRED instead.\n'+
     'Historical '+MATRIX_SCHEMA_V1+' remains readable only for already-approved plans; do not generate it.\n'+
     'All conditional, uniqueness, path, scope and coverage rules below are mandatory. The receiver runs this same code before accepting a generated plan.\n'+
     [requireText, requireArray, uniqueStrings, isUiPath, normalizeRepoPath, normalizeAssertions, normalizeMatrix].map(String).join('\n');
 }
 module.exports = {
-  MATRIX_SCHEMA_V1,MATRIX_SCHEMA_V2,matrixFingerprint,matrixSchema,matrixSchemaV1,matrixSchemaV2,
+  MATRIX_SCHEMA_V1,MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3,TEST_PATH,normalizeBoundaryLocator,matrixFingerprint,matrixSchema,matrixSchemaV1,matrixSchemaV2,
   validateMatrix,validateShape,contractPrompt,isUiPath,object,array,text,ASSERTION_PROPERTY_TYPES,PROOF_TYPES,
 };

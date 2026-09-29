@@ -204,3 +204,16 @@ La version 0.6.51 ne peut être déclarée conforme qu’après :
 8. absence de finding bloquant résiduel ou traitement explicite de chaque finding.
 
 Jusqu’à ces preuves : **NON RETESTÉ**.
+
+
+## Corrections du contre-audit du HEAD 8247c316
+
+Les nouveaux plans sont générés avec `kodjo.ui-criteria.v3`. Les contrats v1/v2 déjà approuvés restent lisibles et leurs identités ne sont pas réécrites. V3 conserve les assertions atomiques et impose les IDs canoniques partagés à tous les verifiers.
+
+Chaque fichier non-test de `scope_allow` doit être lié à une exigence UI ou non-UI. `non_ui_coverage=NONE` ne peut exempter un fichier mutable sans exigence. Une exigence non-UI sans test exige `no_automated_test_reason` (au moins 40 caractères), reproduit comme `NO_AUTOMATED_TEST` dans le test contract. Avec des tests, le générateur produit `no_automated_test_reason=NONE`.
+
+PRESERVE et FORBIDDEN imposent un locator explicite PATH, SYMBOL ou SEMANTIC, un invariant et `expected=UNCHANGED`. PATH prouve l'absence de modification du fichier. SYMBOL prouve uniquement la conservation octet pour octet d'une déclaration de fonction nommée, unique, au niveau supérieur ; les syntaxes non prises en charge restent NON_VERIFIABLE, jamais PASS. Il ne prétend pas prouver l'équivalence comportementale ni les dépendances externes du symbole. SEMANTIC impose une justification distincte d'absence de locator ; un chemin explicite dissimulé dans cette justification est refusé. Le reviewer conserve les jugements sémantiques résiduels.
+
+Un REVISE moderne sans findings structurés est refusé. Le statut LEGACY_UNBOUNDED est réservé aux anciens plans sans contrats exigences/atomiques ; il est consommé par le workflow, publié dans PLAN_OUTPUT et conserve la revue indépendante complète.
+
+`normative-inputs.json` est la liste versionnée des documents consommés par les contrôles ; les rapports de preuve non listés ne déclenchent pas la qualification native. Les trois rapports normatifs sont réinclus après l'exclusion globale des rapports. `audit-deferrals.json` conserve les priorités originales, dont P-16 reste P1 explicitement différé ; il n'étend aucune dispense à un autre ID. L'audit doit toujours signaler honnêtement les limites restantes.

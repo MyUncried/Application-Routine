@@ -213,5 +213,5 @@ test('workflows and admission bind production planning to the deterministic cont
   assert.match(review, /KODJO_PLAN_IMPACT_REVIEW_JSON/);
   assert.match(admission, /verifyPlanAtRevision/);
   assert.match(admission, /queue\.scope_allow/);
-  assert.match(pilot, /kodjo-slice-plan-review\.yml/);
+  assert.match(pilot, /kodjo-slice-\*\.yml/);
 });

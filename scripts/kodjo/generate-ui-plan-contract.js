@@ -7,12 +7,14 @@ const {matrixSchema, validateMatrix, validateShape, contractPrompt, isUiPath, ob
 const {normalizeRepoPath,canonicalJson,sha256} = require('./lib/plan-impact');
 const {buildRequirementContract,buildTestContract,buildBoundaryContract} = require('./lib/requirement-contract');
 
+const {criterionIdentity,assertionIdentity}=require('./lib/ui-identities');
 const sourceSchema=object({path:text,locator:text,requirement:text});
 const nonUiRequirementSchema=object({
   source:sourceSchema,
   requirement_type:{type:'string',enum:['FUNCTIONAL','DATA','TECHNICAL','MIGRATION','PRESERVATION']},
   change_targets:array(text,1),
   tests:array(text),
+  no_automated_test_reason:text,
   proof_required:array({type:'string',enum:['FUNCTIONAL_TEST','STATIC_ANALYSIS','VISUAL_COMPARE','ACCESSIBILITY_CHECK','DEVICE_CHECK']},1),
   status:{type:'string',enum:['DEFINED','CLARIFICATION_REQUIRED']},
 });
@@ -22,7 +24,7 @@ function stabilizeUiIdentities(matrix){
   if(!matrix||!Array.isArray(matrix.criteria))return matrix;
   const criteria=matrix.criteria.map((criterion)=>{
     const source=criterion&&criterion.source||{};
-    const stableId='UI-'+sha256({path:String(source.path||''),locator:String(source.locator||''),requirement:String(source.requirement||'')}).slice(0,12).toUpperCase();
+    const stableId=criterionIdentity(source);
     const assertions=Array.isArray(criterion.assertions)?criterion.assertions.map((assertion)=>({...assertion})):null;
     if(assertions){
       assertions.sort((a,b)=>canonicalJson({
@@ -30,7 +32,7 @@ function stabilizeUiIdentities(matrix){
       }).localeCompare(canonicalJson({
         source:b.source,property_type:b.property_type,expected:b.expected,proof_required:[...(b.proof_required||[])].sort(),
       })));
-      assertions.forEach((assertion)=>{assertion.assertion_id=stableId+'-A'+sha256({source:assertion.source,property_type:assertion.property_type,expected:assertion.expected,proof_required:[...(assertion.proof_required||[])].sort()}).slice(0,12).toUpperCase();});
+      assertions.forEach((assertion)=>{assertion.assertion_id=assertionIdentity(stableId,assertion);});
     }
     return {...criterion,criterion_id:stableId,...(assertions?{assertions}:{})};
   }).sort((a,b)=>a.criterion_id.localeCompare(b.criterion_id));
@@ -58,13 +60,13 @@ function schemaFor(phase, scan=null) {
       });
     }
     properties.decision_classifications=object(candidateProperties);
-  } else properties.decisions=array(object({path:text,classification:{type:'string',enum:['MODIFY','TEST_MUST_ADAPT','CONSUMER_UNAFFECTED','TEST_UNAFFECTED','REQUIRES_CLARIFICATION']},justification:text}));
+  } else throw new Error('PLAN_GENERATION_SCAN_CANDIDATES_REQUIRED');
   return object(properties);
 }
 function request(phase, prompt, scan=null) {
   return {model:'gpt-5.6-luna',input:prompt+'\n\n'+contractPrompt()+
     '\nOUTPUT TRANSPORT: Return the structured object defined by the response schema. '+
-    'Return the matrix as an object, never a JSON string. Enumerate every non-UI functional/data/technical/migration/preservation requirement in non_ui_requirements; never leave a non-UI requirement only in prose. State non_ui_coverage=NONE only with a source-backed explanation identifying why every supplied non-UI source has no applicable requirement; otherwise use ENUMERATED. Put every unresolved ambiguity in clarifications. Paths must come from the supplied Git scope. Put all narrative in plan_markdown, without KODJO tags or PLAN_STATUS. '+
+    'Return the matrix as an object, never a JSON string. Enumerate every non-UI functional/data/technical/migration/preservation requirement in non_ui_requirements; never leave a non-UI requirement only in prose. State non_ui_coverage=NONE only with a source-backed explanation identifying why every supplied non-UI source has no applicable requirement; otherwise use ENUMERATED. Put every unresolved ambiguity in clarifications. For each non-UI requirement with no automated test, provide no_automated_test_reason of at least 40 characters; with tests use NONE. PRESERVE/FORBIDDEN locators must be explicit; SEMANTIC requires a distinct explanation of why no path or symbol is addressable. SYMBOL supports a unique top-level named function declaration only. Paths must come from the supplied Git scope. Put all narrative in plan_markdown, without KODJO tags or PLAN_STATUS. '+
     'The workflow alone renders machine tags and status. This transport instruction supersedes tag examples in source material.',
     store:false,reasoning:{effort:'high'},max_output_tokens:20000,
     text:{verbosity:'medium',format:{type:'json_schema',name:'kodjo_ui_plan_'+phase,strict:true,schema:schemaFor(phase,scan)}}};
@@ -90,10 +92,15 @@ function validateSourceBindings(requirements, scan, sourceRoot, scope, matrix=nu
   }
   for(const category of ['preserve','forbidden']){
     for(const boundary of matrix?.preservation?.[category]||[]){
-      const target=String(boundary.target||'');
-      if(/^(?:app|src|tests|assets|docs|scripts)\//.test(target)&&
+      const target=matrix.schema==='kodjo.ui-criteria.v3' ? boundary.locator.path : String(boundary.target||'');
+      if(target!=='NONE' &&
          !exists(normalizeRepoPath(target,'boundary.target'))){
         throw new Error('PLAN_BOUNDARY_PATH_NOT_AT_HEAD:'+target);
+      }
+      if(boundary.locator?.kind==='SYMBOL'){
+        const blob=spawnSync('git',['show',head+':'+target],{cwd:root,encoding:'utf8',shell:false});
+        const {declaration}=require('./lib/boundary-proof');
+        if(blob.status!==0||!declaration(blob.stdout,boundary.locator.symbol))throw new Error('PLAN_BOUNDARY_SYMBOL_NOT_SUPPORTED_AT_HEAD:'+target+'#'+boundary.locator.symbol);
       }
     }
   }
@@ -137,7 +144,7 @@ function decode(phase, response, scan, sourceRoot=null) {
         if(!value) throw new Error('PLAN_GENERATION_DECISION_MISSING:'+candidate.path);
         return {path:candidate.path,classification:value.classification,justification:value.justification};
       });
-    } else decisions=result.decisions;
+    } else throw new Error('PLAN_GENERATION_DECISIONS_REQUIRED');
   }
   const promoted=phase==='final' ? decisions.filter(x=>x.classification==='MODIFY').map(x=>normalizeRepoPath(x.path,'decision')) : [];
   const classifiedWrites=phase==='final' ? decisions.filter(x=>x.classification==='MODIFY'||x.classification==='TEST_MUST_ADAPT').map(x=>normalizeRepoPath(x.path,'decision')) : [];

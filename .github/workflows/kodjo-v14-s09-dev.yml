@@ -2,8 +2,7 @@ name: KODJO V1.4 S09 — DEV
 run-name: T01-S09 / DEV-S09 / ${{ github.event.comment.id }}
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 
 permissions:
   contents: write

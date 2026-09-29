@@ -143,7 +143,7 @@ test('qualification jetable: cache Jest isolée et cache lint désactivée dans 
   assert.match(pilotWorkflow, /HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE_OR_CERTIFICATION_FAILED/);
   assert.doesNotMatch(pilotWorkflow, /Run full disposable preflight without Claude\r?\n\s+continue-on-error: true/);
   assert.ok(pilotWorkflow.includes('id: change_class'));
-  assert.ok(pilotWorkflow.includes('full_windows_required: ${{ steps.change_class.outputs.full_windows_required }}'));
+  assert.ok(pilotWorkflow.includes('full_windows_required: ${{ needs.classify.outputs.full_required }}'));
   assert.match(pilotWorkflow,/classify-protocol-impact\.js/);
   assert.match(pilotWorkflow,/full_required: \$\{\{ steps\.change_class\.outputs\.full_required \}\}/);
   assert.match(pilotWorkflow,/if: needs\.classify\.outputs\.full_required == 'true'/);

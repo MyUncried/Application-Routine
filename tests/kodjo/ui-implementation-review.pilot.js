@@ -242,6 +242,12 @@ test('F-08: EXTEND without a change to the selected component cannot be certifie
   assert.equal(r.status,0,r.stderr);
   assert.deepEqual(JSON.parse(fs.readFileSync(input,'utf8')).criteria[0].component_evidence,
     {status:'FAIL',reason:'SELECTED_COMPONENT_NOT_CHANGED'});
+  const review=path.join(dir,'review.json'),output=path.join(dir,'review-output.json');
+  fs.writeFileSync(review,JSON.stringify(validAtomicReview()));
+  const baseline=spawnSync(process.execPath,[verifier,'validate',plan,changed,review,output],{cwd:dir,encoding:'utf8',env:{...process.env,KODJO_REQUIRE_COMPONENT_PROOF:'0'}});
+  assert.equal(baseline.status,0,baseline.stderr);assert.equal(JSON.parse(fs.readFileSync(output)).verdict,'APPROVE');
+  const replay=spawnSync(process.execPath,[verifier,'validate',plan,changed,review,output],{cwd:dir,encoding:'utf8',env:{...process.env,KODJO_REQUIRE_COMPONENT_PROOF:'1'}});
+  assert.equal(replay.status,0,replay.stderr);assert.equal(JSON.parse(fs.readFileSync(output)).verdict,'REVISE');
 });
 test('atomic review v2: refuse un verdict global plus favorable que ses assertions',()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-atomic-review-'));

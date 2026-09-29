@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
-const { matrixFingerprint, MATRIX_SCHEMA_V2 } = require('./lib/ui-criteria-contract');
+const {boundaryProof}=require('./lib/boundary-proof');
+const { matrixFingerprint, MATRIX_SCHEMA_V2, MATRIX_SCHEMA_V3 } = require('./lib/ui-criteria-contract');
 const fs = require('node:fs');
 const path = require('node:path');
 const { extractTaggedJson, sha256, fail } = require('./lib/plan-impact');
@@ -112,18 +113,18 @@ function readPreviousReview(file) {
 function buildInput(planBody, changedFiles, previousReview) {
   const matrix = extractTaggedJson(planBody, 'KODJO_UI_CRITERIA_MATRIX_JSON', 'UI_IMPLEMENTATION_REVIEW_PLAN_MATRIX_MISSING');
   const planContract = extractTaggedJson(planBody, 'KODJO_UI_PLAN_CONTRACT_JSON', 'UI_IMPLEMENTATION_REVIEW_PLAN_CONTRACT_MISSING');
-  if (!matrix || !['kodjo.ui-criteria.v1',MATRIX_SCHEMA_V2].includes(matrix.schema)) fail('UI_IMPLEMENTATION_REVIEW_PLAN_MATRIX_INVALID', 'schema matrice invalide');
+  if (!matrix || !['kodjo.ui-criteria.v1',MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3].includes(matrix.schema)) fail('UI_IMPLEMENTATION_REVIEW_PLAN_MATRIX_INVALID', 'schema matrice invalide');
   if (!planContract || planContract.schema !== 'kodjo.ui-plan-contract.v1') fail('UI_IMPLEMENTATION_REVIEW_PLAN_CONTRACT_INVALID', 'schema contrat invalide');
   if (planContract.matrix_sha256 !== matrixFingerprint(matrix)) fail('UI_IMPLEMENTATION_REVIEW_PLAN_DRIFT', 'matrice != contrat approuve');
   const hasRequirementContract=/<KODJO_REQUIREMENT_CONTRACT_JSON>[\s\S]*?<\/KODJO_REQUIREMENT_CONTRACT_JSON>/.test(planBody);
-  if(matrix.schema===MATRIX_SCHEMA_V2&&!hasRequirementContract)fail('REQUIREMENT_CONTRACT_REQUIRED_FOR_V2');
+  if([MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3].includes(matrix.schema)&&!hasRequirementContract)fail('REQUIREMENT_CONTRACT_REQUIRED_FOR_V2');
   const requirementContracts=hasRequirementContract?verifyRequirementContracts(planBody):null;
   const nonUiSource=requirementContracts?requirementContracts.requirement_contract.requirements.filter((row)=>row.domain==='NON_UI'):[];
   const uiRequirementByCriterion=new Map(requirementContracts?requirementContracts.requirement_contract.requirements
     .filter((row)=>row.domain==='UI'&&row.ui_binding&&row.ui_binding.criterion_id)
     .map((row)=>[String(row.ui_binding.criterion_id),row]):[]);
 
-  const assertionMode = matrix.schema === MATRIX_SCHEMA_V2;
+  const assertionMode = [MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3].includes(matrix.schema);
   const criteria = Array.isArray(matrix.criteria) ? matrix.criteria : [];
   const criterionIds = criteria.map((c) => String(c && c.criterion_id || '')).sort();
   if (criterionIds.some((id) => !id) || new Set(criterionIds).size !== criterionIds.length) {
@@ -235,7 +236,7 @@ function buildInput(planBody, changedFiles, previousReview) {
   const boundaryRequirements=requirementContracts
     ? requirementContracts.boundary_contract.boundaries.map((row)=>({
         category:row.category,target:row.target,locator:row.locator,
-        machine_status:row.locator&&row.locator.kind==='PATH' ? (changedSet.has(row.locator.value)?'FAIL':'PASS') : null,
+        machine_status:boundaryProof(row.locator,changedSet,{sourceHead:planContract.scan_revision}),
       }))
     : [
         ...(Array.isArray(preservation.preserve) ? preservation.preserve.map((x) => ({ category:'PRESERVE', target:String(x.target || ''),machine_status:null })) : []),
@@ -497,7 +498,7 @@ function validateReview(input, review) {
     }
     const key=String(row.category)+':'+String(row.target);
     const expectedBoundary=boundaryByKey.get(key);
-    if(expectedBoundary&&expectedBoundary.machine_status==='FAIL'&&String(row.status)==='PASS'){
+    if(expectedBoundary&&['FAIL','NON_VERIFIABLE'].includes(expectedBoundary.machine_status)&&String(row.status)==='PASS'){
       fail('UI_IMPLEMENTATION_REVIEW_BOUNDARY_MACHINE_MISMATCH',key+': attendu '+expectedBoundary.machine_status);
     }
     if (String(row.status) !== 'PASS') blocking = true;

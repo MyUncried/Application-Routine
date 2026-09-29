@@ -1,6 +1,6 @@
 'use strict';
 
-const { matrixFingerprint, MATRIX_SCHEMA_V1, MATRIX_SCHEMA_V2 } = require('./ui-criteria-contract');
+const { matrixFingerprint, MATRIX_SCHEMA_V1, MATRIX_SCHEMA_V2, MATRIX_SCHEMA_V3 } = require('./ui-criteria-contract');
 const { extractTaggedJson, sha256, fail } = require('./plan-impact');
 const { verifyEmbedded: verifyRequirementContracts } = require('./requirement-contract');
 
@@ -33,7 +33,7 @@ function deriveImplementationContract(planBody, planBlobOid) {
   }
   const matrix = extractTaggedJson(planBody, 'KODJO_UI_CRITERIA_MATRIX_JSON', 'IMPLEMENTATION_UI_MATRIX_MISSING');
   const planContract = extractTaggedJson(planBody, 'KODJO_UI_PLAN_CONTRACT_JSON', 'IMPLEMENTATION_UI_PLAN_CONTRACT_MISSING');
-  if (!matrix || ![MATRIX_SCHEMA_V1,MATRIX_SCHEMA_V2].includes(matrix.schema)) {
+  if (!matrix || ![MATRIX_SCHEMA_V1,MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3].includes(matrix.schema)) {
     fail('IMPLEMENTATION_UI_MATRIX_INVALID', 'schema UI inconnu');
   }
   if (!planContract || planContract.schema !== UI_PLAN_CONTRACT_SCHEMA) {
@@ -48,7 +48,7 @@ function deriveImplementationContract(planBody, planBlobOid) {
   if (ids.some((id) => !id) || new Set(ids).size !== ids.length) {
     fail('IMPLEMENTATION_UI_CRITERIA_INVALID', 'criterion_id absent ou duplique');
   }
-  const assertionMode = matrix.schema === MATRIX_SCHEMA_V2;
+  const assertionMode = [MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3].includes(matrix.schema);
   const assertionIds = assertionIdsOf(criteria);
   if (assertionMode) {
     if (assertionIds.some((id) => !id) || new Set(assertionIds).size !== assertionIds.length) {

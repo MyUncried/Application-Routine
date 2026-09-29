@@ -1,8 +1,7 @@
 name: Claude T01-S09 Plan Revision V1.3 [TEMPORAIRE]
 run-name: T01-S09 — révision du plan V1.3
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 permissions:
   contents: read
   issues: write

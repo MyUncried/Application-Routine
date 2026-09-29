@@ -1,0 +1,30 @@
+{
+  "schema": "kodjo.audit-deferrals.v1",
+  "entries": [
+    {
+      "id": "P-05",
+      "priority": "P2",
+      "reason": "AST resolver is an explicit subsequent coverage improvement; current direct-import graph remains deterministic."
+    },
+    {
+      "id": "P-16",
+      "priority": "P1",
+      "reason": "Full narrative Markdown rendering remains explicitly deferred; machine tags remain authoritative."
+    },
+    {
+      "id": "D-15",
+      "priority": "P2",
+      "reason": "Human summary is deliberately non-authorizing; evidence and contracts alone decide gates."
+    },
+    {
+      "id": "T-17",
+      "priority": "P2",
+      "reason": "Targeted replay remains coarse; full qualification remains mandatory before closure."
+    },
+    {
+      "id": "DET-10",
+      "priority": "DEFERRED",
+      "reason": "AST dependency resolution is explicitly subsequent to contract stabilization."
+    }
+  ]
+}

@@ -5,7 +5,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { canonicalJson, extractTaggedJson, normalizeRepoPath, sha256, fail } = require('./lib/plan-impact');
 
-const { validateMatrix, isUiPath, MATRIX_SCHEMA_V2 } = require('./lib/ui-criteria-contract');
+const {criterionIdentity,assertionIdentity}=require('./lib/ui-identities');
+const { validateMatrix, isUiPath, MATRIX_SCHEMA_V2, MATRIX_SCHEMA_V3 } = require('./lib/ui-criteria-contract');
 const CONTRACT_SCHEMA = 'kodjo.ui-plan-contract.v1';
 const CONTRACT_VERSION_V1 = 1;
 const CONTRACT_VERSION_V2 = 2;
@@ -36,16 +37,16 @@ try {
   const uiApplicable = uiPaths.length > 0;
 
   const matrix = extractTaggedJson(markdown, 'KODJO_UI_CRITERIA_MATRIX_JSON', 'UI_PLAN_CRITERIA_MISSING');
-  if(matrix.schema===MATRIX_SCHEMA_V2){
+  if([MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3].includes(matrix.schema)){
     const ids=new Set();
     for(const criterion of matrix.criteria||[]){
       const source=criterion.source||{};
-      const expected='UI-'+sha256({path:String(source.path||''),locator:String(source.locator||''),requirement:String(source.requirement||'')}).slice(0,12).toUpperCase();
+      const expected=criterionIdentity(source);
       if(criterion.criterion_id!==expected)fail('UI_PLAN_IDENTITY_DRIFT',String(criterion.criterion_id)+': attendu '+expected);
       if(ids.has(expected))fail('UI_PLAN_SOURCE_COLLISION',expected+': distinguer les sources et les exigences atomiques');
       ids.add(expected);
       for(const assertion of criterion.assertions||[]){
-        const assertionId=expected+'-A'+sha256({source:assertion.source,property_type:assertion.property_type,expected:assertion.expected,proof_required:[...(assertion.proof_required||[])].sort()}).slice(0,12).toUpperCase();
+        const assertionId=assertionIdentity(expected,assertion);
         // Positional IDs remain readable for previously approved v2 plans.
         // Newly generated plans use content hashes; any hash-shaped drift is refused.
         if(!new RegExp('^'+expected+'-A[0-9]{2,3}$').test(String(assertion.assertion_id))&&
@@ -57,7 +58,7 @@ try {
   const normalizedCriteria = normalizedMatrix.criteria;
   const matrixSha256 = sha256(normalizedMatrix);
   const assertionIds = normalizedCriteria.flatMap((criterion) => Array.isArray(criterion.assertions) ? criterion.assertions.map((a) => a.assertion_id) : []).sort();
-  const assertionMode = normalizedMatrix.schema === MATRIX_SCHEMA_V2;
+  const assertionMode = [MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3].includes(normalizedMatrix.schema);
   const contractVersion = assertionMode ? CONTRACT_VERSION_V2 : CONTRACT_VERSION_V1;
 
   const hasEmbeddedContract = /<KODJO_UI_PLAN_CONTRACT_JSON>[\s\S]*?<\/KODJO_UI_PLAN_CONTRACT_JSON>/.test(markdown);
