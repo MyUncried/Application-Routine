@@ -194,6 +194,246 @@ jobs:
           path: ${{ steps.diag.outputs.dir }}/recovery-package/
           if-no-files-found: warn
           retention-days: 14
+      - name: Materialize one bounded automatic correction when eligible
+        id: auto_correction
+        if: failure() && steps.execute.outputs.selected_queue != '' && steps.diag.outputs.dir != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SELECTED_QUEUE: ${{ steps.execute.outputs.selected_queue }}
+          RUN_DIR: ${{ steps.diag.outputs.dir }}
+          RECOVERY_UPLOAD_OUTCOME: ${{ steps.recovery_package.outcome }}
+          RECOVERY_ARTIFACT_ID: ${{ steps.recovery_package.outputs.artifact-id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $resultFile=Join-Path $env:RUN_DIR 'result.json'
+          if(-not(Test-Path -LiteralPath $resultFile -PathType Leaf)){
+            "status=NOT_REQUIRED"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+            exit 0
+          }
+          $recoveryReady=($env:RECOVERY_UPLOAD_OUTCOME -eq 'success' -and $env:RECOVERY_ARTIFACT_ID -match '^[1-9][0-9]*
+      # La métadonnée n'existe que lorsqu'une VISUAL_CORRECTION a été réellement
+      # committée, poussée et observée sur la PR existante. Le publisher exige en
+      # plus l'artefact de récupération du run courant avant de certifier le HEAD.
+      - name: Publish visual application checkpoint
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KODJO_VISUAL_DELIVERY_METADATA_FILE: ${{ runner.temp }}/kodjo-visual-delivery-${{ github.run_id }}-${{ github.run_attempt }}.json
+        run: node scripts/kodjo/publish-visual-checkpoint.js
+
+      - name: Dispatch validated implementation review
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KODJO_IMPLEMENTATION_REVIEW_METADATA_FILE: ${{ runner.temp }}/kodjo-implementation-review-${{ github.run_id }}-${{ github.run_attempt }}.json
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $path = [string]$env:KODJO_IMPLEMENTATION_REVIEW_METADATA_FILE
+          if ([string]::IsNullOrWhiteSpace($path) -or -not (Test-Path -LiteralPath $path -PathType Leaf)) {
+            throw 'KODJO_IMPLEMENTATION_REVIEW_BRIDGE_METADATA_MISSING'
+          }
+          $meta = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
+          if ([string]$meta.schema_version -ne 'kodjo.protocol.v2.implementation-review-bridge.0.6.38') {
+            throw 'KODJO_IMPLEMENTATION_REVIEW_BRIDGE_METADATA_SCHEMA_INVALID'
+          }
+          $payload = [ordered]@{
+            event_type = 'kodjo_implementation_ready'
+            client_payload = [ordered]@{
+              issue_number = [string]$meta.issue_number
+              source_comment_id = [string]$meta.source_comment_id
+            }
+          }
+          $dispatchFile = Join-Path $env:RUNNER_TEMP ('kodjo-review-dispatch-' + $env:GITHUB_RUN_ID + '.json')
+          [IO.File]::WriteAllText($dispatchFile, ($payload | ConvertTo-Json -Depth 4), (New-Object Text.UTF8Encoding($false)))
+          gh api --method POST "repos/$env:GITHUB_REPOSITORY/dispatches" --input $dispatchFile
+          if ($LASTEXITCODE -ne 0) { throw 'KODJO_IMPLEMENTATION_REVIEW_DISPATCH_FAILED' }
+
+      - name: Clean current run checkout
+        if: always()
+        shell: powershell
+        working-directory: ${{ runner.temp }}
+        run: |
+          $utility = Join-Path '${{ runner.temp }}' 'kodjo-cleanup-${{ github.run_id }}-${{ github.run_attempt }}.ps1'
+          if (Test-Path -LiteralPath $utility -PathType Leaf) {
+            & $utility -Root '${{ github.workspace }}/_kodjo/${{ github.run_id }}' -WorkspaceRoot '${{ github.workspace }}' -RunId '${{ github.run_id }}' -MetricsFile $env:KODJO_INFRA_METRICS_FILE
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          } else {
+            $runId = '${{ github.run_id }}'
+            $workspace = [IO.Path]::GetFullPath('${{ github.workspace }}').TrimEnd('\')
+            $kodjoRoot = [IO.Path]::GetFullPath((Join-Path $workspace '_kodjo')).TrimEnd('\')
+            $root = [IO.Path]::GetFullPath((Join-Path $kodjoRoot $runId)).TrimEnd('\')
+            $expected = [IO.Path]::GetFullPath('${{ github.workspace }}/_kodjo/${{ github.run_id }}').TrimEnd('\')
+            if ($runId -notmatch '^[0-9]+$' -or $root -ne $expected -or [IO.Path]::GetDirectoryName($root) -ne $kodjoRoot) {
+              throw 'RUN_CHECKOUT_IDENTITY_MISMATCH'
+            }
+            $cmdRoot = if ($root.StartsWith('\\?\')) { $root } else { '\\?\' + $root }
+            for ($attempt = 1; $attempt -le 5 -and (Test-Path -LiteralPath $root); $attempt++) {
+              $previousErrorActionPreference = $ErrorActionPreference
+              try {
+                $ErrorActionPreference = 'Continue'
+                $output = & cmd.exe /d /c rd /s /q $cmdRoot 2>&1
+                $exit = $LASTEXITCODE
+              } finally {
+                $ErrorActionPreference = $previousErrorActionPreference
+              }
+              if ($exit -ne 0 -or $output) {
+                Write-Warning ('cleanup attempt {0}: cmd rd exit={1}: {2}' -f $attempt, $exit, ($output -join ' '))
+              }
+              if (Test-Path -LiteralPath $root) { Start-Sleep -Seconds 2 }
+            }
+            if (Test-Path -LiteralPath $root) { throw 'RUN_CHECKOUT_CLEANUP_FAILED' }
+          }
+
+      - name: Preserve infrastructure metrics
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-infrastructure-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.KODJO_INFRA_METRICS_FILE }}
+          if-no-files-found: warn
+          retention-days: 7
+)
+          $generated=Join-Path $env:RUNNER_TEMP ('kodjo-auto-correction-'+$env:GITHUB_RUN_ID+'.json')
+          node scripts/kodjo/generate-bounded-correction-request.js $env:SELECTED_QUEUE $resultFile $env:GITHUB_RUN_ID ([string]$recoveryReady).ToLowerInvariant() $generated
+          if($LASTEXITCODE-ne0){throw 'Bounded correction classification failed'}
+          $payload=Get-Content -LiteralPath $generated -Raw -Encoding UTF8|ConvertFrom-Json
+          "status=$([string]$payload.status)"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          if([string]$payload.status-ne'READY'){exit 0}
+
+          $request=$payload.request
+          $requestId=[string]$request.request_id
+          if($requestId-notmatch'^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}
+      # La métadonnée n'existe que lorsqu'une VISUAL_CORRECTION a été réellement
+      # committée, poussée et observée sur la PR existante. Le publisher exige en
+      # plus l'artefact de récupération du run courant avant de certifier le HEAD.
+      - name: Publish visual application checkpoint
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KODJO_VISUAL_DELIVERY_METADATA_FILE: ${{ runner.temp }}/kodjo-visual-delivery-${{ github.run_id }}-${{ github.run_attempt }}.json
+        run: node scripts/kodjo/publish-visual-checkpoint.js
+
+      - name: Dispatch validated implementation review
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KODJO_IMPLEMENTATION_REVIEW_METADATA_FILE: ${{ runner.temp }}/kodjo-implementation-review-${{ github.run_id }}-${{ github.run_attempt }}.json
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $path = [string]$env:KODJO_IMPLEMENTATION_REVIEW_METADATA_FILE
+          if ([string]::IsNullOrWhiteSpace($path) -or -not (Test-Path -LiteralPath $path -PathType Leaf)) {
+            throw 'KODJO_IMPLEMENTATION_REVIEW_BRIDGE_METADATA_MISSING'
+          }
+          $meta = Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json
+          if ([string]$meta.schema_version -ne 'kodjo.protocol.v2.implementation-review-bridge.0.6.38') {
+            throw 'KODJO_IMPLEMENTATION_REVIEW_BRIDGE_METADATA_SCHEMA_INVALID'
+          }
+          $payload = [ordered]@{
+            event_type = 'kodjo_implementation_ready'
+            client_payload = [ordered]@{
+              issue_number = [string]$meta.issue_number
+              source_comment_id = [string]$meta.source_comment_id
+            }
+          }
+          $dispatchFile = Join-Path $env:RUNNER_TEMP ('kodjo-review-dispatch-' + $env:GITHUB_RUN_ID + '.json')
+          [IO.File]::WriteAllText($dispatchFile, ($payload | ConvertTo-Json -Depth 4), (New-Object Text.UTF8Encoding($false)))
+          gh api --method POST "repos/$env:GITHUB_REPOSITORY/dispatches" --input $dispatchFile
+          if ($LASTEXITCODE -ne 0) { throw 'KODJO_IMPLEMENTATION_REVIEW_DISPATCH_FAILED' }
+
+      - name: Clean current run checkout
+        if: always()
+        shell: powershell
+        working-directory: ${{ runner.temp }}
+        run: |
+          $utility = Join-Path '${{ runner.temp }}' 'kodjo-cleanup-${{ github.run_id }}-${{ github.run_attempt }}.ps1'
+          if (Test-Path -LiteralPath $utility -PathType Leaf) {
+            & $utility -Root '${{ github.workspace }}/_kodjo/${{ github.run_id }}' -WorkspaceRoot '${{ github.workspace }}' -RunId '${{ github.run_id }}' -MetricsFile $env:KODJO_INFRA_METRICS_FILE
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          } else {
+            $runId = '${{ github.run_id }}'
+            $workspace = [IO.Path]::GetFullPath('${{ github.workspace }}').TrimEnd('\')
+            $kodjoRoot = [IO.Path]::GetFullPath((Join-Path $workspace '_kodjo')).TrimEnd('\')
+            $root = [IO.Path]::GetFullPath((Join-Path $kodjoRoot $runId)).TrimEnd('\')
+            $expected = [IO.Path]::GetFullPath('${{ github.workspace }}/_kodjo/${{ github.run_id }}').TrimEnd('\')
+            if ($runId -notmatch '^[0-9]+$' -or $root -ne $expected -or [IO.Path]::GetDirectoryName($root) -ne $kodjoRoot) {
+              throw 'RUN_CHECKOUT_IDENTITY_MISMATCH'
+            }
+            $cmdRoot = if ($root.StartsWith('\\?\')) { $root } else { '\\?\' + $root }
+            for ($attempt = 1; $attempt -le 5 -and (Test-Path -LiteralPath $root); $attempt++) {
+              $previousErrorActionPreference = $ErrorActionPreference
+              try {
+                $ErrorActionPreference = 'Continue'
+                $output = & cmd.exe /d /c rd /s /q $cmdRoot 2>&1
+                $exit = $LASTEXITCODE
+              } finally {
+                $ErrorActionPreference = $previousErrorActionPreference
+              }
+              if ($exit -ne 0 -or $output) {
+                Write-Warning ('cleanup attempt {0}: cmd rd exit={1}: {2}' -f $attempt, $exit, ($output -join ' '))
+              }
+              if (Test-Path -LiteralPath $root) { Start-Sleep -Seconds 2 }
+            }
+            if (Test-Path -LiteralPath $root) { throw 'RUN_CHECKOUT_CLEANUP_FAILED' }
+          }
+
+      - name: Preserve infrastructure metrics
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-infrastructure-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ env.KODJO_INFRA_METRICS_FILE }}
+          if-no-files-found: warn
+          retention-days: 7
+){throw 'Bounded correction request id invalid'}
+          $queuePath=".github/orchestration/queue/v2/$requestId.json"
+          $requestJson=($request|ConvertTo-Json -Depth 40).Replace("`r`n","`n")+"`n"
+
+          $existing=$null
+          $previous=$ErrorActionPreference
+          try{
+            $ErrorActionPreference='Continue'
+            $raw=gh api "repos/$env:GITHUB_REPOSITORY/contents/$queuePath?ref=main" 2>$null
+            $lookupExit=$LASTEXITCODE
+          }finally{$ErrorActionPreference=$previous}
+          if($lookupExit-eq0){
+            $meta=$raw|ConvertFrom-Json
+            $existingJson=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(([string]$meta.content -replace '\s','')))
+            $existing=$existingJson|ConvertFrom-Json
+            if([string]$existing.request_id-ne$requestId-or[string]$existing.retry_of_run_id-ne[string]$request.retry_of_run_id-or[string]$existing.session_id-ne[string]$request.session_id-or[string]$existing.mode-ne'RESUME_DELTA'){
+              throw 'Existing bounded correction request identity mismatch'
+            }
+            "materialization=ALREADY_EXISTS"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          }else{
+            $put=[ordered]@{
+              message="chore(kodjo): queue bounded correction $requestId"
+              content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($requestJson))
+              branch='main'
+            }
+            $putFile=Join-Path $env:RUNNER_TEMP ('kodjo-auto-correction-put-'+$env:GITHUB_RUN_ID+'.json')
+            [IO.File]::WriteAllText($putFile,($put|ConvertTo-Json -Depth 5),(New-Object Text.UTF8Encoding($false)))
+            $created=gh api --method PUT "repos/$env:GITHUB_REPOSITORY/contents/$queuePath" --input $putFile|ConvertFrom-Json
+            if($LASTEXITCODE-ne0-or$null-eq$created.commit.sha){throw 'Bounded correction materialization failed'}
+            "materialization=CREATED"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+            $nl=[Environment]::NewLine
+            $body='[KODJO_V2] AUTO_CORRECTION_QUEUED'+$nl+
+              'source_run_id='+$env:GITHUB_RUN_ID+$nl+
+              'request_id='+$requestId+$nl+
+              'queue_path='+$queuePath+$nl+
+              'mode=RESUME_DELTA'+$nl+
+              'retry_reason=CHECKS_FAILED'+$nl+
+              'STATUT : RESUME_DELTA_QUEUED'
+            $comment=Join-Path $env:RUNNER_TEMP ('kodjo-auto-correction-comment-'+$env:GITHUB_RUN_ID+'.md')
+            [IO.File]::WriteAllText($comment,$body,(New-Object Text.UTF8Encoding($false)))
+            gh issue comment ([string]$request.issue_number) --repo $env:GITHUB_REPOSITORY --body-file $comment
+            if($LASTEXITCODE-ne0){throw 'Bounded correction publication failed'}
+          }
+          "request_id=$requestId"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "queue_path=$queuePath"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       # La métadonnée n'existe que lorsqu'une VISUAL_CORRECTION a été réellement
       # committée, poussée et observée sur la PR existante. Le publisher exige en
