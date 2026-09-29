@@ -473,7 +473,7 @@ test('non-UI semantic defects and unknown evidence cannot be approved with empty
     review.non_ui_plan_assessment.requirements[0].status='CONFORME';
     review.non_ui_plan_assessment.status='NON_VERIFIABLE';
     review.verdict='REVISE';const r=validate();assert.equal(r.status,0,r.stderr);
-    assert.equal(JSON.parse(fs.readFileSync(output,'utf8')).verdict,'APPROVE');
+    assert.equal(JSON.parse(fs.readFileSync(output,'utf8')).verdict,'REVISE');
   });
 });
 
