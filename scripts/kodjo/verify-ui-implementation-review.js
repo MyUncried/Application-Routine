@@ -79,6 +79,9 @@ function buildInput(planBody, changedFiles, previousReview) {
   const hasRequirementContract=/<KODJO_REQUIREMENT_CONTRACT_JSON>[\s\S]*?<\/KODJO_REQUIREMENT_CONTRACT_JSON>/.test(planBody);
   const requirementContracts=hasRequirementContract?verifyRequirementContracts(planBody):null;
   const nonUiSource=requirementContracts?requirementContracts.requirement_contract.requirements.filter((row)=>row.domain==='NON_UI'):[];
+  const uiRequirementByCriterion=new Map(requirementContracts?requirementContracts.requirement_contract.requirements
+    .filter((row)=>row.domain==='UI'&&row.ui_binding&&row.ui_binding.criterion_id)
+    .map((row)=>[String(row.ui_binding.criterion_id),row]):[]);
 
   const assertionMode = matrix.schema === MATRIX_SCHEMA_V2;
   const criteria = Array.isArray(matrix.criteria) ? matrix.criteria : [];
@@ -165,8 +168,10 @@ function buildInput(planBody, changedFiles, previousReview) {
       proof_required:unique(assertion.proof_required||[],'UI_IMPLEMENTATION_REVIEW_ASSERTION_PROOF_INVALID',String(assertion.assertion_id)+'.proof_required').sort(),
       device_proof_required:(assertion.proof_required||[]).some((p)=>DEFERABLE_PROOFS.has(String(p))),
     })).sort((a,b)=>a.assertion_id.localeCompare(b.assertion_id)) : [];
+    const boundRequirement=uiRequirementByCriterion.get(id);
     const normalized = {
       criterion_id: id,
+      ...(boundRequirement?{requirement_id:boundRequirement.requirement_id}:{}),
       source: criterion.source,
       component_decision: criterion.component_decision,
       selected_component: criterion.selected_component,
@@ -321,11 +326,34 @@ function deriveCriterionFromAssertions(input,expected,row) {
   return {criterionStatus,pendingOnly,assertionStatuses};
 }
 
-function machineProofStatus(input,type){
+function exactFunctionalTestStatus(input,id){
+  const evidence=input&&input.test_contract_evidence;
+  if(!evidence||evidence.schema!=='kodjo.test-contract-evidence.v1'||!Array.isArray(evidence.bindings))return null;
+  let requirementId=String(id||'');
+  if(!requirementId.startsWith('REQ-')){
+    const criterion=(input.criteria||[]).find((row)=>String(row&&row.criterion_id||'')===requirementId);
+    requirementId=String(criterion&&criterion.requirement_id||'');
+  }
+  if(!requirementId)return 'NON_VERIFIABLE';
+  const rows=evidence.bindings.filter((row)=>String(row&&row.requirement_id||'')===requirementId);
+  const req=(input.non_ui_requirements||[]).find((row)=>row.requirement_id===requirementId)||
+    (input.criteria||[]).find((row)=>row.requirement_id===requirementId);
+  const expectedTests=Array.isArray(req&&req.tests)?req.tests:[];
+  if(expectedTests.length===0)return 'NON_VERIFIABLE';
+  const actualPaths=rows.map((row)=>String(row&&row.test_path||'')).sort();
+  if(JSON.stringify(actualPaths)!==JSON.stringify([...expectedTests].sort()))return 'NON_VERIFIABLE';
+  const statuses=rows.map((row)=>String(row&&row.status||''));
+  if(statuses.includes('FAIL'))return 'FAIL';
+  if(statuses.length&&statuses.every((status)=>status==='PASS'))return 'PASS';
+  return 'NON_VERIFIABLE';
+}
+function machineProofStatus(input,id,type){
   const checks=input&&input.implementation_report&&input.implementation_report.machine_evidence&&Array.isArray(input.implementation_report.machine_evidence.checks)
     ? input.implementation_report.machine_evidence.checks : [];
   const by=new Map(checks.map((row)=>[String(row&&row.check||''),String(row&&row.status||'')]));
   if(type==='FUNCTIONAL_TEST'){
+    const exact=exactFunctionalTestStatus(input,id);
+    if(exact)return exact;
     const status=by.get('jest');
     return status==='PASS'?'PASS':status==='FAIL'?'FAIL':status?'NON_VERIFIABLE':null;
   }
@@ -340,7 +368,7 @@ function machineProofStatus(input,type){
 }
 function enforceMachineProof(input,id,type,status){
   if(!BLOCKING_PROOFS.has(type))return;
-  const expected=machineProofStatus(input,type);
+  const expected=machineProofStatus(input,id,type);
   if(expected&&status!==expected)fail('UI_IMPLEMENTATION_MACHINE_PROOF_MISMATCH',id+':'+type+': attendu '+expected+' observe '+status);
 }
 function validateReview(input, review) {
@@ -512,6 +540,8 @@ try {
   const evidenceFile = mode === 'prepare' ? args[4] : args[5];
   const previousFile = mode === 'prepare' ? args[5] : args[6];
   const input = buildInput(planBody, changedFiles, readPreviousReview(previousFile));
+  const testEvidenceFile=String(process.env.KODJO_TEST_CONTRACT_EVIDENCE_FILE||'').trim();
+  if(testEvidenceFile&&fs.existsSync(path.resolve(testEvidenceFile)))input.test_contract_evidence=readJson(testEvidenceFile);
   if (evidenceFile) input.implementation_report = inspectImplementation(
     fs.readFileSync(path.resolve(evidenceFile),'utf8'), {
       criteria: input.criteria,
