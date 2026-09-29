@@ -151,9 +151,20 @@ function normalizeMatrix(matrix, {scope, uiPaths, requireAssertions=false}) {
     if (reuseSearch.length === 0) fail('UI_PLAN_REUSE_INVALID', id + ': reuse_search vide');
     const decision = requireText(criterion.component_decision, 'UI_PLAN_REUSE_INVALID', id + '.component_decision');
     if (!COMPONENT_DECISIONS.has(decision)) fail('UI_PLAN_REUSE_INVALID', id + ': component_decision inconnu');
-    const selectedComponent = requireText(criterion.selected_component, 'UI_PLAN_REUSE_INVALID', id + '.selected_component');
+    const selectedComponent = matrix.schema === MATRIX_SCHEMA_V2
+      ? criterion.selected_component
+      : requireText(criterion.selected_component, 'UI_PLAN_REUSE_INVALID', id + '.selected_component');
     const decisionJustification = requireText(criterion.decision_justification, 'UI_PLAN_REUSE_INVALID', id + '.decision_justification');
-    if ((decision === 'REUSE' || decision === 'EXTEND') && selectedComponent === 'NONE') fail('UI_PLAN_REUSE_INVALID', id + ': composant requis pour ' + decision);
+    if(matrix.schema===MATRIX_SCHEMA_V2){
+      if(!selectedComponent||typeof selectedComponent!=='object'||Array.isArray(selectedComponent))fail('UI_PLAN_REUSE_INVALID',id+': composant structure requis');
+      if(decision==='CREATE'){
+        if(selectedComponent.path!=='NONE'||selectedComponent.export!=='NONE')fail('UI_PLAN_REUSE_INVALID',id+': CREATE exige NONE');
+      }else{
+        if(selectedComponent.path==='NONE'||selectedComponent.export==='NONE')fail('UI_PLAN_REUSE_INVALID',id+': composant requis pour '+decision);
+        normalizeRepoPath(requireText(selectedComponent.path,'UI_PLAN_REUSE_INVALID',id+'.selected_component.path'),id+'.selected_component.path');
+        if(!/^(?:default|[A-Za-z_$][A-Za-z0-9_$]*)$/.test(String(selectedComponent.export||'')))fail('UI_PLAN_REUSE_INVALID',id+': export invalide');
+      }
+    }else if ((decision === 'REUSE' || decision === 'EXTEND') && selectedComponent === 'NONE') fail('UI_PLAN_REUSE_INVALID', id + ': composant requis pour ' + decision);
 
     const changeTargets = uniqueStrings(requireArray(criterion.change_targets, 'UI_PLAN_TARGET_INVALID', id + '.change_targets'), 'UI_PLAN_TARGET_INVALID', id + '.change_targets')
       .map((target) => normalizeRepoPath(target, id + '.change_target'));
@@ -249,7 +260,7 @@ const matrixSchemaV1 = object({
 });
 const matrixSchemaV2 = object({
   schema:{type:'string', enum:[MATRIX_SCHEMA_V2]},
-  criteria:array(object({...baseCriterionProperties,assertions:array(assertionSchema,1)})),
+  criteria:array(object({...baseCriterionProperties,selected_component:object({path:text,export:text}),assertions:array(assertionSchema,1)})),
   preservation:object({preserve:array(preservationEntry), change:array(preservationEntry), forbidden:array(preservationEntry)}),
 });
 const matrixSchema = matrixSchemaV2;

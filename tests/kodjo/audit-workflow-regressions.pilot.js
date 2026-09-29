@@ -112,6 +112,7 @@ test('implementation report identity binds application source to base_head, not 
     '</KODJO_IMPLEMENTATION_REPORT_JSON>'
   ].join('\n');
   const result=inspectImplementation(body,['UI-CAT-R-001']);
-  assert.equal(result.status,'COMPLETE',JSON.stringify(result.errors));
+  assert.equal(result.status,'NON_VERIFIABLE',JSON.stringify(result.errors));
+  assert.ok(result.errors.some(x=>x.includes('DECLARED_CHECK_NOT_RUN:a.test.ts')));
   assert.ok(!result.errors.includes('REPORT_IDENTITY_MISMATCH'));
 });

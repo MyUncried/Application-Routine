@@ -6,7 +6,7 @@ const {inspectReport}=require('../../scripts/kodjo/lib/implementation-report');
 const root=path.resolve(__dirname,'../..');
 const collector=path.join(root,'scripts/kodjo/collect-implementation-report.js');
 const verifier=path.join(root,'scripts/kodjo/verify-ui-implementation-review.js');
-function row(id){return {criterion_id:id,implementation_status:'CONFORME',files_or_symbols:['src/x.ts'],component_used:'Existing',tests_run:['fixture only'],proof_status:'PASS / PENDING_DEVICE',preserve_status:'PASS',residual_status:'NONE'};}
+function row(id){return {criterion_id:id,implementation_status:'CONFORME',files_or_symbols:['src/x.ts'],component_used:'Existing',tests_run:['jest'],proof_status:'PASS / PENDING_DEVICE',preserve_status:'PASS',residual_status:'NONE'};}
 function report(rows=[row('UI-1'),row('UI-2')],stop='KODJO_STOP_STATUS: NONE'){return '<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:rows})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\n'+stop;}
 function fixture(){
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-report-consumer-'));
@@ -14,7 +14,7 @@ function fixture(){
   const contract={schema:'kodjo.ui-plan-contract.v1',ui_applicable:true,matrix_sha256:matrixFingerprint(matrix)};
   fs.writeFileSync(path.join(dir,'plan.md'),'<KODJO_UI_CRITERIA_MATRIX_JSON>'+JSON.stringify(matrix)+'</KODJO_UI_CRITERIA_MATRIX_JSON>\n<KODJO_UI_PLAN_CONTRACT_JSON>'+JSON.stringify(contract)+'</KODJO_UI_PLAN_CONTRACT_JSON>');
   fs.writeFileSync(path.join(dir,'changed.txt'),'src/x.ts\n');
-  fs.writeFileSync(path.join(dir,'result.json'),JSON.stringify({request_id:'r1',source_head:'a'.repeat(40)}));
+  fs.writeFileSync(path.join(dir,'result.json'),JSON.stringify({request_id:'r1',source_head:'a'.repeat(40),modified_files:['src/x.ts'],checks:[{check:'jest',status:'PASS'}]}));
   return dir;
 }
 function run(script,args,cwd){return cp.spawnSync(process.execPath,[script,...args],{cwd,encoding:'utf8'});}

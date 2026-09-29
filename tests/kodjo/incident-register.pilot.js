@@ -144,7 +144,7 @@ test('qualification jetable: cache Jest isolée et cache lint désactivée dans 
   assert.doesNotMatch(pilotWorkflow, /Run full disposable preflight without Claude\r?\n\s+continue-on-error: true/);
   assert.ok(pilotWorkflow.includes('id: change_class'));
   assert.ok(pilotWorkflow.includes('full_windows_required: ${{ steps.change_class.outputs.full_windows_required }}'));
-  assert.ok(pilotWorkflow.includes('.github/orchestration/v2-slices/*/technical-plan.md|.github/orchestration/v2-slices/*/independent-review.md|.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'));
+  assert.match(pilotWorkflow,/classify-protocol-impact\.js/);
   assert.ok(pilotWorkflow.includes("- '!.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'"));
   assert.ok(pilotWorkflow.includes("if: needs.protocol.outputs.full_windows_required == 'true'"));
   assert.ok(pilotWorkflow.includes('timeout-minutes: 25'));
