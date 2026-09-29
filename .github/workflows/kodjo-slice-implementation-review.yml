@@ -252,8 +252,8 @@ jobs:
           set -euo pipefail
           runtime="$RUNNER_TEMP/kodjo-review-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           mkdir -p "$runtime/lib"
-          cp scripts/kodjo/verify-ui-implementation-review.js "$runtime/"
-          cp scripts/kodjo/lib/plan-impact.js scripts/kodjo/lib/implementation-contract.js scripts/kodjo/lib/implementation-report.js scripts/kodjo/lib/ui-criteria-contract.js "$runtime/lib/"
+          cp scripts/kodjo/verify-ui-implementation-review.js scripts/kodjo/verify-test-contract-results.js "$runtime/"
+          cp scripts/kodjo/lib/plan-impact.js scripts/kodjo/lib/implementation-contract.js scripts/kodjo/lib/implementation-report.js scripts/kodjo/lib/ui-criteria-contract.js scripts/kodjo/lib/requirement-contract.js "$runtime/lib/"
           echo "KODJO_REVIEW_RUNTIME=$runtime" >> "$GITHUB_ENV"
 
       - name: Checkout implementation HEAD
@@ -269,8 +269,13 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "${{ steps.gate.outputs.head }}"
           npm ci
-          npm test -- --runInBand
+          npm test -- --runInBand --json --outputFile=/tmp/kodjo-jest-results.json
           npx tsc --noEmit
+          if grep -q '<KODJO_REQUIREMENT_CONTRACT_JSON>' /tmp/approved-plan.md; then
+            node "$KODJO_REVIEW_RUNTIME"/verify-test-contract-results.js /tmp/approved-plan.md /tmp/kodjo-jest-results.json /tmp/kodjo-test-contract-evidence.json "$GITHUB_WORKSPACE"
+          else
+            printf '{"schema":"kodjo.test-contract-evidence.legacy","status":"LEGACY","binding_count":0,"bindings":[]}\n' > /tmp/kodjo-test-contract-evidence.json
+          fi
           git diff --name-only "${{ steps.gate.outputs.review_base }}..${{ steps.gate.outputs.head }}" > /tmp/changed-files.txt
           test -s /tmp/changed-files.txt
           ! grep -Fxq 'src/infrastructure/database/migrations/migration001.ts' /tmp/changed-files.txt
@@ -280,6 +285,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          export KODJO_TEST_CONTRACT_EVIDENCE_FILE=/tmp/kodjo-test-contract-evidence.json
           review_prepare=(prepare /tmp/approved-plan.md /tmp/changed-files.txt /tmp/ui-implementation-review-input.json /tmp/implementation-output.md)
           if [ -f /tmp/previous-review.md ]; then review_prepare+=(/tmp/previous-review.md); fi
           node "$KODJO_REVIEW_RUNTIME"/verify-ui-implementation-review.js "${review_prepare[@]}"
@@ -352,6 +358,9 @@ jobs:
             echo
             echo "ADDITIONAL DETERMINISTIC VERIFICATION EVIDENCE (executed on this exact application HEAD):"
             cat /tmp/v2-verification-evidence.txt
+            echo
+            echo "TEST CONTRACT EVIDENCE:"
+            cat /tmp/kodjo-test-contract-evidence.json
             echo
             echo "UI REVIEW INPUT:"
             cat /tmp/ui-implementation-review-input.json
@@ -599,6 +608,8 @@ jobs:
             /tmp/ui-implementation-review-input.json
             /tmp/previous-review.md
             /tmp/v2-verification-evidence.txt
+            /tmp/kodjo-jest-results.json
+            /tmp/kodjo-test-contract-evidence.json
             /tmp/changed-files.txt
             /tmp/diff-stat.txt
           if-no-files-found: warn
