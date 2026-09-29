@@ -23,6 +23,10 @@ Consolider dans une seule version candidate les évolutions de déterminisme, co
 
 Le préflight Windows du run #566 a réussi ses contrôles courants puis a échoué sur le téléchargement de l’ancien artifact de recovery du run 34606534268, désormais absent. Le téléchargement historique facultatif et sa certification sont bornés ; l’absence est consignée dans une preuve FAIL sans bloquer la qualification du HEAD courant. Aucun contrôle de recovery courant n’est rendu facultatif.
 
+## Déclenchement de l’audit indépendant
+
+Le workflow candidat n’étant pas encore présent sur `main`, son `workflow_dispatch` ne peut pas être utilisé avant activation. Un déclencheur `pull_request` borné à la PR #250 et au fichier d’audit attend un run pilote SUCCESS lié au même HEAD avant d’appeler Claude. Aucun audit d’un HEAD supersédé n’est publié.
+
 ## État
 
 Implémentation candidate présente dans la PR #250.
