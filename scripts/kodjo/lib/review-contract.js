@@ -378,7 +378,6 @@ function normalizeFinding(row, index, reviewContext, allTargets) {
   const blocking = isBlockingCategory(row.category);
   const reentryStage = REENTRY_BY_CATEGORY[row.category];
   const findingId = V.stableId('FND', [
-    reviewContext.contract_hash,
     row.category,
     row.target_type,
     row.target_id,
