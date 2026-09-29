@@ -3,11 +3,25 @@
 const fs = require('node:fs');
 const {matrixSchema, validateMatrix, validateShape, contractPrompt, isUiPath, object, array, text} = require('./lib/ui-criteria-contract');
 const {normalizeRepoPath} = require('./lib/plan-impact');
+const {buildRequirementContract,buildTestContract,buildBoundaryContract} = require('./lib/requirement-contract');
+
+const sourceSchema=object({path:text,locator:text,requirement:text});
+const nonUiRequirementSchema=object({
+  source:sourceSchema,
+  requirement_type:{type:'string',enum:['FUNCTIONAL','DATA','TECHNICAL','MIGRATION','PRESERVATION']},
+  change_targets:array(text,1),
+  tests:array(text),
+  proof_required:array({type:'string',enum:['FUNCTIONAL_TEST','STATIC_ANALYSIS','VISUAL_COMPARE','ACCESSIBILITY_CHECK','DEVICE_CHECK']},1),
+  status:{type:'string',enum:['DEFINED','CLARIFICATION_REQUIRED']},
+});
+const clarificationSchema=object({source:object({path:text,locator:text}),question:text,affected_targets:array(text)});
 function schemaFor(phase, scan=null) {
   if (!['draft','final'].includes(phase)) throw new Error('PLAN_GENERATION_PHASE_INVALID');
   const properties = {
     plan_markdown:text,
     ui_criteria_matrix:matrixSchema,
+    non_ui_requirements:array(nonUiRequirementSchema),
+    clarifications:array(clarificationSchema),
     plan_status:{type:'string',enum:['READY_FOR_INDEPENDENT_REVIEW','CLARIFICATION_REQUIRED']},
   };
   if (phase==='draft') properties.modified_modules=array(object({path:text,change:{type:'string',enum:['MODIFY','CREATE']}}),1);
@@ -29,7 +43,7 @@ function schemaFor(phase, scan=null) {
 function request(phase, prompt, scan=null) {
   return {model:'gpt-5.6-luna',input:prompt+'\n\n'+contractPrompt()+
     '\nOUTPUT TRANSPORT: Return the structured object defined by the response schema. '+
-    'Return the matrix as an object, never a JSON string. Put all narrative in plan_markdown, without KODJO tags or PLAN_STATUS. '+
+    'Return the matrix as an object, never a JSON string. Enumerate every non-UI functional/data/technical/migration/preservation requirement in non_ui_requirements; never leave a non-UI requirement only in prose. Put every unresolved ambiguity in clarifications. Paths must come from the supplied Git scope. Put all narrative in plan_markdown, without KODJO tags or PLAN_STATUS. '+
     'The workflow alone renders machine tags and status. This transport instruction supersedes tag examples in source material.',
     store:false,reasoning:{effort:'high'},max_output_tokens:20000,
     text:{verbosity:'medium',format:{type:'json_schema',name:'kodjo_ui_plan_'+phase,strict:true,schema:schemaFor(phase,scan)}}};
@@ -58,15 +72,35 @@ function decode(phase, response, scan) {
     } else decisions=result.decisions;
   }
   const promoted=phase==='final' ? decisions.filter(x=>x.classification==='MODIFY').map(x=>normalizeRepoPath(x.path,'decision')) : [];
+  const classifiedWrites=phase==='final' ? decisions.filter(x=>x.classification==='MODIFY'||x.classification==='TEST_MUST_ADAPT').map(x=>normalizeRepoPath(x.path,'decision')) : [];
+  const scopePaths=[...new Set([...paths,...classifiedWrites])].sort();
+  const scope=new Set(scopePaths);
   const uiPaths=[...new Set([...paths,...promoted].filter(isUiPath))];
-  // Closed scope is replayed after deterministic import closure. At draft
-  // acceptance enforce all intrinsic rules and coverage, without pretending
-  // that the not-yet-computed closure is already known.
-  const targets=result.ui_criteria_matrix.criteria.flatMap(x=>x.change_targets);
-  validateMatrix(result.ui_criteria_matrix,{scope:new Set(targets),uiPaths});
+  validateMatrix(result.ui_criteria_matrix,{scope,uiPaths,requireAssertions:true});
+  const requirements=buildRequirementContract(result.ui_criteria_matrix,result.non_ui_requirements,scope);
+  const tests=buildTestContract(requirements);
+  const boundaries=buildBoundaryContract(result.ui_criteria_matrix);
+  for(const clarification of result.clarifications){
+    normalizeRepoPath(clarification.source.path,'clarification.source.path');
+    for(const target of clarification.affected_targets){
+      const normalized=normalizeRepoPath(target,'clarification.affected_target');
+      if(!scope.has(normalized)) throw new Error('PLAN_CLARIFICATION_TARGET_OUT_OF_SCOPE:'+normalized);
+    }
+  }
+  const blockingDecision=decisions.some(x=>x.classification==='REQUIRES_CLARIFICATION');
+  const blockingRequirement=result.non_ui_requirements.some(x=>x.status==='CLARIFICATION_REQUIRED');
+  const derivedStatus=(blockingDecision||blockingRequirement||result.clarifications.length)
+    ? 'CLARIFICATION_REQUIRED' : 'READY_FOR_INDEPENDENT_REVIEW';
+  if(result.plan_status!==derivedStatus) throw new Error('PLAN_STATUS_DERIVATION_MISMATCH:'+result.plan_status+':'+derivedStatus);
   const tag=(name,value)=>'\n<KODJO_'+name+'_JSON>\n'+JSON.stringify(value,null,2)+'\n</KODJO_'+name+'_JSON>\n';
   return result.plan_markdown+'\n'+tag(phase==='draft'?'MODIFIED_MODULES':'PLAN_DECISIONS',phase==='draft'?modified:decisions)+
-    tag('UI_CRITERIA_MATRIX',result.ui_criteria_matrix)+'\nPLAN_STATUS: '+result.plan_status+'\n';
+    tag('UI_CRITERIA_MATRIX',result.ui_criteria_matrix)+
+    tag('NON_UI_REQUIREMENTS',result.non_ui_requirements)+
+    tag('REQUIREMENT_CONTRACT',requirements)+
+    tag('TEST_CONTRACT',tests)+
+    tag('BOUNDARY_CONTRACT',boundaries)+
+    tag('PLAN_CLARIFICATIONS',result.clarifications)+
+    '\nPLAN_STATUS: '+derivedStatus+'\n';
 }
 if (require.main===module) {
   try {
