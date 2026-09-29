@@ -2,7 +2,7 @@
 'use strict';
 const fs = require('node:fs');
 const {matrixSchema, validateMatrix, validateShape, contractPrompt, isUiPath, object, array, text} = require('./lib/ui-criteria-contract');
-const {normalizeRepoPath} = require('./lib/plan-impact');
+const {normalizeRepoPath,canonicalJson,sha256} = require('./lib/plan-impact');
 const {buildRequirementContract,buildTestContract,buildBoundaryContract} = require('./lib/requirement-contract');
 
 const sourceSchema=object({path:text,locator:text,requirement:text});
@@ -15,6 +15,24 @@ const nonUiRequirementSchema=object({
   status:{type:'string',enum:['DEFINED','CLARIFICATION_REQUIRED']},
 });
 const clarificationSchema=object({source:object({path:text,locator:text}),question:text,affected_targets:array(text)});
+function stabilizeUiIdentities(matrix){
+  if(!matrix||!Array.isArray(matrix.criteria))return matrix;
+  const criteria=matrix.criteria.map((criterion)=>{
+    const source=criterion&&criterion.source||{};
+    const stableId='UI-'+sha256({path:String(source.path||''),locator:String(source.locator||''),requirement:String(source.requirement||'')}).slice(0,12).toUpperCase();
+    const assertions=Array.isArray(criterion.assertions)?criterion.assertions.map((assertion)=>({...assertion})):null;
+    if(assertions){
+      assertions.sort((a,b)=>canonicalJson({
+        source:a.source,property_type:a.property_type,expected:a.expected,proof_required:[...(a.proof_required||[])].sort(),
+      }).localeCompare(canonicalJson({
+        source:b.source,property_type:b.property_type,expected:b.expected,proof_required:[...(b.proof_required||[])].sort(),
+      })));
+      assertions.forEach((assertion,index)=>{assertion.assertion_id=stableId+'-A'+String(index+1).padStart(2,'0');});
+    }
+    return {...criterion,criterion_id:stableId,...(assertions?{assertions}:{})};
+  }).sort((a,b)=>a.criterion_id.localeCompare(b.criterion_id));
+  return {...matrix,criteria};
+}
 function schemaFor(phase, scan=null) {
   if (!['draft','final'].includes(phase)) throw new Error('PLAN_GENERATION_PHASE_INVALID');
   const properties = {
@@ -56,6 +74,7 @@ function decode(phase, response, scan) {
   if (chunks.length!==1) throw new Error('PLAN_GENERATION_OUTPUT_AMBIGUOUS');
   const result=JSON.parse(chunks[0].text);
   validateShape(result,schemaFor(phase,scan));
+  result.ui_criteria_matrix=stabilizeUiIdentities(result.ui_criteria_matrix);
   if (/<\/?KODJO_|^\s*PLAN_STATUS:/m.test(result.plan_markdown)) throw new Error('PLAN_GENERATION_MARKER_DUPLICATION');
   const modified=phase==='draft' ? result.modified_modules : scan.modified_modules;
   if (!Array.isArray(modified)) throw new Error('PLAN_GENERATION_SCAN_MISSING');
@@ -113,4 +132,4 @@ if (require.main===module) {
     fs.writeFileSync(output,value,'utf8');
   } catch(error) { console.error(error.message); process.exitCode=1; }
 }
-module.exports={schemaFor,request,decode};
+module.exports={stabilizeUiIdentities,schemaFor,request,decode};
