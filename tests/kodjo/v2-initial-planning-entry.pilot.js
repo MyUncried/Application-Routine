@@ -85,8 +85,10 @@ test('0.6.29 — le contrat de plan bloque divergence scope et tests hors contra
   for (const workflow of [initial, revision]) {
     assert.match(workflow, /verify-plan-contract-consistency\.js/);
     assert.match(workflow, /KODJO_PLAN_CONTRACT_JSON/);
-    assert.match(workflow, /Every new test required by the plan must be named/);
+    assert.match(workflow, /generate-ui-plan-contract\.js/);
   }
+  assert.match(verifier, /verifyRequirementContracts/);
+  assert.match(verifier, /test_contract_sha256/);
   assert.match(verifier, /scope_allow prose != scope_allow machine/);
   assert.match(verifier, /TEST_CONTRACT_CONSISTENCY/);
   assert.match(verifier, /nouveau test exige sans CREATE autorise/);
@@ -149,24 +151,22 @@ test('0.6.29 — les frontières aval de la revue initiale sont ordonnées et ut
   const preserve = initial.indexOf('- name: Preserve initial V2 review evidence');
   assert.ok(replay >= 0 && replay < claude && claude < publish && publish < preserve);
 
-  for (const token of [
-    "@('-p','--output-format','json','--dangerously-skip-permissions')",
-    'if (!$json.session_id -or !$json.result)',
-    '<KODJO_REVIEW_FINDINGS_JSON>',
-    'normalize-review-findings.js',
-    'PLAN_REVIEW_APPROVED',
-    'PLAN_REVISION_REQUIRED',
-    'gh issue comment $env:ISSUE_NUMBER',
-    '<KODJO_PLAN_IMPACT_REVIEW_JSON>',
-  ]) assert.ok(initial.includes(token), `missing initial review boundary token: ${token}`);
-
-  for (const token of [
-    "@('-p','--output-format','json','--dangerously-skip-permissions')",
-    'if (!$json.session_id -or !$json.result)',
-    "VERDICT:\\s*APPROVE",
-    "VERDICT:\\s*REVISE",
-    'gh issue comment $env:ISSUE_NUMBER',
-  ]) assert.ok(historical.includes(token), `historical review no longer proves shared boundary: ${token}`);
+  for (const source of [initial,historical]) {
+    for (const token of [
+      "@('-p','--output-format','json','--dangerously-skip-permissions')",
+      'if (!$json.session_id -or !$json.result)',
+      'KODJO_REVIEW_FINDINGS_JSON',
+      'normalize-review-findings.js',
+      'PLAN_REVIEW_APPROVED',
+      'PLAN_REVISION_REQUIRED',
+      'gh api --method POST',
+    ]) assert.ok(source.includes(token), `review no longer proves structured boundary: ${token}`);
+  }
+  assert.match(initial,/kodjo-v2-plan-handoff-materialize\.yml/);
+  assert.match(initial,/kodjo-v2-slice-initial-plan\.yml/);
+  assert.match(historical,/kodjo-v2-plan-handoff-materialize\.yml/);
+  assert.match(historical,/kodjo-v2-slice-plan\.yml/);
+  assert.match(initial,/<KODJO_PLAN_IMPACT_REVIEW_JSON>/);
 });
 
 test('0.6.29 — un plan initial peut être republié après REVISE sans changer de chemin protocolaire', () => {
