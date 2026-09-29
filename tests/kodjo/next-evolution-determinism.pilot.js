@@ -143,7 +143,8 @@ test('PE-37/38 prevent obsolete and report-only heavy pilot work',()=>{
   const w=read('.github/workflows/kodjo-v2-pilot-tests.yml');
   assert.match(w,/group: kodjo-v2-pilot-/);
   assert.match(w,/cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}/);
-  assert.match(w,/!\.github\/orchestration\/reports\/\*\*/);
+  assert.doesNotMatch(w,/!\.github\/orchestration\/reports\/\*\*/);
+  assert.match(w,/!\.github\/orchestration\/reports\/2026-09-29_PROTOCOL_DETERMINISM_AUDIT\.md/);
   assert.match(w,/!\.github\/orchestration\/KODJO_PROTOCOL_NEXT_EVOLUTION_\*\.md/);
   assert.doesNotMatch(w,/kodjo-v2-complete-source-/);
 });
@@ -171,7 +172,7 @@ test('planning workflows use structured findings and valid atomic revision hered
     assert.match(w,/normalize-review-findings\.js/);
     assert.doesNotMatch(w,/End with exactly VERDICT: APPROVE or VERDICT: REVISE/);
   }
-  assert.doesNotMatch(revision,/EOF\s+cat \/tmp\/kodjo-v2-plan\/current-command\.txt/);
+  assert.doesNotMatch(revision,/^\s*EOF[ \t]+cat \/tmp\/kodjo-v2-plan\/current-command\.txt/m);
   assert.match(revision,/kodjo\.ui-criteria\.v2/);
   assert.match(revision,/validate-plan-module-paths\.js/);
 });
