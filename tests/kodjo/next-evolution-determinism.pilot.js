@@ -204,19 +204,23 @@ test('independent Claude audit mission covers the entire 64-ID determinism matri
 });
 
 test('independent audit output contract refuses incomplete matrix coverage and approve with uncovered IDs',()=>{
+  const ids=[...read('.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_MATRIX.md').matchAll(/^\\| ((?:P|D|T)-\\d{2}|DET-\\d{2}) \\|/gm)].map(m=>m[1]);
+  const rows=ids.map(id=>({id,status:'COVERED',evidence:'Verified source and implementation for '+id}));
   const body=(overrides={})=>{
     const value={
       schema:'kodjo.protocol-independent-audit.v1',verdict:'APPROVE',
       blocking_findings:0,major_findings:0,minor_findings:0,
       matrix_ids_total:64,matrix_ids_covered:64,matrix_ids_partial:0,
-      matrix_ids_not_covered:0,matrix_ids_non_verifiable:0,
+      matrix_ids_not_covered:0,matrix_ids_non_verifiable:0,matrix_rows:rows,
       ...overrides,
     };
     return 'VERDICT: '+value.verdict+'\n<KODJO_INDEPENDENT_PROTOCOL_AUDIT_JSON>\n'+JSON.stringify(value)+'\n</KODJO_INDEPENDENT_PROTOCOL_AUDIT_JSON>\n';
   };
   assert.doesNotThrow(()=>verifyIndependentAudit(body()));
-  assert.throws(()=>verifyIndependentAudit(body({matrix_ids_total:63,matrix_ids_covered:63})),/MATRIX_COVERAGE_INVALID/);
-  assert.throws(()=>verifyIndependentAudit(body({matrix_ids_covered:63,matrix_ids_not_covered:1})),/APPROVE_WITH_UNCOVERED/);
+  assert.throws(()=>verifyIndependentAudit(body({matrix_rows:rows.slice(1)})),/MATRIX_COVERAGE_INVALID/);
+  assert.throws(()=>verifyIndependentAudit(body({matrix_rows:[...rows.slice(1),rows[1]]})),/MATRIX_ID_INVALID/);
+  assert.throws(()=>verifyIndependentAudit(body({matrix_rows:rows.map((r,i)=>i? r:{...r,status:'PARTIAL'})})),/MATRIX_COUNT_MISMATCH/);
+  assert.throws(()=>verifyIndependentAudit(body({matrix_ids_covered:63,matrix_ids_not_covered:1,matrix_rows:rows.map((r,i)=>i? r:{...r,status:'NOT_COVERED'})})),/APPROVE_WITH_UNCOVERED/);
 });
 
 
