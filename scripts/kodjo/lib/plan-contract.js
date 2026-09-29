@@ -125,11 +125,11 @@ function normalizeTestObligations(rows, requirementId, requirementImpacts) {
     }
 
     if (row.target_impact_id === null) {
-      const key = '<NONE>:' + coveredChangeImpactIds.join(',');
+      const key = '<NONE>';
       if (seenTargets.has(key)) V.fail('VNEXT_PLAN_TEST_OBLIGATION_DUPLICATE', key);
       seenTargets.add(key);
       return {
-        test_id: V.stableId('TEST', [requirementId, null, 'NONE_WITH_JUSTIFICATION']),
+        test_id: V.stableId('TEST', [requirementId, null, 'NONE_WITH_JUSTIFICATION', coveredChangeImpactIds]),
         target_impact_id: null,
         target_candidate_id: null,
         path: null,
@@ -266,6 +266,7 @@ function normalizeProofObligations(rows, requirementId, tests) {
         requirementId,
         row.proof_type,
         row.target_test_impact_id,
+        coveredChangeImpactIds,
         row.expected,
       ]),
       proof_type: row.proof_type,
@@ -330,7 +331,9 @@ function buildBoundaries(impactGraph, candidateManifest) {
 
   for (const candidateId of preserveIds) {
     if (writeKinds.has(candidateId)) V.fail('VNEXT_PLAN_BOUNDARY_CHANGE_PRESERVE_CONFLICT', candidateId);
-    if (!candidates.has(candidateId)) V.fail('VNEXT_PLAN_BOUNDARY_PRESERVE_UNKNOWN', candidateId);
+    const candidate = candidates.get(candidateId);
+    if (!candidate) V.fail('VNEXT_PLAN_BOUNDARY_PRESERVE_UNKNOWN', candidateId);
+    if (candidate.origin !== 'GIT_TREE') V.fail('VNEXT_PLAN_BOUNDARY_PRESERVE_NON_EXISTING', candidateId);
   }
 
   const writeScope = [...writeKinds.entries()].map(([candidateId, changeKind]) => {
