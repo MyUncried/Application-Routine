@@ -1,12 +1,10 @@
 #!/usr/bin/env node
 'use strict';
 
-const { matrixFingerprint } = require('./lib/ui-criteria-contract');
-
+const { matrixFingerprint, MATRIX_SCHEMA_V2 } = require('./lib/ui-criteria-contract');
 const fs = require('node:fs');
 const path = require('node:path');
 const { extractTaggedJson, sha256, fail } = require('./lib/plan-impact');
-
 const {inspectImplementation}=require('./lib/implementation-report');
 
 const INPUT_SCHEMA = 'kodjo.ui-implementation-review-input.v1';
@@ -15,6 +13,7 @@ const BLOCKING_PROOFS = new Set(['FUNCTIONAL_TEST','STATIC_ANALYSIS']);
 const DEVICE_PROOFS = new Set(['VISUAL_COMPARE','DEVICE_CHECK']);
 const DEFERABLE_PROOFS = new Set([...DEVICE_PROOFS,'ACCESSIBILITY_CHECK']);
 const IMPLEMENTATION_STATUSES = new Set(['CONFORME','PARTIELLEMENT_CONFORME','NON_CONFORME','NON_VERIFIABLE']);
+const ASSERTION_STATUSES = new Set(['CONFORME','NON_CONFORME','NON_VERIFIABLE','PENDING_DEVICE']);
 const PROOF_STATUSES = new Set(['PASS','FAIL','PENDING_DEVICE','NON_VERIFIABLE']);
 const PRESERVE_STATUSES = new Set(['PASS','FAIL','NON_VERIFIABLE']);
 
@@ -27,22 +26,34 @@ function unique(values, code, label) {
   if (normalized.some((v) => !v) || new Set(normalized).size !== normalized.length) fail(code, label + ' invalide');
   return normalized;
 }
-function canonicalCriterionResult(row) {
-  const proofs = Array.isArray(row && row.proof_results) ? row.proof_results.map((proof) => ({
+function canonicalProofs(proofs) {
+  return Array.isArray(proofs) ? proofs.map((proof) => ({
     proof_type:String(proof && proof.proof_type || ''),
     status:String(proof && proof.status || ''),
     evidence:String(proof && proof.evidence || ''),
   })).sort((a,b)=>a.proof_type.localeCompare(b.proof_type)) : [];
+}
+function canonicalAssertions(assertions) {
+  return Array.isArray(assertions) ? assertions.map((assertion) => ({
+    assertion_id:String(assertion && assertion.assertion_id || ''),
+    status:String(assertion && assertion.status || ''),
+    evidence:String(assertion && assertion.evidence || ''),
+    proof_results:canonicalProofs(assertion && assertion.proof_results),
+  })).sort((a,b)=>a.assertion_id.localeCompare(b.assertion_id)) : [];
+}
+function canonicalCriterionResult(row) {
   return {
     criterion_id:String(row && row.criterion_id || ''),
     implementation_status:String(row && row.implementation_status || ''),
     preserve_status:String(row && row.preserve_status || ''),
     evidence:String(row && row.evidence || ''),
-    proof_results:proofs,
+    proof_results:canonicalProofs(row && row.proof_results),
+    ...(Array.isArray(row && row.assertion_results) ? {assertion_results:canonicalAssertions(row.assertion_results)} : {}),
   };
 }
 function normalizeInheritedResult(row) {
   const normalized = canonicalCriterionResult(row);
+  if (normalized.assertion_results) return normalized;
   const deviceOnlyGap = normalized.preserve_status === 'PASS' && normalized.proof_results.length > 0 &&
     normalized.proof_results.every((proof) =>
       proof.status === 'PASS' || (DEFERABLE_PROOFS.has(proof.proof_type) && proof.status === 'PENDING_DEVICE'));
@@ -61,14 +72,26 @@ function readPreviousReview(file) {
 function buildInput(planBody, changedFiles, previousReview) {
   const matrix = extractTaggedJson(planBody, 'KODJO_UI_CRITERIA_MATRIX_JSON', 'UI_IMPLEMENTATION_REVIEW_PLAN_MATRIX_MISSING');
   const planContract = extractTaggedJson(planBody, 'KODJO_UI_PLAN_CONTRACT_JSON', 'UI_IMPLEMENTATION_REVIEW_PLAN_CONTRACT_MISSING');
-  if (!matrix || matrix.schema !== 'kodjo.ui-criteria.v1') fail('UI_IMPLEMENTATION_REVIEW_PLAN_MATRIX_INVALID', 'schema matrice invalide');
+  if (!matrix || !['kodjo.ui-criteria.v1',MATRIX_SCHEMA_V2].includes(matrix.schema)) fail('UI_IMPLEMENTATION_REVIEW_PLAN_MATRIX_INVALID', 'schema matrice invalide');
   if (!planContract || planContract.schema !== 'kodjo.ui-plan-contract.v1') fail('UI_IMPLEMENTATION_REVIEW_PLAN_CONTRACT_INVALID', 'schema contrat invalide');
   if (planContract.matrix_sha256 !== matrixFingerprint(matrix)) fail('UI_IMPLEMENTATION_REVIEW_PLAN_DRIFT', 'matrice != contrat approuve');
 
+  const assertionMode = matrix.schema === MATRIX_SCHEMA_V2;
   const criteria = Array.isArray(matrix.criteria) ? matrix.criteria : [];
   const criterionIds = criteria.map((c) => String(c && c.criterion_id || '')).sort();
   if (criterionIds.some((id) => !id) || new Set(criterionIds).size !== criterionIds.length) {
     fail('UI_IMPLEMENTATION_REVIEW_CRITERIA_INVALID', 'criterion_id absent ou duplique');
+  }
+  const assertionIds = criteria.flatMap((criterion)=>Array.isArray(criterion.assertions)?criterion.assertions.map((a)=>String(a&&a.assertion_id||'')):[]).sort();
+  if (assertionMode) {
+    if (assertionIds.some((id)=>!id) || new Set(assertionIds).size!==assertionIds.length) {
+      fail('UI_IMPLEMENTATION_REVIEW_ASSERTIONS_INVALID','assertion_id absent ou duplique');
+    }
+    if (Number(planContract.contract_version)<2 ||
+        Number(planContract.assertion_count)!==assertionIds.length ||
+        planContract.assertion_ids_sha256!==sha256(assertionIds)) {
+      fail('UI_IMPLEMENTATION_REVIEW_ASSERTION_CONTRACT_MISMATCH','assertions != contrat approuve');
+    }
   }
 
   const changed = unique(changedFiles, 'UI_IMPLEMENTATION_REVIEW_CHANGED_FILES_INVALID', 'changed_files').sort();
@@ -87,6 +110,16 @@ function buildInput(planBody, changedFiles, previousReview) {
         JSON.stringify(previousIds) !== JSON.stringify(criterionIds)) {
       fail('UI_IMPLEMENTATION_PREVIOUS_REVIEW_COVERAGE_MISMATCH', 'ancienne revue != critères approuvés');
     }
+    if (assertionMode) {
+      for (const criterion of criteria) {
+        const prior=previousById.get(String(criterion.criterion_id));
+        const expected=(criterion.assertions||[]).map(a=>String(a.assertion_id)).sort();
+        const observed=(prior&&prior.assertion_results||[]).map(a=>String(a&&a.assertion_id||'')).sort();
+        if (JSON.stringify(expected)!==JSON.stringify(observed)) {
+          fail('UI_IMPLEMENTATION_PREVIOUS_REVIEW_ASSERTION_MISMATCH',String(criterion.criterion_id));
+        }
+      }
+    }
   }
 
   const normalizedCriteria = criteria.map((criterion) => {
@@ -100,6 +133,14 @@ function buildInput(planBody, changedFiles, previousReview) {
       fail('UI_IMPLEMENTATION_REVIEW_TARGET_NOT_DELIVERED', id + ': ' + missingTargets.join(','));
     }
     const proofs = unique(criterion.proof_required || [], 'UI_IMPLEMENTATION_REVIEW_PROOF_INVALID', id + '.proof_required').sort();
+    const assertions = assertionMode ? (criterion.assertions||[]).map((assertion)=>({
+      assertion_id:String(assertion.assertion_id),
+      source:assertion.source,
+      property_type:String(assertion.property_type),
+      expected:String(assertion.expected),
+      proof_required:unique(assertion.proof_required||[],'UI_IMPLEMENTATION_REVIEW_ASSERTION_PROOF_INVALID',String(assertion.assertion_id)+'.proof_required').sort(),
+      device_proof_required:(assertion.proof_required||[]).some((p)=>DEFERABLE_PROOFS.has(String(p))),
+    })).sort((a,b)=>a.assertion_id.localeCompare(b.assertion_id)) : [];
     const normalized = {
       criterion_id: id,
       source: criterion.source,
@@ -108,7 +149,10 @@ function buildInput(planBody, changedFiles, previousReview) {
       change_targets: targets,
       tests,
       proof_required: proofs,
-      device_proof_required: proofs.some((p) => DEFERABLE_PROOFS.has(p)),
+      ...(assertionMode ? {assertions} : {}),
+      device_proof_required: assertionMode
+        ? assertions.some((a)=>a.device_proof_required)
+        : proofs.some((p) => DEFERABLE_PROOFS.has(p)),
       review_scope: reviewScope,
       affected_paths: affectedPaths,
     };
@@ -122,10 +166,12 @@ function buildInput(planBody, changedFiles, previousReview) {
   return {
     schema: INPUT_SCHEMA,
     review_mode: previousById ? 'DELTA_WITH_INHERITANCE' : 'FULL',
+    assertion_mode: assertionMode,
     ui_applicable: uiApplicable,
     ui_matrix_sha256: planContract.matrix_sha256,
     criterion_count: normalizedCriteria.length,
     criterion_ids_sha256: sha256(criterionIds),
+    ...(assertionMode ? {assertion_count:assertionIds.length,assertion_ids_sha256:sha256(assertionIds)} : {}),
     changed_files: changed,
     criteria: normalizedCriteria,
     preservation,
@@ -135,6 +181,108 @@ function buildInput(planBody, changedFiles, previousReview) {
     ].sort((a,b) => (a.category + ':' + a.target).localeCompare(b.category + ':' + b.target)),
     device_gate_required: deviceGateRequired,
   };
+}
+function validateProof(id, proof) {
+  const type=String(proof&&proof.proof_type||'');
+  const status=String(proof&&proof.status||'');
+  if (!PROOF_STATUSES.has(status)) fail('UI_IMPLEMENTATION_REVIEW_PROOF_INVALID', id + ':' + type + ':' + status);
+  if (DEVICE_PROOFS.has(type)) {
+    if (status !== 'PENDING_DEVICE' && status !== 'FAIL') {
+      fail('UI_IMPLEMENTATION_REVIEW_DEVICE_PROOF_UNSUPPORTED', id + ':' + type + ' doit rester PENDING_DEVICE sauf defaut demontre');
+    }
+  } else if (type === 'ACCESSIBILITY_CHECK') {
+    if (!['PASS','PENDING_DEVICE','FAIL'].includes(status)) {
+      fail('UI_IMPLEMENTATION_REVIEW_ACCESSIBILITY_PROOF_UNSUPPORTED', id + ':' + type + ':' + status);
+    }
+  } else if (BLOCKING_PROOFS.has(type)) {
+    if (!['PASS','FAIL','NON_VERIFIABLE'].includes(status)) {
+      fail('UI_IMPLEMENTATION_REVIEW_PROOF_INVALID', id + ':' + type + ':' + status);
+    }
+  }
+  if (typeof proof?.evidence !== 'string' || !proof.evidence.trim()) {
+    fail('UI_IMPLEMENTATION_REVIEW_PROOF_INVALID', id + ':' + type + ': evidence absente');
+  }
+  return {type,status};
+}
+function deriveAssertionStatus(assertion,proofs) {
+  let pending=false;
+  for(const proof of proofs){
+    const {type,status}=validateProof(assertion.assertion_id,proof);
+    if(status==='FAIL')return 'NON_CONFORME';
+    if(BLOCKING_PROOFS.has(type)&&status!=='PASS')return 'NON_VERIFIABLE';
+    if(type==='ACCESSIBILITY_CHECK'&&status==='NON_VERIFIABLE')return 'NON_VERIFIABLE';
+    if(status==='PENDING_DEVICE')pending=true;
+  }
+  return pending?'PENDING_DEVICE':'CONFORME';
+}
+function aggregateProofStatus(statuses) {
+  if(statuses.includes('FAIL'))return 'FAIL';
+  if(statuses.includes('NON_VERIFIABLE'))return 'NON_VERIFIABLE';
+  if(statuses.includes('PENDING_DEVICE'))return 'PENDING_DEVICE';
+  return 'PASS';
+}
+function deriveCriterionFromAssertions(expected,row) {
+  const observed=Array.isArray(row.assertion_results)?row.assertion_results:null;
+  if(!observed)fail('UI_IMPLEMENTATION_REVIEW_ASSERTION_RESULTS_MISSING',expected.criterion_id);
+  const expectedIds=expected.assertions.map(a=>a.assertion_id).sort();
+  const observedIds=observed.map(a=>String(a&&a.assertion_id||'')).sort();
+  if(JSON.stringify(expectedIds)!==JSON.stringify(observedIds)) {
+    fail('UI_IMPLEMENTATION_REVIEW_ASSERTION_COVERAGE_INCOMPLETE',expected.criterion_id);
+  }
+  const expectedById=new Map(expected.assertions.map(a=>[a.assertion_id,a]));
+  const proofStatuses=new Map();
+  const assertionStatuses=[];
+  for(const result of observed){
+    const id=String(result.assertion_id);
+    const assertion=expectedById.get(id);
+    if(!ASSERTION_STATUSES.has(String(result.status))) {
+      fail('UI_IMPLEMENTATION_REVIEW_ASSERTION_STATUS_INVALID',id);
+    }
+    if(typeof result.evidence!=='string'||!result.evidence.trim()) {
+      fail('UI_IMPLEMENTATION_REVIEW_ASSERTION_EVIDENCE_MISSING',id);
+    }
+    const proofs=Array.isArray(result.proof_results)?result.proof_results:null;
+    if(!proofs)fail('UI_IMPLEMENTATION_REVIEW_ASSERTION_PROOF_INVALID',id+'.proof_results absent');
+    const expectedProofs=[...assertion.proof_required].sort();
+    const observedProofs=proofs.map(p=>String(p&&p.proof_type||'')).sort();
+    if(JSON.stringify(expectedProofs)!==JSON.stringify(observedProofs)) {
+      fail('UI_IMPLEMENTATION_REVIEW_ASSERTION_PROOF_COVERAGE_INCOMPLETE',id);
+    }
+    const derived=deriveAssertionStatus(assertion,proofs);
+    if(String(result.status)!==derived) {
+      fail('UI_IMPLEMENTATION_REVIEW_ASSERTION_STATUS_DERIVATION_MISMATCH',id+': attendu '+derived);
+    }
+    assertionStatuses.push(derived);
+    for(const proof of proofs){
+      const type=String(proof.proof_type), status=String(proof.status);
+      if(!proofStatuses.has(type))proofStatuses.set(type,[]);
+      proofStatuses.get(type).push(status);
+    }
+  }
+  let criterionStatus='CONFORME';
+  if(assertionStatuses.includes('NON_CONFORME'))criterionStatus='NON_CONFORME';
+  else if(assertionStatuses.includes('NON_VERIFIABLE')||assertionStatuses.includes('PENDING_DEVICE'))criterionStatus='NON_VERIFIABLE';
+  if(String(row.implementation_status)!==criterionStatus) {
+    fail('UI_IMPLEMENTATION_REVIEW_CRITERION_DERIVATION_MISMATCH',expected.criterion_id+': attendu '+criterionStatus);
+  }
+  const criterionProofs=Array.isArray(row.proof_results)?row.proof_results:null;
+  if(!criterionProofs)fail('UI_IMPLEMENTATION_REVIEW_PROOF_INVALID',expected.criterion_id+'.proof_results absent');
+  const expectedCriterionProofs=[...expected.proof_required].sort();
+  const observedCriterionProofs=criterionProofs.map(p=>String(p&&p.proof_type||'')).sort();
+  if(JSON.stringify(expectedCriterionProofs)!==JSON.stringify(observedCriterionProofs)) {
+    fail('UI_IMPLEMENTATION_REVIEW_PROOF_COVERAGE_INCOMPLETE',expected.criterion_id);
+  }
+  for(const proof of criterionProofs){
+    validateProof(expected.criterion_id,proof);
+    const statuses=proofStatuses.get(String(proof.proof_type))||[];
+    if(!statuses.length)fail('UI_IMPLEMENTATION_REVIEW_ASSERTION_PROOF_COVERAGE_INCOMPLETE',expected.criterion_id+':'+proof.proof_type);
+    const aggregate=aggregateProofStatus(statuses);
+    if(String(proof.status)!==aggregate) {
+      fail('UI_IMPLEMENTATION_REVIEW_PROOF_DERIVATION_MISMATCH',expected.criterion_id+':'+proof.proof_type+': attendu '+aggregate);
+    }
+  }
+  const pendingOnly=assertionStatuses.every(s=>s==='CONFORME'||s==='PENDING_DEVICE')&&assertionStatuses.includes('PENDING_DEVICE');
+  return {criterionStatus,pendingOnly,assertionStatuses};
 }
 
 function validateReview(input, review) {
@@ -170,39 +318,32 @@ function validateReview(input, review) {
       }
     }
     if (String(row.preserve_status) !== 'PASS') blocking = true;
-    if (['PARTIELLEMENT_CONFORME','NON_CONFORME'].includes(String(row.implementation_status))) blocking = true;
-    const proofs = Array.isArray(row.proof_results) ? row.proof_results : null;
-    if (!proofs) fail('UI_IMPLEMENTATION_REVIEW_PROOF_INVALID', id + '.proof_results absent');
-    const expectedProofs = expected.proof_required.slice().sort();
-    const observedProofs = proofs.map((p) => String(p && p.proof_type || '')).sort();
-    if (JSON.stringify(expectedProofs) !== JSON.stringify(observedProofs)) {
-      fail('UI_IMPLEMENTATION_REVIEW_PROOF_COVERAGE_INCOMPLETE', id);
-    }
-    for (const proof of proofs) {
-      const type = String(proof.proof_type);
-      const status = String(proof.status);
-      if (!PROOF_STATUSES.has(status)) fail('UI_IMPLEMENTATION_REVIEW_PROOF_INVALID', id + ':' + type + ':' + status);
-      if (DEVICE_PROOFS.has(type)) {
-        if (status !== 'PENDING_DEVICE' && status !== 'FAIL') fail('UI_IMPLEMENTATION_REVIEW_DEVICE_PROOF_UNSUPPORTED', id + ':' + type + ' doit rester PENDING_DEVICE sauf defaut demontre');
-        if (status === 'FAIL') blocking = true;
-      } else if (type === 'ACCESSIBILITY_CHECK') {
-        if (!['PASS','PENDING_DEVICE','FAIL'].includes(status)) {
-          fail('UI_IMPLEMENTATION_REVIEW_ACCESSIBILITY_PROOF_UNSUPPORTED', id + ':' + type + ':' + status);
-        }
-        if (status === 'FAIL') blocking = true;
-      } else if (BLOCKING_PROOFS.has(type)) {
-        if (status !== 'PASS') blocking = true;
+
+    if (input.assertion_mode) {
+      const derived=deriveCriterionFromAssertions(expected,row);
+      if(['NON_CONFORME','NON_VERIFIABLE'].includes(derived.criterionStatus)&&!derived.pendingOnly)blocking=true;
+    } else {
+      if (['PARTIELLEMENT_CONFORME','NON_CONFORME'].includes(String(row.implementation_status))) blocking = true;
+      const proofs = Array.isArray(row.proof_results) ? row.proof_results : null;
+      if (!proofs) fail('UI_IMPLEMENTATION_REVIEW_PROOF_INVALID', id + '.proof_results absent');
+      const expectedProofs = expected.proof_required.slice().sort();
+      const observedProofs = proofs.map((p) => String(p && p.proof_type || '')).sort();
+      if (JSON.stringify(expectedProofs) !== JSON.stringify(observedProofs)) {
+        fail('UI_IMPLEMENTATION_REVIEW_PROOF_COVERAGE_INCOMPLETE', id);
       }
-      if (status === 'FAIL') blocking = true;
-      if (typeof proof.evidence !== 'string' || !proof.evidence.trim()) {
-        fail('UI_IMPLEMENTATION_REVIEW_PROOF_INVALID', id + ':' + type + ': evidence absente');
+      for (const proof of proofs) {
+        const {type,status}=validateProof(id,proof);
+        if (DEVICE_PROOFS.has(type)&&status==='FAIL') blocking=true;
+        else if(type==='ACCESSIBILITY_CHECK'&&status==='FAIL')blocking=true;
+        else if(BLOCKING_PROOFS.has(type)&&status!=='PASS')blocking=true;
+        if(status==='FAIL')blocking=true;
       }
-    }
-    if (String(row.implementation_status) === 'NON_VERIFIABLE') {
-      const deviceOnlyGap = proofs.length > 0 && proofs.every((proof) =>
-        String(proof.status) === 'PASS' ||
-        (DEFERABLE_PROOFS.has(String(proof.proof_type)) && String(proof.status) === 'PENDING_DEVICE'));
-      if (!deviceOnlyGap) blocking = true;
+      if (String(row.implementation_status) === 'NON_VERIFIABLE') {
+        const deviceOnlyGap = proofs.length > 0 && proofs.every((proof) =>
+          String(proof.status) === 'PASS' ||
+          (DEFERABLE_PROOFS.has(String(proof.proof_type)) && String(proof.status) === 'PENDING_DEVICE'));
+        if (!deviceOnlyGap) blocking = true;
+      }
     }
     if (typeof row.evidence !== 'string' || !row.evidence.trim()) {
       fail('UI_IMPLEMENTATION_REVIEW_OUTPUT_INVALID', id + ': evidence absente');
@@ -228,8 +369,6 @@ function validateReview(input, review) {
     }
   }
 
-  // A non-UI plan has no machine-defined functional criterion IDs. Its prose
-  // requirements must be assessed independently, never replaced by report IDs.
   if (!input.ui_applicable) {
     const assessment = review.non_ui_plan_assessment;
     const statuses = new Set(['CONFORME','NON_CONFORME','NON_VERIFIABLE']);
@@ -250,8 +389,6 @@ function validateReview(input, review) {
     if (assessment.status !== 'CONFORME') blocking = true;
   }
 
-  // F12: completeness is mechanically observable; semantic truth remains the
-  // independent reviewer's job. Use its existing NON_VERIFIABLE/REVISE states.
   if (input.implementation_report && input.implementation_report.status !== 'COMPLETE') {
     const affected = results.filter((row) => (byId.get(String(row.criterion_id)).review_scope || 'AFFECTED') === 'AFFECTED');
     if (affected.some(row => row.implementation_status !== 'NON_VERIFIABLE')) {
@@ -279,10 +416,10 @@ try {
   const previousFile = mode === 'prepare' ? args[5] : args[6];
   const input = buildInput(planBody, changedFiles, readPreviousReview(previousFile));
   if (evidenceFile) input.implementation_report = inspectImplementation(
-    fs.readFileSync(path.resolve(evidenceFile),'utf8'), input.ui_applicable ? input.criteria.map(c=>c.criterion_id) : undefined);
+    fs.readFileSync(path.resolve(evidenceFile),'utf8'), input.ui_applicable ? input.criteria : undefined);
   if (mode === 'prepare') {
     fs.writeFileSync(path.resolve(third), JSON.stringify(input, null, 2) + '\n', 'utf8');
-    process.stdout.write('[KODJO_V2] UI implementation review input prepared — criteria=' + input.criterion_count + ' device=' + input.device_gate_required + ' mode=' + input.review_mode + '\n');
+    process.stdout.write('[KODJO_V2] UI implementation review input prepared — criteria=' + input.criterion_count + ' assertions=' + (input.assertion_count||0) + ' device=' + input.device_gate_required + ' mode=' + input.review_mode + '\n');
   } else {
     if (!outputFile) throw new Error('validate requiert output.json');
     const review = readJson(third);
