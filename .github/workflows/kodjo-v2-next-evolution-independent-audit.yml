@@ -197,7 +197,7 @@ jobs:
             $payload=Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit-comment.json'
             [IO.File]::WriteAllText($payload,(@{body=$body}|ConvertTo-Json -Compress -Depth 3),(New-Object Text.UTF8Encoding($false)))
             gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$env:PR_NUMBER/comments" --input $payload
-            if($LASTEXITCODE-ne0){throw 'Independent audit comment publication failed; report preserved in Actions summary and artifact'}
+            if($LASTEXITCODE-ne0){Write-Warning 'Independent audit comment publication unavailable; report preserved in Actions summary and artifact'}
           }
 
       - name: Preserve independent audit regardless of comment publication
@@ -208,5 +208,5 @@ jobs:
           path: |
             ${{ runner.temp }}/kodjo-next-evolution-audit.md
             ${{ runner.temp }}/kodjo-next-evolution-audit-summary.json
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 14

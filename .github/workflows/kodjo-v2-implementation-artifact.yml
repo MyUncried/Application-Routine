@@ -347,7 +347,7 @@ jobs:
             ${{ runner.temp }}/kodjo/delivery/integrity/
             ${{ runner.temp }}/kodjo/delivery/adapter.json
             ${{ runner.temp }}/kodjo/implementation-plan-gate.json
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 90
 
       - name: Publish structured issue result
@@ -366,7 +366,7 @@ jobs:
           name: ${{ env.RECEIPT_ARTIFACT }}
           path: ${{ runner.temp }}/kodjo/delivery/receipt/
           if-no-files-found: warn
-          retention-days: 90
+          retention-days: 7
 
       - name: Return run status after preservation and publication
         id: exit_status

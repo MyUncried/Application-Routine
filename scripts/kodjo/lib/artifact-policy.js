@@ -2,6 +2,11 @@
 
 const POLICIES = [
   { pattern: /^kodjo-v2-recovery-/, role: 'RECOVERY_REQUIRED', retention_days: 90, critical: true },
+  { pattern: /^kodjo-[^-]+(?:-[^-]+)*-[0-9]+-recovery(?:-retry)?$/, role: 'RECOVERY_REQUIRED', retention_days: 90, critical: true },
+  { pattern: /^kodjo-[^-]+(?:-[^-]+)*-[0-9]+-result$/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 90, critical: true },
+  { pattern: /^kodjo-[^-]+(?:-[^-]+)*-[0-9]+-publication-receipt$/, role: 'TEMPORARY_TRANSPORT', retention_days: 7, critical: false },
+  { pattern: /^kodjo-v2-disposable-qualification-/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 90, critical: true },
+  { pattern: /^kodjo-v2-(?:qualification-availability|runner-cleanup)-/, role: 'DIAGNOSTIC', retention_days: 7, critical: false },
   { pattern: /^kodjo-v2-independent-audit-/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 14, critical: true },
   { pattern: /^kodjo-v2-(?:initial-plan|slice-plan)(?:-review)?-/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 14, critical: true },
   { pattern: /^kodjo-v2-preflight-/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 7, critical: true },

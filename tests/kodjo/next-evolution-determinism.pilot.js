@@ -14,6 +14,7 @@ const {stabilizeUiIdentities,decode,schemaFor,validateSourceBindings}=require('.
 const {verify:verifyBoundedRevision}=require('../../scripts/kodjo/verify-bounded-plan-revision');
 const {classifyFiles,diff:impactDiff}=require('../../scripts/kodjo/classify-protocol-impact');
 const {detect:detectClosure}=require('../../scripts/kodjo/detect-v2-closure-inconsistency');
+const {decide:decidePlanRetry}=require('../../scripts/kodjo/decide-plan-review-retry');
 const {classifyLog}=require('../../scripts/kodjo/classify-planning-failure');
 const {validateMatrix}=require('../../scripts/kodjo/lib/ui-criteria-contract');
 const {buildRequirementContract,buildTestContract,buildBoundaryContract}=require('../../scripts/kodjo/lib/requirement-contract');
@@ -80,6 +81,33 @@ test('PE-30 flags final evidence while the activation registry remains ACTIVE',(
   const comments={'12':[{id:42,body:'[KODJO_SLICE] FINAL_OUTPUT\nslice_id=X\nfinal_head=abc\nSTATUT : DONE'}]};
   assert.equal(detectClosure(registry,comments).anomalies[0].code,'CLOSURE_EVIDENCE_WITH_ACTIVE_REGISTRY');
   assert.deepEqual(detectClosure({...registry,activations:[{...registry.activations[0],status:'CLOSED',closure:{final_head:'abc'}}]},comments).anomalies,[]);
+});
+
+test('PE-35 stops the plan review loop after one automatic revision',()=>{
+  const user={id:10,user:{login:'MyUncried'},body:'[KODJO_V2] START_INITIAL_PLAN\nslice_id=X'};
+  const review=(id)=>({id,user:{login:'github-actions[bot]'},body:'[KODJO_V2] PLAN_REVIEW_OUTPUT\nslice_id=X\nverdict=REVISE'});
+  assert.equal(decidePlanRetry([[user,review(11)]],'X',11).status,'RETRY');
+  assert.equal(decidePlanRetry([[user,review(11),review(12)]],'X',12).status,'USER_VALIDATION');
+  assert.match(read('.github/workflows/kodjo-v2-slice-initial-plan-review.yml'),/decide-plan-review-retry\.js/);
+  assert.match(read('.github/workflows/kodjo-v2-slice-plan-review.yml'),/decide-plan-review-retry\.js/);
+});
+
+test('PE-36 classifies every implementation transport by its actual artifact name',()=>{
+  assert.equal(classify('kodjo-V2-CAT-01-123-recovery').role,'RECOVERY_REQUIRED');
+  assert.equal(classify('kodjo-V2-CAT-01-123-recovery-retry').role,'RECOVERY_REQUIRED');
+  assert.equal(classify('kodjo-V2-CAT-01-123-result').critical,true);
+  assert.equal(classify('kodjo-V2-CAT-01-123-publication-receipt').retention_days,7);
+  assert.equal(classify('kodjo-v2-disposable-qualification-123-1').retention_days,90);
+});
+
+test('DET-04 keeps exact test evidence at both authoritative review gates',()=>{
+  const review=read('.github/workflows/kodjo-slice-implementation-review.yml');
+  const finalize=read('.github/workflows/kodjo-slice-finalize.yml');
+  assert.match(review,/KODJO_REQUIRE_TEST_CONTRACT_EVIDENCE: '1'/);
+  assert.match(review,/KODJO_TEST_CONTRACT_EVIDENCE_FILE: \/tmp\/kodjo-test-contract-evidence\.json/);
+  assert.match(review,/<KODJO_TEST_CONTRACT_EVIDENCE_JSON>/);
+  assert.match(finalize,/KODJO_REQUIRE_TEST_CONTRACT_EVIDENCE='1'/);
+  assert.match(finalize,/V2 implementation review replay is not APPROVE/);
 });
 
 test('PE-38 rename classification includes both source and destination',()=>{

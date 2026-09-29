@@ -581,7 +581,22 @@ try {
   const previousFile = mode === 'prepare' ? args[5] : args[6];
   const input = buildInput(planBody, changedFiles, readPreviousReview(previousFile));
   const testEvidenceFile=String(process.env.KODJO_TEST_CONTRACT_EVIDENCE_FILE||'').trim();
-  if(testEvidenceFile&&fs.existsSync(path.resolve(testEvidenceFile)))input.test_contract_evidence=readJson(testEvidenceFile);
+  if(input.non_ui_requirement_count>=0&&/<KODJO_REQUIREMENT_CONTRACT_JSON>/.test(planBody)&&process.env.KODJO_REQUIRE_TEST_CONTRACT_EVIDENCE==='1'&&
+     (!testEvidenceFile||!fs.existsSync(path.resolve(testEvidenceFile))))throw new Error('TEST_CONTRACT_EVIDENCE_MISSING');
+  if(testEvidenceFile&&fs.existsSync(path.resolve(testEvidenceFile))){
+    input.test_contract_evidence=readJson(testEvidenceFile);
+    const expectedHead=String(process.env.KODJO_EXPECTED_REVIEW_HEAD||'');
+    if(expectedHead&&input.test_contract_evidence.head!==expectedHead)throw new Error('TEST_CONTRACT_EVIDENCE_HEAD_MISMATCH');
+    if(/<KODJO_REQUIREMENT_CONTRACT_JSON>/.test(planBody)){
+      const expected=verifyRequirementContracts(planBody).test_contract.bindings.map(row=>row.requirement_id+':'+row.test_path).sort();
+      const observed=Array.isArray(input.test_contract_evidence.bindings)
+        ?input.test_contract_evidence.bindings.map(row=>String(row.requirement_id)+':'+String(row.test_path)).sort():[];
+      if(input.test_contract_evidence.schema!=='kodjo.test-contract-evidence.v1'||
+         input.test_contract_evidence.binding_count!==expected.length||JSON.stringify(observed)!==JSON.stringify(expected)){
+        throw new Error('TEST_CONTRACT_EVIDENCE_BINDINGS_MISMATCH');
+      }
+    }
+  }
   if (evidenceFile) input.implementation_report = inspectImplementation(
     fs.readFileSync(path.resolve(evidenceFile),'utf8'), {
       criteria: input.criteria,

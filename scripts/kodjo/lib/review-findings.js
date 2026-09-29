@@ -28,8 +28,8 @@ function normalize(value){
     return {finding_id:'RF-'+sha(identity).slice(0,16).toUpperCase(),category,target_kind,target,blocking:row.blocking,diagnostic,expected_correction,dependency_expansion_required:row.dependency_expansion_required,dependency_evidence};
   }).sort((a,b)=>a.finding_id.localeCompare(b.finding_id));
   const ids=findings.map(x=>x.finding_id); if(new Set(ids).size!==ids.length)throw new Error('PLAN_REVIEW_FINDING_DUPLICATE');
-  const verdict=findings.some(x=>x.blocking)?'REVISE':'APPROVE';
-  const affected_targets=[...new Set(findings.filter(x=>x.blocking).map(x=>x.target))].sort();
+  const verdict=findings.some(x=>x.blocking||x.category==='CLARIFICATION')?'REVISE':'APPROVE';
+  const affected_targets=[...new Set(findings.filter(x=>x.blocking||x.category==='CLARIFICATION').map(x=>x.target))].sort();
   return {schema:'kodjo.plan-review-findings.v1',finding_count:findings.length,verdict,affected_targets,findings};
 }
 function inspect(markdown){return normalize(parseBlock(markdown));}

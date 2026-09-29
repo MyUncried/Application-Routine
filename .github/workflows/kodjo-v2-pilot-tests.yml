@@ -7,6 +7,8 @@ on:
       # Une demande immuable n'est pas une modification du protocole : son
       # admission ciblée est effectuée par Lean Queue au lancement.
       - '!.github/orchestration/queue/v2/*.json'
+      # Pure backlog edits are known non normative and need no workflow run.
+      - '!.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'
       # The audit matrix and mission are executable inputs of protocol checks.
       # Keep them in the qualified set even though they are Markdown files.
       - '.github/workflows/kodjo-v2-*.yml'

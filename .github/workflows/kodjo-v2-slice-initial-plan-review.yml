@@ -233,6 +233,20 @@ jobs:
             gh workflow run kodjo-v2-plan-handoff-materialize.yml --ref main -f "issue_number=$env:ISSUE_NUMBER" -f "review_comment_id=$reviewCommentId"
             if($LASTEXITCODE-ne0){throw 'Plan handoff materialization dispatch failed'}
           }else{
+            $history=gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments?per_page=100"
+            if($LASTEXITCODE-ne0){throw 'Plan retry history unavailable'}
+            $historyFile=Join-Path $env:RUNNER_TEMP 'kodjo-plan-retry-history.json'
+            [IO.File]::WriteAllText($historyFile,($history -join [Environment]::NewLine),(New-Object Text.UTF8Encoding($false)))
+            $retry=node scripts/kodjo/decide-plan-review-retry.js $historyFile $env:SLICE_ID $reviewCommentId|ConvertFrom-Json
+            if($LASTEXITCODE-ne0){throw 'Plan retry decision failed'}
+            if(([string]$retry.status -eq 'USER_VALIDATION') -or (@($findings.findings|Where-Object{$_.category -eq 'CLARIFICATION'}).Count -gt 0)){
+              $stop='[KODJO_V2] PLAN_RETRY_USER_VALIDATION'+$nl+'slice_id='+$env:SLICE_ID+$nl+'review_comment_id='+$reviewCommentId+$nl+'reason=REPEATED_REVISE'+$nl+'STATUT : USER_VALIDATION'
+              $stopFile=Join-Path $env:RUNNER_TEMP 'kodjo-plan-retry-stop.json'
+              [IO.File]::WriteAllText($stopFile,(@{body=$stop}|ConvertTo-Json -Depth 3),(New-Object Text.UTF8Encoding($false)))
+              gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments" --input $stopFile
+              if($LASTEXITCODE-ne0){throw 'Plan retry stop publication failed'}
+              exit 0
+            }
             gh workflow run kodjo-v2-slice-initial-plan.yml --ref main -f "issue_number=$env:ISSUE_NUMBER" -f "slice_id=$env:SLICE_ID" -f "bootstrap_path=$env:BOOTSTRAP_PATH" -f "source_head=$env:SOURCE_HEAD" -f "command_comment_id=$reviewCommentId"
             if($LASTEXITCODE-ne0){throw 'Bounded initial replanning dispatch failed'}
           }

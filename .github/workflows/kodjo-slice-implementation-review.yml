@@ -24,6 +24,8 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       KODJO_REQUIRE_COMPONENT_PROOF: '1'
+      KODJO_REQUIRE_TEST_CONTRACT_EVIDENCE: '1'
+      KODJO_TEST_CONTRACT_EVIDENCE_FILE: /tmp/kodjo-test-contract-evidence.json
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       SOURCE_BODY: ${{ github.event.comment.body || '' }}
       SOURCE_COMMENT_ID: ${{ github.event.comment.id || github.event.client_payload.source_comment_id }}
@@ -284,9 +286,10 @@ jobs:
       - name: Prepare criterion-complete UI review input
         if: startsWith(steps.gate.outputs.manifest, '.github/orchestration/queue/v2/') && steps.gate.outputs.v2_operation_kind == 'IMPLEMENT'
         shell: bash
+        env:
+          KODJO_EXPECTED_REVIEW_HEAD: ${{ steps.gate.outputs.head }}
         run: |
           set -euo pipefail
-          export KODJO_TEST_CONTRACT_EVIDENCE_FILE=/tmp/kodjo-test-contract-evidence.json
           review_prepare=(prepare /tmp/approved-plan.md /tmp/changed-files.txt /tmp/ui-implementation-review-input.json /tmp/implementation-output.md)
           if [ -f /tmp/previous-review.md ]; then review_prepare+=(/tmp/previous-review.md); fi
           node "$KODJO_REVIEW_RUNTIME"/verify-ui-implementation-review.js "${review_prepare[@]}"
@@ -321,6 +324,7 @@ jobs:
         if: startsWith(steps.gate.outputs.manifest, '.github/orchestration/queue/v2/') && steps.gate.outputs.v2_operation_kind == 'IMPLEMENT'
         shell: bash
         env:
+          KODJO_EXPECTED_REVIEW_HEAD: ${{ steps.gate.outputs.head }}
           SLICE_ID: ${{ steps.gate.outputs.slice_id }}
           HEAD: ${{ steps.gate.outputs.head }}
           BASE: ${{ steps.gate.outputs.review_base }}
@@ -592,6 +596,9 @@ jobs:
               echo '<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'
               cat /tmp/review-contract.json
               echo '</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'
+              echo '<KODJO_TEST_CONTRACT_EVIDENCE_JSON>'
+              cat /tmp/kodjo-test-contract-evidence.json
+              echo '</KODJO_TEST_CONTRACT_EVIDENCE_JSON>'
             fi
           } > /tmp/review-comment.md
           gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file /tmp/review-comment.md
