@@ -8,6 +8,17 @@ const assert = require('node:assert/strict');
 
 const root = path.resolve(__dirname, '..', '..');
 const { sha256 } = require('../../scripts/kodjo/lib/plan-impact');
+const {buildRequirementContract,buildTestContract,buildBoundaryContract}=require('../../scripts/kodjo/lib/requirement-contract');
+function contractTags(matrix,scope,includeImpact=true){
+  const requirements=buildRequirementContract(matrix,[],new Set(scope));
+  return [
+    ...(includeImpact?[['KODJO_PLAN_IMPACT_JSON',{scope_allow:scope}]]:[]),
+    ['KODJO_NON_UI_REQUIREMENTS_JSON',[]],
+    ['KODJO_REQUIREMENT_CONTRACT_JSON',requirements],
+    ['KODJO_TEST_CONTRACT_JSON',buildTestContract(requirements)],
+    ['KODJO_BOUNDARY_CONTRACT_JSON',buildBoundaryContract(matrix)],
+  ].map(([tag,value])=>'<'+tag+'>'+JSON.stringify(value)+'</'+tag+'>\n').join('');
+}
 const {
   REQUIRED_STOPS,
   renderImplementationMission,
@@ -96,7 +107,8 @@ function planFixtureV2() {
     matrix_sha256:matrixFingerprint(matrix),
   };
   return '# Plan\n\n<KODJO_UI_CRITERIA_MATRIX_JSON>\n'+JSON.stringify(matrix)+'\n</KODJO_UI_CRITERIA_MATRIX_JSON>\n' +
-    '<KODJO_UI_PLAN_CONTRACT_JSON>\n'+JSON.stringify(uiContract)+'\n</KODJO_UI_PLAN_CONTRACT_JSON>\n';
+    '<KODJO_UI_PLAN_CONTRACT_JSON>\n'+JSON.stringify(uiContract)+'\n</KODJO_UI_PLAN_CONTRACT_JSON>\n'+
+    contractTags(matrix,[...matrix.criteria[0].change_targets,...matrix.criteria[0].tests]);
 }
 
 test('implementation contract: mission est dérivée par hash du plan approuvé sans recopier la matrice', () => {
@@ -120,7 +132,7 @@ test('implementation contract v2: assertions sont liées par hash et exigées da
   const plan=planFixtureV2();
   const blob='e'.repeat(40);
   const {mission,contract}=renderImplementationMission('V2-TEST',plan,blob);
-  assert.equal(contract.schema,'kodjo.ui-implementation-contract.v2');
+  assert.equal(contract.schema,'kodjo.implementation-contract.v3');
   assert.equal(contract.ui_assertion_count,2);
   assert.match(mission,/ui_assertion_count=2/);
   assert.match(mission,/assertion_results/);
@@ -245,7 +257,8 @@ test('real producer -> mission -> review consumer share normalized matrix hash w
   assert.equal(produced.status,0,produced.stderr);
   const contract = JSON.parse(fs.readFileSync(output,'utf8'));
   assert.notEqual(contract.matrix_sha256,sha256(matrix),'fixture must reproduce raw/normalized mismatch');
-  const approved = draft+'<KODJO_UI_PLAN_CONTRACT_JSON>'+JSON.stringify(contract)+'</KODJO_UI_PLAN_CONTRACT_JSON>\n';
+  const approved = draft+'<KODJO_UI_PLAN_CONTRACT_JSON>'+JSON.stringify(contract)+'</KODJO_UI_PLAN_CONTRACT_JSON>\n'+
+    contractTags(extractTaggedJson(draft,'KODJO_UI_CRITERIA_MATRIX_JSON'),[target,...matrix.criteria[0].tests],false);
   fs.writeFileSync(planFile,approved);
   const mission = renderImplementationMission('V2-TEST',approved,'c'.repeat(40));
   assert.equal(mission.contract.ui_matrix_sha256,contract.matrix_sha256);

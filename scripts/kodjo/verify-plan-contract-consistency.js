@@ -98,8 +98,9 @@ try {
 
   const requiredTestWrites = [...requiredWrites].sort();
   const hasRequirementContract = /<KODJO_REQUIREMENT_CONTRACT_JSON>[\s\S]*?<\/KODJO_REQUIREMENT_CONTRACT_JSON>/.test(markdown);
-  const uiMatrix=extractTaggedJson(markdown,'KODJO_UI_CRITERIA_MATRIX_JSON');
-  if(uiMatrix.schema==='kodjo.ui-criteria.v2'&&!hasRequirementContract)fail('REQUIREMENT_CONTRACT_REQUIRED_FOR_V2');
+  const hasUiMatrix=/<KODJO_UI_CRITERIA_MATRIX_JSON>[\s\S]*?<\/KODJO_UI_CRITERIA_MATRIX_JSON>/.test(markdown);
+  if(hasUiMatrix&&extractTaggedJson(markdown,'KODJO_UI_CRITERIA_MATRIX_JSON').schema==='kodjo.ui-criteria.v2'&&!hasRequirementContract)
+    fail('REQUIREMENT_CONTRACT_REQUIRED_FOR_V2');
   const requirementContracts = hasRequirementContract ? verifyRequirementContracts(markdown) : null;
   const hasCoverage=/<KODJO_NON_UI_COVERAGE_JSON>[\s\S]*?<\/KODJO_NON_UI_COVERAGE_JSON>/.test(markdown);
   if(requirementContracts&&(hasCoverage||process.env.KODJO_REQUIRE_NON_UI_COVERAGE==='1')){
