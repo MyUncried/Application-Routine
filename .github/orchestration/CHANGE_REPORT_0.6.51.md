@@ -27,6 +27,8 @@ Le préflight Windows du run #566 a réussi ses contrôles courants puis a écho
 
 Le workflow candidat n’étant pas encore présent sur `main`, son `workflow_dispatch` ne peut pas être utilisé avant activation. Un déclencheur `pull_request` borné à la PR #250 et au fichier d’audit attend un run pilote SUCCESS lié au même HEAD avant d’appeler Claude. Aucun audit d’un HEAD supersédé n’est publié.
 
+Le pré-audit Windows installe le tokenizer isolé avant de rejouer les tests, comme le pilot Windows. Le run d’audit #3 a refusé l’appel Claude lorsque cette dépendance manquait ; ce correctif rétablit le même environnement de qualification.
+
 ## État
 
 Implémentation candidate présente dans la PR #250.
