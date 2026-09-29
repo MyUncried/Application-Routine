@@ -95,7 +95,11 @@ function verify(queueFile, options = {}) {
       outputPath: options.transitionProofPath,
     });
   } catch (error) {
-    throw new Error('VISUAL_CORRECTION_CONTRACT_CHANGED: ' + String(error && error.message ? error.message : error));
+    const diagnostic=String(error && error.message ? error.message : error);
+    if (/^PLAN_REVIEW_(PRODUCT_INPUT_CHANGED|NON_PROTOCOL_CHANGE|PRODUCT_SOURCE_PROOF_INVALID)\b/.test(diagnostic)) {
+      throw new Error('VISUAL_CORRECTION_CONTRACT_CHANGED: ' + diagnostic);
+    }
+    throw new Error('VISUAL_CORRECTION_ORCHESTRATION_FAILURE: ' + diagnostic);
   }
 
   return {

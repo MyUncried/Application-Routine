@@ -57,7 +57,8 @@ function verify(planText, jestJson, cwd = process.cwd()) {
     head: gitHead(cwd),
     binding_count: evidence.length,
     bindings: evidence,
-    status: evidence.every((x) => x.status === 'PASS') ? 'PASS' : 'FAIL',
+    status: evidence.some((x) => x.status === 'FAIL') ? 'FAIL' :
+      evidence.every((x) => x.status === 'PASS') ? 'PASS' : 'NON_VERIFIABLE',
   };
 }
 
@@ -71,7 +72,8 @@ if (require.main === module) {
     const result = verify(plan, jest, cwd);
     fs.writeFileSync(path.resolve(outputFile), JSON.stringify(result, null, 2) + '\n', 'utf8');
     process.stdout.write('[KODJO_V2] test contract evidence — bindings=' + result.binding_count + ' status=' + result.status + '\n');
-    if (result.status !== 'PASS') process.exit(1);
+    // Missing or failed bindings are review evidence, not a runner failure.
+    // The downstream derived review verdict must refuse approval.
   } catch (error) {
     process.stderr.write(String(error && error.message ? error.message : error) + '\n');
     process.exit(1);

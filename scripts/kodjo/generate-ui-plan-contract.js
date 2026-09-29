@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 const fs = require('node:fs');
+const path = require('node:path');
+const {spawnSync} = require('node:child_process');
 const {matrixSchema, validateMatrix, validateShape, contractPrompt, isUiPath, object, array, text} = require('./lib/ui-criteria-contract');
 const {normalizeRepoPath,canonicalJson,sha256} = require('./lib/plan-impact');
 const {buildRequirementContract,buildTestContract,buildBoundaryContract} = require('./lib/requirement-contract');
@@ -15,6 +17,7 @@ const nonUiRequirementSchema=object({
   status:{type:'string',enum:['DEFINED','CLARIFICATION_REQUIRED']},
 });
 const clarificationSchema=object({source:object({path:text,locator:text}),question:text,affected_targets:array(text)});
+const nonUiCoverageSchema=object({status:{type:'string',enum:['ENUMERATED','NONE']},reason:text,source_paths:array(text,1)});
 function stabilizeUiIdentities(matrix){
   if(!matrix||!Array.isArray(matrix.criteria))return matrix;
   const criteria=matrix.criteria.map((criterion)=>{
@@ -39,8 +42,8 @@ function schemaFor(phase, scan=null) {
     plan_markdown:text,
     ui_criteria_matrix:matrixSchema,
     non_ui_requirements:array(nonUiRequirementSchema),
+    non_ui_coverage:nonUiCoverageSchema,
     clarifications:array(clarificationSchema),
-    plan_status:{type:'string',enum:['READY_FOR_INDEPENDENT_REVIEW','CLARIFICATION_REQUIRED']},
   };
   if (phase==='draft') properties.modified_modules=array(object({path:text,change:{type:'string',enum:['MODIFY','CREATE']}}),1);
   else if (scan && Array.isArray(scan.candidates)) {
@@ -61,12 +64,49 @@ function schemaFor(phase, scan=null) {
 function request(phase, prompt, scan=null) {
   return {model:'gpt-5.6-luna',input:prompt+'\n\n'+contractPrompt()+
     '\nOUTPUT TRANSPORT: Return the structured object defined by the response schema. '+
-    'Return the matrix as an object, never a JSON string. Enumerate every non-UI functional/data/technical/migration/preservation requirement in non_ui_requirements; never leave a non-UI requirement only in prose. Put every unresolved ambiguity in clarifications. Paths must come from the supplied Git scope. Put all narrative in plan_markdown, without KODJO tags or PLAN_STATUS. '+
+    'Return the matrix as an object, never a JSON string. Enumerate every non-UI functional/data/technical/migration/preservation requirement in non_ui_requirements; never leave a non-UI requirement only in prose. State non_ui_coverage=NONE only with a source-backed explanation identifying why every supplied non-UI source has no applicable requirement; otherwise use ENUMERATED. Put every unresolved ambiguity in clarifications. Paths must come from the supplied Git scope. Put all narrative in plan_markdown, without KODJO tags or PLAN_STATUS. '+
     'The workflow alone renders machine tags and status. This transport instruction supersedes tag examples in source material.',
     store:false,reasoning:{effort:'high'},max_output_tokens:20000,
     text:{verbosity:'medium',format:{type:'json_schema',name:'kodjo_ui_plan_'+phase,strict:true,schema:schemaFor(phase,scan)}}};
 }
-function decode(phase, response, scan) {
+function validateSourceBindings(requirements, scan, sourceRoot, scope, matrix=null, coverage=null){
+  if(!sourceRoot)return;
+  const head=String(scan&&scan.scan_revision||'');
+  if(!/^[0-9a-f]{40}$/.test(head))throw new Error('PLAN_SOURCE_HEAD_INVALID');
+  const root=path.resolve(sourceRoot);
+  const current=spawnSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8',shell:false});
+  if(current.status!==0||String(current.stdout).trim()!==head)throw new Error('PLAN_SOURCE_CHECKOUT_MISMATCH');
+  const exists=(p)=>spawnSync('git',['cat-file','-e',head+':'+p],{cwd:root,shell:false,windowsHide:true}).status===0;
+  const create=new Set((scan.modified_modules||[]).filter(x=>x.change==='CREATE').map(x=>normalizeRepoPath(x.path,'CREATE')));
+  for(const req of requirements.requirements){
+    if(req.domain==='NON_UI'&&!exists(req.source.path))throw new Error('REQUIREMENT_SOURCE_NOT_AT_HEAD:'+req.source.path);
+    for(const test of req.tests||[]){
+      const p=normalizeRepoPath(test,'test_path');
+      if(exists(p))continue;
+      if(!scope.has(p)||!create.has(p)||!/(?:^tests\/|\/__tests__\/|\.test\.[cm]?[jt]sx?$)/.test(p)){
+        throw new Error('PLAN_TEST_PATH_NOT_AT_HEAD_OR_AUTHORIZED_CREATE:'+p);
+      }
+    }
+  }
+  for(const source of coverage?.source_paths||[]){
+    const p=normalizeRepoPath(source,'non_ui_coverage.source_path');
+    if(!exists(p))throw new Error('NON_UI_COVERAGE_SOURCE_NOT_AT_HEAD:'+p);
+  }
+  for(const criterion of matrix?.criteria||[]){
+    if(!['REUSE','EXTEND'].includes(criterion.component_decision))continue;
+    const selected=criterion.selected_component;
+    const component=normalizeRepoPath(selected.path,'selected_component.path');
+    if(!exists(component))throw new Error('PLAN_SELECTED_COMPONENT_NOT_AT_HEAD:'+component);
+    const blob=spawnSync('git',['show',head+':'+component],{cwd:root,encoding:'utf8',shell:false,windowsHide:true});
+    if(blob.status!==0)throw new Error('PLAN_SELECTED_COMPONENT_UNREADABLE:'+component);
+    const escaped=selected.export.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const exported=selected.export==='default'
+      ? /\bexport\s+default\b/.test(blob.stdout)
+      : new RegExp('\\bexport\\s+(?:(?:declare|const|let|var|function|class|type|interface|enum)\\s+'+escaped+'\\b|\\{[^}]*\\b'+escaped+'\\b[^}]*\\})').test(blob.stdout);
+    if(!exported)throw new Error('PLAN_SELECTED_COMPONENT_EXPORT_NOT_AT_HEAD:'+component+'#'+selected.export);
+  }
+}
+function decode(phase, response, scan, sourceRoot=null) {
   if (response.status!=='completed') throw new Error('PLAN_GENERATION_INCOMPLETE');
   const contents=(response.output||[]).filter(x=>x.type==='message').flatMap(x=>x.content||[]);
   if (contents.some(x=>x.type==='refusal')) throw new Error('PLAN_GENERATION_REFUSED');
@@ -97,6 +137,14 @@ function decode(phase, response, scan) {
   const uiPaths=[...new Set([...paths,...promoted].filter(isUiPath))];
   validateMatrix(result.ui_criteria_matrix,{scope,uiPaths,requireAssertions:true});
   const requirements=buildRequirementContract(result.ui_criteria_matrix,result.non_ui_requirements,scope);
+  const coverage=result.non_ui_coverage;
+  if((coverage.status==='NONE')!== (result.non_ui_requirements.length===0))throw new Error('NON_UI_COVERAGE_STATUS_MISMATCH');
+  if(coverage.status==='NONE'&&coverage.reason.trim().length<40)throw new Error('NON_UI_COVERAGE_REASON_INSUFFICIENT');
+  const sources=new Set(coverage.source_paths.map(x=>normalizeRepoPath(x,'non_ui_coverage.source_path')));
+  for(const row of result.non_ui_requirements){
+    if(!sources.has(normalizeRepoPath(row.source.path,'non_ui_requirement.source.path')))throw new Error('NON_UI_COVERAGE_SOURCE_UNLISTED:'+row.source.path);
+  }
+  validateSourceBindings(requirements,scan,sourceRoot,scope,result.ui_criteria_matrix,coverage);
   const tests=buildTestContract(requirements);
   const boundaries=buildBoundaryContract(result.ui_criteria_matrix);
   for(const clarification of result.clarifications){
@@ -110,11 +158,11 @@ function decode(phase, response, scan) {
   const blockingRequirement=result.non_ui_requirements.some(x=>x.status==='CLARIFICATION_REQUIRED');
   const derivedStatus=(blockingDecision||blockingRequirement||result.clarifications.length)
     ? 'CLARIFICATION_REQUIRED' : 'READY_FOR_INDEPENDENT_REVIEW';
-  if(result.plan_status!==derivedStatus) throw new Error('PLAN_STATUS_DERIVATION_MISMATCH:'+result.plan_status+':'+derivedStatus);
   const tag=(name,value)=>'\n<KODJO_'+name+'_JSON>\n'+JSON.stringify(value,null,2)+'\n</KODJO_'+name+'_JSON>\n';
   return result.plan_markdown+'\n'+tag(phase==='draft'?'MODIFIED_MODULES':'PLAN_DECISIONS',phase==='draft'?modified:decisions)+
     tag('UI_CRITERIA_MATRIX',result.ui_criteria_matrix)+
     tag('NON_UI_REQUIREMENTS',result.non_ui_requirements)+
+    tag('NON_UI_COVERAGE',coverage)+
     tag('REQUIREMENT_CONTRACT',requirements)+
     tag('TEST_CONTRACT',tests)+
     tag('BOUNDARY_CONTRACT',boundaries)+
@@ -123,13 +171,13 @@ function decode(phase, response, scan) {
 }
 if (require.main===module) {
   try {
-    const [command,phase,input,output,scanFile]=process.argv.slice(2);
+    const [command,phase,input,output,scanFile,sourceRoot]=process.argv.slice(2);
     let value;
     const scan=scanFile?JSON.parse(fs.readFileSync(scanFile,'utf8')):null;
     if (command==='request') value=JSON.stringify(request(phase,fs.readFileSync(input,'utf8'),scan),null,2)+'\n';
-    else if (command==='decode') value=decode(phase,JSON.parse(fs.readFileSync(input,'utf8')),scan);
+    else if (command==='decode') value=decode(phase,JSON.parse(fs.readFileSync(input,'utf8')),scan,sourceRoot);
     else throw new Error('USAGE: generate-ui-plan-contract.js request|decode draft|final input output [scan]');
     fs.writeFileSync(output,value,'utf8');
   } catch(error) { console.error(error.message); process.exitCode=1; }
 }
-module.exports={stabilizeUiIdentities,schemaFor,request,decode};
+module.exports={stabilizeUiIdentities,schemaFor,request,decode,validateSourceBindings};

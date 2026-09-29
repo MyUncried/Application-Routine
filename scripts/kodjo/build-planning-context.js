@@ -134,10 +134,14 @@ function build(directory,env=process.env) {
   for(const file of ['slice-bootstrap.json','planning-mission.md','product-evidence.txt','code-files.txt']) append(file,read(file),file);
   if(mode==='revision' && !selected.some(c=>c.role==='BASE_PLAN')) {
     for(const file of ['prior-technical-plan.md','prior-independent-review.md']) append(file,read(file),file);
+    fs.writeFileSync(path.join(directory,'base-plan-for-revision.md'),read('prior-technical-plan.md'),'utf8');
+    fs.writeFileSync(path.join(directory,'base-review-for-revision.md'),read('prior-independent-review.md'),'utf8');
   }
   if(mode==='initial' && !selected.some(c=>c.role==='BASE_PLAN') && fs.existsSync(path.join(directory,'non-opposable-seed-plan.md'))) append('NON_OPPOSABLE_SEED',read('non-opposable-seed-plan.md'),'non-opposable-seed-plan.md');
   for(const c of selected) {
     append(c.role,c.body,'comment:'+c.id);
+    if(c.role==='BASE_PLAN') fs.writeFileSync(path.join(directory,'base-plan-for-revision.md'),c.body,'utf8');
+    if(c.role==='INDEPENDENT_REVIEW') fs.writeFileSync(path.join(directory,'base-review-for-revision.md'),c.body,'utf8');
     if(c.role==='INDEPENDENT_REVIEW'){
       const findings=taggedJson(c.body,'KODJO_PLAN_REVIEW_FINDINGS_JSON',false);
       if(findings){

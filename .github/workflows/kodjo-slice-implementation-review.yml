@@ -23,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
+      KODJO_REQUIRE_COMPONENT_PROOF: '1'
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       SOURCE_BODY: ${{ github.event.comment.body || '' }}
       SOURCE_COMMENT_ID: ${{ github.event.comment.id || github.event.client_payload.source_comment_id }}

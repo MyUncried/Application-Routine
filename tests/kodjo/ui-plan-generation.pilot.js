@@ -14,7 +14,7 @@ function validMatrix() {
       risk_types:['FUNCTIONAL','VISUAL','DEVICE'],
       reuse_search:['src/shared/ui','src/features'],
       component_decision:'REUSE',
-      selected_component:'ExistingOverlay',
+      selected_component:{path:'src/shared/ui/ExistingOverlay.tsx',export:'ExistingOverlay'},
       decision_justification:'Le composant existant couvre le contrat bloquant.',
       change_targets:['src/features/example/ExampleScreen.tsx'],
       tests:['src/features/example/__tests__/ExampleScreen.test.tsx'],
@@ -32,7 +32,7 @@ function validMatrix() {
   };
 }
 function payload(matrix=validMatrix()) {
-  return {plan_markdown:'# Plan complet',modified_modules:[{path:'src/features/example/ExampleScreen.tsx',change:'MODIFY'}],ui_criteria_matrix:matrix,non_ui_requirements:[],clarifications:[],plan_status:'READY_FOR_INDEPENDENT_REVIEW'};
+  return {plan_markdown:'# Plan complet',modified_modules:[{path:'src/features/example/ExampleScreen.tsx',change:'MODIFY'}],ui_criteria_matrix:matrix,non_ui_requirements:[],non_ui_coverage:{status:'NONE',reason:'Les sources consultées ne contiennent que des obligations visuelles et aucune exigence métier non visuelle applicable.',source_paths:['docs/Specifications-fonctionnelles/13 – Contrats d’écran.md']},clarifications:[]};
 }
 function response(value) {return {status:'completed',output:[{type:'message',content:[{type:'output_text',text:JSON.stringify(value)}]}]};}
 function validate(matrix) {return validateMatrix(matrix,{scope:new Set(['src/features/example/ExampleScreen.tsx']),uiPaths:['src/features/example/ExampleScreen.tsx']});}
@@ -65,8 +65,8 @@ const negativeCases = [
   ['observed reuse_search object',m=>m.criteria[0].reuse_search={paths:['src/shared/ui']}],
   ['empty reuse search',m=>m.criteria[0].reuse_search=[]],
   ['invalid component decision',m=>m.criteria[0].component_decision='REPLACE'],
-  ['reuse without component',m=>m.criteria[0].selected_component='NONE'],
-  ['extend without component',m=>{m.criteria[0].component_decision='EXTEND';m.criteria[0].selected_component='NONE';}],
+  ['reuse without component',m=>m.criteria[0].selected_component={path:'NONE',export:'NONE'}],
+  ['extend without component',m=>{m.criteria[0].component_decision='EXTEND';m.criteria[0].selected_component={path:'NONE',export:'NONE'};}],
   ['targets wrong type',m=>m.criteria[0].change_targets='src/features/example/ExampleScreen.tsx'],
   ['targets empty',m=>m.criteria[0].change_targets=[]],
   ['invalid path',m=>m.criteria[0].change_targets=['../outside']],
@@ -112,6 +112,7 @@ test('KPB-001 non-UI and FUNCTIONAL static-analysis alternative stay supported',
   const value=payload({schema:'kodjo.ui-criteria.v2',criteria:[],preservation:{preserve:[],change:[],forbidden:[]}});
   value.modified_modules=[{path:'scripts/example.js',change:'MODIFY'}];
   value.non_ui_requirements=[{source:{path:'docs/example.md',locator:'§1',requirement:'Le script conserve le comportement.'},requirement_type:'TECHNICAL',change_targets:['scripts/example.js'],tests:[],proof_required:['STATIC_ANALYSIS'],status:'DEFINED'}];
+  value.non_ui_coverage={status:'ENUMERATED',reason:'Obligation technique inventoriée.',source_paths:['docs/example.md']};
   assert.doesNotThrow(()=>decode('draft',response(value)));
   const m=validMatrix();m.criteria[0].proof_required[0]='STATIC_ANALYSIS';m.criteria[0].assertions[0].proof_required[0]='STATIC_ANALYSIS';
   assert.doesNotThrow(()=>validate(m));

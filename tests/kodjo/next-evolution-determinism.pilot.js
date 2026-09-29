@@ -4,11 +4,16 @@ const fs=require('node:fs');
 const path=require('node:path');
 const test=require('node:test');
 const assert=require('node:assert/strict');
+const os=require('node:os');
+const {spawnSync}=require('node:child_process');
 
 const root=path.resolve(__dirname,'../..');
 const read=(p)=>fs.readFileSync(path.join(root,p),'utf8');
 
-const {stabilizeUiIdentities,decode}=require('../../scripts/kodjo/generate-ui-plan-contract');
+const {stabilizeUiIdentities,decode,schemaFor,validateSourceBindings}=require('../../scripts/kodjo/generate-ui-plan-contract');
+const {verify:verifyBoundedRevision}=require('../../scripts/kodjo/verify-bounded-plan-revision');
+const {classifyFiles}=require('../../scripts/kodjo/classify-protocol-impact');
+const {classifyLog}=require('../../scripts/kodjo/classify-planning-failure');
 const {validateMatrix}=require('../../scripts/kodjo/lib/ui-criteria-contract');
 const {buildRequirementContract,buildTestContract,buildBoundaryContract}=require('../../scripts/kodjo/lib/requirement-contract');
 const {normalize:normalizeFindings}=require('../../scripts/kodjo/lib/review-findings');
@@ -28,7 +33,7 @@ function atomicMatrix(){
       risk_types:['FUNCTIONAL','VISUAL'],
       reuse_search:['src/shared/ui/Button.tsx'],
       component_decision:'REUSE',
-      selected_component:'src/shared/ui/Button.tsx',
+      selected_component:{path:'src/shared/ui/Button.tsx',export:'Button'},
       decision_justification:'Composant canonique existant.',
       change_targets:['src/features/example/ExampleScreen.tsx'],
       tests:['src/features/example/__tests__/ExampleScreen.test.tsx'],
@@ -58,6 +63,71 @@ test('DET-02/PE-27 stable UI IDs and atomic assertions are deterministic',()=>{
     uiPaths:['src/features/example/ExampleScreen.tsx'],
     requireAssertions:true,
   }));
+});
+
+test('DET-08 plan status is computed, never requested from the model',()=>{
+  for(const phase of ['draft','final']){
+    const schema=schemaFor(phase);
+    assert.equal(Object.hasOwn(schema.properties,'plan_status'),false);
+    assert.equal(schema.required.includes('plan_status'),false);
+  }
+});
+
+test('PE-33 rejects changes outside blocking review targets and missing contracts',()=>{
+  const tag=(name,value)=>`<KODJO_${name}_JSON>\n${JSON.stringify(value)}\n</KODJO_${name}_JSON>\n`;
+  const req=(path,value)=>({requirement_id:path,source:{path},change_targets:[path],tests:[],value});
+  const base=tag('REQUIREMENT_CONTRACT',{requirements:[req('src/a.ts','old'),req('src/b.ts','old')]});
+  const review=tag('PLAN_REVIEW_FINDINGS',{verdict:'REVISE',findings:[{target:'src/a.ts',blocking:true}]});
+  assert.deepEqual(verifyBoundedRevision(base,review,tag('REQUIREMENT_CONTRACT',{requirements:[req('src/a.ts','new'),req('src/b.ts','old')]})),{status:'BOUNDED',blocking_findings:1});
+  assert.throws(()=>verifyBoundedRevision(base,review,tag('REQUIREMENT_CONTRACT',{requirements:[req('src/a.ts','new'),req('src/b.ts','new')]})),/PLAN_REVISION_UNTARGETED_CHANGE/);
+  assert.throws(()=>verifyBoundedRevision(base,review,''),/PLAN_REVISION_CONTRACT_REMOVED_OR_ADDED/);
+});
+
+test('P-11 invented test paths are rejected at the exact source HEAD',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-plan-source-'));
+  try{
+    const git=(...args)=>{const r=spawnSync('git',args,{cwd:dir,encoding:'utf8'});assert.equal(r.status,0,r.stderr);return r.stdout.trim();};
+    git('init','-q');fs.mkdirSync(path.join(dir,'docs'));fs.writeFileSync(path.join(dir,'docs','spec.md'),'Requirement');
+    git('add','.');git('-c','user.name=Test','-c','user.email=test@example.invalid','commit','-qm','source');
+    const head=git('rev-parse','HEAD');
+    const requirements={requirements:[{domain:'NON_UI',source:{path:'docs/spec.md'},tests:['tests/invented.test.ts']}]};
+    const scan={scan_revision:head,modified_modules:[]};
+    assert.throws(()=>validateSourceBindings(requirements,scan,dir,new Set()),/PLAN_TEST_PATH_NOT_AT_HEAD_OR_AUTHORIZED_CREATE/);
+    scan.modified_modules=[{path:'tests/invented.test.ts',change:'CREATE'}];
+    assert.doesNotThrow(()=>validateSourceBindings(requirements,scan,dir,new Set(['tests/invented.test.ts'])));
+    assert.throws(()=>validateSourceBindings(requirements,scan,dir,new Set(['tests/invented.test.ts']),{
+      criteria:[{component_decision:'REUSE',selected_component:{path:'src/shared/ui/Imaginary.tsx',export:'Imaginary'}}],
+    }),/PLAN_SELECTED_COMPONENT_NOT_AT_HEAD/);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+test('P-13 new plans require explicit non-UI coverage and source references',()=>{
+  const schema=schemaFor('final');
+  assert.ok(schema.required.includes('non_ui_coverage'));
+  assert.deepEqual(schema.properties.non_ui_coverage.required,['status','reason','source_paths']);
+  for(const workflow of ['kodjo-v2-slice-initial-plan-review.yml','kodjo-v2-slice-plan-review.yml']){
+    assert.match(read('.github/workflows/'+workflow),/unsupported NONE requires VERDICT: REVISE/);
+  }
+});
+
+test('PE-38 uses four explicit categories and treats unknown paths as full qualification',()=>{
+  const classification=(file)=>classifyFiles([file]);
+  assert.equal(classification('scripts/kodjo/verify-ui-plan-criteria.js').category,'RUNTIME_PROTOCOL_CHANGE');
+  assert.equal(classification('.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_MATRIX.md').category,'NORMATIVE_PROTOCOL_CHANGE');
+  assert.equal(classification('.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md').category,'NON_NORMATIVE_DOCUMENTATION');
+  assert.equal(classification('docs/new-unknown.md').category,'UNKNOWN');
+  assert.equal(classification('docs/new-unknown.md').full_windows_required,true);
+  assert.equal(classification('.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md').full_windows_required,false);
+  assert.equal(classifyFiles(['.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md','docs/new-unknown.md']).full_windows_required,true);
+});
+
+test('PE-35 classifies planning failures before retry and never retries without recovery',()=>{
+  assert.equal(classifyLog('PLAN_SCAN_PATH_INVALID: typo').category,'PREVENTABLE_BY_DETERMINISM');
+  assert.equal(classifyLog('CLARIFICATION_REQUIRED').category,'HUMAN_DECISION_REQUIRED');
+  assert.equal(classifyLog('runner terminated unexpectedly').auto_retry,false);
+  for(const name of ['kodjo-v2-slice-initial-plan.yml','kodjo-v2-slice-plan.yml']){
+    assert.match(read('.github/workflows/'+name),/classify-planning-failure\.js/);
+  }
 });
 
 test('DET-02/04/05 unified requirements derive exact tests and machine-addressable boundaries',()=>{
@@ -111,7 +181,7 @@ test('PE-30 closure is idempotent and evidence-bound',()=>{
 });
 
 test('PE-36 artifact roles keep recovery longer and inventory exact bytes',()=>{
-  assert.deepEqual(classify('kodjo-v2-recovery-123-1'),{role:'RECOVERY_REQUIRED',retention_days:14,critical:true});
+  assert.deepEqual(classify('kodjo-v2-recovery-123-1'),{role:'RECOVERY_REQUIRED',retention_days:90,critical:true});
   assert.equal(classify('kodjo-v2-diagnostic-123-1').role,'DIAGNOSTIC');
   const inv=inventory([{artifacts:[
     {name:'kodjo-v2-recovery-1-1',size_in_bytes:10,expired:false},
@@ -144,8 +214,8 @@ test('PE-37/38 prevent obsolete and report-only heavy pilot work',()=>{
   assert.match(w,/group: kodjo-v2-pilot-/);
   assert.match(w,/cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}/);
   assert.doesNotMatch(w,/!\.github\/orchestration\/reports\/\*\*/);
-  assert.match(w,/!\.github\/orchestration\/reports\/2026-09-29_PROTOCOL_DETERMINISM_AUDIT\.md/);
-  assert.match(w,/!\.github\/orchestration\/KODJO_PROTOCOL_NEXT_EVOLUTION_\*\.md/);
+  assert.doesNotMatch(w,/!\.github\/orchestration\/reports\/2026-09-29_PROTOCOL_DETERMINISM_MATRIX\.md/);
+  assert.doesNotMatch(w,/!\.github\/orchestration\/reports\/2026-09-29_PROTOCOL_DETERMINISM_AUDIT\.md/);
   assert.doesNotMatch(w,/kodjo-v2-complete-source-/);
 });
 
@@ -193,7 +263,8 @@ test('independent Claude audit requires exact qualified HEAD, remains read-only 
   assert.match(workflow,/node scripts\/kodjo\/validate-workflows\.js/);
   assert.match(workflow,/Remove-Item Env:GH_TOKEN/);
   assert.match(workflow,/Independent auditor modified checkout/);
-  assert.doesNotMatch(workflow,/actions\/upload-artifact/);
+  assert.match(workflow,/actions\/upload-artifact@v4/);
+  assert.match(workflow,/if: always\(\)/);
   assert.match(workflow,/NEXT_EVOLUTION_INDEPENDENT_AUDIT/);
 });
 

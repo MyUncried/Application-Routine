@@ -247,6 +247,27 @@ jobs:
           if($LASTEXITCODE-ne0){throw 'Activation closure transform refused'}
           $result=Get-Content -LiteralPath $output -Raw -Encoding UTF8|ConvertFrom-Json
           if($result.changed){
+            $before=$raw|ConvertFrom-Json
+            $after=$result.registry
+            $beforeRows=@($before.activations)
+            $afterRows=@($after.activations)
+            if($beforeRows.Count-ne$afterRows.Count){throw 'CLOSURE_UNEXPECTED_REGISTRY_MUTATION'}
+            for($i=0;$i-lt$beforeRows.Count;$i++){
+              if([string]$beforeRows[$i].slice_id-ne[string]$afterRows[$i].slice_id){throw 'CLOSURE_UNEXPECTED_REGISTRY_MUTATION'}
+              if([string]$beforeRows[$i].slice_id-ne$env:SLICE_ID){
+                if(($beforeRows[$i]|ConvertTo-Json -Depth 20 -Compress)-ne($afterRows[$i]|ConvertTo-Json -Depth 20 -Compress)){throw 'CLOSURE_UNEXPECTED_REGISTRY_MUTATION'}
+              }else{
+                $expected=$beforeRows[$i]|ConvertTo-Json -Depth 20|ConvertFrom-Json
+                $expected.status='CLOSED'
+                $expected|Add-Member -NotePropertyName closure -NotePropertyValue $afterRows[$i].closure -Force
+                if(($expected|ConvertTo-Json -Depth 20 -Compress)-ne($afterRows[$i]|ConvertTo-Json -Depth 20 -Compress)){throw 'CLOSURE_UNEXPECTED_REGISTRY_MUTATION'}
+              }
+            }
+            $beforeRoot=$before|ConvertTo-Json -Depth 20|ConvertFrom-Json
+            $afterRoot=$after|ConvertTo-Json -Depth 20|ConvertFrom-Json
+            $beforeRoot.PSObject.Properties.Remove('activations')
+            $afterRoot.PSObject.Properties.Remove('activations')
+            if(($beforeRoot|ConvertTo-Json -Depth 20 -Compress)-ne($afterRoot|ConvertTo-Json -Depth 20 -Compress)){throw 'CLOSURE_UNEXPECTED_REGISTRY_MUTATION'}
             $registryJson=($result.registry|ConvertTo-Json -Depth 20).Replace("`r`n","`n")+"`n"
             $payload=[ordered]@{
               message="chore(kodjo): close slice $env:SLICE_ID"

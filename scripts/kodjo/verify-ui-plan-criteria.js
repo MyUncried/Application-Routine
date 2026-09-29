@@ -36,6 +36,16 @@ try {
   const uiApplicable = uiPaths.length > 0;
 
   const matrix = extractTaggedJson(markdown, 'KODJO_UI_CRITERIA_MATRIX_JSON', 'UI_PLAN_CRITERIA_MISSING');
+  if(matrix.schema===MATRIX_SCHEMA_V2){
+    const ids=new Set();
+    for(const criterion of matrix.criteria||[]){
+      const source=criterion.source||{};
+      const expected='UI-'+sha256({path:String(source.path||''),locator:String(source.locator||''),requirement:String(source.requirement||'')}).slice(0,12).toUpperCase();
+      if(criterion.criterion_id!==expected)fail('UI_PLAN_IDENTITY_DRIFT',String(criterion.criterion_id)+': attendu '+expected);
+      if(ids.has(expected))fail('UI_PLAN_SOURCE_COLLISION',expected+': distinguer les sources et les exigences atomiques');
+      ids.add(expected);
+    }
+  }
   const normalizedMatrix = validateMatrix(matrix, {scope, uiPaths, requireAssertions: mode === 'produce'});
   const normalizedCriteria = normalizedMatrix.criteria;
   const matrixSha256 = sha256(normalizedMatrix);

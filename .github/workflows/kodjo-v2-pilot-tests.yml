@@ -10,10 +10,8 @@ on:
       # Le backlog d'évolution est explicitement non normatif : une PR qui ne
       # modifie que ce fichier ne qualifie aucun exécutable du protocole.
       - '!.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'
-      - '!.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_AUDIT.md'
-      - '!.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_MATRIX.md'
-      - '!.github/orchestration/reports/2026-09-29_PROTOCOL_EVOLUTION_CLAUDE_AUDIT_MISSION.md'
-      - '!.github/orchestration/KODJO_PROTOCOL_NEXT_EVOLUTION_*.md'
+      # The audit matrix and mission are executable inputs of protocol checks.
+      # Keep them in the qualified set even though they are Markdown files.
       - '.github/workflows/kodjo-v2-*.yml'
       - '.github/workflows/kodjo-slice-plan.yml'
       - '.github/workflows/kodjo-slice-plan-review.yml'
@@ -68,23 +66,15 @@ jobs:
         run: |
           set -euo pipefail
           full=true
+          category=UNKNOWN
           if [ "$EVENT_NAME" = "pull_request" ]; then
-            full=false
-            count=0
-            while IFS= read -r -d '' changed; do
-              count=$((count + 1))
-              case "$changed" in
-                .github/orchestration/v2-slices/*/technical-plan.md|.github/orchestration/v2-slices/*/independent-review.md|.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md)
-                  ;;
-                *)
-                  full=true
-                  ;;
-              esac
-            done < <(git diff --name-only -z "$BASE_SHA" "$HEAD_SHA")
-            if [ "$count" -eq 0 ]; then full=true; fi
+            classification=$(node scripts/kodjo/classify-protocol-impact.js "$BASE_SHA" "$HEAD_SHA")
+            category=$(jq -r '.category' <<< "$classification")
+            full=$(jq -r '.full_windows_required' <<< "$classification")
+            jq . <<< "$classification" >> "$GITHUB_STEP_SUMMARY"
           fi
           echo "full_windows_required=$full" >> "$GITHUB_OUTPUT"
-          echo "KODJO_CI_CLASSIFICATION_FULL_WINDOWS=$full"
+          echo "KODJO_CI_CLASSIFICATION=$category FULL_WINDOWS=$full"
       - name: Install isolated planning tokenizer
         run: npm ci --prefix scripts/kodjo/openai-runtime --ignore-scripts --no-audit --no-fund
       - name: Qualify authenticated private HEAD lookup on Linux
@@ -150,6 +140,19 @@ jobs:
           $PSVersionTable.PSVersion.ToString()
           git --version
           node --version
+      - name: Preflight GitHub Actions artifact budget
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $inventory=Join-Path $env:RUNNER_TEMP ('kodjo-pilot-artifact-inventory-'+$env:GITHUB_RUN_ID+'.json')
+          $raw=gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/actions/artifacts?per_page=100"
+          if($LASTEXITCODE-ne0){throw 'Artifact inventory unavailable'}
+          [IO.File]::WriteAllText($inventory,($raw -join "`n"),(New-Object Text.UTF8Encoding($false)))
+          node scripts/kodjo/check-artifact-budget.js $inventory
+          if($LASTEXITCODE-ne0){exit $LASTEXITCODE}
       - name: Qualify authenticated private HEAD lookup on Windows
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}

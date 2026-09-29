@@ -1,9 +1,10 @@
 'use strict';
 
 const POLICIES = [
-  { pattern: /^kodjo-v2-recovery-/, role: 'RECOVERY_REQUIRED', retention_days: 14, critical: true },
+  { pattern: /^kodjo-v2-recovery-/, role: 'RECOVERY_REQUIRED', retention_days: 90, critical: true },
   { pattern: /recovery-certification/i, role: 'DIAGNOSTIC', retention_days: 7, critical: false },
   { pattern: /diagnostic|infrastructure|inventory|availability/i, role: 'DIAGNOSTIC', retention_days: 7, critical: false },
+  { pattern: /^kodjo-v2-(?:runner-certification|disposable-preflight|real-recovery-certification)-/, role: 'DIAGNOSTIC', retention_days: 7, critical: false },
   { pattern: /qualification|preflight|certification/i, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 7, critical: true },
   { pattern: /receipt|result/i, role: 'TEMPORARY_TRANSPORT', retention_days: 7, critical: false },
 ];

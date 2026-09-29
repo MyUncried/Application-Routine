@@ -82,8 +82,26 @@ function inspectImplementation(body,expected){
     if(typeof e.report_text!=='string'||crypto.createHash('sha256').update(e.report_text||'').digest('hex')!==e.original_text_sha256)report.errors.push('REPORT_TEXT_HASH_MISMATCH');
     const machine=e.machine_evidence;
     if(!machine||!Array.isArray(machine.modified_files)||!Array.isArray(machine.checks)||!Array.isArray(machine.out_of_scope_files))report.errors.push('MACHINE_EVIDENCE_MISSING');
+    else {
+      const modified=new Set(machine.modified_files.map(x=>String(x).replace(/\\/g,'/')));
+      const observed=new Set(machine.checks.map(x=>String(x&&x.check||'')));
+      const claimed=[...(block(e.report_text,'KODJO_IMPLEMENTATION_CONFORMANCE').criteria||[])];
+      if(shapeHasRequirements(expected))claimed.push(...(block(e.report_text,'KODJO_REQUIREMENT_CONFORMANCE').requirements||[]));
+      for(const row of claimed){
+        const id=String(row.criterion_id||row.requirement_id||'unknown');
+        for(const value of Array.isArray(row.files_or_symbols)?row.files_or_symbols:[row.files_or_symbols]){
+          const p=String(value||'').replace(/\\/g,'/');
+          if(!modified.has(p))report.errors.push(id+':DECLARED_FILE_NOT_MODIFIED:'+p);
+        }
+        for(const value of Array.isArray(row.tests_run)?row.tests_run:[row.tests_run]){
+          const check=String(value||'');
+          if(!observed.has(check))report.errors.push(id+':DECLARED_CHECK_NOT_RUN:'+check);
+        }
+      }
+    }
     report.machine_evidence=machine||null;
     report.status=report.errors.length?'NON_VERIFIABLE':'COMPLETE';return report;
   }catch(e){return {status:'NON_VERIFIABLE',errors:['REPORT_ENVELOPE_INVALID:'+e.message],criterion_ids:[]};}
 }
+function shapeHasRequirements(expected){return expectedShape(expected).requirement_ids!==null;}
 module.exports={inspectReport,inspectImplementation,FIELDS,REQUIREMENT_FIELDS,ASSERTION_IMPLEMENTATION_STATUSES};

@@ -157,7 +157,7 @@ function fixtureV2() {
       risk_types:['FUNCTIONAL','VISUAL','DEVICE'],
       reuse_search:['src/shared/ui'],
       component_decision:'EXTEND',
-      selected_component:'Tree',
+      selected_component:{path:'src/shared/ui/Tree.tsx',export:'Tree'},
       decision_justification:'Composant existant.',
       change_targets:['src/features/example/ExampleScreen.tsx'],
       tests:['src/features/example/__tests__/ExampleScreen.test.tsx'],
@@ -208,6 +208,17 @@ test('atomic review v2: prépare les assertions et dérive le statut du critère
   assert.equal(prepared.assertion_mode,true);assert.equal(prepared.assertion_count,2);
   fs.writeFileSync(review,JSON.stringify(validAtomicReview()));
   r=run(['validate',plan,changed,review,out],dir);assert.equal(r.status,0,r.stderr);
+});
+test('F-08: EXTEND without a change to the selected component cannot be certified',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-component-proof-'));
+  const plan=path.join(dir,'plan.md'),changed=path.join(dir,'changed.txt'),input=path.join(dir,'input.json');
+  fs.mkdirSync(path.join(dir,'src/shared/ui'),{recursive:true});
+  fs.writeFileSync(path.join(dir,'src/shared/ui/Tree.tsx'),'export const Tree = () => null;');
+  fs.writeFileSync(plan,fixtureV2());fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n');
+  const r=spawnSync(process.execPath,[verifier,'prepare',plan,changed,input],{cwd:dir,encoding:'utf8',env:{...process.env,KODJO_REQUIRE_COMPONENT_PROOF:'1'}});
+  assert.equal(r.status,0,r.stderr);
+  assert.deepEqual(JSON.parse(fs.readFileSync(input,'utf8')).criteria[0].component_evidence,
+    {status:'FAIL',reason:'SELECTED_COMPONENT_NOT_CHANGED'});
 });
 test('atomic review v2: refuse un verdict global plus favorable que ses assertions',()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-atomic-review-'));

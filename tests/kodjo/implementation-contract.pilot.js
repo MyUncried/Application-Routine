@@ -13,7 +13,7 @@ const {
   renderImplementationMission,
   verifyImplementationMission,
 } = require('../../scripts/kodjo/lib/implementation-contract');
-const { inspectReport } = require('../../scripts/kodjo/lib/implementation-report');
+const { inspectReport,inspectImplementation } = require('../../scripts/kodjo/lib/implementation-report');
 const {
   extractImplementationStopStatus,
   IMPLEMENTATION_STOP_STATUSES,
@@ -56,22 +56,24 @@ function planFixture() {
 
 
 function planFixtureV2() {
+  const source={path:'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md',locator:'CE-X',requirement:'Contrôle exact.'};
+  const stableId='UI-'+sha256(source).slice(0,12).toUpperCase();
   const matrix = {
     schema: 'kodjo.ui-criteria.v2',
     criteria: [{
-      criterion_id: 'UI-001',
-      source: { path:'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md', locator:'CE-X', requirement:'Contrôle exact.' },
+      criterion_id: stableId,
+      source,
       risk_types:['FUNCTIONAL','VISUAL','DEVICE'],
       reuse_search:['src/shared/ui'],
       component_decision:'REUSE',
-      selected_component:'ExistingOverlay',
+      selected_component:{path:'src/shared/ui/ExistingOverlay.tsx',export:'ExistingOverlay'},
       decision_justification:'Composant canonique existant.',
       change_targets:['src/features/example/ExampleScreen.tsx'],
       tests:['src/features/example/__tests__/ExampleScreen.test.tsx'],
       proof_required:['FUNCTIONAL_TEST','VISUAL_COMPARE','DEVICE_CHECK'],
       assertions:[
-        {assertion_id:'UI-001-A01',source:{path:'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md',locator:'CE-X/content'},property_type:'CONTENT',expected:'Contenu canonique présent.',proof_required:['FUNCTIONAL_TEST']},
-        {assertion_id:'UI-001-A02',source:{path:'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md',locator:'CE-X/geometry'},property_type:'GEOMETRY',expected:'Géométrie conforme.',proof_required:['VISUAL_COMPARE','DEVICE_CHECK']},
+        {assertion_id:stableId+'-A01',source:{path:'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md',locator:'CE-X/content'},property_type:'CONTENT',expected:'Contenu canonique présent.',proof_required:['FUNCTIONAL_TEST']},
+        {assertion_id:stableId+'-A02',source:{path:'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md',locator:'CE-X/geometry'},property_type:'GEOMETRY',expected:'Géométrie conforme.',proof_required:['VISUAL_COMPARE','DEVICE_CHECK']},
       ],
     }],
     preservation:{
@@ -184,6 +186,21 @@ test('implementation report v2: couvre exactement chaque assertion', () => {
   const missing={...base,assertion_results:base.assertion_results.slice(0,1)};
   const bad='<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:[missing]})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\nKODJO_STOP_STATUS: NONE';
   assert.equal(inspectReport(bad,expected).status,'NON_VERIFIABLE');
+});
+
+test('F-06: a claimed file or check absent from machine observations is NON_VERIFIABLE',()=>{
+  const row={criterion_id:'UI-001',implementation_status:'IMPLEMENTED',files_or_symbols:['src/imaginary.tsx'],
+    component_used:'Existing',tests_run:['jest'],proof_status:'PASS',preserve_status:'PASS',residual_status:'NONE'};
+  const reportText='<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:[row]})+
+    '</KODJO_IMPLEMENTATION_CONFORMANCE>\nKODJO_STOP_STATUS: NONE';
+  const envelope={request_id:'a',source_head:'b',truncated:false,report_text:reportText,
+    original_text_sha256:require('node:crypto').createHash('sha256').update(reportText).digest('hex'),
+    machine_evidence:{modified_files:['src/actual.tsx'],checks:[{check:'typescript',status:'PASS'}],out_of_scope_files:[]}};
+  const body='v2_request_id=a\nbase_head=b\n<KODJO_IMPLEMENTATION_REPORT_JSON>'+JSON.stringify(envelope)+'</KODJO_IMPLEMENTATION_REPORT_JSON>';
+  const result=inspectImplementation(body,['UI-001']);
+  assert.equal(result.status,'NON_VERIFIABLE');
+  assert.ok(result.errors.some(x=>x.includes('DECLARED_FILE_NOT_MODIFIED:src/imaginary.tsx')));
+  assert.ok(result.errors.some(x=>x.includes('DECLARED_CHECK_NOT_RUN:jest')));
 });
 
 test('implementation contract: aucun nouveau canal Lean Queue n est ajouté', () => {

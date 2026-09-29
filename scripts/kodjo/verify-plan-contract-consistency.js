@@ -22,7 +22,7 @@ function extractPaths(text) {
 }
 function stripMachineBlocks(markdown) {
   let out = String(markdown);
-  for (const tag of ['KODJO_MODIFIED_MODULES_JSON', 'KODJO_PLAN_DECISIONS_JSON', 'KODJO_PLAN_IMPACT_JSON', 'KODJO_PLAN_CONTRACT_JSON', 'KODJO_UI_CRITERIA_MATRIX_JSON', 'KODJO_UI_PLAN_CONTRACT_JSON', 'KODJO_NON_UI_REQUIREMENTS_JSON', 'KODJO_REQUIREMENT_CONTRACT_JSON', 'KODJO_TEST_CONTRACT_JSON', 'KODJO_BOUNDARY_CONTRACT_JSON', 'KODJO_PLAN_CLARIFICATIONS_JSON']) {
+  for (const tag of ['KODJO_MODIFIED_MODULES_JSON', 'KODJO_PLAN_DECISIONS_JSON', 'KODJO_PLAN_IMPACT_JSON', 'KODJO_PLAN_CONTRACT_JSON', 'KODJO_UI_CRITERIA_MATRIX_JSON', 'KODJO_UI_PLAN_CONTRACT_JSON', 'KODJO_NON_UI_REQUIREMENTS_JSON', 'KODJO_NON_UI_COVERAGE_JSON', 'KODJO_REQUIREMENT_CONTRACT_JSON', 'KODJO_TEST_CONTRACT_JSON', 'KODJO_BOUNDARY_CONTRACT_JSON', 'KODJO_PLAN_CLARIFICATIONS_JSON']) {
     out = out.replace(new RegExp('<' + tag + '>[\\s\\S]*?</' + tag + '>', 'g'), '');
   }
   return out;
@@ -99,6 +99,19 @@ try {
   const requiredTestWrites = [...requiredWrites].sort();
   const hasRequirementContract = /<KODJO_REQUIREMENT_CONTRACT_JSON>[\s\S]*?<\/KODJO_REQUIREMENT_CONTRACT_JSON>/.test(markdown);
   const requirementContracts = hasRequirementContract ? verifyRequirementContracts(markdown) : null;
+  const hasCoverage=/<KODJO_NON_UI_COVERAGE_JSON>[\s\S]*?<\/KODJO_NON_UI_COVERAGE_JSON>/.test(markdown);
+  if(requirementContracts&&(hasCoverage||process.env.KODJO_REQUIRE_NON_UI_COVERAGE==='1')){
+    const coverage=extractTaggedJson(markdown,'KODJO_NON_UI_COVERAGE_JSON');
+    const nonUi=requirementContracts.requirement_contract.requirements.filter(x=>x.domain==='NON_UI');
+    if(!coverage||!Array.isArray(coverage.source_paths)||coverage.source_paths.length===0||
+       (coverage.status==='NONE')!==(nonUi.length===0)||typeof coverage.reason!=='string'||
+       (coverage.status==='NONE'&&coverage.reason.trim().length<40))fail('NON_UI_COVERAGE_INVALID');
+    for(const row of nonUi)if(!coverage.source_paths.includes(row.source.path))fail('NON_UI_COVERAGE_SOURCE_UNLISTED',row.source.path);
+    for(const file of coverage.source_paths){
+      const source=normalizeRepoPath(file,'non_ui_coverage.source_path');
+      if(!gitPathExists(gitCwd,revision,source))fail('NON_UI_COVERAGE_SOURCE_NOT_AT_HEAD',source);
+    }
+  }
   const requirementProof = requirementContracts ? {
     requirement_contract_sha256: sha256(requirementContracts.requirement_contract),
     test_contract_sha256: sha256(requirementContracts.test_contract),

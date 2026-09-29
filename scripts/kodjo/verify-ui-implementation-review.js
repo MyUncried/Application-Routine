@@ -18,6 +18,38 @@ const ASSERTION_STATUSES = new Set(['CONFORME','NON_CONFORME','NON_VERIFIABLE','
 const PROOF_STATUSES = new Set(['PASS','FAIL','PENDING_DEVICE','NON_VERIFIABLE']);
 const PRESERVE_STATUSES = new Set(['PASS','FAIL','NON_VERIFIABLE']);
 
+function componentEvidence(criterion, changedSet, cwd){
+  if(!criterion.selected_component||typeof criterion.selected_component!=='object')return null;
+  const decision=criterion.component_decision;
+  if(decision==='CREATE')return {status:'NOT_APPLICABLE'};
+  const selected=criterion.selected_component;
+  const component=path.resolve(cwd,selected.path);
+  if(!fs.existsSync(component))return {status:'FAIL',reason:'SELECTED_COMPONENT_MISSING'};
+  if(decision==='EXTEND')return changedSet.has(selected.path)
+    ? {status:'PASS',reason:'SELECTED_COMPONENT_CHANGED'}
+    : {status:'FAIL',reason:'SELECTED_COMPONENT_NOT_CHANGED'};
+  // Resolve literal relative imports. Aliases and re-exports remain NON_VERIFIABLE.
+  for(const target of criterion.change_targets||[]){
+    const absolute=path.resolve(cwd,target);
+    if(!changedSet.has(target)||!fs.existsSync(absolute))continue;
+    const source=fs.readFileSync(absolute,'utf8');
+    const imports=[...source.matchAll(/\bimport\s+([^;\n]+?)\s+from\s+['"]([^'"]+)['"]/g)];
+    for(const match of imports){
+      const spec=match[2],binding=match[1];
+      if(!spec.startsWith('.'))continue;
+      const resolved=path.resolve(path.dirname(absolute),spec);
+      if(![component,component.replace(/\.[cm]?[jt]sx?$/,''),path.join(component,'index')].includes(resolved))continue;
+      const name=selected.export;
+      const bound=name==='default' ? binding.match(/^\s*([A-Za-z_$][\w$]*)/)?.[1]
+        : binding.match(new RegExp('\\b'+name+'\\b(?:\\s+as\\s+([A-Za-z_$][\\w$]*))?'))?.[1]||name;
+      if(!bound)continue;
+      const remainder=source.replace(match[0],'');
+      if(new RegExp('\\b'+bound+'\\b').test(remainder))return {status:'PASS',reason:'EXACT_IMPORT_AND_USE',target};
+    }
+  }
+  return {status:'NON_VERIFIABLE',reason:'SELECTED_COMPONENT_USE_NOT_PROVEN'};
+}
+
 function readJson(file) {
   return JSON.parse(fs.readFileSync(path.resolve(file), 'utf8'));
 }
@@ -175,6 +207,8 @@ function buildInput(planBody, changedFiles, previousReview) {
       source: criterion.source,
       component_decision: criterion.component_decision,
       selected_component: criterion.selected_component,
+      ...(assertionMode&&reviewScope==='AFFECTED'&&process.env.KODJO_REQUIRE_COMPONENT_PROOF==='1'
+        ?{component_evidence:componentEvidence(criterion,changedSet,process.cwd())}:{}),
       change_targets: targets,
       tests,
       proof_required: proofs,
@@ -355,21 +389,24 @@ function machineProofStatus(input,id,type){
     const exact=exactFunctionalTestStatus(input,id);
     if(exact)return exact;
     const status=by.get('jest');
-    return status==='PASS'?'PASS':status==='FAIL'?'FAIL':status?'NON_VERIFIABLE':null;
+    // A green global Jest run does not establish coverage of this requirement.
+    return status==='FAIL'?'FAIL':null;
   }
   if(type==='STATIC_ANALYSIS'){
     const observed=['typescript','lint'].map((name)=>by.get(name)).filter(Boolean);
     if(!observed.length)return null;
     if(observed.includes('FAIL'))return 'FAIL';
-    if(observed.every((status)=>status==='PASS'))return 'PASS';
-    return 'NON_VERIFIABLE';
+    // A green run only establishes that these tools ran successfully globally.
+    return null;
   }
   return null;
 }
 function enforceMachineProof(input,id,type,status){
   if(!BLOCKING_PROOFS.has(type))return;
   const expected=machineProofStatus(input,id,type);
-  if(expected&&status!==expected)fail('UI_IMPLEMENTATION_MACHINE_PROOF_MISMATCH',id+':'+type+': attendu '+expected+' observe '+status);
+  if(expected==='PASS'&&status!=='PASS')fail('UI_IMPLEMENTATION_MACHINE_PROOF_MISMATCH',id+':'+type+': attendu '+expected+' observe '+status);
+  if(expected==='FAIL'&&status==='PASS')fail('UI_IMPLEMENTATION_MACHINE_PROOF_MISMATCH',id+':'+type+': echec machine ignore');
+  if(expected==='NON_VERIFIABLE'&&status==='PASS')fail('UI_IMPLEMENTATION_MACHINE_PROOF_MISMATCH',id+':'+type+': preuve exacte absente');
 }
 function validateReview(input, review) {
   if (!review || review.schema !== REVIEW_SCHEMA) fail('UI_IMPLEMENTATION_REVIEW_OUTPUT_INVALID', 'schema review invalide');
@@ -387,6 +424,7 @@ function validateReview(input, review) {
   for (const row of results) {
     const id = String(row.criterion_id);
     const expected = byId.get(id);
+    if(expected.component_evidence && !['PASS','NOT_APPLICABLE'].includes(expected.component_evidence.status))blocking=true;
     if (!IMPLEMENTATION_STATUSES.has(String(row.implementation_status))) {
       fail('UI_IMPLEMENTATION_REVIEW_STATUS_INVALID', id + '.implementation_status');
     }

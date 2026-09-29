@@ -200,6 +200,7 @@ jobs:
           APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
         run: |
           set -euo pipefail
+          exec 2> >(tee -a /tmp/kodjo-v2-plan/planning-stderr.log >&2)
           test -n "${OPENAI_API_KEY:-}"
           cat > /tmp/kodjo-v2-plan/draft-prompt.txt <<EOF
           You are the KODJO V2 plan builder for $SLICE_ID. Revise the existing plan against immutable product HEAD $SOURCE_HEAD, protocol execution HEAD $PROTOCOL_EXECUTION_HEAD and exact application HEAD $APPLICATION_HEAD. The source-to-execution transition is proven protocol-only. This phase is READ-ONLY: never modify repository files and never implement.
@@ -230,6 +231,7 @@ jobs:
           APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
         run: |
           set -euo pipefail
+          exec 2> >(tee -a /tmp/kodjo-v2-plan/planning-stderr.log >&2)
           node scripts/kodjo/scan-plan-impact.js extract-modules /tmp/kodjo-v2-plan/plan-draft.md /tmp/kodjo-v2-plan/modified-modules.json
           node scripts/kodjo/validate-plan-module-paths.js "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/modified-modules.json /tmp/kodjo-v2-plan/application
           rm -f /tmp/kodjo-v2-plan/technical-plan.md
@@ -258,7 +260,7 @@ jobs:
             node scripts/kodjo/generate-ui-plan-contract.js request final /tmp/kodjo-v2-plan/final-prompt.txt "/tmp/kodjo-v2-plan/final-request-$iteration.json" /tmp/kodjo-v2-plan/direct-import-scan.json
             node scripts/kodjo/openai-plan-request.js "/tmp/kodjo-v2-plan/final-request-$iteration.json" "/tmp/kodjo-v2-plan/final-response-$iteration.json" "/tmp/kodjo-v2-plan/final-api-evidence-$iteration.json" /tmp/kodjo-v2-plan/api-pacing.json
             test "$(jq -r '.status // "missing"' "/tmp/kodjo-v2-plan/final-response-$iteration.json")" = completed
-            node scripts/kodjo/generate-ui-plan-contract.js decode final "/tmp/kodjo-v2-plan/final-response-$iteration.json" /tmp/kodjo-v2-plan/technical-plan-with-decisions.md /tmp/kodjo-v2-plan/direct-import-scan.json
+            node scripts/kodjo/generate-ui-plan-contract.js decode final "/tmp/kodjo-v2-plan/final-response-$iteration.json" /tmp/kodjo-v2-plan/technical-plan-with-decisions.md /tmp/kodjo-v2-plan/direct-import-scan.json /tmp/kodjo-v2-plan/application
             node scripts/kodjo/assemble-plan-impact.js close /tmp/kodjo-v2-plan/technical-plan-with-decisions.md /tmp/kodjo-v2-plan/direct-import-scan.json /tmp/kodjo-v2-plan/plan-impact-closure.json
             if jq -e '.closed == true' /tmp/kodjo-v2-plan/plan-impact-closure.json >/dev/null; then
               node scripts/kodjo/assemble-plan-impact.js assemble /tmp/kodjo-v2-plan/technical-plan-with-decisions.md /tmp/kodjo-v2-plan/direct-import-scan.json /tmp/kodjo-v2-plan/technical-plan.md
@@ -271,11 +273,14 @@ jobs:
             fi
           done
           test -f /tmp/kodjo-v2-plan/technical-plan.md
+          if test -f /tmp/kodjo-v2-plan/base-plan-for-revision.md; then
+            node scripts/kodjo/verify-bounded-plan-revision.js /tmp/kodjo-v2-plan/base-plan-for-revision.md /tmp/kodjo-v2-plan/base-review-for-revision.md /tmp/kodjo-v2-plan/technical-plan.md
+          fi
           node scripts/kodjo/verify-ui-plan-criteria.js /tmp/kodjo-v2-plan/technical-plan.md "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/application /tmp/kodjo-v2-plan/ui-plan-contract.json
           printf "\n<KODJO_UI_PLAN_CONTRACT_JSON>\n" >> /tmp/kodjo-v2-plan/technical-plan.md
           cat /tmp/kodjo-v2-plan/ui-plan-contract.json >> /tmp/kodjo-v2-plan/technical-plan.md
           printf "</KODJO_UI_PLAN_CONTRACT_JSON>\n" >> /tmp/kodjo-v2-plan/technical-plan.md
-          node scripts/kodjo/verify-plan-contract-consistency.js /tmp/kodjo-v2-plan/technical-plan.md "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/application /tmp/kodjo-v2-plan/plan-contract.json
+          KODJO_REQUIRE_NON_UI_COVERAGE=1 node scripts/kodjo/verify-plan-contract-consistency.js /tmp/kodjo-v2-plan/technical-plan.md "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/application /tmp/kodjo-v2-plan/plan-contract.json
           printf "\n<KODJO_PLAN_CONTRACT_JSON>\n" >> /tmp/kodjo-v2-plan/technical-plan.md
           cat /tmp/kodjo-v2-plan/plan-contract.json >> /tmp/kodjo-v2-plan/technical-plan.md
           printf "</KODJO_PLAN_CONTRACT_JSON>\n" >> /tmp/kodjo-v2-plan/technical-plan.md
@@ -327,6 +332,13 @@ jobs:
             -f bootstrap_path="$BOOTSTRAP_PATH" \
             -f source_plan_comment_id="$PLAN_ID"
 
+      - name: Classify revision planning failure before any retry
+        if: failure()
+        shell: bash
+        run: |
+          mkdir -p /tmp/kodjo-v2-plan
+          node scripts/kodjo/classify-planning-failure.js /tmp/kodjo-v2-plan/planning-stderr.log /tmp/kodjo-v2-plan/error-classification.json | tee -a "$GITHUB_STEP_SUMMARY"
+
       - name: Preserve V2 planning evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -336,6 +348,7 @@ jobs:
             /tmp/kodjo-v2-plan/*api-evidence*.json
             /tmp/kodjo-v2-plan/context-manifest.json
             /tmp/kodjo-v2-plan/context-error.json
+            /tmp/kodjo-v2-plan/error-classification.json
             /tmp/kodjo-v2-plan/slice-bootstrap.json
             /tmp/kodjo-v2-plan/planning-mission.md
             /tmp/kodjo-v2-plan/prior-technical-plan.md

@@ -183,6 +183,21 @@ jobs:
             'session_id='+$env:SESSION_ID+$nl+$nl
           $comment=Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit-comment.md'
           [IO.File]::WriteAllText($comment,$header+(Get-Content -LiteralPath $audit -Raw -Encoding UTF8),(New-Object Text.UTF8Encoding($false)))
-          gh issue comment $env:PR_NUMBER --repo $env:GITHUB_REPOSITORY --body-file $comment
-          if($LASTEXITCODE-ne0){throw 'Independent audit publication failed'}
           Get-Content -LiteralPath $audit -Raw -Encoding UTF8 | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          gh issue comment $env:PR_NUMBER --repo $env:GITHUB_REPOSITORY --body-file $comment
+          if($LASTEXITCODE-ne0){
+            $body=Get-Content -LiteralPath $comment -Raw -Encoding UTF8
+            gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$env:PR_NUMBER/comments" -f "body=$body"
+            if($LASTEXITCODE-ne0){throw 'Independent audit comment publication failed; report preserved in Actions summary and artifact'}
+          }
+
+      - name: Preserve independent audit regardless of comment publication
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-independent-audit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/kodjo-next-evolution-audit.md
+            ${{ runner.temp }}/kodjo-next-evolution-audit-summary.json
+          if-no-files-found: warn
+          retention-days: 90

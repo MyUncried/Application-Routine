@@ -193,7 +193,7 @@ jobs:
           name: kodjo-v2-recovery-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ steps.diag.outputs.dir }}/recovery-package/
           if-no-files-found: warn
-          retention-days: 14
+          retention-days: ${{ vars.KODJO_RECOVERY_RETENTION_DAYS || 90 }}
       - name: Materialize one bounded automatic correction when eligible
         id: auto_correction
         if: failure() && steps.execute.outputs.selected_queue != '' && steps.diag.outputs.dir != ''
