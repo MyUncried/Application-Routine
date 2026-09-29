@@ -416,7 +416,7 @@ function nonUiFixture(action) {
     fs.writeFileSync(changed,'function.ts\n');
     const row={criterion_id:'author-label-empty',implementation_status:'DONE',files_or_symbols:['function.ts'],
       component_used:'N/A',tests_run:['jest'],proof_status:'PASS',preserve_status:'UNCHANGED',residual_status:'NONE'};
-    function writeReport(rows=[row],override={}) {
+    function writeReport(rows=[],override={}) {
       const report_text='<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:rows})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\nKODJO_STOP_STATUS: NONE';
       const envelope={request_id:'request',source_head:'a'.repeat(40),truncated:false,report_text,
         original_text_sha256:crypto.createHash('sha256').update(report_text).digest('hex'),
@@ -435,12 +435,14 @@ function nonUiFixture(action) {
 }
 
 test('non-UI report labels do not masquerade as UI IDs; independent full-plan assessment is mandatory',()=>{
-  nonUiFixture(({prepare,review,validate})=>{
+  nonUiFixture(({row,writeReport,prepare,review,validate,output})=>{
+    writeReport([row]);
     const input=prepare();
-    assert.equal(input.implementation_report.status,'COMPLETE');
+    assert.equal(input.implementation_report.status,'NON_VERIFIABLE');
     assert.equal(input.criterion_count,0);
     assert.deepEqual(input.implementation_report.criterion_ids,['author-label-empty']);
     let r=validate();assert.equal(r.status,0,r.stderr);
+    assert.equal(JSON.parse(fs.readFileSync(output,'utf8')).verdict,'REVISE');
     delete review.non_ui_plan_assessment;
     r=validate();assert.notEqual(r.status,0);assert.match(r.stderr,/NON_UI_PLAN_ASSESSMENT_REQUIRED/);
   });
