@@ -328,22 +328,71 @@ function validateAllowedChangeSet(allowedChangeSet) {
   if (!Object.hasOwn(STAGE_PRIORITY, allowedChangeSet.reentry_stage)) {
     V.fail('VNEXT_ALLOWED_CHANGE_SET_REENTRY_INVALID', allowedChangeSet.reentry_stage);
   }
+  V.assertSha64(allowedChangeSet.review_context_hash, 'VNEXT_ALLOWED_CHANGE_SET_REVIEW_CONTEXT_HASH_INVALID');
+  V.assertSha64(allowedChangeSet.review_report_hash, 'VNEXT_ALLOWED_CHANGE_SET_REVIEW_REPORT_HASH_INVALID');
+  V.assertSha64(allowedChangeSet.base_plan_contract_hash, 'VNEXT_ALLOWED_CHANGE_SET_PLAN_HASH_INVALID');
+  if (allowedChangeSet.base_ui_atomicity_hash !== null) {
+    V.assertSha64(allowedChangeSet.base_ui_atomicity_hash, 'VNEXT_ALLOWED_CHANGE_SET_UI_HASH_INVALID');
+  }
+  V.assertSha64(allowedChangeSet.preservation_hash, 'VNEXT_ALLOWED_CHANGE_SET_PRESERVATION_HASH_INVALID');
   V.verifyContractHash(allowedChangeSet, 'VNEXT_ALLOWED_CHANGE_SET_HASH_MISMATCH');
 
+  const findingIds = V.uniqueStrings(
+    allowedChangeSet.blocking_finding_ids,
+    'VNEXT_ALLOWED_CHANGE_SET_FINDINGS_INVALID',
+    'blocking_finding_ids',
+  );
+  const findingSet = new Set(findingIds);
+
   const all = new Set();
-  for (const group of [
-    allowedChangeSet.authorized_targets,
-    allowedChangeSet.derived_targets,
-    allowedChangeSet.preserved_targets,
-  ]) {
-    if (!Array.isArray(group)) V.fail('VNEXT_ALLOWED_CHANGE_SET_TARGETS_INVALID');
-    for (const row of group) {
-      V.assertNonEmptyString(row.target_id, 'VNEXT_ALLOWED_CHANGE_SET_TARGET_ID_INVALID');
-      V.assertSha64(row.object_hash, 'VNEXT_ALLOWED_CHANGE_SET_OBJECT_HASH_INVALID');
-      if (all.has(row.target_id)) V.fail('VNEXT_ALLOWED_CHANGE_SET_TARGET_OVERLAP', row.target_id);
-      all.add(row.target_id);
+  const validateTarget = (row, mode) => {
+    const required = mode === 'authorized'
+      ? ['target_type', 'target_id', 'parent_ids', 'object_hash', 'mutation_mode', 'finding_ids']
+      : ['target_type', 'target_id', 'parent_ids', 'object_hash', 'mutation_mode'];
+    V.assertExactKeys(row, required, [], 'VNEXT_ALLOWED_CHANGE_SET_TARGET_KEYS_INVALID');
+    if (!Review.TARGET_TYPES.includes(row.target_type)) {
+      V.fail('VNEXT_ALLOWED_CHANGE_SET_TARGET_TYPE_INVALID', row.target_type);
     }
+    V.assertNonEmptyString(row.target_id, 'VNEXT_ALLOWED_CHANGE_SET_TARGET_ID_INVALID');
+    V.assertSha64(row.object_hash, 'VNEXT_ALLOWED_CHANGE_SET_OBJECT_HASH_INVALID');
+    V.uniqueStrings(
+      row.parent_ids,
+      'VNEXT_ALLOWED_CHANGE_SET_PARENT_IDS_INVALID',
+      row.target_id + '.parent_ids',
+      { allowEmpty: true },
+    );
+    if (all.has(row.target_id)) V.fail('VNEXT_ALLOWED_CHANGE_SET_TARGET_OVERLAP', row.target_id);
+    all.add(row.target_id);
+
+    if (mode === 'authorized') {
+      if (!['ANCHOR_ONLY', 'SEMANTIC'].includes(row.mutation_mode)) {
+        V.fail('VNEXT_ALLOWED_CHANGE_SET_MUTATION_MODE_INVALID', row.mutation_mode);
+      }
+      const reasons = V.uniqueStrings(
+        row.finding_ids,
+        'VNEXT_ALLOWED_CHANGE_SET_TARGET_FINDINGS_INVALID',
+        row.target_id + '.finding_ids',
+      );
+      for (const findingId of reasons) {
+        if (!findingSet.has(findingId)) {
+          V.fail('VNEXT_ALLOWED_CHANGE_SET_TARGET_FINDING_UNKNOWN', findingId);
+        }
+      }
+    } else if (mode === 'derived' && row.mutation_mode !== 'MACHINE_DERIVED') {
+      V.fail('VNEXT_ALLOWED_CHANGE_SET_MUTATION_MODE_INVALID', row.mutation_mode);
+    } else if (mode === 'preserved' && row.mutation_mode !== 'PRESERVE_EXACT') {
+      V.fail('VNEXT_ALLOWED_CHANGE_SET_MUTATION_MODE_INVALID', row.mutation_mode);
+    }
+  };
+
+  if (!Array.isArray(allowedChangeSet.authorized_targets)
+      || !Array.isArray(allowedChangeSet.derived_targets)
+      || !Array.isArray(allowedChangeSet.preserved_targets)) {
+    V.fail('VNEXT_ALLOWED_CHANGE_SET_TARGETS_INVALID');
   }
+  for (const row of allowedChangeSet.authorized_targets) validateTarget(row, 'authorized');
+  for (const row of allowedChangeSet.derived_targets) validateTarget(row, 'derived');
+  for (const row of allowedChangeSet.preserved_targets) validateTarget(row, 'preserved');
 
   const expectedPreservationHash = V.canonicalHash(
     allowedChangeSet.preserved_targets.map((row) => [
