@@ -7,6 +7,8 @@ Correctif en attente pris en compte séparément : PR #252, HEAD `3226adb3ee0d69
 
 Cet audit ne modifie pas le runtime actif et ne qualifie pas les autres domaines du protocole hors périmètre demandé.
 
+Matrice opérationnelle associée : `.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_MATRIX.md`.
+
 ## 1. Méthode
 
 Chaque sous-étape est classée selon sa nature actuelle :
