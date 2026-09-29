@@ -1,0 +1,149 @@
+name: KODJO V2 — Next Evolution Independent Claude Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Candidate protocol PR
+        required: true
+        type: string
+        default: '250'
+      candidate_sha:
+        description: Exact 40-hex HEAD to audit
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+concurrency:
+  group: kodjo-v2-next-evolution-audit-${{ inputs.pr_number }}
+  cancel-in-progress: false
+
+jobs:
+  independent-audit:
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+      CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+      PR_NUMBER: ${{ inputs.pr_number }}
+      CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+    defaults:
+      run:
+        shell: powershell
+
+    steps:
+      - name: Validate immutable audit target
+        id: target
+        run: |
+          $ErrorActionPreference='Stop'
+          if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'Unexpected runner' }
+          if ($env:PR_NUMBER -notmatch '^[1-9][0-9]*$') { throw 'Invalid PR number' }
+          if ($env:CANDIDATE_SHA -notmatch '^[0-9a-f]{40}$') { throw 'Invalid candidate SHA' }
+          $pr=gh api "repos/$env:GITHUB_REPOSITORY/pulls/$env:PR_NUMBER"|ConvertFrom-Json
+          if($LASTEXITCODE-ne0-or$null-eq$pr){throw 'Candidate PR unreadable'}
+          if([string]$pr.state-ne'open'){throw 'Candidate PR is not open'}
+          if([string]$pr.base.ref-ne'main'){throw 'Candidate PR base is not main'}
+          if([string]$pr.head.sha-ne$env:CANDIDATE_SHA){throw 'Candidate PR moved'}
+          $base=[string]$pr.base.sha
+          if($base-notmatch'^[0-9a-f]{40}$'){throw 'Candidate base SHA invalid'}
+          "base_sha=$base"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "branch=$([string]$pr.head.ref)"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Checkout exact candidate
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.candidate_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+          clean: true
+
+      - name: Verify exact checkout and deterministic pre-audit
+        env:
+          BASE_SHA: ${{ steps.target.outputs.base_sha }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if((git rev-parse HEAD).Trim()-ne$env:CANDIDATE_SHA){throw 'Audit HEAD mismatch'}
+          git cat-file -e "$env:BASE_SHA^{commit}"
+          if($LASTEXITCODE-ne0){throw 'Audit base missing'}
+          node tests/kodjo/run-all.js
+          if($LASTEXITCODE-ne0){throw 'Pilot suite failed before independent audit'}
+          node scripts/kodjo/validate-workflows.js
+          if($LASTEXITCODE-ne0){throw 'Workflow validation failed before independent audit'}
+
+      - name: Build bounded independent audit prompt
+        env:
+          BASE_SHA: ${{ steps.target.outputs.base_sha }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $mission=Get-Content -LiteralPath '.github/orchestration/reports/2026-09-29_PROTOCOL_EVOLUTION_CLAUDE_AUDIT_MISSION.md' -Raw -Encoding UTF8
+          $changed=(git diff --name-only $env:BASE_SHA $env:CANDIDATE_SHA) -join [Environment]::NewLine
+          if($LASTEXITCODE-ne0){throw 'Audit diff inventory failed'}
+          $prompt=@"
+          $mission
+
+          ===== IMMUTABLE AUDIT TARGET =====
+          repository=$env:GITHUB_REPOSITORY
+          pr_number=$env:PR_NUMBER
+          base_sha=$env:BASE_SHA
+          candidate_sha=$env:CANDIDATE_SHA
+
+          ===== CHANGED FILES =====
+          $changed
+
+          The checkout is exactly candidate_sha. Inspect the actual files and git diff locally.
+          The deterministic pilot suite and workflow validator have already passed in this run before your invocation.
+          Their execution proves only those checks; do not extrapolate unexecuted Linux/GitHub/device behavior.
+          Do not modify files. Do not use network or GitHub writes. Audit independently and adversarially.
+          "@
+          $promptFile=Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit-prompt.txt'
+          [IO.File]::WriteAllText($promptFile,$prompt,(New-Object Text.UTF8Encoding($false)))
+          "prompt_file=$promptFile"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+        id: prompt
+
+      - name: Run independent Claude audit
+        id: claude
+        env:
+          AUDIT_PROMPT_FILE: ${{ steps.prompt.outputs.prompt_file }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $prompt=Get-Content -LiteralPath $env:AUDIT_PROMPT_FILE -Raw -Encoding UTF8
+          Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
+          $out=Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit.json'
+          $err=Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit.err.txt'
+          & claude -p --output-format json --dangerously-skip-permissions $prompt 1> $out 2> $err
+          $code=$LASTEXITCODE
+          if(!(Test-Path -LiteralPath $out)-or(Get-Item -LiteralPath $out).Length-eq0){throw "Claude audit produced no JSON; exit=$code"}
+          $json=Get-Content -LiteralPath $out -Raw -Encoding UTF8|ConvertFrom-Json
+          if(!$json.session_id-or!$json.result){throw 'Claude audit result incomplete'}
+          if($code-ne0){throw "Claude audit failed; exit=$code"}
+          $audit=Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit.md'
+          [IO.File]::WriteAllText($audit,[string]$json.result,(New-Object Text.UTF8Encoding($false)))
+          node scripts/kodjo/verify-independent-protocol-audit.js $audit (Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit-summary.json')
+          if($LASTEXITCODE-ne0){throw 'Independent audit output contract refused'}
+          if(-not[string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))){throw 'Independent auditor modified checkout'}
+          "session_id=$($json.session_id)"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Publish durable independent audit
+        env:
+          BASE_SHA: ${{ steps.target.outputs.base_sha }}
+          SESSION_ID: ${{ steps.claude.outputs.session_id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $audit=Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit.md'
+          $nl=[Environment]::NewLine
+          $header='[KODJO_V2] NEXT_EVOLUTION_INDEPENDENT_AUDIT'+$nl+
+            'pr_number='+$env:PR_NUMBER+$nl+
+            'base_sha='+$env:BASE_SHA+$nl+
+            'candidate_sha='+$env:CANDIDATE_SHA+$nl+
+            'reviewer=CLAUDE_LOCAL'+$nl+
+            'session_id='+$env:SESSION_ID+$nl+$nl
+          $comment=Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit-comment.md'
+          [IO.File]::WriteAllText($comment,$header+(Get-Content -LiteralPath $audit -Raw -Encoding UTF8),(New-Object Text.UTF8Encoding($false)))
+          gh issue comment $env:PR_NUMBER --repo $env:GITHUB_REPOSITORY --body-file $comment
+          if($LASTEXITCODE-ne0){throw 'Independent audit publication failed'}
+          Get-Content -LiteralPath $audit -Raw -Encoding UTF8 | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
