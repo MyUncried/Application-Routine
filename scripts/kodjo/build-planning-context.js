@@ -5,6 +5,13 @@ const path=require('node:path');
 const crypto=require('node:crypto');
 const digest=s=>crypto.createHash('sha256').update(s).digest('hex');
 const normalize=s=>String(s||'').replace(/\r/g,'');
+function taggedJson(body,tag,required=false){
+  const escaped=tag.replace(/[.*+?^${}()|[\]\\]/g,'\\const normalize=s=>String(s||'').replace(/\r/g,'');');
+  const hits=[...normalize(body).matchAll(new RegExp('<'+escaped+'>\\s*([\\s\\S]*?)\\s*</'+escaped+'>','g'))];
+  if(hits.length===0&&!required)return null;
+  if(hits.length!==1)throw new Error('CONTEXT_TAG_INVALID:'+tag);
+  return JSON.parse(hits[0][1]);
+}
 function field(body,key,required=false) {
   const hits=[...normalize(body).matchAll(new RegExp('^'+key+'=([^\\n]+)$','gm'))];
   if(hits.length>1 || (required&&!hits.length)) throw new Error('CONTEXT_FIELD_INVALID:'+key);
@@ -129,7 +136,16 @@ function build(directory,env=process.env) {
     for(const file of ['prior-technical-plan.md','prior-independent-review.md']) append(file,read(file),file);
   }
   if(mode==='initial' && !selected.some(c=>c.role==='BASE_PLAN') && fs.existsSync(path.join(directory,'non-opposable-seed-plan.md'))) append('NON_OPPOSABLE_SEED',read('non-opposable-seed-plan.md'),'non-opposable-seed-plan.md');
-  for(const c of selected) append(c.role,c.body,'comment:'+c.id);
+  for(const c of selected) {
+    append(c.role,c.body,'comment:'+c.id);
+    if(c.role==='INDEPENDENT_REVIEW'){
+      const findings=taggedJson(c.body,'KODJO_PLAN_REVIEW_FINDINGS_JSON',false);
+      if(findings){
+        if(!Array.isArray(findings.findings)||!['APPROVE','REVISE'].includes(String(findings.verdict||'')))throw new Error('CONTEXT_REVIEW_FINDINGS_INVALID');
+        append('REVIEW_FINDINGS',JSON.stringify(findings,null,2),'comment:'+c.id+':KODJO_PLAN_REVIEW_FINDINGS_JSON');
+      }
+    }
+  }
   const packet=sections.join('');
   manifest.utf8_bytes=Buffer.byteLength(packet);manifest.sha256=digest(packet);
   manifest.status=manifest.utf8_bytes<=1500000?'PASS':'PROMPT_TOO_LARGE';
@@ -143,4 +159,4 @@ if(require.main===module) {try{build(process.argv[2]);}catch(e){
   const dir=process.argv[2];if(dir&&fs.existsSync(dir))fs.writeFileSync(path.join(dir,'context-error.json'),JSON.stringify({status:e.message.split(':')[0]})+'\n');
   console.error(e.message);process.exitCode=1;
 }}
-module.exports={field,select,build};
+module.exports={field,taggedJson,select,build};
