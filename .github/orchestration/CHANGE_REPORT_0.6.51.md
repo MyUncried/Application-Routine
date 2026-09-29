@@ -19,6 +19,10 @@ Consolider dans une seule version candidate les évolutions de déterminisme, co
 - PE-37 : annulation des qualifications supersédées ;
 - PE-38 : prévention des qualifications lourdes inutiles.
 
+## Correctif ciblé après exécution
+
+Le préflight Windows du run #566 a réussi ses contrôles courants puis a échoué sur le téléchargement de l’ancien artifact de recovery du run 34606534268, désormais absent. Le téléchargement historique facultatif et sa certification sont bornés ; l’absence est consignée dans une preuve FAIL sans bloquer la qualification du HEAD courant. Aucun contrôle de recovery courant n’est rendu facultatif.
+
 ## État
 
 Implémentation candidate présente dans la PR #250.
