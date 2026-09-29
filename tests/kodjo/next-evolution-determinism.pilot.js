@@ -78,7 +78,7 @@ test('PE-27 insertion leaves existing assertion identities unchanged',()=>{
 
 test('PE-30 flags final evidence while the activation registry remains ACTIVE',()=>{
   const registry={activations:[{slice_id:'X',issue_number:12,status:'ACTIVE'}]};
-  const comments={'12':[{id:42,body:'[KODJO_SLICE] FINAL_OUTPUT\nslice_id=X\nfinal_head=abc\nSTATUT : DONE'}]};
+  const comments={'12':[[{id:42,body:'[KODJO_SLICE] FINAL_OUTPUT\nslice_id=X\nfinal_head=abc\nSTATUT : DONE'}]]};
   assert.equal(detectClosure(registry,comments).anomalies[0].code,'CLOSURE_EVIDENCE_WITH_ACTIVE_REGISTRY');
   assert.deepEqual(detectClosure({...registry,activations:[{...registry.activations[0],status:'CLOSED',closure:{final_head:'abc'}}]},comments).anomalies,[]);
 });
@@ -90,6 +90,17 @@ test('PE-35 stops the plan review loop after one automatic revision',()=>{
   assert.equal(decidePlanRetry([[user,review(11),review(12)]],'X',12).status,'USER_VALIDATION');
   assert.match(read('.github/workflows/kodjo-v2-slice-initial-plan-review.yml'),/decide-plan-review-retry\.js/);
   assert.match(read('.github/workflows/kodjo-v2-slice-plan-review.yml'),/decide-plan-review-retry\.js/);
+});
+
+test('PE-33 reworded targeted requirement may supersede its old ID only',()=>{
+  const tag=(name,value)=>'<'+name+'>'+JSON.stringify(value)+'</'+name+'>';
+  const source={path:'docs/spec.md',locator:'§1',requirement:'Before'};
+  const old={requirement_id:'REQ-A',domain:'NON_UI',requirement_type:'FUNCTIONAL',source};
+  const changed={...old,requirement_id:'REQ-B',source:{...source,requirement:'After'}};
+  const plan=(rows)=>tag('KODJO_REQUIREMENT_CONTRACT_JSON',{requirements:rows});
+  const review=tag('KODJO_PLAN_REVIEW_FINDINGS_JSON',{verdict:'REVISE',findings:[{blocking:true,target_kind:'REQUIREMENT_ID',target:'REQ-A'}]});
+  assert.equal(verifyBoundedRevision(plan([old]),review,plan([changed])).status,'BOUNDED');
+  assert.throws(()=>verifyBoundedRevision(plan([old,{...old,requirement_id:'REQ-C',source:{path:'docs/other.md',locator:'§2',requirement:'Other'}}]),review,plan([changed,{...old,requirement_id:'REQ-D',source:{path:'docs/other.md',locator:'§2',requirement:'Changed'}}])),/PLAN_REVISION_UNTARGETED_CHANGE/);
 });
 
 test('PE-36 classifies every implementation transport by its actual artifact name',()=>{

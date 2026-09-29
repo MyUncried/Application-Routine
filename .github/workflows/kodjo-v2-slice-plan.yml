@@ -285,7 +285,7 @@ jobs:
           cat /tmp/kodjo-v2-plan/plan-contract.json >> /tmp/kodjo-v2-plan/technical-plan.md
           printf "</KODJO_PLAN_CONTRACT_JSON>\n" >> /tmp/kodjo-v2-plan/technical-plan.md
           (cd /tmp/kodjo-v2-plan/application && node "$GITHUB_WORKSPACE/scripts/kodjo/verify-plan-impact.js" /tmp/kodjo-v2-plan/technical-plan.md "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/plan-impact-replay.json)
-          grep -Fxq 'PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW' /tmp/kodjo-v2-plan/technical-plan.md
+          grep -Eq '^PLAN_STATUS: (READY_FOR_INDEPENDENT_REVIEW|CLARIFICATION_REQUIRED)$' /tmp/kodjo-v2-plan/technical-plan.md
           test -z "$(git status --porcelain --untracked-files=all)"
 
       - name: Publish candidate V2 plan
@@ -301,6 +301,8 @@ jobs:
           REVIEW_OID: ${{ steps.gate.outputs.review_oid }}
         run: |
           set -euo pipefail
+          STATUS='PLAN_READY_FOR_INDEPENDENT_REVIEW'
+          if grep -q '^PLAN_STATUS: CLARIFICATION_REQUIRED$' /tmp/kodjo-v2-plan/technical-plan.md; then STATUS='CLARIFICATION_REQUIRED'; fi
           {
             echo '[KODJO_V2] PLAN_OUTPUT'
             echo "slice_id=$SLICE_ID"
@@ -315,7 +317,7 @@ jobs:
             jq -r '.selection[] | select(.role == "BASE_PLAN" or .role == "INDEPENDENT_REVIEW" or .role == "RESUMED_COMMAND") | (.role | ascii_downcase) + "_comment_id=" + .id' /tmp/kodjo-v2-plan/context-manifest.json
             echo 'planning_contract=kodjo.plan-impact.v1'
             echo 'ui_planning_contract=kodjo.ui-plan-criteria.v2'
-            echo 'STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW'
+            echo "STATUT : $STATUS"
             echo
             cat /tmp/kodjo-v2-plan/technical-plan.md
             echo
@@ -326,11 +328,13 @@ jobs:
           CREATED="$(gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/kodjo-v2-plan/out.md)")"
           PLAN_ID="$(printf '%s' "$CREATED" | jq -r '.id')"
           printf '%s' "$PLAN_ID" | grep -Eq '^[1-9][0-9]*$'
-          gh workflow run kodjo-v2-slice-plan-review.yml --ref main \
-            -f issue_number="$ISSUE_NUMBER" \
-            -f slice_id="$SLICE_ID" \
-            -f bootstrap_path="$BOOTSTRAP_PATH" \
-            -f source_plan_comment_id="$PLAN_ID"
+          if [ "$STATUS" = 'PLAN_READY_FOR_INDEPENDENT_REVIEW' ]; then
+            gh workflow run kodjo-v2-slice-plan-review.yml --ref main \
+              -f issue_number="$ISSUE_NUMBER" \
+              -f slice_id="$SLICE_ID" \
+              -f bootstrap_path="$BOOTSTRAP_PATH" \
+              -f source_plan_comment_id="$PLAN_ID"
+          fi
 
       - name: Classify revision planning failure before any retry
         if: failure()

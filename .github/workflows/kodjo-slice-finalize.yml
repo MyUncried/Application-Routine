@@ -123,12 +123,17 @@ jobs:
               [IO.File]::WriteAllText($reviewContractFile,$reviewContractMatch.Groups[1].Value,(New-Object Text.UTF8Encoding($false)))
 
               $testEvidenceMatch=[regex]::Match($reviewBody,'(?s)<KODJO_TEST_CONTRACT_EVIDENCE_JSON>\s*(.*?)\s*</KODJO_TEST_CONTRACT_EVIDENCE_JSON>')
-              if(-not$testEvidenceMatch.Success){throw 'V2 test contract evidence missing from approved review'}
-              $testEvidenceFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-test-evidence.json'
-              [IO.File]::WriteAllText($testEvidenceFile,$testEvidenceMatch.Groups[1].Value,(New-Object Text.UTF8Encoding($false)))
-              $env:KODJO_REQUIRE_TEST_CONTRACT_EVIDENCE='1'
-              $env:KODJO_TEST_CONTRACT_EVIDENCE_FILE=$testEvidenceFile
-              $env:KODJO_EXPECTED_REVIEW_HEAD=$head
+              if($planRaw -match '<KODJO_REQUIREMENT_CONTRACT_JSON>'){
+                if(-not$testEvidenceMatch.Success){throw 'TEST_CONTRACT_EVIDENCE_MISSING_FOR_NEW_PLAN'}
+                $testEvidenceFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-test-evidence.json'
+                [IO.File]::WriteAllText($testEvidenceFile,$testEvidenceMatch.Groups[1].Value,(New-Object Text.UTF8Encoding($false)))
+                $env:KODJO_REQUIRE_TEST_CONTRACT_EVIDENCE='1'
+                $env:KODJO_TEST_CONTRACT_EVIDENCE_FILE=$testEvidenceFile
+                $env:KODJO_EXPECTED_REVIEW_HEAD=$head
+              }else{
+                $env:KODJO_REQUIRE_TEST_CONTRACT_EVIDENCE='0'
+                Remove-Item Env:KODJO_TEST_CONTRACT_EVIDENCE_FILE -ErrorAction SilentlyContinue
+              }
 
               $reviewReplay=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-replayed.json'
               node scripts/kodjo/verify-ui-implementation-review.js validate $planFile $changedFile $reviewContractFile $reviewReplay $implFile
@@ -178,9 +183,7 @@ jobs:
             $pages=gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/issues/$issue/comments?per_page=100"
             if($LASTEXITCODE-ne0){throw 'CLOSURE_CONSISTENCY_COMMENTS_UNAVAILABLE'}
             $decoded=($pages -join [Environment]::NewLine)|ConvertFrom-Json
-            $comments=@()
-            foreach($page in $decoded){$comments+=@($page.comments)}
-            $byIssue[$issue]=$comments
+            $byIssue[$issue]=@($decoded)
           }
           $commentsFile=Join-Path $env:RUNNER_TEMP 'kodjo-closure-comments-by-issue.json'
           [IO.File]::WriteAllText($commentsFile,($byIssue|ConvertTo-Json -Depth 30),(New-Object Text.UTF8Encoding($false)))

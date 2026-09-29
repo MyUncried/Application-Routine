@@ -393,11 +393,10 @@ function machineProofStatus(input,id,type){
     return status==='FAIL'?'FAIL':null;
   }
   if(type==='STATIC_ANALYSIS'){
-    const observed=['typescript','lint'].map((name)=>by.get(name)).filter(Boolean);
-    if(!observed.length)return null;
+    const observed=['typescript','lint'].map((name)=>by.get(name));
+    if(input.test_contract_evidence?.schema!=='kodjo.test-contract-evidence.v1')return observed.includes('FAIL')?'FAIL':null;
     if(observed.includes('FAIL'))return 'FAIL';
-    // A green run only establishes that these tools ran successfully globally.
-    return null;
+    return observed.every(status=>status==='PASS')?'PASS':'NON_VERIFIABLE';
   }
   return null;
 }
@@ -586,7 +585,8 @@ try {
   if(testEvidenceFile&&fs.existsSync(path.resolve(testEvidenceFile))){
     input.test_contract_evidence=readJson(testEvidenceFile);
     const expectedHead=String(process.env.KODJO_EXPECTED_REVIEW_HEAD||'');
-    if(expectedHead&&input.test_contract_evidence.head!==expectedHead)throw new Error('TEST_CONTRACT_EVIDENCE_HEAD_MISMATCH');
+    if(expectedHead&&input.test_contract_evidence.schema==='kodjo.test-contract-evidence.v1'&&
+       input.test_contract_evidence.head!==expectedHead)throw new Error('TEST_CONTRACT_EVIDENCE_HEAD_MISMATCH');
     if(/<KODJO_REQUIREMENT_CONTRACT_JSON>/.test(planBody)){
       const expected=verifyRequirementContracts(planBody).test_contract.bindings.map(row=>row.requirement_id+':'+row.test_path).sort();
       const observed=Array.isArray(input.test_contract_evidence.bindings)

@@ -6,10 +6,10 @@ function detect(registry,commentsByIssue){
   if(!Array.isArray(registry?.activations))throw new Error('ACTIVATION_REGISTRY_INVALID');
   const anomalies=[];
   for(const activation of registry.activations){
-    const comments=commentsByIssue[String(activation.issue_number)]||[];
+    const comments=(commentsByIssue[String(activation.issue_number)]||[]).flatMap(page=>Array.isArray(page)?page:Array.isArray(page?.comments)?page.comments:[page]).filter(Boolean);
     for(const comment of comments){
       const body=String(comment.body||'').replace(/\r/g,'');
-      if(!body.startsWith('[KODJO_SLICE] FINAL_OUTPUT\n')||!/^STATUT : DONE$/m.test(body))continue;
+      if(!body.startsWith('[KODJO_SLICE] FINAL_OUTPUT\n')||!/^STATUT : (?:DONE|READY_TO_CLOSE)$/m.test(body))continue;
       const field=(key)=>body.match(new RegExp('^'+key+'=([^\\n]+)$','m'))?.[1]||'';
       if(field('slice_id')!==activation.slice_id)continue;
       if(activation.status==='ACTIVE')anomalies.push({slice_id:activation.slice_id,issue_number:activation.issue_number,final_comment_id:comment.id,final_head:field('final_head'),code:'CLOSURE_EVIDENCE_WITH_ACTIVE_REGISTRY'});

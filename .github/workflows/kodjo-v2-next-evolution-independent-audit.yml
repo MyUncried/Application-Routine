@@ -49,9 +49,16 @@ jobs:
             branch=$(jq -r '.head.ref' <<< "$pr")
           fi
           for attempt in $(seq 1 65); do
-            state=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/kodjo-v2-pilot-tests.yml/runs?event=pull_request&branch=$branch&per_page=100" |
-              jq -r --arg sha "$CANDIDATE_SHA" '[.workflow_runs[] | select(.head_sha == $sha)] | if length == 0 then "NONE" else (max_by(.run_number) | (.status + ":" + (.conclusion // "NONE"))) end')
-            if [ "$state" = 'completed:success' ]; then exit 0; fi
+            selected=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/kodjo-v2-pilot-tests.yml/runs?event=pull_request&branch=$branch&per_page=100" |
+              jq -c --arg sha "$CANDIDATE_SHA" '[.workflow_runs[] | select(.head_sha == $sha)] | if length == 0 then null else max_by(.run_number) end')
+            state=$(jq -r 'if . == null then "NONE" else (.status + ":" + (.conclusion // "NONE")) end' <<< "$selected")
+            if [ "$state" = 'completed:success' ]; then
+              run_id=$(jq -r '.id' <<< "$selected")
+              jobs=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run_id/jobs?per_page=100")
+              qualified=$(jq -r '[.jobs[] | select(.name == "protocol" or .name == "protocol-windows-preflight") | .conclusion] | if length == 2 and all(. == "success") then "true" else "false" end' <<< "$jobs")
+              if [ "$qualified" != true ]; then echo "PILOT_HEAVY_JOBS_NOT_QUALIFIED: $run_id" >&2; exit 1; fi
+              exit 0
+            fi
             if [ "$state" = 'completed:failure' ] || [ "$state" = 'completed:cancelled' ]; then
               echo "Pilot qualification refused for $CANDIDATE_SHA: $state" >&2
               exit 1
@@ -197,7 +204,10 @@ jobs:
             $payload=Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit-comment.json'
             [IO.File]::WriteAllText($payload,(@{body=$body}|ConvertTo-Json -Compress -Depth 3),(New-Object Text.UTF8Encoding($false)))
             gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$env:PR_NUMBER/comments" --input $payload
-            if($LASTEXITCODE-ne0){Write-Warning 'Independent audit comment publication unavailable; report preserved in Actions summary and artifact'}
+            if($LASTEXITCODE-ne0){
+              Write-Warning 'Independent audit comment publication unavailable; report preserved in Actions summary and artifact'
+              exit 0
+            }
           }
 
       - name: Preserve independent audit regardless of comment publication

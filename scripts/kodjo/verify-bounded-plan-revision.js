@@ -33,8 +33,21 @@ function verify(basePlan,baseReview,candidate){
   if(review.verdict!=='REVISE'||!Array.isArray(review.findings))throw new Error('PLAN_REVISION_REVIEW_INVALID');
   const blocking=review.findings.filter(x=>x.blocking===true);
   if(!blocking.length)throw new Error('PLAN_REVISION_BLOCKING_FINDING_MISSING');
+  const successors=new Map();
+  const pairSuccessors=(before,after,key,kind)=>{
+    const old=map(before,key,kind),next=map(after,key,kind);
+    for(const [oldId,row] of old){
+      if(next.has(oldId)||!blocking.some(f=>f.target_kind===kind&&f.target===oldId))continue;
+      const candidates=[...next.entries()].filter(([newId,candidate])=>!old.has(newId)&&
+        candidate.source?.path===row.source?.path&&candidate.source?.locator===row.source?.locator&&
+        candidate.domain===row.domain&&candidate.requirement_type===row.requirement_type);
+      if(candidates.length!==1)throw new Error('PLAN_REVISION_SUCCESSOR_AMBIGUOUS:'+oldId);
+      successors.set(candidates[0][0],oldId);
+    }
+  };
   const allowed=(row,id)=>blocking.some(f=>{
-    const direct=targetsOf(row,id).has(String(f.target));
+    const successor=successors.get(id)||successors.get(String(id).split(':')[0]);
+    const direct=targetsOf(row,id).has(String(f.target))||String(id).split(':')[0]===String(f.target)||successor===String(f.target);
     // An unstructured dependency narrative cannot authorize arbitrary changes.
     // Every dependent item must be a separate blocking target in the review.
     return direct;
@@ -48,9 +61,10 @@ function verify(basePlan,baseReview,candidate){
     }
   };
   const [oldReq,newReq]=paired(basePlan,candidate,'KODJO_REQUIREMENT_CONTRACT_JSON');
-  if(oldReq&&newReq)compare('REQUIREMENT',oldReq.requirements,newReq.requirements,x=>x.requirement_id);
+  if(oldReq&&newReq){pairSuccessors(oldReq.requirements,newReq.requirements,x=>x.requirement_id,'REQUIREMENT_ID');compare('REQUIREMENT',oldReq.requirements,newReq.requirements,x=>x.requirement_id);}
   const [oldUi,newUi]=paired(basePlan,candidate,'KODJO_UI_CRITERIA_MATRIX_JSON');
   if(oldUi&&newUi){
+    pairSuccessors(oldUi.criteria,newUi.criteria,x=>x.criterion_id,'CRITERION_ID');
     compare('UI_CRITERION',oldUi.criteria,newUi.criteria,x=>x.criterion_id);
     for(const category of ['preserve','change','forbidden']){
       compare('PRESERVATION_'+category,oldUi.preservation?.[category],newUi.preservation?.[category],x=>x.target);
