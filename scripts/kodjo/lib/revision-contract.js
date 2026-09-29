@@ -149,6 +149,40 @@ function buildArtifactGraph({
   return { records, outgoing };
 }
 
+function graphFingerprint(graph) {
+  return V.canonicalHash(
+    [...graph.records.values()]
+      .map((row) => [row.target_type, row.target_id, row.parent_ids, row.object_hash])
+      .sort((a, b) => String(a[0]).localeCompare(String(b[0])) || String(a[1]).localeCompare(String(b[1]))),
+  );
+}
+
+function assertContextArtifactHashes(reviewContext, {
+  requirementRegistry,
+  impactGraph,
+  candidateManifest,
+  planContract,
+  uiAtomicityContract = null,
+}) {
+  if (reviewContext.requirement_registry_hash !== requirementRegistry.contract_hash) {
+    V.fail('VNEXT_REVISION_REQUIREMENT_REGISTRY_BINDING_MISMATCH');
+  }
+  if (reviewContext.impact_graph_hash !== impactGraph.contract_hash) {
+    V.fail('VNEXT_REVISION_IMPACT_GRAPH_BINDING_MISMATCH');
+  }
+  if (reviewContext.candidate_manifest_hash !== candidateManifest.contract_hash) {
+    V.fail('VNEXT_REVISION_CANDIDATE_MANIFEST_BINDING_MISMATCH');
+  }
+  if (reviewContext.plan_contract_hash !== planContract.contract_hash) {
+    V.fail('VNEXT_REVISION_PLAN_CONTRACT_BINDING_MISMATCH');
+  }
+  const uiHash = uiAtomicityContract ? uiAtomicityContract.contract_hash : null;
+  if (reviewContext.ui_atomicity_hash !== uiHash) {
+    V.fail('VNEXT_REVISION_UI_ATOMICITY_BINDING_MISMATCH');
+  }
+  return true;
+}
+
 function assertCatalogMatches(reviewContext, graph) {
   Review.validateReviewContext(reviewContext);
   const catalogIds = new Set();
@@ -213,6 +247,13 @@ function buildAllowedChangeSet({
     V.fail('VNEXT_REVISION_REVISE_REPORT_REQUIRED', reviewReport.verdict);
   }
 
+  assertContextArtifactHashes(reviewContext, {
+    requirementRegistry,
+    impactGraph,
+    candidateManifest,
+    planContract,
+    uiAtomicityContract,
+  });
   const graph = buildArtifactGraph({
     requirementRegistry,
     impactGraph,
@@ -291,6 +332,7 @@ function buildAllowedChangeSet({
     review_report_hash: reviewReport.contract_hash,
     base_plan_contract_hash: planContract.contract_hash,
     base_ui_atomicity_hash: uiAtomicityContract ? uiAtomicityContract.contract_hash : null,
+    base_target_graph_hash: graphFingerprint(graph),
     reentry_stage: reentryStage,
     blocking_finding_ids: blocking.map((finding) => finding.finding_id).sort(),
     authorized_targets: authorizedTargets,
@@ -311,6 +353,7 @@ function validateAllowedChangeSet(allowedChangeSet) {
       'review_report_hash',
       'base_plan_contract_hash',
       'base_ui_atomicity_hash',
+      'base_target_graph_hash',
       'reentry_stage',
       'blocking_finding_ids',
       'authorized_targets',
@@ -334,6 +377,7 @@ function validateAllowedChangeSet(allowedChangeSet) {
   if (allowedChangeSet.base_ui_atomicity_hash !== null) {
     V.assertSha64(allowedChangeSet.base_ui_atomicity_hash, 'VNEXT_ALLOWED_CHANGE_SET_UI_HASH_INVALID');
   }
+  V.assertSha64(allowedChangeSet.base_target_graph_hash, 'VNEXT_ALLOWED_CHANGE_SET_GRAPH_HASH_INVALID');
   V.assertSha64(allowedChangeSet.preservation_hash, 'VNEXT_ALLOWED_CHANGE_SET_PRESERVATION_HASH_INVALID');
   V.verifyContractHash(allowedChangeSet, 'VNEXT_ALLOWED_CHANGE_SET_HASH_MISMATCH');
 
@@ -629,7 +673,12 @@ function verifyRevisionOutcome({
   }
 
   const baseGraph = buildArtifactGraph(baseArtifacts);
+  if (graphFingerprint(baseGraph) !== allowedChangeSet.base_target_graph_hash) {
+    V.fail('VNEXT_REVISION_BASE_GRAPH_MISMATCH');
+  }
   const nextGraph = buildArtifactGraph(nextArtifacts);
+  assertContextArtifactHashes(nextReviewContext, nextArtifacts);
+  assertCatalogMatches(nextReviewContext, nextGraph);
 
   for (const preserved of allowedChangeSet.preserved_targets) {
     const next = nextGraph.records.get(preserved.target_id);
