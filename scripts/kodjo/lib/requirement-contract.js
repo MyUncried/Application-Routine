@@ -45,6 +45,7 @@ function normalizeNonUiRequirements(rows, scope) {
     const tests = uniquePaths(row.tests || [],'REQUIREMENT_TEST_INVALID','tests');
     const proofs = Array.isArray(row.proof_required) ? row.proof_required.map(String).sort() : [];
     if (!proofs.length || proofs.some((p)=>!PROOF_TYPES.has(p)) || new Set(proofs).size!==proofs.length) fail('REQUIREMENT_PROOF_INVALID',String(index));
+    if (proofs.includes('FUNCTIONAL_TEST') && tests.length === 0) fail('REQUIREMENT_FUNCTIONAL_TEST_BINDING_MISSING',String(index));
     const status = String(row.status || 'DEFINED');
     if (!['DEFINED','CLARIFICATION_REQUIRED'].includes(status)) fail('REQUIREMENT_STATUS_INVALID',status);
     const id = requirementId('NON_UI',type,normalizedSource);
