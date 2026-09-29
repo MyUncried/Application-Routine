@@ -509,3 +509,158 @@ Le gate est franchissable uniquement si :
 - la projection Markdown est strictement dérivable du JSON canonique.
 
 La review reste interdite tant que ce gate n’est pas franchi.
+
+
+## 15. VNext-05 — Atomicité UI
+
+### 15.1 Contrat
+
+VNext-05 introduit le contrat subordonné :
+
+`kodjo.vnext.ui-criteria.v2`
+
+Ce contrat est lié au `PlanContract` exact par `plan_contract_hash`.
+
+Il ne constitue pas une seconde source de plan et ne peut créer aucune exigence.
+
+La hiérarchie normative est :
+
+`UI Requirement → Criterion → Atomic Assertions`
+
+### 15.2 Source-first obligatoire
+
+Un critère UI référence uniquement un `requirement_id` déjà présent dans le `RequirementRegistry`.
+
+Le module d’atomicité ne contient aucun mécanisme permettant de créer ou déduire un Requirement depuis un Criterion ou une Assertion.
+
+Tout changement UI du PlanContract doit être porté par un requirement de type `UI`.
+
+Un changement UI porté uniquement par un requirement non-UI est bloquant.
+
+### 15.3 Identités mécaniques
+
+Le modèle ne fournit aucun `criterion_id` ni `assertion_id`.
+
+La machine produit :
+
+- `criterion_id = CRT-...`
+- `assertion_id = AST-...`
+
+à partir des identités causales, de l’énoncé, des preuves et des impacts couverts.
+
+### 15.4 Critère UI
+
+Chaque critère contient :
+
+- `requirement_id`
+- source dérivée du Requirement
+- statement observable
+- risk_types
+- recherche de réutilisation
+- décision REUSE / EXTEND / CREATE
+- change_impact_ids
+- proof_ids provenant du PlanContract
+- assertions atomiques
+
+Les chemins ne sont jamais fournis librement par l’IA.
+
+Les cibles de changement sont exclusivement des `impact_id`.
+
+La recherche de réutilisation référence uniquement des `candidate_id` existants.
+
+REUSE et EXTEND exigent que le composant sélectionné appartienne au périmètre réellement recherché.
+
+CREATE interdit de prétendre sélectionner un composant existant.
+
+### 15.5 Assertions atomiques
+
+Types fermés :
+
+- `PRESENCE`
+- `CONTENT`
+- `STATE`
+- `GEOMETRY`
+- `RELATION`
+- `STYLE`
+- `LAYERING`
+- `INTERACTION`
+- `RESPONSIVE`
+
+Une assertion décrit une seule propriété observable.
+
+Deux propriétés doivent être séparées dès qu’au moins une condition est vraie :
+
+1. l’une peut échouer alors que l’autre passe ;
+2. elles nécessitent des preuves différentes ;
+3. elles peuvent être corrigées indépendamment.
+
+L’atomicité porte sur les propriétés observables, pas sur les nodes Figma, composants React ou éléments techniques internes.
+
+### 15.6 Sources normatives et non-invention
+
+La source de chaque assertion est dérivée mécaniquement du Requirement parent.
+
+Aucun path ou locator source supplémentaire n’est inventé par le modèle.
+
+Règles :
+
+- GEOMETRY / RELATION / STYLE / LAYERING / RESPONSIVE exigent une source d’autorité `VISUAL` ou `DECISION` ;
+- INTERACTION exige une source d’autorité `FUNCTIONAL` ou `DECISION` ;
+- PRESENCE / CONTENT / STATE exigent une preuve observable adaptée.
+
+Une valeur visuelle absente de Figma ou d’une décision normative ne doit pas être inventée ; elle doit produire une clarification en amont du PlanContract.
+
+### 15.7 Preuves
+
+Les preuves du critère sont des `proof_id` déjà créés dans le PlanContract.
+
+Une assertion ne peut utiliser qu’un sous-ensemble des preuves de son critère.
+
+Le type de preuve est dérivé du PlanContract, jamais recréé librement.
+
+Règles minimales :
+
+- GEOMETRY / RELATION / STYLE / LAYERING / RESPONSIVE → `VISUAL_COMPARE`
+- INTERACTION → `FUNCTIONAL_TEST` ou `STATIC_ANALYSIS`
+- PRESENCE / CONTENT / STATE → au moins une preuve observable
+
+Toutes les preuves du critère doivent être allouées à au moins une assertion.
+
+### 15.8 Couverture des changements UI
+
+Chaque `change_impact_id` UI du PlanContract doit être couvert par au moins un Criterion.
+
+Chaque `change_impact_id` d’un Criterion doit être couvert par au moins une Assertion.
+
+Aucune fermeture implicite n’est admise.
+
+### 15.9 Réutilisation de #243
+
+VNext-05 conserve de #243 :
+
+- la taxonomie des propriétés atomiques ;
+- la règle de preuve adaptée à la propriété ;
+- l’obligation d’assertions pour les nouveaux plans UI ;
+- la couverture des preuves du critère par les assertions ;
+- la distinction REUSE / EXTEND / CREATE ;
+- la compatibilité historique des anciens plans.
+
+VNext-05 remplace cependant les identités libres et les paths recopiés par les IDs mécaniques VNext.
+
+Le lecteur historique existant des matrices `kodjo.ui-criteria.v1` / candidate v2 reste inchangé tant que la migration VNext n’est pas activée.
+
+### 15.10 Gate UI_ATOMICITY_READY
+
+Le gate est franchissable uniquement si :
+
+- le PlanContract exact est valide ;
+- chaque changement UI possède un requirement UI ;
+- chaque requirement UI modifié possède au moins un Criterion ;
+- tous les changements UI sont couverts ;
+- chaque Criterion possède au moins une Assertion ;
+- toutes les preuves sont compatibles et allouées ;
+- chaque Assertion possède une source normative compatible avec sa propriété ;
+- tous les IDs sont mécaniques ;
+- aucun path libre n’est introduit.
+
+La review VNext ne peut pas déclarer un plan UI prêt tant que ce gate n’est pas franchi.
