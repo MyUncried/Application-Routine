@@ -4,6 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const os = require('node:os');
 const { verify } = require('../../scripts/kodjo/verify-independent-protocol-audit');
 const { publish, ARCHIVE_BRANCH } = require('../../scripts/kodjo/publish-independent-protocol-audit');
 const root = path.resolve(__dirname, '../..');
@@ -136,4 +137,53 @@ test('workflow separates read-only auditor and durable publication; no success f
   assert.match(publisher, /publish-independent-protocol-audit\.js/);
   assert.doesNotMatch(publisher, /claude -p|exit 0|continue-on-error/);
   assert.ok(auditor.indexOf('Independent auditor modified checkout') < auditor.indexOf('verify-independent-protocol-audit.js'));
+});
+
+test('remote writer scanner admits only the declared archive job and keeps other writes forbidden', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-audit-writer-'));
+  const workflowPath = '.github/workflows/kodjo-v2-next-evolution-independent-audit.yml';
+  const workflow = fs.readFileSync(path.join(root, workflowPath), 'utf8');
+  const scanner = require('../../scripts/kodjo/scan-remote-write-capability');
+  const permission = '      contents: write # Isolated audit evidence writer; never passed to Claude.';
+  const scan = (source, filename = workflowPath) => {
+    fs.rmSync(path.join(dir, '.github'), { recursive: true, force: true });
+    const target = path.join(dir, filename);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, source);
+    const previousArgs = process.argv;
+    const previousOut = process.stdout.write;
+    const previousErr = process.stderr.write;
+    let stdout = '', stderr = '';
+    try {
+      process.argv = [process.execPath, 'scan-remote-write-capability.js', dir];
+      process.stdout.write = value => { stdout += value; return true; };
+      process.stderr.write = value => { stderr += value; return true; };
+      return { status: scanner.main(), stdout, stderr };
+    } finally {
+      process.argv = previousArgs;
+      process.stdout.write = previousOut;
+      process.stderr.write = previousErr;
+    }
+  };
+  try {
+    assert.equal(scan(workflow).status, 0);
+    const hostile = [
+      workflow.replace('  publish-evidence:', '  independent-audit-writer:'),
+      workflow.replace(permission, '      contents: write'),
+      workflow.replace('permissions:\n  contents: read', 'permissions:\n  contents: write'),
+      workflow.replace('    outputs:\n', '    permissions:\n      contents: write\n    outputs:\n'),
+      workflow.replace('          set -euo pipefail\n          node scripts/kodjo/publish-independent-protocol-audit.js',
+        '          set -euo pipefail\n          git push origin HEAD:main\n          node scripts/kodjo/publish-independent-protocol-audit.js'),
+    ];
+    for (const source of hostile) {
+      const result = scan(source);
+      assert.equal(result.status, 1, result.stderr);
+      assert.match(result.stderr, /REMOTE_FUNCTIONAL_WRITE_CAPABILITY_FOUND/);
+    }
+    const otherWorkflow = scan(workflow, '.github/workflows/kodjo-v2-unregistered-writer.yml');
+    assert.equal(otherWorkflow.status, 1);
+    assert.match(otherWorkflow.stderr, /CONTENTS_WRITE/);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 });

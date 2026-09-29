@@ -177,6 +177,21 @@ function isDisposableConsumptionPermission(filePath, lines, index, patternId, ro
   return false;
 }
 
+// The audit archive is a separate deterministic documentary writer. Admit only
+// its exact job-level permission; all other capabilities still use PATTERNS.
+function isIndependentAuditPublicationPermission(filePath, lines, index, patternId, root) {
+  if (patternId !== 'CONTENTS_WRITE') return false;
+  const rel = path.relative(root, filePath).replace(/\\/g, '/');
+  if (rel !== '.github/workflows/kodjo-v2-next-evolution-independent-audit.yml' ||
+      lines[index] !== '      contents: write # Isolated audit evidence writer; never passed to Claude.' ||
+      lines[index - 1] !== '    permissions:') return false;
+  for (let i = index - 2; i >= 0; i--) {
+    if (/^  [\w-]+:/.test(lines[i])) return lines[i] === '  publish-evidence:';
+    if (/^\S/.test(lines[i])) return false;
+  }
+  return false;
+}
+
 function main() {
   const root = path.resolve(process.argv[2] || process.cwd());
   const files = collectFiles(root);
@@ -192,6 +207,7 @@ function main() {
       for (const p of PATTERNS) {
         if (!p.re.test(code)) continue;
         if (isDisposableConsumptionPermission(file, lines, i, p.id, root)) continue;
+        if (isIndependentAuditPublicationPermission(file, lines, i, p.id, root)) continue;
         if (isFixedEvidenceWriterOperation(file, line, p.id, root)) continue;
         if (isFixedLeanSupervisorOperation(file, line, p.id, root)) continue;
         if (isFixedPlanHandoffWriterOperation(file, line, p.id, root)) continue;
@@ -221,4 +237,4 @@ function main() {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { isDisposableConsumptionPermission, collectFiles, PATTERNS, SHELL_TRUE_EXEMPTIONS, isExempt, isFixedEvidenceWriterOperation, isFixedLeanSupervisorOperation, main };
+module.exports = { isIndependentAuditPublicationPermission, isDisposableConsumptionPermission, collectFiles, PATTERNS, SHELL_TRUE_EXEMPTIONS, isExempt, isFixedEvidenceWriterOperation, isFixedLeanSupervisorOperation, main };
