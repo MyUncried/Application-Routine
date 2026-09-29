@@ -17,6 +17,7 @@ const {classify,inventory}=require('../../scripts/kodjo/lib/artifact-policy');
 const {resolveImplementationReviewPolicy}=require('../../scripts/kodjo/resolve-implementation-review-policy');
 const {repoPath}=require('../../scripts/kodjo/verify-test-contract-results');
 const {verify:verifyIndependentAudit,EXPECTED_MATRIX_IDS}=require('../../scripts/kodjo/verify-independent-protocol-audit');
+const {generate:generateBoundedCorrection,deterministicUuid}=require('../../scripts/kodjo/generate-bounded-correction-request');
 
 function atomicMatrix(){
   return {
@@ -215,4 +216,50 @@ test('independent audit output contract refuses incomplete matrix coverage and a
   assert.doesNotThrow(()=>verifyIndependentAudit(body()));
   assert.throws(()=>verifyIndependentAudit(body({matrix_ids_total:63,matrix_ids_covered:63})),/MATRIX_COVERAGE_INVALID/);
   assert.throws(()=>verifyIndependentAudit(body({matrix_ids_covered:63,matrix_ids_not_covered:1})),/APPROVE_WITH_UNCOVERED/);
+});
+
+
+test('PE-35 bounded correction request is deterministic and cannot recurse past RESUME_DELTA',()=>{
+  const queue={
+    schema_version:'kodjo.protocol.v2.lean-request.0.6.13',
+    slice_id:'S',issue_number:1,source_head:'a'.repeat(40),baseline_head:'a'.repeat(40),
+    slice_bootstrap_file:'.github/orchestration/v2-slices/S/slice-bootstrap.json',
+    slice_bootstrap_sha256:'b'.repeat(64),mode:'INITIAL',operation_kind:'IMPLEMENT',
+    session_id:null,prompt_file:'.github/orchestration/v2-slices/S/implementation-mission.md',
+    scope_allow:['src/a.ts'],checks:['jest','typescript','lint'],
+    limits:{max_ai_calls:1,max_duration_seconds:3600,max_prompt_bytes:32768,max_total_prompt_bytes:32768,max_rollovers:0},
+    request_id:'11111111-1111-4111-8111-111111111111',
+    created_at:'2026-09-29T10:00:00.000Z',
+    authorized_plan:{plan_path:'.github/orchestration/v2-slices/S/technical-plan.md',plan_blob_oid:'c'.repeat(40),approved_at_commit:'d'.repeat(40),evidence_kind:'ARTIFACT_HASH'},
+    independent_review:{review_path:'.github/orchestration/v2-slices/S/independent-review.md',review_blob_oid:'e'.repeat(40),reviewed_plan_blob_oid:'c'.repeat(40),verdict:'APPROVED',evidence_kind:'ARTIFACT_HASH'},
+    user_gate:{gate_ref:'issue_comment:1',gated_reference:'c'.repeat(40),decision:'APPROVED',user_login:'MyUncried',evidence_kind:'ORGANISATIONAL'},
+  };
+  const result={
+    status:'IMPLEMENTED_WITH_FAILED_CHECKS',
+    session_id:'22222222-2222-4222-8222-222222222222',
+    claude_finished_at:'2026-09-29T10:10:00.000Z',
+    checks:[{check:'jest',status:'FAIL'}],
+  };
+  const first=generateBoundedCorrection(queue,result,'123',true);
+  const second=generateBoundedCorrection(queue,result,'123',true);
+  assert.equal(first.status,'READY');
+  assert.deepEqual(first,second);
+  assert.equal(first.request.request_id,deterministicUuid(queue.request_id+'|123|CHECKS_FAILED'));
+  assert.equal(first.request.mode,'RESUME_DELTA');
+  assert.equal(first.request.retry_of_run_id,'123');
+  const resumed=generateBoundedCorrection(first.request,{...result,status:'IMPLEMENTED_WITH_FAILED_CHECKS'},'124',true);
+  assert.equal(resumed.status,'NOT_REQUIRED');
+  assert.equal(resumed.policy.auto_retry,false);
+});
+
+test('PE-35 Lean Queue materializes retry only after failed INITIAL checks and uploaded recovery',()=>{
+  const workflow=read('.github/workflows/kodjo-v2-lean-queue.yml');
+  assert.match(workflow,/Materialize one bounded automatic correction when eligible/);
+  assert.match(workflow,/if: failure\(\) && steps\.execute\.outputs\.selected_queue != '' && steps\.diag\.outputs\.dir != ''/);
+  assert.match(workflow,/RECOVERY_UPLOAD_OUTCOME: \$\{\{ steps\.recovery_package\.outcome \}\}/);
+  assert.match(workflow,/RECOVERY_ARTIFACT_ID: \$\{\{ steps\.recovery_package\.outputs\.artifact-id \}\}/);
+  assert.match(workflow,/generate-bounded-correction-request\.js/);
+  assert.match(workflow,/AUTO_CORRECTION_QUEUED/);
+  assert.match(workflow,/mode=RESUME_DELTA/);
+  assert.match(workflow,/ALREADY_EXISTS/);
 });
