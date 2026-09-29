@@ -25,12 +25,12 @@ function assertSequence(values, prefix, maximum) {
   }
 }
 
-test('registre canonique 3.64.0: incidents uniques, complets et à valeurs contrôlées', () => {
-  assert.match(text, /Version du registre : \*\*3\.64\.0\*\*/);
+test('registre canonique 3.65.0: incidents uniques, complets et à valeurs contrôlées', () => {
+  assert.match(text, /Version du registre : \*\*3\.65\.0\*\*/);
   assert.match(text, /run #73 `34648194736`/);
   assert.match(text, /artefact `10283681378`/);
   const incidents = ids('INC');
-  assertSequence(incidents, 'INC', 165);
+  assertSequence(incidents, 'INC', 169);
   for (const id of incidents) {
     const row = text.split('\n').find((line) => line.startsWith('| ' + id + ' |'));
     assert.equal(row.split('|').length, 18, 'malformed incident row ' + id);
@@ -40,7 +40,7 @@ test('registre canonique 3.64.0: incidents uniques, complets et à valeurs contr
 });
 
 test('registre canonique: tests, aliases et invariants sans trou ni duplication', () => {
-  assertSequence(ids('T'), 'T', 138);
+  assertSequence(ids('T'), 'T', 142);
   assert.equal(ids('XLS03-INC').length, 51);
   assert.equal(ids('INV').length, 24);
 });
@@ -81,7 +81,7 @@ test('workflow pilote qualifie et archive le HEAD de PR, pas le merge temporaire
   const expected = 'ref: ${{ github.event.pull_request.head.sha || github.sha }}';
   assert.equal(workflow.split(expected).length - 1, 2);
   assert.match(workflow, /test "\$\(git rev-parse HEAD\)" = "\$SOURCE_SHA"/);
-  assert.match(workflow, /kodjo-v2-complete-source-\$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
+  assert.doesNotMatch(workflow, /kodjo-v2-complete-source-/);\n  assert.match(workflow, /Record immutable qualification identity/);\n  assert.match(workflow, /source_tree_manifest_sha256/);
 });
 
 test('workflow jetable: dispatch manuel, consommation durable déclarée et aucune publication de code', () => {
