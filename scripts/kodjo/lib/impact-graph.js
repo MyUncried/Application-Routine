@@ -388,11 +388,18 @@ function buildImpactGraph({
       .filter((row) => row.change_kind === 'MODIFY' && row.candidate_id !== null)
       .map((row) => row.candidate_id),
   )].sort();
+  const selectedDirectRootIds = selectedModifyIds.filter((id) => {
+    const candidate = candidateById.get(id);
+    return candidate
+      && candidate.origin === 'GIT_TREE'
+      && candidate.candidate_kind === 'CODE'
+      && SOURCE_EXTENSIONS.some((ext) => candidate.path.endsWith(ext));
+  });
 
-  if (selectedModifyIds.length > 0) {
+  if (selectedDirectRootIds.length > 0) {
     if (!directImportScan) V.fail('VNEXT_DIRECT_IMPORT_SCAN_REQUIRED');
     validateDirectImportScan(directImportScan, candidateManifest);
-    if (V.canonicalStringify(directImportScan.target_candidate_ids) !== V.canonicalStringify(selectedModifyIds)) {
+    if (V.canonicalStringify(directImportScan.target_candidate_ids) !== V.canonicalStringify(selectedDirectRootIds)) {
       V.fail('VNEXT_DIRECT_IMPORT_TARGET_SET_MISMATCH');
     }
 
