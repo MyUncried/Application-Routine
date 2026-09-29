@@ -138,6 +138,7 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/kodjo/scan-plan-impact.js extract-modules /tmp/kodjo-v2-initial/plan-draft.md /tmp/kodjo-v2-initial/modules.json
+          node scripts/kodjo/validate-plan-module-paths.js "$SOURCE_HEAD" /tmp/kodjo-v2-initial/modules.json /tmp/kodjo-v2-initial/source
           (cd /tmp/kodjo-v2-initial/source && node "$GITHUB_WORKSPACE/scripts/kodjo/scan-plan-impact.js" scan "$SOURCE_HEAD" /tmp/kodjo-v2-initial/modules.json /tmp/kodjo-v2-initial/scan.json)
           cat > /tmp/kodjo-v2-initial/final-prompt.txt <<'EOF'
           Produce the complete final KODJO V2 INITIAL technical plan from the supplied draft and deterministic one-level direct-import scan.
