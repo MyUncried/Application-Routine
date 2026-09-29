@@ -76,6 +76,9 @@ function buildInput(planBody, changedFiles, previousReview) {
   if (!matrix || !['kodjo.ui-criteria.v1',MATRIX_SCHEMA_V2].includes(matrix.schema)) fail('UI_IMPLEMENTATION_REVIEW_PLAN_MATRIX_INVALID', 'schema matrice invalide');
   if (!planContract || planContract.schema !== 'kodjo.ui-plan-contract.v1') fail('UI_IMPLEMENTATION_REVIEW_PLAN_CONTRACT_INVALID', 'schema contrat invalide');
   if (planContract.matrix_sha256 !== matrixFingerprint(matrix)) fail('UI_IMPLEMENTATION_REVIEW_PLAN_DRIFT', 'matrice != contrat approuve');
+  const hasRequirementContract=/<KODJO_REQUIREMENT_CONTRACT_JSON>[\s\S]*?<\/KODJO_REQUIREMENT_CONTRACT_JSON>/.test(planBody);
+  const requirementContracts=hasRequirementContract?verifyRequirementContracts(planBody):null;
+  const nonUiSource=requirementContracts?requirementContracts.requirement_contract.requirements.filter((row)=>row.domain==='NON_UI'):[];
 
   const assertionMode = matrix.schema === MATRIX_SCHEMA_V2;
   const criteria = Array.isArray(matrix.criteria) ? matrix.criteria : [];
