@@ -188,6 +188,7 @@ test('independent Claude audit requires exact qualified HEAD, remains read-only 
   assert.match(workflow,/\.head_sha == \$sha/);
   assert.match(workflow,/candidate_sha:/);
   assert.match(workflow,/Candidate PR moved/);
+  assert.match(workflow,/npm ci --prefix scripts\/kodjo\/openai-runtime --ignore-scripts --no-audit --no-fund/);
   assert.match(workflow,/node tests\/kodjo\/run-all\.js/);
   assert.match(workflow,/node scripts\/kodjo\/validate-workflows\.js/);
   assert.match(workflow,/Remove-Item Env:GH_TOKEN/);
