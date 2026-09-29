@@ -346,7 +346,7 @@ test('independent Claude audit requires exact qualified HEAD, remains read-only 
   assert.match(workflow,/Independent auditor modified checkout/);
   assert.match(workflow,/actions\/upload-artifact@v4/);
   assert.match(workflow,/if: always\(\)/);
-  assert.match(workflow,/NEXT_EVOLUTION_INDEPENDENT_AUDIT/);
+  assert.match(read('scripts/kodjo/publish-independent-protocol-audit.js'),/NEXT_EVOLUTION_INDEPENDENT_AUDIT/);
 });
 
 test('independent Claude audit mission covers the entire 64-ID determinism matrix',()=>{

@@ -17,7 +17,8 @@ function fail(code, detail) { throw new Error(code + (detail ? ': ' + detail : '
 
 function verify(text) {
   const body = String(text || '').replace(/\r\n/g, '\n');
-  const verdicts = [...body.matchAll(/^VERDICT:\s*(APPROVE|REVISE)\s*$/gm)].map((m) => m[1]);
+  // Markdown headings are presentation only; duplicates and JSON disagreement still fail.
+  const verdicts = [...body.matchAll(/^(?:#{1,6}[ \t]+)?VERDICT:[ \t]*(APPROVE|REVISE)[ \t]*$/gm)].map((m) => m[1]);
   if (verdicts.length !== 1) fail('INDEPENDENT_AUDIT_VERDICT_MISSING_OR_DUPLICATED');
   const blocks = [...body.matchAll(/<KODJO_INDEPENDENT_PROTOCOL_AUDIT_JSON>\s*([\s\S]*?)\s*<\/KODJO_INDEPENDENT_PROTOCOL_AUDIT_JSON>/g)];
   if (blocks.length !== 1) fail('INDEPENDENT_AUDIT_JSON_MISSING_OR_DUPLICATED');

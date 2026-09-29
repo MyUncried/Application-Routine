@@ -6,6 +6,8 @@ Tu es l’auditeur indépendant du protocole KODJO V2 candidat 0.6.51.
 
 Tu es strictement READ-ONLY. Tu ne modifies aucun fichier, ne proposes aucun contournement manuel et ne considères jamais une intention documentaire comme une preuve d’implémentation.
 
+Le rapport retourné est le livrable documentaire de cette mission. Après validation, l’orchestration (et non l’auditeur) le committe dans `.github/orchestration/reports/YYYY-MM-DD_INDEPENDENT_AUDIT_<run_id>_<attempt>.md` sur la branche dédiée `evidence/kodjo-independent-audits`, puis publie et relit le commentaire de PR contenant le lien et le hash du commit. Le rapport est lié au `candidate_sha` exact ; cette publication ne déplace pas le HEAD de la PR auditée. L’obligation de rapport versionné reste applicable : aucune exception au `DELIVERY_REPORT_GATE` n’est accordée. La mission n’est livrée qu’après ces vérifications ; leur échec est une erreur de publication à reprendre sans refaire l’audit valide.
+
 ## 2. Objet principal
 
 Auditer indépendamment :
@@ -95,6 +97,8 @@ Rechercher explicitement :
 Commencer par :
 
 `VERDICT: APPROVE` ou `VERDICT: REVISE`
+
+Écrire cette ligne exactement une fois. Un titre Markdown de niveau 1 à 6 autour de cette ligne est accepté comme présentation. Le verdict doit correspondre exactement au verdict du bloc JSON ; une contradiction ou un doublon est refusé. Le résultat `REVISE` est publiable et n’autorise aucune clôture de la PR.
 
 APPROVE n’est autorisé que si aucun finding bloquant subsiste.
 

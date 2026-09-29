@@ -73,6 +73,10 @@ jobs:
     if: needs.await_qualified_head.result == 'success'
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 60
+    outputs:
+      base_sha: ${{ steps.target.outputs.base_sha }}
+      session_id: ${{ steps.claude.outputs.session_id }}
+      audit_attempt: ${{ steps.claude.outputs.audit_attempt }}
     env:
       GH_TOKEN: ${{ github.token }}
       EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
@@ -88,6 +92,9 @@ jobs:
         id: target
         run: |
           $ErrorActionPreference='Stop'
+          foreach($name in @('kodjo-next-evolution-audit.json','kodjo-next-evolution-audit.err.txt','kodjo-next-evolution-audit.md','kodjo-next-evolution-audit-summary.json')){
+            Remove-Item -LiteralPath (Join-Path $env:RUNNER_TEMP $name) -Force -ErrorAction SilentlyContinue
+          }
           if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'Unexpected runner' }
           if ($env:PR_NUMBER -notmatch '^[1-9][0-9]*$') { throw 'Invalid PR number' }
           if ($env:CANDIDATE_SHA -notmatch '^[0-9a-f]{40}$') { throw 'Invalid candidate SHA' }
@@ -170,6 +177,8 @@ jobs:
           $err=Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit.err.txt'
           & claude -p --output-format json --dangerously-skip-permissions $prompt 1> $out 2> $err
           $code=$LASTEXITCODE
+          $status=git status --porcelain --untracked-files=all
+          if($LASTEXITCODE-ne0-or-not[string]::IsNullOrWhiteSpace(($status -join [Environment]::NewLine))){throw 'Independent auditor modified checkout'}
           if(!(Test-Path -LiteralPath $out)-or(Get-Item -LiteralPath $out).Length-eq0){throw "Claude audit produced no JSON; exit=$code"}
           $json=Get-Content -LiteralPath $out -Raw -Encoding UTF8|ConvertFrom-Json
           if(!$json.session_id-or!$json.result){throw 'Claude audit result incomplete'}
@@ -180,35 +189,7 @@ jobs:
           if($LASTEXITCODE-ne0){throw 'Independent audit output contract refused'}
           if(-not[string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))){throw 'Independent auditor modified checkout'}
           "session_id=$($json.session_id)"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
-
-      - name: Publish durable independent audit
-        env:
-          BASE_SHA: ${{ steps.target.outputs.base_sha }}
-          SESSION_ID: ${{ steps.claude.outputs.session_id }}
-        run: |
-          $ErrorActionPreference='Stop'
-          $audit=Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit.md'
-          $nl=[Environment]::NewLine
-          $header='[KODJO_V2] NEXT_EVOLUTION_INDEPENDENT_AUDIT'+$nl+
-            'pr_number='+$env:PR_NUMBER+$nl+
-            'base_sha='+$env:BASE_SHA+$nl+
-            'candidate_sha='+$env:CANDIDATE_SHA+$nl+
-            'reviewer=CLAUDE_LOCAL'+$nl+
-            'session_id='+$env:SESSION_ID+$nl+$nl
-          $comment=Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit-comment.md'
-          [IO.File]::WriteAllText($comment,$header+(Get-Content -LiteralPath $audit -Raw -Encoding UTF8),(New-Object Text.UTF8Encoding($false)))
-          Get-Content -LiteralPath $audit -Raw -Encoding UTF8 | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
-          gh issue comment $env:PR_NUMBER --repo $env:GITHUB_REPOSITORY --body-file $comment
-          if($LASTEXITCODE-ne0){
-            $body=Get-Content -LiteralPath $comment -Raw -Encoding UTF8
-            $payload=Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit-comment.json'
-            [IO.File]::WriteAllText($payload,(@{body=$body}|ConvertTo-Json -Compress -Depth 3),(New-Object Text.UTF8Encoding($false)))
-            gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$env:PR_NUMBER/comments" --input $payload
-            if($LASTEXITCODE-ne0){
-              Write-Warning 'Independent audit comment publication unavailable; report preserved in Actions summary and artifact'
-              exit 0
-            }
-          }
+          "audit_attempt=$env:GITHUB_RUN_ATTEMPT"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Preserve independent audit regardless of comment publication
         if: always()
@@ -218,5 +199,51 @@ jobs:
           path: |
             ${{ runner.temp }}/kodjo-next-evolution-audit.md
             ${{ runner.temp }}/kodjo-next-evolution-audit-summary.json
+            ${{ runner.temp }}/kodjo-next-evolution-audit.json
+            ${{ runner.temp }}/kodjo-next-evolution-audit.err.txt
           if-no-files-found: error
+          retention-days: 14
+
+  publish-evidence:
+    needs: independent-audit
+    if: needs.independent-audit.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
+      CANDIDATE_SHA: ${{ inputs.candidate_sha || github.event.pull_request.head.sha }}
+      BASE_SHA: ${{ needs.independent-audit.outputs.base_sha }}
+      SESSION_ID: ${{ needs.independent-audit.outputs.session_id }}
+      SOURCE_AUDIT_ATTEMPT: ${{ needs.independent-audit.outputs.audit_attempt }}
+    steps:
+      - name: Checkout exact publication contract
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.candidate_sha || github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Download validated audit without recalling Claude
+        uses: actions/download-artifact@v4
+        with:
+          name: kodjo-v2-independent-audit-${{ github.run_id }}-${{ needs.independent-audit.outputs.audit_attempt }}
+          path: ${{ runner.temp }}/kodjo-independent-audit
+      - name: Commit report on isolated evidence branch and verify PR comment
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/kodjo/publish-independent-protocol-audit.js \
+            "$RUNNER_TEMP/kodjo-independent-audit/kodjo-next-evolution-audit.md" \
+            "$RUNNER_TEMP/kodjo-independent-audit/publication-receipt.json"
+      - name: Preserve publication receipt without masking a publication failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-audit-publication-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/kodjo-independent-audit/publication-receipt.json
+          if-no-files-found: warn
           retention-days: 14
