@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   issues: write
+  actions: write
 
 concurrency:
   group: kodjo-openai-planning
@@ -223,12 +224,40 @@ jobs:
             echo "source_head=$SOURCE_HEAD"
             echo 'planning_mode=INITIAL'
             echo 'planning_contract=kodjo.plan-impact.v1'
-            echo 'ui_planning_contract=kodjo.ui-plan-criteria.v1'
+            echo 'ui_planning_contract=kodjo.ui-plan-criteria.v2'
             echo "STATUT : $STATUS"
             echo
             cat /tmp/kodjo-v2-initial/technical-plan.md
           } > /tmp/kodjo-v2-initial/comment.md
-          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file /tmp/kodjo-v2-initial/comment.md
+          CREATED="$(gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/kodjo-v2-initial/comment.md)")"
+          PLAN_ID="$(printf '%s' "$CREATED" | jq -r '.id')"
+          printf '%s' "$PLAN_ID" | grep -Eq '^[1-9][0-9]*
+
+      - name: Preserve initial planning evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-initial-plan-${{ github.run_id }}
+          path: |
+            /tmp/kodjo-v2-initial/*api-evidence*.json
+            /tmp/kodjo-v2-initial/context-manifest.json
+            /tmp/kodjo-v2-initial/context-error.json
+            /tmp/kodjo-v2-initial/technical-plan.md
+            /tmp/kodjo-v2-initial/scan.json
+            /tmp/kodjo-v2-initial/matrix.json
+            /tmp/kodjo-v2-initial/proof.json
+            /tmp/kodjo-v2-initial/plan-contract.json
+            /tmp/kodjo-v2-initial/ui-plan-contract.json
+          if-no-files-found: warn
+          retention-days: 14
+
+          if [ "$STATUS" = 'PLAN_READY_FOR_INDEPENDENT_REVIEW' ]; then
+            gh workflow run kodjo-v2-slice-initial-plan-review.yml --ref main \
+              -f issue_number="$ISSUE_NUMBER" \
+              -f slice_id="$SLICE_ID" \
+              -f bootstrap_path="$BOOTSTRAP_PATH" \
+              -f source_plan_comment_id="$PLAN_ID"
+          fi
 
       - name: Preserve initial planning evidence
         if: always()
