@@ -249,9 +249,54 @@ Le cockpit et les preuves de run doivent distinguer explicitement :
 - upload diagnostique/non critique.
 
 
+
 ---
 
-## 8. Critères d’acceptation
+## 8. R8 / PE-37 / PE-38 — Efficience déterministe des qualifications
+
+### 8.1 Supersession des runs de PR
+
+Une qualification strictement liée au HEAD courant d’une PR ne doit pas continuer à consommer des ressources après publication d’un HEAD plus récent sur cette même PR.
+
+Pour les workflows éligibles, la concurrence cible doit :
+
+- utiliser une identité stable par workflow et PR/branche ;
+- activer `cancel-in-progress: true` ;
+- garantir que seul le run du HEAD le plus récent poursuit la qualification ;
+- ne jamais appliquer cette règle à un writer, une recovery, une publication ou une transition dont l’interruption ferait perdre un état durable ou une preuve encore nécessaire.
+
+La simple présence de `pull_request:synchronize` ne suffit pas à rendre un run annulable : l’annulabilité doit être déclarée par catégorie de workflow.
+
+### 8.2 Classification déterministe de l’impact CI
+
+Avant toute qualification lourde, le delta de la PR doit être classé mécaniquement dans une catégorie fermée :
+
+- `RUNTIME_PROTOCOL_CHANGE` ;
+- `NORMATIVE_PROTOCOL_CHANGE` ;
+- `NON_NORMATIVE_DOCUMENTATION` ;
+- `UNKNOWN`.
+
+Règles de routage :
+
+- `RUNTIME_PROTOCOL_CHANGE` → qualification complète ;
+- `NORMATIVE_PROTOCOL_CHANGE` → qualification complète adaptée au contrat normatif concerné ;
+- `NON_NORMATIVE_DOCUMENTATION` → contrôle documentaire léger, sans suite lourde Linux/Windows ;
+- `UNKNOWN` → qualification complète par sécurité.
+
+La classification doit reposer sur une source versionnée et explicite des fichiers/catégories normatives et exécutables. Elle ne doit jamais déduire qu’un fichier est non normatif uniquement parce qu’il est Markdown ou placé sous un préfixe documentaire générique.
+
+Les renommages, déplacements et modifications mixtes prennent la catégorie la plus exigeante parmi les fichiers touchés.
+
+### 8.3 Relation avec PE-13
+
+PE-13 reste l’origine historique du besoin d’éviter les CI sans rapport déclenchées par des commits `synchronize`.
+
+PE-38 généralise ce principe à toutes les modifications de PR et le rend déterministe par classification de criticité, sans dépendre du motif ayant créé le commit.
+
+
+---
+
+## 9. Critères d’acceptation
 
 L’évolution n’est conforme que si les scénarios suivants sont démontrés :
 
@@ -272,11 +317,17 @@ L’évolution n’est conforme que si les scénarios suivants sont démontrés 
 15. upload diagnostique non critique en échec → diagnostic distinct sans masquer un éventuel verdict fonctionnel ;
 16. upload critique en échec → blocage explicite ;
 17. snapshot complet non nécessaire à la preuve/recovery → remplacement par une preuve minimale ou suppression de la duplication ;
-18. dashboard/storage externe obsolète après nettoyage → aucun retry répété tant que la capacité réelle n’est pas redevenue disponible.
+18. dashboard/storage externe obsolète après nettoyage → aucun retry répété tant que la capacité réelle n’est pas redevenue disponible ;
+19. HEAD A en qualification sur une PR puis HEAD B publié → le run A éligible est annulé et seul B poursuit ;
+20. run portant une recovery/writer critique → aucune annulation par la règle de supersession ;
+21. modification limitée à des rapports non normatifs explicitement classés → aucun pilot test lourd Linux/Windows ;
+22. modification d’une spec normative, d’un workflow, d’un script ou catégorie UNKNOWN → qualification complète ;
+23. modification mixte non normative + normative/runtime → routage vers la qualification la plus exigeante ;
+24. renommage ou déplacement entre catégories → classification selon source et destination, sans downgrade silencieux.
 
 ---
 
-## 9. Non-régression recherchée
+## 10. Non-régression recherchée
 
 Cette évolution ne doit pas :
 
@@ -289,17 +340,22 @@ Cette évolution ne doit pas :
 - affaiblir les gates de sécurité, de périmètre, de preuve ou d’approbation utilisateur ;
 - supprimer automatiquement un artifact référencé par une tranche ou une recovery active ;
 - rendre tous les uploads non bloquants par un `continue-on-error` générique ;
-- dépendre d’un plan GitHub supérieur ou d’un stockage supposé illimité.
+- dépendre d’un plan GitHub supérieur ou d’un stockage supposé illimité ;
+- annuler un run portant un writer, une recovery ou une transition critique simplement parce qu’un HEAD de PR a avancé ;
+- classer tous les fichiers Markdown comme non normatifs ;
+- utiliser un simple préfixe large tel que `.github/orchestration/**` comme preuve de criticité ;
+- ignorer silencieusement une catégorie inconnue : `UNKNOWN` doit rester fail-safe et déclencher la qualification complète.
 
 ---
 
-## 10. Ordre recommandé d’intégration
+## 11. Ordre recommandé d’intégration
 
 1. R1 — handoff explicite ;
 2. R4 — clôture canonique ;
 3. R5 — continuité opératoire / refresh GitHub ;
 4. R6 — réduction systématique de la non-détermination et hiérarchie de traitement des erreurs (PE-32/33/34/35) ;
 5. R7 / PE-36 — cycle de vie des artifacts et préflight quota ;
-6. R3 / PE-28 — correction visuelle directe bornée.
+6. R8 / PE-37/38 — supersession sûre des runs et classification déterministe de l’impact CI ;
+7. R3 / PE-28 — correction visuelle directe bornée.
 
 PE-27 reste une évolution distincte déjà implémentée dans la PR #243 ; elle doit être qualifiée puis activée avant la planification de PRE-2.
