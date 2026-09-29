@@ -154,7 +154,7 @@ jobs:
           cat /tmp/kodjo-v2-initial/plan-draft.md >> /tmp/kodjo-v2-initial/final-prompt.txt
           printf '\n===== DETERMINISTIC ONE-LEVEL DIRECT IMPORT SCAN =====\n' >> /tmp/kodjo-v2-initial/final-prompt.txt
           cat /tmp/kodjo-v2-initial/scan.json >> /tmp/kodjo-v2-initial/final-prompt.txt
-          node scripts/kodjo/generate-ui-plan-contract.js request final /tmp/kodjo-v2-initial/final-prompt.txt /tmp/kodjo-v2-initial/final-request.json
+          node scripts/kodjo/generate-ui-plan-contract.js request final /tmp/kodjo-v2-initial/final-prompt.txt /tmp/kodjo-v2-initial/final-request.json /tmp/kodjo-v2-initial/scan.json
           node scripts/kodjo/openai-plan-request.js /tmp/kodjo-v2-initial/final-request.json /tmp/kodjo-v2-initial/final-response.json /tmp/kodjo-v2-initial/final-api-evidence.json /tmp/kodjo-v2-initial/api-pacing.json
           test "$(jq -r '.status // "missing"' /tmp/kodjo-v2-initial/final-response.json)" = completed
           node scripts/kodjo/generate-ui-plan-contract.js decode final /tmp/kodjo-v2-initial/final-response.json /tmp/kodjo-v2-initial/final-plan-with-decisions.md /tmp/kodjo-v2-initial/scan.json
