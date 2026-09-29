@@ -123,7 +123,7 @@ test('VNext-02 exige CLARIFICATION_REQUIRED pour toute source AMBIGUOUS', () => 
   });
   assert.equal(registry.registry_status, 'BLOCKED');
   assert.deepEqual(registry.blocking_reasons, ['CLARIFICATION_REQUIRED']);
-  assert.throws(() => Registry.assertReady(registry), /VNEXT_REQUIREMENTS_NOT_READY/);
+  assert.throws(() => Registry.assertReady(registry), /CLARIFICATION_REQUIRED/);
 });
 
 test('VNext-02 rend les conflits symétriques et bloquants', () => {
