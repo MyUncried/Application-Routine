@@ -44,6 +44,9 @@ function validateCurrentHeads(planningEnvelope, currentState) {
 
 function validateApprovedArtifacts({
   planningEnvelope,
+  requirementRegistry,
+  impactGraph,
+  candidateManifest,
   planContract,
   reviewContext,
   reviewReport,
@@ -72,9 +75,9 @@ function validateApprovedArtifacts({
   if (reviewContext.ui_applicable) {
     if (!uiAtomicityContract) V.fail('VNEXT_APPROVAL_UI_CONTRACT_REQUIRED');
     Ui.validateUiAtomicityContract(uiAtomicityContract, {
-      requirementRegistry: arguments[0].requirementRegistry,
-      impactGraph: arguments[0].impactGraph,
-      candidateManifest: arguments[0].candidateManifest,
+      requirementRegistry,
+      impactGraph,
+      candidateManifest,
       planContract,
     });
     if (reviewContext.ui_atomicity_hash !== uiAtomicityContract.contract_hash) {
