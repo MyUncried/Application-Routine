@@ -159,9 +159,99 @@ La sortie attendue est une matrice contenant au minimum : étape, entrées, rés
 
 L’objectif est de mécaniser ce qui est calculable et de réserver l’IA aux analyses réellement sémantiques.
 
+### 6.4 Hiérarchie obligatoire de traitement des erreurs
+
+Pour chaque famille d’échec connue, le protocole doit d’abord déterminer si la cause est :
+
+- `PREVENTABLE_BY_DETERMINISM` ;
+- `RESIDUAL_AUTOCORRECTABLE` ;
+- `HUMAN_DECISION_REQUIRED`.
+
+L’ordre de traitement est obligatoire :
+
+1. dériver mécaniquement les faits calculables et supprimer la cause à la source ;
+2. valider mécaniquement avant les étapes coûteuses ;
+3. n’utiliser une auto-correction bornée que pour les résidus qui ne peuvent pas être empêchés ;
+4. solliciter l’utilisateur uniquement lorsqu’un arbitrage réellement ouvert subsiste.
+
+Une boucle de retry est un filet de sécurité, jamais le mécanisme nominal de convergence.
+
+PRE-1 a notamment montré qu’un ensemble exact de chemins déjà calculé ne doit pas être redemandé au modèle sous forme de recopie libre : la structure du contrat doit lier ces identités déterministes et ne laisser au modèle que la classification sémantique nécessaire.
+
+
+
 ---
 
-## 7. Critères d’acceptation
+## 7. R7 / PE-36 — Cycle de vie des artifacts GitHub Actions
+
+### 7.1 Principe
+
+Les artifacts GitHub Actions sont un mécanisme de transport, recovery ou diagnostic temporaire. Ils ne constituent pas par défaut la source de vérité durable des preuves.
+
+La preuve durable requise doit être matérialisée dans `Application-Routine-KODJO-Evidence` lorsque le protocole l’exige.
+
+### 7.2 Classification à la création
+
+Chaque artifact doit déclarer un rôle déterministe, par exemple :
+
+- `TEMPORARY_TRANSPORT` ;
+- `RECOVERY_REQUIRED` ;
+- `DIAGNOSTIC` ;
+- `DURABLE_EVIDENCE_SOURCE`.
+
+Une classification équivalente est acceptable si elle permet de déterminer mécaniquement sa criticité, sa rétention et son éligibilité à suppression.
+
+### 7.3 Rétention et suppression
+
+La rétention ne doit pas être uniforme par défaut.
+
+Les durées exactes restent à décider pendant la conception, mais toute suppression automatique exige au minimum que :
+
+- aucune tranche active ne référence l’artifact ;
+- aucune recovery active ou transition future admissible n’en dépende ;
+- la preuve durable requise soit matérialisée et vérifiée lorsqu’elle est nécessaire.
+
+À la clôture d’une tranche, le protocole doit inventorier ses artifacts et rendre supprimables ceux qui ne servent plus au transport, à la recovery ou à une preuve encore non matérialisée.
+
+### 7.4 Préflight quota
+
+Avant un workflow coûteux dont la conformité dépend obligatoirement d’un nouvel artifact, le protocole doit vérifier autant que possible que la capacité de stockage nécessaire existe.
+
+Un quota externe durablement saturé ne doit pas provoquer une boucle de retries qui répète les mêmes calculs coûteux sans possibilité d’aboutir.
+
+### 7.5 Criticité des uploads
+
+Chaque usage de `upload-artifact` doit être audité séparément :
+
+- upload obligatoire pour la conformité ou la recovery ;
+- upload diagnostique ou de confort ;
+- preuve transitoire déjà matérialisée durablement ailleurs.
+
+Un upload non critique ne doit pas devenir bloquant par accident. À l’inverse, un upload réellement nécessaire ne doit pas être rendu silencieusement facultatif par un `continue-on-error` générique.
+
+### 7.6 Volume et duplication
+
+Le protocole doit préférer une preuve minimale, un digest, un manifeste ou une preuve durable ciblée lorsqu’un snapshot complet n’est pas nécessaire.
+
+L’incident PRE-1 du 29/09/2026 a montré qu’une famille de snapshots complets répétée à chaque qualification pouvait saturer seule le quota GitHub Free, alors que les autres artifacts utiles ne représentaient que quelques mégaoctets.
+
+Le protocole doit rester viable avec le quota opérationnel actuel de 500 Mo et ne doit pas supposer implicitement un plan GitHub supérieur.
+
+### 7.7 Observabilité
+
+Le cockpit et les preuves de run doivent distinguer explicitement :
+
+- échec fonctionnel/protocolaire ;
+- échec de test ;
+- échec de stockage d’artifact ;
+- quota externe ;
+- upload obligatoire ;
+- upload diagnostique/non critique.
+
+
+---
+
+## 8. Critères d’acceptation
 
 L’évolution n’est conforme que si les scénarios suivants sont démontrés :
 
@@ -175,11 +265,18 @@ L’évolution n’est conforme que si les scénarios suivants sont démontrés 
 8. capacité outil réellement absente → arrêt avec diagnostic précis et action minimale ;
 9. alternative manuelle non qualifiée → refus de substitution silencieuse ;
 10. erreur externe transitoire relançable → retry borné sans interruption utilisateur ;
-11. erreur externe durable connue → pas de boucle de retries inutile.
+11. erreur externe durable connue → pas de boucle de retries inutile ;
+12. artifact de recovery encore référencé → suppression interdite ;
+13. preuve durable matérialisée et transport devenu inutile → artifact éligible à suppression ;
+14. quota insuffisant avant un upload obligatoire → arrêt avant consommation inutile des étapes coûteuses lorsque le préflight est possible ;
+15. upload diagnostique non critique en échec → diagnostic distinct sans masquer un éventuel verdict fonctionnel ;
+16. upload critique en échec → blocage explicite ;
+17. snapshot complet non nécessaire à la preuve/recovery → remplacement par une preuve minimale ou suppression de la duplication ;
+18. dashboard/storage externe obsolète après nettoyage → aucun retry répété tant que la capacité réelle n’est pas redevenue disponible.
 
 ---
 
-## 8. Non-régression recherchée
+## 9. Non-régression recherchée
 
 Cette évolution ne doit pas :
 
@@ -189,16 +286,20 @@ Cette évolution ne doit pas :
 - bloquer sur toute modification documentaire sans analyse d’impact ;
 - obliger une PR applicative ou la fermeture d’Issue pour toutes les catégories de tranche ;
 - rigidifier le protocole au-delà des invariants réellement nécessaires ;
-- affaiblir les gates de sécurité, de périmètre, de preuve ou d’approbation utilisateur.
+- affaiblir les gates de sécurité, de périmètre, de preuve ou d’approbation utilisateur ;
+- supprimer automatiquement un artifact référencé par une tranche ou une recovery active ;
+- rendre tous les uploads non bloquants par un `continue-on-error` générique ;
+- dépendre d’un plan GitHub supérieur ou d’un stockage supposé illimité.
 
 ---
 
-## 9. Ordre recommandé d’intégration
+## 10. Ordre recommandé d’intégration
 
 1. R1 — handoff explicite ;
 2. R4 — clôture canonique ;
 3. R5 — continuité opératoire / refresh GitHub ;
-4. R6 — réduction systématique de la non-détermination (PE-32/33/34) ;
-5. R3 / PE-28 — correction visuelle directe bornée.
+4. R6 — réduction systématique de la non-détermination et hiérarchie de traitement des erreurs (PE-32/33/34/35) ;
+5. R7 / PE-36 — cycle de vie des artifacts et préflight quota ;
+6. R3 / PE-28 — correction visuelle directe bornée.
 
 PE-27 reste une évolution distincte déjà implémentée dans la PR #243 ; elle doit être qualifiée puis activée avant la planification de PRE-2.
