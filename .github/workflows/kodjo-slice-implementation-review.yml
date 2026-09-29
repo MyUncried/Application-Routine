@@ -337,15 +337,16 @@ jobs:
             echo "For each criterion require implementation_status, files_or_symbols, component_used, tests_run, proof_status, preserve_status and residual_status in that report. Missing, incomplete or truncated evidence cannot substantiate CONFORME: use NON_VERIFIABLE for the affected criterion and verdict REVISE under the existing review contract."
             echo "The implementation_report assessment is deterministic. If NON_VERIFIABLE, mark every criterion implementation_status NON_VERIFIABLE and verdict REVISE; no unsupported attribution to a particular criterion. A missing stop marker is an evidence gap, not a new runtime stop status."
 
-            echo "For ui_applicable=false, criteria and boundary_results still follow the exact empty UI contract. The report criterion IDs are author labels, not approved machine IDs. Assess their meaning against the complete approved plan."
-            echo "For ui_applicable=false, non_ui_plan_assessment is mandatory: enumerate every functional acceptance requirement from the approved plan with a direct plan locator, status and concrete diff/test evidence. Also assess scope, preservation, test coverage and the truth and completeness of the implementation report. Never use the report as the source of plan requirements. Missing requirements, fabricated claims, unproven checks and code defects require NON_CONFORME or NON_VERIFIABLE and REVISE. The overall assessment must explicitly address completeness against the whole plan, even when the report is empty."
+            echo "When non_ui_requirement_count>0, non_ui_plan_assessment is mandatory and MUST contain exactly every requirement_id already supplied in non_ui_requirements. Never re-enumerate requirements from prose, invent an ID, or omit one. For INHERITED requirements copy inherited_result exactly. For AFFECTED requirements assess the supplied source/change_targets/tests/proof_required against diff and evidence."
+            echo "For new requirement contracts, FUNCTIONAL_TEST and STATIC_ANALYSIS statuses are machine-bound to implementation_report.machine_evidence; do not claim a status more favorable or different from the recorded check result. The validator rejects drift."
+            echo "For legacy ui_applicable=false plans without requirement IDs, preserve the historical prose assessment path only for backward compatibility."
             echo "For each proof_required, return exactly one proof_result. FUNCTIONAL_TEST and STATIC_ANALYSIS are technical blocking proofs and may be PASS only with evidence from the supplied material."
             echo "ACCESSIBILITY_CHECK may be PASS when deterministic supplied evidence is sufficient, PENDING_DEVICE when only runtime VoiceOver/TalkBack/touch-target evidence remains, or FAIL for a demonstrated defect. PENDING_DEVICE alone is not a technical failure."
             echo "VISUAL_COMPARE and DEVICE_CHECK cannot be certified by this automated review. Return PENDING_DEVICE unless there is a demonstrated FAIL; never return PASS for those two proof types."
-            echo "Every PRESERVE and FORBIDDEN boundary in boundary_requirements must appear exactly once in boundary_results with direct diff evidence. Any FAIL or NON_VERIFIABLE boundary is blocking."
+            echo "Every PRESERVE and FORBIDDEN boundary in boundary_requirements must appear exactly once in boundary_results. When machine_status is present, copy that status exactly; it is derived from the exact changed-file set and is not open to reinterpretation. Any FAIL or NON_VERIFIABLE boundary is blocking."
             echo "Requirements allocated to later increments remain deferred and are not defects."
             echo "The deterministic gate immediately preceding this review has completed npm test and TypeScript successfully."
-            echo "Return verdict=REVISE for any blocking defect. Otherwise return verdict=APPROVE even when device_gate_required=true; APPROVE is technical approval only and never closes the device/human gate."
+            echo "verdict and device_gate_required are transport fields only: the deterministic validator overwrites them from the validated criterion/requirement/proof/boundary states. Do not rely on your aggregate to authorize anything."
             echo "VISUAL_APPROVED only satisfies human/device evidence explicitly required by this approved plan. It never supplies missing technical, functional, scope or preservation evidence."
             echo "Do not modify files."
             echo
@@ -448,7 +449,34 @@ jobs:
                 }
               }')
           fi
-          if [ "$(jq -r .ui_applicable /tmp/ui-implementation-review-input.json)" = false ]; then
+          if [ "$(jq -r '.non_ui_requirement_count // 0' /tmp/ui-implementation-review-input.json)" -gt 0 ]; then
+            REVIEW_SCHEMA=$(printf '%s' "$REVIEW_SCHEMA" | jq '.required += ["non_ui_plan_assessment"] | .properties.non_ui_plan_assessment = {
+              type:"object",additionalProperties:false,required:["status","evidence","requirements"],
+              properties:{
+                status:{type:"string",enum:["CONFORME","NON_CONFORME","NON_VERIFIABLE"]},
+                evidence:{type:"string",minLength:1},
+                requirements:{type:"array",minItems:1,items:{
+                  type:"object",additionalProperties:false,required:["requirement_id","status","evidence","proof_results"],
+                  properties:{
+                    requirement_id:{type:"string",pattern:"^REQ-[A-F0-9]{16}$"},
+                    status:{type:"string",enum:["CONFORME","NON_CONFORME","NON_VERIFIABLE"]},
+                    evidence:{type:"string",minLength:1},
+                    proof_results:{
+                      type:"array",
+                      items:{
+                        type:"object",additionalProperties:false,required:["proof_type","status","evidence"],
+                        properties:{
+                          proof_type:{type:"string",enum:["FUNCTIONAL_TEST","STATIC_ANALYSIS","VISUAL_COMPARE","ACCESSIBILITY_CHECK","DEVICE_CHECK"]},
+                          status:{type:"string",enum:["PASS","FAIL","PENDING_DEVICE","NON_VERIFIABLE"]},
+                          evidence:{type:"string",minLength:1}
+                        }
+                      }
+                    }
+                  }
+                }}
+              }
+            }')
+          elif [ "$(jq -r .ui_applicable /tmp/ui-implementation-review-input.json)" = false ]; then
             REVIEW_SCHEMA=$(printf '%s' "$REVIEW_SCHEMA" | jq '.required += ["non_ui_plan_assessment"] | .properties.non_ui_plan_assessment = {
               type:"object",additionalProperties:false,required:["status","evidence","requirements"],
               properties:{
