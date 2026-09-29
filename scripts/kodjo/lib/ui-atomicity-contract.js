@@ -162,6 +162,7 @@ function normalizeReuse(input, candidateById, label) {
     const candidate = candidateById.get(candidateId);
     if (!candidate) V.fail('VNEXT_UI_REUSE_CANDIDATE_UNKNOWN', candidateId);
     if (candidate.origin !== 'GIT_TREE') V.fail('VNEXT_UI_REUSE_CANDIDATE_NOT_EXISTING', candidateId);
+    if (!isUiPath(candidate.path)) V.fail('VNEXT_UI_REUSE_CANDIDATE_NOT_UI', candidate.path);
   }
 
   if (!COMPONENT_DECISIONS.includes(input.component_decision)) {
