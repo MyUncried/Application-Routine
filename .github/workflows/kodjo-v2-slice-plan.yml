@@ -1,5 +1,5 @@
 name: KODJO V2 — Slice Plan Revision
-run-name: KODJO V2 / PLAN / ${{ github.event.comment.id || inputs.targeted_validation_comment_id }}
+run-name: KODJO V2 / PLAN / ${{ github.event.comment.id || inputs.review_comment_id || inputs.targeted_validation_comment_id }}
 
 on:
   issue_comment:
@@ -12,7 +12,11 @@ on:
         type: string
       targeted_validation_comment_id:
         description: Immutable targeted checkpoint to replay before full requalification
-        required: true
+        required: false
+        type: string
+      review_comment_id:
+        description: PLAN_REVIEW_OUTPUT REVISE that causally triggers bounded replanning
+        required: false
         type: string
 
 permissions:
@@ -32,7 +36,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      TRIGGER_BODY: ${{ github.event.comment.body }}
+      TRIGGER_BODY: ${{ github.event.comment.body || '' }}
       ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
     steps:
       - name: Checkout protocol
@@ -42,8 +46,44 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Replay targeted validation before full requalification
+      - name: Validate dispatched planning cause
         if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        env:
+          TARGETED_CHECKPOINT: ${{ inputs.targeted_validation_comment_id }}
+          REVIEW_COMMENT_ID: ${{ inputs.review_comment_id }}
+        run: |
+          set -euo pipefail
+          targeted=0
+          review=0
+          if [ -n "$TARGETED_CHECKPOINT" ]; then targeted=1; fi
+          if [ -n "$REVIEW_COMMENT_ID" ]; then review=1; fi
+          test $((targeted + review)) -eq 1
+
+      - name: Replay reviewed-plan revision trigger
+        if: github.event_name == 'workflow_dispatch' && inputs.review_comment_id != ''
+        shell: bash
+        env:
+          REVIEW_COMMENT_ID: ${{ inputs.review_comment_id }}
+        run: |
+          set -euo pipefail
+          REVIEW_JSON="$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$REVIEW_COMMENT_ID")"
+          printf '%s' "$REVIEW_JSON" | jq -e --arg issue "$ISSUE_NUMBER" '
+            .user.login == "github-actions[bot]" and
+            (.issue_url | endswith("/issues/" + $issue)) and
+            (.body | type == "string") and
+            (.body | contains("[KODJO_V2] PLAN_REVIEW_OUTPUT")) and
+            (.body | contains("verdict=REVISE")) and
+            (.body | contains("STATUT : PLAN_REVISION_REQUIRED"))
+          ' >/dev/null
+          {
+            echo 'TRIGGER_BODY<<KODJO_REVIEW_REVISION_EVENT'
+            printf '%s\n' "$REVIEW_JSON" | jq -r '.body'
+            echo KODJO_REVIEW_REVISION_EVENT
+          } >> "$GITHUB_ENV"
+
+      - name: Replay targeted validation before full requalification
+        if: github.event_name == 'workflow_dispatch' && inputs.targeted_validation_comment_id != ''
         shell: bash
         env:
           TARGETED_CHECKPOINT: ${{ inputs.targeted_validation_comment_id }}
@@ -120,7 +160,7 @@ jobs:
           REVIEW_PATH: ${{ steps.gate.outputs.review_path }}
           MISSION_PATH: ${{ steps.gate.outputs.mission_path }}
           APPLICATION_PR: ${{ steps.gate.outputs.application_pr }}
-          COMMAND_COMMENT_ID: ${{ github.event.comment.id }}
+          COMMAND_COMMENT_ID: ${{ github.event.comment.id || inputs.review_comment_id || inputs.targeted_validation_comment_id }}
         run: |
           set -euo pipefail
           rm -rf /tmp/kodjo-v2-plan
