@@ -60,7 +60,7 @@ test('V2 plan produces and verifies the opposable direct-import matrix', () => {
   assert.match(plan, /build-planning-context\.js/);
   assert.match(read('scripts/kodjo/build-planning-context.js'), /'code-files\.txt'/);
   assert.match(plan, /derives scope_allow/);
-  assert.match(plan, /full Jest, TypeScript and lint/);
+  assert.match(plan, /Every test obligation must be bound to an exact repository path/);
 });
 
 test('V2 planning sépare le HEAD produit du HEAD applicatif de la PR ouverte', () => {
