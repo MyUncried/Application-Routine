@@ -19,6 +19,7 @@ permissions:
   contents: read
   issues: write
   pull-requests: read
+  actions: write
 
 concurrency:
   group: kodjo-openai-planning
@@ -268,7 +269,7 @@ jobs:
             echo "planning_context_sha256=$(jq -r .sha256 /tmp/kodjo-v2-plan/context-manifest.json)"
             jq -r '.selection[] | select(.role == "BASE_PLAN" or .role == "INDEPENDENT_REVIEW" or .role == "RESUMED_COMMAND") | (.role | ascii_downcase) + "_comment_id=" + .id' /tmp/kodjo-v2-plan/context-manifest.json
             echo 'planning_contract=kodjo.plan-impact.v1'
-            echo 'ui_planning_contract=kodjo.ui-plan-criteria.v1'
+            echo 'ui_planning_contract=kodjo.ui-plan-criteria.v2'
             echo 'STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW'
             echo
             cat /tmp/kodjo-v2-plan/technical-plan.md
@@ -277,7 +278,42 @@ jobs:
             cat /tmp/kodjo-v2-plan-transition.json
             echo '</KODJO_PLAN_TRANSITION_JSON>'
           } > /tmp/kodjo-v2-plan/out.md
-          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file /tmp/kodjo-v2-plan/out.md
+          CREATED="$(gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/kodjo-v2-plan/out.md)")"
+          PLAN_ID="$(printf '%s' "$CREATED" | jq -r '.id')"
+          printf '%s' "$PLAN_ID" | grep -Eq '^[1-9][0-9]*
+
+      - name: Preserve V2 planning evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-slice-plan-${{ github.run_id }}
+          path: |
+            /tmp/kodjo-v2-plan/*api-evidence*.json
+            /tmp/kodjo-v2-plan/context-manifest.json
+            /tmp/kodjo-v2-plan/context-error.json
+            /tmp/kodjo-v2-plan/slice-bootstrap.json
+            /tmp/kodjo-v2-plan/planning-mission.md
+            /tmp/kodjo-v2-plan/prior-technical-plan.md
+            /tmp/kodjo-v2-plan/prior-independent-review.md
+            /tmp/kodjo-v2-plan/plan-draft.md
+            /tmp/kodjo-v2-plan/modified-modules.json
+            /tmp/kodjo-v2-plan/direct-import-scan.json
+            /tmp/kodjo-v2-plan/direct-import-scan.sha256
+            /tmp/kodjo-v2-plan/technical-plan-with-decisions.md
+            /tmp/kodjo-v2-plan/plan-impact-closure.json
+            /tmp/kodjo-v2-plan/technical-plan.md
+            /tmp/kodjo-v2-plan/plan-impact-replay.json
+            /tmp/kodjo-v2-plan/plan-contract.json
+            /tmp/kodjo-v2-plan/ui-plan-contract.json
+            /tmp/kodjo-v2-plan-transition.json
+          if-no-files-found: warn
+          retention-days: 14
+
+          gh workflow run kodjo-v2-slice-plan-review.yml --ref main \
+            -f issue_number="$ISSUE_NUMBER" \
+            -f slice_id="$SLICE_ID" \
+            -f bootstrap_path="$BOOTSTRAP_PATH" \
+            -f source_plan_comment_id="$PLAN_ID"
 
       - name: Preserve V2 planning evidence
         if: always()
