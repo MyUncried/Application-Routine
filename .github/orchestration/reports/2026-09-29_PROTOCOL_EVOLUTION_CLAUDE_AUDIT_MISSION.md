@@ -125,10 +125,10 @@ Lister toute décision sémantique/humaine qui aurait été mécanisée sans bas
 Scope, recovery, preuves, user gate, writers, artifacts, runs supersédés.
 
 ### F. Résumé machine
-Terminer par exactement un bloc :
+Terminer par exactement un bloc. `matrix_rows` doit contenir une ligne pour chacun des 64 ID exacts de la matrice, sans doublon, avec un statut parmi `COVERED`, `PARTIAL`, `NOT_COVERED`, `NON_VERIFIABLE` et une évidence précise non vide. Les quatre comptes doivent être calculés à partir de ces lignes. Le vérificateur refusera une identité absente, dupliquée, inventée ou des comptes incohérents. Le JSON ci-dessous est un gabarit : remplacer les zéros et le tableau vide par les résultats complets :
 
 <KODJO_INDEPENDENT_PROTOCOL_AUDIT_JSON>
-{"schema":"kodjo.protocol-independent-audit.v1","verdict":"APPROVE|REVISE","blocking_findings":0,"major_findings":0,"minor_findings":0,"matrix_ids_total":0,"matrix_ids_covered":0,"matrix_ids_partial":0,"matrix_ids_not_covered":0,"matrix_ids_non_verifiable":0}
+{"schema":"kodjo.protocol-independent-audit.v1","verdict":"APPROVE|REVISE","blocking_findings":0,"major_findings":0,"minor_findings":0,"matrix_ids_total":0,"matrix_ids_covered":0,"matrix_ids_partial":0,"matrix_ids_not_covered":0,"matrix_ids_non_verifiable":0,"matrix_rows":[]}
 </KODJO_INDEPENDENT_PROTOCOL_AUDIT_JSON>
 
 Ne jamais déclarer PASS une capacité qui n’a pas été exécutée. Utiliser NON_VERIFIABLE lorsque la preuve d’exécution manque.
