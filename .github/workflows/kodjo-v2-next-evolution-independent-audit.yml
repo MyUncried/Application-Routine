@@ -1,6 +1,9 @@
 name: KODJO V2 — Next Evolution Independent Claude Audit
 
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/kodjo-v2-next-evolution-independent-audit.yml'
   workflow_dispatch:
     inputs:
       pr_number:
@@ -17,21 +20,50 @@ permissions:
   contents: read
   pull-requests: read
   issues: write
+  actions: read
 
 concurrency:
-  group: kodjo-v2-next-evolution-audit-${{ inputs.pr_number }}
+  group: kodjo-v2-next-evolution-audit-${{ inputs.pr_number || github.event.pull_request.number }}
   cancel-in-progress: false
 
 jobs:
+  await_qualified_head:
+    if: github.event_name == 'pull_request' && github.event.pull_request.number == 250
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Require pilot qualification PASS on exact candidate HEAD
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
+          CANDIDATE_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 75); do
+            state=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/kodjo-v2-pilot-tests.yml/runs?event=pull_request&branch=$CANDIDATE_BRANCH&per_page=100" |
+              jq -r --arg sha "$CANDIDATE_SHA" '[.workflow_runs[] | select(.head_sha == $sha)] | if length == 0 then "NONE" else (max_by(.run_number) | (.status + ":" + (.conclusion // "NONE"))) end')
+            if [ "$state" = 'completed:success' ]; then exit 0; fi
+            if [ "$state" = 'completed:failure' ] || [ "$state" = 'completed:cancelled' ]; then
+              echo "Pilot qualification refused for $CANDIDATE_SHA: $state" >&2
+              exit 1
+            fi
+            sleep 20
+          done
+          echo "PILOT_QUALIFICATION_NOT_PASS: $CANDIDATE_SHA" >&2
+          exit 1
+
   independent-audit:
+    needs: await_qualified_head
+    if: always() && (needs.await_qualified_head.result == 'success' || github.event_name == 'workflow_dispatch')
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 60
     env:
       GH_TOKEN: ${{ github.token }}
       EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
       CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
-      PR_NUMBER: ${{ inputs.pr_number }}
-      CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+      PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
+      CANDIDATE_SHA: ${{ inputs.candidate_sha || github.event.pull_request.head.sha }}
     defaults:
       run:
         shell: powershell
@@ -57,7 +89,7 @@ jobs:
       - name: Checkout exact candidate
         uses: actions/checkout@v6
         with:
-          ref: ${{ inputs.candidate_sha }}
+          ref: ${{ inputs.candidate_sha || github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: false
           clean: true
