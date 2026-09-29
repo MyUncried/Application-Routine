@@ -6,7 +6,7 @@ on:
     types: [created]
 
 permissions:
-  contents: read
+  contents: write
   issues: write
   pull-requests: read
 
@@ -151,6 +151,10 @@ jobs:
           "head=$head"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
           "review_id=$reviewId"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
 
+      - name: Snapshot canonical V2 closure transformer
+        if: steps.gate.outputs.v2_mode == 'true'
+        run: Copy-Item -LiteralPath scripts/kodjo/close-v2-activation.js -Destination (Join-Path $env:RUNNER_TEMP 'kodjo-close-v2-activation.js') -Force
+
       - name: Checkout final HEAD
         uses: actions/checkout@v6
         with:
@@ -223,3 +227,48 @@ jobs:
           }
           [IO.File]::WriteAllText("$env:RUNNER_TEMP\final-comment.md",$body,(New-Object Text.UTF8Encoding($false)))
           gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\final-comment.md"
+      - name: Close V2 activation registry canonically
+        if: steps.gate.outputs.v2_mode == 'true'
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          FINAL_HEAD: ${{ steps.gate.outputs.head }}
+          REVIEW_ID: ${{ steps.gate.outputs.review_id }}
+          VISUAL_ID: ${{ github.event.comment.id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $route="repos/$env:GITHUB_REPOSITORY/contents/.github/orchestration/v2-activation-registry.json?ref=main"
+          $meta=gh api $route|ConvertFrom-Json
+          if($LASTEXITCODE-ne0-or$null-eq$meta-or-not$meta.sha){throw 'Activation registry unreadable'}
+          $raw=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(([string]$meta.content -replace '\s','')))
+          $input=Join-Path $env:RUNNER_TEMP 'kodjo-v2-activation-registry-before.json'
+          $output=Join-Path $env:RUNNER_TEMP 'kodjo-v2-activation-closure.json'
+          [IO.File]::WriteAllText($input,$raw,(New-Object Text.UTF8Encoding($false)))
+          node (Join-Path $env:RUNNER_TEMP 'kodjo-close-v2-activation.js') $input $output $env:SLICE_ID $env:ISSUE_NUMBER $env:FINAL_HEAD $env:REVIEW_ID $env:VISUAL_ID
+          if($LASTEXITCODE-ne0){throw 'Activation closure transform refused'}
+          $result=Get-Content -LiteralPath $output -Raw -Encoding UTF8|ConvertFrom-Json
+          if($result.changed){
+            $registryJson=($result.registry|ConvertTo-Json -Depth 20).Replace("`r`n","`n")+"`n"
+            $payload=[ordered]@{
+              message="chore(kodjo): close slice $env:SLICE_ID"
+              content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($registryJson))
+              sha=[string]$meta.sha
+              branch='main'
+            }
+            $payloadFile=Join-Path $env:RUNNER_TEMP 'kodjo-close-registry-put.json'
+            [IO.File]::WriteAllText($payloadFile,($payload|ConvertTo-Json -Depth 5),(New-Object Text.UTF8Encoding($false)))
+            $written=gh api --method PUT "repos/$env:GITHUB_REPOSITORY/contents/.github/orchestration/v2-activation-registry.json" --input $payloadFile|ConvertFrom-Json
+            if($LASTEXITCODE-ne0-or$null-eq$written.commit.sha){throw 'Activation closure write failed'}
+            $closureCommit=[string]$written.commit.sha
+          }else{
+            $closureCommit='ALREADY_CLOSED'
+          }
+          $nl=[Environment]::NewLine
+          $body='[KODJO_V2] SLICE_CLOSED'+$nl+
+            'slice_id='+$env:SLICE_ID+$nl+
+            'final_head='+$env:FINAL_HEAD+$nl+
+            'implementation_review_comment_id='+$env:REVIEW_ID+$nl+
+            'visual_approval_comment_id='+$env:VISUAL_ID+$nl+
+            'closure_commit='+$closureCommit+$nl+
+            'STATUT : CLOSED'
+          [IO.File]::WriteAllText((Join-Path $env:RUNNER_TEMP 'kodjo-slice-closed.md'),$body,(New-Object Text.UTF8Encoding($false)))
+          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file (Join-Path $env:RUNNER_TEMP 'kodjo-slice-closed.md')
