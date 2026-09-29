@@ -164,3 +164,100 @@ VNext-01 est conforme si :
 - DecisionRecord causal et durable ;
 - politique d'erreur fermée ;
 - aucun workflow de production modifié.
+
+
+## 12. VNext-02 — RequirementRegistry source-first
+
+### 12.1 Contrat
+
+Le registre canonique des exigences utilise :
+
+`kodjo.vnext.requirement-registry.v1`.
+
+Il est lié par hash au `PlanningEnvelope` et au `SourceManifest` exacts.
+
+### 12.2 Construction exclusivement depuis les sources
+
+Le constructeur reçoit uniquement :
+
+- `planning_envelope_hash` ;
+- `source_manifest` ;
+- les classifications sémantiques des exigences extraites de ces unités de source.
+
+Il ne reçoit ni `PlanContract`, ni matrice UI, ni `criterion_id`, ni assertions UI.
+
+Une exigence UI est donc recensée avant la création de tout critère UI.
+
+### 12.3 Types d’exigence
+
+Taxonomie fermée :
+
+- `FUNCTIONAL`
+- `UI`
+- `DATA`
+- `TECHNICAL`
+- `MIGRATION`
+- `PRESERVATION`
+- `NON_FUNCTIONAL`
+
+Statuts :
+
+- `ACTIVE`
+- `CLARIFICATION_REQUIRED`
+
+Priorité sourcée :
+
+- `MUST`
+- `SHOULD`
+- `MAY`
+- `UNSPECIFIED`
+
+`UNSPECIFIED` est utilisé lorsqu’aucune priorité explicite ne peut être déduite de la source ; le protocole ne l’invente pas.
+
+### 12.4 Identité mécanique
+
+`requirement_id` est produit par la machine à partir de l’identité de source, de l’unité, de son fingerprint, du type et de l’énoncé normalisé.
+
+Le modèle ne choisit ni ne recopie l’ID.
+
+### 12.5 Couverture exhaustive
+
+Toute unité du `SourceManifest` apparaît exactement une fois dans la matrice de couverture du registre.
+
+Règles bloquantes :
+
+- `REQUIREMENT_SOURCE` sans requirement → `VNEXT_REQUIREMENT_SOURCE_UNCOVERED` ;
+- `AMBIGUOUS` sans requirement → `VNEXT_AMBIGUOUS_SOURCE_UNCOVERED` ;
+- requirement issu de `CONTEXT_ONLY`, `SUPERSEDED` ou `OUT_OF_SCOPE` → refus ;
+- requirement lié à une source/unité inconnue → refus ;
+- doublon d’identité calculée → refus.
+
+### 12.6 Ambiguïtés et contradictions
+
+Une unité `AMBIGUOUS` produit obligatoirement une exigence `CLARIFICATION_REQUIRED`.
+
+Un conflit entre unités source est conservé dans les exigences et rend le registre `BLOCKED`.
+
+Routage :
+
+- clarification → `CLARIFICATION_REQUIRED` ;
+- contradiction produit → `PRODUCT_AMBIGUITY` ;
+- omission/identité/structure incohérente → `PREVENTABLE_BY_DETERMINISM`.
+
+### 12.7 Relations
+
+Les relations sont exprimées vers des `unit_id` déjà produits par la machine.
+
+Le registre dérive ensuite mécaniquement les `related_requirement_ids` et `conflict_ids` et rend ces relations symétriques.
+
+### 12.8 Gate REQUIREMENTS_READY
+
+Le gate est franchissable uniquement si :
+
+- toutes les unités source sont couvertes ou disposées ;
+- toutes les exigences ont une source exacte ;
+- aucun requirement source n’est oublié ;
+- aucune clarification ou contradiction bloquante ne subsiste ;
+- `registry_status=READY`.
+
+Le plan et l’impact restent interdits tant que ce gate n’est pas franchi.
