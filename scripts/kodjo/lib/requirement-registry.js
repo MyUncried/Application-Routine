@@ -129,6 +129,9 @@ function build(input) {
 
   const idx = sourceIndex(input.source_manifest);
   const normalized = input.requirements.map((row, index) => validateRequirementInput(row, index, idx));
+  const requirementSourceUnits = [...idx.units.values()].filter(({ unit }) =>
+    ['REQUIREMENT_SOURCE', 'AMBIGUOUS'].includes(unit.disposition));
+  if (requirementSourceUnits.length === 0) V.fail('VNEXT_REQUIREMENT_REGISTRY_EMPTY');
 
   const ids = normalized.map((row) => row.requirement_id);
   if (new Set(ids).size !== ids.length) V.fail('VNEXT_REQUIREMENT_ID_DUPLICATE');
