@@ -8,13 +8,18 @@ Le paquet de cette branche candidate est défini par la spécification 0.6.51, q
 
 | Fichier | Rôle |
 |---|---|
-| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.51.md` | Spécification normative candidate PE-27 à PE-38 ; NON RETESTÉE |\n| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.47.md` | Base normative actuellement fusionnée |
+| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.51.md` | Spécification normative candidate PE-27 à PE-38 ; NON RETESTÉE |
+| `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.47.md` | Base normative actuellement fusionnée |
 | `.github/orchestration/KODJO_PROTOCOL_V2_SPEC_0.6.21.md` | Base historique de qualification jetable, conservée sous les addenda ultérieurs |
 | `.github/orchestration/KODJO_PROTOCOL_V2_IMPLEMENTATION_WORKFLOW_REFERENCE_0.6.12.yml` | Workflow distant de préservation, inchangé fonctionnellement |
-| `.github/orchestration/CHANGE_REPORT_0.6.51.md` | Rapport de changement du candidat 0.6.51 |\n| `.github/orchestration/CHANGE_REPORT_0.6.21.md` | Rapport historique de canonicalisation et qualification jetable |
+| `.github/orchestration/CHANGE_REPORT_0.6.51.md` | Rapport de changement du candidat 0.6.51 |
+| `.github/orchestration/CHANGE_REPORT_0.6.21.md` | Rapport historique de canonicalisation et qualification jetable |
 | `.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md` | Registre canonique, version indiquée par son propre en-tête |
 
-| `.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_AUDIT.md` | Audit de déterminisme préparatoire |\n| `.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_MATRIX.md` | Matrice opérationnelle P/D/T/DET à auditer |\n| `.github/orchestration/reports/2026-09-29_PROTOCOL_EVOLUTION_CLAUDE_AUDIT_MISSION.md` | Mission de contre-audit Claude indépendant |\n| `.github/orchestration/reports/KODJO_V2_ORDINARY_PATH_CERTIFICATION_REPORT_0.1.md` | Rapport historique de certification C1–C4, D1–D3 et R1–R6 |
+| `.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_AUDIT.md` | Audit de déterminisme préparatoire |
+| `.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_MATRIX.md` | Matrice opérationnelle P/D/T/DET à auditer |
+| `.github/orchestration/reports/2026-09-29_PROTOCOL_EVOLUTION_CLAUDE_AUDIT_MISSION.md` | Mission de contre-audit Claude indépendant |
+| `.github/orchestration/reports/KODJO_V2_ORDINARY_PATH_CERTIFICATION_REPORT_0.1.md` | Rapport historique de certification C1–C4, D1–D3 et R1–R6 |
 
 ## Composants d’activation V2
 
