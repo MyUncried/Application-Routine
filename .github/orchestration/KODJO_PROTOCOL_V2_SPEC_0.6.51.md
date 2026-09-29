@@ -200,7 +200,7 @@ La version 0.6.51 ne peut être déclarée conforme qu’après :
 4. scénarios PE-27 à PE-38 ;
 5. vérification du cycle artifact/quota ;
 6. vérification de supersession et de prévention des runs inutiles ;
-7. audit indépendant Claude couvrant intégralement la matrice `2026-09-29_PROTOCOL_DETERMINISM_MATRIX.md` ;
+7. audit indépendant Claude couvrant intégralement la matrice `2026-09-29_PROTOCOL_DETERMINISM_MATRIX.md`, déclenché sur la PR candidate seulement après le PASS du pilot Linux/Windows lié au même HEAD ;
 8. absence de finding bloquant résiduel ou traitement explicite de chaque finding.
 
 Jusqu’à ces preuves : **NON RETESTÉ**.
