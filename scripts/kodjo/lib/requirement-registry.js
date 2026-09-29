@@ -272,7 +272,10 @@ function validate(registry, sourceManifest) {
 
 function assertReady(registry) {
   if (!registry || registry.registry_status !== 'READY') {
-    V.fail('VNEXT_REQUIREMENTS_NOT_READY', (registry && registry.blocking_reasons || []).join(','));
+    const reasons = registry && Array.isArray(registry.blocking_reasons) ? registry.blocking_reasons : [];
+    if (reasons.includes('CLARIFICATION_REQUIRED')) V.fail('CLARIFICATION_REQUIRED', reasons.join(','));
+    if (reasons.includes('SOURCE_CONFLICT')) V.fail('PRODUCT_AMBIGUITY', reasons.join(','));
+    V.fail('VNEXT_REQUIREMENTS_NOT_READY', reasons.join(','));
   }
   return true;
 }
