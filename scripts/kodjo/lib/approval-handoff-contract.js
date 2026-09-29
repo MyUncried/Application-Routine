@@ -59,6 +59,15 @@ function validateApprovedArtifacts({
   if (reviewContext.planning_envelope_hash !== planningEnvelope.contract_hash) {
     V.fail('VNEXT_APPROVAL_ENVELOPE_BINDING_MISMATCH');
   }
+  if (reviewContext.requirement_registry_hash !== requirementRegistry.contract_hash) {
+    V.fail('VNEXT_APPROVAL_REQUIREMENT_REGISTRY_MISMATCH');
+  }
+  if (reviewContext.candidate_manifest_hash !== candidateManifest.contract_hash) {
+    V.fail('VNEXT_APPROVAL_CANDIDATE_MANIFEST_MISMATCH');
+  }
+  if (reviewContext.impact_graph_hash !== impactGraph.contract_hash) {
+    V.fail('VNEXT_APPROVAL_IMPACT_GRAPH_MISMATCH');
+  }
   if (reviewContext.plan_contract_hash !== planContract.contract_hash) {
     V.fail('VNEXT_APPROVAL_PLAN_CONTEXT_MISMATCH');
   }
