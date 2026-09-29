@@ -331,10 +331,11 @@ function deriveCriterionFromAssertions(input,expected,row) {
       fail('UI_IMPLEMENTATION_REVIEW_ASSERTION_PROOF_COVERAGE_INCOMPLETE',id);
     }
     const derived=deriveAssertionStatus(input,assertion,proofs);
-    if(String(result.status)!==derived) {
+    // A reviewer may identify a semantic defect even when the bound test passed.
+    if(String(result.status)!==derived && !(String(result.status)==='NON_CONFORME'&&derived==='CONFORME')) {
       fail('UI_IMPLEMENTATION_REVIEW_ASSERTION_STATUS_DERIVATION_MISMATCH',id+': attendu '+derived);
     }
-    assertionStatuses.push(derived);
+    assertionStatuses.push(String(result.status));
     for(const proof of proofs){
       const type=String(proof.proof_type), status=String(proof.status);
       if(!proofStatuses.has(type))proofStatuses.set(type,[]);
@@ -412,7 +413,6 @@ function machineProofStatus(input,id,type){
 function enforceMachineProof(input,id,type,status){
   if(!BLOCKING_PROOFS.has(type))return;
   const expected=machineProofStatus(input,id,type);
-  if(expected==='PASS'&&status!=='PASS')fail('UI_IMPLEMENTATION_MACHINE_PROOF_MISMATCH',id+':'+type+': attendu '+expected+' observe '+status);
   if(expected==='FAIL'&&status==='PASS')fail('UI_IMPLEMENTATION_MACHINE_PROOF_MISMATCH',id+':'+type+': echec machine ignore');
   if(expected==='NON_VERIFIABLE'&&status==='PASS')fail('UI_IMPLEMENTATION_MACHINE_PROOF_MISMATCH',id+':'+type+': preuve exacte absente');
 }

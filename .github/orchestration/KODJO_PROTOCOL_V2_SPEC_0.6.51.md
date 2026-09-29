@@ -14,9 +14,9 @@ Un `PLAN_HANDOFF_READY` qui requiert une décision utilisateur doit :
 
 - identifier le commentaire canonique exact ;
 - publier `approval_action=ADD_REACTION_+1` ;
-- publier `next_action=WAIT_USER_APPROVAL` ;
+- publier `next_action=ADD_REACTION_THEN_COMMENT` et la commande `[KODJO_V2] VALIDATE_PLAN_HANDOFF` avec l'identifiant exact du commentaire ;
 - fournir `approval_url`, lien direct vers ce commentaire ;
-- rester bloqué jusqu’à la réaction 👍 du propriétaire autorisé.
+- rester bloqué jusqu’à la réaction 👍 du propriétaire autorisé, suivie de la commande de validation sur l'issue.
 
 Aucune Lean Request n’est créée avant ce gate.
 

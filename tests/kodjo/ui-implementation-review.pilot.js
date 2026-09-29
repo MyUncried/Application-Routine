@@ -219,6 +219,19 @@ test('atomic review v2: prépare les assertions et dérive le statut du critère
   fs.writeFileSync(review,JSON.stringify(validAtomicReview()));
   r=run(['validate',plan,changed,review,out],dir);assert.equal(r.status,0,r.stderr);
 });
+test('semantic failure remains REVISE even when the functional proof passes',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-semantic-review-'));
+  const plan=path.join(dir,'plan.md'),changed=path.join(dir,'changed.txt'),review=path.join(dir,'review.json'),out=path.join(dir,'out.json');
+  fs.writeFileSync(plan,fixtureV2());fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n');
+  const value=validAtomicReview();
+  value.criteria[0].assertion_results[0].status='NON_CONFORME';
+  value.criteria[0].assertion_results[0].evidence='Le comportement requis manque malgré le test vert.';
+  value.criteria[0].implementation_status='NON_CONFORME';
+  fs.writeFileSync(review,JSON.stringify(value));
+  const result=run(['validate',plan,changed,review,out],dir);
+  assert.equal(result.status,0,result.stderr);
+  assert.equal(JSON.parse(fs.readFileSync(out,'utf8')).verdict,'REVISE');
+});
 test('F-08: EXTEND without a change to the selected component cannot be certified',()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-component-proof-'));
   const plan=path.join(dir,'plan.md'),changed=path.join(dir,'changed.txt'),input=path.join(dir,'input.json');

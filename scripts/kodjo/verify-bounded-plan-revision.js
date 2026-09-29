@@ -27,7 +27,9 @@ function targetsOf(row,id){
 function verify(basePlan,baseReview,candidate){
   const review=optional(baseReview,'KODJO_PLAN_REVIEW_FINDINGS_JSON');
   if(!review){
-    if(/^(?:verdict=APPROVE|VERDICT:\s*APPROVE|STATUT\s*:\s*PLAN_REVIEW_APPROVED)\s*$/m.test(baseReview))return {status:'APPROVED_BASE_NEW_CYCLE'};
+    if(/^(?:verdict=APPROVE|VERDICT:\s*APPROVE|Verdict\s*:\s*`?APPROVED`?|STATUT\s*:\s*PLAN_REVIEW_APPROVED)\s*$/m.test(baseReview))return {status:'APPROVED_BASE_NEW_CYCLE'};
+    if(/^(?:verdict=REVISE|VERDICT:\s*REVISE|Verdict\s*:\s*`?REVISE`?|STATUT\s*:\s*PLAN_REVIEW_REVISE)\s*$/m.test(baseReview))
+      return {status:'LEGACY_UNBOUNDED',reason:'Legacy review has no structured findings; full independent revalidation required'};
     throw new Error('PLAN_REVISION_STRUCTURED_FINDINGS_REQUIRED');
   }
   if(review.verdict!=='REVISE'||!Array.isArray(review.findings))throw new Error('PLAN_REVISION_REVIEW_INVALID');

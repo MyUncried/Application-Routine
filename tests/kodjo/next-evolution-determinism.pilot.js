@@ -26,6 +26,14 @@ const {repoPath}=require('../../scripts/kodjo/verify-test-contract-results');
 const {verify:verifyIndependentAudit,EXPECTED_MATRIX_IDS}=require('../../scripts/kodjo/verify-independent-protocol-audit');
 const {generate:generateBoundedCorrection,deterministicUuid}=require('../../scripts/kodjo/generate-bounded-correction-request');
 
+test('VISUAL_CORRECTION never dereferences the IMPLEMENT-only frozen review runtime',()=>{
+  const workflow=read('.github/workflows/kodjo-slice-implementation-review.yml');
+  assert.match(workflow,/if \[ "\$\{\{ steps\.gate\.outputs\.v2_operation_kind \}\}" = IMPLEMENT \] && grep -q '<KODJO_REQUIREMENT_CONTRACT_JSON>'/);
+});
+test('legacy REVISE review can continue with full independent revalidation',()=>{
+  assert.equal(verifyBoundedRevision('old plan','verdict=REVISE\n','candidate').status,'LEGACY_UNBOUNDED');
+});
+
 function atomicMatrix(){
   return {
     schema:'kodjo.ui-criteria.v2',

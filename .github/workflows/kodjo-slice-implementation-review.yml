@@ -274,7 +274,7 @@ jobs:
           npm ci
           npm test -- --runInBand --json --outputFile=/tmp/kodjo-jest-results.json
           npx tsc --noEmit
-          if grep -q '<KODJO_REQUIREMENT_CONTRACT_JSON>' /tmp/approved-plan.md; then
+          if [ "${{ steps.gate.outputs.v2_operation_kind }}" = IMPLEMENT ] && grep -q '<KODJO_REQUIREMENT_CONTRACT_JSON>' /tmp/approved-plan.md; then
             node "$KODJO_REVIEW_RUNTIME"/verify-test-contract-results.js /tmp/approved-plan.md /tmp/kodjo-jest-results.json /tmp/kodjo-test-contract-evidence.json "$GITHUB_WORKSPACE"
           else
             printf '{"schema":"kodjo.test-contract-evidence.legacy","status":"LEGACY","binding_count":0,"bindings":[]}\n' > /tmp/kodjo-test-contract-evidence.json

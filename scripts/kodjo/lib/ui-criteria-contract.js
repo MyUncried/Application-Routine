@@ -180,6 +180,7 @@ function normalizeMatrix(matrix, {scope, uiPaths, requireAssertions=false}) {
 
     const proofRequired = uniqueStrings(requireArray(criterion.proof_required, 'UI_PLAN_PROOF_INVALID', id + '.proof_required'), 'UI_PLAN_PROOF_INVALID', id + '.proof_required');
     if (proofRequired.length === 0 || proofRequired.some((proof) => !PROOF_TYPES.has(proof))) fail('UI_PLAN_PROOF_INVALID', id + ': proof_required invalide');
+    if(proofRequired.includes('FUNCTIONAL_TEST')&&tests.length===0)fail('UI_PLAN_TEST_INVALID',id+': FUNCTIONAL_TEST sans test');
     if (riskTypes.includes('VISUAL') && !proofRequired.includes('VISUAL_COMPARE')) fail('UI_PLAN_PROOF_INVALID', id + ': VISUAL exige VISUAL_COMPARE');
     if (riskTypes.includes('ACCESSIBILITY') && !proofRequired.includes('ACCESSIBILITY_CHECK')) fail('UI_PLAN_PROOF_INVALID', id + ': ACCESSIBILITY exige ACCESSIBILITY_CHECK');
     if (riskTypes.includes('DEVICE') && !proofRequired.includes('DEVICE_CHECK')) fail('UI_PLAN_PROOF_INVALID', id + ': DEVICE exige DEVICE_CHECK');
@@ -188,6 +189,7 @@ function normalizeMatrix(matrix, {scope, uiPaths, requireAssertions=false}) {
     }
 
     const assertions = normalizeAssertions(criterion, proofRequired, matrix.schema);
+    if(assertions.some(a=>a.proof_required.includes('FUNCTIONAL_TEST'))&&tests.length===0)fail('UI_PLAN_TEST_INVALID',id+': assertion FUNCTIONAL_TEST sans test');
     for (const assertion of assertions) {
       if (assertionIds.has(assertion.assertion_id)) fail('UI_PLAN_ASSERTION_INVALID', assertion.assertion_id + ': assertion_id global duplique');
       assertionIds.add(assertion.assertion_id);
