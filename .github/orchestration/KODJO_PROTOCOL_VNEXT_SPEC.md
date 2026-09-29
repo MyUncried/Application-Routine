@@ -664,3 +664,190 @@ Le gate est franchissable uniquement si :
 - aucun path libre n’est introduit.
 
 La review VNext ne peut pas déclarer un plan UI prêt tant que ce gate n’est pas franchi.
+
+
+## 16. VNext-06 — Review commune INITIAL / REVISION
+
+### 16.1 Contrats
+
+VNext-06 introduit :
+
+- `kodjo.vnext.review-context.v1`
+- `kodjo.vnext.review-report.v1`
+
+Le même moteur de review est utilisé en mode `INITIAL` et `REVISION`.
+
+Le mode est une donnée du contexte ; il ne sélectionne pas deux implémentations différentes.
+
+### 16.2 Ordre obligatoire
+
+La review s’exécute en deux couches strictement ordonnées :
+
+1. validations mécaniques ;
+2. review sémantique indépendante.
+
+La review sémantique ne peut être préparée que si tous les contrôles mécaniques sont `PASS`.
+
+Les validations mécaniques rejouent au minimum :
+
+- PlanningEnvelope ;
+- RequirementRegistry ;
+- CandidateManifest ;
+- ImpactGraph ;
+- DirectImportScan lorsqu’applicable ;
+- PlanContract ;
+- UI Atomicity lorsqu’un changement UI est présent.
+
+Un plan UI sans contrat atomique est bloqué avant invocation du reviewer.
+
+### 16.3 ReviewContext
+
+Le contexte reviewer est scellé et contient les hashes exacts de :
+
+- PlanningEnvelope ;
+- RequirementRegistry ;
+- CandidateManifest ;
+- ImpactGraph ;
+- DirectImportScan éventuel ;
+- PlanContract ;
+- UI Atomicity éventuel.
+
+Il contient également un `target_catalog` calculé mécaniquement avec les IDs connus :
+
+- SOURCE_UNIT
+- REQUIREMENT
+- IMPACT
+- CANDIDATE
+- PLAN_ITEM
+- TEST
+- PROOF
+- CRITERION
+- ASSERTION
+- PLAN_CONTRACT
+
+Le reviewer ne peut donc pas inventer librement une cible.
+
+### 16.4 Sortie autorisée du reviewer
+
+Le reviewer sémantique renvoie uniquement :
+
+- category
+- target_type
+- target_id
+- finding
+- evidence
+- required_correction
+- dependency_target_ids
+
+Il ne fournit jamais :
+
+- verdict
+- blocking
+- finding_id
+- reentry_stage
+
+Tout champ supplémentaire est refusé.
+
+### 16.5 Catégories fermées
+
+- `MISSING_REQUIREMENT`
+- `SOURCE_CONTRADICTION`
+- `IMPACT_INCOMPLETE`
+- `WRONG_TARGET`
+- `PLAN_GAP`
+- `TEST_GAP`
+- `PROOF_GAP`
+- `PRESERVATION_RISK`
+- `UI_ASSERTION_GAP`
+- `PRODUCT_AMBIGUITY`
+- `TECHNICAL_RISK`
+- `SUGGESTION`
+
+Chaque catégorie possède une liste fermée de types de cible compatibles.
+
+### 16.6 Identité et caractère bloquant
+
+`finding_id` est calculé par la machine depuis :
+
+- review_context_hash ;
+- category ;
+- target_type ;
+- target_id ;
+- finding ;
+- evidence ;
+- required_correction ;
+- dependency_target_ids.
+
+Toutes les catégories sont bloquantes sauf `SUGGESTION`.
+
+Le reviewer ne choisit donc pas le caractère bloquant.
+
+### 16.7 Réentrée mécanique
+
+La réentrée minimale est calculée depuis la catégorie :
+
+- MISSING_REQUIREMENT / SOURCE_CONTRADICTION → `REQUIREMENTS`
+- IMPACT_INCOMPLETE / WRONG_TARGET → `IMPACT`
+- PLAN_GAP / TEST_GAP / PROOF_GAP / PRESERVATION_RISK / UI_ASSERTION_GAP / TECHNICAL_RISK → `PLAN`
+- PRODUCT_AMBIGUITY → `USER_DECISION`
+- SUGGESTION → `NONE`
+
+Le reviewer ne choisit jamais l’étape de réentrée.
+
+### 16.8 Verdict mécanique
+
+Le verdict est calculé :
+
+- au moins un `PRODUCT_AMBIGUITY` → `CLARIFICATION_REQUIRED`
+- sinon au moins un finding bloquant → `REVISE`
+- sinon → `APPROVE`
+
+Un texte libre `VERDICT: APPROVE` ou équivalent n’a aucune autorité dans VNext.
+
+### 16.9 Structured output fail-closed
+
+Le schéma de sortie reviewer est construit depuis le ReviewContext exact.
+
+Les `target_id` autorisés sont limités aux IDs du `target_catalog`.
+
+Sont bloquants avant calcul du verdict :
+
+- finding mal formé ;
+- catégorie inconnue ;
+- cible inconnue ;
+- type de cible incompatible avec la catégorie ;
+- dépendance vers un ID inconnu ;
+- doublon de finding calculé ;
+- champ supplémentaire non autorisé.
+
+### 16.10 Réutilisation de l’existant
+
+VNext-06 conserve de la review actuelle :
+
+- revue indépendante après contrôles déterministes ;
+- replay de l’impact ;
+- replay du plan ;
+- replay du contrat UI ;
+- séparation reviewer / auteur du plan.
+
+VNext-06 réutilise de #250 :
+
+- le principe de findings structurés ;
+- l’identité stable des findings.
+
+VNext-06 remplace :
+
+- le verdict libre produit par Claude ;
+- les targets textuelles libres ;
+- le booléen `blocking` choisi par le reviewer ;
+- la réentrée choisie sémantiquement.
+
+### 16.11 Gate REVIEW_APPROVED
+
+Le gate est franchi uniquement si :
+
+- le ReviewContext est mécaniquement valide ;
+- le ReviewReport est structurellement valide ;
+- `verdict = APPROVE` calculé par la machine.
+
+Aucun commentaire ou texte de reviewer ne peut contourner ce gate.
