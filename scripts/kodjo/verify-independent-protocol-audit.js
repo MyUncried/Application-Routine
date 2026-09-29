@@ -10,6 +10,8 @@ const EXPECTED_MATRIX_IDS = 64;
 if (matrixIds.length !== EXPECTED_MATRIX_IDS || new Set(matrixIds).size !== EXPECTED_MATRIX_IDS) throw new Error('INDEPENDENT_AUDIT_SOURCE_MATRIX_INVALID');
 const EXPECTED_IDS = new Set(matrixIds);
 const MATRIX_STATUSES = new Set(['COVERED','PARTIAL','NOT_COVERED','NON_VERIFIABLE']);
+// These are explicitly deferred P2 capabilities in the published matrix.
+const DEFERRED_IDS = new Set(['P-16','T-17','DET-10']);
 
 function fail(code, detail) { throw new Error(code + (detail ? ': ' + detail : '')); }
 
@@ -47,7 +49,7 @@ function verify(text) {
     if (data[field] !== derived[status]) fail('INDEPENDENT_AUDIT_MATRIX_COUNT_MISMATCH', field);
   }
   if (data.verdict === 'APPROVE' && data.blocking_findings !== 0) fail('INDEPENDENT_AUDIT_APPROVE_WITH_BLOCKING');
-  if (data.verdict === 'APPROVE' && data.matrix_ids_not_covered !== 0) fail('INDEPENDENT_AUDIT_APPROVE_WITH_UNCOVERED');
+  if (data.verdict === 'APPROVE' && data.matrix_rows.some(row=>row.status==='NOT_COVERED'&&!DEFERRED_IDS.has(row.id))) fail('INDEPENDENT_AUDIT_APPROVE_WITH_UNCOVERED');
   return data;
 }
 

@@ -9,6 +9,7 @@ permissions:
   contents: write
   issues: write
   pull-requests: read
+  actions: read
 
 concurrency:
   group: kodjo-slice-finalize-${{ github.event.issue.number }}
@@ -246,6 +247,14 @@ jobs:
           node (Join-Path $env:RUNNER_TEMP 'kodjo-close-v2-activation.js') $input $output $env:SLICE_ID $env:ISSUE_NUMBER $env:FINAL_HEAD $env:REVIEW_ID $env:VISUAL_ID
           if($LASTEXITCODE-ne0){throw 'Activation closure transform refused'}
           $result=Get-Content -LiteralPath $output -Raw -Encoding UTF8|ConvertFrom-Json
+          $artifactPages=gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/actions/artifacts?per_page=100"
+          if($LASTEXITCODE-ne0){throw 'CLOSURE_ARTIFACT_INVENTORY_UNAVAILABLE'}
+          $inventoryInput=Join-Path $env:RUNNER_TEMP 'kodjo-closure-artifact-pages.json'
+          $inventoryOutput=Join-Path $env:RUNNER_TEMP 'kodjo-closure-artifact-inventory.json'
+          [IO.File]::WriteAllText($inventoryInput,($artifactPages -join [Environment]::NewLine),(New-Object Text.UTF8Encoding($false)))
+          node scripts/kodjo/inventory-closure-artifacts.js $inventoryInput $inventoryOutput
+          if($LASTEXITCODE-ne0){throw 'CLOSURE_ARTIFACT_INVENTORY_INVALID'}
+          $artifactInventory=(Get-Content -LiteralPath $inventoryOutput -Raw -Encoding UTF8|ConvertFrom-Json|ConvertTo-Json -Compress -Depth 10)
           if($result.changed){
             $before=$raw|ConvertFrom-Json
             $after=$result.registry
@@ -290,6 +299,7 @@ jobs:
             'implementation_review_comment_id='+$env:REVIEW_ID+$nl+
             'visual_approval_comment_id='+$env:VISUAL_ID+$nl+
             'closure_commit='+$closureCommit+$nl+
+            'artifact_inventory='+$artifactInventory+$nl+
             'STATUT : CLOSED'
           [IO.File]::WriteAllText((Join-Path $env:RUNNER_TEMP 'kodjo-slice-closed.md'),$body,(New-Object Text.UTF8Encoding($false)))
           gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file (Join-Path $env:RUNNER_TEMP 'kodjo-slice-closed.md')

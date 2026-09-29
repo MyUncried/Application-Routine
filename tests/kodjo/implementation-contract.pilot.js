@@ -203,6 +203,17 @@ test('F-06: a claimed file or check absent from machine observations is NON_VERI
   assert.ok(result.errors.some(x=>x.includes('DECLARED_CHECK_NOT_RUN:jest')));
 });
 
+test('rapport sans modification et checks non exécutés reste structuré sans fausse preuve',()=>{
+  const row={criterion_id:'UI-001',implementation_status:'IMPLEMENTED',files_or_symbols:[],no_code_change_reason:'Invariant préservé sans mutation.',
+    component_used:'Existing',tests_run:[],tests_not_run:[{check:'jest',reason:'Aucun test requis pour cet invariant.'}],proof_status:'NON_VERIFIABLE',preserve_status:'PASS',residual_status:'NONE'};
+  const reportText='<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:[row]})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\nKODJO_STOP_STATUS: NONE';
+  const envelope={request_id:'a',source_head:'b',truncated:false,report_text:reportText,
+    original_text_sha256:require('node:crypto').createHash('sha256').update(reportText).digest('hex'),
+    machine_evidence:{modified_files:[],checks:[],out_of_scope_files:[]}};
+  const body='v2_request_id=a\nbase_head=b\n<KODJO_IMPLEMENTATION_REPORT_JSON>'+JSON.stringify(envelope)+'</KODJO_IMPLEMENTATION_REPORT_JSON>';
+  assert.equal(inspectImplementation(body,['UI-001']).status,'COMPLETE');
+});
+
 test('implementation contract: aucun nouveau canal Lean Queue n est ajouté', () => {
   const materializer = fs.readFileSync(path.join(root,'scripts','kodjo','materialize-approved-plan-handoff.js'),'utf8');
   const generator = fs.readFileSync(path.join(root,'scripts','kodjo','generate-approved-plan-lean-request.js'),'utf8');

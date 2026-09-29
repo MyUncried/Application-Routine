@@ -44,6 +44,13 @@ try {
       if(criterion.criterion_id!==expected)fail('UI_PLAN_IDENTITY_DRIFT',String(criterion.criterion_id)+': attendu '+expected);
       if(ids.has(expected))fail('UI_PLAN_SOURCE_COLLISION',expected+': distinguer les sources et les exigences atomiques');
       ids.add(expected);
+      for(const assertion of criterion.assertions||[]){
+        const assertionId=expected+'-A'+sha256({source:assertion.source,property_type:assertion.property_type,expected:assertion.expected,proof_required:[...(assertion.proof_required||[])].sort()}).slice(0,12).toUpperCase();
+        // Positional IDs remain readable for previously approved v2 plans.
+        // Newly generated plans use content hashes; any hash-shaped drift is refused.
+        if(!new RegExp('^'+expected+'-A[0-9]{2,3}$').test(String(assertion.assertion_id))&&
+           assertion.assertion_id!==assertionId)fail('UI_PLAN_IDENTITY_DRIFT',String(assertion.assertion_id)+': attendu '+assertionId);
+      }
     }
   }
   const normalizedMatrix = validateMatrix(matrix, {scope, uiPaths, requireAssertions: mode === 'produce'});

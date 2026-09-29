@@ -158,6 +158,7 @@ jobs:
           name: kodjo-v2-preflight-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/kodjo-preflight-${{ github.run_id }}-${{ github.run_attempt }}.json
           if-no-files-found: ignore
+          retention-days: 7
 
       - name: Resolve current run diagnostic directory
         if: always()
@@ -250,6 +251,14 @@ jobs:
             if($LASTEXITCODE-ne0-or$null-eq$created.commit.sha){throw 'Bounded correction materialization failed'}
             "materialization=CREATED"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
 
+            # Commits authored with GITHUB_TOKEN do not trigger the push workflow.
+            # Dispatch the exact new queue commit once; an existing request is never dispatched again.
+            $dispatch=[ordered]@{ref='main'}|ConvertTo-Json -Compress
+            $dispatchFile=Join-Path $env:RUNNER_TEMP ('kodjo-auto-correction-dispatch-'+$env:GITHUB_RUN_ID+'.json')
+            [IO.File]::WriteAllText($dispatchFile,$dispatch,(New-Object Text.UTF8Encoding($false)))
+            gh api --method POST "repos/$env:GITHUB_REPOSITORY/actions/workflows/kodjo-v2-lean-queue.yml/dispatches" --input $dispatchFile
+            if($LASTEXITCODE-ne0){throw 'Bounded correction dispatch failed'}
+
             $nl=[Environment]::NewLine
             $body='[KODJO_V2] AUTO_CORRECTION_QUEUED'+$nl+
               'source_run_id='+$env:GITHUB_RUN_ID+$nl+
@@ -261,7 +270,12 @@ jobs:
             $comment=Join-Path $env:RUNNER_TEMP ('kodjo-auto-correction-comment-'+$env:GITHUB_RUN_ID+'.md')
             [IO.File]::WriteAllText($comment,$body,(New-Object Text.UTF8Encoding($false)))
             gh issue comment ([string]$request.issue_number) --repo $env:GITHUB_REPOSITORY --body-file $comment
-            if($LASTEXITCODE-ne0){throw 'Bounded correction publication failed'}
+            if($LASTEXITCODE-ne0){
+              $commentPayload=Join-Path $env:RUNNER_TEMP ('kodjo-auto-correction-comment-'+$env:GITHUB_RUN_ID+'.json')
+              [IO.File]::WriteAllText($commentPayload,(@{body=$body}|ConvertTo-Json -Compress),(New-Object Text.UTF8Encoding($false)))
+              gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$([string]$request.issue_number)/comments" --input $commentPayload
+              if($LASTEXITCODE-ne0){throw 'Bounded correction publication failed'}
+            }
           }
           "request_id=$requestId"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
           "queue_path=$queuePath"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8

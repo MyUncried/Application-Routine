@@ -26,6 +26,13 @@ function expectedShape(expected){
   }
   return {ids:null,assertions:new Map(),requirement_ids:null};
 }
+function validClaimField(row,field){
+  const value=row&&row[field];
+  if(typeof value==='string')return Boolean(value.trim());
+  if(!Array.isArray(value)||value.some(x=>typeof x!=='string'||!x.trim()))return false;
+  if(field==='files_or_symbols'&&!value.length)return Boolean(String(row.no_code_change_reason||'').trim());
+  return true;
+}
 function inspectReport(text,expected){
   const errors=[];let rows=[];
   const shape=expectedShape(expected);
@@ -42,7 +49,7 @@ function inspectReport(text,expected){
     for(const row of rows){
       for(const field of FIELDS){
         const v=row&&row[field];
-        if(!(typeof v==='string'&&v.trim()||Array.isArray(v)&&v.length&&v.every(x=>typeof x==='string'&&x.trim())))errors.push(String(row&&row.criterion_id)+':MISSING_'+field);
+        if(!validClaimField(row,field))errors.push(String(row&&row.criterion_id)+':MISSING_'+field);
       }
       const expectedAssertions=shape.assertions.get(String(row&&row.criterion_id||''))||[];
       if(expectedAssertions.length){
@@ -67,7 +74,7 @@ function inspectReport(text,expected){
       const ids=requirementRows.map(r=>String(r&&r.requirement_id||''));
       if(ids.some(id=>!id)||new Set(ids).size!==ids.length)errors.push('REQUIREMENTS_INVALID_OR_DUPLICATED');
       if(JSON.stringify([...ids].sort())!==JSON.stringify([...shape.requirement_ids].sort()))errors.push('REQUIREMENT_COVERAGE_MISMATCH');
-      for(const row of requirementRows){for(const field of REQUIREMENT_FIELDS){const v=row&&row[field];if(!(typeof v==='string'&&v.trim()||Array.isArray(v)&&v.length&&v.every(x=>typeof x==='string'&&x.trim())))errors.push(String(row&&row.requirement_id)+':MISSING_'+field);}}
+      for(const row of requirementRows){for(const field of REQUIREMENT_FIELDS){if(!validClaimField(row,field))errors.push(String(row&&row.requirement_id)+':MISSING_'+field);}}
     }catch(e){errors.push('REQUIREMENT_REPORT_NOT_STRUCTURED:'+e.message);}
   }
   return {status:errors.length?'NON_VERIFIABLE':'COMPLETE',errors,criterion_ids:rows.map(r=>r&&r.criterion_id),requirement_ids:requirementRows.map(r=>r&&r.requirement_id)};
@@ -89,6 +96,8 @@ function inspectImplementation(body,expected){
       if(shapeHasRequirements(expected))claimed.push(...(block(e.report_text,'KODJO_REQUIREMENT_CONFORMANCE').requirements||[]));
       for(const row of claimed){
         const id=String(row.criterion_id||row.requirement_id||'unknown');
+        if(row.tests_not_run!==undefined&&(!Array.isArray(row.tests_not_run)||row.tests_not_run.some(x=>!x||typeof x.check!=='string'||!x.check.trim()||typeof x.reason!=='string'||!x.reason.trim())))report.errors.push(id+':TESTS_NOT_RUN_INVALID');
+        if(row.symbols!==undefined&&(!Array.isArray(row.symbols)||row.symbols.some(x=>typeof x!=='string'||!x.trim())))report.errors.push(id+':SYMBOLS_INVALID');
         for(const value of Array.isArray(row.files_or_symbols)?row.files_or_symbols:[row.files_or_symbols]){
           const p=String(value||'').replace(/\\/g,'/');
           if(!modified.has(p))report.errors.push(id+':DECLARED_FILE_NOT_MODIFIED:'+p);

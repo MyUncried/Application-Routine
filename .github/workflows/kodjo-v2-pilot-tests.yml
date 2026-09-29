@@ -7,9 +7,6 @@ on:
       # Une demande immuable n'est pas une modification du protocole : son
       # admission ciblée est effectuée par Lean Queue au lancement.
       - '!.github/orchestration/queue/v2/*.json'
-      # Le backlog d'évolution est explicitement non normatif : une PR qui ne
-      # modifie que ce fichier ne qualifie aucun exécutable du protocole.
-      - '!.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'
       # The audit matrix and mission are executable inputs of protocol checks.
       # Keep them in the qualified set even though they are Markdown files.
       - '.github/workflows/kodjo-v2-*.yml'
@@ -36,7 +33,34 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  classify:
+    runs-on: ubuntu-latest
+    outputs:
+      full_required: ${{ steps.change_class.outputs.full_required }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Classify protocol change
+        id: change_class
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          full=true
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            classification=$(node scripts/kodjo/classify-protocol-impact.js "$BASE_SHA" "$HEAD_SHA")
+            full=$(jq -r '.full_windows_required' <<< "$classification")
+            jq . <<< "$classification" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "full_required=$full" >> "$GITHUB_OUTPUT"
   protocol:
+    needs: classify
+    if: needs.classify.outputs.full_required == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:

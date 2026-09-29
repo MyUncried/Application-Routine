@@ -59,8 +59,8 @@ function normalizeAssertions(criterion, criterionProofs, matrixSchemaName) {
       fail('UI_PLAN_ASSERTION_INVALID', criterionId + '.assertions[' + index + '] invalide');
     }
     const id = requireText(assertion.assertion_id, 'UI_PLAN_ASSERTION_INVALID', criterionId + '.assertion_id');
-    if (!new RegExp('^' + escapeRegExp(criterionId) + '-A[0-9]{2,3}$').test(id)) {
-      fail('UI_PLAN_ASSERTION_INVALID', id + ': assertion_id doit etre ' + criterionId + '-Axx');
+    if (!new RegExp('^' + escapeRegExp(criterionId) + '-A(?:[0-9]{2,3}|[0-9A-F]{12})$').test(id)) {
+      fail('UI_PLAN_ASSERTION_INVALID', id + ': assertion_id invalide');
     }
     if (seen.has(id)) fail('UI_PLAN_ASSERTION_INVALID', id + ': assertion_id duplique');
     seen.add(id);
@@ -247,7 +247,7 @@ const baseCriterionProperties = {
   proof_required:array(enumeration(PROOF_TYPES),1),
 };
 const assertionSchema = object({
-  assertion_id:{type:'string',pattern:'^[A-Z0-9][A-Z0-9._-]{2,63}-A[0-9]{2,3}$'},
+  assertion_id:{type:'string',pattern:'^[A-Z0-9][A-Z0-9._-]{2,63}-A(?:[0-9]{2,3}|[0-9A-F]{12})$'},
   source:object({path:text,locator:text}),
   property_type:enumeration(ASSERTION_PROPERTY_TYPES),
   expected:text,

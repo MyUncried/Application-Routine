@@ -20,7 +20,7 @@ function classifyFiles(files){
 }
 function diff(base,head,cwd=process.cwd()){
   if(!/^[0-9a-f]{40}$/.test(base)||!/^[0-9a-f]{40}$/.test(head))throw new Error('CI_IMPACT_HEAD_INVALID');
-  const r=spawnSync('git',['diff','--name-only','-z',base,head],{cwd,encoding:'utf8',shell:false});
+  const r=spawnSync('git',['diff','--name-only','--no-renames','-z',base,head],{cwd,encoding:'utf8',shell:false});
   if(r.status!==0)throw new Error('CI_IMPACT_DIFF_UNAVAILABLE');
   return r.stdout.split('\0').filter(Boolean);
 }

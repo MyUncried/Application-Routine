@@ -27,7 +27,7 @@ function targetsOf(row,id){
 function verify(basePlan,baseReview,candidate){
   const review=optional(baseReview,'KODJO_PLAN_REVIEW_FINDINGS_JSON');
   if(!review){
-    if(/(?:verdict=APPROVE|VERDICT:\s*APPROVE)/.test(baseReview))return {status:'APPROVED_BASE_NEW_CYCLE'};
+    if(/^(?:verdict=APPROVE|VERDICT:\s*APPROVE|STATUT\s*:\s*PLAN_REVIEW_APPROVED)\s*$/m.test(baseReview))return {status:'APPROVED_BASE_NEW_CYCLE'};
     throw new Error('PLAN_REVISION_STRUCTURED_FINDINGS_REQUIRED');
   }
   if(review.verdict!=='REVISE'||!Array.isArray(review.findings))throw new Error('PLAN_REVISION_REVIEW_INVALID');

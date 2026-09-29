@@ -29,7 +29,7 @@ concurrency:
 
 jobs:
   await_qualified_head:
-    if: github.event_name == 'pull_request' && github.event.pull_request.number == 250
+    if: (github.event_name == 'pull_request' && github.event.pull_request.number == 250) || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -37,12 +37,19 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
+          CANDIDATE_SHA: ${{ inputs.candidate_sha || github.event.pull_request.head.sha }}
           CANDIDATE_BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
         run: |
           set -euo pipefail
-          for attempt in $(seq 1 75); do
-            state=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/kodjo-v2-pilot-tests.yml/runs?event=pull_request&branch=$CANDIDATE_BRANCH&per_page=100" |
+          branch="$CANDIDATE_BRANCH"
+          if [ "${{ github.event_name }}" = 'workflow_dispatch' ]; then
+            pr=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER")
+            test "$(jq -r '.head.sha' <<< "$pr")" = "$CANDIDATE_SHA"
+            branch=$(jq -r '.head.ref' <<< "$pr")
+          fi
+          for attempt in $(seq 1 65); do
+            state=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/kodjo-v2-pilot-tests.yml/runs?event=pull_request&branch=$branch&per_page=100" |
               jq -r --arg sha "$CANDIDATE_SHA" '[.workflow_runs[] | select(.head_sha == $sha)] | if length == 0 then "NONE" else (max_by(.run_number) | (.status + ":" + (.conclusion // "NONE"))) end')
             if [ "$state" = 'completed:success' ]; then exit 0; fi
             if [ "$state" = 'completed:failure' ] || [ "$state" = 'completed:cancelled' ]; then
@@ -56,7 +63,7 @@ jobs:
 
   independent-audit:
     needs: await_qualified_head
-    if: always() && (needs.await_qualified_head.result == 'success' || github.event_name == 'workflow_dispatch')
+    if: needs.await_qualified_head.result == 'success'
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 60
     env:
@@ -187,7 +194,9 @@ jobs:
           gh issue comment $env:PR_NUMBER --repo $env:GITHUB_REPOSITORY --body-file $comment
           if($LASTEXITCODE-ne0){
             $body=Get-Content -LiteralPath $comment -Raw -Encoding UTF8
-            gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$env:PR_NUMBER/comments" -f "body=$body"
+            $payload=Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit-comment.json'
+            [IO.File]::WriteAllText($payload,(@{body=$body}|ConvertTo-Json -Compress -Depth 3),(New-Object Text.UTF8Encoding($false)))
+            gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$env:PR_NUMBER/comments" --input $payload
             if($LASTEXITCODE-ne0){throw 'Independent audit comment publication failed; report preserved in Actions summary and artifact'}
           }
 
@@ -200,4 +209,4 @@ jobs:
             ${{ runner.temp }}/kodjo-next-evolution-audit.md
             ${{ runner.temp }}/kodjo-next-evolution-audit-summary.json
           if-no-files-found: warn
-          retention-days: 90
+          retention-days: 14

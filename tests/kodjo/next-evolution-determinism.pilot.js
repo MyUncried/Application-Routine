@@ -12,7 +12,8 @@ const read=(p)=>fs.readFileSync(path.join(root,p),'utf8');
 
 const {stabilizeUiIdentities,decode,schemaFor,validateSourceBindings}=require('../../scripts/kodjo/generate-ui-plan-contract');
 const {verify:verifyBoundedRevision}=require('../../scripts/kodjo/verify-bounded-plan-revision');
-const {classifyFiles}=require('../../scripts/kodjo/classify-protocol-impact');
+const {classifyFiles,diff:impactDiff}=require('../../scripts/kodjo/classify-protocol-impact');
+const {detect:detectClosure}=require('../../scripts/kodjo/detect-v2-closure-inconsistency');
 const {classifyLog}=require('../../scripts/kodjo/classify-planning-failure');
 const {validateMatrix}=require('../../scripts/kodjo/lib/ui-criteria-contract');
 const {buildRequirementContract,buildTestContract,buildBoundaryContract}=require('../../scripts/kodjo/lib/requirement-contract');
@@ -57,12 +58,44 @@ test('DET-02/PE-27 stable UI IDs and atomic assertions are deterministic',()=>{
   assert.deepEqual(a,b);
   const criterion=a.criteria[0];
   assert.match(criterion.criterion_id,/^UI-[0-9A-F]{12}$/);
-  assert.deepEqual(criterion.assertions.map(x=>x.assertion_id),[criterion.criterion_id+'-A01',criterion.criterion_id+'-A02']);
+  assert.equal(criterion.assertions.length,2);
+  for(const assertion of criterion.assertions)assert.match(assertion.assertion_id,new RegExp('^'+criterion.criterion_id+'-A[0-9A-F]{12}$'));
   assert.doesNotThrow(()=>validateMatrix(a,{
     scope:new Set(['src/features/example/ExampleScreen.tsx']),
     uiPaths:['src/features/example/ExampleScreen.tsx'],
     requireAssertions:true,
   }));
+});
+
+test('PE-27 insertion leaves existing assertion identities unchanged',()=>{
+  const base=atomicMatrix();
+  const before=stabilizeUiIdentities(base).criteria[0].assertions.map(a=>a.assertion_id);
+  base.criteria[0].assertions.push({assertion_id:'TEMP',source:{path:'docs/Specifications-fonctionnelles/05.md',locator:'§0'},property_type:'CONTENT',expected:'Un nouveau contrôle.',proof_required:['FUNCTIONAL_TEST']});
+  const after=stabilizeUiIdentities(base).criteria[0].assertions.map(a=>a.assertion_id);
+  for(const id of before)assert.ok(after.includes(id));
+});
+
+test('PE-30 flags final evidence while the activation registry remains ACTIVE',()=>{
+  const registry={activations:[{slice_id:'X',issue_number:12,status:'ACTIVE'}]};
+  const comments={'12':[{id:42,body:'[KODJO_SLICE] FINAL_OUTPUT\nslice_id=X\nfinal_head=abc\nSTATUT : DONE'}]};
+  assert.equal(detectClosure(registry,comments).anomalies[0].code,'CLOSURE_EVIDENCE_WITH_ACTIVE_REGISTRY');
+  assert.deepEqual(detectClosure({...registry,activations:[{...registry.activations[0],status:'CLOSED',closure:{final_head:'abc'}}]},comments).anomalies,[]);
+});
+
+test('PE-38 rename classification includes both source and destination',()=>{
+  const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-impact-'));
+  const git=(...args)=>{const r=spawnSync('git',args,{cwd:tmp,encoding:'utf8'});assert.equal(r.status,0,r.stderr);return r.stdout.trim();};
+  try{
+    fs.mkdirSync(path.join(tmp,'scripts/kodjo'),{recursive:true});
+    fs.mkdirSync(path.join(tmp,'.github/orchestration'),{recursive:true});
+    fs.writeFileSync(path.join(tmp,'scripts/kodjo/foo.js'),'x\n');
+    git('init');git('config','user.email','test@example.test');git('config','user.name','Test');git('add','.');git('commit','-m','before');
+    const base=git('rev-parse','HEAD');
+    git('mv','scripts/kodjo/foo.js','.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md');git('commit','-m','rename');
+    const paths=impactDiff(base,git('rev-parse','HEAD'),tmp);
+    assert.equal(classifyFiles(paths).category,'RUNTIME_PROTOCOL_CHANGE');
+    assert.equal(paths.length,2);
+  }finally{fs.rmSync(tmp,{recursive:true,force:true});}
 });
 
 test('DET-08 plan status is computed, never requested from the model',()=>{

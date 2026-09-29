@@ -63,7 +63,7 @@ Le même banc possède un mode `PreflightOnly` qui exerce installation, contrôl
 | `scripts/kodjo/check-artifact-budget.js` | Préflight du volume Actions avant exécution coûteuse |
 | `scripts/kodjo/close-v2-activation.js` | Transition idempotente ACTIVE → CLOSED |
 | `scripts/kodjo/verify-independent-protocol-audit.js` | Validation du contrat de sortie du contre-audit Claude |
-| `.github/workflows/kodjo-v2-next-evolution-independent-audit.yml` | Audit Claude manuel, exact-HEAD, read-only, sans artifact |
+| `.github/workflows/kodjo-v2-next-evolution-independent-audit.yml` | Audit Claude sur PR ou lancement manuel, exact-HEAD, read-only, rapport conservé en artifact et résumé Actions |
 | `tests/kodjo/next-evolution-determinism.pilot.js` | Oracles PE-27 à PE-38 et DET |
 
 

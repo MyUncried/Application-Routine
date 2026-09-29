@@ -153,7 +153,7 @@ function renderImplementationMission(sliceId, planBody, planBlobOid) {
     ] : [
       'Encodage du bloc : <KODJO_IMPLEMENTATION_CONFORMANCE>{"criteria":[{"criterion_id":"...","implementation_status":"...","files_or_symbols":["..."],"component_used":"...","tests_run":["..."],"proof_status":"...","preserve_status":"...","residual_status":"..."}]}</KODJO_IMPLEMENTATION_CONFORMANCE>.',
     ]),
-    'Chaque champ est explicite et non vide ; pour un test non exécuté, indiquer NOT_RUN et sa raison. Cet encodage rend contrôlable le rapport déjà obligatoire, sans nouvel état ni gate runtime.',
+    'Chaque champ est explicite. `tests_run` contient uniquement les checks exécutés (tableau vide autorisé) ; les checks non exécutés et leurs raisons vont dans `tests_not_run:[{"check":"...","reason":"..."}]`. `files_or_symbols` contient uniquement les chemins modifiés ; pour un critère sans changement de code, utiliser [] et renseigner `no_code_change_reason`. Les symboles éventuels vont dans `symbols` et ne constituent pas une preuve Git.',
     'Aucun critère ne peut disparaître du rapport. Toute preuve visuelle/device non exécutée reste `PENDING_DEVICE` ou `NON_VERIFIABLE`.',
     ...(contract.requirement_contract_sha256 ? [
       'Le rapport final doit aussi contenir exactement un bloc `KODJO_REQUIREMENT_CONFORMANCE` couvrant chaque `requirement_id` avec `implementation_status`, `files_or_symbols`, `tests_run`, `proof_status` et `residual_status`. Les faits Git/tests seront recoupés mécaniquement par le superviseur.',

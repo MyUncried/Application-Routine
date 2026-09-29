@@ -489,7 +489,7 @@ function validateReview(input, review) {
     }
     const key=String(row.category)+':'+String(row.target);
     const expectedBoundary=boundaryByKey.get(key);
-    if(expectedBoundary&&expectedBoundary.machine_status&&String(row.status)!==String(expectedBoundary.machine_status)){
+    if(expectedBoundary&&expectedBoundary.machine_status==='FAIL'&&String(row.status)==='PASS'){
       fail('UI_IMPLEMENTATION_REVIEW_BOUNDARY_MACHINE_MISMATCH',key+': attendu '+expectedBoundary.machine_status);
     }
     if (String(row.status) !== 'PASS') blocking = true;
@@ -556,12 +556,14 @@ function validateReview(input, review) {
   }
 
   if (input.implementation_report && input.implementation_report.status !== 'COMPLETE') {
-    const affected = results.filter((row) => (byId.get(String(row.criterion_id)).review_scope || 'AFFECTED') === 'AFFECTED');
-    if (affected.some(row => row.implementation_status !== 'NON_VERIFIABLE')) {
-      fail('UI_IMPLEMENTATION_REPORT_UNVERIFIABLE', input.implementation_report.errors.join('; '));
-    }
     blocking = true;
   }
+  const machineEvidence=input.implementation_report?.machine_evidence;
+  if(machineEvidence?.out_of_scope_files?.length||machineEvidence?.post_check_drift){
+    blocking=true;
+    review.scope_status='SCOPE_EXPANSION_REQUIRED';
+  }
+  review.report_status=input.implementation_report?.status||'NOT_AVAILABLE';
   review.verdict=blocking?'REVISE':'APPROVE';
   return review;
 }

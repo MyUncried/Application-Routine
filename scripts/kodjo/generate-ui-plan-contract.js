@@ -30,7 +30,7 @@ function stabilizeUiIdentities(matrix){
       }).localeCompare(canonicalJson({
         source:b.source,property_type:b.property_type,expected:b.expected,proof_required:[...(b.proof_required||[])].sort(),
       })));
-      assertions.forEach((assertion,index)=>{assertion.assertion_id=stableId+'-A'+String(index+1).padStart(2,'0');});
+      assertions.forEach((assertion)=>{assertion.assertion_id=stableId+'-A'+sha256({source:assertion.source,property_type:assertion.property_type,expected:assertion.expected,proof_required:[...(assertion.proof_required||[])].sort()}).slice(0,12).toUpperCase();});
     }
     return {...criterion,criterion_id:stableId,...(assertions?{assertions}:{})};
   }).sort((a,b)=>a.criterion_id.localeCompare(b.criterion_id));
@@ -79,12 +79,21 @@ function validateSourceBindings(requirements, scan, sourceRoot, scope, matrix=nu
   const exists=(p)=>spawnSync('git',['cat-file','-e',head+':'+p],{cwd:root,shell:false,windowsHide:true}).status===0;
   const create=new Set((scan.modified_modules||[]).filter(x=>x.change==='CREATE').map(x=>normalizeRepoPath(x.path,'CREATE')));
   for(const req of requirements.requirements){
-    if(req.domain==='NON_UI'&&!exists(req.source.path))throw new Error('REQUIREMENT_SOURCE_NOT_AT_HEAD:'+req.source.path);
+    if(!exists(req.source.path))throw new Error('REQUIREMENT_SOURCE_NOT_AT_HEAD:'+req.source.path);
     for(const test of req.tests||[]){
       const p=normalizeRepoPath(test,'test_path');
       if(exists(p))continue;
       if(!scope.has(p)||!create.has(p)||!/(?:^tests\/|\/__tests__\/|\.test\.[cm]?[jt]sx?$)/.test(p)){
         throw new Error('PLAN_TEST_PATH_NOT_AT_HEAD_OR_AUTHORIZED_CREATE:'+p);
+      }
+    }
+  }
+  for(const category of ['preserve','forbidden']){
+    for(const boundary of matrix?.preservation?.[category]||[]){
+      const target=String(boundary.target||'');
+      if(/^(?:app|src|tests|assets|docs|scripts)\//.test(target)&&
+         !exists(normalizeRepoPath(target,'boundary.target'))){
+        throw new Error('PLAN_BOUNDARY_PATH_NOT_AT_HEAD:'+target);
       }
     }
   }
