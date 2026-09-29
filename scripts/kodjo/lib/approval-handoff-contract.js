@@ -160,6 +160,95 @@ function buildExecutionCore({
   });
 }
 
+function validateExecutionCore(core) {
+  V.assertExactKeys(
+    core,
+    [
+      'slice_id',
+      'issue_id',
+      'baseline_head',
+      'product_head',
+      'application_head',
+      'protocol_head',
+      'planning_mode',
+      'planning_envelope_hash',
+      'plan_contract_hash',
+      'review_context_hash',
+      'review_report_hash',
+      'ui_atomicity_hash',
+      'operation_kind',
+      'write_scope',
+      'preserve_scope',
+      'forbidden_policy',
+      'checks',
+    ],
+    [],
+    'VNEXT_EXECUTION_CORE_KEYS_INVALID',
+  );
+  V.assertSliceId(core.slice_id, 'VNEXT_EXECUTION_CORE_SLICE_INVALID');
+  V.assertUnicodeExactText(core.issue_id, 'VNEXT_EXECUTION_CORE_ISSUE_INVALID', 'issue_id');
+  V.assertSha40(core.baseline_head, 'VNEXT_EXECUTION_CORE_BASELINE_INVALID', 'baseline_head');
+  V.assertSha40(core.product_head, 'VNEXT_EXECUTION_CORE_PRODUCT_HEAD_INVALID', 'product_head');
+  V.assertSha40(core.application_head, 'VNEXT_EXECUTION_CORE_APPLICATION_HEAD_INVALID', 'application_head');
+  V.assertSha40(core.protocol_head, 'VNEXT_EXECUTION_CORE_PROTOCOL_HEAD_INVALID', 'protocol_head');
+  if (!['INITIAL', 'REVISION'].includes(core.planning_mode)) {
+    V.fail('VNEXT_EXECUTION_CORE_MODE_INVALID', core.planning_mode);
+  }
+  for (const [label, value] of [
+    ['planning_envelope_hash', core.planning_envelope_hash],
+    ['plan_contract_hash', core.plan_contract_hash],
+    ['review_context_hash', core.review_context_hash],
+    ['review_report_hash', core.review_report_hash],
+  ]) {
+    V.assertSha64(value, 'VNEXT_EXECUTION_CORE_HASH_INVALID', label);
+  }
+  if (core.ui_atomicity_hash !== null) {
+    V.assertSha64(core.ui_atomicity_hash, 'VNEXT_EXECUTION_CORE_UI_HASH_INVALID', 'ui_atomicity_hash');
+  }
+  if (core.operation_kind !== 'IMPLEMENT') V.fail('VNEXT_EXECUTION_CORE_OPERATION_INVALID');
+  if (!Array.isArray(core.write_scope) || core.write_scope.length === 0) {
+    V.fail('VNEXT_EXECUTION_CORE_WRITE_SCOPE_INVALID');
+  }
+  const writeIds = new Set();
+  for (const row of core.write_scope) {
+    V.assertExactKeys(
+      row,
+      ['candidate_id', 'path', 'change_kind'],
+      [],
+      'VNEXT_EXECUTION_CORE_WRITE_SCOPE_ROW_INVALID',
+    );
+    V.assertNonEmptyString(row.candidate_id, 'VNEXT_EXECUTION_CORE_CANDIDATE_ID_INVALID');
+    V.assertUnicodeExactText(row.path, 'VNEXT_EXECUTION_CORE_PATH_INVALID', 'write_scope.path');
+    if (!['MODIFY', 'CREATE', 'DELETE'].includes(row.change_kind)) {
+      V.fail('VNEXT_EXECUTION_CORE_CHANGE_KIND_INVALID', row.change_kind);
+    }
+    if (writeIds.has(row.candidate_id)) V.fail('VNEXT_EXECUTION_CORE_WRITE_SCOPE_DUPLICATE', row.candidate_id);
+    writeIds.add(row.candidate_id);
+  }
+  if (!Array.isArray(core.preserve_scope)) V.fail('VNEXT_EXECUTION_CORE_PRESERVE_SCOPE_INVALID');
+  const preserveIds = new Set();
+  for (const row of core.preserve_scope) {
+    V.assertExactKeys(
+      row,
+      ['candidate_id', 'path'],
+      [],
+      'VNEXT_EXECUTION_CORE_PRESERVE_SCOPE_ROW_INVALID',
+    );
+    V.assertNonEmptyString(row.candidate_id, 'VNEXT_EXECUTION_CORE_CANDIDATE_ID_INVALID');
+    V.assertUnicodeExactText(row.path, 'VNEXT_EXECUTION_CORE_PATH_INVALID', 'preserve_scope.path');
+    if (preserveIds.has(row.candidate_id)) V.fail('VNEXT_EXECUTION_CORE_PRESERVE_SCOPE_DUPLICATE', row.candidate_id);
+    if (writeIds.has(row.candidate_id)) V.fail('VNEXT_EXECUTION_CORE_SCOPE_OVERLAP', row.candidate_id);
+    preserveIds.add(row.candidate_id);
+  }
+  if (core.forbidden_policy !== 'ALL_OUTSIDE_WRITE_SCOPE') {
+    V.fail('VNEXT_EXECUTION_CORE_FORBIDDEN_POLICY_INVALID');
+  }
+  if (V.canonicalStringify(core.checks) !== V.canonicalStringify(IMPLEMENTATION_CHECKS)) {
+    V.fail('VNEXT_EXECUTION_CORE_CHECKS_INVALID');
+  }
+  return true;
+}
+
 function buildApprovalTarget(input) {
   const executionCore = buildExecutionCore(input);
   const executionFingerprint = V.canonicalHash(executionCore);
@@ -206,8 +295,27 @@ function validateApprovalTarget(target) {
     'VNEXT_APPROVAL_EXECUTION_FINGERPRINT_INVALID',
     'execution_fingerprint',
   );
+  validateExecutionCore(target.execution_core);
   if (V.canonicalHash(target.execution_core) !== target.execution_fingerprint) {
     V.fail('VNEXT_APPROVAL_EXECUTION_FINGERPRINT_MISMATCH');
+  }
+  const expectedTargetId = V.stableId('APRT', [
+    target.execution_core.slice_id,
+    target.execution_fingerprint,
+  ]);
+  if (target.approval_target_id !== expectedTargetId) {
+    V.fail('VNEXT_APPROVAL_TARGET_ID_MISMATCH');
+  }
+  V.assertExactKeys(
+    target.summary,
+    ['write_scope_count', 'preserve_scope_count', 'check_count'],
+    [],
+    'VNEXT_APPROVAL_SUMMARY_KEYS_INVALID',
+  );
+  if (target.summary.write_scope_count !== target.execution_core.write_scope.length
+      || target.summary.preserve_scope_count !== target.execution_core.preserve_scope.length
+      || target.summary.check_count !== target.execution_core.checks.length) {
+    V.fail('VNEXT_APPROVAL_SUMMARY_MISMATCH');
   }
   V.verifyContractHash(target, 'VNEXT_APPROVAL_TARGET_HASH_MISMATCH');
   return true;
@@ -299,6 +407,8 @@ function validateApprovalRecord(record, approvalTarget) {
   if (!APPROVAL_DECISIONS.includes(record.decision)) {
     V.fail('VNEXT_APPROVAL_DECISION_INVALID', record.decision);
   }
+  V.assertUnicodeExactText(record.actor_id, 'VNEXT_APPROVAL_ACTOR_INVALID', 'actor_id');
+  V.assertUnicodeExactText(record.evidence_ref, 'VNEXT_APPROVAL_EVIDENCE_REF_INVALID', 'evidence_ref');
   if (record.evidence_kind !== 'VERIFIED_USER_ACTION') {
     V.fail('VNEXT_APPROVAL_EVIDENCE_KIND_INVALID');
   }
@@ -306,6 +416,16 @@ function validateApprovalRecord(record, approvalTarget) {
     V.fail('VNEXT_APPROVAL_TRANSPORT_INVALID', record.transport);
   }
   V.assertIsoDate(record.observed_at, 'VNEXT_APPROVAL_OBSERVED_AT_INVALID', 'observed_at');
+  const expectedRecordId = V.stableId('APRV', [
+    approvalTarget.contract_hash,
+    record.actor_id,
+    record.transport,
+    record.evidence_ref,
+    record.decision,
+  ]);
+  if (record.approval_record_id !== expectedRecordId) {
+    V.fail('VNEXT_APPROVAL_RECORD_ID_MISMATCH');
+  }
   return true;
 }
 
@@ -421,6 +541,7 @@ module.exports = {
   APPROVAL_DECISIONS,
   APPROVAL_TRANSPORTS,
   IMPLEMENTATION_CHECKS,
+  validateExecutionCore,
   buildExecutionCore,
   buildApprovalTarget,
   validateApprovalTarget,
