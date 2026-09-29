@@ -267,7 +267,16 @@ Pour les workflows éligibles, la concurrence cible doit :
 
 La simple présence de `pull_request:synchronize` ne suffit pas à rendre un run annulable : l’annulabilité doit être déclarée par catégorie de workflow.
 
-### 8.2 Classification déterministe de l’impact CI
+### 8.2 Classification déterministe de l’impact CI et prévention des runs inutiles
+
+L’objectif prioritaire n’est pas seulement de raccourcir un run inutile : c’est **d’éviter sa création lorsqu’il est possible de démontrer avant lancement qu’aucune qualification lourde n’est requise**.
+
+La stratégie est à deux niveaux :
+
+1. **prévention au trigger** : lorsque la classification est exprimable par une liste statique/versionnée de chemins, utiliser `on.pull_request.paths` / `paths-ignore` pour que le workflow lourd ne soit pas créé ;
+2. **préflight minimal** : lorsqu’une classification nécessite l’inspection du delta ou d’un registre versionné, créer au plus un job léger de classification et conditionner tous les jobs Linux/Windows coûteux à son verdict.
+
+Il est interdit de lancer la suite lourde simplement pour découvrir ensuite que la modification était non normative.
 
 Avant toute qualification lourde, le delta de la PR doit être classé mécaniquement dans une catégorie fermée :
 
@@ -280,7 +289,7 @@ Règles de routage :
 
 - `RUNTIME_PROTOCOL_CHANGE` → qualification complète ;
 - `NORMATIVE_PROTOCOL_CHANGE` → qualification complète adaptée au contrat normatif concerné ;
-- `NON_NORMATIVE_DOCUMENTATION` → contrôle documentaire léger, sans suite lourde Linux/Windows ;
+- `NON_NORMATIVE_DOCUMENTATION` → aucun run/job lourd créé ; au plus un contrôle documentaire léger si la prévention au trigger n’est pas suffisante ;
 - `UNKNOWN` → qualification complète par sécurité.
 
 La classification doit reposer sur une source versionnée et explicite des fichiers/catégories normatives et exécutables. Elle ne doit jamais déduire qu’un fichier est non normatif uniquement parce qu’il est Markdown ou placé sous un préfixe documentaire générique.
@@ -320,7 +329,7 @@ L’évolution n’est conforme que si les scénarios suivants sont démontrés 
 18. dashboard/storage externe obsolète après nettoyage → aucun retry répété tant que la capacité réelle n’est pas redevenue disponible ;
 19. HEAD A en qualification sur une PR puis HEAD B publié → le run A éligible est annulé et seul B poursuit ;
 20. run portant une recovery/writer critique → aucune annulation par la règle de supersession ;
-21. modification limitée à des rapports non normatifs explicitement classés → aucun pilot test lourd Linux/Windows ;
+21. modification limitée à des rapports non normatifs explicitement classés → **aucun run/job lourd Linux/Windows créé** ; si un classifier est nécessaire, lui seul s’exécute ;
 22. modification d’une spec normative, d’un workflow, d’un script ou catégorie UNKNOWN → qualification complète ;
 23. modification mixte non normative + normative/runtime → routage vers la qualification la plus exigeante ;
 24. renommage ou déplacement entre catégories → classification selon source et destination, sans downgrade silencieux.
@@ -344,6 +353,7 @@ Cette évolution ne doit pas :
 - annuler un run portant un writer, une recovery ou une transition critique simplement parce qu’un HEAD de PR a avancé ;
 - classer tous les fichiers Markdown comme non normatifs ;
 - utiliser un simple préfixe large tel que `.github/orchestration/**` comme preuve de criticité ;
+- créer systématiquement un run lourd pour effectuer une classification qui pouvait être résolue au niveau du trigger ;
 - ignorer silencieusement une catégorie inconnue : `UNKNOWN` doit rester fail-safe et déclencher la qualification complète.
 
 ---
