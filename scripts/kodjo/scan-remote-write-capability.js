@@ -83,6 +83,23 @@ function collectFiles(root) {
   return out;
 }
 
+function isCommentRouterDelegation(filePath, lines, index, patternId, root) {
+  if (patternId !== 'CONTENTS_WRITE' || path.relative(root, filePath).replace(/\\/g, '/') !== '.github/workflows/kodjo-v2-comment-router.yml') return false;
+  if (lines[index] !== '      contents: write # Delegated comment worker; no steps in this job.') return false;
+  const allowed = ['e2e-orchestration-test-v1-3','e2e-t1-t6-v1-3','slice-implementation-publication-recovery','slice-implementation','slice-recover','v1-3-integrated-t1-t9','v14-s09-dev','v14-s09-implementation-local','v14-s09-recover-worktree','v2-plan-handoff-materialize','v2-plan-handoff-queue','t01-s09-implementation-v1-3-temporary'];
+  try {
+    const workflow = require('./lib/yaml').parse(lines.join('\n'));
+    let start = index;
+    while (start >= 0 && !/^  [a-z0-9-]+:$/.test(lines[start])) start -= 1;
+    if (start < 0 || lines[index - 1] !== '    permissions:') return false;
+    const id = lines[start].trim().slice(0, -1), job = workflow.jobs[id];
+    const target = './.github/workflows/' + (id === 't01-s09-implementation-v1-3-temporary' ? '' : 'kodjo-') + id + '.yml';
+    return allowed.includes(id) && job.uses === target &&
+      !Object.hasOwn(job, 'steps') && !Object.hasOwn(job, 'run') && !Object.hasOwn(job, 'runs-on') &&
+      job.permissions.contents === 'write' && workflow.permissions.contents === 'read';
+  } catch (_) { return false; }
+}
+
 function isExempt(filePath, line, root) {
   if (line.includes(ALLOWLIST_MARKER)) return true;
   const rel = path.relative(root, filePath).replace(/\\/g, '/');
@@ -191,6 +208,7 @@ function main() {
       const code = line.split('#')[0];
       for (const p of PATTERNS) {
         if (!p.re.test(code)) continue;
+        if (isCommentRouterDelegation(file, lines, i, p.id, root)) continue;
         if (isDisposableConsumptionPermission(file, lines, i, p.id, root)) continue;
         if (isFixedEvidenceWriterOperation(file, line, p.id, root)) continue;
         if (isFixedLeanSupervisorOperation(file, line, p.id, root)) continue;

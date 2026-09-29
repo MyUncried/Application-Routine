@@ -2,8 +2,7 @@ name: KODJO — Generic Slice Recover Worktree
 run-name: KODJO SLICE / RECOVER / ${{ github.event.comment.id }}
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 
 permissions:
   contents: write

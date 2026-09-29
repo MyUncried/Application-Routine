@@ -1,8 +1,7 @@
 name: KODJO V1.4 S09 — Independent Review
 run-name: "T01-S09 / ${{ contains(github.event.comment.body, '[KODJO_S09_IMPLEMENTATION_OUTPUT]') && 'IMPLEMENTATION-REVIEW' || 'PLAN-REVIEW' }} / ${{ github.event.comment.id }}"
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 permissions:
   contents: read
   issues: write

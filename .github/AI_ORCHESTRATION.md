@@ -115,6 +115,20 @@ Pour une nouvelle tranche ou une reprise, l’orchestration prépare autant que 
 
 Les données GitHub brutes peuvent être conservées comme preuves d’audit, mais elles ne sont pas injectées intégralement dans le contexte Claude lorsque le paquet vérifié contient déjà l’information nécessaire. Toute donnée brute exceptionnellement transmise à une IA doit être structurée et segmentée ou paginée selon sa nature ; un blob massif monoligne ou non délimité est interdit.
 
+## Routage des commentaires GitHub
+
+`kodjo-v2-comment-router.yml` est le seul abonné natif à `issue_comment.created`.
+Les traitements de commentaires sont appelés comme workflows réutilisables, avec
+leurs conditions et permissions propres. Un commentaire ordinaire ne doit jamais
+recréer un run distinct pour chaque traitement. Les routes sont inventoriées dans
+`.github/orchestration/comment-routes.json` et contrôlées par les tests du pilote.
+Toute nouvelle commande doit être ajoutée au routeur, sans réintroduire un abonnement
+natif dans son traitement. Les déclencheurs manuels et dispatchs restent indépendants.
+Routine Dev observe la revue exacte dans la tentative du routeur, ou la fin d'une
+revue autonome ; aucune approbation ni identité de HEAD n'est déduite du seul succès
+du routeur. Rapport :
+`.github/orchestration/reports/2026-09-29_COMMENT_WORKFLOW_FANOUT_FIX.md`.
+
 ## Contrôles déterministes avant appel IA
 
 Lorsque le runner/orchestrateur dispose des capacités nécessaires, il contrôle avant de lancer Claude :

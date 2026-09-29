@@ -2,8 +2,7 @@ name: KODJO V2 — Slice Plan Revision
 run-name: KODJO V2 / PLAN / ${{ github.event.comment.id || inputs.targeted_validation_comment_id }}
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
   workflow_dispatch:
     inputs:
       issue_number:

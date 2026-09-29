@@ -1,7 +1,6 @@
 name: KODJO V1.4 S09 — Implementation Local
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 permissions:
   contents: write
   issues: write

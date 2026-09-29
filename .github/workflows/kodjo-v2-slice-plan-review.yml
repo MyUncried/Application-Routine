@@ -2,8 +2,7 @@ name: KODJO V2 — Slice Plan Review
 run-name: KODJO V2 / PLAN-REVIEW / ${{ github.event.comment.id }}
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 
 permissions:
   contents: read

@@ -2,8 +2,7 @@ name: KODJO E2E T1-T6 V1.3
 run-name: KODJO E2E — real Claude Cloud T1 to T6 chain
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
   repository_dispatch:
     types: [kodjo-e2e-t2-claude-real]
 

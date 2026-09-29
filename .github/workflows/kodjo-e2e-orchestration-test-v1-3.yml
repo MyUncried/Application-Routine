@@ -2,8 +2,7 @@ name: KODJO E2E Orchestration Test V1.3
 run-name: KODJO E2E — OpenAI review bridge
 
 on:
-  issue_comment:
-    types: [created]
+  workflow_call:
 
 permissions:
   contents: write
