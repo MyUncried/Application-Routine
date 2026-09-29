@@ -138,7 +138,10 @@ test('qualification jetable: cache Jest isolée et cache lint désactivée dans 
   assert.match(pilotWorkflow, /kodjo-v2-disposable-preflight-/);
   assert.match(pilotWorkflow, /Join-Path '\$\{\{ runner\.temp \}\}' 'kodjo-v2-runner-certification-/);
   assert.doesNotMatch(pilotWorkflow, /certify-persistent-runner-lock\.js runner-lock-certification\.json/);
-  assert.match(pilotWorkflow, /Certify historical run 16 recovery without gating the disposable slice\r?\n\s+continue-on-error: true/);
+  assert.match(pilotWorkflow, /Download the real run 16 recovery package\r?\n\s+id: historical_recovery\r?\n\s+continue-on-error: true/);
+  assert.match(pilotWorkflow, /Certify historical run 16 recovery without gating the disposable slice\r?\n\s+if: steps\.historical_recovery\.outcome == 'success'\r?\n\s+continue-on-error: true/);
+  assert.match(pilotWorkflow, /HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE_OR_CERTIFICATION_FAILED/);
+  assert.doesNotMatch(pilotWorkflow, /Run full disposable preflight without Claude\r?\n\s+continue-on-error: true/);
   assert.ok(pilotWorkflow.includes('id: change_class'));
   assert.ok(pilotWorkflow.includes('full_windows_required: ${{ steps.change_class.outputs.full_windows_required }}'));
   assert.ok(pilotWorkflow.includes('.github/orchestration/v2-slices/*/technical-plan.md|.github/orchestration/v2-slices/*/independent-review.md|.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'));
