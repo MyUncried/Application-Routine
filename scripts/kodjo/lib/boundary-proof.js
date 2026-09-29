@@ -1,8 +1,9 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),{spawnSync}=require('node:child_process');
-// Narrow static proof: a unique named function declaration, byte for byte.
+// Narrow static proof: a unique named function declaration, byte for byte after Git-compatible CRLF/LF normalization.
 // Unsupported syntax stays NON_VERIFIABLE; semantic equivalence is never inferred.
 function declaration(source,symbol){
+ source=String(source).replace(/\r\n/g,'\n');
  const escaped=symbol.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
  const matches=[...source.matchAll(new RegExp('^(?:export\\s+)?(?:async\\s+)?function\\s+'+escaped+'\\s*\\(','gm'))];
  if(matches.length!==1)return null;

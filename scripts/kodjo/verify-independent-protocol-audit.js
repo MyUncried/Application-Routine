@@ -12,7 +12,7 @@ const EXPECTED_IDS = new Set(matrixIds);
 const MATRIX_STATUSES = new Set(['COVERED','PARTIAL','NOT_COVERED','NON_VERIFIABLE']);
 // Deferrals preserve the source priority; they never silently relabel a P1 as P2.
 const deferrals=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../.github/orchestration/audit-deferrals.json'),'utf8'));
-const matrixText=fs.readFileSync(MATRIX_PATH,'utf8');
+const matrixText=fs.readFileSync(MATRIX_PATH,'utf8').replace(/\r\n/g,'\n');
 if(deferrals.schema!=='kodjo.audit-deferrals.v1'||!Array.isArray(deferrals.entries))throw new Error('INDEPENDENT_AUDIT_DEFERRALS_INVALID');
 const DEFERRED_IDS=new Set();
 for(const row of deferrals.entries){

@@ -6,6 +6,8 @@ on:
       - '.github/workflows/kodjo-v2-next-evolution-independent-audit.yml'
       - 'tests/kodjo/next-evolution-determinism.pilot.js'
       - 'tests/kodjo/independent-audit-publication.pilot.js'
+      - 'tests/kodjo/independent-audit-regressions.pilot.js'
+      - 'scripts/kodjo/verify-independent-protocol-audit.js'
   workflow_dispatch:
     inputs:
       pr_number:

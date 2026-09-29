@@ -82,3 +82,23 @@ test('F04: revision status is consumed, published and archived, never executed a
   const uploads=Object.values(wf.jobs).flatMap(j=>j.steps||[]).filter(s=>s.uses==='actions/upload-artifact@v4');assert.ok(uploads.some(s=>(s.with.path||'').includes('plan-revision-status.json')));
  }
 });
+
+test('Windows: the real audit validator accepts LF and CRLF source matrices and still refuses priority drift',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-audit-newlines-'));
+ const validator='scripts/kodjo/verify-independent-protocol-audit.js',matrix='.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_MATRIX.md',deferrals='.github/orchestration/audit-deferrals.json';
+ try{
+  for(const p of [validator,matrix,deferrals]){fs.mkdirSync(path.dirname(path.join(dir,p)),{recursive:true});fs.copyFileSync(path.join(root,p),path.join(dir,p));}
+  const content=fs.readFileSync(path.join(root,matrix),'utf8').replace(/\r\n/g,'\n');
+  for(const newline of ['\n','\r\n']){
+   fs.writeFileSync(path.join(dir,matrix),content.replace(/\n/g,newline));
+   const r=spawnSync(process.execPath,['-e',"const v=require('./scripts/kodjo/verify-independent-protocol-audit');if(v.EXPECTED_MATRIX_IDS!==64)process.exit(2)"],{cwd:dir,encoding:'utf8'});assert.equal(r.status,0,r.stderr);
+  }
+  const rows=JSON.parse(fs.readFileSync(path.join(dir,deferrals)));rows.entries.find(r=>r.id==='P-16').priority='P2';fs.writeFileSync(path.join(dir,deferrals),JSON.stringify(rows));
+  const r=spawnSync(process.execPath,['-e',"require('./scripts/kodjo/verify-independent-protocol-audit')"],{cwd:dir,encoding:'utf8'});assert.notEqual(r.status,0);
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+test('Windows: symbol proof tolerates CRLF checkout while rejecting actual declaration edits',()=>{
+ const source='export function kept(){\n  return 1;\n}\nfunction neighbor(){return 2;}';
+ assert.equal(compareSymbol(source,source.replace(/\n/g,'\r\n').replace('return 2','return 3'),'kept'),'PASS');
+ assert.equal(compareSymbol(source,source.replace(/\n/g,'\r\n').replace('return 1','return 4'),'kept'),'FAIL');
+});
