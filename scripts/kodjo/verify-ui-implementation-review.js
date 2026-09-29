@@ -126,6 +126,26 @@ function buildInput(planBody, changedFiles, previousReview) {
     }
   }
 
+  let previousRequirementById=null;
+  if(previousReview&&nonUiSource.length){
+    const prior=previousReview.non_ui_plan_assessment&&Array.isArray(previousReview.non_ui_plan_assessment.requirements)
+      ? previousReview.non_ui_plan_assessment.requirements : [];
+    previousRequirementById=new Map(prior.map((row)=>[String(row&&row.requirement_id||''),row]));
+    const expected=nonUiSource.map((row)=>row.requirement_id).sort();
+    const observed=[...previousRequirementById.keys()].sort();
+    if(observed.some((id)=>!id)||previousRequirementById.size!==prior.length||JSON.stringify(expected)!==JSON.stringify(observed)){
+      fail('NON_UI_PREVIOUS_REVIEW_COVERAGE_MISMATCH','ancienne revue != requirements approuves');
+    }
+  }
+  const normalizedRequirements=nonUiSource.map((req)=>{
+    const targets=[...(req.change_targets||[])].map(String).sort();
+    const tests=[...(req.tests||[])].map(String).sort();
+    const affectedPaths=[...new Set([...targets,...tests].filter((p)=>changedSet.has(p)))].sort();
+    const reviewScope=previousRequirementById&&affectedPaths.length===0?'INHERITED':'AFFECTED';
+    const row={...req,review_scope:reviewScope,affected_paths:affectedPaths};
+    if(reviewScope==='INHERITED')row.inherited_result=previousRequirementById.get(req.requirement_id);
+    return row;
+  }).sort((a,b)=>a.requirement_id.localeCompare(b.requirement_id));
   const normalizedCriteria = criteria.map((criterion) => {
     const id = String(criterion.criterion_id);
     const targets = unique(criterion.change_targets || [], 'UI_IMPLEMENTATION_REVIEW_TARGET_INVALID', id + '.change_targets').sort();
