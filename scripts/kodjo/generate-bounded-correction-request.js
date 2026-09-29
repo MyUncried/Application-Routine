@@ -11,7 +11,8 @@ function fail(code,detail){throw new Error(code+(detail?': '+detail:''));}
 
 function generate(queue,result,runId,recoveryAvailable){
   if(!queue||!result)fail('AUTO_CORRECTION_INPUT_INVALID');
-  const failed=Array.isArray(result.failed_checks)?result.failed_checks.filter(Boolean):[];
+  const failed=Array.isArray(result.failed_checks)?result.failed_checks.filter(Boolean):
+    (Array.isArray(result.checks)?result.checks.filter((row)=>row&&row.status==='FAIL').map((row)=>String(row.check||'')).filter(Boolean):[]);
   const policy=classify({
     diagnostic:String(result.status||''),
     mode:String(queue.mode||''),
