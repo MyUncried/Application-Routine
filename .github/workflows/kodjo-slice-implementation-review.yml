@@ -346,7 +346,7 @@ jobs:
             echo "Every PRESERVE and FORBIDDEN boundary in boundary_requirements must appear exactly once in boundary_results. When machine_status is present, copy that status exactly; it is derived from the exact changed-file set and is not open to reinterpretation. Any FAIL or NON_VERIFIABLE boundary is blocking."
             echo "Requirements allocated to later increments remain deferred and are not defects."
             echo "The deterministic gate immediately preceding this review has completed npm test and TypeScript successfully."
-            echo "verdict and device_gate_required are transport fields only: the deterministic validator overwrites them from the validated criterion/requirement/proof/boundary states. Do not rely on your aggregate to authorize anything."
+            echo "Do not return verdict or device_gate_required. They are derived exclusively by the deterministic validator from validated criterion/requirement/proof/boundary states."
             echo "VISUAL_APPROVED only satisfies human/device evidence explicitly required by this approved plan. It never supplies missing technical, functional, scope or preservation evidence."
             echo "Do not modify files."
             echo
@@ -371,11 +371,9 @@ jobs:
           REVIEW_SCHEMA=$(jq -nc '{
             type:"object",
             additionalProperties:false,
-            required:["schema","verdict","device_gate_required","criteria","boundary_results"],
+            required:["schema","criteria","boundary_results"],
             properties:{
               schema:{type:"string",enum:["kodjo.ui-implementation-review.v1"]},
-              verdict:{type:"string",enum:["APPROVE","REVISE"]},
-              device_gate_required:{type:"boolean"},
               criteria:{
                 type:"array",
                 items:{
