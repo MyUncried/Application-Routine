@@ -147,7 +147,13 @@ jobs:
           CREATED="$(gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat "${RUNNER_TEMP}/handoff-ready.md")")"
           HANDOFF_ID="$(printf '%s' "$CREATED" | jq -r '.id')"
           HANDOFF_URL="$(printf '%s' "$CREATED" | jq -r '.html_url')"
-          printf '%s' "$HANDOFF_ID" | grep -Eq '^[1-9][0-9]*
+          printf '%s' "$HANDOFF_ID" | grep -Eq '^[1-9][0-9]*          test -n "$HANDOFF_URL"
+          {
+            cat "${RUNNER_TEMP}/handoff-ready.md"
+            echo "approval_url=$HANDOFF_URL"
+          } > "${RUNNER_TEMP}/handoff-ready-final.md"
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$HANDOFF_ID" -f body="$(cat "${RUNNER_TEMP}/handoff-ready-final.md")" >/dev/null
+          echo "PLAN_HANDOFF_READY: $HANDOFF_URL"
 
           test -n "$HANDOFF_URL"
           {
