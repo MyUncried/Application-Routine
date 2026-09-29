@@ -77,7 +77,14 @@ test('F12: protocol consumer remains effective when application HEAD contains an
     assert.ok(freeze>=0&&freeze<steps.findIndex(s=>s.name==='Checkout implementation HEAD'));
     const block=steps[freeze].run;
     const sources=block.match(/scripts\/kodjo\/[a-z/.-]+\.js/g);
-    assert.equal(sources.length,5);
+    assert.ok(sources.length >= 5);
+    for (const required of [
+      'scripts/kodjo/verify-ui-implementation-review.js',
+      'scripts/kodjo/lib/implementation-report.js',
+      'scripts/kodjo/lib/ui-criteria-contract.js',
+      'scripts/kodjo/lib/plan-impact.js',
+      'scripts/kodjo/lib/requirement-contract.js',
+    ]) assert.ok(sources.includes(required), 'missing frozen reviewer dependency '+required);
     const runtime=path.join(dir,'frozen');fs.mkdirSync(path.join(runtime,'lib'),{recursive:true});
     for(const source of sources)fs.copyFileSync(path.join(root,source),path.join(runtime,source.replace('scripts/kodjo/','')));
     fs.mkdirSync(path.join(dir,'scripts/kodjo'),{recursive:true});
