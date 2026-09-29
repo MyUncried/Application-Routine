@@ -13,7 +13,7 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
-  actions: write
+  actions: read
 
 concurrency:
   group: kodjo-v2-lean-windows
@@ -392,7 +392,6 @@ jobs:
           $queuePath=".github/orchestration/queue/v2/$requestId.json"
           $requestJson=($request|ConvertTo-Json -Depth 40).Replace("`r`n","`n")+"`n"
 
-          $existing=$null
           $previous=$ErrorActionPreference
           try{
             $ErrorActionPreference='Continue'
