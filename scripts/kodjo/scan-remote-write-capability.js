@@ -239,4 +239,4 @@ function main() {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { isCommentRouterDelegation, isDisposableConsumptionPermission, collectFiles, PATTERNS, SHELL_TRUE_EXEMPTIONS, isExempt, isFixedEvidenceWriterOperation, isFixedLeanSupervisorOperation, main };
+module.exports = { isDisposableConsumptionPermission, collectFiles, PATTERNS, SHELL_TRUE_EXEMPTIONS, isExempt, isFixedEvidenceWriterOperation, isFixedLeanSupervisorOperation, main };

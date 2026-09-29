@@ -46,6 +46,8 @@ rafale de runs distincts, sans supprimer les commandes de protocole utiles.
 - Tests causaux Routine Dev : job absent/ignoré/échoué/autre run, tentative différente,
   doublon et commentaire postérieur à la revue sont rejetés.
 - Tests locaux répétés avec fins de ligne LF puis CRLF ; scanner des écrivains.
+- Simulation de fusion du scanner avec le HEAD de #250 : aucun conflit ; les
+  autorisations du routeur et de l'écrivain de publication d'audit se composent.
 - Qualification Linux/Windows à vérifier sur le commit livré avant activation.
 
 Cette correction ne modifie ni les branches #250/#252 ni l'issue PRE-1 #249,

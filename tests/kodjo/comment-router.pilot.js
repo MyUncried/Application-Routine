@@ -37,16 +37,24 @@ test('ordinary comments, report links and wrong authors do not start production 
  assert.equal(evaluate(initial,'MyUncried','[KODJO_V2] START_INITIAL_PLAN_REVIEW'),false);
 });
 test('delegated contents permission cannot become an executable or arbitrary writer',()=>{
- const {isCommentRouterDelegation:allowed}=require('../../scripts/kodjo/scan-remote-write-capability');
- const source=read(routerPath),file=path.join(root,routerPath);
- const check=s=>{const lines=s.split('\n'),indices=lines.map((v,i)=>v.includes('contents: write')?i:-1).filter(i=>i>=0);return indices.map(i=>allowed(file,lines,i,'CONTENTS_WRITE',root));};
- assert.ok(check(source).every(Boolean));
+ const {main:scan}=require('../../scripts/kodjo/scan-remote-write-capability');
+ const source=read(routerPath),os=require('node:os');
+ const check=(s,name='kodjo-v2-comment-router.yml')=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-comment-scanner-'));
+  const argv=process.argv,out=process.stdout.write,err=process.stderr.write;
+  try{
+   fs.mkdirSync(path.join(dir,'.github/workflows'),{recursive:true});
+   fs.writeFileSync(path.join(dir,'.github/workflows',name),s);
+   process.argv=[argv[0],argv[1],dir];process.stdout.write=process.stderr.write=()=>true;
+   return scan();
+  }finally{process.argv=argv;process.stdout.write=out;process.stderr.write=err;fs.rmSync(dir,{recursive:true,force:true});}
+ };
+ assert.equal(check(source),0);
  for(const mutate of [s=>s.replace('permissions:\n  contents: read','permissions:\n  contents: write'),s=>s.replace('uses: ./.github/workflows/kodjo-e2e-orchestration-test-v1-3.yml','uses: ./.github/workflows/arbitrary.yml'),s=>s.replace('    uses: ./.github/workflows/kodjo-e2e-orchestration-test-v1-3.yml','    steps: []\n    uses: ./.github/workflows/kodjo-e2e-orchestration-test-v1-3.yml')]){
-  const hostile=mutate(source);assert.notEqual(hostile,source);assert.ok(check(hostile).some(v=>!v));
+  const hostile=mutate(source);assert.notEqual(hostile,source);assert.equal(check(hostile),1);
  }
- const lines=source.split('\n'),index=lines.findIndex(v=>v.includes('contents: write'));
- assert.equal(allowed(path.join(root,'.github/workflows/other.yml'),lines,index,'CONTENTS_WRITE',root),false);
- assert.equal(allowed(file,lines,index,'GIT_PUSH',root),false);
+ assert.equal(check(source,'kodjo-v2-other.yml'),1);
+ assert.equal(check(source+'\n# mutation\nextra: git push origin HEAD\n'),1);
 });
 test('Routine Dev requires the exact completed review job in this router attempt',()=>{
  const {selectReview}=require('../../scripts/kodjo/resolve-review-run-environment-sync');
