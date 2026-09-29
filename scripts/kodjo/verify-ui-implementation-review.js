@@ -185,24 +185,34 @@ function buildInput(planBody, changedFiles, previousReview) {
   }).sort((a,b) => a.criterion_id.localeCompare(b.criterion_id));
 
   const preservation = matrix.preservation || { preserve:[], change:[], forbidden:[] };
-  const deviceGateRequired = normalizedCriteria.some((c) => c.device_proof_required);
+  const boundaryRequirements=requirementContracts
+    ? requirementContracts.boundary_contract.boundaries.map((row)=>({
+        category:row.category,target:row.target,locator:row.locator,
+        machine_status:row.locator&&row.locator.kind==='PATH' ? (changedSet.has(row.locator.value)?'FAIL':'PASS') : null,
+      }))
+    : [
+        ...(Array.isArray(preservation.preserve) ? preservation.preserve.map((x) => ({ category:'PRESERVE', target:String(x.target || ''),machine_status:null })) : []),
+        ...(Array.isArray(preservation.forbidden) ? preservation.forbidden.map((x) => ({ category:'FORBIDDEN', target:String(x.target || ''),machine_status:null })) : []),
+      ];
+  boundaryRequirements.sort((a,b)=>(a.category+':'+a.target).localeCompare(b.category+':'+b.target));
+  const deviceGateRequired = normalizedCriteria.some((c) => c.device_proof_required) ||
+    normalizedRequirements.some((r)=>(r.proof_required||[]).some((p)=>DEFERABLE_PROOFS.has(String(p))));
 
   return {
     schema: INPUT_SCHEMA,
-    review_mode: previousById ? 'DELTA_WITH_INHERITANCE' : 'FULL',
+    review_mode: (previousById||previousRequirementById) ? 'DELTA_WITH_INHERITANCE' : 'FULL',
     assertion_mode: assertionMode,
     ui_applicable: uiApplicable,
     ui_matrix_sha256: planContract.matrix_sha256,
     criterion_count: normalizedCriteria.length,
     criterion_ids_sha256: sha256(criterionIds),
     ...(assertionMode ? {assertion_count:assertionIds.length,assertion_ids_sha256:sha256(assertionIds)} : {}),
+    non_ui_requirement_count: normalizedRequirements.length,
+    non_ui_requirements: normalizedRequirements,
     changed_files: changed,
     criteria: normalizedCriteria,
     preservation,
-    boundary_requirements: [
-      ...(Array.isArray(preservation.preserve) ? preservation.preserve.map((x) => ({ category:'PRESERVE', target:String(x.target || '') })) : []),
-      ...(Array.isArray(preservation.forbidden) ? preservation.forbidden.map((x) => ({ category:'FORBIDDEN', target:String(x.target || '') })) : []),
-    ].sort((a,b) => (a.category + ':' + a.target).localeCompare(b.category + ':' + b.target)),
+    boundary_requirements: boundaryRequirements,
     device_gate_required: deviceGateRequired,
   };
 }
