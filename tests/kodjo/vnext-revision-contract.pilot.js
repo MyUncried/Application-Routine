@@ -175,8 +175,8 @@ function planInputFor(requirement, impacts, mutate = null) {
   return base;
 }
 
-function buildArtifacts({ mode = 'INITIAL', baseReview = null, planMutators = {}, extraProofFor = null } = {}) {
-  const repo = fixtureRepo();
+function buildArtifacts({ mode = 'INITIAL', baseReview = null, planMutators = {}, extraProofFor = null, repoFixture = null } = {}) {
+  const repo = repoFixture || fixtureRepo();
   const sourceManifest = buildSourceManifest();
   const planningEnvelope = envelope(
     sourceManifest,
@@ -499,6 +499,7 @@ test('VNext-07 accepte une correction ciblée et vérifie la préservation exact
   const next = buildArtifacts({
     mode: 'REVISION',
     baseReview: baseInfo,
+    repoFixture: { cwd: base.cwd, revision: base.revision },
     planMutators: {
       [base.reqA.requirement_id]: (input) => {
         input.rationale = 'Plan A corrigé de manière ciblée.';
@@ -548,6 +549,7 @@ test('VNext-07 autorise un nouvel objet dérivé uniquement sous la cible corrig
   const next = buildArtifacts({
     mode: 'REVISION',
     baseReview: baseInfo,
+    repoFixture: { cwd: base.cwd, revision: base.revision },
     planMutators: {
       [base.reqA.requirement_id]: (input) => {
         input.rationale = 'Plan A corrigé.';
@@ -596,6 +598,7 @@ test('VNext-07 détecte une modification d’un objet préservé', () => {
   const next = buildArtifacts({
     mode: 'REVISION',
     baseReview: baseInfo,
+    repoFixture: { cwd: base.cwd, revision: base.revision },
     planMutators: {
       [base.reqA.requirement_id]: (input) => { input.rationale = 'A corrigé.'; },
       [base.reqB.requirement_id]: (input) => { input.rationale = 'B modifié sans autorisation.'; },
@@ -640,6 +643,7 @@ test('VNext-07 détecte REVISION_STALLED si le même finding persiste', () => {
   const next = buildArtifacts({
     mode: 'REVISION',
     baseReview: baseInfo,
+    repoFixture: { cwd: base.cwd, revision: base.revision },
     planMutators: {
       [base.reqA.requirement_id]: (input) => { input.rationale = 'Tentative de correction.'; },
     },
@@ -688,6 +692,7 @@ test('VNext-07 détecte un nouveau finding bloquant sur un objet préservé', ()
   const next = buildArtifacts({
     mode: 'REVISION',
     baseReview: baseInfo,
+    repoFixture: { cwd: base.cwd, revision: base.revision },
     planMutators: {
       [base.reqA.requirement_id]: (input) => { input.rationale = 'A corrigé.'; },
     },
@@ -721,7 +726,7 @@ test('VNext-07 finding_id reste stable entre INITIAL et REVISION pour le même p
   });
 
   const baseInfo = makeRevisionBaseInfo(first, firstReport);
-  const second = buildArtifacts({ mode: 'REVISION', baseReview: baseInfo });
+  const second = buildArtifacts({ mode: 'REVISION', baseReview: baseInfo, repoFixture: { cwd: first.cwd, revision: first.revision } });
   const secondItem = second.planContract.plan_items.find((item) => item.requirement_id === second.reqA.requirement_id);
   const secondReport = Review.buildReviewReport({
     reviewContext: second.reviewContext,
