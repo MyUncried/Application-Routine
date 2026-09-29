@@ -368,4 +368,4 @@ Cette évolution ne doit pas :
 6. R8 / PE-37/38 — supersession sûre des runs et classification déterministe de l’impact CI ;
 7. R3 / PE-28 — correction visuelle directe bornée.
 
-PE-27 reste une évolution distincte déjà implémentée dans la PR #243 ; elle doit être qualifiée puis activée avant la planification de PRE-2.
+PE-27 a été intégrée au candidat consolidé de la PR #250 avec les autres évolutions ; elle reste `À TESTER` jusqu’à la qualification Linux/Windows et au contre-audit Claude du HEAD exact.
