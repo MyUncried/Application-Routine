@@ -261,3 +261,114 @@ Le gate est franchissable uniquement si :
 - `registry_status=READY`.
 
 Le plan et l’impact restent interdits tant que ce gate n’est pas franchi.
+
+
+## 13. VNext-03 — ImpactGraph déterministe
+
+### 13.1 Contrats
+
+VNext-03 introduit :
+
+- `kodjo.vnext.impact-candidates.v1`
+- `kodjo.vnext.direct-import-scan.v1`
+- `kodjo.vnext.impact-graph.v1`
+
+### 13.2 Propriété des chemins
+
+L’IA ne fournit jamais de path libre à `ImpactGraph`.
+
+La machine construit un `CandidateManifest` lié au HEAD exact à partir de :
+
+1. l’arbre Git pour les chemins existants ;
+2. des slots `CREATE` explicitement admis par une politique machine.
+
+Chaque candidat reçoit un `candidate_id` déterministe.
+
+La classification IA référence uniquement :
+
+- `requirement_id`
+- `candidate_id`
+- `change_kind`
+- justification et preuves sémantiques.
+
+### 13.3 Sémantique MODIFY / CREATE / DELETE / NO_CHANGE
+
+Pour un candidat issu de `GIT_TREE` :
+
+- `MODIFY` autorisé ;
+- `DELETE` autorisé ;
+- `NO_CHANGE` autorisé ;
+- `CREATE` interdit.
+
+Pour un candidat issu de `CREATE_SLOT_POLICY` :
+
+- `CREATE` autorisé ;
+- `NO_CHANGE` autorisé ;
+- `MODIFY` et `DELETE` interdits.
+
+Un slot `CREATE` :
+
+- ne doit pas exister au HEAD analysé ;
+- appartient à une racine autorisée ;
+- possède un `policy_id` et un `policy_hash` ;
+- reçoit son identité par la machine.
+
+### 13.4 Binding au HEAD
+
+Le CandidateManifest contient :
+
+- `revision` SHA-40 ;
+- `git_tree_sha256` ;
+- liste exacte des candidats ;
+- hash canonique du contrat.
+
+Un candidat existant doit correspondre exactement à un chemin Git au HEAD analysé.
+
+Unicode, casse et séparateurs font partie de l’identité exacte du path.
+
+### 13.5 ONE_LEVEL_DIRECT_IMPORTS
+
+Pour tout module de code source classé `MODIFY`, la machine exécute un scan des importeurs directs.
+
+Règles :
+
+- seuls les importeurs directs sont ajoutés aux obligations de classification ;
+- chaque importeur direct doit être classé pour chaque exigence qui modifie l’une de ses dépendances directes ;
+- un importeur direct lui-même classé `MODIFY` ne devient pas automatiquement une nouvelle racine de scan ;
+- aucune fermeture transitive libre n’est autorisée ;
+- tests, documents et workflows modifiés ne déclenchent pas à eux seuls une expansion d’imports.
+
+### 13.6 Couverture des exigences
+
+Pour chaque exigence du `RequirementRegistry READY`, `ImpactGraph` exige :
+
+- au moins un impact ciblé ; ou
+- un `NO_CHANGE` au niveau exigence avec justification.
+
+Une exigence sans ligne d’impact est bloquante.
+
+Un `NO_CHANGE` au niveau exigence ne peut pas être mélangé à des impacts ciblés pour la même exigence.
+
+### 13.7 Identités mécaniques
+
+`impact_id` est produit par la machine à partir de :
+
+- `requirement_id`
+- `candidate_id`
+- `change_kind`
+
+Le modèle ne crée jamais `impact_id`, `candidate_id`, path, hash ou verdict de couverture.
+
+### 13.8 Gate IMPACT_READY
+
+Le gate est franchissable uniquement si :
+
+- RequirementRegistry est `READY` ;
+- CandidateManifest est valide et lié au HEAD ;
+- aucun candidate_id inconnu n’est utilisé ;
+- chaque change_kind est compatible avec l’origine du candidat ;
+- tous les importeurs directs requis sont classés ;
+- toutes les exigences sont couvertes ;
+- aucune expansion non démontrée n’est présente.
+
+Le `PlanContract` reste interdit tant que ce gate n’est pas franchi.
