@@ -274,6 +274,31 @@ function findingAssessmentFor(artifacts, report, auditManifest = auditManifestFo
   });
 }
 
+function findingLedgerFor(artifacts, report, auditManifest = auditManifestFor(artifacts), assessment = findingAssessmentFor(artifacts, report, auditManifest)) {
+  return AuditStability.buildFindingLedgerInitial({
+    auditManifest,
+    reviewContext: artifacts.reviewContext,
+    reviewReport: report,
+    findingAssessment: assessment,
+  });
+}
+
+function advancedLedgerFor(base, previousReport, next, nextReport, auditManifest = auditManifestFor(base)) {
+  const previousAssessment = findingAssessmentFor(base, previousReport, auditManifest);
+  const previousLedger = findingLedgerFor(base, previousReport, auditManifest, previousAssessment);
+  const nextAssessment = findingAssessmentFor(next, nextReport, auditManifest);
+  const resolutions = explicitResolutionSet(previousReport, next, nextReport, auditManifest);
+  return AuditStability.advanceFindingLedgerWithPreviousReport({
+    previousLedger,
+    previousReviewReport: previousReport,
+    auditManifest,
+    nextReviewContext: next.reviewContext,
+    nextReviewReport: nextReport,
+    nextFindingAssessment: nextAssessment,
+    findingResolutionSet: resolutions,
+  });
+}
+
 function explicitResolutionSet(previousReport, nextArtifacts, nextReport, auditManifest = auditManifestFor(nextArtifacts)) {
   const nextIds = new Set(nextReport.findings.map((row) => row.finding_id));
   return AuditStability.buildFindingResolutionSet({
@@ -543,6 +568,7 @@ test('VNext-09 E2E REVISION conserve la causalit√© et atteint HANDOFF_READY apr√
     reviewReport: baseReview,
     auditManifest: auditManifestFor(base),
     findingAssessment: findingAssessmentFor(base, baseReview),
+    findingLedger: findingLedgerFor(base, baseReview),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
@@ -575,7 +601,18 @@ test('VNext-09 E2E REVISION conserve la causalit√© et atteint HANDOFF_READY apr√
   });
 
   const auditManifest = auditManifestFor(base);
+  const previousFindingLedger = findingLedgerFor(base, baseReview, auditManifest);
+  const nextFindingAssessment = findingAssessmentFor(next, nextReview, auditManifest);
   const findingResolutionSet = explicitResolutionSet(baseReview, next, nextReview, auditManifest);
+  const nextFindingLedger = AuditStability.advanceFindingLedgerWithPreviousReport({
+    previousLedger: previousFindingLedger,
+    previousReviewReport: baseReview,
+    auditManifest,
+    nextReviewContext: next.reviewContext,
+    nextReviewReport: nextReview,
+    nextFindingAssessment,
+    findingResolutionSet,
+  });
   const outcome = Revision.verifyRevisionOutcome({
     allowedChangeSet: allowed,
     revisionPatch: patch,
@@ -583,9 +620,12 @@ test('VNext-09 E2E REVISION conserve la causalit√© et atteint HANDOFF_READY apr√
     nextArtifacts: next,
     auditManifest,
     previousReviewReport: baseReview,
+    previousFindingLedger,
     nextReviewContext: next.reviewContext,
     nextReviewReport: nextReview,
+    nextFindingAssessment,
     findingResolutionSet,
+    nextFindingLedger,
   });
   assert.equal(outcome.status, 'RESOLVED');
 
@@ -598,6 +638,7 @@ test('VNext-09 E2E REVISION conserve la causalit√© et atteint HANDOFF_READY apr√
       allowed_change_set: allowed,
       revision_patch: patch,
       finding_resolution_set: findingResolutionSet,
+      finding_ledger: nextFindingLedger,
       revision_outcome: outcome,
     },
     ...approved,
