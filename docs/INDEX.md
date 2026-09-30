@@ -231,4 +231,4 @@ Le document décrit une **cible post-MVP à planifier** ; il ne requalifie pas �
 
 ## Mise à jour visuelle du 30 septembre 2026
 
-[DSF — Cartes, icônes et animations d’appui](DSF-CARTES-ICONES-APPUIS-2026-09-30.md) : références actuelles de Cartes - Icônes et Démonstrations — Animations d’appui, tokens, composants, RG-1 à RG-9, journal des changements, écarts et critères atomiques. Décisions D-209 à D-212. Les propositions fonctionnelles en conflit avec D-195/D-206/D-208 restent identifiées comme à valider ; elles n’abrogent pas ces décisions. Aucun changement de protocole ni de calcul métier n’est inclus.
+[DSF — Cartes, icônes et animations d’appui](DSF-CARTES-ICONES-APPUIS-2026-09-30.md) : références actuelles de Cartes - Icônes et Démonstrations — Animations d’appui, tokens, composants, RG-1 à RG-13, journal des changements, écarts et critères atomiques. Décisions D-209 à D-215. Les 17 points sont clos ; D-195/D-206/D-208 sont révisées sur l’affichage seul par D-214. RG-3 seule reste reportée. Aucun changement de protocole ni de calcul métier n’est inclus.
