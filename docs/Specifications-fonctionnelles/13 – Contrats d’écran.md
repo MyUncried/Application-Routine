@@ -190,7 +190,7 @@ Carte : titre et badge durée, Étiquette puis catégories issues des exercices 
 
 ### 9. Layout déterministe
 
-Cartes standard : largeur354 sur écran402, rayon8, fond #FCFCFE, bord intérieur0,5 #CCD1E0, titre15 Semi Bold ; classement pastilles20, valeurs nues16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo6354:16964. Les captures antérieures sont historiques pour le rendu des cartes. Hauteur repliée90, déployée235. Commandes34/dessins20/gaps12/cibles44. Segmenté354 : padding4, gaps4, options112,67. Actions glissées de même hauteur que la carte, y compris déployée.
+Cartes standard : largeur354 sur écran402, rayon8, fond #FCFCFE, bord intérieur0,5 #CCD1E0, titre15 Semi Bold ; classement pastilles20, valeurs nues16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo6354:16964. Les captures actualisées le30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Hauteur repliée90, déployée235. Commandes34/dessins20/gaps12/cibles44. Segmenté354 : padding4, gaps4, options112,67. Actions glissées de même hauteur que la carte, y compris déployée.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -292,7 +292,7 @@ Pastille Catégorie colorée, Zones corporelles, titre et badge durée ; synthè
 
 ### 9. Layout déterministe
 
-Cartes standard : largeur354 sur écran402, rayon8, fond #FCFCFE, bord intérieur0,5 #CCD1E0, titre15 Semi Bold ; classement pastilles20, valeurs nues16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo6354:16964. Les captures antérieures sont historiques pour le rendu des cartes. Repliée354 × 91. Avec média d’exercice : vignette64 à12 du bord, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur254 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Badge durée/heure conservé selon contexte, catégorie conservée, pictogramme de zone retiré ; Déployer absent. Séance sans vignette (RG-3 reportée). Commandes34/dessins20/gaps12/cibles44. La référence exercice déployé≈260 du wireframe reste distincte du composant≈236 conservé ; cet écart d’assemblage ne réintroduit pas Déployer dans Photo.
+Cartes standard : largeur354 sur écran402, rayon8, fond #FCFCFE, bord intérieur0,5 #CCD1E0, titre15 Semi Bold ; classement pastilles20, valeurs nues16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo6354:16964. Les captures actualisées le30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée354 × 91. Avec média d’exercice : vignette64 à12 du bord, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur254 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Badge durée/heure conservé selon contexte, catégorie conservée, pictogramme de zone retiré ; Déployer absent. Séance sans vignette (RG-3 reportée). Commandes34/dessins20/gaps12/cibles44. La référence exercice déployé≈260 du wireframe reste distincte du composant≈236 conservé ; cet écart d’assemblage ne réintroduit pas Déployer dans Photo.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -746,7 +746,7 @@ Case arrondie20 vectorielle, titre15, pastilles20, valeurs16, compteur et Annule
 
 ### 9. Layout déterministe
 
-Cartes standard : largeur354 sur écran402, rayon8, fond #FCFCFE, bord intérieur0,5 #CCD1E0, titre15 Semi Bold ; classement pastilles20, valeurs nues16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo6354:16964. Les captures antérieures sont historiques pour le rendu des cartes. Choix Composition354 × 91 ; texte tronqué à≥20 de la case, liste seule défilante ; actions fixes. Avec média d’exercice : vignette64 à12 du bord, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur254 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Badge durée/heure conservé selon contexte, catégorie conservée, pictogramme de zone retiré ; Déployer absent. Séance sans vignette (RG-3 reportée).
+Cartes standard : largeur354 sur écran402, rayon8, fond #FCFCFE, bord intérieur0,5 #CCD1E0, titre15 Semi Bold ; classement pastilles20, valeurs nues16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo6354:16964. Les captures actualisées le30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Choix Composition354 × 91 ; texte tronqué à≥20 de la case, liste seule défilante ; actions fixes. Avec média d’exercice : vignette64 à12 du bord, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur254 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Badge durée/heure conservé selon contexte, catégorie conservée, pictogramme de zone retiré ; Déployer absent. Séance sans vignette (RG-3 reportée).
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 

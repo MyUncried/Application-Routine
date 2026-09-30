@@ -65,7 +65,7 @@ L’absence ou la substitution d’un logo, d’une icône, d’un texte ou d’
 
 ### Révision écran par écran — 30 septembre 2026
 
-Les descriptions locales ci-dessous et les contrats CE-T03/CE-UI du chapitre13 intègrent les décisions closes D-209 à D-215. La [matrice courante des écrans](../MATRICE-ECRANS-CARTES-2026-09-30.md) relie chaque frame concernée à son contrat et à ses critères. Les captures intégrées antérieures sont historiques pour les cartes/icônes ; les liens Figma de la matrice portent le rendu courant. Cette passe met à jour les descriptions et contrats, sans réexport de captures ni modification du prototype.
+Les descriptions locales ci-dessous et les contrats CE-T03/CE-UI du chapitre13 intègrent les décisions closes D-209 à D-215. La [matrice courante des écrans](../MATRICE-ECRANS-CARTES-2026-09-30.md) relie chaque frame concernée à son contrat et à ses critères. 64 captures existantes ont été remplacées le30/09 par export direct de Figma, aux mêmes chemins. Le bilan dans la matrice de couverture liste chaque source, fichier et empreinte. Deux anciennes captures restent historiques faute de nœud source : heure ouverte1992:7006 et nombre de tours2028:11580. Aucun nouveau fichier image ni nouvel écran ajouté ; prototype inchangé.
 
 Sur tous les écrans concernés, les appuis suivent D-213 : dilatation au contact, retour et action immédiate au relâchement ; sortie de cible sans action ; réduction des animations par opacité. Les contrôles désactivés ne deviennent pas actifs par l’animation. L’inventaire des 27 icônes de sélection ne recolore ni visages, ni statuts, ni boutons à fond coloré. Navigation présente : composant6298:12462, traits2, dessins≤24 ; état sélectionné bleu, autre gris.
 
@@ -402,8 +402,8 @@ Les états complémentaires suivants font partie de la référence de développe
 | N° | État | Capture | Règle matérialisée | Node Figma |
 | --- | --- | --- | --- | --- |
 | Écran 1b | Vibration activée | ![[images/ecran-1b-profil-vibration-activee.png\|220]] | Valeur initiale fonctionnelle de la préférence `Vibration` | `1992:684` |
-| Écran 1c | Sélecteur du compte à rebours | ![[images/ecran-1c-profil-compte-rebours-ouvert.png\|220]] | Choix intégré des secondes, avec `10 s` sélectionné | `1992:474` |
-| Écran 1d | Sélecteur de fin de séance | ![[images/ecran-1d-profil-fin-seance-ouverte.png\|220]] | Choix intégré des secondes, avec `5 s` sélectionné | `1992:579` |
+| Écran 1c | Stepper Pause changement de côté | ![[images/ecran-1c-profil-compte-rebours-ouvert.png\|220]] | État courant du stepper Pause changement de côté | `1992:474` |
+| Écran 1d | Stepper Récupération après activité | ![[images/ecran-1d-profil-fin-seance-ouverte.png\|220]] | État courant du stepper Récupération après activité | `1992:579` |
 | Écran 1e | Profil d’un parcours encore vide | ![[images/ecran-1e-profil-parcours-vide.png\|220]] | Présentation du Profil avant que l’utilisateur ait créé du contenu | `2139:86` |
 | Contrôle 1f | Compte à rebours d’Activité | — | Valeur globale proposée pour le Compte à rebours propre d’une nouvelle Activité ; pas de frame plein écran distincte | `4179:9550` |
 | Contrôle 1g | Fin d’activité | — | Valeur globale proposée pour la Fin propre d’une nouvelle Activité ; pas de frame plein écran distincte | `4179:9556` |
@@ -617,7 +617,7 @@ L’état révélant les actions d’une Activité est illustré par :
 | Écran 3d | Étiquettes ouvertes | — | Sélection de l’Étiquette ; la couleur de la Séance est celle de l’Étiquette | `2028:11204` |
 | Écran 3e | Compte à rebours ouvert | ![[images/ecran-3e-composition-compte-rebours-ouvert.png\|220]] | Réglage minutes/secondes avec Annuler et Confirmer circulaires | `2028:11375` |
 | Écran 3f | Fin de séance ouverte | ![[images/ecran-3f-composition-fin-seance-ouverte.png\|220]] | Réglage indépendant avec Annuler et Confirmer circulaires | `2028:11457` |
-| Écran 3g | Nombre de Tours | ![[images/ecran-3g-composition-nombre-tours.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `2028:11580` |
+| Écran 3g | Nombre de Tours — capture historique, source absente au30/09 | ![[images/ecran-3g-composition-nombre-tours.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `2028:11580` |
 | Écran 3h | Appui long — carte soulevée | ![[images/ecran-3h-composition-appui-long.png\|220]] | État transitoire précédant et accompagnant le déplacement d’une Activité | `3518:4576` |
 | Écran 3i | Point d’arrêt | — | Point d’arrêt inséré dans la Composition, sans écran dédié ; élément déplaçable | `3722:5061` |
 | Écran 3j | Nouvelle étiquette | — | Création d’une Étiquette depuis la modale | `4640:6308` |
@@ -983,10 +983,10 @@ La suppression ou modification d’une Routine agit sur les occurrences futures 
 | N° | État | Capture | Règle matérialisée | Node Figma |
 | --- | --- | --- | --- | --- |
 | Écran 8a | Date ouverte | ![[images/ecran-8a-planifier-date-ouverte.png\|220]] | Sélecteur de date compact | `1992:6622` |
-| Écran 8b | Heure ouverte | ![[images/ecran-8b-planifier-heure-ouverte.png\|220]] | Roulette compacte heures/minutes avec validation explicite | `1992:7006` |
+| Écran 8b | Heure ouverte — capture historique, source absente au30/09 | ![[images/ecran-8b-planifier-heure-ouverte.png\|220]] | Roulette compacte heures/minutes avec validation explicite | `1992:7006` |
 | Écran 8c | Rappel personnalisé ouvert | ![[images/ecran-8c-planifier-rappel-ouvert.png\|220]] | Réglage compact du délai de rappel avec validation explicite | `1992:7187` |
 | Écran 8d | Rappel personnalisé sélectionné | ![[images/ecran-8d-planifier-rappel-selectionne.png\|220]] | Valeur répercutée dans le formulaire avant enregistrement | `1992:7369` |
-| Écran 8e | Nombre de semaines ouvert | ![[images/ecran-8e-planifier-semaines-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `1992:7537` |
+| Écran 8e | Stepper Nombre de semaines | ![[images/ecran-8e-planifier-semaines-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `1992:7537` |
 | Écran 8f | Aucune répétition | ![[images/ecran-8f-planifier-sans-repetition.png\|220]] | Variante de planification unique | `1992:7716` |
 | Écran 8g | Changer la Séance | ![[images/ecran-8g-planifier-changer-seance.png\|220]] | Liste de remplacement de la Séance associée | `1992:7861` |
 
@@ -1447,11 +1447,11 @@ Les références actives sont désormais `4217:6980 — Ajouter une activité �
 
 ![[images/ecran-15-creation-activite-persistante.png|260]]
 
-*Écran 15 — ancienne copie documentaire ; la référence Figma active de création est `4217:6980`.*
+*Écran 15 — capture Figma actualisée le30/09 : Ajouter un exercice — Nom Description Media (`4217:6980`).*
 
 ![[images/ecran-15a-modification-activite-persistante.png|260]]
 
-*Écran 15a — ancienne copie documentaire ; la référence Figma active de modification est `4734:6342`.*
+*Écran 15a — capture Figma actualisée le30/09 : Modifier un exercice (`4734:6342`).*
 
 ### Écran 16 — Préparation d’une Activité directe
 

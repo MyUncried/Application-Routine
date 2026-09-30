@@ -108,4 +108,4 @@ Les règles visuelles de navigation, cartes et contrôles contextuels sont préc
 
 ## Propagation écran par écran — 30 septembre 2026
 
-La [matrice courante des écrans](MATRICE-ECRANS-CARTES-2026-09-30.md) relie les 38 frames portant les nouveaux sets et les états complémentaires à leurs descriptions et contrats actualisés. Les anciennes règles d’affichage sont corrigées directement dans06/13 ; CE-UI-01 à05 couvrent Profil, Jour, Semaine/Mois, choix de source et formulaire de planification. Les anciennes captures restent historiques pour le rendu modifié.
+La [matrice courante des écrans](MATRICE-ECRANS-CARTES-2026-09-30.md) relie les 38 frames portant les nouveaux sets et les états complémentaires à leurs descriptions et contrats actualisés. Les anciennes règles d’affichage sont corrigées directement dans06/13 ; CE-UI-01 à05 couvrent Profil, Jour, Semaine/Mois, choix de source et formulaire de planification. Les captures remplacées le30/09 sont recensées dans le bilan de la matrice de couverture ; seules les captures non remplacées restent historiques.
