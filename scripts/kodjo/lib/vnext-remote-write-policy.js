@@ -405,6 +405,14 @@ function validateGate(gate, report, policy) {
   V.verifyContractHash(gate, 'VNEXT_REMOTE_WRITE_GATE_HASH_MISMATCH');
   if (gate.report_hash !== report.contract_hash) V.fail('VNEXT_REMOTE_WRITE_GATE_REPORT_MISMATCH');
   if (gate.policy_hash !== V.canonicalHash(policy)) V.fail('VNEXT_REMOTE_WRITE_GATE_POLICY_MISMATCH');
+  const rebuilt = buildGate({
+    report,
+    policy,
+    activeLegacySliceIds: gate.active_legacy_slice_ids,
+  });
+  if (V.canonicalStringify(rebuilt) !== V.canonicalStringify(gate)) {
+    V.fail('VNEXT_REMOTE_WRITE_GATE_REBUILD_MISMATCH');
+  }
   return true;
 }
 
