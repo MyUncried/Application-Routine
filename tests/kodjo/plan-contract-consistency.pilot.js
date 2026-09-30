@@ -48,6 +48,13 @@ function rootTestsFixture() {
   return { scope, modules, rows, prose };
 }
 
+test('IA-008: prose cannot smuggle assets, JSON or Markdown outside the machine scope',()=>{
+ for(const extra of ['assets/icons/extra.svg','src/config/extra.json','tests/extra.md']){
+  const f=validFixture();f.prose=f.prose.replace('## Proposition de `scope_allow`','## Proposition de `scope_allow`\n`'+extra+'`');
+  const r=run(plan(f));assert.notEqual(r.status,0);assert.match(r.stderr,/PLAN_SCOPE_CONTRADICTION/);
+ }
+});
+
 test('root tests paths survive plan production and independent consumption', () => {
   const fixture = rootTestsFixture();
   const produced = run(plan(fixture));

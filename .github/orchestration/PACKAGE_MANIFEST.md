@@ -104,3 +104,72 @@ La santé applicative absolue reste `FAIL` à cause des deux timeouts Jest prée
 ## Qualification du candidat 0.6.51
 
 Statut actuel : **NON RETESTÉ**. La présence des scripts, workflows et tests dans la PR #250 ne vaut pas certification. Sont encore requis : suite Linux, suite Windows réelle, scénarios PE-27 à PE-38, audit indépendant Claude et absence de finding bloquant résiduel.
+
+## Complément des entrées normatives et runtime du candidat
+
+Ces composants sont livrés au même HEAD que ce manifeste. Leur présence ne vaut pas qualification.
+
+| Chemin | Rôle |
+|---|---|
+| `.github/AI_ORCHESTRATION_CONTINUITY.md` | Entrée normative ou runtime consommé par les workflows candidats |
+| `.github/orchestration/KODJO_PROTOCOL_NEXT_EVOLUTION_R1_R3_R4_CONTINUITY.md` | Entrée normative ou runtime consommé par les workflows candidats |
+| `.github/orchestration/PACKAGE_MANIFEST.md` | Entrée normative ou runtime consommé par les workflows candidats |
+| `.github/orchestration/audit-deferrals.json` | Entrée normative ou runtime consommé par les workflows candidats |
+| `.github/orchestration/normative-inputs.json` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/apply-minor-plan-clarification.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/assemble-plan-impact.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/build-planning-context.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/certify-persistent-runner-lock.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/check-qualification-availability.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/classify-planning-failure.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/classify-protocol-impact.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/cleanup-run-checkout.ps1` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/decide-plan-review-retry.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/detect-v2-closure-inconsistency.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/exit-from-business-status.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/finalize-implementation-delivery.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/generate-approved-plan-lean-request.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/generate-ui-plan-contract.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/git-state-guard.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/initialize-run-diagnostic.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/inventory-closure-artifacts.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/lib/boundary-proof.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/lib/plan-impact.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/lib/ui-identities.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/materialize-approved-plan-handoff.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/normalize-review-findings.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/openai-plan-request.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/prepare-evidence-writer-smoke.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/preserve-implementation.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/publish-implementation-output.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/publish-independent-protocol-audit.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/publish-visual-checkpoint.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/reconcile-initial-plan-prose.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/record-infrastructure-metric.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/resolve-checks-to-run.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/resolve-implementation-review-policy.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/resolve-private-head.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/resolve-recovery-source.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/resolve-run-directory.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/restore-source-artifact.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/run-check.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/run-disposable-resume-qualification.ps1` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/run-implementation-agent.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/run-queued-request.ps1` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/scan-plan-impact.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/scan-remote-write-capability.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/targeted-requalification.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/validate-orchestration-paths.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/validate-workflows.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/verify-authorizations.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/verify-bounded-plan-revision.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/verify-delivery.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/verify-implementation-plan-gate.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/verify-initial-product-sources.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/verify-plan-contract-consistency.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/verify-plan-impact.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/verify-plan-review-transition.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/verify-queue-admission.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/verify-queue-preflight.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/verify-ui-plan-criteria.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/write-evidence-deposit.js` | Entrée normative ou runtime consommé par les workflows candidats |

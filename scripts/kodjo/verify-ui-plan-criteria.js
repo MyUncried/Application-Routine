@@ -37,7 +37,7 @@ try {
   const uiApplicable = uiPaths.length > 0;
 
   const matrix = extractTaggedJson(markdown, 'KODJO_UI_CRITERIA_MATRIX_JSON', 'UI_PLAN_CRITERIA_MISSING');
-  if([MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3].includes(matrix.schema)){
+  if(matrix.schema===MATRIX_SCHEMA_V3 || (matrix.schema===MATRIX_SCHEMA_V2 && mode==='produce')){
     const ids=new Set();
     for(const criterion of matrix.criteria||[]){
       const source=criterion.source||{};

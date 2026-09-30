@@ -57,6 +57,18 @@ function validMatrix() {
   };
 }
 
+test('IA-005: approved positional v2 IDs are consumable, never newly produced',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-v2-identities-'));
+ try{
+  const matrix=validMatrix(),criterion=matrix.criteria[0];criterion.criterion_id='UI-001';criterion.assertions.forEach((a,i)=>a.assertion_id='UI-001-A0'+(i+1));
+  const {matrixFingerprint}=require('../../scripts/kodjo/lib/ui-criteria-contract'),{sha256}=require('../../scripts/kodjo/lib/plan-impact');
+  const embedded={schema:'kodjo.ui-plan-contract.v1',contract_version:2,protocol_commit:protocolCommit,scan_revision:'b'.repeat(40),ui_applicable:true,ui_paths:['src/features/example/ExampleScreen.tsx'],criterion_count:1,assertion_count:2,assertion_ids_sha256:sha256(criterion.assertions.map(a=>a.assertion_id).sort()),matrix_sha256:matrixFingerprint(matrix)};
+  const plan=path.join(dir,'plan.md'),out=path.join(dir,'out.json');fs.writeFileSync(plan,fixture(matrix,embedded));
+  assert.equal(run([plan,'b'.repeat(40),dir,out,'consume',protocolCommit],dir).status,0);
+  const produced=run([plan,'b'.repeat(40),dir,out,'produce',protocolCommit],dir);assert.notEqual(produced.status,0);assert.match(produced.stderr,/IDENTITY_DRIFT/);
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+
 test('UI plan: matrice atomique valide produit un contrat versionne', () => {
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-ui-plan-'));
   const plan=path.join(dir,'plan.md'); const out=path.join(dir,'out.json');

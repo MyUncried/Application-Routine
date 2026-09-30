@@ -38,6 +38,7 @@ function verify(basePlan,baseReview,candidate){
   if(review.verdict!=='REVISE'||!Array.isArray(review.findings))throw new Error('PLAN_REVISION_REVIEW_INVALID');
   const blocking=review.findings.filter(x=>x.blocking===true);
   if(!blocking.length)throw new Error('PLAN_REVISION_BLOCKING_FINDING_MISSING');
+  if(blocking.some(f=>f.target_kind==='PLAN'&&f.target!=='NON_UI_COVERAGE'))throw new Error('PLAN_REVISION_UNACTIONABLE_PLAN_TARGET');
   const successors=new Map();
   const pairSuccessors=(before,after,key,kind)=>{
     const old=map(before,key,kind),next=map(after,key,kind);

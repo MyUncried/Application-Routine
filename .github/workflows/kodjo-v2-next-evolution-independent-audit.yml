@@ -137,6 +137,16 @@ jobs:
           node scripts/kodjo/validate-workflows.js
           if($LASTEXITCODE-ne0){throw 'Workflow validation failed before independent audit'}
 
+      - name: Preflight mandatory audit artifact transport before Claude
+        run: |
+          $ErrorActionPreference='Stop'
+          $inventory=Join-Path $env:RUNNER_TEMP ('kodjo-audit-artifact-inventory-'+$env:GITHUB_RUN_ID+'.json')
+          $raw=gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/actions/artifacts?per_page=100"
+          if($LASTEXITCODE-ne0){throw 'Audit artifact inventory unavailable'}
+          [IO.File]::WriteAllText($inventory,($raw -join [Environment]::NewLine),(New-Object Text.UTF8Encoding($false)))
+          node scripts/kodjo/check-artifact-budget.js $inventory
+          if($LASTEXITCODE-ne0){throw 'Audit artifact budget refused before Claude'}
+
       - name: Build bounded independent audit prompt
         env:
           BASE_SHA: ${{ steps.target.outputs.base_sha }}

@@ -181,7 +181,13 @@ jobs:
 
       - name: Snapshot canonical V2 closure transformer
         if: steps.gate.outputs.v2_mode == 'true'
-        run: Copy-Item -LiteralPath scripts/kodjo/close-v2-activation.js -Destination (Join-Path $env:RUNNER_TEMP 'kodjo-close-v2-activation.js') -Force
+        run: |
+          Copy-Item -LiteralPath scripts/kodjo/close-v2-activation.js -Destination (Join-Path $env:RUNNER_TEMP 'kodjo-close-v2-activation.js') -Force
+          $closureRuntime=Join-Path $env:RUNNER_TEMP 'kodjo-closure-protocol'
+          if(Test-Path -LiteralPath $closureRuntime){Remove-Item -LiteralPath $closureRuntime -Recurse -Force}
+          New-Item -ItemType Directory -Force -Path (Join-Path $closureRuntime 'lib') | Out-Null
+          Copy-Item -LiteralPath scripts/kodjo/inventory-closure-artifacts.js -Destination $closureRuntime
+          Copy-Item -LiteralPath scripts/kodjo/lib/artifact-policy.js -Destination (Join-Path $closureRuntime 'lib')
 
       - name: Detect previously published closure evidence against registry
         if: steps.gate.outputs.v2_mode == 'true'
@@ -299,7 +305,7 @@ jobs:
           $inventoryInput=Join-Path $env:RUNNER_TEMP 'kodjo-closure-artifact-pages.json'
           $inventoryOutput=Join-Path $env:RUNNER_TEMP 'kodjo-closure-artifact-inventory.json'
           [IO.File]::WriteAllText($inventoryInput,($artifactPages -join [Environment]::NewLine),(New-Object Text.UTF8Encoding($false)))
-          node scripts/kodjo/inventory-closure-artifacts.js $inventoryInput $inventoryOutput
+          node (Join-Path (Join-Path $env:RUNNER_TEMP 'kodjo-closure-protocol') 'inventory-closure-artifacts.js') $inventoryInput $inventoryOutput
           if($LASTEXITCODE-ne0){throw 'CLOSURE_ARTIFACT_INVENTORY_INVALID'}
           $artifactInventory=(Get-Content -LiteralPath $inventoryOutput -Raw -Encoding UTF8|ConvertFrom-Json|ConvertTo-Json -Compress -Depth 10)
           if($result.changed){

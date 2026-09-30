@@ -217,3 +217,11 @@ PRESERVE et FORBIDDEN imposent un locator explicite PATH, SYMBOL ou SEMANTIC, un
 Un REVISE moderne sans findings structurés est refusé. Le statut LEGACY_UNBOUNDED est réservé aux anciens plans sans contrats exigences/atomiques ; il est consommé par le workflow, publié dans PLAN_OUTPUT et conserve la revue indépendante complète.
 
 `normative-inputs.json` est la liste versionnée des documents consommés par les contrôles ; les rapports de preuve non listés ne déclenchent pas la qualification native. Les trois rapports normatifs sont réinclus après l'exclusion globale des rapports. `audit-deferrals.json` conserve les priorités originales, dont P-16 reste P1 explicitement différé ; il n'étend aucune dispense à un autre ID. L'audit doit toujours signaler honnêtement les limites restantes.
+
+## Précisions après audit indépendant du 30 septembre
+
+Tout script protocolaire exécuté après un checkout applicatif doit être figé avant cette bascule, avec ses dépendances transitives, puis invoqué par son chemin runtime. La reprise de revue et la clôture ne dépendent pas de scripts présents dans la baseline produit. Le transport obligatoire de l'audit impose un préflight de quota avant Claude. Ce contrôle d'inventaire ne réserve pas le quota et ne garantit pas la disponibilité du service d'upload.
+
+La compatibilité des identités positionnelles v2 est réservée à la consommation des contrats déjà embarqués et approuvés. La génération de nouveaux plans reste v3 et canonique. Pour les preuves fonctionnelles, la voie historique est exclusivement la classe fermée des matrices v1 sans contrat d'exigences, déjà liées à un plan approuvé par les gates de provenance. Elle est exposée comme HISTORICAL_V1_ONLY dans l'entrée de revue ; aucun plan v2/v3 ne peut y accéder en supprimant ou altérant les preuves. Les nouveaux plans v1 ne sont pas productibles par le validateur courant. Une preuve fonctionnelle exacte absente pour un plan contractuel est NON_VERIFIABLE, même avec Jest global vert.
+
+L'héritage non-UI compare les champs opposables et les preuves normalisées, indépendamment de l'ordre des clés. Les sections de scope en prose incluent aussi les chemins assets et extensions non JS/TS. Un finding bloquant PLAN est refusé sauf NON_UI_COVERAGE ; les corrections sont ciblées par chemins ou identités exactes, sans autorisation générale implicite.

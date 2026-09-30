@@ -1,11 +1,12 @@
 # KODJO — Matrice de déterminisation du protocole
 
-Date : 2026-09-29  
-Source d’audit : `.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_AUDIT.md`  
-Runtime de référence vérifié : `main=6ba8262cc7f3ae0b1217bb7449d81649759b873b`  
-Correctif séparé en attente : PR #252, HEAD `3226adb3ee0d69a579ea03567f7e12a8a766ccf3`, non fusionnée.
+Date : 2026-09-29
+Source d’audit : `.github/orchestration/reports/2026-09-29_PROTOCOL_DETERMINISM_AUDIT.md`
+Baseline historique de conception : `6ba8262cc7f3ae0b1217bb7449d81649759b873b`.
+Base fusionnée observée lors du dernier audit : `5ea680c53b6ff035c1afa126273c80c64e1e7eed`.
+Le correctif INITIAL de PR #252 est incorporé dans le candidat #250 ; #252 reste ouverte jusqu'au traitement final de #250.
 
-Cette matrice est une entrée de conception. Elle ne modifie pas le runtime actif.
+Cette matrice est une entrée normative exécutable du candidat #250 : ses 64 identités et priorités sont consommées par le vérificateur d'audit et le manifeste de classification. Elle ne certifie aucun HEAD. La qualification et le verdict sont liés aux SHA exacts dans les preuves GitHub ; le dernier audit du HEAD `48531a9` est REVISE.
 
 ## Légende
 

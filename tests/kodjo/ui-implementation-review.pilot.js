@@ -15,7 +15,18 @@ const root = path.resolve(__dirname, '..', '..');
 const verifier = path.join(root, 'scripts', 'kodjo', 'verify-ui-implementation-review.js');
 
 function run(args, cwd) {
-  return spawnSync(process.execPath, [verifier, ...args], { cwd, encoding:'utf8' });
+  const env={...process.env};
+  // Unit fixtures supply exact per-binding test results. Missing evidence is
+  // tested separately, without this positive fixture transport.
+  const body=fs.readFileSync(args[1],'utf8');
+  const m=body.match(/<KODJO_TEST_CONTRACT_JSON>\s*([\s\S]*?)\s*<\/KODJO_TEST_CONTRACT_JSON>/);
+  if(m&&!env.KODJO_TEST_CONTRACT_EVIDENCE_FILE){
+    const bindings=JSON.parse(m[1]).bindings.map(row=>({...row,status:'PASS'}));
+    const evidence=path.join(cwd,'fixture-test-evidence.json');
+    fs.writeFileSync(evidence,JSON.stringify({schema:'kodjo.test-contract-evidence.v1',binding_count:bindings.length,bindings}));
+    env.KODJO_TEST_CONTRACT_EVIDENCE_FILE=evidence;
+  }
+  return spawnSync(process.execPath, [verifier, ...args], { cwd, encoding:'utf8',env });
 }
 function fixture() {
   const matrix = {
@@ -209,6 +220,17 @@ function validAtomicReview() {
     boundary_results:[],
   };
 }
+
+test('IA-007: a contractual plan cannot receive FUNCTIONAL_TEST PASS with no exact evidence',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-proof-missing-'));
+ try{
+  const plan=path.join(dir,'plan.md'),changed=path.join(dir,'changed.txt'),review=path.join(dir,'review.json'),out=path.join(dir,'out.json');
+  fs.writeFileSync(plan,fixtureV2());fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx');fs.writeFileSync(review,JSON.stringify(validAtomicReview()));
+  const env={...process.env};delete env.KODJO_TEST_CONTRACT_EVIDENCE_FILE;
+  const r=spawnSync(process.execPath,[verifier,'validate',plan,changed,review,out],{cwd:dir,encoding:'utf8',env});
+  assert.notEqual(r.status,0);assert.match(r.stderr,/MACHINE_PROOF_MISMATCH/);
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
 test('atomic review v2: prépare les assertions et dérive le statut du critère',()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-atomic-review-'));
   const plan=path.join(dir,'plan.md'),changed=path.join(dir,'changed.txt'),input=path.join(dir,'input.json'),review=path.join(dir,'review.json'),out=path.join(dir,'out.json');
@@ -244,9 +266,10 @@ test('F-08: EXTEND without a change to the selected component cannot be certifie
     {status:'FAIL',reason:'SELECTED_COMPONENT_NOT_CHANGED'});
   const review=path.join(dir,'review.json'),output=path.join(dir,'review-output.json');
   fs.writeFileSync(review,JSON.stringify(validAtomicReview()));
-  const baseline=spawnSync(process.execPath,[verifier,'validate',plan,changed,review,output],{cwd:dir,encoding:'utf8',env:{...process.env,KODJO_REQUIRE_COMPONENT_PROOF:'0'}});
+  assert.equal(run(['prepare',plan,changed,input],dir).status,0);
+  const baseline=spawnSync(process.execPath,[verifier,'validate',plan,changed,review,output],{cwd:dir,encoding:'utf8',env:{...process.env,KODJO_REQUIRE_COMPONENT_PROOF:'0',KODJO_TEST_CONTRACT_EVIDENCE_FILE:path.join(dir,'fixture-test-evidence.json')}});
   assert.equal(baseline.status,0,baseline.stderr);assert.equal(JSON.parse(fs.readFileSync(output)).verdict,'APPROVE');
-  const replay=spawnSync(process.execPath,[verifier,'validate',plan,changed,review,output],{cwd:dir,encoding:'utf8',env:{...process.env,KODJO_REQUIRE_COMPONENT_PROOF:'1'}});
+  const replay=spawnSync(process.execPath,[verifier,'validate',plan,changed,review,output],{cwd:dir,encoding:'utf8',env:{...process.env,KODJO_REQUIRE_COMPONENT_PROOF:'1',KODJO_TEST_CONTRACT_EVIDENCE_FILE:path.join(dir,'fixture-test-evidence.json')}});
   assert.equal(replay.status,0,replay.stderr);assert.equal(JSON.parse(fs.readFileSync(output)).verdict,'REVISE');
 });
 test('atomic review v2: refuse un verdict global plus favorable que ses assertions',()=>{

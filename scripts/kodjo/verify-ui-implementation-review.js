@@ -5,7 +5,7 @@ const {boundaryProof}=require('./lib/boundary-proof');
 const { matrixFingerprint, MATRIX_SCHEMA_V2, MATRIX_SCHEMA_V3 } = require('./lib/ui-criteria-contract');
 const fs = require('node:fs');
 const path = require('node:path');
-const { extractTaggedJson, sha256, fail } = require('./lib/plan-impact');
+const { canonicalJson, extractTaggedJson, sha256, fail } = require('./lib/plan-impact');
 const {inspectImplementation}=require('./lib/implementation-report');
 const {verifyEmbedded:verifyRequirementContracts}=require('./lib/requirement-contract');
 
@@ -98,6 +98,9 @@ function canonicalCriterionResult(row) {
     proof_results:canonicalProofs(row && row.proof_results),
     ...(Array.isArray(row && row.assertion_results) ? {assertion_results:canonicalAssertions(row.assertion_results)} : {}),
   };
+}
+function canonicalRequirementResult(row) {
+  return {requirement_id:String(row?.requirement_id||''),status:String(row?.status||''),evidence:String(row?.evidence||''),proof_results:canonicalProofs(row?.proof_results)};
 }
 function normalizeInheritedResult(row) {
   const normalized = canonicalCriterionResult(row);
@@ -250,6 +253,7 @@ function buildInput(planBody, changedFiles, previousReview) {
     schema: INPUT_SCHEMA,
     review_mode: (previousById||previousRequirementById) ? 'DELTA_WITH_INHERITANCE' : 'FULL',
     assertion_mode: assertionMode,
+    legacy_proof_policy: matrix.schema==='kodjo.ui-criteria.v1' && !hasRequirementContract ? 'HISTORICAL_V1_ONLY' : 'EXACT_CONTRACT_REQUIRED',
     ui_applicable: uiApplicable,
     ui_matrix_sha256: planContract.matrix_sha256,
     criterion_count: normalizedCriteria.length,
@@ -401,7 +405,7 @@ function machineProofStatus(input,id,type){
     if(exact)return exact;
     const status=by.get('jest');
     // A green global Jest run does not establish coverage of this requirement.
-    return status==='FAIL'?'FAIL':null;
+    return status==='FAIL'?'FAIL':input.legacy_proof_policy==='HISTORICAL_V1_ONLY'?null:'NON_VERIFIABLE';
   }
   if(type==='STATIC_ANALYSIS'){
     const observed=['typescript','lint'].map((name)=>by.get(name));
@@ -526,7 +530,7 @@ function validateReview(input, review) {
       const expected=expectedById.get(id);
       if(!statuses.has(String(row.status))||!text(row.evidence))fail('NON_UI_PLAN_ASSESSMENT_INVALID',id);
       if(expected.review_scope==='INHERITED'){
-        if(JSON.stringify(row)!==JSON.stringify(expected.inherited_result))fail('NON_UI_REQUIREMENT_INHERITED_DRIFT',id);
+        if(canonicalJson(canonicalRequirementResult(row))!==canonicalJson(canonicalRequirementResult(expected.inherited_result)))fail('NON_UI_REQUIREMENT_INHERITED_DRIFT',id);
       }else{
         const proofs=Array.isArray(row.proof_results)?row.proof_results:null;
         if(!proofs)fail('NON_UI_REQUIREMENT_PROOF_INVALID',id);

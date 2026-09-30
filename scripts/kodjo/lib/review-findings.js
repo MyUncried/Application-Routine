@@ -20,6 +20,7 @@ function normalize(value){
     const target_kind=text(row.target_kind,'target_kind'); if(!TARGET_KINDS.has(target_kind))throw new Error('PLAN_REVIEW_FINDING_TARGET_KIND_INVALID:'+target_kind);
     const target=text(row.target,'target');
     if(typeof row.blocking!=='boolean'||typeof row.dependency_expansion_required!=='boolean')throw new Error('PLAN_REVIEW_FINDING_BOOLEAN_INVALID:'+index);
+    if(row.blocking&&target_kind==='PLAN'&&target!=='NON_UI_COVERAGE')throw new Error('PLAN_REVIEW_FINDING_UNACTIONABLE_PLAN_TARGET:'+target);
     const diagnostic=text(row.diagnostic,'diagnostic');
     const expected_correction=text(row.expected_correction,'expected_correction');
     const dependency_evidence=String(row.dependency_evidence||'').trim();
