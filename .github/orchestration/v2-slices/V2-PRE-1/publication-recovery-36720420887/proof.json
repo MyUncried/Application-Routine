@@ -1,0 +1,8 @@
+{
+  "schema": "kodjo.plan-impact-review.v1",
+  "scan_revision": "e216294506bed87dd80855937e3fabfbfa322b82",
+  "plan_scan_sha256": "85a70759ba6015a37d0c79770784f367beb01c41d64ed6ce29cf7a5069ede0b8",
+  "reviewer_scan_sha256": "85a70759ba6015a37d0c79770784f367beb01c41d64ed6ce29cf7a5069ede0b8",
+  "candidate_count": 40,
+  "verdict": "MATCH"
+}

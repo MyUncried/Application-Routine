@@ -1,0 +1,24 @@
+{
+  "schema": "kodjo.pre1.plan-publication-recovery.v1",
+  "status": "PUBLISHED_FOR_REVIEW_NOT_APPROVED",
+  "repository": "MyUncried/Application-Routine",
+  "issue_number": 249,
+  "slice_id": "V2-PRE-1",
+  "source_run_id": 36720420887,
+  "source_artifact_id": 11097434118,
+  "source_archive_sha256": "cf9208cfa3e214ed86730b1407e0b0ff52e8c889c80b0fd7b8bd049b24da3955",
+  "product_baseline": "e216294506bed87dd80855937e3fabfbfa322b82",
+  "protocol_execution_head": "48b444ededb735da47a42474c39e150224e92395",
+  "plan_sha256": "aa3e1602f25236cf0ee472460b6f8c1c62b300b1b33063872e48bc3031c49c40",
+  "plan_bytes": 186042,
+  "plan_rewritten": false,
+  "independent_review": "NOT_YET_PERFORMED_ON_THIS_PLAN",
+  "evidence_sha256": {
+    "scan.json": "0cfdd059e0a168206004348c14bce1bdae2ab208723e5c10fae4b861b7608f08",
+    "matrix.json": "8dcc18cb9621d4bff52ffed5a71544bd7d9b054ebf30b9fdddf593698b9cd9fa",
+    "proof.json": "24f15222440b8d0a56378712e4595d3c89d695f6221dce2ee1233eafc160d127",
+    "plan-contract.json": "d4cada293cabb699e6bf2634ac08dd1f363cec231a34957b424d2f29dc46827f",
+    "ui-plan-contract.json": "f1d6f2e73522fb671c763acc7c467942d56484d810e0ca8ffaf16912fb5ae46c",
+    "plan-revision-status.json": "9c00c1f066bdfffd75ac5cfef09df70c066fa47b8b6c4d922a68cb807bb71432"
+  }
+}

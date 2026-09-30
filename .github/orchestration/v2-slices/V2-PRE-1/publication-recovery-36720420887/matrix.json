@@ -1,0 +1,1597 @@
+{
+  "schema": "kodjo.plan-impact.v1",
+  "scan_revision": "e216294506bed87dd80855937e3fabfbfa322b82",
+  "scan_sha256": "85a70759ba6015a37d0c79770784f367beb01c41d64ed6ce29cf7a5069ede0b8",
+  "modified_modules": [
+    {
+      "path": "src/domain/activities/ActivityDefinition.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/activities/ActivityDefinitionRepository.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/activities/__tests__/ActivityDefinition.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/activities/index.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/body-zones/BodyZone.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/body-zones/BodyZoneRepository.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/body-zones/__tests__/BodyZone.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/body-zones/index.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/categories/Category.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/categories/CategoryRepository.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/categories/__tests__/matching.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/categories/__tests__/validation.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/categories/defaults.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/categories/errors.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/categories/index.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/categories/matching.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/categories/validation.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/labels/Label.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/labels/LabelRepository.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/labels/__tests__/Label.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/labels/index.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/media/ActivityMedia.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/media/MediaAsset.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/media/MediaRepository.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/media/__tests__/MediaRepository.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/media/index.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/preferences/Profile.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/preferences/ProfileRepository.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/preferences/__tests__/Profile.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/preferences/index.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/sessions/Session.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/SessionDraft.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/SessionRepository.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/StopPoint.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/__tests__/StopPoint.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/sessions/__tests__/calculations.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/__tests__/composition.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/__tests__/sideMode.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/__tests__/validation.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/calculations.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/composition.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/defaults.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/errors.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/index.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/sideMode.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/validation.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/activities/ActivityDefinitionService.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/reference-data/__tests__/bodyZones.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/reference-data/bodyZones.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/BodyZoneSelector.tsx",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/CategoriesScreen.tsx",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/SessionService.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionService.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/compositionPresentation.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/compositionPresentation.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteLabelRepository.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteProfileRepository.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/constants.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/initializeDatabase.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/integration/runNativeDatabaseIntegrationCheck.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/migrateDatabase.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration007.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteBodyZoneRepository.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteMediaRepository.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteProfileRepository.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/types/DatabaseRows.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/shared/i18n/index.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/shared/i18n/resources/fr.ts",
+      "change": "MODIFY"
+    }
+  ],
+  "rows": [
+    {
+      "path": "src/domain/activities/ActivityDefinition.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/activities/ActivityDefinitionRepository.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/activities/__tests__/ActivityDefinition.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/activities/index.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/body-zones/BodyZone.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/body-zones/BodyZoneRepository.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/body-zones/__tests__/BodyZone.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/body-zones/index.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/categories/Category.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/categories/CategoryRepository.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/categories/__tests__/matching.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/categories/__tests__/validation.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/categories/defaults.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/categories/errors.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/categories/index.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/categories/matching.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/categories/validation.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/labels/Label.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/labels/LabelRepository.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/labels/__tests__/Label.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/labels/index.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/media/ActivityMedia.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/media/MediaAsset.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/media/MediaRepository.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/media/__tests__/MediaRepository.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/media/index.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/preferences/Profile.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/preferences/ProfileRepository.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/preferences/__tests__/Profile.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/preferences/index.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/Session.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/SessionDraft.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/SessionRepository.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/StopPoint.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/__tests__/StopPoint.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/__tests__/calculations.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/__tests__/composition.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/__tests__/sideMode.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/__tests__/validation.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/calculations.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/composition.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/defaults.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/errors.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/index.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/sideMode.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/domain/sessions/validation.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/activities/ActivityDefinitionService.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/reference-data/__tests__/bodyZones.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/reference-data/bodyZones.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/sessions/BodyZoneSelector.tsx",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/sessions/CategoriesScreen.tsx",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/sessions/SessionService.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionService.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/sessions/__tests__/compositionPresentation.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/sessions/compositionPresentation.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteLabelRepository.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteProfileRepository.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/constants.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/initializeDatabase.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/integration/runNativeDatabaseIntegrationCheck.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/migrateDatabase.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration007.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteBodyZoneRepository.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteMediaRepository.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteProfileRepository.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/infrastructure/database/types/DatabaseRows.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/shared/i18n/index.test.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/shared/i18n/resources/fr.ts",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts",
+        "src/domain/sessions/SessionDraft.ts",
+        "src/domain/sessions/validation.ts"
+      ],
+      "risk_score": 150,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "Le test importe directement des contrats modifiés, mais aucune assertion de ce test n’est directement démontrée comme incompatible et aucun contrat d’écran n’est modifié."
+    },
+    {
+      "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/activities/index.ts",
+        "src/domain/sessions/SessionDraft.ts",
+        "src/features/activities/ActivityDefinitionService.ts"
+      ],
+      "risk_score": 150,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "L’import direct d’un contrat de Domaine ou de service ne suffit pas à établir une adaptation de ce test d’écran hors périmètre."
+    },
+    {
+      "path": "src/features/sessions/__tests__/useSessionCatalogue.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts",
+        "src/features/sessions/SessionService.ts"
+      ],
+      "risk_score": 150,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "Le test de catalogue n’est pas directement affecté par les changements de fondations et aucune assertion obsolète n’est démontrée."
+    },
+    {
+      "path": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/activities/index.ts",
+        "src/domain/sessions/Session.ts",
+        "src/features/activities/ActivityDefinitionService.ts",
+        "src/features/sessions/SessionService.ts"
+      ],
+      "risk_score": 148,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "Le contrat d’écran Catalogue reste hors périmètre et l’import direct ne prouve pas un changement requis."
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts",
+        "src/domain/sessions/SessionDraft.ts",
+        "src/features/sessions/SessionService.ts"
+      ],
+      "risk_score": 142,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "Le provider d’écran n’est pas adapté ; la présence d’un import direct ne suffit pas à imposer une modification du test."
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionCard.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts"
+      ],
+      "risk_score": 138,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "Aucune assertion de présentation directement incompatible n’est démontrée par le scan à un niveau."
+    },
+    {
+      "path": "src/features/sessions/__tests__/ColorPalette.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts"
+      ],
+      "risk_score": 132,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "La palette existante est hors adaptation PRE-1 et l’import direct de Session ne prouve pas un changement."
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityCard.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/activities/index.ts"
+      ],
+      "risk_score": 130,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "Le test de carte n’est pas directement affecté par les contrats de persistance ajoutés."
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/activities/index.ts",
+        "src/domain/sessions/SessionDraft.ts",
+        "src/features/activities/ActivityDefinitionService.ts"
+      ],
+      "risk_score": 130,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "Aucune assertion directement incompatible n’est démontrée et aucun écran de sélection n’est reconçu."
+    },
+    {
+      "path": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/activities/index.ts",
+        "src/domain/categories/Category.ts",
+        "src/domain/categories/CategoryRepository.ts",
+        "src/domain/sessions/Session.ts",
+        "src/domain/sessions/SessionRepository.ts",
+        "src/features/activities/ActivityDefinitionService.ts",
+        "src/features/sessions/SessionService.ts"
+      ],
+      "risk_score": 130,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "Le flux UI existant reste hors périmètre ; aucun import transitif n’est inféré et aucun changement direct n’est requis."
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/sessions/SessionDraft.ts"
+      ],
+      "risk_score": 130,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "Le contrat de navigation n’est pas modifié par PRE-1."
+    },
+    {
+      "path": "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/sessions/SessionDraft.ts"
+      ],
+      "risk_score": 130,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "Le contrat de navigation n’est pas modifié par PRE-1."
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/features/activities/ActivityDefinitionService.ts",
+        "src/features/sessions/SessionService.ts"
+      ],
+      "risk_score": 124,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "Le provider de service existant n’est pas une racine modifiée et l’import direct ne suffit pas."
+    },
+    {
+      "path": "src/features/activities/__tests__/useActivityCatalogue.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/activities/index.ts",
+        "src/features/activities/ActivityDefinitionService.ts"
+      ],
+      "risk_score": 120,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "Le hook Catalogue n’est pas modifié et aucune assertion directement obsolète n’est démontrée."
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityCatalogueList.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/activities/index.ts"
+      ],
+      "risk_score": 115,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "La liste Catalogue reste hors contrat d’adaptation de PRE-1."
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionDraftContext.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/sessions/SessionDraft.ts"
+      ],
+      "risk_score": 112,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "Le contexte existant reste hors périmètre et aucune incompatibilité directe n’est établie."
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionServiceContext.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/features/sessions/SessionService.ts"
+      ],
+      "risk_score": 109,
+      "classification": "TEST_UNAFFECTED",
+      "justification": "Le contexte de service n’est pas modifié ; aucune adaptation n’est démontrée au niveau direct."
+    },
+    {
+      "path": "app/(creation)/categories.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/features/sessions/CategoriesScreen.tsx"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "La route importe l’écran, mais la correction de l’écran reste compatible avec la route et ne crée pas de nouveau contrat."
+    },
+    {
+      "path": "src/features/activities/ActivityCard.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/activities/index.ts",
+        "src/features/sessions/compositionPresentation.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "L’import direct de l’index Domaine ne prouve pas que ce composant de présentation doit changer."
+    },
+    {
+      "path": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/features/activities/ActivityDefinitionService.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "Le contexte conserve son rôle et aucune modification directe de son contrat n’est nécessaire."
+    },
+    {
+      "path": "src/features/activities/ActivityDefinitionServiceProvider.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/features/activities/ActivityDefinitionService.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "L’extension interne du service ne démontre pas une adaptation du provider."
+    },
+    {
+      "path": "src/features/activities/ActivitySelectionScreen.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/activities/index.ts",
+        "src/domain/sessions/composition.ts",
+        "src/domain/sessions/defaults.ts",
+        "src/features/sessions/compositionPresentation.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "Aucun contrat d’écran de sélection n’est anticipé et l’import direct ne suffit pas."
+    },
+    {
+      "path": "src/features/activities/useActivityCatalogue.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/activities/index.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "Le hook Catalogue n’est pas directement affecté par les fondations persistantes."
+    },
+    {
+      "path": "src/features/sessions/CatalogueScreen.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "L’écran Catalogue reste hors périmètre et l’import direct de Session ne prouve pas une modification."
+    },
+    {
+      "path": "src/features/sessions/ColorPalette.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "La primitive de palette n’est pas modifiée par PRE-1."
+    },
+    {
+      "path": "src/features/sessions/CompositionScreen.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts",
+        "src/domain/sessions/SessionDraft.ts",
+        "src/domain/sessions/composition.ts",
+        "src/domain/sessions/defaults.ts",
+        "src/domain/sessions/sideMode.ts",
+        "src/domain/sessions/validation.ts",
+        "src/features/sessions/compositionPresentation.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "Aucune interaction ou contrat d’écran de composition n’est modifié dans cette tranche."
+    },
+    {
+      "path": "src/features/sessions/ExerciseScreen.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/activities/index.ts",
+        "src/domain/sessions/SessionDraft.ts",
+        "src/domain/sessions/composition.ts",
+        "src/domain/sessions/defaults.ts",
+        "src/features/activities/ActivityEditorForm.tsx"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "L’écran d’Exercice reste hors périmètre ; aucune dépendance directe incompatible n’est démontrée."
+    },
+    {
+      "path": "src/features/sessions/SessionCard.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "Le composant de présentation reste compatible et n’est pas une racine de modification."
+    },
+    {
+      "path": "src/features/sessions/SessionDraftContext.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/SessionDraft.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "Le contexte UI conserve son contrat existant."
+    },
+    {
+      "path": "src/features/sessions/SessionDraftProvider.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/SessionDraft.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "Le provider n’est pas directement affecté par les changements de persistance."
+    },
+    {
+      "path": "src/features/sessions/SessionServiceContext.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/features/sessions/SessionService.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "Le contexte conserve l’interface du service nécessaire aux consommateurs existants."
+    },
+    {
+      "path": "src/features/sessions/SessionServiceProvider.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/features/activities/ActivityDefinitionService.ts",
+        "src/features/sessions/SessionService.ts",
+        "src/infrastructure/database/constants.ts",
+        "src/infrastructure/database/initializeDatabase.ts",
+        "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+        "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+        "src/infrastructure/database/repositories/SqliteSessionRepository.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "L’extension des services et Repositories ne démontre pas un changement requis de ce provider."
+    },
+    {
+      "path": "src/features/sessions/SideModeControl.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/sideMode.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "Le contrôle existant reste hors adaptation d’écran ; le changement de source fonctionnelle est couvert par le Domaine et l’i18n."
+    },
+    {
+      "path": "src/features/sessions/compositionGesture.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "Aucune interaction de composition n’est modifiée dans PRE-1."
+    },
+    {
+      "path": "src/features/sessions/useSessionCatalogue.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "Le hook Catalogue n’est pas directement affecté par le schéma cible."
+    },
+    {
+      "path": "src/infrastructure/database/ExpoDatabase.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/infrastructure/database/constants.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "Le point d’accès SQLite reste compatible avec les changements portés par l’initialisation et les migrations."
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration002.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/categories/defaults.ts",
+        "src/domain/categories/validation.ts",
+        "src/features/reference-data/bodyZones.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "La migration historique est explicitement préservée ; aucun import direct ne justifie sa modification."
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration003.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/features/reference-data/bodyZones.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "La migration historique est explicitement préservée et son SQL doit rester identique."
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration004.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/features/reference-data/bodyZones.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "La migration historique est explicitement préservée et son SQL doit rester identique."
+    },
+    {
+      "path": "src/shared/i18n/index.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/shared/i18n/resources/fr.ts"
+      ],
+      "risk_score": 0,
+      "classification": "CONSUMER_UNAFFECTED",
+      "justification": "Le module d’index consomme la ressource corrigée sans changement direct démontré de son contrat."
+    }
+  ],
+  "scope_allow": [
+    "src/domain/activities/ActivityDefinition.ts",
+    "src/domain/activities/ActivityDefinitionRepository.ts",
+    "src/domain/activities/__tests__/ActivityDefinition.test.ts",
+    "src/domain/activities/index.ts",
+    "src/domain/body-zones/BodyZone.ts",
+    "src/domain/body-zones/BodyZoneRepository.ts",
+    "src/domain/body-zones/__tests__/BodyZone.test.ts",
+    "src/domain/body-zones/index.ts",
+    "src/domain/categories/Category.ts",
+    "src/domain/categories/CategoryRepository.ts",
+    "src/domain/categories/__tests__/matching.test.ts",
+    "src/domain/categories/__tests__/validation.test.ts",
+    "src/domain/categories/defaults.ts",
+    "src/domain/categories/errors.ts",
+    "src/domain/categories/index.ts",
+    "src/domain/categories/matching.ts",
+    "src/domain/categories/validation.ts",
+    "src/domain/labels/Label.ts",
+    "src/domain/labels/LabelRepository.ts",
+    "src/domain/labels/__tests__/Label.test.ts",
+    "src/domain/labels/index.ts",
+    "src/domain/media/ActivityMedia.ts",
+    "src/domain/media/MediaAsset.ts",
+    "src/domain/media/MediaRepository.ts",
+    "src/domain/media/__tests__/MediaRepository.test.ts",
+    "src/domain/media/index.ts",
+    "src/domain/preferences/Profile.ts",
+    "src/domain/preferences/ProfileRepository.ts",
+    "src/domain/preferences/__tests__/Profile.test.ts",
+    "src/domain/preferences/index.ts",
+    "src/domain/sessions/Session.ts",
+    "src/domain/sessions/SessionDraft.ts",
+    "src/domain/sessions/SessionRepository.ts",
+    "src/domain/sessions/StopPoint.ts",
+    "src/domain/sessions/__tests__/SessionDraft.test.ts",
+    "src/domain/sessions/__tests__/StopPoint.test.ts",
+    "src/domain/sessions/__tests__/calculations.test.ts",
+    "src/domain/sessions/__tests__/composition.test.ts",
+    "src/domain/sessions/__tests__/sideMode.test.ts",
+    "src/domain/sessions/__tests__/validation.test.ts",
+    "src/domain/sessions/calculations.ts",
+    "src/domain/sessions/composition.ts",
+    "src/domain/sessions/defaults.ts",
+    "src/domain/sessions/errors.ts",
+    "src/domain/sessions/index.ts",
+    "src/domain/sessions/sideMode.ts",
+    "src/domain/sessions/validation.ts",
+    "src/features/activities/ActivityDefinitionService.ts",
+    "src/features/activities/ActivityEditorForm.tsx",
+    "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
+    "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+    "src/features/reference-data/__tests__/bodyZones.test.ts",
+    "src/features/reference-data/bodyZones.ts",
+    "src/features/sessions/BodyZoneSelector.tsx",
+    "src/features/sessions/CategoriesScreen.tsx",
+    "src/features/sessions/SessionService.ts",
+    "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
+    "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+    "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+    "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+    "src/features/sessions/__tests__/SessionService.test.ts",
+    "src/features/sessions/__tests__/compositionPresentation.test.ts",
+    "src/features/sessions/compositionPresentation.ts",
+    "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+    "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+    "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
+    "src/infrastructure/database/__tests__/SqliteLabelRepository.test.ts",
+    "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+    "src/infrastructure/database/__tests__/SqliteProfileRepository.test.ts",
+    "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+    "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
+    "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+    "src/infrastructure/database/__tests__/targetSchema.test.ts",
+    "src/infrastructure/database/constants.ts",
+    "src/infrastructure/database/initializeDatabase.ts",
+    "src/infrastructure/database/integration/runNativeDatabaseIntegrationCheck.ts",
+    "src/infrastructure/database/migrateDatabase.ts",
+    "src/infrastructure/database/migrations/migration007.ts",
+    "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+    "src/infrastructure/database/repositories/SqliteBodyZoneRepository.ts",
+    "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+    "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
+    "src/infrastructure/database/repositories/SqliteMediaRepository.ts",
+    "src/infrastructure/database/repositories/SqliteProfileRepository.ts",
+    "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+    "src/infrastructure/database/types/DatabaseRows.ts",
+    "src/shared/i18n/index.test.ts",
+    "src/shared/i18n/resources/fr.ts"
+  ]
+}
