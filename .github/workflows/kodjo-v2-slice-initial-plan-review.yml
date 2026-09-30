@@ -180,6 +180,7 @@ jobs:
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
           PROTOCOL_EXECUTION_HEAD: ${{ steps.gate.outputs.protocol_execution_head }}
           REVIEW_SESSION: ${{ steps.gate.outputs.review_session }}
+          SOURCE_PLAN_COMMENT_ID: ${{ steps.gate.outputs.plan_id }}
         run: |
           $ErrorActionPreference='Stop'
           $prompt=@"
@@ -189,6 +190,34 @@ jobs:
           Before the terminal verdict, emit exactly one <KODJO_REVIEW_FINDINGS_JSON> JSON block with shape {"findings":[{"category":"REQUIREMENT_GAP|SCOPE|PATH|TEST|MIGRATION|COMPATIBILITY|PRESERVATION|UI_CRITERION|ARCHITECTURE|CLARIFICATION|OTHER","target_kind":"REQUIREMENT_ID|CRITERION_ID|PATH|PLAN|SOURCE","target":"...","blocking":true,"diagnostic":"...","expected_correction":"...","dependency_expansion_required":false,"dependency_evidence":""}]}. Do not emit finding_id: it is derived mechanically. If there is no finding, emit {"findings":[]}. Every blocking point must be one row with an exact target. Any scope expansion must set dependency_expansion_required=true and provide concrete dependency_evidence. The machine derives APPROVE/REVISE from blocking findings. A blocking PLAN target is allowed only for NON_UI_COVERAGE; otherwise emit separate exact PATH, REQUIREMENT_ID or CRITERION_ID targets so a bounded correction is possible.
           Do not emit a terminal VERDICT line. The protocol derives APPROVE or REVISE exclusively from the normalized blocking findings.
           "@
+          if($env:SOURCE_PLAN_COMMENT_ID -eq '5913845392'){
+            $oldReview=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/5878031654"|ConvertFrom-Json
+            if($LASTEXITCODE-ne0 -or $oldReview.user.login -ne 'github-actions[bot]' -or
+               $oldReview.body -notmatch '(?m)^slice_id=V2-PRE-1\s*$' -or
+               $oldReview.body -notmatch '(?m)^source_plan_comment_id=5874870872\s*$' -or
+               $oldReview.body -notmatch '(?m)^verdict=REVISE\s*$'){
+              throw 'Bounded PRE-1 prior review binding invalid'
+            }
+            $oldPlan=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/5874870872"|ConvertFrom-Json
+            if($LASTEXITCODE-ne0 -or $oldPlan.user.login -ne 'github-actions[bot]' -or
+               $oldPlan.body -notmatch '(?m)^source_head=e216294506bed87dd80855937e3fabfbfa322b82\s*$'){
+              throw 'Bounded PRE-1 prior plan binding invalid'
+            }
+            $oldPlanFile=Join-Path $env:RUNNER_TEMP 'kodjo-pre1-before-correction.md'
+            [IO.File]::WriteAllText($oldPlanFile,[string]$oldPlan.body,(New-Object Text.UTF8Encoding($false)))
+            $prompt=@"
+          You are the independent reviewer of the BOUNDED CORRECTION of PRE-1, not a new initial-plan audit. This is READ-ONLY.
+          Candidate: $env:RUNNER_TEMP\kodjo-v2-initial-plan.md. Immutable product HEAD: $env:SOURCE_HEAD. Its source, scope, requirement, UI and impact contracts have passed independent deterministic replay. Prior plan: $oldPlanFile. Normative sources: $env:RUNNER_TEMP\kodjo-v2-initial-current-product-context and checked-out code/tests.
+          Review ONLY closure of the five blocking findings in the bound prior review below, their directly demonstrated dependencies and regressions caused by these corrections. Use the prior findings as the cumulative register. Do not reopen unrelated validated decisions, redesign the product, require future engine/UI features, audit the orchestration protocol or introduce VNext as a prerequisite.
+          Closure groups: R1 effective historical migration SQL and imported constants; R2 genuinely affected removed-symbol consumers and tests; R3 both canonical ValidationField unions; R4 BODY_ZONES runtime consumers and EXTEND; R5 atomic UI/i18n requirements and preservation/change/forbidden boundaries. Check each against the actual old/new plan delta and PRE-1 scope.
+          New blocking findings are admissible ONLY with concrete evidence of an unresolved direct consequence of R1..R5 or a regression introduced by their correction. State the causal link, applicable existing normative requirement, exact evidence and real PRE-1 consequence. Unrelated pre-existing improvements, unproven risks and later-phase work do not block closure. Never fabricate APPROVE or ignore a demonstrated in-scope defect.
+          Provide a closure table R1..R5: prior defect, candidate correction, source/code evidence, dependencies, closed YES/NO. Nonblocking observations may be separate and do not expand this cycle.
+          Emit exactly one <KODJO_REVIEW_FINDINGS_JSON> JSON block with shape {"findings":[{"category":"REQUIREMENT_GAP|SCOPE|PATH|TEST|MIGRATION|COMPATIBILITY|PRESERVATION|UI_CRITERION|ARCHITECTURE|CLARIFICATION|OTHER","target_kind":"REQUIREMENT_ID|CRITERION_ID|PATH|PLAN|SOURCE","target":"...","blocking":true,"diagnostic":"R1..R5 causal link, normative requirement, exact evidence and PRE-1 consequence","expected_correction":"...","dependency_expansion_required":false,"dependency_evidence":""}]}. Do not emit finding_id. Every blocking row needs an exact target and demonstrated causal justification. Scope expansion requires dependency_expansion_required=true and concrete dependency_evidence. A blocking PLAN target is allowed only for NON_UI_COVERAGE; otherwise use precise PATH, REQUIREMENT_ID or CRITERION_ID targets. If no finding, emit {"findings":[]}.
+          Do not emit a terminal VERDICT line. The protocol derives APPROVE or REVISE from normalized blocking findings. No automatic replanning or audit relaunch is authorized after this review.
+          BOUND PRIOR REVIEW (comment5878031654, candidate5874870872):
+          $($oldReview.body)
+          "@
+          }
           $out="$env:RUNNER_TEMP\kodjo-v2-initial-review.json"
           $err="$env:RUNNER_TEMP\kodjo-v2-initial-review.err.txt"
           $args=if($env:REVIEW_SESSION){@('-p','--resume',$env:REVIEW_SESSION,'--output-format','json','--dangerously-skip-permissions')}else{@('-p','--output-format','json','--dangerously-skip-permissions')}
