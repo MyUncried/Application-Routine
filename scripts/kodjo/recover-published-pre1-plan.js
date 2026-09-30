@@ -36,8 +36,30 @@ function recoverCorrected(comment, repository, get) {
   return '[KODJO_V2] PLAN_OUTPUT\nslice_id=V2-PRE-1\nbootstrap_path=.github/orchestration/v2-slices/V2-PRE-1/slice-bootstrap.json\nsource_head=e216294506bed87dd80855937e3fabfbfa322b82\nplanning_mode=INITIAL\nplanning_contract=kodjo.plan-impact.v1\nui_planning_contract=kodjo.ui-plan-criteria.v2\ncorrected_plan_commit=' + CORRECTED_COMMIT + '\ncorrected_plan_blob=' + CORRECTED_BLOB + '\nSTATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\n\n' + bytes.toString('utf8');
 }
 
+// Round 2 of the targeted closure sequence: correction of prior finding 9 after review run 36763786560.
+const ROUND2_COMMENT_ID = '5918243649';
+const ROUND2_COMMIT = '0e4763280d7ef355663d6415f1aeaa137b9d1eb1';
+const ROUND2_PATH = '.github/orchestration/v2-slices/V2-PRE-1/correction-review-36763786560/corrected-plan.md';
+const ROUND2_BLOB = '0c2b1beebb540166a76ba6821e8db55dc12cbdf3';
+const ROUND2_SHA256 = '176f5c2c6b90bf8dee41460285c64ae2912bcac9893e46885e626966cd2bf4b7';
+const ROUND2_SIZE = 232358;
+function recoverRound2(comment, repository, get) {
+  need(repository === REPOSITORY, 'PRE1_ROUND2_REPOSITORY_MISMATCH');
+  need(String(comment?.id) === ROUND2_COMMENT_ID && comment?.user?.login === 'MyUncried', 'PRE1_ROUND2_PUBLICATION_AUTHORITY_INVALID');
+  need(comment.issue_url === 'https://api.github.com/repos/' + REPOSITORY + '/issues/249', 'PRE1_ROUND2_ISSUE_MISMATCH');
+  need(String(comment.body).includes('https://github.com/' + REPOSITORY + '/blob/' + ROUND2_COMMIT + '/' + ROUND2_PATH), 'PRE1_ROUND2_REFERENCE_MISMATCH');
+  const tree = get('git/trees/' + ROUND2_COMMIT + '?recursive=1');
+  need(!tree.truncated && tree.tree.some(x => x.path === ROUND2_PATH && x.sha === ROUND2_BLOB && x.type === 'blob'), 'PRE1_ROUND2_COMMIT_BINDING_MISMATCH');
+  const blob = get('git/blobs/' + ROUND2_BLOB);
+  need(blob.sha === ROUND2_BLOB && blob.encoding === 'base64', 'PRE1_ROUND2_BLOB_INVALID');
+  const bytes = Buffer.from(blob.content, 'base64');
+  need(bytes.length === ROUND2_SIZE && crypto.createHash('sha256').update(bytes).digest('hex') === ROUND2_SHA256, 'PRE1_ROUND2_PLAN_INTEGRITY_MISMATCH');
+  return '[KODJO_V2] PLAN_OUTPUT\nslice_id=V2-PRE-1\nbootstrap_path=.github/orchestration/v2-slices/V2-PRE-1/slice-bootstrap.json\nsource_head=e216294506bed87dd80855937e3fabfbfa322b82\nplanning_mode=INITIAL\nplanning_contract=kodjo.plan-impact.v1\nui_planning_contract=kodjo.ui-plan-criteria.v2\ncorrected_plan_commit=' + ROUND2_COMMIT + '\ncorrected_plan_blob=' + ROUND2_BLOB + '\nSTATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\n\n' + bytes.toString('utf8');
+}
+
 function recover(comment, repository = REPOSITORY, get = api) {
   if (String(comment?.id) === CORRECTED_COMMENT_ID) return recoverCorrected(comment, repository, get);
+  if (String(comment?.id) === ROUND2_COMMENT_ID) return recoverRound2(comment, repository, get);
   need(repository === REPOSITORY, 'PRE1_RECOVERY_REPOSITORY_MISMATCH');
   need(String(comment?.id) === COMMENT_ID && comment?.user?.login === 'MyUncried', 'PRE1_RECOVERY_PUBLICATION_AUTHORITY_INVALID');
   need(comment.issue_url === 'https://api.github.com/repos/' + REPOSITORY + '/issues/249', 'PRE1_RECOVERY_ISSUE_MISMATCH');
@@ -61,9 +83,9 @@ function recover(comment, repository = REPOSITORY, get = api) {
 if (require.main === module) {
   try {
     const [id, output] = process.argv.slice(2);
-    need([COMMENT_ID, CORRECTED_COMMENT_ID].includes(id) && output, 'PRE1_RECOVERY_USAGE_INVALID');
+    need([COMMENT_ID, CORRECTED_COMMENT_ID, ROUND2_COMMENT_ID].includes(id) && output, 'PRE1_RECOVERY_USAGE_INVALID');
     fs.writeFileSync(output, recover(api('issues/comments/' + id), process.env.GITHUB_REPOSITORY || REPOSITORY), 'utf8');
     process.stdout.write('PRE1 pinned published plan verified: comment=' + id + '\n');
   } catch (e) { console.error(e.message); process.exitCode = 1; }
 }
-module.exports = { recover, COMMENT_ID, CORRECTED_COMMENT_ID };
+module.exports = { recover, COMMENT_ID, CORRECTED_COMMENT_ID, ROUND2_COMMENT_ID };

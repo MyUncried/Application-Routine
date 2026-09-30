@@ -145,6 +145,23 @@ Reprise après instruction explicite de Hermann (poursuivre les corrections et l
 
 Décision attendue de Hermann : autoriser explicitement le raccordement du tour 2 par le pilote, ou le confier à un autre acteur (ChatGPT/orchestrateur, ou modification manuelle), en indiquant si la consigne de reprise doit être rédigée par un tiers.
 
+### Origine du refus (vérification en lecture seule)
+
+Le message de refus s'attribue au « Claude Code auto mode classifier », motif `[Self-Approval]`. Aucun hook ni règle de refus : `.claude/settings.json` du dépôt ne contient que `enabledPlugins` ; `C:\Users\hadjo\.claude\settings.json` ne contient que `enabledPlugins`, `theme`, `agentPushNotifEnabled` ; aucun `settings.local.json`. D'éventuels réglages d'administration n'ont pas été vérifiés.
+
+Aucun chemin V2 existant ne pouvait soumettre 5918243649 sans modifier le workflow : `START_INITIAL_PLAN_REVIEW` n'accepte que les publications épinglées 5913845392/5916079168 ou un auteur `github-actions[bot]` (lignes 77 et 84) ; `START_PLAN_REVIEW` et `START_MINOR_PLAN_CLARIFICATION` exigent un plan publié par le bot ; `START_INITIAL_PLAN`/`START_PLAN_REVISION` régénèrent un plan.
+
+### Raccordement du tour 2 — approuvé par Hermann
+
+La modification a été présentée intégralement puis approuvée explicitement par Hermann (« approuvé ») avant exécution ; elle est passée sans refus. Contenu :
+
+- `kodjo-v2-slice-initial-plan-review.yml` : 5918243649 reconnu par la récupération épinglée ; consigne de reprise limitée au constat 9, report des dix fermetures, session `25caf6b2-…` exigée, entrées épinglées par blob (constats `07f6579a`, registre `34aa3241`, revue du tour 1 `9cd1b067`, plan du tour 1 `8ed0768c`) ; même garde à 11 lignes ; arrêt sans replanification sur REVISE ; preuve archivée.
+- `recover-published-pre1-plan.js` : entrée épinglée 5918243649 (commit 0e476328, blob 0c2b1bee, 232 358 octets, SHA-256 176f5c2c).
+- `materialize-approved-plan-handoff.js` : 5918243649 ajouté aux publications reconnues.
+- Inchangés : verdict dérivé des lignes bloquantes du reviewer, APPROVE du bot exigé par le handoff, contrôles impact/contrat/UI.
+
+Tests : `validate-workflows.js` OK ; suite pilote 812 tests, 14 échecs identiques à la base ; syntaxe Node OK ; analyse syntaxique PowerShell du script de l'étape Claude : 0 erreur ; récupération réelle de 5918243649 identique au plan corrigé et gates PASS sur ce texte.
+
 ## Vérifications restant à effectuer
 
 - Revue indépendante du tour 2 (constat 9 seul) sur le candidat 5918243649.

@@ -74,7 +74,7 @@ jobs:
           $active=@($registry.activations | Where-Object { $_.slice_id -eq $slice })
           if ($active.Count -ne 1 -or $active[0].status -ne 'ACTIVE') { throw 'V2 slice is not active' }
           $plan=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$planId" | ConvertFrom-Json
-          $recoveredPublication=($planId -in @('5913845392','5916079168'))
+          $recoveredPublication=($planId -in @('5913845392','5916079168','5918243649'))
           if($recoveredPublication){
             $recoveredFile=Join-Path $env:RUNNER_TEMP 'kodjo-pre1-recovered-publication.md'
             node scripts/kodjo/recover-published-pre1-plan.js $planId $recoveredFile
@@ -245,6 +245,31 @@ jobs:
           $correctionRegister
           "@
           }
+          if($env:SOURCE_PLAN_COMMENT_ID -eq '5918243649'){
+            if($env:REVIEW_SESSION -ne '25caf6b2-1663-4a23-bb75-204982cc2b7b'){throw 'PRE-1 round 2 must resume reviewer session 25caf6b2-1663-4a23-bb75-204982cc2b7b'}
+            $pinned=@{
+              'kodjo-pre1-prior-findings.json'='07f6579ad59f66015c8189f079bde0aaab7d01aa'
+              'kodjo-pre1-correction-register.md'='34aa32418732ddee840e99caa418977b45d830d2'
+              'kodjo-pre1-round1-review.md'='9cd1b0674902da3fbe2802279ebc3e863b639a94'
+              'kodjo-pre1-round1-plan.md'='8ed0768ccfcf9ec157b2aa8d5cc177be5f97d426'
+            }
+            foreach($name in $pinned.Keys){
+              $blob=gh api "repos/$env:GITHUB_REPOSITORY/git/blobs/$($pinned[$name])"|ConvertFrom-Json
+              if($LASTEXITCODE-ne0 -or $blob.sha -ne $pinned[$name] -or $blob.encoding -ne 'base64'){throw "Pinned PRE-1 round 2 input unavailable: $name"}
+              [IO.File]::WriteAllBytes((Join-Path $env:RUNNER_TEMP $name),[Convert]::FromBase64String($blob.content))
+            }
+            $priorCheck=Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-pre1-prior-findings.json" -Encoding UTF8|ConvertFrom-Json
+            if(@($priorCheck.findings).Count -ne 11){throw 'Pinned PRE-1 prior findings invalid'}
+            $correctionRegister=Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-pre1-correction-register.md" -Encoding UTF8
+            $prompt=@"
+          TARGETED RE-VERIFICATION, same closure sequence, resumed session. This is READ-ONLY. In your previous turn (review run36763786560) you closed prior findings 1-8, 10 and 11 and kept prior finding 9 open. The file $env:RUNNER_TEMP\kodjo-v2-initial-plan.md now contains the round-2 candidate: commit 0e4763280d7ef355663d6415f1aeaa137b9d1eb1, blob 0c2b1beebb540166a76ba6821e8db55dc12cbdf3. The candidate you reviewed before is $env:RUNNER_TEMP\kodjo-pre1-round1-plan.md (blob 8ed0768ccfcf9ec157b2aa8d5cc177be5f97d426) and your previous review is $env:RUNNER_TEMP\kodjo-pre1-round1-review.md. The eleven prior findings, numbered 1..11 in listed order, are in $env:RUNNER_TEMP\kodjo-pre1-prior-findings.json. Baseline checked out in the current directory: $env:SOURCE_HEAD. The preceding gates replayed the impact scan, plan contract and UI contract on this candidate.
+          EXCLUSIVE SCOPE: verify ONLY whether prior finding 9 is now closed, against the exact requirement of that prior finding (its diagnostic and expected_correction) and the closure condition you stated for it. The round-2 correction, described in the CORRECTION REGISTER below, only declares the blast radius of UI-D35DA2C4F266 / REQ-2376BBC2C2A2CA1B. Do NOT re-examine findings 1-8, 10 and 11: carry forward your previous closure for each, unless the round-2 diff directly changes the evidence you used for that finding, in which case re-verify only that effect. Same prohibitions as before: no new subject, no twelfth finding, no general audit, no improvement or redesign, no PRE-1 scope widening, no VNext, no protocol audit; a dependency is evidence only for finding 9. Do not create, modify or commit any file.
+          REQUIRED OUTPUT, identical format to your previous turn. (1) The Markdown closure table with exactly eleven data rows and exactly the five columns | N | Correction examinée | Preuve précise | Fermé | Justification |; Fermé is OUI or NON; for a carried-forward row write in Justification "Reporté de la revue run36763786560, non affecté par la correction du tour 2". Escape any literal pipe inside a cell as \|. (2) Exactly one <KODJO_PRE1_CLOSURE_JSON> block with exactly eleven entries matching the table. (3) Exactly one <KODJO_REVIEW_FINDINGS_JSON> block containing one blocking row per finding that is NOT closed and nothing else, reusing exactly the category, target_kind and target of that prior finding, diagnostic starting with "Prior finding N:", expected_correction stating the concrete closure condition, dependency_expansion_required=false with empty dependency_evidence unless closing that finding itself requires a scope dependency. Do not emit finding_id. If all eleven are closed emit {"findings":[]}.
+          No terminal VERDICT line: the protocol derives APPROVE/REVISE from the blocking rows and a mechanical guard rejects any row outside the eleven prior targets or any inconsistent closure record. Never fabricate a closure; never keep a finding open for an improvement not required by that finding.
+          CORRECTION REGISTER:
+          $correctionRegister
+          "@
+          }
           $out="$env:RUNNER_TEMP\kodjo-v2-initial-review.json"
           $err="$env:RUNNER_TEMP\kodjo-v2-initial-review.err.txt"
           $promptFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-review-prompt.txt'
@@ -264,7 +289,7 @@ jobs:
           [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-v2-initial-review.md",[string]$json.result,(New-Object Text.UTF8Encoding($false)))
           & node "$env:RUNNER_TEMP\kodjo-v2-initial-review-protocol\normalize-review-findings.js" "$env:RUNNER_TEMP\kodjo-v2-initial-review.md" "$env:RUNNER_TEMP\kodjo-v2-initial-review-findings.json"
           if ($LASTEXITCODE -ne 0) { throw 'Structured plan review findings invalid' }
-          if($env:SOURCE_PLAN_COMMENT_ID -eq '5916079168'){
+          if($env:SOURCE_PLAN_COMMENT_ID -in @('5916079168','5918243649')){
             & node "$env:RUNNER_TEMP\kodjo-v2-initial-review-protocol\verify-pre1-closure-review.js" "$env:RUNNER_TEMP\kodjo-v2-initial-review.md" "$env:RUNNER_TEMP\kodjo-v2-initial-review-findings.json" "$env:RUNNER_TEMP\kodjo-pre1-prior-findings.json" "$env:RUNNER_TEMP\kodjo-pre1-closure-bound.json"
             if ($LASTEXITCODE -ne 0) { throw 'PRE-1 review exceeded the eleven-finding closure bound' }
           }
@@ -314,7 +339,7 @@ jobs:
             [IO.File]::WriteAllText($historyFile,($history -join [Environment]::NewLine),(New-Object Text.UTF8Encoding($false)))
             $retry=node (Join-Path (Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-review-protocol') 'decide-plan-review-retry.js') $historyFile $env:SLICE_ID $reviewCommentId|ConvertFrom-Json
             if($LASTEXITCODE-ne0){throw 'Plan retry decision failed'}
-            if(($env:PLAN_ID -in @('5913845392','5916079168')) -or ([string]$retry.status -eq 'USER_VALIDATION') -or (@($findings.findings|Where-Object{$_.category -eq 'CLARIFICATION'}).Count -gt 0)){
+            if(($env:PLAN_ID -in @('5913845392','5916079168','5918243649')) -or ([string]$retry.status -eq 'USER_VALIDATION') -or (@($findings.findings|Where-Object{$_.category -eq 'CLARIFICATION'}).Count -gt 0)){
               $stop='[KODJO_V2] PLAN_RETRY_USER_VALIDATION'+$nl+'slice_id='+$env:SLICE_ID+$nl+'review_comment_id='+$reviewCommentId+$nl+'reason=REPEATED_REVISE'+$nl+'STATUT : USER_VALIDATION'
               $stopFile=Join-Path $env:RUNNER_TEMP 'kodjo-plan-retry-stop.json'
               [IO.File]::WriteAllText($stopFile,(@{body=$stop}|ConvertTo-Json -Depth 3),(New-Object Text.UTF8Encoding($false)))
@@ -343,6 +368,7 @@ jobs:
             ${{ runner.temp }}\kodjo-pre1-prior-findings.json
             ${{ runner.temp }}\kodjo-pre1-correction-register.md
             ${{ runner.temp }}\kodjo-pre1-closure-bound.json
+            ${{ runner.temp }}\kodjo-pre1-round1-review.md
             ${{ runner.temp }}\kodjo-v2-initial-review-scan.json
             ${{ runner.temp }}\kodjo-v2-initial-review-proof.json
             ${{ runner.temp }}\kodjo-v2-initial-review-contract.json
