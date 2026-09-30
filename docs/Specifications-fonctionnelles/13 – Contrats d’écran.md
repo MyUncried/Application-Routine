@@ -1,20 +1,20 @@
-# 13
+# 13 — Contrats d’écran
 
-> **Règle documentaire :** le chapitre 13 ne contient aucune copie d’écran. Les captures et copies physiques d’écrans/modales sont centralisées exclusivement dans le chapitre 06. Le chapitre 13 conserve uniquement les contrats, états, règles et références de nodes Figma nécessaires à la recette. – Contrats d’écran
+> **Règle documentaire :** le chapitre 13 ne contient aucune copie d’écran. Les captures et copies physiques d’écrans/modales sont centralisées exclusivement dans le chapitre 06. Le chapitre 13 conserve uniquement les contrats, états, règles et références de nodes Figma nécessaires à la recette.
 
 ## 1. Objet et statut normatif
 
-Ce chapitre constitue la **spécification déterministe des écrans de production de T03**. Il transforme les décisions produit, règles métier, modèle de données, API fonctionnelles, architecture, Design System Figma et frames de référence en comportements directement exploitables par le développement et la recette.
+Ce chapitre constitue la **spécification des familles d’écran du MVP, avec séparation des périmètres T03 et T04**. Il transforme les décisions produit, règles métier, modèle de données, API fonctionnelles, architecture, Design System Figma et frames de référence en comportements directement exploitables par le développement et la recette.
 
 Un écran T03 n’est considéré comme spécifié que si son contrat définit explicitement : contexte d’entrée, sorties, données et leurs sources, valeurs Figma, structure, éléments obligatoires, layout, responsive, états, contrôles, gestes, validation, brouillon/persistance, navigation/conservation d’état, erreurs, accessibilité, invariants, recette et traçabilité.
 
-Les contrats T03 actifs sont `CE-T03-01` à `CE-T03-17`. Le présent chapitre constitue l’unique référence active des contrats d’écran T03. Aucun chapitre historique parallèle n’est requis pour l’application des contrats courants.
+Les 29 contrats actifs sont CE-T03-01 à17, CE-MEDIA-EXEC-01/02, CE-UI-01 à09 et CE-EXEC-SESSION-01. Chacun comporte les 21 rubriques canoniques. CE-T03-16 est désormais le contrat des Étiquettes de Composition ; l’ancien parcours Catégories est retiré. Les réserves explicites §6 ne sont pas des comportements validés. Cette correction documentaire ne modifie pas les tranches de réalisation ni leurs autorisations.
 
 ## 2. Sources et ordre d’application
 
-Pour T03 :
+Pour les contrats actifs :
 
-1. décisions validées dans le chapitre 07, notamment D-143 à D-186, avec priorité aux décisions supersédantes D-167 à D-186 ;
+1. décisions validées dans le chapitre 07, jusqu’à D-239, avec priorité aux décisions explicitement supersédantes ; D-232 et la spécification de phrase v10.2 pour l’éditeur ;
 2. modèle fonctionnel / modèle de données / règles métier ;
 3. API fonctionnelles ;
 4. architecture technique ;
@@ -123,7 +123,7 @@ Avancement vers l’écran suivant : cible entre depuis la droite, écran couran
 
 Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` partagent le même contrat :
 
-- appui court sur une option : sélection/désélection selon le contexte ;
+- appui court : choix simple Catégorie/Étiquette validé au toucher et fermeture ; choix multiple Zones sélectionné/désélectionné puis confirmé ;
 - appui long : aucun changement de sélection et ouverture d’un `Overlay / Decision Dialog` destructif à deux actions ;
 - titre dynamique : `Supprimer « {nom} » ?` ;
 - message dynamique : si la valeur est utilisée, préciser qu’elle disparaît des nouveaux choix mais reste attachée aux objets existants, avec son nom et sa dernière couleur ; l’historique reste inchangé ;
@@ -139,7 +139,75 @@ Références Figma : `4861:6145` (Étiquette), `4861:6259` (Catégorie), `4861:6
 
 ---
 
-# 5. B1 — Catalogue multi-type
+
+### 4.11 Cartes, médias de carte et appuis — référence courante
+
+D-233–239 et DSF-CARTES-ICONES-APPUIS-2026-09-30 gouvernent le rendu. Carte standard 354 sur 402, rayon 8, fond#FCFCFE/bord 0,5#CCD1E0, titre 15 Semi Bold, pastilles 20 et valeurs 16 ; marges adaptatives, aucune barre verticale hors Jour. Photo d’Exercice : vignette 64 recadrée sans déformation, pas d’augmentation de hauteur, texte décalé 88, place réservée pendant chargement/erreur, texte alternatif nom ; aucun Déployer. La galerie d’Exécution conserve au contraire le média intégral sans recadrage. Séance sans photo (RG-3 reportée). Choix sans badge durée/heure ni Lecture/Déployer. Pauses/récupérations absentes des cartes Catalogue/choix/Composition ; prochaine planification absente des Catalogues ; données et calculs conservés.
+
+Commandes contextuelles 34/dessin 20/cible 44, gaps 12 ou 10 en Composition ; dimensions spécifiques 48 conservées. Jour compact 298×46/48, barre 4, nature 26, titre 13, valeurs 11, Lecture 26 ; pas de déploiement. Aujourd’hui/Planifier 32 restent l’exception acceptée aprèsT04. Action au relâchement, sans attendre le retour animé ; sortie de cible annule ; stepper 450/150 ms ; réduction des animations par opacité sans dilatation. Les dimensions à402 ne sont pas des coordonnées absolues d’implémentation.
+
+### 4.12 Exécution — phases, commandes et finalisation partagées
+
+Le moteur possède la source de vérité temporelle. Le Compte à rebours propre et la Fin propre entourent l’ensemble intrinsèque d’une occurrence d’Exercice ; ils ne sont pas ajoutés entre chaque Série/côté. Dans une Séance, le réglage global D-214 les applique/ignore ensemble sans effacer leurs valeurs. Cette lecture est dérivée du porteur Exercice de D-191/D-214 ; elle ne crée aucun paramètre par occurrence.
+
+| Origine | Séquence normale |
+|---|---|
+| ACTIVITY | Préparation système 5 s → compte à rebours propre applicable → toutes Séries/pauses du premier côté → SIDE_RECOVERY éventuelle si bilatéral → toutes Séries/pauses du second côté → Fin propre applicable → signal de fin → Synthèse |
+| SESSION | Compte à rebours initial → plan avant Circuit → Circuit répété par Tours → plan après Circuit → Fin de séance → Synthèse |
+| Occurrence SESSION | Compte à rebours propre si activé → Exercice intrinsèque (Séries/côtés/pauses) → Fin propre si activée → POST_ACTIVITY_RECOVERY → point d’arrêt éventuel → suite |
+
+C−1 pauses inter-Séries par côté ; SIDE_RECOVERY une fois entre côtés ; POST_ACTIVITY_RECOVERY une fois après chaque occurrence SESSION, y compris la dernière et chaque Tour. Phases de durée 0 instantanées. Aucun Circuit, Tour, Cycle, POST_ACTIVITY_RECOVERY ni SESSION_END en ACTIVITY. Les points d’arrêt sont structurels, hors nombre d’Exercices, et leur attente est exclue du temps actif.
+
+| Action/phase | Effet déterminé | Conservation |
+|---|---|---|
+| Réinitialiser Série unilatérale | Confirmation ; durée cible initiale en Durée, chrono 00:00 en Répétitions/échec | Cible de répétitions, temps global déjà écoulé et autres résultats conservés |
+| Réinitialiser Exercice bilatéral | Portée côté courant conformément D-149, pas l’autre côté | Résultat autre côté, temps global, Tour/Cycle conservés ; détails de Série en R-03 |
+| Réinitialiser récupération | Recommencer uniquement phase de récupération courante | Exercice terminé reste terminé |
+| Suivant en Répétitions/échec | Terminer normalement Série courante sans confirmation de saut anticipé | Transitions prévues par le plan |
+| Suivant chronométré avant terme | Confirmation ; résultat partiel si confirmé | Ne pas effacer résultats précédents ; saut du premier côté selon D-150, réserveR-03 |
+| Suivant pendant récupération | Confirmation ; récupération partielle, Exercice terminé conservé | Pas de réexécution de l’Exercice |
+| Pause / Reprendre | Suspendre / reprendre horloges actives | Position de plan et temps antérieur conservés |
+| Arrêter depuis Pause | Confirmation ; clôture Interrompue et Synthèse si présentable | Instantané et résultats atteints conservés |
+
+Instantané immuable au départ, résultats moteur clôturés une fois, puis finalisation Ressenti/Commentaire distincte et atomique. Le bouton courant de Synthèse est Enregistrer ; Terminer reste le bouton de l’éditeur Exercice. SESSION finalisé ouvre Suivi ; ACTIVITY restaure son appelant Catalogue/Calendrier. Une interruption technique sans Synthèse peut ne pas avoir de Ressenti ; une Synthèse présentée l’exige. Ni consultation média, ni paramètres de lecteur vidéo ne modifient le plan.
+
+### 4.13 Usage des références et portée des recettes
+
+Une frame présente peut montrer un état ancien ou incomplet. Chaque contrat distingue comportement cible, preuve graphique et limite constatée. Les recettes décrivent ce qu’il faut vérifier ; cette documentation ne constitue pas une recette réussie de l’application ni du prototype interactif. Les règles communes sont héritées par renvoi précis ; une rubrique non applicable en explique la raison. Les identifiants techniques ActivityDefinition/ACTIVITY restent inchangés et ne sont pas des libellés utilisateur.
+
+## Inventaire des contrats actifs
+
+| Contrat | Famille |
+|---|---|
+| CE-T03-01 | Catalogue des séances — état T03 |
+| CE-T03-02 | Catalogue des exercices — liste, filtres et cartes |
+| CE-T03-03 | Catalogue — action `Créer` contextuelle |
+| CE-T03-04 | Éditeur ActivityDefinition — créer / modifier |
+| CE-T03-05 | ActivityDefinition — archiver / restaurer / supprimer |
+| CE-T03-06 | Composition — `Ajouter un exercice` vers le Catalogue |
+| CE-T03-07 | Sélection multiple d’Exercices existants |
+| CE-T03-08 | Composition d’une séance — brouillon, Circuit, points d’arrêt et validation |
+| CE-T03-09 | Lancement direct et préparation fixe 5 s |
+| CE-T03-10 | Exécution directe — Durée unilatérale |
+| CE-T03-11 | Exécution directe — Répétitions et À l’échec |
+| CE-T03-12 | Exécution directe — bilatéralité, Pauses, Récupération |
+| CE-T03-13 | Fin, interruption et retour d’Exécution directe |
+| CE-T03-14 | Synthèse d’Exécution directe |
+| CE-T03-15 | Suivi général — Exécution ACTIVITY |
+| CE-T03-16 | Étiquettes de Séance — sélectionner, créer, retirer |
+| CE-T03-17 | Navigation principale — inventaire DSF |
+| CE-MEDIA-EXEC-01 | Exécution — faces Information et Média |
+| CE-MEDIA-EXEC-02 | Exécution — média plein écran |
+| CE-UI-01 | Profil — préférence silhouette |
+| CE-UI-02 | Calendrier — Jour compact |
+| CE-UI-03 | Calendrier — Semaine et structure Mois |
+| CE-UI-04 | Calendrier et planification — choisir une source |
+| CE-UI-05 | Planification — formulaire et états de paramètres |
+| CE-UI-06 | Splash KODJO |
+| CE-UI-07 | Profil — préférences et défauts d’exécution |
+| CE-EXEC-SESSION-01 | Exécution d’une Séance — phases, commandes et confirmations |
+| CE-UI-08 | Synthèse de Séance |
+| CE-UI-09 | Référentiels d’Exercice — Catégorie et Zones corporelles |
 
 ## CE-T03-01 — Catalogue des séances — état T03
 
@@ -148,7 +216,7 @@ Références Figma : `4861:6145` (Étiquette), `4861:6259` (Catégorie), `4861:6
 | Propriété | Valeur |
 |---|---|
 | Bloc | B1 |
-| États | S01 + état vide/liste + retour Catégories |
+| États | S01 + état vide/liste + retour Composition |
 | T03-E | E01, E02, E04, E05, E06, E19, E67, E68, E69 |
 | Frames | `2117:86`, `1992:9910` |
 | Shell | `Shell / Screen`, Context On, Bottom Navigation |
@@ -160,20 +228,15 @@ Faire du Catalogue des séances le segment d’entrée par défaut du Catalogue 
 
 ### 3. Contexte d’entrée
 
-Entrées : fin Splash, tap `Catalogues`, retour d’un parcours Séance, retour après enregistrement depuis Catégories. Au relaunch, segment = `Séances` même si l’utilisateur avait quitté sur `Exercices`.
+Ouverture initiale/reprise complète : segment Séances ; retour de Composition après Continuer ; retour de planification ou d’Exécution avec contexte appelant conservé.
 
 ### 4. Contexte de sortie / destinations
 
-- segment Exercices → `CE-T03-02` ;
-- segment Séances → reste ;
-- Parcours → aucune navigation ;
-- Créer → règle contextuelle `CE-T03-03` puis création directe d’une Séance ;
-- carte Séance → parcours existant T01/T02 ;
-- navigation basse → destination choisie.
+Segment Exercices → CE-T03-02 ; Séances reste ; Parcours sans action ; Créer → CE-T03-08 nouveau brouillon ; surface carte → CE-T03-08 modification ; Démarrer → CE-EXEC-SESSION-01 ; Planifier → CE-UI-05 ; navigation basse → destination correspondante. Les zones surface/Déployer/Démarrer restent indépendantes.
 
 ### 5. Données affichées et source de vérité
 
-Liste issue des services/repositories Séance. Noms, catégories, zones, durées et statuts sont dynamiques. Aucune carte d’exemple ne doit être ajoutée pour remplir l’écran.
+Séances enregistrées du dépôt local, non archivées par défaut, tri updatedAt décroissant. Étiquette facultative ; en son absence, catégories issues des Exercices. Aucun champ Catégorie propre à la Séance. Les objets historiques incomplets restent consultables mais Démarrer est désactivé tant qu’ils ne sont pas exécutables.
 
 ### 6. Classification des valeurs Figma
 
@@ -189,7 +252,7 @@ Carte : titre et badge durée, Étiquette puis catégories issues des exercices 
 
 ### 9. Layout déterministe
 
-Cartes standard : largeur354 sur écran402, rayon8, fond #FCFCFE, bord intérieur0,5 #CCD1E0, titre15 Semi Bold ; classement pastilles20, valeurs nues16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo6354:16964. Les captures actualisées le30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Hauteur repliée90, déployée235. Commandes34/dessins20/gaps12/cibles44. Segmenté354 : padding4, gaps4, options112,67. Actions glissées de même hauteur que la carte, y compris déployée.
+Cartes standard : largeur 354 sur écran 402, rayon 8, fond #FCFCFE, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Hauteur repliée 90, déployée 235. Commandes 34/dessins 20/gaps 12/cibles 44. Segmenté 354 : padding 4, gaps 4, options 112,67. Actions glissées de même hauteur que la carte, y compris déployée.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -197,7 +260,7 @@ Appliquer §4.2. Segmenté flexible ; libellés complets ; contenu liste scrolla
 
 ### 11. États de l’écran
 
-Vide réel ; liste ; retour Catégories ; retour d’un sous-parcours ; relaunch sur Séances.
+Vide réel ; liste ; retour Composition ; retour d’un sous-parcours ; relaunch sur Séances.
 
 ### 12. Contrôles et interactions
 
@@ -217,11 +280,11 @@ Aucun état de segment persisté au relaunch. Le brouillon de création de Séan
 
 ### 16. Navigation et conservation d’état
 
-Retour Catégories impose `Catalogue des séances` / Séances. Les autres retours suivent leur contrat. Transition canonique §4.9. Les filtres, le tri implicite et le scroll ne sont conservés que pendant l’aller-retour courant.
+Continuer dans CE-T03-08 enregistre puis ouvre Catalogues / Séances. Aucun écran final Catégories. Un aller-retour restaure filtre et position ; relance complète réinitialise selon §4.4.
 
 ### 17. Erreurs et cas limites
 
-Erreur de chargement : afficher état d’erreur prévu, pas un faux état vide. 0 résultat réel = état vide.
+Liste vide et archives vides : aucun contenu de démonstration. Suppression concurrente : rafraîchir sans ouvrir un objet absent. Archivage d’une Séance planifiée : confirmation avant mutation des Routines. Suppression définitive uniquement depuis les archives ; historique conservé. La capture 2234:189 ne montre pas le dialogue annoncé : preuve visuelle insuffisante, confirmation fonctionnelle obligatoire.
 
 ### 18. Accessibilité
 
@@ -233,19 +296,15 @@ Séances = défaut/relaunch ; Exercices = actif T03 ; Parcours = disabled ; bott
 
 ### 20. Recette déterministe
 
-Tester 0/N Séances, segment initial, navigation Exercices, Parcours impossible, géométrie `Créer / Filtrer / Trier`, `Trier` disabled, `Créer` ouvrant directement la création d’une Séance sans intermédiaire, archivage sans Routine sans confirmation avec snackbar `Séance archivée` + `Annuler`, annulation de cet archivage, archivage avec ≥ 1 Routine avec confirmation puis suppression des Routines et absence de snackbar d’annulation, retour Catégories, relaunch, 360/402/440, texte agrandi. Négatifs : écran/arbre intermédiaire après `Créer`, absence Filtrer/Trier, `Trier` actif, `Séances` en bottom nav, Parcours activable, persistance du segment Exercices après relaunch.
-
-CAR-01 à CAR-08, CTX-01/02, SEG-01 et ANI du complément DSF ; vérifier carte active/archivée, sans Étiquette, plusieurs catégories et titre long. Aucune prochaine planification, même avec occurrence future. Tester les mêmes cartes derrière filtre et confirmation ; conservation du contexte et actions métier ci-dessus.
+Tester liste vide 2117:86, cartes repliées/déployées, filtres actifs/archives, surface Modifier distincte de Démarrer, état non exécutable, archivage planifié confirmé/annulé, restauration, suppression définitive confirmée/annulée et conservation de l’historique. Après Continuer dans Composition : Séances sélectionné, aucune étape Catégories. Vérifier Étiquette ou catégories de repli, sans prochaine planification affichée.
 
 ### 21. Traçabilité
 
-E01–E06 → D-167/D-179/D-184/D-187 ; E67–E69 → D-168/D-178 ; Figma `2117:86`, `1992:9910`; l’ancienne frame d’arbre `3841:8375` est historique/supersédée.
+D-187/D-188/D-196/D-206/D-209/D-211/D-238 ; CE-T03-08 et CE-UI-05. Frames 1992:9910/10014/10518/10628/10848/10937, 2117:86, 2234:88/189, 4168:11149, 4549:6382/6742, 4592:6217, 4593:6285 ; écarts de preuve §5.
 
 ---
 
 ## CE-T03-02 — Catalogue des exercices — liste, filtres et cartes
-
-> Mise à jour 24/09/2026 : actions glissées actives = `Planifier / Dupliquer / Archiver`; dans les archives = `Supprimer`. Le média déployé fait partie du MVP.
 
 ### 1. Identification
 
@@ -279,7 +338,7 @@ Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées
 
 ### 6. Classification des valeurs Figma
 
-Noms, zones, séries, durées, récupération de la première carte = dynamiques/démonstration. Titre, segments, Créer, Filtrer, Trier = statiques. La première carte n’a aucune règle métier liée à sa position.
+Noms, Catégories, Zones et paramètres sont des données métier ; les valeurs de la première carte ne sont jamais des constantes. Les pauses/récupérations et la prochaine planification ne sont pas des lignes de carte cible. Titres, segments et actions sont statiques.
 
 ### 7. Structure de l’écran
 
@@ -287,11 +346,11 @@ Header → segmenté → rangée commandes Catalogue (`Créer`, `Filtrer`, `Trie
 
 ### 8. Éléments obligatoires
 
-Pastille Catégorie colorée, Zones corporelles, titre et badge durée ; synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`, miroir16 si bilatéral. Aucune pause/récupération ni prochaine planification affichée. Lecture indépendante ; Déployer retiré avec vignette. Aucune poignée. Créer/Filtrer actifs, Trier désactivé.
+Pastille Catégorie colorée, Zones corporelles, titre et badge durée ; synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`, miroir 16 si bilatéral. Aucune pause/récupération ni prochaine planification affichée. Lecture indépendante ; Déployer retiré avec vignette. Aucune poignée. Créer/Filtrer actifs, Trier désactivé.
 
 ### 9. Layout déterministe
 
-Cartes standard : largeur354 sur écran402, rayon8, fond #FCFCFE, bord intérieur0,5 #CCD1E0, titre15 Semi Bold ; classement pastilles20, valeurs nues16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo6354:16964. Les captures actualisées le30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée354 × 91. Avec média d’exercice : vignette64 à12 du bord, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur254 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Badge durée/heure conservé selon contexte, catégorie conservée, pictogramme de zone retiré ; Déployer absent. Séance sans vignette (RG-3 reportée). Commandes34/dessins20/gaps12/cibles44. La référence exercice déployé≈260 du wireframe reste distincte du composant≈236 conservé ; cet écart d’assemblage ne réintroduit pas Déployer dans Photo.
+Cartes standard : largeur 354 sur écran 402, rayon 8, fond #FCFCFE, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée 354 × 91. Avec média d’exercice : vignette 64 à12 du bord, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur 254 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Badge durée/heure conservé selon contexte, catégorie conservée, pictogramme de zone retiré ; Déployer absent. Séance sans vignette (RG-3 reportée). Commandes 34/dessins 20/gaps 12/cibles 44. La référence exercice déployé≈260 du wireframe reste distincte du composant≈236 conservé ; cet écart d’assemblage ne réintroduit pas Déployer dans Photo.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -299,7 +358,7 @@ Cartes standard : largeur354 sur écran402, rayon8, fond #FCFCFE, bord intérieu
 
 ### 11. États de l’écran
 
-Liste active ; vide ; filtre étendu `Aucun` ; filtre contextuel appliqué ; Archives appliqué ; Trier visible disabled ; carte en swipe ; carte média déployée ; retour restauré ; relaunch sans filtre.
+Liste active ; vide 4521:6220 ; filtre étendu Aucun ; filtre appliqué ; archives ; Trier désactivé ; carte glissée ; déploiement sans photo ; Photo sans Déployer ; chargement/erreur média ; retour restauré ; relance sans filtre. 4738:6355 illustre l’ancien assemblage média déployé, pas la cible Photo.
 
 ### 12. Contrôles et interactions
 
@@ -327,7 +386,7 @@ Définition supprimée entre rendu et action : rafraîchir et indiquer indisponi
 
 ### 18. Accessibilité
 
-Carte : `Ouvrir l’activité <nom>` ; Lecture : `Exécuter l’activité <nom>` ; vignette : nom de l’exercice. Déployer expose son état uniquement lorsqu’il est présent. Trier désactivé/non déclenchable ; commandes contextuelles cibles44 sans chevauchement. Troncature conserve la donnée complète.
+Carte : `Ouvrir l’exercice <nom>` ; Lecture : `Exécuter l’exercice <nom>` ; vignette : nom de l’exercice. Déployer expose son état uniquement lorsqu’il est présent. Trier désactivé/non déclenchable ; commandes contextuelles cibles 44 sans chevauchement. Troncature conserve la donnée complète.
 
 ### 19. Invariants
 
@@ -339,9 +398,7 @@ Tester zéro/N cartes, active/archivée, avec/sans photo/vidéo, chargement/erre
 
 ### 21. Traçabilité
 
-E03/E07–E12 → D-167/D-168/D-169/D-184 ; E32–E36 → D-173 ; E58–E62 → D-175 ; Figma `3786:5093`; `API-CAT-01`.
-
-
+D-167/D-173/D-187/D-193/D-195 révisée par D-238 ; D-221/D-233–239 ; API-CAT-01 ; frames 3786:5093, 4168:11262, 4521:6220, 4544:6344/6651, 4738:6209/6355. Cible Photo : wireframe 6354:16964 ; limites §5.
 
 ---
 
@@ -349,7 +406,7 @@ E03/E07–E12 → D-167/D-168/D-169/D-184 ; E32–E36 → D-173 ; E58–E62 → 
 
 ### 1. Identification
 
-Bloc B1 ; T03-E E19–E21, E72 ; action contextuelle partagée entre Catalogues. Les anciennes frames `3787:5148` et `3841:8375` décrivent l’écran intermédiaire supprimé et sont conservées uniquement comme évidences historiques.
+Contrat d’action, sans écran intermédiaire. Bouton Créer dans les Catalogues 1992:9910 et 3786:5093. Les arbres historiques 3787:5148/3841:8375 ne sont pas des destinations.
 
 ### 2. Finalité fonctionnelle
 
@@ -361,11 +418,7 @@ Tap `Créer` depuis le Catalogue courant. Le type de Catalogue affiché détermi
 
 ### 4. Contexte de sortie / destinations
 
-- Catalogue `Exercices` → `CE-T03-04` en création ;
-- Catalogue `Séances` → parcours de création d’une Séance ;
-- Catalogue `Parcours` → parcours de création d’un Parcours lorsque ce Catalogue devient fonctionnel.
-
-Dans T03/MVP, `Parcours` reste désactivé : cette règle n’active ni le Catalogue ni la création de Parcours.
+Exercices → CE-T03-04 en création ; Séances → CE-T03-08 en création ; Parcours désactivé, aucune navigation. Annuler le formulaire ouvert restaure le Catalogue appelant sans créer d’objet.
 
 ### 5. Données affichées et source de vérité
 
@@ -413,7 +466,7 @@ Le brouillon du nouvel objet peut être initialisé au déclenchement du parcour
 
 ### 16. Navigation et conservation d’état
 
-Le retour depuis le parcours de création suit le contrat du Catalogue d’origine et restaure son contexte lorsque ce comportement est prévu. Aucun état d’arbre intermédiaire n’est conservé.
+Transmettre le segment appelant, les filtres et le scroll au formulaire. Retour avant validation : les restituer. Succès Séance : Catalogues/Séances ; succès Exercice : Catalogues/Exercices.
 
 ### 17. Erreurs et cas limites
 
@@ -429,21 +482,19 @@ Destination déterminée par le Catalogue courant ; aucun écran/arbre interméd
 
 ### 20. Recette déterministe
 
-Depuis `Exercices`, tap `Créer` → éditeur ActivityDefinition en création. Depuis `Séances`, tap `Créer` → création de Séance. Vérifier l’absence totale de l’ancien arbre. Négatifs : apparition de `Un nouvel exercice / Une séance / Un parcours / Annuler`, création d’un type différent du Catalogue courant, activation implicite de Parcours.
+Depuis chaque segment actif, un tap ouvre exactement le formulaire correspondant ; aucun arbre. Annuler ne crée rien ; double tap n’empile pas deux formulaires ; Parcours désactivé ne produit aucun événement.
 
 ### 21. Traçabilité
 
-E19–E21/E72 → D-187, D-167, D-183 ; anciennes frames `3787:5148` et `3841:8375` = historiques/supersédées ; aucune API d’écriture supplémentaire.
+D-187/D-221 ; CE-T03-01/02/04/08 ; frames 1992:9910 et 3786:5093.
 
 ---
-
-# 6. B2 — CRUD et cycle de vie ActivityDefinition
 
 ## CE-T03-04 — Éditeur ActivityDefinition — créer / modifier
 
 ### 1. Identification
 
-Bloc B2 ; états S18–S27 ; T03-E E12–E14, E30, E41, E50–E57, E71 ; références courantes `4217:6980` (nom, description et média), `4279:7044` (phrase éditée), `4734:6342` (modification), `4332:7095` (Catégories), `3556:7645` (roulette Durée), modèles de paramètres `4367:7128`, `4367:7276`, `4367:7906`, `4367:8052`, `4367:8193`, `4490:6757`, `4490:6903`, sélection Catégorie `4474:7157`, Zones corporelles `4478:7209` et création de zone `4683:6336`.
+Éditeur Exercice persistant. Frames 3943:6064, 3542:4656, 4217:6980, 5088:6398, 4279:7044, 4734:6342 ; modes 3561:7673/7802 ; contrôles 3556:7645/7712/7801, 4367:7128/7276/7906/8193 ; ajustement 3580:4957. Catégorie/Zones : CE-UI-09. Captures présentes ne signifie pas conformes ; écarts §5.
 
 ### 2. Finalité fonctionnelle
 
@@ -463,21 +514,19 @@ Nom, Description, Catégorie, Zones corporelles, mode, cible, Séries, Pause ent
 
 ### 6. Classification des valeurs Figma
 
-Noms, zones et valeurs numériques = dynamiques/démonstration. **`Renforcement du genou` est une `VALEUR DE DÉMONSTRATION FIGMA` du nom d’Exercice** dans les états renseignés et ne doit jamais être codée en dur. L’état vide/placeholder `Nom de l’exercice` n’a pas de référence visuelle active identifiée dans le Prototype MVP ; `3943:6064` est une référence historique, non une preuve actuelle. Titres, modes, Séries, Pause entre Séries, Pause au changement de côté, libellés de Durée totale et Terminer = statiques.
+Nom, description, référentiels, paramètres et durées calculées proviennent du brouillon. Nom de l’exercice est le placeholder ; Renforcement du genou est une démonstration. Les états vides, Répétitions et À l’échec sont présents dans l’inventaire courant, sans validation interactive implicite.
 
 ### 7. Structure de l’écran
 
-Nom → accès Catégorie / Zones corporelles → paramètres Séries/cible/Pause entre Séries → deuxième rangée Changement de côté/Pause au changement de côté/Durée totale → zone Média → Synthèse fixe → Terminer.
+Nom et Description → accès Catégorie/Zones → Mode d’exécution hors phrase → champ de phrase paramétrée et contrôles déployés → Durée totale conditionnelle → Compte à rebours et Fin d’exercice, séparés de la phrase → Terminer. Le média existant n’introduit aucune action d’import. Le nom n’est pas répété dans la phrase.
 
 ### 8. Éléments obligatoires
 
-Mode 3 options égales ; sans mode, phrase vide ; mode affiché hors phrase ; en Durée, clause `Durée totale` si plusieurs Séries **ou** changement de côté (`D→G`/`G→D`) ; l’omettre uniquement pour une Série avec `Aucun` changement de côté ; en Répétitions, phrase **`Durée totale ≥ {estimation}`** avec 2 secondes conventionnelles par répétition ; en À l’échec, aucune Durée totale affichée ; nom en gras dans Synthèse uniquement ; accès `Catégorie` et `Zones corporelles` distincts ; zone Média conforme au Figma courant et placée sous la Synthèse en cas de chevauchement ; contrôle Changement de côté avec `Aucun / D→G / G→D` au niveau Exercice uniquement ; roulettes en modale basse Annuler/Confirmer.
+Nom, Catégorie unique, une ou plusieurs Zones, mode Durée/Répétitions/À l’échec, Séries, cible applicable, changement de côté, pauses applicables et deux phases propres. Sans mode : Choisir un mode, phrase vide, aucune Durée totale et Terminer désactivé. Après premier choix, le mode ne peut pas redevenir vide. Phrase et contrôles suivent v10.2.
 
 ### 9. Layout déterministe
 
-DSF/grilles sans compensation locale. En Répétitions, `Durée totale ≥ {estimation}` apparaît dans la phrase selon D-232. En À l’échec, aucun élément `Durée totale` n’est affiché. Les états REPS et FAILURE restent définis par D-232/v10.2 ; aucune frame active actuelle ne les matérialise. `3561:4695` et `3561:7802` sont des références historiques, non des preuves visuelles MVP. Centrer nombre répétitions ; sélection Mode coïncide avec contrôle externe. La valeur Figma `5 min 30 s`, lorsqu’elle apparaît, est illustrative et ne devient pas une valeur métier par défaut.
-
-Accès Catégorie/Zones : cercles/pilules34, dessins20, gaps12, cibles44 ; pastille renseignée26 ; bande de contexte115 inchangée. Silhouette issue du Profil, homme si non renseigné ; les cercles de démonstration ne créent pas un second réglage de Profil. Paramètres en retrait39 et modales12 conservés ; synthèse au-dessus du média en cas de chevauchement.
+Champ éditable de phrase sur la grille courante ; il grandit avec le texte. Badge Valeur modifiable : rayon 6, marges 8×2, 13 Semi Bold, contour 1,5 uniquement pendant édition. Les steppers remplacent la valeur numérique dans la phrase. Côté : trois segments égaux, labels sur deux lignes. Accès Catégorie/Zones 34, pictogramme 20, gap 12, cible 44 ; retrait de paramètres 39 sur référence 402. Aucun nom gras ni ancienne double rangée fixe de synthèse.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -485,11 +534,11 @@ Références 360/402/440. Formulaire scrollable ; synthèse/action restent acces
 
 ### 11. États de l’écran
 
-Création/modification ; état vide avec `Nom de l’exercice` ; états renseignés avec nom métier ; DURATION/REPS/FAILURE ; `Aucun` / `D→G` / `G→D` ; roulettes ouvertes ; Séries pilote ; Durée totale pilote ; message ajustement ; Description/Zone ouverts. ; sélection Zones corporelles ; création inline d’une Zone avec clavier.
+Sans mode ; trois modes ; unilatéral/D→G/G→D ; une/plusieurs Séries ; contrôle fermé/ouvert ; durée confirmée/annulée ; ajustement automatique ; référentiels sélectionnés/créés/supprimés ; brouillon modifié ; sauvegarde/erreur. Le changement de mode conserve les paramètres communs et restaure les valeurs propres au mode pendant l’édition.
 
 ### 12. Contrôles et interactions
 
-Tous les champs modifient le brouillon. Le champ Nom affiche la donnée du brouillon et non un libellé de démonstration. Roulettes de durée et steppers selon §4.6. `Terminer` est actif seulement si le brouillon est valide. Sans mode, les boutons sont visuellement désactivés à 40 % d’opacité sur `4217:6980` et `5088:6398`. Aucun bouton `Ajouter un média` n’est exposé dans l’éditeur courant. La modale `Zones corporelles` permet la sélection multiple, impose au moins une Zone pour valider un nouvel Exercice et autorise la création inline d’une nouvelle Zone ; la frame `4683:6336` matérialise l’état de saisie avec clavier. Le référentiel autorise aussi le renommage et la suppression d’une Zone ; ces deux opérations sont fonctionnellement requises mais ne disposent pas de frame dédiée dans le Prototype MVP.
+Tap badge ouvre son contrôle ; Séries/répétitions par stepper inline. Durée par Série, pauses et Durée totale par roulette Annuler/Confirmer. Compte à rebours/Fin propres utilisent les contrôles séparés de v10.2 (§7.2 bis pour le stepper de compte à rebours), sans entrer dans la phrase ni son total. Pause inter-Séries devient applicable à N>1, initialisée 5 s ; pause de côté devient applicable en bilatéral, initialisée depuis Profil. Terminer n’agit que sur brouillon valide. Catégorie/Zones : CE-UI-09 ; aucune action Ajouter un média.
 
 ### 13. Gestes
 
@@ -497,7 +546,7 @@ Tap, scroll, saisie ; pas de swipe métier ; haptique roulette par cran selon d�
 
 ### 14. Validation
 
-Nom requis ; exactement une Catégorie ; au moins une Zone corporelle ; mode valide ; cible selon mode ; Séries 1..99 ; Pause ≥0 ; `sideRecoverySeconds` ≥0 uniquement en bilatéral ; FAILURE sans cible chiffrée ; calculs D-208 ; règles de phrase et d’ajustement D-232. Le signe `>=` du libellé UI n’ajoute aucune nouvelle règle de calcul : il rend visible la borne déjà définie. Une nouvelle Zone corporelle exige un nom non vide et unique ; un renommage conserve l’identifiant ; une suppression utilisée demande confirmation, retire la valeur des choix futurs mais conserve les affectations existantes et ne modifie pas l’historique.
+Nom requis ; Catégorie exactement 1, Zones≥1 pour un nouvel Exercice, avec maintien des affectations retirées D-210 pour un objet existant. Séries 1..99 ; Répétitions 1..100 ; durée par Série 1..5999 s ; pauses 0..300 s, pas 5 s jusqu’à120 puis 30 s. À l’échec : aucune cible numérique. Durée totale inverse : N=min(99,max(1,arrondi((Tv−côté+k×pS)/(k×(d+pS))))) ; arrondi .5 vers le haut, conformément à la borne explicite D-232. Toast d’ajustement seulement si T(N)≠Tv. Capacité/format du sélecteur Total : réserve R-02 §6, ne pas confondre avec la borne de durée par Série.
 
 ### 15. Brouillon et persistance
 
@@ -517,17 +566,15 @@ Modes selected ; contrôles disabled annoncés ; wheel bloque focus arrière-pla
 
 ### 19. Invariants
 
-Aucun ajout/import de média dans l’éditeur ; nom gras Synthèse ; `Renforcement du genou` jamais statique ; `Nom de l’exercice` réservé à l’état vide/placeholder représenté ; Durée : clause Durée totale si plusieurs Séries ou changement de côté ; Répétitions = `Durée totale ≥ {estimation}` avec 2 s par répétition ; À l’échec = aucune Durée totale ; calcul intrinsèque conforme à D-208 avec `C−1` Pauses par côté et `sideRecoverySeconds` uniquement en bilatéral ; `postActivityRecoverySeconds` exclu ; ActivityDefinition distincte d’une SessionActivity.
+Phrase sans nom et sans mode intégré ; Durée totale en Durée si N>1 ou bilatéral ; Répétitions ≥ estimation à2 s/répétition ; À l’échec sans total numérique. C−1 pauses par côté ; une pause entre côtés ; aucune récupération post-occurrence intrinsèque. Compte à rebours/Fin propres exclus du total de la phrase. Aucun import média implicite.
 
 ### 20. Recette déterministe
 
-Créer/éditer trois modes, trois sideModes, état vide vs renseigné, vérifier absence de nom démo codé en dur, vérifier absence de phrase sans mode, absence de clause Durée totale en Durée avec une seule Série et `Aucun` changement de côté ; présence de cette clause avec une seule Série en bilatéral ; présence de `Durée totale ≥ {estimation}` en Répétitions à 2 s/répétition et aucune Durée totale en À l’échec ; vérifier `Pause au changement de côté` seulement en bilatéral, son exclusion en `Aucun`, les calculs D-208, les roues Annuler/Confirmer, l’échec DB, l’abandon, le responsive et le texte agrandi. Négatifs : `Renforcement du genou` statique, `Nom de l’exercice` sur état renseigné, ancienne formule D-156, récupération post-exercice dans `ActivityDefinition`, CTA wheel activable, média fonctionnel, nom non gras Synthèse.
-
-Vérifier silhouette homme/femme/défaut dans chaque état Catégorie/Zones, boutons34 et absence de chevauchement, animations Discret sur champs/steppers et Rebond sur Terminer ; paramètres métier inchangés.
+Tester trois modes, transition sans mode→mode et impossibilité de désélection, conservation/restauration des paramètres, N=1/2/99, répétitions 1/100, durées 1/5999, pauses 0/120/150/300, deux directions, defaults Profil copiés sans rétroaction. Vérifier phrase vide initiale, total conditionnel, calcul inverse borné et toast conditionnel. Tester sauvegarde valide, nom/référentiels manquants, affectation retirée conservée, annulation, erreur DB, clavier et texte agrandi. Négatifs : nom dans phrase, double rangée obsolète, récupération post-occurrence dans ActivityDefinition, bouton Terminer actif sans mode.
 
 ### 21. Traçabilité
 
-E12–E14/E30 → D-169/D-171/D-208 ; E41 → D-143..D-156 avec D-156 supersédée par D-208 ; E50–E57 → D-174/D-181/D-182 ; API-ACT-REF/API-ACT ; Figma actuel : `4217:6980`, `4279:7044`, `4734:6342`, `5088:6398`; références historiques non probantes : `3561:4695`, `3561:7673`, `3561:7802`, `3943:6064`.
+D-191/D-208–215/D-219/D-232 ; SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md ; DSF-V2-MOTIFS-LOT-3 T1–T6 et D-233–239 ; CE-UI-09 ; identification §1 et écarts §5.
 
 ---
 
@@ -535,7 +582,7 @@ E12–E14/E30 → D-169/D-171/D-208 ; E41 → D-143..D-156 avec D-156 superséd�
 
 ### 1. Identification
 
-Bloc B2 ; états S28–S33 ; T03-E E15–E18, E58–E62 ; pattern visuel de référence Séances `1992:10749`, `2234:88`, `1992:10848`, `2234:189`; aucun frame Activity-archives dédié actuellement.
+Cycle de vie Exercice ; carte archivée du composant 6214:7278, panneau 4168:11262. Patrons de Séance 2234:88 et 1992:10848 illustrent les actions, sans constituer une frame archive Exercice.2234:189 ne prouve pas son dialogue de suppression.
 
 ### 2. Finalité fonctionnelle
 
@@ -559,7 +606,7 @@ Nom/paramètres = dynamiques. Libellés Archiver/Restaurer/Supprimer/confirmatio
 
 ### 7. Structure de l’écran
 
-Vue Catalogue filtrée Archives ; cartes de définitions archivées ; actions cycle de vie ; confirmation destructive. Le panneau détaillé Filtrer reste visuellement non vérifiable.
+Catalogue filtré Archives, cartes archivées et actions de cycle de vie ; confirmation destructive centrée. Panneau Filtrer représenté par 4168:11262 ; variante archive du composant existante, écran complet archive non fourni.
 
 ### 8. Éléments obligatoires
 
@@ -571,7 +618,7 @@ Variante archivée : fond #F6F6F6, bord #D9D9D9 à0,5, même rayon/ombre ; Resta
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-360/402/440 ; cibles ≥44 (dimensions spécifiques48 conservées) ; liste scrollable ; aucun clavier de recherche.
+360/402/440 ; cibles ≥44 (dimensions spécifiques 48 conservées) ; liste scrollable ; aucun clavier de recherche.
 
 ### 11. États de l’écran
 
@@ -599,7 +646,7 @@ Filtre Archives et scroll conservés pendant la session courante. Après restaur
 
 ### 17. Erreurs et cas limites
 
-Échec écriture : ne pas masquer carte ; état visuel reflète stockage. Dernière archive supprimée/restaurée → état vide Archives. Définition déjà modifiée/supprimée → rafraîchir.
+Archivage avec Routines ACTIVITY : confirmation avant suppression des planifications futures ; Annuler ne modifie ni définition ni Routines. Suppression définitive depuis archives : aucune cascade vers les copies de Séance ou l’historique. Une erreur de transaction restaure la liste et l’état antérieur. La variante carte archivée existe sans écran complet dédié : limite de preuve acceptée.
 
 ### 18. Accessibilité
 
@@ -611,21 +658,19 @@ Suppression seulement Archives ; aucune suppression de SessionActivity, snapshot
 
 ### 20. Recette déterministe
 
-Archiver → disparition active ; Filtrer>Archivées ; Restaurer ; Supprimer/Annuler/Confirmer ; vérifier copies/historique ; erreur DB ; Archives vide ; responsive. Négatifs : suppression directe active, cascade, navigation Archives distincte du filtre.
+Archiver/restaurer/supprimer une définition non planifiée puis planifiée ; confirmer/annuler ; vérifier Routines futures retirées à l’archivage confirmé, copies et instantanés conservés. Restauration ne recrée pas les Routines supprimées. Vérifier double tap, échec atomique, filtre archives vide, absence Lecture dans l’état archivé.
 
 ### 21. Traçabilité
 
-E15–E18 → D-169/D-184 ; E58–E62 → D-175 ; modèle 09 ; API-ACT-REF/API-CAT-01 ; pattern Figma Séances cité.
+D-173/D-196/D-206/D-238 ; API-ACT-REF ; règles cycle de vie chapitre 08 §5.9 ; CE-T03-02/CE-UI-05. Variante archivée dans Carte exercice 6214:7278 ; absence d’écran complet dédiée acceptée.
 
 ---
-
-# 7. B3/B4 — Ajout depuis Composition et sélection multiple
 
 ## CE-T03-06 — Composition — `Ajouter un exercice` vers le Catalogue
 
 ### 1. Identification
 
-Bloc B3 ; parcours courant de Composition ; frame cible `3789:5349`. Les anciennes frames d’arbre `3788:5258` et `3933:5780` sont historiques/supersédées et ne constituent plus une cible d’implémentation.
+Action Ajouter un exercice dans Composition ; propriétaire de l’écran CE-T03-08 et de la modale CE-T03-07. Aucun arbre intermédiaire actif.
 
 ### 2. Finalité fonctionnelle
 
@@ -637,7 +682,7 @@ Tap `+ Ajouter un exercice` dans la Composition.
 
 ### 4. Contexte de sortie / destinations
 
-Ouverture directe de CE-T03-07 ; `Annuler` dans CE-T03-07 restitue la Composition inchangée.
+Ouvre CE-T03-07 au-dessus du brouillon courant. Fermer sans Sélectionner rend le même brouillon sans insertion.
 
 ### 5. Données affichées et source de vérité
 
@@ -685,7 +730,7 @@ Le brouillon de Composition est conservé. La capacité existante de création d
 
 ### 16. Navigation et conservation d’état
 
-`Annuler` depuis CE-T03-07 restitue Composition et scroll ; valider insère les copies puis revient à la Composition.
+Conserver ID de brouillon, point d’insertion et position de Composition pendant la modale. Retour annulation identique ; retour validé montre les nouvelles copies au point d’insertion.
 
 ### 17. Erreurs et cas limites
 
@@ -701,11 +746,11 @@ Aucun arbre intermédiaire ; aucune suppression du mécanisme technique de `Sess
 
 ### 20. Recette déterministe
 
-Vérifier l’ouverture directe de CE-T03-07 et l’absence de l’ancien arbre.
+Ouvrir/fermer sans sélection ; sélectionner une puis plusieurs définitions ; vérifier brouillon et ordre d’insertion ; aucune création persistante de Session avant Continuer ; aucune création locale exposée par cet enchaînement.
 
 ### 21. Traçabilité
 
-D-194 ; Figma `3789:5349` ; anciennes frames `3788:5258` / `3933:5780` historiques ; API-COMP-SEL.
+D-194/D-222 ; CE-T03-07/08 ; frames Composition 2028:11700 et sélection 3789:5349.
 
 ---
 
@@ -713,11 +758,11 @@ D-194 ; Figma `3789:5349` ; anciennes frames `3788:5258` / `3933:5780` historiqu
 
 ### 1. Identification
 
-Bloc B4 ; états S47–S54 ; T03-E E25–E31 ; frames `3789:5349`, `3789:5405`; preuve `ecran-14-selection-activites-existantes.png`.
+Modale Sélection des exercices depuis Composition ; frame 3789:5349. Le bouton Créer une activité résiduel de la capture n’appartient pas au parcours exposé D-194.
 
 ### 2. Finalité fonctionnelle
 
-Sélectionner 0..N ActivityDefinition et insérer des copies indépendantes dans l’ordre courant de la liste filtrée, jamais dans l’ordre des touchers.
+Choisir plusieurs définitions actives puis copier dans le brouillon de Séance selon leur ordre de liste, pas l’ordre des touchers.
 
 ### 3. Contexte d’entrée
 
@@ -725,11 +770,11 @@ Ouverture directe depuis `Ajouter un exercice` dans CE-T03-06.
 
 ### 4. Contexte de sortie / destinations
 
-Annuler → Composition sans mutation. Valider N>0 → insertion atomique puis CE-T03-08.
+Fermer/Annuler → Composition sans mutation ; Sélectionner avec N>0 → insertion groupée dans le brouillon puis CE-T03-08.
 
 ### 5. Données affichées et source de vérité
 
-Liste ActivityDefinition actives ; sélection = Set d’IDs en mémoire ; ordre final recalculé depuis liste visible filtrée au moment de validation.
+Définitions actives et ensemble d’IDs sélectionnés en mémoire. Ordre de la liste affichée, stable pendant la sélection. Aucun filtre/recherche supplémentaire n’est exposé par cette modale de référence ; les règles de filtres Catalogue ne créent pas ici un contrôle. Il n’existe donc pas de sélection cachée par un filtre local.
 
 ### 6. Classification des valeurs Figma
 
@@ -737,15 +782,15 @@ Noms/paramètres = dynamiques. Compteur = calculé. Libellés/actions = statique
 
 ### 7. Structure de l’écran
 
-Modale/liste, éventuels filtres déjà définis pour ce contexte, indicateurs de sélection, compteur, Annuler/Valider.
+Modale avec titre, fermeture, liste défilante, cases à cocher et compteur, CTA Sélectionner fixe. Pas de création locale exposée.
 
 ### 8. Éléments obligatoires
 
-Case arrondie20 vectorielle, titre15, pastilles20, valeurs16, compteur et Annuler ; validation désactivée à0. Aucun badge durée ni Lecture/Déployer. Sélection/non sélection/inactif selon palette DSF, pas de glyphe texte.
+Case 20, titre 15, pastilles 20, valeurs 16, compteur et Sélectionner désactivé à0. Aucun badge durée/heure, Lecture ou Déployer. Fermeture accessible dans l’en-tête.
 
 ### 9. Layout déterministe
 
-Cartes standard : largeur354 sur écran402, rayon8, fond #FCFCFE, bord intérieur0,5 #CCD1E0, titre15 Semi Bold ; classement pastilles20, valeurs nues16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo6354:16964. Les captures actualisées le30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Choix Composition354 × 91 ; texte tronqué à≥20 de la case, liste seule défilante ; actions fixes. Avec média d’exercice : vignette64 à12 du bord, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur254 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Badge durée/heure conservé selon contexte, catégorie conservée, pictogramme de zone retiré ; Déployer absent. Séance sans vignette (RG-3 reportée).
+Cartes standard : largeur 354 sur écran 402, rayon 8, fond #FCFCFE, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Choix Composition 354 × 91 ; texte tronqué à≥20 de la case, liste seule défilante ; actions fixes. Avec média d’exercice : vignette 64 à12 du bord, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur 254 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Aucun badge durée/heure dans ce choix, catégorie conservée, pictogramme de zone retiré ; Déployer absent. 
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -753,11 +798,11 @@ Cartes standard : largeur354 sur écran402, rayon8, fond #FCFCFE, bord intérieu
 
 ### 11. États de l’écran
 
-0 sélection ; 1 ; N ; liste filtrée ; Valider disabled/active ; retour après validation.
+Liste vide ; 0/1/N sélection ; Sélectionner désactivé/actif ; copie en cours ; erreur ; texte long et média chargé/indisponible.
 
 ### 12. Contrôles et interactions
 
-Tap ligne toggle ; filtre conserve les IDs sélectionnés ; Valider = une seule soumission ; Annuler = zéro mutation.
+Toucher ligne/case sélectionne ou désélectionne le même ID. Sélectionner produit une seule insertion groupée. Fermer annule toute sélection transitoire. Ni réordre ni filtre local ni action Créer un exercice ne sont ajoutés.
 
 ### 13. Gestes
 
@@ -765,11 +810,11 @@ Tap et scroll uniquement. Aucun drag/reorder.
 
 ### 14. Validation
 
-0 = disabled. N>0 = active. Avant insertion, ordonner IDs selon liste visible courante.
+N>0 et toutes définitions encore disponibles avant insertion. L’ordre final est l’ordre de liste des IDs sélectionnés. Une disparition invalide cette soumission, actualise sélection/compteur et demande une nouvelle validation explicite.
 
 ### 15. Brouillon et persistance
 
-Aucune SessionActivity avant validation. Insertion groupée atomique : toutes ou aucune.
+Les copies sont ajoutées atomiquement au brouillon de Composition ; aucune sauvegarde de Séance avant Continuer. Une erreur ne laisse aucune copie partielle. Les copies portent les paramètres intrinsèques ; leur récupération post-occurrence est initialisée depuis Profil.
 
 ### 16. Navigation et conservation d’état
 
@@ -781,48 +826,43 @@ Définition supprimée entre sélection et validation : la retirer/recalculer, e
 
 ### 18. Accessibilité
 
-Ligne annonce selected/non selected ; compteur lisible ; Valider disabled annoncé ; zone check ≥ cible accessible.
+Chaque ligne annonce nom/type et sélection ; cible case≥44 ; compteur annoncé après modification ; Sélectionner désactivé à0 ; focus captif dans modale, restitué au déclencheur à la fermeture.
 
 ### 19. Invariants
 
-Ordre liste filtrée, pas ordre tap ; copies indépendantes ; aucune synchronisation future ; validation vide impossible.
+Ordre liste et non touchers ; copies indépendantes ; zéro sélection interdit ; pas de copie fantôme ou partielle ; pas de synchronisation ultérieure à la définition source.
 
 ### 20. Recette déterministe
 
-Sélection B puis A alors que liste A/B → insertion A/B ; filtre avec sélection conservée ; 0 sélection ; rollback ; modifier source puis copie. Négatif : ordre taps, insertion partielle, lien dynamique.
-
-Vérifier sélection/non sélection/inactif, marge20, absence badge/actions, médias chargement/erreur et maintien de hauteur. 
+Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fermeture sans effet, double tap, suppression de source avant validation, rollback total, modification indépendante des copies. Vérifier aucun badge/lecture/déploiement/création/recherche/filtre local ; vignette, texte long, marge 20, clavier non requis.
 
 ### 21. Traçabilité
 
-E25–E31 → D-165/D-171 ; 09 ; `API-COMP-SEL-01..03`; Figma `3789:5349`, `3789:5405`.
-
+D-171/D-194/D-208/D-213/D-222/D-238 ; frame 3789:5349 ; CE-T03-08. Clarification dérivée : aucun filtre non représenté ajouté à cette modale.
 
 ---
 
-## CE-T03-08 — Composition après insertion et corrections UX
-
-> Mise à jour 24/09/2026 : le parcours exposé sélectionne les Exercices dans le Catalogue ; la capacité de création locale à la Séance reste conservée mais n’est pas proposée dans cet enchaînement. La Composition accepte aussi le Point d’arrêt, ainsi que les Compte à rebours / Fin propres aux Exercices.
+## CE-T03-08 — Composition d’une séance — brouillon, Circuit, points d’arrêt et validation
 
 ### 1. Identification
 
-Bloc B3/B9 ; états S37–S46 ; T03-E E31, E53, E58–E66 ; frames `2028:11700`, `2028:11808`, appui long `3518:4576`.
+Composition d’une séance : 2028:11137/11700/11808/12003,3518:4576,5271:5455. Points d’arrêt 3722:5061/4893:6675/5301:5443. Étiquette CE-T03-16 ; sélection CE-T03-07. Réglages 2028:11375/11457 ; limites de preuve §5.
 
 ### 2. Finalité fonctionnelle
 
-Afficher les copies insérées et appliquer directions courtes, swipe réel, gap Dupliquer et non-déplaçabilité des cartes structurelles.
+Créer/modifier le brouillon de Séance, son nom, son Étiquette facultative, ses occurrences avant/dans/après un Circuit, ses Tours et points d’arrêt ; valider une seule fois vers le Catalogue.
 
 ### 3. Contexte d’entrée
 
-Retour création SessionActivity, retour CE-T03-07 ou ouverture d’une Composition existante.
+Créer depuis Catalogues/Séances, ouvrir une Séance existante, revenir de sélection/édition d’Exercice ou d’Étiquette. La modification part d’une copie de travail de la Séance.
 
 ### 4. Contexte de sortie / destinations
 
-Tap Activity → éditeur ; long press Activity → déplacement ; swipe → actions ; Continuer → Catégories.
+Exercice → éditeur de copie locale ; Ajouter un exercice → CE-T03-07 ; Étiquette → CE-T03-16 ; Continuer valide/enregistre → CE-T03-01 segment Séances. Retour avec changements → confirmation d’abandon 2028:11298 ; abandon confirmé détruit le brouillon seul.
 
 ### 5. Données affichées et source de vérité
 
-Draft Session. Direction propre de l’Exercice : D→G/G→D ; rien avec `Aucun`. Aucun changement de côté n’est exposé au niveau Tour.
+Brouillon Session et occurrences indépendantes. Nom ; étiquette 0..1 ; compte à rebours initial ; Fin de séance ; Circuit unique/Tours 1..99 ; phases propres activées par un booléen global true par défaut. postActivityRecoverySeconds appartient à chaque occurrence, initialisé depuis Profil et conservé au déplacement/duplication ; aucune récupération sur la définition Catalogue.
 
 ### 6. Classification des valeurs Figma
 
@@ -830,15 +870,15 @@ Noms/paramètres = dynamiques ; titres structurels = statiques ; positions de ca
 
 ### 7. Structure de l’écran
 
-CR initial → exercices / Points d’arrêt avant Tour → Tour → exercices / Points d’arrêt après Tour → Fin séance. Actions contextualisées derrière Activity.
+Nom/contexte de Séance, Étiquette et actions → compte à rebours initial → occurrences/points avant Circuit → Circuit répété en Tours avec occurrences/points internes → occurrences/points après Circuit → Fin de séance → Continuer. Aucun Cycle visible ni étape finale Catégories.
 
 ### 8. Éléments obligatoires
 
-CR/Fin sans poignée, Tour structurel conservé ; cartes d’exercice sans pause/récupération affichée, classement puis synthèse compacte. Aucun contrôle de changement de côté au niveau Tour. La bilatéralité de carte ne modifie ni direction ni Indicator / Sides.
+Compte à rebours/Fin non déplaçables ; Circuit unique sans changement de côté ; Tours par stepper. Cartes sans pause/récupération affichée. Réglage global D-214 applique/ignore ensemble les deux phases propres ; son emplacement graphique n’est pas représenté dans les captures contrôlées : réserve V-04, pas de composant inventé.
 
 ### 9. Layout déterministe
 
-Swipe : déplacement réel, gap et Dupliquer selon référence. Occurrence et récupération restent solidaires dans les données ; aucune ligne Récupération affichée. Commandes contextuelles34/dessin20/gap10/cibles44 dans bande32, durée immobile et actions à droite6 plus bas.
+Swipe : déplacement réel, gap et Dupliquer selon référence. Occurrence et récupération restent solidaires dans les données ; aucune ligne Récupération affichée. Commandes contextuelles 34/dessin 20/gap 10/cibles 44 dans bande 32, durée immobile et actions à droite 6 plus bas.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -846,60 +886,55 @@ Swipe : déplacement réel, gap et Dupliquer selon référence. Occurrence et r�
 
 ### 11. États de l’écran
 
-Normal ; D→G ; G→D ; swipe progressif ; swipe ouvert ; drag Activity ; roue CR ; roue Fin.
+Création vide ; nom saisi ; composition valide/invalide ; édition ; Étiquette sélectionnée/absente ; glissé ; déplacement ; réglage initial/fin ; placement point d’arrêt ; bulle Retirer ; abandon ; sauvegarde/erreur.
 
 ### 12. Contrôles et interactions
 
-Activity tap/long press/swipe. CR/Fin : réglage uniquement, jamais déplacement. Roulettes §4.6.
+Modifier les champs dans le brouillon. Réordonner une occurrence avec sa récupération ; dupliquer copie les paramètres ; retirer supprime occurrence et récupération associée. Point d’arrêt : entrer en placement, choisir une position valide ; appui long sur point ouvre Retirer, tap hors bulle ferme sans suppression. Le booléen global D-214 ne modifie pas les valeurs propres enregistrées des Exercices.
 
 ### 13. Gestes
 
-Swipe §4.7 ; long press seulement Activity ; drag avec drop valide ; aucun long press CR/Fin.
+Swipe §4.7 sur occurrence ; appui long/déplacement des occurrences ; placement et retrait des points d’arrêt D-217. Aucun déplacement du compte à rebours initial ni de la Fin. Aucun réglage de côté du Circuit.
 
 ### 14. Validation
 
-Continuer dépend validité Composition. Drop invalide n’écrit rien. Actions contextuelles n’agissent qu’après sélection explicite.
+Continuer exige nom et au moins un Exercice valide ; Étiquette facultative. Point d’arrêt interdit juste après le compte à rebours initial et juste avant Fin de séance ; autorisé avant/après Circuit et entre ses Exercices. Drop invalide restaure la position initiale. Les affectations de référentiels retirées restent valides D-210.
 
 ### 15. Brouillon et persistance
 
-Réordre au drop ; duplication indépendante ; roues confirmées seulement ; aucun effet swipe seul.
+Toutes les opérations modifient le brouillon ; Continuer seul enregistre Session+Composition atomiquement. Une dépose ou confirmation de roulette n’écrit pas le modèle enregistré. Abandon restaure la version antérieure. Des brouillons techniques ne sont pas des Séances de Catalogue.
 
 ### 16. Navigation et conservation d’état
 
-Retour sous-parcours conserve draft et scroll. Continuer → Catégories via transition canonique.
+Sous-parcours : conserver brouillon, insertion et scroll. Continuer succès → Catalogues/Séances avec transition canonique ; aucune page Catégories. Échec : rester, brouillon intact, action réactivée.
 
 ### 17. Erreurs et cas limites
 
-Swipe sous seuil → fermé ; drop invalide → position d’origine ; erreur duplication → aucun duplicat partiel.
+Drop invalide ; liste vide ; source disparue ; doublon de soumission ; échec de transaction ; point d’arrêt à frontière interdite : aucune mutation partielle. Les anciennes Séances incomplètes peuvent être ouvertes, mais ne deviennent exécutables qu’après correction.
 
 ### 18. Accessibilité
 
-CR/Fin n’exposent pas Déplacer ; direction accessible développée ; actions de swipe ont équivalents accessibles ; focus cohérent.
+Nom des occurrences et côté développés pour lecteur d’écran. Compte à rebours/Fin sans action Déplacer. Actions accessibles équivalentes au swipe/drag ; position de point annoncée et confirmation de retrait accessible ; état du réglage global annoncé quand son rendu est spécifié.
 
 ### 19. Invariants
 
-CR/Fin non déplaçables ; une seule carte swipe ouverte ; pas de texte développé direction dans carte ; gap Tour visible.
+Circuit=groupe, Tour=répétition, Parcours=objet autonome hors MVP. Un point interne s’exécute à chaque Tour ; ordre occurrence→récupération→point→suite ; attente exclue des durées. Pas de récupération visible sur carte, donnée conservée ; pas d’écriture avant Continuer.
 
 ### 20. Recette déterministe
 
-Drag Activity oui ; CR/Fin non ; swipe progressif/ouvert/fermeture droite ; tap fond sans effet ; Dupliquer gap/rayon ; directions ; roues ; responsive. Négatifs : poignée structurelle, overlay immobile, tap fond ferme contexte.
-
-Vérifier aucun texte Pause/Récupération sur les cartes pour valeurs0 et>0 ; duplication/déplacement conservent les données de récupération et les durées calculées. Commandes34/gap10 sans chevauchement.
+Créer/éditer/abandonner après nom, insertion, réordre, duplication, Étiquette, roulette et point d’arrêt ; vérifier aucune écriture avant Continuer. Tester sauvegarde atomique/double tap/erreur ; Tours 1/99 ; points avant/après/dans Circuit et frontières interdites ; retrait/fermeture hors bulle ; récupération attachée conservée ; D-214 on/off sans modifier les paramètres propres. Vérifier cible graphique séparément pour V-04.
 
 ### 21. Traçabilité
 
-E53 → D-154/D-182 ; E58–E63 → D-175/D-176 ; E64–E66 → D-177 ; Figma `2028:11700`, `2028:11808`, `3518:4576`.
-
+D-188–194/D-208–214/D-217/D-222/D-238 ; CE-T03-06/07/16, CE-EXEC-SESSION-01 ; frames§1 ; prescriptions de brouillon du chapitre 06 et décisions actives priment sur l’ancienne autosauvegarde de Composition.
 
 ---
-
-# 8. B5 — Exécution directe
 
 ## CE-T03-09 — Lancement direct et préparation fixe 5 s
 
 ### 1. Identification
 
-Bloc B5 ; état S55 ; T03-E E32, E37–E39, E42 ; source Catalogue `3786:5093`; preuve `ecran-16-preparation-directe-5-s.png`; Shell Execution partagé.
+Préparation de l’Exécution ACTIVITY, état du shell partagé ; aucune ancienne page autonome « écran 16 ». Frame courante 4968:8188 pour la structure, pas une preuve de préparation 5 s.
 
 ### 2. Finalité fonctionnelle
 
@@ -907,11 +942,11 @@ Lancer une Exécution `ACTIVITY` autonome depuis Lecture, avec snapshot immuable
 
 ### 3. Contexte d’entrée
 
-Tap Lecture sur ActivityDefinition valide dans CE-T03-02.
+Lecture d’un Exercice valide du Catalogue ou d’une occurrence Calendrier ACTIVITY. Conserver contexte appelant et identifiant d’occurrence le cas échéant.
 
 ### 4. Contexte de sortie / destinations
 
-Fin préparation → CE-T03-10/11/12 selon mode/direction. Échec initialisation → Catalogue.
+Après préparation fixe 5 s → compte à rebours propre applicable → première Série. Arrêt volontaire uniquement via pause/confirmation ; finalisation selon CE-T03-13/14.
 
 ### 5. Données affichées et source de vérité
 
@@ -923,11 +958,11 @@ Nom = dynamique ; 5 s = règle statique système ; autres exemples = démonstrat
 
 ### 7. Structure de l’écran
 
-Shell Execution ; zone nom/contexte ; compte à rebours préparation ; aucun Tour/Cycle/Séance.
+Shell Exécution, nom Exercice et Catégorie, décompte de préparation ; aucune Séance/Tour/Cycle.
 
 ### 8. Éléments obligatoires
 
-Préparation 5 ; nom Activity ; aucune notion SESSION_END ; commandes seulement si prévues par Shell direct.
+Préparation 5 s, nom Exercice, Catégorie, état de suspension ; Pause/Reprendre et accès Arrêter depuis Pause selon§4.12. Réinitialiser/Suivant pendant cette phase système ne sautent pas la préparation.
 
 ### 9. Layout déterministe
 
@@ -935,7 +970,7 @@ Réutiliser Shell existant, ne pas créer un écran Session factice. Le compte �
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-360/402/440 ; pas de scroll/clavier ; texte centré non tronqué ; Safe Area Shell.
+360/402/440 et Safe Areas ; pas de clavier ; commandes visibles à taille standard et atteignables par scroll si texte agrandi.
 
 ### 11. États de l’écran
 
@@ -943,7 +978,7 @@ Initial 5 ; 4..1 ; 0/transit ; erreur initialisation.
 
 ### 12. Contrôles et interactions
 
-Aucune action ne crée une Session. Les commandes présentes suivent moteur commun uniquement.
+Pause suspend le décompte, Reprendre reprend le restant ; Arrêter depuis Pause suit confirmation. Aucun tap ne crée de Session ni une seconde Exécution. Commandes propres à une Série ne sont pas des commandes de la préparation.
 
 ### 13. Gestes
 
@@ -959,7 +994,7 @@ Création atomique Execution + snapshot ; origin ACTIVITY ; état Catalogue de r
 
 ### 16. Navigation et conservation d’état
 
-Sortie finale reviendra au Catalogue avec son état. Pas de navigation vers un écran Session.
+Conserver le contexte d’entrée jusqu’à la Synthèse ; démarrage crée un instantané autonome, aucune Séance artificielle. Retour après finalisation selon §4.12.
 
 ### 17. Erreurs et cas limites
 
@@ -975,22 +1010,19 @@ Décompte annoncé selon guidage ; aucun label Tour/Séance ; nom accessible.
 
 ### 20. Recette déterministe
 
-Vérifier 5 s, snapshot, origin, source supprimée après lancement, absence Session/Tour/Cycle. Négatif : utiliser countdown Session configurable.
+Tester Catalogue et Calendrier, source invalide/disparue, préparation exactement 5 s, compte à rebours propre 0/>0, absence de Tour/Cycle/SESSION_END, interruption et double démarrage ; vérifier instantané immuable et rattachement d’occurrence.
 
 ### 21. Traçabilité
 
-E37–E39/E42 → D-157/D-172/D-180 ; 09 ; API-ACT-EXE-01/02.
-
+D-172/D-191/D-208/D-209/D-214/D-220 ; règles communes §4.12 ; médias CE-MEDIA-EXEC-01/02 ; Synthèse CE-T03-14 ; frame directe 4968:8188 et variantes média 4997:6113/5588:4363/5009:6069/5021:5994/5581:4257. Leur Tour résiduel ne valide aucun Circuit en ACTIVITY. Préparation et variantes sans frame propre : preuve partagée, pas ancien écran numéroté.
 
 ---
 
 ## CE-T03-10 — Exécution directe — Durée unilatérale
 
-> Standard typographique d’Exécution : contenu = Roboto Condensed ; titre supérieur et dialogues = Inter. Pour l’Exécution de Séance, le layout courant regroupe chrono circulaire, côté, cible `Sur`, Série/Tour, progression segmentée et bloc `Temps écoulé / À suivre`.
-
 ### 1. Identification
 
-Bloc B5 ; état S56 ; T03-E E37–E43 ; Shell visuel `1992:8132` adapté ; preuve `ecran-17-execution-directe-en-cours.png`.
+Exécution ACTIVITY en Durée unilatérale ; frame 4968:8188, contexte de données unilatéral ; pas d’ancien écran 17 autonome.
 
 ### 2. Finalité fonctionnelle
 
@@ -1002,7 +1034,7 @@ Fin CE-T03-09 ; mode DURATION ; sideMode UNILATERAL.
 
 ### 4. Contexte de sortie / destinations
 
-Série suivante / Pause / Récupération ; dernière phase → CE-T03-13.
+Fin Série → pause inter-Séries seulement s’il reste une Série, sinon Fin d’exercice propre applicable → CE-T03-13. Aucune récupération de côté en unilatéral, aucune récupération post-occurrence en direct.
 
 ### 5. Données affichées et source de vérité
 
@@ -1014,11 +1046,11 @@ Nom/temps/série = dynamiques ; commandes = statiques ; exemples = démonstratio
 
 ### 7. Structure de l’écran
 
-Shell Execution, informations Activity, timer, série, commandes moteur. Pas d’information Tour/Cycle.
+Nom Exercice → Catégorie → chrono courant et Série → commandes du shell ; côté absent ; Tour/Cycle absents ; média conditionnel.
 
 ### 8. Éléments obligatoires
 
-Nom ; timer ; série si C>1 ; Pause entre Séries selon plan ; commandes pause/réinit/suivant selon moteur commun. Aucune récupération post-exercice.
+Compte à rebours de Série ; numéro/total de Séries ; temps total actif ; Catégorie sous le nom ; commandes Réinitialiser, Pause, Suivant et son/vocal ; mode et unité non ambigus.
 
 ### 9. Layout déterministe
 
@@ -1030,11 +1062,11 @@ Réutiliser groupes visuels du Shell ; supprimer plutôt que remplacer par valeu
 
 ### 11. États de l’écran
 
-Série active ; Pause série ; Récupération ; Pause utilisateur ; reprise ; réinitialisation.
+Préparation/compte à rebours propre ; Série active ; pause inter-Séries ; pause utilisateur ; confirmation saut/reset ; Fin propre ; fin/interruption ; média éventuel. Pas de phase récupération unilatérale.
 
 ### 12. Contrôles et interactions
 
-Pause/reprise ; réinitialiser étape ; passage anticipé chronométré avec confirmation existante ; suivi automatique timer.
+Réinitialiser et Suivant selon table§4.12 ; Pause suspend les horloges actives ; terminer volontairement depuis Pause. Confirmation saut avant zéro produit le résultat partiel correspondant.
 
 ### 13. Gestes
 
@@ -1066,12 +1098,11 @@ Aucun Tour/Cycle/SESSION_END ; calculs existants inchangés.
 
 ### 20. Recette déterministe
 
-C=1/N ; exactement C−1 Pauses ; aucune récupération en unilatéral ; reset ; passage anticipé ; pause/reprise ; background. Négatifs : `POST_ACTIVITY_RECOVERY`, Tour/Cycle/SESSION_END, relecture source modifiée.
+Durée 1 s et plusieurs Séries avec pause 0/>0 ; fin naturelle, saut anticipé confirmé/annulé, reset, pause/reprise/arrêt, Fin propre 0/>0 ; aucun Tour/Cycle/récupération post-occurrence. Vérifier Catégorie, chrono et conservation du temps global après reset.
 
 ### 21. Traçabilité
 
-E40/E43 → D-139/D-140/D-172/D-208 ; API-ACT-EXE-03 ; modèle Execution.
-
+D-172/D-191/D-208/D-209/D-214/D-220 ; règles communes §4.12 ; médias CE-MEDIA-EXEC-01/02 ; Synthèse CE-T03-14 ; frame directe 4968:8188 et variantes média 4997:6113/5588:4363/5009:6069/5021:5994/5581:4257. Leur Tour résiduel ne valide aucun Circuit en ACTIVITY. Préparation et variantes sans frame propre : preuve partagée, pas ancien écran numéroté.
 
 ---
 
@@ -1103,11 +1134,11 @@ Cibles REPS = dynamiques ; absence de cible Failure = règle métier ; exemples 
 
 ### 7. Structure de l’écran
 
-Shell Execution avec variante de contenu adaptée au mode, commandes communes.
+Shell Exécution : nom, Catégorie, côté si applicable, numéro de Série, cible de répétitions ou À l’échec, chronomètre croissant et commandes ; Tour/Cycle absents.
 
 ### 8. Éléments obligatoires
 
-REPS : nombre cible ; Failure : libellé mode sans nombre cible ; Série ; Suivant ; Pause entre Séries ; `SIDE_RECOVERY` uniquement si l’Exercice est bilatéral et configurée ; jamais de post-récupération.
+Chronomètre courant initial 00:00, cible Répétitions inchangée par reset, aucune cible chiffrée en À l’échec. Suivant termine normalement la Série ; Catégorie toujours sous le nom.
 
 ### 9. Layout déterministe
 
@@ -1119,11 +1150,11 @@ Même architecture visuelle que CE-T03-10 ; ne jamais combler un espace Failure 
 
 ### 11. États de l’écran
 
-REPS série ; FAILURE série ; Pause ; `SIDE_RECOVERY` éventuelle entre côtés ; série suivante ; fin.
+Série Répétitions/À l’échec ; pause inter-Séries ; côté suivant via CE-T03-12 ; pause utilisateur ; fin propre ; résultat terminé/interrompu.
 
 ### 12. Contrôles et interactions
 
-Suivant termine normalement Série sans confirmation anticipée ; pause/reprise/reset selon moteur.
+Suivant valide normalement la Série sans confirmation de saut chronométré, puis applique pause/Série/côté/Fin propre selon plan. Réinitialiser remet le chronomètre courant 00:00 sans changer cible ni temps total déjà écoulé ; portée bilatérale spécifique §4.12.
 
 ### 13. Gestes
 
@@ -1155,11 +1186,11 @@ Failure sans cible ; Suivant normal ; aucune confirmation chronométrée ; pas S
 
 ### 20. Recette déterministe
 
-REPS/Failure C=1/N ; Pauses/Récup ; double tap ; absence confirmation ; absence durée fictive. Négatif : minuterie cible Failure ou cible répétitions Failure.
+Deux modes, N=1/N>1, cible 1/100, reset après temps écoulé, Suivant sans dialogue, pauses 0/>0, changement de côté et Fin propre. Aucun total cible inventé pour À l’échec ; aucun Tour/Cycle ni récupération post-occurrence.
 
 ### 21. Traçabilité
 
-D-111/D-139/D-172 ; API-ACT-EXE ; règles mode chapitre 10.
+D-172/D-191/D-208/D-209/D-214/D-220 ; règles communes §4.12 ; médias CE-MEDIA-EXEC-01/02 ; Synthèse CE-T03-14 ; frame directe 4968:8188 et variantes média 4997:6113/5588:4363/5009:6069/5021:5994/5581:4257. Leur Tour résiduel ne valide aucun Circuit en ACTIVITY. Préparation et variantes sans frame propre : preuve partagée, pas ancien écran numéroté.
 
 ---
 
@@ -1171,7 +1202,7 @@ Bloc B5 ; états S59–S62 ; T03-E E40–E41 ; Shell Execution ; sous-titre côt
 
 ### 2. Finalité fonctionnelle
 
-Exécuter RIGHT_LEFT ou LEFT_RIGHT exactement selon règles existantes : toutes Séries premier côté, puis toutes second, Récupération une fois après tous les côtés d’un Exercice autonome.
+Exécuter toutes les Séries du premier côté, une pause au changement de côté éventuelle, puis toutes celles du second ; aucun postActivityRecoverySeconds en ACTIVITY.
 
 ### 3. Contexte d’entrée
 
@@ -1179,7 +1210,7 @@ Après préparation d’un snapshot bilatéral.
 
 ### 4. Contexte de sortie / destinations
 
-Séries/Pauses premier côté → second côté → Séries/Pauses second → Récupération éventuelle → CE-T03-13.
+Séries/pauses premier côté → SIDE_RECOVERY si positive → Séries/pauses second → Fin propre applicable → CE-T03-13.
 
 ### 5. Données affichées et source de vérité
 
@@ -1199,7 +1230,7 @@ Sous-titre côté ; aucun `1/2`/`2/2`; même rang logique Activity entre côtés
 
 ### 9. Layout déterministe
 
-Sous-titre côté sous nom, centré selon Shell. Ne pas ajouter un bloc latéral ou une nouvelle jauge.
+Nom puis Catégorie, et ligne Côté droit/gauche distincte du contexte ; aucun compteur 1/2 ou 2/2. Pas de Tour en direct ; dimensions du shell courant.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -1211,7 +1242,7 @@ Premier côté ; Pause intra-côté ; pause au changement de côté éventuelle 
 
 ### 12. Contrôles et interactions
 
-Réinitialiser = côté courant seulement ; passage anticipé premier côté selon D-150 conserve partiel puis ouvre second ; commandes communes.
+Ordre D→G/G→D strict. Réinitialiser ne touche que le côté courant et conserve l’autre résultat. Passage anticipé du premier côté : résultat partiel conservé, second côté selon D-150 ; traitement de SIDE_RECOVERY lors de ce saut explicitement réservé R-03, aucune omission silencieuse.
 
 ### 13. Gestes
 
@@ -1219,7 +1250,7 @@ Tap commandes uniquement.
 
 ### 14. Validation
 
-Aucune Pause ajoutée entre côtés. Ordre sideMode strict. Une pause au changement de côté éventuelle peut intervenir avant le second côté ; aucune récupération post-exercice en Exécution directe.
+Pause inter-Séries C−1 par côté ; SIDE_RECOVERY une seule fois entre côtés si positive ; aucune récupération après le second côté en direct. Valeur 0 saute immédiatement la phase.
 
 ### 15. Brouillon et persistance
 
@@ -1239,15 +1270,15 @@ Annonce vocale côté au début et au changement selon règles ; label accessibl
 
 ### 19. Invariants
 
-Toutes Séries d’un côté avant autre ; pas alternance série par série ; pas Pause inter-côté ajoutée ; Recovery autonome une fois après second.
+Toutes Séries d’un côté avant l’autre ; une seule pause entre côtés ; aucune récupération post-occurrence ACTIVITY ; résultats séparés par côté ; rang logique Exercice inchangé.
 
 ### 20. Recette déterministe
 
-D→G/G→D, C=1/N, R=0/>0, skip premier côté, reset second, interruption/reprise, résultats historiques. Négatifs : alternance, Recovery par côté autonome, Pause artificielle entre côtés.
+D→G/G→D, C=1/2/99, pause inter-Séries 0/>0, SIDE_RECOVERY0/>0, reset second préservant premier, interruption pendant SIDE_RECOVERY, absence de récupération après second. Saut anticipé : réserve R-03 identifiée dans la recette, pas déclaré validé.
 
 ### 21. Traçabilité
 
-E41 → D-143..D-150/D-172/D-208 ; API-SIDE/API-ACT-EXE ; executionSide modèle 09.
+D-172/D-191/D-208/D-209/D-214/D-220 ; règles communes §4.12 ; médias CE-MEDIA-EXEC-01/02 ; Synthèse CE-T03-14 ; frame directe 4968:8188 et variantes média 4997:6113/5588:4363/5009:6069/5021:5994/5581:4257. Leur Tour résiduel ne valide aucun Circuit en ACTIVITY. Préparation et variantes sans frame propre : preuve partagée, pas ancien écran numéroté.
 
 ---
 
@@ -1263,15 +1294,15 @@ Clore l’Execution ACTIVITY immédiatement après sa dernière phase métier et
 
 ### 3. Contexte d’entrée
 
-Dernière Série ou Récupération terminée ; arrêt volontaire ; interruption technique.
+Dernière Série/côté puis Fin propre achevée, ou arrêt volontaire/interruption technique depuis une phase en cours.
 
 ### 4. Contexte de sortie / destinations
 
-Fin normale → signal → CE-T03-14 ; arrêt volontaire confirmé → Execution Interrompue puis Synthèse selon règle ; interruption technique peut rester sans Synthèse si règle existante.
+Fin de la dernière Série/côté puis Fin propre applicable → signal de fin → CE-T03-14. Arrêt volontaire confirmé → Synthèse Interrompue ; interruption technique sans présentation possible → historique Interrompue sans Ressenti autorisé.
 
 ### 5. Données affichées et source de vérité
 
-Statut, temps, résultats depuis Execution/snapshot. Aucun objet Session.
+État moteur, résultats par Série/côté/phase et instantané ACTIVITY ; total actif exclut pauses utilisateur et attente de point d’arrêt le cas échéant. Instantané figé au départ ; Ressenti/Commentaire finalisés séparément.
 
 ### 6. Classification des valeurs Figma
 
@@ -1279,11 +1310,11 @@ Statut/temps = dynamiques ; libellés confirmation = statiques ; aucune valeur d
 
 ### 7. Structure de l’écran
 
-Commandes/modales communes d’arrêt si utilisées ; transition de fin ; aucun composant SESSION_END.
+Commandes et dialogue d’arrêt selon§4.12 ; transition de fin vers Synthèse ; aucun composant SESSION_END.
 
 ### 8. Éléments obligatoires
 
-Signal de fin ; persistance statut ; destination Synthèse si applicable ; mécanisme de reprise technique existant.
+Signal de fin, statut persisté, Synthèse sur fin normale/arrêt volontaire ; interruption technique sans Synthèse seulement si présentation impossible.
 
 ### 9. Layout déterministe
 
@@ -1295,11 +1326,11 @@ Selon Shell Execution et dialogue commun ; 360/402/440.
 
 ### 11. États de l’écran
 
-Fin normale ; arrêt volontaire avant confirmation ; arrêt confirmé ; interruption technique ; reprise.
+Fin naturelle, fin partielle, arrêt confirmé/annulé, interruption technique, fin propre, Synthèse en attente de finalisation.
 
 ### 12. Contrôles et interactions
 
-Arrêt uniquement selon règles moteur communes ; confirmation existante ; aucune action SESSION_END.
+Pause puis Arrêter ouvre confirmation ; Annuler reprend l’état suspendu ; confirmer clôt une seule Exécution et présente Synthèse si possible. Aucun bouton Retour ne remplace l’arrêt confirmé.
 
 ### 13. Gestes
 
@@ -1315,7 +1346,7 @@ Sauvegarder Execution/results avant navigation ; ne pas perdre résultats en cas
 
 ### 16. Navigation et conservation d’état
 
-Synthèse puis Terminer → Catalogue exercices avec état aller-retour. Relaunch ultérieur ne restaure pas ce contexte UI.
+Conserver contexte Catalogue/Calendrier jusqu’à CE-T03-14. Aucun retour automatique qui contourne Ressenti lorsque la Synthèse est présentée.
 
 ### 17. Erreurs et cas limites
 
@@ -1331,25 +1362,23 @@ Aucun SESSION_END ; aucun Session count ; origin ACTIVITY intact.
 
 ### 20. Recette déterministe
 
-Fin avec/sans Recovery, arrêt, interruption, idempotence, retour état Catalogue, relaunch. Négatif : création phase SESSION_END ou Session artificielle.
+Fin 0/>0 ; plan terminé/partiel ; arrêt depuis Pause confirmé/annulé ; interruption technique sans Synthèse ; clôture idempotente et aucune duplication historique ; retour par contexte après Enregistrer.
 
 ### 21. Traçabilité
 
-E43/E44/E49 → D-158..D-163/D-172 ; API-ACT-EXE-04/05 ; modèle Execution.
+D-172/D-191/D-208/D-209/D-214/D-220 ; règles communes §4.12 ; médias CE-MEDIA-EXEC-01/02 ; Synthèse CE-T03-14 ; frame directe 4968:8188 et variantes média 4997:6113/5588:4363/5009:6069/5021:5994/5581:4257. Leur Tour résiduel ne valide aucun Circuit en ACTIVITY. Préparation et variantes sans frame propre : preuve partagée, pas ancien écran numéroté.
 
 ---
-
-# 9. B6 — Synthèse Exercice
 
 ## CE-T03-14 — Synthèse d’Exécution directe
 
 ### 1. Identification
 
-Bloc B6 ; états S66–S70 ; T03-E E44–E46, E49 ; frames structure `1992:8718`, `1992:8780`; preuves `CE-ACT-EXE-04/05`.
+Synthèse ACTIVITY : 4968:8055 (initial),4968:8105 (Ressenti sélectionné). Pour SESSION voir CE-UI-08 ; ne pas utiliser les frames Séance comme seule preuve directe.
 
 ### 2. Finalité fonctionnelle
 
-Collecter Ressenti obligatoire et Commentaire facultatif avant finalisation UI et retour Catalogue.
+Collecter Ressenti obligatoire et Commentaire facultatif avant finalisation UI et retour au contexte appelant.
 
 ### 3. Contexte d’entrée
 
@@ -1357,11 +1386,11 @@ Fin normale ou arrêt volontaire donnant lieu à Synthèse.
 
 ### 4. Contexte de sortie / destinations
 
-Terminer, après Ressenti, sauvegarde puis CE-T03-02 restauré.
+Enregistrer avec Ressenti valide sauvegarde puis restaure le Catalogue ou le Calendrier appelant selon§16.
 
 ### 5. Données affichées et source de vérité
 
-Snapshot/results ACTIVITY ; Ressenti draft ; Commentaire 0..200.
+Instantané Exercice, statut et durée réelle issus de l’Exécution ACTIVITY ; Ressenti et Commentaire issus du brouillon de finalisation. Les statistiques ne comptent pas de Séance. Les résultats partiels sont conservés sans inventer un compteur de Tours.
 
 ### 6. Classification des valeurs Figma
 
@@ -1369,11 +1398,11 @@ Nom/durée/résultats = dynamiques ; options Ressenti = statiques ; commentaire 
 
 ### 7. Structure de l’écran
 
-Shell Summary ; résumé Execution ; choix Ressenti ; Commentaire ; CTA Terminer.
+Shell Summary ; résumé Execution ; choix Ressenti ; Commentaire ; CTA Enregistrer.
 
 ### 8. Éléments obligatoires
 
-Type/nom Activity ; données pertinentes uniquement ; Ressenti ; Commentaire ; Terminer disabled/active selon validation.
+Nom Exercice, statut, durée réalisée, trois options de Ressenti, indication obligatoire, Commentaire facultatif limité 200 caractères, Enregistrer. Pas de Tours/Cycles ni de Relancer.
 
 ### 9. Layout déterministe
 
@@ -1389,7 +1418,7 @@ Ressenti vide ; Ressenti sélectionné ; commentaire vide ; commentaire renseign
 
 ### 12. Contrôles et interactions
 
-Ressenti exclusif ; champ commentaire ; Terminer disabled jusqu’à Ressenti ; protection double tap.
+Sélectionner un Ressenti active Enregistrer ; modifier le Commentaire ne change aucun résultat moteur. Enregistrer finalise une fois. Aucune sortie normale ne contourne Ressenti.
 
 ### 13. Gestes
 
@@ -1397,19 +1426,19 @@ Tap et saisie/scroll. Aucun swipe métier.
 
 ### 14. Validation
 
-Ressenti requis ; Commentaire ≤200 ; Terminer impossible sans Ressenti.
+Ressenti obligatoire dès présentation de Synthèse, même Interrompue ; Commentaire≤200 caractères. Au-delà, ne pas enregistrer : conserver la saisie et signaler la limite ; validation serveur/service identique. Pas de suppression silencieuse du commentaire.
 
 ### 15. Brouillon et persistance
 
-Ressenti/commentaire liés à Execution ; sauvegarde atomique à Terminer ; saisie conservée en cas d’échec.
+Résultats et instantané moteur conservés ; seule la finalisation Ressenti/Commentaire est modifiable avant Enregistrer. Écriture atomique et idempotente ; erreur conserve brouillon et écran.
 
 ### 16. Navigation et conservation d’état
 
-Succès → état Catalogue mémorisé ; aucun retour Session.
+Enregistrer → contexte appelant : Catalogue Exercices avec filtre/scroll restaurés ; lancement depuis Calendrier → date/vue appelantes avec occurrence actualisée. Ce retour contextualisé est dérivé de la conservation d’état, sans création de Séance.
 
 ### 17. Erreurs et cas limites
 
-201 caractères empêchés/refusés selon contrôle ; erreur DB = rester Synthèse ; Execution déjà finalisée = éviter doublon.
+Commentaire>200 : indiquer la limite et empêcher Enregistrer, conserver saisie. Erreur DB : rester Synthèse avec brouillon ; Exécution déjà finalisée : aucun doublon.
 
 ### 18. Accessibilité
 
@@ -1421,23 +1450,19 @@ Ressenti obligatoire si Synthèse affichée ; commentaire facultatif ; aucun Ses
 
 ### 20. Recette déterministe
 
-Terminer vide/non vide ; commentaire 0/200/201 ; double tap ; erreur save ; retour Catalogue ; responsive. Négatif : Terminer sans Ressenti.
+Statuts Terminée/Partielle/Interrompue ; sans Ressenti bouton désactivé ; chaque Ressenti ; Commentaire 0/200/201 ; double tap, erreur de sauvegarde puis reprise ; historique ACTIVITY et absence de comptage Séance ; retour Catalogue/Calendrier ; accessibilité/clavier.
 
 ### 21. Traçabilité
 
-E45/E46/E49 → D-160/D-163/D-172 ; API-ACT-EXE-04/05 ; modèle Execution.
-
-
+D-172/D-206 et Synthèse chapitre 06 ; frames 4968:8055/8105. Enregistrer est le libellé visuel courant de la finalisation anciennement nommée Terminer. CE-UI-08 distingue la Synthèse SESSION.
 
 ---
-
-# 10. B7 — Suivi
 
 ## CE-T03-15 — Suivi général — Exécution ACTIVITY
 
 ### 1. Identification
 
-Bloc B7 ; états S71–S74 ; T03-E E47–E48 ; frames structure `1992:8843`, `1992:8996`; images `ecran-11-suivi-condense.png`, `ecran-11a-suivi-deploye.png`.
+Suivi général ; frames 1992:8843/8996 et état vide 2117:190. Carte ACTIVITY présente dans la liste condensée ; variante déployée ACTIVITY sans frame dédiée. Copies exclusivement au chapitre 06.
 
 ### 2. Finalité fonctionnelle
 
@@ -1453,7 +1478,7 @@ Déployer/replier carte ; navigation globale. Pas de dépendance à l’Activity
 
 ### 5. Données affichées et source de vérité
 
-Execution.snapshot/results, origin ACTIVITY, date, durée réelle, statut, Ressenti, Commentaire, sides éventuels.
+Exécutions SESSION et ACTIVITY clôturées, ordre chronologique décroissant ; type depuis origine, titre/paramètres depuis instantané et résultats, pas source courante. Durée réelle, date/heure, statut et Ressenti lorsqu’il existe. ACTIVITY ne compte pas comme Séance.
 
 ### 6. Classification des valeurs Figma
 
@@ -1465,11 +1490,11 @@ Liste Suivi mixte ; cartes condensées/déployées ; contenu historique issu du 
 
 ### 8. Éléments obligatoires
 
-Nature26 liste ou tai-chi, classement gris en pastilles20, valeurs16, titre15. Badge statut76 en haut à droite ; heure `18 h 42`, durée réelle ; Déployer28 et Ressenti visible28 en bas à droite. Aucune Vue d’ensemble requise au MVP. Aucun miroir des cartes Catalogue ajouté au Suivi.
+Nature 26 liste ou tai-chi, classement gris en pastilles 20, valeurs 16, titre 15. Badge statut 76 en haut à droite ; heure `18 h 42`, durée réelle ; Déployer 28 et Ressenti visible 28 en bas à droite. Aucune Vue d’ensemble requise au MVP. Aucun miroir des cartes Catalogue ajouté au Suivi.
 
 ### 9. Layout déterministe
 
-Carte354 × 95,5 repliée ; séance déployée310,5 à texte standard. Bord gauche Déployer262 ; Ressenti à16 du bord droit, boîte du composant48. Pas de champs Session-only fictifs sur activité. Filtrer/Trier34, dessins20, gap12, cibles44 ; liste scrollable, navigation fixe.
+Carte 354 × 95,5 repliée ; séance déployée 310,5 à texte standard. Bord gauche Déployer 262 ; Ressenti à16 du bord droit, boîte du composant 48. Pas de champs Session-only fictifs sur activité. Filtrer/Trier 34, dessins 20, gap 12, cibles 44 ; liste scrollable, navigation fixe.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -1477,7 +1502,7 @@ Carte354 × 95,5 repliée ; séance déployée310,5 à texte standard. Bord gauc
 
 ### 11. États de l’écran
 
-Condensée ; déployée ; liste mix Session/Activity ; source ActivityDefinition supprimée ; résultats bilatéraux.
+Liste vide ; cartes condensées/déployées ; ACTIVITY/SESSION ; trois statuts ; Ressenti présent/absent après interruption technique. Vue d’ensemble/Filtrer/Trier visibles désactivés, aucune recherche.
 
 ### 12. Contrôles et interactions
 
@@ -1497,7 +1522,7 @@ Lecture seule. Aucun changement snapshot/results depuis Suivi.
 
 ### 16. Navigation et conservation d’état
 
-Navigation globale standard ; état de déploiement selon règles Suivi existantes.
+Conserver déploiement et scroll pendant l’aller-retour du parcours courant. Après nouvelle Synthèse de Séance, afficher l’Exécution créée. Une source supprimée ne supprime pas sa carte historique.
 
 ### 17. Erreurs et cas limites
 
@@ -1513,108 +1538,99 @@ Historique indépendant source ; origin ACTIVITY ; compteur Séances inchangé.
 
 ### 20. Recette déterministe
 
-Execution directe → Suivi ; source supprimée ; mix Session/Activity ; bilateral ; stats. Négatifs : carte disparue après suppression source, Session count +1.
-
-Vérifier les trois statuts, les trois ressentis, ancrages du groupe droit et l’heure ; aucune disparition du Ressenti sur largeur360. États liste/déployé/vide cohérents, Vue d’ensemble hors MVP.
+SESSION/ACTIVITY, statuts, source modifiée/supprimée, instantané conservé, absence Ressenti technique, déploiement/repli, liste vide. Filtrer/Trier/Vue d’ensemble sans action ; aucune Recherche. Carte ACTIVITY condensée présente dans 1992:8843 ; variante déployée à tester fonctionnellement sans prétendre disposer d’une frame dédiée.
 
 ### 21. Traçabilité
 
-E47–E48 → D-161/D-162/D-169 ; modèle snapshot ; API Suivi/Execution.
-
-
+D-172 et Suivi chapitre 06 ; 1992:8843/8996,2117:190 ; D-233–239. CE-T03-14 et CE-UI-08 ; archives 1842:2/3401:86 hors cible MVP.
 
 ---
 
-# 11. B8 — Catégories et navigation
-
-## CE-T03-16 — Catégories — enregistrement et retour Catalogue séances
+## CE-T03-16 — Étiquettes de Séance — sélectionner, créer, retirer
 
 ### 1. Identification
 
-Bloc B8 ; états S75–S77 ; T03-E E67–E69 ; frame `2028:11204`; image `ecran-6-categories-seance.png`.
+Modale de Composition 2028:11204, sélection 4581:6404, création 4640:6308, suppression 4861:6145. Remplace le contrat obsolète de page finale Catégories ; ID conservé pour traçabilité.
 
 ### 2. Finalité fonctionnelle
 
-Finaliser la Séance et revenir déterministement sur Catalogue des séances / segment Séances avec transition canonique.
+Associer zéro ou une Étiquette au brouillon de Séance et administrer le référentiel sans étape supplémentaire de sauvegarde de Séance.
 
 ### 3. Contexte d’entrée
 
-Composition valide → Catégories.
+Action Étiquette dans CE-T03-08, avec sélection courante et brouillon conservés.
 
 ### 4. Contexte de sortie / destinations
 
-Enregistrer succès → CE-T03-01 / Séances. Échec → reste Catégories. Retour arrière selon brouillon existant.
+Choix simple valide au toucher puis ferme vers Composition ; fermer sans choix laisse la sélection antérieure. Retirer l’affectation revient à zéro Étiquette. Nouvelle Étiquette ouvre la création dans cette famille.
 
 ### 5. Données affichées et source de vérité
 
-Draft Session + catégories existantes/nouvelles temporaires et sélection.
+Référentiel Étiquette (ID,nom,couleur,statut retiré) et ID facultatif dans brouillon Session ; couleur de Séance dérivée, pas copie indépendante modifiable.
 
 ### 6. Classification des valeurs Figma
 
-Noms catégories = dynamiques ; titres/actions = statiques ; exemples = démonstration.
+Étiquettes/Nouvelle étiquette/Annuler/Supprimer statiques ; noms et couleurs des options dynamiques ; Hyrox et couleurs de démonstration ne sont pas des constantes imposées.
 
 ### 7. Structure de l’écran
 
-Contrat Catégories existant : titre, tags, création inline éventuelle, CTA Enregistrer.
+Feuille de sélection et fermeture ; options avec pastilles ; création avec nom/palette ; confirmation centrée à l’appui long ; Composition demeure en arrière-plan.
 
 ### 8. Éléments obligatoires
 
-Catégories selon règles existantes ; Enregistrer ; message erreur ; pas de texte introductif supplémentaire.
+Sélection unique facultative, nom et couleur pour une nouvelle Étiquette, annulation ; aucune Catégorie de Séance ni CTA final d’enregistrement de Séance.
 
 ### 9. Layout déterministe
 
-Conserver Figma Catégories. T03 ne change que destination/transition et protection double save.
-
-Catégories : icône icon/categorie, pastille colorée avec symbole blanc et nom à côté. Couleurs finales Renforcement#0508E5, Mobilité#4F9F83, Étirements#FF8D28, Cardio#F3A6A6, Récupération#A7DDB7. Contraste pastel sous3:1 accepté ; conserver le texte. États de sélection DSF et géométrie de la modale existante, sans changement de la sémantique du référentiel.
+Modale DSF D-228 ; lignes/pastilles selon 2028:11204 ; palette 4640:6308 ; dialogue 354/rayon 18, deux actions Annuler/Supprimer. Ne pas réutiliser le panneau Catégorie de l’Exercice.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-360/402/440 ; clavier inline ne masque pas CTA ; scroll selon contrat existant.
+Feuille limitée à la zone sûre, liste défilante, titre non tronqué ; clavier fait apparaître le nom saisi et les actions ; texte agrandi selon§4.2.
 
 ### 11. États de l’écran
 
-Draft ; nouvelle catégorie inline ; saving ; erreur ; succès/navigation.
+Aucune/une Étiquette ; liste vide ; création ; nom invalide ; sélection retirée existante ; appui long ; suppression confirmée/annulée ; erreur.
 
 ### 12. Contrôles et interactions
 
-Sélection tags ; création inline ; Enregistrer une seule fois ; désactivation/busy pendant sauvegarde.
+Tap valide une sélection simple ; appui long ne change pas la sélection et ouvre suppression. Créer valide le référentiel ; son affectation reste dans le brouillon de Séance. La suppression globale conserve les affectations existantes D-210.
 
 ### 13. Gestes
 
-Tap et saisie/scroll ; aucun geste spécial de transition local.
+Tap, scroll, appui long option ; fermeture hors dialogue n’exécute jamais Supprimer. Pas de drag des options.
 
 ### 14. Validation
 
-Règles catégories existantes ; transaction valide ; pas double-submit.
+Nom de nouvelle Étiquette non vide et unique dans le référentiel ; couleur choisie dans palette. Aucune Étiquette exigée pour Continuer dans Composition ; affectation retirée existante reste conservable.
 
 ### 15. Brouillon et persistance
 
-Transaction Session+Composition+catégories ; erreur = rollback et brouillon intact.
+Affectation Session enregistrée seulement à Continuer. Création/renommage/couleur/suppression du référentiel sont des opérations explicites de référentiel, sans sauvegarder la Séance. Une erreur ne modifie pas partiellement le référentiel.
 
 ### 16. Navigation et conservation d’état
 
-Succès impose `Catalogue des séances`, Séances, transition §4.9, même si dernier segment global était Exercices.
+Retour à la même Composition et au même brouillon ; Annuler la confirmation restitue la liste ; suppression retire des nouveaux choix mais conserve une affectation existante et dernière couleur.
 
 ### 17. Erreurs et cas limites
 
-Erreur save : rester, message, CTA réactivé, aucune donnée partielle. Double tap = une transaction.
+Valeur retirée : pas de nouvelle affectation ; nom dupliqué/vide : conserver saisie et erreur ; échec persistance : conserver modale. Le message 4861:6145 mentionnant Exercices est incorrect : il doit viser les Séances.
 
 ### 18. Accessibilité
 
-Saving/disabled annoncé ; erreur live region ; focus clavier correct.
+Annoncer nom, sélection et action ; la couleur seule n’identifie pas une Étiquette. Focus captif dans confirmation puis retour à option/liste ; bouton destructif nommé.
 
 ### 19. Invariants
 
-Destination jamais Catalogue Exercices ; segment Séances ; une seule sauvegarde.
+Zéro ou une Étiquette ; couleur appartient au référentiel, propagée aux objets courants ; instantanés historiques immuables. Aucun parcours Composition→Catégories→Catalogue.
 
 ### 20. Recette déterministe
 
-Créer/modifier, save, double tap, erreur, destination/animation, dernier segment Exercices préalable. Négatif : retour Exercices après save.
+Aucune/une sélection, changement/fermeture ; créer nom valide/vide/dupliqué et couleur ; renommer/recolorer ; supprimer valeur utilisée/inutilisée, Annuler ; conserver ancienne affectation et couleur ; abandonner Composition ne sauvegarde pas son affectation ; historique inchangé.
 
 ### 21. Traçabilité
 
-E67–E69 → D-168/D-178 ; API-SEA-03/04 ; Figma `2028:11204`.
-
+D-188/D-200/D-210–212/D-222 ; CE-T03-08 ; frames§1. Renommage requis, sans frame dédiée : couverture fonctionnelle, preuve visuelle à compléter.
 
 ---
 
@@ -1667,7 +1683,7 @@ Barre adapte largeur 360/402/440 et inset bas ; aucun chevauchement ; labels acc
 
 ### 11. États de l’écran
 
-Catalogue active ; Calendar active ; History active ; Profile active ; Search active.
+Quatre destinations : Catalogues, Calendrier, Suivi, Profil ; une active. Aucune Recherche ; aucune destination créée par la variante Search du set DSF. Navigation absente des modales/shells d’Exécution selon leur propre contrat.
 
 ### 12. Contrôles et interactions
 
@@ -1703,17 +1719,1101 @@ Premier onglet = Catalogues ; dessins ≤24 ; DSF exact ; aucune icône système
 
 ### 20. Recette déterministe
 
-Mesurer icônes/cibles/centrage ; naviguer toutes destinations ; 360/402/440 ; texte agrandi. Négatifs : libellé Séances, emoji/glyphe, dessin >24.
-
-Vérifier les quatre dessins : Catalogue quatre formes, Calendrier contour, Suivi quatre barres, Profil people-outline24×20,1 ; trait2, centrage boîte32 ; état actif bleu/normal gris. Réaction d’appui D-237 et réduction des animations. Search dans le set ne crée pas de destination métier.
+Tester les quatre destinations, labels accessibles, état actif, dimensions et Safe Areas ; relance Catalogue/Séances ; aucune action ni bouton Recherche ; ne pas confondre une variante DSF inutilisée avec une route produit.
 
 ### 21. Traçabilité
 
-E05–E06 → D-167/D-179 ; Figma `6298:12462`; chapitre 12 Navigation.
+D-221/D-225/D-233–239 ; Navigation/Bottom 6298:12462 ; CE-UI-06 Splash et CE-UI-07 Profil sont propriétaires de leurs comportements.
 
 ---
 
-# 12. Référentiel des contenus élémentaires T03
+## CE-MEDIA-EXEC-01 — Exécution — faces Information et Média
+
+### 1. Identification
+
+Variantes intégrées de l’Exécution SESSION ou ACTIVITY : 5021:5994,5581:4257,4997:6113,5588:4363. Source de comportement : CONCEPTION-EXECUTION-MEDIA ; aucune acquisition média.
+
+### 2. Finalité fonctionnelle
+
+Consulter les médias déjà associés à l’Exercice courant pendant que le moteur poursuit normalement l’Exécution.
+
+### 3. Contexte d’entrée
+
+Exercice avec au moins un média, depuis le shell direct ou Séance ; face Information par défaut au début d’une nouvelle Exécution.
+
+### 4. Contexte de sortie / destinations
+
+Bascule → autre face ; tap média → CE-MEDIA-EXEC-02 ; changement d’Exercice → fermeture du média précédent et nouvel état moteur ; les commandes d’Exécution restent sous le contrat moteur propriétaire.
+
+### 5. Données affichées et source de vérité
+
+Collection ordonnée de médias de l’Exercice de l’instantané ; index courant, face et état du lecteur transitoires. Chrono/Série/côté/Tour proviennent exclusivement du moteur ; Tour seulement pour SESSION.
+
+### 6. Classification des valeurs Figma
+
+Nom et paramètres dynamiques ; photos/vidéos exemples non codées ; labels Information/Média et commandes statiques ; aucune valeur de Série/Tour de démonstration n’initialise le moteur.
+
+### 7. Structure de l’écran
+
+Même zone de carte pour Information et Média, retournement sans déplacement du shell ; bouton dédié ; un média ; pagination ; Lecture central avant vidéo ; commandes d’Exécution accessibles.
+
+### 8. Éléments obligatoires
+
+Bascule seulement si média présent ; pagination ; image/poster intégral avec ratio conservé ; Lecture central disparaît pendant lecture ; aucun autoplay ; catégorie et côté restent des informations distinctes du nom.
+
+### 9. Layout déterministe
+
+Bascule circulaire 32, fond#FDFDFE, liseré blanc 1, ombreDSF T10 ; icône flip horizontale noire. Les deux emplacements graphiques haut/bas ne créent pas deux effets métier différents. Série/Tour cible 24 selonDSF T10 ;17 sur 4997:6113 reste écart visuel. Tour masqué en ACTIVITY.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Même zone sûre que shell Exécution ; média non recadré, marges possibles ; texte agrandi sans masquer les commandes ; réduction des animations supprime la transformation 3D et utilise un changement discret sans mouvement spatial.
+
+### 11. États de l’écran
+
+Sans média ; Information ; image ; vidéo poster/lecture/pause ; premier/dernier média ; chargement ; média indisponible ; Exercice terminé.
+
+### 12. Contrôles et interactions
+
+Bouton retourne la face ; retour Information met vidéo en pause. Swipe change exactement un média et met la précédente vidéo en pause. Tap média ouvre plein écran ; Lecture lance explicitement vidéo. Son vidéo actif par défaut, abaissé pendant annonce KODJO puis restauré.
+
+### 13. Gestes
+
+Swipe horizontal simple pour galerie, jamais pour changer de face ; galerie non circulaire avec résistance aux bornes ; tap dédié pour bascule/lecture/plein écran ; actions au relâchement D-237.
+
+### 14. Validation
+
+Vérifier existence média et index dans bornes avant affichage ; absence média masque bascule ; aucune consultation ne valide une Série ni ne suspend le moteur.
+
+### 15. Brouillon et persistance
+
+Face/index mémorisés par Exercice pendant l’Exécution courante seulement. Retour immédiat à Média permet reprise explicite de vidéo ; retour après avoir quitté l’Exercice restaure face/index mais jamais autoplay. Aucune préférence durable ni modification d’instantané.
+
+### 16. Navigation et conservation d’état
+
+Plein écran revient sur même face/index ; au changement d’Exercice fermer lecteur précédent et plein écran, puis transition normale. Nouvelle Exécution réinitialise face Information.
+
+### 17. Erreurs et cas limites
+
+Erreur locale visible à la place du média ; conserver face et accès aux autres médias, moteur continue. Ne pas masquer silencieusement le média en erreur. Une collection vide après chargement ne crée pas de commande fantôme.
+
+### 18. Accessibilité
+
+Labels Changer de face, Lire la vidéo et Agrandir le média ; pagination annoncée ; alternatives accessibles précédent/suivant au geste ; ordre de focus stable. Annonces KODJO intelligibles via ducking ; aucun flash/autoplay.
+
+### 19. Invariants
+
+Un média à la fois, ordre source, aucun bouclage ; moteur indépendant ; pas d’import ; pas de Tour en direct ; vidéo ne redémarre jamais sans action utilisateur.
+
+### 20. Recette déterministe
+
+Tester 0/1/N médias, mélange image/vidéo, premier/dernier, un swipe=un média, retour Information pendant lecture, retour même Exercice et autre Tour, nouveau run, erreur média, ducking, plein écran, fin naturelle et saut d’Exercice. Vérifier réduction des animations et contrôles accessibles ; essais interactifs nécessaires.
+
+### 21. Traçabilité
+
+D-203/D-216/D-220/D-237 ; CONCEPTION-EXECUTION-MEDIA §§3–6/9–14 ; DSF-V2-MOTIFS-LOT-3 T10 ; frames§1 ; CE-T03-09..13/CE-EXEC-SESSION-01.
+
+---
+
+## CE-MEDIA-EXEC-02 — Exécution — média plein écran
+
+### 1. Identification
+
+Frame 5009:6069 Exécution d’un exercice — Média plein écran ; variante de CE-MEDIA-EXEC-01. Le nom historique de test Séance ne borne pas l’origine de données.
+
+### 2. Finalité fonctionnelle
+
+Agrandir l’image/vidéo sans perdre le suivi et les commandes du moteur.
+
+### 3. Contexte d’entrée
+
+Tap sur le média courant en face Média, avec origine SESSION/ACTIVITY, index et état de lecture conservés.
+
+### 4. Contexte de sortie / destinations
+
+Fermer revient à face Média au même index ; changement d’Exercice ferme automatiquement le plein écran ; sortie d’Exécution selon le contrat moteur.
+
+### 5. Données affichées et source de vérité
+
+Même média et même moteur que la face compacte ; couche flottante alimentée par nom, côté, chrono, Série et Tour conditionnel ; aucune copie autonome du temps.
+
+### 6. Classification des valeurs Figma
+
+Nom, chrono et index dynamiques ; contenu vidéo/image démonstratif ; labels Fermer/Lecture/Pause statiques. Un Tour visible dans la capture n’active pas cette donnée en ACTIVITY.
+
+### 7. Structure de l’écran
+
+Média plein écran ratio conservé ; cadre flottant d’Exécution ; couche lecteur vidéo séparée. Le moteur et le lecteur ont des commandes différentes.
+
+### 8. Éléments obligatoires
+
+Cadre : nom, côté si applicable, chrono, Série, Tour seulement SESSION, commandes principales d’Exécution et son/vocal. Lecteur vidéo : Lecture/Pause, progression vidéo, Fermer ; image : Fermer et cadre moteur.
+
+### 9. Layout déterministe
+
+Reprendre la composition de 5009:6069 sans rogner le média ; marges admises ; couche flottante lisible au-dessus, Safe Areas respectées. Les commandes lecteur ne remplacent pas Pause/Réinitialiser/Suivant du moteur.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Orientation suit l’appareil, paysage autorisé sans rotation forcée ; recomposer les couches sans les étirer. À texte agrandi, commandes restent atteignables ; restaurer disposition compacte à la fermeture.
+
+### 11. États de l’écran
+
+Image ; vidéo poster/en lecture/en pause ; portrait/paysage ; erreur média ; moteur actif/suspendu ; transition de phase/Exercice.
+
+### 12. Contrôles et interactions
+
+Fermer ne modifie ni index ni temps moteur. Lecture/Pause et barre vidéo pilotent uniquement le lecteur ; commandes flottantes pilotent le moteur selon§4.12. Son vidéo actif par défaut, ducking pendant les annonces.
+
+### 13. Gestes
+
+Tap sur commandes ; interaction barre vidéo distincte de progression moteur. Ne pas déduire une galerie plein écran non spécifiée du swipe compact ; fermer puis naviguer dans la galerie compacte.
+
+### 14. Validation
+
+Aucune modification du plan ou des résultats par ouverture/rotation/fermeture ; valider média existant ; empêcher l’action derrière les couches du plein écran.
+
+### 15. Brouillon et persistance
+
+État lecteur et index transitoires partagés avec la face compacte ; aucun enregistrement durable. Les résultats du moteur suivent leur propre persistance.
+
+### 16. Navigation et conservation d’état
+
+Retour au déclencheur/face même média ; fin d’Exercice ferme plein écran et média précédent même pendant vidéo ou rotation ; début d’un nouveau run réinitialise l’état transitoire.
+
+### 17. Erreurs et cas limites
+
+Média indisponible : erreur locale et fermeture disponible ; moteur continue. La transition moteur garde priorité sur le maintien d’une vidéo terminée ; ne pas bloquer la fin de Séance.
+
+### 18. Accessibilité
+
+Distinguer vocalement Pause vidéo et Pause exécution ; nommer Fermer le plein écran ; focus contenu dans la couche active et restauré à la sortie ; contraste du cadre et commandes vérifiable en portrait/paysage.
+
+### 19. Invariants
+
+Pas de suspension implicite, pas d’autoplay, ratio conservé, un seul état moteur ; Tour conditionnel SESSION ; lecteur et commandes Exécution séparés.
+
+### 20. Recette déterministe
+
+Image/vidéo, portrait/paysage, fermer/revenir, pause vidéo sans pause moteur, pause moteur distincte, ducking, erreur, fin de Série puis changement d’Exercice, arrêt confirmé ; vérifier focus/texte agrandi et absence de Tour ACTIVITY.
+
+### 21. Traçabilité
+
+D-203/D-216 ; CONCEPTION-EXECUTION-MEDIA §§7–12 ; frame 5009:6069 ; CE-MEDIA-EXEC-01 et contrats moteur.
+
+---
+
+## CE-UI-01 — Profil — préférence silhouette
+
+### 1. Identification
+
+Modifier le profil — MVP ; frame 1992:778. Contrat de photo/nom d’affichage/silhouette, distinct des préférences immédiates CE-UI-07.
+
+### 2. Finalité fonctionnelle
+
+Modifier l’identité locale et la variante d’icône de Zone corporelle, sans compte distant ni effet métier de la silhouette.
+
+### 3. Contexte d’entrée
+
+Profil > Modifier.
+
+### 4. Contexte de sortie / destinations
+
+Enregistrer valide/persiste et revient à Profil ; retour avec modification propose abandon, qui restaure les valeurs enregistrées ; annuler abandon conserve le brouillon.
+
+### 5. Données affichées et source de vérité
+
+Photo locale facultative, nom d’affichage et silhouette facultative homme/femme ; absence silhouette affiche homme. Les champs viennent du brouillon de Profil, pas de données d’événement.
+
+### 6. Classification des valeurs Figma
+
+Nom/photo utilisateur dynamiques ; hommes/femmes sont labels de choix d’icône, sans validation de sexe ; exemples du profil illustratifs. Aucun événement/date/durée à classer ici.
+
+### 7. Structure de l’écran
+
+Photo/nom existants puis deux choix de silhouette sous l’aide du Nom d’affichage.
+
+### 8. Éléments obligatoires
+
+Champ Nom d’affichage, action photo facultative, deux silhouettes à sélection unique et Enregistrer. Aucun sélecteur de langue ni identité distante.
+
+### 9. Layout déterministe
+
+Cercles 64 espacés 24, silhouettes 44. Sélection contour 2 et dessin#0508E5 ; non sélection contour#CCD1E0 à1, dessin#9499A8.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Références 360/402/440, Safe Areas existantes ; texte agrandi sans réduction de police, scroll utile et contrôles accessibles. Les dimensions de référence 402 ne figent pas les coordonnées sur tous les appareils.
+
+### 11. États de l’écran
+
+Non renseigné ; homme ; femme ; modification non enregistrée.
+
+### 12. Contrôles et interactions
+
+Toucher une silhouette change le brouillon ; Enregistrer persiste avec le Profil.
+
+### 13. Gestes
+
+Tap choix/actions et saisie/scroll ; D-237 ; aucune interaction sur les icônes de zones ailleurs ne modifie cette préférence.
+
+### 14. Validation
+
+Nom d’affichage non vide,1..80 caractères selon conception 08 ; photo et silhouette facultatives ; silhouette homme/femme ou absente. Les anciens profils sans silhouette restent valides.
+
+### 15. Brouillon et persistance
+
+Même brouillon et action Enregistrer que photo/nom. Les profils existants sans valeur restent valides.
+
+### 16. Navigation et conservation d’état
+
+Destination Profil inchangée ; préférence relue après relance.
+
+### 17. Erreurs et cas limites
+
+Nom vide/trop long : erreur liée au champ, rester ; photo indisponible : avatar/initiales sans empêcher l’accès aux champs ; erreur sauvegarde : conserver brouillon, aucune mutation partielle.
+
+### 18. Accessibilité
+
+Labels Silhouette homme / Silhouette femme ; état sélectionné annoncé.
+
+### 19. Invariants
+
+Aucun effet sur recherche, catégories, calculs, exécutions ou données historiques.
+
+### 20. Recette déterministe
+
+Nom 1/80/vide/81, photo absente/présente/indisponible ; silhouette absente→homme, choisir femme/enregistrer/relancer ; abandon sans écriture ; erreur persistance ; vérifier toutes icônes de zone et aucun effet filtre/calcul/historique.
+
+### 21. Traçabilité
+
+Chapitre 06 Profil et 08 Profil ; D-213/D-238 RG-5/RG-10 ;1992:778 ; CE-UI-07. Les anciennes restrictions photo post-MVP ne décrivent pas cet écran actuel.
+
+---
+
+## CE-UI-02 — Calendrier — Jour compact
+
+### 1. Identification
+
+Calendrier Jour ; frames 1992:5510,1992:5602,1992:5697,1992:5794,2059:267 ; composants 6374:12704/12705.
+
+### 2. Finalité fonctionnelle
+
+Présenter les occurrences sur la grille horaire avec la distinction Séance/Exercice.
+
+### 3. Contexte d’entrée
+
+Onglet Calendrier (Jour par défaut), changement de jour, retour de planification.
+
+### 4. Contexte de sortie / destinations
+
+Surface occurrence → CE-UI-05 en modification ; Lecture → moteur SESSION/ACTIVITY ; appui long sur créneau → sélection de plage puis Planifier avec date/heure de début préremplies ; source par CE-UI-04. Pas d’actions glissées en Jour.
+
+### 5. Données affichées et source de vérité
+
+Occurrences futures Routine SESSION/ACTIVITY ; titre, heure, durée et couleur de l’événement. Nature issue du type de source.
+
+### 6. Classification des valeurs Figma
+
+Noms, dates, durées et couleurs d’événement sont des données ; les exemples Figma ne deviennent pas des constantes ni des règles de déduction.
+
+### 7. Structure de l’écran
+
+Navigation de date et grille horaire ; cartes à droite de la colonne des heures ; navigation basse.
+
+### 8. Éléments obligatoires
+
+Barre couleur 4 ; nature 26 ; titre 13 gras ; heure/durée 11 gris ; Lecture 26. Aucun Déployer.
+
+### 9. Layout déterministe
+
+Référence 402 : x80, largeur 298 ; séance 46 de haut, exercice 48. Hauteur d’instance adaptée à l’événement. Exemple heure/durée : 08 h · 13 min.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Références 360/402/440, Safe Areas existantes ; texte agrandi sans réduction de police, scroll utile et contrôles accessibles. Les dimensions de référence 402 ne figent pas les coordonnées sur tous les appareils.
+
+### 11. États de l’écran
+
+Jour standard ; appui long ; créneau ; après planification ; jour suivant ; vide 2128:86.
+
+### 12. Contrôles et interactions
+
+Glissement gauche/droit ou chevrons change de jour ; Aujourd’hui revient à date locale ; toucher occurrence ouvre sa Routine ; Lecture lance sa source. Appui long crée une sélection transitoire, jamais une Routine avant Enregistrer. La plage n’impose pas une durée à l’Exercice/Séance.
+
+### 13. Gestes
+
+Scroll vertical de grille ; navigation horizontale de jour ; appui long créneau distinct du tap occurrence. Pas de déploiement ni de swipe destructif.
+
+### 14. Validation
+
+Aucune mutation par changement de date/vue ; valider la planification seulement dans CE-UI-05. Les périodes passées sans Exécution ne sont pas ajoutées au Suivi.
+
+### 15. Brouillon et persistance
+
+Jour visible, position de grille et plage sélectionnée sont des états UI ; brouillon Routine appartient au formulaire. Annuler Planifier ne crée aucune occurrence ; Enregistrer actualise la grille.
+
+### 16. Navigation et conservation d’état
+
+Conserver date/vue/position pendant planification ; au retour réussi montrer l’occurrence concernée. Changer Jour/Semaine/Mois conserve la date de référence. Aucune persistance durable de préférence de vue n’est ajoutée.
+
+### 17. Erreurs et cas limites
+
+Jour vide sans carte fictive ; source supprimée : rafraîchir et signaler indisponibilité. Chevauchement d’occurrences : ne jamais masquer une action ; géométrie exacte non représentée, réserve V-05. Texte long tronqué avec nom complet accessible.
+
+### 18. Accessibilité
+
+Annoncer type, nom, heure, durée et action Lecture. La taille visible 26 ne remplace pas le minimum tactile 44.
+
+### 19. Invariants
+
+Exception explicite à largeur 354/titre 15/suppression de barre des cartes standard. Aujourd’hui/Planifier 32 restent l’exception acceptée à revoir aprèsT04.
+
+### 20. Recette déterministe
+
+Jour vide/1/N, deux types de source, tap surface distinct de Lecture, glissements et chevrons, Aujourd’hui, sélection plage→date/heure préremplies, annulation et enregistrement, retour même date/scroll. Vérifier dimensions compactes, aucun Déployer, aucune action glissée ; chevauchements V-05 à qualifier.
+
+### 21. Traçabilité
+
+D-206/D-223/D-239 ; chapitre 06 Calendrier ;1992:5510/5602/5697/5794,2059:267,2128:86 ; CE-UI-03/04/05.
+
+---
+
+## CE-UI-03 — Calendrier — Semaine et structure Mois
+
+### 1. Identification
+
+Calendrier ; frames 1992:5101,2252:86,1992:6389,1992:5962,2094:86,2074:86 ; Mois 1992:5237 ; suppressions 1992:5365/6102.
+
+### 2. Finalité fonctionnelle
+
+Présenter les occurrences chronologiques de Semaine ; conserver la grille mensuelle existante.
+
+### 3. Contexte d’entrée
+
+Segment Semaine/Mois ; retour de planification/suppression.
+
+### 4. Contexte de sortie / destinations
+
+Surface occurrence → CE-UI-05 modification de Routine ; Lecture → moteur selon origine ; Dupliquer → brouillon Routine copié ; Supprimer → confirmation unique/périodique ; choix source CE-UI-04.
+
+### 5. Données affichées et source de vérité
+
+Occurrence et type SESSION/ACTIVITY, heure, durée et classement de la source ; jamais déduits du titre.
+
+### 6. Classification des valeurs Figma
+
+Noms, dates, durées et couleurs d’événement sont des données ; les exemples Figma ne deviennent pas des constantes ni des règles de déduction.
+
+### 7. Structure de l’écran
+
+Semaine : segmenté, barre 7 jours, sections chronologiques, navigation fixe. Mois : grille 7colonnes, navigation mensuelle, jour sélectionné et marqueurs d’occurrences ; ne pas appliquer les cartes de Semaine à chaque cellule du Mois.
+
+### 8. Éléments obligatoires
+
+Semaine : nature 26, badge heure 08:00, classement puis durée avec sablier ; statut Suivi non ajouté. Mois : grille 7colonnes conservée.
+
+### 9. Layout déterministe
+
+Carte 354×95,5 repliée ; séance déployée 254,5. Segmenté 354/padding 4/gaps 4/options 112,67. Aucune barre de carte Semaine.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Références 360/402/440, Safe Areas existantes ; texte agrandi sans réduction de police, scroll utile et contrôles accessibles. Les dimensions de référence 402 ne figent pas les coordonnées sur tous les appareils.
+
+### 11. États de l’écran
+
+Repliée, séance déployée, jour sélectionné, actions glissées, après suppression ; Mois ; vide.
+
+### 12. Contrôles et interactions
+
+Semaine : sélectionner un jour place sa section en tête ; scroll synchronise jour. Déployer révèle détails/récurrence ; Lecture distincte. Glisser expose Dupliquer/Supprimer seulement. Dupliquer copie source+paramètres dans brouillon sans persister. Mois : navigation change mois, sélection change date de référence ; passage Jour/Semaine utilise cette date.
+
+### 13. Gestes
+
+Swipe contextuel en Semaine selon§4.7 ; Mois : tap jour/chevrons, pas de déploiement de carte mensuelle inventé ; D-237 pour les appuis.
+
+### 14. Validation
+
+Unique : Annuler/Confirmer suppression. Périodique : Seulement cette occurrence / Toutes les occurrences à venir / Annuler. La seconde action porte les occurrences futures de la Routine, pas d’autres Routines de la même source. Historique et source conservés.
+
+### 15. Brouillon et persistance
+
+Recalcul des occurrences après validation de Routine. Suppression unitaire doit rester exclue après relance et retirer sa notification ; l’adaptation du modèle/API est identifiée R-04, pas de simulation d’une suppression seulement visuelle. Duplication reste brouillon jusqu’à Enregistrer.
+
+### 16. Navigation et conservation d’état
+
+Après confirmation, conserver date/vue et actualiser liste/marqueurs. Après annulation, même sélection et même état. Changement de vue conserve date ; scroll Semaine synchronise la barre 7 jours.
+
+### 17. Erreurs et cas limites
+
+Semaine/mois vide, occurrence déjà retirée, source disparue, erreur de suppression : informer sans mutation partielle. Ne pas confondre média absent avec erreur métier. Photo selon règles communes§4.11 ; pas de photo Séance.
+
+### 18. Accessibilité
+
+Heure/type/nom annoncés ; vignette nom de l’exercice ; cibles 44 hors exception explicite Aujourd’hui/Planifier.
+
+### 19. Invariants
+
+Récurrence seulement déployée en Semaine ; ne pas appliquer les cartes compactes Jour à Semaine ou Mois.
+
+### 20. Recette déterministe
+
+Semaine vide/N, deux origines, déploiement/récurrence, synchronisation jour/scroll, modification, duplication annulée/enregistrée. Suppression unique et deux choix périodiques confirmés/annulés, notifications/historique. Mois : sept colonnes, sélection, navigation de mois, retour Jour/Semaine même date, marqueurs actualisés. R-04 empêche de déclarer la recette de persistance unitaire acquise.
+
+### 21. Traçabilité
+
+Chapitre 06 Calendrier ; D-206/D-233–239 ;1992:5101/5237/5365/5962/6102/6389,2252:86,2094:86,2074:86 ; CE-UI-02/04/05.
+
+---
+
+## CE-UI-04 — Calendrier et planification — choisir une source
+
+### 1. Identification
+
+Calendrier et Planification — choix de source ; frames 1992:6249,1992:7861,5451:4272 ; variante Choix calendrier ou planification.
+
+### 2. Finalité fonctionnelle
+
+Choisir une seule source SESSION ou ACTIVITY pour la planification.
+
+### 3. Contexte d’entrée
+
+Planifier depuis Calendrier ; changer la source du formulaire.
+
+### 4. Contexte de sortie / destinations
+
+Toucher une source valide met à jour le brouillon et ferme immédiatement vers CE-UI-05. Fermer sans choix restitue l’appelant et sa source précédente. Aucun CTA Sélectionner.
+
+### 5. Données affichées et source de vérité
+
+Séances/Exercices persistants sélectionnables ; identifiant choisi dans le brouillon.
+
+### 6. Classification des valeurs Figma
+
+Noms/classements/paramètres des sources dynamiques ; titres Choisir une séance/Choisir un exercice et fermeture statiques ; aucune date/couleur d’événement issue de cette sélection.
+
+### 7. Structure de l’écran
+
+Modale avec titre/fermeture et liste défilante de cartes radio ; aucun pied de validation. Arrière-plan visible mais inactif.
+
+### 8. Éléments obligatoires
+
+Radio de sélection ; pas de badge durée, Lecture ou Déployer ; titre/classement/valeurs, état sélectionné ou non.
+
+### 9. Layout déterministe
+
+Largeur 354, marges 24 sur 402, hauteur 91 ; radio côté droit ; minimum 20 entre texte et contrôle ; titre 15/pastilles 20/valeurs 16.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Références 360/402/440, Safe Areas existantes ; texte agrandi sans réduction de police, scroll utile et contrôles accessibles. Les dimensions de référence 402 ne figent pas les coordonnées sur tous les appareils.
+
+### 11. États de l’écran
+
+Aucune/une sélection ; longue liste ; texte tronqué ; exercice avec/sans média.
+
+### 12. Contrôles et interactions
+
+Tap carte/radio choisit exactement une source et ferme ; pas de seconde validation. Cette action ne crée pas de Routine et ne copie pas de SessionActivity. Case et Sélectionner restent propres à CE-T03-07.
+
+### 13. Gestes
+
+Gestes existants du chapitre 06 ; appuis D-237, action immédiate au relâchement, annulation hors cible, opacité seule si réduction des animations.
+
+### 14. Validation
+
+Source persistante active et planifiable SESSION/ACTIVITY ; recontrôler disponibilité avant choix et à Enregistrer. Parcours non sélectionnable au MVP.
+
+### 15. Brouillon et persistance
+
+Source dans le brouillon seulement ; aucune copie SessionActivity par cette sélection.
+
+### 16. Navigation et conservation d’état
+
+Annuler conserve source antérieure ; retour au formulaire avec nouvelle source validée.
+
+### 17. Erreurs et cas limites
+
+RG-3 : séance sans photo. Exercice avec média : vignette 64/recadrage/place réservée et texte alternatif ; pas de hausse de hauteur. Source indisponible : pas de sélection fantôme.
+
+### 18. Accessibilité
+
+Nom/type et état sélectionné annoncés ; texte complet accessible ; radio cible 44 minimum.
+
+### 19. Invariants
+
+Même variante Calendrier/Planification, aucun contexte Choix planification distinct ; aucune action d’exécution sur carte.
+
+### 20. Recette déterministe
+
+Tap une source→fermeture immédiate et formulaire actualisé ; fermer sans choix→source antérieure ; source disparue/archivée→pas de choix fantôme ;0/1/N, longue liste, deux types, radio accessible. Aucun CTA bas ni badge durée/Lecture/Déployer ; média/place réservée sans agrandir carte.
+
+### 21. Traçabilité
+
+D-206/D-222/D-223/D-238 ;1992:6249/7861,5451:4272 ; CE-UI-05 ; distinction multisélection CE-T03-07.
+
+---
+
+## CE-UI-05 — Planification — formulaire et états de paramètres
+
+### 1. Identification
+
+Planifier une séance ou un exercice ; frames 1992:6838,1992:6622,1992:7187,1992:7369,1992:7537,1992:7716 ; sélection CE-UI-04.
+
+### 2. Finalité fonctionnelle
+
+Créer/modifier une Routine pour SESSION/ACTIVITY en conservant les règles existantes.
+
+### 3. Contexte d’entrée
+
+Catalogue Planifier avec source préremplie ; Calendrier ; modification de Routine.
+
+### 4. Contexte de sortie / destinations
+
+Enregistrer réussit → écran appelant Catalogue ou Calendrier, occurrence recalculée ; abandon → appelant inchangé ; choisir/changer source → CE-UI-04 puis même brouillon.
+
+### 5. Données affichées et source de vérité
+
+Source, début, heure, périodicité, fin et rappel du brouillon.
+
+### 6. Classification des valeurs Figma
+
+Noms, dates, durées et couleurs d’événement sont des données ; les exemples Figma ne deviennent pas des constantes ni des règles de déduction.
+
+### 7. Structure de l’écran
+
+Titre Planifier sans type puis Planifier une séance/un exercice ; source → Date de début → Heure → Aucune/Périodique → fréquence/jours/fin conditionnels → Rappel → récapitulatif dérivé → Enregistrer.
+
+### 8. Éléments obligatoires
+
+Source SESSION/ACTIVITY ; une date et une heure ; mode Aucune ou Périodique. Périodique : fréquence entière≥1 semaine,≥1jour, fin obligatoire≥début. Rappel unique facultatif : Aucun,5 min,15 min,30 min,1h,Autre. Autre ouvre le délai personnalisé. Les anciens 10 min/Personnalisé ne sont pas les labels cibles D-229.
+
+### 9. Layout déterministe
+
+Shell Modal Fullscreen ; blocs sur marges 24 ; Date de début/Heure au même niveau, pas de titre Quand ?. Rappel : Aucun/Autre fixes aux extrémités, choix rapides défilants. Récapitulatif multi-ligne dans son cadre ; fréquence par stepper inline, date/heure/rappel dans leurs sélecteurs dédiés.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Références 360/402/440, Safe Areas existantes ; texte agrandi sans réduction de police, scroll utile et contrôles accessibles. Les dimensions de référence 402 ne figent pas les coordonnées sur tous les appareils.
+
+### 11. États de l’écran
+
+Création sans source/avec source ; édition/duplication ; Aucune/Périodique ; date/heure/rappel ouverts ; rappel refusé ; semaine modifiée ; champ invalide ; enregistrement/erreur. Aucune n’exige ni jours ni date de fin.
+
+### 12. Contrôles et interactions
+
+Changer source conserve autres paramètres ; changer fréquence/jours met à jour le récapitulatif depuis les mêmes valeurs, sans phrase codée. Annuler un sélecteur restaure sa valeur ; Confirmer met à jour le brouillon. Enregistrer persiste une seule Routine ; première activation rappel demande permission système, refus remet rappel désactivé et informe.
+
+### 13. Gestes
+
+Tap/stepper/roulette/scroll ; D-237 action au relâchement. Pas de roulette pour fréquence entière. Le scroll des raccourcis de rappel ne déplace pas Aucun/Autre.
+
+### 14. Validation
+
+Source disponible ; date/heure valides ; Aucune=une occurrence ; Périodique=fréquence≥1, jours non vides, fin≥début inclusive. Semaine contenant début = ancrage ; bornes de dates inclusives. Pas d’occurrence historique réécrite. Un rappel n’est actif qu’avec permission ; délai personnalisé validé selon unité du picker. Borne maximale non décidée du délai/fréquence : ne pas tirer une limite de la valeur de maquette, réserve R-02.
+
+### 15. Brouillon et persistance
+
+Brouillon distinct de Routine ; ouvertures/choix/roulettes ne persistent rien avant Enregistrer. Écriture et recalcul des notifications cohérents ; double soumission bloquée. Erreur conserve brouillon.
+
+### 16. Navigation et conservation d’état
+
+Conserver les champs pendant sélection source et paramètres ; annulation du formulaire restaure le contexte appelant. Succès conserve vue/date Calendrier ou filtre/scroll Catalogue ; pas de ligne prochaine planification sur carte Catalogue.
+
+### 17. Erreurs et cas limites
+
+Source disparue, dates inversées, aucun jour, fréquence invalide : indiquer champ et empêcher sauvegarde. Permission refusée : ne pas prétendre avoir planifié un rappel. Erreur persistance : rester, réactiver Enregistrer, aucune Routine partielle.
+
+### 18. Accessibilité
+
+Unités et sélection annoncées ; focus de modale ; réduction des animations sans dilatation.
+
+### 19. Invariants
+
+Aucun second moteur de planification ; occurrence passée non réécrite. Paramètres fonctionnels inchangés par la revue des cartes.
+
+### 20. Recette déterministe
+
+SESSION/ACTIVITY depuis chaque entrée ; Aucune et Périodique 1/2 semaines avec un/sept jours ; bornes début/fin inclusives et semaine d’ancrage ; date fin manquante/inversée ; rappel Aucun/rapide/Autre, permission accordée/refusée ; annuler/confirmer pickers ; récapitulatif reflète 2 semaines ; double tap/erreur ; retour appelant et historique inchangé.
+
+### 21. Traçabilité
+
+D-206/D-222/D-223/D-229 ; chapitre 06 Planifier et 08 calcul des occurrences ;1992:6622/6838/7187/7369/7537/7716 ; CE-UI-04. Les valeurs de démonstration incohérentes ne sont pas recopiées dans le récapitulatif.
+
+---
+
+## CE-UI-06 — Splash KODJO
+
+### 1. Identification
+
+Splash actif 1992:469 ; unique exception aux Screen Shells standards. Anciennes propositions graphiques hors cible.
+
+### 2. Finalité fonctionnelle
+
+Présenter l’identité KODJO pendant l’initialisation locale.
+
+### 3. Contexte d’entrée
+
+Démarrage de l’application nécessitant initialisation ; pas une destination de navigation.
+
+### 4. Contexte de sortie / destinations
+
+Initialisation terminée → navigation initiale Catalogues/Séances ; ne pas ajouter une connexion ou un onboarding non spécifié.
+
+### 5. Données affichées et source de vérité
+
+État d’initialisation locale ; identité KODJO/ANKUSHA et signature Keep On. Do Just One. depuis ressources produit.
+
+### 6. Classification des valeurs Figma
+
+Logo, nom et signature statiques ; temps d’affichage dépend de l’initialisation, aucune durée de démonstration codée.
+
+### 7. Structure de l’écran
+
+Identité centrée dans zone sûre ; aucun en-tête/navigation/action de formulaire.
+
+### 8. Éléments obligatoires
+
+Logo proportionnel et textes d’identité représentés par 1992:469 ; aucune commande Recherche/Créer.
+
+### 9. Layout déterministe
+
+Respecter centrage et proportions du Figma ; ne pas étirer le logo sur largeur écran ; fond du Splash courant.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+360/402/440, centrage zone sûre ; texte agrandi lisible sans recouvrement ; aucun défilement normal.
+
+### 11. États de l’écran
+
+Initialisation en cours ; prête ; échec d’initialisation pris en charge par état d’erreur technique, pas un écran vide infini.
+
+### 12. Contrôles et interactions
+
+Aucune action sur logo/texte ; transition automatique quand l’initialisation est prête.
+
+### 13. Gestes
+
+Aucun geste métier ni swipe de navigation.
+
+### 14. Validation
+
+Ne pas ouvrir les Catalogues avant disponibilité du stockage requis ; ne pas retarder artificiellement pour reproduire une durée Figma.
+
+### 15. Brouillon et persistance
+
+Aucun brouillon ni préférence persistée par Splash ; migrations/chargement relèvent du démarrage technique.
+
+### 16. Navigation et conservation d’état
+
+Ne pas empiler Splash dans le retour utilisateur ; la reprise courante conserve le contexte si aucune initialisation n’est requise.
+
+### 17. Erreurs et cas limites
+
+Échec stockage/migration : signaler échec selon architecture, sans effacer les données. Présentation graphique d’erreur sans frame : preuve manquante V-06.
+
+### 18. Accessibilité
+
+Nom de l’application annoncé une fois ; éviter annonces répétées pendant chargement ; logo avec texte alternatif utile, signature non dupliquée.
+
+### 19. Invariants
+
+Une seule référence Splash active ; aucune création de compte ; aucun timeout de maquette transformé en règle métier.
+
+### 20. Recette déterministe
+
+Démarrage prêt/lent/échec ; proportions et centrage aux trois largeurs ; pas de navigation avant prêt, pas de Splash au retour Catalogue ; erreur ne détruit pas stockage.
+
+### 21. Traçabilité
+
+D-218 ; chapitre 06 Splash et 12 démarrage ;1992:469 ; CE-T03-17.
+
+---
+
+## CE-UI-07 — Profil — préférences et défauts d’exécution
+
+### 1. Identification
+
+Profil principal 1992:375/474/579/684 et 2139:86 ; modification identité CE-UI-01.2139:86 est un doublon visuel, pas un parcours autonome.
+
+### 2. Finalité fonctionnelle
+
+Consulter identité et modifier les préférences globales et valeurs proposées aux nouveaux objets.
+
+### 3. Contexte d’entrée
+
+Destination Profil ou retour de Modifier le profil.
+
+### 4. Contexte de sortie / destinations
+
+Modifier → CE-UI-01 ; navigation basse vers les trois autres destinations ; un réglage reste sur Profil.
+
+### 5. Données affichées et source de vérité
+
+Préférences locales : Sons, Annonces vocales, Vibration, Notifications ; groupe Exercice : Pause au changement de côté, Compte à rebours d’exercice, Fin d’exercice ; groupe Séance : Récupération après exercice, Compte à rebours initial, Fin de séance.
+
+### 6. Classification des valeurs Figma
+
+Labels statiques ; valeurs locales dynamiques. Défauts actés : côté 10 s, récupération après exercice 30 s, comptes à rebours 10 s, fins 5 s, Vibration activée. L’état vibration désactivée est un exemple utilisateur.
+
+### 7. Structure de l’écran
+
+Identité/Modifier, groupes Exercice et Séance de réglages, commandes son/vocal/vibration/notifications, navigation basse.
+
+### 8. Éléments obligatoires
+
+Six défauts distincts ; aucune Pause inter-Séries globale ajoutée. La pause inter-Séries 5 s appartient à l’initialisation de l’éditeur. Silhouette ne se modifie que dans CE-UI-01.
+
+### 9. Layout déterministe
+
+Groupes selonDSF T5/T6 : fond#FCFCFE, liseré blanc 1, rayon 12, ombre sans rognage. Durées par steppers Profil, pas par roulette d’Exercice ; libellés complets accessibles.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Zone centrale scrollable, navigation fixe ; texte long/agrandi fait croître lignes/groupes ; unités et actions restent visibles dans Safe Areas.
+
+### 11. États de l’écran
+
+Préférences chargées ; steppers actifs/borne ; vibration on/off ; notifications autorisées/refusées ; enregistrement/erreur.
+
+### 12. Contrôles et interactions
+
+Chaque modification de préférence s’enregistre immédiatement. Les valeurs servent aux nouveaux objets seulement ; aucune rétroaction sur brouillons déjà initialisés, Séances ou Exécutions existantes. Permission système demandée lors de première activation d’un rappel en Planification.
+
+### 13. Gestes
+
+Tap bascule ; stepper incrément immédiat, maintien 450 ms puis pas 150 ms, arrêt au relâchement ; action/animation D-237.
+
+### 14. Validation
+
+Valeurs non négatives ; pauses côté/récupération 0..300 s, progression 5 s jusqu’à120 puis 30 s. Respecter les bornes des réglages propres déjà définies ; pas de maximum déduit d’un exemple. Les bornes encore non explicites sont listées R-02.
+
+### 15. Brouillon et persistance
+
+Persistance immédiate de préférence, atomique par modification ; pas de bouton Enregistrer global. Identité/photo/silhouette gardent leur brouillon séparé dans CE-UI-01.
+
+### 16. Navigation et conservation d’état
+
+Navigation ne perd pas une préférence confirmée ; relance relit les valeurs. Création ultérieure copie les valeurs ; objets antérieurs inchangés.
+
+### 17. Erreurs et cas limites
+
+Échec écriture : indiquer erreur et restituer valeur confirmée ; permission refusée ne s’affiche pas active. Profil sans silhouette valide, affichage homme par défaut.
+
+### 18. Accessibilité
+
+Nom et état on/off annoncés ; steppers annoncent unité et borne ; cibles distinctes ; haptique de roulette indépendant de Vibration fonctionnelle.
+
+### 19. Invariants
+
+Pas de compte distant, pas de langue MVP, aucune rétroactivité ; Notifications non autorisées par défaut ; Vibration ne désactive pas l’haptique des roulettes.
+
+### 20. Recette déterministe
+
+Changer chacun des six défauts, créer un nouvel objet puis comparer ancien objet inchangé ; relancer ; erreur écriture ; vibration off et haptique roulette maintenu ; notification refusée ; Modifier puis Annuler sans changement identité.
+
+### 21. Traçabilité
+
+D-191/D-208/D-213/D-232 ; chapitre 06 Profil ; DSF T5/T6 ; CE-UI-01 et CE-UI-05 ; frames§1.
+
+---
+
+## CE-EXEC-SESSION-01 — Exécution d’une Séance — phases, commandes et confirmations
+
+### 1. Identification
+
+Famille SESSION :1992:8132/8530/8626 ; dialogues 1992:8224/8326/8428 ; médias CE-MEDIA-EXEC-01/02. ACTIVITY reste CE-T03-09..13.
+
+### 2. Finalité fonctionnelle
+
+Exécuter l’instantané de Séance avec Circuit répété en Tours, Exercices avant/après, phases propres, récupérations et points d’arrêt.
+
+### 3. Contexte d’entrée
+
+Démarrer depuis Catalogue ou occurrence Calendrier SESSION valide ; écran initial puis action Démarrer lance le plan, sans double lancement.
+
+### 4. Contexte de sortie / destinations
+
+Plan achevé → CE-UI-08 ; arrêt depuis Pause confirmé → CE-UI-08 Interrompue ; interruption technique sans Synthèse possible → historique conservé. Ne pas permettre un retour qui abandonne silencieusement le moteur.
+
+### 5. Données affichées et source de vérité
+
+Instantané Session au démarrage, occurrences développées, Série/côté/Tour courants, paramètres propres et booléen global D-214, résultats et temps moteur ; aucune lecture réactive de la source modifiée.
+
+### 6. Classification des valeurs Figma
+
+Noms/durées/compteurs calculés ; valeurs Figma démonstratives. Circuit=groupe, Tour=répétition ; Cycle technique 1 jamais affiché.
+
+### 7. Structure de l’écran
+
+Shell Execution ; nom Exercice puis contexte nom Séance + Catégorie, côté distinct ; chrono/Série/Tour/progression ; commandes ; état média conditionnel.
+
+### 8. Éléments obligatoires
+
+Phase courante identifiable, temps et progression, commandes Réinitialiser/Pause/Suivant/sons/vocal ; Tour seulement dans contexte de Circuit ; aucune interface de bilatéralité Circuit.
+
+### 9. Layout déterministe
+
+Rendu du shell courant et D-197/D-220 ; Série/Tour 24 selonDSF T10 ; écart vertical 24 entre temps total et progression Tours ; dialogues centrés D-228, jamais nouvelles pages numérotées.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Commandes visibles à texte standard ; à texte agrandi scroll accessible sans masquer temps/action ; Safe Areas ; plein écran média suit son contrat et orientation.
+
+### 11. États de l’écran
+
+Initial ; compte à rebours initial ; phases propres activées/ignorées ; Série ; pause inter-Séries ; côté ; récupération ; point d’arrêt ; pause utilisateur ; confirmations ; Fin de séance ; terminé/partiel/interrompu.
+
+### 12. Contrôles et interactions
+
+Démarrer construit le plan ; ordre canonique§4.12. Pause suspend temps actif ; Reprendre relance ; Arrêter seulement depuis Pause avec confirmation. Réinitialiser/Suivant suivent table§4.12, résultat partiel si saut chronométré anticipé. Point d’arrêt attend reprise explicite ; média ne suspend pas moteur.
+
+### 13. Gestes
+
+Tap commandes ; confirmation explicite avant action destructive ; gestes média uniquement dans sa zone ; aucun retour vers Exercice précédent au MVP.
+
+### 14. Validation
+
+Séance contenant≥1Exercice valide ; pas de double démarrage. Points aux positions D-217 seulement. Phases 0 s instantanées. Progression hybride : invariants définis mais formule contradictoire amont signaléeR-01 ; ne pas certifier son résultat numérique.
+
+### 15. Brouillon et persistance
+
+Instantané immuable ; résultats/temps checkpointés selon architecture ; Ressenti/Commentaire finalisés après clôture dans CE-UI-08. Réinitialiser conserve temps total déjà exécuté et résultats hors cible.
+
+### 16. Navigation et conservation d’état
+
+Reprise technique restaure phase/Série/côté/Tour sans relire source ni dupliquer résultat. Retour normal après Synthèse vers Suivi ; contexte occurrence reste associé à l’Exécution.
+
+### 17. Erreurs et cas limites
+
+Source supprimée après départ sans effet sur instantané ; interruption technique conserve résultats ; attente de point hors durée ; reprise après arrière-plan par horodatage. Gardes 30 min/2h selon modèle, délai de non-réponse non définiR-03.
+
+### 18. Accessibilité
+
+Annoncer phase, nom et côté au démarrage/changement ; commandes nommées selon phase, notamment Réinitialiser la récupération. Focus dans dialogue puis retour ; indicateurs non fondés uniquement sur couleur.
+
+### 19. Invariants
+
+Circuit unilatéral, Tours 1..99 ; récupération après chaque occurrence y compris dernière et chaque Tour ; point interne répété chaque Tour ; attente hors durée ; pas de mutation de la source ; média indépendant du moteur.
+
+### 20. Recette déterministe
+
+Séance avec avant/dans/après Circuit, Tours 1/2, unilatéral/bilatéral, trois modes ; D-214on/off ; toutes phases 0/>0 ; dernière récupération avant Fin ; points frontières/intérieur ; pause/reset/saut/arrêt confirmés/annulés ; source modifiée pendant run ; reprise ; médias ; réservesR-01/R-03 explicitement non recettées.
+
+### 21. Traçabilité
+
+D-133/D-149/D-150/D-191/D-197/D-208–220 ; chapitres 04/08/09/10/11/12 ; CE-UI-08 ; frames§1. Spécification de la famille T04, sans lancement d’une implémentation dans cette livraison.
+
+---
+
+## CE-UI-08 — Synthèse de Séance
+
+### 1. Identification
+
+SESSION terminée 1992:8718/8780, partielle 4760:6448/6500 ; ACTIVITY distinct CE-T03-14.
+
+### 2. Finalité fonctionnelle
+
+Afficher bilan de Séance et finaliser Ressenti/Commentaire avant Suivi.
+
+### 3. Contexte d’entrée
+
+Fin normale du plan SESSION ou arrêt volontaire confirmé ; pas obligatoire à afficher si interruption technique l’empêche.
+
+### 4. Contexte de sortie / destinations
+
+Enregistrer réussi → Suivi ; erreur reste sur Synthèse. Aucun Relancer ni sortie normale sans Ressenti.
+
+### 5. Données affichées et source de vérité
+
+Instantané de Séance, statut, durée réelle et résultats atteints ; nombre exécuté inclut les partiels, nombre terminé les exclut. Ne pas étiqueter le premier comme Exercices terminés. Partiels affichés séparément si>0 ; aucun double comptage Série/côté.
+
+### 6. Classification des valeurs Figma
+
+Nom/date/nombres dynamiques ; labels Enregistrer/Commentaire statiques ;12/12 et 10/12 des maquettes sont démonstratifs.
+
+### 7. Structure de l’écran
+
+Nom/statut → durée et bilan → question de Ressenti et trois choix → Commentaire → Enregistrer.
+
+### 8. Éléments obligatoires
+
+Ressenti obligatoire, Commentaire facultatif≤200, Enregistrer désactivé sans Ressenti ; pas de Tours/Cycles ni détail des Exercices sur cet écran.
+
+### 9. Layout déterministe
+
+Shell Summary ; trois choix Ressenti égaux, séparations 16 ; question selon type.cardTitle ; noms et chiffres depuis données ; Enregistrer est le CTA des captures courantes.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Texte agrandi peut revenir à la ligne ; clavier n’occulte ni saisie ni CTA ; scroll utile, pas de rognage du bilan.
+
+### 11. États de l’écran
+
+Terminée/Partielle/Interrompue ; aucun/un Ressenti ; commentaire vide/renseigné/invalide ; sauvegarde/erreur.
+
+### 12. Contrôles et interactions
+
+Tap Ressenti change choix unique ; Commentaire modifie brouillon de finalisation ; Enregistrer une fois, pas de réexécution du plan.
+
+### 13. Gestes
+
+Tap/saisie/scroll uniquement ; D-237 sur choix/actions ; aucun swipe qui quitte la Synthèse.
+
+### 14. Validation
+
+Ressenti obligatoire même Interrompue si écran présenté ; commentaire≤200 caractères ; dépassement signalé sans enregistrement ni troncature silencieuse.
+
+### 15. Brouillon et persistance
+
+Instantané/résultats figés ; finalisation Ressenti/Commentaire atomique et idempotente. Échec conserve brouillon, ne crée pas une seconde Exécution.
+
+### 16. Navigation et conservation d’état
+
+Après Enregistrer, Suivi montre l’Exécution ; pas de retour au Catalogue imposé pour SESSION. L’occurrence Calendrier liée est marquée exécutée le cas échéant.
+
+### 17. Erreurs et cas limites
+
+Interruption technique sans présentation autorise Ressenti absent ; données source supprimées restituées depuis instantané ; erreur sauvegarde garde écran/choix/commentaire.
+
+### 18. Accessibilité
+
+Labels des trois Ressentis et état sélectionné ; obligatoire/facultatif annoncé ; statut non uniquement coloré ; focus/erreur champ ; réduction des animations.
+
+### 19. Invariants
+
+Exécuté≠terminé ; un Exercice partiel compte exécuté, jamais atteint ne compte pas ; pas de compteur de Séries interprété comme nombre d’Exercices ; aucun Cycle/Tour.
+
+### 20. Recette déterministe
+
+Trois statuts,0/1/N partiels, distinction exécutés/terminés, trois Ressentis, commentaire 0/200/201, erreur/reprise/double tap, source supprimée ; navigation Suivi ; pas de Relancer ni sortie sans Ressenti.
+
+### 21. Traçabilité
+
+Chapitre 06 Synthèse ; RM-074 et modèle résultats 09 ;1992:8718/8780,4760:6448/6500 ; CE-EXEC-SESSION-01 et CE-T03-14.
+
+---
+
+## CE-UI-09 — Référentiels d’Exercice — Catégorie et Zones corporelles
+
+### 1. Identification
+
+Catégorie 4332:7095, création 4474:7157 ; Zones 4478:7209, création 4683:6336 ; suppressions 4861:6259/6348. Étiquettes de Séance :CE-T03-16.
+
+### 2. Finalité fonctionnelle
+
+Renseigner les classifications d’un Exercice et administrer leurs valeurs sans changer son exécution.
+
+### 3. Contexte d’entrée
+
+Accès Catégorie ou Zones depuis éditeur persistant/local, avec brouillon conservé.
+
+### 4. Contexte de sortie / destinations
+
+Catégorie choisie au toucher → éditeur ; Zones sélection multiple puis validation de la modale → éditeur ; fermer sans validation restaure sélection antérieure. Création/suppression restent dans la famille de sélection.
+
+### 5. Données affichées et source de vérité
+
+Référentiels utilisateur et IDs du brouillon. Catégorie unique avec couleur ; Zones multiples sans couleur. Affectations retirées existantes conservables avec nom/dernière couleur.
+
+### 6. Classification des valeurs Figma
+
+Noms et couleurs dynamiques ; dix zones initiales sont un jeu de départ, pas une liste fermée. Labels Catégorie/Zones/Nouvelle… statiques.
+
+### 7. Structure de l’écran
+
+Modale de choix, création inline avec clavier, palette seulement Catégorie, dialogue destructif centré sur appui long.
+
+### 8. Éléments obligatoires
+
+Catégorie 1 et Zones≥1 pour nouvel Exercice ; nouvelle valeur nommée ; annuler et confirmer les sélections multiples ; aucun CTA supplémentaire en choix simple D-222.
+
+### 9. Layout déterministe
+
+Modales D-228 ; pastille Catégorie colorée et nom ; Zones icône silhouette depuis Profil ; palette de 4474:7157. Les Zones n’ont pas de palette.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Liste scrollable, clavier et actions visibles ; nom long accessible ; textes agrandis sans réduction ; focus confiné à la modale ouverte.
+
+### 11. États de l’écran
+
+Liste vide/initiale/enrichie ; aucune/une Catégorie ; zéro/N Zones ; création/nom invalide ; valeur retirée déjà affectée ; confirmation/erreur.
+
+### 12. Contrôles et interactions
+
+Catégorie tap valide/ferme ; Zones tap toggle puis confirmer. Appui long ouvre suppression sans sélectionner. Créer/renommer conserve identité de référence ; changer couleur Catégorie se propage aux objets courants, pas aux instantanés.
+
+### 13. Gestes
+
+Tap, scroll, saisie et appui long option ; aucun drag des référentiels ; appui destructif jamais déclenché par simple sélection.
+
+### 14. Validation
+
+Nom non vide et unique dans son référentiel ; Catégorie exactement 1, Zones≥1 pour nouvel objet. Une valeur retirée ne peut recevoir de nouvelle affectation ; l’ancienne affectation n’exige pas un remplacement forcé.
+
+### 15. Brouillon et persistance
+
+Affectations dans brouillon Exercice, persistées à Terminer ; opérations de référentiel explicitement confirmées sont distinctes. Erreur de création/suppression ne sauvegarde pas l’Exercice.
+
+### 16. Navigation et conservation d’état
+
+Fermer restitue éditeur/brouillon ; Annuler suppression restitue sélection intacte ; confirmer retire des futurs choix mais conserve affectations existantes et historique.
+
+### 17. Erreurs et cas limites
+
+Nom vide/dupliqué, valeur retirée entre lecture et choix, échec écriture : message et brouillon conservé. Ne jamais recréer automatiquement une valeur initiale supprimée.
+
+### 18. Accessibilité
+
+Nom/état sélectionné annoncés ; couleur accompagnée du nom ; labels accessibles des actions ; focus dialogue puis liste ; toutes Zones sélectionnées lisibles.
+
+### 19. Invariants
+
+Classification sans effet sur moteur ; Catégorie colore les objets courants référents ; Zone sans couleur ; conservation D-210 ; silhouette sans effet de filtre.
+
+### 20. Recette déterministe
+
+Catégorie choix/annulation/création/couleur ; Zones 0/1/N ; noms vide/dupliqué ; supprimer initiale/personnelle utilisée/inutilisée ; sauvegarder ancienne affectation retirée ; interdire nouvelle ; renommer sans changer ID ; historique inchangé.
+
+### 21. Traçabilité
+
+D-199/D-200/D-210–212/D-222/D-238 ; CE-T03-04 ; frames§1. Renommage sans frame dédiée : comportement requis, rendu non prouvé.
+
+---
+
+## 5. État des preuves visuelles
+
+| ID | Écart ou limite | Contrat / traitement |
+|---|---|---|
+| V-01 |2234:189 : voile sans dialogue de suppression | CE-T03-01 ; réexport requis, confirmation métier conservée |
+| V-02 |Activité, Parcours/Tour mal employés dans plusieurs PNG | Contrats cible Exercice/Circuit/Tour ; corriger Figma sans renommer les IDs techniques |
+| V-03 |Éditeur : Terminer visuellement actif sans mode sur 3542:4656/3943:6064 ;4367:7128 état mixte ;3556:7712 minutes de pause hors borne ; phases propres absentes sur certaines variantes | CE-T03-04 ; ne pas déclarer état interactif vérifié ; les frames existent, leur état ne vaut pas règle |
+| V-04 |Contrôle global D-214 sans emplacement graphique complet | CE-T03-08 ; règle fonctionnelle complète, preuve graphique à fournir |
+| V-05 |Chevauchement de créneaux Jour sans géométrie de référence | CE-UI-02 ; conserver lisibilité/accès, rendu à qualifier |
+| V-06 |Erreur d’initialisation Splash sans frame | CE-UI-06 ; aucune destruction de données ou blocage silencieux, rendu à qualifier |
+| V-07 |Direct/media montre Tour ;17 px/24 px divergent ; état Démarré parfois incohérent | CE-T03-09..13/MEDIA ; Tour absentACTIVITY,24 px cibleDSF T10 |
+| V-08 |Étiquette 4861:6145 mentionne Exercices au lieu de Séances ; renommages sans preuve dédiée | CE-T03-16/CE-UI-09 ; textes et comportement explicités, pas de preuve inventée |
+| V-09 |Récurrence 2 semaines avec récapitulatif hebdomadaire ; filtre dit inactif avec critère appliqué | CE-UI-05/CE-T03-02 ; récapitulatif et état dérivés des données |
+| V-10 |Récupération visible dans certaines cartes Composition ; média déployé 4738:6355 ; Photo non propagée | Écarts d’assemblage déjà acceptés ; appliquer cible D-238, ne pas retoucher les PNG ni rouvrir RG-3 |
+| V-11 |Compte à rebours Composition inline 2028:11375 mais description roulette ; pas Fin 5 s contre prescription 1 s | CE-T03-08 ; aucun état de picker déclaré vérifié tant que la description 06 et sa preuve ne sont pas réconciliées |
+| V-12 |Archives Exercice sans écran complet ; Photo à200% non qualifiée ; animations non câblées ; contrastes acceptés | Limites déjà documentées du DSF, pas de nouvelle décision produit |
+
+Les 119 captures restent exclusivement au chapitre 06, dont six références hors prototype qui ne deviennent pas des écrans MVP. Les matrices ci-jointes donnent les rattachements ; la présence de chaque capture a été vérifiée lors de l’audit, pas son fonctionnement interactif.
+
+## 6. Réserves de spécification amont — aucune règle inventée
+
+| ID | Point restant non univoque dans les sources | Impact et traitement dans les contrats |
+|---|---|---|
+| R-01 |Progression hybride 08§4.4/RM-077 : poids 1/N des non-chronométrés sature 100% si tous sont non-chronométrés, malgré les phases chronométrées incluses par D-133. Portée globale de 2 s/répétition de v10.2 contre l’interdiction d’estimation conventionnelle de certains chapitres | CE-EXEC-SESSION-01 : ne pas figer un algorithme contradictoire ; phrase éditeur 2 s actée conservée ; calcul global doit être consolidé dans 08/10 avant recette numérique |
+| R-02 |Capacité/format de roulette Durée totale et certaines bornes Profil/délai personnalisé/fréquence non complètement renseignés | CE-T03-04/CE-UI-05/07 : bornes actées appliquées, formule inverse plafonnée 99 ; ne pas transformer un exemple en maximum métier. Complément source nécessaire pour les bornes non définies |
+| R-03 |Reset bilatéral côté versus Série ; devenir SIDE_RECOVERY au saut anticipé du premier côté ; délai de non-réponse à pause de sécurité | CE-T03-12/CE-EXEC-SESSION-01 : préservation de l’autre côté et temps total actée ; transitions fines non déclarées recettées, table moteur à consolider |
+| R-04 |Suppression seulement cette occurrence périodique visible mais exclusion persistante/API non définies complètement | CE-UI-03 : résultat utilisateur requis et recette relance/notifications explicites ; adaptation modèle 09/API11 nécessaire, pas de nouvelle table technique inventée ici |
+
+Ces réserves proviennent de l’audit, pas d’une réouverture des décisions closes. Elles ne bloquent pas la livraison des corrections documentaires, mais empêchent de prétendre à une spécification intégralement déterministe sur ces seuls points. La correction des contrats ne prétend pas réécrire les chapitres métier/API/architecture en dehors du périmètre demandé.
+
+## 7. Référentiel élémentaire T03 et couverture
 
 | ID | Contenu élémentaire |
 |---|---|
@@ -1724,7 +2824,8 @@ E05–E06 → D-167/D-179 ; Figma `6298:12462`; chapitre 12 Navigation.
 | E05 | Navigation basse `Catalogues` |
 | E06 | Icônes navigation conformes DSF |
 | E07 | Lister ActivityDefinition |
-| E09 | Rangée Catalogue `Créer / Filtrer / Trier` commune ; Filtrer Archives défini pour Exercices ; Trier disabled ; autres options non définies |
+| E08 | Absence de recherche globale ou locale MVP (D-221) |
+| E09 | Rangée Catalogue `Créer / Filtrer / Trier` commune ; Filtres contextuels statut/Catégories/Zones pour Exercices, statut/Étiquettes pour Séances ; Trier désactivé |
 | E10 | Préserver filtres/tri/scroll pendant aller-retour |
 | E11 | Ne pas conserver au relaunch |
 | E12 | Ouvrir ActivityDefinition en consultation/modification |
@@ -1737,8 +2838,8 @@ E05–E06 → D-167/D-179 ; Figma `6298:12462`; chapitre 12 Navigation.
 | E19 | Créer contextuel Catalogue |
 | E20 | Exercices → création directe ActivityDefinition |
 | E21 | Séances → création directe Séance |
-| E22 | Arbre Ajouter depuis Composition |
-| E23 | Nouvelle exercice depuis Composition = SessionActivity |
+| E22 | Ajouter depuis Composition ouvre directement la sélection Catalogue |
+| E23 | Création locale SessionActivity conservée techniquement, non exposée dans ce parcours |
 | E24 | Pas Enregistrer dans Catalogue T03 |
 | E25 | Multi-sélection ActivityDefinition |
 | E26 | Validation disabled sélection vide |
@@ -1755,7 +2856,7 @@ E05–E06 → D-167/D-179 ; Figma `6298:12462`; chapitre 12 Navigation.
 | E37 | Execution origin ACTIVITY |
 | E38 | Snapshot autonome immuable |
 | E39 | Préparation fixe 5 s |
-| E40 | Séries / Pauses / côtés / Recovery |
+| E40 | Séries / pauses / côtés / SIDE_RECOVERY / phases propres |
 | E41 | Réutiliser règles bilatérales existantes |
 | E42 | Pas Session artificielle |
 | E43 | Pas SESSION_END |
@@ -1764,8 +2865,8 @@ E05–E06 → D-167/D-179 ; Figma `6298:12462`; chapitre 12 Navigation.
 | E46 | Commentaire facultatif |
 | E47 | Suivi type Exercice |
 | E48 | Stats compatibles sans compter Séance |
-| E49 | Retour Catalogue exercices état restauré |
-| E50 | Nom Activity gras Synthèse éditeur ; nom Figma renseigné = donnée de démonstration |
+| E49 | Retour au contexte appelant ACTIVITY avec état restauré |
+| E50 | Phrase éditeur sans nom ; nom Figma renseigné = donnée de démonstration |
 | E51 | Répétitions : phrase `Durée totale ≥ {estimation}` avec 2 s par répétition |
 | E52 | À l’échec : aucune Durée totale dans le texte éditable |
 | E53 | Pas texte direction développé cartes Composition |
@@ -1778,19 +2879,19 @@ E05–E06 → D-167/D-179 ; Figma `6298:12462`; chapitre 12 Navigation.
 | E60 | Swipe droit ferme seulement carte ouverte |
 | E61 | Autres contrôles restent actifs |
 | E62 | Une seule carte expose actions |
-| E63 | Dupliquer arrondi + gap fond Tour |
+| E63 | Dupliquer arrondi + gap fond Circuit |
 | E64 | CR initial non déplaçable |
 | E65 | Fin séance non déplaçable |
 | E66 | Aucun long press/poignée cartes structurelles |
-| E67 | Après Catégories → Catalogue séances |
+| E67 | Continuer de Composition → Catalogue séances ; Étiquette facultative en modale |
 | E68 | Segment Séances sélectionné |
 | E69 | Transition canonique droite→gauche |
 | E70 | Migration sans promotion SessionActivity |
-| E71 | Médias multiples hors T03 |
+| E71 | Consultation galerie média MVP ; ajout/import non activés par D-203 |
 | E72 | Parcours fonctionnels hors T03 |
 | E73 | Valeurs Figma démo non codées en dur |
 
-# 13. Couverture des contenus élémentaires
+### Couverture des contenus élémentaires
 
 | Plage | Contrats propriétaires |
 |---|---|
@@ -1808,666 +2909,15 @@ E05–E06 → D-167/D-179 ; Figma `6298:12462`; chapitre 12 Navigation.
 | E64–E66 | CE-T03-08 |
 | E67–E69 | CE-T03-01/16 |
 | E70 | invariant non visuel 09 + contrats de persistance |
-| E71 | CE-T03-03/04 |
+| E71 | CE-MEDIA-EXEC-01/02, CE-T03-04 |
 | E72 | CE-T03-01/03 |
 | E73 | règle commune §4.1 + tous contrats données |
 
-Aucun contenu élémentaire T03 n’est orphelin. E70 n’a volontairement pas d’écran artificiel.
+Chaque contenu E01–E73 est rattaché ci-dessus ; E08 est rattaché à CE-T03-02/17 et §4.3. E70 n’a volontairement pas d’écran artificiel.
 
-# 14. Frontière T03 / T04
 
-T03 peut implémenter :
+## 8. Frontière de réalisation et recette
 
-`Activity snapshot → préparation 5 s → Séries → Pauses → côtés → Récupération → signal fin → Synthèse → Suivi`.
+T03 décrit l’Exécution ACTIVITY autonome : préparation 5 s, phases propres, Séries/pauses/côtés, pause au changement de côté, Synthèse et Suivi. T04 porte l’orchestration SESSION : Circuit/Tours, phases structurelles, récupération post-occurrence, points d’arrêt et progression globale. Ajouter leurs contrats ne déclenche ni développement ni changement de tranche. Parcours autonome et recherche restent hors MVP.
 
-T03 ne doit pas implémenter au titre de cette tranche :
-
-- orchestration complète Session ;
-- Compte à rebours Session comme phase du plan Session ;
-- Exercices avant/dans/après Tour dans une Execution ACTIVITY ;
-- répétitions Tour/Cycle dans ACTIVITY ;
-- progression globale Session ;
-- `SESSION_END` dans ACTIVITY ;
-- logique de fin complète Session.
-
-Cela relève de T04.
-
-# 15. Preuve de conformité attendue
-
-Pour chaque contrat :
-
-1. tests nominal + alternatifs + négatifs ;
-2. capture implémentation 402 comparée à Figma lorsqu’une frame existe ;
-3. contrôle 360/402/440 ;
-4. contrôle accessibilité ;
-5. preuve que les données de démo ne sont pas codées en dur ;
-6. preuve de persistance / absence de persistance ;
-7. preuve d’absence de fonctionnalité hors T03.
-
-Statuts : `CONFORME`, `PARTIELLEMENT CONFORME`, `NON CONFORME`, `NON VÉRIFIABLE`, `À CLARIFIER`.
-
-# 16. Références Figma
-
-Le chapitre 13 ne contient et ne référence **aucune copie physique d’écran ou de modale**. Toutes les copies d’écran utilisées dans les spécifications sont centralisées exclusivement dans le chapitre 06.
-
-Les contrats de ce chapitre peuvent uniquement citer :
-- le nom fonctionnel de l’état ;
-- le node Figma correspondant ;
-- le statut courant, historique ou supersédé lorsque nécessaire.
-
-Les références Figma courantes utiles aux contrats T03 comprennent notamment : `3786:5093`, `1992:9910`, `4168:11149`, `4168:11262`, `4217:6980`, `4279:7044`, `4734:6342`, `4738:6209`, `4738:6355`, `1992:8132`, `1992:8626`, `1992:8224`, `1992:8326` et `1992:8428`.
-
-Les frames historiques explicitement marquées `HISTORIQUE` dans Figma ne constituent pas des cibles d’implémentation. Les frames `PROPOSITION` ne deviennent une référence active que lorsqu’une décision validée les adopte et que le chapitre 06 les rattache à un écran ou état de production.
-
-Figma reste la source visuelle courante. Le chapitre 06 porte l’inventaire des écrans, états, modales et leurs copies documentaires ; le présent chapitre porte seulement les contrats déterministes de comportement et de recette.
-
-## CE-MEDIA-EXEC-01 — Bascule Information / Média pendant l’Exécution
-
-### 1. Identification
-
-D-203 — états média représentés inclus au MVP ; aucun ajout implicite de parcours d’import. Évidences Figma :
-- `5021:5994` — Exécution d’un exercice — Initial — Cercle avec Texte ;
-- `5581:4257` — Exécution d’un exercice — Démarré — Bascule haute avec texte ;
-- `4997:6113` — Exécution d’un exercice — Initial — Bascule basse (média) avec Cercle ;
-- `5588:4363` — Exécution d’un exercice — Initial — Bascule haute avec média.
-
-### 2. Finalité fonctionnelle
-
-Consulter les médias de l’Exercice en cours sans quitter ni suspendre l’Exécution.
-
-### 3. Conditions d’affichage
-
-Le bouton de changement de face existe uniquement si l’Exercice possède au moins un média. Face Information par défaut au début d’une nouvelle séance. Le modèle d’exécution porte deux boutons symétriques de bascule de côté (haut près du chrono, bas près du média) ; chacun mesure 32 × 32 px et utilise l’icône `bitcoin-icons:flip-horizontal-filled` noire sur le fond circulaire standard du DSF.
-
-### 4. Interactions
-
-Bouton dédié → retournement 3D. Swipe horizontal en face Média → média précédent/suivant, exactement un par geste. La galerie ne boucle pas. Un appui sur le média → CE-MEDIA-EXEC-02. La taille du libellé Série/Tour dépend de la variante d’Exécution : `17 px` sur la variante à bascule basse avec cercle (`4997:6113`) ; `24 px` sur la variante à bascule haute avec média (`5588:4363`), où il est aligné sur « Côté droit ». Ces deux tailles sont conformes au prototype.
-
-### 5. État
-
-Face et média courant sont mémorisés par Exercice pendant la séance uniquement. Une vidéo ne démarre jamais automatiquement.
-
-### 6. Critères de contrôle
-
-Absence bouton sans média ; ordre galerie ; pagination ; une transition par swipe ; bornes résistantes ; cadrage intégral ; vidéo sans autoplay ; aucune pause du moteur.
-
----
-
-## CE-MEDIA-EXEC-02 — Média plein écran avec cadre flottant d’Exécution
-
-### 1. Identification
-
-D-203 — état plein écran inclus au MVP ; évidence Figma active `5009:6069` — Test 2 Exécution d’une séance — Média plein écran.
-
-### 2. Finalité fonctionnelle
-
-Agrandir le média tout en conservant le suivi et les commandes essentielles de l’Exécution.
-
-### 3. Structure fonctionnelle
-
-Le média occupe le plein écran avec ratio conservé. Une couche flottante d’Exécution présente le nom, le côté applicable, le chrono, Série/Tour et les commandes essentielles d’Exécution. La barre média reste distincte et porte Fermer, Lecture/Pause et progression vidéo.
-
-### 4. Comportement
-
-L’orientation suit l’appareil. Le moteur d’Exécution continue. Fermer revient au même média. La fin de l’Exercice ferme automatiquement le plein écran et poursuit la transition normale.
-
-### 5. Audio et erreur
-
-Son vidéo actif par défaut ; ducking pendant les annonces vocales KODJO. Une erreur média reste locale et n’arrête pas l’Exécution.
-
-## Complément D-206 — Planification depuis les Catalogues
-
-### Catalogue des Exercices
-
-Une carte d’Exercice active expose l’action `Planifier` au même niveau fonctionnel qu’une carte de Séance. Cette action ouvre le parcours de planification avec l’Exercice prérempli comme source `ACTIVITY`. Aucune prochaine planification n’est affichée sur la carte, qu’une occurrence future existe ou non (D-238) ; le calcul demeure disponible.
-
-### Catalogue des Séances
-
-La même règle s’applique aux Séances avec une source `SESSION`. La prochaine planification est absente de la carte, sans réserve d’espace, comme pour les Exercices (D-238).
-
-### Parcours de planification
-
-Le même contrat fonctionnel de planification sert aux deux sources. Lorsque le parcours est ouvert depuis le Calendrier, l’utilisateur choisit une Séance ou un Exercice persistant. Lorsqu’il est ouvert depuis une carte de Catalogue, la source est préremplie. Les frames Figma actuellement nommées `Planifier une séance` documentent la variante Séance ; l’état équivalent pour un Exercice reste à matérialiser visuellement sans créer un second parcours fonctionnel.
-
-## Complément D-207 — Parcours planifiable
-
-Le Catalogue des Parcours, lorsqu’il devient fonctionnel et planifiable, applique la même convention que les deux autres Catalogues : action `Planifier`, ouverture du parcours commun avec la source préremplie et affichage conditionnel de la prochaine planification lorsqu’une occurrence future existe. Tant que la planification des Parcours n’est pas livrée, ces contrôles restent absents ou explicitement désactivés conformément à la roadmap.
-
-## Complément D-208 — contrats Récupération
-
-### Éditeur Exercice
-- Le contrôle visible est `Pause au changement de côté`.
-- Il est absent/inactif en `Aucun` et disponible en `D→G/G→D`.
-- La synthèse intrinsèque de l’Exercice n’affiche jamais de récupération post-exercice.
-- Valeur initiale lors de l’activation bilatérale : défaut Profil **Pause au changement de côté**, `10 s` dans le Figma de référence ; valeur ensuite propre à l’Exercice et modifiable.
-
-### Composition
-- Aucune ligne `Récupération {durée}` n’est affichée sur les cartes (D-238) ; la donnée postActivityRecoverySeconds est conservée.
-- Aucune zone de tap n’est portée par une ligne de récupération masquée ; les autres réglages existants sont inchangés.
-- La donnée de récupération suit déplacement, duplication et suppression de l’occurrence.
-- La dernière Activité du Tour conserve cette donnée ; la phase est exécutée à chaque Tour.
-- La dernière Activité de Séance conserve cette phase avant la Fin de séance.
-
-### Exécution directe
-- Aucun état de récupération post-exercice.
-- Si bilatéral, la pause au changement de côté éventuelle intervient entre les deux passages.
-
-### Exécution de Séance
-- Distinguer explicitement pause au changement de côté et récupération après occurrence.
-- La récupération post-exercice est exécutée après chaque occurrence, y compris après la dernière et après chaque répétition de la dernier Exercice du Tour.
-
-## Complément contrats — D-209 à D-218
-
-- **Éditeur Exercice** : exactement une Catégorie et `1..n` Zones corporelles sont requises pour `Terminer`. La phrase de synthèse suit D-232 ; en mode Durée avec une seule Série, la clause `Durée totale` est omise.
-- **Référentiels** : une suppression confirmée retire la valeur des choix futurs mais ne retire pas les affectations existantes. Les messages Figma doivent exprimer cette conservation. Une valeur inactive déjà affectée reste affichable et conservable lors d’un enregistrement.
-- **Composition** : employer Circuit pour le groupe répété et Tours pour son nombre de répétitions. Le réglage global de prise en compte des Compte à rebours/Fins d’exercice est activé par défaut. Les positions de Point d’arrêt juste après le Compte à rebours initial et juste avant la Fin de séance sont absentes. Récupération précède Point d’arrêt sur leur ligne commune.
-- **Média compact** : bouton Lecture central avant lecture, masqué pendant lecture ; retour Information met la vidéo en pause.
-- **Splash** : la frame Splash active de `Prototype MVP` est la référence unique ; aucun statut `À CLARIFIER` n’est associé à son ancien nom.
-
-
-**Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant ouvre une bulle de retrait ; un appui ailleurs referme la bulle sans modification. La Récupération après exercice et le Point d’arrêt peuvent partager une même ligne visuelle mais restent deux zones et deux concepts distincts.
-
-
-## Addendum contrats — clôture Figma / DSF 28 septembre 2026
-
-Les contrats actifs appliquent D-221 à D-230. En particulier : aucune recherche globale ou locale dans les Catalogues ; sélection simple d’un objet planifiable par radio exclusif avec fermeture au toucher et sans CTA bas ; sélection multiple de Composition par cases à cocher avec CTA `Sélectionner`; filtres avec validation explicite. Le titre de planification est contextuel selon D-223. Les dimensions, couleurs, ombres, halos, fonds, dégradés, steppers, badges, roulettes, navigation et règles de clipping sont des critères de recette DSF selon D-224 à D-230.
-
-
-### Référence DSF V2 détaillée — clôture 28 septembre 2026
-
-- **Navigation basse** : pilule `322 × 62 px`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur/rayon 10 offset `0,2`; token `color/navigation/pill`. Icône Profil selon D-233/D-236 dans boîte 32×32 ; actif `#0508E5`, inactif `#5C636E`. Cadre actif `76 × 50 px`, bleu `#0508E5` à 10 %. Boîtes d’icônes aux abscisses 68/146/224/302 dans la référence 402 px, soit 28 px entre bord de pilule et boîte extrême et 78 px entre centres. Intégration écran : 16 px sous la pilule, bande opaque 16 px puis dégradé transparent→fond sur 40 px ; ces bandes appartiennent à l’écran.
-- **Fond / contexte** : écran ordinaire `#FFFFFF`; Splash `#0006F1`; média plein écran `#0A0A0C`. Zone de contexte `#EAEAFF`→transparent sur les 20 % inférieurs pour Catalogues, Composition, Calendrier, Suivi, Profil et Ajout d’exercice. Le séparateur 1 px n’est retiré que si ce dégradé assure la séparation.
-- **Halo et action circulaire** : halo Annuler/Retour blanc opaque `59,28 px`, placé devant la zone de contexte et hors du conteneur clippé ; bouton circulaire clair `32 × 32`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur 10 offset `0,2`.
-- **Stepper / valeur** : variante lavande `#F2F2FF` pour Profil/paramètres, variante blanche pour Tours de Composition ; `−/+` ronds bleus, 12 px autour de la valeur centrale. Le stepper remplace la valeur sur la même ligne sans étirer le groupe ; un seul stepper actif à la fois. Badge replié `#F4F4F8`, texte bleu Semi Bold 13 px, rayon 6, marges 8 px horizontales et 2 px verticales ; contour bleu 1,5 px lorsque le contrôle est ouvert (DSF V2 lot 3, T4). Le nombre de semaines utilise la pilule de stepper rayon 18.
-- **Point d’arrêt** : bouton rond blanc opaque, icône Pause, contour 1 px `#0508E5`; l’action complète porte le contour. Les occurrences de Composition utilisent cette référence commune.
-- **Ressenti** : ne pas confondre contrôle de choix et pictogramme de résultat. Résultats : vert Bien, orange Neutre, rouge Mal ; rouge source `#EF4444`. Aucun état actif Figma ne prouve un contrôle « Mal sélectionné ».
-- **Profil** : titres de section Semi Bold 16 px ; `Modifier` en `#0508E5`; groupes blancs 126 px ; zone de contexte 115 px ; ouverture d’un stepper sans étirement du groupe.
-- **Exécution** : sur les cinq écrans portant `Zone — Progression et suite`, début `y=449`, hauteur `305 px`. Dans la variante haute avec texte, conserver 95 px avant la zone. Typographie de Série/Tour selon la variante : `17 px` pour la bascule basse avec cercle (`4997:6113`) ; `24 px`, Roboto Condensed Medium, pour la bascule haute avec média (`5588:4363`).
-- **Cartes avec photo** : D-238 remplace l’ancien état média déployé ; Photo supprime Déployer. Les variantes média d’Exécution conservent leur fonctionnement propre.
-
-
-### Contrat de phrase de synthèse v10.2
-
-La phrase est vide tant qu’aucun mode n’est sélectionné. Le mode reste affiché séparément. Toute modification d’un paramètre régénère la phrase. Le texte concatène les fragments conditionnels définis par D-232 et ne persiste pas comme donnée autonome. Le nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité sont exclus. Les cas du classeur v10 constituent les tests d’acceptation textuels. Après saisie de `Tv`, afficher « Durée ajustée à {T(N)} pour respecter un nombre entier de Séries. » si et seulement si `T(N) ≠ Tv` ; aucun message si égalité. Les arbitrages V1 sont consolidés par D-232 ; seule la stratégie V2 de `r` reste À CLARIFIER hors MVP.
-
-
-### Critères d’acceptation v10.2 — D-232
-
-État initial : aucun mode, phrase vide, `Terminer` désactivé. Sur `4217:6980` et `5088:6398`, `Terminer` paraît visuellement actif alors qu’il doit être désactivé : écart visuel Figma à corriger (la règle fonctionnelle est tranchée). Première sélection : impossible ensuite de revenir à aucun mode. Changement de mode : paramètres communs conservés et dernière valeur spécifique de chaque mode restaurée pendant l’édition. Séries `1..99`; Répétitions `1..100`; Durée par Série `1 s..99 min 59 s`. Pauses inter-Séries et inter-côtés dans l'Exercice : roulette `0..5 min`, valeurs proposées par `5 s` jusqu’à `2 min`, puis par `30 s` jusqu’à `5 min` ; les réglages du Profil utilisent un stepper. Pause inter-côtés initialisée par copie de la valeur Profil. La phrase omet la Durée totale seulement en Durée avec `N=1` et côté `Aucun`; elle l’affiche si `N>1` ou si un changement de côté est défini. Compte à rebours et Fin d'exercice ne sont ni dans la phrase ni dans la Durée totale.
-
-
-## Audit transverse des copies du 28 septembre 2026
-
-Les 96 états de la campagne principale et les deux états média D-203 (soit 98 captures requises) sont référencés dans le chapitre 06 ; `4997:6113` et `5009:6069` sont des captures MVP. Le chapitre 13 décrit le comportement et ne contient aucune copie d’écran. Les rubriques de chaque contrat restent la référence de développement ; les images illustrent les états, sans supplanter D-232 ni les décisions applicables.
-
-| Famille de copies | Contrat applicable | Résultat de rapprochement |
-|---|---|---|
-| Profil et planification `1992:474`, `1992:579`, `1992:7537` | Contrats Profil et planification existants | Steppers confirmés visuellement ; légendes du chapitre 06 corrigées. |
-| Éditeur `4217:6980`, `4279:7044`, `4332:7095`, `5088:6398` | `CE-T03-04` et D-232 | Catégorie ouverte correctement identifiée ; roulette de Durée ouverte référencée par `4367:8193` ; état désactivé de `Terminer` corrigé à 40 % d’opacité sur `4217:6980` et `5088:6398`. |
-| Catalogues et sélection simple `4738:6355`, `5451:4272` | `CE-T03-02`, contrats de planification | Média déployé et sélection simple illustrés ; pas de bouton de confirmation pour la sélection simple. |
-| Composition et synthèse `5301:5443`, `4760:6448`, `4760:6500` | Contrats Composition et synthèse existants | États distincts documentés par leurs captures. |
-| Exécution directe `4968:8188`, `5588:4363`, `5021:5994`, `5581:4257` | Contrat d’Exécution et règles DSF d’action circulaire | Variantes d’écran distinctes, sans création d’un contrat par capture. |
-| Média `4997:6113`, `5009:6069` | `CE-MEDIA-EXEC-01/02`, D-203 | Références visuelles MVP ; écart typographique à corriger sur `4997:6113`. |
-
-La revue visuelle est clôturée : le libellé Série/Tour à 17 px sur `4997:6113` est conforme à sa variante. La roulette de Durée est visible sur le frame de référence `4367:8193` ; les CTA désactivés ont été corrigés sur `4217:6980` et `5088:6398`. Les règles V1/MVP de D-232 sont tranchées ; la seule décision fonctionnelle ouverte reste la stratégie V2 de `r`, hors MVP.
-
-## Complément du 30 septembre 2026 — cartes, icônes et appuis
-
-Décisions finales du propriétaire : les 17 points sont clos ; aucune question ouverte. RG-1 à RG-13 s’appliquent avec RG-3 seule reportée (Séance sans vignette). RG-4 retire Déployer de l’exercice avec photo. Les cartes du Catalogue, des choix et de Composition n’affichent plus pauses/récupérations ; les Catalogues n’affichent plus la prochaine planification. Les données, calculs et fonctions de planification restent inchangés. D-195, D-206 et D-208 sont révisées uniquement sur ces règles d’affichage (D-238).
-
-Synthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 », Suivi « 18 h 42 ». Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.
-
-RG-10 : le Profil porte une préférence silhouette facultative, homme/femme ; absence = homme affiché. Elle ne pilote que l’icône de zone corporelle, sans filtre, recherche ou effet métier. RG-11 à RG-13 : vignette 64 centrée et recadrée sans déformation (couverture pour une vidéo), place réservée pendant chargement/erreur, texte alternatif égal au nom de l’exercice.
-
-D-239 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 298 × 48, x=80, hauteur d’instance adaptée à l’événement), avec barre colorée 4, nature 26, titre 13 gras, heure/durée 11, lecture 26 et aucun Déployer. Les deux sets comportent 10 variantes chacun. Suivi — Vue d’ensemble est hors MVP. Les boutons Calendrier Aujourd’hui/Planifier restent à 32, sans cible 44 ajoutée : situation acceptée, à revoir et développer après T04. Les nouvelles icônes sont nommées icon/<nom>, les anciennes ne sont pas renommées ; target est réservé au Programme, pulse aux rapports/Suivi.
-
-Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
-
-Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper indépendant (450 ms puis 150 ms pour la répétition) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
-
-# Contrats complémentaires des écrans modifiés — 30 septembre 2026
-
-Les contrats ci-dessous complètent les CE-T03 existants pour les familles qui n’y avaient pas de contrat dédié. Ils documentent les changements validés, sans replanifier leur livraison.
-
-## CE-UI-01 — Profil — préférence silhouette
-
-### 1. Identification
-
-Profil ; Figma1992:778. Les autres états Profil héritent des règles communes de navigation/appui.
-
-### 2. Finalité fonctionnelle
-
-Choisir uniquement la variante visuelle de l’icône Zone corporelle.
-
-### 3. Contexte d’entrée
-
-Profil > Modifier.
-
-### 4. Contexte de sortie / destinations
-
-Enregistrer → Profil ; retour/abandon selon le parcours existant.
-
-### 5. Données affichées et source de vérité
-
-Profil.silhouette facultatif, homme/femme ; valeur absente = homme affiché.
-
-### 6. Classification des valeurs Figma
-
-Noms, dates, durées et couleurs d’événement sont des données ; les exemples Figma ne deviennent pas des constantes ni des règles de déduction.
-
-### 7. Structure de l’écran
-
-Photo/nom existants puis deux choix de silhouette sous l’aide du Nom d’affichage.
-
-### 8. Éléments obligatoires
-
-Deux silhouettes ; sélection unique ; aucune saisie obligatoire ajoutée.
-
-### 9. Layout déterministe
-
-Cercles64 espacés24, silhouettes44. Sélection contour2 et dessin#0508E5 ; non sélection contour#CCD1E0 à1, dessin#9499A8.
-
-### 10. Responsive, Safe Areas, texte, scroll et clavier
-
-Références360/402/440, Safe Areas existantes ; texte agrandi sans réduction de police, scroll utile et contrôles accessibles. Les dimensions de référence402 ne figent pas les coordonnées sur tous les appareils.
-
-### 11. États de l’écran
-
-Non renseigné ; homme ; femme ; modification non enregistrée.
-
-### 12. Contrôles et interactions
-
-Toucher une silhouette change le brouillon ; Enregistrer persiste avec le Profil.
-
-### 13. Gestes
-
-Gestes existants du chapitre06 ; appuis D-237, action immédiate au relâchement, annulation hors cible, opacité seule si réduction des animations.
-
-### 14. Validation
-
-La valeur doit être homme/femme ou non renseignée ; aucune validation de sexe ni de filtre.
-
-### 15. Brouillon et persistance
-
-Même brouillon et action Enregistrer que photo/nom. Les profils existants sans valeur restent valides.
-
-### 16. Navigation et conservation d’état
-
-Destination Profil inchangée ; préférence relue après relance.
-
-### 17. Erreurs et cas limites
-
-Échec de sauvegarde : conserver le brouillon et le comportement d’erreur du Profil ; aucun changement partiel revendiqué.
-
-### 18. Accessibilité
-
-Labels Silhouette homme / Silhouette femme ; état sélectionné annoncé.
-
-### 19. Invariants
-
-Aucun effet sur recherche, catégories, calculs, exécutions ou données historiques.
-
-### 20. Recette déterministe
-
-PRO-01 : absence → homme. PRO-02 : choisir femme/enregistrer/relancer → femme dans toutes les icônes de zone concernées. PRO-03 : aucune donnée d’exercice ni filtre changé.
-
-### 21. Traçabilité
-
-D-233 à D-239 et RG-1 à RG-13 ; chapitre06 et matrice écran par écran du30/09. Aucun point ouvert ; RG-3 seule reportée.
-
-## CE-UI-02 — Calendrier — Jour compact
-
-### 1. Identification
-
-Calendrier Jour ; frames1992:5510,1992:5602,1992:5697,1992:5794,2059:267 ; composants6374:12704/12705.
-
-### 2. Finalité fonctionnelle
-
-Présenter les occurrences sur la grille horaire avec la distinction Séance/Exercice.
-
-### 3. Contexte d’entrée
-
-Onglet Calendrier (Jour par défaut), changement de jour, retour de planification.
-
-### 4. Contexte de sortie / destinations
-
-Lecture → exécution de la source ; appui long créneau → planification existante ; navigation calendrier inchangée.
-
-### 5. Données affichées et source de vérité
-
-Occurrences futures Routine SESSION/ACTIVITY ; titre, heure, durée et couleur de l’événement. Nature issue du type de source.
-
-### 6. Classification des valeurs Figma
-
-Noms, dates, durées et couleurs d’événement sont des données ; les exemples Figma ne deviennent pas des constantes ni des règles de déduction.
-
-### 7. Structure de l’écran
-
-Navigation de date et grille horaire ; cartes à droite de la colonne des heures ; navigation basse.
-
-### 8. Éléments obligatoires
-
-Barre couleur4 ; nature26 ; titre13 gras ; heure/durée11 gris ; Lecture26. Aucun Déployer.
-
-### 9. Layout déterministe
-
-Référence402 : x80, largeur298 ; séance46 de haut, exercice48. Hauteur d’instance adaptée à l’événement. Exemple heure/durée : 08 h · 13 min.
-
-### 10. Responsive, Safe Areas, texte, scroll et clavier
-
-Références360/402/440, Safe Areas existantes ; texte agrandi sans réduction de police, scroll utile et contrôles accessibles. Les dimensions de référence402 ne figent pas les coordonnées sur tous les appareils.
-
-### 11. États de l’écran
-
-Jour standard ; appui long ; créneau ; après planification ; jour suivant ; vide2128:86.
-
-### 12. Contrôles et interactions
-
-Lecture indépendante ; glissement horizontal change de jour ; chevrons existants. Aucun état déployé.
-
-### 13. Gestes
-
-Gestes existants du chapitre06 ; appuis D-237, action immédiate au relâchement, annulation hors cible, opacité seule si réduction des animations.
-
-### 14. Validation
-
-Règles de planification existantes ; aucune mutation au simple rendu d’une carte.
-
-### 15. Brouillon et persistance
-
-Pas de nouveau réglage de carte ; la présence de média ne crée pas un choix utilisateur. RG-3 conserve la séance sans vignette.
-
-### 16. Navigation et conservation d’état
-
-Navigation Jour/Semaine/Mois existante ; sélection de date conservée selon chapitre06.
-
-### 17. Erreurs et cas limites
-
-Jour vide = état vide ; jamais de carte de démonstration ; titres longs tronqués avec donnée complète disponible.
-
-### 18. Accessibilité
-
-Annoncer type, nom, heure, durée et action Lecture. La taille visible26 ne remplace pas le minimum tactile44.
-
-### 19. Invariants
-
-Exception explicite à largeur354/titre15/suppression de barre des cartes standard. Aujourd’hui/Planifier32 restent l’exception acceptée à revoir aprèsT04.
-
-### 20. Recette déterministe
-
-JOUR-01 : séance298×46 et exercice298×48 ; JOUR-02 : x80/barre4/nature26/titre13/valeurs11/Lecture26. JOUR-03 : aucun Déployer dans les cinq états. JOUR-04 : type déterminé par source et hauteur selon événement.
-
-### 21. Traçabilité
-
-D-233 à D-239 et RG-1 à RG-13 ; chapitre06 et matrice écran par écran du30/09. Aucun point ouvert ; RG-3 seule reportée.
-
-## CE-UI-03 — Calendrier — Semaine et structure Mois
-
-### 1. Identification
-
-Calendrier ; frames1992:5101,2252:86,1992:6389,1992:5962,2094:86,2074:86 ; Mois1992:5237 ; suppressions1992:5365/6102.
-
-### 2. Finalité fonctionnelle
-
-Présenter les occurrences chronologiques de Semaine ; conserver la grille mensuelle existante.
-
-### 3. Contexte d’entrée
-
-Segment Semaine/Mois ; retour de planification/suppression.
-
-### 4. Contexte de sortie / destinations
-
-Lecture → exécution ; actions glissées → gestion de l’occurrence ; choix source → CE-UI-04.
-
-### 5. Données affichées et source de vérité
-
-Occurrence et type SESSION/ACTIVITY, heure, durée et classement de la source ; jamais déduits du titre.
-
-### 6. Classification des valeurs Figma
-
-Noms, dates, durées et couleurs d’événement sont des données ; les exemples Figma ne deviennent pas des constantes ni des règles de déduction.
-
-### 7. Structure de l’écran
-
-Segmenté Jour/Semaine/Mois ; barre7jours ; sections journalières ; liste seule scrollable ; navigation fixe.
-
-### 8. Éléments obligatoires
-
-Semaine : nature26, badge heure08:00, classement puis durée avec sablier ; statut Suivi non ajouté. Mois : grille7colonnes conservée.
-
-### 9. Layout déterministe
-
-Carte354×95,5 repliée ; séance déployée254,5. Segmenté354/padding4/gaps4/options112,67. Aucune barre de carte Semaine.
-
-### 10. Responsive, Safe Areas, texte, scroll et clavier
-
-Références360/402/440, Safe Areas existantes ; texte agrandi sans réduction de police, scroll utile et contrôles accessibles. Les dimensions de référence402 ne figent pas les coordonnées sur tous les appareils.
-
-### 11. États de l’écran
-
-Repliée, séance déployée, jour sélectionné, actions glissées, après suppression ; Mois ; vide.
-
-### 12. Contrôles et interactions
-
-Déployer séance révèle détail et récurrence ; Lecture séparée. Boutons Aujourd’hui/Planifier32 conservés et à développer aprèsT04.
-
-### 13. Gestes
-
-Gestes existants du chapitre06 ; appuis D-237, action immédiate au relâchement, annulation hors cible, opacité seule si réduction des animations.
-
-### 14. Validation
-
-Aucune création de Routine au simple choix de vue ; confirmations de suppression existantes.
-
-### 15. Brouillon et persistance
-
-Aucune nouvelle donnée ; occurrences recalculées selon règles existantes.
-
-### 16. Navigation et conservation d’état
-
-Barre semaine synchronisée au scroll, toucher un jour place sa section en tête ; mêmes retours après modale.
-
-### 17. Erreurs et cas limites
-
-Séance sans vignette RG-3 ; exercice avec média : vignette64, texte x88/254, nature/pictogramme de zone retirés, badge et durée conservés ; place réservée chargement/erreur.
-
-### 18. Accessibilité
-
-Heure/type/nom annoncés ; vignette nom de l’exercice ; cibles44 hors exception explicite Aujourd’hui/Planifier.
-
-### 19. Invariants
-
-Récurrence seulement déployée en Semaine ; ne pas appliquer les cartes compactes Jour à Semaine ou Mois.
-
-### 20. Recette déterministe
-
-SEM-01 : distinction des deux natures ; SEM-02 : badge heure et durée visibles ; SEM-03 : récurrence seulement déployée ; SEM-04 : même carte derrière modales et actions glissées ; SEM-05 : média sans changement de hauteur ; SEM-06 : sept colonnes Mois sans débordement.
-
-### 21. Traçabilité
-
-D-233 à D-239 et RG-1 à RG-13 ; chapitre06 et matrice écran par écran du30/09. Aucun point ouvert ; RG-3 seule reportée.
-
-## CE-UI-04 — Calendrier et planification — choisir une source
-
-### 1. Identification
-
-Calendrier et Planification — choix de source ; frames1992:6249,1992:7861,5451:4272 ; variante Choix calendrier ou planification.
-
-### 2. Finalité fonctionnelle
-
-Choisir une seule source SESSION ou ACTIVITY pour la planification.
-
-### 3. Contexte d’entrée
-
-Planifier depuis Calendrier ; changer la source du formulaire.
-
-### 4. Contexte de sortie / destinations
-
-Sélectionner → formulaire de planification ; Annuler/retour → écran appelant inchangé.
-
-### 5. Données affichées et source de vérité
-
-Séances/Exercices persistants sélectionnables ; identifiant choisi dans le brouillon.
-
-### 6. Classification des valeurs Figma
-
-Noms, dates, durées et couleurs d’événement sont des données ; les exemples Figma ne deviennent pas des constantes ni des règles de déduction.
-
-### 7. Structure de l’écran
-
-Modale/liste de choix ; cartes ; commandes de validation fixes ; arrière-plan conservé.
-
-### 8. Éléments obligatoires
-
-Radio de sélection ; pas de badge durée, Lecture ou Déployer ; titre/classement/valeurs, état sélectionné ou non.
-
-### 9. Layout déterministe
-
-Largeur354, marges24 sur402, hauteur91 ; radio côté droit ; minimum20 entre texte et contrôle ; titre15/pastilles20/valeurs16.
-
-### 10. Responsive, Safe Areas, texte, scroll et clavier
-
-Références360/402/440, Safe Areas existantes ; texte agrandi sans réduction de police, scroll utile et contrôles accessibles. Les dimensions de référence402 ne figent pas les coordonnées sur tous les appareils.
-
-### 11. États de l’écran
-
-Aucune/une sélection ; longue liste ; texte tronqué ; exercice avec/sans média.
-
-### 12. Contrôles et interactions
-
-Toucher choisit une source ; validation poursuit le parcours. Ce radio ne remplace pas la case de multisélection de Composition.
-
-### 13. Gestes
-
-Gestes existants du chapitre06 ; appuis D-237, action immédiate au relâchement, annulation hors cible, opacité seule si réduction des animations.
-
-### 14. Validation
-
-Respect des conditions existantes de sélection ; aucune Routine créée avant validation du formulaire final.
-
-### 15. Brouillon et persistance
-
-Source dans le brouillon seulement ; aucune copie SessionActivity par cette sélection.
-
-### 16. Navigation et conservation d’état
-
-Annuler conserve source antérieure ; retour au formulaire avec nouvelle source validée.
-
-### 17. Erreurs et cas limites
-
-RG-3 : séance sans photo. Exercice avec média : vignette64/recadrage/place réservée et texte alternatif ; pas de hausse de hauteur. Source indisponible : pas de sélection fantôme.
-
-### 18. Accessibilité
-
-Nom/type et état sélectionné annoncés ; texte complet accessible ; radio cible44 minimum.
-
-### 19. Invariants
-
-Même variante Calendrier/Planification, aucun contexte Choix planification distinct ; aucune action d’exécution sur carte.
-
-### 20. Recette déterministe
-
-SEL-01 : une seule source ; SEL-02 : aucune durée/Déployer/Lecture ; SEL-03 :20px de marge ; SEL-04 : image/vidéo/chargement/erreur sans changement de hauteur ; SEL-05 : annuler ne change pas la source.
-
-### 21. Traçabilité
-
-D-233 à D-239 et RG-1 à RG-13 ; chapitre06 et matrice écran par écran du30/09. Aucun point ouvert ; RG-3 seule reportée.
-
-## CE-UI-05 — Planification — formulaire et états de paramètres
-
-### 1. Identification
-
-Planifier une séance ou un exercice ; frames1992:6838,1992:6622,1992:7187,1992:7369,1992:7537,1992:7716 ; sélectionCE-UI-04.
-
-### 2. Finalité fonctionnelle
-
-Créer/modifier une Routine pour SESSION/ACTIVITY en conservant les règles existantes.
-
-### 3. Contexte d’entrée
-
-Catalogue Planifier avec source préremplie ; Calendrier ; modification de Routine.
-
-### 4. Contexte de sortie / destinations
-
-Enregistrer → retour prévu au calendrier ; changer source → CE-UI-04.
-
-### 5. Données affichées et source de vérité
-
-Source, début, heure, périodicité, fin et rappel du brouillon.
-
-### 6. Classification des valeurs Figma
-
-Noms, dates, durées et couleurs d’événement sont des données ; les exemples Figma ne deviennent pas des constantes ni des règles de déduction.
-
-### 7. Structure de l’écran
-
-Source et blocs de paramètres ; validations ; navigation ou retour selon shell existant.
-
-### 8. Éléments obligatoires
-
-Contrôles de date/heure/rappel/semaines selon l’état ; leurs libellés et unités restent ceux du chapitre06.
-
-### 9. Layout déterministe
-
-Marges24 pour les blocs standards, retraits volontaires conservés ; ne pas imposer le segmenté354 à un picker ou au rappel à extrémités fixes.
-
-### 10. Responsive, Safe Areas, texte, scroll et clavier
-
-Références360/402/440, Safe Areas existantes ; texte agrandi sans réduction de police, scroll utile et contrôles accessibles. Les dimensions de référence402 ne figent pas les coordonnées sur tous les appareils.
-
-### 11. États de l’écran
-
-Création ; date ouverte ; rappel ouvert/sélectionné ; nombre de semaines ; aucune répétition ; choix source.
-
-### 12. Contrôles et interactions
-
-Champs/steppers suivent Discret ; actions principales suivent Rebond ; D-237 ne retarde pas l’action. Les contrôles désactivés restent sans action.
-
-### 13. Gestes
-
-Gestes existants du chapitre06 ; appuis D-237, action immédiate au relâchement, annulation hors cible, opacité seule si réduction des animations.
-
-### 14. Validation
-
-Dates, fréquence et rappel selon règles existantes ; aucune validation supplémentaire liée au changement visuel.
-
-### 15. Brouillon et persistance
-
-Roulette Annuler sans mutation, confirmation modifie le brouillon ; persistance à Enregistrer.
-
-### 16. Navigation et conservation d’état
-
-État du formulaire conservé lors du choix de source et du retour des paramètres.
-
-### 17. Erreurs et cas limites
-
-Refus notification, erreur de persistance et dates invalides conservent les traitements existants.
-
-### 18. Accessibilité
-
-Unités et sélection annoncées ; focus de modale ; réduction des animations sans dilatation.
-
-### 19. Invariants
-
-Aucun second moteur de planification ; occurrence passée non réécrite. Paramètres fonctionnels inchangés par la revue des cartes.
-
-### 20. Recette déterministe
-
-PLAN-01 : même source au retour sans validation ; PLAN-02 : nouveau choix valide propagé ; PLAN-03 : confirmation/annulation paramètres inchangées ; PLAN-04 : action au relâchement, annulation hors cible ; PLAN-05 : contrôles restent lisibles avec clavier et texte agrandi.
-
-### 21. Traçabilité
-
-D-233 à D-239 et RG-1 à RG-13 ; chapitre06 et matrice écran par écran du30/09. Aucun point ouvert ; RG-3 seule reportée.
-
-## Réconciliation des preuves visuelles — 30 septembre 2026
-
-La matrice exhaustive couvre 113 frames du prototype et 6 références hors prototype, dont les 84 du rapport utilisateur. Les captures sont des états observés et ne changent ni RG-1 à RG-13 ni les situations acceptées.
-
-| Contrat concerné | Correction locale applicable et vérifiable |
-|---|---|
-| CE-T03-06/08 — Composition | Nombre de tours : stepper permanent dans `2028:11700`, pas de modale Tours. L’ancienne référence `2028:11580` est retirée des preuves actives. |
-| CE-T03-04/16 — Éditeur | `3943:6064` est un état Initial courant ; `4332:7095` montre les Catégories. Séries et Répétitions : steppers intégrés (`3556:7801`, `3561:7673`). La phrase éditable précède Compte à rebours/Fin, Description et Média. Aucune synthèse fixe ne doit être déduite de l’ancienne description. |
-| CE-UI-05 — Planification | `1992:7537` : stepper des semaines ; `1992:7187` : rappel personnalisé en modale. L’ancienne capture heure `1992:7006` n’est plus une preuve distincte ; l’édition de l’heure reste une fonction du formulaire. |
-| CE-T03-01/02/03/15/17 | Couverture des filtres, actions glissées, états vides, navigation et sélection dans la galerie du chapitre06 ; aucun écran hors prototype promu au MVP. |
-
-Recette documentaire : vérifier la correspondance de chaque image à son identifiant actuel, les noms des contrôles, l’absence de roulette Tours/Séries/Répétitions/Semaines dans leurs états stepper, et la séparation des archives. Les limites numériques et la persistance au niveau de l’objet restent celles des contrats métier existants.
+Pour chaque contrat : tester nominal/alternatifs/négatifs, comparer le rendu 402 à la preuve lorsqu’elle existe, vérifier 360/402/440 et texte agrandi, accessibilité, données réelles, persistance/annulation, erreurs et absence d’activation hors périmètre. Consigner séparément conformité documentaire, conformité visuelle et recette interactive. Les réserves§6 et preuves manquantes§5 ne sont jamais marquées CONFORME par la seule présence de 21 sections.

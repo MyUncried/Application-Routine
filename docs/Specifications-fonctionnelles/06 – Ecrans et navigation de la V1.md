@@ -152,7 +152,7 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 - Sa largeur s’adapte à la largeur disponible. Les positions horizontales des quatre destinations ne sont pas codées depuis le gabarit Figma.
 - Les quatre destinations principales `Catalogues`, `Calendrier`, `Suivi`, `Profil` occupent les quatre emplacements du composant de navigation. Aucun contrôle Recherche n’est présent dans le MVP (D-221/D-225).
 - L’onglet actif peut afficher son libellé ; les autres conservent uniquement leur pictogramme. Le libellé actif ne doit pas chevaucher les pictogrammes voisins avec l’agrandissement du texte.
-- Le composant canonique est `Navigation / Bottom` (`6298:12462`). Les destinations utilisent les variantes `6298:11827` Catalogues, `6298:11988` Calendrier, `6298:12149` Suivi et `6298:12310` Profil. Chaque dessin reste ≤ `24 pt`, centré dans une boîte optique `32 × 32 pt`, avec cible tactile ≥ `48 × 48 pt`. La Recherche utilise `2736:2` dans un contrôle `58 × 58 pt`. Aucun glyphe, emoji ou pictogramme système ne remplace ces vecteurs DSF.
+- Le composant canonique est `Navigation / Bottom` (`6298:12462`). Les destinations utilisent les variantes `6298:11827` Catalogues, `6298:11988` Calendrier, `6298:12149` Suivi et `6298:12310` Profil. Chaque dessin reste ≤ `24 pt`, centré dans une boîte optique `32 × 32 pt`, avec cible tactile ≥ `48 × 48 pt`. Aucun glyphe, emoji ou pictogramme système ne remplace ces vecteurs DSF.
 
 ### Listes et cartes
 
@@ -191,7 +191,7 @@ Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` utilisent la mêm
 - appui long sur une option : ne pas modifier sa sélection et ouvrir une modale de confirmation de suppression ;
 - toutes les options sont supprimables, y compris celles fournies initialement par KODJO ;
 - la modale de confirmation affiche le nom de l’option et propose `Annuler` à gauche et `Supprimer` à droite dans le ton destructif ;
-- si l’option est utilisée, le message indique qu’elle sera retirée des objets courants concernés et que l’historique restera inchangé ;
+- si l’option est utilisée, le message indique qu’elle disparaît des nouveaux choix mais reste attachée aux objets existants, avec son nom et sa dernière couleur éventuelle ; l’historique reste inchangé ;
 - `Annuler` ferme la confirmation et restitue la modale de sélection sans changement ;
 - `Supprimer` retire la valeur des nouveaux choix, conserve les affectations existantes ainsi que son nom et sa dernière couleur, puis restitue la modale de sélection actualisée ;
 - aucune restauration automatique d’une valeur initiale supprimée n’est effectuée.
@@ -211,9 +211,9 @@ Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` utilisent la mêm
 | --- | --- |
 | Splash | Logo et textes sont centrés dans la zone sûre ; le logo conserve ses proportions et ne doit jamais être étiré. Aucun défilement n’est prévu. |
 | Catalogue, Calendrier, Suivi, Profil | En-tête et navigation basse fixes ; seule la zone centrale défile. Les listes conservent un espace final d’au moins `16` points avant la séparation ou la navigation, en plus de l’inset inférieur applicable. |
-| Composition, Exercice, Catégories, Planification | En-tête et action finale fixes ; le formulaire central défile. Avec le clavier ouvert, l’action reste atteignable sans recouvrir le champ actif. |
-| Exercice | Aucun contrôle de type n’est affiché. Les accès `Catégorie` et `Zones corporelles`, le `Mode d’exécution` et la zone Média suivent le Figma courant. Le segment `Durée / Répétitions / À l’échec` utilise trois zones égales. Les rangées `Séries / cible / Pause` et `Changement de côté / Récupération / Durée totale` conservent leurs emplacements. La synthèse et l’action `Terminer` restent fixes. |
-| Planification | `Aucun` et `Personnalisé` restent fixes aux extrémités du contrôle de rappel. Les raccourcis intermédiaires occupent une zone horizontale défilante et extensible. Le récapitulatif de planification reste contenu dans son cadre avec ses marges internes. |
+| Composition, Exercice, Planification | En-tête et action finale fixes ; le formulaire central défile. Avec le clavier ouvert, l’action reste atteignable sans recouvrir le champ actif. |
+| Exercice | Aucun contrôle de type n’est affiché. Les accès `Catégorie` et `Zones corporelles`, le `Mode d’exécution` et la zone Média suivent le Figma courant. Le segment `Durée / Répétitions / À l’échec` utilise trois zones égales. La phrase paramétrée et ses contrôles suivent D-232/v10.2 et CE-T03-04 ; aucune ancienne double rangée fixe de synthèse. L’action `Terminer` reste accessible avec le clavier et le texte agrandi. |
+| Planification | `Aucun` et `Autre` restent fixes aux extrémités du contrôle de rappel. Les raccourcis intermédiaires occupent une zone horizontale défilante et extensible. Le récapitulatif de planification reste contenu dans son cadre avec ses marges internes. |
 | Calendrier Semaine | La barre des jours reste lisible sur la largeur compacte ; les sept jours se répartissent la largeur disponible sans défilement horizontal. La liste journalière défile verticalement, utilise `8` points entre ses cartes et s’arrête `16` points avant la séparation de navigation. |
 | Calendrier Mois | Les sept colonnes se répartissent la largeur disponible ; une cellule peut grandir verticalement mais ne défile pas horizontalement. |
 | Exécution | Les commandes essentielles restent visibles sans défilement à la taille de texte standard. Le libellé du temps écoulé est séparé de la progression par Tours de `24` points. Avec agrandissement accessible, le contenu peut défiler, mais l’Exercice courant, le temps et les commandes restent atteignables. |
@@ -259,7 +259,7 @@ Aucune Routine n’est créée automatiquement. La transition canonique d’avan
 
 Depuis le Catalogue, l’utilisateur sélectionne `Exercices` pour consulter la bibliothèque persistante. La surface d’une carte ouvre l’Exercice en consultation ou modification ; son bouton Lecture lance l’Exécution directe. L’action `Créer` est contextuelle : dans le Catalogue des Exercices, elle ouvre directement la création d’un Exercice persistant, sans écran ni arbre intermédiaire.
 
-La rangée commune de commandes d’entrée est `Créer / Filtrer / Trier`. Le contrôle Filtrer démarre replié et blanc sans filtre. Un appui l’étend et affiche `Filtres / Aucun` sans modifier la liste ; un filtre sélectionné est conservé pendant la session courante, puis réinitialisé à `Aucun` au relaunch. La référence courante utilise des boutons contextuels visibles de `34 pt`, pictogrammes `20 pt`, gaps `12 pt` et cibles d’au moins `44 × 44 pt` sans chevauchement ; les pilules étendues ont une hauteur de `34 pt`. Pour `Exercices`, les critères contextuels sont statut (`Actives` / `Archivées`), Catégories et Zones corporelles. Pour `Séances`, le filtre couvre le statut et les Étiquettes. `Trier` reste visible mais désactivé et le tri appliqué reste `updatedAt DESC`. Recherche, filtre appliqué, tri implicite et scroll sont conservés pendant la session courante ; au relaunch, le filtre revient à `Aucun`.
+La rangée commune de commandes d’entrée est `Créer / Filtrer / Trier`. Le contrôle Filtrer démarre replié et blanc sans filtre. Un appui l’étend et affiche `Filtres / Aucun` sans modifier la liste ; un filtre sélectionné est conservé pendant la session courante, puis réinitialisé à `Aucun` au relaunch. La référence courante utilise des boutons contextuels visibles de `34 pt`, pictogrammes `20 pt`, gaps `12 pt` et cibles d’au moins `44 × 44 pt` sans chevauchement ; les pilules étendues ont une hauteur de `34 pt`. Pour `Exercices`, les critères contextuels sont statut (`Actives` / `Archivées`), Catégories et Zones corporelles. Pour `Séances`, le filtre couvre le statut et les Étiquettes. `Trier` reste visible mais désactivé et le tri appliqué reste `updatedAt DESC`. Filtre appliqué, tri implicite et scroll sont conservés pendant la session courante ; au relaunch, le filtre revient à `Aucun`.
 
 Aucune recherche globale ou locale de Catalogue n’est active au MVP (D-221).
 
@@ -275,13 +275,13 @@ Le chevron déploie ou replie la carte. La zone `Démarrer` lance le parcours d�
 
 ### Parcours d’Exécution
 
-Ouvrir une Séance depuis le Catalogue, ou demander l’Exécution d’une occurrence depuis une Routine, ouvre d’abord l’écran d’Exécution.
+Le bouton `Démarrer` d’une Séance dans le Catalogue, ou celui d’une occurrence de Routine, ouvre l’écran d’Exécution. La surface principale d’une carte Catalogue ouvre la Composition en modification.
 
 L’ouverture de cet écran ne démarre pas immédiatement le premier Exercice.
 
 L’utilisateur déclenche l’Exécution depuis l’écran lui-même. Le Compte à rebours initial est alors exécuté, s’il est configuré avec une durée supérieure à zéro, puis le premier Exercice commence.
 
-Lorsque la Séance se termine, l’écran de synthèse est affiché. L’action `Terminer` ramène ensuite l’utilisateur au `Suivi`.
+Lorsque la Séance se termine, l’écran de synthèse est affiché. L’action `Enregistrer` finalise le Ressenti et le Commentaire puis ouvre le `Suivi` (CE-UI-08).
 
 ### Parcours de consultation du Suivi
 
@@ -318,7 +318,7 @@ Après la fermeture d’une modale, l’utilisateur retrouve le contexte depuis 
 
 ### Enregistrement automatique
 
-Les modifications d’objets existants sont enregistrées automatiquement lorsque l’écran ne prévoit pas explicitement une action `Valider`, `Terminer` ou `Enregistrer`.
+Les modifications d’objets existants sont enregistrées automatiquement lorsque l’écran ne prévoit pas explicitement une action `Continuer`, `Valider`, `Terminer` ou `Enregistrer` ; la Composition conserve toujours un brouillon jusqu’à `Continuer` (CE-T03-08).
 
 Les écrans de création ou les modales comportant une action explicite ne valident les données qu’après cette action.
 
@@ -1586,7 +1586,7 @@ En mode périodique :
 
 Dans l’interface, la répétition est présentée de manière compacte avec `Toutes les`, puis `X semaine(s) jusqu’au <date>`, et les jours sélectionnés en dessous. Aucun niveau de titre `Quand ?` n’est affiché ; `Date de début` et `Heure` sont des libellés de blocs au même niveau visuel.
 
-Le contrôle de rappel comporte deux options fixes : `Aucun` à gauche et `Personnalisé` à droite. Les choix rapides intermédiaires (`5 min`, `15 min`, `30 min`, `1 h` dans le MVP) sont placés dans une zone horizontale défilante. Cette zone peut recevoir de nouveaux choix rapides sans déplacer les deux options fixes ni réduire la taille des libellés. Le récapitulatif de planification est multi-ligne et reste intégralement contenu dans son cadre.
+Le contrôle de rappel comporte deux options fixes : `Aucun` à gauche et `Autre` à droite. Les choix rapides intermédiaires (`5 min`, `15 min`, `30 min`, `1 h` dans le MVP) sont placés dans une zone horizontale défilante. Cette zone peut recevoir de nouveaux choix rapides sans déplacer les deux options fixes ni réduire la taille des libellés. Le récapitulatif de planification est multi-ligne et reste intégralement contenu dans son cadre.
 
 La flèche ouvrant le détail du `Rappel` est alignée sur la marge droite du contenu, comme les autres commandes de section. Son pictogramme reste centré dans une boîte visuelle de `24 × 24` et dans une cible tactile d’au moins `48 × 48`.
 
@@ -2104,7 +2104,7 @@ La Séance ne démarre pas automatiquement ; Retour mène au Catalogue renseign�
 
 ## Synthèse — séance ou exercice
 
-États Figma complémentaires sans copie documentaire mise à jour à ce stade :
+Variantes partielles illustrées ci-dessous, couvertes par CE-UI-08 :
 
 - `4760:6448 — Synthèse de séance — Partielle — Évaluation initiale` ;
 - `4760:6500 — Synthèse de séance — Partielle — Ressenti sélectionné`.
@@ -2124,7 +2124,7 @@ L’écran affiche notamment :
 - le nombre d’Exercices partielles, uniquement s’il est supérieur à zéro ;
 - le choix du ressenti ;
 - un champ `Commentaire` facultatif ;
-- le bouton `Terminer`.
+- le bouton `Enregistrer`.
 
 Les Tours et Cycles ne sont pas affichés dans la Synthèse du MVP.
 
@@ -2144,7 +2144,7 @@ Le MVP propose trois niveaux, conformément au wireframe.
 
 Le libellé `Comment s’est passée la séance ?` utilise `type.cardTitle` (`16/20`, Semi Bold). À la taille système standard, son conteneur occupe la largeur utile et maintient le libellé sur une ligne sur les largeurs prises en charge de `360` à `440` points ; la référence Figma `402` utilise une largeur de `322` points. Avec l’agrandissement d’accessibilité, le conteneur grandit verticalement et autorise le retour à la ligne sans chevaucher les choix de ressenti.
 
-Le bouton `Terminer` reste désactivé tant qu’aucun ressenti n’a été sélectionné.
+Le bouton `Enregistrer` reste désactivé tant qu’aucun ressenti n’a été sélectionné.
 
 ### Commentaire
 
@@ -2156,13 +2156,13 @@ Il est enregistré avec l’Exécution.
 
 ### Navigation
 
-`Terminer` enregistre le ressenti et le Commentaire puis ouvre le `Suivi`.
+`Enregistrer` enregistre le ressenti et le Commentaire puis ouvre le `Suivi`.
 
 Aucune action `Relancer la séance` n’est prévue dans le MVP.
 
 ### Résultat d’un exercice lancé directement
 
-Le Ressenti est obligatoire pour activer `Terminer`; le Commentaire reste facultatif. La finalisation enregistre l’origine `ACTIVITY`, alimente les statistiques compatibles sans compter une Séance et restaure le Catalogue des Exercices dans son état précédent.
+Le Ressenti est obligatoire pour activer `Enregistrer`; le Commentaire reste facultatif. La finalisation enregistre l’origine `ACTIVITY`, alimente les statistiques compatibles sans compter une Séance et restaure le contexte appelant : Catalogue des Exercices dans son état précédent, ou Calendrier avec date/vue conservées (CE-T03-14).
 
 ### Vues principales et états intégrés
 
@@ -2283,7 +2283,7 @@ Références Figma :
 - Catégorie : `4861:6259 — Ajouter un exercice — Catégorie — Appui long — Confirmation suppression` ;
 - Zone corporelle : `4861:6348 — Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression`.
 
-Le dialogue utilise la variante destructive à deux actions de `Overlay / Decision Dialog`. Le titre reprend la valeur concernée sous la forme `Supprimer « {nom} » ?`. Le message précise, lorsque la valeur est utilisée, qu’elle sera retirée des objets courants concernés et que l’historique restera inchangé.
+Le dialogue utilise la variante destructive à deux actions de `Overlay / Decision Dialog`. Le titre reprend la valeur concernée sous la forme `Supprimer « {nom} » ?`. Le message précise, lorsque la valeur est utilisée, qu’elle disparaît des nouveaux choix mais reste attachée aux objets existants, avec son nom et sa dernière couleur éventuelle ; l’historique reste inchangé.
 
 Actions :
 - `Annuler` : ferme la confirmation sans modifier le référentiel ni la sélection ;
@@ -2465,8 +2465,9 @@ La [spécification v10.2](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md) fa
 - Pause au changement de côté : valeur courante du Profil copiée dans l’Exercice lorsqu’elle devient applicable.
 - Compte à rebours : contrôle séparé de la phrase ; sa valeur et la Fin de séance n’entrent pas dans le calcul de Durée totale.
 
-## Écarts visuels de l’éditeur — contrôle historique du 28 septembre
-La frame `4332:7095` est une sélection de Catégorie, pas une roulette de Durée. Les anciennes frames `3556:7645` (Durée) et `3556:7712` (Pause) montrent des roulettes dans une ancienne organisation de l’éditeur ; elles servent d’illustration historique du contrôle, sans valider sa mise en place dans l’éditeur courant. Une capture de roulette ouverte sur le nouvel éditeur reste à fournir ou à identifier dans Figma. Dans `5088:6398`, le bouton `Terminer` paraît visuellement actif alors que l’état sans mode est censé le désactiver ; son état interactif doit être vérifié dans le prototype ou corrigé visuellement. Ces deux écarts ne changent pas les règles fonctionnelles de D-232.
+## Écarts visuels de l’éditeur — contrôle des captures du 30 septembre
+
+La frame `4332:7095` est une sélection de Catégorie. Les captures courantes `3556:7645` et `3556:7712` montrent les roulettes dans l’éditeur avec phrase ; elles ne sont pas absentes. La roulette Pause `3556:7712` montre des minutes hors borne de 5 min. Les états sans mode `3542:4656`/`3943:6064` ont un bouton visuellement actif, contrairement à `4217:6980`/`5088:6398` ; `4367:7128` combine un choix Durée et une phrase vide. Ces écarts de preuve sont suivis au chapitre13 §5 ; l’état interactif ne se déduit pas de la couleur. D-232 demeure la cible.
 
 ## Archives et références hors prototype actif
 
