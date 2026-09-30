@@ -195,7 +195,33 @@ function validateLegacyQueueProjection(projection, executionRequest) {
       || projection.execution_fingerprint !== executionRequest.execution_fingerprint) V.fail('VNEXT_QUEUE_PROJECTION_EXECUTION_MISMATCH');
   if (projection.projection_mode !== 'LEGACY_TRANSPORT_ONLY'
       || projection.canonical_authority !== 'VNEXT_EXECUTION_REQUEST') V.fail('VNEXT_QUEUE_PROJECTION_AUTHORITY_INVALID');
+  V.assertExactKeys(
+    projection.compatibility_files,
+    ['plan','review','mission'],
+    [],
+    'VNEXT_QUEUE_COMPATIBILITY_FILES_KEYS_INVALID',
+  );
   const queue = projection.legacy_queue_request;
+  const files = [
+    ['plan', projection.compatibility_files.plan, queue.authorized_plan.plan_path, queue.authorized_plan.plan_blob_oid],
+    ['review', projection.compatibility_files.review, queue.independent_review.review_path, queue.independent_review.review_blob_oid],
+    ['mission', projection.compatibility_files.mission, queue.prompt_file, null],
+  ];
+  for (const [kind, file, expectedPath, expectedBlob] of files) {
+    V.assertExactKeys(file, ['path','blob_oid','content_sha256','content'], [], 'VNEXT_QUEUE_COMPATIBILITY_FILE_KEYS_INVALID');
+    if (file.path !== expectedPath) V.fail('VNEXT_QUEUE_COMPATIBILITY_PATH_MISMATCH', kind);
+    if (file.content_sha256 !== V.sha256(file.content)) V.fail('VNEXT_QUEUE_COMPATIBILITY_CONTENT_HASH_MISMATCH', kind);
+    if (file.blob_oid !== gitBlobOid(file.content)) V.fail('VNEXT_QUEUE_COMPATIBILITY_BLOB_MISMATCH', kind);
+    if (expectedBlob !== null && file.blob_oid !== expectedBlob) V.fail('VNEXT_QUEUE_COMPATIBILITY_QUEUE_BLOB_MISMATCH', kind);
+  }
+  if (queue.independent_review.reviewed_plan_blob_oid !== projection.compatibility_files.plan.blob_oid) {
+    V.fail('VNEXT_QUEUE_COMPATIBILITY_REVIEW_PLAN_MISMATCH');
+  }
+  if (!projection.compatibility_files.plan.content.includes(executionRequest.contract_hash)
+      || !projection.compatibility_files.review.content.includes(executionRequest.contract_hash)
+      || !projection.compatibility_files.mission.content.includes(executionRequest.contract_hash)) {
+    V.fail('VNEXT_QUEUE_COMPATIBILITY_EXECUTION_REFERENCE_MISSING');
+  }
   const violations = validateQueueRequest(queue);
   if (violations.length) V.fail('VNEXT_QUEUE_PROJECTION_LEGACY_INVALID');
   const exactScope = executionRequest.write_scope.map((row) => row.path);
