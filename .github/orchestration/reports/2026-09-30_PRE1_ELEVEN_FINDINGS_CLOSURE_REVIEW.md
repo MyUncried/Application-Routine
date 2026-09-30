@@ -186,6 +186,13 @@ Tests : `validate-workflows.js` OK ; suite pilote 812 tests, 14 échecs identiqu
 - (c) `isClosedProtocolPath` : les rapports Markdown directement sous `.github/orchestration/reports/` sont admis après revue ; sous-dossiers et autres extensions refusés.
 - Tests : nouveau `tests/kodjo/pre1-handoff-initial.pilot.js` 10/10 ; suites handoff/transition/cycle de vie 52 tests sans échec ; suite pilote 822 tests, 14 échecs identiques à la base ; `validate-workflows.js` OK ; rejeu réel `verifyTransition(620f87b9 → HEAD)` PASS ; rejeu réel `verifyHandoffFreshness` (plan 5918243649, revue 5918676914) PASS.
 
+### Handoff réussi — barrière d'approbation humaine
+
+- Correctif déployé : commit `ea492bac`. Relance du handoff à partir de la revue APPROVE existante (aucune nouvelle revue) : run 36772152705 `KODJO V2 — Approved Plan Handoff Materialization`, succès.
+- Matérialisation : commit `fd5ad0a5` (`technical-plan.md`, `independent-review.md`, `implementation-mission.md` de V2-PRE-1). `technical-plan.md` (blob `14c86708…`) est identique octet pour octet au texte du candidat approuvé 5918243649 restitué par la récupération épinglée.
+- Barrière publiée : commentaire 5919032692 `[KODJO_V2] PLAN_HANDOFF_READY`, `STATUT : USER_APPROVAL_REQUIRED`, `approval_action=ADD_REACTION_+1`, `approved_at_commit=fd5ad0a5`.
+- Barrière humaine par conception : `generate-approved-plan-lean-request.js` exige une réaction 👍 du propriétaire du dépôt, puis `[KODJO_V2] VALIDATE_PLAN_HANDOFF` (validation bornée, sans exécution), puis `[KODJO_V2] QUEUE_APPROVED_PLAN` (mise en file et `kodjo-v2-lean-queue`). Le pilote ne produit pas cette approbation à la place de Hermann.
+
 ## Vérifications restant à effectuer
 
 - Revue indépendante du tour 2 (constat 9 seul) sur le candidat 5918243649.
