@@ -562,6 +562,30 @@ test('VNext-11 la matrice finale doit couvrir chaque critère figé', () => {
   }), /VNEXT_AUDIT_COVERAGE_INCOMPLETE/);
 });
 
+test('VNext-11 un critère lié à un défaut ne peut pas être déclaré CHECKED_PASS', () => {
+  const artifacts = buildArtifacts();
+  const report = blockingReview(artifacts);
+  const auditManifest = auditManifestFor(artifacts);
+  const assessment = assessmentFor(artifacts, report, auditManifest);
+
+  const rows = auditManifest.criteria.map((criterion) => ({
+    audit_criterion_id: criterion.audit_criterion_id,
+    status: criterion.applicability === 'REQUIRED' ? 'CHECKED_PASS' : 'NOT_APPLICABLE',
+    finding_ids: [],
+    evidence: ['évaluation explicite'],
+    justification: criterion.applicability === 'REQUIRED'
+      ? 'Tentative de masquer le finding.'
+      : 'Critère conditionnel non applicable.',
+  }));
+
+  assert.throws(() => Audit.buildAuditCoverage({
+    auditManifest,
+    reviewReport: report,
+    findingAssessment: assessment,
+    coverage: rows,
+  }), /VNEXT_AUDIT_COVERAGE_DEFECT_BINDING_MISMATCH/);
+});
+
 test('VNext-11 un critère REQUIRED ne peut jamais être reporté NOT_APPLICABLE', () => {
   const artifacts = buildArtifacts();
   const report = blockingReview(artifacts);
