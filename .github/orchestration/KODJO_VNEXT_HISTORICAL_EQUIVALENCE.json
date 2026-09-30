@@ -6214,7 +6214,7 @@
         "scripts/kodjo/lib/vnext-preserved-controls.js",
         "scripts/kodjo/lib/approval-handoff-contract.js"
       ],
-      "test_source_sha256": "80dfb0070947eda9851d3b71da3697497425aa35e07148e847f2fa2b66e05353"
+      "test_source_sha256": "32774d264ba86a457e9d9f6219e42686dab631ff32f8a6f260a7e465d2354070"
     },
     {
       "id": "CASE-0323c9d529a615c6",
@@ -6226,7 +6226,7 @@
         "scripts/kodjo/lib/vnext-preserved-controls.js",
         "scripts/kodjo/lib/approval-handoff-contract.js"
       ],
-      "test_source_sha256": "80dfb0070947eda9851d3b71da3697497425aa35e07148e847f2fa2b66e05353"
+      "test_source_sha256": "32774d264ba86a457e9d9f6219e42686dab631ff32f8a6f260a7e465d2354070"
     },
     {
       "id": "CASE-ee0221c241fcedc6",
@@ -19171,5 +19171,5 @@
       "limit": "Les champs structurés et le rendu sont contrôlés ; la production/publication réelle du format complet relève de l’étape 4."
     }
   ],
-  "certification_status": "CONTROL_CORRESPONDENCE_QUALIFIED_CROSS_PLATFORM_OPERATIONAL_VNEXT_NOT_CERTIFIED"
+  "certification_status": "CONTROL_CORRESPONDENCE_REBOUND_PENDING_CROSS_PLATFORM_QUALIFICATION_OPERATIONAL_VNEXT_NOT_CERTIFIED"
 }

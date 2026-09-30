@@ -139,10 +139,10 @@ function verifyAttestedApplicationHead(attestation, expectedApplicationHead) {
  * BLOQUE l'admission — elle n'est jamais consignee comme une simple remarque.
  * Les essais injectent un client de test ; ils n'atteignent jamais le reseau.
  */
-function ghClient() {
+function ghClient(options = {}) {
   const call = (route) => {
     const r = spawnSync('gh', ['api', '-H', 'Accept: application/vnd.github+json', route],
-      { encoding: 'utf8', windowsHide: true, shell: false, maxBuffer: 32 * 1024 * 1024 });
+      { env: options.env || process.env, encoding: 'utf8', windowsHide: true, shell: false, maxBuffer: 32 * 1024 * 1024 });
     if (r.error || r.status !== 0) {
       fail('GITHUB_READ_FAILED', route + ': ' + String(r.stderr || (r.error && r.error.message) || '').trim());
     }
@@ -188,6 +188,13 @@ function checkThumbsUp(github, repository, commentId, expectedLogin) {
 function verify(queueFile, options) {
   const cwd = (options && options.cwd) || process.cwd();
   const queue = readJson(path.resolve(cwd, queueFile));
+
+  // VNext admission runs at the existing selection/preflight boundary. The
+  // inner call checks the unchanged legacy transport after VNext validation.
+  if (!(options && options.vnextTransportChecked)) {
+    const vnext = require('./lib/vnext-live-chain').guard(queueFile, { cwd, github: options && options.github });
+    if (vnext) return { ...vnext.admission.authorization, vnext_admission: vnext.admission };
+  }
 
   // ---- Identite de tranche ------------------------------------------------
   const bootstrapFile = String(queue.slice_bootstrap_file || '');

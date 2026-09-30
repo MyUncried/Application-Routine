@@ -13,7 +13,7 @@ const criterion = { criterion_id: 'UI-fixture', requirement_id: 'REQ-functional'
   assertions: [{ property_type: 'INTERACTION', expected: 'La branche utilise NativeWheel', proof_ids: ['PROOF-branch'] }] };
 const context = { uiAtomicityContract: { criteria: [criterion] }, requirementRegistry: { requirements: [{ requirement_id: 'REQ-functional' }] },
   applicationHead: 'a'.repeat(40),
-  sourceManifest: { contract_hash: 'b'.repeat(64), sources: [{ source_id: 'DOC-native', authority: 'DOC', units: [{ unit_id: 'UNIT-native' }] }] },
+  sourceManifest: { contract_hash: 'b'.repeat(64), sources: [{ source_id: 'DOC-native', authority: 'FUNCTIONAL', units: [{ unit_id: 'UNIT-native' }] }] },
   resolveNativeEvidence: (subject, { sourceManifest, applicationHead }) => V.sealContract({
     schema_version: 'kodjo.vnext.native-assessment-evidence.v1', status: 'VERIFIED',
     native_assessment_hash: V.canonicalHash(subject), source_manifest_hash: sourceManifest.contract_hash,

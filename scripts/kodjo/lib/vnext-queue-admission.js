@@ -11,7 +11,7 @@ const Preserved = require('./vnext-preserved-controls');
 // Read-only admission. This does not enqueue work or invoke an implementation
 // runner. Fixture clients are injectable like the existing authorization verifier;
 // production defaults to authenticated gh API reads, with no offline fallback.
-function verifyQueueAdmission({ queueFile, projection, artifacts, transport, github = null }) {
+function verifyQueueAdmission({ queueFile, projection, artifacts, transport, github = null, allowExternalQueueFile = false }) {
   const cwd = artifacts.cwd;
   if (!cwd) V.fail('VNEXT_QUEUE_ADMISSION_CWD_REQUIRED');
   const runtimeSnapshot = Runtime.buildRuntimeSnapshot(artifacts);
@@ -21,7 +21,7 @@ function verifyQueueAdmission({ queueFile, projection, artifacts, transport, git
   }
   Adapter.verifyCompatibilityFilesAtApprovedCommit(projection, artifacts.executionRequest, { cwd });
   const absolute = path.resolve(cwd, queueFile);
-  if (!absolute.startsWith(path.resolve(cwd) + path.sep)) V.fail('VNEXT_QUEUE_ADMISSION_PATH_INVALID');
+  if (!allowExternalQueueFile && !absolute.startsWith(path.resolve(cwd) + path.sep)) V.fail('VNEXT_QUEUE_ADMISSION_PATH_INVALID');
   const queue = JSON.parse(fs.readFileSync(absolute, 'utf8'));
   if (V.canonicalStringify(queue) !== V.canonicalStringify(projection.legacy_queue_request)) {
     V.fail('VNEXT_QUEUE_ADMISSION_REQUEST_MISMATCH');
@@ -53,7 +53,7 @@ function verifyQueueAdmission({ queueFile, projection, artifacts, transport, git
   }
   // The legacy consumer checks the very same authenticated observation.
   const snapshotApi = { ...api, comment: () => comment, reactions: () => reactions };
-  const authorization = Authorizations.verify(queueFile, { cwd, github: snapshotApi });
+  const authorization = Authorizations.verify(queueFile, { cwd, github: snapshotApi, vnextTransportChecked: true });
   return V.sealContract({ schema_version: 'kodjo.vnext.queue-admission.v1',
     status: 'AUTHORIZED', execution_request_hash: artifacts.executionRequest.contract_hash,
     projection_hash: projection.contract_hash, runtime_snapshot_hash: runtimeSnapshot.contract_hash,

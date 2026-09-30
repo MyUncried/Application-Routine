@@ -46,7 +46,7 @@ function buildNativeDecisions(rows, { uiAtomicityContract, requirementRegistry, 
   for (const row of rows) {
     const criterion = byId.get(row.criterion_id);
     const proofRefs = new Set(criterion.proof_ids.map(id => 'proof:' + id));
-    if (!row.evidence_refs.some(ref => ['DOC', 'DECISION'].includes(sourceRefs.get(ref)))
+    if (!row.evidence_refs.some(ref => ['FUNCTIONAL', 'TECHNICAL', 'DECISION'].includes(sourceRefs.get(ref)))
         || row.evidence_refs.some(ref => !sourceRefs.has(ref) && !proofRefs.has(ref))) V.fail('VNEXT_NATIVE_SOURCE_EVIDENCE_REQUIRED');
     if (row.availability === 'NOT_APPLICABLE' && criterion.assertions.some(assertion => assertion.property_type === 'INTERACTION')) V.fail('VNEXT_NATIVE_INTERACTION_ASSESSMENT_REQUIRED');
     if (row.functional_requirement_id !== null && !requirementIds.has(row.functional_requirement_id)) V.fail('VNEXT_NATIVE_FUNCTIONAL_REQUIREMENT_UNKNOWN');

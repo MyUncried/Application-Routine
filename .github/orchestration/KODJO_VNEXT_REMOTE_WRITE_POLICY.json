@@ -706,12 +706,12 @@
     },
     {
       "path": "scripts/kodjo/run-local-claude.js",
-      "blob_oid": "0c60c212ddba2670ffee1f4eddfc9e6291efadde",
+      "blob_oid": "80dc99374f14d3e182f735eecbba59cee5ed72c5",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
       "path": "scripts/kodjo/run-queued-request.ps1",
-      "blob_oid": "4d611cce89e6b56bc3f70b07374d778063f346e9",
+      "blob_oid": "cc8386921bac3a4a8d136eb58afc0512f868e29f",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -756,7 +756,7 @@
     },
     {
       "path": "scripts/kodjo/verify-authorizations.js",
-      "blob_oid": "d2b9a0baacc5dce1f9683d23efe441eb73f346e9",
+      "blob_oid": "2637ed332eda0c690b0341185a2908413fcb6fc2",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {

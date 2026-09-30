@@ -625,8 +625,18 @@ function main() {
   const repoRoot = path.resolve(git(['rev-parse', '--show-toplevel'], process.cwd()));
   let request;
   let rawRequest;
+  let assertVNextAdmission = () => null;
   try {
     rawRequest = JSON.parse(fs.readFileSync(path.resolve(requestPath), 'utf8').replace(/^\uFEFF/, ''));
+    // Defense in depth: a direct runner invocation must also re-observe the
+    // exact VNext authorization, before normalization, locks or Claude.
+    const vnextGithub = require('./verify-authorizations').ghClient({
+      env: liveToken ? { ...process.env, GH_TOKEN: liveToken } : process.env,
+    });
+    assertVNextAdmission = () => require('./lib/vnext-live-chain').guardLocalRequest(rawRequest, {
+      cwd: repoRoot, github: vnextGithub, queueFile: process.env.KODJO_VNEXT_QUEUE_FILE,
+    });
+    assertVNextAdmission();
     request = normalizeRequest(rawRequest, repoRoot);
   } catch (err) {
     return die('REQUEST_REFUSED', err.message);
@@ -814,6 +824,7 @@ function main() {
     assertLiveTarget();
     const claudeStartedMs = Date.now();
     claudeStartedAt = new Date(claudeStartedMs).toISOString();
+    assertVNextAdmission();
     result = command(claudeBin, [...claudePrefix, ...args], repoRoot, claudeEnv, request.limits.max_duration_seconds * 1000);
     const claudeFinishedMs = Date.now();
     claudeFinishedAt = new Date(claudeFinishedMs).toISOString();

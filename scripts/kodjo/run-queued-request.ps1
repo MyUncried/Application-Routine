@@ -164,7 +164,8 @@ if (Test-Path -LiteralPath (Join-Path $repoRoot 'package-lock.json') -PathType L
 Assert-LiveTarget
 # The trusted Node supervisor consumes this token then deletes it before any
 # child process. Claude never inherits this variable or GH_TOKEN.
-if ($usesExistingPr -or $null -ne $queue.initial_restart) { $env:KODJO_LIVE_GH_TOKEN = $githubToken }
+$env:KODJO_LIVE_GH_TOKEN = $githubToken
+$env:KODJO_VNEXT_QUEUE_FILE = $liveQueueFile
 if ($null -ne $queue.initial_restart) { $env:KODJO_INITIAL_RESTART_QUEUE = $liveQueueFile }
 Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
 $env:KODJO_SUPERVISED_QUEUE = '1'
@@ -176,6 +177,7 @@ try {
 } finally {
   Remove-Item Env:KODJO_INITIAL_RESTART_QUEUE -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_LIVE_GH_TOKEN -ErrorAction SilentlyContinue
+  Remove-Item Env:KODJO_VNEXT_QUEUE_FILE -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_SUPERVISED_QUEUE -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_PREFLIGHT_FILE -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_PUBLISH_PATHSPEC_FILE -ErrorAction SilentlyContinue
