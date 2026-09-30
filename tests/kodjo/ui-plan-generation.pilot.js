@@ -134,9 +134,13 @@ test('PRE-1 serialized normalization executes in isolation with the same consume
   const m=validMatrix();m.criteria[0].assertions[1].property_type=kind;m.criteria[0].assertions[1].proof_required=['DEVICE_CHECK'];m.criteria[0].proof_required=['FUNCTIONAL_TEST','DEVICE_CHECK'];m.criteria[0].risk_types=['FUNCTIONAL','DEVICE'];
   const canonical=stabilizeUiIdentities(m);assert.deepEqual(outcome(prompted,canonical),outcome(runtime,canonical));
  }
- const broken=require('node:vm').createContext({require});
- require('node:vm').runInContext(code.replace(/(function normalizeMatrix\([^]*?\{)\n/,'$1\n futureNormalizationRule();\n'),broken);
- assert.throws(()=>outcome(broken.normalizeMatrix,validMatrix()),/futureNormalizationRule/);
+ for(const source of [code,code.replace(/\r?\n/g,'\r\n')]){
+  const broken=require('node:vm').createContext({require});
+  const mutated=source.replace(/(function normalizeMatrix\([^]*?\{)\r?\n/,'$1\n futureNormalizationRule();\n');
+  assert.notEqual(mutated,source,'negative witness must actually inject the missing dependency');
+  require('node:vm').runInContext(mutated,broken);
+  assert.throws(()=>outcome(broken.normalizeMatrix,validMatrix()),/futureNormalizationRule/);
+ }
 });
 test('PRE-1 construction preserves duplicate and unallocated proof rejection and semantic obligations',()=>{
  for(const mutate of [m=>m.criteria[0].assertions[0].proof_required.push('FUNCTIONAL_TEST'),m=>m.criteria[0].proof_required.push('FUNCTIONAL_TEST'),m=>m.criteria[0].proof_required.push('ACCESSIBILITY_CHECK'),m=>{m.criteria[0].assertions[0].property_type='INTERACTION';m.criteria[0].assertions[0].proof_required=['DEVICE_CHECK'];}]){

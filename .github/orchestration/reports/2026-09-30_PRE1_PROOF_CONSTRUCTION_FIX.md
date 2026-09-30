@@ -57,3 +57,5 @@ Le workflow conserve d'abord la qualification Linux/Windows au HEAD exact. Il ne
 Après fusion : reprise de la même paire causale et baseline PRE-1, revue du plan produit corrigé, puis développement sans nouvel audit global du protocole. Les gates de périmètre, preuves techniques et décisions produit nécessaires restent actifs. Cette décision n'autorise aucune conformité fictive ou décision produit nouvelle implicite.
 
 Qualification locale du candidat avec l'exception : 808 tests / 801 PASS / 0 FAIL / 7 SKIP, 27,197 s ; 64 workflows YAML acceptés ; validate-workflows et diff --check PASS. Qualification distante encore à constater avant fusion.
+
+La qualification Windows 36714401305 a refusé le témoin négatif du test de fermeture : sa regex d'injection ne reconnaissait que LF, alors que Function.toString conservait CRLF. Le complément du test reconnaît les deux transports, vérifie que l'injection a réellement eu lieu et exerce explicitement une copie CRLF. Aucun code de production supplémentaire n'est changé. Aucun appel Claude global n'a eu lieu avant ce refus de qualification.
