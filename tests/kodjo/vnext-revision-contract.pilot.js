@@ -14,12 +14,31 @@ const Impact = require('../../scripts/kodjo/lib/impact-graph');
 const Plan = require('../../scripts/kodjo/lib/plan-contract');
 const Review = require('../../scripts/kodjo/lib/review-contract');
 const Revision = require('../../scripts/kodjo/lib/revision-contract');
+const AuditStability = require('../../scripts/kodjo/lib/audit-stability-contract');
 
 const H40 = 'a'.repeat(40);
 const H64A = 'a'.repeat(64);
 const H64B = 'b'.repeat(64);
 const H64C = 'c'.repeat(64);
 const H64D = 'd'.repeat(64);
+
+function explicitResolutionSet(previousReport, nextArtifacts, nextReport) {
+  const nextIds = new Set(nextReport.findings.map((row) => row.finding_id));
+  return AuditStability.buildFindingResolutionSet({
+    previousReviewReport: previousReport,
+    nextReviewContext: nextArtifacts.reviewContext,
+    nextReviewReport: nextReport,
+    resolutions: previousReport.findings
+      .filter((row) => row.blocking && !nextIds.has(row.finding_id))
+      .map((row) => ({
+        finding_id: row.finding_id,
+        disposition: 'RESOLVED',
+        evidence: ['Correction explicitement vérifiée dans la revue suivante.'],
+        evidence_target_ids: [row.target_id],
+        justification: 'Le constat antérieur est fermé explicitement ; sa disparition seule ne vaut pas preuve.',
+      })),
+  });
+}
 
 function git(cwd, ...args) {
   return execFileSync('git', args, { cwd, encoding: 'utf8', windowsHide: true }).trim();
@@ -521,8 +540,10 @@ test('VNext-07 accepte une correction ciblée et vérifie la préservation exact
     revisionPatch: patch,
     baseArtifacts: base,
     nextArtifacts: next,
+    previousReviewReport: report,
     nextReviewContext: next.reviewContext,
     nextReviewReport: nextReport,
+    findingResolutionSet: explicitResolutionSet(report, next, nextReport),
   });
   assert.equal(outcome.status, 'RESOLVED');
 
@@ -572,8 +593,10 @@ test('VNext-07 autorise un nouvel objet dérivé uniquement sous la cible corrig
     revisionPatch: patch,
     baseArtifacts: base,
     nextArtifacts: next,
+    previousReviewReport: report,
     nextReviewContext: next.reviewContext,
     nextReviewReport: nextReport,
+    findingResolutionSet: explicitResolutionSet(report, next, nextReport),
   });
   assert.equal(outcome.status, 'RESOLVED');
   assert.ok(outcome.new_target_count >= 1);
@@ -619,8 +642,10 @@ test('VNext-07 détecte une modification d’un objet préservé', () => {
     revisionPatch: patch,
     baseArtifacts: base,
     nextArtifacts: next,
+    previousReviewReport: report,
     nextReviewContext: next.reviewContext,
     nextReviewReport: nextReport,
+    findingResolutionSet: explicitResolutionSet(report, next, nextReport),
   }), /PRESERVATION_REGRESSION/);
 });
 
@@ -667,8 +692,10 @@ test('VNext-07 détecte REVISION_STALLED si le même finding persiste', () => {
     revisionPatch: patch,
     baseArtifacts: base,
     nextArtifacts: next,
+    previousReviewReport: report,
     nextReviewContext: next.reviewContext,
     nextReviewReport: nextReport,
+    findingResolutionSet: explicitResolutionSet(report, next, nextReport),
   }), /REVISION_STALLED/);
 });
 
@@ -717,8 +744,10 @@ test('VNext-07 détecte un nouveau finding bloquant sur un objet préservé', ()
     revisionPatch: patch,
     baseArtifacts: base,
     nextArtifacts: next,
+    previousReviewReport: report,
     nextReviewContext: next.reviewContext,
     nextReviewReport: nextReport,
+    findingResolutionSet: explicitResolutionSet(report, next, nextReport),
   }), /PRESERVATION_REGRESSION/);
 });
 
