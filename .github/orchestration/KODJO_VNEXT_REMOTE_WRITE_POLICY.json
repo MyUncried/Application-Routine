@@ -821,7 +821,7 @@
     },
     {
       "path": "scripts/kodjo/verify-queue-preflight.js",
-      "blob_oid": "15b66c41e72ea027033c164c4b8f9ee1d39e6e0b",
+      "blob_oid": "92d1afe409e84bf2863ec3eddad8731f73e8124b",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {

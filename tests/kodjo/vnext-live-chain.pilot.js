@@ -37,12 +37,21 @@ function fixture() {
     calls++; assert.ok(args.includes('--json-schema')); assert.equal(env.GH_TOKEN, undefined); assert.equal(JSON.parse(input).produced.contract_hash, produced.contract_hash);
     return JSON.stringify({ type: 'result', session_id: 'fixture-session', structured_output: { semantic_review: { findings: [] }, native_assessment_observations: [] } });
   } });
-  const transport = F.transport();
+  const transport = { ...F.transport(), slice_bootstrap_file: '.github/orchestration/v2-slices/V2-VNEXT-09/slice-bootstrap.json' };
   const ready = Chain.prepare(produced, receipt, transport, { cwd: repo.cwd });
   const chainFile = '.github/orchestration/vnext-runtime/V2-VNEXT-09/prepared.json';
-  const bootstrap = { protocol: 'VNEXT', vnext_chain_file: chainFile, slice_id: manifest.slice_id, issue_number: 999, repository: 'MyUncried/Application-Routine', slice_bootstrap_sha256: transport.slice_bootstrap_sha256, authorized_actors: [], activation_registry: '.github/orchestration/v2-activation-registry.json' };
+  const bootstrap = { schema_version: 'kodjo.protocol.v2.slice-bootstrap.0.6.12',
+    protocol: 'VNEXT', vnext_chain_file: chainFile, slice_id: manifest.slice_id, issue_number: 999,
+    repository: 'MyUncried/Application-Routine', target_branch: 'main', baseline_head: repo.revision,
+    protocol_version: '0.6.12', protocol_commit: repo.revision, previous_slice_id: null, previous_checkpoint: null,
+    product_sources: [{ path: 'docs/functional.md', sha256: V.sha256(sourceText) }],
+    created_at: '2026-09-30T00:00:00.000Z', authorized_actors: ['MyUncried'],
+    activation_registry: '.github/orchestration/v2-activation-registry.json' };
+  bootstrap.slice_bootstrap_sha256 = V.canonicalHash(bootstrap);
+  transport.slice_bootstrap_sha256 = bootstrap.slice_bootstrap_sha256;
   write(chainFile, JSON.stringify(ready.prepared)); write(transport.slice_bootstrap_file, JSON.stringify(bootstrap));
-  write(bootstrap.activation_registry, JSON.stringify({ activations: [{ slice_id: manifest.slice_id, status: 'ACTIVE', issue_number: 999 }] }));
+  write(bootstrap.activation_registry, JSON.stringify({ schema_version: 'kodjo.protocol.v2.activation-registry.0.6.12', activations: [{ slice_id: manifest.slice_id, status: 'ACTIVE', issue_number: 999,
+    baseline_head: repo.revision, bootstrap_path: transport.slice_bootstrap_file, slice_bootstrap_sha256: bootstrap.slice_bootstrap_sha256 }] }));
   for (const file of Object.values(ready.compatibility_files)) write(file.path, file.content);
   git('add', '.'); git('commit', '-m', 'immutable preapproval dossier');
   const head = git('rev-parse', 'HEAD');
@@ -86,4 +95,27 @@ test('live chain: direct implementation runner refuses before invoking Claude wh
   assert.notEqual(run.status, 0);
   assert.match(run.stderr + run.stdout, /VNEXT_LOCAL_QUEUE_AUTHORITY_REQUIRED/);
   assert.equal(fs.existsSync(path.join(f.repo.cwd, '.kodjo-v2')), false);
+}));
+
+test('live chain: real queue preflight validates VNext plan mission and runtime identity without legacy UI blocks', () => withFixture(f => {
+  const git = (...args) => execFileSync('git', args, { cwd: f.repo.cwd, encoding: 'utf8' }).trim();
+  const queuePath = '.github/orchestration/queue/v2/vnext-preflight.json';
+  f.write(queuePath, JSON.stringify(f.derived.projection.legacy_queue_request));
+  git('add', queuePath); git('commit', '-m', 'immutable qualification queue');
+  const preflight = require('../../scripts/kodjo/verify-queue-preflight');
+  const run = () => preflight.runPreflight({ cwd: f.repo.cwd, queuePath, before: f.head,
+    after: git('rev-parse', 'HEAD'), github: f.github,
+    probes: { claudeVersion: () => require('../../scripts/kodjo/lib/claude-local').CLAUDE_CODE_VERSION,
+      claudeAuth: () => ({ fixture_only: true }), githubAccess: () => ({ fixture_only: true }) } });
+  const checked = run();
+  const at = (result, id) => result.checks.find(x => x.id === id);
+  for (const id of ['PF-006','PF-009','PF-010','PF-012','PF-013']) assert.equal(at(checked, id).status, 'PASS', JSON.stringify(at(checked, id)));
+  assert.equal(at(checked, 'PF-010').evidence.authority, 'VNEXT_EXECUTION_REQUEST');
+  assert.match(f.derived.projection.compatibility_files.mission.content, /Modifier le comportement du module|Adapter le module sans élargissement/);
+  f.write(f.transport.prompt_file, f.derived.projection.compatibility_files.mission.content + 'forged');
+  assert.match(at(run(), 'PF-009').diagnostic, /VNEXT_PREFLIGHT_MISSION_BYTES_MISMATCH/);
+  f.github.reactions = () => [];
+  const refused = run();
+  assert.match(at(refused, 'PF-006').diagnostic, /OWNER_APPROVAL_REQUIRED/);
+  assert.equal(at(refused, 'PF-010').status, 'BLOCKED');
 }));
