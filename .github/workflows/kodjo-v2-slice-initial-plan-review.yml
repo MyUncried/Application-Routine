@@ -74,7 +74,7 @@ jobs:
           $active=@($registry.activations | Where-Object { $_.slice_id -eq $slice })
           if ($active.Count -ne 1 -or $active[0].status -ne 'ACTIVE') { throw 'V2 slice is not active' }
           $plan=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$planId" | ConvertFrom-Json
-          $recoveredPublication=($planId -eq '5913845392')
+          $recoveredPublication=($planId -in @('5913845392','5916079168'))
           if($recoveredPublication){
             $recoveredFile=Join-Path $env:RUNNER_TEMP 'kodjo-pre1-recovered-publication.md'
             node scripts/kodjo/recover-published-pre1-plan.js $planId $recoveredFile
@@ -218,6 +218,31 @@ jobs:
           $($oldReview.body)
           "@
           }
+          if($env:SOURCE_PLAN_COMMENT_ID -eq '5916079168'){
+            $findingsBlob=gh api "repos/$env:GITHUB_REPOSITORY/git/blobs/07f6579ad59f66015c8189f079bde0aaab7d01aa"|ConvertFrom-Json
+            if($LASTEXITCODE-ne0 -or $findingsBlob.sha -ne '07f6579ad59f66015c8189f079bde0aaab7d01aa' -or $findingsBlob.encoding -ne 'base64'){throw 'Pinned PRE-1 prior findings unavailable'}
+            $priorFindings=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($findingsBlob.content))
+            $priorCheck=$priorFindings|ConvertFrom-Json
+            if(@($priorCheck.findings).Count -ne 11 -or @($priorCheck.findings|Where-Object{$_.blocking -ne $true}).Count -ne 0){throw 'Pinned PRE-1 prior findings invalid'}
+            $registerBlob=gh api "repos/$env:GITHUB_REPOSITORY/git/blobs/2b304f6408b91baf798a4b43de4d313856ed60da"|ConvertFrom-Json
+            if($LASTEXITCODE-ne0 -or $registerBlob.sha -ne '2b304f6408b91baf798a4b43de4d313856ed60da' -or $registerBlob.encoding -ne 'base64'){throw 'Pinned PRE-1 correction register unavailable'}
+            $correctionRegister=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($registerBlob.content))
+            [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-pre1-prior-findings.json",$priorFindings,(New-Object Text.UTF8Encoding($false)))
+            [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-pre1-correction-register.md",$correctionRegister,(New-Object Text.UTF8Encoding($false)))
+            $prompt=@"
+          You are the independent reviewer of the TARGETED CORRECTION of the detailed PRE-1 plan. This is READ-ONLY. Candidate: $env:RUNNER_TEMP\kodjo-v2-initial-plan.md, pinned commit 990103188f2936bb2ed7d766fabe56ab0b779210, blob 8ed0768ccfcf9ec157b2aa8d5cc177be5f97d426. Product baseline: $env:SOURCE_HEAD. Protocol execution: $env:PROTOCOL_EXECUTION_HEAD. Do not review the old publication from comment5913845392.
+          Review ONLY closure of the eleven exact prior findings from run36734142447 below, their demonstrated direct dependencies and regressions caused by this correction. The cumulative register maps them to initial groups R1..R5 plus existing qualification-spec sections4 and13. The deterministic impact scan, source provenance, plan contract and atomic UI contract have already been replayed by preceding gates. Verify the closures against the actual checked-out baseline code and the candidate machine contracts. Do not launch another initial audit, reopen unrelated settled product choices, add future UI/engine requirements, audit the protocol or introduce VNext as a prerequisite.
+          Required closure table: prior finding number1..11, exact target, candidate correction, concrete evidence, dependency, closed YES/NO. In particular: four affected screens and tests; generic primitives unchanged if callers suffice; precise i18n keys and preserved Tour keys; injected zone referential and occurrence-only recovery including zero; FILE_UNCHANGED protection for historical category files plus effective historical SQL including imported dependencies; visible terminology and additive future media-variant compatibility without implementing variants; complete coverage and truthful revision provenance.
+          A new blocking finding is admissible only if it demonstrates an unresolved direct consequence of one of these eleven findings or a regression introduced by the correction. Each diagnostic MUST identify the prior finding number, existing normative requirement, exact source/code evidence and actual PRE-1 consequence. Absence of a word, unsupported hypothetical risk or unrelated improvement alone cannot block. Preserve legitimate in-scope defects; never fabricate approval. Put unrelated observations separately as nonblocking.
+          Your returned Markdown is the review report; the publication job archives it and the normalized findings. Do not write to or commit the immutable product checkout. Any orchestration documentation observation is outside this product-plan closure and cannot expand this review.
+          Emit exactly one <KODJO_REVIEW_FINDINGS_JSON> block with shape {"findings":[{"category":"REQUIREMENT_GAP|SCOPE|PATH|TEST|MIGRATION|COMPATIBILITY|PRESERVATION|UI_CRITERION|ARCHITECTURE|CLARIFICATION|OTHER","target_kind":"REQUIREMENT_ID|CRITERION_ID|PATH|PLAN|SOURCE","target":"...","blocking":true,"diagnostic":"Prior finding N; normative requirement; evidence; actual consequence","expected_correction":"...","dependency_expansion_required":false,"dependency_evidence":""}]}. Do not emit finding_id. Every blocking row needs an exact actionable target; blocking PLAN targets are restricted to NON_UI_COVERAGE. Any required scope expansion must include concrete dependency evidence. If there are no findings emit {"findings":[]}.
+          No terminal VERDICT line: the protocol derives APPROVE/REVISE from normalized blocking findings. ONE independent invocation only; no automatic replanning or additional review after REVISE. APPROVE may continue the existing handoff to development.
+          BOUND PRIOR FINDINGS:
+          $priorFindings
+          CORRECTION REGISTER:
+          $correctionRegister
+          "@
+          }
           $out="$env:RUNNER_TEMP\kodjo-v2-initial-review.json"
           $err="$env:RUNNER_TEMP\kodjo-v2-initial-review.err.txt"
           $args=if($env:REVIEW_SESSION){@('-p','--resume',$env:REVIEW_SESSION,'--output-format','json','--dangerously-skip-permissions')}else{@('-p','--output-format','json','--dangerously-skip-permissions')}
@@ -277,7 +302,7 @@ jobs:
             [IO.File]::WriteAllText($historyFile,($history -join [Environment]::NewLine),(New-Object Text.UTF8Encoding($false)))
             $retry=node (Join-Path (Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-review-protocol') 'decide-plan-review-retry.js') $historyFile $env:SLICE_ID $reviewCommentId|ConvertFrom-Json
             if($LASTEXITCODE-ne0){throw 'Plan retry decision failed'}
-            if(($env:PLAN_ID -eq '5913845392') -or ([string]$retry.status -eq 'USER_VALIDATION') -or (@($findings.findings|Where-Object{$_.category -eq 'CLARIFICATION'}).Count -gt 0)){
+            if(($env:PLAN_ID -in @('5913845392','5916079168')) -or ([string]$retry.status -eq 'USER_VALIDATION') -or (@($findings.findings|Where-Object{$_.category -eq 'CLARIFICATION'}).Count -gt 0)){
               $stop='[KODJO_V2] PLAN_RETRY_USER_VALIDATION'+$nl+'slice_id='+$env:SLICE_ID+$nl+'review_comment_id='+$reviewCommentId+$nl+'reason=REPEATED_REVISE'+$nl+'STATUT : USER_VALIDATION'
               $stopFile=Join-Path $env:RUNNER_TEMP 'kodjo-plan-retry-stop.json'
               [IO.File]::WriteAllText($stopFile,(@{body=$stop}|ConvertTo-Json -Depth 3),(New-Object Text.UTF8Encoding($false)))
@@ -302,6 +327,8 @@ jobs:
             ${{ runner.temp }}\kodjo-v2-initial-review-findings.json
             ${{ runner.temp }}\kodjo-v2-initial-review-comment.md
             ${{ runner.temp }}\kodjo-v2-plan-review-publish.json
+            ${{ runner.temp }}\kodjo-pre1-prior-findings.json
+            ${{ runner.temp }}\kodjo-pre1-correction-register.md
             ${{ runner.temp }}\kodjo-v2-initial-review-scan.json
             ${{ runner.temp }}\kodjo-v2-initial-review-proof.json
             ${{ runner.temp }}\kodjo-v2-initial-review-contract.json

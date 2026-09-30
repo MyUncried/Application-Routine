@@ -122,7 +122,7 @@ function main() {
 
   const plan = gh('repos/' + repository + '/issues/comments/' + planId, cwd);
   if (issueOf(plan) !== issueNumber) fail('HANDOFF_PLAN_ISSUE_MISMATCH');
-  const recoveredPublication = String(plan.id) === '5913845392';
+  const recoveredPublication = ['5913845392', '5916079168'].includes(String(plan.id));
   const planBody = recoveredPublication
     ? require('./recover-published-pre1-plan').recover(plan, repository)
     : String(plan.body || '');

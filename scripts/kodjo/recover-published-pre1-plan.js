@@ -16,7 +16,28 @@ function api(route) {
   need(!r.error && r.status === 0, 'PRE1_RECOVERY_API_FAILED:' + route);
   return JSON.parse(r.stdout);
 }
+
+const CORRECTED_COMMENT_ID = '5916079168';
+const CORRECTED_COMMIT = '990103188f2936bb2ed7d766fabe56ab0b779210';
+const CORRECTED_PATH = '.github/orchestration/v2-slices/V2-PRE-1/correction-review-36734142447/corrected-plan.md';
+const CORRECTED_BLOB = '8ed0768ccfcf9ec157b2aa8d5cc177be5f97d426';
+const CORRECTED_SHA256 = 'a5f78c7bd25fa2bf35d758e8cce6769fcfce392d1b523a67dcd512be805f5019';
+function recoverCorrected(comment, repository, get) {
+  need(repository === REPOSITORY, 'PRE1_CORRECTED_REPOSITORY_MISMATCH');
+  need(String(comment?.id) === CORRECTED_COMMENT_ID && comment?.user?.login === 'MyUncried', 'PRE1_CORRECTED_PUBLICATION_AUTHORITY_INVALID');
+  need(comment.issue_url === 'https://api.github.com/repos/' + REPOSITORY + '/issues/249', 'PRE1_CORRECTED_ISSUE_MISMATCH');
+  need(String(comment.body).includes('https://github.com/' + REPOSITORY + '/blob/' + CORRECTED_COMMIT + '/' + CORRECTED_PATH), 'PRE1_CORRECTED_REFERENCE_MISMATCH');
+  const tree = get('git/trees/' + CORRECTED_COMMIT + '?recursive=1');
+  need(!tree.truncated && tree.tree.some(x => x.path === CORRECTED_PATH && x.sha === CORRECTED_BLOB && x.type === 'blob'), 'PRE1_CORRECTED_COMMIT_BINDING_MISMATCH');
+  const blob = get('git/blobs/' + CORRECTED_BLOB);
+  need(blob.sha === CORRECTED_BLOB && blob.encoding === 'base64', 'PRE1_CORRECTED_BLOB_INVALID');
+  const bytes = Buffer.from(blob.content, 'base64');
+  need(bytes.length === 226423 && crypto.createHash('sha256').update(bytes).digest('hex') === CORRECTED_SHA256, 'PRE1_CORRECTED_PLAN_INTEGRITY_MISMATCH');
+  return '[KODJO_V2] PLAN_OUTPUT\nslice_id=V2-PRE-1\nbootstrap_path=.github/orchestration/v2-slices/V2-PRE-1/slice-bootstrap.json\nsource_head=e216294506bed87dd80855937e3fabfbfa322b82\nplanning_mode=INITIAL\nplanning_contract=kodjo.plan-impact.v1\nui_planning_contract=kodjo.ui-plan-criteria.v2\ncorrected_plan_commit=' + CORRECTED_COMMIT + '\ncorrected_plan_blob=' + CORRECTED_BLOB + '\nSTATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\n\n' + bytes.toString('utf8');
+}
+
 function recover(comment, repository = REPOSITORY, get = api) {
+  if (String(comment?.id) === CORRECTED_COMMENT_ID) return recoverCorrected(comment, repository, get);
   need(repository === REPOSITORY, 'PRE1_RECOVERY_REPOSITORY_MISMATCH');
   need(String(comment?.id) === COMMENT_ID && comment?.user?.login === 'MyUncried', 'PRE1_RECOVERY_PUBLICATION_AUTHORITY_INVALID');
   need(comment.issue_url === 'https://api.github.com/repos/' + REPOSITORY + '/issues/249', 'PRE1_RECOVERY_ISSUE_MISMATCH');
@@ -40,9 +61,9 @@ function recover(comment, repository = REPOSITORY, get = api) {
 if (require.main === module) {
   try {
     const [id, output] = process.argv.slice(2);
-    need(id === COMMENT_ID && output, 'PRE1_RECOVERY_USAGE_INVALID');
+    need([COMMENT_ID, CORRECTED_COMMENT_ID].includes(id) && output, 'PRE1_RECOVERY_USAGE_INVALID');
     fs.writeFileSync(output, recover(api('issues/comments/' + id), process.env.GITHUB_REPOSITORY || REPOSITORY), 'utf8');
-    process.stdout.write('PRE1 recovered plan verified: blob=' + BLOB + ' sha256=' + SHA256 + '\n');
+    process.stdout.write('PRE1 pinned published plan verified: comment=' + id + '\n');
   } catch (e) { console.error(e.message); process.exitCode = 1; }
 }
-module.exports = { recover, COMMENT_ID };
+module.exports = { recover, COMMENT_ID, CORRECTED_COMMENT_ID };
