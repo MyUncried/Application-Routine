@@ -531,6 +531,16 @@ function buildAuditCoverage({
     auditManifest.criteria.map((row) => [row.audit_criterion_id, row]),
   );
   const findingIds = new Set(reviewReport.findings.map((row) => row.finding_id));
+  const defectFindingsByCriterion = new Map(
+    auditManifest.criteria.map((row) => [row.audit_criterion_id, []]),
+  );
+  for (const assessment of findingAssessment.assessments) {
+    if (assessment.classification !== 'DEFECT') continue;
+    for (const criterionId of assessment.normative_criterion_ids) {
+      defectFindingsByCriterion.get(criterionId).push(assessment.finding_id);
+    }
+  }
+  for (const list of defectFindingsByCriterion.values()) list.sort();
   const seen = new Set();
 
   const normalized = coverage.map((row, index) => {
@@ -578,6 +588,16 @@ function buildAuditCoverage({
       if (ids.length !== 0) {
         V.fail('VNEXT_AUDIT_COVERAGE_NOT_APPLICABLE_FINDING_FORBIDDEN', row.audit_criterion_id);
       }
+    }
+
+    const expectedDefectIds = defectFindingsByCriterion.get(row.audit_criterion_id) || [];
+    if (expectedDefectIds.length > 0) {
+      if (row.status !== 'CHECKED_FINDING'
+          || V.canonicalStringify(ids) !== V.canonicalStringify(expectedDefectIds)) {
+        V.fail('VNEXT_AUDIT_COVERAGE_DEFECT_BINDING_MISMATCH', row.audit_criterion_id);
+      }
+    } else if (row.status === 'CHECKED_FINDING') {
+      V.fail('VNEXT_AUDIT_COVERAGE_UNBOUND_FINDING', row.audit_criterion_id);
     }
     return {
       audit_criterion_id: row.audit_criterion_id,
