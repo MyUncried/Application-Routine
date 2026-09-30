@@ -87,7 +87,9 @@ function isExempt(filePath, line, root) {
   if (line.includes(ALLOWLIST_MARKER)) return true;
   const rel = path.relative(root, filePath).replace(/\\/g, '/');
   // The guard module and this scanner necessarily name the forbidden verbs.
-  return rel === 'scripts/kodjo/lib/git.js' || rel === 'scripts/kodjo/scan-remote-write-capability.js';
+  return rel === 'scripts/kodjo/lib/git.js' ||
+    rel === 'scripts/kodjo/scan-remote-write-capability.js' ||
+    rel === 'scripts/kodjo/lib/vnext-remote-write-security.js';
 }
 
 /**
