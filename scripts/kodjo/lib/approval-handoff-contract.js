@@ -2,6 +2,7 @@
 
 const V = require('./vnext-contract');
 const PlanningEnvelope = require('./planning-envelope');
+const Impact = require('./impact-graph');
 const Plan = require('./plan-contract');
 const Review = require('./review-contract');
 const Ui = require('./ui-atomicity-contract');
@@ -47,6 +48,7 @@ function validateApprovedArtifacts({
   requirementRegistry,
   impactGraph,
   candidateManifest,
+  directImportScan,
   planContract,
   reviewContext,
   reviewReport,
@@ -67,6 +69,13 @@ function validateApprovedArtifacts({
   }
   if (reviewContext.impact_graph_hash !== impactGraph.contract_hash) {
     V.fail('VNEXT_APPROVAL_IMPACT_GRAPH_MISMATCH');
+  }
+  const directScanHash = directImportScan ? directImportScan.contract_hash : null;
+  if (reviewContext.direct_import_scan_hash !== directScanHash) {
+    V.fail('VNEXT_APPROVAL_DIRECT_SCAN_MISMATCH');
+  }
+  if (directImportScan) {
+    Impact.validateDirectImportScan(directImportScan, candidateManifest);
   }
   if (reviewContext.plan_contract_hash !== planContract.contract_hash) {
     V.fail('VNEXT_APPROVAL_PLAN_CONTEXT_MISMATCH');
@@ -106,6 +115,7 @@ function buildExecutionCore({
   requirementRegistry,
   impactGraph,
   candidateManifest,
+  directImportScan,
   planContract,
   reviewContext,
   reviewReport,
@@ -122,6 +132,7 @@ function buildExecutionCore({
     requirementRegistry,
     impactGraph,
     candidateManifest,
+    directImportScan,
     planContract,
     reviewContext,
     reviewReport,
@@ -201,6 +212,9 @@ function validateExecutionCore(core) {
     ['review_report_hash', core.review_report_hash],
   ]) {
     V.assertSha64(value, 'VNEXT_EXECUTION_CORE_HASH_INVALID', label);
+  }
+  if (core.direct_import_scan_hash !== null) {
+    V.assertSha64(core.direct_import_scan_hash, 'VNEXT_EXECUTION_CORE_DIRECT_SCAN_HASH_INVALID', 'direct_import_scan_hash');
   }
   if (core.ui_atomicity_hash !== null) {
     V.assertSha64(core.ui_atomicity_hash, 'VNEXT_EXECUTION_CORE_UI_HASH_INVALID', 'ui_atomicity_hash');
