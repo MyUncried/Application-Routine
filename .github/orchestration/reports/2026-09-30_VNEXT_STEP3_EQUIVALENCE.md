@@ -45,11 +45,64 @@ Avant les nouveaux contrôles : candidat ff19153b14698dbe57eb9ca02821095d342d4da
 883 PASS/0 FAIL/3 SKIP. Les 398 assertions alors référencées ont un PASS sur
 au moins une plateforme, sans convertir les SKIP en PASS.
 
-Dernier delta : 188 tests VNext PASS localement, 0 FAIL, 0 SKIP. Les quatre
-nouvelles assertions sont liées aux six clauses dans la matrice. La qualification
-distante du commit publiant ce delta reste requise. Les logs produisent
-KODJO_EQ_IDENTITY, KODJO_EQ_CASE et KODJO_EQ_SUBJECT : 402 résultats de cas
-et 420 résultats de sujets par OS, avec identité exacte du candidat.
+Dernier delta publié et qualifié : candidat
+`73e10a6cc202fb81c664b4754d1d21e7c82cdc15`,
+[run 36753202976](https://github.com/MyUncried/Application-Routine/actions/runs/36753202976),
+terminé SUCCESS le 30 septembre 2026 à 17:49:26 UTC. Les quatre nouvelles
+assertions sont liées aux six clauses dans la matrice ; aucune lacune
+contractuelle identifiée ne subsiste dans les 420 sujets de ce candidat.
+
+| Preuve au candidat exact | Linux | Windows |
+| --- | --- | --- |
+| Contrats VNext | 188 PASS / 0 FAIL / 0 SKIP | 188 PASS / 0 FAIL / 0 SKIP |
+| Suite historique structurée | 889 PASS / 0 FAIL / 1 SKIP | 887 PASS / 0 FAIL / 3 SKIP |
+| Assertions mappées | 401 PASS / 1 SKIP | 401 PASS / 1 SKIP |
+| Sujets | 416 CONTROLLED_ASSERTIONS_PASS / 4 EVIDENCE_INCOMPLETE | 409 CONTROLLED_ASSERTIONS_PASS / 11 EVIDENCE_INCOMPLETE |
+
+Les journaux KODJO_EQ_IDENTITY, KODJO_EQ_CASE et KODJO_EQ_SUBJECT portent
+le SHA exact : 402 résultats de cas et 420 résultats de sujets par OS.
+Chacune des 402 assertions a un PASS sur au moins une plateforme ; les
+SKIP restent SKIP sur leur plateforme. 390 assertions sont classées
+EXECUTABLE_OR_FIXTURE et 12 STATIC_WORKFLOW_TEXT, sans revendication de
+trace de branches exécutées ni de scénario opérationnel rejoué.
+
+Le test « 0.6.22 — le nettoyage initialise des métriques saines si le fichier
+est absent » (CASE-644e9ada78cd69a4) est explicitement PASS sous Windows,
+job [110016769693](https://github.com/MyUncried/Application-Routine/actions/runs/36753202976/job/110016769693).
+Il reste SKIP sous Linux. La syntaxe des 63 workflows, leurs invariants
+exécutables et le contrôle whitespace sont SUCCESS. L’audit architecture
+est SKIPPED sur cette synchronisation ; aucun nouvel audit n’est revendiqué.
+
+## Vérification complémentaire et clôture
+
+Le [run pilote V2 36753202989](https://github.com/MyUncried/Application-Routine/actions/runs/36753202989)
+au même candidat est terminé FAILURE. Le job Linux protocol est SUCCESS.
+Le job Windows protocol-windows-preflight est FAILURE uniquement à l’étape
+« Download the real run 16 recovery package » : artefact historique
+`kodjo-v2-recovery-34606534268-1` introuvable. Le journal ne permet pas de
+distinguer absence initiale et expiration. La certification de cette
+récupération reste NON VÉRIFIABLE ; elle n’est pas convertie en PASS.
+Le job disposable-qualification suivant est SKIPPED.
+
+Les étapes Windows de parsing PowerShell, suite pilote complète
+(890 tests : 886 PASS / 0 FAIL / 4 SKIP), parcours de queue isolé sous
+PowerShell 5.1 et préflight jetable sans Claude sont SUCCESS.
+Les messages d’échec de témoins négatifs dans leurs journaux ne sont pas
+des échecs de ces étapes. Les artefacts préflight 11115458708 et
+certification historique 11116686412 sont publiés ; leur publication
+n’atteste pas une certification historique réussie.
+
+Statut : revue des correspondances et qualification contractuelle ciblée
+effectuées ; clôture formelle de l’étape 3 EN RÉSERVE, compte tenu du run
+pilote complémentaire en échec. Aucune dérogation au résultat global,
+aucune suppression du contrôle historique et aucune relance ne sont
+effectuées. Cette réserve est distincte des obligations opérationnelles
+des étapes 4 et 5.
+
+Cette mise à jour ne change que le rapport et le statut documentaire de
+la matrice. Les preuves de tests restent attachées au candidat
+`73e10a6cc202fb81c664b4754d1d21e7c82cdc15` ; le commit documentaire
+ultérieur n’est pas présenté comme un nouveau candidat testé.
 
 ## Obligations des étapes 4 et 5
 
