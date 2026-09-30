@@ -238,6 +238,14 @@ function validatePolicy(policy) {
     if (!PERMISSION_SCOPES.includes(d.required_permission_scope)) {
       V.fail('VNEXT_REMOTE_WRITE_PERMISSION_SCOPE_INVALID', d.required_permission_scope);
     }
+    if (d.lifecycle === 'VNEXT'
+        && d.capability_type === 'GITHUB_PERMISSION_WRITE'
+        && d.required_permission_scope !== 'JOB') {
+      V.fail('VNEXT_REMOTE_WRITE_VNEXT_PERMISSION_MUST_BE_JOB_SCOPED', d.declaration_id);
+    }
+    if (d.lifecycle === 'VNEXT' && d.capability_type === 'PERSIST_CREDENTIALS_TRUE') {
+      V.fail('VNEXT_REMOTE_WRITE_VNEXT_PERSISTED_CREDENTIALS_FORBIDDEN', d.declaration_id);
+    }
   }
   return true;
 }
