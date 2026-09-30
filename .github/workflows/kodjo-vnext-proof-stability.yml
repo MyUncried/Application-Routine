@@ -51,6 +51,34 @@ jobs:
         shell: bash
         run: git diff --check
 
+  historical-equivalence:
+    # Step 3 only: disposable fixture assertions, no queue, Claude or cutover.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install isolated pinned tokenizer for inherited fixture assertions
+        run: npm ci --prefix scripts/kodjo/openai-runtime --ignore-scripts
+      - name: Execute structured historical assertion evidence
+        shell: bash
+        run: |
+          node --test --test-reporter=./scripts/kodjo/lib/vnext-equivalence-reporter.js tests/kodjo/*.pilot.js > "$RUNNER_TEMP/historical-equivalence.jsonl"
+      - name: Resolve each historical assertion on the exact candidate
+        if: always()
+        shell: bash
+        run: node scripts/kodjo/qualify-vnext-historical-equivalence.js "$RUNNER_TEMP/historical-equivalence.jsonl"
+
   architecture-audit:
     # One early read-only architecture audit, never a final approval or PRE-1 gate.
     if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'protocol/vnext-proof-stability-') && github.event.action == 'opened' && github.run_attempt == 1
