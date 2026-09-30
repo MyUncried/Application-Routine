@@ -15,6 +15,7 @@ const Plan = require('../../scripts/kodjo/lib/plan-contract');
 const Review = require('../../scripts/kodjo/lib/review-contract');
 const Revision = require('../../scripts/kodjo/lib/revision-contract');
 const Audit = require('../../scripts/kodjo/lib/audit-stability-contract');
+const V = require('../../scripts/kodjo/lib/vnext-contract');
 
 const H40A = 'a'.repeat(40);
 const H64A = 'a'.repeat(64);
@@ -624,12 +625,17 @@ test('VNext-11 un audit final APPROVE ne passe pas si un ancien finding reste OP
     })),
   });
 
+  const staleOpenLedger = structuredClone(ledger);
+  staleOpenLedger.review_report_hashes.push(approveReport.contract_hash);
+  delete staleOpenLedger.contract_hash;
+  staleOpenLedger.contract_hash = V.canonicalHash(staleOpenLedger);
+
   assert.throws(() => Audit.buildFinalAuditOutcome({
     auditManifest,
     reviewContext: next.reviewContext,
     reviewReport: approveReport,
     findingAssessment: approveAssessment,
-    findingLedger: ledger,
+    findingLedger: staleOpenLedger,
     auditCoverage: coverage,
   }), /VNEXT_FINAL_AUDIT_OPEN_FINDINGS_BLOCK_APPROVAL/);
 });
