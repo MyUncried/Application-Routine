@@ -46,12 +46,14 @@ function validateRevisionChain({
   }
   V.assertExactKeys(
     revisionArtifacts,
-    ['allowed_change_set', 'revision_patch', 'revision_outcome'],
+    ['allowed_change_set', 'revision_patch', 'finding_resolution_set', 'finding_ledger', 'revision_outcome'],
     [],
     'VNEXT_RUNTIME_REVISION_ARTIFACT_KEYS_INVALID',
   );
   const allowed = revisionArtifacts.allowed_change_set;
   const patch = revisionArtifacts.revision_patch;
+  const resolutionSet = revisionArtifacts.finding_resolution_set;
+  const findingLedger = revisionArtifacts.finding_ledger;
   const outcome = revisionArtifacts.revision_outcome;
 
   Revision.validateAllowedChangeSet(allowed);
@@ -64,6 +66,8 @@ function validateRevisionChain({
       'revision_patch_hash',
       'next_review_context_hash',
       'next_review_report_hash',
+      'finding_resolution_set_hash',
+      'next_finding_ledger_hash',
       'status',
       'preserved_target_count',
       'authorized_target_count',
@@ -84,6 +88,14 @@ function validateRevisionChain({
   if (outcome.revision_patch_hash !== patch.contract_hash) {
     V.fail('VNEXT_RUNTIME_REVISION_PATCH_MISMATCH');
   }
+  V.verifyContractHash(resolutionSet, 'VNEXT_RUNTIME_FINDING_RESOLUTION_HASH_MISMATCH');
+  if (outcome.finding_resolution_set_hash !== resolutionSet.contract_hash) {
+    V.fail('VNEXT_RUNTIME_FINDING_RESOLUTION_MISMATCH');
+  }
+  V.verifyContractHash(findingLedger, 'VNEXT_RUNTIME_FINDING_LEDGER_HASH_MISMATCH');
+  if (outcome.next_finding_ledger_hash !== findingLedger.contract_hash) {
+    V.fail('VNEXT_RUNTIME_FINDING_LEDGER_MISMATCH');
+  }
   if (outcome.next_review_context_hash !== reviewContext.contract_hash
       || outcome.next_review_report_hash !== reviewReport.contract_hash) {
     V.fail('VNEXT_RUNTIME_REVISION_REVIEW_MISMATCH');
@@ -103,7 +115,13 @@ function validateRevisionChain({
   return Object.freeze({
     stage: 'REVISION',
     status: 'RESOLVED',
-    evidence_hashes: [allowed.contract_hash, patch.contract_hash, outcome.contract_hash],
+    evidence_hashes: [
+      allowed.contract_hash,
+      patch.contract_hash,
+      resolutionSet.contract_hash,
+      findingLedger.contract_hash,
+      outcome.contract_hash,
+    ],
   });
 }
 

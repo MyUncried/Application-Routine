@@ -2,11 +2,12 @@
 
 const V = require('./vnext-contract');
 const Review = require('./review-contract');
+const AuditStability = require('./audit-stability-contract');
 
-const ALLOWED_SCHEMA = 'kodjo.vnext.allowed-change-set.v1';
+const ALLOWED_SCHEMA = 'kodjo.vnext.allowed-change-set.v2';
 const PATCH_SCHEMA = 'kodjo.vnext.revision-patch.v1';
 const APPLICATION_SCHEMA = 'kodjo.vnext.revision-application.v1';
-const OUTCOME_SCHEMA = 'kodjo.vnext.revision-outcome.v1';
+const OUTCOME_SCHEMA = 'kodjo.vnext.revision-outcome.v2';
 
 const STAGE_PRIORITY = Object.freeze({
   REQUIREMENTS: 1,
@@ -236,6 +237,9 @@ function descendants(seedIds, outgoing) {
 function buildAllowedChangeSet({
   reviewContext,
   reviewReport,
+  auditManifest,
+  findingAssessment,
+  findingLedger,
   requirementRegistry,
   impactGraph,
   candidateManifest,
@@ -243,6 +247,21 @@ function buildAllowedChangeSet({
   uiAtomicityContract = null,
 }) {
   Review.validateReviewReport(reviewReport, reviewContext);
+  if (!auditManifest || !findingAssessment || !findingLedger) {
+    V.fail('VNEXT_REVISION_NORMATIVE_ASSESSMENT_REQUIRED');
+  }
+  AuditStability.validateFindingAssessment(findingAssessment, {
+    auditManifest,
+    reviewContext,
+    reviewReport,
+  });
+  AuditStability.validateFindingLedger(findingLedger);
+  if (findingLedger.audit_manifest_hash !== auditManifest.contract_hash) {
+    V.fail('VNEXT_REVISION_LEDGER_AUDIT_MANIFEST_MISMATCH');
+  }
+  if (!findingLedger.review_report_hashes.includes(reviewReport.contract_hash)) {
+    V.fail('VNEXT_REVISION_LEDGER_REVIEW_REPORT_MISMATCH');
+  }
   if (reviewReport.verdict !== 'REVISE') {
     V.fail('VNEXT_REVISION_REVISE_REPORT_REQUIRED', reviewReport.verdict);
   }
@@ -265,6 +284,11 @@ function buildAllowedChangeSet({
 
   const blocking = reviewReport.findings.filter((finding) => finding.blocking);
   if (blocking.length === 0) V.fail('VNEXT_REVISION_BLOCKING_FINDING_REQUIRED');
+  const blockingIds = blocking.map((finding) => finding.finding_id).sort();
+  if (V.canonicalStringify([...findingLedger.open_finding_ids].sort())
+      !== V.canonicalStringify(blockingIds)) {
+    V.fail('VNEXT_REVISION_LEDGER_OPEN_FINDINGS_MISMATCH');
+  }
 
   const reentryStage = earliestStage(blocking);
   const authorizedReasons = new Map();
@@ -330,6 +354,9 @@ function buildAllowedChangeSet({
     schema_version: ALLOWED_SCHEMA,
     review_context_hash: reviewContext.contract_hash,
     review_report_hash: reviewReport.contract_hash,
+    audit_manifest_hash: auditManifest.contract_hash,
+    finding_assessment_hash: findingAssessment.contract_hash,
+    finding_ledger_hash: findingLedger.contract_hash,
     base_plan_contract_hash: planContract.contract_hash,
     base_ui_atomicity_hash: uiAtomicityContract ? uiAtomicityContract.contract_hash : null,
     base_target_graph_hash: graphFingerprint(graph),
@@ -351,6 +378,9 @@ function validateAllowedChangeSet(allowedChangeSet) {
       'schema_version',
       'review_context_hash',
       'review_report_hash',
+      'audit_manifest_hash',
+      'finding_assessment_hash',
+      'finding_ledger_hash',
       'base_plan_contract_hash',
       'base_ui_atomicity_hash',
       'base_target_graph_hash',
@@ -373,6 +403,9 @@ function validateAllowedChangeSet(allowedChangeSet) {
   }
   V.assertSha64(allowedChangeSet.review_context_hash, 'VNEXT_ALLOWED_CHANGE_SET_REVIEW_CONTEXT_HASH_INVALID');
   V.assertSha64(allowedChangeSet.review_report_hash, 'VNEXT_ALLOWED_CHANGE_SET_REVIEW_REPORT_HASH_INVALID');
+  V.assertSha64(allowedChangeSet.audit_manifest_hash, 'VNEXT_ALLOWED_CHANGE_SET_AUDIT_MANIFEST_HASH_INVALID');
+  V.assertSha64(allowedChangeSet.finding_assessment_hash, 'VNEXT_ALLOWED_CHANGE_SET_FINDING_ASSESSMENT_HASH_INVALID');
+  V.assertSha64(allowedChangeSet.finding_ledger_hash, 'VNEXT_ALLOWED_CHANGE_SET_FINDING_LEDGER_HASH_INVALID');
   V.assertSha64(allowedChangeSet.base_plan_contract_hash, 'VNEXT_ALLOWED_CHANGE_SET_PLAN_HASH_INVALID');
   if (allowedChangeSet.base_ui_atomicity_hash !== null) {
     V.assertSha64(allowedChangeSet.base_ui_atomicity_hash, 'VNEXT_ALLOWED_CHANGE_SET_UI_HASH_INVALID');
@@ -662,12 +695,90 @@ function verifyRevisionOutcome({
   revisionPatch,
   baseArtifacts,
   nextArtifacts,
+  auditManifest,
+  previousReviewContext,
+  previousReviewReport,
+  previousFindingAssessment,
+  previousFindingLedger,
   nextReviewContext,
   nextReviewReport,
+  nextFindingAssessment,
+  findingResolutionSet,
+  nextFindingLedger,
 }) {
   validateAllowedChangeSet(allowedChangeSet);
   validateRevisionPatch(revisionPatch, allowedChangeSet);
   Review.validateReviewReport(nextReviewReport, nextReviewContext);
+  if (!previousReviewContext || !previousReviewReport || !previousFindingAssessment) {
+    V.fail('VNEXT_REVISION_PREVIOUS_REVIEW_REQUIRED');
+  }
+  Review.validateReviewReport(previousReviewReport, previousReviewContext);
+  if (previousReviewContext.contract_hash !== allowedChangeSet.review_context_hash) {
+    V.fail('VNEXT_REVISION_PREVIOUS_REVIEW_CONTEXT_MISMATCH');
+  }
+  if (previousReviewReport.contract_hash !== allowedChangeSet.review_report_hash) {
+    V.fail('VNEXT_REVISION_PREVIOUS_REVIEW_MISMATCH');
+  }
+  const previousBlockingIds = previousReviewReport.findings
+    .filter((row) => row.blocking)
+    .map((row) => row.finding_id)
+    .sort();
+  if (V.canonicalStringify(previousBlockingIds)
+      !== V.canonicalStringify([...allowedChangeSet.blocking_finding_ids].sort())) {
+    V.fail('VNEXT_REVISION_PREVIOUS_FINDINGS_MISMATCH');
+  }
+  if (!auditManifest) V.fail('VNEXT_REVISION_AUDIT_MANIFEST_REQUIRED');
+  AuditStability.validateAuditManifest(auditManifest);
+  AuditStability.validateFindingAssessment(previousFindingAssessment, {
+    auditManifest,
+    reviewContext: previousReviewContext,
+    reviewReport: previousReviewReport,
+  });
+  if (previousFindingAssessment.contract_hash !== allowedChangeSet.finding_assessment_hash) {
+    V.fail('VNEXT_REVISION_PREVIOUS_ASSESSMENT_MISMATCH');
+  }
+  if (!previousFindingLedger) V.fail('VNEXT_REVISION_PREVIOUS_LEDGER_REQUIRED');
+  AuditStability.validateFindingLedger(previousFindingLedger);
+  if (previousFindingLedger.contract_hash !== allowedChangeSet.finding_ledger_hash) {
+    V.fail('VNEXT_REVISION_PREVIOUS_LEDGER_MISMATCH');
+  }
+  if (previousFindingLedger.audit_manifest_hash !== auditManifest.contract_hash
+      || !previousFindingLedger.review_report_hashes.includes(previousReviewReport.contract_hash)
+      || V.canonicalStringify([...previousFindingLedger.open_finding_ids].sort())
+        !== V.canonicalStringify([...allowedChangeSet.blocking_finding_ids].sort())) {
+    V.fail('VNEXT_REVISION_PREVIOUS_LEDGER_BINDING_MISMATCH');
+  }
+  if (auditManifest.contract_hash !== allowedChangeSet.audit_manifest_hash) {
+    V.fail('VNEXT_REVISION_AUDIT_MANIFEST_CHANGED');
+  }
+  if (!findingResolutionSet) V.fail('VNEXT_REVISION_FINDING_RESOLUTION_REQUIRED');
+  AuditStability.validateFindingResolutionSet(findingResolutionSet, {
+    auditManifest,
+    previousReviewReport,
+    nextReviewContext,
+    nextReviewReport,
+  });
+  if (!nextFindingAssessment || !nextFindingLedger) {
+    V.fail('VNEXT_REVISION_NEXT_LEDGER_REQUIRED');
+  }
+  AuditStability.validateFindingAssessment(nextFindingAssessment, {
+    auditManifest,
+    reviewContext: nextReviewContext,
+    reviewReport: nextReviewReport,
+  });
+  const rebuiltNextLedger = AuditStability.advanceFindingLedgerWithPreviousReport({
+    previousLedger: previousFindingLedger,
+    previousReviewReport,
+    auditManifest,
+    nextReviewContext,
+    nextReviewReport,
+    nextFindingAssessment,
+    findingResolutionSet,
+  });
+  AuditStability.validateFindingLedger(nextFindingLedger);
+  if (V.canonicalStringify(rebuiltNextLedger) !== V.canonicalStringify(nextFindingLedger)) {
+    V.fail('VNEXT_REVISION_NEXT_LEDGER_MISMATCH');
+  }
   if (nextReviewContext.planning_mode !== 'REVISION') {
     V.fail('VNEXT_REVISION_NEXT_REVIEW_MODE_INVALID', nextReviewContext.planning_mode);
   }
@@ -725,6 +836,8 @@ function verifyRevisionOutcome({
     revision_patch_hash: revisionPatch.contract_hash,
     next_review_context_hash: nextReviewContext.contract_hash,
     next_review_report_hash: nextReviewReport.contract_hash,
+    finding_resolution_set_hash: findingResolutionSet.contract_hash,
+    next_finding_ledger_hash: nextFindingLedger.contract_hash,
     status,
     preserved_target_count: allowedChangeSet.preserved_targets.length,
     authorized_target_count: allowedChangeSet.authorized_targets.length,

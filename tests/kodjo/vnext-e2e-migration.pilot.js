@@ -18,6 +18,7 @@ const Revision = require('../../scripts/kodjo/lib/revision-contract');
 const Approval = require('../../scripts/kodjo/lib/approval-handoff-contract');
 const Runtime = require('../../scripts/kodjo/lib/vnext-runtime');
 const Adapter = require('../../scripts/kodjo/lib/vnext-legacy-queue-adapter');
+const AuditStability = require('../../scripts/kodjo/lib/audit-stability-contract');
 
 const H40A = 'a'.repeat(40);
 const H40C = 'c'.repeat(40);
@@ -238,6 +239,83 @@ function approve(artifacts, reviewReport, state) {
     currentState: state,
   });
   return { approvalTarget, approvalRecord, executionRequest };
+}
+
+function auditManifestFor(artifacts) {
+  return AuditStability.buildAuditManifest({
+    candidateHead: artifacts.planningEnvelope.application_head,
+    sources: [{
+      source_ref: 'fixture:source-manifest',
+      source_hash: artifacts.planningEnvelope.source_manifest.contract_hash,
+    }],
+    criteria: [{
+      source_ref: 'fixture:source-manifest',
+      clause: 'fixture-review-contract',
+      statement: 'Tout finding bloquant doit démontrer la violation d’une exigence figée de la fixture E2E.',
+      applicability: 'REQUIRED',
+    }],
+  });
+}
+
+function findingAssessmentFor(artifacts, report, auditManifest = auditManifestFor(artifacts)) {
+  const criterionId = auditManifest.criteria[0].audit_criterion_id;
+  return AuditStability.buildFindingAssessment({
+    auditManifest,
+    reviewContext: artifacts.reviewContext,
+    reviewReport: report,
+    assessments: report.findings.map((finding) => ({
+      finding_id: finding.finding_id,
+      classification: finding.blocking ? 'DEFECT' : 'SUGGESTION',
+      normative_criterion_ids: finding.blocking ? [criterionId] : [],
+      rationale: finding.blocking
+        ? 'Le finding est rattaché au critère E2E figé.'
+        : 'Recommandation non bloquante.',
+    })),
+  });
+}
+
+function findingLedgerFor(artifacts, report, auditManifest = auditManifestFor(artifacts), assessment = findingAssessmentFor(artifacts, report, auditManifest)) {
+  return AuditStability.buildFindingLedgerInitial({
+    auditManifest,
+    reviewContext: artifacts.reviewContext,
+    reviewReport: report,
+    findingAssessment: assessment,
+  });
+}
+
+function advancedLedgerFor(base, previousReport, next, nextReport, auditManifest = auditManifestFor(base)) {
+  const previousAssessment = findingAssessmentFor(base, previousReport, auditManifest);
+  const previousLedger = findingLedgerFor(base, previousReport, auditManifest, previousAssessment);
+  const nextAssessment = findingAssessmentFor(next, nextReport, auditManifest);
+  const resolutions = explicitResolutionSet(previousReport, next, nextReport, auditManifest);
+  return AuditStability.advanceFindingLedgerWithPreviousReport({
+    previousLedger,
+    previousReviewReport: previousReport,
+    auditManifest,
+    nextReviewContext: next.reviewContext,
+    nextReviewReport: nextReport,
+    nextFindingAssessment: nextAssessment,
+    findingResolutionSet: resolutions,
+  });
+}
+
+function explicitResolutionSet(previousReport, nextArtifacts, nextReport, auditManifest = auditManifestFor(nextArtifacts)) {
+  const nextIds = new Set(nextReport.findings.map((row) => row.finding_id));
+  return AuditStability.buildFindingResolutionSet({
+    auditManifest,
+    previousReviewReport: previousReport,
+    nextReviewContext: nextArtifacts.reviewContext,
+    nextReviewReport: nextReport,
+    resolutions: previousReport.findings
+      .filter((row) => row.blocking && !nextIds.has(row.finding_id))
+      .map((row) => ({
+        finding_id: row.finding_id,
+        disposition: 'RESOLVED',
+        evidence: ['Correction explicitement vérifiée dans la revue suivante.'],
+        evidence_target_ids: [row.target_id],
+        justification: 'Le finding antérieur est fermé explicitement.',
+      })),
+  });
 }
 
 function transport() {
@@ -488,6 +566,9 @@ test('VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY apr�
   const allowed = Revision.buildAllowedChangeSet({
     reviewContext: base.reviewContext,
     reviewReport: baseReview,
+    auditManifest: auditManifestFor(base),
+    findingAssessment: findingAssessmentFor(base, baseReview),
+    findingLedger: findingLedgerFor(base, baseReview),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
@@ -519,13 +600,34 @@ test('VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY apr�
     semanticReview: { findings: [] },
   });
 
+  const auditManifest = auditManifestFor(base);
+  const previousFindingLedger = findingLedgerFor(base, baseReview, auditManifest);
+  const nextFindingAssessment = findingAssessmentFor(next, nextReview, auditManifest);
+  const findingResolutionSet = explicitResolutionSet(baseReview, next, nextReview, auditManifest);
+  const nextFindingLedger = AuditStability.advanceFindingLedgerWithPreviousReport({
+    previousLedger: previousFindingLedger,
+    previousReviewReport: baseReview,
+    auditManifest,
+    nextReviewContext: next.reviewContext,
+    nextReviewReport: nextReview,
+    nextFindingAssessment,
+    findingResolutionSet,
+  });
   const outcome = Revision.verifyRevisionOutcome({
     allowedChangeSet: allowed,
     revisionPatch: patch,
     baseArtifacts: base,
     nextArtifacts: next,
+    auditManifest,
+    previousReviewContext: base.reviewContext,
+    previousReviewReport: baseReview,
+    previousFindingAssessment: findingAssessmentFor(base, baseReview, auditManifest),
+    previousFindingLedger,
     nextReviewContext: next.reviewContext,
     nextReviewReport: nextReview,
+    nextFindingAssessment,
+    findingResolutionSet,
+    nextFindingLedger,
   });
   assert.equal(outcome.status, 'RESOLVED');
 
@@ -537,6 +639,8 @@ test('VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY apr�
     revisionArtifacts: {
       allowed_change_set: allowed,
       revision_patch: patch,
+      finding_resolution_set: findingResolutionSet,
+      finding_ledger: nextFindingLedger,
       revision_outcome: outcome,
     },
     ...approved,

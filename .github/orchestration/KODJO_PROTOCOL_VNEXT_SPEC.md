@@ -55,6 +55,11 @@ Toute identité, source, preuve ou donnée obligatoire absente, ambiguë ou inco
 Chaque règle historique reçoit une disposition explicite :
 `CONSERVÉE | REMPLACÉE_ÉQUIVALENTE | SUPERSÉDÉE_EXPLICITEMENT | NON_APPLICABLE_JUSTIFIÉE`.
 
+### VNX-13 — Stabilité de l’audit et convergence
+Un finding bloquant doit être rattaché à un critère normatif figé avant de pouvoir autoriser une correction.
+Un finding bloquant antérieur ne peut jamais être fermé par simple disparition d’un rapport ultérieur.
+L’audit indépendant final est terminal : un verdict `REVISE` n’autorise aucune relance automatique.
+
 ## 2. Machine cible
 
 1. ADMISSION
@@ -86,6 +91,12 @@ REVISE réentre uniquement à l'étape minimale nécessaire : REQUIREMENTS, IMPA
 - `kodjo.vnext.cutover-plan.v1`
 - `kodjo.vnext.cutover-activation.v1`
 - `kodjo.vnext.cutover-rollback.v1`
+- `kodjo.vnext.audit-manifest.v1`
+- `kodjo.vnext.finding-assessment.v1`
+- `kodjo.vnext.finding-resolution-set.v1`
+- `kodjo.vnext.finding-ledger.v1`
+- `kodjo.vnext.audit-coverage.v1`
+- `kodjo.vnext.final-audit-outcome.v1`
 
 VNext-01 implémente uniquement les trois premiers contrats et le socle de canonicalisation/hash/IDs.
 
@@ -866,12 +877,18 @@ Aucun commentaire ou texte de reviewer ne peut contourner ce gate.
 
 ### 17.1 Contrats
 
-VNext-07 introduit :
+VNext-07 introduit historiquement :
 
 - `kodjo.vnext.allowed-change-set.v1`
 - `kodjo.vnext.revision-patch.v1`
 - `kodjo.vnext.revision-application.v1`
 - `kodjo.vnext.revision-outcome.v1`
+
+**Supersession VNext-11 :**
+- `kodjo.vnext.allowed-change-set.v1` → `kodjo.vnext.allowed-change-set.v2` ;
+- `kodjo.vnext.revision-outcome.v1` → `kodjo.vnext.revision-outcome.v2`.
+
+Les versions v2 ajoutent respectivement la provenance normative figée du finding et la preuve explicite de fermeture des findings antérieurs.
 
 Le flux est :
 
@@ -1053,6 +1070,7 @@ Le gate de sortie de révision est franchissable uniquement si :
 - le ReviewReport causal vaut REVISE ;
 - l’AllowedChangeSet est valide ;
 - tous les findings bloquants sont couverts par le RevisionPatch ;
+- tout finding bloquant disparu de la review suivante possède une résolution explicite et prouvée ;
 - aucune correction ne vise une cible non autorisée ;
 - la réentrée a eu lieu à l’étape calculée ;
 - tous les objets préservés sont inchangés ;
@@ -1341,9 +1359,10 @@ En mode INITIAL :
 
 En mode REVISION, le runtime exige :
 
-- AllowedChangeSet ;
+- AllowedChangeSet v2 ;
 - RevisionPatch ;
-- RevisionOutcome ;
+- FindingResolutionSet ;
+- RevisionOutcome v2 ;
 - `RevisionOutcome.status = RESOLVED` ;
 - correspondance exacte avec base_plan_hash ;
 - correspondance exacte avec base_review_hash ;
@@ -1723,7 +1742,17 @@ Le gate `CUTOVER_ACTIVATABLE` n’est franchi que si :
 - qualification VNext toujours valide sur le HEAD destiné au cutover ;
 - approbation explicite de l’activation disponible.
 
-Ce gate n’est pas attendu avant la clôture de PRE-1.
+**Supersession VNext-11 :** ces conditions sont nécessaires mais ne sont plus suffisantes.
+Avant activation effective, il faut également :
+
+- `AUDIT_STABILITY_READY` acquis ;
+- E2E réel jetable du protocole et du transport qualifié sur le candidat exact ;
+- audit indépendant final sur le dossier figé ;
+- `FinalAuditOutcome.status = FINAL_APPROVED`.
+
+Un `FINAL_REVISE_TERMINAL` ou `FINAL_CLARIFICATION_TERMINAL` interdit le cutover.
+
+Ce gate n’est pas attendu avant la clôture de PRE-1, et la clôture de PRE-1 ne suffit pas à elle seule à le franchir.
 
 ### 20.15 Hors périmètre
 
@@ -1737,3 +1766,249 @@ VNext-10 ne :
 - active pas VNext.
 
 Le changement effectif de routage reste une opération ultérieure, exécutée seulement après PRE-1.
+
+
+## 21. VNext-11 — Convergence et stabilité de l’audit
+
+### 21.1 Périmètre retenu
+
+VNext-11 implémente uniquement les protections jugées impératives ou nécessaires avant cutover :
+
+1. fermeture explicite des findings antérieurs ;
+2. provenance normative obligatoire de tout finding bloquant ;
+3. critères d’audit figés d’une revue à l’autre ;
+4. état terminal après l’audit indépendant final ;
+5. couverture complète du référentiel d’audit final.
+
+Ne deviennent pas des états protocolaires :
+- la qualification « défaut découvert tardivement » ;
+- l’explication sociologique ou organisationnelle de la date de découverte ;
+- un compteur brut de nombres de findings.
+
+Les scénarios publication/quota/runner restent des validations E2E du transport et sont traités dans le lot E2E réel, pas dans le cœur de la machine VNext-11.
+
+### 21.2 AuditManifest
+
+Contrat :
+
+`kodjo.vnext.audit-manifest.v1`
+
+Le manifeste fige avant le cycle d’audit :
+
+- candidate_head ;
+- sources normatives et leurs hashes ;
+- critères d’audit ;
+- clause source de chaque critère ;
+- statement ;
+- applicability = REQUIRED | CONDITIONAL.
+
+Les `audit_criterion_id` sont mécaniques.
+
+Changer une source, une clause, un statement ou son applicability change l’identité du manifeste.
+
+Un cycle de finding ne peut pas changer silencieusement d’AuditManifest.
+
+### 21.3 Provenance normative des findings
+
+Contrat :
+
+`kodjo.vnext.finding-assessment.v1`
+
+Chaque finding du ReviewReport reçoit une classification mécanique contrôlée :
+
+- DEFECT ;
+- SUGGESTION.
+
+Pour tout finding bloquant :
+
+- classification = DEFECT ;
+- au moins un `normative_criterion_id` du même AuditManifest est obligatoire.
+
+Un finding non bloquant doit rester une `SUGGESTION`.
+
+Conséquence :
+
+une recommandation nouvelle sans règle préexistante ne peut pas être convertie en autorisation de révision simplement en utilisant une catégorie bloquante comme `PLAN_GAP` ou `TECHNICAL_RISK`.
+
+### 21.4 AllowedChangeSet v2
+
+`kodjo.vnext.allowed-change-set.v2` remplace v1.
+
+Avant d’autoriser une correction, la machine exige :
+
+- AuditManifest valide ;
+- FindingAssessment valide ;
+- ReviewReport = REVISE ;
+- chaque finding bloquant rattaché à au moins un critère normatif figé.
+
+Le contrat scelle :
+
+- audit_manifest_hash ;
+- finding_assessment_hash ;
+- finding_ledger_hash.
+
+Les `open_finding_ids` du ledger doivent correspondre exactement aux findings bloquants qui autorisent la révision.
+
+Sans assessment normatif :
+
+`VNEXT_REVISION_NORMATIVE_ASSESSMENT_REQUIRED`
+
+### 21.5 FindingResolutionSet
+
+Contrat :
+
+`kodjo.vnext.finding-resolution-set.v1`
+
+Après correction, pour chaque finding bloquant précédent qui n’apparaît plus dans la nouvelle review, une résolution explicite est obligatoire :
+
+- finding_id ;
+- disposition = RESOLVED | REFUTED ;
+- evidence ;
+- evidence_target_ids ;
+- justification.
+
+Le set est lié au même AuditManifest, au ReviewReport précédent exact et au nouveau ReviewReport exact.
+
+L’absence d’un finding dans la nouvelle review ne constitue jamais une résolution.
+
+Si une résolution manque :
+
+`VNEXT_FINDING_RESOLUTION_INCOMPLETE`
+
+### 21.6 RevisionOutcome v2
+
+`kodjo.vnext.revision-outcome.v2` remplace v1.
+
+Il ajoute :
+
+- `finding_resolution_set_hash` ;
+- `next_finding_ledger_hash`.
+
+La révision ne peut produire `RESOLVED` qu’après validation du FindingResolutionSet exact et reconstruction du FindingLedger avancé exact.
+
+Les protections VNext-07 restent actives :
+
+- même finding persistant → `REVISION_STALLED` ;
+- objet préservé modifié → `PRESERVATION_REGRESSION` ;
+- nouveau finding bloquant sur objet préservé → `PRESERVATION_REGRESSION`.
+
+### 21.7 FindingLedger
+
+Contrat :
+
+`kodjo.vnext.finding-ledger.v1`
+
+Le ledger est cumulatif et mécanique.
+
+États :
+
+- OPEN ;
+- RESOLVED ;
+- REFUTED ;
+- SUGGESTION.
+
+Un finding OPEN ne peut quitter OPEN qu’avec un FindingResolutionSet explicite.
+
+Un finding RESOLVED ou REFUTED qui réapparaît avec le même finding_id produit :
+
+`VNEXT_FINDING_REOPENED`
+
+Le ledger conserve les ReviewReport hashes successifs et l’AuditManifest hash.
+
+Un changement d’AuditManifest en cours de chaîne produit :
+
+`VNEXT_FINDING_LEDGER_AUDIT_MANIFEST_CHANGED`
+
+### 21.8 Matrice de couverture de l’audit final
+
+Contrat :
+
+`kodjo.vnext.audit-coverage.v1`
+
+Chaque critère de l’AuditManifest apparaît exactement une fois avec :
+
+- CHECKED_PASS ;
+- CHECKED_FINDING ;
+- NOT_APPLICABLE.
+
+Règles :
+
+- un critère REQUIRED ne peut jamais être NOT_APPLICABLE ;
+- CHECKED_FINDING exige un finding réel du ReviewReport ;
+- CHECKED_PASS interdit de masquer un finding associé ;
+- toute ligne exige une évidence et une justification ;
+- tout critère absent bloque.
+
+Cette matrice ne réintroduit pas une liste fixe de « 64 axes » dans le protocole.
+Le référentiel applicable est celui de l’AuditManifest figé pour le candidat exact.
+
+### 21.9 Audit final terminal
+
+Contrat :
+
+`kodjo.vnext.final-audit-outcome.v1`
+
+États terminaux :
+
+- FINAL_APPROVED ;
+- FINAL_REVISE_TERMINAL ;
+- FINAL_CLARIFICATION_TERMINAL.
+
+Transitions :
+
+- APPROVE + aucun finding OPEN → FINAL_APPROVED / READY_FOR_CUTOVER_GATE ;
+- REVISE → FINAL_REVISE_TERMINAL / STOP_AND_REMEDIATE_WITHOUT_AUTOMATIC_REAUDIT ;
+- CLARIFICATION_REQUIRED → FINAL_CLARIFICATION_TERMINAL / STOP_FOR_USER_DECISION.
+
+Dans tous les cas :
+
+`automatic_reaudit_allowed = false`
+
+Un REVISE final ne peut donc jamais déclencher automatiquement :
+
+`correction → nouvel audit → correction → nouvel audit`.
+
+Une éventuelle nouvelle campagne d’audit exige une décision explicite extérieure à cette séquence terminale et un nouveau dossier figé.
+
+### 21.10 Distinction entre défaut et recommandation
+
+VNext-11 ne tente pas de décider si une idée « paraît importante ».
+
+La règle est causale :
+
+- règle/critère préexistant démontré + violation → DEFECT potentiellement bloquant ;
+- absence de règle préexistante → SUGGESTION non bloquante ;
+- ambiguïté produit réelle → PRODUCT_AMBIGUITY / USER_DECISION.
+
+La sévérité ou le style rédactionnel ne peuvent pas remplacer la provenance normative.
+
+### 21.11 Ce qui n’est pas ajouté au cœur
+
+La date de découverte d’un défaut peut être consignée pour analyse, mais ne modifie pas :
+
+- sa recevabilité ;
+- son caractère bloquant ;
+- son identité ;
+- sa résolution.
+
+Les scénarios de publication, quota, runner hors ligne, interruption et reprise sans nouvel appel IA restent nécessaires à qualifier dans l’E2E réel du protocole.
+
+Ils ne créent pas de nouveaux états sémantiques VNext-11.
+
+### 21.12 Gate AUDIT_STABILITY_READY
+
+Le gate est franchi uniquement si :
+
+- AuditManifest déterministe et figé ;
+- provenance normative obligatoire testée ;
+- recommandation sans provenance non bloquante testée ;
+- fermeture par disparition refusée ;
+- FindingLedger OPEN → RESOLVED/REFUTED uniquement avec preuve ;
+- AllowedChangeSet v2 refuse un finding non assessed ;
+- RevisionOutcome v2 exige FindingResolutionSet ;
+- couverture exhaustive de l’AuditManifest testée ;
+- critère REQUIRED non reportable testée ;
+- FINAL_REVISE_TERMINAL testé ;
+- aucune relance automatique possible.
+
+Ce gate ne remplace pas l’E2E réel du transport ni l’audit indépendant externe.
