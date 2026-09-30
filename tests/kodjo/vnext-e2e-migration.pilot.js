@@ -19,12 +19,31 @@ const Approval = require('../../scripts/kodjo/lib/approval-handoff-contract');
 const Runtime = require('../../scripts/kodjo/lib/vnext-runtime');
 const Adapter = require('../../scripts/kodjo/lib/vnext-legacy-queue-adapter');
 const Convergence = require('../../scripts/kodjo/lib/audit-convergence-contract');
+const AuditRegister = require('../../scripts/kodjo/lib/vnext-audit-register');
 
 const H40A = 'a'.repeat(40);
 const H40C = 'c'.repeat(40);
 const H64A = 'a'.repeat(64);
 const H64B = 'b'.repeat(64);
 const H64D = 'd'.repeat(64);
+
+test('projection blob OIDs agree with independent Git bytes for LF CRLF Unicode and empty input', () => {
+  for (const content of ['', 'épreuve\n', 'épreuve\r\n']) {
+    const oid = execFileSync('git', ['hash-object', '--stdin'], { input: Buffer.from(content, 'utf8'), encoding: 'utf8' }).trim();
+    assert.equal(Adapter.gitBlobOid(content), oid);
+  }
+});
+
+test('projection emits real lines and refuses Windows traversal and absolute paths', () => {
+  const request = { slice_id: 'V2-TEST', contract_hash: H64A, execution_fingerprint: H64B,
+    application_head: H40A, checks: ['jest'], write_scope: [{ path: 'src/x.js' }] };
+  const mission = Adapter.renderCompatibilityMission(request);
+  assert.ok(mission.split('\n').length > 8);
+  assert.match(mission, /^operation_kind=IMPLEMENT$/m);
+  for (const file of ['..\\..\\x.md', 'C:/x.md', '/x.md', 'a/../x.md', './x.md']) {
+    assert.throws(() => Adapter.renderCompatibilityReview(request, { contract_hash: H64A }, file), /PLAN_PATH_INVALID/);
+  }
+});
 
 function git(cwd, ...args) {
   return execFileSync('git', args, { cwd, encoding: 'utf8', windowsHide: true }).trim();
@@ -191,6 +210,8 @@ function buildPlanningArtifacts({ repo, manifest, envelope, revisedRationale = n
   });
 
   return {
+    cwd: repo.cwd,
+    cumulativeRegister: AuditRegister.buildRegister({ candidateHead: H40C, lot: envelope.slice_id, phase: 'HANDOFF', observations: [], authorizedActor: 'MyUncried', revisionCount: envelope.planning_mode === 'REVISION' ? 1 : 0, revisionLimit: 1 }),
     planningEnvelope: envelope,
     requirementRegistry: registry,
     candidateManifest: candidates,
@@ -299,6 +320,13 @@ test('VNext-09 E2E INITIAL atteint HANDOFF_READY et se projette sans élargissem
   assert.deepEqual(projection.legacy_queue_request.checks, approved.executionRequest.checks);
   assert.equal(projection.legacy_queue_request.source_head, approved.executionRequest.protocol_head);
   assert.equal(Adapter.validateLegacyQueueProjection(projection, approved.executionRequest), true);
+  for (const file of Object.values(projection.compatibility_files)) {
+    write(path.join(repo.cwd, file.path), file.content);
+    assert.equal(git(repo.cwd, 'hash-object', '--no-filters', '--', file.path), file.blob_oid);
+  }
+  const falseScan = V.sealContract({ ...Object.fromEntries(Object.entries(artifacts.directImportScan).filter(([key]) => key !== 'contract_hash')), importers: [], importer_count: 0 });
+  assert.throws(() => Runtime.buildRuntimeSnapshot({ ...artifacts, directImportScan: falseScan,
+    reviewReport, revisionArtifacts: null, ...approved, currentState: state }), /DIRECT_IMPORT_SCAN_REBUILD_MISMATCH/);
 });
 
 test('VNext-09 runtime refuse un snapshot re-signé avec statut d’étape falsifié', () => {
@@ -515,6 +543,9 @@ test('VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY apr�
     envelope: revisionEnvelope,
     revisedRationale: 'Plan E2E révisé : seule la rationale du plan est précisée.',
   });
+  next.cumulativeRegister = AuditRegister.buildRegister({ previous: base.cumulativeRegister,
+    candidateHead: H40C, lot: next.planningEnvelope.slice_id, phase: 'HANDOFF',
+    observations: [], authorizedActor: 'MyUncried', revisionCount: 1, revisionLimit: 1 });
   const nextReview = Review.buildReviewReport({
     reviewContext: next.reviewContext,
     semanticReview: { findings: [] },
@@ -546,6 +577,7 @@ test('VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY apr�
     ...next,
     reviewReport: nextReview,
     revisionArtifacts: {
+      base_artifacts: base,
       allowed_change_set: allowed,
       revision_patch: patch,
       revision_outcome: outcome,
@@ -560,6 +592,11 @@ test('VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY apr�
   assert.equal(snapshot.stages.find((row) => row.stage === 'REVISION').status, 'RESOLVED');
   assert.equal(snapshot.terminal_state, 'HANDOFF_READY');
   assert.equal(Runtime.validateRuntimeSnapshot(snapshot), true);
+  const forged = V.sealContract({ ...Object.fromEntries(Object.entries(outcome).filter(([key]) => key !== 'contract_hash')), preserved_target_count: 0 });
+  assert.throws(() => Runtime.buildRuntimeSnapshot({ ...next, reviewReport: nextReview,
+    revisionArtifacts: { base_artifacts: base, allowed_change_set: allowed, revision_patch: patch,
+      revision_outcome: forged, previous_review_report: baseReview, finding_ledger: findingLedger },
+    ...approved, currentState: state }), /REVISION_OUTCOME_REBUILD_MISMATCH/);
 });
 
 test('VNext-09 runtime refuse une REVISION sans preuve de résolution bornée', () => {

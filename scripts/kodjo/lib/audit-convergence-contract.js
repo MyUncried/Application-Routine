@@ -336,11 +336,15 @@ function buildFinalAuditReport({
   auditManifest,
   auditCoverage,
   reviewContext,
+  reviewArtifacts,
   semanticAudit,
 }) {
   validateAuditManifest(auditManifest);
   validateAuditCoverage(auditCoverage, auditManifest);
   Review.validateReviewContext(reviewContext);
+  if (!reviewArtifacts) V.fail('VNEXT_FINAL_AUDIT_ARTIFACTS_REQUIRED');
+  Review.verifyReviewContext(reviewContext, reviewArtifacts);
+  if (auditManifest.candidate_head !== reviewArtifacts.currentState?.protocol_head) V.fail('VNEXT_FINAL_AUDIT_CANDIDATE_MISMATCH');
   V.assertExactKeys(
     semanticAudit,
     ['findings'],
@@ -466,10 +470,14 @@ function validateFinalAuditReport(report, {
   auditManifest,
   auditCoverage,
   reviewContext,
+  reviewArtifacts,
 }) {
   validateAuditManifest(auditManifest);
   validateAuditCoverage(auditCoverage, auditManifest);
   Review.validateReviewContext(reviewContext);
+  if (!reviewArtifacts) V.fail('VNEXT_FINAL_AUDIT_ARTIFACTS_REQUIRED');
+  Review.verifyReviewContext(reviewContext, reviewArtifacts);
+  if (auditManifest.candidate_head !== reviewArtifacts.currentState?.protocol_head) V.fail('VNEXT_FINAL_AUDIT_CANDIDATE_MISMATCH');
   V.assertExactKeys(
     report,
     [

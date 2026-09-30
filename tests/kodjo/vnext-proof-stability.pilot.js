@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
+const { execFileSync } = require('node:child_process');
 const V = require('../../scripts/kodjo/lib/vnext-contract');
 const R = require('../../scripts/kodjo/lib/vnext-audit-register');
 const P = require('../../scripts/kodjo/lib/vnext-proof-result');
@@ -35,6 +36,12 @@ test('accepted reserve persists if absent from subsequent bounded audit', () => 
 });
 test('new wording or new auditor cannot escalate unchanged subject', () => {
   assert.throws(() => R.buildRegister({ ...context, previous: accept(), observations: [{ ...observation, required_for_gate: true, note: 'Different interpretation.' }] }), /REQUALIFICATION_WITHOUT_NEW_EVIDENCE/);
+});
+test('unchanged defect cannot be removed from its gate or severity downgraded without cause', () => {
+  const row = { ...observation, required_for_gate: true };
+  for (const change of [{ required_for_gate: false }, { severity: 'INFO' }]) {
+    assert.throws(() => R.buildRegister({ ...context, previous: initial(row), observations: [{ ...row, ...change }] }), /REQUALIFICATION_WITHOUT_NEW_EVIDENCE/);
+  }
 });
 test('proof unavailability cannot become a defect without new evidence', () => {
   const row = { ...observation, classification: 'PROOF_UNAVAILABLE', required_for_gate: true };
@@ -72,7 +79,9 @@ test('producer packet includes boundary validators in actual transitive closure 
 });
 test('producer packet rejects dynamic consumer dependency instead of claiming complete coverage', () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-packet-'));
-  try { fs.writeFileSync(path.join(root, 'consumer.js'), 'require(variable)'); assert.throws(() => Packet.buildProducerPacket({ root, entries: ['consumer.js'], outputSchema: {}, inputs: {} }), /NON_VERIFIABLE/); }
+  try { fs.writeFileSync(path.join(root, 'consumer.js'), 'require(variable)');
+    for (const args of [['init'], ['add', 'consumer.js'], ['-c', 'user.name=Test', '-c', 'user.email=test@example.test', 'commit', '-m', 'fixture']]) execFileSync('git', args, { cwd: root, stdio: 'pipe' });
+    assert.throws(() => Packet.buildProducerPacket({ root, entries: ['consumer.js'], outputSchema: {}, inputs: {} }), /NON_VERIFIABLE/); }
   finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
 test('absence of legacy writers cannot attest retirement without pending/replay inventory', () => {

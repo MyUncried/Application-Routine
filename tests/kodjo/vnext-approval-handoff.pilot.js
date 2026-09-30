@@ -409,7 +409,7 @@ test('VNext-08 refuse une approbation devenue obsolète après modification du p
     approvalTarget: target,
     approvalRecord: record,
     ...artifacts(fx, { planContract: changed }),
-  }), /VNEXT_PLAN_CONTRACT_REBUILD_MISMATCH|VNEXT_APPROVAL_PLAN_CONTEXT_MISMATCH|VNEXT_HANDOFF_APPROVAL_STALE/);
+  }), /VNEXT_REVIEW_CONTEXT_REBUILD_MISMATCH|VNEXT_PLAN_CONTRACT_REBUILD_MISMATCH|VNEXT_APPROVAL_PLAN_CONTEXT_MISMATCH|VNEXT_HANDOFF_APPROVAL_STALE/);
 });
 
 test('VNext-08 refuse un DirectImportScan différent de celui revu', () => {

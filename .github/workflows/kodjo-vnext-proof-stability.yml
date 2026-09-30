@@ -6,6 +6,7 @@ on:
       - '.github/workflows/**'
       - '.github/orchestration/**'
       - '.github/AI_ORCHESTRATION*.md'
+      - 'CLAUDE.md'
       - 'scripts/kodjo/**'
       - 'tests/kodjo/**'
   workflow_dispatch:

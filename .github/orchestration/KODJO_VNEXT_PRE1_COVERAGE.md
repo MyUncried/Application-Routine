@@ -103,3 +103,12 @@ Le vrai E2E VNext-12 et le cutover ne sont pas lancés. Les six axes restent
 PARTIELLEMENT CONFORMES au niveau exécuté tant que les lacunes d'intégration
 ci-dessus n'ont pas leurs preuves. Cette vérification ne bloque pas le
 développement PRE-1 autorisé séparément.
+
+## Suite de l’audit anticipé
+
+Run `36719499021` : rapport architecture livré ; ce succès ne vaut pas
+approbation d’architecture. Le [traitement ciblé](reports/2026-09-30_VNEXT_ARCHITECTURE_CLOSURE.md)
+conserve le rapport source, distingue corrections de contrat et lacunes
+opérationnelles, et ajoute les dispositions individuelles 165/138.
+Les preuves qualifiées au HEAD `a0e7379` ne qualifient pas les corrections
+postérieures ; le nouveau HEAD doit être vérifié séparément.

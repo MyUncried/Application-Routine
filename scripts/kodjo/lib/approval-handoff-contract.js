@@ -64,6 +64,10 @@ function validateApprovedArtifacts({
     directImportScan,
   });
   Review.validateReviewContext(reviewContext);
+  Review.verifyReviewContext(reviewContext, {
+    planningEnvelope, requirementRegistry, impactGraph, candidateManifest,
+    directImportScan, planContract, uiAtomicityContract,
+  });
   Review.validateReviewReport(reviewReport, reviewContext);
 
   if (reviewContext.planning_envelope_hash !== planningEnvelope.contract_hash) {

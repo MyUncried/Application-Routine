@@ -54,7 +54,7 @@ function gitBlobOid(root, rel) {
 
 function targetHint(line) {
   const text = String(line).trim();
-  const quoted = text.match(/(?:repos\/[^'"\\s]+\/(?:contents|git\/(?:refs?|commits|trees|tags))[^'"\\s]*)/i);
+  const quoted = text.match(/(?:repos\/[^'"\s]+\/(?:contents|git\/(?:refs?|commits|trees|tags))[^'"\s]*)/i);
   if (quoted) return quoted[0];
   const push = text.match(/git\s+push\b([^#\r\n]*)/i);
   if (push) return push[1].trim() || 'git-remote';

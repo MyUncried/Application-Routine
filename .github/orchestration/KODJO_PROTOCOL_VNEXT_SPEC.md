@@ -2143,3 +2143,37 @@ La [mission dédiée](KODJO_VNEXT_ARCHITECTURE_AUDIT_MISSION.md) cherche les tro
 architecturaux, distingue défaut/preuve manquante/recommandation/préférence,
 et n'est ni l'audit final ni un préalable supplémentaire au développement
 PRE-1. Son rapport en lecture seule ne crée aucune exigence automatiquement.
+
+### 23.5 Fermeture ciblée de l’audit architecture du 30 septembre
+
+Rapport source : [audit anticipé](reports/2026-09-30_VNEXT_ARCHITECTURE_36719499021_1.md),
+HEAD `a0e7379e166ec899180a186361f41123360ff908`, run `36719499021`,
+artefact `11101687312`. La réussite du job signifie rapport livré, pas architecture approuvée.
+
+Le runtime confronte CandidateManifest et DirectImportScan aux objets Git du HEAD
+applicatif observé ; il reconstruit RevisionOutcome avec les artefacts avant/après.
+Le handoff et l’audit final reconstruisent ReviewContext à partir des artefacts.
+L’audit final refuse un candidate_head différent du HEAD protocolaire du dossier.
+L’applicabilité UI provient des requirements UI source-first, avec un garde
+de chemins conservateur supplémentaire désormais porté par VNext.
+
+Toute modification de classification, gravité ou nécessité au gate exige une
+cause explicite. Les phases utilisent le vocabulaire fermé des étapes et des
+gates FINAL_AUDIT/CUTOVER. Le runtime exige le registre cumulatif lié à son lot,
+HEAD et phase HANDOFF ; en REVISION, le compteur progresse d’une unité et la
+limite ne change pas. Ces contrôles locaux ne prouvent pas l’authentification
+GitHub ni l’existence d’un collecteur opérationnel.
+
+Conséquence dérivée de §23.1 et des champs critiques VERIFIED du protocole
+AI_ORCHESTRATION : accepter la conservation d’une preuve obligatoire indisponible
+comme réserve ne ferme pas sa preuve. Le gate reste WAIT_FOR_PROOF. Aucun
+ACCEPTED_WITH_RESERVES ne remplace cette obligation ni l’audit final terminal.
+
+Les octets des projections canoniques restent LF. Un fichier Markdown converti
+en CRLF est refusé par l’égalité exacte ; les transports JSON LF/CRLF conservent
+les valeurs JSON. Les adaptateurs de publication doivent conserver ces octets
+sans filtres Git implicites. Aucune normalisation globale du dépôt n’est prescrite.
+
+Le [rapport de fermeture ciblée](reports/2026-09-30_VNEXT_ARCHITECTURE_CLOSURE.md)
+distingue corrections contractuelles, preuves d’intégration encore absentes et
+réserves avant cutover. Il ne vaut ni VNext-12 ni audit final.

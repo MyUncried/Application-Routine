@@ -10,6 +10,7 @@ const Review = require('./review-contract');
 const Revision = require('./revision-contract');
 const Approval = require('./approval-handoff-contract');
 const Convergence = require('./audit-convergence-contract');
+const AuditRegister = require('./vnext-audit-register');
 
 const SCHEMA = 'kodjo.vnext.runtime-snapshot.v1';
 const STAGES = Object.freeze([
@@ -32,6 +33,8 @@ function validateRevisionChain({
   reviewContext,
   reviewReport,
   revisionArtifacts,
+  nextArtifacts,
+  cumulativeRegister,
 }) {
   if (planningEnvelope.planning_mode === 'INITIAL') {
     if (revisionArtifacts !== null) V.fail('VNEXT_RUNTIME_INITIAL_REVISION_ARTIFACTS_FORBIDDEN');
@@ -47,7 +50,7 @@ function validateRevisionChain({
   }
   V.assertExactKeys(
     revisionArtifacts,
-    ['allowed_change_set', 'revision_patch', 'revision_outcome', 'previous_review_report', 'finding_ledger'],
+    ['allowed_change_set', 'revision_patch', 'revision_outcome', 'previous_review_report', 'finding_ledger', 'base_artifacts'],
     [],
     'VNEXT_RUNTIME_REVISION_ARTIFACT_KEYS_INVALID',
   );
@@ -56,6 +59,16 @@ function validateRevisionChain({
   const outcome = revisionArtifacts.revision_outcome;
   const previousReviewReport = revisionArtifacts.previous_review_report;
   const findingLedger = revisionArtifacts.finding_ledger;
+  const baseRegister = revisionArtifacts.base_artifacts?.cumulativeRegister;
+  if (!baseRegister) V.fail('VNEXT_RUNTIME_BASE_REGISTER_REQUIRED');
+  AuditRegister.validateRegister(baseRegister);
+  if (cumulativeRegister.previous_register_hash !== baseRegister.contract_hash
+      || cumulativeRegister.revision_count !== baseRegister.revision_count + 1
+      || cumulativeRegister.revision_limit !== baseRegister.revision_limit
+      || cumulativeRegister.revision_count > cumulativeRegister.revision_limit) V.fail('VNEXT_RUNTIME_REVISION_BOUND_OR_REGISTER_CHAIN_INVALID');
+  for (const prior of baseRegister.entries) {
+    if (!cumulativeRegister.entries.some(row => row.subject_id === prior.subject_id)) V.fail('VNEXT_RUNTIME_REGISTER_SUBJECT_DROPPED', prior.subject_id);
+  }
 
   Revision.validateAllowedChangeSet(allowed);
   Revision.validateRevisionPatch(patch, allowed);
@@ -92,6 +105,12 @@ function validateRevisionChain({
     V.fail('VNEXT_RUNTIME_REVISION_REVIEW_MISMATCH');
   }
   if (outcome.status !== 'RESOLVED') V.fail('VNEXT_RUNTIME_REVISION_NOT_RESOLVED', outcome.status);
+  const rebuiltOutcome = Revision.verifyRevisionOutcome({
+    allowedChangeSet: allowed, revisionPatch: patch,
+    baseArtifacts: revisionArtifacts.base_artifacts, nextArtifacts,
+    nextReviewContext: reviewContext, nextReviewReport: reviewReport,
+  });
+  exact(outcome, rebuiltOutcome, 'VNEXT_RUNTIME_REVISION_OUTCOME_REBUILD_MISMATCH');
   if (planningEnvelope.base_plan_hash !== allowed.base_plan_contract_hash) {
     V.fail('VNEXT_RUNTIME_REVISION_BASE_PLAN_MISMATCH');
   }
@@ -127,6 +146,8 @@ function validateRevisionChain({
 }
 
 function buildRuntimeSnapshot({
+  cwd,
+  cumulativeRegister,
   planningEnvelope,
   requirementRegistry,
   candidateManifest,
@@ -143,6 +164,15 @@ function buildRuntimeSnapshot({
   currentState,
 }) {
   PlanningEnvelope.validate(planningEnvelope);
+  if (!cumulativeRegister) V.fail('VNEXT_RUNTIME_CUMULATIVE_REGISTER_REQUIRED');
+  AuditRegister.validateRegister(cumulativeRegister);
+  if (cumulativeRegister.candidate_head !== currentState.protocol_head
+      || cumulativeRegister.lot !== planningEnvelope.slice_id || cumulativeRegister.phase !== 'HANDOFF') V.fail('VNEXT_RUNTIME_REGISTER_BINDING_MISMATCH');
+  if (!['READY', 'ACCEPTED_WITH_RESERVES'].includes(cumulativeRegister.gate)) V.fail('VNEXT_RUNTIME_REGISTER_GATE_NOT_READY', cumulativeRegister.gate);
+  V.assertNonEmptyString(cwd, 'VNEXT_RUNTIME_GIT_OBSERVATION_REQUIRED');
+  Impact.verifyCandidateManifestAtHead(candidateManifest, { cwd });
+  if (candidateManifest.revision !== planningEnvelope.application_head) V.fail('VNEXT_RUNTIME_CANDIDATE_HEAD_MISMATCH');
+  if (directImportScan) Impact.verifyDirectImportScanAtHead(directImportScan, candidateManifest, { cwd });
   RequirementRegistry.validate(requirementRegistry, planningEnvelope.source_manifest);
   if (requirementRegistry.planning_envelope_hash !== planningEnvelope.contract_hash) {
     V.fail('VNEXT_RUNTIME_REQUIREMENT_ENVELOPE_MISMATCH');
@@ -193,6 +223,8 @@ function buildRuntimeSnapshot({
     reviewContext,
     reviewReport,
     revisionArtifacts,
+    cumulativeRegister,
+    nextArtifacts: { requirementRegistry, impactGraph, candidateManifest, planContract, uiAtomicityContract, directImportScan },
   });
 
   const rebuiltApprovalTarget = Approval.buildApprovalTarget({
@@ -269,7 +301,7 @@ function buildRuntimeSnapshot({
     {
       stage: 'HANDOFF',
       status: 'READY',
-      evidence_hashes: [executionRequest.contract_hash],
+      evidence_hashes: [executionRequest.contract_hash, cumulativeRegister.contract_hash],
     },
   ];
 

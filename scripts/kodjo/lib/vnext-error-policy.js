@@ -37,6 +37,9 @@ const RESIDUAL = new Set([
 
 function classify(input = {}) {
   const diagnostic = String(input.diagnostic || input.status || '');
+  if (/^VNEXT_.*(?:NON_VERIFIABLE|UNVERIFIABLE)$/.test(diagnostic)) {
+    return Object.freeze({ category: 'RESIDUAL_AUTOCORRECTABLE', auto_retry: false, action: 'WAIT_FOR_PROOF' });
+  }
   if (PREVENTABLE.has(diagnostic) || diagnostic.startsWith('VNEXT_')) {
     return Object.freeze({ category: 'PREVENTABLE_BY_DETERMINISM', auto_retry: false, action: 'FIX_PROTOCOL_CAUSE' });
   }

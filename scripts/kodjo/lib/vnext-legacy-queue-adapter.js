@@ -13,13 +13,14 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 
 function safeRelativePath(value, code, label) {
   V.assertUnicodeExactText(value, code, label);
-  if (value.startsWith('/') || value.includes('\\\\') || value.split('/').includes('..')) V.fail(code, label);
+  if (value.startsWith('/') || value.includes('\\') || /^[A-Za-z]:/.test(value)
+      || value.split('/').some(part => part === '..' || part === '.' || part === '')) V.fail(code, label);
   return value;
 }
 
 function gitBlobOid(text) {
   const body = Buffer.from(String(text), 'utf8');
-  const header = Buffer.from('blob ' + body.length + '\\0', 'utf8');
+  const header = Buffer.from('blob ' + body.length + '\0', 'utf8');
   return crypto.createHash('sha1').update(Buffer.concat([header, body])).digest('hex');
 }
 
@@ -36,7 +37,7 @@ function renderCompatibilityPlan(executionRequest, planContract) {
     '',
     Plan.renderMarkdown(planContract).trimEnd(),
     '',
-  ].join('\\n');
+  ].join('\n');
 }
 
 function renderCompatibilityReview(executionRequest, reviewReport, planPath) {
@@ -51,7 +52,7 @@ function renderCompatibilityReview(executionRequest, reviewReport, planPath) {
     '',
     'Verdict: APPROVED',
     '',
-  ].join('\\n');
+  ].join('\n');
 }
 
 function renderCompatibilityMission(executionRequest) {
@@ -74,7 +75,7 @@ function renderCompatibilityMission(executionRequest) {
     '',
     'Tout besoin hors scope doit arrêter l’exécution avant modification.',
     '',
-  ].join('\\n');
+  ].join('\n');
 }
 
 function validateTransport(transport, executionRequest, approvalRecord) {

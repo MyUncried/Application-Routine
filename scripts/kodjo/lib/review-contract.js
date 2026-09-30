@@ -6,7 +6,6 @@ const RequirementRegistry = require('./requirement-registry');
 const Impact = require('./impact-graph');
 const Plan = require('./plan-contract');
 const Ui = require('./ui-atomicity-contract');
-const { isUiPath } = require('./ui-criteria-contract');
 
 const CONTEXT_SCHEMA = 'kodjo.vnext.review-context.v1';
 const REPORT_SCHEMA = 'kodjo.vnext.review-report.v1';
@@ -166,8 +165,7 @@ function buildReviewContext({
     candidateManifest,
   });
 
-  const uiChanges = planContract.boundaries.write_scope
-    .filter((row) => isUiPath(row.path))
+  const uiChanges = Ui.uiChangeItems(requirementRegistry, planContract, candidateManifest)
     .map((row) => row.candidate_id)
     .sort();
   const uiApplicable = uiChanges.length > 0;
@@ -268,6 +266,15 @@ function validateReviewContext(context) {
     V.assertSha64(check.evidence_hash, 'VNEXT_REVIEW_MECHANICAL_EVIDENCE_INVALID', check.check_id);
   }
   validateCatalog(context.target_catalog);
+  return true;
+}
+
+function verifyReviewContext(context, artifacts) {
+  validateReviewContext(context);
+  const rebuilt = buildReviewContext(artifacts);
+  if (V.canonicalStringify(context) !== V.canonicalStringify(rebuilt)) {
+    V.fail('VNEXT_REVIEW_CONTEXT_REBUILD_MISMATCH');
+  }
   return true;
 }
 
@@ -491,10 +498,11 @@ function validateReviewReport(report, reviewContext) {
   return true;
 }
 
-function buildReviewerPacket({ root, reviewContext }) {
+function buildReviewerPacket({ root, revision, reviewContext }) {
   validateReviewContext(reviewContext);
   return require('./vnext-producer-packet').buildProducerPacket({
     root,
+    revision,
     entries: ['scripts/kodjo/lib/review-contract.js'],
     outputSchema: reviewerOutputSchema(reviewContext),
     inputs: { review_context: reviewContext },
@@ -511,6 +519,7 @@ module.exports = {
   REENTRY_BY_CATEGORY,
   buildReviewContext,
   validateReviewContext,
+  verifyReviewContext,
   reviewerOutputSchema,
   buildReviewReport,
   validateReviewReport,
