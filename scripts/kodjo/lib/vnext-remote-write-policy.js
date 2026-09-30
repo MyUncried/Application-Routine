@@ -13,6 +13,7 @@ const GATE_SCHEMA = 'kodjo.vnext.remote-write-gate.v1';
 const EXECUTABLE_ROOTS = Object.freeze([
   '.github/workflows',
   '.github/actions',
+  '.github/orchestration/tests',
   'scripts/kodjo',
 ]);
 
