@@ -31,6 +31,27 @@ function readSourcesAtRevision(matrix, { cwd, revision = 'HEAD' }) {
     normativeSource: git(['show', commit + ':' + matrix.normative_path]) };
 }
 
+function interpretSourceRow(source, prefix) {
+  const cells = source.replace(/^\|\s*|\s*\|$/g, '').split('|').map(cell => cell.trim());
+  if (prefix === 'INC' && cells.length === 16) return {
+    resulting_rule: cells[9], historical_test_description: cells[10], historical_evidence: cells[7],
+    historical_result: cells[11], historical_lifecycle: cells[13],
+  };
+  if (prefix === 'T' && cells.length === 8) return {
+    control_object: cells[3], scenario: cells[4], expected_result: cells[5],
+    historical_result: cells[6], historical_evidence: cells[7],
+  };
+  if (prefix === 'T' && cells.length === 9) return {
+    control_object: cells[3], scenario: cells[4], expected_result: cells[5],
+    historical_result: cells[7], historical_evidence: cells[6], historical_incident_refs: cells[8],
+  };
+  if (prefix === 'T' && cells.length === 6) return {
+    control_object: cells[2], scenario: cells[3], expected_result: null,
+    historical_result: cells[4], historical_evidence: cells[5],
+  };
+  V.fail('VNEXT_HISTORY_SOURCE_LAYOUT_UNSUPPORTED', cells[0]);
+}
+
 function validateInventory(matrix, { register, normativeSource }) {
   if (matrix.schema_version !== 'kodjo.vnext.historical-disposition.v1') V.fail('VNEXT_HISTORY_SCHEMA_INVALID');
   if (matrix.register_sha256 !== V.sha256(register) || matrix.normative_sha256 !== V.sha256(normativeSource)) V.fail('VNEXT_HISTORY_SOURCE_CHANGED');
@@ -42,6 +63,10 @@ function validateInventory(matrix, { register, normativeSource }) {
     for (const row of matrix[key]) {
       const source = register.split('\n')[row.source_line - 1];
       if (!source?.startsWith('| ' + row.id + ' |')) V.fail('VNEXT_HISTORY_SOURCE_ROW_MISMATCH', row.id);
+      if (row.source_row !== source || row.source_row_hash !== V.sha256(source)) V.fail('VNEXT_HISTORY_SOURCE_ROW_CONTENT_MISMATCH', row.id);
+      for (const [field, value] of Object.entries(interpretSourceRow(source, prefix))) {
+        if (row[field] !== value) V.fail('VNEXT_HISTORY_SOURCE_INTERPRETATION_MISMATCH', row.id + ':' + field);
+      }
       if (!row.remaining_correction || !row.mechanism_paths.length || !row.candidate_test_paths.length) V.fail('VNEXT_HISTORY_DISPOSITION_INCOMPLETE', row.id);
     }
   }
@@ -82,4 +107,4 @@ function assertHistoricalReady(matrix, sources, { resolveEvidence, candidateHead
   return true;
 }
 
-module.exports = { extractNormativeUnits, readSourcesAtRevision, validateInventory, assertHistoricalReady };
+module.exports = { extractNormativeUnits, interpretSourceRow, readSourcesAtRevision, validateInventory, assertHistoricalReady };

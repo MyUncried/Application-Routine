@@ -124,3 +124,26 @@ doit encore être qualifiée sur les deux OS au prochain commit publié.
 État : étapes 1–2 qualifiées au HEAD ci-dessus ; étape 3 en cours, admission
 préparatoire contribuant à ses preuves ; étape 4 non intégrée en production ;
 étape 5 non déclenchée faute de clôture des prérequis. Aucun cutover/merge.
+
+## Qualification de l’admission préparatoire et seconde lecture historique
+
+Commit `c8f4ab49f3b2e0760aa2abbd4f880cb1ba5c5fd9`, run
+[36736143207](https://github.com/MyUncried/Application-Routine/actions/runs/36736143207) :
+179 PASS / 0 FAIL / 0 SKIP sur Ubuntu et Windows, syntaxe/invariants/whitespace
+SUCCESS ; audit architecture SKIPPED. Pilote `36736143210` : Linux SUCCESS,
+préflight Windows queued au contrôle. Cela qualifie les tests de préparation
+et d’admission avec fixtures, pas un producteur/workflow VNext de production.
+
+Seconde lecture des tables : T-113 à T-138 comportent neuf colonnes et placent
+les références de test avant le résultat historique. Le premier inventaire
+les interprétait comme le tableau à huit colonnes ; correction des 26
+résultats/références sans changement des statuts de conformité VNext.
+T-108/T-109 ont six colonnes et ne définissent aucun attendu distinct :
+`expected_result=null`, sans duplicata inventé. Les 303 lignes exactes et
+leurs hashes sont désormais conservés. Le validateur compare chaque champ
+interprété à sa source et refuse une règle ou un résultat substitué.
+
+Validation locale suivante : 180 tests VNext PASS / 0 FAIL / 0 SKIP.
+La qualification distante de ce dernier correctif documentaire/validateur
+reste nécessaire. Matrice globale toujours NOT_READY ; aucun scénario
+historique fermé sur la seule réussite d’une suite.

@@ -33,6 +33,17 @@ test('historical inventory rejects same-cardinality substituted IDs and changed 
   assert.throws(() => H.validateInventory(matrix, { ...sources, normativeSource: sources.normativeSource + '\nchanged' }), /SOURCE_CHANGED/);
 });
 
+test('historical rows preserve source meaning across eight, nine and six-column layouts', () => {
+  const nine = matrix.tests.find(row => row.id === 'T-113');
+  assert.equal(nine.historical_result, 'NON RETESTÉ');
+  assert.equal(nine.historical_evidence, 'plan-contract-consistency.pilot.js');
+  assert.equal(matrix.tests.find(row => row.id === 'T-108').expected_result, null);
+  for (const [key, field] of [['incidents', 'resulting_rule'], ['tests', 'historical_result']]) {
+    const changed = structuredClone(matrix); changed[key][0][field] = 'invented meaning';
+    assert.throws(() => H.validateInventory(changed, sources), /SOURCE_INTERPRETATION_MISMATCH/);
+  }
+});
+
 test('historical normative coverage refuses omitted prose or reference-format units', () => {
   for (const kind of ['PROSE', 'FORMAT_REFERENCE']) {
     const changed = structuredClone(matrix);

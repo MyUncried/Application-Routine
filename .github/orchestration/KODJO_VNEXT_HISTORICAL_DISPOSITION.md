@@ -6,6 +6,12 @@ Candidat source : `a0e7379e166ec899180a186361f41123360ff908`. **NOT_READY**.
 
 [Données exactes et clauses normatives](KODJO_VNEXT_HISTORICAL_DISPOSITION.json). Chaque règle et scénario est conservé intégralement avec sa ligne source et sa preuve historique.
 
+Chaque ligne originale est conservée avec son hash et une interprétation
+vérifiée des colonnes. Les tables de tests utilisent huit, neuf ou six
+colonnes. Pour T-113 à T-138, les références de test précèdent le résultat
+historique. T-108/T-109 n’ont pas d’attendu distinct explicite ; il reste
+absent dans les données, sans duplication du résultat historique.
+
 ## Incidents
 
 | ID | Règle résultante | Disposition | Responsabilité | Statut | Fermeture restante |
