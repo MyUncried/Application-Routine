@@ -1,5 +1,5 @@
 'use strict';
-const { normalizeRepoPath, sha256, fail } = require('./plan-impact');
+const { normalizeRepoPath, canonicalJson, sha256, fail } = require('./plan-impact');
 
 const MATRIX_SCHEMA_V1 = 'kodjo.ui-criteria.v1';
 const MATRIX_SCHEMA_V2 = 'kodjo.ui-criteria.v2';
@@ -330,7 +330,12 @@ function contractPrompt() {
     '\nAtomic assertion derivation is mandatory. For every normative UI requirement, identify contract-bearing elements and relations, then create one assertion for each independently falsifiable observable invariant. Split properties when one can fail while another passes, when proof types differ, or when corrections can be independent. Use property_type only from PRESENCE/CONTENT/STATE/GEOMETRY/RELATION/STYLE/LAYERING/INTERACTION/RESPONSIVE. Relations and layering are first-class assertions. Do not create assertions for implementation nodes or decorative details without a normative source. Every assertion must cite an exact source locator and expected observable result. Every criterion proof_required must be allocated to at least one assertion. Never invent geometry or styling absent from Figma, tokens, contracts or validated decisions; use CLARIFICATION_REQUIRED instead.\n'+
     'Historical '+MATRIX_SCHEMA_V1+' remains readable only for already-approved plans; do not generate it.\n'+
     'All conditional, uniqueness, path, scope and coverage rules below are mandatory. The receiver runs this same code before accepting a generated plan.\n'+
-    [requireText, requireArray, uniqueStrings, isUiPath, normalizeRepoPath, mandatoryAssertionProofs, assertionMandatoryProofs, normalizeAssertions, normalizeMatrix].map(String).join('\n');
+    'BEGIN_EXECUTABLE_UI_NORMALIZATION\n'+
+    'const path = require("node:path"); const crypto = require("node:crypto");\n'+
+    [ ['MATRIX_SCHEMA_V1',MATRIX_SCHEMA_V1], ['MATRIX_SCHEMA_V2',MATRIX_SCHEMA_V2], ['MATRIX_SCHEMA_V3',MATRIX_SCHEMA_V3] ].map(([name,value])=>'const '+name+' = '+JSON.stringify(value)+';').join('\n')+'\n'+
+    [ ['RISK_TYPES',RISK_TYPES], ['PROOF_TYPES',PROOF_TYPES], ['COMPONENT_DECISIONS',COMPONENT_DECISIONS], ['ASSERTION_PROPERTY_TYPES',ASSERTION_PROPERTY_TYPES] ].map(([name,value])=>'const '+name+' = new Set('+JSON.stringify([...value])+');').join('\n')+'\nconst TEST_PATH = '+String(TEST_PATH)+';\n'+
+    [fail, canonicalJson, sha256, criterionIdentity, assertionIdentity, requireText, requireArray, uniqueStrings, sameSet, escapeRegExp, isUiPath, normalizeRepoPath, mandatoryAssertionProofs, assertionMandatoryProofs, normalizeBoundaryLocator, normalizeAssertions, normalizeMatrix].map(String).join('\n')+
+    '\nEND_EXECUTABLE_UI_NORMALIZATION';
 }
 module.exports = {
   MATRIX_SCHEMA_V1,MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3,TEST_PATH,normalizeBoundaryLocator,matrixFingerprint,matrixSchema,matrixSchemaV1,matrixSchemaV2,

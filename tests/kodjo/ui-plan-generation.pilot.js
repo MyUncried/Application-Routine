@@ -4,7 +4,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const {request,decode,stabilizeUiIdentities}=require('../../scripts/kodjo/generate-ui-plan-contract');
-const {matrixSchema,validateMatrix,contractPrompt}=require('../../scripts/kodjo/lib/ui-criteria-contract');
+const {matrixSchema,validateMatrix,validateShape,contractPrompt}=require('../../scripts/kodjo/lib/ui-criteria-contract');
 function validMatrix() {
   const matrix = {
     schema:'kodjo.ui-criteria.v3',
@@ -108,11 +108,35 @@ test('PRE-1 visual obligations are derived from the same rule as the consumer be
   const normalized=JSON.parse(output.match(/<KODJO_UI_CRITERIA_MATRIX_JSON>\s*([\s\S]*?)\s*<\/KODJO_UI_CRITERIA_MATRIX_JSON>/)[1]);
   assert.doesNotThrow(()=>validate(normalized));assert.equal(JSON.stringify(m),original);
   const a=normalized.criteria[0].assertions.find(a=>a.property_type===property);
-  assert.deepEqual(a.proof_required,['DEVICE_CHECK','VISUAL_COMPARE']);assert.ok(normalized.criteria[0].risk_types.includes('VISUAL'));
+  assert.deepEqual(a.proof_required,['DEVICE_CHECK','VISUAL_COMPARE']);assert.deepEqual(normalized.criteria[0].risk_types,c.risk_types);
   assert.equal(a.expected,c.assertions[1].expected);assert.deepEqual(a.source,c.assertions[1].source);
   const {assertionIdentity}=require('../../scripts/kodjo/lib/ui-identities');assert.equal(a.assertion_id,assertionIdentity(normalized.criteria[0].criterion_id,a));
  }
- assert.ok(contractPrompt().includes('function mandatoryAssertionProofs'));assert.ok(contractPrompt().includes('function assertionMandatoryProofs'));
+});
+test('PRE-1 serialized normalization executes in isolation with the same consumer outcomes',()=>{
+ const code=contractPrompt().split('BEGIN_EXECUTABLE_UI_NORMALIZATION\n')[1].split('\nEND_EXECUTABLE_UI_NORMALIZATION')[0];
+ const sandbox=require('node:vm').createContext({require(name){assert.ok(['node:path','node:crypto'].includes(name));return require(name);}});
+ require('node:vm').runInContext(code,sandbox);
+ const context={scope:new Set(['src/features/example/ExampleScreen.tsx']),uiPaths:['src/features/example/ExampleScreen.tsx']};
+ function outcome(fn,m){try{return {value:JSON.parse(JSON.stringify(fn(m,context)))}}catch(e){assert.notEqual(e.name,'ReferenceError',e.message);return {error:e.code||e.message};}}
+ const runtime=require('../../scripts/kodjo/lib/ui-criteria-contract').validateMatrix;
+ const prompted=(matrix,context)=>{const result=sandbox.normalizeMatrix(matrix,context);validateShape(matrix,matrixSchema);return result;};
+ for(const mutate of [()=>{},...negativeCases.map(([,fn])=>fn),
+  m=>m.preservation.preserve[0].locator.semantic_justification='Trop court',
+  m=>m.preservation.preserve[0].locator.semantic_justification='Préserver le comportement du fichier app/features/session et ses dépendances sans aucune modification.',
+  m=>m.preservation.preserve[0].locator.path='src/domain/model.ts',
+  m=>m.preservation.preserve[0].locator={kind:'PATH',path:'src/domain/model.ts',symbol:'NONE',invariant_type:'FILE_UNCHANGED',expected:'UNCHANGED',semantic_justification:'NONE'},
+  m=>m.preservation.forbidden[0].locator={kind:'PATH',path:'src/domain/new.ts',symbol:'NONE',invariant_type:'PATH_ABSENT',expected:'ABSENT',semantic_justification:'NONE'},
+  m=>m.preservation.preserve[0].locator={kind:'SYMBOL',path:'src/domain/model.ts',symbol:'Model',invariant_type:'SYMBOL_UNCHANGED',expected:'UNCHANGED',semantic_justification:'NONE'},
+  m=>m.preservation.preserve[0].locator={kind:'PATH',path:'src/domain/model.ts',symbol:'NONE',invariant_type:'FILE_UNCHANGED',expected:'UNCHANGED',semantic_justification:'Une justification de chemin ne peut pas remplacer la sentinelle attendue.'},
+ ]){const m=validMatrix();mutate(m);assert.deepEqual(outcome(prompted,m),outcome(runtime,m));}
+ for(const kind of ['GEOMETRY','RELATION','STYLE','LAYERING','RESPONSIVE']){
+  const m=validMatrix();m.criteria[0].assertions[1].property_type=kind;m.criteria[0].assertions[1].proof_required=['DEVICE_CHECK'];m.criteria[0].proof_required=['FUNCTIONAL_TEST','DEVICE_CHECK'];m.criteria[0].risk_types=['FUNCTIONAL','DEVICE'];
+  const canonical=stabilizeUiIdentities(m);assert.deepEqual(outcome(prompted,canonical),outcome(runtime,canonical));
+ }
+ const broken=require('node:vm').createContext({require});
+ require('node:vm').runInContext(code.replace(/(function normalizeMatrix\([^]*?\{)\n/,'$1\n futureNormalizationRule();\n'),broken);
+ assert.throws(()=>outcome(broken.normalizeMatrix,validMatrix()),/futureNormalizationRule/);
 });
 test('PRE-1 construction preserves duplicate and unallocated proof rejection and semantic obligations',()=>{
  for(const mutate of [m=>m.criteria[0].assertions[0].proof_required.push('FUNCTIONAL_TEST'),m=>m.criteria[0].proof_required.push('FUNCTIONAL_TEST'),m=>m.criteria[0].proof_required.push('ACCESSIBILITY_CHECK'),m=>{m.criteria[0].assertions[0].property_type='INTERACTION';m.criteria[0].assertions[0].proof_required=['DEVICE_CHECK'];}]){

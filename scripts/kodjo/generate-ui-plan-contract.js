@@ -43,12 +43,10 @@ function deriveUiProofObligations(matrix) {
     const assertions=criterion.assertions.map(assertion=>({...assertion,
       proof_required:[...assertion.proof_required,...mandatoryAssertionProofs(assertion.property_type).filter(p=>!assertion.proof_required.includes(p))].sort(),
     }));
-    const mandatory=assertions.some(a=>mandatoryAssertionProofs(a.property_type).includes('VISUAL_COMPARE'));
     const parentProofs=[...criterion.proof_required];
     for(const proof of assertions.flatMap(a=>mandatoryAssertionProofs(a.property_type)))if(!parentProofs.includes(proof))parentProofs.push(proof);
     return {...criterion,assertions,
       proof_required:parentProofs.sort(),
-      risk_types:[...criterion.risk_types,...(mandatory&&!criterion.risk_types.includes('VISUAL')?['VISUAL']:[])].sort(),
     };
   })};
 }
