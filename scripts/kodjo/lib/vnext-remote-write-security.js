@@ -42,7 +42,7 @@ function listExecutionFiles(root) {
 
 function gitBlobOid(root, rel) {
   try {
-    return execFileSync('git', ['hash-object', '--', rel], {
+    return execFileSync('git', ['hash-object', '--path=' + rel, '--', rel], {
       cwd: root,
       encoding: 'utf8',
       windowsHide: true,
