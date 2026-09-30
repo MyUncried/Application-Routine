@@ -377,6 +377,7 @@ function buildGate({ report, policy, activeLegacySliceIds }) {
       report_hash: report.contract_hash,
       policy_hash: V.canonicalHash(policy),
       active_legacy_slice_ids: activeLegacy,
+      vnext_writer_declaration_ids: [],
       legacy_writer_declaration_ids: [],
       qualification_writer_declaration_ids: [],
       legacy_retirement_status: 'UNKNOWN',
@@ -384,6 +385,11 @@ function buildGate({ report, policy, activeLegacySliceIds }) {
     });
   }
 
+  const vnextIds = [...new Set(
+    report.assignments
+      .filter((row) => row.lifecycle === 'VNEXT')
+      .map((row) => row.declaration_id),
+  )].sort();
   const legacyIds = [...new Set(
     report.assignments
       .filter((row) => row.lifecycle === 'LEGACY_GRANDFATHERED')
@@ -402,6 +408,11 @@ function buildGate({ report, policy, activeLegacySliceIds }) {
       ? 'LEGACY_WRITERS_RETIRED'
       : (activeLegacy.length > 0 ? 'LEGACY_WRITERS_GRANDFATHERED' : 'LEGACY_WRITERS_NOT_RETIRED');
     status = 'BLOCKED_QUALIFICATION_WRITER_PRESENT';
+  } else if (vnextIds.length === 0) {
+    retirement = legacyIds.length === 0
+      ? 'LEGACY_WRITERS_RETIRED'
+      : (activeLegacy.length > 0 ? 'LEGACY_WRITERS_GRANDFATHERED' : 'LEGACY_WRITERS_NOT_RETIRED');
+    status = 'BLOCKED_VNEXT_PRODUCTION_WRITER_MISSING';
   } else if (legacyIds.length === 0) retirement = 'LEGACY_WRITERS_RETIRED';
   else if (activeLegacy.length > 0) retirement = 'LEGACY_WRITERS_GRANDFATHERED';
   else {
@@ -414,6 +425,7 @@ function buildGate({ report, policy, activeLegacySliceIds }) {
     report_hash: report.contract_hash,
     policy_hash: V.canonicalHash(policy),
     active_legacy_slice_ids: activeLegacy,
+    vnext_writer_declaration_ids: vnextIds,
     legacy_writer_declaration_ids: legacyIds,
     qualification_writer_declaration_ids: qualificationIds,
     legacy_retirement_status: retirement,
@@ -429,6 +441,7 @@ function validateGate(gate, report, policy) {
       'report_hash',
       'policy_hash',
       'active_legacy_slice_ids',
+      'vnext_writer_declaration_ids',
       'legacy_writer_declaration_ids',
       'qualification_writer_declaration_ids',
       'legacy_retirement_status',
