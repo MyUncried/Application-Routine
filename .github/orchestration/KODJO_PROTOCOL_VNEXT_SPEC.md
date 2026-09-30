@@ -1834,7 +1834,10 @@ Avant d’autoriser une correction, la machine exige :
 Le contrat scelle :
 
 - audit_manifest_hash ;
-- finding_assessment_hash.
+- finding_assessment_hash ;
+- finding_ledger_hash.
+
+Les `open_finding_ids` du ledger doivent correspondre exactement aux findings bloquants qui autorisent la révision.
 
 Sans assessment normatif :
 
@@ -1868,9 +1871,10 @@ Si une résolution manque :
 
 Il ajoute :
 
-`finding_resolution_set_hash`
+- `finding_resolution_set_hash` ;
+- `next_finding_ledger_hash`.
 
-La révision ne peut produire `RESOLVED` qu’après validation du FindingResolutionSet exact.
+La révision ne peut produire `RESOLVED` qu’après validation du FindingResolutionSet exact et reconstruction du FindingLedger avancé exact.
 
 Les protections VNext-07 restent actives :
 
