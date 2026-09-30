@@ -3,10 +3,12 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 
 const V = require('../../scripts/kodjo/lib/vnext-contract');
 const Cutover = require('../../scripts/kodjo/lib/vnext-cutover-contract');
+const RemoteWrite = require('../../scripts/kodjo/lib/vnext-remote-write-policy');
 
 const CANDIDATE_HEAD = '1a8e6a0614b5f1c32081f9a7549ec27239611a71';
 const ACTIVATION_HEAD = 'b'.repeat(40);
@@ -32,7 +34,29 @@ function closedPre1Registry() {
   return copy;
 }
 
+function remoteWriteSecurity(reg) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-vnext-cutover-writer-'));
+  const policy = {
+    schema_version: RemoteWrite.POLICY_SCHEMA,
+    scan_roots: [...RemoteWrite.EXECUTABLE_ROOTS],
+    declarations: [],
+  };
+  const report = RemoteWrite.scanRepository({ root, policy });
+  const activeLegacySliceIds = reg.activations
+    .filter((row) => row.status === 'ACTIVE')
+    .map((row) => row.slice_id)
+    .sort();
+  const gate = RemoteWrite.buildGate({
+    report,
+    policy,
+    activeLegacySliceIds,
+  });
+  assert.equal(gate.status, 'REMOTE_WRITE_CONTROL_READY');
+  return { policy, report, gate };
+}
+
 function planFor(reg) {
+  const security = remoteWriteSecurity(reg);
   return Cutover.buildCutoverPlan({
     candidateHead: CANDIDATE_HEAD,
     candidatePr: 262,
@@ -40,14 +64,21 @@ function planFor(reg) {
     qualificationStatus: 'QUALIFIED_ON_VNEXT_PERIMETER',
     legacyActivationRegistry: reg,
     protectedLegacySliceIds: ['V2-PRE-1'],
+    remoteWriteGate: security.gate,
+    remoteWriteReport: security.report,
+    remoteWritePolicy: security.policy,
   });
 }
 
 function activation(plan, reg) {
+  const security = remoteWriteSecurity(reg);
   return Cutover.buildActivationRecord({
     cutoverPlan: plan,
     currentLegacyActivationRegistry: reg,
     activatedAtProtocolHead: ACTIVATION_HEAD,
+    remoteWriteGate: security.gate,
+    remoteWriteReport: security.report,
+    remoteWritePolicy: security.policy,
     approvalEvidence: {
       decision: 'APPROVED',
       actor_id: 'MyUncried',
@@ -274,4 +305,42 @@ test('VNext-10 ne modifie aucun workflow actif dans le lot de préparation', () 
   assert.match(report, /aucun workflow actif/i);
   assert.match(report, /PRE-1/i);
   assert.match(report, /non actif/i);
+});
+
+
+test('VNext-11.1 le cutover refuse une preuve remote-write re-signée', () => {
+  const closed = closedPre1Registry();
+  const security = remoteWriteSecurity(closed);
+  const plan = Cutover.buildCutoverPlan({
+    candidateHead: CANDIDATE_HEAD,
+    candidatePr: 262,
+    qualificationRunId: 36651084611,
+    qualificationStatus: 'QUALIFIED_ON_VNEXT_PERIMETER',
+    legacyActivationRegistry: closed,
+    protectedLegacySliceIds: ['V2-PRE-1'],
+    remoteWriteGate: security.gate,
+    remoteWriteReport: security.report,
+    remoteWritePolicy: security.policy,
+  });
+
+  const forged = structuredClone(security.gate);
+  forged.status = 'BLOCKED_UNDECLARED_REMOTE_WRITE';
+  delete forged.contract_hash;
+  forged.contract_hash = V.canonicalHash(forged);
+
+  assert.throws(() => Cutover.buildActivationRecord({
+    cutoverPlan: plan,
+    currentLegacyActivationRegistry: closed,
+    activatedAtProtocolHead: ACTIVATION_HEAD,
+    remoteWriteGate: forged,
+    remoteWriteReport: security.report,
+    remoteWritePolicy: security.policy,
+    approvalEvidence: {
+      decision: 'APPROVED',
+      actor_id: 'MyUncried',
+      evidence_ref: 'issue_comment:cutover-approval',
+      observed_at: '2026-09-30T08:00:00.000Z',
+      approved_cutover_plan_hash: plan.contract_hash,
+    },
+  }), /VNEXT_REMOTE_WRITE_GATE_REBUILD_MISMATCH|VNEXT_CUTOVER_REMOTE_WRITE_CONTROL_NOT_READY/);
 });
