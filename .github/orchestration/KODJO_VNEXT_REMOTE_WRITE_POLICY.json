@@ -1,0 +1,151 @@
+{
+  "schema_version": "kodjo.vnext.remote-write-policy.v1",
+  "scan_roots": [
+    ".github/workflows",
+    ".github/actions",
+    ".github/orchestration/tests",
+    "scripts/kodjo"
+  ],
+  "declarations": [
+    {
+      "declaration_id": "VNW-001",
+      "lifecycle": "QUALIFICATION",
+      "producer_path": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "producer_blob_sha40": "81633464d94518319c999f5e34e7cefcb04d6b49",
+      "capability_type": "GITHUB_PERMISSION_WRITE",
+      "destination": "contents",
+      "conditions": "Supervised VNext bridge after exact approval and deterministic preflight.",
+      "required_permission_scope": "WORKFLOW"
+    },
+    {
+      "declaration_id": "VNW-LEGACY-001",
+      "lifecycle": "LEGACY_GRANDFATHERED",
+      "producer_path": ".github/workflows/kodjo-slice-finalize.yml",
+      "producer_blob_sha40": "25515494f5dc2dbe6a98b61bf6849366361cc59e",
+      "capability_type": "GITHUB_PERMISSION_WRITE",
+      "destination": "contents",
+      "conditions": "Legacy finalization only while grandfathered legacy slices remain active; retire afterwards.",
+      "required_permission_scope": "WORKFLOW"
+    },
+    {
+      "declaration_id": "VNW-002",
+      "lifecycle": "QUALIFICATION",
+      "producer_path": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "producer_blob_sha40": "81633464d94518319c999f5e34e7cefcb04d6b49",
+      "capability_type": "GITHUB_PERMISSION_WRITE",
+      "destination": "pull-requests",
+      "conditions": "Supervised VNext bridge; PR operations only after deterministic delivery checks.",
+      "required_permission_scope": "WORKFLOW"
+    },
+    {
+      "declaration_id": "VNW-003",
+      "lifecycle": "QUALIFICATION",
+      "producer_path": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "producer_blob_sha40": "81633464d94518319c999f5e34e7cefcb04d6b49",
+      "capability_type": "GITHUB_PERMISSION_WRITE",
+      "destination": "issues",
+      "conditions": "Supervised VNext bridge; issue publication only after deterministic delivery checks.",
+      "required_permission_scope": "WORKFLOW"
+    },
+    {
+      "declaration_id": "VNW-004",
+      "lifecycle": "QUALIFICATION",
+      "producer_path": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "producer_blob_sha40": "81633464d94518319c999f5e34e7cefcb04d6b49",
+      "capability_type": "GH_API_WRITE",
+      "destination": "repos/$env:GITHUB_REPOSITORY/dispatches",
+      "conditions": "Repository dispatch only after verified delivery metadata exists.",
+      "required_permission_scope": "NONE"
+    },
+    {
+      "declaration_id": "VNW-005",
+      "lifecycle": "QUALIFICATION",
+      "producer_path": "scripts/kodjo/run-queued-request.ps1",
+      "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
+      "capability_type": "GIT_CREDENTIAL_HEADER",
+      "destination": "git-config-extraheader",
+      "conditions": "Temporary supervisor authentication only; header removed before completion and not exposed to Claude.",
+      "required_permission_scope": "NONE"
+    },
+    {
+      "declaration_id": "VNW-006",
+      "lifecycle": "QUALIFICATION",
+      "producer_path": "scripts/kodjo/run-queued-request.ps1",
+      "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
+      "capability_type": "GIT_BRANCH_CREATE",
+      "destination": "git-local-branch",
+      "conditions": "Create only the bounded delivery branch after exact HEAD and live-target verification.",
+      "required_permission_scope": "NONE"
+    },
+    {
+      "declaration_id": "VNW-007",
+      "lifecycle": "QUALIFICATION",
+      "producer_path": "scripts/kodjo/run-queued-request.ps1",
+      "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
+      "capability_type": "GIT_COMMIT",
+      "destination": "git-local-commit",
+      "conditions": "Commit only staged paths proven inside the approved write scope.",
+      "required_permission_scope": "NONE"
+    },
+    {
+      "declaration_id": "VNW-008",
+      "lifecycle": "QUALIFICATION",
+      "producer_path": "scripts/kodjo/run-queued-request.ps1",
+      "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
+      "capability_type": "GIT_PUSH",
+      "destination": "origin $pushRefspec",
+      "conditions": "Existing-PR delivery only after live-target and staged-scope checks.",
+      "required_permission_scope": "NONE"
+    },
+    {
+      "declaration_id": "VNW-009",
+      "lifecycle": "QUALIFICATION",
+      "producer_path": "scripts/kodjo/run-queued-request.ps1",
+      "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
+      "capability_type": "GIT_PUSH",
+      "destination": "--set-upstream origin",
+      "conditions": "New bounded implementation branch only after live-target and staged-scope checks; no merge.",
+      "required_permission_scope": "NONE"
+    },
+    {
+      "declaration_id": "VNW-010",
+      "lifecycle": "QUALIFICATION",
+      "producer_path": "scripts/kodjo/run-queued-request.ps1",
+      "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
+      "capability_type": "GH_COMMAND_WRITE_OR_TRIGGER",
+      "destination": "pr:comment",
+      "conditions": "Comment only on the verified existing delivery PR after push observation.",
+      "required_permission_scope": "NONE"
+    },
+    {
+      "declaration_id": "VNW-011",
+      "lifecycle": "QUALIFICATION",
+      "producer_path": "scripts/kodjo/run-queued-request.ps1",
+      "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
+      "capability_type": "GH_COMMAND_WRITE_OR_TRIGGER",
+      "destination": "pr:create",
+      "conditions": "Create only the bounded implementation candidate PR when no existing PR is targeted.",
+      "required_permission_scope": "NONE"
+    },
+    {
+      "declaration_id": "VNW-012",
+      "lifecycle": "QUALIFICATION",
+      "producer_path": "scripts/kodjo/run-queued-request.ps1",
+      "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
+      "capability_type": "GH_API_WRITE",
+      "destination": "repos/$env:GITHUB_REPOSITORY/issues/$($queue.issue_number)/comments",
+      "conditions": "Publish structured implementation-review output only after deterministic delivery checks.",
+      "required_permission_scope": "NONE"
+    },
+    {
+      "declaration_id": "VNW-LEGACY-002",
+      "lifecycle": "LEGACY_GRANDFATHERED",
+      "producer_path": ".github/workflows/kodjo-slice-finalize.yml",
+      "producer_blob_sha40": "25515494f5dc2dbe6a98b61bf6849366361cc59e",
+      "capability_type": "GH_API_WRITE",
+      "destination": "repos/$env:GITHUB_REPOSITORY/contents/.github/orchestration/v2-activation-registry.json",
+      "conditions": "Exact activation-registry closure write only while grandfathered legacy slices remain active; retire afterwards.",
+      "required_permission_scope": "NONE"
+    }
+  ]
+}

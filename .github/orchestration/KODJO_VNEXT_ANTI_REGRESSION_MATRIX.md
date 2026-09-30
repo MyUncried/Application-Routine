@@ -22,7 +22,7 @@ Dispositions autorisées :
 | Invariant | Disposition VNext | Mécanisme VNext / transport | Évidence automatisée |
 |---|---|---|---|
 | INV-001 | REMPLACÉE_ÉQUIVALENTE | ApprovalTarget → ApprovalRecord → ExecutionRequest ; aucune implémentation sans APPROVED exact | `vnext-approval-handoff.pilot.js`, `vnext-e2e-migration.pilot.js` |
-| INV-002 | CONSERVÉE | Single-writer et lock restent portés par la Lean Queue / runner actif ; VNext-09 ne les contourne pas | suites KODJO existantes Linux/Windows + projection queue |
+| INV-002 | REMPLACÉE_ÉQUIVALENTE | Single-writer/lock conservés ; VNext-11.1 ajoute l’inventaire transversal de toute capacité d’écriture distante, déclaration exacte producteur/destination/conditions et blocage des writers non déclarés | VNext-09 + VNext-11.1, `vnext-remote-write-security.pilot.js` |
 | INV-003 | REMPLACÉE_ÉQUIVALENTE | SourceManifest, PlanningEnvelope et hashes canoniques priment sur mémoire/texte libre | `vnext-foundations.pilot.js`, runtime snapshot |
 | INV-004 | REMPLACÉE_ÉQUIVALENTE | AMBIGUOUS/CLARIFICATION_REQUIRED, autorité UI sourcée, aucune invention de path/ID | `vnext-requirement-registry.pilot.js`, `vnext-ui-atomicity.pilot.js` |
 | INV-005 | REMPLACÉE_ÉQUIVALENTE | DecisionRecord OPEN/RESOLVED, options et preuve causale | `vnext-foundations.pilot.js` |
@@ -37,8 +37,8 @@ Dispositions autorisées :
 | INV-014 | REMPLACÉE_ÉQUIVALENTE | ImpactGraph → Plan boundaries → ExecutionRequest → queue scope exact, sans path libre | VNext-03/04/08/09 |
 | INV-015 | REMPLACÉE_ÉQUIVALENTE | Review APPROVE + approbation exacte + ExecutionRequest avec checks autoritatifs sur HEAD exact | VNext-06/08/09 |
 | INV-016 | CONSERVÉE | Canonical JSON/UTF-8 côté VNext ; transport actif conserve ses règles UTF-8/BOM/PowerShell | VNext-01 + suites KODJO existantes |
-| INV-017 | CONSERVÉE | Aucun workflow actif n’est remplacé dans les lots de construction ; le transport reste le chaînage Actions qualifié | qualification VNext-01..09 |
-| INV-018 | CONSERVÉE | Projection legacy pure et déterministe ; aucune nouvelle commande de publication runner | VNext-09 adapter |
+| INV-017 | REMPLACÉE_ÉQUIVALENTE | Aucun workflow actif n’est remplacé pendant la construction ; le cutover est désormais lié au RemoteWriteGate et les writers legacy ne peuvent survivre sans slices legacy actives | VNext-10/11.1 + tests cutover |
+| INV-018 | REMPLACÉE_ÉQUIVALENTE | Projection legacy déterministe conservée pour qualification ; writers de production doivent être déclarés, job-scoped et sans `persist-credentials:true`; writers QUALIFICATION ne peuvent autoriser le cutover | VNext-09 adapter + VNext-11.1 remote-write policy |
 | INV-019 | CONSERVÉE | Les marqueurs des workflows actifs restent inchangés ; VNext canonique utilise des schémas/keys exacts et non des préfixes textuels | suites existantes + contrats VNext |
 | INV-020 | REMPLACÉE_ÉQUIVALENTE | SourceManifest borné + contrats compacts + REVISION différentielle au lieu de reconstruction globale | VNext-01/02/07 |
 | INV-021 | REMPLACÉE_ÉQUIVALENTE | Aucun retry automatique ; FINAL_REVISE_TERMINAL interdit toute nouvelle boucle d’audit sans nouvelle décision explicite | VNext-01, VNext-11 + transport actuel |

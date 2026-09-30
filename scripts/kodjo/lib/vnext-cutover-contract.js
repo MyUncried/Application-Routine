@@ -1,6 +1,7 @@
 'use strict';
 
 const V = require('./vnext-contract');
+const RemoteWrite = require('./vnext-remote-write-policy');
 
 const PLAN_SCHEMA = 'kodjo.vnext.cutover-plan.v1';
 const ACTIVATION_SCHEMA = 'kodjo.vnext.cutover-activation.v1';
@@ -48,6 +49,9 @@ function buildCutoverPlan({
   qualificationStatus,
   legacyActivationRegistry,
   protectedLegacySliceIds,
+  remoteWriteGate,
+  remoteWriteReport,
+  remoteWritePolicy,
 }) {
   V.assertSha40(candidateHead, 'VNEXT_CUTOVER_CANDIDATE_HEAD_INVALID', 'candidateHead');
   if (!Number.isInteger(candidatePr) || candidatePr < 1) {
@@ -60,6 +64,10 @@ function buildCutoverPlan({
     V.fail('VNEXT_CUTOVER_QUALIFICATION_STATUS_INVALID', qualificationStatus);
   }
   validateLegacyRegistry(legacyActivationRegistry);
+  RemoteWrite.validateGate(remoteWriteGate, remoteWriteReport, remoteWritePolicy);
+  if (remoteWriteGate.status !== 'REMOTE_WRITE_CONTROL_READY') {
+    V.fail('VNEXT_CUTOVER_REMOTE_WRITE_CONTROL_NOT_READY', remoteWriteGate.status);
+  }
 
   const protectedIds = V.uniqueStrings(
     protectedLegacySliceIds,
@@ -84,6 +92,11 @@ function buildCutoverPlan({
     .filter((sliceId) => registryById.get(sliceId).status !== CLOSED)
     .sort();
 
+  if (V.canonicalStringify(activeLegacySlices)
+      !== V.canonicalStringify([...remoteWriteGate.active_legacy_slice_ids].sort())) {
+    V.fail('VNEXT_CUTOVER_REMOTE_WRITE_LEGACY_SET_MISMATCH');
+  }
+
   const readiness = blockers.length === 0 ? 'READY_FOR_ACTIVATION' : 'BLOCKED_BY_ACTIVE_PROTECTED_SLICE';
 
   return V.sealContract({
@@ -93,6 +106,10 @@ function buildCutoverPlan({
     qualification_run_id: qualificationRunId,
     qualification_status: qualificationStatus,
     legacy_registry_hash: V.canonicalHash(legacyActivationRegistry),
+    remote_write_gate_hash: remoteWriteGate.contract_hash,
+    remote_write_report_hash: remoteWriteReport.contract_hash,
+    remote_write_policy_hash: V.canonicalHash(remoteWritePolicy),
+    remote_write_legacy_retirement_status: remoteWriteGate.legacy_retirement_status,
     protected_legacy_slice_ids: protectedIds,
     blocking_slice_ids: blockers,
     grandfathered_legacy_slice_ids: activeLegacySlices,
@@ -121,6 +138,10 @@ function validateCutoverPlan(plan, legacyActivationRegistry = null) {
       'qualification_run_id',
       'qualification_status',
       'legacy_registry_hash',
+      'remote_write_gate_hash',
+      'remote_write_report_hash',
+      'remote_write_policy_hash',
+      'remote_write_legacy_retirement_status',
       'protected_legacy_slice_ids',
       'blocking_slice_ids',
       'grandfathered_legacy_slice_ids',
@@ -137,6 +158,12 @@ function validateCutoverPlan(plan, legacyActivationRegistry = null) {
   V.verifyContractHash(plan, 'VNEXT_CUTOVER_PLAN_HASH_MISMATCH');
   V.assertSha40(plan.candidate_head, 'VNEXT_CUTOVER_CANDIDATE_HEAD_INVALID');
   V.assertSha64(plan.legacy_registry_hash, 'VNEXT_CUTOVER_LEGACY_REGISTRY_HASH_INVALID');
+  V.assertSha64(plan.remote_write_gate_hash, 'VNEXT_CUTOVER_REMOTE_WRITE_GATE_HASH_INVALID');
+  V.assertSha64(plan.remote_write_report_hash, 'VNEXT_CUTOVER_REMOTE_WRITE_REPORT_HASH_INVALID');
+  V.assertSha64(plan.remote_write_policy_hash, 'VNEXT_CUTOVER_REMOTE_WRITE_POLICY_HASH_INVALID');
+  if (!['LEGACY_WRITERS_RETIRED', 'LEGACY_WRITERS_GRANDFATHERED'].includes(plan.remote_write_legacy_retirement_status)) {
+    V.fail('VNEXT_CUTOVER_REMOTE_WRITE_RETIREMENT_STATUS_INVALID');
+  }
   if (plan.qualification_status !== 'QUALIFIED_ON_VNEXT_PERIMETER') {
     V.fail('VNEXT_CUTOVER_QUALIFICATION_STATUS_INVALID');
   }
@@ -197,8 +224,20 @@ function buildActivationRecord({
   currentLegacyActivationRegistry,
   approvalEvidence,
   activatedAtProtocolHead,
+  remoteWriteGate,
+  remoteWriteReport,
+  remoteWritePolicy,
 }) {
   validateCutoverPlan(cutoverPlan, currentLegacyActivationRegistry);
+  RemoteWrite.validateGate(remoteWriteGate, remoteWriteReport, remoteWritePolicy);
+  if (remoteWriteGate.contract_hash !== cutoverPlan.remote_write_gate_hash
+      || remoteWriteReport.contract_hash !== cutoverPlan.remote_write_report_hash
+      || V.canonicalHash(remoteWritePolicy) !== cutoverPlan.remote_write_policy_hash) {
+    V.fail('VNEXT_CUTOVER_REMOTE_WRITE_EVIDENCE_MISMATCH');
+  }
+  if (remoteWriteGate.status !== 'REMOTE_WRITE_CONTROL_READY') {
+    V.fail('VNEXT_CUTOVER_REMOTE_WRITE_CONTROL_NOT_READY', remoteWriteGate.status);
+  }
   if (cutoverPlan.activation_readiness !== 'READY_FOR_ACTIVATION') {
     V.fail('VNEXT_CUTOVER_ACTIVATION_BLOCKED', cutoverPlan.blocking_slice_ids.join(','));
   }
@@ -230,6 +269,7 @@ function buildActivationRecord({
     candidate_head: cutoverPlan.candidate_head,
     activated_at_protocol_head: activatedAtProtocolHead,
     default_protocol: VNEXT,
+    remote_write_gate_hash: cutoverPlan.remote_write_gate_hash,
     grandfathered_legacy_slice_ids: [...cutoverPlan.grandfathered_legacy_slice_ids],
     actor_id: approvalEvidence.actor_id,
     evidence_ref: approvalEvidence.evidence_ref,
@@ -248,6 +288,7 @@ function validateActivationRecord(record, cutoverPlan) {
       'candidate_head',
       'activated_at_protocol_head',
       'default_protocol',
+      'remote_write_gate_hash',
       'grandfathered_legacy_slice_ids',
       'actor_id',
       'evidence_ref',
@@ -264,6 +305,9 @@ function validateActivationRecord(record, cutoverPlan) {
   if (record.candidate_head !== cutoverPlan.candidate_head) V.fail('VNEXT_CUTOVER_ACTIVATION_CANDIDATE_MISMATCH');
   if (record.default_protocol !== VNEXT || record.status !== 'ACTIVATED') {
     V.fail('VNEXT_CUTOVER_ACTIVATION_STATE_INVALID');
+  }
+  if (record.remote_write_gate_hash !== cutoverPlan.remote_write_gate_hash) {
+    V.fail('VNEXT_CUTOVER_ACTIVATION_REMOTE_WRITE_MISMATCH');
   }
   V.assertSha40(record.activated_at_protocol_head, 'VNEXT_CUTOVER_ACTIVATION_HEAD_INVALID');
   V.assertUnicodeExactText(record.actor_id, 'VNEXT_CUTOVER_APPROVAL_ACTOR_INVALID');

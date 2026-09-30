@@ -1905,3 +1905,200 @@ Le gate est franchi si :
 - non-régression VNext-01..10 PASS.
 
 Ce gate ne vaut ni audit final ni activation.
+
+
+## 22. VNext-11.1 — Sécurité des écritures distantes
+
+### 22.1 Origine
+
+Ce lot traite explicitement le finding **F-01 MAJOR non bloquant** de l’audit indépendant de la PR #250, run `36688649888`.
+
+Le défaut observé était un angle mort du scanner historique : les workflows `kodjo-slice-*.yml` pouvaient être exclus du contrôle par leur nom, alors qu’un de ces workflows détenait une permission `contents: write` et une écriture REST bornée vers le registre d’activation.
+
+VNext ne considère donc pas le préfixe d’un fichier comme une frontière de sécurité.
+
+### 22.2 Contrats
+
+VNext-11.1 introduit :
+
+- `kodjo.vnext.remote-write-policy.v1`
+- `kodjo.vnext.remote-write-report.v1`
+- `kodjo.vnext.remote-write-gate.v1`
+
+La politique canonique est :
+
+`.github/orchestration/KODJO_VNEXT_REMOTE_WRITE_POLICY.json`
+
+### 22.3 Inventaire sans filtre de préfixe
+
+Le contrôle parcourt récursivement :
+
+- `.github/workflows`
+- `.github/actions`
+- `.github/orchestration/tests`
+- `scripts/kodjo`
+
+pour les fichiers exécutables YAML, JavaScript, PowerShell et shell.
+
+Aucun nom de workflow de type `kodjo-v2-*`, `kodjo-slice-*` ou autre préfixe n’est utilisé pour décider si un fichier doit être inspecté.
+
+Le scanner inventorie notamment :
+
+- permissions GitHub en écriture ;
+- credentials Git persistants ou injectés ;
+- commits, branches et push Git ;
+- appels `gh api` mutateurs ;
+- commandes `gh pr`, `gh issue`, `gh workflow`, `gh run` susceptibles d’écrire ou de déclencher ;
+- actions tierces connues de commit/PR ;
+- appels HTTP littéraux en POST/PUT/PATCH/DELETE détectables statiquement.
+
+### 22.4 Déclaration obligatoire
+
+Toute capacité autorisée est décrite par :
+
+- `declaration_id` ;
+- `lifecycle` ;
+- `producer_path` ;
+- `producer_blob_sha40` ;
+- `capability_type` ;
+- `destination` ;
+- `conditions` ;
+- `required_permission_scope`.
+
+Une déclaration ne vaut que pour le blob Git exact du producteur.
+
+Toute modification du producteur invalide donc mécaniquement la déclaration jusqu’à requalification.
+
+Une capacité détectée qui ne correspond à exactement une déclaration produit :
+
+`BLOCKED_UNDECLARED_REMOTE_WRITE`
+
+### 22.5 Least privilege
+
+Pour un writer de production `VNEXT` :
+
+- une permission GitHub d’écriture doit être déclarée au niveau **JOB** ;
+- une permission d’écriture au niveau workflow est refusée ;
+- `persist-credentials: true` est interdit.
+
+La conservation du token GitHub dans le superviseur et son retrait de l’environnement transmis à Claude reste contrôlée par les tests existants du runner.
+
+### 22.6 Writers de qualification
+
+Le transport Lean Queue actuel est conservé uniquement comme mécanisme de **qualification/E2E** tant qu’un transport VNext de production least-privilege n’a pas été qualifié.
+
+Ses déclarations portent :
+
+`lifecycle = QUALIFICATION`
+
+La présence d’un writer `QUALIFICATION` dans le rapport de cutover produit :
+
+`BLOCKED_QUALIFICATION_WRITER_PRESENT`
+
+Il ne peut donc pas autoriser l’activation de production.
+
+En outre, l’absence de tout writer `VNEXT` de production détecté produit :
+
+`BLOCKED_VNEXT_PRODUCTION_WRITER_MISSING`
+
+Le cutover ne peut donc pas être autorisé sur la seule base d’un transport de qualification.
+
+### 22.7 Writers legacy grandfathered
+
+Une écriture legacy indispensable à une slice déjà active peut être déclarée :
+
+`lifecycle = LEGACY_GRANDFATHERED`
+
+Elle n’est admise que tant qu’au moins une slice legacy reste active.
+
+Lorsque plus aucune slice legacy n’est active, toute capacité `LEGACY_GRANDFATHERED` encore détectée produit :
+
+`BLOCKED_LEGACY_WRITERS_NOT_RETIRED`
+
+La clôture du risque F-01 exige alors :
+
+`LEGACY_WRITERS_RETIRED`
+
+### 22.8 Cas explicite kodjo-slice-finalize
+
+La politique contient la réserve exacte issue de F-01 pour :
+
+`.github/workflows/kodjo-slice-finalize.yml`
+
+avec :
+
+- permission `contents: write` ;
+- écriture REST du registre `.github/orchestration/v2-activation-registry.json` ;
+- lifecycle `LEGACY_GRANDFATHERED`.
+
+Ces déclarations sont liées au blob exact observé sur `main` après fusion de #250.
+
+Toute modification ultérieure de ce workflow invalide ces déclarations.
+
+### 22.9 Gate cutover
+
+Le `CutoverPlan` transporte désormais :
+
+- `remote_write_gate_hash` ;
+- `remote_write_report_hash` ;
+- `remote_write_policy_hash` ;
+- `remote_write_legacy_retirement_status`.
+
+L’activation exige un `remote-write-gate` exact et reconstructible en état :
+
+`REMOTE_WRITE_CONTROL_READY`
+
+Une preuve re-signée ou divergente est refusée.
+
+### 22.10 Tests minimaux obligatoires
+
+La qualification couvre au minimum :
+
+1. workflow de nom arbitraire contenant une écriture → détecté ;
+2. writer légitime déclaré → accepté ;
+3. permission déplacée du job au workflow → refusée ;
+4. écriture REST ajoutée dans un script → refusée ;
+5. écriture supplémentaire ajoutée à un producteur déjà déclaré → refusée par changement de blob et/ou nouvelle capacité ;
+6. credential Git injecté → inventorié ;
+7. writer legacy + slice legacy active → grandfathered ;
+8. writer legacy sans slice legacy active → cutover bloqué ;
+9. writer qualification → cutover bloqué ;
+10. writer VNext de production avec permission workflow-level → politique refusée ;
+11. `persist-credentials: true` pour VNext production → politique refusée.
+
+### 22.11 Limite de la détection statique
+
+Ce mécanisme ne prétend pas détecter exhaustivement tout code arbitraire.
+
+Une commande construite dynamiquement, du code téléchargé à l’exécution, une action tierce opaque ou une obfuscation peuvent échapper à une analyse textuelle.
+
+La protection repose donc sur plusieurs barrières cumulatives :
+
+- inventaire statique transversal ;
+- déclarations liées au blob exact ;
+- permissions GitHub least-privilege ;
+- absence de credentials persistants côté production VNext ;
+- scope d’exécution et write scope déjà opposables ;
+- tests négatifs ;
+- retrait des writers legacy à leur extinction.
+
+### 22.12 Gate REMOTE_WRITE_CONTROL_READY
+
+VNext-11.1 est qualifié si :
+
+- le scanner sans préfixe passe ses tests positifs/négatifs ;
+- la politique canonique est structurellement valide ;
+- F-01 est explicitement représenté comme writer legacy temporaire ;
+- les writers de qualification ne peuvent pas autoriser le cutover ;
+- le CutoverPlan refuse toute preuve remote-write absente, modifiée ou non prête ;
+- la suite VNext antérieure reste verte.
+
+Ce gate prouve le **mécanisme de contrôle**.
+
+Il ne signifie pas encore que F-01 est sans objet en production.
+
+F-01 ne devient sans objet qu’après :
+1. qualification d’un writer VNext de production least-privilege ;
+2. E2E réel VNext-12 ;
+3. extinction des writers legacy lorsque les slices legacy grandfathered sont closes ;
+4. scan final `LEGACY_WRITERS_RETIRED`.
