@@ -36,10 +36,35 @@ function closedPre1Registry() {
 
 function remoteWriteSecurity(reg) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-vnext-cutover-writer-'));
+  const rel = '.github/workflows/vnext-production.yml';
+  const source = [
+    'name: vnext-production',
+    'permissions:',
+    '  contents: read',
+    'jobs:',
+    '  publish:',
+    '    permissions:',
+    '      contents: write',
+    '    runs-on: ubuntu-latest',
+    '    steps: []',
+    '',
+  ].join('\n');
+  const file = path.join(root, ...rel.split('/'));
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, source, 'utf8');
   const policy = {
     schema_version: RemoteWrite.POLICY_SCHEMA,
     scan_roots: [...RemoteWrite.EXECUTABLE_ROOTS],
-    declarations: [],
+    declarations: [{
+      declaration_id: 'CUTOVER-PROD-001',
+      lifecycle: 'VNEXT',
+      producer_path: rel,
+      producer_blob_sha40: RemoteWrite.gitBlobSha40(source),
+      capability_type: 'GITHUB_PERMISSION_WRITE',
+      destination: 'contents',
+      conditions: 'Fixture production writer for cutover contract tests.',
+      required_permission_scope: 'JOB',
+    }],
   };
   const report = RemoteWrite.scanRepository({ root, policy });
   const activeLegacySliceIds = reg.activations
