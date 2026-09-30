@@ -1,0 +1,109 @@
+name: KODJO VNext proof stability and architecture
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - '.github/orchestration/**'
+      - '.github/AI_ORCHESTRATION*.md'
+      - 'scripts/kodjo/**'
+      - 'tests/kodjo/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kodjo-vnext-architecture-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  qualification:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Execute VNext contracts on exact candidate
+        shell: bash
+        run: node --test tests/kodjo/vnext-*.pilot.js
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Parse all workflow syntax independently
+        run: |
+          python -m pip install PyYAML==6.0.3
+          python scripts/kodjo/validate-workflow-syntax.py
+      - name: Validate executable workflow invariants
+        run: node scripts/kodjo/validate-workflows.js
+      - name: Check patch whitespace
+        shell: bash
+        run: git diff --check
+
+  architecture-audit:
+    # One early read-only architecture audit, never a final approval or PRE-1 gate.
+    if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'protocol/vnext-proof-stability-') && github.event.action == 'opened' && github.run_attempt == 1
+    needs: qualification
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 60
+    env:
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+      CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+      CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Freeze architecture dossier
+        run: |
+          $ErrorActionPreference='Stop'
+          if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'Unexpected runner' }
+          if ((git rev-parse HEAD).Trim() -ne $env:CANDIDATE_SHA) { throw 'Candidate mismatch' }
+          if (-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))) { throw 'Dirty architecture checkout' }
+          $dir=Join-Path $env:RUNNER_TEMP ('vnext-architecture-'+$env:GITHUB_RUN_ID)
+          New-Item -ItemType Directory -Path $dir -Force | Out-Null
+          $mission=Get-Content -LiteralPath '.github/orchestration/KODJO_VNEXT_ARCHITECTURE_AUDIT_MISSION.md' -Raw -Encoding UTF8
+          $prompt=$mission+[Environment]::NewLine+'candidate_sha='+$env:CANDIDATE_SHA
+          [IO.File]::WriteAllText((Join-Path $dir 'prompt.txt'),$prompt,(New-Object Text.UTF8Encoding($false)))
+      - name: Run one architecture audit without repository credentials
+        run: |
+          $ErrorActionPreference='Stop'
+          $dir=Join-Path $env:RUNNER_TEMP ('vnext-architecture-'+$env:GITHUB_RUN_ID)
+          $prompt=Get-Content -LiteralPath (Join-Path $dir 'prompt.txt') -Raw -Encoding UTF8
+          Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
+          Remove-Item Env:GITHUB_TOKEN -ErrorAction SilentlyContinue
+          $saved=$OutputEncoding
+          try {
+            $OutputEncoding=New-Object Text.UTF8Encoding($false)
+            $prompt | & claude -p --output-format json --tools 'Read,Glob,Grep' --allowedTools 'Read,Glob,Grep' 1> (Join-Path $dir 'result.json') 2> (Join-Path $dir 'stderr.txt')
+            $code=$LASTEXITCODE
+          } finally { $OutputEncoding=$saved }
+          if (-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))) { throw 'Audit mutated checkout' }
+          if ($code -ne 0) { throw 'Architecture invocation failed; no automatic retry' }
+          $result=Get-Content -LiteralPath (Join-Path $dir 'result.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+          if (!$result.session_id -or !$result.result) { throw 'Architecture report unavailable' }
+          [IO.File]::WriteAllText((Join-Path $dir 'report.md'),[string]$result.result,(New-Object Text.UTF8Encoding($false)))
+          [IO.File]::WriteAllText((Join-Path $dir 'candidate.txt'),$env:CANDIDATE_SHA,(New-Object Text.UTF8Encoding($false)))
+      - name: Preserve architecture evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-vnext-architecture-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vnext-architecture-${{ github.run_id }}/*
+          retention-days: 14
+          if-no-files-found: error

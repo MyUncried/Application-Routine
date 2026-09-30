@@ -132,3 +132,11 @@ VNext-11 est qualifié uniquement si :
 
 Résultat attendu :
 `AUDIT_CONVERGENCE_READY`
+
+## Disposition du complément PRE-1
+
+Ce rapport conserve les preuves du lot initial. Les schémas et garanties
+affectés sont supersédés par la spec VNext §23 et la
+[couverture ciblée courante](KODJO_VNEXT_PRE1_COVERAGE.md) : preuve
+NON_VERIFIABLE, registre cumulatif et retrait avec inventaire des runs/replay.
+Aucune preuve historique de ce rapport ne qualifie ce complément.

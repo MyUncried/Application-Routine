@@ -388,7 +388,7 @@ test('VNext-11 un rapport final ne peut pas être transféré vers un manifeste 
     auditManifest: changed,
     auditCoverage: coverage,
     reviewContext: reviewContext(),
-  }), /VNEXT_AUDIT_COVERAGE_REBUILD_MISMATCH|VNEXT_FINAL_AUDIT_MANIFEST_MISMATCH/);
+  }), /VNEXT_AUDIT_COVERAGE_REBUILD_MISMATCH|VNEXT_FINAL_AUDIT_MANIFEST_MISMATCH|VNEXT_AUDIT_CRITERION_UNCOVERED/);
 });
 
 test('VNext-11 refuse une provenance normative re-signée mais supprimée', () => {
@@ -432,4 +432,20 @@ test('VNext-11 refuse une provenance normative re-signée mais supprimée', () =
     auditCoverage: coverage,
     reviewContext: reviewContext(),
   }), /VNEXT_FINAL_AUDIT_BLOCKING_FINDING_WITHOUT_NORMATIVE_SOURCE/);
+});
+
+test('VNext unavailable evidence remains distinct and cannot produce FINAL_APPROVED', () => {
+  const m = manifest();
+  const assessments = passingCoverage(m).assessments.map(row => row.criterion_id === 'AUD-001'
+    ? { ...row, status: 'NON_VERIFIABLE', evidence_refs: ['probe:artifact-missing'], note: 'No proof available; no defect demonstrated.' } : row);
+  const coverage = Convergence.buildAuditCoverage({ auditManifest: m, assessments });
+  assert.deepEqual(coverage.failed_criterion_ids, []);
+  assert.deepEqual(coverage.unavailable_criterion_ids, ['AUD-001']);
+  const final = Convergence.buildFinalAuditReport({ auditManifest: m, auditCoverage: coverage, reviewContext: reviewContext(), semanticAudit: { findings: [] } });
+  assert.equal(final.terminal_status, 'FINAL_PROOF_UNAVAILABLE_TERMINAL');
+  assert.equal(final.reentry_allowed, false);
+  assert.equal(Convergence.validateFinalAuditReport(final, { auditManifest: m, auditCoverage: coverage, reviewContext: reviewContext() }), true);
+  const raw = { ...final, terminal_status: 'FINAL_APPROVED' }; delete raw.contract_hash;
+  const forged = V.sealContract(raw);
+  assert.throws(() => Convergence.validateFinalAuditReport(forged, { auditManifest: m, auditCoverage: coverage, reviewContext: reviewContext() }), /TERMINAL_STATUS_MISMATCH/);
 });

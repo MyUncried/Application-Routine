@@ -4,12 +4,12 @@ const V = require('./vnext-contract');
 const Review = require('./review-contract');
 
 const MANIFEST_SCHEMA = 'kodjo.vnext.audit-manifest.v1';
-const COVERAGE_SCHEMA = 'kodjo.vnext.audit-coverage.v1';
+const COVERAGE_SCHEMA = 'kodjo.vnext.audit-coverage.v2';
 const LEDGER_SCHEMA = 'kodjo.vnext.finding-ledger.v1';
 const FINAL_AUDIT_SCHEMA = 'kodjo.vnext.final-audit-report.v1';
 
 const CRITERION_APPLICABILITY = Object.freeze(['REQUIRED', 'NOT_APPLICABLE']);
-const COVERAGE_STATUSES = Object.freeze(['CHECKED_PASS', 'CHECKED_FAIL', 'NOT_APPLICABLE']);
+const COVERAGE_STATUSES = Object.freeze(['CHECKED_PASS', 'CHECKED_FAIL', 'NON_VERIFIABLE', 'NOT_APPLICABLE']);
 const RESOLUTION_STATUSES = Object.freeze(['RESOLVED', 'REFUTED_WITH_EVIDENCE']);
 
 function uniqueSorted(values, code, label, options = {}) {
@@ -181,6 +181,7 @@ function buildAuditCoverage({ auditManifest, assessments }) {
     audit_manifest_hash: auditManifest.contract_hash,
     criterion_count: rows.length,
     failed_criterion_ids: failed,
+    unavailable_criterion_ids: rows.filter((row) => row.status === 'NON_VERIFIABLE').map((row) => row.criterion_id),
     assessments: rows,
   });
 }
@@ -193,6 +194,7 @@ function validateAuditCoverage(coverage, auditManifest) {
       'audit_manifest_hash',
       'criterion_count',
       'failed_criterion_ids',
+      'unavailable_criterion_ids',
       'assessments',
       'contract_hash',
     ],
@@ -438,8 +440,10 @@ function buildFinalAuditReport({
   }
 
   let terminalStatus;
-  if (reviewReport.verdict === 'APPROVE' && failedCriteria.size === 0) {
+  if (reviewReport.verdict === 'APPROVE' && failedCriteria.size === 0 && auditCoverage.unavailable_criterion_ids.length === 0) {
     terminalStatus = 'FINAL_APPROVED';
+  } else if (reviewReport.verdict === 'APPROVE' && failedCriteria.size === 0) {
+    terminalStatus = 'FINAL_PROOF_UNAVAILABLE_TERMINAL';
   } else if (reviewReport.verdict === 'CLARIFICATION_REQUIRED') {
     terminalStatus = 'FINAL_CLARIFICATION_TERMINAL';
   } else {
@@ -463,6 +467,9 @@ function validateFinalAuditReport(report, {
   auditCoverage,
   reviewContext,
 }) {
+  validateAuditManifest(auditManifest);
+  validateAuditCoverage(auditCoverage, auditManifest);
+  Review.validateReviewContext(reviewContext);
   V.assertExactKeys(
     report,
     [
@@ -485,7 +492,7 @@ function validateFinalAuditReport(report, {
   if (report.audit_coverage_hash !== auditCoverage.contract_hash) V.fail('VNEXT_FINAL_AUDIT_COVERAGE_MISMATCH');
   if (report.review_context_hash !== reviewContext.contract_hash) V.fail('VNEXT_FINAL_AUDIT_CONTEXT_MISMATCH');
   if (report.reentry_allowed !== false) V.fail('VNEXT_FINAL_AUDIT_REENTRY_FORBIDDEN');
-  if (!['FINAL_APPROVED', 'FINAL_REVISE_TERMINAL', 'FINAL_CLARIFICATION_TERMINAL'].includes(report.terminal_status)) {
+  if (!['FINAL_APPROVED', 'FINAL_REVISE_TERMINAL', 'FINAL_CLARIFICATION_TERMINAL', 'FINAL_PROOF_UNAVAILABLE_TERMINAL'].includes(report.terminal_status)) {
     V.fail('VNEXT_FINAL_AUDIT_TERMINAL_STATUS_INVALID');
   }
   Review.validateReviewReport(report.review_report, reviewContext);
@@ -551,8 +558,10 @@ function validateFinalAuditReport(report, {
   }
 
   let expectedTerminal;
-  if (report.review_report.verdict === 'APPROVE' && failedCriteria.size === 0) {
+  if (report.review_report.verdict === 'APPROVE' && failedCriteria.size === 0 && auditCoverage.unavailable_criterion_ids.length === 0) {
     expectedTerminal = 'FINAL_APPROVED';
+  } else if (report.review_report.verdict === 'APPROVE' && failedCriteria.size === 0) {
+    expectedTerminal = 'FINAL_PROOF_UNAVAILABLE_TERMINAL';
   } else if (report.review_report.verdict === 'CLARIFICATION_REQUIRED') {
     expectedTerminal = 'FINAL_CLARIFICATION_TERMINAL';
   } else {

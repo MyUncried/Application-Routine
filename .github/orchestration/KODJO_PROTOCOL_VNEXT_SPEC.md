@@ -87,7 +87,7 @@ REVISE réentre uniquement à l'étape minimale nécessaire : REQUIREMENTS, IMPA
 - `kodjo.vnext.cutover-activation.v1`
 - `kodjo.vnext.cutover-rollback.v1`
 - `kodjo.vnext.audit-manifest.v1`
-- `kodjo.vnext.audit-coverage.v1`
+- `kodjo.vnext.audit-coverage.v2`
 - `kodjo.vnext.finding-ledger.v1`
 - `kodjo.vnext.final-audit-report.v1`
 
@@ -1799,12 +1799,13 @@ Les critères ne peuvent pas être ajoutés, retirés ou requalifiés pendant l�
 
 Contrat :
 
-`kodjo.vnext.audit-coverage.v1`
+`kodjo.vnext.audit-coverage.v2`
 
 Chaque critère du manifeste apparaît exactement une fois avec l’un des statuts :
 
 - `CHECKED_PASS`
 - `CHECKED_FAIL`
+- `NON_VERIFIABLE`
 - `NOT_APPLICABLE`
 
 Un critère `REQUIRED` ne peut pas devenir `NOT_APPLICABLE` pendant l’audit.
@@ -1861,6 +1862,7 @@ Une provenance modifiée puis re-signée est refusée.
 L’audit indépendant final produit uniquement :
 
 - `FINAL_APPROVED`
+- `FINAL_PROOF_UNAVAILABLE_TERMINAL`
 - `FINAL_REVISE_TERMINAL`
 - `FINAL_CLARIFICATION_TERMINAL`
 
@@ -1997,7 +1999,7 @@ Les surfaces legacy peuvent conserver leurs permissions historiques uniquement t
 
 Contrat :
 
-`kodjo.vnext.remote-write-attestation.v1`
+`kodjo.vnext.remote-write-attestation.v2`
 
 États :
 
@@ -2072,3 +2074,72 @@ Le gate est acquis seulement si :
 Ce gate est requis avant VNext-12.
 
 Il ne signifie pas encore que F-01 est sans objet : F-01 devient effectivement sans objet uniquement après `PASS_RETIRED`, c'est-à-dire après retrait des derniers writers legacy.
+
+## 23. Complément ciblé PRE-1 — preuve indisponible et stabilité
+
+Ce complément ne modifie pas PRE-1 ni les dispositions #250/#252. Référence
+et preuves : [couverture ciblée](KODJO_VNEXT_PRE1_COVERAGE.md). Les garanties
+contractuelles ci-dessous ne constituent pas un E2E VNext qualifié.
+
+### 23.1 Taxonomie et gates
+
+`ProofResult` distingue PASS, FAIL démontré et NON_VERIFIABLE. Une syntaxe de
+résolution non prise en charge impose NON_VERIFIABLE, même si le producteur
+propose PASS ou FAIL. Pour une preuve requise par le gate : FAIL exige une
+correction causale ; NON_VERIFIABLE attend la preuve ; PASS autorise ce
+contrôle seulement. Une preuve non requise reste visible sans bloquer ce gate.
+Aucun retry automatique n'est induit.
+
+`AuditCoverage v2` ajoute NON_VERIFIABLE et `unavailable_criterion_ids`.
+La qualification finale ne peut être FINAL_APPROVED avec un critère requis
+NON_VERIFIABLE. Elle devient FINAL_PROOF_UNAVAILABLE_TERMINAL si aucun défaut
+ni ambiguïté n'impose déjà une autre issue terminale. Elle n'invente aucun
+finding applicatif pour expliquer une certification indisponible.
+
+### 23.2 Registre cumulatif et réserves
+
+Le registre cumulatif conserve les sujets même absents d'une revue ciblée.
+L'identité règle+cible ne dépend pas du wording. Chaque observation porte
+classe, gravité générale, nécessité pour le gate, hashes cible/norme/critère,
+évidences et justification. Nouvelle formulation seule ne suffit pas à
+requalifier un objet inchangé comme bloquant ou comme défaut démontré.
+
+Une réouverture est causale : changement de cible, règle/critère applicable,
+preuve nouvelle ou phase différente. Ses raisons sont conservées. Une réserve
+acceptée persiste dans le même contexte ; son acceptation ne vaut pas
+résolution. Le propriétaire identifié à l'admission est seul habilité à
+accepter/révoquer ; l'authentification de transport doit vérifier cet acteur.
+RESOLVE exige une nouvelle observation SUCCESS et une évidence de fermeture.
+Le gate ACCEPTED_WITH_RESERVES conserve les défauts et n'écrit jamais APPROVE.
+
+La limite de reprise est une entrée explicite figée du cycle. À épuisement,
+aucune réentrée automatique. Un audit final reste terminal comme en §21.
+
+### 23.3 Producteur, CI et retrait
+
+Tout producteur VNext doit recevoir les règles de tous ses consommateurs,
+ou utiliser une construction mécanique équivalente. `buildProducerPacket`
+embarque les sources et hashes de leur fermeture CommonJS locale, les inputs
+et le schéma ; dépendances dynamiques/externes non couvertes sont refusées,
+pas déclarées exhaustives. JSON UTF-8 transporté en LF ou CRLF conserve les
+objets canoniques. `buildReviewerPacket` expose cette chaîne pour la review.
+Le raccordement de tous les appels IA reste un travail d'intégration à prouver.
+
+La CI VNext dédiée couvre tous les chemins workflows/orchestration/scripts/
+tests et règles AI sans exclusions tacites. Elle ne supprime aucun contrôle
+historique pendant la coexistence. Tout contrôle historique absent de la
+chaîne VNext doit avoir une disposition de responsabilité explicite.
+
+`RemoteWriteAttestation v2` ne peut être PASS_RETIRED par seule absence de
+fichiers. Sans observation de retrait, elle échoue NON VERIFIABLE : inventaire
+GitHub complet/paginé, zéro run pending et barrière prouvée contre rerun/replay
+pour toutes les surfaces workflow figées. L'observation est liée au hash de
+policy. Le collecteur doit produire une observation actuelle au gate réel ;
+une fixture locale ne prouve pas le retrait effectif.
+
+### 23.4 Audit d'architecture anticipé
+
+La [mission dédiée](KODJO_VNEXT_ARCHITECTURE_AUDIT_MISSION.md) cherche les trous
+architecturaux, distingue défaut/preuve manquante/recommandation/préférence,
+et n'est ni l'audit final ni un préalable supplémentaire au développement
+PRE-1. Son rapport en lecture seule ne crée aucune exigence automatiquement.

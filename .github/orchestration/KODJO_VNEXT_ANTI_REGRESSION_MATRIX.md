@@ -62,3 +62,14 @@ VNext-09 peut être déclaré `CUTOVER_CANDIDATE` uniquement si :
 - l’E2E INITIAL et l’E2E REVISION passent ;
 - la projection Lean Queue ne modifie ni scope, ni checks, ni HEAD autorisés ;
 - les suites KODJO existantes restent vertes sur leur périmètre.
+
+## Complément ciblé des écueils PRE-1
+
+La [couverture des six axes](KODJO_VNEXT_PRE1_COVERAGE.md) distingue conception,
+implémentation contractuelle, tests et activation effective. Contrôles :
+`vnext-proof-stability.pilot.js` et extension
+`vnext-audit-convergence.pilot.js`. Les tests ne clôturent pas la matrice
+individuelle 165/138. Restent à prouver : intégration producteurs/résolution,
+registre cumulatif dans tous les gates, transport authentifié, déclenchement
+CI distant et collecte réelle de retrait/replay legacy. Aucun PASS global ni
+cutover ne se déduit des tests de contrat de ce complément.

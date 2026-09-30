@@ -491,7 +491,18 @@ function validateReviewReport(report, reviewContext) {
   return true;
 }
 
+function buildReviewerPacket({ root, reviewContext }) {
+  validateReviewContext(reviewContext);
+  return require('./vnext-producer-packet').buildProducerPacket({
+    root,
+    entries: ['scripts/kodjo/lib/review-contract.js'],
+    outputSchema: reviewerOutputSchema(reviewContext),
+    inputs: { review_context: reviewContext },
+  });
+}
+
 module.exports = {
+  buildReviewerPacket,
   CONTEXT_SCHEMA,
   REPORT_SCHEMA,
   FINDING_CATEGORIES,
