@@ -162,6 +162,23 @@ La modification a été présentée intégralement puis approuvée explicitement
 
 Tests : `validate-workflows.js` OK ; suite pilote 812 tests, 14 échecs identiques à la base ; syntaxe Node OK ; analyse syntaxique PowerShell du script de l'étape Claude : 0 erreur ; récupération réelle de 5918243649 identique au plan corrigé et gates PASS sur ce texte.
 
+### Revue indépendante, tour 2 — APPROVE
+
+- Commande : commentaire 5918609611. Run 36769155360 (`KODJO comment / 5918609611`), HEAD protocole 620f87b9 : toutes étapes en succès (gates impact/contrat/UI sur le candidat 5918243649, reviewer, garde, publication).
+- Reviewer : reprise de la même session `25caf6b2-1663-4a23-bb75-204982cc2b7b` (identité contrôlée par le workflow et publiée).
+- Publication : commentaire 5918676914 — `source_plan_comment_id=5918243649`, `verdict=APPROVE`, `STATUT : PLAN_REVIEW_APPROVED`.
+- Garde de bornage : `closed=[1..11]`, `open=[]` ; findings normalisés : 0. Constat 9 fermé : blast radius de UI-D35DA2C4F266 déclaré ; constats 1-8, 10, 11 reportés.
+- Traçabilité des 11 constats : tableau à 11 lignes et `KODJO_PRE1_CLOSURE_JSON` dans la revue publiée et dans l'artefact du run.
+
+### Handoff après APPROVE — ORCHESTRATION_FAILURE
+
+- Run 36769681028 `KODJO V2 — Approved Plan Handoff Materialization`, déclenché automatiquement par la revue APPROVE : échec à l'étape « Prepare canonical materialization », `PLAN_REVIEW_PRODUCT_INPUT_CHANGED`. Aucune écriture : `origin/main` inchangé (620f87b9). Aucun développement lancé.
+- Cause reproduite localement en lecture seule avec `verify-plan-review-transition.js` de main :
+  1. `verifyTransition(review_head=620f87b9 → HEAD=620f87b9)` échoue sur le chemin protégé `v2-slices/V2-PRE-1/independent-review.md`, absent aux deux révisions ; le contrôle refuse un blob absent (`!source_oid`), alors que ce fichier est précisément créé par le handoff.
+  2. `verifyTransition(source_head=e216294 → HEAD)` échouerait ensuite avec `PLAN_REVIEW_BOOTSTRAP_MISSING` : le bootstrap de la tranche (ajouté par 12b73fd3, activation du 28/09) n'existe pas à la baseline applicative e216294.
+- Historique : le workflow de handoff n'a réussi que 3 fois (18-20/09), avant `ea31ba80` (20/09, liaison de fraîcheur) ; les autres tranches possédaient déjà `independent-review.md`. Défaut du mécanisme, indépendant du plan et de la revue.
+- Correction non appliquée : elle modifie un contrôle de fraîcheur ; décision de Hermann requise.
+
 ## Vérifications restant à effectuer
 
 - Revue indépendante du tour 2 (constat 9 seul) sur le candidat 5918243649.
