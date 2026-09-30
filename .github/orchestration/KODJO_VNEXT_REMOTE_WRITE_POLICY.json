@@ -3,6 +3,7 @@
   "scan_roots": [
     ".github/workflows",
     ".github/actions",
+    ".github/orchestration/tests",
     "scripts/kodjo"
   ],
   "declarations": [
