@@ -78,6 +78,7 @@ REVISE réentre uniquement à l'étape minimale nécessaire : REQUIREMENTS, IMPA
 - `kodjo.vnext.plan-contract.v1`
 - `kodjo.vnext.review-report.v1`
 - `kodjo.vnext.revision-patch.v1`
+- `kodjo.vnext.approval-target.v1`
 - `kodjo.vnext.approval-record.v1`
 - `kodjo.vnext.execution-request.v1`
 
@@ -143,6 +144,8 @@ Aucune matrice UI n'est considérée finale avant fixation du scope final.
 Quand l'approbation utilisateur est requise, le handoff doit identifier l'objet canonique, fournir un lien direct lorsque le transport le permet et une action attendue explicite.
 
 L'ergonomie du message n'est pas normative ; l'identité de l'objet et l'action attendue le sont.
+
+VNext-08 précise cette règle : l'utilisateur approuve un `ApprovalTarget` scellé qui représente l'exécution exacte à venir. Une approbation textuelle non liée au hash exact de cet objet n'autorise aucun handoff.
 
 ## 10. Politique d'erreur
 
@@ -1052,3 +1055,226 @@ Le gate de sortie de révision est franchissable uniquement si :
 - la nouvelle review ne produit ni REVISION_STALLED ni PRESERVATION_REGRESSION.
 
 La révision ne peut être considérée résolue que si la nouvelle review calcule `APPROVE`.
+
+
+## 18. VNext-08 — Approbation utilisateur et handoff canonique
+
+### 18.1 Contrats
+
+VNext-08 introduit :
+
+- `kodjo.vnext.approval-target.v1`
+- `kodjo.vnext.approval-record.v1`
+- `kodjo.vnext.execution-request.v1`
+
+Le flux est :
+
+`ReviewReport(APPROVE) → ApprovalTarget → action utilisateur explicite → ApprovalRecord → ExecutionRequest`
+
+Aucun `ExecutionRequest` n'est produit directement depuis un plan ou un texte de reviewer.
+
+### 18.2 Précondition d'approbation
+
+Un `ApprovalTarget` ne peut être construit que si :
+
+- PlanningEnvelope est valide ;
+- RequirementRegistry et ImpactGraph sont rejoués mécaniquement et valides ;
+- PlanContract est valide ;
+- ReviewContext correspond exactement au PlanningEnvelope, RequirementRegistry, CandidateManifest, ImpactGraph et PlanContract courants ;
+- ReviewReport correspond exactement au ReviewContext ;
+- `verdict = APPROVE` ;
+- `blocking_finding_count = 0` ;
+- UI Atomicity est présent et valide lorsque le plan contient un changement UI ;
+- les HEAD produit et applicatif observés correspondent toujours au PlanningEnvelope.
+
+Tout écart bloque avant demande d'approbation.
+
+### 18.3 Execution fingerprint
+
+La machine dérive un `execution_core` unique contenant :
+
+- slice_id ;
+- issue_id ;
+- baseline_head ;
+- product_head ;
+- application_head ;
+- protocol_head ;
+- planning_mode ;
+- planning_envelope_hash ;
+- direct_import_scan_hash éventuel ;
+- plan_contract_hash ;
+- review_context_hash ;
+- review_report_hash ;
+- ui_atomicity_hash éventuel ;
+- operation_kind = IMPLEMENT ;
+- write_scope ;
+- preserve_scope ;
+- forbidden_policy ;
+- checks d'implémentation.
+
+`execution_fingerprint = SHA256(canonical execution_core)`.
+
+Le `write_scope` et le `preserve_scope` sont dérivés uniquement du PlanContract canonique.
+
+Aucun scope ou path libre n'est accepté en entrée du handoff.
+
+### 18.4 ApprovalTarget
+
+L'objet à approuver porte :
+
+- approval_target_id machine ;
+- action_expected = `APPROVE_EXACT_EXECUTION` ;
+- execution_fingerprint ;
+- execution_core ;
+- résumé de scope ;
+- contract_hash.
+
+L'identité du transport, du bouton ou du message n'entre pas dans l'identité métier de l'objet approuvé.
+
+Un changement de lien d'approbation ne change donc pas l'ApprovalTarget.
+
+### 18.5 Approbation explicite
+
+L'ApprovalRecord exige une preuve d'action utilisateur vérifiée avec :
+
+- decision = APPROVED ou REJECTED ;
+- actor_id ;
+- transport fermé ;
+- evidence_ref ;
+- approved_target_hash ;
+- observed_at.
+
+Transports reconnus dans ce lot :
+
+- `GITHUB_REACTION`
+- `GITHUB_COMMENT`
+- `CHATGPT_ACTION`
+
+L'evidence_kind canonique est `VERIFIED_USER_ACTION`.
+
+Une action visant un autre hash est refusée.
+
+Une décision REJECTED est durable mais n'autorise jamais le handoff.
+
+### 18.6 Approbation obsolète
+
+Avant handoff, la machine reconstruit l'ApprovalTarget depuis l'état courant.
+
+L'objet reconstruit doit être strictement identique à l'objet approuvé.
+
+Toute divergence produit :
+
+`VNEXT_HANDOFF_APPROVAL_STALE`
+
+Sont notamment invalidants :
+
+- plan modifié ;
+- review modifiée ;
+- UI Atomicity modifié ;
+- product_head modifié ;
+- application_head modifié ;
+- protocol_head modifié ;
+- scope d'écriture ou de préservation modifié.
+
+L'utilisateur n'approuve donc jamais « le plan en général » mais une exécution précise.
+
+### 18.7 ExecutionRequest
+
+L'ExecutionRequest est construit uniquement après validation de l'ApprovalRecord APPROVED.
+
+Il recopie mécaniquement l'`execution_core` approuvé et ajoute :
+
+- execution_request_id machine ;
+- approval_target_hash ;
+- approval_record_hash ;
+- execution_fingerprint.
+
+Le résultat doit être reconstructible bit-for-bit depuis les artefacts approuvés.
+
+Toute divergence entre l'ExecutionRequest consommé et le résultat recalculé produit :
+
+`VNEXT_EXECUTION_REQUEST_REBUILD_MISMATCH`
+
+### 18.8 Fidélité du handoff
+
+Le handoff ne peut :
+
+- ajouter un path ;
+- retirer un path ;
+- changer un change_kind ;
+- élargir le scope ;
+- changer les checks ;
+- modifier les HEAD ;
+- substituer un plan ;
+- substituer une review ;
+- substituer une approbation.
+
+Les boundaries du PlanContract restent l'unique source du scope d'implémentation.
+
+### 18.9 Présentation actionnable
+
+La projection utilisateur doit exposer au minimum :
+
+- approval_target_id ;
+- approval_target_hash ;
+- execution_fingerprint ;
+- application_head ;
+- plan_contract_hash ;
+- review_report_hash ;
+- write_scope_count ;
+- action_expected.
+
+Lorsque le transport permet un lien direct, celui-ci est ajouté à la projection.
+
+Le lien n'est pas une preuve d'approbation.
+
+### 18.10 Réutilisation de l'existant
+
+VNext-08 conserve du handoff V2 actuel :
+
+- approbation utilisateur explicite ;
+- identité utilisateur ;
+- preuve externe d'approbation ;
+- binding au plan/review exacts ;
+- contrôle du HEAD applicatif ;
+- autorisation structurée avant queue ;
+- checks d'implémentation `jest / typescript / lint`.
+
+VNext-08 remplace :
+
+- l'approbation d'un commentaire contenant plusieurs identités dispersées ;
+- la dépendance à un marqueur textuel `PLAN_HANDOFF_READY` comme source d'autorité ;
+- l'autorisation fondée sur le seul blob du plan.
+
+Le contrat canonique devient l'ApprovalTarget et son execution_fingerprint.
+
+### 18.11 Compatibilité avec la queue existante
+
+Ce lot ne modifie pas la Lean Queue active.
+
+`kodjo.vnext.execution-request.v1` est l'autorisation canonique VNext.
+
+L'adaptation vers le contrat de transport/queue actif est une projection de migration ultérieure et ne peut ni enrichir ni élargir l'autorisation canonique.
+
+### 18.12 Gate USER_APPROVED
+
+Le gate est franchi uniquement si :
+
+- ApprovalTarget courant valide ;
+- ApprovalRecord valide ;
+- decision = APPROVED ;
+- actor_id présent ;
+- preuve vérifiée liée au hash exact ;
+- état courant toujours identique à l'état approuvé.
+
+### 18.13 Gate HANDOFF_READY
+
+Le gate est franchi uniquement si :
+
+- USER_APPROVED est acquis ;
+- ExecutionRequest est reconstructible exactement ;
+- execution_fingerprint identique à celui approuvé ;
+- write_scope / preserve_scope / checks identiques ;
+- aucun HEAD n'a dérivé.
+
+Aucun message libre ne peut contourner ces gates.
