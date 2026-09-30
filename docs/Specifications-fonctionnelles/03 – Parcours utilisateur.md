@@ -516,3 +516,9 @@ Un Parcours fonctionnel pourra être planifié directement. Le parcours utilisat
 ### Règles de Composition liées à la récupération après activité
 
 Toute `SessionActivity` possède `postActivityRecoverySeconds`. La valeur `0 s` est valide et reste représentée. La dernière occurrence avant `SESSION_END` conserve et exécute sa récupération. Dans un Tour répété, chaque occurrence exécute sa récupération à chaque passage. L’insertion d’une référence du Catalogue crée une nouvelle valeur contextuelle depuis le défaut global ; elle ne copie aucune récupération post-activité depuis l’`ActivityDefinition`.
+
+## Parcours visuels des cartes — 30 septembre 2026
+
+L’utilisateur retrouve la même grammaire de carte dans le Catalogue, les choix de Composition et de planification, le Calendrier Semaine et le Suivi. Sans média, la carte suit APRÈS ; avec média d’exercice, la référence Photo prévoit une vignette sans agrandir la carte. La Séance reste sans vignette (RG-3 reportée). Le Profil porte le choix de silhouette prévu par RG-5, dont le défaut et la persistance restent à clarifier. Les actions métier, règles de sélection, sources de planification et récupérations restent celles des décisions actives ; les suppressions visuelles en conflit sont consignées comme propositions.
+
+Référence : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md).

@@ -12,9 +12,9 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 |---|---|---|---|---|---|
 | T03 / roadmap | Catalogue des exercices = T03 MVP ; ancien T03 Exécution Séance → T04 ; ancien T04 → T05+ | PRODUCT, 01–12, 07, 13 | Catalogue V2 ; ancien T03 moteur | CONFORME | D-183 consolide D-166. |
 | Catalogue multi-type | `Exercices / Séances / Parcours`; Séances par défaut ; Exercices actif ; Parcours disabled | 00–07, 13, PRODUCT | D-108 « Séances seul actif » | CONFORME | D-108 est supersédée par D-167 ; CE-T03-01/02. |
-| Navigation basse | `Catalogues`; titres contextuels ; DSF exact ; dessins ≤24 pt | 01, 06, 07, 13 CE-T03-17, Figma `2537:214` | libellé `Séances`, icônes surdimensionnées | CONFORME | Règles intégrées directement dans 06/07. |
+| Navigation basse | `Catalogues`; titres contextuels ; DSF exact ; dessins ≤24 pt | 01, 06, 07, 13 CE-T03-17, Figma `6298:12462` | libellé `Séances`, icônes surdimensionnées | CONFORME | Règles intégrées directement dans 06/07. |
 | État Catalogue | recherche/filtres/tri/scroll conservés pendant aller-retour uniquement | 03, 06, 07, 13 CE-T03-01/02/05 | persistance non bornée | CONFORME | D-168. |
-| Rangée `Créer / Filtrer / Trier` | 3 contrôles `108 × 32 pt`, gap `8 pt`, ensemble centré en référence 402 ; même représentation Séances/Exercices ; cibles ≥48 | Figma `3786:5093`, `1992:9910`, `1992:10129`, `3787:5148`, `3841:8375`; 06, 07 D-184, PRODUCT, 13 §4.5 + CE-T03-01/02/03 | `Créer centré` seul ; contrôles « lorsqu’ils sont présents » ; représentation d’entrée Filtrer/Trier dite non conçue | CONFORME | Contrôles d’entrée conçus et propagés. Coordonnées Figma utilisées uniquement comme preuve de rendu. |
+| Rangée `Créer / Filtrer / Trier` | 3 contrôles de hauteur visible `34 pt`, dessins `20 pt`, gap `12 pt`, ensemble centré en référence 402 ; même représentation Séances/Exercices ; cibles ≥44 sans chevauchement | Figma `3786:5093`, `1992:9910`, `1992:10129`, `3787:5148`, `3841:8375`; 06, 07 D-184, PRODUCT, 13 §4.5 + CE-T03-01/02/03 | `Créer centré` seul ; contrôles « lorsqu’ils sont présents » ; représentation d’entrée Filtrer/Trier dite non conçue | CONFORME | Géométrie révisée par D-209/D-210 le 30/09/2026 ; références actuelles : page `Cartes - Icônes` et complément DSF. Les anciennes frames restent des preuves historiques. |
 | Filtrer / Trier — comportement | Filtrer/Trier communs ; options Filtrer contextuelles ; Exercices = statut, Catégories, Zones corporelles ; Séances = statut, Étiquettes ; Trier visible disabled | 06, 07 D-192, PRODUCT, 13 §4.5 | ancien filtre limité à `Archivées` | CONFORME | Fonctionnel déterministe. |
 | Filtrer / Trier — panneaux/options ouverts | Panneaux `Filtrer` conçus dans Figma ; `Trier` reste disabled | 06, 07 D-192, PRODUCT, 13, Figma | anciens panneaux non conçus | CONFORME | Les filtres ouverts sont désormais vérifiables. |
 | Recherche globale | `1992:10129` conserve la rangée Catalogue en arrière-plan sous contexte de recherche/clavier | 06, PRODUCT, 13 CE-T03-01/02, Figma `1992:10129` | absence de règle contractuelle T03 explicite | CONFORME | État intégré sans contrat supplémentaire. |
@@ -65,7 +65,7 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 - `2028:11700`, `2028:11808` Composition / actions glissées ;
 - `2028:11204` Composition séance — Étiquettes ;
 - `2537:1033` Déployer ;
-- `2537:214` Navigation Bottom.
+- `6298:12462` Navigation Bottom.
 
 `3787:5209` n’est plus disponible dans le Figma courant et n’est plus une évidence active.
 
@@ -100,3 +100,8 @@ Panneaux ouverts `Filtrer` : **CONFORME**, conçus dans Figma. `Trier` reste vis
 ## Mise à jour D-208
 
 Le Catalogue des Exercices ne transporte plus de récupération post-activité dans `ActivityDefinition`. Toute insertion en Séance initialise `postActivityRecoverySeconds` au niveau de l’occurrence. L’Exécution directe peut utiliser `sideRecoverySeconds` en bilatéral mais ne produit jamais de récupération après activité.
+
+
+## Actualisation visuelle du 30 septembre 2026
+
+Les règles visuelles de navigation, cartes et contrôles contextuels sont précisées dans [le complément DSF](DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Les statuts de cette matrice portent sur la consolidation documentaire ; ils ne constituent pas une validation de l’implémentation actuelle. Les captures et frames antérieures restent des preuves historiques.

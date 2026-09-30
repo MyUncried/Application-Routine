@@ -333,3 +333,9 @@ Lorsque la planification des Parcours est livrée, `API-ROU-*` accepte une trois
 | API-COM-REC-03 | Déplacer une occurrence | ID occurrence, nouvelle position | ordre mis à jour | `postActivityRecoverySeconds` reste inchangé. |
 | API-COM-REC-04 | Dupliquer une occurrence | ID occurrence | copie indépendante | Copie `postActivityRecoverySeconds`. |
 | API-COM-REC-05 | Supprimer une occurrence | ID occurrence | occurrence supprimée | La récupération contextuelle disparaît avec elle. |
+
+## Impact API de la revue des cartes — 30 septembre 2026
+
+Aucune signature de service n’est modifiée par le rendu des cartes. Les données de classification, médias et source SESSION/ACTIVITY restent fournies par les API existantes. Le calcul de prochaine occurrence D-206 reste disponible et inchangé. RG-5 pourrait nécessiter une préférence de silhouette, mais son contrat dépend du sens/default/persistance encore à clarifier : aucun endpoint ni champ obligatoire n’est ajouté. Aucun transfert réseau, import média ou migration n’est créé par RG-1/RG-2.
+
+Référence : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md).

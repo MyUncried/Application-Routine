@@ -244,3 +244,9 @@ La consultation des médias pendant l’Exécution est **conçue mais non affect
 La cible comprend la bascule Information/Média, la galerie ordonnée, la vidéo avec son actif par défaut et baisse temporaire pendant les annonces vocales, le plein écran orientable et le cadre flottant d’Exécution.
 
 Spécification de synthèse : `../CONCEPTION-EXECUTION-MEDIA.md`.
+
+## Portée de la revue des cartes — 30 septembre 2026
+
+Le rendu courant des cartes, icônes et appuis est documenté dans le complément DSF. La revue ne rend pas fonctionnels les Parcours ni l’import de médias exclus de la version en cours. Les deux états média sont des principes de présentation ; le choix de vignette des Séances reste reporté (RG-3). RG-4 et les changements normatifs non validés ne sont pas des exigences MVP nouvelles. D-195 et D-208 restent applicables jusqu’à arbitrage explicite de leurs conflits visuels.
+
+Référence : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md).

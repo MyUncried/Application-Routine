@@ -1211,3 +1211,11 @@ Toute `SessionActivity` porte `postActivityRecoverySeconds`, valeur numérique n
 ### Plan d’Exécution
 
 Le plan distingue au minimum la phase de récupération entre côtés de la phase de récupération après occurrence. Une Exécution `ACTIVITY` directe ne génère jamais de phase post-activité. Une Exécution `SESSION` génère la récupération après chaque occurrence, y compris à chaque répétition de Tour et avant `SESSION_END` pour la dernière occurrence.
+
+## Impacts de données de la revue des cartes — 30 septembre 2026
+
+RG-1/RG-2 utilisent la présence et les références de médias déjà associées à l’Exercice ; aucun champ de réglage Afficher une photo n’est créé. RG-3 ne crée pas de média ni de sélection de couverture sur la Séance. Les variantes Figma Contexte/État/Bilatéral sont des propriétés de présentation, pas des colonnes supplémentaires. La nature se lit dans la source SESSION/ACTIVITY, jamais dans son titre. Les exemples de catégories, statuts, nombres et étiquettes du prompt ne migrent aucune donnée.
+
+RG-5 exige un choix de silhouette du Profil, mais sa signification, son défaut et son stockage ne sont pas définis : impact de modèle À CLARIFIER, sans migration inventée. L’ordre et la couverture vidéo proposés par RG-2 ne deviennent pas des règles validées. Les instantanés et récupérations D-208 restent inchangés.
+
+Référence : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md).

@@ -173,7 +173,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-092 | Tous les textes applicatifs sont centralisés dans un lexique fondé sur des clés de traduction ; un changement de terme ou l’ajout d’une langue ne doit pas exiger la modification de chaque écran. |
 | RM-093 | Les termes `Séance`, `Activité`, `Exercice`, `Récupération`, `Série`, `Tour`, `Routine` et `Exécution` sont utilisés conformément au glossaire et de manière uniforme. |
 | RM-094 | Les écrans respectent les Safe Areas du système, y compris l’inset inférieur sous la navigation fixe. |
-| RM-095 | Les cibles tactiles principales respectent une zone commune minimale de 48 × 48 points logiques sur iOS et Android, même si leur représentation visuelle est plus petite. Un conteneur tactile ou un `hitSlop` étend les contrôles compacts sans agrandir leur pictogramme. |
+| RM-095 | Les cibles tactiles principales respectent une zone commune minimale de 44 × 44 points logiques (RG-7 du 30 septembre ; cibles spécifiques de 48 conservées) sur iOS et Android, même si leur représentation visuelle est plus petite. Un conteneur tactile ou un `hitSlop` étend les contrôles compacts sans agrandir leur pictogramme. |
 | RM-154 | Les éléments de navigation restent au premier plan et les contenus défilants ne doivent pas passer visuellement au-dessus d’eux. |
 | RM-155 | Un contrôle segmenté répartit sa largeur intérieure également entre ses options ; chaque libellé et le fond sélectionné sont centrés dans la zone de leur option. |
 | RM-156 | Un groupe d’actions de carte est ancré au bord droit intérieur de la carte avec une marge constante ; son espacement interne ne dépend pas de la largeur de l’écran. |
@@ -253,3 +253,12 @@ Ces règles décrivent une conception post-MVP à planifier.
 | RM-210 | La récupération après activité se déplace avec l’occurrence, est copiée lors de sa duplication et supprimée avec elle ; aucun recalcul ne dépend de l’adjacence. |
 | RM-211 | Une Exécution directe d’`ActivityDefinition` n’exécute jamais de récupération post-activité ; elle peut uniquement exécuter la récupération entre côtés si l’Activité est bilatérale. |
 | RM-212 | **À CLARIFIER :** valeur initiale de `sideRecoverySeconds` lorsqu’une Activité passe de `Aucun` à `D→G` ou `G→D`. Le défaut global post-activité ne doit pas être réutilisé implicitement. |
+
+## RG des cartes — 30 septembre 2026
+
+Le complément DSF centralise RG-1 à RG-9 avec leurs statuts exacts : principes média validés, vignette de Séance reportée, retrait Déployer proposé, silhouette unique avec défaut ouvert, dimensions/troncature et marges validées. RG-7 révise RM-095 sur le minimum44 ; les cibles spécifiques plus grandes restent conservées. D-195/D-206/D-208 restent applicables : aucune omission graphique ne supprime un accès média, une prochaine planification ou une récupération dans le métier. Les formats et omissions proposés sont listés pour arbitrage, pas imposés comme règles de calcul.
+
+Référence : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md).
+
+
+Appuis — D-213 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper indépendant (450 ms puis 150 ms pour la répétition) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.

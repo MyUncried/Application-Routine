@@ -185,7 +185,7 @@ Une Séance peut donc être simultanément `Active`, planifiée et déjà exécu
 
 Le Catalogue distingue `Exercices`, `Séances` et `Parcours`. `Séances` reste le type actif par défaut ; `Exercices` devient également actif dans le MVP à partir de T03. Dans le MVP T03, sélectionner `Exercices` charge les références persistantes ; sélectionner `Parcours` charge les Parcours persistants lorsque cette capacité est livrée.
 
-La liste des Exercices conserve recherche, filtres, tri et position de défilement dans l’état de navigation. Chaque carte possède une barre verticale portant la couleur de sa Catégorie. Sa surface ouvre la consultation ou la modification ; le bouton Lecture lance uniquement l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Exercices actives et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
+La liste des Exercices conserve recherche, filtres, tri et position de défilement dans l’état de navigation. Chaque carte utilise une pastille de Catégorie colorée, sans barre verticale. Sa surface ouvre la consultation ou la modification ; le bouton Lecture lance uniquement l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Exercices actives et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
 
 ## 2 bis.2 Créer, consulter ou modifier une Activité de référence
 
@@ -1207,3 +1207,14 @@ Référence normative détaillée : `../CONCEPTION-EXECUTION-MEDIA.md`.
 L’éditeur d’Exercice porte `sideRecoverySeconds` uniquement pour un Exercice bilatéral. Le passage à `Aucun` rend ce paramètre sans objet. La valeur initiale à appliquer lors du passage de `Aucun` à une direction bilatérale reste **À CLARIFIER**.
 
 La Composition porte `postActivityRecoverySeconds` sur chaque occurrence. La ligne reste visible à `0 s`, y compris après la dernière Activité du Tour et avant la Fin de séance. Dans un Tour répété, cette même valeur est exécutée à chaque répétition. Une Exécution directe ne possède jamais de récupération post-activité.
+
+## Présentation et interactions des cartes — 30 septembre 2026
+
+Appliquer les principes validés RG-1/RG-2/RG-3/RG-5/RG-6/RG-7/RG-8/RG-9 du complément DSF aux contextes documentés. Le média conditionne la présentation sans créer de réglage ; la Séance reste sans vignette, le choix du média de l’Exercice et le défaut de silhouette restent à préciser. La troncature conserve la donnée complète. Le nouveau dessin de bilatéralité ne change aucun paramètre d’exécution.
+
+Restent à valider : format N séries de X, absence des pauses/récupérations dans les synthèses, retrait de prochaine planification, RG-4, formats d’heure et étiquette sinon catégories. D-195/D-206/D-208 restent les règles applicables sur ces axes. La nouvelle grammaire graphique ne supprime ni récupération ni pause dans les données ou calculs.
+
+Référence : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md).
+
+
+Appuis — D-213 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper indépendant (450 ms puis 150 ms pour la répétition) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.

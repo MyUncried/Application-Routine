@@ -170,3 +170,8 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 Ces termes décrivent la conception post-MVP définie dans `../CONCEPTION-EXECUTION-MEDIA.md`.
 
+## Cartes et iconographie — complément du 30 septembre 2026
+
+Une **carte** est une présentation d’un objet existant, pas une nouvelle entité. **Classement** désigne Étiquette/Catégorie/Zones corporelles (icônes en pastille) ; **valeurs** désigne durées, heures, nombres d’exercices/tours/séries (icônes nues). Une **icône de nature** distingue Séance et Exercice ; elle ne se déduit jamais du titre. Une **vignette média** présente un média déjà associé. Une **silhouette de zone corporelle** est une variante d’icône ; son choix ne signifie pas implicitement un sexe ou un filtre métier.
+
+Référence : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md).

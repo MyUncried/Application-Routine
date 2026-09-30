@@ -414,3 +414,9 @@ Le modèle de Routine est conçu pour être extensible à une troisième source 
 ### Récupération après activité portée par l’occurrence
 
 Une `SessionActivity` porte toujours `postActivityRecoverySeconds`. La valeur `0 s` est une valeur valide et n’efface pas la propriété. La récupération suit l’occurrence lors des déplacements, duplications et suppressions. Dans un Tour, elle est exécutée après chaque occurrence, y compris la dernière, à chaque répétition du Tour. Hors Tour, elle est exécutée après l’occurrence ; si celle-ci est la dernière de la Séance, elle précède `SESSION_END`.
+
+## Présentation des objets — 30 septembre 2026
+
+Les états de carte sans/avec média (RG-1 à RG-3) sont des états de présentation des objets existants. Ils ne créent pas d’entité Carte ni de nouveau type d’Exercice. Les catégories affichées sur une Séance restent issues de ses Exercices selon D-188 : aucune relation directe Catégorie–Séance n’est ajoutée. La nature provient du type de source, jamais d’une reconnaissance du titre. La famille de silhouette RG-5 ne crée aucun attribut de sexe implicite.
+
+Référence : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md).

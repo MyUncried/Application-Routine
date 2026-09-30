@@ -194,3 +194,8 @@ Ces frames sont des évidences de la conception validée D-203 et ne constituent
 ## Réserve D-208 — récupération
 
 D-208 modifie le comportement et le rendu attendus de la récupération. Tant que Figma n’a pas été réaligné, les frames montrant une récupération générique attachée/conditionnelle à l’Activité ou absente à `0 s` ne peuvent pas être considérées comme preuves fonctionnelles courantes sur cet axe. Elles restent utilisables pour les autres éléments non affectés. Un nouveau contrôle de couverture Figma est requis après mise à jour des écrans Éditeur Exercice, Composition et Exécution.
+
+
+## Actualisation ciblée — 30 septembre 2026
+
+Pour les cartes, icônes, contrôles contextuels et animations d’appui, les références actuelles et écarts sont recensés dans [le complément DSF](DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Les références antérieures ci-dessus décrivent l’état audité à leur date et ne prouvent pas la conformité à cette nouvelle grammaire. Les décisions fonctionnelles D-195, D-206 et D-208 restent applicables ; une omission visuelle ne les abroge pas.

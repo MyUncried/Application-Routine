@@ -69,14 +69,14 @@ Les noms d’Exercices/Séances, catégories, zones corporelles, durées, nombre
 - contenu centré au-delà selon architecture ;
 - Safe Areas et Bottom Navigation selon chapitre 12 ;
 - aucune coordonnée Figma n’est copiée comme position absolue React Native ;
-- cibles tactiles ≥ `48 × 48 pt` sauf exception documentée ;
+- cibles tactiles ≥ `44 × 44 pt`, sans chevauchement ; dimensions spécifiques supérieures conservées ;
 - aucun élément obligatoire sous le clavier, la navigation ou une zone système.
 
 ### 4.3 Navigation globale
 
 Destination basse permanente : `Catalogues`, `Calendrier`, `Suivi`, `Profil` + Recherche.
 
-Composant : `Navigation / Bottom — Source exact` (`2537:214`). Les quatre dessins de destination mesurent au maximum `24 pt`, centrés dans une boîte optique `32 × 32 pt`. Aucune substitution par glyphe/emoji/système.
+Composant : `Navigation / Bottom` (`6298:12462`). Les quatre dessins de destination mesurent au maximum `24 pt`, centrés dans une boîte optique `32 × 32 pt`. Aucune substitution par glyphe/emoji/système.
 
 ### 4.4 Conservation d’état Catalogue
 
@@ -84,15 +84,7 @@ Recherche, filtre appliqué, tri implicite et scroll sont conservés pendant la 
 
 ### 4.5 Commandes Catalogue `Créer` / `Filtrer` / `Trier`
 
-`Créer`, `Filtrer` et `Trier` forment la rangée commune de commandes d’entrée des Catalogues représentés en T03. Dans la référence Figma `402 × 874 pt` :
-
-- `Créer` = `108 × 32 pt` ;
-- `Filtrer` = `108 × 32 pt` ;
-- `Trier` = `108 × 32 pt` ;
-- gap horizontal = `8 pt` ;
-- ensemble centré horizontalement.
-
-Les positions Figma vérifiées `x=31`, `147`, `263` sur la largeur `402 pt` sont des **preuves de rendu**, pas des coordonnées absolues d’implémentation React Native. Le responsive suit §4.2 et chaque action conserve une cible tactile ≥ `48 × 48 pt` même si sa forme visible mesure `32 pt` de haut.
+`Créer`, `Filtrer` et `Trier` forment la rangée commune de commandes. Référence du 30 septembre : cercles visibles `34 pt`, pictogrammes `20 pt`, gap visuel `12 pt`, cibles transparentes ≥ `44 × 44 pt` sans chevauchement. Les pilules étendues conservent une hauteur de `34 pt`. Le groupe est centré verticalement dans la zone de contexte existante. Les coordonnées de maquette ne deviennent pas des positions absolues React Native.
 
 `Filtrer` et `Trier` sont communs à `Exercices / Séances / Parcours`; leur représentation d’entrée est commune, leurs options peuvent être contextuelles. Le filtre inactif est un bouton rond blanc. Un appui l’étend en `Filtres / Aucun` sans modifier la liste. Après sélection d’un critère, le contrôle actif est bleu et étendu ; le rond bleu retire le filtre, tandis que la zone texte ouvre la modale. `Réinitialiser` revient à `Aucun`. `Créer` reste actif. `Trier` reste visible mais disabled en T03.
 
@@ -198,11 +190,11 @@ Titre contextuel ; segments égaux ; Séances selected ; Exercices enabled ; Par
 
 ### 9. Layout déterministe
 
-Segmenté sur largeur utile. Rangée Catalogue conforme §4.5 : trois contrôles visibles `108 × 32 pt`, gap `8 pt`, ensemble centré dans la référence `402 pt`. Liste dans Body scrollable, jamais sous navigation. La géométrie est commune à celle du Catalogue des exercices ; elle ne devient pas un jeu de coordonnées absolues RN.
+Segmenté sur largeur utile. Rangée Catalogue conforme §4.5 : boutons contextuels visibles `34 pt`, pictogrammes `20 pt`, gap `12 pt`, cibles ≥44 sans chevauchement. Liste dans Body scrollable, jamais sous navigation. La géométrie est commune à celle du Catalogue des exercices ; elle ne devient pas un jeu de coordonnées absolues RN.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Appliquer §4.2. Segmenté flexible ; libellés complets ; contenu liste scrollable. Dans `Recherche globale — Champ déployé`, le clavier/contexte de recherche ne supprime pas la rangée du Catalogue d’arrière-plan et ne réduit pas ses cibles tactiles sous `48 × 48 pt`.
+Appliquer §4.2. Segmenté flexible ; libellés complets ; contenu liste scrollable. Dans `Recherche globale — Champ déployé`, le clavier/contexte de recherche ne supprime pas la rangée du Catalogue d’arrière-plan et ne réduit pas ses cibles tactiles sous `44 × 44 pt`.
 
 ### 11. États de l’écran
 
@@ -234,7 +226,7 @@ Erreur de chargement : afficher état d’erreur prévu, pas un faux état vide.
 
 ### 18. Accessibilité
 
-Parcours annonce disabled ; Séances selected ; `Catalogues` est le label accessible du premier onglet ; `Trier` annonce disabled ; focus cohérent et cibles ≥48 malgré la hauteur visuelle `32 pt` des commandes.
+Parcours annonce disabled ; Séances selected ; `Catalogues` est le label accessible du premier onglet ; `Trier` annonce disabled ; focus cohérent et cibles ≥44 malgré la hauteur visuelle `34 pt` des commandes contextuelles.
 
 ### 19. Invariants
 
@@ -263,7 +255,7 @@ E01–E06 → D-167/D-179/D-184/D-187 ; E67–E69 → D-168/D-178 ; Figma `2117:
 | T03-E | E03, E07–E12, E32–E36, E58–E62, E73 |
 | Frames | `3786:5093`, recherche globale `1992:10129` pour le pattern de fond Catalogue |
 | Déployer | `2537:1033` |
-| Navigation | `2537:214` |
+| Navigation | `6298:12462` |
 | Nature | Nouvel écran T03 |
 
 L’ancienne référence `3787:5209` n’existe plus dans l’état Figma courant du 16 septembre 2026 et n’est plus une preuve active.
@@ -290,7 +282,7 @@ Noms, zones, séries, durées, récupération de la première carte = dynamiques
 
 ### 7. Structure de l’écran
 
-Header → segmenté → rangée commandes Catalogue (`Créer`, `Filtrer`, `Trier`) → liste scrollable → navigation. Carte : barre bleue, contenu, zone Déployer, zone Lecture.
+Header → segmenté → rangée commandes Catalogue (`Créer`, `Filtrer`, `Trier`) → liste scrollable → navigation. Carte : pastille de classement, titre/badge, valeurs, zones Déployer/Lecture selon contexte ; aucune barre verticale. Voir le complément Cartes du 30 septembre 2026.
 
 ### 8. Éléments obligatoires
 
@@ -298,11 +290,11 @@ Barre de Catégorie colorée ; zone droite constante ; Déployer actif pour affi
 
 ### 9. Layout déterministe
 
-Rangée Catalogue : `Créer`, `Filtrer`, `Trier` visibles chacun en `108 × 32 pt`, gap `8 pt`, ensemble centré dans la référence `402 pt`, avec même représentation que Catalogue des séances. Déployer et Lecture sont ancrés selon Figma/DSF avec même largeur utile pour toutes les cartes. Cartes peuvent croître verticalement si texte. Les panneaux ouverts de `Filtrer` suivent les frames Figma courantes ; `Trier` reste disabled T03.
+Rangée Catalogue : `Créer`, `Filtrer`, `Trier` avec cercles visibles `34 pt`, pictogrammes `20 pt`, gap `12 pt`, avec même représentation que Catalogue des séances. Déployer et Lecture sont ancrés selon Figma/DSF avec même largeur utile pour toutes les cartes. Le média seul n’agrandit pas la carte ; le texte agrandi suit les exigences d’accessibilité, avec comportement de vignette à qualifier. Les panneaux ouverts de `Filtrer` suivent les frames Figma courantes ; `Trier` reste disabled T03.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-§4.2. Liste et cartes prennent largeur utile. Recherche gère clavier sans masquer le contexte nécessaire ; le pattern `1992:10129` montre la rangée Catalogue conservée en arrière-plan. Cibles ≥48 même pour les commandes visuelles hautes de 32 pt. Texte long peut passer sur plusieurs lignes selon DSF.
+§4.2. Liste et cartes prennent largeur utile. Recherche gère clavier sans masquer le contexte nécessaire ; le pattern `1992:10129` montre la rangée Catalogue conservée en arrière-plan. Cibles ≥44 pour les commandes contextuelles visuelles hautes de 34 pt ; les cibles spécifiques de 48 restent conservées. Texte long peut passer sur plusieurs lignes selon DSF.
 
 ### 11. États de l’écran
 
@@ -1617,7 +1609,7 @@ E67–E69 → D-168/D-178 ; API-SEA-03/04 ; Figma `2028:11204`.
 
 ### 1. Identification
 
-Bloc B8/B9 ; états S78–S82 ; T03-E E05–E06 ; composant `2537:214`.
+Bloc B8/B9 ; états S78–S82 ; T03-E E05–E06 ; composant `6298:12462`.
 
 ### 2. Finalité fonctionnelle
 
@@ -1647,10 +1639,10 @@ Barre Bottom Navigation + contrôle Recherche distinct selon composant canonique
 
 | Destination | Variante | Boîte | Dessin | Cible |
 |---|---|---:|---:|---:|
-| Catalogues | `2537:86` | 32×32 | ≤24 centré | ≥48×48 |
-| Calendrier | `2537:118` | 32×32 | ≤24 centré | ≥48×48 |
-| Suivi | `2537:150` | 32×32 | ≤24 centré | ≥48×48 |
-| Profil | `2537:182` | 32×32 | ≤24 centré | ≥48×48 |
+| Catalogues | `6298:11827` | 32×32 | ≤24 centré | ≥48×48 |
+| Calendrier | `6298:11988` | 32×32 | ≤24 centré | ≥48×48 |
+| Suivi | `6298:12149` | 32×32 | ≤24 centré | ≥48×48 |
+| Profil | `6298:12310` | 32×32 | ≤24 centré | ≥48×48 |
 | Recherche | `2736:2` | contrôle 58×58 | vecteur DSF | 58×58 |
 
 ### 9. Layout déterministe
@@ -1703,7 +1695,7 @@ Mesurer icônes/cibles/centrage ; naviguer toutes destinations ; 360/402/440 ; t
 
 ### 21. Traçabilité
 
-E05–E06 → D-167/D-179 ; Figma `2537:214`; chapitre 12 Navigation.
+E05–E06 → D-167/D-179 ; Figma `6298:12462`; chapitre 12 Navigation.
 
 ---
 
@@ -1948,3 +1940,16 @@ Le Catalogue des Parcours, lorsqu’il devient fonctionnel et planifiable, appli
 ### Exécution de Séance
 - Distinguer explicitement récupération entre côtés et récupération après occurrence.
 - La récupération post-activité est exécutée après chaque occurrence, y compris après la dernière et après chaque répétition de la dernière Activité du Tour.
+
+## Complément du 30 septembre 2026 — cartes, icônes et appuis
+
+Les contrats CE-T03-01/02/05/07/15/17 et les vues de sélection Calendrier/Planification utilisent la grammaire, les références Figma et les critères atomiques CAR/ICO/CTX/SEG/ANI du complément DSF. Les critères MED/DAT distinguent la cible avec média, sa couverture partielle et les invariants de données. Ne pas utiliser les anciennes captures comme preuve du nouveau rendu. Les références sur Prototype MVP restent utiles pour les destinations et interactions.
+
+Catalogue : nouvelles cartes, états actifs/archivés, actions contextuelles34. Composition : cases de sélection sans commandes dans le choix ; récupération D-208 conservée sur les occurrences. Calendrier Semaine : badge heure et nature ; durée avec sablier sur la ligne des valeurs. Suivi : statut supérieur, Déployer/Ressenti inférieurs. Profil/éditeur : silhouette RG-5 sans défaut implicite.
+
+La suppression du badge durée dans les choix, les formats de synthèse/heure, le retrait de prochaine planification, la disparition de pause/récupération et RG-4 sont des écarts/propositions explicitement séparés des critères métier actifs. La validation graphique d’une carte ne vaut pas validation de ces règles. Vérifier responsive360/402/440 et textes agrandis ; l’agrandissement du texte ne se résout jamais par réduction de police. Les tests de prototype interactif restent à réaliser.
+
+Référence : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md).
+
+
+Appuis — D-213 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper indépendant (450 ms puis 150 ms pour la répétition) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
