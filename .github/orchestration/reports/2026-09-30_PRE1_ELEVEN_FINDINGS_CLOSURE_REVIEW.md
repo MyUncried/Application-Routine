@@ -193,6 +193,15 @@ Tests : `validate-workflows.js` OK ; suite pilote 812 tests, 14 échecs identiqu
 - Barrière publiée : commentaire 5919032692 `[KODJO_V2] PLAN_HANDOFF_READY`, `STATUT : USER_APPROVAL_REQUIRED`, `approval_action=ADD_REACTION_+1`, `approved_at_commit=fd5ad0a5`.
 - Barrière humaine par conception : `generate-approved-plan-lean-request.js` exige une réaction 👍 du propriétaire du dépôt, puis `[KODJO_V2] VALIDATE_PLAN_HANDOFF` (validation bornée, sans exécution), puis `[KODJO_V2] QUEUE_APPROVED_PLAN` (mise en file et `kodjo-v2-lean-queue`). Le pilote ne produit pas cette approbation à la place de Hermann.
 
+### Validation, mise en file et démarrage du développement
+
+- Réaction 👍 de Hermann (`MyUncried`, 2026-09-30T20:27:07Z) sur le commentaire 5919032692.
+- Aucun enchaînement automatique : GitHub Actions n'est pas déclenché par une réaction ; `kodjo-v2-plan-handoff-queue` n'écoute que les commentaires `VALIDATE_PLAN_HANDOFF` / `QUEUE_APPROVED_PLAN` du compte `MyUncried` et vérifie séparément le 👍 du propriétaire. Sur instruction de Hermann, le pilote a publié ces commandes mécaniques.
+- Validation : commentaire 5919212465 → run 36773194391 succès → `PLAN_HANDOFF_VALIDATED` (commentaire 5919217385, request `bf736501-8e68-42ff-9f5d-0309fa61e4d6`).
+- Mise en file : commentaire 5919239936 → run 36773401221 succès → commit `0e22836c`, `.github/orchestration/queue/v2/V2-PRE-1-implement-e485eddb.json`, `IMPLEMENTATION_QUEUED` (commentaire 5919245992, request `e485eddb-238e-4828-8786-aabad6c18296`).
+- Développement : run **36773441104 « KODJO V2 Lean Queue »** (workflow_dispatch, head `0e22836c`), https://github.com/MyUncried/Application-Routine/actions/runs/36773441104. Démarrage réel constaté : job `execute` en cours sur `KODJO-LOCAL-RUNNER` après attente du runner occupé par des runs VNext ; checkout, `Resolve immutable request boundary`, préflight et budget d'artefacts en succès ; `Select and execute immutable request` en cours.
+- Ancienne Lean Queue 34748621746 (13/09, `queued` sans job) : non touchée, toujours `queued`.
+
 ## Vérifications restant à effectuer
 
 - Revue indépendante du tour 2 (constat 9 seul) sur le candidat 5918243649.
