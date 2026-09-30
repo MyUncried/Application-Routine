@@ -53,7 +53,9 @@ function isClosedProtocolPath(file) {
     file === '.github/orchestration/PACKAGE_MANIFEST.md' ||
     /^\.github\/orchestration\/KODJO_PROTOCOL_V2_SPEC_[0-9.]+\.md$/.test(file) ||
     /^\.github\/orchestration\/CHANGE_REPORT_[0-9._A-Z-]+\.md$/.test(file) ||
-    file === 'docs/KODJO-V2-LEAN-OPERATING-CONTRACT.md';
+    file === 'docs/KODJO-V2-LEAN-OPERATING-CONTRACT.md' ||
+    // Mandatory mission reports (CLAUDE.md delivery gate) may follow an approved review.
+    /^\.github\/orchestration\/reports\/[^/]+\.md$/.test(file);
 }
 
 function protectedPlanPaths(bootstrapPath, bootstrap) {
@@ -126,8 +128,11 @@ function verifyTransition({ cwd, sourceHead, executionHead, bootstrapPath, outpu
       source_oid: blobOid(cwd, sourceHead, file),
       execution_oid: blobOid(cwd, executionHead, file),
     }));
+    const sliceDir = path.posix.dirname(normalizedBootstrap);
+    // Files written by the handoff itself may be absent at both revisions before their first materialization.
+    const materializationOutputs = new Set([`${sliceDir}/technical-plan.md`, `${sliceDir}/independent-review.md`]);
     const alteredBlob = proof.protected_blobs.find((item) =>
-      !item.source_oid || !item.execution_oid || item.source_oid !== item.execution_oid);
+      item.source_oid !== item.execution_oid || (!item.source_oid && !materializationOutputs.has(item.path)));
     if (alteredBlob) {
       proof.protected_changes = [alteredBlob.path];
       throw new Error('PLAN_REVIEW_PRODUCT_INPUT_CHANGED');

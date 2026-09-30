@@ -177,7 +177,14 @@ Tests : `validate-workflows.js` OK ; suite pilote 812 tests, 14 échecs identiqu
   1. `verifyTransition(review_head=620f87b9 → HEAD=620f87b9)` échoue sur le chemin protégé `v2-slices/V2-PRE-1/independent-review.md`, absent aux deux révisions ; le contrôle refuse un blob absent (`!source_oid`), alors que ce fichier est précisément créé par le handoff.
   2. `verifyTransition(source_head=e216294 → HEAD)` échouerait ensuite avec `PLAN_REVIEW_BOOTSTRAP_MISSING` : le bootstrap de la tranche (ajouté par 12b73fd3, activation du 28/09) n'existe pas à la baseline applicative e216294.
 - Historique : le workflow de handoff n'a réussi que 3 fois (18-20/09), avant `ea31ba80` (20/09, liaison de fraîcheur) ; les autres tranches possédaient déjà `independent-review.md`. Défaut du mécanisme, indépendant du plan et de la revue.
-- Correction non appliquée : elle modifie un contrôle de fraîcheur ; décision de Hermann requise.
+- Un troisième effet a été identifié au rejeu : tout changement de `main` postérieur à la revue hors « chemins protocolaires fermés » est refusé (`PLAN_REVIEW_NON_PROTOCOL_CHANGE`) ; le rapport de mission obligatoire (`reports/`, commit 9292878f) en faisait partie.
+
+### Correction du handoff — options A et C approuvées par Hermann
+
+- (a) `verify-plan-review-transition.js` : un chemin protégé absent aux deux révisions n'est admis que pour les sorties du handoff (`technical-plan.md`, `independent-review.md` de la tranche) ; toute apparition, disparition ou modification reste refusée, tout autre chemin protégé absent reste refusé.
+- (b) `materialize-approved-plan-handoff.js` : en mode INITIAL, la transition depuis la baseline applicative (antérieure au bootstrap) n'est plus rejouée ; restent exigés la transition HEAD de revue → HEAD de handoff (entrées produit protégées octet pour octet), l'ascendance de la baseline (`HANDOFF_INITIAL_BASELINE_NOT_ANCESTOR`, nouveau) et l'absence de dérive `app/`/`src/`. Mode révision inchangé.
+- (c) `isClosedProtocolPath` : les rapports Markdown directement sous `.github/orchestration/reports/` sont admis après revue ; sous-dossiers et autres extensions refusés.
+- Tests : nouveau `tests/kodjo/pre1-handoff-initial.pilot.js` 10/10 ; suites handoff/transition/cycle de vie 52 tests sans échec ; suite pilote 822 tests, 14 échecs identiques à la base ; `validate-workflows.js` OK ; rejeu réel `verifyTransition(620f87b9 → HEAD)` PASS ; rejeu réel `verifyHandoffFreshness` (plan 5918243649, revue 5918676914) PASS.
 
 ## Vérifications restant à effectuer
 

@@ -63,14 +63,17 @@ function verifyHandoffFreshness({ cwd, planBody, reviewBody, impact, bootstrap, 
   // Reuse the canonical closed protocol transition: product inputs and policy
   // provenance remain checked even when a protocol-only fix follows approval.
   verifyTransition({ cwd, sourceHead: reviewHead, executionHead, bootstrapPath: bootstrapRel });
-  verifyTransition({ cwd, sourceHead, executionHead, bootstrapPath: bootstrapRel });
-
   const initial = field(planBody, 'planning_mode') === 'INITIAL';
+  // INITIAL: source_head is the application baseline and may predate the slice bootstrap. Product inputs
+  // are bound to the review head above; the baseline must be an ancestor and app/src must not drift.
+  if (!initial) verifyTransition({ cwd, sourceHead, executionHead, bootstrapPath: bootstrapRel });
   if (initial) {
     if (field(reviewBody, 'planning_mode') !== 'INITIAL' || impact.scan_revision !== sourceHead ||
         field(planBody, 'application_pr') || field(reviewBody, 'application_pr')) {
       fail('HANDOFF_INITIAL_IDENTITY_MISMATCH');
     }
+    const ancestor = spawnSync('git', ['merge-base', '--is-ancestor', sourceHead, 'HEAD'], { cwd, encoding: 'utf8', windowsHide: true });
+    if (ancestor.status !== 0) fail('HANDOFF_INITIAL_BASELINE_NOT_ANCESTOR');
     const drift = git(['diff', '--name-only', impact.scan_revision, 'HEAD', '--', 'app', 'src'], cwd)
       .split(/\r?\n/).filter(Boolean);
     if (drift.length) fail('HANDOFF_APPLICATION_DRIFT', drift.join(', '));
