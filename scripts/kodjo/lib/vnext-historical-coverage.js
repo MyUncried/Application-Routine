@@ -3,6 +3,25 @@
 const V = require('./vnext-contract');
 const { execFileSync } = require('node:child_process');
 
+function extractNormativeUnits(source) {
+  const units = [];
+  let block = [], start = null, code = false;
+  function flush() {
+    if (block.length) units.push({ source_line: start, source_text: block.join('\n') });
+    block = []; start = null;
+  }
+  source.split('\n').forEach((line, index) => {
+    if (line.startsWith('```')) {
+      if (!code) { flush(); start = index + 1; block.push(line); code = true; }
+      else { block.push(line); flush(); code = false; }
+    } else if (code) block.push(line);
+    else if (!line.trim() || line.startsWith('#')) flush();
+    else { if (start === null) start = index + 1; block.push(line); }
+  });
+  flush();
+  return units;
+}
+
 function readSourcesAtRevision(matrix, { cwd, revision = 'HEAD' }) {
   if (matrix.register_path !== '.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md'
       || matrix.normative_path !== '.github/AI_ORCHESTRATION.md') V.fail('VNEXT_HISTORY_SOURCE_PATH_INVALID');
@@ -33,15 +52,34 @@ function validateInventory(matrix, { register, normativeSource }) {
         || normativeLines.slice(row.source_line - 1, row.source_line - 1 + row.source_text.split('\n').length).join('\n') !== row.source_text) V.fail('VNEXT_HISTORY_NORMATIVE_ROW_MISMATCH', row.id);
     ids.add(row.id);
   }
+  const actualUnits = matrix.normative_paragraphs.map(({ source_line, source_text }) => ({ source_line, source_text }))
+    .sort((a, b) => a.source_line - b.source_line);
+  if (V.canonicalStringify(actualUnits) !== V.canonicalStringify(extractNormativeUnits(normativeSource))) {
+    V.fail('VNEXT_HISTORY_NORMATIVE_COVERAGE_INCOMPLETE');
+  }
   return true;
 }
 
-function assertHistoricalReady(matrix, sources) {
+function assertHistoricalReady(matrix, sources, { resolveEvidence, candidateHead } = {}) {
   validateInventory(matrix, sources);
   const open = [...matrix.incidents, ...matrix.tests, ...matrix.normative_paragraphs]
     .filter(row => row.individual_equivalence_proven !== true || row.status !== 'CONFORME');
   if (open.length) V.fail('VNEXT_HISTORY_INDIVIDUAL_COVERAGE_NOT_READY', open.map(row => row.id).join(','));
+  V.assertSha40(candidateHead, 'VNEXT_HISTORY_CANDIDATE_HEAD_REQUIRED');
+  if (typeof resolveEvidence !== 'function') V.fail('VNEXT_HISTORY_EVIDENCE_RESOLVER_REQUIRED');
+  for (const row of [...matrix.incidents, ...matrix.tests, ...matrix.normative_paragraphs]) {
+    if (!Array.isArray(row.qualification_evidence) || row.qualification_evidence.length === 0) {
+      V.fail('VNEXT_HISTORY_QUALIFICATION_EVIDENCE_REQUIRED', row.id);
+    }
+    for (const evidence of row.qualification_evidence) {
+      const resolved = resolveEvidence(evidence, row);
+      if (!resolved || resolved.status !== 'VERIFIED' || resolved.candidate_head !== candidateHead
+          || resolved.subject_id !== row.id || !resolved.scenario || !resolved.result_ref) {
+        V.fail('VNEXT_HISTORY_QUALIFICATION_EVIDENCE_UNVERIFIED', row.id);
+      }
+    }
+  }
   return true;
 }
 
-module.exports = { readSourcesAtRevision, validateInventory, assertHistoricalReady };
+module.exports = { extractNormativeUnits, readSourcesAtRevision, validateInventory, assertHistoricalReady };

@@ -29,7 +29,7 @@ La classification Claude est conservée. Les recommandations n’acquièrent pas
 | ARCH-PACKET-ESM-BLIND | Refus explicite ESM statique non couvert | Dépendances inconnues restent NON_VERIFIABLE ; CommonJS lit les objets Git au revision exact |
 | ARCH-REVISION-NEGATIVE-UNEXERCISED | Partiellement fermé | Outcome falsifié testé ; toutes les combinaisons transport/cause/ledger non E2E |
 | ARCH-LF-CRLF-TAUTOLOGICAL | Fermé pour le contrat d’octets | Vrai Markdown CRLF refusé, OID indépendant différent ; publication Windows sans filtres reste à exercer |
-| ARCH-PROJECTION-SELF-REFERENTIAL | Partiellement fermé | Oracle Git indépendant ajouté ; admission par `verify-authorizations.js`/queue réelle encore absente |
+| ARCH-PROJECTION-SELF-REFERENTIAL | Préparation stable avant approbation et admission testées en dépôt Git | Octets identiques avant/après approbation du commit ; consommateur `verify-authorizations.js` appelé avec fixture GitHub ; workflow/queue réels non raccordés |
 | ARCH-AUDIT-MANIFEST-UNVERIFIED-FINGERPRINTS | Liaison candidat corrigée, fingerprints encore à résoudre | Candidate protocolaire différent refusé ; lecture des références normatives au SHA réel reste nécessaire |
 | ARCH-ANTIREGRESSION-CARDINALITY-ONLY | Inventaire individuel ajouté ; certification toujours refusée | 165 INC, 138 T, 115 paragraphes sources ; substitution d’ID à cardinalité égale refusée ; aucune équivalence individuelle fictive |
 | ARCH-TWO-CONVERGENCE-MECHANISMS | Liaison locale ajoutée au runtime | Registre HANDOFF lié lot/HEAD ; révision +1, limite figée, sujets conservés ; preuves/acteur non authentifiés à distance |
@@ -90,3 +90,37 @@ sur le snapshot ne vaut pas qualification : 12 échecs faute de tokenizer
 installé et 2 contrôles nécessitant l’historique Git absent du snapshot.
 Les preuves CI au HEAD exact et clone complet priment sur ce snapshot.
 Aucun échec historique n’est transformé en PASS fictif.
+
+## Suite séquentielle : qualification et intégration préparatoire
+
+HEAD `5c55d98b2cb4cc72139234207966f8e0184a972e`, run
+[36733560820](https://github.com/MyUncried/Application-Routine/actions/runs/36733560820) :
+Ubuntu et Windows SUCCESS, 174 PASS chacun, 0 FAIL, 0 SKIP ; syntaxe,
+invariants workflows et whitespace SUCCESS. Architecture-audit SKIPPED,
+conformément à l’absence de réaudit sur synchronize. Le pilote
+[36733560836](https://github.com/MyUncried/Application-Routine/actions/runs/36733560836)
+passe sur Linux ; son préflight Windows était queued au dernier contrôle.
+
+Delta suivant : fichiers de transport préparables avant approbation,
+contrôle des objets Git au commit approuvé, reconstruction canonique et
+appel en lecture seule au consommateur legacy. L’ApprovalTarget exact doit
+être présent dans le commentaire et la réaction ne doit pas précéder sa
+dernière édition. Tests nominaux et refus en dépôt jetable avec API de
+fixture : aucune approbation réelle fabriquée, aucun fichier de queue réel
+créé, aucune activation modifiée. Le raccordement workflow/runner et les
+contrats d’implémentation downstream restent ouverts.
+
+La classification normative couvre 117 unités (115 paragraphes et 2 formats
+plan/rapport), au texte et hash exacts, avec responsabilité/phase. Les deux
+formats auparavant exclus sont réintégrés. Le validateur reconstruit la
+couverture exhaustive depuis la source et refuse toute omission. Des flags
+CONFORME ne remplacent pas les preuves individuelles résolues au candidat.
+Les 165 incidents et 138 tests ne sont toujours pas certifiés équivalents.
+
+Validation locale du delta : 179 tests VNext PASS / 0 FAIL / 0 SKIP ;
+63 workflows YAML et invariants exécutables PASS. Cette validation locale
+doit encore être qualifiée sur les deux OS au prochain commit publié.
+
+État : étapes 1–2 qualifiées au HEAD ci-dessus ; étape 3 en cours, admission
+préparatoire contribuant à ses preuves ; étape 4 non intégrée en production ;
+étape 5 non déclenchée faute de clôture des prérequis. Aucun cutover/merge.

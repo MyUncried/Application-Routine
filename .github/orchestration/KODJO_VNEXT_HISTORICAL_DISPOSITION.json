@@ -7850,7 +7850,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Prouver conservation des barrières, rôles indépendants et quatre axes dans les consommateurs réels ; aucun audit différentiel global certifié.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROTOCOL_GOVERNANCE",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-abfe8df669933182",
@@ -7861,7 +7866,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Prouver conservation des barrières, rôles indépendants et quatre axes dans les consommateurs réels ; aucun audit différentiel global certifié.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROTOCOL_GOVERNANCE",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-4790ba60f37a2c77",
@@ -7872,7 +7882,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Prouver conservation des barrières, rôles indépendants et quatre axes dans les consommateurs réels ; aucun audit différentiel global certifié.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROTOCOL_GOVERNANCE",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-f6814d98211995b6",
@@ -7883,7 +7898,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Prouver conservation des barrières, rôles indépendants et quatre axes dans les consommateurs réels ; aucun audit différentiel global certifié.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROTOCOL_GOVERNANCE",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-ee163a5c9052ec2b",
@@ -7894,7 +7914,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Prouver conservation des barrières, rôles indépendants et quatre axes dans les consommateurs réels ; aucun audit différentiel global certifié.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROTOCOL_GOVERNANCE",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-251d8390391cc8f1",
@@ -7905,7 +7930,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Les contrats source/plan existent ; collecte des sources courantes et production IA ciblée encore à raccorder et prouver.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SOURCE_FIRST_PLANNING",
+      "consumer_stage": "ADMISSION_REQUIREMENTS_IMPACT_PLAN",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-c6fff9a38d64b77e",
@@ -7916,7 +7946,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Les contrats source/plan existent ; collecte des sources courantes et production IA ciblée encore à raccorder et prouver.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SOURCE_FIRST_PLANNING",
+      "consumer_stage": "ADMISSION_REQUIREMENTS_IMPACT_PLAN",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-4b96cac8d65c119c",
@@ -7927,7 +7962,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-ac08970299d323a7",
@@ -7938,7 +7978,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-6138b92be53e6b1b",
@@ -7949,7 +7994,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-c868c180ca7c003b",
@@ -7960,7 +8010,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-21f05f54948067cc",
@@ -7971,7 +8026,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-1670fc4bf25ab676",
@@ -7982,7 +8042,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-331ffa19e7d9fc94",
@@ -7993,7 +8058,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-703e8c767a09a8e8",
@@ -8004,7 +8074,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-9fa5e6cc8599c2c7",
@@ -8015,7 +8090,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-c7f0c21f518c9684",
@@ -8026,7 +8106,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-e4cae0740e1f2fe7",
@@ -8037,7 +8122,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-4fe133604b40bc6a",
@@ -8048,7 +8138,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-a7cc4420f15192f9",
@@ -8059,7 +8154,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "La session et le checkpoint relèvent du runner conservé ; un identifiant ou hash seul ne prouve pas le transcript, la fraîcheur ni le dernier effet de reprise.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SESSION_CHECKPOINT_RECOVERY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-0ba244f7b7e70be9",
@@ -8070,7 +8170,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "La session et le checkpoint relèvent du runner conservé ; un identifiant ou hash seul ne prouve pas le transcript, la fraîcheur ni le dernier effet de reprise.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SESSION_CHECKPOINT_RECOVERY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-59a2ea18e46ae99d",
@@ -8081,7 +8186,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "La session et le checkpoint relèvent du runner conservé ; un identifiant ou hash seul ne prouve pas le transcript, la fraîcheur ni le dernier effet de reprise.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SESSION_CHECKPOINT_RECOVERY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-4bde43263bbb9e6b",
@@ -8092,7 +8202,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "La session et le checkpoint relèvent du runner conservé ; un identifiant ou hash seul ne prouve pas le transcript, la fraîcheur ni le dernier effet de reprise.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SESSION_CHECKPOINT_RECOVERY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-31806d4546dbb125",
@@ -8103,7 +8218,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "La session et le checkpoint relèvent du runner conservé ; un identifiant ou hash seul ne prouve pas le transcript, la fraîcheur ni le dernier effet de reprise.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SESSION_CHECKPOINT_RECOVERY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-d68ad8c86de71478",
@@ -8114,7 +8234,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "La session et le checkpoint relèvent du runner conservé ; un identifiant ou hash seul ne prouve pas le transcript, la fraîcheur ni le dernier effet de reprise.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SESSION_CHECKPOINT_RECOVERY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-b67aeb1ac3b334ad",
@@ -8125,7 +8250,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "La session et le checkpoint relèvent du runner conservé ; un identifiant ou hash seul ne prouve pas le transcript, la fraîcheur ni le dernier effet de reprise.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SESSION_CHECKPOINT_RECOVERY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-a2e350b6916de8bc",
@@ -8136,7 +8266,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "La session et le checkpoint relèvent du runner conservé ; un identifiant ou hash seul ne prouve pas le transcript, la fraîcheur ni le dernier effet de reprise.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SESSION_CHECKPOINT_RECOVERY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-179fb80109a90682",
@@ -8147,7 +8282,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "La session et le checkpoint relèvent du runner conservé ; un identifiant ou hash seul ne prouve pas le transcript, la fraîcheur ni le dernier effet de reprise.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SESSION_CHECKPOINT_RECOVERY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-8cb716ed8039f5c0",
@@ -8158,7 +8298,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "La session et le checkpoint relèvent du runner conservé ; un identifiant ou hash seul ne prouve pas le transcript, la fraîcheur ni le dernier effet de reprise.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SESSION_CHECKPOINT_RECOVERY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-4ccf3cf05b050eb2",
@@ -8169,7 +8314,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Reconstruction Git présente ; encore résoudre les sources/attestations courantes, état Issue/PR, outils et champs critiques VERIFIED via le producteur et consommateur réels.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROOF_PREFLIGHT",
+      "consumer_stage": "ADMISSION_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-07020f169310232f",
@@ -8180,7 +8330,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Reconstruction Git présente ; encore résoudre les sources/attestations courantes, état Issue/PR, outils et champs critiques VERIFIED via le producteur et consommateur réels.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROOF_PREFLIGHT",
+      "consumer_stage": "ADMISSION_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-6605c796250f6caa",
@@ -8191,7 +8346,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Reconstruction Git présente ; encore résoudre les sources/attestations courantes, état Issue/PR, outils et champs critiques VERIFIED via le producteur et consommateur réels.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROOF_PREFLIGHT",
+      "consumer_stage": "ADMISSION_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-344f971e868b29dd",
@@ -8202,7 +8362,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Reconstruction Git présente ; encore résoudre les sources/attestations courantes, état Issue/PR, outils et champs critiques VERIFIED via le producteur et consommateur réels.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROOF_PREFLIGHT",
+      "consumer_stage": "ADMISSION_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-9d4509ec8a9ee382",
@@ -8213,7 +8378,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Reconstruction Git présente ; encore résoudre les sources/attestations courantes, état Issue/PR, outils et champs critiques VERIFIED via le producteur et consommateur réels.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROOF_PREFLIGHT",
+      "consumer_stage": "ADMISSION_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-b5e82c1ee705fe0e",
@@ -8224,7 +8394,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Reconstruction Git présente ; encore résoudre les sources/attestations courantes, état Issue/PR, outils et champs critiques VERIFIED via le producteur et consommateur réels.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROOF_PREFLIGHT",
+      "consumer_stage": "ADMISSION_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-b1d3d46b2d54e1a3",
@@ -8235,7 +8410,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Reconstruction Git présente ; encore résoudre les sources/attestations courantes, état Issue/PR, outils et champs critiques VERIFIED via le producteur et consommateur réels.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROOF_PREFLIGHT",
+      "consumer_stage": "ADMISSION_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-1eaad79250e72595",
@@ -8246,7 +8426,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Reconstruction Git présente ; encore résoudre les sources/attestations courantes, état Issue/PR, outils et champs critiques VERIFIED via le producteur et consommateur réels.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROOF_PREFLIGHT",
+      "consumer_stage": "ADMISSION_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-520258d1c0deea05",
@@ -8257,7 +8442,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Reconstruction Git présente ; encore résoudre les sources/attestations courantes, état Issue/PR, outils et champs critiques VERIFIED via le producteur et consommateur réels.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROOF_PREFLIGHT",
+      "consumer_stage": "ADMISSION_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-871bcb8b19ac681d",
@@ -8268,7 +8458,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Reconstruction Git présente ; encore résoudre les sources/attestations courantes, état Issue/PR, outils et champs critiques VERIFIED via le producteur et consommateur réels.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROOF_PREFLIGHT",
+      "consumer_stage": "ADMISSION_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-ba5967c5289e804f",
@@ -8279,7 +8474,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Les contrats source/plan existent ; collecte des sources courantes et production IA ciblée encore à raccorder et prouver.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SOURCE_FIRST_PLANNING",
+      "consumer_stage": "ADMISSION_REQUIREMENTS_IMPACT_PLAN",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-9ffecab9ed382498",
@@ -8290,7 +8490,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Les contrats source/plan existent ; collecte des sources courantes et production IA ciblée encore à raccorder et prouver.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SOURCE_FIRST_PLANNING",
+      "consumer_stage": "ADMISSION_REQUIREMENTS_IMPACT_PLAN",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-7976e7c15f45abb3",
@@ -8301,7 +8506,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Les contrats source/plan existent ; collecte des sources courantes et production IA ciblée encore à raccorder et prouver.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SOURCE_FIRST_PLANNING",
+      "consumer_stage": "ADMISSION_REQUIREMENTS_IMPACT_PLAN",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-750493ad294b47ac",
@@ -8312,7 +8522,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Les contrats source/plan existent ; collecte des sources courantes et production IA ciblée encore à raccorder et prouver.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SOURCE_FIRST_PLANNING",
+      "consumer_stage": "ADMISSION_REQUIREMENTS_IMPACT_PLAN",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-9fadbfc6a8eb422c",
@@ -8323,7 +8538,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Les contrats source/plan existent ; collecte des sources courantes et production IA ciblée encore à raccorder et prouver.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SOURCE_FIRST_PLANNING",
+      "consumer_stage": "ADMISSION_REQUIREMENTS_IMPACT_PLAN",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-61f2b4a58d4fd8fa",
@@ -8334,7 +8554,27 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Les contrats source/plan existent ; collecte des sources courantes et production IA ciblée encore à raccorder et prouver.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SOURCE_FIRST_PLANNING",
+      "consumer_stage": "ADMISSION_REQUIREMENTS_IMPACT_PLAN",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
+    },
+    {
+      "id": "NORM-f3c2691602d67bb1",
+      "source_line": 179,
+      "section": "Plan",
+      "source_text": "```text\nTÂCHE\nTxx-Sxx\n\nCOMPRÉHENSION\n...\n\nPÉRIMÈTRE / FICHIERS IMPACTÉS\n...\n\nPLAN D’IMPLÉMENTATION\n1. ...\n2. ...\n\nMIGRATION / DONNÉES\nAucune | ...\n\nTESTS PRÉVUS\n...\n\nRISQUES / EFFETS DE BORD\n...\n\nAMBIGUÏTÉS\nAucune | ...\n\nSTATUT\nPLAN_READY_FOR_REVIEW\n```",
+      "source_hash": "f3c2691602d67bb15ccce58de4c4ac4f9363fba8d8dca922b580877974f8c4f4",
+      "disposition": "CONSERVÉE",
+      "status": "NON VÉRIFIABLE",
+      "individual_equivalence_proven": false,
+      "source_kind": "FORMAT_REFERENCE",
+      "applicability": "FORMAT_LOGIQUE_OU_PROJECTION_STRUCTUREE_EQUIVALENTE",
+      "responsibility": "SOURCE_FIRST_PLANNING",
+      "consumer_stage": "PLAN",
+      "remaining_correction": "Vérifier tous les champs du format logique via la sortie structurée et son rendu réel ; ne pas imposer le texte libre quand des champs machine équivalents existent."
     },
     {
       "id": "NORM-fefa8e49576eccc2",
@@ -8345,7 +8585,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Les contrats source/plan existent ; collecte des sources courantes et production IA ciblée encore à raccorder et prouver.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SOURCE_FIRST_PLANNING",
+      "consumer_stage": "ADMISSION_REQUIREMENTS_IMPACT_PLAN",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-c0d48ab22f56136a",
@@ -8356,7 +8601,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Les contrats source/plan existent ; collecte des sources courantes et production IA ciblée encore à raccorder et prouver.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SOURCE_FIRST_PLANNING",
+      "consumer_stage": "ADMISSION_REQUIREMENTS_IMPACT_PLAN",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-1815ab772c7b985b",
@@ -8367,7 +8617,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Les contrats source/plan existent ; collecte des sources courantes et production IA ciblée encore à raccorder et prouver.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SOURCE_FIRST_PLANNING",
+      "consumer_stage": "ADMISSION_REQUIREMENTS_IMPACT_PLAN",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-805d088a80589938",
@@ -8378,7 +8633,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Rendre et publier les sorties validées, vérifier les ressources créées et reprendre uniquement la publication ; absence de scénario VNext réel au dernier effet.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PUBLICATION_AND_REPORT",
+      "consumer_stage": "PRODUCER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-f7a3a0fe6ff3a45f",
@@ -8389,7 +8649,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Rendre et publier les sorties validées, vérifier les ressources créées et reprendre uniquement la publication ; absence de scénario VNext réel au dernier effet.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PUBLICATION_AND_REPORT",
+      "consumer_stage": "PRODUCER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-4dd5af65ea1beba9",
@@ -8400,7 +8665,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Rendre et publier les sorties validées, vérifier les ressources créées et reprendre uniquement la publication ; absence de scénario VNext réel au dernier effet.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PUBLICATION_AND_REPORT",
+      "consumer_stage": "PRODUCER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-9efaecd017b02429",
@@ -8411,7 +8681,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-4e82a045aec779af",
@@ -8422,7 +8697,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-e90e0483826ca49f",
@@ -8433,7 +8713,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-5aae00717e317676",
@@ -8444,7 +8729,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Single writer, origin, état Git stable, secrets et permissions : responsabilité du runner conservé ; aucun héritage effectif certifié depuis VNext.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "WRITER_RUNNER_SECURITY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-938be35d1038490b",
@@ -8455,7 +8745,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Single writer, origin, état Git stable, secrets et permissions : responsabilité du runner conservé ; aucun héritage effectif certifié depuis VNext.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "WRITER_RUNNER_SECURITY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-2b05041b7b4372fc",
@@ -8466,7 +8761,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Single writer, origin, état Git stable, secrets et permissions : responsabilité du runner conservé ; aucun héritage effectif certifié depuis VNext.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "WRITER_RUNNER_SECURITY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-4ca8aac4beb1b29a",
@@ -8477,7 +8777,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Single writer, origin, état Git stable, secrets et permissions : responsabilité du runner conservé ; aucun héritage effectif certifié depuis VNext.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "WRITER_RUNNER_SECURITY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-e7ee1d836628206e",
@@ -8488,7 +8793,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Single writer, origin, état Git stable, secrets et permissions : responsabilité du runner conservé ; aucun héritage effectif certifié depuis VNext.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "WRITER_RUNNER_SECURITY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-f8258fa64fdea1d8",
@@ -8499,7 +8809,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-58a37601f46fb94b",
@@ -8510,7 +8825,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Contrats VNext et admission en dépôt de test ; état GitHub courant, mode et écrivain réel, transitions et interruption doivent être prouvés sans affaiblir les barrières.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "AUTHORIZATION_AND_STATE",
+      "consumer_stage": "REVIEW_REVISION_USER_APPROVAL_HANDOFF",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-e047c4293b765ba2",
@@ -8521,7 +8841,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Mesures indisponibles explicitement NON VÉRIFIABLE ; contexte borné et refus sans répétition à démontrer sur exécution réelle, sans inventer coûts ni supprimer de gate.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PERFORMANCE_RESOURCES",
+      "consumer_stage": "PRODUCER_RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-d4ee2d6decaae360",
@@ -8532,7 +8857,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Mesures indisponibles explicitement NON VÉRIFIABLE ; contexte borné et refus sans répétition à démontrer sur exécution réelle, sans inventer coûts ni supprimer de gate.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PERFORMANCE_RESOURCES",
+      "consumer_stage": "PRODUCER_RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-b8a58c71e3dba30f",
@@ -8543,7 +8873,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Mesures indisponibles explicitement NON VÉRIFIABLE ; contexte borné et refus sans répétition à démontrer sur exécution réelle, sans inventer coûts ni supprimer de gate.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PERFORMANCE_RESOURCES",
+      "consumer_stage": "PRODUCER_RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-569601da0f3fb7f3",
@@ -8554,7 +8889,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Mesures indisponibles explicitement NON VÉRIFIABLE ; contexte borné et refus sans répétition à démontrer sur exécution réelle, sans inventer coûts ni supprimer de gate.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PERFORMANCE_RESOURCES",
+      "consumer_stage": "PRODUCER_RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-395b8bd12b12aece",
@@ -8565,7 +8905,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Mesures indisponibles explicitement NON VÉRIFIABLE ; contexte borné et refus sans répétition à démontrer sur exécution réelle, sans inventer coûts ni supprimer de gate.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PERFORMANCE_RESOURCES",
+      "consumer_stage": "PRODUCER_RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-4d66e9e9b8138449",
@@ -8576,7 +8921,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Mesures indisponibles explicitement NON VÉRIFIABLE ; contexte borné et refus sans répétition à démontrer sur exécution réelle, sans inventer coûts ni supprimer de gate.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PERFORMANCE_RESOURCES",
+      "consumer_stage": "PRODUCER_RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-5fab4415d793fb8a",
@@ -8587,7 +8937,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Mesures indisponibles explicitement NON VÉRIFIABLE ; contexte borné et refus sans répétition à démontrer sur exécution réelle, sans inventer coûts ni supprimer de gate.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PERFORMANCE_RESOURCES",
+      "consumer_stage": "PRODUCER_RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-4ca3cd0716221795",
@@ -8598,7 +8953,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Mesures indisponibles explicitement NON VÉRIFIABLE ; contexte borné et refus sans répétition à démontrer sur exécution réelle, sans inventer coûts ni supprimer de gate.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PERFORMANCE_RESOURCES",
+      "consumer_stage": "PRODUCER_RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-b41a29c1d7645181",
@@ -8609,7 +8969,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Mesures indisponibles explicitement NON VÉRIFIABLE ; contexte borné et refus sans répétition à démontrer sur exécution réelle, sans inventer coûts ni supprimer de gate.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PERFORMANCE_RESOURCES",
+      "consumer_stage": "PRODUCER_RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-04b31e7434a381f3",
@@ -8620,7 +8985,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Mesures indisponibles explicitement NON VÉRIFIABLE ; contexte borné et refus sans répétition à démontrer sur exécution réelle, sans inventer coûts ni supprimer de gate.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PERFORMANCE_RESOURCES",
+      "consumer_stage": "PRODUCER_RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-e00025a7a2740d0b",
@@ -8631,7 +9001,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Mesures indisponibles explicitement NON VÉRIFIABLE ; contexte borné et refus sans répétition à démontrer sur exécution réelle, sans inventer coûts ni supprimer de gate.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PERFORMANCE_RESOURCES",
+      "consumer_stage": "PRODUCER_RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-0f90f4640ac97a28",
@@ -8642,7 +9017,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Mesures indisponibles explicitement NON VÉRIFIABLE ; contexte borné et refus sans répétition à démontrer sur exécution réelle, sans inventer coûts ni supprimer de gate.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PERFORMANCE_RESOURCES",
+      "consumer_stage": "PRODUCER_RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-1723ed55507e2875",
@@ -8653,7 +9033,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Mesures indisponibles explicitement NON VÉRIFIABLE ; contexte borné et refus sans répétition à démontrer sur exécution réelle, sans inventer coûts ni supprimer de gate.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PERFORMANCE_RESOURCES",
+      "consumer_stage": "PRODUCER_RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-5b09d63312655ce4",
@@ -8664,7 +9049,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "La session et le checkpoint relèvent du runner conservé ; un identifiant ou hash seul ne prouve pas le transcript, la fraîcheur ni le dernier effet de reprise.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SESSION_CHECKPOINT_RECOVERY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-cbeb9c1e7501bb2b",
@@ -8675,7 +9065,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "PRESERVE/CHANGE/FORBIDDEN, primitive native et exceptions avant code demeurent obligatoires ; contrat UI local ne démontre pas ces barrières ni preuve device downstream.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "CHANGE_CONTROL_NATIVE_UI",
+      "consumer_stage": "PLAN_IMPLEMENTATION_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-a6c482820b244328",
@@ -8686,7 +9081,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "La session et le checkpoint relèvent du runner conservé ; un identifiant ou hash seul ne prouve pas le transcript, la fraîcheur ni le dernier effet de reprise.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "SESSION_CHECKPOINT_RECOVERY",
+      "consumer_stage": "RUNNER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-178cd577dc30070f",
@@ -8697,7 +9097,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "PRESERVE/CHANGE/FORBIDDEN, primitive native et exceptions avant code demeurent obligatoires ; contrat UI local ne démontre pas ces barrières ni preuve device downstream.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "CHANGE_CONTROL_NATIVE_UI",
+      "consumer_stage": "PLAN_IMPLEMENTATION_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-6c1e85c1df862083",
@@ -8708,7 +9113,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "PRESERVE/CHANGE/FORBIDDEN, primitive native et exceptions avant code demeurent obligatoires ; contrat UI local ne démontre pas ces barrières ni preuve device downstream.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "CHANGE_CONTROL_NATIVE_UI",
+      "consumer_stage": "PLAN_IMPLEMENTATION_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-5678ffa71ac70dc1",
@@ -8719,7 +9129,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "PRESERVE/CHANGE/FORBIDDEN, primitive native et exceptions avant code demeurent obligatoires ; contrat UI local ne démontre pas ces barrières ni preuve device downstream.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "CHANGE_CONTROL_NATIVE_UI",
+      "consumer_stage": "PLAN_IMPLEMENTATION_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-bd157e48db489a6c",
@@ -8730,7 +9145,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "PRESERVE/CHANGE/FORBIDDEN, primitive native et exceptions avant code demeurent obligatoires ; contrat UI local ne démontre pas ces barrières ni preuve device downstream.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "CHANGE_CONTROL_NATIVE_UI",
+      "consumer_stage": "PLAN_IMPLEMENTATION_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-f0d6e450d1140f1c",
@@ -8741,7 +9161,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "PRESERVE/CHANGE/FORBIDDEN, primitive native et exceptions avant code demeurent obligatoires ; contrat UI local ne démontre pas ces barrières ni preuve device downstream.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "CHANGE_CONTROL_NATIVE_UI",
+      "consumer_stage": "PLAN_IMPLEMENTATION_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-e3404f3947781e03",
@@ -8752,7 +9177,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "PRESERVE/CHANGE/FORBIDDEN, primitive native et exceptions avant code demeurent obligatoires ; contrat UI local ne démontre pas ces barrières ni preuve device downstream.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "CHANGE_CONTROL_NATIVE_UI",
+      "consumer_stage": "PLAN_IMPLEMENTATION_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-c4f2d360bef1982b",
@@ -8763,7 +9193,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "PRESERVE/CHANGE/FORBIDDEN, primitive native et exceptions avant code demeurent obligatoires ; contrat UI local ne démontre pas ces barrières ni preuve device downstream.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "CHANGE_CONTROL_NATIVE_UI",
+      "consumer_stage": "PLAN_IMPLEMENTATION_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-8b7af59e2c72d9cd",
@@ -8774,7 +9209,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "PRESERVE/CHANGE/FORBIDDEN, primitive native et exceptions avant code demeurent obligatoires ; contrat UI local ne démontre pas ces barrières ni preuve device downstream.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "CHANGE_CONTROL_NATIVE_UI",
+      "consumer_stage": "PLAN_IMPLEMENTATION_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-b3020f501b699980",
@@ -8785,7 +9225,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Rendre et publier les sorties validées, vérifier les ressources créées et reprendre uniquement la publication ; absence de scénario VNext réel au dernier effet.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PUBLICATION_AND_REPORT",
+      "consumer_stage": "PRODUCER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-9335aab761f5772f",
@@ -8796,7 +9241,27 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Rendre et publier les sorties validées, vérifier les ressources créées et reprendre uniquement la publication ; absence de scénario VNext réel au dernier effet.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PUBLICATION_AND_REPORT",
+      "consumer_stage": "PRODUCER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
+    },
+    {
+      "id": "NORM-ecb7af4c7cb2a1b0",
+      "source_line": 351,
+      "section": "Rapport après implémentation",
+      "source_text": "```text\nTÂCHE\nTxx-Sxx\n\nSTATUT\nIMPLEMENTATION_READY_FOR_REVIEW\n\nRÉSUMÉ\n...\n\nFICHIERS MODIFIÉS\n...\n\nCRITÈRES D’ACCEPTATION\nAC-xx : CONFORME | PARTIELLEMENT CONFORME | NON CONFORME | NON VÉRIFIABLE\nPreuve : ...\n\nTESTS EXÉCUTÉS\ncommande : ...\nrésultat : PASS | FAIL\n\nTESTS NON EXÉCUTÉS\n...\nraison : ...\n\nÉCARTS AU PLAN APPROUVÉ\nAucun | ...\n\nLIMITATIONS\n...\n\nDÉCISIONS TECHNIQUES\n...\n\nÀ CLARIFIER\nAucun | ...\n\nPERFORMANCE / RESSOURCES\nDurée IA : ... | NON VÉRIFIABLE\nTours/appels : ... | NON VÉRIFIABLE\nPermissions refusées : ... | NON VÉRIFIABLE\nContexte : OK | ÉLEVÉ | À COMPACTER | NON VÉRIFIABLE\nCoût/consommation : ... | NON VÉRIFIABLE\nInefficacités observées : Aucune | ...\nAction : CONTINUER | OPTIMISER | ORCHESTRATION_FAILURE | ARBITRAGE\n\nCOMMIT\n...\n\nSELF-CHECK CLAUDE\n...\n```",
+      "source_hash": "ecb7af4c7cb2a1b000801d5ab75465f2ce419f071db137d4d733d68d5a0bb41e",
+      "disposition": "CONSERVÉE",
+      "status": "NON VÉRIFIABLE",
+      "individual_equivalence_proven": false,
+      "source_kind": "FORMAT_REFERENCE",
+      "applicability": "FORMAT_LOGIQUE_OU_PROJECTION_STRUCTUREE_EQUIVALENTE",
+      "responsibility": "PUBLICATION_AND_REPORT",
+      "consumer_stage": "IMPLEMENTATION_DOWNSTREAM",
+      "remaining_correction": "Vérifier tous les champs du format logique via la sortie structurée et son rendu réel ; ne pas imposer le texte libre quand des champs machine équivalents existent."
     },
     {
       "id": "NORM-578e97997a46f4cb",
@@ -8807,7 +9272,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Revue du diff réel, tests/AC, self-check distinct, validation humaine et état Git final à démontrer ; HANDOFF_READY ne signifie pas READY_TO_CLOSE.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "INDEPENDENT_REVIEW_CLOSURE",
+      "consumer_stage": "IMPLEMENTATION_FINAL_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-2f62b3dc2ce8ea30",
@@ -8818,7 +9288,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Revue du diff réel, tests/AC, self-check distinct, validation humaine et état Git final à démontrer ; HANDOFF_READY ne signifie pas READY_TO_CLOSE.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "INDEPENDENT_REVIEW_CLOSURE",
+      "consumer_stage": "IMPLEMENTATION_FINAL_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-edb51e1eac56d7c4",
@@ -8829,7 +9304,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Revue du diff réel, tests/AC, self-check distinct, validation humaine et état Git final à démontrer ; HANDOFF_READY ne signifie pas READY_TO_CLOSE.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "INDEPENDENT_REVIEW_CLOSURE",
+      "consumer_stage": "IMPLEMENTATION_FINAL_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-296ea7954a44d2a7",
@@ -8840,7 +9320,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Revue du diff réel, tests/AC, self-check distinct, validation humaine et état Git final à démontrer ; HANDOFF_READY ne signifie pas READY_TO_CLOSE.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "INDEPENDENT_REVIEW_CLOSURE",
+      "consumer_stage": "IMPLEMENTATION_FINAL_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-a9c4c39415e91b98",
@@ -8851,7 +9336,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Revue du diff réel, tests/AC, self-check distinct, validation humaine et état Git final à démontrer ; HANDOFF_READY ne signifie pas READY_TO_CLOSE.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "INDEPENDENT_REVIEW_CLOSURE",
+      "consumer_stage": "IMPLEMENTATION_FINAL_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-06b8976c81c67a28",
@@ -8862,7 +9352,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Revue du diff réel, tests/AC, self-check distinct, validation humaine et état Git final à démontrer ; HANDOFF_READY ne signifie pas READY_TO_CLOSE.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "INDEPENDENT_REVIEW_CLOSURE",
+      "consumer_stage": "IMPLEMENTATION_FINAL_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-fb761dbf9815e360",
@@ -8873,7 +9368,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Revue du diff réel, tests/AC, self-check distinct, validation humaine et état Git final à démontrer ; HANDOFF_READY ne signifie pas READY_TO_CLOSE.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "INDEPENDENT_REVIEW_CLOSURE",
+      "consumer_stage": "IMPLEMENTATION_FINAL_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-d2b13824c984e23d",
@@ -8884,7 +9384,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Revue du diff réel, tests/AC, self-check distinct, validation humaine et état Git final à démontrer ; HANDOFF_READY ne signifie pas READY_TO_CLOSE.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "INDEPENDENT_REVIEW_CLOSURE",
+      "consumer_stage": "IMPLEMENTATION_FINAL_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-7703acf8a9cd09f4",
@@ -8895,7 +9400,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Git object LF/CRLF/Unicode testé ; preuve adaptée au worktree/index/commit/synchronisation distante final à observer dans le contexte réel.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "EXACT_GIT_EVIDENCE",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-e8998c1cc9c713f3",
@@ -8906,7 +9416,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Git object LF/CRLF/Unicode testé ; preuve adaptée au worktree/index/commit/synchronisation distante final à observer dans le contexte réel.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "EXACT_GIT_EVIDENCE",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-2a2883c6f8d6b40d",
@@ -8917,7 +9432,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Git object LF/CRLF/Unicode testé ; preuve adaptée au worktree/index/commit/synchronisation distante final à observer dans le contexte réel.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "EXACT_GIT_EVIDENCE",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-9342be05c3a38195",
@@ -8928,7 +9448,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Git object LF/CRLF/Unicode testé ; preuve adaptée au worktree/index/commit/synchronisation distante final à observer dans le contexte réel.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "EXACT_GIT_EVIDENCE",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-c7e2e0b40130c757",
@@ -8939,7 +9464,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Rendre et publier les sorties validées, vérifier les ressources créées et reprendre uniquement la publication ; absence de scénario VNext réel au dernier effet.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PUBLICATION_AND_REPORT",
+      "consumer_stage": "PRODUCER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-69f8e00ae31737d0",
@@ -8950,7 +9480,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Rendre et publier les sorties validées, vérifier les ressources créées et reprendre uniquement la publication ; absence de scénario VNext réel au dernier effet.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PUBLICATION_AND_REPORT",
+      "consumer_stage": "PRODUCER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-02e36f6fe4ea90a9",
@@ -8961,7 +9496,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Rendre et publier les sorties validées, vérifier les ressources créées et reprendre uniquement la publication ; absence de scénario VNext réel au dernier effet.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PUBLICATION_AND_REPORT",
+      "consumer_stage": "PRODUCER_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-dfa8d73aca48fd08",
@@ -8972,7 +9512,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Stratégie propre au bloc T01 conservée sous sa condition ; ne pas la convertir en politique de branche générique VNext ni prétendre la réévaluation T02 faite.",
+      "applicability": "CONDITIONNELLE_T01",
+      "responsibility": "T01_BRANCH_POLICY",
+      "consumer_stage": "CONDITIONAL_T01",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-20cb7c2dc80dafd8",
@@ -8983,7 +9528,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Stratégie propre au bloc T01 conservée sous sa condition ; ne pas la convertir en politique de branche générique VNext ni prétendre la réévaluation T02 faite.",
+      "applicability": "CONDITIONNELLE_T01",
+      "responsibility": "T01_BRANCH_POLICY",
+      "consumer_stage": "CONDITIONAL_T01",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-a8cb9a157915333f",
@@ -8994,7 +9544,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Revue du diff réel, tests/AC, self-check distinct, validation humaine et état Git final à démontrer ; HANDOFF_READY ne signifie pas READY_TO_CLOSE.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "INDEPENDENT_REVIEW_CLOSURE",
+      "consumer_stage": "IMPLEMENTATION_FINAL_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-46744a58f7f64e1a",
@@ -9005,7 +9560,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Revue du diff réel, tests/AC, self-check distinct, validation humaine et état Git final à démontrer ; HANDOFF_READY ne signifie pas READY_TO_CLOSE.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "INDEPENDENT_REVIEW_CLOSURE",
+      "consumer_stage": "IMPLEMENTATION_FINAL_DOWNSTREAM",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-f1c6bffe9f1134ad",
@@ -9016,7 +9576,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Rapport versionné nécessaire avant clôture ; faits datés V1.3/V1.4 non réutilisés comme état actuel. Les instructions utilisateur explicites restent prioritaires sur ces consignes documentaires.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "DELIVERY_REPORT",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-c5efb65e93e5becc",
@@ -9027,7 +9592,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Rapport versionné nécessaire avant clôture ; faits datés V1.3/V1.4 non réutilisés comme état actuel. Les instructions utilisateur explicites restent prioritaires sur ces consignes documentaires.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "DELIVERY_REPORT",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-0f581b5844e7e2fb",
@@ -9038,7 +9608,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Rapport versionné nécessaire avant clôture ; faits datés V1.3/V1.4 non réutilisés comme état actuel. Les instructions utilisateur explicites restent prioritaires sur ces consignes documentaires.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "DELIVERY_REPORT",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-37c1f0ac3596cbdd",
@@ -9049,7 +9624,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Rapport versionné nécessaire avant clôture ; faits datés V1.3/V1.4 non réutilisés comme état actuel. Les instructions utilisateur explicites restent prioritaires sur ces consignes documentaires.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "DELIVERY_REPORT",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-cd5d55e2fd018075",
@@ -9060,7 +9640,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Rapport versionné nécessaire avant clôture ; faits datés V1.3/V1.4 non réutilisés comme état actuel. Les instructions utilisateur explicites restent prioritaires sur ces consignes documentaires.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "DELIVERY_REPORT",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-e8fa719fefcd69bb",
@@ -9071,7 +9656,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Rapport versionné nécessaire avant clôture ; faits datés V1.3/V1.4 non réutilisés comme état actuel. Les instructions utilisateur explicites restent prioritaires sur ces consignes documentaires.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "DELIVERY_REPORT",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-3eedaa86d625eab1",
@@ -9082,7 +9672,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Prouver conservation des barrières, rôles indépendants et quatre axes dans les consommateurs réels ; aucun audit différentiel global certifié.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROTOCOL_GOVERNANCE",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-2a1b1526f2653ab7",
@@ -9093,7 +9688,12 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Prouver conservation des barrières, rôles indépendants et quatre axes dans les consommateurs réels ; aucun audit différentiel global certifié.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROTOCOL_GOVERNANCE",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     },
     {
       "id": "NORM-48e8f04427eb2334",
@@ -9104,8 +9704,13 @@
       "disposition": "CONSERVÉE",
       "status": "NON VÉRIFIABLE",
       "individual_equivalence_proven": false,
-      "remaining_correction": "Qualifier la portée actuelle et la responsabilité de chaque clause ; l’existence dans le protocole historique ne démontre pas sa consommation VNext."
+      "remaining_correction": "Prouver conservation des barrières, rôles indépendants et quatre axes dans les consommateurs réels ; aucun audit différentiel global certifié.",
+      "applicability": "RESPONSABILITE_CONSERVEE",
+      "responsibility": "PROTOCOL_GOVERNANCE",
+      "consumer_stage": "ALL",
+      "source_kind": "PROSE",
+      "classification_note": "Portée attribuée à la clause source individuelle ; classification seule sans preuve de consommation ni conformité."
     }
   ],
-  "qualification_note": "La lecture individuelle est achevée ; équivalences et intégration non certifiées. Aucun résultat historique n’est réutilisé comme PASS VNext."
+  "qualification_note": "165 incidents, 138 tests, 115 unités de prose et 2 formats de référence classifiés individuellement. Classification et dépôt de test ne prouvent pas exécution VNext réelle. NOT_READY."
 }

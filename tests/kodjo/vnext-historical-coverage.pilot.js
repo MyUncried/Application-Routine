@@ -18,10 +18,29 @@ test('historical coverage inventories each original incident/test and exact norm
 test('historical cardinality cannot certify individual coverage or launch VNext-12', () => {
   assert.throws(() => H.assertHistoricalReady({ ...matrix, readiness: 'READY' }, sources), /INDIVIDUAL_COVERAGE_NOT_READY/);
 });
+
+test('historical ready flags cannot replace resolved per-subject evidence at the candidate commit', () => {
+  const changed = structuredClone(matrix);
+  for (const row of [...changed.incidents, ...changed.tests, ...changed.normative_paragraphs]) {
+    row.status = 'CONFORME'; row.individual_equivalence_proven = true;
+  }
+  assert.throws(() => H.assertHistoricalReady(changed, sources, { candidateHead: 'a'.repeat(40) }), /EVIDENCE_RESOLVER_REQUIRED/);
+  assert.throws(() => H.assertHistoricalReady(changed, sources, { candidateHead: 'a'.repeat(40), resolveEvidence: () => null }), /QUALIFICATION_EVIDENCE_REQUIRED/);
+});
 test('historical inventory rejects same-cardinality substituted IDs and changed sources', () => {
   const changed = structuredClone(matrix); changed.tests[0].id = 'T-999';
   assert.throws(() => H.validateInventory(changed, sources), /INDIVIDUAL_IDS_INCOMPLETE/);
   assert.throws(() => H.validateInventory(matrix, { ...sources, normativeSource: sources.normativeSource + '\nchanged' }), /SOURCE_CHANGED/);
+});
+
+test('historical normative coverage refuses omitted prose or reference-format units', () => {
+  for (const kind of ['PROSE', 'FORMAT_REFERENCE']) {
+    const changed = structuredClone(matrix);
+    const index = changed.normative_paragraphs.findIndex(row => row.source_kind === kind);
+    assert.ok(index >= 0);
+    changed.normative_paragraphs.splice(index, 1);
+    assert.throws(() => H.validateInventory(changed, sources), /NORMATIVE_COVERAGE_INCOMPLETE/);
+  }
 });
 
 test('historical fingerprints use Git bytes rather than converted CRLF checkout bytes', () => {

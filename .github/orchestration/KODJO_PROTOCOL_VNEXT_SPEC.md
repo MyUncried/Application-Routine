@@ -2177,3 +2177,34 @@ sans filtres Git implicites. Aucune normalisation globale du dépôt n’est pre
 Le [rapport de fermeture ciblée](reports/2026-09-30_VNEXT_ARCHITECTURE_CLOSURE.md)
 distingue corrections contractuelles, preuves d’intégration encore absentes et
 réserves avant cutover. Il ne vaut ni VNext-12 ni audit final.
+
+### 23.6 Matérialisation avant approbation et admission vérifiée
+
+Les fichiers de transport plan/revue/mission sont préparés à partir des
+artefacts canoniques validés, puis versionnés avant l’approbation du commit
+protocolaire exact. Ils portent le hash du PlanContract ; la revue porte
+également le hash du ReviewReport. Ils ne contiennent pas l’ExecutionRequest
+postérieur, qui dépend du commit et de l’ApprovalRecord. Le lien exact vers
+l’ExecutionRequest reste dans la projection canonique scellée et son guard.
+Cette séparation évite de demander à un commit de contenir son propre hash.
+
+Le point d’entrée `vnext-queue-admission.verifyQueueAdmission` est en lecture
+seule. Il reconstruit runtime et projection, compare la demande, lit les trois
+fichiers via les objets Git du commit approuvé et appelle le consommateur
+`verify-authorizations.js`. Le commentaire GitHub doit aussi porter le hash
+exact de l’ApprovalTarget. La réaction du propriétaire doit être postérieure
+ou égale à la dernière édition du commentaire et antérieure ou égale à
+l’observation d’approbation. Une réaction conservée après modification de
+l’objet soumis ne vaut donc pas nouvelle approbation. Le client de production
+effectue des lectures GitHub authentifiées, sans fallback hors ligne.
+
+La préparation et l’admission sont testées en dépôt jetable avec un client
+GitHub de fixture. Leur raccordement à un producteur/workflow réel, au runner,
+au contrat downstream d’implémentation et aux preuves de chaque responsabilité
+reste requis avant VNext-12. Ces tests n’autorisent aucune queue réelle.
+
+La couverture historique contient toutes les unités de prose et les formats
+de référence de la source normative. La readiness exige des preuves par sujet,
+résolues au candidat exact par le consommateur ; des flags CONFORME seuls ne
+constituent pas une certification. La classification des clauses identifie
+responsabilité et phase sans promouvoir un résultat historique en PASS VNext.

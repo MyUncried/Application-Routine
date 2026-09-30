@@ -1,6 +1,7 @@
 'use strict';
 
 const crypto = require('node:crypto');
+const { execFileSync } = require('node:child_process');
 const V = require('./vnext-contract');
 const Approval = require('./approval-handoff-contract');
 const Plan = require('./plan-contract');
@@ -25,13 +26,10 @@ function gitBlobOid(text) {
 }
 
 function renderCompatibilityPlan(executionRequest, planContract) {
-  V.assertSha64(executionRequest.contract_hash, 'VNEXT_QUEUE_EXECUTION_HASH_INVALID');
   Plan.verifyMarkdownProjection(Plan.renderMarkdown(planContract), planContract);
   return [
     '# KODJO VNext — Projection transport du plan',
     '',
-    'vnext_execution_request_hash=' + executionRequest.contract_hash,
-    'execution_fingerprint=' + executionRequest.execution_fingerprint,
     'application_head=' + executionRequest.application_head,
     'plan_contract_hash=' + executionRequest.plan_contract_hash,
     '',
@@ -48,7 +46,7 @@ function renderCompatibilityReview(executionRequest, reviewReport, planPath) {
     '',
     'Plan revu : ' + planName,
     'review_report_hash=' + reviewReport.contract_hash,
-    'vnext_execution_request_hash=' + executionRequest.contract_hash,
+    'plan_contract_hash=' + reviewReport.plan_contract_hash,
     '',
     'Verdict: APPROVED',
     '',
@@ -60,8 +58,7 @@ function renderCompatibilityMission(executionRequest) {
   return [
     '# Mission d’implémentation — ' + executionRequest.slice_id,
     '',
-    'vnext_execution_request_hash=' + executionRequest.contract_hash,
-    'execution_fingerprint=' + executionRequest.execution_fingerprint,
+    'plan_contract_hash=' + executionRequest.plan_contract_hash,
     'application_head=' + executionRequest.application_head,
     'operation_kind=IMPLEMENT',
     'checks=' + executionRequest.checks.join(','),
@@ -76,6 +73,24 @@ function renderCompatibilityMission(executionRequest) {
     'Tout besoin hors scope doit arrêter l’exécution avant modification.',
     '',
   ].join('\n');
+}
+
+// These immutable files must be published BEFORE approving their commit.
+// Embedding the later ExecutionRequest (which contains that commit and approval)
+// would require the commit to contain its own hash. The sealed queue projection
+// carries the ExecutionRequest binding instead.
+function prepareCompatibilityFiles(args) {
+  const { planContract, reviewReport, transport } = args;
+  const request = Approval.buildExecutionCore(args);
+  const bodies = {
+    plan: [transport.plan_path, renderCompatibilityPlan(request, planContract)],
+    review: [transport.review_path, renderCompatibilityReview(request, reviewReport, transport.plan_path)],
+    mission: [transport.prompt_file, renderCompatibilityMission(request)],
+  };
+  return Object.fromEntries(Object.entries(bodies).map(([kind, [filePath, content]]) => {
+    safeRelativePath(filePath, 'VNEXT_QUEUE_COMPATIBILITY_PATH_INVALID', kind);
+    return [kind, { path: filePath, blob_oid: gitBlobOid(content), content_sha256: V.sha256(content), content }];
+  }));
 }
 
 function validateTransport(transport, executionRequest, approvalRecord) {
@@ -218,10 +233,10 @@ function validateLegacyQueueProjection(projection, executionRequest) {
   if (queue.independent_review.reviewed_plan_blob_oid !== projection.compatibility_files.plan.blob_oid) {
     V.fail('VNEXT_QUEUE_COMPATIBILITY_REVIEW_PLAN_MISMATCH');
   }
-  if (!projection.compatibility_files.plan.content.includes(executionRequest.contract_hash)
-      || !projection.compatibility_files.review.content.includes(executionRequest.contract_hash)
-      || !projection.compatibility_files.mission.content.includes(executionRequest.contract_hash)) {
-    V.fail('VNEXT_QUEUE_COMPATIBILITY_EXECUTION_REFERENCE_MISSING');
+  if (!projection.compatibility_files.plan.content.includes(executionRequest.plan_contract_hash)
+      || !projection.compatibility_files.review.content.includes(executionRequest.plan_contract_hash)
+      || !projection.compatibility_files.mission.content.includes(executionRequest.plan_contract_hash)) {
+    V.fail('VNEXT_QUEUE_COMPATIBILITY_PLAN_REFERENCE_MISSING');
   }
   const violations = validateQueueRequest(queue);
   if (violations.length) V.fail('VNEXT_QUEUE_PROJECTION_LEGACY_INVALID');
@@ -236,7 +251,22 @@ function validateLegacyQueueProjection(projection, executionRequest) {
   return true;
 }
 
+function verifyCompatibilityFilesAtApprovedCommit(projection, executionRequest, { cwd }) {
+  validateLegacyQueueProjection(projection, executionRequest);
+  for (const [kind, file] of Object.entries(projection.compatibility_files)) {
+    safeRelativePath(file.path, 'VNEXT_QUEUE_COMPATIBILITY_PATH_INVALID', kind);
+    let actual;
+    try {
+      actual = execFileSync('git', ['show', executionRequest.protocol_head + ':' + file.path],
+        { cwd, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 8 * 1024 * 1024 });
+    } catch (_) { V.fail('VNEXT_QUEUE_APPROVED_FILE_UNAVAILABLE', kind); }
+    if (!actual.equals(Buffer.from(file.content, 'utf8'))) V.fail('VNEXT_QUEUE_APPROVED_FILE_MISMATCH', kind);
+  }
+  return true;
+}
+
 module.exports = {
   SCHEMA, gitBlobOid, renderCompatibilityPlan, renderCompatibilityReview,
-  renderCompatibilityMission, buildLegacyQueueProjection, validateLegacyQueueProjection,
+  renderCompatibilityMission, prepareCompatibilityFiles, buildLegacyQueueProjection, validateLegacyQueueProjection,
+  verifyCompatibilityFilesAtApprovedCommit,
 };
