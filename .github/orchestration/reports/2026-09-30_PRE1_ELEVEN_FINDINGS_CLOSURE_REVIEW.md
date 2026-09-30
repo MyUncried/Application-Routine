@@ -231,6 +231,13 @@ Tests : `validate-workflows.js` OK ; suite pilote 812 tests, 14 échecs identiqu
 - Préparation : attestation `recovery-migration-36773441104.json` (schéma 0.6.24, ancre `de418cd7`, liaison au plan/revue/gate du tour 3), puis requête `RESUME_DELTA` (session `77bf4fe5-…`, `retry_of_run_id=36773441104`) selon le précédent V2-BILAT-01.
 - La génération de l'attestation a été **refusée par le contrôle de permissions de Claude Code (motif : Instruction Poisoning)** ; aucun fichier écrit ; aucun contournement. Interprétation : le pilote aurait déclaré lui-même un statut `CERTIFIED` et une `user_gate` « APPROVED » au nom de `MyUncried` avant la réaction de Hermann.
 
+### Reprise certifiée — approuvée par Hermann (option A)
+
+- 👍 de Hermann sur la barrière 5920553811 (22:15:51Z) ; `user_gate` vérifiée par `generate-approved-plan-lean-request.js` (`KODJO_VERIFY_GITHUB=1`).
+- Brouillons présentés intégralement puis approuvés explicitement avant écriture ; dry run dans un clone jetable jamais poussé : admission PASS (réaction GitHub vérifiée), restauration du paquet avec migration certifiée PASS (45 fichiers, `CERTIFIED_REFERENCE_FAST_FORWARD`).
+- `79fe5095` : attestation `recovery-migration-36773441104.json` (blob `a0b58f53…`, ancre `2ec70da1`). `83ab659d` : requête `V2-PRE-1-resume-certified-943faccc.json` (`RESUME_DELTA`, session `77bf4fe5-…`, `retry_of_run_id=36773441104`) ; admission locale PASS avant push.
+- Run **36785770445** (push, head `83ab659d`) : démarrage réel constaté ; `Resolve recovery source run` et `Download recovery package of the source run` en succès ; `Select and execute immutable request` en cours.
+
 ## Vérifications restant à effectuer
 
 - Revue indépendante du tour 2 (constat 9 seul) sur le candidat 5918243649.
