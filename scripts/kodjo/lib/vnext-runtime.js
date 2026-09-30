@@ -9,6 +9,7 @@ const Ui = require('./ui-atomicity-contract');
 const Review = require('./review-contract');
 const Revision = require('./revision-contract');
 const Approval = require('./approval-handoff-contract');
+const Convergence = require('./audit-convergence-contract');
 
 const SCHEMA = 'kodjo.vnext.runtime-snapshot.v1';
 const STAGES = Object.freeze([
@@ -46,13 +47,15 @@ function validateRevisionChain({
   }
   V.assertExactKeys(
     revisionArtifacts,
-    ['allowed_change_set', 'revision_patch', 'revision_outcome'],
+    ['allowed_change_set', 'revision_patch', 'revision_outcome', 'previous_review_report', 'finding_ledger'],
     [],
     'VNEXT_RUNTIME_REVISION_ARTIFACT_KEYS_INVALID',
   );
   const allowed = revisionArtifacts.allowed_change_set;
   const patch = revisionArtifacts.revision_patch;
   const outcome = revisionArtifacts.revision_outcome;
+  const previousReviewReport = revisionArtifacts.previous_review_report;
+  const findingLedger = revisionArtifacts.finding_ledger;
 
   Revision.validateAllowedChangeSet(allowed);
   Revision.validateRevisionPatch(patch, allowed);
@@ -95,6 +98,17 @@ function validateRevisionChain({
   if (planningEnvelope.base_review_hash !== allowed.review_report_hash) {
     V.fail('VNEXT_RUNTIME_REVISION_BASE_REVIEW_MISMATCH');
   }
+  V.verifyContractHash(previousReviewReport, 'VNEXT_RUNTIME_PREVIOUS_REVIEW_HASH_MISMATCH');
+  if (previousReviewReport.contract_hash !== allowed.review_report_hash) {
+    V.fail('VNEXT_RUNTIME_PREVIOUS_REVIEW_MISMATCH');
+  }
+  Convergence.validateFindingLedger(findingLedger, previousReviewReport, reviewReport);
+  const openPrevious = findingLedger.entries.filter(
+    (row) => row.origin === 'PREVIOUS_BLOCKING' && row.lifecycle_status === 'OPEN',
+  );
+  if (openPrevious.length > 0) {
+    V.fail('VNEXT_RUNTIME_PREVIOUS_FINDINGS_STILL_OPEN', openPrevious.map((row) => row.finding_id).join(','));
+  }
   const causal = [...planningEnvelope.causal_findings].sort();
   if (V.canonicalStringify(causal) !== V.canonicalStringify([...allowed.blocking_finding_ids].sort())) {
     V.fail('VNEXT_RUNTIME_REVISION_FINDINGS_MISMATCH');
@@ -103,7 +117,12 @@ function validateRevisionChain({
   return Object.freeze({
     stage: 'REVISION',
     status: 'RESOLVED',
-    evidence_hashes: [allowed.contract_hash, patch.contract_hash, outcome.contract_hash],
+    evidence_hashes: [
+      allowed.contract_hash,
+      patch.contract_hash,
+      outcome.contract_hash,
+      findingLedger.contract_hash,
+    ],
   });
 }
 
