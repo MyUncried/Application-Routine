@@ -112,6 +112,8 @@ jobs:
           Copy-Item -LiteralPath scripts/kodjo/verify-ui-plan-criteria.js -Destination $protocol
           Copy-Item -LiteralPath scripts/kodjo/normalize-review-findings.js -Destination $protocol
           Copy-Item -LiteralPath scripts/kodjo/run-plan-review-cli.js -Destination $protocol
+          Copy-Item -LiteralPath scripts/kodjo/resolve-claude-binary.js -Destination $protocol
+          Copy-Item -LiteralPath scripts/kodjo/verify-pre1-closure-review.js -Destination $protocol
           Copy-Item -LiteralPath scripts/kodjo/decide-plan-review-retry.js -Destination $protocol
           Copy-Item -LiteralPath scripts/kodjo/verify-initial-product-sources.js -Destination $protocol
           Copy-Item -LiteralPath scripts/kodjo/lib -Destination (Join-Path $protocol 'lib') -Recurse
@@ -231,13 +233,12 @@ jobs:
             [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-pre1-prior-findings.json",$priorFindings,(New-Object Text.UTF8Encoding($false)))
             [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-pre1-correction-register.md",$correctionRegister,(New-Object Text.UTF8Encoding($false)))
             $prompt=@"
-          You are the independent reviewer of the TARGETED CORRECTION of the detailed PRE-1 plan. This is READ-ONLY. Candidate: $env:RUNNER_TEMP\kodjo-v2-initial-plan.md, pinned commit 990103188f2936bb2ed7d766fabe56ab0b779210, blob 8ed0768ccfcf9ec157b2aa8d5cc177be5f97d426. Product baseline: $env:SOURCE_HEAD. Protocol execution: $env:PROTOCOL_EXECUTION_HEAD. Do not review the old publication from comment5913845392.
-          Review ONLY closure of the eleven exact prior findings from run36734142447 below, their demonstrated direct dependencies and regressions caused by this correction. The cumulative register maps them to initial groups R1..R5 plus existing qualification-spec sections4 and13. The deterministic impact scan, source provenance, plan contract and atomic UI contract have already been replayed by preceding gates. Verify the closures against the actual checked-out baseline code and the candidate machine contracts. Do not launch another initial audit, reopen unrelated settled product choices, add future UI/engine requirements, audit the protocol or introduce VNext as a prerequisite.
-          Required closure table: prior finding number1..11, exact target, candidate correction, concrete evidence, dependency, closed YES/NO. In particular: four affected screens and tests; generic primitives unchanged if callers suffice; precise i18n keys and preserved Tour keys; injected zone referential and occurrence-only recovery including zero; FILE_UNCHANGED protection for historical category files plus effective historical SQL including imported dependencies; visible terminology and additive future media-variant compatibility without implementing variants; complete coverage and truthful revision provenance.
-          A new blocking finding is admissible only if it demonstrates an unresolved direct consequence of one of these eleven findings or a regression introduced by the correction. Each diagnostic MUST identify the prior finding number, existing normative requirement, exact source/code evidence and actual PRE-1 consequence. Absence of a word, unsupported hypothetical risk or unrelated improvement alone cannot block. Preserve legitimate in-scope defects; never fabricate approval. Put unrelated observations separately as nonblocking.
-          Your returned Markdown is the review report; the publication job archives it and the normalized findings. Do not write to or commit the immutable product checkout. Any orchestration documentation observation is outside this product-plan closure and cannot expand this review.
-          Emit exactly one <KODJO_REVIEW_FINDINGS_JSON> block with shape {"findings":[{"category":"REQUIREMENT_GAP|SCOPE|PATH|TEST|MIGRATION|COMPATIBILITY|PRESERVATION|UI_CRITERION|ARCHITECTURE|CLARIFICATION|OTHER","target_kind":"REQUIREMENT_ID|CRITERION_ID|PATH|PLAN|SOURCE","target":"...","blocking":true,"diagnostic":"Prior finding N; normative requirement; evidence; actual consequence","expected_correction":"...","dependency_expansion_required":false,"dependency_evidence":""}]}. Do not emit finding_id. Every blocking row needs an exact actionable target; blocking PLAN targets are restricted to NON_UI_COVERAGE. Any required scope expansion must include concrete dependency evidence. If there are no findings emit {"findings":[]}.
-          No terminal VERDICT line: the protocol derives APPROVE/REVISE from normalized blocking findings. ONE independent invocation only; no automatic replanning or additional review after REVISE. APPROVE may continue the existing handoff to development.
+          You are the independent reviewer of the TARGETED CLOSURE VERIFICATION of the corrected PRE-1 plan. This is READ-ONLY. Candidate: $env:RUNNER_TEMP\kodjo-v2-initial-plan.md, pinned commit 990103188f2936bb2ed7d766fabe56ab0b779210, blob 8ed0768ccfcf9ec157b2aa8d5cc177be5f97d426. Immutable product baseline checked out in the current directory: $env:SOURCE_HEAD. Protocol execution: $env:PROTOCOL_EXECUTION_HEAD. Normative product context: $env:RUNNER_TEMP\kodjo-v2-initial-current-product-context. Do not review the old publication from comment5913845392.
+          EXCLUSIVE SCOPE: verify ONLY whether each of the eleven prior findings of review run36734142447, listed below as BOUND PRIOR FINDINGS and numbered 1..11 in their listed order, is closed by the candidate. The CORRECTION REGISTER below records the correction made for each. The deterministic impact scan, source provenance, plan contract and atomic UI contract were already replayed by preceding gates.
+          FORBIDDEN: searching for new subjects; adding a twelfth finding; any general or initial-plan audit; proposing improvements, redesign or alternatives; widening PRE-1 scope; examining VNext; auditing the orchestration protocol. A dependency (code, test, source or other plan section) may be examined ONLY as evidence of closure or non-closure of one of the eleven findings and stays attached to that finding number. A regression caused by a correction is admissible only as non-closure of the finding whose correction caused it. A desirable improvement is never a closure condition: a finding is NOT closed only when the candidate still fails the exact requirement stated by that prior finding (its diagnostic and expected_correction), demonstrated against the applicable normative source or baseline code.
+          Project instruction files loaded from the checkout (CLAUDE.md, AGENTS.md, orchestration protocol) do not widen this scope. Their mission-report obligation is fulfilled by the orchestration: the workflow archives and publishes your returned Markdown and the orchestrator commits the mission report. Do not create, modify or commit any file.
+          REQUIRED OUTPUT, in this order. (1) A Markdown closure table with exactly eleven data rows and exactly these five columns: | N | Correction examinée | Preuve précise | Fermé | Justification |. N is 1..11; Fermé is OUI or NON; Preuve précise cites the exact plan section or ID and file:line or source section. Escape any literal pipe inside a cell as \|. (2) Exactly one <KODJO_PRE1_CLOSURE_JSON> block {"closures":[{"finding":1,"closed":true,"correction_examined":"...","evidence":"...","justification":"..."}]} with exactly eleven entries, one per finding 1..11, matching the table. (3) Exactly one <KODJO_REVIEW_FINDINGS_JSON> block containing one blocking row per finding that is NOT closed and nothing else. Each row MUST reuse exactly the category, target_kind and target of that prior finding, set blocking=true, start diagnostic with "Prior finding N:" followed by the unmet requirement, exact evidence and actual PRE-1 consequence, state the concrete closure condition in expected_correction, and set dependency_expansion_required=false with empty dependency_evidence unless closing that finding itself requires a scope dependency (then give concrete dependency_evidence). Do not emit finding_id. No nonblocking rows and no observations. If all eleven are closed emit {"findings":[]}.
+          No terminal VERDICT line: the protocol derives APPROVE/REVISE from the blocking rows, and a mechanical guard rejects any row whose target is not one of the eleven prior targets or any closure record inconsistent with them. Never fabricate a closure; never keep a finding open for an improvement not required by that finding.
           BOUND PRIOR FINDINGS:
           $priorFindings
           CORRECTION REGISTER:
@@ -248,7 +249,10 @@ jobs:
           $err="$env:RUNNER_TEMP\kodjo-v2-initial-review.err.txt"
           $promptFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-review-prompt.txt'
           [IO.File]::WriteAllText($promptFile,[string]$prompt,(New-Object Text.UTF8Encoding($false)))
-          $claudeBinary=(Get-Command claude.exe -CommandType Application -ErrorAction Stop).Source
+          $claudeBinary=[string](& node (Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-review-protocol\resolve-claude-binary.js'))
+          if($LASTEXITCODE-ne0 -or !$claudeBinary -or !(Test-Path -LiteralPath $claudeBinary.Trim() -PathType Leaf)){throw 'Claude binary resolution failed'}
+          $claudeBinary=$claudeBinary.Trim()
+          Write-Host "Claude binary: $claudeBinary"
           $reviewCli=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-review-protocol\run-plan-review-cli.js'
           & node $reviewCli $promptFile $out $err $claudeBinary $env:REVIEW_SESSION
           $code=$LASTEXITCODE
@@ -260,6 +264,10 @@ jobs:
           [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-v2-initial-review.md",[string]$json.result,(New-Object Text.UTF8Encoding($false)))
           & node "$env:RUNNER_TEMP\kodjo-v2-initial-review-protocol\normalize-review-findings.js" "$env:RUNNER_TEMP\kodjo-v2-initial-review.md" "$env:RUNNER_TEMP\kodjo-v2-initial-review-findings.json"
           if ($LASTEXITCODE -ne 0) { throw 'Structured plan review findings invalid' }
+          if($env:SOURCE_PLAN_COMMENT_ID -eq '5916079168'){
+            & node "$env:RUNNER_TEMP\kodjo-v2-initial-review-protocol\verify-pre1-closure-review.js" "$env:RUNNER_TEMP\kodjo-v2-initial-review.md" "$env:RUNNER_TEMP\kodjo-v2-initial-review-findings.json" "$env:RUNNER_TEMP\kodjo-pre1-prior-findings.json" "$env:RUNNER_TEMP\kodjo-pre1-closure-bound.json"
+            if ($LASTEXITCODE -ne 0) { throw 'PRE-1 review exceeded the eleven-finding closure bound' }
+          }
           "session_id=$($json.session_id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Publish independent initial V2 plan review
@@ -334,6 +342,7 @@ jobs:
             ${{ runner.temp }}\kodjo-v2-plan-review-publish.json
             ${{ runner.temp }}\kodjo-pre1-prior-findings.json
             ${{ runner.temp }}\kodjo-pre1-correction-register.md
+            ${{ runner.temp }}\kodjo-pre1-closure-bound.json
             ${{ runner.temp }}\kodjo-v2-initial-review-scan.json
             ${{ runner.temp }}\kodjo-v2-initial-review-proof.json
             ${{ runner.temp }}\kodjo-v2-initial-review-contract.json

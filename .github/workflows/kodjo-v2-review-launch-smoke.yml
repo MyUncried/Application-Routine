@@ -1,0 +1,93 @@
+name: KODJO V2 — Review launch smoke
+run-name: KODJO V2 / REVIEW-LAUNCH-SMOKE / ${{ github.run_id }}
+
+# Technical test only: no plan, finding or verdict is read or produced.
+# Proves on the real Windows runner the launch path used by the initial plan
+# review: binary resolution, CLI start, exact stdin prompt transport, file
+# access from RUNNER_TEMP and session resume.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kodjo-v2-review-launch-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    if: github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    env:
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+      CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: Checkout protocol
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Exact stdin transport on this runner (no Claude call)
+        run: |
+          $ErrorActionPreference='Stop'
+          if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'Unexpected runner' }
+          node tests/kodjo/plan-review-stdin.pilot.js
+          if($LASTEXITCODE-ne0){throw 'Stdin transport test failed'}
+
+      - name: Resolve and start Claude CLI
+        id: bin
+        run: |
+          $ErrorActionPreference='Stop'
+          $bin=[string](& node scripts/kodjo/resolve-claude-binary.js)
+          if($LASTEXITCODE-ne0 -or !$bin -or !(Test-Path -LiteralPath $bin.Trim() -PathType Leaf)){throw 'Claude binary resolution failed'}
+          $bin=$bin.Trim()
+          $version=(& $bin --version | Out-String).Trim()
+          if($LASTEXITCODE-ne0 -or $version -notmatch 'Claude Code'){throw "Claude CLI did not start: $version"}
+          Write-Host "Claude binary: $bin"
+          Write-Host "Claude version: $version"
+          "binary=$bin" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Real call through the review launcher with nonces and file access
+        env:
+          CLAUDE_BINARY: ${{ steps.bin.outputs.binary }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $dir=Join-Path $env:RUNNER_TEMP 'kodjo-v2-review-launch-smoke'
+          if(Test-Path -LiteralPath $dir){Remove-Item -LiteralPath $dir -Recurse -Force}
+          New-Item -ItemType Directory -Force -Path $dir | Out-Null
+          $head=[guid]::NewGuid().ToString('N'); $mid=[guid]::NewGuid().ToString('N'); $tail=[guid]::NewGuid().ToString('N'); $fileNonce=[guid]::NewGuid().ToString('N')
+          $utf8=New-Object Text.UTF8Encoding($false)
+          $accessFile=Join-Path $dir 'access.txt'
+          [IO.File]::WriteAllText($accessFile,$fileNonce,$utf8)
+          $nl=[Environment]::NewLine
+          $noise=('Catégorie « Aucun » "quoted" -> next --resume fake `$() ; & | \ {"findings":[{"expected":"\"exact\" -> value"}]} é'+"`r`n"+'line two'+"`n")*150
+          $prompt='Technical launch smoke test, not a review. HEAD_NONCE='+$head+$nl+$noise+'MID_NONCE='+$mid+$nl+$noise+'Read the file '+$accessFile+' with the Read tool. Then reply with exactly one line and nothing else: HEAD='+'<head nonce> MID=<mid nonce> TAIL=<tail nonce> FILE=<file content>'+$nl+'TAIL_NONCE='+$tail
+          $promptFile=Join-Path $dir 'prompt.txt'
+          [IO.File]::WriteAllText($promptFile,$prompt,$utf8)
+          Write-Host ("Prompt bytes: "+(Get-Item $promptFile).Length)
+          $out=Join-Path $dir 'first.json'; $err=Join-Path $dir 'first.err.txt'
+          & node scripts/kodjo/run-plan-review-cli.js $promptFile $out $err $env:CLAUDE_BINARY
+          $code=$LASTEXITCODE
+          if($code-ne0){Get-Content -Raw -LiteralPath $err -Encoding UTF8; throw "Claude call failed; exit=$code"}
+          $json=Get-Content -Raw -LiteralPath $out -Encoding UTF8 | ConvertFrom-Json
+          $expected="HEAD=$head MID=$mid TAIL=$tail FILE=$fileNonce"
+          Write-Host "Session: $($json.session_id)"
+          Write-Host "Reply: $($json.result)"
+          if(!$json.session_id -or ([string]$json.result).Trim() -ne $expected){throw 'Prompt transport or file access not proven'}
+          $resumePrompt='Technical smoke, resume check. Reply with exactly the HEAD nonce value from the first message of this session and nothing else.'
+          [IO.File]::WriteAllText($promptFile,$resumePrompt,$utf8)
+          $out2=Join-Path $dir 'resume.json'; $err2=Join-Path $dir 'resume.err.txt'
+          & node scripts/kodjo/run-plan-review-cli.js $promptFile $out2 $err2 $env:CLAUDE_BINARY $json.session_id
+          if($LASTEXITCODE-ne0){Get-Content -Raw -LiteralPath $err2 -Encoding UTF8; throw 'Claude resume failed'}
+          $json2=Get-Content -Raw -LiteralPath $out2 -Encoding UTF8 | ConvertFrom-Json
+          Write-Host "Resume session: $($json2.session_id)"
+          Write-Host "Resume reply: $($json2.result)"
+          if([string]$json2.session_id -ne [string]$json.session_id){throw 'Resume returned a different session'}
+          if(([string]$json2.result).Trim() -ne $head){throw 'Resume did not retain the session context'}
+          Write-Host 'REVIEW_LAUNCH_SMOKE=PASS'
