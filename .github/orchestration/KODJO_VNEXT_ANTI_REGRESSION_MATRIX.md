@@ -33,7 +33,7 @@ Dispositions autorisées :
 | INV-010 | REMPLACÉE_ÉQUIVALENTE | TestObligation et ProofObligation explicites ; preuves adaptées aux propriétés UI | VNext-04, VNext-05 |
 | INV-011 | CONSERVÉE | Les chemins de qualification/transport actifs continuent d’installer leurs dépendances ; VNext-09 n’ajoute aucun workflow autonome non qualifié | suite KODJO active |
 | INV-012 | REMPLACÉE_ÉQUIVALENTE | RuntimeSnapshot scelle tous les hashes de la chaîne ; GitHub conserve run/status/SHA côté transport | VNext-09 runtime + pilot workflow |
-| INV-013 | REMPLACÉE_ÉQUIVALENTE | Réentrée minimale, AllowedChangeSet, RevisionPatch, aucune boucle après REVISION_STALLED | VNext-07 |
+| INV-013 | REMPLACÉE_ÉQUIVALENTE | Réentrée minimale, AllowedChangeSet, RevisionPatch, FindingLedger et arrêt terminal après audit final | VNext-07, VNext-11 |
 | INV-014 | REMPLACÉE_ÉQUIVALENTE | ImpactGraph → Plan boundaries → ExecutionRequest → queue scope exact, sans path libre | VNext-03/04/08/09 |
 | INV-015 | REMPLACÉE_ÉQUIVALENTE | Review APPROVE + approbation exacte + ExecutionRequest avec checks autoritatifs sur HEAD exact | VNext-06/08/09 |
 | INV-016 | CONSERVÉE | Canonical JSON/UTF-8 côté VNext ; transport actif conserve ses règles UTF-8/BOM/PowerShell | VNext-01 + suites KODJO existantes |
@@ -41,7 +41,7 @@ Dispositions autorisées :
 | INV-018 | CONSERVÉE | Projection legacy pure et déterministe ; aucune nouvelle commande de publication runner | VNext-09 adapter |
 | INV-019 | CONSERVÉE | Les marqueurs des workflows actifs restent inchangés ; VNext canonique utilise des schémas/keys exacts et non des préfixes textuels | suites existantes + contrats VNext |
 | INV-020 | REMPLACÉE_ÉQUIVALENTE | SourceManifest borné + contrats compacts + REVISION différentielle au lieu de reconstruction globale | VNext-01/02/07 |
-| INV-021 | CONSERVÉE | VNext-09 ne crée aucun retry automatique ; l’état GitHub/transport reste la source avant relance | politique d’erreur VNext-01 + transport actuel |
+| INV-021 | REMPLACÉE_ÉQUIVALENTE | Aucun retry automatique ; FINAL_REVISE_TERMINAL interdit toute nouvelle boucle d’audit sans nouvelle décision explicite | VNext-01, VNext-11 + transport actuel |
 | INV-022 | REMPLACÉE_ÉQUIVALENTE | JSON canonique, exact keys et validation par reconstruction remplacent les parsing fragiles de gates | VNext-01→09 |
 | INV-023 | REMPLACÉE_ÉQUIVALENTE | PlanningEnvelope sépare baseline_head, product_head, application_head et base causale REVISION | VNext-01, VNext-07 |
 | INV-024 | REMPLACÉE_ÉQUIVALENTE | Tests négatifs par contrats exacts, reconstruction complète et qualification Linux/Windows du HEAD de PR | tests VNext-01→09 + workflow pilote |
