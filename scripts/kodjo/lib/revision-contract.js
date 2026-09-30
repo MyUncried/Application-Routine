@@ -663,6 +663,7 @@ function verifyRevisionOutcome({
   revisionPatch,
   baseArtifacts,
   nextArtifacts,
+  previousReviewReport,
   nextReviewContext,
   nextReviewReport,
   findingResolutionSet,
@@ -670,14 +671,25 @@ function verifyRevisionOutcome({
   validateAllowedChangeSet(allowedChangeSet);
   validateRevisionPatch(revisionPatch, allowedChangeSet);
   Review.validateReviewReport(nextReviewReport, nextReviewContext);
+  if (!previousReviewReport) V.fail('VNEXT_REVISION_PREVIOUS_REVIEW_REQUIRED');
+  V.verifyContractHash(previousReviewReport, 'VNEXT_REVISION_PREVIOUS_REVIEW_HASH_INVALID');
+  if (previousReviewReport.contract_hash !== allowedChangeSet.review_report_hash) {
+    V.fail('VNEXT_REVISION_PREVIOUS_REVIEW_MISMATCH');
+  }
+  const previousBlockingIds = previousReviewReport.findings
+    .filter((row) => row.blocking)
+    .map((row) => row.finding_id)
+    .sort();
+  if (V.canonicalStringify(previousBlockingIds)
+      !== V.canonicalStringify([...allowedChangeSet.blocking_finding_ids].sort())) {
+    V.fail('VNEXT_REVISION_PREVIOUS_FINDINGS_MISMATCH');
+  }
   if (!findingResolutionSet) V.fail('VNEXT_REVISION_FINDING_RESOLUTION_REQUIRED');
-  V.verifyContractHash(findingResolutionSet, 'VNEXT_REVISION_FINDING_RESOLUTION_HASH_MISMATCH');
-  if (findingResolutionSet.schema_version !== AuditStability.FINDING_RESOLUTION_SCHEMA) {
-    V.fail('VNEXT_REVISION_FINDING_RESOLUTION_SCHEMA_INVALID');
-  }
-  if (findingResolutionSet.previous_review_report_hash !== allowedChangeSet.review_report_hash) {
-    V.fail('VNEXT_REVISION_FINDING_RESOLUTION_PREVIOUS_REPORT_MISMATCH');
-  }
+  AuditStability.validateFindingResolutionSet(findingResolutionSet, {
+    previousReviewReport,
+    nextReviewContext,
+    nextReviewReport,
+  });
   if (nextReviewContext.planning_mode !== 'REVISION') {
     V.fail('VNEXT_REVISION_NEXT_REVIEW_MODE_INVALID', nextReviewContext.planning_mode);
   }
@@ -714,22 +726,6 @@ function verifyRevisionOutcome({
   for (const finding of nextReviewReport.findings) {
     if (previousFindings.has(finding.finding_id)) {
       V.fail('REVISION_STALLED', finding.finding_id);
-    }
-  }
-  const resolutionIds = new Set(
-    (findingResolutionSet.resolutions || []).map((row) => row.finding_id),
-  );
-  const expectedResolved = [...previousFindings]
-    .filter((id) => !nextReviewReport.findings.some((finding) => finding.finding_id === id))
-    .sort();
-  if (V.canonicalStringify([...resolutionIds].sort()) !== V.canonicalStringify(expectedResolved)) {
-    V.fail('VNEXT_FINDING_RESOLUTION_INCOMPLETE');
-  }
-  for (const resolution of findingResolutionSet.resolutions || []) {
-    if (!['RESOLVED', 'REFUTED'].includes(resolution.disposition)
-        || !Array.isArray(resolution.evidence) || resolution.evidence.length === 0
-        || !Array.isArray(resolution.evidence_target_ids) || resolution.evidence_target_ids.length === 0) {
-      V.fail('VNEXT_FINDING_RESOLUTION_INVALID', resolution.finding_id);
     }
   }
 
