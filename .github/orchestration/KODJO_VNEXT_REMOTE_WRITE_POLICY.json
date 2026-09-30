@@ -8,7 +8,7 @@
   "declarations": [
     {
       "declaration_id": "VNW-001",
-      "lifecycle": "VNEXT",
+      "lifecycle": "QUALIFICATION",
       "producer_path": ".github/workflows/kodjo-v2-lean-queue.yml",
       "producer_blob_sha40": "81633464d94518319c999f5e34e7cefcb04d6b49",
       "capability_type": "GITHUB_PERMISSION_WRITE",
@@ -28,7 +28,7 @@
     },
     {
       "declaration_id": "VNW-002",
-      "lifecycle": "VNEXT",
+      "lifecycle": "QUALIFICATION",
       "producer_path": ".github/workflows/kodjo-v2-lean-queue.yml",
       "producer_blob_sha40": "81633464d94518319c999f5e34e7cefcb04d6b49",
       "capability_type": "GITHUB_PERMISSION_WRITE",
@@ -38,7 +38,7 @@
     },
     {
       "declaration_id": "VNW-003",
-      "lifecycle": "VNEXT",
+      "lifecycle": "QUALIFICATION",
       "producer_path": ".github/workflows/kodjo-v2-lean-queue.yml",
       "producer_blob_sha40": "81633464d94518319c999f5e34e7cefcb04d6b49",
       "capability_type": "GITHUB_PERMISSION_WRITE",
@@ -48,7 +48,7 @@
     },
     {
       "declaration_id": "VNW-004",
-      "lifecycle": "VNEXT",
+      "lifecycle": "QUALIFICATION",
       "producer_path": ".github/workflows/kodjo-v2-lean-queue.yml",
       "producer_blob_sha40": "81633464d94518319c999f5e34e7cefcb04d6b49",
       "capability_type": "GH_API_WRITE",
@@ -58,7 +58,7 @@
     },
     {
       "declaration_id": "VNW-005",
-      "lifecycle": "VNEXT",
+      "lifecycle": "QUALIFICATION",
       "producer_path": "scripts/kodjo/run-queued-request.ps1",
       "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
       "capability_type": "GIT_CREDENTIAL_HEADER",
@@ -68,7 +68,7 @@
     },
     {
       "declaration_id": "VNW-006",
-      "lifecycle": "VNEXT",
+      "lifecycle": "QUALIFICATION",
       "producer_path": "scripts/kodjo/run-queued-request.ps1",
       "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
       "capability_type": "GIT_BRANCH_CREATE",
@@ -78,7 +78,7 @@
     },
     {
       "declaration_id": "VNW-007",
-      "lifecycle": "VNEXT",
+      "lifecycle": "QUALIFICATION",
       "producer_path": "scripts/kodjo/run-queued-request.ps1",
       "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
       "capability_type": "GIT_COMMIT",
@@ -88,7 +88,7 @@
     },
     {
       "declaration_id": "VNW-008",
-      "lifecycle": "VNEXT",
+      "lifecycle": "QUALIFICATION",
       "producer_path": "scripts/kodjo/run-queued-request.ps1",
       "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
       "capability_type": "GIT_PUSH",
@@ -98,7 +98,7 @@
     },
     {
       "declaration_id": "VNW-009",
-      "lifecycle": "VNEXT",
+      "lifecycle": "QUALIFICATION",
       "producer_path": "scripts/kodjo/run-queued-request.ps1",
       "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
       "capability_type": "GIT_PUSH",
@@ -108,7 +108,7 @@
     },
     {
       "declaration_id": "VNW-010",
-      "lifecycle": "VNEXT",
+      "lifecycle": "QUALIFICATION",
       "producer_path": "scripts/kodjo/run-queued-request.ps1",
       "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
       "capability_type": "GH_COMMAND_WRITE_OR_TRIGGER",
@@ -118,7 +118,7 @@
     },
     {
       "declaration_id": "VNW-011",
-      "lifecycle": "VNEXT",
+      "lifecycle": "QUALIFICATION",
       "producer_path": "scripts/kodjo/run-queued-request.ps1",
       "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
       "capability_type": "GH_COMMAND_WRITE_OR_TRIGGER",
@@ -128,7 +128,7 @@
     },
     {
       "declaration_id": "VNW-012",
-      "lifecycle": "VNEXT",
+      "lifecycle": "QUALIFICATION",
       "producer_path": "scripts/kodjo/run-queued-request.ps1",
       "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
       "capability_type": "GH_API_WRITE",
