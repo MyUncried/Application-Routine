@@ -78,9 +78,9 @@ REVISE réentre uniquement à l'étape minimale nécessaire : REQUIREMENTS, IMPA
 - `kodjo.vnext.plan-contract.v1`
 - `kodjo.vnext.review-report.v1`
 - `kodjo.vnext.revision-patch.v1`
-- `kodjo.vnext.approval-target.v1`
-- `kodjo.vnext.approval-record.v1`
-- `kodjo.vnext.execution-request.v1`
+- `kodjo.vnext.approval-target.v2`
+- `kodjo.vnext.approval-record.v2`
+- `kodjo.vnext.execution-request.v2`
 - `kodjo.vnext.runtime-snapshot.v1`
 - `kodjo.vnext.legacy-queue-projection.v1`
 - `kodjo.vnext.cutover-plan.v1`
@@ -1072,9 +1072,9 @@ La révision ne peut être considérée résolue que si la nouvelle review calcu
 
 VNext-08 introduit :
 
-- `kodjo.vnext.approval-target.v1`
-- `kodjo.vnext.approval-record.v1`
-- `kodjo.vnext.execution-request.v1`
+- `kodjo.vnext.approval-target.v2`
+- `kodjo.vnext.approval-record.v2`
+- `kodjo.vnext.execution-request.v2`
 
 Le flux est :
 
@@ -1261,7 +1261,7 @@ Le contrat canonique devient l'ApprovalTarget et son execution_fingerprint.
 
 Ce lot ne modifie pas la Lean Queue active.
 
-`kodjo.vnext.execution-request.v1` est l'autorisation canonique VNext.
+`kodjo.vnext.execution-request.v2` est l'autorisation canonique VNext.
 
 L'adaptation vers le contrat de transport/queue actif est une projection de migration ultérieure et ne peut ni enrichir ni élargir l'autorisation canonique.
 
@@ -2208,3 +2208,26 @@ de référence de la source normative. La readiness exige des preuves par sujet,
 résolues au candidat exact par le consommateur ; des flags CONFORME seuls ne
 constituent pas une certification. La classification des clauses identifie
 responsabilité et phase sans promouvoir un résultat historique en PASS VNext.
+
+### 23.7 Protections héritées : écrivain et choix natif
+
+L’ExecutionCore v2 inclut obligatoirement execution_context (mode LOCAL/CLOUD,
+écrivain désigné) et les assessments natifs associés à chaque critère UI.
+ApprovalTarget, message et ExecutionRequest désignent ce même contexte. Une
+bascule change le fingerprint et invalide l’approbation précédente. Aucun
+écrivain n’est auto-attribué. Le transport historique refuse CLOUD et les
+écrivains autres que CLAUDE avant projection.
+
+Les assessments natifs lient les unités DOC/DECISION du SourceManifest et les
+preuves/assertions de branche UI. Une substitution native exige le motif
+FUNCTIONAL_REQUIREMENT_UNSATISFIED, l’exigence fonctionnelle validée, ses preuves,
+puis l’approbation explicite de chaque exception. Style/Jest ne sont pas éligibles.
+Sans approbation : NATIVE_PRIMITIVE_EXCEPTION_REQUIRED. La réaction propriétaire
+GitHub doit viser le message exact affichant contexte et décisions.
+
+Une référence source n’est pas une preuve résolue. Sans résolveur natif vérifié,
+construire une cible UI arrête en WAIT_FOR_PROOF. Le reçu est lié à l’assessment
+canonique, au SourceManifest et au HEAD applicatif. Le raccordement aux producteurs
+authentifiés et la vérité des faits restent à qualifier à l’étape 4 ; les fixtures
+ne les certifient pas. Les schémas d’approbation/handoff v1 ne sont pas convertis
+silencieusement en v2.

@@ -162,6 +162,7 @@ function buildRuntimeSnapshot({
   approvalRecord,
   executionRequest,
   currentState,
+  resolveNativeEvidence = null,
 }) {
   PlanningEnvelope.validate(planningEnvelope);
   if (!cumulativeRegister) V.fail('VNEXT_RUNTIME_CUMULATIVE_REGISTER_REQUIRED');
@@ -238,6 +239,7 @@ function buildRuntimeSnapshot({
     reviewReport,
     uiAtomicityContract,
     currentState,
+    resolveNativeEvidence,
   });
   exact(approvalTarget, rebuiltApprovalTarget, 'VNEXT_RUNTIME_APPROVAL_TARGET_REBUILD_MISMATCH');
   Approval.validateApprovalRecord(approvalRecord, approvalTarget);
@@ -257,6 +259,7 @@ function buildRuntimeSnapshot({
     reviewReport,
     uiAtomicityContract,
     currentState,
+    resolveNativeEvidence,
   });
 
   const stages = [

@@ -6,6 +6,7 @@ const V = require('./vnext-contract');
 const Runtime = require('./vnext-runtime');
 const Adapter = require('./vnext-legacy-queue-adapter');
 const Authorizations = require('../verify-authorizations');
+const Preserved = require('./vnext-preserved-controls');
 
 // Read-only admission. This does not enqueue work or invoke an implementation
 // runner. Fixture clients are injectable like the existing authorization verifier;
@@ -31,6 +32,14 @@ function verifyQueueAdmission({ queueFile, projection, artifacts, transport, git
   const comment = api.comment(issue[1], commentId);
   if (!String(comment?.body || '').includes(artifacts.approvalTarget.contract_hash)) {
     V.fail('VNEXT_QUEUE_ADMISSION_EXACT_TARGET_ABSENT');
+  }
+  const core = artifacts.approvalTarget.execution_core;
+  if (!String(comment.body).includes('execution_context=' + V.canonicalStringify(core.execution_context))) V.fail('VNEXT_QUEUE_ADMISSION_WRITER_NOT_EXPLICIT');
+  for (const row of core.native_primitive_decisions) {
+    if (!String(comment.body).includes('native_primitive_decision=' + V.canonicalStringify(row))) V.fail('NATIVE_PRIMITIVE_EXCEPTION_REQUIRED');
+  }
+  for (const id of Preserved.exceptionIds(core.native_primitive_decisions)) {
+    if (!String(comment.body).includes('native_primitive_exception_request=' + id)) V.fail('NATIVE_PRIMITIVE_EXCEPTION_REQUIRED');
   }
   const reactions = api.reactions(issue[1], commentId);
   const editedAt = Date.parse(comment.updated_at);

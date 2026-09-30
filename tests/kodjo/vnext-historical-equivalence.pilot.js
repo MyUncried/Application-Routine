@@ -18,7 +18,7 @@ const event = { type: 'test', file: sample.cases[0].test_path, name: sample.case
 const resolve = records => Eq.resolveExecution(sample, records, { candidateHead, platform: 'linux' });
 
 test('historical equivalence binds all 420 exact source subjects and named test locations', () => {
-  assert.equal(Eq.validateCorrespondence(correspondence, inventory, History.readSourcesAtRevision(inventory, { cwd }), { cwd }).size, 398);
+  assert.equal(Eq.validateCorrespondence(correspondence, inventory, History.readSourcesAtRevision(inventory, { cwd }), { cwd }).size, 402);
   const omitted = structuredClone(correspondence); omitted.subjects.pop();
   assert.throws(() => Eq.validateCorrespondence(omitted, inventory, History.readSourcesAtRevision(inventory, { cwd }), { cwd }), /VNEXT_EQ_SUBJECT_OMITTED/);
   const changed = structuredClone(correspondence); changed.cases[0].test_name = 'invented';

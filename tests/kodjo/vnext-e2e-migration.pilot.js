@@ -36,6 +36,7 @@ test('projection blob OIDs agree with independent Git bytes for LF CRLF Unicode 
 
 test('projection emits real lines and refuses Windows traversal and absolute paths', () => {
   const request = { slice_id: 'V2-TEST', contract_hash: H64A, execution_fingerprint: H64B,
+    execution_context: { mode: 'LOCAL', writer_id: 'CLAUDE:fixture-writer' }, native_primitive_decisions: [],
     application_head: H40A, checks: ['jest'], write_scope: [{ path: 'src/x.js' }] };
   const mission = Adapter.renderCompatibilityMission(request);
   assert.ok(mission.split('\n').length > 8);
@@ -229,6 +230,8 @@ function buildPlanningArtifacts({ repo, manifest, envelope, revisedRationale = n
 
 function currentState(repo) {
   return {
+    execution_context: { mode: 'LOCAL', writer_id: 'CLAUDE:fixture-writer' },
+    native_primitive_decisions: [],
     product_head: H40A,
     application_head: repo.revision,
     protocol_head: H40C,

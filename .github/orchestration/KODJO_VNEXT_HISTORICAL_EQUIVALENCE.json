@@ -1,7 +1,7 @@
 {
   "schema_version": "kodjo.vnext.historical-equivalence.v1",
   "inventory_path": ".github/orchestration/KODJO_VNEXT_HISTORICAL_DISPOSITION.json",
-  "reference_candidate": "258015db15daa476f70d50624923ac9defc689e8",
+  "reference_candidate": "ff19153b14698dbe57eb9ca02821095d342d4daf",
   "scope": "Individual source-to-current-control correspondence; each assertion needs executed evidence. No live VNext coverage inferred.",
   "cases": [
     {
@@ -171,7 +171,7 @@
       "id": "CASE-cba0dbbfb3977055",
       "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
       "test_name": "VNext-08 refuse de demander une approbation tant que la review n’est pas APPROVE",
-      "source_line": 264,
+      "source_line": 301,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -183,7 +183,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "799d8e1a33536746e148cde50704ed43b9e7f1e061ad6a08dcdb813baf73fae6"
+      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
     },
     {
       "id": "CASE-849d27e38e102839",
@@ -379,7 +379,7 @@
       "id": "CASE-d117fc211d89f585",
       "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
       "test_name": "VNext-08 refuse le handoff si le HEAD applicatif a bougé",
-      "source_line": 428,
+      "source_line": 465,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -391,7 +391,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "799d8e1a33536746e148cde50704ed43b9e7f1e061ad6a08dcdb813baf73fae6"
+      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
     },
     {
       "id": "CASE-2408170ab0ae4112",
@@ -734,7 +734,7 @@
       "id": "CASE-125c61e1a5ccee20",
       "test_path": "tests/kodjo/vnext-e2e-migration.pilot.js",
       "test_name": "VNext-09 E2E INITIAL atteint HANDOFF_READY et se projette sans élargissement",
-      "source_line": 278,
+      "source_line": 281,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -751,13 +751,13 @@
         "scripts/kodjo/lib/vnext-legacy-queue-adapter.js",
         "scripts/kodjo/lib/vnext-runtime.js"
       ],
-      "test_source_sha256": "a6f502654e2b7da1f69f5ac812a26cecd1d5fbee8fc2379dd7fa05c5d741d2cb"
+      "test_source_sha256": "1939916b97955391a33793bfcf8ce2e516a3ddfb0efe15e631966ad1b4cead57"
     },
     {
       "id": "CASE-1c459205cb585e36",
       "test_path": "tests/kodjo/vnext-e2e-migration.pilot.js",
       "test_name": "VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY après résolution",
-      "source_line": 494,
+      "source_line": 497,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -774,13 +774,13 @@
         "scripts/kodjo/lib/vnext-legacy-queue-adapter.js",
         "scripts/kodjo/lib/vnext-runtime.js"
       ],
-      "test_source_sha256": "a6f502654e2b7da1f69f5ac812a26cecd1d5fbee8fc2379dd7fa05c5d741d2cb"
+      "test_source_sha256": "1939916b97955391a33793bfcf8ce2e516a3ddfb0efe15e631966ad1b4cead57"
     },
     {
       "id": "CASE-49838fae7b8d473a",
       "test_path": "tests/kodjo/vnext-e2e-migration.pilot.js",
       "test_name": "VNext-09 runtime refuse une REVISION sans preuve de résolution bornée",
-      "source_line": 602,
+      "source_line": 605,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -797,7 +797,7 @@
         "scripts/kodjo/lib/vnext-legacy-queue-adapter.js",
         "scripts/kodjo/lib/vnext-runtime.js"
       ],
-      "test_source_sha256": "a6f502654e2b7da1f69f5ac812a26cecd1d5fbee8fc2379dd7fa05c5d741d2cb"
+      "test_source_sha256": "1939916b97955391a33793bfcf8ce2e516a3ddfb0efe15e631966ad1b4cead57"
     },
     {
       "id": "CASE-9112e02c7230605d",
@@ -1678,7 +1678,7 @@
       "id": "CASE-8b177f500ff420ee",
       "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
       "test_name": "VNext-08 le transport du message ne change pas l’identité de la cible approuvée",
-      "source_line": 300,
+      "source_line": 337,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -1690,7 +1690,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "799d8e1a33536746e148cde50704ed43b9e7f1e061ad6a08dcdb813baf73fae6"
+      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
     },
     {
       "id": "CASE-e57030db5e390656",
@@ -2814,7 +2814,7 @@
         "scripts/kodjo/lib/vnext-legacy-queue-adapter.js",
         "scripts/kodjo/lib/vnext-runtime.js"
       ],
-      "test_source_sha256": "a6f502654e2b7da1f69f5ac812a26cecd1d5fbee8fc2379dd7fa05c5d741d2cb"
+      "test_source_sha256": "1939916b97955391a33793bfcf8ce2e516a3ddfb0efe15e631966ad1b4cead57"
     },
     {
       "id": "CASE-3cf4c9b6cc6c8bbe",
@@ -3956,7 +3956,7 @@
       "id": "CASE-fa16531ae31aa25d",
       "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
       "test_name": "VNext-08 refuse le handoff si le HEAD produit a bougé",
-      "source_line": 445,
+      "source_line": 482,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -3968,13 +3968,13 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "799d8e1a33536746e148cde50704ed43b9e7f1e061ad6a08dcdb813baf73fae6"
+      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
     },
     {
       "id": "CASE-98cbf0d80b2af3bb",
       "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
       "test_name": "VNext-08 invalide l’approbation si la version protocolaire change",
-      "source_line": 462,
+      "source_line": 499,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -3986,7 +3986,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "799d8e1a33536746e148cde50704ed43b9e7f1e061ad6a08dcdb813baf73fae6"
+      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
     },
     {
       "id": "CASE-cecab50c90716bf9",
@@ -4676,7 +4676,7 @@
       "id": "CASE-21de337977e79cdf",
       "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
       "test_name": "VNext-08 exige une action utilisateur explicite liée au hash exact",
-      "source_line": 309,
+      "source_line": 346,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -4688,13 +4688,13 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "799d8e1a33536746e148cde50704ed43b9e7f1e061ad6a08dcdb813baf73fae6"
+      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
     },
     {
       "id": "CASE-fcc1746d23745b27",
       "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
       "test_name": "VNext-08 une décision REJECTED bloque toujours le handoff",
-      "source_line": 354,
+      "source_line": 391,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -4706,13 +4706,13 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "799d8e1a33536746e148cde50704ed43b9e7f1e061ad6a08dcdb813baf73fae6"
+      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
     },
     {
       "id": "CASE-3c83098a74174fcb",
       "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
       "test_name": "VNext-08 refuse une approbation devenue obsolète après modification du plan",
-      "source_line": 394,
+      "source_line": 431,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -4724,7 +4724,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "799d8e1a33536746e148cde50704ed43b9e7f1e061ad6a08dcdb813baf73fae6"
+      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
     },
     {
       "id": "CASE-3f2d9e424a7f3da8",
@@ -6203,6 +6203,54 @@
         "scripts/kodjo/lib/source-manifest.js"
       ],
       "test_source_sha256": "ec8d5b4d93a2141139bf720151fe8b87e8bf6689c2b9704089b39501f7a3d188"
+    },
+    {
+      "id": "CASE-c34a3566de558655",
+      "test_path": "tests/kodjo/vnext-preserved-controls.pilot.js",
+      "test_name": "native preservation: every UI criterion needs an explicit sourced native assessment and branch assertion",
+      "source_line": 23,
+      "assertion_kind": "EXECUTABLE_OR_FIXTURE",
+      "mechanism_paths": [
+        "scripts/kodjo/lib/vnext-preserved-controls.js",
+        "scripts/kodjo/lib/approval-handoff-contract.js"
+      ],
+      "test_source_sha256": "80dfb0070947eda9851d3b71da3697497425aa35e07148e847f2fa2b66e05353"
+    },
+    {
+      "id": "CASE-0323c9d529a615c6",
+      "test_path": "tests/kodjo/vnext-preserved-controls.pilot.js",
+      "test_name": "native preservation: style or Jest difficulty cannot authorize a substitute and functional proof must be scoped",
+      "source_line": 37,
+      "assertion_kind": "EXECUTABLE_OR_FIXTURE",
+      "mechanism_paths": [
+        "scripts/kodjo/lib/vnext-preserved-controls.js",
+        "scripts/kodjo/lib/approval-handoff-contract.js"
+      ],
+      "test_source_sha256": "80dfb0070947eda9851d3b71da3697497425aa35e07148e847f2fa2b66e05353"
+    },
+    {
+      "id": "CASE-ee0221c241fcedc6",
+      "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
+      "test_name": "VNext preserved writer: mode and designated writer are explicit and change invalidates approval",
+      "source_line": 247,
+      "assertion_kind": "EXECUTABLE_OR_FIXTURE",
+      "mechanism_paths": [
+        "scripts/kodjo/lib/vnext-preserved-controls.js",
+        "scripts/kodjo/lib/approval-handoff-contract.js"
+      ],
+      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
+    },
+    {
+      "id": "CASE-288978467a46373a",
+      "test_path": "tests/kodjo/vnext-approval-handoff.pilot.js",
+      "test_name": "VNext preserved native: an exact target still requires explicit exception approval before execution",
+      "source_line": 260,
+      "assertion_kind": "EXECUTABLE_OR_FIXTURE",
+      "mechanism_paths": [
+        "scripts/kodjo/lib/vnext-preserved-controls.js",
+        "scripts/kodjo/lib/approval-handoff-contract.js"
+      ],
+      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
     }
   ],
   "subjects": [
@@ -15747,14 +15795,16 @@
         "CASE-e884c17581213d60",
         "CASE-9a6594233a8aa7a5",
         "CASE-5fb7ad7c31b7962f",
-        "CASE-97bdcf93d58e2bcb"
+        "CASE-97bdcf93d58e2bcb",
+        "CASE-ee0221c241fcedc6"
       ],
       "disposition": "PRESERVED_REQUIREMENT",
       "verification_scope": "CONTROLLED_MECHANISM_AND_NORMATIVE_TEXT",
       "original_scenario_replayed": false,
       "external_scenario_required": true,
-      "limit": "Contexte autorisé, écrivain, refus des réalignements et nouvelle autorisation après dérive ; le mode/écrivain VNext doit être raccordé au runner réel.",
-      "identified_gap": "WRITER_MODE_BINDING"
+      "limit": "Contrôle contractuel corrigé et testé : contexte mode/écrivain canonique, assessment natif sourcé et exception fonctionnelle liée à une approbation explicite. Les producteurs authentifiés, la vérité des sources/preuves et la consommation runner réelle restent à établir à l’étape 4 ; aucun PASS opérationnel n’est inféré.",
+      "identified_gap": null,
+      "resolved_control_gap": "WRITER_MODE_BINDING"
     },
     {
       "id": "NORM-5aae00717e317676",
@@ -16058,14 +16108,16 @@
         "CASE-e884c17581213d60",
         "CASE-9a6594233a8aa7a5",
         "CASE-5fb7ad7c31b7962f",
-        "CASE-22259bca1ae1eaca"
+        "CASE-22259bca1ae1eaca",
+        "CASE-ee0221c241fcedc6"
       ],
       "disposition": "PRESERVED_REQUIREMENT",
       "verification_scope": "CONTROLLED_MECHANISM_AND_NORMATIVE_TEXT",
       "original_scenario_replayed": false,
       "external_scenario_required": true,
-      "limit": "Désignation explicite d’un seul écrivain ; aucune auto-attribution. Binding mode/écrivain absent de l’exécution VNext actuelle : obligation de raccordement conservée.",
-      "identified_gap": "WRITER_MODE_BINDING"
+      "limit": "Contrôle contractuel corrigé et testé : contexte mode/écrivain canonique, assessment natif sourcé et exception fonctionnelle liée à une approbation explicite. Les producteurs authentifiés, la vérité des sources/preuves et la consommation runner réelle restent à établir à l’étape 4 ; aucun PASS opérationnel n’est inféré.",
+      "identified_gap": null,
+      "resolved_control_gap": "WRITER_MODE_BINDING"
     },
     {
       "id": "NORM-58a37601f46fb94b",
@@ -16111,14 +16163,16 @@
         "CASE-e884c17581213d60",
         "CASE-9a6594233a8aa7a5",
         "CASE-5fb7ad7c31b7962f",
-        "CASE-22259bca1ae1eaca"
+        "CASE-22259bca1ae1eaca",
+        "CASE-ee0221c241fcedc6"
       ],
       "disposition": "PRESERVED_REQUIREMENT",
       "verification_scope": "CONTROLLED_MECHANISM_AND_NORMATIVE_TEXT",
       "original_scenario_replayed": false,
       "external_scenario_required": true,
-      "limit": "Désignation explicite d’un seul écrivain ; aucune auto-attribution. Binding mode/écrivain absent de l’exécution VNext actuelle : obligation de raccordement conservée.",
-      "identified_gap": "WRITER_MODE_BINDING"
+      "limit": "Contrôle contractuel corrigé et testé : contexte mode/écrivain canonique, assessment natif sourcé et exception fonctionnelle liée à une approbation explicite. Les producteurs authentifiés, la vérité des sources/preuves et la consommation runner réelle restent à établir à l’étape 4 ; aucun PASS opérationnel n’est inféré.",
+      "identified_gap": null,
+      "resolved_control_gap": "WRITER_MODE_BINDING"
     },
     {
       "id": "NORM-e047c4293b765ba2",
@@ -17352,14 +17406,18 @@
         "CASE-8ee0d77c4c7033ef",
         "CASE-a69b519a1935bd03",
         "CASE-0f270ea57e696b25",
-        "CASE-7ce50f9184205e4a"
+        "CASE-7ce50f9184205e4a",
+        "CASE-c34a3566de558655",
+        "CASE-0323c9d529a615c6",
+        "CASE-288978467a46373a"
       ],
       "disposition": "PRESERVED_REQUIREMENT",
       "verification_scope": "CONTROLLED_MECHANISM_AND_NORMATIVE_TEXT",
       "original_scenario_replayed": false,
       "external_scenario_required": true,
-      "limit": "Priorité aux primitives natives et exception prouvée/explicitement approuvée avant code : le contrat hérité conserve l’arrêt requis ; il manque un contrôle VNext de disponibilité native et de l’autorisation de dérogation.",
-      "identified_gap": "NATIVE_PRIMITIVE_EXCEPTION_BINDING"
+      "limit": "Contrôle contractuel corrigé et testé : contexte mode/écrivain canonique, assessment natif sourcé et exception fonctionnelle liée à une approbation explicite. Les producteurs authentifiés, la vérité des sources/preuves et la consommation runner réelle restent à établir à l’étape 4 ; aucun PASS opérationnel n’est inféré.",
+      "identified_gap": null,
+      "resolved_control_gap": "NATIVE_PRIMITIVE_EXCEPTION_BINDING"
     },
     {
       "id": "NORM-c4f2d360bef1982b",
@@ -17394,14 +17452,18 @@
         "CASE-8ee0d77c4c7033ef",
         "CASE-a69b519a1935bd03",
         "CASE-0f270ea57e696b25",
-        "CASE-7ce50f9184205e4a"
+        "CASE-7ce50f9184205e4a",
+        "CASE-c34a3566de558655",
+        "CASE-0323c9d529a615c6",
+        "CASE-288978467a46373a"
       ],
       "disposition": "PRESERVED_REQUIREMENT",
       "verification_scope": "CONTROLLED_MECHANISM_AND_NORMATIVE_TEXT",
       "original_scenario_replayed": false,
       "external_scenario_required": true,
-      "limit": "Priorité aux primitives natives et exception prouvée/explicitement approuvée avant code : le contrat hérité conserve l’arrêt requis ; il manque un contrôle VNext de disponibilité native et de l’autorisation de dérogation.",
-      "identified_gap": "NATIVE_PRIMITIVE_EXCEPTION_BINDING"
+      "limit": "Contrôle contractuel corrigé et testé : contexte mode/écrivain canonique, assessment natif sourcé et exception fonctionnelle liée à une approbation explicite. Les producteurs authentifiés, la vérité des sources/preuves et la consommation runner réelle restent à établir à l’étape 4 ; aucun PASS opérationnel n’est inféré.",
+      "identified_gap": null,
+      "resolved_control_gap": "NATIVE_PRIMITIVE_EXCEPTION_BINDING"
     },
     {
       "id": "NORM-8b7af59e2c72d9cd",
@@ -17436,14 +17498,18 @@
         "CASE-8ee0d77c4c7033ef",
         "CASE-a69b519a1935bd03",
         "CASE-0f270ea57e696b25",
-        "CASE-7ce50f9184205e4a"
+        "CASE-7ce50f9184205e4a",
+        "CASE-c34a3566de558655",
+        "CASE-0323c9d529a615c6",
+        "CASE-288978467a46373a"
       ],
       "disposition": "PRESERVED_REQUIREMENT",
       "verification_scope": "CONTROLLED_MECHANISM_AND_NORMATIVE_TEXT",
       "original_scenario_replayed": false,
       "external_scenario_required": true,
-      "limit": "Priorité aux primitives natives et exception prouvée/explicitement approuvée avant code : le contrat hérité conserve l’arrêt requis ; il manque un contrôle VNext de disponibilité native et de l’autorisation de dérogation.",
-      "identified_gap": "NATIVE_PRIMITIVE_EXCEPTION_BINDING"
+      "limit": "Contrôle contractuel corrigé et testé : contexte mode/écrivain canonique, assessment natif sourcé et exception fonctionnelle liée à une approbation explicite. Les producteurs authentifiés, la vérité des sources/preuves et la consommation runner réelle restent à établir à l’étape 4 ; aucun PASS opérationnel n’est inféré.",
+      "identified_gap": null,
+      "resolved_control_gap": "NATIVE_PRIMITIVE_EXCEPTION_BINDING"
     },
     {
       "id": "NORM-b3020f501b699980",
@@ -19105,5 +19171,5 @@
       "limit": "Les champs structurés et le rendu sont contrôlés ; la production/publication réelle du format complet relève de l’étape 4."
     }
   ],
-  "certification_status": "AWAITING_EXECUTED_EVIDENCE"
+  "certification_status": "CONTROL_CORRESPONDENCE_AWAITING_EXACT_CANDIDATE_QUALIFICATION"
 }

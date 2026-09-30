@@ -208,6 +208,8 @@ function buildPlanningArtifacts({ repo, manifest, envelope, revisedRationale = n
 
 function currentState(repo) {
   return {
+    execution_context: { mode: 'LOCAL', writer_id: 'CLAUDE:fixture-writer' },
+    native_primitive_decisions: [],
     product_head: H40A,
     application_head: repo.revision,
     protocol_head: H40C,

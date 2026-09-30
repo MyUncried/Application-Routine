@@ -61,6 +61,8 @@ function renderCompatibilityMission(executionRequest) {
     'plan_contract_hash=' + executionRequest.plan_contract_hash,
     'application_head=' + executionRequest.application_head,
     'operation_kind=IMPLEMENT',
+    'execution_context=' + V.canonicalStringify(executionRequest.execution_context),
+    ...executionRequest.native_primitive_decisions.map(row => 'native_primitive_decision=' + V.canonicalStringify(row)),
     'checks=' + executionRequest.checks.join(','),
     '',
     '## Autorisation',
@@ -71,6 +73,7 @@ function renderCompatibilityMission(executionRequest) {
     ...scope.map((p) => '- ' + p),
     '',
     'Tout besoin hors scope doit arrêter l’exécution avant modification.',
+    'Toute substitution native sans autorisation explicite doit arrêter en NATIVE_PRIMITIVE_EXCEPTION_REQUIRED avant code.',
     '',
   ].join('\n');
 }
@@ -116,15 +119,17 @@ function buildLegacyQueueProjection(args) {
   const {
     executionRequest, approvalTarget, approvalRecord, planningEnvelope, requirementRegistry,
     impactGraph, candidateManifest, directImportScan, planContract, reviewContext, reviewReport,
-    uiAtomicityContract = null, currentState, transport,
+    uiAtomicityContract = null, currentState, transport, resolveNativeEvidence = null,
   } = args;
   Approval.validateExecutionRequest(executionRequest, {
     approvalTarget, approvalRecord, planningEnvelope, requirementRegistry, impactGraph,
     candidateManifest, directImportScan, planContract, reviewContext, reviewReport,
-    uiAtomicityContract, currentState,
+    uiAtomicityContract, currentState, resolveNativeEvidence,
   });
   validateTransport(transport, executionRequest, approvalRecord);
   const issue = ISSUE_ID.exec(executionRequest.issue_id);
+  if (executionRequest.execution_context.mode !== 'LOCAL'
+      || !executionRequest.execution_context.writer_id.startsWith('CLAUDE:')) V.fail('VNEXT_QUEUE_WRITER_UNSUPPORTED');
   if (!issue) V.fail('VNEXT_QUEUE_ISSUE_ID_UNSUPPORTED', executionRequest.issue_id);
 
   const planBody = renderCompatibilityPlan(executionRequest, planContract);

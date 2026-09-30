@@ -10,6 +10,7 @@ const V = require('../../scripts/kodjo/lib/vnext-contract');
 const Review = require('../../scripts/kodjo/lib/review-contract');
 const Register = require('../../scripts/kodjo/lib/vnext-audit-register');
 const Adapter = require('../../scripts/kodjo/lib/vnext-legacy-queue-adapter');
+const Approval = require('../../scripts/kodjo/lib/approval-handoff-contract');
 const Admission = require('../../scripts/kodjo/lib/vnext-queue-admission');
 
 function fixture() {
@@ -44,7 +45,7 @@ function fixture() {
   const github = {
     comment: () => ({ id: 12345, issue_url: 'https://api.github.com/repos/MyUncried/Application-Routine/issues/999',
       updated_at: '2026-09-30T00:28:00.000Z',
-      body: state.protocol_head + '\n' + approved.approvalTarget.contract_hash }),
+      body: state.protocol_head + '\n' + Approval.renderApprovalMessage(approved.approvalTarget) }),
     reactions: () => [{ content: '+1', user: { login: 'MyUncried' }, created_at: '2026-09-30T00:29:00.000Z' }],
   };
   return { repo, artifacts: complete, transport, files, projection, queueFile, github, write };
@@ -65,6 +66,15 @@ test('queue admission: approval evidence must authenticate the exact target and 
   const f = fixture();
   try {
     const comment = f.github.comment();
+    for (const execution_context of [{ mode: 'CLOUD', writer_id: 'CLAUDE:fixture-writer' }, { mode: 'LOCAL', writer_id: 'CODEX:fixture-writer' }]) {
+      const state = { ...f.artifacts.currentState, execution_context };
+      const planning = { ...f.artifacts };
+      delete planning.approvalTarget; delete planning.approvalRecord; delete planning.executionRequest;
+      const approved = F.approve(planning, f.artifacts.reviewReport, state);
+      assert.throws(() => Adapter.buildLegacyQueueProjection({ ...f.artifacts, ...approved, currentState: state, transport: f.transport }), /WRITER_UNSUPPORTED/);
+    }
+    assert.throws(() => Admission.verifyQueueAdmission({ ...f, github: { ...f.github,
+      comment: () => ({ ...comment, body: f.artifacts.currentState.protocol_head + '\n' + f.artifacts.approvalTarget.contract_hash }) } }), /WRITER_NOT_EXPLICIT/);
     assert.throws(() => Admission.verifyQueueAdmission({ ...f, github: { ...f.github,
       comment: () => ({ ...comment, body: f.artifacts.currentState.protocol_head }) } }), /EXACT_TARGET_ABSENT/);
     assert.throws(() => Admission.verifyQueueAdmission({ ...f, github: { ...f.github, reactions: () => [] } }), /REACTION_NOT_BOUND/);
