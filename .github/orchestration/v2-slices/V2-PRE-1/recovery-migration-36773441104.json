@@ -1,0 +1,62 @@
+{
+  "schema_version": "kodjo.protocol.v2.recovery-migration.0.6.24",
+  "status": "CERTIFIED",
+  "slice_id": "V2-PRE-1",
+  "source_head": "fd5ad0a5bc77f50b15ccc3d349e07f75b526faa6",
+  "certified_target_head": "2ec70da13ac96fd822aa40ed81f6ceb5b277c5d3",
+  "baseline_head": "e216294506bed87dd80855937e3fabfbfa322b82",
+  "source_run_id": "36773441104",
+  "source_artifact_id": "11127475602",
+  "source_patch_sha256": "e6d3dccf707bbb6010eeeeb13a84409cb91a295ed7d028d117877156a26e5118",
+  "session_id": "77bf4fe5-e8e7-4316-98a7-3ab29099a32e",
+  "application_pr_head": "e216294506bed87dd80855937e3fabfbfa322b82",
+  "authorization_binding": {
+    "authorized_plan": {
+      "plan_path": ".github/orchestration/v2-slices/V2-PRE-1/technical-plan.md",
+      "plan_blob_oid": "005230475f909f200c72e232621e5c7a60c309d3"
+    },
+    "independent_review": {
+      "review_path": ".github/orchestration/v2-slices/V2-PRE-1/independent-review.md",
+      "review_blob_oid": "7f180888af486da47319d0c780fe95e52b7c3b6b",
+      "reviewed_plan_blob_oid": "005230475f909f200c72e232621e5c7a60c309d3"
+    },
+    "user_gate": {
+      "gate_ref": "issue_comment:5920553811",
+      "gated_reference": "005230475f909f200c72e232621e5c7a60c309d3",
+      "decision": "APPROVED",
+      "user_login": "MyUncried",
+      "evidence_kind": "ORGANISATIONAL"
+    }
+  },
+  "certified_protocol_executable_paths": [
+    ".github/workflows/kodjo-v2-lean-queue.yml",
+    ".github/workflows/kodjo-v2-slice-initial-plan-review.yml",
+    "scripts/kodjo/materialize-approved-plan-handoff.js",
+    "scripts/kodjo/materialize-boundary-file.js",
+    "scripts/kodjo/recover-published-pre1-plan.js",
+    "scripts/kodjo/verify-pre1-closure-review.js",
+    "tests/kodjo/lean-queue-boundary-file.pilot.js",
+    "tests/kodjo/pre1-review-launch.pilot.js"
+  ],
+  "certified_protocol_document_paths": [
+    ".github/orchestration/queue/v2/V2-PRE-1-implement-e485eddb.json",
+    ".github/orchestration/reports/2026-09-30_PRE1_ELEVEN_FINDINGS_CLOSURE_REVIEW.md",
+    ".github/orchestration/reports/2026-09-30_PRE1_PLAN_CORRECTION_DEV_36773441104.md",
+    ".github/orchestration/v2-slices/V2-PRE-1/correction-dev-36773441104/corrected-plan.md",
+    ".github/orchestration/v2-slices/V2-PRE-1/correction-dev-36773441104/corrected-scan.json",
+    ".github/orchestration/v2-slices/V2-PRE-1/correction-dev-36773441104/correction-checks.json",
+    ".github/orchestration/v2-slices/V2-PRE-1/correction-dev-36773441104/development-result.json",
+    ".github/orchestration/v2-slices/V2-PRE-1/correction-dev-36773441104/items-to-verify.json",
+    ".github/orchestration/v2-slices/V2-PRE-1/implementation-mission.md",
+    ".github/orchestration/v2-slices/V2-PRE-1/independent-review.md",
+    ".github/orchestration/v2-slices/V2-PRE-1/technical-plan.md"
+  ],
+  "certified_product_document_paths": [
+    "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md"
+  ],
+  "compatible_application_paths": [],
+  "post_certification_protocol_files": {
+    ".github/orchestration/v2-slices/V2-PRE-1/recovery-migration-36773441104.json": "SELF"
+  },
+  "certification_note": "Plan corrections after development run 36773441104 (round 3, review 5920549381, decision D-240); no app/ or src/ path changed between the package source_head and the anchor; the package patch touches only src/ paths inside the corrected scope."
+}
