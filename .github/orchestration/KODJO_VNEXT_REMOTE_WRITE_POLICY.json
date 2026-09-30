@@ -721,7 +721,7 @@
     },
     {
       "path": "scripts/kodjo/scan-remote-write-capability.js",
-      "blob_oid": "30a2d763b7fea0edece0a9ce16638a5cbbf635e7",
+      "blob_oid": "ef57b49e5519f002457c375f33ee273c12945c30",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
