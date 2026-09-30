@@ -696,7 +696,9 @@ function verifyRevisionOutcome({
   baseArtifacts,
   nextArtifacts,
   auditManifest,
+  previousReviewContext,
   previousReviewReport,
+  previousFindingAssessment,
   previousFindingLedger,
   nextReviewContext,
   nextReviewReport,
@@ -707,8 +709,13 @@ function verifyRevisionOutcome({
   validateAllowedChangeSet(allowedChangeSet);
   validateRevisionPatch(revisionPatch, allowedChangeSet);
   Review.validateReviewReport(nextReviewReport, nextReviewContext);
-  if (!previousReviewReport) V.fail('VNEXT_REVISION_PREVIOUS_REVIEW_REQUIRED');
-  V.verifyContractHash(previousReviewReport, 'VNEXT_REVISION_PREVIOUS_REVIEW_HASH_INVALID');
+  if (!previousReviewContext || !previousReviewReport || !previousFindingAssessment) {
+    V.fail('VNEXT_REVISION_PREVIOUS_REVIEW_REQUIRED');
+  }
+  Review.validateReviewReport(previousReviewReport, previousReviewContext);
+  if (previousReviewContext.contract_hash !== allowedChangeSet.review_context_hash) {
+    V.fail('VNEXT_REVISION_PREVIOUS_REVIEW_CONTEXT_MISMATCH');
+  }
   if (previousReviewReport.contract_hash !== allowedChangeSet.review_report_hash) {
     V.fail('VNEXT_REVISION_PREVIOUS_REVIEW_MISMATCH');
   }
@@ -722,10 +729,24 @@ function verifyRevisionOutcome({
   }
   if (!auditManifest) V.fail('VNEXT_REVISION_AUDIT_MANIFEST_REQUIRED');
   AuditStability.validateAuditManifest(auditManifest);
+  AuditStability.validateFindingAssessment(previousFindingAssessment, {
+    auditManifest,
+    reviewContext: previousReviewContext,
+    reviewReport: previousReviewReport,
+  });
+  if (previousFindingAssessment.contract_hash !== allowedChangeSet.finding_assessment_hash) {
+    V.fail('VNEXT_REVISION_PREVIOUS_ASSESSMENT_MISMATCH');
+  }
   if (!previousFindingLedger) V.fail('VNEXT_REVISION_PREVIOUS_LEDGER_REQUIRED');
   AuditStability.validateFindingLedger(previousFindingLedger);
   if (previousFindingLedger.contract_hash !== allowedChangeSet.finding_ledger_hash) {
     V.fail('VNEXT_REVISION_PREVIOUS_LEDGER_MISMATCH');
+  }
+  if (previousFindingLedger.audit_manifest_hash !== auditManifest.contract_hash
+      || !previousFindingLedger.review_report_hashes.includes(previousReviewReport.contract_hash)
+      || V.canonicalStringify([...previousFindingLedger.open_finding_ids].sort())
+        !== V.canonicalStringify([...allowedChangeSet.blocking_finding_ids].sort())) {
+    V.fail('VNEXT_REVISION_PREVIOUS_LEDGER_BINDING_MISMATCH');
   }
   if (auditManifest.contract_hash !== allowedChangeSet.audit_manifest_hash) {
     V.fail('VNEXT_REVISION_AUDIT_MANIFEST_CHANGED');
