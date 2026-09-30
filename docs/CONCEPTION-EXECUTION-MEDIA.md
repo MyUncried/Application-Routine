@@ -19,9 +19,11 @@ La consultation du média ne suspend pas l’Exécution et ne modifie pas le Pla
 ## 2. Évidences Figma
 
 Figma courant — page `Prototype MVP` (`510:101`) :
-- `4997:6015` — **Test 2 Exécution d’une séance — Initial — Bascule (info)** ;
-- `4997:6113` — **Test 2 Exécution d’une séance — Initial — Bascule (média)** ;
-- `5009:6069` — **Test 2 Exécution d’une séance — Média plein écran**.
+- `4997:6113` — **Exécution d'un exercice — Initial — Bascule basse (média) avec Cercle** ;
+- `5588:4363` — **Exécution d'un exercice — Initial — Bascule haute avec média** ;
+- `5009:6069` — **Exécution d'un exercice — Média plein écran** ;
+- `5021:5994` — **Exécution d'un exercice — Initial - Cercle avec Texte** ;
+- `5581:4257` — **Exécution d'un exercice — Démarré —  Bascule haute avec texte** ;
 
 Ces frames matérialisent les états visuels. Les règles fonctionnelles ci-dessous proviennent des décisions de conception validées ; un détail purement graphique de Figma n’est pas transformé en règle métier.
 
@@ -162,3 +164,4 @@ La conception est satisfaite lorsque :
 10. le plein écran conserve l’Exécution active et affiche le cadre flottant ;
 11. la fin de l’Exercice ferme le média de l’Exercice terminé ;
 12. un média défaillant n’interrompt ni l’Exécution ni la navigation vers les autres médias.
+

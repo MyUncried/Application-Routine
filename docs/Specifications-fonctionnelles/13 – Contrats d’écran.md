@@ -752,9 +752,7 @@ Cartes standard : largeur354 sur écran402, rayon8, fond #FCFCFE, bord intérieu
 
 360/402/440 ; clavier de recherche ne masque pas validation ; lignes s’étendent pour texte ; scroll indépendant.
 
-### 11. États de l’écran
-
-0 sélection ; 1 ; N ; recherche ; liste filtrée ; Valider disabled/active ; retour après validation.
+### 11. États de l’Splash KODJO sélection ; 1 ; N ; recherche ; liste filtrée ; Valider disabled/active ; retour après validation.
 
 ### 12. Contrôles et interactions
 
@@ -1869,8 +1867,10 @@ Figma reste la source visuelle courante. Le chapitre 06 porte l’inventaire des
 ### 1. Identification
 
 Conception D-203 ; statut post-MVP à planifier. Évidences Figma :
-- `4997:6015` — Test 2 Exécution d’une séance — Initial — Bascule (info) ;
-- `4997:6113` — Test 2 Exécution d’une séance — Initial — Bascule (média).
+- `5021:5994` — Exécution d’un exercice — Initial — Cercle avec Texte ;
+- `5581:4257` — Exécution d’un exercice — Démarré — Bascule haute avec texte ;
+- `4997:6113` — Exécution d’un exercice — Initial — Bascule basse (média) avec Cercle ;
+- `5588:4363` — Exécution d’un exercice — Initial — Bascule haute avec média.
 
 ### 2. Finalité fonctionnelle
 
@@ -1979,7 +1979,7 @@ Les contrats ci-dessous complètent les CE-T03 existants pour les familles qui n
 
 ### 1. Identification
 
-Écran1a ; Figma1992:778. Les autres états Profil héritent des règles communes de navigation/appui.
+Profil ; Figma1992:778. Les autres états Profil héritent des règles communes de navigation/appui.
 
 ### 2. Finalité fonctionnelle
 
@@ -2065,7 +2065,7 @@ D-209 à D-215 et RG-1 à RG-13 ; chapitre06 et matrice écran par écran du30/0
 
 ### 1. Identification
 
-Écran7 Jour ; frames1992:5510,1992:5602,1992:5697,1992:5794,2059:267 ; composants6374:12704/12705.
+Calendrier Jour ; frames1992:5510,1992:5602,1992:5697,1992:5794,2059:267 ; composants6374:12704/12705.
 
 ### 2. Finalité fonctionnelle
 
@@ -2151,7 +2151,7 @@ D-209 à D-215 et RG-1 à RG-13 ; chapitre06 et matrice écran par écran du30/0
 
 ### 1. Identification
 
-Écran7 ; frames1992:5101,2252:86,1992:6389,1992:5962,2094:86,2074:86 ; Mois1992:5237 ; suppressions1992:5365/6102.
+Calendrier ; frames1992:5101,2252:86,1992:6389,1992:5962,2094:86,2074:86 ; Mois1992:5237 ; suppressions1992:5365/6102.
 
 ### 2. Finalité fonctionnelle
 
@@ -2237,7 +2237,7 @@ D-209 à D-215 et RG-1 à RG-13 ; chapitre06 et matrice écran par écran du30/0
 
 ### 1. Identification
 
-Écrans7d/8g ; frames1992:6249,1992:7861,5451:4272 ; variante Choix calendrier ou planification.
+Calendrier et Planification — choix de source ; frames1992:6249,1992:7861,5451:4272 ; variante Choix calendrier ou planification.
 
 ### 2. Finalité fonctionnelle
 
@@ -2323,7 +2323,7 @@ D-209 à D-215 et RG-1 à RG-13 ; chapitre06 et matrice écran par écran du30/0
 
 ### 1. Identification
 
-Écran8 ; frames1992:6838,1992:6622,1992:7187,1992:7369,1992:7537,1992:7716 ; sélectionCE-UI-04.
+Planifier une séance ou un exercice ; frames1992:6838,1992:6622,1992:7187,1992:7369,1992:7537,1992:7716 ; sélectionCE-UI-04.
 
 ### 2. Finalité fonctionnelle
 

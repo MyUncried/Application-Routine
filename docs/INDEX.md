@@ -219,7 +219,7 @@ Les Parcours fonctionnels et les médias multiples restent hors MVP.
 
 ### [CONCEPTION-EXECUTION-MEDIA.md](./CONCEPTION-EXECUTION-MEDIA.md)
 
-Conception fonctionnelle et UX de la consultation des médias pendant l’Exécution : bascule Information/Média, galerie ordonnée, vidéo, plein écran, mémoire limitée à la séance et cadre flottant d’Exécution. Les évidences Figma sont `4997:6015`, `4997:6113` et `5009:6069`.
+Conception fonctionnelle et UX de la consultation des médias pendant l’Exécution : bascule Information/Média, galerie ordonnée, vidéo, plein écran, mémoire limitée à la séance et cadre flottant d’Exécution. Les évidences Figma sont `5021:5994`, `5581:4257`, `4997:6113`, `5588:4363` et `5009:6069`.
 
 Le document décrit une **cible post-MVP à planifier** ; il ne requalifie pas à lui seul le périmètre du MVP.
 
@@ -240,3 +240,7 @@ La [matrice courante des écrans](MATRICE-ECRANS-CARTES-2026-09-30.md) relie les
 ### Captures remplacées le30 septembre2026
 
 Contrôle exhaustif du 30 septembre 2026 : 113 frames du prototype et les 6 références complémentaires du rapport utilisateur, soit 119 captures Figma. Les 84 écrans du rapport sont couverts (78 dans le prototype). 74 fichiers existants sont actualisés et 45 copies documentaires complètent des écrans déjà présents dans Figma ; aucun écran applicatif ou Figma créé. [Matrice exhaustive](MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md).
+
+### Lecture du chapitre Écrans et navigation
+
+Le chapitre 06 regroupe chaque parcours sous son titre, sans numéros d’écran : vues principales, variantes, modales/confirmations et bulles restent près de leurs règles. L’Exécution rassemble aussi les variantes média et l’exécution directe ; la Composition inclut les points d’arrêt et les sélections d’exercices et d’étiquettes. Les chemins physiques des captures sont conservés. La matrice de couverture associe chaque nœud à sa famille.

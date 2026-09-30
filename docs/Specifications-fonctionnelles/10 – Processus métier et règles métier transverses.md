@@ -107,9 +107,9 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-057 | Une Exécution peut être `En cours`, `Suspendue`, `Terminée`, `Partielle` ou `Interrompue`. |
 | RM-058 | Pour une Activité en Répétitions ou À l’échec, le temps actif est un chronomètre croissant. Une rotation complète de l’indicateur représente une minute et un bip est émis à chaque minute. |
 | RM-059 | `Suivant` termine normalement la Série courante d’une Activité en Répétitions ou À l’échec sans confirmation. |
-| RM-060 | Pour une Activité chronométrée non arrivée à zéro, `Activité suivante` demande confirmation. Si elle est confirmée, le Résultat d’Activité est `Partielle` et l’Exécution continue. |
+| RM-060 | Pour une Activité chronométrée non arrivée à zéro, `Exercice suivant` demande confirmation. Si elle est confirmée, le Résultat d’Activité est `Partielle` et l’Exécution continue. |
 | RM-061 | Une Activité chronométrée arrivée à zéro se termine automatiquement. |
-| RM-062 | `Réinitialiser l’activité` recommence uniquement l’Activité ou la Série courante. Pendant `SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`, l’action devient `Réinitialiser la récupération` et recommence uniquement la phase courante ; les Séries déjà acquises et les Résultats antérieurs restent inchangés. |
+| RM-062 | `Réinitialiser l’exercice` recommence uniquement l’Activité ou la Série courante. Pendant `SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`, l’action devient `Réinitialiser la récupération` et recommence uniquement la phase courante ; les Séries déjà acquises et les Résultats antérieurs restent inchangés. |
 | RM-063 | Aucun retour à une Activité précédente et aucune sélection libre d’une autre Activité ne font partie du MVP. |
 | RM-064 | Après une interruption technique d’une Exécution en cours, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance` avant d’en démarrer une nouvelle. |
 | RM-065 | Le bouton Retour de l’Exécution revient au contexte réel de lancement. Dans le prototype de démonstration, il revient au Catalogue des séances non vide. |
