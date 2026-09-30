@@ -354,6 +354,7 @@ function buildGate({ report, policy, activeLegacySliceIds }) {
       policy_hash: V.canonicalHash(policy),
       active_legacy_slice_ids: activeLegacy,
       legacy_writer_declaration_ids: [],
+      qualification_writer_declaration_ids: [],
       legacy_retirement_status: 'UNKNOWN',
       status: 'BLOCKED_UNDECLARED_REMOTE_WRITE',
     });
