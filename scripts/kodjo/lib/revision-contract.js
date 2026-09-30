@@ -4,7 +4,7 @@ const V = require('./vnext-contract');
 const Review = require('./review-contract');
 const AuditStability = require('./audit-stability-contract');
 
-const ALLOWED_SCHEMA = 'kodjo.vnext.allowed-change-set.v1';
+const ALLOWED_SCHEMA = 'kodjo.vnext.allowed-change-set.v2';
 const PATCH_SCHEMA = 'kodjo.vnext.revision-patch.v1';
 const APPLICATION_SCHEMA = 'kodjo.vnext.revision-application.v1';
 const OUTCOME_SCHEMA = 'kodjo.vnext.revision-outcome.v2';
@@ -237,6 +237,8 @@ function descendants(seedIds, outgoing) {
 function buildAllowedChangeSet({
   reviewContext,
   reviewReport,
+  auditManifest,
+  findingAssessment,
   requirementRegistry,
   impactGraph,
   candidateManifest,
@@ -244,6 +246,14 @@ function buildAllowedChangeSet({
   uiAtomicityContract = null,
 }) {
   Review.validateReviewReport(reviewReport, reviewContext);
+  if (!auditManifest || !findingAssessment) {
+    V.fail('VNEXT_REVISION_NORMATIVE_ASSESSMENT_REQUIRED');
+  }
+  AuditStability.validateFindingAssessment(findingAssessment, {
+    auditManifest,
+    reviewContext,
+    reviewReport,
+  });
   if (reviewReport.verdict !== 'REVISE') {
     V.fail('VNEXT_REVISION_REVISE_REPORT_REQUIRED', reviewReport.verdict);
   }
@@ -331,6 +341,8 @@ function buildAllowedChangeSet({
     schema_version: ALLOWED_SCHEMA,
     review_context_hash: reviewContext.contract_hash,
     review_report_hash: reviewReport.contract_hash,
+    audit_manifest_hash: auditManifest.contract_hash,
+    finding_assessment_hash: findingAssessment.contract_hash,
     base_plan_contract_hash: planContract.contract_hash,
     base_ui_atomicity_hash: uiAtomicityContract ? uiAtomicityContract.contract_hash : null,
     base_target_graph_hash: graphFingerprint(graph),
@@ -352,6 +364,8 @@ function validateAllowedChangeSet(allowedChangeSet) {
       'schema_version',
       'review_context_hash',
       'review_report_hash',
+      'audit_manifest_hash',
+      'finding_assessment_hash',
       'base_plan_contract_hash',
       'base_ui_atomicity_hash',
       'base_target_graph_hash',
@@ -374,6 +388,8 @@ function validateAllowedChangeSet(allowedChangeSet) {
   }
   V.assertSha64(allowedChangeSet.review_context_hash, 'VNEXT_ALLOWED_CHANGE_SET_REVIEW_CONTEXT_HASH_INVALID');
   V.assertSha64(allowedChangeSet.review_report_hash, 'VNEXT_ALLOWED_CHANGE_SET_REVIEW_REPORT_HASH_INVALID');
+  V.assertSha64(allowedChangeSet.audit_manifest_hash, 'VNEXT_ALLOWED_CHANGE_SET_AUDIT_MANIFEST_HASH_INVALID');
+  V.assertSha64(allowedChangeSet.finding_assessment_hash, 'VNEXT_ALLOWED_CHANGE_SET_FINDING_ASSESSMENT_HASH_INVALID');
   V.assertSha64(allowedChangeSet.base_plan_contract_hash, 'VNEXT_ALLOWED_CHANGE_SET_PLAN_HASH_INVALID');
   if (allowedChangeSet.base_ui_atomicity_hash !== null) {
     V.assertSha64(allowedChangeSet.base_ui_atomicity_hash, 'VNEXT_ALLOWED_CHANGE_SET_UI_HASH_INVALID');
@@ -663,6 +679,7 @@ function verifyRevisionOutcome({
   revisionPatch,
   baseArtifacts,
   nextArtifacts,
+  auditManifest,
   previousReviewReport,
   nextReviewContext,
   nextReviewReport,
@@ -684,8 +701,14 @@ function verifyRevisionOutcome({
       !== V.canonicalStringify([...allowedChangeSet.blocking_finding_ids].sort())) {
     V.fail('VNEXT_REVISION_PREVIOUS_FINDINGS_MISMATCH');
   }
+  if (!auditManifest) V.fail('VNEXT_REVISION_AUDIT_MANIFEST_REQUIRED');
+  AuditStability.validateAuditManifest(auditManifest);
+  if (auditManifest.contract_hash !== allowedChangeSet.audit_manifest_hash) {
+    V.fail('VNEXT_REVISION_AUDIT_MANIFEST_CHANGED');
+  }
   if (!findingResolutionSet) V.fail('VNEXT_REVISION_FINDING_RESOLUTION_REQUIRED');
   AuditStability.validateFindingResolutionSet(findingResolutionSet, {
+    auditManifest,
     previousReviewReport,
     nextReviewContext,
     nextReviewReport,
