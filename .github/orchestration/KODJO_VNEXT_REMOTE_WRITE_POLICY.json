@@ -65,6 +65,46 @@
       "destination": "git-config-extraheader",
       "conditions": "Temporary supervisor authentication only; header removed before completion and not exposed to Claude.",
       "required_permission_scope": "NONE"
+    },
+    {
+      "declaration_id": "VNW-006",
+      "lifecycle": "VNEXT",
+      "producer_path": "scripts/kodjo/run-queued-request.ps1",
+      "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
+      "capability_type": "GIT_BRANCH_CREATE",
+      "destination": "git-local-branch",
+      "conditions": "Create only the bounded delivery branch after exact HEAD and live-target verification.",
+      "required_permission_scope": "NONE"
+    },
+    {
+      "declaration_id": "VNW-007",
+      "lifecycle": "VNEXT",
+      "producer_path": "scripts/kodjo/run-queued-request.ps1",
+      "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
+      "capability_type": "GIT_COMMIT",
+      "destination": "git-local-commit",
+      "conditions": "Commit only staged paths proven inside the approved write scope.",
+      "required_permission_scope": "NONE"
+    },
+    {
+      "declaration_id": "VNW-008",
+      "lifecycle": "VNEXT",
+      "producer_path": "scripts/kodjo/run-queued-request.ps1",
+      "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
+      "capability_type": "GIT_PUSH",
+      "destination": "origin $pushRefspec",
+      "conditions": "Existing-PR delivery only after live-target and staged-scope checks.",
+      "required_permission_scope": "NONE"
+    },
+    {
+      "declaration_id": "VNW-009",
+      "lifecycle": "VNEXT",
+      "producer_path": "scripts/kodjo/run-queued-request.ps1",
+      "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
+      "capability_type": "GIT_PUSH",
+      "destination": "--set-upstream origin",
+      "conditions": "New bounded implementation branch only after live-target and staged-scope checks; no merge.",
+      "required_permission_scope": "NONE"
     }
   ]
 }
