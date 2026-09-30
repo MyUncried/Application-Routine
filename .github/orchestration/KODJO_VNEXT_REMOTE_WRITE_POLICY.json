@@ -1,0 +1,9 @@
+{
+  "schema_version": "kodjo.vnext.remote-write-policy.v1",
+  "scan_roots": [
+    ".github/workflows",
+    ".github/actions",
+    "scripts/kodjo"
+  ],
+  "declarations": []
+}
