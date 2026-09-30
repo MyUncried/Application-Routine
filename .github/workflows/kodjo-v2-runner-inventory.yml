@@ -181,7 +181,7 @@ jobs:
           name: kodjo-v2-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/kodjo-runner-inventory-${{ github.run_id }}-${{ github.run_attempt }}/*
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 14
 
       - name: Remove only the temporary inventory report
         if: always()

@@ -252,7 +252,7 @@ jobs:
           name: kodjo-v2-disposable-qualification-${{ github.run_id }}-${{ github.run_attempt }}
           path: _qualification/${{ github.run_id }}/qualification-evidence
           if-no-files-found: error
-          retention-days: 90
+          retention-days: 14
 
       - name: Preserve availability proof
         if: always()
@@ -261,7 +261,7 @@ jobs:
           name: kodjo-v2-qualification-availability-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/qualification-availability-${{ github.run_id }}-${{ github.run_attempt }}.json
           if-no-files-found: error
-          retention-days: 90
+          retention-days: 14
 
       - name: Preserve cleanup diagnostic
         if: always() && inputs.stage == 'CLEANUP_ONLY'
@@ -270,4 +270,4 @@ jobs:
           name: kodjo-v2-runner-cleanup-${{ github.run_id }}-${{ github.run_attempt }}
           path: _qualification/${{ github.run_id }}/qualification-evidence
           if-no-files-found: error
-          retention-days: 90
+          retention-days: 14

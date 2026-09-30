@@ -205,4 +205,4 @@ jobs:
             ${{ runner.temp }}/routine-dev-eas-update.json
             ${{ runner.temp }}/routine-dev-eas-build.json
           if-no-files-found: warn
-          retention-days: 30
+          retention-days: 14
