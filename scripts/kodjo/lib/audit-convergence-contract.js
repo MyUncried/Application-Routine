@@ -373,7 +373,7 @@ function buildFinalAuditReport({
       row.normative_reference_ids,
       'VNEXT_FINAL_AUDIT_NORMATIVE_REFS_INVALID',
       'normative_reference_ids',
-      { allowEmpty: row.category === 'SUGGESTION' },
+      { allowEmpty: true },
     );
     const auditCriterionIds = uniqueSorted(
       row.audit_criterion_ids,
