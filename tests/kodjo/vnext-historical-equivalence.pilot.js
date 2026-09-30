@@ -23,6 +23,8 @@ test('historical equivalence binds all 420 exact source subjects and named test 
   assert.throws(() => Eq.validateCorrespondence(omitted, inventory, History.readSourcesAtRevision(inventory, { cwd }), { cwd }), /VNEXT_EQ_SUBJECT_OMITTED/);
   const changed = structuredClone(correspondence); changed.cases[0].test_name = 'invented';
   assert.throws(() => Eq.validateCorrespondence(changed, inventory, History.readSourcesAtRevision(inventory, { cwd }), { cwd }), /VNEXT_EQ_CASE_SOURCE_CHANGED/);
+  const substituted = structuredClone(correspondence); substituted.subjects[0].protection = 'invented protection with unchanged source hash';
+  assert.throws(() => Eq.validateCorrespondence(substituted, inventory, History.readSourcesAtRevision(inventory, { cwd }), { cwd }), /VNEXT_EQ_PROTECTION_SUBSTITUTED/);
 });
 
 test('historical equivalence refuses stale candidate, forged stdout and incomplete summary', () => {
@@ -30,6 +32,7 @@ test('historical equivalence refuses stale candidate, forged stdout and incomple
   assert.throws(() => resolve([identity, event]), /VNEXT_EQ_EXECUTION_INCOMPLETE/);
   assert.equal(resolve([identity, { type: 'test:stdout', data: 'ok 1 - ' + event.name }, summary]).cases[0].status, 'MISSING');
   assert.throws(() => resolve([identity, event, event, summary]), /VNEXT_EQ_EXECUTION_DUPLICATE/);
+  assert.throws(() => resolve([identity, { ...event, status: 'CONFORME' }, summary]), /VNEXT_EQ_EXECUTION_STATUS_INVALID/);
 });
 
 test('historical equivalence preserves SKIP and refuses operational certification from fixture PASS', () => {

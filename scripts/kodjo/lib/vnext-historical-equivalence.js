@@ -28,6 +28,9 @@ function validateCorrespondence(correspondence, inventory, sources, { cwd }) {
   for (const row of correspondence.subjects) {
     const original = originals.get(row.id);
     if (!original || seen.has(row.id) || row.source_hash !== (original.source_row_hash || original.source_hash)) V.fail('VNEXT_EQ_SUBJECT_SOURCE_CHANGED', row.id);
+    const protection = row.id.startsWith('INC-') ? original.resulting_rule
+      : row.id.startsWith('T-') ? original.control_object + ' — ' + original.scenario : original.source_text;
+    if (row.protection !== protection) V.fail('VNEXT_EQ_PROTECTION_SUBSTITUTED', row.id);
     if (!row.limit || row.original_scenario_replayed !== false || !row.case_ids.length
         || row.case_ids.some(id => !cases.has(id))) V.fail('VNEXT_EQ_SUBJECT_INVALID', row.id);
     seen.add(row.id);
@@ -46,6 +49,7 @@ function resolveExecution(correspondence, records, { candidateHead, platform }) 
       || final[0].counts.cancelled !== 0 || final[0].counts.todo !== 0) V.fail('VNEXT_EQ_EXECUTION_INCOMPLETE');
   const events = new Map();
   for (const row of records.filter(row => row.type === 'test')) {
+    if (!['PASS', 'FAIL', 'SKIP', 'TODO'].includes(row.status)) V.fail('VNEXT_EQ_EXECUTION_STATUS_INVALID');
     const key = row.file + '\0' + row.name + '\0' + row.line;
     if (events.has(key)) V.fail('VNEXT_EQ_EXECUTION_DUPLICATE');
     events.set(key, row);

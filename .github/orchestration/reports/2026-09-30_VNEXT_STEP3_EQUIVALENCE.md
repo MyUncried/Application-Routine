@@ -43,6 +43,19 @@ syntaxe indépendante des 63 workflows et invariants exécutables PASS.
 La suite complète dépend aussi du tokenizer et de l’historique Git réel ;
 les résultats distants du commit publié sont nécessaires à sa qualification.
 
+Premier candidat publié `ff1ae5083f2d463604687498801b74cddaaee69c`,
+[run 36743532496](https://github.com/MyUncried/Application-Routine/actions/runs/36743532496) :
+184 tests VNext PASS sur Ubuntu et Windows, syntaxe/invariants/whitespace
+SUCCESS. Qualification historique Ubuntu : 886 tests, 885 PASS, 0 FAIL,
+1 SKIP ; 397 assertions mappées PASS et un SKIP explicite du nettoyage
+Windows. Les logs contiennent les 398 résultats de cas et les 420 résultats
+de sujets liés à ce commit. La qualification historique Windows est encore
+en cours au moment de cette note ; aucun PASS Windows complet n’est inféré.
+
+Le delta suivant ajoute deux refus vérifiés : substitution du texte de
+protection en conservant son hash source et résultat inconnu présenté comme
+CONFORME. Les quatre tests du résolveur passent localement après ce delta.
+
 ## Écarts sémantiques identifiés
 
 | Clauses | Protection | Écart du contrat VNext |
