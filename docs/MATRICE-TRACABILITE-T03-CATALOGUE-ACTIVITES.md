@@ -13,23 +13,23 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 | T03 / roadmap | Catalogue des exercices = T03 MVP ; ancien T03 Exécution Séance → T04 ; ancien T04 → T05+ | PRODUCT, 01–12, 07, 13 | Catalogue V2 ; ancien T03 moteur | CONFORME | D-183 consolide D-166. |
 | Catalogue multi-type | `Exercices / Séances / Parcours`; Séances par défaut ; Exercices actif ; Parcours disabled | 00–07, 13, PRODUCT | D-108 « Séances seul actif » | CONFORME | D-108 est supersédée par D-167 ; CE-T03-01/02. |
 | Navigation basse | `Catalogues`; titres contextuels ; DSF exact ; dessins ≤24 pt | 01, 06, 07, 13 CE-T03-17, Figma `6298:12462` | libellé `Séances`, icônes surdimensionnées | CONFORME | Règles intégrées directement dans 06/07. |
-| État Catalogue | recherche/filtres/tri/scroll conservés pendant aller-retour uniquement | 03, 06, 07, 13 CE-T03-01/02/05 | persistance non bornée | CONFORME | D-168. |
-| Rangée `Créer / Filtrer / Trier` | 3 contrôles de hauteur visible `34 pt`, dessins `20 pt`, gap `12 pt`, ensemble centré en référence 402 ; même représentation Séances/Exercices ; cibles ≥44 sans chevauchement | Figma `3786:5093`, `1992:9910`, `1992:10129`, `3787:5148`, `3841:8375`; 06, 07 D-184, PRODUCT, 13 §4.5 + CE-T03-01/02/03 | `Créer centré` seul ; contrôles « lorsqu’ils sont présents » ; représentation d’entrée Filtrer/Trier dite non conçue | CONFORME | Géométrie révisée par D-209/D-210 le 30/09/2026 ; références actuelles : page `Cartes - Icônes` et complément DSF. Les anciennes frames restent des preuves historiques. |
+| État Catalogue | filtres/tri/scroll conservés pendant aller-retour uniquement | 03, 06, 07, 13 CE-T03-01/02/05 | persistance non bornée | CONFORME | D-168. |
+| Rangée `Créer / Filtrer / Trier` | 3 contrôles de hauteur visible `34 pt`, dessins `20 pt`, gap `12 pt`, ensemble centré en référence 402 ; même représentation Séances/Exercices ; cibles ≥44 sans chevauchement | Figma `3786:5093`, `1992:9910`, `1992:10129`, `3787:5148`, `3841:8375`; 06, 07 D-184, PRODUCT, 13 §4.5 + CE-T03-01/02/03 | `Créer centré` seul ; contrôles « lorsqu’ils sont présents » ; représentation d’entrée Filtrer/Trier dite non conçue | CONFORME | Géométrie révisée par D-233/D-234 le 30/09/2026 ; références actuelles : page `Cartes - Icônes` et complément DSF. Les anciennes frames restent des preuves historiques. |
 | Filtrer / Trier — comportement | Filtrer/Trier communs ; options Filtrer contextuelles ; Exercices = statut, Catégories, Zones corporelles ; Séances = statut, Étiquettes ; Trier visible disabled | 06, 07 D-192, PRODUCT, 13 §4.5 | ancien filtre limité à `Archivées` | CONFORME | Fonctionnel déterministe. |
 | Filtrer / Trier — panneaux/options ouverts | Panneaux `Filtrer` conçus dans Figma ; `Trier` reste disabled | 06, 07 D-192, PRODUCT, 13, Figma | anciens panneaux non conçus | CONFORME | Les filtres ouverts sont désormais vérifiables. |
-| Recherche globale | `1992:10129` conserve la rangée Catalogue en arrière-plan sous contexte de recherche/clavier | 06, PRODUCT, 13 CE-T03-01/02, Figma `1992:10129` | absence de règle contractuelle T03 explicite | CONFORME | État intégré sans contrat supplémentaire. |
-| `Créer` contextuel Catalogue | `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant ; aucun écran/arbre intermédiaire | 02, 03, 06, 07 D-187, 08, PRODUCT, 13 CE-T03-03 | arbre `Une nouvelle activité / Une séance / Un parcours / Annuler` | CONFORME | D-187 supersède D-186 et la partie correspondante de D-184 ; anciennes frames `3787:5148`/`3841:8375` historiques. |
+| Recherche globale / Catalogue | Absente du MVP ; anciennes frames archivées | D-221 ; 05–08 ; 10–13 ; matrice Figma | recherche active | CONFORME D-221 | Réintroduction éventuelle à reconcevoir ultérieurement. |
+| `Créer` contextuel Catalogue | `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant ; aucun écran/arbre intermédiaire | 02, 03, 06, 07 D-187, 08, PRODUCT, 13 CE-T03-03 | arbre `Une nouvelle exercice / Une séance / Un parcours / Annuler` | CONFORME | D-187 supersède D-186 et la partie correspondante de D-184 ; anciennes frames `3787:5148`/`3841:8375` historiques. |
 | Cycle de vie ActivityDefinition | créer, modifier, archiver, restaurer, supprimer depuis archives | 04, 06, 07, 08, 09, 10, 11, 13 CE-T03-04/05 | CRUD incomplet | CONFORME | Accès Archives via Filtrer. |
 | Suppression ActivityDefinition | aucune cascade vers SessionActivity / historique | 04, 07, 09–12, 13 CE-T03-05 | cascade implicite | CONFORME | D-169. |
-| Création depuis Composition | nouvelle activité = SessionActivity uniquement ; pas save-to-catalogue | 02–04, 06–13 | action future bibliothèque | CONFORME | D-170. |
+| Création depuis Composition | nouvelle exercice = SessionActivity uniquement ; pas save-to-catalogue | 02–04, 06–13 | action future bibliothèque | CONFORME | D-170. |
 | Sélection existante | multi-select, 0 disabled, ordre liste filtrée | 03, 06–13 | ordre touches | CONFORME | D-165/D-171. |
-| Copie vers Séance | copie des propriétés intrinsèques puis initialisation contextuelle de `postActivityRecoverySeconds` | 04, 07 D-208, 09–13 | copie d’une récupération post-activité depuis le Catalogue | CONFORME D-208 | `sideRecoverySeconds` est copié ; la post-récupération vient du défaut global. |
-| Exécution directe | origin ACTIVITY, snapshot, prep 5 s, séries/pauses/côtés, récupération entre côtés éventuelle, **aucune post-récupération**, pas SESSION_END | PRODUCT, 03–13, D-208 | récupération post-activité issue du Catalogue | CONFORME D-208 | D-172 révisée par D-208. |
-| Bilatéralité directe | D-208 : `C−1` Pauses par côté, récupération entre côtés éventuelle, nouvelle formule intrinsèque | PRODUCT, 00, 04, 07–13 | D-156 / récupération après les deux côtés | CONFORME D-208 | Exécution directe sans post-récupération. |
-| Durée totale — métier | Durée inchangée ; Répétitions = estimation avec 1 s/répétition ; À l’échec = non affichée | PRODUCT, 00, 04, 06–10, 13 CE-T03-04 | D-155/D-181 | CONFORME | D-204. |
+| Copie vers Séance | copie des propriétés intrinsèques puis initialisation contextuelle de `postActivityRecoverySeconds` | 04, 07 D-208, 09–13 | copie d’une récupération post-exercice depuis le Catalogue | CONFORME D-208 | `sideRecoverySeconds` est copié ; la post-récupération vient du défaut global. |
+| Exécution directe | origin ACTIVITY, snapshot, prep 5 s, séries/pauses/côtés, pause au changement de côté éventuelle, **aucune post-récupération**, pas SESSION_END | PRODUCT, 03–13, D-208 | récupération post-exercice issue du Catalogue | CONFORME D-208 | D-172 révisée par D-208. |
+| Bilatéralité directe | D-208 : `C−1` Pauses par côté, pause au changement de côté éventuelle, nouvelle formule intrinsèque | PRODUCT, 00, 04, 07–13 | D-156 / récupération après les deux côtés | CONFORME D-208 | Exécution directe sans post-récupération. |
+| Durée totale — métier | Durée inchangée ; Répétitions = estimation avec 2 s/répétition (D-232) ; À l’échec = non affichée | PRODUCT, 00, 04, 06–10, 13 CE-T03-04 | D-155/D-181 | CONFORME | D-204. |
 | Durée totale — rendu éditeur | mode Durée : inchangé ; Répétitions : `Durée totale >= {estimation}` ; À l’échec : aucune Durée totale | Figma `3561:4695`, `3561:7802`; 06, 07 D-204, PRODUCT, 13 CE-T03-04 | ancien affichage Reps/Échec commun | CONFORME | D-204. |
-| Nom Activité dans éditeur | `Renforcement du genou` = valeur de démonstration ; `Nom de l’activité` = état vide/placeholder | Figma + `3943:6064`; 06, 07, PRODUCT, 13 CE-T03-04 | valeur démo traitée comme statique | CONFORME | Donnée de démonstration interdite en dur. |
-| Éditeur Activité — Synthèse | nom gras dans Synthèse uniquement ; pas direction développée carte Composition | 00, 06–08, 13 CE-T03-04/08 | anciennes variantes | CONFORME | D-182. |
+| Nom Exercice dans éditeur | `Renforcement du genou` = valeur de démonstration ; `Nom de l’exercice` = état vide/placeholder | Figma + `3943:6064`; 06, 07, PRODUCT, 13 CE-T03-04 | valeur démo traitée comme statique | CONFORME | Donnée de démonstration interdite en dur. |
+| Éditeur Exercice — Synthèse | nom gras dans Synthèse uniquement ; pas direction développée carte Composition | 00, 06–08, 13 CE-T03-04/08 | anciennes variantes | CONFORME | D-182. |
 | Roulette ouverte | scrim ; CTA visuellement normal mais fonctionnel/accessibilité disabled | 06–10, 13 CE-T03-04/08 | CTA actif / style disabled divergent | CONFORME | D-174. |
 | Swipe gauche | carte suit geste, actions révélées derrière | 03, 06–10, 13 CE-T03-02/05/08 | carte immobile / overlay | CONFORME | D-175. |
 | Swipe droit / fermeture | ferme uniquement si commencé sur carte ouverte | 06, 07, 10, 13 | fermeture par fond/autre swipe | CONFORME | D-175. |
@@ -53,13 +53,13 @@ Périmètre : décisions fonctionnelles, UX, données, API, architecture, roadma
 - `3786:5093` Catalogue Exercices — liste ;
 - `3787:5148` ancien arbre Créer Exercices — historique/supersédé par D-187 ;
 - `1992:9910` Catalogue des séances — liste par défaut ;
-- `1992:10129` Recherche globale — Champ déployé ;
+- `1992:10129` Recherche globale — Champ déployé — **archivé / hors cible active D-221** ;
 - `3841:8375` ancien arbre Créer Séances — historique/supersédé par D-187 ;
-- `3561:4695` Création activité — Répétitions / Pause / Séries — avec mode ;
-- `3561:7673` Création activité — Répétitions — roulette compacte ouverte ;
-- `3561:7802` Création activité — À l’échec ;
-- `3943:6064` Création activité — Durée / Pause / Séries — Vide ;
-- `3788:5258` Ajouter activité depuis Composition ;
+- `3561:4695` Création exercice — Répétitions / Pause / Séries — avec mode ;
+- `3561:7673` Création exercice — Répétitions — roulette compacte ouverte ;
+- `3561:7802` Création exercice — À l’échec ;
+- `3943:6064` Création exercice — Durée / Pause / Séries — Vide ;
+- `3788:5258` Ajouter exercice depuis Composition ;
 - `3789:5349`, `3789:5405` multi-sélection ;
 - `3879:5947`, `3879:6079` créer/modifier référence persistante ;
 - `2028:11700`, `2028:11808` Composition / actions glissées ;
@@ -93,13 +93,13 @@ Panneaux ouverts `Filtrer` : **CONFORME**, conçus dans Figma. `Trier` reste vis
 | Anciens compléments documentaires retirés | CONFORME | Les trois fichiers supprimés ne sont plus présents dans l’arbre courant et aucune référence Markdown active ne les cible. |
 | Chapitre de contrats T03 | CONFORME | `13 – Contrats d’écran.md` est l’unique chapitre actif de contrats T03. |
 | Structure des contrats | CONFORME | 17 contrats `CE-T03-01..17`, chacun avec 21 rubriques et une section `21. Traçabilité`. |
-| Anciennes règles UX contradictoires | CONFORME | Les formulations actives « carte immobile », Durée totale masquée et absence de `Déployer` sur les cartes Activité ont été éliminées des documents normatifs concernés. |
+| Anciennes règles UX contradictoires | CONFORME | Les formulations actives « carte immobile », Durée totale masquée et absence de `Déployer` sur les cartes Exercice ont été éliminées des documents normatifs concernés. |
 | Décisions supersédées | CONFORME | D-108, D-116, D-164, D-166 et RES-NAV-LABEL-01 sont explicitement supersédés/précisés par les décisions T03 courantes. |
 | Unicode / fichiers temporaires | CONFORME | Aucun chemin dégradé `#Uxxxx` / `\uXXXX` ni fichier temporaire ajouté par la consolidation. |
 
 ## Mise à jour D-208
 
-Le Catalogue des Exercices ne transporte plus de récupération post-activité dans `ActivityDefinition`. Toute insertion en Séance initialise `postActivityRecoverySeconds` au niveau de l’occurrence. L’Exécution directe peut utiliser `sideRecoverySeconds` en bilatéral mais ne produit jamais de récupération après activité.
+Le Catalogue des Exercices ne transporte plus de récupération post-exercice dans `ActivityDefinition`. Toute insertion en Séance initialise `postActivityRecoverySeconds` au niveau de l’occurrence. L’Exécution directe peut utiliser `sideRecoverySeconds` en bilatéral mais ne produit jamais de récupération après exercice.
 
 
 ## Actualisation visuelle du 30 septembre 2026

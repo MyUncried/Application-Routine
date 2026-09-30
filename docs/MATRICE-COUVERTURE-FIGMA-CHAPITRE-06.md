@@ -25,7 +25,7 @@ L’inventaire du 24 septembre était un état des lieux ; il ne borne plus le c
 
 ## Lecture des écarts visuels et des décisions
 
-La capture décrit l’état Figma observé ; elle ne remplace pas une décision métier validée. Certaines frames de Composition montrent encore une ligne de récupération, alors que D-214 en retire l’affichage dans la cible ; les données et calculs restent conservés. La frame média `4738:6355` montre encore le média déployé : la cible Photo RG-4 reste définie par le wireframe Photo. Ces écarts d’assemblage n’ouvrent aucun nouvel arbitrage et les PNG ne sont pas retouchés pour les masquer. Les cartes standard ne sont pas déclarées propagées dans les frames qui n’en contiennent pas.
+La capture décrit l’état Figma observé ; elle ne remplace pas une décision métier validée. Certaines frames de Composition montrent encore une ligne de récupération, alors que D-238 en retire l’affichage dans la cible ; les données et calculs restent conservés. La frame média `4738:6355` montre encore le média déployé : la cible Photo RG-4 reste définie par le wireframe Photo. Ces écarts d’assemblage n’ouvrent aucun nouvel arbitrage et les PNG ne sont pas retouchés pour les masquer. Les cartes standard ne sont pas déclarées propagées dans les frames qui n’en contiennent pas.
 
 Codes : C cartes ; J cartes Jour ; N navigation ; B commandes contextuelles ; S segmenté à trois options ; I icônes catégorie/zone hors cartes ; P silhouette Profil ; — absent du rapport.
 
@@ -280,11 +280,11 @@ Les captures sont intégrées en Markdown standard et regroupées dans leur fami
 | `4861:6259` — Ajouter un exercice — Catégorie — Appui long — Confirmation suppression | Créer ou modifier un exercice | Modales, panneaux et confirmations |
 | `4861:6348` — Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression | Créer ou modifier un exercice | Modales, panneaux et confirmations |
 | `4893:6675` — Composition d’une séance — Placement d’un point d’arrêt | Composition d’une séance | Vues principales et états intégrés |
-| `4997:6113` — Exécution d'un exercice — Initial — Bascule basse (média) avec Cercle | Exécution — séance ou exercice | Variantes Information et Média — conception à planifier |
-| `5588:4363` — Exécution d'un exercice — Initial — Bascule haute avec média | Exécution — séance ou exercice | Variantes Information et Média — conception à planifier |
-| `5009:6069` — Exécution d'un exercice — Média plein écran | Exécution — séance ou exercice | Variantes Information et Média — conception à planifier |
-| `5021:5994` — Exécution d'un exercice — Initial - Cercle avec Texte | Exécution — séance ou exercice | Variantes Information et Média — conception à planifier |
-| `5581:4257` — Exécution d'un exercice — Démarré —  Bascule haute avec texte | Exécution — séance ou exercice | Variantes Information et Média — conception à planifier |
+| `4997:6113` — Exécution d'un exercice — Initial — Bascule basse (média) avec Cercle | Exécution — séance ou exercice | Variantes Information et Média — MVP |
+| `5588:4363` — Exécution d'un exercice — Initial — Bascule haute avec média | Exécution — séance ou exercice | Variantes Information et Média — MVP |
+| `5009:6069` — Exécution d'un exercice — Média plein écran | Exécution — séance ou exercice | Variantes Information et Média — MVP |
+| `5021:5994` — Exécution d'un exercice — Initial - Cercle avec Texte | Exécution — séance ou exercice | Variantes Information et Média — MVP |
+| `5581:4257` — Exécution d'un exercice — Démarré —  Bascule haute avec texte | Exécution — séance ou exercice | Variantes Information et Média — MVP |
 | `5301:5443` — Composition séance — Retirer un point d’arrêt | Composition d’une séance | Bulle contextuelle |
 | `5451:4272` — Modal — Choisir un exercice — Planification — Liste longue | Planifier une séance ou un exercice | Modales, panneaux et confirmations |
 | `1354:182` — Profil — Cible post-MVP | Archives et références hors prototype actif | Vues principales et états intégrés |
@@ -297,6 +297,6 @@ Les captures sont intégrées en Markdown standard et regroupées dans leur fami
 ### Écarts restant explicitement distingués
 
 - **NON CONFORME (vocabulaire Figma)** : les confirmations `1992:8224` et `1992:8326` emploient encore Activité ; le vocabulaire cible du chapitre est Exercice.
-- **À CLARIFIER (terminologie Tour)** : Tour reste défini dans le glossaire et visible en Exécution ; Parcours apparaît aussi en Composition. Le présent rangement ne décide aucun changement de modèle ni de terme de remplacement.
-- **Statut inchangé** : D-203 classe la conception média en tranche à planifier ; documenter ses cinq variantes ne vaut pas activation MVP.
+- **Terminologie tranchée (D-209)** : Circuit désigne le groupe interne ; Tour désigne une répétition ; Parcours reste autonome. Les anciens libellés Figma sont des écarts visuels, pas des décisions à rouvrir.
+- **Périmètre corrigé depuis #247** : D-203 inclut la consultation média représentée au MVP ; ses cinq variantes sont regroupées dans Exécution. Aucun mécanisme d’import n’est ajouté.
 - **Limite de contrôle** : les fichiers image existants ont été réutilisés ; aucun nouvel export global n’a été effectué. Leur correspondance par nœud et leur intégration Markdown ont été contrôlées.

@@ -25,7 +25,7 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 
 | N° | Titre | Node Figma | Fichier | Dimensions | Type | Statut |
 | --- | --- | ---: | --- | --- | --- | --- |
-| Écran 0 | Splash KODJO | `1992:469` | `ecran-0-splash-kodjo.png` | `402 × 874` | écran | COURANT |
+| Écran 0 | Splash KODJO | `1992:469` | `ecran-0-splash-kodjo.png` | `402 × 874` | écran | COURANT — réexporté le 28/09/2026 |
 | Écran 1 | Profil — Vue d’ensemble (Vibration désactivée) | `1992:375` | `ecran-1-profil.png` | `402 × 874` | écran | COURANT |
 | Écran 1a | Profil — Modifier le profil | `1992:778` | `ecran-1a-modifier-profil.png` | `402 × 874` | écran | COURANT |
 | Écran 1b | Vibration activée | `1992:684` | `ecran-1b-profil-vibration-activee.png` | `402 × 874` | écran | COURANT |
@@ -182,7 +182,7 @@ La présence de la rangée `Créer / Filtrer / Trier` et l’état `disabled` de
 
 `Renforcement du genou` est une **valeur de démonstration Figma**, jamais un libellé statique. Seul l’état vide `3943:6064` conserve `Nom de l’activité` comme état vide/placeholder. Les frames `3879:5947` et `3879:6079` utilisent respectivement `Étirement du quadriceps` et `Squat assisté` comme valeurs de démonstration.
 
-Selon D-204, le texte éditable distingue désormais les modes : en Répétitions, il affiche `Durée totale >= {estimation}` avec 1 seconde conventionnelle par répétition ; en À l’échec, il n’affiche pas de Durée totale. Les frames `3561:4695` et `3561:7802` matérialisent ces deux états.
+Selon D-204, le texte éditable distingue désormais les modes : en Répétitions, il affiche `Durée totale >= {estimation}` avec 2 secondes conventionnelles par répétition ; en À l’échec, il n’affiche pas de Durée totale. Les frames `3561:4695` et `3561:7802` matérialisent ces deux états.
 
 ## 9. Historique des exports
 

@@ -13,19 +13,19 @@ KODJO est une application mobile qui permet à une personne de créer, organiser
 
 ## Le problème rencontré
 
-Les exercices et séances sont souvent communiqués oralement, sur papier, par message ou en vidéo. Ils sont difficiles à retrouver, à organiser dans un ordre précis, à planifier et à exécuter sans mobiliser plusieurs outils. Pendant une activité, l’utilisateur ne peut pas toujours regarder son téléphone. Il manque enfin d’une vision simple de ce qu’il a réellement effectué.
+Les exercices et séances sont souvent communiqués oralement, sur papier, par message ou en vidéo. Ils sont difficiles à retrouver, à organiser dans un ordre précis, à planifier et à exécuter sans mobiliser plusieurs outils. Pendant un exercice, l’utilisateur ne peut pas toujours regarder son téléphone. Il manque enfin d’une vision simple de ce qu’il a réellement effectué.
 
 ## La réponse proposée
 
 KODJO réunit dans une même application :
 
-La classification est dissociée : une **Étiquette** qualifie la Séance et porte sa couleur ; une **Catégorie** qualifie l’Activité et porte sa couleur. Les Zones corporelles restent une information distincte de l’Activité.
+La classification est dissociée : une **Étiquette** qualifie la Séance et porte sa couleur ; une **Catégorie** qualifie l’Exercice et porte sa couleur. Les Zones corporelles restent une information distincte de l’Exercice.
 
 - un espace `Catalogues` pour les contenus ;
 - la création et la modification de Séances structurées ;
-- à partir de T03, un Catalogue des exercices persistantes et leur Exécution directe ;
+- à partir de T03, un Catalogue des exercices persistants et leur Exécution directe ;
 - un calendrier et la planification individuelle ;
-- une Exécution guidée, adaptée aux Exercices chronométrées, en Répétitions ou À l’échec ;
+- une Exécution guidée, adaptée aux Exercices chronométrés, en Répétitions ou À l’échec ;
 - des signaux sonores, des annonces vocales et des vibrations fonctionnelles configurables ;
 - un Suivi des Exécutions terminées, partielles ou interrompues ;
 - des Préférences globales simples.
@@ -51,9 +51,9 @@ Le `Catalogue des séances` est l’état par défaut de l’espace `Catalogues`
 
 ### Catalogue des exercices — T03
 
-T03 rend le segment `Exercices` fonctionnel. Il permet de créer, consulter, modifier, archiver, restaurer et supprimer définitivement une Activité persistante, de l’ajouter à une Séance par copie indépendante, de l’exécuter directement **et de la planifier directement** au même titre qu’une Séance. Le segment `Parcours` reste visible mais désactivé.
+T03 rend le segment `Exercices` fonctionnel. Il permet de créer, consulter, modifier, archiver, restaurer et supprimer définitivement un Exercice persistant, de l’ajouter à une Séance par copie indépendante, de l’exécuter directement **et de la planifier directement** au même titre qu’une Séance. Le segment `Parcours` reste visible mais désactivé.
 
-Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Une Exécution directe d’Activité utilise l’origine `ACTIVITY`, un instantané autonome et une préparation fixe de `5 s`, sans Séance artificielle ni `SESSION_END`.
+Un Exercice créé uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Une Exécution directe d’Exercice utilise l’origine `ACTIVITY`, un instantané autonome et une préparation fixe de `5 s`, sans Séance artificielle ni `SESSION_END`.
 
 ### Création et composition
 
@@ -62,18 +62,18 @@ La création est réalisée dans un écran unique `Composition d’une séance`.
 Une Séance contient :
 
 1. un Compte à rebours initial ;
-2. des Exercices éventuellement placées avant le Tour ;
-3. un Tour unique, visible et répétable de 1 à 99 fois ;
-4. des Exercices éventuellement placées après le Tour ;
+2. des Exercices éventuellement placées avant le Circuit ;
+3. un Circuit unique, visible et répétable de 1 à 99 Tours ;
+4. des Exercices éventuellement placées après le Circuit ;
 5. une Fin de séance.
 
-Une Activité peut également porter son propre Compte à rebours et sa propre Fin d’activité. La Composition peut contenir un Point d’arrêt déplaçable ; son attente n’est pas comptabilisée dans la durée d’exécution.
+Un Exercice peut également porter son propre Compte à rebours et sa propre Fin d’exercice. La Composition peut contenir un Point d’arrêt déplaçable ; son attente n’est pas comptabilisée dans la durée d’exécution.
 
 Le Cycle est conservé uniquement dans le modèle technique pour l’évolutivité. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur.
 
-Une Activité est une action exécutée en mode Durée, Répétitions ou À l’échec. Elle comprend au moins une Série et peut inclure une Pause entre Séries. Une Activité bilatérale peut en outre définir une **Récupération entre côtés**, exécutée une seule fois entre le premier et le second côté. La **Récupération après activité** n’est pas intrinsèque à l’Activité : elle appartient à son occurrence lorsqu’elle est placée dans une Séance ou un Parcours.
+Un Exercice est une action exécutée en mode Durée, Répétitions ou À l’échec. Elle comprend au moins une Série et peut inclure une Pause entre Séries. Un Exercice bilatéral peut en outre définir une **Pause au changement de côté**, exécutée une seule fois entre le premier et le second côté. La **Récupération après exercice** n’est pas intrinsèque à l’Exercice : elle appartient à son occurrence lorsqu’elle est placée dans une Séance ou un Parcours.
 
-En mode Durée, le nombre entier de Séries et la Durée totale de l’Activité sont des contrôles dépendants. La durée intrinsèque inclut les Séries, exactement `C−1` Pauses par côté et, en bilatéral, la Récupération entre côtés éventuelle. Elle exclut toujours la Récupération après activité. Dans le texte éditable, le mode Répétitions affiche `Durée totale >= {estimation}` en comptant conventionnellement 1 seconde par répétition ; l’estimation applique toujours `C−1` Pauses par côté, ajoute `sideRecoverySeconds` uniquement en bilatéral et exclut la Récupération après activité. En mode À l’échec, la Durée totale n’est pas affichée dans le texte éditable. T04 porte l’orchestration complète d’Exécution des Séances, y compris Séries, Tours et passages bilatéraux conformément au Plan d’Exécution.
+En mode Durée, le nombre entier de Séries et la Durée totale de l’Exercice sont des contrôles dépendants. La durée intrinsèque inclut les Séries, exactement `C−1` Pauses par côté et, en bilatéral, la Pause au changement de côté éventuelle. Elle exclut toujours la Récupération après exercice. Dans le texte éditable, le mode Répétitions affiche `Durée totale >= {estimation}` en comptant conventionnellement 2 secondes par répétition ; l’estimation applique toujours `C−1` Pauses par côté, ajoute `sideRecoverySeconds` uniquement en bilatéral et exclut la Récupération après exercice. En mode À l’échec, la Durée totale n’est pas affichée dans le texte éditable. T04 porte l’orchestration complète d’Exécution des Séances, y compris Séries, Tours et passages bilatéraux conformément au Plan d’Exécution.
 
 Les valeurs initiales de l’application sont de 10 secondes pour le Compte à rebours initial et de 5 secondes pour la Fin de séance. L’utilisateur peut choisir 0 seconde, ce qui rend la phase instantanée sans la supprimer du modèle. Ces deux cartes structurelles ne sont pas déplaçables.
 
@@ -83,9 +83,9 @@ Une Séance peut être planifiée une seule fois ou périodiquement. Le Calendri
 
 ### Exécution guidée
 
-L’Exécution d’une Séance présente l’Activité en cours, la Série, le Tour, l’Activité suivante, le temps et la progression. Le Cycle n’est jamais exposé.
+L’Exécution d’une Séance présente l’Exercice en cours, la Série, le Tour, l’Exercice suivant, le temps et la progression. Le Cycle n’est jamais exposé.
 
-L’Exécution continue à progresser lorsque l’application passe en arrière-plan ou que l’écran se verrouille. Au retour, l’état est recalculé à partir d’horodatages de référence. Une pause de sécurité intervient après 30 minutes sans interaction au-delà de la fin théorique d’une Activité chronométrée, ou après 2 heures sans interaction pour un Exercice en Répétitions ou À l’échec.
+L’Exécution continue à progresser lorsque l’application passe en arrière-plan ou que l’écran se verrouille. Au retour, l’état est recalculé à partir d’horodatages de référence. Une pause de sécurité intervient après 30 minutes sans interaction au-delà de la fin théorique d’un Exercice chronométré, ou après 2 heures sans interaction pour un Exercice en Répétitions ou À l’échec.
 
 ### Suivi
 
@@ -112,14 +112,14 @@ Les Sons, les Annonces vocales et les Vibrations fonctionnelles sont indépendan
 
 ## Ambition après le MVP
 
-KODJO a vocation à devenir un assistant personnel de planification et de suivi pour la rééducation, la mobilité, l’activité physique, la santé quotidienne et les habitudes personnelles.
+KODJO a vocation à devenir un assistant personnel de planification et de suivi pour la rééducation, la mobilité, l’exercice physique, la santé quotidienne et les habitudes personnelles.
 
 Les évolutions envisagées comprennent notamment :
 
 - comptes, synchronisation et sauvegarde distante ;
 - partage de Séances et groupes ;
 - interface destinée aux professionnels ;
-- ajout de `0..n` photos ou vidéos ordonnées par Activité ;
+- ajout de `0..n` photos ou vidéos ordonnées par Exercice ;
 - statistiques, filtres et tableaux de bord ;
 - connexions à des calendriers et services de santé ;
 - prise en charge de langues supplémentaires.
@@ -134,11 +134,11 @@ Le Catalogue constitue l’accès central aux contenus. Il distingue `Exercices`
 
 ### Catalogue des exercices — MVP T03
 
-La tranche MVP T03 apporte un Catalogue d’Exercices persistantes. Le Catalogue des exercices permet de créer, consulter, modifier, archiver/restaurer et exécuter directement une Activité de référence. Dès T03, depuis la Composition d’une Séance, l’utilisateur peut également sélectionner plusieurs Exercices existantes ; chacune est copiée dans la Séance et devient indépendante de sa référence.
+La tranche MVP T03 apporte un Catalogue d’Exercices persistants. Le Catalogue des exercices permet de créer, consulter, modifier, archiver/restaurer et exécuter directement un Exercice de référence. Dès T03, depuis la Composition d’une Séance, l’utilisateur peut également sélectionner plusieurs Exercices existants ; chacun est copié dans la Séance et devient indépendante de sa référence.
 
-Une Activité créée uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Cette capacité locale reste conservée mais n’est pas exposée dans le parcours courant de composition, qui propose la sélection depuis le Catalogue. Dans le MVP, une carte d’Activité du Catalogue peut être déployée pour afficher le média associé ; cette activation n’ajoute pas implicitement de nouveau mécanisme d’import ou de capture.
+Un Exercice créé uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Cette capacité locale reste conservée mais n’est pas exposée dans le parcours courant de composition, qui propose la sélection depuis le Catalogue. Dans le MVP, une carte d’Exercice du Catalogue peut être déployée pour afficher le média associé ; cette activation n’ajoute pas implicitement de nouveau mécanisme d’import ou de capture.
 
-L’Exécution directe réutilise le sous-ensemble moteur autonome avec une origine `ACTIVITY`, commence par une préparation standard de `5 s`, n’ajoute ni Séance artificielle ni phase `SESSION_END`, puis affiche une Synthèse avec Ressenti obligatoire. Le Suivi identifie cette Exécution comme une Activité et applique les statistiques compatibles sans compter une Séance.
+L’Exécution directe réutilise le sous-ensemble moteur autonome avec une origine `ACTIVITY`, commence par une préparation standard de `5 s`, n’ajoute ni Séance artificielle ni phase `SESSION_END`, puis affiche une Synthèse avec Ressenti obligatoire. Le Suivi identifie cette Exécution comme un Exercice et applique les statistiques compatibles sans compter une Séance.
 
 ### Parcours — post-MVP
 
@@ -146,14 +146,19 @@ Les Parcours restent préparés conceptuellement et techniquement mais ne sont n
 
 ## Vision de la bilatéralité
 
-La configuration permet de choisir `Aucun`, droite puis gauche, ou gauche puis droite sur une Activité. Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Tour ; le Tour reste fonctionnellement `UNILATERAL`. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Activité. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
+La configuration permet de choisir `Aucun`, droite puis gauche, ou gauche puis droite sur un Exercice. Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Circuit ; le Circuit n’a pas de bilatéralité fonctionnelle. L’Exécution rend le côté courant explicite sans alourdir la progression, au moyen du sous-titre `Côté droit` ou `Côté gauche` sous le nom de l’Exercice. Les résultats restent distinguables par côté et l’historique demeure fondé sur un instantané immuable.
 
 ## Vision cible — médias pendant l’Exécution
 
-La cible post-MVP permet de consulter les médias de l’Exercice sans quitter l’Exécution ni interrompre son moteur. L’utilisateur peut retourner la zone d’information vers une face Média, parcourir une galerie ordonnée, lancer une vidéo à la demande et ouvrir le média en plein écran. Le plein écran conserve un cadre flottant de suivi et de commande de l’Exécution.
+Le MVP permet de consulter les médias de l’Exercice sans quitter l’Exécution ni interrompre son moteur. L’utilisateur peut retourner la zone d’information vers une face Média, parcourir une galerie ordonnée, lancer une vidéo à la demande et ouvrir le média en plein écran. Le plein écran conserve un cadre flottant de suivi et de commande de l’Exécution.
 
 Cette cible est conçue mais n’est pas ajoutée au périmètre MVP courant sans décision de roadmap distincte. Voir `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 ### Cible de planification commune
 
 La cible produit considère **Séances, Exercices persistants et Parcours** comme des contenus autonomes pouvant être planifiés directement. Le MVP active cette capacité pour les Séances et les Exercices ; la planification des Parcours reste rattachée à la version prévue pour cette fonctionnalité. Le principe fonctionnel demeure unique : une Routine planifie une source, quel que soit son type.
+
+## Consolidation du 26 septembre 2026
+
+La terminologie cible distingue **Parcours** (contenu autonome), **Circuit** (groupe répété interne à une Séance) et **Tour** (une répétition du Circuit). La classification n’influence pas l’Exécution : un Exercice requiert une Catégorie et au moins une Zone corporelle ; l’Étiquette de Séance reste facultative. Les préférences Profil initialisent les nouveaux objets sans rétroactivité. Une Séance peut globalement appliquer ou ignorer les Compte à rebours et Fins propres à ses Exercices.
+
