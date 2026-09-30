@@ -8,7 +8,7 @@ Ce chapitre constitue la **spécification des familles d’écran du MVP, avec s
 
 Un écran T03 n’est considéré comme spécifié que si son contrat définit explicitement : contexte d’entrée, sorties, données et leurs sources, valeurs Figma, structure, éléments obligatoires, layout, responsive, états, contrôles, gestes, validation, brouillon/persistance, navigation/conservation d’état, erreurs, accessibilité, invariants, recette et traçabilité.
 
-Les 29 contrats actifs sont CE-T03-01 à17, CE-MEDIA-EXEC-01/02, CE-UI-01 à09 et CE-EXEC-SESSION-01. Chacun comporte les 21 rubriques canoniques. CE-T03-16 est désormais le contrat des Étiquettes de Composition ; l’ancien parcours Catégories est retiré. Les réserves explicites §6 ne sont pas des comportements validés. Cette correction documentaire ne modifie pas les tranches de réalisation ni leurs autorisations.
+Les 29 contrats actifs sont CE-T03-01 à17, CE-MEDIA-EXEC-01/02, CE-UI-01 à09 et CE-EXEC-SESSION-01. Chacun comporte les 21 rubriques canoniques. CE-T03-16 est désormais le contrat des Étiquettes de Composition ; l’ancien parcours Catégories est retiré. Les règles de clôture §6 complètent les contrats sans modifier le design. Cette correction documentaire ne modifie pas les tranches de réalisation ni leurs autorisations.
 
 ## 2. Sources et ordre d’application
 
@@ -152,7 +152,7 @@ Le moteur possède la source de vérité temporelle. Le Compte à rebours propre
 
 | Origine | Séquence normale |
 |---|---|
-| ACTIVITY | Préparation système 5 s → compte à rebours propre applicable → toutes Séries/pauses du premier côté → SIDE_RECOVERY éventuelle si bilatéral → toutes Séries/pauses du second côté → Fin propre applicable → signal de fin → Synthèse |
+| ACTIVITY | Préparation système 5 s → compte à rebours propre applicable → toutes Séries/pauses du premier côté → transition SIDE_RECOVERY de durée q si bilatéral (§6 R-03) → toutes Séries/pauses du second côté → Fin propre applicable → signal de fin → Synthèse |
 | SESSION | Compte à rebours initial → plan avant Circuit → Circuit répété par Tours → plan après Circuit → Fin de séance → Synthèse |
 | Occurrence SESSION | Compte à rebours propre si activé → Exercice intrinsèque (Séries/côtés/pauses) → Fin propre si activée → POST_ACTIVITY_RECOVERY → point d’arrêt éventuel → suite |
 
@@ -161,10 +161,10 @@ C−1 pauses inter-Séries par côté ; SIDE_RECOVERY une fois entre côtés ; P
 | Action/phase | Effet déterminé | Conservation |
 |---|---|---|
 | Réinitialiser Série unilatérale | Confirmation ; durée cible initiale en Durée, chrono 00:00 en Répétitions/échec | Cible de répétitions, temps global déjà écoulé et autres résultats conservés |
-| Réinitialiser Exercice bilatéral | Portée côté courant conformément D-149, pas l’autre côté | Résultat autre côté, temps global, Tour/Cycle conservés ; détails de Série en R-03 |
+| Réinitialiser Exercice bilatéral | Portée bloc du côté courant conformément D-150, pas l’autre côté | Résultat autre côté, temps global, Tour/Cycle conservés ; reprise à la première Série du côté (§6 R-03) |
 | Réinitialiser récupération | Recommencer uniquement phase de récupération courante | Exercice terminé reste terminé |
 | Suivant en Répétitions/échec | Terminer normalement Série courante sans confirmation de saut anticipé | Transitions prévues par le plan |
-| Suivant chronométré avant terme | Confirmation ; résultat partiel si confirmé | Ne pas effacer résultats précédents ; saut du premier côté selon D-150, réserveR-03 |
+| Suivant chronométré avant terme | Confirmation ; résultat partiel si confirmé | Ne pas effacer résultats précédents ; saut du premier côté selon D-150, transition §6 R-03 |
 | Suivant pendant récupération | Confirmation ; récupération partielle, Exercice terminé conservé | Pas de réexécution de l’Exercice |
 | Pause / Reprendre | Suspendre / reprendre horloges actives | Position de plan et temps antérieur conservés |
 | Arrêter depuis Pause | Confirmation ; clôture Interrompue et Synthèse si présentable | Instantané et résultats atteints conservés |
@@ -546,7 +546,7 @@ Tap, scroll, saisie ; pas de swipe métier ; haptique roulette par cran selon d�
 
 ### 14. Validation
 
-Nom requis ; Catégorie exactement 1, Zones≥1 pour un nouvel Exercice, avec maintien des affectations retirées D-210 pour un objet existant. Séries 1..99 ; Répétitions 1..100 ; durée par Série 1..5999 s ; pauses 0..300 s, pas 5 s jusqu’à120 puis 30 s. À l’échec : aucune cible numérique. Durée totale inverse : N=min(99,max(1,arrondi((Tv−côté+k×pS)/(k×(d+pS))))) ; arrondi .5 vers le haut, conformément à la borne explicite D-232. Toast d’ajustement seulement si T(N)≠Tv. Capacité/format du sélecteur Total : réserve R-02 §6, ne pas confondre avec la borne de durée par Série.
+Nom requis ; Catégorie exactement 1, Zones≥1 pour un nouvel Exercice, avec maintien des affectations retirées D-210 pour un objet existant. Séries 1..99 ; Répétitions 1..100 ; durée par Série 1..5999 s ; pauses 0..300 s, pas 5 s jusqu’à120 puis 30 s. À l’échec : aucune cible numérique. Durée totale inverse : N=min(99,max(1,arrondi((Tv−côté+k×pS)/(k×(d+pS))))) ; arrondi .5 vers le haut, conformément à la borne explicite D-232. Toast d’ajustement seulement si T(N)≠Tv. Sélecteur Total minutes/secondes borné T(1)..T(99), selon §6 R-02 ; côté=q selon R-03.
 
 ### 15. Brouillon et persistance
 
@@ -1242,7 +1242,7 @@ Premier côté ; Pause intra-côté ; pause au changement de côté éventuelle 
 
 ### 12. Contrôles et interactions
 
-Ordre D→G/G→D strict. Réinitialiser ne touche que le côté courant et conserve l’autre résultat. Passage anticipé du premier côté : résultat partiel conservé, second côté selon D-150 ; traitement de SIDE_RECOVERY lors de ce saut explicitement réservé R-03, aucune omission silencieuse.
+Ordre D→G/G→D strict. Réinitialiser ne touche que le côté courant et conserve l’autre résultat. Passage anticipé du premier côté : résultat partiel conservé, second côté selon D-150 ; transition de durée pC si pC>0, sinon pS ; aucun cumul (§6 R-03).
 
 ### 13. Gestes
 
@@ -1274,7 +1274,7 @@ Toutes Séries d’un côté avant l’autre ; une seule pause entre côtés ; a
 
 ### 20. Recette déterministe
 
-D→G/G→D, C=1/2/99, pause inter-Séries 0/>0, SIDE_RECOVERY0/>0, reset second préservant premier, interruption pendant SIDE_RECOVERY, absence de récupération après second. Saut anticipé : réserve R-03 identifiée dans la recette, pas déclaré validé.
+D→G/G→D, C=1/2/99, pause inter-Séries 0/>0, SIDE_RECOVERY0/>0, reset second préservant premier, interruption pendant SIDE_RECOVERY, absence de récupération après second. Tester saut anticipé avec pC>0 puis pC=0/pS>0 puis les deux à zéro ; ne jamais cumuler les pauses.
 
 ### 21. Traçabilité
 
@@ -2139,7 +2139,7 @@ Unique : Annuler/Confirmer suppression. Périodique : Seulement cette occurrence
 
 ### 15. Brouillon et persistance
 
-Recalcul des occurrences après validation de Routine. Suppression unitaire doit rester exclue après relance et retirer sa notification ; l’adaptation du modèle/API est identifiée R-04, pas de simulation d’une suppression seulement visuelle. Duplication reste brouillon jusqu’à Enregistrer.
+Recalcul des occurrences après validation de Routine. Suppression unitaire doit rester exclue après relance et retirer sa notification ; le modèle/API doit persister l’exclusion par Routine et date/heure d’origine (§6 R-04), pas de simulation d’une suppression seulement visuelle. Duplication reste brouillon jusqu’à Enregistrer.
 
 ### 16. Navigation et conservation d’état
 
@@ -2159,7 +2159,7 @@ Récurrence seulement déployée en Semaine ; ne pas appliquer les cartes compac
 
 ### 20. Recette déterministe
 
-Semaine vide/N, deux origines, déploiement/récurrence, synchronisation jour/scroll, modification, duplication annulée/enregistrée. Suppression unique et deux choix périodiques confirmés/annulés, notifications/historique. Mois : sept colonnes, sélection, navigation de mois, retour Jour/Semaine même date, marqueurs actualisés. R-04 empêche de déclarer la recette de persistance unitaire acquise.
+Semaine vide/N, deux origines, déploiement/récurrence, synchronisation jour/scroll, modification, duplication annulée/enregistrée. Suppression unique et deux choix périodiques confirmés/annulés, notifications/historique. Mois : sept colonnes, sélection, navigation de mois, retour Jour/Semaine même date, marqueurs actualisés. La recette de persistance unitaire est obligatoire ; cette documentation ne prétend pas l’avoir exécutée.
 
 ### 21. Traçabilité
 
@@ -2287,7 +2287,7 @@ Titre Planifier sans type puis Planifier une séance/un exercice ; source → Da
 
 ### 8. Éléments obligatoires
 
-Source SESSION/ACTIVITY ; une date et une heure ; mode Aucune ou Périodique. Périodique : fréquence entière≥1 semaine,≥1jour, fin obligatoire≥début. Rappel unique facultatif : Aucun,5 min,15 min,30 min,1h,Autre. Autre ouvre le délai personnalisé. Les anciens 10 min/Personnalisé ne sont pas les labels cibles D-229.
+Source SESSION/ACTIVITY ; une date et une heure ; mode Aucune ou Périodique. Périodique : fréquence entière de 1 à 12 semaines,≥1jour, fin obligatoire≥début. Rappel unique facultatif : Aucun,5 min,15 min,30 min,1h,Autre. Autre ouvre le délai personnalisé. Les anciens 10 min/Personnalisé ne sont pas les labels cibles D-229.
 
 ### 9. Layout déterministe
 
@@ -2311,7 +2311,7 @@ Tap/stepper/roulette/scroll ; D-237 action au relâchement. Pas de roulette pour
 
 ### 14. Validation
 
-Source disponible ; date/heure valides ; Aucune=une occurrence ; Périodique=fréquence≥1, jours non vides, fin≥début inclusive. Semaine contenant début = ancrage ; bornes de dates inclusives. Pas d’occurrence historique réécrite. Un rappel n’est actif qu’avec permission ; délai personnalisé validé selon unité du picker. Borne maximale non décidée du délai/fréquence : ne pas tirer une limite de la valeur de maquette, réserve R-02.
+Source disponible ; date/heure valides ; Aucune=une occurrence ; Périodique=fréquence entière 1..12, jours non vides, fin≥début inclusive. Semaine contenant début = ancrage ; bornes de dates inclusives. Pas d’occurrence historique réécrite. Un rappel n’est actif qu’avec permission ; délai personnalisé validé selon unité du picker. Rappel personnalisé strictement positif, maximum 24 h ; fréquence maximum 12 semaines (§6 R-02).
 
 ### 15. Brouillon et persistance
 
@@ -2487,7 +2487,7 @@ Tap bascule ; stepper incrément immédiat, maintien 450 ms puis pas 150 ms, arr
 
 ### 14. Validation
 
-Valeurs non négatives ; pauses côté/récupération 0..300 s, progression 5 s jusqu’à120 puis 30 s. Respecter les bornes des réglages propres déjà définies ; pas de maximum déduit d’un exemple. Les bornes encore non explicites sont listées R-02.
+Valeurs non négatives ; pauses côté/récupération 0..300 s, progression 5 s jusqu’à120 puis 30 s. Respecter les bornes des réglages propres déjà définies ; pas de maximum déduit d’un exemple. Les bornes partagées sont consolidées au §6 R-02.
 
 ### 15. Brouillon et persistance
 
@@ -2575,7 +2575,7 @@ Tap commandes ; confirmation explicite avant action destructive ; gestes média 
 
 ### 14. Validation
 
-Séance contenant≥1Exercice valide ; pas de double démarrage. Points aux positions D-217 seulement. Phases 0 s instantanées. Progression hybride : invariants définis mais formule contradictoire amont signaléeR-01 ; ne pas certifier son résultat numérique.
+Séance contenant≥1Exercice valide ; pas de double démarrage. Points aux positions D-217 seulement. Phases 0 s instantanées. Progression hybride selon la formule §6 R-01, calculée sur toutes les étapes contributives du plan.
 
 ### 15. Brouillon et persistance
 
@@ -2587,7 +2587,7 @@ Reprise technique restaure phase/Série/côté/Tour sans relire source ni dupliq
 
 ### 17. Erreurs et cas limites
 
-Source supprimée après départ sans effet sur instantané ; interruption technique conserve résultats ; attente de point hors durée ; reprise après arrière-plan par horodatage. Gardes 30 min/2h selon modèle, délai de non-réponse non définiR-03.
+Source supprimée après départ sans effet sur instantané ; interruption technique conserve résultats ; attente de point hors durée ; reprise après arrière-plan par horodatage. Gardes 30 min/2h selon modèle, sans réponse, rester suspendu sans arrêt automatique (§6 R-03).
 
 ### 18. Accessibilité
 
@@ -2599,7 +2599,7 @@ Circuit unilatéral, Tours 1..99 ; récupération après chaque occurrence y com
 
 ### 20. Recette déterministe
 
-Séance avec avant/dans/après Circuit, Tours 1/2, unilatéral/bilatéral, trois modes ; D-214on/off ; toutes phases 0/>0 ; dernière récupération avant Fin ; points frontières/intérieur ; pause/reset/saut/arrêt confirmés/annulés ; source modifiée pendant run ; reprise ; médias ; réservesR-01/R-03 explicitement non recettées.
+Séance avec avant/dans/après Circuit, Tours 1/2, unilatéral/bilatéral, trois modes ; D-214on/off ; toutes phases 0/>0 ; dernière récupération avant Fin ; points frontières/intérieur ; pause/reset/saut/arrêt confirmés/annulés ; source modifiée pendant run ; reprise ; médias ; vérifier poids §6 R-01 et transitions §6 R-03 ; aucun résultat de test applicatif n’est revendiqué ici.
 
 ### 21. Traçabilité
 
@@ -2802,16 +2802,36 @@ D-199/D-200/D-210–212/D-222/D-238 ; CE-T03-04 ; frames§1. Renommage sans fram
 
 Les 119 captures restent exclusivement au chapitre 06, dont six références hors prototype qui ne deviennent pas des écrans MVP. Les matrices ci-jointes donnent les rattachements ; la présence de chaque capture a été vérifiée lors de l’audit, pas son fonctionnement interactif.
 
-## 6. Réserves de spécification amont — aucune règle inventée
+## 6. Clôture des réserves fonctionnelles des contrats
 
-| ID | Point restant non univoque dans les sources | Impact et traitement dans les contrats |
-|---|---|---|
-| R-01 |Progression hybride 08§4.4/RM-077 : poids 1/N des non-chronométrés sature 100% si tous sont non-chronométrés, malgré les phases chronométrées incluses par D-133. Portée globale de 2 s/répétition de v10.2 contre l’interdiction d’estimation conventionnelle de certains chapitres | CE-EXEC-SESSION-01 : ne pas figer un algorithme contradictoire ; phrase éditeur 2 s actée conservée ; calcul global doit être consolidé dans 08/10 avant recette numérique |
-| R-02 |Capacité/format de roulette Durée totale et certaines bornes Profil/délai personnalisé/fréquence non complètement renseignés | CE-T03-04/CE-UI-05/07 : bornes actées appliquées, formule inverse plafonnée 99 ; ne pas transformer un exemple en maximum métier. Complément source nécessaire pour les bornes non définies |
-| R-03 |Reset bilatéral côté versus Série ; devenir SIDE_RECOVERY au saut anticipé du premier côté ; délai de non-réponse à pause de sécurité | CE-T03-12/CE-EXEC-SESSION-01 : préservation de l’autre côté et temps total actée ; transitions fines non déclarées recettées, table moteur à consolider |
-| R-04 |Suppression seulement cette occurrence périodique visible mais exclusion persistante/API non définies complètement | CE-UI-03 : résultat utilisateur requis et recette relance/notifications explicites ; adaptation modèle 09/API11 nécessaire, pas de nouvelle table technique inventée ici |
+Les arbitrages des 30 septembre et 1er octobre 2026 ferment les points fonctionnels ci-dessous. Ils ne valent ni recette de l’application ni validation de preuves Figma absentes. Aucun shell, composant, placement ou parcours n’est redessiné.
 
-Ces réserves proviennent de l’audit, pas d’une réouverture des décisions closes. Elles ne bloquent pas la livraison des corrections documentaires, mais empêchent de prétendre à une spécification intégralement déterministe sur ces seuls points. La correction des contrats ne prétend pas réécrire les chapitres métier/API/architecture en dehors du périmètre demandé.
+### R-01 — Progression et estimation
+
+Le calcul porte sur les étapes du plan développé, sans modifier la piste segmentée existante. Soit M le nombre d’étapes contributives (Séries non chronométrées et phases chronométrées de durée strictement positive), R le nombre de Séries non chronométrées et T la somme des durées chronométrées. Chaque Série non chronométrée pèse 1/M ; chaque phase chronométrée de durée d pèse (1−R/M)×d/T. Avec R=0, les poids sont d/T ; sans phase chronométrée, chaque Série pèse 1/M. Les phases à 0 s, pauses manuelles et attentes aux points d’arrêt n’ont pas de poids. Une Série non chronométrée acquiert sa part à validation ; une phase chronométrée la remplit progressivement. Un passage anticipé confirmé franchit les étapes effectivement sautées sans leur attribuer de temps réalisé. Le moteur ne publie 100 % qu’à la finalisation du plan (SESSION_END compris pour une Séance) ; une étape finale instantanée est finalisée avant de publier 100 %. Les poids sont figés au démarrage. Un reset remet à zéro les parts de son périmètre, en préservant les parts antérieures hors de ce périmètre.
+
+La convention 2 s/répétition reste celle de la phrase intrinsèque de l’éditeur (04 §2 et D-232). Elle n’est pas une durée cible du moteur. Les métriques globales régies par D-112/D-131 continuent de sommer les durées connues et d’afficher ≥ en présence d’effort non chronométré. Cette séparation de périmètres ne crée pas une nouvelle estimation globale.
+
+### R-02 — Validation des contrôles existants
+
+- Planifier : fréquence entière de 1 à 12 semaines incluses ; − inactif à 1 et + inactif à 12 ; toute valeur extérieure est refusée à l’enregistrement.
+- Rappel Autre : délai strictement positif, maximum 24 h (1 440 minutes), avec les unités et le sélecteur existants. Aucun désactive le rappel ; zéro ne crée pas une deuxième manière de désactiver le champ. Une notification dont l’échéance est déjà passée n’est pas envoyée rétroactivement ; les futures occurrences conservent leur rappel.
+- Durée totale : conserver le sélecteur minutes/secondes. La borne dérivée est T(1)..T(99) pour les paramètres courants, et non 99 min 59 s (borne par Série). La colonne minutes doit représenter T(99), sans nouvelle colonne ni nouveau contrôle. Granularité seconde ; le calcul inverse existant choisit N dans 1..99, arrondi .5 vers le haut, puis affiche T(N) et le message d’ajustement si nécessaire. Une diminution à N=1 sans bilatéralité masque ensuite le total, conformément D-232.
+- Profil : les paramètres identiques héritent des mêmes bornes que leur champ cible, sans maximum tiré des valeurs d’exemple. Compte à rebours initial/Fin de séance : 0..3599 s (D-089) ; pauses et récupération : 0..300 s ; le contrôle et ses pas restent ceux du DSF et de D-232. Les valeurs initiales déjà validées ne changent pas.
+
+### R-03 — Transition, reset et suspension
+
+À la transition entre côtés, utiliser une seule pause : pC si la pause de changement de côté pC est positive, sinon la pause entre Séries pS. Les deux ne se cumulent jamais. La transition vaut donc q=(pC>0 ? pC : pS) en bilatéral et q=0 en unilatéral. Les N−1 pauses internes à chaque côté restent inchangées. Cette règle vaut aussi au passage anticipé vers le second côté. Si q=0, passer directement au second côté. La phase de transition conserve le rôle SIDE_RECOVERY, avec durée effective q, sans modifier la valeur pC enregistrée.
+
+Durée intrinsèque : T(N)=k×[N×d+(N−1)×pS]+q, k=1 ou 2. En Répétitions dans la phrase, remplacer d par R×2 s. Inversion : N=min(99,max(1,arrondi((Tv−q+k×pS)/(k×(d+pS))))). Compte à rebours, Fin propre et récupération post-exercice restent hors de ce total.
+
+Réinitialisation : D-029/D-150 commandent de recommencer l’exercice ; en bilatéral, son périmètre est le bloc du côté courant depuis sa première Série, sans effacer le résultat de l’autre côté ni le temps total. Pendant une récupération, RM-062 réinitialise uniquement la phase courante. Ne pas présenter ces variantes comme un choix à refaire.
+
+Pause de sécurité : sans réponse au choix Reprendre/Arrêter, l’exécution reste suspendue, son état est conservé et son temps n’avance plus. Aucun délai d’arrêt automatique supplémentaire.
+
+### R-04 — Suppression d’une occurrence périodique
+
+Le comportement utilisateur est déjà fixé. L’exclusion d’une occurrence identifiée par Routine et date/heure d’origine doit être persistée, survivre à la relance et au recalcul, et retirer sa notification. Les autres occurrences et l’historique restent conservés. La mutation doit être atomique et idempotente ; en cas d’échec, l’interface ne simule pas un succès. Modèle et API doivent satisfaire ce contrat ; le choix de stockage relève du développement et ne requiert aucun nouvel écran ni arbitrage de design. La recette doit prouver relance, recalcul et notifications ; elle n’est pas réputée exécutée par cette clôture documentaire.
 
 ## 7. Référentiel élémentaire T03 et couverture
 
@@ -2920,4 +2940,4 @@ Chaque contenu E01–E73 est rattaché ci-dessus ; E08 est rattaché à CE-T03-0
 
 T03 décrit l’Exécution ACTIVITY autonome : préparation 5 s, phases propres, Séries/pauses/côtés, pause au changement de côté, Synthèse et Suivi. T04 porte l’orchestration SESSION : Circuit/Tours, phases structurelles, récupération post-occurrence, points d’arrêt et progression globale. Ajouter leurs contrats ne déclenche ni développement ni changement de tranche. Parcours autonome et recherche restent hors MVP.
 
-Pour chaque contrat : tester nominal/alternatifs/négatifs, comparer le rendu 402 à la preuve lorsqu’elle existe, vérifier 360/402/440 et texte agrandi, accessibilité, données réelles, persistance/annulation, erreurs et absence d’activation hors périmètre. Consigner séparément conformité documentaire, conformité visuelle et recette interactive. Les réserves§6 et preuves manquantes§5 ne sont jamais marquées CONFORME par la seule présence de 21 sections.
+Pour chaque contrat : tester nominal/alternatifs/négatifs, comparer le rendu 402 à la preuve lorsqu’elle existe, vérifier 360/402/440 et texte agrandi, accessibilité, données réelles, persistance/annulation, erreurs et absence d’activation hors périmètre. Consigner séparément conformité documentaire, conformité visuelle et recette interactive. Les règles §6 et preuves manquantes §5 ne sont jamais marquées CONFORME en exécution par la seule présence de 21 sections.

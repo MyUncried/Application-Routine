@@ -66,3 +66,8 @@ La revue corrige les contrats, pas tous les chapitres métier/API/architecture d
 ## Vérification
 
 Comptage21 rubriques par contrat, unicité des29 IDs, absence de section vide, contrôle des références de contrat, couvertureE01–E73, recherche des anciens parcours/CTA et rattachements corrigés. Les différences ont été relues ; les preuves visuelles sont celles de l’audit des119 captures. Tests applicatifs non exécutés : livraison documentaire.
+
+
+## Mise à jour du 01/10/2026 — clôture fonctionnelle
+
+La réserve fonctionnelle R-01 à R-04 est remplacée par les règles du chapitre13 §6, D-240 à D-244. Les mentions de réserves dans le bilan initial ci-dessus décrivent la première livraison. Maxima confirmés : rappel 24 h, fréquence 12 semaines. Transition entre côtés corrigée avec repli sur la pause entre Séries. Progression pondérée sur toutes les étapes. Les limites visuelles V-01 à V-12 demeurent, sans redesign ni prétention de recette applicative.
