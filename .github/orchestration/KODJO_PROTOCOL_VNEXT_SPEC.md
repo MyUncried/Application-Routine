@@ -1078,6 +1078,7 @@ Aucun `ExecutionRequest` n'est produit directement depuis un plan ou un texte de
 Un `ApprovalTarget` ne peut être construit que si :
 
 - PlanningEnvelope est valide ;
+- RequirementRegistry et ImpactGraph sont rejoués mécaniquement et valides ;
 - PlanContract est valide ;
 - ReviewContext correspond exactement au PlanningEnvelope, RequirementRegistry, CandidateManifest, ImpactGraph et PlanContract courants ;
 - ReviewReport correspond exactement au ReviewContext ;
