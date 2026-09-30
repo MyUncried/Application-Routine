@@ -203,11 +203,13 @@ function validateFindingAssessment(assessment, { auditManifest, reviewContext, r
 }
 
 function buildFindingResolutionSet({
+  auditManifest,
   previousReviewReport,
   nextReviewContext,
   nextReviewReport,
   resolutions,
 }) {
+  validateAuditManifest(auditManifest);
   Review.validateReviewReport(nextReviewReport, nextReviewContext);
   V.verifyContractHash(previousReviewReport, 'VNEXT_FINDING_RESOLUTION_PREVIOUS_REPORT_HASH_INVALID');
   if (!Array.isArray(resolutions)) V.fail('VNEXT_FINDING_RESOLUTIONS_INVALID');
@@ -284,6 +286,7 @@ function buildFindingResolutionSet({
 
   return V.sealContract({
     schema_version: FINDING_RESOLUTION_SCHEMA,
+    audit_manifest_hash: auditManifest.contract_hash,
     previous_review_report_hash: previousReviewReport.contract_hash,
     next_review_report_hash: nextReviewReport.contract_hash,
     resolutions: normalized,
@@ -291,6 +294,7 @@ function buildFindingResolutionSet({
 }
 
 function validateFindingResolutionSet(set, {
+  auditManifest,
   previousReviewReport,
   nextReviewContext,
   nextReviewReport,
@@ -299,6 +303,7 @@ function validateFindingResolutionSet(set, {
     set,
     [
       'schema_version',
+      'audit_manifest_hash',
       'previous_review_report_hash',
       'next_review_report_hash',
       'resolutions',
@@ -312,6 +317,7 @@ function validateFindingResolutionSet(set, {
   }
   V.verifyContractHash(set, 'VNEXT_FINDING_RESOLUTION_HASH_MISMATCH');
   const rebuilt = buildFindingResolutionSet({
+    auditManifest,
     previousReviewReport,
     nextReviewContext,
     nextReviewReport,
@@ -425,35 +431,6 @@ function validateFindingLedger(ledger) {
   return true;
 }
 
-function advanceFindingLedger({
-  previousLedger,
-  auditManifest,
-  nextReviewContext,
-  nextReviewReport,
-  nextFindingAssessment,
-  findingResolutionSet,
-}) {
-  validateFindingLedger(previousLedger);
-  validateAuditManifest(auditManifest);
-  if (previousLedger.audit_manifest_hash !== auditManifest.contract_hash) {
-    V.fail('VNEXT_FINDING_LEDGER_AUDIT_MANIFEST_CHANGED');
-  }
-  validateFindingAssessment(nextFindingAssessment, {
-    auditManifest,
-    reviewContext: nextReviewContext,
-    reviewReport: nextReviewReport,
-  });
-  validateFindingResolutionSet(findingResolutionSet, {
-    previousReviewReport: {
-      ...nextReviewReport,
-      contract_hash: findingResolutionSet.previous_review_report_hash,
-    },
-    nextReviewContext,
-    nextReviewReport,
-  });
-  V.fail('VNEXT_FINDING_LEDGER_ADVANCE_REQUIRES_PREVIOUS_REVIEW_REPORT');
-}
-
 function advanceFindingLedgerWithPreviousReport({
   previousLedger,
   previousReviewReport,
@@ -478,6 +455,7 @@ function advanceFindingLedgerWithPreviousReport({
     reviewReport: nextReviewReport,
   });
   validateFindingResolutionSet(findingResolutionSet, {
+    auditManifest,
     previousReviewReport,
     nextReviewContext,
     nextReviewReport,
