@@ -220,6 +220,7 @@ function artifacts(fx, overrides = {}) {
     requirementRegistry: fx.requirementRegistry,
     impactGraph: fx.impactGraph,
     candidateManifest: fx.candidateManifest,
+    directImportScan: fx.directImportScan,
     planContract: fx.planContract,
     reviewContext: fx.reviewContext,
     reviewReport: fx.reviewReport,
