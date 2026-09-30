@@ -297,3 +297,38 @@ test('VNext-11.1 un writer réservé à la qualification ne peut pas autoriser l
   assert.equal(gate.status, 'BLOCKED_QUALIFICATION_WRITER_PRESENT');
   assert.deepEqual(gate.qualification_writer_declaration_ids, ['QUAL-001']);
 });
+
+
+test('VNext-11.1 une permission de production VNext ne peut pas rester au niveau workflow', () => {
+  const source = [
+    'name: prod',
+    'permissions:',
+    '  contents: write',
+    'jobs: {}',
+    '',
+  ].join('\n');
+  const p = policy([declaration({
+    source,
+    producer_path: '.github/workflows/prod.yml',
+    capability_type: 'GITHUB_PERMISSION_WRITE',
+    destination: 'contents',
+    lifecycle: 'VNEXT',
+    required_permission_scope: 'WORKFLOW',
+    id: 'PROD-001',
+  })]);
+  assert.throws(() => RW.validatePolicy(p), /VNEXT_REMOTE_WRITE_VNEXT_PERMISSION_MUST_BE_JOB_SCOPED/);
+});
+
+test('VNext-11.1 interdit persist-credentials true à un writer de production VNext', () => {
+  const source = 'persist-credentials: true\n';
+  const p = policy([declaration({
+    source,
+    producer_path: '.github/workflows/prod.yml',
+    capability_type: 'PERSIST_CREDENTIALS_TRUE',
+    destination: 'git-credentials',
+    lifecycle: 'VNEXT',
+    required_permission_scope: 'NONE',
+    id: 'PROD-002',
+  })]);
+  assert.throws(() => RW.validatePolicy(p), /VNEXT_REMOTE_WRITE_VNEXT_PERSISTED_CREDENTIALS_FORBIDDEN/);
+});
