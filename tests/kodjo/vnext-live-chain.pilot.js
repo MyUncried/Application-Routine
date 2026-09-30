@@ -13,13 +13,14 @@ const Queue = require('../../scripts/kodjo/lib/queue-request');
 const Auth = require('../../scripts/kodjo/verify-authorizations');
 const Chain = require('../../scripts/kodjo/lib/vnext-live-chain');
 const select = (row, keys) => Object.fromEntries(keys.map(k => [k, row[k]]));
-function fixture() {
+function fixture({ largeCatalog = false } = {}) {
   const repo = F.fixtureRepo();
   const git = (...args) => execFileSync('git', args, { cwd: repo.cwd, encoding: 'utf8' }).trim();
   const write = (file, content) => { fs.mkdirSync(path.dirname(path.join(repo.cwd, file)), { recursive: true }); fs.writeFileSync(path.join(repo.cwd, file), content); };
   fs.cpSync(path.resolve(__dirname, '../../scripts/kodjo'), path.join(repo.cwd, 'scripts/kodjo'), { recursive: true });
   const sourceText = 'Modifier le comportement du module.\n';
   write('docs/functional.md', sourceText);
+  if (largeCatalog) for (let i = 0; i < 700; i++) write('catalog/entry-' + i + '.js', 'module.exports = ' + i + ';\n');
   git('add', '.'); git('commit', '-m', 'real producer code and sources');
   repo.revision = git('rev-parse', 'HEAD');
   const sourceInput = { slice_id: 'V2-VNEXT-09', product_head: repo.revision, sources: [{ source_kind: 'MARKDOWN', authority: 'FUNCTIONAL', locator: 'docs/functional.md', revision: repo.revision, fingerprint: V.sha256(sourceText), units: [{ locator: 'FULL_FILE', fingerprint: V.sha256(sourceText), disposition: 'REQUIREMENT_SOURCE' }] }] };
@@ -34,7 +35,16 @@ function fixture() {
   const produced = Chain.produce(recipe, { cwd: repo.cwd });
   let calls = 0;
   const receipt = Chain.review(produced, { cwd: repo.cwd, claude: 'fixture-only', invoke: (_bin, args, _cwd, input, env) => {
-    calls++; assert.ok(args.includes('--json-schema')); assert.equal(env.GH_TOKEN, undefined); assert.equal(JSON.parse(input).produced.contract_hash, produced.contract_hash);
+    calls++; assert.ok(args.includes('--json-schema')); assert.equal(env.GH_TOKEN, undefined);
+    const dossier = JSON.parse(input);
+    assert.equal(dossier.produced.contract_hash, produced.contract_hash);
+    const compact = JSON.parse(args[args.indexOf('--json-schema') + 1]);
+    const compactFields = compact.properties.semantic_review.properties.findings.items.properties;
+    assert.equal(compactFields.target_id.enum, undefined);
+    assert.equal(compactFields.dependency_target_ids.items.enum, undefined);
+    assert.ok(dossier.output_schema.properties.semantic_review.properties.findings.items.properties.target_id.enum.length);
+    assert.ok(args.join(' ').length < 8000, 'review command line must stay bounded');
+    if (largeCatalog) assert.ok(JSON.stringify(dossier.output_schema).length > 32767, 'exercise an actual oversized target catalog');
     return JSON.stringify({ type: 'result', session_id: 'fixture-session', structured_output: { semantic_review: { findings: [] }, native_assessment_observations: [] } });
   } });
   const transport = { ...F.transport(), slice_bootstrap_file: '.github/orchestration/v2-slices/V2-VNEXT-09/slice-bootstrap.json' };
@@ -119,3 +129,19 @@ test('live chain: real queue preflight validates VNext plan mission and runtime 
   assert.match(at(refused, 'PF-006').diagnostic, /OWNER_APPROVAL_REQUIRED/);
   assert.equal(at(refused, 'PF-010').status, 'BLOCKED');
 }));
+
+
+test('live chain: large immutable target catalog travels on stdin and unknown reviewer targets remain refused', () => {
+  const f = fixture({ largeCatalog: true });
+  try {
+    assert.equal(f.receipt.review_report.verdict, 'APPROVE');
+    const finding = { category: 'PLAN_GAP', target_type: 'REQUIREMENT', target_id: 'unknown-target',
+      finding: 'Unknown target', evidence: ['Observed source'], required_correction: 'Correct target', dependency_target_ids: [] };
+    const invoke = () => JSON.stringify({ type: 'result', session_id: 'fixture-invalid-target',
+      structured_output: { semantic_review: { findings: [finding] }, native_assessment_observations: [] } });
+    assert.throws(() => Chain.review(f.produced, { cwd: f.repo.cwd, claude: 'fixture-only', invoke }), /VNEXT_REVIEW_FINDING_TARGET_UNKNOWN/);
+    finding.target_id = f.produced.artifacts.reviewContext.target_catalog.REQUIREMENT[0];
+    finding.dependency_target_ids = ['unknown-dependency'];
+    assert.throws(() => Chain.review(f.produced, { cwd: f.repo.cwd, claude: 'fixture-only', invoke }), /VNEXT_REVIEW_FINDING_DEPENDENCY_UNKNOWN/);
+  } finally { fs.rmSync(f.repo.cwd, { recursive: true, force: true }); }
+});

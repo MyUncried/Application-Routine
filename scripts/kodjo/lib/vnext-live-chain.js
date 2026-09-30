@@ -134,7 +134,15 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
           observed_git_evidence: { type: 'array', items: { type: 'object', additionalProperties: false,
             required: ['path', 'revision', 'content_sha256'], properties: { path: { type: 'string' }, revision: { type: 'string' }, content_sha256: { type: 'string' } } } },
           reason: { type: 'string' } } } } } };
-  const dossier = { produced, native_assessment_subjects: produced.native_assessments.map(assessment => ({ assessment, assessment_hash: V.canonicalHash(assessment) })), instructions: 'Revue indépendante de plan uniquement. Lire les objets Git exacts. Ne pas modifier le dépôt. Refuser une preuve non observée. Pour chaque assessment natif, vérifier le besoin fonctionnel, le choix natif et ses preuves effectives ; ne pas confondre référence et observation. Indiquer verified=false si la preuve ne peut être observée. Ceci ne constitue pas un audit FINAL.' };
+  // Windows limits the process command line. The full target catalog belongs
+  // on stdin with the dossier, not in --json-schema. The transport schema only
+  // omits the two unbounded enums; buildReviewReport below still checks every
+  // target and dependency against the exact immutable review context.
+  const transportSchema = JSON.parse(JSON.stringify(schema));
+  const findingProperties = transportSchema.properties.semantic_review.properties.findings.items.properties;
+  delete findingProperties.target_id.enum;
+  delete findingProperties.dependency_target_ids.items.enum;
+  const dossier = { output_schema: schema, produced, native_assessment_subjects: produced.native_assessments.map(assessment => ({ assessment, assessment_hash: V.canonicalHash(assessment) })), instructions: 'Revue indépendante de plan uniquement. Lire les objets Git exacts. Ne pas modifier le dépôt. Refuser une preuve non observée. Pour chaque assessment natif, vérifier le besoin fonctionnel, le choix natif et ses preuves effectives ; ne pas confondre référence et observation. Indiquer verified=false si la preuve ne peut être observée. Ceci ne constitue pas un audit FINAL.' };
   const checkoutSnapshot = () => V.canonicalHash({
     status: git(cwd, 'status', '--porcelain=v1', '-z'), diff: git(cwd, 'diff', 'HEAD', '--binary'),
     untracked: git(cwd, 'ls-files', '--others', '--exclude-standard', '-z').split('\0').filter(Boolean)
@@ -151,7 +159,7 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
     raw = invoke(claude, ['-p', '--restricted', '--permission-mode', 'dontAsk', '--permission-prompts', 'none',
       '--output-format', 'json', '--tools', 'Read,Glob,Grep', '--allowedTools', 'Read,Glob,Grep',
       '--disallowedTools', 'mcp__*', '--strict-mcp-config', '--mcp-config', path.join(configDir, 'mcp.json'),
-      '--settings', path.join(configDir, 'settings.json'), '--json-schema', JSON.stringify(schema)], cwd, JSON.stringify(dossier), env);
+      '--settings', path.join(configDir, 'settings.json'), '--json-schema', JSON.stringify(transportSchema)], cwd, JSON.stringify(dossier), env);
   } finally { fs.rmSync(configDir, { recursive: true, force: true }); }
   if (checkoutSnapshot() !== before) V.fail('VNEXT_REVIEW_MUTATED_CHECKOUT');
   let result;

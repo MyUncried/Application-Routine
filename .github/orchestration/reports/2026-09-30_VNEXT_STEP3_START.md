@@ -35,12 +35,18 @@ Un test d’intégration nouveau exerce les vrais consommateurs de préflight, a
 
 La préparation initiale au commit 925ce973 a été remplacée après ce constat. Des commits intermédiaires incomplets ou un workflow tronqué ont été corrigés avant toute implémentation. Ils ne sont pas candidats qualifiés. Le run de préparation précédent 36772862894 a été annulé ; sa revue Claude n’avait pas démarré.
 
-## État observé après les deux qualifications
+## État vérifié après achèvement du run
 
-Le job `prepare-initial` (`110097292499`) est QUEUED. Le runner Windows est occupé par le run Lean Queue `36773441104`, observé IN_PROGRESS. Ce run n’a pas été modifié, annulé ou relancé dans cette tâche.
+Le job `prepare-initial` (`110097292499`) du run `36776220115` s’est terminé en FAILURE. Windows a refusé la création du processus Claude avec `spawnSync ... ENAMETOOLONG`. La revue n’a pas produit de session ni de verdict. L’artefact `11127334204` contient uniquement `produced.json` et `recipe.json`, au candidat exact `27eee886a5ecb0990cd53de34e77f32eaba4c2aa`. Son ZIP a l’empreinte SHA256 `7e27cf24b3fdce9fc1f04a08cf4ad03d22809ed98daab224bfa2a059a4e95c07`.
 
-Revue Claude réelle : pas encore exécutée. Cible d’approbation GitHub : pas encore publiée. Approbation utilisateur : pas encore demandée. Admission opérationnelle de queue et implémentation INITIAL : pas encore exécutées. REVISION opérationnelle : non démarrée. Résultat VNext-12 : NON ACQUIS.
+Le schéma sémantique de ce dossier comporte 69 152 caractères : les deux énumérations du catalogue de cibles dépassaient à elles seules la limite de commande Windows. Le correctif transmet le schéma complet sur stdin dans le dossier ; le schéma de transport de la commande conserve sa structure et toutes les autres contraintes, avec 972 caractères pour sa partie sémantique. Les deux listes de cibles restent contrôlées après réponse par `buildReviewReport` contre le contexte exact, avant création du reçu. Aucune cible ou dépendance inconnue ne devient acceptable.
 
-Aucune action utilisateur n’est requise pendant cette attente. La cible exacte sera préparée et publiée après une revue réelle APPROVE avant toute demande d’approbation.
+Un test de régression utilise un vrai catalogue Git de plus de 700 fichiers et un schéma supérieur à 32 767 caractères, vérifie une commande inférieure à 8 000 caractères, puis les refus de cible et dépendance inconnues. Les appels Claude de ce test sont des doublures déclarées, sans valeur de preuve opérationnelle. Validation locale du correctif : 194 tests VNext PASS, 0 FAIL, 0 SKIP.
 
-PRE-1, ses fichiers, son entrée de registre et ses workflows restent hors périmètre et inchangés par cette tâche. Aucun cutover, activation, fusion ou audit FINAL.
+La demande PREPARE_INITIAL passe à la génération 5 pour qualifier le correctif sur Linux/Windows, puis demander une vraie revue sur le nouveau candidat. L’exécution réelle Windows et son verdict restent à observer ; la réussite n’est pas anticipée.
+
+Le run de qualification globale VNext `36776220111` au candidat précédent est SUCCESS ; le pilote complémentaire `36776220101` est FAILURE, dont le détail n’est pas requalifié par ce correctif.
+
+Cible d’approbation GitHub : pas encore publiée. Approbation utilisateur : pas encore demandée. Admission opérationnelle de queue et implémentation INITIAL : pas encore exécutées. REVISION opérationnelle : non démarrée. Résultat VNext-12 : NON ACQUIS.
+
+PRE-1 reste hors périmètre. Aucun cutover, activation, fusion ou audit FINAL.
