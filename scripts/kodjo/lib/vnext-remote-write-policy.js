@@ -207,6 +207,7 @@ function validatePolicy(policy) {
         'declaration_id',
         'lifecycle',
         'producer_path',
+        'producer_blob_sha40',
         'capability_type',
         'destination',
         'conditions',
@@ -221,6 +222,7 @@ function validatePolicy(policy) {
     if (!LIFECYCLES.includes(d.lifecycle)) V.fail('VNEXT_REMOTE_WRITE_LIFECYCLE_INVALID', d.lifecycle);
     V.assertNonEmptyString(d.producer_path, 'VNEXT_REMOTE_WRITE_PRODUCER_INVALID');
     if (normalizePath(d.producer_path) !== d.producer_path) V.fail('VNEXT_REMOTE_WRITE_PRODUCER_NON_CANONICAL');
+    V.assertSha40(d.producer_blob_sha40, 'VNEXT_REMOTE_WRITE_PRODUCER_BLOB_INVALID');
     V.assertNonEmptyString(d.capability_type, 'VNEXT_REMOTE_WRITE_CAPABILITY_INVALID');
     V.assertUnicodeExactText(d.destination, 'VNEXT_REMOTE_WRITE_DESTINATION_INVALID');
     V.assertUnicodeExactText(d.conditions, 'VNEXT_REMOTE_WRITE_CONDITIONS_INVALID');
@@ -233,11 +235,20 @@ function validatePolicy(policy) {
 
 function declarationMatches(declaration, capability) {
   if (declaration.producer_path !== capability.producer_path) return false;
+  if (declaration.producer_blob_sha40 !== capability.producer_blob_sha40) return false;
   if (declaration.capability_type !== capability.type) return false;
   if (declaration.destination !== capability.destination) return false;
   if (declaration.required_permission_scope !== 'NONE'
       && declaration.required_permission_scope !== capability.permission_scope) return false;
   return true;
+}
+
+function gitBlobSha40(source) {
+  const bytes = Buffer.from(String(source), 'utf8');
+  return crypto.createHash('sha1')
+    .update(Buffer.from('blob ' + bytes.length + '\0', 'utf8'))
+    .update(bytes)
+    .digest('hex');
 }
 
 function scanRepository({ root, policy }) {
@@ -247,7 +258,11 @@ function scanRepository({ root, policy }) {
   for (const file of files) {
     const rel = normalizePath(path.relative(root, file));
     const source = fs.readFileSync(file, 'utf8');
-    capabilities.push(...detectCapabilities(rel, source));
+    const producerBlob = gitBlobSha40(source);
+    capabilities.push(...detectCapabilities(rel, source).map((row) => ({
+      ...row,
+      producer_blob_sha40: producerBlob,
+    })));
   }
 
   const assignments = [];
@@ -397,4 +412,5 @@ module.exports = {
   buildGate,
   validateGate,
   sha256,
+  gitBlobSha40,
 };
