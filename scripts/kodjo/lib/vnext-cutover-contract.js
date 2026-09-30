@@ -264,36 +264,55 @@ function validateActivationRecord(record, cutoverPlan) {
   if (record.default_protocol !== VNEXT || record.status !== 'ACTIVATED') {
     V.fail('VNEXT_CUTOVER_ACTIVATION_STATE_INVALID');
   }
+  V.assertSha40(record.activated_at_protocol_head, 'VNEXT_CUTOVER_ACTIVATION_HEAD_INVALID');
+  V.assertUnicodeExactText(record.actor_id, 'VNEXT_CUTOVER_APPROVAL_ACTOR_INVALID');
+  V.assertUnicodeExactText(record.evidence_ref, 'VNEXT_CUTOVER_APPROVAL_REF_INVALID');
+  V.assertIsoDate(record.observed_at, 'VNEXT_CUTOVER_APPROVAL_DATE_INVALID');
+  const expectedLegacy = [...cutoverPlan.grandfathered_legacy_slice_ids].sort();
+  if (V.canonicalStringify([...record.grandfathered_legacy_slice_ids].sort())
+      !== V.canonicalStringify(expectedLegacy)) {
+    V.fail('VNEXT_CUTOVER_ACTIVATION_GRANDFATHERED_MISMATCH');
+  }
   return true;
 }
 
-function routeSlice({ sliceId, legacyActivationRegistry, activationRecord = null, rollbackRecord = null }) {
+function routeSlice({
+  sliceId,
+  legacyActivationRegistry,
+  cutoverPlan = null,
+  activationRecord = null,
+  rollbackRecord = null,
+}) {
   V.assertSliceId(sliceId, 'VNEXT_CUTOVER_ROUTE_SLICE_INVALID');
   validateLegacyRegistry(legacyActivationRegistry);
   const legacyExists = legacyActivationRegistry.activations.some((row) => row.slice_id === sliceId);
 
   if (rollbackRecord) {
-    if (rollbackRecord.status !== 'ROLLED_BACK') V.fail('VNEXT_CUTOVER_ROLLBACK_STATE_INVALID');
+    if (!activationRecord || !cutoverPlan) V.fail('VNEXT_CUTOVER_ROUTE_ACTIVATION_CONTEXT_REQUIRED');
+    validateActivationRecord(activationRecord, cutoverPlan);
+    validateRollbackRecord(rollbackRecord, activationRecord);
     if (rollbackRecord.grandfathered_vnext_slice_ids.includes(sliceId)) return VNEXT;
     return LEGACY;
   }
 
   if (!activationRecord) return LEGACY;
-  if (activationRecord.status !== 'ACTIVATED') V.fail('VNEXT_CUTOVER_ACTIVATION_STATE_INVALID');
+  if (!cutoverPlan) V.fail('VNEXT_CUTOVER_ROUTE_PLAN_REQUIRED');
+  validateActivationRecord(activationRecord, cutoverPlan);
   if (legacyExists || activationRecord.grandfathered_legacy_slice_ids.includes(sliceId)) return LEGACY;
   return VNEXT;
 }
 
 function buildRollbackRecord({
   activationRecord,
+  cutoverPlan,
   activeVnextSliceIds,
   approvalEvidence,
   rolledBackAtProtocolHead,
 }) {
-  if (!activationRecord || activationRecord.status !== 'ACTIVATED') {
+  if (!activationRecord || !cutoverPlan) {
     V.fail('VNEXT_CUTOVER_ROLLBACK_ACTIVATION_REQUIRED');
   }
-  V.verifyContractHash(activationRecord, 'VNEXT_CUTOVER_ACTIVATION_HASH_MISMATCH');
+  validateActivationRecord(activationRecord, cutoverPlan);
   const activeVnext = V.uniqueStrings(
     activeVnextSliceIds,
     'VNEXT_CUTOVER_ROLLBACK_ACTIVE_SLICES_INVALID',
@@ -357,6 +376,19 @@ function validateRollbackRecord(record, activationRecord) {
   }
   if (record.default_protocol !== LEGACY || record.status !== 'ROLLED_BACK') {
     V.fail('VNEXT_CUTOVER_ROLLBACK_STATE_INVALID');
+  }
+  V.assertSha40(record.rolled_back_at_protocol_head, 'VNEXT_CUTOVER_ROLLBACK_HEAD_INVALID');
+  V.assertUnicodeExactText(record.actor_id, 'VNEXT_CUTOVER_ROLLBACK_ACTOR_INVALID');
+  V.assertUnicodeExactText(record.evidence_ref, 'VNEXT_CUTOVER_ROLLBACK_REF_INVALID');
+  V.assertIsoDate(record.observed_at, 'VNEXT_CUTOVER_ROLLBACK_DATE_INVALID');
+  const unique = V.uniqueStrings(
+    record.grandfathered_vnext_slice_ids,
+    'VNEXT_CUTOVER_ROLLBACK_ACTIVE_SLICES_INVALID',
+    'grandfathered_vnext_slice_ids',
+    { allowEmpty: true },
+  );
+  if (unique.length !== record.grandfathered_vnext_slice_ids.length) {
+    V.fail('VNEXT_CUTOVER_ROLLBACK_ACTIVE_SLICES_INVALID');
   }
   return true;
 }
