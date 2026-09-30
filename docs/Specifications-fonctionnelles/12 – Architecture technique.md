@@ -789,7 +789,7 @@ Pour l’Exécution, les composants textuels du contenu utilisent **Roboto Conde
 
 | Famille | Composant ou set Figma | Variantes ou propriétés génériques vérifiées |
 | --- | --- | --- |
-| Navigation | `Navigation / Bottom — Source exact` | destination active : Sessions, Calendar, History, Profile ou Search |
+| Navigation | `Navigation / Bottom` (`6298:12462`) | Active=Catalogue, Calendar, History, Profile, Search ; la variante Search ne valide pas son exposition produit |
 | En-tête | `Header / Fixed` | `Mode=Standard/Execution`, `Back=On/Off` |
 | Retour | `Action / Back` (`2624:3105`) | cible `48 × 48` liée à `size/touch-target-min`, cercle `38 × 38` (`2624:3106`) lié à `component/action/circular-visual-box`, cadre d’icône `24 × 24` (`3089:61`) lié à `component/action/circular-icon` |
 | En-tête de modale | `Modal / Header` | `378 × 60`, titre d’instance, Retour standardisé |
@@ -803,9 +803,9 @@ Pour l’Exécution, les composants textuels du contenu utilisent **Roboto Conde
 | Pickers | `Picker / Popover — Source exact` (`2537:1174`) | `Type=Duration` (`2537:1110`), `Type=Numeric wheel` (`3210:49`), `Type=Time` (`2884:4415`) ou Date selon contrat ; les variantes numériques ouvertes sont rendues dans un overlay d’écran centré, jamais dans le flux ou le `ScrollView` hôte |
 | Décision | `Overlay / Decision Dialog` (`2590:2961`) | deux actions primaire/neutre ou danger/neutre ; trois actions danger/neutre ; dialogue centré. L’abandon des modifications d’une Activité utilise `PrimaryTone=Danger,SecondaryTone=Neutral,Actions=2` (`2590:2934`) dans la frame `3224:4082` |
 | Nom de séance | `Session / Name Field — Source exact` (`2537:1480`) | `354 × 42`, fond transparent, liseré blanc intérieur `1` |
-| Catalogue | `Catalogue / Session Card — Source exact` | `State=Collapsed/Expanded` ; ligne Catégories/Zones sur une ligne, partie Catégories dans `Séance.couleur`, séparateur ` : ` et troncature |
-| Calendrier | `Calendar / Scheduled Session Card — Source exact` | `State=Collapsed/Expanded` |
-| Suivi | `Tracking / Execution Card — Source exact` | `State=Collapsed/Expanded` |
+| Catalogue | `Carte séance` (`6214:7276`) / `Carte exercice` (`6214:7278`) | Contexte=Catalogue ; État=Replié/Archivé/Déployé ; classement en pastilles, valeurs nues ; détails et écarts média dans le complément du 30 septembre |
+| Calendrier | `Carte séance` / `Carte exercice` | Contexte=Calendrier Semaine ; états réellement présents selon inventaire du complément |
+| Suivi | `Carte séance` / `Carte exercice`, `Ressenti` (`6234:8895`) | Contexte=Suivi ; statut en haut, Déployer et Ressenti en bas à droite |
 | Composition | `Composition / Activity Row with Recovery` (`3572:64`) | bloc `354 × 93` lorsque Récupération > 0 ; carte principale puis sous-carte attachée `Récupération X min Y s` ; Nom / Zones corporelles / Synthèse ; déplacement, duplication et suppression portent sur le bloc entier |
 | Composition | `Composition / Tour Section — Source exact` | section Tour, synthèse calculée des exercices et répétition contextuelle |
 | Composition | `Composition / Boundary Activity — Source exact` | `Type=Initial countdown/End session` |
@@ -891,7 +891,8 @@ Les neuf Text Styles locaux actuellement présents sont : `KODJO / Timer`, `Scre
 | `type.screenTitle` | Semi Bold | `20` | `24` | Titre d’écran |
 | `type.modalTitle` | Semi Bold | `18` | `22` | Titre de modale, bottom sheet ou date principale |
 | `type.sectionTitle` | Semi Bold | `16` | `20` | Titre de section ou de formulaire |
-| `type.cardTitle` | Semi Bold | `16` | `20` | Nom fonctionnel ou titre de carte standard |
+| `type.cardTitle` | Semi Bold | `16` | `20` | Titres hors famille Cartes du 30 septembre |
+| Titre des nouvelles cartes | Semi Bold | `15` | Selon référence Figma | Catalogue, choix, Calendrier Semaine et Suivi ; exception documentée à D-083 |
 | `type.compactCardTitle` | Semi Bold | `13` | `18` | Titre d’une carte compacte imbriquée, notamment dans une Composition |
 | `type.body` | Regular | `14` | `20` | Texte courant |
 | `type.label` | Medium | `14` | `18` | Libellé de champ ou valeur importante |
@@ -900,13 +901,13 @@ Les neuf Text Styles locaux actuellement présents sont : `KODJO / Timer`, `Scre
 | `type.caption` | Regular | `11` | `16` | Légende compacte et information contrainte |
 | `type.navLabel` | Regular | `11` | `16` | Libellé de destination active |
 
-La taille minimale d’un texte fonctionnel est `11`. Une information secondaire utilise normalement `type.supporting` en `12`. Les tailles `8`, `10` et `10,5` ne sont pas utilisées pour du texte fonctionnel ; les points du Calendrier mensuel sont des indicateurs graphiques et non des caractères typographiques. Les titres et noms fonctionnels utilisent au minimum `type.cardTitle` en `16`, sauf le niveau compact explicitement prévu par `type.compactCardTitle`. La taille `15` est réservée à une éventuelle expression de marque et n’est pas un niveau fonctionnel.
+La taille minimale d’un texte fonctionnel est `11`. Une information secondaire utilise normalement `type.supporting` en `12`. Les tailles `8`, `10` et `10,5` ne sont pas utilisées pour du texte fonctionnel ; les points du Calendrier mensuel sont des indicateurs graphiques et non des caractères typographiques. Les titres et noms fonctionnels utilisent `type.cardTitle` en `16`, sauf les nouvelles cartes en `15` et le niveau compact explicitement prévu par `type.compactCardTitle`. La taille `15` est désormais le titre fonctionnel des nouvelles cartes du 30 septembre, exception explicite à D-083 ; les autres titres conservent leur niveau propre.
 
 Tous les textes conservent `allowFontScaling=true`. Les tests doivent couvrir au minimum `100 %`, `135 %` et une taille d’accessibilité proche de `200 %`. Les composants grandissent ou passent sur plusieurs lignes ; la réduction automatique de la taille de police est interdite pour masquer un défaut de mise en page. Après toute modification d’un token typographique, la largeur et la hauteur de son conteneur sont recalculées et contrôlées afin d’éviter retour à la ligne involontaire, troncature, débordement ou chevauchement. Les glyphes employés comme pictogrammes (`+`, `×`, `‹`, `›`, coche ou points d’occurrence) sont gérés comme des icônes et ne créent pas de niveau typographique.
 
 #### Icônes et pictogrammes
 
-La taille canonique désigne la boîte visuelle de l’icône. Le tracé interne conserve son ratio et peut occuper une surface plus petite pour assurer un équilibre optique. Cette boîte reste indépendante de la cible tactile minimale de `48 × 48`.
+La taille canonique désigne la boîte visuelle de l’icône. Le tracé interne conserve son ratio et peut occuper une surface plus petite pour assurer un équilibre optique. Cette boîte reste indépendante du minimum tactile commun de `44 × 44` ; les dimensions spécifiques supérieures sont conservées.
 
 | Token | Taille visuelle | Usage |
 | --- | ---: | --- |
@@ -1016,7 +1017,7 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 | Navigation principale | Hauteur visuelle `66`, rayon `33`, positionnée avec l’inset inférieur réel |
 | Destination active | Hauteur visuelle `56`, rayon `28` |
 | Recherche globale | Diamètre visuel `58`, rayon `29` |
-| Carte standard | Largeur utile ; rayon canonique `12` sauf variante Figma explicitement documentée |
+| Carte standard | Nouvelles cartes Catalogue/choix/Semaine/Suivi : largeur 354 sur référence 402, rayon 8 ; les cartes structurelles hors famille conservent leur variante propre |
 | Roulette compacte à deux colonnes — `Type=Duration` | Contenu de roulette rendu dans la modale basse canonique ; barre d’actions `Annuler / Confirmer`, contenu natif et dimensions internes selon Figma/DSF actifs. Aucun overlay centré ad hoc. |
 | Roulette numérique compacte à une colonne | Variante numérique du contenu de la même modale basse canonique ; mêmes règles de brouillon et de confirmation |
 | Action de roulette | Cible tactile `48 × 48` ; cercle visuel `38 × 38` ; icône `24 × 24` ; Annuler à gauche et Confirmer à droite dans la barre supérieure ; cadre de mise en page `48 × 53` autorisé pour les marges, sans modification de la cible tactile |
@@ -1043,7 +1044,7 @@ Le composant DSF `Icon / Tour` (`3066:4685`) est l’unique source Figma autoris
 | Modal — Abandonner la création de la séance | `2028:11298` | `3272:4126` |
 | Modal — Paramétrer le compte à rebours initial | `2028:11375` | `3272:4131` |
 | Modal — Paramétrer la fin de séance | `2028:11457` | `3272:4136` |
-| Composition — Nombre de tours — roulette compacte ouverte | `2028:11580` | `3272:4141` |
+| Composition — Nombre de tours — stepper intégré permanent | `2028:11700` | `4913:7432` |
 | Composition d’une séance — sans Cycle | `2028:11700` | `3272:4146` |
 | Composition d’une séance — actions glissées | `2028:11808` | `3272:4151` |
 | Composition d’une séance — sélecteur couleur ouvert | `2028:11921` | `3272:4156` |
@@ -1060,7 +1061,7 @@ Les tokens Figma associés sont `component/wheel/compact-height`, `component/whe
 - Les hauteurs contenant du texte sont des minima et non des valeurs fixes.
 - Les groupes horizontaux utilisent `flexWrap` ou basculent en colonne lorsque la largeur minimale de leurs enfants n’est plus disponible.
 - Les icônes conservent leur taille visuelle et leur ratio ; seule leur cible tactile s’étend.
-- La taille visuelle et la cible tactile sont deux propriétés distinctes. Une icône, un radio, un interrupteur, un contrôle segmenté ou une action compacte de `32` à `42` points n’est pas agrandi visuellement lorsque sa dimension est intentionnelle. Un conteneur interactif transparent ou un `hitSlop` porte sa cible effective à `48 × 48` au minimum.
+- La taille visuelle et la cible tactile sont deux propriétés distinctes. Une icône, un radio, un interrupteur, un contrôle segmenté ou une action compacte de `32` à `42` points n’est pas agrandi visuellement lorsque sa dimension est intentionnelle. Un conteneur interactif transparent ou un `hitSlop` porte sa cible effective à `44 × 44` au minimum, sans réduire les dimensions spécifiques de `48 × 48`.
 - Deux cibles tactiles voisines ne se chevauchent pas. Elles sont réparties en zones contiguës ou séparées afin qu’un même point de contact ne puisse déclencher deux actions différentes.
 - Les boutons d’action principaux, dont `Enregistrer` dans la Synthèse, possèdent une hauteur visible minimale de `48` points. Les anciennes zones explicitement tactiles de `42 × 42` sont normalisées à `48 × 48` dans le Figma.
 - Les images de marque utilisent `contain` et conservent leur ratio d’origine.
@@ -1288,7 +1289,7 @@ Le filtrage et le tri sont des paramètres de requête indépendants du segment.
 
 ### Composants et tokens Figma
 
-Les composants d’éditeur et de Composition restent la base visuelle, mais le composant historique `Composition / Activity Row with Recovery` (`3572:64`) est **supersédé sur la sémantique récupération par D-208** : la ligne post-activité devient systématique, y compris à `0 s`, et l’éditeur utilise une récupération entre côtés conditionnelle. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
+Les composants d’éditeur et de Composition restent la base visuelle, mais le composant historique `Composition / Activity Row with Recovery` (`3572:64`) est **supersédé sur la sémantique récupération par D-208** : la donnée post-activité reste systématique, y compris à `0 s` ; D-214 supprime ensuite sa ligne visible, et l’éditeur utilise une récupération entre côtés conditionnelle. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
 
 Les alias Figma sont bijectifs et explicites :
 
@@ -1377,3 +1378,19 @@ Le champ historique générique `recovery_seconds` ne constitue plus le schéma 
 Le même principe s’applique aux occurrences d’Activité d’un Parcours lorsque ce modèle est livré. La base étant réinitialisable pour cette évolution, aucune migration utilisateur n’est exigée dans la documentation cible ; l’implémentation doit néanmoins produire directement le schéma cible.
 
 Le moteur ne déduit jamais une récupération post-activité à partir de l’adjacence. Il lit la valeur portée par l’occurrence. Une Exécution directe d’`ActivityDefinition` ignore toute récupération post-activité et ne peut produire que `SIDE_RECOVERY` lorsqu’elle est bilatérale.
+
+## DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)
+
+Décisions finales du propriétaire : les 17 points sont clos ; aucune question ouverte. RG-1 à RG-13 s’appliquent avec RG-3 seule reportée (Séance sans vignette). RG-4 retire Déployer de l’exercice avec photo. Les cartes du Catalogue, des choix et de Composition n’affichent plus pauses/récupérations ; les Catalogues n’affichent plus la prochaine planification. Les données, calculs et fonctions de planification restent inchangés. D-195, D-206 et D-208 sont révisées uniquement sur ces règles d’affichage (D-214).
+
+Synthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 », Suivi « 18 h 42 ». Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.
+
+RG-10 : le Profil porte une préférence silhouette facultative, homme/femme ; absence = homme affiché. Elle ne pilote que l’icône de zone corporelle, sans filtre, recherche ou effet métier. RG-11 à RG-13 : vignette 64 centrée et recadrée sans déformation (couverture pour une vidéo), place réservée pendant chargement/erreur, texte alternatif égal au nom de l’exercice.
+
+D-215 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 298 × 48, x=80, hauteur d’instance adaptée à l’événement), avec barre colorée 4, nature 26, titre 13 gras, heure/durée 11, lecture 26 et aucun Déployer. Les deux sets comportent 10 variantes chacun. Suivi — Vue d’ensemble est hors MVP. Les boutons Calendrier Aujourd’hui/Planifier restent à 32, sans cible 44 ajoutée : situation acceptée, à revoir et développer après T04. Les nouvelles icônes sont nommées icon/<nom>, les anciennes ne sont pas renommées ; target est réservé au Programme, pulse aux rapports/Suivi.
+
+Implémentation attendue : conserver la préférence dans le mécanisme persistant du Profil existant ; résoudre le défaut homme dans la présentation ; réutiliser les médias déjà associés, sans import supplémentaire. Les écarts d’assemblage Photo et exercice déployé sont documentés dans le complément, sans prétendre les avoir corrigés dans les écrans.
+
+Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
+
+Appuis — D-213 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper indépendant (450 ms puis 150 ms pour la répétition) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.

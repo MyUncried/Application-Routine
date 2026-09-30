@@ -100,7 +100,7 @@ Le MVP permet de :
 - préserver recherche, filtres, tri implicite et position de défilement pendant l’aller-retour courant, sans les persister après relance complète ;
 - afficher `Trier` comme contrôle commun visible mais désactivé en T03 ; le tri appliqué reste la dernière modification décroissante.
 
-La rangée de commandes Catalogue est commune aux écrans représentés `Séances` et `Exercices` : `Créer`, `Filtrer` et `Trier` sont alignés horizontalement ; dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, avec `8 pt` d’espace entre contrôles et un ensemble centré. Cette géométrie est une contrainte de rendu/recette, pas une instruction de coordonnées absolues React Native ; les cibles tactiles restent ≥ `48 × 48 pt`. `Trier` reste visible disabled T03. `Filtrer` est actif là où le comportement est défini.
+La rangée de commandes Catalogue est commune aux écrans représentés `Séances` et `Exercices` : `Créer`, `Filtrer` et `Trier` utilisent les boutons contextuels du DSF, cercles visibles de `34 pt`, pictogrammes de `20 pt`, écart visuel de `12 pt`, cibles tactiles d’au moins `44 × 44 pt` sans chevauchement. Une pilule étendue conserve une hauteur de `34 pt`. La géométrie est une contrainte de rendu responsive, pas une instruction de coordonnées absolues React Native. `Trier` reste visible disabled T03. `Filtrer` est actif là où le comportement est défini.
 
 `Filtrer` et `Trier` sont des contrôles communs aux trois Catalogues. Les options de filtre sont contextuelles et les panneaux ouverts sont définis dans Figma. Pour `Exercices`, le filtre couvre le statut (`Actives` / `Archivées`), les Catégories et les Zones corporelles. Pour `Séances`, il couvre le statut des Séances et les Étiquettes. `Trier` reste visible mais désactivé dans le périmètre T03.
 
@@ -271,7 +271,7 @@ Le MVP comporte quatre destinations principales :
 
 `Catalogues` est le libellé permanent de navigation. Dans cet espace, les titres contextuels sont `Catalogue des séances`, `Catalogue des exercices` et `Catalogue des parcours`. Le Catalogue s’ouvre et se réinitialise après relance complète sur le segment `Séances`.
 
-Le composant DSF canonique de navigation est `Navigation / Bottom — Source exact` (`2537:214`). Les dessins des quatre destinations ont une dimension maximale de `24 pt`, sont centrés dans leur boîte optique `32 × 32 pt` et conservent une cible tactile conforme aux règles communes.
+Le composant DSF canonique de navigation est `Navigation / Bottom` (`6298:12462`). Les dessins des quatre destinations ont une dimension maximale de `24 pt`, sont centrés dans leur boîte optique `32 × 32 pt` et conservent une cible tactile conforme aux règles communes.
 
 ## 6. Hors périmètre du MVP
 
@@ -348,7 +348,7 @@ Les contrôles d’entrée `Créer / Filtrer / Trier` et les panneaux ouverts de
 - largeur minimale cible de `360` points logiques, contrôles à `360`, `390`, `402` et `430–440` points, avec contenu centré au-delà de `440` points ;
 - utilisation exclusive d’unités logiques et de contraintes Flexbox, sans coordonnées absolues copiées du gabarit Figma `402 × 874` ;
 - design tokens canoniques pour les couleurs, typographies, espacements, rayons, dimensions partagées et tailles visuelles d’icônes ;
-- cibles tactiles communes minimales de `48 × 48` points logiques sur iOS et Android, indépendamment de la taille visuelle du pictogramme ou du contrôle ;
+- cibles tactiles communes minimales de `44 × 44` points logiques (RG-7 du 30 septembre ; les dimensions spécifiques supérieures sont conservées) sur iOS et Android, indépendamment de la taille visuelle du pictogramme ou du contrôle ;
 - gestion du clavier, du défilement, des textes agrandis et des modales conformément au contrat adaptatif des chapitres 06 et 12 ;
 - accessibilité prise en compte dès le MVP ;
 - stockage local avec SQLite et couche d’accès typée aux données ;
@@ -381,7 +381,7 @@ Les versions futures pourront notamment introduire :
 
 Le Catalogue conserve un seul espace mais distingue `Exercices`, `Séances` et `Parcours`. `Séances` est le segment sélectionné par défaut ; `Exercices` devient fonctionnel en T03 ; `Parcours` reste visible mais désactivé. Une fermeture/reprise complète ne mémorise pas le dernier segment et revient à `Séances`.
 
-`Créer`, `Filtrer` et `Trier` constituent la rangée commune de commandes d’entrée. Dans la maquette de référence `402 pt`, chacun est dessiné en `108 × 32 pt`, les gaps sont de `8 pt` et l’ensemble est centré. `Filtrer` et `Trier` sont communs aux trois contextes de Catalogue ; le contenu des options peut dépendre du segment actif. Pour T03 / Exercices, `Filtrer` est fonctionnel au minimum pour `Archivées`, `Trier` est visible mais désactivé, et le tri appliqué reste la dernière modification décroissante. Toute autre option est hors contrat tant qu’elle n’est pas arbitrée.
+`Créer`, `Filtrer` et `Trier` constituent la rangée commune de commandes d’entrée. La référence courante utilise des boutons contextuels visibles de `34 pt`, des pictogrammes de `20 pt`, des gaps de `12 pt` et des cibles ≥ `44 × 44 pt` sans chevauchement. `Filtrer` et `Trier` sont communs aux trois contextes de Catalogue ; le contenu des options peut dépendre du segment actif. Pour T03 / Exercices, `Filtrer` est fonctionnel au minimum pour `Archivées`, `Trier` est visible mais désactivé, et le tri appliqué reste la dernière modification décroissante. Toute autre option est hors contrat tant qu’elle n’est pas arbitrée.
 
 ### Exercices persistantes — MVP T03
 
@@ -469,3 +469,7 @@ Référence de conception : [CONCEPTION-EXECUTION-MEDIA.md](./CONCEPTION-EXECUTI
 Toute occurrence d’Activité intégrée à une Séance porte une propriété contextuelle `postActivityRecoverySeconds`, distincte de l’`ActivityDefinition`. Cette récupération existe toujours, y compris avec la valeur `0 s`, reste visible dans la Composition, se déplace avec l’occurrence, est copiée lors d’une duplication et disparaît avec l’occurrence supprimée. Elle est exécutée après l’occurrence, y compris après la dernière Activité d’un Tour et après la dernière Activité de la Séance avant la Fin de séance. Dans un Tour répété, elle est exécutée à chaque passage de l’occurrence. Sa valeur initiale provient du défaut global de récupération après activité ; les occurrences existantes ne sont pas modifiées lorsque ce défaut change.
 
 **À CLARIFIER :** la valeur initiale de `sideRecoverySeconds` lors du passage de `Aucun` à `D→G` ou `G→D` n’est pas arbitrée.
+
+## Mise à jour visuelle du 30 septembre 2026
+
+[DSF — Cartes, icônes et animations d’appui](DSF-CARTES-ICONES-APPUIS-2026-09-30.md) : références actuelles de Cartes - Icônes et Démonstrations — Animations d’appui, tokens, composants, RG-1 à RG-13, journal des changements, écarts et critères atomiques. Décisions D-209 à D-215. Les 17 points sont clos ; D-195/D-206/D-208 sont révisées sur l’affichage seul par D-214. RG-3 seule reste reportée. Aucun changement de protocole ni de calcul métier n’est inclus.

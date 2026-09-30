@@ -99,11 +99,11 @@ La maquette Figma constitue la référence visuelle et interactive. Les document
 - `2028:11204` — Composition séance — Étiquettes ;
 - `1992:8626`, `1992:8132`, `1992:8718`, `1992:8780`, `1992:8843`, `1992:8996` — structures visuelles réutilisées pour Exécution directe, Synthèse et Suivi ;
 - `2537:1033` — composant DSF canonique `Déployer` ;
-- `2537:214` — composant DSF canonique `Navigation / Bottom`.
+- `6298:12462` — composant DSF canonique `Navigation / Bottom`.
 
 L’ancienne référence `3787:5209 — Catalogue — action contextuelle directe` n’existe plus dans le Figma courant ; elle ne constitue plus une évidence active. Aucun node de remplacement n’est inventé.
 
-La rangée Catalogue `Créer / Filtrer / Trier` est conçue et vérifiée : chacun des trois contrôles mesure visuellement `108 × 32 pt`, les gaps sont de `8 pt` et l’ensemble est centré dans la référence `402 pt`. Cette géométrie est une contrainte de rendu/recette et ne constitue pas un jeu de coordonnées absolues React Native ; les cibles tactiles restent ≥ `48 × 48 pt`.
+La rangée Catalogue `Créer / Filtrer / Trier` suit le DSF du 30 septembre : boutons contextuels visibles `34 pt`, pictogrammes `20 pt`, gaps `12 pt`, cibles au moins `44 × 44 pt` sans chevauchement ; pilules étendues hautes de `34 pt`. Les positions de référence ne sont pas des coordonnées absolues React Native.
 
 Le contrôle `Déployer` du Catalogue des exercices réutilise le composant du Catalogue des séances et est actif dans le MVP pour afficher ou masquer le média associé. Les dessins des quatre destinations de navigation ont été corrigés à une dimension maximale de `24 pt` et recentrés dans leurs boîtes `32 × 32 pt`.
 
@@ -194,7 +194,7 @@ L’Exécution directe utilise une préparation fixe de `5 s`, l’origine `ACTI
 
 Les cartes du Catalogue des exercices séparent l’ouverture en consultation/modification de l’action Lecture. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé ; il réutilise le composant DSF du Catalogue des séances. Aucune poignée de déplacement n’est présente.
 
-`Créer`, `Filtrer` et `Trier` forment la rangée commune de commandes Catalogue. Dans la référence Figma `402 pt`, chacun mesure visuellement `108 × 32 pt`, le gap est de `8 pt` et l’ensemble est centré. Les options de `Filtrer` sont contextuelles et conçues dans Figma ; `Trier` est visible mais désactivé et le tri par défaut reste la dernière modification décroissante.
+`Créer`, `Filtrer` et `Trier` forment la rangée commune de commandes Catalogue. La référence courante utilise des boutons contextuels visibles de `34 pt`, des pictogrammes de `20 pt`, des gaps de `12 pt` et des cibles ≥ `44 × 44 pt` sans chevauchement. Les options de `Filtrer` sont contextuelles et conçues dans Figma ; `Trier` est visible mais désactivé et le tri par défaut reste la dernière modification décroissante.
 
 La sélection multiple depuis une Composition insère les Exercices selon leur ordre courant de présentation dans la liste filtrée. Chaque insertion est une copie indépendante. Une Activité créée directement dans une Composition ne rejoint pas le Catalogue.
 
@@ -228,3 +228,15 @@ Le document décrit une **cible post-MVP à planifier** ; il ne requalifie pas �
 > Décision du 25 septembre 2026 — D-207 : la notion de contenu planifiable est commune aux **Séances, Exercices persistants et Parcours**. Le MVP planifie `SESSION` et `ACTIVITY`; la planification d’un Parcours reste dans sa version prévue (actuellement V3) et réutilisera la même entité Routine avec la source technique `CIRCUIT`, sans second moteur de planification.
 
 > Décision du 25 septembre 2026 — D-208 : le modèle de récupération est refondu. La Pause compte toujours `C−1` occurrences par côté. `sideRecoverySeconds` appartient à l’Activité et ne s’applique qu’entre les deux côtés d’une Activité bilatérale. `postActivityRecoverySeconds` appartient à chaque occurrence de Séance/Parcours, existe y compris à `0 s`, est exécuté après l’occurrence et n’entre jamais dans la durée intrinsèque de l’Activité. D-138 et D-156 sont supersédées sur ces axes. La valeur initiale de la récupération entre côtés lors de l’activation bilatérale reste **À CLARIFIER**.
+
+## Mise à jour visuelle du 30 septembre 2026
+
+[DSF — Cartes, icônes et animations d’appui](DSF-CARTES-ICONES-APPUIS-2026-09-30.md) : références actuelles de Cartes - Icônes et Démonstrations — Animations d’appui, tokens, composants, RG-1 à RG-13, journal des changements, écarts et critères atomiques. Décisions D-209 à D-215. Les 17 points sont clos ; D-195/D-206/D-208 sont révisées sur l’affichage seul par D-214. RG-3 seule reste reportée. Aucun changement de protocole ni de calcul métier n’est inclus.
+
+## Propagation écran par écran — 30 septembre 2026
+
+La [matrice courante des écrans](MATRICE-ECRANS-CARTES-2026-09-30.md) relie les 38 frames portant les nouveaux sets et les états complémentaires à leurs descriptions et contrats actualisés. Les anciennes règles d’affichage sont corrigées directement dans06/13 ; CE-UI-01 à05 couvrent Profil, Jour, Semaine/Mois, choix de source et formulaire de planification. Les captures remplacées le30/09 sont recensées dans le bilan de la matrice de couverture ; seules les captures non remplacées restent historiques.
+
+### Captures remplacées le30 septembre2026
+
+Contrôle exhaustif du 30 septembre 2026 : 113 frames du prototype et les 6 références complémentaires du rapport utilisateur, soit 119 captures Figma. Les 84 écrans du rapport sont couverts (78 dans le prototype). 74 fichiers existants sont actualisés et 45 copies documentaires complètent des écrans déjà présents dans Figma ; aucun écran applicatif ou Figma créé. [Matrice exhaustive](MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md).
