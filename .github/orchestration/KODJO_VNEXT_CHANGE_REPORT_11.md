@@ -48,8 +48,10 @@ Deux validations nécessaires sont également structurées :
 - `scripts/kodjo/lib/revision-contract.js`
   - `kodjo.vnext.allowed-change-set.v1` supersédé par `v2` ;
   - `kodjo.vnext.revision-outcome.v1` supersédé par `v2` ;
-  - AuditManifest + FindingAssessment requis avant autorisation de correction ;
-  - previous ReviewReport exact + FindingResolutionSet requis pour fermer une révision.
+  - AuditManifest + FindingAssessment + FindingLedger courant requis avant autorisation de correction ;
+  - `finding_ledger_hash` scellé dans AllowedChangeSet v2 ;
+  - previous ReviewReport exact + FindingResolutionSet + FindingLedger avancé requis pour fermer une révision ;
+  - `next_finding_ledger_hash` scellé dans RevisionOutcome v2.
 
 - `scripts/kodjo/lib/vnext-runtime.js`
   - le runtime REVISION exige et scelle désormais le FindingResolutionSet.
