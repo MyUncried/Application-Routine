@@ -35,7 +35,7 @@ Les principes suivants sont retenus :
 | Backend | Aucun backend requis pour le MVP |
 | Synchronisation cloud | Hors MVP, mais anticipée dans l’architecture |
 | Notifications | Notifications locales |
-| Médias | Fonctions média hors MVP ; section UI visible/repliable mais inactive ; cible post-MVP avec `0..n` photos ou vidéos ordonnées par Activité |
+| Médias | Consultation des médias associés incluse au MVP (D-203) ; acquisition et stockage selon D-066/D-068 ; galerie ordonnée |
 | Calendriers externes | Hors MVP |
 | Tests | Tests automatisés de la logique métier et des parcours critiques |
 | Distribution initiale | Versions de test privées avant publication sur les stores |
@@ -121,9 +121,9 @@ Les API fonctionnelles du chapitre 11 sont mises en œuvre par les services inte
 | `ExecutionService` | Génération du plan d’exécution, timer, progression et commandes pendant l’Exécution |
 | `HistoryService` | Exécutions, Instantanés, occurrences historisées et consultation de l’historique |
 | `PreferencesService` | Lecture et modification des Préférences globales |
-| `ReferenceDataService` | Gestion des Étiquettes de Séance, des Catégories d’Activité et du référentiel administrable des Zones corporelles |
+| `ReferenceDataService` | Gestion des Étiquettes de Séance, des Catégories d’Exercice et du référentiel administrable des Zones corporelles |
 
-La couche de référentiels ne distingue pas, pour le droit de suppression, les valeurs initiales des valeurs créées ensuite par l’utilisateur. La suppression d’une valeur et le retrait de ses associations courantes constituent une opération atomique ; les Instantanés historiques ne sont jamais réécrits.
+La couche de référentiels ne distingue pas, pour le droit de suppression, les valeurs initiales des valeurs créées ensuite par l’utilisateur. La suppression d’une valeur la retire atomiquement du référentiel actif et des nouvelles sélections, sans supprimer ses associations aux objets existants ; les Instantanés historiques ne sont jamais réécrits.
 
 Ces services sont des composants logiques internes à l’application.
 
@@ -182,13 +182,13 @@ Sont notamment persistés :
 - Exercices ;
 - Routines ;
 - Étiquettes de Séance ;
-- Catégories d’Activité ;
+- Catégories d’Exercice ;
 - Zones corporelles ;
 - Exécutions ;
 - Instantanés d’Exécution ;
 - Occurrences historisées.
 
-Les Zones corporelles constituent un référentiel utilisateur persistant et administrable, initialisé avec des valeurs par défaut. Leur identité reste stable à travers les renommages ; leur suppression retire les associations courantes selon les règles du chapitre 10.
+Les Zones corporelles constituent un référentiel utilisateur persistant et administrable, initialisé avec des valeurs par défaut. Leur identité reste stable à travers les renommages ; leur suppression les retire des choix futurs tout en conservant les associations existantes selon les règles du chapitre 10.
 
 ### Repositories
 
@@ -225,7 +225,7 @@ Cet identifiant :
 
 Les principales données métier sont rattachées directement ou indirectement à cet Utilisateur.
 
-Les racines d’agrégat persistantes appartenant à l’utilisateur (notamment Séance, Routine, Exécution et Catégorie) portent une référence de propriété `ownerId` vers cet identifiant Utilisateur. Les objets enfants, tels que Cycle, Tour et Activité, héritent de cette propriété par leur rattachement à leur agrégat et n’ont pas à dupliquer systématiquement `ownerId`.
+Les racines d’agrégat persistantes appartenant à l’utilisateur (notamment Séance, Routine, Exécution et Catégorie) portent une référence de propriété `ownerId` vers cet identifiant Utilisateur. Les objets enfants, tels que Cycle, Tour et Exercice, héritent de cette propriété par leur rattachement à leur agrégat et n’ont pas à dupliquer systématiquement `ownerId`.
 
 ### Évolution future
 
@@ -285,22 +285,22 @@ Au démarrage d’une Exécution :
 
 Le moteur gère ensuite :
 - l’étape courante ;
-- les répétitions du Tour et le Cycle technique fixé à une répétition ;
-- les Séries propres à chaque Activité ;
+- les répétitions du Circuit, c’est-à-dire les Tours, et le Cycle technique fixé à une répétition ;
+- les Séries propres à chaque Exercice ;
 - l’insertion d’une étape `SERIES_PAUSE` uniquement entre Séries successives, donc `C−1` fois par côté ;
 - l’insertion éventuelle d’une phase `SIDE_RECOVERY` entre les deux côtés lorsque `sideRecoverySeconds > 0` ;
 - l’insertion d’une phase `POST_ACTIVITY_RECOVERY` après chaque occurrence de Séance/Parcours lorsque `postActivityRecoverySeconds > 0` ;
-- la progression dans le Tour ;
+- la progression dans le Circuit au cours du Tour courant ;
 - la progression interne du Cycle, non exposée dans l’interface MVP ;
 - les temps écoulés ;
 - les transitions entre étapes ;
 - la pause et la reprise ;
-- la réinitialisation de l’Activité, de la Série ou de la Récupération courante ;
+- la réinitialisation de l’Exercice, de la Série ou de la Récupération courante ;
 - le passage à l’étape suivante ;
 - l’arrêt anticipé ;
 - la terminaison normale.
 
-Le Plan distingue les phases `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Activité. `SIDE_RECOVERY` conserve la référence de l’Activité bilatérale ; `POST_ACTIVITY_RECOVERY` conserve la référence de l’occurrence. Leurs métriques planifiées/écoulées sont distinctes. Après la dernière Activité et sa récupération post-activité éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T04, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
+Le Plan distingue les phases `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et `SESSION_END`. Ces valeurs qualifient une phase d’exécution et non un type d’Exercice. `SIDE_RECOVERY` conserve la référence de l’Exercice bilatéral ; `POST_ACTIVITY_RECOVERY` conserve la référence de l’occurrence. Leurs métriques planifiées/écoulées sont distinctes. Après la dernier Exercice et sa récupération post-exercice éventuelle, `ExecutionService` active `SESSION_END` et continue le calcul du temps écoulé. Il ne persiste la clôture normale qu’à l’achèvement de cette étape ; `0 s` provoque la transition immédiatement. Le routeur ouvre ensuite la fin minimale dans T04, ou la Synthèse dans la tranche qui la livre. Un arrêt antérieur suit le chemin d’interruption et produit le statut `Interrompue`.
 
 La logique du moteur doit être indépendante des composants graphiques afin de pouvoir être testée automatiquement.
 
@@ -357,8 +357,8 @@ Le passage en arrière-plan ou le verrouillage ne met pas automatiquement l’Ex
 
 Le moteur applique une pause de sécurité en l’absence d’interaction :
 
-- 30 minutes après la fin théorique d’une Activité chronométrée ;
-- 2 heures après le démarrage d’une Activité en Répétitions ou À l’échec.
+- 30 minutes après la fin théorique d’un Exercice chronométré ;
+- 2 heures après le démarrage d’un Exercice en Répétitions ou À l’échec.
 
 Cette pause est déterminée à partir des horodatages et ne suppose pas qu’un timer JavaScript reste actif en permanence en arrière-plan.
 
@@ -390,7 +390,7 @@ L’application ne demande pas l’autorisation de notification au lancement. El
 
 Les médias sont hors périmètre du MVP. Aucune image ou vidéo n’est associée aux Exercices dans cette version.
 
-L’architecture doit permettre `0..n` associations média ordonnées par Activité en V2. La copie d’une Activité ou d’une Séance ne duplique pas le fichier physique : plusieurs associations peuvent référencer le même fichier local immuable.
+L’architecture doit permettre `0..n` associations média ordonnées par Exercice en V2. La copie d’un Exercice ou d’une Séance ne duplique pas le fichier physique : plusieurs associations peuvent référencer le même fichier local immuable.
 
 Lors de cette évolution, le stockage local privilégiera la **non-duplication des données volumineuses**. Les fichiers médias ne seront pas intégrés physiquement aux Instantanés historiques ; leurs associations ordonnées et références stables le seront.
 
@@ -428,7 +428,7 @@ Les opérations modifiant plusieurs objets liés doivent être atomiques lorsque
 Exemples :
 - création d’une Séance et de sa structure initiale ;
 - archivage d’une Séance et suppression de ses Routines ;
-- suppression d’une Étiquette, d’une Catégorie ou d’une Zone corporelle et retrait atomique de ses associations courantes ;
+- suppression logique d’une Étiquette, d’une Catégorie ou d’une Zone corporelle du référentiel actif, avec conservation de ses associations existantes ;
 - création d’une Exécution et de son Instantané.
 
 Une opération atomique :
@@ -596,8 +596,8 @@ Les technologies du MVP sont évaluées selon les critères suivants :
 - Le contrôle technique initial du moteur d’Exécution est intégré au début du premier lot T04 ; aucun spike ni prototype séparé ne précède ce lot.
 - Les tests audio sur appareils physiques iOS et Android sont réalisés dans le second lot T04.
 - L’ajout de `expo-audio`, `expo-speech` et de leur configuration native impose la production d’un nouveau development build iOS et Android ; Expo Go ne constitue pas la preuve finale pour ces comportements natifs.
-- T02-S02 et sa migration `004` constituent désormais un **état historique** supersédé sur la récupération par D-208. Le schéma cible n’utilise plus une récupération générique attachée à l’Activité.
-- Pour D-208, la base de développement peut être **réinitialisée** : le schéma cible doit être créé directement avec `side_recovery_seconds` sur l’Activité et `post_activity_recovery_seconds` sur l’occurrence de Séance/Parcours. Aucune exigence de migration utilisateur de l’ancien `recovery_seconds` n’est portée par cette conception.
+- T02-S02 et sa migration `004` constituent désormais un **état historique** supersédé sur la récupération par D-208. Le schéma cible n’utilise plus une récupération générique attachée à l’Exercice.
+- Pour D-208, la base de développement peut être **réinitialisée** : le schéma cible doit être créé directement avec `side_recovery_seconds` sur l’Exercice et `post_activity_recovery_seconds` sur l’occurrence de Séance/Parcours. Aucune exigence de migration utilisateur de l’ancien `recovery_seconds` n’est portée par cette conception.
 - Les migrations `005`/`006` restent des traces de l’état technique antérieur et des évolutions déjà réalisées ; elles ne doivent pas être interprétées comme le scénario cible de migration D-208. Lors de l’implémentation de D-208, la version de schéma et les éventuels scripts techniques doivent être recalés sur la baseline de base réinitialisée.
 - L’archivage, la restauration et la suppression restent hors du périmètre de livraison T04 ; leur modèle existant n’est pas supprimé.
 | Backend | **Aucun dans le MVP** | Architecture local-first et réduction de la complexité |
@@ -689,7 +689,7 @@ Les rappels utilisent des notifications locales afin de :
 
 ### Médias — préparation post-MVP
 
-Aucun média n’est manipulé dans le MVP. Après leur introduction, les fichiers resteront dans le système de fichiers et SQLite conservera uniquement leur référence et leurs métadonnées nécessaires.
+La consultation des médias déjà associés pendant l’Exécution est incluse au MVP (D-203). L’acquisition et le stockage restent régis par D-066/D-068 ; pour cette évolution, les fichiers resteront dans le système de fichiers et SQLite conservera uniquement leur référence et leurs métadonnées nécessaires.
 
 ### Tests
 
@@ -801,7 +801,7 @@ Pour l’Exécution, les composants textuels du contenu utilisent **Roboto Conde
 | Champs | `Forms / Text Field — Source exact` | `Type=Single line/Multiline` |
 | Sélection | `Forms / Select Field — Source exact` | `Size=Full/Compact/Compact narrow`, hauteur `42` |
 | Pickers | `Picker / Popover — Source exact` (`2537:1174`) | `Type=Duration` (`2537:1110`), `Type=Numeric wheel` (`3210:49`), `Type=Time` (`2884:4415`) ou Date selon contrat ; les variantes numériques ouvertes sont rendues dans un overlay d’écran centré, jamais dans le flux ou le `ScrollView` hôte |
-| Décision | `Overlay / Decision Dialog` (`2590:2961`) | deux actions primaire/neutre ou danger/neutre ; trois actions danger/neutre ; dialogue centré. L’abandon des modifications d’une Activité utilise `PrimaryTone=Danger,SecondaryTone=Neutral,Actions=2` (`2590:2934`) dans la frame `3224:4082` |
+| Décision | `Overlay / Decision Dialog` (`2590:2961`) | deux actions primaire/neutre ou danger/neutre ; trois actions danger/neutre ; dialogue centré. L’abandon des modifications d’un Exercice utilise `PrimaryTone=Danger,SecondaryTone=Neutral,Actions=2` (`2590:2934`) dans la frame `3224:4082` |
 | Nom de séance | `Session / Name Field — Source exact` (`2537:1480`) | `354 × 42`, fond transparent, liseré blanc intérieur `1` |
 | Catalogue | `Carte séance` (`6214:7276`) / `Carte exercice` (`6214:7278`) | Contexte=Catalogue ; État=Replié/Archivé/Déployé ; classement en pastilles, valeurs nues ; détails et écarts média dans le complément du 30 septembre |
 | Calendrier | `Carte séance` / `Carte exercice` | Contexte=Calendrier Semaine ; états réellement présents selon inventaire du complément |
@@ -809,16 +809,15 @@ Pour l’Exécution, les composants textuels du contenu utilisent **Roboto Conde
 | Composition | `Composition / Activity Row with Recovery` (`3572:64`) | bloc `354 × 93` lorsque Récupération > 0 ; carte principale puis sous-carte attachée `Récupération X min Y s` ; Nom / Zones corporelles / Synthèse ; déplacement, duplication et suppression portent sur le bloc entier |
 | Composition | `Composition / Tour Section — Source exact` | section Tour, synthèse calculée des exercices et répétition contextuelle |
 | Composition | `Composition / Boundary Activity — Source exact` | `Type=Initial countdown/End session` |
-| Activité | `Activity / Name Field — Source exact` (`3382:4303`) | champ Nom canonique placé en tête du bandeau bleu |
-| Activité | `Activity / Parameter Row — Source exact` et `Controls / Segmented` (`2586:2759`) | `Mode=Duration/Repetitions/ToFailure` ; ordre invariant `Séries` → cible → `Pause` ; `ToFailure` remplace la cible par le cadre informatif `à l’échec` ; seconde rangée `Récupération` → `Durée totale`, cette dernière étant masquée sans déplacement hors mode Durée |
-| Activité | États de calcul (`3580:4733`, `3580:4845`, `3580:4957`) | respectivement Séries pilote, Durée totale pilote et durée cible ajustée ; le pilote confirmé reçoit un contour lié à `color/selection` |
+| Exercice | `Activity / Name Field — Source exact` (`3382:4303`) | champ Nom canonique placé en tête du bandeau bleu |
+| Exercice | `Activity / Parameter Row — Source exact` et `Controls / Segmented` (`2586:2759`) | `Mode=Duration/Repetitions/ToFailure` ; ordre invariant `Séries` → cible → `Pause` ; `ToFailure` remplace la cible par le cadre informatif `à l’échec` ; seconde rangée `Récupération` → `Durée totale`, cette dernière étant masquée sans déplacement hors mode Durée |
+| Exercice | États de calcul (`3580:4733`, `3580:4845`, `3580:4957`) | respectivement Séries pilote, Durée totale pilote et durée cible ajustée ; le pilote confirmé reçoit un contour lié à `color/selection` |
 | Média | `Action / Add Media — Source exact` (`3382:60`) | visible mais désactivé dans le MVP ; actif en V2 ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais un caractère typographique `+` |
 | Média | `Media / Preview` (`3382:59`) | aperçu Photo ou Vidéo |
 | Média | `Media / Gallery — Source exact` (`3382:64`) | liste horizontale ordonnée avec aperçu suivant tronqué |
 | Média | `Media / Section — Source exact` (`3382:71`) | section masquée dans le MVP ; conteneur de galerie en V2 |
-| Déclencheur numérique | `Controls / Numeric Selector Trigger — Source exact` (`2745:2`) | contrôle fermé affichant la dernière valeur confirmée ; ouvre `Type=Numeric wheel` |
+| Stepper entier simple | Composant standard/DSF compatible React Native/Expo | Contrôle inline pour `Nombre de Séries`, `Nombre de répétitions`, `Nombre de Tours`; bornes métier appliquées ; aucune modale/roulette |
 | Catégorie | `Selection / Category Tag` (`3302:4166`) | `State=Unselected/Selected`, propriété texte `Label`; cible tactile `48` de haut, pilule visuelle `30`, rayon `15`, Inter Regular `12/15` |
-| Recherche | `Search / Global Active — Source exact` | géométrie et état actif communs ; requête et résultats hors composant |
 
 Les composants suffixés `Source exact` ont été extraits d’un écran source identifié dans `Prototype MVP`. Ce suffixe qualifie leur provenance visuelle ; il ne transforme pas le contenu métier de l’écran source en propriété du composant.
 
@@ -886,7 +885,7 @@ Les neuf Text Styles locaux actuellement présents sont : `KODJO / Timer`, `Scre
 | Token | Graisse | Taille | Hauteur de ligne | Usage |
 | --- | --- | ---: | ---: | --- |
 | `type.timerPrimary` | Semi Bold | `58` | `64` | Temps principal pendant l’Exécution |
-| `type.activityTitle` | Semi Bold | `28` | `34` | Nom de l’Activité en cours d’Exécution |
+| `type.activityTitle` | Semi Bold | `28` | `34` | Nom de l’Exercice en cours d’Exécution |
 | `type.metricPrimary` | Semi Bold | `22` | `28` | Durée, résultat ou métrique dominante |
 | `type.screenTitle` | Semi Bold | `20` | `24` | Titre d’écran |
 | `type.modalTitle` | Semi Bold | `18` | `22` | Titre de modale, bottom sheet ou date principale |
@@ -998,7 +997,7 @@ Les espacements sont appliqués par `gap`, `padding`, `margin` ou par la structu
 | `20` | Modale compacte, notamment `Choisir une séance` et les modales de planification validées |
 | `24` | Bouton principal de hauteur minimale `48` |
 
-Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes ont été rationalisées respectivement vers `10`, `16` ou `20` selon le composant. Le token sémantique `radius/20` est lié à la primitive `dimension/20`. Les valeurs `28`, `29` et `33` ne complètent pas l’échelle fixe : elles correspondent à la moitié de la hauteur ou du diamètre d’une destination active, de la recherche globale ou de la navigation principale. Les cercles, capsules, indicateurs graphiques de demi-hauteur et rayons supérieurs propres aux bottom sheets restent calculés depuis la géométrie du composant et ne sont jamais arrondis mécaniquement vers un token fixe.
+Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes ont été rationalisées respectivement vers `10`, `16` ou `20` selon le composant. Le token sémantique `radius/20` est lié à la primitive `dimension/20`. Les valeurs de demi-hauteur ou demi-diamètre propres aux destinations actives et à la navigation principale ne complètent pas l’échelle fixe. Les cercles, capsules, indicateurs graphiques de demi-hauteur et rayons supérieurs propres aux bottom sheets restent calculés depuis la géométrie du composant et ne sont jamais arrondis mécaniquement vers un token fixe.
 
 #### Dimensions structurantes
 
@@ -1016,7 +1015,6 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 | Région de navigation du gabarit | `77` (`797–874`) ; contient la barre principale visuelle de `66` et la réserve d’inset inférieur |
 | Navigation principale | Hauteur visuelle `66`, rayon `33`, positionnée avec l’inset inférieur réel |
 | Destination active | Hauteur visuelle `56`, rayon `28` |
-| Recherche globale | Diamètre visuel `58`, rayon `29` |
 | Carte standard | Nouvelles cartes Catalogue/choix/Semaine/Suivi : largeur 354 sur référence 402, rayon 8 ; les cartes structurelles hors famille conservent leur variante propre |
 | Roulette compacte à deux colonnes — `Type=Duration` | Contenu de roulette rendu dans la modale basse canonique ; barre d’actions `Annuler / Confirmer`, contenu natif et dimensions internes selon Figma/DSF actifs. Aucun overlay centré ad hoc. |
 | Roulette numérique compacte à une colonne | Variante numérique du contenu de la même modale basse canonique ; mêmes règles de brouillon et de confirmation |
@@ -1024,15 +1022,15 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 | Sélection de roulette à deux colonnes | Deux cadres gris séparés de `56 × 34`, rayon `17`, couvrant uniquement les chiffres ; unités hors cadres |
 | Dialogue de décision | Largeur `354`, rayon `18`, centré ; actions `147 × 48` avec écart horizontal `12`; variante trois choix avec `Annuler` `306 × 48` sur une seconde ligne, écart vertical `12` |
 | Champ Nom de la séance | `354 × 42`, fond transparent, liseré blanc intérieur `1`; token `color.sessionNameBorder` |
-| Bandeau contextuel Activité | `402 × 115`, accolé à la ligne basse de l’en-tête ; contexte Inter Regular `14/17` ; padding supérieur `spacing/12`, espacement contexte/champ `spacing/24`, padding inférieur `spacing/16` explicitement porté par le shell |
-| Champ Nom de l’Activité | Largeur utile `354`, hauteur visuelle `46`, fond transparent, liseré blanc intérieur `1`; valeur en token canonique `KODJO / Screen title` (`20/24`, Semi Bold), identique au champ `Nom de la séance` |
-| Synthèse de l’Activité | Largeur utile `354`, texte `KODJO / Body` (`14/20`), cadre extensible ; espacement vertical `spacing/24` avant l’action finale |
+| Bandeau contextuel Exercice | `402 × 115`, accolé à la ligne basse de l’en-tête ; contexte Inter Regular `14/17` ; padding supérieur `spacing/12`, espacement contexte/champ `spacing/24`, padding inférieur `spacing/16` explicitement porté par le shell |
+| Champ Nom de l’Exercice | Largeur utile `354`, hauteur visuelle `46`, fond transparent, liseré blanc intérieur `1`; valeur en token canonique `KODJO / Screen title` (`20/24`, Semi Bold), identique au champ `Nom de la séance` |
+| Synthèse de l’Exercice | Largeur utile `354`, texte `KODJO / Body` (`14/20`), cadre extensible ; espacement vertical `spacing/24` avant l’action finale |
 | Tag de Catégorie | Composant DSF `Selection / Category Tag` (`3302:4166`) ; `State=Unselected/Selected` ; cible tactile de hauteur `48`, pilule visuelle de hauteur `30` centrée dans la cible, rayon `15`, libellé Inter Regular `12/15`; rangées espacées sur un pas minimal de `48` afin que les cibles ne se chevauchent pas ; largeur adaptée au libellé dans la largeur utile |
-| Conteneur Tour | Largeur `374` ; hauteur `54` fermé ou `175` déployé ; en-tête intérieur `354 × 34` avec marges externes de `10` |
-| Sélecteur du nombre de tours | `66 × 34` ; valeur numérique sans `x` ni `×` ; bord droit aligné avec celui des cartes d’Activité ; carré violet `28 × 28` avec `3` points de marge en haut, à droite et en bas ; icône `#CDCEFA` issue de la référence `2028:12051` ; aucun chevron de repli |
+| Conteneur Circuit | Largeur `374` ; hauteur `54` fermé ou `175` déployé ; en-tête intérieur `354 × 34` avec marges externes de `10` |
+| Stepper du nombre de Tours | Contrôle inline ; valeur de `1..99` sans ouverture de modale ; alignement et dimensions suivent le Figma actif ; aucun chevron de repli |
 | Icône Tour | composant DSF `Icon / Tour` (`3066:4685`) ; dessin `18 × 18` ; trait `1,35` ; `color.textPrimary` (`#141414`) ; actif `assets/icons/icon-tour.svg` ; clé `icon.tour` |
 
-Dans `Composition / Tour Section`, le groupe `Nombre de tours` + synthèse mesure `33` points de haut et est centré verticalement face au sélecteur. La synthèse utilise `type.caption` (`11/13`), `color.textSecondary` et un espacement vertical de `4` points sous le titre. Son calcul consomme la Durée synthétique des Exercices et exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Tour. Ces valeurs réemploient les tokens existants ; aucun nouveau token n’est créé. Les variantes `State=Collapsed` et `State=Expanded` partagent strictement cet en-tête.
+Dans `Composition / Circuit Section`, le groupe `Nombre de tours` + synthèse mesure `33` points de haut et est centré verticalement face au sélecteur. La synthèse utilise `type.caption` (`11/13`), `color.textSecondary` et un espacement vertical de `4` points sous le titre. Son calcul consomme la Durée synthétique des Exercices et exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Circuit. Ces valeurs réemploient les tokens existants ; aucun nouveau token n’est créé. Les variantes `State=Collapsed` et `State=Expanded` partagent strictement cet en-tête.
 
 ##### Source canonique de l’icône Tour
 
@@ -1051,7 +1049,7 @@ Le composant DSF `Icon / Tour` (`3066:4685`) est l’unique source Figma autoris
 | Nouvelle séance — Nom renseigné | `2028:12003` | `3272:4161` |
 | Composition d'une séance — Appui long — carte soulevée | `3518:4576` | État transitoire du bloc `Composition / Activity Row with Recovery` (`3572:64`) |
 
-L’état de déplacement par appui long ne crée pas un second composant. Il applique temporairement au bloc Activité + Récupération les dimensions `362 × 97`, le bleu du bandeau supérieur, un fond interne transparent, un contour `1` point `#D1D1D6`, un rayon `12` et une ombre `#14171F` à `22 %` avec décalage `0 / 0`, flou `10` et étalement `2`. Au repos, le bloc reprend `354 × 93`; sans Récupération, la carte conserve `354 × 69`. La persistance de l’ordre intervient uniquement après une dépose valide via `API-COM-06`.
+L’état de déplacement par appui long ne crée pas un second composant. Il applique temporairement au bloc Exercice + Récupération les dimensions `362 × 97`, le bleu du bandeau supérieur, un fond interne transparent, un contour `1` point `#D1D1D6`, un rayon `12` et une ombre `#14171F` à `22 %` avec décalage `0 / 0`, flou `10` et étalement `2`. Au repos, le bloc reprend `354 × 93`; sans Récupération, la carte conserve `354 × 69`. La persistance de l’ordre intervient uniquement après une dépose valide via `API-COM-06`.
 
 Les tokens Figma associés sont `component/wheel/compact-height`, `component/wheel/numeric-compact-width`, `component/wheel/selection-column-width`, `component/wheel/action-bar-height`, `component/wheel/content-height`, `component/wheel/action-hit-target`, `component/wheel/action-visual-box`, `component/wheel/action-icon`, `component/action/circular-visual-box`, `component/action/circular-icon`, `color/wheel-action/cancel-background`, `color/wheel-action/confirm-background`, `color/wheel-action/cancel-icon` et `color/wheel-action/confirm-icon`. Les primitives `dimension/38` (`VariableID:3641:68`), `dimension/53` (`VariableID:3644:68`), `dimension/144` (`VariableID:3644:69`) et `dimension/203` (`VariableID:3644:70`) valent respectivement `38`, `53`, `144` et `203`. `component/action/circular-visual-box` (`VariableID:3641:69`) aliasse `dimension/38`, puis `component/wheel/action-visual-box` (`VariableID:3078:61`) aliasse ce token sémantique. `component/wheel/action-bar-height` (`VariableID:3072:4056`) aliasse `dimension/53`; `component/wheel/numeric-compact-width` (`VariableID:3218:4021`) aliasse `dimension/144`; `component/wheel/compact-height` (`VariableID:3072:4060`) aliasse `dimension/203`. `component/wheel/action-hit-target` (`VariableID:3072:4057`) et `size/touch-target-min` (`VariableID:2612:10`) restent aliasés à `dimension/48` (`VariableID:2290:37`). `component/action/circular-icon` (`VariableID:3648:68`) et `component/wheel/action-icon` (`VariableID:3072:4058`) aliasent `dimension/24` (`VariableID:2290:30`). Ces tokens décrivent `Action / Back` (`2624:3105`) et le component set unique `Picker / Popover — Source exact` (`2537:1174`), notamment les variantes `Type=Duration` et `Type=Numeric wheel`, dans la section `Forms` du Design System Foundation ; aucune seconde famille de composant Wheel ne doit être créée.
 
@@ -1070,10 +1068,10 @@ Les tokens Figma associés sont `component/wheel/compact-height`, `component/whe
 - Les formulaires utilisent un mécanisme de Keyboard Avoiding adapté à la plateforme et permettent de faire défiler le champ actif au-dessus du clavier.
 - Les modales basses limitent leur hauteur à `85 %` de la hauteur sûre et rendent leur contenu interne défilant au-delà.
 - Un contrôle segmenté est un conteneur horizontal dont chaque option utilise `flex: 1`. Le fond sélectionné appartient au segment et non à l’écran ; texte et fond sont centrés dans la même zone.
-- La navigation basse est composée d’une barre principale flexible et d’une recherche de diamètre fixe `58`. La barre principale contient quatre emplacements de poids égal avec marges internes constantes. Le calcul de ces emplacements exclut la largeur de la recherche et son espacement.
+- La navigation basse du MVP est un composant unique à quatre destinations `Catalogues / Calendrier / Suivi / Profil`, sans contrôle Recherche (D-221/D-225).
 - Les actions situées à droite d’une carte sont regroupées dans un conteneur `row` aligné en fin de carte. Le groupe possède une marge droite interne de `6` et un espacement fixe entre actions ; aucune action n’utilise une coordonnée calculée depuis la largeur de l’écran.
 - Les cadres de synthèse utilisent `width: '100%'`, un padding horizontal canonique et une hauteur minimale. Le texte est multi-ligne et détermine la hauteur finale ; `numberOfLines` et une hauteur fixe ne doivent pas masquer ou faire dépasser le contenu.
-- Dans le formulaire Activité, le récapitulatif est un frère du groupe de paramètres et non son enfant. Le layout principal utilise un espace flexible entre les paramètres et ce récapitulatif pour maintenir ce dernier au-dessus de l’action finale. Le code ne doit pas reproduire les coordonnées absolues du gabarit.
+- Dans le formulaire Exercice, le récapitulatif est un frère du groupe de paramètres et non son enfant. Le layout principal utilise un espace flexible entre les paramètres et ce récapitulatif pour maintenir ce dernier au-dessus de l’action finale. Le code ne doit pas reproduire les coordonnées absolues du gabarit.
 - Le sélecteur de rappel utilise trois zones sœurs : option fixe `Aucun`, `ScrollView` horizontal pour les choix rapides, option fixe `Personnalisé`. Le défilement ne déplace pas les options fixes et accepte l’ajout de délais rapides sans modifier la structure du composant.
 - La barre de jours du Calendrier utilise `width: '100%'` et sept cellules de même poids (`flex: 1`). Les espacements sont inclus dans la largeur disponible : aucune cellule ne conserve la largeur ou la position du gabarit `402`.
 - Le groupe `Série / Tour` de l’Exécution comporte deux zones flexibles symétriques et un séparateur central fixe. Il ne repose sur aucune coordonnée absolue et reste sur une ligne à partir de `360` points avec le texte à `100 %` ou `135 %` ; à une taille d’accessibilité supérieure, son conteneur peut grandir verticalement sans rendre les valeurs ambiguës.
@@ -1255,7 +1253,7 @@ Ordre de développement retenu :
 1. **Socle technique** : React Native / Expo, TypeScript, SQLite, architecture, tests, design tokens et préparation i18n.
 2. **Spike technique critique** : timer, arrière-plan, écran verrouillé, audio, voix et vibrations sur iOS et Android.
 3. **Séance simple** : création et modification d’une Séance avec quelques Exercices et un Cycle technique déjà fixé à 1.
-4. **Premier moteur d’Exécution bout-en-bout** : démarrage, timer, pause, Activité suivante, arrêt et fin.
+4. **Premier moteur d’Exécution bout-en-bout** : démarrage, timer, pause, Exercice suivant, arrêt et fin.
 5. **Structure complète du MVP** : Tour et ses répétitions, Cycle technique masqué, Récupération, Compte à rebours initial et Fin de Séance.
 6. **Exécution complète** : règles, sons, annonces, confirmations, interruptions et Instantané.
 7. **Historique / Suivi**.
@@ -1289,7 +1287,7 @@ Le filtrage et le tri sont des paramètres de requête indépendants du segment.
 
 ### Composants et tokens Figma
 
-Les composants d’éditeur et de Composition restent la base visuelle, mais le composant historique `Composition / Activity Row with Recovery` (`3572:64`) est **supersédé sur la sémantique récupération par D-208** : la donnée post-activité reste systématique, y compris à `0 s` ; D-214 supprime ensuite sa ligne visible, et l’éditeur utilise une récupération entre côtés conditionnelle. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
+Les composants d’éditeur et de Composition restent la base visuelle, mais le composant historique `Composition / Activity Row with Recovery` (`3572:64`) est **supersédé sur la sémantique récupération par D-208** : la donnée post-activité reste systématique, y compris à `0 s` ; D-238 supprime ensuite sa ligne visible, et l’éditeur utilise une récupération entre côtés conditionnelle. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
 
 Les alias Figma sont bijectifs et explicites :
 
@@ -1304,19 +1302,19 @@ Toutes les roulettes ouvertes recouvrent le shell par `color/overlay/scrim`; auc
 
 ## Architecture de la bilatéralité
 
-Le domaine expose `sideMode` avec les valeurs exactes `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`, et `executionSide` avec `NONE`, `RIGHT`, `LEFT`. Les repositories persistants conservent `side_mode` sur l’Activité de catalogue et l’occurrence de Séance. Le champ historique équivalent du Tour est conservé pour compatibilité/non-régression, reste `UNILATERAL` et n’est pas exposé à la mutation utilisateur dans la version actuelle. Les nœuds d’instantané conservent la direction effective de l’Activité ; les résultats conservent le côté.
+Le domaine expose `sideMode` avec les valeurs exactes `UNILATERAL`, `RIGHT_LEFT`, `LEFT_RIGHT`, et `executionSide` avec `NONE`, `RIGHT`, `LEFT`. Les repositories persistants conservent `side_mode` sur l’Exercice de catalogue et l’occurrence de Séance. Le champ historique équivalent du Tour est conservé pour compatibilité/non-régression, reste `UNILATERAL` et n’est pas exposé à la mutation utilisateur dans la version actuelle. Les nœuds d’instantané conservent la direction effective de l’Exercice ; les résultats conservent le côté.
 
-Le générateur de Plan est l’unique composant autorisé à développer les passages. Dans la version actuelle, il ne développe aucune bilatéralité portée par le Tour : le Tour est traité fonctionnellement `UNILATERAL`. La capacité technique historique est conservée sans être exposée ni modifiée par l’utilisateur. Il applique la priorité du Tour, empêche tout double multiplicateur et produit des identifiants stables incluant répétition de Tour, Activité, Série et côté. La commande d’activation recherche d’abord les enfants propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Sans enfant concerné, elle met directement le Tour à jour. Avec enfant concerné et confirmation, une transaction met à jour le parent et remet uniquement ces enfants à `UNILATERAL`; une annulation n’écrit rien. La migration affecte `UNILATERAL` et `NONE` aux données historiques sans créer de duplicata.
+Le générateur de Plan est l’unique composant autorisé à développer les passages. Dans la version actuelle, il ne développe aucune bilatéralité portée par le Tour : le Tour est traité fonctionnellement `UNILATERAL`. La capacité technique historique est conservée sans être exposée ni modifiée par l’utilisateur. Il applique la priorité du Tour, empêche tout double multiplicateur et produit des identifiants stables incluant répétition de Tour, Exercice, Série et côté. La commande d’activation recherche d’abord les enfants propres `RIGHT_LEFT` ou `LEFT_RIGHT`. Sans enfant concerné, elle met directement le Tour à jour. Avec enfant concerné et confirmation, une transaction met à jour le parent et remet uniquement ces enfants à `UNILATERAL`; une annulation n’écrit rien. La migration affecte `UNILATERAL` et `NONE` aux données historiques sans créer de duplicata.
 
-Les services de calcul utilisent des fonctions pures couvrant les deux valeurs de `L`, l’arrondi `.5` vers le haut, les bornes et le recalcul. Les tests combinent trois modes × trois réglages × Activité/Tour × Séries × Pauses/Récupérations × interruptions. Les tests d’intégration vérifient l’ordre `D→G` et `G→D`, l’idempotence des résultats, la reprise, la progression monotone, les annonces uniques et la préservation du premier côté lors d’une réinitialisation du second.
+Les services de calcul utilisent des fonctions pures couvrant les deux valeurs de `L`, l’arrondi `.5` vers le haut, les bornes et le recalcul. Les tests combinent trois modes × trois réglages × Exercice/Tour × Séries × Pauses/Récupérations × interruptions. Les tests d’intégration vérifient l’ordre `D→G` et `G→D`, l’idempotence des résultats, la reprise, la progression monotone, les annonces uniques et la préservation du premier côté lors d’une réinitialisation du second.
 
 Le DSF normalise `Controls / Sides — Source exact` (`3704:5021`) à `74 × 42 pt` pour toutes ses variantes ; il est déjà placé ligne 2, colonne 1 sous `Séries`. `Controls / Tour Sides — Source exact` (`3705:5021`) reste `42 × 34 pt`, avec `8 pt` après le cadre numérique `66 × 34 pt` dans `2028:11743`. `Indicator / Sides — Source exact` (`3706:5020`) reste `42 × 20 pt` dans les informations secondaires de carte. Les descriptions DSF portent les libellés accessibles, les conditions de désactivation et de confirmation. Cette rectification ne crée aucun token, champ, enum ou calcul.
 
-Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le nom de l’Activité pour le côté courant. Les écrans unilatéraux le masquent. Cette présentation réutilise les couleurs et la typographie existantes ; aucun nouveau token n’est requis.
+Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le nom de l’Exercice pour le côté courant. Les écrans unilatéraux le masquent. Cette présentation réutilise les couleurs et la typographie existantes ; aucun nouveau token n’est requis.
 
 ## Architecture MVP T03 — Catalogue des Exercices et moteur multi-origine
 
-T03 livre le Catalogue des Exercices et le sous-ensemble du moteur nécessaire à l’Exécution directe d’une Activité. T04 étend ensuite ce moteur partagé à l’Exécution structurée des Séances, sans dupliquer la machine à états. Le Catalogue des Exercices réutilise le Shell du Catalogue et sépare les responsabilités existantes : lecture et cycle de vie des `ActivityDefinition`, copie ordonnée par `CompositionService`, lancement par `ExecutionService` et retour d’état de navigation par la couche de présentation. Aucun service réseau ni stockage parallèle n’est introduit.
+T03 livre le Catalogue des Exercices et le sous-ensemble du moteur nécessaire à l’Exécution directe d’un Exercice. T04 étend ensuite ce moteur partagé à l’Exécution structurée des Séances, sans dupliquer la machine à états. Le Catalogue des Exercices réutilise le Shell du Catalogue et sépare les responsabilités existantes : lecture et cycle de vie des `ActivityDefinition`, copie ordonnée par `CompositionService`, lancement par `ExecutionService` et retour d’état de navigation par la couche de présentation. Aucun service réseau ni stockage parallèle n’est introduit.
 
 Pour la couche de présentation du Catalogue et de l’éditeur autonome, `src/features/activities/` est le périmètre feature dédié : écrans, composants et adaptateurs UI propres aux Exercices persistantes y résident. Le domaine reste dans `src/domain/activities/` et l’accès SQLite dans `src/infrastructure/database/`; aucune règle métier ni persistance n’est dupliquée dans la feature. Les composants réellement partagés avec la Composition ou les autres écrans restent dans les espaces partagés existants. Cette séparation justifie l’introduction de `src/features/activities/` sans créer un second domaine.
 
@@ -1324,7 +1322,7 @@ Pour la couche de présentation du Catalogue et de l’éditeur autonome, `src/f
 
 Le moteur d’Exécution reçoit un `ExecutionSource` discriminé : `SessionSnapshotSource` ou `ActivitySnapshotSource`. Un adaptateur construit un plan commun ; la machine à états, les minuteries, les résultats, la persistance et la reprise restent partagés.
 
-L’adaptateur `ACTIVITY` ajoute `DIRECT_PREPARE(5 s)`, développe l’Activité, puis clôt sans `SESSION_END`. La persistance stocke l’origine et l’instantané autonome. Les agrégateurs sélectionnent uniquement les métriques compatibles et n’incrémentent pas le compteur de Séances.
+L’adaptateur `ACTIVITY` ajoute `DIRECT_PREPARE(5 s)`, développe l’Exercice, puis clôt sans `SESSION_END`. La persistance stocke l’origine et l’instantané autonome. Les agrégateurs sélectionnent uniquement les métriques compatibles et n’incrémentent pas le compteur de Séances.
 
 La navigation conserve un état de retour sérialisable du Catalogue. Les tests couvrent au minimum : les trois modes, Séries multiples, Pause nulle/non nulle, Récupération, trois directions, interruption/reprise, suppression de la source, Synthèse obligatoire, Suivi et non-comptage d’une Séance.
 
@@ -1336,7 +1334,7 @@ Les pictogrammes de `CE-COMP-SEL-01` proviennent des composants locaux DSF du fi
 | Usage | Composant Figma | ID / clé | Tokens liés |
 |---|---|---|---|
 | Recherche dans le panneau | `Icon / Search` | `3847:5508` / `8468835f0e5ce8676ea419e838c19dccddac0d71` | trait `color/icon-neutral` — `VariableID:2290:59` |
-| Activité sélectionnée | `Icon / Selection Check` | `3847:5512` / `27a55ca50eec5411d0e087bbf6bd6f0222c0ebf4` | fond `color/selection` — `VariableID:2290:52` ; liseré et coche blancs — `VariableID:2290:5` |
+| Exercice sélectionnée | `Icon / Selection Check` | `3847:5512` / `27a55ca50eec5411d0e087bbf6bd6f0222c0ebf4` | fond `color/selection` — `VariableID:2290:52` ; liseré et coche blancs — `VariableID:2290:5` |
 
 Chaque composant possède un cadre vectoriel `24 × 24 pt`. L’implémentation réutilise l’asset exporté ou son équivalent code connecté au composant, sans caractère Unicode, emoji, glyphe de police, icône système ni redessin approximatif. La cible tactile appartient au contrôle hôte et reste au minimum `48 × 48 pt`.
 
@@ -1375,22 +1373,59 @@ Le champ historique générique `recovery_seconds` ne constitue plus le schéma 
 - `ActivityDefinition.side_recovery_seconds` — récupération intrinsèque entre côtés, pertinente uniquement en bilatéral ;
 - `SessionActivity.post_activity_recovery_seconds` — récupération contextuelle après occurrence, valeur obligatoire pouvant être `0`.
 
-Le même principe s’applique aux occurrences d’Activité d’un Parcours lorsque ce modèle est livré. La base étant réinitialisable pour cette évolution, aucune migration utilisateur n’est exigée dans la documentation cible ; l’implémentation doit néanmoins produire directement le schéma cible.
+Le même principe s’applique aux occurrences d’Exercice d’un Parcours lorsque ce modèle est livré. La base étant réinitialisable pour cette évolution, aucune migration utilisateur n’est exigée dans la documentation cible ; l’implémentation doit néanmoins produire directement le schéma cible.
 
-Le moteur ne déduit jamais une récupération post-activité à partir de l’adjacence. Il lit la valeur portée par l’occurrence. Une Exécution directe d’`ActivityDefinition` ignore toute récupération post-activité et ne peut produire que `SIDE_RECOVERY` lorsqu’elle est bilatérale.
+Le moteur ne déduit jamais une récupération post-exercice à partir de l’adjacence. Il lit la valeur portée par l’occurrence. Une Exécution directe d’`ActivityDefinition` ignore toute récupération post-exercice et ne peut produire que `SIDE_RECOVERY` lorsqu’elle est bilatérale.
+
+## 12.38 Impacts techniques de la consolidation D-209 à D-217
+
+Le schéma cible doit pouvoir représenter : (1) le Circuit interne et son nombre de Tours sans confondre ce concept avec l’entité autonome Parcours ; (2) Catégorie obligatoire et associations Zones corporelles `1..n` sur `ActivityDefinition`; (3) retrait logique d’une valeur de référentiel tout en conservant les références existantes et, pour Étiquette/Catégorie, sa couleur ; (4) un booléen de Séance activé par défaut pour inclure/exclure ensemble les phases Compte à rebours d’exercice et Fin d’exercice.
+
+Les défauts Profil sont lus à la création uniquement : aucune synchronisation réactive ni indicateur d’héritage n’est requis. Le générateur de Plan développe les Points d’arrêt internes au Circuit à chaque Tour et ordonne, après un Exercice, `POST_ACTIVITY_RECOVERY` avant le Point d’arrêt. Les identifiants techniques historiques peuvent rester inchangés jusqu’à une refactorisation explicitement planifiée.
+
+
+**D-219 — composants de saisie.** Les durées conservent les pickers/roulettes en modale basse. Les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent un stepper inline. L’implémentation réutilise en priorité un composant standard/DSF compatible React Native/Expo ; un contrôle ad hoc équivalent ne doit pas être recréé sans contrainte technique documentée.
+
+
+## 28 septembre 2026 — contraintes DSF avant développement
+
+L’implémentation de la navigation et des composants visuels respecte D-224 à D-230 : fonds, dégradés de contexte, navigation 322×62 et intégration écran, halos/actions circulaires, steppers/badges, clipping des listes et gabarits de modales/roulettes. Ces valeurs sont centralisées dans les tokens/composants du Design System plutôt que dupliquées écran par écran. Aucun composant ni route de Recherche globale/Catalogue n’est requis pour le MVP (D-221).
+
+
+### Référence DSF V2 détaillée — clôture 28 septembre 2026
+
+- **Navigation basse** : pilule `322 × 62 px`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur/rayon 10 offset `0,2`; token `color/navigation/pill`. Icône Profil selon D-233/D-236 dans boîte 32×32 ; actif `#0508E5`, inactif `#5C636E`. Cadre actif `76 × 50 px`, bleu `#0508E5` à 10 %. Boîtes d’icônes aux abscisses 68/146/224/302 dans la référence 402 px, soit 28 px entre bord de pilule et boîte extrême et 78 px entre centres. Intégration écran : 16 px sous la pilule, bande opaque 16 px puis dégradé transparent→fond sur 40 px ; ces bandes appartiennent à l’écran.
+- **Fond / contexte** : écran ordinaire `#FFFFFF`; Splash `#0006F1`; média plein écran `#0A0A0C`. Zone de contexte `#EAEAFF`→transparent sur les 20 % inférieurs pour Catalogues, Composition, Calendrier, Suivi, Profil et Ajout d’exercice. Le séparateur 1 px n’est retiré que si ce dégradé assure la séparation.
+- **Halo et action circulaire** : halo Annuler/Retour blanc opaque `59,28 px`, placé devant la zone de contexte et hors du conteneur clippé ; bouton circulaire clair `32 × 32`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur 10 offset `0,2`.
+- **Stepper / valeur** : variante lavande `#F2F2FF` pour Profil/paramètres, variante blanche pour Tours de Composition ; `−/+` ronds bleus, 12 px autour de la valeur centrale. Le stepper remplace la valeur sur la même ligne sans étirer le groupe ; un seul stepper actif à la fois. Badge replié `#F4F4F8`, texte bleu Semi Bold 13 px, rayon 6, marges 8 px horizontales et 2 px verticales ; contour bleu 1,5 px lorsque le contrôle est ouvert (DSF V2 lot 3, T4). Le nombre de semaines utilise la pilule de stepper rayon 18.
+- **Point d’arrêt** : bouton rond blanc opaque, icône Pause, contour 1 px `#0508E5`; l’action complète porte le contour. Les occurrences de Composition utilisent cette référence commune.
+- **Ressenti** : ne pas confondre contrôle de choix et pictogramme de résultat. Résultats : vert Bien, orange Neutre, rouge Mal ; rouge source `#EF4444`. Aucun état actif Figma ne prouve un contrôle « Mal sélectionné ».
+- **Profil** : titres de section Semi Bold 16 px ; `Modifier` en `#0508E5`; groupes blancs 126 px ; zone de contexte 115 px ; ouverture d’un stepper sans étirement du groupe.
+- **Exécution** : sur les cinq écrans portant `Zone — Progression et suite`, début `y=449`, hauteur `305 px`. Dans la variante haute avec texte, conserver 95 px avant la zone. Variante média : `Série X/3 • Tour X/3` en Roboto Condensed Medium 24 px.
+- **Cartes avec photo** : D-238 remplace l’ancien état média déployé ; Photo supprime Déployer. Les variantes média d’Exécution conservent leur fonctionnement propre.
+
+
+### Générateur de phrase v10.2
+
+Implémenter le générateur comme fonction pure au-dessus des paramètres de l’Exercice. La bibliothèque de fragments et les règles de sélection sont celles de D-232 ; le calcul Répétitions utilise la constante `r=2 s`. Le jeu de 7 états d’entrée + 36 cas du classeur v10 doit être transcrit en tests paramétrés. Aucun texte Figma ne doit être utilisé comme source de vérité fonctionnelle.
+
+
+### Validation du générateur v10.2
+
+Le générateur est une fonction pure et déterministe conforme à D-232. Les bornes sont validées au domaine : Séries `1..99`, Répétitions `1..100`, Durée par Série `1..5999 s`, pauses inter-Séries/inter-côtés `0..300 s`. Les steppers de réglage du Profil appliquent `±5 s` jusqu’à `120 s`, puis `±30 s` jusqu’à `300 s`, avec transition `115 s → 120 s → 150 s`. Dans l'éditeur d'Exercice, les durées de pause utilisent des roulettes sur le même domaine de valeurs. La valeur Profil de pause au changement de côté est copiée dans l’Exercice lors de sa première applicabilité. En V1, `r=2 s` est fourni à l’unique fonction de calcul ; la stratégie V2 de lecture/copie depuis le Profil reste hors périmètre MVP et À CLARIFIER.
 
 ## DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)
 
-Décisions finales du propriétaire : les 17 points sont clos ; aucune question ouverte. RG-1 à RG-13 s’appliquent avec RG-3 seule reportée (Séance sans vignette). RG-4 retire Déployer de l’exercice avec photo. Les cartes du Catalogue, des choix et de Composition n’affichent plus pauses/récupérations ; les Catalogues n’affichent plus la prochaine planification. Les données, calculs et fonctions de planification restent inchangés. D-195, D-206 et D-208 sont révisées uniquement sur ces règles d’affichage (D-214).
+Décisions finales du propriétaire : les 17 points sont clos ; aucune question ouverte. RG-1 à RG-13 s’appliquent avec RG-3 seule reportée (Séance sans vignette). RG-4 retire Déployer de l’exercice avec photo. Les cartes du Catalogue, des choix et de Composition n’affichent plus pauses/récupérations ; les Catalogues n’affichent plus la prochaine planification. Les données, calculs et fonctions de planification restent inchangés. D-195, D-206 et D-208 sont révisées uniquement sur ces règles d’affichage (D-238).
 
 Synthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 », Suivi « 18 h 42 ». Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.
 
 RG-10 : le Profil porte une préférence silhouette facultative, homme/femme ; absence = homme affiché. Elle ne pilote que l’icône de zone corporelle, sans filtre, recherche ou effet métier. RG-11 à RG-13 : vignette 64 centrée et recadrée sans déformation (couverture pour une vidéo), place réservée pendant chargement/erreur, texte alternatif égal au nom de l’exercice.
 
-D-215 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 298 × 48, x=80, hauteur d’instance adaptée à l’événement), avec barre colorée 4, nature 26, titre 13 gras, heure/durée 11, lecture 26 et aucun Déployer. Les deux sets comportent 10 variantes chacun. Suivi — Vue d’ensemble est hors MVP. Les boutons Calendrier Aujourd’hui/Planifier restent à 32, sans cible 44 ajoutée : situation acceptée, à revoir et développer après T04. Les nouvelles icônes sont nommées icon/<nom>, les anciennes ne sont pas renommées ; target est réservé au Programme, pulse aux rapports/Suivi.
+D-239 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 298 × 48, x=80, hauteur d’instance adaptée à l’événement), avec barre colorée 4, nature 26, titre 13 gras, heure/durée 11, lecture 26 et aucun Déployer. Les deux sets comportent 10 variantes chacun. Suivi — Vue d’ensemble est hors MVP. Les boutons Calendrier Aujourd’hui/Planifier restent à 32, sans cible 44 ajoutée : situation acceptée, à revoir et développer après T04. Les nouvelles icônes sont nommées icon/<nom>, les anciennes ne sont pas renommées ; target est réservé au Programme, pulse aux rapports/Suivi.
 
 Implémentation attendue : conserver la préférence dans le mécanisme persistant du Profil existant ; résoudre le défaut homme dans la présentation ; réutiliser les médias déjà associés, sans import supplémentaire. Les écarts d’assemblage Photo et exercice déployé sont documentés dans le complément, sans prétendre les avoir corrigés dans les écrans.
 
 Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
 
-Appuis — D-213 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper indépendant (450 ms puis 150 ms pour la répétition) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
+Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper indépendant (450 ms puis 150 ms pour la répétition) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.

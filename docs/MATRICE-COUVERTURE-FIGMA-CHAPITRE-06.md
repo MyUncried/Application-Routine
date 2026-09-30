@@ -16,7 +16,7 @@ L’inventaire du 24 septembre était un état des lieux ; il ne borne plus le c
 
 | Ancienne référence | Traitement courant |
 |---|---|
-| Heure ouverte `1992:7006` | Référence remplacée, selon la précision du propriétaire, par « Planifier une séance — Test picker rappel personnalisé ouvert » `1992:7187`, déjà illustrée en 8c. L’ancienne image 8b n’est plus affichée comme preuve active et aucune fonction de réglage d’heure n’est supprimée. |
+| Heure ouverte `1992:7006` | Référence remplacée, selon la précision du propriétaire, par « Planifier une séance — Test picker rappel personnalisé ouvert » `1992:7187`, illustrée dans « Planifier une séance ou un exercice ». L’ancienne image 8b n’est plus affichée comme preuve active et aucune fonction de réglage d’heure n’est supprimée. |
 | Nombre de tours `2028:11580` | Ancienne roulette retirée des références actives. Stepper permanent confirmé dans `2028:11700`, nœud `4913:7432`, 137 × 36. Pas de modale Tours séparée. |
 | Catégories `4332:7095` | Nom et contenu actuels : sélection de Catégorie, et non roulette Durée. La durée ouverte reste `3556:7645`. |
 | Séries `3556:7801`, répétitions `3561:7673`, semaines `1992:7537` | Steppers intégrés confirmés ; légendes et descriptions des anciennes roulettes corrigées. |
@@ -25,7 +25,7 @@ L’inventaire du 24 septembre était un état des lieux ; il ne borne plus le c
 
 ## Lecture des écarts visuels et des décisions
 
-La capture décrit l’état Figma observé ; elle ne remplace pas une décision métier validée. Certaines frames de Composition montrent encore une ligne de récupération, alors que D-214 en retire l’affichage dans la cible ; les données et calculs restent conservés. La frame média `4738:6355` montre encore le média déployé : la cible Photo RG-4 reste définie par le wireframe Photo. Ces écarts d’assemblage n’ouvrent aucun nouvel arbitrage et les PNG ne sont pas retouchés pour les masquer. Les cartes standard ne sont pas déclarées propagées dans les frames qui n’en contiennent pas.
+La capture décrit l’état Figma observé ; elle ne remplace pas une décision métier validée. Certaines frames de Composition montrent encore une ligne de récupération, alors que D-238 en retire l’affichage dans la cible ; les données et calculs restent conservés. La frame média `4738:6355` montre encore le média déployé : la cible Photo RG-4 reste définie par le wireframe Photo. Ces écarts d’assemblage n’ouvrent aucun nouvel arbitrage et les PNG ne sont pas retouchés pour les masquer. Les cartes standard ne sont pas déclarées propagées dans les frames qui n’en contiennent pas.
 
 Codes : C cartes ; J cartes Jour ; N navigation ; B commandes contextuelles ; S segmenté à trois options ; I icônes catégorie/zone hors cartes ; P silhouette Profil ; — absent du rapport.
 
@@ -167,3 +167,136 @@ Codes : C cartes ; J cartes Jour ; N navigation ; B commandes contextuelles ; S 
 | [Recherche globale — Champ déployé](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10129) — `1992:10129` | NS | [PNG](Specifications-fonctionnelles/images/ecran-2c-recherche-globale-champ.png) | `696d54242bca0c09ab88ab08c336363b7cac3bc1` |
 | [Recherche globale — Résultats affichés](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10320) — `1992:10320` | NS | [PNG](Specifications-fonctionnelles/images/ecran-2a-recherche-globale-resultats.png) | `17e90cecc2e48d9f1637991baf47ea453216d0ee` |
 | [HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3841-8375) — `3841:8375` | NS | [PNG](Specifications-fonctionnelles/images/ecran-13a-catalogue-seances-creer-arbre.png) | `42a7a28c3e2eaf3d6ce6d8f449b740377fc0cc6e` |
+
+## Organisation du chapitre 06 — correction du 30 septembre 2026
+
+Les captures sont intégrées en Markdown standard et regroupées dans leur famille. Les identifiants Figma et chemins d’images restent stables ; la numérotation des écrans n’est plus utilisée pour organiser le chapitre. Les anciennes captures de préparation/exécution directe et de synthèse directe ne sont plus affichées comme références actives. La préparation de 5 s et les règles de l’exécution directe restent documentées dans la famille Exécution. Aucun écran Figma n’a été créé ou modifié.
+
+| Source Figma | Famille dans le chapitre 06 | Nature |
+|---|---|---|
+| `1992:375` — Profil — Vue d'ensemble - Vibration désactivée | Profil | Vues principales et états intégrés |
+| `1992:469` — Splash — Kodjo | Splash KODJO | Vues principales et états intégrés |
+| `1992:474` — Profil — Stepper Pause changement de côté | Profil | Vues principales et états intégrés |
+| `1992:579` — Profil — Stepper Récupération après activité | Profil | Vues principales et états intégrés |
+| `1992:684` — Profil — Vue d'ensemble - Vibration activée | Profil | Vues principales et états intégrés |
+| `1992:778` — Profil — Modifier le profil — MVP | Profil | Vues principales et états intégrés |
+| `1992:5101` — Calendrier — Semaine | Calendrier | Vues principales et états intégrés |
+| `1992:5237` — Calendrier — Mois | Calendrier | Vues principales et états intégrés |
+| `1992:5365` — Modal — Supprimer une planification unique — Calendrier | Calendrier | Modales, panneaux et confirmations |
+| `1992:5510` — Calendrier — Jour — MVP | Calendrier | Vues principales et états intégrés |
+| `1992:5602` — Calendrier — Jour — Appui long — MVP | Calendrier | Vues principales et états intégrés |
+| `1992:5697` — Calendrier — Jour — MAJ — MVP | Calendrier | Vues principales et états intégrés |
+| `1992:5794` — Calendrier — Jour — Créneau à planifier — MVP | Calendrier | Vues principales et états intégrés |
+| `1992:5962` — Calendrier — Semaine — Actions glissées | Calendrier | Vues principales et états intégrés |
+| `1992:6102` — Modal — Supprimer des occurrences — Calendrier | Calendrier | Modales, panneaux et confirmations |
+| `1992:6249` — Modal — Choisir une séance — Planification — Liste longue | Planifier une séance ou un exercice | Modales, panneaux et confirmations |
+| `1992:6389` — Calendrier — Semaine — Séance déployée | Calendrier | Vues principales et états intégrés |
+| `1992:6622` — Planifier une séance — Test picker date ouvert | Planifier une séance ou un exercice | Modales, panneaux et confirmations |
+| `1992:6838` — Planifier une séance — Création | Planifier une séance ou un exercice | Vues principales et états intégrés |
+| `1992:7187` — Planifier une séance — Test picker rappel personnalisé ouvert | Planifier une séance ou un exercice | Modales, panneaux et confirmations |
+| `1992:7369` — Planifier une séance — Test rappel personnalisé sélectionné | Planifier une séance ou un exercice | Vues principales et états intégrés |
+| `1992:7537` — Planifier une séance — Stepper Nombre de semaines | Planifier une séance ou un exercice | Vues principales et états intégrés |
+| `1992:7716` — Planifier une séance — Aucune répétition | Planifier une séance ou un exercice | Vues principales et états intégrés |
+| `1992:7861` — Planifier une séance — Chioisir la séance | Planifier une séance ou un exercice | Modales, panneaux et confirmations |
+| `1992:8132` — Exécution d'une séance — Démarrée | Exécution — séance ou exercice | Vues principales et états intégrés |
+| `4968:8188` — Exécution d'un exercice — Démarrée | Exécution — séance ou exercice | Vues principales et états intégrés |
+| `1992:8224` — Modal — Réinitialiser l’activité | Exécution — séance ou exercice | Modales, panneaux et confirmations |
+| `1992:8326` — Modal — Passer à l’activité suivante | Exécution — séance ou exercice | Modales, panneaux et confirmations |
+| `1992:8428` — Modal — Séance en pause | Exécution — séance ou exercice | Modales, panneaux et confirmations |
+| `1992:8530` — Exécution d'une séance — Démarrée — Bips et vocal désactivés | Exécution — séance ou exercice | Vues principales et états intégrés |
+| `1992:8626` — Exécution d'une séance — Initial | Exécution — séance ou exercice | Vues principales et états intégrés |
+| `1992:8718` — Synthèse de séance — Terminée —  Évaluation initiale | Synthèse — séance ou exercice | Vues principales et états intégrés |
+| `1992:8780` — Synthèse de séance — Terminée — Ressenti sélectionné | Synthèse — séance ou exercice | Vues principales et états intégrés |
+| `4968:8055` — Synthèse d'exécution — Exercice Terminé —  Évaluation initiale | Synthèse — séance ou exercice | Vues principales et états intégrés |
+| `4968:8105` — Synthèse d'exécution — Exercice Terminé —  Ressenti sélectionné | Synthèse — séance ou exercice | Vues principales et états intégrés |
+| `4760:6448` — Synthèse de séance — Partielle — Évaluation initiale | Synthèse — séance ou exercice | Vues principales et états intégrés |
+| `4760:6500` — Synthèse de séance — Partielle — Ressenti sélectionné | Synthèse — séance ou exercice | Vues principales et états intégrés |
+| `1992:8843` — Suivi — Séances — Liste condensée | Suivi — Séances | Vues principales et états intégrés |
+| `1992:8996` — Suivi — Séances — Vue déployée | Suivi — Séances | Vues principales et états intégrés |
+| `1992:9910` — Catalogue des séances — Liste par défaut | Catalogue des séances | Vues principales et états intégrés |
+| `1992:10014` — Catalogue des séances — Séance déployée | Catalogue des séances | Vues principales et états intégrés |
+| `1992:10518` — Catalogue des séances — Liste condensée — actions glissées | Catalogue des séances | Vues principales et états intégrés |
+| `1992:10628` — Catalogue des séances — Séance déployée — actions glissées | Catalogue des séances | Vues principales et états intégrés |
+| `1992:10848` — Catalogue des séances — Archivées — Séance restaurée | Catalogue des séances | Vues principales et états intégrés |
+| `1992:10937` — Catalogue des séances — Liste sans Renforcement du genou | Catalogue des séances | Vues principales et états intégrés |
+| `2028:11137` — Composition séance — Initial | Composition d’une séance | Vues principales et états intégrés |
+| `2028:11204` — Composition séance — Étiquettes | Composition d’une séance | Modales, panneaux et confirmations |
+| `2028:11298` — Composition séance — Abandon | Composition d’une séance | Modales, panneaux et confirmations |
+| `2028:11375` — Composition séance — Compte à rebours | Composition d’une séance | Modales, panneaux et confirmations |
+| `2028:11457` — Composition séance — Fin | Composition d’une séance | Modales, panneaux et confirmations |
+| `2028:11700` — Composition séance — Standard | Composition d’une séance | Vues principales et états intégrés |
+| `2028:11808` — Composition séance — Actions glissées | Composition d’une séance | Vues principales et états intégrés |
+| `2028:12003` — Composition séance — Nom saisi | Composition d’une séance | Vues principales et états intégrés |
+| `2059:267` — Calendrier — Jour suivant — Glissement gauche — MVP | Calendrier | Vues principales et états intégrés |
+| `2074:86` — Calendrier — Semaine — Après suppression d’une planification | Calendrier | Vues principales et états intégrés |
+| `2094:86` — Calendrier — Semaine — Étirements — Actions glissées | Calendrier | Vues principales et états intégrés |
+| `2117:86` — Catalogue des séances — État vide | Catalogue des séances | Vues principales et états intégrés |
+| `2117:190` — Suivi — Séances — État vide | Suivi — Séances | Vues principales et états intégrés |
+| `2128:86` — Calendrier — Jour — État vide | Calendrier | Vues principales et états intégrés |
+| `2139:86` — Profil — Vue d'ensemble — Parcours vide | Profil | Vues principales et états intégrés |
+| `2234:88` — Catalogue des séances — Archivées — actions glissées | Catalogue des séances | Vues principales et états intégrés |
+| `2234:189` — Modal — Confirmer la suppression d’une séance archivée | Catalogue des séances | Modales, panneaux et confirmations |
+| `2252:86` — Calendrier — Semaine — Mardi sélectionné | Calendrier | Vues principales et états intégrés |
+| `3518:4576` — Composition séance — Déplacement | Composition d’une séance | Vues principales et états intégrés |
+| `3542:4656` — Création activité — Avant Paramètres d'exécution | Créer ou modifier un exercice | Vues principales et états intégrés |
+| `3943:6064` — Ajouter un exercice — Initial | Créer ou modifier un exercice | Vues principales et états intégrés |
+| `3556:7645` — Ajouter un exercice — Durée de l'exerciceouvert | Créer ou modifier un exercice | Modales, panneaux et confirmations |
+| `3556:7712` — Ajouter un exercice — Pause — sélecteur ouvert | Créer ou modifier un exercice | Modales, panneaux et confirmations |
+| `3556:7801` — Ajouter un exercice — Contrôle déployé — 3 séries (stepper) | Créer ou modifier un exercice | Vues principales et états intégrés |
+| `3561:7673` — Ajouter un exercice — Répétitions | Créer ou modifier un exercice | Vues principales et états intégrés |
+| `3561:7802` — Création activité — À l’échec | Créer ou modifier un exercice | Vues principales et états intégrés |
+| `3580:4957` — Création activité — Durée totale ajustée — message temporaire | Créer ou modifier un exercice | Vues principales et états intégrés |
+| `3722:5061` — Composition séance — Point d’arrêt | Composition d’une séance | Vues principales et états intégrés |
+| `4581:6404` — Composition séance — Étiquette sélectionnée | Composition d’une séance | Vues principales et états intégrés |
+| `5271:5455` — Modification d'une séance | Composition d’une séance | Vues principales et états intégrés |
+| `3786:5093` — Catalogue des Exercices — Liste | Catalogue des exercices | Vues principales et états intégrés |
+| `3789:5349` — Composition séance — Sélection exercices | Composition d’une séance | Modales, panneaux et confirmations |
+| `4168:11149` — Catalogue des séances — Filtrer — Panneau ouvert | Catalogue des séances | Modales, panneaux et confirmations |
+| `4168:11262` — Catalogue des Exercices — Filtrer — Panneau ouvert | Catalogue des exercices | Modales, panneaux et confirmations |
+| `4593:6285` — Modal — Confirmer l’archivage d’une séance planifiée | Catalogue des séances | Modales, panneaux et confirmations |
+| `4217:6980` — Ajouter un exercice — Nom Description Media | Créer ou modifier un exercice | Vues principales et états intégrés |
+| `5088:6398` — Ajouter un exercice — Catégorie renseignée | Créer ou modifier un exercice | Vues principales et états intégrés |
+| `4279:7044` — Ajouter un exercice — Phrase éditée | Créer ou modifier un exercice | Vues principales et états intégrés |
+| `4734:6342` — Modifier un exercice | Créer ou modifier un exercice | Vues principales et états intégrés |
+| `4332:7095` — Ajouter un exercice — Catégories | Créer ou modifier un exercice | Modales, panneaux et confirmations |
+| `4367:7128` — Ajouter un exercice — Mode d’exécution (3 pastilles) | Créer ou modifier un exercice | Vues principales et états intégrés |
+| `4367:7276` — Modèle paramètre — Compte à rebours | Créer ou modifier un exercice | Références de contrôles intégrés |
+| `4367:7906` — Ajouter un exercice — Changement de côté (3 pastilles) | Créer ou modifier un exercice | Vues principales et états intégrés |
+| `4367:8193` — Modèle paramètre — Durée totale — Roulette ouverte | Créer ou modifier un exercice | Modales, panneaux et confirmations |
+| `4474:7157` — Ajouter un exercice — Nouvelle catégorie | Créer ou modifier un exercice | Modales, panneaux et confirmations |
+| `4478:7209` — Ajouter un exercice — Zones corporelles | Créer ou modifier un exercice | Modales, panneaux et confirmations |
+| `4521:6220` — Catalogue des exercices — État vide | Catalogue des exercices | Vues principales et états intégrés |
+| `4544:6344` — Catalogue des Exercices — Liste — Filtre inactif étendu | Catalogue des exercices | Vues principales et états intégrés |
+| `4544:6651` — Catalogue des Exercices — Liste — Filtre actif étendu | Catalogue des exercices | Vues principales et états intégrés |
+| `4549:6382` — Catalogue des séances — Liste — Filtre inactif étendu | Catalogue des séances | Vues principales et états intégrés |
+| `4549:6742` — Catalogue des séances — Filtre actif Archivé | Catalogue des séances | Vues principales et états intégrés |
+| `4592:6217` — Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité | Catalogue des séances | Vues principales et états intégrés |
+| `4640:6308` — Composition séance — Nouvelle étiquette | Composition d’une séance | Modales, panneaux et confirmations |
+| `4683:6336` — Ajouter un exercice — Nouvelle zone corporelle | Créer ou modifier un exercice | Modales, panneaux et confirmations |
+| `4714:6241` — Modal — Abandonner la création de l’activité | Créer ou modifier un exercice | Modales, panneaux et confirmations |
+| `4738:6209` — Catalogue des Exercices — Liste — actions glissées | Catalogue des exercices | Vues principales et états intégrés |
+| `4738:6355` — Catalogue des Exercices — Liste — Première carte déployée — Média | Catalogue des exercices | Vues principales et états intégrés |
+| `4861:6145` — Composition séance — Étiquettes — Appui long — Confirmation suppression | Composition d’une séance | Modales, panneaux et confirmations |
+| `4861:6259` — Ajouter un exercice — Catégorie — Appui long — Confirmation suppression | Créer ou modifier un exercice | Modales, panneaux et confirmations |
+| `4861:6348` — Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression | Créer ou modifier un exercice | Modales, panneaux et confirmations |
+| `4893:6675` — Composition d’une séance — Placement d’un point d’arrêt | Composition d’une séance | Vues principales et états intégrés |
+| `4997:6113` — Exécution d'un exercice — Initial — Bascule basse (média) avec Cercle | Exécution — séance ou exercice | Variantes Information et Média — MVP |
+| `5588:4363` — Exécution d'un exercice — Initial — Bascule haute avec média | Exécution — séance ou exercice | Variantes Information et Média — MVP |
+| `5009:6069` — Exécution d'un exercice — Média plein écran | Exécution — séance ou exercice | Variantes Information et Média — MVP |
+| `5021:5994` — Exécution d'un exercice — Initial - Cercle avec Texte | Exécution — séance ou exercice | Variantes Information et Média — MVP |
+| `5581:4257` — Exécution d'un exercice — Démarré —  Bascule haute avec texte | Exécution — séance ou exercice | Variantes Information et Média — MVP |
+| `5301:5443` — Composition séance — Retirer un point d’arrêt | Composition d’une séance | Bulle contextuelle |
+| `5451:4272` — Modal — Choisir un exercice — Planification — Liste longue | Planifier une séance ou un exercice | Modales, panneaux et confirmations |
+| `1354:182` — Profil — Cible post-MVP | Archives et références hors prototype actif | Vues principales et états intégrés |
+| `1842:2` — Suivi — Séances — Vue déployée | Archives et références hors prototype actif | Vues principales et états intégrés |
+| `3401:86` — Suivi — Vue d’ensemble | Archives et références hors prototype actif | Vues principales et états intégrés |
+| `1992:10129` — Recherche globale — Champ déployé | Archives et références hors prototype actif | Vues principales et états intégrés |
+| `1992:10320` — Recherche globale — Résultats affichés | Archives et références hors prototype actif | Vues principales et états intégrés |
+| `3841:8375` — HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187 | Archives et références hors prototype actif | Vues principales et états intégrés |
+
+### Écarts restant explicitement distingués
+
+- **NON CONFORME (vocabulaire Figma)** : les confirmations `1992:8224` et `1992:8326` emploient encore Activité ; le vocabulaire cible du chapitre est Exercice.
+- **Terminologie tranchée (D-209)** : Circuit désigne le groupe interne ; Tour désigne une répétition ; Parcours reste autonome. Les anciens libellés Figma sont des écarts visuels, pas des décisions à rouvrir.
+- **Périmètre corrigé depuis #247** : D-203 inclut la consultation média représentée au MVP ; ses cinq variantes sont regroupées dans Exécution. Aucun mécanisme d’import n’est ajouté.
+- **Limite de contrôle** : les fichiers image existants ont été réutilisés ; aucun nouvel export global n’a été effectué. Leur correspondance par nœud et leur intégration Markdown ont été contrôlées.

@@ -6,17 +6,17 @@
 >
 > Décision du 21 septembre 2026 — D-187 : dans chaque Catalogue, `Créer` est contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant ; l’écran/arbre intermédiaire est supprimé. Les anciennes frames `3787:5148` et `3841:8375` sont conservées comme évidences historiques, non comme cible fonctionnelle.
 >
-> Mise à jour fonctionnelle et Figma du 24 septembre 2026 — D-188 à D-198 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Activité ; changement de côté non exposé au niveau Tour ; Point d’arrêt ; Compte à rebours et Fin propres à l’Activité ; filtre mémorisé uniquement dans la session courante ; roulettes en modale basse ; parcours de composition exposant la sélection depuis le Catalogue sans suppression de la création locale existante ; média déployable dans le Catalogue des Exercices ; actions `Planifier / Dupliquer / Archiver`, puis `Supprimer` dans les archives ; nouveau layout/typographie d’Exécution.
+> Mise à jour fonctionnelle et Figma du 24 septembre 2026 — D-188 à D-198 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Exercice ; changement de côté non exposé au niveau Tour ; Point d’arrêt ; Compte à rebours et Fin propres à l’Exercice ; filtre mémorisé uniquement dans la session courante ; roulettes en modale basse ; parcours de composition exposant la sélection depuis le Catalogue sans suppression de la création locale existante ; média déployable dans le Catalogue des Exercices ; actions `Planifier / Dupliquer / Archiver`, puis `Supprimer` dans les archives ; nouveau layout/typographie d’Exécution.
 >
-> Mise à jour Figma/documentation du 24 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. Les options de filtre sont contextuelles au Catalogue ; `Trier` reste visible disabled T03. L’éditeur Activité applique D-204 dans le texte éditable : Répétitions affiche `Durée totale >= {estimation}` avec 1 seconde conventionnelle par répétition ; À l’échec n’affiche pas de Durée totale ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’activité` l’état vide/placeholder.
+> Mise à jour Figma/documentation du 24 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. Les options de filtre sont contextuelles au Catalogue ; `Trier` reste visible disabled T03. L’éditeur Exercice applique D-232 : Répétitions affiche `Durée totale ≥ {estimation}` avec 2 secondes par répétition en V1 ; À l’échec n’affiche pas de Durée totale ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’exercice` l’état vide/placeholder.
 >
 > Décision du 24 septembre 2026 — D-199 : les Zones corporelles constituent désormais un référentiel utilisateur administrable. L’utilisateur peut créer, renommer et supprimer des Zones corporelles ; la liste initiale de dix zones devient un jeu de valeurs par défaut et non une liste fermée. La frame Figma `4683:6336` matérialise la création inline d’une nouvelle zone.
 >
-> Décision du 24 septembre 2026 — D-200 : Étiquettes, Catégories et Zones corporelles utilisent une règle commune de suppression. Toutes les valeurs, y compris celles fournies initialement par KODJO, sont supprimables. Un appui long sur une option ouvre une modale `Annuler / Supprimer`; la suppression retire les associations courantes et conserve l’historique.
+> Décision du 24 septembre 2026 — D-200 : Étiquettes, Catégories et Zones corporelles utilisent une règle commune de suppression. Toutes les valeurs, y compris celles fournies initialement par KODJO, sont supprimables. Un appui long sur une option ouvre une modale `Annuler / Supprimer`; la suppression retire la valeur des choix futurs mais conserve les affectations existantes et l’historique.
 >
 > Décision du 24 septembre 2026 — D-201 : `Parcours` devient le terme fonctionnel et UX de référence pour l’entité post-MVP correspondante. La documentation de référence est alignée ; les identifiants techniques existants restent inchangés jusqu’à leur éventuel renommage dans le code, et Figma est à aligner dans l’étape suivante.
 >
-> Décision du 24 septembre 2026 — D-202 : `Exercice` devient le terme fonctionnel et UX de référence en remplacement de `Activité`. La documentation fonctionnelle et Figma doivent utiliser `Exercice` / `Exercices`; les identifiants techniques existants (`ActivityDefinition`, `SessionActivity`, `API-ACT-*`, etc.) restent inchangés tant qu’ils ne sont pas renommés dans le code.
+> Décision du 24 septembre 2026 — D-202 : `Exercice` devient le terme fonctionnel et UX de référence en remplacement de `Exercice`. La documentation fonctionnelle et Figma doivent utiliser `Exercice` / `Exercices`; les identifiants techniques existants (`ActivityDefinition`, `SessionActivity`, `API-ACT-*`, etc.) restent inchangés tant qu’ils ne sont pas renommés dans le code.
 
 ## 1. Objet
 
@@ -88,13 +88,13 @@ La maquette Figma constitue la référence visuelle et interactive. Les document
 - `3786:5093` — Catalogue des exercices — liste ;
 - `3787:5148` — historique/supersédé — ancien Catalogue des exercices — Créer — arbre d’actions ;
 - `1992:9910` — Catalogue des séances — liste par défaut ;
-- `1992:10129` — Recherche globale — Champ déployé ;
+- `1992:10129` et `1992:10320` — Recherche globale — **archivés / hors Prototype MVP actif** (D-221) ;
 - `3841:8375` — historique/supersédé — ancien Catalogue des séances — Créer — arbre d’actions ;
-- `3561:4695`, `3561:7673`, `3561:7802` — éditeur Activité Répétitions/À l’échec et roulette ;
-- `3943:6064` — éditeur Activité — état vide ;
-- `3788:5258` — Composition — Ajouter une activité — arbre ;
-- `3789:5349` et `3789:5405` — sélection multiple d’Exercices existantes ;
-- `3879:5947` / `3879:6079` — création/modification d’une Activité persistante ;
+- `3561:4695`, `3561:7673`, `3561:7802` — éditeur Exercice Répétitions/À l’échec et roulette ;
+- `3943:6064` — éditeur Exercice — état vide ;
+- `3788:5258` — Composition — Ajouter un exercice — arbre ;
+- `3789:5349` et `3789:5405` — sélection multiple d’Exercices existants ;
+- `3879:5947` / `3879:6079` — création/modification d’un Exercice persistante ;
 - `2028:11700` / `2028:11808` — Composition et actions glissées ;
 - `2028:11204` — Composition séance — Étiquettes ;
 - `1992:8626`, `1992:8132`, `1992:8718`, `1992:8780`, `1992:8843`, `1992:8996` — structures visuelles réutilisées pour Exécution directe, Synthèse et Suivi ;
@@ -109,7 +109,7 @@ Le contrôle `Déployer` du Catalogue des exercices réutilise le composant du C
 
 Les contrôles d’entrée `Créer`, `Filtrer` et `Trier` sont vérifiables. Les panneaux ouverts de `Filtrer` sont également conçus dans Figma avec des options contextuelles selon le Catalogue. `Trier` reste visible disabled dans le périmètre T03.
 
-Le registre [`README-T03-FIGMA.md`](./Specifications-fonctionnelles/images/README-T03-FIGMA.md) distingue l’état Figma courant de l’état des copies binaires physiques. Le réexport documentaire complet du 16 septembre 2026 a remplacé les copies binaires des écrans référencés par le chapitre 06 au format `402 × 874 px`, ajouté la preuve canonique du composant `Status / Badge` (`3959:5970`) et consigné les points restés `À CLARIFIER`.
+Le registre [`README-T03-FIGMA.md`](./Specifications-fonctionnelles/images/README-T03-FIGMA.md) distingue l’état Figma courant de l’état des copies binaires physiques. Le réexport documentaire complet du 16 septembre 2026 a remplacé les copies binaires des écrans référencés par le chapitre 06 au format `402 × 874 px`, ajouté la preuve canonique du composant `Status / Badge` (`3959:5970`) et consigné les points alors non résolus ; les arbitrages fonctionnels concernés ont depuis été clôturés, les seules limites restantes relevant d’évidences Figma `NON VÉRIFIABLES` à traiter lors du prochain inventaire.
 
 ## 5. Ordre de lecture recommandé
 
@@ -170,19 +170,19 @@ Obsidian reste l’outil de rédaction de la documentation fonctionnelle. Le dos
 
 Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
 - Durée estimée et borne minimale `≥` en présence d’Exercices en Répétitions ou À l’échec ;
-- affichage de la `Durée totale` dans le texte éditable selon D-204 : inchangé en Durée ; estimation `>=` en Répétitions avec 1 seconde conventionnelle par répétition ; aucune Durée totale en À l’échec ;
-- les noms d’Activité visibles dans les maquettes renseignées sont des données de démonstration ; `Nom de l’activité` représente l’état vide/placeholder ;
-- distinction entre **Pause entre Séries**, **Récupération entre côtés** et **Récupération après activité** ;
+- phrase de synthèse selon D-232 : Durée totale en Durée si plusieurs Séries ou changement de côté ; estimation `≥` en Répétitions avec 2 s/répétition en V1 ; aucune Durée totale en À l’échec ;
+- les noms d’Exercice visibles dans les maquettes renseignées sont des données de démonstration ; `Nom de l’exercice` représente l’état vide/placeholder ;
+- distinction entre **Pause entre Séries**, **Pause au changement de côté** et **Récupération après exercice** ;
 - temps actif et Durée réelle hors Pause utilisateur ;
 - distinction entre Nombre d’Exercices de la Composition, Nombre total d’Exercices à exécuter et Nombre d’Exercices exécutées ;
-- progression hybride des Exercices chronométrées et des Exercices en Répétitions ou À l’échec ;
+- progression hybride des Exercices chronométrés et des Exercices en Répétitions ou À l’échec ;
 - calcul déterministe des occurrences périodiques.
 
 Les chapitres 00 à 13 et les matrices transverses constituent la baseline documentaire préparée pour T03. Le chapitre 13 couvre explicitement les contenus élémentaires E01 à E73 ; E70 reste un invariant de migration non visuel rattaché au chapitre 09 et aux contrats de persistance concernés.
 
 ## 9. Baseline consolidée — Exercices, Récupération et Bilatéralité
 
-La baseline distingue désormais trois concepts : la Pause entre Séries, la **Récupération entre côtés** intrinsèque à une Activité bilatérale et la **Récupération après activité** portée par l’occurrence d’Activité dans une Séance/Parcours. Une `ActivityDefinition` ne porte plus de récupération post-activité. Depuis D-189, aucun changement de côté n’est exposé au niveau Tour ; le support technique historique y reste conservé pour non-régression.
+La baseline distingue désormais trois concepts : la Pause entre Séries, la **Pause au changement de côté** intrinsèque à un Exercice bilatéral et la **Récupération après exercice** portée par l’occurrence d’Exercice dans une Séance/Parcours. Une `ActivityDefinition` ne porte plus de récupération post-exercice. Depuis D-189, aucun changement de côté n’est exposé au niveau Tour ; le support technique historique y reste conservé pour non-régression.
 
 ## 10. MVP T03 — Catalogue des exercices
 
@@ -190,25 +190,25 @@ Le Catalogue multi-type présente `Exercices / Séances / Parcours`. `Séances` 
 
 La navigation basse utilise le libellé permanent `Catalogues`. Les titres contextuels sont `Catalogue des séances`, `Catalogue des exercices` et `Catalogue des parcours`.
 
-L’Exécution directe utilise une préparation fixe de `5 s`, l’origine `ACTIVITY`, une Synthèse à Ressenti obligatoire, le Suivi général identifié comme Activité, les statistiques compatibles sans compter une Séance et le retour au Catalogue dans l’état du parcours courant. Cet état n’est pas conservé après relance complète.
+L’Exécution directe utilise une préparation fixe de `5 s`, l’origine `ACTIVITY`, une Synthèse à Ressenti obligatoire, le Suivi général identifié comme Exercice, les statistiques compatibles sans compter une Séance et le retour au Catalogue dans l’état du parcours courant. Cet état n’est pas conservé après relance complète.
 
 Les cartes du Catalogue des exercices séparent l’ouverture en consultation/modification de l’action Lecture. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé ; il réutilise le composant DSF du Catalogue des séances. Aucune poignée de déplacement n’est présente.
 
 `Créer`, `Filtrer` et `Trier` forment la rangée commune de commandes Catalogue. La référence courante utilise des boutons contextuels visibles de `34 pt`, des pictogrammes de `20 pt`, des gaps de `12 pt` et des cibles ≥ `44 × 44 pt` sans chevauchement. Les options de `Filtrer` sont contextuelles et conçues dans Figma ; `Trier` est visible mais désactivé et le tri par défaut reste la dernière modification décroissante.
 
-La sélection multiple depuis une Composition insère les Exercices selon leur ordre courant de présentation dans la liste filtrée. Chaque insertion est une copie indépendante. Une Activité créée directement dans une Composition ne rejoint pas le Catalogue.
+La sélection multiple depuis une Composition insère les Exercices selon leur ordre courant de présentation dans la liste filtrée. Chaque insertion est une copie indépendante. Un Exercice créée directement dans une Composition ne rejoint pas le Catalogue.
 
 Le cycle de vie d’une `ActivityDefinition` comprend archivage, restauration et suppression définitive depuis les archives. Cette suppression ne cascade ni vers les copies déjà placées dans les Séances ni vers l’historique.
 
 La migration T03 crée les structures de Catalogue et l’origine `ACTIVITY` sans promouvoir les `SessionActivity` historiques.
 
-Les Parcours fonctionnels et les médias multiples restent hors MVP.
+Les Parcours fonctionnels restent hors MVP. La consultation des médias déjà associés à un Exercice pendant l’Exécution est incluse au MVP par D-203 ; l’ajout/import et le stockage des médias restent gouvernés par D-066/D-068.
 
 ## 11. Matrices et rapports de traçabilité
 
 - [Matrice T03 — Catalogue des exercices](./MATRICE-TRACABILITE-T03-CATALOGUE-ACTIVITES.md)
 - [Matrice de couverture Figma ↔ chapitre 06](./MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md)
-- [Matrice exhaustive — Activité, Récupération et Durée totale](./MATRICE-TRACABILITE-RECUPERATION-DUREE-TOTALE.md)
+- [Matrice exhaustive — Exercice, Récupération et Durée totale](./MATRICE-TRACABILITE-RECUPERATION-DUREE-TOTALE.md)
 - [Rapport de conformité — Récupération et Durée totale](./RAPPORT-CONFORMITE-RECUPERATION-DUREE-TOTALE.md)
 - [Matrice exhaustive — Bilatéralité](./MATRICE-TRACABILITE-BILATERALITE.md)
 - [Rapport de conformité — Bilatéralité](./RAPPORT-CONFORMITE-BILATERALITE.md)
@@ -219,19 +219,41 @@ Les Parcours fonctionnels et les médias multiples restent hors MVP.
 
 ### [CONCEPTION-EXECUTION-MEDIA.md](./CONCEPTION-EXECUTION-MEDIA.md)
 
-Conception fonctionnelle et UX de la consultation des médias pendant l’Exécution : bascule Information/Média, galerie ordonnée, vidéo, plein écran, mémoire limitée à la séance et cadre flottant d’Exécution. Les évidences Figma sont `4997:6015`, `4997:6113` et `5009:6069`.
+Conception fonctionnelle et UX de la consultation des médias pendant l’Exécution : bascule Information/Média, galerie ordonnée, vidéo, plein écran, mémoire limitée à la séance et cadre flottant d’Exécution. Les évidences Figma sont `5021:5994`, `5581:4257`, `4997:6113`, `5588:4363` et `5009:6069`.
 
-Le document décrit une **cible post-MVP à planifier** ; il ne requalifie pas à lui seul le périmètre du MVP.
+La consultation média pendant l’Exécution décrite ici est **incluse au MVP** (confirmation du 28/09/2026). L’ajout/import dans l’éditeur n’est pas couvert par cette décision.
 
+> Décision du 28 septembre 2026 — D-203 : les états de consultation média pendant l’Exécution `4997:6113` et `5009:6069` font partie du MVP ; l’ajout/import dans l’éditeur n’est pas inclus.  
 > Décision du 25 septembre 2026 — D-206 : une Séance et un Exercice persistant sont tous deux des contenus autonomes exécutables et planifiables directement. Les Routines utilisent une source générique `SESSION` ou `ACTIVITY`; les Catalogues peuvent afficher conditionnellement la prochaine planification pour les deux types. Les anciennes formulations limitant la planification aux seules Séances sont supersédées.
 
 > Décision du 25 septembre 2026 — D-207 : la notion de contenu planifiable est commune aux **Séances, Exercices persistants et Parcours**. Le MVP planifie `SESSION` et `ACTIVITY`; la planification d’un Parcours reste dans sa version prévue (actuellement V3) et réutilisera la même entité Routine avec la source technique `CIRCUIT`, sans second moteur de planification.
 
-> Décision du 25 septembre 2026 — D-208 : le modèle de récupération est refondu. La Pause compte toujours `C−1` occurrences par côté. `sideRecoverySeconds` appartient à l’Activité et ne s’applique qu’entre les deux côtés d’une Activité bilatérale. `postActivityRecoverySeconds` appartient à chaque occurrence de Séance/Parcours, existe y compris à `0 s`, est exécuté après l’occurrence et n’entre jamais dans la durée intrinsèque de l’Activité. D-138 et D-156 sont supersédées sur ces axes. La valeur initiale de la récupération entre côtés lors de l’activation bilatérale reste **À CLARIFIER**.
+> Décision du 25 septembre 2026 — D-208 : le modèle de récupération est refondu. La Pause compte toujours `C−1` occurrences par côté. `sideRecoverySeconds` appartient à l’Exercice et ne s’applique qu’entre les deux côtés d’un Exercice bilatéral. `postActivityRecoverySeconds` appartient à chaque occurrence de Séance/Parcours, existe y compris à `0 s`, est exécuté après l’occurrence et n’entre jamais dans la durée intrinsèque de l’Exercice. D-138 et D-156 sont supersédées sur ces axes. La valeur initiale de la pause au changement de côté lors de l’activation bilatérale provient du défaut global **Pause au changement de côté** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.
+
+## Consolidation fonctionnelle — 26 septembre 2026
+
+- **Exercice** est le terme UX ; **Circuit** est le groupe ordonné d’Exercices interne à une Séance ; un **Tour** est une répétition du Circuit ; **Parcours** reste l’entité autonome du Catalogue.
+- Un nouvel Exercice valide possède exactement **une Catégorie** et **une ou plusieurs Zones corporelles**. L’Étiquette de Séance reste facultative.
+- Une valeur de référentiel supprimée sort des choix futurs mais reste conservée sur les objets existants. Étiquette/Catégorie conservent nom et dernière couleur. La couleur appartient au référentiel et se répercute sur tous ses objets ; les Zones corporelles n’ont pas de couleur.
+- Les défauts du Profil initialisent les nouveaux objets sans rétroactivité : Pause au changement de côté, Compte à rebours d’exercice et Fin d’exercice pour un nouvel Exercice ; Récupération après exercice pour une nouvelle occurrence de Séance.
+- Une Séance possède un réglage global unique, activé par défaut, pour appliquer ou ignorer ensemble les Compte à rebours d’exercice et Fin d’exercice de tous ses Exercices.
+- Dans le texte éditable, Durée affiche `Durée totale` si plusieurs Séries ou changement de côté (D-232); Répétitions affiche `Durée totale >= {estimation}` ; À l’échec n’affiche pas de Durée totale numérique.
+- Point d’arrêt : `Exercice → Récupération après exercice → Point d’arrêt → suite`; interdit juste après le Compte à rebours initial et juste avant la Fin de séance ; autorisé aux frontières et dans le Circuit ; dans le Circuit il s’exécute à chaque Tour.
+- En face Média compacte, le bouton Lecture central disparaît pendant la lecture vidéo ; le retour à Information met la vidéo en pause ; le plein écran n’interrompt pas l’Exécution.
+
+> Décisions du 26 septembre 2026 — D-209 à D-218 : Circuit = groupe répété interne à une Séance, Tour = une répétition du Circuit, Parcours = entité autonome ; suppression des référentiels sans rupture des affectations existantes ; Catégorie obligatoire unique et Zones corporelles obligatoires multiples pour un nouvel Exercice ; Étiquette de Séance facultative ; couleur portée par Étiquette/Catégorie ; défauts Profil sans rétroactivité ; réglage global de Séance pour appliquer/ignorer Compte à rebours + Fin propres aux Exercices ; ancienne règle D-215 supersédée par D-232 : Durée totale affichée en mode Durée si plusieurs Séries ou changement de côté ; bouton Lecture vidéo compact masqué pendant lecture ; règles de placement/exécution du Point d’arrêt ; Splash Prototype MVP unique et actif.
+
+> Décision du 26 septembre 2026 — D-219 : durées = roulettes en modale basse ; sélections d’objets = modales dédiées ; entiers simples `Nombre de Séries`, `Nombre de répétitions`, `Nombre de Tours` = steppers inline sans roulette. Les dialogues de confirmation restent centrés.
+
+
+> Clôture Figma / DSF du 28 septembre 2026 — D-221 à D-230 : aucune recherche globale ou locale dans le MVP ; quatre destinations `Catalogues / Calendrier / Suivi / Profil` ; sélection simple validée au toucher versus sélection multiple avec `Sélectionner` ; titre `Planifier` contextuel ; fonds/zones de contexte, navigation basse, halos/actions circulaires, steppers/badges, modales/listes, roulettes et états spécialisés alignés sur DSF V2.
+
+
+> Générateur de phrase des paramètres d’exécution : règles actives consolidées par D-232 (classeur v10 / spécification v10.2 + arbitrages du 28/09/2026). La stratégie V2 de la durée standard d’une répétition reste À CLARIFIER et n’affecte pas la V1.
 
 ## Mise à jour visuelle du 30 septembre 2026
 
-[DSF — Cartes, icônes et animations d’appui](DSF-CARTES-ICONES-APPUIS-2026-09-30.md) : références actuelles de Cartes - Icônes et Démonstrations — Animations d’appui, tokens, composants, RG-1 à RG-13, journal des changements, écarts et critères atomiques. Décisions D-209 à D-215. Les 17 points sont clos ; D-195/D-206/D-208 sont révisées sur l’affichage seul par D-214. RG-3 seule reste reportée. Aucun changement de protocole ni de calcul métier n’est inclus.
+[DSF — Cartes, icônes et animations d’appui](DSF-CARTES-ICONES-APPUIS-2026-09-30.md) : références actuelles de Cartes - Icônes et Démonstrations — Animations d’appui, tokens, composants, RG-1 à RG-13, journal des changements, écarts et critères atomiques. Décisions D-233 à D-239. Les 17 points sont clos ; D-195/D-206/D-208 sont révisées sur l’affichage seul par D-238. RG-3 seule reste reportée. Aucun changement de protocole ni de calcul métier n’est inclus.
 
 ## Propagation écran par écran — 30 septembre 2026
 
@@ -240,3 +262,11 @@ La [matrice courante des écrans](MATRICE-ECRANS-CARTES-2026-09-30.md) relie les
 ### Captures remplacées le30 septembre2026
 
 Contrôle exhaustif du 30 septembre 2026 : 113 frames du prototype et les 6 références complémentaires du rapport utilisateur, soit 119 captures Figma. Les 84 écrans du rapport sont couverts (78 dans le prototype). 74 fichiers existants sont actualisés et 45 copies documentaires complètent des écrans déjà présents dans Figma ; aucun écran applicatif ou Figma créé. [Matrice exhaustive](MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md).
+
+### Lecture du chapitre Écrans et navigation
+
+Le chapitre 06 regroupe chaque parcours sous son titre, sans numéros d’écran : vues principales, variantes, modales/confirmations et bulles restent près de leurs règles. L’Exécution rassemble aussi les variantes média et l’exécution directe ; la Composition inclut les points d’arrêt et les sélections d’exercices et d’étiquettes. Les chemins physiques des captures sont conservés. La matrice de couverture associe chaque nœud à sa famille.
+
+### Réconciliation des branches documentaires
+
+Les apports de #247 et #271 sont consolidés dans le [rapport de réconciliation](RAPPORT-RECONCILIATION-DOCUMENTAIRE-247-271.md). D-209 à D-232 conservent les décisions de #247 ; les décisions récentes de cartes et appuis portent désormais D-233 à D-239.

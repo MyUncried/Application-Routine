@@ -2,9 +2,9 @@
 
 Date de conception : 25 septembre 2026  
 Baseline documentaire de départ : `main@5be88b695771566459fdcba61441cfeae7bce284`  
-Décision de conception : **D-203**  
+Décision : **D-203**  
 Statut fonctionnel : **conception validée**  
-Statut roadmap : **version à planifier ; le périmètre MVP actuel n’est pas étendu par ce document**.
+Statut produit : **consultation des médias pendant l’Exécution incluse au MVP**, pour les états représentés par `4997:6113` et `5009:6069`. L’ajout/import dans l’éditeur reste hors périmètre de D-203.
 
 ## 1. Objet
 
@@ -19,9 +19,11 @@ La consultation du média ne suspend pas l’Exécution et ne modifie pas le Pla
 ## 2. Évidences Figma
 
 Figma courant — page `Prototype MVP` (`510:101`) :
-- `4997:6015` — **Test 2 Exécution d’une séance — Initial — Bascule (info)** ;
-- `4997:6113` — **Test 2 Exécution d’une séance — Initial — Bascule (média)** ;
-- `5009:6069` — **Test 2 Exécution d’une séance — Média plein écran**.
+- `4997:6113` — **Exécution d'un exercice — Initial — Bascule basse (média) avec Cercle** ;
+- `5588:4363` — **Exécution d'un exercice — Initial — Bascule haute avec média** ;
+- `5009:6069` — **Exécution d'un exercice — Média plein écran** ;
+- `5021:5994` — **Exécution d'un exercice — Initial - Cercle avec Texte** ;
+- `5581:4257` — **Exécution d'un exercice — Démarré —  Bascule haute avec texte** ;
 
 Ces frames matérialisent les états visuels. Les règles fonctionnelles ci-dessous proviennent des décisions de conception validées ; un détail purement graphique de Figma n’est pas transformé en règle métier.
 
@@ -62,7 +64,7 @@ Cet état est transitoire et ne constitue pas une préférence utilisateur persi
 - Une vidéo ne démarre jamais automatiquement lorsqu’elle apparaît dans la galerie.
 - Elle présente un état fixe / poster avant lecture.
 - La lecture démarre uniquement après une action explicite de l’utilisateur.
-- La vidéo se lit directement dans la face Média.
+- La vidéo se lit directement dans la face Média. Un bouton Lecture central est affiché avant démarrage ; dès que la lecture commence, ce bouton central disparaît afin de ne pas masquer la vidéo.
 - Le son de la vidéo est actif par défaut.
 - L’Exécution continue normalement pendant la lecture : chrono, progression, transitions, Série et Tour ne sont pas suspendus.
 - Lors d’une annonce vocale KODJO, le volume de la vidéo est temporairement abaissé puis restauré après l’annonce.
@@ -143,9 +145,9 @@ Sans imposer une bibliothèque particulière, l’implémentation devra garantir
 
 ## 13. Périmètre produit
 
-La documentation active antérieure classe la gestion fonctionnelle de plusieurs médias comme **post-MVP**. La présente conception ne change pas ce classement : elle définit la cible fonctionnelle et UX de l’évolution, sans décider de sa tranche de livraison.
+La consultation de plusieurs médias déjà associés à un Exercice pendant l’Exécution fait partie du MVP, conformément à D-203. La conception ne définit pas leur ajout/import dans l’éditeur ni les détails de stockage, qui restent gouvernés par D-066/D-068.
 
-Toute entrée dans le MVP ou dans une tranche précise exige une décision de roadmap distincte.
+L’affectation à une tranche de réalisation reste distincte du périmètre MVP confirmé ; aucun nouveau mécanisme d’acquisition n’est implicitement activé.
 
 ## 14. Critères de validation fonctionnelle
 
@@ -162,3 +164,4 @@ La conception est satisfaite lorsque :
 10. le plein écran conserve l’Exécution active et affiche le cadre flottant ;
 11. la fin de l’Exercice ferme le média de l’Exercice terminé ;
 12. un média défaillant n’interrompt ni l’Exécution ni la navigation vers les autres médias.
+

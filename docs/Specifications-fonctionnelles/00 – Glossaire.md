@@ -17,28 +17,27 @@ Une **entité métier** possède une identité propre et peut être représenté
 | Terme | Définition | Exemple |
 | --- | --- | --- |
 | **Utilisateur** | Propriétaire local des données. Dans le MVP, un seul Utilisateur local existe, sans compte distant obligatoire. | Utilisateur de l’appareil |
-| **Séance** | Modèle de contenu exécutable. Elle possède un nom, une couleur et une Composition comprenant un Compte à rebours initial, des Exercices, un Tour unique, un Cycle technique et une Fin de séance. Elle peut être exécutée directement ou planifiée par une Routine. | `Renforcement du genou` |
-| **Activité** | Plus petite unité fonctionnelle définie par l’utilisateur. Elle est exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec. Elle porte une Pause entre Séries et peut porter une **Récupération entre côtés** lorsqu’elle est bilatérale. Une `ActivityDefinition` ne porte jamais de Récupération après activité ; cette dernière appartient uniquement à l’occurrence contextualisée dans une Séance/Parcours. Dans le MVP T03, l’Activité existe soit comme `ActivityDefinition` persistante autonome du Catalogue, soit comme `SessionActivity` propre à une Séance. | 3 Séries de 12 squats |
+| **Séance** | Modèle de contenu exécutable. Elle possède un nom, une couleur et une Composition comprenant un Compte à rebours initial, des Exercices organisés avant, dans ou après un Circuit répété en Tours, et une Fin de séance. Elle peut être exécutée directement ou planifiée par une Routine. | `Renforcement du genou` |
+| **Exercice** | Plus petite unité fonctionnelle définie par l’utilisateur. Elle est exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec. Elle porte une Pause entre Séries et peut porter une **Pause au changement de côté** lorsqu’elle est bilatérale. Une `ActivityDefinition` ne porte jamais de Récupération après exercice ; cette dernière appartient uniquement à l’occurrence contextualisée dans une Séance/Parcours. Dans le MVP T03, l’Exercice existe soit comme `ActivityDefinition` persistante autonome du Catalogue, soit comme `SessionActivity` propre à une Séance. | 3 Séries de 12 squats |
 | **Point d’arrêt** | Élément de Composition qui suspend l’enchaînement jusqu’à une reprise explicite, sans écran dédié. Le temps passé au Point d’arrêt n’entre pas dans la durée de la Séance. | |
-| **Compte à rebours d’Activité** | Phase optionnelle propre à une Activité, distincte du Compte à rebours initial de la Séance. | |
-| **Fin d’activité** | Phase optionnelle propre à une Activité, distincte de la Fin de séance. | |
-| **Plan d’Exécution** | Liste ordonnée calculée au démarrage après développement des Séries, Pauses, phases `SIDE_RECOVERY`/`POST_ACTIVITY_RECOVERY` applicables et répétitions du Tour. | |
-| **Exercice** | **Exercice (anciennement Activité)** : Synonyme fonctionnel de l’Activité exécutée. `Exercice` n’est plus une valeur d’un type opposé à `Récupération`. | 3 Séries de 12 squats |
+| **Compte à rebours d’Exercice** | Phase optionnelle propre à un Exercice, distincte du Compte à rebours initial de la Séance. | |
+| **Fin d’exercice** | Phase optionnelle propre à un Exercice, distincte de la Fin de séance. | |
+| **Plan d’Exécution** | Liste ordonnée calculée au démarrage après développement des Séries, Pauses, phases `SIDE_RECOVERY`/`POST_ACTIVITY_RECOVERY` applicables et répétitions du Circuit en Tours. | |
+| **Exercice** | **Exercice (anciennement Exercice)** : Synonyme fonctionnel de l’Exercice exécuté. `Exercice` n’est plus une valeur d’un type opposé à `Récupération`. | 3 Séries de 12 squats |
 | **Pause entre les Séries** | Durée facultative rattachée aux Séries d’un même côté. Pour `C` Séries, elle est toujours exécutée exactement `C − 1` fois, uniquement entre deux Séries successives. Elle est indépendante des deux récupérations et n’est jamais exécutée après la dernière Série. | 15 s entre deux Séries |
-| **Récupération entre côtés** | Durée intrinsèque facultative d’une Activité bilatérale, portée par `sideRecoverySeconds`. Elle n’a de sens qu’avec `D→G` ou `G→D`, s’exécute une seule fois entre toutes les Séries du premier côté et toutes celles du second, et entre dans la durée intrinsèque de l’Activité. Avec `Aucun`, elle est sans objet. Sa valeur initiale lors de l’activation bilatérale reste **À CLARIFIER**. | 30 s entre côté droit et côté gauche |
-| **Récupération après activité** | Durée contextuelle portée par chaque occurrence d’Activité dans une Séance ou un Parcours via `postActivityRecoverySeconds`. Elle existe toujours, y compris à `0 s`, reste visible dans la Composition, se déplace/duplique/supprime avec l’occurrence et s’exécute après celle-ci. Elle n’existe pas sur `ActivityDefinition` et n’entre pas dans la durée intrinsèque de l’Activité. | Récupération 30 s après Squats |
-| **Phase de récupération** | Phase d’Exécution positive matérialisée soit par `SIDE_RECOVERY`, entre les deux côtés d’une Activité bilatérale, soit par `POST_ACTIVITY_RECOVERY`, après une occurrence de Séance/Parcours. Elles ont des porteurs et positions distincts et ne sont pas comptées comme des Activités. | |
-| **Durée totale de l’Activité** | Durée intrinsèque calculée d’une Activité en mode Durée : `C×A+(C−1)×B` en unilatéral ; `2×[C×A+(C−1)×B]+S` en bilatéral, avec `S=sideRecoverySeconds`. La Récupération après activité est exclue. En Répétitions, l’estimation applique la même séparation ; en À l’échec, la Durée totale n’est pas affichée. | |
-| **Tour** | Conteneur ordonné d’Exercices appartenant à une Séance. Le MVP contient exactement un Tour visible, répété de 1 à 99 fois. | Mobilité → gainage, répété 3 fois |
-| **Cycle** | Structure technique unique qui enveloppe les Exercices placées avant le Tour, le Tour et les Exercices placées après le Tour. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur. | Cycle technique × 1 |
+| **Pause au changement de côté** | Durée intrinsèque facultative d’un Exercice bilatéral, portée par `sideRecoverySeconds`. Elle n’a de sens qu’avec `D→G` ou `G→D`, s’exécute une seule fois entre toutes les Séries du premier côté et toutes celles du second, et entre dans la durée intrinsèque de l’Exercice. Avec `Aucun`, elle est sans objet. Sa valeur initiale lors de l’activation bilatérale provient du défaut global **Pause au changement de côté** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice. | 30 s entre côté droit et côté gauche |
+| **Récupération après exercice** | Durée contextuelle portée par chaque occurrence d’Exercice dans une Séance ou un Parcours via `postActivityRecoverySeconds`. Elle existe toujours, y compris à `0 s`, reste visible dans la Composition, se déplace/duplique/supprime avec l’occurrence et s’exécute après celle-ci. Elle n’existe pas sur `ActivityDefinition` et n’entre pas dans la durée intrinsèque de l’Exercice. | Récupération 30 s après Squats |
+| **Phase de récupération** | Phase d’Exécution positive matérialisée soit par `SIDE_RECOVERY`, entre les deux côtés d’un Exercice bilatéral, soit par `POST_ACTIVITY_RECOVERY`, après une occurrence de Séance/Parcours. Elles ont des porteurs et positions distincts et ne sont pas comptées comme des Exercices. | |
+| **Durée totale de l’Exercice** | Durée intrinsèque calculée d’un Exercice en mode Durée : `C×A+(C−1)×B` en unilatéral ; `2×[C×A+(C−1)×B]+S` en bilatéral, avec `S=sideRecoverySeconds`. La Récupération après exercice est exclue. En Répétitions, l’estimation applique la même séparation ; en À l’échec, la Durée totale n’est pas affichée. | |
+| **Cycle** | Structure technique unique qui enveloppe les Exercices placés avant le Circuit, le Circuit et les Exercices placés après le Circuit. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur. | Cycle technique × 1 |
 | **Routine** | Planification d’un contenu autonome. Dans le MVP, la source est une Séance ou un Exercice persistant ; lorsqu’un Parcours devient planifiable, il utilise la même Routine. Elle est unique ou périodique et possède zéro ou un rappel. | Squats chaque lundi à 8 h |
 | **Occurrence planifiée** | Instance temporelle calculée à partir d’une Routine, pour une Séance ou un Exercice. Une occurrence future peut être exécutée en avance ; une occurrence passée sans Exécution disparaît de l’interface du MVP. | Exercice prévu mardi à 18 h |
-| **Exécution** ou **Exécution de séance** | Réalisation effective d’un contenu. Une Exécution d’origine `SESSION` repose sur un Instantané de séance ; une Exécution directe d’origine `ACTIVITY` repose sur un Instantané autonome d’Activité. | Exécution démarrée à 18 h 03 |
-| **Résultat d’Activité** | Résultat enregistré pour une occurrence d’Activité effectivement atteinte dans le Plan d’Exécution. | Gainage terminé en 30 s |
+| **Exécution** ou **Exécution de séance** | Réalisation effective d’un contenu. Une Exécution d’origine `SESSION` repose sur un Instantané de séance ; une Exécution directe d’origine `ACTIVITY` repose sur un Instantané autonome d’Exercice. | Exécution démarrée à 18 h 03 |
+| **Résultat d’Exercice** | Résultat enregistré pour une occurrence d’Exercice effectivement atteinte dans le Plan d’Exécution. | Gainage terminé en 30 s |
 | **Instantané de séance** | Copie fonctionnelle immuable de la Séance au démarrage d’une Exécution. Il garantit la restitution de l’historique après modification, archivage ou suppression de la Séance source. | Version de `Renforcement du genou` exécutée lundi |
 | **Étiquette** | Classement d’une Séance. L’Étiquette porte la couleur affichée de la Séance. | Hyrox |
-| **Catégorie** | Classement d’une Activité, distinct de ses Zones corporelles. La Catégorie porte la couleur sémantique affichée pour l’Activité. | Renforcement |
-| **Zone corporelle** | Valeur facultative d’un référentiel utilisateur administrable pouvant être associée à une Activité. Le référentiel est initialisé avec des valeurs par défaut et peut être enrichi, renommé ou nettoyé par l’utilisateur. | Genou |
+| **Catégorie** | Classement obligatoire d’un Exercice, distinct de ses Zones corporelles. Un Exercice valide possède exactement une Catégorie. La Catégorie porte la couleur sémantique affichée pour l’Exercice. | Renforcement |
+| **Zone corporelle** | Valeur d’un référentiel utilisateur administrable. Un Exercice valide en possède une ou plusieurs ; la sélection est multiple. Le référentiel est initialisé avec des valeurs par défaut et peut être enrichi, renommé ou nettoyé par l’utilisateur. | Genou |
 | **Préférences** | Réglages globaux de l’application : Sons, Annonces vocales, Vibration, Compte à rebours initial, Fin de séance et Notifications. | Fin de séance : 5 s |
 | **Ressenti** | Évaluation obligatoire sélectionnée sur la Synthèse lorsqu’elle est présentée. | Positif, moyen ou difficile |
 | **Commentaire de Synthèse** | Texte facultatif associé à une Exécution, limité à 200 caractères. | `Douleur légère au genou` |
@@ -47,20 +46,22 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 | Terme | Définition |
 | --- | --- |
-| **Composition** | Structure ordonnée d’une Séance et écran unique permettant de renseigner son nom, sa couleur et ses Exercices. |
-| **Compte à rebours initial** | Phase structurelle précédant la première Activité. Sa valeur initiale est 10 s ; 0 s la rend instantanée. Ce n’est pas une Activité et elle n’est pas déplaçable. |
-| **Fin de séance** | Phase structurelle chronométrée suivant la dernière Activité. Elle correspond au type d’étape `SESSION_END` du Plan d’Exécution d’une Séance. Sa valeur initiale est 5 s ; 0 s la rend instantanée. Son achèvement termine l’Exécution de Séance. Ce n’est pas une Activité et elle n’est pas déplaçable. |
-| **Série** | Exécution d’une Activité selon sa durée cible, ses Répétitions cibles ou jusqu’à l’échec. Pour une Activité bilatérale autonome, le nombre de Séries s’entend par côté. Pour `C` Séries d’un même côté, une Pause éventuelle intervient exactement `C − 1` fois, uniquement entre Séries successives. La Série n’est pas une entité métier autonome. |
+| **Composition** | Structure ordonnée d’une Séance et écran permettant de renseigner son nom, sa couleur, ses Exercices et leur position avant, dans ou après le Circuit. |
+| **Compte à rebours initial** | Phase structurelle précédant la premier Exercice. Sa valeur initiale est 10 s ; 0 s la rend instantanée. Ce n’est pas un Exercice et elle n’est pas déplaçable. |
+| **Fin de séance** | Phase structurelle chronométrée suivant le dernier Exercice. Elle correspond au type d’étape `SESSION_END` du Plan d’Exécution d’une Séance. Sa valeur initiale est 5 s ; 0 s la rend instantanée. Son achèvement termine l’Exécution de Séance. Ce n’est pas un Exercice et elle n’est pas déplaçable. |
+| **Circuit** | Groupe ordonné d’Exercices placé dans la Composition d’une Séance et répété en Tours. Les Exercices peuvent aussi être placés avant le Circuit ou après celui-ci. Le Circuit est une structure interne à la Séance, pas un contenu autonome du Catalogue. | |
+| **Tour** | Une répétition du Circuit. Le nombre de Tours indique combien de fois le groupe ordonné d’Exercices du Circuit est exécuté. Le Tour est une structure interne à la Séance et ne constitue pas une entité métier autonome. | Mobilité → gainage, répété 3 fois |
+| **Série** | Exécution d’un Exercice selon sa durée cible, ses Répétitions cibles ou jusqu’à l’échec. Pour un Exercice bilatéral autonome, le nombre de Séries s’entend par côté. Pour `C` Séries d’un même côté, une Pause éventuelle intervient exactement `C − 1` fois, uniquement entre Séries successives. La Série n’est pas une entité métier autonome. |
 | **Répétition** | Unité quantitative d’un Exercice non chronométré. Le pluriel `Répétitions` désigne également ce mode d’Exercice dans l’interface. |
-| **Activité avant le Tour** | Activité exécutée une seule fois avant la première répétition du Tour. |
-| **Activité dans le Tour** | Activité exécutée à chaque répétition du Tour. |
-| **Activité après le Tour** | Activité exécutée une seule fois après la dernière répétition du Tour et avant la Fin de séance. |
+| **Exercice avant le Circuit** | Exercice exécuté une seule fois avant la première Tour du Circuit. |
+| **Exercice dans le Circuit** | Exercice exécuté à chaque Tour du Circuit. |
+| **Exercice après le Circuit** | Exercice exécuté une seule fois après la dernière Tour du Circuit et avant la Fin de séance. |
 
-### Direction propre et direction héritée
+### Direction propre
 
-- La **direction propre** est persistée sur l’Activité : `UNILATERAL`, `RIGHT_LEFT` ou `LEFT_RIGHT`.
-- La **direction héritée** provient d’un Tour bilatéral. Le Tour porte et affiche seul la direction ; l’Activité conserve un réglage propre `UNILATERAL`, visible mais désactivé, et sa carte comme la synthèse de l’éditeur ne répètent pas la direction héritée.
-- Hors Tour bilatéral, une Activité proprement bilatérale affiche `D→G` ou `G→D` dans le petit indicateur de sa carte ; seul le texte de la Synthèse de l’écran Ajouter/Modifier une Activité développe `à droite, puis à gauche` ou `à gauche, puis à droite`.
+- La **direction propre** est persistée sur l’Exercice : `UNILATERAL`, `RIGHT_LEFT` ou `LEFT_RIGHT`.
+- Le Circuit et ses Tours ne portent aucun changement de côté. Une bilatéralité éventuelle est définie au niveau de l’Exercice.
+- Pour un Exercice bilatéral hors de toute règle de Circuit, un Exercice proprement bilatérale affiche `D→G` ou `G→D` dans le petit indicateur de sa carte ; seul le texte de la Synthèse de l’écran Ajouter/Modifier un Exercice développe `à droite, puis à gauche` ou `à gauche, puis à droite`.
 
 ## 4. Concepts de planification
 
@@ -75,21 +76,21 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 | Terme | Définition |
 | --- | --- |
-| **Suivant** | Commande terminant normalement la Série courante d’un Exercice en Répétitions ou À l’échec ; pour une Activité chronométrée non terminée, elle demande confirmation avant de passer à l’Activité suivante. |
-| **Réinitialiser l’activité** | Commande recommençant uniquement l’Activité ou la Série courante sans revenir à une Activité précédente. |
-| **Réinitialiser la récupération** | Commande affichée pendant une phase de Récupération ; elle recommence uniquement cette phase et ne rejoue pas l’Activité terminée. |
+| **Suivant** | Commande terminant normalement la Série courante d’un Exercice en Répétitions ou À l’échec ; pour un Exercice chronométrée non terminée, elle demande confirmation avant de passer à l’Exercice suivante. |
+| **Réinitialiser l’exercice** | Commande recommençant uniquement l’Exercice ou la Série courante sans revenir à un Exercice précédente. |
+| **Réinitialiser la récupération** | Commande affichée pendant une phase de Récupération ; elle recommence uniquement cette phase et ne rejoue pas l’Exercice terminée. |
 | **Suspendue** | État technique d’une Exécution mise en pause par l’utilisateur ou par une garde de sécurité. |
-| **Terminée** | Statut d’une Exécution ou d’une Activité accomplie conformément au Plan d’Exécution. |
-| **Partielle** | Statut métier court d’une Exécution ou d’une Activité seulement partiellement réalisée. `Partiellement réalisée` peut être utilisé dans une phrase explicative. |
+| **Terminée** | Statut d’une Exécution ou d’un Exercice accomplie conformément au Plan d’Exécution. |
+| **Partielle** | Statut métier court d’une Exécution ou d’un Exercice seulment partiellement réalisée. `Partiellement réalisée` peut être utilisé dans une phrase explicative. |
 | **Interrompue** | Statut d’une Exécution arrêtée avant l’achèvement de son Plan. |
-| **Non exécutée** | État d’une Activité du Plan jamais atteinte avant la fin ou l’interruption de l’Exécution. |
+| **Non exécutée** | État d’un Exercice du Plan jamais atteinte avant la fin ou l’interruption de l’Exécution. |
 | **Synthèse** | Écran présenté à la fin ou lors de l’arrêt d’une Exécution, permettant de choisir un Ressenti et d’ajouter un commentaire. |
 | **Suivi** | Écran affichant l’historique des Exécutions terminées, partielles ou interrompues. |
 | **Nombre d’Exercices de la Composition** | Nombre d’Exercices définies par l’utilisateur, sans développement des Séries ou Tours et sans compter leurs phases de Récupération. |
 | **Nombre total d’Exercices à exécuter** | Nombre d’occurrences d’Exercices du Plan développé. Les Pauses et phases de Récupération, le Compte à rebours initial et la Fin de séance ne sont pas des Exercices et ne sont pas comptés. |
-| **Nombre d’Exercices exécutées** | Nombre de Résultats d’Activité enregistrés. Une Activité Partielle compte ; une Activité jamais atteinte ne compte pas. |
-| **Durée estimée d’exécution** | Somme des durées déterminables du Plan d’Exécution complet : Compte à rebours initial, Exercices, Pauses, phases de Récupération et Fin de séance pour une Exécution de Séance. En présence d’une Activité en Répétitions ou À l’échec, elle devient une borne minimale précédée de `≥`. |
-| **Durée synthétique des Exercices** | Somme des durées déterminables des occurrences d’Exercices, de leurs Séries, Pauses, Récupérations et répétitions du Tour. Elle exclut toujours le Compte à rebours initial et la Fin de séance. Elle est utilisée dans le Catalogue et dans la synthèse du Tour de la Composition. |
+| **Nombre d’Exercices exécutés** | Nombre de Résultats d’Exercice enregistrés. Un Exercice Partielle compte ; un Exercice jamais atteinte ne compte pas. |
+| **Durée estimée d’exécution** | Somme des durées déterminables du Plan d’Exécution complet : Compte à rebours initial, Exercices, Pauses, phases de Récupération et Fin de séance pour une Exécution de Séance. En présence d’un Exercice en Répétitions ou À l’échec, elle devient une borne minimale précédée de `≥`. |
+| **Durée synthétique des Exercices** | Somme des durées déterminables des occurrences d’Exercices, de leurs Séries, Pauses, Récupérations et Tours du Circuit. Elle exclut toujours le Compte à rebours initial et la Fin de séance. Elle est utilisée dans le Catalogue et dans la synthèse du Circuit de la Composition. |
 | **Durée réelle** | Temps actif effectivement exécuté, Compte à rebours initial et Fin de séance inclus lorsqu’ils appartiennent au Plan exécuté, hors Pauses déclenchées manuellement par l’utilisateur. |
 
 ## 6. Interface et navigation
@@ -110,7 +111,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 | Terme | Définition |
 | --- | --- |
-| **Média** | Photo ou vidéo associable à une Activité dans une version ultérieure. L’architecture prépare `0..n` médias ordonnés par Activité ; aucun média n’est fonctionnel dans le MVP T03. |
+| **Média** | Photo ou vidéo associable à un Exercice dans une version ultérieure. L’architecture prépare `0..n` médias ordonnés par Exercice ; aucun média n’est fonctionnel dans le MVP T03. |
 | **Groupe** | Ensemble d’Utilisateurs partageant une Séance dans une version ultérieure. |
 | **Partage** | Mise à disposition d’une Séance ou de données d’Exécution à d’autres Utilisateurs selon des autorisations à définir. |
 | **Tableau de bord** | Présentation statistique prévue après le MVP. Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` sont visibles mais désactivées dans le MVP. |
@@ -129,13 +130,13 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 | Terme | Définition de référence |
 |---|---|
-| **Activité de référence** | Activité persistante autonome du Catalogue des exercices dans le MVP T03. Elle est directement exécutable à partir d’un instantané autonome et sert aussi de source à des copies indépendantes, incluant sa Pause et sa Récupération éventuelles. |
-| **Activité de Séance** | Copie indépendante d’une Activité, intégrée et ordonnée dans une Séance. Elle est persistée avec la Séance mais n’apparaît jamais comme doublon dans le Catalogue des exercices. |
+| **Exercice de référence** | Exercice persistante autonome du Catalogue des exercices dans le MVP T03. Elle est directement exécutable à partir d’un instantané autonome et sert aussi de source à des copies indépendantes, incluant sa Pause et sa Récupération éventuelles. |
+| **Exercice de Séance** | Copie indépendante d’un Exercice, intégrée et ordonnée dans une Séance. Elle est persistée avec la Séance mais n’apparaît jamais comme doublon dans le Catalogue des exercices. |
 | **À l’échec** | Troisième mode d’Exercice du MVP, sans durée ni répétitions cibles. Chaque Série se termine par l’action `Suivant`, comme en mode Répétitions. |
 | **Contrôle pilote** | Parmi `Séries` et `Durée totale`, contrôle dont la dernière valeur confirmée détermine le calcul de l’autre. Il reçoit un contour `color/selection` renforcé. Le choix n’est pas persisté. |
 | **Contrôle calculé** | Contrôle dépendant recalculé depuis le contrôle pilote. Il conserve son apparence standard, reste tactile et peut devenir pilote après validation de sa roulette. |
-| **Média** | Photo ou vidéo associée à une Activité. Dans le MVP, le média associé peut être affiché dans la carte déployée du Catalogue ; la gestion multiple et les mécanismes d’acquisition suivent leur périmètre propre. |
-| **Parcours** | **Parcours (anciennement Circuit)** : contenu persistant post-MVP composé d’au moins deux étapes ordonnées référençant des Séances. Une même Séance peut apparaître plusieurs fois. |
+| **Média** | Photo ou vidéo associée à un Exercice. Dans le MVP, le média associé peut être affiché dans la carte déployée du Catalogue ; la gestion multiple et les mécanismes d’acquisition suivent leur périmètre propre. |
+| **Parcours** | Contenu autonome persistant post-MVP composé d’au moins deux étapes ordonnées référençant des Séances. Une même Séance peut apparaître plusieurs fois. Le Parcours est distinct du Circuit interne à la Composition d’une Séance. |
 | **Étape de Parcours** | Occurrence ordonnée d’une Séance dans un Parcours ; elle ne possède pas de nombre de répétitions. |
 | **Exécution de Parcours** | Exécution globale d’un Parcours, fondée sur un instantané et liée aux Exécutions de Séance de ses étapes. |
 
@@ -145,19 +146,19 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 | Terme | Définition canonique |
 |---|---|
-| **Changement de côté** | Paramètre d’une Activité parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, affiché à l’utilisateur comme `Aucun`, `D→G` ou `G→D`. Dans la version actuelle, aucun réglage de côté n’est exposé au niveau du Tour ; un éventuel champ technique historique du Tour reste fixé à `UNILATERAL`. |
-| **Direction effective** | Réglage réellement utilisé par le Plan d’Exécution. Dans la version actuelle, il provient de l’Activité ; le Tour n’expose aucun changement de côté. |
-| **Côté courant** | `RIGHT` ou `LEFT` pour le passage en cours. L’interface l’affiche sous le nom de l’Activité par `Côté droit` ou `Côté gauche`. Aucun compteur `1/2` ou `2/2` n’est affiché. |
-| **Activité bilatérale autonome** | Activité exécutant toutes ses Séries du premier côté, puis toutes ses Séries du second côté. Aucune Pause n’est ajoutée spécifiquement entre les côtés ; la Récupération intervient une fois après le second côté. |
-| **Tour bilatéral** | Capacité technique historique non exposée dans la version actuelle ; le Tour reste fonctionnellement `UNILATERAL`. |
+| **Changement de côté** | Paramètre d’un Exercice parmi `UNILATERAL`, `RIGHT_LEFT` et `LEFT_RIGHT`, affiché à l’utilisateur comme `Aucun`, `D→G` ou `G→D`. Dans la version actuelle, aucun réglage de côté n’est exposé au niveau du Circuit ; un éventuel champ technique historique correspondant reste fixé à `UNILATERAL`. |
+| **Direction effective** | Réglage réellement utilisé par le Plan d’Exécution. Dans la version actuelle, il provient de l’Exercice ; le Tour n’expose aucun changement de côté. |
+| **Côté courant** | `RIGHT` ou `LEFT` pour le passage en cours. L’interface l’affiche sous le nom de l’Exercice par `Côté droit` ou `Côté gauche`. Aucun compteur `1/2` ou `2/2` n’est affiché. |
+| **Exercice bilatérale autonome** | Exercice exécutant toutes ses Séries du premier côté, puis toutes ses Séries du second côté. Aucune Pause n’est ajoutée spécifiquement entre les côtés ; la Récupération intervient une fois après le second côté. |
+| **Bilatéralité du Circuit** | Le Circuit et ses Tours n’ont pas de direction ni de réglage de côté. Le changement de côté est porté uniquement par l’Exercice. |
 
 ## 11. Concepts d’exécution directe — MVP T03
 
 | Terme | Définition |
 |---|---|
 | **Origine d’Exécution** | Nature du contenu ayant produit l’Exécution : `SESSION` ou `ACTIVITY`. |
-| **Exécution directe d’Activité** | Exécution d’une Activité persistante depuis le Catalogue des exercices, sans création de Séance artificielle. |
-| **Préparation directe** | Phase système fixe de `5 s` précédant une Exécution d’origine `ACTIVITY` ; elle n’appartient pas à la définition de l’Activité. |
+| **Exécution directe d’Exercice** | Exécution d’un Exercice persistante depuis le Catalogue des exercices, sans création de Séance artificielle. |
+| **Préparation directe** | Phase système fixe de `5 s` précédant une Exécution d’origine `ACTIVITY` ; elle n’appartient pas à la définition de l’Exercice. |
 
 ## 9. Complément D-203 — Exécution média
 
@@ -168,17 +169,17 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Cadre flottant d’Exécution** | Cadre superposé au média en plein écran, alimenté par l’état courant du moteur et présentant le contexte et les commandes essentielles d’Exécution. |
 | **État média de séance** | État transitoire, limité à la séance d’Exécution courante, comprenant notamment la face et le média courant ; il n’est pas une préférence persistante. |
 
-Ces termes décrivent la conception post-MVP définie dans `../CONCEPTION-EXECUTION-MEDIA.md`.
+Ces termes décrivent la consultation média incluse au MVP définie dans `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 ## Cartes et iconographie — complément du 30 septembre 2026
 
-Décisions finales du propriétaire : les 17 points sont clos ; aucune question ouverte. RG-1 à RG-13 s’appliquent avec RG-3 seule reportée (Séance sans vignette). RG-4 retire Déployer de l’exercice avec photo. Les cartes du Catalogue, des choix et de Composition n’affichent plus pauses/récupérations ; les Catalogues n’affichent plus la prochaine planification. Les données, calculs et fonctions de planification restent inchangés. D-195, D-206 et D-208 sont révisées uniquement sur ces règles d’affichage (D-214).
+Décisions finales du propriétaire : les 17 points sont clos ; aucune question ouverte. RG-1 à RG-13 s’appliquent avec RG-3 seule reportée (Séance sans vignette). RG-4 retire Déployer de l’exercice avec photo. Les cartes du Catalogue, des choix et de Composition n’affichent plus pauses/récupérations ; les Catalogues n’affichent plus la prochaine planification. Les données, calculs et fonctions de planification restent inchangés. D-195, D-206 et D-208 sont révisées uniquement sur ces règles d’affichage (D-238).
 
 Synthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 », Suivi « 18 h 42 ». Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.
 
 RG-10 : le Profil porte une préférence silhouette facultative, homme/femme ; absence = homme affiché. Elle ne pilote que l’icône de zone corporelle, sans filtre, recherche ou effet métier. RG-11 à RG-13 : vignette 64 centrée et recadrée sans déformation (couverture pour une vidéo), place réservée pendant chargement/erreur, texte alternatif égal au nom de l’exercice.
 
-D-215 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 298 × 48, x=80, hauteur d’instance adaptée à l’événement), avec barre colorée 4, nature 26, titre 13 gras, heure/durée 11, lecture 26 et aucun Déployer. Les deux sets comportent 10 variantes chacun. Suivi — Vue d’ensemble est hors MVP. Les boutons Calendrier Aujourd’hui/Planifier restent à 32, sans cible 44 ajoutée : situation acceptée, à revoir et développer après T04. Les nouvelles icônes sont nommées icon/<nom>, les anciennes ne sont pas renommées ; target est réservé au Programme, pulse aux rapports/Suivi.
+D-239 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 298 × 48, x=80, hauteur d’instance adaptée à l’événement), avec barre colorée 4, nature 26, titre 13 gras, heure/durée 11, lecture 26 et aucun Déployer. Les deux sets comportent 10 variantes chacun. Suivi — Vue d’ensemble est hors MVP. Les boutons Calendrier Aujourd’hui/Planifier restent à 32, sans cible 44 ajoutée : situation acceptée, à revoir et développer après T04. Les nouvelles icônes sont nommées icon/<nom>, les anciennes ne sont pas renommées ; target est réservé au Programme, pulse aux rapports/Suivi.
 
 Silhouette : préférence de présentation de l’icône de zone corporelle. Carte : représentation d’un objet existant, pas une entité. Classement : catégories/étiquettes/zones, en pastille ; valeurs : nombres/heures/durées, icônes nues.
 

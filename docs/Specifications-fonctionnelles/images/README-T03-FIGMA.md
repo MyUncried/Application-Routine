@@ -25,7 +25,7 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 
 | N° | Titre | Node Figma | Fichier | Dimensions | Type | Statut |
 | --- | --- | ---: | --- | --- | --- | --- |
-| Écran 0 | Splash KODJO | `1992:469` | `ecran-0-splash-kodjo.png` | `402 × 874` | écran | COURANT |
+| Écran 0 | Splash KODJO | `1992:469` | `ecran-0-splash-kodjo.png` | `402 × 874` | écran | COURANT — réexporté le 28/09/2026 |
 | Écran 1 | Profil — Vue d’ensemble (Vibration désactivée) | `1992:375` | `ecran-1-profil.png` | `402 × 874` | écran | COURANT |
 | Écran 1a | Profil — Modifier le profil | `1992:778` | `ecran-1a-modifier-profil.png` | `402 × 874` | écran | COURANT |
 | Écran 1b | Vibration activée | `1992:684` | `ecran-1b-profil-vibration-activee.png` | `402 × 874` | écran | COURANT |
@@ -49,7 +49,7 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 | Écran 3d | Palette de couleurs ouverte | `2028:11921` | `ecran-3d-composition-couleur-ouverte.png` | `402 × 874` | écran | COURANT |
 | Écran 3e | Compte à rebours ouvert | `2028:11375` | `ecran-3e-composition-compte-rebours-ouvert.png` | `402 × 874` | écran | COURANT |
 | Écran 3f | Fin de séance ouverte | `2028:11457` | `ecran-3f-composition-fin-seance-ouverte.png` | `402 × 874` | écran | COURANT |
-| Écran 3g | Nombre de Tours | `2028:11580` | `ecran-3g-composition-nombre-tours.png` | `402 × 874` | écran | COURANT |
+| Écran 3g | Nombre de Tours | `2028:11580` | `ecran-3g-composition-nombre-tours.png` | `402 × 874` | écran | HISTORIQUE — non affiché comme référence active |
 | Écran 3h | Appui long — carte soulevée | `3518:4576` | `ecran-3h-composition-appui-long.png` | `402 × 874` | écran | COURANT |
 | Écran 4 | Activité — Durée / Pause / Séries | `3542:4656` | `ecran-4-creation-activite-duree.png` | `402 × 874` | écran | COURANT |
 | Écran 4a | Mode Répétitions | `3561:4695` | `ecran-4a-creation-activite-repetitions.png` | `402 × 874` | écran | COURANT |
@@ -81,7 +81,7 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 | Écran 7m | Calendrier vide | `2128:86` | `ecran-7m-calendrier-vide.png` | `402 × 874` | écran | COURANT |
 | Écran 8 | Planifier une séance — Création | `1992:6838` | `ecran-8-planifier-seance.png` | `402 × 874` | écran | COURANT |
 | Écran 8a | Date ouverte | `1992:6622` | `ecran-8a-planifier-date-ouverte.png` | `402 × 874` | écran | COURANT |
-| Écran 8b | Heure ouverte | `1992:7006` | `ecran-8b-planifier-heure-ouverte.png` | `402 × 874` | écran | COURANT |
+| Écran 8b | Heure ouverte | `1992:7006` | `ecran-8b-planifier-heure-ouverte.png` | `402 × 874` | écran | HISTORIQUE — non affiché comme référence active |
 | Écran 8c | Rappel personnalisé ouvert | `1992:7187` | `ecran-8c-planifier-rappel-ouvert.png` | `402 × 874` | écran | COURANT |
 | Écran 8d | Rappel personnalisé sélectionné | `1992:7369` | `ecran-8d-planifier-rappel-selectionne.png` | `402 × 874` | écran | COURANT |
 | Écran 8e | Nombre de semaines ouvert | `1992:7537` | `ecran-8e-planifier-semaines-ouvert.png` | `402 × 874` | écran | COURANT |
@@ -101,10 +101,10 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 | Écran 14 | Composition — Sélectionner plusieurs Exercices existantes | `3789:5349` | `ecran-14-selection-activites-existantes.png` | `402 × 874` | écran | COURANT |
 | Écran 15 | Créer une Activité persistante | `3879:5947` | `ecran-15-creation-activite-persistante.png` | `402 × 874` | écran | COURANT |
 | Écran 15a | Modifier une Activité persistante | `3879:6079` | `ecran-15a-modification-activite-persistante.png` | `402 × 874` | écran | COURANT |
-| Écran 16 | Exécution directe — Préparation fixe de 5 s | `3835:5385` | `ecran-16-preparation-directe-5-s.png` | `402 × 874` | écran | COURANT |
-| Écran 17 | Exécution directe — En cours | `3835:5465` | `ecran-17-execution-directe-en-cours.png` | `402 × 874` | écran | COURANT |
-| Écran 18 | Synthèse d’une Activité directe — Ressenti requis | `3836:5437` | `ecran-18-synthese-directe-ressenti-requis.png` | `402 × 874` | écran | COURANT |
-| Écran 18a | Synthèse d’une Activité directe — Ressenti sélectionné | `3836:5503` | `ecran-18a-synthese-directe-ressenti-selectionne.png` | `402 × 874` | écran | COURANT |
+| Écran 16 | Exécution directe — Préparation fixe de 5 s | `3835:5385` | `ecran-16-preparation-directe-5-s.png` | `402 × 874` | écran | HISTORIQUE — non affiché comme référence active |
+| Écran 17 | Exécution directe — En cours | `3835:5465` | `ecran-17-execution-directe-en-cours.png` | `402 × 874` | écran | HISTORIQUE — non affiché comme référence active |
+| Écran 18 | Synthèse d’une Activité directe — Ressenti requis | `3836:5437` | `ecran-18-synthese-directe-ressenti-requis.png` | `402 × 874` | écran | HISTORIQUE — non affiché comme référence active |
+| Écran 18a | Synthèse d’une Activité directe — Ressenti sélectionné | `3836:5503` | `ecran-18a-synthese-directe-ressenti-selectionne.png` | `402 × 874` | écran | HISTORIQUE — non affiché comme référence active |
 | Modale 1 | Abandonner la création de la séance | `2028:11298` | `modale-1-abandon-creation-seance.png` | `402 × 874` | écran | COURANT |
 | Modale 2 | Abandonner la création d’une Activité | `4714:6241` | `modale-2-abandon-modifications-activite.png` | `402 × 874` | écran | COURANT |
 | Modale 3 | Séance archivée — Action Supprimer révélée | `2234:88` | `modale-3-seance-archivee-action-supprimer.png` | `402 × 874` | écran | COURANT |
@@ -182,7 +182,7 @@ La présence de la rangée `Créer / Filtrer / Trier` et l’état `disabled` de
 
 `Renforcement du genou` est une **valeur de démonstration Figma**, jamais un libellé statique. Seul l’état vide `3943:6064` conserve `Nom de l’activité` comme état vide/placeholder. Les frames `3879:5947` et `3879:6079` utilisent respectivement `Étirement du quadriceps` et `Squat assisté` comme valeurs de démonstration.
 
-Selon D-204, le texte éditable distingue désormais les modes : en Répétitions, il affiche `Durée totale >= {estimation}` avec 1 seconde conventionnelle par répétition ; en À l’échec, il n’affiche pas de Durée totale. Les frames `3561:4695` et `3561:7802` matérialisent ces deux états.
+Selon D-204, le texte éditable distingue désormais les modes : en Répétitions, il affiche `Durée totale >= {estimation}` avec 2 secondes conventionnelles par répétition ; en À l’échec, il n’affiche pas de Durée totale. Les frames `3561:4695` et `3561:7802` matérialisent ces deux états.
 
 ## 9. Historique des exports
 
@@ -213,3 +213,6 @@ Figma reste la source du rendu visuel courant. Une vérification Figma ne vaut p
 ## Réserve D-208 — récupération
 
 À compter du 25/09/2026, les captures montrant l’ancien modèle de récupération générique attachée à l’Activité ne font plus foi sur cet axe. D-208 impose une récupération entre côtés conditionnelle dans l’éditeur et une ligne `Récupération {durée}` systématique sous chaque occurrence de Composition, y compris `0 s`. Les captures concernées doivent être réexportées après alignement du Figma ; jusqu’alors leur statut visuel est **PARTIELLEMENT CONFORME** sur le seul axe récupération.
+
+
+Les titres de famille remplacent désormais la numérotation dans le chapitre 06. Les numéros présents dans cet inventaire de fichiers sont des identifiants historiques de capture ; ils ne définissent pas de nouveaux écrans. Les PNG restent à leurs chemins d’origine.
