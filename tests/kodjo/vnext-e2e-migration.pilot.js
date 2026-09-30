@@ -241,9 +241,43 @@ function approve(artifacts, reviewReport, state) {
   return { approvalTarget, approvalRecord, executionRequest };
 }
 
-function explicitResolutionSet(previousReport, nextArtifacts, nextReport) {
+function auditManifestFor(artifacts) {
+  return AuditStability.buildAuditManifest({
+    candidateHead: artifacts.planningEnvelope.application_head,
+    sources: [{
+      source_ref: 'fixture:source-manifest',
+      source_hash: artifacts.planningEnvelope.source_manifest.contract_hash,
+    }],
+    criteria: [{
+      source_ref: 'fixture:source-manifest',
+      clause: 'fixture-review-contract',
+      statement: 'Tout finding bloquant doit démontrer la violation d’une exigence figée de la fixture E2E.',
+      applicability: 'REQUIRED',
+    }],
+  });
+}
+
+function findingAssessmentFor(artifacts, report, auditManifest = auditManifestFor(artifacts)) {
+  const criterionId = auditManifest.criteria[0].audit_criterion_id;
+  return AuditStability.buildFindingAssessment({
+    auditManifest,
+    reviewContext: artifacts.reviewContext,
+    reviewReport: report,
+    assessments: report.findings.map((finding) => ({
+      finding_id: finding.finding_id,
+      classification: finding.blocking ? 'DEFECT' : 'SUGGESTION',
+      normative_criterion_ids: finding.blocking ? [criterionId] : [],
+      rationale: finding.blocking
+        ? 'Le finding est rattaché au critère E2E figé.'
+        : 'Recommandation non bloquante.',
+    })),
+  });
+}
+
+function explicitResolutionSet(previousReport, nextArtifacts, nextReport, auditManifest = auditManifestFor(nextArtifacts)) {
   const nextIds = new Set(nextReport.findings.map((row) => row.finding_id));
   return AuditStability.buildFindingResolutionSet({
+    auditManifest,
     previousReviewReport: previousReport,
     nextReviewContext: nextArtifacts.reviewContext,
     nextReviewReport: nextReport,
@@ -507,6 +541,8 @@ test('VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY apr�
   const allowed = Revision.buildAllowedChangeSet({
     reviewContext: base.reviewContext,
     reviewReport: baseReview,
+    auditManifest: auditManifestFor(base),
+    findingAssessment: findingAssessmentFor(base, baseReview),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
@@ -538,12 +574,14 @@ test('VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY apr�
     semanticReview: { findings: [] },
   });
 
-  const findingResolutionSet = explicitResolutionSet(baseReview, next, nextReview);
+  const auditManifest = auditManifestFor(base);
+  const findingResolutionSet = explicitResolutionSet(baseReview, next, nextReview, auditManifest);
   const outcome = Revision.verifyRevisionOutcome({
     allowedChangeSet: allowed,
     revisionPatch: patch,
     baseArtifacts: base,
     nextArtifacts: next,
+    auditManifest,
     previousReviewReport: baseReview,
     nextReviewContext: next.reviewContext,
     nextReviewReport: nextReview,
