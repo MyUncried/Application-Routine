@@ -1,0 +1,114 @@
+{
+  "findings": [
+    {
+      "category": "SCOPE",
+      "target_kind": "PATH",
+      "target": "src/features/sessions/ExerciseScreen.tsx",
+      "blocking": true,
+      "diagnostic": "KODJO_PLAN_IMPACT_JSON classifies src/features/sessions/ExerciseScreen.tsx as CONSUMER_UNAFFECTED (\"aucune dépendance directe incompatible n'est démontrée\") and excludes it from scope_allow. The code at HEAD refutes this: ExerciseScreen.tsx is the ONLY producer of the ActivityDefinition creation/update payload. It imports ActivityEditorFormValue, createEmptyActivityDefinitionDraft and activityDefinitionToInput (lines 7-15), builds the form value with recoverySeconds (line 80) and input.recoverySeconds (line 130), and builds definitionInput with recoverySeconds (line 181) and NO categoryId before calling activityDefinitionService.createActivityDefinition / updateActivityDefinition (lines 190-192). The plan deletes ActivityDefinition.recoverySeconds and removes recoverySeconds from ActivityEditorForm (criterion UI-6FC9FA01250C), and requires the service payload to carry a mandatory categoryId plus sideRecoverySeconds (assertion UI-40094921B202-A668499E759A7).",
+      "expected_correction": "Add src/features/sessions/ExerciseScreen.tsx to modified_modules/scope_allow/write_scope with change=MODIFY, bind it to a requirement covering the removal of recoverySeconds from the editor value and the supply of the mandatory categoryId, the 1..N bodyZoneIds and sideRecoverySeconds in definitionInput, and add src/features/sessions/__tests__/ExerciseScreen.test.tsx to required_test_writes (it is currently classified TEST_UNAFFECTED). If the mandatory-Catégorie producer path is deliberately deferred to a later UI slice, emit an explicit KODJO_PLAN_CLARIFICATIONS_JSON entry instead of an unsupported CONSUMER_UNAFFECTED classification.",
+      "dependency_expansion_required": true,
+      "dependency_evidence": "src/features/sessions/ExerciseScreen.tsx:80 `recoverySeconds: draft.recoverySeconds,`; :130 `recoverySeconds: input.recoverySeconds,`; :181 `recoverySeconds: value.recoverySeconds,` inside `const definitionInput = {...}` passed to `activityDefinitionService.createActivityDefinition(definitionInput)` (:192). No `categoryId` appears anywhere in ExerciseScreen.tsx or ActivityEditorForm.tsx (grep for 'categor' in ActivityEditorForm.tsx returns no match). src/domain/activities/ActivityDefinition.ts:67 declares `readonly recoverySeconds: number;` in CreateActivityDefinitionInput."
+    },
+    {
+      "category": "SCOPE",
+      "target_kind": "PATH",
+      "target": "src/features/sessions/CompositionScreen.tsx",
+      "blocking": true,
+      "diagnostic": "KODJO_PLAN_IMPACT_JSON classifies src/features/sessions/CompositionScreen.tsx as CONSUMER_UNAFFECTED (\"aucune interaction ou contrat d'écran de composition n'est modifié\"), but three plan decisions are directly incompatible with its code at HEAD: (a) it reads activity.recoverySeconds on a composition occurrence (:1603) while plan §3.2/§7 replaces the occurrence field by postActivityRecoverySeconds; (b) it writes the autonomous Séance colour via ColorPalette onChange -> updateDraft({ color }) (:510-515) while plan §3.3/§7 removes the autonomous Session colour from the target contract and persistence (spec §11 makes the displayed colour derived from the Étiquette); (c) it renders the Tour direction control with strings.shared.sideMode.tour.accessibilityLabels[sideMode] (:2043) while qualification-spec §8 requires the historical Tour side support to remain 'non exposé' if retained. The plan therefore cannot satisfy its own exit criterion 'le Tour ne possède plus de bilatéralité fonctionnelle active' and 'non exposé' while leaving this screen unclassified as changed.",
+      "expected_correction": "Either add src/features/sessions/CompositionScreen.tsx (and its direct collaborators ColorPalette.tsx / SideModeControl.tsx, currently CONSUMER_UNAFFECTED) to scope_allow with requirements covering the occurrence recovery field rename, the removal of the autonomous Séance colour write and the de-exposure of the Tour direction control, adding src/features/sessions/__tests__/CompositionScreen.test.tsx and ColorPalette.test.tsx to required_test_writes; or file an explicit clarification stating which of these three normative points is deferred and on what authority, instead of asserting CONSUMER_UNAFFECTED.",
+      "dependency_expansion_required": true,
+      "dependency_evidence": "src/features/sessions/CompositionScreen.tsx:1603 `const recoveryLabel = formatActivityRecoveryLabel(activity.recoverySeconds);`; :511 `value={draft.color}` with :513 `updateDraft({ color });` inside `<ColorPalette ... />`; :2043 `accessibilityLabel={strings.shared.sideMode.tour.accessibilityLabels[sideMode]}`. src/domain/sessions/Session.ts:327 `readonly color: SessionColor;` is in write_scope as MODIFY."
+    },
+    {
+      "category": "SCOPE",
+      "target_kind": "PATH",
+      "target": "src/features/activities/ActivityCard.tsx",
+      "blocking": true,
+      "diagnostic": "KODJO_PLAN_IMPACT_JSON classifies src/features/activities/ActivityCard.tsx as CONSUMER_UNAFFECTED with the justification 'L'import direct de l'index Domaine ne prouve pas que ce composant de présentation doit changer'. The code refutes this independently of the import-only rule: ActivityCard reads the field the plan deletes, on the exact type the plan changes. It also calls formatExerciseBodyZones(definition.bodyZoneIds), whose zone-resolution contract the plan changes under criterion UI-CDBCCFD16078. Both make the file non-compiling or semantically stale after PRE-1.",
+      "expected_correction": "Add src/features/activities/ActivityCard.tsx to modified_modules/scope_allow/write_scope with change=MODIFY, bind it to the requirement that removes ActivityDefinition.recoverySeconds and to the compositionPresentation zone-resolution requirement, and move src/features/activities/__tests__/ActivityCard.test.tsx out of TEST_UNAFFECTED into required_test_writes.",
+      "dependency_expansion_required": true,
+      "dependency_evidence": "src/features/activities/ActivityCard.tsx:4 `import type { ActivityDefinition } from \"@/domain/activities\";`; :16 `definition: ActivityDefinition;`; :36 `const bodyZones = formatExerciseBodyZones(definition.bodyZoneIds);`; :38 `const recoveryLabel = formatActivityRecoveryLabel(definition.recoverySeconds);`. src/domain/activities/ActivityDefinition.ts:52 `readonly recoverySeconds: number;` is the field the plan removes."
+    },
+    {
+      "category": "SCOPE",
+      "target_kind": "PATH",
+      "target": "src/features/activities/ActivitySelectionScreen.tsx",
+      "blocking": true,
+      "diagnostic": "Same refuted classification as ActivityCard.tsx: KODJO_PLAN_IMPACT_JSON marks src/features/activities/ActivitySelectionScreen.tsx CONSUMER_UNAFFECTED ('aucun contrat d'écran de sélection n'est anticipé et l'import direct ne suffit pas'), but the file dereferences ActivityDefinition.recoverySeconds, the field the plan deletes from the target contract, and consumes formatExerciseBodyZones whose contract the plan changes.",
+      "expected_correction": "Add src/features/activities/ActivitySelectionScreen.tsx to modified_modules/scope_allow/write_scope with change=MODIFY, bind it to the recoverySeconds removal requirement and to the compositionPresentation zone-resolution requirement, and move src/features/activities/__tests__/ActivitySelectionScreen.test.tsx out of TEST_UNAFFECTED into required_test_writes.",
+      "dependency_expansion_required": true,
+      "dependency_evidence": "src/features/activities/ActivitySelectionScreen.tsx:213 `definition: ActivityDefinition;`; :217 `const bodyZones = formatExerciseBodyZones(definition.bodyZoneIds);`; :219 `const recoveryLabel = formatActivityRecoveryLabel(definition.recoverySeconds);`."
+    },
+    {
+      "category": "UI_CRITERION",
+      "target_kind": "CRITERION_ID",
+      "target": "UI-73382D60E040",
+      "blocking": true,
+      "diagnostic": "Criterion UI-73382D60E040 carries a single assertion (UI-73382D60E040-A4FF02C1B8271) whose expected value is 'La traduction française de UNILATERAL est exactement « Aucun »', with locator 'clé UNILATERAL'. That locator is not atomic: src/shared/i18n/resources/fr.ts declares FOUR distinct UNILATERAL-keyed entries with deliberately DIFFERENT values — shared.sideMode.valueLabels.UNILATERAL = \"\" (:32), shared.sideMode.activity.accessibilityLabels.UNILATERAL = \"Côté : unilatéral\" (:41), shared.sideMode.tour.accessibilityLabels.UNILATERAL = \"Direction du Tour : unilatéral\" (:57) and shared.sideMode.tour.valueLabels.UNILATERAL = \"–\" (:69). The assertion does not say which key changes, and taken literally it contradicts a validated frozen decision (V2-BILAT-01, documented in the file header comment :19-28 and :62-68) and the existing assertions in src/shared/i18n/index.test.ts (:370 expects \"\", :379-383 expects the tour set including \"–\", :384-386 expects the two to differ). It also has undeclared blast radius: src/features/sessions/SideModeControl.tsx:91-92 renders whichever of the two valueLabels sets applies, and that file is classified CONSUMER_UNAFFECTED while src/features/sessions/__tests__/CompositionScreen.test.tsx:2972-2973 and ExerciseScreen.test.tsx:2024-2027 are classified TEST_UNAFFECTED.",
+      "expected_correction": "Split UI-73382D60E040 into atomic assertions naming the exact key path(s) to change (e.g. shared.sideMode.valueLabels.UNILATERAL) and the key paths that must remain UNCHANGED, add the corresponding PRESERVE locators (kind=PATH/symbol) for the V2-BILAT-01 values that stay frozen, state the required update to src/shared/i18n/index.test.ts:370 and :384-386, and either include src/features/sessions/SideModeControl.tsx plus the CompositionScreen/ExerciseScreen tests in scope or justify why the visible rendering is provably unchanged.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "category": "UI_CRITERION",
+      "target_kind": "CRITERION_ID",
+      "target": "UI-CDBCCFD16078",
+      "blocking": true,
+      "diagnostic": "Criterion UI-CDBCCFD16078 requires src/features/sessions/compositionPresentation.ts to stop using BODY_ZONES as runtime authority (assertion UI-CDBCCFD16078-A89783883A31A), but it never specifies the resulting exported contract, and no assertion covers formatActivityRecoveryLabel, which takes the field the plan deletes. At HEAD, formatExerciseBodyZones(bodyZoneIds: readonly string[]) resolves names by filtering the module-level BODY_ZONES import (:9, :479-486): it CANNOT stop being the runtime authority without changing its signature or gaining an injected referential. Every caller of both helpers lies outside scope_allow and is classified CONSUMER_UNAFFECTED, so the criterion as written is not implementable within its own declared scope. This is a self-consistent but incomplete matrix row.",
+      "expected_correction": "Extend UI-CDBCCFD16078 with atomic assertions defining the target exported signature of formatExerciseBodyZones (injected BodyZone referential or pre-resolved names) and of formatActivityRecoveryLabel after the removal of the historical recovery field, and enumerate the three direct callers (ActivityCard.tsx:36,38; ActivitySelectionScreen.tsx:217,219; CompositionScreen.tsx:1597,1603) in change_targets with their tests, or restate the criterion so that no exported signature changes and prove it.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "category": "PRESERVATION",
+      "target_kind": "PATH",
+      "target": "src/domain/categories/defaults.ts",
+      "blocking": true,
+      "diagnostic": "src/domain/categories/defaults.ts is declared MODIFY in modified_modules and write_scope, and its export PREDEFINED_CATEGORIES is evaluated into the SQL of the frozen migration002 at module load. The plan states this preservation obligation in prose only (§2 and §6) and in the free-text 'requirement' of one NON_UI requirement. KODJO_BOUNDARY_CONTRACT_JSON contains no PRESERVE entry for this file or symbol — all ten boundaries use symbol=NONE / invariant_type=FILE_UNCHANGED and cover only migration001-006, app/(creation)/_layout.tsx and src/shared/ui/ScreenShell.tsx. A FILE_UNCHANGED boundary on migration002.ts cannot detect a value change made in defaults.ts, because the SQL text is generated from the imported constant. The single highest-risk regression of this slice therefore has no machine-checkable PRESERVE locator.",
+      "expected_correction": "Add a PRESERVE boundary in KODJO_BOUNDARY_CONTRACT_JSON (and in the UI matrix preservation.preserve block) targeting src/domain/categories/defaults.ts with kind=PATH, symbol=PREDEFINED_CATEGORIES and a SYMBOL_VALUE_UNCHANGED-style invariant pinning values, order and canonical keys, and bind it to an assertion in src/infrastructure/database/__tests__/migrateDatabase.test.ts that compares the SQL actually generated by migration002 against the baseline.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "category": "PRESERVATION",
+      "target_kind": "PATH",
+      "target": "src/domain/categories/validation.ts",
+      "blocking": true,
+      "diagnostic": "src/domain/categories/validation.ts is declared MODIFY, is a change_target of the requirement that rewrites the Catégories ValidationField union, and simultaneously exports canonicalCategoryKey, which migration002 imports (migration002.ts:2) and evaluates into its historical SQL. As with defaults.ts, KODJO_BOUNDARY_CONTRACT_JSON declares no PRESERVE locator for this file or symbol; the only protection is prose in plan §6. The plan thus asks the same file to be rewritten and to stay behaviourally frozen without any machine-checkable boundary distinguishing the two.",
+      "expected_correction": "Add a PRESERVE boundary targeting src/domain/categories/validation.ts with symbol=canonicalCategoryKey and an invariant pinning its canonical-key output for the historical inputs consumed by migration002, and bind it to an explicit assertion in src/infrastructure/database/__tests__/migrateDatabase.test.ts, so the ValidationField union rewrite in the same file cannot silently alter the historical SQL.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "category": "REQUIREMENT_GAP",
+      "target_kind": "SOURCE",
+      "target": ".github/orchestration/v2-slices/V2-PRE-1/qualification-spec.md §4",
+      "blocking": true,
+      "diagnostic": "Qualification-spec §4 'Terminologie structurante' states normatively: '`Exercice` remplace `Activité` dans la terminologie fonctionnelle visible' while '`Les identifiants techniques historiques ne sont pas renommés sans nécessité`'. src/shared/i18n/resources/fr.ts is the canonical source of visible functional terminology, is a declared modifiable root, is one of the eight ui_paths, and at HEAD is saturated with the visible term 'Activité/activité' (fr.ts:117,147-148,163,175,178,181,185,187,190-195,202,206,209,215-216,263,266,297,315,317,360-361,397,409,484-485). No entry of KODJO_NON_UI_REQUIREMENTS_JSON, KODJO_UI_CRITERIA_MATRIX_JSON or KODJO_REQUIREMENT_CONTRACT_JSON covers §4, and KODJO_PLAN_CLARIFICATIONS_JSON is empty. The plan applies §8's visible-label requirement to the same file while silently omitting §4's, so the omission cannot be explained as a blanket 'no UI in PRE-1' rule.",
+      "expected_correction": "Either add a requirement and an atomic UI criterion covering the visible Exercice/Activité terminology in src/shared/i18n/resources/fr.ts with its blast radius and tests, or record an explicit, justified exclusion (deferred to a named later slice, with the authority for that deferral) in KODJO_PLAN_CLARIFICATIONS_JSON or as a status=NONE requirement with a reason challengeable against §4.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "category": "REQUIREMENT_GAP",
+      "target_kind": "SOURCE",
+      "target": ".github/orchestration/v2-slices/V2-PRE-1/qualification-spec.md §13",
+      "blocking": true,
+      "diagnostic": "Qualification-spec §13 ends with a normative constraint on the media model: 'Les variantes média font partie du MVP ; PRE-1 ne doit donc pas construire un modèle qui empêcherait leur mise en œuvre ultérieure.' The plan contains zero occurrences of 'variante' anywhere in its 4859 lines. The NON_UI requirement covering §§11-13 (REQ-001108DC7F67664C) reduces §13 to 'les médias ordonnés' and binds only ordering/stability proofs via src/domain/media/__tests__/MediaRepository.test.ts. No requirement, assertion, schema decision or test addresses variant extensibility of MediaAsset/ActivityMedia, so the §13 constraint is neither satisfied nor demonstrably out of scope — and it is a forward-compatibility constraint that PRE-1's schema decisions can permanently foreclose.",
+      "expected_correction": "Add an explicit requirement (or an atomic sub-requirement of REQ-001108DC7F67664C) stating how the MediaAsset/ActivityMedia model and the migration007 media tables keep media variants implementable later, with the corresponding proof in src/domain/media/__tests__/MediaRepository.test.ts and src/infrastructure/database/__tests__/targetSchema.test.ts, or a traced NONE with a reason defensible against §13.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "category": "REQUIREMENT_GAP",
+      "target_kind": "PLAN",
+      "target": "NON_UI_COVERAGE",
+      "blocking": true,
+      "diagnostic": "KODJO_NON_UI_COVERAGE_JSON declares status=ENUMERATED with eight source_paths and the reason 'Les exigences non visuelles de la qualification, de la revue et des dépendances causales sont énumérées séparément'. That claim of causal-dependency completeness is refuted by the code: the demonstrated causal sources src/features/sessions/ExerciseScreen.tsx, src/features/sessions/CompositionScreen.tsx, src/features/activities/ActivityCard.tsx and src/features/activities/ActivitySelectionScreen.tsx all dereference contract members the plan deletes (ActivityDefinition.recoverySeconds, the occurrence recovery field, the autonomous Session colour) and none is cited. The reason also refers to 'la matrice UI v3' and to corrections of a prior 'revue indépendante' (plan §1), while KODJO_PLAN_REVISION_STATUS_JSON is LEGACY_UNBOUNDED ('Legacy review has no structured findings; full independent revalidation required') — so the enumeration cannot be justified by a bounded carry-over from an earlier structured review.",
+      "expected_correction": "Re-enumerate KODJO_NON_UI_COVERAGE_JSON after the scope expansions above, citing every source whose contract members are removed or changed by PRE-1 (at minimum ExerciseScreen.tsx, CompositionScreen.tsx, ActivityCard.tsx, ActivitySelectionScreen.tsx, plus qualification-spec §4 and §13), and align the stated reason with the actual ui_planning_contract version (kodjo.ui-plan-criteria.v2 / contract_version 2) and with revision_status=LEGACY_UNBOUNDED rather than with an unbounded prior review.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    }
+  ]
+}

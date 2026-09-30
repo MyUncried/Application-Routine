@@ -1,0 +1,722 @@
+{
+  "schema": "kodjo.direct-import-scan.v1",
+  "scan_revision": "e216294506bed87dd80855937e3fabfbfa322b82",
+  "application_tree_sha256": "a19fbf4ddc1a5488e9c7b03883df490648386bc51d7784cc1adf4b42fde95cd4",
+  "modified_modules": [
+    {
+      "path": "src/domain/activities/ActivityDefinition.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/activities/ActivityDefinitionRepository.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/activities/__tests__/ActivityDefinition.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/activities/index.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/body-zones/BodyZone.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/body-zones/BodyZoneRepository.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/body-zones/__tests__/BodyZone.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/body-zones/index.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/categories/Category.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/categories/CategoryRepository.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/categories/__tests__/matching.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/categories/__tests__/validation.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/categories/errors.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/categories/index.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/categories/matching.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/labels/Label.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/labels/LabelRepository.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/labels/__tests__/Label.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/labels/index.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/media/ActivityMedia.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/media/MediaAsset.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/media/MediaRepository.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/media/__tests__/MediaRepository.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/media/index.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/preferences/Profile.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/preferences/ProfileRepository.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/preferences/__tests__/Profile.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/preferences/index.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/sessions/Session.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/SessionDraft.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/SessionRepository.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/StopPoint.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/__tests__/StopPoint.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/domain/sessions/__tests__/calculations.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/__tests__/composition.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/__tests__/sideMode.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/__tests__/validation.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/calculations.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/composition.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/defaults.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/errors.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/index.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/sideMode.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/domain/sessions/validation.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/activities/ActivityDefinitionService.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/reference-data/__tests__/bodyZones.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/reference-data/bodyZones.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/BodyZoneSelector.tsx",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/CategoriesScreen.tsx",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/SessionService.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionService.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/compositionPresentation.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/compositionPresentation.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteLabelRepository.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteProfileRepository.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/initializeDatabase.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/constants.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/initializeDatabase.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/integration/runNativeDatabaseIntegrationCheck.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/migrateDatabase.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration007.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteBodyZoneRepository.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteMediaRepository.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteProfileRepository.ts",
+      "change": "CREATE"
+    },
+    {
+      "path": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/infrastructure/database/types/DatabaseRows.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/shared/i18n/index.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/shared/i18n/resources/fr.ts",
+      "change": "MODIFY"
+    }
+  ],
+  "candidates": [
+    {
+      "path": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts",
+        "src/domain/sessions/SessionDraft.ts",
+        "src/domain/sessions/validation.ts"
+      ],
+      "risk_score": 150
+    },
+    {
+      "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/activities/index.ts",
+        "src/domain/sessions/SessionDraft.ts",
+        "src/features/activities/ActivityDefinitionService.ts"
+      ],
+      "risk_score": 150
+    },
+    {
+      "path": "src/features/sessions/__tests__/useSessionCatalogue.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts",
+        "src/features/sessions/SessionService.ts"
+      ],
+      "risk_score": 150
+    },
+    {
+      "path": "src/features/sessions/__tests__/CatalogueScreen.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/activities/index.ts",
+        "src/domain/sessions/Session.ts",
+        "src/features/activities/ActivityDefinitionService.ts",
+        "src/features/sessions/SessionService.ts"
+      ],
+      "risk_score": 148
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts",
+        "src/domain/sessions/SessionDraft.ts",
+        "src/features/sessions/SessionService.ts"
+      ],
+      "risk_score": 142
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionCard.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts"
+      ],
+      "risk_score": 138
+    },
+    {
+      "path": "src/features/sessions/__tests__/ColorPalette.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts"
+      ],
+      "risk_score": 132
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityCard.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/activities/index.ts"
+      ],
+      "risk_score": 130
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/activities/index.ts",
+        "src/domain/sessions/SessionDraft.ts",
+        "src/features/activities/ActivityDefinitionService.ts"
+      ],
+      "risk_score": 130
+    },
+    {
+      "path": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/activities/index.ts",
+        "src/domain/categories/Category.ts",
+        "src/domain/categories/CategoryRepository.ts",
+        "src/domain/sessions/Session.ts",
+        "src/domain/sessions/SessionRepository.ts",
+        "src/features/activities/ActivityDefinitionService.ts",
+        "src/features/sessions/SessionService.ts"
+      ],
+      "risk_score": 130
+    },
+    {
+      "path": "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/sessions/SessionDraft.ts"
+      ],
+      "risk_score": 130
+    },
+    {
+      "path": "src/features/sessions/__tests__/ExerciseNavigationGuard.integration.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/sessions/SessionDraft.ts"
+      ],
+      "risk_score": 130
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/features/activities/ActivityDefinitionService.ts",
+        "src/features/sessions/SessionService.ts"
+      ],
+      "risk_score": 124
+    },
+    {
+      "path": "src/features/activities/__tests__/useActivityCatalogue.test.ts",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/activities/index.ts",
+        "src/features/activities/ActivityDefinitionService.ts"
+      ],
+      "risk_score": 120
+    },
+    {
+      "path": "src/features/activities/__tests__/ActivityCatalogueList.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/activities/index.ts"
+      ],
+      "risk_score": 115
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionDraftContext.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/domain/sessions/SessionDraft.ts"
+      ],
+      "risk_score": 112
+    },
+    {
+      "path": "src/features/sessions/__tests__/SessionServiceContext.test.tsx",
+      "candidate_kind": "TEST",
+      "triggered_by": [
+        "src/features/sessions/SessionService.ts"
+      ],
+      "risk_score": 109
+    },
+    {
+      "path": "app/(creation)/categories.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/features/sessions/CategoriesScreen.tsx"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/domain/categories/validation.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/categories/errors.ts",
+        "src/domain/sessions/validation.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/activities/ActivityCard.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/activities/index.ts",
+        "src/features/sessions/compositionPresentation.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/activities/ActivityDefinitionServiceContext.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/features/activities/ActivityDefinitionService.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/activities/ActivityDefinitionServiceProvider.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/features/activities/ActivityDefinitionService.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/activities/ActivitySelectionScreen.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/activities/index.ts",
+        "src/domain/sessions/composition.ts",
+        "src/domain/sessions/defaults.ts",
+        "src/features/sessions/compositionPresentation.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/activities/useActivityCatalogue.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/activities/index.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/sessions/CatalogueScreen.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/sessions/ColorPalette.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/sessions/CompositionScreen.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts",
+        "src/domain/sessions/SessionDraft.ts",
+        "src/domain/sessions/composition.ts",
+        "src/domain/sessions/defaults.ts",
+        "src/domain/sessions/sideMode.ts",
+        "src/domain/sessions/validation.ts",
+        "src/features/sessions/compositionPresentation.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/sessions/ExerciseScreen.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/activities/index.ts",
+        "src/domain/sessions/SessionDraft.ts",
+        "src/domain/sessions/composition.ts",
+        "src/domain/sessions/defaults.ts",
+        "src/features/activities/ActivityEditorForm.tsx"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/sessions/SessionCard.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/sessions/SessionDraftContext.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/SessionDraft.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/sessions/SessionDraftProvider.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/SessionDraft.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/sessions/SessionServiceContext.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/features/sessions/SessionService.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/sessions/SessionServiceProvider.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/features/activities/ActivityDefinitionService.ts",
+        "src/features/sessions/SessionService.ts",
+        "src/infrastructure/database/constants.ts",
+        "src/infrastructure/database/initializeDatabase.ts",
+        "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+        "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+        "src/infrastructure/database/repositories/SqliteSessionRepository.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/sessions/SideModeControl.tsx",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/sideMode.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/sessions/compositionGesture.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/features/sessions/useSessionCatalogue.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/domain/sessions/Session.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/infrastructure/database/ExpoDatabase.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/infrastructure/database/constants.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration002.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/features/reference-data/bodyZones.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration003.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/features/reference-data/bodyZones.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/infrastructure/database/migrations/migration004.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/features/reference-data/bodyZones.ts"
+      ],
+      "risk_score": 0
+    },
+    {
+      "path": "src/shared/i18n/index.ts",
+      "candidate_kind": "CONSUMER",
+      "triggered_by": [
+        "src/shared/i18n/resources/fr.ts"
+      ],
+      "risk_score": 0
+    }
+  ]
+}

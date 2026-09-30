@@ -259,9 +259,11 @@ jobs:
                     $findingsProof=$nl+'<KODJO_PLAN_REVIEW_FINDINGS_JSON>'+$nl+(Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-initial-review-findings.json" -Encoding UTF8).Trim()+$nl+'</KODJO_PLAN_REVIEW_FINDINGS_JSON>'+$nl
           [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-v2-initial-review-comment.md",$header+$review+$impact+$contractProof+$uiContractProof+$findingsProof,(New-Object Text.UTF8Encoding($false)))
           $commentPath=Join-Path $env:RUNNER_TEMP 'kodjo-v2-initial-review-comment.md'
-          $commentBody=Get-Content -Raw -LiteralPath $commentPath -Encoding UTF8
+          [string]$commentBody=[IO.File]::ReadAllText($commentPath,[Text.Encoding]::UTF8)
           $payloadPath=Join-Path $env:RUNNER_TEMP 'kodjo-v2-plan-review-publish.json'
-          [IO.File]::WriteAllText($payloadPath,(@{body=$commentBody}|ConvertTo-Json -Depth 3),(New-Object Text.UTF8Encoding($false)))
+          [IO.File]::WriteAllText($payloadPath,(@{body=[string]$commentBody}|ConvertTo-Json -Depth 3),(New-Object Text.UTF8Encoding($false)))
+          $payloadCheck=[IO.File]::ReadAllText($payloadPath)|ConvertFrom-Json
+          if($payloadCheck.body -isnot [string] -or $payloadCheck.body -cne $commentBody){throw 'Plan review publication payload body must be an exact string'}
           $created=gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments" --input $payloadPath|ConvertFrom-Json
           if($LASTEXITCODE-ne0-or$null-eq$created-or-not$created.id){throw 'Plan review publication failed'}
           $reviewCommentId=[string]$created.id
@@ -297,6 +299,9 @@ jobs:
             ${{ runner.temp }}\kodjo-v2-initial-review.json
             ${{ runner.temp }}\kodjo-v2-initial-review.err.txt
             ${{ runner.temp }}\kodjo-v2-initial-review.md
+            ${{ runner.temp }}\kodjo-v2-initial-review-findings.json
+            ${{ runner.temp }}\kodjo-v2-initial-review-comment.md
+            ${{ runner.temp }}\kodjo-v2-plan-review-publish.json
             ${{ runner.temp }}\kodjo-v2-initial-review-scan.json
             ${{ runner.temp }}\kodjo-v2-initial-review-proof.json
             ${{ runner.temp }}\kodjo-v2-initial-review-contract.json

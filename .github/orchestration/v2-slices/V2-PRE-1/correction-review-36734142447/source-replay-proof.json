@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "method": "OFFLINE_REPLAY_UNCHANGED_SCANNER_ON_HASH_VERIFIED_GITHUB_SNAPSHOT",
+  "source_head": "e216294506bed87dd80855937e3fabfbfa322b82",
+  "source_blobs_verified": 161,
+  "application_tree_sha256": "a19fbf4ddc1a5488e9c7b03883df490648386bc51d7784cc1adf4b42fde95cd4",
+  "scan_sha256": "c0939fe93bbbaebb13299c59a2e78ab1407d746e2afef8e83af2d68a30ece488",
+  "local_git_checkout": false,
+  "independent_review": "NOT_RUN"
+}
