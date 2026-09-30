@@ -389,14 +389,25 @@ function buildFinalAuditReport({
     if (row.category !== 'SUGGESTION' && normativeIds.length === 0) {
       V.fail('VNEXT_FINAL_AUDIT_BLOCKING_FINDING_WITHOUT_NORMATIVE_SOURCE');
     }
+    const normalizedEvidence = uniqueSorted(
+      row.evidence,
+      'VNEXT_FINAL_AUDIT_FINDING_EVIDENCE_INVALID',
+      'evidence',
+    );
+    const normalizedDependencies = uniqueSorted(
+      row.dependency_target_ids,
+      'VNEXT_FINAL_AUDIT_FINDING_DEPENDENCIES_INVALID',
+      'dependency_target_ids',
+      { allowEmpty: true },
+    );
     reviewFindings.push({
       category: row.category,
       target_type: row.target_type,
       target_id: row.target_id,
       finding: row.finding,
-      evidence: row.evidence,
+      evidence: normalizedEvidence,
       required_correction: row.required_correction,
-      dependency_target_ids: row.dependency_target_ids,
+      dependency_target_ids: normalizedDependencies,
     });
     provenance.push({
       semantic_key: V.canonicalHash([
@@ -404,9 +415,9 @@ function buildFinalAuditReport({
         row.target_type,
         row.target_id,
         row.finding,
-        row.evidence,
+        normalizedEvidence,
         row.required_correction,
-        row.dependency_target_ids,
+        normalizedDependencies,
       ]),
       normative_reference_ids: normativeIds,
       audit_criterion_ids: auditCriterionIds,
