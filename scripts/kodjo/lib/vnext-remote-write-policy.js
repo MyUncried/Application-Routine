@@ -364,10 +364,20 @@ function buildGate({ report, policy, activeLegacySliceIds }) {
       .filter((row) => row.lifecycle === 'LEGACY_GRANDFATHERED')
       .map((row) => row.declaration_id),
   )].sort();
+  const qualificationIds = [...new Set(
+    report.assignments
+      .filter((row) => row.lifecycle === 'QUALIFICATION')
+      .map((row) => row.declaration_id),
+  )].sort();
 
   let retirement;
   let status = 'REMOTE_WRITE_CONTROL_READY';
-  if (legacyIds.length === 0) retirement = 'LEGACY_WRITERS_RETIRED';
+  if (qualificationIds.length > 0) {
+    retirement = legacyIds.length === 0
+      ? 'LEGACY_WRITERS_RETIRED'
+      : (activeLegacy.length > 0 ? 'LEGACY_WRITERS_GRANDFATHERED' : 'LEGACY_WRITERS_NOT_RETIRED');
+    status = 'BLOCKED_QUALIFICATION_WRITER_PRESENT';
+  } else if (legacyIds.length === 0) retirement = 'LEGACY_WRITERS_RETIRED';
   else if (activeLegacy.length > 0) retirement = 'LEGACY_WRITERS_GRANDFATHERED';
   else {
     retirement = 'LEGACY_WRITERS_NOT_RETIRED';
@@ -380,6 +390,7 @@ function buildGate({ report, policy, activeLegacySliceIds }) {
     policy_hash: V.canonicalHash(policy),
     active_legacy_slice_ids: activeLegacy,
     legacy_writer_declaration_ids: legacyIds,
+    qualification_writer_declaration_ids: qualificationIds,
     legacy_retirement_status: retirement,
     status,
   });
@@ -394,6 +405,7 @@ function validateGate(gate, report, policy) {
       'policy_hash',
       'active_legacy_slice_ids',
       'legacy_writer_declaration_ids',
+      'qualification_writer_declaration_ids',
       'legacy_retirement_status',
       'status',
       'contract_hash',
