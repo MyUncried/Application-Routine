@@ -2,11 +2,12 @@
 
 const V = require('./vnext-contract');
 const Review = require('./review-contract');
+const AuditStability = require('./audit-stability-contract');
 
 const ALLOWED_SCHEMA = 'kodjo.vnext.allowed-change-set.v1';
 const PATCH_SCHEMA = 'kodjo.vnext.revision-patch.v1';
 const APPLICATION_SCHEMA = 'kodjo.vnext.revision-application.v1';
-const OUTCOME_SCHEMA = 'kodjo.vnext.revision-outcome.v1';
+const OUTCOME_SCHEMA = 'kodjo.vnext.revision-outcome.v2';
 
 const STAGE_PRIORITY = Object.freeze({
   REQUIREMENTS: 1,
@@ -664,10 +665,19 @@ function verifyRevisionOutcome({
   nextArtifacts,
   nextReviewContext,
   nextReviewReport,
+  findingResolutionSet,
 }) {
   validateAllowedChangeSet(allowedChangeSet);
   validateRevisionPatch(revisionPatch, allowedChangeSet);
   Review.validateReviewReport(nextReviewReport, nextReviewContext);
+  if (!findingResolutionSet) V.fail('VNEXT_REVISION_FINDING_RESOLUTION_REQUIRED');
+  V.verifyContractHash(findingResolutionSet, 'VNEXT_REVISION_FINDING_RESOLUTION_HASH_MISMATCH');
+  if (findingResolutionSet.schema_version !== AuditStability.FINDING_RESOLUTION_SCHEMA) {
+    V.fail('VNEXT_REVISION_FINDING_RESOLUTION_SCHEMA_INVALID');
+  }
+  if (findingResolutionSet.previous_review_report_hash !== allowedChangeSet.review_report_hash) {
+    V.fail('VNEXT_REVISION_FINDING_RESOLUTION_PREVIOUS_REPORT_MISMATCH');
+  }
   if (nextReviewContext.planning_mode !== 'REVISION') {
     V.fail('VNEXT_REVISION_NEXT_REVIEW_MODE_INVALID', nextReviewContext.planning_mode);
   }
@@ -706,6 +716,22 @@ function verifyRevisionOutcome({
       V.fail('REVISION_STALLED', finding.finding_id);
     }
   }
+  const resolutionIds = new Set(
+    (findingResolutionSet.resolutions || []).map((row) => row.finding_id),
+  );
+  const expectedResolved = [...previousFindings]
+    .filter((id) => !nextReviewReport.findings.some((finding) => finding.finding_id === id))
+    .sort();
+  if (V.canonicalStringify([...resolutionIds].sort()) !== V.canonicalStringify(expectedResolved)) {
+    V.fail('VNEXT_FINDING_RESOLUTION_INCOMPLETE');
+  }
+  for (const resolution of findingResolutionSet.resolutions || []) {
+    if (!['RESOLVED', 'REFUTED'].includes(resolution.disposition)
+        || !Array.isArray(resolution.evidence) || resolution.evidence.length === 0
+        || !Array.isArray(resolution.evidence_target_ids) || resolution.evidence_target_ids.length === 0) {
+      V.fail('VNEXT_FINDING_RESOLUTION_INVALID', resolution.finding_id);
+    }
+  }
 
   const preservedIds = new Set(allowedChangeSet.preserved_targets.map((row) => row.target_id));
   for (const finding of nextReviewReport.findings.filter((row) => row.blocking)) {
@@ -725,6 +751,7 @@ function verifyRevisionOutcome({
     revision_patch_hash: revisionPatch.contract_hash,
     next_review_context_hash: nextReviewContext.contract_hash,
     next_review_report_hash: nextReviewReport.contract_hash,
+    finding_resolution_set_hash: findingResolutionSet.contract_hash,
     status,
     preserved_target_count: allowedChangeSet.preserved_targets.length,
     authorized_target_count: allowedChangeSet.authorized_targets.length,
