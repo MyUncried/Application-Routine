@@ -268,3 +268,32 @@ test('VNext-11.1 la politique canonique contient explicitement la réserve F-01'
     && x.capability_type === 'GH_API_WRITE'
     && x.destination.includes('v2-activation-registry.json')));
 });
+
+
+test('VNext-11.1 un writer réservé à la qualification ne peut pas autoriser le cutover', () => {
+  const base = root();
+  const rel = '.github/workflows/qualification-writer.yml';
+  const source = put(base, rel, [
+    'name: qualification',
+    'jobs:',
+    '  publish:',
+    '    permissions:',
+    '      contents: write',
+    '    runs-on: ubuntu-latest',
+    '    steps: []',
+    '',
+  ].join('\n'));
+  const p = policy([declaration({
+    source,
+    producer_path: rel,
+    capability_type: 'GITHUB_PERMISSION_WRITE',
+    destination: 'contents',
+    lifecycle: 'QUALIFICATION',
+    required_permission_scope: 'JOB',
+    id: 'QUAL-001',
+  })]);
+  const report = RW.scanRepository({ root: base, policy: p });
+  const gate = RW.buildGate({ report, policy: p, activeLegacySliceIds: [] });
+  assert.equal(gate.status, 'BLOCKED_QUALIFICATION_WRITER_PRESENT');
+  assert.deepEqual(gate.qualification_writer_declaration_ids, ['QUAL-001']);
+});
