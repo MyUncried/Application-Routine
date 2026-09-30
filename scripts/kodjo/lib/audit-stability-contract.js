@@ -715,8 +715,25 @@ function validateFinalAuditOutcome(outcome) {
     V.fail('VNEXT_FINAL_AUDIT_OUTCOME_SCHEMA_INVALID');
   }
   V.verifyContractHash(outcome, 'VNEXT_FINAL_AUDIT_OUTCOME_HASH_MISMATCH');
-  if (!['FINAL_APPROVED', 'FINAL_REVISE_TERMINAL', 'FINAL_CLARIFICATION_TERMINAL'].includes(outcome.status)) {
+  const expectedActions = {
+    FINAL_APPROVED: 'READY_FOR_CUTOVER_GATE',
+    FINAL_REVISE_TERMINAL: 'STOP_AND_REMEDIATE_WITHOUT_AUTOMATIC_REAUDIT',
+    FINAL_CLARIFICATION_TERMINAL: 'STOP_FOR_USER_DECISION',
+  };
+  if (!Object.hasOwn(expectedActions, outcome.status)) {
     V.fail('VNEXT_FINAL_AUDIT_OUTCOME_STATUS_INVALID');
+  }
+  if (outcome.next_action !== expectedActions[outcome.status]) {
+    V.fail('VNEXT_FINAL_AUDIT_NEXT_ACTION_MISMATCH');
+  }
+  for (const [label, hash] of [
+    ['audit_manifest_hash', outcome.audit_manifest_hash],
+    ['review_report_hash', outcome.review_report_hash],
+    ['finding_assessment_hash', outcome.finding_assessment_hash],
+    ['finding_ledger_hash', outcome.finding_ledger_hash],
+    ['audit_coverage_hash', outcome.audit_coverage_hash],
+  ]) {
+    V.assertSha64(hash, 'VNEXT_FINAL_AUDIT_HASH_INVALID', label);
   }
   if (outcome.automatic_reaudit_allowed !== false) {
     V.fail('VNEXT_FINAL_AUDIT_AUTOMATIC_REAUDIT_FORBIDDEN');
