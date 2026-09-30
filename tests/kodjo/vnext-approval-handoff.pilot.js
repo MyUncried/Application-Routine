@@ -421,7 +421,7 @@ test('VNext-08 refuse un DirectImportScan différent de celui revu', () => {
 
   assert.throws(
     () => Approval.buildApprovalTarget(artifacts(fx, { directImportScan: changedScan })),
-    /VNEXT_DIRECT_IMPORT_COUNT_MISMATCH|VNEXT_APPROVAL_DIRECT_SCAN_MISMATCH/,
+    /VNEXT_DIRECT_IMPORT_COUNT_MISMATCH|VNEXT_IMPACT_DIRECT_SCAN_HASH_MISMATCH|VNEXT_APPROVAL_DIRECT_SCAN_MISMATCH/,
   );
 });
 
