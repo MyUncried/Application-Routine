@@ -10,7 +10,7 @@ const { verifyEmbedded: verifyRequirementContracts } = require('./lib/requiremen
 const CURRENT_CONTRACT_VERSION = 2;
 const CURRENT_SCHEMA = 'kodjo.plan-contract-consistency.v2';
 const TEST_PATH = /(?:^|\/)(__tests__|tests?)\/|\.(?:test|spec)\.[^.]+$/;
-const SOURCE_PATH = /(?:`|\b)((?:app|src|tests|assets)\/[A-Za-z0-9_@().+\-/]+\.[A-Za-z0-9]+)(?=`|\s|$|[,;])/g;
+const SOURCE_PATH = /(?:`|\b)((?:app|src|tests|assets|docs|scripts|\.github)\/[A-Za-z0-9_@().+\-/]+\.[A-Za-z0-9]+)(?=`|\s|$|[,;])/g;
 
 function isTestPath(value) { return TEST_PATH.test(value); }
 function extractPaths(text) {

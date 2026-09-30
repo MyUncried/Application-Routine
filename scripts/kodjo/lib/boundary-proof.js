@@ -43,11 +43,25 @@ function compareSymbol(before,after,symbol){const a=declaration(before,symbol),b
 function boundaryProof(locator,changedSet,{cwd=process.cwd(),sourceHead}={}){
  if(!locator||locator.kind==='SEMANTIC')return null;
  const file=locator.path||locator.value;
- if(!changedSet.has(file))return 'PASS';
- if(locator.kind==='PATH')return 'FAIL';
+ const git=args=>spawnSync('git',args,{cwd,encoding:'utf8',shell:false,windowsHide:true});
+ if(git(['rev-parse','--verify','HEAD^{commit}']).status!==0)return 'NON_VERIFIABLE';
+ if(locator.invariant_type==='PATH_ABSENT'){
+  const tracked=git(['ls-tree','-r','-z','--name-only','HEAD','--',file]);
+  const untracked=git(['ls-files','--others','-z','--',file]);
+  if(tracked.status!==0||untracked.status!==0)return 'NON_VERIFIABLE';
+  return tracked.stdout||untracked.stdout?'FAIL':'PASS';
+ }
  if(!/^[0-9a-f]{40}$/.test(sourceHead||''))return 'NON_VERIFIABLE';
- const before=spawnSync('git',['show',sourceHead+':'+file],{cwd,encoding:'utf8',shell:false,windowsHide:true});
+ const before=git(['rev-parse','--verify',sourceHead+':'+file]);
  if(before.status!==0)return 'NON_VERIFIABLE';
- try{return compareSymbol(before.stdout,fs.readFileSync(path.resolve(cwd,file),'utf8'),locator.symbol);}catch(_){return 'NON_VERIFIABLE';}
+ if(locator.kind==='PATH'){
+  const after=git(['rev-parse','--verify','HEAD:'+file]);
+  if(after.status!==0)return 'FAIL';
+  return before.stdout.trim()===after.stdout.trim()?'PASS':'FAIL';
+ }
+ const blob=git(['show',sourceHead+':'+file]);
+ if(blob.status!==0)return 'NON_VERIFIABLE';
+ try{return compareSymbol(blob.stdout,fs.readFileSync(path.resolve(cwd,file),'utf8'),locator.symbol);}catch(_){return 'NON_VERIFIABLE';}
 }
+
 module.exports={declaration,compareSymbol,boundaryProof};

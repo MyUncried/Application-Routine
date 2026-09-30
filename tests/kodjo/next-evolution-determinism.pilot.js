@@ -6,6 +6,7 @@ const test=require('node:test');
 const assert=require('node:assert/strict');
 const os=require('node:os');
 const {spawnSync}=require('node:child_process');
+const {parse}=require('../../scripts/kodjo/lib/yaml');
 
 const root=path.resolve(__dirname,'../..');
 const read=(p)=>fs.readFileSync(path.join(root,p),'utf8');
@@ -324,7 +325,7 @@ test('planning workflows use structured findings and valid atomic revision hered
     assert.doesNotMatch(w,/End with exactly VERDICT: APPROVE or VERDICT: REVISE/);
   }
   assert.doesNotMatch(revision,/^\s*EOF[ \t]+cat \/tmp\/kodjo-v2-plan\/current-command\.txt/m);
-  assert.match(revision,/kodjo\.ui-criteria\.v2/);
+  assert.match(revision,/kodjo\.ui-criteria\.v3/);
   assert.match(revision,/validate-plan-module-paths\.js/);
 });
 
@@ -332,8 +333,8 @@ test('planning workflows use structured findings and valid atomic revision hered
 test('independent Claude audit requires exact qualified HEAD, remains read-only and artifact-free',()=>{
   const workflow=read('.github/workflows/kodjo-v2-next-evolution-independent-audit.yml');
   assert.match(workflow,/workflow_dispatch:/);
-  assert.match(workflow,/pull_request:\r?\n\s+paths:\r?\n\s+- '\.github\/workflows\/kodjo-v2-next-evolution-independent-audit\.yml'/);
-  assert.match(workflow,/github\.event\.pull_request\.number == 250/);
+  assert.deepEqual(parse(workflow).on.pull_request.paths,parse(read('.github/workflows/kodjo-v2-pilot-tests.yml')).on.pull_request.paths);
+  assert.doesNotMatch(workflow,/github\.event\.pull_request\.number == 250/);
   assert.match(workflow,/needs: await_qualified_head/);
   assert.match(workflow,/if \[ "\$state" = 'completed:success' \]/);
   assert.match(workflow,/\.head_sha == \$sha/);
@@ -378,6 +379,7 @@ test('independent audit output contract refuses incomplete matrix coverage and a
   assert.throws(()=>verifyIndependentAudit(body({matrix_rows:[...rows.slice(1),rows[1]]})),/MATRIX_ID_INVALID/);
   assert.throws(()=>verifyIndependentAudit(body({matrix_rows:rows.map((r,i)=>i? r:{...r,status:'PARTIAL'})})),/MATRIX_COUNT_MISMATCH/);
   assert.throws(()=>verifyIndependentAudit(body({matrix_ids_covered:63,matrix_ids_not_covered:1,matrix_rows:rows.map((r,i)=>i? r:{...r,status:'NOT_COVERED'})})),/APPROVE_WITH_UNCOVERED/);
+  assert.throws(()=>verifyIndependentAudit(body({matrix_ids_covered:63,matrix_ids_non_verifiable:1,matrix_rows:rows.map((r,i)=>i? r:{...r,status:'NON_VERIFIABLE'})})),/APPROVE_WITH_NON_VERIFIABLE/);
 });
 
 

@@ -50,6 +50,26 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Replay causal initial planning command
+        if: github.event_name == 'workflow_dispatch' && inputs.command_comment_id != ''
+        shell: bash
+        env:
+          COMMAND_COMMENT_ID: ${{ inputs.command_comment_id }}
+        run: |
+          set -euo pipefail
+          EVENT_JSON="$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$COMMAND_COMMENT_ID")"
+          printf '%s' "$EVENT_JSON" | jq -e --arg issue "$ISSUE_NUMBER" '
+            (.user.login == "MyUncried" or .user.login == "github-actions[bot]") and
+            (.issue_url | endswith("/issues/" + $issue)) and (.body | type == "string")
+          ' >/dev/null
+          export EVENT_JSON
+          node <<'NODE'
+          const fs=require('node:fs'),crypto=require('node:crypto');
+          const body=JSON.parse(process.env.EVENT_JSON).body;
+          const delimiter='KODJO_EVENT_'+crypto.randomBytes(16).toString('hex');
+          fs.appendFileSync(process.env.GITHUB_ENV,'TRIGGER_BODY<<'+delimiter+'\n'+body+'\n'+delimiter+'\n');
+          NODE
+
       - name: Validate initial V2 planning gate
         id: gate
         shell: bash

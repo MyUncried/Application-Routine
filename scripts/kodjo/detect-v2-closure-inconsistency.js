@@ -18,12 +18,16 @@ function detect(registry,commentsByIssue){
   }
   return {schema:'kodjo.v2-closure-consistency.v1',anomalies};
 }
+function disposition(result,currentSlice){
+  const durable_anomalies=result.anomalies.filter(x=>x.code==='CLOSURE_HEAD_DRIFT');
+  return {...result,durable_anomalies,block_current_closure:durable_anomalies.some(x=>x.slice_id===currentSlice)};
+}
 if(require.main===module){
   try{
-    const [registryFile,commentsFile]=process.argv.slice(2);
-    const result=detect(JSON.parse(fs.readFileSync(registryFile,'utf8')),JSON.parse(fs.readFileSync(commentsFile,'utf8')));
+    const [registryFile,commentsFile,currentSlice]=process.argv.slice(2);
+    const result=disposition(detect(JSON.parse(fs.readFileSync(registryFile,'utf8')),JSON.parse(fs.readFileSync(commentsFile,'utf8'))),currentSlice);
     process.stdout.write(JSON.stringify(result)+'\n');
     if(result.anomalies.length)process.exitCode=1;
   }catch(e){console.error(e.message);process.exitCode=1;}
 }
-module.exports={detect};
+module.exports={detect,disposition};

@@ -1,0 +1,24 @@
+# Corrections causales après l’audit 36650191221
+
+Le HEAD `b9959baa41b05876f04e10ad2e7ed54daa93fa83` a passé le pilote Linux/Windows [36650191237](https://github.com/MyUncried/Application-Routine/actions/runs/36650191237). L’audit indépendant [36650191221](https://github.com/MyUncried/Application-Routine/actions/runs/36650191221) a néanmoins publié **REVISE** : 2 BLOCKING, 3 MAJOR et 7 MINOR. Le succès technique de ce run n’est pas une approbation.
+
+Preuve publiée : [commentaire 5901985355](https://github.com/MyUncried/Application-Routine/pull/250#issuecomment-5901985355), rapport archivé au commit `ef456d390c019c628adeb839ce4438da06968330`. Le SHA-256 du rapport original, recalculé depuis cette archive, est `96300d4370d0d3d3b3d2eff8c4e58f05a934ed864653f6698d5c556f02ecca53`.
+
+| Finding | Correction bornée | Vérification |
+| --- | --- | --- |
+| F-001 BLOCKING | Le gate IMPLEMENT récupère requirement-contract, ui-criteria-contract et ui-identities avec son runtime figé. | Fermeture récursive des dépendances depuis la liste du YAML réel ; gate complet PASS dans un dépôt applicatif sans scripts ; suppression d’une dépendance refusée. |
+| F-002 BLOCKING | La commande de reprise bot REVISE est acceptée seulement avec auteur, issue, slice, lien au plan et HEAD exacts. INITIAL réhydrate TRIGGER_BODY avant le gate. | Sélection et construction INITIAL/REVISION ; sept falsifications refusées ; exécution du code de réhydratation du YAML. La paire historique PRE-1 reste sélectionnée. |
+| F-003 MAJOR | Qualification disposable à 90 jours ; reçu d’audit à 14 jours ; familles existantes explicitement classées. Nouveau contrôle des rétentions avant qualification. | Les 36 uploads KODJO correspondent à leur politique. Rétention divergente et nom inconnu refusés. UNKNOWN reste critique/90 jours. |
+| F-004 MAJOR | Les frontières sont évaluées sur l’état cumulatif du HEAD par rapport à la baseline, indépendamment du dernier delta. | Deux incréments réels : la violation initiale demeure FAIL ; restauration réelle PASS ; baseline absente NON_VERIFIABLE. |
+| F-005 MAJOR | FORBIDDEN peut exprimer PATH_ABSENT/ABSENT pour un fichier ou sous-arbre prospectif. PRESERVE ne peut pas utiliser cet invariant. | Génération validée pour un chemin absent ; création suivie/non suivie/ignorée refusée ; violation persistante au delta suivant ; PASS du reviewer refusé face au FAIL machine. |
+| F-006 MINOR | HEAD_DRIFT produit une trace durable et bloque la clôture de sa propre tranche. Le cas ACTIVE avec preuve finale demeure une migration permise. | Politique exécutée pour chaque code ; branche de publication et consommation de la décision contrôlées dans le YAML réel. |
+| F-007 MINOR | Le pilote couvre explicitement les changements protocolaires et mixtes ; une PR exclusivement applicative relève de la CI applicative. | Corpus comparant filtres natifs et classifier ; seule divergence applicative documentée. |
+| F-008 MINOR | Le routeur reste exclusivement issue_comment.created. Les clauses de dispatch conservées servent à la parité des gates ; le dispatch manuel cible le worker. | Déclaration native et documentation vérifiées. |
+| F-009 MINOR | Les chemins docs/scripts/.github sont reconnus dans les sections contractuelles de prose. | Insertion hors scope refusée pour chaque racine, ainsi que assets/JSON/Markdown. |
+| F-010 MINOR | Prompt de génération et backlog indiquent v3 pour les nouveaux plans ; les anciens contrats restent lisibles. Les identifiants du prompt ne sont plus substitués comme commandes shell. | Contrat courant et absence de substitution shell dans le heredoc réel vérifiés. |
+| F-011 MINOR | APPROVE est refusé si une ligne NON_VERIFIABLE n’est pas explicitement différée. | Rapport complet avec une ligne non différée NON_VERIFIABLE refusé. |
+| F-012 MINOR | Le déclenchement automatique de l’audit n’est plus limité à #250 ; ses filtres correspondent au pilote. L’attente du PASS Linux/Windows au même HEAD reste obligatoire. | Parité des filtres, absence de numéro/default figé, maintien du gate de qualification. |
+
+Validation locale : 10 nouvelles régressions PASS ; syntaxe des workflows PASS ; contrôle des 36 rétentions PASS ; scanner sans capacité distante non déclarée ; diff sans erreur d’espacement. La suite complète conserve les deux échecs historiques de ce snapshot dépourvu du commit applicatif `63a3c26ed492f7c0925cfb57419f3dc2dcc5e476`. Aucun test n’est désactivé : les checkouts GitHub complets doivent repasser Linux et Windows au nouveau HEAD.
+
+Ce lot ne qualifie pas encore le nouveau HEAD et ne modifie pas PRE-1. L’issue #249, la baseline `e216294506bed87dd80855937e3fabfbfa322b82` et les commentaires causaux `5874870872` → `5878031654` restent inchangés. Une nouvelle qualification et un verdict indépendant publié sont requis avant fusion de #250 et reprise de PRE-1.

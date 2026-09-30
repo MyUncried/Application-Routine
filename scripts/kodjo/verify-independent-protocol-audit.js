@@ -57,6 +57,7 @@ function verify(text) {
   for (const [field,status] of [['matrix_ids_covered','COVERED'],['matrix_ids_partial','PARTIAL'],['matrix_ids_not_covered','NOT_COVERED'],['matrix_ids_non_verifiable','NON_VERIFIABLE']]) {
     if (data[field] !== derived[status]) fail('INDEPENDENT_AUDIT_MATRIX_COUNT_MISMATCH', field);
   }
+  if(data.verdict==='APPROVE'&&data.matrix_rows.some(row=>row.status==='NON_VERIFIABLE'&&!DEFERRED_IDS.has(row.id)))fail('INDEPENDENT_AUDIT_APPROVE_WITH_NON_VERIFIABLE');
   if (data.verdict === 'APPROVE' && data.blocking_findings !== 0) fail('INDEPENDENT_AUDIT_APPROVE_WITH_BLOCKING');
   if (data.verdict === 'APPROVE' && data.matrix_rows.some(row=>row.status==='NOT_COVERED'&&!DEFERRED_IDS.has(row.id))) fail('INDEPENDENT_AUDIT_APPROVE_WITH_UNCOVERED');
   return data;

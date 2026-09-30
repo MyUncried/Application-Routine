@@ -30,7 +30,17 @@ function select({comments,command,commandId,issueUrl,slice,sourceHead,applicatio
     return c;
   };
   if(commandId) {
-    const event=authority(eligible.find(c=>String(c.id)===String(commandId)),'MyUncried');
+    const event=eligible.find(c=>String(c.id)===String(commandId));
+    const automatic=event?.user?.login==='github-actions[bot]';
+    authority(event,automatic?'github-actions[bot]':'MyUncried');
+    if(automatic){
+      if(!normalize(event.body).startsWith('[KODJO_V2] PLAN_REVIEW_OUTPUT\n')||field(event.body,'slice_id')!==slice||field(event.body,'verdict')!=='REVISE'||!/^STATUT : PLAN_REVISION_REQUIRED$/m.test(normalize(event.body)))throw new Error('CONTEXT_RETRY_COMMAND_INVALID');
+      const planId=field(event.body,'source_plan_comment_id',true);
+      const plan=authority(eligible.find(c=>String(c.id)===planId),'github-actions[bot]');
+      const initial=mode==='initial';
+      const binds=c=>initial?field(c.body,'source_head')===sourceHead&&field(c.body,'planning_mode')==='INITIAL':field(c.body,'application_head')===applicationHead&&field(c.body,'application_pr')===String(applicationPr);
+      if(!normalize(plan.body).startsWith('[KODJO_V2] PLAN_OUTPUT\n')||field(plan.body,'slice_id')!==slice||!binds(plan)||!binds(event))throw new Error('CONTEXT_RETRY_PLAN_BINDING_INVALID');
+    }
     if(normalize(event.body)!==normalize(command)) throw new Error('CONTEXT_COMMAND_MISMATCH');
   }
   const matches=(c,marker)=>normalize(c.body).startsWith(marker+'\n') && field(c.body,'slice_id')===slice;
@@ -44,8 +54,9 @@ function select({comments,command,commandId,issueUrl,slice,sourceHead,applicatio
     if(Buffer.byteLength(body)>120000) throw new Error('PROMPT_TOO_LARGE:CONTEXT_COMMENT');
     selected.push({role,id:String(c.id),sha256:digest(body),body});return c;
   }
-  const pinnedPlan=field(command,'base_plan_comment_id');
-  const pinnedReview=field(command,'base_review_comment_id');
+  const automatic=commandId&&eligible.find(c=>String(c.id)===String(commandId))?.user?.login==='github-actions[bot]';
+  const pinnedPlan=automatic?field(command,'source_plan_comment_id',true):field(command,'base_plan_comment_id');
+  const pinnedReview=automatic?String(commandId):field(command,'base_review_comment_id');
   if(Boolean(pinnedPlan)!==Boolean(pinnedReview)) throw new Error('CONTEXT_PLAN_REVIEW_PAIR_REQUIRED');
   if(mode==='initial') {
     const plans=eligible.filter(c=>matches(c,'[KODJO_V2] PLAN_OUTPUT')&&initialBound(c));

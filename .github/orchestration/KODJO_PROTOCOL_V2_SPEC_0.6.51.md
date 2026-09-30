@@ -186,7 +186,9 @@ Catégories minimales :
 - `NON_NORMATIVE_DOCUMENTATION` ;
 - `UNKNOWN`.
 
-`UNKNOWN` reste fail-safe et impose la qualification complète.
+`UNKNOWN` reste fail-safe et impose la qualification complète **dans les deltas mixtes dont un chemin protocolaire a déclenché le pilote**. Le pilote couvre le protocole : les PR exclusivement applicatives (`app/**`, `src/**`) relèvent de la CI applicative et ne créent aucun run pilote. Ce cas est la seule divergence volontaire entre le filtre natif et le classifier.
+
+Le routeur ne reçoit que `issue_comment.created`. Les clauses de dispatch des gates délégués y sont conservées pour la parité avec `comment-routes.json` ; un dispatch manuel cible directement le workflow worker.
 
 Un fichier n’est jamais classé non normatif du seul fait de son extension Markdown.
 
@@ -212,7 +214,7 @@ Les nouveaux plans sont générés avec `kodjo.ui-criteria.v3`. Les contrats v1/
 
 Chaque fichier non-test de `scope_allow` doit être lié à une exigence UI ou non-UI. `non_ui_coverage=NONE` ne peut exempter un fichier mutable sans exigence. Une exigence non-UI sans test exige `no_automated_test_reason` (au moins 40 caractères), reproduit comme `NO_AUTOMATED_TEST` dans le test contract. Avec des tests, le générateur produit `no_automated_test_reason=NONE`.
 
-PRESERVE et FORBIDDEN imposent un locator explicite PATH, SYMBOL ou SEMANTIC, un invariant et `expected=UNCHANGED`. PATH prouve l'absence de modification du fichier. SYMBOL prouve uniquement la conservation octet pour octet d'une déclaration de fonction nommée, unique, au niveau supérieur ; les syntaxes non prises en charge restent NON_VERIFIABLE, jamais PASS. Il ne prétend pas prouver l'équivalence comportementale ni les dépendances externes du symbole. SEMANTIC impose une justification distincte d'absence de locator ; un chemin explicite dissimulé dans cette justification est refusé. Le reviewer conserve les jugements sémantiques résiduels.
+PRESERVE et FORBIDDEN imposent un locator explicite PATH, SYMBOL ou SEMANTIC. FILE_UNCHANGED et SYMBOL_UNCHANGED utilisent `expected=UNCHANGED` et comparent l’état cumulatif à la baseline opposable, même si le dernier incrément ne touche plus le locator. Un objet Git source absent rend la preuve NON_VERIFIABLE. PATH/FILE_UNCHANGED compare les objets Git de la baseline et du HEAD revu. Une restauration réelle à la baseline peut donc redevenir PASS. Pour FORBIDDEN uniquement, PATH/PATH_ABSENT avec `expected=ABSENT` représente un fichier ou sous-arbre prospectif : absent de la baseline lors de la génération, il doit rester absent du HEAD et des fichiers non suivis, y compris ignorés. Ce locator ne requiert pas de fichier préexistant et ne peut pas être utilisé en PRESERVE. Une preuve machine FAIL ou NON_VERIFIABLE ne peut jamais être remplacée par PASS dans la revue. SYMBOL prouve uniquement la conservation octet pour octet d'une déclaration de fonction nommée, unique, au niveau supérieur ; les syntaxes non prises en charge restent NON_VERIFIABLE, jamais PASS. Il ne prétend pas prouver l'équivalence comportementale ni les dépendances externes du symbole. SEMANTIC impose une justification distincte d'absence de locator ; un chemin explicite dissimulé dans cette justification est refusé. Le reviewer conserve les jugements sémantiques résiduels.
 
 Un REVISE moderne sans findings structurés est refusé. Le statut LEGACY_UNBOUNDED est réservé aux anciens plans sans contrats exigences/atomiques ; il est consommé par le workflow, publié dans PLAN_OUTPUT et conserve la revue indépendante complète.
 
@@ -225,3 +227,9 @@ Tout script protocolaire exécuté après un checkout applicatif doit être fig�
 La compatibilité des identités positionnelles v2 est réservée à la consommation des contrats déjà embarqués et approuvés. La génération de nouveaux plans reste v3 et canonique. Pour les preuves fonctionnelles, la voie historique est exclusivement la classe fermée des matrices v1 sans contrat d'exigences, déjà liées à un plan approuvé par les gates de provenance. Elle est exposée comme HISTORICAL_V1_ONLY dans l'entrée de revue ; aucun plan v2/v3 ne peut y accéder en supprimant ou altérant les preuves. Les nouveaux plans v1 ne sont pas productibles par le validateur courant. Une preuve fonctionnelle exacte absente pour un plan contractuel est NON_VERIFIABLE, même avec Jest global vert.
 
 L'héritage non-UI compare les champs opposables et les preuves normalisées, indépendamment de l'ordre des clés. Les sections de scope en prose incluent aussi les chemins assets et extensions non JS/TS. Un finding bloquant PLAN est refusé sauf NON_UI_COVERAGE ; les corrections sont ciblées par chemins ou identités exactes, sans autorisation générale implicite.
+
+### Rétentions exécutables et autorité de reprise causale
+
+`verify-artifact-retention.js` confronte chaque upload KODJO à `artifact-policy.js` avant qualification. Les preuves de qualification disposable restent 90 jours ; les reçus de publication d’audit restent 14 jours. Un nom non reconnu bloque ce contrôle et est classé UNKNOWN/critique avec une rétention conservatoire de 90 jours ; il ne devient jamais implicitement purgeable.
+
+La reprise automatique de planification accepte comme commande le commentaire bot PLAN_REVIEW_OUTPUT REVISE uniquement si son issue, slice, lien source_plan_comment_id et HEAD sont ceux du plan bot causal. INITIAL exige aussi planning_mode=INITIAL. La commande est réhydratée avant le gate et toute génération ; les commandes utilisateur et leur paire explicite de commentaires restent acceptées.

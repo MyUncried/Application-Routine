@@ -1,6 +1,8 @@
 name: KODJO — Comment Router
 run-name: KODJO comment / ${{ github.event.comment.id }}
 
+# Comment events only. Dispatch clauses in delegated gates are kept solely for
+# textual parity with comment-routes.json; manual dispatch targets the worker directly.
 on:
   issue_comment:
     types: [created]

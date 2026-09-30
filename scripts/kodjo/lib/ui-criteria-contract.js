@@ -114,10 +114,10 @@ function normalizeAssertions(criterion, criterionProofs, matrixSchemaName) {
 function normalizeMatrix(matrix, {scope, uiPaths, requireAssertions=false}) {
   const uiApplicable = uiPaths.length > 0;
   if (!matrix || ![MATRIX_SCHEMA_V1,MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3].includes(matrix.schema)) {
-    fail('UI_PLAN_CRITERIA_INVALID', 'schema attendu ' + MATRIX_SCHEMA_V1 + ' ou ' + MATRIX_SCHEMA_V2);
+    fail('UI_PLAN_CRITERIA_INVALID', 'schema attendu ' + MATRIX_SCHEMA_V1 + ', ' + MATRIX_SCHEMA_V2 + ' ou ' + MATRIX_SCHEMA_V3);
   }
   if (requireAssertions && uiApplicable && ![MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3].includes(matrix.schema)) {
-    fail('UI_PLAN_ATOMICITY_REQUIRED', 'les nouveaux plans UI doivent utiliser ' + MATRIX_SCHEMA_V2);
+    fail('UI_PLAN_ATOMICITY_REQUIRED', 'les nouveaux plans UI doivent utiliser ' + MATRIX_SCHEMA_V3);
   }
 
   const criteria = requireArray(matrix.criteria, 'UI_PLAN_CRITERIA_INVALID', 'criteria');
@@ -228,6 +228,7 @@ function normalizeMatrix(matrix, {scope, uiPaths, requireAssertions=false}) {
       const justification = requireText(entry.justification, 'UI_PLAN_PRESERVATION_INVALID', key + '.justification');
       if (seen.has(target)) fail('UI_PLAN_PRESERVATION_INVALID', key + ' cible dupliquee: ' + target);
       seen.add(target);
+      if(key==='preserve'&&entry.locator?.invariant_type==='PATH_ABSENT')fail('PLAN_PATH_ABSENT_REQUIRES_FORBIDDEN',target);
       return { target, justification,...(matrix.schema===MATRIX_SCHEMA_V3 && key!=='change' ? {locator:normalizeBoundaryLocator(entry.locator,target)} : {}) };
     }).sort((a,b) => a.target.localeCompare(b.target));
   }
@@ -243,7 +244,8 @@ function normalizeBoundaryLocator(value,target){
     if(/(?:app|src|tests|assets|docs|scripts|\.github)\/[A-Za-z0-9_.\/-]+/.test((target+' '+semantic_justification).replace(/\\/g,'/')))fail('BOUNDARY_PATH_DISGUISED_AS_SEMANTIC',target);
   }else if(kind==='PATH'||kind==='SYMBOL'){
     normalizeRepoPath(path,'boundary.path');
-    if(expected!=='UNCHANGED'||invariant_type!==(kind==='PATH'?'FILE_UNCHANGED':'SYMBOL_UNCHANGED')||semantic_justification!=='NONE'||(kind==='PATH'?symbol!=='NONE':!/^[$A-Z_a-z][$\w]*$/.test(symbol)))fail('BOUNDARY_INVARIANT_INVALID',target);
+    const absent=kind==='PATH'&&invariant_type==='PATH_ABSENT'&&expected==='ABSENT';
+    if((!absent&&(expected!=='UNCHANGED'||invariant_type!==(kind==='PATH'?'FILE_UNCHANGED':'SYMBOL_UNCHANGED')))||semantic_justification!=='NONE'||(kind==='PATH'?symbol!=='NONE':!/^[$A-Z_a-z][$\w]*$/.test(symbol)))fail('BOUNDARY_INVARIANT_INVALID',target);
   }else fail('BOUNDARY_LOCATOR_KIND_INVALID',target);
   return {kind,path,symbol,invariant_type,expected,semantic_justification};
 }
@@ -282,7 +284,7 @@ const matrixSchemaV2 = object({
   criteria:array(object({...baseCriterionProperties,selected_component:object({path:text,export:text}),assertions:array(assertionSchema,1)})),
   preservation:object({preserve:array(preservationEntry), change:array(preservationEntry), forbidden:array(preservationEntry)}),
 });
-const boundaryLocatorSchema=object({kind:enumeration(['PATH','SYMBOL','SEMANTIC']),path:text,symbol:text,invariant_type:enumeration(['FILE_UNCHANGED','SYMBOL_UNCHANGED','SEMANTIC_REVIEW']),expected:enumeration(['UNCHANGED']),semantic_justification:text});
+const boundaryLocatorSchema=object({kind:enumeration(['PATH','SYMBOL','SEMANTIC']),path:text,symbol:text,invariant_type:enumeration(['FILE_UNCHANGED','SYMBOL_UNCHANGED','SEMANTIC_REVIEW','PATH_ABSENT']),expected:enumeration(['UNCHANGED','ABSENT']),semantic_justification:text});
 const structuredPreservationEntry=object({target:text,justification:text,locator:boundaryLocatorSchema});
 const matrixSchemaV3=object({...matrixSchemaV2.properties,schema:enumeration([MATRIX_SCHEMA_V3]),preservation:object({preserve:array(structuredPreservationEntry),change:array(preservationEntry),forbidden:array(structuredPreservationEntry)})});
 const matrixSchema = matrixSchemaV3;

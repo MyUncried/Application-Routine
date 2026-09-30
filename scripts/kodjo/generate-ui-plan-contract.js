@@ -93,6 +93,13 @@ function validateSourceBindings(requirements, scan, sourceRoot, scope, matrix=nu
   for(const category of ['preserve','forbidden']){
     for(const boundary of matrix?.preservation?.[category]||[]){
       const target=matrix.schema==='kodjo.ui-criteria.v3' ? boundary.locator.path : String(boundary.target||'');
+      if(boundary.locator?.invariant_type==='PATH_ABSENT'){
+        if(category!=='forbidden')throw new Error('PLAN_PATH_ABSENT_REQUIRES_FORBIDDEN');
+        const absentPath=normalizeRepoPath(target,'boundary.target');
+        const listing=spawnSync('git',['ls-tree','-r','-z','--name-only',head,'--',absentPath],{cwd:root,encoding:'utf8',shell:false});
+        if(listing.status!==0||listing.stdout)throw new Error('PLAN_FORBIDDEN_PATH_ALREADY_AT_HEAD:'+absentPath);
+        continue;
+      }
       if(target!=='NONE' &&
          !exists(normalizeRepoPath(target,'boundary.target'))){
         throw new Error('PLAN_BOUNDARY_PATH_NOT_AT_HEAD:'+target);

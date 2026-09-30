@@ -120,6 +120,10 @@ jobs:
         run: node tests/kodjo/run-all.js
       - name: Validate executable workflow invariants
         run: node scripts/kodjo/validate-workflows.js
+      - name: Verify artifact retention contracts
+        env:
+          KODJO_RECOVERY_RETENTION_DAYS: ${{ vars.KODJO_RECOVERY_RETENTION_DAYS || 90 }}
+        run: node scripts/kodjo/verify-artifact-retention.js
       - name: Record immutable qualification identity
         shell: bash
         env:
@@ -354,4 +358,4 @@ jobs:
           name: kodjo-v2-disposable-qualification-${{ github.run_id }}-${{ github.run_attempt }}
           path: _qualification/${{ github.run_id }}/qualification-evidence
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 90

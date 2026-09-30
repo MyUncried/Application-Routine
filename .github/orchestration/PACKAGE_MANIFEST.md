@@ -173,3 +173,7 @@ Ces composants sont livrés au même HEAD que ce manifeste. Leur présence ne va
 | `scripts/kodjo/verify-queue-preflight.js` | Entrée normative ou runtime consommé par les workflows candidats |
 | `scripts/kodjo/verify-ui-plan-criteria.js` | Entrée normative ou runtime consommé par les workflows candidats |
 | `scripts/kodjo/write-evidence-deposit.js` | Entrée normative ou runtime consommé par les workflows candidats |
+
+| `scripts/kodjo/verify-artifact-retention.js` | Contrôle exécutable des rétentions déclarées des uploads KODJO |
+| `tests/kodjo/causal-runtime-boundaries.pilot.js` | Régressions du runtime IMPLEMENT, reprises causales et frontières cumulatives |
+| `scripts/kodjo/lib/ui-criteria-contract.js` | Validation et schémas des contrats UI et frontières structurées |

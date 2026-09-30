@@ -205,9 +205,22 @@ jobs:
           }
           $commentsFile=Join-Path $env:RUNNER_TEMP 'kodjo-closure-comments-by-issue.json'
           [IO.File]::WriteAllText($commentsFile,($byIssue|ConvertTo-Json -Depth 30),(New-Object Text.UTF8Encoding($false)))
-          $result=node scripts/kodjo/detect-v2-closure-inconsistency.js $registryPath $commentsFile
+          $result=node scripts/kodjo/detect-v2-closure-inconsistency.js $registryPath $commentsFile '${{ steps.gate.outputs.slice_id }}'
           if($result){$result|Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8}
-          if($LASTEXITCODE-ne0 -and $result -notmatch 'CLOSURE_EVIDENCE_WITH_ACTIVE_REGISTRY|CLOSURE_HEAD_DRIFT'){throw 'CLOSURE_CONSISTENCY_CHECK_FAILED'}
+          $detectorExit=$LASTEXITCODE
+          if($detectorExit-ne0 -and $result -notmatch 'CLOSURE_EVIDENCE_WITH_ACTIVE_REGISTRY|CLOSURE_HEAD_DRIFT'){throw 'CLOSURE_CONSISTENCY_CHECK_FAILED'}
+          $consistency=($result -join [Environment]::NewLine)|ConvertFrom-Json
+          $drifts=@($consistency.durable_anomalies)
+          if($drifts.Count-gt0){
+            foreach($drift in $drifts){
+              $body='[KODJO_V2] CLOSURE_INCONSISTENCY'+[Environment]::NewLine+'slice_id='+$drift.slice_id+[Environment]::NewLine+'code=CLOSURE_HEAD_DRIFT'+[Environment]::NewLine+'final_comment_id='+$drift.final_comment_id
+              $payload=Join-Path $env:RUNNER_TEMP 'kodjo-closure-drift-comment.json'
+              [IO.File]::WriteAllText($payload,(@{body=$body}|ConvertTo-Json),(New-Object Text.UTF8Encoding($false)))
+              gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$($drift.issue_number)/comments" --input $payload
+              if($LASTEXITCODE-ne0){throw 'CLOSURE_DRIFT_PUBLICATION_FAILED'}
+            }
+            if($consistency.block_current_closure){throw 'CLOSURE_CURRENT_SLICE_HEAD_DRIFT'}
+          }
 
       - name: Checkout final HEAD
         uses: actions/checkout@v6

@@ -184,7 +184,10 @@ jobs:
             scripts/kodjo/verify-implementation-plan-gate.js \
             scripts/kodjo/verify-plan-contract-consistency.js \
             scripts/kodjo/verify-plan-impact.js \
-            scripts/kodjo/lib/plan-impact.js; do
+            scripts/kodjo/lib/plan-impact.js \
+            scripts/kodjo/lib/requirement-contract.js \
+            scripts/kodjo/lib/ui-criteria-contract.js \
+            scripts/kodjo/lib/ui-identities.js; do
             dest="${CONTROL}/${file#scripts/kodjo/}"
             mkdir -p "$(dirname "${dest}")"
             gh api -H 'Accept: application/vnd.github.raw+json' "repos/${GITHUB_REPOSITORY}/contents/${file}?ref=${PROTOCOL_HEAD}" > "${dest}"
