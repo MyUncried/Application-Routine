@@ -1,0 +1,21 @@
+{
+  "schema": "kodjo.plan-review-findings.v1",
+  "finding_count": 1,
+  "verdict": "REVISE",
+  "affected_targets": [
+    ".github/orchestration/v2-slices/V2-PRE-1/qualification-spec.md §4"
+  ],
+  "findings": [
+    {
+      "finding_id": "RF-73BC563FC1E3AF8D",
+      "category": "REQUIREMENT_GAP",
+      "target_kind": "SOURCE",
+      "target": ".github/orchestration/v2-slices/V2-PRE-1/qualification-spec.md §4",
+      "blocking": true,
+      "diagnostic": "Prior finding 9: the requirement and atomic UI criterion now exist, but expected_correction required them \"with its blast radius and tests\", and that part is unmet — no traced exclusion was recorded either (KODJO_PLAN_CLARIFICATIONS_JSON is []). Criterion UI-D35DA2C4F266 (REQ-2376BBC2C2A2CA1B) declares change_targets=[\"src/shared/i18n/resources/fr.ts\"] and tests=[\"src/shared/i18n/index.test.ts\"] only, while its assertion UI-D35DA2C4F266-ADD64454F29BF mandates replacing every French value designating an ActivityDefinition/SessionActivity object. Four test files outside write_scope assert exactly such values verbatim: src/features/sessions/__tests__/SessionCard.test.tsx:37 expects getByText(\"1 activité · 18 min · 1 tour\"), built from fr.ts:147-148 activitySingular/activityPlural via formatSessionSummary.ts:17-23 formatActivityCount and SessionCard.tsx:94 — yet its KODJO_PLAN_IMPACT_JSON row is TEST_UNAFFECTED with the justification \"Aucune assertion de présentation directement incompatible n'est démontrée par le scan à un niveau\", which that line refutes; src/features/sessions/__tests__/formatSessionSummary.test.ts:14,18,22,23 assert formatActivityCount(1)==\"1 activité\", (0)==\"0 activités\", (2)==\"2 activités\", (5)==\"5 activités\"; src/features/sessions/__tests__/ExerciseExitConfirmModal.test.tsx:17 asserts the exact fr.ts:572 message \"Les modifications apportées à cette activité seront perdues.\"; src/features/activities/__tests__/CatalogueCreateOptions.test.tsx:68 asserts getByText(\"Une nouvelle activité\") from fr.ts:163. None of these four paths occurs anywhere in the 5744-line plan (grep count 0 for formatSessionSummary, ExerciseExitConfirmModal, CatalogueCreateOptions) and none is in KODJO_PLAN_CONTRACT_JSON.required_test_writes. Actual PRE-1 consequence: the §4 renaming deterministically reddens four test files that the implementer is not authorised to touch, so REQ-7121A20CC376709A (\"Les tests … doivent être verts avant la clôture de PRE-1\") and plan §11's exit criteria cannot be met without a SCOPE_EXPANSION_REQUIRED stop mid-implementation.",
+      "expected_correction": "Declare the blast radius of UI-D35DA2C4F266 / REQ-2376BBC2C2A2CA1B: add src/features/sessions/__tests__/SessionCard.test.tsx, src/features/sessions/__tests__/formatSessionSummary.test.ts, src/features/sessions/__tests__/ExerciseExitConfirmModal.test.tsx and src/features/activities/__tests__/CatalogueCreateOptions.test.tsx to scope_allow/write_scope and to required_test_writes (reclassifying the SessionCard.test.tsx impact row away from TEST_UNAFFECTED, whose current justification is refuted by line 37), and bind them to that criterion's tests; alternatively, restrict the criterion by an explicit atomic assertion listing the fr.ts key paths excluded from the renaming for PRE-1 (naming at least screens.sessions.card.activitySingular/activityPlural, screens.sessions.createTree.newActivity and the exercise-exit message), with a justified deferral recorded in KODJO_PLAN_CLARIFICATIONS_JSON and challengeable against qualification-spec §4.",
+      "dependency_expansion_required": true,
+      "dependency_evidence": "Closing this finding requires declaring scope on four test files currently outside write_scope, whose breakage is demonstrated by the baseline code: src/features/sessions/formatSessionSummary.ts:17-23 reads strings.screens.sessions.card.activitySingular/activityPlural (fr.ts:147-148) and is consumed at src/features/sessions/SessionCard.tsx:94, asserted verbatim at src/features/sessions/__tests__/SessionCard.test.tsx:37 and src/features/sessions/__tests__/formatSessionSummary.test.ts:14,18,22,23; src/features/sessions/__tests__/ExerciseExitConfirmModal.test.tsx:17 asserts fr.ts:572; src/features/activities/__tests__/CatalogueCreateOptions.test.tsx:68 asserts fr.ts:163."
+    }
+  ]
+}

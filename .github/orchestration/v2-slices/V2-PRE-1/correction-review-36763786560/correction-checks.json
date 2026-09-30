@@ -1,0 +1,24 @@
+{
+  "status": "LOCAL_GATES_PASS",
+  "source_head": "e216294506bed87dd80855937e3fabfbfa322b82",
+  "corrected_findings": [
+    9
+  ],
+  "source_review_run": 36763786560,
+  "review_session_id": "25caf6b2-1663-4a23-bb75-204982cc2b7b",
+  "gates": {
+    "plan_impact": "PASS",
+    "plan_contract_consistency": "PASS",
+    "ui_plan_criteria": "PASS"
+  },
+  "scope_paths": 98,
+  "required_test_writes": 41,
+  "requirement_count": 27,
+  "ui_criteria": 13,
+  "assertions": 32,
+  "test_bindings": 61,
+  "scan_sha256": "cbdeb42f0f7734d5204bb15843ed8faeb13dbd488c7b0c00f7c7e415585110d9",
+  "plan_sha256": "176f5c2c6b90bf8dee41460285c64ae2912bcac9893e46885e626966cd2bf4b7",
+  "plan_bytes": 232358,
+  "independent_review": "PENDING"
+}
