@@ -111,7 +111,7 @@ function buildCutoverPlan({
   });
 }
 
-function validateCutoverPlan(plan) {
+function validateCutoverPlan(plan, legacyActivationRegistry = null) {
   V.assertExactKeys(
     plan,
     [
@@ -156,6 +156,39 @@ function validateCutoverPlan(plan) {
       || plan.routing_after_activation.new_slices !== VNEXT) {
     V.fail('VNEXT_CUTOVER_POST_ACTIVATION_ROUTING_INVALID');
   }
+
+  if (legacyActivationRegistry !== null) {
+    validateLegacyRegistry(legacyActivationRegistry);
+    if (V.canonicalHash(legacyActivationRegistry) !== plan.legacy_registry_hash) {
+      V.fail('VNEXT_CUTOVER_LEGACY_REGISTRY_STALE');
+    }
+    const byId = new Map(legacyActivationRegistry.activations.map((row) => [row.slice_id, row]));
+    for (const sliceId of plan.protected_legacy_slice_ids) {
+      if (!byId.has(sliceId)) V.fail('VNEXT_CUTOVER_PROTECTED_SLICE_UNKNOWN', sliceId);
+    }
+    const expectedBlockers = plan.protected_legacy_slice_ids
+      .filter((sliceId) => byId.get(sliceId).status !== CLOSED)
+      .sort();
+    const expectedGrandfathered = legacyActivationRegistry.activations
+      .filter((row) => row.status === ACTIVE)
+      .map((row) => row.slice_id)
+      .sort();
+    const expectedReadiness = expectedBlockers.length === 0
+      ? 'READY_FOR_ACTIVATION'
+      : 'BLOCKED_BY_ACTIVE_PROTECTED_SLICE';
+
+    if (V.canonicalStringify([...plan.blocking_slice_ids].sort())
+        !== V.canonicalStringify(expectedBlockers)) {
+      V.fail('VNEXT_CUTOVER_BLOCKERS_MISMATCH');
+    }
+    if (V.canonicalStringify([...plan.grandfathered_legacy_slice_ids].sort())
+        !== V.canonicalStringify(expectedGrandfathered)) {
+      V.fail('VNEXT_CUTOVER_GRANDFATHERED_LEGACY_MISMATCH');
+    }
+    if (plan.activation_readiness !== expectedReadiness) {
+      V.fail('VNEXT_CUTOVER_READINESS_MISMATCH');
+    }
+  }
   return true;
 }
 
@@ -165,8 +198,7 @@ function buildActivationRecord({
   approvalEvidence,
   activatedAtProtocolHead,
 }) {
-  validateCutoverPlan(cutoverPlan);
-  validateLegacyRegistry(currentLegacyActivationRegistry);
+  validateCutoverPlan(cutoverPlan, currentLegacyActivationRegistry);
   if (cutoverPlan.activation_readiness !== 'READY_FOR_ACTIVATION') {
     V.fail('VNEXT_CUTOVER_ACTIVATION_BLOCKED', cutoverPlan.blocking_slice_ids.join(','));
   }
