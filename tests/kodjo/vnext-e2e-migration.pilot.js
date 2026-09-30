@@ -18,6 +18,7 @@ const Revision = require('../../scripts/kodjo/lib/revision-contract');
 const Approval = require('../../scripts/kodjo/lib/approval-handoff-contract');
 const Runtime = require('../../scripts/kodjo/lib/vnext-runtime');
 const Adapter = require('../../scripts/kodjo/lib/vnext-legacy-queue-adapter');
+const AuditStability = require('../../scripts/kodjo/lib/audit-stability-contract');
 
 const H40A = 'a'.repeat(40);
 const H40C = 'c'.repeat(40);
@@ -238,6 +239,24 @@ function approve(artifacts, reviewReport, state) {
     currentState: state,
   });
   return { approvalTarget, approvalRecord, executionRequest };
+}
+
+function explicitResolutionSet(previousReport, nextArtifacts, nextReport) {
+  const nextIds = new Set(nextReport.findings.map((row) => row.finding_id));
+  return AuditStability.buildFindingResolutionSet({
+    previousReviewReport: previousReport,
+    nextReviewContext: nextArtifacts.reviewContext,
+    nextReviewReport: nextReport,
+    resolutions: previousReport.findings
+      .filter((row) => row.blocking && !nextIds.has(row.finding_id))
+      .map((row) => ({
+        finding_id: row.finding_id,
+        disposition: 'RESOLVED',
+        evidence: ['Correction explicitement vérifiée dans la revue suivante.'],
+        evidence_target_ids: [row.target_id],
+        justification: 'Le finding antérieur est fermé explicitement.',
+      })),
+  });
 }
 
 function transport() {
@@ -519,13 +538,16 @@ test('VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY apr�
     semanticReview: { findings: [] },
   });
 
+  const findingResolutionSet = explicitResolutionSet(baseReview, next, nextReview);
   const outcome = Revision.verifyRevisionOutcome({
     allowedChangeSet: allowed,
     revisionPatch: patch,
     baseArtifacts: base,
     nextArtifacts: next,
+    previousReviewReport: baseReview,
     nextReviewContext: next.reviewContext,
     nextReviewReport: nextReview,
+    findingResolutionSet,
   });
   assert.equal(outcome.status, 'RESOLVED');
 
@@ -537,6 +559,7 @@ test('VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY apr�
     revisionArtifacts: {
       allowed_change_set: allowed,
       revision_patch: patch,
+      finding_resolution_set: findingResolutionSet,
       revision_outcome: outcome,
     },
     ...approved,
