@@ -7,6 +7,7 @@ const path = require('node:path');
 
 const V = require('../../scripts/kodjo/lib/vnext-contract');
 const Cutover = require('../../scripts/kodjo/lib/vnext-cutover-contract');
+const RemoteWrite = require('../../scripts/kodjo/lib/vnext-remote-write-security');
 
 const CANDIDATE_HEAD = '1a8e6a0614b5f1c32081f9a7549ec27239611a71';
 const ACTIVATION_HEAD = 'b'.repeat(40);
@@ -32,6 +33,19 @@ function closedPre1Registry() {
   return copy;
 }
 
+function remoteWriteAttestation(reg) {
+  const root = path.resolve(__dirname, '..', '..');
+  const policy = JSON.parse(fs.readFileSync(
+    path.join(root, '.github', 'orchestration', 'KODJO_VNEXT_REMOTE_WRITE_POLICY.json'),
+    'utf8',
+  ));
+  return RemoteWrite.evaluateRemoteWriteSecurity({
+    root,
+    policy,
+    legacyActivationRegistry: reg,
+  });
+}
+
 function planFor(reg) {
   return Cutover.buildCutoverPlan({
     candidateHead: CANDIDATE_HEAD,
@@ -40,6 +54,7 @@ function planFor(reg) {
     qualificationStatus: 'QUALIFIED_ON_VNEXT_PERIMETER',
     legacyActivationRegistry: reg,
     protectedLegacySliceIds: ['V2-PRE-1'],
+    remoteWriteAttestation: remoteWriteAttestation(reg),
   });
 }
 
@@ -67,6 +82,7 @@ test('VNext-10 état réel : PRE-1 actif bloque l’activation mais pas la prép
   assert.equal(plan.activation_readiness, 'BLOCKED_BY_ACTIVE_PROTECTED_SLICE');
   assert.deepEqual(plan.blocking_slice_ids, ['V2-PRE-1']);
   assert.equal(plan.active_workflow_change_allowed, false);
+  assert.equal(plan.remote_write_security_status, 'PASS_WITH_FROZEN_LEGACY');
   assert.equal(Cutover.validateCutoverPlan(plan, current), true);
 
   assert.throws(
@@ -274,4 +290,24 @@ test('VNext-10 ne modifie aucun workflow actif dans le lot de préparation', () 
   assert.match(report, /aucun workflow actif/i);
   assert.match(report, /PRE-1/i);
   assert.match(report, /non actif/i);
+});
+
+
+test('F-01 — le cutover est bloqué si les dernières slices legacy ferment sans retrait des anciens writers', () => {
+  const allClosed = structuredClone(registry());
+  for (const row of allClosed.activations) row.status = 'CLOSED';
+  const attestation = remoteWriteAttestation(allClosed);
+  assert.equal(attestation.status, 'FAIL');
+  assert.ok(attestation.findings.some((row) =>
+    row.code === 'VNEXT_REMOTE_WRITE_LEGACY_WRITER_NOT_RETIRED'));
+
+  assert.throws(() => Cutover.buildCutoverPlan({
+    candidateHead: CANDIDATE_HEAD,
+    candidatePr: 262,
+    qualificationRunId: 36651084611,
+    qualificationStatus: 'QUALIFIED_ON_VNEXT_PERIMETER',
+    legacyActivationRegistry: allClosed,
+    protectedLegacySliceIds: ['V2-PRE-1'],
+    remoteWriteAttestation: attestation,
+  }), /VNEXT_CUTOVER_REMOTE_WRITE_SECURITY_NOT_READY/);
 });
