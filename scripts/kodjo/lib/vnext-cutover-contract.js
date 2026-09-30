@@ -239,6 +239,7 @@ function buildActivationRecord({
 }
 
 function validateActivationRecord(record, cutoverPlan) {
+  validateCutoverPlan(cutoverPlan);
   V.assertExactKeys(
     record,
     [
