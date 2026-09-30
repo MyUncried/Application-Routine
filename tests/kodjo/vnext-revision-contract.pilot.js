@@ -55,6 +55,31 @@ function findingAssessmentFor(artifacts, report, auditManifest = auditManifestFo
   });
 }
 
+function findingLedgerFor(artifacts, report, auditManifest = auditManifestFor(artifacts), assessment = findingAssessmentFor(artifacts, report, auditManifest)) {
+  return AuditStability.buildFindingLedgerInitial({
+    auditManifest,
+    reviewContext: artifacts.reviewContext,
+    reviewReport: report,
+    findingAssessment: assessment,
+  });
+}
+
+function advancedLedgerFor(base, previousReport, next, nextReport, auditManifest = auditManifestFor(base)) {
+  const previousAssessment = findingAssessmentFor(base, previousReport, auditManifest);
+  const previousLedger = findingLedgerFor(base, previousReport, auditManifest, previousAssessment);
+  const nextAssessment = findingAssessmentFor(next, nextReport, auditManifest);
+  const resolutions = explicitResolutionSet(previousReport, next, nextReport, auditManifest);
+  return AuditStability.advanceFindingLedgerWithPreviousReport({
+    previousLedger,
+    previousReviewReport: previousReport,
+    auditManifest,
+    nextReviewContext: next.reviewContext,
+    nextReviewReport: nextReport,
+    nextFindingAssessment: nextAssessment,
+    findingResolutionSet: resolutions,
+  });
+}
+
 function explicitResolutionSet(previousReport, nextArtifacts, nextReport, auditManifest = auditManifestFor(nextArtifacts)) {
   const nextIds = new Set(nextReport.findings.map((row) => row.finding_id));
   return AuditStability.buildFindingResolutionSet({
@@ -360,6 +385,7 @@ test('VNext-07 construit un AllowedChangeSet borné et préserve le plan item no
     reviewReport: report,
     auditManifest: auditManifestFor(base),
     findingAssessment: findingAssessmentFor(base, report),
+    findingLedger: findingLedgerFor(base, report),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
@@ -389,6 +415,7 @@ test('VNext-07 refuse un finding PLAN_CONTRACT trop large sans dépendances cibl
     reviewReport: report,
     auditManifest: auditManifestFor(base),
     findingAssessment: findingAssessmentFor(base, report),
+    findingLedger: findingLedgerFor(base, report),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
@@ -418,6 +445,7 @@ test('VNext-07 calcule la réentrée la plus amont quand plusieurs findings coex
     reviewReport: report,
     auditManifest: auditManifestFor(base),
     findingAssessment: findingAssessmentFor(base, report),
+    findingLedger: findingLedgerFor(base, report),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
@@ -444,6 +472,7 @@ test('VNext-07 SOURCE_UNIT reste un anchor et non un objet librement mutable', (
     reviewReport: report,
     auditManifest: auditManifestFor(base),
     findingAssessment: findingAssessmentFor(base, report),
+    findingLedger: findingLedgerFor(base, report),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
@@ -466,6 +495,7 @@ test('VNext-07 refuse une correction sur une cible hors AllowedChangeSet', () =>
     reviewReport: report,
     auditManifest: auditManifestFor(base),
     findingAssessment: findingAssessmentFor(base, report),
+    findingLedger: findingLedgerFor(base, report),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
@@ -501,6 +531,7 @@ test('VNext-07 exige que chaque finding bloquant soit couvert par le RevisionPat
     reviewReport: report,
     auditManifest: auditManifestFor(base),
     findingAssessment: findingAssessmentFor(base, report),
+    findingLedger: findingLedgerFor(base, report),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
@@ -525,6 +556,7 @@ test('VNext-07 produit une application bornée sans exposer les cibles dérivée
     reviewReport: report,
     auditManifest: auditManifestFor(base),
     findingAssessment: findingAssessmentFor(base, report),
+    findingLedger: findingLedgerFor(base, report),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
@@ -554,6 +586,7 @@ test('VNext-07 accepte une correction ciblée et vérifie la préservation exact
     reviewReport: report,
     auditManifest: auditManifestFor(base),
     findingAssessment: findingAssessmentFor(base, report),
+    findingLedger: findingLedgerFor(base, report),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
@@ -592,9 +625,12 @@ test('VNext-07 accepte une correction ciblée et vérifie la préservation exact
     nextArtifacts: next,
     auditManifest: auditManifestFor(base),
     previousReviewReport: report,
+    previousFindingLedger: findingLedgerFor(base, report),
     nextReviewContext: next.reviewContext,
     nextReviewReport: nextReport,
+    nextFindingAssessment: findingAssessmentFor(next, nextReport, auditManifestFor(base)),
     findingResolutionSet: explicitResolutionSet(report, next, nextReport, auditManifestFor(base)),
+    nextFindingLedger: advancedLedgerFor(base, report, next, nextReport, auditManifestFor(base)),
   });
   assert.equal(outcome.status, 'RESOLVED');
 
@@ -609,6 +645,7 @@ test('VNext-07 autorise un nouvel objet dérivé uniquement sous la cible corrig
     reviewReport: report,
     auditManifest: auditManifestFor(base),
     findingAssessment: findingAssessmentFor(base, report),
+    findingLedger: findingLedgerFor(base, report),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
@@ -648,9 +685,12 @@ test('VNext-07 autorise un nouvel objet dérivé uniquement sous la cible corrig
     nextArtifacts: next,
     auditManifest: auditManifestFor(base),
     previousReviewReport: report,
+    previousFindingLedger: findingLedgerFor(base, report),
     nextReviewContext: next.reviewContext,
     nextReviewReport: nextReport,
+    nextFindingAssessment: findingAssessmentFor(next, nextReport, auditManifestFor(base)),
     findingResolutionSet: explicitResolutionSet(report, next, nextReport, auditManifestFor(base)),
+    nextFindingLedger: advancedLedgerFor(base, report, next, nextReport, auditManifestFor(base)),
   });
   assert.equal(outcome.status, 'RESOLVED');
   assert.ok(outcome.new_target_count >= 1);
@@ -663,6 +703,7 @@ test('VNext-07 détecte une modification d’un objet préservé', () => {
     reviewReport: report,
     auditManifest: auditManifestFor(base),
     findingAssessment: findingAssessmentFor(base, report),
+    findingLedger: findingLedgerFor(base, report),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
@@ -700,9 +741,12 @@ test('VNext-07 détecte une modification d’un objet préservé', () => {
     nextArtifacts: next,
     auditManifest: auditManifestFor(base),
     previousReviewReport: report,
+    previousFindingLedger: findingLedgerFor(base, report),
     nextReviewContext: next.reviewContext,
     nextReviewReport: nextReport,
+    nextFindingAssessment: findingAssessmentFor(next, nextReport, auditManifestFor(base)),
     findingResolutionSet: explicitResolutionSet(report, next, nextReport, auditManifestFor(base)),
+    nextFindingLedger: advancedLedgerFor(base, report, next, nextReport, auditManifestFor(base)),
   }), /PRESERVATION_REGRESSION/);
 });
 
@@ -713,6 +757,7 @@ test('VNext-07 détecte REVISION_STALLED si le même finding persiste', () => {
     reviewReport: report,
     auditManifest: auditManifestFor(base),
     findingAssessment: findingAssessmentFor(base, report),
+    findingLedger: findingLedgerFor(base, report),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
@@ -753,9 +798,12 @@ test('VNext-07 détecte REVISION_STALLED si le même finding persiste', () => {
     nextArtifacts: next,
     auditManifest: auditManifestFor(base),
     previousReviewReport: report,
+    previousFindingLedger: findingLedgerFor(base, report),
     nextReviewContext: next.reviewContext,
     nextReviewReport: nextReport,
+    nextFindingAssessment: findingAssessmentFor(next, nextReport, auditManifestFor(base)),
     findingResolutionSet: explicitResolutionSet(report, next, nextReport, auditManifestFor(base)),
+    nextFindingLedger: advancedLedgerFor(base, report, next, nextReport, auditManifestFor(base)),
   }), /REVISION_STALLED/);
 });
 
@@ -767,6 +815,7 @@ test('VNext-07 détecte un nouveau finding bloquant sur un objet préservé', ()
     reviewReport: report,
     auditManifest: auditManifestFor(base),
     findingAssessment: findingAssessmentFor(base, report),
+    findingLedger: findingLedgerFor(base, report),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
@@ -808,9 +857,12 @@ test('VNext-07 détecte un nouveau finding bloquant sur un objet préservé', ()
     nextArtifacts: next,
     auditManifest: auditManifestFor(base),
     previousReviewReport: report,
+    previousFindingLedger: findingLedgerFor(base, report),
     nextReviewContext: next.reviewContext,
     nextReviewReport: nextReport,
+    nextFindingAssessment: findingAssessmentFor(next, nextReport, auditManifestFor(base)),
     findingResolutionSet: explicitResolutionSet(report, next, nextReport, auditManifestFor(base)),
+    nextFindingLedger: advancedLedgerFor(base, report, next, nextReport, auditManifestFor(base)),
   }), /PRESERVATION_REGRESSION/);
 });
 
@@ -841,6 +893,7 @@ test('VNext-07 le schéma de correction ne permet ni verdict ni path libre', () 
     reviewReport: report,
     auditManifest: auditManifestFor(base),
     findingAssessment: findingAssessmentFor(base, report),
+    findingLedger: findingLedgerFor(base, report),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
