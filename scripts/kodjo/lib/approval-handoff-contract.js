@@ -2,6 +2,7 @@
 
 const V = require('./vnext-contract');
 const PlanningEnvelope = require('./planning-envelope');
+const RequirementRegistry = require('./requirement-registry');
 const Impact = require('./impact-graph');
 const Plan = require('./plan-contract');
 const Review = require('./review-contract');
@@ -55,6 +56,13 @@ function validateApprovedArtifacts({
   uiAtomicityContract,
 }) {
   PlanningEnvelope.validate(planningEnvelope);
+  RequirementRegistry.validate(requirementRegistry, planningEnvelope.source_manifest);
+  Impact.validateCandidateManifest(candidateManifest);
+  Impact.validateImpactGraph(impactGraph, {
+    requirementRegistry,
+    candidateManifest,
+    directImportScan,
+  });
   Review.validateReviewContext(reviewContext);
   Review.validateReviewReport(reviewReport, reviewContext);
 
