@@ -25,6 +25,46 @@
       "destination": "contents",
       "conditions": "Legacy finalization only while grandfathered legacy slices remain active; retire afterwards.",
       "required_permission_scope": "WORKFLOW"
+    },
+    {
+      "declaration_id": "VNW-002",
+      "lifecycle": "VNEXT",
+      "producer_path": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "producer_blob_sha40": "81633464d94518319c999f5e34e7cefcb04d6b49",
+      "capability_type": "GITHUB_PERMISSION_WRITE",
+      "destination": "pull-requests",
+      "conditions": "Supervised VNext bridge; PR operations only after deterministic delivery checks.",
+      "required_permission_scope": "WORKFLOW"
+    },
+    {
+      "declaration_id": "VNW-003",
+      "lifecycle": "VNEXT",
+      "producer_path": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "producer_blob_sha40": "81633464d94518319c999f5e34e7cefcb04d6b49",
+      "capability_type": "GITHUB_PERMISSION_WRITE",
+      "destination": "issues",
+      "conditions": "Supervised VNext bridge; issue publication only after deterministic delivery checks.",
+      "required_permission_scope": "WORKFLOW"
+    },
+    {
+      "declaration_id": "VNW-004",
+      "lifecycle": "VNEXT",
+      "producer_path": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "producer_blob_sha40": "81633464d94518319c999f5e34e7cefcb04d6b49",
+      "capability_type": "GH_API_WRITE",
+      "destination": "repos/$env:GITHUB_REPOSITORY/dispatches",
+      "conditions": "Repository dispatch only after verified delivery metadata exists.",
+      "required_permission_scope": "NONE"
+    },
+    {
+      "declaration_id": "VNW-005",
+      "lifecycle": "VNEXT",
+      "producer_path": "scripts/kodjo/run-queued-request.ps1",
+      "producer_blob_sha40": "4d611cce89e6b56bc3f70b07374d778063f346e9",
+      "capability_type": "GIT_CREDENTIAL_HEADER",
+      "destination": "git-config-extraheader",
+      "conditions": "Temporary supervisor authentication only; header removed before completion and not exposed to Claude.",
+      "required_permission_scope": "NONE"
     }
   ]
 }
