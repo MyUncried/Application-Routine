@@ -95,6 +95,10 @@ Un writer `QUALIFICATION` produit :
 
 `BLOCKED_QUALIFICATION_WRITER_PRESENT`
 
+L’absence de writer `VNEXT` de production produit :
+
+`BLOCKED_VNEXT_PRODUCTION_WRITER_MISSING`
+
 Un writer legacy restant sans slice legacy active produit :
 
 `BLOCKED_LEGACY_WRITERS_NOT_RETIRED`
