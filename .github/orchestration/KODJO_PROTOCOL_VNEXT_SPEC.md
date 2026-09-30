@@ -1742,7 +1742,17 @@ Le gate `CUTOVER_ACTIVATABLE` n’est franchi que si :
 - qualification VNext toujours valide sur le HEAD destiné au cutover ;
 - approbation explicite de l’activation disponible.
 
-Ce gate n’est pas attendu avant la clôture de PRE-1.
+**Supersession VNext-11 :** ces conditions sont nécessaires mais ne sont plus suffisantes.
+Avant activation effective, il faut également :
+
+- `AUDIT_STABILITY_READY` acquis ;
+- E2E réel jetable du protocole et du transport qualifié sur le candidat exact ;
+- audit indépendant final sur le dossier figé ;
+- `FinalAuditOutcome.status = FINAL_APPROVED`.
+
+Un `FINAL_REVISE_TERMINAL` ou `FINAL_CLARIFICATION_TERMINAL` interdit le cutover.
+
+Ce gate n’est pas attendu avant la clôture de PRE-1, et la clôture de PRE-1 ne suffit pas à elle seule à le franchir.
 
 ### 20.15 Hors périmètre
 
