@@ -76,7 +76,6 @@ const negativeCases = [
   ['tests wrong type',m=>m.criteria[0].tests={}],
   ['functional without tests',m=>m.criteria[0].tests=[]],
   ['invalid proof enum',m=>m.criteria[0].proof_required=['SCREENSHOT']],
-  ['visual without comparison',m=>m.criteria[0].proof_required=['FUNCTIONAL_TEST','DEVICE_CHECK']],
   ['device without proof',m=>m.criteria[0].proof_required=['FUNCTIONAL_TEST','VISUAL_COMPARE']],
   ['functional without proof',m=>m.criteria[0].proof_required=['DEVICE_CHECK','VISUAL_COMPARE']],
   ['accessibility without proof',m=>m.criteria[0].risk_types.push('ACCESSIBILITY')],
@@ -87,7 +86,6 @@ const negativeCases = [
   ['empty assertions',m=>m.criteria[0].assertions=[]],
   ['bad assertion id',m=>m.criteria[0].assertions[0].assertion_id='UI-001-X'],
   ['unsourced assertion',m=>delete m.criteria[0].assertions[0].source],
-  ['geometry without visual proof',m=>m.criteria[0].assertions[1].proof_required=['DEVICE_CHECK']],
   ['unknown field',m=>m.criteria[0].invented=true],
   ['missing preservation block',m=>delete m.preservation.forbidden],
   ['wrong preservation entry type',m=>m.preservation.preserve=['Navigation']],
@@ -100,6 +98,38 @@ for (const [name,mutate] of negativeCases) test('KPB-001 rejected by generation 
   const m=validMatrix();mutate(m);
   assert.throws(()=>decode('draft',response(payload(m))));
   assert.throws(()=>validate(m));
+});
+test('PRE-1 visual obligations are derived from the same rule as the consumer before identities',()=>{
+ for(const property of ['GEOMETRY','RELATION','STYLE','LAYERING','RESPONSIVE']){
+  const m=validMatrix();const c=m.criteria[0];c.assertions[1].property_type=property;c.assertions[1].proof_required=['DEVICE_CHECK'];
+  c.proof_required=['FUNCTIONAL_TEST','DEVICE_CHECK'];c.risk_types=['FUNCTIONAL','DEVICE'];
+  assert.throws(()=>validate(stabilizeUiIdentities(m)),/exige VISUAL_COMPARE/);
+  const original=JSON.stringify(m);const output=decode('draft',response(payload(m)));
+  const normalized=JSON.parse(output.match(/<KODJO_UI_CRITERIA_MATRIX_JSON>\s*([\s\S]*?)\s*<\/KODJO_UI_CRITERIA_MATRIX_JSON>/)[1]);
+  assert.doesNotThrow(()=>validate(normalized));assert.equal(JSON.stringify(m),original);
+  const a=normalized.criteria[0].assertions.find(a=>a.property_type===property);
+  assert.deepEqual(a.proof_required,['DEVICE_CHECK','VISUAL_COMPARE']);assert.ok(normalized.criteria[0].risk_types.includes('VISUAL'));
+  assert.equal(a.expected,c.assertions[1].expected);assert.deepEqual(a.source,c.assertions[1].source);
+  const {assertionIdentity}=require('../../scripts/kodjo/lib/ui-identities');assert.equal(a.assertion_id,assertionIdentity(normalized.criteria[0].criterion_id,a));
+ }
+ assert.ok(contractPrompt().includes('function mandatoryAssertionProofs'));assert.ok(contractPrompt().includes('function assertionMandatoryProofs'));
+});
+test('PRE-1 construction preserves duplicate and unallocated proof rejection and semantic obligations',()=>{
+ for(const mutate of [m=>m.criteria[0].assertions[0].proof_required.push('FUNCTIONAL_TEST'),m=>m.criteria[0].proof_required.push('FUNCTIONAL_TEST'),m=>m.criteria[0].proof_required.push('ACCESSIBILITY_CHECK'),m=>{m.criteria[0].assertions[0].property_type='INTERACTION';m.criteria[0].assertions[0].proof_required=['DEVICE_CHECK'];}]){
+  const m=validMatrix();mutate(m);assert.throws(()=>decode('draft',response(payload(m))));
+ }
+ const m=validMatrix();const decoded=decode('draft',response(payload(m)));const again=decode('draft',response(payload(JSON.parse(decoded.match(/<KODJO_UI_CRITERIA_MATRIX_JSON>\s*([\s\S]*?)\s*<\/KODJO_UI_CRITERIA_MATRIX_JSON>/)[1]))));assert.equal(decoded,again);
+});
+test('PRE-1 failed decode preserves raw responses selected by the real always-upload step',()=>{
+ const workflow=require('../../scripts/kodjo/lib/yaml').parse(fs.readFileSync(path.join(__dirname,'../../.github/workflows/kodjo-v2-slice-initial-plan.yml'),'utf8'));
+ const step=workflow.jobs.plan.steps.find(s=>s.name==='Preserve initial planning evidence');assert.equal(step.if,'always()');
+ for(const filename of ['draft-response.json','final-response.json'])assert.ok(step.with.path.split(/\r?\n/).includes('/tmp/kodjo-v2-initial/'+filename));
+ const value=response(payload());value.output[0].content[0].text=JSON.stringify({...payload(),ui_criteria_matrix:{schema:'invalid'}});
+ const directory=fs.mkdtempSync(path.join(require('node:os').tmpdir(),'kodjo-rejected-response-'));try{
+  const file=path.join(directory,'final-response.json');const raw=JSON.stringify(value);fs.writeFileSync(file,raw);
+  const r=require('node:child_process').spawnSync(process.execPath,[path.join(__dirname,'../../scripts/kodjo/generate-ui-plan-contract.js'),'decode','draft',file,path.join(directory,'plan.md')],{encoding:'utf8'});
+  assert.notEqual(r.status,0);assert.equal(fs.readFileSync(file,'utf8'),raw);assert.equal(fs.existsSync(path.join(directory,'plan.md')),false);
+ }finally{fs.rmSync(directory,{recursive:true,force:true});}
 });
 test('KPB-001 incomplete, refused, duplicate markers and ambiguous responses rejected',()=>{
   const value=payload();

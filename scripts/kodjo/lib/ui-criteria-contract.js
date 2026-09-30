@@ -35,11 +35,14 @@ function sameSet(a,b) {
 function escapeRegExp(value) {
   return String(value).replace(/[.*+?^$()|[\]\\]/g,'\\$&');
 }
+function mandatoryAssertionProofs(propertyType) {
+  return ['GEOMETRY','RELATION','STYLE','LAYERING','RESPONSIVE'].includes(propertyType)
+    ? ['VISUAL_COMPARE'] : [];
+}
 function assertionMandatoryProofs(propertyType, proofRequired, id) {
-  const visual = new Set(['GEOMETRY','RELATION','STYLE','LAYERING','RESPONSIVE']);
   const structural = new Set(['PRESENCE','CONTENT','STATE']);
-  if (visual.has(propertyType) && !proofRequired.includes('VISUAL_COMPARE')) {
-    fail('UI_PLAN_ASSERTION_PROOF_INVALID', id + ': ' + propertyType + ' exige VISUAL_COMPARE');
+  for (const proof of mandatoryAssertionProofs(propertyType)) {
+    if (!proofRequired.includes(proof)) fail('UI_PLAN_ASSERTION_PROOF_INVALID', id + ': ' + propertyType + ' exige ' + proof);
   }
   if (propertyType === 'INTERACTION' &&
       !proofRequired.some((proof) => proof === 'FUNCTIONAL_TEST' || proof === 'STATIC_ANALYSIS')) {
@@ -327,9 +330,9 @@ function contractPrompt() {
     '\nAtomic assertion derivation is mandatory. For every normative UI requirement, identify contract-bearing elements and relations, then create one assertion for each independently falsifiable observable invariant. Split properties when one can fail while another passes, when proof types differ, or when corrections can be independent. Use property_type only from PRESENCE/CONTENT/STATE/GEOMETRY/RELATION/STYLE/LAYERING/INTERACTION/RESPONSIVE. Relations and layering are first-class assertions. Do not create assertions for implementation nodes or decorative details without a normative source. Every assertion must cite an exact source locator and expected observable result. Every criterion proof_required must be allocated to at least one assertion. Never invent geometry or styling absent from Figma, tokens, contracts or validated decisions; use CLARIFICATION_REQUIRED instead.\n'+
     'Historical '+MATRIX_SCHEMA_V1+' remains readable only for already-approved plans; do not generate it.\n'+
     'All conditional, uniqueness, path, scope and coverage rules below are mandatory. The receiver runs this same code before accepting a generated plan.\n'+
-    [requireText, requireArray, uniqueStrings, isUiPath, normalizeRepoPath, normalizeAssertions, normalizeMatrix].map(String).join('\n');
+    [requireText, requireArray, uniqueStrings, isUiPath, normalizeRepoPath, mandatoryAssertionProofs, assertionMandatoryProofs, normalizeAssertions, normalizeMatrix].map(String).join('\n');
 }
 module.exports = {
   MATRIX_SCHEMA_V1,MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3,TEST_PATH,normalizeBoundaryLocator,matrixFingerprint,matrixSchema,matrixSchemaV1,matrixSchemaV2,
-  validateMatrix,validateShape,contractPrompt,isUiPath,object,array,text,ASSERTION_PROPERTY_TYPES,PROOF_TYPES,
+  validateMatrix,validateShape,contractPrompt,isUiPath,object,array,text,ASSERTION_PROPERTY_TYPES,PROOF_TYPES,mandatoryAssertionProofs,
 };

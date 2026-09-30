@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const {spawnSync} = require('node:child_process');
-const {matrixSchema, validateMatrix, validateShape, contractPrompt, isUiPath, object, array, text} = require('./lib/ui-criteria-contract');
+const {matrixSchema, validateMatrix, validateShape, contractPrompt, isUiPath, object, array, text, mandatoryAssertionProofs} = require('./lib/ui-criteria-contract');
 const {normalizeRepoPath,canonicalJson,sha256} = require('./lib/plan-impact');
 const {buildRequirementContract,buildTestContract,buildBoundaryContract} = require('./lib/requirement-contract');
 
@@ -37,6 +37,20 @@ function stabilizeUiIdentities(matrix){
     return {...criterion,criterion_id:stableId,...(assertions?{assertions}:{})};
   }).sort((a,b)=>a.criterion_id.localeCompare(b.criterion_id));
   return {...matrix,criteria};
+}
+function deriveUiProofObligations(matrix) {
+  return {...matrix,criteria:matrix.criteria.map(criterion=>{
+    const assertions=criterion.assertions.map(assertion=>({...assertion,
+      proof_required:[...assertion.proof_required,...mandatoryAssertionProofs(assertion.property_type).filter(p=>!assertion.proof_required.includes(p))].sort(),
+    }));
+    const mandatory=assertions.some(a=>mandatoryAssertionProofs(a.property_type).includes('VISUAL_COMPARE'));
+    const parentProofs=[...criterion.proof_required];
+    for(const proof of assertions.flatMap(a=>mandatoryAssertionProofs(a.property_type)))if(!parentProofs.includes(proof))parentProofs.push(proof);
+    return {...criterion,assertions,
+      proof_required:parentProofs.sort(),
+      risk_types:[...criterion.risk_types,...(mandatory&&!criterion.risk_types.includes('VISUAL')?['VISUAL']:[])].sort(),
+    };
+  })};
 }
 function schemaFor(phase, scan=null) {
   if (!['draft','final'].includes(phase)) throw new Error('PLAN_GENERATION_PHASE_INVALID');
@@ -137,7 +151,7 @@ function decode(phase, response, scan, sourceRoot=null) {
   if (chunks.length!==1) throw new Error('PLAN_GENERATION_OUTPUT_AMBIGUOUS');
   const result=JSON.parse(chunks[0].text);
   validateShape(result,schemaFor(phase,scan));
-  result.ui_criteria_matrix=stabilizeUiIdentities(result.ui_criteria_matrix);
+  result.ui_criteria_matrix=stabilizeUiIdentities(deriveUiProofObligations(result.ui_criteria_matrix));
   if (/<\/?KODJO_|^\s*PLAN_STATUS:/m.test(result.plan_markdown)) throw new Error('PLAN_GENERATION_MARKER_DUPLICATION');
   const modified=phase==='draft' ? result.modified_modules : scan.modified_modules;
   if (!Array.isArray(modified)) throw new Error('PLAN_GENERATION_SCAN_MISSING');
