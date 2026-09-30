@@ -300,6 +300,35 @@ test('VNext-09 E2E INITIAL atteint HANDOFF_READY et se projette sans élargissem
   assert.equal(Adapter.validateLegacyQueueProjection(projection, approved.executionRequest), true);
 });
 
+test('VNext-09 runtime refuse un snapshot re-signé avec statut d’étape falsifié', () => {
+  const repo = fixtureRepo();
+  const manifest = sourceManifest();
+  const envelope = makeEnvelope(manifest, repo, 'INITIAL', null);
+  const artifacts = buildPlanningArtifacts({ repo, manifest, envelope });
+  const reviewReport = Review.buildReviewReport({
+    reviewContext: artifacts.reviewContext,
+    semanticReview: { findings: [] },
+  });
+  const state = currentState(repo);
+  const approved = approve(artifacts, reviewReport, state);
+  const snapshot = Runtime.buildRuntimeSnapshot({
+    ...artifacts,
+    reviewReport,
+    revisionArtifacts: null,
+    ...approved,
+    currentState: state,
+  });
+
+  const tampered = structuredClone(snapshot);
+  tampered.stages[0].status = 'READY';
+  delete tampered.contract_hash;
+  tampered.contract_hash = V.canonicalHash(tampered);
+  assert.throws(
+    () => Runtime.validateRuntimeSnapshot(tampered),
+    /VNEXT_RUNTIME_STAGE_STATUS_INVALID/,
+  );
+});
+
 test('VNext-09 projection refuse un scope legacy élargi même si le JSON est re-signé', () => {
   const repo = fixtureRepo();
   const manifest = sourceManifest();
@@ -328,6 +357,37 @@ test('VNext-09 projection refuse un scope legacy élargi même si le JSON est re
   assert.throws(
     () => Adapter.validateLegacyQueueProjection(tampered, approved.executionRequest),
     /VNEXT_QUEUE_SCOPE_WIDENING/,
+  );
+});
+
+test('VNext-09 projection refuse un fichier de compatibilité re-signé mais altéré', () => {
+  const repo = fixtureRepo();
+  const manifest = sourceManifest();
+  const envelope = makeEnvelope(manifest, repo, 'INITIAL', null);
+  const artifacts = buildPlanningArtifacts({ repo, manifest, envelope });
+  const reviewReport = Review.buildReviewReport({
+    reviewContext: artifacts.reviewContext,
+    semanticReview: { findings: [] },
+  });
+  const state = currentState(repo);
+  const approved = approve(artifacts, reviewReport, state);
+  const projection = Adapter.buildLegacyQueueProjection({
+    executionRequest: approved.executionRequest,
+    approvalTarget: approved.approvalTarget,
+    approvalRecord: approved.approvalRecord,
+    ...artifacts,
+    reviewReport,
+    currentState: state,
+    transport: transport(),
+  });
+
+  const tampered = structuredClone(projection);
+  tampered.compatibility_files.mission.content += '\nINJECTED';
+  delete tampered.contract_hash;
+  tampered.contract_hash = V.canonicalHash(tampered);
+  assert.throws(
+    () => Adapter.validateLegacyQueueProjection(tampered, approved.executionRequest),
+    /VNEXT_QUEUE_COMPATIBILITY_CONTENT_HASH_MISMATCH/,
   );
 });
 
