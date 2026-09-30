@@ -1070,6 +1070,7 @@ Le gate de sortie de révision est franchissable uniquement si :
 - le ReviewReport causal vaut REVISE ;
 - l’AllowedChangeSet est valide ;
 - tous les findings bloquants sont couverts par le RevisionPatch ;
+- tout finding bloquant disparu de la review suivante possède une résolution explicite et prouvée ;
 - aucune correction ne vise une cible non autorisée ;
 - la réentrée a eu lieu à l’étape calculée ;
 - tous les objets préservés sont inchangés ;
@@ -1358,9 +1359,10 @@ En mode INITIAL :
 
 En mode REVISION, le runtime exige :
 
-- AllowedChangeSet ;
+- AllowedChangeSet v2 ;
 - RevisionPatch ;
-- RevisionOutcome ;
+- FindingResolutionSet ;
+- RevisionOutcome v2 ;
 - `RevisionOutcome.status = RESOLVED` ;
 - correspondance exacte avec base_plan_hash ;
 - correspondance exacte avec base_review_hash ;
