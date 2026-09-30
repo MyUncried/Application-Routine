@@ -1935,6 +1935,7 @@ Le contrôle parcourt récursivement :
 
 - `.github/workflows`
 - `.github/actions`
+- `.github/orchestration/tests`
 - `scripts/kodjo`
 
 pour les fichiers exécutables YAML, JavaScript, PowerShell et shell.
