@@ -412,6 +412,19 @@ test('VNext-08 refuse une approbation devenue obsolète après modification du p
   }), /VNEXT_PLAN_CONTRACT_REBUILD_MISMATCH|VNEXT_APPROVAL_PLAN_CONTEXT_MISMATCH|VNEXT_HANDOFF_APPROVAL_STALE/);
 });
 
+test('VNext-08 refuse un DirectImportScan différent de celui revu', () => {
+  const fx = buildFixture();
+  const changedScan = structuredClone(fx.directImportScan);
+  changedScan.importer_count += 1;
+  delete changedScan.contract_hash;
+  changedScan.contract_hash = V.canonicalHash(changedScan);
+
+  assert.throws(
+    () => Approval.buildApprovalTarget(artifacts(fx, { directImportScan: changedScan })),
+    /VNEXT_DIRECT_IMPORT_COUNT_MISMATCH|VNEXT_APPROVAL_DIRECT_SCAN_MISMATCH/,
+  );
+});
+
 test('VNext-08 refuse le handoff si le HEAD applicatif a bougé', () => {
   const fx = buildFixture();
   const target = Approval.buildApprovalTarget(artifacts(fx));
