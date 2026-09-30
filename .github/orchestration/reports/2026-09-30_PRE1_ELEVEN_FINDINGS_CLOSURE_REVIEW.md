@@ -212,6 +212,15 @@ Tests : `validate-workflows.js` OK ; suite pilote 812 tests, 14 échecs identiqu
   2. Profil : les défauts « compte à rebours d'Exercice » et « fin d'Exercice » n'ont aucune valeur dans le plan ni dans `qualification-spec.md` §10. Seul `docs/DSF-V2-MOTIFS-LOT-3.md` (ajouté le 30/09 par fd9555bc, postérieur au plan) montre « Fin d'exercice : 5 s » ; aucune source pour le compte à rebours d'Exercice. **Arbitrage produit requis.**
 - Défaut d'orchestration distinct : l'étape de correction automatique bornée échoue en `ENOENT` sur `_kodjo\36773441104\.github\orchestration\queue\v2\V2-PRE-1-implement-e485eddb.json` (checkout nettoyé avant lecture) ; non corrigé.
 
+### Tour 3 — décision D-240, correction du plan, ENOENT (instruction de Hermann)
+
+- D-240 (Hermann) consignée dans le registre 07 : Profil — compte à rebours d'Exercice 10 s, fin d'Exercice 5 s.
+- Plan corrigé (commit `f3e7f492`, publication 5920359910, blob `c42de1f1…`, SHA-256 `c97a2a1b…`) : C1 `SideModeControl.test.tsx` dans UI-73382D60E040 ; C2 exigence `REQ-6158C99B50273D8D` (D-240). Registre : `2026-09-30_PRE1_PLAN_CORRECTION_DEV_36773441104.md`. Gates locales PASS (99/42/28 ; 13/32).
+- Paquet 11127475602 compatible : 45 chemins tous dans le périmètre corrigé.
+- Raccordement du tour 3 : entrée épinglée 5920359910 (récupération + handoff) ; consigne limitée aux 2 points avec reprise obligatoire de la session `25caf6b2-…` ; garde de bornage généralisée à N éléments (fichier `items-to-verify.json`, blob `937f7fbc`).
+- ENOENT corrigé : `materialize-boundary-file.js` extrait la requête sélectionnée depuis le commit borne `after_sha` ; l'étape de correction bornée ne relit plus le checkout basculé sur `source_head`.
+- Tests : nouveaux `lean-queue-boundary-file.pilot.js` et cas N=2 de la garde ; ciblés 16/16 ; suite 825 tests, 14 échecs identiques à la base ; `validate-workflows.js` OK ; analyse PowerShell des deux étapes modifiées : 0 erreur ; récupération réelle de 5920359910 identique au plan et gates PASS.
+
 ## Vérifications restant à effectuer
 
 - Revue indépendante du tour 2 (constat 9 seul) sur le candidat 5918243649.

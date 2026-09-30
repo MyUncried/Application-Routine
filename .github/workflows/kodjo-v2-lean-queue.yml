@@ -201,6 +201,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           SELECTED_QUEUE: ${{ steps.execute.outputs.selected_queue }}
+          KODJO_EVENT_AFTER: ${{ steps.boundary.outputs.after_sha }}
           RUN_DIR: ${{ steps.diag.outputs.dir }}
           RECOVERY_UPLOAD_OUTCOME: ${{ steps.recovery_package.outcome }}
           RECOVERY_ARTIFACT_ID: ${{ steps.recovery_package.outputs.artifact-id }}
@@ -213,7 +214,11 @@ jobs:
           }
           $recoveryReady=($env:RECOVERY_UPLOAD_OUTCOME -eq 'success' -and $env:RECOVERY_ARTIFACT_ID -match '^[1-9][0-9]*$')
           $generated=Join-Path $env:RUNNER_TEMP ('kodjo-auto-correction-'+$env:GITHUB_RUN_ID+'.json')
-          node scripts/kodjo/generate-bounded-correction-request.js $env:SELECTED_QUEUE $resultFile $env:GITHUB_RUN_ID ([string]$recoveryReady).ToLowerInvariant() $generated
+          # The execution switched the checkout to the request source_head, which predates the queue commit.
+          $selectedCopy=Join-Path $env:RUNNER_TEMP ('kodjo-selected-queue-'+$env:GITHUB_RUN_ID+'.json')
+          node scripts/kodjo/materialize-boundary-file.js $env:KODJO_EVENT_AFTER $env:SELECTED_QUEUE $selectedCopy
+          if($LASTEXITCODE-ne0){throw 'Selected queue request unavailable at boundary'}
+          node scripts/kodjo/generate-bounded-correction-request.js $selectedCopy $resultFile $env:GITHUB_RUN_ID ([string]$recoveryReady).ToLowerInvariant() $generated
           if($LASTEXITCODE-ne0){throw 'Bounded correction classification failed'}
           $payload=Get-Content -LiteralPath $generated -Raw -Encoding UTF8|ConvertFrom-Json
           "status=$([string]$payload.status)"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8

@@ -29,11 +29,21 @@ test('closure guard accepts eleven closures and bound REVISE rows',()=>{
   assert.deepEqual([r.verdict,r.open],['REVISE',[3]]);
 });
 
+test('closure guard bounds a later round to its own pinned items',()=>{
+  const two={findings:prior.findings.slice(0,2)};
+  const rows=open=>'| N | Correction examinée | Preuve précise | Fermé | Justification |\n|---|---|---|---|---|\n'+[1,2].map(n=>'| '+n+' | c | e | '+(open.includes(n)?'NON':'OUI')+' | j |').join('\n')+'\n'+
+    '<KODJO_PRE1_CLOSURE_JSON>\n'+JSON.stringify({closures:[1,2].map(n=>({finding:n,closed:!open.includes(n),correction_examined:'c',evidence:'e',justification:'j'}))})+'\n</KODJO_PRE1_CLOSURE_JSON>\n';
+  assert.equal(verify(rows([]),{verdict:'APPROVE',findings:[]},two).item_count,2);
+  assert.deepEqual(verify(rows([2]),{verdict:'REVISE',findings:[row(2)]},two).open,[2]);
+  assert.throws(()=>verify(rows([]),{verdict:'REVISE',findings:[row(3)]},two),/OUTSIDE_BOUND/);
+  assert.throws(()=>verify(table([])+closures([]),{verdict:'APPROVE',findings:[]},two),/CLOSURE_JSON_COUNT_INVALID/);
+});
+
 test('closure guard rejects a twelfth subject, observations and inconsistencies',()=>{
-  assert.throws(()=>verify(table([])+closures([]),{verdict:'REVISE',findings:[row(12,{target:'src/new.ts'})]},prior),/OUTSIDE_ELEVEN/);
+  assert.throws(()=>verify(table([])+closures([]),{verdict:'REVISE',findings:[row(12,{target:'src/new.ts'})]},prior),/OUTSIDE_BOUND/);
   assert.throws(()=>verify(table([])+closures([]),{verdict:'APPROVE',findings:[row(2,{blocking:false})]},prior),/NONBLOCKING/);
   assert.throws(()=>verify(table([2])+closures([2]),{verdict:'REVISE',findings:[row(2,{diagnostic:'Prior finding 5: x'})]},prior),/NUMBER_MISMATCH/);
   assert.throws(()=>verify(table([])+closures([]),{verdict:'REVISE',findings:[row(4)]},prior),/CONTRADICTS/);
   assert.throws(()=>verify(table([]),{verdict:'APPROVE',findings:[]},prior),/CLOSURE_JSON_MISSING/);
-  assert.throws(()=>verify(closures([]),{verdict:'APPROVE',findings:[]},prior),/TABLE_NOT_ELEVEN_ROWS/);
+  assert.throws(()=>verify(closures([]),{verdict:'APPROVE',findings:[]},prior),/TABLE_ROW_COUNT_INVALID/);
 });
