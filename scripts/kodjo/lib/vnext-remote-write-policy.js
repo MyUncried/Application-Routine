@@ -94,12 +94,12 @@ function detectCapabilities(rel, source) {
         permission_scope: 'NONE',
       });
     }
-    if (/extraheader/i.test(line)) {
+    if (/extraheader/i.test(line)) { // kodjo-allow-mention
       add(out, {
         type: 'GIT_CREDENTIAL_HEADER',
         line: n,
         text,
-        destination: 'git-config-extraheader',
+        destination: 'git-config-extraheader', // kodjo-allow-mention
         permission_scope: 'NONE',
       });
     }
