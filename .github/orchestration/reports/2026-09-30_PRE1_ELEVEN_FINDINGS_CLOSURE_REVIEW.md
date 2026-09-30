@@ -202,6 +202,16 @@ Tests : `validate-workflows.js` OK ; suite pilote 812 tests, 14 échecs identiqu
 - Développement : run **36773441104 « KODJO V2 Lean Queue »** (workflow_dispatch, head `0e22836c`), https://github.com/MyUncried/Application-Routine/actions/runs/36773441104. Démarrage réel constaté : job `execute` en cours sur `KODJO-LOCAL-RUNNER` après attente du runner occupé par des runs VNext ; checkout, `Resolve immutable request boundary`, préflight et budget d'artefacts en succès ; `Select and execute immutable request` en cours.
 - Ancienne Lean Queue 34748621746 (13/09, `queued` sans job) : non touchée, toujours `queued`.
 
+### Résultat du run de développement 36773441104 — CLARIFICATION_REQUIRED (diagnostic en lecture seule)
+
+- Run terminé en échec (21:32:39Z). Préflight PASS (22 contrôles). Implémenteur Claude, session `77bf4fe5-e8e7-4316-98a7-3ab29099a32e`, 245 tours, 2 614 s, coût déclaré 18,75 USD ; sortie `status=CLARIFICATION_REQUIRED`, `diagnostic=IMPLEMENTATION_BLOCKED_BY_CONTRACT` ; publication interdite ; revue d'implémentation non déclenchée ; rien poussé sur `main`. Paquet de reprise intègre (artefact 11127475602, `implementation.patch` 118 691 octets).
+- Réalisé selon l'implémenteur (jest/typescript/lint verts, 73 suites / 1 299 tests) : domaines `body-zones`, `labels`, `preferences`, `media`, `StopPoint` ; `migration007` additive et 4 repositories SQLite ; `targetSchema.test.ts` ; terminologie Exercice dans `fr.ts` et les tests.
+- Non réalisé (déclaré, non fabriqué) : cœur structurel du plan (ActivityDefinition, Category/CategoriesScreen, Session/SessionDraft, SqliteSessionRepository, écrans et présentation, outil natif), jugé par l'implémenteur trop large pour une invocation bornée — ce n'est pas un blocage contractuel.
+- Blocages invoqués, vérifiés sur les sources figées :
+  1. `SideModeControl.test.tsx:26` (baseline e216294) exige `""` pour `UNILATERAL` hors Tour ; `SideModeControl.tsx:90-92` lit `shared.sideMode.valueLabels[value]` ; le plan exige « Aucun » (assertion `UI-73382D60E040-A3E11D4F3FF2A`) et ce test est absent du plan (0 occurrence). **Défaut de périmètre du plan confirmé**, lié au constat 5 (la revue l'avait jugé fermé en estimant que ce test n'utilisait que des props littérales).
+  2. Profil : les défauts « compte à rebours d'Exercice » et « fin d'Exercice » n'ont aucune valeur dans le plan ni dans `qualification-spec.md` §10. Seul `docs/DSF-V2-MOTIFS-LOT-3.md` (ajouté le 30/09 par fd9555bc, postérieur au plan) montre « Fin d'exercice : 5 s » ; aucune source pour le compte à rebours d'Exercice. **Arbitrage produit requis.**
+- Défaut d'orchestration distinct : l'étape de correction automatique bornée échoue en `ENOENT` sur `_kodjo\36773441104\.github\orchestration\queue\v2\V2-PRE-1-implement-e485eddb.json` (checkout nettoyé avant lecture) ; non corrigé.
+
 ## Vérifications restant à effectuer
 
 - Revue indépendante du tour 2 (constat 9 seul) sur le candidat 5918243649.
