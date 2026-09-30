@@ -1,0 +1,25 @@
+{
+  "source": "development run 36773441104 — CLARIFICATION_REQUIRED",
+  "findings": [
+    {
+      "category": "UI_CRITERION",
+      "target_kind": "CRITERION_ID",
+      "target": "UI-73382D60E040",
+      "blocking": true,
+      "diagnostic": "Development run 36773441104 stopped on CLARIFICATION_REQUIRED: src/features/sessions/__tests__/SideModeControl.test.tsx lines 26 and 156 (baseline e216294) assert the empty value of strings.shared.sideMode.valueLabels.UNILATERAL, which src/features/sessions/SideModeControl.tsx lines 90-92 read outside the Tour context, while assertion UI-73382D60E040-A3E11D4F3FF2A requires 'Aucun'. The test was outside write_scope and absent from the plan, so the assertion could not be implemented. Linked to prior finding 5.",
+      "expected_correction": "Add src/features/sessions/__tests__/SideModeControl.test.tsx to write_scope, required_test_writes and the tests of UI-73382D60E040, with its impact classification; keep src/features/sessions/SideModeControl.tsx unchanged; no other blast-radius gap for this value change.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "category": "REQUIREMENT_GAP",
+      "target_kind": "REQUIREMENT_ID",
+      "target": "REQ-6158C99B50273D8D",
+      "blocking": true,
+      "diagnostic": "Development run 36773441104 stopped on CLARIFICATION_REQUIRED: qualification-spec.md §10 lists the Profile defaults 'compte à rebours d'Exercice' and 'fin d'Exercice' without any value, and no normative source provided one. Hermann decided on 30/09/2026 (decision D-240, docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md): exercise countdown 10 s, end of exercise 5 s.",
+      "expected_correction": "A dedicated requirement carries the D-240 values exactly, bound to the Profile model, the Profile seed/persistence (migration007, SqliteProfileRepository) and their tests; plan §3.2 states the values; coverage cites the register; no other requirement changes.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    }
+  ]
+}

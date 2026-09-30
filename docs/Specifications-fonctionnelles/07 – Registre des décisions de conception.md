@@ -344,3 +344,9 @@ Le complément porte RG-1 à RG-13 et leurs critères. Les 17 points sont clos. 
 | D-239 | Calendrier Jour : une variante repliée supplémentaire par set, 298 × 46 séance / 298 × 48 exercice, x=80, barre colorée 4, nature 26, titre 13 gras, heure/durée 11, lecture 26 ; aucun déploiement. 10 variantes par set. Suivi Vue d’ensemble hors MVP ; boutons Calendrier 32 acceptés, développement après T04. | Validée par le propriétaire | Exception à la grammaire standard D-233 et à la cible tactile pour les deux boutons Calendrier existants ; pas de modification des RG-1 à RG-13 |
 
 Les situations acceptées de la section 3.17 du document source, dont contraste pastel, absence d’écran Archivé, animations non câblées, convention icon/<nom> et attribution target/pulse, ne sont pas rouvertes. Les anciennes formulations « à valider » du journal sont supersédées dans ce périmètre par la validation explicite du propriétaire.
+
+## Décision du 30 septembre 2026 — valeurs par défaut du Profil
+
+| ID | Décision | Statut | Portée |
+|---|---|---|---|
+| D-240 | Le Profil fixe les valeurs par défaut propres à l’Exercice : **Compte à rebours d’Exercice `10 s`** et **Fin d’Exercice `5 s`**. Elles complètent les défauts déjà spécifiés (pause de changement de côté `10 s`, récupération post-exercice `30 s`) et initialisent les nouveaux Exercices sans rétroactivité. | Validée par Hermann le 30/09/2026 (issue #249, clarification du run de développement 36773441104) | Complète `qualification-spec.md` §10 de V2-PRE-1 ; modèle, persistance et seed du Profil singleton ; distinct du Compte à rebours initial et de la Fin de séance de la Séance |
