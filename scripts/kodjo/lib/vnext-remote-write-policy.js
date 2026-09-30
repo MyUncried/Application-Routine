@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { execFileSync } = require('node:child_process');
 const V = require('./vnext-contract');
 
 const POLICY_SCHEMA = 'kodjo.vnext.remote-write-policy.v1';
@@ -268,6 +269,20 @@ function gitBlobSha40(source) {
     .digest('hex');
 }
 
+function producerBlobSha40(root, rel, source) {
+  try {
+    const value = execFileSync(
+      'git',
+      ['hash-object', '--path=' + rel, rel],
+      { cwd: root, encoding: 'utf8', windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'] },
+    ).trim();
+    if (/^[0-9a-f]{40}$/.test(value)) return value;
+  } catch (_) {
+    // Fixtures need not be Git repositories.
+  }
+  return gitBlobSha40(source);
+}
+
 function scanRepository({ root, policy }) {
   validatePolicy(policy);
   const files = collectExecutableFiles(root);
@@ -275,7 +290,7 @@ function scanRepository({ root, policy }) {
   for (const file of files) {
     const rel = normalizePath(path.relative(root, file));
     const source = fs.readFileSync(file, 'utf8');
-    const producerBlob = gitBlobSha40(source);
+    const producerBlob = producerBlobSha40(root, rel, source);
     capabilities.push(...detectCapabilities(rel, source).map((row) => ({
       ...row,
       producer_blob_sha40: producerBlob,
@@ -451,4 +466,5 @@ module.exports = {
   validateGate,
   sha256,
   gitBlobSha40,
+  producerBlobSha40,
 };
