@@ -52,6 +52,31 @@ function declaration({
   };
 }
 
+function productionWriter(base, id = 'PROD-READY') {
+  const rel = '.github/workflows/vnext-production.yml';
+  const source = put(base, rel, [
+    'name: vnext-production',
+    'permissions:',
+    '  contents: read',
+    'jobs:',
+    '  publish:',
+    '    permissions:',
+    '      contents: write',
+    '    runs-on: ubuntu-latest',
+    '    steps: []',
+    '',
+  ].join('\n'));
+  return declaration({
+    source,
+    producer_path: rel,
+    capability_type: 'GITHUB_PERMISSION_WRITE',
+    destination: 'contents',
+    lifecycle: 'VNEXT',
+    required_permission_scope: 'JOB',
+    id,
+  });
+}
+
 test('VNext-11.1 inventorie un workflow arbitrairement nommé, sans filtre de préfixe', () => {
   const base = root();
   put(base, '.github/workflows/anything-at-all.yml', [
@@ -197,15 +222,18 @@ test('VNext-11.1 traite un writer legacy comme temporaire tant qu’une slice le
     'jobs: {}',
     '',
   ].join('\n'));
-  const p = policy([declaration({
-    source,
-    producer_path: rel,
-    capability_type: 'GITHUB_PERMISSION_WRITE',
-    destination: 'contents',
-    lifecycle: 'LEGACY_GRANDFATHERED',
-    required_permission_scope: 'WORKFLOW',
-    id: 'LEGACY-001',
-  })]);
+  const p = policy([
+    productionWriter(base),
+    declaration({
+      source,
+      producer_path: rel,
+      capability_type: 'GITHUB_PERMISSION_WRITE',
+      destination: 'contents',
+      lifecycle: 'LEGACY_GRANDFATHERED',
+      required_permission_scope: 'WORKFLOW',
+      id: 'LEGACY-001',
+    }),
+  ]);
   const report = RW.scanRepository({ root: base, policy: p });
   const gate = RW.buildGate({
     report,
@@ -226,15 +254,18 @@ test('VNext-11.1 bloque la fin du cutover si un writer legacy subsiste sans slic
     'jobs: {}',
     '',
   ].join('\n'));
-  const p = policy([declaration({
-    source,
-    producer_path: rel,
-    capability_type: 'GITHUB_PERMISSION_WRITE',
-    destination: 'contents',
-    lifecycle: 'LEGACY_GRANDFATHERED',
-    required_permission_scope: 'WORKFLOW',
-    id: 'LEGACY-001',
-  })]);
+  const p = policy([
+    productionWriter(base),
+    declaration({
+      source,
+      producer_path: rel,
+      capability_type: 'GITHUB_PERMISSION_WRITE',
+      destination: 'contents',
+      lifecycle: 'LEGACY_GRANDFATHERED',
+      required_permission_scope: 'WORKFLOW',
+      id: 'LEGACY-001',
+    }),
+  ]);
   const report = RW.scanRepository({ root: base, policy: p });
   const gate = RW.buildGate({ report, policy: p, activeLegacySliceIds: [] });
   assert.equal(gate.status, 'BLOCKED_LEGACY_WRITERS_NOT_RETIRED');
@@ -243,8 +274,9 @@ test('VNext-11.1 bloque la fin du cutover si un writer legacy subsiste sans slic
 
 test('VNext-11.1 considère le legacy retiré seulement quand aucune capacité legacy détectée ne subsiste', () => {
   const base = root();
-  const report = RW.scanRepository({ root: base, policy: policy() });
-  const gate = RW.buildGate({ report, policy: policy(), activeLegacySliceIds: [] });
+  const p = policy([productionWriter(base)]);
+  const report = RW.scanRepository({ root: base, policy: p });
+  const gate = RW.buildGate({ report, policy: p, activeLegacySliceIds: [] });
   assert.equal(gate.status, 'REMOTE_WRITE_CONTROL_READY');
   assert.equal(gate.legacy_retirement_status, 'LEGACY_WRITERS_RETIRED');
 });
@@ -331,4 +363,13 @@ test('VNext-11.1 interdit persist-credentials true à un writer de production VN
     id: 'PROD-002',
   })]);
   assert.throws(() => RW.validatePolicy(p), /VNEXT_REMOTE_WRITE_VNEXT_PERSISTED_CREDENTIALS_FORBIDDEN/);
+});
+
+
+test('VNext-11.1 bloque le cutover tant qu’aucun writer de production VNext n’est présent', () => {
+  const base = root();
+  const p = policy();
+  const report = RW.scanRepository({ root: base, policy: p });
+  const gate = RW.buildGate({ report, policy: p, activeLegacySliceIds: [] });
+  assert.equal(gate.status, 'BLOCKED_VNEXT_PRODUCTION_WRITER_MISSING');
 });
