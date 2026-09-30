@@ -1100,6 +1100,7 @@ La machine dérive un `execution_core` unique contenant :
 - protocol_head ;
 - planning_mode ;
 - planning_envelope_hash ;
+- direct_import_scan_hash éventuel ;
 - plan_contract_hash ;
 - review_context_hash ;
 - review_report_hash ;
