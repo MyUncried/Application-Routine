@@ -86,6 +86,10 @@ REVISE réentre uniquement à l'étape minimale nécessaire : REQUIREMENTS, IMPA
 - `kodjo.vnext.cutover-plan.v1`
 - `kodjo.vnext.cutover-activation.v1`
 - `kodjo.vnext.cutover-rollback.v1`
+- `kodjo.vnext.audit-manifest.v1`
+- `kodjo.vnext.audit-coverage.v1`
+- `kodjo.vnext.finding-ledger.v1`
+- `kodjo.vnext.final-audit-report.v1`
 
 VNext-01 implémente uniquement les trois premiers contrats et le socle de canonicalisation/hash/IDs.
 
@@ -1737,3 +1741,167 @@ VNext-10 ne :
 - active pas VNext.
 
 Le changement effectif de routage reste une opération ultérieure, exécutée seulement après PRE-1.
+
+
+## 21. VNext-11 — Convergence de l’audit final
+
+### 21.1 Objet
+
+VNext-11 ajoute uniquement les protections nécessaires contre une boucle d’audit/correction non convergente.
+
+Le lot ne transforme pas toutes les recommandations historiques en exigences.
+
+Il introduit quatre garanties bloquantes :
+
+1. un finding bloquant ne peut pas être fermé par simple disparition ;
+2. un finding bloquant final doit être relié à une source normative préexistante ;
+3. les critères de l’audit final sont figés avant l’appel indépendant ;
+4. un dernier verdict REVISE est terminal et ne déclenche aucune nouvelle réentrée automatique.
+
+### 21.2 FindingLedger
+
+Contrat :
+
+`kodjo.vnext.finding-ledger.v1`
+
+Pour chaque finding bloquant d’une revue précédente, la revue suivante doit conduire à l’un des états explicites :
+
+- `OPEN`
+- `RESOLVED`
+- `REFUTED_WITH_EVIDENCE`
+
+Un finding absent de la revue suivante sans résolution explicite produit :
+
+`VNEXT_LEDGER_FINDING_DISAPPEARED_WITHOUT_RESOLUTION`
+
+Un finding qui persiste ne peut pas être déclaré résolu.
+
+Le handoff REVISION exige désormais un FindingLedger valide et aucune entrée précédente encore OPEN.
+
+### 21.3 AuditManifest figé
+
+Contrat :
+
+`kodjo.vnext.audit-manifest.v1`
+
+Le manifeste scelle avant l’audit final :
+
+- candidate_head ;
+- protocol_spec_hash ;
+- références normatives ;
+- critères d’audit ;
+- applicabilité de chaque critère ;
+- références causales de création.
+
+Les critères ne peuvent pas être ajoutés, retirés ou requalifiés pendant l’audit sans produire un nouveau manifeste et donc un nouvel objet d’audit.
+
+### 21.4 AuditCoverage
+
+Contrat :
+
+`kodjo.vnext.audit-coverage.v1`
+
+Chaque critère du manifeste apparaît exactement une fois avec l’un des statuts :
+
+- `CHECKED_PASS`
+- `CHECKED_FAIL`
+- `NOT_APPLICABLE`
+
+Un critère `REQUIRED` ne peut pas devenir `NOT_APPLICABLE` pendant l’audit.
+
+Un critère déclaré `NOT_APPLICABLE` dans le manifeste ne peut pas être réintroduit silencieusement comme critère bloquant.
+
+Toute absence d’un critère produit :
+
+`VNEXT_AUDIT_CRITERION_UNCOVERED`
+
+### 21.5 Provenance normative des findings
+
+Le rapport d’audit final enrichit chaque finding avec :
+
+- `normative_reference_ids`
+- `audit_criterion_ids`
+
+Pour toute catégorie autre que `SUGGESTION`, au moins une référence normative préexistante du manifeste est obligatoire.
+
+Sans cette provenance :
+
+`VNEXT_FINAL_AUDIT_BLOCKING_FINDING_WITHOUT_NORMATIVE_SOURCE`
+
+Une proposition sans fondement normatif nécessaire doit être classée `SUGGESTION`.
+
+`SUGGESTION` reste non bloquante.
+
+### 21.6 Critère échoué et finding
+
+Tout critère `CHECKED_FAIL` doit être relié à au moins un finding.
+
+Un audit ne peut donc pas publier un axe échoué sans expliquer la règle, la cible et la correction requise.
+
+### 21.7 Rapport d’audit final
+
+Contrat :
+
+`kodjo.vnext.final-audit-report.v1`
+
+Le rapport lie exactement :
+
+- AuditManifest ;
+- AuditCoverage ;
+- ReviewContext ;
+- ReviewReport ;
+- provenance normative de chaque finding.
+
+La validation recalcule la correspondance entre ReviewReport et provenance.
+
+Une provenance modifiée puis re-signée est refusée.
+
+### 21.8 États terminaux
+
+L’audit indépendant final produit uniquement :
+
+- `FINAL_APPROVED`
+- `FINAL_REVISE_TERMINAL`
+- `FINAL_CLARIFICATION_TERMINAL`
+
+Le champ :
+
+`reentry_allowed = false`
+
+est obligatoire.
+
+Un `FINAL_REVISE_TERMINAL` n’autorise pas un nouvel audit automatique.
+
+Toute correction ultérieure éventuelle constitue un nouveau candidat et nécessite une nouvelle décision explicite de pilotage ; elle n’est pas une continuation automatique de la même boucle.
+
+### 21.9 Recommandations non transformées en gates
+
+VNext-11 ne rend pas obligatoires :
+
+- la classification détaillée de la raison d’une découverte tardive ;
+- un registre narratif lourd des occurrences ;
+- une métrique de diminution du nombre de findings ;
+- un nombre maximal arbitraire de défauts.
+
+Ces éléments peuvent rester des informations de diagnostic.
+
+### 21.10 Validations encore requises avant cutover
+
+Deux validations restent nécessaires hors de ce lot :
+
+1. E2E réel jetable du protocole et du transport ;
+2. audit indépendant final sur le candidat figé et son AuditManifest.
+
+### 21.11 Gate AUDIT_CONVERGENCE_READY
+
+Le gate est franchi si :
+
+- FindingLedger interdit la fermeture par disparition ;
+- provenance normative bloquante testée ;
+- AuditManifest figé testé ;
+- AuditCoverage exhaustive testée ;
+- FINAL_REVISE_TERMINAL testé ;
+- aucune réentrée automatique finale possible ;
+- non-régression VNext-01..10 PASS.
+
+Ce gate ne vaut ni audit final ni activation.

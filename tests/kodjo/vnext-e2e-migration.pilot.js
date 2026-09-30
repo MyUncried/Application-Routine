@@ -18,6 +18,7 @@ const Revision = require('../../scripts/kodjo/lib/revision-contract');
 const Approval = require('../../scripts/kodjo/lib/approval-handoff-contract');
 const Runtime = require('../../scripts/kodjo/lib/vnext-runtime');
 const Adapter = require('../../scripts/kodjo/lib/vnext-legacy-queue-adapter');
+const Convergence = require('../../scripts/kodjo/lib/audit-convergence-contract');
 
 const H40A = 'a'.repeat(40);
 const H40C = 'c'.repeat(40);
@@ -528,6 +529,16 @@ test('VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY apr�
     nextReviewReport: nextReview,
   });
   assert.equal(outcome.status, 'RESOLVED');
+  const findingLedger = Convergence.buildFindingLedger({
+    previousReviewReport: baseReview,
+    nextReviewReport: nextReview,
+    resolutions: [{
+      finding_id: baseReview.findings[0].finding_id,
+      status: 'RESOLVED',
+      evidence_refs: ['proof:revised-plan-reviewed'],
+      note: 'La correction ciblée a été revue et le finding ne persiste plus.',
+    }],
+  });
 
   const state = currentState(repo);
   const approved = approve(next, nextReview, state);
@@ -538,6 +549,8 @@ test('VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY apr�
       allowed_change_set: allowed,
       revision_patch: patch,
       revision_outcome: outcome,
+      previous_review_report: baseReview,
+      finding_ledger: findingLedger,
     },
     ...approved,
     currentState: state,
