@@ -141,6 +141,8 @@ Cette étape a été **refusée par le contrôle de permissions de Claude Code (
 - Non committé, non poussé : modifications de `scripts/kodjo/recover-published-pre1-plan.js` (entrée épinglée 5918243649, testée en lecture) et `scripts/kodjo/materialize-approved-plan-handoff.js` (liste des candidats reconnus), présentes uniquement dans le worktree temporaire du pilote. Le workflow `kodjo-v2-slice-initial-plan-review.yml` n'a pas été modifié pour le tour 2.
 - Aucune commande de revue du tour 2 n'a été publiée. Aucun APPROVE. Aucun développement lancé.
 
+Reprise après instruction explicite de Hermann (poursuivre les corrections et la vérification ciblée du constat 9, reprise de session 25caf6b2-… demandée) : état revérifié (origin/main 644617f2, aucune revue active, seule la Lean Queue 34748621746 du 13/09 en file, aucune nouvelle publication depuis 5918243649). Le raccordement du tour 2 a été **refusé une seconde fois par le contrôle de permissions de Claude Code (auto-approbation)**. Une autorisation donnée dans la conversation ne lève pas ce contrôle : il faut une règle de permission locale, ou que le raccordement soit fait par un autre acteur. Aucun contournement tenté.
+
 Décision attendue de Hermann : autoriser explicitement le raccordement du tour 2 par le pilote, ou le confier à un autre acteur (ChatGPT/orchestrateur, ou modification manuelle), en indiquant si la consigne de reprise doit être rédigée par un tiers.
 
 ## Vérifications restant à effectuer
