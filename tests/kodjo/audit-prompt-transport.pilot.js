@@ -17,7 +17,7 @@ test('actual audit transport through PowerShell 5.1 and npm-style shim preserves
   const prompt=('Réserve majeure : périmètre, clôture, dépendance — 🚦\n').repeat(2500)+'END_DOSSIER';
   assert.ok(prompt.length>32767);
   fs.writeFileSync(path.join(d,'prompt.txt'),prompt,'utf8');
-  fs.writeFileSync(path.join(d,'probe.js'),"const fs=require('node:fs'),crypto=require('node:crypto');const text=fs.readFileSync(0,'utf8').replace(/\\r\\n/g,'\\n').trimEnd();console.log(JSON.stringify({hash:crypto.createHash('sha256').update(text).digest('hex'),args:process.argv.slice(2),length:text.length}));");
+  fs.writeFileSync(path.join(d,'probe.js'),"const fs=require('node:fs'),crypto=require('node:crypto');const raw=fs.readFileSync(0,'utf8').replace(/\\r\\n/g,'\\n').trimEnd();const text=raw.replace(/^\\uFEFF/,'');console.log(JSON.stringify({hash:crypto.createHash('sha256').update(text).digest('hex'),rawHash:crypto.createHash('sha256').update(raw).digest('hex'),args:process.argv.slice(2),length:text.length}));");
   // Reproduce the npm PowerShell shim's input forwarding to a real native process.
   fs.writeFileSync(path.join(d,'claude.ps1'),"if($MyInvocation.ExpectingInput){$input | & $env:TRANSPORT_NODE (Join-Path $PSScriptRoot 'probe.js') @args}else{& $env:TRANSPORT_NODE (Join-Path $PSScriptRoot 'probe.js') @args}\nexit $LASTEXITCODE\n");
   const script="$ErrorActionPreference='Stop'\n$env:PATH=$PSScriptRoot+';'+$env:PATH\n$prompt=Get-Content -LiteralPath (Join-Path $PSScriptRoot 'prompt.txt') -Raw -Encoding UTF8\n$out=Join-Path $PSScriptRoot 'out.json'\n$err=Join-Path $PSScriptRoot 'err.txt'\n$before=$OutputEncoding\n"+transport()+"\nif($code-ne0){throw 'native probe failed'}\nif($OutputEncoding-ne$before){throw 'encoding was not restored'}\n";
@@ -26,6 +26,9 @@ test('actual audit transport through PowerShell 5.1 and npm-style shim preserves
   assert.equal(r.status,0,r.stderr||String(r.error));
   const bytes=fs.readFileSync(path.join(d,'out.json'));const result=JSON.parse(bytes.toString(bytes[0]===255&&bytes[1]===254?'utf16le':'utf8').replace(/^\uFEFF/,''));
   assert.equal(result.hash,crypto.createHash('sha256').update(prompt).digest('hex'));assert.equal(result.length,prompt.length);
+  // Windows PowerShell can prefix stdin with exactly one UTF-8 signature.
+  // Verify the raw stream too: nothing except this encoding marker is tolerated.
+  assert.ok([prompt,'\uFEFF'+prompt].map(s=>crypto.createHash('sha256').update(s).digest('hex')).includes(result.rawHash),'raw stdin must equal the whole dossier with at most one encoding signature');
   assert.deepEqual(result.args,['-p','--output-format','json','--dangerously-skip-permissions']);
  }finally{fs.rmSync(d,{recursive:true,force:true});}
 });
