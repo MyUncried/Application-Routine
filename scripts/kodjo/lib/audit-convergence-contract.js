@@ -478,6 +478,78 @@ function validateFinalAuditReport(report, {
     V.fail('VNEXT_FINAL_AUDIT_TERMINAL_STATUS_INVALID');
   }
   Review.validateReviewReport(report.review_report, reviewContext);
+
+  const referenceIds = new Set(auditManifest.normative_references.map((row) => row.reference_id));
+  const criterionIds = new Set(auditManifest.criteria.map((row) => row.criterion_id));
+  const provenanceByKey = new Map();
+  for (const row of report.finding_provenance) {
+    V.assertExactKeys(
+      row,
+      ['semantic_key', 'normative_reference_ids', 'audit_criterion_ids'],
+      [],
+      'VNEXT_FINAL_AUDIT_PROVENANCE_KEYS_INVALID',
+    );
+    V.assertSha64(row.semantic_key, 'VNEXT_FINAL_AUDIT_PROVENANCE_KEY_INVALID');
+    if (provenanceByKey.has(row.semantic_key)) V.fail('VNEXT_FINAL_AUDIT_PROVENANCE_DUPLICATE', row.semantic_key);
+    const normativeIds = uniqueSorted(
+      row.normative_reference_ids,
+      'VNEXT_FINAL_AUDIT_NORMATIVE_REFS_INVALID',
+      'normative_reference_ids',
+      { allowEmpty: true },
+    );
+    const auditCriterionIds = uniqueSorted(
+      row.audit_criterion_ids,
+      'VNEXT_FINAL_AUDIT_CRITERION_IDS_INVALID',
+      'audit_criterion_ids',
+    );
+    for (const id of normativeIds) {
+      if (!referenceIds.has(id)) V.fail('VNEXT_FINAL_AUDIT_NORMATIVE_REF_UNKNOWN', id);
+    }
+    for (const id of auditCriterionIds) {
+      if (!criterionIds.has(id)) V.fail('VNEXT_FINAL_AUDIT_CRITERION_UNKNOWN', id);
+    }
+    provenanceByKey.set(row.semantic_key, { normativeIds, auditCriterionIds });
+  }
+
+  const failedCriteria = new Set(auditCoverage.failed_criterion_ids);
+  const coveredFailedCriteria = new Set();
+  for (const finding of report.review_report.findings) {
+    const semanticKey = V.canonicalHash([
+      finding.category,
+      finding.target_type,
+      finding.target_id,
+      finding.finding,
+      finding.evidence,
+      finding.required_correction,
+      finding.dependency_target_ids,
+    ]);
+    const provenance = provenanceByKey.get(semanticKey);
+    if (!provenance) V.fail('VNEXT_FINAL_AUDIT_FINDING_PROVENANCE_MISSING', finding.finding_id);
+    if (finding.blocking && provenance.normativeIds.length === 0) {
+      V.fail('VNEXT_FINAL_AUDIT_BLOCKING_FINDING_WITHOUT_NORMATIVE_SOURCE', finding.finding_id);
+    }
+    for (const id of provenance.auditCriterionIds) {
+      if (failedCriteria.has(id)) coveredFailedCriteria.add(id);
+    }
+  }
+  if (provenanceByKey.size !== report.review_report.findings.length) {
+    V.fail('VNEXT_FINAL_AUDIT_PROVENANCE_ORPHAN');
+  }
+  for (const id of failedCriteria) {
+    if (!coveredFailedCriteria.has(id)) V.fail('VNEXT_FINAL_AUDIT_FAILED_CRITERION_WITHOUT_FINDING', id);
+  }
+
+  let expectedTerminal;
+  if (report.review_report.verdict === 'APPROVE' && failedCriteria.size === 0) {
+    expectedTerminal = 'FINAL_APPROVED';
+  } else if (report.review_report.verdict === 'CLARIFICATION_REQUIRED') {
+    expectedTerminal = 'FINAL_CLARIFICATION_TERMINAL';
+  } else {
+    expectedTerminal = 'FINAL_REVISE_TERMINAL';
+  }
+  if (report.terminal_status !== expectedTerminal) {
+    V.fail('VNEXT_FINAL_AUDIT_TERMINAL_STATUS_MISMATCH');
+  }
   return true;
 }
 
