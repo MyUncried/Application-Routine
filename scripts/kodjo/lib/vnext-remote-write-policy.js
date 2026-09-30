@@ -93,6 +93,15 @@ function detectCapabilities(rel, source) {
         permission_scope: 'NONE',
       });
     }
+    if (/extraheader/i.test(line)) {
+      add(out, {
+        type: 'GIT_CREDENTIAL_HEADER',
+        line: n,
+        text,
+        destination: 'git-config-extraheader',
+        permission_scope: 'NONE',
+      });
+    }
     if (/\bgit\s+(?:-[^\s]+\s+)*push\b/.test(line)) {
       const dest = line.match(/\bgit\s+(?:-[^\s]+\s+)*push\s+([^\s]+)(?:\s+([^\s]+))?/);
       add(out, {
