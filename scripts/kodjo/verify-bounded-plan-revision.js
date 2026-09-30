@@ -39,6 +39,14 @@ function verify(basePlan,baseReview,candidate){
   const blocking=review.findings.filter(x=>x.blocking===true);
   if(!blocking.length)throw new Error('PLAN_REVISION_BLOCKING_FINDING_MISSING');
   if(blocking.some(f=>f.target_kind==='PLAN'&&f.target!=='NON_UI_COVERAGE'))throw new Error('PLAN_REVISION_UNACTIONABLE_PLAN_TARGET');
+  const [oldReq,newReq]=paired(basePlan,candidate,'KODJO_REQUIREMENT_CONTRACT_JSON');
+  const [oldImpact,newImpact]=paired(basePlan,candidate,'KODJO_PLAN_IMPACT_JSON');
+  const covered=new Set((oldReq?.requirements||[]).flatMap(row=>row.change_targets||[]));
+  const missing=new Set((oldImpact?.scope_allow||[]).filter(p=>!covered.has(p)&&!/(?:^tests\/|\/__tests__\/|\.test\.[cm]?[jt]sx?$)/.test(p)));
+  const coverageAuthorized=blocking.some(f=>f.target_kind==='PLAN'&&f.target==='NON_UI_COVERAGE');
+  const oldIds=new Set((oldReq?.requirements||[]).map(row=>row.requirement_id));
+  const coverageAdded=new Map((newReq?.requirements||[]).filter(row=>coverageAuthorized&&!oldIds.has(row.requirement_id)&&
+    row.domain==='NON_UI'&&row.change_targets?.length&&row.change_targets.every(p=>missing.has(p))).map(row=>[row.requirement_id,row]));
   const successors=new Map();
   const pairSuccessors=(before,after,key,kind)=>{
     const old=map(before,key,kind),next=map(after,key,kind);
@@ -56,7 +64,8 @@ function verify(basePlan,baseReview,candidate){
     const direct=targetsOf(row,id).has(String(f.target))||String(id).split(':')[0]===String(f.target)||successor===String(f.target);
     // An unstructured dependency narrative cannot authorize arbitrary changes.
     // Every dependent item must be a separate blocking target in the review.
-    return direct;
+    const added=coverageAdded.get(String(id).split(':')[0]);
+    return direct || Boolean(added && (row===added || added.tests?.includes(row?.test_path)));
   });
   const compare=(label,before,after,key)=>{
     const old=map(before,key,label),next=map(after,key,label);
@@ -66,7 +75,6 @@ function verify(basePlan,baseReview,candidate){
       if(!allowed(a||b,id)&&!allowed(b||a,id))throw new Error('PLAN_REVISION_UNTARGETED_CHANGE:'+label+':'+id);
     }
   };
-  const [oldReq,newReq]=paired(basePlan,candidate,'KODJO_REQUIREMENT_CONTRACT_JSON');
   if(oldReq&&newReq){pairSuccessors(oldReq.requirements,newReq.requirements,x=>x.requirement_id,'REQUIREMENT_ID');compare('REQUIREMENT',oldReq.requirements,newReq.requirements,x=>x.requirement_id);}
   const [oldUi,newUi]=paired(basePlan,candidate,'KODJO_UI_CRITERIA_MATRIX_JSON');
   if(oldUi&&newUi){
@@ -76,7 +84,6 @@ function verify(basePlan,baseReview,candidate){
       compare('PRESERVATION_'+category,oldUi.preservation?.[category],newUi.preservation?.[category],x=>x.target);
     }
   }
-  const [oldImpact,newImpact]=paired(basePlan,candidate,'KODJO_PLAN_IMPACT_JSON');
   if(oldImpact&&newImpact){
     const oldScope=new Set(oldImpact.scope_allow||[]),newScope=new Set(newImpact.scope_allow||[]);
     for(const p of new Set([...oldScope,...newScope])){

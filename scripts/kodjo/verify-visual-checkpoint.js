@@ -6,6 +6,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { verifyTransition } = require('./verify-plan-review-transition');
 
+const {extractTaggedJson}=require('./lib/plan-impact');
 const {resolveImplementationReviewPolicy}=require('./resolve-implementation-review-policy');
 
 const COMMENT_REF = /^issue_comment:([1-9][0-9]*)$/;
@@ -107,8 +108,14 @@ function verify(queueFile, options = {}) {
   if(!transitionProof||transitionProof.status!=='PASS')throw new Error('VISUAL_CORRECTION_TRANSITION_PROOF_REQUIRED');
   const protectedUnchanged=Array.isArray(transitionProof.protected_blobs)&&transitionProof.protected_blobs.length>0&&transitionProof.protected_blobs.every(blob=>blob.source_oid&&blob.source_oid===blob.execution_oid);
   if(!protectedUnchanged)throw new Error('VISUAL_CORRECTION_TRANSITION_PROOF_REQUIRED');
+  const approved=spawnSync('git',['cat-file','-p',queue.authorized_plan.plan_blob_oid],{cwd,encoding:'utf8',shell:false});
+  if(approved.status!==0)throw Error('VISUAL_CORRECTION_APPROVED_PLAN_UNREADABLE');
+  const impact=extractTaggedJson(approved.stdout,'KODJO_PLAN_IMPACT_JSON');
+  const withinScope=Array.isArray(impact.scope_allow)&&Array.isArray(queue.scope_allow)&&
+    JSON.stringify([...impact.scope_allow].sort())===JSON.stringify([...queue.scope_allow].sort());
+  if(!withinScope)throw Error('VISUAL_CORRECTION_SCOPE_CHANGED');
   // Admission also checks requested scope against the exact approved plan (verify-authorizations).
-  const reviewPolicy=resolveImplementationReviewPolicy({operation_kind:'VISUAL_CORRECTION',same_slice_id:fields.slice_id===String(queue.slice_id),same_approved_plan_binding:fields.plan_blob_oid===queue.authorized_plan.plan_blob_oid,within_approved_scope:protectedUnchanged,introduces_new_requirement:!protectedUnchanged,prior_slice_review_completed:fields.status==='CERTIFIED'});
+  const reviewPolicy=resolveImplementationReviewPolicy({operation_kind:'VISUAL_CORRECTION',same_slice_id:fields.slice_id===String(queue.slice_id),same_approved_plan_binding:fields.plan_blob_oid===queue.authorized_plan.plan_blob_oid,within_approved_scope:withinScope,introduces_new_requirement:!protectedUnchanged,prior_slice_review_completed:fields.status==='CERTIFIED'});
   return {
     review_policy:reviewPolicy,
     status: 'CERTIFIED',

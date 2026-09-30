@@ -27,6 +27,7 @@ function collect(runDir,requestId,sourceHead){
   // Keep the comment under GitHub's size bound without silently claiming that
   // a shortened report is complete. Full stdout remains in diagnostic evidence.
   while(Buffer.byteLength(JSON.stringify(evidence),'utf8')>40000){
+    if(!evidence.report_text.length)throw Error('IMPLEMENTATION_EVIDENCE_TOO_LARGE');
     evidence.report_text=evidence.report_text.slice(0,Math.floor(evidence.report_text.length*0.8));
     evidence.truncated=true;
   }

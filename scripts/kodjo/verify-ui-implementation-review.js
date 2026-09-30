@@ -19,51 +19,7 @@ const ASSERTION_STATUSES = new Set(['CONFORME','NON_CONFORME','NON_VERIFIABLE','
 const PROOF_STATUSES = new Set(['PASS','FAIL','PENDING_DEVICE','NON_VERIFIABLE']);
 const PRESERVE_STATUSES = new Set(['PASS','FAIL','NON_VERIFIABLE']);
 
-function componentEvidence(criterion, changedSet, cwd){
-  const decision=criterion.component_decision;
-  if(decision==='CREATE')return (criterion.change_targets||[]).length>0 &&
-    (criterion.change_targets||[]).every(target=>changedSet.has(target)&&fs.existsSync(path.resolve(cwd,target)))
-    ? {status:'PASS',reason:'CREATED_TARGET_PRESENT_IN_DELTA'}
-    : {status:'FAIL',reason:'CREATED_TARGET_NOT_DELIVERED'};
-  if(!criterion.selected_component||typeof criterion.selected_component!=='object')return null;
-  const selected=criterion.selected_component;
-  const component=path.resolve(cwd,selected.path);
-  if(!fs.existsSync(component))return {status:'FAIL',reason:'SELECTED_COMPONENT_MISSING'};
-  if(decision==='EXTEND')return changedSet.has(selected.path)
-    ? {status:'PASS',reason:'SELECTED_COMPONENT_CHANGED'}
-    : {status:'FAIL',reason:'SELECTED_COMPONENT_NOT_CHANGED'};
-  // Resolve literal relative imports and repository aliases before checking use.
-  let aliases={};
-  try { aliases=JSON.parse(fs.readFileSync(path.join(cwd,'tsconfig.json'),'utf8').replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g,'')).compilerOptions?.paths||{}; } catch {}
-  for(const target of criterion.change_targets||[]){
-    const absolute=path.resolve(cwd,target);
-    if(!changedSet.has(target)||!fs.existsSync(absolute))continue;
-    const source=fs.readFileSync(absolute,'utf8');
-    const imports=[...source.matchAll(/\bimport\s+([^;\n]+?)\s+from\s+['"]([^'"]+)['"]/g)];
-    for(const match of imports){
-      const spec=match[2],binding=match[1];
-      let resolved;
-      if(spec.startsWith('.'))resolved=path.resolve(path.dirname(absolute),spec);
-      else for(const [pattern,targets] of Object.entries(aliases)){
-        const [prefix,suffix]=pattern.split('*');
-        if(!spec.startsWith(prefix)||!spec.endsWith(suffix||''))continue;
-        const middle=spec.slice(prefix.length,suffix? -suffix.length:undefined);
-        const target=String(targets?.[0]||'').replace('*',middle);
-        resolved=path.resolve(cwd,target);
-        break;
-      }
-      if(!resolved)continue;
-      if(![component,component.replace(/\.[cm]?[jt]sx?$/,''),path.join(component,'index')].includes(resolved))continue;
-      const name=selected.export;
-      const bound=name==='default' ? binding.match(/^\s*([A-Za-z_$][\w$]*)/)?.[1]
-        : binding.match(new RegExp('\\b'+name+'\\b(?:\\s+as\\s+([A-Za-z_$][\\w$]*))?'))?.[1]||name;
-      if(!bound)continue;
-      const remainder=source.replace(match[0],'');
-      if(new RegExp('\\b'+bound+'\\b').test(remainder))return {status:'PASS',reason:'EXACT_IMPORT_AND_USE',target};
-    }
-  }
-  return {status:'FAIL',reason:'SELECTED_COMPONENT_USE_NOT_PROVEN'};
-}
+const {componentEvidence}=require('./lib/component-evidence');
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(path.resolve(file), 'utf8'));

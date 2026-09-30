@@ -118,13 +118,17 @@ jobs:
             if([string]$meta.review_mode-eq'CRITERION_COMPLETE'){
               $env:KODJO_REQUIRE_COMPONENT_PROOF='1'
               $reviewContractFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-contract.json'
-              $reviewContractMatch=[regex]::Match($reviewBody,'(?s)<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>\s*(.*?)\s*</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>')
-              if(-not$reviewContractMatch.Success){throw 'V2 review contract missing'}
+              $reviewContractMatches=[regex]::Matches($reviewBody,'(?ms)^[ \t]*<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>[ \t]*\r?\n(.*?)^[ \t]*</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>[ \t]*\r?$')
+              if($reviewContractMatches.Count-gt1){throw 'V2_REVIEW_CONTRACT_MISSING_OR_DUPLICATED'}
+              $reviewContractMatch=if($reviewContractMatches.Count-eq1){$reviewContractMatches[0]}else{$null}
+              if($null-eq$reviewContractMatch){throw 'V2 review contract missing'}
               [IO.File]::WriteAllText($reviewContractFile,$reviewContractMatch.Groups[1].Value,(New-Object Text.UTF8Encoding($false)))
 
-              $testEvidenceMatch=[regex]::Match($reviewBody,'(?s)<KODJO_TEST_CONTRACT_EVIDENCE_JSON>\s*(.*?)\s*</KODJO_TEST_CONTRACT_EVIDENCE_JSON>')
+              $testEvidenceMatches=[regex]::Matches($reviewBody,'(?ms)^[ \t]*<KODJO_TEST_CONTRACT_EVIDENCE_JSON>[ \t]*\r?\n(.*?)^[ \t]*</KODJO_TEST_CONTRACT_EVIDENCE_JSON>[ \t]*\r?$')
+              if($testEvidenceMatches.Count-gt1){throw 'TEST_CONTRACT_EVIDENCE_DUPLICATED'}
+              $testEvidenceMatch=if($testEvidenceMatches.Count-eq1){$testEvidenceMatches[0]}else{$null}
               if($planRaw -match '<KODJO_REQUIREMENT_CONTRACT_JSON>'){
-                if(-not$testEvidenceMatch.Success){throw 'TEST_CONTRACT_EVIDENCE_MISSING_FOR_NEW_PLAN'}
+                if($null-eq$testEvidenceMatch){throw 'TEST_CONTRACT_EVIDENCE_MISSING_FOR_NEW_PLAN'}
                 $testEvidenceFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-test-evidence.json'
                 [IO.File]::WriteAllText($testEvidenceFile,$testEvidenceMatch.Groups[1].Value,(New-Object Text.UTF8Encoding($false)))
                 $env:KODJO_REQUIRE_TEST_CONTRACT_EVIDENCE='1'

@@ -123,6 +123,11 @@ test('le checkpoint GitHub est relu et lié au commentaire certifié exact', () 
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-visual-checkpoint-'));
   const queue = visualQueue();
   const file = path.join(dir, 'queue.json');
+  const {spawnSync}=require('node:child_process');
+  assert.equal(spawnSync('git',['init',dir],{encoding:'utf8'}).status,0);
+  const plan='<KODJO_PLAN_IMPACT_JSON>\n'+JSON.stringify({scope_allow:queue.scope_allow})+'\n</KODJO_PLAN_IMPACT_JSON>';
+  const blob=spawnSync('git',['hash-object','-w','--stdin'],{cwd:dir,input:plan,encoding:'utf8'});
+  assert.equal(blob.status,0,blob.stderr);queue.authorized_plan.plan_blob_oid=blob.stdout.trim();
   fs.writeFileSync(file, JSON.stringify(queue), 'utf8');
   const body = [
     '[KODJO_V2] APPLICATION_CHECKPOINT', '',
@@ -150,6 +155,10 @@ test('le checkpoint GitHub est relu et lié au commentaire certifié exact', () 
   assert.equal(verified.review_policy.plan_revision_forbidden,true);
   assert.equal(verified.review_policy.review_required,false);
   assert.equal(verified.contract_status, 'CONTRACT_UNCHANGED');
+  const widened=structuredClone(queue);widened.scope_allow.push('src/outside.ts');fs.writeFileSync(file,JSON.stringify(widened));
+  assert.throws(()=>V.verify(file,{cwd:dir,repository:'MyUncried/Application-Routine',comment,transitionVerifier:()=>({status:'PASS',protected_blobs:[{source_oid:'f'.repeat(40),execution_oid:'f'.repeat(40)}]})}),/VISUAL_CORRECTION_SCOPE_CHANGED/);
+  fs.writeFileSync(file,JSON.stringify(queue));
+
   assert.throws(()=>V.verify(file,{cwd:dir,repository:'MyUncried/Application-Routine',comment,transitionVerifier:()=>({status:'PASS'})}),/VISUAL_CORRECTION_TRANSITION_PROOF_REQUIRED/);
   assert.throws(() => V.verify(file, {
     cwd: dir, repository: 'MyUncried/Application-Routine', transitionVerifier:()=>({status:'PASS',protected_blobs:[{source_oid:'f'.repeat(40),execution_oid:'f'.repeat(40)}]}),

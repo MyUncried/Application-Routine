@@ -241,7 +241,7 @@ function normalizeBoundaryLocator(value,target){
   const {kind,path,symbol,invariant_type,expected,semantic_justification}=value;
   if(kind==='SEMANTIC'){
     if(path!=='NONE'||symbol!=='NONE'||invariant_type!=='SEMANTIC_REVIEW'||expected!=='UNCHANGED'||typeof semantic_justification!=='string'||semantic_justification.trim().length<40)fail('BOUNDARY_SEMANTIC_JUSTIFICATION_REQUIRED',target);
-    if(/(?:app|src|tests|assets|docs|scripts|\.github)\/[A-Za-z0-9_.\/-]+/.test((target+' '+semantic_justification).replace(/\\/g,'/')))fail('BOUNDARY_PATH_DISGUISED_AS_SEMANTIC',target);
+    if(/(?:\b(?:app|src|tests|assets|docs|scripts|\.github)\/[A-Za-z0-9_.\/-]+|(?:^|[\s`'\"(])(?:\.?[A-Za-z0-9_-]+\.(?:[cm]?[jt]sx?|json|ya?ml|md|sql|svg|png|css)|\.[A-Za-z][A-Za-z0-9_-]*)(?:$|[\s`'\"),:])|\b[A-Za-z_$][\w$]*\s*\(\))/.test((target+' '+semantic_justification).replace(/\\/g,'/')))fail('BOUNDARY_PATH_DISGUISED_AS_SEMANTIC',target);
   }else if(kind==='PATH'||kind==='SYMBOL'){
     normalizeRepoPath(path,'boundary.path');
     const absent=kind==='PATH'&&invariant_type==='PATH_ABSENT'&&expected==='ABSENT';

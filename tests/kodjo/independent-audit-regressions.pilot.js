@@ -59,7 +59,7 @@ test('F05: boundary identity comes from explicit locator, independent of narrati
  const m=matrix();m.preservation.preserve=[{target:'Protected behavior',justification:'Preserve existing declaration'}];assert.throws(()=>validateMatrix(m,context()),/BOUNDARY_LOCATOR_REQUIRED/);
 });
 test('F05: semantic boundaries cannot conceal explicit repository paths',()=>{
- for(const target of ['./src/protected.js','src\\protected.js']){const m=matrix();m.preservation.forbidden=[{target,justification:'Do not change',locator:{kind:'SEMANTIC',path:'NONE',symbol:'NONE',invariant_type:'SEMANTIC_REVIEW',expected:'UNCHANGED',semantic_justification:'There is allegedly no unique path or symbol for this behavior, requiring semantic review of the complete invariant.'}}];assert.throws(()=>validateMatrix(m,context()),/PATH_DISGUISED_AS_SEMANTIC/);}
+ for(const target of ['./src/protected.js','src\\protected.js','package.json','tsconfig.json','.env','preserveThing()']){const m=matrix();m.preservation.forbidden=[{target,justification:'Do not change',locator:{kind:'SEMANTIC',path:'NONE',symbol:'NONE',invariant_type:'SEMANTIC_REVIEW',expected:'UNCHANGED',semantic_justification:'There is allegedly no unique path or symbol for this behavior, requiring semantic review of the complete invariant.'}}];assert.throws(()=>validateMatrix(m,context()),/PATH_DISGUISED_AS_SEMANTIC/);}
 });
 test('F05: unchanged symbol passes despite neighboring edit; changed or unsupported declaration cannot pass',()=>{
  const before='export function kept(){return 1;}\nfunction neighbor(){return 2;}';

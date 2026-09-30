@@ -104,18 +104,18 @@ Cette matrice est une entrée normative exécutable du candidat #250 : ses 64 id
 
 # 4. Matrice de priorisation des transformations
 
-| Lot | Contenu | Dépendances | Effort | Risque | Gain attendu | Critère de sortie |
-|---|---|---|---|---|---|---|
-| DET-01 | Finaliser #252 : clés de décisions liées au scan | aucune | S | Faible | supprime `INITIAL_PLAN_DECISION_CARDINALITY` et paths recopiés | suite Linux + Windows + replay PRE-1 passent |
-| DET-02 | `requirement_contract` unifié UI/non-UI + IDs stables | DET-01 | L | Élevé | élimine reconstruction des exigences à chaque phase | même set d’IDs du plan à la revue finale |
-| DET-03 | Findings structurés + delta-only mécanique | DET-02 + #251 | L | Élevé | empêche reconstruction globale après REVISE | test : finding ciblé ne modifie aucun requirement hors cible/dépendance |
-| DET-04 | `test_contract` requirement→test→proof | DET-02 | L | Moyen | preuve fonctionnelle traçable et moins d’interprétation IA | chaque preuve test renvoie à un test exact exécuté |
-| DET-05 | PRESERVE/FORBIDDEN machine-addressables | DET-02 | L | Moyen | transforme de nombreuses revues en assertions | invariants calculables PASS/FAIL avant IA |
-| DET-06 | Rapport d’implémentation mécanique | DET-02/04/05 | L | Moyen | supprime auto-déclaration de faits Git/test | files/tests/proofs calculables produits sans texte Claude |
-| DET-07 | Review contract hybride : machine facts + semantic residuals | DET-02/04/05/06 | L | Élevé | IA réservée aux jugements sémantiques | reviewer ne peut modifier les facts machine |
-| DET-08 | Agrégation mécanique plan_status/verdicts/device flag | DET-03/07 | M | Faible | supprime divergences d’agrégat | aucune sortie IA d’agrégat requise |
-| DET-09 | Superviseur de correction : failure set → work items → retry borné | DET-03/04/07 | L | Moyen | retry devient filet de sécurité, pas convergence nominale | résidu corrigé sans élargissement ; erreur prévenable ne rappelle pas IA |
-| DET-10 | Resolver AST/TypeScript des dépendances | indépendant après stabilisation | M/L | Moyen | améliore exhaustivité du scope | corpus reexports/aliases/imports dynamiques qualifié |
+| Lot | Contenu | Dépendances | Effort | Risque | Gain attendu | Critère de sortie | Priorité de clôture |
+|---|---|---|---|---|---|---|---|
+| DET-01 | Finaliser #252 : clés de décisions liées au scan | aucune | S | Faible | supprime `INITIAL_PLAN_DECISION_CARDINALITY` et paths recopiés | suite Linux + Windows + replay PRE-1 passent | REQUIRED |
+| DET-02 | `requirement_contract` unifié UI/non-UI + IDs stables | DET-01 | L | Élevé | élimine reconstruction des exigences à chaque phase | même set d’IDs du plan à la revue finale | REQUIRED |
+| DET-03 | Findings structurés + delta-only mécanique | DET-02 + #251 | L | Élevé | empêche reconstruction globale après REVISE | test : finding ciblé ne modifie aucun requirement hors cible/dépendance | REQUIRED |
+| DET-04 | `test_contract` requirement→test→proof | DET-02 | L | Moyen | preuve fonctionnelle traçable et moins d’interprétation IA | chaque preuve test renvoie à un test exact exécuté | REQUIRED |
+| DET-05 | PRESERVE/FORBIDDEN machine-addressables | DET-02 | L | Moyen | transforme de nombreuses revues en assertions | invariants calculables PASS/FAIL avant IA | REQUIRED |
+| DET-06 | Rapport d’implémentation mécanique | DET-02/04/05 | L | Moyen | supprime auto-déclaration de faits Git/test | files/tests/proofs calculables produits sans texte Claude | REQUIRED |
+| DET-07 | Review contract hybride : machine facts + semantic residuals | DET-02/04/05/06 | L | Élevé | IA réservée aux jugements sémantiques | reviewer ne peut modifier les facts machine | REQUIRED |
+| DET-08 | Agrégation mécanique plan_status/verdicts/device flag | DET-03/07 | M | Faible | supprime divergences d’agrégat | aucune sortie IA d’agrégat requise | REQUIRED |
+| DET-09 | Superviseur de correction : failure set → work items → retry borné | DET-03/04/07 | L | Moyen | retry devient filet de sécurité, pas convergence nominale | résidu corrigé sans élargissement ; erreur prévenable ne rappelle pas IA | REQUIRED |
+| DET-10 | Resolver AST/TypeScript des dépendances | indépendant après stabilisation | M/L | Moyen | améliore exhaustivité du scope | corpus reexports/aliases/imports dynamiques qualifié | DEFERRED |
 
 ---
 

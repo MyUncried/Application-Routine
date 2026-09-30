@@ -209,6 +209,36 @@ function isIndependentAuditPublicationPermission(filePath, lines, index, pattern
   return false;
 }
 
+
+// These exact documentary/consumption writers were reviewed as a whole. Any
+// source modification invalidates the declaration rather than admitting a new route.
+const DECLARED_REST_WRITERS = {
+  "scripts/kodjo/publish-independent-protocol-audit.js": "14d270f00c3a781fa9537e99fab88158da9adc3079da0bdeac5bc473309516c8",
+  "scripts/kodjo/consume-queue-request.js": "080db30d961679b72e1c88c7323d12980b9c318bee2f9839de1244edea6a9d69"
+};
+function restWriteCapabilities(source){
+  const code=source.replace(/\\\r?\n/g,' ').replace(/\/\*[\s\S]*?\*\/|^\s*\/\/[^\n]*/gm,'');
+  const findings=[];
+  const endpoint=/\/(?:contents(?:\/|['"`]|\s|$)|git\/(?:refs?|commits|trees|tags)(?:\/|['"`]|\s|$))/;
+  for(const line of code.split(/\r?\n/)){
+    if(/\bgh\s+api\b/.test(line)&&endpoint.test(line)&&!/(?:--method|-X)\s+['"]?GET\b/.test(line)&&(/(?:--method|-X)\s+['"]?(?:POST|PUT|PATCH|DELETE)\b/.test(line)||/(?:--input|--(?:raw-)?field|-[fF])(?:\s|=)/.test(line)))findings.push(line.trim());
+  }
+  // Literal REST calls and bounded wrappers whose endpoint is a contents/Git
+  // variable. Dynamic endpoints cannot hide a write when this source defines it.
+  for(const m of code.matchAll(/\b(?:fetch|fetchImpl|api|githubApi)\s*\(\s*['"](?:POST|PUT|PATCH|DELETE)['"]\s*,([^\n]+)/g)){
+    if(endpoint.test(m[1])||(/^\s*[A-Za-z_$][\w$]*\s*,/.test(m[1])&&endpoint.test(code)))findings.push(m[0]);
+  }
+  for(const m of code.matchAll(/\b(?:fetch|fetchImpl)\s*\(([\s\S]*?)\n?\s*\}\s*\)/g)){
+    if(/method\s*:\s*['"](?:POST|PUT|PATCH|DELETE)['"]/.test(m[1])&&(endpoint.test(m[1])||endpoint.test(code)))findings.push(m[0]);
+  }
+  // A /git base plus /refs or /tags is a Git-data endpoint too.
+  if(/['"]\/git['"]/.test(code)&&/\bapi\s*\(\s*['"](?:POST|PUT|PATCH|DELETE)['"]\s*,[^\n]*['"]\/(?:refs|tags|commits|trees)['"]/.test(code))findings.push('Git-data base write');
+  return [...new Set(findings)];
+}
+function declaredRestWriter(rel,source){
+  return DECLARED_REST_WRITERS[rel]===require('node:crypto').createHash('sha256').update(source.replace(/\r\n/g,'\n')).digest('hex');
+}
+
 function main() {
   const root = path.resolve(process.argv[2] || process.cwd());
   const files = collectFiles(root);
@@ -217,7 +247,14 @@ function main() {
 
   for (const file of files) {
     const rel = path.relative(root, file).replace(/\\/g, '/');
-    const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+    const source=fs.readFileSync(file,'utf8');
+    const lines = source.split(/\r?\n/);
+    if(rel!=='scripts/kodjo/scan-remote-write-capability.js'&&!declaredRestWriter(rel,source)){
+      for(const text of restWriteCapabilities(source)){
+        const queue=rel==='.github/workflows/kodjo-v2-lean-queue.yml' && text==='$created=gh api --method PUT "repos/$env:GITHUB_REPOSITORY/contents/$queuePath" --input $putFile|ConvertFrom-Json';
+        if(!queue)findings.push({pattern:'REST_GIT_DATA_WRITE',file:rel,line:1,text:text.slice(0,300)});
+      }
+    }
     lines.forEach((line, i) => {
       if (isExempt(file, line, root)) return;
       const code = line.split('#')[0];
@@ -255,4 +292,4 @@ function main() {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { isIndependentAuditPublicationPermission, isDisposableConsumptionPermission, collectFiles, PATTERNS, SHELL_TRUE_EXEMPTIONS, isExempt, isFixedEvidenceWriterOperation, isFixedLeanSupervisorOperation, main };
+module.exports = { restWriteCapabilities, declaredRestWriter, DECLARED_REST_WRITERS, isIndependentAuditPublicationPermission, isDisposableConsumptionPermission, collectFiles, PATTERNS, SHELL_TRUE_EXEMPTIONS, isExempt, isFixedEvidenceWriterOperation, isFixedLeanSupervisorOperation, main };

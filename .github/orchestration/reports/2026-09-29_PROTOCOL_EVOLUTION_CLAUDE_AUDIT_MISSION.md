@@ -33,6 +33,14 @@ Lire au minimum :
 - les tests `tests/kodjo/**` concernés ;
 - les versions normatives antérieures nécessaires pour vérifier la non-régression.
 
+## Dossier cumulatif et conditions de convergence de cette reprise
+
+Lire aussi `2026-09-30_PR250_CUMULATIVE_AUDIT_REGISTER.md` dans ce même répertoire. Ce dossier conserve les 103 références antérieures et leurs familles ; ses propositions ne sont pas une preuve de fermeture. Vérifier explicitement les familles, les dépendances et les régressions sur le candidat exact. Produire un tableau de disposition par famille avec références, résultat et preuve. Ne pas considérer la disparition d’un constat comme une correction.
+
+La revue reste complète et adversariale sur les 64 axes et PE27–PE38 ; ce dossier ne limite pas l’exploration aux dix derniers constats. Pour chaque réserve : identifier la règle préexistante et sa source, le scénario reproductible sur le HEAD, le résultat attendu/observé, la conséquence concrète, la sévérité motivée, le lien avec une famille ou une dépendance et la preuve requise pour la fermer. Distinguer défaut nécessaire et proposition nouvelle hors périmètre. Une amélioration ne devient pas rétroactivement une exigence. Vérifier la chaîne réellement exécutée, pas seulement un helper isolé. Les reports demeurent ceux explicitement admis par les sources.
+
+Ce dernier appel n’impose pas APPROVE. REVISE reste recevable pour un défaut nécessaire démontré ; il n’autorise aucune boucle automatique. La publication d’un audit valide peut être réparée sans nouvel appel indépendant.
+
 ## 4. Audit obligatoire de la déterminisation
 
 Pour chaque ligne P-xx, D-xx, T-xx et DET-xx de la matrice :

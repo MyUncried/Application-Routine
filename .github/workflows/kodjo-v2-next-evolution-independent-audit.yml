@@ -165,6 +165,8 @@ jobs:
         run: |
           $ErrorActionPreference='Stop'
           $mission=Get-Content -LiteralPath '.github/orchestration/reports/2026-09-29_PROTOCOL_EVOLUTION_CLAUDE_AUDIT_MISSION.md' -Raw -Encoding UTF8
+          $register=Get-Content -LiteralPath '.github/orchestration/reports/2026-09-30_PR250_CUMULATIVE_AUDIT_REGISTER.md' -Raw -Encoding UTF8
+          $registerSummary=($register -split '## Inventaire cumulatif à rapprocher du candidat',2)[0]
           $changed=(git diff --name-only $env:BASE_SHA $env:CANDIDATE_SHA) -join [Environment]::NewLine
           if($LASTEXITCODE-ne0){throw 'Audit diff inventory failed'}
           $prompt=@"
@@ -175,6 +177,10 @@ jobs:
           pr_number=$env:PR_NUMBER
           base_sha=$env:BASE_SHA
           candidate_sha=$env:CANDIDATE_SHA
+
+          ===== CUMULATIVE AUDIT REGISTER (claims must be independently verified) =====
+          $registerSummary
+          Read the full register at .github/orchestration/reports/2026-09-30_PR250_CUMULATIVE_AUDIT_REGISTER.md for all 103 references and family dispositions.
 
           ===== CHANGED FILES =====
           $changed

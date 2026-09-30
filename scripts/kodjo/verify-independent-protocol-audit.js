@@ -17,7 +17,7 @@ if(deferrals.schema!=='kodjo.audit-deferrals.v1'||!Array.isArray(deferrals.entri
 const DEFERRED_IDS=new Set();
 for(const row of deferrals.entries){
   const line=matrixText.split('\n').find(line=>line.startsWith('| '+row.id+' |'));
-  if(!EXPECTED_IDS.has(row.id)||DEFERRED_IDS.has(row.id)||!row.reason||!line||(!row.id.startsWith('DET-')&&!line.endsWith('| '+row.priority+' |')))throw new Error('INDEPENDENT_AUDIT_DEFERRALS_INVALID');
+  if(!EXPECTED_IDS.has(row.id)||DEFERRED_IDS.has(row.id)||!row.reason||!line||!line.trimEnd().endsWith('| '+row.priority+' |'))throw new Error('INDEPENDENT_AUDIT_DEFERRALS_INVALID');
   DEFERRED_IDS.add(row.id);
 }
 

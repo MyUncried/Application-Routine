@@ -233,3 +233,12 @@ L'héritage non-UI compare les champs opposables et les preuves normalisées, in
 `verify-artifact-retention.js` confronte chaque upload KODJO à `artifact-policy.js` avant qualification. Les preuves de qualification disposable restent 90 jours ; les reçus de publication d’audit restent 14 jours. Un nom non reconnu bloque ce contrôle et est classé UNKNOWN/critique avec une rétention conservatoire de 90 jours ; il ne devient jamais implicitement purgeable.
 
 La reprise automatique de planification accepte comme commande le commentaire bot PLAN_REVIEW_OUTPUT REVISE uniquement si son issue, slice, lien source_plan_comment_id et HEAD sont ceux du plan bot causal. INITIAL exige aussi planning_mode=INITIAL. La commande est réhydratée avant le gate et toute génération ; les commandes utilisateur et leur paire explicite de commentaires restent acceptées.
+
+
+### Précisions de vérification du lot de clôture #250
+
+Le contrôle de réemploi résout les imports littéraux relatifs et aliases, les fichiers index et les réexports statiques nommés ; une forme non prise en charge ne prouve pas le réemploi. Le runtime figé de revue conserve aussi ce résolveur. Les blocs de preuve de la revue finale sont uniques, délimités sur leurs propres lignes ; la citation d’un tag dans la prose ne fait pas autorité. Une preuve mécanique excédant à elle seule le plafond de transport produit un diagnostic terminal explicite, sans suppression silencieuse ni boucle de troncature.
+
+NON_UI_COVERAGE ne donne aucune permission générale de reconstruire un plan : seules des nouvelles exigences NON_UI portant sur les chemins mutables non-test déjà présents dans le scope et réellement non couverts peuvent être ajoutées, avec leurs bindings de tests. Les exigences acquises restent protégées. Pour une dispense VISUAL_CORRECTION, le scope demandé doit être rapproché du scope du blob du plan approuvé, indépendamment de la preuve d’immuabilité des sources protégées. Une preuve de scope illisible ou absente ne peut autoriser la dispense.
+
+Les identités utilisent la normalisation des champs opposables avant leur empreinte ; les entrées déjà normalisées gardent leurs IDs. Les priorités DET nécessaires ou reportées sont explicites dans la matrice ; un préfixe ne donne aucune exemption. Le registre cumulatif de reprise guide la vérification des fermetures sans réduire les 64 axes et PE27–PE38, ni neutraliser REVISE. Il ne constitue pas une approbation du candidat.

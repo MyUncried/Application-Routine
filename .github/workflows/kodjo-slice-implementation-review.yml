@@ -255,7 +255,7 @@ jobs:
           runtime="$RUNNER_TEMP/kodjo-review-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           mkdir -p "$runtime/lib"
           cp scripts/kodjo/verify-ui-implementation-review.js scripts/kodjo/verify-test-contract-results.js "$runtime/"
-          cp scripts/kodjo/lib/plan-impact.js scripts/kodjo/lib/implementation-contract.js scripts/kodjo/lib/implementation-report.js scripts/kodjo/lib/ui-criteria-contract.js scripts/kodjo/lib/requirement-contract.js scripts/kodjo/lib/boundary-proof.js scripts/kodjo/lib/ui-identities.js "$runtime/lib/"
+          cp scripts/kodjo/lib/plan-impact.js scripts/kodjo/lib/implementation-contract.js scripts/kodjo/lib/implementation-report.js scripts/kodjo/lib/ui-criteria-contract.js scripts/kodjo/lib/requirement-contract.js scripts/kodjo/lib/boundary-proof.js scripts/kodjo/lib/ui-identities.js scripts/kodjo/lib/component-evidence.js "$runtime/lib/"
           echo "KODJO_REVIEW_RUNTIME=$runtime" >> "$GITHUB_ENV"
 
       - name: Checkout implementation HEAD
