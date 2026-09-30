@@ -459,6 +459,12 @@ test('VNext-11 la révision réelle exige la fermeture explicite avant RESOLVED'
     reviewReport: report,
     auditManifest,
     findingAssessment,
+    findingLedger: Audit.buildFindingLedgerInitial({
+      auditManifest,
+      reviewContext: base.reviewContext,
+      reviewReport: report,
+      findingAssessment,
+    }),
     requirementRegistry: base.requirementRegistry,
     impactGraph: base.impactGraph,
     candidateManifest: base.candidateManifest,
@@ -480,6 +486,14 @@ test('VNext-11 la révision réelle exige la fermeture explicite avant RESOLVED'
     semanticReview: { findings: [] },
   });
 
+  const previousFindingLedger = Audit.buildFindingLedgerInitial({
+    auditManifest,
+    reviewContext: base.reviewContext,
+    reviewReport: report,
+    findingAssessment,
+  });
+  const nextFindingAssessment = assessmentFor(next, nextReport, auditManifest);
+
   assert.throws(() => Revision.verifyRevisionOutcome({
     allowedChangeSet: allowed,
     revisionPatch: patch,
@@ -487,11 +501,24 @@ test('VNext-11 la révision réelle exige la fermeture explicite avant RESOLVED'
     nextArtifacts: next,
     auditManifest,
     previousReviewReport: report,
+    previousFindingLedger,
     nextReviewContext: next.reviewContext,
     nextReviewReport: nextReport,
+    nextFindingAssessment,
     findingResolutionSet: null,
+    nextFindingLedger: null,
   }), /VNEXT_REVISION_FINDING_RESOLUTION_REQUIRED/);
 
+  const explicitResolutions = resolutionSet(auditManifest, report, next, nextReport);
+  const nextFindingLedger = Audit.advanceFindingLedgerWithPreviousReport({
+    previousLedger: previousFindingLedger,
+    previousReviewReport: report,
+    auditManifest,
+    nextReviewContext: next.reviewContext,
+    nextReviewReport: nextReport,
+    nextFindingAssessment,
+    findingResolutionSet: explicitResolutions,
+  });
   const outcome = Revision.verifyRevisionOutcome({
     allowedChangeSet: allowed,
     revisionPatch: patch,
@@ -499,9 +526,12 @@ test('VNext-11 la révision réelle exige la fermeture explicite avant RESOLVED'
     nextArtifacts: next,
     auditManifest,
     previousReviewReport: report,
+    previousFindingLedger,
     nextReviewContext: next.reviewContext,
     nextReviewReport: nextReport,
-    findingResolutionSet: resolutionSet(auditManifest, report, next, nextReport),
+    nextFindingAssessment,
+    findingResolutionSet: explicitResolutions,
+    nextFindingLedger,
   });
   assert.equal(outcome.status, 'RESOLVED');
   assert.equal(outcome.schema_version, 'kodjo.vnext.revision-outcome.v2');
