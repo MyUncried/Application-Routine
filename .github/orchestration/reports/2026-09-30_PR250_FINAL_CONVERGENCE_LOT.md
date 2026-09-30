@@ -61,3 +61,11 @@ Fichiers du lot : trois workflows (audit indépendant, revue d’implémentation
 PRE-1 reste issue #249, baseline `e216294506bed87dd80855937e3fabfbfa322b82`, plan `5874870872`, revue REVISE `5878031654`. Reprise préparée avec cette paire causale, aucun nouveau cycle ou baseline.
 
 Un seul appel indépendant supplémentaire après qualification complète. APPROVE exact et barrières satisfaites : intégrer #250, fermer #252 comme absorbée, reprendre PRE-1. REVISE : arrêt explicite, réserves rapprochées des critères existants, aucune boucle automatique ou auto-APPROVE. Publication défaillante d’un audit valide : réparer la publication sans refaire l’appel. Les états réels seront publiés sur les PR et la chaîne causale.
+
+
+### Correction de la fixture Windows avant l’appel indépendant
+
+Le candidat `c5f3522e3b442353724b81ff1d93b58877459ea1` a passé la qualification Linux (800 PASS / 0 FAIL / 1 SKIP, run 36681784451), puis échoué sous Windows sur une seule assertion ajoutée au banc F02. Cette assertion convertissait en CRLF un fichier déjà lu avec CRLF, produisant CRCRLF. Le writer et sa normalisation n’étaient pas en défaut. La fixture normalise désormais LF avant de produire sa variante CRLF. Le dernier appel indépendant n’a pas été consommé : le workflow d’audit 36681784455 reste arrêté à sa barrière de qualification. La correction ne modifie aucune exigence ou fonction de production. Elle est vérifiée sur les suites du candidat en checkout LF et en copie de travail CRLF avant publication du delta fixture + rapport.
+
+
+Résultat du contrôle après correction de la fixture : suite complète LF, 801 tests / 795 PASS / 0 FAIL / 6 SKIP, 17,060 s ; copie de 594 fichiers JS/YAML/Markdown/JSON convertis en CRLF avec Git core.autocrlf=true, 801 tests / 795 PASS / 0 FAIL / 6 SKIP, 17,006 s. Une première simulation CRLF sans la configuration Git du runner avait rendu une empreinte de queue différente ; configuration rétablie dans la copie jetable, sans modifier le code ni désactiver de test. Le delta publié après c5f3522e ne contient que la ligne de fixture et ce compte rendu. Le job indépendant et la publication du premier workflow sont explicitement SKIPPED.
