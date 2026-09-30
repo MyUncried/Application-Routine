@@ -1905,3 +1905,170 @@ Le gate est franchi si :
 - non-régression VNext-01..10 PASS.
 
 Ce gate ne vaut ni audit final ni activation.
+
+
+## 22. VNext-F01 — Sécurité des écritures distantes avant VNext-12
+
+### 22.1 Objet
+
+Ce lot ferme le risque F-01 identifié lors de l'audit indépendant de PR #250 sans modifier le protocole actif.
+
+Le risque traité est le suivant :
+
+- une capacité d'écriture distante peut exister dans un workflow dont le nom ne correspond pas au préfixe historiquement scanné ;
+- une nouvelle écriture ajoutée à cette surface pourrait alors échapper au contrôle statique.
+
+La protection VNext ne repose donc sur aucun préfixe de nom de workflow.
+
+### 22.2 Surface inventoriée
+
+Le contrôle VNext inspecte systématiquement :
+
+- tous les fichiers `.github/workflows/*.yml|yaml` ;
+- tous les scripts exécutables sous `scripts/kodjo/**` de type JS/CJS/MJS/PS1/SH.
+
+Le nom du workflow n'intervient jamais comme critère d'inclusion.
+
+Le scanner relève notamment :
+
+- permissions GitHub `*: write` ;
+- `persist-credentials: true` ;
+- credentials Git via `extraheader` ;
+- commit/push/tag/update-ref/merge/rebase/cherry-pick ;
+- actions de commit/PR connues ;
+- écritures REST explicites sur `/contents` et Git data.
+
+Cette analyse est statique et conservatrice. Elle ne prétend pas reconnaître tout code arbitraire, dynamique, téléchargé ou obfusqué.
+
+### 22.3 RemoteWritePolicy
+
+Source canonique :
+
+`.github/orchestration/KODJO_VNEXT_REMOTE_WRITE_POLICY.json`
+
+Schéma :
+
+`kodjo.vnext.remote-write-policy.v1`
+
+Deux régimes sont autorisés.
+
+#### Legacy figé
+
+Pendant la coexistence :
+
+- chaque workflow/script legacy est lié à son Git blob OID exact ;
+- toute modification de cette surface produit `VNEXT_REMOTE_WRITE_FROZEN_PRODUCER_DRIFT` ;
+- aucune nouvelle capacité d'écriture ne peut donc être ajoutée silencieusement à un writer legacy.
+
+Cette règle est transitoire et ne constitue pas une autorisation permanente VNext.
+
+#### Writer VNext déclaré
+
+Tout nouveau writer VNext doit déclarer explicitement :
+
+- producteur ;
+- Git blob OID exact ;
+- condition d'autorisation ;
+- job autorisé ;
+- capacité ;
+- destination ;
+- scope de permission.
+
+Une capacité observée absente de cette déclaration produit :
+
+`VNEXT_REMOTE_WRITE_UNDECLARED_CAPABILITY`
+
+Un producteur non déclaré produit :
+
+`VNEXT_REMOTE_WRITE_UNDECLARED_PRODUCER`
+
+### 22.4 Permissions et credentials
+
+Pour un writer VNext :
+
+- toute permission d'écriture doit être bornée au job déclaré ;
+- une permission `write` au niveau workflow est interdite ;
+- les credentials d'écriture ne doivent pas être exposés à un agent qui n'en a pas besoin ;
+- toute capacité credential détectée doit être comprise dans la politique exacte du producteur.
+
+Les surfaces legacy peuvent conserver leurs permissions historiques uniquement tant qu'elles restent figées et nécessaires à une slice legacy active.
+
+### 22.5 Attestation
+
+Contrat :
+
+`kodjo.vnext.remote-write-attestation.v1`
+
+États :
+
+- `PASS_WITH_FROZEN_LEGACY`
+- `PASS_RETIRED`
+- `FAIL`
+
+Pendant la coexistence, `PASS_WITH_FROZEN_LEGACY` est acceptable uniquement si au moins une slice legacy reste ACTIVE.
+
+Lorsque toutes les slices legacy sont CLOSED :
+
+- tout ancien workflow/script possédant encore une capacité d'écriture produit `VNEXT_REMOTE_WRITE_LEGACY_WRITER_NOT_RETIRED` ;
+- l'attestation devient FAIL ;
+- le cutover ne peut pas être considéré propre tant que ces writers ne sont pas retirés ou neutralisés.
+
+### 22.6 Gate de cutover
+
+Le CutoverPlan lie désormais exactement :
+
+- `remote_write_security_hash`
+- `remote_write_security_status`
+
+Un CutoverPlan est refusé si l'attestation vaut FAIL.
+
+Si des slices legacy sont encore actives :
+
+`remote_write_security_status = PASS_WITH_FROZEN_LEGACY`
+
+Si aucune slice legacy n'est active :
+
+`remote_write_security_status = PASS_RETIRED`
+
+Le passage artificiel d'un état à l'autre sans retrait effectif est donc refusé.
+
+### 22.7 Retrait legacy
+
+Règle :
+
+`REMOVE_OR_DISABLE_ALL_LEGACY_WRITERS_AFTER_LAST_LEGACY_SLICE`
+
+Après fermeture de la dernière slice legacy :
+
+- les anciens workflows writers ne peuvent plus rester déclenchables ;
+- leurs mécanismes de reprise/rerun ne peuvent pas rester un chemin d'écriture actif ;
+- une simple absence de routage nominal ne suffit pas ;
+- la preuve de retrait fait partie du gate de sécurité.
+
+### 22.8 Tests obligatoires
+
+Le lot doit démontrer :
+
+1. workflow au nom arbitraire + write non déclaré → FAIL ;
+2. script sous `scripts/kodjo` + push non déclaré → FAIL ;
+3. REST repository write non déclaré → FAIL ;
+4. writer legacy exact → accepté seulement pendant coexistence ;
+5. modification d'un legacy figé → FAIL ;
+6. writer VNext déclaré job/destination/condition exacts → PASS ;
+7. permission workflow-level write VNext → FAIL ;
+8. dernière slice legacy fermée avec anciens writers encore présents → FAIL ;
+9. dépôt VNext courant entièrement inventorié sans filtre de préfixe.
+
+### 22.9 Gate F01_REMOTE_WRITE_READY
+
+Le gate est acquis seulement si :
+
+- RemoteWritePolicy valide ;
+- attestation PASS pour l'état legacy courant ;
+- tests positifs et négatifs PASS ;
+- CutoverPlan lie l'attestation exacte ;
+- aucune modification du protocole actif n'a eu lieu.
+
+Ce gate est requis avant VNext-12.
+
+Il ne signifie pas encore que F-01 est sans objet : F-01 devient effectivement sans objet uniquement après `PASS_RETIRED`, c'est-à-dire après retrait des derniers writers legacy.

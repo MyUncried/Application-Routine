@@ -1,0 +1,860 @@
+{
+  "schema_version": "kodjo.vnext.remote-write-policy.v1",
+  "policy_mode": "CUTOVER_PREPARATION",
+  "frozen_workflows": [
+    {
+      "path": ".github/workflows/eas-ios-preview.yml",
+      "blob_oid": "f189b6f99278c5f4dcbcbdece7f81ccee5a2a7fa",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/eas-ios-routine-dev-review.yml",
+      "blob_oid": "790b8f4b3bf1f48c0d696f7d6cbc3bc223cc99ce",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-base-evidence-recovery.yml",
+      "blob_oid": "33d5af94a92382d3d6195f6444d4666e7f039359",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-base-recovery-verifier.yml",
+      "blob_oid": "eb48ff3f0b1461e5a5bf32245e77a2b052201c49",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-claude-local-auth-diagnostic.yml",
+      "blob_oid": "6b5cad51232981640a8bff35cf76f536970256d6",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-claude-local-auth-smoke.yml",
+      "blob_oid": "93c090910f74bea88c427403e9c0bb24691af54c",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-claude-local-runner-preflight.yml",
+      "blob_oid": "1d7695081e89f0522f2dbdbb81f80d2f62b2429a",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-claude-local-session-resume-02.yml",
+      "blob_oid": "a882a7f4a9d64a4541aa070ac49323a4079fe15a",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-claude-local-session-resume-03.yml",
+      "blob_oid": "c34b8fc69990203b79b6c35662f796f06d51d95e",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-claude-local-session-resume-test.yml",
+      "blob_oid": "4686f500911e22bdbb0443072d814b52f6805c0c",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-claude-session-resume-test.yml",
+      "blob_oid": "d336e1306ab5b419c8c6fab3c58faa3df3b60761",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-durable-store-preflight.yml",
+      "blob_oid": "f9fe2a662c83a7114abd97b13bf11746b8e9eddb",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-e2e-chain-completion-v1-3.yml",
+      "blob_oid": "41e4ce02dc21184d863b0351251688da520c9308",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-e2e-claude-stub-v1-3.yml",
+      "blob_oid": "76f4df9d3b4fcc43cdf2a678973def27a4fe695f",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-e2e-orchestration-test-v1-3.yml",
+      "blob_oid": "6c2899525dd490300468c4575c645d02591f1622",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-e2e-t1-t6-v1-3.yml",
+      "blob_oid": "7d91a21fbe957a95aeefee90d98ce336e6b4d726",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-e2e-t4-openai-fullchain-v1-3.yml",
+      "blob_oid": "8e0a1c14edf1303c71bcc6ad17769fd621b44041",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-event-router-v1-3.yml",
+      "blob_oid": "a294ea06cf624a0078104c177c038f188da2893d",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-resume-forensic-recovery.yml",
+      "blob_oid": "52ebeb7ec4a35101b7c4176abaa79a1f4033ed0c",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-routine-dev-environment-sync.yml",
+      "blob_oid": "dee71bf6a9682a0c66180e1f48ff4fda1526f227",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-routine-stable-environment-sync.yml",
+      "blob_oid": "270a024b8aa606ff24e919a7dd960dc9bdd1f72e",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-slice-finalize.yml",
+      "blob_oid": "fe52d97965e634a41b942ddd0ff2cade678a92d1",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-slice-implementation-publication-recovery.yml",
+      "blob_oid": "0a54addc27f7b612d2bdd7c89b009b6aa1062fb6",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-slice-implementation-review.yml",
+      "blob_oid": "5d516ae2e56c4c5636ac6eda5229b07f16aef716",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-slice-implementation.yml",
+      "blob_oid": "6430d28a4e065c12b1bd4c631aa77451ba0cc5c8",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-slice-plan-review.yml",
+      "blob_oid": "373c538d1e2a802d733e431ba92bde8e94317c63",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-slice-plan.yml",
+      "blob_oid": "c0242a394c643c5710cbaac98d70c1d060ca5176",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-slice-recover.yml",
+      "blob_oid": "cfb2deb078ea9c5c6c57818116cf65e7c3f353ee",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-t8-work-arbitration.yml",
+      "blob_oid": "15f6478582b9d30a032ca511e2233b13341b0901",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v1-3-integrated-t1-t9.yml",
+      "blob_oid": "5ba53b583805c00ee6682a436d0a1cb592885f12",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v14-local-e2e-recover.yml",
+      "blob_oid": "0e5a3bef56fbd4afeecdac7ae324c20fc5e104ac",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v14-local-e2e.yml",
+      "blob_oid": "4cebe21d2171266b2bcfd4bebde0767516184ca6",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v14-s09-dev.yml",
+      "blob_oid": "203fb5b123a664d190c04d876d1fe0a3f1c5fc51",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v14-s09-finalize.yml",
+      "blob_oid": "1807d68b475e708ae67db8a272ec25c27de1d316",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v14-s09-implementation-local.yml",
+      "blob_oid": "9b1f13042ea1c02d463aaaedcaecd1b2e62062ba",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v14-s09-plan-local.yml",
+      "blob_oid": "c830b0f56f9d7748a0b991ef643fa3da77d23c9f",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v14-s09-plan-review-independent.yml",
+      "blob_oid": "140f32e2c79e29e6577e5801672119b2af1236e1",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v14-s09-protocol-audit.yml",
+      "blob_oid": "aa029471e3775b1c2549011a4fe3aaf5d7950112",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v14-s09-recover-worktree.yml",
+      "blob_oid": "1c7b9cf4e02de292d0a7245c4891172727919d39",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v14-s09-review.yml",
+      "blob_oid": "945f4c4bfb9d851f902acae63def88fe6bf618f2",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v14-s09-validate-integration.yml",
+      "blob_oid": "e799d303f1b52fb0bbc465de1a0b43f4add2ad1c",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-bounded-plan-handoff-e2e.yml",
+      "blob_oid": "3f7906a6556be1a8a891cb451be505460d5c81eb",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-disposable-qualification.yml",
+      "blob_oid": "fd490a36b41a554cf299b37fe0d606ef1d16a9b8",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-implementation-artifact.yml",
+      "blob_oid": "9ee98dc6d90f778aa58c5db2a7b017cd4e5d2869",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "blob_oid": "81633464d94518319c999f5e34e7cefcb04d6b49",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
+      "blob_oid": "521ee9de2c84a99bb06ca015c31ea023c4593f01",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-plan-handoff-materialize.yml",
+      "blob_oid": "d674cac1f67a66f2d0154b3d52f8721c3f22807a",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-plan-handoff-queue.yml",
+      "blob_oid": "21d43ef989ffb6c4ee2472f9d5f4c1ead80075df",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-preservation-smoke.yml",
+      "blob_oid": "ae0da46c10894512a5583adbd7d9054b118b8c84",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-review-existing-delivery-bridge.yml",
+      "blob_oid": "103c124430d88e28031b1bd0c708cadac8c8ea26",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-runner-inventory.yml",
+      "blob_oid": "511437767a52701ca1b7ee4ea5131b4faee2a72c",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-slice-initial-plan-review.yml",
+      "blob_oid": "c1ea163d7848e01dd7f7595d7c3243716a7ea22e",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-slice-initial-plan.yml",
+      "blob_oid": "71f0df571e802c1000ca556889488d79904609c0",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-slice-minor-plan-clarification.yml",
+      "blob_oid": "62d154e7a0b10e8157aec19a50a7e9333e490e7a",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-slice-plan-review.yml",
+      "blob_oid": "9e63fc578bcf269eeb8fec120d90db4f4ce147be",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-slice-plan.yml",
+      "blob_oid": "9136f43182ed6dcd51482626c29655c3edc3bd64",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-targeted-requalification.yml",
+      "blob_oid": "e89b36debedee5163c073f8b6b3b3c095276f67a",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-targeted-runner-cleanup.yml",
+      "blob_oid": "4ec7d88daf8b5e8027c3c2e11640d2d2b67b3a55",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-transition.yml",
+      "blob_oid": "864065d17b27beefcbe05681e406523f4590df09",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/kodjo-work-transport-review-test.yml",
+      "blob_oid": "7165bcb5002467f2703540408b89a0a889d4b963",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/t01-s09-implementation-v1-3-temporary.yml",
+      "blob_oid": "94068bb7b1f0405e9e68fde8bb1da68ccc975686",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": ".github/workflows/t01-s09-plan-revision-v1-3-temporary.yml",
+      "blob_oid": "f0f053db021f273ea82c1014895905321c8cd7f5",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    }
+  ],
+  "frozen_scripts": [
+    {
+      "path": "scripts/kodjo/activate-kodjo-v2-slice.js",
+      "blob_oid": "5eccc4c821b304c8e1111576ed8254a3ed108037",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/activate-kodjo-v2-slice.ps1",
+      "blob_oid": "157dd426e2264b37cbb4846dc6782dcc7f88d7ab",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/adapters/no-remote-agent.js",
+      "blob_oid": "3ee9d31cbc8e65702799a10462216dfe9e1d7178",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/apply-minor-plan-clarification.js",
+      "blob_oid": "046691ad1523b8032d994f0f747627a66cc9811e",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/assemble-plan-impact.js",
+      "blob_oid": "1f6d89a119b92355abd63f6c5c3c448919de950c",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/build-planning-context.js",
+      "blob_oid": "8c1b1286280c47b9cbadf568887277dda83c8f3d",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/certify-persistent-runner-lock.js",
+      "blob_oid": "d53fdfcb5913344bf5d7056da9ffa070c1642623",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/certify-prod-qualification-scope.js",
+      "blob_oid": "aff0b2e7d38d52eeaf2f88ab9bea10ad35cc6505",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/certify-recovery-artifact.js",
+      "blob_oid": "ca8e1be14eb91c0ef409a06aab51fac8c12eca00",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/check-qualification-availability.js",
+      "blob_oid": "85a98397adf8e26efe867536996ea76c8b22515c",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/check-scope.js",
+      "blob_oid": "fd83be919652129f7acac04334e980fb374b352e",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/classify-environment-update.js",
+      "blob_oid": "10386d65ead8b08e135c6a06c90d3ebc2661b3be",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/cleanup-run-checkout.ps1",
+      "blob_oid": "1b3669d1f332cde6f77525ad9da0556a9e24290d",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/collect-implementation-report.js",
+      "blob_oid": "1d21e02cea404da99290679430472ed51fd3f072",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/compare-qualification-checks.js",
+      "blob_oid": "b519aa9580a9d65b3c7d0bdbe20f9046201c66f3",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/consume-disposable-request.js",
+      "blob_oid": "1944d1f38c50806339a0037715c281f30a793c60",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/consume-queue-request.js",
+      "blob_oid": "25e42f1b17b0c95483d375068f5fbce2f186e6b5",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/create-kodjo-v2-request.ps1",
+      "blob_oid": "e64a3db467d6cde83343246c956458a1e619ae5b",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/exit-from-business-status.js",
+      "blob_oid": "333c687f03701acd0d762402cdb59dd5cd0eaffb",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/finalize-implementation-delivery.js",
+      "blob_oid": "e0f68debccd598dc55306d6a4c420c98f6696818",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/generate-approved-plan-lean-request.js",
+      "blob_oid": "de8a99b67d3d9e482a5184be3a92217efd846ba4",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/generate-queue-schema.js",
+      "blob_oid": "24d7a7d4b0a2b683bb0cf1696cf4b547c1305a20",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/generate-ui-plan-contract.js",
+      "blob_oid": "732782d8c372d285c4e48b534ac150dec45a9d5a",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/git-state-guard.js",
+      "blob_oid": "b7a34bd018d4346e210dce7dc357e3aa55aad2bd",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/initialize-run-diagnostic.js",
+      "blob_oid": "07adb8977bc3c6f185152d531ba1be958e573c34",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/invoke-kodjo-v2.ps1",
+      "blob_oid": "fc5df6e69f3162a53ceeddfde9bee6bb1fc9fe0c",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/kodjo-file-mutation.js",
+      "blob_oid": "1b2555860b31c695473e5c16d61d4c67ace7b976",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/kodjo-git-read.js",
+      "blob_oid": "f7f9270ef662bf706d5694aad926e319b95482b0",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/adapters.js",
+      "blob_oid": "43f459740a029110e26ae9b182a264b0c958267f",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/checks.js",
+      "blob_oid": "d6afff3623d84bd820eb46cb5dc4e8476032c38c",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/claude-local.js",
+      "blob_oid": "59cb44c624e5a47848bf13117bfe5829aaa662de",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/delivery.js",
+      "blob_oid": "1ee541a8d2393664d4881c1480e75b1014cda858",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/execution-lock.js",
+      "blob_oid": "6dd777228066f70230b65c6cea4cb9d32c0c5c96",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/git.js",
+      "blob_oid": "25b92d1fab43d0093703e119c5b71f59f449bcd5",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/hash.js",
+      "blob_oid": "69a7355405ebfaec5d394935a2a9ced681452f84",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/implementation-contract.js",
+      "blob_oid": "5156e3fbc4cfc4a9db77eb9cc465f3c1a68fab2f",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/implementation-report.js",
+      "blob_oid": "1085aa6b9910d4981b9b7b6b8de3986ddae9a5e2",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/initial-restart.js",
+      "blob_oid": "1d7e8f1adb090c17f63b69c40cd2f09728091a24",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/json.js",
+      "blob_oid": "69b53a68c3578ca06bf56689baa07aad3caeae16",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/log.js",
+      "blob_oid": "2a40b6af7b7bd17ba1efbbab3a3c10117f75f087",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/plan-impact.js",
+      "blob_oid": "6c69cae39422986233e053c12e9544bb5fab05df",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/preflight-contract.js",
+      "blob_oid": "eb4dfbd2341126c52a532c7c10b13b5cfacc26de",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/preflight-freshness.js",
+      "blob_oid": "0d089f67f23a0370dd73c7ccbf392e7a8f7356b2",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/preflight-source.js",
+      "blob_oid": "6e8f2bf9177426053f1248cff34a0faa2b5be9f6",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/qualification-availability.js",
+      "blob_oid": "0c96898f7908e2b96d08a30b46e064b8d72b2bc6",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/queue-contract.js",
+      "blob_oid": "7b984fb1c6b4f2158c99166b45dc06f259d0d78d",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/queue-request.js",
+      "blob_oid": "cb29b8313b2b62f5ca0ad4e4dc9dd838ed8258ec",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/recovery-migration.js",
+      "blob_oid": "ca1ccdcd7b60589f78e9cf032b9d7b76921d73c0",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/scope-path.js",
+      "blob_oid": "caebd7d9d483f27aba96281148fd4cfd5007c98f",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/slice-identity.js",
+      "blob_oid": "7d64c081a126ecde5266b2d2e411517a094193e2",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/status.js",
+      "blob_oid": "4873bdc653aa564bb2ca750a9383c9054a468c0d",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/tar.js",
+      "blob_oid": "2acd10f6c8bcd357dd758844f172118fdfe44134",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/ui-criteria-contract.js",
+      "blob_oid": "8628c6ed63eecf4c07aa79f92a664710c356ff4a",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/lib/yaml.js",
+      "blob_oid": "ec4df0aad74ceab588e635178fa9bb4e635ea8ff",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/materialize-approved-plan-handoff.js",
+      "blob_oid": "55b08b5b6d5e1ed0f2cad594e3d20f7d4ea9fe25",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/materialize-review-environment.js",
+      "blob_oid": "2f06e4602126f8b6ae1471b3c69da577eeefe06c",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/openai-plan-request.js",
+      "blob_oid": "24450d4f4172683e3ef363bc8680f10f9e8aa243",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/prepare-evidence-writer-smoke.js",
+      "blob_oid": "434152ac49dadeadec7185e8fb892c77323e6c75",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/prepare-visual-recovery.js",
+      "blob_oid": "0d3a6deed2422b4b7e679627dce9f98ab831b2c7",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/preserve-implementation.js",
+      "blob_oid": "d073b266d91d3716b1c839954a94a0007cef1d7f",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/project-queued-request.js",
+      "blob_oid": "45613164edfc215d7a968e9238e5cffd0eaf6d80",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/publish-implementation-output.js",
+      "blob_oid": "3164674137f52be5fe89e07bb3ec129a3856027b",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/publish-visual-checkpoint.js",
+      "blob_oid": "fdbafa4768a9d29fe8ee9d64f785517668ab19b3",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/reconcile-initial-plan-prose.js",
+      "blob_oid": "a15a8267ce0ea91c32c66875fea925a992e04f11",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/record-infrastructure-metric.js",
+      "blob_oid": "aa90aa29f1741a924491ba1787cba5f01b2f9b2f",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/resolve-checks-to-run.js",
+      "blob_oid": "2a674bae12eb6c0d29f477f3d7b7e9b998b3d238",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/resolve-implementation-review-policy.js",
+      "blob_oid": "b275526f39e7e5112fcc8425b0a6b3f71f406ec0",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/resolve-private-head.js",
+      "blob_oid": "88fa1eb264ca8318d8d60539f88c279925cf2a45",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/resolve-recovery-source.js",
+      "blob_oid": "38fc2f77164e37a7ba191f3436761c958eb9bee8",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/resolve-review-environment-sync.js",
+      "blob_oid": "64c5c8375f809890a5cd5866a11fd25fab364119",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/resolve-review-run-environment-sync.js",
+      "blob_oid": "d366a625091fbefa1439b2c734741520c213aacb",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/resolve-run-directory.js",
+      "blob_oid": "79bbfb2661ae2c6fde91eb13656127eb62225076",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/resolve-stable-environment-sync.js",
+      "blob_oid": "0c5cd375ed65223e6509776a1f4f8093ae02f0b6",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/restore-source-artifact.js",
+      "blob_oid": "d0fe60d9afe2cb56c847191011dff61557281fea",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/run-check.js",
+      "blob_oid": "8a1bba057693c07da2297d11bd70f8677bc02714",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/run-disposable-qualification.ps1",
+      "blob_oid": "a0bcaa72caf070691f3c17dee7936fa65207ab75",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/run-disposable-resume-qualification.ps1",
+      "blob_oid": "d2722d65c759671adfb46ad8c1c4ffb3e9806540",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/run-implementation-agent.js",
+      "blob_oid": "825eb7c9f16f369b242756df84d34424e9318af7",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/run-local-claude.js",
+      "blob_oid": "0c60c212ddba2670ffee1f4eddfc9e6291efadde",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/run-queued-request.ps1",
+      "blob_oid": "4d611cce89e6b56bc3f70b07374d778063f346e9",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/scan-plan-impact.js",
+      "blob_oid": "f07389f93dc8c3b2743727fee4e78deda5a0fd26",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/scan-remote-write-capability.js",
+      "blob_oid": "ef57b49e5519f002457c375f33ee273c12945c30",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/setup-kodjo-claude-auth.ps1",
+      "blob_oid": "0d73b5584158f104af238dac14be24cb551bc2f2",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/start-kodjo-v2.ps1",
+      "blob_oid": "2eb25c17ca9eabf1a99a07bcf6758ae8889783bd",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/targeted-requalification.js",
+      "blob_oid": "e06b5b1837c2f1843fcd1416e687ab4971db2222",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/validate-orchestration-paths.js",
+      "blob_oid": "9bb9d0084e823210302dc8896681af361f8be087",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/validate-slice-bootstrap.js",
+      "blob_oid": "69297b9d2f7f897bf731837d7800e39d68d69d9f",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/validate-workflows.js",
+      "blob_oid": "1490d3a7790c1ac4b3e3f03093a784eddc0a1b8e",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-authorizations.js",
+      "blob_oid": "d2b9a0baacc5dce1f9683d23efe441eb73f346e9",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-delivery.js",
+      "blob_oid": "19da038b8cdd690ccf9ae0ed2d7609ad003edbce",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-global-requalification-state.js",
+      "blob_oid": "f41e0d794e179c130d99f924422fd1661471d35f",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-implementation-mission.js",
+      "blob_oid": "3d1eb90f52e2477f244e6613fc9f7feddc12fd83",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-implementation-plan-gate.js",
+      "blob_oid": "a042dcb0c9bfe7e8b490a611a16c7489f87ac636",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-initial-product-sources.js",
+      "blob_oid": "794963eb2ccf8115dec3291d97028bbd8e5a26c0",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-initial-restart.js",
+      "blob_oid": "dbf3cd9a7571c5df63c83bd89e9fe7e0bf577e58",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-plan-contract-consistency.js",
+      "blob_oid": "1e94609f87b18bb342ba05dfa5ee8f77bd90d746",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-plan-impact.js",
+      "blob_oid": "b57edc79b35ff3d6c4403dea91a36f511f9bb69b",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-plan-review-transition.js",
+      "blob_oid": "68e2302f6987536d71f88aac7c18cbe17ae0d504",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-preflight-attestation.js",
+      "blob_oid": "46f93d1e7ff5fd1a4773c526c5dd0fbd6b49821a",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-preflight-live-target.js",
+      "blob_oid": "ac7ccd7487d2273fa3ffc71b5cb7c7fd3c8d3291",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-queue-admission.js",
+      "blob_oid": "fdac26c2c67da702951003eddbf26bdd2bb9cd5e",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-queue-preflight.js",
+      "blob_oid": "15b66c41e72ea027033c164c4b8f9ee1d39e6e0b",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-staged-scope.js",
+      "blob_oid": "c5ae9558e04c24b32fcf80f3d00d61d8a6a6dd9e",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-ui-implementation-review.js",
+      "blob_oid": "6befdedc02ac65bc3d84d2ecc16758c08b0ec539",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-ui-plan-criteria.js",
+      "blob_oid": "4948cb624ad456b6d5306b2e9ef19fa99efa9be3",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-v2-finalization.js",
+      "blob_oid": "eec328730d77db42658f9e0c51e9cc6c6698fb50",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/verify-visual-checkpoint.js",
+      "blob_oid": "630edab633cd62b9b7c0e3ff64cb3e1c4dd007e1",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    },
+    {
+      "path": "scripts/kodjo/write-evidence-deposit.js",
+      "blob_oid": "51dec12597712d8f8d77dc7bc8be457bce5cf6b4",
+      "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
+    }
+  ],
+  "declared_vnext_writers": [],
+  "retirement_rule": "REMOVE_OR_DISABLE_ALL_LEGACY_WRITERS_AFTER_LAST_LEGACY_SLICE"
+}

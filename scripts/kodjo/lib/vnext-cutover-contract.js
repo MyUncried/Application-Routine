@@ -1,6 +1,7 @@
 'use strict';
 
 const V = require('./vnext-contract');
+const RemoteWrite = require('./vnext-remote-write-security');
 
 const PLAN_SCHEMA = 'kodjo.vnext.cutover-plan.v1';
 const ACTIVATION_SCHEMA = 'kodjo.vnext.cutover-activation.v1';
@@ -48,6 +49,7 @@ function buildCutoverPlan({
   qualificationStatus,
   legacyActivationRegistry,
   protectedLegacySliceIds,
+  remoteWriteAttestation,
 }) {
   V.assertSha40(candidateHead, 'VNEXT_CUTOVER_CANDIDATE_HEAD_INVALID', 'candidateHead');
   if (!Number.isInteger(candidatePr) || candidatePr < 1) {
@@ -60,6 +62,10 @@ function buildCutoverPlan({
     V.fail('VNEXT_CUTOVER_QUALIFICATION_STATUS_INVALID', qualificationStatus);
   }
   validateLegacyRegistry(legacyActivationRegistry);
+  RemoteWrite.validateAttestation(remoteWriteAttestation);
+  if (remoteWriteAttestation.status === 'FAIL') {
+    V.fail('VNEXT_CUTOVER_REMOTE_WRITE_SECURITY_NOT_READY');
+  }
 
   const protectedIds = V.uniqueStrings(
     protectedLegacySliceIds,
@@ -84,6 +90,15 @@ function buildCutoverPlan({
     .filter((sliceId) => registryById.get(sliceId).status !== CLOSED)
     .sort();
 
+  const expectedRemoteWriteStatus = activeLegacySlices.length > 0
+    ? 'PASS_WITH_FROZEN_LEGACY'
+    : 'PASS_RETIRED';
+  if (remoteWriteAttestation.status !== expectedRemoteWriteStatus) {
+    V.fail(
+      'VNEXT_CUTOVER_REMOTE_WRITE_SECURITY_STATUS_MISMATCH',
+      remoteWriteAttestation.status + '!=' + expectedRemoteWriteStatus,
+    );
+  }
   const readiness = blockers.length === 0 ? 'READY_FOR_ACTIVATION' : 'BLOCKED_BY_ACTIVE_PROTECTED_SLICE';
 
   return V.sealContract({
@@ -92,6 +107,8 @@ function buildCutoverPlan({
     candidate_pr: candidatePr,
     qualification_run_id: qualificationRunId,
     qualification_status: qualificationStatus,
+    remote_write_security_hash: remoteWriteAttestation.contract_hash,
+    remote_write_security_status: remoteWriteAttestation.status,
     legacy_registry_hash: V.canonicalHash(legacyActivationRegistry),
     protected_legacy_slice_ids: protectedIds,
     blocking_slice_ids: blockers,
@@ -120,6 +137,8 @@ function validateCutoverPlan(plan, legacyActivationRegistry = null) {
       'candidate_pr',
       'qualification_run_id',
       'qualification_status',
+      'remote_write_security_hash',
+      'remote_write_security_status',
       'legacy_registry_hash',
       'protected_legacy_slice_ids',
       'blocking_slice_ids',
@@ -139,6 +158,10 @@ function validateCutoverPlan(plan, legacyActivationRegistry = null) {
   V.assertSha64(plan.legacy_registry_hash, 'VNEXT_CUTOVER_LEGACY_REGISTRY_HASH_INVALID');
   if (plan.qualification_status !== 'QUALIFIED_ON_VNEXT_PERIMETER') {
     V.fail('VNEXT_CUTOVER_QUALIFICATION_STATUS_INVALID');
+  }
+  V.assertSha64(plan.remote_write_security_hash, 'VNEXT_CUTOVER_REMOTE_WRITE_SECURITY_HASH_INVALID');
+  if (!['PASS_WITH_FROZEN_LEGACY', 'PASS_RETIRED'].includes(plan.remote_write_security_status)) {
+    V.fail('VNEXT_CUTOVER_REMOTE_WRITE_SECURITY_STATUS_INVALID');
   }
   if (!['READY_FOR_ACTIVATION', 'BLOCKED_BY_ACTIVE_PROTECTED_SLICE'].includes(plan.activation_readiness)) {
     V.fail('VNEXT_CUTOVER_READINESS_INVALID');
@@ -176,7 +199,13 @@ function validateCutoverPlan(plan, legacyActivationRegistry = null) {
     const expectedReadiness = expectedBlockers.length === 0
       ? 'READY_FOR_ACTIVATION'
       : 'BLOCKED_BY_ACTIVE_PROTECTED_SLICE';
+    const expectedRemoteWriteStatus = expectedGrandfathered.length > 0
+      ? 'PASS_WITH_FROZEN_LEGACY'
+      : 'PASS_RETIRED';
 
+    if (plan.remote_write_security_status !== expectedRemoteWriteStatus) {
+      V.fail('VNEXT_CUTOVER_REMOTE_WRITE_SECURITY_STATUS_MISMATCH');
+    }
     if (V.canonicalStringify([...plan.blocking_slice_ids].sort())
         !== V.canonicalStringify(expectedBlockers)) {
       V.fail('VNEXT_CUTOVER_BLOCKERS_MISMATCH');
