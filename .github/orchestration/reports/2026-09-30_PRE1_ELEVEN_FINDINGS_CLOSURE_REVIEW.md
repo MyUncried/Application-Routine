@@ -91,6 +91,66 @@ Aucun test applicatif ni vérification sur appareil n'est applicable à ce racco
 
 Aucun fichier `app/`/`src/`, aucun plan, constat ou registre modifié ; aucun fichier VNext.
 
-## Déroulement (complété au fil de l'exécution)
+## Déroulement
 
-_À compléter : test technique, revue, verdict, développement._
+### Commit de raccordement
+
+`9e886a91895da7e26a6e81dbab6754fabbc69af0` poussé sur `main` (fast-forward depuis da81b4cd).
+
+### Test technique (pas une revue)
+
+Run 36763522557 — `KODJO V2 / REVIEW-LAUNCH-SMOKE` — succès sur `KODJO-LOCAL-RUNNER` : test de transport PASS ; binaire `C:\Users\hadjo\AppData\Roaming\npm\node_modules\@anthropic-ai\claude-code\bin\claude.exe`, `2.1.263 (Claude Code)` ; prompt de 41 503 octets restitué exactement (nonces tête/milieu/queue) ; fichier `RUNNER_TEMP` lu ; reprise `--resume` sur la même session `c69ce47e-…`.
+
+### Revue indépendante, tour 1
+
+- Commande : commentaire 5917910730 (issue #249). Run 36763786560 (`KODJO comment / 5917910730`), HEAD protocole 9e886a91 : toutes les étapes en succès, dont les gates impact/contrat/UI et la garde de bornage.
+- Reviewer : session `25caf6b2-1663-4a23-bb75-204982cc2b7b`. Publication : commentaire 5918097112 (`verdict=REVISE`, `STATUT : PLAN_REVISION_REQUIRED`) puis 5918097602 (`PLAN_RETRY_USER_VALIDATION`, arrêt automatique sans replanification).
+- Aucun handoff déclenché (dernier run `kodjo-v2-plan-handoff-materialize` : 29/09) : aucun développement lancé, aucun doublon.
+
+| N | Correction examinée | Fermé | Motif (synthèse du reviewer) |
+|---|---|---|---|
+| 1 | ExerciseScreen MODIFY + REQ-7F0490E8E377987C / UI-7138CD4F656C + test | OUI | classification réfutée remplacée ; champs requis couverts |
+| 2 | CompositionScreen MODIFY + UI-74BBA70BF09F ; primitives génériques inchangées | OUI | trois points normatifs couverts ; primitives justifiées |
+| 3 | ActivityCard MODIFY + double rattachement + test | OUI | effectif |
+| 4 | ActivitySelectionScreen MODIFY + double rattachement + test | OUI | effectif |
+| 5 | UI-73382D60E040 éclaté en 4 assertions de clés exactes | OUI | clés distinctes, valeurs Tour gelées |
+| 6 | UI-CDBCCFD16078 : signatures cibles + 3 appelants | OUI | implémentable dans son périmètre |
+| 7 | defaults.ts FILE_UNCHANGED + comparaison SQL | OUI | garantie plus forte que demandée |
+| 8 | validation.ts FILE_UNCHANGED ; union dans errors.ts | OUI | contradiction supprimée |
+| 9 | REQ-2376BBC2C2A2CA1B / UI-D35DA2C4F266 terminologie §4 | **NON** | blast radius non déclaré : 4 tests hors périmètre figent des valeurs renommées |
+| 10 | REQ-4EBE6018B4091DBB compatibilité variantes média | OUI | exigence dédiée + 2 tests nommés |
+| 11 | NON_UI_COVERAGE ré-énumérée | OUI | sources causales citées, version exacte |
+
+Preuves complètes (tableau à 11 lignes, `KODJO_PRE1_CLOSURE_JSON`, `KODJO_REVIEW_FINDINGS_JSON`, garde) archivées dans `v2-slices/V2-PRE-1/correction-review-36763786560/` au commit 0e476328.
+
+Vérification par le pilote (non indépendante) : l'`expected_correction` d'origine du constat 9 exige « with its blast radius and tests » ; les 4 lignes citées existent à e216294. Non-fermeture recevable, rattachée au seul constat 9.
+
+### Correction du constat 9 (tour 2)
+
+- Commit `0e4763280d7ef355663d6415f1aeaa137b9d1eb1` : plan corrigé `correction-review-36763786560/corrected-plan.md`, blob `0c2b1beebb540166a76ba6821e8db55dc12cbdf3`, 232 358 octets, SHA-256 `176f5c2c6b90bf8dee41460285c64ae2912bcac9893e46885e626966cd2bf4b7` ; registre `reports/2026-09-30_PRE1_PLAN_CORRECTION_36763786560.md`.
+- Contenu : blast radius de UI-D35DA2C4F266 déclaré (4 tests ajoutés au périmètre, aux tests requis et aux tests du critère ; SessionCard.test.tsx reclassé TEST_MUST_ADAPT) ; contrats dérivés recalculés ; aucune exigence, assertion, décision ou frontière modifiée.
+- Gates locales dans un checkout de e216294 sur le texte exact restitué par le script de récupération : impact PASS, contrat PASS (98/41), UI PASS (13/32).
+- Publication humaine du candidat : commentaire 5918243649 (issue #249), sans commande de revue.
+
+### Arrêt : autorisation manquante
+
+Étape suivante prévue : raccorder le candidat 5918243649 au workflow de revue (récupération épinglée, reprise obligatoire de la session `25caf6b2-…`, consigne de revérification limitée au constat 9, garde à 11 lignes, handoff), puis publier la commande de revue.
+
+Cette étape a été **refusée par le contrôle de permissions de Claude Code (motif : auto-approbation)** : le pilote, qui a lui-même corrigé le plan, modifiait aussi la consigne et le mécanisme du reviewer chargé de juger cette correction. Le refus n'a pas été contourné.
+
+- Non committé, non poussé : modifications de `scripts/kodjo/recover-published-pre1-plan.js` (entrée épinglée 5918243649, testée en lecture) et `scripts/kodjo/materialize-approved-plan-handoff.js` (liste des candidats reconnus), présentes uniquement dans le worktree temporaire du pilote. Le workflow `kodjo-v2-slice-initial-plan-review.yml` n'a pas été modifié pour le tour 2.
+- Aucune commande de revue du tour 2 n'a été publiée. Aucun APPROVE. Aucun développement lancé.
+
+Décision attendue de Hermann : autoriser explicitement le raccordement du tour 2 par le pilote, ou le confier à un autre acteur (ChatGPT/orchestrateur, ou modification manuelle), en indiquant si la consigne de reprise doit être rédigée par un tiers.
+
+## Vérifications restant à effectuer
+
+- Revue indépendante du tour 2 (constat 9 seul) sur le candidat 5918243649.
+- Si APPROVE : handoff `kodjo-v2-plan-handoff-materialize`, puis démarrage réel du développement.
+- Aucune vérification sur appareil n'est applicable à ce stade (aucun code applicatif modifié).
+
+## Fichiers modifiés par la mission
+
+- 9e886a91 : `.github/workflows/kodjo-v2-slice-initial-plan-review.yml`, `.github/workflows/kodjo-v2-review-launch-smoke.yml`, `scripts/kodjo/resolve-claude-binary.js`, `scripts/kodjo/verify-pre1-closure-review.js`, `tests/kodjo/pre1-review-launch.pilot.js`, ce rapport.
+- 0e476328 : `v2-slices/V2-PRE-1/correction-review-36763786560/` (6 fichiers), `reports/2026-09-30_PRE1_PLAN_CORRECTION_36763786560.md`.
+- Commit final : mise à jour de ce rapport (hash communiqué dans la réponse).
