@@ -205,8 +205,16 @@ jobs:
           Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
           $out=Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit.json'
           $err=Join-Path $env:RUNNER_TEMP 'kodjo-next-evolution-audit.err.txt'
-          & claude -p --output-format json --dangerously-skip-permissions $prompt 1> $out 2> $err
-          $code=$LASTEXITCODE
+          # Stdin keeps the complete dossier outside Windows' native argv limit.
+          # PowerShell 5.1 otherwise encodes piped native input as ASCII.
+          $previousOutputEncoding=$OutputEncoding
+          try {
+            $OutputEncoding=New-Object Text.UTF8Encoding($false)
+            $prompt | & claude -p --output-format json --dangerously-skip-permissions 1> $out 2> $err
+            $code=$LASTEXITCODE
+          } finally {
+            $OutputEncoding=$previousOutputEncoding
+          }
           $status=git status --porcelain --untracked-files=all
           if($LASTEXITCODE-ne0-or-not[string]::IsNullOrWhiteSpace(($status -join [Environment]::NewLine))){throw 'Independent auditor modified checkout'}
           if(!(Test-Path -LiteralPath $out)-or(Get-Item -LiteralPath $out).Length-eq0){throw "Claude audit produced no JSON; exit=$code"}
