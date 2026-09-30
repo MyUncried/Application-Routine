@@ -5,5 +5,26 @@
     ".github/actions",
     "scripts/kodjo"
   ],
-  "declarations": []
+  "declarations": [
+    {
+      "declaration_id": "VNW-001",
+      "lifecycle": "VNEXT",
+      "producer_path": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "producer_blob_sha40": "81633464d94518319c999f5e34e7cefcb04d6b49",
+      "capability_type": "GITHUB_PERMISSION_WRITE",
+      "destination": "contents",
+      "conditions": "Supervised VNext bridge after exact approval and deterministic preflight.",
+      "required_permission_scope": "WORKFLOW"
+    },
+    {
+      "declaration_id": "VNW-LEGACY-001",
+      "lifecycle": "LEGACY_GRANDFATHERED",
+      "producer_path": ".github/workflows/kodjo-slice-finalize.yml",
+      "producer_blob_sha40": "25515494f5dc2dbe6a98b61bf6849366361cc59e",
+      "capability_type": "GITHUB_PERMISSION_WRITE",
+      "destination": "contents",
+      "conditions": "Legacy finalization only while grandfathered legacy slices remain active; retire afterwards.",
+      "required_permission_scope": "WORKFLOW"
+    }
+  ]
 }
