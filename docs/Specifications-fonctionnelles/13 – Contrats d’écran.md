@@ -444,7 +444,7 @@ E19–E21/E72 → D-187, D-167, D-183 ; anciennes frames `3787:5148` et `3841:83
 
 ### 1. Identification
 
-Bloc B2 ; états S18–S27 ; T03-E E12–E14, E30, E41, E50–E57, E71 ; références courantes `4217:6980` (création, paramètres repliés), `4279:7044` (paramètres dépliés), `4734:6342` (modification), `4332:7095` (roulette Durée), modèles de paramètres `4367:7128`, `4367:7276`, `4367:7906`, `4367:8052`, `4367:8193`, `4490:6757`, `4490:6903`, sélection Catégorie `4474:7157`, Zones corporelles `4478:7209` et création de zone `4683:6336`.
+Bloc B2 ; états S18–S27 ; T03-E E12–E14, E30, E41, E50–E57, E71 ; références courantes `4217:6980` (nom, description et média), `4279:7044` (phrase éditée), `4734:6342` (modification), `4332:7095` (Catégories), `3556:7645` (roulette Durée), modèles de paramètres `4367:7128`, `4367:7276`, `4367:7906`, `4367:8052`, `4367:8193`, `4490:6757`, `4490:6903`, sélection Catégorie `4474:7157`, Zones corporelles `4478:7209` et création de zone `4683:6336`.
 
 ### 2. Finalité fonctionnelle
 
@@ -472,7 +472,7 @@ Nom → accès Catégorie / Zones corporelles → paramètres Séries/cible/Paus
 
 ### 8. Éléments obligatoires
 
-Mode 3 options égales ; en mode Durée, affichage `Durée totale` inchangé ; en Répétitions, texte éditable **`Durée totale >= {estimation}`** avec 1 seconde conventionnelle par répétition ; en À l’échec, aucune Durée totale affichée ; nom en gras dans Synthèse uniquement ; accès `Catégorie` et `Zones corporelles` distincts ; zone Média conforme au Figma courant et placée sous la Synthèse en cas de chevauchement ; contrôle Changement de côté avec `Aucun / D→G / G→D` au niveau Activité uniquement ; roulettes en modale basse Annuler/Confirmer.
+Mode à 3 options dans la phrase ; Séries/Répétitions par steppers intégrés ; en mode Durée, affichage `Durée totale` inchangé ; en Répétitions, texte éditable **`Durée totale >= {estimation}`** avec 1 seconde conventionnelle par répétition ; en À l’échec, aucune Durée totale affichée ; nom en gras dans Synthèse uniquement ; accès iconographiques `Catégorie` et `Zones corporelles` distincts ; zone Média conforme au Figma courant et placée sous la Synthèse en cas de chevauchement ; contrôle Changement de côté avec `Sans changement / Droite puis gauche / Gauche puis droite` au niveau Activité uniquement (valeurs métier UNILATERAL / D→G / G→D) ; roulettes en modale basse Annuler/Confirmer.
 
 ### 9. Layout déterministe
 
@@ -486,7 +486,7 @@ Références 360/402/440. Formulaire scrollable ; synthèse/action restent acces
 
 ### 11. États de l’écran
 
-Création/modification ; état vide avec `Nom de l’activité` ; états renseignés avec nom métier ; DURATION/REPS/FAILURE ; `Aucun` / `D→G` / `G→D` ; roulettes ouvertes ; Séries pilote ; Durée totale pilote ; message ajustement ; Description/Zone ouverts. ; sélection Zones corporelles ; création inline d’une Zone avec clavier.
+Création/modification ; état vide avec `Nom de l’exercice` ; états renseignés avec nom métier ; DURATION/REPS/FAILURE ; `Aucun` / `D→G` / `G→D` ; roulettes ouvertes ; Séries pilote ; Durée totale pilote ; message ajustement ; Description/Zone ouverts. ; sélection Zones corporelles ; création inline d’une Zone avec clavier.
 
 ### 12. Contrôles et interactions
 
@@ -2404,3 +2404,16 @@ PLAN-01 : même source au retour sans validation ; PLAN-02 : nouveau choix valid
 ### 21. Traçabilité
 
 D-209 à D-215 et RG-1 à RG-13 ; chapitre06 et matrice écran par écran du30/09. Aucun point ouvert ; RG-3 seule reportée.
+
+## Réconciliation des preuves visuelles — 30 septembre 2026
+
+La matrice exhaustive couvre 113 frames du prototype et 6 références hors prototype, dont les 84 du rapport utilisateur. Les captures sont des états observés et ne changent ni RG-1 à RG-13 ni les situations acceptées.
+
+| Contrat concerné | Correction locale applicable et vérifiable |
+|---|---|
+| CE-T03-06/08 — Composition | Nombre de tours : stepper permanent dans `2028:11700`, pas de modale Tours. L’ancienne référence `2028:11580` est retirée des preuves actives. |
+| CE-T03-04/16 — Éditeur | `3943:6064` est un état Initial courant ; `4332:7095` montre les Catégories. Séries et Répétitions : steppers intégrés (`3556:7801`, `3561:7673`). La phrase éditable précède Compte à rebours/Fin, Description et Média. Aucune synthèse fixe ne doit être déduite de l’ancienne description. |
+| CE-UI-05 — Planification | `1992:7537` : stepper des semaines ; `1992:7187` : rappel personnalisé en modale. L’ancienne capture heure `1992:7006` n’est plus une preuve distincte ; l’édition de l’heure reste une fonction du formulaire. |
+| CE-T03-01/02/03/15/17 | Couverture des filtres, actions glissées, états vides, navigation et sélection dans la galerie du chapitre06 ; aucun écran hors prototype promu au MVP. |
+
+Recette documentaire : vérifier la correspondance de chaque image à son identifiant actuel, les noms des contrôles, l’absence de roulette Tours/Séries/Répétitions/Semaines dans leurs états stepper, et la séparation des archives. Les limites numériques et la persistance au niveau de l’objet restent celles des contrats métier existants.

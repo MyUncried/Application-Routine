@@ -1044,7 +1044,7 @@ Le composant DSF `Icon / Tour` (`3066:4685`) est l’unique source Figma autoris
 | Modal — Abandonner la création de la séance | `2028:11298` | `3272:4126` |
 | Modal — Paramétrer le compte à rebours initial | `2028:11375` | `3272:4131` |
 | Modal — Paramétrer la fin de séance | `2028:11457` | `3272:4136` |
-| Composition — Nombre de tours — roulette compacte ouverte | `2028:11580` | `3272:4141` |
+| Composition — Nombre de tours — stepper intégré permanent | `2028:11700` | `4913:7432` |
 | Composition d’une séance — sans Cycle | `2028:11700` | `3272:4146` |
 | Composition d’une séance — actions glissées | `2028:11808` | `3272:4151` |
 | Composition d’une séance — sélecteur couleur ouvert | `2028:11921` | `3272:4156` |
@@ -1289,7 +1289,7 @@ Le filtrage et le tri sont des paramètres de requête indépendants du segment.
 
 ### Composants et tokens Figma
 
-Les composants d’éditeur et de Composition restent la base visuelle, mais le composant historique `Composition / Activity Row with Recovery` (`3572:64`) est **supersédé sur la sémantique récupération par D-208** : la ligne post-activité devient systématique, y compris à `0 s`, et l’éditeur utilise une récupération entre côtés conditionnelle. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
+Les composants d’éditeur et de Composition restent la base visuelle, mais le composant historique `Composition / Activity Row with Recovery` (`3572:64`) est **supersédé sur la sémantique récupération par D-208** : la donnée post-activité reste systématique, y compris à `0 s` ; D-214 supprime ensuite sa ligne visible, et l’éditeur utilise une récupération entre côtés conditionnelle. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
 
 Les alias Figma sont bijectifs et explicites :
 

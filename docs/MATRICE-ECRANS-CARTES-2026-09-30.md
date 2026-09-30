@@ -6,7 +6,7 @@ Contrôle du 30 septembre 2026, Figma `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype M
 
 - 38 frames contiennent les nouveaux sets Carte séance/Carte exercice, dont les cinq états Calendrier Jour. Lecture structurelle : 130 instances rattachées à ces sets. Le total133 annoncé dans le journal de remplacement est une mesure historique différente ; ce recensement ne certifie pas le nombre d’opérations de remplacement ni les anciennes couches masquées.
 - Les frames sans carte ci-dessous héritent seulement des changements transverses applicables : icônes, commandes, appuis et silhouette. Leur présence ne prouve pas une modification de chaque contrôle ; aucun nouveau comportement n’est déduit d’un nom de frame.
-- 64 PNG existants ont été réexportés depuis Figma le30/09, conformément à la matrice de couverture du chapitre06. Les deux références absentes (heure ouverte1992:7006, nombre de tours2028:11580) restent historiques ; les captures hors remplacement sont inchangées. Aucun nouvel écran ni nouveau chemin PNG. Le bilan de la matrice de couverture donne la liste exacte.
+- Contrôle exhaustif du 30 septembre 2026 : 113 frames du prototype et les 6 références complémentaires du rapport utilisateur, soit 119 captures Figma. Les 84 écrans du rapport sont couverts (78 dans le prototype). 74 fichiers existants sont actualisés et 45 copies documentaires complètent des écrans déjà présents dans Figma ; aucun écran applicatif ou Figma créé. La matrice exhaustive donne les preuves.
 - Les critères décrivent la cible à développer ; aucune recette de l’application ou parcours interactif Figma n’est déclarée.
 - Aucun arbitrage rouvert : RG-3 seule reportée ; Photo demeure la référence de la présentation avec média, sans déclaration de propagation aux composants/écrans.
 

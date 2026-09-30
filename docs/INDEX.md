@@ -239,4 +239,4 @@ La [matrice courante des écrans](MATRICE-ECRANS-CARTES-2026-09-30.md) relie les
 
 ### Captures remplacées le30 septembre2026
 
-64 images existantes remplacées par les exports Figma actuels, sans ajouter d’écran ni de chemin PNG. [Bilan et empreintes des captures](MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md). Deux sources absentes restent historiques (heure ouverte et nombre de tours).
+Contrôle exhaustif du 30 septembre 2026 : 113 frames du prototype et les 6 références complémentaires du rapport utilisateur, soit 119 captures Figma. Les 84 écrans du rapport sont couverts (78 dans le prototype). 74 fichiers existants sont actualisés et 45 copies documentaires complètent des écrans déjà présents dans Figma ; aucun écran applicatif ou Figma créé. [Matrice exhaustive](MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md).
