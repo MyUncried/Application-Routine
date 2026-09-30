@@ -36,51 +36,44 @@ jobs:
   prepare-initial:
     if: github.event.pull_request.number == 269 && github.head_ref == 'protocol/vnext-proof-stability-20260930'
     needs: qualify-driver
-    runs-on: [self-hosted, Windows, X64, kodjo-claude-lo…6068 tokens truncated…e(cwd);
-  const produced = Chain.produce(recipe, { cwd });
-  write('recipe.json', recipe); write('produced.json', produced);
-  if (stage === 'produce') return;
-  const receipt = stage === 'publish-reviewed'
-    ? JSON.parse(fs.readFileSync(path.join(out, 'review-receipt.json'), 'utf8'))
-    : Chain.review(produced, { cwd });
-  write('review-receipt.json', receipt);
-  // REVISE is retained, never converted to APPROVE or automatically retried.
-  if (receipt.review_report.verdict !== 'APPROVE') throw new Error('VNEXT12_INITIAL_REVIEW_' + receipt.review_report.verdict);
-  const identity = require('./lib/slice-identity');
-  const bootstrapPath = '.github/orchestration/v2-slices/VNEXT-12-QUALIF/slice-bootstrap.json';
-  const bootstrap = { schema_version: identity.BOOTSTRAP_SCHEMA,
-    protocol: 'VNEXT', vnext_chain_file: ROOT + '/initial/prepared.json',
-    slice_id: 'VNEXT-12-QUALIF', issue_number: 269, repository: 'MyUncried/Application-Routine',
-    target_branch: 'protocol/vnext-proof-stability-20260930',
-    baseline_head: produced.artifacts.planningEnvelope.baseline_head,
-    protocol_version: '0.6.12', protocol_commit: produced.producer_revision,
-    previous_slice_id: null, previous_checkpoint: null,
-    product_sources: [{ path: SOURCE, sha256: produced.source_observations[0].fingerprint }],
-    authorized_actors: ['MyUncried', 'claude-local'], created_at: new Date().toISOString(),
-    activation_registry: '.github/orchestration/v2-activation-registry.json' };
-  bootstrap.slice_bootstrap_sha256 = V.canonicalHash(bootstrap);
-  identity.validateBootstrap(bootstrap);
-  const registry = JSON.parse(Chain.readGit(cwd, produced.producer_revision, bootstrap.activation_registry));
-  if (registry.activations.some(x => x.slice_id === bootstrap.slice_id)) throw new Error('VNEXT12_DISPOSABLE_ALREADY_REGISTERED');
-  registry.activations.push({ slice_id: bootstrap.slice_id, status: 'ACTIVE', issue_number: 269,
-    baseline_head: bootstrap.baseline_head, bootstrap_path: bootstrapPath,
-    slice_bootstrap_sha256: bootstrap.slice_bootstrap_sha256 });
-  identity.validateRegistry(registry, bootstrap);
-  const transport = { slice_bootstrap_file: bootstrapPath,
-    slice_bootstrap_sha256: bootstrap.slice_bootstrap_sha256,
-    plan_path: ROOT + '/initial/technical-plan.md', review_path: ROOT + '/initial/independent-review.md',
-    prompt_file: ROOT + '/initial/implementation-mission.md', gate_ref: 'issue_comment:1',
-    request_id: require('node:crypto').randomUUID(), created_at: new Date().toISOString() };
-  const ready = Chain.prepare(produced, receipt, transport, { cwd });
-  write('prepared.json', ready.prepared); write('transport.json', transport);
-  write('publication.json', [{ path: bootstrap.vnext_chain_file, content: JSON.stringify(ready.prepared, null, 2) + '\n' },
-    { path: transport.slice_bootstrap_file, content: JSON.stringify(bootstrap, null, 2) + '\n' },
-    { path: bootstrap.activation_registry, content: JSON.stringify(registry, null, 2) + '\n' },
-    ...Object.values(ready.compatibility_files).map(x => ({ path: x.path, content: x.content }))]);
-  write('status.json', { status: 'PREPARED_FOR_PUBLICATION', candidate_head: produced.producer_revision,
-    review_verdict: receipt.review_report.verdict, claude_session_id: receipt.session_id,
-    implementation_invoked: false, user_approval_observed: false, revision_limit: 1 });
-  console.log(JSON.stringify({ status: 'PREPARED_FOR_PUBLICATION', review: receipt.review_report.verdict, session: receipt.session_id }));
-}
-if (require.main === module) { try { main(); } catch (error) { console.error(error.message); process.exitCode = 1; } }
-module.exports = { buildRecipe };
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 30
+    env:
+      CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+          path: _vnext12/${{ github.run_id }}
+      - name: Prepare exact Git evidence and request one real plan review
+        working-directory: _vnext12/${{ github.run_id }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'VNEXT12_RUNNER_MISMATCH' }
+          if ((git rev-parse HEAD).Trim() -ne '${{ github.event.pull_request.head.sha }}') { throw 'VNEXT12_HEAD_MISMATCH' }
+          $request = Get-Content -LiteralPath '.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json' -Raw -Encoding UTF8 | ConvertFrom-Json
+          if ($request.stage -ne 'PREPARE_INITIAL' -or $request.pre1_in_scope -or $request.final_audit_authorized -or $request.revision_limit -ne 1) { throw 'VNEXT12_STAGE_REFUSED' }
+          if (-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))) { throw 'VNEXT12_CHECKOUT_DIRTY' }
+          Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
+          Remove-Item Env:GITHUB_TOKEN -ErrorAction SilentlyContinue
+          Remove-Item Env:KODJO_LIVE_GH_TOKEN -ErrorAction SilentlyContinue
+          & node scripts/kodjo/prepare-vnext12.js prepare (Join-Path $env:RUNNER_TEMP 'vnext12-${{ github.run_id }}')
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve actual review and prepared dossier
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-vnext12-preparation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vnext12-${{ github.run_id }}/*
+          retention-days: 90
+          if-no-files-found: error
