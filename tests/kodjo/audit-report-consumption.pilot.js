@@ -6,7 +6,7 @@ const {inspectReport}=require('../../scripts/kodjo/lib/implementation-report');
 const root=path.resolve(__dirname,'../..');
 const collector=path.join(root,'scripts/kodjo/collect-implementation-report.js');
 const verifier=path.join(root,'scripts/kodjo/verify-ui-implementation-review.js');
-function row(id){return {criterion_id:id,implementation_status:'CONFORME',files_or_symbols:['src/x.ts'],component_used:'Existing',tests_run:['fixture only'],proof_status:'PASS / PENDING_DEVICE',preserve_status:'PASS',residual_status:'NONE'};}
+function row(id){return {criterion_id:id,implementation_status:'CONFORME',files_or_symbols:['src/x.ts'],component_used:'Existing',tests_run:['jest'],proof_status:'PASS / PENDING_DEVICE',preserve_status:'PASS',residual_status:'NONE'};}
 function report(rows=[row('UI-1'),row('UI-2')],stop='KODJO_STOP_STATUS: NONE'){return '<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:rows})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\n'+stop;}
 function fixture(){
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-report-consumer-'));
@@ -14,7 +14,7 @@ function fixture(){
   const contract={schema:'kodjo.ui-plan-contract.v1',ui_applicable:true,matrix_sha256:matrixFingerprint(matrix)};
   fs.writeFileSync(path.join(dir,'plan.md'),'<KODJO_UI_CRITERIA_MATRIX_JSON>'+JSON.stringify(matrix)+'</KODJO_UI_CRITERIA_MATRIX_JSON>\n<KODJO_UI_PLAN_CONTRACT_JSON>'+JSON.stringify(contract)+'</KODJO_UI_PLAN_CONTRACT_JSON>');
   fs.writeFileSync(path.join(dir,'changed.txt'),'src/x.ts\n');
-  fs.writeFileSync(path.join(dir,'result.json'),JSON.stringify({request_id:'r1',source_head:'a'.repeat(40)}));
+  fs.writeFileSync(path.join(dir,'result.json'),JSON.stringify({request_id:'r1',source_head:'a'.repeat(40),modified_files:['src/x.ts'],checks:[{check:'jest',status:'PASS'}]}));
   return dir;
 }
 function run(script,args,cwd){return cp.spawnSync(process.execPath,[script,...args],{cwd,encoding:'utf8'});}
@@ -32,12 +32,10 @@ test('F12: real collector CLI -> prepared review -> consumer refuses approval fo
       assert.equal(input.implementation_report.status,name==='complete'?'COMPLETE':'NON_VERIFIABLE',name);
       fs.writeFileSync(path.join(dir,'review.json'),JSON.stringify(review()));
       const v=run(verifier,['validate','plan.md','changed.txt','review.json','out.json','implementation.md'],dir);
-      if(name==='complete')assert.equal(v.status,0,v.stderr);
-      else{
-        assert.notEqual(v.status,0,name);assert.match(v.stderr,/IMPLEMENTATION_REPORT_UNVERIFIABLE/);
-        fs.writeFileSync(path.join(dir,'review.json'),JSON.stringify(review('NON_VERIFIABLE')));
-        const negative=run(verifier,['validate','plan.md','changed.txt','review.json','out.json','implementation.md'],dir);assert.equal(negative.status,0,negative.stderr);
-      }
+      assert.equal(v.status,0,v.stderr);
+      const result=JSON.parse(fs.readFileSync(path.join(dir,'out.json')));
+      assert.equal(result.verdict,name==='complete'?'APPROVE':'REVISE',name);
+      assert.equal(result.report_status,name==='complete'?'COMPLETE':'NON_VERIFIABLE',name);
     }
   }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });
@@ -77,7 +75,17 @@ test('F12: protocol consumer remains effective when application HEAD contains an
     assert.ok(freeze>=0&&freeze<steps.findIndex(s=>s.name==='Checkout implementation HEAD'));
     const block=steps[freeze].run;
     const sources=block.match(/scripts\/kodjo\/[a-z/.-]+\.js/g);
-    assert.equal(sources.length,5);
+    assert.ok(sources.length >= 5);
+    for (const required of [
+      'scripts/kodjo/verify-ui-implementation-review.js',
+      'scripts/kodjo/lib/implementation-report.js',
+      'scripts/kodjo/lib/ui-criteria-contract.js',
+      'scripts/kodjo/lib/plan-impact.js',
+      'scripts/kodjo/lib/requirement-contract.js',
+      'scripts/kodjo/lib/boundary-proof.js',
+      'scripts/kodjo/lib/ui-identities.js',
+      'scripts/kodjo/lib/component-evidence.js',
+    ]) assert.ok(sources.includes(required), 'missing frozen reviewer dependency '+required);
     const runtime=path.join(dir,'frozen');fs.mkdirSync(path.join(runtime,'lib'),{recursive:true});
     for(const source of sources)fs.copyFileSync(path.join(root,source),path.join(runtime,source.replace('scripts/kodjo/','')));
     fs.mkdirSync(path.join(dir,'scripts/kodjo'),{recursive:true});

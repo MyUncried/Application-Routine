@@ -4,6 +4,10 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { verifyTransition } = require('./verify-plan-review-transition');
+
+const {extractTaggedJson}=require('./lib/plan-impact');
+const {resolveImplementationReviewPolicy}=require('./resolve-implementation-review-policy');
 
 const COMMENT_REF = /^issue_comment:([1-9][0-9]*)$/;
 
@@ -55,12 +59,18 @@ function verify(queueFile, options = {}) {
   const body = String(comment.body || '');
   if (!body.includes('[KODJO_V2] APPLICATION_CHECKPOINT')) throw new Error('KODJO_QUEUE_DELIVERY_CHECKPOINT_MARKER_MISSING');
   const fields = parseFields(body);
+  const gateRef = String(queue.user_gate && queue.user_gate.gate_ref || '');
+  const gateMatch = COMMENT_REF.exec(gateRef);
+  if (!gateMatch) throw new Error('VISUAL_CORRECTION_GATE_REF_INVALID');
   const expected = {
     status: 'CERTIFIED',
     slice_id: String(queue.slice_id),
     checkpoint_ref: String(cp.checkpoint_ref),
     application_pr: String(target.application_pr),
     application_head: String(target.application_head),
+    plan_blob_oid: String(queue.authorized_plan && queue.authorized_plan.plan_blob_oid || ''),
+    review_blob_oid: String(queue.independent_review && queue.independent_review.review_blob_oid || ''),
+    gate_comment_id: String(gateMatch[1]),
     protocol_head: String(queue.source_head),
     package_run_id: String(cp.package_run_id),
     package_artifact_id: String(cp.package_artifact_id),
@@ -76,12 +86,45 @@ function verify(queueFile, options = {}) {
       String(queue.recovery_migration.attestation_blob_oid || '') !== String(cp.attestation_blob_oid)) {
     throw new Error('KODJO_QUEUE_DELIVERY_CHECKPOINT_ATTESTATION_MISMATCH');
   }
+
+  const transition = options.transitionVerifier || verifyTransition;
+  let transitionProof;
+  try {
+    transitionProof = transition({
+      cwd,
+      sourceHead: String(queue.authorized_plan && queue.authorized_plan.approved_at_commit || ''),
+      executionHead: String(queue.source_head || ''),
+      bootstrapPath: String(queue.slice_bootstrap_file || ''),
+      outputPath: options.transitionProofPath,
+    });
+  } catch (error) {
+    const diagnostic=String(error && error.message ? error.message : error);
+    if (/^PLAN_REVIEW_(PRODUCT_INPUT_CHANGED|NON_PROTOCOL_CHANGE|PRODUCT_SOURCE_PROOF_INVALID)\b/.test(diagnostic)) {
+      throw new Error('VISUAL_CORRECTION_CONTRACT_CHANGED: ' + diagnostic);
+    }
+    throw new Error('VISUAL_CORRECTION_ORCHESTRATION_FAILURE: ' + diagnostic);
+  }
+
+  if(!transitionProof||transitionProof.status!=='PASS')throw new Error('VISUAL_CORRECTION_TRANSITION_PROOF_REQUIRED');
+  const protectedUnchanged=Array.isArray(transitionProof.protected_blobs)&&transitionProof.protected_blobs.length>0&&transitionProof.protected_blobs.every(blob=>blob.source_oid&&blob.source_oid===blob.execution_oid);
+  if(!protectedUnchanged)throw new Error('VISUAL_CORRECTION_TRANSITION_PROOF_REQUIRED');
+  const approved=spawnSync('git',['cat-file','-p',queue.authorized_plan.plan_blob_oid],{cwd,encoding:'utf8',shell:false});
+  if(approved.status!==0)throw Error('VISUAL_CORRECTION_APPROVED_PLAN_UNREADABLE');
+  const impact=extractTaggedJson(approved.stdout,'KODJO_PLAN_IMPACT_JSON');
+  const withinScope=Array.isArray(impact.scope_allow)&&Array.isArray(queue.scope_allow)&&
+    JSON.stringify([...impact.scope_allow].sort())===JSON.stringify([...queue.scope_allow].sort());
+  if(!withinScope)throw Error('VISUAL_CORRECTION_SCOPE_CHANGED');
+  // Admission also checks requested scope against the exact approved plan (verify-authorizations).
+  const reviewPolicy=resolveImplementationReviewPolicy({operation_kind:'VISUAL_CORRECTION',same_slice_id:fields.slice_id===String(queue.slice_id),same_approved_plan_binding:fields.plan_blob_oid===queue.authorized_plan.plan_blob_oid,within_approved_scope:withinScope,introduces_new_requirement:!protectedUnchanged,prior_slice_review_completed:fields.status==='CERTIFIED'});
   return {
+    review_policy:reviewPolicy,
     status: 'CERTIFIED',
+    contract_status: 'CONTRACT_UNCHANGED',
     checkpoint_ref: cp.checkpoint_ref,
     application_pr: target.application_pr,
     application_head: target.application_head,
     protocol_head: queue.source_head,
+    transition_status: transitionProof && transitionProof.status || 'PASS',
   };
 }
 

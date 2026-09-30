@@ -1,6 +1,8 @@
 name: KODJO — Comment Router
 run-name: KODJO comment / ${{ github.event.comment.id }}
 
+# Comment events only. Dispatch clauses in delegated gates are kept solely for
+# textual parity with comment-routes.json; manual dispatch targets the worker directly.
 on:
   issue_comment:
     types: [created]
@@ -41,9 +43,10 @@ jobs:
     if: >-
       (github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_SLICE] VISUAL_APPROVED'))
     permissions:
-      contents: read
+      contents: write # Delegated comment worker; no steps in this job.
       issues: write
       pull-requests: read
+      actions: read
     uses: ./.github/workflows/kodjo-slice-finalize.yml
     secrets: inherit
 
@@ -209,7 +212,7 @@ jobs:
 
   v2-plan-handoff-materialize:
     if: >-
-      ((github.event.comment.user.login == 'github-actions[bot]' && contains(github.event.comment.body, '[KODJO_V2] PLAN_REVIEW_OUTPUT') && contains(github.event.comment.body, 'verdict=APPROVE') && contains(github.event.comment.body, 'STATUT : PLAN_REVIEW_APPROVED')) || (github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] MATERIALIZE_PLAN_HANDOFF')))
+      ((github.event.comment.user.login == 'github-actions[bot]' && contains(github.event.comment.body, '[KODJO_V2] PLAN_REVIEW_OUTPUT') && contains(github.event.comment.body, 'verdict=APPROVE') && contains(github.event.comment.body, 'STATUT : PLAN_REVIEW_APPROVED')) || (github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] MATERIALIZE_PLAN_HANDOFF')) || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
     permissions:
       contents: write # Delegated comment worker; no steps in this job.
       issues: write
@@ -240,19 +243,21 @@ jobs:
 
   v2-slice-initial-plan-review:
     if: >-
-      (github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN_REVIEW'))
+      ((github.event_name == 'issue_comment' && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN_REVIEW')) || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
     permissions:
       contents: read
       issues: write
+      actions: write
     uses: ./.github/workflows/kodjo-v2-slice-initial-plan-review.yml
     secrets: inherit
 
   v2-slice-initial-plan:
     if: >-
-      (github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN') && !contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN_REVIEW'))
+      ((github.event_name == 'issue_comment' && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN') && !contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN_REVIEW')) || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
     permissions:
       contents: read
       issues: write
+      actions: write
     uses: ./.github/workflows/kodjo-v2-slice-initial-plan.yml
     secrets: inherit
 
@@ -267,10 +272,11 @@ jobs:
 
   v2-slice-plan-review:
     if: >-
-      (github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_PLAN_REVIEW'))
+      ((github.event_name == 'issue_comment' && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_PLAN_REVIEW')) || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
     permissions:
       contents: read
       issues: write
+      actions: write
       pull-requests: read
     uses: ./.github/workflows/kodjo-v2-slice-plan-review.yml
     secrets: inherit
@@ -282,6 +288,7 @@ jobs:
       contents: read
       issues: write
       pull-requests: read
+      actions: write
     uses: ./.github/workflows/kodjo-v2-slice-plan.yml
     secrets: inherit
 

@@ -5,9 +5,10 @@ on:
   workflow_call:
 
 permissions:
-  contents: read
+  contents: write
   issues: write
   pull-requests: read
+  actions: read
 
 concurrency:
   group: kodjo-slice-finalize-${{ github.event.issue.number }}
@@ -115,14 +116,46 @@ jobs:
             [IO.File]::WriteAllText($changedFile,$changedText,$utf8NoBom)
 
             if([string]$meta.review_mode-eq'CRITERION_COMPLETE'){
+              $env:KODJO_REQUIRE_COMPONENT_PROOF='1'
               $reviewContractFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-contract.json'
-              $reviewContractMatch=[regex]::Match($reviewBody,'(?s)<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>\s*(.*?)\s*</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>')
-              if(-not$reviewContractMatch.Success){throw 'V2 review contract missing'}
+              $reviewContractMatches=[regex]::Matches($reviewBody,'(?ms)^[ \t]*<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>[ \t]*\r?\n(.*?)^[ \t]*</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>[ \t]*\r?$')
+              if($reviewContractMatches.Count-gt1){throw 'V2_REVIEW_CONTRACT_MISSING_OR_DUPLICATED'}
+              $reviewContractMatch=if($reviewContractMatches.Count-eq1){$reviewContractMatches[0]}else{$null}
+              if($null-eq$reviewContractMatch){throw 'V2 review contract missing'}
               [IO.File]::WriteAllText($reviewContractFile,$reviewContractMatch.Groups[1].Value,(New-Object Text.UTF8Encoding($false)))
 
+              $testEvidenceMatches=[regex]::Matches($reviewBody,'(?ms)^[ \t]*<KODJO_TEST_CONTRACT_EVIDENCE_JSON>[ \t]*\r?\n(.*?)^[ \t]*</KODJO_TEST_CONTRACT_EVIDENCE_JSON>[ \t]*\r?$')
+              if($testEvidenceMatches.Count-gt1){throw 'TEST_CONTRACT_EVIDENCE_DUPLICATED'}
+              $testEvidenceMatch=if($testEvidenceMatches.Count-eq1){$testEvidenceMatches[0]}else{$null}
+              if($planRaw -match '<KODJO_REQUIREMENT_CONTRACT_JSON>'){
+                if($null-eq$testEvidenceMatch){throw 'TEST_CONTRACT_EVIDENCE_MISSING_FOR_NEW_PLAN'}
+                $testEvidenceFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-test-evidence.json'
+                [IO.File]::WriteAllText($testEvidenceFile,$testEvidenceMatch.Groups[1].Value,(New-Object Text.UTF8Encoding($false)))
+                $env:KODJO_REQUIRE_TEST_CONTRACT_EVIDENCE='1'
+                $env:KODJO_TEST_CONTRACT_EVIDENCE_FILE=$testEvidenceFile
+                $env:KODJO_EXPECTED_REVIEW_HEAD=$head
+              }else{
+                $env:KODJO_REQUIRE_TEST_CONTRACT_EVIDENCE='0'
+                Remove-Item Env:KODJO_TEST_CONTRACT_EVIDENCE_FILE -ErrorAction SilentlyContinue
+              }
+
               $reviewReplay=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-replayed.json'
-              node scripts/kodjo/verify-ui-implementation-review.js validate $planFile $changedFile $reviewContractFile $reviewReplay $implFile
-              if($LASTEXITCODE-ne0){throw 'V2 implementation review replay failed'}
+              $finalApplication=Join-Path $env:RUNNER_TEMP ('kodjo-final-proof-'+[guid]::NewGuid().ToString())
+              $reviewVerifier=Join-Path $env:GITHUB_WORKSPACE 'scripts/kodjo/verify-ui-implementation-review.js'
+              git worktree add --detach -- $finalApplication $head
+              if($LASTEXITCODE-ne0){throw 'Exact application HEAD unavailable for final proof'}
+              Push-Location $finalApplication
+              try{
+                if((git rev-parse HEAD).Trim()-ne$head){throw 'Final proof checkout HEAD mismatch'}
+                node $reviewVerifier validate $planFile $changedFile $reviewContractFile $reviewReplay $implFile
+                if($LASTEXITCODE-ne0){throw 'V2 implementation review replay failed'}
+              }finally{
+                Pop-Location
+                git worktree remove -- $finalApplication
+                if($LASTEXITCODE-ne0){throw 'Final proof worktree cleanup failed'}
+              }
+              $replayed=Get-Content -LiteralPath $reviewReplay -Raw -Encoding UTF8|ConvertFrom-Json
+              if([string]$replayed.verdict-ne'APPROVE'){throw 'V2 implementation review replay is not APPROVE'}
             } elseif([string]$meta.review_mode-ne'VISUAL_CORRECTION_DELTA'){
               throw 'V2 final review mode invalid'
             }
@@ -149,6 +182,49 @@ jobs:
           "slice_id=$slice"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
           "head=$head"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
           "review_id=$reviewId"|Out-File $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Snapshot canonical V2 closure transformer
+        if: steps.gate.outputs.v2_mode == 'true'
+        run: |
+          Copy-Item -LiteralPath scripts/kodjo/close-v2-activation.js -Destination (Join-Path $env:RUNNER_TEMP 'kodjo-close-v2-activation.js') -Force
+          $closureRuntime=Join-Path $env:RUNNER_TEMP 'kodjo-closure-protocol'
+          if(Test-Path -LiteralPath $closureRuntime){Remove-Item -LiteralPath $closureRuntime -Recurse -Force}
+          New-Item -ItemType Directory -Force -Path (Join-Path $closureRuntime 'lib') | Out-Null
+          Copy-Item -LiteralPath scripts/kodjo/inventory-closure-artifacts.js -Destination $closureRuntime
+          Copy-Item -LiteralPath scripts/kodjo/lib/artifact-policy.js -Destination (Join-Path $closureRuntime 'lib')
+
+      - name: Detect previously published closure evidence against registry
+        if: steps.gate.outputs.v2_mode == 'true'
+        run: |
+          $ErrorActionPreference='Stop'
+          $registryPath='.github/orchestration/v2-activation-registry.json'
+          $registry=Get-Content -LiteralPath $registryPath -Raw -Encoding UTF8|ConvertFrom-Json
+          $byIssue=@{}
+          foreach($activation in $registry.activations){
+            $issue=[string]$activation.issue_number
+            $pages=gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/issues/$issue/comments?per_page=100"
+            if($LASTEXITCODE-ne0){throw 'CLOSURE_CONSISTENCY_COMMENTS_UNAVAILABLE'}
+            $decoded=($pages -join [Environment]::NewLine)|ConvertFrom-Json
+            $byIssue[$issue]=@($decoded)
+          }
+          $commentsFile=Join-Path $env:RUNNER_TEMP 'kodjo-closure-comments-by-issue.json'
+          [IO.File]::WriteAllText($commentsFile,($byIssue|ConvertTo-Json -Depth 30),(New-Object Text.UTF8Encoding($false)))
+          $result=node scripts/kodjo/detect-v2-closure-inconsistency.js $registryPath $commentsFile '${{ steps.gate.outputs.slice_id }}'
+          if($result){$result|Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8}
+          $detectorExit=$LASTEXITCODE
+          if($detectorExit-ne0 -and $result -notmatch 'CLOSURE_EVIDENCE_WITH_ACTIVE_REGISTRY|CLOSURE_HEAD_DRIFT'){throw 'CLOSURE_CONSISTENCY_CHECK_FAILED'}
+          $consistency=($result -join [Environment]::NewLine)|ConvertFrom-Json
+          $drifts=@($consistency.durable_anomalies)
+          if($drifts.Count-gt0){
+            foreach($drift in $drifts){
+              $body='[KODJO_V2] CLOSURE_INCONSISTENCY'+[Environment]::NewLine+'slice_id='+$drift.slice_id+[Environment]::NewLine+'code=CLOSURE_HEAD_DRIFT'+[Environment]::NewLine+'final_comment_id='+$drift.final_comment_id
+              $payload=Join-Path $env:RUNNER_TEMP 'kodjo-closure-drift-comment.json'
+              [IO.File]::WriteAllText($payload,(@{body=$body}|ConvertTo-Json),(New-Object Text.UTF8Encoding($false)))
+              gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$($drift.issue_number)/comments" --input $payload
+              if($LASTEXITCODE-ne0){throw 'CLOSURE_DRIFT_PUBLICATION_FAILED'}
+            }
+            if($consistency.block_current_closure){throw 'CLOSURE_CURRENT_SLICE_HEAD_DRIFT'}
+          }
 
       - name: Checkout final HEAD
         uses: actions/checkout@v6
@@ -222,3 +298,78 @@ jobs:
           }
           [IO.File]::WriteAllText("$env:RUNNER_TEMP\final-comment.md",$body,(New-Object Text.UTF8Encoding($false)))
           gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\final-comment.md"
+      - name: Close V2 activation registry canonically
+        if: steps.gate.outputs.v2_mode == 'true'
+        env:
+          SLICE_ID: ${{ steps.gate.outputs.slice_id }}
+          FINAL_HEAD: ${{ steps.gate.outputs.head }}
+          REVIEW_ID: ${{ steps.gate.outputs.review_id }}
+          VISUAL_ID: ${{ github.event.comment.id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $route="repos/$env:GITHUB_REPOSITORY/contents/.github/orchestration/v2-activation-registry.json?ref=main"
+          $meta=gh api $route|ConvertFrom-Json
+          if($LASTEXITCODE-ne0-or$null-eq$meta-or-not$meta.sha){throw 'Activation registry unreadable'}
+          $raw=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String(([string]$meta.content -replace '\s','')))
+          $input=Join-Path $env:RUNNER_TEMP 'kodjo-v2-activation-registry-before.json'
+          $output=Join-Path $env:RUNNER_TEMP 'kodjo-v2-activation-closure.json'
+          [IO.File]::WriteAllText($input,$raw,(New-Object Text.UTF8Encoding($false)))
+          node (Join-Path $env:RUNNER_TEMP 'kodjo-close-v2-activation.js') $input $output $env:SLICE_ID $env:ISSUE_NUMBER $env:FINAL_HEAD $env:REVIEW_ID $env:VISUAL_ID
+          if($LASTEXITCODE-ne0){throw 'Activation closure transform refused'}
+          $result=Get-Content -LiteralPath $output -Raw -Encoding UTF8|ConvertFrom-Json
+          $artifactPages=gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/actions/artifacts?per_page=100"
+          if($LASTEXITCODE-ne0){throw 'CLOSURE_ARTIFACT_INVENTORY_UNAVAILABLE'}
+          $inventoryInput=Join-Path $env:RUNNER_TEMP 'kodjo-closure-artifact-pages.json'
+          $inventoryOutput=Join-Path $env:RUNNER_TEMP 'kodjo-closure-artifact-inventory.json'
+          [IO.File]::WriteAllText($inventoryInput,($artifactPages -join [Environment]::NewLine),(New-Object Text.UTF8Encoding($false)))
+          node (Join-Path (Join-Path $env:RUNNER_TEMP 'kodjo-closure-protocol') 'inventory-closure-artifacts.js') $inventoryInput $inventoryOutput
+          if($LASTEXITCODE-ne0){throw 'CLOSURE_ARTIFACT_INVENTORY_INVALID'}
+          $artifactInventory=(Get-Content -LiteralPath $inventoryOutput -Raw -Encoding UTF8|ConvertFrom-Json|ConvertTo-Json -Compress -Depth 10)
+          if($result.changed){
+            $before=$raw|ConvertFrom-Json
+            $after=$result.registry
+            $beforeRows=@($before.activations)
+            $afterRows=@($after.activations)
+            if($beforeRows.Count-ne$afterRows.Count){throw 'CLOSURE_UNEXPECTED_REGISTRY_MUTATION'}
+            for($i=0;$i-lt$beforeRows.Count;$i++){
+              if([string]$beforeRows[$i].slice_id-ne[string]$afterRows[$i].slice_id){throw 'CLOSURE_UNEXPECTED_REGISTRY_MUTATION'}
+              if([string]$beforeRows[$i].slice_id-ne$env:SLICE_ID){
+                if(($beforeRows[$i]|ConvertTo-Json -Depth 20 -Compress)-ne($afterRows[$i]|ConvertTo-Json -Depth 20 -Compress)){throw 'CLOSURE_UNEXPECTED_REGISTRY_MUTATION'}
+              }else{
+                $expected=$beforeRows[$i]|ConvertTo-Json -Depth 20|ConvertFrom-Json
+                $expected.status='CLOSED'
+                $expected|Add-Member -NotePropertyName closure -NotePropertyValue $afterRows[$i].closure -Force
+                if(($expected|ConvertTo-Json -Depth 20 -Compress)-ne($afterRows[$i]|ConvertTo-Json -Depth 20 -Compress)){throw 'CLOSURE_UNEXPECTED_REGISTRY_MUTATION'}
+              }
+            }
+            $beforeRoot=$before|ConvertTo-Json -Depth 20|ConvertFrom-Json
+            $afterRoot=$after|ConvertTo-Json -Depth 20|ConvertFrom-Json
+            $beforeRoot.PSObject.Properties.Remove('activations')
+            $afterRoot.PSObject.Properties.Remove('activations')
+            if(($beforeRoot|ConvertTo-Json -Depth 20 -Compress)-ne($afterRoot|ConvertTo-Json -Depth 20 -Compress)){throw 'CLOSURE_UNEXPECTED_REGISTRY_MUTATION'}
+            $registryJson=($result.registry|ConvertTo-Json -Depth 20).Replace("`r`n","`n")+"`n"
+            $payload=[ordered]@{
+              message="chore(kodjo): close slice $env:SLICE_ID"
+              content=[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($registryJson))
+              sha=[string]$meta.sha
+              branch='main'
+            }
+            $payloadFile=Join-Path $env:RUNNER_TEMP 'kodjo-close-registry-put.json'
+            [IO.File]::WriteAllText($payloadFile,($payload|ConvertTo-Json -Depth 5),(New-Object Text.UTF8Encoding($false)))
+            $written=gh api --method PUT "repos/$env:GITHUB_REPOSITORY/contents/.github/orchestration/v2-activation-registry.json" --input $payloadFile|ConvertFrom-Json
+            if($LASTEXITCODE-ne0-or$null-eq$written.commit.sha){throw 'Activation closure write failed'}
+            $closureCommit=[string]$written.commit.sha
+          }else{
+            $closureCommit='ALREADY_CLOSED'
+          }
+          $nl=[Environment]::NewLine
+          $body='[KODJO_V2] SLICE_CLOSED'+$nl+
+            'slice_id='+$env:SLICE_ID+$nl+
+            'final_head='+$env:FINAL_HEAD+$nl+
+            'implementation_review_comment_id='+$env:REVIEW_ID+$nl+
+            'visual_approval_comment_id='+$env:VISUAL_ID+$nl+
+            'closure_commit='+$closureCommit+$nl+
+            'artifact_inventory='+$artifactInventory+$nl+
+            'STATUT : CLOSED'
+          [IO.File]::WriteAllText((Join-Path $env:RUNNER_TEMP 'kodjo-slice-closed.md'),$body,(New-Object Text.UTF8Encoding($false)))
+          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file (Join-Path $env:RUNNER_TEMP 'kodjo-slice-closed.md')

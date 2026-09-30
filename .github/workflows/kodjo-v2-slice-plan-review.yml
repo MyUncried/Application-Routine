@@ -3,26 +3,48 @@ run-name: KODJO V2 / PLAN-REVIEW / ${{ github.event.comment.id }}
 
 on:
   workflow_call:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        required: true
+        type: string
+      slice_id:
+        required: true
+        type: string
+      bootstrap_path:
+        required: true
+        type: string
+      source_plan_comment_id:
+        required: true
+        type: string
+      review_session_id:
+        required: false
+        type: string
 
 permissions:
   contents: read
   issues: write
+  actions: write
   pull-requests: read
 
 concurrency:
-  group: kodjo-v2-slice-plan-review-${{ github.event.issue.number }}
+  group: kodjo-v2-slice-plan-review-${{ github.event.issue.number || inputs.issue_number }}
   cancel-in-progress: false
 
 jobs:
   review:
-    if: github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_PLAN_REVIEW')
+    if: (github.event_name == 'issue_comment' && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_PLAN_REVIEW')) || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     env:
       EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
       CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
       GH_TOKEN: ${{ github.token }}
-      TRIGGER_BODY: ${{ github.event.comment.body }}
-      ISSUE_NUMBER: ${{ github.event.issue.number }}
+      TRIGGER_BODY: ${{ github.event.comment.body || '' }}
+      ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
+      DISPATCH_SLICE_ID: ${{ inputs.slice_id || '' }}
+      DISPATCH_BOOTSTRAP_PATH: ${{ inputs.bootstrap_path || '' }}
+      DISPATCH_PLAN_ID: ${{ inputs.source_plan_comment_id || '' }}
+      DISPATCH_REVIEW_SESSION: ${{ inputs.review_session_id || '' }}
     defaults:
       run:
         shell: powershell
@@ -39,10 +61,10 @@ jobs:
         run: |
           $ErrorActionPreference='Stop'
           if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'Unexpected runner' }
-          $slice=[regex]::Match($env:TRIGGER_BODY,'(?m)^slice_id=([^\r\n]+)\s*$').Groups[1].Value.Trim()
-          $bootstrap=[regex]::Match($env:TRIGGER_BODY,'(?m)^bootstrap_path=([^\r\n]+)\s*$').Groups[1].Value.Trim()
-          $planId=[regex]::Match($env:TRIGGER_BODY,'(?m)^source_plan_comment_id=([0-9]+)\s*$').Groups[1].Value
-          $reviewSession=[regex]::Match($env:TRIGGER_BODY,'(?m)^review_session_id=([0-9a-f-]{36})\s*$').Groups[1].Value
+          $slice=if($env:DISPATCH_SLICE_ID){$env:DISPATCH_SLICE_ID.Trim()}else{[regex]::Match($env:TRIGGER_BODY,'(?m)^slice_id=([^\r\n]+)\s*$').Groups[1].Value.Trim()}
+          $bootstrap=if($env:DISPATCH_BOOTSTRAP_PATH){$env:DISPATCH_BOOTSTRAP_PATH.Trim()}else{[regex]::Match($env:TRIGGER_BODY,'(?m)^bootstrap_path=([^\r\n]+)\s*$').Groups[1].Value.Trim()}
+          $planId=if($env:DISPATCH_PLAN_ID){$env:DISPATCH_PLAN_ID.Trim()}else{[regex]::Match($env:TRIGGER_BODY,'(?m)^source_plan_comment_id=([0-9]+)\s*$').Groups[1].Value}
+          $reviewSession=if($env:DISPATCH_REVIEW_SESSION){$env:DISPATCH_REVIEW_SESSION.Trim()}else{[regex]::Match($env:TRIGGER_BODY,'(?m)^review_session_id=([0-9a-f-]{36})\s*$').Groups[1].Value}
           if (!$slice -or !$bootstrap -or !$planId) { throw 'Missing immutable V2 review inputs' }
           if ($bootstrap -ne ".github/orchestration/v2-slices/$slice/slice-bootstrap.json") { throw 'V2 bootstrap path mismatch' }
           if (!(Test-Path -LiteralPath $bootstrap)) { throw 'V2 bootstrap missing' }
@@ -92,6 +114,8 @@ jobs:
           Copy-Item -LiteralPath scripts/kodjo/verify-plan-impact.js -Destination $destination
           Copy-Item -LiteralPath scripts/kodjo/verify-plan-contract-consistency.js -Destination $destination
           Copy-Item -LiteralPath scripts/kodjo/verify-ui-plan-criteria.js -Destination $destination
+          Copy-Item -LiteralPath scripts/kodjo/normalize-review-findings.js -Destination $destination
+          Copy-Item -LiteralPath scripts/kodjo/decide-plan-review-retry.js -Destination $destination
           Copy-Item -LiteralPath scripts/kodjo/lib -Destination (Join-Path $destination 'lib') -Recurse
           $context=Join-Path $env:RUNNER_TEMP 'kodjo-v2-current-product-context'
           New-Item -ItemType Directory -Force -Path $context | Out-Null
@@ -158,8 +182,11 @@ jobs:
           $ErrorActionPreference='Stop'
           $prompt=@"
           You are the independent KODJO V2 plan reviewer for $env:SLICE_ID. Review the candidate plan in $env:RUNNER_TEMP\kodjo-v2-plan.md against immutable product HEAD $env:SOURCE_HEAD, protocol execution HEAD $env:PROTOCOL_EXECUTION_HEAD, exact application PR $env:APPLICATION_PR at $env:APPLICATION_HEAD, current product context in $env:RUNNER_TEMP\kodjo-v2-current-product-context, and the checked-out application code and tests. The source-to-execution transition was admitted only because its closed diff is protocol-only and every protected plan input is unchanged. This is READ-ONLY.
-          The direct-import scan and current versioned plan contract were independently replayed. The UI criteria contract was also replayed. Independently verify source-to-criteria completeness against current normative product sources and checked-out code: no normative UI requirement may be omitted or collapsed into a vague criterion; verify every REUSE|EXTEND|CREATE decision against actual existing components/patterns, PRESERVE/CHANGE/FORBIDDEN coverage, and risk-to-test-to-proof adequacy. A self-consistent but incomplete UI matrix requires VERDICT: REVISE. Their evidence is in $env:RUNNER_TEMP\kodjo-v2-plan-review-scan.json, $env:RUNNER_TEMP\kodjo-v2-plan-review-proof.json and $env:RUNNER_TEMP\kodjo-v2-plan-review-contract.json. A legacy or stale plan is rejected before you run. Verify every classification and justification, exact scope derivation, migration safety, backward compatibility and preservation of validated product decisions. The risk score may order but never filter. The direct scan is not absolute completeness and full Jest remains mandatory.
-          Never request or invent a V1 slice manifest. End with exactly VERDICT: APPROVE or VERDICT: REVISE.
+          The direct-import scan and current versioned plan contract were independently replayed. The UI criteria contract was also replayed. Independently verify source-to-criteria completeness and source-to-assertion completeness against current normative product sources and checked-out code: no normative UI requirement may be omitted or collapsed into a vague criterion; verify every REUSE|EXTEND|CREATE decision against actual existing components/patterns, PRESERVE/CHANGE/FORBIDDEN coverage, and risk-to-test-to-proof adequacy. A self-consistent but incomplete UI matrix requires VERDICT: REVISE. Their evidence is in $env:RUNNER_TEMP\kodjo-v2-plan-review-scan.json, $env:RUNNER_TEMP\kodjo-v2-plan-review-proof.json and $env:RUNNER_TEMP\kodjo-v2-plan-review-contract.json. A legacy or stale plan is rejected before you run. Verify every classification and justification, exact scope derivation, migration safety, backward compatibility and preservation of validated product decisions. The risk score may order but never filter. The direct scan is not absolute completeness and full Jest remains mandatory.
+          Independently compare every non-UI functional, data, technical, migration and preservation requirement in the normative sources against KODJO_NON_UI_REQUIREMENTS_JSON. Verify that KODJO_NON_UI_COVERAGE_JSON cites all relevant sources. If status is NONE, challenge its reason against the actual sources; any omission or unsupported NONE requires VERDICT: REVISE.
+          Before the terminal verdict, emit exactly one <KODJO_REVIEW_FINDINGS_JSON> JSON block with shape {"findings":[{"category":"REQUIREMENT_GAP|SCOPE|PATH|TEST|MIGRATION|COMPATIBILITY|PRESERVATION|UI_CRITERION|ARCHITECTURE|CLARIFICATION|OTHER","target_kind":"REQUIREMENT_ID|CRITERION_ID|PATH|PLAN|SOURCE","target":"...","blocking":true,"diagnostic":"...","expected_correction":"...","dependency_expansion_required":false,"dependency_evidence":""}]}. Do not emit finding_id: it is derived mechanically. If there is no finding, emit {"findings":[]}. Every blocking point must be one row with an exact target. Any scope expansion must set dependency_expansion_required=true and provide concrete dependency_evidence. The machine derives APPROVE/REVISE from blocking findings. A blocking PLAN target is allowed only for NON_UI_COVERAGE; otherwise emit separate exact PATH, REQUIREMENT_ID or CRITERION_ID targets so a bounded correction is possible.
+          Never request or invent a V1 slice manifest.
+          Do not emit a terminal VERDICT line. The protocol derives APPROVE or REVISE exclusively from the normalized blocking findings.
           "@
           $out="$env:RUNNER_TEMP\kodjo-v2-plan-review.json"
           $err="$env:RUNNER_TEMP\kodjo-v2-plan-review.err.txt"
@@ -172,6 +199,8 @@ jobs:
           if ($env:REVIEW_SESSION -and [string]$json.session_id -ne $env:REVIEW_SESSION) { throw 'Claude resumed a different review session' }
           if ($code -ne 0) { throw "Claude V2 review failed; exit=$code" }
           [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-v2-plan-review.md",[string]$json.result,(New-Object Text.UTF8Encoding($false)))
+          & node "$env:RUNNER_TEMP\kodjo-v2-impact-protocol\normalize-review-findings.js" "$env:RUNNER_TEMP\kodjo-v2-plan-review.md" "$env:RUNNER_TEMP\kodjo-v2-plan-review-findings.json"
+          if ($LASTEXITCODE -ne 0) { throw 'Structured plan review findings invalid' }
           "session_id=$($json.session_id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Publish independent V2 plan review
@@ -187,7 +216,9 @@ jobs:
         run: |
           $ErrorActionPreference='Stop'
           $review=Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-plan-review.md" -Encoding UTF8
-          $verdict=if($review -match '(?m)^VERDICT:\s*APPROVE\s*$'){'APPROVE'}elseif($review -match '(?m)^VERDICT:\s*REVISE\s*$'){'REVISE'}else{throw 'Review verdict missing'}
+          $findings=Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-plan-review-findings.json" -Encoding UTF8 | ConvertFrom-Json
+          $verdict=[string]$findings.verdict
+          if($verdict -notin @('APPROVE','REVISE')){throw 'Derived review verdict invalid'}
           $status=if($verdict -eq 'APPROVE'){'PLAN_REVIEW_APPROVED'}else{'PLAN_REVISION_REQUIRED'}
           $proof=Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-plan-review-proof.json" -Encoding UTF8
           $contract=Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-plan-review-contract.json" -Encoding UTF8
@@ -199,8 +230,36 @@ jobs:
           $contractProof=$nl+'<KODJO_PLAN_CONTRACT_REVIEW_JSON>'+$nl+$contract.Trim()+$nl+'</KODJO_PLAN_CONTRACT_REVIEW_JSON>'+$nl
           $uiContractProof=$nl+'<KODJO_UI_PLAN_CONTRACT_REVIEW_JSON>'+$nl+$uiContract.Trim()+$nl+'</KODJO_UI_PLAN_CONTRACT_REVIEW_JSON>'+$nl
           $migration=$nl+'<KODJO_PLAN_REVIEW_TRANSITION_JSON>'+$nl+$transition.Trim()+$nl+'</KODJO_PLAN_REVIEW_TRANSITION_JSON>'+$nl
-          [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-v2-plan-review-comment.md",$header+$review+$impact+$contractProof+$uiContractProof+$migration,(New-Object Text.UTF8Encoding($false)))
-          gh issue comment $env:ISSUE_NUMBER --repo $env:GITHUB_REPOSITORY --body-file "$env:RUNNER_TEMP\kodjo-v2-plan-review-comment.md"
+                    $findingsProof=$nl+'<KODJO_PLAN_REVIEW_FINDINGS_JSON>'+$nl+(Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-plan-review-findings.json" -Encoding UTF8).Trim()+$nl+'</KODJO_PLAN_REVIEW_FINDINGS_JSON>'+$nl
+          [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-v2-plan-review-comment.md",$header+$review+$impact+$contractProof+$uiContractProof+$migration+$findingsProof,(New-Object Text.UTF8Encoding($false)))
+          $commentPath=Join-Path $env:RUNNER_TEMP 'kodjo-v2-plan-review-comment.md'
+          $commentBody=Get-Content -Raw -LiteralPath $commentPath -Encoding UTF8
+          $payloadPath=Join-Path $env:RUNNER_TEMP 'kodjo-v2-plan-review-publish.json'
+          [IO.File]::WriteAllText($payloadPath,(@{body=$commentBody}|ConvertTo-Json -Depth 3),(New-Object Text.UTF8Encoding($false)))
+          $created=gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments" --input $payloadPath|ConvertFrom-Json
+          if($LASTEXITCODE-ne0-or$null-eq$created-or-not$created.id){throw 'Plan review publication failed'}
+          $reviewCommentId=[string]$created.id
+          if($verdict -eq 'APPROVE'){
+            gh workflow run kodjo-v2-plan-handoff-materialize.yml --ref main -f "issue_number=$env:ISSUE_NUMBER" -f "review_comment_id=$reviewCommentId"
+            if($LASTEXITCODE-ne0){throw 'Plan handoff materialization dispatch failed'}
+          }else{
+            $history=gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments?per_page=100"
+            if($LASTEXITCODE-ne0){throw 'Plan retry history unavailable'}
+            $historyFile=Join-Path $env:RUNNER_TEMP 'kodjo-plan-retry-history.json'
+            [IO.File]::WriteAllText($historyFile,($history -join [Environment]::NewLine),(New-Object Text.UTF8Encoding($false)))
+            $retry=node (Join-Path (Join-Path $env:RUNNER_TEMP 'kodjo-v2-impact-protocol') 'decide-plan-review-retry.js') $historyFile $env:SLICE_ID $reviewCommentId|ConvertFrom-Json
+            if($LASTEXITCODE-ne0){throw 'Plan retry decision failed'}
+            if(([string]$retry.status -eq 'USER_VALIDATION') -or (@($findings.findings|Where-Object{$_.category -eq 'CLARIFICATION'}).Count -gt 0)){
+              $stop='[KODJO_V2] PLAN_RETRY_USER_VALIDATION'+$nl+'slice_id='+$env:SLICE_ID+$nl+'review_comment_id='+$reviewCommentId+$nl+'reason=REPEATED_REVISE'+$nl+'STATUT : USER_VALIDATION'
+              $stopFile=Join-Path $env:RUNNER_TEMP 'kodjo-plan-retry-stop.json'
+              [IO.File]::WriteAllText($stopFile,(@{body=$stop}|ConvertTo-Json -Depth 3),(New-Object Text.UTF8Encoding($false)))
+              gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments" --input $stopFile
+              if($LASTEXITCODE-ne0){throw 'Plan retry stop publication failed'}
+              exit 0
+            }
+            gh workflow run kodjo-v2-slice-plan.yml --ref main -f "issue_number=$env:ISSUE_NUMBER" -f "review_comment_id=$reviewCommentId"
+            if($LASTEXITCODE-ne0){throw 'Bounded plan revision dispatch failed'}
+          }
 
       - name: Preserve V2 review evidence
         if: always()

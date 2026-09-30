@@ -49,7 +49,8 @@ test('V2 plan produces and verifies the opposable direct-import matrix', () => {
   assert.match(plan, /scan-plan-impact\.js extract-modules/);
   assert.match(plan, /assemble-plan-impact\.js close/);
   assert.match(plan, /assemble-plan-impact\.js assemble/);
-  assert.match(plan, /KODJO_PLAN_DECISIONS_JSON/);
+  assert.match(plan, /generate-ui-plan-contract\.js decode final/);
+  assert.match(read('scripts/kodjo/generate-ui-plan-contract.js'), /'PLAN_DECISIONS'/);
   assert.match(plan, /for iteration in 1 2 3 4/);
   assert.match(plan, /PLAN_SCOPE_NOT_CLOSED_BOUND/);
   assert.doesNotMatch(plan, /Include exactly one <KODJO_PLAN_IMPACT_JSON>/);
@@ -59,7 +60,7 @@ test('V2 plan produces and verifies the opposable direct-import matrix', () => {
   assert.match(plan, /build-planning-context\.js/);
   assert.match(read('scripts/kodjo/build-planning-context.js'), /'code-files\.txt'/);
   assert.match(plan, /derives scope_allow/);
-  assert.match(plan, /full Jest, TypeScript and lint/);
+  assert.match(plan, /Every test obligation must be bound to an exact repository path/);
 });
 
 test('V2 planning sépare le HEAD produit du HEAD applicatif de la PR ouverte', () => {

@@ -482,6 +482,8 @@ Consolidation normative (2026-09-03) de l’exigence de livraison documentaire d
 - état Git communiqué ;
 - résultats des tests consignés (ou mention explicite qu’aucun test n’était applicable).
 
+Pour le workflow d’audit indépendant de l’évolution 0.6.51, l’auditeur reste en lecture seule. Un job de publication distinct committe le rapport dans `.github/orchestration/reports/YYYY-MM-DD_INDEPENDENT_AUDIT_<run_id>_<attempt>.md` sur `evidence/kodjo-independent-audits`, sans déplacer le HEAD audité. Il relit le fichier au commit exact et le commentaire de PR, communique le chemin et le hash du commit, et conserve un reçu de publication. Le rapport porte le `candidate_sha` exact et ne qualifie aucun HEAD ultérieur. Une erreur de commit ou de publication échoue explicitement ; la reprise de publication réutilise le rapport validé, sans nouvel appel IA. Cette séparation d’écrivains n’accorde aucune exception au présent gate.
+
 Une mission dont `DELIVERY_REPORT_GATE` échoue doit être déclarée **LIVRAISON INCOMPLÈTE**, jamais **TERMINÉE**. `READY_TO_CLOSE`/`CLOSED` exigent donc, en plus des conditions énumérées ci-dessus, un `DELIVERY_REPORT_GATE` conforme.
 
 Cette obligation ne peut être suspendue que par une instruction explicite contenant exactement `EXCEPTION EXPRESSE — AUCUN RAPPORT DE MISSION` (voir `CLAUDE.md`). Aucune instruction ponctuelle interdisant les modifications, les commits ou les livraisons (« ne modifier aucun fichier », « diagnostic seul », « ne créer aucun commit », « analyse uniquement ») ne suspend implicitement cette obligation — elle s’interprète comme une interdiction limitée aux fichiers applicatifs, jamais au rapport documentaire lui-même.

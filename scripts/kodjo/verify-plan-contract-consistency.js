@@ -4,12 +4,13 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
-const { canonicalJson, extractTaggedJson, normalizeRepoPath, fail } = require('./lib/plan-impact');
+const { canonicalJson, extractTaggedJson, normalizeRepoPath, sha256, fail } = require('./lib/plan-impact');
+const { verifyEmbedded: verifyRequirementContracts } = require('./lib/requirement-contract');
 
 const CURRENT_CONTRACT_VERSION = 2;
 const CURRENT_SCHEMA = 'kodjo.plan-contract-consistency.v2';
 const TEST_PATH = /(?:^|\/)(__tests__|tests?)\/|\.(?:test|spec)\.[^.]+$/;
-const SOURCE_PATH = /(?:`|\b)((?:app|src|tests)\/[A-Za-z0-9_@().+\-/]+?\.(?:ts|tsx|js|jsx|mjs|cjs))(?:`|\b)/g;
+const SOURCE_PATH = /(?:`|\b)((?:app|src|tests|assets|docs|scripts|\.github)\/[A-Za-z0-9_@().+\-/]+\.[A-Za-z0-9]+)(?=`|\s|$|[,;])/g;
 
 function isTestPath(value) { return TEST_PATH.test(value); }
 function extractPaths(text) {
@@ -21,7 +22,7 @@ function extractPaths(text) {
 }
 function stripMachineBlocks(markdown) {
   let out = String(markdown);
-  for (const tag of ['KODJO_MODIFIED_MODULES_JSON', 'KODJO_PLAN_DECISIONS_JSON', 'KODJO_PLAN_IMPACT_JSON', 'KODJO_PLAN_CONTRACT_JSON', 'KODJO_UI_CRITERIA_MATRIX_JSON', 'KODJO_UI_PLAN_CONTRACT_JSON']) {
+  for (const tag of ['KODJO_MODIFIED_MODULES_JSON', 'KODJO_PLAN_DECISIONS_JSON', 'KODJO_PLAN_IMPACT_JSON', 'KODJO_PLAN_CONTRACT_JSON', 'KODJO_UI_CRITERIA_MATRIX_JSON', 'KODJO_UI_PLAN_CONTRACT_JSON', 'KODJO_NON_UI_REQUIREMENTS_JSON', 'KODJO_NON_UI_COVERAGE_JSON', 'KODJO_REQUIREMENT_CONTRACT_JSON', 'KODJO_TEST_CONTRACT_JSON', 'KODJO_BOUNDARY_CONTRACT_JSON', 'KODJO_PLAN_CLARIFICATIONS_JSON']) {
     out = out.replace(new RegExp('<' + tag + '>[\\s\\S]*?</' + tag + '>', 'g'), '');
   }
   return out;
@@ -96,6 +97,30 @@ try {
   }
 
   const requiredTestWrites = [...requiredWrites].sort();
+  const hasRequirementContract = /<KODJO_REQUIREMENT_CONTRACT_JSON>[\s\S]*?<\/KODJO_REQUIREMENT_CONTRACT_JSON>/.test(markdown);
+  const hasUiMatrix=/<KODJO_UI_CRITERIA_MATRIX_JSON>[\s\S]*?<\/KODJO_UI_CRITERIA_MATRIX_JSON>/.test(markdown);
+  if(hasUiMatrix&&['kodjo.ui-criteria.v2','kodjo.ui-criteria.v3'].includes(extractTaggedJson(markdown,'KODJO_UI_CRITERIA_MATRIX_JSON').schema)&&!hasRequirementContract)
+    fail('REQUIREMENT_CONTRACT_REQUIRED_FOR_V2');
+  const requirementContracts = hasRequirementContract ? verifyRequirementContracts(markdown) : null;
+  const hasCoverage=/<KODJO_NON_UI_COVERAGE_JSON>[\s\S]*?<\/KODJO_NON_UI_COVERAGE_JSON>/.test(markdown);
+  if(requirementContracts&&(hasCoverage||process.env.KODJO_REQUIRE_NON_UI_COVERAGE==='1')){
+    const coverage=extractTaggedJson(markdown,'KODJO_NON_UI_COVERAGE_JSON');
+    const nonUi=requirementContracts.requirement_contract.requirements.filter(x=>x.domain==='NON_UI');
+    if(!coverage||!Array.isArray(coverage.source_paths)||coverage.source_paths.length===0||
+       (coverage.status==='NONE')!==(nonUi.length===0)||typeof coverage.reason!=='string'||
+       (coverage.status==='NONE'&&coverage.reason.trim().length<40))fail('NON_UI_COVERAGE_INVALID');
+    for(const row of nonUi)if(!coverage.source_paths.includes(row.source.path))fail('NON_UI_COVERAGE_SOURCE_UNLISTED',row.source.path);
+    for(const file of coverage.source_paths){
+      const source=normalizeRepoPath(file,'non_ui_coverage.source_path');
+      if(!gitPathExists(gitCwd,revision,source))fail('NON_UI_COVERAGE_SOURCE_NOT_AT_HEAD',source);
+    }
+  }
+  const requirementProof = requirementContracts ? {
+    requirement_contract_sha256: sha256(requirementContracts.requirement_contract),
+    test_contract_sha256: sha256(requirementContracts.test_contract),
+    boundary_contract_sha256: sha256(requirementContracts.boundary_contract),
+    requirement_count: requirementContracts.requirement_contract.requirement_count,
+  } : null;
   const hasEmbeddedContract = /<KODJO_PLAN_CONTRACT_JSON>[\s\S]*?<\/KODJO_PLAN_CONTRACT_JSON>/.test(markdown);
   const consume = mode === 'consume' || hasEmbeddedContract;
   if (consume) {
@@ -112,6 +137,11 @@ try {
     if (embedded.scan_revision !== matrix.scan_revision || canonicalJson(embedded.write_scope || []) !== canonicalJson(scope) || canonicalJson(embedded.required_test_writes || []) !== canonicalJson(requiredTestWrites)) {
       fail('PLAN_CONTRACT_DRIFT', 'contrat embarque != contrat recalcule');
     }
+    if (requirementProof) {
+      for (const [key,value] of Object.entries(requirementProof)) {
+        if (embedded[key] !== value) fail('PLAN_REQUIREMENT_CONTRACT_DRIFT', key);
+      }
+    }
   }
 
   const contract = {
@@ -121,6 +151,7 @@ try {
     scan_revision: matrix.scan_revision,
     write_scope: scope,
     required_test_writes: requiredTestWrites,
+    ...(requirementProof || {}),
   };
   fs.mkdirSync(path.dirname(path.resolve(outputFile)), { recursive: true });
   fs.writeFileSync(outputFile, JSON.stringify(contract, null, 2) + '\n', 'utf8');

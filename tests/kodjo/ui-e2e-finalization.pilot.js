@@ -274,7 +274,7 @@ test('E2E UI: le workflow final conserve le canal VISUAL_APPROVED et le chemin l
   const wf=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-finalize.yml'),'utf8');
   assert.match(wf,/\[KODJO_SLICE\] VISUAL_APPROVED/);
   assert.match(wf,/verify-v2-finalization\.js/);
-  assert.match(wf,/verify-ui-implementation-review\.js validate/);
+  assert.match(wf,/node \$reviewVerifier validate/);
   assert.match(wf,/STATUT : READY_TO_CLOSE/);
   assert.match(wf,/STATUT : DONE/);
   assert.match(wf,/v2_mode=true/);

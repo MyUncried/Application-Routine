@@ -184,7 +184,10 @@ jobs:
             scripts/kodjo/verify-implementation-plan-gate.js \
             scripts/kodjo/verify-plan-contract-consistency.js \
             scripts/kodjo/verify-plan-impact.js \
-            scripts/kodjo/lib/plan-impact.js; do
+            scripts/kodjo/lib/plan-impact.js \
+            scripts/kodjo/lib/requirement-contract.js \
+            scripts/kodjo/lib/ui-criteria-contract.js \
+            scripts/kodjo/lib/ui-identities.js; do
             dest="${CONTROL}/${file#scripts/kodjo/}"
             mkdir -p "$(dirname "${dest}")"
             gh api -H 'Accept: application/vnd.github.raw+json' "repos/${GITHUB_REPOSITORY}/contents/${file}?ref=${PROTOCOL_HEAD}" > "${dest}"
@@ -347,7 +350,7 @@ jobs:
             ${{ runner.temp }}/kodjo/delivery/integrity/
             ${{ runner.temp }}/kodjo/delivery/adapter.json
             ${{ runner.temp }}/kodjo/implementation-plan-gate.json
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 90
 
       - name: Publish structured issue result
@@ -366,7 +369,7 @@ jobs:
           name: ${{ env.RECEIPT_ARTIFACT }}
           path: ${{ runner.temp }}/kodjo/delivery/receipt/
           if-no-files-found: warn
-          retention-days: 90
+          retention-days: 7
 
       - name: Return run status after preservation and publication
         id: exit_status

@@ -25,12 +25,12 @@ function assertSequence(values, prefix, maximum) {
   }
 }
 
-test('registre canonique 3.64.0: incidents uniques, complets et à valeurs contrôlées', () => {
-  assert.match(text, /Version du registre : \*\*3\.64\.0\*\*/);
+test('registre canonique 3.65.0: incidents uniques, complets et à valeurs contrôlées', () => {
+  assert.match(text, /Version du registre : \*\*3\.65\.0\*\*/);
   assert.match(text, /run #73 `34648194736`/);
   assert.match(text, /artefact `10283681378`/);
   const incidents = ids('INC');
-  assertSequence(incidents, 'INC', 165);
+  assertSequence(incidents, 'INC', 169);
   for (const id of incidents) {
     const row = text.split('\n').find((line) => line.startsWith('| ' + id + ' |'));
     assert.equal(row.split('|').length, 18, 'malformed incident row ' + id);
@@ -40,7 +40,7 @@ test('registre canonique 3.64.0: incidents uniques, complets et à valeurs contr
 });
 
 test('registre canonique: tests, aliases et invariants sans trou ni duplication', () => {
-  assertSequence(ids('T'), 'T', 138);
+  assertSequence(ids('T'), 'T', 142);
   assert.equal(ids('XLS03-INC').length, 51);
   assert.equal(ids('INV').length, 24);
 });
@@ -79,9 +79,11 @@ test('superviseur sans double encodage UTF-8 connu', () => {
 test('workflow pilote qualifie et archive le HEAD de PR, pas le merge temporaire', () => {
   const workflow = fs.readFileSync(path.join(__dirname, '..', '..', '.github', 'workflows', 'kodjo-v2-pilot-tests.yml'), 'utf8');
   const expected = 'ref: ${{ github.event.pull_request.head.sha || github.sha }}';
-  assert.equal(workflow.split(expected).length - 1, 2);
+  assert.equal(workflow.split(expected).length - 1, 3);
   assert.match(workflow, /test "\$\(git rev-parse HEAD\)" = "\$SOURCE_SHA"/);
-  assert.match(workflow, /kodjo-v2-complete-source-\$\{\{ github\.event\.pull_request\.head\.sha \|\| github\.sha \}\}/);
+  assert.doesNotMatch(workflow, /kodjo-v2-complete-source-/);
+  assert.match(workflow, /Record immutable qualification identity/);
+  assert.match(workflow, /source_tree_manifest_sha256/);
 });
 
 test('workflow jetable: dispatch manuel, consommation durable déclarée et aucune publication de code', () => {
@@ -136,11 +138,15 @@ test('qualification jetable: cache Jest isolée et cache lint désactivée dans 
   assert.match(pilotWorkflow, /kodjo-v2-disposable-preflight-/);
   assert.match(pilotWorkflow, /Join-Path '\$\{\{ runner\.temp \}\}' 'kodjo-v2-runner-certification-/);
   assert.doesNotMatch(pilotWorkflow, /certify-persistent-runner-lock\.js runner-lock-certification\.json/);
-  assert.match(pilotWorkflow, /Certify historical run 16 recovery without gating the disposable slice\r?\n\s+continue-on-error: true/);
+  assert.match(pilotWorkflow, /Download the real run 16 recovery package\r?\n\s+id: historical_recovery\r?\n\s+continue-on-error: true/);
+  assert.match(pilotWorkflow, /Certify historical run 16 recovery without gating the disposable slice\r?\n\s+if: steps\.historical_recovery\.outcome == 'success'\r?\n\s+continue-on-error: true/);
+  assert.match(pilotWorkflow, /HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE_OR_CERTIFICATION_FAILED/);
+  assert.doesNotMatch(pilotWorkflow, /Run full disposable preflight without Claude\r?\n\s+continue-on-error: true/);
   assert.ok(pilotWorkflow.includes('id: change_class'));
-  assert.ok(pilotWorkflow.includes('full_windows_required: ${{ steps.change_class.outputs.full_windows_required }}'));
-  assert.ok(pilotWorkflow.includes('.github/orchestration/v2-slices/*/technical-plan.md|.github/orchestration/v2-slices/*/independent-review.md|.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'));
-  assert.ok(pilotWorkflow.includes("- '!.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'"));
+  assert.ok(pilotWorkflow.includes('full_windows_required: ${{ needs.classify.outputs.full_required }}'));
+  assert.match(pilotWorkflow,/classify-protocol-impact\.js/);
+  assert.match(pilotWorkflow,/full_required: \$\{\{ steps\.change_class\.outputs\.full_required \}\}/);
+  assert.match(pilotWorkflow,/if: needs\.classify\.outputs\.full_required == 'true'/);
   assert.ok(pilotWorkflow.includes("if: needs.protocol.outputs.full_windows_required == 'true'"));
   assert.ok(pilotWorkflow.includes('timeout-minutes: 25'));
   assert.match(pilotWorkflow, /needs: \[protocol, protocol-windows-preflight\]/);

@@ -3,10 +3,28 @@ run-name: KODJO V2 / INITIAL-PLAN / ${{ github.event.comment.id }}
 
 on:
   workflow_call:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        required: true
+        type: string
+      slice_id:
+        required: true
+        type: string
+      bootstrap_path:
+        required: true
+        type: string
+      source_head:
+        required: true
+        type: string
+      command_comment_id:
+        required: true
+        type: string
 
 permissions:
   contents: read
   issues: write
+  actions: write
 
 concurrency:
   group: kodjo-openai-planning
@@ -14,13 +32,16 @@ concurrency:
 
 jobs:
   plan:
-    if: github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN') && !contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN_REVIEW')
+    if: (github.event_name == 'issue_comment' && github.event.comment.user.login == 'MyUncried' && contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN') && !contains(github.event.comment.body, '[KODJO_V2] START_INITIAL_PLAN_REVIEW')) || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      TRIGGER_BODY: ${{ github.event.comment.body }}
-      ISSUE_NUMBER: ${{ github.event.issue.number }}
+      TRIGGER_BODY: ${{ github.event.comment.body || '' }}
+      ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
+      DISPATCH_SLICE_ID: ${{ inputs.slice_id || '' }}
+      DISPATCH_BOOTSTRAP_PATH: ${{ inputs.bootstrap_path || '' }}
+      DISPATCH_SOURCE_HEAD: ${{ inputs.source_head || '' }}
     steps:
       - name: Checkout protocol
         uses: actions/checkout@v6
@@ -29,14 +50,40 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Replay causal initial planning command
+        if: github.event_name == 'workflow_dispatch' && inputs.command_comment_id != ''
+        shell: bash
+        env:
+          COMMAND_COMMENT_ID: ${{ inputs.command_comment_id }}
+        run: |
+          set -euo pipefail
+          EVENT_JSON="$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$COMMAND_COMMENT_ID")"
+          printf '%s' "$EVENT_JSON" | jq -e --arg issue "$ISSUE_NUMBER" '
+            (.user.login == "MyUncried" or .user.login == "github-actions[bot]") and
+            (.issue_url | endswith("/issues/" + $issue)) and (.body | type == "string")
+          ' >/dev/null
+          export EVENT_JSON
+          node <<'NODE'
+          const fs=require('node:fs'),crypto=require('node:crypto');
+          const body=JSON.parse(process.env.EVENT_JSON).body;
+          const delimiter='KODJO_EVENT_'+crypto.randomBytes(16).toString('hex');
+          fs.appendFileSync(process.env.GITHUB_ENV,'TRIGGER_BODY<<'+delimiter+'\n'+body+'\n'+delimiter+'\n');
+          NODE
+
       - name: Validate initial V2 planning gate
         id: gate
         shell: bash
         run: |
           set -euo pipefail
-          SLICE_ID=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^slice_id=//p' | head -n1)
-          BOOTSTRAP_PATH=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^bootstrap_path=//p' | head -n1)
-          SOURCE_HEAD=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^source_head=//p' | head -n1)
+          if [ -n "$DISPATCH_SLICE_ID" ]; then
+            SLICE_ID="$DISPATCH_SLICE_ID"
+            BOOTSTRAP_PATH="$DISPATCH_BOOTSTRAP_PATH"
+            SOURCE_HEAD="$DISPATCH_SOURCE_HEAD"
+          else
+            SLICE_ID=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^slice_id=//p' | head -n1)
+            BOOTSTRAP_PATH=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^bootstrap_path=//p' | head -n1)
+            SOURCE_HEAD=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^source_head=//p' | head -n1)
+          fi
           test -n "$SLICE_ID"
           test "$BOOTSTRAP_PATH" = ".github/orchestration/v2-slices/$SLICE_ID/slice-bootstrap.json"
           printf '%s' "$SOURCE_HEAD" | grep -Eq '^[0-9a-f]{40}$'
@@ -76,7 +123,7 @@ jobs:
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
           MISSION_PATH: ${{ steps.gate.outputs.mission_path }}
           SEED_PATH: ${{ steps.gate.outputs.seed_path }}
-          COMMAND_COMMENT_ID: ${{ github.event.comment.id }}
+          COMMAND_COMMENT_ID: ${{ github.event.comment.id || inputs.command_comment_id }}
           PLANNING_MODE: initial
         run: |
           set -euo pipefail
@@ -102,6 +149,7 @@ jobs:
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
         run: |
           set -euo pipefail
+          exec 2> >(tee -a /tmp/kodjo-v2-initial/planning-stderr.log >&2)
           test -n "${OPENAI_API_KEY:-}"
           cat > /tmp/kodjo-v2-initial/draft-prompt.txt <<EOF
           You are the KODJO V2 initial technical-plan builder for $SLICE_ID at immutable product HEAD $SOURCE_HEAD. READ ONLY: never implement and never modify repository files.
@@ -136,7 +184,9 @@ jobs:
           SOURCE_HEAD: ${{ steps.gate.outputs.source_head }}
         run: |
           set -euo pipefail
+          exec 2> >(tee -a /tmp/kodjo-v2-initial/planning-stderr.log >&2)
           node scripts/kodjo/scan-plan-impact.js extract-modules /tmp/kodjo-v2-initial/plan-draft.md /tmp/kodjo-v2-initial/modules.json
+          node scripts/kodjo/validate-plan-module-paths.js "$SOURCE_HEAD" /tmp/kodjo-v2-initial/modules.json /tmp/kodjo-v2-initial/source
           (cd /tmp/kodjo-v2-initial/source && node "$GITHUB_WORKSPACE/scripts/kodjo/scan-plan-impact.js" scan "$SOURCE_HEAD" /tmp/kodjo-v2-initial/modules.json /tmp/kodjo-v2-initial/scan.json)
           cat > /tmp/kodjo-v2-initial/final-prompt.txt <<'EOF'
           Produce the complete final KODJO V2 INITIAL technical plan from the supplied draft and deterministic one-level direct-import scan.
@@ -153,10 +203,10 @@ jobs:
           cat /tmp/kodjo-v2-initial/plan-draft.md >> /tmp/kodjo-v2-initial/final-prompt.txt
           printf '\n===== DETERMINISTIC ONE-LEVEL DIRECT IMPORT SCAN =====\n' >> /tmp/kodjo-v2-initial/final-prompt.txt
           cat /tmp/kodjo-v2-initial/scan.json >> /tmp/kodjo-v2-initial/final-prompt.txt
-          node scripts/kodjo/generate-ui-plan-contract.js request final /tmp/kodjo-v2-initial/final-prompt.txt /tmp/kodjo-v2-initial/final-request.json
+          node scripts/kodjo/generate-ui-plan-contract.js request final /tmp/kodjo-v2-initial/final-prompt.txt /tmp/kodjo-v2-initial/final-request.json /tmp/kodjo-v2-initial/scan.json
           node scripts/kodjo/openai-plan-request.js /tmp/kodjo-v2-initial/final-request.json /tmp/kodjo-v2-initial/final-response.json /tmp/kodjo-v2-initial/final-api-evidence.json /tmp/kodjo-v2-initial/api-pacing.json
           test "$(jq -r '.status // "missing"' /tmp/kodjo-v2-initial/final-response.json)" = completed
-          node scripts/kodjo/generate-ui-plan-contract.js decode final /tmp/kodjo-v2-initial/final-response.json /tmp/kodjo-v2-initial/final-plan-with-decisions.md /tmp/kodjo-v2-initial/scan.json
+          node scripts/kodjo/generate-ui-plan-contract.js decode final /tmp/kodjo-v2-initial/final-response.json /tmp/kodjo-v2-initial/final-plan-with-decisions.md /tmp/kodjo-v2-initial/scan.json /tmp/kodjo-v2-initial/source
           node <<'NODE'
           const fs=require('node:fs');
           const {extractTaggedJson,sha256}=require('./scripts/kodjo/lib/plan-impact');
@@ -194,11 +244,23 @@ jobs:
           printf '\n\n<KODJO_PLAN_IMPACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
           cat /tmp/kodjo-v2-initial/matrix.json >> /tmp/kodjo-v2-initial/technical-plan.md
           printf '</KODJO_PLAN_IMPACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
+          if test -f /tmp/kodjo-v2-initial/base-plan-for-revision.md; then
+            node scripts/kodjo/verify-bounded-plan-revision.js /tmp/kodjo-v2-initial/base-plan-for-revision.md /tmp/kodjo-v2-initial/base-review-for-revision.md /tmp/kodjo-v2-initial/technical-plan.md /tmp/kodjo-v2-initial/plan-revision-status.json
+            revision_status=$(jq -er '.status' /tmp/kodjo-v2-initial/plan-revision-status.json)
+            case "$revision_status" in
+              BOUNDED|APPROVED_BASE_NEW_CYCLE) ;;
+              LEGACY_UNBOUNDED) echo 'Historical plan: full independent revalidation required' >> "$GITHUB_STEP_SUMMARY" ;;
+              *) echo 'PLAN_REVISION_STATUS_INVALID' >&2; exit 1 ;;
+            esac
+            printf "\n<KODJO_PLAN_REVISION_STATUS_JSON>\n" >> /tmp/kodjo-v2-initial/technical-plan.md
+            cat /tmp/kodjo-v2-initial/plan-revision-status.json >> /tmp/kodjo-v2-initial/technical-plan.md
+            printf "</KODJO_PLAN_REVISION_STATUS_JSON>\n" >> /tmp/kodjo-v2-initial/technical-plan.md
+          fi
           node scripts/kodjo/verify-ui-plan-criteria.js /tmp/kodjo-v2-initial/technical-plan.md "$SOURCE_HEAD" /tmp/kodjo-v2-initial/source /tmp/kodjo-v2-initial/ui-plan-contract.json
           printf '\n<KODJO_UI_PLAN_CONTRACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
           cat /tmp/kodjo-v2-initial/ui-plan-contract.json >> /tmp/kodjo-v2-initial/technical-plan.md
           printf '</KODJO_UI_PLAN_CONTRACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
-          node scripts/kodjo/verify-plan-contract-consistency.js /tmp/kodjo-v2-initial/technical-plan.md "$SOURCE_HEAD" /tmp/kodjo-v2-initial/source /tmp/kodjo-v2-initial/plan-contract.json
+          KODJO_REQUIRE_NON_UI_COVERAGE=1 node scripts/kodjo/verify-plan-contract-consistency.js /tmp/kodjo-v2-initial/technical-plan.md "$SOURCE_HEAD" /tmp/kodjo-v2-initial/source /tmp/kodjo-v2-initial/plan-contract.json
           printf '\n<KODJO_PLAN_CONTRACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
           cat /tmp/kodjo-v2-initial/plan-contract.json >> /tmp/kodjo-v2-initial/technical-plan.md
           printf '</KODJO_PLAN_CONTRACT_JSON>\n' >> /tmp/kodjo-v2-initial/technical-plan.md
@@ -221,12 +283,28 @@ jobs:
             echo "source_head=$SOURCE_HEAD"
             echo 'planning_mode=INITIAL'
             echo 'planning_contract=kodjo.plan-impact.v1'
-            echo 'ui_planning_contract=kodjo.ui-plan-criteria.v1'
+            echo 'ui_planning_contract=kodjo.ui-plan-criteria.v2'
             echo "STATUT : $STATUS"
             echo
             cat /tmp/kodjo-v2-initial/technical-plan.md
           } > /tmp/kodjo-v2-initial/comment.md
-          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file /tmp/kodjo-v2-initial/comment.md
+          CREATED="$(gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/kodjo-v2-initial/comment.md)")"
+          PLAN_ID="$(printf '%s' "$CREATED" | jq -r '.id')"
+          printf '%s' "$PLAN_ID" | grep -Eq '^[1-9][0-9]*$'
+          if [ "$STATUS" = 'PLAN_READY_FOR_INDEPENDENT_REVIEW' ]; then
+            gh workflow run kodjo-v2-slice-initial-plan-review.yml --ref main \
+              -f issue_number="$ISSUE_NUMBER" \
+              -f slice_id="$SLICE_ID" \
+              -f bootstrap_path="$BOOTSTRAP_PATH" \
+              -f source_plan_comment_id="$PLAN_ID"
+          fi
+
+      - name: Classify initial planning failure before any retry
+        if: failure()
+        shell: bash
+        run: |
+          mkdir -p /tmp/kodjo-v2-initial
+          node scripts/kodjo/classify-planning-failure.js /tmp/kodjo-v2-initial/planning-stderr.log /tmp/kodjo-v2-initial/error-classification.json | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Preserve initial planning evidence
         if: always()
@@ -237,7 +315,9 @@ jobs:
             /tmp/kodjo-v2-initial/*api-evidence*.json
             /tmp/kodjo-v2-initial/context-manifest.json
             /tmp/kodjo-v2-initial/context-error.json
+            /tmp/kodjo-v2-initial/error-classification.json
             /tmp/kodjo-v2-initial/technical-plan.md
+            /tmp/kodjo-v2-initial/plan-revision-status.json
             /tmp/kodjo-v2-initial/scan.json
             /tmp/kodjo-v2-initial/matrix.json
             /tmp/kodjo-v2-initial/proof.json

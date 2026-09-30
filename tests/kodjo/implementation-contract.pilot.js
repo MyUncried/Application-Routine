@@ -8,11 +8,23 @@ const assert = require('node:assert/strict');
 
 const root = path.resolve(__dirname, '..', '..');
 const { sha256 } = require('../../scripts/kodjo/lib/plan-impact');
+const {buildRequirementContract,buildTestContract,buildBoundaryContract}=require('../../scripts/kodjo/lib/requirement-contract');
+function contractTags(matrix,scope,includeImpact=true){
+  const requirements=buildRequirementContract(matrix,[],new Set(scope));
+  return [
+    ...(includeImpact?[['KODJO_PLAN_IMPACT_JSON',{scope_allow:scope}]]:[]),
+    ['KODJO_NON_UI_REQUIREMENTS_JSON',[]],
+    ['KODJO_REQUIREMENT_CONTRACT_JSON',requirements],
+    ['KODJO_TEST_CONTRACT_JSON',buildTestContract(requirements)],
+    ['KODJO_BOUNDARY_CONTRACT_JSON',buildBoundaryContract(matrix)],
+  ].map(([tag,value])=>'<'+tag+'>'+JSON.stringify(value)+'</'+tag+'>\n').join('');
+}
 const {
   REQUIRED_STOPS,
   renderImplementationMission,
   verifyImplementationMission,
 } = require('../../scripts/kodjo/lib/implementation-contract');
+const { inspectReport,inspectImplementation } = require('../../scripts/kodjo/lib/implementation-report');
 const {
   extractImplementationStopStatus,
   IMPLEMENTATION_STOP_STATUSES,
@@ -53,6 +65,52 @@ function planFixture() {
     '<KODJO_UI_PLAN_CONTRACT_JSON>\n'+JSON.stringify(uiContract)+'\n</KODJO_UI_PLAN_CONTRACT_JSON>\n';
 }
 
+
+function planFixtureV2() {
+  const source={path:'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md',locator:'CE-X',requirement:'Contrôle exact.'};
+  const stableId='UI-'+sha256(source).slice(0,12).toUpperCase();
+  const matrix = {
+    schema: 'kodjo.ui-criteria.v2',
+    criteria: [{
+      criterion_id: stableId,
+      source,
+      risk_types:['FUNCTIONAL','VISUAL','DEVICE'],
+      reuse_search:['src/shared/ui'],
+      component_decision:'REUSE',
+      selected_component:{path:'src/shared/ui/ExistingOverlay.tsx',export:'ExistingOverlay'},
+      decision_justification:'Composant canonique existant.',
+      change_targets:['src/features/example/ExampleScreen.tsx'],
+      tests:['src/features/example/__tests__/ExampleScreen.test.tsx'],
+      proof_required:['FUNCTIONAL_TEST','VISUAL_COMPARE','DEVICE_CHECK'],
+      assertions:[
+        {assertion_id:stableId+'-A01',source:{path:'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md',locator:'CE-X/content'},property_type:'CONTENT',expected:'Contenu canonique présent.',proof_required:['FUNCTIONAL_TEST']},
+        {assertion_id:stableId+'-A02',source:{path:'docs/Specifications-fonctionnelles/13 – Contrats d’écran.md',locator:'CE-X/geometry'},property_type:'GEOMETRY',expected:'Géométrie conforme.',proof_required:['VISUAL_COMPARE','DEVICE_CHECK']},
+      ],
+    }],
+    preservation:{
+      preserve:[{target:'Navigation',justification:'Acquis gelé.'}],
+      change:[{target:'ExampleScreen',justification:'Ouvert par la mission.'}],
+      forbidden:[{target:'Shell',justification:'Refonte interdite.'}],
+    },
+  };
+  const assertionIds=matrix.criteria[0].assertions.map(a=>a.assertion_id).sort();
+  const uiContract = {
+    schema:'kodjo.ui-plan-contract.v1',
+    contract_version:2,
+    protocol_commit:'a'.repeat(40),
+    scan_revision:'b'.repeat(40),
+    ui_applicable:true,
+    ui_paths:['src/features/example/ExampleScreen.tsx'],
+    criterion_count:1,
+    assertion_count:assertionIds.length,
+    assertion_ids_sha256:sha256(assertionIds),
+    matrix_sha256:matrixFingerprint(matrix),
+  };
+  return '# Plan\n\n<KODJO_UI_CRITERIA_MATRIX_JSON>\n'+JSON.stringify(matrix)+'\n</KODJO_UI_CRITERIA_MATRIX_JSON>\n' +
+    '<KODJO_UI_PLAN_CONTRACT_JSON>\n'+JSON.stringify(uiContract)+'\n</KODJO_UI_PLAN_CONTRACT_JSON>\n'+
+    contractTags(matrix,[...matrix.criteria[0].change_targets,...matrix.criteria[0].tests]);
+}
+
 test('implementation contract: mission est dérivée par hash du plan approuvé sans recopier la matrice', () => {
   const plan = planFixture();
   const blob = 'c'.repeat(40);
@@ -67,6 +125,20 @@ test('implementation contract: mission est dérivée par hash du plan approuvé 
   assert.match(mission, /KODJO_IMPLEMENTATION_CONFORMANCE/);
   assert.match(mission, /PENDING_DEVICE/);
   assert.doesNotThrow(() => verifyImplementationMission(mission, plan, blob));
+});
+
+
+test('implementation contract v2: assertions sont liées par hash et exigées dans le rapport', () => {
+  const plan=planFixtureV2();
+  const blob='e'.repeat(40);
+  const {mission,contract}=renderImplementationMission('V2-TEST',plan,blob);
+  assert.equal(contract.schema,'kodjo.implementation-contract.v3');
+  assert.equal(contract.ui_assertion_count,2);
+  assert.match(mission,/ui_assertion_count=2/);
+  assert.match(mission,/assertion_results/);
+  assert.doesNotThrow(()=>verifyImplementationMission(mission,plan,blob));
+  const altered=mission.replace(/ui_assertion_count=2/,'ui_assertion_count=1');
+  assert.throws(()=>verifyImplementationMission(altered,plan,blob),/IMPLEMENTATION_CONTRACT_DRIFT/);
 });
 
 test('implementation contract: mission liée à un autre plan est refusée', () => {
@@ -113,6 +185,47 @@ test('implementation contract: taxonomie des barrières reste canonique et exéc
   );
 });
 
+
+test('implementation report v2: couvre exactement chaque assertion', () => {
+  const expected=[{criterion_id:'UI-001',assertions:[{assertion_id:'UI-001-A01'},{assertion_id:'UI-001-A02'}]}];
+  const base={criterion_id:'UI-001',implementation_status:'IMPLEMENTED',files_or_symbols:['src/x.tsx'],component_used:'Existing',tests_run:['jest'],proof_status:'PENDING_DEVICE',preserve_status:'PASS',residual_status:'NONE',
+    assertion_results:[
+      {assertion_id:'UI-001-A01',implementation_status:'IMPLEMENTED',evidence:'Contenu livré.'},
+      {assertion_id:'UI-001-A02',implementation_status:'PENDING_DEVICE',evidence:'Géométrie à contrôler sur appareil.'},
+    ]};
+  const report='<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:[base]})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\nKODJO_STOP_STATUS: NONE';
+  assert.equal(inspectReport(report,expected).status,'COMPLETE');
+  const missing={...base,assertion_results:base.assertion_results.slice(0,1)};
+  const bad='<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:[missing]})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\nKODJO_STOP_STATUS: NONE';
+  assert.equal(inspectReport(bad,expected).status,'NON_VERIFIABLE');
+});
+
+test('F-06: a claimed file or check absent from machine observations is NON_VERIFIABLE',()=>{
+  const row={criterion_id:'UI-001',implementation_status:'IMPLEMENTED',files_or_symbols:['src/imaginary.tsx'],
+    component_used:'Existing',tests_run:['jest'],proof_status:'PASS',preserve_status:'PASS',residual_status:'NONE'};
+  const reportText='<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:[row]})+
+    '</KODJO_IMPLEMENTATION_CONFORMANCE>\nKODJO_STOP_STATUS: NONE';
+  const envelope={request_id:'a',source_head:'b',truncated:false,report_text:reportText,
+    original_text_sha256:require('node:crypto').createHash('sha256').update(reportText).digest('hex'),
+    machine_evidence:{modified_files:['src/actual.tsx'],checks:[{check:'typescript',status:'PASS'}],out_of_scope_files:[]}};
+  const body='v2_request_id=a\nbase_head=b\n<KODJO_IMPLEMENTATION_REPORT_JSON>'+JSON.stringify(envelope)+'</KODJO_IMPLEMENTATION_REPORT_JSON>';
+  const result=inspectImplementation(body,['UI-001']);
+  assert.equal(result.status,'NON_VERIFIABLE');
+  assert.ok(result.errors.some(x=>x.includes('DECLARED_FILE_NOT_MODIFIED:src/imaginary.tsx')));
+  assert.ok(result.errors.some(x=>x.includes('DECLARED_CHECK_NOT_RUN:jest')));
+});
+
+test('rapport sans modification et checks non exécutés reste structuré sans fausse preuve',()=>{
+  const row={criterion_id:'UI-001',implementation_status:'IMPLEMENTED',files_or_symbols:[],no_code_change_reason:'Invariant préservé sans mutation.',
+    component_used:'Existing',tests_run:[],tests_not_run:[{check:'jest',reason:'Aucun test requis pour cet invariant.'}],proof_status:'NON_VERIFIABLE',preserve_status:'PASS',residual_status:'NONE'};
+  const reportText='<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:[row]})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\nKODJO_STOP_STATUS: NONE';
+  const envelope={request_id:'a',source_head:'b',truncated:false,report_text:reportText,
+    original_text_sha256:require('node:crypto').createHash('sha256').update(reportText).digest('hex'),
+    machine_evidence:{modified_files:[],checks:[],out_of_scope_files:[]}};
+  const body='v2_request_id=a\nbase_head=b\n<KODJO_IMPLEMENTATION_REPORT_JSON>'+JSON.stringify(envelope)+'</KODJO_IMPLEMENTATION_REPORT_JSON>';
+  assert.equal(inspectImplementation(body,['UI-001']).status,'COMPLETE');
+});
+
 test('implementation contract: aucun nouveau canal Lean Queue n est ajouté', () => {
   const materializer = fs.readFileSync(path.join(root,'scripts','kodjo','materialize-approved-plan-handoff.js'),'utf8');
   const generator = fs.readFileSync(path.join(root,'scripts','kodjo','generate-approved-plan-lean-request.js'),'utf8');
@@ -133,7 +246,7 @@ test('real producer -> mission -> review consumer share normalized matrix hash w
   const { extractTaggedJson } = require('../../scripts/kodjo/lib/plan-impact');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ui-hash-chain-'));
   t.after(() => fs.rmSync(dir, { recursive:true, force:true }));
-  const matrix = extractTaggedJson(planFixture(), 'KODJO_UI_CRITERIA_MATRIX_JSON');
+  const matrix = extractTaggedJson(planFixtureV2(), 'KODJO_UI_CRITERIA_MATRIX_JSON');
   const target = matrix.criteria[0].change_targets[0];
   const impact = { scan_revision:'b'.repeat(40), scope_allow:[target], modified_modules:[{path:target}], rows:[] };
   const draft = '<KODJO_PLAN_IMPACT_JSON>'+JSON.stringify(impact)+'</KODJO_PLAN_IMPACT_JSON>\n'+
@@ -144,7 +257,8 @@ test('real producer -> mission -> review consumer share normalized matrix hash w
   assert.equal(produced.status,0,produced.stderr);
   const contract = JSON.parse(fs.readFileSync(output,'utf8'));
   assert.notEqual(contract.matrix_sha256,sha256(matrix),'fixture must reproduce raw/normalized mismatch');
-  const approved = draft+'<KODJO_UI_PLAN_CONTRACT_JSON>'+JSON.stringify(contract)+'</KODJO_UI_PLAN_CONTRACT_JSON>\n';
+  const approved = draft+'<KODJO_UI_PLAN_CONTRACT_JSON>'+JSON.stringify(contract)+'</KODJO_UI_PLAN_CONTRACT_JSON>\n'+
+    contractTags(extractTaggedJson(draft,'KODJO_UI_CRITERIA_MATRIX_JSON'),[target,...matrix.criteria[0].tests],false);
   fs.writeFileSync(planFile,approved);
   const mission = renderImplementationMission('V2-TEST',approved,'c'.repeat(40));
   assert.equal(mission.contract.ui_matrix_sha256,contract.matrix_sha256);

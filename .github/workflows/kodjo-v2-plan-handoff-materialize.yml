@@ -2,6 +2,14 @@ name: KODJO V2 — Approved Plan Handoff Materialization
 
 on:
   workflow_call:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        required: true
+        type: string
+      review_comment_id:
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -9,7 +17,7 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: kodjo-v2-plan-handoff-materialize-${{ github.event.issue.number }}
+  group: kodjo-v2-plan-handoff-materialize-${{ github.event.issue.number || inputs.issue_number }}
   cancel-in-progress: false
 
 jobs:
@@ -22,13 +30,16 @@ jobs:
       ||
       (github.event.comment.user.login == 'MyUncried' &&
        contains(github.event.comment.body, '[KODJO_V2] MATERIALIZE_PLAN_HANDOFF'))
+      ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
       GH_TOKEN: ${{ github.token }}
-      TRIGGER_BODY: ${{ github.event.comment.body }}
-      ISSUE_NUMBER: ${{ github.event.issue.number }}
-      EVENT_COMMENT_ID: ${{ github.event.comment.id }}
+      TRIGGER_BODY: ${{ github.event.comment.body || '' }}
+      ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
+      EVENT_COMMENT_ID: ${{ github.event.comment.id || '' }}
+      DISPATCH_REVIEW_ID: ${{ inputs.review_comment_id || '' }}
 
     steps:
       - name: Checkout exact main
@@ -43,7 +54,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if printf '%s\n' "$TRIGGER_BODY" | grep -q '^\[KODJO_V2\] PLAN_REVIEW_OUTPUT$'; then
+          if [ -n "$DISPATCH_REVIEW_ID" ]; then
+            REVIEW_ID="$DISPATCH_REVIEW_ID"
+          elif printf '%s\n' "$TRIGGER_BODY" | grep -q '^\[KODJO_V2\] PLAN_REVIEW_OUTPUT$'; then
             REVIEW_ID="$EVENT_COMMENT_ID"
           else
             REVIEW_ID="$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^review_comment_id=//p' | head -n1)"
@@ -137,6 +150,23 @@ jobs:
             echo "prompt_file=$PROMPT_FILE"
             echo "planning_application_head=$PLANNING_APPLICATION_HEAD"
             if [ -n "$SUPERSEDES" ]; then echo "supersedes_plan_blob_oid=$SUPERSEDES"; fi
+            echo 'approval_action=ADD_REACTION_+1'
+            echo 'next_action=ADD_REACTION_THEN_COMMENT'
             echo 'STATUT : USER_APPROVAL_REQUIRED'
+            echo
+            echo 'Action utilisateur requise : ajouter une reaction 👍 sur CE commentaire, puis publier sur cette issue la commande indiquee ci-dessous.'
           } > "${RUNNER_TEMP}/handoff-ready.md"
-          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file "${RUNNER_TEMP}/handoff-ready.md"
+          CREATED="$(gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat "${RUNNER_TEMP}/handoff-ready.md")")"
+          HANDOFF_ID="$(printf '%s' "$CREATED" | jq -r '.id')"
+          HANDOFF_URL="$(printf '%s' "$CREATED" | jq -r '.html_url')"
+          printf '%s' "$HANDOFF_ID" | grep -Eq '^[1-9][0-9]*$'
+          test -n "$HANDOFF_URL"
+          {
+            cat "${RUNNER_TEMP}/handoff-ready.md"
+            echo "approval_url=$HANDOFF_URL"
+            echo "handoff_comment_id=$HANDOFF_ID"
+            echo '[KODJO_V2] VALIDATE_PLAN_HANDOFF'
+            echo "handoff_comment_id=$HANDOFF_ID"
+          } > "${RUNNER_TEMP}/handoff-ready-final.md"
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$HANDOFF_ID" -f body="$(cat "${RUNNER_TEMP}/handoff-ready-final.md")" >/dev/null
+          echo "PLAN_HANDOFF_READY: $HANDOFF_URL"

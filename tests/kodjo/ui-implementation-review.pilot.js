@@ -9,12 +9,24 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const { sha256 } = require('../../scripts/kodjo/lib/plan-impact');
+const {buildRequirementContract,buildTestContract,buildBoundaryContract}=require('../../scripts/kodjo/lib/requirement-contract');
 
 const root = path.resolve(__dirname, '..', '..');
 const verifier = path.join(root, 'scripts', 'kodjo', 'verify-ui-implementation-review.js');
 
 function run(args, cwd) {
-  return spawnSync(process.execPath, [verifier, ...args], { cwd, encoding:'utf8' });
+  const env={...process.env};
+  // Unit fixtures supply exact per-binding test results. Missing evidence is
+  // tested separately, without this positive fixture transport.
+  const body=fs.readFileSync(args[1],'utf8');
+  const m=body.match(/<KODJO_TEST_CONTRACT_JSON>\s*([\s\S]*?)\s*<\/KODJO_TEST_CONTRACT_JSON>/);
+  if(m&&!env.KODJO_TEST_CONTRACT_EVIDENCE_FILE){
+    const bindings=JSON.parse(m[1]).bindings.map(row=>({...row,status:'PASS'}));
+    const evidence=path.join(cwd,'fixture-test-evidence.json');
+    fs.writeFileSync(evidence,JSON.stringify({schema:'kodjo.test-contract-evidence.v1',binding_count:bindings.length,bindings}));
+    env.KODJO_TEST_CONTRACT_EVIDENCE_FILE=evidence;
+  }
+  return spawnSync(process.execPath, [verifier, ...args], { cwd, encoding:'utf8',env });
 }
 function fixture() {
   const matrix = {
@@ -121,8 +133,8 @@ test('implementation review: un défaut fonctionnel impose REVISE', () => {
   value.criteria[0].proof_results.find((p)=>p.proof_type==='FUNCTIONAL_TEST').status='FAIL';
   fs.writeFileSync(plan,fixture()); fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n'); fs.writeFileSync(review,JSON.stringify(value));
   const r=run(['validate',plan,changed,review,out],dir);
-  assert.notEqual(r.status,0);
-  assert.match(r.stderr,/UI_IMPLEMENTATION_REVIEW_VERDICT_INCONSISTENT/);
+  assert.equal(r.status,0,r.stderr);
+  assert.equal(JSON.parse(fs.readFileSync(out,'utf8')).verdict,'REVISE');
 });
 
 test('implementation review: PARTIELLEMENT_CONFORME ou NON_VERIFIABLE ne peut pas être approuvé', () => {
@@ -132,8 +144,8 @@ test('implementation review: PARTIELLEMENT_CONFORME ou NON_VERIFIABLE ne peut pa
   value.criteria[0].implementation_status='PARTIELLEMENT_CONFORME';
   fs.writeFileSync(plan,fixture()); fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n'); fs.writeFileSync(review,JSON.stringify(value));
   const r=run(['validate',plan,changed,review,out],dir);
-  assert.notEqual(r.status,0);
-  assert.match(r.stderr,/UI_IMPLEMENTATION_REVIEW_VERDICT_INCONSISTENT/);
+  assert.equal(r.status,0,r.stderr);
+  assert.equal(JSON.parse(fs.readFileSync(out,'utf8')).verdict,'REVISE');
 });
 
 test('implementation review: refuse une frontière PRESERVE ou FORBIDDEN non démontrée', () => {
@@ -147,6 +159,136 @@ test('implementation review: refuse une frontière PRESERVE ou FORBIDDEN non dé
   assert.match(r.stderr,/UI_IMPLEMENTATION_REVIEW_BOUNDARY_COVERAGE_INCOMPLETE/);
 });
 
+
+function fixtureV2() {
+  const matrix={
+    schema:'kodjo.ui-criteria.v2',
+    criteria:[{
+      criterion_id:'UI-ATOMIC',
+      source:{path:'docs/ui.md',locator:'TREE',requirement:'Arbre conforme.'},
+      risk_types:['FUNCTIONAL','VISUAL','DEVICE'],
+      reuse_search:['src/shared/ui'],
+      component_decision:'EXTEND',
+      selected_component:{path:'src/shared/ui/Tree.tsx',export:'Tree'},
+      decision_justification:'Composant existant.',
+      change_targets:['src/features/example/ExampleScreen.tsx'],
+      tests:['src/features/example/__tests__/ExampleScreen.test.tsx'],
+      proof_required:['FUNCTIONAL_TEST','VISUAL_COMPARE','DEVICE_CHECK'],
+      assertions:[
+        {assertion_id:'UI-ATOMIC-A01',source:{path:'docs/ui.md',locator:'TREE/content'},property_type:'CONTENT',expected:'Options et libellés exacts.',proof_required:['FUNCTIONAL_TEST']},
+        {assertion_id:'UI-ATOMIC-A02',source:{path:'docs/ui.md',locator:'TREE/geometry'},property_type:'GEOMETRY',expected:'Dimensions et rayon conformes.',proof_required:['VISUAL_COMPARE','DEVICE_CHECK']},
+      ],
+    }],
+    preservation:{preserve:[],change:[{target:'Tree',justification:'Correction.'}],forbidden:[]},
+  };
+  const assertionIds=matrix.criteria[0].assertions.map(a=>a.assertion_id).sort();
+  const contract={schema:'kodjo.ui-plan-contract.v1',contract_version:2,protocol_commit:'a'.repeat(40),
+    scan_revision:'b'.repeat(40),ui_applicable:true,ui_paths:['src/features/example/ExampleScreen.tsx'],
+    criterion_count:1,assertion_count:2,assertion_ids_sha256:sha256(assertionIds),matrix_sha256:matrixFingerprint(matrix)};
+  const scope=new Set([...matrix.criteria[0].change_targets,...matrix.criteria[0].tests]);
+  const requirements=buildRequirementContract(matrix,[],scope);
+  const tags=[
+    ['KODJO_PLAN_IMPACT_JSON',{scope_allow:[...scope]}],
+    ['KODJO_NON_UI_REQUIREMENTS_JSON',[]],
+    ['KODJO_REQUIREMENT_CONTRACT_JSON',requirements],
+    ['KODJO_TEST_CONTRACT_JSON',buildTestContract(requirements)],
+    ['KODJO_BOUNDARY_CONTRACT_JSON',buildBoundaryContract(matrix)],
+  ].map(([name,value])=>'<' + name + '>\n'+JSON.stringify(value)+'\n</'+name+'>\n').join('');
+  return '# Plan\n<KODJO_UI_CRITERIA_MATRIX_JSON>\n'+JSON.stringify(matrix)+'\n</KODJO_UI_CRITERIA_MATRIX_JSON>\n'+
+    '<KODJO_UI_PLAN_CONTRACT_JSON>\n'+JSON.stringify(contract)+'\n</KODJO_UI_PLAN_CONTRACT_JSON>\n'+tags;
+}
+function validAtomicReview() {
+  return {
+    schema:'kodjo.ui-implementation-review.v1',verdict:'APPROVE',device_gate_required:true,
+    criteria:[{
+      criterion_id:'UI-ATOMIC',implementation_status:'NON_VERIFIABLE',preserve_status:'PASS',evidence:'Deux assertions évaluées séparément.',
+      proof_results:[
+        {proof_type:'FUNCTIONAL_TEST',status:'PASS',evidence:'Test contenu PASS.'},
+        {proof_type:'VISUAL_COMPARE',status:'PENDING_DEVICE',evidence:'Comparaison device requise.'},
+        {proof_type:'DEVICE_CHECK',status:'PENDING_DEVICE',evidence:'Contrôle appareil requis.'},
+      ],
+      assertion_results:[
+        {assertion_id:'UI-ATOMIC-A01',status:'CONFORME',evidence:'Contenu vérifié.',proof_results:[
+          {proof_type:'FUNCTIONAL_TEST',status:'PASS',evidence:'Test contenu PASS.'},
+        ]},
+        {assertion_id:'UI-ATOMIC-A02',status:'PENDING_DEVICE',evidence:'Géométrie non certifiable automatiquement.',proof_results:[
+          {proof_type:'VISUAL_COMPARE',status:'PENDING_DEVICE',evidence:'Comparaison device requise.'},
+          {proof_type:'DEVICE_CHECK',status:'PENDING_DEVICE',evidence:'Contrôle appareil requis.'},
+        ]},
+      ],
+    }],
+    boundary_results:[],
+  };
+}
+
+test('IA-007: a contractual plan cannot receive FUNCTIONAL_TEST PASS with no exact evidence',()=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-proof-missing-'));
+ try{
+  const plan=path.join(dir,'plan.md'),changed=path.join(dir,'changed.txt'),review=path.join(dir,'review.json'),out=path.join(dir,'out.json');
+  fs.writeFileSync(plan,fixtureV2());fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx');fs.writeFileSync(review,JSON.stringify(validAtomicReview()));
+  const env={...process.env};delete env.KODJO_TEST_CONTRACT_EVIDENCE_FILE;
+  const r=spawnSync(process.execPath,[verifier,'validate',plan,changed,review,out],{cwd:dir,encoding:'utf8',env});
+  assert.notEqual(r.status,0);assert.match(r.stderr,/MACHINE_PROOF_MISMATCH/);
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});
+test('atomic review v2: prépare les assertions et dérive le statut du critère',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-atomic-review-'));
+  const plan=path.join(dir,'plan.md'),changed=path.join(dir,'changed.txt'),input=path.join(dir,'input.json'),review=path.join(dir,'review.json'),out=path.join(dir,'out.json');
+  fs.writeFileSync(plan,fixtureV2());fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n');
+  let r=run(['prepare',plan,changed,input],dir);assert.equal(r.status,0,r.stderr);
+  const prepared=JSON.parse(fs.readFileSync(input,'utf8'));
+  assert.equal(prepared.assertion_mode,true);assert.equal(prepared.assertion_count,2);
+  fs.writeFileSync(review,JSON.stringify(validAtomicReview()));
+  r=run(['validate',plan,changed,review,out],dir);assert.equal(r.status,0,r.stderr);
+});
+test('semantic failure remains REVISE even when the functional proof passes',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-semantic-review-'));
+  const plan=path.join(dir,'plan.md'),changed=path.join(dir,'changed.txt'),review=path.join(dir,'review.json'),out=path.join(dir,'out.json');
+  fs.writeFileSync(plan,fixtureV2());fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n');
+  const value=validAtomicReview();
+  value.criteria[0].assertion_results[0].status='NON_CONFORME';
+  value.criteria[0].assertion_results[0].evidence='Le comportement requis manque malgré le test vert.';
+  value.criteria[0].implementation_status='NON_CONFORME';
+  fs.writeFileSync(review,JSON.stringify(value));
+  const result=run(['validate',plan,changed,review,out],dir);
+  assert.equal(result.status,0,result.stderr);
+  assert.equal(JSON.parse(fs.readFileSync(out,'utf8')).verdict,'REVISE');
+});
+test('F-08: EXTEND without a change to the selected component cannot be certified',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-component-proof-'));
+  const plan=path.join(dir,'plan.md'),changed=path.join(dir,'changed.txt'),input=path.join(dir,'input.json');
+  fs.mkdirSync(path.join(dir,'src/shared/ui'),{recursive:true});
+  fs.writeFileSync(path.join(dir,'src/shared/ui/Tree.tsx'),'export const Tree = () => null;');
+  fs.writeFileSync(plan,fixtureV2());fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n');
+  const r=spawnSync(process.execPath,[verifier,'prepare',plan,changed,input],{cwd:dir,encoding:'utf8',env:{...process.env,KODJO_REQUIRE_COMPONENT_PROOF:'1'}});
+  assert.equal(r.status,0,r.stderr);
+  assert.deepEqual(JSON.parse(fs.readFileSync(input,'utf8')).criteria[0].component_evidence,
+    {status:'FAIL',reason:'SELECTED_COMPONENT_NOT_CHANGED'});
+  const review=path.join(dir,'review.json'),output=path.join(dir,'review-output.json');
+  fs.writeFileSync(review,JSON.stringify(validAtomicReview()));
+  assert.equal(run(['prepare',plan,changed,input],dir).status,0);
+  const baseline=spawnSync(process.execPath,[verifier,'validate',plan,changed,review,output],{cwd:dir,encoding:'utf8',env:{...process.env,KODJO_REQUIRE_COMPONENT_PROOF:'0',KODJO_TEST_CONTRACT_EVIDENCE_FILE:path.join(dir,'fixture-test-evidence.json')}});
+  assert.equal(baseline.status,0,baseline.stderr);assert.equal(JSON.parse(fs.readFileSync(output)).verdict,'APPROVE');
+  const replay=spawnSync(process.execPath,[verifier,'validate',plan,changed,review,output],{cwd:dir,encoding:'utf8',env:{...process.env,KODJO_REQUIRE_COMPONENT_PROOF:'1',KODJO_TEST_CONTRACT_EVIDENCE_FILE:path.join(dir,'fixture-test-evidence.json')}});
+  assert.equal(replay.status,0,replay.stderr);assert.equal(JSON.parse(fs.readFileSync(output)).verdict,'REVISE');
+});
+test('atomic review v2: refuse un verdict global plus favorable que ses assertions',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-atomic-review-'));
+  const plan=path.join(dir,'plan.md'),changed=path.join(dir,'changed.txt'),review=path.join(dir,'review.json'),out=path.join(dir,'out.json');
+  fs.writeFileSync(plan,fixtureV2());fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n');
+  const value=validAtomicReview();value.criteria[0].implementation_status='CONFORME';
+  fs.writeFileSync(review,JSON.stringify(value));
+  const r=run(['validate',plan,changed,review,out],dir);assert.notEqual(r.status,0);assert.match(r.stderr,/CRITERION_DERIVATION_MISMATCH/);
+});
+test('atomic review v2: refuse omission ou fusion d assertion',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-atomic-review-'));
+  const plan=path.join(dir,'plan.md'),changed=path.join(dir,'changed.txt'),review=path.join(dir,'review.json'),out=path.join(dir,'out.json');
+  fs.writeFileSync(plan,fixtureV2());fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n');
+  const value=validAtomicReview();value.criteria[0].assertion_results.pop();
+  fs.writeFileSync(review,JSON.stringify(value));
+  const r=run(['validate',plan,changed,review,out],dir);assert.notEqual(r.status,0);assert.match(r.stderr,/ASSERTION_COVERAGE_INCOMPLETE/);
+});
+
 test('workflow: V2 ajoute le contrat de revue sans modifier le transport ni le chemin legacy', () => {
   const wf=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-implementation-review.yml'),'utf8');
   assert.match(wf,/Prepare criterion-complete UI review input/);
@@ -157,6 +299,8 @@ test('workflow: V2 ajoute le contrat de revue sans modifier le transport ni le c
   assert.match(wf,/review_scope=AFFECTED or INHERITED/);
   assert.match(wf,/KODJO_UI_IMPLEMENTATION_REVIEW_JSON/);
   assert.match(wf,/device_gate_required/);
+  assert.match(wf,/assertion_mode/);
+  assert.match(wf,/assertion_results/);
   assert.match(wf,/legacy path unchanged/);
   assert.match(wf,/v2_operation_kind=LEGACY/);
   assert.match(wf,/v2_operation_kind=\$\(jq -r '\.operation_kind \/\/ "IMPLEMENT"'/);
@@ -263,7 +407,7 @@ test('delta review: le diff immédiat affecte uniquement ses critères et hérit
     const inherited=value.criteria.find(c=>c.criterion_id==='UI-002');
     assert.equal(inherited.review_scope,'INHERITED');
     assert.deepEqual(inherited.affected_paths,[]);
-    assert.equal(inherited.inherited_result.implementation_status,'CONFORME');
+    assert.equal(inherited.inherited_result.implementation_status,'NON_VERIFIABLE');
     assert.equal(inherited.inherited_result.proof_results.find(p=>p.proof_type==='ACCESSIBILITY_CHECK').status,'PENDING_DEVICE');
   });
 });
@@ -335,10 +479,11 @@ function nonUiFixture(action) {
     fs.writeFileSync(changed,'function.ts\n');
     const row={criterion_id:'author-label-empty',implementation_status:'DONE',files_or_symbols:['function.ts'],
       component_used:'N/A',tests_run:['jest'],proof_status:'PASS',preserve_status:'UNCHANGED',residual_status:'NONE'};
-    function writeReport(rows=[row],override={}) {
+    function writeReport(rows=[],override={}) {
       const report_text='<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:rows})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\nKODJO_STOP_STATUS: NONE';
       const envelope={request_id:'request',source_head:'a'.repeat(40),truncated:false,report_text,
-        original_text_sha256:crypto.createHash('sha256').update(report_text).digest('hex'),...override};
+        original_text_sha256:crypto.createHash('sha256').update(report_text).digest('hex'),
+         machine_evidence:{modified_files:['function.ts'],checks:[],out_of_scope_files:[]},...override};
       fs.writeFileSync(evidence,'base_head='+ 'a'.repeat(40)+'\nv2_request_id=request\nv2_protocol_head='+ 'b'.repeat(40)+'\n<KODJO_IMPLEMENTATION_REPORT_JSON>'+JSON.stringify(envelope)+'</KODJO_IMPLEMENTATION_REPORT_JSON>');
     }
     writeReport();
@@ -348,24 +493,26 @@ function nonUiFixture(action) {
           {plan_requirement:'Only function.ts may change',status:'CONFORME',evidence:'Exact changed files: function.ts.'}]}};
     const prepare=()=>{const r=run(['prepare',plan,changed,input,evidence],dir);assert.equal(r.status,0,r.stderr);return JSON.parse(fs.readFileSync(input,'utf8'));};
     const validate=()=>{fs.writeFileSync(reviewFile,JSON.stringify(review));return run(['validate',plan,changed,reviewFile,output,evidence],dir);};
-    action({row,writeReport,review,prepare,validate});
+    action({row,writeReport,review,prepare,validate,output});
   } finally {fs.rmSync(dir,{recursive:true,force:true});}
 }
 
 test('non-UI report labels do not masquerade as UI IDs; independent full-plan assessment is mandatory',()=>{
-  nonUiFixture(({prepare,review,validate})=>{
+  nonUiFixture(({row,writeReport,prepare,review,validate,output})=>{
+    writeReport([row]);
     const input=prepare();
-    assert.equal(input.implementation_report.status,'COMPLETE');
+    assert.equal(input.implementation_report.status,'NON_VERIFIABLE');
     assert.equal(input.criterion_count,0);
     assert.deepEqual(input.implementation_report.criterion_ids,['author-label-empty']);
     let r=validate();assert.equal(r.status,0,r.stderr);
+    assert.equal(JSON.parse(fs.readFileSync(output,'utf8')).verdict,'REVISE');
     delete review.non_ui_plan_assessment;
     r=validate();assert.notEqual(r.status,0);assert.match(r.stderr,/NON_UI_PLAN_ASSESSMENT_REQUIRED/);
   });
 });
 
 test('non-UI integrity, structure, stop and duplicate checks remain blocking',()=>{
-  nonUiFixture(({row,writeReport,prepare,review,validate})=>{
+  nonUiFixture(({row,writeReport,prepare,review,validate,output})=>{
     for(const [rows,override] of [
       [[row],{truncated:true}], [[row],{original_text_sha256:'0'.repeat(64)}],
       [[row],{request_id:'wrong'}], [[row,row],{}], [[{...row,tests_run:[]}],{}],
@@ -373,23 +520,23 @@ test('non-UI integrity, structure, stop and duplicate checks remain blocking',()
     ]){
       writeReport(rows,override);
       assert.equal(prepare().implementation_report.status,'NON_VERIFIABLE');
-      review.verdict='APPROVE';assert.notEqual(validate().status,0);
-      review.verdict='REVISE';const r=validate();assert.equal(r.status,0,r.stderr);
+      review.verdict='APPROVE';const r=validate();assert.equal(r.status,0,r.stderr);
+      assert.equal(JSON.parse(fs.readFileSync(output,'utf8')).verdict,'REVISE');
     }
   });
 });
 
 test('non-UI semantic defects and unknown evidence cannot be approved with empty UI criteria',()=>{
-  nonUiFixture(({review,validate})=>{
+  nonUiFixture(({review,validate,output})=>{
     for(const status of ['NON_CONFORME','NON_VERIFIABLE']) {
       review.non_ui_plan_assessment.requirements[0].status=status;
-      review.verdict='APPROVE';assert.notEqual(validate().status,0);
-      review.verdict='REVISE';const r=validate();assert.equal(r.status,0,r.stderr);
+      review.verdict='APPROVE';const r=validate();assert.equal(r.status,0,r.stderr);
+      assert.equal(JSON.parse(fs.readFileSync(output,'utf8')).verdict,'REVISE');
     }
     review.non_ui_plan_assessment.requirements[0].status='CONFORME';
     review.non_ui_plan_assessment.status='NON_VERIFIABLE';
-    review.verdict='APPROVE';assert.notEqual(validate().status,0);
-    review.verdict='REVISE';assert.equal(validate().status,0);
+    review.verdict='REVISE';const r=validate();assert.equal(r.status,0,r.stderr);
+    assert.equal(JSON.parse(fs.readFileSync(output,'utf8')).verdict,'REVISE');
   });
 });
 

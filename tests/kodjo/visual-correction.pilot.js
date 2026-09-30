@@ -123,6 +123,11 @@ test('le checkpoint GitHub est relu et lié au commentaire certifié exact', () 
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-visual-checkpoint-'));
   const queue = visualQueue();
   const file = path.join(dir, 'queue.json');
+  const {spawnSync}=require('node:child_process');
+  assert.equal(spawnSync('git',['init',dir],{encoding:'utf8'}).status,0);
+  const plan='<KODJO_PLAN_IMPACT_JSON>\n'+JSON.stringify({scope_allow:queue.scope_allow})+'\n</KODJO_PLAN_IMPACT_JSON>';
+  const blob=spawnSync('git',['hash-object','-w','--stdin'],{cwd:dir,input:plan,encoding:'utf8'});
+  assert.equal(blob.status,0,blob.stderr);queue.authorized_plan.plan_blob_oid=blob.stdout.trim();
   fs.writeFileSync(file, JSON.stringify(queue), 'utf8');
   const body = [
     '[KODJO_V2] APPLICATION_CHECKPOINT', '',
@@ -131,6 +136,9 @@ test('le checkpoint GitHub est relu et lié au commentaire certifié exact', () 
     'checkpoint_ref=' + queue.delivery_checkpoint.checkpoint_ref,
     'application_pr=142',
     'application_head=' + applicationHead,
+    'plan_blob_oid=' + queue.authorized_plan.plan_blob_oid,
+    'review_blob_oid=' + queue.independent_review.review_blob_oid,
+    'gate_comment_id=5678273155',
     'protocol_head=' + protocolHead,
     'package_run_id=34948992572',
     'package_artifact_id=10389171562',
@@ -142,11 +150,25 @@ test('le checkpoint GitHub est relu et lié au commentaire certifié exact', () 
     issue_url: 'https://api.github.com/repos/MyUncried/Application-Routine/issues/52',
     body,
   };
-  assert.equal(V.verify(file, { cwd: dir, repository: 'MyUncried/Application-Routine', comment }).status, 'CERTIFIED');
+  const verified=V.verify(file, { cwd: dir, repository: 'MyUncried/Application-Routine', comment, transitionVerifier:()=>({status:'PASS',protected_blobs:[{source_oid:'f'.repeat(40),execution_oid:'f'.repeat(40)}]}) });
+  assert.equal(verified.status, 'CERTIFIED');
+  assert.equal(verified.review_policy.plan_revision_forbidden,true);
+  assert.equal(verified.review_policy.review_required,false);
+  assert.equal(verified.contract_status, 'CONTRACT_UNCHANGED');
+  const widened=structuredClone(queue);widened.scope_allow.push('src/outside.ts');fs.writeFileSync(file,JSON.stringify(widened));
+  assert.throws(()=>V.verify(file,{cwd:dir,repository:'MyUncried/Application-Routine',comment,transitionVerifier:()=>({status:'PASS',protected_blobs:[{source_oid:'f'.repeat(40),execution_oid:'f'.repeat(40)}]})}),/VISUAL_CORRECTION_SCOPE_CHANGED/);
+  fs.writeFileSync(file,JSON.stringify(queue));
+
+  assert.throws(()=>V.verify(file,{cwd:dir,repository:'MyUncried/Application-Routine',comment,transitionVerifier:()=>({status:'PASS'})}),/VISUAL_CORRECTION_TRANSITION_PROOF_REQUIRED/);
   assert.throws(() => V.verify(file, {
-    cwd: dir, repository: 'MyUncried/Application-Routine',
+    cwd: dir, repository: 'MyUncried/Application-Routine', transitionVerifier:()=>({status:'PASS',protected_blobs:[{source_oid:'f'.repeat(40),execution_oid:'f'.repeat(40)}]}),
     comment: { ...comment, body: body.replace('delivery_head=' + applicationHead, 'delivery_head=' + '7'.repeat(40)) },
   }), /KODJO_QUEUE_DELIVERY_CHECKPOINT_FIELD_MISMATCH: delivery_head/);
+
+  assert.throws(() => V.verify(file, {
+    cwd: dir, repository: 'MyUncried/Application-Routine', comment,
+    transitionVerifier:()=>{ throw new Error('PLAN_REVIEW_PRODUCT_INPUT_CHANGED'); },
+  }), /VISUAL_CORRECTION_CONTRACT_CHANGED/);
 });
 
 test('la reprise visuelle matérialise un recovery vide sur le HEAD applicatif au lieu de rejouer le paquet historique', () => {

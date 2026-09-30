@@ -1,5 +1,5 @@
 name: KODJO V2 — Slice Plan Revision
-run-name: KODJO V2 / PLAN / ${{ github.event.comment.id || inputs.targeted_validation_comment_id }}
+run-name: KODJO V2 / PLAN / ${{ github.event.comment.id || inputs.review_comment_id || inputs.targeted_validation_comment_id }}
 
 on:
   workflow_call:
@@ -11,13 +11,18 @@ on:
         type: string
       targeted_validation_comment_id:
         description: Immutable targeted checkpoint to replay before full requalification
-        required: true
+        required: false
+        type: string
+      review_comment_id:
+        description: PLAN_REVIEW_OUTPUT REVISE that causally triggers bounded replanning
+        required: false
         type: string
 
 permissions:
   contents: read
   issues: write
   pull-requests: read
+  actions: write
 
 concurrency:
   group: kodjo-openai-planning
@@ -30,7 +35,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      TRIGGER_BODY: ${{ github.event.comment.body }}
+      TRIGGER_BODY: ${{ github.event.comment.body || '' }}
       ISSUE_NUMBER: ${{ github.event.issue.number || inputs.issue_number }}
     steps:
       - name: Checkout protocol
@@ -40,8 +45,44 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Replay targeted validation before full requalification
+      - name: Validate dispatched planning cause
         if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        env:
+          TARGETED_CHECKPOINT: ${{ inputs.targeted_validation_comment_id }}
+          REVIEW_COMMENT_ID: ${{ inputs.review_comment_id }}
+        run: |
+          set -euo pipefail
+          targeted=0
+          review=0
+          if [ -n "$TARGETED_CHECKPOINT" ]; then targeted=1; fi
+          if [ -n "$REVIEW_COMMENT_ID" ]; then review=1; fi
+          test $((targeted + review)) -eq 1
+
+      - name: Replay reviewed-plan revision trigger
+        if: github.event_name == 'workflow_dispatch' && inputs.review_comment_id != ''
+        shell: bash
+        env:
+          REVIEW_COMMENT_ID: ${{ inputs.review_comment_id }}
+        run: |
+          set -euo pipefail
+          REVIEW_JSON="$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$REVIEW_COMMENT_ID")"
+          printf '%s' "$REVIEW_JSON" | jq -e --arg issue "$ISSUE_NUMBER" '
+            .user.login == "github-actions[bot]" and
+            (.issue_url | endswith("/issues/" + $issue)) and
+            (.body | type == "string") and
+            (.body | contains("[KODJO_V2] PLAN_REVIEW_OUTPUT")) and
+            (.body | contains("verdict=REVISE")) and
+            (.body | contains("STATUT : PLAN_REVISION_REQUIRED"))
+          ' >/dev/null
+          {
+            echo 'TRIGGER_BODY<<KODJO_REVIEW_REVISION_EVENT'
+            printf '%s\n' "$REVIEW_JSON" | jq -r '.body'
+            echo KODJO_REVIEW_REVISION_EVENT
+          } >> "$GITHUB_ENV"
+
+      - name: Replay targeted validation before full requalification
+        if: github.event_name == 'workflow_dispatch' && inputs.targeted_validation_comment_id != ''
         shell: bash
         env:
           TARGETED_CHECKPOINT: ${{ inputs.targeted_validation_comment_id }}
@@ -118,7 +159,7 @@ jobs:
           REVIEW_PATH: ${{ steps.gate.outputs.review_path }}
           MISSION_PATH: ${{ steps.gate.outputs.mission_path }}
           APPLICATION_PR: ${{ steps.gate.outputs.application_pr }}
-          COMMAND_COMMENT_ID: ${{ github.event.comment.id }}
+          COMMAND_COMMENT_ID: ${{ github.event.comment.id || inputs.review_comment_id || inputs.targeted_validation_comment_id }}
         run: |
           set -euo pipefail
           rm -rf /tmp/kodjo-v2-plan
@@ -158,6 +199,7 @@ jobs:
           APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
         run: |
           set -euo pipefail
+          exec 2> >(tee -a /tmp/kodjo-v2-plan/planning-stderr.log >&2)
           test -n "${OPENAI_API_KEY:-}"
           cat > /tmp/kodjo-v2-plan/draft-prompt.txt <<EOF
           You are the KODJO V2 plan builder for $SLICE_ID. Revise the existing plan against immutable product HEAD $SOURCE_HEAD, protocol execution HEAD $PROTOCOL_EXECUTION_HEAD and exact application HEAD $APPLICATION_HEAD. The source-to-execution transition is proven protocol-only. This phase is READ-ONLY: never modify repository files and never implement.
@@ -168,7 +210,7 @@ jobs:
           [{"path":"relative/posix/path.ts","change":"MODIFY|CREATE"}]
           </KODJO_MODIFIED_MODULES_JSON>
           Use repository-relative POSIX paths only. This is a draft pending the deterministic direct-import scan.
-          Preserve or rebuild exactly one <KODJO_UI_CRITERIA_MATRIX_JSON> block with schema kodjo.ui-criteria.v1. UI requirements must remain atomic and traceable to their current normative source; search existing components before proposing CREATE and explicitly classify PRESERVE / CHANGE / FORBIDDEN. The final closure prompt will revalidate this block.
+          Produce the UI criteria through the current atomic contract kodjo.ui-criteria.v3. UI requirements must remain atomic and traceable to their current normative source; search existing components before proposing CREATE and explicitly classify PRESERVE / CHANGE / FORBIDDEN. Do not invent criterion_id or assertion_id: the workflow derives stable identities mechanically. The final closure prompt will revalidate this contract.
           EOF
           if [ -f "$RUNNER_TEMP/requalification-trigger.txt.proof.json" ]; then
             echo "FULL SLICE REQUALIFICATION REQUIRED. Audit every normative requirement; the targeted proof is not global approval." >> /tmp/kodjo-v2-plan/draft-prompt.txt
@@ -188,22 +230,24 @@ jobs:
           APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
         run: |
           set -euo pipefail
+          exec 2> >(tee -a /tmp/kodjo-v2-plan/planning-stderr.log >&2)
           node scripts/kodjo/scan-plan-impact.js extract-modules /tmp/kodjo-v2-plan/plan-draft.md /tmp/kodjo-v2-plan/modified-modules.json
+          node scripts/kodjo/validate-plan-module-paths.js "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/modified-modules.json /tmp/kodjo-v2-plan/application
           rm -f /tmp/kodjo-v2-plan/technical-plan.md
           for iteration in 1 2 3 4; do
             (cd /tmp/kodjo-v2-plan/application && node "$GITHUB_WORKSPACE/scripts/kodjo/scan-plan-impact.js" scan "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/modified-modules.json /tmp/kodjo-v2-plan/direct-import-scan.json)
             node -e "const fs=require('node:fs');const {sha256}=require('./scripts/kodjo/lib/plan-impact');process.stdout.write(sha256(JSON.parse(fs.readFileSync(process.argv[1],'utf8')))+'\n')" /tmp/kodjo-v2-plan/direct-import-scan.json > /tmp/kodjo-v2-plan/direct-import-scan.sha256
             cat > /tmp/kodjo-v2-plan/final-prompt.txt <<'EOF'
-          Produce the complete final KODJO V2 technical plan from the supplied draft and deterministic scan. Never reproduce the immutable evidence fields in prose JSON.
-          Include exactly one decision block containing one entry for every scan candidate, and no entry for modified_modules:
-          <KODJO_PLAN_DECISIONS_JSON>
-          [{"path":"copy the exact candidate path","classification":"MODIFY|TEST_MUST_ADAPT|CONSUMER_UNAFFECTED|TEST_UNAFFECTED|REQUIRES_CLARIFICATION","justification":"non-empty positive evidence"}]
-          </KODJO_PLAN_DECISIONS_JSON>
-          A test is TEST_MUST_ADAPT or TEST_UNAFFECTED. A production consumer is MODIFY or CONSUMER_UNAFFECTED. If a consumer is MODIFY, the workflow will promote it to modified_modules and replay the scan; do not add candidate_kind, triggered_by, risk_score, hashes, scope_allow or other fields to the decision block. The workflow, not the model, assembles those facts and derives scope_allow. Every new test required by the plan must be named in the Tests section with its exact repository-relative path. If the prose contains a scope_allow section, it must enumerate exactly the complete machine write scope.
-          Preserve all validated product decisions and answer the latest independent review completely. Keep full Jest, TypeScript and lint.
-          Include exactly one <KODJO_UI_CRITERIA_MATRIX_JSON> JSON block with schema kodjo.ui-criteria.v1. For every UI-adjacent normative requirement in scope, provide an atomic criterion with criterion_id, source {path, locator, requirement}, risk_types, reuse_search, component_decision REUSE|EXTEND|CREATE, selected_component, decision_justification, change_targets, tests and proof_required. Provide preservation {preserve:[], change:[], forbidden:[]}. Do not silently drop prior criteria during revision. A CREATE decision must follow an explicit search for existing components/patterns. For a genuinely non-UI plan, emit criteria:[] and empty preservation arrays.
-          Keep all narrative sections in French. Preserve the supplied current command, including documentary corrections, through final closure.
-          End with PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW only when no clarification remains; otherwise end with PLAN_STATUS: CLARIFICATION_REQUIRED.
+          Produce the complete final KODJO V2 technical plan from the supplied draft, structured review findings and deterministic direct-import scan.
+          The scan path set is authoritative. Classify each supplied candidate semantically; never invent, rename or freely recopy a candidate path.
+          If a direct consumer is classified MODIFY, the workflow may promote it into modified_modules and replay the bounded closure. Do not infer paths outside the current scan.
+          Preserve every validated requirement, criterion, assertion, file choice and test binding that is not targeted by a blocking REVIEW_FINDING or a concretely demonstrated dependency expansion.
+          Every non-UI functional/data/technical/migration/preservation requirement must be represented in non_ui_requirements, with exact source locator, in-scope targets, tests, proof_required and clarification state.
+          Every unresolved ambiguity must be represented in clarifications. Do not hide an ambiguity in prose.
+          The UI matrix must use the current atomic contract. Each independently falsifiable UI invariant gets its own assertion sourced from the normative material. Do not invent geometry, style or interaction details absent from Figma/tokens/decisions.
+          Every test obligation must be bound to an exact repository path. Every new test must use CREATE and an allowed repository location.
+          The workflow derives scope_allow, stable requirement IDs, requirement/test/boundary contracts and final plan status mechanically.
+          Keep narrative sections in French and do not emit KODJO machine tags yourself.
           EOF
             cat /tmp/kodjo-v2-plan/current-command.txt >> /tmp/kodjo-v2-plan/final-prompt.txt
             printf '\n===== DRAFT %s — CLOSURE ITERATION %s =====\n' "$SLICE_ID" "$iteration" >> /tmp/kodjo-v2-plan/final-prompt.txt
@@ -212,10 +256,10 @@ jobs:
             cat /tmp/kodjo-v2-plan/direct-import-scan.json >> /tmp/kodjo-v2-plan/final-prompt.txt
             printf '\nSCAN_SHA256=' >> /tmp/kodjo-v2-plan/final-prompt.txt
             cat /tmp/kodjo-v2-plan/direct-import-scan.sha256 >> /tmp/kodjo-v2-plan/final-prompt.txt
-            node scripts/kodjo/generate-ui-plan-contract.js request final /tmp/kodjo-v2-plan/final-prompt.txt "/tmp/kodjo-v2-plan/final-request-$iteration.json"
+            node scripts/kodjo/generate-ui-plan-contract.js request final /tmp/kodjo-v2-plan/final-prompt.txt "/tmp/kodjo-v2-plan/final-request-$iteration.json" /tmp/kodjo-v2-plan/direct-import-scan.json
             node scripts/kodjo/openai-plan-request.js "/tmp/kodjo-v2-plan/final-request-$iteration.json" "/tmp/kodjo-v2-plan/final-response-$iteration.json" "/tmp/kodjo-v2-plan/final-api-evidence-$iteration.json" /tmp/kodjo-v2-plan/api-pacing.json
             test "$(jq -r '.status // "missing"' "/tmp/kodjo-v2-plan/final-response-$iteration.json")" = completed
-            node scripts/kodjo/generate-ui-plan-contract.js decode final "/tmp/kodjo-v2-plan/final-response-$iteration.json" /tmp/kodjo-v2-plan/technical-plan-with-decisions.md /tmp/kodjo-v2-plan/direct-import-scan.json
+            node scripts/kodjo/generate-ui-plan-contract.js decode final "/tmp/kodjo-v2-plan/final-response-$iteration.json" /tmp/kodjo-v2-plan/technical-plan-with-decisions.md /tmp/kodjo-v2-plan/direct-import-scan.json /tmp/kodjo-v2-plan/application
             node scripts/kodjo/assemble-plan-impact.js close /tmp/kodjo-v2-plan/technical-plan-with-decisions.md /tmp/kodjo-v2-plan/direct-import-scan.json /tmp/kodjo-v2-plan/plan-impact-closure.json
             if jq -e '.closed == true' /tmp/kodjo-v2-plan/plan-impact-closure.json >/dev/null; then
               node scripts/kodjo/assemble-plan-impact.js assemble /tmp/kodjo-v2-plan/technical-plan-with-decisions.md /tmp/kodjo-v2-plan/direct-import-scan.json /tmp/kodjo-v2-plan/technical-plan.md
@@ -228,16 +272,28 @@ jobs:
             fi
           done
           test -f /tmp/kodjo-v2-plan/technical-plan.md
+          if test -f /tmp/kodjo-v2-plan/base-plan-for-revision.md; then
+            node scripts/kodjo/verify-bounded-plan-revision.js /tmp/kodjo-v2-plan/base-plan-for-revision.md /tmp/kodjo-v2-plan/base-review-for-revision.md /tmp/kodjo-v2-plan/technical-plan.md /tmp/kodjo-v2-plan/plan-revision-status.json
+            revision_status=$(jq -er '.status' /tmp/kodjo-v2-plan/plan-revision-status.json)
+            case "$revision_status" in
+              BOUNDED|APPROVED_BASE_NEW_CYCLE) ;;
+              LEGACY_UNBOUNDED) echo 'Historical plan: full independent revalidation required' >> "$GITHUB_STEP_SUMMARY" ;;
+              *) echo 'PLAN_REVISION_STATUS_INVALID' >&2; exit 1 ;;
+            esac
+            printf "\n<KODJO_PLAN_REVISION_STATUS_JSON>\n" >> /tmp/kodjo-v2-plan/technical-plan.md
+            cat /tmp/kodjo-v2-plan/plan-revision-status.json >> /tmp/kodjo-v2-plan/technical-plan.md
+            printf "</KODJO_PLAN_REVISION_STATUS_JSON>\n" >> /tmp/kodjo-v2-plan/technical-plan.md
+          fi
           node scripts/kodjo/verify-ui-plan-criteria.js /tmp/kodjo-v2-plan/technical-plan.md "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/application /tmp/kodjo-v2-plan/ui-plan-contract.json
           printf "\n<KODJO_UI_PLAN_CONTRACT_JSON>\n" >> /tmp/kodjo-v2-plan/technical-plan.md
           cat /tmp/kodjo-v2-plan/ui-plan-contract.json >> /tmp/kodjo-v2-plan/technical-plan.md
           printf "</KODJO_UI_PLAN_CONTRACT_JSON>\n" >> /tmp/kodjo-v2-plan/technical-plan.md
-          node scripts/kodjo/verify-plan-contract-consistency.js /tmp/kodjo-v2-plan/technical-plan.md "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/application /tmp/kodjo-v2-plan/plan-contract.json
+          KODJO_REQUIRE_NON_UI_COVERAGE=1 node scripts/kodjo/verify-plan-contract-consistency.js /tmp/kodjo-v2-plan/technical-plan.md "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/application /tmp/kodjo-v2-plan/plan-contract.json
           printf "\n<KODJO_PLAN_CONTRACT_JSON>\n" >> /tmp/kodjo-v2-plan/technical-plan.md
           cat /tmp/kodjo-v2-plan/plan-contract.json >> /tmp/kodjo-v2-plan/technical-plan.md
           printf "</KODJO_PLAN_CONTRACT_JSON>\n" >> /tmp/kodjo-v2-plan/technical-plan.md
           (cd /tmp/kodjo-v2-plan/application && node "$GITHUB_WORKSPACE/scripts/kodjo/verify-plan-impact.js" /tmp/kodjo-v2-plan/technical-plan.md "$APPLICATION_HEAD" /tmp/kodjo-v2-plan/plan-impact-replay.json)
-          grep -Fxq 'PLAN_STATUS: READY_FOR_INDEPENDENT_REVIEW' /tmp/kodjo-v2-plan/technical-plan.md
+          grep -Eq '^PLAN_STATUS: (READY_FOR_INDEPENDENT_REVIEW|CLARIFICATION_REQUIRED)$' /tmp/kodjo-v2-plan/technical-plan.md
           test -z "$(git status --porcelain --untracked-files=all)"
 
       - name: Publish candidate V2 plan
@@ -253,6 +309,8 @@ jobs:
           REVIEW_OID: ${{ steps.gate.outputs.review_oid }}
         run: |
           set -euo pipefail
+          STATUS='PLAN_READY_FOR_INDEPENDENT_REVIEW'
+          if grep -q '^PLAN_STATUS: CLARIFICATION_REQUIRED$' /tmp/kodjo-v2-plan/technical-plan.md; then STATUS='CLARIFICATION_REQUIRED'; fi
           {
             echo '[KODJO_V2] PLAN_OUTPUT'
             echo "slice_id=$SLICE_ID"
@@ -266,8 +324,8 @@ jobs:
             echo "planning_context_sha256=$(jq -r .sha256 /tmp/kodjo-v2-plan/context-manifest.json)"
             jq -r '.selection[] | select(.role == "BASE_PLAN" or .role == "INDEPENDENT_REVIEW" or .role == "RESUMED_COMMAND") | (.role | ascii_downcase) + "_comment_id=" + .id' /tmp/kodjo-v2-plan/context-manifest.json
             echo 'planning_contract=kodjo.plan-impact.v1'
-            echo 'ui_planning_contract=kodjo.ui-plan-criteria.v1'
-            echo 'STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW'
+            echo 'ui_planning_contract=kodjo.ui-plan-criteria.v2'
+            echo "STATUT : $STATUS"
             echo
             cat /tmp/kodjo-v2-plan/technical-plan.md
             echo
@@ -275,7 +333,23 @@ jobs:
             cat /tmp/kodjo-v2-plan-transition.json
             echo '</KODJO_PLAN_TRANSITION_JSON>'
           } > /tmp/kodjo-v2-plan/out.md
-          gh issue comment "$ISSUE_NUMBER" --repo "$GITHUB_REPOSITORY" --body-file /tmp/kodjo-v2-plan/out.md
+          CREATED="$(gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" -f body="$(cat /tmp/kodjo-v2-plan/out.md)")"
+          PLAN_ID="$(printf '%s' "$CREATED" | jq -r '.id')"
+          printf '%s' "$PLAN_ID" | grep -Eq '^[1-9][0-9]*$'
+          if [ "$STATUS" = 'PLAN_READY_FOR_INDEPENDENT_REVIEW' ]; then
+            gh workflow run kodjo-v2-slice-plan-review.yml --ref main \
+              -f issue_number="$ISSUE_NUMBER" \
+              -f slice_id="$SLICE_ID" \
+              -f bootstrap_path="$BOOTSTRAP_PATH" \
+              -f source_plan_comment_id="$PLAN_ID"
+          fi
+
+      - name: Classify revision planning failure before any retry
+        if: failure()
+        shell: bash
+        run: |
+          mkdir -p /tmp/kodjo-v2-plan
+          node scripts/kodjo/classify-planning-failure.js /tmp/kodjo-v2-plan/planning-stderr.log /tmp/kodjo-v2-plan/error-classification.json | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Preserve V2 planning evidence
         if: always()
@@ -286,6 +360,7 @@ jobs:
             /tmp/kodjo-v2-plan/*api-evidence*.json
             /tmp/kodjo-v2-plan/context-manifest.json
             /tmp/kodjo-v2-plan/context-error.json
+            /tmp/kodjo-v2-plan/error-classification.json
             /tmp/kodjo-v2-plan/slice-bootstrap.json
             /tmp/kodjo-v2-plan/planning-mission.md
             /tmp/kodjo-v2-plan/prior-technical-plan.md
@@ -297,6 +372,7 @@ jobs:
             /tmp/kodjo-v2-plan/technical-plan-with-decisions.md
             /tmp/kodjo-v2-plan/plan-impact-closure.json
             /tmp/kodjo-v2-plan/technical-plan.md
+            /tmp/kodjo-v2-plan/plan-revision-status.json
             /tmp/kodjo-v2-plan/plan-impact-replay.json
             /tmp/kodjo-v2-plan/plan-contract.json
             /tmp/kodjo-v2-plan/ui-plan-contract.json

@@ -86,7 +86,7 @@ function collectFiles(root) {
 function isCommentRouterDelegation(filePath, lines, index, patternId, root) {
   if (patternId !== 'CONTENTS_WRITE' || path.relative(root, filePath).replace(/\\/g, '/') !== '.github/workflows/kodjo-v2-comment-router.yml') return false;
   if (lines[index] !== '      contents: write # Delegated comment worker; no steps in this job.') return false;
-  const allowed = ['e2e-orchestration-test-v1-3','e2e-t1-t6-v1-3','slice-implementation-publication-recovery','slice-implementation','slice-recover','v1-3-integrated-t1-t9','v14-s09-dev','v14-s09-implementation-local','v14-s09-recover-worktree','v2-plan-handoff-materialize','v2-plan-handoff-queue','t01-s09-implementation-v1-3-temporary'];
+  const allowed = ['slice-finalize','e2e-orchestration-test-v1-3','e2e-t1-t6-v1-3','slice-implementation-publication-recovery','slice-implementation','slice-recover','v1-3-integrated-t1-t9','v14-s09-dev','v14-s09-implementation-local','v14-s09-recover-worktree','v2-plan-handoff-materialize','v2-plan-handoff-queue','t01-s09-implementation-v1-3-temporary'];
   try {
     const workflow = require('./lib/yaml').parse(lines.join('\n'));
     let start = index;
@@ -194,6 +194,51 @@ function isDisposableConsumptionPermission(filePath, lines, index, patternId, ro
   return false;
 }
 
+// The audit archive is a separate deterministic documentary writer. Admit only
+// its exact job-level permission; all other capabilities still use PATTERNS.
+function isIndependentAuditPublicationPermission(filePath, lines, index, patternId, root) {
+  if (patternId !== 'CONTENTS_WRITE') return false;
+  const rel = path.relative(root, filePath).replace(/\\/g, '/');
+  if (rel !== '.github/workflows/kodjo-v2-next-evolution-independent-audit.yml' ||
+      lines[index] !== '      contents: write # Isolated audit evidence writer; never passed to Claude.' ||
+      lines[index - 1] !== '    permissions:') return false;
+  for (let i = index - 2; i >= 0; i--) {
+    if (/^  [\w-]+:/.test(lines[i])) return lines[i] === '  publish-evidence:';
+    if (/^\S/.test(lines[i])) return false;
+  }
+  return false;
+}
+
+
+// These exact documentary/consumption writers were reviewed as a whole. Any
+// source modification invalidates the declaration rather than admitting a new route.
+const DECLARED_REST_WRITERS = {
+  "scripts/kodjo/publish-independent-protocol-audit.js": "14d270f00c3a781fa9537e99fab88158da9adc3079da0bdeac5bc473309516c8",
+  "scripts/kodjo/consume-queue-request.js": "080db30d961679b72e1c88c7323d12980b9c318bee2f9839de1244edea6a9d69"
+};
+function restWriteCapabilities(source){
+  const code=source.replace(/\\\r?\n/g,' ').replace(/\/\*[\s\S]*?\*\/|^\s*\/\/[^\n]*/gm,'');
+  const findings=[];
+  const endpoint=/\/(?:contents(?:\/|['"`]|\s|$)|git\/(?:refs?|commits|trees|tags)(?:\/|['"`]|\s|$))/;
+  for(const line of code.split(/\r?\n/)){
+    if(/\bgh\s+api\b/.test(line)&&endpoint.test(line)&&!/(?:--method|-X)\s+['"]?GET\b/.test(line)&&(/(?:--method|-X)\s+['"]?(?:POST|PUT|PATCH|DELETE)\b/.test(line)||/(?:--input|--(?:raw-)?field|-[fF])(?:\s|=)/.test(line)))findings.push(line.trim());
+  }
+  // Literal REST calls and bounded wrappers whose endpoint is a contents/Git
+  // variable. Dynamic endpoints cannot hide a write when this source defines it.
+  for(const m of code.matchAll(/\b(?:fetch|fetchImpl|api|githubApi)\s*\(\s*['"](?:POST|PUT|PATCH|DELETE)['"]\s*,([^\n]+)/g)){
+    if(endpoint.test(m[1])||(/^\s*[A-Za-z_$][\w$]*\s*,/.test(m[1])&&endpoint.test(code)))findings.push(m[0]);
+  }
+  for(const m of code.matchAll(/\b(?:fetch|fetchImpl)\s*\(([\s\S]*?)\n?\s*\}\s*\)/g)){
+    if(/method\s*:\s*['"](?:POST|PUT|PATCH|DELETE)['"]/.test(m[1])&&(endpoint.test(m[1])||endpoint.test(code)))findings.push(m[0]);
+  }
+  // A /git base plus /refs or /tags is a Git-data endpoint too.
+  if(/['"]\/git['"]/.test(code)&&/\bapi\s*\(\s*['"](?:POST|PUT|PATCH|DELETE)['"]\s*,[^\n]*['"]\/(?:refs|tags|commits|trees)['"]/.test(code))findings.push('Git-data base write');
+  return [...new Set(findings)];
+}
+function declaredRestWriter(rel,source){
+  return DECLARED_REST_WRITERS[rel]===require('node:crypto').createHash('sha256').update(source.replace(/\r\n/g,'\n')).digest('hex');
+}
+
 function main() {
   const root = path.resolve(process.argv[2] || process.cwd());
   const files = collectFiles(root);
@@ -202,7 +247,14 @@ function main() {
 
   for (const file of files) {
     const rel = path.relative(root, file).replace(/\\/g, '/');
-    const lines = fs.readFileSync(file, 'utf8').split(/\r?\n/);
+    const source=fs.readFileSync(file,'utf8');
+    const lines = source.split(/\r?\n/);
+    if(rel!=='scripts/kodjo/scan-remote-write-capability.js'&&!declaredRestWriter(rel,source)){
+      for(const text of restWriteCapabilities(source)){
+        const queue=rel==='.github/workflows/kodjo-v2-lean-queue.yml' && text==='$created=gh api --method PUT "repos/$env:GITHUB_REPOSITORY/contents/$queuePath" --input $putFile|ConvertFrom-Json';
+        if(!queue)findings.push({pattern:'REST_GIT_DATA_WRITE',file:rel,line:1,text:text.slice(0,300)});
+      }
+    }
     lines.forEach((line, i) => {
       if (isExempt(file, line, root)) return;
       const code = line.split('#')[0];
@@ -210,6 +262,7 @@ function main() {
         if (!p.re.test(code)) continue;
         if (isCommentRouterDelegation(file, lines, i, p.id, root)) continue;
         if (isDisposableConsumptionPermission(file, lines, i, p.id, root)) continue;
+        if (isIndependentAuditPublicationPermission(file, lines, i, p.id, root)) continue;
         if (isFixedEvidenceWriterOperation(file, line, p.id, root)) continue;
         if (isFixedLeanSupervisorOperation(file, line, p.id, root)) continue;
         if (isFixedPlanHandoffWriterOperation(file, line, p.id, root)) continue;
@@ -239,4 +292,4 @@ function main() {
 
 if (require.main === module) process.exit(main());
 
-module.exports = { isDisposableConsumptionPermission, collectFiles, PATTERNS, SHELL_TRUE_EXEMPTIONS, isExempt, isFixedEvidenceWriterOperation, isFixedLeanSupervisorOperation, main };
+module.exports = { restWriteCapabilities, declaredRestWriter, DECLARED_REST_WRITERS, isIndependentAuditPublicationPermission, isDisposableConsumptionPermission, collectFiles, PATTERNS, SHELL_TRUE_EXEMPTIONS, isExempt, isFixedEvidenceWriterOperation, isFixedLeanSupervisorOperation, main };

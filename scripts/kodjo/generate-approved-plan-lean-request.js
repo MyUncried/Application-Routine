@@ -147,8 +147,9 @@ function main() {
     };
   }
   const missionBody = git(['show', approvedAt + ':' + missionRel], cwd);
+  let implementationContract;
   try {
-    verifyImplementationMission(missionBody, planBody, planBlob);
+    implementationContract = verifyImplementationMission(missionBody, planBody, planBlob);
   } catch (error) {
     fail('HANDOFF_IMPLEMENTATION_CONTRACT_REFUSED', error.message);
   }
@@ -226,7 +227,7 @@ function main() {
   process.stdout.write('approved_at_commit=' + approvedAt + '\n');
   process.stdout.write('plan_blob_oid=' + planBlob + '\n');
   process.stdout.write('scope_count=' + request.scope_allow.length + '\n');
-  process.stdout.write('implementation_contract=kodjo.ui-implementation-contract.v1\n');
+  process.stdout.write('implementation_contract=' + implementationContract.schema + '\n');
 }
 
 try { main(); }
