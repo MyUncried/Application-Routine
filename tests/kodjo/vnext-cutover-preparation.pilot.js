@@ -137,11 +137,15 @@ test('VNext-10 PRE-1 fermé rend le plan READY sans modifier les autres slices a
 test('VNext-10 activation exige une approbation explicite du plan exact', () => {
   const closed = closedPre1Registry();
   const plan = planFor(closed);
+  const security = remoteWriteSecurity(closed);
 
   assert.throws(() => Cutover.buildActivationRecord({
     cutoverPlan: plan,
     currentLegacyActivationRegistry: closed,
     activatedAtProtocolHead: ACTIVATION_HEAD,
+    remoteWriteGate: security.gate,
+    remoteWriteReport: security.report,
+    remoteWritePolicy: security.policy,
     approvalEvidence: {
       decision: 'APPROVED',
       actor_id: 'MyUncried',
