@@ -81,6 +81,8 @@ REVISE réentre uniquement à l'étape minimale nécessaire : REQUIREMENTS, IMPA
 - `kodjo.vnext.approval-target.v1`
 - `kodjo.vnext.approval-record.v1`
 - `kodjo.vnext.execution-request.v1`
+- `kodjo.vnext.runtime-snapshot.v1`
+- `kodjo.vnext.legacy-queue-projection.v1`
 
 VNext-01 implémente uniquement les trois premiers contrats et le socle de canonicalisation/hash/IDs.
 
@@ -1278,3 +1280,248 @@ Le gate est franchi uniquement si :
 - aucun HEAD n'a dérivé.
 
 Aucun message libre ne peut contourner ces gates.
+
+
+## 19. VNext-09 — Assemblage end-to-end et migration sans élargissement
+
+### 19.1 Objet
+
+VNext-09 assemble les lots VNext-01 à VNext-08 en une chaîne exécutable unique et qualifie sa projection vers le transport Lean Queue actuel sans modifier les workflows actifs.
+
+Le lot ne constitue pas l'activation.
+
+Il produit un candidat de cutover démontré par E2E.
+
+### 19.2 RuntimeSnapshot
+
+Contrat :
+
+`kodjo.vnext.runtime-snapshot.v1`
+
+Le runtime valide, dans l'ordre :
+
+1. ADMISSION
+2. REQUIREMENTS
+3. IMPACT
+4. PLAN
+5. REVIEW
+6. REVISION
+7. USER_APPROVAL
+8. HANDOFF
+
+Le snapshot contient :
+
+- slice_id ;
+- planning_mode ;
+- application_head ;
+- protocol_head ;
+- terminal_state ;
+- execution_request_hash ;
+- execution_fingerprint ;
+- statut et hashes de preuve de chaque étape ;
+- chain_hash ;
+- contract_hash.
+
+Le terminal state acceptable de ce lot est uniquement :
+
+`HANDOFF_READY`
+
+### 19.3 INITIAL
+
+En mode INITIAL :
+
+- aucune donnée de Revision n'est autorisée ;
+- l'étape REVISION vaut `NOT_APPLICABLE` ;
+- tous les autres gates doivent être PASS / APPROVED / READY selon leur contrat.
+
+### 19.4 REVISION
+
+En mode REVISION, le runtime exige :
+
+- AllowedChangeSet ;
+- RevisionPatch ;
+- RevisionOutcome ;
+- `RevisionOutcome.status = RESOLVED` ;
+- correspondance exacte avec base_plan_hash ;
+- correspondance exacte avec base_review_hash ;
+- causal_findings identiques aux blocking_finding_ids du cycle précédent ;
+- nouvelle Review APPROVE.
+
+Une REVISION sans preuve complète de résolution bornée ne peut atteindre HANDOFF_READY.
+
+### 19.5 Validation par reconstruction
+
+Le RuntimeSnapshot ne fait pas confiance aux hashes déclarés isolément.
+
+Il rejoue ou reconstruit :
+
+- PlanningEnvelope ;
+- RequirementRegistry ;
+- CandidateManifest ;
+- DirectImportScan éventuel ;
+- ImpactGraph ;
+- PlanContract ;
+- UI Atomicity éventuel ;
+- ReviewContext ;
+- ReviewReport ;
+- ApprovalTarget ;
+- ApprovalRecord ;
+- ExecutionRequest.
+
+Un snapshot re-signé avec un statut d'étape incompatible est refusé.
+
+### 19.6 Projection vers la Lean Queue active
+
+Contrat :
+
+`kodjo.vnext.legacy-queue-projection.v1`
+
+Cette projection est un adaptateur de transport uniquement.
+
+Autorité canonique :
+
+`VNEXT_EXECUTION_REQUEST`
+
+Le transport legacy ne peut enrichir ni modifier l'autorisation VNext.
+
+### 19.7 Scope de transport
+
+La projection impose :
+
+`legacy.scope_allow = executionRequest.write_scope[].path`
+
+exactement, dans le même ordre canonique.
+
+La projection impose également :
+
+`legacy.checks = executionRequest.checks`
+
+Toute différence produit respectivement :
+
+- `VNEXT_QUEUE_SCOPE_WIDENING`
+- `VNEXT_QUEUE_CHECK_DRIFT`
+
+Aucun path libre supplémentaire n'est accepté.
+
+### 19.8 HEAD et mode de transport
+
+Pour une première implémentation issue de VNext :
+
+- `legacy.mode = INITIAL`
+- `legacy.operation_kind = IMPLEMENT`
+- `legacy.session_id = null`
+- `legacy.source_head = executionRequest.protocol_head`
+- `legacy.baseline_head = executionRequest.baseline_head`
+
+Le planning_mode VNext INITIAL/REVISION ne devient pas un RESUME_DELTA d'implémentation.
+
+La sémantique RESUME_DELTA de la Lean Queue reste réservée aux reprises d'exécution existantes.
+
+### 19.9 Artefacts de compatibilité
+
+L'adaptateur produit trois projections déterministes :
+
+- technical-plan.md ;
+- independent-review.md ;
+- implementation-mission.md.
+
+Ces fichiers ne sont jamais la nouvelle source de vérité.
+
+Ils portent l'identité de l'ExecutionRequest VNext.
+
+Pour chaque fichier, la projection scelle :
+
+- path ;
+- Git blob OID ;
+- content_sha256 ;
+- contenu exact.
+
+La validation recalcule le SHA-256 et le blob OID.
+
+Un fichier re-signé mais modifié est refusé.
+
+### 19.10 Approbation et transport legacy
+
+Le transport legacy actuel exige une preuve GitHub par réaction.
+
+La projection VNext-09 accepte donc uniquement un ApprovalRecord de transport :
+
+`GITHUB_REACTION`
+
+pour cette projection spécifique.
+
+Cela ne réduit pas les transports admis par le contrat canonique VNext ; cela exprime uniquement une limitation du transport legacy actif.
+
+L'evidence_ref de l'ApprovalRecord doit être causalement lié au gate_ref legacy.
+
+### 19.11 Handoff legacy
+
+La projection legacy produit un objet conforme au contrat actuel :
+
+`kodjo.protocol.v2.lean-request.0.6.13`
+
+avec :
+
+- authorized_plan ;
+- independent_review ;
+- user_gate ;
+- scope_allow ;
+- checks ;
+- provenance de tranche.
+
+Le gated_reference legacy désigne le protocol_head pour rester compatible avec le vérificateur actif.
+
+La preuve canonique d'approbation reste l'ApprovalRecord VNext et n'est pas remplacée par ce champ legacy.
+
+### 19.12 Anti-régression canonique
+
+Le fichier :
+
+`.github/orchestration/KODJO_VNEXT_ANTI_REGRESSION_MATRIX.md`
+
+dispose explicitement chacun des invariants canoniques `INV-001..INV-024`.
+
+Dispositions fermées :
+
+- CONSERVÉE
+- REMPLACÉE_ÉQUIVALENTE
+- SUPERSÉDÉE_EXPLICITEMENT
+- NON_APPLICABLE_JUSTIFIÉE
+
+Le registre historique reste autoritatif pour l'inventaire :
+
+- 24 invariants ;
+- 165 incidents ;
+- 138 tests.
+
+La qualification VNext-09 vérifie les cardinalités et l'absence de trou.
+
+### 19.13 E2E obligatoire
+
+VNext-09 doit démontrer au minimum :
+
+1. INITIAL nominal jusqu'à HANDOFF_READY ;
+2. projection Lean Queue sans élargissement ;
+3. refus scope élargi ;
+4. refus checks modifiés ;
+5. refus fichier de compatibilité altéré ;
+6. REVISION causale complète jusqu'à HANDOFF_READY ;
+7. refus REVISION sans preuves de résolution ;
+8. inventaire anti-régression 24 / 165 / 138.
+
+### 19.14 Gate CUTOVER_CANDIDATE
+
+VNext devient `CUTOVER_CANDIDATE` uniquement si :
+
+- VNext-01 à VNext-08 restent qualifiés ;
+- RuntimeSnapshot INITIAL E2E PASS ;
+- RuntimeSnapshot REVISION E2E PASS ;
+- projection legacy PASS ;
+- anti-régression 24 / 165 / 138 PASS ;
+- suite KODJO existante Linux PASS ;
+- suite KODJO existante Windows PASS sur son périmètre ;
+- aucun workflow actif n'est modifié par ce lot.
+
+`CUTOVER_CANDIDATE` n'active pas VNext.
+
+Le cutover reste un lot séparé.
