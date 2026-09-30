@@ -92,12 +92,28 @@ des échecs de ces étapes. Les artefacts préflight 11115458708 et
 certification historique 11116686412 sont publiés ; leur publication
 n’atteste pas une certification historique réussie.
 
-Statut : revue des correspondances et qualification contractuelle ciblée
-effectuées ; clôture formelle de l’étape 3 EN RÉSERVE, compte tenu du run
-pilote complémentaire en échec. Aucune dérogation au résultat global,
-aucune suppression du contrôle historique et aucune relance ne sont
-effectuées. Cette réserve est distincte des obligations opérationnelles
-des étapes 4 et 5.
+Statut : ÉTAPE 3 CLÔTURÉE dans son périmètre de revue individuelle et de
+qualification contractuelle ciblée, au candidat testé
+`73e10a6cc202fb81c664b4754d1d21e7c82cdc15`. Les deux lacunes
+contractuelles identifiées sont corrigées et qualifiées ; les 420 sujets et
+402 assertions sont tracés, avec leurs limites par plateforme.
+
+La réserve de clôture précédemment introduite sur le run pilote V2 est
+levée pour ce périmètre : le workflow existant nomme cette certification
+« Certify historical run 16 recovery without gating the disposable slice »
+et configure cette certification avec continue-on-error: true.
+Son téléchargement préalable ne bénéficie pas de cette tolérance, d’où
+l’échec global conservé. Cette incohérence du workflow complémentaire
+ne constitue pas un échec de la qualification ciblée de l’étape 3.
+Aucun workflow n’est modifié pour cette clôture.
+
+Le run 36753202989 demeure FAILURE, la récupération historique demeure
+NON VÉRIFIABLE et le job disposable-qualification demeure SKIPPED.
+Aucune réussite globale, récupération certifiée, conformité opérationnelle
+ou activation n’en est déduite. Cette conclusion corrige le classement
+précédent du blocage ; elle ne supprime ni le résultat historique ni son
+obligation de preuve. Les obligations opérationnelles des étapes 4 et 5
+restent ouvertes, sans démarrage de ces étapes ni intervention sur PRE-1.
 
 Cette mise à jour ne change que le rapport et le statut documentaire de
 la matrice. Les preuves de tests restent attachées au candidat
