@@ -5,8 +5,8 @@ source_head=e216294506bed87dd80855937e3fabfbfa322b82
 planning_mode=INITIAL
 planning_contract=kodjo.plan-impact.v1
 ui_planning_contract=kodjo.ui-plan-criteria.v2
-corrected_plan_commit=0e4763280d7ef355663d6415f1aeaa137b9d1eb1
-corrected_plan_blob=0c2b1beebb540166a76ba6821e8db55dc12cbdf3
+corrected_plan_commit=f3e7f492815a788545208714825f4fa67ec649cd
+corrected_plan_blob=c42de1f1b63260ea2cf573c4dd04584f6d5ebb37
 STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW
 
 # PRE-1 — Plan corrigé après revue 36734142447
@@ -14,9 +14,9 @@ STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW
 source_head=e216294506bed87dd80855937e3fabfbfa322b82
 review_source_run=36734142447
 status=CORRECTED_PENDING_INDEPENDENT_REVIEW
-correction_round=2
-correction_source_review_run=36763786560
-corrected_findings=9
+correction_round=3
+correction_source_development_run=36773441104
+corrected_items=UI-73382D60E040,D-240
 
 # Plan technique final — PRE-1 — Fondations du modèle cible avant moteur
 
@@ -66,8 +66,8 @@ Le Profil est un agrégat persistant singleton comprenant au minimum :
 
 - pause de changement de côté par défaut : `10 s` ;
 - récupération post-exercice par défaut : `30 s` ;
-- compte à rebours d’Exercice par défaut ;
-- fin d’Exercice par défaut.
+- compte à rebours d’Exercice par défaut : `10 s` (décision D-240) ;
+- fin d’Exercice par défaut : `5 s` (décision D-240).
 
 Les préférences initialisent les nouveaux objets sans rétroactivité.
 
@@ -256,6 +256,10 @@ La compatibilité des médias se démontre par plusieurs assets indépendants po
 
 La revue ciblée 36763786560 a fermé les constats 1 à 8, 10 et 11 et maintenu ouvert le constat 9 : le critère UI-D35DA2C4F266 (REQ-2376BBC2C2A2CA1B) n’en déclarait pas le blast radius. L’inventaire complet des tests figeant en dur une valeur française contenant « activité » à la baseline e216294 montre que tous sont déjà dans le périmètre sauf quatre : `src/features/sessions/__tests__/SessionCard.test.tsx` (lignes 37 et 185, reclassé TEST_MUST_ADAPT), `src/features/sessions/__tests__/formatSessionSummary.test.ts` (lignes 14, 18, 22, 23), `src/features/sessions/__tests__/ExerciseExitConfirmModal.test.tsx` (ligne 17) et `src/features/activities/__tests__/CatalogueCreateOptions.test.tsx` (ligne 68). Ils sont ajoutés au périmètre d’écriture, aux tests requis et aux tests du critère. Les chaînes `Activité ${id}` des fixtures et les références dynamiques à `strings` ne dépendent pas des valeurs renommées. Aucune autre exigence, assertion, décision ni frontière n’est modifiée.
 
+### Corrections consécutives au run de développement 36773441104 (tour 3)
+
+Le run de développement 36773441104 s’est arrêté en CLARIFICATION_REQUIRED sur deux points, corrigés ici sans autre modification. C1 — critère UI-73382D60E040 (constat 5) : `src/features/sessions/__tests__/SideModeControl.test.tsx` assertait la valeur vide de `shared.sideMode.valueLabels.UNILATERAL` (lignes 26 et 156) que `SideModeControl.tsx` lit hors contexte Tour ; ce test entre dans le périmètre d’écriture, les tests requis et les tests du critère ; `SideModeControl.tsx` reste inchangé. Les autres consommateurs (`CompositionScreen.tsx:1769`, `ExerciseScreen.test.tsx:2021`, `index.test.ts:370`) étaient déjà dans le périmètre. C2 — décision D-240 (registre 07, 30/09/2026) : compte à rebours d’Exercice `10 s` et fin d’Exercice `5 s` par défaut dans le Profil, portés par une exigence dédiée liée à `Profile.test.ts` et `SqliteProfileRepository.test.ts`. Aucune autre exigence, assertion, décision ni frontière n’est modifiée.
+
 ### Tests supplémentaires
 
 - `src/features/sessions/__tests__/ExerciseScreen.test.tsx`
@@ -266,6 +270,7 @@ La revue ciblée 36763786560 a fermé les constats 1 à 8, 10 et 11 et maintenu 
 - `src/features/sessions/__tests__/ExerciseExitConfirmModal.test.tsx`
 - `src/features/sessions/__tests__/SessionCard.test.tsx`
 - `src/features/sessions/__tests__/formatSessionSummary.test.ts`
+- `src/features/sessions/__tests__/SideModeControl.test.tsx`
 
 ### scope_allow machine
 
@@ -340,6 +345,7 @@ src/features/sessions/__tests__/ExerciseExitConfirmModal.test.tsx
 src/features/sessions/__tests__/ExerciseScreen.test.tsx
 src/features/sessions/__tests__/SessionCard.test.tsx
 src/features/sessions/__tests__/SessionService.test.ts
+src/features/sessions/__tests__/SideModeControl.test.tsx
 src/features/sessions/__tests__/compositionPresentation.test.ts
 src/features/sessions/__tests__/formatSessionSummary.test.ts
 src/features/sessions/compositionPresentation.ts
@@ -614,6 +620,10 @@ src/shared/i18n/resources/fr.ts
   },
   {
     "path": "src/features/sessions/__tests__/SessionService.test.ts",
+    "change": "MODIFY"
+  },
+  {
+    "path": "src/features/sessions/__tests__/SideModeControl.test.tsx",
     "change": "MODIFY"
   },
   {
@@ -1429,6 +1439,7 @@ src/shared/i18n/resources/fr.ts
         "src/shared/i18n/resources/fr.ts"
       ],
       "tests": [
+        "src/features/sessions/__tests__/SideModeControl.test.tsx",
         "src/shared/i18n/index.test.ts"
       ],
       "proof_required": [
@@ -2395,6 +2406,28 @@ src/shared/i18n/resources/fr.ts
       "STATIC_ANALYSIS"
     ],
     "status": "DEFINED"
+  },
+  {
+    "source": {
+      "path": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+      "locator": "D-240 (30/09/2026), complète qualification-spec.md §10",
+      "requirement": "Le Profil singleton persiste et initialise les valeurs par défaut propres à l’Exercice : compte à rebours d’Exercice 10 s et fin d’Exercice 5 s, en plus de la pause de changement de côté 10 s et de la récupération post-exercice 30 s ; elles initialisent les nouveaux Exercices sans rétroactivité."
+    },
+    "requirement_type": "FUNCTIONAL",
+    "change_targets": [
+      "src/domain/preferences/Profile.ts",
+      "src/infrastructure/database/migrations/migration007.ts",
+      "src/infrastructure/database/repositories/SqliteProfileRepository.ts"
+    ],
+    "tests": [
+      "src/domain/preferences/__tests__/Profile.test.ts",
+      "src/infrastructure/database/__tests__/SqliteProfileRepository.test.ts"
+    ],
+    "no_automated_test_reason": "NONE",
+    "proof_required": [
+      "FUNCTIONAL_TEST"
+    ],
+    "status": "DEFINED"
   }
 ]
 </KODJO_NON_UI_REQUIREMENTS_JSON>
@@ -2402,9 +2435,10 @@ src/shared/i18n/resources/fr.ts
 <KODJO_NON_UI_COVERAGE_JSON>
 {
   "status": "ENUMERATED",
-  "reason": "Couverture PRE-1 incluant les §§4 et 13 et les quatre consommateurs directement démontrés par la revue 36734142447. Matrice kodjo.ui-criteria.v3, contrat kodjo.ui-plan-criteria.v2 version 2. Le registre cumulatif distingue les cinq groupes initiaux et les onze constats de cette revue ; il ne transforme pas un verdict REVISE en APPROVE.",
+  "reason": "Couverture PRE-1 incluant les §§4 et 13 et les quatre consommateurs directement démontrés par la revue 36734142447. Matrice kodjo.ui-criteria.v3, contrat kodjo.ui-plan-criteria.v2 version 2. Le registre cumulatif distingue les cinq groupes initiaux et les onze constats de cette revue ; il ne transforme pas un verdict REVISE en APPROVE. Tour 3 : décision D-240 (registre 07) pour les défauts d’Exercice du Profil.",
   "source_paths": [
     ".github/orchestration/v2-slices/V2-PRE-1/qualification-spec.md",
+    "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
     "src/domain/categories/errors.ts",
     "src/domain/sessions/errors.ts",
     "src/features/activities/ActivityCard.tsx",
@@ -2423,8 +2457,8 @@ src/shared/i18n/resources/fr.ts
 <KODJO_REQUIREMENT_CONTRACT_JSON>
 {
   "schema": "kodjo.requirement-contract.v1",
-  "requirement_count": 27,
-  "requirement_ids_sha256": "be920e5372a4205d7d0d430daafec2d0717ea7bac341e000d7558a8e5e2c9d7d",
+  "requirement_count": 28,
+  "requirement_ids_sha256": "56e6d656a49f9456fdb725380d288eaad39afdad92691afa0a7e5029a1eaa92c",
   "requirements": [
     {
       "requirement_id": "REQ-001108DC7F67664C",
@@ -2762,6 +2796,30 @@ src/shared/i18n/resources/fr.ts
       "proof_required": [
         "FUNCTIONAL_TEST",
         "STATIC_ANALYSIS"
+      ],
+      "status": "DEFINED",
+      "no_automated_test_reason": "NONE"
+    },
+    {
+      "requirement_id": "REQ-6158C99B50273D8D",
+      "domain": "NON_UI",
+      "requirement_type": "FUNCTIONAL",
+      "source": {
+        "path": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+        "locator": "D-240 (30/09/2026), complète qualification-spec.md §10",
+        "requirement": "Le Profil singleton persiste et initialise les valeurs par défaut propres à l’Exercice : compte à rebours d’Exercice 10 s et fin d’Exercice 5 s, en plus de la pause de changement de côté 10 s et de la récupération post-exercice 30 s ; elles initialisent les nouveaux Exercices sans rétroactivité."
+      },
+      "change_targets": [
+        "src/domain/preferences/Profile.ts",
+        "src/infrastructure/database/migrations/migration007.ts",
+        "src/infrastructure/database/repositories/SqliteProfileRepository.ts"
+      ],
+      "tests": [
+        "src/domain/preferences/__tests__/Profile.test.ts",
+        "src/infrastructure/database/__tests__/SqliteProfileRepository.test.ts"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST"
       ],
       "status": "DEFINED",
       "no_automated_test_reason": "NONE"
@@ -3165,6 +3223,7 @@ src/shared/i18n/resources/fr.ts
         "src/shared/i18n/resources/fr.ts"
       ],
       "tests": [
+        "src/features/sessions/__tests__/SideModeControl.test.tsx",
         "src/shared/i18n/index.test.ts"
       ],
       "proof_required": [
@@ -3542,7 +3601,7 @@ src/shared/i18n/resources/fr.ts
 <KODJO_TEST_CONTRACT_JSON>
 {
   "schema": "kodjo.test-contract.v1",
-  "binding_count": 61,
+  "binding_count": 64,
   "bindings": [
     {
       "requirement_id": "REQ-001108DC7F67664C",
@@ -3635,6 +3694,16 @@ src/shared/i18n/resources/fr.ts
       "proof_type": "FUNCTIONAL_TEST"
     },
     {
+      "requirement_id": "REQ-6158C99B50273D8D",
+      "test_path": "src/domain/preferences/__tests__/Profile.test.ts",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-6158C99B50273D8D",
+      "test_path": "src/infrastructure/database/__tests__/SqliteProfileRepository.test.ts",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
       "requirement_id": "REQ-6F9FB80037809969",
       "test_path": "src/features/activities/__tests__/ActivityCard.test.tsx",
       "proof_type": "FUNCTIONAL_TEST"
@@ -3707,6 +3776,11 @@ src/shared/i18n/resources/fr.ts
     {
       "requirement_id": "REQ-BD9607FF0909157B",
       "test_path": "src/domain/sessions/__tests__/validation.test.ts",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-C706F1B21014E9F7",
+      "test_path": "src/features/sessions/__tests__/SideModeControl.test.tsx",
       "proof_type": "FUNCTIONAL_TEST"
     },
     {
@@ -4033,7 +4107,7 @@ src/shared/i18n/resources/fr.ts
 {
   "schema": "kodjo.plan-impact.v1",
   "scan_revision": "e216294506bed87dd80855937e3fabfbfa322b82",
-  "scan_sha256": "cbdeb42f0f7734d5204bb15843ed8faeb13dbd488c7b0c00f7c7e415585110d9",
+  "scan_sha256": "5984df2f214355a2ba739f8c8f310a3f3fc475f342b7e9294b26bd6e32d90119",
   "modified_modules": [
     {
       "path": "src/domain/activities/ActivityDefinition.ts",
@@ -4277,6 +4351,10 @@ src/shared/i18n/resources/fr.ts
     },
     {
       "path": "src/features/sessions/__tests__/SessionService.test.ts",
+      "change": "MODIFY"
+    },
+    {
+      "path": "src/features/sessions/__tests__/SideModeControl.test.tsx",
       "change": "MODIFY"
     },
     {
@@ -4880,6 +4958,14 @@ src/shared/i18n/resources/fr.ts
       "risk_score": 0,
       "classification": "MODIFY",
       "justification": "Module explicitement déclaré par le plan initial."
+    },
+    {
+      "path": "src/features/sessions/__tests__/SideModeControl.test.tsx",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Blast radius de UI-73382D60E040 (constat 5 ; clarification du run 36773441104) : les lignes 26 et 156 assertent la valeur vide de shared.sideMode.valueLabels.UNILATERAL lue par SideModeControl hors contexte Tour ; le plan fixe « Aucun ». SideModeControl.tsx reste inchangé."
     },
     {
       "path": "src/features/sessions/__tests__/compositionPresentation.test.ts",
@@ -5628,6 +5714,7 @@ src/shared/i18n/resources/fr.ts
     "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
     "src/features/sessions/__tests__/SessionCard.test.tsx",
     "src/features/sessions/__tests__/SessionService.test.ts",
+    "src/features/sessions/__tests__/SideModeControl.test.tsx",
     "src/features/sessions/__tests__/compositionPresentation.test.ts",
     "src/features/sessions/__tests__/formatSessionSummary.test.ts",
     "src/features/sessions/compositionPresentation.ts",
@@ -5737,6 +5824,7 @@ src/shared/i18n/resources/fr.ts
     "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
     "src/features/sessions/__tests__/SessionCard.test.tsx",
     "src/features/sessions/__tests__/SessionService.test.ts",
+    "src/features/sessions/__tests__/SideModeControl.test.tsx",
     "src/features/sessions/__tests__/compositionPresentation.test.ts",
     "src/features/sessions/__tests__/formatSessionSummary.test.ts",
     "src/features/sessions/compositionPresentation.ts",
@@ -5795,6 +5883,7 @@ src/shared/i18n/resources/fr.ts
     "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
     "src/features/sessions/__tests__/SessionCard.test.tsx",
     "src/features/sessions/__tests__/SessionService.test.ts",
+    "src/features/sessions/__tests__/SideModeControl.test.tsx",
     "src/features/sessions/__tests__/compositionPresentation.test.ts",
     "src/features/sessions/__tests__/formatSessionSummary.test.ts",
     "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
@@ -5809,10 +5898,10 @@ src/shared/i18n/resources/fr.ts
     "src/infrastructure/database/__tests__/targetSchema.test.ts",
     "src/shared/i18n/index.test.ts"
   ],
-  "requirement_contract_sha256": "ab92fdf081e09329b82bf006c27d870db2bce50572517ecbc896d6aa71ec7285",
-  "test_contract_sha256": "16c1a941a0b965e63336a17780fc96050c7892d4908cab5d97a69a907a023e5f",
+  "requirement_contract_sha256": "5689ae195e44eeaef25faf3ad3c9b297eee60cd4462153857ddbea975c5282a6",
+  "test_contract_sha256": "c0f1ad49bdd59dd3cbbcafe4cd5fae2e22196615d7753404479b66ff13ea19e4",
   "boundary_contract_sha256": "8d290bd47df7851de55aadc88c35156bb213a035e83b2348452378b1fb2bf3a0",
-  "requirement_count": 27
+  "requirement_count": 28
 }
 </KODJO_PLAN_CONTRACT_JSON>
 
@@ -5840,7 +5929,7 @@ src/shared/i18n/resources/fr.ts
   "criterion_count": 13,
   "assertion_count": 32,
   "assertion_ids_sha256": "534163c795e81bbf3909122b2bdd0ec2568c187f94d8d0564979cc8b5e8d836f",
-  "matrix_sha256": "d08cde6f5d92cde30023c9d9549164b7e750485bc932a6a4d1511c1820b8543a"
+  "matrix_sha256": "d0d9023eedc511b3b3045a4e274592b20b65257c463ab98eb70fcef6394fbfea"
 }
 </KODJO_UI_PLAN_CONTRACT_JSON>
 
