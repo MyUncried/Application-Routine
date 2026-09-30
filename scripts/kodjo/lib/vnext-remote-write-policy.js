@@ -112,6 +112,15 @@ function detectCapabilities(rel, source) {
         permission_scope: 'NONE',
       });
     }
+    if (/\bgit\s+(?:-[^\s]+\s+)*commit\b/.test(line)) {
+      add(out, {
+        type: 'GIT_COMMIT',
+        line: n,
+        text,
+        destination: 'git-local-commit',
+        permission_scope: 'NONE',
+      });
+    }
     if (/\bgit\s+(?:-[^\s]+\s+)*(?:update-ref|tag|merge|rebase|cherry-pick)\b/.test(line)) {
       add(out, {
         type: 'GIT_REF_OR_HISTORY_MUTATION',
