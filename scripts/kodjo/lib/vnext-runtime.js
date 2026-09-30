@@ -294,10 +294,34 @@ function validateRuntimeSnapshot(snapshot) {
   );
   if (snapshot.schema_version !== SCHEMA) V.fail('VNEXT_RUNTIME_SNAPSHOT_SCHEMA_INVALID');
   V.verifyContractHash(snapshot, 'VNEXT_RUNTIME_SNAPSHOT_HASH_MISMATCH');
+  V.assertSliceId(snapshot.slice_id, 'VNEXT_RUNTIME_SLICE_INVALID');
+  if (!['INITIAL', 'REVISION'].includes(snapshot.planning_mode)) V.fail('VNEXT_RUNTIME_MODE_INVALID');
+  V.assertSha40(snapshot.application_head, 'VNEXT_RUNTIME_APPLICATION_HEAD_INVALID');
+  V.assertSha40(snapshot.protocol_head, 'VNEXT_RUNTIME_PROTOCOL_HEAD_INVALID');
+  V.assertSha64(snapshot.execution_request_hash, 'VNEXT_RUNTIME_EXECUTION_REQUEST_HASH_INVALID');
+  V.assertSha64(snapshot.execution_fingerprint, 'VNEXT_RUNTIME_EXECUTION_FINGERPRINT_INVALID');
+  V.assertSha64(snapshot.chain_hash, 'VNEXT_RUNTIME_CHAIN_HASH_INVALID');
   if (snapshot.terminal_state !== 'HANDOFF_READY') V.fail('VNEXT_RUNTIME_TERMINAL_STATE_INVALID');
-  if (V.canonicalStringify(snapshot.stages.map((row) => row.stage)) !== V.canonicalStringify(STAGES)) {
+  if (!Array.isArray(snapshot.stages) || snapshot.stages.length !== STAGES.length
+      || V.canonicalStringify(snapshot.stages.map((row) => row.stage)) !== V.canonicalStringify(STAGES)) {
     V.fail('VNEXT_RUNTIME_STAGE_ORDER_INVALID');
   }
+  const expectedStatuses = snapshot.planning_mode === 'INITIAL'
+    ? ['PASS','PASS','PASS','PASS','APPROVED','NOT_APPLICABLE','APPROVED','READY']
+    : ['PASS','PASS','PASS','PASS','APPROVED','RESOLVED','APPROVED','READY'];
+  snapshot.stages.forEach((stage, index) => {
+    V.assertExactKeys(stage, ['stage','status','evidence_hashes'], [], 'VNEXT_RUNTIME_STAGE_KEYS_INVALID');
+    if (stage.status !== expectedStatuses[index]) {
+      V.fail('VNEXT_RUNTIME_STAGE_STATUS_INVALID', stage.stage + ':' + stage.status);
+    }
+    if (!Array.isArray(stage.evidence_hashes)) V.fail('VNEXT_RUNTIME_STAGE_EVIDENCE_INVALID', stage.stage);
+    if (stage.stage !== 'REVISION' || stage.status !== 'NOT_APPLICABLE') {
+      if (stage.evidence_hashes.length === 0) V.fail('VNEXT_RUNTIME_STAGE_EVIDENCE_MISSING', stage.stage);
+    }
+    for (const hash of stage.evidence_hashes) {
+      V.assertSha64(hash, 'VNEXT_RUNTIME_STAGE_EVIDENCE_HASH_INVALID', stage.stage);
+    }
+  });
   const expectedChainHash = V.canonicalHash(snapshot.stages.flatMap((stage) => stage.evidence_hashes));
   if (snapshot.chain_hash !== expectedChainHash) V.fail('VNEXT_RUNTIME_CHAIN_HASH_MISMATCH');
   return true;
