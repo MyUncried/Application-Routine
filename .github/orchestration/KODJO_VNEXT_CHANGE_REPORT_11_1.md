@@ -40,6 +40,7 @@ Le scanner VNext inspecte tous les fichiers exécutables sous :
 
 - `.github/workflows`
 - `.github/actions`
+- `.github/orchestration/tests`
 - `scripts/kodjo`
 
 sans sélection par préfixe de workflow.
