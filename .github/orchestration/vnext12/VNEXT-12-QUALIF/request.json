@@ -1,0 +1,9 @@
+{
+  "stage": "PREPARE_INITIAL",
+  "slice_id": "VNEXT-12-QUALIF",
+  "qualified_code_head": "93f5274de8f0a14d3b4777b585572afd9d0f5085",
+  "qualified_test_head": "308ac67bdf07f58f9e9ef6d5d0411c1b3f099cad",
+  "revision_limit": 1,
+  "final_audit_authorized": false,
+  "pre1_in_scope": false
+}
