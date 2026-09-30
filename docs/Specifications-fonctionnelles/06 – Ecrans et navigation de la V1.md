@@ -63,6 +63,12 @@ Pour être déclaré conforme, un écran doit satisfaire simultanément son cont
 
 L’absence ou la substitution d’un logo, d’une icône, d’un texte ou d’un contrôle déclaré obligatoire est une non-conformité bloquante. Il en va de même pour une valeur métier codée en dur, une zone tactile inactive, une mauvaise destination de navigation, un chevauchement ou un contenu masqué par une zone fixe.
 
+### Révision écran par écran — 30 septembre 2026
+
+Les descriptions locales ci-dessous et les contrats CE-T03/CE-UI du chapitre13 intègrent les décisions closes D-209 à D-215. La [matrice courante des écrans](../MATRICE-ECRANS-CARTES-2026-09-30.md) relie chaque frame concernée à son contrat et à ses critères. Les captures intégrées antérieures sont historiques pour les cartes/icônes ; les liens Figma de la matrice portent le rendu courant. Cette passe met à jour les descriptions et contrats, sans réexport de captures ni modification du prototype.
+
+Sur tous les écrans concernés, les appuis suivent D-213 : dilatation au contact, retour et action immédiate au relâchement ; sortie de cible sans action ; réduction des animations par opacité. Les contrôles désactivés ne deviennent pas actifs par l’animation. L’inventaire des 27 icônes de sélection ne recolore ni visages, ni statuts, ni boutons à fond coloré. Navigation présente : composant6298:12462, traits2, dessins≤24 ; état sélectionné bleu, autre gris.
+
 ### Unités et largeur utile
 
 - Les dimensions de l’interface sont exprimées en points logiques React Native (`dp` côté Android, points côté iOS), jamais en pixels physiques.
@@ -285,7 +291,7 @@ La future `Vue d’ensemble` reste visible dans le sélecteur mais elle est gris
 
 Chaque carte peut être déployée individuellement pour consulter le détail de l’Exécution directement dans la liste.
 
-Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` sont visibles mais désactivées dans le MVP. Les fonctions correspondantes restent post-MVP. Cette règle du Suivi est distincte du Catalogue T03, où `Filtrer` est fonctionnel pour `Archivées` sur Exercices.
+Les commandes `Filtrer` et `Trier` restent visibles mais désactivées dans le MVP ; la Vue d’ensemble est abandonnée pour le MVP et ne constitue plus un écran à développer. Cette règle du Suivi est distincte du Catalogue T03, où `Filtrer` est fonctionnel pour `Archivées` sur Exercices.
 
 ### Écrans principaux
 
@@ -430,11 +436,15 @@ Le MVP est disponible uniquement en français et n’affiche aucun sélecteur de
 
 ### Comportement
 
-Les préférences sont enregistrées immédiatement. L’écran `Modifier le profil — MVP` permet de modifier la photo et le nom d’affichage, puis demande une action explicite `Enregistrer`.
+Les préférences sont enregistrées immédiatement. L’écran `Modifier le profil — MVP` permet de modifier la photo, le nom d’affichage et la préférence facultative `silhouette`, puis demande une action explicite `Enregistrer`. La préférence est enregistrée avec le Profil. Valeurs : homme/femme ; non renseignée = silhouette homme. Elle ne modifie que l’icône de zone corporelle, sans filtre ni effet sur les données d’exercice.
 
 Les préférences ne modifient pas rétroactivement les Séances existantes ni une Exécution déjà en cours.
 
 Les notifications ne sont pas autorisées par défaut. La demande d’autorisation du système d’exploitation est présentée lorsque l’utilisateur active pour la première fois un rappel lors d’une planification. En cas de refus, le rappel n’est pas activé et l’application indique que l’autorisation peut être modifiée dans les réglages du système.
+
+### Choix de silhouette — Écran 1a
+
+Sous l’aide du Nom d’affichage, deux cercles de 64 px espacés de 24 px portent des silhouettes de 44 px. Sélection : contour bleu 2 px, dessin #0508E5 ; non sélection : contour #CCD1E0 1 px, dessin #9499A8. Libellés accessibles : `Silhouette homme` et `Silhouette femme`. Une seule préférence ; absence de saisie autorisée. Vérifier l’effet sur toutes les icônes de zone corporelle après enregistrement et après relance. Les autres états Profil héritent de la navigation et des animations communes. Contrat CE-UI-01.
 
 ### Navigation
 
@@ -489,17 +499,11 @@ Les Séances archivées restent exclues de la liste active et ne sont accessible
 
 ### Carte de Séance — vue condensée
 
-Chaque carte affiche notamment :
+Carte standard 354 × 90 px à largeur de référence 402, rayon 8, titre 15 Semi Bold, sans barre verticale ni cercle de nature. Ligne de classement : Étiquette puis catégories issues des exercices ; en l’absence d’Étiquette, afficher les catégories. Pastilles 20 ; pictogramme blanc sur couleur. Ligne des valeurs : `N exercices` et `N tours`, icônes nues 16. Badge durée en haut à droite ; la durée exclut Compte à rebours initial et Fin de séance.
 
-- le nom de la Séance ;
-- sa seconde ligne de métadonnées sous la forme `Étiquette · Catégorie` selon les données disponibles et le rendu Figma courant ;
-- le nombre d’Exercices ;
-- sa durée synthétique des Exercices, qui exclut toujours le Compte à rebours initial et la Fin de séance ;
-- le nombre de répétitions du Tour (`xN`) ;
-- la prochaine occurrence planifiée lorsqu’elle existe ;
-- un chevron de déploiement ;
+Aucune prochaine planification ni ligne de pause/récupération sur la carte. Les séances restent sans vignette (RG-3 reportée). Les listes de catégories utilisent ` · ` puis `…` si nécessaire ; la donnée complète est conservée. Les cartes archivées utilisent fond #F6F6F6 et bord #D9D9D9 ; Restaurer remplace Lecture.
 
-Les Séances sont présentées par défaut selon leur date de dernière modification, de la plus récente à la plus ancienne. Une exécution ne modifie pas cet ordre.
+Ces règles s’appliquent aux listes, filtres actifs/inactifs, recherches, états restaurés, actions glissées et arrière-plans de modales. Les actions révélées suivent la hauteur réelle de la carte. Les séances restent triées par dernière modification décroissante ; exécuter ne change pas cet ordre.
 
 ### Actions sur une carte
 
@@ -689,25 +693,19 @@ Chaque occurrence possède explicitement `postActivityRecoverySeconds`, initiali
 
 Si deux Exercices s’enchaînent sans Pause entre Séries et avec une récupération après activité à `0 s`, un avertissement discret et non bloquant peut être affiché selon la règle existante.
 
-### Résumé de la ligne d’une Activité (D-095)
+### Résumé de la ligne d’une Activité (D-095 révisée par D-214)
 
-La ligne d’une Activité dans la Composition affiche :
+La ligne présente le nom, la Catégorie puis les Zones corporelles sur une ligne de classement, puis la synthèse :
 
-- le nom de l’Activité ;
-- sa Catégorie suivie de ses Zones corporelles, sur une ligne dédiée ; la Catégorie porte sa couleur sémantique et les valeurs sont séparées par ` · ` ;
-- un résumé compact de sa configuration essentielle (nombre de Séries, Durée, Répétitions ou À l’échec, Pause entre Séries).
+- Durée : `N séries de X` (ex. `3 séries de 1 min 30 s`) ;
+- Répétitions : `N séries de N rép.` ;
+- À l’échec : `N séries à l’échec`.
 
-La Description ne figure jamais dans la ligne. Les Zones corporelles ne sont pas intégrées au résumé de configuration : elles sont affichées séparément entre le nom et ce résumé. Une ligne légère `Récupération X min Y s` est affichée immédiatement sous chaque occurrence, y compris lorsque la valeur vaut `0 s`. Elle constitue la représentation de `postActivityRecoverySeconds` et accompagne le bloc fonctionnel de l’occurrence.
+Le nom n’est pas répété, le mode n’est pas nommé. Aucun texte de pause/récupération, aucune ligne attachée `Récupération {durée}` : cette ancienne exigence d’affichage est supprimée. Les valeurs et phases D-208 restent conservées, solidaires de l’occurrence lors des opérations et utilisées dans les calculs. Aucun nouvel accès de réglage n’est inventé ici.
 
-Format :
+La bilatéralité est indiquée par le miroir dans les variantes concernées ; le paramètre de direction et `Indicator / Sides` ne sont pas supprimés du modèle. Le texte développé « à droite, puis à gauche » reste propre à l’éditeur. La Description est absente des cartes. Texte complet conservé derrière la troncature.
 
-- mode Durée : `N série(s) de X min Y s avec Z min Y s de pause par série` ;
-- mode Répétitions : `N série(s) de X répétition(s) avec Z min Y s de pause par série` ;
-- mode À l’échec : `N série(s) jusqu’à l’échec, avec Z s de pause entre les séries` ; le nom, déjà affiché séparément sur la ligne, n’est pas répété. La proposition relative à la pause est omise lorsque la pause vaut zéro ou lorsqu’une seule Série ne crée aucun intervalle entre Séries.
-
-La clause de pause est entièrement omise lorsque la Pause vaut `0 s` ou lorsqu’une seule Série ne crée aucun intervalle. La Récupération est affichée dans sa carte attachée et intégrée aux durées calculées, mais elle n’augmente pas le nombre d’Exercices. Les segments minutes ou secondes nuls d’une durée sont omis (`45 s`, `1 min`), jamais affichés comme `0 min` ou `0 s`. Le singulier/pluriel de `série`/`répétition` s’accorde à la valeur.
-
-Exemples : `3 séries de 1 min 30 s avec 15 s de pause par série` ; `3 séries de 12 répétitions avec 20 s de pause par série` ; `1 série de 45 s`.
+Les commandes contextuelles de Composition font 34 px, dessins 20, gaps 10, cibles 44 sans chevauchement. La bande Durée + actions reste à 32 px : durée immobile, actions à droite et 6 px plus bas. Les états initial, nom saisi, étiquette sélectionnée, modale ouverte, déplacement et actions glissées héritent de cette règle.
 
 ### Consultation et modification d’une Activité
 
@@ -717,7 +715,7 @@ Dans l’état Figma `Composition d’une séance — actions glissées` (`2028:
 
 ### Réorganisation
 
-Les Exercices peuvent être réorganisées dans leur zone ou déplacées par glisser-déposer avant le Tour, dans le Tour ou après le Tour. Le geste commence par un appui long sur le bloc complet ; l’occurrence et sa ligne de Récupération après activité passent ensemble dans l’état soulevé, puis suivent le glissement jusqu’à une position de dépose valide. Un toucher court conserve son comportement d’ouverture de l’Activité en modification. Le déplacement conserve l’identifiant et tous les paramètres, met à jour la position structurelle et renumérote continûment les positions de chaque zone. Il ne persiste rien avant l’enregistrement final.
+Les Exercices peuvent être réorganisées dans leur zone ou déplacées par glisser-déposer avant le Tour, dans le Tour ou après le Tour. Le geste commence par un appui long sur le bloc complet ; la carte de l’occurrence passe dans l’état soulevé puis suit le glissement ; sa donnée de récupération après activité reste attachée sans ligne visible jusqu’à une position de dépose valide. Un toucher court conserve son comportement d’ouverture de l’Activité en modification. Le déplacement conserve l’identifiant et tous les paramètres, met à jour la position structurelle et renumérote continûment les positions de chaque zone. Il ne persiste rien avant l’enregistrement final.
 
 L’état Figma `Composition d'une séance — Appui long — carte soulevée` (`3518:4576`) matérialise ce retour visuel. Avec Récupération, le bloc actif passe de `354 × 93` à `362 × 97`, reste centré dans la section (`x = 6`, contre `x = 10` au repos), utilise le fond bleu très clair `#F7F7FF`, un contenu atténué, un contour `1` point `#D1D1D6`, un rayon `12` et une ombre périphérique `#14171F` à `22 %`, décalage `0 / 0`, flou `10`, étalement `2`. L’ombre et le contour entourent l’Activité et sa Récupération. Les autres cartes et éléments structurels restent inchangés.
 
@@ -798,7 +796,7 @@ L’en-tête fixe porte un titre fonctionnel : `Ajouter une activité` en créat
 Sous l’en-tête, un bandeau bleu de `402 × 115` points, sans espace avec le séparateur horizontal de l’en-tête, contient uniquement :
 
 - le champ du nom d’Activité, placé à `12` points du haut, de même hauteur et au même alignement que le champ `Nom de la séance` de la Composition ;
-- deux accès `Catégorie` et `Zones corporelles`, chacun avec une icône `+` séparée du libellé ; le caractère `+` ne fait pas partie du texte.
+- deux accès `Catégorie` et `Zones corporelles`, chacun avec une icône `+` séparée du libellé ; le caractère `+` ne fait pas partie du texte. Cercles/pilules 34 px, dessins 20, gaps 12, cibles 44 sans chevauchement ; pastille Catégorie renseignée 26. L’icône Zones corporelles suit la préférence silhouette du Profil (homme par défaut). Les trois cercles illustratifs de l’état Initial n’ajoutent pas un second réglage de Profil.
 
 `Renforcement du genou` visible dans les états renseignés est une **valeur de démonstration Figma**, jamais un libellé statique ni une valeur codée en dur. Seul l’état vide `3943:6064` utilise `Nom de l’activité` comme placeholder/état vide.
 
@@ -811,7 +809,7 @@ Le reste du formulaire affiche ensuite, dans cet ordre :
 - segment `Durée / Répétitions / À l’échec` ;
 - cadre `Séries / cible du mode / Pause` ;
 - cadre bleu, ligne 2 : `Changement de côté / Récupération / Durée totale` ;
-- zone Média conforme au Figma courant ; le cadre de synthèse reste au-dessus en cas de chevauchement. L’affichage média déployé du Catalogue fait partie du MVP ; cette règle ne crée pas à elle seule une fonction d’import/capture supplémentaire dans l’éditeur ;
+- zone Média conforme au Figma courant ; le cadre de synthèse reste au-dessus en cas de chevauchement. L’état avec vignette du Catalogue suit RG-4 et ne comporte pas Déployer ; la carte déployée de référence subsiste dans les wireframes ; cette règle ne crée pas à elle seule une fonction d’import/capture supplémentaire dans l’éditeur ;
 - synthèse calculée de l’Activité, immuable et ancrée en bas de l’écran ;
 - bouton final fixe `Terminer`.
 
@@ -942,6 +940,20 @@ L’écran affiche :
 
 En vue Jour, un glissement horizontal de la grille vers la gauche affiche le jour suivant et un glissement vers la droite le jour précédent. Les chevrons restent disponibles. Un appui long sur une plage horaire prépare une nouvelle planification ; le texte `créneau libre` n’est pas utilisé.
 
+### Cartes et commandes — vues Jour, Semaine et Mois
+
+| Vue / état | Présentation et règle locale | Contrat |
+|---|---|---|
+| Jour : initial, appui long, après planification, créneau, jour suivant | Carte à x=80 ; séance 298 × 46, exercice 298 × 48 ; hauteur ajustable selon événement ; barre couleur de l’événement 4 ; nature26 ; titre13 gras ; heure/durée11 (`08 h · 13 min`) ; Lecture26 ; aucun Déployer | CE-UI-02 |
+| Semaine : liste, mardi sélectionné, suppression et actions glissées | Carte354 × 95,5, sans barre ; nature26 liste/tai-chi ; badge heure `08:00` ; classement catégorie puis étiquette (séance) ou zones (exercice) ; durée et sablier sur ligne des valeurs | CE-UI-03 |
+| Semaine : séance déployée | Hauteur de référence254,5 ; détail des exercices et ligne de récurrence avec calendrier ; badge heure et durée conservés | CE-UI-03 |
+| Choisir séance/exercice depuis Calendrier | Cartes de choix354 × 91, radio, sans durée ni Déployer/Lecture ; texte à ≥20 du contrôle | CE-UI-04 |
+| Mois et état vide | Conserver leur structure fonctionnelle ; appliquer segmenté/navigation communs ; ne pas ajouter une carte Jour à une cellule Mois | CE-UI-03 |
+
+Les séances restent sans photo. En Semaine, un exercice avec média suit Photo : vignette64, texte x88/largeur254, nature et pictogramme de zone retirés, catégorie conservée, heure/durée conservées, aucune augmentation de hauteur. Chargement/erreur et texte alternatif suivent RG-11 à RG-13. Les deux modales de suppression conservent les cartes Semaine actualisées en arrière-plan.
+
+Le segmenté Jour/Semaine/Mois mesure354 sur référence402 : padding4, gaps4, options112,67. Aujourd’hui et Planifier restent à32 sans cible44 ajoutée : exception acceptée, à revoir et développer après T04. La navigation utilise les quatre nouveaux dessins DSF. Ces règles ne déplacent pas les jalons fonctionnels existants.
+
 ### Comportement
 
 En vue Jour, toucher une carte ouvre sa planification ; aucune action glissée n’est proposée. En vue Semaine, toucher la zone principale d’une occurrence ouvre la modification de sa Routine dans l’écran de planification prérempli. La carte possède également une zone distincte pour la déployer ou la replier, une zone `Démarrer`, et révèle uniquement `Dupliquer` et `Supprimer` par glissement gauche. `Dupliquer` identifie la Routine source à partir de l’occurrence, crée un brouillon reprenant la même source (`SESSION` ou `ACTIVITY`) et tous ses paramètres de planification, puis ouvre ce brouillon en modification. Aucune nouvelle Routine n’est persistée avant validation explicite de l’utilisateur.
@@ -977,6 +989,12 @@ La suppression ou modification d’une Routine agit sur les occurrences futures 
 | Écran 8e | Nombre de semaines ouvert | ![[images/ecran-8e-planifier-semaines-ouvert.png\|220]] | Roulette native compacte à une colonne avec Annuler/Confirmer | `1992:7537` |
 | Écran 8f | Aucune répétition | ![[images/ecran-8f-planifier-sans-repetition.png\|220]] | Variante de planification unique | `1992:7716` |
 | Écran 8g | Changer la Séance | ![[images/ecran-8g-planifier-changer-seance.png\|220]] | Liste de remplacement de la Séance associée | `1992:7861` |
+
+### Choix et remplacement de la source — Écran 8g
+
+La sélection de Séance ou d’Exercice réutilise exactement les variantes `Choix calendrier ou planification` (CE-UI-04), sans variante spécifique Planification. Largeur354, marges24 sur402 ; titre15 Semi Bold, classement en pastilles20, valeurs16 ; radio à droite, sans badge durée ni Lecture/Déployer. Au moins20 entre texte tronqué et radio. Séance sans vignette ; Exercice avec/sans vignette selon média, règles RG-11 à RG-13. La source `SESSION`/`ACTIVITY` vient de la donnée, jamais du titre.
+
+Tous les états du formulaire (création, date, heure, rappel, semaines, aucune répétition) utilisent les icônes communes, l’animation Discret sur champs/steppers et la navigation DSF lorsqu’elle est présente. Ils conservent leurs contrôles, validation et persistance existants. La correction des segmentés354 concerne les contrôles à trois choix de ce gabarit, pas les roulettes ou le sélecteur de rappel à deux extrémités fixes. Contrat CE-UI-05.
 
 ### Objectif
 
@@ -1304,7 +1322,7 @@ Cette vue n’est pas fonctionnelle dans le MVP.
 
 ### Présence dans le MVP
 
-La commande `Vue d’ensemble` reste visible mais désactivée dans le MVP. La vue analytique et ses graphiques ne sont pas fonctionnels et restent reportés à une version ultérieure.
+La vue et ses graphiques sont abandonnés pour le MVP et seront conçus ultérieurement. Les anciennes maquettes de cette vue ne sont pas des écrans à développer ; aucune commande d’accès n’est requise par cette référence.
 
 ## Écran 11 – Suivi : Séances
 
@@ -1335,12 +1353,12 @@ Les occurrences planifiées non exécutées ne sont pas affichées dans le Suivi
 L’écran comporte :
 
 - la destination active `Séances` ;
-- les commandes visibles mais désactivées `Vue d’ensemble`, `Filtrer` et `Trier` ;
+- les commandes `Filtrer` et `Trier`, visibles mais désactivées dans ce contexte ;
 - une liste chronologique des Exécutions.
 
 Chaque carte peut être condensée ou déployée individuellement afin d’afficher le détail de l’Exécution directement dans la liste. Aucun contrôle `Déployer tout / Replier tout` n’est affiché dans le MVP.
 
-Le contrôle `Séances / Vue d’ensemble` est divisé en deux zones égales, même si `Vue d’ensemble` est désactivée. Les commandes `Filtrer` et `Trier` conservent leur écart et sont centrées comme un groupe. Dans chaque carte, le chevron et le Ressenti forment un groupe ancré au bord droit intérieur : le Ressenti ne peut pas disparaître sur écran compact et le groupe ne s’éloigne pas du bord sur grand téléphone. La liste est la seule zone défilante et s’arrête visuellement au moins `16` points avant la navigation basse fixe.
+La Vue d’ensemble est hors MVP ; l’ancien contrôle partagé ne constitue plus une exigence de cette version. Les commandes `Filtrer` et `Trier` conservent leur écart et sont centrées comme un groupe. Dans chaque carte, le chevron et le Ressenti forment un groupe ancré au bord droit intérieur : le Ressenti ne peut pas disparaître sur écran compact et le groupe ne s’éloigne pas du bord sur grand téléphone. La liste est la seule zone défilante et s’arrête visuellement au moins `16` points avant la navigation basse fixe.
 
 ### Carte d’Exécution
 
@@ -1352,6 +1370,8 @@ Chaque carte affiche au minimum :
 - la durée réelle ;
 - le statut `Terminée`, `Partielle` ou `Interrompue` ;
 - le ressenti lorsqu’il a été renseigné.
+
+Présentation commune aux cartes Séance/Exercice : largeur354, hauteur repliée95,5, titre15, aucune barre verticale ; nature26 à gauche. Classement gris en pastilles20 et valeurs16. Heure au format `18 h 42`. Statut en haut à droite, largeur76 ; carré Déployer28 en bas (bord gauche262), Ressenti visible28 à16 du bord droit. Le composant Ressenti conserve sa boîte48. La séance déployée fait310,5 à taille standard, avec détail par tour/activité. Les données proviennent de l’Instantané, y compris si la source a disparu. Le miroir de bilatéralité des cartes Catalogue/choix n’est pas ajouté à la Semaine ou au Suivi. Filtrer/Trier : boutons34, dessins20, gap12, cibles44. L’état vide conserve ces commandes et la navigation. Contrat CE-T03-15.
 
 ### Filtres avancés
 
@@ -1375,7 +1395,9 @@ La frame `3786:5093` utilise le même Screen Shell et le même contrôle de type
 
 La rangée `Créer / Filtrer / Trier` est identique au Catalogue des Séances : boutons contextuels `34 pt`, pictogrammes `20 pt`, gap `12 pt`, cibles tactiles ≥ `44 × 44 pt` sans chevauchement. `Filtrer` propose les critères contextuels validés et ses panneaux ouverts sont définis dans Figma ; `Trier` reste visible disabled.
 
-Chaque carte utilise la nouvelle grammaire DSF : aucune barre verticale ; la couleur de Catégorie est portée par sa pastille dans le Catalogue. Sa surface principale ouvre la consultation ou la modification ; le bouton Lecture, dans une cible séparée, lance uniquement l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Exercices actives et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
+Chaque carte utilise la nouvelle grammaire DSF : aucune barre verticale ; la couleur de Catégorie est portée par sa pastille dans le Catalogue. Sa surface principale ouvre la consultation ou la modification ; le bouton Lecture, dans une cible séparée, lance uniquement l’Exécution directe. Sans vignette, la présentation APRÈS conserve son contrôle Déployer et la référence déployée. Avec photo/vidéo associée, la carte Photo affiche une vignette64 et retire Déployer conformément à RG-4 ; Lecture reste indépendante. Chargement/erreur conservent la place réservée, texte alternatif = nom de l’exercice. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Exercices actives et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
+
+Titre15 Semi Bold, badge durée en haut à droite, classement Catégorie puis Zones, valeurs16 et synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`. Bilatéralité par miroir16 à12 après la synthèse. Aucune pause/récupération ni prochaine planification affichée. Photo : carte354 × 91 inchangée, vignette64 à12, texte x88/largeur254, catégorie conservée et pictogramme de zone retiré. Variante archivée : fond #F6F6F6, bord #D9D9D9, Restaurer ; l’absence d’écran d’archive dédié est acceptée. Ces règles valent aussi derrière les panneaux de filtres et dans les états glissés ; les actions suivent la hauteur de la carte.
 
 ![[images/ecran-12-catalogue-activites-liste.png|260]]
 
@@ -1410,6 +1432,8 @@ Cette règle n’active pas les Parcours dans T03/MVP. Les anciennes frames Figm
 Depuis `Ajouter une activité`, la frame `3789:5349` ouvre directement la sélection des Exercices du Catalogue au-dessus de la Composition grisée. La liste seule défile. Les boutons fixes sont `Annuler` à gauche et `Ajouter N activité(s)` à droite.
 
 Les Exercices sont insérées selon leur ordre courant de présentation dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers. La Recherche utilise `Icon / Search`; l’état sélectionné utilise `Icon / Selection Check`. Aucun glyphe texte ne peut les remplacer.
+
+Chaque carte de choix Composition mesure354 × 91, rayon8, titre15, case arrondie20 ; aucun badge durée ni Lecture/Déployer. Minimum20 entre texte tronqué et case. Catégorie/Zones en classement, synthèse et miroir selon bilatéralité. Avec média : vignette64 centrée/recadrée, place réservée chargement/erreur, texte alternatif nom ; aucune hausse de hauteur. États sélectionné/non sélectionné/inactif suivent la palette #0508E5/#5C636E/#C2C4D1, sans remplacer le composant vectoriel par un glyphe. Les règles d’insertion et de validation à0 restent inchangées. Contrat CE-T03-07.
 
 ![[images/ecran-14-selection-activites-existantes.png|260]]
 
@@ -1876,24 +1900,19 @@ La navigation et les comportements associés sont définis par D-203 et `../CONC
 
 Une Séance et un Exercice persistant sont tous deux planifiables directement. L’action `Planifier` d’une carte ouvre le même parcours de planification avec la source préremplie. Le parcours depuis le Calendrier permet de choisir une source planifiable parmi les Séances et les Exercices persistants. La famille d’écran historiquement nommée `Planifier une séance` est donc un gabarit de planification générique ; les frames Figma actuellement nommées avec `séance` constituent l’évidence visuelle de cette variante, mais ne limitent plus le comportement fonctionnel aux seules Séances.
 
-### Prochaine planification dans les Catalogues — D-206
+### Prochaine planification dans les Catalogues — D-206 révisée par D-214
 
-Les cartes des Catalogues `Séances` et `Exercices` appliquent la même règle : si la source possède au moins une occurrence future calculée, la carte affiche la **plus proche** comme `prochaine planification`. Si aucune occurrence future n’existe, cette ligne est entièrement absente et aucun espace n’est réservé. Cette information n’est pas une différence de structure entre les deux Catalogues ; seule la nature de la source (`SESSION` ou `ACTIVITY`) diffère.
+Les cartes des deux Catalogues n’affichent aucune prochaine planification et ne réservent aucun espace à cette information, même si une occurrence future existe. La source SESSION/ACTIVITY reste directement planifiable et le calcul des occurrences reste disponible.
 
 ### Extension future du parcours de planification — Parcours
 
 Le parcours générique de planification est conçu pour accepter à terme un Parcours comme troisième source. Dans le MVP, les sources actives sont Séance et Exercice ; l’option Parcours reste désactivée tant que la version correspondante n’est pas livrée. Lorsqu’elle le sera, aucune nouvelle famille d’écran de planification ne devra être créée : le même gabarit est réutilisé avec la source Parcours.
 
-### Composition — Récupération après activité — D-208
+### Composition — Récupération après activité — D-208 révisée sur l’affichage
 
-Sous chaque occurrence d’Exercice de la Composition, afficher systématiquement une ligne légère `Récupération {durée}`, y compris lorsque la durée vaut `0 s`. Un tap sur la durée ouvre la roulette basse de modification. Cette ligne accompagne l’occurrence lors du déplacement, de la duplication et de la suppression.
+Les cartes ne présentent plus la ligne `Récupération {durée}`, y compris pour une valeur non nulle. La donnée reste solidaire de chaque occurrence lors du déplacement, de la duplication et de la suppression. Son exécution après l’occurrence (y compris fin de Tour/Séance) et les calculs restent ceux de D-208. La disparition de l’affichage ne supprime ni phase ni valeur.
 
-La règle vaut également :
-- après la dernière Activité d’un Tour ;
-- à chaque répétition du Tour ;
-- après la dernière Activité de la Séance, avant la Fin de séance.
-
-Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est remplacé par `Récupération entre côtés` et n’est exposé que lorsque `Changement de côté` vaut `D→G` ou `G→D`. La récupération après activité ne figure ni dans l’éditeur ni dans la synthèse intrinsèque de l’Exercice.
+L’éditeur conserve `Récupération entre côtés`, exposée uniquement en D→G/G→D ; aucune récupération post-activité n’est ajoutée à la synthèse intrinsèque.
 
 ## Références transverses des cartes et appuis — 30 septembre 2026
 

@@ -199,3 +199,7 @@ D-208 modifie le comportement et le rendu attendus de la récupération. Tant qu
 ## Actualisation ciblée — 30 septembre 2026
 
 Pour les cartes, icônes, contrôles contextuels et animations d’appui, les références actuelles et écarts sont recensés dans [le complément DSF](DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Les références antérieures ci-dessus décrivent l’état audité à leur date et ne prouvent pas la conformité à cette nouvelle grammaire. D-214 révise explicitement l’affichage prévu par D-195/D-206/D-208 ; leurs données et calculs restent applicables. Les 17 points sont clos. Calendrier Jour comporte deux variantes compactes (D-215).
+
+## Propagation écran par écran — 30 septembre 2026
+
+La [matrice courante des écrans](MATRICE-ECRANS-CARTES-2026-09-30.md) relie les 38 frames portant les nouveaux sets et les états complémentaires à leurs descriptions et contrats actualisés. Les anciennes règles d’affichage sont corrigées directement dans06/13 ; CE-UI-01 à05 couvrent Profil, Jour, Semaine/Mois, choix de source et formulaire de planification. Les anciennes captures restent historiques pour le rendu modifié.
