@@ -313,6 +313,10 @@ jobs:
           name: kodjo-v2-initial-plan-${{ github.run_id }}
           path: |
             /tmp/kodjo-v2-initial/*api-evidence*.json
+            /tmp/kodjo-v2-initial/draft-response.json
+            /tmp/kodjo-v2-initial/final-response.json
+            /tmp/kodjo-v2-initial/draft-structured.json
+            /tmp/kodjo-v2-initial/plan-draft.md
             /tmp/kodjo-v2-initial/context-manifest.json
             /tmp/kodjo-v2-initial/context-error.json
             /tmp/kodjo-v2-initial/error-classification.json

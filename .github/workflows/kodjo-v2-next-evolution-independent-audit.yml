@@ -46,6 +46,8 @@ jobs:
     if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    outputs:
+      owner_accepted: ${{ steps.owner_disposition.outputs.owner_accepted }}
     steps:
       - name: Require pilot qualification PASS on exact candidate HEAD
         shell: bash
@@ -82,9 +84,33 @@ jobs:
           echo "PILOT_QUALIFICATION_NOT_PASS: $CANDIDATE_SHA" >&2
           exit 1
 
+      # Explicit owner decision on 2026-09-30 for PR #267 only. The original
+      # REVISE report remains unchanged; this records a separate acceptance.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.candidate_sha || github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Resolve exact owner disposition for PRE-1 only
+        id: owner_disposition
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_SHA: ${{ inputs.candidate_sha || github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments?per_page=100" > "$RUNNER_TEMP/pre1-owner-disposition.json"
+          disposition=$(node scripts/kodjo/resolve-pre1-targeted-acceptance.js "$PR_NUMBER" "$CANDIDATE_SHA" "$RUNNER_TEMP/pre1-owner-disposition.json")
+          accepted=false
+          if [ "$disposition" != NONE ]; then
+            accepted=true
+            echo "PRE1_TARGETED_OWNER_ACCEPTANCE: $CANDIDATE_SHA, comment=$disposition, qualification=PASS; original audit verdict unchanged" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "owner_accepted=$accepted" >> "$GITHUB_OUTPUT"
+
   independent-audit:
     needs: await_qualified_head
-    if: needs.await_qualified_head.result == 'success'
+    if: needs.await_qualified_head.result == 'success' && needs.await_qualified_head.outputs.owner_accepted != 'true'
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 60
     outputs:
