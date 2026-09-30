@@ -1997,6 +1997,12 @@ La présence d’un writer `QUALIFICATION` dans le rapport de cutover produit :
 
 Il ne peut donc pas autoriser l’activation de production.
 
+En outre, l’absence de tout writer `VNEXT` de production détecté produit :
+
+`BLOCKED_VNEXT_PRODUCTION_WRITER_MISSING`
+
+Le cutover ne peut donc pas être autorisé sur la seule base d’un transport de qualification.
+
 ### 22.7 Writers legacy grandfathered
 
 Une écriture legacy indispensable à une slice déjà active peut être déclarée :
