@@ -11,6 +11,7 @@ Implémenter l’approbation utilisateur actionnable et le handoff canonique ver
   - `kodjo.vnext.approval-record.v1` ;
   - `kodjo.vnext.execution-request.v1` ;
   - execution_core dérivé uniquement des artefacts VNext approuvés ;
+  - binding au DirectImportScan exact lorsqu’il existe ;
   - execution_fingerprint canonique ;
   - action attendue `APPROVE_EXACT_EXECUTION` ;
   - approbation explicite liée au hash exact ;
