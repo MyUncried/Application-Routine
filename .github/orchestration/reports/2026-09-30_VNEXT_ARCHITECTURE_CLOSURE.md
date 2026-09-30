@@ -72,3 +72,21 @@ Le validateur `vnext-historical-coverage.js` refuse une readiness par simple car
 5. VNext-12 réel ensuite ; audit FINAL seulement après E2E, dossier complet et qualification exacte.
 
 **État : correction contractuelle livrée pour qualification ; VNext global NON QUALIFIÉ.** Les lacunes ouvertes restent visibles ; aucun APPROVE n’est fabriqué.
+
+## Qualification distante du premier delta et correction Windows
+
+Premier delta publié : `bc8148b9682985fe97e6ab1c8d0357a567aeb9ef`, PR #269.
+Run `36732616505` : Ubuntu SUCCESS ; Windows FAILURE (170 PASS / 3 FAIL /
+0 SKIP), exclusivement `VNEXT_HISTORY_SOURCE_CHANGED` dans la nouvelle
+suite de couverture historique. Le checkout Windows transforme LF en CRLF.
+Correction : lecture des sources par `git show` au commit résolu exact,
+conformément à INC-137 ; aucune normalisation implicite du contenu et aucun
+affaiblissement des hashes. Fixture core.autocrlf=true avec vrais fichiers
+CRLF : objets Git reconnus, lecture brute du checkout refusée.
+
+Pilote historique `36732616506` : job protocol/Linux SUCCESS consulté ;
+job Windows encore queued lors de la consultation. La suite locale élargie
+sur le snapshot ne vaut pas qualification : 12 échecs faute de tokenizer
+installé et 2 contrôles nécessitant l’historique Git absent du snapshot.
+Les preuves CI au HEAD exact et clone complet priment sur ce snapshot.
+Aucun échec historique n’est transformé en PASS fictif.

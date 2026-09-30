@@ -1,6 +1,16 @@
 'use strict';
 
 const V = require('./vnext-contract');
+const { execFileSync } = require('node:child_process');
+
+function readSourcesAtRevision(matrix, { cwd, revision = 'HEAD' }) {
+  if (matrix.register_path !== '.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md'
+      || matrix.normative_path !== '.github/AI_ORCHESTRATION.md') V.fail('VNEXT_HISTORY_SOURCE_PATH_INVALID');
+  const git = args => execFileSync('git', args, { cwd, encoding: 'utf8', windowsHide: true, maxBuffer: 8 * 1024 * 1024 });
+  const commit = git(['rev-parse', revision + '^{commit}']).trim();
+  return { register: git(['show', commit + ':' + matrix.register_path]),
+    normativeSource: git(['show', commit + ':' + matrix.normative_path]) };
+}
 
 function validateInventory(matrix, { register, normativeSource }) {
   if (matrix.schema_version !== 'kodjo.vnext.historical-disposition.v1') V.fail('VNEXT_HISTORY_SCHEMA_INVALID');
@@ -34,4 +44,4 @@ function assertHistoricalReady(matrix, sources) {
   return true;
 }
 
-module.exports = { validateInventory, assertHistoricalReady };
+module.exports = { readSourcesAtRevision, validateInventory, assertHistoricalReady };
