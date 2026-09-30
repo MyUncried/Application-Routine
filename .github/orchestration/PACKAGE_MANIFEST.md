@@ -158,6 +158,7 @@ Ces composants sont livrés au même HEAD que ce manifeste. Leur présence ne va
 | `scripts/kodjo/run-queued-request.ps1` | Entrée normative ou runtime consommé par les workflows candidats |
 | `scripts/kodjo/scan-plan-impact.js` | Entrée normative ou runtime consommé par les workflows candidats |
 | `scripts/kodjo/scan-remote-write-capability.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/resolve-pre1-targeted-acceptance.js` | Exception propriétaire de #267 liée au SHA exact après qualification ; conserve REVISE et les réserves historiques, sans nouvel appel global |
 | `scripts/kodjo/targeted-requalification.js` | Entrée normative ou runtime consommé par les workflows candidats |
 | `scripts/kodjo/validate-orchestration-paths.js` | Entrée normative ou runtime consommé par les workflows candidats |
 | `scripts/kodjo/validate-workflows.js` | Entrée normative ou runtime consommé par les workflows candidats |

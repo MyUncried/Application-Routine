@@ -46,4 +46,14 @@ Audit 36705478288, session 9bea8eda-c548-42d2-96f6-2ae6708aefc0, commentaire 591
 
 Le complément passe 37 tests ciblés, 37 PASS / 0 FAIL / 0 SKIP. Suite complète locale : 805 tests, 798 PASS / 0 FAIL / 7 SKIP ; diff --check PASS. Les fonctions du prompt restent du texte de mission : aucune exécution du code du modèle n'est ajoutée en production. Aucun résultat Windows ou audit indépendant du complément n'est revendiqué.
 
-Le complément est conservé séparément sans déplacer le HEAD de #267 : ce déplacement déclencherait un deuxième audit automatique. Aucun second appel n'est lancé. #267 n'est pas fusionnée ; PRE-1 n'est pas relancé. La mission d'audit actuelle indique : « Le résultat REVISE est publiable et n'autorise aucune clôture de la PR. » Sa revue couvre 64 axes globaux, même pour ce correctif ciblé ; distinguer les réserves préexistantes n'annule pas ce gate. Un arbitrage explicite est nécessaire avant un nouveau cycle ou une modification du protocole de clôture ; le verdict publié n'est ni remplacé ni requalifié en APPROVE.
+Le complément a d'abord été conservé séparément sans déplacer le HEAD de #267. Aucun second appel n'a été lancé ; la réserve du gate REVISE a été soumise au propriétaire.
+
+## Décision propriétaire du 30 septembre 2026, 14:13 Europe/Paris
+
+Le propriétaire a validé la seconde approche : acceptation ciblée du correctif PRE-1, maintien des réserves globales pour leur traitement séparé/VNext, puis passage au développement dans le périmètre produit validé. Cette instruction explicite constitue une exception de clôture pour #267 ; elle ne transforme pas le rapport REVISE en APPROVE et ne s'applique à aucune autre PR.
+
+Le workflow conserve d'abord la qualification Linux/Windows au HEAD exact. Il ne dispense l'appel indépendant global que si une disposition du propriétaire MyUncried sur #267 désigne exactement ce SHA, la portée PRE1_TARGETED_CORRECTION, le prédécesseur audité 3a7039ef03190e15a3878178aaf65edbf4c319bf et le run 36705478288. Une disposition ultérieure de révocation invalide l'acceptation. Le script de résolution n'écrit ni dans GitHub ni dans l'application ; il est déclaré au manifeste et testé contre mauvais PR/SHA/auteur, références divergentes, doublons et révocation. Le verdict historique reste inchangé, les réserves ne sont pas déclarées fermées. La qualification du candidat final doit encore être constatée avant fusion.
+
+Après fusion : reprise de la même paire causale et baseline PRE-1, revue du plan produit corrigé, puis développement sans nouvel audit global du protocole. Les gates de périmètre, preuves techniques et décisions produit nécessaires restent actifs. Cette décision n'autorise aucune conformité fictive ou décision produit nouvelle implicite.
+
+Qualification locale du candidat avec l'exception : 808 tests / 801 PASS / 0 FAIL / 7 SKIP, 27,197 s ; 64 workflows YAML acceptés ; validate-workflows et diff --check PASS. Qualification distante encore à constater avant fusion.
