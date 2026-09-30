@@ -75,7 +75,7 @@ function buildRecipe(cwd) {
 }
 function main() {
   const [stage, output] = process.argv.slice(2);
-  if (!['produce', 'prepare'].includes(stage) || !output) throw new Error('Usage: prepare-vnext12.js <produce|prepare> <external-evidence-directory>');
+  if (!['produce', 'prepare', 'publish-reviewed'].includes(stage) || !output) throw new Error('Usage: prepare-vnext12.js <produce|prepare|publish-reviewed> <external-evidence-directory>');
   const cwd = process.cwd();
   const out = path.resolve(output);
   if (out.startsWith(cwd + path.sep)) throw new Error('VNEXT12_EVIDENCE_MUST_BE_OUTSIDE_CHECKOUT');
@@ -85,15 +85,33 @@ function main() {
   const produced = Chain.produce(recipe, { cwd });
   write('recipe.json', recipe); write('produced.json', produced);
   if (stage === 'produce') return;
-  const receipt = Chain.review(produced, { cwd });
+  const receipt = stage === 'publish-reviewed'
+    ? JSON.parse(fs.readFileSync(path.join(out, 'review-receipt.json'), 'utf8'))
+    : Chain.review(produced, { cwd });
   write('review-receipt.json', receipt);
   // REVISE is retained, never converted to APPROVE or automatically retried.
   if (receipt.review_report.verdict !== 'APPROVE') throw new Error('VNEXT12_INITIAL_REVIEW_' + receipt.review_report.verdict);
-  const bootstrap = { protocol: 'VNEXT', vnext_chain_file: ROOT + '/initial/prepared.json',
+  const identity = require('./lib/slice-identity');
+  const bootstrapPath = '.github/orchestration/v2-slices/VNEXT-12-QUALIF/slice-bootstrap.json';
+  const bootstrap = { schema_version: identity.BOOTSTRAP_SCHEMA,
+    protocol: 'VNEXT', vnext_chain_file: ROOT + '/initial/prepared.json',
     slice_id: 'VNEXT-12-QUALIF', issue_number: 269, repository: 'MyUncried/Application-Routine',
-    authorized_actors: [], activation_registry: ROOT + '/disposable-registry.json' };
+    target_branch: 'protocol/vnext-proof-stability-20260930',
+    baseline_head: produced.artifacts.planningEnvelope.baseline_head,
+    protocol_version: '0.6.12', protocol_commit: produced.producer_revision,
+    previous_slice_id: null, previous_checkpoint: null,
+    product_sources: [{ path: SOURCE, sha256: produced.source_observations[0].fingerprint }],
+    authorized_actors: ['MyUncried', 'claude-local'], created_at: new Date().toISOString(),
+    activation_registry: '.github/orchestration/v2-activation-registry.json' };
   bootstrap.slice_bootstrap_sha256 = V.canonicalHash(bootstrap);
-  const transport = { slice_bootstrap_file: ROOT + '/initial/slice-bootstrap.json',
+  identity.validateBootstrap(bootstrap);
+  const registry = JSON.parse(Chain.readGit(cwd, produced.producer_revision, bootstrap.activation_registry));
+  if (registry.activations.some(x => x.slice_id === bootstrap.slice_id)) throw new Error('VNEXT12_DISPOSABLE_ALREADY_REGISTERED');
+  registry.activations.push({ slice_id: bootstrap.slice_id, status: 'ACTIVE', issue_number: 269,
+    baseline_head: bootstrap.baseline_head, bootstrap_path: bootstrapPath,
+    slice_bootstrap_sha256: bootstrap.slice_bootstrap_sha256 });
+  identity.validateRegistry(registry, bootstrap);
+  const transport = { slice_bootstrap_file: bootstrapPath,
     slice_bootstrap_sha256: bootstrap.slice_bootstrap_sha256,
     plan_path: ROOT + '/initial/technical-plan.md', review_path: ROOT + '/initial/independent-review.md',
     prompt_file: ROOT + '/initial/implementation-mission.md', gate_ref: 'issue_comment:1',
@@ -102,8 +120,7 @@ function main() {
   write('prepared.json', ready.prepared); write('transport.json', transport);
   write('publication.json', [{ path: bootstrap.vnext_chain_file, content: JSON.stringify(ready.prepared, null, 2) + '\n' },
     { path: transport.slice_bootstrap_file, content: JSON.stringify(bootstrap, null, 2) + '\n' },
-    { path: bootstrap.activation_registry, content: JSON.stringify({ qualification_only: true,
-      activations: [{ slice_id: bootstrap.slice_id, status: 'ACTIVE', issue_number: 269 }] }, null, 2) + '\n' },
+    { path: bootstrap.activation_registry, content: JSON.stringify(registry, null, 2) + '\n' },
     ...Object.values(ready.compatibility_files).map(x => ({ path: x.path, content: x.content }))]);
   write('status.json', { status: 'PREPARED_FOR_PUBLICATION', candidate_head: produced.producer_revision,
     review_verdict: receipt.review_report.verdict, claude_session_id: receipt.session_id,

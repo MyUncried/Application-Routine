@@ -53,8 +53,10 @@ function renderCompatibilityReview(executionRequest, reviewReport, planPath) {
   ].join('\n');
 }
 
-function renderCompatibilityMission(executionRequest) {
+function renderCompatibilityMission(executionRequest, planContract = null, planPath = null) {
   const scope = executionRequest.write_scope.map((row) => row.path);
+  if (planContract && planContract.contract_hash !== executionRequest.plan_contract_hash) V.fail('VNEXT_QUEUE_MISSION_PLAN_MISMATCH');
+  if (planPath !== null) safeRelativePath(planPath, 'VNEXT_QUEUE_PLAN_PATH_INVALID', 'plan_path');
   return [
     '# Mission d’implémentation — ' + executionRequest.slice_id,
     '',
@@ -75,6 +77,12 @@ function renderCompatibilityMission(executionRequest) {
     'Tout besoin hors scope doit arrêter l’exécution avant modification.',
     'Toute substitution native sans autorisation explicite doit arrêter en NATIVE_PRIMITIVE_EXCEPTION_REQUIRED avant code.',
     '',
+    ...(planContract ? [
+      '## Plan exact approuvé à exécuter', '',
+      'Lire le plan opposable ' + planPath + ' avant toute modification. Sa projection exacte suit.',
+      'Le plan impose les intentions, tests, preuves et préservations. Arrêter en CLARIFICATION_REQUIRED si une exigence est ambiguë.',
+      Plan.renderMarkdown(planContract).trimEnd(), '',
+    ] : []),
   ].join('\n');
 }
 
@@ -88,7 +96,7 @@ function prepareCompatibilityFiles(args) {
   const bodies = {
     plan: [transport.plan_path, renderCompatibilityPlan(request, planContract)],
     review: [transport.review_path, renderCompatibilityReview(request, reviewReport, transport.plan_path)],
-    mission: [transport.prompt_file, renderCompatibilityMission(request)],
+    mission: [transport.prompt_file, renderCompatibilityMission(request, planContract, transport.plan_path)],
   };
   return Object.fromEntries(Object.entries(bodies).map(([kind, [filePath, content]]) => {
     safeRelativePath(filePath, 'VNEXT_QUEUE_COMPATIBILITY_PATH_INVALID', kind);
@@ -134,7 +142,7 @@ function buildLegacyQueueProjection(args) {
 
   const planBody = renderCompatibilityPlan(executionRequest, planContract);
   const reviewBody = renderCompatibilityReview(executionRequest, reviewReport, transport.plan_path);
-  const missionBody = renderCompatibilityMission(executionRequest);
+  const missionBody = renderCompatibilityMission(executionRequest, planContract, transport.plan_path);
   const planBlobOid = gitBlobOid(planBody);
   const reviewBlobOid = gitBlobOid(reviewBody);
   const missionBlobOid = gitBlobOid(missionBody);
