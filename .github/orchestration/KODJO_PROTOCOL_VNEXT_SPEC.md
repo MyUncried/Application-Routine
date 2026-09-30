@@ -83,6 +83,9 @@ REVISE réentre uniquement à l'étape minimale nécessaire : REQUIREMENTS, IMPA
 - `kodjo.vnext.execution-request.v1`
 - `kodjo.vnext.runtime-snapshot.v1`
 - `kodjo.vnext.legacy-queue-projection.v1`
+- `kodjo.vnext.cutover-plan.v1`
+- `kodjo.vnext.cutover-activation.v1`
+- `kodjo.vnext.cutover-rollback.v1`
 
 VNext-01 implémente uniquement les trois premiers contrats et le socle de canonicalisation/hash/IDs.
 
@@ -1525,3 +1528,212 @@ VNext devient `CUTOVER_CANDIDATE` uniquement si :
 `CUTOVER_CANDIDATE` n'active pas VNext.
 
 Le cutover reste un lot séparé.
+
+
+## 20. VNext-10 — Préparation du cutover, coexistence et rollback
+
+### 20.1 Objet
+
+VNext-10 prépare le cutover sans activer VNext.
+
+Ce lot :
+
+- définit le contrat de cutover ;
+- définit le routage LEGACY / VNEXT ;
+- protège les cycles legacy en cours ;
+- définit le rollback ;
+- qualifie ces comportements ;
+- ne modifie aucun workflow actif.
+
+### 20.2 Contrats
+
+VNext-10 introduit :
+
+- `kodjo.vnext.cutover-plan.v1`
+- `kodjo.vnext.cutover-activation.v1`
+- `kodjo.vnext.cutover-rollback.v1`
+
+### 20.3 CutoverPlan
+
+Le CutoverPlan est construit depuis :
+
+- HEAD candidat VNext qualifié ;
+- PR candidate ;
+- run de qualification ;
+- registre d’activation legacy exact ;
+- liste des slices legacy protégées.
+
+Le plan scelle :
+
+- legacy_registry_hash ;
+- protected_legacy_slice_ids ;
+- blocking_slice_ids ;
+- grandfathered_legacy_slice_ids ;
+- routing avant activation ;
+- routing après activation ;
+- activation_readiness.
+
+Le plan de préparation porte obligatoirement :
+
+`active_workflow_change_allowed = false`
+
+### 20.4 PRE-1 comme précondition explicite
+
+Pour le cutover préparé dans ce cycle :
+
+`V2-PRE-1`
+
+est une slice legacy protégée.
+
+Tant que son statut dans le registre legacy n’est pas `CLOSED` :
+
+`activation_readiness = BLOCKED_BY_ACTIVE_PROTECTED_SLICE`
+
+et toute tentative de créer un ActivationRecord échoue.
+
+La préparation de VNext-10 reste autorisée pendant PRE-1.
+
+L’activation effective ne l’est pas.
+
+### 20.5 Recalcul des bloqueurs
+
+Le champ `activation_readiness` n’est jamais accepté sur confiance.
+
+Avant activation, la machine :
+
+1. relit le registre legacy courant ;
+2. recalcule son hash ;
+3. recalcule les slices protégées encore ouvertes ;
+4. recalcule les slices legacy actives à grandfather ;
+5. compare le tout au CutoverPlan.
+
+Un CutoverPlan re-signé qui supprimerait artificiellement PRE-1 des bloqueurs est refusé.
+
+### 20.6 Registre legacy dérivé
+
+Si le registre legacy change entre préparation et activation :
+
+`VNEXT_CUTOVER_LEGACY_REGISTRY_STALE`
+
+Le cutover doit être reconstruit sur l’état courant.
+
+Aucun nouveau cycle legacy apparu après la préparation ne peut être ignoré silencieusement.
+
+### 20.7 Activation explicite
+
+L’ActivationRecord exige :
+
+- CutoverPlan READY_FOR_ACTIVATION ;
+- registre legacy courant identique à celui qualifié ;
+- approbation explicite ;
+- actor_id ;
+- evidence_ref ;
+- approved_cutover_plan_hash exact ;
+- activated_at_protocol_head.
+
+L’activation porte :
+
+`default_protocol = VNEXT`
+
+mais ne déplace jamais les slices legacy existantes.
+
+### 20.8 Coexistence
+
+Après activation :
+
+- toute slice déjà présente dans le registre legacy reste `LEGACY` ;
+- toute slice listée grandfathered_legacy_slice_ids reste `LEGACY` ;
+- une nouvelle slice non legacy est routée `VNEXT`.
+
+Une slice ne change donc jamais de protocole en cours de cycle.
+
+### 20.9 Routage avant activation
+
+Avant ActivationRecord :
+
+- existing legacy slice → LEGACY ;
+- nouvelle slice → LEGACY.
+
+Le simple fait que VNext soit CUTOVER_CANDIDATE ne change aucun routage.
+
+### 20.10 Rollback
+
+Le rollback exige :
+
+- ActivationRecord valide ;
+- CutoverPlan causal ;
+- approbation explicite du rollback ;
+- activation_hash exact ;
+- rolled_back_at_protocol_head ;
+- inventaire des slices VNext encore actives.
+
+Après rollback :
+
+- default_protocol = LEGACY ;
+- une nouvelle slice est routée LEGACY ;
+- une slice VNext déjà active reste VNEXT jusqu’à sa clôture.
+
+Le rollback ne change donc pas non plus de protocole en cours de cycle.
+
+### 20.11 Anti-tampering
+
+Un ActivationRecord re-signé avec une liste grandfathered modifiée est refusé.
+
+Un CutoverPlan re-signé avec des blockers modifiés est refusé.
+
+Les décisions de routage utilisent uniquement des contrats validés et liés causalement.
+
+### 20.12 État de préparation au 30 septembre 2026
+
+Le registre legacy qualifié contient :
+
+- `V2-PRE-1` : ACTIVE.
+
+La préparation VNext-10 est donc attendue en état :
+
+`BLOCKED_BY_ACTIVE_PROTECTED_SLICE`
+
+avec :
+
+`blocking_slice_ids = ["V2-PRE-1"]`
+
+Cela est le comportement conforme tant que PRE-1 n’est pas clôturé.
+
+### 20.13 Gate CUTOVER_PREPARED
+
+Le gate `CUTOVER_PREPARED` est franchi si :
+
+- VNext-09 est CUTOVER_CANDIDATE ;
+- CutoverPlan valide ;
+- PRE-1 présent comme slice protégée ;
+- coexistence testée ;
+- rollback testé ;
+- anti-tampering testé ;
+- aucun workflow actif modifié.
+
+CUTOVER_PREPARED peut être acquis alors que l’activation reste bloquée par PRE-1.
+
+### 20.14 Gate CUTOVER_ACTIVATABLE
+
+Le gate `CUTOVER_ACTIVATABLE` n’est franchi que si :
+
+- CUTOVER_PREPARED acquis ;
+- toutes les slices protégées sont CLOSED ;
+- registre legacy relu et identique au plan recalculé ;
+- qualification VNext toujours valide sur le HEAD destiné au cutover ;
+- approbation explicite de l’activation disponible.
+
+Ce gate n’est pas attendu avant la clôture de PRE-1.
+
+### 20.15 Hors périmètre
+
+VNext-10 ne :
+
+- modifie pas les triggers actifs ;
+- modifie pas les workflows de planification actifs ;
+- modifie pas la Lean Queue active ;
+- modifie pas le runner ;
+- ferme pas PRE-1 ;
+- active pas VNext.
+
+Le changement effectif de routage reste une opération ultérieure, exécutée seulement après PRE-1.
