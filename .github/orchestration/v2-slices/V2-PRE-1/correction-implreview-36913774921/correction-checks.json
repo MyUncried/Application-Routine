@@ -1,0 +1,29 @@
+{
+  "status": "LOCAL_GATES_PASS",
+  "source_head": "e216294506bed87dd80855937e3fabfbfa322b82",
+  "previous_candidate_comment": 5930810339,
+  "source_implementation_review": {
+    "comment_id": 5938943370,
+    "run_id": 36913774921,
+    "pull_request": 278,
+    "head": "4c95ec7aa3067252f412b218e89a5b9b91131c42"
+  },
+  "items": [
+    "UI-16294D4D4345 / REQ-A2F15FD967FEAC96 (SessionServiceProvider.tsx wiring + SessionServiceProvider.test.tsx)"
+  ],
+  "gates": {
+    "plan_impact": "PASS",
+    "plan_contract_consistency": "PASS",
+    "ui_plan_criteria": "PASS"
+  },
+  "scope_paths": 102,
+  "required_test_writes": 44,
+  "requirement_count": 28,
+  "ui_criteria": 13,
+  "assertions": 32,
+  "test_bindings": 67,
+  "ui_paths": 13,
+  "plan_sha256": "91a2865a3d78e2815737c2f2b2170750103f9e4b3937757179997ccf056893ea",
+  "plan_bytes": 243743,
+  "independent_review": "PENDING"
+}

@@ -1,0 +1,9 @@
+# PRE-1 — Correction bornée du plan après la revue d'implémentation 5938943370 (tour 5)
+
+Changement de périmètre décidé par Hermann (option A) après le verdict `REVISE` de la revue indépendante 5938943370 (run 36913774921, PR #278, head `4c95ec7a`). Rapport de mission principal : `2026-09-30_PRE1_ELEVEN_FINDINGS_CLOSURE_REVIEW.md`. « Traité » = inscrit dans le plan, ni implémenté ni approuvé.
+
+| # | Cible | Cause | Correction inscrite |
+|---|---|---|---|
+| 1 | `UI-16294D4D4345` / `REQ-A2F15FD967FEAC96` | `SessionService` n'applique le snapshot du Profil que si un `ProfileRepository` est injecté ; le provider de production `SessionServiceProvider.tsx` le construit sans lui (constat vérifié dans le code). Le plan classait ce provider `CONSUMER_UNAFFECTED`, hors périmètre | Provider reclassé `CONSUMER_UNAFFECTED` → `MODIFY`, `SessionServiceProvider.test.tsx` reclassé `TEST_UNAFFECTED` → `TEST_MUST_ADAPT` ; ajoutés au périmètre d'écriture, aux cibles/tests du critère et de l'exigence, test ajouté aux tests requis. Modification du provider strictement limitée à l'injection de `SqliteProfileRepository` (même connexion) comme troisième argument ; un seul test ajouté, prouvant par le provider réel et la base en mémoire migrée l'initialisation de `postActivityRecoverySeconds` depuis le Profil persistant ; aucune assertion existante modifiée |
+
+Inchangés : scan, exigences et identifiants (28), critères (13), assertions (32), frontières (12). La table `KODJO_PLAN_DECISIONS_JSON` est alignée sur les deux lignes reclassées (le tour 4 l'avait laissée sur l'ancienne classification de son test). Scope 100 → 102, tests requis 43 → 44, liaisons 65 → 67, chemins UI 12 → 13. Gates locales (checkout e216294) : impact PASS, contrat PASS (102/44), UI PASS (13/32). Plan : `v2-slices/V2-PRE-1/correction-implreview-36913774921/corrected-plan.md` (SHA-256 `91a2865a3d78e2815737c2f2b2170750103f9e4b3937757179997ccf056893ea`, 243743 octets).

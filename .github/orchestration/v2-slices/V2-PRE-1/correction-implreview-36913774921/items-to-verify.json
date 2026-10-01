@@ -1,0 +1,15 @@
+{
+  "source": "implementation review 5938943370 (run 36913774921) of PR #278 — REVISE; scope change decided by Hermann (option A)",
+  "findings": [
+    {
+      "category": "UI_CRITERION",
+      "target_kind": "CRITERION_ID",
+      "target": "UI-16294D4D4345",
+      "blocking": true,
+      "diagnostic": "Implementation review 5938943370 (UI-16294D4D4345 STATIC_ANALYSIS FAIL and REQ-A2F15FD967FEAC96 NON_CONFORME): SessionService applies the Profile snapshot only when the optional third parameter ProfileRepository is injected, but the production provider src/features/sessions/SessionServiceProvider.tsx builds new SessionService(SqliteSessionRepository, SqliteCategoryRepository) without it, so the snapshot never applies in the application. The approved plan classified this provider CONSUMER_UNAFFECTED, outside write_scope.",
+      "expected_correction": "Reclassify src/features/sessions/SessionServiceProvider.tsx CONSUMER_UNAFFECTED -> MODIFY and src/features/sessions/__tests__/SessionServiceProvider.test.tsx TEST_UNAFFECTED -> TEST_MUST_ADAPT; add both to write_scope, to the change_targets/tests of UI-16294D4D4345 and of REQ-A2F15FD967FEAC96, and the test to required_test_writes; bound the provider change to injecting SqliteProfileRepository built on the same connection as third argument of SessionService, and the test change to one added test proving through the real provider and migrated in-memory database that creating an occurrence initializes postActivityRecoverySeconds from the persisted Profile, with no existing assertion changed; nothing else in the plan changes.",
+      "dependency_expansion_required": true,
+      "dependency_evidence": "Scope change explicitly decided by Hermann on issue #249 after implementation review 5938943370."
+    }
+  ]
+}

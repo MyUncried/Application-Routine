@@ -1,0 +1,1247 @@
+{
+  "schema": "kodjo.ui-implementation-review.v1",
+  "criteria": [
+    {
+      "criterion_id": "UI-07F470FC189F",
+      "implementation_status": "NON_VERIFIABLE",
+      "preserve_status": "PASS",
+      "evidence": "ActivityCard utilise le référentiel persistant injecté et ne rend plus de récupération de définition. Le test fonctionnel et l’analyse statique sont verts ; la comparaison visuelle/device reste non exécutée.",
+      "proof_results": [
+        {
+          "proof_type": "FUNCTIONAL_TEST",
+          "status": "PASS",
+          "evidence": "ActivityCard.test.tsx est PASS dans le contrat de tests."
+        },
+        {
+          "proof_type": "STATIC_ANALYSIS",
+          "status": "PASS",
+          "evidence": "Le diff montre l’absence d’import BODY_ZONES et de lecture recoverySeconds dans ActivityCard.tsx ; TypeScript/lint sont PASS."
+        },
+        {
+          "proof_type": "VISUAL_COMPARE",
+          "status": "PENDING_DEVICE",
+          "evidence": "Aucune comparaison visuelle/device certifiable n’est fournie."
+        }
+      ],
+      "assertion_results": [
+        {
+          "assertion_id": "UI-07F470FC189F-A9AF26915ACCF",
+          "status": "PENDING_DEVICE",
+          "evidence": "Le composant passe explicitement le référentiel BodyZone à formatExerciseBodyZones et n’importe pas BODY_ZONES. La preuve visuelle/device requise reste manquante.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "ActivityCard.test.tsx est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Le diff confirme le passage explicite du référentiel et l’absence de résolution BODY_ZONES."
+            },
+            {
+              "proof_type": "VISUAL_COMPARE",
+              "status": "PENDING_DEVICE",
+              "evidence": "Preuve visuelle non exécutée."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-07F470FC189F-AA4EE9A87C7C7",
+          "status": "CONFORME",
+          "evidence": "ActivityCard ne lit plus definition.recoverySeconds et la sous-carte de récupération Catalogue a été supprimée.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "ActivityCard.test.tsx est PASS et vérifie l’absence de la récupération."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Aucune lecture de definition.recoverySeconds ni appel de formatActivityRecoveryLabel ne subsiste dans le diff."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "UI-16294D4D4345",
+      "implementation_status": "NON_CONFORME",
+      "preserve_status": "PASS",
+      "evidence": "Le service applique le Profil uniquement si un ProfileRepository optionnel est injecté. Le constructeur conserve ce troisième paramètre optionnel et le diff ne modifie pas le wiring du provider ; le chemin applicatif normal peut donc créer des occurrences sans snapshot du Profil.",
+      "proof_results": [
+        {
+          "proof_type": "FUNCTIONAL_TEST",
+          "status": "PASS",
+          "evidence": "SessionService.test.ts est PASS et couvre l’injection explicite d’un ProfileRepository."
+        },
+        {
+          "proof_type": "STATIC_ANALYSIS",
+          "status": "FAIL",
+          "evidence": "SessionService.createSession utilise une branche de repli qui transmet la valeur du brouillon lorsque profileRepository est absent ; la lecture du Profil n’est donc pas garantie par le contrat de production."
+        },
+        {
+          "proof_type": "VISUAL_COMPARE",
+          "status": "PENDING_DEVICE",
+          "evidence": "Aucune comparaison visuelle/device certifiable n’est fournie."
+        }
+      ],
+      "assertion_results": [
+        {
+          "assertion_id": "UI-16294D4D4345-A60BD8133829B",
+          "status": "NON_CONFORME",
+          "evidence": "Le snapshot depuis le Profil est conditionnel à l’injection optionnelle de ProfileRepository ; ce n’est pas garanti par le wiring inchangé du service.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "Le test injecte explicitement le ProfileRepository et observe la valeur 30."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "FAIL",
+              "evidence": "Le code contient explicitement `this.profileRepository ? ... : validated.value`; le comportement requis n’est pas obligatoire."
+            },
+            {
+              "proof_type": "VISUAL_COMPARE",
+              "status": "PENDING_DEVICE",
+              "evidence": "Preuve visuelle non exécutée."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-16294D4D4345-A88C0507C1BC3",
+          "status": "CONFORME",
+          "evidence": "Lorsque le ProfileRepository est utilisé, la valeur est copiée dans chaque exercice de l’input puis l’input est persisté ; aucune relecture ultérieure du Profil ou de la définition n’est effectuée.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "SessionService.test.ts est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "applyProfileRecoveryDefault construit une copie des exercices au moment de createSession et updateSession ne lit pas le Profil."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "UI-1652FFC3B512",
+      "implementation_status": "NON_VERIFIABLE",
+      "preserve_status": "PASS",
+      "evidence": "BodyZoneSelector reçoit le référentiel persistant en prop et les écrans chargent les zones via SqliteBodyZoneRepository. Les tests techniques sont verts ; la preuve visuelle/device reste absente.",
+      "proof_results": [
+        {
+          "proof_type": "FUNCTIONAL_TEST",
+          "status": "PASS",
+          "evidence": "BodyZoneSelector.test.tsx est PASS."
+        },
+        {
+          "proof_type": "STATIC_ANALYSIS",
+          "status": "PASS",
+          "evidence": "Le diff remplace l’ancien type seed par le type BodyZone persistant et ne réintroduit pas BODY_ZONES dans le sélecteur."
+        },
+        {
+          "proof_type": "VISUAL_COMPARE",
+          "status": "PENDING_DEVICE",
+          "evidence": "Aucune comparaison visuelle/device certifiable n’est fournie."
+        }
+      ],
+      "assertion_results": [
+        {
+          "assertion_id": "UI-1652FFC3B512-A44DC9AD88F62",
+          "status": "PENDING_DEVICE",
+          "evidence": "Les options sont alimentées par le référentiel passé par l’appelant ; la preuve visuelle/device est manquante.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "BodyZoneSelector.test.tsx est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "BodyZoneSelector.tsx ne dépend plus de features/reference-data/bodyZones.ts."
+            },
+            {
+              "proof_type": "VISUAL_COMPARE",
+              "status": "PENDING_DEVICE",
+              "evidence": "Preuve visuelle non exécutée."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-1652FFC3B512-A53C3A28B6B1F",
+          "status": "CONFORME",
+          "evidence": "Le sélecteur conserve la sélection par identifiant ; les tests du sélecteur et la validation Domaine sont verts.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "BodyZoneSelector.test.tsx est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Le composant conserve le contrat de sélection sans ajout d’une source runtime statique."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "UI-40094921B202",
+      "implementation_status": "NON_VERIFIABLE",
+      "preserve_status": "PASS",
+      "evidence": "Le service transporte les nouveaux champs et les médias ordonnés sans récupérer de champ de récupération. Les preuves fonctionnelles/statique sont vertes ; VISUAL_COMPARE reste non certifiable.",
+      "proof_results": [
+        {
+          "proof_type": "FUNCTIONAL_TEST",
+          "status": "PASS",
+          "evidence": "ActivityDefinitionService.test.ts est PASS."
+        },
+        {
+          "proof_type": "STATIC_ANALYSIS",
+          "status": "PASS",
+          "evidence": "Le diff montre category, bodyZoneIds, sideMode, sideRecoverySeconds et media dans le contrat et le forwarding."
+        },
+        {
+          "proof_type": "VISUAL_COMPARE",
+          "status": "PENDING_DEVICE",
+          "evidence": "Aucune comparaison visuelle/device certifiable n’est fournie."
+        }
+      ],
+      "assertion_results": [
+        {
+          "assertion_id": "UI-40094921B202-A2B9231E552E0",
+          "status": "PENDING_DEVICE",
+          "evidence": "Le service ne lit pas recoverySeconds/postActivityRecoverySeconds depuis ActivityDefinition ; la preuve VISUAL_COMPARE requise reste absente.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "ActivityDefinitionService.test.ts est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Aucun mapping de récupération de définition n’apparaît dans ActivityDefinitionService.ts."
+            },
+            {
+              "proof_type": "VISUAL_COMPARE",
+              "status": "PENDING_DEVICE",
+              "evidence": "Preuve visuelle non exécutée."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-40094921B202-A2E0666968E44",
+          "status": "PENDING_DEVICE",
+          "evidence": "Les médias sont forwardés dans leur ordre et le repository persiste l’index comme position ; la preuve visuelle/device est manquante.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "ActivityDefinitionService.test.ts et les tests du repository SQLite sont PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "insertMedia utilise l’ordre du tableau comme position stable."
+            },
+            {
+              "proof_type": "VISUAL_COMPARE",
+              "status": "PENDING_DEVICE",
+              "evidence": "Preuve visuelle non exécutée."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-40094921B202-A668499E759A7",
+          "status": "CONFORME",
+          "evidence": "La payload de création contient les champs ciblés et les tests du service sont verts.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "ActivityDefinitionService.test.ts est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Le diff confirme la transmission de category, bodyZoneIds, sideMode, sideRecoverySeconds et des paramètres d’exercice."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "UI-5FAB9AD7AB21",
+      "implementation_status": "NON_VERIFIABLE",
+      "preserve_status": "PASS",
+      "evidence": "BODY_ZONES reste un seed historique et les consommateurs runtime utilisent le repository persistant. Les preuves techniques sont vertes ; la comparaison visuelle/device est absente.",
+      "proof_results": [
+        {
+          "proof_type": "FUNCTIONAL_TEST",
+          "status": "PASS",
+          "evidence": "bodyZones.test.ts est PASS."
+        },
+        {
+          "proof_type": "STATIC_ANALYSIS",
+          "status": "PASS",
+          "evidence": "Le diff sépare BodyZoneSeed du type runtime BodyZone et retire les imports runtime de BODY_ZONES dans les écrans concernés."
+        },
+        {
+          "proof_type": "VISUAL_COMPARE",
+          "status": "PENDING_DEVICE",
+          "evidence": "Aucune comparaison visuelle/device certifiable n’est fournie."
+        }
+      ],
+      "assertion_results": [
+        {
+          "assertion_id": "UI-5FAB9AD7AB21-A315835B08A9E",
+          "status": "CONFORME",
+          "evidence": "Les identifiants, noms et ordre historiques de BODY_ZONES sont préservés et testés contre le seed de migration007.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "bodyZones.test.ts est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Le diff conserve les valeurs et l’ordre historiques."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-5FAB9AD7AB21-A9D11A07DBF3D",
+          "status": "PENDING_DEVICE",
+          "evidence": "Les consommateurs modifiés ne l’utilisent plus comme autorité runtime ; la preuve visuelle/device requise reste manquante.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "Les tests de zones et des écrans concernés sont PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Les écrans utilisent SqliteBodyZoneRepository ou un référentiel explicite."
+            },
+            {
+              "proof_type": "VISUAL_COMPARE",
+              "status": "PENDING_DEVICE",
+              "evidence": "Preuve visuelle non exécutée."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "UI-6FC9FA01250C",
+      "implementation_status": "NON_VERIFIABLE",
+      "preserve_status": "PASS",
+      "evidence": "Le formulaire retire l’état, le contrôle et la soumission recoverySeconds. Les tests techniques passent ; la preuve visuelle/device reste absente.",
+      "proof_results": [
+        {
+          "proof_type": "FUNCTIONAL_TEST",
+          "status": "PASS",
+          "evidence": "ActivityEditorForm.test.tsx est PASS."
+        },
+        {
+          "proof_type": "STATIC_ANALYSIS",
+          "status": "PASS",
+          "evidence": "Le diff supprime le champ, la roulette, les constantes et la transmission recoverySeconds."
+        },
+        {
+          "proof_type": "VISUAL_COMPARE",
+          "status": "PENDING_DEVICE",
+          "evidence": "Aucune comparaison visuelle/device certifiable n’est fournie."
+        }
+      ],
+      "assertion_results": [
+        {
+          "assertion_id": "UI-6FC9FA01250C-A928F4809B379",
+          "status": "CONFORME",
+          "evidence": "Le formulaire ne déclare ni n’affiche ni ne soumet recoverySeconds.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "ActivityEditorForm.test.tsx est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Les références au champ ont été retirées du formulaire."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-6FC9FA01250C-AB0E9F9EC7534",
+          "status": "PENDING_DEVICE",
+          "evidence": "Le chemin de sauvegarde ne transmet plus recoverySeconds ; la preuve visuelle/device requise reste absente.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "ActivityEditorForm.test.tsx est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "La payload assemblée par le formulaire ne contient plus recoverySeconds."
+            },
+            {
+              "proof_type": "VISUAL_COMPARE",
+              "status": "PENDING_DEVICE",
+              "evidence": "Preuve visuelle non exécutée."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "UI-7138CD4F656C",
+      "implementation_status": "CONFORME",
+      "preserve_status": "PASS",
+      "evidence": "ExerciseScreen transporte les champs cibles, retire les champs historiques et conserve la validation de catégorie/zones selon les tests fournis. Jest, TypeScript et lint sont verts.",
+      "proof_results": [
+        {
+          "proof_type": "FUNCTIONAL_TEST",
+          "status": "PASS",
+          "evidence": "ExerciseScreen.test.tsx est PASS."
+        },
+        {
+          "proof_type": "STATIC_ANALYSIS",
+          "status": "PASS",
+          "evidence": "Le diff montre categoryId/category, bodyZoneIds et sideRecoverySeconds dans les chemins de lecture/sauvegarde, sans recoverySeconds ni postActivityRecoverySeconds."
+        }
+      ],
+      "assertion_results": [
+        {
+          "assertion_id": "UI-7138CD4F656C-A41D43154AAE0",
+          "status": "CONFORME",
+          "evidence": "La catégorie n’est pas affectée automatiquement, les zones sont transportées et le bouton de création reste désactivé sans catégorie explicite ; les tests ciblés passent.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "ExerciseScreen.test.tsx est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Le diff montre la sélection explicite et la validation category === null avant sauvegarde."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-7138CD4F656C-A7927DC0DEE92",
+          "status": "CONFORME",
+          "evidence": "ExerciseScreen et ActivityEditorForm ne portent plus recoverySeconds ni postActivityRecoverySeconds dans l’état ou la payload de définition.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "ExerciseScreen.test.tsx est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Les références historiques sont retirées du chemin de définition."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-7138CD4F656C-AB361F9B9383E",
+          "status": "CONFORME",
+          "evidence": "category, bodyZoneIds et sideRecoverySeconds sont lus, maintenus et transmis ; aucune catégorie n’est inventée automatiquement.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "ExerciseScreen.test.tsx est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Le diff montre les champs dans l’initialisation, le chargement et handleFinish."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "UI-73382D60E040",
+      "implementation_status": "CONFORME",
+      "preserve_status": "PASS",
+      "evidence": "Les quatre valeurs françaises ciblées sont présentes et couvertes par les tests i18n/SideModeControl. Le rapport d’implémentation identifie la ressource fr.ts et les tests concernés.",
+      "proof_results": [
+        {
+          "proof_type": "FUNCTIONAL_TEST",
+          "status": "PASS",
+          "evidence": "SideModeControl.test.tsx et shared/i18n/index.test.ts sont PASS."
+        },
+        {
+          "proof_type": "STATIC_ANALYSIS",
+          "status": "PASS",
+          "evidence": "Le diff et les tests fixent les valeurs exactes Aucun, –, et les deux libellés d’accessibilité historiques."
+        }
+      ],
+      "assertion_results": [
+        {
+          "assertion_id": "UI-73382D60E040-A3E11D4F3FF2A",
+          "status": "CONFORME",
+          "evidence": "La valeur shared.sideMode.valueLabels.UNILATERAL vaut exactement Aucun.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "SideModeControl.test.tsx et i18n/index.test.ts sont PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "La ressource française contient la valeur cible."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-73382D60E040-A4D1451B88C36",
+          "status": "CONFORME",
+          "evidence": "La clé historique vaut exactement Direction du Tour : unilatéral.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "Le contrat i18n est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "La clé historique est préservée dans fr.ts."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-73382D60E040-AA62F6B2F0B57",
+          "status": "CONFORME",
+          "evidence": "La clé d’activité vaut exactement Changement de côté : Aucun.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "SideModeControl.test.tsx est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "La valeur exacte est fixée dans fr.ts."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-73382D60E040-AF7FFFF9CA501",
+          "status": "CONFORME",
+          "evidence": "La clé historique tour.valueLabels.UNILATERAL vaut exactement –.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "Le contrat i18n est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "La clé historique est préservée dans fr.ts."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "UI-74BBA70BF09F",
+      "implementation_status": "CONFORME",
+      "preserve_status": "PASS",
+      "evidence": "CompositionScreen utilise la récupération de l’occurrence, dérive la couleur de l’Étiquette sans écrire draft.color et retire le contrôle de direction du Tour. Les preuves fonctionnelles/statique sont PASS.",
+      "proof_results": [
+        {
+          "proof_type": "FUNCTIONAL_TEST",
+          "status": "PASS",
+          "evidence": "CompositionScreen.test.tsx est PASS."
+        },
+        {
+          "proof_type": "STATIC_ANALYSIS",
+          "status": "PASS",
+          "evidence": "Le diff retire ColorPalette, draft.color et SideModeControl du Tour, tout en utilisant postActivityRecoverySeconds et le référentiel Label."
+        }
+      ],
+      "assertion_results": [
+        {
+          "assertion_id": "UI-74BBA70BF09F-A11F5CF2B687B",
+          "status": "CONFORME",
+          "evidence": "La récupération affichée/modifiée provient de postActivityRecoverySeconds et la valeur zéro est affichée.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "CompositionScreen.test.tsx couvre Récupération 0 s et les valeurs positives."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "CompositionActivityRow appelle formatActivityRecoveryLabel(activity.postActivityRecoverySeconds)."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-74BBA70BF09F-AA62F52830301",
+          "status": "CONFORME",
+          "evidence": "Le contrôle et les interactions de direction du Tour ont été retirés ; les directions restent portées par les exercices.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "CompositionScreen.test.tsx vérifie l’absence du contrôle et du dialogue."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Les états pendingTourSideMode, applyTourSideMode et le SideModeControl du Tour ont été supprimés."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-74BBA70BF09F-AC8AD824374E8",
+          "status": "CONFORME",
+          "evidence": "La couleur est calculée en lecture depuis draft.labelId et le référentiel Label ; aucune écriture autonome de draft.color ne subsiste.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "CompositionScreen.test.tsx couvre couleur dérivée, fallback neutre et absence de color picker."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Le diff remplace ColorPalette par un swatch non interactif et supprime les écritures draft.color."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "UI-8CB4E7976CBA",
+      "implementation_status": "NON_VERIFIABLE",
+      "preserve_status": "PASS",
+      "evidence": "CategoriesScreen ne lit ni n’écrit plus les catégories de séance ou la couleur autonome ; le flux de sauvegarde final reste couvert. La preuve visuelle/device requise n’est pas fournie.",
+      "proof_results": [
+        {
+          "proof_type": "FUNCTIONAL_TEST",
+          "status": "PASS",
+          "evidence": "CategoriesScreen.test.tsx et CategoriesSaveFlow.integration.test.tsx sont PASS."
+        },
+        {
+          "proof_type": "STATIC_ANALYSIS",
+          "status": "PASS",
+          "evidence": "Le diff supprime les lectures, tags, créations et écritures de la relation historique et de la couleur."
+        },
+        {
+          "proof_type": "VISUAL_COMPARE",
+          "status": "PENDING_DEVICE",
+          "evidence": "Aucune comparaison visuelle/device certifiable n’est fournie."
+        }
+      ],
+      "assertion_results": [
+        {
+          "assertion_id": "UI-8CB4E7976CBA-A232B8F5CB511",
+          "status": "PENDING_DEVICE",
+          "evidence": "La lecture de la relation N:N a été retirée ; la preuve visuelle/device reste manquante.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "Les tests CategoriesScreen et d’intégration sont PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "CategoriesScreen ne charge plus listCategories et ne lit plus selectedCategoryIds/categoryDrafts."
+            },
+            {
+              "proof_type": "VISUAL_COMPARE",
+              "status": "PENDING_DEVICE",
+              "evidence": "Preuve visuelle non exécutée."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-8CB4E7976CBA-A244820E39CC7",
+          "status": "CONFORME",
+          "evidence": "La sauvegarde appelle uniquement SessionService.createSession avec le brouillon et ne manipule plus de relation catégorie/couleur autonome.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "CategoriesSaveFlow.integration.test.tsx est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Les écritures historiques ont été supprimées du diff."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "UI-9C227EDDE427",
+      "implementation_status": "NON_VERIFIABLE",
+      "preserve_status": "PASS",
+      "evidence": "ActivitySelectionScreen charge le référentiel persistant et retire la récupération de définition. Les tests fonctionnels/statique passent ; VISUAL_COMPARE reste en attente.",
+      "proof_results": [
+        {
+          "proof_type": "FUNCTIONAL_TEST",
+          "status": "PASS",
+          "evidence": "ActivitySelectionScreen.test.tsx est PASS."
+        },
+        {
+          "proof_type": "STATIC_ANALYSIS",
+          "status": "PASS",
+          "evidence": "Le diff supprime BODY_ZONES et formatActivityRecoveryLabel de l’écran et transmet le référentiel chargé."
+        },
+        {
+          "proof_type": "VISUAL_COMPARE",
+          "status": "PENDING_DEVICE",
+          "evidence": "Aucune comparaison visuelle/device certifiable n’est fournie."
+        }
+      ],
+      "assertion_results": [
+        {
+          "assertion_id": "UI-9C227EDDE427-A1D27AEDC4E85",
+          "status": "CONFORME",
+          "evidence": "Aucune récupération de définition n’est lue ou rendue dans les lignes Catalogue.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "ActivitySelectionScreen.test.tsx est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Les appels de récupération et références recoverySeconds ont été retirés."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-9C227EDDE427-AB219BEAE758C",
+          "status": "PENDING_DEVICE",
+          "evidence": "Les noms de zones utilisent le référentiel chargé et sont passés à formatExerciseBodyZones ; la preuve visuelle/device manque.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "ActivitySelectionScreen.test.tsx est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Le diff confirme le référentiel persistant et l’absence de BODY_ZONES."
+            },
+            {
+              "proof_type": "VISUAL_COMPARE",
+              "status": "PENDING_DEVICE",
+              "evidence": "Preuve visuelle non exécutée."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "UI-CDBCCFD16078",
+      "implementation_status": "NON_VERIFIABLE",
+      "preserve_status": "PASS",
+      "evidence": "La présentation utilise désormais un référentiel BodyZone explicite, retire la dépendance au Tour et affiche la récupération zéro. Les preuves techniques passent ; la preuve visuelle/device est absente.",
+      "proof_results": [
+        {
+          "proof_type": "FUNCTIONAL_TEST",
+          "status": "PASS",
+          "evidence": "Les tests de présentation, CompositionScreen, ActivityCard, ActivitySelectionScreen et l’intégration Catalogue sont PASS."
+        },
+        {
+          "proof_type": "STATIC_ANALYSIS",
+          "status": "PASS",
+          "evidence": "La signature de formatExerciseBodyZones et les trois appelants explicites sont visibles dans le diff ; aucun fallback BODY_ZONES ne subsiste."
+        },
+        {
+          "proof_type": "VISUAL_COMPARE",
+          "status": "PENDING_DEVICE",
+          "evidence": "Aucune comparaison visuelle/device certifiable n’est fournie."
+        }
+      ],
+      "assertion_results": [
+        {
+          "assertion_id": "UI-CDBCCFD16078-A02C89E1B9BA5",
+          "status": "PENDING_DEVICE",
+          "evidence": "La direction est calculée depuis activity.sideMode uniquement ; la preuve visuelle/device requise reste manquante.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "Les tests de calculs et de présentation sont PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "resolveEffectiveSideMode et les paramètres tourSideMode ont été retirés."
+            },
+            {
+              "proof_type": "VISUAL_COMPARE",
+              "status": "PENDING_DEVICE",
+              "evidence": "Preuve visuelle non exécutée."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-CDBCCFD16078-A89783883A31A",
+          "status": "PENDING_DEVICE",
+          "evidence": "La présentation lit les zones fournies par l’appelant ; la preuve visuelle/device reste manquante.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "compositionPresentation.test.ts est PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "BODY_ZONES n’est plus importé par compositionPresentation.ts."
+            },
+            {
+              "proof_type": "VISUAL_COMPARE",
+              "status": "PENDING_DEVICE",
+              "evidence": "Preuve visuelle non exécutée."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-CDBCCFD16078-A8E35BF832F87",
+          "status": "CONFORME",
+          "evidence": "La signature cible exige bodyZones en second argument, sans valeur par défaut, et les appelants passent explicitement le référentiel.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "Les tests de présentation et d’intégration sont PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Le diff confirme la signature et les appels explicites."
+            }
+          ]
+        },
+        {
+          "assertion_id": "UI-CDBCCFD16078-AFDAAA5838C4F",
+          "status": "CONFORME",
+          "evidence": "formatActivityRecoveryLabel conserve une signature numérique, formate les valeurs positives et rend Récupération 0 s ; ses appels Catalogue ont été supprimés.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "compositionPresentation.test.ts vérifie zéro et une valeur positive."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "La fonction ne retourne plus null et ActivityCard/ActivitySelectionScreen ne l’appellent plus."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "criterion_id": "UI-D35DA2C4F266",
+      "implementation_status": "CONFORME",
+      "preserve_status": "PASS",
+      "evidence": "La terminologie française désignant les objets Exercice a été adaptée et les cinq suites de tests prévues sont PASS.",
+      "proof_results": [
+        {
+          "proof_type": "FUNCTIONAL_TEST",
+          "status": "PASS",
+          "evidence": "Les tests i18n, CatalogueCreateOptions, ExerciseExitConfirmModal, SessionCard et formatSessionSummary sont PASS."
+        },
+        {
+          "proof_type": "STATIC_ANALYSIS",
+          "status": "PASS",
+          "evidence": "Le diff adapte les libellés visibles sans renommer les identifiants techniques."
+        }
+      ],
+      "assertion_results": [
+        {
+          "assertion_id": "UI-D35DA2C4F266-ADD64454F29BF",
+          "status": "CONFORME",
+          "evidence": "Les valeurs françaises ciblant ActivityDefinition/SessionActivity utilisent Exercice avec les accords attendus ; les tests figent les valeurs.",
+          "proof_results": [
+            {
+              "proof_type": "FUNCTIONAL_TEST",
+              "status": "PASS",
+              "evidence": "Le contrat de tests inclut les cinq chemins concernés et tous sont PASS."
+            },
+            {
+              "proof_type": "STATIC_ANALYSIS",
+              "status": "PASS",
+              "evidence": "Le diff montre les remplacements ciblés et la conservation des clés techniques."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "boundary_results": [
+    {
+      "category": "FORBIDDEN",
+      "target": "src/features/execution/README.md",
+      "status": "PASS",
+      "evidence": "La vérification machine indique PASS ; le fichier n’apparaît pas dans le delta."
+    },
+    {
+      "category": "FORBIDDEN",
+      "target": "src/shared/ui",
+      "status": "PASS",
+      "evidence": "La vérification machine indique PASS pour ScreenShell.tsx ; aucun fichier de primitive UI partagée n’est modifié."
+    },
+    {
+      "category": "PRESERVE",
+      "target": "app/(creation)/_layout.tsx",
+      "status": "PASS",
+      "evidence": "La vérification machine indique PASS ; le fichier n’est pas modifié."
+    },
+    {
+      "category": "PRESERVE",
+      "target": "src/domain/categories/defaults.ts",
+      "status": "PASS",
+      "evidence": "La vérification machine indique PASS ; le fichier est préservé."
+    },
+    {
+      "category": "PRESERVE",
+      "target": "src/domain/categories/validation.ts",
+      "status": "PASS",
+      "evidence": "La vérification machine indique PASS ; le fichier est préservé."
+    },
+    {
+      "category": "PRESERVE",
+      "target": "src/infrastructure/database/migrations/migration001.ts",
+      "status": "PASS",
+      "evidence": "La vérification machine indique PASS et targetSchema.test.ts vérifie l’empreinte historique."
+    },
+    {
+      "category": "PRESERVE",
+      "target": "src/infrastructure/database/migrations/migration002.ts",
+      "status": "PASS",
+      "evidence": "La vérification machine indique PASS et le snapshot SQL/source historique est couvert."
+    },
+    {
+      "category": "PRESERVE",
+      "target": "src/infrastructure/database/migrations/migration003.ts",
+      "status": "PASS",
+      "evidence": "La vérification machine indique PASS et le snapshot SQL/source historique est couvert."
+    },
+    {
+      "category": "PRESERVE",
+      "target": "src/infrastructure/database/migrations/migration004.ts",
+      "status": "PASS",
+      "evidence": "La vérification machine indique PASS et le snapshot SQL/source historique est couvert."
+    },
+    {
+      "category": "PRESERVE",
+      "target": "src/infrastructure/database/migrations/migration005.ts",
+      "status": "PASS",
+      "evidence": "La vérification machine indique PASS et le snapshot source historique est couvert."
+    },
+    {
+      "category": "PRESERVE",
+      "target": "src/infrastructure/database/migrations/migration006.ts",
+      "status": "PASS",
+      "evidence": "La vérification machine indique PASS et le snapshot source historique est couvert."
+    },
+    {
+      "category": "PRESERVE",
+      "target": "src/shared/ui/ScreenShell.tsx",
+      "status": "PASS",
+      "evidence": "La vérification machine indique PASS ; ScreenShell.tsx n’est pas modifié."
+    }
+  ],
+  "non_ui_plan_assessment": {
+    "status": "NON_CONFORME",
+    "evidence": "Les 15 exigences NON_UI affectées sont énumérées exactement. La snapshotisation du Profil est testée lorsqu’un ProfileRepository est injecté, mais l’injection reste optionnelle dans SessionService et n’est pas garantie par le wiring inchangé ; la preuve native B89 est explicitement dérrogée et reste non exécutée.",
+    "requirements": [
+      {
+        "requirement_id": "REQ-001108DC7F67664C",
+        "status": "CONFORME",
+        "evidence": "Le Domaine ajoute StopPoint, médias ordonnés et limites de composition ; les tests fonctionnels et TypeScript/lint sont verts.",
+        "proof_results": [
+          {
+            "proof_type": "FUNCTIONAL_TEST",
+            "status": "PASS",
+            "evidence": "Les quatre bindings de tests du contrat sont PASS."
+          },
+          {
+            "proof_type": "STATIC_ANALYSIS",
+            "status": "PASS",
+            "evidence": "TypeScript et lint sont PASS ; les fichiers/symboles ciblés sont présents dans le diff."
+          }
+        ]
+      },
+      {
+        "requirement_id": "REQ-0A670F0C0E88AF43",
+        "status": "CONFORME",
+        "evidence": "ActivityEditorForm ne référence plus recoverySeconds et compile sous le nouveau contrat.",
+        "proof_results": [
+          {
+            "proof_type": "FUNCTIONAL_TEST",
+            "status": "PASS",
+            "evidence": "ActivityEditorForm.test.tsx est PASS."
+          },
+          {
+            "proof_type": "STATIC_ANALYSIS",
+            "status": "PASS",
+            "evidence": "TypeScript/lint PASS et le diff retire toutes les références directes."
+          }
+        ]
+      },
+      {
+        "requirement_id": "REQ-425A6FE7F5647AA7",
+        "status": "CONFORME",
+        "evidence": "La valeur française UNILATERAL ciblée est explicitement Aucun et testée.",
+        "proof_results": [
+          {
+            "proof_type": "FUNCTIONAL_TEST",
+            "status": "PASS",
+            "evidence": "shared/i18n/index.test.ts est PASS."
+          },
+          {
+            "proof_type": "STATIC_ANALYSIS",
+            "status": "PASS",
+            "evidence": "fr.ts contient la clé et la valeur attendues."
+          }
+        ]
+      },
+      {
+        "requirement_id": "REQ-42FABF7B1BDBB222",
+        "status": "CONFORME",
+        "evidence": "CategoriesScreen ne lit ni n’écrit la relation historique ni la couleur autonome.",
+        "proof_results": [
+          {
+            "proof_type": "FUNCTIONAL_TEST",
+            "status": "PASS",
+            "evidence": "CategoriesScreen.test.tsx et CategoriesSaveFlow.integration.test.tsx sont PASS."
+          },
+          {
+            "proof_type": "STATIC_ANALYSIS",
+            "status": "PASS",
+            "evidence": "Le diff supprime les accès et écritures historiques."
+          }
+        ]
+      },
+      {
+        "requirement_id": "REQ-4EBE6018B4091DBB",
+        "status": "CONFORME",
+        "evidence": "MediaAsset et ActivityMedia ont des identités distinctes, plusieurs assets par exercice et une position unique par exercice.",
+        "proof_results": [
+          {
+            "proof_type": "FUNCTIONAL_TEST",
+            "status": "PASS",
+            "evidence": "MediaRepository.test.ts et targetSchema.test.ts sont PASS."
+          },
+          {
+            "proof_type": "STATIC_ANALYSIS",
+            "status": "PASS",
+            "evidence": "Le schéma utilise UNIQUE(activity_definition_id, position), sans UNIQUE sur l’exercice seul ni enum fermée."
+          }
+        ]
+      },
+      {
+        "requirement_id": "REQ-6158C99B50273D8D",
+        "status": "CONFORME",
+        "evidence": "Le Profil singleton expose et persiste les quatre valeurs D-240 : 10, 30, 10 et 5 secondes.",
+        "proof_results": [
+          {
+            "proof_type": "FUNCTIONAL_TEST",
+            "status": "PASS",
+            "evidence": "Profile.test.ts et SqliteProfileRepository.test.ts sont PASS."
+          }
+        ]
+      },
+      {
+        "requirement_id": "REQ-7121A20CC376709A",
+        "status": "CONFORME",
+        "evidence": "La gate déterministe complète est verte : 1261 tests, TypeScript et lint PASS.",
+        "proof_results": [
+          {
+            "proof_type": "FUNCTIONAL_TEST",
+            "status": "PASS",
+            "evidence": "Les bindings requis et la suite Jest complète sont PASS."
+          }
+        ]
+      },
+      {
+        "requirement_id": "REQ-A2F15FD967FEAC96",
+        "status": "NON_CONFORME",
+        "evidence": "Le snapshot du Profil n’est appliqué que si le troisième paramètre ProfileRepository est fourni. Le paramètre est optionnel et le chemin sans repository transmet la valeur du brouillon ; l’exigence ne garantit donc pas le snapshot en production.",
+        "proof_results": [
+          {
+            "proof_type": "FUNCTIONAL_TEST",
+            "status": "PASS",
+            "evidence": "Profile.test.ts et SessionService.test.ts sont PASS avec injection explicite du repository."
+          }
+        ]
+      },
+      {
+        "requirement_id": "REQ-A9FC7C3A2A476D40",
+        "status": "CONFORME",
+        "evidence": "migration007 est exécutée après migration006, les tests de migration/convergence/idempotence sont verts et la version cible est 7.",
+        "proof_results": [
+          {
+            "proof_type": "FUNCTIONAL_TEST",
+            "status": "PASS",
+            "evidence": "initializeDatabase.test.ts, migrateDatabase.test.ts et targetSchema.test.ts sont PASS."
+          },
+          {
+            "proof_type": "STATIC_ANALYSIS",
+            "status": "PASS",
+            "evidence": "TypeScript/lint PASS et migrateDatabase appelle MIGRATION_007 pour la version 6."
+          }
+        ]
+      },
+      {
+        "requirement_id": "REQ-B89A1B7A4F23FA8B",
+        "status": "NON_VERIFIABLE",
+        "evidence": "L’outil natif est adapté statiquement, mais la dérrogation explicite du slice indique que le DEVICE_CHECK n’a pas été exécuté ; l’intégration SQLite native réelle reste non vérifiée.",
+        "proof_results": [
+          {
+            "proof_type": "DEVICE_CHECK",
+            "status": "PENDING_DEVICE",
+            "evidence": "NOT_EXECUTED conformément à la dérrogation explicite ; aucune preuve VISUAL_APPROVED ne la remplace."
+          },
+          {
+            "proof_type": "STATIC_ANALYSIS",
+            "status": "PASS",
+            "evidence": "TypeScript et lint ciblés sur runNativeDatabaseIntegrationCheck.ts sont PASS ; les fixtures obsolètes sont retirées."
+          }
+        ]
+      },
+      {
+        "requirement_id": "REQ-BD9607FF0909157B",
+        "status": "CONFORME",
+        "evidence": "L’union ValidationField et la validation des champs cibles sont adaptées et couvertes.",
+        "proof_results": [
+          {
+            "proof_type": "FUNCTIONAL_TEST",
+            "status": "PASS",
+            "evidence": "validation.test.ts est PASS."
+          },
+          {
+            "proof_type": "STATIC_ANALYSIS",
+            "status": "PASS",
+            "evidence": "TypeScript/lint PASS et le diff remplace exercise.recoverySeconds par exercise.postActivityRecoverySeconds."
+          }
+        ]
+      },
+      {
+        "requirement_id": "REQ-C78EAD48949240B1",
+        "status": "CONFORME",
+        "evidence": "Le schéma cible, repositories, clés étrangères, unicités, index et valeurs par défaut sont couverts par les tests SQLite/schema et la gate statique.",
+        "proof_results": [
+          {
+            "proof_type": "FUNCTIONAL_TEST",
+            "status": "PASS",
+            "evidence": "Les tests de repositories SQLite et targetSchema.test.ts sont PASS."
+          },
+          {
+            "proof_type": "STATIC_ANALYSIS",
+            "status": "PASS",
+            "evidence": "TypeScript/lint PASS ; migration007 et les mappings DatabaseRows sont présents dans le diff."
+          }
+        ]
+      },
+      {
+        "requirement_id": "REQ-CA29CD728EEABCB2",
+        "status": "CONFORME",
+        "evidence": "Les référentiels, cardinalités, bilatéralité par exercice et séparation des pauses sont représentés et testés.",
+        "proof_results": [
+          {
+            "proof_type": "FUNCTIONAL_TEST",
+            "status": "PASS",
+            "evidence": "Les tests Domaine concernés sont PASS."
+          },
+          {
+            "proof_type": "STATIC_ANALYSIS",
+            "status": "PASS",
+            "evidence": "Le diff ajoute BodyZone/Label/Category et retire l’influence fonctionnelle du Tour."
+          }
+        ]
+      },
+      {
+        "requirement_id": "REQ-D22AC3A2E90D8620",
+        "status": "CONFORME",
+        "evidence": "Les migrations 001–006 sont préservées et leurs textes/SQL effectivement évalués sont comparés à des instantanés baseline.",
+        "proof_results": [
+          {
+            "proof_type": "FUNCTIONAL_TEST",
+            "status": "PASS",
+            "evidence": "migrateDatabase.test.ts et targetSchema.test.ts sont PASS."
+          },
+          {
+            "proof_type": "STATIC_ANALYSIS",
+            "status": "PASS",
+            "evidence": "Les fichiers historiques ne figurent pas dans le delta et leurs empreintes sont vérifiées."
+          }
+        ]
+      },
+      {
+        "requirement_id": "REQ-D27BF6F54CCDD015",
+        "status": "CONFORME",
+        "evidence": "ValidationField des Catégories est adaptée aux champs cibles et testée.",
+        "proof_results": [
+          {
+            "proof_type": "FUNCTIONAL_TEST",
+            "status": "PASS",
+            "evidence": "categories/validation.test.ts est PASS."
+          },
+          {
+            "proof_type": "STATIC_ANALYSIS",
+            "status": "PASS",
+            "evidence": "errors.ts retire les champs historiques et ajoute category.color."
+          }
+        ]
+      }
+    ]
+  },
+  "device_gate_required": true,
+  "device_check_derogations": [
+    {
+      "requirement_id": "REQ-B89A1B7A4F23FA8B",
+      "proof_type": "DEVICE_CHECK",
+      "status": "NOT_EXECUTED",
+      "decided_by": "MyUncried",
+      "decided_on": "2026-10-01",
+      "decision": "Explicit derogation by Hermann for V2-PRE-1 only: the native SQLite integration check (runNativeDatabaseIntegrationCheck) is not executed in this cycle and no new infrastructure is built. The proof is recorded as NOT_EXECUTED; it is not satisfied by the future VISUAL_APPROVED marker.",
+      "residual_risk": "The adapted native tool (src/infrastructure/database/integration/runNativeDatabaseIntegrationCheck.ts) is only covered by static analysis, typecheck and lint. Migration 001-007, transactional writes and reopening on a real expo-sqlite runtime (iOS and Android) remain unverified natively; a native-only defect (pragmas, foreign keys, migration on device, file reopening) would not be detected before release.",
+      "not_satisfied_by": [
+        "VISUAL_APPROVED"
+      ],
+      "reviewer_status": "NON_VERIFIABLE"
+    }
+  ],
+  "report_status": "COMPLETE",
+  "verdict": "REVISE"
+}
