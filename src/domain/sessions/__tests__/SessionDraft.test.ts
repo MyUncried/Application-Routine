@@ -11,7 +11,6 @@ import {
   toSessionDraft,
   toUpdateSessionInput,
   type SessionDraft,
-  type SessionDraftCategoryDraft,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
 import {
@@ -21,12 +20,11 @@ import {
   DEFAULT_FINAL_PHASE_SECONDS,
   DEFAULT_INITIAL_COUNTDOWN_SECONDS,
   DEFAULT_PAUSE_SECONDS,
-  DEFAULT_RECOVERY_SECONDS,
+  DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
   DEFAULT_SERIES_COUNT,
   DEFAULT_SIDE_MODE,
   DEFAULT_STRUCTURAL_POSITION,
   DEFAULT_TOUR_REPEAT_COUNT,
-  DEFAULT_TOUR_SIDE_MODE,
 } from "@/domain/sessions/defaults";
 
 describe("createEmptyDraft", () => {
@@ -34,14 +32,11 @@ describe("createEmptyDraft", () => {
     expect(createEmptyDraft()).toEqual({
       sourceSessionId: null,
       name: "",
-      color: DEFAULT_SESSION_COLOR,
+      labelId: null,
       initialCountdownSeconds: DEFAULT_INITIAL_COUNTDOWN_SECONDS,
       finalPhaseSeconds: DEFAULT_FINAL_PHASE_SECONDS,
       tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
-      tourSideMode: DEFAULT_TOUR_SIDE_MODE,
       exercises: [],
-      categoryDrafts: [],
-      selectedCategoryIds: [],
     });
   });
 });
@@ -61,14 +56,14 @@ describe("createExerciseDraft", () => {
       // T02-S02 : la Récupération ATTACHÉE naît neutre (`0`) — jamais la
       // durée par défaut de l'ancienne Activité `RECOVERY` autonome, qui
       // aurait ajouté une récupération non demandée à chaque Activité.
-      recoverySeconds: DEFAULT_RECOVERY_SECONDS,
+      postActivityRecoverySeconds: DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
       instruction: null,
       bodyZoneIds: [],
       // V2-BILAT-01 : une nouvelle Activité naît `UNILATERAL` (comportement
       // historique, aucune répétition de côté).
       sideMode: DEFAULT_SIDE_MODE,
     });
-    expect(DEFAULT_RECOVERY_SECONDS).toBe(0);
+    expect(DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS).toBe(0);
   });
 
   it("uses exactly the id provided by the caller, never a generated one", () => {
@@ -89,7 +84,7 @@ function anActivity(overrides: Partial<Activity> = {}): Activity {
     repetitionCount: null,
     seriesCount: 1,
     pauseSeconds: 0,
-    recoverySeconds: 0,
+    postActivityRecoverySeconds: 0,
     instruction: null,
     bodyZoneIds: [],
     ...overrides,
@@ -119,7 +114,6 @@ describe("toSessionDraft", () => {
           exercises: [anActivity()],
         },
       },
-      categories: [],
       ...overrides,
     };
   }
@@ -129,14 +123,10 @@ describe("toSessionDraft", () => {
     expect(toSessionDraft(session)).toEqual({
       sourceSessionId: "session-1",
       name: "Séance simple",
-      color: DEFAULT_SESSION_COLOR,
+      labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
-      // V2-BILAT-01 : `session.cycle.tour.sideMode` est un champ optionnel
-      // de transition — `anActivity()`/`aSession()` ne le transmettent pas
-      // ici, `toSessionDraft` retombe donc sur `DEFAULT_TOUR_SIDE_MODE`.
-      tourSideMode: DEFAULT_TOUR_SIDE_MODE,
       exercises: [
         {
           id: "activity-1",
@@ -150,7 +140,7 @@ describe("toSessionDraft", () => {
           pauseSeconds: 0,
           // T02-S02 : la Récupération attachée traverse la réhydratation du
           // brouillon comme n'importe quel autre paramètre.
-          recoverySeconds: 0,
+          postActivityRecoverySeconds: 0,
           instruction: null,
           bodyZoneIds: [],
           // V2-BILAT-01 : `Activity.sideMode` est un champ optionnel de
@@ -159,8 +149,6 @@ describe("toSessionDraft", () => {
           sideMode: DEFAULT_SIDE_MODE,
         },
       ],
-      categoryDrafts: [],
-      selectedCategoryIds: [],
     });
   });
 
@@ -174,11 +162,11 @@ describe("toSessionDraft", () => {
           id: "tour-1",
           position: 1,
           repeatCount: 1,
-          exercises: [anActivity({ recoverySeconds: 45 })],
+          exercises: [anActivity({ postActivityRecoverySeconds: 45 })],
         },
       },
     });
-    expect(toSessionDraft(session).exercises[0]).toMatchObject({ recoverySeconds: 45 });
+    expect(toSessionDraft(session).exercises[0]).toMatchObject({ postActivityRecoverySeconds: 45 });
   });
 
   it("maps every persisted Activity, in order, never only the first (T01-S09)", () => {
@@ -237,18 +225,6 @@ describe("toSessionDraft", () => {
     expect(toSessionDraft(session).exercises[0]?.instruction).toBeNull();
   });
 
-  it("maps every associated Category to a selected id, never as a local draft (T01-S09)", () => {
-    const session = aSession({
-      categories: [
-        { id: "cardio", name: "Cardio", canonicalKey: "cardio", isPredefined: true, displayOrder: 1, createdAt: "2026-01-01T00:00:00.000Z" },
-        { id: "custom-1", name: "Ma catégorie", canonicalKey: "ma categorie", isPredefined: false, displayOrder: null, createdAt: "2026-01-02T00:00:00.000Z" },
-      ],
-    });
-    const draft = toSessionDraft(session);
-    expect(draft.categoryDrafts).toEqual([]);
-    expect(draft.selectedCategoryIds).toEqual(["cardio", "custom-1"]);
-  });
-
   it("round-trips through toCreateSessionInput to reproduce the original editable fields", () => {
     const session = aSession();
     const result = toCreateSessionInput(toSessionDraft(session));
@@ -256,19 +232,13 @@ describe("toSessionDraft", () => {
       ok: true,
       value: {
         name: session.name,
-        color: session.color,
+        labelId: null,
         initialCountdownSeconds: session.initialCountdownSeconds,
         finalPhaseSeconds: session.finalPhaseSeconds,
         // T02-S01 : la répétition du Tour, l'identifiant, le type et la zone
         // structurelle de chaque Activité traversent désormais le chemin de
         // création — ils étaient perdus au profit de littéraux fixes.
         tourRepeatCount: 1,
-        // V2-BILAT-01 : `tourSideMode` reste ABSENT de l'agrégat validé
-        // lorsque le Tour et chaque Activité restent `UNILATERAL`
-        // (`normalizeTourSideMode`/`normalizeSideMode`, `validation.ts`) —
-        // condition nécessaire de compatibilité rétroactive avec un
-        // consommateur existant qui compare cet agrégat par égalité
-        // stricte, jamais connu ce champ.
         exercises: [
           {
             id: "activity-1",
@@ -280,12 +250,11 @@ describe("toSessionDraft", () => {
             repetitionCount: null,
             seriesCount: 1,
             pauseSeconds: 0,
-            recoverySeconds: 0,
+            postActivityRecoverySeconds: 0,
             instruction: null,
             bodyZoneIds: [],
           },
         ],
-        categories: [],
       },
     });
   });
@@ -298,7 +267,6 @@ describe("sessionDraftsEqual (T01-S10, CE-T01-S10-06 — garde de sortie en modi
       name: "Séance",
       tourRepeatCount: 2,
       exercises: [{ ...createExerciseDraft("keep-1"), name: "Gainage", durationSeconds: 30 }],
-      selectedCategoryIds: ["cardio"],
       ...overrides,
     };
   }
@@ -312,24 +280,13 @@ describe("sessionDraftsEqual (T01-S10, CE-T01-S10-06 — garde de sortie en modi
     ).toBe(true);
   });
 
-  it("is false as soon as any functional field differs (name, tour repeat, an Activity field, a selected Category)", () => {
+  it("is false as soon as any functional field differs (name, tour repeat, an Activity field, the Étiquette)", () => {
     expect(sessionDraftsEqual(aDraft(), aDraft({ name: "Autre" }))).toBe(false);
     expect(sessionDraftsEqual(aDraft(), aDraft({ tourRepeatCount: 5 }))).toBe(false);
     expect(
       sessionDraftsEqual(aDraft(), aDraft({ exercises: [{ ...createExerciseDraft("keep-1"), name: "X", durationSeconds: 30 }] })),
     ).toBe(false);
-    expect(sessionDraftsEqual(aDraft(), aDraft({ selectedCategoryIds: ["cardio", "mobilite"] }))).toBe(
-      false,
-    );
-  });
-
-  it("selected category ids are compared as a set (order indifferent)", () => {
-    expect(
-      sessionDraftsEqual(
-        aDraft({ selectedCategoryIds: ["cardio", "mobilite"] }),
-        aDraft({ selectedCategoryIds: ["mobilite", "cardio"] }),
-      ),
-    ).toBe(true);
+    expect(sessionDraftsEqual(aDraft(), aDraft({ labelId: "focus" }))).toBe(false);
   });
 });
 
@@ -351,50 +308,13 @@ describe("isSessionDraftDirty", () => {
     expect(isSessionDraftDirty({ ...createEmptyDraft(), exercises: [b, a] })).toBe(true);
   });
 
-  it("is true as soon as one Category is selected (empty draft has selectedCategoryIds: [])", () => {
-    expect(
-      isSessionDraftDirty({ ...createEmptyDraft(), selectedCategoryIds: ["cardio"] }),
-    ).toBe(true);
+  it("is true as soon as an Étiquette is selected (empty draft has labelId: null)", () => {
+    expect(isSessionDraftDirty({ ...createEmptyDraft(), labelId: "focus" })).toBe(true);
   });
 
-  it("is order-INsensitive for selected category ids (a set, not a sequence)", () => {
-    const forward = { ...createEmptyDraft(), selectedCategoryIds: ["cardio", "mobilite"] };
-    const backward = { ...createEmptyDraft(), selectedCategoryIds: ["mobilite", "cardio"] };
-    expect(isSessionDraftDirty(forward)).toBe(true);
-    // The two orderings represent the exact same set of selections: neither
-    // is "dirtier" than the other relative to createEmptyDraft(), and they
-    // must compare as identical to each other (order truly indifferent).
-    expect(isSessionDraftDirty(backward)).toBe(true);
-    expect(forward.selectedCategoryIds).not.toEqual(backward.selectedCategoryIds);
-  });
-
-  it("is false again once selectedCategoryIds is explicitly reset to [], matching the empty draft exactly", () => {
-    const withSelection: SessionDraft = {
-      ...createEmptyDraft(),
-      selectedCategoryIds: ["cardio"],
-    };
-    expect(isSessionDraftDirty({ ...withSelection, selectedCategoryIds: [] })).toBe(false);
-  });
-
-  it("is true as soon as one local Category draft exists, even if not selected (T01-S09, point A: existence survives deselection)", () => {
-    const draft: SessionDraftCategoryDraft = { id: "local-1", name: "Ma catégorie" };
-    expect(
-      isSessionDraftDirty({ ...createEmptyDraft(), categoryDrafts: [draft], selectedCategoryIds: [] }),
-    ).toBe(true);
-  });
-
-  it("distinguishes a local Category draft by id and by name", () => {
-    const initial: SessionDraft = {
-      ...createEmptyDraft(),
-      categoryDrafts: [{ id: "local-1", name: "Ma catégorie" }],
-      selectedCategoryIds: ["local-1"],
-    };
-    expect(isSessionDraftDirty(initial)).toBe(true); // dirty relative to the EMPTY draft, obviously.
-    const differentName: SessionDraft = {
-      ...initial,
-      categoryDrafts: [{ id: "local-1", name: "Autre" }],
-    };
-    expect(isSessionDraftDirty(differentName)).toBe(true);
+  it("is false again once labelId is explicitly reset to null, matching the empty draft exactly", () => {
+    const withLabel: SessionDraft = { ...createEmptyDraft(), labelId: "focus" };
+    expect(isSessionDraftDirty({ ...withLabel, labelId: null })).toBe(false);
   });
 });
 
@@ -427,22 +347,20 @@ describe("exerciseEquals (exported for ExerciseScreen, T01-S08)", () => {
     expect(
       exerciseEquals(createExerciseDraft("ex-1"), {
         ...createExerciseDraft("ex-1"),
-        recoverySeconds: 30,
+        postActivityRecoverySeconds: 30,
       }),
     ).toBe(false);
   });
 });
 
-describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
+describe("toCreateSessionInput (T01-S09, multi-exercise)", () => {
   function completeDraft(): SessionDraft {
     return {
       name: "Séance simple",
-      color: DEFAULT_SESSION_COLOR,
+      labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 30 }],
-      categoryDrafts: [],
-      selectedCategoryIds: [],
     };
   }
 
@@ -464,14 +382,10 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
       ok: true,
       value: {
         name: "Séance simple",
-        color: DEFAULT_SESSION_COLOR,
+        labelId: null,
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
         tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
-        // V2-BILAT-01 : `tourSideMode`/`sideMode` restent ABSENTS de
-        // l'agrégat validé pour un brouillon entièrement `UNILATERAL` —
-        // voir la note de la même nature dans le test de round-trip
-        // ci-dessus.
         exercises: [
           {
             id: "ex-1",
@@ -483,12 +397,11 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
             repetitionCount: null,
             seriesCount: 1,
             pauseSeconds: 0,
-            recoverySeconds: 0,
+            postActivityRecoverySeconds: 0,
             instruction: null,
             bodyZoneIds: [],
           },
         ],
-        categories: [],
       },
     });
   });
@@ -499,7 +412,7 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
   //
   // T02-S02 : la troisième Activité de ce scénario était une Récupération
   // AUTONOME (`type: "RECOVERY"`). Ce type n'est plus créable — la
-  // Récupération est désormais un paramètre ATTACHÉ (`recoverySeconds`) — et
+  // Récupération est désormais un paramètre ATTACHÉ (`postActivityRecoverySeconds`) — et
   // le cas de refus est prouvé par le test suivant.
   it("carries the three structural zones, the attached Récupération and the real tour repeat count through creation", () => {
     const draft: SessionDraft = {
@@ -517,7 +430,7 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
           name: "Gainage",
           durationSeconds: 30,
           structuralPosition: "IN_TOUR",
-          recoverySeconds: 45,
+          postActivityRecoverySeconds: 45,
         },
         {
           ...createExerciseDraft("stretch"),
@@ -544,7 +457,7 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
         ["core", "EXERCISE", "IN_TOUR"],
         ["stretch", "EXERCISE", "AFTER_TOUR"],
       ]);
-      expect(result.value.exercises.map((exercise) => exercise.recoverySeconds)).toEqual([
+      expect(result.value.exercises.map((exercise) => exercise.postActivityRecoverySeconds)).toEqual([
         0, 45, 0,
       ]);
     }
@@ -594,46 +507,6 @@ describe("toCreateSessionInput (T01-S09, multi-exercise + categories)", () => {
       expect(result.value.exercises).toHaveLength(2);
       expect(result.value.exercises.map((exercise) => exercise.name)).toEqual(["Gainage", "Squats"]);
       expect(result.value.exercises[1]).toMatchObject({ name: "Squats", durationSeconds: 45, seriesCount: 3 });
-    }
-  });
-
-  it("resolves each selected id against categoryDrafts to produce EXISTING or NEW, in selection order", () => {
-    const draft: SessionDraft = {
-      ...completeDraft(),
-      categoryDrafts: [{ id: "local-1", name: "Ma catégorie" }],
-      selectedCategoryIds: ["cardio", "local-1"],
-    };
-    const result = toCreateSessionInput(draft);
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.value.categories).toEqual([
-        { kind: "EXISTING", categoryId: "cardio" },
-        { kind: "NEW", name: "Ma catégorie" },
-      ]);
-    }
-  });
-
-  it("never persists a local Category draft that is not currently selected (T01-S09, point A)", () => {
-    const draft: SessionDraft = {
-      ...completeDraft(),
-      categoryDrafts: [
-        { id: "local-1", name: "Sélectionnée" },
-        { id: "local-2", name: "Désélectionnée" },
-      ],
-      selectedCategoryIds: ["local-1"],
-    };
-    const result = toCreateSessionInput(draft);
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.value.categories).toEqual([{ kind: "NEW", name: "Sélectionnée" }]);
-    }
-  });
-
-  it("succeeds with zero Category selected (D-106: never required)", () => {
-    const result = toCreateSessionInput(completeDraft());
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.value.categories).toEqual([]);
     }
   });
 
@@ -770,13 +643,13 @@ describe("toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput)",
     const result = toUpdateSessionInput(
       editDraft({
         exercises: [
-          { ...createExerciseDraft("act-1"), name: "Gainage", durationSeconds: 30, recoverySeconds: 60 },
+          { ...createExerciseDraft("act-1"), name: "Gainage", durationSeconds: 30, postActivityRecoverySeconds: 60 },
         ],
       }),
     );
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.activities[0]).toMatchObject({ recoverySeconds: 60 });
+      expect(result.value.activities[0]).toMatchObject({ postActivityRecoverySeconds: 60 });
     }
   });
 
@@ -799,8 +672,8 @@ describe("toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput)",
   });
 });
 
-describe("V2-BILAT-01 — side mode across the draft", () => {
-  it("toSessionDraft carries the persisted Tour's own side mode into tourSideMode", () => {
+describe("side mode across the draft (V2-BILAT-01, portée exclusivement par l'Exercice depuis V2-PRE-1)", () => {
+  it("toSessionDraft carries each Activity's own side mode — the Circuit has no direction of its own", () => {
     const session: Session = {
       id: "session-1",
       ownerId: "usr_test",
@@ -819,14 +692,11 @@ describe("V2-BILAT-01 — side mode across the draft", () => {
           id: "tour-1",
           position: 1,
           repeatCount: 1,
-          sideMode: "RIGHT_LEFT",
           exercises: [anActivity({ sideMode: "LEFT_RIGHT" })],
         },
       },
-      categories: [],
     };
     const draft = toSessionDraft(session);
-    expect(draft.tourSideMode).toBe("RIGHT_LEFT");
     expect(draft.exercises[0]?.sideMode).toBe("LEFT_RIGHT");
   });
 
@@ -839,20 +709,7 @@ describe("V2-BILAT-01 — side mode across the draft", () => {
     ).toBe(false);
   });
 
-  it("sessionDraftsEqual detects a change of tourSideMode", () => {
-    const draft: SessionDraft = { ...createEmptyDraft(), name: "Séance" };
-    expect(
-      sessionDraftsEqual(draft, { ...draft, tourSideMode: "RIGHT_LEFT" }),
-    ).toBe(false);
-    expect(
-      sessionDraftsEqual(
-        { ...draft, tourSideMode: "RIGHT_LEFT" },
-        { ...draft, tourSideMode: "RIGHT_LEFT" },
-      ),
-    ).toBe(true);
-  });
-
-  it("toCreateSessionInput / toUpdateSessionInput carry each Activity's own side mode and the Tour's own side mode", () => {
+  it("toCreateSessionInput / toUpdateSessionInput carry each Activity's own side mode", () => {
     const exercises = [
       { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 30, sideMode: "RIGHT_LEFT" as const },
     ];
@@ -860,12 +717,10 @@ describe("V2-BILAT-01 — side mode across the draft", () => {
     const created = toCreateSessionInput({
       ...createEmptyDraft(),
       name: "Séance",
-      tourSideMode: "LEFT_RIGHT",
       exercises,
     });
     expect(created.ok).toBe(true);
     if (created.ok) {
-      expect(created.value.tourSideMode).toBe("LEFT_RIGHT");
       expect(created.value.exercises[0]?.sideMode).toBe("RIGHT_LEFT");
     }
 
@@ -873,12 +728,10 @@ describe("V2-BILAT-01 — side mode across the draft", () => {
       ...createEmptyDraft(),
       sourceSessionId: "session-1",
       name: "Séance",
-      tourSideMode: "LEFT_RIGHT",
       exercises,
     });
     expect(updated.ok).toBe(true);
     if (updated.ok) {
-      expect(updated.value.tourSideMode).toBe("LEFT_RIGHT");
       expect(updated.value.activities[0]?.sideMode).toBe("RIGHT_LEFT");
     }
   });

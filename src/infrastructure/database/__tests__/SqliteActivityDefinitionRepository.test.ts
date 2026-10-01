@@ -39,7 +39,8 @@ describe("SqliteActivityDefinitionRepository", () => {
       repetitionCount: null,
       seriesCount: 3,
       pauseSeconds: 10,
-      recoverySeconds: 5,
+      category: { kind: "EXISTING" as const, categoryId: "cardio" },
+      sideRecoverySeconds: 5,
       bodyZoneIds: ["cuisses", "genoux"],
     };
   }

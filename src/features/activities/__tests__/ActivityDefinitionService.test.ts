@@ -17,9 +17,10 @@ function makeDefinition(overrides: Partial<ActivityDefinition> = {}): ActivityDe
     repetitionCount: null,
     seriesCount: 3,
     pauseSeconds: 10,
-    recoverySeconds: 0,
-    bodyZoneIds: [],
+    categoryId: "cardio",
+    bodyZoneIds: ["cuisses"],
     sideMode: "UNILATERAL",
+    sideRecoverySeconds: 0,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
@@ -35,8 +36,9 @@ function validInput(): CreateActivityDefinitionInput {
     repetitionCount: null,
     seriesCount: 3,
     pauseSeconds: 10,
-    recoverySeconds: 0,
-    bodyZoneIds: [],
+    category: { kind: "EXISTING", categoryId: "cardio" },
+    bodyZoneIds: ["cuisses"],
+    sideRecoverySeconds: 0,
   };
 }
 

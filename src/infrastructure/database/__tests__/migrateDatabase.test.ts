@@ -38,7 +38,12 @@ describe("migrateDatabase", () => {
     await expect(migrateDatabase(database)).rejects.toThrow("newer than supported");
   });
 
-  it("enforces the canonical color and NULL-safe duration rules", async () => {
+  // V2-PRE-1 (plan §3.3) : `sessions.color` autonome est retiré du schéma
+  // cible (`migration007`) — la contrainte `CHECK` canonique sur les 12
+  // couleurs n'existe donc plus sur cette colonne. Seules les règles
+  // NULL-safe de `activities` (inchangées depuis migration001) restent
+  // couvertes ici.
+  it("enforces the NULL-safe duration rules", async () => {
     await migrateDatabase(database);
     await seedStructure(database);
 
@@ -58,16 +63,6 @@ describe("migrateDatabase", () => {
         durationSeconds: 30,
         repetitionCount: 10,
       }),
-    ).rejects.toThrow();
-
-    await expect(
-      database.runAsync(
-        `INSERT INTO sessions (
-          id, owner_id, name, color, status, initial_countdown_seconds,
-          final_phase_seconds, created_at, updated_at
-        ) SELECT 'invalid-color', id, 'Séance', '#000000', 'ACTIVE', 10, 5, 'now', 'now'
-          FROM users WHERE singleton_key = 1`,
-      ),
     ).rejects.toThrow();
   });
 
@@ -135,27 +130,40 @@ describe("migrateDatabase", () => {
     ).rejects.toThrow();
   });
 
-  it("associates a session with a category via session_categories, cascading on session deletion (T01-S09)", async () => {
+  /**
+   * V2-PRE-1 (plan §3.3) : la relation historique Catégorie de Séance N:N
+   * (`session_categories`) est retirée du schéma cible — une Séance associe
+   * désormais au plus une Étiquette (`sessions.label_id`), qui redevient
+   * `NULL` si l'Étiquette référencée est supprimée (`ON DELETE SET NULL`).
+   */
+  it("has no session_categories table, and clears a Session's label_id when the referenced Label is deleted", async () => {
     await migrateDatabase(database);
     await seedStructure(database);
 
-    await database.runAsync(
-      "INSERT INTO session_categories (session_id, category_id) VALUES (?, ?)",
-      ["session-a", "cardio"],
+    const table = await database.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) AS count FROM sqlite_master WHERE type = 'table' AND name = 'session_categories'",
     );
-    const before = await database.getFirstAsync<{ count: number }>(
-      "SELECT COUNT(*) AS count FROM session_categories",
-    );
-    expect(before?.count).toBe(1);
+    expect(table?.count).toBe(0);
 
-    await database.runAsync("DELETE FROM sessions WHERE id = ?", ["session-a"]);
-    const after = await database.getFirstAsync<{ count: number }>(
-      "SELECT COUNT(*) AS count FROM session_categories",
+    await database.runAsync(
+      `INSERT INTO labels (id, name, color, is_active, created_at) VALUES (?, ?, '#3B82F6', 1, 'now')`,
+      ["label-a", "Étiquette A"],
     );
-    expect(after?.count).toBe(0);
+    await database.runAsync("UPDATE sessions SET label_id = ? WHERE id = ?", ["label-a", "session-a"]);
+
+    const before = await database.getFirstAsync<{ label_id: string | null }>(
+      "SELECT label_id FROM sessions WHERE id = 'session-a'",
+    );
+    expect(before?.label_id).toBe("label-a");
+
+    await database.runAsync("DELETE FROM labels WHERE id = ?", ["label-a"]);
+    const after = await database.getFirstAsync<{ label_id: string | null }>(
+      "SELECT label_id FROM sessions WHERE id = 'session-a'",
+    );
+    expect(after?.label_id).toBeNull();
   });
 
-  it("never modifies migration001's tables/constraints: the T01-S01 color and NULL-safe duration rules still hold after migration002", async () => {
+  it("never modifies migration001's tables/constraints: the T01-S01 NULL-safe duration rule still holds after migration002", async () => {
     await migrateDatabase(database);
     await seedStructure(database);
 
@@ -199,7 +207,7 @@ describe("migrateDatabase", () => {
       );
       await database.execAsync(MIGRATION_002);
       await database.execAsync("PRAGMA user_version = 2");
-      await seedStructure(database);
+      await seedLegacyStructure(database);
       await insertActivity(database, {
         id: "old-duration",
         executionMode: "DURATION",
@@ -218,7 +226,7 @@ describe("migrateDatabase", () => {
       // (`migration006`, persistance des `ActivityDefinition`) — jamais à la
       // version 3, 4 ou 5.
       expect(version?.user_version).toBe(DATABASE_VERSION);
-      expect(DATABASE_VERSION).toBe(6);
+      expect(DATABASE_VERSION).toBe(7);
 
       // La contrainte historique DURATION+repetition reste rejetée.
       await expect(
@@ -269,7 +277,7 @@ describe("migrateDatabase", () => {
       );
       await database.execAsync(MIGRATION_002);
       await database.execAsync("PRAGMA user_version = 2");
-      await seedStructure(database);
+      await seedLegacyStructure(database);
       await insertActivity(database, {
         id: "kept-1",
         executionMode: "REPETITIONS",
@@ -325,7 +333,7 @@ describe("migrateDatabase", () => {
       );
       await database.execAsync(MIGRATION_002);
       await database.execAsync("PRAGMA user_version = 2");
-      await seedStructure(database);
+      await seedLegacyStructure(database);
 
       // Deux Activités aux horodatages DISTINCTS et connus — jamais 'now'.
       const createdAtA = "2025-03-04T08:15:42.123Z";
@@ -405,7 +413,7 @@ describe("migrateDatabase", () => {
       await database.execAsync(MIGRATION_002);
       await database.execAsync(MIGRATION_003);
       await database.execAsync("PRAGMA user_version = 3");
-      await seedStructure(database);
+      await seedLegacyStructure(database);
     }
 
     /** Ligne d'Activité v3 brute — le seul moyen de créer une `RECOVERY` autonome, désormais interdite par le Domaine. */
@@ -454,14 +462,14 @@ describe("migrateDatabase", () => {
       const rows = await database.getAllAsync<{
         id: string;
         position: number;
-        recovery_seconds: number;
+        post_activity_recovery_seconds: number;
       }>(
-        "SELECT id, position, recovery_seconds FROM activities WHERE structural_position = 'IN_TOUR' ORDER BY position",
+        "SELECT id, position, post_activity_recovery_seconds FROM activities WHERE structural_position = 'IN_TOUR' ORDER BY position",
       );
       expect(rows).toEqual([
-        { id: "ex-1", position: 0, recovery_seconds: 20 },
-        { id: "ex-2", position: 1, recovery_seconds: 0 },
-        { id: "ex-3", position: 2, recovery_seconds: 0 },
+        { id: "ex-1", position: 0, post_activity_recovery_seconds: 20 },
+        { id: "ex-2", position: 1, post_activity_recovery_seconds: 0 },
+        { id: "ex-3", position: 2, post_activity_recovery_seconds: 0 },
       ]);
     });
 
@@ -474,11 +482,11 @@ describe("migrateDatabase", () => {
 
       await migrateDatabase(database);
 
-      const remaining = await database.getAllAsync<{ id: string; recovery_seconds: number }>(
-        "SELECT id, recovery_seconds FROM activities ORDER BY id",
+      const remaining = await database.getAllAsync<{ id: string; post_activity_recovery_seconds: number }>(
+        "SELECT id, post_activity_recovery_seconds FROM activities ORDER BY id",
       );
       // L'orpheline est ignorée (supprimée sans report) — `warmup` n'hérite de rien.
-      expect(remaining).toEqual([{ id: "warmup", recovery_seconds: 0 }]);
+      expect(remaining).toEqual([{ id: "warmup", post_activity_recovery_seconds: 0 }]);
     });
 
     it("attaches only the FIRST following RECOVERY, and only to the Activity directly before it (two consecutive RECOVERY rows)", async () => {
@@ -491,10 +499,10 @@ describe("migrateDatabase", () => {
 
       // `rec-b` n'est PAS additionnée : la seconde Récupération consécutive
       // n'est plus attachable et disparaît, la première seule est reportée.
-      const rows = await database.getAllAsync<{ id: string; recovery_seconds: number }>(
-        "SELECT id, recovery_seconds FROM activities",
+      const rows = await database.getAllAsync<{ id: string; post_activity_recovery_seconds: number }>(
+        "SELECT id, post_activity_recovery_seconds FROM activities",
       );
-      expect(rows).toEqual([{ id: "ex-1", recovery_seconds: 20 }]);
+      expect(rows).toEqual([{ id: "ex-1", post_activity_recovery_seconds: 20 }]);
     });
 
     it("drops the body zones of the deleted RECOVERY rows while preserving those of the kept Activities", async () => {
@@ -521,7 +529,7 @@ describe("migrateDatabase", () => {
       expect(leftovers?.count).toBe(0);
     });
 
-    it("bounds recovery_seconds in the database itself (0..5999) and keeps it at 0 for a RECOVERY-typed row", async () => {
+    it("bounds post_activity_recovery_seconds in the database itself (0..5999) and keeps it at 0 for a RECOVERY-typed row", async () => {
       await migrateDatabase(database);
       await seedStructure(database);
 
@@ -530,7 +538,7 @@ describe("migrateDatabase", () => {
           `INSERT INTO activities (
             id, session_id, cycle_id, tour_id, type, structural_position,
             position, name, execution_mode, duration_seconds, repetition_count,
-            series_count, pause_seconds, recovery_seconds, instruction, created_at, updated_at
+            series_count, pause_seconds, post_activity_recovery_seconds, instruction, created_at, updated_at
           ) VALUES (
             'out-of-range', 'session-a', 'cycle-a', 'tour-a', 'EXERCISE', 'IN_TOUR',
             0, 'Exercice', 'DURATION', 30, NULL, 1, 0, 6000, NULL, 'now', 'now'
@@ -539,7 +547,7 @@ describe("migrateDatabase", () => {
       ).rejects.toThrow();
     });
 
-    it("defaults recovery_seconds to 0 for a fresh row that does not mention it, and re-migrating is a no-op", async () => {
+    it("defaults post_activity_recovery_seconds to 0 for a fresh row that does not mention it, and re-migrating is a no-op", async () => {
       await migrateDatabase(database);
       await seedStructure(database);
       await insertActivity(database, {
@@ -551,10 +559,10 @@ describe("migrateDatabase", () => {
 
       await migrateDatabase(database);
 
-      const row = await database.getFirstAsync<{ recovery_seconds: number }>(
-        "SELECT recovery_seconds FROM activities WHERE id = 'fresh'",
+      const row = await database.getFirstAsync<{ post_activity_recovery_seconds: number }>(
+        "SELECT post_activity_recovery_seconds FROM activities WHERE id = 'fresh'",
       );
-      expect(row?.recovery_seconds).toBe(0);
+      expect(row?.post_activity_recovery_seconds).toBe(0);
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       expect(version?.user_version).toBe(DATABASE_VERSION);
     });
@@ -600,7 +608,7 @@ describe("migrateDatabase", () => {
       await database.execAsync(MIGRATION_003);
       await database.execAsync(MIGRATION_004);
       await database.execAsync("PRAGMA user_version = 4");
-      await seedStructure(database);
+      await seedLegacyStructure(database);
       await insertActivity(database, {
         id: "legacy-activity",
         executionMode: "DURATION",
@@ -701,16 +709,24 @@ describe("migrateDatabase", () => {
       );
 
       await migrateDatabase(database);
-      // La chaîne complète va désormais jusqu'à `migration006` : la table
-      // `activity_definitions`/`activity_definition_body_zones` apparaît
-      // donc dans cette liste — seule différence attendue avec `before`.
+      // La chaîne complète va désormais jusqu'à `migration007` : les tables
+      // `activity_definitions`/`activity_definition_body_zones` (`migration006`)
+      // et les référentiels additifs `body_zones`/`labels`/`profiles`/
+      // `media_assets`/`activity_media` (`migration007`) apparaissent ; la
+      // relation historique `session_categories` (V2-PRE-1, plan §3.3) est
+      // retirée — seules différences attendues avec `before`.
       const after = await database.getAllAsync<{ name: string }>(
         "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name",
       );
       const expectedNames = [
-        ...before.map((row) => row.name),
+        ...before.map((row) => row.name).filter((name) => name !== "session_categories"),
         "activity_definition_body_zones",
         "activity_definitions",
+        "activity_media",
+        "body_zones",
+        "labels",
+        "media_assets",
+        "profiles",
       ].sort();
       expect(after.map((row) => row.name)).toEqual(expectedNames);
     });
@@ -742,7 +758,7 @@ describe("migrateDatabase", () => {
 
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       expect(version?.user_version).toBe(DATABASE_VERSION);
-      expect(DATABASE_VERSION).toBe(6);
+      expect(DATABASE_VERSION).toBe(7);
 
       const tables = await database.getAllAsync<{ name: string }>(
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'activity_definition%'",
@@ -759,8 +775,8 @@ describe("migrateDatabase", () => {
       await database.runAsync(
         `INSERT INTO activity_definitions (
           id, name, description, execution_mode, duration_seconds, repetition_count,
-          series_count, pause_seconds, recovery_seconds, side_mode, created_at, updated_at
-        ) VALUES ('def-1', 'Squat', NULL, 'DURATION', 30, NULL, 3, 10, 0, 'UNILATERAL', 'now', 'now')`,
+          series_count, pause_seconds, side_mode, created_at, updated_at
+        ) VALUES ('def-1', 'Squat', NULL, 'DURATION', 30, NULL, 3, 10, 'UNILATERAL', 'now', 'now')`,
       );
 
       const row = await database.getFirstAsync<{ id: string; name: string }>(
@@ -776,8 +792,8 @@ describe("migrateDatabase", () => {
         database.runAsync(
           `INSERT INTO activity_definitions (
             id, name, description, execution_mode, duration_seconds, repetition_count,
-            series_count, pause_seconds, recovery_seconds, side_mode, created_at, updated_at
-          ) VALUES ('bad-mode', 'Squat', NULL, 'INVALID', 30, NULL, 3, 10, 0, 'UNILATERAL', 'now', 'now')`,
+            series_count, pause_seconds, side_mode, created_at, updated_at
+          ) VALUES ('bad-mode', 'Squat', NULL, 'INVALID', 30, NULL, 3, 10, 'UNILATERAL', 'now', 'now')`,
         ),
       ).rejects.toThrow();
 
@@ -785,8 +801,8 @@ describe("migrateDatabase", () => {
         database.runAsync(
           `INSERT INTO activity_definitions (
             id, name, description, execution_mode, duration_seconds, repetition_count,
-            series_count, pause_seconds, recovery_seconds, side_mode, created_at, updated_at
-          ) VALUES ('bad-side', 'Squat', NULL, 'DURATION', 30, NULL, 3, 10, 0, 'BILATERAL', 'now', 'now')`,
+            series_count, pause_seconds, side_mode, created_at, updated_at
+          ) VALUES ('bad-side', 'Squat', NULL, 'DURATION', 30, NULL, 3, 10, 'BILATERAL', 'now', 'now')`,
         ),
       ).rejects.toThrow();
     });
@@ -796,8 +812,8 @@ describe("migrateDatabase", () => {
       await database.runAsync(
         `INSERT INTO activity_definitions (
           id, name, description, execution_mode, duration_seconds, repetition_count,
-          series_count, pause_seconds, recovery_seconds, side_mode, created_at, updated_at
-        ) VALUES ('def-1', 'Squat', NULL, 'DURATION', 30, NULL, 3, 10, 0, 'UNILATERAL', 'now', 'now')`,
+          series_count, pause_seconds, side_mode, created_at, updated_at
+        ) VALUES ('def-1', 'Squat', NULL, 'DURATION', 30, NULL, 3, 10, 'UNILATERAL', 'now', 'now')`,
       );
       await database.runAsync(
         "INSERT INTO activity_definition_body_zones (activity_definition_id, body_zone_id) VALUES ('def-1', 'cuisses')",
@@ -813,7 +829,7 @@ describe("migrateDatabase", () => {
 
     it("does not convert or touch any historical SessionActivity row", async () => {
       await seedVersion5();
-      await seedStructure(database);
+      await seedLegacyStructure(database);
       await insertActivity(database, {
         id: "legacy-activity",
         executionMode: "DURATION",
@@ -833,9 +849,188 @@ describe("migrateDatabase", () => {
       expect(definitionCount?.count).toBe(0);
     });
   });
+
+  /**
+   * V2-PRE-1 — `migration007` : référentiels persistants additifs
+   * (`body_zones`, `labels`, `profiles`, `media_assets`, `activity_media`)
+   * ET convergence du schéma cible sur les tables existantes (`categories`,
+   * `activity_definitions`, `sessions`, `activities`) — `ALTER TABLE`
+   * uniquement (`ADD COLUMN`/`RENAME COLUMN`/`DROP COLUMN`), jamais de
+   * reconstruction de table (aucune contrainte `CHECK` existante n'est
+   * modifiée par cette tranche).
+   */
+  describe("migration007 — référentiels persistants additifs (V2-PRE-1)", () => {
+    it("seeds body_zones from the historical BODY_ZONES referential, all active", async () => {
+      await migrateDatabase(database);
+      const zones = await database.getAllAsync<{ id: string; is_active: number }>(
+        "SELECT id, is_active FROM body_zones ORDER BY id",
+      );
+      expect(zones.length).toBe(10);
+      expect(zones.every((zone) => zone.is_active === 1)).toBe(true);
+    });
+
+    it("seeds a single Profile row with the four normative defaults (10s / 30s / 10s / 5s, plan §3.2, D-240)", async () => {
+      await migrateDatabase(database);
+      const profiles = await database.getAllAsync<{
+        singleton_key: number;
+        side_change_recovery_seconds_default: number;
+        post_activity_recovery_seconds_default: number;
+        exercise_countdown_seconds_default: number;
+        exercise_end_seconds_default: number;
+      }>(
+        `SELECT singleton_key, side_change_recovery_seconds_default, post_activity_recovery_seconds_default,
+                exercise_countdown_seconds_default, exercise_end_seconds_default
+         FROM profiles`,
+      );
+      expect(profiles).toEqual([
+        {
+          singleton_key: 1,
+          side_change_recovery_seconds_default: 10,
+          post_activity_recovery_seconds_default: 30,
+          exercise_countdown_seconds_default: 10,
+          exercise_end_seconds_default: 5,
+        },
+      ]);
+    });
+
+    it("creates empty labels/media_assets/activity_media tables, ready for future rows", async () => {
+      await migrateDatabase(database);
+      const labelCount = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM labels",
+      );
+      const mediaAssetCount = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM media_assets",
+      );
+      const activityMediaCount = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM activity_media",
+      );
+      expect(labelCount?.count).toBe(0);
+      expect(mediaAssetCount?.count).toBe(0);
+      expect(activityMediaCount?.count).toBe(0);
+    });
+
+    it("allows several distinct media assets for the same Exercise at distinct positions", async () => {
+      await migrateDatabase(database);
+      await database.runAsync(
+        `INSERT INTO activity_definitions (
+          id, name, description, execution_mode, duration_seconds, repetition_count,
+          series_count, pause_seconds, side_mode, created_at, updated_at
+        ) VALUES ('def-1', 'Squat', NULL, 'DURATION', 30, NULL, 3, 10, 'UNILATERAL', 'now', 'now')`,
+      );
+      await database.runAsync(
+        "INSERT INTO media_assets (id, uri, created_at) VALUES ('asset-1', 'file://a1', 'now'), ('asset-2', 'file://a2', 'now')",
+      );
+      await database.runAsync(
+        `INSERT INTO activity_media (id, activity_definition_id, asset_id, position) VALUES
+          ('am-1', 'def-1', 'asset-1', 0),
+          ('am-2', 'def-1', 'asset-2', 1)`,
+      );
+
+      const rows = await database.getAllAsync<{ id: string; position: number }>(
+        "SELECT id, position FROM activity_media WHERE activity_definition_id = 'def-1' ORDER BY position",
+      );
+      expect(rows).toEqual([
+        { id: "am-1", position: 0 },
+        { id: "am-2", position: 1 },
+      ]);
+    });
+
+    it("rejects a duplicate position for the same Exercise", async () => {
+      await migrateDatabase(database);
+      await database.runAsync(
+        `INSERT INTO activity_definitions (
+          id, name, description, execution_mode, duration_seconds, repetition_count,
+          series_count, pause_seconds, side_mode, created_at, updated_at
+        ) VALUES ('def-1', 'Squat', NULL, 'DURATION', 30, NULL, 3, 10, 'UNILATERAL', 'now', 'now')`,
+      );
+      await database.runAsync(
+        "INSERT INTO media_assets (id, uri, created_at) VALUES ('asset-1', 'file://a1', 'now'), ('asset-2', 'file://a2', 'now')",
+      );
+      await database.runAsync(
+        "INSERT INTO activity_media (id, activity_definition_id, asset_id, position) VALUES ('am-1', 'def-1', 'asset-1', 0)",
+      );
+      await expect(
+        database.runAsync(
+          "INSERT INTO activity_media (id, activity_definition_id, asset_id, position) VALUES ('am-2', 'def-1', 'asset-2', 0)",
+        ),
+      ).rejects.toThrow();
+    });
+
+    it("cascades activity_media deletion when the Exercise is deleted", async () => {
+      await migrateDatabase(database);
+      await database.runAsync(
+        `INSERT INTO activity_definitions (
+          id, name, description, execution_mode, duration_seconds, repetition_count,
+          series_count, pause_seconds, side_mode, created_at, updated_at
+        ) VALUES ('def-1', 'Squat', NULL, 'DURATION', 30, NULL, 3, 10, 'UNILATERAL', 'now', 'now')`,
+      );
+      await database.runAsync(
+        "INSERT INTO media_assets (id, uri, created_at) VALUES ('asset-1', 'file://a1', 'now')",
+      );
+      await database.runAsync(
+        "INSERT INTO activity_media (id, activity_definition_id, asset_id, position) VALUES ('am-1', 'def-1', 'asset-1', 0)",
+      );
+
+      await database.runAsync("DELETE FROM activity_definitions WHERE id = 'def-1'");
+
+      const remaining = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM activity_media",
+      );
+      expect(remaining?.count).toBe(0);
+    });
+
+    it("is idempotent — a second migrateDatabase call never reseeds body_zones or profiles", async () => {
+      await migrateDatabase(database);
+      await migrateDatabase(database);
+
+      const zoneCount = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM body_zones",
+      );
+      const profileCount = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM profiles",
+      );
+      expect(zoneCount?.count).toBe(10);
+      expect(profileCount?.count).toBe(1);
+    });
+  });
 });
 
+/**
+ * Structure d'une Séance minimale, schéma CIBLE (post-`migration007`) :
+ * `sessions` ne porte plus `color` (dérivée de l'Étiquette, V2-PRE-1,
+ * plan §3.3) — réservé aux tests qui ont déjà appelé `migrateDatabase()`
+ * dans son intégralité (version `DATABASE_VERSION`). Pour une base figée à
+ * une version HISTORIQUE antérieure (`color` encore `NOT NULL`), voir
+ * `seedLegacyStructure` ci-dessous.
+ */
 async function seedStructure(database: NodeSqliteDatabase, suffix = "a"): Promise<void> {
+  await database.runAsync(
+    `INSERT INTO sessions (
+      id, owner_id, name, status, initial_countdown_seconds,
+      final_phase_seconds, created_at, updated_at
+    ) SELECT ?, id, ?, 'ACTIVE', 10, 5, 'now', 'now'
+      FROM users WHERE singleton_key = 1`,
+    [`session-${suffix}`, `Séance ${suffix}`],
+  );
+  await database.runAsync(
+    "INSERT INTO cycles (id, session_id, position, repeat_count) VALUES (?, ?, 1, 1)",
+    [`cycle-${suffix}`, `session-${suffix}`],
+  );
+  await database.runAsync(
+    `INSERT INTO tours (id, cycle_id, session_id, position, repeat_count)
+     VALUES (?, ?, ?, 1, 1)`,
+    [`tour-${suffix}`, `cycle-${suffix}`, `session-${suffix}`],
+  );
+}
+
+/**
+ * Même structure, schéma HISTORIQUE (`color NOT NULL`, migration001-006
+ * inchangées) — réservée aux tests qui simulent une base figée à une
+ * version antérieure via l'exécution directe de `MIGRATION_00N` (jamais
+ * `migrateDatabase()` dans son intégralité), avant que `migration007` ne
+ * retire cette colonne.
+ */
+async function seedLegacyStructure(database: NodeSqliteDatabase, suffix = "a"): Promise<void> {
   await database.runAsync(
     `INSERT INTO sessions (
       id, owner_id, name, color, status, initial_countdown_seconds,

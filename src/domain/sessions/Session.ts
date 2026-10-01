@@ -15,6 +15,7 @@ export const SESSION_COLORS = [
   "#8E8E93",
 ] as const;
 
+/** Présentation neutre d'une Séance sans Étiquette (V2-PRE-1, plan §3.3) — jamais un champ autonome saisissable depuis PRE-1. */
 export const DEFAULT_SESSION_COLOR = "#3B82F6" as const;
 
 export type SessionColor = (typeof SESSION_COLORS)[number];
@@ -23,7 +24,7 @@ export type SessionColor = (typeof SESSION_COLORS)[number];
  * Type d'une Activité.
  *
  * **T02-S02 — la Récupération n'est plus un type d'Activité.** Elle devient
- * une DURÉE FACULTATIVE ATTACHÉE à une Activité (`Activity.recoverySeconds`,
+ * une DURÉE FACULTATIVE ATTACHÉE à une Activité (`Activity.postActivityRecoverySeconds`,
  * `09 – Modèle de données fonctionnel.md`, `12 – Architecture technique.md`
  * §« Le schéma d'Activité … ne porte aucun type Exercice/Récupération ») :
  * plus aucun sélecteur fonctionnel Exercice/Récupération n'existe et AUCUNE
@@ -34,7 +35,7 @@ export type SessionColor = (typeof SESSION_COLORS)[number];
  * la colonne SQL `activities.type` porte encore son `CHECK (type IN
  * ('EXERCISE','RECOVERY'))`, hérité de `migration001` — un fichier immuable
  * (« Conservation des acquis »). `migration004` convertit les anciennes
- * lignes `RECOVERY` en `recovery_seconds` sur l'Activité qui les précède
+ * lignes `RECOVERY` en récupération attachée sur l'Activité qui les précède
  * puis les supprime : après migration, aucune ligne `RECOVERY` ne subsiste.
  * Le chemin de LECTURE reste néanmoins défensif (assemblage, calculs) plutôt
  * que de lever sur une donnée ancienne inattendue.
@@ -42,10 +43,10 @@ export type SessionColor = (typeof SESSION_COLORS)[number];
 export type ActivityType = "EXERCISE" | "RECOVERY";
 
 /**
- * Position structurelle d'une Activité (T01-S10, D-061) : avant le Tour,
- * dans le Tour, ou après le Tour. Le schéma SQLite portait déjà les trois
- * valeurs. Les Activités hors Tour sont rattachées au Cycle, celles
- * `IN_TOUR` au Tour.
+ * Position structurelle d'une Activité (T01-S10, D-061) : avant le Circuit,
+ * dans le Circuit, ou après le Circuit. Le schéma SQLite portait déjà les
+ * trois valeurs. Les Activités hors Circuit sont rattachées au Cycle, celles
+ * `IN_TOUR` au Circuit.
  */
 export type StructuralPosition = "BEFORE_TOUR" | "IN_TOUR" | "AFTER_TOUR";
 
@@ -58,8 +59,10 @@ export type StructuralPosition = "BEFORE_TOUR" | "IN_TOUR" | "AFTER_TOUR";
 export type ExerciseExecutionMode = "DURATION" | "REPETITIONS" | "TO_FAILURE";
 
 /**
- * Activité persistée (T01-S09, complétion REWORK12 ; T01-S10 : Récupération,
- * positions structurelles et mode `TO_FAILURE`).
+ * Activité persistée — une OCCURRENCE d'Exercice dans une Séance (T01-S09,
+ * complétion REWORK12 ; T01-S10 : Récupération, positions structurelles et
+ * mode `TO_FAILURE` ; V2-PRE-1 : `postActivityRecoverySeconds` obligatoire,
+ * indépendant de la définition source, plan §3.2).
  *
  * Un Exercice porte : soit une durée, soit un nombre de répétitions, soit
  * aucune cible (`TO_FAILURE`) — jamais deux à la fois (RM-034) — un nombre
@@ -93,27 +96,37 @@ export type Activity = {
   seriesCount: number | null;
   pauseSeconds: number;
   /**
-   * **T02-S02 — Récupération ATTACHÉE** (RM-129/DM-015, `06` §« Dépendance
-   * Séries / Durée totale ») : durée facultative, en secondes, exécutée UNE
-   * SEULE FOIS APRÈS TOUTES les Séries de cette Activité. `0` = aucune
-   * Récupération (valeur neutre par défaut, jamais `null`).
+   * V2-PRE-1 (plan §3.2) : récupération post-exercice de l'OCCURRENCE,
+   * copiée depuis le Profil au moment de l'insertion et INDÉPENDANTE de la
+   * définition source — une modification ultérieure du Profil ou de la
+   * définition ne modifie jamais une occurrence déjà créée. `0` = aucune
+   * récupération (valeur neutre, jamais `null`). Exécutée UNE SEULE FOIS
+   * après toutes les Séries ; ne compte jamais comme une Activité
+   * supplémentaire (`computeActivityCount` inchangé).
    *
-   * Elle contribue à la durée de l'Activité mais ne compte JAMAIS comme une
-   * Activité supplémentaire (`computeActivityCount` reste inchangé).
+   * Champ OPTIONNEL de transition sur ce type LU (obligatoire et toujours
+   * renseigné à l'écriture, `CreateSessionActivityInput`/
+   * `UpdateSessionActivityInput`). Champ OPTIONNEL uniquement sur ce type LU,
+   * pour la compatibilité structurelle de `CatalogueCompositionEditFlow
+   * .integration.test.tsx`/`SessionDraftProvider.test.tsx` (hors périmètre
+   * d'écriture, `scope_allow`) qui construisent encore ce type sans lui —
+   * un consommateur lit `activity.postActivityRecoverySeconds ?? 0`.
    */
-  recoverySeconds: number;
+  postActivityRecoverySeconds?: number;
+  /** @deprecated V2-PRE-1 : remplacé par `postActivityRecoverySeconds` (plan §3.2) — conservé uniquement pour la compatibilité structurelle de fixtures hors périmètre d'écriture qui l'utilisent encore ; jamais lu par le Domaine, les calculs ou la persistance. */
+  recoverySeconds?: number;
   instruction: string | null;
-  /** Identifiants stables du référentiel `bodyZones.ts` (D-093) — sélection multiple, ordre indifférent ; toujours vide pour une Récupération. */
+  /** Identifiants stables du référentiel de Zones corporelles persistant (D-093) — sélection multiple, ordre indifférent ; toujours vide pour une Récupération. */
   bodyZoneIds: readonly string[];
   /**
    * V2-BILAT-01 : direction PROPRE de cette occurrence d'Activité
    * (`UNILATERAL`/`RIGHT_LEFT`/`LEFT_RIGHT`, `sideMode.ts`). Champ optionnel
-   * de transition (même convention que `cycle.beforeTour`/`afterTour`,
-   * T01-S10) — un consommateur lit `activity.sideMode ?? DEFAULT_SIDE_MODE`.
-   * Sa direction EFFECTIVE, dans le Tour, dépend en outre de
-   * `Session.cycle.tour.sideMode` (`resolveEffectiveSideMode`) — la
-   * direction du Tour prévaut lorsqu'elle est bilatérale ; hors du Tour,
-   * cette valeur propre gouverne seule.
+   * de transition — un consommateur lit `activity.sideMode ?? DEFAULT_SIDE_MODE`.
+   *
+   * V2-PRE-1 (plan §3.3) : la bilatéralité est portée EXCLUSIVEMENT par
+   * l'Exercice — le Circuit (Tour) n'a plus aucune influence fonctionnelle
+   * sur cette direction (`resolveEffectiveSideMode`/`applyTourSideModeTransition`
+   * sont retirés du Domaine).
    */
   sideMode?: SideMode;
 };
@@ -121,29 +134,25 @@ export type Activity = {
 /** @deprecated Ancien alias T01-S01 à Activité unique figée — conservé uniquement pour ne pas casser un import externe déjà publié ; `Activity` est désormais le type de référence. */
 export type DurationExercise = Activity;
 
-/**
- * Catégorie de Séance (T01-S09, D-106/D-107). Prédéfinie (`isPredefined:
- * true`, `displayOrder` fixé par le référentiel MVP) ou personnalisée
- * (`isPredefined: false`, `displayOrder: null`, ordonnée par `createdAt`
- * croissant). `canonicalKey` est la clé de comparaison/unicité (espaces
- * normalisés + casse + diacritiques ignorés) — jamais affichée telle quelle,
- * `name` reste le libellé visible réellement saisi/normalisé (espaces
- * uniquement, casse et accents conservés).
- */
-export type Category = {
-  readonly id: string;
-  readonly name: string;
-  readonly canonicalKey: string;
-  readonly isPredefined: boolean;
-  readonly displayOrder: number | null;
-  readonly createdAt: string;
-};
-
 export type Session = {
   id: string;
   ownerId: string;
   name: string;
+  /**
+   * V2-PRE-1 (plan §3.3) : couleur DÉRIVÉE de l'Étiquette associée
+   * (`labelId`) — jamais un champ autonome saisissable. `DEFAULT_SESSION_COLOR`
+   * pour une Séance sans Étiquette (présentation neutre).
+   */
   color: SessionColor;
+  /**
+   * V2-PRE-1 (plan §3.3) : Étiquette facultative — `null` si aucune. La
+   * relation Catégorie de Séance N:N historique est retirée du contrat
+   * cible. Champ OPTIONNEL de transition (même convention que
+   * `SessionSummary.labelId`) — un consommateur lit `session.labelId ?? null`.
+   */
+  labelId?: string | null;
+  /** @deprecated V2-PRE-1 : relation Catégorie de Séance N:N retirée du contrat cible (plan §3.3) — conservée uniquement pour la compatibilité structurelle de `CatalogueCompositionEditFlow.integration.test.tsx`/`SessionDraftProvider.test.tsx` (hors périmètre d'écriture, `scope_allow`), qui la construisent encore ; jamais lue par le Domaine ni la persistance. */
+  categories?: readonly unknown[];
   status: "ACTIVE";
   initialCountdownSeconds: number;
   finalPhaseSeconds: number;
@@ -155,34 +164,22 @@ export type Session = {
     /** Le Cycle technique reste unique et non répété (D-058). */
     repeatCount: 1;
     /**
-     * T01-S10 (D-061) : Activités AVANT le Tour, rattachées au Cycle, dans
+     * T01-S10 (D-061) : Activités AVANT le Circuit, rattachées au Cycle, dans
      * l'ordre. Optionnel et absent tant que la persistance S10 (étape 2) ne
      * les peuple pas — un consommateur lit `cycle.beforeTour ?? []`.
      */
     beforeTour?: readonly Activity[];
-    /** T01-S10 (D-061) : Activités APRÈS le Tour, rattachées au Cycle, dans l'ordre. Voir `beforeTour`. */
+    /** T01-S10 (D-061) : Activités APRÈS le Circuit, rattachées au Cycle, dans l'ordre. Voir `beforeTour`. */
     afterTour?: readonly Activity[];
     tour: {
       id: string;
       position: 1;
-      /** T01-S10 : répétition du Tour, entier `1..99` (D-058). Reste `1` pour toute Séance créée avant S10. */
+      /** T01-S10 : répétition du Circuit, entier `1..99` (D-058). Reste `1` pour toute Séance créée avant S10. */
       repeatCount: number;
-      /**
-       * V2-BILAT-01 : direction du Tour lui-même. Champ optionnel de
-       * transition (même convention que `cycle.beforeTour`/`afterTour`,
-       * T01-S10) : un consommateur lit `tour.sideMode ?? DEFAULT_TOUR_SIDE_MODE`.
-       * Bilatérale (`RIGHT_LEFT`/`LEFT_RIGHT`), elle prévaut sur la direction
-       * PROPRE de chaque Activité `IN_TOUR` (`resolveEffectiveSideMode`) —
-       * ses enfants sont alors tous `UNILATERAL`
-       * (`applyTourSideModeTransition`).
-       */
-      sideMode?: SideMode;
       /** Collection ORDONNÉE (T01-S09) — remplace l'ancien champ singulier `exercise`. Toujours au moins un élément (une Séance sans aucune Activité reste invalide, voir `toCreateSessionInput`). */
       exercises: readonly Activity[];
     };
   };
-  /** Zéro, une ou plusieurs Catégories (D-106) — jamais un tri propre à la Séance : l'ordre restitué suit toujours celui du référentiel (D-107). */
-  categories: readonly Category[];
 };
 
 /**
@@ -193,7 +190,7 @@ export type Session = {
  * structurelle, ni identifiant : `SqliteSessionRepository.create()` insérait
  * des littéraux fixes (`'EXERCISE'`, `FIXED_ACTIVITY_STRUCTURAL_POSITION`),
  * de sorte qu'une création comportant une Récupération, une Activité
- * `BEFORE_TOUR`/`AFTER_TOUR` ou un Tour ≠ `1` perdait silencieusement cette
+ * `BEFORE_TOUR`/`AFTER_TOUR` ou un Circuit ≠ `1` perdait silencieusement cette
  * information. Ces trois champs sont donc désormais transportés.
  *
  * `id` reste OPTIONNEL et n'est jamais requis : il permet au brouillon de
@@ -230,8 +227,8 @@ export type CreateSessionActivityInput = {
   /** `null` uniquement pour une Récupération (D-041) ; entier `1..99` sinon. */
   readonly seriesCount: number | null;
   readonly pauseSeconds: number;
-  /** T02-S02 : Récupération attachée, `0..5999` s — `0` = aucune (voir `Activity.recoverySeconds`). */
-  readonly recoverySeconds: number;
+  /** V2-PRE-1 : récupération post-exercice de l'occurrence, `0..5999` s — `0` = aucune (voir `Activity.postActivityRecoverySeconds`). */
+  readonly postActivityRecoverySeconds: number;
   readonly instruction?: string | null;
   readonly bodyZoneIds: readonly string[];
   /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`) — optionnel, `DEFAULT_SIDE_MODE` si absent. */
@@ -241,30 +238,18 @@ export type CreateSessionActivityInput = {
 /** @deprecated Nom historique de `CreateSessionActivityInput` (T01, quand la création ne produisait que des Exercices) — conservé pour ne pas casser un import déjà publié. */
 export type CreateSessionExerciseInput = CreateSessionActivityInput;
 
-/**
- * Catégorie à associer lors de l'enregistrement final (T01-S09, D-107) :
- * soit une Catégorie déjà persistée (prédéfinie ou créée lors d'une Séance
- * précédente), soit une Catégorie personnalisée à créer — sa création ne
- * devient effective que dans la transaction atomique d'enregistrement de la
- * Séance, jamais isolément avant elle.
- */
-export type CreateSessionCategoryInput =
-  | { readonly kind: "EXISTING"; readonly categoryId: string }
-  | { readonly kind: "NEW"; readonly name: string };
-
 export type CreateSessionInput = {
   name: string;
-  color: SessionColor;
+  /** V2-PRE-1 (plan §3.3) : Étiquette facultative — `null`/absent si aucune. La couleur autonome historique est retirée du contrat cible. */
+  labelId?: string | null;
   initialCountdownSeconds: number;
   finalPhaseSeconds: number;
   /**
-   * T02-S01 (D-058) : répétition RÉELLE du Tour, entier `1..99` — la
+   * T02-S01 (D-058) : répétition RÉELLE du Circuit, entier `1..99` — la
    * création figeait jusqu'ici `FIXED_TOUR_REPEAT_COUNT` en base, rendant
-   * impossible la création d'une Séance à plusieurs Tours (AC-08/AC-12).
+   * impossible la création d'une Séance à plusieurs Circuits (AC-08/AC-12).
    */
   tourRepeatCount: number;
-  /** V2-BILAT-01 : direction du Tour (`Session.cycle.tour.sideMode`) — optionnel, `DEFAULT_TOUR_SIDE_MODE` si absent. */
-  tourSideMode?: SideMode;
   /**
    * Collection ORDONNÉE (T01-S09) — remplace l'ancien champ singulier
    * `exercise`. Doit compter au moins un élément : une entrée vide est un
@@ -277,8 +262,6 @@ export type CreateSessionInput = {
    * (chaque zone est numérotée séparément — voir `CreateSessionActivityInput`).
    */
   exercises: readonly CreateSessionActivityInput[];
-  /** Zéro, une ou plusieurs entrées — jamais requis (D-106). */
-  categories: readonly CreateSessionCategoryInput[];
 };
 
 /**
@@ -306,8 +289,8 @@ export type UpdateSessionActivityInput = {
   readonly repetitionCount: number | null;
   readonly seriesCount: number | null;
   readonly pauseSeconds: number;
-  /** T02-S02 : Récupération attachée, `0..5999` s — `0` = aucune (voir `Activity.recoverySeconds`). */
-  readonly recoverySeconds: number;
+  /** V2-PRE-1 : récupération post-exercice de l'occurrence, `0..5999` s — `0` = aucune (voir `Activity.postActivityRecoverySeconds`). */
+  readonly postActivityRecoverySeconds: number;
   readonly instruction?: string | null;
   readonly bodyZoneIds: readonly string[];
   /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`) — optionnel, `DEFAULT_SIDE_MODE` si absent. */
@@ -318,29 +301,35 @@ export type UpdateSessionActivityInput = {
  * Agrégat éditable complet d'une MODIFICATION bout en bout d'une Séance
  * (T01-S10, plan §6.2). Distinct de `CreateSessionInput` : porte
  * l'identifiant source, les identifiants et positions structurelles de
- * TOUTES les Activités (toutes zones confondues) et la répétition du Tour.
+ * TOUTES les Activités (toutes zones confondues) et la répétition du Circuit.
  * `create()` et `CreateSessionInput` restent inchangés (Q3-A).
  */
 export type UpdateSessionInput = {
   readonly sourceSessionId: string;
   readonly name: string;
-  readonly color: SessionColor;
+  /** V2-PRE-1 (plan §3.3) : Étiquette facultative — `null`/absent si aucune. */
+  readonly labelId?: string | null;
   readonly initialCountdownSeconds: number;
   readonly finalPhaseSeconds: number;
-  /** Répétition du Tour, entier `1..99` (D-058). */
+  /** Répétition du Circuit, entier `1..99` (D-058). */
   readonly tourRepeatCount: number;
-  /** V2-BILAT-01 : direction du Tour (`Session.cycle.tour.sideMode`) — optionnel, `DEFAULT_TOUR_SIDE_MODE` si absent. */
-  readonly tourSideMode?: SideMode;
   /** TOUTES les Activités de la Séance modifiée, dans l'ordre, toutes zones structurelles confondues — au moins une (une Séance sans Activité reste invalide). */
   readonly activities: readonly UpdateSessionActivityInput[];
-  /** Zéro, une ou plusieurs entrées — jamais requis (D-106). */
-  readonly categories: readonly CreateSessionCategoryInput[];
 };
 
 export type SessionSummary = {
   id: string;
   name: string;
+  /** V2-PRE-1 : couleur DÉRIVÉE de l'Étiquette — `DEFAULT_SESSION_COLOR` sans Étiquette. */
   color: SessionColor;
+  /**
+   * V2-PRE-1 : Étiquette facultative — `null` si aucune. Champ OPTIONNEL de
+   * transition (même convention que `Activity.sideMode`) : `useSessionCatalogue.test.ts`/
+   * `CatalogueScreen.test.tsx`/`CatalogueCompositionEditFlow.integration.test.tsx`
+   * (hors périmètre d'écriture, `scope_allow`) construisent encore ce type
+   * sans ce champ — un consommateur lit `summary.labelId ?? null`.
+   */
+  labelId?: string | null;
   activityCount: number;
   estimatedDurationSeconds: number;
   /**
@@ -351,16 +340,15 @@ export type SessionSummary = {
    * d'en tirer un préfixe `≥` plutôt que de le coder ici.
    */
   isEstimatedDurationApproximate: boolean;
-  /** T01-S10 : répétition réelle du Tour (`1..99`, D-058). Reste `1` pour toute Séance créée avant S10. */
+  /** T01-S10 : répétition réelle du Circuit (`1..99`, D-058). Reste `1` pour toute Séance créée avant S10. */
   tourRepeatCount: number;
   updatedAt: string;
   /**
-   * Noms des Catégories associées (T01-S09, correction VISUAL — ligne
-   * manquante sous le nom de la Séance) — déjà ordonnés par le Repository
-   * (prédéfinies par `displayOrder`, puis personnalisées par `createdAt`,
-   * D-107). Tableau vide si aucune Catégorie n'est associée — jamais
-   * `null`, pour rester composable simplement avec `bodyZoneNames` par la
-   * présentation.
+   * V2-PRE-1 (plan §3.3) : la relation historique Catégorie de Séance N:N
+   * est retirée du contrat cible — ce champ reste néanmoins présent, TOUJOURS
+   * vide, pour la compatibilité de `SessionCard.tsx` (hors périmètre
+   * d'écriture de cette invocation, `scope_allow`), qui le consomme encore.
+   * Écart disclosé dans le rapport de mission.
    */
   categoryNames: readonly string[];
   /**
