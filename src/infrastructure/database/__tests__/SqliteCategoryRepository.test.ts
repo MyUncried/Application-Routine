@@ -62,4 +62,32 @@ describe("SqliteCategoryRepository", () => {
 
     expect(cardio).toMatchObject({ canonicalKey: "cardio", displayOrder: 1, isPredefined: true });
   });
+
+  /**
+   * V2-PRE-1 (plan §3.1/§14, REQ-C78EAD48949240B1, REQ-CA29CD728EEABCB2) :
+   * `categories.color`/`categories.is_active` sont de nouvelles colonnes
+   * (`migration007`, `NOT NULL DEFAULT`) — une Catégorie prédéfinie déjà
+   * seedée par `migration001` les reçoit donc via leur valeur par défaut
+   * (`'#8E8E93'`/active), jamais `NULL` ni une exception de lecture.
+   */
+  it("reads the new color/isActive columns with their migration007 defaults for an already-seeded predefined category", async () => {
+    const repository = new SqliteCategoryRepository(database);
+    const categories = await repository.listAll();
+    const cardio = categories.find((category) => category.id === "cardio");
+
+    expect(cardio).toMatchObject({ color: "#8E8E93", isActive: true });
+  });
+
+  it("reads a custom category's own color and isActive, never the predefined default", async () => {
+    await database.runAsync(
+      `INSERT INTO categories (id, name, canonical_key, color, is_predefined, display_order, is_active, created_at)
+       VALUES ('custom-retired', 'Catégorie retirée', 'categorie retiree', '#FF2D55', 0, NULL, 0, '2026-01-03T00:00:00.000Z')`,
+    );
+
+    const repository = new SqliteCategoryRepository(database);
+    const categories = await repository.listAll();
+    const custom = categories.find((category) => category.id === "custom-retired");
+
+    expect(custom).toMatchObject({ color: "#FF2D55", isActive: false });
+  });
 });

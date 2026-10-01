@@ -130,9 +130,9 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     fireEvent.press(screen.getByTestId("exercise-section-description-header"));
     expect(screen.getAllByLabelText(exercise.instruction.label)).toHaveLength(1);
 
-    // La Récupération attachée et la Durée totale dérivée sont visibles
+    // V2-PRE-1 (plan §3.1) : `ActivityEditorForm` ne porte plus le champ
+    // Récupération — seule la Durée totale dérivée reste visible
     // immédiatement, dans la même rangée de paramètres.
-    expect(screen.getByLabelText(exercise.recoverySeconds.accessibilityLabel)).toBeTruthy();
     expect(screen.getByLabelText(exercise.totalDuration.accessibilityLabel)).toBeTruthy();
   });
 

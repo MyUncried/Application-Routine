@@ -1,13 +1,14 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { BodyZoneSelector } from "@/features/sessions/BodyZoneSelector";
 
-const ZONES = [
-  { id: "cou", name: "Cou", order: 0 },
-  { id: "epaules", name: "Épaules", order: 1 },
-  { id: "dos", name: "Dos", order: 2 },
-] as const;
+const ZONES: readonly BodyZone[] = [
+  { id: "cou", name: "Cou", isActive: true, createdAt: "2026-01-01T00:00:00.000Z" },
+  { id: "epaules", name: "Épaules", isActive: true, createdAt: "2026-01-01T00:00:01.000Z" },
+  { id: "dos", name: "Dos", isActive: true, createdAt: "2026-01-01T00:00:02.000Z" },
+];
 
 describe("BodyZoneSelector", () => {
   it("renders one control per supplied zone, using its name as the accessibility label", () => {

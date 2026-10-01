@@ -1,9 +1,12 @@
 import * as Crypto from "expo-crypto";
 
+import type { CreateCategoryInput } from "@/domain/categories/Category";
+import { canonicalCategoryKey } from "@/domain/categories/validation";
 import type {
   ActivityDefinition,
   ActivityDefinitionRepository,
   CreateActivityDefinitionInput,
+  CreateActivityMediaInput,
   UpdateActivityDefinitionInput,
 } from "@/domain/activities";
 import { DEFAULT_SIDE_MODE } from "@/domain/sessions/defaults";
@@ -16,17 +19,63 @@ import type {
 } from "@/infrastructure/database/types/DatabaseRows";
 
 type UuidFactory = () => string;
+type CategoryIdRow = { id: string };
 
 const SELECT_COLUMNS = `
   id, name, description, execution_mode, duration_seconds, repetition_count,
-  series_count, pause_seconds, recovery_seconds, side_mode, created_at, updated_at
+  series_count, pause_seconds, category_id, side_mode, side_recovery_seconds,
+  created_at, updated_at
 `;
 
 /**
- * Persistance SQLite des `ActivityDefinition` (V2-CAT-01, `migration006`).
- * Même patron que `SqliteCategoryRepository`/`SqliteSessionRepository` :
- * aucune dépendance à `expo-sqlite` directement (`Database`, interface
- * partagée), `uuidFactory`/`now` injectables pour les tests.
+ * Résout une référence de Catégorie (`CreateCategoryInput`) vers un
+ * identifiant réellement persisté (D-211) — même patron que l'ancienne
+ * résolution `session_categories` (`SqliteSessionRepository`), désormais
+ * portée par l'Exercice : `EXISTING` doit référencer une Catégorie déjà
+ * présente (défense en profondeur) ; `NEW` retrouve la Catégorie de même clé
+ * canonique si elle existe déjà (D-106, jamais de doublon) ou la crée sinon.
+ */
+async function resolveCategoryId(
+  transaction: Database,
+  category: CreateCategoryInput,
+  uuidFactory: UuidFactory,
+  timestamp: string,
+): Promise<string> {
+  if (category.kind === "EXISTING") {
+    const row = await transaction.getFirstAsync<CategoryIdRow>(
+      "SELECT id FROM categories WHERE id = ?",
+      [category.categoryId],
+    );
+    if (!row) {
+      throw new Error("Referenced category does not exist.");
+    }
+    return row.id;
+  }
+
+  const canonicalKey = canonicalCategoryKey(category.name);
+  const existing = await transaction.getFirstAsync<CategoryIdRow>(
+    "SELECT id FROM categories WHERE canonical_key = ?",
+    [canonicalKey],
+  );
+  if (existing) {
+    return existing.id;
+  }
+  const categoryId = uuidFactory();
+  await transaction.runAsync(
+    `INSERT INTO categories (id, name, canonical_key, color, is_predefined, display_order, is_active, created_at)
+     VALUES (?, ?, ?, ?, 0, NULL, 1, ?)`,
+    [categoryId, category.name, canonicalKey, category.color, timestamp],
+  );
+  return categoryId;
+}
+
+/**
+ * Persistance SQLite des `ActivityDefinition` (V2-CAT-01, `migration006` ;
+ * V2-PRE-1, `migration007` : Catégorie obligatoire, pause de changement de
+ * côté propre, retrait de la récupération post-exercice). Même patron que
+ * `SqliteCategoryRepository`/`SqliteSessionRepository` : aucune dépendance à
+ * `expo-sqlite` directement (`Database`, interface partagée),
+ * `uuidFactory`/`now` injectables pour les tests.
  */
 export class SqliteActivityDefinitionRepository implements ActivityDefinitionRepository {
   constructor(
@@ -39,13 +88,16 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
     const id = this.uuidFactory();
     const timestamp = this.now();
     const sideMode = input.sideMode ?? DEFAULT_SIDE_MODE;
+    let categoryId = "";
 
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      categoryId = await resolveCategoryId(transaction, input.category, this.uuidFactory, timestamp);
       await transaction.runAsync(
         `INSERT INTO activity_definitions (
           id, name, description, execution_mode, duration_seconds, repetition_count,
-          series_count, pause_seconds, recovery_seconds, side_mode, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          series_count, pause_seconds, category_id, side_mode, side_recovery_seconds,
+          created_at, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
           input.name,
@@ -55,13 +107,15 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
           input.repetitionCount,
           input.seriesCount,
           input.pauseSeconds,
-          input.recoverySeconds,
+          categoryId,
           sideMode,
+          input.sideRecoverySeconds,
           timestamp,
           timestamp,
         ],
       );
       await insertBodyZones(transaction, id, input.bodyZoneIds);
+      await insertMedia(transaction, id, input.media ?? [], this.uuidFactory);
     });
 
     return {
@@ -73,9 +127,10 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
       repetitionCount: input.repetitionCount,
       seriesCount: input.seriesCount,
       pauseSeconds: input.pauseSeconds,
-      recoverySeconds: input.recoverySeconds,
+      categoryId,
       bodyZoneIds: input.bodyZoneIds,
       sideMode,
+      sideRecoverySeconds: input.sideRecoverySeconds,
       createdAt: timestamp,
       updatedAt: timestamp,
     };
@@ -89,6 +144,7 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
     const sideMode = input.sideMode ?? DEFAULT_SIDE_MODE;
     let updated = false;
     let createdAt: string | null = null;
+    let categoryId = "";
 
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
       const existing = await transaction.getFirstAsync<{ id: string; created_at: string }>(
@@ -99,12 +155,13 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
         return;
       }
       createdAt = existing.created_at;
+      categoryId = await resolveCategoryId(transaction, input.category, this.uuidFactory, timestamp);
 
       await transaction.runAsync(
         `UPDATE activity_definitions SET
           name = ?, description = ?, execution_mode = ?, duration_seconds = ?,
           repetition_count = ?, series_count = ?, pause_seconds = ?,
-          recovery_seconds = ?, side_mode = ?, updated_at = ?
+          category_id = ?, side_mode = ?, side_recovery_seconds = ?, updated_at = ?
          WHERE id = ?`,
         [
           input.name,
@@ -114,8 +171,9 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
           input.repetitionCount,
           input.seriesCount,
           input.pauseSeconds,
-          input.recoverySeconds,
+          categoryId,
           sideMode,
+          input.sideRecoverySeconds,
           timestamp,
           id,
         ],
@@ -125,6 +183,10 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
         [id],
       );
       await insertBodyZones(transaction, id, input.bodyZoneIds);
+      await transaction.runAsync(`DELETE FROM activity_media WHERE activity_definition_id = ?`, [
+        id,
+      ]);
+      await insertMedia(transaction, id, input.media ?? [], this.uuidFactory);
       updated = true;
     });
 
@@ -141,9 +203,10 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
       repetitionCount: input.repetitionCount,
       seriesCount: input.seriesCount,
       pauseSeconds: input.pauseSeconds,
-      recoverySeconds: input.recoverySeconds,
+      categoryId,
       bodyZoneIds: input.bodyZoneIds,
       sideMode,
+      sideRecoverySeconds: input.sideRecoverySeconds,
       createdAt,
       updatedAt: timestamp,
     };
@@ -180,6 +243,29 @@ async function insertBodyZones(
     await transaction.runAsync(
       `INSERT INTO activity_definition_body_zones (activity_definition_id, body_zone_id) VALUES (?, ?)`,
       [activityDefinitionId, bodyZoneId],
+    );
+  }
+}
+
+/**
+ * Persiste les médias de l'Exercice avec une position STABLE égale à l'ordre
+ * du tableau (0-indexée, V2-PRE-1, plan §3.3/§13, REQ-001108DC7F67664C) —
+ * jamais retriée, jamais une position fournie séparément par l'appelant qui
+ * pourrait diverger de cet ordre. `activity_media.asset_id` référence
+ * `media_assets(id)` (`ON DELETE CASCADE` côté Exercice) : un `assetId`
+ * inconnu échoue la transaction entière (contrainte `FOREIGN KEY`), jamais
+ * une ligne orpheline silencieuse.
+ */
+async function insertMedia(
+  transaction: Database,
+  activityDefinitionId: string,
+  media: readonly CreateActivityMediaInput[],
+  uuidFactory: UuidFactory,
+): Promise<void> {
+  for (const [position, item] of media.entries()) {
+    await transaction.runAsync(
+      `INSERT INTO activity_media (id, activity_definition_id, asset_id, position) VALUES (?, ?, ?, ?)`,
+      [uuidFactory(), activityDefinitionId, item.assetId, position],
     );
   }
 }
@@ -222,9 +308,10 @@ function mapActivityDefinitionRow(
     repetitionCount: row.repetition_count,
     seriesCount: row.series_count,
     pauseSeconds: row.pause_seconds,
-    recoverySeconds: row.recovery_seconds,
+    categoryId: row.category_id,
     bodyZoneIds,
     sideMode: row.side_mode as SideMode,
+    sideRecoverySeconds: row.side_recovery_seconds,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

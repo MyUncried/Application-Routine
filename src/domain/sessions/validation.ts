@@ -8,16 +8,11 @@
  * rester cohérentes avec le comptage de caractères de SQLite.
  */
 
-import { validateCategoryName } from "@/domain/categories/validation";
-
 import {
-  SESSION_COLORS,
   type ActivityType,
   type CreateSessionActivityInput,
-  type CreateSessionCategoryInput,
   type CreateSessionInput,
   type ExerciseExecutionMode,
-  type SessionColor,
   type StructuralPosition,
   type UpdateSessionActivityInput,
   type UpdateSessionInput,
@@ -29,7 +24,7 @@ import {
   type ValidationResult,
   type ValidationViolation,
 } from "./errors";
-import { DEFAULT_SIDE_MODE, DEFAULT_TOUR_SIDE_MODE } from "./defaults";
+import { DEFAULT_SIDE_MODE } from "./defaults";
 import { isSideMode, type SideMode } from "./sideMode";
 
 const NAME_MIN_LENGTH = 1;
@@ -124,13 +119,6 @@ export function validateActivityName(raw: string): ValidationResult<string> {
   return validateBoundedName(raw, "activity.name");
 }
 
-export function validateSessionColor(raw: string): ValidationResult<SessionColor> {
-  if (!SESSION_COLORS.includes(raw as SessionColor)) {
-    return fail([{ code: "INVALID_COLOR", field: "session.color" }]);
-  }
-  return ok(raw as SessionColor);
-}
-
 export function validateExerciseDurationSeconds(raw: number): ValidationResult<number> {
   const field: ValidationField = "exercise.durationSeconds";
 
@@ -199,12 +187,12 @@ export function validatePauseSeconds(raw: number): ValidationResult<number> {
 }
 
 /**
- * T02-S02 : Récupération ATTACHÉE d'une Activité (RM-129). Entier de 0 à 5999
- * secondes — `0` signifie « aucune Récupération » et reste parfaitement
- * valide (CE-T01-13).
+ * V2-PRE-1 (plan §3.2) : récupération post-exercice de l'occurrence (RM-129).
+ * Entier de 0 à 5999 secondes — `0` signifie « aucune récupération » et reste
+ * parfaitement valide (CE-T01-13). Remplace l'ancien `validateRecoverySeconds`.
  */
-export function validateRecoverySeconds(raw: number): ValidationResult<number> {
-  const field: ValidationField = "exercise.recoverySeconds";
+export function validatePostActivityRecoverySeconds(raw: number): ValidationResult<number> {
+  const field: ValidationField = "exercise.postActivityRecoverySeconds";
 
   if (!Number.isInteger(raw)) {
     return fail([{ code: "NOT_INTEGER", field }]);
@@ -341,11 +329,6 @@ export function normalizeSideMode(raw: unknown): SideMode | undefined {
   return isSideMode(raw) && raw !== DEFAULT_SIDE_MODE ? raw : undefined;
 }
 
-/** V2-BILAT-01 : même normalisation que `normalizeSideMode`, appliquée à `tourSideMode` — la direction neutre (`DEFAULT_TOUR_SIDE_MODE`) reste absente de la sortie, pour la même raison de compatibilité rétroactive. */
-export function normalizeTourSideMode(raw: unknown): SideMode | undefined {
-  return isSideMode(raw) && raw !== DEFAULT_TOUR_SIDE_MODE ? raw : undefined;
-}
-
 /** T01-S10 : rang d'ordre d'une Activité dans sa zone structurelle — entier `≥ 0`. */
 export function validateActivityPosition(raw: number): ValidationResult<number> {
   const field: ValidationField = "activity.position";
@@ -417,8 +400,8 @@ type ActivityParameterInput = {
   readonly repetitionCount: number | null;
   readonly seriesCount: number | null;
   readonly pauseSeconds: number;
-  /** T02-S02 : Récupération attachée (`0..5999`). */
-  readonly recoverySeconds: number;
+  /** V2-PRE-1 : récupération post-exercice de l'occurrence (`0..5999`). */
+  readonly postActivityRecoverySeconds: number;
   readonly bodyZoneIds: readonly string[];
 };
 
@@ -428,7 +411,7 @@ type ActivityParameterValues = {
   readonly repetitionCount: number | null;
   readonly seriesCount: number | null;
   readonly pauseSeconds: number;
-  readonly recoverySeconds: number;
+  readonly postActivityRecoverySeconds: number;
   readonly bodyZoneIds: readonly string[];
 };
 
@@ -463,7 +446,7 @@ function validateActivityParameters(
   let repetitionCount: number | null = null;
   let seriesCount: number | null = null;
   let pauseSeconds = 0;
-  let recoverySeconds = 0;
+  let postActivityRecoverySeconds = 0;
   let bodyZoneIds: readonly string[] = [];
 
   if (type === "RECOVERY") {
@@ -480,11 +463,11 @@ function validateActivityParameters(
       violations.push({ code: "MUST_BE_ABSENT", field: "exercise.pauseSeconds" });
     }
     // T02-S02 : une ancienne Activité `RECOVERY` ne peut pas porter elle-même
-    // une Récupération attachée — elle EST la Récupération (chemin de lecture
-    // défensif uniquement : `validateCreatableActivityType` en interdit déjà
-    // toute création).
-    if (activity.recoverySeconds !== 0) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.recoverySeconds" });
+    // une récupération post-exercice — elle EST la Récupération (chemin de
+    // lecture défensif uniquement : `validateCreatableActivityType` en
+    // interdit déjà toute création).
+    if (activity.postActivityRecoverySeconds !== 0) {
+      violations.push({ code: "MUST_BE_ABSENT", field: "exercise.postActivityRecoverySeconds" });
     }
     if (activity.bodyZoneIds.length > 0) {
       violations.push({ code: "MUST_BE_ABSENT", field: "activity.bodyZoneIds" });
@@ -501,7 +484,7 @@ function validateActivityParameters(
       repetitionCount,
       seriesCount,
       pauseSeconds,
-      recoverySeconds,
+      postActivityRecoverySeconds,
       bodyZoneIds,
     };
   }
@@ -513,7 +496,7 @@ function validateActivityParameters(
       repetitionCount,
       seriesCount,
       pauseSeconds,
-      recoverySeconds,
+      postActivityRecoverySeconds,
       bodyZoneIds,
     };
   }
@@ -555,11 +538,13 @@ function validateActivityParameters(
     seriesCount = unwrap(validateSeriesCount(activity.seriesCount), violations) ?? null;
   }
   pauseSeconds = unwrap(validatePauseSeconds(activity.pauseSeconds), violations) ?? 0;
-  // T02-S02 : la Récupération attachée est disponible dans LES TROIS modes
-  // (`09 – Modèle de données fonctionnel.md` : « Pause, nombre de Séries et
-  // Récupération restent disponibles dans les trois modes ») — validée ici,
-  // hors du bloc conditionnel de mode.
-  recoverySeconds = unwrap(validateRecoverySeconds(activity.recoverySeconds), violations) ?? 0;
+  // V2-PRE-1 : la récupération post-exercice est disponible dans LES TROIS
+  // modes (`09 – Modèle de données fonctionnel.md` : « Pause, nombre de
+  // Séries et Récupération restent disponibles dans les trois modes ») —
+  // validée ici, hors du bloc conditionnel de mode.
+  postActivityRecoverySeconds =
+    unwrap(validatePostActivityRecoverySeconds(activity.postActivityRecoverySeconds), violations) ??
+    0;
 
   return {
     executionMode,
@@ -567,7 +552,7 @@ function validateActivityParameters(
     repetitionCount,
     seriesCount,
     pauseSeconds,
-    recoverySeconds,
+    postActivityRecoverySeconds,
     bodyZoneIds,
   };
 }
@@ -620,34 +605,11 @@ function validateSessionActivityInput(
     repetitionCount: parameters.repetitionCount,
     seriesCount: parameters.seriesCount,
     pauseSeconds: parameters.pauseSeconds,
-    recoverySeconds: parameters.recoverySeconds,
+    postActivityRecoverySeconds: parameters.postActivityRecoverySeconds,
     instruction: instruction === undefined ? null : instruction,
     bodyZoneIds: parameters.bodyZoneIds,
     sideMode: normalizeSideMode(activity.sideMode),
   });
-}
-
-/**
- * Adapte une violation du Domaine Catégorie (`CategoryValidationViolation`,
- * module séparé et volontairement non couplé au type d'erreur du Domaine
- * Séance) vers `ValidationViolation` (Domaine Séance) au seul point
- * d'assemblage où les deux se rencontrent : `category.name` fait partie de
- * `ValidationField` (voir `errors.ts`) précisément pour rendre cette
- * conversion valide, et les codes `REQUIRED`/`TOO_LONG` du Domaine Catégorie
- * sont un sous-ensemble de `ValidationErrorCode`.
- */
-function validateSessionCategoryName(
-  raw: string,
-  violations: ValidationViolation[],
-): string | undefined {
-  const result = validateCategoryName(raw);
-  if (result.ok) {
-    return result.value;
-  }
-  for (const violation of result.violations) {
-    violations.push({ code: violation.code, field: violation.field, details: violation.details });
-  }
-  return undefined;
 }
 
 /**
@@ -677,7 +639,6 @@ export function validateCreateSessionInput(
   const violations: ValidationViolation[] = [];
 
   const name = unwrap(validateSessionName(input.name), violations);
-  const color = unwrap(validateSessionColor(input.color), violations);
   const initialCountdownSeconds = unwrap(
     validateInitialCountdownSeconds(input.initialCountdownSeconds),
     violations,
@@ -714,41 +675,22 @@ export function validateCreateSessionInput(
     }
   }
 
-  const categories = validateSessionCategoryInputs(input.categories, violations);
-
   if (violations.length > 0) {
     return fail(violations);
   }
 
   return ok({
     name: name as string,
-    color: color as SessionColor,
+    labelId: input.labelId ?? null,
     initialCountdownSeconds: initialCountdownSeconds as number,
     finalPhaseSeconds: finalPhaseSeconds as number,
     tourRepeatCount: tourRepeatCount as number,
-    tourSideMode: normalizeTourSideMode(input.tourSideMode),
     exercises,
-    categories,
+    // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : transmis tel quel —
+    // la position DANS sa portée est dérivée de l'ordre du tableau par le
+    // Repository, jamais revalidée ici (même patron que `exercises`).
+    stopPoints: input.stopPoints ?? [],
   });
-}
-
-/** Boucle de validation des Catégories partagée par `validateCreateSessionInput` et `validateUpdateSessionInput` (T01-S10) — comportement inchangé (D-106/D-107). */
-function validateSessionCategoryInputs(
-  categories: readonly CreateSessionCategoryInput[],
-  violations: ValidationViolation[],
-): CreateSessionCategoryInput[] {
-  const validated: CreateSessionCategoryInput[] = [];
-  for (const category of categories) {
-    if (category.kind === "EXISTING") {
-      validated.push(category);
-      continue;
-    }
-    const validatedName = validateSessionCategoryName(category.name, violations);
-    if (validatedName !== undefined) {
-      validated.push({ kind: "NEW", name: validatedName });
-    }
-  }
-  return validated;
 }
 
 /**
@@ -798,7 +740,7 @@ export function validateUpdateSessionActivityInput(
     repetitionCount: parameters.repetitionCount,
     seriesCount: parameters.seriesCount,
     pauseSeconds: parameters.pauseSeconds,
-    recoverySeconds: parameters.recoverySeconds,
+    postActivityRecoverySeconds: parameters.postActivityRecoverySeconds,
     instruction: instruction === undefined ? null : instruction,
     bodyZoneIds: parameters.bodyZoneIds,
     sideMode: normalizeSideMode(activity.sideMode),
@@ -823,7 +765,6 @@ export function validateUpdateSessionInput(
     violations.push({ code: "REQUIRED", field: "session.sourceSessionId" });
   }
   const name = unwrap(validateSessionName(input.name), violations);
-  const color = unwrap(validateSessionColor(input.color), violations);
   const initialCountdownSeconds = unwrap(
     validateInitialCountdownSeconds(input.initialCountdownSeconds),
     violations,
@@ -854,8 +795,6 @@ export function validateUpdateSessionInput(
     }
   }
 
-  const categories = validateSessionCategoryInputs(input.categories, violations);
-
   if (violations.length > 0) {
     return fail(violations);
   }
@@ -863,12 +802,11 @@ export function validateUpdateSessionInput(
   return ok({
     sourceSessionId: input.sourceSessionId.trim(),
     name: name as string,
-    color: color as SessionColor,
+    labelId: input.labelId ?? null,
     initialCountdownSeconds: initialCountdownSeconds as number,
     finalPhaseSeconds: finalPhaseSeconds as number,
     tourRepeatCount: tourRepeatCount as number,
-    tourSideMode: normalizeTourSideMode(input.tourSideMode),
     activities,
-    categories,
+    stopPoints: input.stopPoints ?? [],
   });
 }

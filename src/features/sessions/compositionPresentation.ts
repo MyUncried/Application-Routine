@@ -1,12 +1,12 @@
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import {
   computeEstimatedDurationSeconds,
   computeTotalDurationSeconds,
   computeZoneDurationFacts,
 } from "@/domain/sessions/calculations";
-import { DEFAULT_TOUR_REPEAT_COUNT, DEFAULT_TOUR_SIDE_MODE } from "@/domain/sessions/defaults";
+import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { sideMultiplier, type SideMode } from "@/domain/sessions/sideMode";
-import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import { formatActivityCount, formatEstimatedDuration } from "@/features/sessions/formatSessionSummary";
 import { formatTwoDigits, fromTotalSeconds } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
@@ -28,13 +28,6 @@ export type CompositionSummaryFacts = {
    * Activités du Tour ne sont alors multipliées par rien).
    */
   readonly tourRepeatCount?: number;
-  /**
-   * V2-BILAT-01 : direction du Tour, entier optionnel — `DEFAULT_TOUR_SIDE_MODE`
-   * (`UNILATERAL`) par défaut, valeur pour laquelle la synthèse reste
-   * rigoureusement identique à celle d'avant cette tranche (chaque Activité
-   * conserve alors sa propre direction, jamais celle du Tour).
-   */
-  readonly tourSideMode?: SideMode;
 };
 
 /**
@@ -124,10 +117,7 @@ export function formatCompositionSummary(facts: CompositionSummaryFacts): string
   // minimale. La parité
   // Domaine / présentation est ainsi vraie PAR CONSTRUCTION, plus seulement
   // par ressemblance de deux implémentations.
-  const inTourOccurrence = computeZoneDurationFacts(
-    inTourExercises,
-    facts.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE,
-  );
+  const inTourOccurrence = computeZoneDurationFacts(inTourExercises);
 
   const totalSeconds = computeEstimatedDurationSeconds({
     beforeTourDurationSeconds: 0,
@@ -296,7 +286,7 @@ export type ExerciseRecapFacts = ExerciseRowSummaryFacts & {
    * modélise pas encore la Récupération reste donc valide et correct.
    * `ExerciseScreen` transmet toujours la valeur réelle du brouillon.
    */
-  readonly recoverySeconds?: number;
+  readonly postActivityRecoverySeconds?: number;
 };
 
 /**
@@ -363,9 +353,9 @@ export function formatExerciseRecap(facts: ExerciseRecapFacts): string {
   if (facts.executionMode === "TO_FAILURE") {
     const failureBase = `${seriesLabel} ${exerciseRow.of} ${facts.name}, ${exerciseRow.toFailure}${directionSuffix}`;
     if (facts.pauseSeconds <= 0 || facts.seriesCount <= 1) {
-      return `${failureBase}${formatRecoveryClause(facts.recoverySeconds ?? 0)}.`;
+      return `${failureBase}${formatRecoveryClause(facts.postActivityRecoverySeconds ?? 0)}.`;
     }
-    return `${failureBase}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exercise.recap.pauseLabel} ${exercise.recap.pauseSuffix}${formatRecoveryClause(facts.recoverySeconds ?? 0)}.`;
+    return `${failureBase}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exercise.recap.pauseLabel} ${exercise.recap.pauseSuffix}${formatRecoveryClause(facts.postActivityRecoverySeconds ?? 0)}.`;
   }
 
   const activityLabel =
@@ -376,12 +366,12 @@ export function formatExerciseRecap(facts: ExerciseRecapFacts): string {
   const base = `${seriesLabel} ${exerciseRow.of} ${activityLabel}${directionSuffix}`;
 
   if (facts.pauseSeconds <= 0) {
-    return `${base}${formatRecoveryClause(facts.recoverySeconds ?? 0)}.`;
+    return `${base}${formatRecoveryClause(facts.postActivityRecoverySeconds ?? 0)}.`;
   }
 
   const pauseSuffix = facts.seriesCount > 1 ? ` ${exercise.recap.pauseSuffix}` : "";
 
-  return `${base}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exercise.recap.pauseLabel}${pauseSuffix}${formatRecoveryClause(facts.recoverySeconds ?? 0)}.`;
+  return `${base}, ${exerciseRow.withPause} ${formatCompactDuration(facts.pauseSeconds)} ${exercise.recap.pauseLabel}${pauseSuffix}${formatRecoveryClause(facts.postActivityRecoverySeconds ?? 0)}.`;
 }
 
 /**
@@ -396,12 +386,12 @@ export function formatExerciseRecap(facts: ExerciseRecapFacts): string {
  * toujours après l'éventuelle clause de Pause : la Récupération s'exécute
  * après TOUTES les Séries, donc après les Pauses.
  */
-function formatRecoveryClause(recoverySeconds: number): string {
-  if (recoverySeconds <= 0) {
+function formatRecoveryClause(postActivityRecoverySeconds: number): string {
+  if (postActivityRecoverySeconds <= 0) {
     return "";
   }
   const recap = strings.screens.exercise.recap;
-  return `, ${recap.recoveryPrefix} ${formatCompactDuration(recoverySeconds)} ${recap.recoveryLabel}`;
+  return `, ${recap.recoveryPrefix} ${formatCompactDuration(postActivityRecoverySeconds)} ${recap.recoveryLabel}`;
 }
 
 /**
@@ -434,7 +424,7 @@ export function formatExerciseDurationLine(facts: ExerciseRecapFacts): string {
     {
       durationSeconds: isLowerBound ? 0 : (facts.durationSeconds ?? 0),
       pauseSeconds: facts.pauseSeconds,
-      recoverySeconds: facts.recoverySeconds ?? 0,
+      postActivityRecoverySeconds: facts.postActivityRecoverySeconds ?? 0,
     },
     sideMultiplier(facts.sideMode ?? "UNILATERAL"),
   );
@@ -465,23 +455,29 @@ export const COMPACT_LIST_SEPARATOR = " · ";
  * - restitue EXCLUSIVEMENT les Zones corporelles de l'Activité — jamais une
  *   Catégorie de Séance (celles-ci n'appartiennent pas à l'Activité et ne
  *   figurent que sur la carte du Catalogue, `SessionCard.tsx`) ;
- * - ordre du référentiel (`BODY_ZONES`, `order` croissant), jamais l'ordre
- *   de sélection de l'utilisateur — même règle que `SessionSummary
- *   .bodyZoneNames` (T01-S09), pour que deux Activités portant les mêmes
- *   Zones s'affichent toujours identiquement ;
- * - un identifiant inconnu du référentiel est ignoré silencieusement (jamais
- *   affiché brut) ; les doublons éventuels sont dédupliqués par construction
- *   (le référentiel est parcouru une fois, jamais la sélection) ;
+ * - ordre du référentiel PERSISTANT (`bodyZones`, paramètre explicite de
+ *   l'appelant — V2-PRE-1, plan §3.1/UI-CDBCCFD16078 : `BODY_ZONES` n'est
+ *   plus l'autorité runtime, aucun argument par défaut ne s'y substitue),
+ *   jamais l'ordre de sélection de l'utilisateur — même règle que
+ *   `SessionSummary.bodyZoneNames` (T01-S09), pour que deux Activités
+ *   portant les mêmes Zones s'affichent toujours identiquement ;
+ * - un identifiant inconnu du référentiel transmis est ignoré silencieusement
+ *   (jamais affiché brut) ; les doublons éventuels sont dédupliqués par
+ *   construction (le référentiel est parcouru une fois, jamais la
+ *   sélection) ;
  * - `null` — jamais une chaîne vide — lorsqu'aucune Zone connue ne subsiste :
  *   l'appelant omet alors entièrement la ligne plutôt que de rendre un
  *   `Text` vide qui occuperait quand même sa hauteur de ligne.
  */
-export function formatExerciseBodyZones(bodyZoneIds: readonly string[]): string | null {
+export function formatExerciseBodyZones(
+  bodyZoneIds: readonly string[],
+  bodyZones: readonly BodyZone[],
+): string | null {
   if (bodyZoneIds.length === 0) {
     return null;
   }
   const selected = new Set(bodyZoneIds);
-  const names = BODY_ZONES.filter((zone) => selected.has(zone.id)).map((zone) => zone.name);
+  const names = bodyZones.filter((zone) => selected.has(zone.id)).map((zone) => zone.name);
   return names.length === 0 ? null : names.join(COMPACT_LIST_SEPARATOR);
 }
 
@@ -491,11 +487,13 @@ export function formatExerciseBodyZones(bodyZoneIds: readonly string[]): string 
  * « carte au repos `354 × 69` sans Récupération ou bloc `354 × 93` avec
  * Récupération »).
  *
- * `null` — jamais une chaîne vide — lorsque la Récupération est nulle :
- * l'appelant omet alors entièrement la sous-carte, et le bloc conserve sa
- * hauteur de repos `69`. C'est ce `null` qui rend la géométrie CONDITIONNELLE
- * décidable en un point unique, plutôt que par un test de valeur répété dans
- * l'écran.
+ * **V2-PRE-1 (plan §3.2, UI-CDBCCFD16078)** : `postActivityRecoverySeconds`
+ * est désormais un champ OBLIGATOIRE de l'occurrence (`Activity`), jamais
+ * absent — y compris lorsqu'il vaut `0`. Cette fonction retourne donc
+ * toujours une chaîne non vide (`"Récupération 0 s"` incluse), jamais `null`
+ * : son seul usage métier restant est la Récupération de l'OCCURRENCE
+ * (Composition) — plus aucun appel depuis une carte de Définition Catalogue
+ * (`ActivityCard.tsx`), qui ne porte plus cette notion.
  *
  * La durée réutilise `formatCompactDuration` — exactement le format déjà
  * employé par la Pause dans la synthèse de la même carte (`30 s`, `1 min`,
@@ -503,9 +501,6 @@ export function formatExerciseBodyZones(bodyZoneIds: readonly string[]): string 
  * `formatDurationRowValue`) juxtaposerait deux écritures différentes de la
  * même grandeur dans une même carte.
  */
-export function formatActivityRecoveryLabel(recoverySeconds: number): string | null {
-  if (recoverySeconds <= 0) {
-    return null;
-  }
-  return `${strings.screens.composition.activityRecovery.label} ${formatCompactDuration(recoverySeconds)}`;
+export function formatActivityRecoveryLabel(postActivityRecoverySeconds: number): string {
+  return `${strings.screens.composition.activityRecovery.label} ${formatCompactDuration(postActivityRecoverySeconds)}`;
 }
