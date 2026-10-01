@@ -82,7 +82,8 @@ function isCertifiedExecutablePath(file) {
   return file.startsWith('scripts/kodjo/') || file.startsWith('tests/kodjo/') ||
     file.startsWith('tests/fixtures/qualif/') || file.startsWith('.github/workflows/kodjo-v2-') ||
     file === '.github/workflows/kodjo-slice-plan.yml' ||
-    file === '.github/workflows/kodjo-slice-plan-review.yml';
+    file === '.github/workflows/kodjo-slice-plan-review.yml' ||
+    file === '.github/workflows/kodjo-slice-implementation-review.yml';
 }
 
 function loadAttestation(repoRoot, request) {

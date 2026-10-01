@@ -57,6 +57,23 @@ function recoverRound2(comment, repository, get) {
   return '[KODJO_V2] PLAN_OUTPUT\nslice_id=V2-PRE-1\nbootstrap_path=.github/orchestration/v2-slices/V2-PRE-1/slice-bootstrap.json\nsource_head=e216294506bed87dd80855937e3fabfbfa322b82\nplanning_mode=INITIAL\nplanning_contract=kodjo.plan-impact.v1\nui_planning_contract=kodjo.ui-plan-criteria.v2\ncorrected_plan_commit=' + ROUND2_COMMIT + '\ncorrected_plan_blob=' + ROUND2_BLOB + '\nSTATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\n\n' + bytes.toString('utf8');
 }
 
+// Round 4: scope change decided by Hermann after development run 36854959192 (CatalogueCompositionEditFlow test).
+const ROUND4_COMMENT_ID = '5930810339';
+const ROUND4 = { commit: '32e680cb5dd57c62130bf4f59f6d2fa3708f1db1', path: '.github/orchestration/v2-slices/V2-PRE-1/correction-dev-36854959192/corrected-plan.md', blob: '6ee4a875ef930b6ff83389f2479fbee551ecae15', sha256: 'cb505d9d858db81b46270724bad6b327ef18579adeb88867b5654efc5ab6f4b2', size: 239760 };
+function recoverRound4(comment, repository, get) {
+  need(repository === REPOSITORY, 'PRE1_ROUND4_REPOSITORY_MISMATCH');
+  need(String(comment?.id) === ROUND4_COMMENT_ID && comment?.user?.login === 'MyUncried', 'PRE1_ROUND4_PUBLICATION_AUTHORITY_INVALID');
+  need(comment.issue_url === 'https://api.github.com/repos/' + REPOSITORY + '/issues/249', 'PRE1_ROUND4_ISSUE_MISMATCH');
+  need(String(comment.body).includes('https://github.com/' + REPOSITORY + '/blob/' + ROUND4.commit + '/' + ROUND4.path), 'PRE1_ROUND4_REFERENCE_MISMATCH');
+  const tree = get('git/trees/' + ROUND4.commit + '?recursive=1');
+  need(!tree.truncated && tree.tree.some(x => x.path === ROUND4.path && x.sha === ROUND4.blob && x.type === 'blob'), 'PRE1_ROUND4_COMMIT_BINDING_MISMATCH');
+  const blob = get('git/blobs/' + ROUND4.blob);
+  need(blob.sha === ROUND4.blob && blob.encoding === 'base64', 'PRE1_ROUND4_BLOB_INVALID');
+  const bytes = Buffer.from(blob.content, 'base64');
+  need(bytes.length === ROUND4.size && crypto.createHash('sha256').update(bytes).digest('hex') === ROUND4.sha256, 'PRE1_ROUND4_PLAN_INTEGRITY_MISMATCH');
+  return '[KODJO_V2] PLAN_OUTPUT\nslice_id=V2-PRE-1\nbootstrap_path=.github/orchestration/v2-slices/V2-PRE-1/slice-bootstrap.json\nsource_head=e216294506bed87dd80855937e3fabfbfa322b82\nplanning_mode=INITIAL\nplanning_contract=kodjo.plan-impact.v1\nui_planning_contract=kodjo.ui-plan-criteria.v2\ncorrected_plan_commit=' + ROUND4.commit + '\ncorrected_plan_blob=' + ROUND4.blob + '\nSTATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\n\n' + bytes.toString('utf8');
+}
+
 // Round 3: bounded correction after development run 36773441104 (SideModeControl.test.tsx scope, D-240).
 const ROUND3_COMMENT_ID = '5920359910';
 const ROUND3_COMMIT = 'f3e7f492815a788545208714825f4fa67ec649cd';
@@ -79,6 +96,7 @@ function recoverRound3(comment, repository, get) {
 }
 
 function recover(comment, repository = REPOSITORY, get = api) {
+  if (String(comment?.id) === ROUND4_COMMENT_ID) return recoverRound4(comment, repository, get);
   if (String(comment?.id) === ROUND3_COMMENT_ID) return recoverRound3(comment, repository, get);
   if (String(comment?.id) === CORRECTED_COMMENT_ID) return recoverCorrected(comment, repository, get);
   if (String(comment?.id) === ROUND2_COMMENT_ID) return recoverRound2(comment, repository, get);
@@ -105,9 +123,9 @@ function recover(comment, repository = REPOSITORY, get = api) {
 if (require.main === module) {
   try {
     const [id, output] = process.argv.slice(2);
-    need([COMMENT_ID, CORRECTED_COMMENT_ID, ROUND2_COMMENT_ID, ROUND3_COMMENT_ID].includes(id) && output, 'PRE1_RECOVERY_USAGE_INVALID');
+    need([COMMENT_ID, CORRECTED_COMMENT_ID, ROUND2_COMMENT_ID, ROUND3_COMMENT_ID, ROUND4_COMMENT_ID].includes(id) && output, 'PRE1_RECOVERY_USAGE_INVALID');
     fs.writeFileSync(output, recover(api('issues/comments/' + id), process.env.GITHUB_REPOSITORY || REPOSITORY), 'utf8');
     process.stdout.write('PRE1 pinned published plan verified: comment=' + id + '\n');
   } catch (e) { console.error(e.message); process.exitCode = 1; }
 }
-module.exports = { recover, COMMENT_ID, CORRECTED_COMMENT_ID, ROUND2_COMMENT_ID, ROUND3_COMMENT_ID };
+module.exports = { recover, COMMENT_ID, CORRECTED_COMMENT_ID, ROUND2_COMMENT_ID, ROUND3_COMMENT_ID, ROUND4_COMMENT_ID };
