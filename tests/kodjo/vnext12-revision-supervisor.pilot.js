@@ -7,13 +7,15 @@ const os = require('node:os');
 const { execFileSync } = require('node:child_process');
 const Driver = require('../../scripts/kodjo/prepare-vnext12-revision');
 const Chain = require('../../scripts/kodjo/lib/vnext-live-chain');
+const V = require('../../scripts/kodjo/lib/vnext-contract');
+const F = require('./helpers/vnext-planning-fixture');
 const ROOT = path.resolve(__dirname, '../..');
 function fixture(t) {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'vnext12-revision-test-'));
   t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
   const git = (...args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
   git('init'); git('config', 'user.name', 'Test'); git('config', 'user.email', 'test@example.test');
-  for (const p of ['scripts/kodjo', 'tests/fixtures/vnext12', '.github/orchestration/vnext12/VNEXT-12-QUALIF/requirement.md', '.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json']) {
+  for (const p of ['scripts/kodjo', 'tests/fixtures/vnext12', '.github/orchestration/vnext12/VNEXT-12-QUALIF/requirement.md', '.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json', '.github/orchestration/v2-slices/VNEXT-12-QUALIF/slice-bootstrap.json', '.github/orchestration/v2-activation-registry.json']) {
     fs.mkdirSync(path.dirname(path.join(cwd, p)), { recursive: true });
     fs.cpSync(path.join(ROOT, p), path.join(cwd, p), { recursive: true });
   }
@@ -44,6 +46,17 @@ test('revision supervisor preserves immutable source, scope and causal findings 
   assert.deepEqual(f.next.artifacts.planningEnvelope.source_manifest, f.base.artifacts.planningEnvelope.source_manifest);
   assert.equal(f.next.artifacts.revisionArtifacts, null, 'post-review outcome must not mutate the reviewed produced object');
 });
+test('revision publication prepares an exact new dossier and preserves all other registered slices', t => {
+  const f = setup(t), nextReceipt = receipt(f.cwd, f.next, []);
+  const bundle = Driver.completeRevision(f.base, f.report, f.correction, f.next, nextReceipt);
+  const ready = Driver.preparePublication(f.cwd, f.base, f.report, f.next, nextReceipt, bundle);
+  const oldRegistry = JSON.parse(fs.readFileSync(path.join(f.cwd, '.github/orchestration/v2-activation-registry.json'), 'utf8'));
+  const newRegistry = JSON.parse(ready.publication.find(x => x.path === '.github/orchestration/v2-activation-registry.json').content);
+  assert.deepEqual(newRegistry.activations.filter(x => x.slice_id !== 'VNEXT-12-QUALIF'), oldRegistry.activations.filter(x => x.slice_id !== 'VNEXT-12-QUALIF'));
+  assert.equal(ready.transport.gate_ref, 'issue_comment:1', 'placeholder is not an operational approval');
+  assert.equal(ready.prepared.produced.artifacts.planningEnvelope.planning_mode, 'REVISION');
+  assert.equal(Chain.approvalTarget(ready.prepared, { cwd: f.cwd, protocolHead: f.next.producer_revision }).execution_core.planning_mode, 'REVISION');
+});
 test('revision supervisor refuses an approved negative benchmark instead of inventing a REVISE', t => {
   const cwd = fixture(t), base = Chain.produce(Driver.benchmarkRecipe(cwd), { cwd });
   assert.throws(() => Driver.deriveCorrection(cwd, base, receipt(cwd, base, [])), /EXPECTED_REAL_REVISE/);
@@ -61,4 +74,31 @@ test('revision supervisor refuses an unrelated change outside the authorized pla
   recipe.classifications[0].impact_reason = 'Changement étranger à la correction autorisée.';
   const next = Chain.produce(recipe, { cwd: f.cwd });
   assert.throws(() => Driver.completeRevision(f.base, f.report, f.correction, next, receipt(f.cwd, next, [])), /PRESERV/);
+});
+test('live revision handoff binds both real-format receipts without rewriting the reviewed proposal', t => {
+  const f = setup(t), nextReceipt = receipt(f.cwd, f.next, []);
+  const bundle = Driver.completeRevision(f.base, f.report, f.correction, f.next, nextReceipt);
+  const evidence = { base_produced: f.base, base_review_receipt: f.report, revision_artifacts: bundle };
+  const ready = Chain.prepare(f.next, nextReceipt, F.transport(), { cwd: f.cwd, revisionEvidence: evidence });
+  const a = Chain.preparedArtifacts(ready.prepared, f.cwd, f.next.producer_revision);
+  assert.deepEqual(a.revisionArtifacts, bundle);
+  assert.equal(ready.prepared.produced.contract_hash, f.next.contract_hash);
+  assert.equal(nextReceipt.produced_chain_hash, f.next.contract_hash);
+  assert.throws(() => Chain.prepare(f.next, nextReceipt, F.transport(), { cwd: f.cwd }), /REVISION_EVIDENCE_REQUIRED/);
+  const tampered = structuredClone(ready.prepared);
+  tampered.revision_evidence.base_review_receipt.session_id = 'forged-session';
+  delete tampered.revision_evidence.base_review_receipt.contract_hash;
+  tampered.revision_evidence.base_review_receipt = V.sealContract(tampered.revision_evidence.base_review_receipt);
+  delete tampered.contract_hash;
+  assert.throws(() => Chain.preparedArtifacts(V.sealContract(tampered), f.cwd, f.next.producer_revision), /RECEIPT_RESULT_INVALID/);
+  const wrongBase = structuredClone(ready.prepared);
+  wrongBase.revision_evidence.revision_artifacts.base_artifacts.planContract = f.next.artifacts.planContract;
+  delete wrongBase.contract_hash;
+  assert.throws(() => Chain.preparedArtifacts(V.sealContract(wrongBase), f.cwd, f.next.producer_revision), /BASE_ARTIFACTS_MISMATCH/);
+  const wrongOutcome = structuredClone(ready.prepared);
+  wrongOutcome.revision_evidence.revision_artifacts.revision_outcome.preserved_target_count = 0;
+  delete wrongOutcome.revision_evidence.revision_artifacts.revision_outcome.contract_hash;
+  wrongOutcome.revision_evidence.revision_artifacts.revision_outcome = V.sealContract(wrongOutcome.revision_evidence.revision_artifacts.revision_outcome);
+  delete wrongOutcome.contract_hash;
+  assert.throws(() => Chain.preparedArtifacts(V.sealContract(wrongOutcome), f.cwd, f.next.producer_revision), /OUTCOME_MISMATCH/);
 });

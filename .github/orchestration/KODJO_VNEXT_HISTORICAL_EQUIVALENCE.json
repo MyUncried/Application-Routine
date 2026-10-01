@@ -1946,7 +1946,7 @@
         "scripts/kodjo/run-disposable-resume-qualification.ps1",
         "scripts/kodjo/run-local-claude.js"
       ],
-      "test_source_sha256": "f45e3fa0d60b4c327787336b240b243249cd63d0630ce79bfa8a6c555a133f25"
+      "test_source_sha256": "cce0209bde69f53485e9ea590475c32245a58367c0e837eb0d7c67592e02ae5a"
     },
     {
       "id": "CASE-8d81a14830b35911",
@@ -1963,7 +1963,7 @@
         "scripts/kodjo/run-disposable-resume-qualification.ps1",
         "scripts/kodjo/run-local-claude.js"
       ],
-      "test_source_sha256": "f45e3fa0d60b4c327787336b240b243249cd63d0630ce79bfa8a6c555a133f25"
+      "test_source_sha256": "cce0209bde69f53485e9ea590475c32245a58367c0e837eb0d7c67592e02ae5a"
     },
     {
       "id": "CASE-a0294fd66fb963cc",
@@ -1980,7 +1980,7 @@
         "scripts/kodjo/run-disposable-resume-qualification.ps1",
         "scripts/kodjo/run-local-claude.js"
       ],
-      "test_source_sha256": "f45e3fa0d60b4c327787336b240b243249cd63d0630ce79bfa8a6c555a133f25"
+      "test_source_sha256": "cce0209bde69f53485e9ea590475c32245a58367c0e837eb0d7c67592e02ae5a"
     },
     {
       "id": "CASE-e6761eef549e97d9",
@@ -2041,7 +2041,7 @@
         "scripts/kodjo/run-disposable-resume-qualification.ps1",
         "scripts/kodjo/run-local-claude.js"
       ],
-      "test_source_sha256": "f45e3fa0d60b4c327787336b240b243249cd63d0630ce79bfa8a6c555a133f25"
+      "test_source_sha256": "cce0209bde69f53485e9ea590475c32245a58367c0e837eb0d7c67592e02ae5a"
     },
     {
       "id": "CASE-38bd9e8f1089f91f",
@@ -2058,7 +2058,7 @@
         "scripts/kodjo/run-disposable-resume-qualification.ps1",
         "scripts/kodjo/run-local-claude.js"
       ],
-      "test_source_sha256": "f45e3fa0d60b4c327787336b240b243249cd63d0630ce79bfa8a6c555a133f25"
+      "test_source_sha256": "cce0209bde69f53485e9ea590475c32245a58367c0e837eb0d7c67592e02ae5a"
     },
     {
       "id": "CASE-ca4c757bf27d6084",
@@ -2650,7 +2650,7 @@
         "scripts/kodjo/run-disposable-resume-qualification.ps1",
         "scripts/kodjo/run-local-claude.js"
       ],
-      "test_source_sha256": "f45e3fa0d60b4c327787336b240b243249cd63d0630ce79bfa8a6c555a133f25"
+      "test_source_sha256": "cce0209bde69f53485e9ea590475c32245a58367c0e837eb0d7c67592e02ae5a"
     },
     {
       "id": "CASE-381100d656f52f7b",
@@ -2711,7 +2711,7 @@
         "scripts/kodjo/run-disposable-resume-qualification.ps1",
         "scripts/kodjo/run-local-claude.js"
       ],
-      "test_source_sha256": "f45e3fa0d60b4c327787336b240b243249cd63d0630ce79bfa8a6c555a133f25"
+      "test_source_sha256": "cce0209bde69f53485e9ea590475c32245a58367c0e837eb0d7c67592e02ae5a"
     },
     {
       "id": "CASE-bb612eb1bba64c6a",
@@ -3078,7 +3078,7 @@
         "scripts/kodjo/run-disposable-resume-qualification.ps1",
         "scripts/kodjo/run-local-claude.js"
       ],
-      "test_source_sha256": "f45e3fa0d60b4c327787336b240b243249cd63d0630ce79bfa8a6c555a133f25"
+      "test_source_sha256": "cce0209bde69f53485e9ea590475c32245a58367c0e837eb0d7c67592e02ae5a"
     },
     {
       "id": "CASE-1e9bfd0ae310231b",
@@ -3098,7 +3098,7 @@
       "id": "CASE-615cc6eb0fabae9b",
       "test_path": "tests/kodjo/incident-register.pilot.js",
       "test_name": "qualification RESUME_DELTA: nettoyage Windows borné, réessayé et diagnostiqué",
-      "source_line": 149,
+      "source_line": 150,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-v2-disposable-qualification.yml",
@@ -3109,7 +3109,7 @@
         "scripts/kodjo/run-disposable-resume-qualification.ps1",
         "scripts/kodjo/run-local-claude.js"
       ],
-      "test_source_sha256": "f45e3fa0d60b4c327787336b240b243249cd63d0630ce79bfa8a6c555a133f25"
+      "test_source_sha256": "cce0209bde69f53485e9ea590475c32245a58367c0e837eb0d7c67592e02ae5a"
     },
     {
       "id": "CASE-644e9ada78cd69a4",
@@ -3187,7 +3187,7 @@
       "id": "CASE-7372d1e624bb4841",
       "test_path": "tests/kodjo/incident-register.pilot.js",
       "test_name": "qualification RESUME_DELTA: une migration non requise est une preuve valide",
-      "source_line": 160,
+      "source_line": 161,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-v2-disposable-qualification.yml",
@@ -3198,7 +3198,7 @@
         "scripts/kodjo/run-disposable-resume-qualification.ps1",
         "scripts/kodjo/run-local-claude.js"
       ],
-      "test_source_sha256": "f45e3fa0d60b4c327787336b240b243249cd63d0630ce79bfa8a6c555a133f25"
+      "test_source_sha256": "cce0209bde69f53485e9ea590475c32245a58367c0e837eb0d7c67592e02ae5a"
     },
     {
       "id": "CASE-c42fc9df87b1afef",

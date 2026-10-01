@@ -16,6 +16,8 @@ const Ui = require('./ui-atomicity-contract');
 const Review = require('./review-contract');
 const Approval = require('./approval-handoff-contract');
 const Register = require('./vnext-audit-register');
+const Revision = require('./revision-contract');
+const Convergence = require('./audit-convergence-contract');
 const Adapter = require('./vnext-legacy-queue-adapter');
 const Admission = require('./vnext-queue-admission');
 const Auth = require('../verify-authorizations');
@@ -172,7 +174,7 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
     native_observations: result.structured_output.native_assessment_observations });
 }
 
-function validateReceipt(produced, receipt) {
+function verifyReceipt(produced, receipt) {
   V.verifyContractHash(receipt, 'VNEXT_REVIEW_RECEIPT_HASH_INVALID');
   if (receipt.schema_version !== 'kodjo.vnext.live-review-receipt.v1'
       || receipt.produced_chain_hash !== produced.contract_hash || receipt.reviewer_packet_hash !== produced.reviewer_packet.contract_hash
@@ -182,7 +184,49 @@ function validateReceipt(produced, receipt) {
   const report = Review.buildReviewReport({ reviewContext: produced.artifacts.reviewContext, semanticReview: raw.structured_output.semantic_review });
   if (V.canonicalStringify(report) !== V.canonicalStringify(receipt.review_report)
       || V.canonicalStringify(raw.structured_output.native_assessment_observations) !== V.canonicalStringify(receipt.native_observations)) V.fail('VNEXT_REVIEW_RECEIPT_RESULT_MISMATCH');
+  return report;
+}
+function validateReceipt(produced, receipt) {
+  const report = verifyReceipt(produced, receipt);
   if (report.verdict !== 'APPROVE') V.fail('VNEXT_LIVE_REVIEW_NOT_APPROVED', report.verdict);
+}
+
+function revisionEvidenceArtifacts(prepared, artifacts, cwd, github) {
+  const evidence = prepared.revision_evidence;
+  if (artifacts.planningEnvelope.planning_mode === 'INITIAL') {
+    if (evidence) V.fail('VNEXT_LIVE_INITIAL_REVISION_EVIDENCE_FORBIDDEN');
+    return artifacts;
+  }
+  if (!evidence) V.fail('VNEXT_LIVE_REVISION_EVIDENCE_REQUIRED');
+  V.assertExactKeys(evidence, ['base_produced', 'base_review_receipt', 'revision_artifacts'], [], 'VNEXT_LIVE_REVISION_EVIDENCE_KEYS_INVALID');
+  const base = verifyProduced(evidence.base_produced, cwd, github);
+  const previousReport = verifyReceipt(evidence.base_produced, evidence.base_review_receipt);
+  if (previousReport.verdict !== 'REVISE' || base.planningEnvelope.planning_mode !== 'INITIAL') V.fail('VNEXT_LIVE_REVISION_BASE_NOT_REVISE');
+  // The later outcome is separate from the immutable bytes actually reviewed.
+  if (artifacts.revisionArtifacts !== null) V.fail('VNEXT_LIVE_REVIEWED_OUTCOME_MUST_BE_SEPARATE');
+  const bundle = evidence.revision_artifacts;
+  V.assertExactKeys(bundle, ['base_artifacts', 'allowed_change_set', 'revision_patch', 'revision_outcome', 'previous_review_report', 'finding_ledger'], [], 'VNEXT_LIVE_REVISION_ARTIFACT_KEYS_INVALID');
+  const previous = Register.buildRegister({ ...evidence.base_produced.register_input,
+    candidateHead: evidence.base_produced.producer_revision, lot: base.planningEnvelope.slice_id, phase: 'REVIEW' });
+  const exact = (x, y, code) => { if (V.canonicalStringify(x) !== V.canonicalStringify(y)) V.fail(code); };
+  exact(bundle.base_artifacts, { ...base, cumulativeRegister: previous }, 'VNEXT_LIVE_REVISION_BASE_ARTIFACTS_MISMATCH');
+  exact(bundle.previous_review_report, previousReport, 'VNEXT_LIVE_REVISION_BASE_REVIEW_MISMATCH');
+  exact(prepared.produced.register_input.previous, previous, 'VNEXT_LIVE_REVISION_PREVIOUS_REGISTER_MISMATCH');
+  const nextRegister = Register.buildRegister({ ...prepared.produced.register_input,
+    candidateHead: prepared.produced.producer_revision, lot: artifacts.planningEnvelope.slice_id, phase: 'REVISION' });
+  if (nextRegister.revision_count !== previous.revision_count + 1 || nextRegister.revision_count > nextRegister.revision_limit) V.fail('VNEXT_LIVE_REVISION_BOUND_INVALID');
+  const allowed = Revision.buildAllowedChangeSet({ ...base, reviewReport: previousReport });
+  exact(bundle.allowed_change_set, allowed, 'VNEXT_LIVE_REVISION_ALLOWED_SET_MISMATCH');
+  const outcome = Revision.verifyRevisionOutcome({ allowedChangeSet: allowed, revisionPatch: bundle.revision_patch,
+    baseArtifacts: bundle.base_artifacts, nextArtifacts: { ...artifacts, cumulativeRegister: nextRegister },
+    nextReviewContext: artifacts.reviewContext, nextReviewReport: prepared.review_receipt.review_report });
+  exact(bundle.revision_outcome, outcome, 'VNEXT_LIVE_REVISION_OUTCOME_MISMATCH');
+  if (outcome.status !== 'RESOLVED') V.fail('VNEXT_LIVE_REVISION_NOT_RESOLVED');
+  const envelope = artifacts.planningEnvelope;
+  if (envelope.base_plan_hash !== base.planContract.contract_hash || envelope.base_review_hash !== previousReport.contract_hash) V.fail('VNEXT_LIVE_REVISION_CAUSAL_BASE_MISMATCH');
+  exact([...envelope.causal_findings].sort(), [...allowed.blocking_finding_ids].sort(), 'VNEXT_LIVE_REVISION_CAUSAL_FINDINGS_MISMATCH');
+  Convergence.validateFindingLedger(bundle.finding_ledger, previousReport, prepared.review_receipt.review_report);
+  return { ...artifacts, revisionArtifacts: bundle };
 }
 
 function nativeResolver(produced, receipt, cwd) {
@@ -202,9 +246,11 @@ function nativeResolver(produced, receipt, cwd) {
 
 function preparedArtifacts(prepared, cwd, protocolHead, github) {
   V.verifyContractHash(prepared, 'VNEXT_PREPARED_CHAIN_HASH_INVALID');
+  V.assertExactKeys(prepared, ['schema_version', 'produced', 'review_receipt', 'contract_hash'], ['revision_evidence'], 'VNEXT_PREPARED_CHAIN_KEYS_INVALID');
   if (prepared.schema_version !== SCHEMA) V.fail('VNEXT_PREPARED_CHAIN_SCHEMA_INVALID');
-  const a = verifyProduced(prepared.produced, cwd, github);
+  const observed = verifyProduced(prepared.produced, cwd, github);
   validateReceipt(prepared.produced, prepared.review_receipt);
+  const a = revisionEvidenceArtifacts(prepared, observed, cwd, github);
   const state = { product_head: a.planningEnvelope.product_head, application_head: a.planningEnvelope.application_head,
     protocol_head: protocolHead, execution_context: prepared.produced.execution_context,
     native_primitive_decisions: prepared.produced.native_assessments };
@@ -212,8 +258,9 @@ function preparedArtifacts(prepared, cwd, protocolHead, github) {
   return { ...a, cwd, reviewReport: prepared.review_receipt.review_report, currentState: state, resolveNativeEvidence };
 }
 
-function prepare(produced, receipt, transport, { cwd, github } = {}) {
-  const prepared = V.sealContract({ schema_version: SCHEMA, produced, review_receipt: receipt });
+function prepare(produced, receipt, transport, { cwd, github, revisionEvidence } = {}) {
+  const prepared = V.sealContract({ schema_version: SCHEMA, produced, review_receipt: receipt,
+    ...(revisionEvidence ? { revision_evidence: revisionEvidence } : {}) });
   const a = preparedArtifacts(prepared, cwd, produced.producer_revision, github);
   return { prepared, compatibility_files: Adapter.prepareCompatibilityFiles({ ...a, transport }) };
 }

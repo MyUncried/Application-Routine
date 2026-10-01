@@ -9,6 +9,9 @@ const Revision = require('./lib/revision-contract');
 const Register = require('./lib/vnext-audit-register');
 const Convergence = require('./lib/audit-convergence-contract');
 const { buildRecipe } = require('./prepare-vnext12');
+const V = require('./lib/vnext-contract');
+const Identity = require('./lib/slice-identity');
+const ROOT = '.github/orchestration/vnext12/VNEXT-12-QUALIF';
 
 function benchmarkRecipe(cwd) {
   const recipe = buildRecipe(cwd);
@@ -55,6 +58,34 @@ function completeRevision(base, receipt, correction, next, nextReceipt) {
     revision_patch: correction.patch, revision_outcome: outcome,
     previous_review_report: receipt.review_report, finding_ledger: ledger };
 }
+function preparePublication(cwd, base, receipt, next, nextReceipt, artifacts) {
+  const bootstrapPath = '.github/orchestration/v2-slices/VNEXT-12-QUALIF/slice-bootstrap.json';
+  const old = JSON.parse(Chain.readGit(cwd, next.producer_revision, bootstrapPath));
+  Identity.validateBootstrap(old);
+  if (old.protocol !== 'VNEXT' || old.slice_id !== 'VNEXT-12-QUALIF') throw Error('VNEXT12_REVISION_BOOTSTRAP_REQUIRED');
+  const bootstrap = { ...old, vnext_chain_file: ROOT + '/revision/prepared.json',
+    baseline_head: next.artifacts.planningEnvelope.baseline_head, protocol_commit: next.producer_revision,
+    product_sources: [{ path: ROOT + '/requirement.md', sha256: next.source_observations[0].fingerprint }] };
+  delete bootstrap.slice_bootstrap_sha256;
+  bootstrap.slice_bootstrap_sha256 = V.canonicalHash(bootstrap);
+  Identity.validateBootstrap(bootstrap);
+  const registry = JSON.parse(Chain.readGit(cwd, next.producer_revision, old.activation_registry));
+  const rows = registry.activations.filter(x => x.slice_id === old.slice_id);
+  if (rows.length !== 1 || rows[0].status !== 'ACTIVE' || rows[0].slice_bootstrap_sha256 !== old.slice_bootstrap_sha256) throw Error('VNEXT12_REVISION_REGISTRY_MISMATCH');
+  rows[0].baseline_head = bootstrap.baseline_head; rows[0].slice_bootstrap_sha256 = bootstrap.slice_bootstrap_sha256;
+  Identity.validateRegistry(registry, bootstrap);
+  const transport = { slice_bootstrap_file: bootstrapPath, slice_bootstrap_sha256: bootstrap.slice_bootstrap_sha256,
+    plan_path: ROOT + '/revision/technical-plan.md', review_path: ROOT + '/revision/independent-review.md',
+    prompt_file: ROOT + '/revision/implementation-mission.md', gate_ref: 'issue_comment:1',
+    request_id: require('node:crypto').randomUUID(), created_at: new Date().toISOString() };
+  const revisionEvidence = { base_produced: base, base_review_receipt: receipt, revision_artifacts: artifacts };
+  const ready = Chain.prepare(next, nextReceipt, transport, { cwd, revisionEvidence });
+  return { ...ready, transport, publication: [
+    { path: bootstrap.vnext_chain_file, content: JSON.stringify(ready.prepared, null, 2) + '\n' },
+    { path: bootstrapPath, content: JSON.stringify(bootstrap, null, 2) + '\n' },
+    { path: bootstrap.activation_registry, content: JSON.stringify(registry, null, 2) + '\n' },
+    ...Object.values(ready.compatibility_files).map(x => ({ path: x.path, content: x.content }))] };
+}
 function main() {
   const [stage, output] = process.argv.slice(2);
   if (!['produce', 'review'].includes(stage) || !output) throw Error('Usage: prepare-vnext12-revision.js <produce|review> <external-evidence-directory>');
@@ -83,6 +114,9 @@ function main() {
     phase = 'VERIFY_CAUSAL_OUTCOME';
     const artifacts = completeRevision(base, receipt, correction, next, nextReceipt);
     write('revision-artifacts.json', artifacts);
+    phase = 'PREPARE_HANDOFF';
+    const ready = preparePublication(cwd, base, receipt, next, nextReceipt, artifacts);
+    write('prepared.json', ready.prepared); write('transport.json', ready.transport); write('publication.json', ready.publication);
     write('status.json', { status: 'REVIEWED_REVISION_PENDING_HANDOFF', candidate_head: next.producer_revision,
       base_verdict: receipt.review_report.verdict, revision_verdict: nextReceipt.review_report.verdict,
       base_session: receipt.session_id, revision_session: nextReceipt.session_id,
@@ -94,4 +128,4 @@ function main() {
   }
 }
 if (require.main === module) { try { main(); } catch (error) { console.error(error.message); process.exitCode = 1; } }
-module.exports = { benchmarkRecipe, deriveCorrection, completeRevision };
+module.exports = { benchmarkRecipe, deriveCorrection, completeRevision, preparePublication };
