@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-01T13:34:32.603Z",
+  "recorded_at": "2026-10-01T15:03:56.432Z",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
-  "code_head_before_checkpoint": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
-  "controller_stage": "QUALIFY_REVISION_DOSSIER",
-  "controller_generation": 15,
+  "code_head_before_checkpoint": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+  "controller_stage": "EXECUTE_REVISION",
+  "controller_generation": 16,
   "steps": [
     {
       "step": 1,
@@ -16,7 +16,7 @@
     },
     {
       "step": 2,
-      "status": "CODE_QUALIFIED_REVISION_DOSSIER_QUALIFICATION_PENDING"
+      "status": "COMPLETED_REAL_LINUX_WINDOWS_DOSSIER_QUALIFICATION"
     },
     {
       "step": 3,
@@ -71,10 +71,10 @@
     "full_linux_ci_is_authoritative": true
   },
   "pending_actions": [
-    "Resolve candidate qualifications for this published dossier; hold HEAD stable during Windows checks. Do not repeat either review or INITIAL.",
-    "After actual Linux/Windows qualification, compute and publish exact owner approval message on reserved comment 5932536175. Honor explicit user delegation for this disposable technical test without claiming human review; preserve actual reaction evidence.",
-    "Only then set EXECUTE_REVISION with exact approved_protocol_head/gate_ref/approval_target_hash and verify fresh admission, atomic consumption, Claude session, exact two-file delta, observed value 2, keep.js bytes, Jest/TypeScript/lint, runtime artifact and cleanup.",
-    "Persist all actual runtime evidence before REVISION_PASS and step 3 completion; do not launch FINAL, activate, cut over, merge or touch PRE-1."
+    "Resolve the EXECUTE_REVISION run produced by this commit; do not duplicate it. Wait if runtime is active or runner offline.",
+    "Require real admission, missing authority/proof refusals before Claude, fresh owner gate observations, atomic consumption, actual Claude session, observed value 2, delta exactly core.js/core.test.js, keep.js bytes, real Jest/TypeScript/lint, cleanup, artifact and hashes.",
+    "Persist result and consumed identity in GitHub. Never replay INITIAL; if this request is consumed, never blindly rerun it. Diagnose failure and use a fresh identity only through the protocol.",
+    "After actual INITIAL_PASS plus REVISION_PASS and complete evidence, mark step 3 completed and disable this watcher. Do not launch FINAL, activate, cut over, merge, or modify PRE-1."
   ],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
@@ -107,7 +107,7 @@
   "revision": {
     "schema_version": "kodjo.vnext12.real-revision-preparation-evidence.v1",
     "recorded_at": "2026-10-01T13:34:32.590Z",
-    "status": "REVIEWED_REVISION_PENDING_HANDOFF",
+    "status": "APPROVED_REAL_REVISION_EXECUTION_REQUESTED",
     "candidate_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
     "run_id": "36857231638",
     "job_id": "110357386807",
@@ -128,7 +128,7 @@
       "git_tree": "a330f3a2b73acb405a347a0372357cbf71a97a15",
       "exact_commit_locally_recovered": true
     },
-    "qualification_run": "36857231661",
+    "qualification_run": "36869925039",
     "qualification_status": "SUCCESS_LINUX_WINDOWS_WITH_HISTORICAL_EQUIVALENCE",
     "request_id": "be4f7b4b-77d0-4d43-a49f-d3d9f999e2cf",
     "gate_ref": "issue_comment:5932536175",
@@ -155,6 +155,12 @@
       "status.json": "c73a180e5696dd3a7a2be8e25447dbebe8afe7fb17d7b4c24bcef5727fc3ad9c",
       "transport.json": "a93fc8fbe25f7d6dce3fa7a2ae00cdc8ffe6d61e48bfddc75507e9a5ebd59b74"
     },
-    "durable_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/preparation-evidence.json"
+    "durable_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/preparation-evidence.json",
+    "approved_protocol_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+    "approval_target_hash": "c670199c72c128ee0ef2e397aceb7975e268c69e82a29256889d23898f3572e6",
+    "authorization_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/execution-authorization.json",
+    "approval_reaction_id": "429910266",
+    "approval_recorded_by": "CODEX_USER_DELEGATION",
+    "human_review_performed": false
   }
 }
