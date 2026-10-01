@@ -59,7 +59,7 @@
  */
 
 import type { Activity, ActivityType, ExerciseExecutionMode, Session } from "./Session";
-import { resolveEffectiveSideMode, sideMultiplier, type SideMode } from "./sideMode";
+import { sideMultiplier, type SideMode } from "./sideMode";
 
 /**
  * Modes sans durée conventionnelle (RM-072/D-112) : la durée estimée qui les
@@ -81,16 +81,21 @@ export type ActivityDurationFacts = {
   readonly durationSeconds: number | null;
   readonly seriesCount: number | null;
   readonly pauseSeconds: number;
-  /** T02-S02 : Récupération ATTACHÉE, exécutée une seule fois après toutes les Séries (`0` = aucune). */
-  readonly recoverySeconds: number;
   /**
-   * V2-BILAT-01 : direction PROPRE de cette Activité — OPTIONNELLE, une
-   * Facts antérieure à cette tranche (sans ce champ) équivaut à
-   * `UNILATERAL`, sans aucun changement de comportement (`?? "UNILATERAL"`,
-   * `computeZoneDurationFacts` ci-dessous). Seule `computeZoneDurationFacts`
-   * la consulte ; `computeActivityDurationSeconds` reste agnostique de
-   * `SideMode` et reçoit son multiplicateur déjà résolu (jamais de double
-   * multiplicateur).
+   * V2-PRE-1 : récupération post-exercice de l'occurrence, exécutée une
+   * seule fois après toutes les Séries (`0` = aucune), indépendante de la
+   * définition source (plan §3.2). OPTIONNELLE ici pour la même raison que
+   * `sideMode` ci-dessous (compatibilité structurelle avec `Activity`, dont
+   * ce champ est optionnel sur le type LU) — `?? 0` couvre son absence.
+   */
+  readonly postActivityRecoverySeconds?: number;
+  /**
+   * V2-BILAT-01, portée exclusivement par l'Exercice (V2-PRE-1, plan §3.3) :
+   * direction PROPRE de cette Activité — OPTIONNELLE, une Facts antérieure à
+   * cette tranche (sans ce champ) équivaut à `UNILATERAL`, sans aucun
+   * changement de comportement (`?? "UNILATERAL"`, `computeZoneDurationFacts`
+   * ci-dessous). `computeActivityDurationSeconds` reste agnostique de
+   * `SideMode` et reçoit son multiplicateur déjà résolu.
    */
   readonly sideMode?: SideMode;
 };
@@ -119,10 +124,10 @@ export type ActivityDurationFacts = {
  */
 export function computePauseOccurrences(
   seriesCount: number | null,
-  recoverySeconds: number,
+  postActivityRecoverySeconds: number,
 ): number {
   const series = Math.max(seriesCount ?? 0, 0);
-  return recoverySeconds > 0 ? Math.max(series - 1, 0) : series;
+  return postActivityRecoverySeconds > 0 ? Math.max(series - 1, 0) : series;
 }
 
 /**
@@ -165,11 +170,12 @@ export function computeActivityDurationSeconds(
   const targetSeconds = isLowerBoundExecutionMode(activity.executionMode)
     ? 0
     : seriesCount * (activity.durationSeconds ?? 0);
+  const postActivityRecoverySeconds = activity.postActivityRecoverySeconds ?? 0;
   const perPassSeconds =
-    targetSeconds + computePauseOccurrences(seriesCount, activity.recoverySeconds) * activity.pauseSeconds;
+    targetSeconds + computePauseOccurrences(seriesCount, postActivityRecoverySeconds) * activity.pauseSeconds;
   const L = sideMultiplierValue > 0 ? sideMultiplierValue : 1;
   const R = recoveryMultiplier > 0 ? recoveryMultiplier : 1;
-  return perPassSeconds * L + activity.recoverySeconds * R;
+  return perPassSeconds * L + postActivityRecoverySeconds * R;
 }
 
 /**
@@ -183,8 +189,8 @@ export type TotalDurationFacts = {
   readonly durationSeconds: number;
   /** `B` — Pause entre Séries, en secondes. */
   readonly pauseSeconds: number;
-  /** `R` — Récupération attachée, en secondes. */
-  readonly recoverySeconds: number;
+  /** `R` — récupération post-exercice de l'occurrence, en secondes. */
+  readonly postActivityRecoverySeconds: number;
 };
 
 /** Bornes canoniques du nombre de Séries (D-092) — partagées par le calcul inverse. */
@@ -216,9 +222,9 @@ export function computeTotalDurationSeconds(
   const L = sideMultiplierValue > 0 ? sideMultiplierValue : 1;
   return (
     (seriesCount * facts.durationSeconds +
-      computePauseOccurrences(seriesCount, facts.recoverySeconds) * facts.pauseSeconds) *
+      computePauseOccurrences(seriesCount, facts.postActivityRecoverySeconds) * facts.pauseSeconds) *
       L +
-    facts.recoverySeconds
+    facts.postActivityRecoverySeconds
   );
 }
 
@@ -261,9 +267,10 @@ export function computeSeriesCountForTotalDuration(
     return SERIES_COUNT_MIN;
   }
   const rounded =
-    facts.recoverySeconds > 0
+    facts.postActivityRecoverySeconds > 0
       ? Math.floor(
-          ((targetTotalSeconds - facts.recoverySeconds) / L + facts.pauseSeconds) / denominator +
+          ((targetTotalSeconds - facts.postActivityRecoverySeconds) / L + facts.pauseSeconds) /
+            denominator +
             0.5,
         )
       : Math.floor(targetTotalSeconds / (L * denominator) + 0.5);
@@ -388,62 +395,41 @@ export type ZoneDurationFacts = {
  * indicateur de borne minimale.
  *
  * **T02-S02** : exportée et généralisée à `ActivityDurationFacts` (au lieu de
- * `Activity` seul) pour que la présentation — notamment la durée d'UNE
- * occurrence du Tour, calculée depuis le BROUILLON
- * (`SessionDraftExercise`) — partage exactement cette implémentation plutôt
- * que d'en réécrire une boucle équivalente
+ * `Activity` seul) pour que la présentation partage exactement cette
+ * implémentation plutôt que d'en réécrire une boucle équivalente
  * (`compositionPresentation.ts`, parité domaine/présentation testée).
  *
- * **V2-BILAT-01** — `contextSideMode` (défaut `UNILATERAL`, comportement
- * antérieur inchangé) est la direction du TOUR lorsque `activities` en
- * décrit le contenu `IN_TOUR` — omis (ou `UNILATERAL`) pour une zone
- * `BEFORE_TOUR`/`AFTER_TOUR`, jamais gouvernée par un Tour.
- *
- * Pour chaque Activité, la direction EFFECTIVE (`resolveEffectiveSideMode`)
- * détermine son propre multiplicateur `Li` (`sideMultiplier`). La
- * Récupération, elle, n'est multipliée que lorsque c'est le TOUR LUI-MÊME
- * qui est bilatéral (`contextSideMode !== "UNILATERAL"`, auquel cas
- * `resolveEffectiveSideMode` retourne systématiquement `contextSideMode`
- * pour toute Activité de la collection) — « Tour bilatéral : … `Ri` est
- * comptée une fois par passage de côté » ; sinon (Tour unilatéral, ou zone
- * hors Tour), chaque Récupération reste comptée une seule fois, même pour
- * une Activité bilatérale (« Tour unilatéral + Activité bilatérale : … `Ri`
- * est comptée une seule fois après ses deux côtés »).
+ * **V2-PRE-1 (plan §3.3)** : « Le `sideMode` du Circuit ne possède plus
+ * aucune influence fonctionnelle. » Chaque Activité contribue donc avec SA
+ * PROPRE direction (`activity.sideMode ?? UNILATERAL`), jamais dérivée d'un
+ * Circuit ; la récupération post-exercice n'est jamais multipliée par côté
+ * (`recoveryMultiplier` fixé à `1`).
  */
 export function computeZoneDurationFacts(
   activities: readonly ActivityDurationFacts[],
-  contextSideMode: SideMode = "UNILATERAL",
 ): ZoneDurationFacts {
-  const recoveryMultiplier = sideMultiplier(contextSideMode);
   let seconds = 0;
   let isLowerBoundEstimate = false;
   for (const activity of activities) {
     if (activity.type === "EXERCISE" && isLowerBoundExecutionMode(activity.executionMode)) {
       isLowerBoundEstimate = true;
     }
-    const effectiveSideMode = resolveEffectiveSideMode(
-      activity.sideMode ?? "UNILATERAL",
-      contextSideMode,
-    );
     seconds += computeActivityDurationSeconds(
       activity,
-      sideMultiplier(effectiveSideMode),
-      recoveryMultiplier,
+      sideMultiplier(activity.sideMode ?? "UNILATERAL"),
+      1,
     );
   }
   return { seconds, isLowerBoundEstimate };
 }
 
-function zoneDurationSeconds(
-  activities: readonly Activity[],
-  contextSideMode?: SideMode,
-): ZoneDurationFacts {
-  return computeZoneDurationFacts(activities, contextSideMode);
+function zoneDurationSeconds(activities: readonly Activity[]): ZoneDurationFacts {
+  return computeZoneDurationFacts(activities);
 }
 
 export function toEstimatedDurationFacts(session: Session): EstimatedDurationFacts {
   const beforeTour = zoneDurationSeconds(session.cycle.beforeTour ?? []);
-  const inTour = zoneDurationSeconds(session.cycle.tour.exercises, session.cycle.tour.sideMode);
+  const inTour = zoneDurationSeconds(session.cycle.tour.exercises);
   const afterTour = zoneDurationSeconds(session.cycle.afterTour ?? []);
 
   return {

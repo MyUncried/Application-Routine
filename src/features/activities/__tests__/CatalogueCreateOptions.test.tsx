@@ -65,7 +65,7 @@ describe("CatalogueCreateOptions", () => {
         />
       </TestSafeAreaProvider>,
     );
-    expect(screen.getByText("Une nouvelle activité")).toBeTruthy();
+    expect(screen.getByText("Un nouvel exercice")).toBeTruthy();
     expect(screen.getByText("Une séance")).toBeTruthy();
     expect(screen.getByText("Un circuit")).toBeTruthy();
     expect(screen.getByText("Annuler")).toBeTruthy();

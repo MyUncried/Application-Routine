@@ -12,9 +12,8 @@
  * telle quelle, sans être confondue avec ce résultat structuré.
  */
 
-import type { Category } from "@/domain/categories/Category";
-import type { CategoryRepository } from "@/domain/categories/CategoryRepository";
-import type { Session, SessionSummary } from "@/domain/sessions/Session";
+import type { ProfileRepository } from "@/domain/preferences/ProfileRepository";
+import type { CreateSessionInput, Session, SessionSummary } from "@/domain/sessions/Session";
 import {
   toCreateSessionInput,
   toUpdateSessionInput,
@@ -56,17 +55,24 @@ export type LoadSessionForEditResult =
 
 export class SessionService {
   /**
-   * `categoryRepository` (T01-S09) reste optionnel pour ne pas casser un
-   * appelant construit avant cette tranche (tests existants notamment) :
-   * `listCategories()` n'est appelée que par l'écran `Catégories de la
-   * séance`, jamais par `createSession`/`updateSession` (la résolution
-   * réelle des Catégories du brouillon reste entièrement à la charge du
-   * Repository, à l'intérieur de la transaction d'enregistrement — voir
-   * `SqliteSessionRepository.create()`).
+   * `categoryRepository` (T01-S09) n'a plus aucun consommateur depuis le
+   * retrait de la relation historique Catégorie de Séance (V2-PRE-1, plan
+   * §3.3) — le DEUXIÈME paramètre du constructeur est néanmoins PRÉSERVÉ
+   * (type et position inchangés) pour ne jamais rompre la composition
+   * existante de `SessionServiceProvider.tsx` (hors périmètre d'écriture de
+   * cette tranche, `scope_allow`), qui construit encore
+   * `new SessionService(sessionRepository, categoryRepository)`.
+   *
+   * `profileRepository` (V2-PRE-1, plan §3.2) est un TROISIÈME paramètre
+   * optionnel, pour la même raison de compatibilité : lu UNIQUEMENT par
+   * `createSession`, jamais par `updateSession` (les occurrences déjà
+   * persistées ne sont jamais rederivées du Profil — « sans
+   * rétroactivité »).
    */
   constructor(
     private readonly sessionRepository: SessionRepository,
-    private readonly categoryRepository?: CategoryRepository,
+    _categoryRepository?: unknown,
+    private readonly profileRepository?: ProfileRepository,
   ) {}
 
   /**
@@ -74,6 +80,13 @@ export class SessionService {
    * d'échec, aucune tentative d'écriture n'est faite : le résultat
    * structuré est renvoyé tel quel. En cas de succès, délègue la
    * persistance à `SessionRepository.create`.
+   *
+   * **V2-PRE-1 (plan §3.2, UI-16294D4D4345)** : chaque occurrence reçoit
+   * `postActivityRecoverySeconds` depuis la valeur COURANTE du Profil, lue
+   * une seule fois (« snapshot atomique ») au moment de cette création —
+   * jamais depuis la définition source, jamais rederivée ensuite. Sans
+   * `profileRepository` (appelant antérieur à cette tranche), la valeur du
+   * brouillon est transmise inchangée.
    */
   async createSession(draft: SessionDraft): Promise<CreateSessionResult> {
     const validated = toCreateSessionInput(draft);
@@ -81,8 +94,23 @@ export class SessionService {
       return validated;
     }
 
-    const session = await this.sessionRepository.create(validated.value);
+    const input = this.profileRepository
+      ? await this.applyProfileRecoveryDefault(validated.value)
+      : validated.value;
+
+    const session = await this.sessionRepository.create(input);
     return { ok: true, value: session };
+  }
+
+  private async applyProfileRecoveryDefault(input: CreateSessionInput): Promise<CreateSessionInput> {
+    const profile = await this.profileRepository!.get();
+    return {
+      ...input,
+      exercises: input.exercises.map((exercise) => ({
+        ...exercise,
+        postActivityRecoverySeconds: profile.postActivityRecoverySecondsDefault,
+      })),
+    };
   }
 
   /**
@@ -142,20 +170,5 @@ export class SessionService {
       return { status: "NOT_FOUND" };
     }
     return { status: "OK", session };
-  }
-
-  /**
-   * Catégories disponibles pour l'écran `Catégories de la séance` (T01-S09,
-   * D-107) : prédéfinies par `displayOrder`, puis personnalisées par
-   * `createdAt` — ordre déjà garanti par `CategoryRepository.listAll()`,
-   * jamais retrié ici. Lève explicitement si aucun `CategoryRepository`
-   * n'a été fourni au constructeur, plutôt que de renvoyer silencieusement
-   * une liste vide trompeuse.
-   */
-  async listCategories(): Promise<readonly Category[]> {
-    if (!this.categoryRepository) {
-      throw new Error("SessionService was constructed without a CategoryRepository.");
-    }
-    return this.categoryRepository.listAll();
   }
 }
