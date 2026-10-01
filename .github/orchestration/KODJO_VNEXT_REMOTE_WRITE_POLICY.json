@@ -229,7 +229,7 @@
     },
     {
       "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
-      "blob_oid": "521ee9de2c84a99bb06ca015c31ea023c4593f01",
+      "blob_oid": "1d8c22e41a9feae7c037498e2acae5bd0e0c5878",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {

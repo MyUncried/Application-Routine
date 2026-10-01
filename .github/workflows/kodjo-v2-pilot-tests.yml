@@ -133,9 +133,9 @@ jobs:
     needs: protocol
     if: needs.protocol.outputs.full_windows_required == 'true'
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
-    # Le préflight complet inclut npm ci et la suite applicative sous Windows.
-    # 20 minutes coupait le job sans verdict lors des passages réels chargés.
-    timeout-minutes: 25
+    # Run 36841216722 exhausted 25 minutes during the complete Windows suite.
+    # Retain all controls and leave a bounded budget for suite + preflight.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
