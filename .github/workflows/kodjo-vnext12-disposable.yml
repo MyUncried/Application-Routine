@@ -111,6 +111,9 @@ jobs:
       # The supervisor needs the atomic kodjo-consumed request receipt.
       # Claude never receives this token or writes an application branch.
       contents: write
+      # Approval is a PR conversation comment with owner reactions.
+      issues: read
+      pull-requests: read
     env:
       CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
       EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
