@@ -238,6 +238,16 @@ Tests : `validate-workflows.js` OK ; suite pilote 812 tests, 14 échecs identiqu
 - `79fe5095` : attestation `recovery-migration-36773441104.json` (blob `a0b58f53…`, ancre `2ec70da1`). `83ab659d` : requête `V2-PRE-1-resume-certified-943faccc.json` (`RESUME_DELTA`, session `77bf4fe5-…`, `retry_of_run_id=36773441104`) ; admission locale PASS avant push.
 - Run **36785770445** (push, head `83ab659d`) : démarrage réel constaté ; `Resolve recovery source run` et `Download recovery package of the source run` en succès ; `Select and execute immutable request` en cours.
 
+### Étapes techniques de développement (reprises successives du même PRE-1)
+
+| Run | Requête | Paquet repris | Résultat |
+|---|---|---|---|
+| 36785770445 | `resume-certified-943faccc` (migration certifiée) | 11127475602 (run 36773441104) | Restauration + migration PASS sur le runner ; D-240 et « Aucun » implémentés ; 1 301 tests verts ; arrêt `CLARIFICATION_REQUIRED` (sélecteur de Catégorie) ; correction bornée exécutée sans ENOENT |
+| 36789068171 | `resume-b5b4e2bb` (`CLARIFICATION`, contrat Catégorie cité : ch. 08 ligne Catégorie, ch. 13 §4.10 / Figma 4861:6259, CE-T03-04) | run 36785770445 | Limite de 3 600 s atteinte en pleine transformation ; 74 fichiers ; lint PASS, typescript FAIL, jest 71/1 277 FAIL ; paquet INTACT ; correction bornée `NOT_REQUIRED` (`HUMAN_DECISION_REQUIRED`) |
+| 36795323520 | `resume-ebe7f52e` (`BUDGET_EXHAUSTED` : rétablir les contrôles verts puis poursuivre le plan §10) | run 36789068171 | en cours |
+
+Toutes les reprises : même session `77bf4fe5`, même `source_head` `79fe5095`, même plan approuvé, même barrière 5920553811 ; admission V2 locale PASS avant chaque push. Le commentaire 5921521038 (`[KODJO_VNEXT]`) relève du chantier VNext et n'a pas été touché.
+
 ## Vérifications restant à effectuer
 
 - Revue indépendante du tour 2 (constat 9 seul) sur le candidat 5918243649.
