@@ -146,37 +146,12 @@ describe("moveActivity (AC-04)", () => {
     expect(moveActivity(activities, "unknown", "IN_TOUR", 0)).toBe(activities);
   });
 
-  /**
-   * V2-BILAT-01 : une Activité déposée dans `IN_TOUR` alors que le Tour est
-   * déjà bilatéral y arrive `UNILATERAL` — jamais avec une direction propre
-   * résiduelle qu'aucun contrôle n'aurait jamais laissé saisir pendant
-   * qu'elle était gouvernée par le Tour.
-   */
-  describe("V2-BILAT-01 — side mode on displacement", () => {
-    it("resets the moved Activity to UNILATERAL when it enters IN_TOUR under a bilateral Tour", () => {
-      const source = anActivity("before-1", "BEFORE_TOUR", { sideMode: "RIGHT_LEFT" });
-      const next = moveActivity([source], "before-1", "IN_TOUR", 0, "LEFT_RIGHT");
-      expect(next[0]?.sideMode).toBe("UNILATERAL");
-      expect(next[0]?.structuralPosition).toBe("IN_TOUR");
-    });
-
-    it("keeps the Activity's own side mode when the destination Tour stays unilateral", () => {
-      const source = anActivity("before-1", "BEFORE_TOUR", { sideMode: "RIGHT_LEFT" });
-      const next = moveActivity([source], "before-1", "IN_TOUR", 0, "UNILATERAL");
-      expect(next[0]?.sideMode).toBe("RIGHT_LEFT");
-    });
-
-    it("keeps the Activity's own side mode when it does not enter IN_TOUR, even under a bilateral Tour", () => {
-      const source = anActivity("in-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" });
-      const next = moveActivity([source], "in-1", "BEFORE_TOUR", 0, "LEFT_RIGHT");
-      expect(next[0]?.sideMode).toBe("RIGHT_LEFT");
-    });
-
-    it("defaults tourSideMode to UNILATERAL — non-regression for every caller predating this tranche", () => {
-      const source = anActivity("before-1", "BEFORE_TOUR", { sideMode: "RIGHT_LEFT" });
-      const next = moveActivity([source], "before-1", "IN_TOUR", 0);
-      expect(next[0]?.sideMode).toBe("RIGHT_LEFT");
-    });
+  /** V2-PRE-1 (plan §3.3) : le Circuit (Tour) n'a plus d'influence fonctionnelle — une Activité déplacée conserve toujours sa direction propre. */
+  it("keeps the Activity's own side mode on any displacement, into or out of IN_TOUR (V2-PRE-1)", () => {
+    const source = anActivity("before-1", "BEFORE_TOUR", { sideMode: "RIGHT_LEFT" });
+    const next = moveActivity([source], "before-1", "IN_TOUR", 0);
+    expect(next[0]?.sideMode).toBe("RIGHT_LEFT");
+    expect(next[0]?.structuralPosition).toBe("IN_TOUR");
   });
 });
 
@@ -333,7 +308,7 @@ describe("duplicateActivity (AC-06 ; T02-S02, D-138)", () => {
       durationSeconds: 45,
       seriesCount: 3,
       pauseSeconds: 20,
-      recoverySeconds: 90,
+      postActivityRecoverySeconds: 90,
       instruction: "Dos droit",
       bodyZoneIds: ["dos"],
     }),
@@ -365,7 +340,7 @@ describe("duplicateActivity (AC-06 ; T02-S02, D-138)", () => {
   it("copies every parameter and association of the source, Récupération attachée included", () => {
     const next = duplicateActivity(activities, "in-1", "copy-1");
     expect(next[2]).toEqual({ ...activities[1], id: "copy-1" });
-    expect(next[2]?.recoverySeconds).toBe(90);
+    expect(next[2]?.postActivityRecoverySeconds).toBe(90);
     expect(next[2]?.pauseSeconds).toBe(20);
   });
 
@@ -402,35 +377,8 @@ describe("duplicateActivity (AC-06 ; T02-S02, D-138)", () => {
   });
 });
 
-describe("appendActivityAfterLastDisplayed — V2-BILAT-01 side mode", () => {
-  it("resets the appended Activity to UNILATERAL when it lands IN_TOUR under a bilateral Tour", () => {
-    const next = appendActivityAfterLastDisplayed(
-      [anActivity("in-1", "IN_TOUR")],
-      anActivity("new-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" }),
-      "LEFT_RIGHT",
-    );
-    expect(next.find((activity) => activity.id === "new-1")?.sideMode).toBe("UNILATERAL");
-  });
-
-  it("keeps the appended Activity's own side mode when the Tour stays unilateral", () => {
-    const next = appendActivityAfterLastDisplayed(
-      [anActivity("in-1", "IN_TOUR")],
-      anActivity("new-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" }),
-      "UNILATERAL",
-    );
-    expect(next.find((activity) => activity.id === "new-1")?.sideMode).toBe("RIGHT_LEFT");
-  });
-
-  it("keeps the appended Activity's own side mode on an empty composition, regardless of tourSideMode", () => {
-    const next = appendActivityAfterLastDisplayed(
-      [],
-      anActivity("new-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" }),
-      "LEFT_RIGHT",
-    );
-    expect(next[0]?.sideMode).toBe("UNILATERAL");
-  });
-
-  it("defaults tourSideMode to UNILATERAL — non-regression for every caller predating this tranche", () => {
+describe("appendActivityAfterLastDisplayed — side mode (V2-PRE-1)", () => {
+  it("keeps the appended Activity's own side mode regardless of destination zone or composition state", () => {
     const next = appendActivityAfterLastDisplayed(
       [anActivity("in-1", "IN_TOUR")],
       anActivity("new-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" }),

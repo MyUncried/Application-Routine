@@ -1,12 +1,12 @@
 /**
  * Brouillon local de Séance (T01) : représentation en mémoire, potentiellement
  * incomplète, distincte de `CreateSessionInput`. « Le brouillon reste local
- * jusqu'à l'enregistrement final » — rien ici ne persiste quoi que ce soit,
- * y compris une Catégorie personnalisée créée depuis l'écran `Catégories de
- * la séance` (D-107) : elle reste une entrée `categoryDrafts`, jamais
- * persistée isolément avant `Enregistrer la séance` — voir
- * `SessionDraftCategoryDraft` pour la séparation explicite entre son
- * existence dans le brouillon et son état sélectionné.
+ * jusqu'à l'enregistrement final » — rien ici ne persiste quoi que ce soit.
+ *
+ * V2-PRE-1 (plan §3.3) : la relation historique Catégorie de Séance N:N et
+ * la couleur autonome de Séance sont retirées du contrat cible — une Séance
+ * porte désormais une Étiquette facultative (`labelId`), dont la couleur est
+ * dérivée à la lecture (`Session.color`).
  *
  * `toCreateSessionInput` emploie le même contrat de résultat structuré que
  * le reste des validations du Domaine : succès avec un `CreateSessionInput`
@@ -23,16 +23,13 @@
 import type {
   Activity,
   ActivityType,
-  CreateSessionCategoryInput,
   CreateSessionInput,
   ExerciseExecutionMode,
   Session,
-  SessionColor,
   StructuralPosition,
   UpdateSessionActivityInput,
   UpdateSessionInput,
 } from "./Session";
-import { DEFAULT_SESSION_COLOR } from "./Session";
 import {
   DEFAULT_ACTIVITY_TYPE,
   DEFAULT_EXECUTION_MODE,
@@ -40,12 +37,11 @@ import {
   DEFAULT_FINAL_PHASE_SECONDS,
   DEFAULT_INITIAL_COUNTDOWN_SECONDS,
   DEFAULT_PAUSE_SECONDS,
-  DEFAULT_RECOVERY_SECONDS,
+  DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
   DEFAULT_SERIES_COUNT,
   DEFAULT_SIDE_MODE,
   DEFAULT_STRUCTURAL_POSITION,
   DEFAULT_TOUR_REPEAT_COUNT,
-  DEFAULT_TOUR_SIDE_MODE,
 } from "./defaults";
 import type { ValidationResult } from "./errors";
 import { fail } from "./errors";
@@ -81,7 +77,7 @@ export type SessionDraftExercise = {
    * (`toUpdateSessionInput`).
    */
   readonly type: ActivityType;
-  /** T01-S10 (D-061) : position structurelle — avant, dans, ou après le Tour. Reste `"IN_TOUR"` pour tout brouillon créé avant S10. */
+  /** T01-S10 (D-061) : position structurelle — avant, dans, ou après le Circuit. Reste `"IN_TOUR"` pour tout brouillon créé avant S10. */
   readonly structuralPosition: StructuralPosition;
   readonly name: string;
   readonly executionMode: SessionDraftExerciseExecutionMode;
@@ -94,35 +90,17 @@ export type SessionDraftExercise = {
   /** Pause après Série, en secondes (RM-037) — exécutée `max(Séries − 1, 0)` fois (T02-S02, RM-129). */
   readonly pauseSeconds: number;
   /**
-   * T02-S02 : Récupération ATTACHÉE, en secondes — exécutée une seule fois
-   * après toutes les Séries. `0` = aucune (valeur neutre, jamais `null`).
-   * Disponible dans les trois modes d'exécution.
+   * V2-PRE-1 (plan §3.2) : récupération post-exercice de l'occurrence, en
+   * secondes — exécutée une seule fois après toutes les Séries. `0` = aucune
+   * (valeur neutre, jamais `null`). Disponible dans les trois modes
+   * d'exécution ; indépendante de la définition source.
    */
-  readonly recoverySeconds: number;
+  readonly postActivityRecoverySeconds: number;
   readonly instruction: string | null;
-  /** Identifiants stables du référentiel `bodyZones.ts` (T01-S08, D-093) — sélection multiple, ordre indifférent. */
+  /** Identifiants stables du référentiel de Zones corporelles persistant (T01-S08, D-093) — sélection multiple, ordre indifférent. */
   readonly bodyZoneIds: readonly string[];
   /** V2-BILAT-01 : direction propre de cette Activité (`sideMode.ts`) — `DEFAULT_SIDE_MODE` (`UNILATERAL`) pour un nouveau brouillon (`createExerciseDraft`). */
   readonly sideMode: SideMode;
-};
-
-/**
- * Catégorie personnalisée créée dans le brouillon (T01-S09, D-106/D-107,
- * correction du BLOCKING_POINT signalé au commentaire de revue 5551813745) :
- * son EXISTENCE dans le brouillon est désormais explicitement séparée de son
- * état SÉLECTIONNÉ (`SessionDraft.selectedCategoryIds`). Une Catégorie
- * personnalisée créée puis désélectionnée reste ici, disponible pour être
- * de nouveau sélectionnée sans jamais être recréée en double — seule sa
- * présence dans `selectedCategoryIds` détermine si elle est actuellement
- * associée à la Séance. `id` est LOCAL au brouillon (jamais un identifiant
- * de persistance — même convention que `SessionDraftExercise.id`) ; `name`
- * est déjà normalisé (`normalizeCategoryName`, écran appelant). Aucune
- * Catégorie personnalisée n'existe dans aucune table tant que `Enregistrer
- * la séance` n'a pas réussi.
- */
-export type SessionDraftCategoryDraft = {
-  readonly id: string;
-  readonly name: string;
 };
 
 export type SessionDraft = {
@@ -135,21 +113,18 @@ export type SessionDraft = {
    */
   readonly sourceSessionId?: string | null;
   readonly name: string;
-  readonly color: SessionColor;
+  /** V2-PRE-1 (plan §3.3) : Étiquette facultative — `null` si aucune. La couleur autonome historique de Séance est retirée du contrat cible. */
+  readonly labelId: string | null;
+  /** @deprecated V2-PRE-1 : couleur autonome historique retirée du contrat cible (remplacée par `labelId`) — conservée uniquement pour la compatibilité structurelle de `SessionDraftProvider.test.tsx` (hors périmètre d'écriture, `scope_allow`), qui l'utilise encore ; jamais lue par `toCreateSessionInput`/`toUpdateSessionInput`. */
+  readonly color?: string;
   readonly initialCountdownSeconds: number;
   readonly finalPhaseSeconds: number;
   /**
-   * T01-S10 (D-058) : répétition du Tour, entier `1..99`. Champ optionnel
+   * T01-S10 (D-058) : répétition du Circuit, entier `1..99`. Champ optionnel
    * de transition — `createEmptyDraft` le fixe à `DEFAULT_TOUR_REPEAT_COUNT`
    * ; un consommateur lit `draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT`.
    */
   readonly tourRepeatCount?: number;
-  /**
-   * V2-BILAT-01 (D-058-bis) : direction du Tour, entier optionnel de
-   * transition — `createEmptyDraft` le fixe à `DEFAULT_TOUR_SIDE_MODE` ; un
-   * consommateur lit `draft.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE`.
-   */
-  readonly tourSideMode?: SideMode;
   /**
    * Collection ORDONNÉE d'Activités (T01-S08, complétion REWORK12 — « La
    * transformation du brouillon actuel, limité à un champ `exercise`
@@ -161,40 +136,18 @@ export type SessionDraft = {
    * périmètre de S08/S09 (poignée indicative uniquement, COMP-01).
    */
   readonly exercises: readonly SessionDraftExercise[];
-  /**
-   * Catégories personnalisées créées dans ce même parcours (T01-S09) —
-   * existent indépendamment de leur sélection courante (voir
-   * `SessionDraftCategoryDraft`). Ensemble, pas une séquence à préserver :
-   * l'ordre d'AFFICHAGE dans l'écran `Catégories de la séance` suit toujours
-   * le référentiel (prédéfinies par `displayOrder`, puis personnalisées par
-   * `createdAt`, D-107), jamais l'ordre de création local.
-   */
-  readonly categoryDrafts: readonly SessionDraftCategoryDraft[];
-  /**
-   * Identifiants des Catégories actuellement sélectionnées pour cette
-   * Séance (T01-S09, D-106) — zéro, un ou plusieurs. Chaque identifiant
-   * référence soit une Catégorie déjà persistée (prédéfinie ou d'une Séance
-   * antérieure), soit une entrée de `categoryDrafts` (par son `id` local).
-   * Désélectionner une Catégorie personnalisée retire uniquement son `id`
-   * d'ici — elle reste dans `categoryDrafts`, donc toujours visible comme
-   * tag non sélectionné (correction du BLOCKING_POINT 5551813745).
-   */
-  readonly selectedCategoryIds: readonly string[];
 };
 
-/** Brouillon de Séance vide, initialisé avec les valeurs canoniques par défaut (aucune Activité, aucune Catégorie créée ou sélectionnée). */
+/** Brouillon de Séance vide, initialisé avec les valeurs canoniques par défaut (aucune Activité, aucune Étiquette). */
 export function createEmptyDraft(): SessionDraft {
   return {
     sourceSessionId: null,
     name: "",
-    color: DEFAULT_SESSION_COLOR,
+    labelId: null,
     initialCountdownSeconds: DEFAULT_INITIAL_COUNTDOWN_SECONDS,
     finalPhaseSeconds: DEFAULT_FINAL_PHASE_SECONDS,
     tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
-    tourSideMode: DEFAULT_TOUR_SIDE_MODE,
     exercises: [],
-    categoryDrafts: [],
-    selectedCategoryIds: [],
   };
 }
 
@@ -219,7 +172,7 @@ export function createExerciseDraft(id: string): SessionDraftExercise {
     repetitionCount: null,
     seriesCount: DEFAULT_SERIES_COUNT,
     pauseSeconds: DEFAULT_PAUSE_SECONDS,
-    recoverySeconds: DEFAULT_RECOVERY_SECONDS,
+    postActivityRecoverySeconds: DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
     instruction: null,
     bodyZoneIds: [],
     sideMode: DEFAULT_SIDE_MODE,
@@ -229,10 +182,8 @@ export function createExerciseDraft(id: string): SessionDraftExercise {
 /**
  * Convertit une `Session` persistée vers un `SessionDraft` modifiable —
  * l'inverse de `toCreateSessionInput`. Fonction pure, aucune dépendance
- * React ou SQLite. Copie sans perte les champs éditables (nom, couleur,
- * phases, TOUTES les Activités du Tour dans l'ordre — T01-S09, généralise
- * la limite REWORK12 à une seule Activité — et les Catégories déjà
- * associées, reprises comme autant de sélections `"EXISTING"`) ; les champs
+ * React ou SQLite. Copie sans perte les champs éditables (nom, Étiquette,
+ * phases, TOUTES les Activités du Circuit dans l'ordre) ; les champs
  * d'identité et d'audit (`id`, `ownerId`, `status`, `createdAt`,
  * `updatedAt`, identifiants et `repeatCount` de `cycle`/`tour`, et sur
  * chaque Activité `id`/`type`/`structuralPosition`/`position`) ne sont
@@ -258,25 +209,11 @@ export function toSessionDraft(session: Session): SessionDraft {
   return {
     sourceSessionId: session.id,
     name: session.name,
-    color: session.color,
+    labelId: session.labelId ?? null,
     initialCountdownSeconds: session.initialCountdownSeconds,
     finalPhaseSeconds: session.finalPhaseSeconds,
     tourRepeatCount: session.cycle.tour.repeatCount,
-    // V2-BILAT-01 : `session.cycle.tour.sideMode` est un champ optionnel de
-    // transition (même convention que `beforeTour`/`afterTour`) — résolu ici
-    // en une valeur CONCRÈTE, par cohérence avec `activityToDraftExercise`
-    // ci-dessous (qui résout de même `Activity.sideMode ?? DEFAULT_SIDE_MODE`
-    // pour chaque Activité) et avec `createEmptyDraft` (qui fixe déjà
-    // `tourSideMode` à `DEFAULT_TOUR_SIDE_MODE`) : un brouillon réhydraté
-    // porte donc toujours une configuration de côté pleinement résolue,
-    // jamais un champ resté à l'état brut de la Séance source.
-    tourSideMode: session.cycle.tour.sideMode ?? DEFAULT_TOUR_SIDE_MODE,
     exercises: structuralActivities.map((activity) => activityToDraftExercise(activity)),
-    // Toutes les Catégories déjà associées à une Séance persistée sont, par
-    // construction, déjà persistées elles-mêmes : aucune n'est un brouillon
-    // local (`categoryDrafts` reste vide), toutes sont sélectionnées.
-    categoryDrafts: [],
-    selectedCategoryIds: session.categories.map((category) => category.id),
   };
 }
 
@@ -286,7 +223,7 @@ export function toSessionDraft(session: Session): SessionDraft {
  * mais reprend les valeurs par défaut d'Exercice pour `executionMode`/
  * `seriesCount` (ignorées à la conversion `toUpdateSessionInput`, qui relit
  * `type`). L'ordre d'affichage suit `structuralActivities` (avant, dans,
- * après le Tour) — jamais `position` seul, qui n'est unique que par zone.
+ * après le Circuit) — jamais `position` seul, qui n'est unique que par zone.
  */
 function activityToDraftExercise(activity: Activity): SessionDraftExercise {
   return {
@@ -299,7 +236,7 @@ function activityToDraftExercise(activity: Activity): SessionDraftExercise {
     repetitionCount: activity.repetitionCount,
     seriesCount: activity.seriesCount ?? DEFAULT_SERIES_COUNT,
     pauseSeconds: activity.pauseSeconds,
-    recoverySeconds: activity.recoverySeconds,
+    postActivityRecoverySeconds: activity.postActivityRecoverySeconds ?? 0,
     instruction: activity.instruction,
     bodyZoneIds: activity.bodyZoneIds,
     // V2-BILAT-01 : `Activity.sideMode` est un champ optionnel de transition
@@ -345,7 +282,7 @@ export function exerciseEquals(
     a.repetitionCount === b.repetitionCount &&
     a.seriesCount === b.seriesCount &&
     a.pauseSeconds === b.pauseSeconds &&
-    a.recoverySeconds === b.recoverySeconds &&
+    a.postActivityRecoverySeconds === b.postActivityRecoverySeconds &&
     a.instruction === b.instruction &&
     bodyZoneIdSetsEqual(a.bodyZoneIds, b.bodyZoneIds) &&
     a.sideMode === b.sideMode
@@ -369,30 +306,6 @@ function exercisesEqual(
 }
 
 /**
- * Compare deux ensembles de Catégories personnalisées créées dans le
- * brouillon — ordre indifférent (`SessionDraft.categoryDrafts` est un
- * ensemble, pas une séquence, voir sa documentation), contenu déterminant.
- */
-function categoryDraftsEqual(
-  a: readonly SessionDraftCategoryDraft[],
-  b: readonly SessionDraftCategoryDraft[],
-): boolean {
-  if (a.length !== b.length) {
-    return false;
-  }
-  return a.every((draft) => b.some((other) => other.id === draft.id && other.name === draft.name));
-}
-
-/** Compare deux ensembles d'identifiants de Catégories sélectionnées — ordre indifférent, contenu déterminant. */
-function selectedCategoryIdsEqual(a: readonly string[], b: readonly string[]): boolean {
-  if (a.length !== b.length) {
-    return false;
-  }
-  const setA = new Set(a);
-  return b.every((id) => setA.has(id));
-}
-
-/**
  * Compare les champs fonctionnels d'un brouillon à ceux d'un brouillon vide
  * (`createEmptyDraft()`) — utilisé par la garde de sortie de Composition
  * (T01-S07) pour décider si une navigation sortante doit être bloquée.
@@ -404,37 +317,23 @@ export function isSessionDraftDirty(draft: SessionDraft): boolean {
 
 /**
  * Compare champ à champ deux brouillons sur leurs propriétés FONCTIONNELLES
- * (nom, couleur, phases, répétition du Tour, Activités dans l'ordre,
- * Catégories créées et sélectionnées) — `sourceSessionId` est un champ
- * d'IDENTITÉ, jamais comparé. T01-S10 : la garde de sortie en MODIFICATION
- * compare le brouillon courant à son état RÉHYDRATÉ (CE-T01-S10-06 — le
- * dialogue d'abandon n'apparaît que si quelque chose a réellement changé) ;
- * en CRÉATION, `isSessionDraftDirty` compare au brouillon vide. Fonction
- * pure, aucune dépendance React/navigation.
+ * (nom, Étiquette, phases, répétition du Circuit, Activités dans l'ordre) —
+ * `sourceSessionId` est un champ d'IDENTITÉ, jamais comparé. T01-S10 : la
+ * garde de sortie en MODIFICATION compare le brouillon courant à son état
+ * RÉHYDRATÉ (CE-T01-S10-06 — le dialogue d'abandon n'apparaît que si quelque
+ * chose a réellement changé) ; en CRÉATION, `isSessionDraftDirty` compare au
+ * brouillon vide. Fonction pure, aucune dépendance React/navigation.
  */
 export function sessionDraftsEqual(a: SessionDraft, b: SessionDraft): boolean {
   return (
     a.name === b.name &&
-    a.color === b.color &&
+    a.labelId === b.labelId &&
     a.initialCountdownSeconds === b.initialCountdownSeconds &&
     a.finalPhaseSeconds === b.finalPhaseSeconds &&
     (a.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT) ===
       (b.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT) &&
-    (a.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE) === (b.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE) &&
-    exercisesEqual(a.exercises, b.exercises) &&
-    categoryDraftsEqual(a.categoryDrafts, b.categoryDrafts) &&
-    selectedCategoryIdsEqual(a.selectedCategoryIds, b.selectedCategoryIds)
+    exercisesEqual(a.exercises, b.exercises)
   );
-}
-
-/** Résout les Catégories sélectionnées d'un brouillon vers des `CreateSessionCategoryInput` (partagé par `toCreateSessionInput` et `toUpdateSessionInput`). */
-function resolveDraftCategories(draft: SessionDraft): CreateSessionCategoryInput[] {
-  return draft.selectedCategoryIds.map((id) => {
-    const localDraft = draft.categoryDrafts.find((entry) => entry.id === id);
-    return localDraft
-      ? { kind: "NEW" as const, name: localDraft.name }
-      : { kind: "EXISTING" as const, categoryId: id };
-  });
 }
 
 /**
@@ -458,7 +357,7 @@ function toDraftActivityParameters(exercise: SessionDraftExercise) {
       repetitionCount: null,
       seriesCount: null,
       pauseSeconds: 0,
-      recoverySeconds: 0,
+      postActivityRecoverySeconds: 0,
       instruction: exercise.instruction,
       bodyZoneIds: [] as readonly string[],
       sideMode: exercise.sideMode,
@@ -471,7 +370,7 @@ function toDraftActivityParameters(exercise: SessionDraftExercise) {
     repetitionCount: exercise.repetitionCount,
     seriesCount: exercise.seriesCount,
     pauseSeconds: exercise.pauseSeconds,
-    recoverySeconds: exercise.recoverySeconds,
+    postActivityRecoverySeconds: exercise.postActivityRecoverySeconds,
     instruction: exercise.instruction,
     bodyZoneIds: exercise.bodyZoneIds,
     sideMode: exercise.sideMode,
@@ -480,44 +379,34 @@ function toDraftActivityParameters(exercise: SessionDraftExercise) {
 
 /**
  * Valide et convertit un brouillon vers un `CreateSessionInput` persistable
- * (T01-S09 : TOUTES les Activités de `draft.exercises`, dans l'ordre, et
- * toutes les Catégories actuellement SÉLECTIONNÉES — `draft.selectedCategoryIds`
- * — jamais une Catégorie personnalisée simplement créée puis désélectionnée).
+ * (T01-S09 : TOUTES les Activités de `draft.exercises`, dans l'ordre).
  *
  * **T02-S01** : transporte désormais aussi l'identifiant de brouillon de
  * chaque Activité, son type, sa position structurelle et la répétition réelle
- * du Tour — une création comportant une Récupération, une Activité hors Tour
- * ou un Tour ≠ `1` était jusqu'ici persistée comme un Exercice `IN_TOUR` d'un
- * Tour figé à `1` (plan §5.1).
- *
- * Chaque identifiant sélectionné est résolu : s'il correspond à l'`id` d'une
- * entrée de `draft.categoryDrafts`, la Catégorie est une Catégorie
- * personnalisée à créer (`kind: "NEW"`) ; sinon, il référence une Catégorie
- * déjà persistée (`kind: "EXISTING"`).
+ * du Circuit — une création comportant une Récupération, une Activité hors
+ * Circuit ou un Circuit ≠ `1` était jusqu'ici persistée comme un Exercice
+ * `IN_TOUR` d'un Circuit figé à `1` (plan §5.1).
  *
  * Assemble un candidat structurellement conforme directement depuis les
  * champs du brouillon — sans revalider aucune borne elle-même — puis
  * délègue l'intégralité de la validation/normalisation à
  * `validateCreateSessionInput` (`validation.ts`), qui agrège systématiquement
- * **toutes** les violations déterminables (Séance, chaque Activité, chaque
- * Catégorie personnalisée) avant de retourner un échec ; ne s'arrête jamais
- * à la première catégorie de défaut rencontrée. Ne lève jamais d'exception.
+ * **toutes** les violations déterminables (Séance, chaque Activité) avant de
+ * retourner un échec. Ne lève jamais d'exception.
  */
 export function toCreateSessionInput(draft: SessionDraft): ValidationResult<CreateSessionInput> {
   return validateCreateSessionInput({
     name: draft.name,
-    color: draft.color,
+    labelId: draft.labelId,
     initialCountdownSeconds: draft.initialCountdownSeconds,
     finalPhaseSeconds: draft.finalPhaseSeconds,
     tourRepeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
-    tourSideMode: draft.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE,
     exercises: draft.exercises.map((exercise) => ({
       id: exercise.id,
       structuralPosition: exercise.structuralPosition,
       name: exercise.name,
       ...toDraftActivityParameters(exercise),
     })),
-    categories: resolveDraftCategories(draft),
   });
 }
 
@@ -563,12 +452,10 @@ export function toUpdateSessionInput(
   return validateUpdateSessionInput({
     sourceSessionId,
     name: draft.name,
-    color: draft.color,
+    labelId: draft.labelId,
     initialCountdownSeconds: draft.initialCountdownSeconds,
     finalPhaseSeconds: draft.finalPhaseSeconds,
     tourRepeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
-    tourSideMode: draft.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE,
     activities,
-    categories: resolveDraftCategories(draft),
   });
 }

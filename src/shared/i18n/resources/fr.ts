@@ -28,8 +28,14 @@ export const fr = {
   // l'appelant (`SideModeControl` ne les dérive jamais lui-même).
   shared: {
     sideMode: {
+      // V2-PRE-1 (plan §12, critère UI-73382D60E040, assertion
+      // UI-73382D60E040-A3E11D4F3FF2A, round 3) : le plan approuvé demande la
+      // valeur explicite `Aucun` ici. `SideModeControl.tsx` lit cette clé
+      // DIRECTEMENT pour la valeur VISIBLE du contrôle Activité (pas
+      // seulement son nom accessible) — `SideModeControl.test.tsx` est
+      // désormais dans `scope_allow` (round 3) et a été adapté en conséquence.
       valueLabels: {
-        UNILATERAL: "",
+        UNILATERAL: "Aucun",
         RIGHT_LEFT: "D→G",
         LEFT_RIGHT: "G→D",
       },
@@ -38,7 +44,9 @@ export const fr = {
       activity: {
         label: "Côté",
         accessibilityLabels: {
-          UNILATERAL: "Côté : unilatéral",
+          // V2-PRE-1 (plan §12, critère UI-73382D60E040) : terminologie
+          // cible validée — « Changement de côté : Aucun ».
+          UNILATERAL: "Changement de côté : Aucun",
           RIGHT_LEFT: "Côté : bilatéral, droite puis gauche",
           LEFT_RIGHT: "Côté : bilatéral, gauche puis droite",
         },
@@ -114,12 +122,14 @@ export const fr = {
       // `Activités`/`Circuits` visibles mais désactivés. Il ne filtre jamais
       // les Séances.
       contentTypes: {
-        activities: "Activités",
+        // V2-PRE-1 (plan §4/§12, critère UI-D35DA2C4F266) : terminologie
+        // fonctionnelle cible — « Exercices » remplace « Activités ».
+        activities: "Exercices",
         sessions: "Séances",
         circuits: "Circuits",
         // Nom accessible des segments désactivés — annonce explicitement
         // l'indisponibilité MVP (D-108).
-        activitiesUnavailableAccessibilityLabel: "Activités — indisponible",
+        activitiesUnavailableAccessibilityLabel: "Exercices — indisponible",
         circuitsUnavailableAccessibilityLabel: "Circuits — indisponible",
       },
       // T01-S10 (D-109) : `Toutes`/`Planifiées`/`Archivées` restent des
@@ -144,8 +154,9 @@ export const fr = {
         retry: "Réessayer",
       },
       card: {
-        activitySingular: "activité",
-        activityPlural: "activités",
+        // V2-PRE-1 (critère UI-D35DA2C4F266) : « exercice(s) » remplace « activité(s) ».
+        activitySingular: "exercice",
+        activityPlural: "exercices",
         tourSingular: "tour",
         tourPlural: "tours",
         durationUnit: "min",
@@ -160,7 +171,7 @@ export const fr = {
       // rangée `Créer / Filtrer / Trier` sous le scrim. Seule `Une nouvelle
       // activité` est active dans cette tranche.
       createTree: {
-        newActivity: "Une nouvelle activité",
+        newActivity: "Un nouvel exercice",
         newSession: "Une séance",
         newCircuit: "Un circuit",
         cancel: "Annuler",
@@ -172,48 +183,69 @@ export const fr = {
     // V2-CAT-01 : Catalogue des activités — segment `Activités` du Catalogue,
     // liste/création/modification d'`ActivityDefinition` persistantes.
     activities: {
-      title: "Catalogue des activités",
+      // V2-PRE-1 (critère UI-D35DA2C4F266) : « Exercice(s) » remplace
+      // « Activité(s) » dans les libellés fonctionnels français — les
+      // identifiants techniques (clés, `ActivityDefinition`) restent inchangés.
+      title: "Catalogue des exercices",
       empty: {
         message:
-          "Vous verrez ici la liste de vos activités dès que vous en aurez créé une.",
+          "Vous verrez ici la liste de vos exercices dès que vous en aurez créé un.",
       },
       error: {
-        message: "Impossible de charger vos activités.",
+        message: "Impossible de charger vos exercices.",
         retry: "Réessayer",
       },
       card: {
-        deployAccessibilityLabel: "Déployer l’activité",
+        deployAccessibilityLabel: "Déployer l’exercice",
         playAccessibilityLabel: "Lecture",
-        openAccessibilityLabel: "Modifier l’activité",
+        openAccessibilityLabel: "Modifier l’exercice",
       },
       editor: {
-        titleAdd: "Ajouter une activité",
-        titleEdit: "Modifier une activité",
+        titleAdd: "Ajouter un exercice",
+        titleEdit: "Modifier un exercice",
         backAccessibilityLabel: "Retour",
-        name: "Nom de l’activité",
+        name: "Nom de l’exercice",
         finishAction: "Terminer",
-        saveError: "L’activité n’a pas pu être enregistrée. Réessayez.",
+        saveError: "L’exercice n’a pas pu être enregistré. Réessayez.",
         media: {
           label: "Médias",
           expandAccessibilityLabel: "Déployer la section Médias",
           collapseAccessibilityLabel: "Replier la section Médias",
           addMedia: "Ajouter un média",
           addMediaUnavailableAccessibilityLabel: "Ajouter un média — indisponible",
-          placeholder: "Aucun média pour cette activité.",
+          placeholder: "Aucun média pour cet exercice.",
+        },
+        // V2-PRE-1 (plan §3.1, D-211 ; `08 – Conception fonctionnelle
+        // détaillée.md` l.978 ; `13 – Contrats d’écran.md` §4.10, Figma
+        // 4861:6259) : Catégorie exactement une, obligatoire — bouton/pilule
+        // ouvrant la modale de sélection, icône dans l'état non renseigné,
+        // appui court pour sélectionner (contrat de modale déjà validé,
+        // réutilisé sans nouvelle conception).
+        category: {
+          label: "Catégorie",
+          unsetAccessibilityLabel: "Catégorie — non renseignée",
+          modalTitle: "Catégorie",
+          newCategory: {
+            placeholder: "Nom de la catégorie",
+            cancelAccessibilityLabel: "Annuler",
+            addAccessibilityLabel: "Ajouter",
+          },
+          createAction: "Créer une catégorie",
+          closeAccessibilityLabel: "Fermer",
         },
       },
       selection: {
-        title: "Sélectionner une activité",
+        title: "Sélectionner un exercice",
         backAccessibilityLabel: "Retour",
         empty: {
-          message: "Aucune activité disponible pour le moment.",
+          message: "Aucun exercice disponible pour le moment.",
         },
         addAction: "Ajouter",
         cancelAccessibilityLabel: "Annuler",
       },
       addToSession: {
-        newActivity: "Une nouvelle activité",
-        existingActivity: "Une activité existante",
+        newActivity: "Un nouvel exercice",
+        existingActivity: "Un exercice existant",
         cancel: "Annuler",
       },
     },
@@ -260,10 +292,11 @@ export const fr = {
         cancelAccessibilityLabel: "Annuler",
         validateAccessibilityLabel: "Valider",
       },
-      addActivity: "Ajouter une activité",
+      // V2-PRE-1 (critère UI-D35DA2C4F266) : « exercice » remplace « activité ».
+      addActivity: "Ajouter un exercice",
       continueAction: "Continuer",
       summary: {
-        empty: "0 activité · 0 min",
+        empty: "0 exercice · 0 min",
       },
       abandonModal: {
         title: "Abandonner la création ?",
@@ -293,8 +326,9 @@ export const fr = {
       // produit attesté (CE-BIL-02).
       tourBilateralConfirmModal: {
         title: "Exécuter chaque Tour des deux côtés ?",
+        // V2-PRE-1 (critère UI-D35DA2C4F266) : « Exercice(s) » remplace « Activité(s) ».
         message:
-          "À chaque Tour, toutes les Activités sont exécutées une fois d’un côté, puis une fois de l’autre, selon l’ordre choisi. Ce réglage remplace tout réglage de côté défini individuellement pour une Activité.",
+          "À chaque Tour, tous les Exercices sont exécutés une fois d’un côté, puis une fois de l’autre, selon l’ordre choisi. Ce réglage remplace tout réglage de côté défini individuellement pour un Exercice.",
         cancel: "Annuler",
         confirm: "Confirmer",
       },
@@ -312,9 +346,10 @@ export const fr = {
       activityActions: {
         duplicate: "Dupliquer",
         delete: "Supprimer",
-        revealAccessibilityLabel: "Actions de l’activité",
+        // V2-PRE-1 (critère UI-D35DA2C4F266) : « exercice » remplace « activité ».
+        revealAccessibilityLabel: "Actions de l’exercice",
         reorderAccessibilityHint:
-          "Appui long pour déplacer l’activité, glissement vers la gauche pour afficher les actions",
+          "Appui long pour déplacer l’exercice, glissement vers la gauche pour afficher les actions",
       },
       exerciseRow: {
         editAccessibilityLabel: "Modifier l’exercice",
@@ -357,8 +392,9 @@ export const fr = {
       // « Modifier une activité » n'a pas de frame Figma dédiée mais est
       // explicitement demandée par l'autorisation, même patron que
       // `08 – Conception fonctionnelle détaillée.md` (« Titre de l'écran »).
-      titleAdd: "Ajouter une activité",
-      titleEdit: "Modifier une activité",
+      // V2-PRE-1 (critère UI-D35DA2C4F266) : « exercice » remplace « activité ».
+      titleAdd: "Ajouter un exercice",
+      titleEdit: "Modifier un exercice",
       backAccessibilityLabel: "Retour",
       // Complétion REWORK12 (D-105) : « Zone bleue — Contexte séance et nom
       // de l'activité » (`3261:4151`/`3261:4160`) — `prefix` compose
@@ -394,7 +430,7 @@ export const fr = {
       // PLUSIEURS Zones (sélection multiple, D-093), le singulier était donc
       // trompeur, et « d'exécution » redondant sur un écran d'Activité.
       sections: {
-        description: "Description de l’activité",
+        description: "Description de l’exercice",
         bodyZones: "Zones corporelles",
         executionMode: "Mode d’exécution",
         expandAction: "Déployer la section",
@@ -406,7 +442,7 @@ export const fr = {
       // établi). Complétion REWORK12 : réutilisée telle quelle comme
       // placeholder du champ, désormais logé dans la zone bleue
       // contextuelle plutôt que comme un champ autonome.
-      name: "Nom de l’activité",
+      name: "Nom de l’exercice",
       executionMode: {
         label: "Mode d’exécution",
         duration: "Durée",
@@ -481,11 +517,11 @@ export const fr = {
       // employé par toutes les bornes minimales de l'application (synthèses
       // du Catalogue et du Tour), jamais une écriture concurrente.
       totalDuration: {
-        label: "Durée totale de l’activité",
-        accessibilityLabel: "Durée totale de l’activité",
+        label: "Durée totale de l’exercice",
+        accessibilityLabel: "Durée totale de l’exercice",
         compactLabel: "Durée totale",
         compactLabelLowerBound: "Durée totale ≥",
-        accessibilityLabelLowerBound: "Durée totale minimale de l’activité",
+        accessibilityLabelLowerBound: "Durée totale minimale de l’exercice",
       },
       wheelPicker: {
         minutesAccessibilityLabel: "Minutes",
@@ -544,7 +580,7 @@ export const fr = {
       // l'en-tête, lui, est composé avec `sections.expandAction`/
       // `collapseAction`, ce qui laisse ce libellé UNIQUE pour le champ.
       instruction: {
-        label: "Description de l’activité",
+        label: "Description de l’exercice",
       },
       // T02-S02 (continuation) : même chaîne que `sections.bodyZones`, qui
       // est le titre de la section contenant ce sélecteur — l'unicité du nom
@@ -569,7 +605,8 @@ export const fr = {
       finishAction: "Terminer",
       exitConfirmModal: {
         title: "Abandonner les modifications ?",
-        message: "Les modifications apportées à cette activité seront perdues.",
+        // V2-PRE-1 (critère UI-D35DA2C4F266) : « cet exercice » remplace « cette activité ».
+        message: "Les modifications apportées à cet exercice seront perdues.",
         // REWORK11 (`[ChatGPT] CHANGES_REQUESTED — REWORK11 — dialogue
         // d'abandon d'une Activité`, 2026-09-04) : « Continuer la
         // modification » → « Annuler », « Abandonner » → « Confirmer » —

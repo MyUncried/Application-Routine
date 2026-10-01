@@ -11,16 +11,16 @@ import {
 
 describe("formatActivityCount", () => {
   it("uses the singular form for exactly one activity", () => {
-    expect(formatActivityCount(1)).toBe("1 activité");
+    expect(formatActivityCount(1)).toBe("1 exercice");
   });
 
   it("uses the plural form for zero activities", () => {
-    expect(formatActivityCount(0)).toBe("0 activités");
+    expect(formatActivityCount(0)).toBe("0 exercices");
   });
 
   it("uses the plural form for more than one activity", () => {
-    expect(formatActivityCount(2)).toBe("2 activités");
-    expect(formatActivityCount(5)).toBe("5 activités");
+    expect(formatActivityCount(2)).toBe("2 exercices");
+    expect(formatActivityCount(5)).toBe("5 exercices");
   });
 });
 
