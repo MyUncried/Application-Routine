@@ -60,3 +60,17 @@ Artefact `11146747072` relu, ZIP SHA256 vérifié : `93b9ab1ab0b9b41238b10ece488
 Le diagnostic d’intégrité arrivait après npm ci, mais le clone avait déjà matérialisé les fichiers avec la conversion CRLF héritée de Windows, avant que core.autocrlf=false ne soit appliqué. Le patch conservé montre cette conversion, notamment sur tsconfig.json et de nombreux scripts/tests. Le correctif applique core.autocrlf=false à la commande clone elle-même et vérifie la propreté du clone avant installation. Le contrôle d’intégrité reste strict ; aucun reset après installation ni tolérance de dérive n’est introduit.
 
 Quatre tests du superviseur PASS, dont un vrai clone Git sous configuration globale autocrlf=true qui vérifie les octets LF et un statut Git propre. La génération 8 reprend INITIAL sur le même dossier e47525b7, la même approbation et le même request_id. Le runtime approuvé reste inchangé. INITIAL et REVISION ne sont toujours pas certifiés ; étape 3 en cours, étape 4 et PRE-1 hors périmètre.
+
+
+## 2026-10-01 — INITIAL run 36830436181: credential correction
+
+Controller 407c679bd962d6571bcc666e18c54fd1706ec45b, immutable approved runtime e47525b70e62b4ea3d4b32b9fae09e306b5e3094.
+Actual Windows evidence artifact 11147138811, ZIP SHA256 e5b31467898c3377e296c52d96917bd1df036afd805f9c71aa50403b08f8c1f6, independently verified.
+Byte-preserving clone and post-install clean checks succeeded. Actual baseline Jest, TypeScript and lint passed. Both real authorization observations, negative admission probes and persistent runner-lock certification completed.
+Actual adapter failed before Claude with KODJO_CONSUMPTION_API_FAILED: 403. Workflow job already had Contents: write, Issues: read and PullRequests: read. No consumption ref exists for request d851f5fe-6ce5-4bb1-a615-ea2116cf04e1 at correction time. The local consumed-request.json is preparatory provenance, not successful remote consumption.
+The supervisor incorrectly reported empty delta and its second runtime-copy attempt hit Windows EIO. No implementation occurred; cleanup succeeded.
+
+Correction confined to controller/tests/workflow/request: use configured KODJO_VNEXT_CONSUMPTION_TOKEN if available, otherwise select the already stored github.com MyUncried CLI credential, verify owner and observable repo/workflow OAuth scopes. Never use the job token as a fallback for consumption. Missing or unsuitable credential fails before clone/install with preserved status and no token output. Selected token is masked and removed from child environments except the production supervisor's existing live-token input; approved runtime code and consumption checks are unchanged.
+Runtime failure is checked before application delta. Runtime evidence copy records and excludes junctions/special files without dereferencing outside the run, and a copy failure cannot replace the primary diagnostic.
+Local targeted checks: 21 passed, 0 failed, 1 native PowerShell test skipped on Linux; YAML parsed and existing job permissions unchanged. Supervisor tests exercise missing credential, wrong owner, missing scopes, no account fallback, original 403 diagnostic and real dangling junction preservation. Anti-replay concurrency/lost-response/readback tests remain passing. No claim of actual Windows credential availability or successful INITIAL yet.
+Generation 9 requests the same exact approved INITIAL, same request identity/scope/approval. Actual rerun must prove credential availability and atomic remote consumption before Claude. REVISION remains pending; FINAL and PRE-1 remain excluded.

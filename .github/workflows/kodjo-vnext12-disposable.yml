@@ -142,6 +142,7 @@ jobs:
         working-directory: _vnext12-approved/${{ github.run_id }}
         env:
           GH_TOKEN: ${{ github.token }}
+          KODJO_VNEXT_CONSUMPTION_TOKEN: ${{ secrets.KODJO_VNEXT_CONSUMPTION_TOKEN }}
           VNEXT12_CONTROLLER_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           $ErrorActionPreference = 'Stop'

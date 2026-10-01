@@ -10,5 +10,6 @@
   "pre1_in_scope": false,
   "approved_protocol_head": "e47525b70e62b4ea3d4b32b9fae09e306b5e3094",
   "gate_ref": "issue_comment:5921521038",
-  "approval_target_hash": "d5ca8d589b886cf4231eea457527729081288d1544c35703ee83f18085db4d59"
+  "approval_target_hash": "d5ca8d589b886cf4231eea457527729081288d1544c35703ee83f18085db4d59",
+  "generation": 9
 }

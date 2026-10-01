@@ -31,6 +31,55 @@ function validateDelta(files) {
 function disposableCloneArgs(origin, work) {
   return ['-c', 'core.autocrlf=false', 'clone', '--quiet', origin, work];
 }
+function consumptionCredential(env = process.env, spawn = spawnSync) {
+  const credentialEnv = { ...env };
+  for (const key of ['GH_TOKEN', 'GITHUB_TOKEN', 'KODJO_VNEXT_CONSUMPTION_TOKEN']) delete credentialEnv[key];
+  let token = env.KODJO_VNEXT_CONSUMPTION_TOKEN;
+  const source = token ? 'REPOSITORY_SECRET' : 'RUNNER_OWNER_LOGIN';
+  if (!token) {
+    const r = spawn('gh', ['auth', 'token', '--hostname', 'github.com', '--user', 'MyUncried'],
+      { env: credentialEnv, encoding: 'utf8', shell: false, windowsHide: true, timeout: 30000 });
+    if (r.error || r.status !== 0 || !String(r.stdout || '').trim()) throw Error('VNEXT12_CONSUMPTION_CREDENTIAL_REQUIRED');
+    token = String(r.stdout).trim();
+  }
+  credentialEnv.GH_TOKEN = token;
+  const call = args => {
+    const r = spawn('gh', args, { env: credentialEnv, encoding: 'utf8', shell: false, windowsHide: true, timeout: 30000 });
+    if (r.error || r.status !== 0) throw Error('VNEXT12_CONSUMPTION_CREDENTIAL_CHECK_FAILED');
+    return String(r.stdout || '');
+  };
+  if (source === 'RUNNER_OWNER_LOGIN' && call(['api', '--hostname', 'github.com', 'user', '--jq', '.login']).trim() !== 'MyUncried') {
+    throw Error('VNEXT12_CONSUMPTION_OWNER_MISMATCH');
+  }
+  const observed = call(['api', '--hostname', 'github.com', '--include', 'repos/MyUncried/Application-Routine']);
+  const scopeHeader = /^x-oauth-scopes:\s*([^\r\n]*)/im.exec(observed);
+  if (scopeHeader) {
+    const scopes = scopeHeader[1].split(',').map(x => x.trim());
+    if (!scopes.includes('repo') || !scopes.includes('workflow')) throw Error('VNEXT12_CONSUMPTION_CREDENTIAL_SCOPE_REQUIRED');
+  } else if (source === 'RUNNER_OWNER_LOGIN') {
+    // Stored owner credentials must provide observable OAuth scope evidence.
+    throw Error('VNEXT12_CONSUMPTION_CREDENTIAL_SCOPE_REQUIRED');
+  }
+  return { token, source };
+}
+function runtimeFailure(result, actual) {
+  if (result.code === 0 && actual.status === 'IMPLEMENTED_AND_VERIFIED') return null;
+  const failure = /(?:LOCAL_ADAPTER_FAILURE|REQUEST_REFUSED):\s*([^\r\n]+)/.exec(result.output || '');
+  return 'VNEXT12_INITIAL_RUNTIME_FAILED:' + (failure ? failure[1] : actual.diagnostic || actual.status || result.code);
+}
+function preserveRuntime(runDir, destination) {
+  // Persist ordinary evidence without following runtime junctions or sockets.
+  // Record exclusions explicitly instead of dereferencing paths outside the run.
+  const excluded = [];
+  fs.cpSync(runDir, destination, { recursive: true, filter: source => {
+    const stat = fs.lstatSync(source);
+    if (stat.isSymbolicLink() || !(stat.isDirectory() || stat.isFile())) {
+      excluded.push(path.relative(runDir, source)); return false;
+    }
+    return true;
+  } });
+  return { excluded_non_regular_paths: excluded };
+}
 function main(configFile, evidenceDirectory) {
   if (process.platform !== 'win32' || process.env.GITHUB_ACTIONS !== 'true') throw Error('VNEXT12_REAL_WINDOWS_RUNNER_REQUIRED');
   const config = validateConfig(JSON.parse(fs.readFileSync(configFile, 'utf8')));
@@ -39,10 +88,22 @@ function main(configFile, evidenceDirectory) {
   if (evidence.startsWith(source + path.sep)) throw Error('VNEXT12_EXTERNAL_EVIDENCE_REQUIRED');
   fs.mkdirSync(evidence, { recursive: true });
   const save = (name, data) => fs.writeFileSync(path.join(evidence, name), JSON.stringify(data, null, 2) + '\n');
-  const token = process.env.GH_TOKEN;
-  if (!token) throw Error('VNEXT12_SUPERVISOR_TOKEN_REQUIRED');
+  let credential;
+  try { credential = consumptionCredential(); }
+  catch (error) {
+    save('status.json', { schema_version: 'kodjo.vnext.disposable-initial-evidence.v1',
+      approved_protocol_head: APPROVED_HEAD, controller_head: process.env.VNEXT12_CONTROLLER_HEAD,
+      gate_ref: GATE, approval_target_hash: TARGET_HASH, revision_limit: 1,
+      implementation_invoked: false, application_published: false, pre1_in_scope: false,
+      final_audit_invoked: false, initial_status: 'CREDENTIAL_CHECK', verdict: 'FAIL',
+      diagnostic: error.message, disposable_cleanup: true });
+    throw error;
+  }
+  const token = credential.token;
+  console.log('::add-mask::' + token);
+  save('consumption-credential.json', { source: credential.source, repository: 'MyUncried/Application-Routine', token_recorded: false });
   const cleanEnv = { ...process.env };
-  for (const key of ['GH_TOKEN','GITHUB_TOKEN','KODJO_LIVE_GH_TOKEN','KODJO_SUPERVISED_QUEUE','KODJO_PREFLIGHT_FILE','KODJO_VNEXT_QUEUE_FILE','KODJO_DISPOSABLE_EVIDENCE_DIR','KODJO_INITIAL_RESTART_QUEUE','CLAUDE_CODE_OAUTH_TOKEN','ANTHROPIC_API_KEY']) delete cleanEnv[key];
+  for (const key of ['GH_TOKEN','GITHUB_TOKEN','KODJO_VNEXT_CONSUMPTION_TOKEN','KODJO_LIVE_GH_TOKEN','KODJO_SUPERVISED_QUEUE','KODJO_PREFLIGHT_FILE','KODJO_VNEXT_QUEUE_FILE','KODJO_DISPOSABLE_EVIDENCE_DIR','KODJO_INITIAL_RESTART_QUEUE','CLAUDE_CODE_OAUTH_TOKEN','ANTHROPIC_API_KEY']) delete cleanEnv[key];
   const privilegedEnv = { ...cleanEnv, GH_TOKEN: token };
   let commandIndex = 0;
   function run(bin, args, cwd, { env = cleanEnv, allowFailure = false, timeout = 120000 } = {}) {
@@ -145,7 +206,9 @@ function main(configFile, evidenceDirectory) {
     const actual = JSON.parse(fs.readFileSync(path.join(runDir, 'result.json'), 'utf8'));
     summary.initial_status = actual.status; summary.implementation_invoked = actual.claude_invoked === true;
     save('runtime-result.json', actual);
-    fs.cpSync(runDir, path.join(evidence, 'runtime'), { recursive: true });
+    const failure = runtimeFailure(result, actual);
+    if (failure) throw Error(failure);
+    save('runtime-copy.json', preserveRuntime(runDir, path.join(evidence, 'runtime')));
     fs.writeFileSync(path.join(evidence, 'implementation.patch'), run('git', ['diff','--binary','HEAD'], work).stdout);
     const changed = git(work, 'diff', '--name-only', 'HEAD').split('\n').filter(Boolean);
     validateDelta(changed);
@@ -166,7 +229,8 @@ function main(configFile, evidenceDirectory) {
   } catch (error) {
     summary.diagnostic = error.message;
     if (fs.existsSync(runDir)) {
-      fs.cpSync(runDir, path.join(evidence, 'runtime'), { recursive: true });
+      try { save('runtime-copy.json', preserveRuntime(runDir, path.join(evidence, 'runtime'))); }
+      catch (preservationError) { summary.runtime_copy_diagnostic = preservationError.code || 'RUNTIME_COPY_FAILED'; }
       const file = path.join(runDir, 'result.json');
       if (fs.existsSync(file)) {
         const actual = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -188,4 +252,4 @@ if (require.main === module) {
   try { main(process.argv[2], process.argv[3]); }
   catch (error) { console.error(error.message); process.exitCode = 1; }
 }
-module.exports = { validateConfig, localOrigin, validateDelta, disposableCloneArgs, APPROVED_HEAD, GATE, TARGET_HASH, CORE, TEST };
+module.exports = { validateConfig, localOrigin, validateDelta, disposableCloneArgs, consumptionCredential, runtimeFailure, preserveRuntime, APPROVED_HEAD, GATE, TARGET_HASH, CORE, TEST };
