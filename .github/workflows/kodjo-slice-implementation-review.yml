@@ -167,7 +167,7 @@ jobs:
             [[ "$plan_blob" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid V2 plan blob' >&2; exit 1; }
             plan_body=$(git cat-file -p "$plan_blob")
             plan_json=$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$plan")
-            if [[ "$plan" =~ ^(5913845392|5916079168|5918243649|5920359910|5930810339)$ ]]; then
+            if [[ "$plan" =~ ^(5913845392|5916079168|5918243649|5920359910|5930810339|5939160567)$ ]]; then
               # Publications humaines épinglées du plan PRE-1 : même vérification que le handoff
               # (auteur, issue, URL, commit, blob, taille, SHA-256), puis identité exacte avec le blob autorisé.
               node scripts/kodjo/recover-published-pre1-plan.js "$plan" /tmp/kodjo-recovered-plan.md

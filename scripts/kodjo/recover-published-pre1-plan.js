@@ -57,6 +57,23 @@ function recoverRound2(comment, repository, get) {
   return '[KODJO_V2] PLAN_OUTPUT\nslice_id=V2-PRE-1\nbootstrap_path=.github/orchestration/v2-slices/V2-PRE-1/slice-bootstrap.json\nsource_head=e216294506bed87dd80855937e3fabfbfa322b82\nplanning_mode=INITIAL\nplanning_contract=kodjo.plan-impact.v1\nui_planning_contract=kodjo.ui-plan-criteria.v2\ncorrected_plan_commit=' + ROUND2_COMMIT + '\ncorrected_plan_blob=' + ROUND2_BLOB + '\nSTATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\n\n' + bytes.toString('utf8');
 }
 
+// Round 5: scope change decided by Hermann after implementation review 5938943370 (production Profile wiring).
+const ROUND5_COMMENT_ID = '5939160567';
+const ROUND5 = { commit: 'b968d76c1b243a53d4052b25ff5ee5bbff7931ff', path: '.github/orchestration/v2-slices/V2-PRE-1/correction-implreview-36913774921/corrected-plan.md', blob: '60a6bb366b7441b8e79189db585c8dec4463d08c', sha256: '91a2865a3d78e2815737c2f2b2170750103f9e4b3937757179997ccf056893ea', size: 243743 };
+function recoverRound5(comment, repository, get) {
+  need(repository === REPOSITORY, 'PRE1_ROUND5_REPOSITORY_MISMATCH');
+  need(String(comment?.id) === ROUND5_COMMENT_ID && comment?.user?.login === 'MyUncried', 'PRE1_ROUND5_PUBLICATION_AUTHORITY_INVALID');
+  need(comment.issue_url === 'https://api.github.com/repos/' + REPOSITORY + '/issues/249', 'PRE1_ROUND5_ISSUE_MISMATCH');
+  need(String(comment.body).includes('https://github.com/' + REPOSITORY + '/blob/' + ROUND5.commit + '/' + ROUND5.path), 'PRE1_ROUND5_REFERENCE_MISMATCH');
+  const tree = get('git/trees/' + ROUND5.commit + '?recursive=1');
+  need(!tree.truncated && tree.tree.some(x => x.path === ROUND5.path && x.sha === ROUND5.blob && x.type === 'blob'), 'PRE1_ROUND5_COMMIT_BINDING_MISMATCH');
+  const blob = get('git/blobs/' + ROUND5.blob);
+  need(blob.sha === ROUND5.blob && blob.encoding === 'base64', 'PRE1_ROUND5_BLOB_INVALID');
+  const bytes = Buffer.from(blob.content, 'base64');
+  need(bytes.length === ROUND5.size && crypto.createHash('sha256').update(bytes).digest('hex') === ROUND5.sha256, 'PRE1_ROUND5_PLAN_INTEGRITY_MISMATCH');
+  return '[KODJO_V2] PLAN_OUTPUT\nslice_id=V2-PRE-1\nbootstrap_path=.github/orchestration/v2-slices/V2-PRE-1/slice-bootstrap.json\nsource_head=e216294506bed87dd80855937e3fabfbfa322b82\nplanning_mode=INITIAL\nplanning_contract=kodjo.plan-impact.v1\nui_planning_contract=kodjo.ui-plan-criteria.v2\ncorrected_plan_commit=' + ROUND5.commit + '\ncorrected_plan_blob=' + ROUND5.blob + '\nSTATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\n\n' + bytes.toString('utf8');
+}
+
 // Round 4: scope change decided by Hermann after development run 36854959192 (CatalogueCompositionEditFlow test).
 const ROUND4_COMMENT_ID = '5930810339';
 const ROUND4 = { commit: '32e680cb5dd57c62130bf4f59f6d2fa3708f1db1', path: '.github/orchestration/v2-slices/V2-PRE-1/correction-dev-36854959192/corrected-plan.md', blob: '6ee4a875ef930b6ff83389f2479fbee551ecae15', sha256: 'cb505d9d858db81b46270724bad6b327ef18579adeb88867b5654efc5ab6f4b2', size: 239760 };
@@ -96,6 +113,7 @@ function recoverRound3(comment, repository, get) {
 }
 
 function recover(comment, repository = REPOSITORY, get = api) {
+  if (String(comment?.id) === ROUND5_COMMENT_ID) return recoverRound5(comment, repository, get);
   if (String(comment?.id) === ROUND4_COMMENT_ID) return recoverRound4(comment, repository, get);
   if (String(comment?.id) === ROUND3_COMMENT_ID) return recoverRound3(comment, repository, get);
   if (String(comment?.id) === CORRECTED_COMMENT_ID) return recoverCorrected(comment, repository, get);
@@ -123,9 +141,9 @@ function recover(comment, repository = REPOSITORY, get = api) {
 if (require.main === module) {
   try {
     const [id, output] = process.argv.slice(2);
-    need([COMMENT_ID, CORRECTED_COMMENT_ID, ROUND2_COMMENT_ID, ROUND3_COMMENT_ID, ROUND4_COMMENT_ID].includes(id) && output, 'PRE1_RECOVERY_USAGE_INVALID');
+    need([COMMENT_ID, CORRECTED_COMMENT_ID, ROUND2_COMMENT_ID, ROUND3_COMMENT_ID, ROUND4_COMMENT_ID, ROUND5_COMMENT_ID].includes(id) && output, 'PRE1_RECOVERY_USAGE_INVALID');
     fs.writeFileSync(output, recover(api('issues/comments/' + id), process.env.GITHUB_REPOSITORY || REPOSITORY), 'utf8');
     process.stdout.write('PRE1 pinned published plan verified: comment=' + id + '\n');
   } catch (e) { console.error(e.message); process.exitCode = 1; }
 }
-module.exports = { recover, COMMENT_ID, CORRECTED_COMMENT_ID, ROUND2_COMMENT_ID, ROUND3_COMMENT_ID, ROUND4_COMMENT_ID };
+module.exports = { recover, COMMENT_ID, CORRECTED_COMMENT_ID, ROUND2_COMMENT_ID, ROUND3_COMMENT_ID, ROUND4_COMMENT_ID, ROUND5_COMMENT_ID };
