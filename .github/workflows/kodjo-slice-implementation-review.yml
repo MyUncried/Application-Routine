@@ -262,7 +262,7 @@ jobs:
           set -euo pipefail
           runtime="$RUNNER_TEMP/kodjo-review-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           mkdir -p "$runtime/lib"
-          cp scripts/kodjo/verify-ui-implementation-review.js scripts/kodjo/verify-test-contract-results.js scripts/kodjo/verify-review-format-repair.js "$runtime/"
+          cp scripts/kodjo/verify-ui-implementation-review.js scripts/kodjo/verify-test-contract-results.js scripts/kodjo/verify-review-format-repair.js scripts/kodjo/repair-review-nonui-coverage.js "$runtime/"
           cp scripts/kodjo/lib/plan-impact.js scripts/kodjo/lib/implementation-contract.js scripts/kodjo/lib/implementation-report.js scripts/kodjo/lib/ui-criteria-contract.js scripts/kodjo/lib/requirement-contract.js scripts/kodjo/lib/boundary-proof.js scripts/kodjo/lib/ui-identities.js scripts/kodjo/lib/component-evidence.js "$runtime/lib/"
           echo "KODJO_REVIEW_RUNTIME=$runtime" >> "$GITHUB_ENV"
 
@@ -523,15 +523,26 @@ jobs:
           validate_rc=0
           node "$KODJO_REVIEW_RUNTIME"/verify-ui-implementation-review.js "${review_validate[@]}" 2>/tmp/review-validate-1.err || validate_rc=$?
           cat /tmp/review-validate-1.err >&2
+          validate_err=/tmp/review-validate-1.err
+          if [ "$validate_rc" -ne 0 ] && grep -qE '^NON_UI_REQUIREMENT_COVERAGE_MISMATCH' "$validate_err"; then
+            # Deterministic removal, decided by Hermann, of extra non-UI rows that only duplicate a
+            # UI-bound requirement judged CONFORME; any other coverage deviation stays final.
+            cp /tmp/review-structured.json /tmp/review-structured-coverage.json
+            node "$KODJO_REVIEW_RUNTIME"/repair-review-nonui-coverage.js /tmp/ui-implementation-review-input.json /tmp/review-structured-coverage.json /tmp/review-structured.json
+            validate_rc=0
+            node "$KODJO_REVIEW_RUNTIME"/verify-ui-implementation-review.js "${review_validate[@]}" 2>/tmp/review-validate-2.err || validate_rc=$?
+            cat /tmp/review-validate-2.err >&2
+            validate_err=/tmp/review-validate-2.err
+          fi
           if [ "$validate_rc" -ne 0 ]; then
             # One bounded format-repair pass, only for a derived-status inconsistency.
             # The reviewer corrects its own derived criterion fields; the guard freezes every
             # judgment and the unchanged strict validator runs again. Any other error stays final.
-            grep -qE '^UI_IMPLEMENTATION_REVIEW_(CRITERION|PROOF)_DERIVATION_MISMATCH' /tmp/review-validate-1.err || exit "$validate_rc"
+            grep -qE '^UI_IMPLEMENTATION_REVIEW_(CRITERION|PROOF)_DERIVATION_MISMATCH' "$validate_err" || exit "$validate_rc"
             cp /tmp/review-structured.json /tmp/review-structured-attempt1.json
             {
               echo "FORMAT REPAIR ONLY of your previous structured review of the same delivery. Do not re-review and do not change any judgment."
-              echo "The validator rejected it with: $(cat /tmp/review-validate-1.err)"
+              echo "The validator rejected it with: $(cat "$validate_err")"
               echo "Return the exact same JSON, changing ONLY criteria[].implementation_status and criteria[].proof_results[].status so that they are derived mechanically from that criterion's assertion_results: implementation_status — any NON_CONFORME assertion => NON_CONFORME; otherwise any NON_VERIFIABLE or PENDING_DEVICE assertion => NON_VERIFIABLE; otherwise CONFORME. Criterion proof_results[].status for each proof_type — any contributing assertion FAIL => FAIL; otherwise any NON_VERIFIABLE => NON_VERIFIABLE; otherwise any PENDING_DEVICE => PENDING_DEVICE; otherwise PASS."
               echo "Every other field, including all assertion_results, evidence texts, boundary_results and non_ui_plan_assessment, must stay byte-identical; a mechanical guard refuses any other change."
               echo "PREVIOUS STRUCTURED REVIEW:"
@@ -645,6 +656,8 @@ jobs:
             /tmp/review-response.json
             /tmp/review-structured.json
             /tmp/review-validate-1.err
+            /tmp/review-validate-2.err
+            /tmp/review-structured-coverage.json
             /tmp/review-structured-attempt1.json
             /tmp/review-repair-response.json
             /tmp/review.md

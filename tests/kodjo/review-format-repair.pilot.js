@@ -35,6 +35,7 @@ test('the workflow repairs only derivation mismatches, once, and revalidates str
   const step=wf.slice(wf.indexOf('- name: Independent OpenAI review — V2 criterion contract'),wf.indexOf('- name: Independent OpenAI review — legacy path unchanged'));
   assert.match(step,/\^UI_IMPLEMENTATION_REVIEW_\(CRITERION\|PROOF\)_DERIVATION_MISMATCH/);
   assert.match(step,/verify-review-format-repair\.js \/tmp\/review-structured-attempt1\.json \/tmp\/review-structured\.json/);
-  assert.equal((step.match(/verify-ui-implementation-review\.js "\$\{review_validate\[@\]\}"/g)||[]).length,2);
+  // initial validation, revalidation after the non-UI coverage repair, revalidation after the format repair
+  assert.equal((step.match(/verify-ui-implementation-review\.js "\$\{review_validate\[@\]\}"/g)||[]).length,3);
   assert.equal((step.match(/api\.openai\.com\/v1\/responses/g)||[]).length,2);
 });
