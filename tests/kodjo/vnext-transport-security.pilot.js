@@ -55,6 +55,7 @@ function candidate(t, file, content) {
 }
 test('prepublication validation refuses malformed workflow bytes before publication', t => {
   assert.throws(() => P.validateTree(candidate(t, '.github/workflows/broken.yml', 'name: test\non: [unterminated\n')), /Command failed/);
+  assert.throws(() => P.validateTree(candidate(t, '.github/workflows/broken.yaml', 'name: test\non: [unterminated\n')), /Command failed/);
 });
 test('prepublication validation refuses exact writer blob drift', t => {
   const file = '.github/workflows/kodjo-vnext12-disposable.yml';

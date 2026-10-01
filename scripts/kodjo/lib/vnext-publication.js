@@ -45,6 +45,9 @@ function validateTree({ cwd, expectedParent, candidateTree, run = execFileSync }
     for (const file of changed.filter(file => /\.(?:js|cjs|mjs)$/.test(file) && fs.existsSync(path.join(temporary, file)))) {
       invoke(process.execPath, ['--check', path.join(temporary, file)]);
     }
+    // Reuse the inherited workflow control that caught the recovery-step ordering regression.
+    const targetedTests = changed.includes('.github/workflows/kodjo-v2-pilot-tests.yml') ? ['tests/kodjo/incident-register.pilot.js'] : [];
+    if (targetedTests.length) invoke(process.execPath, ['--test', ...targetedTests]);
     const Security = require('./vnext-remote-write-security');
     const json = file => JSON.parse(fs.readFileSync(path.join(temporary, file), 'utf8'));
     for (const file of changed.filter(file => file.endsWith('.json') && fs.existsSync(path.join(temporary, file)))) json(file);
@@ -81,7 +84,7 @@ function validateTree({ cwd, expectedParent, candidateTree, run = execFileSync }
       catch (_) { V.fail('VNEXT_PUBLICATION_POWERSHELL_VALIDATION_REQUIRED'); }
     }
     return { status: 'VALIDATED', expected_parent: expectedParent, candidate_tree: candidateTree,
-      changed_paths: changed, powershell_changed_units: psFiles.length, writer_policy: security.status,
+      changed_paths: changed, targeted_tests: targetedTests, powershell_changed_units: psFiles.length, writer_policy: security.status,
       historical_subjects: inventory.incidents.length + inventory.tests.length + inventory.normative_paragraphs.length };
   } finally { fs.rmSync(temporary, { recursive: true, force: true }); }
 }

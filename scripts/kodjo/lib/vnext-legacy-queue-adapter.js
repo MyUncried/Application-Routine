@@ -90,6 +90,12 @@ function renderCompatibilityMission(executionRequest, planContract = null, planP
 // Embedding the later ExecutionRequest (which contains that commit and approval)
 // would require the commit to contain its own hash. The sealed queue projection
 // carries the ExecutionRequest binding instead.
+function prepareTransport(fields) {
+  V.assertExactKeys(fields, ['slice_bootstrap_file', 'slice_bootstrap_sha256', 'plan_path', 'review_path', 'prompt_file'], [], 'VNEXT_PREPARATORY_TRANSPORT_KEYS_INVALID');
+  for (const key of ['slice_bootstrap_file', 'plan_path', 'review_path', 'prompt_file']) safeRelativePath(fields[key], 'VNEXT_QUEUE_COMPATIBILITY_PATH_INVALID', key);
+  V.assertSha64(fields.slice_bootstrap_sha256, 'VNEXT_QUEUE_BOOTSTRAP_HASH_INVALID');
+  return { ...fields }; // No gate, request identity or approval exists at preparation.
+}
 function prepareCompatibilityFiles(args) {
   const { planContract, reviewReport, transport } = args;
   const request = Approval.buildExecutionCore(args);
@@ -280,6 +286,6 @@ function verifyCompatibilityFilesAtApprovedCommit(projection, executionRequest, 
 
 module.exports = {
   SCHEMA, gitBlobOid, renderCompatibilityPlan, renderCompatibilityReview,
-  renderCompatibilityMission, prepareCompatibilityFiles, buildLegacyQueueProjection, validateLegacyQueueProjection,
+  renderCompatibilityMission, prepareTransport, prepareCompatibilityFiles, buildLegacyQueueProjection, validateLegacyQueueProjection,
   verifyCompatibilityFilesAtApprovedCommit,
 };

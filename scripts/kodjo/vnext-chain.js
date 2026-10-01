@@ -30,7 +30,8 @@ function verifyReservation(prepared, reservation, github) {
 function finalizeTransport(prepared, draft, reservation, { cwd, github = require('./verify-authorizations').ghClient() }) {
   Chain.preparedArtifacts(prepared, cwd, prepared.produced.producer_revision);
   if (Object.hasOwn(draft, 'gate_ref')) throw Error('VNEXT_CHAIN_PREPARATORY_GATE_FORBIDDEN');
-  return { ...draft, gate_ref: verifyReservation(prepared, reservation, github),
+  const fields = require('./lib/vnext-legacy-queue-adapter').prepareTransport(draft);
+  return { ...fields, gate_ref: verifyReservation(prepared, reservation, github),
     request_id: crypto.randomUUID(), created_at: new Date().toISOString() };
 }
 function main(args = process.argv.slice(2)) {

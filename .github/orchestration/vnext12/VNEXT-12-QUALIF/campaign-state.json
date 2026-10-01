@@ -8,7 +8,7 @@
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "9895877b9230c902eea229841a46a8c18c437f41",
   "controller_stage": "STEP3_COMPLETED",
-  "controller_generation": 18,
+  "controller_generation": 19,
   "steps": [
     {
       "step": 1,
@@ -198,6 +198,18 @@
     "runtime_replay": false,
     "final_audit_invoked": false,
     "report_path": ".github/orchestration/reports/2026-10-01_VNEXT_TRANSPORT_HARDENING.md",
-    "recorded_at": "2026-10-01T17:04:03.394198+00:00"
+    "recorded_at": "2026-10-01T17:16:34.756806+00:00",
+    "failed_candidate": {
+      "head": "57aa9f1b25fd57770784860c4ba4efcbb4965553",
+      "pilot_run_id": 36897140188,
+      "pilot_job_id": 110486847129,
+      "status": "FAILURE",
+      "tests": 921,
+      "passed": 919,
+      "failed": 1,
+      "skipped": 1,
+      "cause": "Inherited workflow assertion requires continue-on-error immediately after certification step name; reorder properties without modifying its test or protection.",
+      "equivalence_linux_job_id": 110486848562
+    }
   }
 }

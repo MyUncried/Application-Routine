@@ -258,8 +258,8 @@ jobs:
           github-token: ${{ github.token }}
           run-id: 34606534268
       - name: Certify historical run 16 recovery without gating the disposable slice
-        if: steps.historical_recovery_download.outcome == 'success'
         continue-on-error: true
+        if: steps.historical_recovery_download.outcome == 'success'
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
         run: |

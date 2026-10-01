@@ -61,7 +61,8 @@ test('revision publication prepares an exact new dossier and preserves all other
   const reservationApi = { comment: () => ({ id: 100, issue_url: 'https://api.github.com/repos/MyUncried/Application-Routine/issues/269', body: CLI.reservationMessage(ready.prepared) }) };
   const finalTransport = CLI.finalizeTransport(ready.prepared, ready.transport, reservation, { cwd: f.cwd, github: reservationApi });
   assert.equal(finalTransport.gate_ref, reservation.gate_ref);
-  assert.notEqual(finalTransport.request_id, ready.transport.request_id);
+  assert.notEqual(finalTransport.request_id, CLI.finalizeTransport(ready.prepared, ready.transport, reservation, { cwd: f.cwd, github: reservationApi }).request_id);
+  assert.throws(() => CLI.finalizeTransport(ready.prepared, { ...ready.transport, unexpected_field: true }, reservation, { cwd: f.cwd, github: reservationApi }), /PREPARATORY_TRANSPORT_KEYS_INVALID/);
   assert.throws(() => CLI.finalizeTransport(ready.prepared, ready.transport, { ...reservation, gate_ref: 'issue_comment:1' }, { cwd: f.cwd, github: reservationApi }), /REAL_GATE_REQUIRED/);
   assert.throws(() => CLI.finalizeTransport(ready.prepared, { ...ready.transport, gate_ref: 'issue_comment:1' }, reservation, { cwd: f.cwd, github: reservationApi }), /PREPARATORY_GATE_FORBIDDEN/);
   assert.equal(ready.prepared.produced.artifacts.planningEnvelope.planning_mode, 'REVISION');
@@ -73,10 +74,10 @@ test('revision publication prepares an exact new dossier and preserves all other
   const git = (...args) => execFileSync('git', args, { cwd: f.cwd, encoding: 'utf8' }).trim();
   git('add', '.'); git('commit', '-m', 'unit fixture revision dossier; no operational approval');
   const head = git('rev-parse', 'HEAD'), target = Chain.approvalTarget(ready.prepared, { cwd: f.cwd, protocolHead: head });
-  const github = { comment: () => ({ id: 1, issue_url: 'https://api.github.com/repos/MyUncried/Application-Routine/issues/269',
+  const github = { comment: () => ({ id: 100, issue_url: 'https://api.github.com/repos/MyUncried/Application-Routine/issues/269',
     updated_at: '2026-09-30T00:28:00.000Z', body: head + '\n' + Approval.renderApprovalMessage(target) }),
   reactions: () => [{ id: 2, content: '+1', user: { login: 'MyUncried' }, created_at: '2026-09-30T00:29:00.000Z' }] };
-  const tr = { ...ready.transport, gate_ref: 'issue_comment:1' }; // Real fixture observation above; never campaign evidence.
+  const tr = finalTransport; // Bound to the observed reservation above; fixture only.
   const seed = { slice_id: 'VNEXT-12-QUALIF', issue_number: 269, source_head: head,
     slice_bootstrap_file: tr.slice_bootstrap_file, slice_bootstrap_sha256: tr.slice_bootstrap_sha256,
     authorized_plan: { plan_path: tr.plan_path }, independent_review: { review_path: tr.review_path },

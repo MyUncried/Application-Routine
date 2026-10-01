@@ -111,11 +111,10 @@ function main() {
     baseline_head: bootstrap.baseline_head, bootstrap_path: bootstrapPath,
     slice_bootstrap_sha256: bootstrap.slice_bootstrap_sha256 });
   identity.validateRegistry(registry, bootstrap);
-  const transport = { slice_bootstrap_file: bootstrapPath,
+  const transport = require('./lib/vnext-legacy-queue-adapter').prepareTransport({ slice_bootstrap_file: bootstrapPath,
     slice_bootstrap_sha256: bootstrap.slice_bootstrap_sha256,
     plan_path: ROOT + '/initial/technical-plan.md', review_path: ROOT + '/initial/independent-review.md',
-    prompt_file: ROOT + '/initial/implementation-mission.md', gate_ref: 'issue_comment:1',
-    request_id: require('node:crypto').randomUUID(), created_at: new Date().toISOString() };
+    prompt_file: ROOT + '/initial/implementation-mission.md' });
   const ready = Chain.prepare(produced, receipt, transport, { cwd });
   write('prepared.json', ready.prepared); write('transport.json', transport);
   write('publication.json', [{ path: bootstrap.vnext_chain_file, content: JSON.stringify(ready.prepared, null, 2) + '\n' },

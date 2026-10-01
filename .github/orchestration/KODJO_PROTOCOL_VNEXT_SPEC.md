@@ -2237,7 +2237,9 @@ silencieusement en v2.
 Avant publication, `vnext-chain.js validate-publication` valide un tree Git complet,
 lié au HEAD parent attendu et à l'empreinte du checkpoint. Il réutilise les contrôles
 YAML, invariants exécutables, syntaxe JavaScript, politique des writers et
-correspondances historiques. Une unité PowerShell modifiée exige le parser Windows
+correspondances historiques. Le contrôle historique ciblé du workflow pilote est
+réexécuté avant publication lorsque ce workflow change. Le parser YAML couvre
+les extensions `.yml` et `.yaml`. Une unité PowerShell modifiée exige le parser Windows
 PowerShell 5.1 ; son indisponibilité refuse la publication. Les octets inchangés ne
 sont pas présentés comme nouvellement parsés. Une sortie tronquée d'outil ne doit
 jamais servir de contenu de fichier. Les données reçues restent refusées en cas
@@ -2251,7 +2253,8 @@ revalider cette fenêtre, vérifier le tree et les blobs, puis publier sans for�
 avec le parent attendu. Ce guard ne verrouille pas les écritures directes d'un
 administrateur hors protocole ; un déplacement du HEAD exige une nouvelle validation.
 
-La préparation génère plan/revue/mission et un transport provisoire sans gate.
+Les préparations INITIAL et REVISION utilisent le même constructeur fermé :
+plan/revue/mission et transport provisoire sans gate ni identité de demande.
 `reserve-gate` crée un vrai commentaire lié au hash du dossier préparé ; il ne
 constitue aucune approbation. `finalize-transport` relit cette réservation et génère
 le transport final avec son identifiant réel et un UUID neuf. Dossier et transport

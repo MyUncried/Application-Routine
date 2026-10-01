@@ -90,10 +90,9 @@ function preparePublication(cwd, base, receipt, next, nextReceipt, artifacts) {
   if (rows.length !== 1 || rows[0].status !== 'ACTIVE' || rows[0].slice_bootstrap_sha256 !== old.slice_bootstrap_sha256) throw Error('VNEXT12_REVISION_REGISTRY_MISMATCH');
   rows[0].baseline_head = bootstrap.baseline_head; rows[0].slice_bootstrap_sha256 = bootstrap.slice_bootstrap_sha256;
   Identity.validateRegistry(registry, bootstrap);
-  const transport = { slice_bootstrap_file: bootstrapPath, slice_bootstrap_sha256: bootstrap.slice_bootstrap_sha256,
+  const transport = require('./lib/vnext-legacy-queue-adapter').prepareTransport({ slice_bootstrap_file: bootstrapPath, slice_bootstrap_sha256: bootstrap.slice_bootstrap_sha256,
     plan_path: ROOT + '/revision/technical-plan.md', review_path: ROOT + '/revision/independent-review.md',
-    prompt_file: ROOT + '/revision/implementation-mission.md',
-    request_id: require('node:crypto').randomUUID(), created_at: new Date().toISOString() };
+    prompt_file: ROOT + '/revision/implementation-mission.md' });
   const revisionEvidence = { base_produced: base, base_review_receipt: receipt, revision_artifacts: artifacts };
   const ready = Chain.prepare(next, nextReceipt, transport, { cwd, revisionEvidence });
   return { ...ready, transport, publication: [

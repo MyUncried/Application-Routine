@@ -5,7 +5,7 @@ import sys
 import yaml
 root = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[2]
 errors = []
-files = sorted((root / '.github/workflows').glob('*.yml'))
+files = sorted([*(root / '.github/workflows').glob('*.yml'), *(root / '.github/workflows').glob('*.yaml')])
 for file in files:
     try:
         yaml.safe_load(file.read_text(encoding='utf-8'))
