@@ -19,6 +19,15 @@ const {
   buildPrompt, buildArgs, classifyClaudeFailure, sha256, redact, TURN_LIMIT_POLICY,
 } = require('./lib/claude-local');
 
+// Non-interactive runs end when the model ends its turn: a long check (the full jest suite)
+// auto-moved to the background was never observed (PRE-1 runs 36924289392, 36925812691,
+// 36929974315). Keep every check in the foreground with a timeout above its duration.
+const CLAUDE_FOREGROUND_CHECK_ENV = Object.freeze({
+  CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1',
+  BASH_DEFAULT_TIMEOUT_MS: '900000',
+  BASH_MAX_TIMEOUT_MS: '900000',
+});
+
 function die(code, message) {
   process.stderr.write('[KODJO_V2] ' + code + ': ' + message + '\n');
   return 1;
@@ -810,6 +819,7 @@ function main() {
     const claudeEnv = {
       ...process.env,
       KODJO_MUTATION_SCOPE_JSON: JSON.stringify(request.scope_allow),
+      ...CLAUDE_FOREGROUND_CHECK_ENV,
     };
     assertLiveTarget();
     const claudeStartedMs = Date.now();
@@ -1035,5 +1045,5 @@ module.exports = {
   extractClaudeResultText, extractImplementationStopStatus, IMPLEMENTATION_STOP_STATUSES,
   readRecoveryCandidate, payloadDigest, writePublishablePathspec,
   certificationStopAfterRecoveryEnabled,
-  RECOVERY_SCHEMA, LEGACY_MARKER_SCHEMA,
+  RECOVERY_SCHEMA, LEGACY_MARKER_SCHEMA, CLAUDE_FOREGROUND_CHECK_ENV,
 };
