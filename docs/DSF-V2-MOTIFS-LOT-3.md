@@ -1,32 +1,11 @@
 # DSF V2 — Motifs visuels et règles de construction — lot 3
 
 **Statut :** relevé documentaire validé pour la PR #247. Ce texte documente le DSF ; il ne modifie aucune planche Figma.
-**Référence fonctionnelle :** `Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md`. La documentation fonctionnelle et le classeur v10 déterminent les règles de gestion ; Figma illustre les états.
+**Référence fonctionnelle active :** `Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v11.md`. La documentation fonctionnelle et le classeur v10 déterminent les règles de gestion ; Figma illustre les états.
 
-## T1 — Paramètres d'exécution : aucun mode sélectionné
+## T1 à T4 — paramètres : remplacés par la feuille basse
 
-Dans les dix écrans situés avant le choix du mode, y compris « Mode d'exécution (3 pastilles) » : badge « Choisir un mode » ; cadre du champ éditable visible, vide et d'une ligne de haut ; aucune phrase ni durée totale. Les lignes distinctes affichent Compte à rebours 10 s et Fin d'exercice 5 s. Après le choix, les écrans du prototype illustrent directement des valeurs cibles ; la phrase de départ reste définie dans la spécification sans écran dédié.
-
-## T2 — Exemples de phrases paramétrées
-
-Aucun composant supplémentaire. Dans les exemples du DSF, exclure le nom de l'Exercice de la phrase, conserver la ponctuation sans espace avant la virgule, écrire « jusqu'à l'échec, avec… » si la pause suit, « Répétitions » sur le badge, « ≥ 2 min 45 s » pour l'exemple corrigé et « Séries » avec majuscule dans le message d'ajustement, conformément à l'arbitrage complémentaire du 28/09/2026 ; l'ancienne graphie en minuscule du lot 3 est supersédée.
-
-## T3 — Contrôles intégrés
-
-- **Stepper numérique dans la phrase :** « − 3 + » ou « − 15 + » remplace la valeur numérique du badge ; « séries » ou « répétitions » demeure du texte simple sur la même ligne.
-- **Stepper de durée :** « − 10 s + » sur la ligne Compte à rebours / Fin d'exercice ; lorsque le contrôle est ouvert, Fin d'exercice passe à la ligne suivante.
-- **Changement de côté :** badge « sans » suivi du texte simple « changement de côté » pour permettre le retour à la ligne. Le contrôle segmenté, à trois options « Sans changement », « Droite puis gauche », « Gauche puis droite », se place dans le champ, sous la phrase et avant Durée totale. Les segments ont la même largeur, leur libellé tient sur deux lignes en police 14 px inchangée, avec 6 px de marge intérieure. La valeur affichée dans la phrase devient « D→G » ou « G→D » selon l'option choisie.
-- Autres contrôles illustrés : durée par série, pause entre séries et durée totale par roulette ; mode par trois pastilles.
-
-## T4 — Badge « Valeur modifiable »
-
-| État | Fond | Contour | Texte | Coins | Marges |
-|---|---|---|---|---|---|
-| Éditable | `#F4F4F8` | aucun | `#0508E5`, Semi Bold 13 px | 6 px | 8 px horizontales, 2 px verticales |
-| Édité, contrôle ouvert | `#F4F4F8` | `#0508E5`, 1,5 px | `#0508E5`, Semi Bold 13 px | 6 px | 8 px horizontales, 2 px verticales |
-| Valeur non modifiable | aucun | aucun | couleur courante de la phrase, Regular 13 px | sans objet | sans objet |
-
-Exemples : « 4 séries » suit l'état éditable ; durée par série, pause entre séries et durée totale prennent l'état édité lorsque leur roulette est ouverte ; « sans » le prend lorsque le contrôle de côté est ouvert ; le stepper remplace le badge dans les états de nombre ; « ≥ 2 min 45 s » en mode Répétitions reste du texte simple. Ces dimensions remplacent les anciennes valeurs 10 px / 10 px / 4 px du badge.
+Les prescriptions de phrase éditable et contrôles inline sont obsolètes sur le parcours Exercice. Référence active : [DSF Paramètres en modale](DSF-PARAMETRES-MODALE-2026-10-01.md) et [spécification v11](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v11.md). La phrase devient résumé/raccourcis ; steppers, segmentés et roulettes sont dans la feuille. Les badges réutilisés ailleurs conservent leur variante locale ; cette évolution n’impose pas un changement de tous les écrans.
 
 ## T5 — Libellés Profil et exercice
 

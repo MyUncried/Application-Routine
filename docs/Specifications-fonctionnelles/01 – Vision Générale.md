@@ -165,3 +165,8 @@ La terminologie cible distingue **Parcours** (contenu autonome), **Circuit** (gr
 
 
 > **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transition entre côtés = pause de changement de côté si positive, sinon pause entre Séries, sans cumul ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. Le bloc du côté courant est le périmètre du reset bilatéral. Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+
+
+### Saisie des paramètres — D-246
+
+La référence active est [Paramètres en modale v11](SPECIFICATION-PARAMETRES-MODALE-v11.md), contrats CE-T03-04/CE-UI-10. Les champs de paramètres appartiennent au brouillon transactionnel de la feuille ; ✕ annule, ✓ applique au parent, Terminer seul persiste. Pause entre Séries initiale0s, champs non-stepper initialement non renseignés ; le résumé est régénéré après validation, jamais édité inline. Les bornes métier et calculs restent ceux de v11. Cette règle remplace les anciennes prescriptions de saisie D-232 sur ce parcours.

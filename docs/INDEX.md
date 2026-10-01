@@ -66,7 +66,7 @@ La documentation détaillée se trouve dans le dossier [`Specifications-fonction
 | 10 | [Processus métier et règles métier transverses](./Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md) | Centralise les règles métier et de calcul. | Baseline MVP T03 |
 | 11 | [API fonctionnelles](./Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md) | Décrit opérations et services fonctionnels. | Baseline MVP T03 |
 | 12 | [Architecture technique](./Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md) | Décrit architecture, stockage, état, intégrations natives et tests. | Baseline MVP T03 |
-| 13 | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md) | Spécification déterministe des écrans T03 ; 29 contrats à 21 sections (609 rubriques), avec réserves amont et statuts des preuves explicites, couverture E01–E73, rangée Catalogue, Filtrer/Trier et frontière T03/T04. | Référence normative T03 unique |
+| 13 | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md) | Spécification déterministe des écrans T03 ; 30 contrats à 21 sections (630 rubriques), avec réserves amont et statuts des preuves explicites, couverture E01–E73, rangée Catalogue, Filtrer/Trier et frontière T03/T04. | Référence normative T03 unique |
 
 ## 4. Images et maquettes
 
@@ -273,4 +273,13 @@ Les apports de #247 et #271 sont consolidés dans le [rapport de réconciliation
 
 ## Correction des contrats après audit — 30 septembre 2026
 
-Les 29 contrats du chapitre13 ont chacun21 rubriques. Les contrats média sont complétés ; Splash, Profil principal, Exécution SESSION, Synthèse SESSION et référentiels d’Exercice possèdent un propriétaire explicite. CE-T03-16 décrit désormais les Étiquettes intégrées à Composition. Les prescriptions locales corrigées remplacent les anciens parcours dans ce chapitre ; les réserves de calcul/transitions/modèle amont restent explicites au §6, sans certification interactive. [Bilan et suivi des 47 constats](RAPPORT-CORRECTION-CONTRATS-2026-09-30.md).
+Les 30 contrats du chapitre13 ont chacun21 rubriques. Les contrats média sont complétés ; Splash, Profil principal, Exécution SESSION, Synthèse SESSION et référentiels d’Exercice possèdent un propriétaire explicite. CE-T03-16 décrit désormais les Étiquettes intégrées à Composition. Les prescriptions locales corrigées remplacent les anciens parcours dans ce chapitre ; les réserves de calcul/transitions/modèle amont restent explicites au §6, sans certification interactive. [Bilan et suivi des 47 constats](RAPPORT-CORRECTION-CONTRATS-2026-09-30.md).
+
+
+## Paramètres en feuille basse —01/10/2026
+
+- [Spécification active v11](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v11.md) — remplace la saisie dans la phrase.
+- [DSF de la feuille et de ses contrôles](DSF-PARAMETRES-MODALE-2026-10-01.md).
+- [Transmission source](SOURCE-SAISIE-PARAMETRES-MODALE-2026-10-01.md).
+- Chapitre06 :12 états illustrés et confirmation2234:189 restaurée. Chapitre13 :30 contrats ×21rubriques, dont CE-UI-10.
+- v10.2 et ses captures de saisie sont historiques.

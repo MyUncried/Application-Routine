@@ -1,0 +1,30 @@
+{
+  "status": "LOCAL_GATES_PASS",
+  "source_head": "e216294506bed87dd80855937e3fabfbfa322b82",
+  "previous_candidate_comment": 5918243649,
+  "source_development_run": 36773441104,
+  "items": [
+    "UI-73382D60E040 (SideModeControl.test.tsx scope)",
+    "REQ-6158C99B50273D8D (D-240 Profile defaults)"
+  ],
+  "gates": {
+    "plan_impact": "PASS",
+    "plan_contract_consistency": "PASS",
+    "ui_plan_criteria": "PASS"
+  },
+  "scope_paths": 99,
+  "required_test_writes": 42,
+  "requirement_count": 28,
+  "ui_criteria": 13,
+  "assertions": 32,
+  "test_bindings": 64,
+  "scan_sha256": "5984df2f214355a2ba739f8c8f310a3f3fc475f342b7e9294b26bd6e32d90119",
+  "plan_sha256": "c97a2a1b85f6c0843b94961eca25f6983967f26e00a5ebbaa9c7141c79ebdb54",
+  "plan_bytes": 237639,
+  "recovery_package": {
+    "artifact_id": 11127475602,
+    "run_id": 36773441104,
+    "compatibility": "all 45 patch paths inside corrected scope; Profile D-240 fields to be added on resume"
+  },
+  "independent_review": "PENDING"
+}

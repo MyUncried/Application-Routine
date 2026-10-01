@@ -1,20 +1,21 @@
 #!/usr/bin/env node
 'use strict';
-// Mechanical bound of the PRE-1 targeted closure review: the reviewer may only
-// close or keep open the eleven pinned prior findings of run 36734142447.
-// A finding outside those eleven targets, a nonblocking observation, a missing
-// or duplicated closure entry, or a closure record contradicting the structured
+// Mechanical bound of a PRE-1 targeted closure review: the reviewer may only
+// close or keep open the N pinned items it was given (the eleven findings of
+// run 36734142447, or the corrections of a later bounded round).
+// An item outside those targets, a nonblocking observation, a missing or
+// duplicated closure entry, or a closure record contradicting the structured
 // findings fails the run instead of being published.
 const fs=require('node:fs');
 function need(ok,code){if(!ok)throw new Error(code);}
-function closureJson(markdown){
+function closureJson(markdown,count){
   const m=[...String(markdown).matchAll(/<KODJO_PRE1_CLOSURE_JSON>\s*([\s\S]*?)\s*<\/KODJO_PRE1_CLOSURE_JSON>/g)];
   need(m.length===1,'PRE1_CLOSURE_JSON_MISSING_OR_DUPLICATED');
   const value=JSON.parse(m[0][1]);
-  need(Array.isArray(value.closures)&&value.closures.length===11,'PRE1_CLOSURE_JSON_COUNT_INVALID');
+  need(Array.isArray(value.closures)&&value.closures.length===count,'PRE1_CLOSURE_JSON_COUNT_INVALID');
   const rows=new Map();
   for(const r of value.closures){
-    need(Number.isInteger(r.finding)&&r.finding>=1&&r.finding<=11,'PRE1_CLOSURE_JSON_NUMBER_INVALID');
+    need(Number.isInteger(r.finding)&&r.finding>=1&&r.finding<=count,'PRE1_CLOSURE_JSON_NUMBER_INVALID');
     need(!rows.has(r.finding),'PRE1_CLOSURE_JSON_DUPLICATED:'+r.finding);
     need(typeof r.closed==='boolean','PRE1_CLOSURE_JSON_CLOSED_INVALID:'+r.finding);
     for(const k of ['correction_examined','evidence','justification'])need(typeof r[k]==='string'&&r[k].trim(),'PRE1_CLOSURE_JSON_FIELD_MISSING:'+r.finding+':'+k);
@@ -33,34 +34,35 @@ function tableNumbers(markdown){
   return seen;
 }
 function verify(reviewMarkdown,normalized,prior){
-  need(Array.isArray(prior.findings)&&prior.findings.length===11,'PRE1_PRIOR_FINDINGS_INVALID');
+  need(Array.isArray(prior.findings)&&prior.findings.length>=1,'PRE1_PRIOR_FINDINGS_INVALID');
+  const count=prior.findings.length;
   const key=f=>f.target_kind+'\u0000'+f.target;
   const numberOf=new Map(prior.findings.map((f,i)=>[key(f),i+1]));
-  need(numberOf.size===11,'PRE1_PRIOR_TARGETS_NOT_UNIQUE');
+  need(numberOf.size===count,'PRE1_PRIOR_TARGETS_NOT_UNIQUE');
   const open=new Set();
   for(const f of normalized.findings){
     const n=numberOf.get(key(f));
-    need(n,'PRE1_FINDING_OUTSIDE_ELEVEN:'+f.target_kind+':'+f.target);
+    need(n,'PRE1_FINDING_OUTSIDE_BOUND:'+f.target_kind+':'+f.target);
     need(f.blocking,'PRE1_NONBLOCKING_OBSERVATION_FORBIDDEN:'+n);
     need(new RegExp('^Prior finding '+n+'\\b').test(f.diagnostic),'PRE1_FINDING_NUMBER_MISMATCH:'+n);
     open.add(n);
   }
-  const rows=closureJson(reviewMarkdown);
-  for(let n=1;n<=11;n++)need(rows.get(n)===!open.has(n),'PRE1_CLOSURE_CONTRADICTS_FINDINGS:'+n);
+  const rows=closureJson(reviewMarkdown,count);
+  for(let n=1;n<=count;n++)need(rows.get(n)===!open.has(n),'PRE1_CLOSURE_CONTRADICTS_FINDINGS:'+n);
   const table=tableNumbers(reviewMarkdown);
-  need(table.length===11&&new Set(table).size===11&&table.every(n=>n>=1&&n<=11),'PRE1_CLOSURE_TABLE_NOT_ELEVEN_ROWS:'+table.join(','));
+  need(table.length===count&&new Set(table).size===count&&table.every(n=>n>=1&&n<=count),'PRE1_CLOSURE_TABLE_ROW_COUNT_INVALID:'+table.join(','));
   const verdict=open.size?'REVISE':'APPROVE';
   need(verdict===normalized.verdict,'PRE1_VERDICT_MISMATCH');
-  return {schema:'kodjo.pre1-closure-bound.v1',prior_review_run:36734142447,verdict,closed:[...Array(11).keys()].map(i=>i+1).filter(n=>!open.has(n)),open:[...open].sort((a,b)=>a-b)};
+  return {schema:'kodjo.pre1-closure-bound.v1',item_count:count,verdict,closed:[...Array(count).keys()].map(i=>i+1).filter(n=>!open.has(n)),open:[...open].sort((a,b)=>a-b)};
 }
 if(require.main===module){
   try{
     const [review,normalized,prior,out]=process.argv.slice(2);
     need(review&&normalized&&prior&&out,'USAGE: verify-pre1-closure-review.js <review.md> <findings.json> <prior.json> <out.json>');
-    const read=p=>fs.readFileSync(p,'utf8').replace(/^\uFEFF/,'');
+    const read=p=>fs.readFileSync(p,'utf8').replace(/^﻿/,'');
     const result=verify(read(review),JSON.parse(read(normalized)),JSON.parse(read(prior)));
     fs.writeFileSync(out,JSON.stringify(result,null,2)+'\n','utf8');
-    process.stdout.write('[KODJO_V2] PRE-1 closure bound verified — closed='+result.closed.length+' open='+(result.open.join(',')||'none')+' verdict='+result.verdict+'\n');
+    process.stdout.write('[KODJO_V2] PRE-1 closure bound verified — items='+result.item_count+' closed='+result.closed.length+' open='+(result.open.join(',')||'none')+' verdict='+result.verdict+'\n');
   }catch(e){console.error(e.message);process.exitCode=1;}
 }
 module.exports={verify,closureJson,tableNumbers};

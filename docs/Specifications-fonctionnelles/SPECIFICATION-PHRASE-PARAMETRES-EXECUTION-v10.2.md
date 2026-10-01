@@ -1,4 +1,6 @@
-# Spécification fonctionnelle — Phrase de synthèse des paramètres d'exécution
+# Spécification fonctionnelle — Phrase de synthèse des paramètres d'exécution — HISTORIQUE
+
+> **Obsolète pour la saisie depuis le 01/10/2026.** Voir [Paramètres en modale v11](SPECIFICATION-PARAMETRES-MODALE-v11.md). Les états inline, contrôles, valeurs initiales et visibilité ci-dessous ne sont plus des exigences actives. Les calculs maintenus sont réénoncés dans v11.
 
 **Périmètre** : champ « Paramètres d'exécution » des écrans « Ajouter un exercice » et « Modifier un exercice ».
 **Statut** : spécification v10.2, 28/09/2026 (classeur v10) ; arbitrages V1/MVP D-232 et condition d'ajustement confirmée.

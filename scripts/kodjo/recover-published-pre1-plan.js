@@ -57,7 +57,29 @@ function recoverRound2(comment, repository, get) {
   return '[KODJO_V2] PLAN_OUTPUT\nslice_id=V2-PRE-1\nbootstrap_path=.github/orchestration/v2-slices/V2-PRE-1/slice-bootstrap.json\nsource_head=e216294506bed87dd80855937e3fabfbfa322b82\nplanning_mode=INITIAL\nplanning_contract=kodjo.plan-impact.v1\nui_planning_contract=kodjo.ui-plan-criteria.v2\ncorrected_plan_commit=' + ROUND2_COMMIT + '\ncorrected_plan_blob=' + ROUND2_BLOB + '\nSTATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\n\n' + bytes.toString('utf8');
 }
 
+// Round 3: bounded correction after development run 36773441104 (SideModeControl.test.tsx scope, D-240).
+const ROUND3_COMMENT_ID = '5920359910';
+const ROUND3_COMMIT = 'f3e7f492815a788545208714825f4fa67ec649cd';
+const ROUND3_PATH = '.github/orchestration/v2-slices/V2-PRE-1/correction-dev-36773441104/corrected-plan.md';
+const ROUND3_BLOB = 'c42de1f1b63260ea2cf573c4dd04584f6d5ebb37';
+const ROUND3_SHA256 = 'c97a2a1b85f6c0843b94961eca25f6983967f26e00a5ebbaa9c7141c79ebdb54';
+const ROUND3_SIZE = 237639;
+function recoverRound3(comment, repository, get) {
+  need(repository === REPOSITORY, 'PRE1_ROUND3_REPOSITORY_MISMATCH');
+  need(String(comment?.id) === ROUND3_COMMENT_ID && comment?.user?.login === 'MyUncried', 'PRE1_ROUND3_PUBLICATION_AUTHORITY_INVALID');
+  need(comment.issue_url === 'https://api.github.com/repos/' + REPOSITORY + '/issues/249', 'PRE1_ROUND3_ISSUE_MISMATCH');
+  need(String(comment.body).includes('https://github.com/' + REPOSITORY + '/blob/' + ROUND3_COMMIT + '/' + ROUND3_PATH), 'PRE1_ROUND3_REFERENCE_MISMATCH');
+  const tree = get('git/trees/' + ROUND3_COMMIT + '?recursive=1');
+  need(!tree.truncated && tree.tree.some(x => x.path === ROUND3_PATH && x.sha === ROUND3_BLOB && x.type === 'blob'), 'PRE1_ROUND3_COMMIT_BINDING_MISMATCH');
+  const blob = get('git/blobs/' + ROUND3_BLOB);
+  need(blob.sha === ROUND3_BLOB && blob.encoding === 'base64', 'PRE1_ROUND3_BLOB_INVALID');
+  const bytes = Buffer.from(blob.content, 'base64');
+  need(bytes.length === ROUND3_SIZE && crypto.createHash('sha256').update(bytes).digest('hex') === ROUND3_SHA256, 'PRE1_ROUND3_PLAN_INTEGRITY_MISMATCH');
+  return '[KODJO_V2] PLAN_OUTPUT\nslice_id=V2-PRE-1\nbootstrap_path=.github/orchestration/v2-slices/V2-PRE-1/slice-bootstrap.json\nsource_head=e216294506bed87dd80855937e3fabfbfa322b82\nplanning_mode=INITIAL\nplanning_contract=kodjo.plan-impact.v1\nui_planning_contract=kodjo.ui-plan-criteria.v2\ncorrected_plan_commit=' + ROUND3_COMMIT + '\ncorrected_plan_blob=' + ROUND3_BLOB + '\nSTATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\n\n' + bytes.toString('utf8');
+}
+
 function recover(comment, repository = REPOSITORY, get = api) {
+  if (String(comment?.id) === ROUND3_COMMENT_ID) return recoverRound3(comment, repository, get);
   if (String(comment?.id) === CORRECTED_COMMENT_ID) return recoverCorrected(comment, repository, get);
   if (String(comment?.id) === ROUND2_COMMENT_ID) return recoverRound2(comment, repository, get);
   need(repository === REPOSITORY, 'PRE1_RECOVERY_REPOSITORY_MISMATCH');
@@ -83,9 +105,9 @@ function recover(comment, repository = REPOSITORY, get = api) {
 if (require.main === module) {
   try {
     const [id, output] = process.argv.slice(2);
-    need([COMMENT_ID, CORRECTED_COMMENT_ID, ROUND2_COMMENT_ID].includes(id) && output, 'PRE1_RECOVERY_USAGE_INVALID');
+    need([COMMENT_ID, CORRECTED_COMMENT_ID, ROUND2_COMMENT_ID, ROUND3_COMMENT_ID].includes(id) && output, 'PRE1_RECOVERY_USAGE_INVALID');
     fs.writeFileSync(output, recover(api('issues/comments/' + id), process.env.GITHUB_REPOSITORY || REPOSITORY), 'utf8');
     process.stdout.write('PRE1 pinned published plan verified: comment=' + id + '\n');
   } catch (e) { console.error(e.message); process.exitCode = 1; }
 }
-module.exports = { recover, COMMENT_ID, CORRECTED_COMMENT_ID, ROUND2_COMMENT_ID };
+module.exports = { recover, COMMENT_ID, CORRECTED_COMMENT_ID, ROUND2_COMMENT_ID, ROUND3_COMMENT_ID };

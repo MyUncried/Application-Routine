@@ -2,7 +2,7 @@
 
 ## Rappel personnalisé — maximum validé
 
-Le 30 septembre 2026, réponse « A » : délai maximal du rappel personnalisé « Autre » = 24 heures avant l’occurrence planifiée. Contrôle et design existants conservés. Propagé au contrat CE-UI-05 et à D-242.
+Le 30 septembre 2026, réponse « A » : délai maximal du rappel personnalisé « Autre » = 24 heures avant l’occurrence planifiée. Contrôle et design existants conservés. Propagé au contrat CE-UI-05 et à D-243.
 
 ## Pause de sécurité sans réponse — précision dérivée
 
@@ -32,4 +32,4 @@ Réponse utilisateur « 12 » : fréquence entière comprise entre 1 et 12 semai
 
 ## Consolidation
 
-Les décisions sont propagées dans les contrats §6 et D-240 à D-244, les formules principales et la règle RM-077. Les captures et le design ne sont pas modifiés. Aucune recette applicative n’est revendiquée. Les limites de preuve visuelle V-01 à V-12 restent distinctes des arbitrages fonctionnels clos.
+Les décisions sont propagées dans les contrats §6 et D-241 à D-245, les formules principales et la règle RM-077. Les captures et le design ne sont pas modifiés. Aucune recette applicative n’est revendiquée. Les limites de preuve visuelle V-01 à V-12 restent distinctes des arbitrages fonctionnels clos.

@@ -151,3 +151,24 @@ Chapitre06 : Profil, Catalogue Séances, Composition, éditeur, Calendrier Jour/
 ## Correction de rattachement après audit
 
 Le chapitre13 compte29 contrats de21 sections. CE-T03-16 appartient à Composition/Étiquettes, jamais à l’éditeur Exercice ; CE-UI-09 porte Catégorie/Zones de l’éditeur. Splash=CE-UI-06, Profil principal=CE-UI-07, SESSION=CE-EXEC-SESSION-01, Synthèse SESSION=CE-UI-08. Les confirmations d’exécution sont des variantes de leur famille. Les limites graphiques et réserves amont sont aux §§5–6 du chapitre13 ; cette matrice ne vaut pas déclaration de recette.
+
+
+## Delta du01/10 — paramètres en feuille basse
+
+12 nouvelles références exportées et inspectées ;2234:189 réexportée après restauration du dialogue. Le compte119 décrit le contrôle du30/09, pas le catalogue courant. Aucune ancienne image supprimée ; les états de saisie inline sont historiques.
+
+| Frame | Contrat actif | Preuve au chapitre06 |
+|---|---|---|
+| `6407:9458` | CE-T03-04 | `images/figma-6407-9458.png` |
+| `6407:9551` | CE-UI-10 | `images/figma-6407-9551.png` |
+| `6407:9702` | CE-T03-04 | `images/figma-6407-9702.png` |
+| `6407:9805` | CE-UI-10 | `images/figma-6407-9805.png` |
+| `6407:9966` | CE-UI-10 | `images/figma-6407-9966.png` |
+| `6407:10127` | CE-UI-10 | `images/figma-6407-10127.png` |
+| `6411:9546` | CE-UI-10 | `images/figma-6411-9546.png` |
+| `6407:10481` | CE-UI-10 | `images/figma-6407-10481.png` |
+| `6411:9649` | CE-UI-10 | `images/figma-6411-9649.png` |
+| `6419:9847` | CE-UI-10 | `images/figma-6419-9847.png` |
+| `6419:10028` | CE-UI-10 | `images/figma-6419-10028.png` |
+| `6423:9953` | CE-UI-10 | `images/figma-6423-9953.png` |
+| `2234:189` | CE-T03-01 | `images/modale-3a-confirmer-suppression-seance-archivee.png` ; boutons non câblés |

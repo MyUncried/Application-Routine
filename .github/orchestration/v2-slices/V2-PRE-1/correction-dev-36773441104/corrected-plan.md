@@ -1,14 +1,3 @@
-[KODJO_V2] PLAN_OUTPUT
-slice_id=V2-PRE-1
-bootstrap_path=.github/orchestration/v2-slices/V2-PRE-1/slice-bootstrap.json
-source_head=e216294506bed87dd80855937e3fabfbfa322b82
-planning_mode=INITIAL
-planning_contract=kodjo.plan-impact.v1
-ui_planning_contract=kodjo.ui-plan-criteria.v2
-corrected_plan_commit=f3e7f492815a788545208714825f4fa67ec649cd
-corrected_plan_blob=c42de1f1b63260ea2cf573c4dd04584f6d5ebb37
-STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW
-
 # PRE-1 — Plan corrigé après revue 36734142447
 
 source_head=e216294506bed87dd80855937e3fabfbfa322b82

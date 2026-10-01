@@ -8,13 +8,13 @@ Ce chapitre constitue la **spécification des familles d’écran du MVP, avec s
 
 Un écran T03 n’est considéré comme spécifié que si son contrat définit explicitement : contexte d’entrée, sorties, données et leurs sources, valeurs Figma, structure, éléments obligatoires, layout, responsive, états, contrôles, gestes, validation, brouillon/persistance, navigation/conservation d’état, erreurs, accessibilité, invariants, recette et traçabilité.
 
-Les 29 contrats actifs sont CE-T03-01 à17, CE-MEDIA-EXEC-01/02, CE-UI-01 à09 et CE-EXEC-SESSION-01. Chacun comporte les 21 rubriques canoniques. CE-T03-16 est désormais le contrat des Étiquettes de Composition ; l’ancien parcours Catégories est retiré. Les règles de clôture §6 complètent les contrats sans modifier le design. Cette correction documentaire ne modifie pas les tranches de réalisation ni leurs autorisations.
+Les 30 contrats actifs sont CE-T03-01 à17, CE-MEDIA-EXEC-01/02, CE-UI-01 à10 et CE-EXEC-SESSION-01. Chacun comporte les 21 rubriques canoniques. CE-T03-16 est désormais le contrat des Étiquettes de Composition ; l’ancien parcours Catégories est retiré. Les règles de clôture §6 complètent les contrats sans modifier le design. Cette correction documentaire ne modifie pas les tranches de réalisation ni leurs autorisations.
 
 ## 2. Sources et ordre d’application
 
 Pour les contrats actifs :
 
-1. décisions validées dans le chapitre 07, jusqu’à D-239, avec priorité aux décisions explicitement supersédantes ; D-232 et la spécification de phrase v10.2 pour l’éditeur ;
+1. décisions validées dans le chapitre 07, jusqu’à D-246, avec priorité aux décisions explicitement supersédantes ; D-246 et la spécification de paramètres v11 pour l’éditeur ;
 2. modèle fonctionnel / modèle de données / règles métier ;
 3. API fonctionnelles ;
 4. architecture technique ;
@@ -105,7 +105,7 @@ Les **contrôles d’entrée** et les panneaux ouverts de `Filtrer` sont conçus
 
 Toutes les roulettes de **durée** actives utilisent la famille de modales basses du DSF. Les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent un **stepper inline** et n’ouvrent aucune roulette. Les anciennes représentations contraires ne constituent plus une référence active.
 
-Roulette ouverte : **modale basse standardisée** avec scrim bloquant arrière-plan et scroll ; CTA principal fixe reste visuellement normal mais fonctionnellement et accessibilité-inactif ; `Annuler` restaure ; `Confirmer` applique puis recalcule. Les valeurs restent brouillon jusqu’à confirmation.
+Hors CE-UI-10 (roulette déployée dans la feuille), roulette ouverte : **modale basse standardisée** avec scrim bloquant arrière-plan et scroll ; CTA principal fixe reste visuellement normal mais fonctionnellement et accessibilité-inactif ; `Annuler` restaure ; `Confirmer` applique puis recalcule. Les valeurs restent brouillon jusqu’à confirmation.
 
 ### 4.7 Swipe contextuel
 
@@ -208,6 +208,7 @@ Une frame présente peut montrer un état ancien ou incomplet. Chaque contrat di
 | CE-EXEC-SESSION-01 | Exécution d’une Séance — phases, commandes et confirmations |
 | CE-UI-08 | Synthèse de Séance |
 | CE-UI-09 | Référentiels d’Exercice — Catégorie et Zones corporelles |
+| CE-UI-10 | Paramètres d’exécution — feuille basse |
 
 ## CE-T03-01 — Catalogue des séances — état T03
 
@@ -284,7 +285,7 @@ Continuer dans CE-T03-08 enregistre puis ouvre Catalogues / Séances. Aucun écr
 
 ### 17. Erreurs et cas limites
 
-Liste vide et archives vides : aucun contenu de démonstration. Suppression concurrente : rafraîchir sans ouvrir un objet absent. Archivage d’une Séance planifiée : confirmation avant mutation des Routines. Suppression définitive uniquement depuis les archives ; historique conservé. La capture 2234:189 ne montre pas le dialogue annoncé : preuve visuelle insuffisante, confirmation fonctionnelle obligatoire.
+Liste vide et archives vides : aucun contenu de démonstration. Suppression concurrente : rafraîchir sans ouvrir un objet absent. Archivage d’une Séance planifiée : confirmation avant mutation des Routines. Suppression définitive uniquement depuis les archives ; historique conservé. La capture2234:189 restaurée le01/10 montre le dialogue ; Annuler/Confirmer non câblés, preuve visuelle seulement.
 
 ### 18. Accessibilité
 
@@ -490,91 +491,91 @@ D-187/D-221 ; CE-T03-01/02/04/08 ; frames 1992:9910 et 3786:5093.
 
 ---
 
-## CE-T03-04 — Éditeur ActivityDefinition — créer / modifier
+## CE-T03-04 — Éditeur Exercice — créer / modifier
 
 ### 1. Identification
 
-Éditeur Exercice persistant. Frames 3943:6064, 3542:4656, 4217:6980, 5088:6398, 4279:7044, 4734:6342 ; modes 3561:7673/7802 ; contrôles 3556:7645/7712/7801, 4367:7128/7276/7906/8193 ; ajustement 3580:4957. Catégorie/Zones : CE-UI-09. Captures présentes ne signifie pas conformes ; écarts §5.
+Éditeur Exercice persistant, CE-T03-04. Frames actives6407:9458 (vide) et6407:9702 (résumé). Feuille propriétaire CE-UI-10. Les anciennes frames de phrase éditable sont historiques ; Catégorie/Zones restent CE-UI-09.
 
 ### 2. Finalité fonctionnelle
 
-Créer/modifier une définition persistante complète, en réutilisant l’éditeur d’Exercice et les règles de calcul existantes. L’éditeur courant n’expose pas de bouton `Ajouter un média`. Le MVP permet de consulter pendant l’Exécution les médias déjà associés à l’Exercice ; le parcours d’ajout/import dans l’éditeur reste hors périmètre de D-203.
+Créer/modifier un Exercice avec paramètres saisis dans la feuille basse. Le résumé de la carte est dérivé et sert de raccourci ; il ne contient aucun contrôle de saisie inline. Ajout/import média toujours hors périmètre MVP.
 
 ### 3. Contexte d’entrée
 
-Création depuis CE-T03-03 ou modification depuis CE-T03-02. Création = nouveau brouillon ; modification = copie de travail de la définition existante.
+Créer depuis Catalogue ou modifier une définition existante ; nouveau brouillon ou copie de travail. Le même motif s’applique à une copie de Composition lorsque son édition est exposée, sans synchronisation vers la référence.
 
 ### 4. Contexte de sortie / destinations
 
-`Terminer` valide/persiste puis retourne CE-T03-02 avec état Catalogue restauré. Retour/abandon suit décision de modifications non enregistrées existante.
+Terminer valide et persiste puis retourne au contexte appelant. Carte Paramètres → CE-UI-10. Retour avec modifications → confirmation d’abandon existante.
 
 ### 5. Données affichées et source de vérité
 
-Nom, Description, Catégorie, Zones corporelles, mode, cible, Séries, Pause entre Séries, `Changement de côté`, Pause au changement de côté, Durée totale, Compte à rebours d’Exercice, Fin d’exercice et données média affichables. Source = brouillon ; persistance seulement à validation.
+Brouillon parent : nom, référentiels, description, paramètres validés par la feuille et médias existants. Aucun texte de démonstration codé en dur.
 
 ### 6. Classification des valeurs Figma
 
-Nom, description, référentiels, paramètres et durées calculées proviennent du brouillon. Nom de l’exercice est le placeholder ; Renforcement du genou est une démonstration. Les états vides, Répétitions et À l’échec sont présents dans l’inventaire courant, sans validation interactive implicite.
+Ajouter un exercice/Modifier un exercice, Paramètres d’exécution, Description de l’exercice, Terminer : statiques. Nom et résumé : dynamiques. Mode et Compte à rebours/Fin restent séparés de la phrase intrinsèque.
 
 ### 7. Structure de l’écran
 
-Nom et Description → accès Catégorie/Zones → Mode d’exécution hors phrase → champ de phrase paramétrée et contrôles déployés → Durée totale conditionnelle → Compte à rebours et Fin d’exercice, séparés de la phrase → Terminer. Le média existant n’introduit aucune action d’import. Le nom n’est pas répété dans la phrase.
+En-tête fixe → nom et accès Catégorie/Zones → carte Paramètres avec résumé/raccourcis et Compte à rebours/Fin → Description → Média → Terminer. Réutiliser le shell existant.
 
 ### 8. Éléments obligatoires
 
-Nom, Catégorie unique, une ou plusieurs Zones, mode Durée/Répétitions/À l’échec, Séries, cible applicable, changement de côté, pauses applicables et deux phases propres. Sans mode : Choisir un mode, phrase vide, aucune Durée totale et Terminer désactivé. Après premier choix, le mode ne peut pas redevenir vide. Phrase et contrôles suivent v10.2.
+Carte vide initiale ; après ✓, résumé des valeurs appliquées. Mode cliquable ouvre sa ligne dans la feuille ; valeurs de durée/côté ouvrent la ligne dédiée ; steppers et zone vide ouvrent la feuille sans sélection. Aucun stepper, segmenté ou roulette dans le résumé.
 
 ### 9. Layout déterministe
 
-Champ éditable de phrase sur la grille courante ; il grandit avec le texte. Badge Valeur modifiable : rayon 6, marges 8×2, 13 Semi Bold, contour 1,5 uniquement pendant édition. Les steppers remplacent la valeur numérique dans la phrase. Côté : trois segments égaux, labels sur deux lignes. Accès Catégorie/Zones 34, pictogramme 20, gap 12, cible 44 ; retrait de paramètres 39 sur référence 402. Aucun nom gras ni ancienne double rangée fixe de synthèse.
+Placement du formulaire selon6407:9458/9702. Paramètres de la feuille : DSF-PARAMETRES-MODALE-2026-10-01, CE-UI-10. Aucun remplacement des autres shells ou géométries de référentiels.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Références 360/402/440. Formulaire scrollable ; synthèse/action restent accessibles ; clavier ne masque pas champ. Texte agrandi ne chevauche pas contrôles.
+360/402/440, Safe Areas, texte agrandi et clavier. Formulaire défilant ; Terminer accessible. Feuille ouverte : formulaire parent inerte et hors parcours de focus.
 
 ### 11. États de l’écran
 
-Sans mode ; trois modes ; unilatéral/D→G/G→D ; une/plusieurs Séries ; contrôle fermé/ouvert ; durée confirmée/annulée ; ajustement automatique ; référentiels sélectionnés/créés/supprimés ; brouillon modifié ; sauvegarde/erreur. Le changement de mode conserve les paramètres communs et restaure les valeurs propres au mode pendant l’édition.
+Création carte vide, résumé validé, feuille ouverte/annulée/validée, modification préremplie, trois modes et côtés, erreur de sauvegarde, média indisponible.
 
 ### 12. Contrôles et interactions
 
-Tap badge ouvre son contrôle ; Séries/répétitions par stepper inline. Durée par Série, pauses et Durée totale par roulette Annuler/Confirmer. Compte à rebours/Fin propres utilisent les contrôles séparés de v10.2 (§7.2 bis pour le stepper de compte à rebours), sans entrer dans la phrase ni son total. Pause inter-Séries devient applicable à N>1, initialisée 5 s ; pause de côté devient applicable en bilatéral, initialisée depuis Profil. Terminer n’agit que sur brouillon valide. Catégorie/Zones : CE-UI-09 ; aucune action Ajouter un média.
+Toucher carte/valeur ouvre CE-UI-10 selon le tableau de v11. ✓ de la feuille applique au brouillon sans écrire en base ; ✕ le conserve. Terminer sauvegarde une fois. Référentiels CE-UI-09 inchangés.
 
 ### 13. Gestes
 
-Tap, scroll, saisie ; pas de swipe métier ; haptique roulette par cran selon décision existante.
+Tap, saisie et défilement du formulaire ; pas de geste métier supplémentaire.
 
 ### 14. Validation
 
-Nom requis ; Catégorie exactement 1, Zones≥1 pour un nouvel Exercice, avec maintien des affectations retirées D-210 pour un objet existant. Séries 1..99 ; Répétitions 1..100 ; durée par Série 1..5999 s ; pauses 0..300 s, pas 5 s jusqu’à120 puis 30 s. À l’échec : aucune cible numérique. Durée totale inverse : N=min(99,max(1,arrondi((Tv−côté+k×pS)/(k×(d+pS))))) ; arrondi .5 vers le haut, conformément à la borne explicite D-232. Toast d’ajustement seulement si T(N)≠Tv. Sélecteur Total minutes/secondes borné T(1)..T(99), selon §6 R-02 ; côté=q selon R-03.
+Nom, exactement une Catégorie et au moins une Zone pour un nouvel Exercice ; maintien des affectations retirées D-210. Paramètres exécutables issus de CE-UI-10. Terminer inactif si paramètres absents/invalides ; la couleur d’exemple de Figma ne suffit pas à valider.
 
 ### 15. Brouillon et persistance
 
-Création persiste ActivityDefinition à Terminer uniquement. Modification atomique. Annuler roulette ne change pas dernière valeur confirmée.
+Persistance à Terminer uniquement, atomique. Le brouillon de la feuille est distinct du brouillon parent ; annuler la feuille ne modifie aucun paramètre du parent.
 
 ### 16. Navigation et conservation d’état
 
-Succès → Catalogue exercices restauré. Aucun SessionActivity créé dans ce contexte.
+Retour au Catalogue restauré en contexte définition ; au contexte Composition en contexte copie. Les Exécutions historisées ne sont jamais modifiées.
 
 ### 17. Erreurs et cas limites
 
-Échec persistance : rester éditeur, conserver brouillon, réactiver action, aucune écriture partielle. Définition supprimée en parallèle : erreur explicite, pas de recréation implicite.
+Échec DB : conserver brouillon, rester éditeur et permettre nouvelle tentative. Source supprimée en parallèle : signaler erreur sans recréation implicite. Aucun contenu de démonstration en remplacement des données manquantes.
 
 ### 18. Accessibilité
 
-Modes selected ; contrôles disabled annoncés ; wheel bloque focus arrière-plan ; unités annoncées ; CTA arrière inaccessible pendant wheel. Le libellé accessible de la borne doit conserver la sémantique « durée totale supérieure ou égale à la durée connue » même si le visuel affiche `>=`.
+Carte et raccourcis ont labels explicites ; résumé lisible sans action imposée ; ne pas exposer Total estimé comme éditable. À la fermeture de la feuille, rendre le focus au déclencheur.
 
 ### 19. Invariants
 
-Phrase sans nom et sans mode intégré ; Durée totale en Durée si N>1 ou bilatéral ; Répétitions ≥ estimation à2 s/répétition ; À l’échec sans total numérique. C−1 pauses par côté ; une pause entre côtés ; aucune récupération post-occurrence intrinsèque. Compte à rebours/Fin propres exclus du total de la phrase. Aucun import média implicite.
+Aucune édition inline de la phrase. Mode/nom exclus de la phrase intrinsèque ; pas de total À l’échec. Calculs v11 avec transition D-242 ; aucun import média ajouté. Aucun enregistrement à la simple fermeture de feuille.
 
 ### 20. Recette déterministe
 
-Tester trois modes, transition sans mode→mode et impossibilité de désélection, conservation/restauration des paramètres, N=1/2/99, répétitions 1/100, durées 1/5999, pauses 0/120/150/300, deux directions, defaults Profil copiés sans rétroaction. Vérifier phrase vide initiale, total conditionnel, calcul inverse borné et toast conditionnel. Tester sauvegarde valide, nom/référentiels manquants, affectation retirée conservée, annulation, erreur DB, clavier et texte agrandi. Négatifs : nom dans phrase, double rangée obsolète, récupération post-occurrence dans ActivityDefinition, bouton Terminer actif sans mode.
+Tester vide→feuille→annuler sans changement ; feuille valide→résumé→Terminer ; tous raccourcis ; modification annulée ; trois modes, bilatéralité et q de repli ; source disparue/erreurDB ; champs/référentiels requis ; lecture seule Total Répétitions. Vérifier différences entre exemple Figma et données recalculées.
 
 ### 21. Traçabilité
 
-D-191/D-208–215/D-219/D-232 ; SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v10.2.md ; DSF-V2-MOTIFS-LOT-3 T1–T6 et D-233–239 ; CE-UI-09 ; identification §1 et écarts §5.
+D-246 ; SPECIFICATION-PARAMETRES-MODALE-v11.md ; CE-UI-10/CE-UI-09 ; frames6407:9458/9702 ; DSF-PARAMETRES-MODALE-2026-10-01.
 
 ---
 
@@ -2783,13 +2784,101 @@ D-199/D-200/D-210–212/D-222/D-238 ; CE-T03-04 ; frames§1. Renommage sans fram
 
 ---
 
+## CE-UI-10 — Paramètres d’exécution — feuille basse
+
+### 1. Identification
+
+Feuille basse Paramètres d’exécution ; CE-UI-10 ; depuis CE-T03-04. États6407:9551/9805/9966/10127/10481,6411:9546/9649,6419:9847/10028,6423:9953. Ce sont des états d’une seule feuille, pas dix écrans métier.
+
+### 2. Finalité fonctionnelle
+
+Saisir tous les paramètres dans une feuille transactionnelle ; remplacer la phrase éditable en conservant le résumé et ses raccourcis.
+
+### 3. Contexte d’entrée
+
+Carte vide : paramètres initiaux ; carte renseignée : copie des valeurs courantes. Le déclencheur précise la ligne à activer ou aucune. Le nom/référentiels du parent ne sont pas modifiés.
+
+### 4. Contexte de sortie / destinations
+
+✕ : fermer et restaurer le parent inchangé. ✓ : appliquer tout le brouillon valide, fermer et régénérer le résumé du parent. Aucune sauvegarde en base ni navigation vers un autre formulaire.
+
+### 5. Données affichées et source de vérité
+
+Mode, Séries, cible du mode, pauses, côté, Compte à rebours, Fin ; Total dérivé. Séries initial1, pause entre Séries0 s ; durée/mode/côté initialement — ; répétitions défaut1 ; CR10 s/Fin5 s copiés du Profil ; pause côté copiée à activation bilatérale. Valeurs de démo non persistées.
+
+### 6. Classification des valeurs Figma
+
+Titre Paramètres d’exécution ; libellés des lignes v11 ; valeurs dynamiques et unités ; message « Durée ajustée à {T(N)} pour respecter un nombre entier de séries. ».
+
+### 7. Structure de l’écran
+
+Voile plein écran → feuille ancrée bas → en-tête Annuler/titre/Valider → carte empilée. Ordre Mode, Séries, cible du mode, Pause séries, Côté, Pause côté conditionnelle, Total conditionnel, CR, Fin. Contrôle activé directement sous sa ligne ; message sous Total avant CR.
+
+### 8. Éléments obligatoires
+
+Steppers permanents sans contour sélectionné. Roulette ou segmenté : une ligne activée avec cadre bleu ; contrôle en dessous hors cadre. Répétitions : cible par stepper et Total ≥ texte simple ; À l’échec : ni cible ni Total. Pause côté uniquement bilatéral. Total visible dans la feuille en Durée/Répétitions même avec une Série.
+
+### 9. Layout déterministe
+
+Référence402 : voile noir28%, feuille blanche coins hauts24 ; carte#FCFCFE/contour blanc, lignes42, séparateurs#DEDEE5, libellés14 ; sélection2px#0508E5/fond#F4F4FF/rayon12. Stepper137, bord+ x366 ; long libellé180 sur deux lignes. Segment côté13 sur deux lignes. DSF complément pour tous états.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+La feuille grandit vers le haut ; en limite de hauteur, contenu scrollable et en-tête accessible dans Safe Areas. Lignes extensibles pour texte agrandi ; les42px ne brident pas la hauteur. À402, message d’ajustement ajoute62px, bas inchangé ; pas de débordement ni de recouvrement tactile.
+
+### 11. États de l’écran
+
+Initiale non renseignée ; renseignée sans sélection ; mode/côté activé ; durée/total activé ; bilatéral ; Répétitions ; À l’échec ; message ajustement ; invalide ; annulation. Un seul éditeur développé à la fois.
+
+### 12. Contrôles et interactions
+
+Activer une ligne déploie son contrôle ; changement de mode adapte les lignes et conserve les valeurs par mode. Roulette modifie le brouillon sans ouvrir de deuxième dialogue ; steppers agissent au relâchement. ✓ vérifie/applique ; ✕ abandonne tous les changements de l’ouverture.
+
+### 13. Gestes
+
+Tap/roulette/stepper et scroll ; aucune fermeture destructive implicite par swipe de feuille. Arrière-plan bloqué. Règles de maintien et réduction du mouvement D-237 conservées ;120ms de démo n’est pas un retard avant action.
+
+### 14. Validation
+
+Mode requis ; Durée renseignée1..5999s ; répétitions1..100 ; Séries1..99 ; pauses0..300s, pas5s jusqu’à120 puis30. Côté vide normalisé Sans changement (défaut existant) ; aucun côté bilatéral implicite. Coche inactive tant qu’ensemble non exécutable. Total borné T(1)..T(99), inverse/arrondi v11 ; Total Répétitions sans action.
+
+### 15. Brouillon et persistance
+
+Copie de travail locale. ✓ applique atomiquement au parent ; ✕ restitue tous paramètres antérieurs, y compris après changement de mode. Pas d’écriture de phrase ni d’objet Exercice. Valeurs Profil copiées sans rétroaction.
+
+### 16. Navigation et conservation d’état
+
+Réouverture préremplie depuis parent. Raccourci Mode→mode ; Séries/pause/vide→aucune sélection ; durée→roulette concernée ; côté→segmenté. Focus rendu au déclencheur. Retour système suit annulation de la feuille.
+
+### 17. Erreurs et cas limites
+
+Valeur — ne vaut pas zéro. Ne pas appliquer de durée exemple aux champs vides. À l’échec retire cible/Total. Erreur de validation conserve brouillon et indique le champ. Message ajustement uniquement si T(N)≠Tv. Aucun échec média n’empêche cette saisie.
+
+### 18. Accessibilité
+
+Titre annoncé, focus contenu dans feuille, arrière-plan inaccessible. ✕/✓ nommés Annuler/Valider les paramètres ; unités/bornes annoncées ; valeurs — annoncées Non renseigné. Total≥ annonce lecture seule. Contraste/états selon DSF, cibles sans chevauchement.
+
+### 19. Invariants
+
+Pas d’édition inline, pas de seconde modale de durée, pas de contour sur stepper. Démo1..10 ne limite pas Séries99. Pauses ne se cumulent pas à transition D-242. Ne pas confondre validation de paramètres et sauvegarde Exercice.
+
+### 20. Recette déterministe
+
+Tester chaque raccourci et annulation de toutes modifications ; trois modes et conservation de valeurs ; N1/99,R1/100,d1/5999,pauses0/120/150/300 ; Total modifiable seulement Durée ; calcul inverse exact/ajusté et message ; bilatéral pC0/pS>0 ; coche invalide/valide ; scroll360/402/440 et texte agrandi ; parent inerte ; focus restitué. Écarts de câblage du prototype ne valent pas comportements acceptés.
+
+### 21. Traçabilité
+
+D-246 ; transmission01/10 §3 prioritaire sur câblage ; SPECIFICATION-PARAMETRES-MODALE-v11.md ; DSF-PARAMETRES-MODALE-2026-10-01 ; 12 états illustrés chapitre06. Composant6426:10149 de démonstration exclu du DSF.
+
+---
+
 ## 5. État des preuves visuelles
 
 | ID | Écart ou limite | Contrat / traitement |
 |---|---|---|
-| V-01 |2234:189 : voile sans dialogue de suppression | CE-T03-01 ; réexport requis, confirmation métier conservée |
+| V-01 | Dialogue2234:189 restauré et capture actualisée le01/10 | Preuve visuelle disponible ; boutons non câblés, recette interactive non acquise |
 | V-02 |Activité, Parcours/Tour mal employés dans plusieurs PNG | Contrats cible Exercice/Circuit/Tour ; corriger Figma sans renommer les IDs techniques |
-| V-03 |Éditeur : Terminer visuellement actif sans mode sur 3542:4656/3943:6064 ;4367:7128 état mixte ;3556:7712 minutes de pause hors borne ; phases propres absentes sur certaines variantes | CE-T03-04 ; ne pas déclarer état interactif vérifié ; les frames existent, leur état ne vaut pas règle |
+| V-03 | Anciennes variantes de phrase éditable remplacées par D-246 | Les nouveaux états et limites de la feuille sont documentés dans CE-UI-10 ; anciennes captures historiques |
 | V-04 |Contrôle global D-214 sans emplacement graphique complet | CE-T03-08 ; règle fonctionnelle complète, preuve graphique à fournir |
 | V-05 |Chevauchement de créneaux Jour sans géométrie de référence | CE-UI-02 ; conserver lisibilité/accès, rendu à qualifier |
 | V-06 |Erreur d’initialisation Splash sans frame | CE-UI-06 ; aucune destruction de données ou blocage silencieux, rendu à qualifier |
@@ -2816,7 +2905,7 @@ La convention 2 s/répétition reste celle de la phrase intrinsèque de l’édi
 
 - Planifier : fréquence entière de 1 à 12 semaines incluses ; − inactif à 1 et + inactif à 12 ; toute valeur extérieure est refusée à l’enregistrement.
 - Rappel Autre : délai strictement positif, maximum 24 h (1 440 minutes), avec les unités et le sélecteur existants. Aucun désactive le rappel ; zéro ne crée pas une deuxième manière de désactiver le champ. Une notification dont l’échéance est déjà passée n’est pas envoyée rétroactivement ; les futures occurrences conservent leur rappel.
-- Durée totale : conserver le sélecteur minutes/secondes. La borne dérivée est T(1)..T(99) pour les paramètres courants, et non 99 min 59 s (borne par Série). La colonne minutes doit représenter T(99), sans nouvelle colonne ni nouveau contrôle. Granularité seconde ; le calcul inverse existant choisit N dans 1..99, arrondi .5 vers le haut, puis affiche T(N) et le message d’ajustement si nécessaire. Une diminution à N=1 sans bilatéralité masque ensuite le total, conformément D-232.
+- Durée totale : conserver le sélecteur minutes/secondes. La borne dérivée est T(1)..T(99) pour les paramètres courants, et non 99 min 59 s (borne par Série). La colonne minutes doit représenter T(99), sans nouvelle colonne ni nouveau contrôle. Granularité seconde ; le calcul inverse existant choisit N dans 1..99, arrondi .5 vers le haut, puis affiche T(N) et le message d’ajustement si nécessaire. Une diminution à N=1 sans bilatéralité peut masquer la clause redondante du résumé ; la ligne Total reste présente dans la feuille en Durée/Répétitions (D-246).
 - Profil : les paramètres identiques héritent des mêmes bornes que leur champ cible, sans maximum tiré des valeurs d’exemple. Compte à rebours initial/Fin de séance : 0..3599 s (D-089) ; pauses et récupération : 0..300 s ; le contrôle et ses pas restent ceux du DSF et de D-232. Les valeurs initiales déjà validées ne changent pas.
 
 ### R-03 — Transition, reset et suspension
@@ -2886,14 +2975,14 @@ Le comportement utilisateur est déjà fixé. L’exclusion d’une occurrence i
 | E47 | Suivi type Exercice |
 | E48 | Stats compatibles sans compter Séance |
 | E49 | Retour au contexte appelant ACTIVITY avec état restauré |
-| E50 | Phrase éditeur sans nom ; nom Figma renseigné = donnée de démonstration |
+| E50 | Résumé des paramètres sans nom ; valeurs dynamiques, saisie exclusivement CE-UI-10 |
 | E51 | Répétitions : phrase `Durée totale ≥ {estimation}` avec 2 s par répétition |
 | E52 | À l’échec : aucune Durée totale dans le texte éditable |
 | E53 | Pas texte direction développé cartes Composition |
-| E54 | Roulette bloque arrière-plan |
+| E54 | Feuille de paramètres bloque arrière-plan ; roulette déployée sous sa ligne |
 | E55 | CTA visible normal mais fonctionnel/accessibilité disabled |
-| E56 | Annuler roulette restaure |
-| E57 | Confirmer applique/recalcule |
+| E56 | Annuler la feuille restaure tout le brouillon parent |
+| E57 | Valider la feuille applique les paramètres et régénère le résumé sans sauvegarde DB |
 | E58 | Swipe gauche déplace carte |
 | E59 | Actions révélées progressivement |
 | E60 | Swipe droit ferme seulement carte ouverte |
