@@ -21,6 +21,27 @@ function gitHead(cwd) {
   return String(r.stdout).trim();
 }
 
+// `jest --json` reports per-file `assertionResults` only; the aggregated
+// numPassingTests/numFailingTests/numPendingTests fields exist solely in the
+// internal TestResult shape. Without this, every binding stayed NON_VERIFIABLE
+// (implementation review run 36832810388).
+function testCounts(row) {
+  if (['numPassingTests', 'numFailingTests', 'numPendingTests'].some((k) => row[k] !== undefined)) {
+    return {
+      passing: Number(row.numPassingTests || 0),
+      failing: Number(row.numFailingTests || 0),
+      pending: Number(row.numPendingTests || 0),
+    };
+  }
+  const assertions = Array.isArray(row.assertionResults) ? row.assertionResults : [];
+  const count = (statuses) => assertions.filter((a) => statuses.includes(String(a && a.status))).length;
+  return {
+    passing: count(['passed']),
+    failing: count(['failed']),
+    pending: count(['pending', 'skipped', 'todo', 'disabled']),
+  };
+}
+
 function verify(planText, jestJson, cwd = process.cwd()) {
   const contracts = verifyEmbedded(planText);
   const bindings = contracts.test_contract.bindings || [];
@@ -30,14 +51,15 @@ function verify(planText, jestJson, cwd = process.cwd()) {
   for (const row of results) {
     const p = repoPath(row.name, cwd);
     if (byPath.has(p)) throw new Error('TEST_RESULT_DUPLICATE:' + p);
+    const counts = testCounts(row);
     let status = 'NON_VERIFIABLE';
-    if (String(row.status) === 'failed' || Number(row.numFailingTests || 0) > 0) status = 'FAIL';
-    else if (String(row.status) === 'passed' && Number(row.numFailingTests || 0) === 0 && Number(row.numPassingTests || 0) > 0) status = 'PASS';
+    if (String(row.status) === 'failed' || counts.failing > 0) status = 'FAIL';
+    else if (String(row.status) === 'passed' && counts.failing === 0 && counts.passing > 0) status = 'PASS';
     byPath.set(p, {
       status,
-      num_passing_tests: Number(row.numPassingTests || 0),
-      num_failing_tests: Number(row.numFailingTests || 0),
-      num_pending_tests: Number(row.numPendingTests || 0),
+      num_passing_tests: counts.passing,
+      num_failing_tests: counts.failing,
+      num_pending_tests: counts.pending,
     });
   }
 
@@ -80,4 +102,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { verify, repoPath };
+module.exports = { verify, repoPath, testCounts };
