@@ -247,16 +247,19 @@ function validateProof(id, proof) {
   return {type,status};
 }
 function deriveAssertionStatus(input,assertion,proofs) {
-  let pending=false;
-  for(const proof of proofs){
+  // Documented precedence, independent of proof order: any FAIL => NON_CONFORME;
+  // then any non-PASS blocking proof => NON_VERIFIABLE; then PENDING_DEVICE.
+  // (Order-dependent evaluation hid a STATIC_ANALYSIS FAIL listed after a
+  // NON_VERIFIABLE functional proof — implementation review run 36850540673.)
+  const validated=proofs.map((proof)=>{
     const {type,status}=validateProof(assertion.assertion_id,proof);
     enforceMachineProof(input,assertion.assertion_id,type,status);
-    if(status==='FAIL')return 'NON_CONFORME';
-    if(BLOCKING_PROOFS.has(type)&&status!=='PASS')return 'NON_VERIFIABLE';
-    if(type==='ACCESSIBILITY_CHECK'&&status==='NON_VERIFIABLE')return 'NON_VERIFIABLE';
-    if(status==='PENDING_DEVICE')pending=true;
-  }
-  return pending?'PENDING_DEVICE':'CONFORME';
+    return {type,status};
+  });
+  if(validated.some(({status})=>status==='FAIL'))return 'NON_CONFORME';
+  if(validated.some(({type,status})=>BLOCKING_PROOFS.has(type)&&status!=='PASS'))return 'NON_VERIFIABLE';
+  if(validated.some(({type,status})=>type==='ACCESSIBILITY_CHECK'&&status==='NON_VERIFIABLE'))return 'NON_VERIFIABLE';
+  return validated.some(({status})=>status==='PENDING_DEVICE')?'PENDING_DEVICE':'CONFORME';
 }
 function aggregateProofStatus(statuses) {
   if(statuses.includes('FAIL'))return 'FAIL';
