@@ -46,7 +46,7 @@ function fixture() {
     comment: () => ({ id: 12345, issue_url: 'https://api.github.com/repos/MyUncried/Application-Routine/issues/999',
       updated_at: '2026-09-30T00:28:00.000Z',
       body: state.protocol_head + '\n' + Approval.renderApprovalMessage(approved.approvalTarget) }),
-    reactions: () => [{ content: '+1', user: { login: 'MyUncried' }, created_at: '2026-09-30T00:29:00.000Z' }],
+    reactions: () => [{ id: 67890, content: '+1', user: { login: 'MyUncried' }, created_at: '2026-09-30T00:29:00.000Z' }],
   };
   return { repo, artifacts: complete, transport, files, projection, queueFile, github, write };
 }
@@ -74,10 +74,15 @@ test('queue admission: approval evidence must authenticate the exact target and 
       assert.throws(() => Adapter.buildLegacyQueueProjection({ ...f.artifacts, ...approved, currentState: state, transport: f.transport }), /WRITER_UNSUPPORTED/);
     }
     assert.throws(() => Admission.verifyQueueAdmission({ ...f, github: { ...f.github,
-      comment: () => ({ ...comment, body: f.artifacts.currentState.protocol_head + '\n' + f.artifacts.approvalTarget.contract_hash }) } }), /WRITER_NOT_EXPLICIT/);
+      comment: () => ({ ...comment, body: f.artifacts.currentState.protocol_head + '\n' + f.artifacts.approvalTarget.contract_hash }) } }), /EXACT_APPROVAL_MESSAGE_REQUIRED/);
     assert.throws(() => Admission.verifyQueueAdmission({ ...f, github: { ...f.github,
-      comment: () => ({ ...comment, body: f.artifacts.currentState.protocol_head }) } }), /EXACT_TARGET_ABSENT/);
+      comment: () => ({ ...comment, body: f.artifacts.currentState.protocol_head }) } }), /EXACT_APPROVAL_MESSAGE_REQUIRED/);
     assert.throws(() => Admission.verifyQueueAdmission({ ...f, github: { ...f.github, reactions: () => [] } }), /REACTION_NOT_BOUND/);
+    for (const patch of [{ body: comment.body + '\nExtra instruction' }, { id: 54321 }, { issue_url: 'https://api.github.com/repos/MyUncried/Application-Routine/issues/998' }]) {
+      assert.throws(() => Admission.verifyQueueAdmission({ ...f, github: { ...f.github, comment: () => ({ ...comment, ...patch }) } }), /EXACT_APPROVAL_MESSAGE_REQUIRED/);
+    }
+    assert.throws(() => Admission.verifyQueueAdmission({ ...f, github: { ...f.github,
+      reactions: () => [{ ...f.github.reactions()[0], id: 67891 }] } }), /REACTION_ID_MISMATCH/);
     assert.throws(() => Admission.verifyQueueAdmission({ ...f, github: { ...f.github,
       comment: () => ({ ...comment, updated_at: '2026-09-30T00:29:30.000Z' }) } }), /REACTION_NOT_BOUND/);
   } finally { fs.rmSync(f.repo.cwd, { recursive: true, force: true }); }

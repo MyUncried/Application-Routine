@@ -98,6 +98,11 @@ function main(configFile, evidenceDirectory) {
   if (evidence.startsWith(source + path.sep)) throw Error('VNEXT12_EXTERNAL_EVIDENCE_REQUIRED');
   fs.mkdirSync(evidence, { recursive: true });
   const save = (name, data) => fs.writeFileSync(path.join(evidence, name), JSON.stringify(data, null, 2) + '\n');
+  // Read real qualification before credentials, installation, consumption or Claude.
+  const qualifications = require('./lib/vnext-github-qualification').verifyExecutionQualifications(config, {
+    cwd: source, controllerHead: process.env.VNEXT12_CONTROLLER_HEAD,
+  });
+  save('qualification-admission.json', qualifications);
   let credential;
   try { credential = consumptionCredential(); }
   catch (error) {

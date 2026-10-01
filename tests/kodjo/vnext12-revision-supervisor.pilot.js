@@ -10,6 +10,7 @@ const Chain = require('../../scripts/kodjo/lib/vnext-live-chain');
 const V = require('../../scripts/kodjo/lib/vnext-contract');
 const F = require('./helpers/vnext-planning-fixture');
 const Approval = require('../../scripts/kodjo/lib/approval-handoff-contract');
+const CLI = require('../../scripts/kodjo/vnext-chain');
 const ROOT = path.resolve(__dirname, '../..');
 function fixture(t) {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'vnext12-revision-test-'));
@@ -54,7 +55,15 @@ test('revision publication prepares an exact new dossier and preserves all other
   const oldRegistry = JSON.parse(fs.readFileSync(path.join(f.cwd, '.github/orchestration/v2-activation-registry.json'), 'utf8'));
   const newRegistry = JSON.parse(ready.publication.find(x => x.path === '.github/orchestration/v2-activation-registry.json').content);
   assert.deepEqual(newRegistry.activations.filter(x => x.slice_id !== 'VNEXT-12-QUALIF'), oldRegistry.activations.filter(x => x.slice_id !== 'VNEXT-12-QUALIF'));
-  assert.equal(ready.transport.gate_ref, 'issue_comment:1', 'placeholder is not an operational approval');
+  assert.equal(Object.hasOwn(ready.transport, 'gate_ref'), false, 'preparation must not fabricate an operational gate');
+  const reservation = { gate_ref: 'issue_comment:100', repository: 'MyUncried/Application-Routine', issue_number: 269,
+    prepared_chain_hash: ready.prepared.contract_hash };
+  const reservationApi = { comment: () => ({ id: 100, issue_url: 'https://api.github.com/repos/MyUncried/Application-Routine/issues/269', body: CLI.reservationMessage(ready.prepared) }) };
+  const finalTransport = CLI.finalizeTransport(ready.prepared, ready.transport, reservation, { cwd: f.cwd, github: reservationApi });
+  assert.equal(finalTransport.gate_ref, reservation.gate_ref);
+  assert.notEqual(finalTransport.request_id, ready.transport.request_id);
+  assert.throws(() => CLI.finalizeTransport(ready.prepared, ready.transport, { ...reservation, gate_ref: 'issue_comment:1' }, { cwd: f.cwd, github: reservationApi }), /REAL_GATE_REQUIRED/);
+  assert.throws(() => CLI.finalizeTransport(ready.prepared, { ...ready.transport, gate_ref: 'issue_comment:1' }, reservation, { cwd: f.cwd, github: reservationApi }), /PREPARATORY_GATE_FORBIDDEN/);
   assert.equal(ready.prepared.produced.artifacts.planningEnvelope.planning_mode, 'REVISION');
   assert.equal(Chain.approvalTarget(ready.prepared, { cwd: f.cwd, protocolHead: f.next.producer_revision }).execution_core.planning_mode, 'REVISION');
   for (const row of ready.publication) {
@@ -67,7 +76,7 @@ test('revision publication prepares an exact new dossier and preserves all other
   const github = { comment: () => ({ id: 1, issue_url: 'https://api.github.com/repos/MyUncried/Application-Routine/issues/269',
     updated_at: '2026-09-30T00:28:00.000Z', body: head + '\n' + Approval.renderApprovalMessage(target) }),
   reactions: () => [{ id: 2, content: '+1', user: { login: 'MyUncried' }, created_at: '2026-09-30T00:29:00.000Z' }] };
-  const tr = ready.transport;
+  const tr = { ...ready.transport, gate_ref: 'issue_comment:1' }; // Real fixture observation above; never campaign evidence.
   const seed = { slice_id: 'VNEXT-12-QUALIF', issue_number: 269, source_head: head,
     slice_bootstrap_file: tr.slice_bootstrap_file, slice_bootstrap_sha256: tr.slice_bootstrap_sha256,
     authorized_plan: { plan_path: tr.plan_path }, independent_review: { review_path: tr.review_path },

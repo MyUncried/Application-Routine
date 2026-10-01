@@ -699,7 +699,7 @@
         "scripts/kodjo/lib/vnext-contract.js",
         "scripts/kodjo/lib/vnext-error-policy.js"
       ],
-      "test_source_sha256": "9f1013b2e443be00eda7faccbf5f46f6f3c8180c8c97bb234b3b8174dbd3ff3f"
+      "test_source_sha256": "cc15cc15a90db50f380c6d6bb062cd478e6421dd656a4621dbf64892e223afbb"
     },
     {
       "id": "CASE-2b510fbc8ecf2701",
@@ -714,7 +714,7 @@
         "scripts/kodjo/lib/vnext-contract.js",
         "scripts/kodjo/lib/vnext-error-policy.js"
       ],
-      "test_source_sha256": "9f1013b2e443be00eda7faccbf5f46f6f3c8180c8c97bb234b3b8174dbd3ff3f"
+      "test_source_sha256": "cc15cc15a90db50f380c6d6bb062cd478e6421dd656a4621dbf64892e223afbb"
     },
     {
       "id": "CASE-36f0e5c159060410",
@@ -1559,7 +1559,7 @@
         "scripts/kodjo/lib/vnext-contract.js",
         "scripts/kodjo/lib/vnext-error-policy.js"
       ],
-      "test_source_sha256": "9f1013b2e443be00eda7faccbf5f46f6f3c8180c8c97bb234b3b8174dbd3ff3f"
+      "test_source_sha256": "cc15cc15a90db50f380c6d6bb062cd478e6421dd656a4621dbf64892e223afbb"
     },
     {
       "id": "CASE-c450f1606253db77",
@@ -1672,7 +1672,7 @@
         "scripts/kodjo/lib/vnext-contract.js",
         "scripts/kodjo/lib/vnext-error-policy.js"
       ],
-      "test_source_sha256": "9f1013b2e443be00eda7faccbf5f46f6f3c8180c8c97bb234b3b8174dbd3ff3f"
+      "test_source_sha256": "cc15cc15a90db50f380c6d6bb062cd478e6421dd656a4621dbf64892e223afbb"
     },
     {
       "id": "CASE-8b177f500ff420ee",

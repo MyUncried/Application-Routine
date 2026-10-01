@@ -229,7 +229,7 @@
     },
     {
       "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
-      "blob_oid": "1d8c22e41a9feae7c037498e2acae5bd0e0c5878",
+      "blob_oid": "7f3ac8781fdc094c827bc21cfcba644b973e6013",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -858,7 +858,7 @@
   "declared_vnext_writers": [
     {
       "producer": ".github/workflows/kodjo-vnext12-disposable.yml",
-      "producer_blob_oid": "395c798cb9c0dc0ee5d314f0a53b4faf12123301",
+      "producer_blob_oid": "1a1716f4bf07c29766f4f1ea2dbe2f0db036dcd4",
       "authorization_condition": "EXACT_OWNER_APPROVED_VNEXT12_DISPOSABLE_CONSUMPTION_ONLY",
       "required_job": "execute-initial",
       "capabilities": [

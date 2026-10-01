@@ -8,7 +8,7 @@
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "9895877b9230c902eea229841a46a8c18c437f41",
   "controller_stage": "STEP3_COMPLETED",
-  "controller_generation": 17,
+  "controller_generation": 18,
   "steps": [
     {
       "step": 1,
@@ -191,5 +191,13 @@
     "status": "NON_CERTIFIED_OLD_RUN16_ARTIFACT_UNAVAILABLE",
     "windows_tests_and_disposable_preflight": "SUCCESS",
     "global_run_conclusion": "FAILURE"
+  },
+  "transport_hardening": {
+    "base_head": "6af6455be9f1ab703727bfee021d188a0333a70c",
+    "status": "IMPLEMENTED_QUALIFICATION_PENDING",
+    "runtime_replay": false,
+    "final_audit_invoked": false,
+    "report_path": ".github/orchestration/reports/2026-10-01_VNEXT_TRANSPORT_HARDENING.md",
+    "recorded_at": "2026-10-01T17:04:03.394198+00:00"
   }
 }

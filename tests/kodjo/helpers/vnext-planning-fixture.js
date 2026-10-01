@@ -228,7 +228,7 @@ function approve(artifacts, reviewReport, state) {
       decision: 'APPROVED',
       actor_id: 'MyUncried',
       transport: 'GITHUB_REACTION',
-      evidence_ref: 'issue_comment:12345#reaction:+1:MyUncried',
+      evidence_ref: 'issue_comment:12345#reaction:67890',
       approved_target_hash: approvalTarget.contract_hash,
       observed_at: '2026-09-30T00:30:00.000Z',
     },

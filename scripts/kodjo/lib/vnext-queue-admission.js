@@ -6,7 +6,7 @@ const V = require('./vnext-contract');
 const Runtime = require('./vnext-runtime');
 const Adapter = require('./vnext-legacy-queue-adapter');
 const Authorizations = require('../verify-authorizations');
-const Preserved = require('./vnext-preserved-controls');
+const GithubApproval = require('./vnext-github-approval');
 
 // Read-only admission. This does not enqueue work or invoke an implementation
 // runner. Fixture clients are injectable like the existing authorization verifier;
@@ -30,27 +30,11 @@ function verifyQueueAdmission({ queueFile, projection, artifacts, transport, git
   const issue = /^github_issue:([^#]+)#([1-9][0-9]*)$/.exec(artifacts.executionRequest.issue_id);
   const commentId = transport.gate_ref.slice('issue_comment:'.length);
   const comment = api.comment(issue[1], commentId);
-  if (!String(comment?.body || '').includes(artifacts.approvalTarget.contract_hash)) {
-    V.fail('VNEXT_QUEUE_ADMISSION_EXACT_TARGET_ABSENT');
-  }
-  const core = artifacts.approvalTarget.execution_core;
-  if (!String(comment.body).includes('execution_context=' + V.canonicalStringify(core.execution_context))) V.fail('VNEXT_QUEUE_ADMISSION_WRITER_NOT_EXPLICIT');
-  for (const row of core.native_primitive_decisions) {
-    if (!String(comment.body).includes('native_primitive_decision=' + V.canonicalStringify(row))) V.fail('NATIVE_PRIMITIVE_EXCEPTION_REQUIRED');
-  }
-  for (const id of Preserved.exceptionIds(core.native_primitive_decisions)) {
-    if (!String(comment.body).includes('native_primitive_exception_request=' + id)) V.fail('NATIVE_PRIMITIVE_EXCEPTION_REQUIRED');
-  }
   const reactions = api.reactions(issue[1], commentId);
-  const editedAt = Date.parse(comment.updated_at);
-  const observedAt = Date.parse(artifacts.approvalRecord.observed_at);
-  const reaction = reactions.find(row => row.content === '+1'
-    && row.user?.login?.toLowerCase() === artifacts.approvalRecord.actor_id.toLowerCase()
-    && Number.isFinite(Date.parse(row.created_at)) && Date.parse(row.created_at) >= editedAt
-    && Date.parse(row.created_at) <= observedAt);
-  if (!Number.isFinite(editedAt) || editedAt > observedAt || !reaction) {
-    V.fail('VNEXT_QUEUE_ADMISSION_REACTION_NOT_BOUND_TO_TARGET');
-  }
+  GithubApproval.verifyObservation({ repository: issue[1], issueNumber: issue[2],
+    head: artifacts.executionRequest.protocol_head, target: artifacts.approvalTarget,
+    gateRef: transport.gate_ref, comment, reactions, actor: artifacts.approvalRecord.actor_id,
+    observedAt: artifacts.approvalRecord.observed_at, evidenceRef: artifacts.approvalRecord.evidence_ref });
   // The legacy consumer checks the very same authenticated observation.
   const snapshotApi = { ...api, comment: () => comment, reactions: () => reactions };
   const authorization = Authorizations.verify(queueFile, { cwd, github: snapshotApi, vnextTransportChecked: true });

@@ -1,5 +1,5 @@
 {
-  "stage": "EXECUTE_REVISION",
+  "stage": "QUALIFY_ONLY",
   "slice_id": "VNEXT-12-QUALIF",
   "qualified_code_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
   "qualified_test_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
@@ -8,11 +8,9 @@
   "preflight_format": "VNEXT_EXECUTION_REQUEST",
   "final_audit_authorized": false,
   "pre1_in_scope": false,
-  "generation": 16,
+  "generation": 18,
   "initial_execution_run_id": "36833427894",
   "initial_execution_status": "INITIAL_PASS",
   "revision_scenario": "DECLARED_NEGATIVE_PLAN_THEN_ONE_CAUSAL_CORRECTION",
-  "approved_protocol_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
-  "gate_ref": "issue_comment:5932536175",
-  "approval_target_hash": "c670199c72c128ee0ef2e397aceb7975e268c69e82a29256889d23898f3572e6"
+  "hardening_scope": "TRANSPORT_ADMISSION_ONLY_NO_RUNTIME_REPLAY"
 }

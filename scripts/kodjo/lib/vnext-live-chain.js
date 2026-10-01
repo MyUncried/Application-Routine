@@ -21,6 +21,7 @@ const Convergence = require('./audit-convergence-contract');
 const Adapter = require('./vnext-legacy-queue-adapter');
 const Admission = require('./vnext-queue-admission');
 const Auth = require('../verify-authorizations');
+const GithubApproval = require('./vnext-github-approval');
 
 const SCHEMA = 'kodjo.vnext.prepared-chain.v1';
 function command(bin, args, cwd, input, env = process.env) {
@@ -281,16 +282,13 @@ function deriveQueue(queue, { cwd, github = Auth.ghClient() } = {}) {
   const id = /^issue_comment:([1-9][0-9]*)$/.exec(queue.user_gate.gate_ref)?.[1];
   if (!id) V.fail('VNEXT_CHAIN_GATE_REQUIRED');
   const comment = github.comment(issue[1], id);
-  const expectedBody = queue.source_head + '\n' + Approval.renderApprovalMessage(target);
-  if (String(comment.id) !== id || comment.body !== expectedBody || comment.issue_url !== 'https://api.github.com/repos/' + issue[1] + '/issues/' + issue[2]) V.fail('VNEXT_CHAIN_EXACT_APPROVAL_MESSAGE_REQUIRED');
   const reactions = github.reactions(issue[1], id);
   const now = new Date().toISOString();
   const owner = issue[1].split('/')[0];
-  const thumbs = reactions.filter(x => /^[1-9][0-9]*$/.test(String(x.id)) && x.content === '+1' && x.user?.login?.toLowerCase() === owner.toLowerCase()
-    && Number.isFinite(Date.parse(x.created_at)) && Date.parse(x.created_at) >= Date.parse(comment.updated_at) && Date.parse(x.created_at) <= Date.parse(now));
-  if (!thumbs.length) V.fail('VNEXT_CHAIN_OWNER_APPROVAL_REQUIRED');
+  const reaction = GithubApproval.verifyObservation({ repository: issue[1], issueNumber: issue[2],
+    head: queue.source_head, target, gateRef: queue.user_gate.gate_ref, comment, reactions, observedAt: now });
   const approvalRecord = Approval.buildApprovalRecord({ approvalTarget: target, evidence: {
-    decision: 'APPROVED', actor_id: owner, transport: 'GITHUB_REACTION', evidence_ref: queue.user_gate.gate_ref + '#reaction:' + thumbs[0].id,
+    decision: 'APPROVED', actor_id: owner, transport: 'GITHUB_REACTION', evidence_ref: queue.user_gate.gate_ref + '#reaction:' + reaction.id,
     approved_target_hash: target.contract_hash, observed_at: now,
     native_exception_approvals: target.execution_core.native_primitive_decisions.filter(r => r.availability === 'AVAILABLE' && r.primitive !== r.selected_primitive).map(r => r.criterion_id) } });
   const executionRequest = Approval.buildExecutionRequest({ ...a, approvalTarget: target, approvalRecord });

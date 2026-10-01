@@ -53,6 +53,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent YAML parser
+        run: python -m pip install PyYAML==6.0.3
       - name: Validate the operational recipe without Claude
         shell: bash
         run: node scripts/kodjo/prepare-vnext12.js produce "$RUNNER_TEMP/vnext12-produce-${{ github.run_id }}"
@@ -160,6 +165,7 @@ jobs:
       # Approval is a PR conversation comment with owner reactions.
       issues: read
       pull-requests: read
+      actions: read
     env:
       CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
       EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}

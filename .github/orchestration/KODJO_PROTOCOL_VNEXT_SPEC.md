@@ -2231,3 +2231,56 @@ canonique, au SourceManifest et au HEAD applicatif. Le raccordement aux producte
 authentifiés et la vérité des faits restent à qualifier à l’étape 4 ; les fixtures
 ne les certifient pas. Les schémas d’approbation/handoff v1 ne sont pas convertis
 silencieusement en v2.
+
+### 23.8 Publication stable et admissions exactes
+
+Avant publication, `vnext-chain.js validate-publication` valide un tree Git complet,
+lié au HEAD parent attendu et à l'empreinte du checkpoint. Il réutilise les contrôles
+YAML, invariants exécutables, syntaxe JavaScript, politique des writers et
+correspondances historiques. Une unité PowerShell modifiée exige le parser Windows
+PowerShell 5.1 ; son indisponibilité refuse la publication. Les octets inchangés ne
+sont pas présentés comme nouvellement parsés. Une sortie tronquée d'outil ne doit
+jamais servir de contenu de fichier. Les données reçues restent refusées en cas
+de format invalide, sans réparation sémantique silencieuse.
+
+Le guard relit GitHub : HEAD parent et checkpoint identiques, aucun run de la phase
+encore actif. Le contrôleur garde la branche stable jusqu'à la fin des qualifications
+et de l'exécution. Les groupes de concurrence existants sont conservés ; un nouveau
+contrôleur ne publie pas concurremment. Juste avant toute mise à jour de ref,
+revalider cette fenêtre, vérifier le tree et les blobs, puis publier sans forçage
+avec le parent attendu. Ce guard ne verrouille pas les écritures directes d'un
+administrateur hors protocole ; un déplacement du HEAD exige une nouvelle validation.
+
+La préparation génère plan/revue/mission et un transport provisoire sans gate.
+`reserve-gate` crée un vrai commentaire lié au hash du dossier préparé ; il ne
+constitue aucune approbation. `finalize-transport` relit cette réservation et génère
+le transport final avec son identifiant réel et un UUID neuf. Dossier et transport
+sont publiés et qualifiés avant `request-approval`, qui remplace le texte de
+réservation par le message exact du candidat. `handoff` reste interdit sans
+l'observation fraîche de la vraie réaction autorisée. La réservation et le transport
+sont des données techniques ; aucune revue humaine n'est déduite de leur génération.
+
+Toutes les entrées d'admission utilisent `vnext-github-approval.verifyObservation` :
+égalité du commentaire complet généré, HEAD, identifiant et issue attendus,
+propriétaire, dates valides, réaction postérieure à la dernière édition. L'admission
+vérifie aussi l'identifiant numérique de réaction de l'ApprovalRecord. Aucun autre
+pouce admissible ne remplace silencieusement celui enregistré. Les preuves anciennes
+restent inchangées ; une nouvelle admission exige les références complètes.
+
+Le superviseur VNext-12 relit la qualification GitHub avant installation,
+consommation et Claude : workflow attendu, candidat exact, dernière tentative,
+quatre jobs qualification/historique Linux/Windows terminés SUCCESS. Le contrôleur
+est soit du même code protocolaire exact, soit qualifié séparément. Une référence
+ou un booléen déclaratif ne remplace pas ces observations. Ces règles s'ajoutent aux
+admissions fraîches et à la consommation atomique existantes.
+
+La récupération de l'ancien run 16 est une réserve historique distincte du résultat
+courant du pilote. Un téléchargement absent produit NON_CERTIFIED avec son motif ;
+aucun PASS historique n'est fabriqué. Toute preuve obligatoire au gate concerné
+reste WAIT_FOR_PROOF. Runner déconnecté, réseau et limites de service appellent
+attente ou diagnostic technique ciblé, sans relance automatique. Une erreur inconnue
+reste à diagnostiquer ; seule une ambiguïté métier effectivement identifiée appelle
+une décision de l'utilisateur.
+
+Le [registre complémentaire de corrections et de qualification](reports/2026-10-01_VNEXT_TRANSPORT_HARDENING.md)
+conserve la trace de ces changements sans modifier les 420 sujets historiques.

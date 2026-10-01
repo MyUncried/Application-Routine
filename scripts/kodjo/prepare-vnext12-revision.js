@@ -92,7 +92,7 @@ function preparePublication(cwd, base, receipt, next, nextReceipt, artifacts) {
   Identity.validateRegistry(registry, bootstrap);
   const transport = { slice_bootstrap_file: bootstrapPath, slice_bootstrap_sha256: bootstrap.slice_bootstrap_sha256,
     plan_path: ROOT + '/revision/technical-plan.md', review_path: ROOT + '/revision/independent-review.md',
-    prompt_file: ROOT + '/revision/implementation-mission.md', gate_ref: 'issue_comment:1',
+    prompt_file: ROOT + '/revision/implementation-mission.md',
     request_id: require('node:crypto').randomUUID(), created_at: new Date().toISOString() };
   const revisionEvidence = { base_produced: base, base_review_receipt: receipt, revision_artifacts: artifacts };
   const ready = Chain.prepare(next, nextReceipt, transport, { cwd, revisionEvidence });

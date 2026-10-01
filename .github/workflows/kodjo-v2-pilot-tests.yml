@@ -249,6 +249,8 @@ jobs:
           if-no-files-found: error
           retention-days: 90
       - name: Download the real run 16 recovery package
+        id: historical_recovery_download
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: kodjo-v2-recovery-34606534268-1
@@ -256,6 +258,7 @@ jobs:
           github-token: ${{ github.token }}
           run-id: 34606534268
       - name: Certify historical run 16 recovery without gating the disposable slice
+        if: steps.historical_recovery_download.outcome == 'success'
         continue-on-error: true
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
@@ -283,6 +286,19 @@ jobs:
             $proofJson = ($proof | ConvertTo-Json -Depth 5).Replace("`r`n", "`n") + "`n"
             [IO.File]::WriteAllText('real-recovery-certification.json', $proofJson, (New-Object Text.UTF8Encoding($false)))
           }
+      - name: Record unavailable historical recovery as a separate reserve
+        if: always() && steps.historical_recovery_download.outcome != 'success'
+        shell: bash
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          node - <<'JS'
+          const fs = require('fs');
+          const file = 'real-recovery-certification.json';
+          const proof = JSON.parse(fs.readFileSync(file, 'utf8'));
+          proof.status = 'NON_CERTIFIED';
+          proof.reason = 'HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE';
+          fs.writeFileSync(file, JSON.stringify(proof, null, 2) + '\n');
+          JS
       - name: Upload real recovery certification
         if: always()
         uses: actions/upload-artifact@v4
