@@ -58,7 +58,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    # The full inherited Windows suite took 18m06s before revision checks were added.
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:

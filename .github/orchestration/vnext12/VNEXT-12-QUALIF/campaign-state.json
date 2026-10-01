@@ -1,0 +1,115 @@
+{
+  "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
+  "recorded_at": "2026-10-01T10:56:00Z",
+  "repository": "MyUncried/Application-Routine",
+  "pull_request": 269,
+  "branch": "protocol/vnext-proof-stability-20260930",
+  "active_step": 3,
+  "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
+  "code_head_before_checkpoint": "0bc480bd279ff8456053c9ace3a725d9fda5bcac",
+  "controller_stage": "QUALIFY_ONLY",
+  "controller_generation": 13,
+  "steps": [
+    {
+      "step": 1,
+      "status": "COMPLETED"
+    },
+    {
+      "step": 2,
+      "status": "PREVIOUSLY_QUALIFIED_NEW_CODE_REQUALIFICATION_PENDING"
+    },
+    {
+      "step": 3,
+      "status": "INITIAL_PASS_REVISION_PENDING"
+    },
+    {
+      "step": 4,
+      "status": "NOT_STARTED"
+    },
+    {
+      "step": 5,
+      "status": "NOT_STARTED"
+    }
+  ],
+  "initial": {
+    "run_id": "36833427894",
+    "status": "INITIAL_PASS",
+    "approved_protocol_head": "e47525b70e62b4ea3d4b32b9fae09e306b5e3094",
+    "claude_session": "69b5de9e-10f6-400c-b741-b1827bbf1562",
+    "artifact_id": "11147999370",
+    "artifact_sha256": "01374cb75b16c37b39261c2bf8f1067fff0502c5b41f3d1401fcabc26fb5d0d0",
+    "durable_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/initial-execution-evidence.json",
+    "consumed_request": "d851f5fe-6ce5-4bb1-a615-ea2116cf04e1",
+    "consumption_tag": "9e2e693061c8d0d53d00d15519a4f1b216e6a081",
+    "replay_forbidden": true
+  },
+  "active_runs": [
+    {
+      "run_id": "36850188342",
+      "candidate": "7e5ced7e13a838324b97d4f3bc07287d1aeff5b9",
+      "purpose": "COMPLETE_PILOT_QUALIFICATION",
+      "linux_job": "110329740210",
+      "linux_tests": 910,
+      "linux_pass": 909,
+      "linux_fail": 0,
+      "linux_skip": 1,
+      "windows_job": "110330747335",
+      "windows_status": "INFRASTRUCTURE_FAILURE_ONE_JOB_RETRY_REQUESTED",
+      "windows_diagnostic": "GitHub: self-hosted runner lost communication with the server during complete suite; no assertion verdict available, no complete job log uploaded.",
+      "retry_job": "110335703259"
+    },
+    {
+      "run_id": "36850188358",
+      "candidate": "7e5ced7e13a838324b97d4f3bc07287d1aeff5b9",
+      "purpose": "VNEXT_AND_HISTORICAL_EQUIVALENCE",
+      "linux_status": "SUCCESS",
+      "windows_status": "IN_PROGRESS",
+      "vnext_windows_status": "SUCCESS"
+    },
+    {
+      "run_id": "36850188454",
+      "candidate": "7e5ced7e13a838324b97d4f3bc07287d1aeff5b9",
+      "purpose": "REAL_NEGATIVE_PLAN_REVIEW_AND_ONE_CAUSAL_REVISION",
+      "linux_driver_status": "SUCCESS",
+      "windows_driver_status": "SUCCESS",
+      "actual_review_status": "QUEUED",
+      "actual_review_job": "110336010043"
+    }
+  ],
+  "obsolete_runs": [
+    {
+      "run_id": "36848654104",
+      "status": "FAILED",
+      "cause": "Test still asserted the former 25 minute Windows timeout; corrected in incident-register.pilot.js."
+    },
+    {
+      "run_id": "36849165097",
+      "status": "FAILED",
+      "cause": "Historical correspondence still contained old incident test source fingerprints; exactly ten matching case fingerprints/locations updated, with all 420 subjects preserved."
+    },
+    {
+      "run_id": "36849165208",
+      "status": "CANCELLED_AFTER_OBSOLETE_LINUX_FAILURE",
+      "claude_invoked": false
+    }
+  ],
+  "local_validation": {
+    "vnext_and_supervisors_pass": 209,
+    "fail": 0,
+    "revision_integration_tests_pass": 6,
+    "execution_supervisor_tests_pass": 9,
+    "workflow_syntax_count": 64,
+    "full_local_pilot_status": "NOT_QUALIFIED_SYNTHETIC_CHECKOUT_AND_MISSING_TOKENIZER",
+    "full_linux_ci_is_authoritative": true
+  },
+  "pending_actions": [
+    "Read current run states and logs first. Do not replay consumed INITIAL or retry obsolete commits.",
+    "Collect and hash real PREPARE_REVISION artifacts from run 36850188454. Require real base REVISE and revised APPROVE plus RESOLVED bounded outcome; diagnose actual failures without inventing findings.",
+    "Create the exact revised dossier from publication.json with actual transport gate and a fresh request UUID; preserve all other activation rows and the exact source/candidate/review bindings. The helper preparePublication is already implemented and tested.",
+    "Qualify the new exact candidate on Linux and Windows before runtime execution. Current executable supervisor changes at 0bc480bd were deliberately published with skip-ci to preserve the existing queued real review; they still require remote qualification. Historical Windows timeout is now prepared at 40 minutes for the next candidate.",
+    "Keep the real GitHub exact-target owner approval gate. Preserve the user delegation for this disposable technical test; never fabricate a reaction, human review, successful execution, certificate, verdict or evidence.",
+    "Set EXECUTE_REVISION only after actual qualification and exact approval. Supervisor requires real planning_mode REVISION, count 1/limit 1, RESOLVED outcome, fresh admission and actual missing-authority/proof refusals before Claude.",
+    "Collect actual runtime session, targeted functional observation value 2, exactly core.js/test changes, preserved keep.js bytes, full Jest/TypeScript/lint checks, atomic request consumption and cleanup. Persist real result in GitHub before claiming REVISION_PASS.",
+    "Finish step 3 only with actual INITIAL_PASS and REVISION_PASS. Do not activate, merge, cut over, launch FINAL or change other application slices in this campaign continuation. Pause the watcher at completion or a genuine business decision."
+  ]
+}
