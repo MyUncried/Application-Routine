@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-01T15:03:56.432Z",
+  "recorded_at": "2026-10-01T15:52:01.121Z",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
-  "code_head_before_checkpoint": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
-  "controller_stage": "EXECUTE_REVISION",
-  "controller_generation": 16,
+  "code_head_before_checkpoint": "9895877b9230c902eea229841a46a8c18c437f41",
+  "controller_stage": "STEP3_COMPLETED",
+  "controller_generation": 17,
   "steps": [
     {
       "step": 1,
@@ -20,7 +20,7 @@
     },
     {
       "step": 3,
-      "status": "INITIAL_PASS_REVISION_PENDING"
+      "status": "COMPLETED_INITIAL_PASS_REVISION_PASS"
     },
     {
       "step": 4,
@@ -70,12 +70,7 @@
     "full_local_pilot_status": "NOT_QUALIFIED_SYNTHETIC_CHECKOUT_AND_MISSING_TOKENIZER",
     "full_linux_ci_is_authoritative": true
   },
-  "pending_actions": [
-    "Resolve the EXECUTE_REVISION run produced by this commit; do not duplicate it. Wait if runtime is active or runner offline.",
-    "Require real admission, missing authority/proof refusals before Claude, fresh owner gate observations, atomic consumption, actual Claude session, observed value 2, delta exactly core.js/core.test.js, keep.js bytes, real Jest/TypeScript/lint, cleanup, artifact and hashes.",
-    "Persist result and consumed identity in GitHub. Never replay INITIAL; if this request is consumed, never blindly rerun it. Diagnose failure and use a fresh identity only through the protocol.",
-    "After actual INITIAL_PASS plus REVISION_PASS and complete evidence, mark step 3 completed and disable this watcher. Do not launch FINAL, activate, cut over, merge, or modify PRE-1."
-  ],
+  "pending_actions": [],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
     {
@@ -107,7 +102,7 @@
   "revision": {
     "schema_version": "kodjo.vnext12.real-revision-preparation-evidence.v1",
     "recorded_at": "2026-10-01T13:34:32.590Z",
-    "status": "APPROVED_REAL_REVISION_EXECUTION_REQUESTED",
+    "status": "REVISION_PASS",
     "candidate_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
     "run_id": "36857231638",
     "job_id": "110357386807",
@@ -119,7 +114,7 @@
     "revision_session": "79c9c220-2014-4995-ac71-acb52a596768",
     "revision_count": 1,
     "revision_limit": 1,
-    "implementation_invoked": false,
+    "implementation_invoked": true,
     "final_audit_invoked": false,
     "outcome": "RESOLVED",
     "source_archive": {
@@ -137,7 +132,8 @@
       "kind": "USER_AUTHORIZED_TECHNICAL_DISPOSABLE_CAMPAIGN",
       "instruction": "mène cette campagne de test jusqu’à son terme, diagnostique, explique corrige et relance le test lorsqu’un échec intervient. Ne m’implique que lorsqu’une validation métier est nécessaire.",
       "human_review_performed": false,
-      "approval_reaction_not_yet_created": true
+      "approval_reaction_not_yet_created": false,
+      "actual_reaction_id": "429910266"
     },
     "artifact_members": {
       "allowed-change-set.json": "23585f741c653ddbf0273423329a8225043c7a9ed4fa549bb871b4675f121d52",
@@ -161,6 +157,39 @@
     "authorization_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/execution-authorization.json",
     "approval_reaction_id": "429910266",
     "approval_recorded_by": "CODEX_USER_DELEGATION",
-    "human_review_performed": false
+    "human_review_performed": false,
+    "preparation_status": "APPROVED_REAL_BOUNDED_REVISION",
+    "execution_run_id": "36881458781",
+    "execution_job_id": "110434328636",
+    "execution_artifact_id": "11173635576",
+    "execution_artifact_sha256": "e9722592f56f90b5af1fee0fbd541506edf2820c423daf27c8d775e23cb24145",
+    "execution_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/execution-evidence.json",
+    "execution_archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/execution-artifact.zip",
+    "runtime_claude_session": "0b55ef38-9c5e-40ed-8e3a-aefe01767e34",
+    "consumed_request": "be4f7b4b-77d0-4d43-a49f-d3d9f999e2cf",
+    "consumption_tag": "ef85ef28362dd949adb8cd060e61ea0d12ccae65",
+    "replay_forbidden": true,
+    "disposable_cleanup": true,
+    "observed_value": 2,
+    "checks": {
+      "jest": {
+        "passed": 1257,
+        "failed": 0,
+        "total": 1257
+      },
+      "typescript": "PASS",
+      "lint": "PASS"
+    }
+  },
+  "step3_completed_at": "2026-10-01T15:52:01.121Z",
+  "additional_controller_qualification": {
+    "run_id": "36881458767",
+    "status": "SUCCESS_LINUX_WINDOWS_AND_HISTORICAL_EQUIVALENCE"
+  },
+  "pilot_recovery": {
+    "run_id": "36881458774",
+    "status": "NON_CERTIFIED_OLD_RUN16_ARTIFACT_UNAVAILABLE",
+    "windows_tests_and_disposable_preflight": "SUCCESS",
+    "global_run_conclusion": "FAILURE"
   }
 }
