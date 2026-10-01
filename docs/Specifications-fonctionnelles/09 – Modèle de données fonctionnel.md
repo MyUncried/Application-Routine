@@ -74,7 +74,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-012 | Un Cycle, un Tour et une `SessionActivity` appartiennent à une seule Séance. Une `ActivityDefinition` du MVP T03 est autonome et peut être copiée dans plusieurs Séances ; ses copies ne restent pas liées. | MVP T03 |
 | DM-013 | Un Exercice possède un nombre de Séries propre, entier de 1 à 99 (D-092). Une Série n'est pas une entité autonome. | V1 |
 | DM-014 | Pour `C` Séries d’un même côté, la Pause est toujours insérée `C−1` fois, uniquement entre Séries successives. | D-208 ; supersède D-156 |
-| DM-015 | En mode Durée, `Dexercice = C×A + (C−1)×B` en unilatéral ; en bilatéral `Dexercice = 2×[C×A + (C−1)×B] + sideRecoverySeconds`. `postActivityRecoverySeconds` est exclu de cette durée intrinsèque. | D-208 |
+| DM-015 | En mode Durée, `Dexercice = C×A + (C−1)×B` en unilatéral ; en bilatéral `Dexercice = 2×[C×A + (C−1)×B] + (sideRecoverySeconds>0 ? sideRecoverySeconds : B)`. `postActivityRecoverySeconds` est exclu de cette durée intrinsèque. | D-208 |
 | DM-016| DM-017 | Dans la version actuelle, le Tour ne porte aucun changement de côté exposé. Tout champ technique historique de direction Tour est conservé pour compatibilité mais contraint à `UNILATERAL`. | 24/09/2026 |
 | DM-018 | Un Exercice peut porter un Compte à rebours propre et une Fin d’exercice propre. | 24/09/2026 |
 | DM-019 | Un Point d’arrêt est un élément ordonné de Composition ; son attente n’est pas comptée dans la durée. | 24/09/2026 |
@@ -349,7 +349,7 @@ Elle ne contient pas directement :
 | Date de création       | Date de création de la routine                     | Obligatoire  | Générée automatiquement                                                                           |
 | Mode de planification  | Définit si la Routine est répétée                  | Obligatoire  | Libellés UI : `Aucune` ou `Périodique`                                                            |
 | Date de fin            | Dernière date d'application de la Routine          | Conditionnel | Obligatoire pour une planification périodique ; doit être postérieure ou égale à la date de début |
-| Fréquence hebdomadaire | Nombre de semaines entre deux périodes d’exécution | Conditionnel | Entier ≥ 1 ; obligatoire pour une planification périodique                                        |
+| Fréquence hebdomadaire | Nombre de semaines entre deux périodes d’exécution | Conditionnel | Entier de 1 à 12 ; obligatoire pour une planification périodique                                        |
 | Jours de la semaine    | Jours d'exécution de la Routine                    | Conditionnel | Au moins un jour obligatoire pour une planification périodique                                    |
 ## Règles métier
 
@@ -389,7 +389,7 @@ Le MVP prend en charge deux modes de planification :
 
 - **Aucune** : une seule occurrence est créée à la date et à l'heure définies.
 - **Périodique** : les occurrences sont générées selon une périodicité hebdomadaire définie par :
-    - une fréquence en semaines supérieure ou égale à 1 ;
+    - une fréquence en semaines entière de 1 à 12 ;
     - un ou plusieurs jours de la semaine ;
     - une date de fin obligatoire.
 
@@ -568,7 +568,7 @@ Elle ne contient pas directement :
 - Une `ActivityDefinition` bilatérale peut porter `sideRecoverySeconds`, exécuté une seule fois entre ses deux côtés.
 - Toute `SessionActivity` porte `postActivityRecoverySeconds`, y compris avec la valeur `0`; une valeur positive crée une phase après l’occurrence et avant `SESSION_END` si elle est la dernière.
 - Ni la Pause ni les récupérations ne créent une entité Exercice associé.
-- En mode Durée, la durée intrinsèque vaut `C×A+(C−1)×B` en unilatéral et `2×[C×A+(C−1)×B]+S` en bilatéral, `S=sideRecoverySeconds`; `postActivityRecoverySeconds` est exclu.
+- En mode Durée, la durée intrinsèque vaut `C×A+(C−1)×B` en unilatéral et `2×[C×A+(C−1)×B]+S` en bilatéral, `S=(sideRecoverySeconds>0 ? sideRecoverySeconds : B)`; `postActivityRecoverySeconds` est exclu.
 - Si l’utilisateur pilote par une Durée totale cible, le calcul inverse porte sur cette durée intrinsèque puis applique l’arrondi validé à `C`. Seul `C` est persisté comme valeur canonique de Séries.
 - Toutes les Exercices peuvent être associées à des zones corporelles.
 - Les exercices peuvent être ajoutées, déplacées, dupliquées et supprimées.
@@ -1242,3 +1242,11 @@ Contrat de donnée : ajouter au Profil la préférence facultative `silhouette`,
 
 Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
 
+
+
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transition entre côtés = pause de changement de côté si positive, sinon pause entre Séries, sans cumul ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. Le bloc du côté courant est le périmètre du reset bilatéral. Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+
+
+### Saisie des paramètres — D-246
+
+La référence active est [Paramètres en modale v11](SPECIFICATION-PARAMETRES-MODALE-v11.md), contrats CE-T03-04/CE-UI-10. Les champs de paramètres appartiennent au brouillon transactionnel de la feuille ; ✕ annule, ✓ applique au parent, Terminer seul persiste. Pause entre Séries initiale0s, champs non-stepper initialement non renseignés ; le résumé est régénéré après validation, jamais édité inline. Les bornes métier et calculs restent ceux de v11. Cette règle remplace les anciennes prescriptions de saisie D-232 sur ce parcours.

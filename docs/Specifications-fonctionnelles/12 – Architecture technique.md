@@ -816,7 +816,7 @@ Pour l’Exécution, les composants textuels du contenu utilisent **Roboto Conde
 | Média | `Media / Preview` (`3382:59`) | aperçu Photo ou Vidéo |
 | Média | `Media / Gallery — Source exact` (`3382:64`) | liste horizontale ordonnée avec aperçu suivant tronqué |
 | Média | `Media / Section — Source exact` (`3382:71`) | section masquée dans le MVP ; conteneur de galerie en V2 |
-| Stepper entier simple | Composant standard/DSF compatible React Native/Expo | Contrôle inline pour `Nombre de Séries`, `Nombre de répétitions`, `Nombre de Tours`; bornes métier appliquées ; aucune modale/roulette |
+| Stepper entier simple | Composant standard/DSF compatible React Native/Expo | Stepper permanent pour Séries/Répétitions dans CE-UI-10 et Tours dans Composition ; bornes métier appliquées ; pas de roulette entière |
 | Catégorie | `Selection / Category Tag` (`3302:4166`) | `State=Unselected/Selected`, propriété texte `Label`; cible tactile `48` de haut, pilule visuelle `30`, rayon `15`, Inter Regular `12/15` |
 
 Les composants suffixés `Source exact` ont été extraits d’un écran source identifié dans `Prototype MVP`. Ce suffixe qualifie leur provenance visuelle ; il ne transforme pas le contenu métier de l’écran source en propriété du composant.
@@ -1298,7 +1298,7 @@ Les alias Figma sont bijectifs et explicites :
 | `color/overlay/scrim-1F2129-34` | `color/overlay/scrim` | Voile bloquant des roulettes ouvertes |
 | `color/blue/selection-5F60EE` | `color/selection` | Contour du contrôle pilote après confirmation ; alias exact `VariableID:2290:52` → `VariableID:2290:3` |
 
-Toutes les roulettes ouvertes recouvrent le shell par `color/overlay/scrim`; aucune interaction ni aucun défilement de l’arrière-plan n’est possible tant que la roulette est ouverte.
+Hors CE-UI-10 (voile noir28% de la feuille, roulette inline), toutes les roulettes ouvertes recouvrent le shell par `color/overlay/scrim`; aucune interaction ni aucun défilement de l’arrière-plan n’est possible tant que la roulette est ouverte.
 
 ## Architecture de la bilatéralité
 
@@ -1405,14 +1405,14 @@ L’implémentation de la navigation et des composants visuels respecte D-224 à
 - **Cartes avec photo** : D-238 remplace l’ancien état média déployé ; Photo supprime Déployer. Les variantes média d’Exécution conservent leur fonctionnement propre.
 
 
-### Générateur de phrase v10.2
+### Générateur de résumé — saisie v11
 
 Implémenter le générateur comme fonction pure au-dessus des paramètres de l’Exercice. La bibliothèque de fragments et les règles de sélection sont celles de D-232 ; le calcul Répétitions utilise la constante `r=2 s`. Le jeu de 7 états d’entrée + 36 cas du classeur v10 doit être transcrit en tests paramétrés. Aucun texte Figma ne doit être utilisé comme source de vérité fonctionnelle.
 
 
-### Validation du générateur v10.2
+### Validation du résumé — saisie v11
 
-Le générateur est une fonction pure et déterministe conforme à D-232. Les bornes sont validées au domaine : Séries `1..99`, Répétitions `1..100`, Durée par Série `1..5999 s`, pauses inter-Séries/inter-côtés `0..300 s`. Les steppers de réglage du Profil appliquent `±5 s` jusqu’à `120 s`, puis `±30 s` jusqu’à `300 s`, avec transition `115 s → 120 s → 150 s`. Dans l'éditeur d'Exercice, les durées de pause utilisent des roulettes sur le même domaine de valeurs. La valeur Profil de pause au changement de côté est copiée dans l’Exercice lors de sa première applicabilité. En V1, `r=2 s` est fourni à l’unique fonction de calcul ; la stratégie V2 de lecture/copie depuis le Profil reste hors périmètre MVP et À CLARIFIER.
+Le générateur est une fonction pure et déterministe conforme à D-232. Les bornes sont validées au domaine : Séries `1..99`, Répétitions `1..100`, Durée par Série `1..5999 s`, pauses inter-Séries/inter-côtés `0..300 s`. Les steppers de réglage du Profil appliquent `±5 s` jusqu’à `120 s`, puis `±30 s` jusqu’à `300 s`, avec transition `115 s → 120 s → 150 s`. Dans la feuille de paramètres d’un Exercice, les pauses utilisent des steppers sur le même domaine de valeurs (D-246). La valeur Profil de pause au changement de côté est copiée dans l’Exercice lors de sa première applicabilité. En V1, `r=2 s` est fourni à l’unique fonction de calcul ; la stratégie V2 de lecture/copie depuis le Profil reste hors périmètre MVP et À CLARIFIER.
 
 ## DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)
 
@@ -1429,3 +1429,11 @@ Implémentation attendue : conserver la préférence dans le mécanisme persista
 Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
 
 Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper indépendant (450 ms puis 150 ms pour la répétition) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
+
+
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transition entre côtés = pause de changement de côté si positive, sinon pause entre Séries, sans cumul ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. Le bloc du côté courant est le périmètre du reset bilatéral. Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+
+
+### Saisie des paramètres — D-246
+
+La référence active est [Paramètres en modale v11](SPECIFICATION-PARAMETRES-MODALE-v11.md), contrats CE-T03-04/CE-UI-10. Les champs de paramètres appartiennent au brouillon transactionnel de la feuille ; ✕ annule, ✓ applique au parent, Terminer seul persiste. Pause entre Séries initiale0s, champs non-stepper initialement non renseignés ; le résumé est régénéré après validation, jamais édité inline. Les bornes métier et calculs restent ceux de v11. Cette règle remplace les anciennes prescriptions de saisie D-232 sur ce parcours.

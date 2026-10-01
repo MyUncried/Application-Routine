@@ -94,7 +94,7 @@ Codes : C cartes ; J cartes Jour ; N navigation ; B commandes contextuelles ; S 
 | [Calendrier — Jour — État vide](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2128-86) — `2128:86` | NS | [PNG](Specifications-fonctionnelles/images/ecran-7m-calendrier-vide.png) | `e6a4714cf95b2abd6f16a0a03461e0266f4794ef` |
 | [Profil — Vue d'ensemble — Parcours vide](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2139-86) — `2139:86` | N | [PNG](Specifications-fonctionnelles/images/ecran-1e-profil-parcours-vide.png) | `350b8446bb2cc271a4237c4cc5c4315e5cf185d4` |
 | [Catalogue des séances — Archivées — actions glissées](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2234-88) — `2234:88` | CNBS | [PNG](Specifications-fonctionnelles/images/modale-3-seance-archivee-action-supprimer.png) | `7f46d5ca3f75c848317ac84b6c9732b7fde63fe9` |
-| [Modal — Confirmer la suppression d’une séance archivée](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2234-189) — `2234:189` | CNBS | [PNG](Specifications-fonctionnelles/images/modale-3a-confirmer-suppression-seance-archivee.png) | `09b61124fedba5884ffa03bec7cab29c46bafd6e` |
+| [Modal — Confirmer la suppression d’une séance archivée](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2234-189) — `2234:189` | CNBS | [PNG](Specifications-fonctionnelles/images/modale-3a-confirmer-suppression-seance-archivee.png) | `92c9c185d593ddcbd9671fc585a90223bc50d557` |
 | [Calendrier — Semaine — Mardi sélectionné](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2252-86) — `2252:86` | CNS | [PNG](Specifications-fonctionnelles/images/ecran-7h-calendrier-semaine-mardi.png) | `3fedb69599277d5f47aa08d482b5104e11e6c818` |
 | [Composition séance — Déplacement](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3518-4576) — `3518:4576` | B | [PNG](Specifications-fonctionnelles/images/ecran-3h-composition-appui-long.png) | `b4f4aab2847a880129bb1e9d3f6b69c5fc0274c3` |
 | [Création activité — Avant Paramètres d'exécution](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3542-4656) — `3542:4656` | — | [PNG](Specifications-fonctionnelles/images/ecran-4-creation-activite-duree.png) | `074482e3abca16eee80056329741a8c703fd6cd4` |
@@ -300,3 +300,24 @@ Les captures sont intégrées en Markdown standard et regroupées dans leur fami
 - **Terminologie tranchée (D-209)** : Circuit désigne le groupe interne ; Tour désigne une répétition ; Parcours reste autonome. Les anciens libellés Figma sont des écarts visuels, pas des décisions à rouvrir.
 - **Périmètre corrigé depuis #247** : D-203 inclut la consultation média représentée au MVP ; ses cinq variantes sont regroupées dans Exécution. Aucun mécanisme d’import n’est ajouté.
 - **Limite de contrôle** : les fichiers image existants ont été réutilisés ; aucun nouvel export global n’a été effectué. Leur correspondance par nœud et leur intégration Markdown ont été contrôlées.
+
+
+## Delta du01/10 — paramètres en feuille basse
+
+12 nouvelles références exportées et inspectées ;2234:189 réexportée après restauration du dialogue. Le compte119 décrit le contrôle du30/09, pas le catalogue courant. Aucune ancienne image supprimée ; les états de saisie inline sont historiques.
+
+| Frame | Contrat actif | Preuve au chapitre06 |
+|---|---|---|
+| `6407:9458` | CE-T03-04 | `images/figma-6407-9458.png` |
+| `6407:9551` | CE-UI-10 | `images/figma-6407-9551.png` |
+| `6407:9702` | CE-T03-04 | `images/figma-6407-9702.png` |
+| `6407:9805` | CE-UI-10 | `images/figma-6407-9805.png` |
+| `6407:9966` | CE-UI-10 | `images/figma-6407-9966.png` |
+| `6407:10127` | CE-UI-10 | `images/figma-6407-10127.png` |
+| `6411:9546` | CE-UI-10 | `images/figma-6411-9546.png` |
+| `6407:10481` | CE-UI-10 | `images/figma-6407-10481.png` |
+| `6411:9649` | CE-UI-10 | `images/figma-6411-9649.png` |
+| `6419:9847` | CE-UI-10 | `images/figma-6419-9847.png` |
+| `6419:10028` | CE-UI-10 | `images/figma-6419-10028.png` |
+| `6423:9953` | CE-UI-10 | `images/figma-6423-9953.png` |
+| `2234:189` | CE-T03-01 | `images/modale-3a-confirmer-suppression-seance-archivee.png` ; boutons non câblés |

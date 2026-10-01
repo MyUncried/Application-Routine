@@ -1,4 +1,6 @@
-# Spécification fonctionnelle — Phrase de synthèse des paramètres d'exécution
+# Spécification fonctionnelle — Phrase de synthèse des paramètres d'exécution — HISTORIQUE
+
+> **Obsolète pour la saisie depuis le 01/10/2026.** Voir [Paramètres en modale v11](SPECIFICATION-PARAMETRES-MODALE-v11.md). Les états inline, contrôles, valeurs initiales et visibilité ci-dessous ne sont plus des exigences actives. Les calculs maintenus sont réénoncés dans v11.
 
 **Périmètre** : champ « Paramètres d'exécution » des écrans « Ajouter un exercice » et « Modifier un exercice ».
 **Statut** : spécification v10.2, 28/09/2026 (classeur v10) ; arbitrages V1/MVP D-232 et condition d'ajustement confirmée.
@@ -76,7 +78,7 @@ Une durée x, en secondes, s'écrit :
 
 ## 5. Règles de calcul
 
-Notons `côté = pC` si un changement de côté est défini, sinon `0`.
+Notons `côté = (pC>0 ? pC : pS)` si un changement de côté est défini, sinon `0` (arbitrage du 30/09/2026).
 
 | Mode | Durée totale | Affichage |
 |---|---|---|
@@ -92,7 +94,7 @@ Principes :
 - **L'effort et les pauses entre séries sont comptés pour chaque côté** (k = 2), puisque chaque côté déroule son propre bloc de séries.
 - **La pause entre côtés est comptée une seule fois**, quel que soit le nombre de séries.
 - Le minimum du mode Répétitions ne compte que du temps connu : l'effort au rythme standard `r`, et les pauses.
-- Avec une seule série (N = 1), `(N − 1) × pS = 0` : la pause entre séries n'intervient pas.
+- Avec une seule série (N = 1), `(N − 1) × pS = 0` : aucune pause interne au côté n’intervient ; en bilatéral, pS reste appliquée à la transition si pC=0.
 
 Exemples :
 - Mode Durée, N = 3, d = 90 s, pS = 15 s, D→G avec pC = 5 s : T = 2 × (3 × 90 + 2 × 15) + 5 = 605 s → « 10 min 5 s ».
@@ -132,7 +134,7 @@ L'état sans mode existe uniquement à l'ouverture de la création d'un nouvel E
 
 **7.2 Édition de la durée totale (mode Durée uniquement).** L'utilisateur fixe une durée visée `Tv` (sélecteur minutes / secondes). L'application en déduit le nombre entier de séries le plus proche :
 
-`N = max(1, arrondi( (Tv − côté + k × pS) / (k × (d + pS)) ))` (arrondi au plus proche ; à `.5`, vers le haut ; Séries bornées à `1..99` selon D-232)
+`N = min(99, max(1, arrondi( (Tv − côté + k × pS) / (k × (d + pS)) )))` (arrondi au plus proche ; à `.5`, vers le haut ; Séries bornées à `1..99` selon D-232)
 
 La durée par série et les pauses ne changent pas. Une fois le nombre entier de Séries `N` calculé, la durée effectivement réalisable `T(N)` est recalculée. **Si `T(N) ≠ Tv`**, afficher temporairement : « Durée ajustée à {T(N)} pour respecter un nombre entier de Séries. » **Si `T(N) = Tv`**, ne pas afficher ce message. La valeur affichée après confirmation est toujours `T(N)`. La comparaison porte sur les durées numériques, avant formatage.
 
@@ -218,7 +220,7 @@ Tous les cas ci-dessous ont été vérifiés contre une implémentation indépen
 | 3 | Durée | 1 | — | 1 min 30 s | — | D→G | 0 s | 1 série de 1 min 30 s, en changeant de côté de D→G. Durée totale 3 min. |
 | 4 | Durée | 3 | — | 1 min 30 s | 15 s | Aucun | — | 3 séries de 1 min 30 s, avec 15 s de pause entre les séries, sans changement de côté. Durée totale 5 min. |
 | 5 | Durée | 3 | — | 1 min 30 s | 15 s | D→G | 5 s | 3 séries de 1 min 30 s, avec 15 s de pause entre les séries, en changeant de côté de D→G après 5 s de pause. Durée totale 10 min 5 s. |
-| 6 | Durée | 3 | — | 1 min 30 s | 15 s | D→G | 0 s | 3 séries de 1 min 30 s, avec 15 s de pause entre les séries, en changeant de côté de D→G. Durée totale 10 min. |
+| 6 | Durée | 3 | — | 1 min 30 s | 15 s | D→G | 0 s | 3 séries de 1 min 30 s, avec 15 s de pause entre les séries, en changeant de côté de D→G. Durée totale 10 min 15 s. |
 | 7 | Durée | 3 | — | 1 min 30 s | 0 s | Aucun | — | 3 séries de 1 min 30 s, sans pause entre les séries, sans changement de côté. Durée totale 4 min 30 s. |
 | 8 | Durée | 3 | — | 1 min 30 s | 0 s | D→G | 5 s | 3 séries de 1 min 30 s, sans pause entre les séries, en changeant de côté de D→G après 5 s de pause. Durée totale 9 min 5 s. |
 | 9 | Durée | 3 | — | 1 min 30 s | 0 s | D→G | 0 s | 3 séries de 1 min 30 s, sans pause entre les séries, en changeant de côté de D→G. Durée totale 9 min. |
@@ -227,7 +229,7 @@ Tous les cas ci-dessous ont été vérifiés contre une implémentation indépen
 | 12 | Répétitions | 1 | 1 | — | — | D→G | 0 s | 1 série de 1 répétition, en changeant de côté de D→G. Durée totale ≥ 4 s. |
 | 13 | Répétitions | 3 | 1 | — | 15 s | Aucun | — | 3 séries de 1 répétition, avec 15 s de pause entre les séries, sans changement de côté. Durée totale ≥ 36 s. |
 | 14 | Répétitions | 3 | 1 | — | 15 s | D→G | 5 s | 3 séries de 1 répétition, avec 15 s de pause entre les séries, en changeant de côté de D→G après 5 s de pause. Durée totale ≥ 1 min 17 s. |
-| 15 | Répétitions | 3 | 1 | — | 15 s | D→G | 0 s | 3 séries de 1 répétition, avec 15 s de pause entre les séries, en changeant de côté de D→G. Durée totale ≥ 1 min 12 s. |
+| 15 | Répétitions | 3 | 1 | — | 15 s | D→G | 0 s | 3 séries de 1 répétition, avec 15 s de pause entre les séries, en changeant de côté de D→G. Durée totale ≥ 1 min 27 s. |
 | 16 | Répétitions | 3 | 1 | — | 0 s | Aucun | — | 3 séries de 1 répétition, sans pause entre les séries, sans changement de côté. Durée totale ≥ 6 s. |
 | 17 | Répétitions | 3 | 1 | — | 0 s | D→G | 5 s | 3 séries de 1 répétition, sans pause entre les séries, en changeant de côté de D→G après 5 s de pause. Durée totale ≥ 17 s. |
 | 18 | Répétitions | 3 | 1 | — | 0 s | D→G | 0 s | 3 séries de 1 répétition, sans pause entre les séries, en changeant de côté de D→G. Durée totale ≥ 12 s. |
@@ -236,7 +238,7 @@ Tous les cas ci-dessous ont été vérifiés contre une implémentation indépen
 | 21 | Répétitions | 1 | 12 | — | — | D→G | 0 s | 1 série de 12 répétitions, en changeant de côté de D→G. Durée totale ≥ 48 s. |
 | 22 | Répétitions | 3 | 12 | — | 15 s | Aucun | — | 3 séries de 12 répétitions, avec 15 s de pause entre les séries, sans changement de côté. Durée totale ≥ 1 min 42 s. |
 | 23 | Répétitions | 3 | 12 | — | 15 s | D→G | 5 s | 3 séries de 12 répétitions, avec 15 s de pause entre les séries, en changeant de côté de D→G après 5 s de pause. Durée totale ≥ 3 min 29 s. |
-| 24 | Répétitions | 3 | 12 | — | 15 s | D→G | 0 s | 3 séries de 12 répétitions, avec 15 s de pause entre les séries, en changeant de côté de D→G. Durée totale ≥ 3 min 24 s. |
+| 24 | Répétitions | 3 | 12 | — | 15 s | D→G | 0 s | 3 séries de 12 répétitions, avec 15 s de pause entre les séries, en changeant de côté de D→G. Durée totale ≥ 3 min 39 s. |
 | 25 | Répétitions | 3 | 12 | — | 0 s | Aucun | — | 3 séries de 12 répétitions, sans pause entre les séries, sans changement de côté. Durée totale ≥ 1 min 12 s. |
 | 26 | Répétitions | 3 | 12 | — | 0 s | D→G | 5 s | 3 séries de 12 répétitions, sans pause entre les séries, en changeant de côté de D→G après 5 s de pause. Durée totale ≥ 2 min 29 s. |
 | 27 | Répétitions | 3 | 12 | — | 0 s | D→G | 0 s | 3 séries de 12 répétitions, sans pause entre les séries, en changeant de côté de D→G. Durée totale ≥ 2 min 24 s. |
@@ -249,3 +251,6 @@ Tous les cas ci-dessous ont été vérifiés contre une implémentation indépen
 | 34 | À l'échec | 3 | — | — | 0 s | Aucun | — | 3 séries jusqu'à l'échec, sans pause entre les séries, sans changement de côté. |
 | 35 | À l'échec | 3 | — | — | 0 s | D→G | 5 s | 3 séries jusqu'à l'échec, sans pause entre les séries, en changeant de côté de D→G après 5 s de pause. |
 | 36 | À l'échec | 3 | — | — | 0 s | D→G | 0 s | 3 séries jusqu'à l'échec, sans pause entre les séries, en changeant de côté de D→G. |
+
+
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transition entre côtés = pause de changement de côté si positive, sinon pause entre Séries, sans cumul ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. Le bloc du côté courant est le périmètre du reset bilatéral. Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.

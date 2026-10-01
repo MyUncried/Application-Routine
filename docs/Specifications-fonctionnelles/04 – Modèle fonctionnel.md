@@ -101,9 +101,9 @@ Chaque Exercice possède notamment :
 
 La Pause et la Pause au changement de côté sont indépendantes. Avec `Aucun`, `sideRecoverySeconds` est sans objet. En bilatéral, l’ordre est : toutes les Séries du premier côté → Pause au changement de côté éventuelle → toutes les Séries du second côté.
 
-En mode Durée, avec `C` le nombre de Séries par côté, `A` la durée cible par Série, `B` la Pause et `S` la Pause au changement de côté : en unilatéral, `Dexercice = C × A + (C − 1) × B` ; en bilatéral, `Dexercice = 2 × [C × A + (C − 1) × B] + S`. La Récupération après exercice n’entre jamais dans `Dexercice`. Le nombre de Séries est la valeur canonique persistée ; la Durée totale est dérivée.
+En mode Durée, avec `C` le nombre de Séries par côté, `A` la durée cible par Série, `B` la Pause et `S` la pause effective de transition (Pause au changement de côté si positive, sinon `B`) : en unilatéral, `Dexercice = C × A + (C − 1) × B` ; en bilatéral, `Dexercice = 2 × [C × A + (C − 1) × B] + S`. La Récupération après exercice n’entre jamais dans `Dexercice`. Le nombre de Séries est la valeur canonique persistée ; la Durée totale est dérivée.
 
-En mode Répétitions, la phrase présente `Durée totale ≥ {estimation}`. Pour cette estimation uniquement, chaque répétition vaut conventionnellement **2 secondes**. La formule est `Tmin = k × (N × R × 2 + (N − 1) × pS) + côté`, avec `k=2` si changement de côté sinon `1`, et `côté=pC` si applicable sinon `0`. En mode À l’échec, aucune Durée totale n’est affichée. En mode Durée avec une seule Série **sans changement de côté**, la clause Durée totale est omise car redondante. Dès qu’un changement de côté est défini, elle est affichée car la durée totale diffère de la durée par Série (D-232).
+En mode Répétitions, la phrase présente `Durée totale ≥ {estimation}`. Pour cette estimation uniquement, chaque répétition vaut conventionnellement **2 secondes**. La formule est `Tmin = k × (N × R × 2 + (N − 1) × pS) + côté`, avec `k=2` si changement de côté sinon `1`, et `côté=(pC>0 ? pC : pS)` en bilatéral sinon `0`. En mode À l’échec, aucune Durée totale n’est affichée. En mode Durée avec une seule Série **sans changement de côté**, la clause Durée totale est omise car redondante. Dès qu’un changement de côté est défini, elle est affichée car la durée totale diffère de la durée par Série (D-232).
 
 ### Exercice de référence et Exercice de Séance
 
@@ -288,7 +288,7 @@ Lorsqu’un Exercice est exécutée, le moteur applique ses phases intrinsèques
 1. exécuter le Compte à rebours d’Exercice lorsqu’il est présent ;
 2. déterminer le ou les côtés à exécuter à partir du `Changement de côté` propre à l’Exercice ;
 3. exécuter toutes les Séries du premier côté, avec une Pause uniquement entre deux Séries successives ;
-4. si l’Exercice est bilatéral et `sideRecoverySeconds > 0`, exécuter une seule phase `SIDE_RECOVERY` ;
+4. si l’Exercice est bilatéral, exécuter une seule phase `SIDE_RECOVERY` de durée `q=(sideRecoverySeconds>0 ? sideRecoverySeconds : B)` si q>0 ;
 5. exécuter toutes les Séries du second côté, lorsqu’il existe, avec la même règle de Pause ;
 6. exécuter la Fin d’exercice lorsqu’elle est présente ;
 7. terminer l’Exercice intrinsèque.
@@ -428,9 +428,9 @@ Le Point d’arrêt reste un élément structurel distinct de la Récupération.
 
 ### Phrase de synthèse des paramètres d’exécution
 
-La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, pause entre Séries si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Source normative : D-232 / classeur v10 et spécification v10.2.
+La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, pause entre Séries si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Source normative : D-232 / classeur v10 et spécification v11.
 
-Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série `1..100`, Durée par Série `1 s..99 min 59 s`, Pause entre Séries et Pause au changement de côté `0..5 min`. Dans le Profil, les réglages de durée utilisent un stepper ; dans l'ajout/modification d'un Exercice, les pauses sont choisies par roulette. Les valeurs proposées progressent par `5 s` jusqu’à `2 min`, puis par `30 s` jusqu’à `5 min`. La Pause au changement de côté est copiée depuis le Profil lorsqu’elle devient applicable.
+Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série `1..100`, Durée par Série `1 s..99 min 59 s`, Pause entre Séries et Pause au changement de côté `0..5 min`. Dans le Profil, les réglages de durée utilisent un stepper ; dans la feuille de paramètres d’un Exercice, les pauses sont réglées par stepper. Les valeurs proposées progressent par `5 s` jusqu’à `2 min`, puis par `30 s` jusqu’à `5 min`. La Pause au changement de côté est copiée depuis le Profil lorsqu’elle devient applicable.
 
 ## Présentation des objets — 30 septembre 2026
 
@@ -444,3 +444,11 @@ D-239 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 
 
 Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
 
+
+
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transition entre côtés = pause de changement de côté si positive, sinon pause entre Séries, sans cumul ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. Le bloc du côté courant est le périmètre du reset bilatéral. Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+
+
+### Saisie des paramètres — D-246
+
+La référence active est [Paramètres en modale v11](SPECIFICATION-PARAMETRES-MODALE-v11.md), contrats CE-T03-04/CE-UI-10. Les champs de paramètres appartiennent au brouillon transactionnel de la feuille ; ✕ annule, ✓ applique au parent, Terminer seul persiste. Pause entre Séries initiale0s, champs non-stepper initialement non renseignés ; le résumé est régénéré après validation, jamais édité inline. Les bornes métier et calculs restent ceux de v11. Cette règle remplace les anciennes prescriptions de saisie D-232 sur ce parcours.

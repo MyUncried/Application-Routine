@@ -2,7 +2,7 @@
 
 > Historique Bilatéralité du 13 septembre 2026 : cette séquence introduisait notamment un contrôle de côté au niveau Tour. Elle est supersédée sur ce point par D-189 du 24 septembre 2026 : aucun changement de côté n’est désormais exposé au niveau Tour ; la capacité technique historique est conservée pour non-régression.
 >
-> Mise à jour T03 du 15–16 septembre 2026 : le Catalogue des exercices entre dans le MVP T03 ; l’ancien T03 Exécution devient T04. Les corrections UX T03 sont intégrées directement au chapitre 06 et les décisions D-167 à D-187 au registre 07. Le modèle et la migration T03 sont désormais intégrés directement au chapitre 09. Le chapitre 13 constitue l’unique référence des contrats d’écran T03 actifs `CE-T03-01` à `CE-T03-17`.
+> Mise à jour T03 du 15–16 septembre 2026 : le Catalogue des exercices entre dans le MVP T03 ; l’ancien T03 Exécution devient T04. Les corrections UX T03 sont intégrées directement au chapitre 06 et les décisions D-167 à D-187 au registre 07. Le modèle et la migration T03 sont désormais intégrés directement au chapitre 09. Le chapitre 13 constitue l’unique référence des contrats d’écran actifs : `CE-T03-01` à `CE-T03-17`, `CE-MEDIA-EXEC-01/02`, `CE-UI-01` à `CE-UI-09` et `CE-EXEC-SESSION-01`.
 >
 > Décision du 21 septembre 2026 — D-187 : dans chaque Catalogue, `Créer` est contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant ; l’écran/arbre intermédiaire est supprimé. Les anciennes frames `3787:5148` et `3841:8375` sont conservées comme évidences historiques, non comme cible fonctionnelle.
 >
@@ -16,7 +16,7 @@
 >
 > Décision du 24 septembre 2026 — D-201 : `Parcours` devient le terme fonctionnel et UX de référence pour l’entité post-MVP correspondante. La documentation de référence est alignée ; les identifiants techniques existants restent inchangés jusqu’à leur éventuel renommage dans le code, et Figma est à aligner dans l’étape suivante.
 >
-> Décision du 24 septembre 2026 — D-202 : `Exercice` devient le terme fonctionnel et UX de référence en remplacement de `Exercice`. La documentation fonctionnelle et Figma doivent utiliser `Exercice` / `Exercices`; les identifiants techniques existants (`ActivityDefinition`, `SessionActivity`, `API-ACT-*`, etc.) restent inchangés tant qu’ils ne sont pas renommés dans le code.
+> Décision du 24 septembre 2026 — D-202 : `Exercice` devient le terme fonctionnel et UX de référence en remplacement de `Activité`. La documentation fonctionnelle et Figma doivent utiliser `Exercice` / `Exercices`; les identifiants techniques existants (`ActivityDefinition`, `SessionActivity`, `API-ACT-*`, etc.) restent inchangés tant qu’ils ne sont pas renommés dans le code.
 
 ## 1. Objet
 
@@ -66,7 +66,7 @@ La documentation détaillée se trouve dans le dossier [`Specifications-fonction
 | 10 | [Processus métier et règles métier transverses](./Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md) | Centralise les règles métier et de calcul. | Baseline MVP T03 |
 | 11 | [API fonctionnelles](./Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md) | Décrit opérations et services fonctionnels. | Baseline MVP T03 |
 | 12 | [Architecture technique](./Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md) | Décrit architecture, stockage, état, intégrations natives et tests. | Baseline MVP T03 |
-| 13 | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md) | Spécification déterministe des écrans T03 ; 17 contrats complets à 21 sections, couverture E01–E73, rangée Catalogue, Filtrer/Trier et frontière T03/T04. | Référence normative T03 unique |
+| 13 | [Contrats d’écran](./Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md) | Spécification déterministe des écrans T03 ; 30 contrats à 21 sections (630 rubriques), avec réserves amont et statuts des preuves explicites, couverture E01–E73, rangée Catalogue, Filtrer/Trier et frontière T03/T04. | Référence normative T03 unique |
 
 ## 4. Images et maquettes
 
@@ -270,3 +270,16 @@ Le chapitre 06 regroupe chaque parcours sous son titre, sans numéros d’écran
 ### Réconciliation des branches documentaires
 
 Les apports de #247 et #271 sont consolidés dans le [rapport de réconciliation](RAPPORT-RECONCILIATION-DOCUMENTAIRE-247-271.md). D-209 à D-232 conservent les décisions de #247 ; les décisions récentes de cartes et appuis portent désormais D-233 à D-239.
+
+## Correction des contrats après audit — 30 septembre 2026
+
+Les 30 contrats du chapitre13 ont chacun21 rubriques. Les contrats média sont complétés ; Splash, Profil principal, Exécution SESSION, Synthèse SESSION et référentiels d’Exercice possèdent un propriétaire explicite. CE-T03-16 décrit désormais les Étiquettes intégrées à Composition. Les prescriptions locales corrigées remplacent les anciens parcours dans ce chapitre ; les réserves de calcul/transitions/modèle amont restent explicites au §6, sans certification interactive. [Bilan et suivi des 47 constats](RAPPORT-CORRECTION-CONTRATS-2026-09-30.md).
+
+
+## Paramètres en feuille basse —01/10/2026
+
+- [Spécification active v11](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v11.md) — remplace la saisie dans la phrase.
+- [DSF de la feuille et de ses contrôles](DSF-PARAMETRES-MODALE-2026-10-01.md).
+- [Transmission source](SOURCE-SAISIE-PARAMETRES-MODALE-2026-10-01.md).
+- Chapitre06 :12 états illustrés et confirmation2234:189 restaurée. Chapitre13 :30 contrats ×21rubriques, dont CE-UI-10.
+- v10.2 et ses captures de saisie sont historiques.

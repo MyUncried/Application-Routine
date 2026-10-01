@@ -209,7 +209,7 @@ La sélection multiple affiche le nombre `N`, désactive l’ajout pour `N = 0` 
 
 L’action Lecture est disponible uniquement pour une référence valide. Le lancement fige la définition courante dans un instantané d’origine `ACTIVITY` et mémorise l’état du Catalogue.
 
-Le Plan contient `DIRECT_PREPARE(5 s)`, puis les Séries, Pauses, côtés et, si l’Exercice est bilatéral, `SIDE_RECOVERY` lorsque `sideRecoverySeconds > 0`. Il ne contient jamais `POST_ACTIVITY_RECOVERY`, ni Tour, ni Cycle visible, ni `SESSION_END`. Le dernier achèvement produit le signal de fin et ouvre immédiatement la Synthèse.
+Le Plan contient `DIRECT_PREPARE(5 s)`, puis les Séries, Pauses, côtés et, si l’Exercice est bilatéral, `SIDE_RECOVERY` de durée q>0 (q = sideRecoverySeconds si positif, sinon pause entre Séries). Il ne contient jamais `POST_ACTIVITY_RECOVERY`, ni Tour, ni Cycle visible, ni `SESSION_END`. Le dernier achèvement produit le signal de fin et ouvre immédiatement la Synthèse.
 
 La Synthèse affiche les données compatibles d’un Exercice seul. Le Ressenti est obligatoire pour activer `Terminer`; le Commentaire est facultatif. La finalisation enregistre l’Exécution dans le Suivi général, alimente les statistiques compatibles sans compter une Séance, puis restaure filtres et position de défilement du Catalogue.
 
@@ -457,27 +457,7 @@ La barre couvre le Plan d’Exécution complet : le Compte à rebours initial et
 
 La progression mathématique de la barre est continue. Sa piste est toutefois structurée visuellement par Tours conformément au prototype Figma. Ces séparations sont uniquement des repères de lecture et ne modifient ni les poids ni le calcul de l’avancement global.
 
-Son calcul s'appuie cependant sur les occurrences d'Exercices du plan d'Exécution :
-
-- `N` = nombre total d'Exercices à exécuter dans le plan ;
-- `R` = nombre d’occurrences d’Exercices sans durée cible, en mode Répétitions ou À l’échec ;
-- `T` = somme des durées des occurrences d'Exercices chronométrés du plan.
-
-Chaque occurrence d’Exercice en mode Répétitions ou À l’échec reçoit un poids de `1 / N` dans la barre.
-
-La part restante, `1 - R / N`, est répartie entre les occurrences d'Exercices chronométrés proportionnellement à leur durée. Pour un Exercice chronométré de durée `d`, son poids est donc :
-
-`(1 - R / N) × d / T`
-
-Cas particuliers :
-
-- si `R = 0`, la barre est entièrement proportionnelle aux durées ;
-- si `R = N`, chaque Exercice reçoit un poids de `1 / N` ;
-- un Exercice chronométré en cours remplit progressivement sa part selon le temps écoulé sur sa durée cible ;
-- un Exercice en mode Répétitions ou À l’échec conserve sa part non remplie pendant la Série puis la remplit entièrement lorsque l’utilisateur valide sa fin avec `Suivant` ;
-- un Exercice chronométré passée avant son terme et enregistrée `Partielle` est considérée comme franchie dans l'avancement global : sa part est alors entièrement remplie ;
-- `Pause` suspend la progression de la part courante ;
-- `Réinitialiser` remet à zéro la progression interne de l'Exercice courant sans modifier les parts déjà franchies.
+Le calcul porte sur les étapes du plan développé, sans modifier la piste segmentée existante. Soit M le nombre d’étapes contributives (Séries non chronométrées et phases chronométrées de durée strictement positive), R le nombre de Séries non chronométrées et T la somme des durées chronométrées. Chaque Série non chronométrée pèse 1/M ; chaque phase chronométrée de durée d pèse (1−R/M)×d/T. Avec R=0, les poids sont d/T ; sans phase chronométrée, chaque Série pèse 1/M. Les phases à 0 s, pauses manuelles et attentes aux points d’arrêt n’ont pas de poids. Une Série non chronométrée acquiert sa part à validation ; une phase chronométrée la remplit progressivement. Un passage anticipé confirmé franchit les étapes effectivement sautées sans leur attribuer de temps réalisé. Le moteur ne publie 100 % qu’à la finalisation du plan (SESSION_END compris pour une Séance) ; une étape finale instantanée est finalisée avant de publier 100 %. Les poids sont figés au démarrage. Un reset remet à zéro les parts de son périmètre, en préservant les parts antérieures hors de ce périmètre.
 
 La barre représente donc l'**avancement global dans le plan d'Exécution**. Elle n'est pas le simple rapport entre le temps total écoulé et la durée estimée d’exécution.
 
@@ -662,7 +642,7 @@ Chaque Routine possède les paramètres suivants :
     - **Aucune** : une seule occurrence est planifiée à la date définie ;
     - **Périodique** : dans le MVP, la Séance est répétée selon une périodicité hebdomadaire définie par une fréquence en semaines ;
 - pour une planification périodique :
-    - la fréquence en semaines, supérieure ou égale à 1 ;
+    - la fréquence en semaines, entière de 1 à 12 ;
     - un ou plusieurs jours de la semaine ;
     - une date de fin obligatoire ;
 - un rappel facultatif, avec **0 ou 1 rappel maximum** par Routine.
@@ -978,22 +958,22 @@ L’Étiquette est gérée directement dans la Composition via une modale basse.
 | Catégorie | Bouton / sélection | Toujours | Oui | Aucune | Exactement une Catégorie d’Exercice (D-211) | Activité | Ouvrir la modale de sélection | Icône Catégorie dans l’état non renseigné ; pilule avec le nom après sélection |
 | Zones corporelles | Bouton / sélection | Toujours | Oui | Aucune | Au moins une Zone, sélection multiple (D-211) | Activité | Ouvrir la modale de sélection | Icône de zone corporelle selon la silhouette du Profil ; accès à la modale |
 | Description de l’exercice | Champ texte multiligne | Sous les paramètres d’exécution | Non | Vide | 1000 caractères max | Activité | Déployer / saisir | La copie actuelle présente le champ multiligne dans le formulaire |
-| Mode d'exécution          | Section repliable + Segmented Control | Toujours ; déployée par défaut | Oui | Aucun mode | Durée / Répétitions / À l’échec | Activité | Déployer / sélectionner | Phrase vide et Terminer désactivé sans mode ; premier choix irréversible vers aucun mode (D-232) |
+| Mode d'exécution          | Ligne et segmenté dans CE-UI-10 | Toujours ; déployée par défaut | Oui | Aucun mode | Durée / Répétitions / À l’échec | Activité | Déployer / sélectionner | Phrase vide et Terminer désactivé sans mode ; premier choix irréversible vers aucun mode (D-232) |
 | Durée                     | Roulette min/sec  | Étape 1, mode Durée                | Oui         | 1 min                           | 1 s à 99 min 59 s                              | Activité | Sélection      | Deux colonnes : minutes et secondes |
-| Nombre de répétitions     | Stepper intégré | Étape 1, mode Répétition      | Oui         | 1                              | Entier de 1 à 100 (D-232)                       | Activité | Sélection      | Commandes − / valeur / + dans la phrase, sans modale |
-| Pause entre Séries        | Roulette durée    | Mode déployé                       | Non         | 5 s à sa première apparition   | 0..5 min ; pas 5 s jusqu’à 2 min puis 30 s (D-232)                                | Activité | Sélection      | Toujours exactement `C − 1` occurrences par côté, uniquement entre Séries successives ; indépendante des récupérations |
-| Nombre de Séries          | Stepper intégré | Mode déployé                  | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Commandes − / valeur / + dans la phrase, sans modale ; valeur canonique persistée |
-| Changement de côté | Contrôle | Mode déployé | Non | `Aucun` (`UNILATERAL`) | `UNILATERAL`, `D→G`, `G→D` | Activité | Déployer le contrôle dans la phrase | Aucun réglage de côté n’est exposé au niveau Tour |
-| Pause au changement de côté | Roulette durée | Visible uniquement en `D→G/G→D` | Non | Copie de la valeur courante du Profil (initialement 10 s) | 0..5 min ; pas 5 s jusqu’à 2 min puis 30 s (D-232) | Activité | Sélection | `sideRecoverySeconds`; une seule phase entre les deux côtés ; aucune récupération post-activité dans l’éditeur |
+| Nombre de répétitions     | Stepper intégré | Étape 1, mode Répétition      | Oui         | 1                              | Entier de 1 à 100 (D-232)                       | Activité | Sélection      | Commandes − / valeur / + permanentes dans la feuille CE-UI-10 |
+| Pause entre Séries | Stepper permanent | Toujours dans CE-UI-10 | Non | 0 s | 0..300 s ; pas5s jusqu’à120 puis30 | Exercice | −/+ | C−1 pauses internes par côté ; repli transition D-242 |
+| Nombre de Séries          | Stepper intégré | Mode déployé                  | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Commandes − / valeur / + permanentes dans la feuille CE-UI-10 ; valeur canonique persistée |
+| Changement de côté | Contrôle | Mode déployé | Non | `Aucun` (`UNILATERAL`) | `UNILATERAL`, `D→G`, `G→D` | Activité | Déployer le contrôle sous sa ligne dans la feuille | Aucun réglage de côté n’est exposé au niveau Tour |
+| Pause au changement de côté | Stepper permanent CE-UI-10 | Visible uniquement en `D→G/G→D` | Non | Copie de la valeur courante du Profil (initialement 10 s) | 0..5 min ; pas 5 s jusqu’à 2 min puis 30 s (D-232) | Activité | Sélection | `sideRecoverySeconds`; une seule phase entre les deux côtés ; aucune récupération post-activité dans l’éditeur |
 | Durée totale              | Valeur calculée / estimation dans le texte éditable | Selon mode | Non | Calculée | En Durée : valeur réalisable selon la formule ; en Répétitions : estimation avec 2 s par répétition ; en À l’échec : non affichée | Calcul | Sélection en mode Durée ; lecture estimative en Répétitions | Durée inchangée ; Répétitions : `Durée totale >= {estimation}` ; À l’échec : aucune Durée totale |
 | Médias                    | Zone média | Selon état | Non | Vide | Le média associé peut être affiché dans la carte Catalogue déployée du MVP ; les capacités d’import/capture suivent leur périmètre propre | Activité | Afficher / masquer | La Synthèse reste au-dessus en cas de chevauchement dans l’éditeur |
 | Bouton Terminer           | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom, une Catégorie, au moins une Zone et un mode obligatoires ; cible valide selon le mode (D-211/D-232) | Statique | Enregistrer | Remplace l’ancien libellé `Valider` puisqu’il n’existe plus de second écran |
 
 **Règle transverse des roulettes numériques :** chaque changement effectif de valeur déclenche un retour haptique léger et bref, une seule fois par cran. Ce feedback est systématique et indépendant de la préférence `Vibrations` du Profil.
 
-**Présentation courante des paramètres :** la phrase éditable présente les Séries, la cible du mode, la Pause et le Changement de côté. Les steppers se déploient dans cette phrase ; les durées disposent de leur modale basse. Les anciennes rangées de cadres ne sont plus la référence de placement.
+**Présentation courante des paramètres :** la carte présente un résumé et des raccourcis. Les steppers sont permanents dans la feuille CE-UI-10 ; les roulettes de durée se déploient sous leur ligne dans cette même feuille. Les anciennes rangées de cadres ne sont plus la référence de placement.
 
-Les durées de l’Exercice (durée par Série, Durée totale et pauses) utilisent des roulettes basses. Séries `1..99` et Répétitions `1..100` utilisent des steppers ; les réglages du Profil utilisent des steppers. Les bornes, pas et valeurs initiales suivent D-232. Annuler et Confirmer restent les actions des roulettes.
+Dans CE-UI-10, durée par Série et Durée totale utilisent des roulettes sous leur ligne ; les pauses utilisent des steppers. Séries `1..99` et Répétitions `1..100` utilisent des steppers ; les réglages du Profil utilisent des steppers. Les bornes et pas suivent D-232, les valeurs initiales D-246. Annuler et Valider portent sur l’ensemble de la feuille, sans seconde validation par roulette.
 ### Règles fonctionnelles
 
 | Règle             | Description                                                                                                                                                                                                                                                                                                                                                                                |
@@ -1004,10 +984,10 @@ Les durées de l’Exercice (durée par Série, Durée totale et pauses) utilise
 | Séries            | Un Exercice possède un nombre de Séries propre, de 1 à 99 (D-092). En bilatéral autonome, ce nombre s’entend par côté. Une Série exécute la cible du mode ; une Pause éventuelle n’est insérée qu’entre deux Séries du même côté. |
 | Changement de côté | Réglage propre `Aucun` (`UNILATERAL`), `D→G` (`RIGHT_LEFT`) ou `G→D` (`LEFT_RIGHT`). Aucun réglage de côté n’est exposé au niveau Tour. |
 | Pause au changement de côté | Durée intrinsèque facultative `sideRecoverySeconds`, uniquement en bilatéral. Elle intervient une seule fois entre le premier et le second côté. Sa valeur initiale lors de l’activation bilatérale provient du défaut global **Pause au changement de côté** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice. |
-| Durée totale calculée | En mode Durée, la durée intrinsèque vaut `D = L × [C × A + (C − 1) × B] + S`, avec `L=1` et `S=0` en unilatéral, `L=2` et `S=sideRecoverySeconds` en bilatéral. `postActivityRecoverySeconds` est exclu. Toute modification de `A`, `B`, `C`, `S` ou du réglage de côté recalcule `D` lorsque Séries est le pilote. |
+| Durée totale calculée | En mode Durée, la durée intrinsèque vaut `D = L × [C × A + (C − 1) × B] + S`, avec `L=1` et `S=0` en unilatéral, `L=2` et `S=(sideRecoverySeconds>0 ? sideRecoverySeconds : B)` en bilatéral. `postActivityRecoverySeconds` est exclu. Toute modification de `A`, `B`, `C`, `S` ou du réglage de côté recalcule `D` lorsque Séries est le pilote. |
 | Durée totale pilotée | Après confirmation d’une nouvelle valeur cible `D`, calculer `Cth = ((D − S) / L + B) / (A + B)`, avec `L/S` définis comme ci-dessus, arrondir à l’entier le plus proche avec `.5` vers le haut, borner à `1`, persister ce nombre de Séries, puis réafficher la durée réalisable recalculée. Séries et Durée totale ne sont jamais pilotes simultanément. |
-| Pilote visuel | Au premier affichage, Séries est le pilote implicite sans contour. Après confirmation d’un contrôle, le pilote actif reçoit le contour sémantique `color/selection`. Le choix du pilote n’est pas persisté. Si `T(N) ≠ Tv`, un message temporaire annonce « Durée ajustée à {T(N)} pour respecter un nombre entier de Séries. » ; si `T(N) = Tv`, aucun message d'ajustement n'apparaît. |
-| Modes non chronométrés | En Répétitions, la phrase affiche `Durée totale ≥ {estimation}` avec `r=2 s` ; formule v10.2 `Tmin=k×(N×R×r+(N−1)×pS)+côté`. En À l’échec, aucune Durée totale n’est affichée. |
+| Sélection de ligne | Dans CE-UI-10, le contour désigne uniquement la ligne de roulette/segmenté activée. Aucun contour sur Séries/stepper. Si T(N)≠Tv, message sous Total ; sinon aucun message. |
+| Modes non chronométrés | En Répétitions, la phrase affiche `Durée totale ≥ {estimation}` avec `r=2 s` ; formule v11 `Tmin=k×(N×R×r+(N−1)×pS)+côté`. En À l’échec, aucune Durée totale n’est affichée. |
 | Zones corporelles | Sélection multiple dans un référentiel utilisateur administrable. Le référentiel est initialisé avec dix valeurs par défaut ; l’utilisateur peut créer, renommer et supprimer une Zone corporelle. Une suppression retire la valeur des choix futurs après confirmation et conserve les affectations existantes ainsi que l’historique. |
 
 ### Gestion commune des référentiels de classification
@@ -1225,14 +1205,14 @@ Dans la face Média compacte, le bouton Lecture central est affiché avant lectu
 D-221 retire la recherche globale et toute recherche locale des Catalogues du MVP. D-222 distingue sélection simple auto-validée et sélection multiple avec validation explicite. D-223 rend le titre de Planifier contextuel. Les règles de rendu communes sont celles de D-224 à D-230 : fonds/zones de contexte, navigation, halo et actions circulaires, steppers/badges, listes/modales, roulettes et composants spécialisés. Elles ne modifient le métier que lorsqu’un comportement est explicitement décrit.
 
 
-### 8.x Générateur de phrase de synthèse v10.2
+### 8.x Générateur de phrase de synthèse v11
 
-La phrase est une projection dérivée des paramètres et n’est pas une donnée canonique persistée. Sa construction concatène les fragments 2A–7A définis par la spécification v10.2. Formules : `T=k×(N×d+(N−1)×pS)+côté` en Durée ; `Tmin=k×(N×R×2+(N−1)×pS)+côté` en Répétitions ; aucune durée totale en À l’échec. L’édition d’une durée totale cible en mode Durée déduit `N=max(1, arrondi((Tv−côté+k×pS)/(k×(d+pS))))`, puis réaffiche la durée effectivement réalisable. Les 7 états d’entrée et 36 cas du classeur v10 constituent le jeu de tests de référence.
+La phrase est une projection dérivée des paramètres et n’est pas une donnée canonique persistée. Sa construction concatène les fragments 2A–7A définis par la spécification v11. Formules : `T=k×(N×d+(N−1)×pS)+côté` en Durée ; `Tmin=k×(N×R×2+(N−1)×pS)+côté` en Répétitions ; aucune durée totale en À l’échec. L’édition d’une durée totale cible en mode Durée déduit `N=max(1, arrondi((Tv−côté+k×pS)/(k×(d+pS))))`, puis réaffiche la durée effectivement réalisable. Les 7 états d’entrée et 36 cas du classeur v10 constituent le jeu de tests de référence.
 
 
-### Contrôles et bornes v10.2
+### Contrôles et bornes v11
 
-Séries : stepper `1..99`. Répétitions : stepper `1..100`. Durée par Série : roulette `1 s..99 min 59 s`. Pause entre Séries et Pause au changement de côté : roulette dans l'Exercice, `0..5 min`, valeurs proposées par `5 s` de `0` à `2 min`, puis par `30 s` au-delà jusqu’à `5 min` ; stepper pour les réglages du Profil. La Pause entre Séries prend `5 s` à sa première apparition ; la Pause au changement de côté copie la valeur courante du Profil. Au changement de mode, les paramètres communs et les dernières valeurs spécifiques de chaque mode sont conservés pendant l’édition. Après la première sélection, le mode ne peut plus revenir à l’état vide. `Terminer` est désactivé avant cette première sélection.
+Séries : stepper `1..99`. Répétitions : stepper `1..100`. Durée par Série : roulette `1 s..99 min 59 s`. Pause entre Séries et Pause au changement de côté : stepper dans la feuille Exercice, `0..5 min`, valeurs proposées par `5 s` de `0` à `2 min`, puis par `30 s` au-delà jusqu’à `5 min` ; stepper pour les réglages du Profil. La Pause entre Séries est initialisée à `0 s` dans la feuille ; la Pause au changement de côté copie la valeur courante du Profil. Au changement de mode, les paramètres communs et les dernières valeurs spécifiques de chaque mode sont conservés pendant l’édition. Après la première sélection, le mode ne peut plus revenir à l’état vide. `Terminer` est désactivé avant cette première sélection.
 
 ## Présentation et interactions des cartes — 30 septembre 2026
 
@@ -1250,4 +1230,12 @@ Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilata
 
 ### Implantation des contrôles — réconciliation Figma du 30 septembre
 
-L’ordre et la présentation visuelle courants sont décrits dans le chapitre06 : paramètres dans une phrase éditable, Compte à rebours/Fin, Description, Média, Terminer. Les anciennes rangées de cadres et sections repliables ne constituent plus une prescription de layout. Les accès Catégorie et Zones corporelles sont représentés par leurs icônes dans les états non renseignés. Les valeurs métier, bornes, formules et conditions d’enregistrement restent inchangées.
+L’ordre et la présentation visuelle courants sont décrits dans le chapitre06 : carte récapitulative ouvrant CE-UI-10, Compte à rebours/Fin, Description, Média, Terminer. Les anciennes rangées de cadres et sections repliables ne constituent plus une prescription de layout. Les accès Catégorie et Zones corporelles sont représentés par leurs icônes dans les états non renseignés. Les valeurs métier, bornes, formules et conditions d’enregistrement restent inchangées.
+
+
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transition entre côtés = pause de changement de côté si positive, sinon pause entre Séries, sans cumul ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. Le bloc du côté courant est le périmètre du reset bilatéral. Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+
+
+### Saisie des paramètres — D-246
+
+La référence active est [Paramètres en modale v11](SPECIFICATION-PARAMETRES-MODALE-v11.md), contrats CE-T03-04/CE-UI-10. Les champs de paramètres appartiennent au brouillon transactionnel de la feuille ; ✕ annule, ✓ applique au parent, Terminer seul persiste. Pause entre Séries initiale0s, champs non-stepper initialement non renseignés ; le résumé est régénéré après validation, jamais édité inline. Les bornes métier et calculs restent ceux de v11. Cette règle remplace les anciennes prescriptions de saisie D-232 sur ce parcours.
