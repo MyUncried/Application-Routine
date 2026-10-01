@@ -9,6 +9,7 @@ const Driver = require('../../scripts/kodjo/prepare-vnext12-revision');
 const Chain = require('../../scripts/kodjo/lib/vnext-live-chain');
 const V = require('../../scripts/kodjo/lib/vnext-contract');
 const F = require('./helpers/vnext-planning-fixture');
+const Approval = require('../../scripts/kodjo/lib/approval-handoff-contract');
 const ROOT = path.resolve(__dirname, '../..');
 function fixture(t) {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'vnext12-revision-test-'));
@@ -56,6 +57,26 @@ test('revision publication prepares an exact new dossier and preserves all other
   assert.equal(ready.transport.gate_ref, 'issue_comment:1', 'placeholder is not an operational approval');
   assert.equal(ready.prepared.produced.artifacts.planningEnvelope.planning_mode, 'REVISION');
   assert.equal(Chain.approvalTarget(ready.prepared, { cwd: f.cwd, protocolHead: f.next.producer_revision }).execution_core.planning_mode, 'REVISION');
+  for (const row of ready.publication) {
+    fs.mkdirSync(path.dirname(path.join(f.cwd, row.path)), { recursive: true });
+    fs.writeFileSync(path.join(f.cwd, row.path), row.content);
+  }
+  const git = (...args) => execFileSync('git', args, { cwd: f.cwd, encoding: 'utf8' }).trim();
+  git('add', '.'); git('commit', '-m', 'unit fixture revision dossier; no operational approval');
+  const head = git('rev-parse', 'HEAD'), target = Chain.approvalTarget(ready.prepared, { cwd: f.cwd, protocolHead: head });
+  const github = { comment: () => ({ id: 1, issue_url: 'https://api.github.com/repos/MyUncried/Application-Routine/issues/269',
+    updated_at: '2026-09-30T00:28:00.000Z', body: head + '\n' + Approval.renderApprovalMessage(target) }),
+  reactions: () => [{ id: 2, content: '+1', user: { login: 'MyUncried' }, created_at: '2026-09-30T00:29:00.000Z' }] };
+  const tr = ready.transport;
+  const seed = { slice_id: 'VNEXT-12-QUALIF', issue_number: 269, source_head: head,
+    slice_bootstrap_file: tr.slice_bootstrap_file, slice_bootstrap_sha256: tr.slice_bootstrap_sha256,
+    authorized_plan: { plan_path: tr.plan_path }, independent_review: { review_path: tr.review_path },
+    prompt_file: tr.prompt_file, user_gate: { gate_ref: tr.gate_ref }, request_id: tr.request_id, created_at: tr.created_at };
+  const derived = Chain.deriveQueue(seed, { cwd: f.cwd, github });
+  assert.equal(derived.artifacts.cumulativeRegister.revision_count, 1);
+  fs.writeFileSync(path.join(f.cwd, 'queue.json'), JSON.stringify(derived.projection.legacy_queue_request));
+  assert.equal(Chain.admit('queue.json', { cwd: f.cwd, github }).admission.status, 'AUTHORIZED');
+  assert.throws(() => Chain.admit('queue.json', { cwd: f.cwd, github: { ...github, reactions: () => [] } }), /OWNER_APPROVAL_REQUIRED/);
 });
 test('revision supervisor refuses an approved negative benchmark instead of inventing a REVISE', t => {
   const cwd = fixture(t), base = Chain.produce(Driver.benchmarkRecipe(cwd), { cwd });

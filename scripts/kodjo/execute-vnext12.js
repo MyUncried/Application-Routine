@@ -15,11 +15,18 @@ const CORE = 'scripts/kodjo/fixtures/vnext12/core.js';
 const TEST = 'tests/fixtures/vnext12/core.test.js';
 const KEEP = 'scripts/kodjo/fixtures/vnext12/keep.js';
 function validateConfig(c) {
-  if (c.stage !== 'EXECUTE_INITIAL' || c.slice_id !== 'VNEXT-12-QUALIF'
-      || c.approved_protocol_head !== APPROVED_HEAD || c.gate_ref !== GATE
-      || c.approval_target_hash !== TARGET_HASH || c.revision_limit !== 1
+  const initial = c.stage === 'EXECUTE_INITIAL' && c.approved_protocol_head === APPROVED_HEAD
+    && c.gate_ref === GATE && c.approval_target_hash === TARGET_HASH;
+  const revision = c.stage === 'EXECUTE_REVISION' && /^[0-9a-f]{40}$/.test(c.approved_protocol_head)
+    && c.approved_protocol_head !== APPROVED_HEAD && /^issue_comment:[1-9][0-9]*$/.test(c.gate_ref)
+    && /^[0-9a-f]{64}$/.test(c.approval_target_hash) && c.approval_target_hash !== TARGET_HASH;
+  if ((!initial && !revision) || c.slice_id !== 'VNEXT-12-QUALIF' || c.revision_limit !== 1
       || c.pre1_in_scope !== false || c.final_audit_authorized !== false) throw Error('VNEXT12_EXECUTION_CONFIG_REFUSED');
   return c;
+}
+function validateAdmittedRevision(a) {
+  if (a.planningEnvelope?.planning_mode !== 'REVISION' || a.cumulativeRegister?.revision_count !== 1
+      || a.cumulativeRegister?.revision_limit !== 1 || a.revisionArtifacts?.revision_outcome?.status !== 'RESOLVED') throw Error('VNEXT12_REAL_BOUNDED_REVISION_REQUIRED');
 }
 function localOrigin(origin) {
   if (!path.isAbsolute(origin) || /^(https?:|ssh:|git:)|@/.test(origin)) throw Error('VNEXT12_REMOTE_ORIGIN_FORBIDDEN');
@@ -83,6 +90,9 @@ function preserveRuntime(runDir, destination) {
 function main(configFile, evidenceDirectory) {
   if (process.platform !== 'win32' || process.env.GITHUB_ACTIONS !== 'true') throw Error('VNEXT12_REAL_WINDOWS_RUNNER_REQUIRED');
   const config = validateConfig(JSON.parse(fs.readFileSync(configFile, 'utf8')));
+  const APPROVED_HEAD = config.approved_protocol_head, GATE = config.gate_ref, TARGET_HASH = config.approval_target_hash;
+  const revision = config.stage === 'EXECUTE_REVISION';
+  const scenario = revision ? 'revision' : 'initial';
   const source = process.cwd();
   const evidence = path.resolve(evidenceDirectory);
   if (evidence.startsWith(source + path.sep)) throw Error('VNEXT12_EXTERNAL_EVIDENCE_REQUIRED');
@@ -116,7 +126,7 @@ function main(configFile, evidenceDirectory) {
   const git = (cwd, ...args) => run('git', args, cwd).stdout.trim();
   const stateRoot = process.env.KODJO_STATE_ROOT ? path.resolve(process.env.KODJO_STATE_ROOT) : path.join(os.homedir(), '.kodjo-v2');
   const runDir = path.join(stateRoot, 'runs', 'github-' + process.env.GITHUB_RUN_ID + '-' + process.env.GITHUB_RUN_ATTEMPT);
-  const root = path.join(process.env.RUNNER_TEMP, 'kodjo-vnext12-initial-' + process.env.GITHUB_RUN_ID + '-' + process.env.GITHUB_RUN_ATTEMPT);
+  const root = path.join(process.env.RUNNER_TEMP, 'kodjo-vnext12-' + scenario + '-' + process.env.GITHUB_RUN_ID + '-' + process.env.GITHUB_RUN_ATTEMPT);
   const origin = path.join(root, 'origin.git');
   const work = path.join(root, 'work');
   const summary = { schema_version: 'kodjo.vnext.disposable-initial-evidence.v1',
@@ -135,13 +145,14 @@ function main(configFile, evidenceDirectory) {
     const Chain = load('lib/vnext-live-chain');
     const Auth = load('verify-authorizations');
     const github = Auth.ghClient({ env: privilegedEnv });
-    const transport = JSON.parse(Chain.readGit(source, APPROVED_HEAD, ROOT + '/initial/transport.json'));
+    const transport = JSON.parse(Chain.readGit(source, APPROVED_HEAD, ROOT + '/' + scenario + '/transport.json'));
     const seed = { slice_id: 'VNEXT-12-QUALIF', issue_number: 269, source_head: APPROVED_HEAD,
       slice_bootstrap_file: transport.slice_bootstrap_file, slice_bootstrap_sha256: transport.slice_bootstrap_sha256,
       authorized_plan: { plan_path: transport.plan_path }, independent_review: { review_path: transport.review_path },
       prompt_file: transport.prompt_file, user_gate: { gate_ref: GATE },
       request_id: transport.request_id, created_at: transport.created_at };
     const derived = Chain.deriveQueue(seed, { cwd: source, github });
+    if (revision) validateAdmittedRevision(derived.artifacts);
     if (derived.approvalTarget.contract_hash !== TARGET_HASH) throw Error('VNEXT12_EXACT_APPROVAL_TARGET_MISMATCH');
     const queueFile = path.join(evidence, 'approved-queue.json');
     const queue = derived.projection.legacy_queue_request;
@@ -225,7 +236,8 @@ function main(configFile, evidenceDirectory) {
     save('functional-proof.json', { observed_value: value, targeted_jest_exit_code: test.code,
       preserve_before_sha256: keepHash, preserve_after_sha256: afterKeepHash, modified_files: changed });
     if (result.code !== 0 || actual.status !== 'IMPLEMENTED_AND_VERIFIED') throw Error('VNEXT12_INITIAL_RUNTIME_NOT_VERIFIED:' + actual.status);
-    summary.verdict = 'INITIAL_PASS';
+    summary.verdict = revision ? 'REVISION_PASS' : 'INITIAL_PASS';
+    summary.planning_mode = derived.artifacts.planningEnvelope.planning_mode;
   } catch (error) {
     summary.diagnostic = error.message;
     if (fs.existsSync(runDir)) {
@@ -252,4 +264,4 @@ if (require.main === module) {
   try { main(process.argv[2], process.argv[3]); }
   catch (error) { console.error(error.message); process.exitCode = 1; }
 }
-module.exports = { validateConfig, localOrigin, validateDelta, disposableCloneArgs, consumptionCredential, runtimeFailure, preserveRuntime, APPROVED_HEAD, GATE, TARGET_HASH, CORE, TEST };
+module.exports = { validateConfig, validateAdmittedRevision, localOrigin, validateDelta, disposableCloneArgs, consumptionCredential, runtimeFailure, preserveRuntime, APPROVED_HEAD, GATE, TARGET_HASH, CORE, TEST };

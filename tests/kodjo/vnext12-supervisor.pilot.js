@@ -23,6 +23,19 @@ test('disposable supervisor rejects remote publishing origins', () => {
     assert.throws(() => S.localOrigin(remote), /REMOTE_ORIGIN_FORBIDDEN/);
   }
 });
+test('revision execution uses a new exact approval and requires the admitted one-correction proof', () => {
+  const revision = { ...config, stage: 'EXECUTE_REVISION', approved_protocol_head: 'a'.repeat(40),
+    gate_ref: 'issue_comment:12345', approval_target_hash: 'b'.repeat(64) };
+  assert.equal(S.validateConfig(revision), revision);
+  assert.throws(() => S.validateConfig({ ...revision, approved_protocol_head: S.APPROVED_HEAD }), /CONFIG_REFUSED/);
+  assert.throws(() => S.validateConfig({ ...revision, approval_target_hash: S.TARGET_HASH }), /CONFIG_REFUSED/);
+  const a = { planningEnvelope: { planning_mode: 'REVISION' }, cumulativeRegister: { revision_count: 1, revision_limit: 1 }, revisionArtifacts: { revision_outcome: { status: 'RESOLVED' } } };
+  S.validateAdmittedRevision(a);
+  for (const altered of [{ ...a, planningEnvelope: { planning_mode: 'INITIAL' } }, { ...a, revisionArtifacts: null },
+    { ...a, cumulativeRegister: { revision_count: 2, revision_limit: 2 } }]) {
+    assert.throws(() => S.validateAdmittedRevision(altered), /REAL_BOUNDED_REVISION_REQUIRED/);
+  }
+});
 test('disposable supervisor requires the two actual expected changes and no neighboring change', () => {
   S.validateDelta([S.CORE, S.TEST]);
   assert.throws(() => S.validateDelta([S.CORE]), /EXACT_DELTA_REQUIRED/);

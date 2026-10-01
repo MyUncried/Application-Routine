@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       stage: ${{ steps.stage.outputs.stage }}
+      approved_head: ${{ steps.stage.outputs.approved_head }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,12 +29,12 @@ jobs:
           node - <<'JS'
           const fs = require('fs');
           const c = JSON.parse(fs.readFileSync('.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json'));
-          if (!['PREPARE_INITIAL', 'EXECUTE_INITIAL', 'QUALIFY_ONLY', 'PREPARE_REVISION'].includes(c.stage) || c.pre1_in_scope !== false || c.final_audit_authorized !== false || c.revision_limit !== 1) throw Error('VNEXT12_STAGE_REFUSED');
-          if (c.stage === 'EXECUTE_INITIAL') require('./scripts/kodjo/execute-vnext12').validateConfig(c);
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'stage=' + c.stage + '\n');
+          if (!['PREPARE_INITIAL', 'EXECUTE_INITIAL', 'EXECUTE_REVISION', 'QUALIFY_ONLY', 'PREPARE_REVISION'].includes(c.stage) || c.pre1_in_scope !== false || c.final_audit_authorized !== false || c.revision_limit !== 1) throw Error('VNEXT12_STAGE_REFUSED');
+          if (['EXECUTE_INITIAL', 'EXECUTE_REVISION'].includes(c.stage)) require('./scripts/kodjo/execute-vnext12').validateConfig(c);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'stage=' + c.stage + '\napproved_head=' + c.approved_protocol_head + '\n');
           JS
       - name: Check the disposable supervisor before any runtime execution
-        if: steps.stage.outputs.stage == 'EXECUTE_INITIAL' || steps.stage.outputs.stage == 'QUALIFY_ONLY' || steps.stage.outputs.stage == 'PREPARE_REVISION'
+        if: steps.stage.outputs.stage == 'EXECUTE_INITIAL' || steps.stage.outputs.stage == 'EXECUTE_REVISION' || steps.stage.outputs.stage == 'QUALIFY_ONLY' || steps.stage.outputs.stage == 'PREPARE_REVISION'
         run: node --test tests/kodjo/vnext12-supervisor.pilot.js tests/kodjo/vnext12-revision-supervisor.pilot.js
   qualify-driver:
     needs: select-stage
@@ -147,8 +148,9 @@ jobs:
           retention-days: 90
           if-no-files-found: error
   execute-initial:
+    name: Execute approved disposable INITIAL or REVISION
     needs: select-stage
-    if: needs.select-stage.outputs.stage == 'EXECUTE_INITIAL'
+    if: needs.select-stage.outputs.stage == 'EXECUTE_INITIAL' || needs.select-stage.outputs.stage == 'EXECUTE_REVISION'
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 120
     permissions:
@@ -178,11 +180,11 @@ jobs:
         with:
           # Exact dossier approved by the owner; newer controller code cannot
           # silently move the approved runtime or its application baseline.
-          ref: e47525b70e62b4ea3d4b32b9fae09e306b5e3094
+          ref: ${{ needs.select-stage.outputs.approved_head }}
           persist-credentials: false
           fetch-depth: 0
           path: _vnext12-approved/${{ github.run_id }}
-      - name: Admit exact approved INITIAL and execute only in a local disposable clone
+      - name: Admit exact approved request and execute only in a local disposable clone
         working-directory: _vnext12-approved/${{ github.run_id }}
         env:
           GH_TOKEN: ${{ github.token }}
@@ -200,7 +202,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: kodjo-vnext12-initial-${{ github.run_id }}-${{ github.run_attempt }}
+          name: kodjo-vnext12-execution-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/vnext12-execution-${{ github.run_id }}/**
           retention-days: 14
           if-no-files-found: error
