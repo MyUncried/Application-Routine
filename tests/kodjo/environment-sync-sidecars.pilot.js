@@ -258,3 +258,10 @@ test('qualification-only changes never request an environment update; mixed prod
   assert.equal(classify(['tests/kodjo-prod-qualif/e2e-sum.ts','package-lock.json']).status,'NATIVE_REBUILD_REQUIRED');
   assert.notEqual(classify(['tests/kodjo-prod-qualif/../../src/foo.ts']).status,'NO_ENVIRONMENT_UPDATE');
 });
+
+test('environment sync: a completed review dispatched by the V2 Lean Queue can be named explicitly',()=>{
+  const reviewSync=read('.github/workflows/kodjo-routine-dev-environment-sync.yml');
+  assert.match(reviewSync,/workflow_dispatch:\n    inputs:\n      review_run_id:\n[\s\S]*?required: true\n[\s\S]*?review_run_attempt:\n[\s\S]*?required: true/);
+  assert.match(reviewSync,/\(github\.event_name == 'workflow_dispatch' && inputs\.review_run_id != '' && inputs\.review_run_attempt != ''\)/);
+  assert.match(reviewSync,/resolve-review-run-environment-sync\.js "\$GITHUB_REPOSITORY" "\$\{\{ github\.event\.workflow_run\.id \|\| inputs\.review_run_id \}\}"/);
+});

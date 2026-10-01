@@ -14,6 +14,19 @@ on:
   workflow_run:
     workflows: ["KODJO — Generic Slice Implementation Review"]
     types: [completed]
+  # A review dispatched by the V2 Lean Queue with the workflow token
+  # does not raise workflow_run. The exact completed review run is then named explicitly; the
+  # resolver still requires that run, its success and its single IMPLEMENTATION_REVIEW_OUTPUT.
+  workflow_dispatch:
+    inputs:
+      review_run_id:
+        description: "Completed implementation review run id"
+        required: true
+        type: string
+      review_run_attempt:
+        description: "Attempt of that review run"
+        required: true
+        type: string
 
 permissions:
   actions: read
@@ -27,7 +40,7 @@ concurrency:
 
 jobs:
   sync:
-    if: (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository) || (github.event_name == 'issue_comment' && inputs.review_run_id == format('{0}', github.run_id) && inputs.review_run_attempt == format('{0}', github.run_attempt))
+    if: (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository) || (github.event_name == 'issue_comment' && inputs.review_run_id == format('{0}', github.run_id) && inputs.review_run_attempt == format('{0}', github.run_attempt)) || (github.event_name == 'workflow_dispatch' && inputs.review_run_id != '' && inputs.review_run_attempt != '')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
