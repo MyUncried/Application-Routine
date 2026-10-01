@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-01T11:35:21Z",
+  "recorded_at": "2026-10-01T13:34:32.603Z",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
-  "code_head_before_checkpoint": "0bc480bd279ff8456053c9ace3a725d9fda5bcac",
-  "controller_stage": "PREPARE_REVISION",
-  "controller_generation": 14,
+  "code_head_before_checkpoint": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+  "controller_stage": "QUALIFY_REVISION_DOSSIER",
+  "controller_generation": 15,
   "steps": [
     {
       "step": 1,
@@ -16,7 +16,7 @@
     },
     {
       "step": 2,
-      "status": "PREVIOUSLY_QUALIFIED_NEW_CODE_REQUALIFICATION_PENDING"
+      "status": "CODE_QUALIFIED_REVISION_DOSSIER_QUALIFICATION_PENDING"
     },
     {
       "step": 3,
@@ -71,14 +71,10 @@
     "full_linux_ci_is_authoritative": true
   },
   "pending_actions": [
-    "New PREPARE_REVISION and qualifications requested by this commit. Resolve their IDs from GitHub. Hold branch HEAD stable during Windows preflight; do not replay INITIAL.",
-    "Collect and hash real PREPARE_REVISION artifacts from run 36850188454. Require real base REVISE and revised APPROVE plus RESOLVED bounded outcome; diagnose actual failures without inventing findings.",
-    "Create the exact revised dossier from publication.json with actual transport gate and a fresh request UUID; preserve all other activation rows and the exact source/candidate/review bindings. The helper preparePublication is already implemented and tested.",
-    "Qualify the new exact candidate on Linux and Windows before runtime execution. Current executable supervisor changes at 0bc480bd were deliberately published with skip-ci to preserve the existing queued real review; they still require remote qualification. Historical Windows timeout is now prepared at 40 minutes for the next candidate.",
-    "Keep the real GitHub exact-target owner approval gate. Preserve the user delegation for this disposable technical test; never fabricate a reaction, human review, successful execution, certificate, verdict or evidence.",
-    "Set EXECUTE_REVISION only after actual qualification and exact approval. Supervisor requires real planning_mode REVISION, count 1/limit 1, RESOLVED outcome, fresh admission and actual missing-authority/proof refusals before Claude.",
-    "Collect actual runtime session, targeted functional observation value 2, exactly core.js/test changes, preserved keep.js bytes, full Jest/TypeScript/lint checks, atomic request consumption and cleanup. Persist real result in GitHub before claiming REVISION_PASS.",
-    "Finish step 3 only with actual INITIAL_PASS and REVISION_PASS. Do not activate, merge, cut over, launch FINAL or change other application slices in this campaign continuation. Pause the watcher at completion or a genuine business decision."
+    "Resolve candidate qualifications for this published dossier; hold HEAD stable during Windows checks. Do not repeat either review or INITIAL.",
+    "After actual Linux/Windows qualification, compute and publish exact owner approval message on reserved comment 5932536175. Honor explicit user delegation for this disposable technical test without claiming human review; preserve actual reaction evidence.",
+    "Only then set EXECUTE_REVISION with exact approved_protocol_head/gate_ref/approval_target_hash and verify fresh admission, atomic consumption, Claude session, exact two-file delta, observed value 2, keep.js bytes, Jest/TypeScript/lint, runtime artifact and cleanup.",
+    "Persist all actual runtime evidence before REVISION_PASS and step 3 completion; do not launch FINAL, activate, cut over, merge or touch PRE-1."
   ],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
@@ -107,5 +103,58 @@
       "status": "CANCELLED",
       "cause": "Historical Windows execution canceled after approximately 20 minutes; post-check correctly rejects incomplete evidence. Next candidate already carries 40-minute bound."
     }
-  ]
+  ],
+  "revision": {
+    "schema_version": "kodjo.vnext12.real-revision-preparation-evidence.v1",
+    "recorded_at": "2026-10-01T13:34:32.590Z",
+    "status": "REVIEWED_REVISION_PENDING_HANDOFF",
+    "candidate_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+    "run_id": "36857231638",
+    "job_id": "110357386807",
+    "artifact_id": "11162496223",
+    "artifact_sha256": "9a91f89e7b6d934db71a56230e8a51b15953ebedcb5f3d87e87a7cff438e5841",
+    "base_verdict": "REVISE",
+    "revision_verdict": "APPROVE",
+    "base_session": "e147985e-3291-4222-b671-8afe4148806b",
+    "revision_session": "79c9c220-2014-4995-ac71-acb52a596768",
+    "revision_count": 1,
+    "revision_limit": 1,
+    "implementation_invoked": false,
+    "final_audit_invoked": false,
+    "outcome": "RESOLVED",
+    "source_archive": {
+      "artifact_id": "11159079810",
+      "sha256": "320be4a5b6025f21b0487fccbb86e21ce041511450975acbce6aea8ca30d8f3a",
+      "git_tree": "a330f3a2b73acb405a347a0372357cbf71a97a15",
+      "exact_commit_locally_recovered": true
+    },
+    "qualification_run": "36857231661",
+    "qualification_status": "SUCCESS_LINUX_WINDOWS_WITH_HISTORICAL_EQUIVALENCE",
+    "request_id": "be4f7b4b-77d0-4d43-a49f-d3d9f999e2cf",
+    "gate_ref": "issue_comment:5932536175",
+    "initial_replayed": false,
+    "delegation": {
+      "kind": "USER_AUTHORIZED_TECHNICAL_DISPOSABLE_CAMPAIGN",
+      "instruction": "mène cette campagne de test jusqu’à son terme, diagnostique, explique corrige et relance le test lorsqu’un échec intervient. Ne m’implique que lorsqu’une validation métier est nécessaire.",
+      "human_review_performed": false,
+      "approval_reaction_not_yet_created": true
+    },
+    "artifact_members": {
+      "allowed-change-set.json": "23585f741c653ddbf0273423329a8225043c7a9ed4fa549bb871b4675f121d52",
+      "base-produced.json": "c01d879ca3302a58e0ac9e1c79903f16d967ea24e001bb942c4ca7c4e0874666",
+      "base-recipe.json": "527e93d35819ef9f273ebe33a0186967cf36388028ea48566d6a045aeaecef81",
+      "base-review-receipt.json": "31d6b680301e1867610a16fefb4da1458469c7e0f8db5f1e1a4344cadb9c1652",
+      "benchmark-declaration.json": "5e50a4921b3230ac801dbab3d366159724f0a7ed11e77917bd7d88f46f868a7c",
+      "prepared.json": "0ff3cdbbe7a0b6c58192d4d6ef7e7b4493c752a77d493d3900b79cd5e362dc63",
+      "publication.json": "f7313d76494d9bf401cf05c58c55415f61938ff0d8e461fde9c63ecd54311b40",
+      "revision-artifacts.json": "3b5d296d81198fbefce4d90c4cf9781849ad374a1bf59e2e08263f81c66cd67d",
+      "revision-patch.json": "49ac6564685c8669b74910e10a95f29aefeb99dea277fbe24e41cca7344316d0",
+      "revision-produced.json": "23ba103a55ac5a3c251da3b715d09d18ac052ca59201b1b9398b57df0eacef91",
+      "revision-recipe.json": "02637e4081eb2c4301ee8ad3623bbcffcde0e311b4239a47affab72cf904af6c",
+      "revision-review-receipt.json": "a790ad9f061102b47b55408cb3b1ae742a3539c1640d5c000b8dcbb05fd24e2f",
+      "status.json": "c73a180e5696dd3a7a2be8e25447dbebe8afe7fb17d7b4c24bcef5727fc3ad9c",
+      "transport.json": "a93fc8fbe25f7d6dce3fa7a2ae00cdc8ffe6d61e48bfddc75507e9a5ebd59b74"
+    },
+    "durable_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/preparation-evidence.json"
+  }
 }
