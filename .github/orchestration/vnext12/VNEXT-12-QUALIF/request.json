@@ -1,5 +1,5 @@
 {
-  "stage": "EXECUTE_INITIAL",
+  "stage": "QUALIFY_ONLY",
   "slice_id": "VNEXT-12-QUALIF",
   "qualified_code_head": "93f5274de8f0a14d3b4777b585572afd9d0f5085",
   "qualified_test_head": "308ac67bdf07f58f9e9ef6d5d0411c1b3f099cad",
@@ -11,5 +11,7 @@
   "approved_protocol_head": "e47525b70e62b4ea3d4b32b9fae09e306b5e3094",
   "gate_ref": "issue_comment:5921521038",
   "approval_target_hash": "d5ca8d589b886cf4231eea457527729081288d1544c35703ee83f18085db4d59",
-  "generation": 9
+  "generation": 10,
+  "initial_execution_run_id": "36833427894",
+  "initial_execution_status": "INITIAL_PASS"
 }

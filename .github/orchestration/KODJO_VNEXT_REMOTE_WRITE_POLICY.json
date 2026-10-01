@@ -855,6 +855,20 @@
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     }
   ],
-  "declared_vnext_writers": [],
+  "declared_vnext_writers": [
+    {
+      "producer": ".github/workflows/kodjo-vnext12-disposable.yml",
+      "producer_blob_oid": "070c7fac424913a8dfc431d197fe1c8c412105f0",
+      "authorization_condition": "EXACT_OWNER_APPROVED_VNEXT12_DISPOSABLE_CONSUMPTION_ONLY",
+      "required_job": "execute-initial",
+      "capabilities": [
+        {
+          "capability": "GITHUB_PERMISSION_WRITE:contents",
+          "destination": "github-token:contents",
+          "scope": "JOB:execute-initial"
+        }
+      ]
+    }
+  ],
   "retirement_rule": "REMOVE_OR_DISABLE_ALL_LEGACY_WRITERS_AFTER_LAST_LEGACY_SLICE"
 }

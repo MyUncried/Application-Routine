@@ -28,16 +28,16 @@ jobs:
           node - <<'JS'
           const fs = require('fs');
           const c = JSON.parse(fs.readFileSync('.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json'));
-          if (!['PREPARE_INITIAL', 'EXECUTE_INITIAL'].includes(c.stage) || c.pre1_in_scope !== false || c.final_audit_authorized !== false || c.revision_limit !== 1) throw Error('VNEXT12_STAGE_REFUSED');
+          if (!['PREPARE_INITIAL', 'EXECUTE_INITIAL', 'QUALIFY_ONLY'].includes(c.stage) || c.pre1_in_scope !== false || c.final_audit_authorized !== false || c.revision_limit !== 1) throw Error('VNEXT12_STAGE_REFUSED');
           if (c.stage === 'EXECUTE_INITIAL') require('./scripts/kodjo/execute-vnext12').validateConfig(c);
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'stage=' + c.stage + '\n');
           JS
       - name: Check the disposable supervisor before any runtime execution
-        if: steps.stage.outputs.stage == 'EXECUTE_INITIAL'
+        if: steps.stage.outputs.stage == 'EXECUTE_INITIAL' || steps.stage.outputs.stage == 'QUALIFY_ONLY'
         run: node --test tests/kodjo/vnext12-supervisor.pilot.js
   qualify-driver:
     needs: select-stage
-    if: needs.select-stage.outputs.stage == 'PREPARE_INITIAL'
+    if: needs.select-stage.outputs.stage == 'PREPARE_INITIAL' || needs.select-stage.outputs.stage == 'QUALIFY_ONLY'
     strategy:
       fail-fast: false
       matrix:
