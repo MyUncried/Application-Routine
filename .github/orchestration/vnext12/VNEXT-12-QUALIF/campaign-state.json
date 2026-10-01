@@ -8,7 +8,7 @@
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "9895877b9230c902eea229841a46a8c18c437f41",
   "controller_stage": "STEP3_COMPLETED",
-  "controller_generation": 19,
+  "controller_generation": 20,
   "steps": [
     {
       "step": 1,
@@ -198,7 +198,7 @@
     "runtime_replay": false,
     "final_audit_invoked": false,
     "report_path": ".github/orchestration/reports/2026-10-01_VNEXT_TRANSPORT_HARDENING.md",
-    "recorded_at": "2026-10-01T17:16:34.756806+00:00",
+    "recorded_at": "2026-10-01T18:34:41.856675+00:00",
     "failed_candidate": {
       "head": "57aa9f1b25fd57770784860c4ba4efcbb4965553",
       "pilot_run_id": 36897140188,
@@ -210,6 +210,24 @@
       "skipped": 1,
       "cause": "Inherited workflow assertion requires continue-on-error immediately after certification step name; reorder properties without modifying its test or protection.",
       "equivalence_linux_job_id": 110486848562
+    },
+    "windows_followup": {
+      "candidate": "1d001a52baaf016863d6de8a1ba455d60e959652",
+      "pilot_run_id": 36900625861,
+      "pilot_job_id": 110499633207,
+      "status": "FAILURE",
+      "tests": 921,
+      "passed": 914,
+      "failed": 3,
+      "skipped": 4,
+      "cancelled": 0,
+      "cause": "Self-hosted Windows job did not install Python for new independent parser; reserve step invoked unavailable Bash. Added pinned Python/PyYAML setup and shell cmd Node reserve producer. No gates removed.",
+      "log_sha256": "a82d59bfc76b6cc6e1a4c05015a77e974ec4183f9984f1312679ad0ceb18c894",
+      "qualification_run_id": 36900625848,
+      "qualification_status": "SUCCESS_LINUX_WINDOWS",
+      "driver_run_id": 36900625816,
+      "driver_status": "SUCCESS_LINUX_WINDOWS",
+      "runtime_execution": "SKIPPED"
     }
   }
 }

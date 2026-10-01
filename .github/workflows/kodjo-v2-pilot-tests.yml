@@ -143,6 +143,14 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           path: _qualification/${{ github.run_id }}
+      - name: Set up independent workflow syntax parser on Windows
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent YAML parser on Windows
+        shell: cmd
+        working-directory: _qualification/${{ github.run_id }}
+        run: python -m pip install PyYAML==6.0.3
       - name: Record Windows toolchain
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
@@ -288,17 +296,9 @@ jobs:
           }
       - name: Record unavailable historical recovery as a separate reserve
         if: always() && steps.historical_recovery_download.outcome != 'success'
-        shell: bash
+        shell: cmd
         working-directory: _qualification/${{ github.run_id }}
-        run: |
-          node - <<'JS'
-          const fs = require('fs');
-          const file = 'real-recovery-certification.json';
-          const proof = JSON.parse(fs.readFileSync(file, 'utf8'));
-          proof.status = 'NON_CERTIFIED';
-          proof.reason = 'HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE';
-          fs.writeFileSync(file, JSON.stringify(proof, null, 2) + '\n');
-          JS
+        run: node scripts/kodjo/record-unavailable-recovery.js real-recovery-certification.json
       - name: Upload real recovery certification
         if: always()
         uses: actions/upload-artifact@v4

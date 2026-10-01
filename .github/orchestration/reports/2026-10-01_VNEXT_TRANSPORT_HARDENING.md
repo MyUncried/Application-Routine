@@ -35,6 +35,20 @@ lorsque le workflow pilote change. Le parser indépendant couvre aussi `.yaml`
 et `.yml`, avec refus testé sur les deux extensions. Les 36 contrôles locaux
 ciblés de cette correction et du raccordement commun INITIAL/REVISION passent ; cela ne remplace pas la nouvelle CI exacte.
 
+## Raccordement du runner Windows
+
+Candidat `1d001a52baaf016863d6de8a1ba455d60e959652` : contrats et équivalence
+historique Linux/Windows SUCCESS (run 36900625848), drivers Linux/Windows
+SUCCESS (run 36900625816), exécution runtime SKIPPED. Le pilote Windows
+(run 36900625861, job 110499633207) a réellement échoué : 921 tests,
+914 PASS, 3 FAIL, 4 SKIP, 0 CANCELLED. Les trois assertions négatives du nouveau
+guard sont interrompues par Python introuvable, avant leur contrôle attendu.
+Le journal démontre aussi `bash: command not found` au traitement de réserve.
+Correction : installer explicitement Python 3.12/PyYAML 6.0.3 dans le job Windows
+et utiliser un producteur Node exécuté sous cmd pour la réserve historique.
+Le statut NON_CERTIFIED ne peut pas remplacer une certification PASS.
+Aucun contrôle ni aucune preuve acquise ne sont supprimés.
+
 ## Qualification
 
 Implémentation en cours de qualification. Les résultats CI seront enregistrés dans
