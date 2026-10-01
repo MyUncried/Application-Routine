@@ -36,10 +36,10 @@ describe("strings", () => {
 
   it("exposes the Catalogue content-type selector labels (T01-S10, D-108)", () => {
     expect(strings.screens.sessions.contentTypes).toEqual({
-      activities: "Activités",
+      activities: "Exercices",
       sessions: "Séances",
       circuits: "Circuits",
-      activitiesUnavailableAccessibilityLabel: "Activités — indisponible",
+      activitiesUnavailableAccessibilityLabel: "Exercices — indisponible",
       circuitsUnavailableAccessibilityLabel: "Circuits — indisponible",
     });
   });
@@ -67,8 +67,8 @@ describe("strings", () => {
 
   it("exposes the Catalogue card singular/plural fragments and duration unit", () => {
     expect(strings.screens.sessions.card).toEqual({
-      activitySingular: "activité",
-      activityPlural: "activités",
+      activitySingular: "exercice",
+      activityPlural: "exercices",
       tourSingular: "tour",
       tourPlural: "tours",
       durationUnit: "min",
@@ -106,12 +106,12 @@ describe("strings", () => {
       cancelAccessibilityLabel: "Annuler",
       validateAccessibilityLabel: "Valider",
     });
-    expect(strings.screens.composition.addActivity).toBe("Ajouter une activité");
+    expect(strings.screens.composition.addActivity).toBe("Ajouter un exercice");
     expect(strings.screens.composition.continueAction).toBe("Continuer");
   });
 
   it("exposes the exact local Composition empty-summary label (V2 — singular, distinct from formatActivityCount(0))", () => {
-    expect(strings.screens.composition.summary.empty).toBe("0 activité · 0 min");
+    expect(strings.screens.composition.summary.empty).toBe("0 exercice · 0 min");
   });
 
   it("exposes the exact abandon-creation modal texts (docs §06, « Les modales » ; REWORK10, 2026-09-04 — 'Continuer la création'/'Abandonner' renamed to 'Annuler'/'Confirmer', same keys)", () => {
@@ -166,7 +166,7 @@ describe("strings", () => {
     // KODJO actif...`, 2026-09-04, D-105) : réintroduits avec un sens
     // fonctionnel — voir le test dédié ci-dessous.
     expect(strings.screens.exercise.backAccessibilityLabel).toBe("Retour");
-    expect(strings.screens.exercise.name).toBe("Nom de l’activité");
+    expect(strings.screens.exercise.name).toBe("Nom de l’exercice");
     expect(strings.screens.exercise.executionMode).toEqual({
       label: "Mode d’exécution",
       duration: "Durée",
@@ -183,7 +183,7 @@ describe("strings", () => {
     // T02-S02 (D-137) : l'écran unifié n'a plus d'étape intermédiaire —
     // `validateAction` est supprimé, `Terminer` est la seule action finale.
     expect(strings.screens.exercise).not.toHaveProperty("validateAction");
-    expect(strings.screens.exercise.instruction.label).toBe("Description de l’activité");
+    expect(strings.screens.exercise.instruction.label).toBe("Description de l’exercice");
     // T02-S02 (continuation après recette visuelle) : « Zone corporelle
     // d'exécution » → « Zones corporelles » — la section accepte PLUSIEURS
     // Zones (D-093), le singulier était trompeur.
@@ -193,7 +193,7 @@ describe("strings", () => {
 
   it("T02-S02 — exposes the collapsible section titles and composes header names with an action verb, keeping the description field label unique (CE-T01-13/CE-T01-15)", () => {
     expect(strings.screens.exercise.sections).toEqual({
-      description: "Description de l’activité",
+      description: "Description de l’exercice",
       bodyZones: "Zones corporelles",
       executionMode: "Mode d’exécution",
       expandAction: "Déployer la section",
@@ -220,13 +220,13 @@ describe("strings", () => {
       compactLabel: "Récupération",
     });
     expect(strings.screens.exercise.totalDuration).toEqual({
-      label: "Durée totale de l’activité",
-      accessibilityLabel: "Durée totale de l’activité",
+      label: "Durée totale de l’exercice",
+      accessibilityLabel: "Durée totale de l’exercice",
       compactLabel: "Durée totale",
       // T02-S02 (seconde recette visuelle, point 9) : variante BORNE
       // MINIMALE, affichée en modes `Répétitions` et « À l'échec ».
       compactLabelLowerBound: "Durée totale ≥",
-      accessibilityLabelLowerBound: "Durée totale minimale de l’activité",
+      accessibilityLabelLowerBound: "Durée totale minimale de l’exercice",
     });
     // Le glyphe `≥` est celui, unique, de toutes les bornes minimales de
     // l'application — jamais une écriture concurrente.
@@ -281,8 +281,8 @@ describe("strings", () => {
   });
 
   it("REWORK12 — exposes the functional titles Ajouter/Modifier une activité, and the Séance context prefix (D-105)", () => {
-    expect(strings.screens.exercise.titleAdd).toBe("Ajouter une activité");
-    expect(strings.screens.exercise.titleEdit).toBe("Modifier une activité");
+    expect(strings.screens.exercise.titleAdd).toBe("Ajouter un exercice");
+    expect(strings.screens.exercise.titleEdit).toBe("Modifier un exercice");
     expect(strings.screens.exercise.context).toEqual({ prefix: "Séance" });
     // T02-S02 (D-137) : l'écran unifié n'a plus de seconde étape —
     // `titleInformation` est supprimé plutôt que laissé mort.
@@ -325,7 +325,7 @@ describe("strings", () => {
   it("exposes the exact D-094/CE-T01-16 exercise exit-confirm modal texts (REWORK11, 2026-09-04 — 'Continuer la modification'/'Abandonner' renamed to 'Annuler'/'Confirmer', same keys)", () => {
     expect(strings.screens.exercise.exitConfirmModal).toEqual({
       title: "Abandonner les modifications ?",
-      message: "Les modifications apportées à cette activité seront perdues.",
+      message: "Les modifications apportées à cet exercice seront perdues.",
       continueEditing: "Annuler",
       abandon: "Confirmer",
     });
@@ -352,22 +352,26 @@ describe("strings", () => {
     expect(strings.screens.composition.tourBilateralConfirmModal).toEqual({
       title: "Exécuter chaque Tour des deux côtés ?",
       message:
-        "À chaque Tour, toutes les Activités sont exécutées une fois d’un côté, puis une fois de l’autre, selon l’ordre choisi. Ce réglage remplace tout réglage de côté défini individuellement pour une Activité.",
+        "À chaque Tour, tous les Exercices sont exécutés une fois d’un côté, puis une fois de l’autre, selon l’ordre choisi. Ce réglage remplace tout réglage de côté défini individuellement pour un Exercice.",
       cancel: "Annuler",
       confirm: "Confirmer",
     });
   });
 
-  it("exposes the exact Activity accessible side labels, and the empty unilateral visible value (plan '## 4.1', unchanged)", () => {
+  it("exposes the exact Activity accessible side labels, and the explicit 'Aucun' unilateral visible value (V2-PRE-1, critère UI-73382D60E040)", () => {
     expect(strings.shared.sideMode.activity.accessibilityLabels).toEqual({
-      UNILATERAL: "Côté : unilatéral",
+      UNILATERAL: "Changement de côté : Aucun",
       RIGHT_LEFT: "Côté : bilatéral, droite puis gauche",
       LEFT_RIGHT: "Côté : bilatéral, gauche puis droite",
     });
     expect(strings.shared.sideMode.activity.inheritedAccessibilitySuffix).toBe(
       "défini par le Tour, indisponible",
     );
-    expect(strings.shared.sideMode.valueLabels.UNILATERAL).toBe("");
+    // V2-PRE-1 (critère UI-73382D60E040, assertion
+    // UI-73382D60E040-A3E11D4F3FF2A, round 3) : le plan approuvé demande
+    // "Aucun" ici — `SideModeControl.test.tsx` (désormais dans `scope_allow`)
+    // a été adapté en conséquence.
+    expect(strings.shared.sideMode.valueLabels.UNILATERAL).toBe("Aucun");
   });
 
   it("exposes the exact Tour accessible direction labels, and the '–' unilateral visible value, distinct from the Activity's empty value (plan '## 4.2')", () => {

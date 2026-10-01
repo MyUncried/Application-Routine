@@ -17,9 +17,10 @@ function makeDefinition(overrides: Partial<ActivityDefinition> = {}): ActivityDe
     repetitionCount: null,
     seriesCount: 3,
     pauseSeconds: 10,
-    recoverySeconds: 0,
-    bodyZoneIds: [],
+    categoryId: "cardio",
+    bodyZoneIds: ["cuisses"],
     sideMode: "UNILATERAL",
+    sideRecoverySeconds: 0,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
@@ -35,8 +36,9 @@ function validInput(): CreateActivityDefinitionInput {
     repetitionCount: null,
     seriesCount: 3,
     pauseSeconds: 10,
-    recoverySeconds: 0,
-    bodyZoneIds: [],
+    category: { kind: "EXISTING", categoryId: "cardio" },
+    bodyZoneIds: ["cuisses"],
+    sideRecoverySeconds: 0,
   };
 }
 
@@ -127,6 +129,38 @@ describe("ActivityDefinitionService", () => {
     });
 
     expect(result).toEqual({ status: "UPDATED", value: expect.objectContaining({ name: "Squat modifié" }) });
+  });
+
+  /**
+   * V2-PRE-1 (plan §3.3/§13, REQ-001108DC7F67664C, UI-40094921B202-
+   * A2E0666968E44) : le service ne reformule jamais la liste ordonnée de
+   * médias — elle transite jusqu'au Repository dans le même ordre, qui en
+   * déduit la position stable persistée (`SqliteActivityDefinitionRepository
+   * .test.ts` couvre la persistance réelle).
+   */
+  it("forwards the ordered media list to the repository on create", async () => {
+    const repository = new FakeRepository();
+    const service = new ActivityDefinitionService(repository);
+
+    await service.createActivityDefinition({
+      ...validInput(),
+      media: [{ assetId: "asset-2" }, { assetId: "asset-1" }],
+    });
+
+    expect(repository.created[0]?.media).toEqual([{ assetId: "asset-2" }, { assetId: "asset-1" }]);
+  });
+
+  it("forwards the ordered media list to the repository on update", async () => {
+    const repository = new FakeRepository();
+    const service = new ActivityDefinitionService(repository);
+    const created = await repository.create(validInput());
+
+    await service.updateActivityDefinition(created.id, {
+      ...validInput(),
+      media: [{ assetId: "asset-1" }],
+    });
+
+    expect(repository.updated[0]?.input.media).toEqual([{ assetId: "asset-1" }]);
   });
 
   it("lists definitions from the repository unchanged", async () => {

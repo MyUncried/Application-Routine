@@ -39,7 +39,8 @@ describe("SqliteActivityDefinitionRepository", () => {
       repetitionCount: null,
       seriesCount: 3,
       pauseSeconds: 10,
-      recoverySeconds: 5,
+      category: { kind: "EXISTING" as const, categoryId: "cardio" },
+      sideRecoverySeconds: 5,
       bodyZoneIds: ["cuisses", "genoux"],
     };
   }
@@ -177,6 +178,103 @@ describe("SqliteActivityDefinitionRepository", () => {
       const reread = await repository.findById(created.id);
       expect(reread?.name).toBe("Squat");
       expect(reread?.bodyZoneIds.slice().sort()).toEqual(["cuisses", "genoux"]);
+    });
+  });
+
+  /**
+   * V2-PRE-1 (plan §3.3/§13, REQ-001108DC7F67664C, UI-40094921B202-
+   * A2E0666968E44) : les médias sont persistés avec une position STABLE égale
+   * à l'ordre du tableau fourni (0-indexée), jamais retriée.
+   */
+  describe("médias (V2-PRE-1, plan §3.3/§13, REQ-001108DC7F67664C)", () => {
+    async function seedAsset(id: string): Promise<void> {
+      await database.runAsync(
+        `INSERT INTO media_assets (id, uri, created_at) VALUES (?, ?, '2026-01-01T00:00:00.000Z')`,
+        [id, `file:///${id}.jpg`],
+      );
+    }
+
+    it("create(): persists each media with a position equal to its index in the given array, never re-sorted", async () => {
+      await seedAsset("asset-1");
+      await seedAsset("asset-2");
+      const repository = new SqliteActivityDefinitionRepository(
+        database,
+        makeUuidFactory("def"),
+        makeClock("2026-01-01T00:00:00.000Z"),
+      );
+
+      const created = await repository.create({
+        ...baseInput(),
+        media: [{ assetId: "asset-2" }, { assetId: "asset-1" }],
+      });
+
+      const rows = await database.getAllAsync<{ asset_id: string; position: number }>(
+        `SELECT asset_id, position FROM activity_media
+         WHERE activity_definition_id = ? ORDER BY position ASC`,
+        [created.id],
+      );
+      expect(rows).toEqual([
+        { asset_id: "asset-2", position: 0 },
+        { asset_id: "asset-1", position: 1 },
+      ]);
+    });
+
+    it("create(): persists no media row when the input omits media", async () => {
+      const repository = new SqliteActivityDefinitionRepository(database, makeUuidFactory("def"));
+      const created = await repository.create(baseInput());
+
+      const rows = await database.getAllAsync<{ id: string }>(
+        `SELECT id FROM activity_media WHERE activity_definition_id = ?`,
+        [created.id],
+      );
+      expect(rows).toHaveLength(0);
+    });
+
+    it("update(): replaces the previous media set entirely, with the new array's own order", async () => {
+      await seedAsset("asset-1");
+      await seedAsset("asset-2");
+      await seedAsset("asset-3");
+      const repository = new SqliteActivityDefinitionRepository(
+        database,
+        makeUuidFactory("def"),
+        makeClock("2026-01-01T00:00:00.000Z"),
+      );
+      const created = await repository.create({
+        ...baseInput(),
+        media: [{ assetId: "asset-1" }],
+      });
+
+      await repository.update(created.id, {
+        ...baseInput(),
+        media: [{ assetId: "asset-3" }, { assetId: "asset-2" }],
+      });
+
+      const rows = await database.getAllAsync<{ asset_id: string; position: number }>(
+        `SELECT asset_id, position FROM activity_media
+         WHERE activity_definition_id = ? ORDER BY position ASC`,
+        [created.id],
+      );
+      expect(rows).toEqual([
+        { asset_id: "asset-3", position: 0 },
+        { asset_id: "asset-2", position: 1 },
+      ]);
+    });
+
+    it("create(): an unknown assetId rolls back the whole transaction — no orphan activity_definitions row survives", async () => {
+      const repository = new SqliteActivityDefinitionRepository(
+        database,
+        makeUuidFactory("def"),
+        makeClock("2026-01-01T00:00:00.000Z"),
+      );
+
+      await expect(
+        repository.create({ ...baseInput(), media: [{ assetId: "missing-asset" }] }),
+      ).rejects.toThrow();
+
+      const definitions = await database.getAllAsync<{ id: string }>(
+        "SELECT id FROM activity_definitions",
+      );
+      expect(definitions).toHaveLength(0);
     });
   });
 });

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { StyleSheet } from "react-native";
 
 import type { ActivityDefinition } from "@/domain/activities";
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { createEmptyDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -12,6 +13,27 @@ import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import { colors } from "@/shared/ui/tokens";
 
 const mockBack = jest.fn();
+
+/**
+ * `ActivitySelectionScreen` s'auto-alimente désormais en Zones corporelles
+ * persistées via `useSQLiteContext` (V2-PRE-1, plan §3.1, UI-9C227EDDE427) —
+ * sans `<SQLiteProvider>` réel en tests, `expo-sqlite` et le Repository sont
+ * doublés ici, même patron que `SessionServiceProvider.test.tsx`.
+ */
+jest.mock("expo-sqlite", () => ({
+  useSQLiteContext: () => ({}),
+}));
+
+const BODY_ZONE_FIXTURES: readonly BodyZone[] = [
+  { id: "cuisses", name: "Cuisses", isActive: true, createdAt: "2026-01-01T00:00:06.000Z" },
+  { id: "dos", name: "Dos", isActive: true, createdAt: "2026-01-01T00:00:04.000Z" },
+];
+
+jest.mock("@/infrastructure/database/repositories/SqliteBodyZoneRepository", () => ({
+  SqliteBodyZoneRepository: jest.fn().mockImplementation(() => ({
+    listAll: jest.fn<() => Promise<readonly BodyZone[]>>().mockResolvedValue(BODY_ZONE_FIXTURES),
+  })),
+}));
 
 // `jest-expo` ne fournit aucune implémentation par défaut de
 // `Crypto.randomUUID()` (`undefined` sous ce preset) — même contrainte déjà
@@ -61,9 +83,10 @@ function makeDefinition(
     repetitionCount: null,
     seriesCount: 2,
     pauseSeconds: 5,
-    recoverySeconds: 0,
-    bodyZoneIds: [],
+    categoryId: "cardio",
+    bodyZoneIds: ["cuisses"],
     sideMode: "UNILATERAL",
+    sideRecoverySeconds: 0,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
@@ -131,12 +154,12 @@ describe("ActivitySelectionScreen", () => {
 
     fireEvent.press(screen.getByTestId("activity-selection-row-a"));
     expect(screen.getByTestId("activity-selection-add-label").props.children).toBe(
-      "Ajouter 1 activité",
+      "Ajouter 1 exercice",
     );
 
     fireEvent.press(screen.getByTestId("activity-selection-row-b"));
     expect(screen.getByTestId("activity-selection-add-label").props.children).toBe(
-      "Ajouter 2 activités",
+      "Ajouter 2 exercices",
     );
   });
 
@@ -145,7 +168,7 @@ describe("ActivitySelectionScreen", () => {
     renderScreen([makeDefinition("a", "Squat", { bodyZoneIds: ["dos"] })]);
     await waitFor(() => expect(screen.getByTestId("activity-selection-list")).toBeTruthy());
 
-    expect(screen.getByTestId("activity-selection-row-body-zones-a")).toBeTruthy();
+    expect(await screen.findByTestId("activity-selection-row-body-zones-a")).toBeTruthy();
     expect(screen.getByText(/série/u)).toBeTruthy();
 
     const checkbox = screen.getByTestId("activity-selection-row-checkbox-a");
@@ -160,16 +183,18 @@ describe("ActivitySelectionScreen", () => {
   /**
    * VISUAL_CORRECTION (revue indépendante 5753653735, point 2) : carte
    * alignée sur la carte canonique `ActivityCard.tsx` — barre gauche,
-   * sous-carte Récupération, contour sélectionné conforme au patron DSF
-   * déjà établi (`CategoriesScreen.tagSelected`).
+   * contour sélectionné conforme au patron DSF déjà établi
+   * (`CategoriesScreen.tagSelected`). V2-PRE-1 (plan §3.1,
+   * UI-9C227EDDE427) : aucune sous-carte Récupération — une
+   * `ActivityDefinition` ne porte plus cette notion.
    */
-  it("shows the left color bar, a Récupération sub-card and the canonical selected outline", async () => {
-    renderScreen([makeDefinition("a", "Squat", { recoverySeconds: 90 })]);
+  it("shows the left color bar and the canonical selected outline, without any Récupération sub-card", async () => {
+    renderScreen([makeDefinition("a", "Squat")]);
     await waitFor(() => expect(screen.getByTestId("activity-selection-list")).toBeTruthy());
 
     expect(screen.getByTestId("activity-selection-row-color-bar-a")).toBeTruthy();
-    expect(screen.getByTestId("activity-selection-row-recovery-a")).toBeTruthy();
-    expect(screen.getByText("Récupération 1 min 30 s")).toBeTruthy();
+    expect(screen.queryByTestId("activity-selection-row-recovery-a")).toBeNull();
+    expect(screen.queryByText(/Récupération/u)).toBeNull();
 
     const rowBefore = screen.getByTestId("activity-selection-row-a");
     expect(StyleSheet.flatten(rowBefore.props.style).borderColor).toBe(colors.border);
@@ -217,7 +242,7 @@ describe("ActivitySelectionScreen", () => {
     fireEvent.press(screen.getByTestId("activity-selection-row-a"));
     fireEvent.press(screen.getByTestId("activity-selection-row-b"));
     expect(screen.getByTestId("activity-selection-add-label").props.children).toBe(
-      "Ajouter 2 activités",
+      "Ajouter 2 exercices",
     );
 
     // Aller-retour : la liste se recharge SANS `a` (supprimée par ailleurs).
@@ -227,7 +252,7 @@ describe("ActivitySelectionScreen", () => {
     focusEffectHarness.effect();
     await waitFor(() =>
       expect(screen.getByTestId("activity-selection-add-label").props.children).toBe(
-        "Ajouter 1 activité",
+        "Ajouter 1 exercice",
       ),
     );
     expect(screen.queryByTestId("activity-selection-row-a")).toBeNull();

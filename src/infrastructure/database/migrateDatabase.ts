@@ -6,6 +6,7 @@ import { MIGRATION_003 } from "./migrations/migration003";
 import { MIGRATION_004 } from "./migrations/migration004";
 import { MIGRATION_005 } from "./migrations/migration005";
 import { MIGRATION_006 } from "./migrations/migration006";
+import { MIGRATION_007 } from "./migrations/migration007";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -84,6 +85,11 @@ export async function migrateDatabase(database: Database): Promise<void> {
     if (version === 5) {
       await transaction.execAsync(MIGRATION_006);
       version = 6;
+    }
+
+    if (version === 6) {
+      await transaction.execAsync(MIGRATION_007);
+      version = 7;
     }
 
     const userCount = await transaction.getFirstAsync<CountRow>(

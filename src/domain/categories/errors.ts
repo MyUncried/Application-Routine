@@ -7,9 +7,9 @@
  * Séance par un type d'erreur partagé.
  */
 
-export type CategoryValidationErrorCode = "REQUIRED" | "TOO_LONG";
+export type CategoryValidationErrorCode = "REQUIRED" | "TOO_LONG" | "INVALID_COLOR";
 
-export type CategoryValidationField = "category.name";
+export type CategoryValidationField = "category.name" | "category.color";
 
 export type CategoryValidationDetails = {
   readonly max?: number;
