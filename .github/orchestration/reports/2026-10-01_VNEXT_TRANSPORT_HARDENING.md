@@ -51,6 +51,24 @@ Aucun contrôle ni aucune preuve acquise ne sont supprimés.
 
 ## Qualification
 
-Implémentation en cours de qualification. Les résultats CI seront enregistrés dans
-2026-10-01_VNEXT_TRANSPORT_HARDENING_EVIDENCE.json avec les identifiants réels,
-le candidat exact et les résultats par plateforme. Aucun succès CI n'est anticipé.
+Candidat exact `9c630f17e4addbbda6f222fd3e153fd1bd970527` : qualification réelle achevée le 1er octobre 2026.
+
+| Contrôle | Linux | Windows | Run GitHub |
+| --- | --- | --- | --- |
+| Contrats VNext | 202 PASS, 0 FAIL | 202 PASS, 0 FAIL | 36908061869 |
+| Suite pilote complète | 920 PASS, 0 FAIL, 1 SKIP | 917 PASS, 0 FAIL, 4 SKIP | 36908061970 |
+| Équivalence historique | 920 PASS, 0 FAIL, 1 SKIP | 918 PASS, 0 FAIL, 3 SKIP | 36908061869 |
+| Drivers jetables | 202 PASS, 0 FAIL | 202 PASS, 0 FAIL | 36908061861 |
+
+Le helper d'admission confirme VERIFIED sur les réponses réelles GitHub des quatre jobs.
+Le préflight Windows sans Claude est PASS : Jest 1257/1257, TypeScript et lint PASS,
+aucune dérive hors fixture, cleanup PASS. Les artefacts téléchargés sont vérifiés par SHA256.
+L'ancien artefact de récupération absent reste NON_CERTIFIED ; les SKIP sont conservés.
+L'équivalence historique conserve NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT : cette
+qualification n'est ni un audit FINAL ni une autorisation d'activation.
+INITIAL_PASS et REVISION_PASS acquis restent inchangés et ne sont pas rejoués.
+
+Preuves et hashes : [2026-10-01_VNEXT_TRANSPORT_HARDENING_EVIDENCE.json](2026-10-01_VNEXT_TRANSPORT_HARDENING_EVIDENCE.json).
+Journaux des échecs et réussites, observations API et trois artefacts bruts :
+[2026-10-01_VNEXT_TRANSPORT_HARDENING_LOGS.zip](2026-10-01_VNEXT_TRANSPORT_HARDENING_LOGS.zip).
+La clôture ajoute uniquement ces preuves et métadonnées ; le code qualifié reste identique.
