@@ -5,8 +5,8 @@ source_head=e216294506bed87dd80855937e3fabfbfa322b82
 planning_mode=INITIAL
 planning_contract=kodjo.plan-impact.v1
 ui_planning_contract=kodjo.ui-plan-criteria.v2
-corrected_plan_commit=f3e7f492815a788545208714825f4fa67ec649cd
-corrected_plan_blob=c42de1f1b63260ea2cf573c4dd04584f6d5ebb37
+corrected_plan_commit=32e680cb5dd57c62130bf4f59f6d2fa3708f1db1
+corrected_plan_blob=6ee4a875ef930b6ff83389f2479fbee551ecae15
 STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW
 
 # PRE-1 — Plan corrigé après revue 36734142447
@@ -14,9 +14,9 @@ STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW
 source_head=e216294506bed87dd80855937e3fabfbfa322b82
 review_source_run=36734142447
 status=CORRECTED_PENDING_INDEPENDENT_REVIEW
-correction_round=3
-correction_source_development_run=36773441104
-corrected_items=UI-73382D60E040,D-240
+correction_round=4
+correction_source_development_run=36854959192
+corrected_items=UI-CDBCCFD16078
 
 # Plan technique final — PRE-1 — Fondations du modèle cible avant moteur
 
@@ -260,6 +260,10 @@ La revue ciblée 36763786560 a fermé les constats 1 à 8, 10 et 11 et maintenu 
 
 Le run de développement 36773441104 s’est arrêté en CLARIFICATION_REQUIRED sur deux points, corrigés ici sans autre modification. C1 — critère UI-73382D60E040 (constat 5) : `src/features/sessions/__tests__/SideModeControl.test.tsx` assertait la valeur vide de `shared.sideMode.valueLabels.UNILATERAL` (lignes 26 et 156) que `SideModeControl.tsx` lit hors contexte Tour ; ce test entre dans le périmètre d’écriture, les tests requis et les tests du critère ; `SideModeControl.tsx` reste inchangé. Les autres consommateurs (`CompositionScreen.tsx:1769`, `ExerciseScreen.test.tsx:2021`, `index.test.ts:370`) étaient déjà dans le périmètre. C2 — décision D-240 (registre 07, 30/09/2026) : compte à rebours d’Exercice `10 s` et fin d’Exercice `5 s` par défaut dans le Profil, portés par une exigence dédiée liée à `Profile.test.ts` et `SqliteProfileRepository.test.ts`. Aucune autre exigence, assertion, décision ni frontière n’est modifiée.
 
+### Changement de périmètre après le run de développement 36854959192 (tour 4)
+
+Sur décision de Hermann (option A), `src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx` entre dans le périmètre d’écriture, les tests requis et les tests du critère UI-CDBCCFD16078. Cause : la suppression du fallback runtime `BODY_ZONES` de `CompositionScreen.tsx`, exigée par la revue d’implémentation 5930269937, laisse son test 4 (ligne 297, `composition-exercise-body-zones`) sans référentiel, car ce test rend l’écran par les routes réelles sans `SQLiteProvider`. **Adaptation strictement limitée** à l’ajout des mocks `expo-sqlite` et `SqliteBodyZoneRepository` déjà utilisés par les tests du périmètre (`CompositionScreen.test.tsx`, `CategoriesSaveFlow.integration.test.tsx`) ; aucune assertion de ce fichier n’est ajoutée, supprimée ni modifiée. Aucune autre exigence, assertion, décision ni frontière n’est modifiée.
+
 ### Tests supplémentaires
 
 - `src/features/sessions/__tests__/ExerciseScreen.test.tsx`
@@ -271,6 +275,7 @@ Le run de développement 36773441104 s’est arrêté en CLARIFICATION_REQUIRED 
 - `src/features/sessions/__tests__/SessionCard.test.tsx`
 - `src/features/sessions/__tests__/formatSessionSummary.test.ts`
 - `src/features/sessions/__tests__/SideModeControl.test.tsx`
+- `src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx`
 
 ### scope_allow machine
 
@@ -337,6 +342,7 @@ src/features/sessions/CompositionScreen.tsx
 src/features/sessions/ExerciseScreen.tsx
 src/features/sessions/SessionService.ts
 src/features/sessions/__tests__/BodyZoneSelector.test.tsx
+src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx
 src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx
 src/features/sessions/__tests__/CategoriesScreen.test.tsx
 src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx
@@ -1725,10 +1731,11 @@ src/shared/i18n/resources/fr.ts
         "src/features/activities/ActivitySelectionScreen.tsx"
       ],
       "tests": [
-        "src/features/sessions/__tests__/compositionPresentation.test.ts",
-        "src/features/sessions/__tests__/CompositionScreen.test.tsx",
         "src/features/activities/__tests__/ActivityCard.test.tsx",
-        "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx"
+        "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+        "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+        "src/features/sessions/__tests__/compositionPresentation.test.ts"
       ],
       "proof_required": [
         "FUNCTIONAL_TEST",
@@ -3536,6 +3543,7 @@ src/shared/i18n/resources/fr.ts
       "tests": [
         "src/features/activities/__tests__/ActivityCard.test.tsx",
         "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
         "src/features/sessions/__tests__/CompositionScreen.test.tsx",
         "src/features/sessions/__tests__/compositionPresentation.test.ts"
       ],
@@ -3601,7 +3609,7 @@ src/shared/i18n/resources/fr.ts
 <KODJO_TEST_CONTRACT_JSON>
 {
   "schema": "kodjo.test-contract.v1",
-  "binding_count": 64,
+  "binding_count": 65,
   "bindings": [
     {
       "requirement_id": "REQ-001108DC7F67664C",
@@ -3911,6 +3919,11 @@ src/shared/i18n/resources/fr.ts
     {
       "requirement_id": "REQ-FBE85CDF92C9E827",
       "test_path": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-FBE85CDF92C9E827",
+      "test_path": "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
       "proof_type": "FUNCTIONAL_TEST"
     },
     {
@@ -5306,8 +5319,8 @@ src/shared/i18n/resources/fr.ts
         "src/features/sessions/SessionService.ts"
       ],
       "risk_score": 130,
-      "classification": "TEST_UNAFFECTED",
-      "justification": "Le flux UI existant reste hors périmètre ; aucun import transitif n’est inféré et aucun changement direct n’est requis."
+      "classification": "TEST_MUST_ADAPT",
+      "justification": "Changement de périmètre décidé par Hermann (option A, run 36854959192) : la suppression du fallback runtime BODY_ZONES de CompositionScreen exigée par la revue 5930269937 laisse le test 4 (ligne 297) sans référentiel, car il rend l’écran par les routes réelles sans SQLiteProvider. Adaptation limitée à l’ajout des mocks expo-sqlite et SqliteBodyZoneRepository déjà utilisés par les tests du périmètre ; aucune assertion modifiée."
     },
     {
       "path": "src/features/sessions/__tests__/CompositionNavigationGuard.integration.test.tsx",
@@ -5706,6 +5719,7 @@ src/shared/i18n/resources/fr.ts
     "src/features/sessions/ExerciseScreen.tsx",
     "src/features/sessions/SessionService.ts",
     "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
+    "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
     "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
     "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
     "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
@@ -5816,6 +5830,7 @@ src/shared/i18n/resources/fr.ts
     "src/features/sessions/ExerciseScreen.tsx",
     "src/features/sessions/SessionService.ts",
     "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
+    "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
     "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
     "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
     "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
@@ -5875,6 +5890,7 @@ src/shared/i18n/resources/fr.ts
     "src/features/activities/__tests__/CatalogueCreateOptions.test.tsx",
     "src/features/reference-data/__tests__/bodyZones.test.ts",
     "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
+    "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
     "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
     "src/features/sessions/__tests__/CategoriesScreen.test.tsx",
     "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
@@ -5898,8 +5914,8 @@ src/shared/i18n/resources/fr.ts
     "src/infrastructure/database/__tests__/targetSchema.test.ts",
     "src/shared/i18n/index.test.ts"
   ],
-  "requirement_contract_sha256": "5689ae195e44eeaef25faf3ad3c9b297eee60cd4462153857ddbea975c5282a6",
-  "test_contract_sha256": "c0f1ad49bdd59dd3cbbcafe4cd5fae2e22196615d7753404479b66ff13ea19e4",
+  "requirement_contract_sha256": "f8754d36f84a5cd228c730a7af7dc0c06e596a3997f0e45df8e550ffc62d22cf",
+  "test_contract_sha256": "385ae316b17b97aec0bdbbb12b8cf36e13da8499deda3c59e514e37265c61e3f",
   "boundary_contract_sha256": "8d290bd47df7851de55aadc88c35156bb213a035e83b2348452378b1fb2bf3a0",
   "requirement_count": 28
 }
@@ -5929,7 +5945,7 @@ src/shared/i18n/resources/fr.ts
   "criterion_count": 13,
   "assertion_count": 32,
   "assertion_ids_sha256": "534163c795e81bbf3909122b2bdd0ec2568c187f94d8d0564979cc8b5e8d836f",
-  "matrix_sha256": "d0d9023eedc511b3b3045a4e274592b20b65257c463ab98eb70fcef6394fbfea"
+  "matrix_sha256": "3ffe69d8f141a9ad66ce8d77cb7685a11ed9e7618bcf02621c91915e9e5bc0e0"
 }
 </KODJO_UI_PLAN_CONTRACT_JSON>
 
