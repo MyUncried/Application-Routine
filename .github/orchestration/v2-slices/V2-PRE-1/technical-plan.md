@@ -5,8 +5,8 @@ source_head=e216294506bed87dd80855937e3fabfbfa322b82
 planning_mode=INITIAL
 planning_contract=kodjo.plan-impact.v1
 ui_planning_contract=kodjo.ui-plan-criteria.v2
-corrected_plan_commit=32e680cb5dd57c62130bf4f59f6d2fa3708f1db1
-corrected_plan_blob=6ee4a875ef930b6ff83389f2479fbee551ecae15
+corrected_plan_commit=b968d76c1b243a53d4052b25ff5ee5bbff7931ff
+corrected_plan_blob=60a6bb366b7441b8e79189db585c8dec4463d08c
 STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW
 
 # PRE-1 — Plan corrigé après revue 36734142447
@@ -14,9 +14,9 @@ STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW
 source_head=e216294506bed87dd80855937e3fabfbfa322b82
 review_source_run=36734142447
 status=CORRECTED_PENDING_INDEPENDENT_REVIEW
-correction_round=4
-correction_source_development_run=36854959192
-corrected_items=UI-CDBCCFD16078
+correction_round=5
+correction_source_implementation_review=5938943370
+corrected_items=UI-16294D4D4345,REQ-A2F15FD967FEAC96
 
 # Plan technique final — PRE-1 — Fondations du modèle cible avant moteur
 
@@ -264,6 +264,10 @@ Le run de développement 36773441104 s’est arrêté en CLARIFICATION_REQUIRED 
 
 Sur décision de Hermann (option A), `src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx` entre dans le périmètre d’écriture, les tests requis et les tests du critère UI-CDBCCFD16078. Cause : la suppression du fallback runtime `BODY_ZONES` de `CompositionScreen.tsx`, exigée par la revue d’implémentation 5930269937, laisse son test 4 (ligne 297, `composition-exercise-body-zones`) sans référentiel, car ce test rend l’écran par les routes réelles sans `SQLiteProvider`. **Adaptation strictement limitée** à l’ajout des mocks `expo-sqlite` et `SqliteBodyZoneRepository` déjà utilisés par les tests du périmètre (`CompositionScreen.test.tsx`, `CategoriesSaveFlow.integration.test.tsx`) ; aucune assertion de ce fichier n’est ajoutée, supprimée ni modifiée. Aucune autre exigence, assertion, décision ni frontière n’est modifiée.
 
+### Changement de périmètre après la revue d’implémentation 5938943370 (tour 5)
+
+Sur décision de Hermann (option A), `src/features/sessions/SessionServiceProvider.tsx` (reclassé `MODIFY`) et `src/features/sessions/__tests__/SessionServiceProvider.test.tsx` (reclassé `TEST_MUST_ADAPT`) entrent dans le périmètre d’écriture, dans les cibles et tests du critère UI-16294D4D4345 et de l’exigence REQ-A2F15FD967FEAC96. Cause : la revue indépendante 5938943370 (run 36913774921) a constaté que `SessionService` n’applique le snapshot du Profil que si un `ProfileRepository` est injecté, alors que le provider de production le construit avec deux arguments seulement. **Correction strictement limitée** : le provider injecte `SqliteProfileRepository`, construit sur la même connexion, comme troisième argument de `SessionService` ; `SessionServiceProvider.test.tsx` reçoit un seul test supplémentaire prouvant, par le provider réel et la base en mémoire migrée, que la création d’une occurrence initialise `postActivityRecoverySeconds` depuis le Profil persistant ; aucune assertion existante n’est modifiée. Aucune autre exigence, assertion, décision ni frontière n’est modifiée.
+
 ### Tests supplémentaires
 
 - `src/features/sessions/__tests__/ExerciseScreen.test.tsx`
@@ -276,6 +280,7 @@ Sur décision de Hermann (option A), `src/features/sessions/__tests__/CatalogueC
 - `src/features/sessions/__tests__/formatSessionSummary.test.ts`
 - `src/features/sessions/__tests__/SideModeControl.test.tsx`
 - `src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx`
+- `src/features/sessions/__tests__/SessionServiceProvider.test.tsx`
 
 ### scope_allow machine
 
@@ -341,6 +346,7 @@ src/features/sessions/CategoriesScreen.tsx
 src/features/sessions/CompositionScreen.tsx
 src/features/sessions/ExerciseScreen.tsx
 src/features/sessions/SessionService.ts
+src/features/sessions/SessionServiceProvider.tsx
 src/features/sessions/__tests__/BodyZoneSelector.test.tsx
 src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx
 src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx
@@ -351,6 +357,7 @@ src/features/sessions/__tests__/ExerciseExitConfirmModal.test.tsx
 src/features/sessions/__tests__/ExerciseScreen.test.tsx
 src/features/sessions/__tests__/SessionCard.test.tsx
 src/features/sessions/__tests__/SessionService.test.ts
+src/features/sessions/__tests__/SessionServiceProvider.test.tsx
 src/features/sessions/__tests__/SideModeControl.test.tsx
 src/features/sessions/__tests__/compositionPresentation.test.ts
 src/features/sessions/__tests__/formatSessionSummary.test.ts
@@ -811,8 +818,8 @@ src/shared/i18n/resources/fr.ts
   },
   {
     "path": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
-    "classification": "TEST_UNAFFECTED",
-    "justification": "Le provider de service existant n’est pas une racine modifiée et l’import direct ne suffit pas."
+    "classification": "TEST_MUST_ADAPT",
+    "justification": "Changement de périmètre décidé par Hermann (option A) après la revue d’implémentation 5938943370 : prouver par le provider réel (base en mémoire migrée) que la création d’une occurrence initialise postActivityRecoverySeconds depuis le Profil persistant. Ajout de ce seul test ; aucune assertion existante ajoutée, supprimée ni modifiée."
   },
   {
     "path": "src/features/activities/__tests__/useActivityCatalogue.test.ts",
@@ -911,8 +918,8 @@ src/shared/i18n/resources/fr.ts
   },
   {
     "path": "src/features/sessions/SessionServiceProvider.tsx",
-    "classification": "CONSUMER_UNAFFECTED",
-    "justification": "L’extension des services et Repositories ne démontre pas un changement requis de ce provider."
+    "classification": "MODIFY",
+    "justification": "Changement de périmètre décidé par Hermann (option A) après la revue d’implémentation 5938943370 (run 36913774921) : le chemin de production construit SessionService sans ProfileRepository, si bien que le snapshot du Profil (REQ-A2F15FD967FEAC96, UI-16294D4D4345) ne s’applique pas dans l’application. Seule modification permise : injecter SqliteProfileRepository, construit sur la même connexion, comme troisième argument de SessionService ; aucun autre changement du provider."
   },
   {
     "path": "src/features/sessions/SideModeControl.tsx",
@@ -1045,10 +1052,12 @@ src/shared/i18n/resources/fr.ts
       },
       "decision_justification": "Le service existant orchestre déjà la composition et reçoit l’extension minimale nécessaire au snapshot atomique.",
       "change_targets": [
-        "src/features/sessions/SessionService.ts"
+        "src/features/sessions/SessionService.ts",
+        "src/features/sessions/SessionServiceProvider.tsx"
       ],
       "tests": [
-        "src/features/sessions/__tests__/SessionService.test.ts"
+        "src/features/sessions/__tests__/SessionService.test.ts",
+        "src/features/sessions/__tests__/SessionServiceProvider.test.tsx"
       ],
       "proof_required": [
         "FUNCTIONAL_TEST",
@@ -2119,11 +2128,13 @@ src/shared/i18n/resources/fr.ts
       "src/domain/preferences/ProfileRepository.ts",
       "src/domain/preferences/index.ts",
       "src/domain/sessions/Session.ts",
-      "src/features/sessions/SessionService.ts"
+      "src/features/sessions/SessionService.ts",
+      "src/features/sessions/SessionServiceProvider.tsx"
     ],
     "tests": [
       "src/domain/preferences/__tests__/Profile.test.ts",
-      "src/features/sessions/__tests__/SessionService.test.ts"
+      "src/features/sessions/__tests__/SessionService.test.ts",
+      "src/features/sessions/__tests__/SessionServiceProvider.test.tsx"
     ],
     "no_automated_test_reason": "NONE",
     "proof_required": [
@@ -2979,10 +2990,12 @@ src/shared/i18n/resources/fr.ts
         "requirement": "La création doit copier la récupération post-exercice du Profil dans l’occurrence sans rétroactivité de la source ou du Profil."
       },
       "change_targets": [
-        "src/features/sessions/SessionService.ts"
+        "src/features/sessions/SessionService.ts",
+        "src/features/sessions/SessionServiceProvider.tsx"
       ],
       "tests": [
-        "src/features/sessions/__tests__/SessionService.test.ts"
+        "src/features/sessions/__tests__/SessionService.test.ts",
+        "src/features/sessions/__tests__/SessionServiceProvider.test.tsx"
       ],
       "proof_required": [
         "FUNCTIONAL_TEST",
@@ -3034,11 +3047,13 @@ src/shared/i18n/resources/fr.ts
         "src/domain/preferences/ProfileRepository.ts",
         "src/domain/preferences/index.ts",
         "src/domain/sessions/Session.ts",
-        "src/features/sessions/SessionService.ts"
+        "src/features/sessions/SessionService.ts",
+        "src/features/sessions/SessionServiceProvider.tsx"
       ],
       "tests": [
         "src/domain/preferences/__tests__/Profile.test.ts",
-        "src/features/sessions/__tests__/SessionService.test.ts"
+        "src/features/sessions/__tests__/SessionService.test.ts",
+        "src/features/sessions/__tests__/SessionServiceProvider.test.tsx"
       ],
       "proof_required": [
         "FUNCTIONAL_TEST"
@@ -3609,7 +3624,7 @@ src/shared/i18n/resources/fr.ts
 <KODJO_TEST_CONTRACT_JSON>
 {
   "schema": "kodjo.test-contract.v1",
-  "binding_count": 65,
+  "binding_count": 67,
   "bindings": [
     {
       "requirement_id": "REQ-001108DC7F67664C",
@@ -3747,6 +3762,11 @@ src/shared/i18n/resources/fr.ts
       "proof_type": "FUNCTIONAL_TEST"
     },
     {
+      "requirement_id": "REQ-982901A85204184E",
+      "test_path": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
       "requirement_id": "REQ-A2F15FD967FEAC96",
       "test_path": "src/domain/preferences/__tests__/Profile.test.ts",
       "proof_type": "FUNCTIONAL_TEST"
@@ -3754,6 +3774,11 @@ src/shared/i18n/resources/fr.ts
     {
       "requirement_id": "REQ-A2F15FD967FEAC96",
       "test_path": "src/features/sessions/__tests__/SessionService.test.ts",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-A2F15FD967FEAC96",
+      "test_path": "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
       "proof_type": "FUNCTIONAL_TEST"
     },
     {
@@ -5350,8 +5375,8 @@ src/shared/i18n/resources/fr.ts
         "src/features/sessions/SessionService.ts"
       ],
       "risk_score": 124,
-      "classification": "TEST_UNAFFECTED",
-      "justification": "Le provider de service existant n’est pas une racine modifiée et l’import direct ne suffit pas."
+      "classification": "TEST_MUST_ADAPT",
+      "justification": "Changement de périmètre décidé par Hermann (option A) après la revue d’implémentation 5938943370 : prouver par le provider réel (base en mémoire migrée) que la création d’une occurrence initialise postActivityRecoverySeconds depuis le Profil persistant. Ajout de ce seul test ; aucune assertion existante ajoutée, supprimée ni modifiée."
     },
     {
       "path": "src/features/activities/__tests__/useActivityCatalogue.test.ts",
@@ -5572,8 +5597,8 @@ src/shared/i18n/resources/fr.ts
         "src/infrastructure/database/repositories/SqliteSessionRepository.ts"
       ],
       "risk_score": 0,
-      "classification": "CONSUMER_UNAFFECTED",
-      "justification": "L’extension des services et Repositories ne démontre pas un changement requis de ce provider."
+      "classification": "MODIFY",
+      "justification": "Changement de périmètre décidé par Hermann (option A) après la revue d’implémentation 5938943370 (run 36913774921) : le chemin de production construit SessionService sans ProfileRepository, si bien que le snapshot du Profil (REQ-A2F15FD967FEAC96, UI-16294D4D4345) ne s’applique pas dans l’application. Seule modification permise : injecter SqliteProfileRepository, construit sur la même connexion, comme troisième argument de SessionService ; aucun autre changement du provider."
     },
     {
       "path": "src/features/sessions/SideModeControl.tsx",
@@ -5718,6 +5743,7 @@ src/shared/i18n/resources/fr.ts
     "src/features/sessions/CompositionScreen.tsx",
     "src/features/sessions/ExerciseScreen.tsx",
     "src/features/sessions/SessionService.ts",
+    "src/features/sessions/SessionServiceProvider.tsx",
     "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
     "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
     "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
@@ -5728,6 +5754,7 @@ src/shared/i18n/resources/fr.ts
     "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
     "src/features/sessions/__tests__/SessionCard.test.tsx",
     "src/features/sessions/__tests__/SessionService.test.ts",
+    "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
     "src/features/sessions/__tests__/SideModeControl.test.tsx",
     "src/features/sessions/__tests__/compositionPresentation.test.ts",
     "src/features/sessions/__tests__/formatSessionSummary.test.ts",
@@ -5829,6 +5856,7 @@ src/shared/i18n/resources/fr.ts
     "src/features/sessions/CompositionScreen.tsx",
     "src/features/sessions/ExerciseScreen.tsx",
     "src/features/sessions/SessionService.ts",
+    "src/features/sessions/SessionServiceProvider.tsx",
     "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
     "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
     "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
@@ -5839,6 +5867,7 @@ src/shared/i18n/resources/fr.ts
     "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
     "src/features/sessions/__tests__/SessionCard.test.tsx",
     "src/features/sessions/__tests__/SessionService.test.ts",
+    "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
     "src/features/sessions/__tests__/SideModeControl.test.tsx",
     "src/features/sessions/__tests__/compositionPresentation.test.ts",
     "src/features/sessions/__tests__/formatSessionSummary.test.ts",
@@ -5899,6 +5928,7 @@ src/shared/i18n/resources/fr.ts
     "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
     "src/features/sessions/__tests__/SessionCard.test.tsx",
     "src/features/sessions/__tests__/SessionService.test.ts",
+    "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
     "src/features/sessions/__tests__/SideModeControl.test.tsx",
     "src/features/sessions/__tests__/compositionPresentation.test.ts",
     "src/features/sessions/__tests__/formatSessionSummary.test.ts",
@@ -5914,8 +5944,8 @@ src/shared/i18n/resources/fr.ts
     "src/infrastructure/database/__tests__/targetSchema.test.ts",
     "src/shared/i18n/index.test.ts"
   ],
-  "requirement_contract_sha256": "f8754d36f84a5cd228c730a7af7dc0c06e596a3997f0e45df8e550ffc62d22cf",
-  "test_contract_sha256": "385ae316b17b97aec0bdbbb12b8cf36e13da8499deda3c59e514e37265c61e3f",
+  "requirement_contract_sha256": "0a632f3579856e80cd5482dd24ff3b609d8c8b804c1e84d347c49799b819f80d",
+  "test_contract_sha256": "84713d14def3c301dbe75a8f41888a99d5f363a8074282a913448b047088dcbb",
   "boundary_contract_sha256": "8d290bd47df7851de55aadc88c35156bb213a035e83b2348452378b1fb2bf3a0",
   "requirement_count": 28
 }
@@ -5939,13 +5969,14 @@ src/shared/i18n/resources/fr.ts
     "src/features/sessions/CompositionScreen.tsx",
     "src/features/sessions/ExerciseScreen.tsx",
     "src/features/sessions/SessionService.ts",
+    "src/features/sessions/SessionServiceProvider.tsx",
     "src/features/sessions/compositionPresentation.ts",
     "src/shared/i18n/resources/fr.ts"
   ],
   "criterion_count": 13,
   "assertion_count": 32,
   "assertion_ids_sha256": "534163c795e81bbf3909122b2bdd0ec2568c187f94d8d0564979cc8b5e8d836f",
-  "matrix_sha256": "3ffe69d8f141a9ad66ce8d77cb7685a11ed9e7618bcf02621c91915e9e5bc0e0"
+  "matrix_sha256": "bf3b9feef6166d4a4daf0bf9068e960af20f211cb146531d4faf4b8b351804dd"
 }
 </KODJO_UI_PLAN_CONTRACT_JSON>
 
