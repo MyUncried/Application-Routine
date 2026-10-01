@@ -27,9 +27,13 @@ function deriveCorrection(cwd, base, receipt) {
   // be diagnosed; they cannot silently authorize unrelated mutations.
   const item = a.planContract.plan_items[0];
   if (!allowed.authorized_targets.some(x => x.target_id === item.plan_item_id)) throw Error('VNEXT12_PLAN_CORRECTION_NOT_AUTHORIZED');
-  if (allowed.authorized_targets.some(x => x.target_type !== 'PLAN_ITEM')) throw Error('VNEXT12_REVISION_REQUIRES_DIAGNOSIS');
+  // Dependencies describe the finding's evidence closure; they are not all
+  // requested mutations. Only blocking findings on this plan item authorize
+  // the benchmark correction. Requirements, impacts, tests and proofs stay exact.
+  if (receipt.review_report.findings.filter(x => x.blocking)
+    .some(x => x.target_type !== 'PLAN_ITEM' || x.target_id !== item.plan_item_id)) throw Error('VNEXT12_REVISION_REQUIRES_DIAGNOSIS');
   const patch = Revision.buildRevisionPatch({ allowedChangeSet: allowed,
-    corrections: allowed.authorized_targets.map(x => ({ target_type: x.target_type, target_id: x.target_id,
+    corrections: allowed.authorized_targets.filter(x => x.target_type === 'PLAN_ITEM' && x.target_id === item.plan_item_id).map(x => ({ target_type: x.target_type, target_id: x.target_id,
       finding_ids: x.finding_ids, correction: 'Rétablir exclusivement les intentions value() === 2 et attente Jest 2, conformément à la source Git et aux obligations inchangées.' })) });
   const recipe = buildRecipe(cwd);
   recipe.planningInput = { ...recipe.planningInput, planning_mode: 'REVISION',
@@ -43,6 +47,18 @@ function deriveCorrection(cwd, base, receipt) {
 }
 function completeRevision(base, receipt, correction, next, nextReceipt) {
   Chain.validateReceipt(next, nextReceipt);
+  const dependencies = a => ({
+    requirements: a.requirementRegistry.requirements, coverage: a.requirementRegistry.coverage,
+    registry_status: a.requirementRegistry.registry_status, blocking_reasons: a.requirementRegistry.blocking_reasons,
+    source_manifest_hash: a.requirementRegistry.source_manifest_hash, impacts: a.impactGraph.impacts,
+    candidateManifest: a.candidateManifest, directImportScan: a.directImportScan, uiAtomicityContract: a.uiAtomicityContract });
+  const left = dependencies(base.artifacts), right = dependencies(next.artifacts);
+  for (const key of Object.keys(left)) {
+    if (V.canonicalStringify(left[key]) !== V.canonicalStringify(right[key])) throw Error('VNEXT12_REVISION_DEPENDENCY_MUTATED:' + key);
+  }
+  const freezePlan = plan => ({ boundaries: plan.boundaries,
+    items: plan.plan_items.map(({ change_items, ...item }) => item) });
+  if (V.canonicalStringify(freezePlan(base.artifacts.planContract)) !== V.canonicalStringify(freezePlan(next.artifacts.planContract))) throw Error('VNEXT12_REVISION_OBLIGATION_MUTATED');
   const nextArtifacts = { ...next.artifacts, cumulativeRegister: Register.buildRegister({
     ...next.register_input, candidateHead: next.producer_revision, lot: next.artifacts.planningEnvelope.slice_id, phase: 'REVISION' }) };
   const outcome = Revision.verifyRevisionOutcome({ allowedChangeSet: correction.allowed,

@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-01T10:56:00Z",
+  "recorded_at": "2026-10-01T11:35:21Z",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "0bc480bd279ff8456053c9ace3a725d9fda5bcac",
-  "controller_stage": "QUALIFY_ONLY",
-  "controller_generation": 13,
+  "controller_stage": "PREPARE_REVISION",
+  "controller_generation": 14,
   "steps": [
     {
       "step": 1,
@@ -43,39 +43,7 @@
     "consumption_tag": "9e2e693061c8d0d53d00d15519a4f1b216e6a081",
     "replay_forbidden": true
   },
-  "active_runs": [
-    {
-      "run_id": "36850188342",
-      "candidate": "7e5ced7e13a838324b97d4f3bc07287d1aeff5b9",
-      "purpose": "COMPLETE_PILOT_QUALIFICATION",
-      "linux_job": "110329740210",
-      "linux_tests": 910,
-      "linux_pass": 909,
-      "linux_fail": 0,
-      "linux_skip": 1,
-      "windows_job": "110330747335",
-      "windows_status": "INFRASTRUCTURE_FAILURE_ONE_JOB_RETRY_REQUESTED",
-      "windows_diagnostic": "GitHub: self-hosted runner lost communication with the server during complete suite; no assertion verdict available, no complete job log uploaded.",
-      "retry_job": "110335703259"
-    },
-    {
-      "run_id": "36850188358",
-      "candidate": "7e5ced7e13a838324b97d4f3bc07287d1aeff5b9",
-      "purpose": "VNEXT_AND_HISTORICAL_EQUIVALENCE",
-      "linux_status": "SUCCESS",
-      "windows_status": "IN_PROGRESS",
-      "vnext_windows_status": "SUCCESS"
-    },
-    {
-      "run_id": "36850188454",
-      "candidate": "7e5ced7e13a838324b97d4f3bc07287d1aeff5b9",
-      "purpose": "REAL_NEGATIVE_PLAN_REVIEW_AND_ONE_CAUSAL_REVISION",
-      "linux_driver_status": "SUCCESS",
-      "windows_driver_status": "SUCCESS",
-      "actual_review_status": "QUEUED",
-      "actual_review_job": "110336010043"
-    }
-  ],
+  "active_runs": [],
   "obsolete_runs": [
     {
       "run_id": "36848654104",
@@ -94,16 +62,16 @@
     }
   ],
   "local_validation": {
-    "vnext_and_supervisors_pass": 209,
+    "vnext_and_supervisors_pass": 211,
     "fail": 0,
-    "revision_integration_tests_pass": 6,
+    "revision_integration_tests_pass": 8,
     "execution_supervisor_tests_pass": 9,
     "workflow_syntax_count": 64,
     "full_local_pilot_status": "NOT_QUALIFIED_SYNTHETIC_CHECKOUT_AND_MISSING_TOKENIZER",
     "full_linux_ci_is_authoritative": true
   },
   "pending_actions": [
-    "Read current run states and logs first. Do not replay consumed INITIAL or retry obsolete commits.",
+    "New PREPARE_REVISION and qualifications requested by this commit. Resolve their IDs from GitHub. Hold branch HEAD stable during Windows preflight; do not replay INITIAL.",
     "Collect and hash real PREPARE_REVISION artifacts from run 36850188454. Require real base REVISE and revised APPROVE plus RESOLVED bounded outcome; diagnose actual failures without inventing findings.",
     "Create the exact revised dossier from publication.json with actual transport gate and a fresh request UUID; preserve all other activation rows and the exact source/candidate/review bindings. The helper preparePublication is already implemented and tested.",
     "Qualify the new exact candidate on Linux and Windows before runtime execution. Current executable supervisor changes at 0bc480bd were deliberately published with skip-ci to preserve the existing queued real review; they still require remote qualification. Historical Windows timeout is now prepared at 40 minutes for the next candidate.",
@@ -111,5 +79,33 @@
     "Set EXECUTE_REVISION only after actual qualification and exact approval. Supervisor requires real planning_mode REVISION, count 1/limit 1, RESOLVED outcome, fresh admission and actual missing-authority/proof refusals before Claude.",
     "Collect actual runtime session, targeted functional observation value 2, exactly core.js/test changes, preserved keep.js bytes, full Jest/TypeScript/lint checks, atomic request consumption and cleanup. Persist real result in GitHub before claiming REVISION_PASS.",
     "Finish step 3 only with actual INITIAL_PASS and REVISION_PASS. Do not activate, merge, cut over, launch FINAL or change other application slices in this campaign continuation. Pause the watcher at completion or a genuine business decision."
+  ],
+  "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
+  "latest_failures": [
+    {
+      "run_id": "36850188454",
+      "status": "FAILED",
+      "phase": "BOUNDED_CORRECTION",
+      "actual_base_verdict": "REVISE",
+      "actual_base_session": "41caa0fc-9a28-4c25-b575-f3cafa9b956e",
+      "artifact_id": "11156434118",
+      "artifact_sha256": "8bbd97a704b99eeca9e640d678ea0583d33414e75f3f490acd5f16f1ad17118c",
+      "cause": "Supervisor treated evidence dependency targets as requested mutations. Real blocking finding targets only the plan item; actual receipt preserved unchanged.",
+      "fix": "Patch only the causal plan item; freeze semantic requirements, impacts, test/proof obligations and source/candidate anchors even when cited by the reviewer."
+    },
+    {
+      "run_id": "36850188342",
+      "attempt": 2,
+      "status": "FAILED",
+      "job_id": "110335703259",
+      "cause": "Authenticated pull request lookup mismatch after branch HEAD moved from event 7e5ced7e to checkpoint 63c6c8fb. No assertion result from complete Windows suite in attempt 2.",
+      "next_action": "Qualify the new exact HEAD and hold branch stable until its Windows preflight finishes."
+    },
+    {
+      "run_id": "36850188358",
+      "job_id": "110330878061",
+      "status": "CANCELLED",
+      "cause": "Historical Windows execution canceled after approximately 20 minutes; post-check correctly rejects incomplete evidence. Next candidate already carries 40-minute bound."
+    }
   ]
 }

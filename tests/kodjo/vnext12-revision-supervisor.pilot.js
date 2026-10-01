@@ -94,7 +94,38 @@ test('revision supervisor refuses an unrelated change outside the authorized pla
   const recipe = structuredClone(f.correction.recipe);
   recipe.classifications[0].impact_reason = 'Changement étranger à la correction autorisée.';
   const next = Chain.produce(recipe, { cwd: f.cwd });
-  assert.throws(() => Driver.completeRevision(f.base, f.report, f.correction, next, receipt(f.cwd, next, [])), /PRESERV/);
+  assert.throws(() => Driver.completeRevision(f.base, f.report, f.correction, next, receipt(f.cwd, next, [])), /DEPENDENCY_MUTATED|PRESERV/);
+});
+test('revision benchmark accepts real-shaped dependency evidence while changing only the plan intents', t => {
+  const cwd = fixture(t), base = Chain.produce(Driver.benchmarkRecipe(cwd), { cwd });
+  const a = base.artifacts, item = a.planContract.plan_items[0];
+  const report = receipt(cwd, base, [{ category: 'PLAN_GAP', target_type: 'PLAN_ITEM',
+    target_id: item.plan_item_id, finding: 'Les intentions 3 contredisent la source 2.',
+    evidence: ['unit fixture of the dependency closure observed in run 36850188454'],
+    required_correction: 'Corriger exclusivement les deux intentions pour obtenir 2.',
+    dependency_target_ids: [a.requirementRegistry.requirements[0].requirement_id,
+      a.requirementRegistry.coverage[0].unit_id, ...a.impactGraph.impacts.map(x => x.impact_id),
+      item.test_obligations[0].test_id, item.proof_obligations[0].proof_id,
+      ...a.impactGraph.impacts.map(x => x.candidate_id)] }]);
+  const correction = Driver.deriveCorrection(cwd, base, report);
+  assert.equal(correction.patch.correction_count, 1);
+  assert.equal(correction.patch.corrections[0].target_id, item.plan_item_id);
+  const next = Chain.produce(correction.recipe, { cwd });
+  assert.equal(Driver.completeRevision(base, report, correction, next, receipt(cwd, next, [])).revision_outcome.status, 'RESOLVED');
+  const changed = structuredClone(correction.recipe);
+  changed.classifications[0].impact_reason = 'Unrelated mutation of a dependency authorized as evidence.';
+  const altered = Chain.produce(changed, { cwd });
+  assert.throws(() => Driver.completeRevision(base, report, correction, altered, receipt(cwd, altered, [])), /DEPENDENCY_MUTATED/);
+});
+test('revision benchmark refuses a blocking finding directly targeting a dependency', t => {
+  const cwd = fixture(t), base = Chain.produce(Driver.benchmarkRecipe(cwd), { cwd });
+  const item = base.artifacts.planContract.plan_items[0];
+  const report = receipt(cwd, base, [
+    { category: 'PLAN_GAP', target_type: 'PLAN_ITEM', target_id: item.plan_item_id,
+      finding: 'Intentions incorrectes.', evidence: ['unit fixture'], required_correction: 'Corriger.', dependency_target_ids: [] },
+    { category: 'PROOF_GAP', target_type: 'PROOF', target_id: item.proof_obligations[0].proof_id,
+      finding: 'Preuve incorrecte.', evidence: ['unit fixture'], required_correction: 'Modifier la preuve.', dependency_target_ids: [] }]);
+  assert.throws(() => Driver.deriveCorrection(cwd, base, report), /REVISION_REQUIRES_DIAGNOSIS/);
 });
 test('live revision handoff binds both real-format receipts without rewriting the reviewed proposal', t => {
   const f = setup(t), nextReceipt = receipt(f.cwd, f.next, []);
