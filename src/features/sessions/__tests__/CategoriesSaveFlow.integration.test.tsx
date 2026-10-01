@@ -2,6 +2,7 @@ import { act, fireEvent, renderRouter, screen, waitFor } from "expo-router/testi
 import { describe, expect, it, jest } from "@jest/globals";
 import type { ReactNode } from "react";
 
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
@@ -11,18 +12,46 @@ import { SessionServiceContext } from "@/features/sessions/SessionServiceContext
 import { strings } from "@/shared/i18n";
 
 /**
- * Intégration bout-en-bout T01-S09 : Composition → Catégories → Enregistrer
- * → Catalogue, avec un VRAI `SessionDraftProvider` (monté une seule fois par
- * `app/(creation)/_layout.tsx`) et un VRAI `SqliteSessionRepository`/
- * `SqliteCategoryRepository` adossés à une vraie base SQLite en mémoire
+ * `CompositionScreen`/`ExerciseScreen` s'auto-alimentent désormais en Zones
+ * corporelles persistées via `useSQLiteContext` (V2-PRE-1, plan §3.1,
+ * UI-CDBCCFD16078/UI-1652FFC3B512). Cette suite court-circuite `expo-sqlite`
+ * natif au profit d'un `NodeSqliteDatabase` injecté directement via
+ * `SessionServiceContext` (voir docstring plus bas) — `expo-sqlite` et le
+ * Repository des Zones sont donc doublés ici pour ne jamais toucher au
+ * module natif réel, même patron que `CompositionScreen.test.tsx`.
+ */
+jest.mock("expo-sqlite", () => ({
+  useSQLiteContext: () => ({}),
+}));
+
+const BODY_ZONE_FIXTURES: readonly BodyZone[] = [
+  { id: "epaules", name: "Épaules", isActive: true, createdAt: "2026-01-01T00:00:01.000Z" },
+  { id: "dos", name: "Dos", isActive: true, createdAt: "2026-01-01T00:00:04.000Z" },
+];
+
+jest.mock("@/infrastructure/database/repositories/SqliteBodyZoneRepository", () => ({
+  SqliteBodyZoneRepository: jest.fn().mockImplementation(() => ({
+    listAll: jest.fn<() => Promise<readonly BodyZone[]>>().mockResolvedValue(BODY_ZONE_FIXTURES),
+  })),
+}));
+
+/**
+ * Intégration bout-en-bout T01-S09 : Composition → Catégories (confirmation
+ * finale) → Enregistrer → Catalogue, avec un VRAI `SessionDraftProvider`
+ * (monté une seule fois par `app/(creation)/_layout.tsx`) et un VRAI
+ * `SqliteSessionRepository` adossé à une vraie base SQLite en mémoire
  * (`NodeSqliteDatabase`, même mécanisme que `SqliteSessionRepository
  * .test.ts`) — seul `expo-sqlite` lui-même (natif) est court-circuité, en
  * fournissant directement `SessionServiceContext` plutôt qu'en passant par
  * `SessionServiceProvider`/`SQLiteProvider`.
  *
+ * V2-PRE-1 (plan §3.3, UI-8CB4E7976CBA) : la relation historique Catégorie
+ * de Séance N:N est retirée — l'écran `Catégories de la séance` ne lit ni
+ * n'écrit plus `session_categories` ; ce parcours couvre désormais
+ * uniquement la confirmation finale et l'enregistrement.
+ *
  * Couvre explicitement, avec des données réelles bout en bout : plusieurs
- * Activités (une en Durée, une en Répétitions) ; Zones corporelles ; une
- * Catégorie prédéfinie existante ET une Catégorie personnalisée ; aucune
+ * Activités (une en Durée, une en Répétitions) ; Zones corporelles ; aucune
  * perte de donnée T01-S01…S08 ; reset du brouillon et retour au Catalogue
  * uniquement après succès.
  */
@@ -106,7 +135,7 @@ describe("Parcours Composition → Catégories → Enregistrer → Catalogue (T0
     // ciblé par son `testID` : son titre n'est délibérément pas un nom
     // accessible unique (il est aussi celui du sélecteur qu'il contient).
     fireEvent.press(screen.getByTestId("exercise-section-body-zones-header"));
-    fireEvent.press(screen.getByLabelText("Dos"));
+    fireEvent.press(await screen.findByLabelText("Dos"));
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
     // Activité 2 (Répétitions) — nouvel ajout, jamais un remplacement.
@@ -118,19 +147,11 @@ describe("Parcours Composition → Catégories → Enregistrer → Catalogue (T0
     );
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
-    // Continuer → Catégories.
+    // Continuer → Catégories (confirmation finale).
     const continueAction = screen.getByLabelText(composition.continueAction);
     expect(continueAction.props.accessibilityState).toMatchObject({ disabled: false });
     fireEvent.press(continueAction);
     expect(router.getPathname()).toBe("/categories");
-
-    // Catégorie prédéfinie existante + Catégorie personnalisée.
-    await waitFor(() => expect(screen.getByLabelText("Cardio")).toBeTruthy());
-    fireEvent.press(screen.getByLabelText("Cardio"));
-
-    fireEvent.press(screen.getByLabelText(categories.createAction));
-    fireEvent.changeText(screen.getByLabelText(categories.newCategory.placeholder), "Yoga Doux");
-    fireEvent.press(screen.getByLabelText(categories.newCategory.addAccessibilityLabel));
 
     // Enregistrer la séance.
     await act(async () => {
@@ -155,15 +176,6 @@ describe("Parcours Composition → Catégories → Enregistrer → Catalogue (T0
       "SELECT COUNT(*) AS count FROM activity_body_zones",
     );
     expect(bodyZoneRow?.count).toBe(1);
-
-    const categoryRows = await database.getAllAsync<{ name: string }>(
-      `SELECT categories.name FROM session_categories
-       JOIN categories ON categories.id = session_categories.category_id
-       WHERE session_categories.session_id = ?
-       ORDER BY categories.is_predefined DESC, categories.display_order ASC`,
-      [sessionRow!.id],
-    );
-    expect(categoryRows.map((row) => row.name)).toEqual(["Cardio", "Yoga Doux"]);
 
     database.close();
   });

@@ -1,15 +1,15 @@
 import { describe, expect, it, jest } from "@jest/globals";
 
-import type { Category } from "@/domain/categories/Category";
-import type { CategoryRepository } from "@/domain/categories/CategoryRepository";
-import type {
-  Activity,
-  CreateSessionInput,
-  Session,
-  SessionSummary,
-  UpdateSessionInput,
+import { createDefaultProfile, type Profile } from "@/domain/preferences/Profile";
+import type { ProfileRepository } from "@/domain/preferences/ProfileRepository";
+import {
+  DEFAULT_SESSION_COLOR,
+  type Activity,
+  type CreateSessionInput,
+  type Session,
+  type SessionSummary,
+  type UpdateSessionInput,
 } from "@/domain/sessions/Session";
-import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
 import {
   createEmptyDraft,
   createExerciseDraft,
@@ -43,8 +43,8 @@ class FakeSessionRepository implements SessionRepository {
     jest.fn<(sessionId: string, input: UpdateSessionInput) => Promise<UpdateSessionOutcome>>();
 }
 
-class FakeCategoryRepository implements CategoryRepository {
-  listAll = jest.fn<() => Promise<readonly Category[]>>();
+class FakeProfileRepository implements ProfileRepository {
+  get = jest.fn<() => Promise<Profile>>();
 }
 
 function anActivity(overrides: Partial<Activity> = {}): Activity {
@@ -59,7 +59,7 @@ function anActivity(overrides: Partial<Activity> = {}): Activity {
     repetitionCount: null,
     seriesCount: 1,
     pauseSeconds: 0,
-    recoverySeconds: 0,
+    postActivityRecoverySeconds: 0,
     instruction: null,
     bodyZoneIds: [],
     ...overrides,
@@ -72,6 +72,7 @@ function aSession(overrides: Partial<Session> = {}): Session {
     ownerId: "usr_test",
     name: "Séance simple",
     color: DEFAULT_SESSION_COLOR,
+    labelId: null,
     status: "ACTIVE",
     initialCountdownSeconds: 10,
     finalPhaseSeconds: 5,
@@ -88,7 +89,6 @@ function aSession(overrides: Partial<Session> = {}): Session {
         exercises: [anActivity()],
       },
     },
-    categories: [],
     ...overrides,
   };
 }
@@ -115,7 +115,7 @@ function normalizedExercise() {
     repetitionCount: null,
     seriesCount: 1,
     pauseSeconds: 0,
-    recoverySeconds: 0,
+    postActivityRecoverySeconds: 0,
     instruction: null,
     bodyZoneIds: [],
   };
@@ -164,12 +164,14 @@ describe("SessionService.createSession", () => {
     expect(repository.create).toHaveBeenCalledTimes(1);
     expect(repository.create).toHaveBeenCalledWith({
       name: "Séance simple",
-      color: DEFAULT_SESSION_COLOR,
+      labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
       exercises: [normalizedExercise()],
-      categories: [],
+      // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : `[]` par défaut —
+      // aucun Point d'arrêt porté par le brouillon.
+      stopPoints: [],
     });
     expect(result).toEqual({ ok: true, value: created });
     expect(result.ok).toBe(true);
@@ -178,7 +180,7 @@ describe("SessionService.createSession", () => {
     }
   });
 
-  it("threads multiple Activities and category selections through unaltered (T01-S09)", async () => {
+  it("threads multiple Activities and the selected Label through unaltered", async () => {
     const repository = new FakeSessionRepository();
     repository.create.mockResolvedValue(aSession());
     const service = new SessionService(repository);
@@ -189,8 +191,7 @@ describe("SessionService.createSession", () => {
         { ...createExerciseDraft("ex-1"), name: "Gainage" },
         { ...createExerciseDraft("ex-2"), name: "Squats", durationSeconds: 45 },
       ],
-      categoryDrafts: [{ id: "local-1", name: "Ma catégorie" }],
-      selectedCategoryIds: ["cardio", "local-1"],
+      labelId: "label-1",
     };
 
     await service.createSession(draft);
@@ -198,10 +199,7 @@ describe("SessionService.createSession", () => {
     expect(repository.create).toHaveBeenCalledWith(
       expect.objectContaining({
         exercises: [normalizedExercise(), expect.objectContaining({ name: "Squats", durationSeconds: 45 })],
-        categories: [
-          { kind: "EXISTING", categoryId: "cardio" },
-          { kind: "NEW", name: "Ma catégorie" },
-        ],
+        labelId: "label-1",
       }),
     );
   });
@@ -218,7 +216,7 @@ describe("SessionService.createSession", () => {
   it("propagates a SessionValidationError from the repository unchanged (defense-in-depth path)", async () => {
     const repository = new FakeSessionRepository();
     const repositoryValidationError = new SessionValidationError([
-      { code: "INVALID_COLOR", field: "session.color" },
+      { code: "REQUIRED", field: "session.name" },
     ]);
     repository.create.mockRejectedValue(repositoryValidationError);
     const service = new SessionService(repository);
@@ -302,7 +300,7 @@ describe("SessionService.updateSession (T01-S10, Q3-A — toUpdateSessionInput)"
     expect(repository.update).toHaveBeenCalledWith("session-1", {
       sourceSessionId: "session-1",
       name: "Nom modifié",
-      color: DEFAULT_SESSION_COLOR,
+      labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
@@ -318,12 +316,12 @@ describe("SessionService.updateSession (T01-S10, Q3-A — toUpdateSessionInput)"
           repetitionCount: null,
           seriesCount: 1,
           pauseSeconds: 0,
-          recoverySeconds: 0,
+          postActivityRecoverySeconds: 0,
           instruction: null,
           bodyZoneIds: [],
         },
       ],
-      categories: [],
+      stopPoints: [],
     });
     expect(result).toEqual(outcome);
   });
@@ -351,7 +349,7 @@ describe("SessionService.updateSession (T01-S10, Q3-A — toUpdateSessionInput)"
   it("propagates a SessionValidationError from the repository unchanged (defense-in-depth path)", async () => {
     const repository = new FakeSessionRepository();
     const repositoryValidationError = new SessionValidationError([
-      { code: "INVALID_COLOR", field: "session.color" },
+      { code: "REQUIRED", field: "session.name" },
     ]);
     repository.update.mockRejectedValue(repositoryValidationError);
     const service = new SessionService(repository);
@@ -470,33 +468,52 @@ describe("SessionService.getSession", () => {
   });
 });
 
-describe("SessionService.listCategories (T01-S09)", () => {
-  it("returns the CategoryRepository's list unchanged", async () => {
+/**
+ * V2-PRE-1 (plan §3.2, UI-16294D4D4345) : chaque occurrence créée reçoit
+ * `postActivityRecoverySeconds` depuis la valeur COURANTE du Profil, lue une
+ * seule fois au moment de cette création — jamais depuis la définition
+ * source, jamais rederivée ensuite (snapshot atomique).
+ */
+describe("SessionService.createSession — récupération post-exercice depuis le Profil", () => {
+  it("copies the Profile's current default into every exercise when a ProfileRepository is provided", async () => {
     const sessionRepository = new FakeSessionRepository();
-    const categoryRepository = new FakeCategoryRepository();
-    const categories: readonly Category[] = [
-      {
-        id: "cardio",
-        name: "Cardio",
-        canonicalKey: "cardio",
-        isPredefined: true,
-        displayOrder: 1,
-        createdAt: "2026-01-01T00:00:00.000Z",
-      },
-    ];
-    categoryRepository.listAll.mockResolvedValue(categories);
-    const service = new SessionService(sessionRepository, categoryRepository);
+    sessionRepository.create.mockResolvedValue(aSession());
+    const profileRepository = new FakeProfileRepository();
+    profileRepository.get.mockResolvedValue(
+      createDefaultProfile("profile-1", "2026-01-01T00:00:00.000Z"),
+    );
+    const service = new SessionService(sessionRepository, undefined, profileRepository);
 
-    const result = await service.listCategories();
+    await service.createSession({
+      ...aValidDraft(),
+      exercises: [
+        { ...createExerciseDraft("ex-1"), name: "Gainage" },
+        { ...createExerciseDraft("ex-2"), name: "Squats" },
+      ],
+    });
 
-    expect(categoryRepository.listAll).toHaveBeenCalledTimes(1);
-    expect(result).toBe(categories);
+    expect(profileRepository.get).toHaveBeenCalledTimes(1);
+    expect(sessionRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        exercises: [
+          expect.objectContaining({ postActivityRecoverySeconds: 30 }),
+          expect.objectContaining({ postActivityRecoverySeconds: 30 }),
+        ],
+      }),
+    );
   });
 
-  it("throws explicitly when no CategoryRepository was provided, rather than returning an empty list", async () => {
+  it("passes the draft's value through unchanged when no ProfileRepository was provided (backward compatibility)", async () => {
     const sessionRepository = new FakeSessionRepository();
+    sessionRepository.create.mockResolvedValue(aSession());
     const service = new SessionService(sessionRepository);
 
-    await expect(service.listCategories()).rejects.toThrow(/CategoryRepository/);
+    await service.createSession(aValidDraft());
+
+    expect(sessionRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        exercises: [expect.objectContaining({ postActivityRecoverySeconds: 0 })],
+      }),
+    );
   });
 });

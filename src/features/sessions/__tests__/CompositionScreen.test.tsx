@@ -3,7 +3,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react-native
 import { useCallback, useMemo, useState } from "react";
 import { Keyboard, Platform, ScrollView, StyleSheet } from "react-native";
 
-import { DEFAULT_SESSION_COLOR, SESSION_COLORS } from "@/domain/sessions/Session";
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import { CompositionScreen } from "@/features/sessions/CompositionScreen";
@@ -16,6 +16,31 @@ import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/t
 
 jest.mock("expo-haptics", () => ({
   selectionAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
+}));
+
+/**
+ * `CompositionScreen` s'auto-alimente désormais en Zones corporelles
+ * persistées via `useSQLiteContext` (V2-PRE-1, plan §3.1, UI-CDBCCFD16078) —
+ * sans `<SQLiteProvider>` réel en tests, `expo-sqlite` et le Repository sont
+ * doublés ici, même patron que `SessionServiceProvider.test.tsx`.
+ */
+jest.mock("expo-sqlite", () => ({
+  useSQLiteContext: () => ({}),
+}));
+
+// Ordre du tableau = ordre de retour du Repository (`listAll`, doublé) —
+// `epaules` (référentiel historique `order: 1`) précède `dos` (`order: 4`)
+// puis `cuisses` (`order: 6`), jamais trié ici par `createdAt`.
+const BODY_ZONE_FIXTURES: readonly BodyZone[] = [
+  { id: "epaules", name: "Épaules", isActive: true, createdAt: "2026-01-01T00:00:01.000Z" },
+  { id: "dos", name: "Dos", isActive: true, createdAt: "2026-01-01T00:00:04.000Z" },
+  { id: "cuisses", name: "Cuisses", isActive: true, createdAt: "2026-01-01T00:00:06.000Z" },
+];
+
+jest.mock("@/infrastructure/database/repositories/SqliteBodyZoneRepository", () => ({
+  SqliteBodyZoneRepository: jest.fn().mockImplementation(() => ({
+    listAll: jest.fn<() => Promise<readonly BodyZone[]>>().mockResolvedValue(BODY_ZONE_FIXTURES),
+  })),
 }));
 
 // T02-S01 : la duplication d'une Activité génère un identifiant frais
@@ -91,12 +116,10 @@ function StatefulDraftWrapper({
 }) {
   const [draft, setDraft] = useState<SessionDraftContextValue["draft"]>(() => ({
     name: "Séance simple",
-    color: DEFAULT_SESSION_COLOR,
+    labelId: null,
     initialCountdownSeconds: 10,
     finalPhaseSeconds: 5,
     exercises: initialExercises,
-    categoryDrafts: [],
-    selectedCategoryIds: [],
     ...draftOverrides,
   }));
   const updateDraft = useCallback((patch: Partial<SessionDraftContextValue["draft"]>) => {
@@ -105,12 +128,10 @@ function StatefulDraftWrapper({
   const resetDraft = useCallback(() => {
     setDraft({
       name: "",
-      color: DEFAULT_SESSION_COLOR,
+      labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       exercises: [],
-      categoryDrafts: [],
-      selectedCategoryIds: [],
     });
   }, []);
   const value = useMemo<SessionDraftContextValue>(
@@ -282,15 +303,6 @@ describe("CompositionScreen — état initial", () => {
     expect(StyleSheet.flatten(finalPhase.props.style).zIndex).toBeUndefined();
   });
 
-  it("elevates the Context band (name + colour swatch) above the rows below it while the colour popover is open (same UI-CTRL-002 correction; LAY-02 renamed this zone from 'header' to 'context band')", () => {
-    renderScreen();
-
-    fireEvent.press(screen.getByLabelText(composition.colorPicker.label));
-
-    const contextBand = screen.getByTestId("screen-context-band");
-    expect(StyleSheet.flatten(contextBand.props.style).zIndex).toBe(1);
-  });
-
   it("enables '+ Ajouter une activité' while no Exercise exists yet, and opens the add-activity tree on press (V2-CAT-01)", () => {
     renderScreen();
 
@@ -351,14 +363,14 @@ describe("CompositionScreen — état initial", () => {
     expect(StyleSheet.flatten(scrim.props.style).backgroundColor).toBe(colors.overlayScrim);
   });
 
-  it("shows the exact local empty summary '0 activité · 0 min' (V2), never formatActivityCount(0)'s plural", () => {
+  it("shows the exact local empty summary '0 exercice · 0 min' (V2), never formatActivityCount(0)'s plural", () => {
     renderScreen();
 
     // REWORK09 : la ligne de synthèse basse est supprimée (redondante
     // depuis REWORK08-C) — une seule occurrence subsiste désormais, sous
     // « Nombre de tours » (voir composition-tour-summary ci-dessous).
-    expect(screen.getAllByText("0 activité · 0 min")).toHaveLength(1);
-    expect(screen.queryByText("0 activités · 0 min")).toBeNull();
+    expect(screen.getAllByText("0 exercice · 0 min")).toHaveLength(1);
+    expect(screen.queryByText("0 exercices · 0 min")).toBeNull();
   });
 
   it("shows the canonical default countdown (10 s) and final phase (5 s) row values", () => {
@@ -416,29 +428,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(5);
   });
 
-  it("opening the color palette closes an already-open duration picker", () => {
-    renderScreen();
-
-    fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
-
-    fireEvent.press(screen.getByLabelText(composition.colorPicker.label));
-    expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
-    expect(screen.getByLabelText(composition.colorPicker.paletteAccessibilityLabel)).toBeTruthy();
-  });
-
-  it("opening a duration picker closes an already-open color palette (reverse direction, same exclusivity)", () => {
-    renderScreen();
-
-    fireEvent.press(screen.getByLabelText(composition.colorPicker.label));
-    expect(screen.getByLabelText(composition.colorPicker.paletteAccessibilityLabel)).toBeTruthy();
-
-    fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
-    expect(screen.queryByLabelText(composition.colorPicker.paletteAccessibilityLabel)).toBeNull();
-    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
-  });
-
-  it("dismisses the keyboard when opening a duration picker or the color palette (Name field may have had focus)", () => {
+  it("dismisses the keyboard when opening a duration picker (Name field may have had focus)", () => {
     const dismissSpy = jest.spyOn(Keyboard, "dismiss").mockImplementation(() => {});
     try {
       renderScreen();
@@ -447,7 +437,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
       fireEvent.press(screen.getByLabelText(composition.countdown.label));
       expect(dismissSpy).toHaveBeenCalledTimes(1);
 
-      fireEvent.press(screen.getByLabelText(composition.colorPicker.label));
+      fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
       expect(dismissSpy).toHaveBeenCalledTimes(2);
     } finally {
       dismissSpy.mockRestore();
@@ -469,7 +459,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     // local empty label regardless of countdown/final-phase changes (§9.1).
     // REWORK09 : une seule occurrence désormais (synthèse Tour uniquement,
     // la ligne basse redondante a été supprimée).
-    expect(screen.getAllByText("0 activité · 0 min")).toHaveLength(1);
+    expect(screen.getAllByText("0 exercice · 0 min")).toHaveLength(1);
     // REWORK08-B (« aucun chemin onChange/sélection/défilement ne
     // déclenche la fermeture ») : le sélecteur reste réellement monté —
     // preuve explicite, pas seulement déduite du libellé du test.
@@ -545,32 +535,16 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(10);
   });
 
-  it("selecting a color actually applies it to the draft (compact swatch background) and closes the palette", () => {
+  /**
+   * V2-PRE-1 (plan §3.3, UI-74BBA70BF09F) : le sélecteur de couleur autonome
+   * (`ColorPalette`/`draft.color`) est retiré de cet écran — la couleur de
+   * la Séance est désormais exclusivement DÉRIVÉE de son Étiquette, sans
+   * aucune interaction de couleur ici.
+   */
+  it("never renders an autonomous color picker", () => {
     renderScreen();
 
-    // Sanity check: the compact swatch starts on the canonical default —
-    // proves the assertion below is a real change, not a no-op match.
-    const compactSwatchBefore = screen.getByLabelText(composition.colorPicker.label);
-    expect(StyleSheet.flatten(compactSwatchBefore.props.style).backgroundColor).toBe(
-      DEFAULT_SESSION_COLOR,
-    );
-
-    fireEvent.press(compactSwatchBefore);
-    const chosenColor = SESSION_COLORS.find((color) => color !== DEFAULT_SESSION_COLOR);
-    if (!chosenColor) {
-      throw new Error("Expected at least one non-default canonical color for this test.");
-    }
-    fireEvent.press(
-      screen.getByLabelText(`${composition.colorPicker.swatchAccessibilityLabel} ${chosenColor}`),
-    );
-
-    // Application réelle de la couleur : le contrôle compact reflète
-    // désormais la couleur choisie (preuve directe, pas seulement l'appel
-    // d'un callback isolé).
-    const compactSwatchAfter = screen.getByLabelText(composition.colorPicker.label);
-    expect(StyleSheet.flatten(compactSwatchAfter.props.style).backgroundColor).toBe(chosenColor);
-    // Fermeture automatique de la palette après sélection.
-    expect(screen.queryByLabelText(composition.colorPicker.paletteAccessibilityLabel)).toBeNull();
+    expect(screen.queryByLabelText(composition.colorPicker.label)).toBeNull();
   });
 });
 
@@ -808,13 +782,12 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
 
     const contextBand = screen.getByTestId("screen-context-band");
     expect(StyleSheet.flatten(contextBand.props.style).backgroundColor).not.toBe(colors.background);
-    // La bande Context contient bien le nom, la couleur ET Ajouter.
+    // La bande Context contient bien le nom ET Ajouter.
     expect(within(contextBand).getByLabelText(composition.name)).toBeTruthy();
-    expect(within(contextBand).getByLabelText(composition.colorPicker.label)).toBeTruthy();
     expect(within(contextBand).getByLabelText(composition.addActivity)).toBeTruthy();
   });
 
-  it("REWORK09 — supersedes CMP-02's opaque white field: Name field and colour selector still share a single rounded field, but it is now transparent with a white 1pt border (Session/Name Field — Source exact, 2537:1480), letting the Context band colour show through", () => {
+  it("REWORK09 — supersedes CMP-02's opaque white field: the Name field is now transparent with a white 1pt border (Session/Name Field — Source exact, 2537:1480), letting the Context band colour show through", () => {
     renderScreen();
 
     const field = screen.getByTestId("composition-name-color-field");
@@ -824,7 +797,6 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(flattened.borderColor).toBe(colors.sessionNameBorder);
     expect(colors.sessionNameBorder).toBe("#FFFFFF");
     expect(within(field).getByLabelText(composition.name)).toBeTruthy();
-    expect(within(field).getByLabelText(composition.colorPicker.label)).toBeTruthy();
   });
 
   it("CMP-02 — Ajouter une activité is centered (compact DS button geometry, height 32/radius 16, white background distinct from the Context band, real ≥48 touch target via hitSlop)", () => {
@@ -930,7 +902,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     const summary = within(tourCard).getByTestId("composition-tour-summary");
 
     // Contenu canonique (même fonction que bottomAction), état vide T01-S07.
-    expect(summary.props.children).toBe("0 activité · 0 min");
+    expect(summary.props.children).toBe("0 exercice · 0 min");
 
     // Même bloc textuel que le titre — un unique conteneur
     // (`composition-tour-text-block`) porte les deux, pas deux éléments
@@ -977,7 +949,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
       "composition-tour-summary",
     );
     // Contexte : seule l'Activité contribue désormais — 45 s -> ceil(45/60) = 1 min.
-    expect(tourSummary.props.children).toBe("1 activité · 1 min");
+    expect(tourSummary.props.children).toBe("1 exercice · 1 min");
   });
 
   /**
@@ -995,7 +967,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     const tourSummaryBefore = within(screen.getByTestId("composition-tour-card")).getByTestId(
       "composition-tour-summary",
     ).props.children;
-    expect(tourSummaryBefore).toBe("1 activité · 1 min");
+    expect(tourSummaryBefore).toBe("1 exercice · 1 min");
 
     // Compte à rebours initial : ouvre, change, confirme.
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
@@ -1029,7 +1001,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
       "composition-tour-summary",
     );
     // 45 + 30 = 75s -> ceil(75/60) = 2 min.
-    expect(tourSummary.props.children).toBe("2 activités · 2 min");
+    expect(tourSummary.props.children).toBe("2 exercices · 2 min");
   });
 
   it("CMP-03/CMP-05 — Boundary Activity rows (Compte à rebours, Fin de séance) place a structural handle on the left, title+secondary duration line in the center, and the role icon on the right", () => {
@@ -1051,7 +1023,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     renderScreen();
 
     const bottomAction = screen.getByTestId("composition-bottom-action");
-    expect(within(bottomAction).queryByText("0 activité · 0 min")).toBeNull();
+    expect(within(bottomAction).queryByText("0 exercice · 0 min")).toBeNull();
     expect(within(bottomAction).getByLabelText(composition.continueAction)).toBeTruthy();
     // La synthèse reste bien affichée ailleurs (sous « Nombre de tours »),
     // jamais silencieusement perdue.
@@ -1311,17 +1283,6 @@ describe("CompositionScreen — R4-13/S-01…S-09 (Fixed Shell / Activities Scro
     expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
   });
 
-  it("REWORK08-B — never elevates the scrollable body for the colour palette (ContextBand is already a direct sibling of the backdrop and carries its own correct elevation — no need to also elevate the unrelated ScrollView)", () => {
-    renderScreen();
-
-    fireEvent.press(screen.getByLabelText(composition.colorPicker.label));
-    const bodyStyle = StyleSheet.flatten(screen.getByTestId("composition-body").props.style);
-    expect(bodyStyle.zIndex).toBeUndefined();
-
-    const contextBand = screen.getByTestId("screen-context-band");
-    expect(StyleSheet.flatten(contextBand.props.style).zIndex).toBe(1);
-  });
-
   it("S-08 — the bottom safe-area inset is applied exactly once (Bottom Action only, never duplicated on the scrollable list)", () => {
     renderScreen();
 
@@ -1356,15 +1317,6 @@ describe("CompositionScreen — fermeture par toucher en dehors (CMP-01, backdro
     expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
   });
 
-  it("pressing the backdrop while the colour palette is open closes it too (same single-overlay mechanism)", () => {
-    renderScreen();
-
-    fireEvent.press(screen.getByLabelText(composition.colorPicker.label));
-    expect(screen.getByLabelText(composition.colorPicker.paletteAccessibilityLabel)).toBeTruthy();
-
-    fireEvent.press(screen.getByTestId("composition-backdrop"));
-    expect(screen.queryByLabelText(composition.colorPicker.paletteAccessibilityLabel)).toBeNull();
-  });
 });
 
 describe("CompositionScreen — modale d'abandon", () => {
@@ -1421,12 +1373,10 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
   function emptyEditDraft(): SessionDraftContextValue["draft"] {
     return {
       name: "",
-      color: DEFAULT_SESSION_COLOR,
+      labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       exercises: [],
-      categoryDrafts: [],
-      selectedCategoryIds: [],
     };
   }
 
@@ -1687,28 +1637,31 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
   };
   const summaryText = "3 séries de 1 min 30 s avec 15 s de pause par série";
 
-  it("shows the Activity's own body zones on a single line, in referential order, with the canonical ' · ' separator", () => {
+  it("shows the Activity's own body zones on a single line, in referential order, with the canonical ' · ' separator", async () => {
     renderScreenWithDraft([activityWithZones]);
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
-    const zones = within(row).getByTestId("composition-exercise-body-zones");
+    const zones = await within(row).findByTestId("composition-exercise-body-zones");
     expect(zones.props.children).toBe("Épaules · Dos");
     // Une seule ligne, tronquée si nécessaire.
     expect(zones.props.numberOfLines).toBe(1);
   });
 
-  it("places that line BETWEEN the Activity title and its summary", () => {
+  it("places that line BETWEEN the Activity title and its summary", async () => {
     renderScreenWithDraft([activityWithZones]);
+
+    const row = screen.getByTestId("composition-exercise-row-ex-1");
+    await within(row).findByTestId("composition-exercise-body-zones");
 
     const order = textOrder(screen.toJSON(), ["Gainage", "Épaules · Dos", summaryText]);
     expect(order).toEqual(["Gainage", "Épaules · Dos", summaryText]);
   });
 
-  it("uses exactly the same style as the summary (same size, same neutral colour) — the shared style is reused as-is, never a lookalike", () => {
+  it("uses exactly the same style as the summary (same size, same neutral colour) — the shared style is reused as-is, never a lookalike", async () => {
     renderScreenWithDraft([activityWithZones]);
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
-    const zones = within(row).getByTestId("composition-exercise-body-zones");
+    const zones = await within(row).findByTestId("composition-exercise-body-zones");
     const summary = within(row).getByText(summaryText);
     expect(StyleSheet.flatten(zones.props.style)).toEqual(
       StyleSheet.flatten(summary.props.style),
@@ -1720,20 +1673,6 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
     expect(flattened.color).toBe(colors.textSecondary);
   });
 
-  it("shows ONLY the Activity's body zones — never a Session category, even when the draft carries selected categories", () => {
-    renderScreenWithDraft([activityWithZones], {
-      categoryDrafts: [{ id: "cat-1", name: "Renforcement" }],
-      selectedCategoryIds: ["cat-1"],
-    });
-
-    const row = screen.getByTestId("composition-exercise-row-ex-1");
-    expect(within(row).getByTestId("composition-exercise-body-zones").props.children).toBe(
-      "Épaules · Dos",
-    );
-    expect(screen.queryByText("Renforcement")).toBeNull();
-    expect(within(row).queryByText(/Renforcement/u)).toBeNull();
-  });
-
   it("omits the line entirely when the Activity has no body zone — never an empty Text still taking its line height", () => {
     renderScreenWithDraft([
       { ...createExerciseDraft("ex-1"), name: "Gainage", durationSeconds: 45 },
@@ -1741,13 +1680,17 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
     expect(within(row).queryByTestId("composition-exercise-body-zones")).toBeNull();
+    // V2-PRE-1 : la sous-carte Récupération est toujours rendue (`24`),
+    // même à `0 s` — la hauteur sans Zones est donc `compactRestHeight + 24`.
     expect(StyleSheet.flatten(row.props.style).height).toBe(
-      dimensions.compositionActivityRow.compactRestHeight,
+      dimensions.compositionActivityRow.compactRestHeight +
+        dimensions.compositionActivityRow.recoveryCardHeight,
     );
   });
 
-  it("never adds that line to the Compte à rebours initial / Fin de séance cards (they have no body zones — those cards stay rigorously unchanged)", () => {
+  it("never adds that line to the Compte à rebours initial / Fin de séance cards (they have no body zones — those cards stay rigorously unchanged)", async () => {
     renderScreenWithDraft([activityWithZones]);
+    await screen.findByTestId("composition-exercise-body-zones");
 
     const countdown = screen.getByLabelText(composition.countdown.label);
     const finalPhase = screen.getByLabelText(composition.finalPhase.label);
@@ -2388,8 +2331,9 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     expect(screen.getByTestId("composition-activity-actions-ex-2")).toBeTruthy();
   });
 
-  it("AC-06 — Dupliquer inserts an independent copy right after its source, with a fresh id and the SAME title (T02-S02, D-138)", () => {
+  it("AC-06 — Dupliquer inserts an independent copy right after its source, with a fresh id and the SAME title (T02-S02, D-138)", async () => {
     renderTwo();
+    await screen.findByTestId("composition-exercise-body-zones");
     fireSwipeLeft("ex-1");
     fireEvent.press(screen.getByTestId("composition-activity-duplicate-ex-1"));
 
@@ -2416,7 +2360,7 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
 
   it("AC-06 (T02-S02) — Dupliquer copies the attached Récupération, sub-card included", () => {
     renderScreenWithDraft([
-      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", recoverySeconds: 90 }),
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 90 }),
     ]);
 
     expect(screen.getAllByTestId(/^composition-activity-recovery-/u)).toHaveLength(1);
@@ -2459,7 +2403,7 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
   renderScreenWithDraft([
     anActivity("ex-1", "BEFORE_TOUR", {
       name: "Gainage",
-      recoverySeconds: 45,
+      postActivityRecoverySeconds: 45,
     }),
   ]);
 
@@ -2514,9 +2458,13 @@ describe("CompositionScreen — rythme vertical du corps (T02-S02)", () => {
  * CE-T01-09, CE-T02-01/CE-T02-02).
  */
 describe("CompositionScreen — sous-carte Récupération et géométries conditionnelles (T02-S02)", () => {
-  const withoutRecovery = [anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" })];
+  // V2-PRE-1 (plan §3.2, UI-CDBCCFD16078) : la sous-carte Récupération est
+  // désormais TOUJOURS rendue (y compris `Récupération 0 s`) — sa PRÉSENCE
+  // ne dépend plus de la valeur ; seule la ligne Zones corporelles reste
+  // optionnelle pour la géométrie du bloc.
+  const withZeroRecovery = [anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" })];
   const withRecovery = [
-    anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", recoverySeconds: 90 }),
+    anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 90 }),
   ];
 
   function blockStyle(activityId = "ex-1") {
@@ -2525,11 +2473,14 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     );
   }
 
-  it("renders NO recovery sub-card when the Activity carries no Récupération", () => {
-    renderScreenWithDraft(withoutRecovery);
+  // V2-PRE-1 (plan §3.2, UI-CDBCCFD16078) : `postActivityRecoverySeconds`
+  // est désormais un champ OBLIGATOIRE de l'occurrence — la sous-carte est
+  // donc TOUJOURS rendue, y compris `Récupération 0 s`, jamais omise.
+  it("renders the recovery sub-card with the exact zero label when the Activity carries no Récupération", () => {
+    renderScreenWithDraft(withZeroRecovery);
 
-    expect(screen.queryByTestId("composition-activity-recovery-ex-1")).toBeNull();
-    expect(screen.queryByText(/Récupération/u)).toBeNull();
+    expect(screen.getByTestId("composition-activity-recovery-ex-1")).toBeTruthy();
+    expect(screen.getByText("Récupération 0 s")).toBeTruthy();
   });
 
   it("renders a `Récupération X min Y s` sub-card as soon as the Récupération is non-zero", () => {
@@ -2550,7 +2501,7 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", {
         name: "Gainage",
-        recoverySeconds: 90,
+        postActivityRecoverySeconds: 90,
         bodyZoneIds: ["dos"],
       }),
     ]);
@@ -2629,10 +2580,11 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     expect(mainCardStyle.paddingHorizontal).toBe(spacing[16]);
     expect(mainCardStyle.gap).toBe(spacing[8]);
 
-    // Géométrie du bloc inchangée : `354 × 60` sans Récupération.
+    // Géométrie du bloc inchangée : `354 × 68` sans Zones (`44` + la
+    // sous-carte Récupération `24`, toujours rendue).
     expect(
       StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style).height,
-    ).toBe(44);
+    ).toBe(68);
     expect(dimensions.compositionActivityRow.compactRestHeight).toBe(44);
     expect(dimensions.compositionActivityRow.restHeight).toBe(60);
     expect(dimensions.compositionActivityRow.recoveryCardHeight).toBe(24);
@@ -2670,48 +2622,43 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     expect(block.props.accessibilityRole).toBe("button");
   });
 
-  it("applies 354 × 44 without Zones/Récupération and 354 × 68 with Récupération", () => {
-    renderScreenWithDraft(withoutRecovery);
-    expect(blockStyle().height).toBe(44);
+  it("applies 354 × 68 without Zones and 354 × 84 with Zones — Récupération is always rendered, so it never changes the height by itself", async () => {
+    renderScreenWithDraft(withZeroRecovery);
+    expect(blockStyle().height).toBe(68);
 
     renderScreenWithDraft(withRecovery);
     expect(blockStyle().height).toBe(68);
+
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
+    ]);
+    await screen.findByTestId("composition-exercise-body-zones");
+    expect(blockStyle().height).toBe(84);
   });
 
-  it("uses the optional Zones line to select 44/60, while Recovery always adds exactly 24", () => {
+  it("uses the optional Zones line to select 68/84 — the Récupération sub-card (24) is always included", async () => {
     const cases = [
-      { bodyZoneIds: [], recoverySeconds: 0, expected: 44 },
-      { bodyZoneIds: [], recoverySeconds: 90, expected: 68 },
-      { bodyZoneIds: ["dos"], recoverySeconds: 0, expected: 60 },
-      { bodyZoneIds: ["dos"], recoverySeconds: 90, expected: 84 },
+      { bodyZoneIds: [], postActivityRecoverySeconds: 0, expected: 68 },
+      { bodyZoneIds: [], postActivityRecoverySeconds: 90, expected: 68 },
+      { bodyZoneIds: ["dos"], postActivityRecoverySeconds: 0, expected: 84 },
+      { bodyZoneIds: ["dos"], postActivityRecoverySeconds: 90, expected: 84 },
     ];
 
-    for (const { bodyZoneIds, recoverySeconds, expected } of cases) {
+    for (const { bodyZoneIds, postActivityRecoverySeconds, expected } of cases) {
       renderScreenWithDraft([
-        anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds, recoverySeconds }),
+        anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds, postActivityRecoverySeconds }),
       ]);
+      if (bodyZoneIds.length > 0) {
+        await screen.findByTestId("composition-exercise-body-zones");
+      }
       expect(blockStyle().height).toBe(expected);
     }
 
     expect(dimensions.compositionActivityRow.recoveryCardHeight).toBe(24);
   });
 
-  it("sizes each revealed action to the FULL height of the block (72 × 44 / 72 × 68)", () => {
-    renderScreenWithDraft(withoutRecovery);
-    fireSwipeLeft("ex-1");
-    for (const testID of [
-      "composition-activity-duplicate-ex-1",
-      "composition-activity-delete-ex-1",
-    ]) {
-      const style = StyleSheet.flatten(screen.getByTestId(testID).props.style);
-      expect(style.width).toBe(72);
-      expect(style.height).toBe(44);
-    }
-    expect(
-      StyleSheet.flatten(screen.getByTestId("composition-activity-actions-ex-1").props.style).height,
-    ).toBe(44);
-
-    renderScreenWithDraft(withRecovery);
+  it("sizes each revealed action to the FULL height of the block (72 × 68 / 72 × 84)", async () => {
+    renderScreenWithDraft(withZeroRecovery);
     fireSwipeLeft("ex-1");
     for (const testID of [
       "composition-activity-duplicate-ex-1",
@@ -2724,10 +2671,27 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     expect(
       StyleSheet.flatten(screen.getByTestId("composition-activity-actions-ex-1").props.style).height,
     ).toBe(68);
+
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
+    ]);
+    await screen.findByTestId("composition-exercise-body-zones");
+    fireSwipeLeft("ex-1");
+    for (const testID of [
+      "composition-activity-duplicate-ex-1",
+      "composition-activity-delete-ex-1",
+    ]) {
+      const style = StyleSheet.flatten(screen.getByTestId(testID).props.style);
+      expect(style.width).toBe(72);
+      expect(style.height).toBe(84);
+    }
+    expect(
+      StyleSheet.flatten(screen.getByTestId("composition-activity-actions-ex-1").props.style).height,
+    ).toBe(84);
   });
 
-  it("CE-T02-02 — the lifted block with Récupération is exactly 362 × 72 (width expressed as a ±4 margin)", () => {
-    renderScreenWithDraft(withRecovery);
+  it("CE-T02-02 — the lifted block without Zones is exactly 362 × 72 (width expressed as a ±4 margin)", () => {
+    renderScreenWithDraft(withZeroRecovery);
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
 
     const lifted = blockStyle();
@@ -2737,12 +2701,15 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     expect(lifted.marginHorizontal).toBe(-4);
   });
 
-  it("without Zones or Récupération, the lifted block is 362 × 48", () => {
-    renderScreenWithDraft(withoutRecovery);
+  it("with Zones, the lifted block is 362 × 88", async () => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
+    ]);
+    await screen.findByTestId("composition-exercise-body-zones");
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
 
     const lifted = blockStyle();
-    expect(lifted.height).toBe(48);
+    expect(lifted.height).toBe(88);
     expect(lifted.height).not.toBe(72);
     expect(lifted.marginHorizontal).toBe(-4);
   });
@@ -2784,16 +2751,15 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
 
   it("removes the Récupération with its Activity — `Supprimer` never leaves an orphan sub-card", () => {
     renderScreenWithDraft([
-      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", recoverySeconds: 90 }),
-      anActivity("ex-2", "BEFORE_TOUR", { name: "Squats" }),
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 90 }),
     ]);
 
     fireSwipeLeft("ex-1");
     fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
 
     expect(screen.queryByTestId("composition-activity-recovery-ex-1")).toBeNull();
-    expect(screen.queryByText(/Récupération/u)).toBeNull();
-    expect(screen.getByTestId("composition-exercise-row-ex-2")).toBeTruthy();
+    expect(screen.queryByText("Récupération 1 min 30 s")).toBeNull();
+    expect(screen.queryByTestId("composition-exercise-row-ex-1")).toBeNull();
   });
 });
 
@@ -2812,25 +2778,25 @@ describe("CompositionScreen — recalcul immédiat des métriques du Tour (T02-S
 
     // Hors Tour : `600 + 600 = 20 min` volontairement énormes — ils ne
     // doivent NI compter, NI peser dans la synthèse du Tour.
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 activité · 1 min");
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 exercice · 1 min");
 
     fireEvent.press(screen.getByTestId("composition-tour-control"));
     fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 3);
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
 
     // Seule la zone `IN_TOUR` est développée : `60 × 3 = 3 min`.
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 activité · 3 min");
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 exercice · 3 min");
   });
 
   it("recomputes immediately after a DUPLICATION", () => {
     renderScreenWithDraft([anActivity("core", "IN_TOUR", { name: "Gainage", durationSeconds: 60 })]);
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 activité · 1 min");
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 exercice · 1 min");
 
     fireSwipeLeft("core");
     fireEvent.press(screen.getByTestId("composition-activity-duplicate-core"));
 
     expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
-      "2 activités · 2 min",
+      "2 exercices · 2 min",
     );
   });
 
@@ -2840,18 +2806,18 @@ describe("CompositionScreen — recalcul immédiat des métriques du Tour (T02-S
       anActivity("core-2", "IN_TOUR", { name: "Squats", durationSeconds: 60 }),
     ]);
     expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
-      "2 activités · 2 min",
+      "2 exercices · 2 min",
     );
 
     fireSwipeLeft("core-1");
     fireEvent.press(screen.getByTestId("composition-activity-delete-core-1"));
 
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 activité · 1 min");
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 exercice · 1 min");
   });
 
   it("recomputes immediately after a MOVE out of the Tour", () => {
     renderScreenWithDraft([anActivity("core", "IN_TOUR", { name: "Gainage", durationSeconds: 60 })]);
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 activité · 1 min");
+    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 exercice · 1 min");
 
     // Structure Tour `230–400` ; liste `IN_TOUR` à `y = 20` DANS cette
     // structure (donc `250` en absolu) ; carte `250–310`, centre `280`.
@@ -2919,14 +2885,14 @@ describe("CompositionScreen — contrôle Nombre de tours (T02-S01, AC-08/AC-09)
     const summary = () =>
       within(screen.getByTestId("composition-tour-card")).getByTestId("composition-tour-summary")
         .props.children;
-    expect(summary()).toBe("1 activité · 1 min");
+    expect(summary()).toBe("1 exercice · 1 min");
 
     fireEvent.press(screen.getByTestId("composition-tour-control"));
     fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 3);
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
 
     // 60 s × 3 = 180 s -> 3 min ; le NOMBRE d'Activités, lui, reste `1`.
-    expect(summary()).toBe("1 activité · 3 min");
+    expect(summary()).toBe("1 exercice · 3 min");
   });
 
   it("AC-10 — an out-of-Tour Activity never contributes to the Tour summary, whatever the tour count (correctif T02, 2026-09-08)", () => {
@@ -2947,7 +2913,7 @@ describe("CompositionScreen — contrôle Nombre de tours (T02-S01, AC-08/AC-09)
     expect(
       within(screen.getByTestId("composition-tour-card")).getByTestId("composition-tour-summary")
         .props.children,
-    ).toBe("1 activité · 5 min");
+    ).toBe("1 exercice · 5 min");
   });
 
   it("rehydrated drafts show their persisted tour count, never a hardcoded 1", () => {
@@ -2958,193 +2924,17 @@ describe("CompositionScreen — contrôle Nombre de tours (T02-S01, AC-08/AC-09)
 });
 
 /**
- * V2-BILAT-01 (plan `## UI`) : contrôle `Côtés` du Tour, après `Nombre de
- * tours` — activation gardée par un dialogue déterministe, remise atomique
- * des enfants `IN_TOUR`, aucune restauration au retour unilatéral.
+ * V2-PRE-1 (plan §3.3) : le Circuit (Tour) n'a plus aucune direction propre
+ * — le contrôle `Côtés` du Tour et son dialogue de confirmation sont
+ * entièrement retirés de cet écran (UI-74BBA70BF09F-AA62F52830301).
  */
-describe("CompositionScreen — contrôle Côtés du Tour (V2-BILAT-01)", () => {
-  const sideModeStrings = strings.shared.sideMode;
-  const dialog = composition.tourBilateralConfirmModal;
-
-  it("is rendered after Nombre de tours, displaying '–' centered by default (plan '## 4.2' — jamais l'affichage vide de l'Activité)", () => {
-    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR")]);
-    expect(screen.getByTestId("composition-tour-side-mode")).toBeTruthy();
-    expect(screen.getByText(sideModeStrings.tour.valueLabels.UNILATERAL)).toBeTruthy();
-    expect(sideModeStrings.tour.valueLabels.UNILATERAL).toBe("–");
-    const control = StyleSheet.flatten(screen.getByTestId("composition-tour-side-mode-control").props.style);
-    expect(control.alignItems).toBe("center");
-    expect(control.justifyContent).toBe("center");
-  });
-
-  it("plan `## UI` (« Tour side control ») : placement immédiatement à droite du sélecteur Nombre de tours, dans la même rangée (`tourHeader`)", () => {
-    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR")]);
-    const header = screen.getByTestId("composition-tour-card");
-    const countControlIndex = within(header)
-      .getAllByRole("button")
-      .findIndex((node) => node === screen.getByTestId("composition-tour-control"));
-    const sideModeIndex = within(header)
-      .getAllByRole("button")
-      .findIndex((node) => node === screen.getByTestId("composition-tour-side-mode-control"));
-    expect(countControlIndex).toBeGreaterThanOrEqual(0);
-    expect(sideModeIndex).toBe(countControlIndex + 1);
-  });
-
-  it("plan `## UI` : géométrie locale 42 × 34 pt, sans titre Côté/Côtés visible", () => {
-    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR")]);
-    const control = StyleSheet.flatten(screen.getByTestId("composition-tour-side-mode-control").props.style);
-    expect(control.width).toBe(42);
-    expect(control.height).toBe(34);
-    expect(screen.queryByText("Côté")).toBeNull();
-    expect(screen.queryByText("Côtés")).toBeNull();
-  });
-
-  it("plan `## UI` : étiquettes accessibles exactes « Direction du Tour : … », distinctes de celles de l'Activité", () => {
-    // Aucun enfant IN_TOUR à direction propre bilatérale : l'activation
-    // s'applique DIRECTEMENT, sans dialogue (plan `## Side-mode
-    // transitions`, point 3) — seul le changement d'étiquette accessible
-    // est vérifié ici.
-    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR")]);
-    expect(screen.getByLabelText(sideModeStrings.tour.accessibilityLabels.UNILATERAL)).toBeTruthy();
-
-    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
-
-    expect(screen.getByLabelText(sideModeStrings.tour.accessibilityLabels.RIGHT_LEFT)).toBeTruthy();
-  });
-
-  it("opens the deterministic dialog on activation (UNILATERAL → bilateral) only when a child already has its OWN bilateral setting, without mutating the draft yet", () => {
+describe("CompositionScreen — absence du contrôle Côtés du Tour (V2-PRE-1)", () => {
+  it("never renders a Tour-level side mode control or confirmation dialog", () => {
     renderScreenWithDraft([anActivity("ex-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" })]);
 
-    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
-
-    expect(screen.getByText(dialog.title)).toBeTruthy();
-    expect(screen.getByText(dialog.message)).toBeTruthy();
-    // Pas encore appliqué : le contrôle affiche toujours '–' (Tour
-    // unilatéral), et l'Activité IN_TOUR conserve sa direction propre
-    // (`RIGHT_LEFT`), non encore remise.
-    expect(
-      screen.getByTestId("composition-tour-side-mode-value").props.children,
-    ).toBe(sideModeStrings.tour.valueLabels.UNILATERAL);
-  });
-
-  it("plan `## Side-mode transitions` (« Tour activation », points 3/4/7) : applique DIRECTEMENT, sans dialogue, un Tour vide", () => {
-    renderScreenWithDraft([]);
-
-    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
-
-    expect(screen.queryByText(dialog.title)).toBeNull();
-    expect(
-      screen.getByTestId("composition-tour-side-mode-value").props.children,
-    ).toBe(sideModeStrings.tour.valueLabels.RIGHT_LEFT);
-  });
-
-  it("plan `## Side-mode transitions` : applique DIRECTEMENT, sans dialogue, un Tour dont toutes les Activités IN_TOUR sont déjà unilatérales", () => {
-    renderScreenWithDraft([
-      anActivity("ex-1", "IN_TOUR", { sideMode: "UNILATERAL" }),
-      anActivity("ex-2", "IN_TOUR", { sideMode: "UNILATERAL" }),
-    ]);
-
-    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
-
-    expect(screen.queryByText(dialog.title)).toBeNull();
-    expect(
-      screen.getByTestId("composition-tour-side-mode-value").props.children,
-    ).toBe(sideModeStrings.tour.valueLabels.RIGHT_LEFT);
-  });
-
-  it("plan `## Side-mode transitions` : une Activité BEFORE_TOUR/AFTER_TOUR bilatérale n'ouvre jamais le dialogue — seuls les enfants IN_TOUR comptent", () => {
-    renderScreenWithDraft([
-      anActivity("ex-1", "BEFORE_TOUR", { sideMode: "RIGHT_LEFT" }),
-      anActivity("ex-2", "IN_TOUR", { sideMode: "UNILATERAL" }),
-      anActivity("ex-3", "AFTER_TOUR", { sideMode: "LEFT_RIGHT" }),
-    ]);
-
-    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
-
-    expect(screen.queryByText(dialog.title)).toBeNull();
-    // `getByText` seul serait ambigu : `ex-1` (BEFORE_TOUR, direction PROPRE
-    // RIGHT_LEFT) porte désormais aussi son propre indicateur de carte
-    // (`D→G`, V2-BILAT-01 « Composition cards and summaries ») — la valeur
-    // du CONTRÔLE DU TOUR est donc lue via son `testID` dédié, jamais par
-    // le texte seul, qui n'est plus unique dans l'arbre.
-    expect(screen.getByTestId("composition-tour-side-mode-value").props.children).toBe(
-      sideModeStrings.tour.valueLabels.RIGHT_LEFT,
-    );
-  });
-
-  it("plan `## UI` (« Confirmation dialog ») : instance Composition/Tour (CE-BIL-02) — action Confirmer bordée, jamais le style Activité", () => {
-    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" })]);
-
-    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
-
-    const confirmAction = StyleSheet.flatten(screen.getByLabelText(dialog.confirm).props.style);
-    expect(confirmAction.borderColor).toBe(colors.dialogDestructiveActionBorder);
-    expect(confirmAction.borderWidth).toBe(1);
-  });
-
-  it("Annuler closes the dialog without any mutation", () => {
-    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" })]);
-
-    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
-    fireEvent.press(screen.getByLabelText(dialog.cancel));
-
-    expect(screen.queryByText(dialog.title)).toBeNull();
-    expect(
-      screen.getByTestId("composition-tour-side-mode-value").props.children,
-    ).toBe(sideModeStrings.tour.valueLabels.UNILATERAL);
-  });
-
-  it("Confirmer applies the transition atomically: the Tour direction changes AND every IN_TOUR child resets to UNILATERAL", () => {
-    renderScreenWithDraft([
-      anActivity("ex-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" }),
-      anActivity("ex-2", "IN_TOUR", { sideMode: "UNILATERAL" }),
-    ]);
-
-    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
-    fireEvent.press(screen.getByLabelText(dialog.confirm));
-
-    expect(screen.queryByText(dialog.title)).toBeNull();
-    expect(
-      screen.getByTestId("composition-tour-side-mode-value").props.children,
-    ).toBe(sideModeStrings.tour.valueLabels.RIGHT_LEFT);
-  });
-
-  it("never shows the dialog when switching between two already-bilateral directions", () => {
-    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR")], { tourSideMode: "RIGHT_LEFT" });
-
-    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
-
-    expect(screen.queryByText(dialog.title)).toBeNull();
-    expect(
-      screen.getByTestId("composition-tour-side-mode-value").props.children,
-    ).toBe(sideModeStrings.tour.valueLabels.LEFT_RIGHT);
-  });
-
-  it("never shows the dialog on a return to UNILATERAL, and restores nothing", () => {
-    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR")], { tourSideMode: "LEFT_RIGHT" });
-
-    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
-
-    expect(screen.queryByText(dialog.title)).toBeNull();
-    expect(
-      screen.getByTestId("composition-tour-side-mode-value").props.children,
-    ).toBe(sideModeStrings.tour.valueLabels.UNILATERAL);
-  });
-
-  it("doubles the Tour summary duration once the Tour becomes bilateral", () => {
-    // `ex-1` n'a pas de direction propre bilatérale : l'activation
-    // s'applique DIRECTEMENT, sans dialogue (plan `## Side-mode
-    // transitions`, point 3).
-    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR", { durationSeconds: 45 })]);
-
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
-      "1 activité · 1 min",
-    );
-
-    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
-
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
-      "1 activité · 2 min",
-    );
+    expect(screen.queryByTestId("composition-tour-side-mode")).toBeNull();
+    expect(screen.queryByTestId("composition-tour-side-mode-control")).toBeNull();
+    expect(screen.queryByText(composition.tourBilateralConfirmModal.title)).toBeNull();
   });
 });
 
@@ -3157,7 +2947,6 @@ describe("CompositionScreen — contrôle Côtés du Tour (V2-BILAT-01)", () => 
  */
 describe("CompositionScreen — indicateur de direction propre et clause de synthèse (V2-BILAT-01, correction bornée)", () => {
   const sideModeStrings = strings.shared.sideMode;
-  const dialog = composition.tourBilateralConfirmModal;
 
   it("affiche l'indicateur D→G, géométrie locale 42 × 20 pt, pour une Activité BEFORE_TOUR à direction propre RIGHT_LEFT", () => {
     renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { sideMode: "RIGHT_LEFT" })]);
@@ -3214,18 +3003,6 @@ describe("CompositionScreen — indicateur de direction propre et clause de synt
     );
   });
 
-  it("omet l'indicateur pour une Activité IN_TOUR dont la direction bilatérale est HÉRITÉE d'un Tour déjà bilatéral", () => {
-    renderScreenWithDraft([anActivity("ex-1", "IN_TOUR", { sideMode: "RIGHT_LEFT" })]);
-
-    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
-    fireEvent.press(screen.getByLabelText(dialog.confirm));
-
-    // La remise atomique met l'Activité IN_TOUR à UNILATERAL (déjà couvert
-    // ailleurs) — la direction affichée est désormais celle du Tour, jamais
-    // propre : aucun indicateur, quelle que soit la valeur du Tour.
-    expect(screen.queryByTestId("composition-activity-side-mode-ex-1")).toBeNull();
-  });
-
   it("insère UNIQUEMENT la clause « par côté » dans la synthèse de carte d'une Activité à direction propre bilatérale — jamais la direction développée (plan '## 4.4')", () => {
     renderScreenWithDraft([
       {
@@ -3246,7 +3023,7 @@ describe("CompositionScreen — indicateur de direction propre et clause de synt
     expect(screen.queryByText(/à gauche, puis à droite/)).toBeNull();
   });
 
-  it("n'insère jamais la clause « par côté » ni la direction développée dans la synthèse d'une carte IN_TOUR dont la direction bilatérale est héritée", () => {
+  it("n'insère jamais la clause « par côté » ni la direction développée dans la synthèse d'une carte IN_TOUR unilatérale", () => {
     renderScreenWithDraft([
       {
         ...createExerciseDraft("ex-1"),
@@ -3255,12 +3032,9 @@ describe("CompositionScreen — indicateur de direction propre et clause de synt
         durationSeconds: 90,
         seriesCount: 3,
         pauseSeconds: 15,
-        sideMode: "RIGHT_LEFT",
+        sideMode: "UNILATERAL",
       },
     ]);
-
-    fireEvent.press(screen.getByTestId("composition-tour-side-mode-control"));
-    fireEvent.press(screen.getByLabelText(dialog.confirm));
 
     expect(screen.getByText("3 séries de 1 min 30 s avec 15 s de pause par série")).toBeTruthy();
     expect(screen.queryByText(/par côté/)).toBeNull();

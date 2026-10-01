@@ -34,7 +34,7 @@ describe("SessionCard", () => {
     render(<SessionCard session={aSummary()} />);
 
     expect(screen.getByText("Renforcement du genou")).toBeTruthy();
-    expect(screen.getByText("1 activité · 18 min · 1 tour")).toBeTruthy();
+    expect(screen.getByText("1 exercice · 18 min · 1 tour")).toBeTruthy();
   });
 
   it("never displays fictional data for planning, last execution, or activity detail — only the exact summary line, name, and (T01-S09) a tag line strictly reflecting the real categoryNames/bodyZoneNames provided", () => {
@@ -182,6 +182,6 @@ describe("SessionCard", () => {
   it("prefixes the estimated duration with ≥ when it is approximate (T01-S09, RM-072)", () => {
     render(<SessionCard session={aSummary({ isEstimatedDurationApproximate: true })} />);
 
-    expect(screen.getByText("1 activité · ≥ 18 min · 1 tour")).toBeTruthy();
+    expect(screen.getByText("1 exercice · ≥ 18 min · 1 tour")).toBeTruthy();
   });
 });
