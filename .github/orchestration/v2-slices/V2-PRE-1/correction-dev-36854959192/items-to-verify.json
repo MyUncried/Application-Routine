@@ -1,0 +1,15 @@
+{
+  "source": "development run 36854959192 — SCOPE_EXPANSION_REQUIRED; scope change decided by Hermann (option A)",
+  "findings": [
+    {
+      "category": "UI_CRITERION",
+      "target_kind": "CRITERION_ID",
+      "target": "UI-CDBCCFD16078",
+      "blocking": true,
+      "diagnostic": "Development run 36854959192 stopped on SCOPE_EXPANSION_REQUIRED: removing the BODY_ZONES runtime fallback from CompositionScreen.tsx, required by implementation review 5930269937, breaks test 4 (line 297, composition-exercise-body-zones) of src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx, which renders the screen through the real routes without SQLiteProvider and was outside write_scope.",
+      "expected_correction": "Add src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx to write_scope, required_test_writes and the tests of UI-CDBCCFD16078 with TEST_MUST_ADAPT classification, explicitly bounding the adaptation to adding the expo-sqlite and SqliteBodyZoneRepository mocks already used by in-scope tests, with no assertion added, removed or changed; nothing else in the plan changes.",
+      "dependency_expansion_required": true,
+      "dependency_evidence": "Scope change explicitly decided by Hermann on issue #249 after run 36854959192."
+    }
+  ]
+}

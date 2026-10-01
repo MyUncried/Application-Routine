@@ -1,0 +1,23 @@
+{
+  "status": "LOCAL_GATES_PASS",
+  "source_head": "e216294506bed87dd80855937e3fabfbfa322b82",
+  "previous_candidate_comment": 5920359910,
+  "source_development_run": 36854959192,
+  "items": [
+    "UI-CDBCCFD16078 (CatalogueCompositionEditFlow.integration.test.tsx, mock-only)"
+  ],
+  "gates": {
+    "plan_impact": "PASS",
+    "plan_contract_consistency": "PASS",
+    "ui_plan_criteria": "PASS"
+  },
+  "scope_paths": 100,
+  "required_test_writes": 43,
+  "requirement_count": 28,
+  "ui_criteria": 13,
+  "assertions": 32,
+  "test_bindings": 65,
+  "plan_sha256": "cb505d9d858db81b46270724bad6b327ef18579adeb88867b5654efc5ab6f4b2",
+  "plan_bytes": 239760,
+  "independent_review": "PENDING"
+}
