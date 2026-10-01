@@ -28,6 +28,9 @@ function localOrigin(origin) {
 function validateDelta(files) {
   if (files.length !== 2 || !files.includes(CORE) || !files.includes(TEST)) throw Error('VNEXT12_EXACT_DELTA_REQUIRED:' + files.join(','));
 }
+function disposableCloneArgs(origin, work) {
+  return ['-c', 'core.autocrlf=false', 'clone', '--quiet', origin, work];
+}
 function main(configFile, evidenceDirectory) {
   if (process.platform !== 'win32' || process.env.GITHUB_ACTIONS !== 'true') throw Error('VNEXT12_REAL_WINDOWS_RUNNER_REQUIRED');
   const config = validateConfig(JSON.parse(fs.readFileSync(configFile, 'utf8')));
@@ -108,9 +111,12 @@ function main(configFile, evidenceDirectory) {
       runtime_state_created: false, claude_invoked: false });
     run(process.execPath, [path.join(source, 'scripts/kodjo/certify-persistent-runner-lock.js'), path.join(evidence, 'runner-lock-certification.json')], source);
     git(root, 'clone', '--mirror', '--quiet', source, origin);
-    git(root, 'clone', '--quiet', origin, work);
+    // Apply byte-preserving checkout policy BEFORE clone materializes files.
+    // Setting it afterwards leaves a CRLF tree inconsistent with the LF index.
+    git(root, ...disposableCloneArgs(origin, work));
     git(work, 'config', 'core.autocrlf', 'false');
     git(work, 'checkout', '--quiet', '-b', 'qualification-local', APPROVED_HEAD);
+    if (git(work, 'status', '--porcelain', '--untracked-files=all')) throw Error('VNEXT12_CLONE_BYTES_DRIFTED');
     git(work, 'push', '--quiet', '--set-upstream', 'origin', 'qualification-local');
     localOrigin(git(work, 'remote', 'get-url', 'origin'));
     run('cmd.exe', ['/d','/s','/c','npm ci --no-audit --no-fund'], work, { timeout: 900000 });
@@ -182,4 +188,4 @@ if (require.main === module) {
   try { main(process.argv[2], process.argv[3]); }
   catch (error) { console.error(error.message); process.exitCode = 1; }
 }
-module.exports = { validateConfig, localOrigin, validateDelta, APPROVED_HEAD, GATE, TARGET_HASH, CORE, TEST };
+module.exports = { validateConfig, localOrigin, validateDelta, disposableCloneArgs, APPROVED_HEAD, GATE, TARGET_HASH, CORE, TEST };
