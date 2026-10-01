@@ -264,6 +264,8 @@ jobs:
           mkdir -p "$runtime/lib"
           cp scripts/kodjo/verify-ui-implementation-review.js scripts/kodjo/verify-test-contract-results.js scripts/kodjo/verify-review-format-repair.js scripts/kodjo/repair-review-nonui-coverage.js "$runtime/"
           cp scripts/kodjo/lib/plan-impact.js scripts/kodjo/lib/implementation-contract.js scripts/kodjo/lib/implementation-report.js scripts/kodjo/lib/ui-criteria-contract.js scripts/kodjo/lib/requirement-contract.js scripts/kodjo/lib/boundary-proof.js scripts/kodjo/lib/ui-identities.js scripts/kodjo/lib/component-evidence.js "$runtime/lib/"
+          derogation=".github/orchestration/v2-slices/${{ steps.gate.outputs.slice_id }}/device-check-derogation.json"
+          if [ -f "$derogation" ]; then cp "$derogation" "$runtime/device-check-derogation.json"; fi
           echo "KODJO_REVIEW_RUNTIME=$runtime" >> "$GITHUB_ENV"
 
       - name: Checkout implementation HEAD
@@ -361,6 +363,10 @@ jobs:
             echo "For each proof_required, return exactly one proof_result. FUNCTIONAL_TEST and STATIC_ANALYSIS are technical blocking proofs and may be PASS only with evidence from the supplied material."
             echo "ACCESSIBILITY_CHECK may be PASS when deterministic supplied evidence is sufficient, PENDING_DEVICE when only runtime VoiceOver/TalkBack/touch-target evidence remains, or FAIL for a demonstrated defect. PENDING_DEVICE alone is not a technical failure."
             echo "VISUAL_COMPARE and DEVICE_CHECK cannot be certified by this automated review. Return PENDING_DEVICE unless there is a demonstrated FAIL; never return PASS for those two proof types."
+            if [ -f "$KODJO_REVIEW_RUNTIME/device-check-derogation.json" ]; then
+              echo "Explicit DEVICE_CHECK derogation decided by the slice owner (the native device check was NOT executed in this cycle; it is not satisfied by any visual approval). For each listed requirement, return DEVICE_CHECK PENDING_DEVICE, assess every other proof normally, never state or imply that the device check passed, and set the requirement status to NON_VERIFIABLE only for that reason (NON_CONFORME for any demonstrated defect):"
+              cat "$KODJO_REVIEW_RUNTIME/device-check-derogation.json"
+            fi
             echo "Every PRESERVE and FORBIDDEN boundary in boundary_requirements must appear exactly once in boundary_results. A machine FAIL cannot be overridden by PASS. A machine PASS only proves the exact file was not modified; return FAIL or NON_VERIFIABLE when the semantic invariant is broken or cannot be established. Any FAIL or NON_VERIFIABLE boundary is blocking."
             echo "Requirements allocated to later increments remain deferred and are not defects."
             echo "The deterministic gate immediately preceding this review has completed npm test and TypeScript successfully."
@@ -519,6 +525,7 @@ jobs:
           jq -er '[.output[]?|select(.type=="message")|.content[]?|select(.type=="output_text")|.text]|join("\n")|select(length>0)' /tmp/review-response.json > /tmp/review-structured.json
           jq -e '.' /tmp/review-structured.json >/dev/null
           review_validate=(validate /tmp/approved-plan.md /tmp/changed-files.txt /tmp/review-structured.json /tmp/review-contract.json /tmp/implementation-output.md)
+          if [ -f "$KODJO_REVIEW_RUNTIME/device-check-derogation.json" ]; then export KODJO_DEVICE_CHECK_DEROGATION_FILE="$KODJO_REVIEW_RUNTIME/device-check-derogation.json"; fi
           if [ -f /tmp/previous-review.md ]; then review_validate+=(/tmp/previous-review.md); fi
           validate_rc=0
           node "$KODJO_REVIEW_RUNTIME"/verify-ui-implementation-review.js "${review_validate[@]}" 2>/tmp/review-validate-1.err || validate_rc=$?
@@ -560,7 +567,9 @@ jobs:
           fi
           {
             printf 'VERDICT: %s\n' "$(jq -r .verdict /tmp/review-contract.json)"
-            printf 'DEVICE_GATE_REQUIRED: %s\n\n' "$(jq -r .device_gate_required /tmp/review-contract.json)"
+            printf 'DEVICE_GATE_REQUIRED: %s\n' "$(jq -r .device_gate_required /tmp/review-contract.json)"
+            jq -r '.device_check_derogations[]? | "DEVICE_CHECK_DEROGATION: \(.requirement_id) \(.proof_type) \(.status) — decided_by \(.decided_by); not satisfied by \(.not_satisfied_by|join(",")); residual risk: \(.residual_risk)"' /tmp/review-contract.json
+            printf '\n'
             jq .
           } < /tmp/review-contract.json > /tmp/review.md
 

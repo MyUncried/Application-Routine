@@ -246,6 +246,40 @@ function validateProof(id, proof) {
   }
   return {type,status};
 }
+// Explicit, nominative DEVICE_CHECK derogations decided by the slice owner
+// (KODJO_DEVICE_CHECK_DEROGATION_FILE). A derogated non-UI requirement stops
+// blocking only when its sole gap is the non-executed DEVICE_CHECK: no FAIL, every
+// other proof PASS, DEVICE_CHECK PENDING_DEVICE and status not NON_CONFORME. The
+// derogation is copied into the review output and is never treated as executed.
+function loadDeviceCheckDerogations(input){
+  const file=process.env.KODJO_DEVICE_CHECK_DEROGATION_FILE;
+  const map=new Map();
+  if(!file)return map;
+  let doc;
+  try{doc=JSON.parse(fs.readFileSync(path.resolve(file),'utf8').replace(/^﻿/,''));}
+  catch(e){fail('DEVICE_CHECK_DEROGATION_INVALID',e.message);}
+  if(!doc||doc.schema!=='kodjo.device-check-derogation.v1'||!Array.isArray(doc.derogations))fail('DEVICE_CHECK_DEROGATION_INVALID','schema');
+  if(process.env.SLICE_ID&&doc.slice_id!==process.env.SLICE_ID)fail('DEVICE_CHECK_DEROGATION_SLICE_MISMATCH',String(doc.slice_id));
+  const requirements=new Map((input.non_ui_requirements||[]).map(r=>[String(r.requirement_id),r]));
+  for(const d of doc.derogations){
+    const id=String(d&&d.requirement_id||'');
+    const req=requirements.get(id);
+    if(!req)fail('DEVICE_CHECK_DEROGATION_UNKNOWN_REQUIREMENT',id);
+    if(d.proof_type!=='DEVICE_CHECK'||!(req.proof_required||[]).includes('DEVICE_CHECK'))fail('DEVICE_CHECK_DEROGATION_PROOF_INVALID',id);
+    if(d.status!=='NOT_EXECUTED'||!d.decided_by||!d.decision||!d.residual_risk)fail('DEVICE_CHECK_DEROGATION_INCOMPLETE',id);
+    if(map.has(id))fail('DEVICE_CHECK_DEROGATION_DUPLICATE',id);
+    map.set(id,{requirement_id:id,proof_type:'DEVICE_CHECK',status:'NOT_EXECUTED',decided_by:String(d.decided_by),decided_on:String(d.decided_on||''),decision:String(d.decision),residual_risk:String(d.residual_risk),not_satisfied_by:Array.isArray(d.not_satisfied_by)?d.not_satisfied_by.map(String):[]});
+  }
+  return map;
+}
+function deviceCheckOnlyGap(row){
+  if(String(row.status)==='NON_CONFORME')return false;
+  const proofs=Array.isArray(row.proof_results)?row.proof_results:[];
+  const device=proofs.filter(p=>p&&p.proof_type==='DEVICE_CHECK');
+  if(device.length!==1||device[0].status!=='PENDING_DEVICE')return false;
+  return proofs.every(p=>p&&(p.proof_type==='DEVICE_CHECK'||p.status==='PASS'));
+}
+
 function deriveAssertionStatus(input,assertion,proofs) {
   // Documented precedence, independent of proof order: any FAIL => NON_CONFORME;
   // then any non-PASS blocking proof => NON_VERIFIABLE; then PENDING_DEVICE.
@@ -483,6 +517,8 @@ function validateReview(input, review) {
       fail('NON_UI_REQUIREMENT_COVERAGE_MISMATCH','reviewer requirements != plan');
     }
     const expectedById=new Map(input.non_ui_requirements.map((row)=>[row.requirement_id,row]));
+    const derogations=loadDeviceCheckDerogations(input);
+    const appliedDerogations=[];
     let nonUiBlocking=false;
     for(const row of assessment.requirements){
       const id=String(row.requirement_id);
@@ -502,8 +538,14 @@ function validateReview(input, review) {
           if(validated.status==='FAIL'||(BLOCKING_PROOFS.has(validated.type)&&validated.status!=='PASS'))nonUiBlocking=true;
         }
       }
-      if(String(row.status)!=='CONFORME')nonUiBlocking=true;
+      if(String(row.status)!=='CONFORME'){
+        const derogation=derogations.get(id);
+        if(derogation&&deviceCheckOnlyGap(row)){
+          appliedDerogations.push({...derogation,reviewer_status:String(row.status)});
+        }else nonUiBlocking=true;
+      }
     }
+    if(appliedDerogations.length)review.device_check_derogations=appliedDerogations;
     assessment.status=nonUiBlocking?'NON_CONFORME':'CONFORME';
     if(!text(assessment.evidence))assessment.evidence='Derived from requirement-level results.';
     if(nonUiBlocking)blocking=true;
