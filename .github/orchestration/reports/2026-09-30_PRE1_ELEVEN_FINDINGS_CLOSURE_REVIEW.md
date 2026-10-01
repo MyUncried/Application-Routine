@@ -244,7 +244,9 @@ Tests : `validate-workflows.js` OK ; suite pilote 812 tests, 14 échecs identiqu
 |---|---|---|---|
 | 36785770445 | `resume-certified-943faccc` (migration certifiée) | 11127475602 (run 36773441104) | Restauration + migration PASS sur le runner ; D-240 et « Aucun » implémentés ; 1 301 tests verts ; arrêt `CLARIFICATION_REQUIRED` (sélecteur de Catégorie) ; correction bornée exécutée sans ENOENT |
 | 36789068171 | `resume-b5b4e2bb` (`CLARIFICATION`, contrat Catégorie cité : ch. 08 ligne Catégorie, ch. 13 §4.10 / Figma 4861:6259, CE-T03-04) | run 36785770445 | Limite de 3 600 s atteinte en pleine transformation ; 74 fichiers ; lint PASS, typescript FAIL, jest 71/1 277 FAIL ; paquet INTACT ; correction bornée `NOT_REQUIRED` (`HUMAN_DECISION_REQUIRED`) |
-| 36795323520 | `resume-ebe7f52e` (`BUDGET_EXHAUSTED` : rétablir les contrôles verts puis poursuivre le plan §10) | run 36789068171 | en cours |
+| 36795323520 | `resume-ebe7f52e` (`BUDGET_EXHAUSTED` : rétablir les contrôles verts puis poursuivre le plan §10) | run 36789068171 | Limite 3 600 s ; 84 fichiers ; jest PASS 1 235, typescript PASS, lint PASS ; paquet INTACT. Vigilance : 1 301 → 1 235 tests, ~174 cas retirés / 144 ajoutés (estimation heuristique, renommages inclus) |
+| 36800824444 | `resume-5493a643` (`BUDGET_EXHAUSTED` : justifier ou restaurer les tests retirés, poursuivre §10) | run 36795323520 | Limite 3 600 s ; 86 fichiers ; jest PASS 1 236, typescript PASS, lint PASS. Progression mesurée entre paquets : 15 fichiers consommateurs/écrans modifiés (BodyZoneSelector branché sur BodyZoneRepository, ActivityCard, ActivitySelectionScreen, éditeur, compositionPresentation, CompositionScreen, ExerciseScreen) — pas de stagnation |
+| 36806020003 | `resume-5420e1f2` (`BUDGET_EXHAUSTED` : achever le plan et conclure par un rapport de conformité complet sur état vert) | run 36800824444 | en cours |
 
 Toutes les reprises : même session `77bf4fe5`, même `source_head` `79fe5095`, même plan approuvé, même barrière 5920553811 ; admission V2 locale PASS avant chaque push. Le commentaire 5921521038 (`[KODJO_VNEXT]`) relève du chantier VNext et n'a pas été touché.
 
