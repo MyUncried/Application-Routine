@@ -15,14 +15,24 @@ const CORE = 'scripts/kodjo/fixtures/vnext12/core.js';
 const TEST = 'tests/fixtures/vnext12/core.test.js';
 const KEEP = 'scripts/kodjo/fixtures/vnext12/keep.js';
 function validateConfig(c) {
-  const initial = c.stage === 'EXECUTE_INITIAL' && c.approved_protocol_head === APPROVED_HEAD
+  const legacyInitial = c.approved_protocol_head === APPROVED_HEAD
     && c.gate_ref === GATE && c.approval_target_hash === TARGET_HASH;
+  const freshInitial = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(c.campaign_id || '')
+    && /^[0-9a-f]{40}$/.test(c.approved_protocol_head) && !/^0+$/.test(c.approved_protocol_head)
+    && c.approved_protocol_head !== APPROVED_HEAD && /^issue_comment:[1-9][0-9]+$/.test(c.gate_ref)
+    && c.gate_ref !== GATE && /^[0-9a-f]{64}$/.test(c.approval_target_hash)
+    && !/^0+$/.test(c.approval_target_hash) && c.approval_target_hash !== TARGET_HASH;
+  const initial = c.stage === 'EXECUTE_INITIAL' && (legacyInitial || freshInitial);
   const revision = c.stage === 'EXECUTE_REVISION' && /^[0-9a-f]{40}$/.test(c.approved_protocol_head)
     && c.approved_protocol_head !== APPROVED_HEAD && /^issue_comment:[1-9][0-9]*$/.test(c.gate_ref)
     && /^[0-9a-f]{64}$/.test(c.approval_target_hash) && c.approval_target_hash !== TARGET_HASH;
   if ((!initial && !revision) || c.slice_id !== 'VNEXT-12-QUALIF' || c.revision_limit !== 1
       || c.pre1_in_scope !== false || c.final_audit_authorized !== false) throw Error('VNEXT12_EXECUTION_CONFIG_REFUSED');
   return c;
+}
+function validateAdmittedInitial(a) {
+  if (a.planningEnvelope?.planning_mode !== 'INITIAL' || a.cumulativeRegister?.revision_count !== 0
+      || a.cumulativeRegister?.revision_limit !== 1 || a.revisionArtifacts) throw Error('VNEXT12_REAL_INITIAL_REQUIRED');
 }
 function validateAdmittedRevision(a) {
   if (a.planningEnvelope?.planning_mode !== 'REVISION' || a.cumulativeRegister?.revision_count !== 1
@@ -158,6 +168,7 @@ function main(configFile, evidenceDirectory) {
       request_id: transport.request_id, created_at: transport.created_at };
     const derived = Chain.deriveQueue(seed, { cwd: source, github });
     if (revision) validateAdmittedRevision(derived.artifacts);
+    else validateAdmittedInitial(derived.artifacts);
     if (derived.approvalTarget.contract_hash !== TARGET_HASH) throw Error('VNEXT12_EXACT_APPROVAL_TARGET_MISMATCH');
     const queueFile = path.join(evidence, 'approved-queue.json');
     const queue = derived.projection.legacy_queue_request;
@@ -269,4 +280,4 @@ if (require.main === module) {
   try { main(process.argv[2], process.argv[3]); }
   catch (error) { console.error(error.message); process.exitCode = 1; }
 }
-module.exports = { validateConfig, validateAdmittedRevision, localOrigin, validateDelta, disposableCloneArgs, consumptionCredential, runtimeFailure, preserveRuntime, APPROVED_HEAD, GATE, TARGET_HASH, CORE, TEST };
+module.exports = { validateConfig, validateAdmittedInitial, validateAdmittedRevision, localOrigin, validateDelta, disposableCloneArgs, consumptionCredential, runtimeFailure, preserveRuntime, APPROVED_HEAD, GATE, TARGET_HASH, CORE, TEST };

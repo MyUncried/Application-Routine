@@ -14,6 +14,20 @@ const CORE = 'scripts/kodjo/fixtures/vnext12/core.js';
 const TEST = 'tests/fixtures/vnext12/core.test.js';
 const KEEP = 'scripts/kodjo/fixtures/vnext12/keep.js';
 const SOURCE = ROOT + '/requirement.md';
+function replaceDisposableActivation(registry, bootstrap, priorBootstrap, campaignId) {
+  const identity = require('./lib/slice-identity');
+  identity.validateRegistry(registry, priorBootstrap);
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(campaignId || '')
+      || priorBootstrap.slice_id !== bootstrap.slice_id || bootstrap.slice_id !== 'VNEXT-12-QUALIF') {
+    throw new Error('VNEXT12_FRESH_CAMPAIGN_REQUIRED');
+  }
+  const matches = registry.activations.filter(x => x.slice_id === bootstrap.slice_id);
+  if (matches.length !== 1 || matches[0].slice_bootstrap_sha256 !== priorBootstrap.slice_bootstrap_sha256) {
+    throw new Error('VNEXT12_PRIOR_ACTIVATION_MISMATCH');
+  }
+  registry.activations = registry.activations.filter(x => x.slice_id !== bootstrap.slice_id);
+  return registry;
+}
 function buildRecipe(cwd) {
   const head = Chain.command('git', ['rev-parse', 'HEAD'], cwd).trim();
   const content = Chain.readGit(cwd, head, SOURCE);
@@ -106,7 +120,11 @@ function main() {
   bootstrap.slice_bootstrap_sha256 = V.canonicalHash(bootstrap);
   identity.validateBootstrap(bootstrap);
   const registry = JSON.parse(Chain.readGit(cwd, produced.producer_revision, bootstrap.activation_registry));
-  if (registry.activations.some(x => x.slice_id === bootstrap.slice_id)) throw new Error('VNEXT12_DISPOSABLE_ALREADY_REGISTERED');
+  if (registry.activations.some(x => x.slice_id === bootstrap.slice_id)) {
+    const request = JSON.parse(Chain.readGit(cwd, produced.producer_revision, ROOT + '/request.json'));
+    const priorBootstrap = JSON.parse(Chain.readGit(cwd, produced.producer_revision, bootstrapPath));
+    replaceDisposableActivation(registry, bootstrap, priorBootstrap, request.campaign_id);
+  }
   registry.activations.push({ slice_id: bootstrap.slice_id, status: 'ACTIVE', issue_number: 269,
     baseline_head: bootstrap.baseline_head, bootstrap_path: bootstrapPath,
     slice_bootstrap_sha256: bootstrap.slice_bootstrap_sha256 });
@@ -127,4 +145,4 @@ function main() {
   console.log(JSON.stringify({ status: 'PREPARED_FOR_PUBLICATION', review: receipt.review_report.verdict, session: receipt.session_id }));
 }
 if (require.main === module) { try { main(); } catch (error) { console.error(error.message); process.exitCode = 1; } }
-module.exports = { buildRecipe };
+module.exports = { buildRecipe, replaceDisposableActivation };

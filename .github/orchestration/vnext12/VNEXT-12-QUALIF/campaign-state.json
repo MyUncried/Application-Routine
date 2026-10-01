@@ -7,8 +7,8 @@
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "9895877b9230c902eea229841a46a8c18c437f41",
-  "controller_stage": "STEP3_COMPLETED",
-  "controller_generation": 21,
+  "controller_stage": "STEP3_REQUALIFICATION_PREPARE_INITIAL",
+  "controller_generation": 22,
   "steps": [
     {
       "step": 1,
@@ -236,5 +236,26 @@
     "evidence_path": ".github/orchestration/reports/2026-10-01_VNEXT_TRANSPORT_HARDENING_EVIDENCE.json",
     "logs_path": ".github/orchestration/reports/2026-10-01_VNEXT_TRANSPORT_HARDENING_LOGS.zip",
     "legacy_recovery_status": "NON_CERTIFIED"
+  },
+  "requalification_campaign": {
+    "campaign_id": "06f35a5b-db9c-4448-ab28-c7b778cba368",
+    "status": "PREPARING_INITIAL",
+    "base_head": "e703a68823a3c090b518714b194dfbb3a51809d1",
+    "requested_at": "2026-10-01T19:39:40.565207+00:00",
+    "user_instruction": "donc on rejoue maintenant Initial et revision avec ce nouveau protocole.",
+    "technical_delegation": "Fresh disposable INITIAL and bounded REVISION under existing user authorization; real GitHub approval on exact message required; human_review_performed remains false unless actually performed.",
+    "initial": {
+      "status": "NOT_EXECUTED"
+    },
+    "revision": {
+      "status": "NOT_EXECUTED"
+    },
+    "old_consumed_requests_forbidden": [
+      "d851f5fe-6ce5-4bb1-a615-ea2116cf04e1",
+      "be4f7b4b-77d0-4d43-a49f-d3d9f999e2cf"
+    ],
+    "evidence_root": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368",
+    "final_audit_authorized": false,
+    "pre1_in_scope": false
   }
 }
