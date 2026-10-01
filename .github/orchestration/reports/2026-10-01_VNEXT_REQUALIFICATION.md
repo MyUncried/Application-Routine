@@ -17,3 +17,7 @@ FINAL, activation/cutover, fusion et PRE-1 restent hors périmètre. Aucun verdi
 Run 36916159035 SUCCESS ; nouvelle revue APPROVE, session `bb719f88-f175-4cd6-aa03-c7d6ce0f654c`. Artefact 11191289600 téléchargé et SHA256 vérifié : `17e02c27d15e962c4d4ef386eefecc667841a624178ec5063cc4197d27d95284`.
 
 Réservation réelle `issue_comment:5940186046`, transport UUID neuf `b2af3723-0ce8-4f7f-8488-cf4498eb9d92`. La réservation ne vaut pas approbation. Le dossier est publié pour qualification exacte ; aucun runtime n’a encore été exécuté dans cette campagne. Preuves : `.github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/preparation-evidence.json`.
+
+## Admission INITIAL du dossier exact
+
+Qualification réelle du candidat `0e95e9deb18c0a8226df114773d63b2589e57395` : run [36924310800](https://github.com/MyUncried/Application-Routine/actions/runs/36924310800), quatre jobs Linux/Windows SUCCESS. Message du [gate 5940186046](https://github.com/MyUncried/Application-Routine/pull/269#issuecomment-5940186046) exact, cible `e601b5db91a198c26c24b7390a20e4088bb8720be1082254c4014fb6b4cb3ac6`, réaction réelle `430241739` de MyUncried sous délégation technique Codex, aucune revue humaine revendiquée. Admission réelle AUTHORIZED. Demande EXECUTE_INITIAL avec UUID frais `b2af3723-0ce8-4f7f-8488-cf4498eb9d92` ; aucun PASS runtime déclaré avant les preuves.
