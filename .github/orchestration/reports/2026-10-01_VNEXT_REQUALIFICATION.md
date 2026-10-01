@@ -21,3 +21,9 @@ Réservation réelle `issue_comment:5940186046`, transport UUID neuf `b2af3723-0
 ## Admission INITIAL du dossier exact
 
 Qualification réelle du candidat `0e95e9deb18c0a8226df114773d63b2589e57395` : run [36924310800](https://github.com/MyUncried/Application-Routine/actions/runs/36924310800), quatre jobs Linux/Windows SUCCESS. Message du [gate 5940186046](https://github.com/MyUncried/Application-Routine/pull/269#issuecomment-5940186046) exact, cible `e601b5db91a198c26c24b7390a20e4088bb8720be1082254c4014fb6b4cb3ac6`, réaction réelle `430241739` de MyUncried sous délégation technique Codex, aucune revue humaine revendiquée. Admission réelle AUTHORIZED. Demande EXECUTE_INITIAL avec UUID frais `b2af3723-0ce8-4f7f-8488-cf4498eb9d92` ; aucun PASS runtime déclaré avant les preuves.
+
+## INITIAL réellement PASS
+
+[Run 36930459022](https://github.com/MyUncried/Application-Routine/actions/runs/36930459022), job 110598428318 terminé à 22:32:02 UTC le 1 octobre 2026. Session Claude réelle `f6571f37-d20c-437e-8253-e995c923e738`. value() observé 2, exactement core.js + core.test.js modifiés, keep.js intact. Jest 1257/1257, TypeScript et lint PASS. Refus réels avant Claude pour autorisation/preuve absente, consommation atomique vérifiée et cleanup confirmé. Artefact 11197084650 SHA256 `9815cde44fb2e74d7e07187d509eb2e4cf01dd988842cf8ed93efb2d17359862` conservé intégralement avec empreintes de tous ses membres. UUID consommé interdit de rejeu.
+
+PREPARE_REVISION demandé sur le même code du protocole. Le problème de commande Claude en arrière-plan n’a pas fait échouer INITIAL ; cela ne prouve pas sa prévention. Correctif préventif à traiter après cette campagne avec validation ciblée, sans rejouer INITIAL. Aucun FINAL, cutover, fusion ni changement applicatif durable.

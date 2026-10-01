@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-01T21:41:46.272647+00:00",
+  "recorded_at": "2026-10-01T22:35:15.578541+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "9895877b9230c902eea229841a46a8c18c437f41",
-  "controller_stage": "STEP3_REQUALIFICATION_EXECUTE_INITIAL",
-  "controller_generation": 24,
+  "controller_stage": "STEP3_REQUALIFICATION_PREPARE_REVISION",
+  "controller_generation": 25,
   "steps": [
     {
       "step": 1,
@@ -71,7 +71,8 @@
     "full_linux_ci_is_authoritative": true
   },
   "pending_actions": [
-    "Collect genuine fresh INITIAL execution evidence before PREPARE_REVISION; preserve branch HEAD while phase runs are active."
+    "Collect real REVISE then one causal correction and APPROVE for fresh bounded REVISION; hold HEAD stable while runs are active.",
+    "After completing current protocol campaign, implement preventive Claude foreground settings with targeted validation; do not replay INITIAL."
   ],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
@@ -241,7 +242,7 @@
   },
   "requalification_campaign": {
     "campaign_id": "06f35a5b-db9c-4448-ab28-c7b778cba368",
-    "status": "INITIAL_EXECUTION_REQUESTED",
+    "status": "INITIAL_PASS_REVISION_PREPARATION_REQUESTED",
     "base_head": "e703a68823a3c090b518714b194dfbb3a51809d1",
     "requested_at": "2026-10-01T19:39:40.565207+00:00",
     "user_instruction": "donc on rejoue maintenant Initial et revision avec ce nouveau protocole.",
@@ -249,7 +250,7 @@
     "initial": {
       "schema_version": "kodjo.vnext12.requalification-initial-preparation-evidence.v1",
       "campaign_id": "06f35a5b-db9c-4448-ab28-c7b778cba368",
-      "status": "AUTHORIZED_EXECUTION_REQUESTED",
+      "status": "INITIAL_PASS",
       "producer_head": "b8f871001f21ecf6f3444479f845bc9aae59e5a3",
       "run_id": 36916159035,
       "job_id": 110554866566,
@@ -259,7 +260,7 @@
       "artifact_sha256": "17e02c27d15e962c4d4ef386eefecc667841a624178ec5063cc4197d27d95284",
       "artifact_archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/preparation-artifact.zip",
       "prepared_chain_hash": "e9530e4ac6dd716f50f40733ceb437c62fd5d19327e9a0bfb6058e66fe0552e6",
-      "implementation_invoked": false,
+      "implementation_invoked": true,
       "approval_observed": true,
       "human_review_performed": false,
       "preparation_candidate_qualification_run_id": 36916159025,
@@ -275,10 +276,45 @@
       "approval_reaction_id": 430241739,
       "authorization_basis": "CODEX_USER_DELEGATION",
       "authorization_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/authorization-evidence.json",
-      "qualification_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/qualification-evidence.json"
+      "qualification_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/qualification-evidence.json",
+      "execution_run_id": 36930459022,
+      "execution_job_id": 110598428318,
+      "runtime_claude_session": "f6571f37-d20c-437e-8253-e995c923e738",
+      "execution_artifact_id": 11197084650,
+      "execution_artifact_sha256": "9815cde44fb2e74d7e07187d509eb2e4cf01dd988842cf8ed93efb2d17359862",
+      "execution_archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/execution-artifact.zip",
+      "execution_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/execution-evidence.json",
+      "consumed_request": "b2af3723-0ce8-4f7f-8488-cf4498eb9d92",
+      "consumption_tag": "9d09225f0bbbba24ee7ef296fc5648e107f1fae9",
+      "replay_forbidden": true,
+      "observed_value": 2,
+      "disposable_cleanup": true,
+      "checks": {
+        "jest": {
+          "status": "PASS",
+          "exit_code": 0,
+          "passed_tests": 1257,
+          "failed_tests": 0,
+          "total_tests": 1257
+        },
+        "typescript": {
+          "status": "PASS",
+          "exit_code": 0,
+          "passed_tests": null,
+          "failed_tests": null,
+          "total_tests": null
+        },
+        "lint": {
+          "status": "PASS",
+          "exit_code": 0,
+          "passed_tests": null,
+          "failed_tests": null,
+          "total_tests": null
+        }
+      }
     },
     "revision": {
-      "status": "NOT_EXECUTED"
+      "status": "REAL_PREPARATION_REQUESTED"
     },
     "old_consumed_requests_forbidden": [
       "d851f5fe-6ce5-4bb1-a615-ea2116cf04e1",
@@ -286,6 +322,13 @@
     ],
     "evidence_root": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368",
     "final_audit_authorized": false,
-    "pre1_in_scope": false
+    "pre1_in_scope": false,
+    "pending_preventive_fix": {
+      "file": "scripts/kodjo/run-local-claude.js",
+      "purpose": "Force implementer foreground commands and bounded Bash timeouts",
+      "observed_failure_this_initial": false,
+      "implementation_status": "DEFERRED_UNTIL_CURRENT_CAMPAIGN_COMPLETE",
+      "user_preference": "Targeted validation; avoid repeating complete certification campaign"
+    }
   }
 }
