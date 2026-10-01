@@ -1,0 +1,66 @@
+{
+  "schema_version": "kodjo.protocol.v2.recovery-migration.0.6.24",
+  "status": "CERTIFIED",
+  "slice_id": "V2-PRE-1",
+  "source_head": "404fa321f13ff5ba2ff2cc6a40aab415be25a91c",
+  "certified_target_head": "c6bb8b4e44cf99647e1631c8395713252210aeca",
+  "baseline_head": "e216294506bed87dd80855937e3fabfbfa322b82",
+  "source_run_id": "36909039881",
+  "source_artifact_id": "11189370316",
+  "source_patch_sha256": "a25c076aed14bf16dcb3e78e49aeedf01afef709f91e9ce5140cb0ad834b687e",
+  "session_id": "77bf4fe5-e8e7-4316-98a7-3ab29099a32e",
+  "application_pr_head": "e216294506bed87dd80855937e3fabfbfa322b82",
+  "authorization_binding": {
+    "authorized_plan": {
+      "plan_path": ".github/orchestration/v2-slices/V2-PRE-1/technical-plan.md",
+      "plan_blob_oid": "46981c873063d9afe4d02dfe341f4d05d48b3c31"
+    },
+    "independent_review": {
+      "review_path": ".github/orchestration/v2-slices/V2-PRE-1/independent-review.md",
+      "review_blob_oid": "2f597e2e7c79301ecc434cb525a9c3e9a3764a10",
+      "reviewed_plan_blob_oid": "46981c873063d9afe4d02dfe341f4d05d48b3c31"
+    },
+    "user_gate": {
+      "gate_ref": "issue_comment:5939871764",
+      "gated_reference": "46981c873063d9afe4d02dfe341f4d05d48b3c31",
+      "decision": "APPROVED",
+      "user_login": "MyUncried",
+      "evidence_kind": "ORGANISATIONAL"
+    }
+  },
+  "certified_protocol_executable_paths": [
+    ".github/workflows/kodjo-slice-implementation-review.yml",
+    ".github/workflows/kodjo-v2-slice-initial-plan-review.yml",
+    "scripts/kodjo/materialize-approved-plan-handoff.js",
+    "scripts/kodjo/recover-published-pre1-plan.js",
+    "scripts/kodjo/repair-review-nonui-coverage.js",
+    "scripts/kodjo/verify-ui-implementation-review.js",
+    "tests/kodjo/device-check-derogation.pilot.js",
+    "tests/kodjo/pre1-implementation-review-plan.pilot.js",
+    "tests/kodjo/review-format-repair.pilot.js",
+    "tests/kodjo/review-nonui-coverage-repair.pilot.js"
+  ],
+  "certified_protocol_document_paths": [
+    ".github/orchestration/queue/v2/V2-PRE-1-resume-25270239.json",
+    ".github/orchestration/queue/v2/V2-PRE-1-resume-6fef7ce5.json",
+    ".github/orchestration/queue/v2/V2-PRE-1-resume-certified-55bdf5fb.json",
+    ".github/orchestration/queue/v2/V2-PRE-1-resume-dd445fa6.json",
+    ".github/orchestration/reports/2026-09-30_PRE1_ELEVEN_FINDINGS_CLOSURE_REVIEW.md",
+    ".github/orchestration/reports/2026-10-01_PRE1_PLAN_CORRECTION_IMPLREVIEW_36913774921.md",
+    ".github/orchestration/v2-slices/V2-PRE-1/correction-implreview-36913774921/corrected-plan.md",
+    ".github/orchestration/v2-slices/V2-PRE-1/correction-implreview-36913774921/corrected-scan.json",
+    ".github/orchestration/v2-slices/V2-PRE-1/correction-implreview-36913774921/correction-checks.json",
+    ".github/orchestration/v2-slices/V2-PRE-1/correction-implreview-36913774921/implementation-review-5938943370.json",
+    ".github/orchestration/v2-slices/V2-PRE-1/correction-implreview-36913774921/items-to-verify.json",
+    ".github/orchestration/v2-slices/V2-PRE-1/device-check-derogation.json",
+    ".github/orchestration/v2-slices/V2-PRE-1/implementation-mission.md",
+    ".github/orchestration/v2-slices/V2-PRE-1/independent-review.md",
+    ".github/orchestration/v2-slices/V2-PRE-1/technical-plan.md"
+  ],
+  "certified_product_document_paths": [],
+  "compatible_application_paths": [],
+  "post_certification_protocol_files": {
+    ".github/orchestration/v2-slices/V2-PRE-1/recovery-migration-36909039881.json": "SELF"
+  },
+  "certification_note": "Plan round 5 (scope change decided by Hermann after implementation review 5938943370; plan review 5939867521, gate 5939871764) for PR #278 (run 36909039881); no app/ or src/ path changed between the package source_head and the anchor; the package patch touches only paths inside the corrected scope."
+}
