@@ -30,3 +30,13 @@ Le transport conservé possède encore le placeholder `issue_comment:1` : il n�
 Aucune implémentation n’a été lancée par ce run (`implementation_invoked=false`). Aucune approbation utilisateur n’a été observée (`user_approval_observed=false`). Aucun résultat INITIAL/REVISION n’est revendiqué. Aucune fusion, publication applicative, activation sur main, ni audit FINAL.
 
 PRE-1 et ses opérations restent hors périmètre.
+
+## Approbation exacte et lancement INITIAL
+
+Le propriétaire MyUncried a ajouté la réaction +1 `429313735` le `2026-10-01T00:09:42Z` au commentaire [5921521038](https://github.com/MyUncried/Application-Routine/pull/269#issuecomment-5921521038), dont le corps exact a été relu et lié au commit `e47525b70e62b4ea3d4b32b9fae09e306b5e3094` et à la cible `d5ca8d589b886cf4231eea457527729081288d1544c35703ee83f18085db4d59`.
+
+La demande explicite passe à EXECUTE_INITIAL. Le contrôleur possède son propre commit ; les contrats, contrôles d’admission et adaptateurs exécutés proviennent exclusivement du checkout approuvé e47525b7. Aucune revue APPROVE nouvelle n’est fabriquée ou relancée. Le workflow empêche l’annulation d’une implémentation par un commit ultérieur et saute les jobs de préparation pendant EXECUTE_INITIAL.
+
+Le superviseur, validé par trois tests de refus et un contrôle de syntaxe YAML, doit vérifier la vraie admission avant installation ; exécuter deux probes négatives déclarées (absence d’autorité de queue et empreinte de revue invalide) via le vrai run-local-claude ; certifier le verrou persistant ; utiliser un miroir/origin local sans distant GitHub ; exécuter les checks baseline, puis le vrai start-kodjo-v2/run-local-claude avec observations fraîches et consommation atomique du request_id. Le jeton GitHub demeure dans le superviseur et ne rejoint pas Claude.
+
+Le tag protocolaire de consommation est la seule écriture distante autorisée par ce job. Aucun code applicatif, branche applicative ou PR n’est publié. Le patch et le paquet runtime sont conservés avant nettoyage du clone. Le résultat INITIAL, la valeur observée 2, le test Jest direct et la préservation de keep.js seront jugés sur les preuves de ce run, sans anticiper PASS. REVISION reste à effectuer ensuite. Étape 4 et PRE-1 restent hors périmètre.
