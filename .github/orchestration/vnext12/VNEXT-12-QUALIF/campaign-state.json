@@ -7,8 +7,8 @@
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "9895877b9230c902eea229841a46a8c18c437f41",
-  "controller_stage": "STEP3_REQUALIFICATION_PREPARE_INITIAL",
-  "controller_generation": 22,
+  "controller_stage": "STEP3_REQUALIFICATION_QUALIFY_INITIAL_DOSSIER",
+  "controller_generation": 23,
   "steps": [
     {
       "step": 1,
@@ -239,13 +239,33 @@
   },
   "requalification_campaign": {
     "campaign_id": "06f35a5b-db9c-4448-ab28-c7b778cba368",
-    "status": "PREPARING_INITIAL",
+    "status": "QUALIFYING_INITIAL_DOSSIER",
     "base_head": "e703a68823a3c090b518714b194dfbb3a51809d1",
     "requested_at": "2026-10-01T19:39:40.565207+00:00",
     "user_instruction": "donc on rejoue maintenant Initial et revision avec ce nouveau protocole.",
     "technical_delegation": "Fresh disposable INITIAL and bounded REVISION under existing user authorization; real GitHub approval on exact message required; human_review_performed remains false unless actually performed.",
     "initial": {
-      "status": "NOT_EXECUTED"
+      "schema_version": "kodjo.vnext12.requalification-initial-preparation-evidence.v1",
+      "campaign_id": "06f35a5b-db9c-4448-ab28-c7b778cba368",
+      "status": "PREPARED_REAL_APPROVE",
+      "producer_head": "b8f871001f21ecf6f3444479f845bc9aae59e5a3",
+      "run_id": 36916159035,
+      "job_id": 110554866566,
+      "review_verdict": "APPROVE",
+      "claude_session_id": "bb719f88-f175-4cd6-aa03-c7d6ce0f654c",
+      "artifact_id": 11191289600,
+      "artifact_sha256": "17e02c27d15e962c4d4ef386eefecc667841a624178ec5063cc4197d27d95284",
+      "artifact_archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/preparation-artifact.zip",
+      "prepared_chain_hash": "e9530e4ac6dd716f50f40733ceb437c62fd5d19327e9a0bfb6058e66fe0552e6",
+      "implementation_invoked": false,
+      "approval_observed": false,
+      "human_review_performed": false,
+      "preparation_candidate_qualification_run_id": 36916159025,
+      "preparation_candidate_pilot_run_id": 36916159078,
+      "final_audit_invoked": false,
+      "request_id": "b2af3723-0ce8-4f7f-8488-cf4498eb9d92",
+      "gate_ref": "issue_comment:5940186046",
+      "preparation_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/preparation-evidence.json"
     },
     "revision": {
       "status": "NOT_EXECUTED"
