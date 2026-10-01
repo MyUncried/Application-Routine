@@ -1,16 +1,79 @@
-import type { ReactNode } from "react";
+import { useSQLiteContext } from "expo-sqlite";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { ActivityDefinition } from "@/domain/activities";
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import {
-  formatActivityRecoveryLabel,
   formatExerciseBodyZones,
   formatExerciseRowSummary,
 } from "@/features/sessions/compositionPresentation";
+import { ExpoDatabase } from "@/infrastructure/database/ExpoDatabase";
+import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { strings } from "@/shared/i18n";
 import { DisclosureControl } from "@/shared/ui/DisclosureControl";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+
+/**
+ * Référentiel persistant des Zones corporelles (V2-PRE-1, plan §3.1,
+ * UI-07F470FC189F) — `ActivityCard` est rendue par `ActivityCatalogueList.tsx`
+ * (hors périmètre d'adaptation de PRE-1, cf. plan, classification
+ * `TEST_UNAFFECTED` de son test), qui ne peut donc pas lui transmettre les
+ * Zones en prop : la carte s'auto-alimente via `useSQLiteContext` (même
+ * connexion native que `SessionServiceProvider`), à l'identique du mécanisme
+ * déjà établi pour les Catégories (`ExerciseScreen.listCategories`). Jamais
+ * `BODY_ZONES` : ce module statique n'est plus l'autorité runtime, y compris
+ * en repli (revue indépendante 5928437619) — hors de tout `<SQLiteProvider>`
+ * ancêtre (uniquement des suites de test qui n'exercent pas les Zones, jamais
+ * l'application réelle, qui monte toujours `SessionServiceProvider`/
+ * `SQLiteProvider` à la racine), la carte dégrade vers un référentiel VIDE,
+ * jamais une valeur statique de substitution.
+ *
+ * `useSQLiteContext` lève hors de tout `<SQLiteProvider>` ancêtre — capturée
+ * ici plutôt que de laisser la carte entière s'effondrer. Le Hook sous-jacent
+ * (`useContext`) est TOUJOURS invoqué, dans le même ordre, à chaque rendu —
+ * seul le THROW explicite de `useSQLiteContext` (une vérification
+ * postérieure à la lecture du contexte, pas un appel de Hook conditionnel)
+ * est intercepté ; la règle statique `rules-of-hooks` ne peut pas le
+ * démontrer et doit donc être désactivée ponctuellement ici.
+ */
+function useBodyZonesReferential(): readonly BodyZone[] {
+  let nativeDatabase: ReturnType<typeof useSQLiteContext> | null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- voir le docstring ci-dessus.
+    nativeDatabase = useSQLiteContext();
+  } catch {
+    nativeDatabase = null;
+  }
+  const repository = useMemo(
+    () => (nativeDatabase ? new SqliteBodyZoneRepository(new ExpoDatabase(nativeDatabase)) : null),
+    [nativeDatabase],
+  );
+  const [zones, setZones] = useState<readonly BodyZone[]>([]);
+  useEffect(() => {
+    if (!repository) {
+      return;
+    }
+    let cancelled = false;
+    repository.listAll().then(
+      (result) => {
+        if (!cancelled) {
+          setZones(result);
+        }
+      },
+      (error: unknown) => {
+        if (!cancelled) {
+          console.error("Impossible de charger les Zones corporelles.", error);
+        }
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [repository]);
+  return zones;
+}
 
 export type ActivityCardProps = {
   definition: ActivityDefinition;
@@ -24,18 +87,21 @@ export type ActivityCardProps = {
  * `DisclosureControl` partagé) avec une marque de couleur FIXE
  * (`colors.primary`, une `ActivityDefinition` ne porte pas de couleur
  * propre — à la différence d'une Séance). Affiche le nom dynamique, les
- * Zones corporelles, le mode et la cible, les Séries, la Pause et la
- * Récupération — mêmes fonctions de présentation déjà éprouvées par la
- * carte Activité de Composition (`compositionPresentation.ts`), jamais
- * reformulées localement. `Déployer` et `Lecture` sont visibles mais
+ * Zones corporelles, le mode et la cible, et les Séries/Pause — mêmes
+ * fonctions de présentation déjà éprouvées par la carte Activité de
+ * Composition (`compositionPresentation.ts`), jamais reformulées
+ * localement. V2-PRE-1 (plan §3.1) : une `ActivityDefinition` ne porte plus
+ * aucune récupération propre (désormais exclusive de l'occurrence,
+ * `Activity.postActivityRecoverySeconds`) — aucune sous-carte Récupération
+ * n'est donc plus rendue ici. `Déployer` et `Lecture` sont visibles mais
  * désactivés, sans handler fonctionnel — la même zone est réservée sur
  * toutes les cartes (plan §4.1). Aucun swipe ni action de gestion.
  */
 export function ActivityCard({ definition, onOpen }: ActivityCardProps) {
   const t = strings.screens.activities.card;
-  const bodyZones = formatExerciseBodyZones(definition.bodyZoneIds);
+  const bodyZonesReferential = useBodyZonesReferential();
+  const bodyZones = formatExerciseBodyZones(definition.bodyZoneIds, bodyZonesReferential);
   const summary = formatExerciseRowSummary(definition);
-  const recoveryLabel = formatActivityRecoveryLabel(definition.recoverySeconds);
 
   return (
     <View style={styles.container} testID={`activity-card-${definition.id}`}>
@@ -81,24 +147,6 @@ export function ActivityCard({ definition, onOpen }: ActivityCardProps) {
             </Pressable>
           </View>
         </View>
-        {/*
-         * VISUAL_CORRECTION (revue indépendante 5753653735, point 1) :
-         * présentation de la Récupération ALIGNÉE sur la carte Composition
-         * (`CompositionScreen.activityRecoveryCard`/`activityRecoveryLabel`)
-         * — sous-carte dédiée (liseré supérieur, fond `colors.surface`,
-         * libellé `compactCardTitle` Semi Bold), jamais une simple ligne
-         * secondaire parmi les autres.
-         */}
-        {recoveryLabel !== null ? (
-          <View
-            style={styles.recoveryCard}
-            testID={`activity-card-recovery-${definition.id}`}
-          >
-            <Text style={styles.recoveryLabel} numberOfLines={1}>
-              {recoveryLabel}
-            </Text>
-          </View>
-        ) : null}
       </View>
     </View>
   );
@@ -186,27 +234,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: minTouchTarget / 2,
-  },
-  // VISUAL_CORRECTION (revue indépendante 5753653735, point 1) :
-  // présentation ALIGNÉE sur `CompositionScreen.activityRecoveryCard` —
-  // sous-carte `24` points, liseré supérieur, fond `colors.surface`.
-  // `paddingLeft` s'aligne sur le texte de la rangée principale
-  // (`content.paddingHorizontal`, la carte Activité n'a pas de slot de
-  // poignée `28×28` contrairement à la carte Composition).
-  recoveryCard: {
-    height: dimensions.compositionActivityRow.recoveryCardHeight,
-    justifyContent: "center",
-    paddingLeft: spacing[16],
-    paddingRight: spacing[16],
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  // Graisse SEMI BOLD (`type.compactCardTitle`), même token que
-  // `CompositionScreen.activityRecoveryLabel` — distingue le libellé
-  // `Récupération` des lignes secondaires régulières de la carte.
-  recoveryLabel: {
-    ...type.compactCardTitle,
-    color: colors.textSecondary,
   },
 });

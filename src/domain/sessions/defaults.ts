@@ -43,24 +43,26 @@ export const DEFAULT_TOUR_REPEAT_COUNT = 1 as const;
  * @deprecated T01-S10 : durée de départ d'une Récupération explicite ajoutée
  * comme ACTIVITÉ AUTONOME dans un brouillon (D-041). **T02-S02 supprime cette
  * notion** — la Récupération est désormais une durée attachée
- * (`DEFAULT_RECOVERY_SECONDS`, valeur neutre `0`) et aucune Activité
- * `RECOVERY` ne peut plus être créée. Constante conservée sans consommateur
- * pour ne pas casser un import déjà publié.
+ * (`DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS`, valeur neutre `0`) et aucune
+ * Activité `RECOVERY` ne peut plus être créée. Constante conservée sans
+ * consommateur pour ne pas casser un import déjà publié.
  */
 export const DEFAULT_RECOVERY_DURATION_SECONDS = 30 as const;
 
 /**
- * **T02-S02** : valeur de départ de la Récupération ATTACHÉE d'une Activité
- * (`SessionDraftExercise.recoverySeconds`).
+ * **V2-PRE-1 (plan §3.2)** : valeur de départ de la récupération
+ * post-exercice de l'OCCURRENCE (`SessionDraftExercise.postActivityRecoverySeconds`,
+ * anciennement `recoverySeconds`).
  *
- * `0` — valeur NEUTRE, pas une durée proposée : la Récupération est
- * facultative (`13 – Contrats d'écran.md`, CE-T01-13 « Pause et Récupération
- * peuvent valoir `0 s` ») et une Activité créée n'en porte aucune tant que
- * l'utilisateur n'en confirme pas une. Distincte de
- * `DEFAULT_RECOVERY_DURATION_SECONDS` (`30`), qui décrivait l'ancienne
- * Activité autonome supprimée par cette tranche.
+ * `0` — valeur NEUTRE, pas une durée proposée : la récupération post-exercice
+ * est facultative (`13 – Contrats d'écran.md`, CE-T01-13 « Pause et
+ * Récupération peuvent valoir `0 s` ») et une Activité créée n'en porte
+ * aucune tant que l'utilisateur n'en confirme pas une. `SessionService`
+ * substitue la valeur par défaut du Profil (`postActivityRecoverySecondsDefault`)
+ * lors de la création réelle d'une occurrence — ce module reste pur, sans
+ * accès Profil/SQL.
  */
-export const DEFAULT_RECOVERY_SECONDS = 0 as const;
+export const DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS = 0 as const;
 
 /** T01-S10 : type d'Activité par défaut d'un nouveau brouillon (Exercice, D-061). */
 export const DEFAULT_ACTIVITY_TYPE = "EXERCISE" as const;
@@ -104,8 +106,10 @@ export const DEFAULT_REPETITION_COUNT = 1 as const;
  * V2-BILAT-01 : direction par défaut d'une occurrence d'Activité de Séance
  * (`Activity.sideMode`/`SessionDraftExercise.sideMode`) — `UNILATERAL`, le
  * comportement historique (aucune répétition de côté).
+ *
+ * V2-PRE-1 (plan §3.3) : le Circuit (Tour) n'a plus de direction propre
+ * (« neutralisé à `UNILATERAL`, non exposé ») — `DEFAULT_TOUR_SIDE_MODE` est
+ * donc retiré, sans remplaçant : la bilatéralité est désormais portée
+ * exclusivement par l'Exercice.
  */
 export const DEFAULT_SIDE_MODE: SideMode = "UNILATERAL";
-
-/** V2-BILAT-01 : direction par défaut du Tour (`Session.cycle.tour.sideMode`/`SessionDraft.tourSideMode`) — même valeur neutre que `DEFAULT_SIDE_MODE`. */
-export const DEFAULT_TOUR_SIDE_MODE: SideMode = "UNILATERAL";

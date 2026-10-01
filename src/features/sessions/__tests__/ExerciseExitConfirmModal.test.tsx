@@ -14,7 +14,7 @@ describe("ExerciseExitConfirmModal (D-094, CE-T01-16)", () => {
 
     expect(screen.getByText("Abandonner les modifications ?")).toBeTruthy();
     expect(
-      screen.getByText("Les modifications apportées à cette activité seront perdues."),
+      screen.getByText("Les modifications apportées à cet exercice seront perdues."),
     ).toBeTruthy();
   });
 

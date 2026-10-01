@@ -12,6 +12,7 @@ import type {
   UpdateSessionOutcome,
 } from "@/domain/sessions/SessionRepository";
 import type { ActivityDefinition, ActivityDefinitionRepository } from "@/domain/activities";
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceProvider } from "@/features/activities/ActivityDefinitionServiceProvider";
 import { SessionService } from "@/features/sessions/SessionService";
@@ -45,6 +46,28 @@ import { strings } from "@/shared/i18n";
 
 jest.mock("expo-haptics", () => ({
   selectionAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
+}));
+
+/**
+ * `CompositionScreen`/`ActivityCard` s'auto-alimentent désormais en Zones
+ * corporelles persistées via `useSQLiteContext` (V2-PRE-1, plan §3.1,
+ * UI-CDBCCFD16078) — sans `<SQLiteProvider>` réel dans cet arbre de routes de
+ * test, `expo-sqlite` et le Repository sont doublés ici, même patron que
+ * `CompositionScreen.test.tsx`.
+ */
+jest.mock("expo-sqlite", () => ({
+  useSQLiteContext: () => ({}),
+}));
+
+const BODY_ZONE_FIXTURES: readonly BodyZone[] = [
+  { id: "epaules", name: "Épaules", isActive: true, createdAt: "2026-01-01T00:00:01.000Z" },
+  { id: "dos", name: "Dos", isActive: true, createdAt: "2026-01-01T00:00:04.000Z" },
+];
+
+jest.mock("@/infrastructure/database/repositories/SqliteBodyZoneRepository", () => ({
+  SqliteBodyZoneRepository: jest.fn().mockImplementation(() => ({
+    listAll: jest.fn<() => Promise<readonly BodyZone[]>>().mockResolvedValue(BODY_ZONE_FIXTURES),
+  })),
 }));
 
 const sessions = strings.screens.sessions;

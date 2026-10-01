@@ -13,7 +13,7 @@ import { SideModeControl } from "@/features/sessions/SideModeControl";
  * distincts) — ce composant ne les dérive jamais lui-même.
  */
 describe("SideModeControl", () => {
-  it("displays no visible text for UNILATERAL — visually empty, never the word 'Unilatéral' (plan '## UI')", () => {
+  it("displays the explicit 'Aucun' value for UNILATERAL, never the bare word 'Unilatéral' (V2-PRE-1 round 3)", () => {
     render(
       <SideModeControl
         value="UNILATERAL"
@@ -23,7 +23,7 @@ describe("SideModeControl", () => {
       />,
     );
     expect(screen.queryByText("Unilatéral")).toBeNull();
-    expect(screen.getByTestId("side-mode-value").props.children).toBe("");
+    expect(screen.getByTestId("side-mode-value").props.children).toBe("Aucun");
   });
 
   it("displays the visible value 'D→G' for RIGHT_LEFT and 'G→D' for LEFT_RIGHT", () => {
@@ -133,7 +133,7 @@ describe("SideModeControl", () => {
     expect(flattened.height).toBe(34);
   });
 
-  it("correction bornée (plan '## 4.2') : displays '–' centered for UNILATERAL only when isTourContext is transmitted, never for the Activity default", () => {
+  it("correction bornée (plan '## 4.2') : displays '–' centered for UNILATERAL only when isTourContext is transmitted, 'Aucun' for the Activity default (V2-PRE-1 round 3)", () => {
     const { rerender } = render(
       <SideModeControl
         value="UNILATERAL"
@@ -153,7 +153,7 @@ describe("SideModeControl", () => {
         testID="side-mode"
       />,
     );
-    expect(screen.getByTestId("side-mode-value").props.children).toBe("");
+    expect(screen.getByTestId("side-mode-value").props.children).toBe("Aucun");
   });
 
   it("correction bornée : 'D→G'/'G→D' remain the SAME short values in Tour context — never a second formulation", () => {

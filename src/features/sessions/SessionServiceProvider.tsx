@@ -6,6 +6,7 @@ import { ExpoDatabase } from "@/infrastructure/database/ExpoDatabase";
 import { initializeDatabase } from "@/infrastructure/database/initializeDatabase";
 import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
+import { SqliteProfileRepository } from "@/infrastructure/database/repositories/SqliteProfileRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceProvider } from "@/features/activities/ActivityDefinitionServiceProvider";
@@ -92,6 +93,7 @@ function SessionServiceInitializer({
     return new SessionService(
       new SqliteSessionRepository(database),
       new SqliteCategoryRepository(database),
+      new SqliteProfileRepository(database),
     );
   }, [nativeDatabase]);
 

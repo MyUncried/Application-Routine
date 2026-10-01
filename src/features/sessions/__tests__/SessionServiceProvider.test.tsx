@@ -8,6 +8,9 @@ import { useSessionService } from "@/features/sessions/SessionServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
+import { DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS } from "@/domain/preferences/Profile";
+import { createEmptyDraft, createExerciseDraft } from "@/domain/sessions/SessionDraft";
+import { LOCAL_PROFILE_SINGLETON_KEY } from "@/infrastructure/database/constants";
 import { NodeSqliteDatabase as mockNodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
 /**
@@ -114,6 +117,21 @@ jest.mock("expo-sqlite", () => {
   }
 
   return { SQLiteProvider, useSQLiteContext };
+});
+
+/**
+ * `SqliteSessionRepository` utilise par défaut `Crypto.randomUUID`
+ * (`expo-crypto`) pour générer `sessionId`/`cycleId`/`tourId` — un module
+ * natif, jamais disponible tel quel sous Jest. Sans ce double, cet appel
+ * renvoie `undefined`, qu'`expo-sqlite`/`node:sqlite` ne peut pas lier à un
+ * paramètre (`TypeError: Provided value cannot be bound to SQLite parameter
+ * 1.`). Même patron que `CompositionScreen.test.tsx`/`ExerciseScreen.test.tsx`
+ * — un compteur garantit ici des identifiants distincts, utile dès que
+ * plusieurs lignes sont créées dans la même transaction (Séance/Cycle/Tour).
+ */
+jest.mock("expo-crypto", () => {
+  let counter = 0;
+  return { randomUUID: jest.fn(() => `generated-id-${++counter}`) };
 });
 
 function Consumer({
@@ -254,5 +272,97 @@ describe("SessionServiceProvider — régression : un children applicatif variab
     // par des timers simulés ci-dessus, reste déterministe et rapide dès
     // qu'il obtient du temps CPU. 20000 ms couvre largement cette marge
     // observée sans dépendre d'une estimation arbitraire.
+  }, 20000);
+});
+
+describe("SessionServiceProvider — câblage réel du Profil (V2-PRE-1, plan §3.2, UI-16294D4D4345)", () => {
+  /**
+   * Revue indépendante 5938943370 (run 36913774921, REVISE), résolue par le
+   * plan round 5 (revue 5939867521, barrière 5939871764) : `SessionService`
+   * est désormais construit avec `SqliteProfileRepository` en TROISIÈME
+   * argument (même connexion `ExpoDatabase` que les deux autres Repository),
+   * ici prouvé à travers le câblage RÉEL du provider — base migrée en
+   * mémoire (double fidèle `expo-sqlite`, voir le docstring de tête de ce
+   * fichier) — jamais un double de `SessionService`/`ProfileRepository`.
+   *
+   * Le Profil est mutilé directement en base à une valeur VOLONTAIREMENT
+   * distincte de `DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS` (le seed de
+   * `migration007`), afin que ce test ne puisse pas passer par coïncidence
+   * si la valeur par défaut du Domaine était lue à la place du Profil
+   * réellement persisté.
+   */
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("initialise postActivityRecoverySeconds d'une occurrence depuis le Profil persisté (valeur distincte du défaut) lors d'une création réelle via le provider", async () => {
+    const onReady = jest.fn();
+    const openInMemorySpy = jest.spyOn(mockNodeSqliteDatabase, "openInMemory");
+
+    let capturedService: SessionService | null = null;
+    function ServiceCapture() {
+      const service = useSessionService();
+      useEffect(() => {
+        capturedService = service;
+      }, [service]);
+      return null;
+    }
+
+    // Même patron que le test de régression ci-dessus : `children` ne doit
+    // appeler `useSessionService()` qu'une fois le service RÉELLEMENT prêt
+    // (sans quoi le contexte vaut encore `null` et ce Hook lève). `showContent`
+    // reste donc `false` jusqu'à ce qu'`onReady` ait été signalé.
+    function Harness({ showContent }: { showContent: boolean }) {
+      return (
+        <SessionServiceProvider onReady={onReady}>
+          {showContent ? <ServiceCapture /> : null}
+        </SessionServiceProvider>
+      );
+    }
+
+    const { rerender } = render(<Harness showContent={false} />);
+
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      rerender(<Harness showContent={true} />);
+    });
+
+    await waitFor(() => expect(capturedService).toBeInstanceOf(SessionService));
+
+    const nativeDatabase = openInMemorySpy.mock.results[0]
+      ?.value as ReturnType<typeof mockNodeSqliteDatabase.openInMemory>;
+    const CUSTOM_RECOVERY_SECONDS = 45;
+    expect(CUSTOM_RECOVERY_SECONDS).not.toBe(DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS);
+    // Valeurs entières littérales directement interpolées (même patron que
+    // `SqliteBodyZoneRepository.test.ts`, "UPDATE body_zones SET is_active = 0
+    // WHERE id = 'cou'") — aucun paramètre lié, aucune chaîne utilisateur :
+    // les deux valeurs sont des constantes entières de ce test.
+    await nativeDatabase.runAsync(
+      `UPDATE profiles SET post_activity_recovery_seconds_default = ${CUSTOM_RECOVERY_SECONDS} WHERE singleton_key = ${LOCAL_PROFILE_SINGLETON_KEY}`,
+    );
+
+    const draft = {
+      ...createEmptyDraft(),
+      name: "Séance simple",
+      exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage" }],
+    };
+
+    const result = await capturedService!.createSession(draft);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      // `createExerciseDraft` place l'Exercice à `DEFAULT_STRUCTURAL_POSITION`
+      // (`BEFORE_TOUR`, hors du Circuit) — `cycle.beforeTour`, jamais
+      // `cycle.tour.exercises` (réservé aux Activités `IN_TOUR`).
+      expect(result.value.cycle.beforeTour?.[0]?.postActivityRecoverySeconds).toBe(
+        CUSTOM_RECOVERY_SECONDS,
+      );
+    }
+
+    openInMemorySpy.mockRestore();
   }, 20000);
 });

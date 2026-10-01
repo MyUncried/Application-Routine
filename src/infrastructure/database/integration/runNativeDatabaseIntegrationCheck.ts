@@ -1,6 +1,5 @@
 import * as SQLite from "expo-sqlite";
 
-import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
 import { ExpoDatabase, openExpoDatabase } from "@/infrastructure/database/ExpoDatabase";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
@@ -16,7 +15,6 @@ export async function runNativeDatabaseIntegrationCheck(): Promise<void> {
     const repository = new SqliteSessionRepository(opened.database);
     const created = await repository.create({
       name: "Contrôle SQLite natif",
-      color: DEFAULT_SESSION_COLOR,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
@@ -30,14 +28,14 @@ export async function runNativeDatabaseIntegrationCheck(): Promise<void> {
           repetitionCount: null,
           seriesCount: 3,
           pauseSeconds: 15,
-          // T02-S02 : la Récupération attachée traverse le contrôle natif —
-          // colonne `recovery_seconds` ajoutée par `migration004`.
-          recoverySeconds: 20,
+          // T02-S02 / V2-PRE-1 : la récupération post-exercice traverse le
+          // contrôle natif — colonne `post_activity_recovery_seconds`
+          // (renommée depuis `recovery_seconds`, `migration007`).
+          postActivityRecoverySeconds: 20,
           instruction: null,
           bodyZoneIds: [],
         },
       ],
-      categories: [],
     });
 
     const reopened = await repository.findById(created.id);
@@ -53,7 +51,7 @@ export async function runNativeDatabaseIntegrationCheck(): Promise<void> {
     // contrôle natif qui ne relirait que l'identifiant ne prouverait ni la
     // nouvelle colonne, ni la suppression de la Pause finale.
     const roundTripped = reopened.cycle.tour.exercises[0]!;
-    if (roundTripped.recoverySeconds !== 20 || roundTripped.pauseSeconds !== 15) {
+    if (roundTripped.postActivityRecoverySeconds !== 20 || roundTripped.pauseSeconds !== 15) {
       throw new Error("Attached recovery was not persisted natively.");
     }
     if (listed[0].estimatedDurationSeconds !== 140) {
