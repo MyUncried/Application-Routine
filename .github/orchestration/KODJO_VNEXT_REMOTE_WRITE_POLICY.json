@@ -706,7 +706,7 @@
     },
     {
       "path": "scripts/kodjo/run-local-claude.js",
-      "blob_oid": "1a38b370a875097209dde7ad99fb779a5105cd4f",
+      "blob_oid": "930e97f9cd811354498f5386f24e26d66c6cce5b",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {

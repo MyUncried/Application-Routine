@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-02T11:48:12.677458+00:00",
+  "recorded_at": "2026-10-02T12:40:52.743Z",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "9895877b9230c902eea229841a46a8c18c437f41",
-  "controller_stage": "STEP3_COMPLETE_POST_CAMPAIGN_FIXES_QUALIFYING",
-  "controller_generation": 29,
+  "controller_stage": "STEP3_COMPLETE_POST_CAMPAIGN_GUARD_COMPATIBILITY_QUALIFYING",
+  "controller_generation": 30,
   "steps": [
     {
       "step": 1,
@@ -71,7 +71,7 @@
     "full_linux_ci_is_authoritative": true
   },
   "pending_actions": [
-    "Collect exact Linux/Windows qualification of three limited post-campaign fixes; do not replay INITIAL or REVISION."
+    "Collect new exact Linux/Windows qualification after historical guard compatibility fix; no INITIAL/REVISION replay."
   ],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
@@ -456,15 +456,18 @@
     "completed_at": "2026-10-02T11:41:59.271502+00:00"
   },
   "post_campaign_fixes": {
-    "status": "IMPLEMENTED_PENDING_EXACT_CI_QUALIFICATION",
+    "status": "CORRECTED_PENDING_EXACT_CI_QUALIFICATION",
     "base_head": "340d7e858e48b7995f9e2a8a078cc0d6782b2dcf",
     "targeted_tests": {
-      "pass": 77,
+      "pass": 82,
       "fail": 0
     },
     "report_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_FIXES.md",
     "full_initial_revision_replay": false,
     "application_published": false,
-    "final_audit_invoked": false
+    "final_audit_invoked": false,
+    "failed_candidate": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+    "failure_evidence_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_FAILURE_EVIDENCE.json",
+    "failure_logs_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_FAILURE_LOGS.zip"
   }
 }

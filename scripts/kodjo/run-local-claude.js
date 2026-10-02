@@ -19,8 +19,8 @@ const CLAUDE_FOREGROUND_CHECK_ENV = Object.freeze({
   BASH_DEFAULT_TIMEOUT_MS: '900000',
   BASH_MAX_TIMEOUT_MS: '900000',
 });
-function claudeEnvironment(inherited, scope) {
-  return { ...inherited, KODJO_MUTATION_SCOPE_JSON: JSON.stringify(scope), ...CLAUDE_FOREGROUND_CHECK_ENV };
+function claudeEnvironment(inherited, request) {
+  return { ...inherited, KODJO_MUTATION_SCOPE_JSON: JSON.stringify(request.scope_allow), ...CLAUDE_FOREGROUND_CHECK_ENV };
 }
 function claudeSettings() {
   return { disableAllHooks: true, env: { ...CLAUDE_FOREGROUND_CHECK_ENV } };
@@ -832,7 +832,7 @@ function main() {
     intent.state = 'EXTERNAL_CALL_SENT';
     intent.command_sha256 = sha256(JSON.stringify([claudeBin, ...claudePrefix, ...args.slice(0, -1), '[PROMPT]']));
     fs.writeFileSync(path.join(runDir, 'invocation.json'), JSON.stringify(intent, null, 2) + '\n', 'utf8');
-    const claudeEnv = claudeEnvironment(process.env, request.scope_allow);
+    const claudeEnv = claudeEnvironment(process.env, request);
     assertLiveTarget();
     const claudeStartedMs = Date.now();
     claudeStartedAt = new Date(claudeStartedMs).toISOString();

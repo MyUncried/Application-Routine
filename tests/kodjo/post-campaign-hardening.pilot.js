@@ -12,7 +12,7 @@ const read = p => fs.readFileSync(path.join(root, p), 'utf8');
 test('foreground checks: actual child inherits bounded settings over conflicting parent values', () => {
   const inherited = { ...process.env, CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '0',
     BASH_DEFAULT_TIMEOUT_MS: '1', BASH_MAX_TIMEOUT_MS: '2' };
-  const env = Local.claudeEnvironment(inherited, ['only.js']);
+  const env = Local.claudeEnvironment(inherited, { scope_allow: ['only.js'], recovery_paths: ['outside.js'] });
   const child = spawnSync(process.execPath, ['-e',
     'console.log(JSON.stringify(Object.fromEntries(["CLAUDE_CODE_DISABLE_BACKGROUND_TASKS","BASH_DEFAULT_TIMEOUT_MS","BASH_MAX_TIMEOUT_MS","KODJO_MUTATION_SCOPE_JSON"].map(k=>[k,process.env[k]]))))'],
   { env, encoding: 'utf8', windowsHide: true });
@@ -32,7 +32,7 @@ test('foreground checks: settings and journal contain only the same three non-se
   const source = read('scripts/kodjo/run-local-claude.js');
   assert.match(source, /foreground_check_environment: \{ \.\.\.CLAUDE_FOREGROUND_CHECK_ENV \}/);
   assert.match(source, /JSON\.stringify\(claudeSettings\(\)\)/);
-  assert.match(source, /claudeEnvironment\(process\.env, request\.scope_allow\)/);
+  assert.match(source, /claudeEnvironment\(process\.env, request\)/);
   assert.match(read('scripts/kodjo/lib/claude-local.js'), /'--settings', path\.join\(configDir, 'settings\.json'\)/);
 });
 
