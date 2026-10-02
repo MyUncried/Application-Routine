@@ -231,6 +231,13 @@ jobs:
             if($consistency.block_current_closure){throw 'CLOSURE_CURRENT_SLICE_HEAD_DRIFT'}
           }
 
+      # Same as the V2 Lean Queue: the Windows runner must check the application out with its
+      # exact blob bytes (byte-for-byte checks such as the frozen historical migrations).
+      - name: Preserve blob line endings for the final HEAD checkout
+        run: |
+          git config --local core.autocrlf false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Checkout final HEAD
         uses: actions/checkout@v6
         with:

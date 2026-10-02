@@ -413,3 +413,11 @@ test('device gate (PRE-1): VISUAL_APPROVED still never closes a technical gap, a
     assert.match(r.stderr,/V2_FINAL_(CRITERION_NOT_CLOSED|TECHNICAL_PROOF_NOT_PASS|DEVICE_PROOF_PRE_GATE_INVALID)/);
   }
 });
+
+test('finalization checks the final HEAD out with exact blob bytes on the Windows runner (PRE-1)',()=>{
+  const wf=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-finalize.yml'),'utf8').replace(/\r\n/g,'\n');
+  const keep=wf.indexOf('git config --local core.autocrlf false');
+  const finalCheckout=wf.indexOf('- name: Checkout final HEAD');
+  const checks=wf.indexOf('- name: Final deterministic checks');
+  assert.ok(keep>0&&keep<finalCheckout&&finalCheckout<checks,'core.autocrlf=false must precede the final HEAD checkout and its checks');
+});
