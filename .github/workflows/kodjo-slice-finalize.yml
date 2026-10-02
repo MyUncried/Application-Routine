@@ -231,13 +231,6 @@ jobs:
             if($consistency.block_current_closure){throw 'CLOSURE_CURRENT_SLICE_HEAD_DRIFT'}
           }
 
-      # Same as the V2 Lean Queue: the Windows runner must check the application out with its
-      # exact blob bytes (byte-for-byte checks such as the frozen historical migrations).
-      - name: Preserve blob line endings for the final HEAD checkout
-        run: |
-          git config --local core.autocrlf false
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
       - name: Checkout final HEAD
         uses: actions/checkout@v6
         with:
@@ -245,6 +238,20 @@ jobs:
           fetch-depth: 0
           clean: true
           persist-credentials: false
+
+      # The Windows runner checks out with CRLF and switching commits never rewrites files that are
+      # identical between the protocol checkout and the final HEAD. Rewrite the whole working tree
+      # with the exact blob bytes (byte-for-byte checks such as the frozen historical migrations).
+      - name: Rewrite the final HEAD working tree with exact blob bytes
+        run: |
+          git config --local core.autocrlf false
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git rm -r --cached -q .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git reset --hard -q HEAD
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ((git rev-parse HEAD).Trim() -ne '${{ steps.gate.outputs.head }}') { throw 'Final HEAD moved during rewrite' }
+          if (git status --porcelain) { throw 'Final HEAD working tree not clean after rewrite' }
 
       - name: Final deterministic checks
         run: |

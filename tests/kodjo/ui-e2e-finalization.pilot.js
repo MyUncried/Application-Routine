@@ -416,8 +416,10 @@ test('device gate (PRE-1): VISUAL_APPROVED still never closes a technical gap, a
 
 test('finalization checks the final HEAD out with exact blob bytes on the Windows runner (PRE-1)',()=>{
   const wf=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-finalize.yml'),'utf8').replace(/\r\n/g,'\n');
-  const keep=wf.indexOf('git config --local core.autocrlf false');
   const finalCheckout=wf.indexOf('- name: Checkout final HEAD');
+  const rewrite=wf.indexOf('- name: Rewrite the final HEAD working tree with exact blob bytes');
   const checks=wf.indexOf('- name: Final deterministic checks');
-  assert.ok(keep>0&&keep<finalCheckout&&finalCheckout<checks,'core.autocrlf=false must precede the final HEAD checkout and its checks');
+  assert.ok(finalCheckout>0&&finalCheckout<rewrite&&rewrite<checks,'the working tree must be rewritten after the final checkout and before its checks');
+  const step=wf.slice(rewrite,checks);
+  for(const cmd of ['git config --local core.autocrlf false','git rm -r --cached -q .','git reset --hard -q HEAD','git status --porcelain'])assert.ok(step.includes(cmd),cmd);
 });
