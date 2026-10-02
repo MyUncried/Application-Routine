@@ -23,7 +23,10 @@ export type SessionAggregateRow = {
   session_id: string;
   owner_id: string;
   session_name: string;
-  color: string;
+  /** V2-PRE-1 (plan §3.3) : Étiquette facultative — `null` si aucune. */
+  label_id: string | null;
+  /** V2-PRE-1 : couleur de l'Étiquette jointe — `null` si `label_id` est `null` (présentation neutre résolue par le Repository). */
+  label_color: string | null;
   status: "ACTIVE" | "ARCHIVED";
   initial_countdown_seconds: number;
   final_phase_seconds: number;
@@ -52,8 +55,8 @@ export type SessionAggregateRow = {
   /** `null` pour une Récupération (T01-S10). */
   series_count: number | null;
   pause_seconds: number;
-  /** T02-S02 : Récupération ATTACHÉE, `0..5999` s — `0` = aucune (`migration004`). */
-  recovery_seconds: number;
+  /** V2-PRE-1 : récupération post-exercice de l'occurrence, `0..5999` s — `0` = aucune (renommée depuis `recovery_seconds`, `migration007`). */
+  post_activity_recovery_seconds: number;
   instruction: string | null;
   /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`, `migration005`, défaut `'UNILATERAL'`). */
   activity_side_mode: SideMode;
@@ -64,12 +67,15 @@ export type ActivityBodyZoneRow = {
   body_zone_id: string;
 };
 
-export type SessionCategoryRow = {
+/** Une ligne par Catégorie persistée (V2-PRE-1 : `color`/`is_active` ajoutées, plan §3.1). */
+export type CategoryRow = {
   id: string;
   name: string;
   canonical_key: string;
+  color: string;
   is_predefined: 0 | 1;
   display_order: number | null;
+  is_active: 0 | 1;
   created_at: string;
 };
 
@@ -94,8 +100,11 @@ export type ActivityDefinitionRow = {
   repetition_count: number | null;
   series_count: number;
   pause_seconds: number;
-  recovery_seconds: number;
+  /** V2-PRE-1 (D-211) : Catégorie exactement une, obligatoire. */
+  category_id: string;
   side_mode: SideMode;
+  /** V2-PRE-1 : pause de changement de côté propre à l'Exercice. */
+  side_recovery_seconds: number;
   created_at: string;
   updated_at: string;
 };
@@ -105,10 +114,55 @@ export type ActivityDefinitionBodyZoneRow = {
   body_zone_id: string;
 };
 
-export type SessionSummaryRow = {
+/** Une ligne par Zone corporelle persistée (V2-PRE-1, `migration007`). */
+export type BodyZoneRow = {
+  id: string;
+  name: string;
+  is_active: 0 | 1;
+  created_at: string;
+};
+
+/** Une ligne par Étiquette persistée (V2-PRE-1, `migration007`). */
+export type LabelRow = {
   id: string;
   name: string;
   color: string;
+  is_active: 0 | 1;
+  created_at: string;
+};
+
+/** Ligne unique du Profil singleton (V2-PRE-1, `migration007`, décision D-240). */
+export type ProfileRow = {
+  singleton_key: number;
+  side_change_recovery_seconds_default: number;
+  post_activity_recovery_seconds_default: number;
+  exercise_countdown_seconds_default: number;
+  exercise_end_seconds_default: number;
+  updated_at: string;
+};
+
+/** Une ligne par média persisté (V2-PRE-1, `migration007`). */
+export type MediaAssetRow = {
+  id: string;
+  uri: string;
+  created_at: string;
+};
+
+/** Une ligne par association média↔Exercice, jointe à son média (V2-PRE-1, `migration007`). */
+export type ActivityMediaRow = {
+  id: string;
+  activity_definition_id: string;
+  asset_id: string;
+  position: number;
+  asset_uri: string;
+  asset_created_at: string;
+};
+
+export type SessionSummaryRow = {
+  id: string;
+  name: string;
+  label_id: string | null;
+  label_color: string | null;
   before_tour_activity_count: number;
   in_tour_activity_count: number;
   after_tour_activity_count: number;

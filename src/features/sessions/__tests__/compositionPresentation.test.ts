@@ -1,8 +1,10 @@
 import { describe, expect, it } from "@jest/globals";
 
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import {
   COMPACT_LIST_SEPARATOR,
+  formatActivityRecoveryLabel,
   formatCompositionSummary,
   formatDurationRowValue,
   formatExerciseBodyZones,
@@ -10,6 +12,20 @@ import {
   formatExerciseRecap,
   formatExerciseRowSummary,
 } from "@/features/sessions/compositionPresentation";
+import { BODY_ZONES } from "@/features/reference-data/bodyZones";
+
+/**
+ * V2-PRE-1 (plan §3.1, UI-CDBCCFD16078) : `formatExerciseBodyZones` reçoit
+ * désormais les Zones persistées en second argument explicite — `BODY_ZONES`
+ * ne sert plus ici qu'à dériver une fixture de test aux mêmes identifiants/
+ * noms/ordre que le référentiel historique, jamais comme autorité runtime.
+ */
+const TEST_BODY_ZONES: readonly BodyZone[] = BODY_ZONES.map((zone) => ({
+  id: zone.id,
+  name: zone.name,
+  isActive: true,
+  createdAt: `2026-01-01T00:00:${String(zone.order).padStart(2, "0")}.000Z`,
+}));
 
 /**
  * REWORK13 (R13-02, `[ChatGPT] CHANGES_REQUESTED — REWORK13 — typographie
@@ -32,7 +48,7 @@ import {
  * la FORMULE (durée/pluriel/bornes), indépendamment des zones, placent
  * explicitement leur unique Activité `IN_TOUR` via ce petit alias — sans
  * quoi elles seraient silencieusement exclues de la synthèse et
- * produiraient toujours `"0 activité · 0 min"`.
+ * produiraient toujours `"0 exercice · 0 min"`.
  */
 function inTourExercise(id: string): SessionDraftExercise {
   return { ...createExerciseDraft(id), structuralPosition: "IN_TOUR" };
@@ -40,23 +56,23 @@ function inTourExercise(id: string): SessionDraftExercise {
 
 describe("formatCompositionSummary", () => {
   it("displays the exact local empty-state label when there is no Activity yet", () => {
-    expect(formatCompositionSummary({ exercises: [] })).toBe("0 activité · 0 min");
+    expect(formatCompositionSummary({ exercises: [] })).toBe("0 exercice · 0 min");
   });
 
-  it("formats a single 45s Activity (1 série, sans pause) as '1 activité · 1 min'", () => {
+  it("formats a single 45s Activity (1 série, sans pause) as '1 exercice · 1 min'", () => {
     expect(
       formatCompositionSummary({
         exercises: [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 }],
       }),
-    ).toBe("1 activité · 1 min");
+    ).toBe("1 exercice · 1 min");
   });
 
-  it("rounds a non-exact minute up (61s) to '1 activité · 2 min' (Math.ceil, never underestimating)", () => {
+  it("rounds a non-exact minute up (61s) to '1 exercice · 2 min' (Math.ceil, never underestimating)", () => {
     expect(
       formatCompositionSummary({
         exercises: [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 61 }],
       }),
-    ).toBe("1 activité · 2 min");
+    ).toBe("1 exercice · 2 min");
   });
 
   it("treats a null exercise duration as 0 seconds in the formula", () => {
@@ -64,7 +80,7 @@ describe("formatCompositionSummary", () => {
       formatCompositionSummary({
         exercises: [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: null }],
       }),
-    ).toBe("1 activité · 0 min");
+    ).toBe("1 exercice · 0 min");
   });
 
   /**
@@ -104,20 +120,20 @@ describe("formatCompositionSummary", () => {
     it("prefixes the duration with '≥' and ignores the exercise's own duration entirely (only the pause contributes)", () => {
       expect(
         formatCompositionSummary({ exercises: [repetitionExercise(12, 20)] }),
-      ).toBe("1 activité · ≥ 1 min"); // 2 Séries × 20 s = 40 s -> ceil(40/60) = 1 min
+      ).toBe("1 exercice · ≥ 1 min"); // 2 Séries × 20 s = 40 s -> ceil(40/60) = 1 min
     });
 
     it("still applies Math.ceil to the pause sum alone", () => {
       expect(
         formatCompositionSummary({ exercises: [repetitionExercise(20, 65)] }),
-      ).toBe("1 activité · ≥ 3 min"); // 2 Séries × 65 s = 130 s -> ceil(130/60) = 3 min
+      ).toBe("1 exercice · ≥ 3 min"); // 2 Séries × 65 s = 130 s -> ceil(130/60) = 3 min
     });
 
     it("never underestimates: a repetition count change alone never changes the displayed minimum", () => {
       const first = formatCompositionSummary({ exercises: [repetitionExercise(5, 20)] });
       const second = formatCompositionSummary({ exercises: [repetitionExercise(50, 20)] });
       expect(first).toBe(second);
-      expect(first).toBe("1 activité · ≥ 1 min");
+      expect(first).toBe("1 exercice · ≥ 1 min");
     });
 
     it("never shows the '≥' prefix in Duration mode", () => {
@@ -142,7 +158,7 @@ describe("formatCompositionSummary", () => {
             },
           ],
         }),
-      ).toBe("1 activité · 6 min"); // 3*90 + 3*15 = 315s -> ceil(315/60) = 6 min
+      ).toBe("1 exercice · 6 min"); // 3*90 + 3*15 = 315s -> ceil(315/60) = 6 min
     });
 
     it("mode Durée, AVEC une Récupération ÉGALE à la Pause : total inchangé — elle REMPLACE la dernière Pause au lieu de s'y ajouter", () => {
@@ -155,13 +171,13 @@ describe("formatCompositionSummary", () => {
               durationSeconds: 90,
               seriesCount: 3,
               pauseSeconds: 15,
-              recoverySeconds: 15,
+              postActivityRecoverySeconds: 15,
             },
           ],
         }),
         // 3*90 + 2*15 + 15 = 315 s — strictement la même valeur que sans
         // Récupération (3*90 + 3*15). Un cumul aurait donné 330 s.
-      ).toBe("1 activité · 6 min");
+      ).toBe("1 exercice · 6 min");
     });
 
     it("mode Durée, AVEC une Récupération PLUS LONGUE que la Pause : le total augmente exactement de l'écart", () => {
@@ -174,12 +190,12 @@ describe("formatCompositionSummary", () => {
               durationSeconds: 90,
               seriesCount: 3,
               pauseSeconds: 15,
-              recoverySeconds: 75,
+              postActivityRecoverySeconds: 75,
             },
           ],
         }),
         // 3*90 + 2*15 + 75 = 375 s, soit `315 + (75 − 15)`.
-      ).toBe("1 activité · 7 min");
+      ).toBe("1 exercice · 7 min");
     });
 
     it("mode Répétitions : la Pause après Série reste comptée (déterminable) même si la durée de l'Exercice ne l'est pas (3 Séries, pause 20s -> 40s -> ≥ 1 min)", () => {
@@ -197,7 +213,7 @@ describe("formatCompositionSummary", () => {
             },
           ],
         }),
-      ).toBe("1 activité · ≥ 1 min"); // 3*20 = 60s -> ceil(60/60) = 1 min
+      ).toBe("1 exercice · ≥ 1 min"); // 3*20 = 60s -> ceil(60/60) = 1 min
     });
 
     it("Pause nulle : n'ajoute rien à la durée estimée, quel que soit seriesCount", () => {
@@ -213,7 +229,7 @@ describe("formatCompositionSummary", () => {
             },
           ],
         }),
-      ).toBe("1 activité · 3 min"); // 4*45 + 4*0 = 180s -> ceil(180/60) = 3 min
+      ).toBe("1 exercice · 3 min"); // 4*45 + 4*0 = 180s -> ceil(180/60) = 3 min
     });
 
     it("une seule Série : non-régression, formule équivalente au comportement historique (seriesCount=1)", () => {
@@ -229,7 +245,7 @@ describe("formatCompositionSummary", () => {
             },
           ],
         }),
-      ).toBe("1 activité · 1 min"); // 45s -> ceil(45/60) = 1 min
+      ).toBe("1 exercice · 1 min"); // 45s -> ceil(45/60) = 1 min
     });
 
     it("fait varier seriesCount seul : le résultat change en conséquence", () => {
@@ -243,8 +259,8 @@ describe("formatCompositionSummary", () => {
           { ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45, seriesCount: 3 },
         ],
       });
-      expect(oneSeries).toBe("1 activité · 1 min"); // 45s
-      expect(threeSeries).toBe("1 activité · 3 min"); // 3*45 = 135s -> ceil(135/60) = 3 min
+      expect(oneSeries).toBe("1 exercice · 1 min"); // 45s
+      expect(threeSeries).toBe("1 exercice · 3 min"); // 3*45 = 135s -> ceil(135/60) = 3 min
       expect(oneSeries).not.toBe(threeSeries);
     });
 
@@ -271,10 +287,10 @@ describe("formatCompositionSummary", () => {
           },
         ],
       });
-      expect(noPause).toBe("1 activité · 2 min"); // 2*45 = 90s -> ceil(90/60) = 2 min
+      expect(noPause).toBe("1 exercice · 2 min"); // 2*45 = 90s -> ceil(90/60) = 2 min
       // Aucune Récupération : la Pause suit chacune des 2 Séries —
       // 2*45 + 2*60 = 210s -> ceil(210/60) = 4 min.
-      expect(withPause).toBe("1 activité · 4 min");
+      expect(withPause).toBe("1 exercice · 4 min");
       expect(noPause).not.toBe(withPause);
     });
   });
@@ -293,7 +309,7 @@ describe("formatCompositionSummary", () => {
           { ...inTourExercise("ex-2"), name: "Squats", durationSeconds: 30 },
         ],
       });
-      expect(result).toBe("2 activités · 2 min"); // 45 + 30 = 75s -> ceil(75/60) = 2 min
+      expect(result).toBe("2 exercices · 2 min"); // 45 + 30 = 75s -> ceil(75/60) = 2 min
     });
 
     it("sums every Activity's own estimated duration (Durée + Répétitions mixed), once Math.ceil at the very end", () => {
@@ -314,7 +330,7 @@ describe("formatCompositionSummary", () => {
       // n'a qu'UNE Série, mais aucune Récupération ne remplace sa Pause :
       // celle-ci est donc bien exécutée. Au moins une Activité en mode
       // Répétitions -> préfixe '≥' même si l'autre est en mode Durée.
-      expect(result).toBe("2 activités · ≥ 2 min");
+      expect(result).toBe("2 exercices · ≥ 2 min");
     });
 
     it("never prefixes with '≥' when every Activity is in Durée mode, even with several Activities", () => {
@@ -362,21 +378,21 @@ describe("formatCompositionSummary", () => {
       // BEFORE_TOUR (30s) et AFTER_TOUR (30s) ignorées ; IN_TOUR seule :
       // (60 + 60) × 3 = 360 s -> ceil(360/60) = 6 min ; deux Activités.
       expect(formatCompositionSummary({ exercises: threeZones, tourRepeatCount: 3 })).toBe(
-        "2 activités · 6 min",
+        "2 exercices · 6 min",
       );
     });
 
     it("counts each IN_TOUR Activity ONCE in the displayed number, never tourRepeatCount times", () => {
       const summary = formatCompositionSummary({ exercises: threeZones, tourRepeatCount: 9 });
-      expect(summary.startsWith("2 activités")).toBe(true);
+      expect(summary.startsWith("2 exercices")).toBe(true);
     });
 
     it("behaves exactly as the IN_TOUR-only formula when the tour repeat count is 1 or omitted (non-regression)", () => {
       // BEFORE_TOUR/AFTER_TOUR toujours exclues ; 60 + 60 = 120 s -> 2 min.
       expect(formatCompositionSummary({ exercises: threeZones, tourRepeatCount: 1 })).toBe(
-        "2 activités · 2 min",
+        "2 exercices · 2 min",
       );
-      expect(formatCompositionSummary({ exercises: threeZones })).toBe("2 activités · 2 min");
+      expect(formatCompositionSummary({ exercises: threeZones })).toBe("2 exercices · 2 min");
     });
 
     it("is unaffected by the tour repeat count when no Activity is inside the Tour", () => {
@@ -389,7 +405,7 @@ describe("formatCompositionSummary", () => {
     it("correctif T02 (2026-09-08) — BEFORE_TOUR/AFTER_TOUR alone produce the exact empty-state label, never a residual count or duration", () => {
       const outOfTour = [activity("warmup", "BEFORE_TOUR", 600), activity("stretch", "AFTER_TOUR", 600)];
       expect(formatCompositionSummary({ exercises: outOfTour, tourRepeatCount: 5 })).toBe(
-        "0 activité · 0 min",
+        "0 exercice · 0 min",
       );
     });
 
@@ -405,7 +421,7 @@ describe("formatCompositionSummary", () => {
       };
       // Aucune durée conventionnelle : seules les pauses comptent — et sans
       // Récupération, la Pause suit chacune des 3 Séries, soit 60 s.
-      expect(formatCompositionSummary({ exercises: [toFailure] })).toBe("1 activité · ≥ 1 min");
+      expect(formatCompositionSummary({ exercises: [toFailure] })).toBe("1 exercice · ≥ 1 min");
     });
 
     it("adds the attached Récupération of each IN_TOUR Activity once, before the tour multiplication (T02-S02)", () => {
@@ -415,10 +431,10 @@ describe("formatCompositionSummary", () => {
         durationSeconds: 30,
         seriesCount: 3,
         pauseSeconds: 15,
-        recoverySeconds: 20,
+        postActivityRecoverySeconds: 20,
       };
       // 3×30 + 2×15 + 20 = 140 s -> ceil(140/60) = 3 min.
-      expect(formatCompositionSummary({ exercises: [withRecovery] })).toBe("1 activité · 3 min");
+      expect(formatCompositionSummary({ exercises: [withRecovery] })).toBe("1 exercice · 3 min");
     });
 
     it("counts a legacy standalone Récupération's own duration once, without series multiplication nor pause (D-041)", () => {
@@ -431,7 +447,7 @@ describe("formatCompositionSummary", () => {
         pauseSeconds: 30,
       };
       // 90 s exactement (jamais 3×90 + 3×30) -> ceil(90/60) = 2 min.
-      expect(formatCompositionSummary({ exercises: [recovery] })).toBe("1 activité · 2 min");
+      expect(formatCompositionSummary({ exercises: [recovery] })).toBe("1 exercice · 2 min");
     });
   });
 });
@@ -862,7 +878,7 @@ describe("formatExerciseRecap (reformulé — complétion REWORK12)", () => {
           repetitionCount: null,
           seriesCount: 3,
           pauseSeconds: 15,
-          recoverySeconds: 60,
+          postActivityRecoverySeconds: 60,
         }),
       ).toBe(
         "3 séries de squat sautés de 1 min 30 s, avec 15 s de pause entre les séries, puis 1 min de récupération.",
@@ -878,7 +894,7 @@ describe("formatExerciseRecap (reformulé — complétion REWORK12)", () => {
           repetitionCount: null,
           seriesCount: 1,
           pauseSeconds: 0,
-          recoverySeconds: 20,
+          postActivityRecoverySeconds: 20,
         }),
       ).toBe("1 série de Gainage de 30 s, puis 20 s de récupération.");
     });
@@ -892,7 +908,7 @@ describe("formatExerciseRecap (reformulé — complétion REWORK12)", () => {
           repetitionCount: null,
           seriesCount: 3,
           pauseSeconds: 0,
-          recoverySeconds: 45,
+          postActivityRecoverySeconds: 45,
         }),
       ).toBe("3 séries de tractions, jusqu’à l’échec, puis 45 s de récupération.");
     });
@@ -905,7 +921,7 @@ describe("formatExerciseRecap (reformulé — complétion REWORK12)", () => {
         repetitionCount: null,
         seriesCount: 1,
         pauseSeconds: 0,
-        recoverySeconds: 0,
+        postActivityRecoverySeconds: 0,
       });
       const absent = formatExerciseRecap({
         name: "Gainage",
@@ -941,7 +957,7 @@ describe("formatExerciseDurationLine (T02-S02)", () => {
         repetitionCount: null,
         seriesCount: 3,
         pauseSeconds: 15,
-        recoverySeconds: 20,
+        postActivityRecoverySeconds: 20,
       }),
       // Récupération présente : elle remplace la dernière Pause —
       // 3×30 + 2×15 + 20 = 140 s.
@@ -957,7 +973,7 @@ describe("formatExerciseDurationLine (T02-S02)", () => {
         repetitionCount: 12,
         seriesCount: 4,
         pauseSeconds: 10,
-        recoverySeconds: 25,
+        postActivityRecoverySeconds: 25,
       }),
       // Récupération présente : 3×10 + 25 = 55 s.
     ).toBe("Durée totale : ≥ 55 s");
@@ -972,7 +988,7 @@ describe("formatExerciseDurationLine (T02-S02)", () => {
         repetitionCount: 12,
         seriesCount: 4,
         pauseSeconds: 10,
-        recoverySeconds: 0,
+        postActivityRecoverySeconds: 0,
       }),
       // 4 × 10 = 40 s — une Pause de plus que la variante avec Récupération
       // ci-dessus, exactement celle que la Récupération remplaçait.
@@ -988,7 +1004,7 @@ describe("formatExerciseDurationLine (T02-S02)", () => {
         repetitionCount: null,
         seriesCount: 2,
         pauseSeconds: 30,
-        recoverySeconds: 0,
+        postActivityRecoverySeconds: 0,
       }),
       // Aucune Récupération : la Pause suit CHAQUE Série — 2 × 30 = 60 s.
     ).toBe("Durée totale : ≥ 1 min");
@@ -1046,36 +1062,38 @@ describe("formatExerciseDurationLine (T02-S02)", () => {
  */
 describe("formatExerciseBodyZones", () => {
   it("returns null when the Activity has no body zone — never an empty string (the caller omits the line entirely)", () => {
-    expect(formatExerciseBodyZones([])).toBeNull();
+    expect(formatExerciseBodyZones([], TEST_BODY_ZONES)).toBeNull();
   });
 
   it("returns the single zone's name when exactly one is selected", () => {
-    expect(formatExerciseBodyZones(["dos"])).toBe("Dos");
+    expect(formatExerciseBodyZones(["dos"], TEST_BODY_ZONES)).toBe("Dos");
   });
 
   it("orders the names by the referential order, never by the user's selection order", () => {
     // `epaules` (order 1) précède `dos` (order 4) et `genoux` (order 7),
     // quelle que soit la façon dont l'utilisateur les a cochées.
-    expect(formatExerciseBodyZones(["genoux", "dos", "epaules"])).toBe(
+    expect(formatExerciseBodyZones(["genoux", "dos", "epaules"], TEST_BODY_ZONES)).toBe(
       "Épaules · Dos · Genoux",
     );
-    expect(formatExerciseBodyZones(["dos", "epaules"])).toBe("Épaules · Dos");
+    expect(formatExerciseBodyZones(["dos", "epaules"], TEST_BODY_ZONES)).toBe("Épaules · Dos");
   });
 
   it("joins the names with the canonical separator shared with the Composition summary", () => {
     expect(COMPACT_LIST_SEPARATOR).toBe(" · ");
-    expect(formatExerciseBodyZones(["cou", "bras"])).toBe(
+    expect(formatExerciseBodyZones(["cou", "bras"], TEST_BODY_ZONES)).toBe(
       `Cou${COMPACT_LIST_SEPARATOR}Bras`,
     );
   });
 
   it("silently ignores an identifier unknown to the referential — never renders a raw id", () => {
-    expect(formatExerciseBodyZones(["dos", "zone-inconnue"])).toBe("Dos");
-    expect(formatExerciseBodyZones(["zone-inconnue"])).toBeNull();
+    expect(formatExerciseBodyZones(["dos", "zone-inconnue"], TEST_BODY_ZONES)).toBe("Dos");
+    expect(formatExerciseBodyZones(["zone-inconnue"], TEST_BODY_ZONES)).toBeNull();
   });
 
   it("deduplicates repeated identifiers by construction (the referential is walked once, never the selection)", () => {
-    expect(formatExerciseBodyZones(["dos", "dos", "epaules"])).toBe("Épaules · Dos");
+    expect(formatExerciseBodyZones(["dos", "dos", "epaules"], TEST_BODY_ZONES)).toBe(
+      "Épaules · Dos",
+    );
   });
 
   it("renders every zone of the MVP referential when all ten are selected", () => {
@@ -1091,39 +1109,59 @@ describe("formatExerciseBodyZones", () => {
       "epaules",
       "cou",
     ];
-    expect(formatExerciseBodyZones(all)).toBe(
+    expect(formatExerciseBodyZones(all, TEST_BODY_ZONES)).toBe(
       "Cou · Épaules · Bras · Poignets et mains · Dos · Hanches et bassin · Cuisses · Genoux · Jambes · Chevilles et pieds",
     );
   });
+
+  it("passes a retired zone through unchanged when it is still referenced by the selection (V2-PRE-1, plan §3.1)", () => {
+    const retired: readonly BodyZone[] = TEST_BODY_ZONES.map((zone) =>
+      zone.id === "dos" ? { ...zone, isActive: false } : zone,
+    );
+    expect(formatExerciseBodyZones(["dos", "epaules"], retired)).toBe("Épaules · Dos");
+  });
 });
 
-describe("V2-BILAT-01 — side mode in the Tour summary and the exercise duration line", () => {
-  describe("formatCompositionSummary — tourSideMode", () => {
-    it("is unaffected by tourSideMode when every Activity stays UNILATERAL (non-regression)", () => {
-      const exercises = [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 }];
-      expect(formatCompositionSummary({ exercises, tourSideMode: "UNILATERAL" })).toBe(
-        formatCompositionSummary({ exercises }),
-      );
-    });
+/**
+ * V2-PRE-1 (plan §3.2, UI-CDBCCFD16078) : `postActivityRecoverySeconds` est
+ * désormais un champ OBLIGATOIRE de l'occurrence — `formatActivityRecoveryLabel`
+ * retourne donc toujours une chaîne non vide, y compris `"Récupération 0 s"`
+ * pour une valeur nulle, jamais `null` (comportement historique retiré).
+ */
+describe("formatActivityRecoveryLabel (V2-PRE-1)", () => {
+  it("renders a non-null label even for a zero recovery", () => {
+    expect(formatActivityRecoveryLabel(0)).toBe("Récupération 0 s");
+  });
 
-    it("doubles the Tour occurrence duration when the Tour itself is bilateral", () => {
-      const exercises = [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 }];
+  it("renders the formatted positive duration unchanged", () => {
+    expect(formatActivityRecoveryLabel(90)).toBe("Récupération 1 min 30 s");
+  });
+});
+
+describe("V2-BILAT-01 / V2-PRE-1 — side mode in the Tour summary and the exercise duration line", () => {
+  describe("formatCompositionSummary — direction propre à chaque Activité (V2-PRE-1, plan §3.3)", () => {
+    it("doubles the Tour occurrence duration when an IN_TOUR Activity is itself bilateral", () => {
+      const unilateral = [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 }];
+      const bilateral = [
+        { ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45, sideMode: "RIGHT_LEFT" as const },
+      ];
       // Unilatéral : 45 s -> ceil(45/60) = 1 min. Bilatéral : 90 s -> 2 min.
-      expect(formatCompositionSummary({ exercises, tourSideMode: "UNILATERAL" })).toBe(
-        "1 activité · 1 min",
-      );
-      expect(formatCompositionSummary({ exercises, tourSideMode: "RIGHT_LEFT" })).toBe(
-        "1 activité · 2 min",
-      );
+      expect(formatCompositionSummary({ exercises: unilateral })).toBe("1 exercice · 1 min");
+      expect(formatCompositionSummary({ exercises: bilateral })).toBe("1 exercice · 2 min");
     });
 
     it("never multiplies the displayed count by the side mode — only the duration", () => {
       const exercises = [
-        { ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: 45 },
+        {
+          ...inTourExercise("ex-1"),
+          name: "Gainage",
+          durationSeconds: 45,
+          sideMode: "LEFT_RIGHT" as const,
+        },
         { ...inTourExercise("ex-2"), name: "Squats", durationSeconds: 30 },
       ];
-      const summary = formatCompositionSummary({ exercises, tourSideMode: "LEFT_RIGHT" });
-      expect(summary.startsWith("2 activités")).toBe(true);
+      const summary = formatCompositionSummary({ exercises });
+      expect(summary.startsWith("2 exercices")).toBe(true);
     });
   });
 
@@ -1136,7 +1174,7 @@ describe("V2-BILAT-01 — side mode in the Tour summary and the exercise duratio
         repetitionCount: null,
         seriesCount: 3,
         pauseSeconds: 15,
-        recoverySeconds: 20,
+        postActivityRecoverySeconds: 20,
       };
       expect(formatExerciseDurationLine({ ...facts, sideMode: "UNILATERAL" })).toBe(
         formatExerciseDurationLine(facts),
@@ -1153,7 +1191,7 @@ describe("V2-BILAT-01 — side mode in the Tour summary and the exercise duratio
           repetitionCount: null,
           seriesCount: 3,
           pauseSeconds: 15,
-          recoverySeconds: 20,
+          postActivityRecoverySeconds: 20,
           sideMode: "RIGHT_LEFT",
         }),
       ).toBe("Durée totale : 4 min 20 s");
@@ -1264,7 +1302,7 @@ describe("V2-BILAT-01 — side mode in the Tour summary and the exercise duratio
       repetitionCount: null,
       seriesCount: 3,
       pauseSeconds: 15,
-      recoverySeconds: 0,
+      postActivityRecoverySeconds: 0,
     };
 
     it("mode Durée, direction PROPRE RIGHT_LEFT : base « {N} série(s) par côté … », suffixe après la cible, avant la Pause", () => {
@@ -1282,7 +1320,7 @@ describe("V2-BILAT-01 — side mode in the Tour summary and the exercise duratio
           repetitionCount: 12,
           seriesCount: 3,
           pauseSeconds: 0,
-          recoverySeconds: 0,
+          postActivityRecoverySeconds: 0,
           sideMode: "LEFT_RIGHT",
         }),
       ).toBe("3 séries par côté de 12 Squats, à gauche, puis à droite.");
@@ -1297,7 +1335,7 @@ describe("V2-BILAT-01 — side mode in the Tour summary and the exercise duratio
           repetitionCount: null,
           seriesCount: 3,
           pauseSeconds: 15,
-          recoverySeconds: 0,
+          postActivityRecoverySeconds: 0,
           sideMode: "RIGHT_LEFT",
         }),
       ).toBe(

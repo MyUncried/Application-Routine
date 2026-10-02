@@ -104,7 +104,7 @@ describe("computeActivityDurationSeconds (une seule Activité)", () => {
       durationSeconds: 30,
       seriesCount: 2,
       pauseSeconds: 5,
-      recoverySeconds: 0,
+      postActivityRecoverySeconds: 0,
       ...overrides,
     };
   }
@@ -118,10 +118,10 @@ describe("computeActivityDurationSeconds (une seule Activité)", () => {
   it("applies D = C × A + (C − 1) × B + R as soon as a Récupération exists — it REPLACES the last pause", () => {
     // 2 × 30 + 1 × 5 + 20 = 85 (et non `2 × 5 + 20 = 90` : la dernière Pause
     // est remplacée, jamais cumulée avec la Récupération).
-    expect(computeActivityDurationSeconds(durationFacts({ recoverySeconds: 20 }))).toBe(85);
+    expect(computeActivityDurationSeconds(durationFacts({ postActivityRecoverySeconds: 20 }))).toBe(85);
     // Séries portées à 3 : la Récupération reste comptée UNE fois.
     expect(
-      computeActivityDurationSeconds(durationFacts({ seriesCount: 3, recoverySeconds: 20 })),
+      computeActivityDurationSeconds(durationFacts({ seriesCount: 3, postActivityRecoverySeconds: 20 })),
     ).toBe(120);
   });
 
@@ -130,7 +130,7 @@ describe("computeActivityDurationSeconds (une seule Activité)", () => {
     expect(computeActivityDurationSeconds(durationFacts({ seriesCount: 1 }))).toBe(35);
     // `C = 1`, `R = 20` : la Récupération remplace cette Pause.
     expect(
-      computeActivityDurationSeconds(durationFacts({ seriesCount: 1, recoverySeconds: 20 })),
+      computeActivityDurationSeconds(durationFacts({ seriesCount: 1, postActivityRecoverySeconds: 20 })),
     ).toBe(50);
   });
 
@@ -150,7 +150,7 @@ describe("computeActivityDurationSeconds (une seule Activité)", () => {
             durationSeconds: null,
             seriesCount: 3,
             pauseSeconds: 10,
-            recoverySeconds: 15,
+            postActivityRecoverySeconds: 15,
           }),
         ),
       ).toBe(35);
@@ -170,7 +170,7 @@ describe("computeActivityDurationSeconds (une seule Activité)", () => {
         durationSeconds: 20,
         seriesCount: null,
         pauseSeconds: 0,
-        recoverySeconds: 0,
+        postActivityRecoverySeconds: 0,
       }),
     ).toBe(20);
   });
@@ -182,7 +182,7 @@ describe("computeActivityDurationSeconds (une seule Activité)", () => {
  */
 describe("computeTotalDurationSeconds / computeSeriesCountForTotalDuration (formule canonique et son inverse)", () => {
   function facts(overrides: Partial<TotalDurationFacts> = {}): TotalDurationFacts {
-    return { durationSeconds: 30, pauseSeconds: 10, recoverySeconds: 0, ...overrides };
+    return { durationSeconds: 30, pauseSeconds: 10, postActivityRecoverySeconds: 0, ...overrides };
   }
 
   it("computes D = C × A + C × B without Récupération", () => {
@@ -192,14 +192,14 @@ describe("computeTotalDurationSeconds / computeSeriesCountForTotalDuration (form
   });
 
   it("computes D = C × A + (C − 1) × B + R with a Récupération, which replaces the last pause", () => {
-    expect(computeTotalDurationSeconds(3, facts({ recoverySeconds: 20 }))).toBe(130);
-    expect(computeTotalDurationSeconds(1, facts({ recoverySeconds: 20 }))).toBe(50);
+    expect(computeTotalDurationSeconds(3, facts({ postActivityRecoverySeconds: 20 }))).toBe(130);
+    expect(computeTotalDurationSeconds(1, facts({ postActivityRecoverySeconds: 20 }))).toBe(50);
   });
 
   it("inverts exactly, branch by branch: Cth = D / (A + B) without R, (D − R + B) / (A + B) with R", () => {
     expect(computeSeriesCountForTotalDuration(120, facts())).toBe(3);
     expect(computeSeriesCountForTotalDuration(40, facts())).toBe(1);
-    expect(computeSeriesCountForTotalDuration(130, facts({ recoverySeconds: 20 }))).toBe(3);
+    expect(computeSeriesCountForTotalDuration(130, facts({ postActivityRecoverySeconds: 20 }))).toBe(3);
   });
 
   it("never applies the '+ B' numerator term when there is no Récupération — that term belongs to the Récupération branch only", () => {
@@ -209,7 +209,7 @@ describe("computeTotalDurationSeconds / computeSeriesCountForTotalDuration (form
     // aurait rendu `2` dans les DEUX cas, surestimant `C` d'une Série
     // entière en l'absence de Récupération.
     expect(computeSeriesCountForTotalDuration(59, facts())).toBe(1);
-    expect(computeSeriesCountForTotalDuration(59, facts({ recoverySeconds: 1 }))).toBe(2);
+    expect(computeSeriesCountForTotalDuration(59, facts({ postActivityRecoverySeconds: 1 }))).toBe(2);
   });
 
   it("rounds a .5 theoretical series count UP (D-092)", () => {
@@ -237,8 +237,8 @@ describe("computeTotalDurationSeconds / computeSeriesCountForTotalDuration (form
       const withoutRecovery = computeTotalDurationSeconds(seriesCount, facts());
       expect(computeSeriesCountForTotalDuration(withoutRecovery, facts())).toBe(seriesCount);
 
-      const withRecovery = computeTotalDurationSeconds(seriesCount, facts({ recoverySeconds: 20 }));
-      expect(computeSeriesCountForTotalDuration(withRecovery, facts({ recoverySeconds: 20 }))).toBe(
+      const withRecovery = computeTotalDurationSeconds(seriesCount, facts({ postActivityRecoverySeconds: 20 }));
+      expect(computeSeriesCountForTotalDuration(withRecovery, facts({ postActivityRecoverySeconds: 20 }))).toBe(
         seriesCount,
       );
     }
@@ -246,7 +246,7 @@ describe("computeTotalDurationSeconds / computeSeriesCountForTotalDuration (form
 });
 
 describe("applyTargetTotalDuration (RM-130) — pilote Séries, jamais la durée elle-même", () => {
-  const facts: TotalDurationFacts = { durationSeconds: 30, pauseSeconds: 10, recoverySeconds: 0 };
+  const facts: TotalDurationFacts = { durationSeconds: 30, pauseSeconds: 10, postActivityRecoverySeconds: 0 };
 
   it("reports no adjustment when the target is exactly reachable", () => {
     expect(applyTargetTotalDuration(120, facts)).toEqual({
@@ -289,7 +289,7 @@ describe("computeZoneDurationFacts (collection d'Activités)", () => {
         durationSeconds: 30,
         seriesCount: 2,
         pauseSeconds: 5,
-        recoverySeconds: 10,
+        postActivityRecoverySeconds: 10,
       },
       {
         type: "EXERCISE",
@@ -297,7 +297,7 @@ describe("computeZoneDurationFacts (collection d'Activités)", () => {
         durationSeconds: null,
         seriesCount: 3,
         pauseSeconds: 10,
-        recoverySeconds: 0,
+        postActivityRecoverySeconds: 0,
       },
     ];
     // 1re (avec Récupération) : 2×30 + 1×5 + 10 = 75 ;
@@ -374,7 +374,7 @@ describe("toEstimatedDurationFacts / toActivityCountFacts (projection from a Ses
       pauseSeconds: 0,
       // T02-S02 : champ obligatoire de l'agrégat — `0` est la valeur neutre
       // (aucune Récupération attachée), pas une absence.
-      recoverySeconds: 0,
+      postActivityRecoverySeconds: 0,
       instruction: null,
       bodyZoneIds: [],
       ...overrides,
@@ -390,6 +390,7 @@ describe("toEstimatedDurationFacts / toActivityCountFacts (projection from a Ses
       ownerId: "usr_test",
       name: "Séance simple",
       color: DEFAULT_SESSION_COLOR,
+      labelId: null,
       status: "ACTIVE",
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
@@ -407,7 +408,6 @@ describe("toEstimatedDurationFacts / toActivityCountFacts (projection from a Ses
         },
         ...cycleOverrides,
       },
-      categories: [],
     };
   }
 
@@ -455,7 +455,7 @@ describe("toEstimatedDurationFacts / toActivityCountFacts (projection from a Ses
 
   it("propagates the attached Récupération of each Activity into the zone duration (T02-S02)", () => {
     const session = aSession([
-      anActivity({ id: "a1", durationSeconds: 30, seriesCount: 2, pauseSeconds: 5, recoverySeconds: 20 }),
+      anActivity({ id: "a1", durationSeconds: 30, seriesCount: 2, pauseSeconds: 5, postActivityRecoverySeconds: 20 }),
     ]);
     // 2×30 + 1×5 + 20 = 85.
     expect(toEstimatedDurationFacts(session)).toMatchObject({ inTourDurationSeconds: 85 });
@@ -592,13 +592,21 @@ describe("toEstimatedDurationFacts / toActivityCountFacts (projection from a Ses
   });
 
   /**
-   * V2-BILAT-01 : `Session.cycle.tour.sideMode` gouverne la zone `IN_TOUR`
-   * uniquement — `BEFORE_TOUR`/`AFTER_TOUR` utilisent toujours leur propre
-   * direction, jamais celle du Tour.
+   * V2-PRE-1 (plan §3.3) : le Circuit (Tour) n'a plus aucune influence
+   * fonctionnelle — `BEFORE_TOUR`/`IN_TOUR`/`AFTER_TOUR` utilisent toujours
+   * la direction PROPRE de chaque Activité, jamais celle du Tour.
    */
-  it("multiplies only the IN_TOUR zone by the Tour's own bilateral direction — BEFORE/AFTER keep using their own side", () => {
+  it("multiplies each zone strictly by each Activity's own direction — the Tour carries no direction of its own", () => {
     const session = aSession(
-      [anActivity({ id: "core", durationSeconds: 20, seriesCount: 1, pauseSeconds: 0 })],
+      [
+        anActivity({
+          id: "core",
+          durationSeconds: 20,
+          seriesCount: 1,
+          pauseSeconds: 0,
+          sideMode: "LEFT_RIGHT",
+        }),
+      ],
       {
         beforeTour: [
           anActivity({
@@ -608,17 +616,10 @@ describe("toEstimatedDurationFacts / toActivityCountFacts (projection from a Ses
             sideMode: "RIGHT_LEFT",
           }),
         ],
-        tour: {
-          id: "tour-1",
-          position: 1,
-          repeatCount: 1,
-          sideMode: "LEFT_RIGHT",
-          exercises: [anActivity({ id: "core", durationSeconds: 20, seriesCount: 1, pauseSeconds: 0 })],
-        },
       },
     );
     // BEFORE_TOUR : direction propre `RIGHT_LEFT`, `Li = 2` → 10 × 2 = 20.
-    // IN_TOUR : direction du Tour `LEFT_RIGHT` prévaut → 20 × 2 = 40.
+    // IN_TOUR : direction propre `LEFT_RIGHT`, `Li = 2` → 20 × 2 = 40.
     expect(toEstimatedDurationFacts(session)).toMatchObject({
       beforeTourDurationSeconds: 20,
       inTourDurationSeconds: 40,
@@ -627,11 +628,11 @@ describe("toEstimatedDurationFacts / toActivityCountFacts (projection from a Ses
 });
 
 /**
- * V2-BILAT-01 (plan `## Calculs`) — les trois scénarios canoniques de
- * `computeZoneDurationFacts`, `contextSideMode` étant la direction du Tour
- * lui-même (`UNILATERAL` par défaut pour une zone hors Tour).
+ * V2-PRE-1 (plan §3.3) — `computeZoneDurationFacts` ne dépend plus que de la
+ * direction PROPRE de chaque Activité ; la récupération post-exercice n'est
+ * jamais multipliée par côté (le Circuit n'a plus de direction).
  */
-describe("computeZoneDurationFacts — V2-BILAT-01 side mode", () => {
+describe("computeZoneDurationFacts — side mode (V2-PRE-1)", () => {
   function activity(overrides: Partial<ActivityDurationFacts> = {}): ActivityDurationFacts {
     return {
       type: "EXERCISE",
@@ -639,63 +640,26 @@ describe("computeZoneDurationFacts — V2-BILAT-01 side mode", () => {
       durationSeconds: 30,
       seriesCount: 2,
       pauseSeconds: 5,
-      recoverySeconds: 20,
+      postActivityRecoverySeconds: 20,
       sideMode: "UNILATERAL",
       ...overrides,
     };
   }
 
-  it("Tour et Activité unilatéraux : Li = 1, aucun changement par rapport à T02-S02", () => {
+  it("unilateral Activity: Li = 1, unchanged from T02-S02", () => {
     // 2×30 + 1×5 + 20 = 85 (formule T02-S02, L = 1).
-    expect(computeZoneDurationFacts([activity()], "UNILATERAL")).toEqual({
+    expect(computeZoneDurationFacts([activity()])).toEqual({
       seconds: 85,
       isLowerBoundEstimate: false,
     });
   });
 
-  it("Tour unilatéral + Activité bilatérale : Li = 2 pour cette Activité, Ri comptée une seule fois après ses deux côtés", () => {
+  it("bilateral Activity: Li = 2 for this Activity, Ri counted only once after both sides", () => {
     // perPass = 2×30 + 1×5 = 65 ; × L(2) = 130 ; + R(20, jamais doublée) = 150.
-    expect(
-      computeZoneDurationFacts([activity({ sideMode: "RIGHT_LEFT" })], "UNILATERAL"),
-    ).toEqual({ seconds: 150, isLowerBoundEstimate: false });
-  });
-
-  it("Tour bilatéral : la direction du Tour prévaut pour toute Activité IN_TOUR, Ri comptée une fois par passage de côté", () => {
-    // Le Tour est bilatéral : chaque Activité — même déjà remise
-    // UNILATERAL par la transition atomique — prend Li = 2 ; la
-    // Récupération est ELLE AUSSI doublée (un passage par côté).
-    // perPass = 65 ; × 2 = 130 ; + R(20) × 2 = 40 → 170.
-    expect(
-      computeZoneDurationFacts([activity({ sideMode: "UNILATERAL" })], "RIGHT_LEFT"),
-    ).toEqual({ seconds: 170, isLowerBoundEstimate: false });
-  });
-
-  it("Tour bilatéral : la direction du Tour prévaut même si l'Activité porte encore une direction propre différente", () => {
-    // Même résultat que ci-dessus : la direction propre de l'Activité
-    // (ici encore `LEFT_RIGHT`) est sans effet dès que le Tour est
-    // bilatéral — jamais un double multiplicateur.
-    expect(
-      computeZoneDurationFacts([activity({ sideMode: "LEFT_RIGHT" })], "RIGHT_LEFT"),
-    ).toEqual({ seconds: 170, isLowerBoundEstimate: false });
-  });
-
-  it("never applies a double multiplier: Tour and Activity both bilateral never yields a factor greater than 2", () => {
-    const bilateralTour = computeZoneDurationFacts(
-      [activity({ sideMode: "RIGHT_LEFT" })],
-      "RIGHT_LEFT",
-    ).seconds;
-    const unilateralTour = computeZoneDurationFacts(
-      [activity({ sideMode: "RIGHT_LEFT" })],
-      "UNILATERAL",
-    ).seconds;
-    // Le Tour bilatéral double AUSSI la Récupération (170), l'Activité
-    // bilatérale seule ne double que la part Séries + Pauses (150) — les
-    // deux restent strictement inférieurs à un double comptage naïf
-    // (`2 × 150 = 300`), preuve qu'aucun double multiplicateur n'est
-    // jamais appliqué.
-    expect(bilateralTour).toBe(170);
-    expect(unilateralTour).toBe(150);
-    expect(bilateralTour).toBeLessThan(2 * unilateralTour);
+    expect(computeZoneDurationFacts([activity({ sideMode: "RIGHT_LEFT" })])).toEqual({
+      seconds: 150,
+      isLowerBoundEstimate: false,
+    });
   });
 
   it("treats a Facts item with no sideMode field as UNILATERAL — non-regression for every caller predating this tranche", () => {
@@ -705,7 +669,7 @@ describe("computeZoneDurationFacts — V2-BILAT-01 side mode", () => {
       durationSeconds: 30,
       seriesCount: 2,
       pauseSeconds: 5,
-      recoverySeconds: 20,
+      postActivityRecoverySeconds: 20,
     };
     expect(computeZoneDurationFacts([legacyFacts])).toEqual({ seconds: 85, isLowerBoundEstimate: false });
   });
@@ -717,8 +681,8 @@ describe("computeZoneDurationFacts — V2-BILAT-01 side mode", () => {
  * n'est jamais multipliée.
  */
 describe("computeTotalDurationSeconds / computeSeriesCountForTotalDuration / applyTargetTotalDuration — V2-BILAT-01 side mode", () => {
-  const facts: TotalDurationFacts = { durationSeconds: 30, pauseSeconds: 10, recoverySeconds: 0 };
-  const facts20R: TotalDurationFacts = { durationSeconds: 30, pauseSeconds: 10, recoverySeconds: 20 };
+  const facts: TotalDurationFacts = { durationSeconds: 30, pauseSeconds: 10, postActivityRecoverySeconds: 0 };
+  const facts20R: TotalDurationFacts = { durationSeconds: 30, pauseSeconds: 10, postActivityRecoverySeconds: 20 };
 
   it("multiplies the Series + Pauses part by L, without ever multiplying the Récupération (R = 0 branch)", () => {
     // Sans multiplicateur : 3 × 30 + 3 × 10 = 120 (T02-S02, inchangé).

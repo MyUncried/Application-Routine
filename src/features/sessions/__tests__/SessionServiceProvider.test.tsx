@@ -8,6 +8,20 @@ import { useSessionService } from "@/features/sessions/SessionServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
+import { DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS } from "@/domain/preferences/Profile";
+import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
+import { createEmptyDraft, createExerciseDraft } from "@/domain/sessions/SessionDraft";
+import {
+  LOCAL_PROFILE_SINGLETON_KEY,
+  LOCAL_USER_SINGLETON_KEY,
+} from "@/infrastructure/database/constants";
+import { MIGRATION_001 } from "@/infrastructure/database/migrations/migration001";
+import { MIGRATION_002 } from "@/infrastructure/database/migrations/migration002";
+import { MIGRATION_003 } from "@/infrastructure/database/migrations/migration003";
+import { MIGRATION_004 } from "@/infrastructure/database/migrations/migration004";
+import { MIGRATION_005 } from "@/infrastructure/database/migrations/migration005";
+import { MIGRATION_006 } from "@/infrastructure/database/migrations/migration006";
+import { SqliteLabelRepository } from "@/infrastructure/database/repositories/SqliteLabelRepository";
 import { NodeSqliteDatabase as mockNodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
 /**
@@ -114,6 +128,21 @@ jest.mock("expo-sqlite", () => {
   }
 
   return { SQLiteProvider, useSQLiteContext };
+});
+
+/**
+ * `SqliteSessionRepository` utilise par défaut `Crypto.randomUUID`
+ * (`expo-crypto`) pour générer `sessionId`/`cycleId`/`tourId` — un module
+ * natif, jamais disponible tel quel sous Jest. Sans ce double, cet appel
+ * renvoie `undefined`, qu'`expo-sqlite`/`node:sqlite` ne peut pas lier à un
+ * paramètre (`TypeError: Provided value cannot be bound to SQLite parameter
+ * 1.`). Même patron que `CompositionScreen.test.tsx`/`ExerciseScreen.test.tsx`
+ * — un compteur garantit ici des identifiants distincts, utile dès que
+ * plusieurs lignes sont créées dans la même transaction (Séance/Cycle/Tour).
+ */
+jest.mock("expo-crypto", () => {
+  let counter = 0;
+  return { randomUUID: jest.fn(() => `generated-id-${++counter}`) };
 });
 
 function Consumer({
@@ -254,5 +283,426 @@ describe("SessionServiceProvider — régression : un children applicatif variab
     // par des timers simulés ci-dessus, reste déterministe et rapide dès
     // qu'il obtient du temps CPU. 20000 ms couvre largement cette marge
     // observée sans dépendre d'une estimation arbitraire.
+  }, 20000);
+});
+
+describe("SessionServiceProvider — câblage réel du Profil (V2-PRE-1, plan §3.2, UI-16294D4D4345)", () => {
+  /**
+   * Revue indépendante 5938943370 (run 36913774921, REVISE), résolue par le
+   * plan round 5 (revue 5939867521, barrière 5939871764) : `SessionService`
+   * est désormais construit avec `SqliteProfileRepository` en TROISIÈME
+   * argument (même connexion `ExpoDatabase` que les deux autres Repository),
+   * ici prouvé à travers le câblage RÉEL du provider — base migrée en
+   * mémoire (double fidèle `expo-sqlite`, voir le docstring de tête de ce
+   * fichier) — jamais un double de `SessionService`/`ProfileRepository`.
+   *
+   * Le Profil est mutilé directement en base à une valeur VOLONTAIREMENT
+   * distincte de `DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS` (le seed de
+   * `migration007`), afin que ce test ne puisse pas passer par coïncidence
+   * si la valeur par défaut du Domaine était lue à la place du Profil
+   * réellement persisté.
+   */
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("initialise postActivityRecoverySeconds d'une occurrence depuis le Profil persisté (valeur distincte du défaut) lors d'une création réelle via le provider", async () => {
+    const onReady = jest.fn();
+    const openInMemorySpy = jest.spyOn(mockNodeSqliteDatabase, "openInMemory");
+
+    let capturedService: SessionService | null = null;
+    function ServiceCapture() {
+      const service = useSessionService();
+      useEffect(() => {
+        capturedService = service;
+      }, [service]);
+      return null;
+    }
+
+    // Même patron que le test de régression ci-dessus : `children` ne doit
+    // appeler `useSessionService()` qu'une fois le service RÉELLEMENT prêt
+    // (sans quoi le contexte vaut encore `null` et ce Hook lève). `showContent`
+    // reste donc `false` jusqu'à ce qu'`onReady` ait été signalé.
+    function Harness({ showContent }: { showContent: boolean }) {
+      return (
+        <SessionServiceProvider onReady={onReady}>
+          {showContent ? <ServiceCapture /> : null}
+        </SessionServiceProvider>
+      );
+    }
+
+    const { rerender } = render(<Harness showContent={false} />);
+
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      rerender(<Harness showContent={true} />);
+    });
+
+    await waitFor(() => expect(capturedService).toBeInstanceOf(SessionService));
+
+    const nativeDatabase = openInMemorySpy.mock.results[0]
+      ?.value as ReturnType<typeof mockNodeSqliteDatabase.openInMemory>;
+    const CUSTOM_RECOVERY_SECONDS = 45;
+    expect(CUSTOM_RECOVERY_SECONDS).not.toBe(DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS);
+    // Valeurs entières littérales directement interpolées (même patron que
+    // `SqliteBodyZoneRepository.test.ts`, "UPDATE body_zones SET is_active = 0
+    // WHERE id = 'cou'") — aucun paramètre lié, aucune chaîne utilisateur :
+    // les deux valeurs sont des constantes entières de ce test.
+    await nativeDatabase.runAsync(
+      `UPDATE profiles SET post_activity_recovery_seconds_default = ${CUSTOM_RECOVERY_SECONDS} WHERE singleton_key = ${LOCAL_PROFILE_SINGLETON_KEY}`,
+    );
+
+    const draft = {
+      ...createEmptyDraft(),
+      name: "Séance simple",
+      exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage" }],
+    };
+
+    const result = await capturedService!.createSession(draft);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      // `createExerciseDraft` place l'Exercice à `DEFAULT_STRUCTURAL_POSITION`
+      // (`BEFORE_TOUR`, hors du Circuit) — `cycle.beforeTour`, jamais
+      // `cycle.tour.exercises` (réservé aux Activités `IN_TOUR`).
+      expect(result.value.cycle.beforeTour?.[0]?.postActivityRecoverySeconds).toBe(
+        CUSTOM_RECOVERY_SECONDS,
+      );
+    }
+
+    openInMemorySpy.mockRestore();
+  }, 20000);
+});
+
+describe("SessionServiceProvider — câblage réel des Zones corporelles et des Catégories (device check Hermann, commentaire 5948936550)", () => {
+  /**
+   * Le device check de Hermann a trouvé deux défauts de câblage de
+   * production, tous deux reproduits ici à travers le câblage RÉEL du
+   * provider (base migrée en mémoire, double fidèle `expo-sqlite` — voir le
+   * docstring de tête de ce fichier) — jamais un double de
+   * `ActivityDefinitionService`/`BodyZoneRepository`/`CategoryRepository` :
+   *
+   * 1. Les Zones corporelles étaient vides dans l'application : `ExerciseScreen`,
+   *    `ActivityCard`, `ActivitySelectionScreen` et `CompositionScreen`
+   *    accédaient directement à `useSQLiteContext`, qui lève TOUJOURS hors de
+   *    `<SQLiteProvider>` (ces écrans sont rendus par le `children`
+   *    applicatif, hors de `<SQLiteProvider>` — architecture T01-S05,
+   *    préservée) — chaque écran dégradait donc silencieusement vers un
+   *    référentiel VIDE.
+   * 2. Les Catégories : `SessionServiceProvider` construisait
+   *    `ActivityDefinitionService` SANS `CategoryRepository`, si bien que
+   *    `listCategories()` levait systématiquement.
+   */
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  /**
+   * Même `Consumer` que la régression T01-S05 ci-dessus (expose les DEUX
+   * services construits par le provider) — `showContent` reste `false`
+   * jusqu'à `onReady`, exactement comme les tests précédents de ce fichier
+   * (`useSessionService`/`useActivityDefinitionService` lèvent hors
+   * provider prêt).
+   */
+  async function renderReadyProvider(): Promise<{
+    sessionService: SessionService;
+    activityDefinitionService: ActivityDefinitionService;
+  }> {
+    const onReady = jest.fn();
+    let sessionService: SessionService | null = null;
+    let activityDefinitionService: ActivityDefinitionService | null = null;
+
+    function Harness({ showContent }: { showContent: boolean }) {
+      return (
+        <SessionServiceProvider onReady={onReady}>
+          {showContent ? (
+            <Consumer
+              onRender={(service) => {
+                sessionService = service;
+              }}
+              onRenderActivityDefinitionService={(service) => {
+                activityDefinitionService = service;
+              }}
+            />
+          ) : null}
+        </SessionServiceProvider>
+      );
+    }
+
+    const { rerender } = render(<Harness showContent={false} />);
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1));
+    act(() => {
+      rerender(<Harness showContent={true} />);
+    });
+    await waitFor(() => expect(activityDefinitionService).not.toBeNull());
+
+    return { sessionService: sessionService!, activityDefinitionService: activityDefinitionService! };
+  }
+
+  it("lists the real persisted Body Zones for application children, through the real provider wiring", async () => {
+    const { activityDefinitionService } = await renderReadyProvider();
+
+    const zones = await activityDefinitionService.listBodyZones();
+
+    expect(zones.length).toBeGreaterThan(0);
+    expect(zones.map((zone) => zone.name)).toContain("Dos");
+  }, 20000);
+
+  it("lists the real persisted Categories for application children, through the real provider wiring", async () => {
+    const { activityDefinitionService } = await renderReadyProvider();
+
+    const categories = await activityDefinitionService.listCategories();
+
+    expect(categories.length).toBeGreaterThan(0);
+    expect(categories.map((category) => category.name)).toContain("Autre");
+  }, 20000);
+
+  it("creates a Catalogue ActivityDefinition with a Body Zone and a brand-new Category, and reads it back, through the real provider wiring", async () => {
+    const { activityDefinitionService } = await renderReadyProvider();
+
+    const zones = await activityDefinitionService.listBodyZones();
+    const dos = zones.find((zone) => zone.name === "Dos");
+    expect(dos).toBeTruthy();
+
+    const createResult = await activityDefinitionService.createActivityDefinition({
+      name: "Pompes",
+      description: null,
+      executionMode: "DURATION",
+      durationSeconds: 30,
+      repetitionCount: null,
+      seriesCount: 3,
+      pauseSeconds: 10,
+      category: { kind: "NEW", name: "Nouvelle catégorie", color: "#3B82F6" },
+      bodyZoneIds: [dos!.id],
+      sideMode: "UNILATERAL",
+      sideRecoverySeconds: 0,
+    });
+    expect(createResult.ok).toBe(true);
+    if (!createResult.ok) {
+      return;
+    }
+
+    const reloaded = await activityDefinitionService.getActivityDefinition(createResult.value.id);
+    expect(reloaded?.bodyZoneIds).toEqual([dos!.id]);
+
+    const categories = await activityDefinitionService.listCategories();
+    const newCategory = categories.find((category) => category.name === "Nouvelle catégorie");
+    expect(newCategory).toBeTruthy();
+    expect(reloaded?.categoryId).toBe(newCategory!.id);
+  }, 20000);
+
+  /**
+   * Base migrée à partir de DONNÉES HISTORIQUES réelles : `migration001` à
+   * `migration006` appliquées avec des lignes déjà présentes (une
+   * `ActivityDefinition` du schéma `migration006`, SANS `category_id` —
+   * cette colonne n'existe pas avant `migration007` — avec une association
+   * `activity_definition_body_zones` déjà persistée), `PRAGMA user_version`
+   * positionné à `6`, PUIS la base est remise au double `expo-sqlite` : c'est
+   * le VRAI `onInit` de `SessionServiceProvider` (`initializeDatabase` →
+   * `migrateDatabase`) qui détecte la version 6 et applique SEULE
+   * `migration007` par-dessus — exactement le scénario « mise à niveau d'une
+   * installation existante » du plan (§3, §14.2, §16).
+   *
+   * `execAsync`/`runAsync` de `NodeSqliteDatabase` n'attendent ici
+   * délibérément AUCUN `await` : leur corps s'exécute intégralement de façon
+   * SYNCHRONE (`node:sqlite` est synchrone ; seule la valeur de retour est
+   * enveloppée dans une Promise déjà résolue) — nécessaire puisque
+   * `openInMemory()` lui-même doit rester synchrone (le double `expo-sqlite`
+   * ne l'attend jamais).
+   */
+  it("edits an existing Catalogue ActivityDefinition coming from a database migrated from historical data (migrations 001-006 with rows, then 007), and shows its Category name and Zones on reopening — through the real provider wiring", async () => {
+    const onReady = jest.fn();
+    const originalOpenInMemory = mockNodeSqliteDatabase.openInMemory;
+    const openInMemorySpy = jest
+      .spyOn(mockNodeSqliteDatabase, "openInMemory")
+      .mockImplementationOnce(() => {
+        const db = originalOpenInMemory();
+        db.execAsync(MIGRATION_001);
+        // `migrateDatabase.ts` ne sème l'utilisateur local singleton
+        // (`users`) qu'au passage FRAIS par la version 0 — reproduit ici à
+        // l'identique puisque cette base historique n'emprunte jamais ce
+        // chemin (elle démarre directement à la version 6).
+        db.runAsync(
+          "INSERT INTO users (singleton_key, id, created_at) VALUES (?, ?, ?)",
+          [LOCAL_USER_SINGLETON_KEY, "usr_legacy", "2026-01-01T00:00:00.000Z"],
+        );
+        db.execAsync(MIGRATION_002);
+        db.execAsync(MIGRATION_003);
+        db.execAsync(MIGRATION_004);
+        db.execAsync(MIGRATION_005);
+        db.execAsync(MIGRATION_006);
+        db.runAsync(
+          `INSERT INTO activity_definitions (
+             id, name, description, execution_mode, duration_seconds, repetition_count,
+             series_count, pause_seconds, recovery_seconds, side_mode, created_at, updated_at
+           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            "legacy-def-1",
+            "Fentes historiques",
+            null,
+            "DURATION",
+            40,
+            null,
+            2,
+            10,
+            20,
+            "UNILATERAL",
+            "2026-01-01T00:00:00.000Z",
+            "2026-01-01T00:00:00.000Z",
+          ],
+        );
+        db.runAsync(
+          "INSERT INTO activity_definition_body_zones (activity_definition_id, body_zone_id) VALUES (?, ?)",
+          ["legacy-def-1", "dos"],
+        );
+        db.execAsync("PRAGMA user_version = 6");
+        return db;
+      });
+
+    let activityDefinitionService: ActivityDefinitionService | null = null;
+
+    function Harness({ showContent }: { showContent: boolean }) {
+      return (
+        <SessionServiceProvider onReady={onReady}>
+          {showContent ? (
+            <Consumer
+              onRender={() => {}}
+              onRenderActivityDefinitionService={(service) => {
+                activityDefinitionService = service;
+              }}
+            />
+          ) : null}
+        </SessionServiceProvider>
+      );
+    }
+
+    const { rerender } = render(<Harness showContent={false} />);
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1));
+    act(() => {
+      rerender(<Harness showContent={true} />);
+    });
+    await waitFor(() => expect(activityDefinitionService).not.toBeNull());
+
+    const service = activityDefinitionService!;
+
+    const beforeEdit = await service.getActivityDefinition("legacy-def-1");
+    expect(beforeEdit).not.toBeNull();
+    expect(beforeEdit?.bodyZoneIds).toEqual(["dos"]);
+    // `migration007` : `ALTER TABLE activity_definitions ADD COLUMN category_id
+    // ... DEFAULT 'autre'` — toute ligne historique hérite donc de la
+    // Catégorie prédéfinie « Autre ».
+    expect(beforeEdit?.categoryId).toBe("autre");
+    const categories = await service.listCategories();
+    expect(categories.find((category) => category.id === "autre")?.name).toBe("Autre");
+
+    const updateResult = await service.updateActivityDefinition("legacy-def-1", {
+      name: "Fentes historiques modifiées",
+      description: beforeEdit!.description,
+      executionMode: beforeEdit!.executionMode,
+      durationSeconds: beforeEdit!.durationSeconds,
+      repetitionCount: beforeEdit!.repetitionCount,
+      seriesCount: beforeEdit!.seriesCount,
+      pauseSeconds: beforeEdit!.pauseSeconds,
+      category: { kind: "EXISTING", categoryId: "autre" },
+      bodyZoneIds: beforeEdit!.bodyZoneIds,
+      sideMode: beforeEdit!.sideMode,
+      sideRecoverySeconds: 0,
+    });
+    expect(updateResult.status).toBe("UPDATED");
+
+    const reopened = await service.getActivityDefinition("legacy-def-1");
+    expect(reopened?.name).toBe("Fentes historiques modifiées");
+    expect(reopened?.categoryId).toBe("autre");
+    expect(reopened?.bodyZoneIds).toEqual(["dos"]);
+
+    openInMemorySpy.mockRestore();
+  }, 20000);
+});
+
+describe("SessionServiceProvider — câblage réel des Étiquettes pour la couleur de Séance (revue indépendante 5950755410, même famille que le défaut des Zones corporelles)", () => {
+  /**
+   * `CompositionScreen` dérivait la couleur affichée d'une Séance depuis son
+   * Étiquette via `useSQLiteContext`/`SqliteLabelRepository` directement —
+   * exactement le même défaut que les Zones corporelles/Catégories
+   * ci-dessus (ces écrans sont rendus par le `children` applicatif, hors de
+   * `<SQLiteProvider>` — architecture T01-S05, préservée) : la couleur
+   * affichée restait donc TOUJOURS la présentation neutre en production,
+   * même pour une Séance réellement Étiquetée. `ActivityDefinitionService`
+   * porte désormais `listLabels()` (même patron que `listBodyZones()`/
+   * `listCategories()` ci-dessus), construit avec `SqliteLabelRepository`
+   * par `SessionServiceProvider` sur la MÊME connexion.
+   */
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("derives the real persisted Label's colour for a Session associated with it, and keeps the neutral presentation for a Session without a Label, through the real provider wiring", async () => {
+    const onReady = jest.fn();
+    const openInMemorySpy = jest.spyOn(mockNodeSqliteDatabase, "openInMemory");
+
+    let activityDefinitionService: ActivityDefinitionService | null = null;
+
+    function Harness({ showContent }: { showContent: boolean }) {
+      return (
+        <SessionServiceProvider onReady={onReady}>
+          {showContent ? (
+            <Consumer
+              onRender={() => {}}
+              onRenderActivityDefinitionService={(service) => {
+                activityDefinitionService = service;
+              }}
+            />
+          ) : null}
+        </SessionServiceProvider>
+      );
+    }
+
+    const { rerender } = render(<Harness showContent={false} />);
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1));
+    act(() => {
+      rerender(<Harness showContent={true} />);
+    });
+    await waitFor(() => expect(activityDefinitionService).not.toBeNull());
+
+    const service = activityDefinitionService!;
+    const nativeDatabase = openInMemorySpy.mock.results[0]!
+      .value as ReturnType<typeof mockNodeSqliteDatabase.openInMemory>;
+    openInMemorySpy.mockRestore();
+
+    // `SqliteLabelRepository` directement sur la MÊME connexion migrée que
+    // le provider réel — `ActivityDefinitionService` n'expose, à dessein,
+    // que la lecture (`listLabels`), jamais la création d'Étiquette (hors
+    // périmètre de cette correction).
+    const labelRepository = new SqliteLabelRepository(nativeDatabase);
+    const createdLabel = await labelRepository.create({ name: "Sport", color: "#2E9B62" });
+
+    const labels = await service.listLabels();
+    expect(labels.some((label) => label.id === createdLabel.id && label.color === "#2E9B62")).toBe(
+      true,
+    );
+
+    // Même dérivation, en LECTURE SEULE, que `CompositionScreen.tsx`
+    // (`labelsReferential.find((label) => label.id === draft.labelId)?.color
+    // ?? DEFAULT_SESSION_COLOR`) — jamais une écriture de `draft.color`.
+    const sessionWithLabelColor =
+      labels.find((label) => label.id === createdLabel.id)?.color ?? DEFAULT_SESSION_COLOR;
+    expect(sessionWithLabelColor).toBe("#2E9B62");
+
+    const sessionWithoutLabelId: string | null = null;
+    const sessionWithoutLabelColor =
+      labels.find((label) => label.id === sessionWithoutLabelId)?.color ?? DEFAULT_SESSION_COLOR;
+    expect(sessionWithoutLabelColor).toBe(DEFAULT_SESSION_COLOR);
   }, 20000);
 });

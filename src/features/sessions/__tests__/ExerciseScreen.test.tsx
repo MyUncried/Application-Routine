@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { ScrollView, StyleSheet } from "react-native";
 
 import type { ActivityDefinition } from "@/domain/activities";
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -12,6 +13,22 @@ import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import { colors, dimensions, minTouchTarget, type } from "@/shared/ui/tokens";
+
+/**
+ * `ExerciseScreen` s'auto-alimente désormais en Zones corporelles persistées
+ * via `ActivityDefinitionService.listBodyZones()` (V2-PRE-1, plan §3.1,
+ * UI-1652FFC3B512 ; correction device check Hermann, commentaire 5948936550 —
+ * un accès direct à `useSQLiteContext` levait TOUJOURS en production, cet
+ * écran étant rendu hors de `<SQLiteProvider>`) — chaque test fournit donc un
+ * `ActivityDefinitionService` doublé via `ActivityDefinitionServiceContext`,
+ * jamais `expo-sqlite`/`SqliteBodyZoneRepository`.
+ */
+const BODY_ZONE_FIXTURES: readonly BodyZone[] = [
+  { id: "cou", name: "Cou", isActive: true, createdAt: "2026-01-01T00:00:00.000Z" },
+  { id: "epaules", name: "Épaules", isActive: true, createdAt: "2026-01-01T00:00:01.000Z" },
+  { id: "dos", name: "Dos", isActive: true, createdAt: "2026-01-01T00:00:04.000Z" },
+  { id: "cuisses", name: "Cuisses", isActive: true, createdAt: "2026-01-01T00:00:06.000Z" },
+];
 
 jest.mock("expo-haptics", () => ({
   selectionAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
@@ -53,18 +70,28 @@ function defaultExitGuardResult() {
  * transmis comme `exerciseId`, exactement comme `CompositionScreen.tsx` le
  * fait via `router.push({pathname: "/exercise", params: {exerciseId}})`).
  */
+/** `ActivityDefinitionService` doublé minimal — seule `listBodyZones` est exercée par le flux Composition (`CompositionExerciseEditor`). */
+function fakeActivityDefinitionService(
+  overrides: Partial<ActivityDefinitionService> = {},
+): ActivityDefinitionService {
+  return {
+    listBodyZones: jest
+      .fn<ActivityDefinitionService["listBodyZones"]>()
+      .mockResolvedValue(BODY_ZONE_FIXTURES),
+    ...overrides,
+  } as ActivityDefinitionService;
+}
+
 function renderScreen(draftExercise: SessionDraftExercise | null = null) {
   const updateDraft = jest.fn();
   mockSearchParams = draftExercise ? { exerciseId: draftExercise.id } : {};
   const contextValue: SessionDraftContextValue = {
     draft: {
       name: "Séance simple",
-      color: "#3B82F6",
+      labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       exercises: draftExercise ? [draftExercise] : [],
-      categoryDrafts: [],
-      selectedCategoryIds: [],
     },
     updateDraft,
     resetDraft: jest.fn(),
@@ -72,9 +99,11 @@ function renderScreen(draftExercise: SessionDraftExercise | null = null) {
 
   const { unmount } = render(
     <TestSafeAreaProvider>
-      <SessionDraftContext.Provider value={contextValue}>
-        <ExerciseScreen />
-      </SessionDraftContext.Provider>
+      <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+        <SessionDraftContext.Provider value={contextValue}>
+          <ExerciseScreen />
+        </SessionDraftContext.Provider>
+      </ActivityDefinitionServiceContext.Provider>
     </TestSafeAreaProvider>,
   );
 
@@ -214,23 +243,23 @@ describe("ExerciseScreen — Shell partagé (header/séparateur fixes, bandeau c
 
     const { UNSAFE_root } = render(
       <TestSafeAreaProvider>
-        <SessionDraftContext.Provider
-          value={{
-            draft: {
-              name: "Séance simple",
-              color: "#3B82F6",
-              initialCountdownSeconds: 10,
-              finalPhaseSeconds: 5,
-              exercises: [],
-              categoryDrafts: [],
-              selectedCategoryIds: [],
-            },
-            updateDraft: jest.fn(),
-            resetDraft: jest.fn(),
-          }}
-        >
-          <ExerciseScreen />
-        </SessionDraftContext.Provider>
+        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+          <SessionDraftContext.Provider
+            value={{
+              draft: {
+                name: "Séance simple",
+                labelId: null,
+                initialCountdownSeconds: 10,
+                finalPhaseSeconds: 5,
+                exercises: [],
+              },
+              updateDraft: jest.fn(),
+              resetDraft: jest.fn(),
+            }}
+          >
+            <ExerciseScreen />
+          </SessionDraftContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
       </TestSafeAreaProvider>,
     );
     const scrollViews = UNSAFE_root.findAllByType(ScrollView);
@@ -270,13 +299,13 @@ describe("ExerciseScreen — écran unifié et sections repliables (T02-S02, D-1
     expect(screen.queryByText("Informations complémentaires")).toBeNull();
   });
 
-  it("no longer exposes the Type d'activité segment: Récupération is a parameter, not an Activity type", () => {
+  it("no longer exposes the Type d'activité segment: an Activity is created directly in Durée/Répétitions/À l'échec mode", () => {
     renderScreen(null);
 
     expect(screen.queryByLabelText("Type d’activité")).toBeNull();
     expect(screen.queryByLabelText("Exercice")).toBeNull();
-    // « Récupération » n'existe plus que comme LIBELLÉ DE PARAMÈTRE.
-    expect(screen.getByTestId("exercise-field-recoverySeconds")).toBeTruthy();
+    expect(screen.queryByLabelText("Récupération")).toBeNull();
+    expect(screen.getByTestId("exercise-field-pauseSeconds")).toBeTruthy();
     expect(screen.queryByText("Paramètres de l’activité")).toBeNull();
   });
 
@@ -364,7 +393,6 @@ describe("ExerciseScreen — écran unifié et sections repliables (T02-S02, D-1
       "exercise-field-seriesCount",
       "exercise-field-duration",
       "exercise-field-pauseSeconds",
-      "exercise-field-recoverySeconds",
       "exercise-field-totalDuration",
     ]) {
       expect(screen.queryByTestId(field)).toBeNull();
@@ -501,8 +529,8 @@ describe("ExerciseScreen — unicité des noms accessibles des sections (T02-S02
     expandSection("exercise-section-description");
 
     const field = screen.getByTestId("exercise-instruction-input");
-    expect(field.props.accessibilityLabel).toBe("Description de l’activité");
-    expect(field.props.placeholder).toBe("Description de l’activité");
+    expect(field.props.accessibilityLabel).toBe("Description de l’exercice");
+    expect(field.props.placeholder).toBe("Description de l’exercice");
     expect(field.props.multiline).toBe(true);
   });
 });
@@ -642,7 +670,7 @@ describe("ExerciseScreen — segment Mode d'exécution (Controls / Segmented)", 
 });
 
 describe("ExerciseScreen — mode À l'échec (T01-S10, D-111, frame 3369:4236)", () => {
-  it("switching to À l'échec hides the Durée and Répétitions target fields, keeps Séries, Pause and Récupération, and needs only a valid Nom", () => {
+  it("switching to À l'échec hides the Durée and Répétitions target fields, keeps Séries and Pause, and needs only a valid Nom", () => {
     renderScreen(null);
     fireEvent.changeText(screen.getByLabelText(t.name), "Tractions");
     fireEvent.press(screen.getByLabelText(t.executionMode.toFailure));
@@ -651,7 +679,6 @@ describe("ExerciseScreen — mode À l'échec (T01-S10, D-111, frame 3369:4236)"
     expect(screen.queryByLabelText(t.repetitionCount.accessibilityLabel)).toBeNull();
     expect(screen.getByLabelText(t.pauseSeconds.accessibilityLabel)).toBeTruthy();
     expect(screen.getByLabelText(t.seriesCount.accessibilityLabel)).toBeTruthy();
-    expect(screen.getByLabelText(t.recoverySeconds.accessibilityLabel)).toBeTruthy();
 
     expect(screen.getByLabelText(t.finishAction).props.accessibilityState).toMatchObject({
       disabled: false,
@@ -884,7 +911,10 @@ describe("ExerciseScreen — bouton média désactivé, aucune section Médias (
 });
 
 describe("ExerciseScreen — Rangées compactes des paramètres (Activity / Parameter Row — Source exact)", () => {
-  it("renders TWO rows inside the 354-wide card: Séries/mode/Pause, then Récupération/Durée totale", () => {
+  // V2-PRE-1 (plan §3.1) : `ActivityEditorForm` ne porte plus le champ
+  // Récupération — la seconde rangée ne porte donc plus que le contrôle
+  // `Côté` et `Durée totale`.
+  it("renders TWO rows inside the 354-wide card: Séries/mode/Pause, then Côté/Durée totale", () => {
     renderScreen(null);
 
     const card = screen.getByTestId("exercise-parameter-card");
@@ -902,7 +932,7 @@ describe("ExerciseScreen — Rangées compactes des paramètres (Activity / Para
     expect(within(row).getByTestId("exercise-field-pauseSeconds")).toBeTruthy();
 
     const secondRow = screen.getByTestId("exercise-parameter-row-secondary");
-    expect(within(secondRow).getByTestId("exercise-field-recoverySeconds")).toBeTruthy();
+    expect(within(secondRow).getByTestId("exercise-side-mode")).toBeTruthy();
     expect(within(secondRow).getByTestId("exercise-field-totalDuration")).toBeTruthy();
   });
 
@@ -922,26 +952,13 @@ describe("ExerciseScreen — Rangées compactes des paramètres (Activity / Para
     ]);
   });
 
-  it("orders the second row as Récupération, then Durée totale (CE-T01-14)", () => {
-    renderScreen(null);
-
-    expect(
-      testIdOrder(screen.toJSON(), [
-        "exercise-field-recoverySeconds",
-        "exercise-field-totalDuration",
-      ]),
-    ).toEqual(["exercise-field-recoverySeconds", "exercise-field-totalDuration"]);
-  });
-
   /**
    * V2-BILAT-01 (plan `## UI`, « ligne 2, colonne 1, sous Séries ») : la
-   * seconde rangée place désormais le contrôle `Côté` en colonne 1 — même
-   * largeur que `Séries` (`narrowColumnWidth`) — ce qui aligne mécaniquement
-   * `Récupération` sous le contrôle du mode (`Durée`/`Répétitions`) et
-   * `Durée totale` sous `Pause`, sans plus jamais passer par une cale
-   * purement structurelle.
+   * seconde rangée place le contrôle `Côté` en colonne 1 — même largeur que
+   * `Séries` (`narrowColumnWidth`) — ce qui aligne mécaniquement `Durée
+   * totale` sous `Pause`.
    */
-  it("places Côté in column 1 of the second row, aligning Récupération under the mode control and Durée totale under Pause", () => {
+  it("places Côté in column 1 of the second row, aligning Durée totale under Pause", () => {
     renderScreen(null);
 
     const secondRow = screen.getByTestId("exercise-parameter-row-secondary");
@@ -950,21 +967,16 @@ describe("ExerciseScreen — Rangées compactes des paramètres (Activity / Para
       StyleSheet.flatten(screen.getByTestId("exercise-field-seriesCount").props.style).width,
     ).toBe(74);
     expect(
-      testIdOrder(screen.toJSON(), [
-        "exercise-side-mode",
-        "exercise-field-recoverySeconds",
-        "exercise-field-totalDuration",
-      ]),
-    ).toEqual(["exercise-side-mode", "exercise-field-recoverySeconds", "exercise-field-totalDuration"]);
+      testIdOrder(screen.toJSON(), ["exercise-side-mode", "exercise-field-totalDuration"]),
+    ).toEqual(["exercise-side-mode", "exercise-field-totalDuration"]);
   });
 
-  it("gives Durée, Pause, Récupération and Durée totale a 124pt column and Séries a 74pt column, with labels above each control", () => {
+  it("gives Durée, Pause and Durée totale a 124pt column and Séries a 74pt column, with labels above each control", () => {
     renderScreen(null);
 
     for (const [testID, label] of [
       ["exercise-field-duration", t.duration.label],
       ["exercise-field-pauseSeconds", t.pauseSeconds.compactLabel],
-      ["exercise-field-recoverySeconds", t.recoverySeconds.compactLabel],
       ["exercise-field-totalDuration", t.totalDuration.compactLabel],
     ] as const) {
       const field = screen.getByTestId(testID);
@@ -992,7 +1004,6 @@ describe("ExerciseScreen — Rangées compactes des paramètres (Activity / Para
       "exercise-field-duration",
       "exercise-field-pauseSeconds",
       "exercise-field-seriesCount",
-      "exercise-field-recoverySeconds",
       "exercise-field-totalDuration",
     ]) {
       const chevronBoxStyle = StyleSheet.flatten(
@@ -1026,7 +1037,6 @@ describe("ExerciseScreen — Rangées compactes des paramètres (Activity / Para
       "exercise-field-seriesCount-control",
       "exercise-field-duration-control",
       "exercise-field-pauseSeconds-control",
-      "exercise-field-recoverySeconds-control",
       "exercise-field-totalDuration-control",
     ]) {
       const control = screen.getByTestId(testID);
@@ -1039,98 +1049,6 @@ describe("ExerciseScreen — Rangées compactes des paramètres (Activity / Para
       expect(visualHeight + hitSlop.top + hitSlop.bottom).toBe(minTouchTarget);
       expect(minTouchTarget).toBe(48);
     }
-  });
-});
-
-/**
- * T02-S02 — Récupération ATTACHÉE (CE-T01-14) : même contrat de roulette
- * minutes/secondes que Durée et Pause (« `Durée`, `Pause`, `Récupération` et
- * `Durée totale` héritent du même contrat »), aucun écran supplémentaire.
- */
-describe("ExerciseScreen — Récupération attachée (T02-S02)", () => {
-  it("starts at 00 min 00 s — a neutral value, never a default recovery nobody asked for", () => {
-    renderScreen(null);
-
-    expect(
-      within(screen.getByTestId("exercise-field-recoverySeconds-control")).getByText(
-        "00 min 00 s",
-      ),
-    ).toBeTruthy();
-  });
-
-  it("opens the canonical duration wheel and applies the confirmed value to the control", () => {
-    renderScreen(null);
-
-    fireEvent.press(screen.getByTestId("exercise-field-recoverySeconds-control"));
-    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
-    expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
-
-    confirmDuration(1, 30);
-
-    expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
-    expect(
-      within(screen.getByTestId("exercise-field-recoverySeconds-control")).getByText(
-        "01 min 30 s",
-      ),
-    ).toBeTruthy();
-  });
-
-  it("Annuler discards the drafted Récupération (same draft/confirm contract as Durée)", () => {
-    renderScreen(null);
-
-    fireEvent.press(screen.getByTestId("exercise-field-recoverySeconds-control"));
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
-    fireEvent.press(screen.getByLabelText(t.wheelPicker.cancelAccessibilityLabel));
-
-    expect(
-      within(screen.getByTestId("exercise-field-recoverySeconds-control")).getByText(
-        "00 min 00 s",
-      ),
-    ).toBeTruthy();
-  });
-
-  it("adds the Récupération clause to the fixed recap and to the total duration", () => {
-    renderScreen(null);
-    fireEvent.changeText(screen.getByLabelText(t.name), "Pompes");
-
-    fireEvent.press(screen.getByTestId("exercise-field-recoverySeconds-control"));
-    confirmDuration(1, 0);
-
-    const summary = screen.getByTestId("exercise-summary-card");
-    expect(within(summary).getByText(/puis 1 min de récupération\.$/u)).toBeTruthy();
-    // Durée par défaut 30 s, 1 Série, aucune Pause → 30 + 60 = 90 s.
-    expect(within(summary).getByText("Durée totale : 1 min 30 s")).toBeTruthy();
-  });
-
-  it("restores an existing Activity's Récupération when reopened for edition", () => {
-    renderScreen({
-      ...createExerciseDraft("ex-1"),
-      name: "Gainage",
-      durationSeconds: 45,
-      recoverySeconds: 75,
-    });
-
-    expect(
-      within(screen.getByTestId("exercise-field-recoverySeconds-control")).getByText(
-        "01 min 15 s",
-      ),
-    ).toBeTruthy();
-  });
-
-  it("persists the Récupération through Terminer", () => {
-    const { updateDraft } = renderScreen({
-      ...createExerciseDraft("ex-1"),
-      name: "Gainage",
-      durationSeconds: 45,
-    });
-
-    fireEvent.press(screen.getByTestId("exercise-field-recoverySeconds-control"));
-    confirmDuration(0, 20);
-    fireEvent.press(screen.getByLabelText(t.finishAction));
-
-    expect(updateDraft).toHaveBeenCalledWith({
-      exercises: [expect.objectContaining({ id: "ex-1", recoverySeconds: 20 })],
-    });
   });
 });
 
@@ -1163,34 +1081,6 @@ describe("ExerciseScreen — pilotage Séries ↔ Durée totale (T02-S02)", () =
     // 4 × 30 + 4 × 15 = 180 s.
     expect(
       within(screen.getByTestId("exercise-field-totalDuration-control")).getByText("03 min 00 s"),
-    ).toBeTruthy();
-  });
-
-  /**
-   * T02-S02 (règle métier confirmée) : confirmer une Récupération retire la
-   * dernière Pause du total — la Durée totale dérivée baisse donc de `B` et
-   * remonte de `R`, jamais des deux à la fois.
-   */
-  it("recomputes the derived total the moment a Récupération replaces the last pause", () => {
-    renderScreen({
-      ...createExerciseDraft("ex-1"),
-      name: "Gainage",
-      durationSeconds: 30,
-      seriesCount: 3,
-      pauseSeconds: 15,
-    });
-
-    expect(
-      within(screen.getByTestId("exercise-field-totalDuration-control")).getByText("02 min 15 s"),
-    ).toBeTruthy();
-
-    fireEvent.press(screen.getByTestId("exercise-field-recoverySeconds-control"));
-    confirmDuration(0, 15); // Récupération ÉGALE à la Pause
-
-    // 3 × 30 + 2 × 15 + 15 = 135 s — inchangé : la Récupération a REMPLACÉ
-    // la dernière Pause, elle ne s'y est pas ajoutée (sinon 150 s).
-    expect(
-      within(screen.getByTestId("exercise-field-totalDuration-control")).getByText("02 min 15 s"),
     ).toBeTruthy();
   });
 
@@ -1729,7 +1619,7 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
     ).toBeTruthy();
   });
 
-  it("restores an existing Activity's instruction and body zones inside their collapsed sections", () => {
+  it("restores an existing Activity's instruction and body zones inside their collapsed sections", async () => {
     renderScreen({
       ...createExerciseDraft("ex-1"),
       name: "Gainage",
@@ -1742,6 +1632,7 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
     expect(screen.getByLabelText(t.instruction.label).props.value).toBe("Ne pas creuser le dos");
 
     expandSection("exercise-section-body-zones");
+    expect(await screen.findByLabelText("Dos")).toBeTruthy();
     expect(screen.getByLabelText("Dos").props.accessibilityState).toMatchObject({ checked: true });
   });
 
@@ -1755,23 +1646,23 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
     };
     render(
       <TestSafeAreaProvider>
-        <SessionDraftContext.Provider
-          value={{
-            draft: {
-              name: "Séance simple",
-              color: "#3B82F6",
-              initialCountdownSeconds: 10,
-              finalPhaseSeconds: 5,
-              exercises: [existing],
-              categoryDrafts: [],
-              selectedCategoryIds: [],
-            },
-            updateDraft,
-            resetDraft: jest.fn(),
-          }}
-        >
-          <ExerciseScreen />
-        </SessionDraftContext.Provider>
+        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+          <SessionDraftContext.Provider
+            value={{
+              draft: {
+                name: "Séance simple",
+                labelId: null,
+                initialCountdownSeconds: 10,
+                finalPhaseSeconds: 5,
+                exercises: [existing],
+              },
+              updateDraft,
+              resetDraft: jest.fn(),
+            }}
+          >
+            <ExerciseScreen />
+          </SessionDraftContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
       </TestSafeAreaProvider>,
     );
 
@@ -1798,23 +1689,23 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
     mockSearchParams = {};
     render(
       <TestSafeAreaProvider>
-        <SessionDraftContext.Provider
-          value={{
-            draft: {
-              name: "Séance simple",
-              color: "#3B82F6",
-              initialCountdownSeconds: 10,
-              finalPhaseSeconds: 5,
-              exercises,
-              categoryDrafts: [],
-              selectedCategoryIds: [],
-            },
-            updateDraft,
-            resetDraft: jest.fn(),
-          }}
-        >
-          <ExerciseScreen />
-        </SessionDraftContext.Provider>
+        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+          <SessionDraftContext.Provider
+            value={{
+              draft: {
+                name: "Séance simple",
+                labelId: null,
+                initialCountdownSeconds: 10,
+                finalPhaseSeconds: 5,
+                exercises,
+              },
+              updateDraft,
+              resetDraft: jest.fn(),
+            }}
+          >
+            <ExerciseScreen />
+          </SessionDraftContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
       </TestSafeAreaProvider>,
     );
     return { updateDraft };
@@ -1953,11 +1844,11 @@ describe("ExerciseScreen — modale d'abandon (D-094)", () => {
     expect(screen.queryByText("Abandonner les modifications ?")).toBeNull();
   });
 
-  it("arms the guard as soon as the local draft differs from its snapshot, including via the Récupération", () => {
+  it("arms the guard as soon as the local draft differs from its snapshot, including via Pause", () => {
     renderScreen(null);
     expect(mockExitGuard).toHaveBeenLastCalledWith(false, expect.any(Function));
 
-    fireEvent.press(screen.getByTestId("exercise-field-recoverySeconds-control"));
+    fireEvent.press(screen.getByTestId("exercise-field-pauseSeconds-control"));
     confirmDuration(0, 30);
 
     expect(mockExitGuard).toHaveBeenLastCalledWith(true, expect.any(Function));
@@ -1970,39 +1861,8 @@ describe("ExerciseScreen — modale d'abandon (D-094)", () => {
  * `IN_TOUR` d'un Tour bilatéral : visible, désactivé, proprement
  * `UNILATERAL`, nom accessible complétant explicitement l'indisponibilité.
  */
-describe("ExerciseScreen — contrôle Côté (V2-BILAT-01)", () => {
+describe("ExerciseScreen — contrôle Côté (V2-BILAT-01, V2-PRE-1)", () => {
   const sideModeStrings = strings.shared.sideMode;
-
-  function renderWithTourSideMode(
-    draftExercise: SessionDraftExercise,
-    tourSideMode: "UNILATERAL" | "RIGHT_LEFT" | "LEFT_RIGHT",
-  ) {
-    const updateDraft = jest.fn();
-    mockSearchParams = { exerciseId: draftExercise.id };
-    render(
-      <TestSafeAreaProvider>
-        <SessionDraftContext.Provider
-          value={{
-            draft: {
-              name: "Séance simple",
-              color: "#3B82F6",
-              initialCountdownSeconds: 10,
-              finalPhaseSeconds: 5,
-              tourSideMode,
-              exercises: [draftExercise],
-              categoryDrafts: [],
-              selectedCategoryIds: [],
-            },
-            updateDraft,
-            resetDraft: jest.fn(),
-          }}
-        >
-          <ExerciseScreen />
-        </SessionDraftContext.Provider>
-      </TestSafeAreaProvider>,
-    );
-    return { updateDraft };
-  }
 
   it("is rendered in column 1 of the second parameter row, beneath Séries, in every execution mode, with the visible title 'Côté'", () => {
     for (const executionMode of ["DURATION", "REPETITIONS", "TO_FAILURE"] as const) {
@@ -2015,10 +1875,9 @@ describe("ExerciseScreen — contrôle Côté (V2-BILAT-01)", () => {
     }
   });
 
-  it("is visually empty by default (UNILATERAL, never the word 'Unilatéral'), and cycles to D→G then G→D on successive presses", () => {
+  it("displays the explicit 'Aucun' value by default (UNILATERAL, V2-PRE-1 round 3), and cycles to D→G then G→D on successive presses", () => {
     renderScreen({ ...createExerciseDraft("ex-1") });
-    expect(screen.queryByText("Unilatéral")).toBeNull();
-    expect(screen.getByTestId("exercise-side-mode-value").props.children).toBe("");
+    expect(screen.getByTestId("exercise-side-mode-value").props.children).toBe("Aucun");
 
     fireEvent.press(screen.getByTestId("exercise-side-mode-control"));
     expect(screen.getByText(sideModeStrings.valueLabels.RIGHT_LEFT)).toBeTruthy();
@@ -2027,10 +1886,10 @@ describe("ExerciseScreen — contrôle Côté (V2-BILAT-01)", () => {
     expect(screen.getByText(sideModeStrings.valueLabels.LEFT_RIGHT)).toBeTruthy();
   });
 
-  it("exposes the exact accessible labels 'Côté : unilatéral' / 'bilatéral, droite puis gauche' / 'bilatéral, gauche puis droite'", () => {
+  it("exposes the exact accessible labels 'Changement de côté : Aucun' / 'bilatéral, droite puis gauche' / 'bilatéral, gauche puis droite'", () => {
     renderScreen({ ...createExerciseDraft("ex-1") });
     expect(screen.getByTestId("exercise-side-mode-control").props.accessibilityLabel).toBe(
-      "Côté : unilatéral",
+      "Changement de côté : Aucun",
     );
 
     fireEvent.press(screen.getByTestId("exercise-side-mode-control"));
@@ -2044,36 +1903,17 @@ describe("ExerciseScreen — contrôle Côté (V2-BILAT-01)", () => {
     );
   });
 
-  it("is enabled for a BEFORE_TOUR Activity, even under a bilateral Tour", () => {
-    renderWithTourSideMode(
-      { ...createExerciseDraft("ex-1"), structuralPosition: "BEFORE_TOUR" },
-      "RIGHT_LEFT",
-    );
-    expect(screen.getByTestId("exercise-side-mode-control").props.accessibilityState).toMatchObject(
-      { disabled: false },
-    );
-  });
-
-  it("is disabled for an IN_TOUR Activity governed by a bilateral Tour, appending the exact inherited suffix to its accessible label", () => {
-    renderWithTourSideMode(
-      { ...createExerciseDraft("ex-1"), structuralPosition: "IN_TOUR" },
-      "RIGHT_LEFT",
-    );
-    const control = screen.getByTestId("exercise-side-mode-control");
-    expect(control.props.accessibilityState).toMatchObject({ disabled: true });
-    expect(control.props.accessibilityLabel).toBe(
-      "Côté : unilatéral — défini par le Tour, indisponible",
-    );
-  });
-
-  it("is enabled for an IN_TOUR Activity when the Tour stays unilateral", () => {
-    renderWithTourSideMode(
-      { ...createExerciseDraft("ex-1"), structuralPosition: "IN_TOUR" },
-      "UNILATERAL",
-    );
-    expect(screen.getByTestId("exercise-side-mode-control").props.accessibilityState).toMatchObject(
-      { disabled: false },
-    );
+  // V2-PRE-1 (plan §3.3) : le Circuit n'a plus de direction propre — le
+  // contrôle `Côté` d'un Exercice reste donc TOUJOURS activé, quelle que
+  // soit sa position structurelle (jamais désactivé par héritage).
+  it("stays enabled regardless of the Activity's structural position", () => {
+    for (const structuralPosition of ["BEFORE_TOUR", "IN_TOUR", "AFTER_TOUR"] as const) {
+      const { unmount } = renderScreen({ ...createExerciseDraft("ex-1"), structuralPosition });
+      expect(screen.getByTestId("exercise-side-mode-control").props.accessibilityState).toMatchObject(
+        { disabled: false },
+      );
+      unmount();
+    }
   });
 
   it("persists the chosen side mode through Terminer", () => {
@@ -2091,19 +1931,16 @@ describe("ExerciseScreen — contrôle Côté (V2-BILAT-01)", () => {
     });
   });
 
-  it("correction bornée (plan '## 3', étape 3) : transmet le contexte d'héritage déjà calculé à la synthèse — direction développée conservée pour une Activité PROPRE bilatérale hors héritage", () => {
-    renderWithTourSideMode(
-      {
-        ...createExerciseDraft("ex-1"),
-        name: "Fentes",
-        structuralPosition: "BEFORE_TOUR",
-        seriesCount: 3,
-        durationSeconds: 90,
-        pauseSeconds: 15,
-        sideMode: "RIGHT_LEFT",
-      },
-      "UNILATERAL",
-    );
+  it("keeps the developed direction clause in the recap for a bilateral Activity, its own direction never inherited from anything", () => {
+    renderScreen({
+      ...createExerciseDraft("ex-1"),
+      name: "Fentes",
+      structuralPosition: "IN_TOUR",
+      seriesCount: 3,
+      durationSeconds: 90,
+      pauseSeconds: 15,
+      sideMode: "RIGHT_LEFT",
+    });
 
     expect(
       within(screen.getByTestId("exercise-summary-card")).getByText(
@@ -2112,59 +1949,29 @@ describe("ExerciseScreen — contrôle Côté (V2-BILAT-01)", () => {
     ).toBeTruthy();
   });
 
-  it("correction bornée : omet la direction développée de la synthèse pour une Activité IN_TOUR dont la direction est HÉRITÉE d'un Tour déjà bilatéral", () => {
-    renderWithTourSideMode(
-      {
-        ...createExerciseDraft("ex-1"),
-        name: "Fentes",
-        structuralPosition: "IN_TOUR",
-        seriesCount: 3,
-        durationSeconds: 90,
-        pauseSeconds: 15,
-        sideMode: "UNILATERAL",
-      },
-      "RIGHT_LEFT",
-    );
-
-    const summary = within(screen.getByTestId("exercise-summary-card")).getByText(
-      /3 séries de Fentes de 1 min 30 s/,
-    );
-    expect(summary).toBeTruthy();
-    expect(screen.queryByText(/à droite, puis à gauche/)).toBeNull();
-    expect(screen.queryByText(/par côté/)).toBeNull();
-  });
-
-  it("le contrôle Activité et le contrat de route restent inchangés par la transmission de l'héritage (aucun paramètre supplémentaire requis)", () => {
-    renderWithTourSideMode(
-      { ...createExerciseDraft("ex-1"), structuralPosition: "BEFORE_TOUR" },
-      "UNILATERAL",
-    );
-    expect(screen.getByTestId("exercise-side-mode-control").props.accessibilityState).toMatchObject(
-      { disabled: false },
-    );
-    expect(mockSearchParams).toEqual({ exerciseId: "ex-1" });
-  });
-
-  it("doubles the displayed total duration for a bilateral direction, without ever doubling the Récupération", () => {
+  // V2-PRE-1 (plan §3.1) : `ActivityEditorForm` ne porte plus de champ
+  // Récupération — la formule « Durée totale » de l'éditeur n'inclut donc
+  // plus jamais de terme `R` (toujours `0`), seule la part Séries/Pause est
+  // doublée par une direction bilatérale.
+  it("doubles the displayed total duration for a bilateral direction", () => {
     renderScreen({
       ...createExerciseDraft("ex-1"),
       name: "Gainage",
       durationSeconds: 30,
       seriesCount: 3,
       pauseSeconds: 15,
-      recoverySeconds: 20,
     });
 
-    // Unilatéral (défaut) : 3×30 + 2×15 + 20 = 140 s -> "2 min 20 s".
+    // Unilatéral (défaut) : 3×30 + 3×15 = 135 s -> "2 min 15 s".
     expect(
-      within(screen.getByTestId("exercise-summary-card")).getByText("Durée totale : 2 min 20 s"),
+      within(screen.getByTestId("exercise-summary-card")).getByText("Durée totale : 2 min 15 s"),
     ).toBeTruthy();
 
     fireEvent.press(screen.getByTestId("exercise-side-mode-control"));
 
-    // Bilatéral : (3×30 + 2×15) × 2 + 20 (jamais doublée) = 260 s -> "4 min 20 s".
+    // Bilatéral : (3×30 + 3×15) × 2 = 270 s -> "4 min 30 s".
     expect(
-      within(screen.getByTestId("exercise-summary-card")).getByText("Durée totale : 4 min 20 s"),
+      within(screen.getByTestId("exercise-summary-card")).getByText("Durée totale : 4 min 30 s"),
     ).toBeTruthy();
   });
 });
@@ -2185,11 +1992,23 @@ describe("ExerciseScreen — adaptateur Catalogue (V2-CAT-01)", () => {
     repetitionCount: null,
     seriesCount: 3,
     pauseSeconds: 10,
-    recoverySeconds: 0,
-    bodyZoneIds: [],
+    categoryId: "cardio",
+    bodyZoneIds: ["cuisses"],
     sideMode: "UNILATERAL",
+    sideRecoverySeconds: 0,
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
+  };
+
+  const A_CATEGORY = {
+    id: "cardio",
+    name: "Cardio",
+    canonicalKey: "cardio",
+    color: "#3B82F6" as const,
+    isPredefined: true,
+    displayOrder: 1,
+    isActive: true,
+    createdAt: "2026-01-01T00:00:00.000Z",
   };
 
   function renderCatalogueScreen(
@@ -2197,13 +2016,29 @@ describe("ExerciseScreen — adaptateur Catalogue (V2-CAT-01)", () => {
     service: Partial<ActivityDefinitionService>,
   ) {
     mockSearchParams = { catalogueDefinitionId };
+    const merged: Partial<ActivityDefinitionService> = {
+      listCategories: jest
+        .fn<ActivityDefinitionService["listCategories"]>()
+        .mockResolvedValue([A_CATEGORY]),
+      listBodyZones: jest
+        .fn<ActivityDefinitionService["listBodyZones"]>()
+        .mockResolvedValue(BODY_ZONE_FIXTURES),
+      ...service,
+    };
     return render(
       <TestSafeAreaProvider>
-        <ActivityDefinitionServiceContext.Provider value={service as ActivityDefinitionService}>
+        <ActivityDefinitionServiceContext.Provider value={merged as ActivityDefinitionService}>
           <ExerciseScreen />
         </ActivityDefinitionServiceContext.Provider>
       </TestSafeAreaProvider>,
     );
+  }
+
+  /** Sélectionne la Catégorie `Cardio` via la modale de sélection (D-211). */
+  async function selectCardioCategory() {
+    fireEvent.press(screen.getByTestId("activity-editor-category-button"));
+    const tag = await screen.findByTestId("activity-editor-category-tag-cardio");
+    fireEvent.press(tag);
   }
 
   it("creates a new ActivityDefinition on Terminer, never touching the session draft", async () => {
@@ -2217,6 +2052,7 @@ describe("ExerciseScreen — adaptateur Catalogue (V2-CAT-01)", () => {
     });
 
     fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Squat");
+    await selectCardioCategory();
     expect(screen.getByLabelText(t.finishAction).props.accessibilityState).toMatchObject({
       disabled: false,
     });
@@ -2225,6 +2061,9 @@ describe("ExerciseScreen — adaptateur Catalogue (V2-CAT-01)", () => {
 
     await waitFor(() => expect(mockBack).toHaveBeenCalled());
     expect(createActivityDefinition).toHaveBeenCalledTimes(1);
+    expect(createActivityDefinition).toHaveBeenCalledWith(
+      expect.objectContaining({ category: { kind: "EXISTING", categoryId: "cardio" } }),
+    );
   });
 
   it("prefills the editor exactly when modifying an existing ActivityDefinition", async () => {
@@ -2243,6 +2082,7 @@ describe("ExerciseScreen — adaptateur Catalogue (V2-CAT-01)", () => {
     renderCatalogueScreen("new", { createActivityDefinition });
 
     fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Squat");
+    await selectCardioCategory();
     fireEvent.press(screen.getByLabelText(t.finishAction));
 
     expect(await screen.findByTestId("activity-editor-save-error")).toBeTruthy();
