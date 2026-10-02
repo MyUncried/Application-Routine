@@ -142,6 +142,11 @@ jobs:
               $reviewReplay=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-review-replayed.json'
               $finalApplication=Join-Path $env:RUNNER_TEMP ('kodjo-final-proof-'+[guid]::NewGuid().ToString())
               $reviewVerifier=Join-Path $env:GITHUB_WORKSPACE 'scripts/kodjo/verify-ui-implementation-review.js'
+              # Same nominative DEVICE_CHECK derogation as the implementation review, read from the
+              # trusted protocol checkout (main), never from the application HEAD.
+              $derogation=Join-Path $env:GITHUB_WORKSPACE ('.github/orchestration/v2-slices/'+$slice+'/device-check-derogation.json')
+              if(Test-Path -LiteralPath $derogation -PathType Leaf){$env:KODJO_DEVICE_CHECK_DEROGATION_FILE=$derogation}else{Remove-Item Env:KODJO_DEVICE_CHECK_DEROGATION_FILE -ErrorAction SilentlyContinue}
+              $env:SLICE_ID=$slice
               git worktree add --detach -- $finalApplication $head
               if($LASTEXITCODE-ne0){throw 'Exact application HEAD unavailable for final proof'}
               Push-Location $finalApplication

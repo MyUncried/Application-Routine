@@ -62,3 +62,12 @@ test('the published review states the non-executed derogated proof in clear text
   const wf=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-implementation-review.yml'),'utf8');
   assert.ok(wf.includes('"DEVICE_CHECK_DEROGATION: \\(.requirement_id) \\(.proof_type) \\(.status) — decided_by \\(.decided_by); not satisfied by \\(.not_satisfied_by|join(","))'));
 });
+
+test('the finalization replay of the review receives the same derogation from the protocol checkout',()=>{
+  const wf=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-finalize.yml'),'utf8').replace(/\r\n/g,'\n');
+  const i=wf.indexOf('device-check-derogation.json');const j=wf.indexOf('node $reviewVerifier validate');
+  assert.ok(i>0&&j>i,'derogation must be set before the replay');
+  assert.ok(wf.includes("$derogation=Join-Path $env:GITHUB_WORKSPACE ('.github/orchestration/v2-slices/'+$slice+'/device-check-derogation.json')"));
+  assert.ok(wf.includes('$env:KODJO_DEVICE_CHECK_DEROGATION_FILE=$derogation'));
+  assert.ok(wf.includes('$env:SLICE_ID=$slice'));
+});
