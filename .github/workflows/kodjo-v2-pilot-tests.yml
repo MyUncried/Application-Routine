@@ -138,7 +138,7 @@ jobs:
 
   protocol-windows-preflight:
     needs: protocol
-    if: needs.protocol.outputs.full_windows_required == 'true'
+    if: needs.protocol.outputs.full_windows_required == 'true' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository))
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     # Run 36841216722 exhausted 25 minutes during the complete Windows suite.
     # Retain all controls and leave a bounded budget for suite + preflight.

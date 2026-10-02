@@ -87,7 +87,7 @@ jobs:
 
   architecture-audit:
     # One early read-only architecture audit, never a final approval or PRE-1 gate.
-    if: github.event_name == 'pull_request' && startsWith(github.head_ref, 'protocol/vnext-proof-stability-') && github.event.action == 'opened' && github.run_attempt == 1
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.head_ref, 'protocol/vnext-proof-stability-') && github.event.action == 'opened' && github.run_attempt == 1
     needs: qualification
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 60

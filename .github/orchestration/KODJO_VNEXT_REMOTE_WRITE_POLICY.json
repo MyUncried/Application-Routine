@@ -74,12 +74,12 @@
     },
     {
       "path": ".github/workflows/kodjo-e2e-orchestration-test-v1-3.yml",
-      "blob_oid": "6c2899525dd490300468c4575c645d02591f1622",
+      "blob_oid": "3edc87a07ac12db854ddcb4588a6edb7d8d7446d",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
       "path": ".github/workflows/kodjo-e2e-t1-t6-v1-3.yml",
-      "blob_oid": "7d91a21fbe957a95aeefee90d98ce336e6b4d726",
+      "blob_oid": "909617637ea321302cbe90842a17f2013b8775f0",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -174,7 +174,7 @@
     },
     {
       "path": ".github/workflows/kodjo-v14-s09-implementation-local.yml",
-      "blob_oid": "9b1f13042ea1c02d463aaaedcaecd1b2e62062ba",
+      "blob_oid": "5daa96dd48a6b215a8dd7490ea0b34a538f40dad",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -229,7 +229,7 @@
     },
     {
       "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
-      "blob_oid": "16711cec0cd3629bf2e94bc776d563126c6e47ec",
+      "blob_oid": "b58d9af1e2bea20b29e6bad4080222bfcc9a2dfa",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -304,12 +304,12 @@
     },
     {
       "path": ".github/workflows/t01-s09-implementation-v1-3-temporary.yml",
-      "blob_oid": "94068bb7b1f0405e9e68fde8bb1da68ccc975686",
+      "blob_oid": "313f0f2dd9ccca4d4a7b746015934db27800b04b",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
       "path": ".github/workflows/t01-s09-plan-revision-v1-3-temporary.yml",
-      "blob_oid": "f0f053db021f273ea82c1014895905321c8cd7f5",
+      "blob_oid": "7c96ecbfb00334fad6efdd7059341368b971e5b9",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     }
   ],

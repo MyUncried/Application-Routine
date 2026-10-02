@@ -1,14 +1,37 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-02T14:36:23.392556+00:00",
+  "recorded_at": "2026-10-02T23:11:21Z",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "9895877b9230c902eea229841a46a8c18c437f41",
-  "controller_stage": "STEP3_COMPLETE_DEVICE_FINALIZATION_FIX_PENDING_QUALIFICATION",
-  "controller_generation": 32,
+  "controller_stage": "STEP3_COMPLETE_V8_TRIGGER_SECURITY_PENDING_QUALIFICATION",
+  "controller_generation": 33,
+  "audit_v8_revision": {
+    "audited_head": "c0f72fc2148a5955b9a810a8aca1f6eeefa64870",
+    "observed_main_head": "8fc58a466679a85ea74752f0273939f901efa1b8",
+    "first_tranche": {
+      "findings": ["D10", "D13", "D14"],
+      "status": "IMPLEMENTED_LOCAL_PENDING_EXACT_CANDIDATE_CI",
+      "targeted_tests": { "pass": 35, "fail": 0, "skip": 0 },
+      "frozen_writer_rows_updated": 6,
+      "historical_subjects_preserved": 420,
+      "main_modified": false,
+      "claude_runtime_executed": false,
+      "report": ".github/orchestration/reports/2026-10-03_VNEXT_V8_TRIGGER_SECURITY.md"
+    },
+    "next_tranches": [
+      "D11: neutralize Git hooks/fsmonitor and secure publication credentials/metadata without weakening recovery.",
+      "D3/D1/D2: reconcile main/VNext and align deferred device proofs; authenticate exact source comments and preserve the PRE-1 SQLite waiver.",
+      "D8/D7/D6: bind downstream plans, independent review coverage and bounded causal revision to real evidence.",
+      "D9/D12/D15/D16/D17/D18: close scanner/import/lock/preflight gaps with focused negative tests.",
+      "Qualify the exact revised candidate, then execute fresh disposable INITIAL/REVISION with new identities and genuine independent review."
+    ],
+    "promotion_authorized": false,
+    "final_or_cutover_authorized": false
+  },
   "steps": [
     {
       "step": 1,
@@ -71,7 +94,8 @@
     "full_linux_ci_is_authoritative": true
   },
   "pending_actions": [
-    "Observe exact-candidate Linux/Windows qualification and persist actual results for device finalization fix."
+    "Observe and persist exact-candidate Linux/Windows qualification for the v8 D10/D13/D14 trigger-security tranche; hold HEAD stable during Windows preflight.",
+    "Continue the remaining audit-v8 revision tranches recorded in audit_v8_revision; do not replay consumed INITIAL/REVISION requests, activate VNext or merge."
   ],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
