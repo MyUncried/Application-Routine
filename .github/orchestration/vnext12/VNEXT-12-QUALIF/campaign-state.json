@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-01T22:35:15.578541+00:00",
+  "recorded_at": "2026-10-02T09:15:48.777993+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "9895877b9230c902eea229841a46a8c18c437f41",
-  "controller_stage": "STEP3_REQUALIFICATION_PREPARE_REVISION",
-  "controller_generation": 25,
+  "controller_stage": "STEP3_REQUALIFICATION_QUALIFY_REVISION_DOSSIER",
+  "controller_generation": 26,
   "steps": [
     {
       "step": 1,
@@ -71,8 +71,8 @@
     "full_linux_ci_is_authoritative": true
   },
   "pending_actions": [
-    "Collect real REVISE then one causal correction and APPROVE for fresh bounded REVISION; hold HEAD stable while runs are active.",
-    "After completing current protocol campaign, implement preventive Claude foreground settings with targeted validation; do not replay INITIAL."
+    "Qualify exact new REVISION dossier Linux/Windows; then exact gate approval, fresh admission and EXECUTE_REVISION.",
+    "After campaign, foreground Claude settings, reduced source archives, explicit Routine Dev sync preserving exact review/HEAD."
   ],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
@@ -242,7 +242,7 @@
   },
   "requalification_campaign": {
     "campaign_id": "06f35a5b-db9c-4448-ab28-c7b778cba368",
-    "status": "INITIAL_PASS_REVISION_PREPARATION_REQUESTED",
+    "status": "QUALIFYING_REVISION_DOSSIER",
     "base_head": "e703a68823a3c090b518714b194dfbb3a51809d1",
     "requested_at": "2026-10-01T19:39:40.565207+00:00",
     "user_instruction": "donc on rejoue maintenant Initial et revision avec ce nouveau protocole.",
@@ -314,7 +314,47 @@
       }
     },
     "revision": {
-      "status": "REAL_PREPARATION_REQUESTED"
+      "status": "PREPARED_REAL_BOUNDED_APPROVE",
+      "candidate_head": "eef6fb596c36301047ae90afbd31adbf2d401391",
+      "base_verdict": "REVISE",
+      "revision_verdict": "APPROVE",
+      "base_session": "f3d2f9ad-3b55-4d75-8287-34ac717fc5c9",
+      "revision_session": "963200fd-8221-44b7-a33e-a7e2badce137",
+      "revision_count": 1,
+      "revision_limit": 1,
+      "implementation_invoked": false,
+      "final_audit_invoked": false,
+      "campaign_id": "06f35a5b-db9c-4448-ab28-c7b778cba368",
+      "run_id": 36936098221,
+      "job_id": 110620831497,
+      "artifact_id": 11199998426,
+      "artifact_sha256": "2cf9b28784654f6088507107046276d0f2e79004cc5573661a65888c669a58cb",
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/revision/preparation-artifact.zip",
+      "artifact_members": {
+        "base-produced.json": "1cf3c29c4354eaad6fde531d1dc6280c1b89896434758a436247bbc2f3fcb896",
+        "allowed-change-set.json": "3c9f6c771f4896c281851dcac63a45cebb82f467db708a8cd653886917a8dbad",
+        "base-recipe.json": "62fd4c1abe08ccb6a2915faf03bb56d3df448db9260a624db8d869f1b874f6d9",
+        "base-review-receipt.json": "aafbf3282ad86dbc749849fa08690887b5ed2d323fe581100b6795028b488874",
+        "benchmark-declaration.json": "0d8ac4e12eec4d6ccd9bbcf331a67567d11ce2f365a1f566e5a5b778b5b383c0",
+        "revision-artifacts.json": "0161d7792cb9ec388b175ef2a157fb231c96dfea7cea09cde5785b388e51a155",
+        "prepared.json": "e82151ad0bbed37aaeb12959d81ffdc1b5ec9233ff7a6d05fe58e589cf8e910e",
+        "publication.json": "58f7f0be09c8ee8aff6a2a04d7863973d794ad5ac7cd1e40920e1865af81ae56",
+        "revision-patch.json": "fc403969af59f9c07a1540ee082754da1b9d676dbf111e71bb54be7870bfe089",
+        "revision-produced.json": "d6008573099b97272c0436f9e0c22be0923b6eab7637c5b2e4dd14b37fc7ae4b",
+        "revision-recipe.json": "d69a6104934382dd55b1355556f19bd2012074f1d522b0c9e3a31508c09b2ceb",
+        "revision-review-receipt.json": "492c9ff37110bb7f3f883d0fb028329ac920ac4cace71549ae6ad30a12687b69",
+        "status.json": "10fe7363ff29d374631d212a708823e72414dd7717daa93891426e0206e2b6fa",
+        "transport.json": "5fa28d1deee7c57c53bbd6339d8ed68aded980ae23b67528dc935b4990021ff8"
+      },
+      "prepared_chain_hash": "a079948398331b5b38a819669a03ce59f5c95a8a43bed9897c3a927c26d4fab7",
+      "request_id": "3287a592-43f8-4e77-a7d6-f414a1061f70",
+      "gate_ref": "issue_comment:5948929682",
+      "gate_reserved_only": true,
+      "approval_observed": false,
+      "human_review_performed": false,
+      "execution_invoked": false,
+      "outcome": "RESOLVED",
+      "preparation_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/revision/preparation-evidence.json"
     },
     "old_consumed_requests_forbidden": [
       "d851f5fe-6ce5-4bb1-a615-ea2116cf04e1",
@@ -329,6 +369,27 @@
       "observed_failure_this_initial": false,
       "implementation_status": "DEFERRED_UNTIL_CURRENT_CAMPAIGN_COMPLETE",
       "user_preference": "Targeted validation; avoid repeating complete certification campaign"
-    }
+    },
+    "pending_protocol_fixes": [
+      {
+        "kind": "CLAUDE_FOREGROUND_CHECKS",
+        "source_commit": "c6bda99c",
+        "proof_run": 36932540055,
+        "status": "DEFERRED_UNTIL_CURRENT_CAMPAIGN_COMPLETE"
+      },
+      {
+        "kind": "REDUCE_COMPLETE_SOURCE_ARCHIVES",
+        "status": "DEFERRED_UNTIL_CURRENT_CAMPAIGN_COMPLETE",
+        "preserve_referenced_archives": true
+      },
+      {
+        "kind": "EXPLICIT_ROUTINE_DEV_SYNC",
+        "source_commit": "8c5650f0",
+        "report_commit": "e719214b",
+        "proof_run": 36938795033,
+        "status": "DEFERRED_UNTIL_CURRENT_CAMPAIGN_COMPLETE",
+        "automatic_trigger_not_delivered": true
+      }
+    ]
   }
 }

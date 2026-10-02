@@ -1,10 +1,10 @@
 {
-  "stage": "PREPARE_REVISION",
+  "stage": "QUALIFY_ONLY",
   "slice_id": "VNEXT-12-QUALIF",
   "campaign_id": "06f35a5b-db9c-4448-ab28-c7b778cba368",
   "revision_limit": 1,
   "preparation_generation": 11,
-  "generation": 22,
+  "generation": 23,
   "preflight_format": "VNEXT_EXECUTION_REQUEST",
   "final_audit_authorized": false,
   "pre1_in_scope": false,
