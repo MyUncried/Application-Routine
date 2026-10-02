@@ -169,7 +169,7 @@ Les réactions Figma utilisent ON_CLICK puis AFTER_TIMEOUT de 10 ms pour la dém
 | Zones corporelles | Ancienne icône body/man-outline | Famille silhouette Homme/Femme | Cartes, Profil, éditeur | Validé, RG-5/RG-10 |
 | Bilatéral | Texte « de chaque côté » | Miroir dans les variantes concernées | Exercice Catalogue/choix | Validé |
 | Prochaine planification | D-206 impose une ligne conditionnelle | Ligne retirée du rendu | Deux Catalogues | Validé ; D-206 révisée sur l’affichage seul |
-| Pause/récupération | Synthèses documentées et D-208 | Absentes de certaines synthèses graphiques | Catalogue, choix, Composition | Validé ; affichage révisé, données et calculs D-208 conservés |
+| Pause/récupération | Synthèses documentées et D-208 | Absentes de certaines synthèses graphiques | Catalogue, choix, Composition | Validé ; affichage révisé, données conservées ; calculs révisés par D-248/v12 |
 | Format de synthèse | Format métier existant | N séries de X / N séries de N rép. / N séries à l’échec | Exercice | Validé |
 | Heure / classement | Formats et agrégations existants | 08:00 en Semaine, 18 h 42 en Suivi ; étiquette sinon catégories | Cartes | Validé |
 | Appui | Non décrit dans le DSF documentaire courant | Démonstrations et variantes accessibilité identifiées | Contrôles | Spécification v2 du 29/09 reprise ; action immédiate au relâchement |
@@ -238,7 +238,7 @@ Total rapporté par le propriétaire : 133 cartes / 38 écrans / environ 27 inte
 22. ANI-04 : l’action se déclenche au relâchement sans attendre le ressort ; une sortie du doigt annule l’action.
 23. ANI-05 : un appui rapide interrompt et reprend l’animation depuis son état courant.
 24. ANI-06 : le stepper répète après 450 ms puis toutes les 150 ms et s’arrête au relâchement.
-25. DAT-02 : les calculs D-208, les sources de Routine et les instantanés restent inchangés.
+25. DAT-02 : les sources de Routine et les instantanés historiques sont conservés ; les calculs actifs suivent D-248/v12.
 
 26. MED-05 : avec photo d’exercice, aucun bouton Déployer.
 27. MED-06 : vignette centrée et recadrée sans déformation ; couverture pour la vidéo.

@@ -57,20 +57,20 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | ID | Règle |
 | --- | --- |
 | RM-033 | Le modèle cible ne possède aucun type d’Exercice `Exercice` ou `Récupération`. Un Exercice utilise exactement un mode parmi Durée, Répétitions et À l’échec. |
-| RM-034 | Un Exercice porte une Pause entre Séries d’un même côté et peut porter `sideRecoverySeconds` lorsqu’elle est bilatérale. La récupération après exercice n’est pas une propriété de l’`ActivityDefinition` mais de l’occurrence dans une Séance/Parcours. |
+| RM-034 | Uniforme : cible/Pause communes ; variable : paramètres ordonnés propres à chaque Série. PC intrinsèque ; R contextuelle à l’occurrence. |
 | RM-035 | Toute Exercice possède un nombre entier de Séries de 1 à 99 (D-092) ; la valeur initiale est 1. |
-| RM-036 | Une Série correspond à l’exécution de la cible du mode. Pour `C` Séries d’un même côté, une Pause éventuelle est insérée exactement `C − 1` fois, toujours entre Séries successives ; une Série n’est pas une entité métier autonome. |
-| RM-037 | À la transition entre côtés, utiliser une seule pause : pC si la pause de changement de côté pC est positive, sinon la pause entre Séries pS. Les deux ne se cumulent jamais. La transition vaut donc q=(pC>0 ? pC : pS) en bilatéral et q=0 en unilatéral. Les N−1 pauses internes à chaque côté restent inchangées. Cette règle vaut aussi au passage anticipé vers le second côté. Si q=0, passer directement au second côté. La phase de transition conserve le rôle SIDE_RECOVERY, avec durée effective q, sans modifier la valeur pC enregistrée. |
-| RM-038 | Toute occurrence de Séance/Parcours porte `postActivityRecoverySeconds`, y compris à `0 s`. La récupération après exercice est exécutée après l’occurrence ; si elle est positive, elle constitue une phase chronométrée. Après le dernier Exercice d’une Séance elle précède `SESSION_END`; lorsqu’elle appartient au Circuit, elle est exécutée à chaque Tour. |
+| RM-036 | Une Série est une définition cible/Pause subordonnée à l’Exercice ; N1..99 par côté, modes non mélangés. Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v12 §§3–5, D-247 à D-250. |
+| RM-037 | L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de v12 §4 ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante. |
+| RM-038 | Récupération contextuelle présente même à0. R=0 conserve PN ; R>0 remplace PN de fin d’Exercice complet à chaque occurrence/Tour, y compris dernière occurrence. La définition de PN reste inchangée. |
 | RM-039 | Un nouvel Exercice valide est associé à une ou plusieurs Zones corporelles ; la sélection reste multiple. |
 | RM-040 | Les Zones corporelles constituent un référentiel utilisateur administrable : sélection multiple sur un Exercice, création, renommage et suppression sont autorisés dans le MVP. Une suppression utilisée demande confirmation, retire la valeur des choix futurs, conserve les associations des Exercices existants et préserve les Instantanés/Exécutions historiques. |
 | RM-200 | Dans les modales de sélection des Étiquettes, Catégories et Zones corporelles, l’appui court valide et ferme une sélection simple ou sélectionne/désélectionne en sélection multiple (D-222) ; l’appui long ouvre une confirmation de suppression sans modifier la sélection. Toutes les valeurs sont supprimables, initiales comme personnalisées. `Annuler` ne modifie rien ; `Supprimer` retire la valeur des nouveaux choix, conserve les affectations existantes sur les objets déjà enregistrés, puis conserve la modale de sélection ouverte. L’historique reste inchangé. |
 | RM-041 | Dans le MVP, le média associé à un Exercice peut être affiché dans la carte déployée du Catalogue. Les capacités d’import/capture et de gestion multiple suivent leur périmètre propre. |
 | RM-042 | L’action de validation de l’édition d’un Exercice est libellée `Terminer`. |
-| RM-129 | En mode Durée, la durée intrinsèque d’un Exercice vaut `C×A + (C−1)×B` en unilatéral et `2×[C×A + (C−1)×B] + S` en bilatéral, avec `S = (sideRecoverySeconds>0 ? sideRecoverySeconds : B)`. `postActivityRecoverySeconds` n’entre jamais dans cette durée. |
-| RM-130 | Si Séries pilote, toute modification de `A`, `B`, `C`, du `sideMode` ou de `sideRecoverySeconds` recalcule la durée intrinsèque. Si la Durée totale pilote, l’inversion utilise la formule D-208 correspondante puis arrondit `C` au plus proche avec `.5` vers le haut, minimum `1`, avant recalcul de la durée réalisable. Afficher temporairement « Durée ajustée à {T(N)} pour respecter un nombre entier de Séries. » si et seulement si `T(N) ≠ Tv` ; aucun message si `T(N) = Tv`. |
-| RM-131 | Séries et Durée totale ne pilotent jamais simultanément. Séries est le pilote implicite initial sans contour ; le dernier contrôle confirmé devient le pilote et reçoit le contour `color/selection`. Le pilote n’est pas persisté. |
-| RM-132 | **Supersédée par RM-232 / D-232** pour la phrase de synthèse v10.2. |
+| RM-129 | Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=2×Ri s pour l’estimation ≥ seulement ; À l’échec : aucun total d’Exercice. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v12 §5 ; variable : lecture seule et — si incomplet. |
+| RM-130 | En Durée uniforme seulement, saisie Tv recalcule N1..99 au plus proche, égalité vers le haut, avec normalisation N=1 ; réafficher T(N), message si différent. En variable aucune inversion ; v12§5. |
+| RM-131 | La ligne active de roulette/segmenté porte le contour ; les steppers restent permanents sans contour pilote. Le total variable/Répétitions est en lecture seule ; aucun état pilote persisté. |
+| RM-132 | Répétitions : estimation Ti=2×Ri s, ≥ ; À l’échec : aucun total d’Exercice. Formules et périmètres v12§5. |
 
 ## 5. Planification et Calendrier
 
@@ -251,8 +251,8 @@ Ces règles décrivent une conception post-MVP à planifier.
 
 | RM-209 | `postActivityRecoverySeconds` est initialisé lors de la création d’une occurrence depuis le défaut global de récupération après exercice puis devient indépendant ; modifier le défaut global ne modifie pas les occurrences existantes. |
 | RM-210 | La récupération après exercice se déplace avec l’occurrence, est copiée lors de sa duplication et supprimée avec elle ; aucun recalcul ne dépend de l’adjacence. |
-| RM-211 | Une Exécution directe d’`ActivityDefinition` n’exécute jamais de récupération post-exercice ; elle peut uniquement exécuter la pause au changement de côté si l’Exercice est bilatéral. |
-| RM-212 | `sideRecoverySeconds` est initialisé depuis le défaut global **Pause au changement de côté** du Profil (`10 s` dans le Figma de référence) lorsqu’un Exercice passe de `Aucun` à `D→G` ou `G→D`; la valeur reste modifiable dans l’éditeur de l’Exercice. |
+| RM-211 | Une Exécution directe d’`ActivityDefinition` n’exécute jamais de récupération post-exercice ; elle peut uniquement exécuter la Pause entre les côtés si l’Exercice est bilatéral. |
+| RM-212 | `sideRecoverySeconds` est initialisé depuis le défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) lorsqu’un Exercice passe de `Aucun` à `D→G` ou `G→D`; la valeur reste modifiable dans l’éditeur de l’Exercice. |
 
 ## Règles RM-213 à RM-221 — consolidation du 26 septembre 2026
 
@@ -273,10 +273,10 @@ Ces règles décrivent une conception post-MVP à planifier.
 | RM-223 | Le titre de planification est `Planifier` tant que le type n’est pas connu, puis `Planifier une séance` ou `Planifier un exercice` selon la source. |
 
 | RM-231 | **Supersédée par RM-232 / D-232.** | 
-| RM-232 | Phrase de synthèse v10.2 : aucun mode → champ vide ; mode affiché hors phrase ; recalcul à chaque modification. En Durée, la clause Durée totale est omise uniquement pour `N=1` avec côté `Aucun`; elle est affichée si `N>1` ou si un changement de côté est défini. Répétitions → minimum estimé avec `r=2 s` en V1 ; À l’échec → aucune Durée totale. Avec changement de côté, chaque côté exécute son bloc complet de Séries et pauses inter-Séries ; la pause entre côtés n’est comptée qu’une fois. Nom d’Exercice, Compte à rebours, Fin d’exercice et Récupération post-activité sont exclus de la phrase ; Compte à rebours et Fin d’exercice sont aussi exclus du calcul de Durée totale. |
+| RM-232 | Résumé v12 §7 : trois premières valeurs variables puis ellipse, valeurs manquantes — ; À l’échec résumé des Pauses et aucun total ; Répétitions ≥ à2s/rép. Direction et Ordre des côtés dans la carte Paramètres. Ligne de Séance : N séries variables seulement. Total omissible comme redondant uniquement si égal à la cible ; compte à rebours/Fin hors calcul. |
 
 | RM-233 | Au changement de mode, conserver les paramètres communs et, pendant l’édition, la dernière valeur spécifique de chaque mode. Après la première sélection, aucun retour à l’état « aucun mode » ; `Terminer` reste désactivé avant cette première sélection. |
-| RM-234 | Séries `1..99`; Répétitions `1..100`; Durée par Série `1..5999 s`; pauses inter-Séries/inter-côtés `0..300 s`. Les deux pauses utilisent un stepper : pas `5 s` jusqu’à `120 s`, puis `30 s` jusqu’à `300 s`. |
+| RM-234 | Séries `1..99`; Répétitions `1..100`; Durée par Série `1..5999 s`; pauses inter-Séries/inter-côtés `0..300 s`. Les deux pauses utilisent un stepper : pas 1 s jusqu’à 5 s, puis 5 s jusqu’à 120 s, puis 30 s jusqu’à 300 s. |
 
 ## RG des cartes — 30 septembre 2026
 
@@ -293,9 +293,9 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper indépendant (450 ms puis 150 ms pour la répétition) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
 
 
-> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transition entre côtés = pause de changement de côté si positive, sinon pause entre Séries, sans cumul ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. Le bloc du côté courant est le périmètre du reset bilatéral. Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v12 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; le nouvel ordre entrelacé reste à préciser pour reset/saut de bloc (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
 
 
 ### Saisie des paramètres — D-246
 
-La référence active est [Paramètres en modale v11](SPECIFICATION-PARAMETRES-MODALE-v11.md), contrats CE-T03-04/CE-UI-10. Les champs de paramètres appartiennent au brouillon transactionnel de la feuille ; ✕ annule, ✓ applique au parent, Terminer seul persiste. Pause entre Séries initiale0s, champs non-stepper initialement non renseignés ; le résumé est régénéré après validation, jamais édité inline. Les bornes métier et calculs restent ceux de v11. Cette règle remplace les anciennes prescriptions de saisie D-232 sur ce parcours.
+La référence active est [Paramètres en modale v12](SPECIFICATION-PARAMETRES-MODALE-v12.md), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.

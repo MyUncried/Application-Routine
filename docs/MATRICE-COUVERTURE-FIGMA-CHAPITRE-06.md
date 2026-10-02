@@ -1,5 +1,7 @@
 # Matrice de couverture Figma ↔ documentation
 
+**Complément courant02/10 :** [39nouveaux exports et contrats](MATRICE-SERIES-VARIABLES-2026-10-02.md). L’inventaire ci-dessous conserve la preuve du30/09 ; les états de paramètres6407/6411/6423 sont remplacés par les copies6603/6611/6623 dans le chapitre06. Les anciennes empreintes restent historiques, sans prétendre recenser les copies récentes.
+
 Contrôle exhaustif du 30 septembre 2026 : 113 frames du prototype et les 6 références complémentaires du rapport utilisateur, soit 119 captures Figma. Les 84 écrans du rapport sont couverts (78 dans le prototype). 74 fichiers existants sont actualisés et 45 copies documentaires complètent des écrans déjà présents dans Figma ; aucun écran applicatif ou Figma créé.
 
 L’inventaire du 24 septembre était un état des lieux ; il ne borne plus le contrôle. Sources : fichier Figma `G6RY5Ebhgwb4AHIOYDwwvg`, lecture structurelle des 113 frames de Prototype MVP, pages Profil/Suivi/Archives et rapport utilisateur `ecrans_modifies.md` du 30 septembre. Les noms et identifiants ont été recoupés dans Figma. Les captures sont des exports directs, sans retouche.

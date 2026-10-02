@@ -1,11 +1,11 @@
 # DSF V2 — Motifs visuels et règles de construction — lot 3
 
 **Statut :** relevé documentaire validé pour la PR #247. Ce texte documente le DSF ; il ne modifie aucune planche Figma.
-**Référence fonctionnelle active :** `Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v11.md`. La documentation fonctionnelle et le classeur v10 déterminent les règles de gestion ; Figma illustre les états.
+**Référence fonctionnelle active :** `Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md`. La documentation fonctionnelle et le classeur v10 déterminent les règles de gestion ; Figma illustre les états.
 
 ## T1 à T4 — paramètres : remplacés par la feuille basse
 
-Les prescriptions de phrase éditable et contrôles inline sont obsolètes sur le parcours Exercice. Référence active : [DSF Paramètres en modale](DSF-PARAMETRES-MODALE-2026-10-01.md) et [spécification v11](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v11.md). La phrase devient résumé/raccourcis ; steppers, segmentés et roulettes sont dans la feuille. Les badges réutilisés ailleurs conservent leur variante locale ; cette évolution n’impose pas un changement de tous les écrans.
+Les prescriptions de phrase éditable et contrôles inline sont obsolètes sur le parcours Exercice. Référence active : [DSF Paramètres en modale](DSF-PARAMETRES-MODALE-2026-10-01.md) et [spécification v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md). La phrase devient résumé/raccourcis ; steppers, segmentés et roulettes sont dans la feuille. Les badges réutilisés ailleurs conservent leur variante locale ; cette évolution n’impose pas un changement de tous les écrans.
 
 ## T5 — Libellés Profil et exercice
 
@@ -13,7 +13,7 @@ Dans les écrans d'ajout ou de modification de l'Exercice, la ligne s'appelle «
 
 | Groupe | Libellés |
 |---|---|
-| Exercice | Pause au changement de côté ; Compte à rebours d'un exercice ; Fin d'exercice |
+| Exercice | Pause entre les côtés ; Compte à rebours d'un exercice ; Fin d'exercice |
 | Séance | Récupération après un exercice ; Compte à rebours de la séance ; Fin de séance |
 
 Le titre du groupe est « Exercice », et non « Activité ». **Vocabulaire :** le glossaire de la PR #247 définit déjà l'objet métier « Exercice » ; conserver les identifiants techniques existants et signaler toute occurrence documentaire résiduelle d’« Activité » selon son contexte.
@@ -66,3 +66,7 @@ Ce relevé ne valide ni le code de l'application ni l'intégration physique des 
 
 D-203 inclut au MVP la face Média et son état plein écran pour les Exercices disposant déjà de médias. La bascule Information/Média utilise l’action circulaire d’exécution de 32 × 32 px : fond solide `#FDFDFE`, liseré blanc de 1 px, ombre `rgba(26,26,38,0.08)` de rayon 10 px et décalage (0, 2), spread 0, derrière le calque. Les boutons de bascule de côté haut et bas sont symétriques et utilisent l’icône vectorielle `bitcoin-icons:flip-horizontal-filled` en noir `#000000`, au-dessus de son fond dans l’empilement. La face Média présente un média à la fois, la pagination de galerie, la lecture vidéo sans lancement automatique et l’accès au plein écran. Le plein écran conserve le cadre flottant de suivi et les contrôles média dédiés. Les captures de référence sont `4997:6113` et `5009:6069` ; `4997:6015` est absent et ne sert pas de preuve visuelle. Le libellé « Série X/3 • Tour X/3 » suit le motif de l’écran d’exécution à 24 px ; `4997:6113` apparaît encore à 17 px : écart Figma à corriger. L’ajout/import dans l’éditeur n’est pas couvert par ce motif.
 
+
+## Paramètres — consolidation du02/10/2026
+
+Référence courante : [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md) et [rapport](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md). D-247 à D-255 remplacent les anciennes formules et descriptions uniformes sur ce périmètre. Les règles de cartes sans rapport avec les paramètres restent conservées. Les nouvelles copies fournissent le layout ; elles ne prouvent ni intégration DSF ni conformité du moteur.
