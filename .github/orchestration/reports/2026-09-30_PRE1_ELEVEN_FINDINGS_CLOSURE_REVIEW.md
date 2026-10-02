@@ -334,15 +334,20 @@ Tests : `validate-workflows.js` OK ; suite pilote 812 tests, 14 échecs identiqu
 - **Fermeture de #277 à #280** (autorisée par Hermann) après vérification de la chaîne : #278 = code de #277 ; #279 = +2 fichiers ; #280 = +15 fichiers (corrections du retour appareil) ; #281 = +5 fichiers ; tous les fichiers livrés par #277 présents dans #281.
 - **Contrôles sur appareil réussis selon Hermann** ; `[KODJO_SLICE] VISUAL_APPROVED` publié à sa demande explicite (5953231956 : revue 5951796347, head `2a6e92c0`, hors dérogation et hors #282/#283).
 - **ORCHESTRATION_FAILURE — finalisation refusée** (routeur 37011931757, job `slice-finalize`) : `V2_FINAL_CRITERION_NOT_CLOSED: UI-07F470FC189F`. `verify-v2-finalization.js` (09-19/20) exige `implementation_status=CONFORME` pour chaque critère, avec preuves appareil `PENDING_DEVICE` ; depuis le 01/10 (correctif de dérivation introduit pendant PRE-1), la revue dérive `NON_VERIFIABLE` quand seules les preuves appareil restent en attente : une revue `APPROVE` avec barrière appareil ne peut donc jamais être finalisée. Le test existant `D2` (`ui-e2e-finalization.pilot.js`) codifie ce refus. Correctif proposé à Hermann (non appliqué) : accepter `NON_VERIFIABLE` uniquement si la barrière appareil est requise et que les seuls écarts, aux niveaux critère et assertion, sont des preuves `VISUAL_COMPARE`/`DEVICE_CHECK` `PENDING_DEVICE` ; toutes les autres conditions inchangées.
+- **Option A de Hermann appliquée** — trois correctifs d'orchestration de la finalisation, chacun testé : `0422c7aa` (critère `NON_VERIFIABLE` fermé par la barrière appareil seulement si au moins une preuve `VISUAL_COMPARE`/`DEVICE_CHECK` est `PENDING_DEVICE`, toutes les autres preuves PASS, assertions `CONFORME`/`PENDING_DEVICE` ; `D2` conserve le refus d'un écart technique ; rejeu réel : `READY_TO_CLOSE`) ; `90af1e35` (le rejeu de la revue en finalisation reçoit la dérogation nominative depuis `main`, comme la revue ; rejeu local : `REVISE` sans, `APPROVE` avec) ; `07c031a0` (réécriture de l'arbre de travail du HEAD final avec les octets exacts : sur le runner Windows, les migrations 001–006 restaient en CRLF et leur gel octet par octet échouait ; `ec3e4168`, réglage avant extraction, s'était révélé insuffisant). Une relance GitHub réutilisant l'ancienne version du workflow, la même validation a été republiée (5954633517, 5954782137, 5954987738). Suite : 851 tests, 14 échecs identiques à la base.
+- **Finalisation V2 réussie** (routeur 37022599026) : `FINAL_OUTPUT` 5955493734 (`READY_TO_CLOSE`, head `2a6e92c0`) ; `SLICE_CLOSED` 5955496707, commit de clôture du registre `0410986a08fbb39477550f5e8fc416953ab86460` (V2-PRE-1 `CLOSED`).
+- **Fusion** : PR #281 → `main` par commit de fusion lié au HEAD approuvé (`--match-head-commit`) : `b08b3c7000df34a68440f951f03b8e480939144d`, 2026-10-02T15:20:13Z (92 fichiers, tous sous `src/`). **Issue #249 fermée** (15:21:18Z) avec le récapitulatif des références.
+- Hors validation : `DEVICE_CHECK` de `REQ-B89A1B7A4F23FA8B` non exécuté (dérogation) ; #282 et #283 ouverts, comportements non acceptés.
+- **Défaut constaté après fusion, non corrigé** : la synchronisation du canal stable Routine (run 37026256885) échoue avant toute publication (`git fetch origin main` sans identifiants dans `kodjo-routine-stable-environment-sync.yml`) ; à traiter séparément, sur décision de Hermann.
+- PRE-2 non lancé, conformément à la consigne de Hermann.
 
 Toutes les reprises : même session `77bf4fe5`, même `source_head` `79fe5095`, même plan approuvé, même barrière 5920553811 ; admission V2 locale PASS avant chaque push. Le commentaire 5921521038 (`[KODJO_VNEXT]`) relève du chantier VNext et n'a pas été touché.
 
 ## Vérifications restant à effectuer
 
-- Reprise corrective du rapport des 13 critères, puis revue d'implémentation indépendante jusqu'à `APPROVE`.
-- Après `APPROVE` : contrôle visuel sur appareil réel par Hermann (`VISUAL_APPROVED`) pour les critères UI en attente d'appareil.
-- `DEVICE_CHECK` de `REQ-B89A1B7A4F23FA8B` : **non exécuté par dérogation** ; il reste à exécuter sur iOS et Android (migrations, transactions, réouverture) dans un cycle ultérieur ; `VISUAL_APPROVED` ne le couvre pas.
-- Fermeture de #277 une fois remplacée : soumise à autorisation de Hermann.
+- `DEVICE_CHECK` de `REQ-B89A1B7A4F23FA8B` : à exécuter sur iOS et Android (migrations, transactions, réouverture) dans un cycle ultérieur ; non couvert par `VISUAL_APPROVED`.
+- Publication du canal stable Routine : bloquée par le défaut de synchronisation ci-dessus.
+- #282 et #283 : à planifier dans des tranches distinctes.
 
 ## Fichiers modifiés par la mission
 
