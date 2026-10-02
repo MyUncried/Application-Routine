@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-02T10:12:38.346594+00:00",
+  "recorded_at": "2026-10-02T11:41:59.271502+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "9895877b9230c902eea229841a46a8c18c437f41",
-  "controller_stage": "STEP3_REQUALIFICATION_EXECUTE_REVISION",
-  "controller_generation": 27,
+  "controller_stage": "STEP3_REQUALIFICATION_COMPLETED",
+  "controller_generation": 28,
   "steps": [
     {
       "step": 1,
@@ -71,8 +71,7 @@
     "full_linux_ci_is_authoritative": true
   },
   "pending_actions": [
-    "Collect actual fresh REVISION runtime proof; do not replay consumed requests.",
-    "After campaign, foreground Claude settings, reduced source archives, explicit Routine Dev sync preserving exact review/HEAD."
+    "Apply authorized post-campaign foreground, storage and explicit sync fixes with targeted validation; no full INITIAL/REVISION replay."
   ],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
@@ -242,7 +241,7 @@
   },
   "requalification_campaign": {
     "campaign_id": "06f35a5b-db9c-4448-ab28-c7b778cba368",
-    "status": "REVISION_EXECUTION_REQUESTED",
+    "status": "COMPLETED_INITIAL_PASS_REVISION_PASS",
     "base_head": "e703a68823a3c090b518714b194dfbb3a51809d1",
     "requested_at": "2026-10-01T19:39:40.565207+00:00",
     "user_instruction": "donc on rejoue maintenant Initial et revision avec ce nouveau protocole.",
@@ -314,7 +313,7 @@
       }
     },
     "revision": {
-      "status": "AUTHORIZED_EXECUTION_REQUESTED",
+      "status": "REVISION_PASS",
       "candidate_head": "eef6fb596c36301047ae90afbd31adbf2d401391",
       "base_verdict": "REVISE",
       "revision_verdict": "APPROVE",
@@ -322,7 +321,7 @@
       "revision_session": "963200fd-8221-44b7-a33e-a7e2badce137",
       "revision_count": 1,
       "revision_limit": 1,
-      "implementation_invoked": false,
+      "implementation_invoked": true,
       "final_audit_invoked": false,
       "campaign_id": "06f35a5b-db9c-4448-ab28-c7b778cba368",
       "run_id": 36936098221,
@@ -352,7 +351,7 @@
       "gate_reserved_only": false,
       "approval_observed": true,
       "human_review_performed": false,
-      "execution_invoked": false,
+      "execution_invoked": true,
       "outcome": "RESOLVED",
       "preparation_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/revision/preparation-evidence.json",
       "approved_protocol_head": "cb9c45800a9b62342db684cc42b087a288c18ccf",
@@ -361,7 +360,63 @@
       "approval_reaction_id": 430648379,
       "authorization_basis": "CODEX_USER_DELEGATION",
       "authorization_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/revision/authorization-evidence.json",
-      "qualification_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/revision/qualification-evidence.json"
+      "qualification_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/revision/qualification-evidence.json",
+      "execution_run_id": 36994408231,
+      "execution_job_id": 110797973748,
+      "runtime_claude_session": "4390fed1-3cc5-4e4b-84ae-a32873815fa7",
+      "execution_artifact_id": 11222807464,
+      "execution_artifact_sha256": "641f822a8bc88a72f4525c54a1c627c2469541c06de09f8be49a956819ec42ee",
+      "execution_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/revision/execution-evidence.json",
+      "execution_archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/revision/execution-artifact.zip",
+      "consumed_request": "3287a592-43f8-4e77-a7d6-f414a1061f70",
+      "consumption_tag": "d0b762fbe53f9b99efa0304cb87bfeacd07a26f3",
+      "replay_forbidden": true,
+      "disposable_cleanup": true,
+      "observed_value": 2,
+      "checks": [
+        {
+          "check": "jest",
+          "command": "npm test --silent -- --cacheDirectory \"C:\\\\actions-runner\\\\_work\\\\_temp\\\\kodjo-vnext12-revision-36994408231-1\\\\check-cache\\\\jest\"",
+          "status": "PASS",
+          "exit_code": 0,
+          "started_at": "2026-10-02T11:01:36.458Z",
+          "finished_at": "2026-10-02T11:02:22.871Z",
+          "duration_ms": 46413,
+          "reason": null,
+          "passed_tests": 1257,
+          "failed_tests": 0,
+          "total_tests": 1257,
+          "rerun_in_this_attempt": true
+        },
+        {
+          "check": "typescript",
+          "command": "npx --no-install tsc --noEmit",
+          "status": "PASS",
+          "exit_code": 0,
+          "started_at": "2026-10-02T11:02:22.872Z",
+          "finished_at": "2026-10-02T11:02:28.473Z",
+          "duration_ms": 5601,
+          "reason": null,
+          "passed_tests": null,
+          "failed_tests": null,
+          "total_tests": null,
+          "rerun_in_this_attempt": true
+        },
+        {
+          "check": "lint",
+          "command": "npm run lint --silent -- --no-cache",
+          "status": "PASS",
+          "exit_code": 0,
+          "started_at": "2026-10-02T11:02:28.474Z",
+          "finished_at": "2026-10-02T11:02:45.803Z",
+          "duration_ms": 17329,
+          "reason": null,
+          "passed_tests": null,
+          "failed_tests": null,
+          "total_tests": null,
+          "rerun_in_this_attempt": true
+        }
+      ]
     },
     "old_consumed_requests_forbidden": [
       "d851f5fe-6ce5-4bb1-a615-ea2116cf04e1",
@@ -397,6 +452,7 @@
         "status": "DEFERRED_UNTIL_CURRENT_CAMPAIGN_COMPLETE",
         "automatic_trigger_not_delivered": true
       }
-    ]
+    ],
+    "completed_at": "2026-10-02T11:41:59.271502+00:00"
   }
 }
