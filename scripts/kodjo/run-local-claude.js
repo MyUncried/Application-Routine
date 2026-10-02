@@ -13,6 +13,19 @@ const Source = require('./lib/preflight-source');
 const { normalizeScopeCandidate, normalizeScopeRule, inScope } = require('./lib/scope-path');
 const { certifyRecoverySourceMigration } = require('./lib/recovery-migration');
 
+// Keep checks attached to the implementing session until their result is read.
+const CLAUDE_FOREGROUND_CHECK_ENV = Object.freeze({
+  CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1',
+  BASH_DEFAULT_TIMEOUT_MS: '900000',
+  BASH_MAX_TIMEOUT_MS: '900000',
+});
+function claudeEnvironment(inherited, scope) {
+  return { ...inherited, KODJO_MUTATION_SCOPE_JSON: JSON.stringify(scope), ...CLAUDE_FOREGROUND_CHECK_ENV };
+}
+function claudeSettings() {
+  return { disableAllHooks: true, env: { ...CLAUDE_FOREGROUND_CHECK_ENV } };
+}
+
 const { runCheck } = require('./lib/checks');
 const {
   CLAUDE_CODE_VERSION, adapterConfig, adapterConfigHash, normalizeRequest, resolveClaudeBinary,
@@ -777,7 +790,7 @@ function main() {
     fs.chmodSync(path.join(runDir, 'kodjo-file-mutation.js'), 0o500);
     fs.chmodSync(path.join(runDir, 'scope-path.js'), 0o400);
     fs.writeFileSync(path.join(runDir, 'mcp.json'), '{"mcpServers":{}}\n', 'utf8');
-    fs.writeFileSync(path.join(runDir, 'settings.json'), '{"disableAllHooks":true}\n', 'utf8');
+    fs.writeFileSync(path.join(runDir, 'settings.json'), JSON.stringify(claudeSettings()) + '\n', 'utf8');
     const taskText = promptBuffer.toString('utf8');
     const prompt = buildPrompt(request, taskText, runDir);
     promptBytes = Buffer.byteLength(prompt, 'utf8');
@@ -793,6 +806,8 @@ function main() {
       initial_restart: request.initial_restart || null, initial_restart_proof: restartProof,
       execution_environment: {runner_name:process.env.RUNNER_NAME || null, user_home:os.homedir(), state_root:stateRoot, claude_config_root:path.resolve(process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude'))},
       source_head: request.source_head, mode: request.mode, prompt_bytes: promptBytes,
+      // Non-secret values supplied at launch, not a claim about Claude's internals.
+      foreground_check_environment: { ...CLAUDE_FOREGROUND_CHECK_ENV },
       config: adapterConfig(), effective_allowed_tools: require('./lib/claude-local').concreteAllowedTools(runDir),
       // KV2-13 : les bornes effectives restent séparées des valeurs par défaut.
       // KV2-24 : aucune borne de tours n'est imposée par KODJO ; la preuve
@@ -817,10 +832,7 @@ function main() {
     intent.state = 'EXTERNAL_CALL_SENT';
     intent.command_sha256 = sha256(JSON.stringify([claudeBin, ...claudePrefix, ...args.slice(0, -1), '[PROMPT]']));
     fs.writeFileSync(path.join(runDir, 'invocation.json'), JSON.stringify(intent, null, 2) + '\n', 'utf8');
-    const claudeEnv = {
-      ...process.env,
-      KODJO_MUTATION_SCOPE_JSON: JSON.stringify(request.scope_allow),
-    };
+    const claudeEnv = claudeEnvironment(process.env, request.scope_allow);
     assertLiveTarget();
     const claudeStartedMs = Date.now();
     claudeStartedAt = new Date(claudeStartedMs).toISOString();
@@ -1037,6 +1049,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  CLAUDE_FOREGROUND_CHECK_ENV, claudeEnvironment, claudeSettings,
   inScope, changedFiles, changedEntries, entryPaths, refs,
   exactRecoveryPaths, inCumulativeScope, mutationPathsSinceRestore, patchPathsFromNumstat,
   recoveryPayload, writeRecovery, restoreRecovery, applyRecovery, consumeLegacyBootstrap,

@@ -18,6 +18,11 @@ on:
       - 'tests/kodjo/**'
   workflow_dispatch:
     inputs:
+      preserve_complete_source:
+        description: 'Preserve an exact source snapshot only when needed for forensic recovery'
+        required: true
+        type: boolean
+        default: false
       run_disposable_qualification:
         description: 'Run the real V2-QUALIF-00 slice on the persistent Windows runner'
         required: true
@@ -112,6 +117,7 @@ jobs:
       - name: Validate executable workflow invariants
         run: node scripts/kodjo/validate-workflows.js
       - name: Build immutable complete source snapshot
+        if: github.event_name == 'workflow_dispatch' && inputs.preserve_complete_source == true
         shell: bash
         env:
           SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -120,6 +126,7 @@ jobs:
           tar --exclude=.git --exclude=node_modules -czf "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz" .
           sha256sum "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz" > "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz.sha256"
       - name: Preserve complete source snapshot
+        if: github.event_name == 'workflow_dispatch' && inputs.preserve_complete_source == true
         uses: actions/upload-artifact@v4
         with:
           name: kodjo-v2-complete-source-${{ github.event.pull_request.head.sha || github.sha }}

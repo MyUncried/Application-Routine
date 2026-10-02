@@ -99,7 +99,7 @@
     },
     {
       "path": ".github/workflows/kodjo-routine-dev-environment-sync.yml",
-      "blob_oid": "dee71bf6a9682a0c66180e1f48ff4fda1526f227",
+      "blob_oid": "41c1d70dcf2df2d979079f9a3207bb57805fb2f3",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -229,7 +229,7 @@
     },
     {
       "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
-      "blob_oid": "266781a2c3128f3f0c2ab6f8e064e3332b8d6eda",
+      "blob_oid": "16711cec0cd3629bf2e94bc776d563126c6e47ec",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -706,7 +706,7 @@
     },
     {
       "path": "scripts/kodjo/run-local-claude.js",
-      "blob_oid": "80dc99374f14d3e182f735eecbba59cee5ed72c5",
+      "blob_oid": "1a38b370a875097209dde7ad99fb779a5105cd4f",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
