@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-02T12:40:52.743Z",
+  "recorded_at": "2026-10-02T14:18:58.847560+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "9895877b9230c902eea229841a46a8c18c437f41",
-  "controller_stage": "STEP3_COMPLETE_POST_CAMPAIGN_GUARD_COMPATIBILITY_QUALIFYING",
-  "controller_generation": 30,
+  "controller_stage": "STEP3_COMPLETE_PROTOCOL_HARDENING_QUALIFIED",
+  "controller_generation": 31,
   "steps": [
     {
       "step": 1,
@@ -70,9 +70,7 @@
     "full_local_pilot_status": "NOT_QUALIFIED_SYNTHETIC_CHECKOUT_AND_MISSING_TOKENIZER",
     "full_linux_ci_is_authoritative": true
   },
-  "pending_actions": [
-    "Collect new exact Linux/Windows qualification after historical guard compatibility fix; no INITIAL/REVISION replay."
-  ],
+  "pending_actions": [],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
     {
@@ -429,7 +427,7 @@
       "file": "scripts/kodjo/run-local-claude.js",
       "purpose": "Force implementer foreground commands and bounded Bash timeouts",
       "observed_failure_this_initial": false,
-      "implementation_status": "IMPLEMENTED_PENDING_EXACT_CI_QUALIFICATION",
+      "implementation_status": "IMPLEMENTED_QUALIFIED_LINUX_WINDOWS",
       "user_preference": "Targeted validation; avoid repeating complete certification campaign"
     },
     "pending_protocol_fixes": [
@@ -437,11 +435,11 @@
         "kind": "CLAUDE_FOREGROUND_CHECKS",
         "source_commit": "c6bda99c",
         "proof_run": 36932540055,
-        "status": "IMPLEMENTED_PENDING_EXACT_CI_QUALIFICATION"
+        "status": "IMPLEMENTED_QUALIFIED_LINUX_WINDOWS"
       },
       {
         "kind": "REDUCE_COMPLETE_SOURCE_ARCHIVES",
-        "status": "IMPLEMENTED_PENDING_EXACT_CI_QUALIFICATION",
+        "status": "IMPLEMENTED_QUALIFIED_LINUX_WINDOWS",
         "preserve_referenced_archives": true
       },
       {
@@ -449,14 +447,14 @@
         "source_commit": "8c5650f0",
         "report_commit": "e719214b",
         "proof_run": 36938795033,
-        "status": "IMPLEMENTED_PENDING_EXACT_CI_QUALIFICATION",
+        "status": "IMPLEMENTED_QUALIFIED_LINUX_WINDOWS",
         "automatic_trigger_not_delivered": true
       }
     ],
     "completed_at": "2026-10-02T11:41:59.271502+00:00"
   },
   "post_campaign_fixes": {
-    "status": "CORRECTED_PENDING_EXACT_CI_QUALIFICATION",
+    "status": "QUALIFIED_LINUX_WINDOWS",
     "base_head": "340d7e858e48b7995f9e2a8a078cc0d6782b2dcf",
     "targeted_tests": {
       "pass": 82,
@@ -468,6 +466,16 @@
     "final_audit_invoked": false,
     "failed_candidate": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
     "failure_evidence_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_FAILURE_EVIDENCE.json",
-    "failure_logs_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_FAILURE_LOGS.zip"
+    "failure_logs_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_FAILURE_LOGS.zip",
+    "qualified_candidate": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+    "qualification_run_id": 37008282228,
+    "pilot_run_id": 37008282181,
+    "driver_run_id": 37008282270,
+    "evidence_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_QUALIFICATION_EVIDENCE.json",
+    "logs_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_QUALIFICATION_LOGS.zip",
+    "preflight_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_PREFLIGHT.zip",
+    "initial_revision_replayed": false,
+    "new_claude_runtime_after_fixes": false,
+    "automatic_sync_after_queue_review_delivered": false
   }
 }
