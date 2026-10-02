@@ -1,12 +1,10 @@
 import { describe, expect, it } from "@jest/globals";
 
-import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
 import type { UpdateSessionActivityInput, UpdateSessionInput } from "@/domain/sessions/Session";
 import {
   normalizeInstruction,
   normalizeName,
   normalizeSideMode,
-  normalizeTourSideMode,
   validateCreatableActivityType,
   validateCreateSessionInput,
   validateExecutionMode,
@@ -16,10 +14,9 @@ import {
   validateInitialCountdownSeconds,
   validateInstruction,
   validatePauseSeconds,
-  validateRecoverySeconds,
+  validatePostActivityRecoverySeconds,
   validateRepetitionCount,
   validateSeriesCount,
-  validateSessionColor,
   validateSessionName,
   validateTourRepeatCount,
   validateUpdateSessionInput,
@@ -90,35 +87,6 @@ describe("validateSessionName / validateExerciseName", () => {
     expect(codePointLength).toBe(80);
     expect(jsLength).toBe(81);
     expect(validateSessionName(name)).toEqual({ ok: true, value: name });
-  });
-});
-
-describe("validateSessionColor", () => {
-  it("accepts every canonical color", () => {
-    const colors = [
-      "#E5484D",
-      "#F47B20",
-      "#F7D154",
-      "#2E9B62",
-      "#20B2AA",
-      "#32B8D8",
-      "#3B82F6",
-      "#5A5BD7",
-      "#7B61D1",
-      "#A34AB7",
-      "#E45C9A",
-      "#8E8E93",
-    ];
-    for (const color of colors) {
-      expect(validateSessionColor(color)).toEqual({ ok: true, value: color });
-    }
-  });
-
-  it("rejects a color outside the palette", () => {
-    expect(validateSessionColor("#000000")).toEqual({
-      ok: false,
-      violations: [{ code: "INVALID_COLOR", field: "session.color" }],
-    });
   });
 });
 
@@ -322,7 +290,7 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
       repetitionCount: null,
       seriesCount: 1,
       pauseSeconds: 0,
-      recoverySeconds: 0,
+      postActivityRecoverySeconds: 0,
       instruction: null,
       bodyZoneIds: [],
       // V2-BILAT-01 : `sideMode` OMIS délibérément — la direction neutre
@@ -337,13 +305,15 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
   function validInput() {
     return {
       name: "Séance simple",
-      color: DEFAULT_SESSION_COLOR,
+      labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
-      // V2-BILAT-01 : `tourSideMode` OMIS délibérément — voir `durationExercise` ci-dessus.
       exercises: [durationExercise()],
-      categories: [],
+      // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : présent explicitement
+      // ici pour que chaque `{...validInput(), ...}` ci-dessous construise
+      // directement la sortie normalisée attendue, jamais retrié ou recalculé.
+      stopPoints: [] as const,
     };
   }
 
@@ -351,15 +321,7 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
     const result = validateCreateSessionInput(validInput());
     expect(result).toEqual({
       ok: true,
-      value: {
-        name: "Séance simple",
-        color: DEFAULT_SESSION_COLOR,
-        initialCountdownSeconds: 10,
-        finalPhaseSeconds: 5,
-        tourRepeatCount: 1,
-        exercises: [durationExercise()],
-        categories: [],
-      },
+      value: validInput(),
     });
   });
 
@@ -454,20 +416,20 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
     expect(
       validateCreateSessionInput({
         ...validInput(),
-        exercises: [{ ...durationExercise(), recoverySeconds: 90 }],
+        exercises: [{ ...durationExercise(), postActivityRecoverySeconds: 90 }],
       }),
     ).toMatchObject({ ok: true });
 
     for (const invalid of [-1, 6000, 1.5]) {
       const result = validateCreateSessionInput({
         ...validInput(),
-        exercises: [{ ...durationExercise(), recoverySeconds: invalid }],
+        exercises: [{ ...durationExercise(), postActivityRecoverySeconds: invalid }],
       });
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(
           result.violations.some(
-            (violation) => violation.field === "exercise.recoverySeconds",
+            (violation) => violation.field === "exercise.postActivityRecoverySeconds",
           ),
         ).toBe(true);
       }
@@ -476,26 +438,26 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
 
   it("accepts a Récupération in every execution mode — it is attached to the Activity, not to the Durée mode (T02-S02)", () => {
     for (const exercise of [
-      { ...durationExercise(), recoverySeconds: 30 },
+      { ...durationExercise(), postActivityRecoverySeconds: 30 },
       {
         ...durationExercise(),
         executionMode: "REPETITIONS" as const,
         durationSeconds: null,
         repetitionCount: 12,
-        recoverySeconds: 30,
+        postActivityRecoverySeconds: 30,
       },
       {
         ...durationExercise(),
         executionMode: "TO_FAILURE" as const,
         durationSeconds: null,
         repetitionCount: null,
-        recoverySeconds: 30,
+        postActivityRecoverySeconds: 30,
       },
     ]) {
       const result = validateCreateSessionInput({ ...validInput(), exercises: [exercise] });
       expect(result.ok).toBe(true);
       if (result.ok) {
-        expect(result.value.exercises[0]).toMatchObject({ recoverySeconds: 30 });
+        expect(result.value.exercises[0]).toMatchObject({ postActivityRecoverySeconds: 30 });
       }
     }
   });
@@ -625,7 +587,6 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
     const result = validateCreateSessionInput({
       ...validInput(),
       name: "   ",
-      color: "#000000" as never,
       exercises: [{ ...durationExercise(), name: "Exercice", durationSeconds: 0 }],
     });
 
@@ -634,7 +595,6 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
       expect(result.violations).toEqual(
         expect.arrayContaining([
           { code: "REQUIRED", field: "session.name" },
-          { code: "INVALID_COLOR", field: "session.color" },
           {
             code: "OUT_OF_RANGE",
             field: "exercise.durationSeconds",
@@ -642,53 +602,20 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
           },
         ]),
       );
-      expect(result.violations).toHaveLength(3);
+      expect(result.violations).toHaveLength(2);
     }
-  });
-
-  it("passes an EXISTING category input through unchanged", () => {
-    const result = validateCreateSessionInput({
-      ...validInput(),
-      categories: [{ kind: "EXISTING", categoryId: "cardio" }],
-    });
-    expect(result).toEqual({
-      ok: true,
-      value: { ...validInput(), categories: [{ kind: "EXISTING", categoryId: "cardio" }] },
-    });
-  });
-
-  it("normalizes a NEW category's name and rejects an invalid one with category.name", () => {
-    const ok = validateCreateSessionInput({
-      ...validInput(),
-      categories: [{ kind: "NEW", name: "  Cardio   Intense  " }],
-    });
-    expect(ok).toEqual({
-      ok: true,
-      value: { ...validInput(), categories: [{ kind: "NEW", name: "Cardio Intense" }] },
-    });
-
-    const invalid = validateCreateSessionInput({
-      ...validInput(),
-      categories: [{ kind: "NEW", name: "A".repeat(41) }],
-    });
-    expect(invalid).toEqual({
-      ok: false,
-      violations: [{ code: "TOO_LONG", field: "category.name", details: { max: 40 } }],
-    });
   });
 
   it("never throws, even on a fully invalid input", () => {
     expect(() =>
       validateCreateSessionInput({
         name: "",
-        color: "#000000" as never,
         initialCountdownSeconds: -1,
         finalPhaseSeconds: -1,
         tourRepeatCount: 0,
         exercises: [
           { ...durationExercise(), name: "", durationSeconds: 0, instruction: "A".repeat(1001) },
         ],
-        categories: [{ kind: "NEW", name: "" }],
       }),
     ).not.toThrow();
   });
@@ -711,29 +638,24 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
  * direction BILATÉRALE explicite (`RIGHT_LEFT`/`LEFT_RIGHT`) traverse la
  * normalisation.
  */
-describe("normalizeSideMode / normalizeTourSideMode (V2-BILAT-01)", () => {
+describe("normalizeSideMode (V2-BILAT-01)", () => {
   it("passes an explicit BILATERAL direction through unchanged", () => {
     expect(normalizeSideMode("RIGHT_LEFT")).toBe("RIGHT_LEFT");
     expect(normalizeSideMode("LEFT_RIGHT")).toBe("LEFT_RIGHT");
-    expect(normalizeTourSideMode("RIGHT_LEFT")).toBe("RIGHT_LEFT");
-    expect(normalizeTourSideMode("LEFT_RIGHT")).toBe("LEFT_RIGHT");
   });
 
   it("collapses the neutral UNILATERAL direction to undefined, whether explicit or absent", () => {
     expect(normalizeSideMode("UNILATERAL")).toBeUndefined();
     expect(normalizeSideMode(undefined)).toBeUndefined();
-    expect(normalizeTourSideMode("UNILATERAL")).toBeUndefined();
-    expect(normalizeTourSideMode(undefined)).toBeUndefined();
   });
 
   it("collapses any value outside the enumeration to undefined too — never a failure, never a materialized default", () => {
     expect(normalizeSideMode("BILATERAL")).toBeUndefined();
     expect(normalizeSideMode(null)).toBeUndefined();
-    expect(normalizeTourSideMode("BILATERAL")).toBeUndefined();
   });
 });
 
-describe("validateCreateSessionInput / validateUpdateSessionInput — side mode (V2-BILAT-01)", () => {
+describe("validateCreateSessionInput / validateUpdateSessionInput — side mode (V2-BILAT-01, V2-PRE-1)", () => {
   function durationExercise(sideMode?: unknown) {
     return {
       type: "EXERCISE" as const,
@@ -744,27 +666,24 @@ describe("validateCreateSessionInput / validateUpdateSessionInput — side mode 
       repetitionCount: null,
       seriesCount: 1,
       pauseSeconds: 0,
-      recoverySeconds: 0,
+      postActivityRecoverySeconds: 0,
       instruction: null,
       bodyZoneIds: [],
       sideMode: sideMode as never,
     };
   }
 
-  it("carries a valid Activity/Tour side mode through creation unchanged", () => {
+  it("carries a valid Activity side mode through creation unchanged", () => {
     const result = validateCreateSessionInput({
       name: "Séance",
-      color: DEFAULT_SESSION_COLOR,
+      labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
-      tourSideMode: "RIGHT_LEFT" as never,
       exercises: [durationExercise("LEFT_RIGHT")],
-      categories: [],
     });
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.tourSideMode).toBe("RIGHT_LEFT");
       expect(result.value.exercises[0]?.sideMode).toBe("LEFT_RIGHT");
     }
   });
@@ -777,59 +696,48 @@ describe("validateCreateSessionInput / validateUpdateSessionInput — side mode 
    * validé de sa forme antérieure à cette tranche.
    */
   it("collapses an omitted, explicit UNILATERAL, or invalid side mode to undefined, without ever failing validation", () => {
-    for (const rawTourSideMode of [undefined, "UNILATERAL", "BILATERAL"] as const) {
-      for (const rawExerciseSideMode of [undefined, "UNILATERAL", "BILATERAL"] as const) {
-        const result = validateCreateSessionInput({
-          name: "Séance",
-          color: DEFAULT_SESSION_COLOR,
-          initialCountdownSeconds: 10,
-          finalPhaseSeconds: 5,
-          tourRepeatCount: 1,
-          tourSideMode: rawTourSideMode as never,
-          exercises: [durationExercise(rawExerciseSideMode)],
-          categories: [],
-        });
-        expect(result.ok).toBe(true);
-        if (result.ok) {
-          expect(result.value.tourSideMode).toBeUndefined();
-          expect(result.value.exercises[0]?.sideMode).toBeUndefined();
-        }
+    for (const rawExerciseSideMode of [undefined, "UNILATERAL", "BILATERAL"] as const) {
+      const result = validateCreateSessionInput({
+        name: "Séance",
+        labelId: null,
+        initialCountdownSeconds: 10,
+        finalPhaseSeconds: 5,
+        tourRepeatCount: 1,
+        exercises: [durationExercise(rawExerciseSideMode)],
+      });
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.value.exercises[0]?.sideMode).toBeUndefined();
       }
     }
   });
 
-  it("carries a valid Activity/Tour side mode through an update, and collapses an invalid one to undefined", () => {
+  it("carries a valid Activity side mode through an update, and collapses an invalid one to undefined", () => {
     const okResult = validateUpdateSessionInput({
       sourceSessionId: "session-1",
       name: "Séance",
-      color: DEFAULT_SESSION_COLOR,
+      labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
-      tourSideMode: "LEFT_RIGHT" as never,
       activities: [{ ...durationExercise("RIGHT_LEFT"), id: "act-1", position: 0 }],
-      categories: [],
     });
     expect(okResult.ok).toBe(true);
     if (okResult.ok) {
-      expect(okResult.value.tourSideMode).toBe("LEFT_RIGHT");
       expect(okResult.value.activities[0]?.sideMode).toBe("RIGHT_LEFT");
     }
 
     const invalidResult = validateUpdateSessionInput({
       sourceSessionId: "session-1",
       name: "Séance",
-      color: DEFAULT_SESSION_COLOR,
+      labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
-      tourSideMode: "NOT_A_SIDE_MODE" as never,
       activities: [{ ...durationExercise(undefined), id: "act-1", position: 0 }],
-      categories: [],
     });
     expect(invalidResult.ok).toBe(true);
     if (invalidResult.ok) {
-      expect(invalidResult.value.tourSideMode).toBeUndefined();
       expect(invalidResult.value.activities[0]?.sideMode).toBeUndefined();
     }
   });
@@ -837,35 +745,32 @@ describe("validateCreateSessionInput / validateUpdateSessionInput — side mode 
   /**
    * Preuve directe de la régression corrigée : un agrégat entièrement
    * UNILATÉRAL (le cas historique) est `toEqual` à sa forme dépourvue de
-   * `sideMode`/`tourSideMode` — exactement ce qu'un appelant existant, qui
-   * n'a jamais connu ce champ, continue de recevoir.
+   * `sideMode` — exactement ce qu'un appelant existant, qui n'a jamais connu
+   * ce champ, continue de recevoir.
    */
-  it("is toEqual a legacy aggregate shape (no sideMode/tourSideMode keys) when every direction stays UNILATERAL", () => {
+  it("is toEqual a legacy aggregate shape (no sideMode key) when every direction stays UNILATERAL", () => {
     const withExplicitUnilateral = validateCreateSessionInput({
       name: "Séance",
-      color: DEFAULT_SESSION_COLOR,
+      labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
-      tourSideMode: "UNILATERAL" as never,
       exercises: [durationExercise("UNILATERAL")],
-      categories: [],
     });
     const withoutSideMode = validateCreateSessionInput({
       name: "Séance",
-      color: DEFAULT_SESSION_COLOR,
+      labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
       exercises: [durationExercise(undefined)],
-      categories: [],
     });
     expect(withExplicitUnilateral).toEqual(withoutSideMode);
     expect(withoutSideMode).toEqual({
       ok: true,
       value: {
         name: "Séance",
-        color: DEFAULT_SESSION_COLOR,
+        labelId: null,
         initialCountdownSeconds: 10,
         finalPhaseSeconds: 5,
         tourRepeatCount: 1,
@@ -879,12 +784,12 @@ describe("validateCreateSessionInput / validateUpdateSessionInput — side mode 
             repetitionCount: null,
             seriesCount: 1,
             pauseSeconds: 0,
-            recoverySeconds: 0,
+            postActivityRecoverySeconds: 0,
             instruction: null,
             bodyZoneIds: [],
           },
         ],
-        categories: [],
+        stopPoints: [],
       },
     });
   });
@@ -919,29 +824,29 @@ describe("validateTourRepeatCount (T01-S10, D-058)", () => {
   });
 });
 
-describe("validateRecoverySeconds (T02-S02) — Récupération ATTACHÉE", () => {
-  it("accepts zero: no Récupération is the neutral, valid value", () => {
-    expect(validateRecoverySeconds(0)).toEqual({ ok: true, value: 0 });
+describe("validatePostActivityRecoverySeconds (V2-PRE-1) — récupération post-exercice de l'occurrence", () => {
+  it("accepts zero: no récupération is the neutral, valid value", () => {
+    expect(validatePostActivityRecoverySeconds(0)).toEqual({ ok: true, value: 0 });
   });
 
   it("accepts the documented upper bound 99 min 59 s (5999 s), same contract as Durée and Pause (CE-T01-14)", () => {
-    expect(validateRecoverySeconds(5999)).toEqual({ ok: true, value: 5999 });
+    expect(validatePostActivityRecoverySeconds(5999)).toEqual({ ok: true, value: 5999 });
   });
 
   it("rejects a negative or out-of-range value with OUT_OF_RANGE and its bounds", () => {
-    expect(validateRecoverySeconds(-1)).toEqual({
+    expect(validatePostActivityRecoverySeconds(-1)).toEqual({
       ok: false,
       violations: [
-        { code: "OUT_OF_RANGE", field: "exercise.recoverySeconds", details: { min: 0, max: 5999 } },
+        { code: "OUT_OF_RANGE", field: "exercise.postActivityRecoverySeconds", details: { min: 0, max: 5999 } },
       ],
     });
-    expect(validateRecoverySeconds(6000)).toMatchObject({ ok: false });
+    expect(validatePostActivityRecoverySeconds(6000)).toMatchObject({ ok: false });
   });
 
   it("rejects a non-integer number of seconds", () => {
-    expect(validateRecoverySeconds(30.5)).toEqual({
+    expect(validatePostActivityRecoverySeconds(30.5)).toEqual({
       ok: false,
-      violations: [{ code: "NOT_INTEGER", field: "exercise.recoverySeconds" }],
+      violations: [{ code: "NOT_INTEGER", field: "exercise.postActivityRecoverySeconds" }],
     });
   });
 });
@@ -992,7 +897,7 @@ describe("validateCreateSessionInput — mode À l'échec (T01-S10, D-111)", () 
       repetitionCount: null,
       seriesCount: 3,
       pauseSeconds: 30,
-      recoverySeconds: 0,
+      postActivityRecoverySeconds: 0,
       instruction: null,
       bodyZoneIds: [],
       // V2-BILAT-01 : `sideMode` OMIS délibérément — voir la note de tête de
@@ -1003,12 +908,12 @@ describe("validateCreateSessionInput — mode À l'échec (T01-S10, D-111)", () 
   function validInput() {
     return {
       name: "Séance à l'échec",
-      color: DEFAULT_SESSION_COLOR,
+      labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
       exercises: [toFailureExercise()],
-      categories: [],
+      stopPoints: [] as const,
     };
   }
 
@@ -1049,7 +954,7 @@ describe("validateUpdateSessionInput (T01-S10, plan §6.2)", () => {
       repetitionCount: null,
       seriesCount: 1,
       pauseSeconds: 0,
-      recoverySeconds: 0,
+      postActivityRecoverySeconds: 0,
       instruction: null,
       bodyZoneIds: [],
       // V2-BILAT-01 : `sideMode` OMIS délibérément — voir la note de tête de
@@ -1062,14 +967,11 @@ describe("validateUpdateSessionInput (T01-S10, plan §6.2)", () => {
     return {
       sourceSessionId: "session-1",
       name: "Séance modifiée",
-      color: DEFAULT_SESSION_COLOR,
+      labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 2,
-      // V2-BILAT-01 : `tourSideMode` OMIS délibérément — voir la note de tête
-      // de `durationExercise` dans `validateCreateSessionInput / validateUpdateSessionInput — side mode`.
       activities: [exerciseActivity()],
-      categories: [],
       ...overrides,
     };
   }
@@ -1151,21 +1053,21 @@ describe("validateUpdateSessionInput (T01-S10, plan §6.2)", () => {
 
   it("validates the attached Récupération on the update path (T02-S02)", () => {
     const okResult = validateUpdateSessionInput(
-      validInput({ activities: [exerciseActivity({ recoverySeconds: 120 })] }),
+      validInput({ activities: [exerciseActivity({ postActivityRecoverySeconds: 120 })] }),
     );
     expect(okResult.ok).toBe(true);
     if (okResult.ok) {
-      expect(okResult.value.activities[0]).toMatchObject({ recoverySeconds: 120 });
+      expect(okResult.value.activities[0]).toMatchObject({ postActivityRecoverySeconds: 120 });
     }
 
     const badResult = validateUpdateSessionInput(
-      validInput({ activities: [exerciseActivity({ recoverySeconds: 6000 })] }),
+      validInput({ activities: [exerciseActivity({ postActivityRecoverySeconds: 6000 })] }),
     );
     expect(badResult.ok).toBe(false);
     if (!badResult.ok) {
       expect(badResult.violations).toContainEqual({
         code: "OUT_OF_RANGE",
-        field: "exercise.recoverySeconds",
+        field: "exercise.postActivityRecoverySeconds",
         details: { min: 0, max: 5999 },
       });
     }
@@ -1176,12 +1078,10 @@ describe("validateUpdateSessionInput (T01-S10, plan §6.2)", () => {
       validateUpdateSessionInput({
         sourceSessionId: "",
         name: "",
-        color: "#000000" as never,
         initialCountdownSeconds: -1,
         finalPhaseSeconds: -1,
         tourRepeatCount: 0,
         activities: [],
-        categories: [{ kind: "NEW", name: "" }],
       }),
     ).not.toThrow();
   });

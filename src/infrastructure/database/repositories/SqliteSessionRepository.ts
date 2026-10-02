@@ -1,24 +1,18 @@
 import * as Crypto from "expo-crypto";
 
-import { canonicalCategoryKey } from "@/domain/categories/validation";
 import {
   computeActivityCount,
   computeEstimatedDurationSeconds,
 } from "@/domain/sessions/calculations";
-import {
-  DEFAULT_SIDE_MODE,
-  DEFAULT_TOUR_SIDE_MODE,
-  FIXED_CYCLE_REPEAT_COUNT,
-} from "@/domain/sessions/defaults";
+import { FIXED_CYCLE_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import { SessionValidationError } from "@/domain/sessions/errors";
 import {
-  SESSION_COLORS,
+  DEFAULT_SESSION_COLOR,
   type Activity,
   type ActivityType,
-  type Category,
   type CreateSessionActivityInput,
-  type CreateSessionCategoryInput,
   type CreateSessionInput,
+  type CreateStopPointInput,
   type ExerciseExecutionMode,
   type Session,
   type SessionColor,
@@ -27,6 +21,7 @@ import {
   type UpdateSessionActivityInput,
   type UpdateSessionInput,
 } from "@/domain/sessions/Session";
+import type { StopPoint } from "@/domain/sessions/StopPoint";
 import type {
   SessionRepository,
   UpdateSessionOutcome,
@@ -39,16 +34,13 @@ import {
 import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import { LOCAL_USER_SINGLETON_KEY } from "@/infrastructure/database/constants";
 import type { Database } from "@/infrastructure/database/Database";
-import { mapCategoryRow } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import type {
   ActivityBodyZoneRow,
   SessionAggregateRow,
-  SessionCategoryRow,
   SessionSummaryRow,
 } from "@/infrastructure/database/types/DatabaseRows";
 
 type LocalUserRow = { id: string };
-type CategoryIdRow = { id: string };
 type UuidFactory = () => string;
 
 /** Ordre canonique de restitution des zones structurelles (D-061). */
@@ -70,13 +62,18 @@ const STRUCTURAL_ORDER_SQL = `
  * (avant → dans → après le Tour) puis `activities.position` — cet ordre EST
  * celui restitué dans `Session.cycle.beforeTour` / `cycle.tour.exercises` /
  * `cycle.afterTour`.
+ *
+ * V2-PRE-1 (plan §3.3) : `sessions.color` autonome et `session_categories`
+ * N:N sont retirés — la couleur est DÉRIVÉE d'une jointure externe (gauche)
+ * avec `labels` (`label_color`, `NULL` sans Étiquette).
  */
 const AGGREGATE_QUERY = `
 SELECT
   sessions.id AS session_id,
   sessions.owner_id,
   sessions.name AS session_name,
-  sessions.color,
+  sessions.label_id AS label_id,
+  labels.color AS label_color,
   sessions.status,
   sessions.initial_countdown_seconds,
   sessions.final_phase_seconds,
@@ -99,10 +96,11 @@ SELECT
   activities.repetition_count,
   activities.series_count,
   activities.pause_seconds,
-  activities.recovery_seconds,
+  activities.post_activity_recovery_seconds,
   activities.instruction,
   activities.side_mode AS activity_side_mode
 FROM sessions
+LEFT JOIN labels ON labels.id = sessions.label_id
 JOIN cycles ON cycles.session_id = sessions.id
 JOIN tours ON tours.cycle_id = cycles.id AND tours.session_id = sessions.id
 JOIN activities
@@ -120,64 +118,28 @@ ORDER BY ${STRUCTURAL_ORDER_SQL} ASC, activities.position ASC
  * **T02-S02** : la formule canonique est CONDITIONNELLE — la Récupération
  * REMPLACE la dernière Pause lorsqu'elle existe :
  *
- * - `recovery_seconds = 0` : `C × A + C × B` ;
- * - `recovery_seconds > 0` : `C × A + (C − 1) × B + R`.
+ * - `post_activity_recovery_seconds = 0` : `C × A + C × B` ;
+ * - `post_activity_recovery_seconds > 0` : `C × A + (C − 1) × B + R`.
  *
  * Le nombre d'occurrences de Pause est donc lui-même un `CASE`, transcription
  * exacte de `computePauseOccurrences`. `MAX(X, Y)` à deux arguments est la
  * fonction SCALAIRE de SQLite, jamais l'agrégat `max(X)` à un argument.
  *
- * `recovery_seconds` est ajouté une seule fois, quel que soit le mode
- * (RM-132 : en Répétitions et « À l'échec », la borne minimale se compose des
- * Pauses connues ET de la Récupération).
- *
- * La branche `RECOVERY` reste une défense en profondeur sur une donnée
- * ancienne : `migration004` a converti puis supprimé toutes ces lignes.
+ * **V2-PRE-1 (plan §3.3)** : le Circuit (Tour) n'a plus aucune influence
+ * fonctionnelle sur la direction — chaque Activité applique sa PROPRE
+ * direction (`activities.side_mode`), jamais celle du Tour.
  */
 const ACTIVITY_PAUSE_OCCURRENCES_SQL = `
   CASE
-    WHEN activities.recovery_seconds > 0
+    WHEN activities.post_activity_recovery_seconds > 0
       THEN MAX(COALESCE(activities.series_count, 0) - 1, 0)
     ELSE MAX(COALESCE(activities.series_count, 0), 0)
   END
 `;
 
-/**
- * V2-BILAT-01 — transcription SQL EXACTE de `resolveEffectiveSideMode`
- * (`sideMode.ts`, dont la parité est testée) : la direction du Tour prévaut
- * dès qu'elle est bilatérale pour toute Activité `IN_TOUR` ; sinon (Tour
- * `UNILATERAL`, ou zone `BEFORE_TOUR`/`AFTER_TOUR` jamais gouvernée par un
- * Tour) chaque Activité conserve sa direction propre.
- */
-const EFFECTIVE_SIDE_MODE_SQL = `
-  CASE
-    WHEN activities.structural_position = 'IN_TOUR' AND tours.side_mode <> 'UNILATERAL'
-      THEN tours.side_mode
-    ELSE activities.side_mode
-  END
-`;
-
-/** V2-BILAT-01 — transcription SQL EXACTE de `sideMultiplier(resolveEffectiveSideMode(...))` : `1` pour `UNILATERAL`, `2` pour toute direction bilatérale. */
+/** V2-BILAT-01, portée exclusivement par l'Exercice (V2-PRE-1) — transcription SQL EXACTE de `sideMultiplier(activity.sideMode)` : `1` pour `UNILATERAL`, `2` pour toute direction bilatérale. */
 const ACTIVITY_SIDE_MULTIPLIER_SQL = `
-  CASE WHEN (${EFFECTIVE_SIDE_MODE_SQL}) <> 'UNILATERAL' THEN 2 ELSE 1 END
-`;
-
-/**
- * V2-BILAT-01 — multiplicateur de la Récupération ATTACHÉE : `2` UNIQUEMENT
- * lorsque c'est le TOUR LUI-MÊME qui est bilatéral pour cette Activité
- * `IN_TOUR` (« Tour bilatéral : … `Ri` est comptée une fois par passage de
- * côté ») ; `1` dans tout autre cas — Tour `UNILATERAL` (y compris une
- * Activité elle-même bilatérale : « … `Ri` est comptée une seule fois après
- * ses deux côtés ») ou zone hors Tour (direction propre, jamais doublée).
- * Transcription SQL EXACTE du second paramètre de `computeActivityDurationSeconds`
- * tel que résolu par `computeZoneDurationFacts`.
- */
-const ACTIVITY_RECOVERY_MULTIPLIER_SQL = `
-  CASE
-    WHEN activities.structural_position = 'IN_TOUR' AND tours.side_mode <> 'UNILATERAL'
-      THEN 2
-    ELSE 1
-  END
+  CASE WHEN activities.side_mode <> 'UNILATERAL' THEN 2 ELSE 1 END
 `;
 
 /**
@@ -185,21 +147,12 @@ const ACTIVITY_RECOVERY_MULTIPLIER_SQL = `
  * `computeActivityDurationSeconds` (`calculations.ts`), dont la parité est
  * testée (`SqliteSessionRepository.test.ts`).
  *
- * **T02-S02** : la formule canonique est CONDITIONNELLE — la Récupération
- * REMPLACE la dernière Pause lorsqu'elle existe (voir
- * `ACTIVITY_PAUSE_OCCURRENCES_SQL`).
- *
- * **V2-BILAT-01** : la part Séries + Pauses est multipliée par
- * `ACTIVITY_SIDE_MULTIPLIER_SQL` (`Li`, direction EFFECTIVE de l'Activité) ;
- * la Récupération, elle, n'est multipliée que par
- * `ACTIVITY_RECOVERY_MULTIPLIER_SQL` (`1` sauf Tour lui-même bilatéral) —
- * jamais le même facteur pour les deux parts, jamais de double
- * multiplicateur.
- *
  * La branche `RECOVERY` reste une défense en profondeur sur une donnée
  * ancienne : `migration004` a converti puis supprimé toutes ces lignes ;
  * une Récupération n'est jamais elle-même côtée (D-041), aucun
- * multiplicateur ne s'y applique.
+ * multiplicateur ne s'y applique. La récupération post-exercice n'est,
+ * elle, jamais multipliée par côté (V2-PRE-1 : le Circuit n'a plus de
+ * direction propre).
  */
 const ACTIVITY_DURATION_SQL = `
   CASE
@@ -209,7 +162,7 @@ const ACTIVITY_DURATION_SQL = `
       COALESCE(activities.series_count, 0) * COALESCE(activities.duration_seconds, 0)
       + (${ACTIVITY_PAUSE_OCCURRENCES_SQL}) * activities.pause_seconds
     ) * (${ACTIVITY_SIDE_MULTIPLIER_SQL})
-      + activities.recovery_seconds * (${ACTIVITY_RECOVERY_MULTIPLIER_SQL})
+      + activities.post_activity_recovery_seconds
   END
 `;
 
@@ -232,14 +185,6 @@ function zoneActivityCountSql(zone: StructuralPosition): string {
   return `SUM(CASE WHEN activities.structural_position = '${zone}' THEN 1 ELSE 0 END)`;
 }
 
-const CATEGORIES_FOR_SESSION_QUERY = `
-SELECT categories.id, categories.name, categories.canonical_key, categories.is_predefined, categories.display_order, categories.created_at
-FROM session_categories
-JOIN categories ON categories.id = session_categories.category_id
-WHERE session_categories.session_id = ?
-ORDER BY categories.is_predefined DESC, categories.display_order ASC, categories.created_at ASC
-`;
-
 export class SqliteSessionRepository implements SessionRepository {
   constructor(
     private readonly database: Database,
@@ -249,12 +194,17 @@ export class SqliteSessionRepository implements SessionRepository {
 
   /**
    * Persiste, dans une UNIQUE transaction SQLite (D-107) : la Séance, le
-   * Cycle, le Tour, TOUTES les Activités ordonnées du brouillon, leurs
-   * Zones corporelles, les Catégories personnalisées nécessaires (créées ou
-   * retrouvées par clé canonique) et les associations Séance↔Catégorie.
-   * Toute erreur au sein de cette transaction annule l'intégralité de
-   * l'écriture (§`withExclusiveTransactionAsync`, propagation d'exception) —
-   * aucune donnée partielle n'est jamais laissée.
+   * Cycle, le Tour et TOUTES les Activités ordonnées du brouillon, avec
+   * leurs Zones corporelles. Toute erreur au sein de cette transaction
+   * annule l'intégralité de l'écriture (§`withExclusiveTransactionAsync`,
+   * propagation d'exception) — aucune donnée partielle n'est jamais laissée.
+   *
+   * V2-PRE-1 (plan §3.3) : la relation historique Catégorie de Séance N:N
+   * est retirée — seule une Étiquette facultative (`labelId`) est persistée.
+   * Le `sideMode` du Tour n'a plus aucune influence fonctionnelle : la
+   * colonne SQL reste écrite `'UNILATERAL'` (compatibilité technique), plus
+   * jamais lue depuis `CreateSessionInput`/`UpdateSessionInput` (retirés de
+   * ces contrats).
    */
   async create(input: CreateSessionInput): Promise<Session> {
     const validated = validateCreateSessionInput(input);
@@ -273,7 +223,7 @@ export class SqliteSessionRepository implements SessionRepository {
 
       await transaction.runAsync(
         `INSERT INTO sessions (
-          id, owner_id, name, color, status,
+          id, owner_id, name, label_id, status,
           initial_countdown_seconds, final_phase_seconds,
           created_at, updated_at
         ) VALUES (?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?)`,
@@ -281,7 +231,7 @@ export class SqliteSessionRepository implements SessionRepository {
           sessionId,
           user.id,
           normalized.name,
-          normalized.color,
+          normalized.labelId ?? null,
           normalized.initialCountdownSeconds,
           normalized.finalPhaseSeconds,
           timestamp,
@@ -295,21 +245,12 @@ export class SqliteSessionRepository implements SessionRepository {
         [cycleId, sessionId, FIXED_CYCLE_REPEAT_COUNT],
       );
 
-      // T02-S01 : répétition RÉELLE du Tour (`1..99`, D-058) — la création
-      // insérait jusqu'ici `FIXED_TOUR_REPEAT_COUNT`, rendant impossible la
-      // création d'une Séance à plusieurs Tours (AC-08/AC-12).
-      // V2-BILAT-01 : direction RÉELLE du Tour (`tourSideMode`, champ
-      // optionnel de transition — `?? DEFAULT_TOUR_SIDE_MODE` si absent).
+      // T02-S01 : répétition RÉELLE du Tour (`1..99`, D-058). V2-PRE-1 : le
+      // Tour n'a plus de direction propre — toujours `'UNILATERAL'` en base.
       await transaction.runAsync(
         `INSERT INTO tours (id, cycle_id, session_id, position, repeat_count, side_mode)
-         VALUES (?, ?, ?, 1, ?, ?)`,
-        [
-          tourId,
-          cycleId,
-          sessionId,
-          normalized.tourRepeatCount,
-          normalized.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE,
-        ],
+         VALUES (?, ?, ?, 1, ?, 'UNILATERAL')`,
+        [tourId, cycleId, sessionId, normalized.tourRepeatCount],
       );
 
       await insertActivities(
@@ -321,14 +262,7 @@ export class SqliteSessionRepository implements SessionRepository {
         this.uuidFactory,
         timestamp,
       );
-
-      const categoryIds = await resolveCategoryIds(
-        transaction,
-        normalized.categories,
-        this.uuidFactory,
-        timestamp,
-      );
-      await insertSessionCategories(transaction, sessionId, categoryIds);
+      await insertStopPoints(transaction, sessionId, normalized.stopPoints ?? [], this.uuidFactory);
 
       created = await readSession(transaction, sessionId, user.id);
     });
@@ -351,10 +285,7 @@ export class SqliteSessionRepository implements SessionRepository {
    * présente est mise à jour en place (son `id` et son `created_at` sont
    * conservés), une nouvelle Activité est insérée avec l'identifiant fourni
    * par le brouillon, une Activité retirée est supprimée (ses Zones partent
-   * en cascade). Les positions structurelles, le mode `TO_FAILURE`, les
-   * Récupérations, `tour.repeatCount`, les Zones corporelles et les
-   * Catégories sont persistés dans la même transaction ; toute erreur annule
-   * l'intégralité de l'écriture.
+   * en cascade).
    */
   async update(sessionId: string, input: UpdateSessionInput): Promise<UpdateSessionOutcome> {
     const validated = validateUpdateSessionInput(input);
@@ -383,12 +314,12 @@ export class SqliteSessionRepository implements SessionRepository {
       }
 
       const sessionUpdate = await transaction.runAsync(
-        `UPDATE sessions SET name = ?, color = ?, initial_countdown_seconds = ?,
+        `UPDATE sessions SET name = ?, label_id = ?, initial_countdown_seconds = ?,
            final_phase_seconds = ?, updated_at = ?
          WHERE id = ? AND owner_id = ?`,
         [
           normalized.name,
-          normalized.color,
+          normalized.labelId ?? null,
           normalized.initialCountdownSeconds,
           normalized.finalPhaseSeconds,
           timestamp,
@@ -400,16 +331,9 @@ export class SqliteSessionRepository implements SessionRepository {
         throw new Error("Expected exactly one session row to be updated.");
       }
 
-      // V2-BILAT-01 : direction RÉELLE du Tour (`tourSideMode`, champ
-      // optionnel de transition — `?? DEFAULT_TOUR_SIDE_MODE` si absent).
       await transaction.runAsync(
-        `UPDATE tours SET repeat_count = ?, side_mode = ? WHERE id = ? AND session_id = ?`,
-        [
-          normalized.tourRepeatCount,
-          normalized.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE,
-          existingRow.tour_id,
-          sessionId,
-        ],
+        `UPDATE tours SET repeat_count = ? WHERE id = ? AND session_id = ?`,
+        [normalized.tourRepeatCount, existingRow.tour_id, sessionId],
       );
 
       await mergeActivities(
@@ -422,14 +346,14 @@ export class SqliteSessionRepository implements SessionRepository {
         timestamp,
       );
 
-      await transaction.runAsync(`DELETE FROM session_categories WHERE session_id = ?`, [sessionId]);
-      const categoryIds = await resolveCategoryIds(
-        transaction,
-        normalized.categories,
-        this.uuidFactory,
-        timestamp,
-      );
-      await insertSessionCategories(transaction, sessionId, categoryIds);
+      // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : les Points d'arrêt
+      // n'exposent aucune identité à l'appelant (contrairement aux
+      // Activités, fusionnées par `id`) — remplacés intégralement, même
+      // politique que les Zones corporelles d'un Exercice.
+      await transaction.runAsync(`DELETE FROM session_stop_points WHERE session_id = ?`, [
+        sessionId,
+      ]);
+      await insertStopPoints(transaction, sessionId, normalized.stopPoints ?? [], this.uuidFactory);
 
       const session = await readSession(transaction, sessionId, user.id);
       if (!session) {
@@ -461,7 +385,8 @@ export class SqliteSessionRepository implements SessionRepository {
       `SELECT
         sessions.id,
         sessions.name,
-        sessions.color,
+        sessions.label_id AS label_id,
+        labels.color AS label_color,
         ${zoneActivityCountSql("BEFORE_TOUR")} AS before_tour_activity_count,
         ${zoneActivityCountSql("IN_TOUR")} AS in_tour_activity_count,
         ${zoneActivityCountSql("AFTER_TOUR")} AS after_tour_activity_count,
@@ -478,6 +403,7 @@ export class SqliteSessionRepository implements SessionRepository {
         tours.repeat_count AS tour_repeat_count,
         sessions.updated_at
       FROM sessions
+      LEFT JOIN labels ON labels.id = sessions.label_id
       JOIN cycles ON cycles.session_id = sessions.id
       JOIN tours ON tours.cycle_id = cycles.id AND tours.session_id = sessions.id
       JOIN activities
@@ -490,18 +416,9 @@ export class SqliteSessionRepository implements SessionRepository {
     );
 
     const sessionIds = rows.map((row) => row.id);
-    const [categoryNamesBySession, bodyZoneNamesBySession] = await Promise.all([
-      getCategoryNamesBySession(this.database, sessionIds),
-      getBodyZoneNamesBySession(this.database, sessionIds),
-    ]);
+    const bodyZoneNamesBySession = await getBodyZoneNamesBySession(this.database, sessionIds);
 
-    return rows.map((row) =>
-      mapSummaryRow(
-        row,
-        categoryNamesBySession.get(row.id) ?? [],
-        bodyZoneNamesBySession.get(row.id) ?? [],
-      ),
-    );
+    return rows.map((row) => mapSummaryRow(row, bodyZoneNamesBySession.get(row.id) ?? []));
   }
 }
 
@@ -554,7 +471,7 @@ async function insertActivities(
 
     const activityId = activity.id ?? uuidFactory();
     const activityTourId = activityTourIdFor(zone, tourId);
-    const { executionMode, seriesCount, pauseSeconds, recoverySeconds, bodyZoneIds, sideMode } =
+    const { executionMode, seriesCount, pauseSeconds, postActivityRecoverySeconds, bodyZoneIds, sideMode } =
       toActivitySqlValues(activity);
 
     await transaction.runAsync(
@@ -574,7 +491,7 @@ async function insertActivities(
         activity.repetitionCount,
         seriesCount,
         pauseSeconds,
-        recoverySeconds,
+        postActivityRecoverySeconds,
         activity.instruction ?? null,
         timestamp,
         timestamp,
@@ -591,18 +508,44 @@ async function insertActivities(
   }
 }
 
+/**
+ * Insère les Points d'arrêt de la Séance (V2-PRE-1, plan §3.3/§7,
+ * REQ-001108DC7F67664C) — `position` est renumérotée SÉPARÉMENT DANS CHAQUE
+ * portée (0-indexée, même politique que `insertActivities`), seule façon de
+ * respecter `UNIQUE(session_id, scope, position)` sans dépendre de l'ordre
+ * relatif entre portées. `session_stop_points` référence `sessions(id)`
+ * directement (jamais le Cycle/Circuit).
+ */
+async function insertStopPoints(
+  transaction: Database,
+  sessionId: string,
+  stopPoints: readonly CreateStopPointInput[],
+  uuidFactory: UuidFactory,
+): Promise<void> {
+  const positionByScope = new Map<StructuralPosition, number>();
+
+  for (const stopPoint of stopPoints) {
+    const scope = stopPoint.scope;
+    const position = positionByScope.get(scope) ?? 0;
+    positionByScope.set(scope, position + 1);
+
+    await transaction.runAsync(
+      `INSERT INTO session_stop_points (id, session_id, scope, position) VALUES (?, ?, ?, ?)`,
+      [uuidFactory(), sessionId, scope, position],
+    );
+  }
+}
+
 const ACTIVITY_ROW_COLUMNS = `
   id, session_id, cycle_id, tour_id, type, structural_position,
   position, name, execution_mode, duration_seconds,
-  repetition_count, series_count, pause_seconds, recovery_seconds,
+  repetition_count, series_count, pause_seconds, post_activity_recovery_seconds,
   instruction, created_at, updated_at, side_mode
 `;
 
 /**
  * Liste de paramètres liés DÉRIVÉE de `ACTIVITY_ROW_COLUMNS` — jamais une
- * suite de `?` recopiée à la main : l'ajout de `recovery_seconds` (T02-S02)
- * aurait sinon exigé de recompter deux littéraux distincts, dans deux
- * instructions `INSERT` éloignées (`insertActivities` et `mergeActivities`).
+ * suite de `?` recopiée à la main.
  */
 const ACTIVITY_ROW_PLACEHOLDERS = ACTIVITY_ROW_COLUMNS.split(",")
   .map(() => "?")
@@ -615,30 +558,24 @@ function activityTourIdFor(structuralPosition: string, tourId: string): string |
 
 /**
  * Valeurs SQL d'une Activité, à la création comme à la modification (T01-S10 ;
- * T02-S01 : partagée avec `insertActivities`, dont le chemin de création
- * ignorait jusqu'ici totalement le cas Récupération). `execution_mode` est
- * une colonne `NOT NULL` : une Récupération y stocke `'DURATION'` (imposé par
- * le `CHECK` de `migration001`), tandis que le Domaine réexpose `null`. Une
+ * T02-S01 : partagée avec `insertActivities`). `execution_mode` est une
+ * colonne `NOT NULL` : une Récupération y stocke `'DURATION'` (imposé par le
+ * `CHECK` de `migration001`), tandis que le Domaine réexpose `null`. Une
  * Récupération n'a ni Séries, ni pause, ni Zones corporelles (D-041).
- *
- * Le paramètre est décrit STRUCTURELLEMENT plutôt que par l'un des deux DTO :
- * `CreateSessionActivityInput` et `UpdateSessionActivityInput` restent des
- * types distincts (Q3-A), mais la traduction vers SQL est identique.
  */
 function toActivitySqlValues(activity: {
   readonly type: ActivityType;
   readonly executionMode: ExerciseExecutionMode | null;
   readonly seriesCount: number | null;
   readonly pauseSeconds: number;
-  readonly recoverySeconds: number;
+  readonly postActivityRecoverySeconds: number;
   readonly bodyZoneIds: readonly string[];
-  /** V2-BILAT-01 : champ optionnel de transition (`CreateSessionActivityInput`/`UpdateSessionActivityInput.sideMode`) — `DEFAULT_SIDE_MODE` si absent. */
   readonly sideMode?: SideMode;
 }): {
   executionMode: string;
   seriesCount: number | null;
   pauseSeconds: number;
-  recoverySeconds: number;
+  postActivityRecoverySeconds: number;
   bodyZoneIds: readonly string[];
   sideMode: SideMode;
 } {
@@ -647,17 +584,12 @@ function toActivitySqlValues(activity: {
     executionMode: isRecovery ? "DURATION" : (activity.executionMode ?? "DURATION"),
     seriesCount: isRecovery ? null : activity.seriesCount,
     pauseSeconds: isRecovery ? 0 : activity.pauseSeconds,
-    // T02-S02 : une ancienne Activité `RECOVERY` ne peut pas porter de
-    // Récupération attachée (`CHECK` de `migration004`) — le Domaine en
-    // interdit déjà l'écriture, cette normalisation reste la défense de
-    // dernier recours du chemin SQL.
-    recoverySeconds: isRecovery ? 0 : activity.recoverySeconds,
+    postActivityRecoverySeconds: isRecovery ? 0 : activity.postActivityRecoverySeconds,
     bodyZoneIds: isRecovery ? [] : activity.bodyZoneIds,
     // V2-BILAT-01 : une Activité `RECOVERY` (défense en profondeur, jamais
     // produite par le Domaine — D-041) n'est jamais elle-même côtée : sa
     // direction reste `UNILATERAL`, quelle que soit la valeur transportée.
-    // `?? DEFAULT_SIDE_MODE` couvre le champ optionnel de transition.
-    sideMode: isRecovery ? "UNILATERAL" : (activity.sideMode ?? DEFAULT_SIDE_MODE),
+    sideMode: isRecovery ? "UNILATERAL" : (activity.sideMode ?? "UNILATERAL"),
   };
 }
 
@@ -715,7 +647,7 @@ async function mergeActivities(
     positionByZone.set(zone, position + 1);
 
     const activityTourId = activityTourIdFor(zone, tourId);
-    const { executionMode, seriesCount, pauseSeconds, recoverySeconds, bodyZoneIds, sideMode } =
+    const { executionMode, seriesCount, pauseSeconds, postActivityRecoverySeconds, bodyZoneIds, sideMode } =
       toActivitySqlValues(activity);
     const instruction = activity.instruction ?? null;
 
@@ -724,7 +656,7 @@ async function mergeActivities(
         `UPDATE activities SET
            type = ?, structural_position = ?, position = ?, name = ?,
            execution_mode = ?, duration_seconds = ?, repetition_count = ?,
-           series_count = ?, pause_seconds = ?, recovery_seconds = ?, instruction = ?,
+           series_count = ?, pause_seconds = ?, post_activity_recovery_seconds = ?, instruction = ?,
            tour_id = ?, cycle_id = ?, updated_at = ?, side_mode = ?
          WHERE id = ? AND session_id = ?`,
         [
@@ -737,7 +669,7 @@ async function mergeActivities(
           activity.repetitionCount,
           seriesCount,
           pauseSeconds,
-          recoverySeconds,
+          postActivityRecoverySeconds,
           instruction,
           activityTourId,
           cycleId,
@@ -768,7 +700,7 @@ async function mergeActivities(
           activity.repetitionCount,
           seriesCount,
           pauseSeconds,
-          recoverySeconds,
+          postActivityRecoverySeconds,
           instruction,
           timestamp,
           timestamp,
@@ -787,83 +719,10 @@ async function mergeActivities(
 }
 
 /**
- * Résout chaque `CreateSessionCategoryInput` vers un identifiant de
- * Catégorie réellement persisté (D-107) : `EXISTING` doit référencer une
- * Catégorie déjà présente (défense en profondeur — une entrée orpheline
- * échoue explicitement plutôt que de silencieusement créer une association
- * vers rien) ; `NEW` retrouve la Catégorie existante de même clé canonique
- * si elle existe déjà (jamais de doublon, D-106) ou la crée sinon. Les
- * identifiants retournés sont dédupliqués (une même Catégorie ne peut être
- * associée qu'une fois à la Séance, `session_categories` porte une clé
- * primaire composite) tout en conservant l'ordre de première apparition.
- */
-async function resolveCategoryIds(
-  transaction: Database,
-  categories: readonly CreateSessionCategoryInput[],
-  uuidFactory: UuidFactory,
-  timestamp: string,
-): Promise<readonly string[]> {
-  const resolved: string[] = [];
-  const seen = new Set<string>();
-
-  for (const category of categories) {
-    let categoryId: string;
-
-    if (category.kind === "EXISTING") {
-      const row = await transaction.getFirstAsync<CategoryIdRow>(
-        "SELECT id FROM categories WHERE id = ?",
-        [category.categoryId],
-      );
-      if (!row) {
-        throw new Error("Referenced category does not exist.");
-      }
-      categoryId = row.id;
-    } else {
-      const canonicalKey = canonicalCategoryKey(category.name);
-      const existing = await transaction.getFirstAsync<CategoryIdRow>(
-        "SELECT id FROM categories WHERE canonical_key = ?",
-        [canonicalKey],
-      );
-      if (existing) {
-        categoryId = existing.id;
-      } else {
-        categoryId = uuidFactory();
-        await transaction.runAsync(
-          `INSERT INTO categories (id, name, canonical_key, is_predefined, display_order, created_at)
-           VALUES (?, ?, ?, 0, NULL, ?)`,
-          [categoryId, category.name, canonicalKey, timestamp],
-        );
-      }
-    }
-
-    if (!seen.has(categoryId)) {
-      seen.add(categoryId);
-      resolved.push(categoryId);
-    }
-  }
-
-  return resolved;
-}
-
-async function insertSessionCategories(
-  transaction: Database,
-  sessionId: string,
-  categoryIds: readonly string[],
-): Promise<void> {
-  for (const categoryId of categoryIds) {
-    await transaction.runAsync(
-      `INSERT INTO session_categories (session_id, category_id) VALUES (?, ?)`,
-      [sessionId, categoryId],
-    );
-  }
-}
-
-/**
  * Relit et assemble l'agrégat complet d'une Séance : lignes d'Activités
- * (une par Activité, déjà ordonnées par `AGGREGATE_QUERY`), leurs Zones
- * corporelles et les Catégories associées. `null` si la Séance n'existe pas
- * (ou n'appartient pas à `ownerId`) — jamais une exception pour ce cas
- * attendu.
+ * (une par Activité, déjà ordonnées par `AGGREGATE_QUERY`) et leurs Zones
+ * corporelles. `null` si la Séance n'existe pas (ou n'appartient pas à
+ * `ownerId`) — jamais une exception pour ce cas attendu.
  */
 async function readSession(
   database: Database,
@@ -887,12 +746,26 @@ async function readSession(
     bodyZonesByActivity.set(zoneRow.activity_id, list);
   }
 
-  const categoryRows = await database.getAllAsync<SessionCategoryRow>(
-    CATEGORIES_FOR_SESSION_QUERY,
+  const stopPoints = await getStopPoints(database, sessionId);
+
+  return assembleSession(rows, bodyZonesByActivity, stopPoints);
+}
+
+/**
+ * Points d'arrêt persistés de la Séance (V2-PRE-1, plan §3.3/§7,
+ * REQ-001108DC7F67664C), ordonnés par portée PUIS par position — même
+ * convention de tri que `AGGREGATE_QUERY` pour les Activités.
+ */
+async function getStopPoints(
+  database: Database,
+  sessionId: string,
+): Promise<readonly StopPoint[]> {
+  const rows = await database.getAllAsync<{ id: string; scope: StructuralPosition; position: number }>(
+    `SELECT id, scope, position FROM session_stop_points
+     WHERE session_id = ? ORDER BY scope ASC, position ASC`,
     [sessionId],
   );
-
-  return assembleSession(rows, bodyZonesByActivity, categoryRows.map(mapCategoryRow));
+  return rows.map((row) => ({ id: row.id, scope: row.scope, order: row.position }));
 }
 
 async function getBodyZonesForActivities(
@@ -911,48 +784,6 @@ async function getBodyZonesForActivities(
     `SELECT activity_id, body_zone_id FROM activity_body_zones WHERE activity_id IN (${placeholders})`,
     activityIds,
   );
-}
-
-/**
- * Noms de Catégories associées à chacune des Séances données (T01-S09,
- * correction VISUAL tentative 2, point B — ligne manquante du contrat
- * d'écran CE-T01-03 sous le nom de la Séance), déjà ordonnés par Séance
- * (prédéfinies par `display_order`, puis personnalisées par `created_at`,
- * D-107) — même ordre que `CATEGORIES_FOR_SESSION_QUERY`, jamais un ordre
- * distinct recalculé côté application. Une seule requête groupée (jamais
- * une requête par Séance) pour les identifiants demandés.
- */
-async function getCategoryNamesBySession(
-  database: Database,
-  sessionIds: readonly string[],
-): Promise<ReadonlyMap<string, readonly string[]>> {
-  if (sessionIds.length === 0) {
-    return new Map();
-  }
-  // `sessionIds` provient toujours de lignes déjà relues depuis SQLite
-  // (jamais une saisie utilisateur directe) : la construction de la liste
-  // de paramètres liés ci-dessous reste sûre.
-  const placeholders = sessionIds.map(() => "?").join(", ");
-  const rows = await database.getAllAsync<{ session_id: string; name: string }>(
-    `SELECT session_categories.session_id AS session_id, categories.name AS name
-     FROM session_categories
-     JOIN categories ON categories.id = session_categories.category_id
-     WHERE session_categories.session_id IN (${placeholders})
-     ORDER BY
-       session_categories.session_id ASC,
-       categories.is_predefined DESC,
-       categories.display_order ASC,
-       categories.created_at ASC`,
-    sessionIds,
-  );
-
-  const namesBySession = new Map<string, string[]>();
-  for (const row of rows) {
-    const names = namesBySession.get(row.session_id) ?? [];
-    names.push(row.name);
-    namesBySession.set(row.session_id, names);
-  }
-  return namesBySession;
 }
 
 /**
@@ -1016,15 +847,16 @@ function toActivity(
     repetitionCount: row.repetition_count,
     seriesCount: isRecovery ? null : row.series_count,
     pauseSeconds: row.pause_seconds,
-    // T02-S02 : Récupération attachée (`migration004`). Une ancienne ligne
+    // V2-PRE-1 : récupération post-exercice de l'occurrence (`migration007`,
+    // colonne renommée depuis `recovery_seconds`). Une ancienne ligne
     // `RECOVERY` n'en porte jamais (`CHECK` SQL) — le `?? 0` couvre la seule
     // autre origine possible d'une valeur absente, une projection partielle
     // de test antérieure à cette colonne.
-    recoverySeconds: isRecovery ? 0 : (row.recovery_seconds ?? 0),
+    postActivityRecoverySeconds: isRecovery ? 0 : (row.post_activity_recovery_seconds ?? 0),
     instruction: row.instruction,
     bodyZoneIds: isRecovery ? [] : (bodyZonesByActivity.get(row.activity_id) ?? []),
     // V2-BILAT-01 : une Récupération n'est jamais elle-même côtée (D-041) ;
-    // `?? "UNILATERAL"` couvre la même défense que `recoverySeconds`
+    // `?? "UNILATERAL"` couvre la même défense que `postActivityRecoverySeconds`
     // ci-dessus (colonne `NOT NULL`, filet pour une projection partielle de
     // test antérieure à cette colonne).
     sideMode: isRecovery ? "UNILATERAL" : (row.activity_side_mode ?? "UNILATERAL"),
@@ -1034,7 +866,7 @@ function toActivity(
 export function assembleSession(
   rows: readonly SessionAggregateRow[],
   bodyZonesByActivity: ReadonlyMap<string, readonly string[]>,
-  categories: readonly Category[],
+  stopPoints: readonly StopPoint[] = [],
 ): Session {
   for (const row of rows) {
     assertSessionAggregateRow(row);
@@ -1059,10 +891,16 @@ export function assembleSession(
     id: first.session_id,
     ownerId: first.owner_id,
     name: first.session_name,
-    color: first.color as SessionColor,
+    // V2-PRE-1 (plan §3.3) : couleur DÉRIVÉE de l'Étiquette jointe — présentation neutre sans Étiquette.
+    color: (first.label_color as SessionColor | null) ?? DEFAULT_SESSION_COLOR,
+    labelId: first.label_id,
     status: "ACTIVE",
     initialCountdownSeconds: first.initial_countdown_seconds,
     finalPhaseSeconds: first.final_phase_seconds,
+    // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : absent plutôt que `[]`
+    // quand la Séance ne porte aucun Point d'arrêt — même convention que
+    // `cycle.beforeTour`/`cycle.afterTour` ci-dessous.
+    ...(stopPoints.length > 0 ? { stopPoints } : {}),
     createdAt: first.session_created_at,
     updatedAt: first.session_updated_at,
     cycle: {
@@ -1077,25 +915,19 @@ export function assembleSession(
         id: first.tour_id,
         position: 1,
         repeatCount: first.tour_repeat_count,
-        // V2-BILAT-01 : direction du Tour (`?? "UNILATERAL"` — même filet de
-        // défense que `toActivity`, pour une projection partielle de test
-        // antérieure à cette colonne).
-        sideMode: first.tour_side_mode ?? "UNILATERAL",
         exercises: inTour,
       },
     },
-    categories,
   };
 }
 
 /** @deprecated Conservé pour compatibilité de test direct (une seule ligne) — voir `assembleSession` pour l'assemblage réel multi-lignes. */
 export function mapSessionRow(row: SessionAggregateRow): Session {
-  return assembleSession([row], new Map(), []);
+  return assembleSession([row], new Map());
 }
 
 function mapSummaryRow(
   row: SessionSummaryRow,
-  categoryNames: readonly string[],
   bodyZoneNames: readonly string[],
 ): SessionSummary {
   // T02-S01 : le Catalogue affiche le nombre d'Activités RÉELLEMENT
@@ -1120,13 +952,14 @@ function mapSummaryRow(
   return {
     id: row.id,
     name: row.name,
-    color: row.color as SessionColor,
+    color: (row.label_color as SessionColor | null) ?? DEFAULT_SESSION_COLOR,
+    labelId: row.label_id,
     activityCount,
     estimatedDurationSeconds,
     isEstimatedDurationApproximate: row.has_repetition_activity === 1,
     tourRepeatCount: row.tour_repeat_count,
     updatedAt: row.updated_at,
-    categoryNames,
+    categoryNames: [],
     bodyZoneNames,
   };
 }
@@ -1141,9 +974,6 @@ const STRUCTURAL_POSITIONS: readonly string[] = ["BEFORE_TOUR", "IN_TOUR", "AFTE
  * (aucune en `TO_FAILURE`) ; une Récupération est chronométrée, sans Séries.
  */
 function assertSessionAggregateRow(row: SessionAggregateRow): void {
-  if (!SESSION_COLORS.includes(row.color as SessionColor)) {
-    throw new Error("Persisted session color is invalid.");
-  }
   if (
     row.status !== "ACTIVE" ||
     row.cycle_position !== 1 ||

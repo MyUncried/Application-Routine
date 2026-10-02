@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import {
   applyTargetTotalDuration,
   computeTotalDurationSeconds,
@@ -17,7 +18,6 @@ import {
   validateExerciseName,
   validateRepetitionCount,
 } from "@/domain/sessions/validation";
-import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import { BodyZoneSelector } from "@/features/sessions/BodyZoneSelector";
 import {
   formatCompactDuration,
@@ -32,7 +32,6 @@ import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import {
   WHEEL_EXERCISE_DURATION_SECONDS_MAX,
   WHEEL_PAUSE_SECONDS_MAX,
-  WHEEL_RECOVERY_SECONDS_MAX,
   WHEEL_TOTAL_DURATION_SECONDS_MAX,
 } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
@@ -68,7 +67,6 @@ export type ActivityEditorFormValue = {
   readonly repetitionCount: number | null;
   readonly seriesCount: number;
   readonly pauseSeconds: number;
-  readonly recoverySeconds: number;
   readonly bodyZoneIds: readonly string[];
   readonly sideMode: SideMode;
 };
@@ -76,6 +74,12 @@ export type ActivityEditorFormValue = {
 export type ActivityEditorFormProps = {
   value: ActivityEditorFormValue;
   onChange: (patch: Partial<ActivityEditorFormValue>) => void;
+  /**
+   * Référentiel persistant des Zones corporelles (V2-PRE-1, plan §3.1,
+   * UI-1652FFC3B512) — chargé par l'appelant (`ExerciseScreen.tsx`), jamais
+   * importé statiquement ici (`BODY_ZONES` n'est plus l'autorité runtime).
+   */
+  bodyZones: readonly BodyZone[];
   /**
    * V2-BILAT-01 : `true` uniquement pour une Activité `IN_TOUR` de la
    * Composition gouvernée par un Tour déjà bilatéral (le contrôle `Côté`
@@ -109,7 +113,6 @@ type OverlayKind =
   | "repetitionCount"
   | "pauseSeconds"
   | "seriesCount"
-  | "recoverySeconds"
   | "totalDuration";
 
 type SectionKey = "description" | "bodyZones" | "executionMode" | "media";
@@ -134,18 +137,24 @@ export function isActivityEditorFormValid(value: ActivityEditorFormValue): boole
   return value.repetitionCount !== null && validateRepetitionCount(value.repetitionCount).ok;
 }
 
-/** Facteurs `A`/`B`/`R` de la formule canonique conditionnelle (`calculations.ts`). */
+/**
+ * Facteurs `A`/`B`/`R` de la formule canonique conditionnelle
+ * (`calculations.ts`). V2-PRE-1 (plan §3.1) : une `ActivityDefinition` ne
+ * porte plus aucune récupération propre — `R` reste `0` (formule `D = L ×
+ * [C × A + C × B]`), jamais réintroduite par ce formulaire commun.
+ */
 function totalDurationFacts(value: ActivityEditorFormValue): TotalDurationFacts {
   return {
     durationSeconds: value.executionMode === "DURATION" ? (value.durationSeconds ?? 0) : 0,
     pauseSeconds: value.pauseSeconds,
-    recoverySeconds: value.recoverySeconds,
+    postActivityRecoverySeconds: 0,
   };
 }
 
 export function ActivityEditorForm({
   value,
   onChange,
+  bodyZones,
   isSideModeInherited = false,
   showMediaSection = true,
   finishLabel,
@@ -274,7 +283,6 @@ export function ActivityEditorForm({
     repetitionCount: value.repetitionCount,
     seriesCount: value.seriesCount,
     pauseSeconds: value.pauseSeconds,
-    recoverySeconds: value.recoverySeconds,
     sideMode: value.sideMode,
     isSideModeInherited,
   };
@@ -358,7 +366,7 @@ export function ActivityEditorForm({
           onToggle={() => toggleSection("bodyZones")}
         >
           <BodyZoneSelector
-            zones={BODY_ZONES}
+            zones={bodyZones}
             selectedIds={value.bodyZoneIds}
             onToggle={toggleBodyZone}
             accessibilityLabel={t.bodyZones.accessibilityLabel}
@@ -455,15 +463,6 @@ export function ActivityEditorForm({
                   accessibilityLabel={sideModeAccessibilityLabel}
                   disabled={isSideModeInherited}
                   testID="exercise-side-mode"
-                />
-                <ParameterField
-                  testID="exercise-field-recoverySeconds"
-                  width={dimensions.exerciseParameterRow.wideColumnWidth}
-                  label={t.recoverySeconds.compactLabel}
-                  accessibilityLabel={t.recoverySeconds.accessibilityLabel}
-                  value={formatDurationRowValue(value.recoverySeconds, WHEEL_RECOVERY_SECONDS_MAX)}
-                  isOpen={openOverlay === "recoverySeconds"}
-                  onPress={() => toggleOverlay("recoverySeconds")}
                 />
                 {isTotalDurationDriveable ? (
                   <ParameterField
@@ -583,21 +582,6 @@ export function ActivityEditorForm({
             cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
             validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
             testID="exercise-series-count-wheel"
-          />
-        ) : null}
-        {openOverlay === "recoverySeconds" ? (
-          <DurationWheelPicker
-            totalSeconds={value.recoverySeconds}
-            onValidate={(totalSeconds) => {
-              patch({ recoverySeconds: totalSeconds });
-              closeOverlay();
-            }}
-            onCancel={closeOverlay}
-            maxTotalSeconds={WHEEL_RECOVERY_SECONDS_MAX}
-            minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
-            secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
-            cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
-            validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
           />
         ) : null}
         {openOverlay === "totalDuration" && isTotalDurationDriveable ? (

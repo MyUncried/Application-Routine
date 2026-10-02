@@ -12,6 +12,8 @@ import type {
   UpdateSessionOutcome,
 } from "@/domain/sessions/SessionRepository";
 import type { ActivityDefinition, ActivityDefinitionRepository } from "@/domain/activities";
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceProvider } from "@/features/activities/ActivityDefinitionServiceProvider";
 import { SessionService } from "@/features/sessions/SessionService";
@@ -46,6 +48,39 @@ import { strings } from "@/shared/i18n";
 jest.mock("expo-haptics", () => ({
   selectionAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
 }));
+
+/**
+ * `CompositionScreen` s'auto-alimente aussi en Étiquettes persistées via
+ * `useSQLiteContext` (V2-PRE-1, plan §3.3, UI-74BBA70BF09F-AC8AD824374E8) —
+ * sans `<SQLiteProvider>` réel dans cet arbre de routes de test, `expo-sqlite`
+ * est doublé ici (nécessaire à `useLabelsReferential`, hors périmètre de
+ * cette correction) ; son `try/catch` interne dégrade silencieusement vers un
+ * référentiel VIDE, sans incidence sur ce parcours.
+ */
+jest.mock("expo-sqlite", () => ({
+  useSQLiteContext: () => ({}),
+}));
+
+/**
+ * `CompositionScreen`/`ActivityCard` s'auto-alimentent en Zones corporelles
+ * persistées via `ActivityDefinitionService.listBodyZones()` (V2-PRE-1, plan
+ * §3.1, UI-CDBCCFD16078 ; correction device check Hermann, commentaire
+ * 5948936550 — un accès direct à `useSQLiteContext` levait TOUJOURS en
+ * production, ces écrans étant rendus hors de `<SQLiteProvider>`) — un
+ * `BodyZoneRepository` factice est donc injecté dans le VRAI
+ * `ActivityDefinitionService` construit ci-dessous, jamais `expo-sqlite`/
+ * `SqliteBodyZoneRepository`.
+ */
+const BODY_ZONE_FIXTURES: readonly BodyZone[] = [
+  { id: "epaules", name: "Épaules", isActive: true, createdAt: "2026-01-01T00:00:01.000Z" },
+  { id: "dos", name: "Dos", isActive: true, createdAt: "2026-01-01T00:00:04.000Z" },
+];
+
+class FakeBodyZoneRepository implements BodyZoneRepository {
+  listAll(): Promise<readonly BodyZone[]> {
+    return Promise.resolve(BODY_ZONE_FIXTURES);
+  }
+}
 
 const sessions = strings.screens.sessions;
 const composition = strings.screens.composition;
@@ -175,7 +210,13 @@ function TestWrapper({ children }: { children: ReactNode }) {
       value={new SessionService(repository, new NoopCategoryRepository())}
     >
       <ActivityDefinitionServiceProvider
-        service={new ActivityDefinitionService(new NoopActivityDefinitionRepository())}
+        service={
+          new ActivityDefinitionService(
+            new NoopActivityDefinitionRepository(),
+            new NoopCategoryRepository(),
+            new FakeBodyZoneRepository(),
+          )
+        }
       >
         {children}
       </ActivityDefinitionServiceProvider>

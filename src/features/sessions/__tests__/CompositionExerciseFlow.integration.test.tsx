@@ -2,10 +2,15 @@ import { act, fireEvent, renderRouter, screen } from "expo-router/testing-librar
 import { describe, expect, it, jest } from "@jest/globals";
 import type { ReactNode } from "react";
 
+import type { ActivityDefinition, ActivityDefinitionRepository } from "@/domain/activities";
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
 import type { Category } from "@/domain/categories/Category";
 import type { CategoryRepository } from "@/domain/categories/CategoryRepository";
 import type { Session, SessionSummary } from "@/domain/sessions/Session";
 import type { SessionRepository, UpdateSessionOutcome } from "@/domain/sessions/SessionRepository";
+import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
+import { ActivityDefinitionServiceProvider } from "@/features/activities/ActivityDefinitionServiceProvider";
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
@@ -76,12 +81,51 @@ class NoopCategoryRepository implements CategoryRepository {
   }
 }
 
+/**
+ * V2-PRE-1 (device check Hermann, commentaire 5948936550) : `CompositionScreen`
+ * et `ExerciseScreen` consomment désormais `ActivityDefinitionService` (Zones
+ * corporelles) — un contexte factice minimal (aucune dépendance SQLite
+ * réelle) est donc nécessaire pour ce parcours Composition↔Activité, qui ne
+ * porte sur aucune Zone ni Catégorie (couvert par `CatalogueCompositionEditFlow
+ * .integration.test.tsx`).
+ */
+class NoopActivityDefinitionRepository implements ActivityDefinitionRepository {
+  create(): Promise<ActivityDefinition> {
+    return Promise.reject(new Error("not used by this Composition/Activity navigation test"));
+  }
+  findById(): Promise<ActivityDefinition | null> {
+    return Promise.resolve(null);
+  }
+  listAll(): Promise<readonly ActivityDefinition[]> {
+    return Promise.resolve([]);
+  }
+  update(): Promise<ActivityDefinition | null> {
+    return Promise.reject(new Error("not used by this Composition/Activity navigation test"));
+  }
+}
+
+class NoopBodyZoneRepository implements BodyZoneRepository {
+  listAll(): Promise<readonly BodyZone[]> {
+    return Promise.resolve([]);
+  }
+}
+
 function SessionServiceTestWrapper({ children }: { children: ReactNode }) {
   return (
     <SessionServiceContext.Provider
       value={new SessionService(new NoopSessionRepository(), new NoopCategoryRepository())}
     >
-      {children}
+      <ActivityDefinitionServiceProvider
+        service={
+          new ActivityDefinitionService(
+            new NoopActivityDefinitionRepository(),
+            new NoopCategoryRepository(),
+            new NoopBodyZoneRepository(),
+          )
+        }
+      >
+        {children}
+      </ActivityDefinitionServiceProvider>
     </SessionServiceContext.Provider>
   );
 }
@@ -130,9 +174,9 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     fireEvent.press(screen.getByTestId("exercise-section-description-header"));
     expect(screen.getAllByLabelText(exercise.instruction.label)).toHaveLength(1);
 
-    // La Récupération attachée et la Durée totale dérivée sont visibles
+    // V2-PRE-1 (plan §3.1) : `ActivityEditorForm` ne porte plus le champ
+    // Récupération — seule la Durée totale dérivée reste visible
     // immédiatement, dans la même rangée de paramètres.
-    expect(screen.getByLabelText(exercise.recoverySeconds.accessibilityLabel)).toBeTruthy();
     expect(screen.getByLabelText(exercise.totalDuration.accessibilityLabel)).toBeTruthy();
   });
 

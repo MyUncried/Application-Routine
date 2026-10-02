@@ -27,10 +27,9 @@ export type ValidationErrorCode =
 
 export type ValidationField =
   | "session.name"
-  | "session.color"
   | "session.initialCountdownSeconds"
   | "session.finalPhaseSeconds"
-  /** T01-S10 : répétition du Tour (`1..99`, D-058). */
+  /** T01-S10 : répétition du Circuit (`1..99`, D-058). */
   | "session.tourRepeatCount"
   /** T01-S10 : identifiant source d'une modification bout en bout (`UpdateSessionInput.sourceSessionId`). */
   | "session.sourceSessionId"
@@ -40,8 +39,8 @@ export type ValidationField =
   | "exercise.repetitionCount"
   | "exercise.seriesCount"
   | "exercise.pauseSeconds"
-  /** T02-S02 : Récupération ATTACHÉE d'une Activité (`0..5999` s, RM-129). */
-  | "exercise.recoverySeconds"
+  /** V2-PRE-1 (plan §3.2) : récupération post-exercice de l'occurrence, obligatoire et indépendante de la définition (`0..5999` s). Remplace l'ancien champ historique `exercise.recoverySeconds`. */
+  | "exercise.postActivityRecoverySeconds"
   /** T01-S10 : mode d'exécution d'un Exercice (`DURATION` / `REPETITIONS` / `TO_FAILURE`). */
   | "exercise.executionMode"
   /** T01-S10 : type d'une Activité (`EXERCISE` / `RECOVERY`). */
@@ -57,16 +56,7 @@ export type ValidationField =
   /** T01-S10 : Zones corporelles d'une Activité — doivent rester absentes sur une Récupération. */
   | "activity.bodyZoneIds"
   /** T01-S10 : durée d'une Récupération (toujours chronométrée). */
-  | "recovery.durationSeconds"
-  /**
-   * T01-S09 : violation portée par une Catégorie personnalisée du brouillon
-   * (`SessionDraft.categoryDrafts`) lors de l'assemblage
-   * final — même limite déjà acceptée pour `exercise.*` sur une collection
-   * (aucun index de Catégorie/Activité fautive n'est distingué ici, voir
-   * `SessionDraft.ts`) : en pratique non observable, l'écran `Catégories de
-   * la séance` ne place jamais dans le brouillon un nom déjà invalide.
-   */
-  | "category.name";
+  | "recovery.durationSeconds";
 
 export type ValidationDetails = {
   readonly min?: number;

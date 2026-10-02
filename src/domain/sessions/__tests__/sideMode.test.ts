@@ -1,14 +1,11 @@
 import { describe, expect, it } from "@jest/globals";
 
 import {
-  applyTourSideModeTransition,
   cycleSideMode,
   isSideMode,
-  resolveEffectiveSideMode,
   SIDE_MODES,
   sideMultiplier,
   type SideMode,
-  type SideModeTransitionActivity,
 } from "@/domain/sessions/sideMode";
 
 describe("SIDE_MODES / isSideMode", () => {
@@ -48,62 +45,5 @@ describe("sideMultiplier", () => {
     expect(sideMultiplier("UNILATERAL")).toBe(1);
     expect(sideMultiplier("RIGHT_LEFT")).toBe(2);
     expect(sideMultiplier("LEFT_RIGHT")).toBe(2);
-  });
-});
-
-describe("resolveEffectiveSideMode (Tour priority)", () => {
-  it("keeps the Activity's own direction when the Tour is unilateral", () => {
-    expect(resolveEffectiveSideMode("RIGHT_LEFT", "UNILATERAL")).toBe("RIGHT_LEFT");
-    expect(resolveEffectiveSideMode("UNILATERAL", "UNILATERAL")).toBe("UNILATERAL");
-  });
-
-  it("the Tour's bilateral direction always prevails, whatever the Activity's own direction", () => {
-    expect(resolveEffectiveSideMode("UNILATERAL", "RIGHT_LEFT")).toBe("RIGHT_LEFT");
-    expect(resolveEffectiveSideMode("LEFT_RIGHT", "RIGHT_LEFT")).toBe("RIGHT_LEFT");
-    expect(resolveEffectiveSideMode("RIGHT_LEFT", "LEFT_RIGHT")).toBe("LEFT_RIGHT");
-  });
-
-  it("BEFORE/AFTER Activities use their own side (equivalent to a UNILATERAL Tour context)", () => {
-    expect(resolveEffectiveSideMode("RIGHT_LEFT", "UNILATERAL")).toBe("RIGHT_LEFT");
-  });
-});
-
-describe("applyTourSideModeTransition (atomic reset of IN_TOUR children)", () => {
-  function activity(
-    structuralPosition: SideModeTransitionActivity["structuralPosition"],
-    sideMode: SideMode,
-  ): SideModeTransitionActivity {
-    return { structuralPosition, sideMode };
-  }
-
-  it("resets every IN_TOUR child to UNILATERAL when the Tour becomes bilateral", () => {
-    const activities = [
-      activity("BEFORE_TOUR", "RIGHT_LEFT"),
-      activity("IN_TOUR", "RIGHT_LEFT"),
-      activity("IN_TOUR", "UNILATERAL"),
-      activity("AFTER_TOUR", "LEFT_RIGHT"),
-    ];
-    const next = applyTourSideModeTransition(activities, "LEFT_RIGHT");
-    expect(next).toEqual([
-      activity("BEFORE_TOUR", "RIGHT_LEFT"),
-      activity("IN_TOUR", "UNILATERAL"),
-      activity("IN_TOUR", "UNILATERAL"),
-      activity("AFTER_TOUR", "LEFT_RIGHT"),
-    ]);
-  });
-
-  it("never touches BEFORE_TOUR/AFTER_TOUR Activities, whatever the new Tour direction", () => {
-    const activities = [activity("BEFORE_TOUR", "RIGHT_LEFT"), activity("AFTER_TOUR", "LEFT_RIGHT")];
-    expect(applyTourSideModeTransition(activities, "RIGHT_LEFT")).toEqual(activities);
-  });
-
-  it("does not restore any prior direction on a return to UNILATERAL — it is a no-op", () => {
-    const activities = [activity("IN_TOUR", "UNILATERAL")];
-    expect(applyTourSideModeTransition(activities, "UNILATERAL")).toBe(activities);
-  });
-
-  it("returns the SAME array reference when no Activity needs to change (idempotent)", () => {
-    const activities = [activity("IN_TOUR", "UNILATERAL"), activity("BEFORE_TOUR", "RIGHT_LEFT")];
-    expect(applyTourSideModeTransition(activities, "RIGHT_LEFT")).toBe(activities);
   });
 });
