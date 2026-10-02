@@ -24,8 +24,18 @@ export const DATABASE_NAME = "kodjo.db";
  * T01-S10 (version 3, `migration003`) : extension du `CHECK` de
  * `activities.execution_mode` au mode `TO_FAILURE` (D-111).
  */
-export const DATABASE_VERSION = 6;
+/**
+ * **V2-PRE-1 (version 7, `migration007`)** : référentiels persistants
+ * additifs `body_zones`/`labels`, Profil singleton `profiles` et médias
+ * d'Exercice `media_assets`/`activity_media` (plan §3.1/§3.2/§3.3/§13/§14).
+ * Migration strictement additive — voir `migration007.ts` pour la limite
+ * disclosée de cette invocation bornée (aucune reconstruction des tables
+ * existantes).
+ */
+export const DATABASE_VERSION = 7;
 export const LOCAL_USER_SINGLETON_KEY = 1;
+/** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
+export const LOCAL_PROFILE_SINGLETON_KEY = 1;
 
 /** Pragmas appliqués à toute connexion SQLite de l'application, avant migration. */
 export const STANDARD_PRAGMAS: readonly string[] = [

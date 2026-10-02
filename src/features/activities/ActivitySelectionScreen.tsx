@@ -1,15 +1,16 @@
 import * as Crypto from "expo-crypto";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { activityDefinitionToDraftExercise, type ActivityDefinition } from "@/domain/activities";
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
-import { DEFAULT_TOUR_SIDE_MODE } from "@/domain/sessions/defaults";
+import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
+import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue";
 import {
-  formatActivityRecoveryLabel,
   formatExerciseBodyZones,
   formatExerciseRowSummary,
 } from "@/features/sessions/compositionPresentation";
@@ -18,6 +19,45 @@ import { strings } from "@/shared/i18n";
 import { FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+
+/**
+ * Référentiel persistant des Zones corporelles (V2-PRE-1, plan §3.1,
+ * UI-9C227EDDE427) — chargé une seule fois ici, au sommet de l'écran, et
+ * transmis à chaque `SelectionRow` : jamais `BODY_ZONES`, qui n'est plus
+ * l'autorité runtime, y compris en repli (revue indépendante 5928437619).
+ *
+ * Correction (device check Hermann, commentaire 5948936550) : l'application
+ * réelle rend cet écran HORS de `<SQLiteProvider>` (architecture T01-S05,
+ * préservée) — un accès direct à `useSQLiteContext` levait donc TOUJOURS en
+ * production, dégradant silencieusement vers un référentiel VIDE. Le
+ * référentiel transite désormais par `ActivityDefinitionService.listBodyZones`
+ * (même connexion SQLite que `SessionService`, construite par
+ * `SessionServiceProvider`), accessible ici via `useActivityDefinitionService()`.
+ */
+function useBodyZonesReferential(
+  activityDefinitionService: ActivityDefinitionService,
+): readonly BodyZone[] {
+  const [zones, setZones] = useState<readonly BodyZone[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    activityDefinitionService.listBodyZones().then(
+      (result) => {
+        if (!cancelled) {
+          setZones(result);
+        }
+      },
+      (error: unknown) => {
+        if (!cancelled) {
+          console.error("Impossible de charger les Zones corporelles.", error);
+        }
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [activityDefinitionService]);
+  return zones;
+}
 
 /**
  * Écran `Une activité existante` (V2-CAT-01, plan §4.4/§6.1) — sélection
@@ -34,6 +74,8 @@ export function ActivitySelectionScreen() {
   const { draft, updateDraft } = useSessionDraft();
   const { state, reload, cancelPending } = useActivityCatalogue();
   const [selectedIds, setSelectedIds] = useState<readonly string[]>([]);
+  const activityDefinitionService = useActivityDefinitionService();
+  const bodyZonesReferential = useBodyZonesReferential(activityDefinitionService);
   const t = strings.screens.activities.selection;
 
   useFocusEffect(
@@ -85,11 +127,14 @@ export function ActivitySelectionScreen() {
     const orderedSelection = state.definitions.filter((definition) =>
       availableSelectedIds.includes(definition.id),
     );
-    const tourSideMode = draft.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE;
     let nextExercises = draft.exercises;
     for (const definition of orderedSelection) {
-      const copy = activityDefinitionToDraftExercise(definition, Crypto.randomUUID());
-      nextExercises = appendActivityAfterLastDisplayed(nextExercises, copy, tourSideMode);
+      // V2-PRE-1 (plan §3.2) : `postActivityRecoverySeconds` est une
+      // propriété de l'OCCURRENCE, jamais dérivée de la définition — `0`
+      // neutre ici (même défaut que `createEmptyActivityDefinitionDraft`),
+      // sans lecture du Profil (hors périmètre de cet écran).
+      const copy = activityDefinitionToDraftExercise(definition, Crypto.randomUUID(), 0);
+      nextExercises = appendActivityAfterLastDisplayed(nextExercises, copy);
     }
     // Insertion atomique : une seule mutation du brouillon pour l'ensemble
     // des copies — toutes ou aucune.
@@ -153,6 +198,7 @@ export function ActivitySelectionScreen() {
                 definition={item}
                 selected={selectedIds.includes(item.id)}
                 onToggle={() => toggle(item.id)}
+                bodyZonesReferential={bodyZonesReferential}
               />
             )}
             contentContainerStyle={styles.list}
@@ -196,10 +242,12 @@ export function ActivitySelectionScreen() {
  * V2-CAT-01 (UI-CAT-R-003), VISUAL_CORRECTION (revue indépendante
  * 5753653735, point 2) : carte alignée sur la carte CANONIQUE
  * (`ActivityCard.tsx`) — barre de couleur gauche, nom, Zones corporelles,
- * mode et cible, Séries et Pause, sous-carte Récupération (mêmes fonctions
- * de présentation déjà éprouvées par `ActivityCard.tsx`/
- * `compositionPresentation.ts`, jamais reformulées localement), synthèse
- * NON tronquée. Contour et fond sélectionnés conformes au patron DSF déjà
+ * mode et cible, Séries et Pause (mêmes fonctions de présentation déjà
+ * éprouvées par `ActivityCard.tsx`/`compositionPresentation.ts`, jamais
+ * reformulées localement), synthèse NON tronquée. V2-PRE-1 (plan §3.1) :
+ * aucune sous-carte Récupération — une `ActivityDefinition` ne porte plus
+ * cette notion (exclusive de l'occurrence). Contour et fond sélectionnés
+ * conformes au patron DSF déjà
  * établi (`CategoriesScreen.tagSelected` : `colors.selection`/
  * `colors.selectionSurface`). La checkbox reste un cadre vectoriel TOUJOURS
  * visible (coché/décoché), jamais une icône apparaissant seulement à la
@@ -209,14 +257,15 @@ function SelectionRow({
   definition,
   selected,
   onToggle,
+  bodyZonesReferential,
 }: {
   definition: ActivityDefinition;
   selected: boolean;
   onToggle: () => void;
+  bodyZonesReferential: readonly BodyZone[];
 }) {
-  const bodyZones = formatExerciseBodyZones(definition.bodyZoneIds);
+  const bodyZones = formatExerciseBodyZones(definition.bodyZoneIds, bodyZonesReferential);
   const summary = formatExerciseRowSummary(definition);
-  const recoveryLabel = formatActivityRecoveryLabel(definition.recoverySeconds);
 
   return (
     <Pressable
@@ -258,17 +307,6 @@ function SelectionRow({
             ) : null}
           </View>
         </View>
-        {/* VISUAL_CORRECTION (point 2) : sous-carte Récupération alignée sur `ActivityCard.recoveryCard`. */}
-        {recoveryLabel !== null ? (
-          <View
-            style={styles.rowRecoveryCard}
-            testID={`activity-selection-row-recovery-${definition.id}`}
-          >
-            <Text style={styles.rowRecoveryLabel} numberOfLines={1}>
-              {recoveryLabel}
-            </Text>
-          </View>
-        ) : null}
       </View>
     </Pressable>
   );
@@ -378,21 +416,6 @@ const styles = StyleSheet.create({
   // `colors.primary` inventé localement pour ce contour.
   checkboxSelected: {
     borderColor: colors.selection,
-  },
-  // Présentation ALIGNÉE sur `ActivityCard.recoveryCard` (VISUAL_CORRECTION,
-  // point 2) — sous-carte `24` points, liseré supérieur, fond `colors.surface`.
-  rowRecoveryCard: {
-    height: dimensions.compositionActivityRow.recoveryCardHeight,
-    justifyContent: "center",
-    paddingLeft: spacing[16],
-    paddingRight: spacing[16],
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  rowRecoveryLabel: {
-    ...type.compactCardTitle,
-    color: colors.textSecondary,
   },
   bottomAction: {
     flexDirection: "row",

@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import type { BodyZone } from "@/features/reference-data/bodyZones";
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -14,7 +14,12 @@ const TAG_VISUAL_HEIGHT = spacing[8] * 2 + type.body.lineHeight;
 const TAG_HIT_SLOP = Math.max(0, Math.ceil((minTouchTarget - TAG_VISUAL_HEIGHT) / 2));
 
 export type BodyZoneSelectorProps = {
-  /** Référentiel à afficher — jamais codé en dur ici (D-093) : fourni par l'appelant (`bodyZones.ts`). */
+  /**
+   * Référentiel à afficher — jamais codé en dur ici (D-093) : fourni par
+   * l'appelant. V2-PRE-1 (plan §3.1, UI-1652FFC3B512) : le référentiel
+   * persistant (`BodyZoneRepository`), jamais `BODY_ZONES` (source de seed
+   * historique uniquement).
+   */
   zones: readonly BodyZone[];
   selectedIds: readonly string[];
   onToggle: (zoneId: string) => void;

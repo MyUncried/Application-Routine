@@ -13,6 +13,10 @@ import {
   type ActivityDefinitionValidationViolation,
   type CreateActivityDefinitionInput,
 } from "@/domain/activities";
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
+import type { Category } from "@/domain/categories/Category";
+import type { CategoryRepository } from "@/domain/categories/CategoryRepository";
 
 export type CreateActivityDefinitionResult =
   | { readonly ok: true; readonly value: ActivityDefinition }
@@ -24,7 +28,32 @@ export type UpdateActivityDefinitionResult =
   | { readonly status: "NOT_FOUND" };
 
 export class ActivityDefinitionService {
-  constructor(private readonly repository: ActivityDefinitionRepository) {}
+  /**
+   * `categoryRepository` (V2-PRE-1, D-211) reste optionnel pour ne pas
+   * casser un appelant construit avant cette tranche (même patron que
+   * `SessionService.categoryRepository`) : `listCategories()` n'est appelée
+   * que par le sélecteur de Catégorie de l'éditeur d'Activité, jamais par
+   * `createActivityDefinition`/`updateActivityDefinition` (la résolution
+   * réelle de la Catégorie du brouillon reste entièrement à la charge du
+   * Repository, à l'intérieur de la transaction d'enregistrement — voir
+   * `SqliteActivityDefinitionRepository.resolveCategoryId`).
+   */
+  /**
+   * `bodyZoneRepository` (V2-PRE-1, device check Hermann, commentaire
+   * 5948936550) : même patron que `categoryRepository` ci-dessus — optionnel
+   * pour ne pas casser un appelant construit avant cette correction.
+   * `listBodyZones()` est consommée par les écrans qui s'auto-alimentaient
+   * jusqu'ici directement via `useSQLiteContext` (toujours en échec en
+   * production, ces écrans étant rendus hors de `<SQLiteProvider>` —
+   * architecture T01-S05) : le référentiel transite désormais par CE
+   * service, déjà accessible depuis tout l'arbre applicatif via
+   * `ActivityDefinitionServiceContext`.
+   */
+  constructor(
+    private readonly repository: ActivityDefinitionRepository,
+    private readonly categoryRepository?: CategoryRepository,
+    private readonly bodyZoneRepository?: BodyZoneRepository,
+  ) {}
 
   /**
    * Convertit l'entrée via `validateActivityDefinitionInput` (Domaine). En
@@ -73,5 +102,35 @@ export class ActivityDefinitionService {
   /** `ActivityDefinition` par identifiant — `null` si inconnu, jamais une exception pour ce cas attendu (préremplissage de l'éditeur en modification). */
   async getActivityDefinition(id: string): Promise<ActivityDefinition | null> {
     return this.repository.findById(id);
+  }
+
+  /**
+   * Catégories disponibles pour le sélecteur de Catégorie de l'éditeur
+   * d'Activité (V2-PRE-1, D-211, D-106/D-107) : prédéfinies par
+   * `displayOrder`, puis personnalisées par `createdAt` — ordre déjà
+   * garanti par `CategoryRepository.listAll()`, jamais retrié ici. Lève
+   * explicitement si aucun `CategoryRepository` n'a été fourni au
+   * constructeur, plutôt que de renvoyer silencieusement une liste vide
+   * trompeuse.
+   */
+  async listCategories(): Promise<readonly Category[]> {
+    if (!this.categoryRepository) {
+      throw new Error("ActivityDefinitionService was constructed without a CategoryRepository.");
+    }
+    return this.categoryRepository.listAll();
+  }
+
+  /**
+   * Référentiel persistant des Zones corporelles (V2-PRE-1, plan §3.1,
+   * device check Hermann, commentaire 5948936550) — consommé par les écrans
+   * qui composent/affichent des Zones (Catalogue, Composition, Sélection,
+   * éditeur d'Activité) : jamais `BODY_ZONES` (autorité runtime retirée).
+   * Même contrat d'échec explicite que `listCategories()` ci-dessus.
+   */
+  async listBodyZones(): Promise<readonly BodyZone[]> {
+    if (!this.bodyZoneRepository) {
+      throw new Error("ActivityDefinitionService was constructed without a BodyZoneRepository.");
+    }
+    return this.bodyZoneRepository.listAll();
   }
 }

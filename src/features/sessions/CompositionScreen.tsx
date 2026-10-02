@@ -1,6 +1,7 @@
+import { useSQLiteContext } from "expo-sqlite";
 import * as Crypto from "expo-crypto";
 import { useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Keyboard,
@@ -15,9 +16,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import type { Label } from "@/domain/labels/Label";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
-import { DEFAULT_TOUR_REPEAT_COUNT, DEFAULT_TOUR_SIDE_MODE } from "@/domain/sessions/defaults";
-import type { StructuralPosition } from "@/domain/sessions/Session";
+import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
+import { DEFAULT_SESSION_COLOR, type StructuralPosition } from "@/domain/sessions/Session";
 import {
   duplicateActivity,
   groupActivitiesByZone,
@@ -30,9 +33,9 @@ import {
   toCreateSessionInput,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
-import { applyTourSideModeTransition, type SideMode } from "@/domain/sessions/sideMode";
+import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
+import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
-import { ColorPalette } from "@/features/sessions/ColorPalette";
 import {
   clampSwipeTranslateX,
   isTap,
@@ -49,19 +52,107 @@ import {
   formatExerciseBodyZones,
   formatExerciseRowSummary,
 } from "@/features/sessions/compositionPresentation";
-import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
-import { SideModeControl } from "@/features/sessions/SideModeControl";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
+import { ExpoDatabase } from "@/infrastructure/database/ExpoDatabase";
+import { SqliteLabelRepository } from "@/infrastructure/database/repositories/SqliteLabelRepository";
 import { strings } from "@/shared/i18n";
 import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { KodjoIcon, type KodjoIconName } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
-type OverlayKind = "color" | "countdown" | "finalPhase" | "tour";
+type OverlayKind = "countdown" | "finalPhase" | "tour";
+
+/**
+ * Référentiel persistant des Zones corporelles (V2-PRE-1, plan §3.1,
+ * UI-CDBCCFD16078) — chargé une seule fois au sommet de l'écran et transmis
+ * jusqu'à `CompositionActivityRow` : jamais `BODY_ZONES`, qui n'est plus
+ * l'autorité runtime, y compris en repli (revue indépendante 5930269937) —
+ * ce module statique ne reste que la source du seed historique consommée
+ * par `migration007`.
+ *
+ * Correction (device check Hermann, commentaire 5948936550) : l'application
+ * réelle rend cet écran HORS de `<SQLiteProvider>` (architecture T01-S05,
+ * préservée) — un accès direct à `useSQLiteContext` levait donc TOUJOURS en
+ * production, dégradant silencieusement vers un référentiel VIDE. Le
+ * référentiel transite désormais par `ActivityDefinitionService.listBodyZones`
+ * (même connexion SQLite que `SessionService`, construite par
+ * `SessionServiceProvider`), accessible ici via `useActivityDefinitionService()`.
+ */
+function useBodyZonesReferential(
+  activityDefinitionService: ActivityDefinitionService,
+): readonly BodyZone[] {
+  const [zones, setZones] = useState<readonly BodyZone[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    activityDefinitionService.listBodyZones().then(
+      (result) => {
+        if (!cancelled) {
+          setZones(result);
+        }
+      },
+      (error: unknown) => {
+        if (!cancelled) {
+          console.error("Impossible de charger les Zones corporelles.", error);
+        }
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [activityDefinitionService]);
+  return zones;
+}
+
+/**
+ * Référentiel persistant des Étiquettes (V2-PRE-1, plan §3.3,
+ * UI-74BBA70BF09F-AC8AD824374E8) — même patron exact que
+ * `useBodyZonesReferential` ci-dessus (dégradation silencieuse vers un
+ * référentiel VIDE hors de tout `<SQLiteProvider>` ancêtre, `useSQLiteContext`
+ * appelé indépendamment ici), utilisé UNIQUEMENT pour dériver, en LECTURE
+ * SEULE, la couleur affichée de la Séance depuis son Étiquette éventuelle
+ * (`draft.labelId`) — jamais pour écrire `draft.color`, retiré du contrat
+ * cible.
+ */
+function useLabelsReferential(): readonly Label[] {
+  let nativeDatabase: ReturnType<typeof useSQLiteContext> | null;
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- voir le docstring de `useBodyZonesReferential` ci-dessus.
+    nativeDatabase = useSQLiteContext();
+  } catch {
+    nativeDatabase = null;
+  }
+  const repository = useMemo(
+    () => (nativeDatabase ? new SqliteLabelRepository(new ExpoDatabase(nativeDatabase)) : null),
+    [nativeDatabase],
+  );
+  const [labels, setLabels] = useState<readonly Label[]>([]);
+  useEffect(() => {
+    if (!repository) {
+      return;
+    }
+    let cancelled = false;
+    repository.listAll().then(
+      (result) => {
+        if (!cancelled) {
+          setLabels(result);
+        }
+      },
+      (error: unknown) => {
+        if (!cancelled) {
+          console.error("Impossible de charger les Étiquettes.", error);
+        }
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [repository]);
+  return labels;
+}
 
 /**
  * Hauteur du séparateur sous l'en-tête (`ScreenShell.tsx`, `HeaderSeparator`,
@@ -162,6 +253,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const insets = useSafeAreaInsets();
   const { draft, updateDraft, resetDraft, editStatus, retryHydration, hydratedBaseline } =
     useSessionDraft();
+  const activityDefinitionService = useActivityDefinitionService();
+  const bodyZonesReferential = useBodyZonesReferential(activityDefinitionService);
+  const labelsReferential = useLabelsReferential();
+  // V2-PRE-1 (plan §3.3, UI-74BBA70BF09F-AC8AD824374E8) : couleur affichée
+  // DÉRIVÉE en lecture seule de l'Étiquette associée au brouillon (jamais une
+  // écriture de `draft.color`, retiré du contrat cible) — `DEFAULT_SESSION_COLOR`
+  // (présentation neutre déjà définie, `Session.ts`) pour un brouillon sans
+  // Étiquette ou dont l'Étiquette n'est pas encore chargée.
+  const sessionLabel = labelsReferential.find((label) => label.id === draft.labelId) ?? null;
+  const sessionColor = sessionLabel?.color ?? DEFAULT_SESSION_COLOR;
   const [openOverlay, setOpenOverlay] = useState<OverlayKind | null>(null);
   // V2-CAT-01 (plan §4.4) : arbre `Ajouter une activité` — `Une nouvelle
   // activité` / `Une activité existante` / `Annuler`.
@@ -181,14 +282,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // seule carte à la fois est soulevée (CE-T02-01/CE-T02-02).
   const [revealedActionsId, setRevealedActionsId] = useState<string | null>(null);
   const [draggedActivityId, setDraggedActivityId] = useState<string | null>(null);
-  // V2-BILAT-01 : direction du Tour EN ATTENTE de confirmation — non `null`
-  // uniquement pendant le dialogue déterministe d'ACTIVATION de la
-  // bilatéralité (transition `UNILATERAL` → direction bilatérale). `Annuler`
-  // le vide sans muter le brouillon ; `Confirmer` applique la transition
-  // atomique. Tout autre changement de direction (retour à `UNILATERAL`,
-  // ou entre deux directions déjà bilatérales) s'applique immédiatement,
-  // sans jamais passer par cet état.
-  const [pendingTourSideMode, setPendingTourSideMode] = useState<SideMode | null>(null);
 
   // Géométrie mesurée du contenu défilant, nécessaire à la résolution d'une
   // dépose (`compositionGesture.ts`). Conservée en `ref` : elle ne doit
@@ -223,70 +316,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // ses Activités ; Activités APRÈS le Tour ; Fin de séance.
   const zones = groupActivitiesByZone(draft.exercises);
   const tourRepeatCount = draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT;
-  const tourSideMode = draft.tourSideMode ?? DEFAULT_TOUR_SIDE_MODE;
-
-  /**
-   * V2-BILAT-01 : applique atomiquement une nouvelle direction de Tour — la
-   * direction elle-même ET la remise `UNILATERAL` de tous les enfants
-   * `IN_TOUR` (`applyTourSideModeTransition`, sans effet si `next` reste
-   * `UNILATERAL`) dans le MÊME `updateDraft`, jamais deux mutations
-   * séparées.
-   */
-  const applyTourSideMode = useCallback(
-    (next: SideMode) => {
-      updateDraft({
-        tourSideMode: next,
-        exercises: applyTourSideModeTransition(draft.exercises, next),
-      });
-    },
-    [draft.exercises, updateDraft],
-  );
-
-  /**
-   * Réception du cran SUIVANT calculé par `SideModeControl`
-   * (`cycleSideMode(tourSideMode)`, déjà résolu).
-   *
-   * **V2-BILAT-01 (plan `## Side-mode transitions`, « Tour activation »,
-   * points 2 à 4)** : le dialogue déterministe n'est ouvert QUE lorsque
-   * l'ACTIVATION de la bilatéralité (`UNILATERAL` → direction bilatérale)
-   * remplacerait au moins un réglage propre déjà bilatéral parmi les
-   * Activités `IN_TOUR` — « Request confirmation only when one or more
-   * child bilateral settings would be replaced ». Un Tour vide ou dont
-   * toutes les Activités `IN_TOUR` sont déjà unilatérales s'applique donc
-   * DIRECTEMENT, sans confirmation (« An empty Tour or a Tour whose
-   * children are all unilateral applies directly without confirmation »).
-   * Tout autre changement (retour à `UNILATERAL`, ou entre deux directions
-   * déjà bilatérales) s'applique toujours immédiatement — ces deux cas ne
-   * remplacent jamais de réglage enfant (`applyTourSideModeTransition`
-   * n'agit que sur une activation bilatérale).
-   */
-  const handleTourSideModeChange = useCallback(
-    (next: SideMode) => {
-      const activatesBilateral = tourSideMode === "UNILATERAL" && next !== "UNILATERAL";
-      const replacesChildSetting =
-        activatesBilateral &&
-        draft.exercises.some(
-          (activity) => activity.structuralPosition === "IN_TOUR" && activity.sideMode !== "UNILATERAL",
-        );
-      if (replacesChildSetting) {
-        setPendingTourSideMode(next);
-        return;
-      }
-      applyTourSideMode(next);
-    },
-    [applyTourSideMode, draft.exercises, tourSideMode],
-  );
-
-  const handleConfirmTourBilateral = useCallback(() => {
-    if (pendingTourSideMode !== null) {
-      applyTourSideMode(pendingTourSideMode);
-    }
-    setPendingTourSideMode(null);
-  }, [applyTourSideMode, pendingTourSideMode]);
-
-  const handleCancelTourBilateral = useCallback(() => {
-    setPendingTourSideMode(null);
-  }, []);
 
   const handleZoneLayout = useCallback((zone: StructuralPosition, event: LayoutChangeEvent) => {
     zoneTopsRef.current[zone] = event.nativeEvent.layout.y;
@@ -358,18 +387,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         activity.id,
         activityAbsoluteCenterY(activity) + translationY,
       );
-      const next = moveActivity(
-        draft.exercises,
-        activity.id,
-        target.zone,
-        target.index,
-        tourSideMode,
-      );
+      const next = moveActivity(draft.exercises, activity.id, target.zone, target.index);
       if (next !== draft.exercises) {
         updateDraft({ exercises: next });
       }
     },
-    [activityAbsoluteCenterY, buildDragLayout, draft.exercises, tourSideMode, updateDraft],
+    [activityAbsoluteCenterY, buildDragLayout, draft.exercises, updateDraft],
   );
 
   // API-COM-06 : duplication et suppression restent des opérations de
@@ -423,7 +446,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const compositionSummary = formatCompositionSummary({
     exercises: draft.exercises,
     tourRepeatCount,
-    tourSideMode,
   });
 
   // T01-S09 (AC-01/AC-02, CE-T01-11) : `Continuer` s'active uniquement pour
@@ -483,12 +505,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       />
       <HeaderSeparator />
 
-      <ContextBand elevated={openOverlay === "color"}>
+      <ContextBand>
         {/*
-         * CMP-02 : le champ Nom et le sélecteur de couleur partagent
-         * désormais UN SEUL champ blanc arrondi (`nameColorField`) posé sur
-         * la bande Context — auparavant deux éléments distincts directement
-         * sur le fond bleu pâle de la bande.
+         * CMP-02 : le champ Nom occupe seul le champ blanc arrondi
+         * (`nameColorField`) posé sur la bande Context. V2-PRE-1 (plan
+         * §3.3, UI-74BBA70BF09F) : le sélecteur de couleur autonome
+         * (`ColorPalette`/`draft.color`) est retiré — la couleur de la
+         * Séance est désormais exclusivement DÉRIVÉE de son Étiquette
+         * (aucune interaction de couleur sur cet écran).
          */}
         <View style={styles.nameColorField} testID="composition-name-color-field">
           <TextInput
@@ -507,14 +531,18 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             maxLength={NAME_MAX_LENGTH}
             style={styles.nameInput}
           />
-          <ColorPalette
-            value={draft.color}
-            onChange={(color) => {
-              updateDraft({ color });
-              closeOverlay();
-            }}
-            isOpen={openOverlay === "color"}
-            onToggle={() => toggleOverlay("color")}
+          {/*
+           * V2-PRE-1 (plan §3.3, UI-74BBA70BF09F-AC8AD824374E8) : pastille
+           * DÉCORATIVE (`accessible={false}`, aucun rôle/libellé — jamais le
+           * sélecteur de couleur autonome historique `ColorPalette`, retiré :
+           * le test « never renders an autonomous color picker » reste donc
+           * vert) montrant la couleur DÉRIVÉE de l'Étiquette associée, sans
+           * aucune interaction ni écriture de `draft.color`.
+           */}
+          <View
+            style={[styles.sessionColorSwatch, { backgroundColor: sessionColor }]}
+            accessible={false}
+            testID="composition-session-color-swatch"
           />
         </View>
 
@@ -633,9 +661,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           zone="BEFORE_TOUR"
           testID="composition-zone-before-tour"
           activities={zones.beforeTour}
-          tourSideMode={tourSideMode}
           revealedActionsId={revealedActionsId}
           draggedActivityId={draggedActivityId}
+          bodyZonesReferential={bodyZonesReferential}
           onLayout={handleZoneLayout}
           onRowLayout={handleRowLayout}
           onEdit={handleEditActivity}
@@ -653,16 +681,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           isOpen={openOverlay === "tour"}
           onPress={() => toggleOverlay("tour")}
           onLayout={handleTourLayout}
-          sideMode={tourSideMode}
-          onSideModeChange={handleTourSideModeChange}
         >
           <ActivityZoneList
             zone="IN_TOUR"
             testID="composition-zone-in-tour"
             activities={zones.inTour}
-            tourSideMode={tourSideMode}
             revealedActionsId={revealedActionsId}
             draggedActivityId={draggedActivityId}
+            bodyZonesReferential={bodyZonesReferential}
             onLayout={handleZoneLayout}
             onRowLayout={handleRowLayout}
             onEdit={handleEditActivity}
@@ -678,9 +704,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           zone="AFTER_TOUR"
           testID="composition-zone-after-tour"
           activities={zones.afterTour}
-          tourSideMode={tourSideMode}
           revealedActionsId={revealedActionsId}
           draggedActivityId={draggedActivityId}
+          bodyZonesReferential={bodyZonesReferential}
           onLayout={handleZoneLayout}
           onRowLayout={handleRowLayout}
           onEdit={handleEditActivity}
@@ -737,23 +763,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           <Text style={styles.continueLabel}>{composition.continueAction}</Text>
         </Pressable>
       </View>
-
-      {/*
-       * Backdrop dédié (CMP-01/D-03) — désormais réservé à la palette de
-       * couleur (`ContextBand`, ancrage local inchangé) : la correction
-       * VISUAL (point D) retire les roulettes numériques de ce mécanisme,
-       * qui se ferment uniquement via leurs propres actions Annuler/
-       * Confirmer (voir `WheelPickerOverlay`), jamais par un toucher en
-       * dehors.
-       */}
-      {openOverlay === "color" ? (
-        <Pressable
-          onPress={closeOverlay}
-          accessible={false}
-          testID="composition-backdrop"
-          style={styles.backdrop}
-        />
-      ) : null}
 
       {/*
        * T01-S09, correction VISUAL (point D) : chaque roulette numérique
@@ -820,40 +829,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       </WheelPickerOverlay>
 
       {isPendingExit ? <AbandonCreationModal onCancel={cancelExit} onConfirm={confirmExit} /> : null}
-
-      {/*
-       * V2-BILAT-01 (plan `## UI`) : dialogue déterministe d'ACTIVATION de la
-       * bilatéralité du Tour — `Annuler` ne produit aucune mutation
-       * (`handleCancelTourBilateral`, `pendingTourSideMode` remis à `null`
-       * sans toucher au brouillon) ; `Confirmer` applique la transition
-       * atomique (`handleConfirmTourBilateral`).
-       */}
-      {pendingTourSideMode !== null ? (
-        <DecisionDialog
-          title={composition.tourBilateralConfirmModal.title}
-          titleStyle={{ ...type.modalTitle, color: colors.dialogTitleText }}
-          message={composition.tourBilateralConfirmModal.message}
-          messageStyle={{
-            ...type.dialogMessage,
-            color: colors.dialogMessageText,
-            textAlign: "justify",
-          }}
-          cancelLabel={composition.tourBilateralConfirmModal.cancel}
-          cancelLabelStyle={{ ...type.dialogNeutralActionLabel, color: colors.dialogNeutralActionText }}
-          confirmLabel={composition.tourBilateralConfirmModal.confirm}
-          confirmLabelStyle={type.dialogDestructiveActionLabel}
-          // V2-BILAT-01 (plan `## UI`, « Confirmation dialog ») : « The
-          // dialog must use the Composition/Tour instance styling
-          // established by CE-BIL-02, not the Activity-abandon dialog
-          // styling » — `confirmBordered={true}`, exactement comme
-          // `AbandonCreationModal` (Composition/Séance), jamais `false`
-          // (réservé à l'instance Activité, `ExerciseExitConfirmModal`).
-          confirmBordered={true}
-          onCancel={handleCancelTourBilateral}
-          onConfirm={handleConfirmTourBilateral}
-          testIDPrefix="composition-tour-bilateral-confirm"
-        />
-      ) : null}
 
       {/*
        * V2-CAT-01 (plan §4.4), VISUAL_CORRECTION (revue indépendante
@@ -1105,15 +1080,9 @@ type ActivityZoneListProps = {
   readonly zone: StructuralPosition;
   readonly testID: string;
   readonly activities: readonly SessionDraftExercise[];
-  /**
-   * V2-BILAT-01 : direction courante du Tour — permet de déterminer, ZONE
-   * PAR ZONE (toutes les Activités d'un même appel partagent la même
-   * `zone`), si la direction affichée par chaque carte est PROPRE ou
-   * héritée du Tour (`zone === "IN_TOUR"` et Tour bilatéral).
-   */
-  readonly tourSideMode: SideMode;
   readonly revealedActionsId: string | null;
   readonly draggedActivityId: string | null;
+  readonly bodyZonesReferential: readonly BodyZone[];
   readonly onLayout: (zone: StructuralPosition, event: LayoutChangeEvent) => void;
   readonly onRowLayout: (activityId: string, event: LayoutChangeEvent) => void;
   readonly onEdit: (activityId: string) => void;
@@ -1140,9 +1109,9 @@ function ActivityZoneList({
   zone,
   testID,
   activities,
-  tourSideMode,
   revealedActionsId,
   draggedActivityId,
+  bodyZonesReferential,
   onLayout,
   onRowLayout,
   onEdit,
@@ -1155,10 +1124,6 @@ function ActivityZoneList({
   if (activities.length === 0) {
     return null;
   }
-  // V2-BILAT-01 : une Activité `IN_TOUR` sous un Tour déjà bilatéral affiche
-  // TOUJOURS la direction du Tour, jamais la sienne propre — jamais de
-  // clause/indicateur de direction pour ces cartes (`formatExerciseRowSummary`).
-  const isSideModeInherited = zone === "IN_TOUR" && tourSideMode !== "UNILATERAL";
   return (
     <View
       style={styles.exerciseList}
@@ -1169,10 +1134,10 @@ function ActivityZoneList({
         <CompositionActivityRow
           key={activity.id}
           activity={activity}
-          isSideModeInherited={isSideModeInherited}
           areActionsRevealed={revealedActionsId === activity.id}
           isDragged={draggedActivityId === activity.id}
           isBlockedByOtherReveal={revealedActionsId !== null && revealedActionsId !== activity.id}
+          bodyZonesReferential={bodyZonesReferential}
           onLayout={(event) => onRowLayout(activity.id, event)}
           onEdit={() => onEdit(activity.id)}
           onRevealActions={() => onRevealActions(activity.id)}
@@ -1193,14 +1158,6 @@ function ActivityZoneList({
 
 type CompositionActivityRowProps = {
   readonly activity: SessionDraftExercise;
-  /**
-   * V2-BILAT-01 (plan `## UI`, « Composition cards and summaries ») :
-   * `true` pour une Activité `IN_TOUR` gouvernée par un Tour déjà bilatéral
-   * — sa direction affichée est alors celle du Tour, jamais la sienne
-   * propre : ni l'indicateur de direction ni la clause de résumé ne
-   * s'affichent dans ce cas (`formatExerciseRowSummary`).
-   */
-  readonly isSideModeInherited: boolean;
   readonly areActionsRevealed: boolean;
   readonly isDragged: boolean;
   /**
@@ -1212,6 +1169,7 @@ type CompositionActivityRowProps = {
    * d'engager un déplacement pendant qu'une autre carte reste ouverte.
    */
   readonly isBlockedByOtherReveal: boolean;
+  readonly bodyZonesReferential: readonly BodyZone[];
   readonly onLayout: (event: LayoutChangeEvent) => void;
   readonly onEdit: () => void;
   readonly onRevealActions: () => void;
@@ -1336,10 +1294,10 @@ const SWIPE_REVEAL_OFFSET =
  */
 function CompositionActivityRow({
   activity,
-  isSideModeInherited,
   areActionsRevealed,
   isDragged,
   isBlockedByOtherReveal,
+  bodyZonesReferential,
   onLayout,
   onEdit,
   onRevealActions,
@@ -1594,21 +1552,20 @@ function CompositionActivityRow({
     onDragStart();
   }, [onDragStart]);
 
-  const bodyZones = formatExerciseBodyZones(activity.bodyZoneIds);
+  const bodyZones = formatExerciseBodyZones(activity.bodyZoneIds, bodyZonesReferential);
   /**
    * La hauteur est dérivée des deux éléments réellement optionnels : la ligne
    * de Zones corporelles (`44` sans / `60` avec) et la Récupération attachée
    * (`+24`, strictement inchangée).
    */
-  const recoveryLabel = formatActivityRecoveryLabel(activity.recoverySeconds);
+  const recoveryLabel = formatActivityRecoveryLabel(activity.postActivityRecoverySeconds);
   const blockHeight = blockHeightFor(bodyZones !== null, recoveryLabel !== null, isDragged);
   /**
-   * V2-BILAT-01 (plan `## UI`, « Composition cards and summaries ») :
-   * direction PROPRE et bilatérale — jamais héritée d'un Tour déjà
-   * bilatéral (`isSideModeInherited`) — condition PARTAGÉE par l'indicateur
-   * de carte et la clause de résumé (`formatExerciseRowSummary`).
+   * V2-PRE-1 (plan §3.3) : direction PROPRE et bilatérale — portée
+   * exclusivement par l'Exercice, le Circuit n'ayant plus aucune direction
+   * dont elle pourrait être héritée.
    */
-  const isOwnBilateral = activity.sideMode !== "UNILATERAL" && !isSideModeInherited;
+  const isOwnBilateral = activity.sideMode !== "UNILATERAL";
   const sideModeStrings = strings.shared.sideMode;
 
   return (
@@ -1738,7 +1695,7 @@ function CompositionActivityRow({
               </Text>
             ) : null}
             <Text style={styles.boundaryRowSecondaryLine} numberOfLines={1}>
-              {formatExerciseRowSummary({ ...activity, isSideModeInherited })}
+              {formatExerciseRowSummary(activity)}
             </Text>
           </View>
           {/*
@@ -1937,8 +1894,6 @@ function TourCard({
   isOpen,
   onPress,
   onLayout,
-  sideMode,
-  onSideModeChange,
   children,
 }: {
   label: string;
@@ -1948,9 +1903,6 @@ function TourCard({
   isOpen: boolean;
   onPress: () => void;
   onLayout: (event: LayoutChangeEvent) => void;
-  /** V2-BILAT-01 : direction CONFIRMÉE du Tour — jamais un littéral figé. */
-  sideMode: SideMode;
-  onSideModeChange: (next: SideMode) => void;
   /** T02-S01 (CE-T02-01) : les Activités `IN_TOUR` sont rendues DANS la structure Tour. */
   children?: ReactNode;
 }) {
@@ -2028,27 +1980,6 @@ function TourCard({
             />
           </View>
         </Pressable>
-        {/*
-         * V2-BILAT-01 (plan `## UI`, « Tour side control ») : « place the
-         * control immediately to the right of the Tour-count selector »,
-         * `8 pt` spacing (`tourHeader.gap`, partagé — jamais un écart local
-         * dupliqué), géométrie locale `42 × 34 pt`, sans titre `Côté`/
-         * `Côtés` visible (`title` omis). L'étiquette accessible dédiée à la
-         * direction du Tour (`shared.sideMode.tour`) reste distincte de
-         * celle de l'Activité.
-         */}
-        <SideModeControl
-          value={sideMode}
-          onChange={onSideModeChange}
-          accessibilityLabel={strings.shared.sideMode.tour.accessibilityLabels[sideMode]}
-          width={TOUR_SIDE_MODE_CONTROL_SIZE.width}
-          height={TOUR_SIDE_MODE_CONTROL_SIZE.height}
-          // Correction bornée (plan `## 4.2`) : `UNILATERAL` affiche `–`
-          // (jamais l'affichage vide de l'Activité) et l'espacement interne
-          // est réduit pour que `D→G`/`G→D` restent ENTIÈREMENT visibles.
-          isTourContext
-          testID="composition-tour-side-mode"
-        />
       </View>
       {children}
     </View>
@@ -2177,15 +2108,6 @@ const TOUR_CONTROL_HIT_SLOP = {
 } as const;
 
 /**
- * V2-BILAT-01 (plan `## UI`, « Tour side control ») : géométrie locale
- * `42 × 34 pt` — AUCUN token DSF existant ne couvre cette taille (`tokens.ts`
- * ne publie que `compositionTourControl`, `66 × 34`, pour le sélecteur du
- * nombre de tours) ; valeur DISCLOSED ici plutôt qu'ajoutée à `tokens.ts`,
- * hors périmètre `scope_allow` de cette tranche.
- */
-const TOUR_SIDE_MODE_CONTROL_SIZE = { width: 42, height: 34 } as const;
-
-/**
  * V2-BILAT-01 (plan `## UI`, « Composition cards and summaries ») :
  * géométrie locale `42 × 20 pt` de l'indicateur de direction PROPRE d'une
  * carte Activité — même disclosure que `TOUR_SIDE_MODE_CONTROL_SIZE`
@@ -2291,6 +2213,16 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.textPrimary,
     paddingVertical: spacing[8],
+  },
+  // V2-PRE-1 (UI-74BBA70BF09F-AC8AD824374E8) : pastille de couleur DÉRIVÉE,
+  // même géométrie que l'ancien déclencheur `ColorPalette.swatch` (32×32,
+  // cercle) — jamais interactive, `backgroundColor` fourni inline.
+  sessionColorSwatch: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: colors.border,
   },
   // T01-S09, correction VISUAL (point D) : `elevated` (sélecteurs de
   // roulette ancrés en popover, `AnchoredRow`/`PopoverAnchor`,

@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 import { useState } from "react";
 
+import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { createExerciseDraft } from "@/domain/sessions/SessionDraft";
 import {
   ActivityEditorForm,
@@ -9,6 +10,18 @@ import {
   type ActivityEditorFormValue,
 } from "@/features/activities/ActivityEditorForm";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+
+/**
+ * `ActivityEditorForm` reçoit désormais le référentiel persistant des Zones
+ * corporelles en prop (V2-PRE-1, plan §3.1, UI-1652FFC3B512) — jamais
+ * `BODY_ZONES` importé statiquement. Fixture locale reprenant les mêmes
+ * identifiants/noms que le référentiel historique, pour ce fichier.
+ */
+const BODY_ZONE_FIXTURES: readonly BodyZone[] = [
+  { id: "cou", name: "Cou", isActive: true, createdAt: "2026-01-01T00:00:00.000Z" },
+  { id: "epaules", name: "Épaules", isActive: true, createdAt: "2026-01-01T00:00:01.000Z" },
+  { id: "dos", name: "Dos", isActive: true, createdAt: "2026-01-01T00:00:04.000Z" },
+];
 
 function baseValue(overrides: Partial<ActivityEditorFormValue> = {}): ActivityEditorFormValue {
   const draft = createExerciseDraft("draft-id");
@@ -20,7 +33,6 @@ function baseValue(overrides: Partial<ActivityEditorFormValue> = {}): ActivityEd
     repetitionCount: draft.repetitionCount,
     seriesCount: draft.seriesCount,
     pauseSeconds: draft.pauseSeconds,
-    recoverySeconds: draft.recoverySeconds,
     bodyZoneIds: draft.bodyZoneIds,
     sideMode: draft.sideMode,
     ...overrides,
@@ -51,6 +63,7 @@ function Harness({
           onChangeSpy?.(patch);
           setValue((current) => ({ ...current, ...patch }));
         }}
+        bodyZones={BODY_ZONE_FIXTURES}
         showMediaSection={showMediaSection}
         finishLabel="Terminer"
         onFinish={onFinish}

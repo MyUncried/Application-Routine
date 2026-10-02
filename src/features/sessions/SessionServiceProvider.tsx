@@ -5,7 +5,9 @@ import { DATABASE_NAME } from "@/infrastructure/database/constants";
 import { ExpoDatabase } from "@/infrastructure/database/ExpoDatabase";
 import { initializeDatabase } from "@/infrastructure/database/initializeDatabase";
 import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
+import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
+import { SqliteProfileRepository } from "@/infrastructure/database/repositories/SqliteProfileRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceProvider } from "@/features/activities/ActivityDefinitionServiceProvider";
@@ -92,12 +94,24 @@ function SessionServiceInitializer({
     return new SessionService(
       new SqliteSessionRepository(database),
       new SqliteCategoryRepository(database),
+      new SqliteProfileRepository(database),
     );
   }, [nativeDatabase]);
 
+  // Correction (device check Hermann, commentaire 5948936550) : CategoryRepository
+  // et BodyZoneRepository étaient omis ici, laissant `listCategories()`/
+  // `listBodyZones()` lever systématiquement — le sélecteur de Catégorie restait
+  // vide et chaque écran consommant les Zones (Catalogue, Composition,
+  // Sélection, éditeur d'Activité) dégradait silencieusement vers un
+  // référentiel VIDE en production. Même connexion `database` que les deux
+  // autres Repository, aucune seconde connexion ni second cycle de migration.
   const activityDefinitionService = useMemo(() => {
     const database = new ExpoDatabase(nativeDatabase);
-    return new ActivityDefinitionService(new SqliteActivityDefinitionRepository(database));
+    return new ActivityDefinitionService(
+      new SqliteActivityDefinitionRepository(database),
+      new SqliteCategoryRepository(database),
+      new SqliteBodyZoneRepository(database),
+    );
   }, [nativeDatabase]);
 
   useEffect(() => {
