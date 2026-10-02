@@ -140,6 +140,7 @@ function verify(args) {
   let criterionIdsHash = null;
   let technicalReviewHash = null;
   let reviewMode = 'VISUAL_CORRECTION_DELTA';
+  const pendingDeviceProofs = [];
 
   if (operationKind === 'IMPLEMENT') {
     const reviewContract = taggedJson(review, 'KODJO_UI_IMPLEMENTATION_REVIEW_JSON');
@@ -155,15 +156,24 @@ function verify(args) {
     const ids = criteria.map((item) => String(item && item.criterion_id || ''));
     if (ids.some((id) => !id) || new Set(ids).size !== ids.length) fail('V2_FINAL_CRITERIA_INVALID');
     for (const criterion of criteria) {
-      if (criterion.implementation_status !== 'CONFORME' || criterion.preserve_status !== 'PASS') {
+      const proofs = Array.isArray(criterion.proof_results) ? criterion.proof_results : [];
+      const deviceProof = (proof) => ['VISUAL_COMPARE', 'DEVICE_CHECK'].includes(proof.proof_type);
+      // The exact-head human gate closes delivery, not the unexecuted proof.
+      const deviceOnlyGap = deviceGateRequired &&
+        proofs.some((proof) => deviceProof(proof) && proof.status === 'PENDING_DEVICE') &&
+        proofs.every((proof) => proof.status === 'PASS' || (deviceProof(proof) && proof.status === 'PENDING_DEVICE'));
+      if ((criterion.implementation_status !== 'CONFORME' &&
+          !(criterion.implementation_status === 'NON_VERIFIABLE' && deviceOnlyGap)) || criterion.preserve_status !== 'PASS') {
         fail('V2_FINAL_CRITERION_NOT_CLOSED', String(criterion.criterion_id));
       }
-      const proofs = Array.isArray(criterion.proof_results) ? criterion.proof_results : [];
       for (const proof of proofs) {
         const type = String(proof.proof_type || '');
         const status = String(proof.status || '');
         if (type === 'VISUAL_COMPARE' || type === 'DEVICE_CHECK') {
           if (status !== 'PENDING_DEVICE') fail('V2_FINAL_DEVICE_PROOF_PRE_GATE_INVALID', String(criterion.criterion_id) + ':' + type);
+          if (!deviceGateRequired) fail('V2_FINAL_DEVICE_GATE_MISMATCH');
+          pendingDeviceProofs.push({ ...proof, criterion_id: criterion.criterion_id,
+            implementation_status: criterion.implementation_status });
         } else if (status !== 'PASS') {
           fail('V2_FINAL_TECHNICAL_PROOF_NOT_PASS', String(criterion.criterion_id) + ':' + type);
         }
@@ -201,6 +211,8 @@ function verify(args) {
     criterion_ids_sha256: criterionIdsHash,
     technical_review_sha256: technicalReviewHash,
     device_evidence_satisfied: true,
+    device_evidence_scope: 'USER_APPROVAL_OF_EXACT_DELIVERY',
+    pending_device_proofs: pendingDeviceProofs,
     final_status: 'READY_TO_CLOSE',
   };
   if (targeted) {
@@ -216,6 +228,7 @@ function verify(args) {
     result.global_conformance='NON_CONFORME';
     result.final_status='REQUALIFICATION_REQUIRED';
     result.device_evidence_satisfied=false;
+    result.device_evidence_scope='USER_APPROVAL_OF_EXACT_DELTA';
     result.targeted_device_evidence_satisfied=true;
     result.global_approval=false;
     result.merge_authorized=false;

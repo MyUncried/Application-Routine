@@ -72,7 +72,7 @@ function reviewValue() {
     ],
   };
 }
-function fixture(dir) {
+function fixture(dir, value = reviewValue()) {
   const slice='V2-E2E-UI';
   const issue=999;
   const head='d'.repeat(40);
@@ -83,7 +83,7 @@ function fixture(dir) {
   const reviewOut=path.join(dir,'review-contract.json');
   fs.writeFileSync(plan,planFixture());
   fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n');
-  fs.writeFileSync(reviewRaw,JSON.stringify(reviewValue()));
+  fs.writeFileSync(reviewRaw,JSON.stringify(value));
   const rv=run(reviewVerifier,['validate',plan,changed,reviewRaw,reviewOut],dir);
   assert.equal(rv.status,0,rv.stderr);
   const reviewContract=JSON.parse(fs.readFileSync(reviewOut,'utf8'));
@@ -287,7 +287,7 @@ test('D2: VISUAL_APPROVED never replaces technical, functional or preservation e
     value=>{value.criteria[0].proof_results[0].status='FAIL';},
     value=>{value.criteria[0].proof_results[0].status='NON_VERIFIABLE';},
     value=>{value.criteria[0].proof_results[0].status='PENDING_DEVICE';},
-    value=>{value.criteria[0].implementation_status='NON_VERIFIABLE';},
+    value=>{value.criteria[0].implementation_status='NON_VERIFIABLE';value.criteria[0].proof_results[0].status='NON_VERIFIABLE';},
     value=>{value.criteria[0].preserve_status='FAIL';},
     value=>{value.boundary_results[0].status='NON_VERIFIABLE';},
     value=>{value.boundary_results[1].status='FAIL';},
@@ -369,4 +369,96 @@ test('delta/global: old complete reviews cannot bypass a recorded global requali
   assert.equal(verify(final,comments),true);
   final.review_mode='VISUAL_CORRECTION_DELTA';
   assert.throws(()=>verify(final,comments),/FULL_REVIEW_REQUIRED/);
+});
+
+function pendingDeviceReview() {
+  const value=reviewValue();
+  value.criteria[0].implementation_status='NON_VERIFIABLE';
+  value.criteria[0].proof_results[2].evidence='SQLite device check not executed; residual risk retained (PRE-1 waiver semantics).';
+  return value;
+}
+function finalizeFixture(f, dir) {
+  const out=path.join(dir,'final.json');
+  return {out, run:run(finalVerifier,[f.reviewFile,f.implFile,f.visualFile,f.queuePath,String(f.issue),'104','105',out],dir)};
+}
+
+test('device gap: actual review APPROVE -> exact user validation -> closure preserves unexecuted SQLite evidence',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-device-gap-'));
+  try {
+    const f=fixture(dir,pendingDeviceReview()); // Real review verifier CLI, not a fabricated APPROVE.
+    const before=fs.readFileSync(f.reviewFile,'utf8');
+    const {out,run:r}=finalizeFixture(f,dir);
+    assert.equal(r.status,0,r.stderr);
+    const result=JSON.parse(fs.readFileSync(out,'utf8'));
+    assert.equal(result.final_status,'READY_TO_CLOSE');
+    assert.equal(result.head,f.head);
+    assert.equal(result.implementation_review_comment_id,'104');
+    assert.equal(result.human_device_approval_comment_id,'105');
+    assert.equal(result.device_evidence_scope,'USER_APPROVAL_OF_EXACT_DELIVERY');
+    assert.deepEqual(result.pending_device_proofs,pendingDeviceReview().criteria[0].proof_results.slice(1).map(proof=>({
+      criterion_id:'UI-001',implementation_status:'NON_VERIFIABLE',...proof,
+    })));
+    assert.equal(fs.readFileSync(f.reviewFile,'utf8'),before);
+  } finally {fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+for (const [label, mutate] of [
+  ['absent',()=> ''],
+  ['wrong head',body=>body.replace('head='+'d'.repeat(40),'head='+'f'.repeat(40))],
+  ['wrong review',body=>body.replace('source_review_comment_id=104','source_review_comment_id=999')],
+  ['wrong slice',body=>body.replace('slice_id=V2-E2E-UI','slice_id=OTHER')],
+]) test('device gap: user validation '+label+' refuses closure',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-device-refusal-'));
+  try {
+    const f=fixture(dir,pendingDeviceReview());
+    fs.writeFileSync(f.visualFile,mutate(fs.readFileSync(f.visualFile,'utf8')));
+    const {out,run:r}=finalizeFixture(f,dir);
+    assert.notEqual(r.status,0); assert.equal(fs.existsSync(out),false);
+    assert.match(r.stderr,/V2_FINAL_(VISUAL_MARKER_INVALID|HEAD_MISMATCH|VISUAL_REVIEW_MISMATCH|SLICE_MISMATCH)/);
+  } finally {fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+for (const [label, mutate] of [
+  ['functional FAIL',v=>{v.criteria[0].proof_results[0].status='FAIL';}],
+  ['functional unavailable',v=>{v.criteria[0].proof_results[0].status='NON_VERIFIABLE';}],
+  ['functional deferred',v=>{v.criteria[0].proof_results[0].status='PENDING_DEVICE';}],
+  ['preservation FAIL',v=>{v.criteria[0].preserve_status='FAIL';}],
+  ['boundary FAIL',v=>{v.boundary_results[0].status='FAIL';}],
+  ['partial conformity',v=>{v.criteria[0].implementation_status='PARTIELLEMENT_CONFORME';}],
+  ['non conformity',v=>{v.criteria[0].implementation_status='NON_CONFORME';}],
+  ['accessibility deferred',v=>{v.criteria[0].proof_results.push({proof_type:'ACCESSIBILITY_CHECK',status:'PENDING_DEVICE'});}],
+  ['no proofs',v=>{v.criteria[0].proof_results=[];}],
+  ['no pending device gap',v=>{v.criteria[0].proof_results=v.criteria[0].proof_results.slice(0,1);}],
+]) test('device gap: '+label+' is still blocked despite visual approval',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-device-technical-'));
+  try {
+    const f=fixture(dir,pendingDeviceReview());
+    const value=pendingDeviceReview();mutate(value);
+    fs.writeFileSync(f.reviewFile,fs.readFileSync(f.reviewFile,'utf8').replace(
+      /<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>[\s\S]*?<\/KODJO_UI_IMPLEMENTATION_REVIEW_JSON>/,
+      '<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'+JSON.stringify(value)+'</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'));
+    const {out,run:r}=finalizeFixture(f,dir);
+    assert.notEqual(r.status,0);assert.equal(fs.existsSync(out),false);
+    assert.match(r.stderr,/V2_FINAL_(CRITERION_NOT_CLOSED|BOUNDARY_NOT_PASS)/);
+  } finally {fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+test('device gap: disabling the required device gate refuses closure',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-device-gate-'));
+  try {
+    const f=fixture(dir);
+    fs.writeFileSync(f.reviewFile,fs.readFileSync(f.reviewFile,'utf8')
+      .replace('device_gate_required=true','device_gate_required=false').replace('"device_gate_required":true','"device_gate_required":false'));
+    const {out,run:r}=finalizeFixture(f,dir);
+    assert.notEqual(r.status,0);assert.equal(fs.existsSync(out),false);
+    assert.match(r.stderr,/V2_FINAL_DEVICE_GATE_MISMATCH/);
+  } finally {fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+test('device gap: actual GitHub workflow requires owner and current delivery HEAD',()=>{
+  const wf=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-finalize.yml'),'utf8');
+  assert.match(wf,/github\.event\.comment\.user\.login == 'MyUncried'/);
+  assert.match(wf,/pulls\//);
+  assert.match(wf,/git\/ref\/heads/);
+  assert.match(wf,/\.head\.sha/);
 });

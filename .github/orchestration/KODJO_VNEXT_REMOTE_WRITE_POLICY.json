@@ -841,7 +841,7 @@
     },
     {
       "path": "scripts/kodjo/verify-v2-finalization.js",
-      "blob_oid": "eec328730d77db42658f9e0c51e9cc6c6698fb50",
+      "blob_oid": "069336013f03a28ea4f0826a89e5dd9ab65b937d",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {

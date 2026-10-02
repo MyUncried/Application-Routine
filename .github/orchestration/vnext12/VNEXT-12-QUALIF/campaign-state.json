@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-02T14:18:58.847560+00:00",
+  "recorded_at": "2026-10-02T14:36:23.392556+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "9895877b9230c902eea229841a46a8c18c437f41",
-  "controller_stage": "STEP3_COMPLETE_PROTOCOL_HARDENING_QUALIFIED",
-  "controller_generation": 31,
+  "controller_stage": "STEP3_COMPLETE_DEVICE_FINALIZATION_FIX_PENDING_QUALIFICATION",
+  "controller_generation": 32,
   "steps": [
     {
       "step": 1,
@@ -70,7 +70,9 @@
     "full_local_pilot_status": "NOT_QUALIFIED_SYNTHETIC_CHECKOUT_AND_MISSING_TOKENIZER",
     "full_linux_ci_is_authoritative": true
   },
-  "pending_actions": [],
+  "pending_actions": [
+    "Observe exact-candidate Linux/Windows qualification and persist actual results for device finalization fix."
+  ],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
     {
@@ -477,5 +479,19 @@
     "initial_revision_replayed": false,
     "new_claude_runtime_after_fixes": false,
     "automatic_sync_after_queue_review_delivered": false
+  },
+  "device_finalization_fix": {
+    "status": "IMPLEMENTED_PENDING_LINUX_WINDOWS_QUALIFICATION",
+    "base_head": "f5245debd2a715a7db8e8bd12dc5219aca46ce5a",
+    "report_path": ".github/orchestration/reports/2026-10-02_VNEXT_DEVICE_FINALIZATION.md",
+    "targeted_tests": {
+      "pass": 105,
+      "fail": 0,
+      "skip": 0
+    },
+    "sqlite_unexecuted_evidence_preserved": true,
+    "actual_device_check_performed": false,
+    "actual_finalization_invoked": false,
+    "initial_revision_replayed": false
   }
 }

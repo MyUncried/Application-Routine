@@ -1389,7 +1389,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "00d84df4b37fcc6d15aa8b799af4050aaae4ed8b31fc4d15d06b2df67e490d11"
+      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
     },
     {
       "id": "CASE-b999406d8e732a72",
@@ -1408,7 +1408,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "00d84df4b37fcc6d15aa8b799af4050aaae4ed8b31fc4d15d06b2df67e490d11"
+      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
     },
     {
       "id": "CASE-8ee0d77c4c7033ef",
@@ -1427,7 +1427,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "00d84df4b37fcc6d15aa8b799af4050aaae4ed8b31fc4d15d06b2df67e490d11"
+      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
     },
     {
       "id": "CASE-a69b519a1935bd03",
@@ -1446,7 +1446,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "00d84df4b37fcc6d15aa8b799af4050aaae4ed8b31fc4d15d06b2df67e490d11"
+      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
     },
     {
       "id": "CASE-7ce50f9184205e4a",
@@ -1465,7 +1465,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "00d84df4b37fcc6d15aa8b799af4050aaae4ed8b31fc4d15d06b2df67e490d11"
+      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
     },
     {
       "id": "CASE-e6386e7329cfadf4",
@@ -5181,7 +5181,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "00d84df4b37fcc6d15aa8b799af4050aaae4ed8b31fc4d15d06b2df67e490d11"
+      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
     },
     {
       "id": "CASE-bb10c00252064726",
@@ -5242,7 +5242,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "00d84df4b37fcc6d15aa8b799af4050aaae4ed8b31fc4d15d06b2df67e490d11"
+      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
     },
     {
       "id": "CASE-478c633ce08f18f0",
@@ -5261,7 +5261,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "00d84df4b37fcc6d15aa8b799af4050aaae4ed8b31fc4d15d06b2df67e490d11"
+      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
     },
     {
       "id": "CASE-4d308adc3bac8e2f",
@@ -5280,7 +5280,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "00d84df4b37fcc6d15aa8b799af4050aaae4ed8b31fc4d15d06b2df67e490d11"
+      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
     },
     {
       "id": "CASE-ed508a348250fb1d",
