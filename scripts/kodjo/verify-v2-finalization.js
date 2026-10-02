@@ -46,6 +46,29 @@ function canonical(value) {
 function sha256(value) {
   return crypto.createHash('sha256').update(typeof value === 'string' ? value : canonical(value), 'utf8').digest('hex');
 }
+const DEVICE_PROOF_TYPES = new Set(['VISUAL_COMPARE', 'DEVICE_CHECK']);
+// True when there is at least one proof and every proof is either a technical PASS or a device
+// proof still PENDING_DEVICE (a device PASS before the human gate is never accepted).
+function devicePendingOnly(proofs) {
+  const rows = Array.isArray(proofs) ? proofs : [];
+  for (const proof of rows) {
+    const type = String(proof && proof.proof_type || '');
+    const status = String(proof && proof.status || '');
+    if (DEVICE_PROOF_TYPES.has(type)) {
+      if (status !== 'PENDING_DEVICE') return false;
+    } else if (status !== 'PASS') {
+      return false;
+    }
+  }
+  return rows.length > 0;
+}
+function hasPendingDeviceProof(criterion) {
+  const rows = [...(Array.isArray(criterion.proof_results) ? criterion.proof_results : []),
+    ...(Array.isArray(criterion.assertion_results) ? criterion.assertion_results : [])
+      .flatMap((assertion) => Array.isArray(assertion && assertion.proof_results) ? assertion.proof_results : [])];
+  return rows.some((proof) => DEVICE_PROOF_TYPES.has(String(proof && proof.proof_type || '')) &&
+    String(proof && proof.status || '') === 'PENDING_DEVICE');
+}
 
 function verify(args) {
   const [reviewFile, implementationFile, visualFile, queueFile, issueRaw, reviewId, visualId, outputFile] = args;
@@ -155,7 +178,17 @@ function verify(args) {
     const ids = criteria.map((item) => String(item && item.criterion_id || ''));
     if (ids.some((id) => !id) || new Set(ids).size !== ids.length) fail('V2_FINAL_CRITERIA_INVALID');
     for (const criterion of criteria) {
-      if (criterion.implementation_status !== 'CONFORME' || criterion.preserve_status !== 'PASS') {
+      // Since the review derives each criterion from its assertions (PRE-1, 2026-10-01), a criterion
+      // whose only gaps are device proofs still pending is NON_VERIFIABLE before the human gate.
+      // The human device approval closes exactly those gaps; every technical proof must still PASS.
+      const closedByDeviceGate = deviceGateRequired &&
+        criterion.implementation_status === 'NON_VERIFIABLE' &&
+        hasPendingDeviceProof(criterion) &&
+        devicePendingOnly(criterion.proof_results) &&
+        (Array.isArray(criterion.assertion_results) ? criterion.assertion_results : []).every((assertion) =>
+          ['CONFORME', 'PENDING_DEVICE'].includes(String(assertion && assertion.status || '')) &&
+          devicePendingOnly(assertion.proof_results));
+      if ((criterion.implementation_status !== 'CONFORME' && !closedByDeviceGate) || criterion.preserve_status !== 'PASS') {
         fail('V2_FINAL_CRITERION_NOT_CLOSED', String(criterion.criterion_id));
       }
       const proofs = Array.isArray(criterion.proof_results) ? criterion.proof_results : [];

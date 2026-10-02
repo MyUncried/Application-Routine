@@ -287,7 +287,8 @@ test('D2: VISUAL_APPROVED never replaces technical, functional or preservation e
     value=>{value.criteria[0].proof_results[0].status='FAIL';},
     value=>{value.criteria[0].proof_results[0].status='NON_VERIFIABLE';},
     value=>{value.criteria[0].proof_results[0].status='PENDING_DEVICE';},
-    value=>{value.criteria[0].implementation_status='NON_VERIFIABLE';},
+    value=>{value.criteria[0].implementation_status='NON_VERIFIABLE';value.criteria[0].assertion_results=[{assertion_id:'UI-001-A1',status:'NON_VERIFIABLE',proof_results:[{proof_type:'STATIC_ANALYSIS',status:'NON_VERIFIABLE'}]}];},
+    value=>{value.criteria[0].implementation_status='NON_CONFORME';},
     value=>{value.criteria[0].preserve_status='FAIL';},
     value=>{value.boundary_results[0].status='NON_VERIFIABLE';},
     value=>{value.boundary_results[1].status='FAIL';},
@@ -369,4 +370,46 @@ test('delta/global: old complete reviews cannot bypass a recorded global requali
   assert.equal(verify(final,comments),true);
   final.review_mode='VISUAL_CORRECTION_DELTA';
   assert.throws(()=>verify(final,comments),/FULL_REVIEW_REQUIRED/);
+});
+
+function finalizeWith(mutate){
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-devgate-'));
+  try{
+    const f=fixture(dir),value=reviewValue();mutate(value);
+    const body=fs.readFileSync(f.reviewFile,'utf8').replace(/<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>[\s\S]*?<\/KODJO_UI_IMPLEMENTATION_REVIEW_JSON>/,'<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'+JSON.stringify(value)+'</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>');
+    fs.writeFileSync(f.reviewFile,body);
+    const out=path.join(dir,'out.json');
+    const r=run(finalVerifier,[f.reviewFile,f.implFile,f.visualFile,f.queuePath,String(f.issue),'104','105',out],dir);
+    return {status:r.status,stderr:r.stderr,result:r.status===0?JSON.parse(fs.readFileSync(out,'utf8')):null};
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
+}
+const devicePendingCriterion=value=>{
+  value.criteria[0].implementation_status='NON_VERIFIABLE';
+  value.criteria[0].assertion_results=[
+    {assertion_id:'UI-001-A1',status:'PENDING_DEVICE',proof_results:[{proof_type:'FUNCTIONAL_TEST',status:'PASS'},{proof_type:'VISUAL_COMPARE',status:'PENDING_DEVICE'}]},
+    {assertion_id:'UI-001-A2',status:'CONFORME',proof_results:[{proof_type:'STATIC_ANALYSIS',status:'PASS'}]},
+  ];
+};
+
+test('device gate (PRE-1): a criterion NON_VERIFIABLE only because device proofs are pending is closed by VISUAL_APPROVED',()=>{
+  const r=finalizeWith(devicePendingCriterion);
+  assert.equal(r.status,0,r.stderr);
+  assert.equal(r.result.final_status,'READY_TO_CLOSE');
+  assert.equal(r.result.review_mode,'CRITERION_COMPLETE');
+});
+
+test('device gate (PRE-1): VISUAL_APPROVED still never closes a technical gap, a device PASS or an assertion not pending on device',()=>{
+  for(const mutate of [
+    value=>{devicePendingCriterion(value);value.criteria[0].assertion_results[1].proof_results[0].status='FAIL';},
+    value=>{devicePendingCriterion(value);value.criteria[0].assertion_results[0].proof_results[0].status='NON_VERIFIABLE';},
+    value=>{devicePendingCriterion(value);value.criteria[0].assertion_results[0].status='NON_VERIFIABLE';},
+    value=>{devicePendingCriterion(value);value.criteria[0].assertion_results[0].proof_results[1].status='PASS';},
+    value=>{devicePendingCriterion(value);value.criteria[0].proof_results[1].status='PASS';},
+    value=>{devicePendingCriterion(value);value.criteria[0].proof_results=value.criteria[0].proof_results.filter(p=>p.proof_type==='FUNCTIONAL_TEST');value.criteria[0].assertion_results[0].proof_results=[{proof_type:'FUNCTIONAL_TEST',status:'PASS'}];},
+    value=>{devicePendingCriterion(value);value.criteria[0].preserve_status='FAIL';},
+  ]){
+    const r=finalizeWith(mutate);
+    assert.notEqual(r.status,0);
+    assert.match(r.stderr,/V2_FINAL_(CRITERION_NOT_CLOSED|TECHNICAL_PROOF_NOT_PASS|DEVICE_PROOF_PRE_GATE_INVALID)/);
+  }
 });
