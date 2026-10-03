@@ -22,7 +22,7 @@ Les références ci-dessus sont les identifiants courants vérifiés. Le propri�
 
 ## Grammaire des cartes
 
-Une carte présente le titre et son badge, puis le classement, puis les valeurs. Les icônes de classement sont en pastille ; les icônes de valeur sont nues. La barre verticale colorée est supprimée sur les cartes standard ; le contexte compact Calendrier Jour conserve sa barre de repère de 4 px. La couleur de catégorie est portée par sa pastille dans les contextes colorés. Les zones corporelles restent un classement, même lorsque leur pictogramme est masqué dans l’état avec photo.
+Une carte présente le titre et son badge, puis le classement, puis les valeurs. Les icônes de classement sont en pastille ; les icônes de valeur sont nues. La barre verticale colorée est supprimée sur les cartes standard ; le contexte compact Calendrier Jour conserve sa barre de repère de 4 px. La couleur de catégorie est portée par sa pastille dans les contextes colorés. Les zones corporelles restent un classement, avec leur pictogramme conservé dans les composants courants du Catalogue et des choix, y compris avec photo.
 
 | Élément | Valeur de référence |
 |---|---|
@@ -113,14 +113,14 @@ Les trois composants canoniques sont désormais implantés dans Design system �
 | RG-5 | Une seule famille d’icônes de zone corporelle dans toute l’application ; variante Homme/Femme suivant la préférence de Profil définie par RG-10. | Validé |
 | RG-6 | La gouttière permanente est 64 ; texte à x=88, bloc de 207 px dans les variantes Catalogue/choix d’exercices. Le chargement du média ne change pas la hauteur. | Validé ; référence à taille standard |
 | RG-7 | Minimum tactile 44 × 44, sans chevauchement. Boutons contextuels visibles 34. Une cible existante de 48 reste conforme et ne doit pas être réduite sans nécessité. | Validé ; révise le minimum commun de D-087, conserve les dimensions spécifiques supérieures |
-| RG-8 | Au moins 20 entre la fin du texte tronqué et le contrôle de sélection. | Validé ; les 22 représentés sans photo satisfont le minimum |
+| RG-8 | Zones des cartes d’Exercice : largeur du cadre = position du contrôle droit − début du texte − 8 px ; troncature finale, une ligne, sans scroll horizontal (D-263). Les Séances conservent leur minimum20. | Clarification validée par correction de l’audit du04/10/2026 ; aucune marge optique20 additionnelle pour ces zones |
 | RG-9 | Marges latérales 24 sur la référence écran 402, sauf retraits volontaires documentés. | Validé ; ne remplace pas les règles responsive |
 | RG-10 | Profil : champ silhouette facultatif, valeurs homme/femme ; absence = homme affiché. Effet limité à l’icône de zone corporelle, sans filtre, recherche ni autre effet métier. | Validé |
 | RG-11 | Image ou couverture vidéo centrée, remplissant le carré 64 sans déformation ; excédent recadré. | Validé |
 | RG-12 | Sans média, pendant le chargement ou si le média est indisponible, conserver la gouttière 64, son fond #EEF0F6 et l’icône de nature de l’exercice. | Validé — D-260 |
 | RG-13 | Texte alternatif de la vignette : nom de l’exercice. | Validé |
 
-Gouttière permanente : 64 × 64 à x=12, y=14 sur la carte Exercice 354 × 91, rayon 6, fond `#EEF0F6`, icône de nature 24 × 24 ; photo recadrée centrée, sans déformation. Le bloc texte est à x=88, largeur 207. La catégorie et les sélecteurs restent présents. Aucune photo sur les cartes de Calendrier Semaine/Jour ou du Suivi. Zones corporelles tronquées, sans défilement horizontal : cadre de coupe 60 px au Catalogue actif/archivé, 69 px dans les choix calendrier/planification/composition et 145 px en Calendrier Semaine ; calcul sur le contrôle droit réellement présent, avec 8 px entre le cadre de coupe et ce contrôle. Ces mesures de cadres ne certifient pas à elles seules la distance optique entre le dernier glyphe et le sélecteur (RG-8).
+Gouttière permanente : 64 × 64 à x=12, y=14 sur la carte Exercice 354 × 91, rayon 6, fond `#EEF0F6`, icône de nature 24 × 24 ; photo recadrée centrée, sans déformation. Le bloc texte est à x=88, largeur 207. La catégorie et les sélecteurs restent présents. Aucune photo sur les cartes de Calendrier Semaine/Jour ou du Suivi. Zones corporelles tronquées, sans défilement horizontal : cadre de coupe 60 px au Catalogue actif/archivé, 69 px dans les choix calendrier/planification/composition et 145 px en Calendrier Semaine ; calcul sur le contrôle droit réellement présent, avec 8 px entre le cadre de coupe et ce contrôle. La mesure porte sur le cadre de coupe, pas sur le dernier glyphe visible. La valeur145 en Semaine est arrondie depuis144,6 ; le développement calcule la largeur disponible, sans coder une largeur unique.
 
 Profil : silhouettes dans deux cercles de 64, hauteur de silhouette 44, écart 24 ; choisi : bleu `#0508E5`, contour 2 ; non choisi : gris `#9499A8`, contour `#CCD1E0` 1. Les labels accessibles sont « Silhouette homme » / « Silhouette femme ». Le champ facultatif silhouette ne pilote que cette variante ; homme est affiché si absent, sans filtre ni autre effet métier. Dans Ajouter un exercice, les démonstrations montrent trois cercles 34, silhouettes 26 ; aucune nouvelle action ne se déduit de leur présence.
 
@@ -223,7 +223,7 @@ Total rapporté par le propriétaire : 133 cartes / 38 écrans / environ 27 inte
 7. CAR-07 : Suivi sur deux lignes, hauteur 67 ; statut en haut à droite, indicateur Ressenti 20 × 20 en bas à droite, sans déploiement ni cible tactile.
 8. MED-01 : sans média, la gouttière permanente 64 affiche l’icône de nature dans les contextes Catalogue/choix d’exercices.
 9. MED-02 : avec média d’exercice, la vignette de référence fait 64 ; la carte n’est pas agrandie du seul fait de la photo.
-10. MED-03 : au moins 20 séparent le texte tronqué du sélecteur ; les données complètes sont conservées.
+10. MED-03 : zones d’Exercice tronquées sur une ligne à8 px du contrôle droit ; largeur calculée par contexte, données complètes conservées. Séances : minimum20 inchangé.
 11. MED-04 : aucune Séance, liste mixte, carte Calendrier ou Suivi n’affiche de photo.
 12. ICO-01 : la nature exercice utilise la posture ; l’haltère représente le nombre d’exercices.
 13. ICO-02 : navigation = quatre composants exacts, trait 2 et taille maximale 24.
@@ -266,4 +266,5 @@ Lecture directe des trois sets : **0 remplissage/contour SOLID en dur, 831 liés
 
 **130 instances / 38 écrans** dans Prototype MVP. Deux écrans sont des états déployés historiques hors MVP : `1992:8996` et `4738:6355` ; ils ne sont pas réexportés comme cible courante. Les 36 autres captures sont renouvelées ; registre des fichiers dans `Specifications-fonctionnelles/images/README-T03-FIGMA.md`. Les traits Ressenti 1,6/0,9 px sont conservés, sans redessin. Cette inspection/export ne constitue pas une recette de l’application ni une preuve d’absence d’activité interne dans l’ancienne conversation.
 
-Limite visuelle observée lors de la seconde passe : dans `3786:5093`, plusieurs badges de durée du Catalogue Exercice sont partiellement rognés au bord droit. La capture reproduit fidèlement ce rendu Figma ; aucun correctif graphique ni règle métier n’est inventé dans cette livraison. La conformité de cet assemblage visuel reste PARTIELLEMENT CONFORME.
+Correction du04/10/2026 : conteneurs Titre + durée totale `6214:4075`/`6214:4117` ajustés à la largeur207 du parent par FILL, au lieu de322. Badge en largeur intrinsèque, titre prenant le reste et tronqué ; bord droit du badge x295 sur carte354. Aucune hauteur ni donnée modifiée. Zones Calendrier Semaine `6214:4272` : troncature ENDING, une ligne, largeur145 conservée. Ces deux écarts d’assemblage sont corrigés ; cela ne vaut pas recette applicative.
+

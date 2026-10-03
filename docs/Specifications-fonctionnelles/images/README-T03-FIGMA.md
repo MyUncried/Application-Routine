@@ -247,15 +247,20 @@ Les titres de famille remplacent désormais la numérotation dans le chapitre 06
 | `2234:88` | `modale-3-seance-archivee-action-supprimer.png` | `7f46d5ca3f75c848317ac84b6c9732b7fde63fe9` |
 | `2234:189` | `modale-3a-confirmer-suppression-seance-archivee.png` | `92c9c185d593ddcbd9671fc585a90223bc50d557` |
 | `2252:86` | `ecran-7h-calendrier-semaine-mardi.png` | `406b0d735b3b67d3415eba04c3d0582f4d7790cf` |
-| `3786:5093` | `ecran-12-catalogue-activites-liste.png` | `910e87af88debdacc36aa6904ddf902c02db6546` |
+| `3786:5093` | `ecran-12-catalogue-activites-liste.png` | `a2af6b3046fcd2fd2de5cffb2ac6a92fc4c473a6` |
 | `3789:5349` | `ecran-14-selection-activites-existantes.png` | `6e42ebe3396f7f31d7ffa19e0713fcdca8bc35e1` |
 | `4168:11149` | `figma-4168-11149.png` | `ba5a14d0c06ddcbb394586c8a3e441a49df9e13f` |
 | `4168:11262` | `figma-4168-11262.png` | `47cd2f6e25af56e05a90457052a6e6c640bd223e` |
 | `4593:6285` | `figma-4593-6285.png` | `c6d7b1ba41223584049b73bc771814f464b57808` |
-| `4544:6344` | `figma-4544-6344.png` | `82a3272658818d19bce1d242d31aeee03986249a` |
-| `4544:6651` | `figma-4544-6651.png` | `8170693a9ffe6a38525805a4bbf4922b614ea1db` |
+| `4544:6344` | `figma-4544-6344.png` | `d987c34aab09b76a7fb04aa6a7fa8b6a059576cb` |
+| `4544:6651` | `figma-4544-6651.png` | `cd5c125c37da5bd7081046e1af00b5333cdfbc73` |
 | `4549:6382` | `figma-4549-6382.png` | `fc9bdc26f4520001bdbbdbf7b7034fd20b603957` |
 | `4549:6742` | `ecran-2f-catalogue-archivees.png` | `4d58c9a2d5da36b51e3e9f987ddc582240159449` |
 | `4592:6217` | `figma-4592-6217.png` | `cd20bf170b8e516d001b65f42dd49aa0e4450894` |
-| `4738:6209` | `figma-4738-6209.png` | `68ec9355429c29a521cca1a5f571217d7bb22116` |
+| `4738:6209` | `figma-4738-6209.png` | `e9aee1d08a6a50916273f1a5bc25a8fa45b71105` |
 | `5451:4272` | `figma-5451-4272.png` | `34a70bcbc6948c3bf489661a9ef14ee582b254a5` |
+
+
+## Corrections après audit — 04/10/2026
+
+Douze captures courantes réexportées après correction des badges Catalogue Exercice et activation de la troncature des zones Semaine. Quatre PNG ont changé (Catalogue, deux filtres, actions glissées) ; huit sont identiques, notamment lorsque le panneau masque les badges ou que le libellé court ne nécessite pas de troncature. Les empreintes du tableau ci-dessus sont actualisées. Les deux déploiements historiques restent hors cible.

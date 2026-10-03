@@ -850,7 +850,7 @@ Le suivi repose sur les principes suivants :
 - chaque exécution constitue un enregistrement indépendant ;
 - chaque historique est construit à partir d'un instantané immuable ;
 - les historiques ne sont jamais modifiés par les évolutions ultérieures des séances ;
-- le suivi privilégie une consultation rapide grâce à des cartes condensées ou déployées individuellement ; `Vue d’ensemble`, `Filtrer` et `Trier` restent visibles mais désactivés ;
+- le suivi privilégie une consultation rapide grâce à des cartes à deux lignes, sans déploiement (D-262) ; `Vue d’ensemble`, `Filtrer` et `Trier` restent visibles mais désactivés ;
 - les données affichées correspondent toujours à l'état exact de la séance au moment de son exécution.
 
 # Annexe – Tableaux de spécification des écrans
@@ -1239,3 +1239,4 @@ L’ordre et la présentation visuelle courants sont décrits dans le chapitre06
 ### Saisie des paramètres — D-246
 
 La référence active est [Paramètres en modale v12](SPECIFICATION-PARAMETRES-MODALE-v12.md), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
+
