@@ -1,0 +1,164 @@
+{
+  "schema": "kodjo.plan-review-findings.v1",
+  "finding_count": 13,
+  "verdict": "REVISE",
+  "affected_targets": [
+    "NON_UI_COVERAGE",
+    "REQ-0A882C7C5D9F469B",
+    "REQ-5CC77DFDC4EDF091",
+    "UI-103FBF8D197A",
+    "UI-3ECC243E1B76",
+    "UI-6E8FBE118894",
+    "UI-9194767E574D",
+    "UI-BB15197A1525",
+    "UI-EF614F650E74",
+    "docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md",
+    "src/features/reference-data/ReferenceValueDialog.tsx",
+    "src/infrastructure/database/migrations/migration008.ts"
+  ],
+  "findings": [
+    {
+      "finding_id": "RF-1B1DA5551A8E95D5",
+      "category": "UI_CRITERION",
+      "target_kind": "PATH",
+      "target": "src/features/reference-data/ReferenceValueDialog.tsx",
+      "blocking": true,
+      "diagnostic": "This file is the shared long-press dialogue for the three referential modals (plan §6.5, change target of UI-3ECC243E1B76, with its own test in tests), and §4.10 L128–145 is declared as a criterion source. Four normative items inside the very range cited by assertion UI-3ECC243E1B76-A8417DFDC8FC0 ('§4.10 L134–139') are not asserted anywhere in the 43-assertion matrix: L134 — dynamic title exactly 'Supprimer « {nom} » ?'; L135 — dynamic message that must, when the value is used, state that it disappears from new choices but stays attached to existing objects with its name and last colour and that history is unchanged (i.e. a used/unused content distinction); L137 — 'toutes les valeurs sont concernées, y compris les valeurs initiales fournies par KODJO' (so the 10 seeded body zones and the 10 predefined categories of src/domain/categories/defaults.ts must be renameable and removable despite Category.isPredefined existing as a gate-capable flag); L138 — after Supprimer, return to the selection modal left open with the deleted value absent. The existing assertion collapses all of this into the single effect 'Supprimer confirmé retire la Catégorie des choix et conserve les affectations existantes ... ; Annuler ne modifie rien'.",
+      "expected_correction": "Add assertions sourced on §4.10 L134, L135, L137 and L138 — exact dynamic title string; dynamic message differing for a used versus unused value; administrability of KODJO-provided initial values (predefined categories and seeded body zones) without any isPredefined gate; and return to the still-open selection modal with the value absent — each proved by src/features/reference-data/__tests__/ReferenceValueDialog.test.tsx and the three picker modal tests.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "finding_id": "RF-353AEF6317A2BFA8",
+      "category": "REQUIREMENT_GAP",
+      "target_kind": "CRITERION_ID",
+      "target": "UI-9194767E574D",
+      "blocking": true,
+      "diagnostic": "This criterion owns the removal of the blanket overwrite in SessionService.createSession (verified at src/features/sessions/SessionService.ts L105–115, applyProfileRecoveryDefault rewrites postActivityRecoverySeconds for every exercise on save). Today that overwrite masks each occurrence's own value; after the planned change the per-occurrence value becomes observable for the first time. Two normative rules on that newly observable behaviour are unasserted: 04 L259 — 'Elle se déplace, se duplique et se supprime avec l'occurrence' — and CE-T03-08 L884 — 'postActivityRecoverySeconds appartient à chaque occurrence, initialisé depuis Profil et conservé au déplacement/duplication'. Assertion UI-9194767E574D-A3DE880FD82B1 covers only insertion, save-time preservation and the no-definition rule. The code path concerned (duplicateActivity in src/domain/sessions/composition.ts L215–235, reorder via CompositionScreen L398) is a pure spread today, so the requirement is satisfiable, but it is left without a regression proof precisely where the overwrite that previously neutralised it is being deleted.",
+      "expected_correction": "Add an assertion to UI-9194767E574D, sourced on 04 L259 and CE-T03-08 L884, stating that reordering or duplicating an occurrence preserves its own postActivityRecoverySeconds (and that the duplicate does not re-read the Profile), with the proof carried by src/features/sessions/__tests__/SessionService.test.ts and the Composition integration test already in tests.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "finding_id": "RF-4464C3E920E31B35",
+      "category": "REQUIREMENT_GAP",
+      "target_kind": "REQUIREMENT_ID",
+      "target": "REQ-0A882C7C5D9F469B",
+      "blocking": true,
+      "diagnostic": "The requirement and the matching assertion UI-9194767E574D-A2A283F0E130C specify unconditional injection of the Profile 'Pause entre les côtés' at new-exercise draft creation ('Un nouvel Exercice du Catalogue reçoit la Pause entre les côtés du Profil'; plan §7 injection point createEmptyActivityDefinitionDraft(profile)). Three normative sources condition that initialisation on bilaterality instead: 09 L844 (inside the range 'préférences L840–865' already cited by the plan) — 'Valeur globale du Profil utilisée pour initialiser sideRecoverySeconds lors de l'activation D→G ou G→D d'un Exercice'; v12 L86 line 7 — 'Bilatéral uniquement, stepper ; copie du Profil à activation'; 04 L251 — 'pertinente uniquement en D→G/G→D'. New exercises default to DEFAULT_SIDE_MODE = UNILATERAL (src/domain/sessions/SessionDraft.ts L102, consumed by createEmptyActivityDefinitionDraft, ActivityDefinition.ts L324–337 which returns sideRecoverySeconds: 0), so the planned injection persists side_recovery_seconds = 10 on unilateral definitions, and no requirement or assertion covers the activation trigger at all. The plan explicitly defers v12 lines 9–10 to PRE-3 but silently keeps line 7 in PRE-2 under a different rule, with no recorded arbitration.",
+      "expected_correction": "Either restate the requirement and assertion as initialisation conditioned on bilateral mode (at creation when the exercise is created in D→G/G→D, and on activation of D→G/G→D in the editor — the side-mode control path is already in write scope via src/features/activities/ActivityEditorForm.tsx and src/features/sessions/ExerciseScreen.tsx), or defer the 'Pause entre les côtés' injection to PRE-3 with the same explicit deferral already written for v12 lines 9–10; in both cases add an assertion that a unilateral new exercise does not receive the Profile value.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "finding_id": "RF-6AF885C945395ACA",
+      "category": "MIGRATION",
+      "target_kind": "PATH",
+      "target": "src/infrastructure/database/migrations/migration008.ts",
+      "blocking": true,
+      "diagnostic": "Plan §6.2 adds 'ALTER TABLE labels ADD COLUMN canonical_key TEXT' and 'ALTER TABLE body_zones ADD COLUMN canonical_key TEXT' (both nullable), then creates labels_canonical_key_unique / body_zones_canonical_key_unique, and claims 'Unicité sur toutes les entrées, actives et retirées : elle permet la réactivation D2 (une seule entrée par clé)'. A SQLite UNIQUE index admits an unlimited number of NULL rows, so a nullable canonical_key does not enforce 'une seule entrée par clé': any row inserted without a key escapes uniqueness entirely, and the D2 reactivation contract (REQ-156EDCBC434B015A, D-257) plus the migration requirement 'clés normalisées uniques pour Étiquettes et Zones' are not actually guaranteed at storage level. The already-frozen reference pattern for the same concept is stricter — migration002.ts L51 declares 'categories.canonical_key TEXT NOT NULL UNIQUE' — and migration008 already performs a table rebuild for activity_body_zones, so the NOT NULL variant is available at no additional architectural cost. targetSchema.test.ts would otherwise freeze the weaker schema.",
+      "expected_correction": "Specify in the plan that labels and body_zones are rebuilt (or equivalently constrained) so canonical_key is NOT NULL UNIQUE, matching the frozen categories pattern, and assert that constraint in src/infrastructure/database/__tests__/targetSchema.test.ts with a test proving an insert with a NULL/duplicate key is rejected.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "finding_id": "RF-9484DACDD90799B5",
+      "category": "UI_CRITERION",
+      "target_kind": "CRITERION_ID",
+      "target": "UI-EF614F650E74",
+      "blocking": true,
+      "diagnostic": "The Étiquette criterion declares source CE-T03-16 L1606–1692 but omits that contract's §18 L1678 — 'Annoncer nom, sélection et action ; la couleur seule n'identifie pas une Étiquette. Focus captif dans confirmation puis retour à option/liste ; bouton destructif nommé'. risk_types is ['FUNCTIONAL','VISUAL'] without ACCESSIBILITY, proof_required is ['FUNCTIONAL_TEST','VISUAL_COMPARE'] without ACCESSIBILITY_CHECK, and none of its 5 assertions is accessibility-bearing. 'la couleur seule n'identifie pas une Étiquette' is the normative non-colour-only-identification rule for a screen whose entire selection affordance is a coloured pastille, and the criterion is a CREATE with no inherited accessibility contract.",
+      "expected_correction": "Add ACCESSIBILITY to risk_types and ACCESSIBILITY_CHECK to proof_required, and add an assertion sourced on CE-T03-16 L1678 covering announced name/selection/action, colour never being the sole identifier, focus captive in the confirmation then returned to the option/list, and the destructive action being named.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "finding_id": "RF-963D4D976390321C",
+      "category": "REQUIREMENT_GAP",
+      "target_kind": "PLAN",
+      "target": "NON_UI_COVERAGE",
+      "blocking": true,
+      "diagnostic": "KODJO_NON_UI_COVERAGE_JSON declares status=ENUMERATED but cites only chapters 09, 13 and 07. Three attested product sources that the plan's own §1 source table declares as used carry non-UI requirements and are not cited: (a) '04 – Modèle fonctionnel.md' L251 and L259 — sideRecoverySeconds 'pertinente uniquement en D→G/G→D' and the occurrence rule 'postActivityRecoverySeconds ... est initialisée à la création de l'occurrence depuis le défaut global ... Elle se déplace, se duplique et se supprime avec l'occurrence' (a DATA/FUNCTIONAL requirement realised in src/domain/sessions/composition.ts and SessionService); (b) 'SPECIFICATION-PARAMETRES-MODALE-v12.md' L93–100 — the 0..300 pause grid, the step table and 'Les données existantes ne sont pas arrondies par la seule ouverture/lecture', which the plan itself realises as domain functions nextGridValue/previousGridValue in src/domain/preferences/Profile.ts (plan T2/T3); (c) '08 – Conception fonctionnelle détaillée.md' Profil L1076–1101 — the 1..80 display-name bound, to which chapter 13 CE-UI-01 §14 explicitly defers ('1..80 caractères selon conception 08'), plus 'Vibration ... n'affecte pas le feedback haptique des roulettes numériques'. Coverage therefore does not cite all relevant sources.",
+      "expected_correction": "Add the three omitted source paths to KODJO_NON_UI_COVERAGE_JSON.source_paths and add the corresponding non-UI requirement rows (or extend the existing rows' source locators) so that every non-UI requirement drawn from 04, v12 and 08 is enumerated with change_targets, tests and proof_required.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "finding_id": "RF-99F05380148D3D53",
+      "category": "UI_CRITERION",
+      "target_kind": "CRITERION_ID",
+      "target": "UI-6E8FBE118894",
+      "blocking": true,
+      "diagnostic": "The Zones corporelles criterion declares source CE-UI-09 L2769–2857 but carries no accessibility coverage: risk_types ['FUNCTIONAL','VISUAL'] without ACCESSIBILITY, proof_required ['FUNCTIONAL_TEST','VISUAL_COMPARE'] without ACCESSIBILITY_CHECK, and none of its 5 assertions covers §18 L2841 — 'Nom/état sélectionné annoncés ; ... focus dialogue puis liste ; toutes Zones sélectionnées lisibles' — nor §10 L2809 'focus confiné à la modale ouverte'. 'toutes Zones sélectionnées lisibles' is specific to multi-selection and has no analogue in any other criterion, so it is covered nowhere in the matrix. The criterion also introduces a new multi-select modal with explicit confirmation (component_decision CREATE), i.e. exactly the case where focus and selected-state announcement cannot be inherited from an already-validated component.",
+      "expected_correction": "Add ACCESSIBILITY to risk_types and ACCESSIBILITY_CHECK to proof_required, and add an assertion sourced on CE-UI-09 L2809 and L2841 covering announced name and selected state per Zone, readability of the full multi-selection, and focus confined to the modal then dialogue-then-list ordering.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "finding_id": "RF-9C99B0645BC14720",
+      "category": "UI_CRITERION",
+      "target_kind": "CRITERION_ID",
+      "target": "UI-103FBF8D197A",
+      "blocking": true,
+      "diagnostic": "CE-UI-01 §4 L1981 is normative on the exit flow: 'Enregistrer valide/persiste et revient à Profil ; retour avec modification propose abandon, qui restaure les valeurs enregistrées ; annuler abandon conserve le brouillon', and §11 lists 'modification non enregistrée' as a screen state. Assertion UI-103FBF8D197A-AFF58CD1BACEA cites L1981 but asserts only the restore effect ('l'abandon restaure les valeurs enregistrées'); the back-navigation-with-modification that must PROPOSE the abandon, and the cancel-abandon path that must KEEP the draft, are unasserted — so the dirty-state interception is entirely uncovered. Compounding this, component_decision is CREATE with reuse_search limited to ['app/_layout.tsx','src/features/sessions/DecisionDialog.tsx','src/shared/ui/KodjoIcon.tsx'], which omits the project's existing canonical exit-guard pattern for exactly this requirement: src/features/sessions/useCompositionExitGuard.ts (generic signature useCompositionExitGuard(shouldBlock, onConfirmExit), reusable by import), src/features/sessions/AbandonCreationModal.tsx and src/features/sessions/ExerciseExitConfirmModal.tsx — whose own header records that canonical reuse was made mandatory ('REWORK11 ... Réutilisation canonique obligatoire'). The REUSE/EXTEND/CREATE decision is therefore not verified against the actual existing pattern.",
+      "expected_correction": "Add assertions sourced on CE-UI-01 L1981 for 'back with modification proposes abandon' and 'cancel abandon keeps the draft', and extend reuse_search to src/features/sessions/useCompositionExitGuard.ts and src/features/sessions/ExerciseExitConfirmModal.tsx, restating the decision as reuse of that guard (imported unchanged) composed with DecisionDialog, or justifying CREATE against it explicitly.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "finding_id": "RF-A477F619CE75C994",
+      "category": "MIGRATION",
+      "target_kind": "REQUIREMENT_ID",
+      "target": "REQ-5CC77DFDC4EDF091",
+      "blocking": true,
+      "diagnostic": "The requirement and plan §6.2 describe the rebuilt activity_body_zones as 'sans CHECK sur 10 ids, FK body_zones(id) ON UPDATE RESTRICT ON DELETE RESTRICT, lignes conservées'. The existing table also carries a second validated constraint that the plan never mentions: migration004.ts L251 declares 'activity_id TEXT NOT NULL REFERENCES activities(id) ON UPDATE RESTRICT ON DELETE CASCADE'. The cascade is behaviourally load-bearing — deleting a Séance/occurrence currently removes its zone links — and with PRAGMA foreign_keys = ON (constants.ts STANDARD_PRAGMAS) a rebuild that drops it would either orphan rows or make activity deletion fail. The plan's target-schema description is therefore incomplete for a table it rebuilds, and no PRESERVE boundary covers it (boundary_contract freezes migration001–007 bytes, not the rebuilt v8 shape).",
+      "expected_correction": "State explicitly in the requirement and in plan §6.2 that the rebuilt activity_body_zones retains 'activity_id TEXT NOT NULL REFERENCES activities(id) ON UPDATE RESTRICT ON DELETE CASCADE' together with its PRIMARY KEY (activity_id, body_zone_id), and add a targetSchema/migrateDatabase assertion proving the cascade survives migration v8.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "finding_id": "RF-B221093C511698F5",
+      "category": "UI_CRITERION",
+      "target_kind": "CRITERION_ID",
+      "target": "UI-3ECC243E1B76",
+      "blocking": true,
+      "diagnostic": "The Catégorie criterion declares source CE-UI-09 L2769–2857 but omits that contract's accessibility section entirely: §18 L2841 — 'Nom/état sélectionné annoncés ; couleur accompagnée du nom ; labels accessibles des actions ; focus dialogue puis liste' — and §10 L2809 — 'focus confiné à la modale ouverte'. risk_types is ['FUNCTIONAL','VISUAL'] with no ACCESSIBILITY, proof_required is ['FUNCTIONAL_TEST','VISUAL_COMPARE'] with no ACCESSIBILITY_CHECK, and none of the 8 assertions is accessibility-bearing. The omission is demonstrably an omission rather than a scope choice: the two Profil criteria (UI-C14B5ED9A68C8ECC / UI-103FBF8D197A and UI-77BDA28D6261646F / UI-BB15197A1525) do carry ACCESSIBILITY risk, ACCESSIBILITY_CHECK proof and explicit accessibility assertions from the same chapter. Plan §6.5 mentions accessibility in prose only, which is not the machine contract, and plan §8 maps P2-21 to 'Critères UI (preuves visuelles et accessibilité)' — a mapping the matrix does not honour for this criterion.",
+      "expected_correction": "Add ACCESSIBILITY to risk_types and ACCESSIBILITY_CHECK to proof_required, and add at least one assertion sourced on CE-UI-09 L2809 and L2841 covering announced name and selected state, colour always accompanied by the name, named accessible labels on the long-press actions, and focus confined to the open modal then returned to the list.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "finding_id": "RF-D9F4149DCB143104",
+      "category": "ARCHITECTURE",
+      "target_kind": "REQUIREMENT_ID",
+      "target": "REQ-9901F561E1ABA4B6",
+      "blocking": false,
+      "diagnostic": "Non-blocking traceability observation. This DATA requirement and plan §6.1/§6.2 place the identity attributes display_name, photo_uri and silhouette on the profiles singleton, and the MIGRATION requirement labels its locator 'Profil L145–150'. That range is in fact chapter 09.1 'Entité Utilisateur' (header at 09 L118), where 'Nom affiché' and 'Photo de profil' are attributes of the Utilisateur entity, not of 09.9 'Préférences globales' (09 L810). A users singleton already exists (migration001.ts L2–6: singleton_key, id, created_at). Nothing breaks — both tables are 1:1 singletons and users carries no name/photo column, so no duplication is introduced — but the relocation of two normative attributes from one entity to another is an untraced technical decision and the locator label mis-names the source entity. Plan T8 cites 'C09 L147' for the nullable display name, which is the Utilisateur row.",
+      "expected_correction": "Record the placement of identity on profiles rather than users as an explicit technical decision in plan §4, and correct the locator label from 'Profil L145–150' to '09.1 Entité Utilisateur L145–150'.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "finding_id": "RF-E807417257E33294",
+      "category": "UI_CRITERION",
+      "target_kind": "CRITERION_ID",
+      "target": "UI-BB15197A1525",
+      "blocking": true,
+      "diagnostic": "CE-UI-07 §9 L2533 is a deterministic-layout requirement with exact values: 'Groupes selon DSF T5/T6 : fond #FCFCFE, liseré blanc 1, rayon 12, ombre sans rognage. Durées par steppers Profil, pas par roulette d'Exercice'. The criterion requires VISUAL_COMPARE proof but its only STYLE assertion (UI-BB15197A1525-AA246BAA18DCA) covers the stepper rendering and the single-open rule, nothing about the group containers; and no assertion forbids an Exercise wheel in the Profil — that prohibition appears only in decision_justification, which is not an assertion. The values are genuinely new, not inherited: '#FCFCFE' occurs nowhere under src/, and reuse_search lists no card/group component. By contrast the sibling criterion UI-103FBF8D197A does carry an exact-geometry STYLE assertion (circles 64, height 44, gap 24, #0508E5 stroke 2, #9499A8/#CCD1E0) from the same chapter, so the omission is asymmetric. Note also that DSF L30 gives the group border as 0,5 against chapter 13's 'liseré blanc 1', an unresolved conflict the plan does not arbitrate despite declaring the source order of C13 L13–25.",
+      "expected_correction": "Add a STYLE assertion sourced on CE-UI-07 L2533 pinning the group container values (fond #FCFCFE, liseré 1, rayon 12, ombre sans rognage) and resolving the 1 versus 0,5 border conflict with DSF L30 under the declared source order, plus a PRESENCE assertion that no Exercise wheel picker is used in the Profil (durations by Profile steppers only).",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "finding_id": "RF-EAB68D13A35E9B6A",
+      "category": "CLARIFICATION",
+      "target_kind": "SOURCE",
+      "target": "docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md",
+      "blocking": false,
+      "diagnostic": "Non-blocking freshness observation. Plan T12 ('Ordre d'affichage | Catégories : prédéfinies puis date ; Étiquettes et Zones : date de création') cites 'RM-106 ; code' without a path. RM-106 is located at '10 – Processus métier et règles métier transverses.md' L186, a file that is neither in slice-bootstrap.json product_sources (7 hash-attested files) nor in the plan's §1 source table. The rule's content was verified consistent with the frozen index categories_display_order_idx (migration002.ts L62–63), so there is no functional divergence, but the display-order rule for the three referentials rests on a source whose freshness is not attested, and no source at all is cited for the Étiquette and Zone ordering.",
+      "expected_correction": "Either cite chapter 10 with its path and hash in plan §1 and in the source attestation, or restate T12 against an attested source; cite an explicit source for the Étiquette and Zone creation-date ordering.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    }
+  ]
+}
