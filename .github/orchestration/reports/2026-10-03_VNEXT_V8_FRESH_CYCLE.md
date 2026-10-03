@@ -26,6 +26,18 @@ Le HEAD de préparation `070722462d9ac6edb797072e9c74c4817dee0601` a aussi été
 
 La publication du dossier passe le stage à QUALIFY_ONLY (génération 27). Elle exige une nouvelle qualification du HEAD matérialisé ; ni l'approbation utilisateur ni l'exécution INITIAL ne sont encore acquises. Aucun ancien gate ou UUID n'est réutilisé.
 
+## Qualification du dossier et matérialisation du transport neuf
+
+Le run pilote du HEAD `e930b3ec19f0ba040c735e077df99487cbd160a0`, [37105248313](https://github.com/MyUncried/Application-Routine/actions/runs/37105248313), a échoué en tentative 1 au job Windows `111152917449` : métadonnées de l'étape preflight incomplètes, journal 404 BlobNotFound. Cause indéterminée, sans diagnostic CPU/mémoire ni échec de test inféré. La trace est conservée [dans la PR](https://github.com/MyUncried/Application-Routine/pull/269#issuecomment-5966927621).
+
+Une seule relance du job a été demandée. La tentative 2 est SUCCESS, job Windows `111159512744` : 956 tests / 952 PASS / 0 FAIL / 4 SKIP, preflight terminé avec artefact `11269186470` (digest observé GitHub `sha256:7b026d64414f0468fa7104e91871d32975073a71cd646216e0244798047a92e4`). Aucun correctif de code entre les tentatives. Ce succès ne démontre ni la cause du premier échec ni son élimination universelle. Qualification/équivalence [37105248422](https://github.com/MyUncried/Application-Routine/actions/runs/37105248422) et drivers [37105248312](https://github.com/MyUncried/Application-Routine/actions/runs/37105248312) SUCCESS. La récupération legacy reste NON_CERTIFIED.
+
+Avant l'admission, la vérification a détecté que `publication.json` ne contient pas le transport d'exécution : `initial/transport.json` était encore celui de la campagne précédente. **Aucun rejeu n'a été tenté.** Le transport neuf reprend exactement les cinq champs du préparateur réel et ajoute UUID neuf `7c4b54fd-b0db-45bd-abf3-73c5a3761840`, date réelle et gate réservé `issue_comment:5967139304`. Le bootstrap est lié à `9a82a9056983594fe559bf1410999fa7e751ff414d6ebaf6c443050ea92a722f`.
+
+Le commentaire réservé n'est pas une approbation. Après qualification du nouveau candidat exact, il sera remplacé par le HEAD et le message ApprovalTarget exacts ; seule une réaction réellement observée de l'owner permettra l'admission. La délégation utilisateur pour le test technique jetable est conservée, sans prétendre à une revue humaine. Pas de faux commentaire `issue_comment:1`, pas d'ancien target/gate ni d'UUID consommé.
+
+Cette publication reste QUALIFY_ONLY (génération 28). Elle complète la matérialisation du transport, sans changer le protocole ni demander une nouvelle revue Claude du même plan. Aucun INITIAL/REVISION réel acquis pour la nouvelle campagne.
+
 ## Séquence à poursuivre
 
 1. Lire la vraie revue INITIAL, son verdict/session, ses artefacts et leur hash ; conserver tout échec éventuel. Materialiser uniquement la publication générée par le préparateur.
