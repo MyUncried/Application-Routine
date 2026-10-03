@@ -46,6 +46,16 @@ Le commentaire `5967139304` porte maintenant le HEAD et le message ApprovalTarge
 
 Stage EXECUTE_INITIAL, génération 29. Le workflow contrôleur demande uniquement l'exécution du HEAD approuvé et qualifié `08cb8b93` ; aucun code runtime nouveau n'est substitué par le commit contrôleur. UUID neuf `7c4b54fd-b0db-45bd-abf3-73c5a3761840`. L'admission fraîche et la consommation atomique restent obligatoires dans le superviseur. Aucun succès runtime n'est déclaré à ce lancement.
 
+## Correction de la référence de qualification avant reprise INITIAL
+
+L'exécution [37112240984](https://github.com/MyUncried/Application-Routine/actions/runs/37112240984), job `111172374634`, a été refusée avant credentials, consommation et Claude : `VNEXT_QUALIFICATION_RUN_REQUIRED`. Le contrôleur omettait `qualification_run_id`, alors que le run réel `37109636938` qualifiait bien le HEAD approuvé `08cb8b93`. L'upload sans fichier est une conséquence du refus précoce. Aucun statut INITIAL_PASS n'a été produit.
+
+Correction minimale de la demande : `qualification_run_id=37109636938`, génération 30. `verifyExecutionQualifications` a été exercé avec les observations API réelles : approved VERIFIED, controller EXACT_SAME_PROTOCOL_CODE. Aucun code runtime, workflow ni gate n'est changé. L'UUID `7c4b54fd-b0db-45bd-abf3-73c5a3761840` n'est pas consommé (matching-ref GitHub vide, revérifié avant publication) ; le même gate exact et sa réaction owner sont encore observés. La reprise ne rejoue donc aucune demande consommée.
+
+Les runs du contrôleur précédent [37112240971](https://github.com/MyUncried/Application-Routine/actions/runs/37112240971) et [37112241034](https://github.com/MyUncried/Application-Routine/actions/runs/37112241034) sont désormais SUCCESS. Le HEAD a été tenu stable jusqu'à la fin du preflight Windows. Les quatre jobs de qualification/équivalence sont SUCCESS. La récupération legacy conserve sa réserve.
+
+Trace du diagnostic : [commentaire 5967836973](https://github.com/MyUncried/Application-Routine/pull/269#issuecomment-5967836973). Le commit contenant cette mise à jour demande une nouvelle tentative d'INITIAL sur le même HEAD runtime réellement qualifié, sans nouvelle revue Claude du plan ni élargissement du périmètre. L'admission réelle et la consommation atomique restent obligatoires. Aucun succès runtime n'est déclaré au lancement.
+
 ## Séquence à poursuivre
 
 1. Lire la vraie revue INITIAL, son verdict/session, ses artefacts et leur hash ; conserver tout échec éventuel. Materialiser uniquement la publication générée par le préparateur.
