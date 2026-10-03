@@ -321,7 +321,6 @@ D-187/D-188/D-196/D-206/D-209/D-211/D-238 ; CE-T03-08 et CE-UI-05. Frames 1992:9
 | États | S02–S12 |
 | T03-E | E03, E07–E12, E32–E36, E58–E62, E73 |
 | Frames | `3786:5093` |
-| Déployer | `2537:1033` |
 | Navigation | `6298:12462` |
 | Nature | Nouvel écran T03 |
 
@@ -359,7 +358,7 @@ Pastille Catégorie colorée, Zones corporelles, titre et badge durée ; synthè
 
 ### 9. Layout déterministe
 
-Cartes standard : largeur 354 sur écran 402, rayon 8, fond #FCFCFE, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée 354 × 91. Gouttière permanente d’exercice : carré 64 à12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur 207 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Badge durée/heure conservé selon contexte, catégorie conservée, pictogramme de zone retiré ; Déployer absent. Séance sans vignette (D-260). Commandes 34/dessins 20/gaps 12/cibles 44. La référence Exercice Déployé est historique hors MVP, sans chemin d’accès.
+Cartes standard : largeur 354 sur écran 402, rayon 8, fond #FCFCFE, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée 354 × 91. Gouttière permanente d’exercice : carré 64 à12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur 207 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Badge durée/heure conservé selon contexte, catégorie conservée, pictogramme de zone conservé ; Déployer absent. Séance sans vignette (D-260). Commandes 34/dessins 20/gaps 12/cibles 44. La référence Exercice Déployé est historique hors MVP, sans chemin d’accès.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -809,7 +808,7 @@ Case 20, titre 15, pastilles 20, valeurs 16, compteur et Sélectionner désactiv
 
 ### 9. Layout déterministe
 
-Cartes standard : largeur 354 sur écran 402, rayon 8, fond #FCFCFE, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Choix Composition 354 × 91 ; texte tronqué à≥20 de la case, liste seule défilante ; actions fixes. Gouttière permanente d’exercice : carré 64 à12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur 207 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Aucun badge durée/heure dans ce choix, catégorie conservée, pictogramme de zone retiré ; Déployer absent.
+Cartes standard : largeur 354 sur écran 402, rayon 8, fond #FCFCFE, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Choix Composition 354 × 91 ; cadre des zones corporelles arrêté à8 px de la case, points de suspension en fin, liste seule défilante ; actions fixes. Gouttière permanente d’exercice : carré 64 à12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur 207 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Aucun badge durée/heure dans ce choix, catégorie conservée, pictogramme de zone conservé ; Déployer absent.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -853,7 +852,7 @@ Ordre liste et non touchers ; copies indépendantes ; zéro sélection interdit 
 
 ### 20. Recette déterministe
 
-Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fermeture sans effet, double tap, suppression de source avant validation, rollback total, modification indépendante des copies. Vérifier aucun badge/lecture/déploiement/création/recherche/filtre local ; vignette, texte long, marge 20, clavier non requis.
+Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fermeture sans effet, double tap, suppression de source avant validation, rollback total, modification indépendante des copies. Vérifier aucun badge/lecture/déploiement/création/recherche/filtre local ; vignette, texte long, cadre de coupe à8 px de la case, clavier non requis.
 
 ### 21. Traçabilité
 
@@ -2264,7 +2263,7 @@ Radio de sélection ; pas de badge durée, Lecture ou Déployer ; titre/classeme
 
 ### 9. Layout déterministe
 
-Largeur 354, marges 24 sur 402, hauteur 91 ; radio côté droit ; minimum 20 entre texte et contrôle ; titre 15/pastilles 20/valeurs 16.
+Largeur 354, marges 24 sur 402, hauteur 91 ; radio côté droit ; zones d’Exercice : cadre de coupe à8 px du radio ; Séance : minimum20 conservé ; titre 15/pastilles 20/valeurs 16.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -3102,3 +3101,4 @@ Chaque contenu E01–E73 est rattaché ci-dessus ; E08 est rattaché à CE-T03-0
 T03 décrit l’Exécution ACTIVITY autonome : préparation 5 s, phases propres, Séries/pauses/côtés, Pause entre les côtés, Synthèse et Suivi. T04 porte l’orchestration SESSION : Circuit/Tours, phases structurelles, récupération post-occurrence, points d’arrêt et progression globale. Ajouter leurs contrats ne déclenche ni développement ni changement de tranche. Parcours autonome et recherche restent hors MVP.
 
 Pour chaque contrat : tester nominal/alternatifs/négatifs, comparer le rendu 402 à la preuve lorsqu’elle existe, vérifier 360/402/440 et texte agrandi, accessibilité, données réelles, persistance/annulation, erreurs et absence d’activation hors périmètre. Consigner séparément conformité documentaire, conformité visuelle et recette interactive. Les règles §6 et preuves manquantes §5 ne sont jamais marquées CONFORME en exécution par la seule présence de 21 sections.
+
