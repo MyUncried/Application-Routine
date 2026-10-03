@@ -1,0 +1,51 @@
+{
+  "schema_version": "kodjo.protocol.v2.slice-bootstrap.0.6.12",
+  "slice_id": "V2-PRE-2",
+  "issue_number": 288,
+  "repository": "MyUncried/Application-Routine",
+  "target_branch": "main",
+  "baseline_head": "53cb05c782e17eb19d269f2724a0db3cfbceb1a2",
+  "planning_application_head": "53cb05c782e17eb19d269f2724a0db3cfbceb1a2",
+  "protocol_version": "0.6.12",
+  "protocol_commit": "53cb05c782e17eb19d269f2724a0db3cfbceb1a2",
+  "activation_registry": ".github/orchestration/v2-activation-registry.json",
+  "previous_slice_id": null,
+  "previous_checkpoint": null,
+  "product_sources": [
+    {
+      "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "sha256": "978cd6bc52cdb03a1a7a4fd600c37741d7543552db87ffca1c74ecaacedd858b"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+      "sha256": "4c6daa7bcbc3d6fa3fc2fa19e1bb1c0d425acc0c5e8e0457520e54c3efe818f6"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md",
+      "sha256": "3e22dbfbbb2b5645c75911850eef625ee6d243900402bda5677d3c7f9a440c51"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+      "sha256": "2adc38992c142a9aee1aa52d1174c10ae3657c2c0f244e2f448d67d93dc78c1c"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/04 – Modèle fonctionnel.md",
+      "sha256": "adf1492ae377ca061fd6c205c81546b999cd073d1d277fd5bb23c22c15491cd6"
+    },
+    {
+      "path": "docs/Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md",
+      "sha256": "3ad8b8181a46939c4aca0a54c21ce2ed3d682b01f7815b205dcc8f6ca5848339"
+    },
+    {
+      "path": "docs/DSF-CARTES-ICONES-APPUIS-2026-09-30.md",
+      "sha256": "5f9537cb2c86025ca61eb241773ae62a5a38d42252490994cf3c4b52c2cb3d52"
+    }
+  ],
+  "authorized_actors": [
+    "user",
+    "chatgpt-protocole",
+    "claude-local"
+  ],
+  "created_at": "2026-10-03T15:25:37.494Z",
+  "slice_bootstrap_sha256": "eb8bdca310171b7c02cc9de9b8b91a53c03ea7c521b28aa9f24c6a6b1101104a"
+}
