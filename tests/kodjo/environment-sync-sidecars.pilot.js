@@ -29,7 +29,10 @@ test('environment sync: EAS project identity and update runtime are persistent i
   const app=json('app.json').expo;
   assert.equal(app.extra.eas.projectId,'0ee44f86-bd22-4b92-8780-e265b72907d9');
   assert.equal(app.updates.url,'https://u.expo.dev/0ee44f86-bd22-4b92-8780-e265b72907d9');
-  assert.deepEqual(app.runtimeVersion,{policy:'appVersion'});
+  // Runtime natif explicite depuis #286 (dépendances photo de V2-PRE-2) : une mise à jour OTA ne
+  // parvient qu'aux binaires construits avec ces modules, pour Routine comme pour Routine Dev.
+  assert.equal(app.runtimeVersion,'1.1.0');
+  for(const variant of ['production','development']) assert.equal(loadAppConfig(variant).runtimeVersion,'1.1.0');
   assert.doesNotMatch(read('app.json'),/110c4abe-921e-44b3-aff3-465ee1573efe/);
 });
 
