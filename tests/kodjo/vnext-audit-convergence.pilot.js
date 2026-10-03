@@ -7,42 +7,28 @@ const V = require('../../scripts/kodjo/lib/vnext-contract');
 const Review = require('../../scripts/kodjo/lib/review-contract');
 const Convergence = require('../../scripts/kodjo/lib/audit-convergence-contract');
 
-const H40 = 'a'.repeat(40);
+const Fixture = require('./helpers/vnext-planning-fixture');
+const repo = Fixture.fixtureRepo();
+const source = Fixture.sourceManifest();
+const envelope = Fixture.makeEnvelope(source, repo, 'INITIAL', null);
+const reviewArtifacts = { ...Fixture.buildPlanningArtifacts({ repo, manifest: source, envelope }), currentState: Fixture.currentState(repo) };
+const H40 = reviewArtifacts.currentState.protocol_head;
 const H64A = 'a'.repeat(64);
-const H64B = 'b'.repeat(64);
-const PLAN_ID = 'PLAN-1234567890abcdef12345678';
+const H64B = reviewArtifacts.planContract.contract_hash;
+const PLAN_ID = reviewArtifacts.planContract.plan_items[0].plan_item_id;
+function reviewContext() { return reviewArtifacts.reviewContext; }
 
-function reviewContext() {
-  return V.sealContract({
-    schema_version: Review.CONTEXT_SCHEMA,
-    planning_mode: 'INITIAL',
-    planning_envelope_hash: H64A,
-    requirement_registry_hash: H64A,
-    candidate_manifest_hash: H64A,
-    impact_graph_hash: H64A,
-    direct_import_scan_hash: null,
-    plan_contract_hash: H64B,
-    ui_atomicity_hash: null,
-    ui_applicable: false,
-    mechanical_checks: [{
-      check_id: 'PLAN_CONTRACT',
-      status: 'PASS',
-      evidence_hash: H64B,
-    }],
-    target_catalog: {
-      SOURCE_UNIT: [],
-      REQUIREMENT: [],
-      IMPACT: [],
-      CANDIDATE: [],
-      PLAN_ITEM: [PLAN_ID],
-      TEST: [],
-      PROOF: [],
-      CRITERION: [],
-      ASSERTION: [],
-      PLAN_CONTRACT: [H64B],
-    },
-  });
-}
+test('architecture: final audit refuses a different protocol candidate and forged context', () => {
+  const auditManifest = manifest();
+  const auditCoverage = passingCoverage(auditManifest);
+  const args = { auditManifest, auditCoverage, reviewContext: reviewContext(), reviewArtifacts, semanticAudit: {...require('./helpers/review-attestation-fixture').semantic(reviewContext()), findings: [] } };
+  assert.throws(() => Convergence.buildFinalAuditReport({ ...args,
+    reviewArtifacts: { ...reviewArtifacts, currentState: { ...reviewArtifacts.currentState, protocol_head: 'd'.repeat(40) } } }), /CANDIDATE_MISMATCH/);
+  const context = structuredClone(reviewContext());
+  Object.keys(context.target_catalog).forEach(key => { context.target_catalog[key] = []; });
+  delete context.contract_hash;
+  assert.throws(() => Convergence.buildFinalAuditReport({ ...args, reviewContext: V.sealContract(context) }), /CONTEXT_REBUILD_MISMATCH/);
+});
 
 function semanticFinding(overrides = {}) {
   return {
@@ -57,10 +43,10 @@ function semanticFinding(overrides = {}) {
 }
 
 function report(findings) {
-  return Review.buildReviewReport({
-    reviewContext: reviewContext(),
+  return Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
+    reviewContext: reviewContext(), reviewArtifacts,
     semanticReview: { findings },
-  });
+  }));
 }
 
 function manifest() {
@@ -242,8 +228,8 @@ test('VNext-11 refuse un finding bloquant sans source normative préexistante', 
   assert.throws(() => Convergence.buildFinalAuditReport({
     auditManifest: m,
     auditCoverage: coverage,
-    reviewContext: reviewContext(),
-    semanticAudit: {
+    reviewContext: reviewContext(), reviewArtifacts,
+    semanticAudit: {...require('./helpers/review-attestation-fixture').semantic(reviewContext()),
       findings: [finalFinding({ normative_reference_ids: [] })],
     },
   }), /VNEXT_FINAL_AUDIT_BLOCKING_FINDING_WITHOUT_NORMATIVE_SOURCE/);
@@ -255,8 +241,8 @@ test('VNext-11 une recommandation nouvelle reste SUGGESTION et ne bloque pas', (
   const final = Convergence.buildFinalAuditReport({
     auditManifest: m,
     auditCoverage: coverage,
-    reviewContext: reviewContext(),
-    semanticAudit: {
+    reviewContext: reviewContext(), reviewArtifacts,
+    semanticAudit: {...require('./helpers/review-attestation-fixture').semantic(reviewContext()),
       findings: [finalFinding({
         category: 'SUGGESTION',
         target_type: 'PLAN_CONTRACT',
@@ -302,8 +288,8 @@ test('VNext-11 un axe CHECKED_FAIL doit être relié à un finding', () => {
   assert.throws(() => Convergence.buildFinalAuditReport({
     auditManifest: m,
     auditCoverage: coverage,
-    reviewContext: reviewContext(),
-    semanticAudit: { findings: [] },
+    reviewContext: reviewContext(), reviewArtifacts,
+    semanticAudit: {...require('./helpers/review-attestation-fixture').semantic(reviewContext()), findings: [] },
   }), /VNEXT_FINAL_AUDIT_FAILED_CRITERION_WITHOUT_FINDING/);
 });
 
@@ -335,8 +321,8 @@ test('VNext-11 le dernier REVISE devient terminal et ne déclenche aucune réent
   const final = Convergence.buildFinalAuditReport({
     auditManifest: m,
     auditCoverage: coverage,
-    reviewContext: reviewContext(),
-    semanticAudit: {
+    reviewContext: reviewContext(), reviewArtifacts,
+    semanticAudit: {...require('./helpers/review-attestation-fixture').semantic(reviewContext()),
       findings: [finalFinding({
         audit_criterion_ids: ['AUD-001'],
       })],
@@ -349,7 +335,7 @@ test('VNext-11 le dernier REVISE devient terminal et ne déclenche aucune réent
   assert.equal(Convergence.validateFinalAuditReport(final, {
     auditManifest: m,
     auditCoverage: coverage,
-    reviewContext: reviewContext(),
+    reviewContext: reviewContext(), reviewArtifacts,
   }), true);
 });
 
@@ -359,8 +345,8 @@ test('VNext-11 un rapport final ne peut pas être transféré vers un manifeste 
   const final = Convergence.buildFinalAuditReport({
     auditManifest: m,
     auditCoverage: coverage,
-    reviewContext: reviewContext(),
-    semanticAudit: { findings: [] },
+    reviewContext: reviewContext(), reviewArtifacts,
+    semanticAudit: {...require('./helpers/review-attestation-fixture').semantic(reviewContext()), findings: [] },
   });
 
   const changed = Convergence.buildAuditManifest({
@@ -387,8 +373,8 @@ test('VNext-11 un rapport final ne peut pas être transféré vers un manifeste 
   assert.throws(() => Convergence.validateFinalAuditReport(final, {
     auditManifest: changed,
     auditCoverage: coverage,
-    reviewContext: reviewContext(),
-  }), /VNEXT_AUDIT_COVERAGE_REBUILD_MISMATCH|VNEXT_FINAL_AUDIT_MANIFEST_MISMATCH/);
+    reviewContext: reviewContext(), reviewArtifacts,
+  }), /VNEXT_AUDIT_COVERAGE_REBUILD_MISMATCH|VNEXT_FINAL_AUDIT_MANIFEST_MISMATCH|VNEXT_AUDIT_CRITERION_UNCOVERED/);
 });
 
 test('VNext-11 refuse une provenance normative re-signée mais supprimée', () => {
@@ -419,8 +405,8 @@ test('VNext-11 refuse une provenance normative re-signée mais supprimée', () =
   const final = structuredClone(Convergence.buildFinalAuditReport({
     auditManifest: m,
     auditCoverage: coverage,
-    reviewContext: reviewContext(),
-    semanticAudit: { findings: [finalFinding()] },
+    reviewContext: reviewContext(), reviewArtifacts,
+    semanticAudit: {...require('./helpers/review-attestation-fixture').semantic(reviewContext()), findings: [finalFinding()] },
   }));
 
   final.finding_provenance[0].normative_reference_ids = [];
@@ -430,6 +416,22 @@ test('VNext-11 refuse une provenance normative re-signée mais supprimée', () =
   assert.throws(() => Convergence.validateFinalAuditReport(final, {
     auditManifest: m,
     auditCoverage: coverage,
-    reviewContext: reviewContext(),
+    reviewContext: reviewContext(), reviewArtifacts,
   }), /VNEXT_FINAL_AUDIT_BLOCKING_FINDING_WITHOUT_NORMATIVE_SOURCE/);
+});
+
+test('VNext unavailable evidence remains distinct and cannot produce FINAL_APPROVED', () => {
+  const m = manifest();
+  const assessments = passingCoverage(m).assessments.map(row => row.criterion_id === 'AUD-001'
+    ? { ...row, status: 'NON_VERIFIABLE', evidence_refs: ['probe:artifact-missing'], note: 'No proof available; no defect demonstrated.' } : row);
+  const coverage = Convergence.buildAuditCoverage({ auditManifest: m, assessments });
+  assert.deepEqual(coverage.failed_criterion_ids, []);
+  assert.deepEqual(coverage.unavailable_criterion_ids, ['AUD-001']);
+  const final = Convergence.buildFinalAuditReport({ auditManifest: m, auditCoverage: coverage, reviewContext: reviewContext(), reviewArtifacts, semanticAudit: {...require('./helpers/review-attestation-fixture').semantic(reviewContext()), findings: [] } });
+  assert.equal(final.terminal_status, 'FINAL_PROOF_UNAVAILABLE_TERMINAL');
+  assert.equal(final.reentry_allowed, false);
+  assert.equal(Convergence.validateFinalAuditReport(final, { auditManifest: m, auditCoverage: coverage, reviewContext: reviewContext(), reviewArtifacts }), true);
+  const raw = { ...final, terminal_status: 'FINAL_APPROVED' }; delete raw.contract_hash;
+  const forged = V.sealContract(raw);
+  assert.throws(() => Convergence.validateFinalAuditReport(forged, { auditManifest: m, auditCoverage: coverage, reviewContext: reviewContext(), reviewArtifacts }), /TERMINAL_STATUS_MISMATCH/);
 });

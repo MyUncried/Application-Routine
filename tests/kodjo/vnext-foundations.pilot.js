@@ -183,7 +183,7 @@ test('VNext-01 common error policy is deterministic and never retries an unknown
   assert.equal(ErrorPolicy.classify({ diagnostic: 'CLARIFICATION_REQUIRED' }).category, 'HUMAN_DECISION_REQUIRED');
   assert.equal(ErrorPolicy.classify({ diagnostic: 'USAGE_LIMIT' }).category, 'RESIDUAL_AUTOCORRECTABLE');
   const unknown = ErrorPolicy.classify({ diagnostic: 'SOMETHING_NEW' });
-  assert.equal(unknown.category, 'HUMAN_DECISION_REQUIRED');
+  assert.equal(unknown.category, 'RESIDUAL_AUTOCORRECTABLE');
   assert.equal(unknown.auto_retry, false);
 });
 

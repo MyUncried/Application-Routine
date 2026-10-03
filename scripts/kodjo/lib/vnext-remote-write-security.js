@@ -7,7 +7,7 @@ const { execFileSync } = require('node:child_process');
 const V = require('./vnext-contract');
 
 const POLICY_SCHEMA = 'kodjo.vnext.remote-write-policy.v1';
-const ATTESTATION_SCHEMA = 'kodjo.vnext.remote-write-attestation.v1';
+const ATTESTATION_SCHEMA = 'kodjo.vnext.remote-write-attestation.v2';
 
 const EXECUTABLE_EXTENSIONS = /.(?:ya?ml|js|cjs|mjs|ps1|sh)$/i;
 
@@ -54,7 +54,7 @@ function gitBlobOid(root, rel) {
 
 function targetHint(line) {
   const text = String(line).trim();
-  const quoted = text.match(/(?:repos\/[^'"\\s]+\/(?:contents|git\/(?:refs?|commits|trees|tags))[^'"\\s]*)/i);
+  const quoted = text.match(/(?:repos\/[^'"\s]+\/(?:contents|git\/(?:refs?|commits|trees|tags))[^'"\s]*)/i);
   if (quoted) return quoted[0];
   const push = text.match(/git\s+push\b([^#\r\n]*)/i);
   if (push) return push[1].trim() || 'git-remote';
@@ -128,11 +128,11 @@ function scanFileCapabilities(rel, source) {
     const checks = [
       ['PERSIST_CREDENTIALS_TRUE', /persist-credentials\s*:\s*true/i],
       ['GIT_CREDENTIAL_HEADER', /extraheader/i],
-      ['GIT_PUSH', /\bgit\s+(?:-[^\s]+\s+)*push\b/i],
-      ['GIT_COMMIT', /\bgit\s+(?:-[^\s]+\s+)*commit\b/i],
+      ['GIT_PUSH', /\bgit\s+(?:(?:-c\s+(?:"[^"]*"|'[^']*'|\S+)|-[^\s]+)\s+)*push\b/i],
+      ['GIT_COMMIT', /\bgit\s+(?:(?:-c\s+(?:"[^"]*"|'[^']*'|\S+)|-[^\s]+)\s+)*commit\b/i],
       ['GIT_TAG', /\bgit\s+(?:-[^\s]+\s+)*tag\b/i],
       ['GIT_UPDATE_REF', /\bgit\s+(?:-[^\s]+\s+)*update-ref\b/i],
-      ['GIT_HISTORY_MUTATION', /\bgit\s+(?:-[^\s]+\s+)*(?:merge|rebase|cherry-pick)\b/i],
+      ['GIT_HISTORY_MUTATION', /\bgit\s+(?:(?:-c\s+(?:"[^"]*"|'[^']*'|\S+)|-[^\s]+)\s+)*(?:merge|rebase|cherry-pick)(?=\s|[;|&]|$)/i],
       ['CREATE_PULL_REQUEST_ACTION', /uses\s*:\s*[^\n]*create-pull-request/i],
       ['GIT_AUTO_COMMIT_ACTION', /uses\s*:\s*[^\n]*git-auto-commit/i],
     ];
@@ -150,7 +150,7 @@ function scanFileCapabilities(rel, source) {
 
     if (/\bgh\s+api\b/i.test(trimmed)
         && /(?:--method|-X)\s+['"]?(?:POST|PUT|PATCH|DELETE)\b/i.test(trimmed)
-        && /\/(?:contents|git\/(?:refs?|commits|trees|tags))(?:\/|['"\s]|$)/i.test(trimmed)) {
+        ) {
       rows.push({
         producer: rel,
         line: i + 1,
@@ -162,8 +162,8 @@ function scanFileCapabilities(rel, source) {
     }
 
     if (/\b(?:fetch|fetchImpl|api|githubApi)\s*\(/i.test(trimmed)
-        && /(?:POST|PUT|PATCH|DELETE)/i.test(trimmed)
-        && /\/(?:contents|git\/(?:refs?|commits|trees|tags))/i.test(trimmed)) {
+        && /\b(?:POST|PUT|PATCH|DELETE)\b/i.test(trimmed)
+        ) {
       rows.push({
         producer: rel,
         line: i + 1,
@@ -173,6 +173,17 @@ function scanFileCapabilities(rel, source) {
         text: trimmed,
       });
     }
+  }
+
+  // A split call must not evade the write inventory merely because its method
+  // or concatenated destination is on another line. This is conservative:
+  // authorization still requires the exact producer blob, never this heuristic.
+  if (!isWorkflow && !rows.some(row => row.capability === 'REST_REPOSITORY_WRITE') &&
+      /\b(?:fetch|fetchImpl|api|githubApi)\s*\(/i.test(source) &&
+      /["'](?:POST|PUT|PATCH|DELETE)["']/i.test(source)) {
+    const index = lines.findIndex(line => /\b(?:fetch|fetchImpl|api|githubApi)\s*\(/i.test(line));
+    rows.push({producer: rel, line: index + 1, capability: 'REST_REPOSITORY_WRITE',
+      destination: 'static-source-line', scope: 'SCRIPT', text: lines[index].trim()});
   }
 
   return rows.map((row) => Object.freeze({
@@ -312,6 +323,7 @@ function evaluateRemoteWriteSecurity({
   root,
   policy,
   legacyActivationRegistry,
+  retirementObservation = null,
 }) {
   validatePolicy(policy);
   if (!legacyActivationRegistry || !Array.isArray(legacyActivationRegistry.activations)) {
@@ -420,6 +432,15 @@ function evaluateRemoteWriteSecurity({
     }
   }
 
+  if (activeLegacy.length === 0) {
+    if (!retirementObservation) {
+      findings.push({ code: 'VNEXT_REMOTE_WRITE_RETIREMENT_UNVERIFIABLE', producer: 'github-actions', detail: 'Complete run inventory and rerun barriers required.' });
+    } else {
+      validateRetirementObservation(retirementObservation, policy);
+      if (retirementObservation.pending_runs.length > 0) findings.push({ code: 'VNEXT_REMOTE_WRITE_LEGACY_RUN_STILL_PENDING', producer: 'github-actions', detail: retirementObservation.pending_runs.join(',') });
+    }
+  }
+
   const status = findings.length > 0
     ? 'FAIL'
     : (activeLegacy.length > 0 ? 'PASS_WITH_FROZEN_LEGACY' : 'PASS_RETIRED');
@@ -427,6 +448,7 @@ function evaluateRemoteWriteSecurity({
   return V.sealContract({
     schema_version: ATTESTATION_SCHEMA,
     policy_hash: V.canonicalHash(policy),
+    retirement_observation: retirementObservation,
     scanned_file_count: scan.files.length,
     observed_capability_count: scan.capabilities.length,
     active_legacy_slice_ids: activeLegacy,
@@ -452,6 +474,7 @@ function validateAttestation(attestation) {
     [
       'schema_version',
       'policy_hash',
+      'retirement_observation',
       'scanned_file_count',
       'observed_capability_count',
       'active_legacy_slice_ids',
@@ -470,10 +493,39 @@ function validateAttestation(attestation) {
   if (!['FAIL', 'PASS_WITH_FROZEN_LEGACY', 'PASS_RETIRED'].includes(attestation.status)) {
     V.fail('VNEXT_REMOTE_WRITE_ATTESTATION_STATUS_INVALID');
   }
+  if (attestation.status === 'PASS_RETIRED' && (!attestation.retirement_observation || attestation.retirement_observation.pending_runs.length > 0)) V.fail('VNEXT_REMOTE_WRITE_RETIREMENT_UNVERIFIABLE');
+  if (attestation.status === 'PASS_RETIRED') {
+    validateRetirementObservation(attestation.retirement_observation, null, attestation.policy_hash);
+    if (attestation.active_legacy_slice_ids.length !== 0) V.fail('VNEXT_REMOTE_WRITE_RETIREMENT_ACTIVE_LEGACY');
+  }
+  if (attestation.status !== 'FAIL' && attestation.findings.length > 0) V.fail('VNEXT_REMOTE_WRITE_STATUS_FINDINGS_MISMATCH');
+  return true;
+}
+
+function validateRetirementObservation(observation, policy = null, expectedPolicyHash = null) {
+  V.assertExactKeys(observation, ['policy_hash', 'observed_at', 'inventory_complete', 'pending_runs', 'workflow_barriers', 'evidence_refs'], [], 'VNEXT_RETIREMENT_OBSERVATION_KEYS_INVALID');
+  if (observation.policy_hash !== (policy ? V.canonicalHash(policy) : expectedPolicyHash)) V.fail('VNEXT_RETIREMENT_POLICY_MISMATCH');
+  V.assertIsoDate(observation.observed_at, 'VNEXT_RETIREMENT_DATE_INVALID');
+  if (observation.inventory_complete !== true) V.fail('VNEXT_RETIREMENT_INVENTORY_INCOMPLETE');
+  V.uniqueStrings(observation.pending_runs, 'VNEXT_RETIREMENT_PENDING_RUNS_INVALID', 'pending_runs', { allowEmpty: true });
+  V.uniqueStrings(observation.evidence_refs, 'VNEXT_RETIREMENT_EVIDENCE_REQUIRED', 'evidence_refs');
+  if (!Array.isArray(observation.workflow_barriers)) V.fail('VNEXT_RETIREMENT_BARRIERS_INVALID');
+  const seen = new Set();
+  for (const row of observation.workflow_barriers) {
+    V.assertExactKeys(row, ['path', 'disabled', 'rerun_blocked', 'evidence_ref'], [], 'VNEXT_RETIREMENT_BARRIER_KEYS_INVALID');
+    if (row.disabled !== true || row.rerun_blocked !== true) V.fail('VNEXT_RETIREMENT_WORKFLOW_REPLAY_NOT_BLOCKED', row.path);
+    V.assertUnicodeExactText(row.evidence_ref, 'VNEXT_RETIREMENT_BARRIER_EVIDENCE_REQUIRED');
+    if (seen.has(row.path)) V.fail('VNEXT_RETIREMENT_BARRIER_DUPLICATE', row.path);
+    seen.add(row.path);
+  }
+  // Freeze list deliberately includes read-only legacy surfaces: require a
+  // disposition for all of them, so deleting a writer cannot erase its history.
+  for (const row of (policy ? policy.frozen_workflows : [])) if (!seen.has(row.path)) V.fail('VNEXT_RETIREMENT_WORKFLOW_UNACCOUNTED', row.path);
   return true;
 }
 
 module.exports = {
+  validateRetirementObservation,
   POLICY_SCHEMA,
   ATTESTATION_SCHEMA,
   listExecutionFiles,

@@ -1,0 +1,9 @@
+{
+  "kind": "EXPLICIT_NEGATIVE_PLAN_PROPOSAL",
+  "proposed_value": 3,
+  "required_value": 2,
+  "requirement_source_unchanged": true,
+  "implementation_invoked": false,
+  "maximum_corrections": 1,
+  "candidate_head": "7e5ced7e13a838324b97d4f3bc07287d1aeff5b9"
+}

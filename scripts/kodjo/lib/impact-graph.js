@@ -292,6 +292,18 @@ function validateDirectImportScan(scan, candidateManifest) {
   return true;
 }
 
+function verifyDirectImportScanAtHead(scan, candidateManifest, { cwd = process.cwd() } = {}) {
+  verifyCandidateManifestAtHead(candidateManifest, { cwd });
+  validateDirectImportScan(scan, candidateManifest);
+  const rebuilt = scanOneLevelDirectImporters({
+    cwd, candidateManifest, modifyCandidateIds: scan.target_candidate_ids,
+  });
+  if (V.canonicalStringify(scan) !== V.canonicalStringify(rebuilt)) {
+    V.fail('VNEXT_DIRECT_IMPORT_SCAN_REBUILD_MISMATCH');
+  }
+  return true;
+}
+
 function classificationKey(requirementId, candidateId) {
   return `${requirementId}\u0000${candidateId === null ? '<NO_TARGET>' : candidateId}`;
 }
@@ -516,6 +528,7 @@ function validateImpactGraph(graph, { requirementRegistry, candidateManifest, di
 }
 
 module.exports = {
+  verifyDirectImportScanAtHead,
   CANDIDATE_SCHEMA,
   DIRECT_SCAN_SCHEMA,
   IMPACT_SCHEMA,

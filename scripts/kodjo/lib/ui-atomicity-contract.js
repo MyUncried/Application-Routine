@@ -4,7 +4,11 @@ const V = require('./vnext-contract');
 const RequirementRegistry = require('./requirement-registry');
 const Impact = require('./impact-graph');
 const Plan = require('./plan-contract');
-const { isUiPath } = require('./ui-criteria-contract');
+// VNext owns this conservative path guard; source UI requirements remain primary.
+function isUiPath(value) {
+  return /^(?:app\/|src\/features\/|src\/shared\/ui\/|src\/shared\/i18n\/|assets\/icons\/)/.test(value)
+    && !/(?:^|\/)(__tests__|tests?)\/|\.(?:test|spec)\.[^.]+$/.test(value);
+}
 
 const SCHEMA = 'kodjo.vnext.ui-criteria.v2';
 
@@ -46,6 +50,16 @@ function requirementIndex(requirementRegistry) {
     requirement.requirement_id,
     requirement,
   ]));
+}
+
+// Source-first UI requirements cover effects outside the historical UI roots.
+// Keep the path guard as an additional conservative check, never as an exemption.
+function uiChangeItems(requirementRegistry, planContract, candidateManifest) {
+  const requirements = requirementIndex(requirementRegistry);
+  const candidates = new Map(candidateManifest.candidates.map(row => [row.candidate_id, row]));
+  return planContract.plan_items.flatMap(item => item.change_items.filter(change =>
+    candidates.get(change.candidate_id)?.candidate_kind !== 'TEST'
+    && (requirements.get(item.requirement_id)?.kind === 'UI' || isUiPath(change.path))));
 }
 
 function planIndex(planContract) {
@@ -162,7 +176,7 @@ function normalizeReuse(input, candidateById, label) {
     const candidate = candidateById.get(candidateId);
     if (!candidate) V.fail('VNEXT_UI_REUSE_CANDIDATE_UNKNOWN', candidateId);
     if (candidate.origin !== 'GIT_TREE') V.fail('VNEXT_UI_REUSE_CANDIDATE_NOT_EXISTING', candidateId);
-    if (!isUiPath(candidate.path)) V.fail('VNEXT_UI_REUSE_CANDIDATE_NOT_UI', candidate.path);
+    if (!isUiPath(candidate.path) && !['CODE', 'ASSET', 'CREATE_SLOT'].includes(candidate.candidate_kind)) V.fail('VNEXT_UI_REUSE_CANDIDATE_NOT_UI', candidate.path);
   }
 
   if (!COMPONENT_DECISIONS.includes(input.component_decision)) {
@@ -340,10 +354,11 @@ function buildUiAtomicityContract({
 
   const uiChangeImpactIds = [];
   const uiChangeByRequirement = new Map();
+  const uiChanges = new Set(uiChangeItems(requirementRegistry, planContract, candidateManifest).map(row => row.impact_id));
 
   for (const planItem of planContract.plan_items) {
     for (const change of planItem.change_items) {
-      if (!isUiPath(change.path)) continue;
+      if (!uiChanges.has(change.impact_id)) continue;
       uiChangeImpactIds.push(change.impact_id);
       const list = uiChangeByRequirement.get(planItem.requirement_id) || [];
       list.push(change.impact_id);
@@ -587,6 +602,7 @@ function validateUiAtomicityContract(contract, {
 }
 
 module.exports = {
+  uiChangeItems,
   SCHEMA,
   RISK_TYPES,
   COMPONENT_DECISIONS,

@@ -5,7 +5,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$repoRoot = (git rev-parse --show-toplevel).Trim()
+$repoRoot = (git -c core.hooksPath=NUL -c core.fsmonitor=false rev-parse --show-toplevel).Trim()
 if (-not $repoRoot) { throw 'KODJO_V2_REPOSITORY_NOT_FOUND' }
 
 $queueAbsolute = [IO.Path]::GetFullPath((Join-Path $repoRoot $QueueFile))
@@ -37,9 +37,9 @@ if (-not [string]::IsNullOrWhiteSpace($PreflightFile)) {
   if ($legacyOperationKind -notin @('IMPLEMENT', 'VISUAL_CORRECTION')) { throw 'KODJO_QUEUE_OPERATION_KIND_REFUSED' }
   if ($legacyOperationKind -eq 'VISUAL_CORRECTION' -and [string]$queue.mode -ne 'RESUME_DELTA') { throw 'KODJO_QUEUE_VISUAL_MODE_REFUSED' }
 
-  git cat-file -e "$($queue.source_head)^{commit}"
+  git -c core.hooksPath=NUL -c core.fsmonitor=false cat-file -e "$($queue.source_head)^{commit}"
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_SOURCE_NOT_FOUND' }
-  $reachable = @(git rev-list HEAD)
+  $reachable = @(git -c core.hooksPath=NUL -c core.fsmonitor=false rev-list HEAD)
   if ($reachable -notcontains $queue.source_head) { throw 'KODJO_QUEUE_SOURCE_NOT_ANCESTOR' }
 
   & node (Join-Path $PSScriptRoot 'project-queued-request.js') $queueAbsolute $tempRequest
@@ -110,23 +110,23 @@ if ($usesExistingPr) {
 
   $auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("x-access-token:$githubToken"))
   $fetchRefspec = "refs/heads/{0}:refs/remotes/origin/{0}" -f $targetBranch
-  git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags origin $fetchRefspec # kodjo-allow-mention
+  git -c core.hooksPath=NUL -c core.fsmonitor=false -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" fetch --no-tags origin $fetchRefspec
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_APPLICATION_FETCH_FAILED' }
-  git cat-file -e "$applicationHead^{commit}"
+  git -c core.hooksPath=NUL -c core.fsmonitor=false cat-file -e "$applicationHead^{commit}"
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_APPLICATION_HEAD_NOT_FOUND' }
-  $fetchedHead = (& git rev-parse "refs/remotes/origin/$targetBranch").Trim()
+  $fetchedHead = (& git -c core.hooksPath=NUL -c core.fsmonitor=false rev-parse "refs/remotes/origin/$targetBranch").Trim()
   if ($LASTEXITCODE -ne 0 -or $fetchedHead -ne $applicationHead) { throw 'KODJO_QUEUE_APPLICATION_FETCH_HEAD_MOVED' }
   Assert-LiveTarget
-  git switch --detach $applicationHead
+  git -c core.hooksPath=NUL -c core.fsmonitor=false switch --detach $applicationHead
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_CHECKOUT_FAILED' }
   if ($isVisual) { $branch = "kodjo/visual-{0}-{1}" -f $queue.slice_id.ToLowerInvariant(), $env:GITHUB_RUN_ID }
   else { $branch = "kodjo/v2-{0}-{1}" -f $queue.slice_id.ToLowerInvariant(), $env:GITHUB_RUN_ID }
-  git switch -c $branch
+  git -c core.hooksPath=NUL -c core.fsmonitor=false switch -c $branch
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_BRANCH_FAILED' }
 } else {
-  git switch --detach $queue.source_head
+  git -c core.hooksPath=NUL -c core.fsmonitor=false switch --detach $queue.source_head
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_CHECKOUT_FAILED' }
-  git switch -c $branch
+  git -c core.hooksPath=NUL -c core.fsmonitor=false switch -c $branch
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_BRANCH_FAILED' }
 
   if (-not $preflightVerified) {
@@ -144,7 +144,7 @@ if ($usesExistingPr) {
 }
 
 if (Test-Path -LiteralPath (Join-Path $repoRoot 'package-lock.json') -PathType Leaf) {
-  $beforeDeps = @(git status --porcelain=v2 -z --untracked-files=all)
+  $beforeDeps = @(git -c core.hooksPath=NUL -c core.fsmonitor=false status --porcelain=v2 -z --untracked-files=all)
   $npmStartedMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
   npm ci --no-audit --no-fund
   $npmExitCode = $LASTEXITCODE
@@ -157,14 +157,15 @@ if (Test-Path -LiteralPath (Join-Path $repoRoot 'package-lock.json') -PathType L
     }
   }
   if ($npmExitCode -ne 0) { throw 'KODJO_QUEUE_DEPENDENCIES_FAILED' }
-  $afterDeps = @(git status --porcelain=v2 -z --untracked-files=all)
+  $afterDeps = @(git -c core.hooksPath=NUL -c core.fsmonitor=false status --porcelain=v2 -z --untracked-files=all)
   if ("$afterDeps" -ne "$beforeDeps") { throw 'KODJO_QUEUE_DEPENDENCIES_MUTATED_REPO' }
 }
 
 Assert-LiveTarget
 # The trusted Node supervisor consumes this token then deletes it before any
 # child process. Claude never inherits this variable or GH_TOKEN.
-if ($usesExistingPr -or $null -ne $queue.initial_restart) { $env:KODJO_LIVE_GH_TOKEN = $githubToken }
+$env:KODJO_LIVE_GH_TOKEN = $githubToken
+$env:KODJO_VNEXT_QUEUE_FILE = $liveQueueFile
 if ($null -ne $queue.initial_restart) { $env:KODJO_INITIAL_RESTART_QUEUE = $liveQueueFile }
 Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
 $env:KODJO_SUPERVISED_QUEUE = '1'
@@ -176,27 +177,26 @@ try {
 } finally {
   Remove-Item Env:KODJO_INITIAL_RESTART_QUEUE -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_LIVE_GH_TOKEN -ErrorAction SilentlyContinue
+  Remove-Item Env:KODJO_VNEXT_QUEUE_FILE -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_SUPERVISED_QUEUE -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_PREFLIGHT_FILE -ErrorAction SilentlyContinue
   Remove-Item Env:KODJO_PUBLISH_PATHSPEC_FILE -ErrorAction SilentlyContinue
   Remove-Item -LiteralPath $tempRequest -Force -ErrorAction SilentlyContinue
 }
-$env:GH_TOKEN = $githubToken
 $auth = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("x-access-token:$githubToken"))
 try {
-  git config --local http.https://github.com/.extraheader "AUTHORIZATION: basic $auth"
 
   if (-not (Test-Path -LiteralPath $publishPathspec -PathType Leaf)) { throw 'KODJO_QUEUE_PUBLISH_PATHSPEC_MISSING' }
   if ((Get-Item -LiteralPath $publishPathspec).Length -eq 0) { throw 'KODJO_QUEUE_NO_DELIVERY' }
 
   Assert-LiveTarget
-  git reset --quiet
+  git -c core.hooksPath=NUL -c core.fsmonitor=false reset --quiet
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_INDEX_RESET_FAILED' }
-  git -c core.autocrlf=false add --all --pathspec-from-file=$publishPathspec --pathspec-file-nul
+  git -c core.hooksPath=NUL -c core.fsmonitor=false -c core.autocrlf=false add --all --pathspec-from-file=$publishPathspec --pathspec-file-nul
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_ADD_FAILED' }
   & node (Join-Path $runtimeScriptRoot 'verify-staged-scope.js') $publishPathspec
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_STAGED_SCOPE_REFUSED' }
-  git -c core.whitespace=cr-at-eol diff --cached --check
+  git -c core.hooksPath=NUL -c core.fsmonitor=false -c core.whitespace=cr-at-eol diff --cached --check
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_DIFF_CHECK_FAILED' }
 
   $commitMessage = if ($isVisual) {
@@ -205,14 +205,16 @@ try {
     "feat({0}): verified implementation" -f $queue.slice_id
   }
   Assert-LiveTarget
-  git -c user.name='KODJO Windows Supervisor' -c user.email='kodjo-supervisor@users.noreply.github.com' commit -m $commitMessage
+  git -c core.hooksPath=NUL -c core.fsmonitor=false -c user.name='KODJO Windows Supervisor' -c user.email='kodjo-supervisor@users.noreply.github.com' commit -m $commitMessage
   if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_COMMIT_FAILED' }
-  $newHead = (git rev-parse HEAD).Trim()
+  $newHead = (git -c core.hooksPath=NUL -c core.fsmonitor=false rev-parse HEAD).Trim()
+  # The credential becomes available only after the checked deterministic commit.
+  $env:GH_TOKEN = $githubToken
 
   if ($usesExistingPr) {
     $pushRefspec = "HEAD:refs/heads/{0}" -f $targetBranch
     Assert-LiveTarget
-    git push origin $pushRefspec # kodjo-allow-mention
+    git -c core.hooksPath=NUL -c core.fsmonitor=false -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push origin $pushRefspec
     if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_EXISTING_PR_PUSH_FAILED' }
 
     # Source de vérité primaire après push : la ref Git distante exacte.
@@ -220,7 +222,7 @@ try {
     # head.sha n'est pas utilisé comme preuve de livraison car l'API peut être
     # momentanément en retard sur la branche distante.
     $remoteRef = "refs/heads/{0}" -f $targetBranch
-    $remoteLine = (& git ls-remote --heads origin $remoteRef | Select-Object -First 1)
+    $remoteLine = (& git -c core.hooksPath=NUL -c core.fsmonitor=false ls-remote --heads origin $remoteRef | Select-Object -First 1)
     if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace([string]$remoteLine)) {
       throw 'KODJO_QUEUE_EXISTING_PR_REMOTE_REF_UNREADABLE'
     }
@@ -287,7 +289,7 @@ Independent implementation review remains required before human visual review an
     $deliveredPr = $targetPr
     $deliveredBranch = $targetBranch
   } else {
-    git push --set-upstream origin $branch
+    git -c core.hooksPath=NUL -c core.fsmonitor=false -c "http.https://github.com/.extraheader=AUTHORIZATION: basic $auth" push --set-upstream origin $branch
     if ($LASTEXITCODE -ne 0) { throw 'KODJO_QUEUE_PUSH_FAILED' }
 
     $body = @"
@@ -378,7 +380,7 @@ STATUT : IMPLEMENTATION_READY_FOR_REVIEW
   }
 }
 finally {
-  git config --local --unset-all http.https://github.com/.extraheader 2>$null
+  git -c core.hooksPath=NUL -c core.fsmonitor=false config --local --unset-all http.https://github.com/.extraheader 2>$null
   Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
   # Rendre le checkout protocolaire aux étapes `always()` du workflow lorsque
   # le parcours visuel l'exige. Le runtime figé, lui, est toujours supprimé.
@@ -386,8 +388,8 @@ finally {
     $savedPreference = $ErrorActionPreference
     try {
       $ErrorActionPreference = 'Continue'
-      git reset --hard | Out-Null
-      git switch --detach $queue.source_head | Out-Null
+      git -c core.hooksPath=NUL -c core.fsmonitor=false reset --hard | Out-Null
+      git -c core.hooksPath=NUL -c core.fsmonitor=false switch --detach $queue.source_head | Out-Null
     } finally {
       $ErrorActionPreference = $savedPreference
     }

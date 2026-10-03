@@ -1,0 +1,2308 @@
+{
+  "schema_version": "kodjo.vnext.post-campaign-qualification-evidence.v1",
+  "recorded_at": "2026-10-02T14:18:58.847560+00:00",
+  "candidate_head": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+  "status": "QUALIFIED_LINUX_WINDOWS",
+  "qualification": {
+    "status": "VERIFIED",
+    "candidate_head": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+    "run_id": "37008282228",
+    "run_attempt": 1,
+    "jobs": [
+      {
+        "id": 110841636401,
+        "name": "historical-equivalence (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 110841636682,
+        "name": "historical-equivalence (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 110841636701,
+        "name": "qualification (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 110841636844,
+        "name": "qualification (windows-latest)",
+        "conclusion": "success"
+      }
+    ],
+    "observed_at": "2026-10-02T14:17:01.359Z"
+  },
+  "runs": [
+    {
+      "id": 37008282181,
+      "run": {
+        "id": 37008282181,
+        "name": "KODJO V2 pilot tests",
+        "node_id": "WFR_kwLOTtCBw88AAAAInd2SRQ",
+        "head_branch": "protocol/vnext-proof-stability-20260930",
+        "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+        "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
+        "display_title": "feat(kodjo-vnext): chaîne réelle raccordée et qualifiée Linux/Windows",
+        "run_number": 680,
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "workflow_id": 355188745,
+        "check_suite_id": 100241444148,
+        "check_suite_node_id": "CS_kwDOTtCBw88AAAAXVtsNNA",
+        "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282181",
+        "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282181",
+        "pull_requests": [
+          {
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/pulls/269",
+            "id": 4690886792,
+            "number": 269,
+            "head": {
+              "ref": "protocol/vnext-proof-stability-20260930",
+              "sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+              "repo": {
+                "id": 1322287555,
+                "url": "https://api.github.com/repos/MyUncried/Application-Routine",
+                "name": "Application-Routine"
+              }
+            },
+            "base": {
+              "ref": "protocol/vnext-f01-remote-write-security-20260930",
+              "sha": "7176904974bffd1b5f01252724323a0fb2287442",
+              "repo": {
+                "id": 1322287555,
+                "url": "https://api.github.com/repos/MyUncried/Application-Routine",
+                "name": "Application-Routine"
+              }
+            }
+          }
+        ],
+        "created_at": "2026-10-02T12:42:14Z",
+        "updated_at": "2026-10-02T13:14:42Z",
+        "actor": {
+          "login": "MyUncried",
+          "id": 312719496,
+          "node_id": "U_kgDOEqO4iA",
+          "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/MyUncried",
+          "html_url": "https://github.com/MyUncried",
+          "followers_url": "https://api.github.com/users/MyUncried/followers",
+          "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+          "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+          "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+          "repos_url": "https://api.github.com/users/MyUncried/repos",
+          "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "run_attempt": 1,
+        "referenced_workflows": [],
+        "run_started_at": "2026-10-02T12:42:14Z",
+        "triggering_actor": {
+          "login": "MyUncried",
+          "id": 312719496,
+          "node_id": "U_kgDOEqO4iA",
+          "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/MyUncried",
+          "html_url": "https://github.com/MyUncried",
+          "followers_url": "https://api.github.com/users/MyUncried/followers",
+          "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+          "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+          "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+          "repos_url": "https://api.github.com/users/MyUncried/repos",
+          "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "jobs_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282181/jobs",
+        "logs_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282181/logs",
+        "check_suite_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-suites/100241444148",
+        "artifacts_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282181/artifacts",
+        "cancel_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282181/cancel",
+        "rerun_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282181/rerun",
+        "previous_attempt_url": null,
+        "workflow_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/workflows/355188745",
+        "head_commit": {
+          "id": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+          "tree_id": "e029cf047886acb35172bb542ed73b83a3dc9c94",
+          "message": "fix(vnext): preserve explicit mutation-scope guard in foreground launcher\n\nRetain actual failure evidence: full pilot 37003243573 has 926 PASS/1 FAIL/1 SKIP, historical jobs reject incomplete evidence; preserve three real raw logs and hashes. Pass original request to environment helper and serialize request.scope_allow exactly as inherited guard requires; no historical test or protection modified. New child-process test excludes recovery paths. Frozen adapter exact OID updated, all other policy rows preserved. 82 targeted tests PASS and exact tree validation PASS with all 420 subjects. Requalify corrected candidate only; do not replay acquired INITIAL/REVISION runtime proofs.",
+          "timestamp": "2026-10-02T12:42:06Z",
+          "author": {
+            "name": "MyUncried",
+            "email": "hadjou@gmail.com"
+          },
+          "committer": {
+            "name": "MyUncried",
+            "email": "hadjou@gmail.com"
+          }
+        },
+        "repository": {
+          "id": 1322287555,
+          "node_id": "R_kgDOTtCBww",
+          "name": "Application-Routine",
+          "full_name": "MyUncried/Application-Routine",
+          "private": true,
+          "owner": {
+            "login": "MyUncried",
+            "id": 312719496,
+            "node_id": "U_kgDOEqO4iA",
+            "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/MyUncried",
+            "html_url": "https://github.com/MyUncried",
+            "followers_url": "https://api.github.com/users/MyUncried/followers",
+            "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+            "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+            "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+            "repos_url": "https://api.github.com/users/MyUncried/repos",
+            "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "html_url": "https://github.com/MyUncried/Application-Routine",
+          "description": "Application Routine",
+          "fork": false,
+          "url": "https://api.github.com/repos/MyUncried/Application-Routine",
+          "forks_url": "https://api.github.com/repos/MyUncried/Application-Routine/forks",
+          "keys_url": "https://api.github.com/repos/MyUncried/Application-Routine/keys{/key_id}",
+          "collaborators_url": "https://api.github.com/repos/MyUncried/Application-Routine/collaborators{/collaborator}",
+          "teams_url": "https://api.github.com/repos/MyUncried/Application-Routine/teams",
+          "hooks_url": "https://api.github.com/repos/MyUncried/Application-Routine/hooks",
+          "issue_events_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/events{/number}",
+          "events_url": "https://api.github.com/repos/MyUncried/Application-Routine/events",
+          "assignees_url": "https://api.github.com/repos/MyUncried/Application-Routine/assignees{/user}",
+          "branches_url": "https://api.github.com/repos/MyUncried/Application-Routine/branches{/branch}",
+          "tags_url": "https://api.github.com/repos/MyUncried/Application-Routine/tags",
+          "blobs_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/blobs{/sha}",
+          "git_tags_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/tags{/sha}",
+          "git_refs_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/refs{/sha}",
+          "trees_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/trees{/sha}",
+          "statuses_url": "https://api.github.com/repos/MyUncried/Application-Routine/statuses/{sha}",
+          "languages_url": "https://api.github.com/repos/MyUncried/Application-Routine/languages",
+          "stargazers_url": "https://api.github.com/repos/MyUncried/Application-Routine/stargazers",
+          "contributors_url": "https://api.github.com/repos/MyUncried/Application-Routine/contributors",
+          "subscribers_url": "https://api.github.com/repos/MyUncried/Application-Routine/subscribers",
+          "subscription_url": "https://api.github.com/repos/MyUncried/Application-Routine/subscription",
+          "commits_url": "https://api.github.com/repos/MyUncried/Application-Routine/commits{/sha}",
+          "git_commits_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/commits{/sha}",
+          "comments_url": "https://api.github.com/repos/MyUncried/Application-Routine/comments{/number}",
+          "issue_comment_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/comments{/number}",
+          "contents_url": "https://api.github.com/repos/MyUncried/Application-Routine/contents/{+path}",
+          "compare_url": "https://api.github.com/repos/MyUncried/Application-Routine/compare/{base}...{head}",
+          "merges_url": "https://api.github.com/repos/MyUncried/Application-Routine/merges",
+          "archive_url": "https://api.github.com/repos/MyUncried/Application-Routine/{archive_format}{/ref}",
+          "downloads_url": "https://api.github.com/repos/MyUncried/Application-Routine/downloads",
+          "issues_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues{/number}",
+          "pulls_url": "https://api.github.com/repos/MyUncried/Application-Routine/pulls{/number}",
+          "milestones_url": "https://api.github.com/repos/MyUncried/Application-Routine/milestones{/number}",
+          "notifications_url": "https://api.github.com/repos/MyUncried/Application-Routine/notifications{?since,all,participating}",
+          "labels_url": "https://api.github.com/repos/MyUncried/Application-Routine/labels{/name}",
+          "releases_url": "https://api.github.com/repos/MyUncried/Application-Routine/releases{/id}",
+          "deployments_url": "https://api.github.com/repos/MyUncried/Application-Routine/deployments"
+        },
+        "head_repository": {
+          "id": 1322287555,
+          "node_id": "R_kgDOTtCBww",
+          "name": "Application-Routine",
+          "full_name": "MyUncried/Application-Routine",
+          "private": true,
+          "owner": {
+            "login": "MyUncried",
+            "id": 312719496,
+            "node_id": "U_kgDOEqO4iA",
+            "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/MyUncried",
+            "html_url": "https://github.com/MyUncried",
+            "followers_url": "https://api.github.com/users/MyUncried/followers",
+            "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+            "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+            "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+            "repos_url": "https://api.github.com/users/MyUncried/repos",
+            "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "html_url": "https://github.com/MyUncried/Application-Routine",
+          "description": "Application Routine",
+          "fork": false,
+          "url": "https://api.github.com/repos/MyUncried/Application-Routine",
+          "forks_url": "https://api.github.com/repos/MyUncried/Application-Routine/forks",
+          "keys_url": "https://api.github.com/repos/MyUncried/Application-Routine/keys{/key_id}",
+          "collaborators_url": "https://api.github.com/repos/MyUncried/Application-Routine/collaborators{/collaborator}",
+          "teams_url": "https://api.github.com/repos/MyUncried/Application-Routine/teams",
+          "hooks_url": "https://api.github.com/repos/MyUncried/Application-Routine/hooks",
+          "issue_events_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/events{/number}",
+          "events_url": "https://api.github.com/repos/MyUncried/Application-Routine/events",
+          "assignees_url": "https://api.github.com/repos/MyUncried/Application-Routine/assignees{/user}",
+          "branches_url": "https://api.github.com/repos/MyUncried/Application-Routine/branches{/branch}",
+          "tags_url": "https://api.github.com/repos/MyUncried/Application-Routine/tags",
+          "blobs_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/blobs{/sha}",
+          "git_tags_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/tags{/sha}",
+          "git_refs_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/refs{/sha}",
+          "trees_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/trees{/sha}",
+          "statuses_url": "https://api.github.com/repos/MyUncried/Application-Routine/statuses/{sha}",
+          "languages_url": "https://api.github.com/repos/MyUncried/Application-Routine/languages",
+          "stargazers_url": "https://api.github.com/repos/MyUncried/Application-Routine/stargazers",
+          "contributors_url": "https://api.github.com/repos/MyUncried/Application-Routine/contributors",
+          "subscribers_url": "https://api.github.com/repos/MyUncried/Application-Routine/subscribers",
+          "subscription_url": "https://api.github.com/repos/MyUncried/Application-Routine/subscription",
+          "commits_url": "https://api.github.com/repos/MyUncried/Application-Routine/commits{/sha}",
+          "git_commits_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/commits{/sha}",
+          "comments_url": "https://api.github.com/repos/MyUncried/Application-Routine/comments{/number}",
+          "issue_comment_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/comments{/number}",
+          "contents_url": "https://api.github.com/repos/MyUncried/Application-Routine/contents/{+path}",
+          "compare_url": "https://api.github.com/repos/MyUncried/Application-Routine/compare/{base}...{head}",
+          "merges_url": "https://api.github.com/repos/MyUncried/Application-Routine/merges",
+          "archive_url": "https://api.github.com/repos/MyUncried/Application-Routine/{archive_format}{/ref}",
+          "downloads_url": "https://api.github.com/repos/MyUncried/Application-Routine/downloads",
+          "issues_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues{/number}",
+          "pulls_url": "https://api.github.com/repos/MyUncried/Application-Routine/pulls{/number}",
+          "milestones_url": "https://api.github.com/repos/MyUncried/Application-Routine/milestones{/number}",
+          "notifications_url": "https://api.github.com/repos/MyUncried/Application-Routine/notifications{?since,all,participating}",
+          "labels_url": "https://api.github.com/repos/MyUncried/Application-Routine/labels{/name}",
+          "releases_url": "https://api.github.com/repos/MyUncried/Application-Routine/releases{/id}",
+          "deployments_url": "https://api.github.com/repos/MyUncried/Application-Routine/deployments"
+        }
+      },
+      "jobs": {
+        "total_count": 3,
+        "jobs": [
+          {
+            "id": 110841649599,
+            "run_id": 37008282181,
+            "workflow_name": "KODJO V2 pilot tests",
+            "head_branch": "protocol/vnext-proof-stability-20260930",
+            "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282181",
+            "run_attempt": 1,
+            "node_id": "CR_kwDOTtCBw88AAAAZzq1Zvw",
+            "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/110841649599",
+            "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282181/job/110841649599",
+            "status": "completed",
+            "conclusion": "success",
+            "created_at": "2026-10-02T12:42:17Z",
+            "started_at": "2026-10-02T12:42:21Z",
+            "completed_at": "2026-10-02T12:45:39Z",
+            "name": "protocol",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-10-02T12:42:22Z",
+                "completed_at": "2026-10-02T12:42:23Z"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-10-02T12:42:23Z",
+                "completed_at": "2026-10-02T12:42:26Z"
+              },
+              {
+                "name": "Set up independent workflow syntax parser",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-10-02T12:42:26Z",
+                "completed_at": "2026-10-02T12:42:27Z"
+              },
+              {
+                "name": "Parse workflow YAML independently",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-10-02T12:42:27Z",
+                "completed_at": "2026-10-02T12:42:29Z"
+              },
+              {
+                "name": "Classify protocol change",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-10-02T12:42:29Z",
+                "completed_at": "2026-10-02T12:42:29Z"
+              },
+              {
+                "name": "Install isolated planning tokenizer",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6,
+                "started_at": "2026-10-02T12:42:29Z",
+                "completed_at": "2026-10-02T12:42:30Z"
+              },
+              {
+                "name": "Qualify authenticated private HEAD lookup on Linux",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7,
+                "started_at": "2026-10-02T12:42:30Z",
+                "completed_at": "2026-10-02T12:42:31Z"
+              },
+              {
+                "name": "Run complete KODJO pilot suite",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8,
+                "started_at": "2026-10-02T12:42:31Z",
+                "completed_at": "2026-10-02T12:45:35Z"
+              },
+              {
+                "name": "Validate executable workflow invariants",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 9,
+                "started_at": "2026-10-02T12:45:35Z",
+                "completed_at": "2026-10-02T12:45:35Z"
+              },
+              {
+                "name": "Build immutable complete source snapshot",
+                "status": "completed",
+                "conclusion": "skipped",
+                "number": 10,
+                "started_at": "2026-10-02T12:45:35Z",
+                "completed_at": "2026-10-02T12:45:35Z"
+              },
+              {
+                "name": "Preserve complete source snapshot",
+                "status": "completed",
+                "conclusion": "skipped",
+                "number": 11,
+                "started_at": "2026-10-02T12:45:35Z",
+                "completed_at": "2026-10-02T12:45:35Z"
+              },
+              {
+                "name": "Post Set up independent workflow syntax parser",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 21,
+                "started_at": "2026-10-02T12:45:35Z",
+                "completed_at": "2026-10-02T12:45:35Z"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 22,
+                "started_at": "2026-10-02T12:45:35Z",
+                "completed_at": "2026-10-02T12:45:35Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 23,
+                "started_at": "2026-10-02T12:45:35Z",
+                "completed_at": "2026-10-02T12:45:35Z"
+              }
+            ],
+            "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/110841649599",
+            "labels": [
+              "ubuntu-latest"
+            ],
+            "runner_id": 1000001331,
+            "runner_name": "GitHub Actions 1000001331",
+            "runner_group_id": 0,
+            "runner_group_name": "GitHub Actions"
+          },
+          {
+            "id": 110842770335,
+            "run_id": 37008282181,
+            "workflow_name": "KODJO V2 pilot tests",
+            "head_branch": "protocol/vnext-proof-stability-20260930",
+            "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282181",
+            "run_attempt": 1,
+            "node_id": "CR_kwDOTtCBw88AAAAZzr5znw",
+            "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/110842770335",
+            "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282181/job/110842770335",
+            "status": "completed",
+            "conclusion": "success",
+            "created_at": "2026-10-02T12:45:39Z",
+            "started_at": "2026-10-02T12:45:41Z",
+            "completed_at": "2026-10-02T13:14:41Z",
+            "name": "protocol-windows-preflight",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-10-02T12:45:41Z",
+                "completed_at": "2026-10-02T12:45:48Z"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-10-02T12:45:48Z",
+                "completed_at": "2026-10-02T12:46:05Z"
+              },
+              {
+                "name": "Set up independent workflow syntax parser on Windows",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-10-02T12:46:05Z",
+                "completed_at": "2026-10-02T12:46:06Z"
+              },
+              {
+                "name": "Install independent YAML parser on Windows",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-10-02T12:46:06Z",
+                "completed_at": "2026-10-02T12:46:09Z"
+              },
+              {
+                "name": "Record Windows toolchain",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-10-02T12:46:09Z",
+                "completed_at": "2026-10-02T12:46:10Z"
+              },
+              {
+                "name": "Qualify authenticated private HEAD lookup on Windows",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6,
+                "started_at": "2026-10-02T12:46:10Z",
+                "completed_at": "2026-10-02T12:46:14Z"
+              },
+              {
+                "name": "Certify real persistent runner lock before Claude boundary",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7,
+                "started_at": "2026-10-02T12:46:14Z",
+                "completed_at": "2026-10-02T12:46:19Z"
+              },
+              {
+                "name": "Preserve real runner certification",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8,
+                "started_at": "2026-10-02T12:46:19Z",
+                "completed_at": "2026-10-02T12:46:22Z"
+              },
+              {
+                "name": "Parse every PowerShell protocol script with Windows PowerShell",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 9,
+                "started_at": "2026-10-02T12:46:22Z",
+                "completed_at": "2026-10-02T12:46:23Z"
+              },
+              {
+                "name": "Install isolated planning tokenizer on Windows",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 10,
+                "started_at": "2026-10-02T12:46:23Z",
+                "completed_at": "2026-10-02T12:46:25Z"
+              },
+              {
+                "name": "Run complete KODJO pilot suite on Windows",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 11,
+                "started_at": "2026-10-02T12:46:25Z",
+                "completed_at": "2026-10-02T13:08:19Z"
+              },
+              {
+                "name": "Run isolated queue path with Windows PowerShell 5.1",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 12,
+                "started_at": "2026-10-02T13:08:19Z",
+                "completed_at": "2026-10-02T13:09:15Z"
+              },
+              {
+                "name": "Run full disposable preflight without Claude",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 13,
+                "started_at": "2026-10-02T13:09:15Z",
+                "completed_at": "2026-10-02T13:14:24Z"
+              },
+              {
+                "name": "Preserve disposable preflight evidence",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 14,
+                "started_at": "2026-10-02T13:14:24Z",
+                "completed_at": "2026-10-02T13:14:26Z"
+              },
+              {
+                "name": "Download the real run 16 recovery package",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 15,
+                "started_at": "2026-10-02T13:14:26Z",
+                "completed_at": "2026-10-02T13:14:28Z"
+              },
+              {
+                "name": "Certify historical run 16 recovery without gating the disposable slice",
+                "status": "completed",
+                "conclusion": "skipped",
+                "number": 16,
+                "started_at": "2026-10-02T13:14:28Z",
+                "completed_at": "2026-10-02T13:14:28Z"
+              },
+              {
+                "name": "Preserve real recovery certification",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 17,
+                "started_at": "2026-10-02T13:14:28Z",
+                "completed_at": "2026-10-02T13:14:29Z"
+              },
+              {
+                "name": "Record unavailable historical recovery as a separate reserve",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 18,
+                "started_at": "2026-10-02T13:14:29Z",
+                "completed_at": "2026-10-02T13:14:29Z"
+              },
+              {
+                "name": "Upload real recovery certification",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 19,
+                "started_at": "2026-10-02T13:14:29Z",
+                "completed_at": "2026-10-02T13:14:31Z"
+              },
+              {
+                "name": "Post Set up independent workflow syntax parser on Windows",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 37,
+                "started_at": "2026-10-02T13:14:31Z",
+                "completed_at": "2026-10-02T13:14:32Z"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 38,
+                "started_at": "2026-10-02T13:14:32Z",
+                "completed_at": "2026-10-02T13:14:36Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 39,
+                "started_at": "2026-10-02T13:14:36Z",
+                "completed_at": "2026-10-02T13:14:36Z"
+              }
+            ],
+            "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/110842770335",
+            "labels": [
+              "self-hosted",
+              "Windows",
+              "X64",
+              "kodjo-claude-local"
+            ],
+            "runner_id": 26,
+            "runner_name": "KODJO-LOCAL-RUNNER",
+            "runner_group_id": 1,
+            "runner_group_name": "Default"
+          },
+          {
+            "id": 110852743666,
+            "run_id": 37008282181,
+            "workflow_name": "KODJO V2 pilot tests",
+            "head_branch": "protocol/vnext-proof-stability-20260930",
+            "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282181",
+            "run_attempt": 1,
+            "node_id": "CR_kwDOTtCBw88AAAAZz1ah8g",
+            "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/110852743666",
+            "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282181/job/110852743666",
+            "status": "completed",
+            "conclusion": "skipped",
+            "created_at": "2026-10-02T13:14:42Z",
+            "started_at": "2026-10-02T13:14:42Z",
+            "completed_at": "2026-10-02T13:14:41Z",
+            "name": "disposable-qualification",
+            "steps": [],
+            "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/110852743666",
+            "labels": [
+              "self-hosted",
+              "Windows",
+              "X64",
+              "kodjo-claude-local"
+            ],
+            "runner_id": null,
+            "runner_name": null,
+            "runner_group_id": null,
+            "runner_group_name": null
+          }
+        ]
+      },
+      "artifacts": {
+        "total_count": 3,
+        "artifacts": [
+          {
+            "id": 11228650596,
+            "node_id": "MDg6QXJ0aWZhY3QxMTIyODY1MDU5Ng==",
+            "name": "kodjo-v2-disposable-preflight-37008282181-1",
+            "size_in_bytes": 9906,
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11228650596",
+            "archive_download_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11228650596/zip",
+            "expired": false,
+            "digest": "sha256:45cac4c2174f70b9812a36450abcd1b2c2e619aa9c16f9a6bf9ba08a0cac7048",
+            "created_at": "2026-10-02T13:14:28Z",
+            "updated_at": "2026-10-02T13:14:28Z",
+            "expires_at": "2026-10-16T12:42:14Z",
+            "workflow_run": {
+              "id": 37008282181,
+              "repository_id": 1322287555,
+              "head_repository_id": 1322287555,
+              "head_branch": "protocol/vnext-proof-stability-20260930",
+              "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506"
+            }
+          },
+          {
+            "id": 11227514825,
+            "node_id": "MDg6QXJ0aWZhY3QxMTIyNzUxNDgyNQ==",
+            "name": "kodjo-v2-real-recovery-certification-37008282181-1",
+            "size_in_bytes": 355,
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11227514825",
+            "archive_download_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11227514825/zip",
+            "expired": false,
+            "digest": "sha256:ea2603ff5a87be4ffd5c55e1e2369b37b5891f23e65a6b7d16e17d50e11a9c71",
+            "created_at": "2026-10-02T13:14:33Z",
+            "updated_at": "2026-10-02T13:14:33Z",
+            "expires_at": "2026-10-16T12:42:14Z",
+            "workflow_run": {
+              "id": 37008282181,
+              "repository_id": 1322287555,
+              "head_repository_id": 1322287555,
+              "head_branch": "protocol/vnext-proof-stability-20260930",
+              "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506"
+            }
+          },
+          {
+            "id": 11227280559,
+            "node_id": "MDg6QXJ0aWZhY3QxMTIyNzI4MDU1OQ==",
+            "name": "kodjo-v2-runner-certification-37008282181-1",
+            "size_in_bytes": 831,
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11227280559",
+            "archive_download_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11227280559/zip",
+            "expired": false,
+            "digest": "sha256:560ddc0ea6e81595e19baa6f58e20d7dc91eb2674f81e033a25609d2bc201835",
+            "created_at": "2026-10-02T12:46:23Z",
+            "updated_at": "2026-10-02T12:46:23Z",
+            "expires_at": "2026-10-16T12:42:14Z",
+            "workflow_run": {
+              "id": 37008282181,
+              "repository_id": 1322287555,
+              "head_repository_id": 1322287555,
+              "head_branch": "protocol/vnext-proof-stability-20260930",
+              "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 37008282270,
+      "run": {
+        "id": 37008282270,
+        "name": "KODJO VNext-12 disposable preparation",
+        "node_id": "WFR_kwLOTtCBw88AAAAInd2Sng",
+        "head_branch": "protocol/vnext-proof-stability-20260930",
+        "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+        "path": ".github/workflows/kodjo-vnext12-disposable.yml",
+        "display_title": "feat(kodjo-vnext): chaîne réelle raccordée et qualifiée Linux/Windows",
+        "run_number": 28,
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "workflow_id": 371551885,
+        "check_suite_id": 100241444472,
+        "check_suite_node_id": "CS_kwDOTtCBw88AAAAXVtsOeA",
+        "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282270",
+        "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282270",
+        "pull_requests": [
+          {
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/pulls/269",
+            "id": 4690886792,
+            "number": 269,
+            "head": {
+              "ref": "protocol/vnext-proof-stability-20260930",
+              "sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+              "repo": {
+                "id": 1322287555,
+                "url": "https://api.github.com/repos/MyUncried/Application-Routine",
+                "name": "Application-Routine"
+              }
+            },
+            "base": {
+              "ref": "protocol/vnext-f01-remote-write-security-20260930",
+              "sha": "7176904974bffd1b5f01252724323a0fb2287442",
+              "repo": {
+                "id": 1322287555,
+                "url": "https://api.github.com/repos/MyUncried/Application-Routine",
+                "name": "Application-Routine"
+              }
+            }
+          }
+        ],
+        "created_at": "2026-10-02T12:42:14Z",
+        "updated_at": "2026-10-02T12:57:17Z",
+        "actor": {
+          "login": "MyUncried",
+          "id": 312719496,
+          "node_id": "U_kgDOEqO4iA",
+          "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/MyUncried",
+          "html_url": "https://github.com/MyUncried",
+          "followers_url": "https://api.github.com/users/MyUncried/followers",
+          "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+          "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+          "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+          "repos_url": "https://api.github.com/users/MyUncried/repos",
+          "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "run_attempt": 1,
+        "referenced_workflows": [],
+        "run_started_at": "2026-10-02T12:42:14Z",
+        "triggering_actor": {
+          "login": "MyUncried",
+          "id": 312719496,
+          "node_id": "U_kgDOEqO4iA",
+          "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/MyUncried",
+          "html_url": "https://github.com/MyUncried",
+          "followers_url": "https://api.github.com/users/MyUncried/followers",
+          "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+          "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+          "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+          "repos_url": "https://api.github.com/users/MyUncried/repos",
+          "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "jobs_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282270/jobs",
+        "logs_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282270/logs",
+        "check_suite_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-suites/100241444472",
+        "artifacts_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282270/artifacts",
+        "cancel_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282270/cancel",
+        "rerun_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282270/rerun",
+        "previous_attempt_url": null,
+        "workflow_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/workflows/371551885",
+        "head_commit": {
+          "id": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+          "tree_id": "e029cf047886acb35172bb542ed73b83a3dc9c94",
+          "message": "fix(vnext): preserve explicit mutation-scope guard in foreground launcher\n\nRetain actual failure evidence: full pilot 37003243573 has 926 PASS/1 FAIL/1 SKIP, historical jobs reject incomplete evidence; preserve three real raw logs and hashes. Pass original request to environment helper and serialize request.scope_allow exactly as inherited guard requires; no historical test or protection modified. New child-process test excludes recovery paths. Frozen adapter exact OID updated, all other policy rows preserved. 82 targeted tests PASS and exact tree validation PASS with all 420 subjects. Requalify corrected candidate only; do not replay acquired INITIAL/REVISION runtime proofs.",
+          "timestamp": "2026-10-02T12:42:06Z",
+          "author": {
+            "name": "MyUncried",
+            "email": "hadjou@gmail.com"
+          },
+          "committer": {
+            "name": "MyUncried",
+            "email": "hadjou@gmail.com"
+          }
+        },
+        "repository": {
+          "id": 1322287555,
+          "node_id": "R_kgDOTtCBww",
+          "name": "Application-Routine",
+          "full_name": "MyUncried/Application-Routine",
+          "private": true,
+          "owner": {
+            "login": "MyUncried",
+            "id": 312719496,
+            "node_id": "U_kgDOEqO4iA",
+            "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/MyUncried",
+            "html_url": "https://github.com/MyUncried",
+            "followers_url": "https://api.github.com/users/MyUncried/followers",
+            "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+            "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+            "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+            "repos_url": "https://api.github.com/users/MyUncried/repos",
+            "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "html_url": "https://github.com/MyUncried/Application-Routine",
+          "description": "Application Routine",
+          "fork": false,
+          "url": "https://api.github.com/repos/MyUncried/Application-Routine",
+          "forks_url": "https://api.github.com/repos/MyUncried/Application-Routine/forks",
+          "keys_url": "https://api.github.com/repos/MyUncried/Application-Routine/keys{/key_id}",
+          "collaborators_url": "https://api.github.com/repos/MyUncried/Application-Routine/collaborators{/collaborator}",
+          "teams_url": "https://api.github.com/repos/MyUncried/Application-Routine/teams",
+          "hooks_url": "https://api.github.com/repos/MyUncried/Application-Routine/hooks",
+          "issue_events_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/events{/number}",
+          "events_url": "https://api.github.com/repos/MyUncried/Application-Routine/events",
+          "assignees_url": "https://api.github.com/repos/MyUncried/Application-Routine/assignees{/user}",
+          "branches_url": "https://api.github.com/repos/MyUncried/Application-Routine/branches{/branch}",
+          "tags_url": "https://api.github.com/repos/MyUncried/Application-Routine/tags",
+          "blobs_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/blobs{/sha}",
+          "git_tags_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/tags{/sha}",
+          "git_refs_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/refs{/sha}",
+          "trees_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/trees{/sha}",
+          "statuses_url": "https://api.github.com/repos/MyUncried/Application-Routine/statuses/{sha}",
+          "languages_url": "https://api.github.com/repos/MyUncried/Application-Routine/languages",
+          "stargazers_url": "https://api.github.com/repos/MyUncried/Application-Routine/stargazers",
+          "contributors_url": "https://api.github.com/repos/MyUncried/Application-Routine/contributors",
+          "subscribers_url": "https://api.github.com/repos/MyUncried/Application-Routine/subscribers",
+          "subscription_url": "https://api.github.com/repos/MyUncried/Application-Routine/subscription",
+          "commits_url": "https://api.github.com/repos/MyUncried/Application-Routine/commits{/sha}",
+          "git_commits_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/commits{/sha}",
+          "comments_url": "https://api.github.com/repos/MyUncried/Application-Routine/comments{/number}",
+          "issue_comment_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/comments{/number}",
+          "contents_url": "https://api.github.com/repos/MyUncried/Application-Routine/contents/{+path}",
+          "compare_url": "https://api.github.com/repos/MyUncried/Application-Routine/compare/{base}...{head}",
+          "merges_url": "https://api.github.com/repos/MyUncried/Application-Routine/merges",
+          "archive_url": "https://api.github.com/repos/MyUncried/Application-Routine/{archive_format}{/ref}",
+          "downloads_url": "https://api.github.com/repos/MyUncried/Application-Routine/downloads",
+          "issues_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues{/number}",
+          "pulls_url": "https://api.github.com/repos/MyUncried/Application-Routine/pulls{/number}",
+          "milestones_url": "https://api.github.com/repos/MyUncried/Application-Routine/milestones{/number}",
+          "notifications_url": "https://api.github.com/repos/MyUncried/Application-Routine/notifications{?since,all,participating}",
+          "labels_url": "https://api.github.com/repos/MyUncried/Application-Routine/labels{/name}",
+          "releases_url": "https://api.github.com/repos/MyUncried/Application-Routine/releases{/id}",
+          "deployments_url": "https://api.github.com/repos/MyUncried/Application-Routine/deployments"
+        },
+        "head_repository": {
+          "id": 1322287555,
+          "node_id": "R_kgDOTtCBww",
+          "name": "Application-Routine",
+          "full_name": "MyUncried/Application-Routine",
+          "private": true,
+          "owner": {
+            "login": "MyUncried",
+            "id": 312719496,
+            "node_id": "U_kgDOEqO4iA",
+            "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/MyUncried",
+            "html_url": "https://github.com/MyUncried",
+            "followers_url": "https://api.github.com/users/MyUncried/followers",
+            "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+            "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+            "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+            "repos_url": "https://api.github.com/users/MyUncried/repos",
+            "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "html_url": "https://github.com/MyUncried/Application-Routine",
+          "description": "Application Routine",
+          "fork": false,
+          "url": "https://api.github.com/repos/MyUncried/Application-Routine",
+          "forks_url": "https://api.github.com/repos/MyUncried/Application-Routine/forks",
+          "keys_url": "https://api.github.com/repos/MyUncried/Application-Routine/keys{/key_id}",
+          "collaborators_url": "https://api.github.com/repos/MyUncried/Application-Routine/collaborators{/collaborator}",
+          "teams_url": "https://api.github.com/repos/MyUncried/Application-Routine/teams",
+          "hooks_url": "https://api.github.com/repos/MyUncried/Application-Routine/hooks",
+          "issue_events_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/events{/number}",
+          "events_url": "https://api.github.com/repos/MyUncried/Application-Routine/events",
+          "assignees_url": "https://api.github.com/repos/MyUncried/Application-Routine/assignees{/user}",
+          "branches_url": "https://api.github.com/repos/MyUncried/Application-Routine/branches{/branch}",
+          "tags_url": "https://api.github.com/repos/MyUncried/Application-Routine/tags",
+          "blobs_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/blobs{/sha}",
+          "git_tags_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/tags{/sha}",
+          "git_refs_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/refs{/sha}",
+          "trees_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/trees{/sha}",
+          "statuses_url": "https://api.github.com/repos/MyUncried/Application-Routine/statuses/{sha}",
+          "languages_url": "https://api.github.com/repos/MyUncried/Application-Routine/languages",
+          "stargazers_url": "https://api.github.com/repos/MyUncried/Application-Routine/stargazers",
+          "contributors_url": "https://api.github.com/repos/MyUncried/Application-Routine/contributors",
+          "subscribers_url": "https://api.github.com/repos/MyUncried/Application-Routine/subscribers",
+          "subscription_url": "https://api.github.com/repos/MyUncried/Application-Routine/subscription",
+          "commits_url": "https://api.github.com/repos/MyUncried/Application-Routine/commits{/sha}",
+          "git_commits_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/commits{/sha}",
+          "comments_url": "https://api.github.com/repos/MyUncried/Application-Routine/comments{/number}",
+          "issue_comment_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/comments{/number}",
+          "contents_url": "https://api.github.com/repos/MyUncried/Application-Routine/contents/{+path}",
+          "compare_url": "https://api.github.com/repos/MyUncried/Application-Routine/compare/{base}...{head}",
+          "merges_url": "https://api.github.com/repos/MyUncried/Application-Routine/merges",
+          "archive_url": "https://api.github.com/repos/MyUncried/Application-Routine/{archive_format}{/ref}",
+          "downloads_url": "https://api.github.com/repos/MyUncried/Application-Routine/downloads",
+          "issues_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues{/number}",
+          "pulls_url": "https://api.github.com/repos/MyUncried/Application-Routine/pulls{/number}",
+          "milestones_url": "https://api.github.com/repos/MyUncried/Application-Routine/milestones{/number}",
+          "notifications_url": "https://api.github.com/repos/MyUncried/Application-Routine/notifications{?since,all,participating}",
+          "labels_url": "https://api.github.com/repos/MyUncried/Application-Routine/labels{/name}",
+          "releases_url": "https://api.github.com/repos/MyUncried/Application-Routine/releases{/id}",
+          "deployments_url": "https://api.github.com/repos/MyUncried/Application-Routine/deployments"
+        }
+      },
+      "jobs": {
+        "total_count": 6,
+        "jobs": [
+          {
+            "id": 110841637292,
+            "run_id": 37008282270,
+            "workflow_name": "KODJO VNext-12 disposable preparation",
+            "head_branch": "protocol/vnext-proof-stability-20260930",
+            "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282270",
+            "run_attempt": 1,
+            "node_id": "CR_kwDOTtCBw88AAAAZzq0prA",
+            "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/110841637292",
+            "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282270/job/110841637292",
+            "status": "completed",
+            "conclusion": "success",
+            "created_at": "2026-10-02T12:42:15Z",
+            "started_at": "2026-10-02T12:42:17Z",
+            "completed_at": "2026-10-02T12:43:04Z",
+            "name": "select-stage",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-10-02T12:42:18Z",
+                "completed_at": "2026-10-02T12:42:19Z"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-10-02T12:42:19Z",
+                "completed_at": "2026-10-02T12:42:21Z"
+              },
+              {
+                "name": "Select the explicitly requested stage",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-10-02T12:42:21Z",
+                "completed_at": "2026-10-02T12:42:21Z"
+              },
+              {
+                "name": "Check the disposable supervisor before any runtime execution",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-10-02T12:42:21Z",
+                "completed_at": "2026-10-02T12:43:03Z"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8,
+                "started_at": "2026-10-02T12:43:03Z",
+                "completed_at": "2026-10-02T12:43:03Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 9,
+                "started_at": "2026-10-02T12:43:03Z",
+                "completed_at": "2026-10-02T12:43:03Z"
+              }
+            ],
+            "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/110841637292",
+            "labels": [
+              "ubuntu-latest"
+            ],
+            "runner_id": 1000001330,
+            "runner_name": "GitHub Actions 1000001330",
+            "runner_group_id": 0,
+            "runner_group_name": "GitHub Actions"
+          },
+          {
+            "id": 110841912799,
+            "run_id": 37008282270,
+            "workflow_name": "KODJO VNext-12 disposable preparation",
+            "head_branch": "protocol/vnext-proof-stability-20260930",
+            "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282270",
+            "run_attempt": 1,
+            "node_id": "CR_kwDOTtCBw88AAAAZzrFd3w",
+            "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/110841912799",
+            "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282270/job/110841912799",
+            "status": "completed",
+            "conclusion": "success",
+            "created_at": "2026-10-02T12:43:04Z",
+            "started_at": "2026-10-02T12:43:07Z",
+            "completed_at": "2026-10-02T12:57:16Z",
+            "name": "qualify-driver (windows-latest)",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-10-02T12:43:09Z",
+                "completed_at": "2026-10-02T12:43:10Z"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-10-02T12:43:10Z",
+                "completed_at": "2026-10-02T12:43:21Z"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-10-02T12:43:21Z",
+                "completed_at": "2026-10-02T12:43:26Z"
+              },
+              {
+                "name": "Run actions/setup-python@v5",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-10-02T12:43:26Z",
+                "completed_at": "2026-10-02T12:43:26Z"
+              },
+              {
+                "name": "Install independent YAML parser",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-10-02T12:43:26Z",
+                "completed_at": "2026-10-02T12:43:33Z"
+              },
+              {
+                "name": "Validate the operational recipe without Claude",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6,
+                "started_at": "2026-10-02T12:43:33Z",
+                "completed_at": "2026-10-02T12:44:02Z"
+              },
+              {
+                "name": "Verify inherited VNext contracts",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7,
+                "started_at": "2026-10-02T12:44:02Z",
+                "completed_at": "2026-10-02T12:57:11Z"
+              },
+              {
+                "name": "Post Run actions/setup-python@v5",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 12,
+                "started_at": "2026-10-02T12:57:11Z",
+                "completed_at": "2026-10-02T12:57:11Z"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 13,
+                "started_at": "2026-10-02T12:57:11Z",
+                "completed_at": "2026-10-02T12:57:11Z"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 14,
+                "started_at": "2026-10-02T12:57:11Z",
+                "completed_at": "2026-10-02T12:57:14Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 15,
+                "started_at": "2026-10-02T12:57:14Z",
+                "completed_at": "2026-10-02T12:57:14Z"
+              }
+            ],
+            "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/110841912799",
+            "labels": [
+              "windows-latest"
+            ],
+            "runner_id": 1000001333,
+            "runner_name": "GitHub Actions 1000001333",
+            "runner_group_id": 0,
+            "runner_group_name": "GitHub Actions"
+          },
+          {
+            "id": 110841912835,
+            "run_id": 37008282270,
+            "workflow_name": "KODJO VNext-12 disposable preparation",
+            "head_branch": "protocol/vnext-proof-stability-20260930",
+            "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282270",
+            "run_attempt": 1,
+            "node_id": "CR_kwDOTtCBw88AAAAZzrFeAw",
+            "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/110841912835",
+            "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282270/job/110841912835",
+            "status": "completed",
+            "conclusion": "success",
+            "created_at": "2026-10-02T12:43:04Z",
+            "started_at": "2026-10-02T12:43:06Z",
+            "completed_at": "2026-10-02T12:44:23Z",
+            "name": "qualify-driver (ubuntu-latest)",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-10-02T12:43:08Z",
+                "completed_at": "2026-10-02T12:43:09Z"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-10-02T12:43:09Z",
+                "completed_at": "2026-10-02T12:43:12Z"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-10-02T12:43:12Z",
+                "completed_at": "2026-10-02T12:43:12Z"
+              },
+              {
+                "name": "Run actions/setup-python@v5",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-10-02T12:43:12Z",
+                "completed_at": "2026-10-02T12:43:12Z"
+              },
+              {
+                "name": "Install independent YAML parser",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-10-02T12:43:12Z",
+                "completed_at": "2026-10-02T12:43:14Z"
+              },
+              {
+                "name": "Validate the operational recipe without Claude",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6,
+                "started_at": "2026-10-02T12:43:14Z",
+                "completed_at": "2026-10-02T12:43:17Z"
+              },
+              {
+                "name": "Verify inherited VNext contracts",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7,
+                "started_at": "2026-10-02T12:43:17Z",
+                "completed_at": "2026-10-02T12:44:21Z"
+              },
+              {
+                "name": "Post Run actions/setup-python@v5",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 12,
+                "started_at": "2026-10-02T12:44:21Z",
+                "completed_at": "2026-10-02T12:44:22Z"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 13,
+                "started_at": "2026-10-02T12:44:22Z",
+                "completed_at": "2026-10-02T12:44:22Z"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 14,
+                "started_at": "2026-10-02T12:44:22Z",
+                "completed_at": "2026-10-02T12:44:22Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 15,
+                "started_at": "2026-10-02T12:44:22Z",
+                "completed_at": "2026-10-02T12:44:22Z"
+              }
+            ],
+            "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/110841912835",
+            "labels": [
+              "ubuntu-latest"
+            ],
+            "runner_id": 1000001332,
+            "runner_name": "GitHub Actions 1000001332",
+            "runner_group_id": 0,
+            "runner_group_name": "GitHub Actions"
+          },
+          {
+            "id": 110841914537,
+            "run_id": 37008282270,
+            "workflow_name": "KODJO VNext-12 disposable preparation",
+            "head_branch": "protocol/vnext-proof-stability-20260930",
+            "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282270",
+            "run_attempt": 1,
+            "node_id": "CR_kwDOTtCBw88AAAAZzrFkqQ",
+            "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/110841914537",
+            "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282270/job/110841914537",
+            "status": "completed",
+            "conclusion": "skipped",
+            "created_at": "2026-10-02T12:43:04Z",
+            "started_at": "2026-10-02T12:43:04Z",
+            "completed_at": "2026-10-02T12:43:04Z",
+            "name": "Execute approved disposable INITIAL or REVISION",
+            "steps": [],
+            "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/110841914537",
+            "labels": [
+              "self-hosted",
+              "Windows",
+              "X64",
+              "kodjo-claude-local"
+            ],
+            "runner_id": null,
+            "runner_name": null,
+            "runner_group_id": null,
+            "runner_group_name": null
+          },
+          {
+            "id": 110846648293,
+            "run_id": 37008282270,
+            "workflow_name": "KODJO VNext-12 disposable preparation",
+            "head_branch": "protocol/vnext-proof-stability-20260930",
+            "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282270",
+            "run_attempt": 1,
+            "node_id": "CR_kwDOTtCBw88AAAAZzvmf5Q",
+            "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/110846648293",
+            "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282270/job/110846648293",
+            "status": "completed",
+            "conclusion": "skipped",
+            "created_at": "2026-10-02T12:57:17Z",
+            "started_at": "2026-10-02T12:57:17Z",
+            "completed_at": "2026-10-02T12:57:16Z",
+            "name": "prepare-revision",
+            "steps": [],
+            "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/110846648293",
+            "labels": [
+              "self-hosted",
+              "Windows",
+              "X64",
+              "kodjo-claude-local"
+            ],
+            "runner_id": null,
+            "runner_name": null,
+            "runner_group_id": null,
+            "runner_group_name": null
+          },
+          {
+            "id": 110846648431,
+            "run_id": 37008282270,
+            "workflow_name": "KODJO VNext-12 disposable preparation",
+            "head_branch": "protocol/vnext-proof-stability-20260930",
+            "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282270",
+            "run_attempt": 1,
+            "node_id": "CR_kwDOTtCBw88AAAAZzvmgbw",
+            "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/110846648431",
+            "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282270/job/110846648431",
+            "status": "completed",
+            "conclusion": "skipped",
+            "created_at": "2026-10-02T12:57:17Z",
+            "started_at": "2026-10-02T12:57:17Z",
+            "completed_at": "2026-10-02T12:57:16Z",
+            "name": "prepare-initial",
+            "steps": [],
+            "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/110846648431",
+            "labels": [
+              "self-hosted",
+              "Windows",
+              "X64",
+              "kodjo-claude-local"
+            ],
+            "runner_id": null,
+            "runner_name": null,
+            "runner_group_id": null,
+            "runner_group_name": null
+          }
+        ]
+      },
+      "artifacts": {
+        "total_count": 0,
+        "artifacts": []
+      }
+    },
+    {
+      "id": 37008282228,
+      "run": {
+        "id": 37008282228,
+        "name": "KODJO VNext proof stability and architecture",
+        "node_id": "WFR_kwLOTtCBw88AAAAInd2SdA",
+        "head_branch": "protocol/vnext-proof-stability-20260930",
+        "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+        "path": ".github/workflows/kodjo-vnext-proof-stability.yml",
+        "display_title": "feat(kodjo-vnext): chaîne réelle raccordée et qualifiée Linux/Windows",
+        "run_number": 37,
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "workflow_id": 371171468,
+        "check_suite_id": 100241444319,
+        "check_suite_node_id": "CS_kwDOTtCBw88AAAAXVtsN3w",
+        "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282228",
+        "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282228",
+        "pull_requests": [
+          {
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/pulls/269",
+            "id": 4690886792,
+            "number": 269,
+            "head": {
+              "ref": "protocol/vnext-proof-stability-20260930",
+              "sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+              "repo": {
+                "id": 1322287555,
+                "url": "https://api.github.com/repos/MyUncried/Application-Routine",
+                "name": "Application-Routine"
+              }
+            },
+            "base": {
+              "ref": "protocol/vnext-f01-remote-write-security-20260930",
+              "sha": "7176904974bffd1b5f01252724323a0fb2287442",
+              "repo": {
+                "id": 1322287555,
+                "url": "https://api.github.com/repos/MyUncried/Application-Routine",
+                "name": "Application-Routine"
+              }
+            }
+          }
+        ],
+        "created_at": "2026-10-02T12:42:14Z",
+        "updated_at": "2026-10-02T13:03:28Z",
+        "actor": {
+          "login": "MyUncried",
+          "id": 312719496,
+          "node_id": "U_kgDOEqO4iA",
+          "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/MyUncried",
+          "html_url": "https://github.com/MyUncried",
+          "followers_url": "https://api.github.com/users/MyUncried/followers",
+          "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+          "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+          "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+          "repos_url": "https://api.github.com/users/MyUncried/repos",
+          "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "run_attempt": 1,
+        "referenced_workflows": [],
+        "run_started_at": "2026-10-02T12:42:14Z",
+        "triggering_actor": {
+          "login": "MyUncried",
+          "id": 312719496,
+          "node_id": "U_kgDOEqO4iA",
+          "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/MyUncried",
+          "html_url": "https://github.com/MyUncried",
+          "followers_url": "https://api.github.com/users/MyUncried/followers",
+          "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+          "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+          "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+          "repos_url": "https://api.github.com/users/MyUncried/repos",
+          "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "jobs_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282228/jobs",
+        "logs_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282228/logs",
+        "check_suite_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-suites/100241444319",
+        "artifacts_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282228/artifacts",
+        "cancel_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282228/cancel",
+        "rerun_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282228/rerun",
+        "previous_attempt_url": null,
+        "workflow_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/workflows/371171468",
+        "head_commit": {
+          "id": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+          "tree_id": "e029cf047886acb35172bb542ed73b83a3dc9c94",
+          "message": "fix(vnext): preserve explicit mutation-scope guard in foreground launcher\n\nRetain actual failure evidence: full pilot 37003243573 has 926 PASS/1 FAIL/1 SKIP, historical jobs reject incomplete evidence; preserve three real raw logs and hashes. Pass original request to environment helper and serialize request.scope_allow exactly as inherited guard requires; no historical test or protection modified. New child-process test excludes recovery paths. Frozen adapter exact OID updated, all other policy rows preserved. 82 targeted tests PASS and exact tree validation PASS with all 420 subjects. Requalify corrected candidate only; do not replay acquired INITIAL/REVISION runtime proofs.",
+          "timestamp": "2026-10-02T12:42:06Z",
+          "author": {
+            "name": "MyUncried",
+            "email": "hadjou@gmail.com"
+          },
+          "committer": {
+            "name": "MyUncried",
+            "email": "hadjou@gmail.com"
+          }
+        },
+        "repository": {
+          "id": 1322287555,
+          "node_id": "R_kgDOTtCBww",
+          "name": "Application-Routine",
+          "full_name": "MyUncried/Application-Routine",
+          "private": true,
+          "owner": {
+            "login": "MyUncried",
+            "id": 312719496,
+            "node_id": "U_kgDOEqO4iA",
+            "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/MyUncried",
+            "html_url": "https://github.com/MyUncried",
+            "followers_url": "https://api.github.com/users/MyUncried/followers",
+            "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+            "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+            "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+            "repos_url": "https://api.github.com/users/MyUncried/repos",
+            "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "html_url": "https://github.com/MyUncried/Application-Routine",
+          "description": "Application Routine",
+          "fork": false,
+          "url": "https://api.github.com/repos/MyUncried/Application-Routine",
+          "forks_url": "https://api.github.com/repos/MyUncried/Application-Routine/forks",
+          "keys_url": "https://api.github.com/repos/MyUncried/Application-Routine/keys{/key_id}",
+          "collaborators_url": "https://api.github.com/repos/MyUncried/Application-Routine/collaborators{/collaborator}",
+          "teams_url": "https://api.github.com/repos/MyUncried/Application-Routine/teams",
+          "hooks_url": "https://api.github.com/repos/MyUncried/Application-Routine/hooks",
+          "issue_events_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/events{/number}",
+          "events_url": "https://api.github.com/repos/MyUncried/Application-Routine/events",
+          "assignees_url": "https://api.github.com/repos/MyUncried/Application-Routine/assignees{/user}",
+          "branches_url": "https://api.github.com/repos/MyUncried/Application-Routine/branches{/branch}",
+          "tags_url": "https://api.github.com/repos/MyUncried/Application-Routine/tags",
+          "blobs_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/blobs{/sha}",
+          "git_tags_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/tags{/sha}",
+          "git_refs_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/refs{/sha}",
+          "trees_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/trees{/sha}",
+          "statuses_url": "https://api.github.com/repos/MyUncried/Application-Routine/statuses/{sha}",
+          "languages_url": "https://api.github.com/repos/MyUncried/Application-Routine/languages",
+          "stargazers_url": "https://api.github.com/repos/MyUncried/Application-Routine/stargazers",
+          "contributors_url": "https://api.github.com/repos/MyUncried/Application-Routine/contributors",
+          "subscribers_url": "https://api.github.com/repos/MyUncried/Application-Routine/subscribers",
+          "subscription_url": "https://api.github.com/repos/MyUncried/Application-Routine/subscription",
+          "commits_url": "https://api.github.com/repos/MyUncried/Application-Routine/commits{/sha}",
+          "git_commits_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/commits{/sha}",
+          "comments_url": "https://api.github.com/repos/MyUncried/Application-Routine/comments{/number}",
+          "issue_comment_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/comments{/number}",
+          "contents_url": "https://api.github.com/repos/MyUncried/Application-Routine/contents/{+path}",
+          "compare_url": "https://api.github.com/repos/MyUncried/Application-Routine/compare/{base}...{head}",
+          "merges_url": "https://api.github.com/repos/MyUncried/Application-Routine/merges",
+          "archive_url": "https://api.github.com/repos/MyUncried/Application-Routine/{archive_format}{/ref}",
+          "downloads_url": "https://api.github.com/repos/MyUncried/Application-Routine/downloads",
+          "issues_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues{/number}",
+          "pulls_url": "https://api.github.com/repos/MyUncried/Application-Routine/pulls{/number}",
+          "milestones_url": "https://api.github.com/repos/MyUncried/Application-Routine/milestones{/number}",
+          "notifications_url": "https://api.github.com/repos/MyUncried/Application-Routine/notifications{?since,all,participating}",
+          "labels_url": "https://api.github.com/repos/MyUncried/Application-Routine/labels{/name}",
+          "releases_url": "https://api.github.com/repos/MyUncried/Application-Routine/releases{/id}",
+          "deployments_url": "https://api.github.com/repos/MyUncried/Application-Routine/deployments"
+        },
+        "head_repository": {
+          "id": 1322287555,
+          "node_id": "R_kgDOTtCBww",
+          "name": "Application-Routine",
+          "full_name": "MyUncried/Application-Routine",
+          "private": true,
+          "owner": {
+            "login": "MyUncried",
+            "id": 312719496,
+            "node_id": "U_kgDOEqO4iA",
+            "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/MyUncried",
+            "html_url": "https://github.com/MyUncried",
+            "followers_url": "https://api.github.com/users/MyUncried/followers",
+            "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+            "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+            "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+            "repos_url": "https://api.github.com/users/MyUncried/repos",
+            "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+            "type": "User",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "html_url": "https://github.com/MyUncried/Application-Routine",
+          "description": "Application Routine",
+          "fork": false,
+          "url": "https://api.github.com/repos/MyUncried/Application-Routine",
+          "forks_url": "https://api.github.com/repos/MyUncried/Application-Routine/forks",
+          "keys_url": "https://api.github.com/repos/MyUncried/Application-Routine/keys{/key_id}",
+          "collaborators_url": "https://api.github.com/repos/MyUncried/Application-Routine/collaborators{/collaborator}",
+          "teams_url": "https://api.github.com/repos/MyUncried/Application-Routine/teams",
+          "hooks_url": "https://api.github.com/repos/MyUncried/Application-Routine/hooks",
+          "issue_events_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/events{/number}",
+          "events_url": "https://api.github.com/repos/MyUncried/Application-Routine/events",
+          "assignees_url": "https://api.github.com/repos/MyUncried/Application-Routine/assignees{/user}",
+          "branches_url": "https://api.github.com/repos/MyUncried/Application-Routine/branches{/branch}",
+          "tags_url": "https://api.github.com/repos/MyUncried/Application-Routine/tags",
+          "blobs_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/blobs{/sha}",
+          "git_tags_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/tags{/sha}",
+          "git_refs_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/refs{/sha}",
+          "trees_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/trees{/sha}",
+          "statuses_url": "https://api.github.com/repos/MyUncried/Application-Routine/statuses/{sha}",
+          "languages_url": "https://api.github.com/repos/MyUncried/Application-Routine/languages",
+          "stargazers_url": "https://api.github.com/repos/MyUncried/Application-Routine/stargazers",
+          "contributors_url": "https://api.github.com/repos/MyUncried/Application-Routine/contributors",
+          "subscribers_url": "https://api.github.com/repos/MyUncried/Application-Routine/subscribers",
+          "subscription_url": "https://api.github.com/repos/MyUncried/Application-Routine/subscription",
+          "commits_url": "https://api.github.com/repos/MyUncried/Application-Routine/commits{/sha}",
+          "git_commits_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/commits{/sha}",
+          "comments_url": "https://api.github.com/repos/MyUncried/Application-Routine/comments{/number}",
+          "issue_comment_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/comments{/number}",
+          "contents_url": "https://api.github.com/repos/MyUncried/Application-Routine/contents/{+path}",
+          "compare_url": "https://api.github.com/repos/MyUncried/Application-Routine/compare/{base}...{head}",
+          "merges_url": "https://api.github.com/repos/MyUncried/Application-Routine/merges",
+          "archive_url": "https://api.github.com/repos/MyUncried/Application-Routine/{archive_format}{/ref}",
+          "downloads_url": "https://api.github.com/repos/MyUncried/Application-Routine/downloads",
+          "issues_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues{/number}",
+          "pulls_url": "https://api.github.com/repos/MyUncried/Application-Routine/pulls{/number}",
+          "milestones_url": "https://api.github.com/repos/MyUncried/Application-Routine/milestones{/number}",
+          "notifications_url": "https://api.github.com/repos/MyUncried/Application-Routine/notifications{?since,all,participating}",
+          "labels_url": "https://api.github.com/repos/MyUncried/Application-Routine/labels{/name}",
+          "releases_url": "https://api.github.com/repos/MyUncried/Application-Routine/releases{/id}",
+          "deployments_url": "https://api.github.com/repos/MyUncried/Application-Routine/deployments"
+        }
+      },
+      "jobs": {
+        "total_count": 5,
+        "jobs": [
+          {
+            "id": 110841636401,
+            "run_id": 37008282228,
+            "workflow_name": "KODJO VNext proof stability and architecture",
+            "head_branch": "protocol/vnext-proof-stability-20260930",
+            "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282228",
+            "run_attempt": 1,
+            "node_id": "CR_kwDOTtCBw88AAAAZzq0mMQ",
+            "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/110841636401",
+            "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282228/job/110841636401",
+            "status": "completed",
+            "conclusion": "success",
+            "created_at": "2026-10-02T12:42:15Z",
+            "started_at": "2026-10-02T12:42:18Z",
+            "completed_at": "2026-10-02T12:45:35Z",
+            "name": "historical-equivalence (ubuntu-latest)",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-10-02T12:42:19Z",
+                "completed_at": "2026-10-02T12:42:19Z"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-10-02T12:42:19Z",
+                "completed_at": "2026-10-02T12:42:22Z"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-10-02T12:42:22Z",
+                "completed_at": "2026-10-02T12:42:23Z"
+              },
+              {
+                "name": "Install isolated pinned tokenizer for inherited fixture assertions",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-10-02T12:42:23Z",
+                "completed_at": "2026-10-02T12:42:25Z"
+              },
+              {
+                "name": "Run actions/setup-python@v5",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-10-02T12:42:25Z",
+                "completed_at": "2026-10-02T12:42:25Z"
+              },
+              {
+                "name": "Install independent YAML parser",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6,
+                "started_at": "2026-10-02T12:42:25Z",
+                "completed_at": "2026-10-02T12:42:26Z"
+              },
+              {
+                "name": "Execute structured historical assertion evidence",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7,
+                "started_at": "2026-10-02T12:42:26Z",
+                "completed_at": "2026-10-02T12:45:32Z"
+              },
+              {
+                "name": "Resolve each historical assertion on the exact candidate",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8,
+                "started_at": "2026-10-02T12:45:32Z",
+                "completed_at": "2026-10-02T12:45:33Z"
+              },
+              {
+                "name": "Post Run actions/setup-python@v5",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 14,
+                "started_at": "2026-10-02T12:45:33Z",
+                "completed_at": "2026-10-02T12:45:33Z"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 15,
+                "started_at": "2026-10-02T12:45:33Z",
+                "completed_at": "2026-10-02T12:45:33Z"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 16,
+                "started_at": "2026-10-02T12:45:33Z",
+                "completed_at": "2026-10-02T12:45:33Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 17,
+                "started_at": "2026-10-02T12:45:33Z",
+                "completed_at": "2026-10-02T12:45:33Z"
+              }
+            ],
+            "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/110841636401",
+            "labels": [
+              "ubuntu-latest"
+            ],
+            "runner_id": 1000001328,
+            "runner_name": "GitHub Actions 1000001328",
+            "runner_group_id": 0,
+            "runner_group_name": "GitHub Actions"
+          },
+          {
+            "id": 110841636682,
+            "run_id": 37008282228,
+            "workflow_name": "KODJO VNext proof stability and architecture",
+            "head_branch": "protocol/vnext-proof-stability-20260930",
+            "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282228",
+            "run_attempt": 1,
+            "node_id": "CR_kwDOTtCBw88AAAAZzq0nSg",
+            "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/110841636682",
+            "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282228/job/110841636682",
+            "status": "completed",
+            "conclusion": "success",
+            "created_at": "2026-10-02T12:42:15Z",
+            "started_at": "2026-10-02T12:42:17Z",
+            "completed_at": "2026-10-02T13:03:27Z",
+            "name": "historical-equivalence (windows-latest)",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-10-02T12:42:18Z",
+                "completed_at": "2026-10-02T12:42:19Z"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-10-02T12:42:19Z",
+                "completed_at": "2026-10-02T12:42:32Z"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-10-02T12:42:32Z",
+                "completed_at": "2026-10-02T12:42:41Z"
+              },
+              {
+                "name": "Install isolated pinned tokenizer for inherited fixture assertions",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-10-02T12:42:41Z",
+                "completed_at": "2026-10-02T12:42:45Z"
+              },
+              {
+                "name": "Run actions/setup-python@v5",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-10-02T12:42:45Z",
+                "completed_at": "2026-10-02T12:42:45Z"
+              },
+              {
+                "name": "Install independent YAML parser",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6,
+                "started_at": "2026-10-02T12:42:45Z",
+                "completed_at": "2026-10-02T12:42:52Z"
+              },
+              {
+                "name": "Execute structured historical assertion evidence",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7,
+                "started_at": "2026-10-02T12:42:52Z",
+                "completed_at": "2026-10-02T13:03:22Z"
+              },
+              {
+                "name": "Resolve each historical assertion on the exact candidate",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8,
+                "started_at": "2026-10-02T13:03:22Z",
+                "completed_at": "2026-10-02T13:03:23Z"
+              },
+              {
+                "name": "Post Run actions/setup-python@v5",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 14,
+                "started_at": "2026-10-02T13:03:23Z",
+                "completed_at": "2026-10-02T13:03:23Z"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 15,
+                "started_at": "2026-10-02T13:03:23Z",
+                "completed_at": "2026-10-02T13:03:24Z"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 16,
+                "started_at": "2026-10-02T13:03:24Z",
+                "completed_at": "2026-10-02T13:03:25Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 17,
+                "started_at": "2026-10-02T13:03:25Z",
+                "completed_at": "2026-10-02T13:03:26Z"
+              }
+            ],
+            "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/110841636682",
+            "labels": [
+              "windows-latest"
+            ],
+            "runner_id": 1000001326,
+            "runner_name": "GitHub Actions 1000001326",
+            "runner_group_id": 0,
+            "runner_group_name": "GitHub Actions"
+          },
+          {
+            "id": 110841636701,
+            "run_id": 37008282228,
+            "workflow_name": "KODJO VNext proof stability and architecture",
+            "head_branch": "protocol/vnext-proof-stability-20260930",
+            "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282228",
+            "run_attempt": 1,
+            "node_id": "CR_kwDOTtCBw88AAAAZzq0nXQ",
+            "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/110841636701",
+            "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282228/job/110841636701",
+            "status": "completed",
+            "conclusion": "success",
+            "created_at": "2026-10-02T12:42:15Z",
+            "started_at": "2026-10-02T12:42:17Z",
+            "completed_at": "2026-10-02T12:43:35Z",
+            "name": "qualification (ubuntu-latest)",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-10-02T12:42:18Z",
+                "completed_at": "2026-10-02T12:42:19Z"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-10-02T12:42:19Z",
+                "completed_at": "2026-10-02T12:42:22Z"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-10-02T12:42:22Z",
+                "completed_at": "2026-10-02T12:42:23Z"
+              },
+              {
+                "name": "Run actions/setup-python@v5",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-10-02T12:42:23Z",
+                "completed_at": "2026-10-02T12:42:23Z"
+              },
+              {
+                "name": "Parse all workflow syntax independently",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-10-02T12:42:23Z",
+                "completed_at": "2026-10-02T12:42:26Z"
+              },
+              {
+                "name": "Execute VNext contracts on exact candidate",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6,
+                "started_at": "2026-10-02T12:42:26Z",
+                "completed_at": "2026-10-02T12:43:32Z"
+              },
+              {
+                "name": "Validate executable workflow invariants",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7,
+                "started_at": "2026-10-02T12:43:32Z",
+                "completed_at": "2026-10-02T12:43:32Z"
+              },
+              {
+                "name": "Check patch whitespace",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8,
+                "started_at": "2026-10-02T12:43:32Z",
+                "completed_at": "2026-10-02T12:43:32Z"
+              },
+              {
+                "name": "Post Run actions/setup-python@v5",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 14,
+                "started_at": "2026-10-02T12:43:32Z",
+                "completed_at": "2026-10-02T12:43:33Z"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 15,
+                "started_at": "2026-10-02T12:43:33Z",
+                "completed_at": "2026-10-02T12:43:33Z"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 16,
+                "started_at": "2026-10-02T12:43:33Z",
+                "completed_at": "2026-10-02T12:43:33Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 17,
+                "started_at": "2026-10-02T12:43:33Z",
+                "completed_at": "2026-10-02T12:43:33Z"
+              }
+            ],
+            "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/110841636701",
+            "labels": [
+              "ubuntu-latest"
+            ],
+            "runner_id": 1000001329,
+            "runner_name": "GitHub Actions 1000001329",
+            "runner_group_id": 0,
+            "runner_group_name": "GitHub Actions"
+          },
+          {
+            "id": 110841636844,
+            "run_id": 37008282228,
+            "workflow_name": "KODJO VNext proof stability and architecture",
+            "head_branch": "protocol/vnext-proof-stability-20260930",
+            "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282228",
+            "run_attempt": 1,
+            "node_id": "CR_kwDOTtCBw88AAAAZzq0n7A",
+            "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/110841636844",
+            "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282228/job/110841636844",
+            "status": "completed",
+            "conclusion": "success",
+            "created_at": "2026-10-02T12:42:15Z",
+            "started_at": "2026-10-02T12:42:17Z",
+            "completed_at": "2026-10-02T12:56:19Z",
+            "name": "qualification (windows-latest)",
+            "steps": [
+              {
+                "name": "Set up job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 1,
+                "started_at": "2026-10-02T12:42:18Z",
+                "completed_at": "2026-10-02T12:42:19Z"
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 2,
+                "started_at": "2026-10-02T12:42:19Z",
+                "completed_at": "2026-10-02T12:42:29Z"
+              },
+              {
+                "name": "Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 3,
+                "started_at": "2026-10-02T12:42:29Z",
+                "completed_at": "2026-10-02T12:42:36Z"
+              },
+              {
+                "name": "Run actions/setup-python@v5",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 4,
+                "started_at": "2026-10-02T12:42:36Z",
+                "completed_at": "2026-10-02T12:42:36Z"
+              },
+              {
+                "name": "Parse all workflow syntax independently",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 5,
+                "started_at": "2026-10-02T12:42:36Z",
+                "completed_at": "2026-10-02T12:42:44Z"
+              },
+              {
+                "name": "Execute VNext contracts on exact candidate",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 6,
+                "started_at": "2026-10-02T12:42:44Z",
+                "completed_at": "2026-10-02T12:56:12Z"
+              },
+              {
+                "name": "Validate executable workflow invariants",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 7,
+                "started_at": "2026-10-02T12:56:12Z",
+                "completed_at": "2026-10-02T12:56:13Z"
+              },
+              {
+                "name": "Check patch whitespace",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 8,
+                "started_at": "2026-10-02T12:56:13Z",
+                "completed_at": "2026-10-02T12:56:13Z"
+              },
+              {
+                "name": "Post Run actions/setup-python@v5",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 14,
+                "started_at": "2026-10-02T12:56:13Z",
+                "completed_at": "2026-10-02T12:56:13Z"
+              },
+              {
+                "name": "Post Run actions/setup-node@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 15,
+                "started_at": "2026-10-02T12:56:13Z",
+                "completed_at": "2026-10-02T12:56:14Z"
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 16,
+                "started_at": "2026-10-02T12:56:14Z",
+                "completed_at": "2026-10-02T12:56:18Z"
+              },
+              {
+                "name": "Complete job",
+                "status": "completed",
+                "conclusion": "success",
+                "number": 17,
+                "started_at": "2026-10-02T12:56:18Z",
+                "completed_at": "2026-10-02T12:56:18Z"
+              }
+            ],
+            "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/110841636844",
+            "labels": [
+              "windows-latest"
+            ],
+            "runner_id": 1000001327,
+            "runner_name": "GitHub Actions 1000001327",
+            "runner_group_id": 0,
+            "runner_group_name": "GitHub Actions"
+          },
+          {
+            "id": 110846336367,
+            "run_id": 37008282228,
+            "workflow_name": "KODJO VNext proof stability and architecture",
+            "head_branch": "protocol/vnext-proof-stability-20260930",
+            "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37008282228",
+            "run_attempt": 1,
+            "node_id": "CR_kwDOTtCBw88AAAAZzvTdbw",
+            "head_sha": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+            "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/110846336367",
+            "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37008282228/job/110846336367",
+            "status": "completed",
+            "conclusion": "skipped",
+            "created_at": "2026-10-02T12:56:20Z",
+            "started_at": "2026-10-02T12:56:20Z",
+            "completed_at": "2026-10-02T12:56:20Z",
+            "name": "architecture-audit",
+            "steps": [],
+            "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/110846336367",
+            "labels": [
+              "self-hosted",
+              "Windows",
+              "X64",
+              "kodjo-claude-local"
+            ],
+            "runner_id": null,
+            "runner_name": null,
+            "runner_group_id": null,
+            "runner_group_name": null
+          }
+        ]
+      },
+      "artifacts": {
+        "total_count": 0,
+        "artifacts": []
+      }
+    }
+  ],
+  "pilot": {
+    "linux": {
+      "tests": 928,
+      "pass": 927,
+      "fail": 0,
+      "skip": 1
+    },
+    "windows": {
+      "tests": 928,
+      "pass": 924,
+      "fail": 0,
+      "skip": 4
+    }
+  },
+  "historical": {
+    "linux": {
+      "subjects": 420,
+      "subject_status": {
+        "CONTROLLED_ASSERTIONS_PASS": 416,
+        "EVIDENCE_INCOMPLETE": 4
+      },
+      "case_count": 402,
+      "case_status": {
+        "PASS": 401,
+        "SKIP": 1
+      },
+      "incomplete_subjects": [
+        "T-078",
+        "T-085",
+        "INC-105",
+        "INC-112"
+      ],
+      "limit": "Job SUCCESS validates current controlled mechanisms; retained reserves do not become individual historical, external or device proof."
+    },
+    "windows": {
+      "subjects": 420,
+      "subject_status": {
+        "CONTROLLED_ASSERTIONS_PASS": 409,
+        "EVIDENCE_INCOMPLETE": 11
+      },
+      "case_count": 402,
+      "case_status": {
+        "PASS": 401,
+        "SKIP": 1
+      },
+      "incomplete_subjects": [
+        "T-056",
+        "INC-021",
+        "INC-041",
+        "INC-046",
+        "INC-060",
+        "INC-083",
+        "NORM-4ca8aac4beb1b29a",
+        "NORM-e7ee1d836628206e",
+        "NORM-4ca3cd0716221795",
+        "NORM-b41a29c1d7645181",
+        "NORM-04b31e7434a381f3"
+      ],
+      "limit": "Job SUCCESS validates current controlled mechanisms; retained reserves do not become individual historical, external or device proof."
+    }
+  },
+  "log_archive_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_QUALIFICATION_LOGS.zip",
+  "log_archive_sha256": "2703ebf3c6186a23d300a14f3397010d8350250a7133fc8fbf32993384e29c51",
+  "log_members": {
+    "110841636401.log": {
+      "sha256": "b76be5835efcbf66a45b30b5df60dc093769a04b9b8e2edcfb123e4e6272576b",
+      "bytes": 603094
+    },
+    "110841636682.log": {
+      "sha256": "a8fd422ede8c3f4b15d4caca1a26cdbc259a853d081325897d0c00c9ae511019",
+      "bytes": 603813
+    },
+    "110841649599.log": {
+      "sha256": "a58d144c340e2050dbea71259ee8e8ecfc83eba3cfdd01b4297bd4b5fa5be6df",
+      "bytes": 546735
+    },
+    "110842770335.log": {
+      "sha256": "5b112a803d1ce73ce8a9703e23fa42df812bb93319f36262392b54ef52eceb04",
+      "bytes": 385908
+    },
+    "37008282181-artifacts.json": {
+      "sha256": "3ee8bc827271e8b9d97555bbaafcebfbffa79bcc815a2ab16bebc2614f947eb2",
+      "bytes": 2827
+    },
+    "37008282181-jobs.json": {
+      "sha256": "5f14db38c485275092e3ada33d6bd484843e59b15382899abc8f3eeae4eecf19",
+      "bytes": 13382
+    },
+    "37008282181-run.json": {
+      "sha256": "fc266ec0d14a3577624a122261f7a3e3938148c7909cec16308e871e3f9b4b4f",
+      "bytes": 15773
+    },
+    "37008282228-artifacts.json": {
+      "sha256": "f7417e1fb877d3f5934f143cc38ad9e2905476e8f5ac6776507d09441efcd6f6",
+      "bytes": 42
+    },
+    "37008282228-jobs.json": {
+      "sha256": "44242bdd31a6da00d26503859898bb0bc2bcb0b4fcde5b99c6adef028d2aae22",
+      "bytes": 18761
+    },
+    "37008282228-run.json": {
+      "sha256": "b79d45e320ba86fab76d7d874f1cdda44f4a2a98c5a2efd3f49081468fbce030",
+      "bytes": 15803
+    },
+    "37008282270-artifacts.json": {
+      "sha256": "f7417e1fb877d3f5934f143cc38ad9e2905476e8f5ac6776507d09441efcd6f6",
+      "bytes": 42
+    },
+    "37008282270-jobs.json": {
+      "sha256": "2aa1769822b02d5c2b61d78d1698863c3504f3fbdd3a00cbbe6941e97909c855",
+      "bytes": 14653
+    },
+    "37008282270-run.json": {
+      "sha256": "2c8a62831e031f49e93d01cff6fbcd20c51ceeaf5746ec2f46e09c766a8eaa69",
+      "bytes": 15793
+    }
+  },
+  "preflight_artifact": {
+    "id": 11228650596,
+    "bytes": 9906,
+    "sha256": "45cac4c2174f70b9812a36450abcd1b2c2e619aa9c16f9a6bf9ba08a0cac7048",
+    "path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_PREFLIGHT.zip"
+  },
+  "initial_revision_replayed": false,
+  "new_claude_runtime_session_after_fixes": false,
+  "application_published": false,
+  "routine_dev_publication_after_fixes": false,
+  "automatic_sync_after_queue_review_delivered": false,
+  "full_source_snapshot_created": false
+}

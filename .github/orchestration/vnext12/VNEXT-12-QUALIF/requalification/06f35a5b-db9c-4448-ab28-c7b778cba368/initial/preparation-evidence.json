@@ -1,0 +1,46 @@
+{
+  "schema_version": "kodjo.vnext12.requalification-initial-preparation-evidence.v1",
+  "campaign_id": "06f35a5b-db9c-4448-ab28-c7b778cba368",
+  "status": "PREPARED_REAL_APPROVE",
+  "producer_head": "b8f871001f21ecf6f3444479f845bc9aae59e5a3",
+  "run_id": 36916159035,
+  "job_id": 110554866566,
+  "review_verdict": "APPROVE",
+  "claude_session_id": "bb719f88-f175-4cd6-aa03-c7d6ce0f654c",
+  "artifact_id": 11191289600,
+  "artifact_sha256": "17e02c27d15e962c4d4ef386eefecc667841a624178ec5063cc4197d27d95284",
+  "artifact_archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/preparation-artifact.zip",
+  "artifact_members": {
+    "prepared.json": "41d83a6f30cbc05a62779a17d915ccaf319a7c7b54a3c74e62720c8bd6d1a21e",
+    "produced.json": "3dd476d6876b1ce4a4307900708f73abeb8724fa999e9e5495b5108e1c85e1aa",
+    "publication.json": "07e96b9e80a22fb3f4f88a11aeb610e42f54f423fe0d09538ecb9ec97f038d98",
+    "recipe.json": "a2d3ad242b0e56eaf53b1cc35a36bc59c7ba61ade52fa580049c8343e9baa193",
+    "review-receipt.json": "804c13049efcda814483223d41ecaea3d470d0bf8bdf23bb5916b612a14d45ee",
+    "transport.json": "6e7478678b12c2ef6c6068d2951c82ffedee2e95d0e9e235e0b0f31ea3596a7c",
+    "status.json": "5e18a02b55d3128c53b667f81680c6a078fee47a0f3bc2510395f7c9b57e66c6"
+  },
+  "prepared_chain_hash": "e9530e4ac6dd716f50f40733ceb437c62fd5d19327e9a0bfb6058e66fe0552e6",
+  "gate_reservation": {
+    "gate_ref": "issue_comment:5940186046",
+    "repository": "MyUncried/Application-Routine",
+    "issue_number": 269,
+    "prepared_chain_hash": "e9530e4ac6dd716f50f40733ceb437c62fd5d19327e9a0bfb6058e66fe0552e6",
+    "reservation_url": "https://github.com/MyUncried/Application-Routine/pull/269#issuecomment-5940186046"
+  },
+  "transport": {
+    "slice_bootstrap_file": ".github/orchestration/v2-slices/VNEXT-12-QUALIF/slice-bootstrap.json",
+    "slice_bootstrap_sha256": "232c09337a2e2eabf4f7e0dbe87c78115d6075cc9b0f8c6e72a25a2bac582688",
+    "plan_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/initial/technical-plan.md",
+    "review_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/initial/independent-review.md",
+    "prompt_file": ".github/orchestration/vnext12/VNEXT-12-QUALIF/initial/implementation-mission.md",
+    "gate_ref": "issue_comment:5940186046",
+    "request_id": "b2af3723-0ce8-4f7f-8488-cf4498eb9d92",
+    "created_at": "2026-10-01T20:44:05.835Z"
+  },
+  "implementation_invoked": false,
+  "approval_observed": false,
+  "human_review_performed": false,
+  "preparation_candidate_qualification_run_id": 36916159025,
+  "preparation_candidate_pilot_run_id": 36916159078,
+  "final_audit_invoked": false
+}

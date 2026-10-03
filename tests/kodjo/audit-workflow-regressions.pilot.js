@@ -93,6 +93,7 @@ test('implementation report identity binds application source to base_head, not 
     source_head:source,
     truncated:false,
     original_text_sha256:crypto.createHash('sha256').update(reportText).digest('hex'),
+    machine_evidence:{modified_files:['a.ts'],checks:[{check:'a.test.ts',status:'PASS'}],out_of_scope_files:[]},
     report_text:reportText
   };
   const body=[

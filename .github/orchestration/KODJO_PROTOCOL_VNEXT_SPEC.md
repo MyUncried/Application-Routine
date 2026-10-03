@@ -78,16 +78,16 @@ REVISE réentre uniquement à l'étape minimale nécessaire : REQUIREMENTS, IMPA
 - `kodjo.vnext.plan-contract.v1`
 - `kodjo.vnext.review-report.v1`
 - `kodjo.vnext.revision-patch.v1`
-- `kodjo.vnext.approval-target.v1`
-- `kodjo.vnext.approval-record.v1`
-- `kodjo.vnext.execution-request.v1`
+- `kodjo.vnext.approval-target.v2`
+- `kodjo.vnext.approval-record.v2`
+- `kodjo.vnext.execution-request.v2`
 - `kodjo.vnext.runtime-snapshot.v1`
 - `kodjo.vnext.legacy-queue-projection.v1`
 - `kodjo.vnext.cutover-plan.v1`
 - `kodjo.vnext.cutover-activation.v1`
 - `kodjo.vnext.cutover-rollback.v1`
 - `kodjo.vnext.audit-manifest.v1`
-- `kodjo.vnext.audit-coverage.v1`
+- `kodjo.vnext.audit-coverage.v2`
 - `kodjo.vnext.finding-ledger.v1`
 - `kodjo.vnext.final-audit-report.v1`
 
@@ -1072,9 +1072,9 @@ La révision ne peut être considérée résolue que si la nouvelle review calcu
 
 VNext-08 introduit :
 
-- `kodjo.vnext.approval-target.v1`
-- `kodjo.vnext.approval-record.v1`
-- `kodjo.vnext.execution-request.v1`
+- `kodjo.vnext.approval-target.v2`
+- `kodjo.vnext.approval-record.v2`
+- `kodjo.vnext.execution-request.v2`
 
 Le flux est :
 
@@ -1261,7 +1261,7 @@ Le contrat canonique devient l'ApprovalTarget et son execution_fingerprint.
 
 Ce lot ne modifie pas la Lean Queue active.
 
-`kodjo.vnext.execution-request.v1` est l'autorisation canonique VNext.
+`kodjo.vnext.execution-request.v2` est l'autorisation canonique VNext.
 
 L'adaptation vers le contrat de transport/queue actif est une projection de migration ultérieure et ne peut ni enrichir ni élargir l'autorisation canonique.
 
@@ -1799,12 +1799,13 @@ Les critères ne peuvent pas être ajoutés, retirés ou requalifiés pendant l�
 
 Contrat :
 
-`kodjo.vnext.audit-coverage.v1`
+`kodjo.vnext.audit-coverage.v2`
 
 Chaque critère du manifeste apparaît exactement une fois avec l’un des statuts :
 
 - `CHECKED_PASS`
 - `CHECKED_FAIL`
+- `NON_VERIFIABLE`
 - `NOT_APPLICABLE`
 
 Un critère `REQUIRED` ne peut pas devenir `NOT_APPLICABLE` pendant l’audit.
@@ -1861,6 +1862,7 @@ Une provenance modifiée puis re-signée est refusée.
 L’audit indépendant final produit uniquement :
 
 - `FINAL_APPROVED`
+- `FINAL_PROOF_UNAVAILABLE_TERMINAL`
 - `FINAL_REVISE_TERMINAL`
 - `FINAL_CLARIFICATION_TERMINAL`
 
@@ -1997,7 +1999,7 @@ Les surfaces legacy peuvent conserver leurs permissions historiques uniquement t
 
 Contrat :
 
-`kodjo.vnext.remote-write-attestation.v1`
+`kodjo.vnext.remote-write-attestation.v2`
 
 États :
 
@@ -2072,3 +2074,286 @@ Le gate est acquis seulement si :
 Ce gate est requis avant VNext-12.
 
 Il ne signifie pas encore que F-01 est sans objet : F-01 devient effectivement sans objet uniquement après `PASS_RETIRED`, c'est-à-dire après retrait des derniers writers legacy.
+
+## 23. Complément ciblé PRE-1 — preuve indisponible et stabilité
+
+Ce complément ne modifie pas PRE-1 ni les dispositions #250/#252. Référence
+et preuves : [couverture ciblée](KODJO_VNEXT_PRE1_COVERAGE.md). Les garanties
+contractuelles ci-dessous ne constituent pas un E2E VNext qualifié.
+
+### 23.1 Taxonomie et gates
+
+`ProofResult` distingue PASS, FAIL démontré et NON_VERIFIABLE. Une syntaxe de
+résolution non prise en charge impose NON_VERIFIABLE, même si le producteur
+propose PASS ou FAIL. Pour une preuve requise par le gate : FAIL exige une
+correction causale ; NON_VERIFIABLE attend la preuve ; PASS autorise ce
+contrôle seulement. Une preuve non requise reste visible sans bloquer ce gate.
+Aucun retry automatique n'est induit.
+
+`AuditCoverage v2` ajoute NON_VERIFIABLE et `unavailable_criterion_ids`.
+La qualification finale ne peut être FINAL_APPROVED avec un critère requis
+NON_VERIFIABLE. Elle devient FINAL_PROOF_UNAVAILABLE_TERMINAL si aucun défaut
+ni ambiguïté n'impose déjà une autre issue terminale. Elle n'invente aucun
+finding applicatif pour expliquer une certification indisponible.
+
+### 23.2 Registre cumulatif et réserves
+
+Le registre cumulatif conserve les sujets même absents d'une revue ciblée.
+L'identité règle+cible ne dépend pas du wording. Chaque observation porte
+classe, gravité générale, nécessité pour le gate, hashes cible/norme/critère,
+évidences et justification. Nouvelle formulation seule ne suffit pas à
+requalifier un objet inchangé comme bloquant ou comme défaut démontré.
+
+Une réouverture est causale : changement de cible, règle/critère applicable,
+preuve nouvelle ou phase différente. Ses raisons sont conservées. Une réserve
+acceptée persiste dans le même contexte ; son acceptation ne vaut pas
+résolution. Le propriétaire identifié à l'admission est seul habilité à
+accepter/révoquer ; l'authentification de transport doit vérifier cet acteur.
+RESOLVE exige une nouvelle observation SUCCESS et une évidence de fermeture.
+Le gate ACCEPTED_WITH_RESERVES conserve les défauts et n'écrit jamais APPROVE.
+
+La limite de reprise est une entrée explicite figée du cycle. À épuisement,
+aucune réentrée automatique. Un audit final reste terminal comme en §21.
+
+### 23.3 Producteur, CI et retrait
+
+Tout producteur VNext doit recevoir les règles de tous ses consommateurs,
+ou utiliser une construction mécanique équivalente. `buildProducerPacket`
+embarque les sources et hashes de leur fermeture CommonJS locale, les inputs
+et le schéma ; dépendances dynamiques/externes non couvertes sont refusées,
+pas déclarées exhaustives. JSON UTF-8 transporté en LF ou CRLF conserve les
+objets canoniques. `buildReviewerPacket` expose cette chaîne pour la review.
+Le raccordement de tous les appels IA reste un travail d'intégration à prouver.
+
+La CI VNext dédiée couvre tous les chemins workflows/orchestration/scripts/
+tests et règles AI sans exclusions tacites. Elle ne supprime aucun contrôle
+historique pendant la coexistence. Tout contrôle historique absent de la
+chaîne VNext doit avoir une disposition de responsabilité explicite.
+
+`RemoteWriteAttestation v2` ne peut être PASS_RETIRED par seule absence de
+fichiers. Sans observation de retrait, elle échoue NON VERIFIABLE : inventaire
+GitHub complet/paginé, zéro run pending et barrière prouvée contre rerun/replay
+pour toutes les surfaces workflow figées. L'observation est liée au hash de
+policy. Le collecteur doit produire une observation actuelle au gate réel ;
+une fixture locale ne prouve pas le retrait effectif.
+
+### 23.4 Audit d'architecture anticipé
+
+La [mission dédiée](KODJO_VNEXT_ARCHITECTURE_AUDIT_MISSION.md) cherche les trous
+architecturaux, distingue défaut/preuve manquante/recommandation/préférence,
+et n'est ni l'audit final ni un préalable supplémentaire au développement
+PRE-1. Son rapport en lecture seule ne crée aucune exigence automatiquement.
+
+### 23.5 Fermeture ciblée de l’audit architecture du 30 septembre
+
+Rapport source : [audit anticipé](reports/2026-09-30_VNEXT_ARCHITECTURE_36719499021_1.md),
+HEAD `a0e7379e166ec899180a186361f41123360ff908`, run `36719499021`,
+artefact `11101687312`. La réussite du job signifie rapport livré, pas architecture approuvée.
+
+Le runtime confronte CandidateManifest et DirectImportScan aux objets Git du HEAD
+applicatif observé ; il reconstruit RevisionOutcome avec les artefacts avant/après.
+Le handoff et l’audit final reconstruisent ReviewContext à partir des artefacts.
+L’audit final refuse un candidate_head différent du HEAD protocolaire du dossier.
+L’applicabilité UI provient des requirements UI source-first, avec un garde
+de chemins conservateur supplémentaire désormais porté par VNext.
+
+Toute modification de classification, gravité ou nécessité au gate exige une
+cause explicite. Les phases utilisent le vocabulaire fermé des étapes et des
+gates FINAL_AUDIT/CUTOVER. Le runtime exige le registre cumulatif lié à son lot,
+HEAD et phase HANDOFF ; en REVISION, le compteur progresse d’une unité et la
+limite ne change pas. Ces contrôles locaux ne prouvent pas l’authentification
+GitHub ni l’existence d’un collecteur opérationnel.
+
+Conséquence dérivée de §23.1 et des champs critiques VERIFIED du protocole
+AI_ORCHESTRATION : accepter la conservation d’une preuve obligatoire indisponible
+comme réserve ne ferme pas sa preuve. Le gate reste WAIT_FOR_PROOF. Aucun
+ACCEPTED_WITH_RESERVES ne remplace cette obligation ni l’audit final terminal.
+
+Les octets des projections canoniques restent LF. Un fichier Markdown converti
+en CRLF est refusé par l’égalité exacte ; les transports JSON LF/CRLF conservent
+les valeurs JSON. Les adaptateurs de publication doivent conserver ces octets
+sans filtres Git implicites. Aucune normalisation globale du dépôt n’est prescrite.
+
+Le [rapport de fermeture ciblée](reports/2026-09-30_VNEXT_ARCHITECTURE_CLOSURE.md)
+distingue corrections contractuelles, preuves d’intégration encore absentes et
+réserves avant cutover. Il ne vaut ni VNext-12 ni audit final.
+
+### 23.6 Matérialisation avant approbation et admission vérifiée
+
+Les fichiers de transport plan/revue/mission sont préparés à partir des
+artefacts canoniques validés, puis versionnés avant l’approbation du commit
+protocolaire exact. Ils portent le hash du PlanContract ; la revue porte
+également le hash du ReviewReport. Ils ne contiennent pas l’ExecutionRequest
+postérieur, qui dépend du commit et de l’ApprovalRecord. Le lien exact vers
+l’ExecutionRequest reste dans la projection canonique scellée et son guard.
+Cette séparation évite de demander à un commit de contenir son propre hash.
+
+Le point d’entrée `vnext-queue-admission.verifyQueueAdmission` est en lecture
+seule. Il reconstruit runtime et projection, compare la demande, lit les trois
+fichiers via les objets Git du commit approuvé et appelle le consommateur
+`verify-authorizations.js`. Le commentaire GitHub doit aussi porter le hash
+exact de l’ApprovalTarget. La réaction du propriétaire doit être postérieure
+ou égale à la dernière édition du commentaire et antérieure ou égale à
+l’observation d’approbation. Une réaction conservée après modification de
+l’objet soumis ne vaut donc pas nouvelle approbation. Le client de production
+effectue des lectures GitHub authentifiées, sans fallback hors ligne.
+
+La préparation et l’admission sont testées en dépôt jetable avec un client
+GitHub de fixture. Leur raccordement à un producteur/workflow réel, au runner,
+au contrat downstream d’implémentation et aux preuves de chaque responsabilité
+reste requis avant VNext-12. Ces tests n’autorisent aucune queue réelle.
+
+La couverture historique contient toutes les unités de prose et les formats
+de référence de la source normative. La readiness exige des preuves par sujet,
+résolues au candidat exact par le consommateur ; des flags CONFORME seuls ne
+constituent pas une certification. La classification des clauses identifie
+responsabilité et phase sans promouvoir un résultat historique en PASS VNext.
+
+### 23.7 Protections héritées : écrivain et choix natif
+
+L’ExecutionCore v2 inclut obligatoirement execution_context (mode LOCAL/CLOUD,
+écrivain désigné) et les assessments natifs associés à chaque critère UI.
+ApprovalTarget, message et ExecutionRequest désignent ce même contexte. Une
+bascule change le fingerprint et invalide l’approbation précédente. Aucun
+écrivain n’est auto-attribué. Le transport historique refuse CLOUD et les
+écrivains autres que CLAUDE avant projection.
+
+Les assessments natifs lient les unités DOC/DECISION du SourceManifest et les
+preuves/assertions de branche UI. Une substitution native exige le motif
+FUNCTIONAL_REQUIREMENT_UNSATISFIED, l’exigence fonctionnelle validée, ses preuves,
+puis l’approbation explicite de chaque exception. Style/Jest ne sont pas éligibles.
+Sans approbation : NATIVE_PRIMITIVE_EXCEPTION_REQUIRED. La réaction propriétaire
+GitHub doit viser le message exact affichant contexte et décisions.
+
+Une référence source n’est pas une preuve résolue. Sans résolveur natif vérifié,
+construire une cible UI arrête en WAIT_FOR_PROOF. Le reçu est lié à l’assessment
+canonique, au SourceManifest et au HEAD applicatif. Le raccordement aux producteurs
+authentifiés et la vérité des faits restent à qualifier à l’étape 4 ; les fixtures
+ne les certifient pas. Les schémas d’approbation/handoff v1 ne sont pas convertis
+silencieusement en v2.
+
+### 23.8 Publication stable et admissions exactes
+
+Avant publication, `vnext-chain.js validate-publication` valide un tree Git complet,
+lié au HEAD parent attendu et à l'empreinte du checkpoint. Il réutilise les contrôles
+YAML, invariants exécutables, syntaxe JavaScript, politique des writers et
+correspondances historiques. Le contrôle historique ciblé du workflow pilote est
+réexécuté avant publication lorsque ce workflow change. Le parser YAML couvre
+les extensions `.yml` et `.yaml`. Une unité PowerShell modifiée exige le parser Windows
+PowerShell 5.1 ; son indisponibilité refuse la publication. Les octets inchangés ne
+sont pas présentés comme nouvellement parsés. Une sortie tronquée d'outil ne doit
+jamais servir de contenu de fichier. Les données reçues restent refusées en cas
+de format invalide, sans réparation sémantique silencieuse.
+
+Le guard relit GitHub : HEAD parent et checkpoint identiques, aucun run de la phase
+encore actif. Le contrôleur garde la branche stable jusqu'à la fin des qualifications
+et de l'exécution. Les groupes de concurrence existants sont conservés ; un nouveau
+contrôleur ne publie pas concurremment. Juste avant toute mise à jour de ref,
+revalider cette fenêtre, vérifier le tree et les blobs, puis publier sans forçage
+avec le parent attendu. Ce guard ne verrouille pas les écritures directes d'un
+administrateur hors protocole ; un déplacement du HEAD exige une nouvelle validation.
+
+Les préparations INITIAL et REVISION utilisent le même constructeur fermé :
+plan/revue/mission et transport provisoire sans gate ni identité de demande.
+`reserve-gate` crée un vrai commentaire lié au hash du dossier préparé ; il ne
+constitue aucune approbation. `finalize-transport` relit cette réservation et génère
+le transport final avec son identifiant réel et un UUID neuf. Dossier et transport
+sont publiés et qualifiés avant `request-approval`, qui remplace le texte de
+réservation par le message exact du candidat. `handoff` reste interdit sans
+l'observation fraîche de la vraie réaction autorisée. La réservation et le transport
+sont des données techniques ; aucune revue humaine n'est déduite de leur génération.
+
+Toutes les entrées d'admission utilisent `vnext-github-approval.verifyObservation` :
+égalité du commentaire complet généré, HEAD, identifiant et issue attendus,
+propriétaire, dates valides, réaction postérieure à la dernière édition. L'admission
+vérifie aussi l'identifiant numérique de réaction de l'ApprovalRecord. Aucun autre
+pouce admissible ne remplace silencieusement celui enregistré. Les preuves anciennes
+restent inchangées ; une nouvelle admission exige les références complètes.
+
+Le superviseur VNext-12 relit la qualification GitHub avant installation,
+consommation et Claude : workflow attendu, candidat exact, dernière tentative,
+cinq jobs qualification/historique Linux/Windows et couverture interplateforme terminés SUCCESS. Le contrôleur
+est soit du même code protocolaire exact, soit qualifié séparément. Une référence
+ou un booléen déclaratif ne remplace pas ces observations. Ces règles s'ajoutent aux
+admissions fraîches et à la consommation atomique existantes.
+
+La récupération de l'ancien run 16 est une réserve historique distincte du résultat
+courant du pilote. Un téléchargement absent produit NON_CERTIFIED avec son motif ;
+aucun PASS historique n'est fabriqué. Toute preuve obligatoire au gate concerné
+reste WAIT_FOR_PROOF. Runner déconnecté, réseau et limites de service appellent
+attente ou diagnostic technique ciblé, sans relance automatique. Une erreur inconnue
+reste à diagnostiquer ; seule une ambiguïté métier effectivement identifiée appelle
+une décision de l'utilisateur.
+
+Le [registre complémentaire de corrections et de qualification](reports/2026-10-01_VNEXT_TRANSPORT_HARDENING.md)
+conserve la trace de ces changements sans modifier les 420 sujets historiques.
+
+## 24. Consolidation de l'audit v8 — étape 3
+
+### 24.1 Revue complète et correction causale
+
+ReviewContext et ReviewReport v2 exigent une attestation explicite des identifiants
+du catalogue effectivement examinés. Absence de findings ne signifie pas couverture.
+La liste doit être exacte, sans doublon ni cible supplémentaire. Une revue de
+REVISION fournit une résolution observée par finding causal, avec références de
+preuve et justification. Une résolution OPEN interdit APPROVE.
+
+Le planning suivant lie l'empreinte exacte du RevisionPatch. Chaque cible annoncée
+comme corrigée doit effectivement changer. Le ledger est construit depuis les
+résolutions du reçu indépendant ; il n'invente aucune clôture en bloc. Un reçu de
+base préservé peut être repris seulement pour le même candidat et le même contrat
+de base. Les demandes d'exécution déjà consommées ne sont jamais rejouées.
+
+### 24.2 Raccordement à la revue d'implémentation commune
+
+La projection legacy transporte les exigences non UI, leurs sources adressables,
+les contrats de tests et de frontières, ainsi que les assertions UI atomiques et
+les chemins/exports des composants sélectionnés. Le registre VNext canonique est
+conservé. Une projection sans exigence ne permet aucune approbation d'implémentation.
+Les alias d'identifiants UI sont déterministes et préservent toutes les assertions.
+Un composant REUSE/EXTEND sans chemin/export univoque est refusé.
+
+La revue et la finalisation partagent la même règle appareil : VISUAL_COMPARE,
+DEVICE_CHECK et ACCESSIBILITY_CHECK peuvent rester PENDING_DEVICE. Une preuve
+ACCESSIBILITY_CHECK réellement différée ouvre le gate appareil, même sans critère
+visuel. Une preuve ACCESSIBILITY_CHECK déjà PASS n'ouvre pas ce gate à elle seule.
+Tout écart technique ou toute autre preuve obligatoire indisponible reste bloquant.
+La validation propriétaire doit viser la livraison, le HEAD, la slice et la revue
+exacts. Les commentaires de revue et d'implémentation doivent provenir du bot et
+de l'issue exacte du dépôt. La revue n'est pas réécrite par la finalisation.
+
+La dérogation SQLite PRE-1 reste NOT_EXECUTED. VISUAL_APPROVED ne la transforme
+jamais en PASS. Les preuves appareil en attente et non exécutées restent présentes
+dans le résultat ; device_evidence_satisfied désigne la validation propriétaire
+de la livraison, pas l'exécution réussie de tous les contrôles appareil.
+
+### 24.3 Exécution, reprise et publication
+
+Les opérations Git du lanceur neutralisent hooks et fsmonitor. Configurations Git,
+hooks et fichiers ignorés sont empreintés avant/après Claude et après les checks.
+Une mutation hors delta contrôlé bloque la construction du paquet Git et la
+publication. L'authentification Git est limitée à la commande réseau ; elle n'est
+pas persistée dans la configuration. Aucun jeton GitHub n'est transmis à Claude.
+La reprise et son préflight n'acceptent que le statut d'intégrité explicite INTACT.
+Les listes PF-023 à PF-028 dépourvues de contenu probant ne sont plus émises.
+
+Acquisition, remplacement périmé et libération du verrou sont sérialisés par une
+transition exclusive. Une transition abandonnée échoue fermée. Les scans détectent
+les écritures REST même avec destination concaténée et les commandes Git avec
+options ; un commentaire kodjo-allow-mention n'autorise aucune opération. Les
+suppressions et imports JSON/assets sont couverts par le scan d'impact.
+
+La validation native Windows PowerShell 5.1 reste obligatoire. Si elle est
+indisponible localement, seul un candidat sans autorité d'exécution, stage
+QUALIFY_ONLY, peut être déposé sur la branche de qualification. Le workflow Windows
+valide alors le tree Git exact avec le même validateTree strict, avant toute
+nouvelle préparation ou admission d'exécution. Ce dépôt de qualification ne vaut
+ni publication opérationnelle validée, ni autorisation INITIAL/REVISION. Un échec
+du parser laisse le candidat non qualifié. Les gates d'exécution restent fermés.
+
+Chaque assertion historique mappée doit avoir PASS sur au moins un des deux OS
+pour le même candidat. Deux SKIP ne constituent pas une preuve. Cette couverture
+ne certifie pas les scénarios externes historiques ni l'activation de VNext.
+
+Le [rapport de consolidation v8](reports/2026-10-03_VNEXT_V8_CONSOLIDATED_CORRECTIONS.md)
+sépare corrections livrées, qualifications, exécutions réelles et réserves restantes.

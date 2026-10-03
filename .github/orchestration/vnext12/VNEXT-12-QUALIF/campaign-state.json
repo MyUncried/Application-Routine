@@ -1,0 +1,1440 @@
+{
+  "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
+  "recorded_at": "2026-10-03T22:28:14.717Z",
+  "repository": "MyUncried/Application-Routine",
+  "pull_request": 269,
+  "branch": "protocol/vnext-proof-stability-20260930",
+  "active_step": 3,
+  "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
+  "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
+  "controller_stage": "V8_REVISION_TIMEOUT_CORRECTION_PREPARE_REQUESTED",
+  "controller_generation": 46,
+  "initial_qualification_reference_correction": {
+    "failed_run": 37112240984,
+    "failed_job": 111172374634,
+    "controller_head": "b37637edd6be11519cf2974d4b20ed63d33b62e4",
+    "diagnostic": "VNEXT_QUALIFICATION_RUN_REQUIRED",
+    "cause": "Controller request omitted qualification_run_id despite actual successful approved-head qualification.",
+    "correction": "qualification_run_id=37109636938",
+    "approved_head_unchanged": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
+    "same_runtime_code_verified": true,
+    "qualification_validation": "VERIFIED; controller EXACT_SAME_PROTOCOL_CODE",
+    "claude_invoked_on_failed_attempt": false,
+    "consumption_reached_on_failed_attempt": false,
+    "unconsumed_request_remote_ref_verified": true,
+    "request_id": "7c4b54fd-b0db-45bd-abf3-73c5a3761840",
+    "gate_ref": "issue_comment:5967139304",
+    "gate_and_reaction_rechecked": true,
+    "new_generation": 30,
+    "diagnostic_comment": 5967836973,
+    "previous_controller_pilot_run": 37112240971,
+    "previous_controller_qualification_run": 37112241034,
+    "previous_controller_checks_status": "SUCCESS",
+    "observed_at": "2026-10-03T10:02:20Z",
+    "runtime_success_claimed": false
+  },
+  "v8_first_tranche_replay": {
+    "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+    "requested_by_user": true,
+    "scope": "Disposable INITIAL/REVISION on the current first-tranche protocol; remaining v8 corrections are not covered.",
+    "phase": "INITIAL_PASS_REVISION_DEFERRED_TO_CONSOLIDATED_CANDIDATE",
+    "approved_protocol_head": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
+    "approval_target_hash": "8ffcc4f74def32ea445410197a0a50a27a1029c9a0821958df0fbba1d7ea2509",
+    "exact_owner_gate": {
+      "comment_id": 5967139304,
+      "reaction_id": 431397815,
+      "actor": "MyUncried",
+      "reaction": "+1",
+      "comment_updated_at": "2026-10-03T09:09:03Z",
+      "reaction_created_at": "2026-10-03T09:09:04Z",
+      "observed_at": "2026-10-03T09:09:35.157Z",
+      "exact_message_verified": true,
+      "real_owner_reaction_observed": true,
+      "authorization_basis": "CODEX_USER_DELEGATION_FOR_DISPOSABLE_TECHNICAL_TEST_ONLY",
+      "human_review_performed": false,
+      "durable_evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/initial/owner-approval-evidence.json"
+    },
+    "fresh_transport_qualification": {
+      "head": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
+      "pilot_run": 37109636892,
+      "pilot_linux_job": 111164882555,
+      "pilot_windows_job": 111165349371,
+      "tests": 956,
+      "linux_pass": 955,
+      "linux_skip": 1,
+      "windows_pass": 952,
+      "windows_skip": 4,
+      "fail": 0,
+      "qualification_run": 37109636938,
+      "qualification_linux_job": 111164883059,
+      "qualification_windows_job": 111164882838,
+      "historical_linux_job": 111164883025,
+      "historical_windows_job": 111164883071,
+      "drivers_run": 37109636896,
+      "drivers_linux_job": 111164994570,
+      "drivers_windows_job": 111164994579,
+      "qualification_and_driver_tests_each": 202,
+      "status": "SUCCESS",
+      "real_logs_read": true,
+      "legacy_recovery_reserve": "NON_CERTIFIED"
+    },
+    "initial_transport": {
+      "request_id": "7c4b54fd-b0db-45bd-abf3-73c5a3761840",
+      "gate_ref": "issue_comment:5967139304",
+      "gate_status": "EXACT_MESSAGE_AND_OWNER_REACTION_VERIFIED",
+      "slice_bootstrap_sha256": "9a82a9056983594fe559bf1410999fa7e751ff414d6ebaf6c443050ea92a722f",
+      "created_at": "2026-10-03T08:22:40.098Z",
+      "old_transport_detected_before_admission": true,
+      "old_consumed_request_not_replayed": "b2af3723-0ce8-4f7f-8488-cf4498eb9d92",
+      "exact_message_and_real_owner_reaction_required_after_qualification": true,
+      "user_delegation": "CODEX_USER_DELEGATION_FOR_DISPOSABLE_TECHNICAL_TEST_ONLY",
+      "human_review_performed": false
+    },
+    "materialized_dossier_qualification": {
+      "head": "e930b3ec19f0ba040c735e077df99487cbd160a0",
+      "pilot_run": 37105248313,
+      "attempt": 2,
+      "windows_job": 111159512744,
+      "status": "SUCCESS",
+      "windows_tests": 956,
+      "windows_pass": 952,
+      "windows_fail": 0,
+      "windows_skip": 4,
+      "real_log_read": true,
+      "qualification_run": 37105248422,
+      "driver_run": 37105248312,
+      "qualification_historical_and_driver_jobs": "SUCCESS",
+      "preflight_artifact": 11269186470,
+      "preflight_artifact_github_digest": "sha256:7b026d64414f0468fa7104e91871d32975073a71cd646216e0244798047a92e4",
+      "first_attempt": {
+        "job": 111152917449,
+        "status": "FAILURE_INCOMPLETE_PREFLIGHT",
+        "log_read_error": "404 BlobNotFound",
+        "cause": "UNDETERMINED",
+        "technical_correction_applied": false,
+        "retry_requested_once": true,
+        "durable_trace_comment": 5966927621,
+        "retry_success_proves_universal_resolution": false
+      },
+      "legacy_recovery_reserve": "NON_CERTIFIED",
+      "certifies_new_transport_candidate": false
+    },
+    "initial_preparation": {
+      "head": "070722462d9ac6edb797072e9c74c4817dee0601",
+      "run": 37081294314,
+      "job": 111085573177,
+      "status": "PREPARED_FOR_PUBLICATION",
+      "verdict": "APPROVE",
+      "blocking_findings": 0,
+      "suggestions": 1,
+      "session_id": "11f9ef31-2af7-4b86-8e52-07d2cf03d5bc",
+      "artifact_id": 11260087927,
+      "artifact_sha256": "2e9223973ce264f13044f86ecb400e373dff9fc71d72f169e86b5e828f009a54",
+      "downloaded_hash_verified": true,
+      "publication_generated_files": 6,
+      "receipt_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/initial/review-receipt.json",
+      "raw_result_sha256": "0d1fef7250c9449ec21a4a7c7bad2e1a0aed5bc19b9cfe5897bc97776dbc1692",
+      "review_contract_hash": "5e7e07d2db31e5547ebcba62a637b1c9553e29eab9cf1d94621821ef64d3c33f",
+      "implementation_invoked": false,
+      "suggestion": "Preservation of keep.js is checked by the real supervisor; consider an explicit plan-level preservation proof. Non-blocking suggestion retained unchanged."
+    },
+    "preparation_candidate_qualification": {
+      "head": "070722462d9ac6edb797072e9c74c4817dee0601",
+      "pilot_run": 37081294326,
+      "pilot_linux_job": 111082174626,
+      "pilot_windows_job": 111082803186,
+      "pilot_tests": 956,
+      "pilot_linux_pass": 955,
+      "pilot_linux_skip": 1,
+      "pilot_windows_pass": 952,
+      "pilot_windows_skip": 4,
+      "fail": 0,
+      "qualification_run": 37081294311,
+      "qualification_linux_job": 111082174483,
+      "qualification_windows_job": 111082174516,
+      "historical_linux_job": 111082174608,
+      "historical_windows_job": 111082174619,
+      "drivers_run": 37081294314,
+      "driver_linux_job": 111082200176,
+      "driver_windows_job": 111082200185,
+      "qualification_and_driver_tests_each": 202,
+      "status": "SUCCESS",
+      "real_job_logs_read": true,
+      "legacy_recovery_reserve": "NON_CERTIFIED",
+      "certifies_materialized_dossier_head": false
+    },
+    "source_head": "022b78768a55277239c545e1ef8235d0a789874c",
+    "preparation_generation": 12,
+    "request_generation": 31,
+    "initial_executed": true,
+    "revision_executed": false,
+    "new_execution_identities_required": true,
+    "new_exact_owner_gate_required": true,
+    "approval_observed": true,
+    "human_review_performed": false,
+    "prior_consumed_requests_replay_forbidden": true,
+    "prior_qualification": {
+      "head": "022b78768a55277239c545e1ef8235d0a789874c",
+      "pilot_run": 37076759716,
+      "pilot_linux": {
+        "job": 111068288878,
+        "tests": 956,
+        "pass": 955,
+        "fail": 0,
+        "skip": 1
+      },
+      "pilot_windows": {
+        "job": 111069192017,
+        "tests": 956,
+        "pass": 952,
+        "fail": 0,
+        "skip": 4
+      },
+      "qualification_run": 37076759717,
+      "linux_job": 111068289368,
+      "windows_job": 111068289128,
+      "historical_linux_job": 111068289347,
+      "historical_windows_job": 111068289330,
+      "driver_run": 37076759714,
+      "driver_linux_job": 111068460807,
+      "driver_windows_job": 111068460766,
+      "qualification_and_driver_tests_each": 202,
+      "conclusion": "SUCCESS",
+      "real_job_logs_read": true,
+      "legacy_recovery_reserve": "NON_CERTIFIED; global success does not certify unavailable historical recovery evidence.",
+      "certifies_future_head": false
+    },
+    "report": ".github/orchestration/reports/2026-10-03_VNEXT_V8_FRESH_CYCLE.md",
+    "initial_execution": {
+      "schema_version": "kodjo.vnext12.real-initial-execution-evidence.v1",
+      "observed_at": "2026-10-03T11:05:31.207034+00:00",
+      "run_id": 37115247745,
+      "job_id": 111180841735,
+      "controller_head": "3d1ca0a19925005440c8701eda1ae8ccfb1295a0",
+      "approved_protocol_head": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
+      "artifact_id": 11270759916,
+      "artifact_sha256": "53b4be48f0f93b3f62fa4ed742b7cf93b17faf12ee5c48c7723b17a5877cbe03",
+      "downloaded_hash_verified": true,
+      "artifact_members_sha256": {
+        "status.json": "35c0c95ea15fe64e9533b40c4f610c05d6f14fb0c9e0dd6ece4ba4bc05a5fde8",
+        "functional-proof.json": "74e3d694a953a285f7794a02dc00af8f37e00f260872faf6c9c3aeab1bdc9b22",
+        "negative-before-claude.json": "24347d01993f19a6e82dca80150e1b1b339a9f4d69bf6290047527e659bf4024",
+        "consumption.json": "0aaee5893d103781a0b033cdcb261c71037bbed5384aac664aac8172e3e605f5",
+        "consumed-request.json": "a2a94f6dd8a41c9de57d03c20f8fde3d9a746a074c70d04d6fc20d3460a06167",
+        "qualification-admission.json": "c9b8c4e99a19147f0dc1699415542d0f394df3b3d8da0fbba8e84a2001835326",
+        "implementation.patch": "656970d14fe166cef0cfdb2ab2069f315c63f58c57f11d425366caf2873d392a",
+        "baseline-checks.json": "a0e310b7a8befc37053b6958b4a5839e82826d601db598bd912b9f9f22ceacfd",
+        "runtime-result.json": "e4f6ca6ff2484b75e0176c0b5942ca9e7c6406d4a2b511aff3004534e9370756"
+      },
+      "status": "INITIAL_PASS",
+      "claude_session_id": "23570c25-875b-4158-8d87-5f075cb8056a",
+      "consumed_request": "7c4b54fd-b0db-45bd-abf3-73c5a3761840",
+      "consumption_tag": "5333643773e9310d2dda25d68f7994a26088d5d0",
+      "replay_forbidden": true,
+      "functional_proof": {
+        "observed_value": 2,
+        "targeted_jest_exit_code": 0,
+        "preserve_before_sha256": "db387ac0aab607cda76e230c38f08a343d1d3d6281c2062b48bf023f06331f56",
+        "preserve_after_sha256": "db387ac0aab607cda76e230c38f08a343d1d3d6281c2062b48bf023f06331f56",
+        "modified_files": [
+          "scripts/kodjo/fixtures/vnext12/core.js",
+          "tests/fixtures/vnext12/core.test.js"
+        ]
+      },
+      "negative_before_claude": {
+        "fault_injection": true,
+        "production_runner": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_vnext12-approved\\37115247745\\scripts\\kodjo\\run-local-claude.js",
+        "missing_authority": {
+          "refused": true,
+          "exit_code": 1,
+          "diagnostic": "VNEXT_LOCAL_QUEUE_AUTHORITY_REQUIRED"
+        },
+        "missing_review_proof": {
+          "refused": true,
+          "exit_code": 1,
+          "diagnostic": "VNEXT_QUEUE_ADMISSION_REQUEST_MISMATCH"
+        },
+        "runtime_state_created": false,
+        "claude_invoked": false
+      },
+      "disposable_cleanup": true,
+      "human_review_performed": false,
+      "authorization_basis": "CODEX_USER_DELEGATION_FOR_DISPOSABLE_TECHNICAL_TEST_ONLY",
+      "remaining_audit_findings_covered": false,
+      "revision_executed": false,
+      "application_published": false,
+      "pre1_in_scope": false,
+      "final_audit_invoked": false,
+      "checks": [
+        {
+          "check": "jest",
+          "command": "npm test --silent -- --cacheDirectory \"C:\\\\actions-runner\\\\_work\\\\_temp\\\\kodjo-vnext12-initial-37115247745-1\\\\check-cache\\\\jest\"",
+          "status": "PASS",
+          "exit_code": 0,
+          "started_at": "2026-10-03T10:28:16.695Z",
+          "finished_at": "2026-10-03T10:29:18.755Z",
+          "duration_ms": 62060,
+          "reason": null,
+          "passed_tests": 1257,
+          "failed_tests": 0,
+          "total_tests": 1257,
+          "rerun_in_this_attempt": true
+        },
+        {
+          "check": "typescript",
+          "command": "npx --no-install tsc --noEmit",
+          "status": "PASS",
+          "exit_code": 0,
+          "started_at": "2026-10-03T10:29:18.759Z",
+          "finished_at": "2026-10-03T10:29:27.763Z",
+          "duration_ms": 9004,
+          "reason": null,
+          "passed_tests": null,
+          "failed_tests": null,
+          "total_tests": null,
+          "rerun_in_this_attempt": true
+        },
+        {
+          "check": "lint",
+          "command": "npm run lint --silent -- --no-cache",
+          "status": "PASS",
+          "exit_code": 0,
+          "started_at": "2026-10-03T10:29:27.764Z",
+          "finished_at": "2026-10-03T10:29:59.920Z",
+          "duration_ms": 32156,
+          "reason": null,
+          "passed_tests": null,
+          "failed_tests": null,
+          "total_tests": null,
+          "rerun_in_this_attempt": true
+        }
+      ]
+    }
+  },
+  "audit_v8_revision": {
+    "audited_head": "c0f72fc2148a5955b9a810a8aca1f6eeefa64870",
+    "observed_main_head": "8fc58a466679a85ea74752f0273939f901efa1b8",
+    "first_tranche": {
+      "findings": [
+        "D10",
+        "D13",
+        "D14"
+      ],
+      "status": "PUBLISHED_EXACT_CANDIDATE_CI_SUCCESS",
+      "targeted_tests": {
+        "pass": 35,
+        "fail": 0,
+        "skip": 0
+      },
+      "frozen_writer_rows_updated": 6,
+      "historical_subjects_preserved": 420,
+      "main_modified": false,
+      "claude_runtime_executed": false,
+      "report": ".github/orchestration/reports/2026-10-03_VNEXT_V8_TRIGGER_SECURITY.md"
+    },
+    "next_tranches": [
+      "D11: neutralize Git hooks/fsmonitor and secure publication credentials/metadata without weakening recovery.",
+      "D3/D1/D2: reconcile main/VNext and align deferred device proofs; authenticate exact source comments and preserve the PRE-1 SQLite waiver.",
+      "D8/D7/D6: bind downstream plans, independent review coverage and bounded causal revision to real evidence.",
+      "D9/D12/D15/D16/D17/D18: close scanner/import/lock/preflight gaps with focused negative tests.",
+      "Qualify the exact revised candidate, then execute fresh disposable INITIAL/REVISION with new identities and genuine independent review."
+    ],
+    "promotion_authorized": false,
+    "final_or_cutover_authorized": false,
+    "execution_sequence": "ALL_REMAINING_CORRECTIONS_BEFORE_NEXT_FULL_CYCLE"
+  },
+  "steps": [
+    {
+      "step": 1,
+      "status": "COMPLETED"
+    },
+    {
+      "step": 2,
+      "status": "COMPLETED_REAL_LINUX_WINDOWS_DOSSIER_QUALIFICATION"
+    },
+    {
+      "step": 3,
+      "status": "COMPLETED_INITIAL_PASS_REVISION_PASS"
+    },
+    {
+      "step": 4,
+      "status": "NOT_STARTED"
+    },
+    {
+      "step": 5,
+      "status": "NOT_STARTED"
+    }
+  ],
+  "initial": {
+    "run_id": "36833427894",
+    "status": "INITIAL_PASS",
+    "approved_protocol_head": "e47525b70e62b4ea3d4b32b9fae09e306b5e3094",
+    "claude_session": "69b5de9e-10f6-400c-b741-b1827bbf1562",
+    "artifact_id": "11147999370",
+    "artifact_sha256": "01374cb75b16c37b39261c2bf8f1067fff0502c5b41f3d1401fcabc26fb5d0d0",
+    "durable_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/initial-execution-evidence.json",
+    "consumed_request": "d851f5fe-6ce5-4bb1-a615-ea2116cf04e1",
+    "consumption_tag": "9e2e693061c8d0d53d00d15519a4f1b216e6a081",
+    "replay_forbidden": true
+  },
+  "active_runs": [],
+  "obsolete_runs": [
+    {
+      "run_id": "36848654104",
+      "status": "FAILED",
+      "cause": "Test still asserted the former 25 minute Windows timeout; corrected in incident-register.pilot.js."
+    },
+    {
+      "run_id": "36849165097",
+      "status": "FAILED",
+      "cause": "Historical correspondence still contained old incident test source fingerprints; exactly ten matching case fingerprints/locations updated, with all 420 subjects preserved."
+    },
+    {
+      "run_id": "36849165208",
+      "status": "CANCELLED_AFTER_OBSOLETE_LINUX_FAILURE",
+      "claude_invoked": false
+    }
+  ],
+  "local_validation": {
+    "vnext_and_supervisors_pass": 211,
+    "fail": 0,
+    "revision_integration_tests_pass": 8,
+    "execution_supervisor_tests_pass": 9,
+    "workflow_syntax_count": 64,
+    "full_local_pilot_status": "NOT_QUALIFIED_SYNTHETIC_CHECKOUT_AND_MISSING_TOKENIZER",
+    "full_linux_ci_is_authoritative": true
+  },
+  "pending_actions": [
+    "Qualify timeout correction on exact Linux/Windows candidate and obtain fresh real base REVISE then corrected APPROVE.",
+    "Materialize fresh REVISION dossier/transport/gate; qualify before EXECUTE_REVISION.",
+    "Preserve INITIAL PASS; no consumed request replay, no FINAL, promotion or PRE-1."
+  ],
+  "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
+  "latest_failures": [
+    {
+      "run_id": "36850188454",
+      "status": "FAILED",
+      "phase": "BOUNDED_CORRECTION",
+      "actual_base_verdict": "REVISE",
+      "actual_base_session": "41caa0fc-9a28-4c25-b575-f3cafa9b956e",
+      "artifact_id": "11156434118",
+      "artifact_sha256": "8bbd97a704b99eeca9e640d678ea0583d33414e75f3f490acd5f16f1ad17118c",
+      "cause": "Supervisor treated evidence dependency targets as requested mutations. Real blocking finding targets only the plan item; actual receipt preserved unchanged.",
+      "fix": "Patch only the causal plan item; freeze semantic requirements, impacts, test/proof obligations and source/candidate anchors even when cited by the reviewer."
+    },
+    {
+      "run_id": "36850188342",
+      "attempt": 2,
+      "status": "FAILED",
+      "job_id": "110335703259",
+      "cause": "Authenticated pull request lookup mismatch after branch HEAD moved from event 7e5ced7e to checkpoint 63c6c8fb. No assertion result from complete Windows suite in attempt 2.",
+      "next_action": "Qualify the new exact HEAD and hold branch stable until its Windows preflight finishes."
+    },
+    {
+      "run_id": "36850188358",
+      "job_id": "110330878061",
+      "status": "CANCELLED",
+      "cause": "Historical Windows execution canceled after approximately 20 minutes; post-check correctly rejects incomplete evidence. Next candidate already carries 40-minute bound."
+    }
+  ],
+  "revision": {
+    "schema_version": "kodjo.vnext12.real-revision-preparation-evidence.v1",
+    "recorded_at": "2026-10-01T13:34:32.590Z",
+    "status": "REVISION_PASS",
+    "candidate_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+    "run_id": "36857231638",
+    "job_id": "110357386807",
+    "artifact_id": "11162496223",
+    "artifact_sha256": "9a91f89e7b6d934db71a56230e8a51b15953ebedcb5f3d87e87a7cff438e5841",
+    "base_verdict": "REVISE",
+    "revision_verdict": "APPROVE",
+    "base_session": "e147985e-3291-4222-b671-8afe4148806b",
+    "revision_session": "79c9c220-2014-4995-ac71-acb52a596768",
+    "revision_count": 1,
+    "revision_limit": 1,
+    "implementation_invoked": true,
+    "final_audit_invoked": false,
+    "outcome": "RESOLVED",
+    "source_archive": {
+      "artifact_id": "11159079810",
+      "sha256": "320be4a5b6025f21b0487fccbb86e21ce041511450975acbce6aea8ca30d8f3a",
+      "git_tree": "a330f3a2b73acb405a347a0372357cbf71a97a15",
+      "exact_commit_locally_recovered": true
+    },
+    "qualification_run": "36869925039",
+    "qualification_status": "SUCCESS_LINUX_WINDOWS_WITH_HISTORICAL_EQUIVALENCE",
+    "request_id": "be4f7b4b-77d0-4d43-a49f-d3d9f999e2cf",
+    "gate_ref": "issue_comment:5932536175",
+    "initial_replayed": false,
+    "delegation": {
+      "kind": "USER_AUTHORIZED_TECHNICAL_DISPOSABLE_CAMPAIGN",
+      "instruction": "mène cette campagne de test jusqu’à son terme, diagnostique, explique corrige et relance le test lorsqu’un échec intervient. Ne m’implique que lorsqu’une validation métier est nécessaire.",
+      "human_review_performed": false,
+      "approval_reaction_not_yet_created": false,
+      "actual_reaction_id": "429910266"
+    },
+    "artifact_members": {
+      "allowed-change-set.json": "23585f741c653ddbf0273423329a8225043c7a9ed4fa549bb871b4675f121d52",
+      "base-produced.json": "c01d879ca3302a58e0ac9e1c79903f16d967ea24e001bb942c4ca7c4e0874666",
+      "base-recipe.json": "527e93d35819ef9f273ebe33a0186967cf36388028ea48566d6a045aeaecef81",
+      "base-review-receipt.json": "31d6b680301e1867610a16fefb4da1458469c7e0f8db5f1e1a4344cadb9c1652",
+      "benchmark-declaration.json": "5e50a4921b3230ac801dbab3d366159724f0a7ed11e77917bd7d88f46f868a7c",
+      "prepared.json": "0ff3cdbbe7a0b6c58192d4d6ef7e7b4493c752a77d493d3900b79cd5e362dc63",
+      "publication.json": "f7313d76494d9bf401cf05c58c55415f61938ff0d8e461fde9c63ecd54311b40",
+      "revision-artifacts.json": "3b5d296d81198fbefce4d90c4cf9781849ad374a1bf59e2e08263f81c66cd67d",
+      "revision-patch.json": "49ac6564685c8669b74910e10a95f29aefeb99dea277fbe24e41cca7344316d0",
+      "revision-produced.json": "23ba103a55ac5a3c251da3b715d09d18ac052ca59201b1b9398b57df0eacef91",
+      "revision-recipe.json": "02637e4081eb2c4301ee8ad3623bbcffcde0e311b4239a47affab72cf904af6c",
+      "revision-review-receipt.json": "a790ad9f061102b47b55408cb3b1ae742a3539c1640d5c000b8dcbb05fd24e2f",
+      "status.json": "c73a180e5696dd3a7a2be8e25447dbebe8afe7fb17d7b4c24bcef5727fc3ad9c",
+      "transport.json": "a93fc8fbe25f7d6dce3fa7a2ae00cdc8ffe6d61e48bfddc75507e9a5ebd59b74"
+    },
+    "durable_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/preparation-evidence.json",
+    "approved_protocol_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+    "approval_target_hash": "c670199c72c128ee0ef2e397aceb7975e268c69e82a29256889d23898f3572e6",
+    "authorization_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/execution-authorization.json",
+    "approval_reaction_id": "429910266",
+    "approval_recorded_by": "CODEX_USER_DELEGATION",
+    "human_review_performed": false,
+    "preparation_status": "APPROVED_REAL_BOUNDED_REVISION",
+    "execution_run_id": "36881458781",
+    "execution_job_id": "110434328636",
+    "execution_artifact_id": "11173635576",
+    "execution_artifact_sha256": "e9722592f56f90b5af1fee0fbd541506edf2820c423daf27c8d775e23cb24145",
+    "execution_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/execution-evidence.json",
+    "execution_archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/execution-artifact.zip",
+    "runtime_claude_session": "0b55ef38-9c5e-40ed-8e3a-aefe01767e34",
+    "consumed_request": "be4f7b4b-77d0-4d43-a49f-d3d9f999e2cf",
+    "consumption_tag": "ef85ef28362dd949adb8cd060e61ea0d12ccae65",
+    "replay_forbidden": true,
+    "disposable_cleanup": true,
+    "observed_value": 2,
+    "checks": {
+      "jest": {
+        "passed": 1257,
+        "failed": 0,
+        "total": 1257
+      },
+      "typescript": "PASS",
+      "lint": "PASS"
+    }
+  },
+  "step3_completed_at": "2026-10-01T15:52:01.121Z",
+  "additional_controller_qualification": {
+    "run_id": "36881458767",
+    "status": "SUCCESS_LINUX_WINDOWS_AND_HISTORICAL_EQUIVALENCE"
+  },
+  "pilot_recovery": {
+    "run_id": "36881458774",
+    "status": "NON_CERTIFIED_OLD_RUN16_ARTIFACT_UNAVAILABLE",
+    "windows_tests_and_disposable_preflight": "SUCCESS",
+    "global_run_conclusion": "FAILURE"
+  },
+  "transport_hardening": {
+    "base_head": "6af6455be9f1ab703727bfee021d188a0333a70c",
+    "status": "QUALIFIED_LINUX_WINDOWS",
+    "runtime_replay": false,
+    "final_audit_invoked": false,
+    "report_path": ".github/orchestration/reports/2026-10-01_VNEXT_TRANSPORT_HARDENING.md",
+    "recorded_at": "2026-10-01T19:17:40.176571+00:00",
+    "failed_candidate": {
+      "head": "57aa9f1b25fd57770784860c4ba4efcbb4965553",
+      "pilot_run_id": 36897140188,
+      "pilot_job_id": 110486847129,
+      "status": "FAILURE",
+      "tests": 921,
+      "passed": 919,
+      "failed": 1,
+      "skipped": 1,
+      "cause": "Inherited workflow assertion requires continue-on-error immediately after certification step name; reorder properties without modifying its test or protection.",
+      "equivalence_linux_job_id": 110486848562
+    },
+    "windows_followup": {
+      "candidate": "1d001a52baaf016863d6de8a1ba455d60e959652",
+      "pilot_run_id": 36900625861,
+      "pilot_job_id": 110499633207,
+      "status": "FAILURE",
+      "tests": 921,
+      "passed": 914,
+      "failed": 3,
+      "skipped": 4,
+      "cancelled": 0,
+      "cause": "Self-hosted Windows job did not install Python for new independent parser; reserve step invoked unavailable Bash. Added pinned Python/PyYAML setup and shell cmd Node reserve producer. No gates removed.",
+      "log_sha256": "a82d59bfc76b6cc6e1a4c05015a77e974ec4183f9984f1312679ad0ceb18c894",
+      "qualification_run_id": 36900625848,
+      "qualification_status": "SUCCESS_LINUX_WINDOWS",
+      "driver_run_id": 36900625816,
+      "driver_status": "SUCCESS_LINUX_WINDOWS",
+      "runtime_execution": "SKIPPED"
+    },
+    "qualified_candidate": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+    "qualification_run_id": 36908061869,
+    "pilot_run_id": 36908061970,
+    "driver_run_id": 36908061861,
+    "evidence_path": ".github/orchestration/reports/2026-10-01_VNEXT_TRANSPORT_HARDENING_EVIDENCE.json",
+    "logs_path": ".github/orchestration/reports/2026-10-01_VNEXT_TRANSPORT_HARDENING_LOGS.zip",
+    "legacy_recovery_status": "NON_CERTIFIED"
+  },
+  "requalification_campaign": {
+    "campaign_id": "06f35a5b-db9c-4448-ab28-c7b778cba368",
+    "status": "COMPLETED_INITIAL_PASS_REVISION_PASS",
+    "base_head": "e703a68823a3c090b518714b194dfbb3a51809d1",
+    "requested_at": "2026-10-01T19:39:40.565207+00:00",
+    "user_instruction": "donc on rejoue maintenant Initial et revision avec ce nouveau protocole.",
+    "technical_delegation": "Fresh disposable INITIAL and bounded REVISION under existing user authorization; real GitHub approval on exact message required; human_review_performed remains false unless actually performed.",
+    "initial": {
+      "schema_version": "kodjo.vnext12.requalification-initial-preparation-evidence.v1",
+      "campaign_id": "06f35a5b-db9c-4448-ab28-c7b778cba368",
+      "status": "INITIAL_PASS",
+      "producer_head": "b8f871001f21ecf6f3444479f845bc9aae59e5a3",
+      "run_id": 36916159035,
+      "job_id": 110554866566,
+      "review_verdict": "APPROVE",
+      "claude_session_id": "bb719f88-f175-4cd6-aa03-c7d6ce0f654c",
+      "artifact_id": 11191289600,
+      "artifact_sha256": "17e02c27d15e962c4d4ef386eefecc667841a624178ec5063cc4197d27d95284",
+      "artifact_archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/preparation-artifact.zip",
+      "prepared_chain_hash": "e9530e4ac6dd716f50f40733ceb437c62fd5d19327e9a0bfb6058e66fe0552e6",
+      "implementation_invoked": true,
+      "approval_observed": true,
+      "human_review_performed": false,
+      "preparation_candidate_qualification_run_id": 36916159025,
+      "preparation_candidate_pilot_run_id": 36916159078,
+      "final_audit_invoked": false,
+      "request_id": "b2af3723-0ce8-4f7f-8488-cf4498eb9d92",
+      "gate_ref": "issue_comment:5940186046",
+      "preparation_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/preparation-evidence.json",
+      "approved_protocol_head": "0e95e9deb18c0a8226df114773d63b2589e57395",
+      "approval_target_hash": "e601b5db91a198c26c24b7390a20e4088bb8720be1082254c4014fb6b4cb3ac6",
+      "qualification_run_id": "36924310800",
+      "approval_acquired": true,
+      "approval_reaction_id": 430241739,
+      "authorization_basis": "CODEX_USER_DELEGATION",
+      "authorization_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/authorization-evidence.json",
+      "qualification_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/qualification-evidence.json",
+      "execution_run_id": 36930459022,
+      "execution_job_id": 110598428318,
+      "runtime_claude_session": "f6571f37-d20c-437e-8253-e995c923e738",
+      "execution_artifact_id": 11197084650,
+      "execution_artifact_sha256": "9815cde44fb2e74d7e07187d509eb2e4cf01dd988842cf8ed93efb2d17359862",
+      "execution_archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/execution-artifact.zip",
+      "execution_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/execution-evidence.json",
+      "consumed_request": "b2af3723-0ce8-4f7f-8488-cf4498eb9d92",
+      "consumption_tag": "9d09225f0bbbba24ee7ef296fc5648e107f1fae9",
+      "replay_forbidden": true,
+      "observed_value": 2,
+      "disposable_cleanup": true,
+      "checks": {
+        "jest": {
+          "status": "PASS",
+          "exit_code": 0,
+          "passed_tests": 1257,
+          "failed_tests": 0,
+          "total_tests": 1257
+        },
+        "typescript": {
+          "status": "PASS",
+          "exit_code": 0,
+          "passed_tests": null,
+          "failed_tests": null,
+          "total_tests": null
+        },
+        "lint": {
+          "status": "PASS",
+          "exit_code": 0,
+          "passed_tests": null,
+          "failed_tests": null,
+          "total_tests": null
+        }
+      }
+    },
+    "revision": {
+      "status": "REVISION_PASS",
+      "candidate_head": "eef6fb596c36301047ae90afbd31adbf2d401391",
+      "base_verdict": "REVISE",
+      "revision_verdict": "APPROVE",
+      "base_session": "f3d2f9ad-3b55-4d75-8287-34ac717fc5c9",
+      "revision_session": "963200fd-8221-44b7-a33e-a7e2badce137",
+      "revision_count": 1,
+      "revision_limit": 1,
+      "implementation_invoked": true,
+      "final_audit_invoked": false,
+      "campaign_id": "06f35a5b-db9c-4448-ab28-c7b778cba368",
+      "run_id": 36936098221,
+      "job_id": 110620831497,
+      "artifact_id": 11199998426,
+      "artifact_sha256": "2cf9b28784654f6088507107046276d0f2e79004cc5573661a65888c669a58cb",
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/revision/preparation-artifact.zip",
+      "artifact_members": {
+        "base-produced.json": "1cf3c29c4354eaad6fde531d1dc6280c1b89896434758a436247bbc2f3fcb896",
+        "allowed-change-set.json": "3c9f6c771f4896c281851dcac63a45cebb82f467db708a8cd653886917a8dbad",
+        "base-recipe.json": "62fd4c1abe08ccb6a2915faf03bb56d3df448db9260a624db8d869f1b874f6d9",
+        "base-review-receipt.json": "aafbf3282ad86dbc749849fa08690887b5ed2d323fe581100b6795028b488874",
+        "benchmark-declaration.json": "0d8ac4e12eec4d6ccd9bbcf331a67567d11ce2f365a1f566e5a5b778b5b383c0",
+        "revision-artifacts.json": "0161d7792cb9ec388b175ef2a157fb231c96dfea7cea09cde5785b388e51a155",
+        "prepared.json": "e82151ad0bbed37aaeb12959d81ffdc1b5ec9233ff7a6d05fe58e589cf8e910e",
+        "publication.json": "58f7f0be09c8ee8aff6a2a04d7863973d794ad5ac7cd1e40920e1865af81ae56",
+        "revision-patch.json": "fc403969af59f9c07a1540ee082754da1b9d676dbf111e71bb54be7870bfe089",
+        "revision-produced.json": "d6008573099b97272c0436f9e0c22be0923b6eab7637c5b2e4dd14b37fc7ae4b",
+        "revision-recipe.json": "d69a6104934382dd55b1355556f19bd2012074f1d522b0c9e3a31508c09b2ceb",
+        "revision-review-receipt.json": "492c9ff37110bb7f3f883d0fb028329ac920ac4cace71549ae6ad30a12687b69",
+        "status.json": "10fe7363ff29d374631d212a708823e72414dd7717daa93891426e0206e2b6fa",
+        "transport.json": "5fa28d1deee7c57c53bbd6339d8ed68aded980ae23b67528dc935b4990021ff8"
+      },
+      "prepared_chain_hash": "a079948398331b5b38a819669a03ce59f5c95a8a43bed9897c3a927c26d4fab7",
+      "request_id": "3287a592-43f8-4e77-a7d6-f414a1061f70",
+      "gate_ref": "issue_comment:5948929682",
+      "gate_reserved_only": false,
+      "approval_observed": true,
+      "human_review_performed": false,
+      "execution_invoked": true,
+      "outcome": "RESOLVED",
+      "preparation_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/revision/preparation-evidence.json",
+      "approved_protocol_head": "cb9c45800a9b62342db684cc42b087a288c18ccf",
+      "approval_target_hash": "e0502768e7880c5f7fec39daf32994390f9ef391cab759d35b6b2adf3bddd880",
+      "qualification_run_id": "36988943451",
+      "approval_reaction_id": 430648379,
+      "authorization_basis": "CODEX_USER_DELEGATION",
+      "authorization_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/revision/authorization-evidence.json",
+      "qualification_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/revision/qualification-evidence.json",
+      "execution_run_id": 36994408231,
+      "execution_job_id": 110797973748,
+      "runtime_claude_session": "4390fed1-3cc5-4e4b-84ae-a32873815fa7",
+      "execution_artifact_id": 11222807464,
+      "execution_artifact_sha256": "641f822a8bc88a72f4525c54a1c627c2469541c06de09f8be49a956819ec42ee",
+      "execution_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/revision/execution-evidence.json",
+      "execution_archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/revision/execution-artifact.zip",
+      "consumed_request": "3287a592-43f8-4e77-a7d6-f414a1061f70",
+      "consumption_tag": "d0b762fbe53f9b99efa0304cb87bfeacd07a26f3",
+      "replay_forbidden": true,
+      "disposable_cleanup": true,
+      "observed_value": 2,
+      "checks": [
+        {
+          "check": "jest",
+          "command": "npm test --silent -- --cacheDirectory \"C:\\\\actions-runner\\\\_work\\\\_temp\\\\kodjo-vnext12-revision-36994408231-1\\\\check-cache\\\\jest\"",
+          "status": "PASS",
+          "exit_code": 0,
+          "started_at": "2026-10-02T11:01:36.458Z",
+          "finished_at": "2026-10-02T11:02:22.871Z",
+          "duration_ms": 46413,
+          "reason": null,
+          "passed_tests": 1257,
+          "failed_tests": 0,
+          "total_tests": 1257,
+          "rerun_in_this_attempt": true
+        },
+        {
+          "check": "typescript",
+          "command": "npx --no-install tsc --noEmit",
+          "status": "PASS",
+          "exit_code": 0,
+          "started_at": "2026-10-02T11:02:22.872Z",
+          "finished_at": "2026-10-02T11:02:28.473Z",
+          "duration_ms": 5601,
+          "reason": null,
+          "passed_tests": null,
+          "failed_tests": null,
+          "total_tests": null,
+          "rerun_in_this_attempt": true
+        },
+        {
+          "check": "lint",
+          "command": "npm run lint --silent -- --no-cache",
+          "status": "PASS",
+          "exit_code": 0,
+          "started_at": "2026-10-02T11:02:28.474Z",
+          "finished_at": "2026-10-02T11:02:45.803Z",
+          "duration_ms": 17329,
+          "reason": null,
+          "passed_tests": null,
+          "failed_tests": null,
+          "total_tests": null,
+          "rerun_in_this_attempt": true
+        }
+      ]
+    },
+    "old_consumed_requests_forbidden": [
+      "d851f5fe-6ce5-4bb1-a615-ea2116cf04e1",
+      "be4f7b4b-77d0-4d43-a49f-d3d9f999e2cf"
+    ],
+    "evidence_root": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368",
+    "final_audit_authorized": false,
+    "pre1_in_scope": false,
+    "pending_preventive_fix": {
+      "file": "scripts/kodjo/run-local-claude.js",
+      "purpose": "Force implementer foreground commands and bounded Bash timeouts",
+      "observed_failure_this_initial": false,
+      "implementation_status": "IMPLEMENTED_QUALIFIED_LINUX_WINDOWS",
+      "user_preference": "Targeted validation; avoid repeating complete certification campaign"
+    },
+    "pending_protocol_fixes": [
+      {
+        "kind": "CLAUDE_FOREGROUND_CHECKS",
+        "source_commit": "c6bda99c",
+        "proof_run": 36932540055,
+        "status": "IMPLEMENTED_QUALIFIED_LINUX_WINDOWS"
+      },
+      {
+        "kind": "REDUCE_COMPLETE_SOURCE_ARCHIVES",
+        "status": "IMPLEMENTED_QUALIFIED_LINUX_WINDOWS",
+        "preserve_referenced_archives": true
+      },
+      {
+        "kind": "EXPLICIT_ROUTINE_DEV_SYNC",
+        "source_commit": "8c5650f0",
+        "report_commit": "e719214b",
+        "proof_run": 36938795033,
+        "status": "IMPLEMENTED_QUALIFIED_LINUX_WINDOWS",
+        "automatic_trigger_not_delivered": true
+      }
+    ],
+    "completed_at": "2026-10-02T11:41:59.271502+00:00"
+  },
+  "post_campaign_fixes": {
+    "status": "QUALIFIED_LINUX_WINDOWS",
+    "base_head": "340d7e858e48b7995f9e2a8a078cc0d6782b2dcf",
+    "targeted_tests": {
+      "pass": 82,
+      "fail": 0
+    },
+    "report_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_FIXES.md",
+    "full_initial_revision_replay": false,
+    "application_published": false,
+    "final_audit_invoked": false,
+    "failed_candidate": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+    "failure_evidence_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_FAILURE_EVIDENCE.json",
+    "failure_logs_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_FAILURE_LOGS.zip",
+    "qualified_candidate": "3f08e068deb3940ab5c460eb6ffeea5c2e294506",
+    "qualification_run_id": 37008282228,
+    "pilot_run_id": 37008282181,
+    "driver_run_id": 37008282270,
+    "evidence_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_QUALIFICATION_EVIDENCE.json",
+    "logs_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_QUALIFICATION_LOGS.zip",
+    "preflight_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_PREFLIGHT.zip",
+    "initial_revision_replayed": false,
+    "new_claude_runtime_after_fixes": false,
+    "automatic_sync_after_queue_review_delivered": false
+  },
+  "device_finalization_fix": {
+    "status": "IMPLEMENTED_PENDING_LINUX_WINDOWS_QUALIFICATION",
+    "base_head": "f5245debd2a715a7db8e8bd12dc5219aca46ce5a",
+    "report_path": ".github/orchestration/reports/2026-10-02_VNEXT_DEVICE_FINALIZATION.md",
+    "targeted_tests": {
+      "pass": 105,
+      "fail": 0,
+      "skip": 0
+    },
+    "sqlite_unexecuted_evidence_preserved": true,
+    "actual_device_check_performed": false,
+    "actual_finalization_invoked": false,
+    "initial_revision_replayed": false
+  },
+  "v8_consolidation": {
+    "status": "INITIAL_PASS_REVISION_PREPARATION_RETRY_WITH_BOUNDED_TIMEOUT",
+    "parent_head": "952b23b3c0bbe258edb93a155abde5c58a5795e0",
+    "audit_head": "c0f72fc2148a5955b9a810a8aca1f6eeefa64870",
+    "main_shared_source": "67064d1b3752d71683d11638a602286b9c895482",
+    "scope": "Remaining demonstrated v8 defects D1-D9,D11-D12,D15-D18; D10,D13,D14 already delivered in the first tranche. D3 targeted shared-protocol reconciliation only.",
+    "request_generation": 35,
+    "runtime_execution": "INITIAL_PASS_REVISION_NOT_EXECUTED",
+    "native_windows_parser": "REQUIRED_IN_EXACT_TREE_QUALIFICATION",
+    "report": ".github/orchestration/reports/2026-10-03_VNEXT_V8_CONSOLIDATED_CORRECTIONS.md",
+    "one_consolidated_qualification_batch": true,
+    "promotion_authorized": false,
+    "pre1_in_scope": false,
+    "final_authorized": false,
+    "historical_reserves_preserved": true,
+    "first_candidate_head": "e26105b15ae049de68349d2bf2a18638cc109cea",
+    "qualification_failures": {
+      "pilot_run": 37124235652,
+      "qualification_run": 37124235671,
+      "driver_run": 37124235667,
+      "diagnostic": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-failures-e26105b1.json",
+      "correction": "Raw PowerShell run_id interpolation replaced with environment variable; immutable historical scanner proof preserved and current scan requalification tested."
+    },
+    "first_qualification_completed": {
+      "pilot": "FAILURE",
+      "proof_stability": "FAILURE",
+      "drivers": "SUCCESS",
+      "historical_linux_job": 111206211398,
+      "historical_windows_job": 111206211332,
+      "historical_reason_observed": "VNEXT_EQ_EXECUTION_INCOMPLETE",
+      "historical_detailed_assertion_cause": "UNAVAILABLE_JSONL_NOT_UPLOADED",
+      "runtime_execution": "SKIPPED",
+      "new_consumption": false
+    },
+    "qualified_candidate": "ac40565641c7f59d7fdf3f932816505d65dad526",
+    "qualification": {
+      "schema_version": "kodjo.vnext.v8.consolidation-qualification.v1",
+      "observed_at": "2026-10-03T15:23:21.118Z",
+      "candidate_head": "ac40565641c7f59d7fdf3f932816505d65dad526",
+      "candidate_tree": "4814f91b480082b174735c2784c382ce2db7e40c",
+      "status": "QUALIFIED_LINUX_WINDOWS",
+      "runs": [
+        {
+          "run_id": 37129238664,
+          "status": "SUCCESS",
+          "url": "https://github.com/MyUncried/Application-Routine/actions/runs/37129238664",
+          "jobs": [
+            {
+              "id": 111220844554,
+              "name": "protocol",
+              "conclusion": "success"
+            },
+            {
+              "id": 111221324963,
+              "name": "protocol-windows-preflight",
+              "conclusion": "success"
+            },
+            {
+              "id": 111229693475,
+              "name": "disposable-qualification",
+              "conclusion": "skipped"
+            }
+          ]
+        },
+        {
+          "run_id": 37129238678,
+          "status": "SUCCESS",
+          "url": "https://github.com/MyUncried/Application-Routine/actions/runs/37129238678",
+          "jobs": [
+            {
+              "id": 111220844614,
+              "name": "qualification (windows-latest)",
+              "conclusion": "success"
+            },
+            {
+              "id": 111220844765,
+              "name": "qualification (ubuntu-latest)",
+              "conclusion": "success"
+            },
+            {
+              "id": 111220844828,
+              "name": "historical-equivalence (ubuntu-latest)",
+              "conclusion": "success"
+            },
+            {
+              "id": 111220844847,
+              "name": "historical-equivalence (windows-latest)",
+              "conclusion": "success"
+            },
+            {
+              "id": 111222392166,
+              "name": "architecture-audit",
+              "conclusion": "skipped"
+            },
+            {
+              "id": 111226247510,
+              "name": "historical-platform-coverage",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "run_id": 37129238655,
+          "status": "SUCCESS",
+          "url": "https://github.com/MyUncried/Application-Routine/actions/runs/37129238655",
+          "jobs": [
+            {
+              "id": 111220844499,
+              "name": "select-stage",
+              "conclusion": "success"
+            },
+            {
+              "id": 111220998264,
+              "name": "qualify-driver (windows-latest)",
+              "conclusion": "success"
+            },
+            {
+              "id": 111220998272,
+              "name": "qualify-driver (ubuntu-latest)",
+              "conclusion": "success"
+            },
+            {
+              "id": 111220999381,
+              "name": "Execute approved disposable INITIAL or REVISION",
+              "conclusion": "skipped"
+            },
+            {
+              "id": 111223510170,
+              "name": "prepare-revision",
+              "conclusion": "skipped"
+            },
+            {
+              "id": 111223510715,
+              "name": "prepare-initial",
+              "conclusion": "skipped"
+            }
+          ]
+        }
+      ],
+      "pilot": {
+        "linux": {
+          "tests": 977,
+          "pass": 976,
+          "fail": 0,
+          "skip": 1
+        },
+        "windows": {
+          "tests": 977,
+          "pass": 973,
+          "fail": 0,
+          "skip": 4
+        }
+      },
+      "contracts_each_os": {
+        "tests": 211,
+        "pass": 211,
+        "fail": 0,
+        "skip": 0
+      },
+      "drivers_each_os": {
+        "tests": 211,
+        "pass": 211,
+        "fail": 0,
+        "skip": 0
+      },
+      "mapped_historical_cases": 402,
+      "historical_subjects": 420,
+      "historical_readiness": "NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT",
+      "legacy_recovery": "NON_CERTIFIED_HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE",
+      "native_windows_powershell": "EXACT_CANDIDATE_TREE_PASS",
+      "runtime_claude_invoked": false,
+      "initial_revision_new_candidate": "NOT_EXECUTED",
+      "artifacts": [
+        {
+          "id": 11276986296,
+          "name": "historical-equivalence-Windows",
+          "sha256": "0e0723eba1250d85a340b8c12237559e015fe65bea75b664629ee06145fa8e91",
+          "downloaded_hash_verified": true,
+          "expires_at": "2026-10-17T14:20:13Z",
+          "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-ac405656/artifact-11276986296.zip"
+        },
+        {
+          "id": 11276092545,
+          "name": "historical-equivalence-Linux",
+          "sha256": "e7602acf9a7a14fadf5f649d20eae44b649217c836911e142f300d714a718918",
+          "downloaded_hash_verified": true,
+          "expires_at": "2026-10-17T14:20:13Z",
+          "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-ac405656/artifact-11276092545.zip"
+        },
+        {
+          "id": 11277281481,
+          "name": "kodjo-v2-disposable-preflight-37129238664-1",
+          "sha256": "1b225675710fe832a2dc51c1efd280864bafc9f6132c245929f4d571cb23ba76",
+          "downloaded_hash_verified": true,
+          "expires_at": "2026-10-17T14:20:13Z",
+          "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-ac405656/artifact-11277281481.zip"
+        },
+        {
+          "id": 11276820157,
+          "name": "kodjo-v2-runner-certification-37129238664-1",
+          "sha256": "a9a8b6f58fc4bc1aeccadd3c3ad3329500f865ca62a584f72432d40d7cee10f7",
+          "downloaded_hash_verified": true,
+          "expires_at": "2026-10-17T14:20:13Z",
+          "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-ac405656/artifact-11276820157.zip"
+        },
+        {
+          "id": 11276599016,
+          "name": "kodjo-v2-real-recovery-certification-37129238664-1",
+          "sha256": "4eb32067ed704efb222c7f2a069c6a014b3811dd59f1715968061b9242327666",
+          "downloaded_hash_verified": true,
+          "expires_at": "2026-10-17T14:20:13Z",
+          "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-ac405656/artifact-11276599016.zip"
+        }
+      ],
+      "log_excerpts": [
+        {
+          "job_id": 111220844554,
+          "lines": [
+            "2026-10-03T14:23:04.2200973Z # tests 977",
+            "2026-10-03T14:23:04.2201422Z # pass 976",
+            "2026-10-03T14:23:04.2201667Z # fail 0",
+            "2026-10-03T14:23:04.2201901Z # cancelled 0",
+            "2026-10-03T14:23:04.2202124Z # skipped 1"
+          ]
+        },
+        {
+          "job_id": 111221324963,
+          "lines": [
+            "2026-10-03T14:58:49.3052624Z ℹ tests 977",
+            "2026-10-03T14:58:49.3055026Z ℹ pass 973",
+            "2026-10-03T14:58:49.3056530Z ℹ fail 0",
+            "2026-10-03T14:58:49.3057845Z ℹ cancelled 0",
+            "2026-10-03T14:58:49.3059213Z ℹ skipped 4"
+          ]
+        },
+        {
+          "job_id": 111220844614,
+          "lines": [
+            "2026-10-03T14:29:25.1465430Z ℹ tests 211",
+            "2026-10-03T14:29:25.1474983Z ℹ pass 211",
+            "2026-10-03T14:29:25.1475257Z ℹ fail 0",
+            "2026-10-03T14:29:25.1475487Z ℹ cancelled 0",
+            "2026-10-03T14:29:25.1475730Z ℹ skipped 0"
+          ]
+        },
+        {
+          "job_id": 111220844765,
+          "lines": [
+            "2026-10-03T14:21:45.1791768Z ℹ tests 211",
+            "2026-10-03T14:21:45.1801614Z ℹ pass 211",
+            "2026-10-03T14:21:45.1802345Z ℹ fail 0",
+            "2026-10-03T14:21:45.1803043Z ℹ cancelled 0",
+            "2026-10-03T14:21:45.1803771Z ℹ skipped 0"
+          ]
+        },
+        {
+          "job_id": 111220998264,
+          "lines": [
+            "2026-10-03T14:35:40.2374138Z ℹ tests 211",
+            "2026-10-03T14:35:40.2376076Z ℹ pass 211",
+            "2026-10-03T14:35:40.2376706Z ℹ fail 0",
+            "2026-10-03T14:35:40.2377384Z ℹ cancelled 0",
+            "2026-10-03T14:35:40.2378107Z ℹ skipped 0"
+          ]
+        },
+        {
+          "job_id": 111220998272,
+          "lines": [
+            "2026-10-03T14:22:37.5500569Z ℹ tests 211",
+            "2026-10-03T14:22:37.5502677Z ℹ pass 211",
+            "2026-10-03T14:22:37.5503442Z ℹ fail 0",
+            "2026-10-03T14:22:37.5504672Z ℹ cancelled 0",
+            "2026-10-03T14:22:37.5505459Z ℹ skipped 0"
+          ]
+        },
+        {
+          "job_id": 111226247510,
+          "lines": [
+            "2026-10-03T14:51:24.0043912Z {\"candidate_head\":\"ac40565641c7f59d7fdf3f932816505d65dad526\",\"status\":\"MAPPED_ASSERTIONS_PASS_ON_AT_LEAST_ONE_PLATFORM\",\"case_count\":402,\"individual_equivalence_proven\":false,\"readiness\":\"NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT\"}"
+          ]
+        }
+      ],
+      "limits": [
+        "No operational 420-subject certification.",
+        "No INITIAL/REVISION runtime on consolidated candidate yet.",
+        "No promotion/main merge/global branch realignment.",
+        "No SQLite device-check success inferred."
+      ],
+      "historical_counts": {
+        "win32": {
+          "tests": 977,
+          "failed": 0,
+          "passed": 974,
+          "cancelled": 0,
+          "skipped": 3,
+          "todo": 0,
+          "topLevel": 977,
+          "suites": 0
+        },
+        "linux": {
+          "tests": 977,
+          "failed": 0,
+          "passed": 976,
+          "cancelled": 0,
+          "skipped": 1,
+          "todo": 0,
+          "topLevel": 977,
+          "suites": 0
+        }
+      }
+    },
+    "preparation_generation": 15,
+    "initial_preparation": {
+      "schema_version": "kodjo.vnext.v8.initial-preparation-evidence.v1",
+      "observed_at": "2026-10-03T17:01:28.076Z",
+      "candidate_head": "7fac320080f83eb74359272b9d039e7b1d8fac5f",
+      "run_id": 37133206182,
+      "attempt": 2,
+      "job_id": 111243365597,
+      "status": "PREPARED_FOR_PUBLICATION",
+      "verdict": "APPROVE",
+      "blocking_findings": 0,
+      "suggestion_count": 1,
+      "suggestions": [
+        {
+          "finding_id": "FND-70566095330b53e3eed00094",
+          "category": "SUGGESTION",
+          "target_type": "PLAN_CONTRACT",
+          "target_id": "03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7ace",
+          "blocking": false,
+          "finding": "L'exigence source impose explicitement de conserver scripts/kodjo/fixtures/vnext12/keep.js octet pour octet, mais cette obligation n'est portée que par boundaries.preserve_scope, par impact.preservation_candidate_ids et par une contrainte en prose. Aucune exigence de type PRESERVATION n'est enregistrée et aucune obligation de preuve n'observe l'invariance de ce fichier. L'application reste néanmoins effective : keep.js est absent du write_scope et forbidden_policy vaut ALL_OUTSIDE_WRITE_SCOPE, donc toute écriture y est interdite. Aucun risque de préservation observé n'en découle ; il s'agit d'un défaut de typage contractuel, pas d'un trou d'application.",
+          "evidence": [
+            "git:7fac320080f83eb74359272b9d039e7b1d8fac5f:.github/orchestration/vnext12/VNEXT-12-QUALIF/requirement.md — « Conserver le fichier scripts/kodjo/fixtures/vnext12/keep.js octet pour octet. »",
+            "planContract.boundaries.preserve_scope = [{candidate_id: CAND-30ceff46ee0ac607974766df, path: scripts/kodjo/fixtures/vnext12/keep.js}] ; boundaries.forbidden_policy = ALL_OUTSIDE_WRITE_SCOPE ; write_scope limité à core.js et core.test.js",
+            "planContract.plan_items[0].proof_obligations ne contient qu'une preuve FUNCTIONAL_TEST (PROOF-795c6002c59f2385828b1735) portant sur la valeur 2 ; aucune preuve n'observe l'empreinte de keep.js",
+            "requirementRegistry.requirements[0].preservation = NONE_DECLARED alors que l'unité source FULL_FILE énonce une obligation de préservation"
+          ],
+          "required_correction": "Renforcement optionnel, non requis pour admettre ce plan : enregistrer une exigence de type PRESERVATION sur keep.js (qui porterait preservation=REQUIRED) ou ajouter une obligation de preuve STATIC_ANALYSIS observant l'empreinte SHA-256 de keep.js avant et après exécution. À défaut, conserver l'application actuelle par la frontière d'écriture, qui suffit à interdire la modification.",
+          "dependency_target_ids": [
+            "CAND-30ceff46ee0ac607974766df",
+            "REQ-9dddc2972fcd3efdc7a4a12b"
+          ],
+          "reentry_stage": "NONE"
+        }
+      ],
+      "session_id": "12ac3006-d166-4e99-9f90-ba24c12f6e70",
+      "reviewed_target_count": 1161,
+      "review_report_hash": "8c93a512137d2ac5be758c21924c12a672a866e354efacb6a90b0a8c28dc9b72",
+      "raw_result_sha256": "d08d24466ba09a7c53942155397db8be4fa534f8fefb0f5790905f4c5d3f9542",
+      "prepared_chain_hash": "78967cfc8067ab557a992200895d7ac1855da31b778df2dab0c73d6a214592d7",
+      "artifact_id": 11279072904,
+      "artifact_sha256": "368eab5efe929e5a18020aaf50a56d47e5e9271d36b16a49bb5c2ec743348183",
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/initial-preparation-37133206182/approved-attempt-2.zip",
+      "downloaded_hash_verified": true,
+      "receipt_verified": true,
+      "first_attempt": {
+        "job_id": 111235053397,
+        "status": "FAILURE",
+        "diagnostic": "ETIMEDOUT",
+        "underlying_cause": "UNKNOWN",
+        "artifact_id": 11278138462,
+        "artifact_sha256": "d80853a86fbd292091ded4702a44a0730e03a72b53052ad364703b41634c995e",
+        "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/initial-preparation-37133206182/failed-attempt-1.zip",
+        "technical_correction_applied": false
+      },
+      "transport": {
+        "request_id": "b605283d-13c0-4f1e-bde9-863538a6f86b",
+        "gate_ref": "issue_comment:5971337496",
+        "created_at": "2026-10-03T17:00:14.195Z",
+        "reservation_observed": true,
+        "owner_approval_observed": true,
+        "human_review_performed": false
+      },
+      "implementation_invoked": false,
+      "revision_executed": false,
+      "final_invoked": false,
+      "pre1_in_scope": false
+    },
+    "dossier_qualification": {
+      "head": "16b70bab70fad2adc64b0ea7a0069cbc206eee17",
+      "runs": [
+        {
+          "id": 37139109519,
+          "conclusion": "success"
+        },
+        {
+          "id": 37139109523,
+          "conclusion": "success"
+        },
+        {
+          "id": 37139109517,
+          "conclusion": "success"
+        }
+      ],
+      "proof_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-16b70bab/evidence.json",
+      "real_logs_read": true,
+      "artifacts_hash_verified": true
+    },
+    "initial_owner_approval": {
+      "comment_id": 5971337496,
+      "reaction_id": 431576097,
+      "head": "16b70bab70fad2adc64b0ea7a0069cbc206eee17",
+      "approval_target_hash": "a606e75fcb7a9bd07838c0479be0ffd939772df48e11aeb7453265aca57f5e21",
+      "exact_message_verified": true,
+      "real_owner_reaction_observed": true,
+      "human_review_performed": false,
+      "authorization_basis": "CODEX_USER_DELEGATION_FOR_DISPOSABLE_TECHNICAL_TEST_ONLY",
+      "evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-16b70bab/owner-approval-evidence.json"
+    },
+    "initial_execution": {
+      "schema_version": "kodjo.vnext.v8.initial-runtime-evidence.v1",
+      "observed_at": "2026-10-03T18:56:42.094231+00:00",
+      "run_id": 37142131905,
+      "job_id": 111258778662,
+      "approved_protocol_head": "16b70bab70fad2adc64b0ea7a0069cbc206eee17",
+      "controller_head": "88b9c75f4f587438340aeb604eb233bf31afaee5",
+      "status": "INITIAL_PASS",
+      "claude_session_id": "fd4b3395-6ce0-4eb5-b107-0b626bd7f618",
+      "artifact_id": 11280864764,
+      "artifact_sha256": "9e6da5a64ae50080acdd889ec9c0708dee67ea717ba725ee0c94e73b2f91d702",
+      "downloaded_hash_verified": true,
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/initial-execution-37142131905/runtime-artifact.zip",
+      "members_sha256": {
+        "admission-before-install.json": "2c35eec9e47f8951418b4abd6eb99cf216c70ffdb28a2f99d9b142c66270ea00",
+        "admission-before-runtime.json": "51e5a2ccf6d757b51865d8b4ed4eaf413915221ba7c83f7b948192a7441e9d21",
+        "application-delta/scripts/kodjo/fixtures/vnext12/core.js": "63d9832d775e3b06b4a75bf56af1e065ce70ef82392293fa696c2de541a25a54",
+        "application-delta/tests/fixtures/vnext12/core.test.js": "e91bb83e5a5af744137d68d9ca2571ac6e92ee8b385a0c4937725c5615646a9f",
+        "approved-queue.json": "67ecfa52428930d5fe70362652935636e386bf94a0e46639296f6d5fccaab9c2",
+        "baseline-jest.json": "e1d1af082a4c005c35f0abc271fc68795cdeacd0154ccef71b99703da238d83f",
+        "baseline-lint.json": "e8419641606db59ad9d771b91e905186ce3bceb069acf19433334ef3bb657a3b",
+        "baseline-checks.json": "4586876be50ce0e5220450516730b0847f88306c41942a3ec3cb16f5302fda51",
+        "baseline-typescript.json": "e2b9ec8c4e6acd4b1b218f5376ad2281df2c61e683935b83d00ad7c04137fc24",
+        "command-001.log": "18370fb9d5f263a5aee66cbd9ad301294af4afd0dfa7810e8365cb9aaca98d87",
+        "command-002.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-003.log": "73e83e8e247354405ac91825eec316491e3be74c2a14f70a673a798a0f525232",
+        "command-004.log": "6f587d2023a2a2e534374077f87cc6600c58111704982de38223b597125fd99a",
+        "command-005.log": "53bd73a5fce6a77c41875500377124bf69bd624038157d2590279cec3f95aa06",
+        "command-006.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-007.log": "6a2c98af53e7be8edcb3d784ed77452e954b12391e6371b33c4a0ab2fc992660",
+        "command-008.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-009.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-011.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-010.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-012.log": "71a2677b9ec3350f9fbf83d0c51bff57b921462e853bc8f3042d05e266b81196",
+        "command-013.log": "41818c41802f1ee1e8c1b78ffe8b8aee635c0a94e63c6aa9091ae62ce89b894d",
+        "command-014.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-015.log": "f1827ea5cfda5ab6b7787d1ceea9b2eebcb4a804a9688489028b818f666c04aa",
+        "command-016.log": "087426252c1c9db3d7de93c70d3e25d1199043b134b06235221923ed1f505fba",
+        "command-018.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-017.log": "0b17e80d4bd9d5b428ff56d8b2de86e23965a370ffda004aa1a7d7e36a720dd2",
+        "command-019.log": "2a185bfda0d33874a2901f4bac9cb3697305e90cd34f23343d5d0ea94aa623f2",
+        "command-020.log": "656970d14fe166cef0cfdb2ab2069f315c63f58c57f11d425366caf2873d392a",
+        "command-021.log": "d2d930ff2bfafd21f79851310067b9d27fa76d7b5456f07b8f4605e9819c745e",
+        "command-022.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "command-023.log": "969e4f0457944f843114107d3f99c786ba827d1171dee04f6872ee121bb58463",
+        "consumed-request.json": "794f88761715602b93df22574f40d18ced22e02f9aae83f41dab3b0c02bb6d14",
+        "consumption-credential.json": "3b2a6032de32846e429ce34202c109757348170d2b51d349be5f4802a6c251d3",
+        "consumption.json": "42fc5c742b09ff9ba95d6fbb36d22e174f58ee3f09034e91b1840384e6d26cc6",
+        "functional-proof.json": "74e3d694a953a285f7794a02dc00af8f37e00f260872faf6c9c3aeab1bdc9b22",
+        "handoff-runtime.json": "142e6699cf5ec2603fcfb6fa91571caa9afa4202df42f3a00d0f225f5c286f08",
+        "implementation.patch": "656970d14fe166cef0cfdb2ab2069f315c63f58c57f11d425366caf2873d392a",
+        "local-request.json": "b831fe803540b57e254c085447b06579094801d5608fcaea682949b3dc9f9bb4",
+        "negative-before-claude.json": "bacb0eb180e7150f81b6cf980b075be94bad1070edaeb5b415094b8e9c5f6e12",
+        "negative-missing-review-proof.json": "8355422b3b6e0c3c9a00c9cdb1248fc713d739c8fec56a4df8eedc179ef54eb9",
+        "qualification-admission.json": "b8743c7af698a2d2500909f529a2df2620b9b914764e3c1b61dcd1c9ab2f0ae5",
+        "runner-lock-certification.json": "f027b56665848ba7b38d3817c44483dbf0bcc72aaffb9e66496585ab12983214",
+        "runtime/claude-output.json": "84b717db340b52fc870c5af5fde3cfa88503ce9106ad7b0ce35438092d34eafe",
+        "runtime/claude-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "runtime/consumed-request.json": "794f88761715602b93df22574f40d18ced22e02f9aae83f41dab3b0c02bb6d14",
+        "runtime/consumption.json": "42fc5c742b09ff9ba95d6fbb36d22e174f58ee3f09034e91b1840384e6d26cc6",
+        "runtime/git-runtime-integrity.json": "739772032f981ac898927194f77f38d6139311d43e855187ca2d4d1acebee16c",
+        "runtime/invocation.json": "f338e790b54d949e9bc5fec3aa1ec1b87ead3cdd0a1bec8f614de5e36355e689",
+        "runtime/kodjo-check-runner.js": "bc878a5a0d5c432112abe3f98ac2e78e5195ff6874b5aa62bb4bdc3f86ca0148",
+        "runtime/kodjo-file-mutation.js": "5f813907e25232cc4a307a0a092d795b5d9dbb57209a74b0af697361c5d7c4f4",
+        "runtime/kodjo-git-read.js": "b62d1500dafb03bba332c767c8e3c84ca75e917c2eb6a987cd7d228130ddd2f7",
+        "runtime/mcp.json": "e93fc8db2b1bd77107fe6c758bca9545fa864cf7cce8ab93a7b2b93a1d566a7b",
+        "runtime/recovery-package/implementation.patch": "1ca1806e5657edfce6b2864b0d2a55fc94f7d4b27a8a2da543d436e2d31f39fb",
+        "runtime/recovery-package/manifest.json": "22ac7702f86aea21edf8aff3de1a898f227958412c109336be045ffcb801f807",
+        "runtime/recovery.json": "21c3c29b80f856f471e6c781351a6419626ec33e62cf658a47d18cf477201c05",
+        "runtime/result.json": "fb27b5cf9e78d74982d889237461114069a1992b370e1c726705bfc5e5d8ccf3",
+        "runtime/run-context.json": "c0230349f8cc77e1a3e48d43d76d66441e8a36b0ca03639e26d56c86bc5e5029",
+        "runtime/settings.json": "3663b246d8cc7ed0d046132de07f79d9c0d1a7f6378902dd07c96a215e2ce37f",
+        "runtime-copy.json": "49804765a6d15c572e5c913d7692ed909bd2aace02ecb68f89e0d6acb6a2a636",
+        "runtime/scope-path.js": "d11236b8b1ec97a85f518dc562716573dc50414509071e4e875ed9589ebd6620",
+        "runtime-result.json": "fb27b5cf9e78d74982d889237461114069a1992b370e1c726705bfc5e5d8ccf3",
+        "status.json": "ae20f214bd10d6a04cf5fc2607e449359b5443ff474c75e20925e5c57e3b49a9"
+      },
+      "functional_proof": {
+        "observed_value": 2,
+        "targeted_jest_exit_code": 0,
+        "preserve_before_sha256": "db387ac0aab607cda76e230c38f08a343d1d3d6281c2062b48bf023f06331f56",
+        "preserve_after_sha256": "db387ac0aab607cda76e230c38f08a343d1d3d6281c2062b48bf023f06331f56",
+        "modified_files": [
+          "scripts/kodjo/fixtures/vnext12/core.js",
+          "tests/fixtures/vnext12/core.test.js"
+        ]
+      },
+      "checks": [
+        {
+          "check": "jest",
+          "command": "npm test --silent -- --cacheDirectory \"C:\\\\actions-runner\\\\_work\\\\_temp\\\\kodjo-vnext12-initial-37142131905-1\\\\check-cache\\\\jest\"",
+          "status": "PASS",
+          "exit_code": 0,
+          "started_at": "2026-10-03T18:13:57.166Z",
+          "finished_at": "2026-10-03T18:14:45.146Z",
+          "duration_ms": 47980,
+          "reason": null,
+          "passed_tests": 1257,
+          "failed_tests": 0,
+          "total_tests": 1257,
+          "rerun_in_this_attempt": true
+        },
+        {
+          "check": "typescript",
+          "command": "npx --no-install tsc --noEmit",
+          "status": "PASS",
+          "exit_code": 0,
+          "started_at": "2026-10-03T18:14:45.148Z",
+          "finished_at": "2026-10-03T18:14:50.246Z",
+          "duration_ms": 5098,
+          "reason": null,
+          "passed_tests": null,
+          "failed_tests": null,
+          "total_tests": null,
+          "rerun_in_this_attempt": true
+        },
+        {
+          "check": "lint",
+          "command": "npm run lint --silent -- --no-cache",
+          "status": "PASS",
+          "exit_code": 0,
+          "started_at": "2026-10-03T18:14:50.247Z",
+          "finished_at": "2026-10-03T18:15:07.812Z",
+          "duration_ms": 17565,
+          "reason": null,
+          "passed_tests": null,
+          "failed_tests": null,
+          "total_tests": null,
+          "rerun_in_this_attempt": true
+        }
+      ],
+      "integrity_status": "INTACT",
+      "disposable_cleanup": true,
+      "consumed_request": "b605283d-13c0-4f1e-bde9-863538a6f86b",
+      "consumption_tag": "e6d13d824b3194b511c99636b65f7ed9687d9181",
+      "remote_consumption_ref_verified": true,
+      "replay_forbidden": true,
+      "human_review_performed": false,
+      "authorization_basis": "CODEX_USER_DELEGATION_FOR_DISPOSABLE_TECHNICAL_TEST_ONLY",
+      "revision_executed": false,
+      "application_published": false,
+      "final_invoked": false,
+      "pre1_in_scope": false
+    },
+    "revision_timeout_failures": {
+      "schema_version": "kodjo.vnext.revision-timeout-evidence.v1",
+      "recorded_at": "2026-10-03T22:28:14.717Z",
+      "candidate_head": "b0af47a68f45dea7f253e9704334122a903cb7f2",
+      "run_id": 37146178069,
+      "attempts": [
+        {
+          "attempt": 1,
+          "artifact_id": 11282158916,
+          "sha256": "0911964ae05248b28c38f5be43ef2f105de70d3a8e794996b75dcadedec54fbb",
+          "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/revision-timeouts-37146178069/attempt-1.zip",
+          "downloaded_hash_verified": true
+        },
+        {
+          "attempt": 2,
+          "artifact_id": 11285598676,
+          "sha256": "95bd1af7e440c695ec251a52f4c1597516a922d79d1260f3e09656c64434c25b",
+          "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/revision-timeouts-37146178069/attempt-2.zip",
+          "downloaded_hash_verified": true
+        },
+        {
+          "attempt": 3,
+          "artifact_id": 11285754350,
+          "sha256": "4f8daa20802c93cb329504f4de03578f35def7a8b4fc00b028e1b6255a94459f",
+          "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/revision-timeouts-37146178069/attempt-3.zip",
+          "downloaded_hash_verified": true
+        }
+      ],
+      "base_review": {
+        "session_id": "4cfbc84d-2c8c-43e0-a3ce-e2c8758d82a4",
+        "verdict": "REVISE",
+        "receipt_verified": true,
+        "finding_ids": [
+          "FND-3b9037b599e7bb49e31fdb1b"
+        ]
+      },
+      "failure_phases": [
+        "BASE_REVIEW",
+        "REVISION_REVIEW",
+        "REVISION_REVIEW"
+      ],
+      "diagnostic": "ETIMEDOUT",
+      "underlying_cause": "UNKNOWN",
+      "implementation_invoked": false,
+      "revision_approved": false,
+      "correction": "REVISION review process timeout 600000 -> 900000 ms; INITIAL/other commands unchanged. No evidence/admission/verdict gate changes. Fresh source candidate requires new real reviews and exact qualification.",
+      "old_base_receipt_reusable_for_new_candidate": false,
+      "comments": [
+        5973802104,
+        5973989973
+      ]
+    }
+  }
+}

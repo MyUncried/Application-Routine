@@ -18,6 +18,11 @@ on:
       - 'tests/kodjo/**'
   workflow_dispatch:
     inputs:
+      preserve_complete_source:
+        description: 'Preserve an exact source snapshot only when needed for forensic recovery'
+        required: true
+        type: boolean
+        default: false
       run_disposable_qualification:
         description: 'Run the real V2-QUALIF-00 slice on the persistent Windows runner'
         required: true
@@ -112,6 +117,7 @@ jobs:
       - name: Validate executable workflow invariants
         run: node scripts/kodjo/validate-workflows.js
       - name: Build immutable complete source snapshot
+        if: github.event_name == 'workflow_dispatch' && inputs.preserve_complete_source == true
         shell: bash
         env:
           SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -120,6 +126,7 @@ jobs:
           tar --exclude=.git --exclude=node_modules -czf "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz" .
           sha256sum "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz" > "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz.sha256"
       - name: Preserve complete source snapshot
+        if: github.event_name == 'workflow_dispatch' && inputs.preserve_complete_source == true
         uses: actions/upload-artifact@v4
         with:
           name: kodjo-v2-complete-source-${{ github.event.pull_request.head.sha || github.sha }}
@@ -131,11 +138,11 @@ jobs:
 
   protocol-windows-preflight:
     needs: protocol
-    if: needs.protocol.outputs.full_windows_required == 'true'
+    if: needs.protocol.outputs.full_windows_required == 'true' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository))
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
-    # Le préflight complet inclut npm ci et la suite applicative sous Windows.
-    # 20 minutes coupait le job sans verdict lors des passages réels chargés.
-    timeout-minutes: 25
+    # Run 36841216722 exhausted 25 minutes during the complete Windows suite.
+    # Retain all controls and leave a bounded budget for suite + preflight.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
@@ -143,6 +150,14 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           path: _qualification/${{ github.run_id }}
+      - name: Set up independent workflow syntax parser on Windows
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent YAML parser on Windows
+        shell: cmd
+        working-directory: _qualification/${{ github.run_id }}
+        run: python -m pip install PyYAML==6.0.3
       - name: Record Windows toolchain
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
@@ -249,6 +264,8 @@ jobs:
           if-no-files-found: error
           retention-days: 90
       - name: Download the real run 16 recovery package
+        id: historical_recovery_download
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: kodjo-v2-recovery-34606534268-1
@@ -257,6 +274,7 @@ jobs:
           run-id: 34606534268
       - name: Certify historical run 16 recovery without gating the disposable slice
         continue-on-error: true
+        if: steps.historical_recovery_download.outcome == 'success'
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
         run: |
@@ -283,6 +301,11 @@ jobs:
             $proofJson = ($proof | ConvertTo-Json -Depth 5).Replace("`r`n", "`n") + "`n"
             [IO.File]::WriteAllText('real-recovery-certification.json', $proofJson, (New-Object Text.UTF8Encoding($false)))
           }
+      - name: Record unavailable historical recovery as a separate reserve
+        if: always() && steps.historical_recovery_download.outcome != 'success'
+        shell: cmd
+        working-directory: _qualification/${{ github.run_id }}
+        run: node scripts/kodjo/record-unavailable-recovery.js real-recovery-certification.json
       - name: Upload real recovery certification
         if: always()
         uses: actions/upload-artifact@v4

@@ -215,3 +215,18 @@ test('workflows and admission bind production planning to the deterministic cont
   assert.match(admission, /queue\.scope_allow/);
   assert.match(pilot, /kodjo-slice-plan-review\.yml/);
 });
+
+test('D12 DELETE and JSON asset aliases still expose their existing direct importers', () => {
+  const f=fixture();
+  try {
+    fs.mkdirSync(path.join(f.cwd,'assets'),{recursive:true});
+    fs.writeFileSync(path.join(f.cwd,'assets/colors.json'),'{}');
+    fs.writeFileSync(path.join(f.cwd,'src/settings.json'),'{}');
+    fs.writeFileSync(path.join(f.cwd,'src/consumer.ts'),'import colors from "@/assets/colors.json"; const settings=require("@/settings.json");');
+    execFileSync('git',['add','.'],{cwd:f.cwd}); execFileSync('git',['commit','-qm','json fixture'],{cwd:f.cwd});
+    const revision=execFileSync('git',['rev-parse','HEAD'],{cwd:f.cwd,encoding:'utf8'}).trim();
+    const result=scanDirectImporters({cwd:f.cwd,revision,modifiedModules:[{path:'assets/colors.json',change:'DELETE'},{path:'src/settings.json',change:'DELETE'}]});
+    const consumer=result.candidates.find(row=>row.path==='src/consumer.ts');
+    assert.deepEqual(consumer.triggered_by,['assets/colors.json','src/settings.json']);
+  } finally {fs.rmSync(f.cwd,{recursive:true,force:true});}
+});

@@ -1,0 +1,42 @@
+{
+  "ref": "refs/tags/kodjo-consumed/7c4b54fd-b0db-45bd-abf3-73c5a3761840",
+  "tag_oid": "5333643773e9310d2dda25d68f7994a26088d5d0",
+  "schema": "kodjo.disposable-consumption.v1",
+  "evidence_kind": "DISPOSABLE_LOCAL_REQUEST",
+  "repository": "MyUncried/Application-Routine",
+  "request_id": "7c4b54fd-b0db-45bd-abf3-73c5a3761840",
+  "queue_commit": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
+  "queue_blob_oid": "10ae75279b98089e5e6a1defa2494b40011bdfc8",
+  "queue_path": null,
+  "request": {
+    "schema_version": "kodjo.protocol.v2.local-implementation.0.6.12",
+    "slice_id": "VNEXT-12-QUALIF",
+    "source_head": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
+    "protocol_source_head": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
+    "baseline_head": "070722462d9ac6edb797072e9c74c4817dee0601",
+    "slice_bootstrap_file": ".github/orchestration/v2-slices/VNEXT-12-QUALIF/slice-bootstrap.json",
+    "slice_bootstrap_sha256": "9a82a9056983594fe559bf1410999fa7e751ff414d6ebaf6c443050ea92a722f",
+    "mode": "INITIAL",
+    "operation_kind": "IMPLEMENT",
+    "delivery_target": null,
+    "session_id": null,
+    "prompt_file": ".github/orchestration/vnext12/VNEXT-12-QUALIF/initial/implementation-mission.md",
+    "scope_allow": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "checks": [
+      "jest",
+      "typescript",
+      "lint"
+    ],
+    "request_id": "7c4b54fd-b0db-45bd-abf3-73c5a3761840"
+  },
+  "session_id": "23570c25-875b-4158-8d87-5f075cb8056a",
+  "source_head": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
+  "run_id": "37115247745",
+  "run_attempt": "1",
+  "mode": "INITIAL",
+  "retry_of_run_id": null,
+  "retry_reason": null
+}

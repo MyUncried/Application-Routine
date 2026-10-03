@@ -1,0 +1,12 @@
+{
+  "stage": "PREPARE_REVISION",
+  "slice_id": "VNEXT-12-QUALIF",
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "revision_limit": 1,
+  "preparation_generation": 15,
+  "generation": 38,
+  "preflight_format": "VNEXT_EXECUTION_REQUEST",
+  "final_audit_authorized": false,
+  "pre1_in_scope": false,
+  "revision_scenario": "DECLARED_NEGATIVE_PLAN_THEN_ONE_CAUSAL_CORRECTION"
+}

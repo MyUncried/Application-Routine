@@ -1,0 +1,241 @@
+name: KODJO VNext-12 disposable preparation
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - '.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json'
+permissions:
+  contents: read
+concurrency:
+  group: kodjo-vnext12-disposable
+  # An implementation must never be cancelled by a later preparation commit.
+  cancel-in-progress: false
+jobs:
+  select-stage:
+    if: github.event.pull_request.number == 269 && github.head_ref == 'protocol/vnext-proof-stability-20260930'
+    runs-on: ubuntu-latest
+    outputs:
+      stage: ${{ steps.stage.outputs.stage }}
+      approved_head: ${{ steps.stage.outputs.approved_head }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Select the explicitly requested stage
+        id: stage
+        shell: bash
+        run: |
+          node - <<'JS'
+          const fs = require('fs');
+          const c = JSON.parse(fs.readFileSync('.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json'));
+          if (!['PREPARE_INITIAL', 'EXECUTE_INITIAL', 'EXECUTE_REVISION', 'QUALIFY_ONLY', 'PREPARE_REVISION'].includes(c.stage) || c.pre1_in_scope !== false || c.final_audit_authorized !== false || c.revision_limit !== 1) throw Error('VNEXT12_STAGE_REFUSED');
+          if (['EXECUTE_INITIAL', 'EXECUTE_REVISION'].includes(c.stage)) require('./scripts/kodjo/execute-vnext12').validateConfig(c);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'stage=' + c.stage + '\napproved_head=' + c.approved_protocol_head + '\n');
+          JS
+      - name: Check the disposable supervisor before any runtime execution
+        if: steps.stage.outputs.stage == 'EXECUTE_INITIAL' || steps.stage.outputs.stage == 'EXECUTE_REVISION' || steps.stage.outputs.stage == 'QUALIFY_ONLY' || steps.stage.outputs.stage == 'PREPARE_REVISION'
+        run: node --test tests/kodjo/vnext12-supervisor.pilot.js tests/kodjo/vnext12-revision-supervisor.pilot.js
+  qualify-driver:
+    needs: select-stage
+    if: needs.select-stage.outputs.stage == 'PREPARE_INITIAL' || needs.select-stage.outputs.stage == 'QUALIFY_ONLY' || needs.select-stage.outputs.stage == 'PREPARE_REVISION'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent YAML parser
+        run: python -m pip install PyYAML==6.0.3
+      - name: Validate the operational recipe without Claude
+        shell: bash
+        run: node scripts/kodjo/prepare-vnext12.js produce "$RUNNER_TEMP/vnext12-produce-${{ github.run_id }}"
+      - name: Verify inherited VNext contracts
+        shell: bash
+        run: node --test tests/kodjo/vnext-*.pilot.js
+  prepare-revision:
+    if: needs.select-stage.outputs.stage == 'PREPARE_REVISION'
+    needs: [select-stage, qualify-driver]
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      actions: read
+    env:
+      CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+          path: _vnext12-revision/${{ github.run_id }}
+      - name: Locate preserved evidence for this exact run on a rerun
+        if: github.run_attempt > 1
+        id: resume
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $response=gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID/artifacts?per_page=100" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw 'VNEXT12_RESUME_ARTIFACT_LOOKUP_FAILED' }
+          $prefix='kodjo-vnext12-revision-${{ github.run_id }}-'
+          $items=@($response.artifacts | Where-Object { $_.name.StartsWith($prefix) -and -not $_.expired -and [int]($_.name.Substring($prefix.Length)) -lt [int]'${{ github.run_attempt }}' } | Sort-Object id -Descending)
+          if ($items.Count -eq 0) { throw 'VNEXT12_RESUME_EVIDENCE_UNAVAILABLE' }
+          if ($items[0].workflow_run.head_sha -ne '${{ github.event.pull_request.head.sha }}') { throw 'VNEXT12_RESUME_CANDIDATE_MISMATCH' }
+          "artifact_id=$($items[0].id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      - uses: actions/download-artifact@v4
+        if: steps.resume.outputs.artifact_id != ''
+        with:
+          artifact-ids: ${{ steps.resume.outputs.artifact_id }}
+          github-token: ${{ github.token }}
+          run-id: ${{ github.run_id }}
+          path: ${{ runner.temp }}/vnext12-revision-${{ github.run_id }}
+          merge-multiple: true
+      - name: Review a declared negative plan and exactly one causal correction
+        working-directory: _vnext12-revision/${{ github.run_id }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'VNEXT12_RUNNER_MISMATCH' }
+          if ((git rev-parse HEAD).Trim() -ne '${{ github.event.pull_request.head.sha }}') { throw 'VNEXT12_HEAD_MISMATCH' }
+          $request = Get-Content -LiteralPath '.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json' -Raw -Encoding UTF8 | ConvertFrom-Json
+          if ($request.stage -ne 'PREPARE_REVISION' -or $request.final_audit_authorized -or $request.revision_limit -ne 1) { throw 'VNEXT12_STAGE_REFUSED' }
+          if (-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))) { throw 'VNEXT12_CHECKOUT_DIRTY' }
+          Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
+          Remove-Item Env:GITHUB_TOKEN -ErrorAction SilentlyContinue
+          Remove-Item Env:KODJO_LIVE_GH_TOKEN -ErrorAction SilentlyContinue
+          $evidence=Join-Path $env:RUNNER_TEMP 'vnext12-revision-${{ github.run_id }}'
+          $stage=if (Test-Path -LiteralPath (Join-Path $evidence 'base-review-receipt.json')) { 'resume' } else { 'review' }
+          & node scripts/kodjo/prepare-vnext12-revision.js $stage $evidence
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve actual negative review causal patch revised review and outcome
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-vnext12-revision-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vnext12-revision-${{ github.run_id }}/*
+          retention-days: 90
+          if-no-files-found: error
+  prepare-initial:
+    if: needs.select-stage.outputs.stage == 'PREPARE_INITIAL'
+    needs: [select-stage, qualify-driver]
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 30
+    env:
+      CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+          path: _vnext12/${{ github.run_id }}
+      - name: Prepare exact Git evidence and request one real plan review
+        working-directory: _vnext12/${{ github.run_id }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'VNEXT12_RUNNER_MISMATCH' }
+          if ((git rev-parse HEAD).Trim() -ne '${{ github.event.pull_request.head.sha }}') { throw 'VNEXT12_HEAD_MISMATCH' }
+          $request = Get-Content -LiteralPath '.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json' -Raw -Encoding UTF8 | ConvertFrom-Json
+          if ($request.stage -ne 'PREPARE_INITIAL' -or $request.pre1_in_scope -or $request.final_audit_authorized -or $request.revision_limit -ne 1) { throw 'VNEXT12_STAGE_REFUSED' }
+          if (-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))) { throw 'VNEXT12_CHECKOUT_DIRTY' }
+          Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
+          Remove-Item Env:GITHUB_TOKEN -ErrorAction SilentlyContinue
+          Remove-Item Env:KODJO_LIVE_GH_TOKEN -ErrorAction SilentlyContinue
+          & node scripts/kodjo/prepare-vnext12.js prepare (Join-Path $env:RUNNER_TEMP 'vnext12-${{ github.run_id }}')
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve actual review and prepared dossier
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-vnext12-preparation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vnext12-${{ github.run_id }}/*
+          retention-days: 90
+          if-no-files-found: error
+  execute-initial:
+    name: Execute approved disposable INITIAL or REVISION
+    needs: select-stage
+    if: needs.select-stage.outputs.stage == 'EXECUTE_INITIAL' || needs.select-stage.outputs.stage == 'EXECUTE_REVISION'
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 120
+    permissions:
+      # The supervisor needs the atomic kodjo-consumed request receipt.
+      # Claude never receives this token or writes an application branch.
+      contents: write
+      # Approval is a PR conversation comment with owner reactions.
+      issues: read
+      pull-requests: read
+      actions: read
+    env:
+      CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          path: _vnext12-controller/${{ github.run_id }}
+      - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+        with:
+          # Exact dossier approved by the owner; newer controller code cannot
+          # silently move the approved runtime or its application baseline.
+          ref: ${{ needs.select-stage.outputs.approved_head }}
+          persist-credentials: false
+          fetch-depth: 0
+          path: _vnext12-approved/${{ github.run_id }}
+      - name: Admit exact approved request and execute only in a local disposable clone
+        working-directory: _vnext12-approved/${{ github.run_id }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KODJO_VNEXT_CONSUMPTION_TOKEN: ${{ secrets.KODJO_VNEXT_CONSUMPTION_TOKEN }}
+          VNEXT12_CONTROLLER_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'VNEXT12_RUNNER_MISMATCH' }
+          $controller = Join-Path $env:GITHUB_WORKSPACE '_vnext12-controller/${{ github.run_id }}'
+          $driver = Join-Path $controller 'scripts/kodjo/execute-vnext12.js'
+          $config = Join-Path $controller '.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json'
+          & node $driver $config (Join-Path $env:RUNNER_TEMP 'vnext12-execution-${{ github.run_id }}')
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve actual admission negative probes runtime patch checks and cleanup
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-vnext12-execution-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vnext12-execution-${{ github.run_id }}/**
+          retention-days: 14
+          if-no-files-found: error

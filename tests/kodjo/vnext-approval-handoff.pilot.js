@@ -184,12 +184,14 @@ function buildFixture({ reviewFindings = [] } = {}) {
     uiAtomicityContract: null,
   });
 
-  const reviewReport = Review.buildReviewReport({
+  const reviewReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext,
     semanticReview: { findings: reviewFindings },
-  });
+  }));
 
   const currentState = {
+    execution_context: { mode: 'LOCAL', writer_id: 'CLAUDE:fixture-writer' },
+    native_primitive_decisions: [],
     product_head: H40A,
     application_head: repo.revision,
     protocol_head: H40B,
@@ -242,6 +244,41 @@ function approvalEvidence(target, overrides = {}) {
   };
 }
 
+test('VNext preserved writer: mode and designated writer are explicit and change invalidates approval', () => {
+  const fx = buildFixture();
+  const old = Approval.buildApprovalTarget(artifacts(fx));
+  for (const execution_context of [{ mode: 'CLOUD', writer_id: 'CLAUDE:fixture-writer' }, { mode: 'LOCAL', writer_id: 'CLAUDE:another-writer' }]) {
+    const changed = Approval.buildApprovalTarget(artifacts(fx, { currentState: { ...fx.currentState, execution_context } }));
+    assert.notEqual(changed.contract_hash, old.contract_hash);
+    assert.throws(() => Approval.buildApprovalRecord({ approvalTarget: changed, evidence: approvalEvidence(old) }), /TARGET_REFERENCE_MISMATCH/);
+  }
+  const missing = { ...fx.currentState }; delete missing.execution_context;
+  assert.throws(() => Approval.buildApprovalTarget(artifacts(fx, { currentState: missing })), /CURRENT_STATE_KEYS_INVALID/);
+  assert.match(Approval.renderApprovalMessage(old), /execution_context=.*LOCAL.*CLAUDE:fixture-writer/);
+});
+
+test('VNext preserved native: an exact target still requires explicit exception approval before execution', () => {
+  const fx = buildFixture();
+  const base = structuredClone(Approval.buildApprovalTarget(artifacts(fx)));
+  // Shape fixture of an already reviewed UI target. Source/criterion assessment
+  // validation is tested separately; runtime must still rebuild the complete UI.
+  base.execution_core.ui_atomicity_hash = 'e'.repeat(64);
+  base.execution_core.native_primitive_decisions = [{ criterion_id: 'UI-fixture', availability: 'AVAILABLE',
+    primitive: 'NativeWheel', selected_primitive: 'CustomWheel', functional_requirement_id: fx.reqId,
+    evidence_refs: ['proof:PROOF-branch', 'source:DOC-native#UNIT-native'], justification: 'Exigence fonctionnelle validée non satisfaite par la primitive.', exception_reason: 'FUNCTIONAL_REQUIREMENT_UNSATISFIED',
+    assessment_evidence_hash: 'f'.repeat(64), assessment_evidence_ref: 'fixture:verified-native-source-observation' }];
+  base.execution_fingerprint = V.canonicalHash(base.execution_core);
+  base.approval_target_id = V.stableId('APRT', [base.execution_core.slice_id, base.execution_fingerprint]);
+  delete base.contract_hash;
+  const target = V.sealContract(base);
+  assert.throws(() => Approval.buildApprovalRecord({ approvalTarget: target, evidence: approvalEvidence(target) }), /NATIVE_PRIMITIVE_EXCEPTION_REQUIRED/);
+  const record = Approval.buildApprovalRecord({ approvalTarget: target, evidence: approvalEvidence(target, { native_exception_approvals: ['UI-fixture'] }) });
+  assert.equal(Approval.validateApprovalRecord(record, target), true);
+  const forged = structuredClone(record); forged.native_exception_approvals = []; delete forged.contract_hash;
+  assert.throws(() => Approval.validateApprovalRecord(V.sealContract(forged), target), /NATIVE_PRIMITIVE_EXCEPTION_REQUIRED/);
+  assert.match(Approval.renderApprovalMessage(target), /native_primitive_exception_request=UI-fixture/);
+});
+
 test('VNext-08 construit une cible d’approbation sur l’exécution exacte', () => {
   const fx = buildFixture();
   assert.equal(fx.reviewReport.verdict, 'APPROVE');
@@ -264,7 +301,7 @@ test('VNext-08 construit une cible d’approbation sur l’exécution exacte', (
 test('VNext-08 refuse de demander une approbation tant que la review n’est pas APPROVE', () => {
   const base = buildFixture();
   const item = base.planContract.plan_items[0];
-  const report = Review.buildReviewReport({
+  const report = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: base.reviewContext,
     semanticReview: {
       findings: [{
@@ -277,7 +314,7 @@ test('VNext-08 refuse de demander une approbation tant que la review n’est pas
         dependency_target_ids: [],
       }],
     },
-  });
+  }));
   assert.equal(report.verdict, 'REVISE');
 
   assert.throws(() => Approval.buildApprovalTarget(artifacts(base, { reviewReport: report })),
@@ -409,7 +446,7 @@ test('VNext-08 refuse une approbation devenue obsolète après modification du p
     approvalTarget: target,
     approvalRecord: record,
     ...artifacts(fx, { planContract: changed }),
-  }), /VNEXT_PLAN_CONTRACT_REBUILD_MISMATCH|VNEXT_APPROVAL_PLAN_CONTEXT_MISMATCH|VNEXT_HANDOFF_APPROVAL_STALE/);
+  }), /VNEXT_REVIEW_CONTEXT_REBUILD_MISMATCH|VNEXT_PLAN_CONTRACT_REBUILD_MISMATCH|VNEXT_APPROVAL_PLAN_CONTEXT_MISMATCH|VNEXT_HANDOFF_APPROVAL_STALE/);
 });
 
 test('VNext-08 refuse un DirectImportScan différent de celui revu', () => {

@@ -6,10 +6,9 @@ const RequirementRegistry = require('./requirement-registry');
 const Impact = require('./impact-graph');
 const Plan = require('./plan-contract');
 const Ui = require('./ui-atomicity-contract');
-const { isUiPath } = require('./ui-criteria-contract');
 
-const CONTEXT_SCHEMA = 'kodjo.vnext.review-context.v1';
-const REPORT_SCHEMA = 'kodjo.vnext.review-report.v1';
+const CONTEXT_SCHEMA = 'kodjo.vnext.review-context.v2';
+const REPORT_SCHEMA = 'kodjo.vnext.review-report.v2';
 
 const FINDING_CATEGORIES = Object.freeze([
   'MISSING_REQUIREMENT',
@@ -166,8 +165,7 @@ function buildReviewContext({
     candidateManifest,
   });
 
-  const uiChanges = planContract.boundaries.write_scope
-    .filter((row) => isUiPath(row.path))
+  const uiChanges = Ui.uiChangeItems(requirementRegistry, planContract, candidateManifest)
     .map((row) => row.candidate_id)
     .sort();
   const uiApplicable = uiChanges.length > 0;
@@ -215,6 +213,7 @@ function buildReviewContext({
   return V.sealContract({
     schema_version: CONTEXT_SCHEMA,
     planning_mode: planningEnvelope.planning_mode,
+    causal_finding_ids: [...planningEnvelope.causal_findings].sort(),
     planning_envelope_hash: planningEnvelope.contract_hash,
     requirement_registry_hash: requirementRegistry.contract_hash,
     candidate_manifest_hash: candidateManifest.contract_hash,
@@ -234,6 +233,7 @@ function validateReviewContext(context) {
     [
       'schema_version',
       'planning_mode',
+      'causal_finding_ids',
       'planning_envelope_hash',
       'requirement_registry_hash',
       'candidate_manifest_hash',
@@ -271,6 +271,15 @@ function validateReviewContext(context) {
   return true;
 }
 
+function verifyReviewContext(context, artifacts) {
+  validateReviewContext(context);
+  const rebuilt = buildReviewContext(artifacts);
+  if (V.canonicalStringify(context) !== V.canonicalStringify(rebuilt)) {
+    V.fail('VNEXT_REVIEW_CONTEXT_REBUILD_MISMATCH');
+  }
+  return true;
+}
+
 function reviewerOutputSchema(reviewContext) {
   validateReviewContext(reviewContext);
   const allTargetIds = TARGET_TYPES.flatMap((type) => reviewContext.target_catalog[type]);
@@ -278,8 +287,14 @@ function reviewerOutputSchema(reviewContext) {
   return {
     type: 'object',
     additionalProperties: false,
-    required: ['findings'],
+    required: ['findings', 'reviewed_target_ids', 'finding_resolutions'],
     properties: {
+      reviewed_target_ids: { type: 'array', uniqueItems: true, items: { type: 'string', enum: allTargetIds } },
+      finding_resolutions: { type: 'array', items: {
+        type: 'object', additionalProperties: false, required: ['finding_id', 'status', 'evidence_refs', 'note'],
+        properties: { finding_id: { type: 'string', minLength: 1 }, status: { type: 'string', enum: ['RESOLVED', 'OPEN'] },
+          evidence_refs: { type: 'array', minItems: 1, items: { type: 'string', minLength: 1 } }, note: { type: 'string', minLength: 1 } },
+      } },
       findings: {
         type: 'array',
         items: {
@@ -405,7 +420,7 @@ function buildReviewReport({ reviewContext, semanticReview }) {
   validateReviewContext(reviewContext);
   V.assertExactKeys(
     semanticReview,
-    ['findings'],
+    ['findings', 'reviewed_target_ids', 'finding_resolutions'],
     [],
     'VNEXT_REVIEW_OUTPUT_KEYS_INVALID',
   );
@@ -414,6 +429,19 @@ function buildReviewReport({ reviewContext, semanticReview }) {
   }
 
   const allTargets = validateCatalog(reviewContext.target_catalog);
+  const reviewedTargets = V.uniqueStrings(semanticReview.reviewed_target_ids, 'VNEXT_REVIEW_COVERAGE_INVALID', 'reviewed_target_ids').sort();
+  if (V.canonicalStringify(reviewedTargets) !== V.canonicalStringify([...allTargets].sort())) V.fail('VNEXT_REVIEW_COVERAGE_INCOMPLETE');
+  if (!Array.isArray(semanticReview.finding_resolutions)) V.fail('VNEXT_REVIEW_RESOLUTIONS_INVALID');
+  const seenResolutions = new Set();
+  const resolutions = semanticReview.finding_resolutions.map(row => {
+    V.assertExactKeys(row, ['finding_id', 'status', 'evidence_refs', 'note'], [], 'VNEXT_REVIEW_RESOLUTION_KEYS_INVALID');
+    if (seenResolutions.has(row.finding_id) || !['RESOLVED', 'OPEN'].includes(row.status)) V.fail('VNEXT_REVIEW_RESOLUTION_INVALID');
+    seenResolutions.add(row.finding_id);
+    V.assertUnicodeExactText(row.note, 'VNEXT_REVIEW_RESOLUTION_NOTE_REQUIRED');
+    return { ...row, evidence_refs: V.uniqueStrings(row.evidence_refs, 'VNEXT_REVIEW_RESOLUTION_EVIDENCE_REQUIRED', 'evidence_refs').sort() };
+  }).sort((a,b) => a.finding_id.localeCompare(b.finding_id));
+  if (V.canonicalStringify(resolutions.map(row => row.finding_id)) !== V.canonicalStringify(reviewContext.causal_finding_ids)) V.fail('VNEXT_REVIEW_CAUSAL_RESOLUTION_COVERAGE');
+  if (reviewContext.planning_mode === 'INITIAL' && resolutions.length) V.fail('VNEXT_INITIAL_RESOLUTIONS_FORBIDDEN');
   const findings = semanticReview.findings
     .map((row, index) => normalizeFinding(row, index, reviewContext, allTargets))
     .sort((a, b) => a.finding_id.localeCompare(b.finding_id));
@@ -427,6 +455,7 @@ function buildReviewReport({ reviewContext, semanticReview }) {
   } else if (findings.some((finding) => finding.blocking)) {
     verdict = 'REVISE';
   }
+  if (resolutions.some(row => row.status !== 'RESOLVED') && verdict === 'APPROVE') verdict = 'REVISE';
 
   const blockingFindings = findings.filter((finding) => finding.blocking);
   const affectedTargetIds = [...new Set(blockingFindings.map((finding) => finding.target_id))].sort();
@@ -444,6 +473,8 @@ function buildReviewReport({ reviewContext, semanticReview }) {
     affected_target_ids: affectedTargetIds,
     reentry_stages: reentryStages,
     findings,
+    reviewed_target_ids: reviewedTargets,
+    finding_resolutions: resolutions,
   });
 }
 
@@ -462,6 +493,8 @@ function validateReviewReport(report, reviewContext) {
       'affected_target_ids',
       'reentry_stages',
       'findings',
+      'reviewed_target_ids',
+      'finding_resolutions',
       'contract_hash',
     ],
     [],
@@ -474,6 +507,8 @@ function validateReviewReport(report, reviewContext) {
   }
 
   const semanticReview = {
+    reviewed_target_ids: report.reviewed_target_ids,
+    finding_resolutions: report.finding_resolutions,
     findings: report.findings.map((finding) => ({
       category: finding.category,
       target_type: finding.target_type,
@@ -491,7 +526,19 @@ function validateReviewReport(report, reviewContext) {
   return true;
 }
 
+function buildReviewerPacket({ root, revision, reviewContext }) {
+  validateReviewContext(reviewContext);
+  return require('./vnext-producer-packet').buildProducerPacket({
+    root,
+    revision,
+    entries: ['scripts/kodjo/lib/review-contract.js'],
+    outputSchema: reviewerOutputSchema(reviewContext),
+    inputs: { review_context: reviewContext },
+  });
+}
+
 module.exports = {
+  buildReviewerPacket,
   CONTEXT_SCHEMA,
   REPORT_SCHEMA,
   FINDING_CATEGORIES,
@@ -500,6 +547,7 @@ module.exports = {
   REENTRY_BY_CATEGORY,
   buildReviewContext,
   validateReviewContext,
+  verifyReviewContext,
   reviewerOutputSchema,
   buildReviewReport,
   validateReviewReport,

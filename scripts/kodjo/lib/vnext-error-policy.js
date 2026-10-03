@@ -37,6 +37,12 @@ const RESIDUAL = new Set([
 
 function classify(input = {}) {
   const diagnostic = String(input.diagnostic || input.status || '');
+  if (['RUNNER_OFFLINE', 'RUNNER_COMMUNICATION_LOST', 'GITHUB_UNAVAILABLE', 'GITHUB_RATE_LIMITED', 'HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE'].includes(diagnostic)) {
+    return Object.freeze({ category: 'RESIDUAL_AUTOCORRECTABLE', auto_retry: false, action: 'WAIT_OR_TARGETED_TECHNICAL_DIAGNOSIS' });
+  }
+  if (/^VNEXT_.*(?:NON_VERIFIABLE|UNVERIFIABLE)$/.test(diagnostic)) {
+    return Object.freeze({ category: 'RESIDUAL_AUTOCORRECTABLE', auto_retry: false, action: 'WAIT_FOR_PROOF' });
+  }
   if (PREVENTABLE.has(diagnostic) || diagnostic.startsWith('VNEXT_')) {
     return Object.freeze({ category: 'PREVENTABLE_BY_DETERMINISM', auto_retry: false, action: 'FIX_PROTOCOL_CAUSE' });
   }
@@ -46,7 +52,7 @@ function classify(input = {}) {
   if (RESIDUAL.has(diagnostic) || /ARTIFACT_STORAGE|QUOTA|USAGE_LIMIT/.test(diagnostic)) {
     return Object.freeze({ category: 'RESIDUAL_AUTOCORRECTABLE', auto_retry: false, action: 'BOUNDED_RECOVERY_OR_WAIT' });
   }
-  return Object.freeze({ category: 'HUMAN_DECISION_REQUIRED', auto_retry: false, action: 'DIAGNOSE_UNKNOWN' });
+  return Object.freeze({ category: 'RESIDUAL_AUTOCORRECTABLE', auto_retry: false, action: 'DIAGNOSE_UNKNOWN' });
 }
 
 module.exports = { CATEGORIES, PREVENTABLE, HUMAN, RESIDUAL, classify };

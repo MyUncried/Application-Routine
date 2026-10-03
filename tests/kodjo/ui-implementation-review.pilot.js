@@ -263,7 +263,7 @@ test('delta review: le diff immédiat affecte uniquement ses critères et hérit
     const inherited=value.criteria.find(c=>c.criterion_id==='UI-002');
     assert.equal(inherited.review_scope,'INHERITED');
     assert.deepEqual(inherited.affected_paths,[]);
-    assert.equal(inherited.inherited_result.implementation_status,'CONFORME');
+    assert.equal(inherited.inherited_result.implementation_status,'NON_VERIFIABLE');
     assert.equal(inherited.inherited_result.proof_results.find(p=>p.proof_type==='ACCESSIBILITY_CHECK').status,'PENDING_DEVICE');
   });
 });
@@ -338,7 +338,7 @@ function nonUiFixture(action) {
     function writeReport(rows=[row],override={}) {
       const report_text='<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:rows})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\nKODJO_STOP_STATUS: NONE';
       const envelope={request_id:'request',source_head:'a'.repeat(40),truncated:false,report_text,
-        original_text_sha256:crypto.createHash('sha256').update(report_text).digest('hex'),...override};
+        original_text_sha256:crypto.createHash('sha256').update(report_text).digest('hex'),machine_evidence:{modified_files:['function.ts'],checks:[{check:'jest',status:'PASS'}],out_of_scope_files:[]},...override};
       fs.writeFileSync(evidence,'base_head='+ 'a'.repeat(40)+'\nv2_request_id=request\nv2_protocol_head='+ 'b'.repeat(40)+'\n<KODJO_IMPLEMENTATION_REPORT_JSON>'+JSON.stringify(envelope)+'</KODJO_IMPLEMENTATION_REPORT_JSON>');
     }
     writeReport();

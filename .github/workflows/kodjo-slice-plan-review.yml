@@ -64,6 +64,7 @@ jobs:
           if ($m.status -ne 'SPEC_PREPARED') { throw 'Slice is not ready for plan review' }
           $plan=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$planId" | ConvertFrom-Json
           if ($plan.user.login -ne 'github-actions[bot]') { throw 'Plan author mismatch' }
+          if ([string]$plan.issue_url -ne "https://api.github.com/repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER") { throw 'Plan issue mismatch' }
           if ($plan.body -notmatch '(?m)^\[KODJO_SLICE\] PLAN_OUTPUT\s*$') { throw 'Not a PLAN_OUTPUT' }
           if ($plan.body -notmatch "(?m)^slice_id=$([regex]::Escape($slice))\s*$") { throw 'Plan slice mismatch' }
           if ($plan.body -notmatch '(?m)^STATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\s*$') { throw 'Plan is not reviewable' }
