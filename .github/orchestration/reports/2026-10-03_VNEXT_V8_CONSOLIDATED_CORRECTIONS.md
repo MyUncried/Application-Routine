@@ -163,3 +163,10 @@ Le dossier généré est matérialisé sans modification sémantique. Transport 
 Candidate 16b70bab70fad2adc64b0ea7a0069cbc206eee17: runs 37139109519, 37139109523 and 37139109517 SUCCESS. Pilot Linux 977/976 PASS/0 FAIL/1 SKIP; Windows 977/973 PASS/0 FAIL/4 SKIP. VNext contracts and drivers 211/211 PASS on each OS. Historical mapped aggregation 402 cases PASS on at least one platform; operational readiness remains NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT. Actual five artifacts downloaded, SHA256 verified and archived in .github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-16b70bab.
 
 Gate issue_comment:5971337496 now contains the canonical exact candidate target a606e75fcb7a9bd07838c0479be0ffd939772df48e11aeb7453265aca57f5e21. Real owner reaction 431576097 observed, posted under CODEX_USER_DELEGATION_FOR_DISPOSABLE_TECHNICAL_TEST_ONLY; human_review_performed=false. Fresh request b605283d-13c0-4f1e-bde9-863538a6f86b retained. EXECUTE_INITIAL requested; INITIAL_PASS and REVISION_PASS are not claimed.
+
+
+## Fresh consolidated INITIAL: real PASS
+
+Run 37142131905 / job 111258778662, actual Claude session fd4b3395-6ce0-4eb5-b107-0b626bd7f618: INITIAL_PASS, IMPLEMENTED_AND_VERIFIED. value() observed 2; exactly core.js + core.test.js modified; keep.js SHA256 unchanged. Jest 1257/1257, TypeScript and lint PASS; Git runtime integrity INTACT with no changed metadata paths; disposable cleanup verified. Actual missing-authority and missing-review-proof probes refused before Claude. Artifact 11280864764 downloaded and SHA256 verified: 9e6da5a64ae50080acdd889ec9c0708dee67ea717ba725ee0c94e73b2f91d702. Exact archive and extracted evidence: .github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/initial-execution-37142131905.
+
+Request b605283d-13c0-4f1e-bde9-863538a6f86b consumed atomically, remote tag e6d13d824b3194b511c99636b65f7ed9687d9181 observed: never replay. No application publication, PRE-1, FINAL or promotion. PREPARE_REVISION is the next authorized stage; REVISION_PASS is not claimed.
