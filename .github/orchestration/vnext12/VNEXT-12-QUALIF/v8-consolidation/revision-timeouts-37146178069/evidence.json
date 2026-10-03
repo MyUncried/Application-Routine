@@ -1,0 +1,52 @@
+{
+  "schema_version": "kodjo.vnext.revision-timeout-evidence.v1",
+  "recorded_at": "2026-10-03T22:28:14.717Z",
+  "candidate_head": "b0af47a68f45dea7f253e9704334122a903cb7f2",
+  "run_id": 37146178069,
+  "attempts": [
+    {
+      "attempt": 1,
+      "artifact_id": 11282158916,
+      "sha256": "0911964ae05248b28c38f5be43ef2f105de70d3a8e794996b75dcadedec54fbb",
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/revision-timeouts-37146178069/attempt-1.zip",
+      "downloaded_hash_verified": true
+    },
+    {
+      "attempt": 2,
+      "artifact_id": 11285598676,
+      "sha256": "95bd1af7e440c695ec251a52f4c1597516a922d79d1260f3e09656c64434c25b",
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/revision-timeouts-37146178069/attempt-2.zip",
+      "downloaded_hash_verified": true
+    },
+    {
+      "attempt": 3,
+      "artifact_id": 11285754350,
+      "sha256": "4f8daa20802c93cb329504f4de03578f35def7a8b4fc00b028e1b6255a94459f",
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/revision-timeouts-37146178069/attempt-3.zip",
+      "downloaded_hash_verified": true
+    }
+  ],
+  "base_review": {
+    "session_id": "4cfbc84d-2c8c-43e0-a3ce-e2c8758d82a4",
+    "verdict": "REVISE",
+    "receipt_verified": true,
+    "finding_ids": [
+      "FND-3b9037b599e7bb49e31fdb1b"
+    ]
+  },
+  "failure_phases": [
+    "BASE_REVIEW",
+    "REVISION_REVIEW",
+    "REVISION_REVIEW"
+  ],
+  "diagnostic": "ETIMEDOUT",
+  "underlying_cause": "UNKNOWN",
+  "implementation_invoked": false,
+  "revision_approved": false,
+  "correction": "REVISION review process timeout 600000 -> 900000 ms; INITIAL/other commands unchanged. No evidence/admission/verdict gate changes. Fresh source candidate requires new real reviews and exact qualification.",
+  "old_base_receipt_reusable_for_new_candidate": false,
+  "comments": [
+    5973802104,
+    5973989973
+  ]
+}

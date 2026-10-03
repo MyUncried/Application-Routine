@@ -170,3 +170,10 @@ Gate issue_comment:5971337496 now contains the canonical exact candidate target 
 Run 37142131905 / job 111258778662, actual Claude session fd4b3395-6ce0-4eb5-b107-0b626bd7f618: INITIAL_PASS, IMPLEMENTED_AND_VERIFIED. value() observed 2; exactly core.js + core.test.js modified; keep.js SHA256 unchanged. Jest 1257/1257, TypeScript and lint PASS; Git runtime integrity INTACT with no changed metadata paths; disposable cleanup verified. Actual missing-authority and missing-review-proof probes refused before Claude. Artifact 11280864764 downloaded and SHA256 verified: 9e6da5a64ae50080acdd889ec9c0708dee67ea717ba725ee0c94e73b2f91d702. Exact archive and extracted evidence: .github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/initial-execution-37142131905.
 
 Request b605283d-13c0-4f1e-bde9-863538a6f86b consumed atomically, remote tag e6d13d824b3194b511c99636b65f7ed9687d9181 observed: never replay. No application publication, PRE-1, FINAL or promotion. PREPARE_REVISION is the next authorized stage; REVISION_PASS is not claimed.
+
+
+## REVISION preparation: actual timeout evidence and bounded correction
+
+Run 37146178069 attempts 1–3 failed: BASE_REVIEW then REVISION_REVIEW twice. Authentic base Claude session 4cfbc84d-2c8c-43e0-a3ce-e2c8758d82a4 returned REVISE with the required causal contradiction 3 vs 2; its receipt was verified and reused on attempt 3. No corrected-plan APPROVE or runtime implementation occurred. Actual three ZIP artifacts and hashes archived in .github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/revision-timeouts-37146178069. Underlying timeout cause remains UNKNOWN.
+
+Correction limits only REVISION independent-review execution to 15 minutes instead of 10, retaining the 10-minute initial/default limit and all semantic/admission checks. No workflow writer changed. A fresh candidate must receive fresh real reviews; the prior candidate receipt is historical evidence, not approval of the new source. INITIAL PASS remains recorded for its exact approved head; no claim of REVISION_PASS or universal timeout resolution.

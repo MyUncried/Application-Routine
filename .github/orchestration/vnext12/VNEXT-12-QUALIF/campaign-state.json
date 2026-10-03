@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-03T18:56:42.094231+00:00",
+  "recorded_at": "2026-10-03T22:28:14.717Z",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
-  "controller_stage": "V8_INITIAL_PASS_PREPARE_REVISION_REQUESTED",
-  "controller_generation": 45,
+  "controller_stage": "V8_REVISION_TIMEOUT_CORRECTION_PREPARE_REQUESTED",
+  "controller_generation": 46,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -405,9 +405,9 @@
     "full_linux_ci_is_authoritative": true
   },
   "pending_actions": [
-    "Observe real negative-plan Claude REVISE and one corrected-plan Claude APPROVE, bounded RESOLVED outcome.",
-    "Materialize exact REVISION dossier with a new UUID and genuine new GitHub gate, qualify then execute.",
-    "Never replay consumed INITIAL b605283d-13c0-4f1e-bde9-863538a6f86b. No FINAL, cutover, promotion, main merge or PRE-1."
+    "Qualify timeout correction on exact Linux/Windows candidate and obtain fresh real base REVISE then corrected APPROVE.",
+    "Materialize fresh REVISION dossier/transport/gate; qualify before EXECUTE_REVISION.",
+    "Preserve INITIAL PASS; no consumed request replay, no FINAL, promotion or PRE-1."
   ],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
@@ -831,7 +831,7 @@
     "initial_revision_replayed": false
   },
   "v8_consolidation": {
-    "status": "INITIAL_PASS_REVISION_PREPARATION_REQUESTED",
+    "status": "INITIAL_PASS_REVISION_PREPARATION_RETRY_WITH_BOUNDED_TIMEOUT",
     "parent_head": "952b23b3c0bbe258edb93a155abde5c58a5795e0",
     "audit_head": "c0f72fc2148a5955b9a810a8aca1f6eeefa64870",
     "main_shared_source": "67064d1b3752d71683d11638a602286b9c895482",
@@ -1141,7 +1141,7 @@
         }
       }
     },
-    "preparation_generation": 14,
+    "preparation_generation": 15,
     "initial_preparation": {
       "schema_version": "kodjo.vnext.v8.initial-preparation-evidence.v1",
       "observed_at": "2026-10-03T17:01:28.076Z",
@@ -1383,6 +1383,58 @@
       "application_published": false,
       "final_invoked": false,
       "pre1_in_scope": false
+    },
+    "revision_timeout_failures": {
+      "schema_version": "kodjo.vnext.revision-timeout-evidence.v1",
+      "recorded_at": "2026-10-03T22:28:14.717Z",
+      "candidate_head": "b0af47a68f45dea7f253e9704334122a903cb7f2",
+      "run_id": 37146178069,
+      "attempts": [
+        {
+          "attempt": 1,
+          "artifact_id": 11282158916,
+          "sha256": "0911964ae05248b28c38f5be43ef2f105de70d3a8e794996b75dcadedec54fbb",
+          "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/revision-timeouts-37146178069/attempt-1.zip",
+          "downloaded_hash_verified": true
+        },
+        {
+          "attempt": 2,
+          "artifact_id": 11285598676,
+          "sha256": "95bd1af7e440c695ec251a52f4c1597516a922d79d1260f3e09656c64434c25b",
+          "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/revision-timeouts-37146178069/attempt-2.zip",
+          "downloaded_hash_verified": true
+        },
+        {
+          "attempt": 3,
+          "artifact_id": 11285754350,
+          "sha256": "4f8daa20802c93cb329504f4de03578f35def7a8b4fc00b028e1b6255a94459f",
+          "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/revision-timeouts-37146178069/attempt-3.zip",
+          "downloaded_hash_verified": true
+        }
+      ],
+      "base_review": {
+        "session_id": "4cfbc84d-2c8c-43e0-a3ce-e2c8758d82a4",
+        "verdict": "REVISE",
+        "receipt_verified": true,
+        "finding_ids": [
+          "FND-3b9037b599e7bb49e31fdb1b"
+        ]
+      },
+      "failure_phases": [
+        "BASE_REVIEW",
+        "REVISION_REVIEW",
+        "REVISION_REVIEW"
+      ],
+      "diagnostic": "ETIMEDOUT",
+      "underlying_cause": "UNKNOWN",
+      "implementation_invoked": false,
+      "revision_approved": false,
+      "correction": "REVISION review process timeout 600000 -> 900000 ms; INITIAL/other commands unchanged. No evidence/admission/verdict gate changes. Fresh source candidate requires new real reviews and exact qualification.",
+      "old_base_receipt_reusable_for_new_candidate": false,
+      "comments": [
+        5973802104,
+        5973989973
+      ]
     }
   }
 }

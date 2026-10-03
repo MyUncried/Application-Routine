@@ -24,9 +24,9 @@ const Auth = require('../verify-authorizations');
 const GithubApproval = require('./vnext-github-approval');
 
 const SCHEMA = 'kodjo.vnext.prepared-chain.v1';
-function command(bin, args, cwd, input, env = process.env) {
+function command(bin, args, cwd, input, env = process.env, timeoutMs = 600000) {
   const r = spawnSync(bin, args, { cwd, input, env, encoding: 'utf8', shell: false,
-    windowsHide: true, timeout: 600000, maxBuffer: 64 * 1024 * 1024 });
+    windowsHide: true, timeout: timeoutMs, maxBuffer: 64 * 1024 * 1024 });
   if (r.error || r.status !== 0) V.fail('VNEXT_LIVE_PROCESS_FAILED', bin + ': ' + (r.error?.message || r.stderr));
   return String(r.stdout);
 }
@@ -158,12 +158,15 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   const configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-vnext-review-'));
   fs.writeFileSync(path.join(configDir, 'mcp.json'), JSON.stringify({ mcpServers: {} }));
   fs.writeFileSync(path.join(configDir, 'settings.json'), JSON.stringify({ disableAllHooks: true }));
+  // A revised plan also requires causal resolution evidence. Keep its review
+  // bounded at 15 minutes; initial reviews and other commands retain 10.
   let raw;
   try {
     raw = invoke(claude, ['-p', '--restricted', '--permission-mode', 'dontAsk', '--permission-prompts', 'none',
       '--output-format', 'json', '--tools', 'Read,Glob,Grep', '--allowedTools', 'Read,Glob,Grep',
       '--disallowedTools', 'mcp__*', '--strict-mcp-config', '--mcp-config', path.join(configDir, 'mcp.json'),
-      '--settings', path.join(configDir, 'settings.json'), '--json-schema', JSON.stringify(transportSchema)], cwd, JSON.stringify(dossier), env);
+      '--settings', path.join(configDir, 'settings.json'), '--json-schema', JSON.stringify(transportSchema)], cwd, JSON.stringify(dossier), env,
+      artifacts.planningEnvelope.planning_mode === 'REVISION' ? 900000 : 600000);
   } finally { fs.rmSync(configDir, { recursive: true, force: true }); }
   if (checkoutSnapshot() !== before) V.fail('VNEXT_REVIEW_MUTATED_CHECKOUT');
   let result;

@@ -26,8 +26,10 @@ function fixture(t) {
 }
 function receipt(cwd, produced, findings) {
   // Explicit fixture adapter: these receipts are never published as run proof.
-  return Chain.review(produced, { cwd, claude: 'unit-test-only', invoke: () => JSON.stringify({
-    type: 'result', session_id: 'UNIT-TEST-ONLY', structured_output: { semantic_review: require('./helpers/review-attestation-fixture').semantic(produced.artifacts.reviewContext, findings), native_assessment_observations: [] } }) });
+  return Chain.review(produced, { cwd, claude: 'unit-test-only', invoke: (_bin, _args, _cwd, _input, _env, timeoutMs) => {
+    assert.equal(timeoutMs, produced.artifacts.planningEnvelope.planning_mode === 'REVISION' ? 900000 : 600000);
+    return JSON.stringify({ type: 'result', session_id: 'UNIT-TEST-ONLY', structured_output: { semantic_review: require('./helpers/review-attestation-fixture').semantic(produced.artifacts.reviewContext, findings), native_assessment_observations: [] } });
+  } });
 }
 function setup(t) {
   const cwd = fixture(t), base = Chain.produce(Driver.benchmarkRecipe(cwd), { cwd });
