@@ -148,7 +148,7 @@ Références Figma : `4861:6145` (Étiquette), `4861:6259` (Catégorie), `4861:6
 
 ### 4.11 Cartes, médias de carte et appuis — référence courante
 
-D-233–239 et DSF-CARTES-ICONES-APPUIS-2026-09-30 gouvernent le rendu. Carte standard 354 sur 402, rayon 8, fond#FCFCFE/bord 0,5#CCD1E0, titre 15 Semi Bold, pastilles 20 et valeurs 16 ; marges adaptatives, aucune barre verticale hors Jour. Photo d’Exercice : vignette 64 recadrée sans déformation, pas d’augmentation de hauteur, texte décalé 88, place réservée pendant chargement/erreur, texte alternatif nom ; aucun Déployer. La galerie d’Exécution conserve au contraire le média intégral sans recadrage. Séance sans photo (RG-3 reportée). Choix sans badge durée/heure ni Lecture/Déployer. Pauses/récupérations absentes des cartes Catalogue/choix/Composition ; prochaine planification absente des Catalogues ; données et calculs conservés.
+D-233–239 révisées par D-260 à D-263 et DSF-CARTES-ICONES-APPUIS-2026-09-30 gouvernent le rendu. Carte standard 354 sur 402, rayon 8, fond#FCFCFE/bord 0,5#CCD1E0, titre 15 Semi Bold, pastilles 20 et valeurs 16 ; marges adaptatives, aucune barre verticale hors Jour. Carte d’Exercice Catalogue/choix : gouttière permanente 64, photo recadrée centrée sans déformation ou icône de nature sans média/pendant chargement/erreur ; texte à x88, largeur207 ; aucun Déployer. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi ; texte alternatif de la vignette égal au nom. La galerie d’Exécution conserve au contraire le média intégral sans recadrage. Séance sans photo (D-260). Choix sans badge durée/heure ni Lecture/Déployer. Pauses/récupérations absentes des cartes Catalogue/choix/Composition ; prochaine planification absente des Catalogues ; données et calculs conservés.
 
 Commandes contextuelles 34/dessin 20/cible 44, gaps 12 ou 10 en Composition ; dimensions spécifiques 48 conservées. Jour compact 298×46/48, barre 4, nature 26, titre 13, valeurs 11, Lecture 26 ; pas de déploiement. Aujourd’hui/Planifier 32 restent l’exception acceptée aprèsT04. Action au relâchement, sans attendre le retour animé ; sortie de cible annule ; stepper 450/150 ms ; réduction des animations par opacité sans dilatation. Les dimensions à402 ne sont pas des coordonnées absolues d’implémentation.
 
@@ -329,7 +329,7 @@ L’ancienne référence `3787:5209` n’existe plus dans l’état Figma couran
 
 ### 2. Finalité fonctionnelle
 
-Lister les ActivityDefinition ; filtres/archives, ouverture/modification et lancement direct. Présentation avec/sans vignette selon RG-1/RG-4, sans créer un mécanisme d’import.
+Lister les ActivityDefinition ; filtres/archives, ouverture/modification et lancement direct. Format unique à gouttière permanente selon D-260/D-261, sans créer un mécanisme d’import.
 
 ### 3. Contexte d’entrée
 
@@ -351,15 +351,15 @@ Noms, Catégories, Zones et paramètres sont des données métier ; les valeurs 
 
 ### 7. Structure de l’écran
 
-Header → segmenté → rangée commandes Catalogue (`Créer`, `Filtrer`, `Trier`) → liste scrollable → navigation. Carte : pastille de classement, titre/badge, valeurs, zones Déployer/Lecture selon contexte ; aucune barre verticale. Voir le complément Cartes du 30 septembre 2026.
+Header → segmenté → rangée commandes Catalogue (`Créer`, `Filtrer`, `Trier`) → liste scrollable → navigation. Carte : pastille de classement, titre/badge, valeurs, Lecture/Restaurer selon contexte, sans Déployer ; aucune barre verticale. Voir le complément Cartes du 30 septembre 2026.
 
 ### 8. Éléments obligatoires
 
-Pastille Catégorie colorée, Zones corporelles, titre et badge durée ; synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`, miroir 16 si bilatéral. Aucune pause/récupération ni prochaine planification affichée. Lecture indépendante ; Déployer retiré avec vignette. Aucune poignée. Créer/Filtrer actifs, Trier désactivé.
+Pastille Catégorie colorée, Zones corporelles, titre et badge durée ; synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`, miroir 16 si bilatéral. Aucune pause/récupération ni prochaine planification affichée. Lecture indépendante ; aucun Déployer, avec ou sans média. Aucune poignée. Créer/Filtrer actifs, Trier désactivé.
 
 ### 9. Layout déterministe
 
-Cartes standard : largeur 354 sur écran 402, rayon 8, fond #FCFCFE, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée 354 × 91. Avec média d’exercice : vignette 64 à12 du bord, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur 254 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Badge durée/heure conservé selon contexte, catégorie conservée, pictogramme de zone retiré ; Déployer absent. Séance sans vignette (RG-3 reportée). Commandes 34/dessins 20/gaps 12/cibles 44. La référence exercice déployé≈260 du wireframe reste distincte du composant≈236 conservé ; cet écart d’assemblage ne réintroduit pas Déployer dans Photo.
+Cartes standard : largeur 354 sur écran 402, rayon 8, fond #FCFCFE, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée 354 × 91. Gouttière permanente d’exercice : carré 64 à12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur 207 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Badge durée/heure conservé selon contexte, catégorie conservée, pictogramme de zone retiré ; Déployer absent. Séance sans vignette (D-260). Commandes 34/dessins 20/gaps 12/cibles 44. La référence Exercice Déployé est historique hors MVP, sans chemin d’accès.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -367,15 +367,15 @@ Cartes standard : largeur 354 sur écran 402, rayon 8, fond #FCFCFE, bord intér
 
 ### 11. États de l’écran
 
-Liste active ; vide 4521:6220 ; filtre étendu Aucun ; filtre appliqué ; archives ; Trier désactivé ; carte glissée ; déploiement sans photo ; Photo sans Déployer ; chargement/erreur média ; retour restauré ; relance sans filtre. 4738:6355 illustre l’ancien assemblage média déployé, pas la cible Photo.
+Liste active ; vide 4521:6220 ; filtre étendu Aucun ; filtre appliqué ; archives ; Trier désactivé ; carte glissée ; gouttière sans média/avec photo, sans Déployer ; chargement/erreur média ; retour restauré ; relance sans filtre. 4738:6355 illustre l’ancien assemblage média déployé, pas la cible Photo.
 
 ### 12. Contrôles et interactions
 
-Surface carte = ouvrir/modifier ; Lecture = exécution directe. Avec vignette, aucun contrôle Déployer. Sans vignette, conserver la présentation APRÈS et son contrôle de déploiement ; l’existence de l’état déployé dans les wireframes ne contredit pas RG-4. Filtrer ouvre ses options ; Trier sans événement ; Créer ouvre directement la création persistante.
+Surface carte = ouvrir/modifier ; Lecture = exécution directe. Aucun contrôle Déployer, visible ou invisible, quel que soit le média. La gouttière existe toujours ; le booléen Photo ne change que son contenu. Filtrer ouvre ses options ; Trier sans événement ; Créer ouvre directement la création persistante.
 
 ### 13. Gestes
 
-Swipe selon §4.7 ; pas de drag/appui long de carte Catalogue. Aucune zone de tap Déployer invisible dans l’état avec photo. Les commandes d’appui suivent D-237.
+Swipe selon §4.7 ; pas de drag/appui long de carte Catalogue. Aucune zone de tap Déployer, avec ou sans média. Les commandes d’appui suivent D-237.
 
 ### 14. Validation
 
@@ -395,15 +395,15 @@ Définition supprimée entre rendu et action : rafraîchir et indiquer indisponi
 
 ### 18. Accessibilité
 
-Carte : `Ouvrir l’exercice <nom>` ; Lecture : `Exécuter l’exercice <nom>` ; vignette : nom de l’exercice. Déployer expose son état uniquement lorsqu’il est présent. Trier désactivé/non déclenchable ; commandes contextuelles cibles 44 sans chevauchement. Troncature conserve la donnée complète.
+Carte : `Ouvrir l’exercice <nom>` ; Lecture : `Exécuter l’exercice <nom>` ; vignette : nom de l’exercice. Aucune commande de déploiement ne doit être annoncée pour une carte d’Exercice. Trier désactivé/non déclenchable ; commandes contextuelles cibles 44 sans chevauchement. Troncature conserve la donnée complète.
 
 ### 19. Invariants
 
-Lecture indépendante ; aucune poignée ; carte avec photo sans Déployer et sans hausse de hauteur. Absence des pauses/récupérations/prochaine planification sur carte sans perte de données. Trier disabled, tri updatedAt DESC, règles Filtrer inchangées.
+Lecture indépendante ; aucune poignée ; carte à gouttière permanente sans Déployer et sans hausse de hauteur liée au média. Absence des pauses/récupérations/prochaine planification sur carte sans perte de données. Trier disabled, tri updatedAt DESC, règles Filtrer inchangées.
 
 ### 20. Recette déterministe
 
-Tester zéro/N cartes, active/archivée, avec/sans photo/vidéo, chargement/erreur, texte alternatif, troncature, sélection indépendante et absence de zone Déployer dans Photo. Vérifier formats des trois modes, miroir pour bilatéral et absence des textes retirés. Puis filtres, actions glissées, retour d’état et responsive. Critères CAR/MED/ICO/CTX/ANI du complément.
+Tester zéro/N cartes, active/archivée, avec/sans photo/vidéo, chargement/erreur, texte alternatif, troncature, sélection indépendante et absence de zone Déployer avec ou sans média. Vérifier formats des trois modes, miroir pour bilatéral et absence des textes retirés. Puis filtres, actions glissées, retour d’état et responsive. Critères CAR/MED/ICO/CTX/ANI du complément.
 
 Vérifier aussi les cartes variables dans les trois modes et la durée intrinsèque sans récupération contextuelle.
 
@@ -411,7 +411,7 @@ Vérifier aussi les cartes variables dans les trois modes et la durée intrinsè
 
 Référence variable courante6665:24120 : indicateur N séries variables sans détail ; total intrinsèque selon mode. État ajouté au chapitre06 et à la matrice du03/10.
 
-D-167/D-173/D-187/D-193/D-195 révisée par D-238 ; D-221/D-233–239 ; API-CAT-01 ; frames 3786:5093, 4168:11262, 4521:6220, 4544:6344/6651, 4738:6209/6355. Cible Photo : wireframe 6354:16964 ; limites §5.
+D-167/D-173/D-187/D-193/D-195 supersédée par D-261 après D-238 ; D-221/D-233–239 ; API-CAT-01 ; frames 3786:5093, 4168:11262, 4521:6220, 4544:6344/6651, 4738:6209/6355. Cible Photo : wireframe 6354:16964 ; limites §5.
 
 ---
 
@@ -809,7 +809,7 @@ Case 20, titre 15, pastilles 20, valeurs 16, compteur et Sélectionner désactiv
 
 ### 9. Layout déterministe
 
-Cartes standard : largeur 354 sur écran 402, rayon 8, fond #FCFCFE, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Choix Composition 354 × 91 ; texte tronqué à≥20 de la case, liste seule défilante ; actions fixes. Avec média d’exercice : vignette 64 à12 du bord, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur 254 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Aucun badge durée/heure dans ce choix, catégorie conservée, pictogramme de zone retiré ; Déployer absent. 
+Cartes standard : largeur 354 sur écran 402, rayon 8, fond #FCFCFE, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Choix Composition 354 × 91 ; texte tronqué à≥20 de la case, liste seule défilante ; actions fixes. Gouttière permanente d’exercice : carré 64 à12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur 207 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Aucun badge durée/heure dans ce choix, catégorie conservée, pictogramme de zone retiré ; Déployer absent.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -1519,7 +1519,7 @@ D-172/D-206 et Synthèse chapitre 06 ; frames 4968:8055/8105. Enregistrer est le
 
 ### 1. Identification
 
-Suivi général ; frames 1992:8843/8996 et état vide 2117:190. Carte ACTIVITY présente dans la liste condensée ; variante déployée ACTIVITY sans frame dédiée. Copies exclusivement au chapitre 06.
+Suivi général ; frame courante 1992:8843 et état vide 2117:190. Carte ACTIVITY à deux lignes ; 1992:8996 est historique hors MVP. Copies exclusivement au chapitre 06.
 
 ### 2. Finalité fonctionnelle
 
@@ -1531,11 +1531,11 @@ Navigation Suivi ; retour d’autres écrans Suivi.
 
 ### 4. Contexte de sortie / destinations
 
-Déployer/replier carte ; navigation globale. Pas de dépendance à l’ActivityDefinition source pour lire l’historique.
+Navigation globale ; aucun déploiement de carte. Pas de dépendance à l’ActivityDefinition source pour lire l’historique.
 
 ### 5. Données affichées et source de vérité
 
-Exécutions SESSION et ACTIVITY clôturées, ordre chronologique décroissant ; type depuis origine, titre/paramètres depuis instantané et résultats, pas source courante. Durée réelle, date/heure, statut et Ressenti lorsqu’il existe. ACTIVITY ne compte pas comme Séance.
+Exécutions SESSION et ACTIVITY clôturées, ordre chronologique décroissant ; type depuis origine, titre/paramètres depuis instantané et résultats, pas source courante. Groupes de dates ; nature, titre, statut, durée réelle, catégorie et Ressenti lorsqu’il existe. Heure, zones et étiquettes restent enregistrées mais ne sont pas affichées dans la carte. ACTIVITY ne compte pas comme Séance.
 
 ### 6. Classification des valeurs Figma
 
@@ -1543,31 +1543,31 @@ Nom/date/durée/statut = dynamiques ; `Exercice` = dérivé origin ; exemples de
 
 ### 7. Structure de l’écran
 
-Liste Suivi mixte ; cartes condensées/déployées ; contenu historique issu du snapshot.
+Liste Suivi mixte ; cartes à deux lignes sans photo ni déploiement ; contenu historique issu du snapshot.
 
 ### 8. Éléments obligatoires
 
-Nature 26 liste ou tai-chi, classement gris en pastilles 20, valeurs 16, titre 15. Badge statut 76 en haut à droite ; heure `18 h 42`, durée réelle ; Déployer 28 et Ressenti visible 28 en bas à droite. Aucune Vue d’ensemble requise au MVP. Aucun miroir des cartes Catalogue ajouté au Suivi.
+Ligne 1 : nature 26 liste ou tai-chi, titre15, statut76 aligné à droite. Ligne 2 : durée réelle, catégorie en pastille20, Ressenti20 × 20 aligné à droite. Aucun chevron, heure, zones corporelles ni étiquettes. Ressenti informatif, sans cible tactile ni action. Aucune Vue d’ensemble requise au MVP. Aucun miroir des cartes Catalogue ajouté au Suivi.
 
 ### 9. Layout déterministe
 
-Carte 354 × 95,5 repliée ; séance déployée 310,5 à texte standard. Bord gauche Déployer 262 ; Ressenti à16 du bord droit, boîte du composant 48. Pas de champs Session-only fictifs sur activité. Filtrer/Trier 34, dessins 20, gap 12, cibles 44 ; liste scrollable, navigation fixe.
+Carte354 × 67 à texte standard ; bloc texte y12/hauteur43 ; statut x262/y9 (76 × 24), Ressenti x318/y39 (20 × 20), marge droite16. Marge haute12/basse8 assumée. Ces coordonnées sont la référence Figma402, pas des positions absolues à imposer au responsive. Pas de champs Session-only fictifs sur activité. Filtrer/Trier 34, dessins 20, gap 12, cibles 44 ; liste scrollable, navigation fixe.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-360/402/440 ; liste scrollable ; contenu déployé s’allonge ; aucun clavier hors fonctions existantes.
+360/402/440 ; liste scrollable ; carte adapte sa hauteur au texte agrandi sans réduire la police ; aucun clavier hors fonctions existantes.
 
 ### 11. États de l’écran
 
-Liste vide ; cartes condensées/déployées ; ACTIVITY/SESSION ; trois statuts ; Ressenti présent/absent après interruption technique. Vue d’ensemble/Filtrer/Trier visibles désactivés, aucune recherche.
+Liste vide ; cartes à deux lignes sans déploiement ; ACTIVITY/SESSION ; trois statuts ; Ressenti présent/absent après interruption technique. Vue d’ensemble/Filtrer/Trier visibles désactivés, aucune recherche.
 
 ### 12. Contrôles et interactions
 
-Déployer/replier ; navigation globale ; commandes Suivi existantes selon statut de disponibilité.
+Navigation globale, aucune action sur Ressenti et aucun déploiement ; commandes Suivi existantes selon statut de disponibilité.
 
 ### 13. Gestes
 
-Tap déployer ; scroll. Aucun geste modifiant historique.
+Scroll. Aucun geste modifiant historique.
 
 ### 14. Validation
 
@@ -1579,7 +1579,7 @@ Lecture seule. Aucun changement snapshot/results depuis Suivi.
 
 ### 16. Navigation et conservation d’état
 
-Conserver déploiement et scroll pendant l’aller-retour du parcours courant. Après nouvelle Synthèse de Séance, afficher l’Exécution créée. Une source supprimée ne supprime pas sa carte historique.
+Conserver scroll pendant l’aller-retour du parcours courant. Après nouvelle Synthèse de Séance, afficher l’Exécution créée. Une source supprimée ne supprime pas sa carte historique.
 
 ### 17. Erreurs et cas limites
 
@@ -1587,7 +1587,7 @@ Source supprimée : carte reste lisible. Snapshot ancien : appliquer compatibili
 
 ### 18. Accessibilité
 
-Type Exercice, statut, date et détails annoncés ; déployer/replier accessible.
+Type, titre, statut, durée, catégorie et Ressenti annoncé lorsqu’il existe ; dates des groupes accessibles. L’indicateur Ressenti n’est pas présenté comme un bouton. Aucun déployer/replier annoncé.
 
 ### 19. Invariants
 
@@ -1595,11 +1595,11 @@ Historique indépendant source ; origin ACTIVITY ; compteur Séances inchangé.
 
 ### 20. Recette déterministe
 
-SESSION/ACTIVITY, statuts, source modifiée/supprimée, instantané conservé, absence Ressenti technique, déploiement/repli, liste vide. Filtrer/Trier/Vue d’ensemble sans action ; aucune Recherche. Carte ACTIVITY condensée présente dans 1992:8843 ; variante déployée à tester fonctionnellement sans prétendre disposer d’une frame dédiée.
+SESSION/ACTIVITY, statuts, source modifiée/supprimée, instantané conservé, absence Ressenti technique, deux lignes, absence de photo/heure/zones/étiquettes/chevron, liste vide. Filtrer/Trier/Vue d’ensemble sans action ; aucune Recherche. Carte ACTIVITY présente dans 1992:8843 ; aucune variante déployée n’est requise au MVP. Ressenti n’a ni action ni cible tactile.
 
 ### 21. Traçabilité
 
-D-172 et Suivi chapitre 06 ; 1992:8843/8996,2117:190 ; D-233–239. CE-T03-14 et CE-UI-08 ; archives 1842:2/3401:86 hors cible MVP.
+D-172 et Suivi chapitre 06 ; 1992:8843/8996,2117:190 ; D-233–239 révisées par D-260 à D-263. CE-T03-14 et CE-UI-08 ; archives 1842:2/3401:86 hors cible MVP.
 
 ---
 
@@ -2188,7 +2188,7 @@ Repliée, séance déployée, jour sélectionné, actions glissées, après supp
 
 ### 12. Contrôles et interactions
 
-Semaine : sélectionner un jour place sa section en tête ; scroll synchronise jour. Déployer révèle détails/récurrence ; Lecture distincte. Glisser expose Dupliquer/Supprimer seulement. Dupliquer copie source+paramètres dans brouillon sans persister. Mois : navigation change mois, sélection change date de référence ; passage Jour/Semaine utilise cette date.
+Semaine : sélectionner un jour place sa section en tête ; scroll synchronise jour. Déployer sur une Séance uniquement révèle détails/récurrence ; aucune carte d’Exercice ne se déploie. Lecture distincte. Glisser expose Dupliquer/Supprimer seulement. Dupliquer copie source+paramètres dans brouillon sans persister. Mois : navigation change mois, sélection change date de référence ; passage Jour/Semaine utilise cette date.
 
 ### 13. Gestes
 
@@ -2208,11 +2208,11 @@ Après confirmation, conserver date/vue et actualiser liste/marqueurs. Après an
 
 ### 17. Erreurs et cas limites
 
-Semaine/mois vide, occurrence déjà retirée, source disparue, erreur de suppression : informer sans mutation partielle. Ne pas confondre média absent avec erreur métier. Photo selon règles communes§4.11 ; pas de photo Séance.
+Semaine/mois vide, occurrence déjà retirée, source disparue, erreur de suppression : informer sans mutation partielle. Ne pas confondre média absent avec erreur métier. Aucune photo sur les cartes du Calendrier, quel que soit le type (D-260).
 
 ### 18. Accessibilité
 
-Heure/type/nom annoncés ; vignette nom de l’exercice ; cibles 44 hors exception explicite Aujourd’hui/Planifier.
+Heure/type/nom annoncés ; aucune vignette dans le Calendrier ; cibles 44 hors exception explicite Aujourd’hui/Planifier.
 
 ### 19. Invariants
 
@@ -2296,7 +2296,7 @@ Annuler conserve source antérieure ; retour au formulaire avec nouvelle source 
 
 ### 17. Erreurs et cas limites
 
-RG-3 : séance sans photo. Exercice avec média : vignette 64/recadrage/place réservée et texte alternatif ; pas de hausse de hauteur. Source indisponible : pas de sélection fantôme.
+RG-3 : séance sans photo. Choix d’Exercice : gouttière permanente 64, photo associée ou icône de nature ; sans hausse de hauteur. Aucun visuel de Séance ou de liste mixte (D-260). Source indisponible : pas de sélection fantôme.
 
 ### 18. Accessibilité
 
@@ -2955,7 +2955,7 @@ D-247 à D-255 ; v12 ; DSF actualisé03/10 ; ETAT-DES-LIEUX-CREATION-EXERCICE-20
 | V-07 |Direct/media montre Tour ;17 px/24 px divergent ; état Démarré parfois incohérent | CE-T03-09..13/MEDIA ; Tour absentACTIVITY,24 px cibleDSF T10 |
 | V-08 |Étiquette 4861:6145 mentionne Exercices au lieu de Séances ; renommages sans preuve dédiée | CE-T03-16/CE-UI-09 ; textes et comportement explicités, pas de preuve inventée |
 | V-09 |Récurrence 2 semaines avec récapitulatif hebdomadaire ; filtre dit inactif avec critère appliqué | CE-UI-05/CE-T03-02 ; récapitulatif et état dérivés des données |
-| V-10 |Récupération visible dans certaines cartes Composition ; média déployé 4738:6355 ; Photo non propagée | Écarts d’assemblage déjà acceptés ; appliquer cible D-238, ne pas retoucher les PNG ni rouvrir RG-3 |
+| V-10 | Récupération visible dans certaines cartes Composition ; 4738:6355 et 1992:8996 représentent des déploiements historiques | D-260/D-261/D-262 gouvernent les cartes courantes ; variantes déployées Exercice/Suivi hors MVP. Copies historiques conservées, sans retouche |
 | V-11 |Compte à rebours Composition inline 2028:11375 mais description roulette ; pas Fin 5 s contre prescription 1 s | CE-T03-08 ; aucun état de picker déclaré vérifié tant que la description 06 et sa preuve ne sont pas réconciliées |
 | V-12 |Archives Exercice sans écran complet ; Photo à200% non qualifiée ; animations non câblées ; contrastes acceptés | Limites déjà documentées du DSF, pas de nouvelle décision produit |
 
@@ -3030,8 +3030,8 @@ Le comportement utilisateur est déjà fixé. L’exclusion d’une occurrence i
 | E30 | Copier tout état métier applicable |
 | E31 | Retour Composition enrichie |
 | E32 | Bouton Lecture Activity |
-| E33 | Déployer selon état média : retiré avec photo (RG-4) |
-| E34 | Déployer même DSF que Séances |
+| E33 | Aucun Déployer d’Exercice, avec ou sans média (D-261) |
+| E34 | Gouttière permanente Exercice ; déploiement réservé aux Séances Catalogue/Semaine |
 | E35 | Zone droite réservée identique |
 | E36 | Pas poignée Catalogue Activity |
 | E37 | Execution origin ACTIVITY |

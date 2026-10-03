@@ -4,19 +4,19 @@
 
 Mise à jour du 30 septembre 2026, issue de `prompt_maj_DSF_et_documentation_cartes_point fermés.md`, complété par les six corrections du propriétaire et de la précision du propriétaire sur les pages Figma. Base documentaire : `MyUncried/Application-Routine`, `main`, commit `48b444ededb735da47a42474c39e150224e92395`. Aucun ZIP ancien n’est réintégré.
 
-Figma : fichier `G6RY5Ebhgwb4AHIOYDwwvg`. Les nœuds ci-dessous ont été lus directement. Le rendu des cartes, les règles de gestion et le statut des essais sont distingués : les 17 points ont été clos explicitement par le propriétaire ; RG-3 seule reste reportée.
+Figma : fichier `G6RY5Ebhgwb4AHIOYDwwvg`. Les nœuds ci-dessous ont été lus directement. Le rendu des cartes, les règles de gestion et le statut des essais sont distingués : les 17 points ont été clos explicitement par le propriétaire ; La révision du 03/10/2026 est consignée par D-260 à D-263 : RG-3 est définitive, Séance sans visuel.
 
 | Source actuelle | Nœud | Usage |
 |---|---|---|
 | Cartes - Icônes | `6354:11187` | Page de référence indiquée par le propriétaire |
-| Wireframe — APRÈS | `6354:16089` | Cartes sans photo/vidéo chargée, présentation par défaut |
-| Wireframe — Photo | `6354:16964` | Présentation avec média ; RG-4 validée ; RG-3 reportée |
+| Wireframe — APRÈS | `6354:16089` | Référence conservée ; les Exercices des contextes Catalogue/choix ont désormais une gouttière permanente |
+| Wireframe — Photo | `6354:16964` | Référence conservée ; même gouttière que sans média, Séances sans visuel |
 | Wireframe — Icônes de navigation | `6354:17843` | Dessins des destinations |
 | Icônes — sélectionné, non sélectionné, inactif | `6354:17913` | États des icônes de sélection |
 | Démonstrations — Animations d’appui | `6016:3303` | Mouvements d’appui et variante de réduction des animations |
-| Composants — Cartes | `6214:3519` | Composants réutilisables, avec écarts explicités |
+| Composants — Cartes | `6214:3519` | Ancienne implantation ; composants canoniques promus dans DSF V2 avec identifiants conservés |
 | Design system — Fondations | `2291:2` | Tokens, documentation et inventaire DSF |
-| Prototype MVP | `510:101` | Écrans et navigation ; pas de modification des écrans dans cette livraison |
+| Prototype MVP | `510:101` | Écrans et navigation ; captures des écrans affectés renouvelées le 03/10/2026 |
 
 Les références ci-dessus sont les identifiants courants vérifiés. Le propriétaire rapporte 133 cartes remplacées dans 38 écrans, environ 27 interactions recopiées ; ces totaux ne sont pas une certification de recette interactive.
 
@@ -37,23 +37,23 @@ Une carte présente le titre et son badge, puis le classement, puis les valeurs.
 | Pastille de classement | 20 ; pictogramme blanc sur fond coloré ou gris `#9499A8` sur fond vide et contour 0,5 |
 | Icône de valeur | 16, gris `#9499A8`, trait fin |
 | Alignement | centres des icônes sur un même axe à 9 du bord du contenu ; textes alignés |
-| Hauteur repliée / choix | séance Catalogue 90 ; exercice Catalogue et choix 91 ; Semaine/Suivi 95,5 |
-| Hauteur déployée | séance Catalogue 235 ; Semaine 254,5 ; Suivi 310,5 ; exercice sans photo ≈259,7 dans le wireframe, ≈235,7 dans le composant non encore aligné |
+| Hauteur repliée / choix | séance Catalogue 90 ; exercice Catalogue et choix 91 ; Semaine 95,5 ; Suivi 67 |
+| Hauteur déployée | séance Catalogue 235 ; Semaine 254,5. Exercice Catalogue ≈235,7 et Suivi Séance 310,5 : variantes historiques hors MVP, sans chemin d’accès |
 
 Ces dimensions décrivent la référence à taille de texte standard. Le média seul n’agrandit pas la carte (RG-6). Cette règle ne supprime pas les exigences existantes de texte agrandi et de responsive : ne jamais réduire la police pour faire entrer le contenu. Le comportement exact de la carte avec vignette à 200 % reste à qualifier.
 
 | Contexte | Classement représenté | Badge et commandes |
 |---|---|---|
 | Catalogue séance | Étiquette puis catégories issues des exercices | Durée ; Déployer et Lecture, ou Restaurer |
-| Catalogue exercice | Catégorie puis zones corporelles | Durée ; Déployer absent avec photo selon RG-4 (révision ciblée de D-195), Lecture/Restaurer |
+| Catalogue exercice | Catégorie puis zones corporelles | Durée ; Lecture/Restaurer ; aucun Déployer avec ou sans média (D-261) |
 | Calendrier Semaine | Catégorie puis étiquette pour séance ; catégorie puis zones pour exercice | Heure `08:00` ; cercle de nature à gauche ; durée avec sablier sur la ligne des valeurs |
-| Suivi | Classement puis valeurs d’exécution | Statut en haut à droite, largeur 76 ; Déployer carré visible 28 et Ressenti visible 28 en bas à droite |
+| Suivi | Ligne 1 : nature et titre ; ligne 2 : durée réelle et catégorie | Statut en haut à droite, largeur 76 ; indicateur Ressenti 20 × 20 en bas à droite ; sans déploiement, heure, zones ni étiquettes |
 | Choix calendrier/planification | Même famille visuelle que le Catalogue | Radio ; aucun badge durée, Lecture ou Déployer représenté |
 | Choix composition | Exercice | Case à cocher 20 ; aucun badge ni action représenté |
 
-Dans le Suivi, le Ressenti est à 16 du bord droit ; le bord gauche du carré Déployer est à 262 dans la carte de 354. Le composant Ressenti possède une boîte de 48 × 48 : ne pas confondre cette boîte avec le visage visible de 28. Dans une carte glissée, les actions suivent la hauteur réelle de la carte ; D-175 reste la règle du geste.
+Dans le Suivi, la carte fait 354 × 67. Statut à x=262/y=9 (76 × 24), Ressenti à x=318/y=39 (20 × 20). Ligne 1 : nature, titre, statut ; ligne 2 : durée, catégorie, ressenti. Aucun chevron, heure, zone corporelle ou étiquette. La boîte du Ressenti et son dessin font 20 × 20 ; aucune zone tactile ni action. Les données historiques complètes restent conservées. D-175 reste la règle des gestes dans les contextes où ils sont accessibles.
 
-Le cercle de nature est réservé aux cartes Semaine et Suivi : diamètre 26, marge 12 depuis le bord, fond `#FCFCFE`, bord blanc 0,5, ombre `#1A1A26` à 28 % (0,2,6), pictogramme `#14141A`. Séance : liste ; exercice : `person-simple-tai-chi-light`, dessin 15. Aucun cercle de nature dans le Catalogue ni les choix. Le contexte Calendrier Jour emploie aussi le cercle de nature, selon les dimensions compactes ci-dessous.
+Le cercle de nature est réservé aux cartes Semaine et Suivi : diamètre 26, marge 12 depuis le bord, fond `#FCFCFE`, bord blanc 0,5, ombre `#1A1A26` à 28 % (0,2,6), pictogramme `#14141A`. Séance : liste ; exercice : `person-simple-tai-chi-light`, dessin 15. Dans le Catalogue et les choix d’exercices, la nature apparaît dans la gouttière permanente sans média ; ce dessin24 n’est pas le cercle26 des cartes Semaine/Suivi/Jour. Le contexte Calendrier Jour emploie aussi le cercle de nature, selon les dimensions compactes ci-dessous.
 
 ## Iconographie et couleurs
 
@@ -70,7 +70,7 @@ Le cercle de nature est réservé aux cartes Semaine et Suivi : diamètre 26, ma
 | Catégorie | `icon/categorie`, `6296:10530`, dessin sur mesure |
 | Zone corporelle | `icon/zone-corporelle`, `6322:10880`, variantes Homme/Femme ; RG-5 |
 | Étiquette | `cil:tag` |
-| Place réservée média | Phosphor `image-light`, 24 |
+| Place réservée média | Phosphor `person-simple-tai-chi-light`, 24 ; gouttière 64 permanente dans Catalogue et choix d’exercices |
 
 Le booléen Figma `Bilatéral` est faux par défaut. Il est présent sur les variantes Catalogue et choix de l’exercice, absent en Semaine et Suivi. Il ne remplace ni le paramètre métier de direction ni `Indicator / Sides` (`D→G/G→D`). Il représente la bilatéralité à la place du texte « de chaque côté » sur les variantes concernées ; les données et les calculs ne changent pas.
 
@@ -96,31 +96,31 @@ Icônes de sélection hors navigation : sélectionné `#0508E5`, non sélectionn
 
 | Set | Propriétés | Variantes vérifiées |
 |---|---|---|
-| Carte séance `6214:7276` | Contexte, État | 10 : Calendrier Jour replié ; Catalogue replié/archivé/déployé ; Semaine replié/déployé ; Suivi replié/déployé ; choix sélectionné/non sélectionné |
-| Carte exercice `6214:7278` | Contexte, État, Bilatéral | 10 : Calendrier Jour replié ; Catalogue replié/archivé/déployé ; Semaine replié ; Suivi replié ; choix calendrier/planification sélectionné/non sélectionné ; choix composition sélectionné/non sélectionné |
-| Ressenti `6234:8895` | Ressenti | Bien, Neutre, Mal |
+| DSF / Cards / Séance `6214:7276` | Contexte, État | 10 : Calendrier Jour replié ; Catalogue replié/archivé/déployé ; Semaine replié/déployé ; Suivi replié/déployé ; choix sélectionné/non sélectionné |
+| DSF / Cards / Exercice `6214:7278` | Contexte, État, Bilatéral, Photo | 10 : Calendrier Jour replié ; Catalogue replié/archivé/déployé ; Semaine replié ; Suivi replié ; choix calendrier/planification sélectionné/non sélectionné ; choix composition sélectionné/non sélectionné |
+| DSF / Status & Tags / Ressenti `6234:8895` | Ressenti | Bien, Neutre, Mal |
 
-Les textes se règlent dans les instances. Il n’existe pas de variante média dans ces deux sets au moment de la lecture. L’état avec photo est donc référencé par le wireframe, sans prétendre qu’il est propagé aux composants ou aux écrans. Les anciennes planches DSF de cartes sont des références historiques, remplacées sur le rendu par les présentes sources ; leur suppression n’est pas nécessaire.
+Les trois composants canoniques sont désormais implantés dans Design system — Fondations, sous les fiches Séance — tous contextes (`6759:13793`), Exercice — tous contextes (`6759:14284`) et Ressenti — indicateur (`6759:14309`). Identifiants conservés. Le booléen `Photo` ne change pas le format : il recouvre l’icône dans la gouttière permanente. Les variantes Catalogue Exercice Déployé (`6214:4237`) et Suivi Séance Déployé (`6214:3968`) sont historiques hors MVP ; aucune suppression de ces objets n’est demandée. Le contrôle de saisie Ressenti de la Synthèse demeure distinct de cet indicateur.
 
 ## État avec photo/vidéo et RG-1 à RG-13
 
 | ID | Règle et portée | Statut |
 |---|---|---|
-| RG-1 | Deux présentations, avec ou sans média, déterminées par la présence de média, jamais par un réglage utilisateur. Catalogue, choix, Calendrier et Suivi concernés selon les références disponibles. | Principe validé ; la couverture graphique avec média n’est pas complète |
-| RG-2 | La vignette est le média chargé dans l’exercice. RG-11 à RG-13 fixent son affichage. | Validé |
-| RG-3 | Le choix et le format de vignette d’une séance sont reportés. Les séances restent sans photo tant que cette décision n’est pas prise. | Reporté ; limite explicite à RG-1 |
-| RG-4 | Dans l’état avec photo, le bouton Déployer de l’exercice est retiré. La carte déployée subsiste dans les wireframes. Cette règle révise D-195 sur cet état seulement. | Validé |
+| RG-1 | Un seul format au Catalogue et dans les choix d’exercices : gouttière permanente 64, photo si média, icône de nature sinon. Aucun réglage utilisateur de format. | Validé — D-260 |
+| RG-2 | La vignette provient des médias associés à l’Exercice. La sélection entre plusieurs médias reste à clarifier, sans inventer un ordre prioritaire. | Média associé validé ; sélection multiple À CLARIFIER |
+| RG-3 | Les Séances ne portent jamais de visuel ; aucune photo dans les listes mixtes, le Calendrier ou le Suivi. | Validé définitivement — D-260 |
+| RG-4 | Aucun déploiement accessible sur les cartes d’Exercice ou du Suivi, avec ou sans média. Déploiement des Séances conservé au Catalogue et au Calendrier Semaine. | Validé — D-261/D-262 |
 | RG-5 | Une seule famille d’icônes de zone corporelle dans toute l’application ; variante Homme/Femme suivant la préférence de Profil définie par RG-10. | Validé |
-| RG-6 | L’ajout du média n’augmente pas la carte ; vignette 64, texte décalé à 88 sur largeur 254, troncature avec « … ». | Validé ; référence à taille standard |
+| RG-6 | La gouttière permanente est 64 ; texte à x=88, bloc de 207 px dans les variantes Catalogue/choix d’exercices. Le chargement du média ne change pas la hauteur. | Validé ; référence à taille standard |
 | RG-7 | Minimum tactile 44 × 44, sans chevauchement. Boutons contextuels visibles 34. Une cible existante de 48 reste conforme et ne doit pas être réduite sans nécessité. | Validé ; révise le minimum commun de D-087, conserve les dimensions spécifiques supérieures |
 | RG-8 | Au moins 20 entre la fin du texte tronqué et le contrôle de sélection. | Validé ; les 22 représentés sans photo satisfont le minimum |
 | RG-9 | Marges latérales 24 sur la référence écran 402, sauf retraits volontaires documentés. | Validé ; ne remplace pas les règles responsive |
 | RG-10 | Profil : champ silhouette facultatif, valeurs homme/femme ; absence = homme affiché. Effet limité à l’icône de zone corporelle, sans filtre, recherche ni autre effet métier. | Validé |
 | RG-11 | Image ou couverture vidéo centrée, remplissant le carré 64 sans déformation ; excédent recadré. | Validé |
-| RG-12 | Pendant le chargement ou si le média est indisponible, conserver la place réservée : fond #EEF0F6 et icône image. | Validé |
+| RG-12 | Sans média, pendant le chargement ou si le média est indisponible, conserver la gouttière 64, son fond #EEF0F6 et l’icône de nature de l’exercice. | Validé — D-260 |
 | RG-13 | Texte alternatif de la vignette : nom de l’exercice. | Validé |
 
-Vignette : 64 × 64 à 12 du bord gauche, centrée verticalement ; fond `#EEF0F6`, bord `#CCD1E0` 0,5, rayon 6. Badge durée/heure conservé. La catégorie conserve sa pastille ; les zones deviennent du texte séparé par un point médian. Dans l’exercice avec photo du Calendrier Semaine, le cercle de nature est retiré. Lecture/Restaurer et les sélecteurs restent en place. La carte déployée sans photo montre les zones sur une ligne séparée et les actions sur la dernière ligne des séries ; hauteur ≈260. Son existence dans les wireframes ne réintroduit pas Déployer dans l’état avec photo.
+Gouttière permanente : 64 × 64 à x=12, y=14 sur la carte Exercice 354 × 91, rayon 6, fond `#EEF0F6`, icône de nature 24 × 24 ; photo recadrée centrée, sans déformation. Le bloc texte est à x=88, largeur 207. La catégorie et les sélecteurs restent présents. Aucune photo sur les cartes de Calendrier Semaine/Jour ou du Suivi. Zones corporelles tronquées, sans défilement horizontal : cadre de coupe 60 px au Catalogue actif/archivé, 69 px dans les choix calendrier/planification/composition et 145 px en Calendrier Semaine ; calcul sur le contrôle droit réellement présent, avec 8 px entre le cadre de coupe et ce contrôle. Ces mesures de cadres ne certifient pas à elles seules la distance optique entre le dernier glyphe et le sélecteur (RG-8).
 
 Profil : silhouettes dans deux cercles de 64, hauteur de silhouette 44, écart 24 ; choisi : bleu `#0508E5`, contour 2 ; non choisi : gris `#9499A8`, contour `#CCD1E0` 1. Les labels accessibles sont « Silhouette homme » / « Silhouette femme ». Le champ facultatif silhouette ne pilote que cette variante ; homme est affiché si absent, sans filtre ni autre effet métier. Dans Ajouter un exercice, les démonstrations montrent trois cercles 34, silhouettes 26 ; aucune nouvelle action ne se déduit de leur présence.
 
@@ -171,18 +171,18 @@ Les réactions Figma utilisent ON_CLICK puis AFTER_TIMEOUT de 10 ms pour la dém
 | Prochaine planification | D-206 impose une ligne conditionnelle | Ligne retirée du rendu | Deux Catalogues | Validé ; D-206 révisée sur l’affichage seul |
 | Pause/récupération | Synthèses documentées et D-208 | Absentes de certaines synthèses graphiques | Catalogue, choix, Composition | Validé ; affichage révisé, données conservées ; calculs révisés par D-248/v12 |
 | Format de synthèse | Format métier existant | N séries de X / N séries de N rép. / N séries à l’échec | Exercice | Validé |
-| Heure / classement | Formats et agrégations existants | 08:00 en Semaine, 18 h 42 en Suivi ; étiquette sinon catégories | Cartes | Validé |
+| Heure / classement | Formats et agrégations existants | 08:00 en Semaine ; Suivi sans heure depuis D-262 ; étiquette sinon catégories hors Suivi | Cartes | Validé |
 | Appui | Non décrit dans le DSF documentaire courant | Démonstrations et variantes accessibilité identifiées | Contrôles | Spécification v2 du 29/09 reprise ; action immédiate au relâchement |
 
 ## Points ouverts
 
-Aucun. Les 17 points sont clos. RG-3 est une décision reportée ; les situations acceptées ne sont pas des questions à rouvrir.
+Les 17 points du 30/09 sont clos ; les situations acceptées ne sont pas rouvertes. À CLARIFIER : quel média représente l’Exercice sur sa carte lorsqu’il en porte plusieurs ? La proposition « premier média dans l’ordre de la galerie, couverture si vidéo » a été retrouvée, sans preuve de sa validation. Ce point ne doit pas être présenté comme une décision actée.
 
 ## Situations connues, acceptées et portée normative
 
 - Les pauses et récupérations ne sont plus affichées sur les cartes du Catalogue, des choix et de Composition ; leurs données, paramètres et calculs restent inchangés. D-208 est révisée sur l’affichage des cartes uniquement.
 - La prochaine planification n’est plus affichée dans les deux Catalogues. D-206 conserve la planification directe SESSION/ACTIVITY et son calcul ; seule son exigence d’affichage sur carte est révisée.
-- Synthèse exercice : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par icône miroir dans les contextes prévus. Badge heure Semaine « 08:00 » ; Suivi « 18 h 42 ».
+- Synthèse exercice : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par icône miroir dans les contextes prévus. Badge heure Semaine « 08:00 » ; aucune heure dans la carte du Suivi.
 - Une séance sans étiquette affiche ses catégories issues des exercices. Plusieurs catégories/zones : point médian, puis points de suspension selon l’espace ; données complètes conservées. Aucun nouveau champ Catégorie de Séance.
 - Les choix n’affichent pas de badge durée. La récurrence du Calendrier Semaine figure dans la carte déployée seulement.
 - L’état Archivé de l’exercice existe comme variante, sans écran associé. Suivi — Vue d’ensemble est abandonné pour le MVP et sera conçu ultérieurement.
@@ -194,7 +194,7 @@ Aucun. Les 17 points sont clos. RG-3 est une décision reportée ; les situation
 | Axe | État constaté | Suite documentée |
 |---|---|---|
 | Exercice déployé | Wireframe ≈260, composant ≈236 | Cible décrite ; composant et écran d’origine conservés conformément au document source |
-| État Photo | Wireframe de référence ; pas de variante média dans les sets | Évolution des composants/écrans ultérieure si nécessaire ; aucun arbitrage rouvert |
+| Gouttière Exercice | Propriété Photo du set6214:7278, place permanente64 dans Catalogue/choix | Un seul format ; icône de nature sans média ; aucune photo Calendrier/Suivi/liste mixte |
 | Calendrier Jour | Deux variantes vérifiées, 298 × 46/48 | Exception compacte décrite ci-dessous |
 | Valeurs d’exemple | Données de maquette | Aucune inférence du type, statut ou catégorie à partir du titre |
 | Interactions | Lecture des réactions, pas de recette interactive complète | Ne pas déclarer l’application validée |
@@ -220,11 +220,11 @@ Total rapporté par le propriétaire : 133 cartes / 38 écrans / environ 27 inte
 4. CAR-04 : les pastilles de classement font 20 et les valeurs utilisent une icône nue 16.
 5. CAR-05 : l’archivage remplace Lecture par Restaurer sans changer le sens de l’action.
 6. CAR-06 : une carte de choix n’expose aucune action Lecture/Déployer ni badge durée conformément à la décision validée.
-7. CAR-07 : le statut du Suivi est au-dessus du groupe Déployer/Ressenti ; le visage visible fait 28.
-8. MED-01 : sans média, la présentation de référence est APRÈS.
+7. CAR-07 : Suivi sur deux lignes, hauteur 67 ; statut en haut à droite, indicateur Ressenti 20 × 20 en bas à droite, sans déploiement ni cible tactile.
+8. MED-01 : sans média, la gouttière permanente 64 affiche l’icône de nature dans les contextes Catalogue/choix d’exercices.
 9. MED-02 : avec média d’exercice, la vignette de référence fait 64 ; la carte n’est pas agrandie du seul fait de la photo.
 10. MED-03 : au moins 20 séparent le texte tronqué du sélecteur ; les données complètes sont conservées.
-11. MED-04 : la séance reste sans vignette tant que RG-3 est reportée.
+11. MED-04 : aucune Séance, liste mixte, carte Calendrier ou Suivi n’affiche de photo.
 12. ICO-01 : la nature exercice utilise la posture ; l’haltère représente le nombre d’exercices.
 13. ICO-02 : navigation = quatre composants exacts, trait 2 et taille maximale 24.
 14. ICO-03 : la palette de sélection respecte les trois états sans recolorer Ressenti/statuts.
@@ -240,7 +240,7 @@ Total rapporté par le propriétaire : 133 cartes / 38 écrans / environ 27 inte
 24. ANI-06 : le stepper répète après 450 ms puis toutes les 150 ms et s’arrête au relâchement.
 25. DAT-02 : les sources de Routine et les instantanés historiques sont conservés ; les calculs actifs suivent D-248/v12.
 
-26. MED-05 : avec photo d’exercice, aucun bouton Déployer.
+26. MED-05 : aucun bouton Déployer sur Exercice, avec ou sans média, ni sur les cartes Suivi.
 27. MED-06 : vignette centrée et recadrée sans déformation ; couverture pour la vidéo.
 28. MED-07 : chargement et erreur conservent le cadre 64 et la place réservée.
 29. MED-08 : texte alternatif égal au nom de l’exercice.
@@ -256,4 +256,14 @@ Ces critères spécifient la cible ; ils ne constituent pas une déclaration de 
 
 La planche `6364:10602` a été ajoutée à Design system — Fondations avec neuf instances illustratives des composants courants. Les descriptions des sept anciens sets de cartes Catalogue/choix/Calendrier/Suivi sont marquées historiques ; leurs noms et leurs objets sont conservés. Les légendes Navigation, palette et points de contrôle ont été corrigées. Dix-neuf tokens sémantiques ont été créés, reliés aux primitives : `color/cards/{surface,border,archive-surface,archive-border,badge,value-icon,nature-icon,media-placeholder}`, `color/tag/hyrox`, `component/cards/{radius,border-width,badge-radius,selection-text-gap,media-size}` et `component/context/{visual-size,icon-size,touch-target,gap,composition-gap}`.
 
-Le token historique `size/touch-target-min` conserve sa valeur48 pour ne pas réduire les composants déjà liés ; le nouveau token contextuel vaut44. Les 18 variantes des deux sets actifs sont liées aux tokens de fond, bord, rayon et épaisseur. Cette liaison des surfaces ne constitue pas une liaison exhaustive de toutes les couches des écrans. Les propriétés média et l’écart de hauteur du composant déployé restent des évolutions d’assemblage documentées, sans question ouverte ; les sources de référence n’ont pas été transformées silencieusement.
+Le token historique `size/touch-target-min` conserve sa valeur48 pour ne pas réduire les composants déjà liés ; le nouveau token contextuel vaut44. Les 18 variantes des deux sets actifs sont liées aux tokens de fond, bord, rayon et épaisseur. Cette liaison des surfaces ne constitue pas une liaison exhaustive de toutes les couches des écrans. Ce compte décrit le contrôle du30/09. Au03/10, les trois sets sont promus et toutes leurs peintures SOLID sont liées (contrôle ci-dessous) ; les variantes déployées Exercice/Suivi sont historiques hors MVP.
+
+## Contrôle de reprise — 03/10/2026
+
+Baseline documentaire : `main` `d05473055722b0b7677b3604daed5fa02fae1a42`, après PR #285 à #291 ; D-256 à D-259 préservées. Aucune règle de calcul v12 modifiée.
+
+Lecture directe des trois sets : **0 remplissage/contour SOLID en dur, 831 liés**. Le compte antérieur 829 précède l’ajout du fond Calendrier Jour Exercice (remplissage et contour liés). Les tokens sont `color/cards/media-placeholder`, `color/cards/calendar-day-border`, `color/feeling/good` ; valeurs visuelles conservées. Aucun calque nommé Défilement horizontal dans les trois sets. Le fond `6770:13202` du Calendrier Jour Exercice fait 298 × 48 ; la carte reste rayon 8, contour #D6D9E0 de 1 px intérieur.
+
+**130 instances / 38 écrans** dans Prototype MVP. Deux écrans sont des états déployés historiques hors MVP : `1992:8996` et `4738:6355` ; ils ne sont pas réexportés comme cible courante. Les 36 autres captures sont renouvelées ; registre des fichiers dans `Specifications-fonctionnelles/images/README-T03-FIGMA.md`. Les traits Ressenti 1,6/0,9 px sont conservés, sans redessin. Cette inspection/export ne constitue pas une recette de l’application ni une preuve d’absence d’activité interne dans l’ancienne conversation.
+
+Limite visuelle observée lors de la seconde passe : dans `3786:5093`, plusieurs badges de durée du Catalogue Exercice sont partiellement rognés au bord droit. La capture reproduit fidèlement ce rendu Figma ; aucun correctif graphique ni règle métier n’est inventé dans cette livraison. La conformité de cet assemblage visuel reste PARTIELLEMENT CONFORME.

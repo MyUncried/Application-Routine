@@ -42,7 +42,7 @@ Cercle `#8283F2`, liseré blanc et ombre ronde de rayon 10 px à 18 % d'opacité
 
 ## T9 — Cartes et liste Suivi
 
-Les cartes Suivi suivent le format de carte de liste, avec quatre coins de 8 px, y compris le cadre « Cartes — Hier ». La **zone visible de la liste** de « Suivi — Séances — Vue déployée » atteint 540 px, jusqu'au début de la zone protégée ; le **cadre du groupe de cartes** suit la hauteur de ses cartes pour ne pas tronquer « Dos et mobilité ». Ces deux contraintes s'appliquent à des cadres distincts.
+Référence historique du lot3, supersédée sur le déploiement par D-262 le03/10/2026 : les cartes Suivi suivent le format de carte de liste, avec quatre coins de 8 px, y compris le cadre « Cartes — Hier ». La **zone visible de la liste** de « Suivi — Séances — Vue déployée » atteint 540 px, jusqu'au début de la zone protégée ; le **cadre du groupe de cartes** suit la hauteur de ses cartes pour ne pas tronquer « Dos et mobilité ». Ces deux contraintes s'appliquent à des cadres distincts.
 
 ## Règles communes de construction
 
