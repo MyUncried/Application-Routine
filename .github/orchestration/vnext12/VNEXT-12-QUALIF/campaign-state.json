@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-03T15:23:21.148Z",
+  "recorded_at": "2026-10-03T17:01:28.078Z",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
-  "controller_stage": "V8_CONSOLIDATED_PREPARE_INITIAL",
-  "controller_generation": 42,
+  "controller_stage": "V8_INITIAL_DOSSIER_PENDING_QUALIFICATION",
+  "controller_generation": 43,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -405,10 +405,10 @@
     "full_linux_ci_is_authoritative": true
   },
   "pending_actions": [
-    "Collect real independent INITIAL preparation; retain REVISE if issued, no manufactured receipt.",
-    "Materialize fresh transport and exact GitHub owner gate; qualify exact candidate before fresh execution.",
-    "Then prepare and execute bounded REVISION with real base REVISE / new APPROVE / RESOLVED count1.",
-    "No FINAL, promotion, main merge or PRE-1 execution."
+    "Qualify exact materialized INITIAL dossier and fresh transport on Linux/Windows.",
+    "After qualification, update reserved gate with exact candidate approval target and observe real owner reaction under disposable technical delegation.",
+    "Execute fresh INITIAL; then real bounded REVISION with new transport identity and new gate.",
+    "No FINAL, promotion, main merge or PRE-1 execution; never replay consumed identities."
   ],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
@@ -832,12 +832,12 @@
     "initial_revision_replayed": false
   },
   "v8_consolidation": {
-    "status": "QUALIFIED_LINUX_WINDOWS_PREPARE_INITIAL_REQUESTED",
+    "status": "INITIAL_PREPARATION_APPROVED_DOSSIER_PENDING_QUALIFICATION",
     "parent_head": "952b23b3c0bbe258edb93a155abde5c58a5795e0",
     "audit_head": "c0f72fc2148a5955b9a810a8aca1f6eeefa64870",
     "main_shared_source": "67064d1b3752d71683d11638a602286b9c895482",
     "scope": "Remaining demonstrated v8 defects D1-D9,D11-D12,D15-D18; D10,D13,D14 already delivered in the first tranche. D3 targeted shared-protocol reconciliation only.",
-    "request_generation": 34,
+    "request_generation": 35,
     "runtime_execution": "NOT_STARTED",
     "native_windows_parser": "REQUIRED_IN_EXACT_TREE_QUALIFICATION",
     "report": ".github/orchestration/reports/2026-10-03_VNEXT_V8_CONSOLIDATED_CORRECTIONS.md",
@@ -1142,6 +1142,72 @@
         }
       }
     },
-    "preparation_generation": 13
+    "preparation_generation": 13,
+    "initial_preparation": {
+      "schema_version": "kodjo.vnext.v8.initial-preparation-evidence.v1",
+      "observed_at": "2026-10-03T17:01:28.076Z",
+      "candidate_head": "7fac320080f83eb74359272b9d039e7b1d8fac5f",
+      "run_id": 37133206182,
+      "attempt": 2,
+      "job_id": 111243365597,
+      "status": "PREPARED_FOR_PUBLICATION",
+      "verdict": "APPROVE",
+      "blocking_findings": 0,
+      "suggestion_count": 1,
+      "suggestions": [
+        {
+          "finding_id": "FND-70566095330b53e3eed00094",
+          "category": "SUGGESTION",
+          "target_type": "PLAN_CONTRACT",
+          "target_id": "03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7ace",
+          "blocking": false,
+          "finding": "L'exigence source impose explicitement de conserver scripts/kodjo/fixtures/vnext12/keep.js octet pour octet, mais cette obligation n'est portée que par boundaries.preserve_scope, par impact.preservation_candidate_ids et par une contrainte en prose. Aucune exigence de type PRESERVATION n'est enregistrée et aucune obligation de preuve n'observe l'invariance de ce fichier. L'application reste néanmoins effective : keep.js est absent du write_scope et forbidden_policy vaut ALL_OUTSIDE_WRITE_SCOPE, donc toute écriture y est interdite. Aucun risque de préservation observé n'en découle ; il s'agit d'un défaut de typage contractuel, pas d'un trou d'application.",
+          "evidence": [
+            "git:7fac320080f83eb74359272b9d039e7b1d8fac5f:.github/orchestration/vnext12/VNEXT-12-QUALIF/requirement.md — « Conserver le fichier scripts/kodjo/fixtures/vnext12/keep.js octet pour octet. »",
+            "planContract.boundaries.preserve_scope = [{candidate_id: CAND-30ceff46ee0ac607974766df, path: scripts/kodjo/fixtures/vnext12/keep.js}] ; boundaries.forbidden_policy = ALL_OUTSIDE_WRITE_SCOPE ; write_scope limité à core.js et core.test.js",
+            "planContract.plan_items[0].proof_obligations ne contient qu'une preuve FUNCTIONAL_TEST (PROOF-795c6002c59f2385828b1735) portant sur la valeur 2 ; aucune preuve n'observe l'empreinte de keep.js",
+            "requirementRegistry.requirements[0].preservation = NONE_DECLARED alors que l'unité source FULL_FILE énonce une obligation de préservation"
+          ],
+          "required_correction": "Renforcement optionnel, non requis pour admettre ce plan : enregistrer une exigence de type PRESERVATION sur keep.js (qui porterait preservation=REQUIRED) ou ajouter une obligation de preuve STATIC_ANALYSIS observant l'empreinte SHA-256 de keep.js avant et après exécution. À défaut, conserver l'application actuelle par la frontière d'écriture, qui suffit à interdire la modification.",
+          "dependency_target_ids": [
+            "CAND-30ceff46ee0ac607974766df",
+            "REQ-9dddc2972fcd3efdc7a4a12b"
+          ],
+          "reentry_stage": "NONE"
+        }
+      ],
+      "session_id": "12ac3006-d166-4e99-9f90-ba24c12f6e70",
+      "reviewed_target_count": 1161,
+      "review_report_hash": "8c93a512137d2ac5be758c21924c12a672a866e354efacb6a90b0a8c28dc9b72",
+      "raw_result_sha256": "d08d24466ba09a7c53942155397db8be4fa534f8fefb0f5790905f4c5d3f9542",
+      "prepared_chain_hash": "78967cfc8067ab557a992200895d7ac1855da31b778df2dab0c73d6a214592d7",
+      "artifact_id": 11279072904,
+      "artifact_sha256": "368eab5efe929e5a18020aaf50a56d47e5e9271d36b16a49bb5c2ec743348183",
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/initial-preparation-37133206182/approved-attempt-2.zip",
+      "downloaded_hash_verified": true,
+      "receipt_verified": true,
+      "first_attempt": {
+        "job_id": 111235053397,
+        "status": "FAILURE",
+        "diagnostic": "ETIMEDOUT",
+        "underlying_cause": "UNKNOWN",
+        "artifact_id": 11278138462,
+        "artifact_sha256": "d80853a86fbd292091ded4702a44a0730e03a72b53052ad364703b41634c995e",
+        "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/initial-preparation-37133206182/failed-attempt-1.zip",
+        "technical_correction_applied": false
+      },
+      "transport": {
+        "request_id": "b605283d-13c0-4f1e-bde9-863538a6f86b",
+        "gate_ref": "issue_comment:5971337496",
+        "created_at": "2026-10-03T17:00:14.195Z",
+        "reservation_observed": true,
+        "owner_approval_observed": false,
+        "human_review_performed": false
+      },
+      "implementation_invoked": false,
+      "revision_executed": false,
+      "final_invoked": false,
+      "pre1_in_scope": false
+    }
   }
 }

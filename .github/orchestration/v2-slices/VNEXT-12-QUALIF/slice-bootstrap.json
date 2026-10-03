@@ -6,9 +6,9 @@
   "issue_number": 269,
   "repository": "MyUncried/Application-Routine",
   "target_branch": "protocol/vnext-proof-stability-20260930",
-  "baseline_head": "070722462d9ac6edb797072e9c74c4817dee0601",
+  "baseline_head": "7fac320080f83eb74359272b9d039e7b1d8fac5f",
   "protocol_version": "0.6.12",
-  "protocol_commit": "070722462d9ac6edb797072e9c74c4817dee0601",
+  "protocol_commit": "7fac320080f83eb74359272b9d039e7b1d8fac5f",
   "previous_slice_id": null,
   "previous_checkpoint": null,
   "product_sources": [
@@ -21,7 +21,7 @@
     "MyUncried",
     "claude-local"
   ],
-  "created_at": "2026-10-03T01:09:02.172Z",
+  "created_at": "2026-10-03T16:53:43.292Z",
   "activation_registry": ".github/orchestration/v2-activation-registry.json",
-  "slice_bootstrap_sha256": "9a82a9056983594fe559bf1410999fa7e751ff414d6ebaf6c443050ea92a722f"
+  "slice_bootstrap_sha256": "ba305d0f18626c0a0884863a966f2797ed2f9e3aba50d31d136d1bb651240e02"
 }
