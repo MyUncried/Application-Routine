@@ -1,12 +1,16 @@
 {
-  "stage": "QUALIFY_ONLY",
+  "stage": "EXECUTE_INITIAL",
   "slice_id": "VNEXT-12-QUALIF",
   "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
   "revision_limit": 1,
   "preparation_generation": 13,
-  "generation": 35,
+  "generation": 36,
   "preflight_format": "VNEXT_EXECUTION_REQUEST",
   "final_audit_authorized": false,
   "pre1_in_scope": false,
-  "revision_scenario": "DECLARED_NEGATIVE_PLAN_THEN_ONE_CAUSAL_CORRECTION"
+  "revision_scenario": "DECLARED_NEGATIVE_PLAN_THEN_ONE_CAUSAL_CORRECTION",
+  "approved_protocol_head": "16b70bab70fad2adc64b0ea7a0069cbc206eee17",
+  "qualification_run_id": 37139109523,
+  "gate_ref": "issue_comment:5971337496",
+  "approval_target_hash": "a606e75fcb7a9bd07838c0479be0ffd939772df48e11aeb7453265aca57f5e21"
 }

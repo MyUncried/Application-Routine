@@ -156,3 +156,10 @@ Les cinq artefacts ont été téléchargés, leur SHA256 vérifié et leurs ZIP 
 Run 37133206182, tentative 2, job 111243365597: SUCCESS, vraie session Claude 12ac3006-d166-4e99-9f90-ba24c12f6e70, APPROVE, zéro finding bloquant et une suggestion optionnelle conservée sur le typage/preuve explicite de keep.js. Le receipt est vérifié avec le vérificateur réel. La première tentative ETIMEDOUT est conservée; aucune correction de code entre les deux essais et aucune cause sous-jacente démontrée. Les deux ZIP téléchargés et hashés sont archivés avec evidence.json.
 
 Le dossier généré est matérialisé sans modification sémantique. Transport neuf b605283d-13c0-4f1e-bde9-863538a6f86b, gate réel réservé issue_comment:5971337496. Aucune réaction/approbation revendiquée à ce stade. La demande QUALIFY_ONLY génération 35 qualifie le dossier exact avant demande d’approbation et exécution INITIAL. REVISION restera séquentielle. Aucun FINAL, promotion, fusion ou PRE-1.
+
+
+## Exact INITIAL dossier qualification and delegated authorization
+
+Candidate 16b70bab70fad2adc64b0ea7a0069cbc206eee17: runs 37139109519, 37139109523 and 37139109517 SUCCESS. Pilot Linux 977/976 PASS/0 FAIL/1 SKIP; Windows 977/973 PASS/0 FAIL/4 SKIP. VNext contracts and drivers 211/211 PASS on each OS. Historical mapped aggregation 402 cases PASS on at least one platform; operational readiness remains NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT. Actual five artifacts downloaded, SHA256 verified and archived in .github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-16b70bab.
+
+Gate issue_comment:5971337496 now contains the canonical exact candidate target a606e75fcb7a9bd07838c0479be0ffd939772df48e11aeb7453265aca57f5e21. Real owner reaction 431576097 observed, posted under CODEX_USER_DELEGATION_FOR_DISPOSABLE_TECHNICAL_TEST_ONLY; human_review_performed=false. Fresh request b605283d-13c0-4f1e-bde9-863538a6f86b retained. EXECUTE_INITIAL requested; INITIAL_PASS and REVISION_PASS are not claimed.

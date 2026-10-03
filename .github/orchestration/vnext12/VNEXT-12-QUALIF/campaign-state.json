@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-03T17:01:28.078Z",
+  "recorded_at": "2026-10-03T17:50:55.996Z",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
-  "controller_stage": "V8_INITIAL_DOSSIER_PENDING_QUALIFICATION",
-  "controller_generation": 43,
+  "controller_stage": "V8_EXECUTE_INITIAL_REQUESTED",
+  "controller_generation": 44,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -405,10 +405,9 @@
     "full_linux_ci_is_authoritative": true
   },
   "pending_actions": [
-    "Qualify exact materialized INITIAL dossier and fresh transport on Linux/Windows.",
-    "After qualification, update reserved gate with exact candidate approval target and observe real owner reaction under disposable technical delegation.",
-    "Execute fresh INITIAL; then real bounded REVISION with new transport identity and new gate.",
-    "No FINAL, promotion, main merge or PRE-1 execution; never replay consumed identities."
+    "Observe real fresh INITIAL runtime and persist proof before declaring INITIAL_PASS.",
+    "Then prepare real bounded REVISION, fresh transport/gate, exact qualification and execution.",
+    "No FINAL, activation/cutover, promotion, main merge or PRE-1 execution."
   ],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
@@ -832,7 +831,7 @@
     "initial_revision_replayed": false
   },
   "v8_consolidation": {
-    "status": "INITIAL_PREPARATION_APPROVED_DOSSIER_PENDING_QUALIFICATION",
+    "status": "INITIAL_APPROVED_AND_QUALIFIED_EXECUTION_REQUESTED",
     "parent_head": "952b23b3c0bbe258edb93a155abde5c58a5795e0",
     "audit_head": "c0f72fc2148a5955b9a810a8aca1f6eeefa64870",
     "main_shared_source": "67064d1b3752d71683d11638a602286b9c895482",
@@ -1201,13 +1200,44 @@
         "gate_ref": "issue_comment:5971337496",
         "created_at": "2026-10-03T17:00:14.195Z",
         "reservation_observed": true,
-        "owner_approval_observed": false,
+        "owner_approval_observed": true,
         "human_review_performed": false
       },
       "implementation_invoked": false,
       "revision_executed": false,
       "final_invoked": false,
       "pre1_in_scope": false
+    },
+    "dossier_qualification": {
+      "head": "16b70bab70fad2adc64b0ea7a0069cbc206eee17",
+      "runs": [
+        {
+          "id": 37139109519,
+          "conclusion": "success"
+        },
+        {
+          "id": 37139109523,
+          "conclusion": "success"
+        },
+        {
+          "id": 37139109517,
+          "conclusion": "success"
+        }
+      ],
+      "proof_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-16b70bab/evidence.json",
+      "real_logs_read": true,
+      "artifacts_hash_verified": true
+    },
+    "initial_owner_approval": {
+      "comment_id": 5971337496,
+      "reaction_id": 431576097,
+      "head": "16b70bab70fad2adc64b0ea7a0069cbc206eee17",
+      "approval_target_hash": "a606e75fcb7a9bd07838c0479be0ffd939772df48e11aeb7453265aca57f5e21",
+      "exact_message_verified": true,
+      "real_owner_reaction_observed": true,
+      "human_review_performed": false,
+      "authorization_basis": "CODEX_USER_DELEGATION_FOR_DISPOSABLE_TECHNICAL_TEST_ONLY",
+      "evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-16b70bab/owner-approval-evidence.json"
     }
   }
 }
