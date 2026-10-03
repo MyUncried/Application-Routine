@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-03T09:09:35.157Z",
+  "recorded_at": "2026-10-03T11:05:31.207034+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
-  "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
+  "user_instruction": "Mener la campagne jusqu'au r\u00e9sultat r\u00e9el, diagnostiquer/corriger/relancer les \u00e9checs techniques ; solliciter uniquement une validation m\u00e9tier.",
   "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
-  "controller_stage": "V8_FIRST_TRANCHE_EXECUTE_INITIAL_REQUESTED",
-  "controller_generation": 38,
+  "controller_stage": "V8_CONSOLIDATION_NO_INTERMEDIATE_REVISION",
+  "controller_generation": 39,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -37,7 +37,7 @@
     "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
     "requested_by_user": true,
     "scope": "Disposable INITIAL/REVISION on the current first-tranche protocol; remaining v8 corrections are not covered.",
-    "phase": "EXECUTE_INITIAL_REQUESTED",
+    "phase": "INITIAL_PASS_REVISION_DEFERRED_TO_CONSOLIDATED_CANDIDATE",
     "approved_protocol_head": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
     "approval_target_hash": "8ffcc4f74def32ea445410197a0a50a27a1029c9a0821958df0fbba1d7ea2509",
     "exact_owner_gate": {
@@ -165,8 +165,8 @@
     },
     "source_head": "022b78768a55277239c545e1ef8235d0a789874c",
     "preparation_generation": 12,
-    "request_generation": 30,
-    "initial_executed": false,
+    "request_generation": 31,
+    "initial_executed": true,
     "revision_executed": false,
     "new_execution_identities_required": true,
     "new_exact_owner_gate_required": true,
@@ -176,8 +176,20 @@
     "prior_qualification": {
       "head": "022b78768a55277239c545e1ef8235d0a789874c",
       "pilot_run": 37076759716,
-      "pilot_linux": { "job": 111068288878, "tests": 956, "pass": 955, "fail": 0, "skip": 1 },
-      "pilot_windows": { "job": 111069192017, "tests": 956, "pass": 952, "fail": 0, "skip": 4 },
+      "pilot_linux": {
+        "job": 111068288878,
+        "tests": 956,
+        "pass": 955,
+        "fail": 0,
+        "skip": 1
+      },
+      "pilot_windows": {
+        "job": 111069192017,
+        "tests": 956,
+        "pass": 952,
+        "fail": 0,
+        "skip": 4
+      },
       "qualification_run": 37076759717,
       "linux_job": 111068289368,
       "windows_job": 111068289128,
@@ -192,15 +204,128 @@
       "legacy_recovery_reserve": "NON_CERTIFIED; global success does not certify unavailable historical recovery evidence.",
       "certifies_future_head": false
     },
-    "report": ".github/orchestration/reports/2026-10-03_VNEXT_V8_FRESH_CYCLE.md"
+    "report": ".github/orchestration/reports/2026-10-03_VNEXT_V8_FRESH_CYCLE.md",
+    "initial_execution": {
+      "schema_version": "kodjo.vnext12.real-initial-execution-evidence.v1",
+      "observed_at": "2026-10-03T11:05:31.207034+00:00",
+      "run_id": 37115247745,
+      "job_id": 111180841735,
+      "controller_head": "3d1ca0a19925005440c8701eda1ae8ccfb1295a0",
+      "approved_protocol_head": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
+      "artifact_id": 11270759916,
+      "artifact_sha256": "53b4be48f0f93b3f62fa4ed742b7cf93b17faf12ee5c48c7723b17a5877cbe03",
+      "downloaded_hash_verified": true,
+      "artifact_members_sha256": {
+        "status.json": "35c0c95ea15fe64e9533b40c4f610c05d6f14fb0c9e0dd6ece4ba4bc05a5fde8",
+        "functional-proof.json": "74e3d694a953a285f7794a02dc00af8f37e00f260872faf6c9c3aeab1bdc9b22",
+        "negative-before-claude.json": "24347d01993f19a6e82dca80150e1b1b339a9f4d69bf6290047527e659bf4024",
+        "consumption.json": "0aaee5893d103781a0b033cdcb261c71037bbed5384aac664aac8172e3e605f5",
+        "consumed-request.json": "a2a94f6dd8a41c9de57d03c20f8fde3d9a746a074c70d04d6fc20d3460a06167",
+        "qualification-admission.json": "c9b8c4e99a19147f0dc1699415542d0f394df3b3d8da0fbba8e84a2001835326",
+        "implementation.patch": "656970d14fe166cef0cfdb2ab2069f315c63f58c57f11d425366caf2873d392a",
+        "baseline-checks.json": "a0e310b7a8befc37053b6958b4a5839e82826d601db598bd912b9f9f22ceacfd",
+        "runtime-result.json": "e4f6ca6ff2484b75e0176c0b5942ca9e7c6406d4a2b511aff3004534e9370756"
+      },
+      "status": "INITIAL_PASS",
+      "claude_session_id": "23570c25-875b-4158-8d87-5f075cb8056a",
+      "consumed_request": "7c4b54fd-b0db-45bd-abf3-73c5a3761840",
+      "consumption_tag": "5333643773e9310d2dda25d68f7994a26088d5d0",
+      "replay_forbidden": true,
+      "functional_proof": {
+        "observed_value": 2,
+        "targeted_jest_exit_code": 0,
+        "preserve_before_sha256": "db387ac0aab607cda76e230c38f08a343d1d3d6281c2062b48bf023f06331f56",
+        "preserve_after_sha256": "db387ac0aab607cda76e230c38f08a343d1d3d6281c2062b48bf023f06331f56",
+        "modified_files": [
+          "scripts/kodjo/fixtures/vnext12/core.js",
+          "tests/fixtures/vnext12/core.test.js"
+        ]
+      },
+      "negative_before_claude": {
+        "fault_injection": true,
+        "production_runner": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_vnext12-approved\\37115247745\\scripts\\kodjo\\run-local-claude.js",
+        "missing_authority": {
+          "refused": true,
+          "exit_code": 1,
+          "diagnostic": "VNEXT_LOCAL_QUEUE_AUTHORITY_REQUIRED"
+        },
+        "missing_review_proof": {
+          "refused": true,
+          "exit_code": 1,
+          "diagnostic": "VNEXT_QUEUE_ADMISSION_REQUEST_MISMATCH"
+        },
+        "runtime_state_created": false,
+        "claude_invoked": false
+      },
+      "disposable_cleanup": true,
+      "human_review_performed": false,
+      "authorization_basis": "CODEX_USER_DELEGATION_FOR_DISPOSABLE_TECHNICAL_TEST_ONLY",
+      "remaining_audit_findings_covered": false,
+      "revision_executed": false,
+      "application_published": false,
+      "pre1_in_scope": false,
+      "final_audit_invoked": false,
+      "checks": [
+        {
+          "check": "jest",
+          "command": "npm test --silent -- --cacheDirectory \"C:\\\\actions-runner\\\\_work\\\\_temp\\\\kodjo-vnext12-initial-37115247745-1\\\\check-cache\\\\jest\"",
+          "status": "PASS",
+          "exit_code": 0,
+          "started_at": "2026-10-03T10:28:16.695Z",
+          "finished_at": "2026-10-03T10:29:18.755Z",
+          "duration_ms": 62060,
+          "reason": null,
+          "passed_tests": 1257,
+          "failed_tests": 0,
+          "total_tests": 1257,
+          "rerun_in_this_attempt": true
+        },
+        {
+          "check": "typescript",
+          "command": "npx --no-install tsc --noEmit",
+          "status": "PASS",
+          "exit_code": 0,
+          "started_at": "2026-10-03T10:29:18.759Z",
+          "finished_at": "2026-10-03T10:29:27.763Z",
+          "duration_ms": 9004,
+          "reason": null,
+          "passed_tests": null,
+          "failed_tests": null,
+          "total_tests": null,
+          "rerun_in_this_attempt": true
+        },
+        {
+          "check": "lint",
+          "command": "npm run lint --silent -- --no-cache",
+          "status": "PASS",
+          "exit_code": 0,
+          "started_at": "2026-10-03T10:29:27.764Z",
+          "finished_at": "2026-10-03T10:29:59.920Z",
+          "duration_ms": 32156,
+          "reason": null,
+          "passed_tests": null,
+          "failed_tests": null,
+          "total_tests": null,
+          "rerun_in_this_attempt": true
+        }
+      ]
+    }
   },
   "audit_v8_revision": {
     "audited_head": "c0f72fc2148a5955b9a810a8aca1f6eeefa64870",
     "observed_main_head": "8fc58a466679a85ea74752f0273939f901efa1b8",
     "first_tranche": {
-      "findings": ["D10", "D13", "D14"],
+      "findings": [
+        "D10",
+        "D13",
+        "D14"
+      ],
       "status": "PUBLISHED_EXACT_CANDIDATE_CI_SUCCESS",
-      "targeted_tests": { "pass": 35, "fail": 0, "skip": 0 },
+      "targeted_tests": {
+        "pass": 35,
+        "fail": 0,
+        "skip": 0
+      },
       "frozen_writer_rows_updated": 6,
       "historical_subjects_preserved": 420,
       "main_modified": false,
@@ -215,7 +340,8 @@
       "Qualify the exact revised candidate, then execute fresh disposable INITIAL/REVISION with new identities and genuine independent review."
     ],
     "promotion_authorized": false,
-    "final_or_cutover_authorized": false
+    "final_or_cutover_authorized": false,
+    "execution_sequence": "ALL_REMAINING_CORRECTIONS_BEFORE_NEXT_FULL_CYCLE"
   },
   "steps": [
     {
@@ -279,9 +405,9 @@
     "full_linux_ci_is_authoritative": true
   },
   "pending_actions": [
-    "Observe real EXECUTE_INITIAL of exact approved head 08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1; preserve runtime result/session/checks/artifact/hash/cleanup before declaring INITIAL_PASS. Do not replay UUID 7c4b54fd-b0db-45bd-abf3-73c5a3761840 if consumed.",
-    "After INITIAL, prepare and qualify REVISION with real REVISE then APPROVE, one causal correction, fresh gate and execution identity; preserve all prior consumed requests.",
-    "Continue the remaining audit-v8 revision tranches recorded in audit_v8_revision; do not replay consumed INITIAL/REVISION requests, activate VNext or merge."
+    "Implement all remaining audit-v8 corrections with focused local tests; do not launch an intermediate REVISION or certification cycle.",
+    "Publish and qualify one consolidated exact candidate on Linux/Windows, then run fresh INITIAL and bounded REVISION with new identities and genuine independent review.",
+    "Never replay consumed request 7c4b54fd-b0db-45bd-abf3-73c5a3761840; preserve historical consumed identities and SQLite PRE-1 NOT_EXECUTED waiver."
   ],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
@@ -342,7 +468,7 @@
     "initial_replayed": false,
     "delegation": {
       "kind": "USER_AUTHORIZED_TECHNICAL_DISPOSABLE_CAMPAIGN",
-      "instruction": "mène cette campagne de test jusqu’à son terme, diagnostique, explique corrige et relance le test lorsqu’un échec intervient. Ne m’implique que lorsqu’une validation métier est nécessaire.",
+      "instruction": "m\u00e8ne cette campagne de test jusqu\u2019\u00e0 son terme, diagnostique, explique corrige et relance le test lorsqu\u2019un \u00e9chec intervient. Ne m\u2019implique que lorsqu\u2019une validation m\u00e9tier est n\u00e9cessaire.",
       "human_review_performed": false,
       "approval_reaction_not_yet_created": false,
       "actual_reaction_id": "429910266"
