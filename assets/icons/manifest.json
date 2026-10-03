@@ -32,7 +32,9 @@
     {"key":"icon.tour","file":"icon-tour","figmaNodeId":"3066:4685","sourceFrameNodeId":"2028:12003","sourceGraphicNodeId":"2028:12040","width":18,"height":18,"usage":["Composition — Nombre de tours — tous les états"]},
     {"key":"composition.fixed","file":"composition-fixed","figmaNodeId":"3066:4680","width":20,"height":20,"usage":["Composition — structure fixe"]},
     {"key":"wheel.action.cancel","file":"wheel-action-cancel","figmaNodeId":"3089:81","width":24,"height":24,"usage":["Roulettes durée, heure et rappel"]},
-    {"key":"wheel.action.validate","file":"wheel-action-validate","figmaNodeId":"3089:83","width":24,"height":24,"usage":["Roulettes durée, heure et rappel"]}
+    {"key":"wheel.action.validate","file":"wheel-action-validate","figmaNodeId":"3089:83","width":24,"height":24,"usage":["Roulettes durée, heure et rappel"]},
+    {"key":"bodyZone.homme","file":"body-zone-homme","figmaNodeId":"6322:10874","width":24,"height":24,"usage":["Profil","Zones corporelles"]},
+    {"key":"bodyZone.femme","file":"body-zone-femme","figmaNodeId":"6322:10877","width":24,"height":24,"usage":["Profil","Zones corporelles"]}
   ],
   "branding": {
     "splashLogo": {
