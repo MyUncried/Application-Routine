@@ -16,6 +16,16 @@ Campagne neuve `628b3349-88b4-4bf1-be6b-50bc09e7d245`, génération préparation
 
 À cette publication, aucune nouvelle revue, approbation ou exécution n'est déclarée acquise. Les preuves antérieures et leurs demandes consommées sont conservées ; aucune n'est rejouée. Les nouveaux UUID d'exécution seront créés uniquement après la préparation réelle, avec un nouveau message exact, gate GitHub réel et délégation explicite pour le test technique jetable (sans prétendre à une revue humaine).
 
+## Préparation INITIAL observée le 3 octobre
+
+Le run [37081294314](https://github.com/MyUncried/Application-Routine/actions/runs/37081294314), job `111085573177`, a réellement produit `PREPARED_FOR_PUBLICATION` avec APPROVE, 0 finding bloquant et 1 suggestion. Session Claude : `11f9ef31-2af7-4b86-8e52-07d2cf03d5bc`. La suggestion porte sur la modélisation explicite d'une preuve de préservation dans le plan ; le superviseur vérifie déjà réellement les octets de keep.js. Elle est conservée sans correction opportuniste ni changement du verdict.
+
+Artefact `11260087927`, SHA256 téléchargé et vérifié : `2e9223973ce264f13044f86ecb400e373dff9fc71d72f169e86b5e828f009a54`. Les six fichiers de `publication.json` sont matérialisés à l'identique ; la vraie receipt et le status sont conservés dans le dossier INITIAL. La chaîne préparée et sa receipt sont revalidées localement sans appel Claude supplémentaire.
+
+Le HEAD de préparation `070722462d9ac6edb797072e9c74c4817dee0601` a aussi été qualifié : pilotes 956 tests, Linux 955 PASS / 1 SKIP et Windows 952 PASS / 4 SKIP, aucun FAIL ; contrats et drivers 202/202 par OS, équivalences historiques SUCCESS. La réserve de récupération legacy NON_CERTIFIED demeure.
+
+La publication du dossier passe le stage à QUALIFY_ONLY (génération 27). Elle exige une nouvelle qualification du HEAD matérialisé ; ni l'approbation utilisateur ni l'exécution INITIAL ne sont encore acquises. Aucun ancien gate ou UUID n'est réutilisé.
+
 ## Séquence à poursuivre
 
 1. Lire la vraie revue INITIAL, son verdict/session, ses artefacts et leur hash ; conserver tout échec éventuel. Materialiser uniquement la publication générée par le préparateur.
