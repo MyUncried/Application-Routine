@@ -38,6 +38,14 @@ Le commentaire réservé n'est pas une approbation. Après qualification du nouv
 
 Cette publication reste QUALIFY_ONLY (génération 28). Elle complète la matérialisation du transport, sans changer le protocole ni demander une nouvelle revue Claude du même plan. Aucun INITIAL/REVISION réel acquis pour la nouvelle campagne.
 
+## Admission INITIAL demandée
+
+Le HEAD exact `08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1` est qualifié : runs 37109636892 (pilotes), 37109636938 (contrats/équivalence) et 37109636896 (drivers) SUCCESS. Les vrais logs confirment 956 tests pilotes (Linux 955 PASS / 1 SKIP, Windows 952 PASS / 4 SKIP, 0 FAIL) et 202/202 par OS pour contrats et drivers. La récupération historique conserve sa réserve NON_CERTIFIED.
+
+Le commentaire `5967139304` porte maintenant le HEAD et le message ApprovalTarget exacts, hash `8ffcc4f74def32ea445410197a0a50a27a1029c9a0821958df0fbba1d7ea2509`. La vraie réaction +1 `431397815` de MyUncried, créée après cette édition, a été lue et vérifiée avec `vnext-github-approval.verifyObservation`. Autorisation : délégation déjà accordée par l'utilisateur pour le test technique jetable ; **human_review_performed=false**. L'observation complète est conservée dans `initial/owner-approval-evidence.json`.
+
+Stage EXECUTE_INITIAL, génération 29. Le workflow contrôleur demande uniquement l'exécution du HEAD approuvé et qualifié `08cb8b93` ; aucun code runtime nouveau n'est substitué par le commit contrôleur. UUID neuf `7c4b54fd-b0db-45bd-abf3-73c5a3761840`. L'admission fraîche et la consommation atomique restent obligatoires dans le superviseur. Aucun succès runtime n'est déclaré à ce lancement.
+
 ## Séquence à poursuivre
 
 1. Lire la vraie revue INITIAL, son verdict/session, ses artefacts et leur hash ; conserver tout échec éventuel. Materialiser uniquement la publication générée par le préparateur.
