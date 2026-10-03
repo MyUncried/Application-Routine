@@ -893,6 +893,7 @@ Une Étiquette possède son identité, son libellé et sa couleur persistante. U
 - lorsqu’une Étiquette est associée, sa couleur est la couleur affichée de la Séance ;
 - créer une nouvelle Étiquette depuis la Composition l’ajoute au référentiel utilisateur selon le parcours validé ;
 - toute Étiquette est supprimable, y compris une valeur fournie initialement par KODJO ; la suppression la retire des choix futurs mais conserve son association aux Séances existantes qui l’utilisent ;
+- créer une Étiquette dont le nom normalisé correspond à une Étiquette retirée réactive celle-ci (même identifiant, associations conservées, couleur choisie appliquée) (D-257) ;
 - les Instantanés historiques conservent les informations nécessaires à la restitution du libellé et de la couleur.
 
 # 09.10.1 Entité Catégorie
@@ -925,6 +926,7 @@ Une Catégorie possède son identité, son libellé, sa couleur et son ordre d�
 - la couleur de la Catégorie est utilisée comme repère sémantique de l’Exercice dans les cartes et l’éditeur ;
 - une Catégorie créée depuis l’éditeur devient disponible dans le référentiel utilisateur selon le parcours validé ;
 - toute Catégorie est supprimable, y compris une valeur fournie initialement par KODJO ; la suppression la retire des choix futurs mais conserve son association aux Exercices existants qui l’utilisent et préserve l’historique.
+- créer une Catégorie dont le nom normalisé correspond à une Catégorie retirée réactive celle-ci (même identifiant, associations conservées, couleur choisie appliquée) (D-257).
 
 # 09.11 Entité Zone corporelle
 
@@ -959,6 +961,7 @@ Un nouvel Exercice valide référence une ou plusieurs Zones corporelles. Une zo
 - L’utilisateur peut créer, renommer et supprimer une Zone corporelle.
 - Toutes les Zones, y compris les dix valeurs initiales fournies par KODJO, sont supprimables.
 - La suppression d’une Zone utilisée demande confirmation, la retire des choix futurs, conserve ses associations aux Exercices existants et ne modifie pas les Instantanés/Exécutions historiques.
+- Créer une Zone dont le nom normalisé correspond à une Zone retirée réactive celle-ci (même identifiant, associations conservées) (D-257).
 
 ## Valeurs initiales du référentiel (D-093, révisée par D-199)
 

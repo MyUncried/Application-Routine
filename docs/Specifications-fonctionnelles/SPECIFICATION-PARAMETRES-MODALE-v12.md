@@ -96,6 +96,7 @@ Création : mode/durée/côté non renseignés —, Série1, Pause0s ; cible Ré
 | Répétitions par Série | 1..100 | 1 |
 | Durée par Série | 1..5999s | 1s dans les steppers ; préserver cette précision à la saisie uniforme |
 | Pause après chaque série / Pause entre les côtés | 0..300s | 0,1,2,3,4,5,10,15…120,150,180…300s |
+| Compte à rebours / Fin d’exercice | 0..60s | 1s (D-256) |
 
 Pas des pauses : 1s jusqu’à5s, 5s jusqu’à120s, 30s jusqu’à300s ; décrément parcourt la même grille en sens inverse. Bornes inchangées. Les données existantes ne sont pas arrondies par la seule ouverture/lecture. Maintien D-237 : action au relâchement/tap, sans attendre la fin de l’animation ; maintien et répétition450/150ms selon le DSF existant. Ce changement de pas ne redéfinit pas les bornes des autres paramètres Profil.
 
