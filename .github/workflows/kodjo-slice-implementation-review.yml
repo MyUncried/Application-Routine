@@ -173,6 +173,12 @@ jobs:
               node scripts/kodjo/recover-published-pre1-plan.js "$plan" /tmp/kodjo-recovered-plan.md
               v2_plan_comment_body=$(tr -d '\r' < /tmp/kodjo-recovered-plan.md)
               [ "$v2_plan_comment_body" = "$(printf '%s' "$plan_body" | tr -d '\r')" ] || { echo 'Recovered PRE-1 plan differs from authorized plan blob' >&2; exit 1; }
+            elif [ "$(jq -r '.body | gsub("\r"; "") | split("\n")[0]' <<<"$plan_json")" = '[KODJO_V2] PLAN_PUBLICATION' ]; then
+              # Publication générique vérifiée (même contrôle que la revue de plan et le handoff),
+              # puis identité exacte avec le blob du plan autorisé.
+              node scripts/kodjo/recover-published-plan.js "$plan" /tmp/kodjo-recovered-plan.md
+              v2_plan_comment_body=$(tr -d '\r' < /tmp/kodjo-recovered-plan.md)
+              [ "$v2_plan_comment_body" = "$(printf '%s' "$plan_body" | tr -d '\r')" ] || { echo 'Recovered published plan differs from authorized plan blob' >&2; exit 1; }
             else
               jq -e --arg issue "$ISSUE_NUMBER" '
                 .user.login == "github-actions[bot]"
