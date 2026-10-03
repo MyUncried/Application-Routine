@@ -144,3 +144,9 @@ qui a échoué. Toutes les unités nouvelles sont donc reparsées. Le scan disti
 `git merge-base` (lecture) de `git merge`/`rebase` (mutation), y compris avec `-c` :
 26 tests ciblés scanner/publication passent après ce dernier ajustement.
 Aucun writer nouveau ni exception d'autorisation n'est déclaré pour merge-base.
+
+## Qualification réelle du candidat ac405656 — 3 octobre 2026
+
+Les trois runs 37129238664, 37129238678 et 37129238655 sont SUCCESS. Suite complète Linux: 977 tests, 976 PASS, 0 FAIL, 1 SKIP; Windows: 977 tests, 973 PASS, 0 FAIL, 4 SKIP. Contrats et drivers: 211 PASS sur chaque OS. Le parser Windows PowerShell 5.1 du tree exact passe. La couverture croisée des 402 assertions mappées passe; les 420 sujets restent inchangés et la réserve opérationnelle NOT_CERTIFIED demeure. Préflight jetable: Jest 1257/1257, TypeScript/lint PASS, cleanup PASS.
+
+Les cinq artefacts ont été téléchargés, leur SHA256 vérifié et leurs ZIP de preuves archivés sous `v8-consolidation/qualification-ac405656/` avec le bilan détaillé `evidence.json`. La récupération historique absente reste NON_CERTIFIED. Aucun runtime Claude INITIAL/REVISION ne s’est exécuté sur ce candidat. La demande PREPARE_INITIAL génération 34 sollicite la vraie revue indépendante; aucune approbation ni consommation n’est créée par ce checkpoint.

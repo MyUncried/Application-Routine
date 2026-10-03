@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-03T13:03:05.556121+00:00",
+  "recorded_at": "2026-10-03T15:23:21.148Z",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
-  "controller_stage": "V8_CONSOLIDATED_PENDING_QUALIFICATION",
-  "controller_generation": 41,
+  "controller_stage": "V8_CONSOLIDATED_PREPARE_INITIAL",
+  "controller_generation": 42,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -405,9 +405,10 @@
     "full_linux_ci_is_authoritative": true
   },
   "pending_actions": [
-    "Implement all remaining audit-v8 corrections with focused local tests; do not launch an intermediate REVISION or certification cycle.",
-    "Publish and qualify one consolidated exact candidate on Linux/Windows, then run fresh INITIAL and bounded REVISION with new identities and genuine independent review.",
-    "Never replay consumed request 7c4b54fd-b0db-45bd-abf3-73c5a3761840; preserve historical consumed identities and SQLite PRE-1 NOT_EXECUTED waiver."
+    "Collect real independent INITIAL preparation; retain REVISE if issued, no manufactured receipt.",
+    "Materialize fresh transport and exact GitHub owner gate; qualify exact candidate before fresh execution.",
+    "Then prepare and execute bounded REVISION with real base REVISE / new APPROVE / RESOLVED count1.",
+    "No FINAL, promotion, main merge or PRE-1 execution."
   ],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
@@ -831,12 +832,12 @@
     "initial_revision_replayed": false
   },
   "v8_consolidation": {
-    "status": "IMPLEMENTED_PENDING_EXACT_CANDIDATE_QUALIFICATION",
+    "status": "QUALIFIED_LINUX_WINDOWS_PREPARE_INITIAL_REQUESTED",
     "parent_head": "952b23b3c0bbe258edb93a155abde5c58a5795e0",
     "audit_head": "c0f72fc2148a5955b9a810a8aca1f6eeefa64870",
     "main_shared_source": "67064d1b3752d71683d11638a602286b9c895482",
     "scope": "Remaining demonstrated v8 defects D1-D9,D11-D12,D15-D18; D10,D13,D14 already delivered in the first tranche. D3 targeted shared-protocol reconciliation only.",
-    "request_generation": 33,
+    "request_generation": 34,
     "runtime_execution": "NOT_STARTED",
     "native_windows_parser": "REQUIRED_IN_EXACT_TREE_QUALIFICATION",
     "report": ".github/orchestration/reports/2026-10-03_VNEXT_V8_CONSOLIDATED_CORRECTIONS.md",
@@ -863,6 +864,284 @@
       "historical_detailed_assertion_cause": "UNAVAILABLE_JSONL_NOT_UPLOADED",
       "runtime_execution": "SKIPPED",
       "new_consumption": false
-    }
+    },
+    "qualified_candidate": "ac40565641c7f59d7fdf3f932816505d65dad526",
+    "qualification": {
+      "schema_version": "kodjo.vnext.v8.consolidation-qualification.v1",
+      "observed_at": "2026-10-03T15:23:21.118Z",
+      "candidate_head": "ac40565641c7f59d7fdf3f932816505d65dad526",
+      "candidate_tree": "4814f91b480082b174735c2784c382ce2db7e40c",
+      "status": "QUALIFIED_LINUX_WINDOWS",
+      "runs": [
+        {
+          "run_id": 37129238664,
+          "status": "SUCCESS",
+          "url": "https://github.com/MyUncried/Application-Routine/actions/runs/37129238664",
+          "jobs": [
+            {
+              "id": 111220844554,
+              "name": "protocol",
+              "conclusion": "success"
+            },
+            {
+              "id": 111221324963,
+              "name": "protocol-windows-preflight",
+              "conclusion": "success"
+            },
+            {
+              "id": 111229693475,
+              "name": "disposable-qualification",
+              "conclusion": "skipped"
+            }
+          ]
+        },
+        {
+          "run_id": 37129238678,
+          "status": "SUCCESS",
+          "url": "https://github.com/MyUncried/Application-Routine/actions/runs/37129238678",
+          "jobs": [
+            {
+              "id": 111220844614,
+              "name": "qualification (windows-latest)",
+              "conclusion": "success"
+            },
+            {
+              "id": 111220844765,
+              "name": "qualification (ubuntu-latest)",
+              "conclusion": "success"
+            },
+            {
+              "id": 111220844828,
+              "name": "historical-equivalence (ubuntu-latest)",
+              "conclusion": "success"
+            },
+            {
+              "id": 111220844847,
+              "name": "historical-equivalence (windows-latest)",
+              "conclusion": "success"
+            },
+            {
+              "id": 111222392166,
+              "name": "architecture-audit",
+              "conclusion": "skipped"
+            },
+            {
+              "id": 111226247510,
+              "name": "historical-platform-coverage",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "run_id": 37129238655,
+          "status": "SUCCESS",
+          "url": "https://github.com/MyUncried/Application-Routine/actions/runs/37129238655",
+          "jobs": [
+            {
+              "id": 111220844499,
+              "name": "select-stage",
+              "conclusion": "success"
+            },
+            {
+              "id": 111220998264,
+              "name": "qualify-driver (windows-latest)",
+              "conclusion": "success"
+            },
+            {
+              "id": 111220998272,
+              "name": "qualify-driver (ubuntu-latest)",
+              "conclusion": "success"
+            },
+            {
+              "id": 111220999381,
+              "name": "Execute approved disposable INITIAL or REVISION",
+              "conclusion": "skipped"
+            },
+            {
+              "id": 111223510170,
+              "name": "prepare-revision",
+              "conclusion": "skipped"
+            },
+            {
+              "id": 111223510715,
+              "name": "prepare-initial",
+              "conclusion": "skipped"
+            }
+          ]
+        }
+      ],
+      "pilot": {
+        "linux": {
+          "tests": 977,
+          "pass": 976,
+          "fail": 0,
+          "skip": 1
+        },
+        "windows": {
+          "tests": 977,
+          "pass": 973,
+          "fail": 0,
+          "skip": 4
+        }
+      },
+      "contracts_each_os": {
+        "tests": 211,
+        "pass": 211,
+        "fail": 0,
+        "skip": 0
+      },
+      "drivers_each_os": {
+        "tests": 211,
+        "pass": 211,
+        "fail": 0,
+        "skip": 0
+      },
+      "mapped_historical_cases": 402,
+      "historical_subjects": 420,
+      "historical_readiness": "NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT",
+      "legacy_recovery": "NON_CERTIFIED_HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE",
+      "native_windows_powershell": "EXACT_CANDIDATE_TREE_PASS",
+      "runtime_claude_invoked": false,
+      "initial_revision_new_candidate": "NOT_EXECUTED",
+      "artifacts": [
+        {
+          "id": 11276986296,
+          "name": "historical-equivalence-Windows",
+          "sha256": "0e0723eba1250d85a340b8c12237559e015fe65bea75b664629ee06145fa8e91",
+          "downloaded_hash_verified": true,
+          "expires_at": "2026-10-17T14:20:13Z",
+          "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-ac405656/artifact-11276986296.zip"
+        },
+        {
+          "id": 11276092545,
+          "name": "historical-equivalence-Linux",
+          "sha256": "e7602acf9a7a14fadf5f649d20eae44b649217c836911e142f300d714a718918",
+          "downloaded_hash_verified": true,
+          "expires_at": "2026-10-17T14:20:13Z",
+          "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-ac405656/artifact-11276092545.zip"
+        },
+        {
+          "id": 11277281481,
+          "name": "kodjo-v2-disposable-preflight-37129238664-1",
+          "sha256": "1b225675710fe832a2dc51c1efd280864bafc9f6132c245929f4d571cb23ba76",
+          "downloaded_hash_verified": true,
+          "expires_at": "2026-10-17T14:20:13Z",
+          "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-ac405656/artifact-11277281481.zip"
+        },
+        {
+          "id": 11276820157,
+          "name": "kodjo-v2-runner-certification-37129238664-1",
+          "sha256": "a9a8b6f58fc4bc1aeccadd3c3ad3329500f865ca62a584f72432d40d7cee10f7",
+          "downloaded_hash_verified": true,
+          "expires_at": "2026-10-17T14:20:13Z",
+          "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-ac405656/artifact-11276820157.zip"
+        },
+        {
+          "id": 11276599016,
+          "name": "kodjo-v2-real-recovery-certification-37129238664-1",
+          "sha256": "4eb32067ed704efb222c7f2a069c6a014b3811dd59f1715968061b9242327666",
+          "downloaded_hash_verified": true,
+          "expires_at": "2026-10-17T14:20:13Z",
+          "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-ac405656/artifact-11276599016.zip"
+        }
+      ],
+      "log_excerpts": [
+        {
+          "job_id": 111220844554,
+          "lines": [
+            "2026-10-03T14:23:04.2200973Z # tests 977",
+            "2026-10-03T14:23:04.2201422Z # pass 976",
+            "2026-10-03T14:23:04.2201667Z # fail 0",
+            "2026-10-03T14:23:04.2201901Z # cancelled 0",
+            "2026-10-03T14:23:04.2202124Z # skipped 1"
+          ]
+        },
+        {
+          "job_id": 111221324963,
+          "lines": [
+            "2026-10-03T14:58:49.3052624Z ℹ tests 977",
+            "2026-10-03T14:58:49.3055026Z ℹ pass 973",
+            "2026-10-03T14:58:49.3056530Z ℹ fail 0",
+            "2026-10-03T14:58:49.3057845Z ℹ cancelled 0",
+            "2026-10-03T14:58:49.3059213Z ℹ skipped 4"
+          ]
+        },
+        {
+          "job_id": 111220844614,
+          "lines": [
+            "2026-10-03T14:29:25.1465430Z ℹ tests 211",
+            "2026-10-03T14:29:25.1474983Z ℹ pass 211",
+            "2026-10-03T14:29:25.1475257Z ℹ fail 0",
+            "2026-10-03T14:29:25.1475487Z ℹ cancelled 0",
+            "2026-10-03T14:29:25.1475730Z ℹ skipped 0"
+          ]
+        },
+        {
+          "job_id": 111220844765,
+          "lines": [
+            "2026-10-03T14:21:45.1791768Z ℹ tests 211",
+            "2026-10-03T14:21:45.1801614Z ℹ pass 211",
+            "2026-10-03T14:21:45.1802345Z ℹ fail 0",
+            "2026-10-03T14:21:45.1803043Z ℹ cancelled 0",
+            "2026-10-03T14:21:45.1803771Z ℹ skipped 0"
+          ]
+        },
+        {
+          "job_id": 111220998264,
+          "lines": [
+            "2026-10-03T14:35:40.2374138Z ℹ tests 211",
+            "2026-10-03T14:35:40.2376076Z ℹ pass 211",
+            "2026-10-03T14:35:40.2376706Z ℹ fail 0",
+            "2026-10-03T14:35:40.2377384Z ℹ cancelled 0",
+            "2026-10-03T14:35:40.2378107Z ℹ skipped 0"
+          ]
+        },
+        {
+          "job_id": 111220998272,
+          "lines": [
+            "2026-10-03T14:22:37.5500569Z ℹ tests 211",
+            "2026-10-03T14:22:37.5502677Z ℹ pass 211",
+            "2026-10-03T14:22:37.5503442Z ℹ fail 0",
+            "2026-10-03T14:22:37.5504672Z ℹ cancelled 0",
+            "2026-10-03T14:22:37.5505459Z ℹ skipped 0"
+          ]
+        },
+        {
+          "job_id": 111226247510,
+          "lines": [
+            "2026-10-03T14:51:24.0043912Z {\"candidate_head\":\"ac40565641c7f59d7fdf3f932816505d65dad526\",\"status\":\"MAPPED_ASSERTIONS_PASS_ON_AT_LEAST_ONE_PLATFORM\",\"case_count\":402,\"individual_equivalence_proven\":false,\"readiness\":\"NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT\"}"
+          ]
+        }
+      ],
+      "limits": [
+        "No operational 420-subject certification.",
+        "No INITIAL/REVISION runtime on consolidated candidate yet.",
+        "No promotion/main merge/global branch realignment.",
+        "No SQLite device-check success inferred."
+      ],
+      "historical_counts": {
+        "win32": {
+          "tests": 977,
+          "failed": 0,
+          "passed": 974,
+          "cancelled": 0,
+          "skipped": 3,
+          "todo": 0,
+          "topLevel": 977,
+          "suites": 0
+        },
+        "linux": {
+          "tests": 977,
+          "failed": 0,
+          "passed": 976,
+          "cancelled": 0,
+          "skipped": 1,
+          "todo": 0,
+          "topLevel": 977,
+          "suites": 0
+        }
+      }
+    },
+    "preparation_generation": 13
   }
 }
