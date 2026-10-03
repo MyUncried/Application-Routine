@@ -187,7 +187,7 @@ test('le publisher produit un checkpoint chaîné au nouveau HEAD et au checkpoi
 });
 
 test('le superviseur conserve les protections octet/CRLF et livre sans force sur la PR existante', () => {
-  const supervisor = fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'run-queued-request.ps1'), 'utf8');
+  const supervisor = require('./helpers/normalized-git-source')(fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'run-queued-request.ps1'), 'utf8'));
   assert.match(supervisor, /core\.autocrlf=false/);
   assert.match(supervisor, /core\.whitespace=cr-at-eol/);
   assert.match(supervisor, /EXISTING_PR/);

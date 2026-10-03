@@ -347,7 +347,7 @@ function buildFinalAuditReport({
   if (auditManifest.candidate_head !== reviewArtifacts.currentState?.protocol_head) V.fail('VNEXT_FINAL_AUDIT_CANDIDATE_MISMATCH');
   V.assertExactKeys(
     semanticAudit,
-    ['findings'],
+    ['findings', 'reviewed_target_ids', 'finding_resolutions'],
     [],
     'VNEXT_FINAL_AUDIT_OUTPUT_KEYS_INVALID',
   );
@@ -432,7 +432,7 @@ function buildFinalAuditReport({
 
   const reviewReport = Review.buildReviewReport({
     reviewContext,
-    semanticReview: { findings: reviewFindings },
+    semanticReview: { findings: reviewFindings, reviewed_target_ids: semanticAudit.reviewed_target_ids, finding_resolutions: semanticAudit.finding_resolutions },
   });
 
   const failedCriteria = new Set(auditCoverage.failed_criterion_ids);

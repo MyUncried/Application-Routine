@@ -3,7 +3,7 @@ const { execFileSync } = require('node:child_process');
 const V = require('./vnext-contract');
 const WORKFLOW = '.github/workflows/kodjo-vnext-proof-stability.yml';
 const JOBS = ['qualification (ubuntu-latest)', 'qualification (windows-latest)',
-  'historical-equivalence (ubuntu-latest)', 'historical-equivalence (windows-latest)'];
+  'historical-equivalence (ubuntu-latest)', 'historical-equivalence (windows-latest)', 'historical-platform-coverage'];
 function readGithub(endpoint, { cwd = process.cwd(), env = process.env } = {}) {
   return JSON.parse(execFileSync('gh', ['api', '--method', 'GET', endpoint], {
     cwd, env, encoding: 'utf8', windowsHide: true, timeout: 60000, maxBuffer: 16 * 1024 * 1024,

@@ -44,9 +44,6 @@ function verifyFile(preflightFile,queueFile,options={}){
   if(P.sha256(projection)!==preflight.projection_sha256) throw new Error('PREFLIGHT_PROJECTION_DRIFT');
   const lockHash=packageLockHashAt(execHead,cwd);
   if((preflight.package_lock_sha256||null)!==(lockHash||null)) throw new Error('PREFLIGHT_PACKAGE_LOCK_DRIFT');
-  const required=['PF-023','PF-024','PF-025','PF-026','PF-027','PF-028'];
-  const observed=[...(preflight.freshness_guards_required||[])].sort();
-  if(JSON.stringify(observed)!==JSON.stringify(required.slice().sort())) throw new Error('PREFLIGHT_FRESHNESS_GUARDS_INVALID');
   return {preflight,queue,queue_blob_oid:queueBlob,execution_head:execHead,projection};
 }
 

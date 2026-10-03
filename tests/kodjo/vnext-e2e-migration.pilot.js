@@ -100,7 +100,7 @@ function makeEnvelope(manifest, repo, mode, base) {
     base_review_hash: mode === 'REVISION' ? base.review_hash : null,
     causal_findings: mode === 'REVISION' ? base.finding_ids : [],
     created_from: mode === 'REVISION'
-      ? { kind: 'PLAN_REVIEW_REVISE', refs: ['issue_comment:200'] }
+      ? { kind: 'PLAN_REVIEW_REVISE', refs: ['issue_comment:200', ...(base.patch_hash ? ['revision_patch:' + base.patch_hash] : [])] }
       : { kind: 'INITIAL_REQUEST', refs: ['issue_comment:100'] },
   });
 }
@@ -283,10 +283,10 @@ test('VNext-09 E2E INITIAL atteint HANDOFF_READY et se projette sans élargissem
   const manifest = sourceManifest();
   const envelope = makeEnvelope(manifest, repo, 'INITIAL', null);
   const artifacts = buildPlanningArtifacts({ repo, manifest, envelope });
-  const reviewReport = Review.buildReviewReport({
+  const reviewReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: artifacts.reviewContext,
     semanticReview: { findings: [] },
-  });
+  }));
   assert.equal(reviewReport.verdict, 'APPROVE');
 
   const state = currentState(repo);
@@ -337,10 +337,10 @@ test('VNext-09 runtime refuse un snapshot re-signé avec statut d’étape falsi
   const manifest = sourceManifest();
   const envelope = makeEnvelope(manifest, repo, 'INITIAL', null);
   const artifacts = buildPlanningArtifacts({ repo, manifest, envelope });
-  const reviewReport = Review.buildReviewReport({
+  const reviewReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: artifacts.reviewContext,
     semanticReview: { findings: [] },
-  });
+  }));
   const state = currentState(repo);
   const approved = approve(artifacts, reviewReport, state);
   const snapshot = Runtime.buildRuntimeSnapshot({
@@ -366,10 +366,10 @@ test('VNext-09 projection refuse un scope legacy élargi même si le JSON est re
   const manifest = sourceManifest();
   const envelope = makeEnvelope(manifest, repo, 'INITIAL', null);
   const artifacts = buildPlanningArtifacts({ repo, manifest, envelope });
-  const reviewReport = Review.buildReviewReport({
+  const reviewReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: artifacts.reviewContext,
     semanticReview: { findings: [] },
-  });
+  }));
   const state = currentState(repo);
   const approved = approve(artifacts, reviewReport, state);
   const projection = Adapter.buildLegacyQueueProjection({
@@ -397,10 +397,10 @@ test('VNext-09 projection refuse un fichier de compatibilité re-signé mais alt
   const manifest = sourceManifest();
   const envelope = makeEnvelope(manifest, repo, 'INITIAL', null);
   const artifacts = buildPlanningArtifacts({ repo, manifest, envelope });
-  const reviewReport = Review.buildReviewReport({
+  const reviewReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: artifacts.reviewContext,
     semanticReview: { findings: [] },
-  });
+  }));
   const state = currentState(repo);
   const approved = approve(artifacts, reviewReport, state);
   const projection = Adapter.buildLegacyQueueProjection({
@@ -428,10 +428,10 @@ test('VNext-09 projection refuse un changement de checks', () => {
   const manifest = sourceManifest();
   const envelope = makeEnvelope(manifest, repo, 'INITIAL', null);
   const artifacts = buildPlanningArtifacts({ repo, manifest, envelope });
-  const reviewReport = Review.buildReviewReport({
+  const reviewReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: artifacts.reviewContext,
     semanticReview: { findings: [] },
-  });
+  }));
   const state = currentState(repo);
   const approved = approve(artifacts, reviewReport, state);
   const projection = Adapter.buildLegacyQueueProjection({
@@ -459,10 +459,10 @@ test('VNext-09 projection legacy exige le transport GITHUB_REACTION compatible a
   const manifest = sourceManifest();
   const envelope = makeEnvelope(manifest, repo, 'INITIAL', null);
   const artifacts = buildPlanningArtifacts({ repo, manifest, envelope });
-  const reviewReport = Review.buildReviewReport({
+  const reviewReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: artifacts.reviewContext,
     semanticReview: { findings: [] },
-  });
+  }));
   const state = currentState(repo);
   const target = Approval.buildApprovalTarget({ ...artifacts, reviewReport, currentState: state });
   const record = Approval.buildApprovalRecord({
@@ -501,7 +501,7 @@ test('VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY apr�
   const initialEnvelope = makeEnvelope(manifest, repo, 'INITIAL', null);
   const base = buildPlanningArtifacts({ repo, manifest, envelope: initialEnvelope });
   const planItem = base.planContract.plan_items[0];
-  const baseReview = Review.buildReviewReport({
+  const baseReview = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: base.reviewContext,
     semanticReview: {
       findings: [{
@@ -514,7 +514,7 @@ test('VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY apr�
         dependency_target_ids: [],
       }],
     },
-  });
+  }));
   assert.equal(baseReview.verdict, 'REVISE');
 
   const allowed = Revision.buildAllowedChangeSet({
@@ -539,6 +539,7 @@ test('VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY apr�
     plan_hash: base.planContract.contract_hash,
     review_hash: baseReview.contract_hash,
     finding_ids: [baseReview.findings[0].finding_id],
+    patch_hash: patch.contract_hash,
   });
   const next = buildPlanningArtifacts({
     repo,
@@ -549,10 +550,10 @@ test('VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY apr�
   next.cumulativeRegister = AuditRegister.buildRegister({ previous: base.cumulativeRegister,
     candidateHead: H40C, lot: next.planningEnvelope.slice_id, phase: 'HANDOFF',
     observations: [], authorizedActor: 'MyUncried', revisionCount: 1, revisionLimit: 1 });
-  const nextReview = Review.buildReviewReport({
+  const nextReview = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: next.reviewContext,
     semanticReview: { findings: [] },
-  });
+  }));
 
   const outcome = Revision.verifyRevisionOutcome({
     allowedChangeSet: allowed,
@@ -612,10 +613,10 @@ test('VNext-09 runtime refuse une REVISION sans preuve de résolution bornée', 
   };
   const envelope = makeEnvelope(manifest, repo, 'REVISION', fakeBase);
   const artifacts = buildPlanningArtifacts({ repo, manifest, envelope });
-  const reviewReport = Review.buildReviewReport({
+  const reviewReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: artifacts.reviewContext,
     semanticReview: { findings: [] },
-  });
+  }));
   const state = currentState(repo);
   const approved = approve(artifacts, reviewReport, state);
 

@@ -1,0 +1,16 @@
+{
+  "schema": "kodjo.device-check-derogation.v1",
+  "slice_id": "V2-PRE-1",
+  "derogations": [
+    {
+      "requirement_id": "REQ-B89A1B7A4F23FA8B",
+      "proof_type": "DEVICE_CHECK",
+      "status": "NOT_EXECUTED",
+      "decided_by": "MyUncried",
+      "decided_on": "2026-10-01",
+      "decision": "Explicit derogation by Hermann for V2-PRE-1 only: the native SQLite integration check (runNativeDatabaseIntegrationCheck) is not executed in this cycle and no new infrastructure is built. The proof is recorded as NOT_EXECUTED; it is not satisfied by the future VISUAL_APPROVED marker.",
+      "residual_risk": "The adapted native tool (src/infrastructure/database/integration/runNativeDatabaseIntegrationCheck.ts) is only covered by static analysis, typecheck and lint. Migration 001-007, transactional writes and reopening on a real expo-sqlite runtime (iOS and Android) remain unverified natively; a native-only defect (pragmas, foreign keys, migration on device, file reopening) would not be detected before release.",
+      "not_satisfied_by": ["VISUAL_APPROVED"]
+    }
+  ]
+}

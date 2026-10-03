@@ -27,7 +27,7 @@ function fixture(t) {
 function receipt(cwd, produced, findings) {
   // Explicit fixture adapter: these receipts are never published as run proof.
   return Chain.review(produced, { cwd, claude: 'unit-test-only', invoke: () => JSON.stringify({
-    type: 'result', session_id: 'UNIT-TEST-ONLY', structured_output: { semantic_review: { findings }, native_assessment_observations: [] } }) });
+    type: 'result', session_id: 'UNIT-TEST-ONLY', structured_output: { semantic_review: require('./helpers/review-attestation-fixture').semantic(produced.artifacts.reviewContext, findings), native_assessment_observations: [] } }) });
 }
 function setup(t) {
   const cwd = fixture(t), base = Chain.produce(Driver.benchmarkRecipe(cwd), { cwd });
@@ -163,4 +163,56 @@ test('live revision handoff binds both real-format receipts without rewriting th
   wrongOutcome.revision_evidence.revision_artifacts.revision_outcome = V.sealContract(wrongOutcome.revision_evidence.revision_artifacts.revision_outcome);
   delete wrongOutcome.contract_hash;
   assert.throws(() => Chain.preparedArtifacts(V.sealContract(wrongOutcome), f.cwd, f.next.producer_revision), /OUTCOME_MISMATCH/);
+});
+
+test('D5 preserved base receipt is reused only for the exact produced candidate',t=>{
+  const {cwd,base,report:original}=setup(t);
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-resume-'));
+  try {
+    fs.writeFileSync(path.join(dir,'base-produced.json'),JSON.stringify(base));
+    fs.writeFileSync(path.join(dir,'base-review-receipt.json'),JSON.stringify(original));
+    assert.deepEqual(Driver.loadResumedBase(base,dir,{cwd}),original);
+    fs.writeFileSync(path.join(dir,'base-produced.json'),JSON.stringify({...base,contract_hash:'0'.repeat(64)}));
+    assert.throws(()=>Driver.loadResumedBase(base,dir,{cwd}),/RESUME_BASE_CHANGED/);
+    fs.writeFileSync(path.join(dir,'base-produced.json'),JSON.stringify(base));
+    fs.writeFileSync(path.join(dir,'base-review-receipt.json'),JSON.stringify({...original,session_id:'invented'}));
+    assert.throws(()=>Driver.loadResumedBase(base,dir,{cwd}),/RECEIPT_HASH_INVALID/);
+  } finally {fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+test('D8 canonical VNext projection reaches the common requirement review and finalizer without empty-plan approval', t => {
+  const f=setup(t), nextReceipt=receipt(f.cwd,f.next,[]);
+  const revision=Driver.completeRevision(f.base,f.report,f.correction,f.next,nextReceipt);
+  const ready=Driver.preparePublication(f.cwd,f.base,f.report,f.next,nextReceipt,revision);
+  const body=ready.publication.find(row=>row.path.endsWith('/technical-plan.md')).content;
+  const requirements=require('../../scripts/kodjo/lib/requirement-contract').verifyEmbedded(body);
+  assert.equal(requirements.requirement_contract.requirement_count,1);
+  assert.ok(body.includes(f.next.artifacts.requirementRegistry.requirements[0].requirement_id));
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-downstream-unit-'));
+  t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+  const file=(name,body)=>{const p=path.join(dir,name);fs.mkdirSync(path.dirname(p),{recursive:true});fs.writeFileSync(p,body);return p;};
+  const plan=file('plan.md',body),changed=file('changed.txt',f.next.artifacts.planContract.boundaries.write_scope.map(row=>row.path).join('\n'));
+  const prepare=file('input.json','{}'),verified=file('verified.json','{}');
+  const node=(script,args,env=process.env)=>require('node:child_process').spawnSync(process.execPath,[path.join(ROOT,'scripts/kodjo',script),...args],{cwd:f.cwd,encoding:'utf8',env});
+  let result=node('verify-ui-implementation-review.js',['prepare',plan,changed,prepare]);assert.equal(result.status,0,result.stderr);
+  const input=JSON.parse(fs.readFileSync(prepare,'utf8'));assert.equal(input.non_ui_requirement_count,1);
+  const review={schema:'kodjo.ui-implementation-review.v1',verdict:'APPROVE',device_gate_required:false,criteria:[],
+    boundary_results:input.boundary_requirements.map(row=>({...row,status:'PASS',evidence:'UNIT TEST ONLY: preserved fixture'})),
+    non_ui_plan_assessment:{status:'CONFORME',evidence:'UNIT TEST ONLY: exact canonical source checked',requirements:input.non_ui_requirements.map(row=>({requirement_id:row.requirement_id,status:'CONFORME',evidence:'UNIT TEST ONLY: mock proof',proof_results:row.proof_required.map(proof_type=>({proof_type,status:'PASS',evidence:'UNIT TEST ONLY: mock proof'}))}))}};
+  // Explicit unit adapter, never a published Jest/Claude/device receipt.
+  const evidence=file('unit-test-evidence.json',JSON.stringify({schema:'kodjo.test-contract-evidence.v1',binding_count:requirements.test_contract.binding_count,bindings:requirements.test_contract.bindings.map(row=>({...row,status:'PASS'}))}));
+  const raw=file('review.json',JSON.stringify(review)),env={...process.env,KODJO_TEST_CONTRACT_EVIDENCE_FILE:evidence};
+  result=node('verify-ui-implementation-review.js',['validate',plan,changed,raw,verified],env);assert.equal(result.status,0,result.stderr);
+  const contract=JSON.parse(fs.readFileSync(verified,'utf8')),head='d'.repeat(40),base='c'.repeat(40),slice='VNEXT-12-QUALIF';
+  const queueRel='.github/orchestration/queue/v2/UNIT.json',queue=file(queueRel,JSON.stringify({schema_version:'kodjo.protocol.v2.lean-request.0.6.13',slice_id:slice,issue_number:269,authorized_plan:{plan_blob_oid:'e'.repeat(40)}}));
+  const impl=file('implementation.md',`[KODJO_SLICE] IMPLEMENTATION_OUTPUT\nslice_id=${slice}\nhead=${head}\nbase_head=${base}\ncontinuity_origin=V2_LEAN_QUEUE\nv2_queue_path=${queueRel}\napplication_pr=200\napplication_branch=unit/fixture\nSTATUT : IMPLEMENTATION_READY_FOR_REVIEW\n`);
+  const rendered=()=>`[KODJO_SLICE] IMPLEMENTATION_REVIEW_OUTPUT\nslice_id=${slice}\nhead=${head}\nsource_implementation_comment_id=103\nverdict=APPROVE\ndevice_gate_required=false\nSTATUT : IMPLEMENTATION_REVIEW_APPROVED\n<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>${JSON.stringify(contract)}</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>`;
+  const reviewFile=file('review.md',rendered()),visual=file('visual.md',`[KODJO_SLICE] VISUAL_APPROVED\nslice_id=${slice}\nhead=${head}\nsource_review_comment_id=104\n`),out=file('final.json','{}');
+  const args=[reviewFile,impl,visual,queue,'269','104','105',out];
+  result=node('verify-v2-finalization.js',args);assert.equal(result.status,0,result.stderr);
+  assert.equal(JSON.parse(fs.readFileSync(out,'utf8')).final_status,'READY_TO_CLOSE');
+  contract.non_ui_plan_assessment.requirements[0].proof_results[0].status='FAIL';fs.writeFileSync(reviewFile,rendered());
+  result=node('verify-v2-finalization.js',args);assert.notEqual(result.status,0);assert.match(result.stderr,/TECHNICAL_PROOF_NOT_PASS/);
+  contract.non_ui_plan_assessment.requirements=[];fs.writeFileSync(reviewFile,rendered());
+  assert.notEqual(node('verify-v2-finalization.js',args).status,0);
 });

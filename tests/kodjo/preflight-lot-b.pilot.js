@@ -63,7 +63,7 @@ test('lot B: production workflow enchaîne sélection → préflight → runner 
 });
 
 test('lot B: run-queued refuse une production supervisée sans attestation',()=>{
-  const body=fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8');
+  const body=require('./helpers/normalized-git-source')(fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8'));
   assert.match(body,/KODJO_QUEUE_PREFLIGHT_REQUIRED/);
   assert.match(body,/verify-preflight-attestation\.js/);
   assert.match(body,/KODJO_PREFLIGHT_FILE/);
@@ -103,7 +103,7 @@ test('lot B: résolution du binaire Claude est une source partagée',()=>{
 });
 
 test('lot B: les gardes historiques stables restent encore présents jusqu au lot C',()=>{
-  const runner=fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8');
+  const runner=require('./helpers/normalized-git-source')(fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8'));
   const local=fs.readFileSync(path.join(root,'scripts','kodjo','run-local-claude.js'),'utf8');
   assert.match(runner,/verify-implementation-mission\.js/);
   assert.match(runner,/KODJO_QUEUE_SOURCE_NOT_ANCESTOR/);

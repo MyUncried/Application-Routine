@@ -184,10 +184,10 @@ function buildFixture({ reviewFindings = [] } = {}) {
     uiAtomicityContract: null,
   });
 
-  const reviewReport = Review.buildReviewReport({
+  const reviewReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext,
     semanticReview: { findings: reviewFindings },
-  });
+  }));
 
   const currentState = {
     execution_context: { mode: 'LOCAL', writer_id: 'CLAUDE:fixture-writer' },
@@ -301,7 +301,7 @@ test('VNext-08 construit une cible d’approbation sur l’exécution exacte', (
 test('VNext-08 refuse de demander une approbation tant que la review n’est pas APPROVE', () => {
   const base = buildFixture();
   const item = base.planContract.plan_items[0];
-  const report = Review.buildReviewReport({
+  const report = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: base.reviewContext,
     semanticReview: {
       findings: [{
@@ -314,7 +314,7 @@ test('VNext-08 refuse de demander une approbation tant que la review n’est pas
         dependency_target_ids: [],
       }],
     },
-  });
+  }));
   assert.equal(report.verdict, 'REVISE');
 
   assert.throws(() => Approval.buildApprovalTarget(artifacts(base, { reviewReport: report })),

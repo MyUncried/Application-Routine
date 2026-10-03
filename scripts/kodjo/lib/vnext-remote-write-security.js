@@ -128,8 +128,8 @@ function scanFileCapabilities(rel, source) {
     const checks = [
       ['PERSIST_CREDENTIALS_TRUE', /persist-credentials\s*:\s*true/i],
       ['GIT_CREDENTIAL_HEADER', /extraheader/i],
-      ['GIT_PUSH', /\bgit\s+(?:-[^\s]+\s+)*push\b/i],
-      ['GIT_COMMIT', /\bgit\s+(?:-[^\s]+\s+)*commit\b/i],
+      ['GIT_PUSH', /\bgit\s+(?:(?:-c\s+(?:"[^"]*"|'[^']*'|\S+)|-[^\s]+)\s+)*push\b/i],
+      ['GIT_COMMIT', /\bgit\s+(?:(?:-c\s+(?:"[^"]*"|'[^']*'|\S+)|-[^\s]+)\s+)*commit\b/i],
       ['GIT_TAG', /\bgit\s+(?:-[^\s]+\s+)*tag\b/i],
       ['GIT_UPDATE_REF', /\bgit\s+(?:-[^\s]+\s+)*update-ref\b/i],
       ['GIT_HISTORY_MUTATION', /\bgit\s+(?:-[^\s]+\s+)*(?:merge|rebase|cherry-pick)\b/i],
@@ -150,7 +150,7 @@ function scanFileCapabilities(rel, source) {
 
     if (/\bgh\s+api\b/i.test(trimmed)
         && /(?:--method|-X)\s+['"]?(?:POST|PUT|PATCH|DELETE)\b/i.test(trimmed)
-        && /\/(?:contents|git\/(?:refs?|commits|trees|tags))(?:\/|['"\s]|$)/i.test(trimmed)) {
+        ) {
       rows.push({
         producer: rel,
         line: i + 1,
@@ -162,8 +162,8 @@ function scanFileCapabilities(rel, source) {
     }
 
     if (/\b(?:fetch|fetchImpl|api|githubApi)\s*\(/i.test(trimmed)
-        && /(?:POST|PUT|PATCH|DELETE)/i.test(trimmed)
-        && /\/(?:contents|git\/(?:refs?|commits|trees|tags))/i.test(trimmed)) {
+        && /\b(?:POST|PUT|PATCH|DELETE)\b/i.test(trimmed)
+        ) {
       rows.push({
         producer: rel,
         line: i + 1,
@@ -173,6 +173,17 @@ function scanFileCapabilities(rel, source) {
         text: trimmed,
       });
     }
+  }
+
+  // A split call must not evade the write inventory merely because its method
+  // or concatenated destination is on another line. This is conservative:
+  // authorization still requires the exact producer blob, never this heuristic.
+  if (!isWorkflow && !rows.some(row => row.capability === 'REST_REPOSITORY_WRITE') &&
+      /\b(?:fetch|fetchImpl|api|githubApi)\s*\(/i.test(source) &&
+      /["'](?:POST|PUT|PATCH|DELETE)["']/i.test(source)) {
+    const index = lines.findIndex(line => /\b(?:fetch|fetchImpl|api|githubApi)\s*\(/i.test(line));
+    rows.push({producer: rel, line: index + 1, capability: 'REST_REPOSITORY_WRITE',
+      destination: 'static-source-line', scope: 'SCRIPT', text: lines[index].trim()});
   }
 
   return rows.map((row) => Object.freeze({

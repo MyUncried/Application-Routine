@@ -25,8 +25,71 @@ function gitBlobOid(text) {
   return crypto.createHash('sha1').update(Buffer.concat([header, body])).digest('hex');
 }
 
-function renderCompatibilityPlan(executionRequest, planContract) {
+function projectUi(planContract, uiAtomicityContract = null, candidateManifest = null) {
+  const legacy = require('./ui-criteria-contract');
+  const changes = new Map(planContract.plan_items.flatMap(item => item.change_items).map(row => [row.impact_id, row.path]));
+  const proofs = new Map(planContract.plan_items.flatMap(item => item.proof_obligations).map(row => [row.proof_id, row]));
+  const candidates = new Map((candidateManifest?.candidates || []).map(row => [row.candidate_id, row]));
+  const criteria = (uiAtomicityContract?.criteria || []).map(criterion => {
+    const id=criterion.criterion_id.toUpperCase();
+    const selected=criterion.component_decision==='CREATE' ? {path:'NONE',export:'NONE'} :
+      {path:candidates.get(criterion.selected_component_candidate_id)?.path,export:criterion.selected_component};
+    if(criterion.component_decision!=='CREATE' && (!selected.path || !/^(?:default|[A-Za-z_$][A-Za-z0-9_$]*)$/.test(selected.export))) V.fail('VNEXT_QUEUE_COMPONENT_BINDING_UNREPRESENTABLE');
+    return {
+      criterion_id:id,
+      source:{path:criterion.source.locator,locator:criterion.source.unit_locator,requirement:criterion.statement},
+      risk_types:criterion.risk_types,
+      reuse_search:criterion.reuse_search_candidate_ids.map(candidateId=>{
+        const row=candidates.get(candidateId);if(!row)V.fail('VNEXT_QUEUE_REUSE_CANDIDATE_MISSING');return row.path;
+      }),
+      component_decision:criterion.component_decision,selected_component:selected,
+      decision_justification:criterion.decision_justification,
+      change_targets:[...new Set(criterion.change_impact_ids.map(impactId=>changes.get(impactId)))].sort(),
+      tests:[...new Set(criterion.proof_ids.map(proofId=>proofs.get(proofId)?.target_test_impact_id).filter(Boolean).map(impactId=>changes.get(impactId)).filter(Boolean))].sort(),
+      proof_required:criterion.proof_required,
+      assertions:criterion.assertions.map(assertion=>({
+        assertion_id:id+'-A'+V.sha256(assertion.assertion_id).slice(0,12).toUpperCase(),
+        source:{path:criterion.source.locator,locator:criterion.source.unit_locator},
+        property_type:assertion.property_type,expected:assertion.subject+': '+assertion.expected,
+        proof_required:[...new Set(assertion.proof_ids.map(proofId=>proofs.get(proofId)?.proof_type))].sort(),
+      })),
+    };
+  });
+  const preservation = {
+    preserve: planContract.boundaries.preserve_scope.map(row => ({ target: row.path, justification: 'Exact approved VNext preserve_scope.' })),
+    change: planContract.boundaries.write_scope.map(row => ({ target: row.path, justification: 'Exact approved VNext write_scope: ' + row.change_kind })),
+    forbidden: [{ target: 'OUTSIDE_WRITE_SCOPE', justification: planContract.boundaries.forbidden_policy }],
+  };
+  const matrix = { schema: criteria.length ? legacy.MATRIX_SCHEMA_V2 : legacy.MATRIX_SCHEMA_V1, criteria, preservation };
+  const uiPaths = [...new Set(criteria.flatMap(row => row.change_targets))].sort();
+  if (planContract.boundaries.write_scope.some(row => legacy.isUiPath(row.path)) && !uiAtomicityContract) V.fail('VNEXT_QUEUE_UI_CONTRACT_REQUIRED');
+  legacy.validateMatrix(matrix, { scope: new Set(planContract.boundaries.write_scope.map(row => row.path)), uiPaths });
+  return { matrix, uiPaths };
+}
+function renderCompatibilityPlan(executionRequest, planContract, uiAtomicityContract = null, requirementRegistry = null, candidateManifest = null) {
   Plan.verifyMarkdownProjection(Plan.renderMarkdown(planContract), planContract);
+  const { matrix, uiPaths } = projectUi(planContract, uiAtomicityContract, candidateManifest);
+  const contract = { schema: 'kodjo.ui-plan-contract.v1', contract_version: 1,
+    protocol_commit: executionRequest.application_head, scan_revision: executionRequest.application_head,
+    ui_applicable: uiPaths.length > 0, ui_paths: uiPaths, criterion_count: matrix.criteria.length,
+    matrix_sha256: require('./ui-criteria-contract').matrixFingerprint(matrix) };
+  if (!requirementRegistry || requirementRegistry.contract_hash !== planContract.requirement_registry_hash) V.fail('VNEXT_QUEUE_REQUIREMENT_REGISTRY_REQUIRED');
+  const Requirements = require('./requirement-contract');
+  const registry = new Map(requirementRegistry.requirements.map(row => [row.requirement_id, row]));
+  const uiRequirementIds = new Set((uiAtomicityContract?.criteria || []).map(row => row.requirement_id));
+  const impactPaths = new Map(planContract.plan_items.flatMap(item => item.change_items).map(row => [row.impact_id, row.path]));
+  const nonUi = planContract.plan_items.filter(item => !uiRequirementIds.has(item.requirement_id) && item.change_items.length).map(item => {
+    const requirement = registry.get(item.requirement_id);
+    if (!requirement) V.fail('VNEXT_QUEUE_REQUIREMENT_SOURCE_MISSING', item.requirement_id);
+    return { requirement_type: ['FUNCTIONAL','DATA','TECHNICAL','MIGRATION','PRESERVATION'].includes(requirement.kind) ? requirement.kind : 'TECHNICAL',
+      source: { path: requirement.source.locator, locator: requirement.source.unit_locator,
+        requirement: requirement.statement + '\nVNext requirement_id=' + requirement.requirement_id },
+      change_targets: item.change_items.map(row => row.path),
+      tests: item.proof_obligations.filter(row => row.proof_type === 'FUNCTIONAL_TEST').map(row => impactPaths.get(row.target_test_impact_id)).filter(Boolean),
+      proof_required: [...new Set(item.proof_obligations.map(row => row.proof_type))], status: 'DEFINED' };
+  });
+  const requirementContract = Requirements.buildRequirementContract(matrix, nonUi, new Set(planContract.boundaries.write_scope.map(row => row.path)));
+  const tagged = (tag, value) => ['<' + tag + '>', JSON.stringify(value, null, 2), '</' + tag + '>'];
   return [
     '# KODJO VNext — Projection transport du plan',
     '',
@@ -34,6 +97,15 @@ function renderCompatibilityPlan(executionRequest, planContract) {
     'plan_contract_hash=' + executionRequest.plan_contract_hash,
     '',
     Plan.renderMarkdown(planContract).trimEnd(),
+    '<KODJO_UI_CRITERIA_MATRIX_JSON>', JSON.stringify(matrix, null, 2), '</KODJO_UI_CRITERIA_MATRIX_JSON>',
+    '<KODJO_UI_PLAN_CONTRACT_JSON>', JSON.stringify(contract, null, 2), '</KODJO_UI_PLAN_CONTRACT_JSON>',
+    ...tagged('KODJO_VNEXT_SCOPE_JSON', {schema: 'kodjo.vnext.downstream-scope.v1', plan_contract_hash: planContract.contract_hash, scope_allow: planContract.boundaries.write_scope.map(row => row.path)}),
+    ...tagged('KODJO_NON_UI_REQUIREMENTS_JSON', nonUi),
+    ...tagged('KODJO_REQUIREMENT_CONTRACT_JSON', requirementContract),
+    ...tagged('KODJO_TEST_CONTRACT_JSON', Requirements.buildTestContract(requirementContract)),
+    ...tagged('KODJO_BOUNDARY_CONTRACT_JSON', Requirements.buildBoundaryContract(matrix)),
+    ...tagged('KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON', requirementRegistry),
+    ...(uiAtomicityContract ? ['<KODJO_VNEXT_UI_ATOMICITY_JSON>', JSON.stringify(uiAtomicityContract, null, 2), '</KODJO_VNEXT_UI_ATOMICITY_JSON>'] : []),
     '',
   ].join('\n');
 }
@@ -66,6 +138,10 @@ function renderCompatibilityMission(executionRequest, planContract = null, planP
     'execution_context=' + V.canonicalStringify(executionRequest.execution_context),
     ...executionRequest.native_primitive_decisions.map(row => 'native_primitive_decision=' + V.canonicalStringify(row)),
     'checks=' + executionRequest.checks.join(','),
+    'Rapport obligatoire: lire les contrats UI et NON_UI du plan opposable. Produire KODJO_IMPLEMENTATION_CONFORMANCE avec criteria (vide si aucun critere UI), et KODJO_REQUIREMENT_CONFORMANCE avec chaque requirement_id NON_UI du KODJO_REQUIREMENT_CONTRACT_JSON, sans omission ni nouvel identifiant.',
+    'Chaque ligne NON_UI porte implementation_status, files_or_symbols (chemins exacts modifies), tests_run (noms des checks observes: jest, typescript, lint), proof_status et residual_status. Chaque ligne UI ajoute criterion_id, component_used et preserve_status. Aucun test non execute ne peut etre declare PASS.',
+    'Encodage: <KODJO_IMPLEMENTATION_CONFORMANCE>{"criteria":[]}</KODJO_IMPLEMENTATION_CONFORMANCE> et <KODJO_REQUIREMENT_CONFORMANCE>{"requirements":[{"requirement_id":"identifiant exact du plan","implementation_status":"IMPLEMENTED","files_or_symbols":["chemin exact"],"tests_run":["check observe"],"proof_status":"preuve observee","residual_status":"NONE ou risque reel"}]}</KODJO_REQUIREMENT_CONFORMANCE>. Les valeurs du modele illustratif ne sont jamais des preuves.',
+    'Terminer par exactement une ligne KODJO_STOP_STATUS: NONE, ou un des arrets opposables si necessaire: CHANGE_REQUEST_REQUIRED, SCOPE_EXPANSION_REQUIRED, NATIVE_PRIMITIVE_EXCEPTION_REQUIRED, CLARIFICATION_REQUIRED.',
     '',
     '## Autorisation',
     '',
@@ -100,7 +176,7 @@ function prepareCompatibilityFiles(args) {
   const { planContract, reviewReport, transport } = args;
   const request = Approval.buildExecutionCore(args);
   const bodies = {
-    plan: [transport.plan_path, renderCompatibilityPlan(request, planContract)],
+    plan: [transport.plan_path, renderCompatibilityPlan(request, planContract, args.uiAtomicityContract, args.requirementRegistry, args.candidateManifest)],
     review: [transport.review_path, renderCompatibilityReview(request, reviewReport, transport.plan_path)],
     mission: [transport.prompt_file, renderCompatibilityMission(request, planContract, transport.plan_path)],
   };
@@ -146,7 +222,7 @@ function buildLegacyQueueProjection(args) {
       || !executionRequest.execution_context.writer_id.startsWith('CLAUDE:')) V.fail('VNEXT_QUEUE_WRITER_UNSUPPORTED');
   if (!issue) V.fail('VNEXT_QUEUE_ISSUE_ID_UNSUPPORTED', executionRequest.issue_id);
 
-  const planBody = renderCompatibilityPlan(executionRequest, planContract);
+  const planBody = renderCompatibilityPlan(executionRequest, planContract, uiAtomicityContract, requirementRegistry, candidateManifest);
   const reviewBody = renderCompatibilityReview(executionRequest, reviewReport, transport.plan_path);
   const missionBody = renderCompatibilityMission(executionRequest, planContract, transport.plan_path);
   const planBlobOid = gitBlobOid(planBody);
@@ -285,7 +361,7 @@ function verifyCompatibilityFilesAtApprovedCommit(projection, executionRequest, 
 }
 
 module.exports = {
-  SCHEMA, gitBlobOid, renderCompatibilityPlan, renderCompatibilityReview,
+  SCHEMA, gitBlobOid, projectUi, renderCompatibilityPlan, renderCompatibilityReview,
   renderCompatibilityMission, prepareTransport, prepareCompatibilityFiles, buildLegacyQueueProjection, validateLegacyQueueProjection,
   verifyCompatibilityFilesAtApprovedCommit,
 };

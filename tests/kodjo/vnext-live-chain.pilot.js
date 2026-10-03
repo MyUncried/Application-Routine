@@ -45,7 +45,7 @@ function fixture({ largeCatalog = false } = {}) {
     assert.ok(dossier.output_schema.properties.semantic_review.properties.findings.items.properties.target_id.enum.length);
     assert.ok(args.join(' ').length < 8000, 'review command line must stay bounded');
     if (largeCatalog) assert.ok(JSON.stringify(dossier.output_schema).length > 32767, 'exercise an actual oversized target catalog');
-    return JSON.stringify({ type: 'result', session_id: 'fixture-session', structured_output: { semantic_review: { findings: [] }, native_assessment_observations: [] } });
+    return JSON.stringify({ type: 'result', session_id: 'fixture-session', structured_output: { semantic_review: require('./helpers/review-attestation-fixture').semantic(produced.artifacts.reviewContext), native_assessment_observations: [] } });
   } });
   const transport = { ...F.transport(), slice_bootstrap_file: '.github/orchestration/v2-slices/V2-VNEXT-09/slice-bootstrap.json' };
   const ready = Chain.prepare(produced, receipt, transport, { cwd: repo.cwd });
@@ -138,7 +138,7 @@ test('live chain: large immutable target catalog travels on stdin and unknown re
     const finding = { category: 'PLAN_GAP', target_type: 'REQUIREMENT', target_id: 'unknown-target',
       finding: 'Unknown target', evidence: ['Observed source'], required_correction: 'Correct target', dependency_target_ids: [] };
     const invoke = () => JSON.stringify({ type: 'result', session_id: 'fixture-invalid-target',
-      structured_output: { semantic_review: { findings: [finding] }, native_assessment_observations: [] } });
+      structured_output: { semantic_review: require('./helpers/review-attestation-fixture').semantic(f.produced.artifacts.reviewContext, [finding]), native_assessment_observations: [] } });
     assert.throws(() => Chain.review(f.produced, { cwd: f.repo.cwd, claude: 'fixture-only', invoke }), /VNEXT_REVIEW_FINDING_TARGET_UNKNOWN/);
     finding.target_id = f.produced.artifacts.reviewContext.target_catalog.REQUIREMENT[0];
     finding.dependency_target_ids = ['unknown-dependency'];

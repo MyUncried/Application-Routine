@@ -84,7 +84,9 @@ function collectFiles(root) {
 }
 
 function isExempt(filePath, line, root) {
-  if (line.includes(ALLOWLIST_MARKER)) return true;
+  // A marker in executable code is not an authorization. Only pure comments
+  // can mention forbidden verbs without creating a capability.
+  if (/^\s*(?:#|\/\/|\*|\/\*)/.test(line)) return true;
   const rel = path.relative(root, filePath).replace(/\\/g, '/');
   // The guard module and this scanner necessarily name the forbidden verbs.
   return rel === 'scripts/kodjo/lib/git.js' ||
@@ -181,6 +183,15 @@ function isDisposableConsumptionPermission(filePath, lines, index, patternId, ro
 
 function main() {
   const root = path.resolve(process.argv[2] || process.cwd());
+  const policyFile = path.join(root, '.github/orchestration/KODJO_VNEXT_REMOTE_WRITE_POLICY.json');
+  if (fs.existsSync(policyFile)) {
+    const security = require('./lib/vnext-remote-write-security');
+    const result = security.evaluateRemoteWriteSecurity({ root, policy: JSON.parse(fs.readFileSync(policyFile, 'utf8')),
+      legacyActivationRegistry: JSON.parse(fs.readFileSync(path.join(root, '.github/orchestration/v2-activation-registry.json'), 'utf8')) });
+    if (result.findings.length) { process.stderr.write(JSON.stringify(result.findings) + '\n'); return 1; }
+    // Preserve the independent shell-execution guard even when exact writer
+    // authorization is supplied by the VNext policy.
+  }
   const files = collectFiles(root);
   const findings = [];
   const exemptionsUsed = new Set();
@@ -192,6 +203,7 @@ function main() {
       if (isExempt(file, line, root)) return;
       const code = line.split('#')[0];
       for (const p of PATTERNS) {
+        if (fs.existsSync(policyFile) && p.id !== 'SHELL_EXECUTION') continue;
         if (!p.re.test(code)) continue;
         if (isDisposableConsumptionPermission(file, lines, i, p.id, root)) continue;
         if (isFixedEvidenceWriterOperation(file, line, p.id, root)) continue;

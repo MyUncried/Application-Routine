@@ -87,7 +87,7 @@ test('preflight architecture: architecture preserves current protocol boundaries
 
 test('preflight architecture: current production chain contains every canonical authority named by the design', () => {
   const queueWorkflow = fs.readFileSync(path.join(root,'.github','workflows','kodjo-v2-lean-queue.yml'),'utf8');
-  const runner = fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8');
+  const runner = require('./helpers/normalized-git-source')(fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8'));
   const starter = fs.readFileSync(path.join(root,'scripts','kodjo','start-kodjo-v2.ps1'),'utf8');
   const local = fs.readFileSync(path.join(root,'scripts','kodjo','run-local-claude.js'),'utf8');
 

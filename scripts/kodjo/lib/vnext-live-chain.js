@@ -145,7 +145,8 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   const findingProperties = transportSchema.properties.semantic_review.properties.findings.items.properties;
   delete findingProperties.target_id.enum;
   delete findingProperties.dependency_target_ids.items.enum;
-  const dossier = { output_schema: schema, produced, native_assessment_subjects: produced.native_assessments.map(assessment => ({ assessment, assessment_hash: V.canonicalHash(assessment) })), instructions: 'Revue indépendante de plan uniquement. Lire les objets Git exacts. Ne pas modifier le dépôt. Refuser une preuve non observée. Pour chaque assessment natif, vérifier le besoin fonctionnel, le choix natif et ses preuves effectives ; ne pas confondre référence et observation. Indiquer verified=false si la preuve ne peut être observée. Ceci ne constitue pas un audit FINAL.' };
+  delete transportSchema.properties.semantic_review.properties.reviewed_target_ids.items.enum;
+  const dossier = { output_schema: schema, produced, native_assessment_subjects: produced.native_assessments.map(assessment => ({ assessment, assessment_hash: V.canonicalHash(assessment) })), instructions: 'Revue indépendante de plan uniquement. Lire les objets Git exacts. Ne pas modifier le dépôt. Refuser une preuve non observée. Pour chaque assessment natif, vérifier le besoin fonctionnel, le choix natif et ses preuves effectives ; ne pas confondre référence et observation. Indiquer verified=false si la preuve ne peut être observée. Attester reviewed_target_ids pour chaque cible effectivement examinee du target_catalog, pas seulement celles portant un finding. En REVISION, fournir finding_resolutions pour chaque causal_finding_id, avec statut OPEN ou RESOLVED, references de preuves observees et explication; ne pas conclure RESOLVED sans observation du correctif. Ceci ne constitue pas un audit FINAL.' };
   const checkoutSnapshot = () => V.canonicalHash({
     status: git(cwd, 'status', '--porcelain=v1', '-z'), diff: git(cwd, 'diff', 'HEAD', '--binary'),
     untracked: git(cwd, 'ls-files', '--others', '--exclude-standard', '-z').split('\0').filter(Boolean)
@@ -169,6 +170,8 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   try { result = JSON.parse(raw); } catch (_) { V.fail('VNEXT_REVIEW_OUTPUT_UNPARSEABLE'); }
   if (result.is_error || result.type !== 'result' || !result.session_id || !result.structured_output) V.fail('VNEXT_REVIEW_STRUCTURED_RESULT_REQUIRED');
   const report = Review.buildReviewReport({ reviewContext: artifacts.reviewContext, semanticReview: result.structured_output.semantic_review });
+  const expectedResolutions = [...artifacts.planningEnvelope.causal_findings].sort();
+  if (V.canonicalStringify(report.finding_resolutions.map(row => row.finding_id).sort()) !== V.canonicalStringify(expectedResolutions)) V.fail('VNEXT_REVIEW_CAUSAL_RESOLUTION_COVERAGE');
   return V.sealContract({ schema_version: 'kodjo.vnext.live-review-receipt.v1', produced_chain_hash: produced.contract_hash,
     reviewer_packet_hash: produced.reviewer_packet.contract_hash, review_report: report,
     session_id: result.session_id, raw_result: raw, raw_result_sha256: V.sha256(raw),
@@ -183,6 +186,8 @@ function verifyReceipt(produced, receipt) {
   const raw = JSON.parse(receipt.raw_result);
   if (raw.is_error || raw.type !== 'result' || raw.session_id !== receipt.session_id || !raw.structured_output) V.fail('VNEXT_REVIEW_RECEIPT_RESULT_INVALID');
   const report = Review.buildReviewReport({ reviewContext: produced.artifacts.reviewContext, semanticReview: raw.structured_output.semantic_review });
+  if (V.canonicalStringify(report.finding_resolutions.map(row => row.finding_id).sort())
+      !== V.canonicalStringify([...produced.artifacts.planningEnvelope.causal_findings].sort())) V.fail('VNEXT_REVIEW_CAUSAL_RESOLUTION_COVERAGE');
   if (V.canonicalStringify(report) !== V.canonicalStringify(receipt.review_report)
       || V.canonicalStringify(raw.structured_output.native_assessment_observations) !== V.canonicalStringify(receipt.native_observations)) V.fail('VNEXT_REVIEW_RECEIPT_RESULT_MISMATCH');
   return report;
@@ -344,4 +349,4 @@ function guardLocalRequest(raw, { cwd, queueFile, github } = {}) {
 }
 
 module.exports = { SCHEMA, command, relative, readGit, unitText, observeSources, produce, verifyProduced,
-  review, validateReceipt, nativeResolver, preparedArtifacts, prepare, approvalTarget, deriveQueue, admit, guard, guardLocalRequest };
+  review, verifyReceipt, validateReceipt, nativeResolver, preparedArtifacts, prepare, approvalTarget, deriveQueue, admit, guard, guardLocalRequest };

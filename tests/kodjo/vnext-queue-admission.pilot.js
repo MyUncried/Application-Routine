@@ -18,7 +18,7 @@ function fixture() {
   const manifest = F.sourceManifest();
   const envelope = F.makeEnvelope(manifest, repo, 'INITIAL', null);
   const artifacts = F.buildPlanningArtifacts({ repo, manifest, envelope });
-  const reviewReport = Review.buildReviewReport({ reviewContext: artifacts.reviewContext, semanticReview: { findings: [] } });
+  const reviewReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({ reviewContext: artifacts.reviewContext, semanticReview: { findings: [] } }));
   let state = { ...F.currentState(repo), protocol_head: repo.revision };
   const transport = F.transport();
   const bootstrap = { slice_id: envelope.slice_id, issue_number: 999, repository: 'MyUncried/Application-Routine',

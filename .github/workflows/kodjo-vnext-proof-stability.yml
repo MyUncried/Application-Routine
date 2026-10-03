@@ -42,6 +42,15 @@ jobs:
         run: |
           python -m pip install PyYAML==6.0.3
           python scripts/kodjo/validate-workflow-syntax.py
+      - name: Validate the exact candidate tree with native Windows PowerShell 5.1
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $parent=(git rev-parse 'HEAD^').Trim()
+          $tree=(git rev-parse 'HEAD^{tree}').Trim()
+          node -e "const P=require('./scripts/kodjo/lib/vnext-publication'); console.log(JSON.stringify(P.validateTree({cwd:process.cwd(),expectedParent:process.argv[1],candidateTree:process.argv[2]})));" $parent $tree
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Execute VNext contracts on exact candidate
         shell: bash
         run: node --test tests/kodjo/vnext-*.pilot.js
@@ -83,7 +92,34 @@ jobs:
       - name: Resolve each historical assertion on the exact candidate
         if: always()
         shell: bash
-        run: node scripts/kodjo/qualify-vnext-historical-equivalence.js "$RUNNER_TEMP/historical-equivalence.jsonl"
+        run: node scripts/kodjo/qualify-vnext-historical-equivalence.js "$RUNNER_TEMP/historical-equivalence.jsonl" "$RUNNER_TEMP/historical-${{ runner.os }}.json"
+      - name: Preserve exact candidate platform evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-equivalence-${{ runner.os }}
+          path: ${{ runner.temp }}/historical-${{ runner.os }}.json
+          if-no-files-found: error
+          retention-days: 14
+
+  historical-platform-coverage:
+    needs: historical-equivalence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: historical-equivalence-*
+          path: platform-evidence
+          merge-multiple: true
+      - name: Require each mapped assertion to pass on at least one OS
+        run: node scripts/kodjo/verify-vnext-platform-coverage.js platform-evidence/historical-Linux.json platform-evidence/historical-Windows.json
 
   architecture-audit:
     # One early read-only architecture audit, never a final approval or PRE-1 gate.

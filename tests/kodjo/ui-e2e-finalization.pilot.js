@@ -16,7 +16,7 @@ const finalVerifier = path.join(root, 'scripts', 'kodjo', 'verify-v2-finalizatio
 function run(script, args, cwd) {
   return spawnSync(process.execPath, [script, ...args], { cwd, encoding:'utf8' });
 }
-function planFixture() {
+function planFixture(accessibility = false, accessibilityOnly = false) {
   const matrix = {
     schema:'kodjo.ui-criteria.v1',
     criteria:[{
@@ -37,6 +37,8 @@ function planFixture() {
       forbidden:[{target:'Shell',justification:'Refonte interdite.'}],
     },
   };
+  if(accessibility){matrix.criteria[0].risk_types.push('ACCESSIBILITY');matrix.criteria[0].proof_required.push('ACCESSIBILITY_CHECK');}
+  if(accessibilityOnly){matrix.criteria[0].risk_types=['FUNCTIONAL','ACCESSIBILITY'];matrix.criteria[0].proof_required=['FUNCTIONAL_TEST','ACCESSIBILITY_CHECK'];}
   const contract = {
     schema:'kodjo.ui-plan-contract.v1',
     contract_version:1,
@@ -72,7 +74,7 @@ function reviewValue() {
     ],
   };
 }
-function fixture(dir, value = reviewValue()) {
+function fixture(dir, value = reviewValue(), planBody = planFixture()) {
   const slice='V2-E2E-UI';
   const issue=999;
   const head='d'.repeat(40);
@@ -81,7 +83,7 @@ function fixture(dir, value = reviewValue()) {
   const changed=path.join(dir,'changed.txt');
   const reviewRaw=path.join(dir,'review-raw.json');
   const reviewOut=path.join(dir,'review-contract.json');
-  fs.writeFileSync(plan,planFixture());
+  fs.writeFileSync(plan,planBody);
   fs.writeFileSync(changed,'src/features/example/ExampleScreen.tsx\n');
   fs.writeFileSync(reviewRaw,JSON.stringify(value));
   const rv=run(reviewVerifier,['validate',plan,changed,reviewRaw,reviewOut],dir);
@@ -128,7 +130,7 @@ function fixture(dir, value = reviewValue()) {
     'source_implementation_comment_id=103',
     'source_implementation_trigger_comment_id=102',
     'verdict=APPROVE',
-    'device_gate_required=true',
+    'device_gate_required='+reviewContract.device_gate_required,
     'STATUT : IMPLEMENTATION_REVIEW_APPROVED',
     '',
     '<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>',
@@ -274,7 +276,8 @@ test('E2E UI: le workflow final conserve le canal VISUAL_APPROVED et le chemin l
   const wf=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-finalize.yml'),'utf8');
   assert.match(wf,/\[KODJO_SLICE\] VISUAL_APPROVED/);
   assert.match(wf,/verify-v2-finalization\.js/);
-  assert.match(wf,/verify-ui-implementation-review\.js validate/);
+  assert.match(wf,/verify-ui-implementation-review\.js/);
+  assert.match(wf,/node \$reviewVerifier validate/);
   assert.match(wf,/STATUT : READY_TO_CLOSE/);
   assert.match(wf,/STATUT : DONE/);
   assert.match(wf,/v2_mode=true/);
@@ -426,7 +429,7 @@ for (const [label, mutate] of [
   ['boundary FAIL',v=>{v.boundary_results[0].status='FAIL';}],
   ['partial conformity',v=>{v.criteria[0].implementation_status='PARTIELLEMENT_CONFORME';}],
   ['non conformity',v=>{v.criteria[0].implementation_status='NON_CONFORME';}],
-  ['accessibility deferred',v=>{v.criteria[0].proof_results.push({proof_type:'ACCESSIBILITY_CHECK',status:'PENDING_DEVICE'});}],
+  ['accessibility failed',v=>{v.criteria[0].proof_results.push({proof_type:'ACCESSIBILITY_CHECK',status:'FAIL'});}],
   ['no proofs',v=>{v.criteria[0].proof_results=[];}],
   ['no pending device gap',v=>{v.criteria[0].proof_results=v.criteria[0].proof_results.slice(0,1);}],
 ]) test('device gap: '+label+' is still blocked despite visual approval',()=>{
@@ -461,4 +464,49 @@ test('device gap: actual GitHub workflow requires owner and current delivery HEA
   assert.match(wf,/pulls\//);
   assert.match(wf,/git\/ref\/heads/);
   assert.match(wf,/\.head\.sha/);
+});
+
+// The real review CLI and finalizer must agree, while preserving pending facts.
+test('D1 ACCESSIBILITY pending review reaches finalization only through exact device approval', () => {
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-accessibility-'));
+  try {
+    const value=reviewValue(); value.criteria[0].implementation_status='NON_VERIFIABLE';
+    value.criteria[0].proof_results.push({proof_type:'ACCESSIBILITY_CHECK',status:'PENDING_DEVICE',evidence:'VoiceOver pending exact device delivery.'});
+    value.criteria[0].proof_results=value.criteria[0].proof_results.filter(row=>!['VISUAL_COMPARE','DEVICE_CHECK'].includes(row.proof_type));
+    const f=fixture(dir,value,planFixture(true,true));
+    const output=path.join(dir,'final.json');
+    const args=[f.reviewFile,f.implFile,f.visualFile,f.queuePath,String(f.issue),'104','105',output];
+    let result=run(finalVerifier,args,dir); assert.equal(result.status,0,result.stderr);
+    const final=JSON.parse(fs.readFileSync(output,'utf8'));
+    assert.ok(final.pending_device_proofs.some(row=>row.proof_type==='ACCESSIBILITY_CHECK'&&row.status==='PENDING_DEVICE'));
+    fs.writeFileSync(f.visualFile,''); result=run(finalVerifier,args,dir); assert.notEqual(result.status,0);
+    value.criteria[0].proof_results.find(row=>row.proof_type==='ACCESSIBILITY_CHECK').status='FAIL';
+    fs.writeFileSync(path.join(dir,'failed-review.json'),JSON.stringify(value));
+    result=run(reviewVerifier,['validate',path.join(dir,'plan.md'),path.join(dir,'changed.txt'),path.join(dir,'failed-review.json'),path.join(dir,'rejected.json')],dir);
+    assert.notEqual(result.status,0);
+  } finally {fs.rmSync(dir,{recursive:true,force:true});}
+});
+
+test('PRE-1 actual versioned SQLite derogation remains NOT_EXECUTED after exact visual approval',()=>{
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-sqlite-derogation-'));
+  try {
+    const f=fixture(dir),value=reviewValue();
+    for(const name of [f.implFile,f.reviewFile,f.visualFile])fs.writeFileSync(name,fs.readFileSync(name,'utf8').replaceAll('V2-E2E-UI','V2-PRE-1'));
+    const queue=JSON.parse(fs.readFileSync(f.queuePath,'utf8'));queue.slice_id='V2-PRE-1';fs.writeFileSync(f.queuePath,JSON.stringify(queue));
+    const newQueue=f.queuePath.replace('V2-E2E-UI','V2-PRE-1');fs.renameSync(f.queuePath,newQueue);f.queuePath=newQueue;
+    const waiver=JSON.parse(fs.readFileSync(path.join(root,'.github/orchestration/v2-slices/V2-PRE-1/device-check-derogation.json'),'utf8')).derogations[0];
+    assert.equal(waiver.requirement_id,'REQ-B89A1B7A4F23FA8B');
+    value.device_check_derogations=[waiver];
+    value.non_ui_plan_assessment={status:'CONFORME',evidence:'UNIT TEST ONLY: explicit waiver retained',requirements:[{
+      requirement_id:waiver.requirement_id,status:'CONFORME',evidence:'UNIT TEST ONLY: native check unexecuted',proof_results:[
+        {proof_type:'STATIC_ANALYSIS',status:'PASS',evidence:'UNIT TEST ONLY: mock static proof'},
+        {proof_type:'DEVICE_CHECK',status:'PENDING_DEVICE',evidence:'NOT_EXECUTED: exact PRE-1 owner derogation'}]}]};
+    fs.writeFileSync(f.reviewFile,fs.readFileSync(f.reviewFile,'utf8').replace(/<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>[\s\S]*?<\/KODJO_UI_IMPLEMENTATION_REVIEW_JSON>/,'<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'+JSON.stringify(value)+'</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'));
+    const out=path.join(dir,'final.json');const result=run(finalVerifier,[f.reviewFile,f.implFile,f.visualFile,f.queuePath,String(f.issue),'104','105',out],dir);
+    assert.equal(result.status,0,result.stderr);
+    const final=JSON.parse(fs.readFileSync(out,'utf8'));
+    assert.deepEqual(final.not_executed_proofs,[waiver]);assert.equal(final.all_device_proofs_executed,false);
+    assert.ok(final.pending_device_proofs.some(row=>row.requirement_id===waiver.requirement_id&&row.status==='PENDING_DEVICE'));
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(root,'.github/orchestration/v2-slices/V2-PRE-1/device-check-derogation.json'),'utf8')).derogations[0],waiver);
+  }finally{fs.rmSync(dir,{recursive:true,force:true});}
 });

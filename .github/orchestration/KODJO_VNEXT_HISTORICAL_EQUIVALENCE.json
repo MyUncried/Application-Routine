@@ -56,7 +56,7 @@
         "scripts/kodjo/scan-remote-write-capability.js",
         "scripts/kodjo/verify-delivery.js"
       ],
-      "test_source_sha256": "7864bdc1a84bcec7058adb8532f819be5749a87f2172a7e1da690a5a898a13f7"
+      "test_source_sha256": "572a6c3f5ab01490b64d87019625a7e79a2553ba98685a4450f53581f0949f38"
     },
     {
       "id": "CASE-5345ba99d0aa3fd3",
@@ -77,7 +77,7 @@
         "scripts/kodjo/scan-remote-write-capability.js",
         "scripts/kodjo/verify-delivery.js"
       ],
-      "test_source_sha256": "7864bdc1a84bcec7058adb8532f819be5749a87f2172a7e1da690a5a898a13f7"
+      "test_source_sha256": "572a6c3f5ab01490b64d87019625a7e79a2553ba98685a4450f53581f0949f38"
     },
     {
       "id": "CASE-5465ce090047fb55",
@@ -95,7 +95,7 @@
         "scripts/kodjo/lib/ui-atomicity-contract.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "76e7e3cea9b15ce2b7e0ca08afc824fca0abaee7aeee9a1bed892b2be07f5f46"
+      "test_source_sha256": "136fd50c6921bea0cdfc174ef7086594dec249144d4d458bc4e6c40273d602da"
     },
     {
       "id": "CASE-eedcd22844a83c98",
@@ -113,7 +113,7 @@
         "scripts/kodjo/lib/ui-atomicity-contract.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "76e7e3cea9b15ce2b7e0ca08afc824fca0abaee7aeee9a1bed892b2be07f5f46"
+      "test_source_sha256": "136fd50c6921bea0cdfc174ef7086594dec249144d4d458bc4e6c40273d602da"
     },
     {
       "id": "CASE-24ed78f19ab1f14d",
@@ -131,13 +131,13 @@
         "scripts/kodjo/lib/ui-atomicity-contract.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "76e7e3cea9b15ce2b7e0ca08afc824fca0abaee7aeee9a1bed892b2be07f5f46"
+      "test_source_sha256": "136fd50c6921bea0cdfc174ef7086594dec249144d4d458bc4e6c40273d602da"
     },
     {
       "id": "CASE-feaadf94237c92db",
       "test_path": "tests/kodjo/vnext-revision-contract.pilot.js",
       "test_name": "VNext-07 accepte une correction ciblée et vérifie la préservation exacte",
-      "source_line": 482,
+      "source_line": 484,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/impact-graph.js",
@@ -148,13 +148,13 @@
         "scripts/kodjo/lib/revision-contract.js",
         "scripts/kodjo/lib/source-manifest.js"
       ],
-      "test_source_sha256": "ec8d5b4d93a2141139bf720151fe8b87e8bf6689c2b9704089b39501f7a3d188"
+      "test_source_sha256": "140e93f8eb22da454ed7e65b60a1161fe7920a72a940a60411bf7afbfc0d9a25"
     },
     {
       "id": "CASE-174e9617b69d78d5",
       "test_path": "tests/kodjo/vnext-revision-contract.pilot.js",
       "test_name": "VNext-07 détecte une modification d’un objet préservé",
-      "source_line": 582,
+      "source_line": 597,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/impact-graph.js",
@@ -165,7 +165,7 @@
         "scripts/kodjo/lib/revision-contract.js",
         "scripts/kodjo/lib/source-manifest.js"
       ],
-      "test_source_sha256": "ec8d5b4d93a2141139bf720151fe8b87e8bf6689c2b9704089b39501f7a3d188"
+      "test_source_sha256": "140e93f8eb22da454ed7e65b60a1161fe7920a72a940a60411bf7afbfc0d9a25"
     },
     {
       "id": "CASE-cba0dbbfb3977055",
@@ -183,7 +183,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
+      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
     },
     {
       "id": "CASE-849d27e38e102839",
@@ -305,7 +305,7 @@
         "scripts/kodjo/validate-orchestration-paths.js",
         "scripts/kodjo/verify-delivery.js"
       ],
-      "test_source_sha256": "db0f0456a15747e9ba14b36fc30468596ce8dce788a31820fed83d0f035b272b"
+      "test_source_sha256": "eab52310d64e71aa355d7c2963e924055d6a6bf18a2eb5fccb7027ba20ab498c"
     },
     {
       "id": "CASE-d7cc8724553a83dc",
@@ -325,7 +325,7 @@
         "scripts/kodjo/validate-orchestration-paths.js",
         "scripts/kodjo/verify-delivery.js"
       ],
-      "test_source_sha256": "db0f0456a15747e9ba14b36fc30468596ce8dce788a31820fed83d0f035b272b"
+      "test_source_sha256": "eab52310d64e71aa355d7c2963e924055d6a6bf18a2eb5fccb7027ba20ab498c"
     },
     {
       "id": "CASE-15dc921220230e5b",
@@ -345,7 +345,7 @@
         "scripts/kodjo/validate-orchestration-paths.js",
         "scripts/kodjo/verify-delivery.js"
       ],
-      "test_source_sha256": "db0f0456a15747e9ba14b36fc30468596ce8dce788a31820fed83d0f035b272b"
+      "test_source_sha256": "eab52310d64e71aa355d7c2963e924055d6a6bf18a2eb5fccb7027ba20ab498c"
     },
     {
       "id": "CASE-22259bca1ae1eaca",
@@ -359,7 +359,7 @@
         "scripts/kodjo/run-queued-request.ps1",
         "scripts/kodjo/verify-preflight-live-target.js"
       ],
-      "test_source_sha256": "2f7cbbf8e54a3644bee0e8c30b459f35a170edb825e24dcdb37ddabd29138edb"
+      "test_source_sha256": "9519c2c96f59b2c62ab1de801604143ebafe4bb2bc03fc917578ef58a1ef0d0f"
     },
     {
       "id": "CASE-d371372cc72e5988",
@@ -373,7 +373,7 @@
         "scripts/kodjo/run-queued-request.ps1",
         "scripts/kodjo/verify-preflight-live-target.js"
       ],
-      "test_source_sha256": "2f7cbbf8e54a3644bee0e8c30b459f35a170edb825e24dcdb37ddabd29138edb"
+      "test_source_sha256": "9519c2c96f59b2c62ab1de801604143ebafe4bb2bc03fc917578ef58a1ef0d0f"
     },
     {
       "id": "CASE-d117fc211d89f585",
@@ -391,7 +391,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
+      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
     },
     {
       "id": "CASE-2408170ab0ae4112",
@@ -500,7 +500,7 @@
         "scripts/kodjo/lib/implementation-report.js",
         "scripts/kodjo/lib/yaml.js"
       ],
-      "test_source_sha256": "42ac4183622a36a769198c956c733eb400e53c4d55e77a80d3536fe17017bf8a"
+      "test_source_sha256": "9b87948818f45e9034b782dc498bd3084a1542d90aae2f3403d9a2586ac3da89"
     },
     {
       "id": "CASE-12fbb23a6561ede5",
@@ -528,7 +528,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-cc4f82784d03d21d",
@@ -545,7 +545,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-0e18f931c65ca662",
@@ -621,7 +621,7 @@
         "scripts/kodjo/lib/ui-atomicity-contract.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "76e7e3cea9b15ce2b7e0ca08afc824fca0abaee7aeee9a1bed892b2be07f5f46"
+      "test_source_sha256": "136fd50c6921bea0cdfc174ef7086594dec249144d4d458bc4e6c40273d602da"
     },
     {
       "id": "CASE-c4b9d55bf0f4f0ae",
@@ -639,7 +639,7 @@
         "scripts/kodjo/lib/ui-atomicity-contract.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "76e7e3cea9b15ce2b7e0ca08afc824fca0abaee7aeee9a1bed892b2be07f5f46"
+      "test_source_sha256": "136fd50c6921bea0cdfc174ef7086594dec249144d4d458bc4e6c40273d602da"
     },
     {
       "id": "CASE-ba01d5ea610237ee",
@@ -751,7 +751,7 @@
         "scripts/kodjo/lib/vnext-legacy-queue-adapter.js",
         "scripts/kodjo/lib/vnext-runtime.js"
       ],
-      "test_source_sha256": "1939916b97955391a33793bfcf8ce2e516a3ddfb0efe15e631966ad1b4cead57"
+      "test_source_sha256": "6c6438b96ac9212a202114c16541258b5b9d0da4c040959bdb98107a11b3099b"
     },
     {
       "id": "CASE-1c459205cb585e36",
@@ -774,13 +774,13 @@
         "scripts/kodjo/lib/vnext-legacy-queue-adapter.js",
         "scripts/kodjo/lib/vnext-runtime.js"
       ],
-      "test_source_sha256": "1939916b97955391a33793bfcf8ce2e516a3ddfb0efe15e631966ad1b4cead57"
+      "test_source_sha256": "6c6438b96ac9212a202114c16541258b5b9d0da4c040959bdb98107a11b3099b"
     },
     {
       "id": "CASE-49838fae7b8d473a",
       "test_path": "tests/kodjo/vnext-e2e-migration.pilot.js",
       "test_name": "VNext-09 runtime refuse une REVISION sans preuve de résolution bornée",
-      "source_line": 605,
+      "source_line": 606,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/approval-handoff-contract.js",
@@ -797,7 +797,7 @@
         "scripts/kodjo/lib/vnext-legacy-queue-adapter.js",
         "scripts/kodjo/lib/vnext-runtime.js"
       ],
-      "test_source_sha256": "1939916b97955391a33793bfcf8ce2e516a3ddfb0efe15e631966ad1b4cead57"
+      "test_source_sha256": "6c6438b96ac9212a202114c16541258b5b9d0da4c040959bdb98107a11b3099b"
     },
     {
       "id": "CASE-9112e02c7230605d",
@@ -909,7 +909,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-60cf2e6c46f20654",
@@ -926,7 +926,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-744282a877bc622f",
@@ -943,7 +943,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-c85ec7a0bb2b40b3",
@@ -960,7 +960,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-9596773ece5f042c",
@@ -1328,7 +1328,7 @@
         "scripts/kodjo/lib/ui-criteria-contract.js",
         "scripts/kodjo/verify-ui-implementation-review.js"
       ],
-      "test_source_sha256": "d8a77dc69eae9b5a73faf41f5bcf1019024b5894bdbe6030e27f8de6c218ab0f"
+      "test_source_sha256": "d1f38fac21af5961607f7fca997ba96b60286d0a0dfbb225e57b90ad72864ebb"
     },
     {
       "id": "CASE-40a203c5089b9c40",
@@ -1342,7 +1342,7 @@
         "scripts/kodjo/lib/ui-criteria-contract.js",
         "scripts/kodjo/verify-ui-implementation-review.js"
       ],
-      "test_source_sha256": "d8a77dc69eae9b5a73faf41f5bcf1019024b5894bdbe6030e27f8de6c218ab0f"
+      "test_source_sha256": "d1f38fac21af5961607f7fca997ba96b60286d0a0dfbb225e57b90ad72864ebb"
     },
     {
       "id": "CASE-35c6efb02d80af21",
@@ -1356,7 +1356,7 @@
         "scripts/kodjo/lib/ui-criteria-contract.js",
         "scripts/kodjo/verify-ui-implementation-review.js"
       ],
-      "test_source_sha256": "d8a77dc69eae9b5a73faf41f5bcf1019024b5894bdbe6030e27f8de6c218ab0f"
+      "test_source_sha256": "d1f38fac21af5961607f7fca997ba96b60286d0a0dfbb225e57b90ad72864ebb"
     },
     {
       "id": "CASE-fd9ccb3dc23f05ea",
@@ -1370,13 +1370,13 @@
         "scripts/kodjo/lib/ui-criteria-contract.js",
         "scripts/kodjo/verify-ui-implementation-review.js"
       ],
-      "test_source_sha256": "d8a77dc69eae9b5a73faf41f5bcf1019024b5894bdbe6030e27f8de6c218ab0f"
+      "test_source_sha256": "d1f38fac21af5961607f7fca997ba96b60286d0a0dfbb225e57b90ad72864ebb"
     },
     {
       "id": "CASE-0b00ffbb32e6f5d1",
       "test_path": "tests/kodjo/ui-e2e-finalization.pilot.js",
       "test_name": "E2E UI: plan/review technique + approbation humaine exact HEAD => READY_TO_CLOSE",
-      "source_line": 156,
+      "source_line": 158,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-slice-finalize.yml",
@@ -1389,13 +1389,13 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
+      "test_source_sha256": "938e51f23edd05bc18f9e4aebeecca5291c87e369fce9198d18bf74956397fc1"
     },
     {
       "id": "CASE-b999406d8e732a72",
       "test_path": "tests/kodjo/ui-e2e-finalization.pilot.js",
       "test_name": "E2E UI: approbation humaine sur un autre HEAD est refusée",
-      "source_line": 170,
+      "source_line": 172,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-slice-finalize.yml",
@@ -1408,13 +1408,13 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
+      "test_source_sha256": "938e51f23edd05bc18f9e4aebeecca5291c87e369fce9198d18bf74956397fc1"
     },
     {
       "id": "CASE-8ee0d77c4c7033ef",
       "test_path": "tests/kodjo/ui-e2e-finalization.pilot.js",
       "test_name": "E2E UI: approbation humaine liée à une autre revue est refusée",
-      "source_line": 180,
+      "source_line": 182,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-slice-finalize.yml",
@@ -1427,13 +1427,13 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
+      "test_source_sha256": "938e51f23edd05bc18f9e4aebeecca5291c87e369fce9198d18bf74956397fc1"
     },
     {
       "id": "CASE-a69b519a1935bd03",
       "test_path": "tests/kodjo/ui-e2e-finalization.pilot.js",
       "test_name": "E2E UI: la finalisation refuse un faux PASS device avant gate humain",
-      "source_line": 190,
+      "source_line": 192,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-slice-finalize.yml",
@@ -1446,13 +1446,13 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
+      "test_source_sha256": "938e51f23edd05bc18f9e4aebeecca5291c87e369fce9198d18bf74956397fc1"
     },
     {
       "id": "CASE-7ce50f9184205e4a",
       "test_path": "tests/kodjo/ui-e2e-finalization.pilot.js",
       "test_name": "D2: VISUAL_APPROVED never replaces technical, functional or preservation evidence",
-      "source_line": 285,
+      "source_line": 288,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-slice-finalize.yml",
@@ -1465,7 +1465,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
+      "test_source_sha256": "938e51f23edd05bc18f9e4aebeecca5291c87e369fce9198d18bf74956397fc1"
     },
     {
       "id": "CASE-e6386e7329cfadf4",
@@ -1690,7 +1690,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
+      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
     },
     {
       "id": "CASE-e57030db5e390656",
@@ -1707,7 +1707,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-c15caef86d81e92c",
@@ -1724,7 +1724,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-08e20e769637b62c",
@@ -1769,7 +1769,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-dce4807eb09241e6",
@@ -1885,7 +1885,7 @@
       "id": "CASE-f8f1393a82d1f076",
       "test_path": "tests/kodjo/vnext-revision-contract.pilot.js",
       "test_name": "VNext-07 refuse une correction sur une cible hors AllowedChangeSet",
-      "source_line": 400,
+      "source_line": 402,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/impact-graph.js",
@@ -1896,7 +1896,7 @@
         "scripts/kodjo/lib/revision-contract.js",
         "scripts/kodjo/lib/source-manifest.js"
       ],
-      "test_source_sha256": "ec8d5b4d93a2141139bf720151fe8b87e8bf6689c2b9704089b39501f7a3d188"
+      "test_source_sha256": "140e93f8eb22da454ed7e65b60a1161fe7920a72a940a60411bf7afbfc0d9a25"
     },
     {
       "id": "CASE-d7775b7066978ceb",
@@ -1994,7 +1994,7 @@
         "scripts/kodjo/lib/implementation-report.js",
         "scripts/kodjo/lib/yaml.js"
       ],
-      "test_source_sha256": "42ac4183622a36a769198c956c733eb400e53c4d55e77a80d3536fe17017bf8a"
+      "test_source_sha256": "9b87948818f45e9034b782dc498bd3084a1542d90aae2f3403d9a2586ac3da89"
     },
     {
       "id": "CASE-49c88e50662af0c2",
@@ -2075,7 +2075,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-c8b1b3d59b2f8830",
@@ -2092,7 +2092,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-a403fd8ce9b1596c",
@@ -2109,7 +2109,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-3bfc61ba422bef71",
@@ -2388,7 +2388,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-8675da6d56a6411b",
@@ -2491,7 +2491,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-a8985d034abc5785",
@@ -2582,7 +2582,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-fc0dfba2d60770e8",
@@ -2599,7 +2599,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-01fd0016dfecfbbb",
@@ -2616,7 +2616,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-5c657759d7a1ea40",
@@ -2633,7 +2633,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-11e312c4a7e0bba4",
@@ -2727,7 +2727,7 @@
         "scripts/kodjo/scan-remote-write-capability.js",
         "scripts/kodjo/verify-staged-scope.js"
       ],
-      "test_source_sha256": "569646cd99cab8121537ccb6b4eb3c0dd81229668abf0fc91dd45afedb4feb92"
+      "test_source_sha256": "81f40b6261dcd96232640e710c8ed9f88939f2f2df201c13796b0f59bed02397"
     },
     {
       "id": "CASE-2f4ac11a13ae1903",
@@ -2743,7 +2743,7 @@
         "scripts/kodjo/scan-remote-write-capability.js",
         "scripts/kodjo/verify-staged-scope.js"
       ],
-      "test_source_sha256": "569646cd99cab8121537ccb6b4eb3c0dd81229668abf0fc91dd45afedb4feb92"
+      "test_source_sha256": "81f40b6261dcd96232640e710c8ed9f88939f2f2df201c13796b0f59bed02397"
     },
     {
       "id": "CASE-af1e3f8381ed48db",
@@ -2759,7 +2759,7 @@
         "scripts/kodjo/scan-remote-write-capability.js",
         "scripts/kodjo/verify-staged-scope.js"
       ],
-      "test_source_sha256": "569646cd99cab8121537ccb6b4eb3c0dd81229668abf0fc91dd45afedb4feb92"
+      "test_source_sha256": "81f40b6261dcd96232640e710c8ed9f88939f2f2df201c13796b0f59bed02397"
     },
     {
       "id": "CASE-1fc1d5b5830757be",
@@ -2775,7 +2775,7 @@
         "scripts/kodjo/scan-remote-write-capability.js",
         "scripts/kodjo/verify-staged-scope.js"
       ],
-      "test_source_sha256": "569646cd99cab8121537ccb6b4eb3c0dd81229668abf0fc91dd45afedb4feb92"
+      "test_source_sha256": "81f40b6261dcd96232640e710c8ed9f88939f2f2df201c13796b0f59bed02397"
     },
     {
       "id": "CASE-625f2487e5f53443",
@@ -2791,7 +2791,7 @@
         "scripts/kodjo/scan-remote-write-capability.js",
         "scripts/kodjo/verify-staged-scope.js"
       ],
-      "test_source_sha256": "569646cd99cab8121537ccb6b4eb3c0dd81229668abf0fc91dd45afedb4feb92"
+      "test_source_sha256": "81f40b6261dcd96232640e710c8ed9f88939f2f2df201c13796b0f59bed02397"
     },
     {
       "id": "CASE-d85c3e1193e291be",
@@ -2814,7 +2814,7 @@
         "scripts/kodjo/lib/vnext-legacy-queue-adapter.js",
         "scripts/kodjo/lib/vnext-runtime.js"
       ],
-      "test_source_sha256": "1939916b97955391a33793bfcf8ce2e516a3ddfb0efe15e631966ad1b4cead57"
+      "test_source_sha256": "6c6438b96ac9212a202114c16541258b5b9d0da4c040959bdb98107a11b3099b"
     },
     {
       "id": "CASE-3cf4c9b6cc6c8bbe",
@@ -2831,7 +2831,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-8e8ae53f43b376d7",
@@ -2848,7 +2848,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-f1da2433ce8bd3b1",
@@ -2920,7 +2920,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-f3184c0a61ea59c0",
@@ -2932,7 +2932,7 @@
         "scripts/kodjo/run-local-claude.js",
         "scripts/kodjo/run-queued-request.ps1"
       ],
-      "test_source_sha256": "7e9e20f25ceda6aef70dd48347a5b8ebd54b3d831121f33e9a199e72c4d8d922"
+      "test_source_sha256": "32b96acb94790dc429dc873f539c4beae71c1e7df57f35c8b05548370a2d9f6c"
     },
     {
       "id": "CASE-0574a6ee7a0551cc",
@@ -2944,13 +2944,13 @@
         "scripts/kodjo/run-local-claude.js",
         "scripts/kodjo/run-queued-request.ps1"
       ],
-      "test_source_sha256": "7e9e20f25ceda6aef70dd48347a5b8ebd54b3d831121f33e9a199e72c4d8d922"
+      "test_source_sha256": "32b96acb94790dc429dc873f539c4beae71c1e7df57f35c8b05548370a2d9f6c"
     },
     {
       "id": "CASE-71d45aeac13ad2e3",
       "test_path": "tests/kodjo/preflight-lot-a.pilot.js",
       "test_name": "lot A: plusieurs défauts indépendants sont collectés dans le même rapport",
-      "source_line": 143,
+      "source_line": 144,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-v2-lean-queue.yml",
@@ -2960,13 +2960,13 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-queue-preflight.js"
       ],
-      "test_source_sha256": "0a8a236f8f9108f0d1f2a01dd1cd4a5c37708f84c3aa4e1cdd63a740760f4ec8"
+      "test_source_sha256": "ef1bfdc2b3edbfe9944746e83ce106fc8491ff4c49d3e4f3dda3608c952e2fdf"
     },
     {
       "id": "CASE-31f09a2cef534a9b",
       "test_path": "tests/kodjo/preflight-lot-a.pilot.js",
       "test_name": "audit F08/F09: selected queue reaches aggregation and failed attestation is written without runner",
-      "source_line": 188,
+      "source_line": 189,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-v2-lean-queue.yml",
@@ -2976,7 +2976,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-queue-preflight.js"
       ],
-      "test_source_sha256": "0a8a236f8f9108f0d1f2a01dd1cd4a5c37708f84c3aa4e1cdd63a740760f4ec8"
+      "test_source_sha256": "ef1bfdc2b3edbfe9944746e83ce106fc8491ff4c49d3e4f3dda3608c952e2fdf"
     },
     {
       "id": "CASE-29e512e1929fdea7",
@@ -3022,7 +3022,7 @@
         "scripts/kodjo/scan-remote-write-capability.js",
         "scripts/kodjo/verify-staged-scope.js"
       ],
-      "test_source_sha256": "569646cd99cab8121537ccb6b4eb3c0dd81229668abf0fc91dd45afedb4feb92"
+      "test_source_sha256": "81f40b6261dcd96232640e710c8ed9f88939f2f2df201c13796b0f59bed02397"
     },
     {
       "id": "CASE-9a35b0a4e37be9e1",
@@ -3042,7 +3042,7 @@
         "scripts/kodjo/verify-queue-preflight.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "ccc5aaa49ef9c947dff55d57ee2e7a127d413249f1e37a4c701b4cce26dcb799"
+      "test_source_sha256": "e6b74ddf3a8dad63cd2e0795fe040de5ea5d25c9725a842caa9f333a61aa4454"
     },
     {
       "id": "CASE-176bcab5af2af161",
@@ -3092,7 +3092,7 @@
         "scripts/kodjo/run-queued-request.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "923b95d1b7d14e19dfed60866344df4e8f4e0c012d929c1508e43d34a3d25f00"
+      "test_source_sha256": "6ce9a6bf23220a03b917e8e70e09e67bbbb6431b7c6734b526d5aac5c6afcbc2"
     },
     {
       "id": "CASE-615cc6eb0fabae9b",
@@ -3181,7 +3181,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-queue-preflight.js"
       ],
-      "test_source_sha256": "0a8a236f8f9108f0d1f2a01dd1cd4a5c37708f84c3aa4e1cdd63a740760f4ec8"
+      "test_source_sha256": "ef1bfdc2b3edbfe9944746e83ce106fc8491ff4c49d3e4f3dda3608c952e2fdf"
     },
     {
       "id": "CASE-7372d1e624bb4841",
@@ -3228,7 +3228,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-70859d1e48220e56",
@@ -3339,7 +3339,7 @@
         "scripts/kodjo/consume-queue-request.js",
         "scripts/kodjo/run-queued-request.ps1"
       ],
-      "test_source_sha256": "7f86702210eb0c4205bc361dc7068b4f570b9b435638e3e087436f98ee2f9a95"
+      "test_source_sha256": "2317e32c6b9884cd3e93a5073fc864617dfe4342c307b90278102abd8c67eddc"
     },
     {
       "id": "CASE-f731b2937366331d",
@@ -3351,7 +3351,7 @@
         "scripts/kodjo/consume-queue-request.js",
         "scripts/kodjo/run-queued-request.ps1"
       ],
-      "test_source_sha256": "7f86702210eb0c4205bc361dc7068b4f570b9b435638e3e087436f98ee2f9a95"
+      "test_source_sha256": "2317e32c6b9884cd3e93a5073fc864617dfe4342c307b90278102abd8c67eddc"
     },
     {
       "id": "CASE-8b5fec06463c769e",
@@ -3363,7 +3363,7 @@
         "scripts/kodjo/consume-queue-request.js",
         "scripts/kodjo/run-queued-request.ps1"
       ],
-      "test_source_sha256": "7f86702210eb0c4205bc361dc7068b4f570b9b435638e3e087436f98ee2f9a95"
+      "test_source_sha256": "2317e32c6b9884cd3e93a5073fc864617dfe4342c307b90278102abd8c67eddc"
     },
     {
       "id": "CASE-9c059802f0750145",
@@ -3375,7 +3375,7 @@
         "scripts/kodjo/consume-queue-request.js",
         "scripts/kodjo/run-queued-request.ps1"
       ],
-      "test_source_sha256": "7f86702210eb0c4205bc361dc7068b4f570b9b435638e3e087436f98ee2f9a95"
+      "test_source_sha256": "2317e32c6b9884cd3e93a5073fc864617dfe4342c307b90278102abd8c67eddc"
     },
     {
       "id": "CASE-142c975996802a11",
@@ -3514,7 +3514,7 @@
         "scripts/kodjo/verify-queue-preflight.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "ccc5aaa49ef9c947dff55d57ee2e7a127d413249f1e37a4c701b4cce26dcb799"
+      "test_source_sha256": "e6b74ddf3a8dad63cd2e0795fe040de5ea5d25c9725a842caa9f333a61aa4454"
     },
     {
       "id": "CASE-928cf1f7cf933a76",
@@ -3528,7 +3528,7 @@
         "scripts/kodjo/lib/implementation-report.js",
         "scripts/kodjo/lib/yaml.js"
       ],
-      "test_source_sha256": "42ac4183622a36a769198c956c733eb400e53c4d55e77a80d3536fe17017bf8a"
+      "test_source_sha256": "9b87948818f45e9034b782dc498bd3084a1542d90aae2f3403d9a2586ac3da89"
     },
     {
       "id": "CASE-d53e0d8fbfaec32d",
@@ -3573,7 +3573,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-b4fa103b119267eb",
@@ -3590,7 +3590,7 @@
         "scripts/kodjo/setup-kodjo-claude-auth.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "d0a485714837f50c39b86d82b190cc20d945c472c7cf4a9ce1c123424a4c383e"
+      "test_source_sha256": "70cbde06cbf65e55cda2ca037d4f527a654c8926a74e1dbe780c2ad391ae1fa1"
     },
     {
       "id": "CASE-3e1bc5011a9d3d78",
@@ -3968,7 +3968,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
+      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
     },
     {
       "id": "CASE-98cbf0d80b2af3bb",
@@ -3986,7 +3986,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
+      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
     },
     {
       "id": "CASE-cecab50c90716bf9",
@@ -4040,7 +4040,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "52dbbefeef5e1bdf33567f0190b5b1cb0b933a0fa395a81109a429bc157b3006"
+      "test_source_sha256": "b560e0e03ebbfce29f5aa0825edc6932a5991019989855669198d1539db3b3ba"
     },
     {
       "id": "CASE-3da4aba8f156098a",
@@ -4061,7 +4061,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "52dbbefeef5e1bdf33567f0190b5b1cb0b933a0fa395a81109a429bc157b3006"
+      "test_source_sha256": "b560e0e03ebbfce29f5aa0825edc6932a5991019989855669198d1539db3b3ba"
     },
     {
       "id": "CASE-43b8e22de60f6d3d",
@@ -4082,7 +4082,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "52dbbefeef5e1bdf33567f0190b5b1cb0b933a0fa395a81109a429bc157b3006"
+      "test_source_sha256": "b560e0e03ebbfce29f5aa0825edc6932a5991019989855669198d1539db3b3ba"
     },
     {
       "id": "CASE-e07e81500ab68f4e",
@@ -4103,7 +4103,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "52dbbefeef5e1bdf33567f0190b5b1cb0b933a0fa395a81109a429bc157b3006"
+      "test_source_sha256": "b560e0e03ebbfce29f5aa0825edc6932a5991019989855669198d1539db3b3ba"
     },
     {
       "id": "CASE-54bd157c27182f3d",
@@ -4124,7 +4124,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "52dbbefeef5e1bdf33567f0190b5b1cb0b933a0fa395a81109a429bc157b3006"
+      "test_source_sha256": "b560e0e03ebbfce29f5aa0825edc6932a5991019989855669198d1539db3b3ba"
     },
     {
       "id": "CASE-70caffc198391e58",
@@ -4145,7 +4145,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "52dbbefeef5e1bdf33567f0190b5b1cb0b933a0fa395a81109a429bc157b3006"
+      "test_source_sha256": "b560e0e03ebbfce29f5aa0825edc6932a5991019989855669198d1539db3b3ba"
     },
     {
       "id": "CASE-ebcd59d541467e61",
@@ -4166,7 +4166,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "52dbbefeef5e1bdf33567f0190b5b1cb0b933a0fa395a81109a429bc157b3006"
+      "test_source_sha256": "b560e0e03ebbfce29f5aa0825edc6932a5991019989855669198d1539db3b3ba"
     },
     {
       "id": "CASE-fc300305baaf1c97",
@@ -4187,7 +4187,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "52dbbefeef5e1bdf33567f0190b5b1cb0b933a0fa395a81109a429bc157b3006"
+      "test_source_sha256": "b560e0e03ebbfce29f5aa0825edc6932a5991019989855669198d1539db3b3ba"
     },
     {
       "id": "CASE-2a3c5d0d428b5405",
@@ -4207,7 +4207,7 @@
         "scripts/kodjo/verify-queue-preflight.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "ccc5aaa49ef9c947dff55d57ee2e7a127d413249f1e37a4c701b4cce26dcb799"
+      "test_source_sha256": "e6b74ddf3a8dad63cd2e0795fe040de5ea5d25c9725a842caa9f333a61aa4454"
     },
     {
       "id": "CASE-6b42edcc41b0f018",
@@ -4688,7 +4688,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
+      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
     },
     {
       "id": "CASE-fcc1746d23745b27",
@@ -4706,7 +4706,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
+      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
     },
     {
       "id": "CASE-3c83098a74174fcb",
@@ -4724,7 +4724,7 @@
         "scripts/kodjo/lib/source-manifest.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
+      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
     },
     {
       "id": "CASE-3f2d9e424a7f3da8",
@@ -4764,7 +4764,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "52dbbefeef5e1bdf33567f0190b5b1cb0b933a0fa395a81109a429bc157b3006"
+      "test_source_sha256": "b560e0e03ebbfce29f5aa0825edc6932a5991019989855669198d1539db3b3ba"
     },
     {
       "id": "CASE-db2527527117df99",
@@ -4797,7 +4797,7 @@
       "mechanism_paths": [
         "scripts/kodjo/run-queued-request.ps1"
       ],
-      "test_source_sha256": "4b04f48b7b1fbf2d263a3a8c79bd0c3f7d39022285cae83296dae028face7c60"
+      "test_source_sha256": "3ca783f947f67fe494271db80852a731abbf951dd1fb4ec71c3f74609df6f5fd"
     },
     {
       "id": "CASE-07e552ca2353a7e0",
@@ -4808,7 +4808,7 @@
       "mechanism_paths": [
         "scripts/kodjo/run-queued-request.ps1"
       ],
-      "test_source_sha256": "4b04f48b7b1fbf2d263a3a8c79bd0c3f7d39022285cae83296dae028face7c60"
+      "test_source_sha256": "3ca783f947f67fe494271db80852a731abbf951dd1fb4ec71c3f74609df6f5fd"
     },
     {
       "id": "CASE-97bdcf93d58e2bcb",
@@ -4822,7 +4822,7 @@
         "scripts/kodjo/run-queued-request.ps1",
         "scripts/kodjo/verify-preflight-live-target.js"
       ],
-      "test_source_sha256": "2f7cbbf8e54a3644bee0e8c30b459f35a170edb825e24dcdb37ddabd29138edb"
+      "test_source_sha256": "9519c2c96f59b2c62ab1de801604143ebafe4bb2bc03fc917578ef58a1ef0d0f"
     },
     {
       "id": "CASE-d724fa868313f0c3",
@@ -4978,7 +4978,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-ui-plan-criteria.js"
       ],
-      "test_source_sha256": "bab7210d4766bf928eebb1694492ff787d464500a861f671f5d1581c18969008"
+      "test_source_sha256": "b24b5ce49afc944b539090f4539e7ebbf524bc40d2be865988dbdaee6b45f1af"
     },
     {
       "id": "CASE-6027808e38314a59",
@@ -4997,7 +4997,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-ui-plan-criteria.js"
       ],
-      "test_source_sha256": "bab7210d4766bf928eebb1694492ff787d464500a861f671f5d1581c18969008"
+      "test_source_sha256": "b24b5ce49afc944b539090f4539e7ebbf524bc40d2be865988dbdaee6b45f1af"
     },
     {
       "id": "CASE-e96c3d1952828f01",
@@ -5016,7 +5016,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-ui-plan-criteria.js"
       ],
-      "test_source_sha256": "bab7210d4766bf928eebb1694492ff787d464500a861f671f5d1581c18969008"
+      "test_source_sha256": "b24b5ce49afc944b539090f4539e7ebbf524bc40d2be865988dbdaee6b45f1af"
     },
     {
       "id": "CASE-4a8c04ae5d8055ed",
@@ -5035,7 +5035,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-ui-plan-criteria.js"
       ],
-      "test_source_sha256": "bab7210d4766bf928eebb1694492ff787d464500a861f671f5d1581c18969008"
+      "test_source_sha256": "b24b5ce49afc944b539090f4539e7ebbf524bc40d2be865988dbdaee6b45f1af"
     },
     {
       "id": "CASE-bcf95a0546e50a55",
@@ -5054,7 +5054,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-ui-plan-criteria.js"
       ],
-      "test_source_sha256": "bab7210d4766bf928eebb1694492ff787d464500a861f671f5d1581c18969008"
+      "test_source_sha256": "b24b5ce49afc944b539090f4539e7ebbf524bc40d2be865988dbdaee6b45f1af"
     },
     {
       "id": "CASE-8a4343ed3b0ed046",
@@ -5073,7 +5073,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-ui-plan-criteria.js"
       ],
-      "test_source_sha256": "bab7210d4766bf928eebb1694492ff787d464500a861f671f5d1581c18969008"
+      "test_source_sha256": "b24b5ce49afc944b539090f4539e7ebbf524bc40d2be865988dbdaee6b45f1af"
     },
     {
       "id": "CASE-f0399ffaabca4e98",
@@ -5092,7 +5092,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-ui-plan-criteria.js"
       ],
-      "test_source_sha256": "bab7210d4766bf928eebb1694492ff787d464500a861f671f5d1581c18969008"
+      "test_source_sha256": "b24b5ce49afc944b539090f4539e7ebbf524bc40d2be865988dbdaee6b45f1af"
     },
     {
       "id": "CASE-6d87ab06e14dd1a5",
@@ -5106,7 +5106,7 @@
         "scripts/kodjo/lib/ui-criteria-contract.js",
         "scripts/kodjo/verify-ui-implementation-review.js"
       ],
-      "test_source_sha256": "d8a77dc69eae9b5a73faf41f5bcf1019024b5894bdbe6030e27f8de6c218ab0f"
+      "test_source_sha256": "d1f38fac21af5961607f7fca997ba96b60286d0a0dfbb225e57b90ad72864ebb"
     },
     {
       "id": "CASE-6bcaee4624c5aab9",
@@ -5120,7 +5120,7 @@
         "scripts/kodjo/lib/ui-criteria-contract.js",
         "scripts/kodjo/verify-ui-implementation-review.js"
       ],
-      "test_source_sha256": "d8a77dc69eae9b5a73faf41f5bcf1019024b5894bdbe6030e27f8de6c218ab0f"
+      "test_source_sha256": "d1f38fac21af5961607f7fca997ba96b60286d0a0dfbb225e57b90ad72864ebb"
     },
     {
       "id": "CASE-7fa8ad31f31439fc",
@@ -5134,7 +5134,7 @@
         "scripts/kodjo/lib/ui-criteria-contract.js",
         "scripts/kodjo/verify-ui-implementation-review.js"
       ],
-      "test_source_sha256": "d8a77dc69eae9b5a73faf41f5bcf1019024b5894bdbe6030e27f8de6c218ab0f"
+      "test_source_sha256": "d1f38fac21af5961607f7fca997ba96b60286d0a0dfbb225e57b90ad72864ebb"
     },
     {
       "id": "CASE-b0b1879ae495286d",
@@ -5148,7 +5148,7 @@
         "scripts/kodjo/lib/ui-criteria-contract.js",
         "scripts/kodjo/verify-ui-implementation-review.js"
       ],
-      "test_source_sha256": "d8a77dc69eae9b5a73faf41f5bcf1019024b5894bdbe6030e27f8de6c218ab0f"
+      "test_source_sha256": "d1f38fac21af5961607f7fca997ba96b60286d0a0dfbb225e57b90ad72864ebb"
     },
     {
       "id": "CASE-1a40db0b46e2f2b8",
@@ -5162,13 +5162,13 @@
         "scripts/kodjo/lib/ui-criteria-contract.js",
         "scripts/kodjo/verify-ui-implementation-review.js"
       ],
-      "test_source_sha256": "d8a77dc69eae9b5a73faf41f5bcf1019024b5894bdbe6030e27f8de6c218ab0f"
+      "test_source_sha256": "d1f38fac21af5961607f7fca997ba96b60286d0a0dfbb225e57b90ad72864ebb"
     },
     {
       "id": "CASE-0f270ea57e696b25",
       "test_path": "tests/kodjo/ui-e2e-finalization.pilot.js",
       "test_name": "E2E UI: le workflow final conserve le canal VISUAL_APPROVED et le chemin legacy",
-      "source_line": 273,
+      "source_line": 275,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-slice-finalize.yml",
@@ -5181,7 +5181,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
+      "test_source_sha256": "938e51f23edd05bc18f9e4aebeecca5291c87e369fce9198d18bf74956397fc1"
     },
     {
       "id": "CASE-bb10c00252064726",
@@ -5195,7 +5195,7 @@
         "scripts/kodjo/lib/ui-criteria-contract.js",
         "scripts/kodjo/verify-ui-implementation-review.js"
       ],
-      "test_source_sha256": "d8a77dc69eae9b5a73faf41f5bcf1019024b5894bdbe6030e27f8de6c218ab0f"
+      "test_source_sha256": "d1f38fac21af5961607f7fca997ba96b60286d0a0dfbb225e57b90ad72864ebb"
     },
     {
       "id": "CASE-29346f4ff6097a3e",
@@ -5209,7 +5209,7 @@
         "scripts/kodjo/lib/ui-criteria-contract.js",
         "scripts/kodjo/verify-ui-implementation-review.js"
       ],
-      "test_source_sha256": "d8a77dc69eae9b5a73faf41f5bcf1019024b5894bdbe6030e27f8de6c218ab0f"
+      "test_source_sha256": "d1f38fac21af5961607f7fca997ba96b60286d0a0dfbb225e57b90ad72864ebb"
     },
     {
       "id": "CASE-326ef6a3184ef343",
@@ -5223,13 +5223,13 @@
         "scripts/kodjo/lib/ui-criteria-contract.js",
         "scripts/kodjo/verify-ui-implementation-review.js"
       ],
-      "test_source_sha256": "d8a77dc69eae9b5a73faf41f5bcf1019024b5894bdbe6030e27f8de6c218ab0f"
+      "test_source_sha256": "d1f38fac21af5961607f7fca997ba96b60286d0a0dfbb225e57b90ad72864ebb"
     },
     {
       "id": "CASE-45730d9420a849de",
       "test_path": "tests/kodjo/ui-e2e-finalization.pilot.js",
       "test_name": "delta/global: legacy VISUAL_APPROVED cannot close a differential correction",
-      "source_line": 227,
+      "source_line": 229,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-slice-finalize.yml",
@@ -5242,13 +5242,13 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
+      "test_source_sha256": "938e51f23edd05bc18f9e4aebeecca5291c87e369fce9198d18bf74956397fc1"
     },
     {
       "id": "CASE-478c633ce08f18f0",
       "test_path": "tests/kodjo/ui-e2e-finalization.pilot.js",
       "test_name": "delta/global: targeted success is retained while the entire slice requires requalification",
-      "source_line": 235,
+      "source_line": 237,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-slice-finalize.yml",
@@ -5261,13 +5261,13 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
+      "test_source_sha256": "938e51f23edd05bc18f9e4aebeecca5291c87e369fce9198d18bf74956397fc1"
     },
     {
       "id": "CASE-4d308adc3bac8e2f",
       "test_path": "tests/kodjo/ui-e2e-finalization.pilot.js",
       "test_name": "delta/global: record, idempotent replay and canonical planning entry require no queue mutation",
-      "source_line": 306,
+      "source_line": 309,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-slice-finalize.yml",
@@ -5280,7 +5280,7 @@
         "scripts/kodjo/verify-ui-implementation-review.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "33f9651a14406ba263313a4e31888644cec74a19cc785565b5ac8f7535932c61"
+      "test_source_sha256": "938e51f23edd05bc18f9e4aebeecca5291c87e369fce9198d18bf74956397fc1"
     },
     {
       "id": "CASE-ed508a348250fb1d",
@@ -5294,7 +5294,7 @@
         "scripts/kodjo/run-queued-request.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "923b95d1b7d14e19dfed60866344df4e8f4e0c012d929c1508e43d34a3d25f00"
+      "test_source_sha256": "6ce9a6bf23220a03b917e8e70e09e67bbbb6431b7c6734b526d5aac5c6afcbc2"
     },
     {
       "id": "CASE-20f80aad2a2c2935",
@@ -5308,7 +5308,7 @@
         "scripts/kodjo/run-queued-request.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "923b95d1b7d14e19dfed60866344df4e8f4e0c012d929c1508e43d34a3d25f00"
+      "test_source_sha256": "6ce9a6bf23220a03b917e8e70e09e67bbbb6431b7c6734b526d5aac5c6afcbc2"
     },
     {
       "id": "CASE-d500c63313cc6071",
@@ -5322,7 +5322,7 @@
         "scripts/kodjo/run-queued-request.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "923b95d1b7d14e19dfed60866344df4e8f4e0c012d929c1508e43d34a3d25f00"
+      "test_source_sha256": "6ce9a6bf23220a03b917e8e70e09e67bbbb6431b7c6734b526d5aac5c6afcbc2"
     },
     {
       "id": "CASE-4f3e16b2c30b608a",
@@ -5336,7 +5336,7 @@
         "scripts/kodjo/run-queued-request.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "923b95d1b7d14e19dfed60866344df4e8f4e0c012d929c1508e43d34a3d25f00"
+      "test_source_sha256": "6ce9a6bf23220a03b917e8e70e09e67bbbb6431b7c6734b526d5aac5c6afcbc2"
     },
     {
       "id": "CASE-b3310045c7a21052",
@@ -5350,7 +5350,7 @@
         "scripts/kodjo/run-queued-request.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "923b95d1b7d14e19dfed60866344df4e8f4e0c012d929c1508e43d34a3d25f00"
+      "test_source_sha256": "6ce9a6bf23220a03b917e8e70e09e67bbbb6431b7c6734b526d5aac5c6afcbc2"
     },
     {
       "id": "CASE-55bcb3ddf4899bca",
@@ -5364,7 +5364,7 @@
         "scripts/kodjo/run-queued-request.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "923b95d1b7d14e19dfed60866344df4e8f4e0c012d929c1508e43d34a3d25f00"
+      "test_source_sha256": "6ce9a6bf23220a03b917e8e70e09e67bbbb6431b7c6734b526d5aac5c6afcbc2"
     },
     {
       "id": "CASE-3a58f33610b24ad7",
@@ -5378,13 +5378,13 @@
         "scripts/kodjo/run-queued-request.ps1",
         "scripts/kodjo/start-kodjo-v2.ps1"
       ],
-      "test_source_sha256": "923b95d1b7d14e19dfed60866344df4e8f4e0c012d929c1508e43d34a3d25f00"
+      "test_source_sha256": "6ce9a6bf23220a03b917e8e70e09e67bbbb6431b7c6734b526d5aac5c6afcbc2"
     },
     {
       "id": "CASE-04730793df419f55",
       "test_path": "tests/kodjo/preflight-lot-a.pilot.js",
       "test_name": "lot A: fingerprint détecte toute altération de l attestation",
-      "source_line": 161,
+      "source_line": 162,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-v2-lean-queue.yml",
@@ -5394,13 +5394,13 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-queue-preflight.js"
       ],
-      "test_source_sha256": "0a8a236f8f9108f0d1f2a01dd1cd4a5c37708f84c3aa4e1cdd63a740760f4ec8"
+      "test_source_sha256": "ef1bfdc2b3edbfe9944746e83ce106fc8491ff4c49d3e4f3dda3608c952e2fdf"
     },
     {
       "id": "CASE-fa563b423ee34e4a",
       "test_path": "tests/kodjo/preflight-lot-a.pilot.js",
       "test_name": "lot A: queue consommée est refusée avant les contrats aval",
-      "source_line": 169,
+      "source_line": 170,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-v2-lean-queue.yml",
@@ -5410,13 +5410,13 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-queue-preflight.js"
       ],
-      "test_source_sha256": "0a8a236f8f9108f0d1f2a01dd1cd4a5c37708f84c3aa4e1cdd63a740760f4ec8"
+      "test_source_sha256": "ef1bfdc2b3edbfe9944746e83ce106fc8491ff4c49d3e4f3dda3608c952e2fdf"
     },
     {
       "id": "CASE-f1aaf34836a3ac14",
       "test_path": "tests/kodjo/preflight-lot-a.pilot.js",
       "test_name": "lot A: le contrat shadow reste opposable après activation par le lot B",
-      "source_line": 179,
+      "source_line": 180,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-v2-lean-queue.yml",
@@ -5426,7 +5426,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-queue-preflight.js"
       ],
-      "test_source_sha256": "0a8a236f8f9108f0d1f2a01dd1cd4a5c37708f84c3aa4e1cdd63a740760f4ec8"
+      "test_source_sha256": "ef1bfdc2b3edbfe9944746e83ce106fc8491ff4c49d3e4f3dda3608c952e2fdf"
     },
     {
       "id": "CASE-e81c7ec7dbe8cddf",
@@ -5445,7 +5445,7 @@
         "scripts/kodjo/verify-preflight-attestation.js",
         "scripts/kodjo/verify-queue-preflight.js"
       ],
-      "test_source_sha256": "5aeb63407109762c615b67764a0879b37ea01b5e4c0d1a1b7338697dcd3781c8"
+      "test_source_sha256": "ec57472e4b54f4e5ce8327d5423a78fcd95e38c2132baaa6d73337baf7288e30"
     },
     {
       "id": "CASE-9087ef28762afa21",
@@ -5464,7 +5464,7 @@
         "scripts/kodjo/verify-preflight-attestation.js",
         "scripts/kodjo/verify-queue-preflight.js"
       ],
-      "test_source_sha256": "5aeb63407109762c615b67764a0879b37ea01b5e4c0d1a1b7338697dcd3781c8"
+      "test_source_sha256": "ec57472e4b54f4e5ce8327d5423a78fcd95e38c2132baaa6d73337baf7288e30"
     },
     {
       "id": "CASE-4bc5ac7a41ac800b",
@@ -5483,7 +5483,7 @@
         "scripts/kodjo/verify-preflight-attestation.js",
         "scripts/kodjo/verify-queue-preflight.js"
       ],
-      "test_source_sha256": "5aeb63407109762c615b67764a0879b37ea01b5e4c0d1a1b7338697dcd3781c8"
+      "test_source_sha256": "ec57472e4b54f4e5ce8327d5423a78fcd95e38c2132baaa6d73337baf7288e30"
     },
     {
       "id": "CASE-a9224dd26387781d",
@@ -5502,7 +5502,7 @@
         "scripts/kodjo/verify-preflight-attestation.js",
         "scripts/kodjo/verify-queue-preflight.js"
       ],
-      "test_source_sha256": "5aeb63407109762c615b67764a0879b37ea01b5e4c0d1a1b7338697dcd3781c8"
+      "test_source_sha256": "ec57472e4b54f4e5ce8327d5423a78fcd95e38c2132baaa6d73337baf7288e30"
     },
     {
       "id": "CASE-c9459bd4beba5c2d",
@@ -5521,7 +5521,7 @@
         "scripts/kodjo/verify-preflight-attestation.js",
         "scripts/kodjo/verify-queue-preflight.js"
       ],
-      "test_source_sha256": "5aeb63407109762c615b67764a0879b37ea01b5e4c0d1a1b7338697dcd3781c8"
+      "test_source_sha256": "ec57472e4b54f4e5ce8327d5423a78fcd95e38c2132baaa6d73337baf7288e30"
     },
     {
       "id": "CASE-6332283f21798aa9",
@@ -5540,7 +5540,7 @@
         "scripts/kodjo/verify-preflight-attestation.js",
         "scripts/kodjo/verify-queue-preflight.js"
       ],
-      "test_source_sha256": "5aeb63407109762c615b67764a0879b37ea01b5e4c0d1a1b7338697dcd3781c8"
+      "test_source_sha256": "ec57472e4b54f4e5ce8327d5423a78fcd95e38c2132baaa6d73337baf7288e30"
     },
     {
       "id": "CASE-7292131946c1ccfd",
@@ -5554,7 +5554,7 @@
         "scripts/kodjo/run-queued-request.ps1",
         "scripts/kodjo/verify-preflight-live-target.js"
       ],
-      "test_source_sha256": "2f7cbbf8e54a3644bee0e8c30b459f35a170edb825e24dcdb37ddabd29138edb"
+      "test_source_sha256": "9519c2c96f59b2c62ab1de801604143ebafe4bb2bc03fc917578ef58a1ef0d0f"
     },
     {
       "id": "CASE-b9b0a40d15581ffc",
@@ -5574,7 +5574,7 @@
         "scripts/kodjo/verify-queue-preflight.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "ccc5aaa49ef9c947dff55d57ee2e7a127d413249f1e37a4c701b4cce26dcb799"
+      "test_source_sha256": "e6b74ddf3a8dad63cd2e0795fe040de5ea5d25c9725a842caa9f333a61aa4454"
     },
     {
       "id": "CASE-236da6e66fbd5457",
@@ -5594,7 +5594,7 @@
         "scripts/kodjo/verify-queue-preflight.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "ccc5aaa49ef9c947dff55d57ee2e7a127d413249f1e37a4c701b4cce26dcb799"
+      "test_source_sha256": "e6b74ddf3a8dad63cd2e0795fe040de5ea5d25c9725a842caa9f333a61aa4454"
     },
     {
       "id": "CASE-c5cf87959eca895a",
@@ -5614,7 +5614,7 @@
         "scripts/kodjo/verify-queue-preflight.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "ccc5aaa49ef9c947dff55d57ee2e7a127d413249f1e37a4c701b4cce26dcb799"
+      "test_source_sha256": "e6b74ddf3a8dad63cd2e0795fe040de5ea5d25c9725a842caa9f333a61aa4454"
     },
     {
       "id": "CASE-c0fd0733379794db",
@@ -5634,7 +5634,7 @@
         "scripts/kodjo/verify-queue-preflight.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "ccc5aaa49ef9c947dff55d57ee2e7a127d413249f1e37a4c701b4cce26dcb799"
+      "test_source_sha256": "e6b74ddf3a8dad63cd2e0795fe040de5ea5d25c9725a842caa9f333a61aa4454"
     },
     {
       "id": "CASE-f604fd1d64af97d3",
@@ -5654,7 +5654,7 @@
         "scripts/kodjo/verify-queue-preflight.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "ccc5aaa49ef9c947dff55d57ee2e7a127d413249f1e37a4c701b4cce26dcb799"
+      "test_source_sha256": "e6b74ddf3a8dad63cd2e0795fe040de5ea5d25c9725a842caa9f333a61aa4454"
     },
     {
       "id": "CASE-e884c17581213d60",
@@ -5674,7 +5674,7 @@
         "scripts/kodjo/verify-queue-preflight.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "ccc5aaa49ef9c947dff55d57ee2e7a127d413249f1e37a4c701b4cce26dcb799"
+      "test_source_sha256": "e6b74ddf3a8dad63cd2e0795fe040de5ea5d25c9725a842caa9f333a61aa4454"
     },
     {
       "id": "CASE-9a6594233a8aa7a5",
@@ -5694,7 +5694,7 @@
         "scripts/kodjo/verify-queue-preflight.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "ccc5aaa49ef9c947dff55d57ee2e7a127d413249f1e37a4c701b4cce26dcb799"
+      "test_source_sha256": "e6b74ddf3a8dad63cd2e0795fe040de5ea5d25c9725a842caa9f333a61aa4454"
     },
     {
       "id": "CASE-5fb7ad7c31b7962f",
@@ -5714,7 +5714,7 @@
         "scripts/kodjo/verify-queue-preflight.js",
         "scripts/kodjo/verify-v2-finalization.js"
       ],
-      "test_source_sha256": "ccc5aaa49ef9c947dff55d57ee2e7a127d413249f1e37a4c701b4cce26dcb799"
+      "test_source_sha256": "e6b74ddf3a8dad63cd2e0795fe040de5ea5d25c9725a842caa9f333a61aa4454"
     },
     {
       "id": "CASE-2ae7075d0dae14f7",
@@ -5914,7 +5914,7 @@
       "mechanism_paths": [
         "scripts/kodjo/run-queued-request.ps1"
       ],
-      "test_source_sha256": "e7bcee6588b63ad153173ecb12da9bcaf89b29ef7706752f1558894b3c9431f5"
+      "test_source_sha256": "70967b17a2712a11277ee15030fac8bbdedfa781d14cce14c217e3de5cc3935f"
     },
     {
       "id": "CASE-ae81322bb6012c1d",
@@ -5925,7 +5925,7 @@
       "mechanism_paths": [
         "scripts/kodjo/run-queued-request.ps1"
       ],
-      "test_source_sha256": "e7bcee6588b63ad153173ecb12da9bcaf89b29ef7706752f1558894b3c9431f5"
+      "test_source_sha256": "70967b17a2712a11277ee15030fac8bbdedfa781d14cce14c217e3de5cc3935f"
     },
     {
       "id": "CASE-a194141a68dc0237",
@@ -5936,7 +5936,7 @@
       "mechanism_paths": [
         "scripts/kodjo/run-queued-request.ps1"
       ],
-      "test_source_sha256": "e7bcee6588b63ad153173ecb12da9bcaf89b29ef7706752f1558894b3c9431f5"
+      "test_source_sha256": "70967b17a2712a11277ee15030fac8bbdedfa781d14cce14c217e3de5cc3935f"
     },
     {
       "id": "CASE-6a8e8e060ebff745",
@@ -5950,7 +5950,7 @@
         "scripts/kodjo/lib/implementation-report.js",
         "scripts/kodjo/lib/yaml.js"
       ],
-      "test_source_sha256": "42ac4183622a36a769198c956c733eb400e53c4d55e77a80d3536fe17017bf8a"
+      "test_source_sha256": "9b87948818f45e9034b782dc498bd3084a1542d90aae2f3403d9a2586ac3da89"
     },
     {
       "id": "CASE-956d9b48f06bc4f8",
@@ -6191,7 +6191,7 @@
       "id": "CASE-da7bae63dea9736b",
       "test_path": "tests/kodjo/vnext-revision-contract.pilot.js",
       "test_name": "VNext-07 détecte REVISION_STALLED si le même finding persiste",
-      "source_line": 627,
+      "source_line": 642,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/impact-graph.js",
@@ -6202,7 +6202,7 @@
         "scripts/kodjo/lib/revision-contract.js",
         "scripts/kodjo/lib/source-manifest.js"
       ],
-      "test_source_sha256": "ec8d5b4d93a2141139bf720151fe8b87e8bf6689c2b9704089b39501f7a3d188"
+      "test_source_sha256": "140e93f8eb22da454ed7e65b60a1161fe7920a72a940a60411bf7afbfc0d9a25"
     },
     {
       "id": "CASE-c34a3566de558655",
@@ -6238,7 +6238,7 @@
         "scripts/kodjo/lib/vnext-preserved-controls.js",
         "scripts/kodjo/lib/approval-handoff-contract.js"
       ],
-      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
+      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
     },
     {
       "id": "CASE-288978467a46373a",
@@ -6250,7 +6250,7 @@
         "scripts/kodjo/lib/vnext-preserved-controls.js",
         "scripts/kodjo/lib/approval-handoff-contract.js"
       ],
-      "test_source_sha256": "74d7c53cef8d909789accc7119d33bb92ee1eff73ce9ba664bf8a5075f8b87ec"
+      "test_source_sha256": "3bd39ad2fe15afb4c7a175793afda52cc60e8c2d9a33e3778e5b8a827dad5417"
     }
   ],
   "subjects": [

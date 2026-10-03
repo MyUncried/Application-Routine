@@ -2272,7 +2272,7 @@ restent inchangées ; une nouvelle admission exige les références complètes.
 
 Le superviseur VNext-12 relit la qualification GitHub avant installation,
 consommation et Claude : workflow attendu, candidat exact, dernière tentative,
-quatre jobs qualification/historique Linux/Windows terminés SUCCESS. Le contrôleur
+cinq jobs qualification/historique Linux/Windows et couverture interplateforme terminés SUCCESS. Le contrôleur
 est soit du même code protocolaire exact, soit qualifié séparément. Une référence
 ou un booléen déclaratif ne remplace pas ces observations. Ces règles s'ajoutent aux
 admissions fraîches et à la consommation atomique existantes.
@@ -2287,3 +2287,73 @@ une décision de l'utilisateur.
 
 Le [registre complémentaire de corrections et de qualification](reports/2026-10-01_VNEXT_TRANSPORT_HARDENING.md)
 conserve la trace de ces changements sans modifier les 420 sujets historiques.
+
+## 24. Consolidation de l'audit v8 — étape 3
+
+### 24.1 Revue complète et correction causale
+
+ReviewContext et ReviewReport v2 exigent une attestation explicite des identifiants
+du catalogue effectivement examinés. Absence de findings ne signifie pas couverture.
+La liste doit être exacte, sans doublon ni cible supplémentaire. Une revue de
+REVISION fournit une résolution observée par finding causal, avec références de
+preuve et justification. Une résolution OPEN interdit APPROVE.
+
+Le planning suivant lie l'empreinte exacte du RevisionPatch. Chaque cible annoncée
+comme corrigée doit effectivement changer. Le ledger est construit depuis les
+résolutions du reçu indépendant ; il n'invente aucune clôture en bloc. Un reçu de
+base préservé peut être repris seulement pour le même candidat et le même contrat
+de base. Les demandes d'exécution déjà consommées ne sont jamais rejouées.
+
+### 24.2 Raccordement à la revue d'implémentation commune
+
+La projection legacy transporte les exigences non UI, leurs sources adressables,
+les contrats de tests et de frontières, ainsi que les assertions UI atomiques et
+les chemins/exports des composants sélectionnés. Le registre VNext canonique est
+conservé. Une projection sans exigence ne permet aucune approbation d'implémentation.
+Les alias d'identifiants UI sont déterministes et préservent toutes les assertions.
+Un composant REUSE/EXTEND sans chemin/export univoque est refusé.
+
+La revue et la finalisation partagent la même règle appareil : VISUAL_COMPARE,
+DEVICE_CHECK et ACCESSIBILITY_CHECK peuvent rester PENDING_DEVICE. Une preuve
+ACCESSIBILITY_CHECK réellement différée ouvre le gate appareil, même sans critère
+visuel. Une preuve ACCESSIBILITY_CHECK déjà PASS n'ouvre pas ce gate à elle seule.
+Tout écart technique ou toute autre preuve obligatoire indisponible reste bloquant.
+La validation propriétaire doit viser la livraison, le HEAD, la slice et la revue
+exacts. Les commentaires de revue et d'implémentation doivent provenir du bot et
+de l'issue exacte du dépôt. La revue n'est pas réécrite par la finalisation.
+
+La dérogation SQLite PRE-1 reste NOT_EXECUTED. VISUAL_APPROVED ne la transforme
+jamais en PASS. Les preuves appareil en attente et non exécutées restent présentes
+dans le résultat ; device_evidence_satisfied désigne la validation propriétaire
+de la livraison, pas l'exécution réussie de tous les contrôles appareil.
+
+### 24.3 Exécution, reprise et publication
+
+Les opérations Git du lanceur neutralisent hooks et fsmonitor. Configurations Git,
+hooks et fichiers ignorés sont empreintés avant/après Claude et après les checks.
+Une mutation hors delta contrôlé bloque la construction du paquet Git et la
+publication. L'authentification Git est limitée à la commande réseau ; elle n'est
+pas persistée dans la configuration. Aucun jeton GitHub n'est transmis à Claude.
+La reprise et son préflight n'acceptent que le statut d'intégrité explicite INTACT.
+Les listes PF-023 à PF-028 dépourvues de contenu probant ne sont plus émises.
+
+Acquisition, remplacement périmé et libération du verrou sont sérialisés par une
+transition exclusive. Une transition abandonnée échoue fermée. Les scans détectent
+les écritures REST même avec destination concaténée et les commandes Git avec
+options ; un commentaire kodjo-allow-mention n'autorise aucune opération. Les
+suppressions et imports JSON/assets sont couverts par le scan d'impact.
+
+La validation native Windows PowerShell 5.1 reste obligatoire. Si elle est
+indisponible localement, seul un candidat sans autorité d'exécution, stage
+QUALIFY_ONLY, peut être déposé sur la branche de qualification. Le workflow Windows
+valide alors le tree Git exact avec le même validateTree strict, avant toute
+nouvelle préparation ou admission d'exécution. Ce dépôt de qualification ne vaut
+ni publication opérationnelle validée, ni autorisation INITIAL/REVISION. Un échec
+du parser laisse le candidat non qualifié. Les gates d'exécution restent fermés.
+
+Chaque assertion historique mappée doit avoir PASS sur au moins un des deux OS
+pour le même candidat. Deux SKIP ne constituent pas une preuve. Cette couverture
+ne certifie pas les scénarios externes historiques ni l'activation de VNext.
+
+Le [rapport de consolidation v8](reports/2026-10-03_VNEXT_V8_CONSOLIDATED_CORRECTIONS.md)
+sépare corrections livrées, qualifications, exécutions réelles et réserves restantes.

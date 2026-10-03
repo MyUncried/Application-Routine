@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const GitIntegrity = require('./lib/git-runtime-integrity');
 const { acquire: acquireExecutionLock, release: releaseExecutionLock } = require('./lib/execution-lock');
 const { initialize: initializeRunDiagnostic } = require('./initialize-run-diagnostic');
 const { consumeLiveToken, verifyLiveTarget } = require('./verify-preflight-live-target');
@@ -38,6 +39,7 @@ function die(code, message) {
 }
 
 function command(bin, args, cwd, env, timeout) {
+  if (bin === 'git') args = GitIntegrity.safeArgs(args);
   return spawnSync(bin, args, {
     cwd, env, encoding: 'utf8', windowsHide: true, shell: false,
     timeout, maxBuffer: 64 * 1024 * 1024,
@@ -413,7 +415,7 @@ function restoreFromPackage(packageDir, repoRoot, request, migrationEvidence) {
       manifest.baseline_head !== request.baseline_head) {
     throw new Error('RECOVERY_PACKAGE_PROVENANCE_MISMATCH');
   }
-  if (manifest.integrity_status && manifest.integrity_status !== 'INTACT') {
+  if (manifest.integrity_status !== 'INTACT') {
     throw new Error('RECOVERY_INTEGRITY_REFUSED: ' + manifest.integrity_status);
   }
   const patch = fs.readFileSync(patchPath, 'utf8');
@@ -528,7 +530,7 @@ function restoreRecovery(stateRoot, repoRoot, request) {
   for (const file of candidates) {
     const candidate = readRecoveryCandidate(file);
     if (!candidate || !sameProvenance(candidate, request)) continue;
-    if (candidate.integrity_status && candidate.integrity_status !== 'INTACT') {
+    if (candidate.integrity_status !== 'INTACT') {
       mutatedSeen = true;
       process.stderr.write('[KODJO_V2] RECOVERY_INTEGRITY_REFUSED: ' + file +
         ' (' + candidate.integrity_status + ') — conserve pour diagnostic, jamais restaure\n');
@@ -774,7 +776,7 @@ function main() {
     return normalized !== promptRelative && path.resolve(file) !== path.resolve(requestPath);
   });
   const restoredDeltaFingerprint = deltaFingerprint(repoRoot, restoredDeltaFiles);
-  let result, beforeRefs, promptBytes, claudeStartedAt, claudeFinishedAt, claudeDurationMs;
+  let result, beforeRefs, beforeGitIntegrity, promptBytes, claudeStartedAt, claudeFinishedAt, claudeDurationMs;
   const interrupt = (signal) => {
     const released = releaseExecutionLock(lock);
     writeFailure('CLAUDE_EXECUTION_INTERRUPTED', signal, { lock_state: released ? 'RELEASED_BY_OWNER' : 'RETAINED_CONSERVATIVELY' });
@@ -798,6 +800,7 @@ function main() {
       return writeFailure('PROMPT_BUDGET_EXCEEDED', promptBytes + ' octets');
     }
     beforeRefs = refs(repoRoot);
+    beforeGitIntegrity = GitIntegrity.snapshot(repoRoot, [path.resolve(stateRoot)]);
     const restartProof = verifyInitialRestart(lock);
     const intent = {
       schema_version: 'kodjo.protocol.v2.claude-invocation.0.6.11',
@@ -855,11 +858,19 @@ function main() {
   // produit sur une base mutee est conserve pour diagnostic, puis refuse comme
   // source de reprise. On ne detruit plus le travail pour sanctionner l'etat.
   const afterRefs = refs(repoRoot);
+  const gitIntegrityChanges = GitIntegrity.compare(beforeGitIntegrity,
+    GitIntegrity.snapshot(repoRoot, [path.resolve(stateRoot)]));
+  fs.writeFileSync(path.join(runDir, 'git-runtime-integrity.json'), JSON.stringify({
+    schema_version: 'kodjo.git-runtime-integrity-evidence.v1',
+    before_sha256: beforeGitIntegrity.fingerprint,
+    changed_paths: gitIntegrityChanges, status: gitIntegrityChanges.length ? 'MUTATED' : 'INTACT',
+  }, null, 2) + '\n');
   const refsMutated = beforeRefs !== afterRefs;
   const promptMutated = promptExistsInExecutionTree
     ? (!fs.existsSync(request.prompt_file) || sha256(fs.readFileSync(request.prompt_file)) !== promptWorktreeHashBefore)
     : fs.existsSync(request.prompt_file);
-  const integrityStatus = refsMutated ? 'REFS_MUTATED' : (promptMutated ? 'PROMPT_MUTATED' : 'INTACT');
+  const integrityStatus = gitIntegrityChanges.length ? 'GIT_METADATA_OR_IGNORED_MUTATED'
+    : refsMutated ? 'REFS_MUTATED' : (promptMutated ? 'PROMPT_MUTATED' : 'INTACT');
   const protocolPath = (f) =>
     path.resolve(repoRoot, f) !== path.resolve(requestPath);
   const files = changedFiles(repoRoot).filter(protocolPath);
@@ -874,6 +885,17 @@ function main() {
     recoveryFiles = writeRecovery(runDir, repoRoot, request, files, { runId, integrityStatus });
   } catch (err) {
     return die('RECOVERY_WRITE_FAILED', err.message);
+  }
+
+  if (gitIntegrityChanges.length) {
+    fs.writeFileSync(path.join(runDir, 'result.json'), JSON.stringify({
+      request_id: request.request_id, source_head: request.source_head,
+      integrity_status: integrityStatus, modified_files: files,
+      checks: [], publishable_paths: [], status: 'IMPLEMENTATION_INTEGRITY_REFUSED',
+      git_integrity_changed_paths: gitIntegrityChanges,
+      recovery_package: null,
+    }, null, 2) + '\n');
+    return die('GIT_METADATA_OR_IGNORED_MUTATION_DETECTED', 'raw delta conserved; Git staging, publication and recovery package refused');
   }
 
   let recoveryPackage = null;
@@ -965,6 +987,7 @@ function main() {
   }
 
   if (integrityStatus !== 'INTACT') {
+    if (gitIntegrityChanges.length) return die('GIT_METADATA_OR_IGNORED_MUTATION_DETECTED', 'delta conserved; publication and recovery refused');
     process.stderr.write('[KODJO_V2] ' + (refsMutated ? 'FUNCTIONAL_REF_MUTATION_DETECTED' : 'PROMPT_MUTATION_DETECTED') +
       ' — delta conserve dans ' + path.join(runDir, 'recovery.json') + ', reprise automatique refusee\n');
     return die(refsMutated ? 'FUNCTIONAL_REF_MUTATION_DETECTED' : 'PROMPT_MUTATION_DETECTED',
@@ -983,6 +1006,8 @@ function main() {
   } catch (err) {
     return die('POST_CHECK_DELTA_UNREADABLE', err.message);
   }
+  const postCheckIntegrity = GitIntegrity.compare(beforeGitIntegrity, GitIntegrity.snapshot(repoRoot, [path.resolve(stateRoot)]));
+  if (postCheckIntegrity.length) return die('POST_CHECK_GIT_INTEGRITY_MUTATED', postCheckIntegrity.join(','));
   const postOutside = postCheckFiles.filter((f) => !inCumulativeScope(f, request));
   const scopeClear = !outsideMutation.length && !outside.length && !postOutside.length;
   const deltaStable = drift.length === 0;

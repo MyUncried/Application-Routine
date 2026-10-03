@@ -69,6 +69,9 @@ jobs:
     needs: [select-stage, qualify-driver]
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 35
+    permissions:
+      contents: read
+      actions: read
     env:
       CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
       EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
@@ -86,6 +89,28 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
           path: _vnext12-revision/${{ github.run_id }}
+      - name: Locate preserved evidence for this exact run on a rerun
+        if: github.run_attempt > 1
+        id: resume
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $response=gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/${{ github.run_id }}/artifacts?per_page=100" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw 'VNEXT12_RESUME_ARTIFACT_LOOKUP_FAILED' }
+          $prefix='kodjo-vnext12-revision-${{ github.run_id }}-'
+          $items=@($response.artifacts | Where-Object { $_.name.StartsWith($prefix) -and -not $_.expired -and [int]($_.name.Substring($prefix.Length)) -lt [int]'${{ github.run_attempt }}' } | Sort-Object id -Descending)
+          if ($items.Count -eq 0) { throw 'VNEXT12_RESUME_EVIDENCE_UNAVAILABLE' }
+          if ($items[0].workflow_run.head_sha -ne '${{ github.event.pull_request.head.sha }}') { throw 'VNEXT12_RESUME_CANDIDATE_MISMATCH' }
+          "artifact_id=$($items[0].id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      - uses: actions/download-artifact@v4
+        if: steps.resume.outputs.artifact_id != ''
+        with:
+          artifact-ids: ${{ steps.resume.outputs.artifact_id }}
+          github-token: ${{ github.token }}
+          run-id: ${{ github.run_id }}
+          path: ${{ runner.temp }}/vnext12-revision-${{ github.run_id }}
+          merge-multiple: true
       - name: Review a declared negative plan and exactly one causal correction
         working-directory: _vnext12-revision/${{ github.run_id }}
         run: |
@@ -98,7 +123,9 @@ jobs:
           Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
           Remove-Item Env:GITHUB_TOKEN -ErrorAction SilentlyContinue
           Remove-Item Env:KODJO_LIVE_GH_TOKEN -ErrorAction SilentlyContinue
-          & node scripts/kodjo/prepare-vnext12-revision.js review (Join-Path $env:RUNNER_TEMP 'vnext12-revision-${{ github.run_id }}')
+          $evidence=Join-Path $env:RUNNER_TEMP 'vnext12-revision-${{ github.run_id }}'
+          $stage=if (Test-Path -LiteralPath (Join-Path $evidence 'base-review-receipt.json')) { 'resume' } else { 'review' }
+          & node scripts/kodjo/prepare-vnext12-revision.js $stage $evidence
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Preserve actual negative review causal patch revised review and outcome
         if: always()

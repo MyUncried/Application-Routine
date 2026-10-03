@@ -313,7 +313,7 @@ function runPreflight(options = {}) {
       const candidates = fs.readdirSync(runsRoot,{withFileTypes:true}).filter((e)=>e.isDirectory()).map((e)=>path.join(runsRoot,e.name,'recovery.json')).filter((f)=>fs.existsSync(f));
       for (const file of candidates) {
         const candidate = readRecoveryCandidate(file);
-        if (candidate && candidate.integrity_status !== 'MUTATED' &&
+        if (candidate && candidate.integrity_status === 'INTACT' &&
             String(candidate.slice_id) === String(normalized.slice_id) &&
             String(candidate.session_id) === String(normalized.session_id) &&
             String(candidate.baseline_head) === String(normalized.baseline_head) &&
@@ -324,7 +324,8 @@ function runPreflight(options = {}) {
     }
     const packageDir = String(process.env.KODJO_SOURCE_RECOVERY_DIR || '').trim();
     if (packageDir && fs.existsSync(path.join(packageDir,'manifest.json'))) {
-      JSON.parse(fs.readFileSync(path.join(packageDir,'manifest.json'),'utf8').replace(/^\uFEFF/,''));
+      const manifest=JSON.parse(fs.readFileSync(path.join(packageDir,'manifest.json'),'utf8').replace(/^\uFEFF/,''));
+      if(manifest.integrity_status !== 'INTACT') throw new Error('RECOVERY_INTEGRITY_REFUSED');
       return {status:'SOURCE_PACKAGE_FOUND'};
     }
     if (normalized.allow_legacy_recovery_bootstrap) return {status:'LEGACY_BOOTSTRAP_ALLOWED'};
@@ -412,7 +413,6 @@ function runPreflight(options = {}) {
     operation_kind:queue ? String(queue.operation_kind || 'IMPLEMENT').toUpperCase() : '',
     mode:queue ? String(queue.mode || '').toUpperCase() : '',
     bindings,
-    freshness_guards_required:['PF-023','PF-024','PF-025','PF-026','PF-027','PF-028'],
     projection_sha256:projected ? P.sha256(projected) : null,
     prompt_sha256:promptHash,
     prompt_file_sha256:promptFileHash,

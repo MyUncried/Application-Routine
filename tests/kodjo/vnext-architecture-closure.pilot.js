@@ -20,7 +20,7 @@ function setup() {
   const envelope = F.makeEnvelope(manifest, repo, 'INITIAL', null);
   const artifacts = F.buildPlanningArtifacts({ repo, manifest, envelope });
   const state = F.currentState(repo);
-  const report = Review.buildReviewReport({ reviewContext: artifacts.reviewContext, semanticReview: { findings: [] } });
+  const report = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({ reviewContext: artifacts.reviewContext, semanticReview: { findings: [] } }));
   const approved = F.approve(artifacts, report, state);
   const register = Register.buildRegister({ candidateHead: state.protocol_head, lot: envelope.slice_id,
     phase: 'HANDOFF', authorizedActor: 'MyUncried', revisionCount: 0, revisionLimit: 1, observations: [] });

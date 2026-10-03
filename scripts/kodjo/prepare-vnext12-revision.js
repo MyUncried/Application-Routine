@@ -39,7 +39,8 @@ function deriveCorrection(cwd, base, receipt) {
   recipe.planningInput = { ...recipe.planningInput, planning_mode: 'REVISION',
     base_plan_hash: a.planContract.contract_hash, base_review_hash: receipt.review_report.contract_hash,
     causal_findings: receipt.review_report.findings.filter(x => x.blocking).map(x => x.finding_id).sort(),
-    created_from: { kind: 'PLAN_REVIEW_REVISE', refs: ['claude_session:' + receipt.session_id + '#' + receipt.contract_hash] } };
+    created_from: { kind: 'PLAN_REVIEW_REVISE', refs: ['claude_session:' + receipt.session_id + '#' + receipt.contract_hash,
+      'revision_patch:' + patch.contract_hash] } };
   const previous = Register.buildRegister({ ...base.register_input, candidateHead: base.producer_revision,
     lot: a.planningEnvelope.slice_id, phase: 'REVIEW' });
   recipe.registerInput = { ...recipe.registerInput, previous, revisionCount: 1 };
@@ -66,10 +67,9 @@ function completeRevision(base, receipt, correction, next, nextReceipt) {
     nextReviewContext: next.artifacts.reviewContext, nextReviewReport: nextReceipt.review_report });
   if (outcome.status !== 'RESOLVED') throw Error('VNEXT12_REVISION_NOT_RESOLVED:' + outcome.status);
   const ledger = Convergence.buildFindingLedger({ previousReviewReport: receipt.review_report,
-    nextReviewReport: nextReceipt.review_report, resolutions: receipt.review_report.findings.filter(x => x.blocking)
-      .map(x => ({ finding_id: x.finding_id, status: 'RESOLVED',
-        evidence_refs: ['claude_session:' + nextReceipt.session_id + '#' + nextReceipt.contract_hash],
-        note: 'Correction bornée confrontée à une nouvelle revue réelle du candidat exact.' })) });
+    nextReviewReport: nextReceipt.review_report, resolutions: nextReceipt.review_report.finding_resolutions
+      .filter(row => row.status === 'RESOLVED').map(row => ({ ...row,
+        evidence_refs: [...row.evidence_refs, 'claude_session:' + nextReceipt.session_id + '#' + nextReceipt.contract_hash] })) });
   return { base_artifacts: correction.baseArtifacts, allowed_change_set: correction.allowed,
     revision_patch: correction.patch, revision_outcome: outcome,
     previous_review_report: receipt.review_report, finding_ledger: ledger };
@@ -101,9 +101,16 @@ function preparePublication(cwd, base, receipt, next, nextReceipt, artifacts) {
     { path: bootstrap.activation_registry, content: JSON.stringify(registry, null, 2) + '\n' },
     ...Object.values(ready.compatibility_files).map(x => ({ path: x.path, content: x.content }))] };
 }
+function loadResumedBase(base, out, {cwd}) {
+  const prior=JSON.parse(fs.readFileSync(path.join(out,'base-produced.json'),'utf8'));
+  if(prior.contract_hash !== base.contract_hash) throw Error('VNEXT12_RESUME_BASE_CHANGED');
+  const receipt=JSON.parse(fs.readFileSync(path.join(out,'base-review-receipt.json'),'utf8'));
+  Chain.verifyReceipt(base,receipt);
+  return receipt;
+}
 function main() {
   const [stage, output] = process.argv.slice(2);
-  if (!['produce', 'review'].includes(stage) || !output) throw Error('Usage: prepare-vnext12-revision.js <produce|review> <external-evidence-directory>');
+  if (!['produce', 'review', 'resume'].includes(stage) || !output) throw Error('Usage: prepare-vnext12-revision.js <produce|review|resume> <external-evidence-directory>');
   const cwd = process.cwd(), out = path.resolve(output);
   const relative = path.relative(cwd, out);
   if (!relative.startsWith('..' + path.sep) && !path.isAbsolute(relative)) throw Error('VNEXT12_EVIDENCE_MUST_BE_OUTSIDE_CHECKOUT');
@@ -112,20 +119,28 @@ function main() {
   let phase = 'PRODUCE';
   try {
     const recipe = benchmarkRecipe(cwd), base = Chain.produce(recipe, { cwd });
+    const resumedReceipt=stage === 'resume' ? loadResumedBase(base,out,{cwd}) : null;
     write('benchmark-declaration.json', { kind: 'EXPLICIT_NEGATIVE_PLAN_PROPOSAL',
       proposed_value: 3, required_value: 2, requirement_source_unchanged: true,
       implementation_invoked: false, maximum_corrections: 1, candidate_head: base.producer_revision });
     write('base-recipe.json', recipe); write('base-produced.json', base);
     if (stage === 'produce') return;
     phase = 'BASE_REVIEW';
-    const receipt = Chain.review(base, { cwd }); write('base-review-receipt.json', receipt);
+    const receipt = resumedReceipt || Chain.review(base, { cwd });
+    Chain.verifyReceipt(base, receipt);
+    write('base-review-receipt.json', receipt);
     phase = 'BOUNDED_CORRECTION';
     const correction = deriveCorrection(cwd, base, receipt);
     write('allowed-change-set.json', correction.allowed); write('revision-patch.json', correction.patch);
     write('revision-recipe.json', correction.recipe);
     const next = Chain.produce(correction.recipe, { cwd }); write('revision-produced.json', next);
     phase = 'REVISION_REVIEW';
-    const nextReceipt = Chain.review(next, { cwd }); write('revision-review-receipt.json', nextReceipt);
+    let nextReceipt;
+    if (stage === 'resume' && fs.existsSync(path.join(out, 'revision-review-receipt.json'))) {
+      nextReceipt = JSON.parse(fs.readFileSync(path.join(out, 'revision-review-receipt.json'), 'utf8'));
+      Chain.validateReceipt(next, nextReceipt);
+    } else nextReceipt = Chain.review(next, { cwd });
+    write('revision-review-receipt.json', nextReceipt);
     phase = 'VERIFY_CAUSAL_OUTCOME';
     const artifacts = completeRevision(base, receipt, correction, next, nextReceipt);
     write('revision-artifacts.json', artifacts);
@@ -143,4 +158,4 @@ function main() {
   }
 }
 if (require.main === module) { try { main(); } catch (error) { console.error(error.message); process.exitCode = 1; } }
-module.exports = { benchmarkRecipe, deriveCorrection, completeRevision, preparePublication };
+module.exports = { loadResumedBase, benchmarkRecipe, deriveCorrection, completeRevision, preparePublication };

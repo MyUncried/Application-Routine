@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-03T11:05:31.207034+00:00",
+  "recorded_at": "2026-10-03T12:42:13.851823+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
-  "user_instruction": "Mener la campagne jusqu'au r\u00e9sultat r\u00e9el, diagnostiquer/corriger/relancer les \u00e9checs techniques ; solliciter uniquement une validation m\u00e9tier.",
+  "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
-  "controller_stage": "V8_CONSOLIDATION_NO_INTERMEDIATE_REVISION",
-  "controller_generation": 39,
+  "controller_stage": "V8_CONSOLIDATED_PENDING_QUALIFICATION",
+  "controller_generation": 40,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -468,7 +468,7 @@
     "initial_replayed": false,
     "delegation": {
       "kind": "USER_AUTHORIZED_TECHNICAL_DISPOSABLE_CAMPAIGN",
-      "instruction": "m\u00e8ne cette campagne de test jusqu\u2019\u00e0 son terme, diagnostique, explique corrige et relance le test lorsqu\u2019un \u00e9chec intervient. Ne m\u2019implique que lorsqu\u2019une validation m\u00e9tier est n\u00e9cessaire.",
+      "instruction": "mène cette campagne de test jusqu’à son terme, diagnostique, explique corrige et relance le test lorsqu’un échec intervient. Ne m’implique que lorsqu’une validation métier est nécessaire.",
       "human_review_performed": false,
       "approval_reaction_not_yet_created": false,
       "actual_reaction_id": "429910266"
@@ -829,5 +829,21 @@
     "actual_device_check_performed": false,
     "actual_finalization_invoked": false,
     "initial_revision_replayed": false
+  },
+  "v8_consolidation": {
+    "status": "IMPLEMENTED_PENDING_EXACT_CANDIDATE_QUALIFICATION",
+    "parent_head": "952b23b3c0bbe258edb93a155abde5c58a5795e0",
+    "audit_head": "c0f72fc2148a5955b9a810a8aca1f6eeefa64870",
+    "main_shared_source": "67064d1b3752d71683d11638a602286b9c895482",
+    "scope": "Remaining demonstrated v8 defects D1-D9,D11-D12,D15-D18; D10,D13,D14 already delivered in the first tranche. D3 targeted shared-protocol reconciliation only.",
+    "request_generation": 32,
+    "runtime_execution": "NOT_STARTED",
+    "native_windows_parser": "REQUIRED_IN_EXACT_TREE_QUALIFICATION",
+    "report": ".github/orchestration/reports/2026-10-03_VNEXT_V8_CONSOLIDATED_CORRECTIONS.md",
+    "one_consolidated_qualification_batch": true,
+    "promotion_authorized": false,
+    "pre1_in_scope": false,
+    "final_authorized": false,
+    "historical_reserves_preserved": true
   }
 }

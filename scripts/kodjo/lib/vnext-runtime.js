@@ -107,7 +107,7 @@ function validateRevisionChain({
   if (outcome.status !== 'RESOLVED') V.fail('VNEXT_RUNTIME_REVISION_NOT_RESOLVED', outcome.status);
   const rebuiltOutcome = Revision.verifyRevisionOutcome({
     allowedChangeSet: allowed, revisionPatch: patch,
-    baseArtifacts: revisionArtifacts.base_artifacts, nextArtifacts,
+    baseArtifacts: revisionArtifacts.base_artifacts, nextArtifacts: { ...nextArtifacts, planningEnvelope },
     nextReviewContext: reviewContext, nextReviewReport: reviewReport,
   });
   exact(outcome, rebuiltOutcome, 'VNEXT_RUNTIME_REVISION_OUTCOME_REBUILD_MISMATCH');

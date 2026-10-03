@@ -14,6 +14,7 @@ const candidateHead = execFileSync('git', ['rev-parse', 'HEAD'], { cwd, encoding
 Equivalence.validateCorrespondence(correspondence, inventory, History.readSourcesAtRevision(inventory, { cwd }), { cwd });
 const records = fs.readFileSync(process.argv[2], 'utf8').trim().split('\n').map(line => JSON.parse(line));
 const result = Equivalence.resolveExecution(correspondence, records, { candidateHead, platform: process.platform });
+if (process.argv[3]) fs.writeFileSync(process.argv[3], JSON.stringify(result, null, 2) + '\n');
 // Each line is a separately retrievable proof, never a historical PASS recycled.
 console.log('KODJO_EQ_IDENTITY ' + JSON.stringify({ candidate_head: candidateHead, platform: result.platform, counts: result.counts, readiness: result.readiness }));
 for (const row of result.cases) console.log('KODJO_EQ_CASE ' + JSON.stringify(row));

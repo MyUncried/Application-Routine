@@ -109,7 +109,7 @@
     },
     {
       "path": ".github/workflows/kodjo-slice-finalize.yml",
-      "blob_oid": "fe52d97965e634a41b942ddd0ff2cade678a92d1",
+      "blob_oid": "8ddb6656417a31b675eba4521ddb585ecebb6c8e",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -119,7 +119,7 @@
     },
     {
       "path": ".github/workflows/kodjo-slice-implementation-review.yml",
-      "blob_oid": "5d516ae2e56c4c5636ac6eda5229b07f16aef716",
+      "blob_oid": "68f7ffc523dabc6c989f5c7671411a5ff04fda82",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -129,7 +129,7 @@
     },
     {
       "path": ".github/workflows/kodjo-slice-plan-review.yml",
-      "blob_oid": "373c538d1e2a802d733e431ba92bde8e94317c63",
+      "blob_oid": "a80e578746e070a5507b5a0824511cf2b8ea735e",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -381,7 +381,7 @@
     },
     {
       "path": "scripts/kodjo/collect-implementation-report.js",
-      "blob_oid": "1d21e02cea404da99290679430472ed51fd3f072",
+      "blob_oid": "35ee9fc915f297ef0b6aa63fd5d333f3f2006af0",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -426,7 +426,7 @@
     },
     {
       "path": "scripts/kodjo/generate-ui-plan-contract.js",
-      "blob_oid": "732782d8c372d285c4e48b534ac150dec45a9d5a",
+      "blob_oid": "9c323541011097ef599b0d222e4cee25348cc2c8",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -451,7 +451,7 @@
     },
     {
       "path": "scripts/kodjo/kodjo-git-read.js",
-      "blob_oid": "f7f9270ef662bf706d5694aad926e319b95482b0",
+      "blob_oid": "c1d7fe8f18c23b62c4e9008e2c3d03f9a4bb7729",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -461,7 +461,7 @@
     },
     {
       "path": "scripts/kodjo/lib/checks.js",
-      "blob_oid": "d6afff3623d84bd820eb46cb5dc4e8476032c38c",
+      "blob_oid": "c05390fe90651e76853d212d8ef492a0637f9355",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -476,7 +476,7 @@
     },
     {
       "path": "scripts/kodjo/lib/execution-lock.js",
-      "blob_oid": "6dd777228066f70230b65c6cea4cb9d32c0c5c96",
+      "blob_oid": "28c55e69f55fd9d7643e47ce1070476de76cc7be",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -496,7 +496,7 @@
     },
     {
       "path": "scripts/kodjo/lib/implementation-report.js",
-      "blob_oid": "1085aa6b9910d4981b9b7b6b8de3986ddae9a5e2",
+      "blob_oid": "6e7f3d7b329c4fe91827d823d35759e5f87ce823",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -516,12 +516,12 @@
     },
     {
       "path": "scripts/kodjo/lib/plan-impact.js",
-      "blob_oid": "6c69cae39422986233e053c12e9544bb5fab05df",
+      "blob_oid": "e4f65d030a4188e6e6858bf91732ac409815531c",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
       "path": "scripts/kodjo/lib/preflight-contract.js",
-      "blob_oid": "eb4dfbd2341126c52a532c7c10b13b5cfacc26de",
+      "blob_oid": "854678af53a11e2351e22f266ec93b9f57333e9d",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -576,7 +576,7 @@
     },
     {
       "path": "scripts/kodjo/lib/ui-criteria-contract.js",
-      "blob_oid": "8628c6ed63eecf4c07aa79f92a664710c356ff4a",
+      "blob_oid": "b36d2c337910f7a94ed32d66b717c33d893b1da7",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -706,12 +706,12 @@
     },
     {
       "path": "scripts/kodjo/run-local-claude.js",
-      "blob_oid": "930e97f9cd811354498f5386f24e26d66c6cce5b",
+      "blob_oid": "35286ee3dd43a0dbd6dcb8d4166030b012de933a",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
       "path": "scripts/kodjo/run-queued-request.ps1",
-      "blob_oid": "cc8386921bac3a4a8d136eb58afc0512f868e29f",
+      "blob_oid": "7a4206b312341b3105b63c1d94594b8f435f1e45",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -721,7 +721,7 @@
     },
     {
       "path": "scripts/kodjo/scan-remote-write-capability.js",
-      "blob_oid": "ef57b49e5519f002457c375f33ee273c12945c30",
+      "blob_oid": "3aae6106d441c2e3ce9762b49cb08b77ba36f5f1",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -806,7 +806,7 @@
     },
     {
       "path": "scripts/kodjo/verify-preflight-attestation.js",
-      "blob_oid": "46f93d1e7ff5fd1a4773c526c5dd0fbd6b49821a",
+      "blob_oid": "90e40539ba3b6021ee24f26226786a1bbba84d5b",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -821,7 +821,7 @@
     },
     {
       "path": "scripts/kodjo/verify-queue-preflight.js",
-      "blob_oid": "92d1afe409e84bf2863ec3eddad8731f73e8124b",
+      "blob_oid": "46ef7422910666e7f9fd6835247ea3221e4b5498",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -831,7 +831,7 @@
     },
     {
       "path": "scripts/kodjo/verify-ui-implementation-review.js",
-      "blob_oid": "6befdedc02ac65bc3d84d2ecc16758c08b0ec539",
+      "blob_oid": "32ecc5120c809cd8e89387089ec3ffd75f8f641e",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -841,7 +841,7 @@
     },
     {
       "path": "scripts/kodjo/verify-v2-finalization.js",
-      "blob_oid": "069336013f03a28ea4f0826a89e5dd9ab65b937d",
+      "blob_oid": "55fcff3e648abfcd598d73380344d0e3449fb522",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -858,7 +858,7 @@
   "declared_vnext_writers": [
     {
       "producer": ".github/workflows/kodjo-vnext12-disposable.yml",
-      "producer_blob_oid": "1a1716f4bf07c29766f4f1ea2dbe2f0db036dcd4",
+      "producer_blob_oid": "d6b26d4bacd9064be6da103885f069f714a234c6",
       "authorization_condition": "EXACT_OWNER_APPROVED_VNEXT12_DISPOSABLE_CONSUMPTION_ONLY",
       "required_job": "execute-initial",
       "capabilities": [

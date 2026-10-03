@@ -74,4 +74,20 @@ function resolveExecution(correspondence, records, { candidateHead, platform }) 
     readiness: 'NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT' };
 }
 
-module.exports = { validateCorrespondence, resolveExecution };
+function verifyPlatformCoverage(correspondence, results, candidateHead) {
+  V.assertSha40(candidateHead, 'VNEXT_EQ_CANDIDATE_REQUIRED');
+  if (!Array.isArray(results) || results.length !== 2
+      || JSON.stringify(results.map(r => r.platform).sort()) !== JSON.stringify(['linux', 'win32'])) V.fail('VNEXT_EQ_PLATFORM_PAIR_REQUIRED');
+  const expected = correspondence.cases.map(r => r.id).sort();
+  for (const result of results) {
+    if (result.schema_version !== 'kodjo.vnext.historical-execution.v1' || result.candidate_head !== candidateHead
+        || !result.counts || result.counts.failed !== 0 || result.counts.cancelled !== 0 || result.counts.todo !== 0
+        || !Array.isArray(result.cases) || JSON.stringify(result.cases.map(r => r.case_id).sort()) !== JSON.stringify(expected)) V.fail('VNEXT_EQ_PLATFORM_EVIDENCE_INVALID');
+    for (const row of result.cases) if (row.candidate_head !== candidateHead || row.platform !== result.platform || !['PASS', 'SKIP'].includes(row.status)) V.fail('VNEXT_EQ_PLATFORM_EVIDENCE_INVALID');
+  }
+  const missing = expected.filter(id => !results.some(result => result.cases.some(row => row.case_id === id && row.status === 'PASS')));
+  if (missing.length) V.fail('VNEXT_EQ_NO_PLATFORM_PASS', missing.join(','));
+  return {candidate_head: candidateHead, status: 'MAPPED_ASSERTIONS_PASS_ON_AT_LEAST_ONE_PLATFORM', case_count: expected.length,
+    individual_equivalence_proven: false, readiness: 'NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT'};
+}
+module.exports = { validateCorrespondence, resolveExecution, verifyPlatformCoverage };
