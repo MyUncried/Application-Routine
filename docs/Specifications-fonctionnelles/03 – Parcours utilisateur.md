@@ -313,7 +313,7 @@ Il souhaite consulter son historique afin de retrouver une séance, vérifier so
 1. L'utilisateur ouvre le menu **Suivi**.
 2. Il consulte la liste chronologique de ses Exécutions enregistrées.
 3. Il peut rechercher une Exécution et modifier l’ordre chronologique d’affichage, du plus récent au plus ancien ou inversement.
-4. Il consulte sur chaque carte condensée la date / heure, la durée réelle, le statut et le ressenti lorsqu'il existe.
+4. Il consulte les groupes de dates et, sur chaque carte, la nature, le titre, le statut, la durée réelle, la catégorie et le ressenti lorsqu’il existe ; aucune heure n’est affichée dans la carte (D-262).
 5. Il peut sélectionner une autre Exécution, modifier sa recherche ou inverser l’ordre chronologique d’affichage.
 
 La vue détaillée déployée d'une Exécution est reportée à une version ultérieure.
@@ -436,7 +436,7 @@ En cas d’arrêt confirmé, le Parcours, la Séance courante et les résultats 
 3. Consulter ou modifier l’Exercice.
 4. Revenir au Catalogue dans son état précédent.
 
-Le bouton Lecture reste réservé à l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé à l’Exercice, sans modifier l’action principale de la carte.
+Le bouton Lecture reste réservé à l’Exécution directe. La carte d’Exercice affiche son média dans la gouttière permanente, sans Déployer avec ou sans média (D-260/D-261) ; l’action principale reste inchangée.
 
 ## Ajouter plusieurs Exercices existants à une Composition — MVP T03
 
@@ -528,9 +528,9 @@ Le MVP ne comporte aucune recherche globale ni recherche locale dans les Catalog
 
 ## Parcours visuels des cartes — 30 septembre 2026
 
-Décisions finales du propriétaire : les 17 points sont clos ; aucune question ouverte. RG-1 à RG-13 s’appliquent avec RG-3 seule reportée (Séance sans vignette). RG-4 retire Déployer de l’exercice avec photo. Les cartes du Catalogue, des choix et de Composition n’affichent plus pauses/récupérations ; les Catalogues n’affichent plus la prochaine planification. Les données, calculs et fonctions de planification restent inchangés. D-195, D-206 et D-208 sont révisées uniquement sur ces règles d’affichage (D-238).
+Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
 
-Synthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 », Suivi « 18 h 42 ». Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.
+Synthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 » ; aucune heure dans la carte du Suivi. Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.
 
 RG-10 : le Profil porte une préférence silhouette facultative, homme/femme ; absence = homme affiché. Elle ne pilote que l’icône de zone corporelle, sans filtre, recherche ou effet métier. RG-11 à RG-13 : vignette 64 centrée et recadrée sans déformation (couverture pour une vidéo), place réservée pendant chargement/erreur, texte alternatif égal au nom de l’exercice.
 

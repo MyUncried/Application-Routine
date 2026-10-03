@@ -93,7 +93,7 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 | Écran 10 | Synthèse de séance — Ressenti sélectionné | `1992:8780` | `ecran-10-synthese-seance.png` | `402 × 874` | écran | COURANT |
 | Écran 10a | Synthèse de séance — Évaluation initiale | `1992:8718` | `ecran-10a-synthese-evaluation-initiale.png` | `402 × 874` | écran | COURANT |
 | Écran 11 | Suivi : Séances — Liste condensée | `1992:8843` | `ecran-11-suivi-condense.png` | `402 × 874` | écran | COURANT |
-| Écran 11a | Suivi : Séances — Vue déployée | `1992:8996` | `ecran-11a-suivi-deploye.png` | `402 × 874` | écran | COURANT |
+| Écran 11a | Suivi : Séances — Vue déployée | `1992:8996` | `ecran-11a-suivi-deploye.png` | `402 × 874` | écran | HISTORIQUE — hors MVP (D-261/D-262) |
 | Écran 11b | Suivi : Séances — État vide | `2117:190` | `ecran-11b-suivi-vide.png` | `402 × 874` | écran | COURANT |
 | Écran 12 | Catalogue des Exercices — Liste | `3786:5093` | `ecran-12-catalogue-activites-liste.png` | `402 × 874` | écran | COURANT |
 | Écran 13 | Ancien Catalogue des Exercices — Créer — Arbre d’actions | `3787:5148` | `ecran-13-catalogue-activites-creer-arbre.png` | `402 × 874` | écran | SUPERSEDED |
@@ -137,7 +137,7 @@ Les preuves d’usage sont distinctes de la preuve du composant et ne s’y subs
 | N° | Écran | Node Figma | Fichier | Variantes visibles contrôlées |
 | --- | --- | ---: | --- | --- |
 | Écran 11 | Suivi — Séances — Liste condensée | `1992:8843` | `ecran-11-suivi-condense.png` | `Terminée`, `Partielle`, `Interrompue` |
-| Écran 11a | Suivi — Séances — Vue déployée | `1992:8996` | `ecran-11a-suivi-deploye.png` | `Terminée`, `Partielle`, `Interrompue` |
+| Écran 11a | Suivi — Séances — Vue déployée | `1992:8996` | `ecran-11a-suivi-deploye.png` | `Terminée`, `Partielle`, `Interrompue` | <!-- Historique hors MVP : D-261/D-262 -->
 | Écran 2a | Recherche globale — Résultats affichés | `1992:10320` | `ecran-2a-recherche-globale-resultats.png` | `Catalogue`, `Planifiée`, `Exécutée`, `Archivée` |
 
 Les sept variantes ont été contrôlées visuellement sur l’export `status-badge-composant.png`. Les variantes visibles des trois preuves d’usage ont été contrôlées visuellement sur les exports correspondants.
@@ -160,7 +160,7 @@ Les sept variantes ont été contrôlées visuellement sur l’export `status-ba
 
 1. **Modale d’abandon de création d’Activité.** Le Figma courant contient `4714:6241 — Modal — Abandonner la création de l’activité`. Cette frame remplace l’ancienne référence disparue `3224:4082` pour le parcours de création courant.
 2. **Panneaux ouverts `Filtrer`.** Ils sont conçus et vérifiables dans Figma avec des options contextuelles selon le Catalogue. `Trier` reste visible mais disabled dans le périmètre T03.
-3. **Médias Activité.** Le média associé peut être affiché dans la carte déployée du Catalogue des Exercices dans le MVP. L’éditeur suit les frames courantes ; l’import/capture et la gestion multiple restent régis par leur périmètre propre. Voir D-195.
+3. **Médias Activité.** Le média associé est affiché dans la gouttière permanente de la carte du Catalogue des Exercices, sans déploiement (D-260/D-261). L’éditeur suit les frames courantes ; l’import/capture et la gestion multiple restent régis par leur périmètre propre. Voir D-195.
 4. **Ancien arbre `Créer` des Catalogues.** D-187 supprime cet écran intermédiaire : `Créer` est désormais contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant. Les frames `3787:5148` et `3841:8375` sont conservées comme évidences historiques/supersédées ; D-186 reste une décision historique.
 5. **Écran 1e — `ecran-1e-profil-parcours-vide.png`.** L’export de la frame `2139:86`, `Profil — Vue d’ensemble — Parcours vide`, est **strictement identique** (même empreinte binaire) à l’export de la frame `1992:684`, `Profil — Vue d’ensemble - Vibration activée`. L’état « parcours vide » n’est pas visuellement distinguable dans le Figma courant. Les deux nodes existent et sont conservés tels quels.
 
@@ -187,7 +187,7 @@ Selon D-204, le texte éditable distingue désormais les modes : en Répétition
 ## 9. Historique des exports
 
 État du 15 septembre 2026 :
-- le contrôle `Déployer` des cartes Activité était encore désactivé à cette date historique ; D-195 l’a depuis rendu actif dans le MVP pour afficher/masquer le média associé ;
+- le contrôle `Déployer` des cartes Activité était encore désactivé à cette date historique ; D-195 l’a rendu actif le24/09, puis D-261 l’a supprimé du MVP le03/10 ;
 - le composant `Navigation / Bottom — Source exact` (`2537:214`) utilisait des dessins de destination de dimension maximale `24 pt`, recentrés dans les boîtes optiques `32 × 32 pt` ;
 - les trois fichiers `CE-ACT-EXE-01a/01b/01c` avaient alors été réexportés après ces deux corrections.
 
@@ -216,3 +216,46 @@ Figma reste la source du rendu visuel courant. Une vérification Figma ne vaut p
 
 
 Les titres de famille remplacent désormais la numérotation dans le chapitre 06. Les numéros présents dans cet inventaire de fichiers sont des identifiants historiques de capture ; ils ne définissent pas de nouveaux écrans. Les PNG restent à leurs chemins d’origine.
+
+## Réexport des cartes — 03/10/2026
+
+36 écrans courants, exports directs402 × 874, contrôle visuel en planche et contrôle détaillé Catalogue Exercice/Suivi. Les deux déploiements historiques1992:8996/4738:6355 restent conservés, sans réexport comme cible courante.
+
+| Node | Fichier | Empreinte Git |
+|---|---|---|
+| `1992:5101` | `ecran-7a-calendrier-semaine.png` | `0ca1c7d530bf92c8acb6a59945f0c0459cbfff70` |
+| `1992:5365` | `modale-4-suppression-planification-unique.png` | `bd262a6a7ff3baeb928147c009a0303fa57212bc` |
+| `1992:5510` | `ecran-7-calendrier-jour.png` | `f244636fa09ba76f4ea2ee5462ec4d9515c0ee2e` |
+| `1992:5602` | `ecran-7c-calendrier-jour-appui-long.png` | `7d4545147c23834526da74d4922827fb2576950d` |
+| `1992:5697` | `ecran-7f-calendrier-jour-apres-planification.png` | `fee928c4e02b4ff65fc5b33468fd51533d600311` |
+| `1992:5794` | `ecran-7e-calendrier-creneau-a-planifier.png` | `4e76623e7799ab52735808ec8f2987cb35af359b` |
+| `1992:5962` | `ecran-7j-calendrier-semaine-actions.png` | `777be1a8cd21ec7d71dfce49472a42b91ff2cc42` |
+| `1992:6102` | `modale-4a-suppression-occurrences.png` | `7fe6f7b619f880788e647de995c4ed76ec1b9be6` |
+| `1992:6249` | `ecran-7d-calendrier-choisir-seance.png` | `3ad6ee4f308c71a66d9e9ba35d39f257034358a7` |
+| `1992:6389` | `ecran-7i-calendrier-semaine-deployee.png` | `3f0b24b221f6ed22a7fa6768d204ecdd8113c7e6` |
+| `1992:7861` | `ecran-8g-planifier-changer-seance.png` | `babd00ec27c68fedf832b44b4173f78a022a46e8` |
+| `1992:8843` | `ecran-11-suivi-condense.png` | `7175acebdfa2df05d7a47dc3fae9ce5406c5fc9a` |
+| `1992:9910` | `ecran-2-catalogue-seances.png` | `7f9169f212d7a6673d7f7d08acc54f6e5ab4ab6d` |
+| `1992:10014` | `ecran-2b-catalogue-seance-deployee.png` | `fd124699b95f8ae7211b859500ad24231db5c47c` |
+| `1992:10518` | `ecran-2d-catalogue-condense-actions.png` | `ee117ca78bbfdfc0da24abb12cce28ed291441fe` |
+| `1992:10628` | `ecran-2e-catalogue-deployee-actions.png` | `72ddd098e4cee8e34f84541face514147b55452c` |
+| `1992:10848` | `ecran-2g-catalogue-seance-restauree.png` | `fec2e085fc5cd936296205b56068565e14a9a290` |
+| `1992:10937` | `ecran-2h-catalogue-apres-archivage.png` | `fed22b502a386e12e5ad72b70e2aff4a1796e63c` |
+| `2059:267` | `ecran-7g-calendrier-jour-suivant.png` | `f94c3d3568771b8aedb6e4d2fa028bc9e8c7bf19` |
+| `2074:86` | `ecran-7l-calendrier-apres-suppression.png` | `552042355fc4369dc8e2598be6434b40a8b01fc4` |
+| `2094:86` | `ecran-7k-calendrier-etirements-actions.png` | `8c66fe5f7e32a7c49deb1dad9f88a219fc60cd86` |
+| `2234:88` | `modale-3-seance-archivee-action-supprimer.png` | `7f46d5ca3f75c848317ac84b6c9732b7fde63fe9` |
+| `2234:189` | `modale-3a-confirmer-suppression-seance-archivee.png` | `92c9c185d593ddcbd9671fc585a90223bc50d557` |
+| `2252:86` | `ecran-7h-calendrier-semaine-mardi.png` | `406b0d735b3b67d3415eba04c3d0582f4d7790cf` |
+| `3786:5093` | `ecran-12-catalogue-activites-liste.png` | `910e87af88debdacc36aa6904ddf902c02db6546` |
+| `3789:5349` | `ecran-14-selection-activites-existantes.png` | `6e42ebe3396f7f31d7ffa19e0713fcdca8bc35e1` |
+| `4168:11149` | `figma-4168-11149.png` | `ba5a14d0c06ddcbb394586c8a3e441a49df9e13f` |
+| `4168:11262` | `figma-4168-11262.png` | `47cd2f6e25af56e05a90457052a6e6c640bd223e` |
+| `4593:6285` | `figma-4593-6285.png` | `c6d7b1ba41223584049b73bc771814f464b57808` |
+| `4544:6344` | `figma-4544-6344.png` | `82a3272658818d19bce1d242d31aeee03986249a` |
+| `4544:6651` | `figma-4544-6651.png` | `8170693a9ffe6a38525805a4bbf4922b614ea1db` |
+| `4549:6382` | `figma-4549-6382.png` | `fc9bdc26f4520001bdbbdbf7b7034fd20b603957` |
+| `4549:6742` | `ecran-2f-catalogue-archivees.png` | `4d58c9a2d5da36b51e3e9f987ddc582240159449` |
+| `4592:6217` | `figma-4592-6217.png` | `cd20bf170b8e516d001b65f42dd49aa0e4450894` |
+| `4738:6209` | `figma-4738-6209.png` | `68ec9355429c29a521cca1a5f571217d7bb22116` |
+| `5451:4272` | `figma-5451-4272.png` | `34a70bcbc6948c3bf489661a9ef14ee582b254a5` |
