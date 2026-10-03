@@ -1,6 +1,6 @@
 # DSF — Séries variables et Ordre des côtés — 02/10/2026
 
-Complément des shells et composants existants ; aucun nouveau design. Sources : métadonnées et captures des copies Figma du02/10, fichierG6RY5Ebhgwb4AHIOYDwwvg. Figma fixe le layout ; [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md) et CE-UI-10 fixent les comportements et calculs. Les composants maîtres ne sont pas modifiés par cette livraison documentaire.
+Complément des shells et composants existants ; aucun nouveau design. Actualisé le03/10. Sources : métadonnées et captures courantes de Prototype MVP, fichierG6RY5Ebhgwb4AHIOYDwwvg. Figma fixe le layout ; [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md) et CE-UI-10 fixent les comportements et calculs. Les composants maîtres ne sont pas modifiés par cette livraison documentaire. Inventaire actuel : ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md.
 
 ## Fondations conservées et implantation
 
@@ -17,7 +17,7 @@ Complément des shells et composants existants ; aucun nouveau design. Sources :
 | Segmenté en feuille | Trois largeurs égales ; non sélectionné#FCFCFE, contour blanc ; Changement de côté13 px, centré sur deux lignes |
 | Libellé long | Pause entre les côtés sur deux lignes ; largeur180 px à402 pour éviter le stepper |
 | Roulette | DSF Forms/Roulette, minutes/secondes, sous sa ligne ; pas de seconde modale ni validation indépendante |
-| Message temporaire | Sous la ligne concernée à4 px ; état6603:11493 : croissance vers le haut de62 px à402, lignes du bas inchangées |
+| Message temporaire | Sous la ligne concernée à4 px ; état6423:9953 : croissance vers le haut de62 px à402, lignes du bas inchangées |
 
 
 ## Tableau variable et Ordre des côtés
@@ -26,24 +26,24 @@ Dimensions de référence à402px ; coordonnées locales au contenu de la feuill
 
 | Élément | Implantation / adaptation | Preuve |
 |---|---|---|
-| Groupe Séries variables | x24, largeur354 ; fond et contour rattachent l’interrupteur au tableau | 6623:13296 |
-| Ligne de commande | x36, largeur334, hauteur42 ; sous Séries ; libellé/chevron à gauche et interrupteur à droite | 6623:13296 |
-| Ligne variable | Numéro aligné à droite sans symbole, poignée puis cible et Pause ; deux steppers128px | 6623:13296/18007 |
-| À l’échec | Libellé fixe remplace cible ; seul le stepper Pause subsiste | 6623:13976 |
-| Ordre des côtés | Ligne après Changement de côté ; sélection sous la ligne, x36,330×60 ; deux options sur deux lignes, titre et flèches centrés | 6623:15446/15749 |
-| Total | Ligne du corps ; sans rôle bouton en variable ; demeure dans le flux lorsque tableau replié | 6623:17745 |
-| Douze lignes | Défilement du corps entier, en-tête fixe ; ne pas introduire un second scroll dans le tableau | 6623:14314/14880 |
-| N=1 | Interrupteur désactivé grisé, ordre effectif par défaut grisé ; aucun texte explicatif | 6623:16770, complété par arbitrage D-250 |
-| Invalide | ✓ grisé, cellule signalée, message en ligne nommant la Série ; total— | 6623:17404 |
-| Résumé parent | Trois premières valeurs et ellipse ; ordre des côtés dans le texte | 6611:12781/12930/13073/13215 |
-| Ligne de Séance | N séries variables, sans liste des valeurs | 6637:13132 |
-| Exécution | Série n/N et côté distinct ; aucune barre par Série ; barre Tour réservée à la Séance | 6612:12371/12471/12272 |
+| Groupe Séries variables | x24, largeur354 ; fond et contour rattachent l’interrupteur au tableau | 6665:24616 |
+| Ligne de commande | x36, largeur334, hauteur42 ; sous Séries ; libellé/chevron à gauche et interrupteur à droite | 6665:24616 |
+| Ligne variable | Numéro aligné à droite sans symbole, poignée puis cible et Pause ; deux steppers128px | 6665:24616/27608 |
+| À l’échec | Libellé fixe remplace cible ; seul le stepper Pause subsiste | 6665:25072 |
+| Ordre des côtés | Ligne après Changement de côté ; sélection sous la ligne, x36,330×60 ; deux options sur deux lignes, titre et flèches centrés | 6665:26185 (segmenté) /6665:26575 (valeur alternée) |
+| Total | Ligne du corps ; sans rôle bouton en variable ; demeure dans le flux lorsque tableau replié | 6665:27458 |
+| Douze lignes | Défilement du corps entier, en-tête fixe ; ne pas introduire un second scroll dans le tableau | 6665:25277 (haut ; bas sans frame dédiée) |
+| N=1 | Interrupteur désactivé grisé, ordre effectif par défaut grisé ; aucun texte explicatif | 6665:26822, complété par arbitrage D-250 |
+| Invalide | ✓ grisé, cellule signalée, message en ligne nommant la Série ; total— | 6665:27232 |
+| Résumé parent | Trois premières valeurs et ellipse ; ordre des côtés dans le texte | 6665:27862/28050 ; Répétitions derrière6665:24844 |
+| Ligne de Séance | N séries variables, sans liste des valeurs | 6665:23973 |
+| Exécution | Série n/N et côté distinct ; aucune barre par Série ; barre Tour réservée à la Séance | 1992:8132,4968:8188,5581:4257 ; états spécialisés non représentés actuellement |
 
 Les largeurs sont des références de rendu : adapter dans le shell360/402/440, Safe Areas et texte agrandi, sans couper les valeurs ni chevaucher les cibles tactiles. Garder les contrôles directs dans la feuille, aucun sous-dialogue variable. Nommer chaque stepper avec Série et unité ; annoncer erreur et lecture seule ; fournir une action accessible de déplacement utilisant le même ordre métier. D-237 régit appuis et maintien450/150ms ; ne pas inventer de temporisation métier.
 
 ## Portée et écarts observés
 
-Le frame6607:10896 est un essai de composants, pas une preuve de promotion dans le DSF. Les chiffres de Figma ne sont pas normatifs : les douze lignes correspondent à8min30s suivant v12 ; la capture affiche5min20s. Les anciennes mentions Tour en direct et les lignes Récupération visibles en Composition restent des écarts connus : ACTIVITY n’a pas de Tour, D-238 retire les récupérations des cartes. Aucun PNG n’est retouché pour masquer ces différences.
+Les anciennes copies et le frame d’essai6607:10896 ne sont plus présents sur Prototype MVP. Les fichiers documentaires historiques restent conservés.6665:25277 montre le haut du contenu12séries ; le total situé plus bas ne peut pas être déclaré visuellement vérifié depuis cette capture. Les anciens écarts de5min20 appartiennent au relevé historique. La recette normative reste8min30 pour les données indiquées. Les références directes affichant Tour et la récupération visible en Composition conservent les écarts déjà tracés, sans changement métier.
 
 La confirmation Supprimer cette séance ? (2234:189) conserve le dialogue destructif du DSF du01/10 : Annuler gris à gauche, Confirmer terre cuite à droite. Sa présence ne prouve aucun câblage interactif.
 

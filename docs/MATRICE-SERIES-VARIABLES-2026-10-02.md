@@ -1,3 +1,5 @@
+> Relevé du02/10, complété et remplacé pour les références Figma par [l’état des lieux du03/10](ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md). Les39copies sont une preuve historique, pas l’inventaire actuel. La réserve reset/saut a été retirée : D-029/D-150 s’appliquent aux deux ordres.
+
 # Matrice — Séries variables et Ordre des côtés — 02/10/2026
 
 Source active : [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md), D-247 à D-255. Baseline main8fc58a466679a85ea74752f0273939f901efa1b8, dernier identifiant antérieur D-246. Ce document remplace les anciennes matrices de calcul/bilatéralité sur le périmètre modifié ; il ne certifie pas le code.
@@ -47,7 +49,7 @@ Source active : [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MOD
 | Bornes | N1/99 ; durée1/5999s ; répétitions1/100 ; pauses4→5→10 et120→150 aller/retour ; total variable readonly/incomplet— |
 | Persistance | Réouverture, duplication, copie vers Séance, ancien exercice uniforme ; résultats historiques inchangés |
 | Layout | 12lignes haut/bas, tableau replié, erreur, texte agrandi, Safe Areas ; trois premières valeurs résumé ; Série/côté distincts |
-| Limite fonctionnelle | Reset et saut anticipé de bloc dans le nouvel ordre entrelacé : mapping absent des sources ; chapitre13 R-03 et rapport |
+| Réinitialisation / passage anticipé | D-029/D-150 conservées dans les deux ordres ; côté courant depuis sa première Série, résultats de l’autre côté préservés. Aucune nouvelle question métier. |
 
 Ces critères sont documentaires ; aucune exécution de tests applicatifs ni recette interactive Figma n’est revendiquée. PRE-1 reste figé.
 

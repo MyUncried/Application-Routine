@@ -323,3 +323,7 @@ Les captures sont intégrées en Markdown standard et regroupées dans leur fami
 | `6419:10028` | CE-UI-10 | `images/figma-6419-10028.png` |
 | `6423:9953` | CE-UI-10 | `images/figma-6423-9953.png` |
 | `2234:189` | CE-T03-01 | `images/modale-3a-confirmer-suppression-seance-archivee.png` ; boutons non câblés |
+
+## Inventaire courant du parcours Créer un exercice — 03/10/2026
+
+[État des lieux exhaustif,42frames et revue des contrats](ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md). Les références actuelles remplacent les copies du02/10 :37frames de la famille création/modification,2effets Catalogue/Composition et3exécutions. La réserve de réinitialisation a été retirée : D-029/D-150 restent applicables aux deux ordres.

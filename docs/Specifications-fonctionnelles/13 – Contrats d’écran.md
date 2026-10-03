@@ -28,7 +28,7 @@ Figma ne transforme jamais une valeur de démonstration en règle métier. Inver
 
 Catalogue et exécution ACTIVITY : durée intrinsèque. Composition, détails de Séance, calendrier SESSION et exécution SESSION : durée d’occurrence avec substitution terminale, sans ajouter R deux fois. Les résumés compacts variables affichent N séries variables ; le tableau détaillé appartient seulement à CE-UI-10. Copie/duplication et instantané conservent l’état variable explicite, les cibles/Pauses ordonnées et l’Ordre des côtés. Ces règles s’appliquent aux contrats hôtes, y compris CE-UI-01/02/03/05 et CE-T03-01/06/07/08. Les règles propres aux cartes et médias sont conservées.
 
-Les prescriptions historiques de reset/saut d’un bloc de côté restent définies pour Un côté après l’autre. Leur application au nouvel ordre Les deux côtés à chaque série reste explicitement non définie au §6 R-03 ; les contrats d’exécution ne doivent pas la déduire d’un câblage Figma.
+Réinitialiser conserve D-029/D-150 : recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé. Cette portée s’applique aussi à Les deux côtés à chaque série ; un passage déjà acquis de l’autre côté n’est pas rejoué. Exemple : gauche2/3 → reprise gauche1/3, résultats droits conservés. Pendant une récupération, RM-062 réinitialise seulement cette phase. Le passage anticipé conserve D-150 : côté courant partiel, poursuite des passages restant à exécuter de l’autre côté ; les résultats acquis ne sont pas effacés. Ces conséquences du périmètre existant ne constituent pas un nouvel arbitrage.
 
 ## 3. Structure canonique obligatoire
 
@@ -409,6 +409,8 @@ Vérifier aussi les cartes variables dans les trois modes et la durée intrinsè
 
 ### 21. Traçabilité
 
+Référence variable courante6665:24120 : indicateur N séries variables sans détail ; total intrinsèque selon mode. État ajouté au chapitre06 et à la matrice du03/10.
+
 D-167/D-173/D-187/D-193/D-195 révisée par D-238 ; D-221/D-233–239 ; API-CAT-01 ; frames 3786:5093, 4168:11262, 4521:6220, 4544:6344/6651, 4738:6209/6355. Cible Photo : wireframe 6354:16964 ; limites §5.
 
 ---
@@ -505,7 +507,7 @@ D-187/D-221 ; CE-T03-01/02/04/08 ; frames 1992:9910 et 3786:5093.
 
 ### 1. Identification
 
-Éditeur Exercice persistant, CE-T03-04. Frames courantes6603:10219 (vide) et6603:10414 (résumé), complétées par6611:12781/12930/13073/13215. Feuille propriétaire CE-UI-10. Les anciennes frames de phrase éditable sont historiques ; Catégorie/Zones restent CE-UI-09.
+Formulaire créer/modifier :3943:6064,4217:6980,5088:6398,3542:4656,4734:6342. Carte vide6407:9458, résumé uniforme6407:9702, variables6665:27862/28050. Abandon4714:6241. Feuille CE-UI-10 et référentiels CE-UI-09 ; inventaire courant du03/10.
 
 ### 2. Finalité fonctionnelle
 
@@ -541,7 +543,7 @@ Carte Paramètres : trois premières valeurs variables puis… ; Répétitions s
 
 ### 9. Layout déterministe
 
-Placement du formulaire selon6603:10219/10414 et les résumés6611. Paramètres de la feuille : DSF-SERIES-VARIABLES-2026-10-02, CE-UI-10. Aucun remplacement des autres shells ou géométries de référentiels.
+Shell conservé : en-tête fixe, bandeau nom/référentiels, carte Paramètres, Description, Média, action Terminer. Références3943:6064/4734:6342/6407:9702 et6665:27862/28050. Les deux nouveaux résumés gardent cette implantation ; le texte peut grandir, sans déplacement arbitraire des contrôles. Feuille selon DSF-SERIES-VARIABLES-2026-10-02, actualisé le03/10.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -549,7 +551,7 @@ Placement du formulaire selon6603:10219/10414 et les résumés6611. Paramètres 
 
 ### 11. États de l’écran
 
-Création carte vide, résumé validé, feuille ouverte/annulée/validée, modification préremplie, trois modes et côtés, erreur de sauvegarde, média indisponible.
+Vide, nom seul, catégorie renseignée, nom/description/média renseignés, modification existante, résumé uniforme, résumé variable Durée/Répétitions/À l’échec, bilatéral et chacun des ordres, abandon confirmé/annulé, erreur de sauvegarde. Le résumé Répétitions est visible derrière6665:24844 ; pas de vue parent dédiée actuellement. L’absence de capture ne retire pas cet état du contrat.
 
 ### 12. Contrôles et interactions
 
@@ -593,9 +595,7 @@ Sauvegarder/réouvrir après bascules, déplacement et N1 ; vérifier indépenda
 
 ### 21. Traçabilité
 
-D-246 ; SPECIFICATION-PARAMETRES-MODALE-v12.md ; CE-UI-10/CE-UI-09 ; frames6603:10219/10414 et6611 ; DSF-SERIES-VARIABLES-2026-10-02.
-
----
+D-246 à D-255 ; v12 ; CE-UI-10/09 ; état des lieux du03/10 (chaque frame, capture, statut, contrat). Anciennes copies hors Prototype MVP actuel, aucune modification de règle issue de leurs chiffres.
 
 ## CE-T03-05 — ActivityDefinition — archiver / restaurer / supprimer
 
@@ -950,6 +950,8 @@ Créer/éditer/abandonner après nom, insertion, réordre, duplication, Étiquet
 Scénario B=285s, R0 conserve PN ; déplacer/dupliquer conserve tableau/ordre/R et ne modifie pas la définition Catalogue.
 
 ### 21. Traçabilité
+
+Référence variable courante6665:23973 : N séries variables. Les mots Parcours et récupération visible sont des écarts déjà tracés ; Circuit/Tour et D-238 restent normatifs.
 
 D-188–194/D-208–214/D-217/D-222/D-238 ; CE-T03-06/07/16, CE-EXEC-SESSION-01 ; frames§1 ; prescriptions de brouillon du chapitre 06 et décisions actives priment sur l’ancienne autosauvegarde de Composition.
 
@@ -1866,6 +1868,8 @@ Tester 0/1/N médias, mélange image/vidéo, premier/dernier, un swipe=un média
 
 ### 21. Traçabilité
 
+Réexport5581:4257 du03/10 ; valeurs Série0/3 et Tour0/3 d’exemple ne définissent ni index initial ni Tour ACTIVITY.
+
 D-203/D-216/D-220/D-237 ; CONCEPTION-EXECUTION-MEDIA §§3–6/9–14 ; DSF-V2-MOTIFS-LOT-3 T10 ; frames§1 ; CE-T03-09..13/CE-EXEC-SESSION-01.
 
 ---
@@ -2668,6 +2672,8 @@ Ordres D→G/G→D, A–F, N1, R0/positif et dernière occurrence/chaque Tour ; 
 
 ### 21. Traçabilité
 
+Réexport courant1992:8132 du03/10 : Série et côté séparés. Références dédiées de récupération terminale/paire de côtés absentes de Prototype MVP actuel ; recette prescrite, preuve visuelle partielle.
+
 D-133/D-149/D-150/D-191/D-197/D-208–220 ; chapitres 04/08/09/10/11/12 ; CE-UI-08 ; frames§1. Spécification de la famille T04, sans lancement d’une implémentation dans cette livraison.
 
 ---
@@ -2844,6 +2850,8 @@ Catégorie choix/annulation/création/couleur ; Zones 0/1/N ; noms vide/dupliqu�
 
 ### 21. Traçabilité
 
+Les6frames de référentiels ont été réexportées et contrôlées le03/10 : rendu identique aux PNG publiés. ✓ sur Catégorie reste un écart à D-222 ; validation simple au toucher conservée. Les paramètres variables du parent sont conservés durant ces opérations.
+
 D-199/D-200/D-210–212/D-222/D-238 ; CE-T03-04 ; frames§1. Renommage sans frame dédiée : comportement requis, rendu non prouvé.
 
 ---
@@ -2852,7 +2860,7 @@ D-199/D-200/D-210–212/D-222/D-238 ; CE-T03-04 ; frames§1. Renommage sans fram
 
 ### 1. Identification
 
-CE-UI-10 — feuille Paramètres d’exécution, depuis CE-T03-04. États et captures du02/10 dans le chapitre06 et la matrice dédiée ; références principales6623:12956/13296/13636/13976/14314/14880/15446/15749/16052/16770/17065/17404/17745/18007. Une feuille, plusieurs états.
+Une feuille depuis CE-T03-04 :21états courants recensés le03/10. Uniformes6407:9551/9805/9966/10127/10481,6411:9546/9649,6419:9847/10028,6423:9953 ; variables6665:24616/24844/25072/25277/26185/26575/26822/27008/27232/27458/27608. Captures centralisées au chapitre06.
 
 ### 2. Finalité fonctionnelle
 
@@ -2888,11 +2896,11 @@ Interrupteur sous Séries ; tableau rattaché, ligne numérotée à droite sans 
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Toute la feuille défile sous en-tête fixe dans Safe Areas ; tableau12 lignes démontré en haut/bas. Agrandir lignes pour texte accessible, ne pas couper les contrôles. Le total reste dans le flux et peut sortir du viewport. Tableau masqué ne crée pas de scroll indépendant.
+Corps entier défilant sous en-tête fixe, Safe Areas et texte agrandi.6665:25277 montre le haut et les12lignes ; total/CR/Fin sous le viewport : accessibles par scroll, pas de second scroll dans le tableau. La position basse n’a plus de frame dédiée dans Prototype MVP et reste à qualifier visuellement. Le total reste dans le flux lorsque le tableau est replié.
 
 ### 11. États de l’écran
 
-Uniforme, variable activé par copie, Durée/Répétitions/À l’échec, 12lignes haut/bas, chacun des deux ordres, variable+bilatéral, N1, changement de mode incomplet, erreur de validation, repli du tableau, ligne déplacée, message de total ajusté en Durée uniforme.
+Uniforme, variable activé par copie, Durée/Répétitions/À l’échec, 12lignes avec défilement requis, chacun des deux ordres, variable+bilatéral, N1, changement de mode incomplet, erreur de validation, repli du tableau, ligne déplacée, message de total ajusté en Durée uniforme.
 
 ### 12. Contrôles et interactions
 
@@ -2932,9 +2940,7 @@ Scénarios A–F et N1 v12§9 ; 1/99séries, 1/100répétitions,1/5999s ; pauses
 
 ### 21. Traçabilité
 
-D-247 à D-255 ; v12 ; DSF-SERIES-VARIABLES-2026-10-02 ; matrice du02/10. C1–C27 et prompt amendés par arbitrages du propriétaire. Frames Copie = layout de travail, pas preuve d’intégration dans les composants ou d’exécution applicative.
-
----
+D-247 à D-255 ; v12 ; DSF actualisé03/10 ; ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03. Les références courantes sont dans Prototype MVP, pas des copies de travail. Les états sans frame dédiée sont listés séparément ; aucune recette interactive ni propagation aux composants maîtres n’est présumée.
 
 ## 5. État des preuves visuelles
 
@@ -2953,7 +2959,7 @@ D-247 à D-255 ; v12 ; DSF-SERIES-VARIABLES-2026-10-02 ; matrice du02/10. C1–C
 | V-11 |Compte à rebours Composition inline 2028:11375 mais description roulette ; pas Fin 5 s contre prescription 1 s | CE-T03-08 ; aucun état de picker déclaré vérifié tant que la description 06 et sa preuve ne sont pas réconciliées |
 | V-12 |Archives Exercice sans écran complet ; Photo à200% non qualifiée ; animations non câblées ; contrastes acceptés | Limites déjà documentées du DSF, pas de nouvelle décision produit |
 
-Les captures sont centralisées au chapitre 06 ; les références historiques et les nouvelles copies du02/10 y sont distinguées. La matrice donne l’inventaire, dont les références hors prototype qui ne deviennent pas des écrans MVP. Les matrices ci-jointes donnent les rattachements ; la présence de chaque capture a été vérifiée lors de l’audit, pas son fonctionnement interactif.
+Les captures courantes sont centralisées au chapitre06 ; l’état des lieux du03/10 distingue42références du parcours, leurs contrats et les copies historiques remplacées. La matrice donne l’inventaire, dont les références hors prototype qui ne deviennent pas des écrans MVP. Les matrices ci-jointes donnent les rattachements ; la présence de chaque capture a été vérifiée lors de l’audit, pas son fonctionnement interactif.
 
 ## 6. Clôture des réserves fonctionnelles des contrats
 
@@ -2980,7 +2986,7 @@ Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(T
 
 La source active est v12 §§3–5 ; D-242 est supersédée. Les tests PRE-1 restent figés sur leur source historique.
 
-Réinitialisation : en Un côté après l’autre, conserver D-029/D-150 : bloc du côté courant depuis sa première Série, résultats de l’autre côté et temps total préservés. Pendant une récupération, RM-062 réinitialise uniquement la phase courante. En Les deux côtés à chaque série, les sources ne définissent pas comment rejouer un bloc de côté entrelacé avec l’autre ; ce cas reste une limite fonctionnelle explicite, pas une règle déduite de Figma. Même limite pour le saut anticipé historique du bloc du premier côté.
+Réinitialiser conserve D-029/D-150 : recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé. Cette portée s’applique aussi à Les deux côtés à chaque série ; un passage déjà acquis de l’autre côté n’est pas rejoué. Exemple : gauche2/3 → reprise gauche1/3, résultats droits conservés. Pendant une récupération, RM-062 réinitialise seulement cette phase. Le passage anticipé conserve D-150 : côté courant partiel, poursuite des passages restant à exécuter de l’autre côté ; les résultats acquis ne sont pas effacés. Ces conséquences du périmètre existant ne constituent pas un nouvel arbitrage.
 
 Pause de sécurité : sans réponse au choix Reprendre/Arrêter, l’exécution reste suspendue, son état est conservé et son temps n’avance plus. Aucun délai d’arrêt automatique supplémentaire.
 

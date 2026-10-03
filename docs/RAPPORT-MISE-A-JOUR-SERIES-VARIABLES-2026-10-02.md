@@ -1,3 +1,5 @@
+> Relevé du02/10, complété et remplacé pour les références Figma par [l’état des lieux du03/10](ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md). Les39copies sont une preuve historique, pas l’inventaire actuel. La réserve reset/saut a été retirée : D-029/D-150 s’appliquent aux deux ordres.
+
 # Rapport — mise à jour Séries variables et Ordre des côtés — 02/10/2026
 
 ## Base vérifiée et portée
@@ -36,7 +38,7 @@ Ces vérifications ne sont ni une recette applicative ni une preuve de câblage 
 
 Les questions produit de la section5 ont été arbitrées : déplacement/restauration, pas, compatibilité et libellé Profil. N=1 a aussi été clarifié explicitement. Le départ G→D est spécifié symétriquement ; aucune copie dédiée n’a été trouvée dans le lot, donc sa recette visuelle reste à fournir. La vérification des chiffres n’en fait jamais une source métier.
 
-**Une ambiguïté fonctionnelle supplémentaire subsiste :** l’ancien reset et le passage anticipé agissent sur un bloc du côté courant. Les sources n’expliquent pas comment les appliquer à des côtés entrelacés dans « Les deux côtés à chaque série » (rejouer quoi, préserver quels passages déjà exécutés). Les règles de l’ordre groupé restent conservées ; aucun choix pour l’ordre alterné n’est inventé. Cette réserve est portée dans v12§7 et chapitre13§6 R-03 avant implémentation de ces commandes.
+**Correction du03/10 :** Réinitialiser conserve D-029/D-150 : recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé. Cette portée s’applique aussi à Les deux côtés à chaque série ; un passage déjà acquis de l’autre côté n’est pas rejoué. Exemple : gauche2/3 → reprise gauche1/3, résultats droits conservés. Pendant une récupération, RM-062 réinitialise seulement cette phase. Le passage anticipé conserve D-150 : côté courant partiel, poursuite des passages restant à exécuter de l’autre côté ; les résultats acquis ne sont pas effacés. Ces conséquences du périmètre existant ne constituent pas un nouvel arbitrage.
 
 | Écart de preuve Figma | Traitement documentaire |
 |---|---|

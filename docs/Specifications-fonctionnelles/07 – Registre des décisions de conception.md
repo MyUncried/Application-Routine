@@ -387,3 +387,7 @@ Dernier identifiant publié vérifié sur main 8fc58a4 : D-246.
 | D-253 | Libellé Pause entre les côtés dans tout le produit, Profil compris ; défaut10s inchangé. Résumé paramètres : trois premières valeurs variables ; lignes séance : N séries variables seul. Compteur Série n/N et côté séparé ; aucune barre par Série. | Validée | Prompt§4 et confirmation vocabulaire02/10 |
 | D-254 | Nouvelle politique des pauses appliquée aussi aux Exercices existants ; quantité de travail et ordre par défaut conservés, augmentation de durée assumée ; aucun recalcul des résultats historiques. R>0 ne garantit pas une durée identique à l’ancienne règle en bilatéral. | Validée | C21 amendée et confirmation02/10/2026 |
 | D-255 | Spécifications et arbitrages déterminent calculs et comportements ; Figma définit uniquement le layout/rendu. Exemples chiffrés et câblages ne sont jamais une règle. PRE-1 reste figé ; cible documentaire préalable à PRE-2. | Validée | Clarification explicite02/10/2026 |
+
+## Rectification documentaire du03/10/2026
+
+La réserve créée le02/10 sur Réinitialiser et le saut du bloc de côté était injustifiée. D-029/D-150 conservent leur portée dans les deux ordres ; la documentation décrit leur application aux passages alternés sans nouveau choix de design. Le nouvel inventaire courant est celui du03/10, après remplacement des copies par les frames intégrées à Prototype MVP. Aucun nouvel identifiant de décision métier n’est créé pour cette correction.
