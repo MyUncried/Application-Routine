@@ -130,14 +130,14 @@ Avancement vers l’écran suivant : cible entre depuis la droite, écran couran
 Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` partagent le même contrat :
 
 - appui court : choix simple Catégorie/Étiquette validé au toucher et fermeture ; choix multiple Zones sélectionné/désélectionné puis confirmé ;
-- appui long : aucun changement de sélection et ouverture d’un `Overlay / Decision Dialog` destructif à deux actions ;
+- appui long : aucun changement de sélection ni désaffectation ; ouverture d’un `Overlay / Decision Dialog` proposant `Modifier` (renommer ; couleur pour Catégorie et Étiquette) et `Supprimer` (D-259) ;
 - titre dynamique : `Supprimer « {nom} » ?` ;
 - message dynamique : si la valeur est utilisée, préciser qu’elle disparaît des nouveaux choix mais reste attachée aux objets existants, avec son nom et sa dernière couleur ; l’historique reste inchangé ;
-- actions : `Annuler` à gauche, `Supprimer` à droite ;
+- actions : `Annuler`, `Modifier`, `Supprimer` ; `Supprimer` demande la confirmation destructive ci-dessus ; `Modifier` ouvre la saisie du nom (et la palette pour Catégorie/Étiquette) avec les composants existants ;
 - toutes les valeurs sont concernées, y compris les valeurs initiales fournies par KODJO ;
 - après `Supprimer`, revenir à la modale de sélection restée ouverte, avec la valeur supprimée absente ;
 - une affectation existante reste sélectionnée et peut être conservée à l’enregistrement ; une nouvelle affectation à cette valeur retirée n’est plus permise ;
-- aucune restauration automatique d’une valeur initiale supprimée.
+- aucune restauration automatique d’une valeur supprimée au démarrage ou par migration ; créer explicitement un nom correspondant à une valeur retirée la réactive (D-257).
 
 La recette doit couvrir au minimum une Étiquette, une Catégorie et une Zone corporelle, chacune dans un cas utilisé et non utilisé.
 
@@ -1619,7 +1619,7 @@ Action Étiquette dans CE-T03-08, avec sélection courante et brouillon conserv�
 
 ### 4. Contexte de sortie / destinations
 
-Choix simple valide au toucher puis ferme vers Composition ; fermer sans choix laisse la sélection antérieure. Retirer l’affectation revient à zéro Étiquette. Nouvelle Étiquette ouvre la création dans cette famille.
+Choix simple valide au toucher puis ferme vers Composition ; fermer sans choix laisse la sélection antérieure. Un nouvel appui sur l’Étiquette sélectionnée retire l’affectation et revient à zéro Étiquette (D-259). Nouvelle Étiquette ouvre la création dans cette famille.
 
 ### 5. Données affichées et source de vérité
 
@@ -1651,7 +1651,7 @@ Aucune/une Étiquette ; liste vide ; création ; nom invalide ; sélection retir
 
 ### 12. Contrôles et interactions
 
-Tap valide une sélection simple ; appui long ne change pas la sélection et ouvre suppression. Créer valide le référentiel ; son affectation reste dans le brouillon de Séance. La suppression globale conserve les affectations existantes D-210.
+Tap valide une sélection simple ; appui long ne change pas la sélection et ouvre le dialogue Modifier/Supprimer (D-259). Créer valide le référentiel ; son affectation reste dans le brouillon de Séance. La suppression globale conserve les affectations existantes D-210.
 
 ### 13. Gestes
 
@@ -1659,7 +1659,7 @@ Tap, scroll, appui long option ; fermeture hors dialogue n’exécute jamais Sup
 
 ### 14. Validation
 
-Nom de nouvelle Étiquette non vide et unique dans le référentiel ; couleur choisie dans palette. Aucune Étiquette exigée pour Continuer dans Composition ; affectation retirée existante reste conservable.
+Nom de nouvelle Étiquette non vide et unique dans le référentiel ; couleur choisie dans palette. Un nom correspondant à une Étiquette retirée la réactive avec la couleur choisie (D-257). Aucune Étiquette exigée pour Continuer dans Composition ; affectation retirée existante reste conservable.
 
 ### 15. Brouillon et persistance
 
@@ -1687,7 +1687,7 @@ Aucune/une sélection, changement/fermeture ; créer nom valide/vide/dupliqué e
 
 ### 21. Traçabilité
 
-D-188/D-200/D-210–212/D-222 ; CE-T03-08 ; frames§1. Renommage requis, sans frame dédiée : couverture fonctionnelle, preuve visuelle à compléter.
+D-188/D-200/D-210–212/D-222 ; CE-T03-08 ; frames§1. Renommage et couleur via Modifier du dialogue d’appui long (D-259), composants existants ; preuve visuelle en recette.
 
 ---
 
@@ -1982,7 +1982,7 @@ Enregistrer valide/persiste et revient à Profil ; retour avec modification prop
 
 ### 5. Données affichées et source de vérité
 
-Photo locale facultative, nom d’affichage et silhouette facultative homme/femme ; absence silhouette affiche homme. Les champs viennent du brouillon de Profil, pas de données d’événement.
+Photo locale facultative choisie dans la galerie (D-258), nom d’affichage et silhouette facultative homme/femme ; absence silhouette affiche homme. Les champs viennent du brouillon de Profil, pas de données d’événement.
 
 ### 6. Classification des valeurs Figma
 
@@ -2030,7 +2030,7 @@ Destination Profil inchangée ; préférence relue après relance.
 
 ### 17. Erreurs et cas limites
 
-Nom vide/trop long : erreur liée au champ, rester ; photo indisponible : avatar/initiales sans empêcher l’accès aux champs ; erreur sauvegarde : conserver brouillon, aucune mutation partielle.
+Nom vide/trop long : erreur liée au champ, rester ; photo indisponible : avatar/initiales sans empêcher l’accès aux champs ; choix de photo annulé : aucune modification ; échec de lecture ou de copie : message, brouillon conservé ; erreur sauvegarde : conserver brouillon, aucune mutation partielle.
 
 ### 18. Accessibilité
 
@@ -2550,7 +2550,7 @@ Tap bascule ; stepper incrément immédiat, maintien 450 ms puis pas 150 ms, arr
 
 ### 14. Validation
 
-Valeurs non négatives ; pauses côté/récupération 0..300 s, progression1s jusqu’à5s, puis5s jusqu’à120s, puis30s jusqu’à300s. Respecter les bornes des réglages propres déjà définies ; pas de maximum déduit d’un exemple. Les bornes partagées sont consolidées au §6 R-02.
+Valeurs non négatives ; pauses côté/récupération 0..300 s, progression1s jusqu’à5s, puis5s jusqu’à120s, puis30s jusqu’à300s. Compte à rebours d’exercice et Fin d’exercice : 0..60 s, pas 1 s (D-256) ; pas de maximum déduit d’un exemple. Les bornes partagées sont consolidées au §6 R-02.
 
 ### 15. Brouillon et persistance
 
@@ -2814,7 +2814,7 @@ Liste vide/initiale/enrichie ; aucune/une Catégorie ; zéro/N Zones ; création
 
 ### 12. Contrôles et interactions
 
-Catégorie tap valide/ferme ; Zones tap toggle puis confirmer. Appui long ouvre suppression sans sélectionner. Créer/renommer conserve identité de référence ; changer couleur Catégorie se propage aux objets courants, pas aux instantanés.
+Catégorie tap valide/ferme ; Zones tap toggle puis confirmer. Appui long ouvre le dialogue Modifier/Supprimer sans sélectionner (D-259). Créer/renommer conserve identité de référence ; changer couleur Catégorie se propage aux objets courants, pas aux instantanés.
 
 ### 13. Gestes
 
@@ -2822,7 +2822,7 @@ Tap, scroll, saisie et appui long option ; aucun drag des référentiels ; appui
 
 ### 14. Validation
 
-Nom non vide et unique dans son référentiel ; Catégorie exactement 1, Zones≥1 pour nouvel objet. Une valeur retirée ne peut recevoir de nouvelle affectation ; l’ancienne affectation n’exige pas un remplacement forcé.
+Nom non vide et unique dans son référentiel ; un nom correspondant à une valeur retirée la réactive avec son identifiant et ses associations (D-257) ; Catégorie exactement 1, Zones≥1 pour nouvel objet. Une valeur retirée ne peut recevoir de nouvelle affectation ; l’ancienne affectation n’exige pas un remplacement forcé.
 
 ### 15. Brouillon et persistance
 
@@ -2834,7 +2834,7 @@ Fermer restitue éditeur/brouillon ; Annuler suppression restitue sélection int
 
 ### 17. Erreurs et cas limites
 
-Nom vide/dupliqué, valeur retirée entre lecture et choix, échec écriture : message et brouillon conservé. Ne jamais recréer automatiquement une valeur initiale supprimée.
+Nom vide/dupliqué, valeur retirée entre lecture et choix, échec écriture : message et brouillon conservé. Ne jamais recréer ni réactiver automatiquement une valeur supprimée au démarrage ou par migration ; seule une création explicite du même nom la réactive (D-257).
 
 ### 18. Accessibilité
 
@@ -2852,7 +2852,7 @@ Catégorie choix/annulation/création/couleur ; Zones 0/1/N ; noms vide/dupliqu�
 
 Les6frames de référentiels ont été réexportées et contrôlées le03/10 : rendu identique aux PNG publiés. ✓ sur Catégorie reste un écart à D-222 ; validation simple au toucher conservée. Les paramètres variables du parent sont conservés durant ces opérations.
 
-D-199/D-200/D-210–212/D-222/D-238 ; CE-T03-04 ; frames§1. Renommage sans frame dédiée : comportement requis, rendu non prouvé.
+D-199/D-200/D-210–212/D-222/D-238 ; CE-T03-04 ; frames§1. Renommage et couleur via Modifier du dialogue d’appui long (D-259), composants existants ; rendu prouvé en recette.
 
 ---
 
@@ -2976,7 +2976,7 @@ La convention 2 s/répétition reste celle de la phrase intrinsèque de l’édi
 - Planifier : fréquence entière de 1 à 12 semaines incluses ; − inactif à 1 et + inactif à 12 ; toute valeur extérieure est refusée à l’enregistrement.
 - Rappel Autre : délai strictement positif, maximum 24 h (1 440 minutes), avec les unités et le sélecteur existants. Aucun désactive le rappel ; zéro ne crée pas une deuxième manière de désactiver le champ. Une notification dont l’échéance est déjà passée n’est pas envoyée rétroactivement ; les futures occurrences conservent leur rappel.
 - Durée totale : conserver le sélecteur minutes/secondes. La borne dérivée est T(1)..T(99) pour les paramètres courants, et non 99 min 59 s (borne par Série). La colonne minutes doit représenter T(99), sans nouvelle colonne ni nouveau contrôle. Granularité seconde ; le calcul inverse existant choisit N dans 1..99, arrondi .5 vers le haut, puis affiche T(N) et le message d’ajustement si nécessaire. En Durée uniforme, une diminution à N=1 ne masque le total du résumé que s’il égale effectivement la cible ; la ligne Total reste présente dans la feuille en Durée/Répétitions (D-246).
-- Profil : les paramètres identiques héritent des mêmes bornes que leur champ cible, sans maximum tiré des valeurs d’exemple. Compte à rebours initial/Fin de séance : 0..3599 s (D-089) ; pauses et récupération : 0..300 s ; le contrôle et ses pas restent ceux du DSF et de D-232. Les valeurs initiales déjà validées ne changent pas.
+- Profil : les paramètres identiques héritent des mêmes bornes que leur champ cible, sans maximum tiré des valeurs d’exemple. Compte à rebours initial/Fin de séance : 0..3599 s (D-089) ; Compte à rebours d’exercice/Fin d’exercice : 0..60 s, pas 1 s (D-256) ; pauses et récupération : 0..300 s ; le contrôle et ses pas restent ceux du DSF et de D-232. Les valeurs initiales déjà validées ne changent pas.
 
 ### R-03 — Transition, reset et suspension
 
