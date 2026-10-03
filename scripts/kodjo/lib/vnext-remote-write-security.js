@@ -132,7 +132,7 @@ function scanFileCapabilities(rel, source) {
       ['GIT_COMMIT', /\bgit\s+(?:(?:-c\s+(?:"[^"]*"|'[^']*'|\S+)|-[^\s]+)\s+)*commit\b/i],
       ['GIT_TAG', /\bgit\s+(?:-[^\s]+\s+)*tag\b/i],
       ['GIT_UPDATE_REF', /\bgit\s+(?:-[^\s]+\s+)*update-ref\b/i],
-      ['GIT_HISTORY_MUTATION', /\bgit\s+(?:-[^\s]+\s+)*(?:merge|rebase|cherry-pick)\b/i],
+      ['GIT_HISTORY_MUTATION', /\bgit\s+(?:(?:-c\s+(?:"[^"]*"|'[^']*'|\S+)|-[^\s]+)\s+)*(?:merge|rebase|cherry-pick)(?=\s|[;|&]|$)/i],
       ['CREATE_PULL_REQUEST_ACTION', /uses\s*:\s*[^\n]*create-pull-request/i],
       ['GIT_AUTO_COMMIT_ACTION', /uses\s*:\s*[^\n]*git-auto-commit/i],
     ];

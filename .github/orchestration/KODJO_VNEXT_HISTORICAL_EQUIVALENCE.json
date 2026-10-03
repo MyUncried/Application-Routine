@@ -1587,7 +1587,7 @@
       "id": "CASE-0a8c45ec4b44994a",
       "test_path": "tests/kodjo/queue-contract.pilot.js",
       "test_name": "un pouce levé absent, illisible ou d’un autre compte bloque l’admission",
-      "source_line": 633,
+      "source_line": 665,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-v2-lean-queue.yml",
@@ -1600,13 +1600,13 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-da86a9b9ba85313d",
       "test_path": "tests/kodjo/queue-contract.pilot.js",
       "test_name": "l’identité de l’utilisateur est obligatoire et contraignante",
-      "source_line": 652,
+      "source_line": 684,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-v2-lean-queue.yml",
@@ -1619,13 +1619,13 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-8c258454d5ec632c",
       "test_path": "tests/kodjo/queue-contract.pilot.js",
       "test_name": "un hash de plan qui ne correspond pas au commit approuvé est refusé",
-      "source_line": 735,
+      "source_line": 767,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-v2-lean-queue.yml",
@@ -1638,13 +1638,13 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-45620d67c45f7b90",
       "test_path": "tests/kodjo/queue-contract.pilot.js",
       "test_name": "un numéro d’Issue discordant est refusé",
-      "source_line": 757,
+      "source_line": 789,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-v2-lean-queue.yml",
@@ -1657,7 +1657,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-8c5f2761c119c049",
@@ -2420,7 +2420,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-2bc7c2d6e821ea4d",
@@ -2510,7 +2510,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-8045911d7c99db8c",
@@ -3256,7 +3256,7 @@
       "id": "CASE-665e8f479915dfa5",
       "test_path": "tests/kodjo/queue-contract.pilot.js",
       "test_name": "une validation portant sur une référence étrangère est refusée",
-      "source_line": 741,
+      "source_line": 773,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-v2-lean-queue.yml",
@@ -3269,13 +3269,13 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-04139c60d2e51a09",
       "test_path": "tests/kodjo/queue-contract.pilot.js",
       "test_name": "une référence de commentaire de validation malformée est refusée",
-      "source_line": 751,
+      "source_line": 783,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-v2-lean-queue.yml",
@@ -3288,7 +3288,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-77772d6c8d77329c",
@@ -3430,7 +3430,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-f0dca86ad6661a2a",
@@ -3449,7 +3449,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-7c6579e0ddef6fb8",
@@ -3762,7 +3762,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-de267b67cd2d08c8",
@@ -3781,7 +3781,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-df68f32db790a981",
@@ -3800,13 +3800,13 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-c3454c66cba6ee39",
       "test_path": "tests/kodjo/queue-contract.pilot.js",
       "test_name": "une migration avec plan, revue ou validation incohérents est refusée avant Claude",
-      "source_line": 620,
+      "source_line": 652,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-v2-lean-queue.yml",
@@ -3819,7 +3819,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-a1cd2a9d0261bb7e",
@@ -3882,7 +3882,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-c9c86a7b38da9239",
@@ -3901,7 +3901,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-876394ed55f69276",
@@ -3920,13 +3920,13 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-80f5c73da49d3789",
       "test_path": "tests/kodjo/queue-contract.pilot.js",
       "test_name": "admission prospective réelle — les trois HEAD restent distincts avant Claude",
-      "source_line": 544,
+      "source_line": 576,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         ".github/workflows/kodjo-v2-lean-queue.yml",
@@ -3939,7 +3939,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-fae418882b30954f",
@@ -4743,7 +4743,7 @@
         "scripts/kodjo/verify-queue-admission.js",
         "scripts/kodjo/verify-visual-checkpoint.js"
       ],
-      "test_source_sha256": "5178682d74f4bfc9f44823eb52b32df9b8b53461b83f6d6098e9aa78ad0d4a4e"
+      "test_source_sha256": "2d2ea5ca755f2d2808cf2c311466418e2b4b98a11c2666359b16150d669f6694"
     },
     {
       "id": "CASE-a5c289089d0a8954",

@@ -48,6 +48,13 @@ jobs:
         run: |
           $ErrorActionPreference='Stop'
           $parent=(git rev-parse 'HEAD^').Trim()
+          $checkpoint=Get-Content -LiteralPath '.github/orchestration/vnext12/VNEXT-12-QUALIF/campaign-state.json' -Raw -Encoding UTF8 | ConvertFrom-Json
+          # A failed parser attempt cannot certify unchanged units in its child.
+          # Revalidate the entire consolidated delta from its recorded base.
+          if ($checkpoint.v8_consolidation.parent_head) { $parent=$checkpoint.v8_consolidation.parent_head }
+          if ($parent -notmatch '^[0-9a-f]{40}$') { throw 'VNEXT_NATIVE_VALIDATION_BASE_INVALID' }
+          git merge-base --is-ancestor $parent HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'VNEXT_NATIVE_VALIDATION_BASE_NOT_ANCESTOR' }
           $tree=(git rev-parse 'HEAD^{tree}').Trim()
           node -e "const P=require('./scripts/kodjo/lib/vnext-publication'); console.log(JSON.stringify(P.validateTree({cwd:process.cwd(),expectedParent:process.argv[1],candidateTree:process.argv[2]})));" $parent $tree
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -99,6 +106,14 @@ jobs:
         with:
           name: historical-equivalence-${{ runner.os }}
           path: ${{ runner.temp }}/historical-${{ runner.os }}.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Preserve actual assertion diagnostics if qualification fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-failure-diagnostics-${{ runner.os }}
+          path: ${{ runner.temp }}/historical-equivalence.jsonl
           if-no-files-found: error
           retention-days: 14
 

@@ -7,8 +7,8 @@ Audit de référence : v8 FINAL, commit audité `c0f72fc2148a5955b9a810a8aca1f6e
 ## Résultat et portée
 
 Les défauts démontrés restants sont regroupés dans un seul candidat, stage
-`QUALIFY_ONLY`, génération 32. Les tests locaux de protocole passent : 977 tests,
-971 PASS, 0 FAIL, 6 SKIP. Un contrôle ciblé supplémentaire couvre le passage de
+`QUALIFY_ONLY`, génération 33. Les tests locaux de protocole passent : 977 tests,
+972 PASS, 0 FAIL, 5 SKIP après corrections et récupération des sources historiques. Un contrôle ciblé supplémentaire couvre le passage de
 lint sans cache après cette suite. Les SKIP locaux ne sont pas des PASS.
 Le parser indépendant accepte les 64 workflows et leurs invariants exécutables.
 Aucun nouveau cycle Claude INITIAL/REVISION n'est revendiqué pour ce candidat.
@@ -101,3 +101,46 @@ rejouée. Les précédentes demandes consommées le restent également. Cette pr
 ne qualifie pas rétroactivement le nouveau candidat consolidé. Après qualification,
 INITIAL et REVISION devront utiliser de nouveaux dossiers/UUID et les vrais gates
 GitHub exacts, en conservant la distinction délégation technique/revue humaine.
+
+## Première qualification réelle et correction ciblée
+
+Candidat publié `e26105b15ae049de68349d2bf2a18638cc109cea`, tree
+`e94c6e050e11d20123b7d476580945064947acfa` : runs pilotes `37124235652`,
+proof stability `37124235671`, drivers `37124235667`. Aucun EXECUTE lancé.
+Deux causes sont établies par les vrais logs :
+
+1. Job Windows `111206211230` : le parser 5.1 refuse une expression GitHub run_id
+   dans une chaîne PowerShell doublement quotée, avant expansion GitHub.
+   L'URL de reprise utilise désormais `$env:GITHUB_RUN_ID` ; le parser strict reste.
+2. Job pilote Linux `111206210980` : un test rejoue une ancienne revue d'impact
+   avec l'empreinte antérieure à D12. Le scanner courant la refuse correctement.
+   Le test garde les documents historiques intacts et rejoue d'abord le résultat
+   ancien avec le blob exact `6c69cae39422986233e053c12e9544bb5fab05df` du scanner
+   de `952b23b3`. Il exige ensuite le refus de cette empreinte par le scanner
+   courant et vérifie un scan/reçu UNIT_TEST_ONLY neufs sur le HEAD applicatif exact.
+   Aucune conversion automatique d'une approbation réelle n'est ajoutée.
+
+Les 41 tests de queue passent localement avec les deux commits historiques exacts
+récupérés depuis GitHub. Un ancien plan doit être rescanné, revu et approuvé sous
+le nouveau protocole ; ses preuves historiques ne sont pas réécrites. Les seules
+empreintes/positions correspondantes de tests sont mises à jour.
+La [trace durable des échecs](../vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-failures-e26105b1.json)
+conserve jobs, motifs, extraits réels et correction. Le candidat corrigé doit être
+qualifié à nouveau ; les succès partiels du premier ne suffisent pas à l'admission.
+
+Les historiques Linux/Windows du premier candidat sont aussi FAIL : jobs
+`111206211398` et `111206211332`, résolveur `VNEXT_EQ_EXECUTION_INCOMPLETE`.
+Leurs assertions étaient redirigées vers un JSONL qui n'a pas été uploadé après
+l'échec du résolveur ; la cause détaillée de ces jobs n'est donc pas attestée
+comme identique à celle du pilote. Le workflow conserve désormais ce diagnostic
+brut uniquement en cas d'échec ; les succès n'ajoutent pas cet artefact brut.
+Les drivers Linux/Windows du premier candidat sont SUCCESS. Aucun runtime Claude
+INITIAL/REVISION, aucune consommation nouvelle ; les trois runs sont terminés
+avant publication de la correction, sans contrôleur concurrent observé.
+
+La validation native de la correction compare tout le delta consolidé à
+`952b23b3`, base enregistrée et ancêtre vérifié, et non seulement au candidat
+qui a échoué. Toutes les unités nouvelles sont donc reparsées. Le scan distingue
+`git merge-base` (lecture) de `git merge`/`rebase` (mutation), y compris avec `-c` :
+26 tests ciblés scanner/publication passent après ce dernier ajustement.
+Aucun writer nouveau ni exception d'autorisation n'est déclaré pour merge-base.

@@ -1,6 +1,6 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-03T12:42:13.851823+00:00",
+  "recorded_at": "2026-10-03T13:03:05.556121+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
@@ -8,7 +8,7 @@
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
   "controller_stage": "V8_CONSOLIDATED_PENDING_QUALIFICATION",
-  "controller_generation": 40,
+  "controller_generation": 41,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -836,7 +836,7 @@
     "audit_head": "c0f72fc2148a5955b9a810a8aca1f6eeefa64870",
     "main_shared_source": "67064d1b3752d71683d11638a602286b9c895482",
     "scope": "Remaining demonstrated v8 defects D1-D9,D11-D12,D15-D18; D10,D13,D14 already delivered in the first tranche. D3 targeted shared-protocol reconciliation only.",
-    "request_generation": 32,
+    "request_generation": 33,
     "runtime_execution": "NOT_STARTED",
     "native_windows_parser": "REQUIRED_IN_EXACT_TREE_QUALIFICATION",
     "report": ".github/orchestration/reports/2026-10-03_VNEXT_V8_CONSOLIDATED_CORRECTIONS.md",
@@ -844,6 +844,25 @@
     "promotion_authorized": false,
     "pre1_in_scope": false,
     "final_authorized": false,
-    "historical_reserves_preserved": true
+    "historical_reserves_preserved": true,
+    "first_candidate_head": "e26105b15ae049de68349d2bf2a18638cc109cea",
+    "qualification_failures": {
+      "pilot_run": 37124235652,
+      "qualification_run": 37124235671,
+      "driver_run": 37124235667,
+      "diagnostic": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-failures-e26105b1.json",
+      "correction": "Raw PowerShell run_id interpolation replaced with environment variable; immutable historical scanner proof preserved and current scan requalification tested."
+    },
+    "first_qualification_completed": {
+      "pilot": "FAILURE",
+      "proof_stability": "FAILURE",
+      "drivers": "SUCCESS",
+      "historical_linux_job": 111206211398,
+      "historical_windows_job": 111206211332,
+      "historical_reason_observed": "VNEXT_EQ_EXECUTION_INCOMPLETE",
+      "historical_detailed_assertion_cause": "UNAVAILABLE_JSONL_NOT_UPLOADED",
+      "runtime_execution": "SKIPPED",
+      "new_consumption": false
+    }
   }
 }

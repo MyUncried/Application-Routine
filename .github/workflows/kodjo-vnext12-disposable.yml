@@ -96,7 +96,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference='Stop'
-          $response=gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/${{ github.run_id }}/artifacts?per_page=100" | ConvertFrom-Json
+          $response=gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID/artifacts?per_page=100" | ConvertFrom-Json
           if ($LASTEXITCODE -ne 0) { throw 'VNEXT12_RESUME_ARTIFACT_LOOKUP_FAILED' }
           $prefix='kodjo-vnext12-revision-${{ github.run_id }}-'
           $items=@($response.artifacts | Where-Object { $_.name.StartsWith($prefix) -and -not $_.expired -and [int]($_.name.Substring($prefix.Length)) -lt [int]'${{ github.run_attempt }}' } | Sort-Object id -Descending)

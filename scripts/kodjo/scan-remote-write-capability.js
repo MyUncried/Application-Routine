@@ -25,7 +25,7 @@ const PATTERNS = [
   { id: 'GIT_TAG', re: /\bgit\s+(?:-[^\s]+\s+)*tag\b/ },
   { id: 'GIT_UPDATE_REF', re: /\bgit\s+(?:-[^\s]+\s+)*update-ref\b/ },
   { id: 'GIT_BRANCH_CREATE', re: /\bgit\s+(?:-[^\s]+\s+)*(?:branch|checkout\s+-b|switch\s+-c)\b/ },
-  { id: 'GIT_MERGE', re: /\bgit\s+(?:-[^\s]+\s+)*(?:merge|rebase|cherry-pick)\b/ },
+  { id: 'GIT_MERGE', re: /\bgit\s+(?:(?:-c\s+(?:"[^"]*"|'[^']*'|\S+)|-[^\s]+)\s+)*(?:merge|rebase|cherry-pick)(?=\s|[;|&]|$)/ },
   { id: 'CONTENTS_WRITE', re: /contents\s*:\s*write/ },
   { id: 'PERSIST_CREDENTIALS_TRUE', re: /persist-credentials\s*:\s*true/ },
   // KV2-09 : un en-tete d'autorisation ecrit dans .git/config echappait au

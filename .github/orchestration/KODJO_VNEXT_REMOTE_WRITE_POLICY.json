@@ -721,7 +721,7 @@
     },
     {
       "path": "scripts/kodjo/scan-remote-write-capability.js",
-      "blob_oid": "3aae6106d441c2e3ce9762b49cb08b77ba36f5f1",
+      "blob_oid": "25277329419e3b35ca3a0eb04b4fc2e6833b37bd",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -858,7 +858,7 @@
   "declared_vnext_writers": [
     {
       "producer": ".github/workflows/kodjo-vnext12-disposable.yml",
-      "producer_blob_oid": "d6b26d4bacd9064be6da103885f069f714a234c6",
+      "producer_blob_oid": "ed126f4831cc5214007a4ff4174014c725d30bfa",
       "authorization_condition": "EXACT_OWNER_APPROVED_VNEXT12_DISPOSABLE_CONSUMPTION_ONLY",
       "required_job": "execute-initial",
       "capabilities": [

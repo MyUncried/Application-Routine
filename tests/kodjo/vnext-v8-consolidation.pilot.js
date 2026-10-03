@@ -60,6 +60,12 @@ test('D9 scanner detects concatenated REST destinations and Git writes behind sa
   assert.equal(hits.some(row => row.capability === 'GIT_PUSH'), true);
   const split=Security.scanFileCapabilities('scripts/kodjo/split-writer.js',"githubApi(\n 'repos/' + repo + '/git/refs',\n {method:'POST'}\n);");
   assert.ok(split.some(row=>row.capability==='REST_REPOSITORY_WRITE'));
+  assert.equal(Security.scanFileCapabilities('scripts/kodjo/read.sh',
+    'git merge-base --is-ancestor base HEAD').some(row => row.capability === 'GIT_HISTORY_MUTATION'), false);
+  for (const command of ['git merge HEAD', 'git merge;', 'git -c core.hooksPath=NUL rebase HEAD']) {
+    assert.ok(Security.scanFileCapabilities('scripts/kodjo/write.sh', command)
+      .some(row => row.capability === 'GIT_HISTORY_MUTATION'), command);
+  }
 });
 test('D16 a comment marker cannot authorize an executable legacy push', () => {
   const dir = repo();
