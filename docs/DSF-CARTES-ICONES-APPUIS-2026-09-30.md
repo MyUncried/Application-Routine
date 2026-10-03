@@ -4,7 +4,7 @@
 
 Mise à jour du 30 septembre 2026, issue de `prompt_maj_DSF_et_documentation_cartes_point fermés.md`, complété par les six corrections du propriétaire et de la précision du propriétaire sur les pages Figma. Base documentaire : `MyUncried/Application-Routine`, `main`, commit `48b444ededb735da47a42474c39e150224e92395`. Aucun ZIP ancien n’est réintégré.
 
-Figma : fichier `G6RY5Ebhgwb4AHIOYDwwvg`. Les nœuds ci-dessous ont été lus directement. Le rendu des cartes, les règles de gestion et le statut des essais sont distingués : les 17 points ont été clos explicitement par le propriétaire ; La révision du 03/10/2026 est consignée par D-260 à D-263 : RG-3 est définitive, Séance sans visuel.
+Figma : fichier `G6RY5Ebhgwb4AHIOYDwwvg`. Les nœuds ci-dessous ont été lus directement. Le rendu des cartes, les règles de gestion et le statut des essais sont distingués : les 17 points ont été clos explicitement par le propriétaire ; La révision du 03/10/2026 est consignée par D-260 à D-264 : RG-3 est définitive, Séance sans visuel.
 
 | Source actuelle | Nœud | Usage |
 |---|---|---|
@@ -107,7 +107,7 @@ Les trois composants canoniques sont désormais implantés dans Design system �
 | ID | Règle et portée | Statut |
 |---|---|---|
 | RG-1 | Un seul format au Catalogue et dans les choix d’exercices : gouttière permanente 64, photo si média, icône de nature sinon. Aucun réglage utilisateur de format. | Validé — D-260 |
-| RG-2 | La vignette provient des médias associés à l’Exercice. La sélection entre plusieurs médias reste à clarifier, sans inventer un ordre prioritaire. | Média associé validé ; sélection multiple À CLARIFIER |
+| RG-2 | La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). | Validé par le propriétaire — 03/10/2026, D-264 |
 | RG-3 | Les Séances ne portent jamais de visuel ; aucune photo dans les listes mixtes, le Calendrier ou le Suivi. | Validé définitivement — D-260 |
 | RG-4 | Aucun déploiement accessible sur les cartes d’Exercice ou du Suivi, avec ou sans média. Déploiement des Séances conservé au Catalogue et au Calendrier Semaine. | Validé — D-261/D-262 |
 | RG-5 | Une seule famille d’icônes de zone corporelle dans toute l’application ; variante Homme/Femme suivant la préférence de Profil définie par RG-10. | Validé |
@@ -176,7 +176,7 @@ Les réactions Figma utilisent ON_CLICK puis AFTER_TIMEOUT de 10 ms pour la dém
 
 ## Points ouverts
 
-Les 17 points du 30/09 sont clos ; les situations acceptées ne sont pas rouvertes. À CLARIFIER : quel média représente l’Exercice sur sa carte lorsqu’il en porte plusieurs ? La proposition « premier média dans l’ordre de la galerie, couverture si vidéo » a été retrouvée, sans preuve de sa validation. Ce point ne doit pas être présenté comme une décision actée.
+Les 17 points du 30/09 sont clos ; les situations acceptées ne sont pas rouvertes. La sélection du média représentatif est également close par validation explicite du propriétaire le 03/10/2026 (D-264) : premier média dans l’ordre de la galerie, image de couverture si vidéo.
 
 ## Situations connues, acceptées et portée normative
 
