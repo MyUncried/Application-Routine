@@ -37,7 +37,15 @@
           "imageWidth": 200
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Routine accède à vos photos uniquement pour choisir la photo de votre profil.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
@@ -53,8 +61,6 @@
     "updates": {
       "url": "https://u.expo.dev/0ee44f86-bd22-4b92-8780-e265b72907d9"
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    }
+    "runtimeVersion": "1.1.0"
   }
 }
