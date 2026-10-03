@@ -77,11 +77,11 @@ Un **Circuit** est le groupe ordonné d’Exercices contenu dans le Cycle techni
 
 ## Exercice
 
-Un **Exercice** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, il peut exister comme définition persistante autonome du Catalogue des exercices (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération`. Il distingue désormais la **Pause au changement de côté**, propriété intrinsèque éventuelle d’un Exercice bilatéral, et la **Récupération après exercice**, propriété contextuelle d’une occurrence `SessionActivity`/occurrence de Parcours.
+Un **Exercice** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, il peut exister comme définition persistante autonome du Catalogue des exercices (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération`. Il distingue désormais la **Pause entre les côtés**, propriété intrinsèque éventuelle d’un Exercice bilatéral, et la **Récupération après exercice**, propriété contextuelle d’une occurrence `SessionActivity`/occurrence de Parcours.
 
 Un Exercice possède un nombre de **Séries** propre, entier et supérieur ou égal à 1.
 
-Une Série correspond à une réalisation de l’Exercice selon son mode d’exécution (**Durée**, **Répétitions** ou **À l’échec**). Pour `C` Séries d’un même côté, une Pause éventuelle intervient exactement `C − 1` fois, toujours entre deux Séries successives. Aucune récupération ne remplace la dernière Pause. La Série n'est pas un conteneur structurel de la Séance et ne constitue pas une entité métier autonome.
+Une Série est une réalisation de l’Exercice selon son mode unique. Elle porte une cible éventuelle et une Pause, terminale comprise. En variable, ces paramètres sont propres à chaque ligne ordonnée ; en uniforme ils sont communs. La Série n’est ni un conteneur de Séance ni une entité autonome.
 
 Chaque Exercice possède notamment :
 - un nom ;
@@ -91,7 +91,7 @@ Chaque Exercice possède notamment :
 - une durée cible, un nombre de répétitions cible ou aucune cible chiffrée en mode À l’échec ;
 - un nombre de Séries ;
 - une Pause facultative entre Séries successives ;
-- une `sideRecoverySeconds` facultative, pertinente uniquement pour `D→G` ou `G→D`, exécutée une seule fois entre les deux côtés ;
+- une `sideRecoverySeconds` facultative, pertinente uniquement pour `D→G` ou `G→D`, exécutée selon l’Ordre des côtés (une fois par Exercice ou une fois par Série) ;
 - un Changement de côté propre : `Aucun`, `D→G` ou `G→D` ;
 - un Compte à rebours d’Exercice facultatif ;
 - une Fin d’exercice facultative ;
@@ -99,11 +99,9 @@ Chaque Exercice possède notamment :
 - une consigne facultative ;
 - un média associé peut être affiché dans la carte déployée du Catalogue dans le MVP ; les capacités d’import/capture restent régies par leur périmètre propre.
 
-La Pause et la Pause au changement de côté sont indépendantes. Avec `Aucun`, `sideRecoverySeconds` est sans objet. En bilatéral, l’ordre est : toutes les Séries du premier côté → Pause au changement de côté éventuelle → toutes les Séries du second côté.
+La Pause et la Pause entre les côtés sont indépendantes. Avec `Aucun`, `sideRecoverySeconds` est sans objet. En bilatéral, l’ordre est : successions définies par l’Ordre des côtés (v12 §4).
 
-En mode Durée, avec `C` le nombre de Séries par côté, `A` la durée cible par Série, `B` la Pause et `S` la pause effective de transition (Pause au changement de côté si positive, sinon `B`) : en unilatéral, `Dexercice = C × A + (C − 1) × B` ; en bilatéral, `Dexercice = 2 × [C × A + (C − 1) × B] + S`. La Récupération après exercice n’entre jamais dans `Dexercice`. Le nombre de Séries est la valeur canonique persistée ; la Durée totale est dérivée.
-
-En mode Répétitions, la phrase présente `Durée totale ≥ {estimation}`. Pour cette estimation uniquement, chaque répétition vaut conventionnellement **2 secondes**. La formule est `Tmin = k × (N × R × 2 + (N − 1) × pS) + côté`, avec `k=2` si changement de côté sinon `1`, et `côté=(pC>0 ? pC : pS)` en bilatéral sinon `0`. En mode À l’échec, aucune Durée totale n’est affichée. En mode Durée avec une seule Série **sans changement de côté**, la clause Durée totale est omise car redondante. Dès qu’un changement de côté est défini, elle est affichée car la durée totale diffère de la durée par Série (D-232).
+Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=2×Ri s pour l’estimation ≥ seulement ; À l’échec : aucun total d’Exercice. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v12 §5 ; variable : lecture seule et — si incomplet.
 
 ### Exercice de référence et Exercice de Séance
 
@@ -248,9 +246,9 @@ Les propriétés intrinsèques communes portent notamment :
 - un mode d’exécution parmi `Durée`, `Répétitions` et `À l’échec` ;
 - la cible du mode lorsqu’elle existe ;
 - un nombre de **Séries** ;
-- une **Pause** entre Séries, exécutée exactement `C − 1` fois par côté ;
+- Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v12 §§3–5, D-247 à D-250.
 - un **Changement de côté** propre : `Aucun`, `D→G` ou `G→D` ;
-- une **Pause au changement de côté** `sideRecoverySeconds` éventuelle, pertinente uniquement en `D→G/G→D` ;
+- une **Pause entre les côtés** `sideRecoverySeconds` éventuelle, pertinente uniquement en `D→G/G→D` ;
 - un **Compte à rebours d’Exercice** propre lorsqu’il est utilisé ;
 - une **Fin d’exercice** propre lorsqu’elle est utilisée ;
 - une Durée totale intrinsèque dérivée ou estimée selon le mode ;
@@ -264,40 +262,17 @@ Le Compte à rebours d’Exercice et la Fin d’exercice appartiennent à l’Ex
 
 La structure intrinsèque d’un Exercice peut être représentée ainsi :
 
-```text
-Exercice
-├── Compte à rebours d’Exercice éventuel
-├── côté 1
-│   ├── Série
-│   ├── Pause éventuelle entre Séries
-│   └── ...
-├── Pause au changement de côté éventuelle
-├── côté 2 éventuel
-│   ├── Série
-│   ├── Pause éventuelle entre Séries
-│   └── ...
-└── Fin d’exercice éventuelle
-```
+Le détail ordonné des phases est défini par v12 §4 pour chacun des deux ordres et les deux directions.
 
-Dans une Séance/Parcours, la Récupération après exercice s’ajoute **après cette occurrence** et ne fait pas partie de cette structure intrinsèque.
+Dans une occurrence, R>0 se substitue à la seule Pause terminale ; R reste une donnée contextuelle, hors définition intrinsèque.
 
-# 4.6 Déroulement d'un Exercice
+# 4.6 Déroulement d’un Exercice
 
-Lorsqu’un Exercice est exécutée, le moteur applique ses phases intrinsèques dans l’ordre fonctionnel suivant :
+L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de v12 §4 ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante.
 
-1. exécuter le Compte à rebours d’Exercice lorsqu’il est présent ;
-2. déterminer le ou les côtés à exécuter à partir du `Changement de côté` propre à l’Exercice ;
-3. exécuter toutes les Séries du premier côté, avec une Pause uniquement entre deux Séries successives ;
-4. si l’Exercice est bilatéral, exécuter une seule phase `SIDE_RECOVERY` de durée `q=(sideRecoverySeconds>0 ? sideRecoverySeconds : B)` si q>0 ;
-5. exécuter toutes les Séries du second côté, lorsqu’il existe, avec la même règle de Pause ;
-6. exécuter la Fin d’exercice lorsqu’elle est présente ;
-7. terminer l’Exercice intrinsèque.
+Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v12 §§3–5, D-247 à D-250.
 
-En mode `Durée`, chaque Série est chronométrée. En mode `Répétitions` ou `À l’échec`, l’utilisateur termine normalement la Série par l’action `Suivant`.
-
-Après une occurrence dans une Séance/Parcours, le Plan exécute ensuite `POST_ACTIVITY_RECOVERY` si `postActivityRecoverySeconds > 0`. La donnée reste néanmoins présente et visible dans la Composition lorsqu’elle vaut `0 s`.
-
-Une Exécution directe depuis le Catalogue exécute uniquement les phases intrinsèques de l’`ActivityDefinition` : elle peut donc contenir `SIDE_RECOVERY`, mais jamais `POST_ACTIVITY_RECOVERY`.
+Le Compte à rebours propre précède les passages et la Fin propre reste unique à l’Exercice complet. En Durée, chaque cible Ti est chronométrée ; en Répétitions/À l’échec, Suivant termine la Série selon le contrat du mode. Construire le plan depuis les paramètres effectifs de chaque Série. Les phases terminales sont substituées avant sommation ; ne jamais ajouter une récupération déjà comprise dans To. Le plan de Séance conserve ses phases structurelles et ses Points d’arrêt.
 
 # 4.7 Déroulement d'une séance
 
@@ -428,9 +403,9 @@ Le Point d’arrêt reste un élément structurel distinct de la Récupération.
 
 ### Phrase de synthèse des paramètres d’exécution
 
-La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, pause entre Séries si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Source normative : D-232 / classeur v10 et spécification v11.
+La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, Pause après chaque série si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Source normative : v12 §§3–7, D-247 à D-255 ; classeur v10 historique.
 
-Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série `1..100`, Durée par Série `1 s..99 min 59 s`, Pause entre Séries et Pause au changement de côté `0..5 min`. Dans le Profil, les réglages de durée utilisent un stepper ; dans la feuille de paramètres d’un Exercice, les pauses sont réglées par stepper. Les valeurs proposées progressent par `5 s` jusqu’à `2 min`, puis par `30 s` jusqu’à `5 min`. La Pause au changement de côté est copiée depuis le Profil lorsqu’elle devient applicable.
+Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série `1..100`, Durée par Série `1 s..99 min 59 s`, Pause après chaque série et Pause entre les côtés `0..5 min`. Dans le Profil, les réglages de durée utilisent un stepper ; dans la feuille de paramètres d’un Exercice, les pauses sont réglées par stepper. Les pauses progressent par1s jusqu’à5s, puis5s jusqu’à120s, puis30s jusqu’à300s (D-252). La Pause entre les côtés est copiée depuis le Profil lorsqu’elle devient applicable.
 
 ## Présentation des objets — 30 septembre 2026
 
@@ -446,9 +421,15 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 
 
 
-> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transition entre côtés = pause de changement de côté si positive, sinon pause entre Séries, sans cumul ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. Le bloc du côté courant est le périmètre du reset bilatéral. Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v12 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
 
 
 ### Saisie des paramètres — D-246
 
-La référence active est [Paramètres en modale v11](SPECIFICATION-PARAMETRES-MODALE-v11.md), contrats CE-T03-04/CE-UI-10. Les champs de paramètres appartiennent au brouillon transactionnel de la feuille ; ✕ annule, ✓ applique au parent, Terminer seul persiste. Pause entre Séries initiale0s, champs non-stepper initialement non renseignés ; le résumé est régénéré après validation, jamais édité inline. Les bornes métier et calculs restent ceux de v11. Cette règle remplace les anciennes prescriptions de saisie D-232 sur ce parcours.
+La référence active est [Paramètres en modale v12](SPECIFICATION-PARAMETRES-MODALE-v12.md), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
+
+## Paramètres de Série et Ordre des côtés — D-247 à D-254
+
+Le mode d’exécution est commun à l’Exercice. Le stockage distingue explicitement uniforme et variable, même si les valeurs sont identiques. En variable, conserver N lignes ordonnées avec cible (Durée/Répétitions) et Pause ; aucune cible numérique À l’échec. Les mêmes lignes s’appliquent aux deux côtés. Direction et Ordre des côtés sont deux propriétés distinctes. N=1 est normalisé uniforme/Un côté après l’autre dès le brouillon.
+
+Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet état. Les données sans nouveaux attributs sont uniformes/Un côté après l’autre. Les calculs actuels s’appliquent aussi aux Exercices existants ; résultats historiques immuables. Les valeurs temporaires de restauration et le repli visuel ne sont jamais persistés. Voir v12 §§2–5 et8 pour le contrat complet.

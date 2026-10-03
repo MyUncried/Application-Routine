@@ -212,7 +212,7 @@ Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` utilisent la mêm
 | Splash | Logo et textes sont centrés dans la zone sûre ; le logo conserve ses proportions et ne doit jamais être étiré. Aucun défilement n’est prévu. |
 | Catalogue, Calendrier, Suivi, Profil | En-tête et navigation basse fixes ; seule la zone centrale défile. Les listes conservent un espace final d’au moins `16` points avant la séparation ou la navigation, en plus de l’inset inférieur applicable. |
 | Composition, Exercice, Planification | En-tête et action finale fixes ; le formulaire central défile. Avec le clavier ouvert, l’action reste atteignable sans recouvrir le champ actif. |
-| Exercice | Aucun contrôle de type n’est affiché. Les accès `Catégorie` et `Zones corporelles`, le `Mode d’exécution` et la zone Média suivent le Figma courant. Le segment `Durée / Répétitions / À l’échec` utilise trois zones égales. Le résumé et la feuille de paramètres suivent D-246/v11 et CE-T03-04/CE-UI-10 ; aucune ancienne double rangée fixe de synthèse. L’action `Terminer` reste accessible avec le clavier et le texte agrandi. |
+| Exercice | Aucun contrôle de type n’est affiché. Les accès `Catégorie` et `Zones corporelles`, le `Mode d’exécution` et la zone Média suivent le Figma courant. Le segment `Durée / Répétitions / À l’échec` utilise trois zones égales. Le résumé et la feuille de paramètres suivent D-247 à D-255/v12 et CE-T03-04/CE-UI-10 ; aucune ancienne double rangée fixe de synthèse. L’action `Terminer` reste accessible avec le clavier et le texte agrandi. |
 | Planification | `Aucun` et `Autre` restent fixes aux extrémités du contrôle de rappel. Les raccourcis intermédiaires occupent une zone horizontale défilante et extensible. Le récapitulatif de planification reste contenu dans son cadre avec ses marges internes. |
 | Calendrier Semaine | La barre des jours reste lisible sur la largeur compacte ; les sept jours se répartissent la largeur disponible sans défilement horizontal. La liste journalière défile verticalement, utilise `8` points entre ses cartes et s’arrête `16` points avant la séparation de navigation. |
 | Calendrier Mois | Les sept colonnes se répartissent la largeur disponible ; une cellule peut grandir verticalement mais ne défile pas horizontalement. |
@@ -342,9 +342,8 @@ Les mêmes termes sont utilisés dans toute l’application :
 
 - `Séance` : contenu complet d’un entraînement ;
 - `Routine` : planification d’une Séance ou d’un Exercice persistant ;
-- `Exercice` : action élémentaire exécutée en mode Durée, Répétitions ou À l’échec, avec Pause entre Séries et, en bilatéral, Pause au changement de côté éventuelle ;
-- `Exercice` : Exercice physique ;
-- `Pause au changement de côté` : durée intrinsèque facultative d’un Exercice bilatéral, exécutée une seule fois entre le premier et le second côté ;
+- `Exercice` : action élémentaire exécutée en mode Durée, Répétitions ou À l’échec, avec Pause après chaque série et, en bilatéral, Pause entre les côtés éventuelle ;
+- `Pause entre les côtés` : durée intrinsèque facultative d’un Exercice bilatéral, exécutée selon l’Ordre des côtés ;
 - `Récupération après exercice` : durée contextuelle portée par chaque occurrence d’Exercice dans une Séance/Parcours, non affichée sur les cartes (D-238) et exécutée après l’occurrence lorsqu’elle est positive ;
 - `Série` : répétition propre à un Exercice ;
 - `Circuit` : groupe ordonné d’Exercices exécuté intégralement un nombre défini de fois ;
@@ -753,6 +752,15 @@ L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle 
 
 ![Catalogue des Exercices — Filtrer — Panneau ouvert](images/figma-4168-11262.png)
 
+### Catalogue — Séries variables — références du03/10
+
+#### Catalogue des exercices — Liste — Séries variables
+
+[Source Figma — `6665:24120`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-24120)
+
+![Catalogue des exercices — Liste — Séries variables](images/figma-6665-24120.png)
+
+
 ## Composition d’une séance
 
 ### Objectif
@@ -822,7 +830,15 @@ Le MVP ne propose pas de menu d’ajout rapide `Pause 15 s / 30 s / 45 s`.
 
 Chaque occurrence possède explicitement `postActivityRecoverySeconds`, initialisé depuis le défaut global. La valeur `0 s` reste affichée dans la Composition ; une phase `POST_ACTIVITY_RECOVERY` chronométrée n’est créée que si cette valeur est positive.
 
-Si deux Exercices s’enchaînent sans Pause entre Séries et avec une récupération après exercice à `0 s`, un avertissement discret et non bloquant peut être affiché selon la règle existante.
+Si deux Exercices s’enchaînent sans Pause après chaque série et avec une récupération après exercice à `0 s`, un avertissement discret et non bloquant peut être affiché selon la règle existante.
+
+### Composition — ligne de Série variable — références du03/10
+
+#### Composition séance — Standard — Séries variables
+
+[Source Figma — `6665:23973`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-23973)
+
+![Composition séance — Standard — Séries variables](images/figma-6665-23973.png)
 
 ### Résumé de la ligne d’un Exercice (D-095 révisée par D-238)
 
@@ -1075,189 +1091,25 @@ Appui long sur une Étiquette ; confirmation destructive `Annuler / Supprimer`
 
 ## Créer ou modifier un exercice
 
-La création et la modification utilisent le formulaire Exercice et la [feuille de paramètres v11](SPECIFICATION-PARAMETRES-MODALE-v11.md), D-246. Le nom, Catégorie, Zones, Description, Média et Terminer restent dans le formulaire. La carte Paramètres d’exécution porte le résumé et les raccourcis ; toutes les saisies de paramètres se font dans la feuille basse. Aucun contrôle inline n’est conservé dans la phrase.
+Inventaire refait le 03/10/2026 sur Prototype MVP : **37 frames pour cette famille** (9 vues du formulaire/résumé, 21 états de la feuille de paramètres, 7 sélections/créations/confirmations). Les titres suffisent ; les numéros contenus dans les noms Figma sont des identifiants de travail, pas une numérotation documentaire.
 
-### Parcours et validation
+Contrats : CE-T03-04 (formulaire et abandon), CE-UI-10 (une feuille, plusieurs états), CE-UI-09 (Catégorie/Zones et confirmations). [État des lieux et vérification par frame](../ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md). Les anciens exports Copie6603/6611/6612/6623 ne définissent plus ce parcours courant. Leurs fichiers sont conservés comme historique.
 
-Créer depuis Catalogue ouvre un nouveau brouillon ; Modifier préremplit l’objet concerné. La Composition conserve la sélection d’Exercices existants ; aucune nouvelle création locale n’est ajoutée. Nom obligatoire, une Catégorie et au moins une Zone ; Description facultative. Les référentiels, contexte d’origine et historique conservent leurs règles.
+### Parcours, données et validation
 
-Carte vide → feuille initiale ; toucher une valeur du résumé → feuille avec la ligne correspondante activée ; toucher Séries/Pause ou zone vide → feuille sans champ activé. ✕ annule les changements de la feuille ; ✓ applique les paramètres valides au brouillon parent et affiche le résumé ; Terminer enregistre l’Exercice. La modale n’écrit rien en base. Nom Squats sautés et les valeurs montrées sont des exemples.
+Créer depuis Catalogue ouvre le formulaire ; Modifier reprend les données existantes. Nom, une Catégorie et au moins une Zone sont requis pour un nouvel Exercice. Carte Paramètres → feuille transactionnelle ; ✕/retour annule son brouillon, ✓ applique au parent ; Terminer seul persiste. Abandon du formulaire modifié ouvre la confirmation existante. Ouvrir un référentiel conserve les paramètres, même variables.
 
-### Contrôles, ordre et implantation
+Spécification [v12](SPECIFICATION-PARAMETRES-MODALE-v12.md) : mode unique, N séries par côté, cibles/Pauses propres à chaque ligne en variable, direction et Ordre des côtés indépendants. N=1 effectif uniforme/Un côté après l’autre ; restauration temporaire avant✓. Déplacement cible/Pause conjoint ; nouvelle première reprise à désactivation, nouvelle dernière Pause terminale. Total variable readonly et — si incomplet ; Répétitions≥ ; À l’échec aucun total.
 
-En-tête de feuille : Annuler à gauche, Paramètres d’exécution, Valider à droite. Puis Mode → Séries → Durée d’une série ou Répétitions → Pause entre les séries → Changement de côté → Pause de côté si bilatéral → Total si Durée/Répétitions → Compte à rebours → Fin d’exercice. En À l’échec, cible et total sont absents.
+### Placement et contrôles
 
-Séries, Répétitions, les deux pauses, Compte à rebours et Fin sont des steppers permanents. Mode/Côté déploient un segmenté sous la ligne ; Durée par Série/Total déploient une roulette sous la ligne. Le cadre sélectionné entoure uniquement la ligne, jamais le contrôle déployé ; aucun cadre sélectionné sur stepper. Total en Répétitions est du texte non modifiable. Voir le [DSF](../DSF-PARAMETRES-MODALE-2026-10-01.md) pour dimensions, alignements et adaptation.
+Formulaire : en-tête → nom/référentiels → carte Paramètres → Description → Média → Terminer. Feuille : en-tête fixe ✕/titre/✓ ; corps défilant Mode → Séries → Séries variables → cible/Pause communes ou tableau → Changement de côté → Ordre des côtés/PC si bilatéral → Total applicable → Compte à rebours → Fin.
 
-Initialisation : Séries1, pause entre Séries0 s, Compte à rebours10 s/Fin5 s selon Profil ; champs non-stepper non renseignés à l’ouverture. Pause de côté copiée du Profil à activation bilatérale. La borne Séries reste99 : la démo1..10 ne la modifie pas. Les calculs v11 incluent la pause de transition de repli validée par D-242. Total dans la feuille est présent en Durée/Répétitions, même avec une Série.
+Tableau rattaché à l’interrupteur : poignée, numéro aligné à droite, cible et Pause par steppers ; À l’échec cible textuelle. Chevron replie seulement le tableau. Les modes/directions/ordre utilisent les segmentés ; Durée/Total uniformes utilisent les roulettes ; aucune sous-modale variable. Détails géométriques : [DSF](../DSF-SERIES-VARIABLES-2026-10-02.md). Le contrôle devient accessible par défilement, sans tableau à scroll indépendant.
 
-Le message d’ajustement apparaît sous Total à4 px ; la feuille grandit vers le haut (62 px dans la référence), sans déplacer les lignes du bas. Aucun nouveau placement à arbitrer. Les détails transactionnels, valeurs admises et cas de recette sont dans CE-T03-04/CE-UI-10.
+Figma définit le layout. Les valeurs, calculs, validations et comportements restent ceux des spécifications. La présence d’un ✓ bleu dans un exemple incomplet ne le rend pas validable.
 
-### Vues principales courantes
-
-#### Carte de paramètres vide
-
-[Source Figma — `6407:9458`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-9458)
-
-![Carte de paramètres vide](images/figma-6407-9458.png)
-
-#### Résumé des paramètres affiché
-
-[Source Figma — `6407:9702`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-9702)
-
-![Résumé des paramètres affiché](images/figma-6407-9702.png)
-
-### Feuille de paramètres — états courants
-
-#### Modale ouverte — champs vides
-
-[Source Figma — `6407:9551`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-9551)
-
-![Modale ouverte — champs vides](images/figma-6407-9551.png)
-
-#### Mode activé — Durée
-
-[Source Figma — `6407:9805`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-9805)
-
-![Mode activé — Durée](images/figma-6407-9805.png)
-
-#### Modale renseignée — aucun champ activé
-
-[Source Figma — `6407:9966`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-9966)
-
-![Modale renseignée — aucun champ activé](images/figma-6407-9966.png)
-
-#### Durée d’une série — roulette ouverte
-
-[Source Figma — `6407:10127`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-10127)
-
-![Durée d’une série — roulette ouverte](images/figma-6407-10127.png)
-
-#### Durée totale — roulette ouverte
-
-[Source Figma — `6411:9546`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6411-9546)
-
-![Durée totale — roulette ouverte](images/figma-6411-9546.png)
-
-#### Changement de côté — contrôle segmenté
-
-[Source Figma — `6407:10481`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-10481)
-
-![Changement de côté — contrôle segmenté](images/figma-6407-10481.png)
-
-#### Bilatéral — pause au changement de côté
-
-[Source Figma — `6411:9649`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6411-9649)
-
-![Bilatéral — pause au changement de côté](images/figma-6411-9649.png)
-
-#### Mode Répétitions
-
-[Source Figma — `6419:9847`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6419-9847)
-
-![Mode Répétitions](images/figma-6419-9847.png)
-
-#### Mode À l’échec
-
-[Source Figma — `6419:10028`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6419-10028)
-
-![Mode À l’échec](images/figma-6419-10028.png)
-
-#### Message de durée totale ajustée
-
-[Source Figma — `6423:9953`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6423-9953)
-
-![Message de durée totale ajustée](images/figma-6423-9953.png)
-
-### Limites du prototype
-
-Le comportement de la transmission §3 prévaut sur ses liens : validation initiale vers résumé, champ Côté vers segmenté Côté. Champs partiellement câblés, steppers majoritairement statiques, texte et roulettes d’exemple non recalculés ; aucune recette interactive revendiquée. Les résumés Répétitions/À l’échec n’ont pas de frame dédiée.
-
-### Confirmation — Abandonner la création d’un Exercice
-
-*Référence Figma courante : `4714:6241 — Modal — Abandonner la création de l’exercice`. La copie documentaire sera mise à jour dans la phase dédiée aux captures.*
-
-#### Objectif
-
-Éviter la perte accidentelle des informations saisies pendant la création d’un Exercice.
-
-#### Ouverture
-
-La modale s’affiche lorsque l’utilisateur tente de quitter l’écran `Ajouter un exercice` alors qu’une création non enregistrée contient des informations saisies.
-
-#### Contenu
-
-**Titre**
-
-> Abandonner la création ?
-
-**Message Figma**
-
-> Les informations saisies seront perdues et l'exercice ne sera pas créé.
-
-**Actions**
-
-- `Annuler` ;
-- `Confirmer`, action destructive.
-
-#### Comportement
-
-`Annuler` ferme la modale et conserve le brouillon d’Exercice. `Confirmer` abandonne la création locale en cours et revient au contexte d’origine sans modifier les autres données de la Composition ou du Catalogue.
-
-La confirmation d’abandon d’une **modification** d’Exercice existant reste un comportement fonctionnel distinct lorsqu’il est requis ; elle ne doit pas être déduite de cette frame de création.
-
-### Référentiels et confirmations conservés
-
-#### Ajouter un exercice — Catégories
-
-[Source Figma — `4332:7095`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4332-7095)
-
-![Ajouter un exercice — Catégories](images/figma-4332-7095.png)
-
-Sélection de la Catégorie dans une modale basse
-
-#### Ajouter un exercice — Nouvelle catégorie
-
-[Source Figma — `4474:7157`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4474-7157)
-
-![Ajouter un exercice — Nouvelle catégorie](images/figma-4474-7157.png)
-
-Création d’une Catégorie depuis l’éditeur
-
-#### Ajouter un exercice — Zones corporelles
-
-[Source Figma — `4478:7209`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4478-7209)
-
-![Ajouter un exercice — Zones corporelles](images/ecran-4h-creation-activite-zone-corporelle.png)
-
-Sélection des Zones corporelles
-
-#### Ajouter un exercice — Nouvelle zone corporelle
-
-[Source Figma — `4683:6336`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4683-6336)
-
-![Ajouter un exercice — Nouvelle zone corporelle](images/figma-4683-6336.png)
-
-Création inline d’une Zone corporelle dans le référentiel administrable
-
-#### Modal — Abandonner la création de l’activité
-
-[Source Figma — `4714:6241`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4714-6241)
-
-![Modal — Abandonner la création de l’exercice](images/figma-4714-6241.png)
-
-<details>
-<summary>Archives — ancienne saisie dans la phrase, remplacée par la feuille basse</summary>
-
-Ces captures restent historiques ; elles ne doivent pas guider la nouvelle saisie. La source3542:4656 n’a pas été modifiée dans Figma.
-
-### Vues principales et états intégrés
-
-#### Création activité — Avant Paramètres d'exécution
-
-[Source Figma — `3542:4656`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3542-4656)
-
-![Création exercice — Avant Paramètres d'exécution](images/ecran-4-creation-activite-duree.png)
+### Formulaire — vues principales et résumés
 
 #### Ajouter un exercice — Initial
 
@@ -1265,47 +1117,11 @@ Ces captures restent historiques ; elles ne doivent pas guider la nouvelle saisi
 
 ![Ajouter un exercice — Initial](images/figma-3943-6064.png)
 
-Nom vide et invitation « Choisir un mode »
-
-#### Ajouter un exercice — Contrôle déployé — 3 séries (stepper)
-
-[Source Figma — `3556:7801`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3556-7801)
-
-![Ajouter un exercice — Contrôle déployé — 3 séries (stepper)](images/ecran-4e-creation-activite-series-ouvert.png)
-
-Stepper intégré − / valeur / +, sans modale de roulette
-
-#### Ajouter un exercice — Répétitions
-
-[Source Figma — `3561:7673`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3561-7673)
-
-![Ajouter un exercice — Répétitions](images/ecran-4f-creation-activite-repetitions-ouvert.png)
-
-Stepper intégré − / valeur / +, sans modale de roulette
-
-#### Création activité — À l’échec
-
-[Source Figma — `3561:7802`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3561-7802)
-
-![Création exercice — À l’échec](images/ecran-4b-creation-activite-a-l-echec.png)
-
-Aucun objectif chiffré ; aucune Durée totale affichée dans le texte éditable
-
-#### Création activité — Durée totale ajustée — message temporaire
-
-[Source Figma — `3580:4957`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3580-4957)
-
-![Création exercice — Durée totale ajustée — message temporaire](images/ecran-4k-creation-activite-duree-ajustee.png)
-
-Message temporaire après arrondi à un nombre entier de Séries
-
 #### Ajouter un exercice — Nom Description Media
 
 [Source Figma — `4217:6980`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4217-6980)
 
 ![Ajouter un exercice — Nom Description Media](images/ecran-15-creation-activite-persistante.png)
-
-État courant de l’éditeur avant déploiement des paramètres
 
 #### Ajouter un exercice — Catégorie renseignée
 
@@ -1313,13 +1129,11 @@ Message temporaire après arrondi à un nombre entier de Séries
 
 ![Ajouter un exercice — Catégorie renseignée](images/figma-5088-6398.png)
 
-#### Ajouter un exercice — Phrase éditée
+#### Création exercice — Avant Paramètres d'exécution
 
-[Source Figma — `4279:7044`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4279-7044)
+[Source Figma — `3542:4656`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3542-4656)
 
-![Ajouter un exercice — Phrase éditée](images/figma-4279-7044.png)
-
-Organisation actuelle des paramètres d’exécution
+![Création exercice — Avant Paramètres d'exécution](images/ecran-4-creation-activite-duree.png)
 
 #### Modifier un exercice
 
@@ -1327,43 +1141,187 @@ Organisation actuelle des paramètres d’exécution
 
 ![Modifier un exercice](images/ecran-15a-modification-activite-persistante.png)
 
-Variante modification de l’éditeur courant
+#### Création exercice — Paramètres en modale — Champ vide
 
-#### Ajouter un exercice — Mode d’exécution (3 pastilles)
+[Source Figma — `6407:9458`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-9458)
 
-[Source Figma — `4367:7128`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4367-7128)
+![Création exercice — Paramètres en modale — Champ vide](images/figma-6407-9458.png)
 
-![Ajouter un exercice — Mode d’exécution (3 pastilles)](images/figma-4367-7128.png)
+#### Création exercice — Paramètres en modale — Texte affiché
 
-#### Ajouter un exercice — Changement de côté (3 pastilles)
+[Source Figma — `6407:9702`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-9702)
 
-[Source Figma — `4367:7906`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4367-7906)
+![Création exercice — Paramètres en modale — Texte affiché](images/figma-6407-9702.png)
 
-![Ajouter un exercice — Changement de côté (3 pastilles)](images/figma-4367-7906.png)
+#### Résumé — Durée variable bilatérale Les deux côtés à chaque série
 
-### Modales, panneaux et confirmations
+[Source Figma — `6665:27862`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27862)
 
-#### Ajouter un exercice — Durée de l'exerciceouvert
+![Résumé — Durée variable bilatérale Les deux côtés à chaque série](images/figma-6665-27862.png)
 
-[Source Figma — `3556:7645`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3556-7645)
+#### Résumé — À l’échec variable
 
-![Ajouter un exercice — Durée de l'exerciceouvert](images/ecran-4c-creation-activite-duree-ouverte.png)
+[Source Figma — `6665:28050`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-28050)
 
-Roulette compacte minutes/secondes avec validation explicite
+![Résumé — À l’échec variable](images/figma-6665-28050.png)
 
-#### Ajouter un exercice — Pause — sélecteur ouvert
+### Feuille Paramètres — états intégrés
 
-[Source Figma — `3556:7712`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3556-7712)
+Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans indépendants.
 
-![Ajouter un exercice — Pause — sélecteur ouvert](images/ecran-4d-creation-activite-pause-ouverte.png)
+#### Création exercice — Paramètres en modale — Modale ouverte (champs vides)
 
-Réglage de la Pause entre Séries avec validation explicite
+[Source Figma — `6407:9551`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-9551)
 
-#### Modèle paramètre — Durée totale — Roulette ouverte
+![Création exercice — Paramètres en modale — Modale ouverte (champs vides)](images/figma-6407-9551.png)
 
-[Source Figma — `4367:8193`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4367-8193)
+#### Création exercice — Paramètres en modale — Modale complète — mode activé
 
-![Modèle paramètre — Durée totale — Roulette ouverte](images/figma-4367-8193.png)
+[Source Figma — `6407:9805`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-9805)
+
+![Création exercice — Paramètres en modale — Modale complète — mode activé](images/figma-6407-9805.png)
+
+#### Création exercice — Paramètres en modale — Modale complète — steppers (séries, pauses)
+
+[Source Figma — `6407:9966`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-9966)
+
+![Création exercice — Paramètres en modale — Modale complète — steppers (séries, pauses)](images/figma-6407-9966.png)
+
+#### Création exercice — Paramètres en modale — Durée activée (roulette ouverte)
+
+[Source Figma — `6407:10127`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-10127)
+
+![Création exercice — Paramètres en modale — Durée activée (roulette ouverte)](images/figma-6407-10127.png)
+
+#### Création exercice — Paramètres en modale — Changement de côté activé (contrôle segmenté)
+
+[Source Figma — `6407:10481`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6407-10481)
+
+![Création exercice — Paramètres en modale — Changement de côté activé (contrôle segmenté)](images/figma-6407-10481.png)
+
+#### Création exercice — Paramètres en modale — Durée totale activée (roulette ouverte)
+
+[Source Figma — `6411:9546`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6411-9546)
+
+![Création exercice — Paramètres en modale — Durée totale activée (roulette ouverte)](images/figma-6411-9546.png)
+
+#### Création exercice — Paramètres en modale — Avec changement de côté (pause au changement de côté)
+
+[Source Figma — `6411:9649`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6411-9649)
+
+![Création exercice — Paramètres en modale — Avec changement de côté (pause au changement de côté)](images/figma-6411-9649.png)
+
+#### Création exercice — Paramètres en modale — Répétitions (mode activé)
+
+[Source Figma — `6419:9847`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6419-9847)
+
+![Création exercice — Paramètres en modale — Répétitions (mode activé)](images/figma-6419-9847.png)
+
+#### Création exercice — Paramètres en modale — À l’échec (mode activé)
+
+[Source Figma — `6419:10028`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6419-10028)
+
+![Création exercice — Paramètres en modale — À l’échec (mode activé)](images/figma-6419-10028.png)
+
+#### Création exercice — Paramètres en modale — Modale complète — steppers (séries, pauses) avec message de durée totale ajustée
+
+[Source Figma — `6423:9953`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6423-9953)
+
+![Création exercice — Paramètres en modale — Modale complète — steppers (séries, pauses) avec message de durée totale ajustée](images/figma-6423-9953.png)
+
+#### Séries variables — Durée variable (scénario A)
+
+[Source Figma — `6665:24616`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-24616)
+
+![Séries variables — Durée variable (scénario A)](images/figma-6665-24616.png)
+
+#### Séries variables — Répétitions variables (scénario E)
+
+[Source Figma — `6665:24844`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-24844)
+
+![Séries variables — Répétitions variables (scénario E)](images/figma-6665-24844.png)
+
+#### Séries variables — À l’échec variable (scénario F)
+
+[Source Figma — `6665:25072`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-25072)
+
+![Séries variables — À l’échec variable (scénario F)](images/figma-6665-25072.png)
+
+#### Séries variables — Douze séries (défilement — haut)
+
+[Source Figma — `6665:25277`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-25277)
+
+![Séries variables — Douze séries (défilement — haut)](images/figma-6665-25277.png)
+
+#### Ordre des côtés — Sélection : Un côté après l’autre
+
+[Source Figma — `6665:26185`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-26185)
+
+![Ordre des côtés — Sélection : Un côté après l’autre](images/figma-6665-26185.png)
+
+#### Séries variables + Les deux côtés à chaque série — (scénario D)
+
+[Source Figma — `6665:26575`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-26575)
+
+![Séries variables + Les deux côtés à chaque série — (scénario D)](images/figma-6665-26575.png)
+
+#### Une seule série — Options sans effet
+
+[Source Figma — `6665:26822`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-26822)
+
+![Une seule série — Options sans effet](images/figma-6665-26822.png)
+
+#### Changement de mode — Cibles à renseigner
+
+[Source Figma — `6665:27008`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27008)
+
+![Changement de mode — Cibles à renseigner](images/figma-6665-27008.png)
+
+#### Validation impossible — Série incomplète
+
+[Source Figma — `6665:27232`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27232)
+
+![Validation impossible — Série incomplète](images/figma-6665-27232.png)
+
+#### Séries variables — Tableau masqué
+
+[Source Figma — `6665:27458`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27458)
+
+![Séries variables — Tableau masqué](images/figma-6665-27458.png)
+
+#### Séries variables — Déplacement d’une série
+
+[Source Figma — `6665:27608`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27608)
+
+![Séries variables — Déplacement d’une série](images/figma-6665-27608.png)
+
+### Sélections, créations de référentiels et confirmations
+
+Sélection simple Catégorie validée au toucher selon D-222 ; Zones multiples avec✓. Une coche de validation encore visible dans la maquette Catégorie est un écart de rendu, pas une nouvelle règle. Création avec clavier et suppression avec confirmation préservent le brouillon d’Exercice. Abandon Annuler conserve le formulaire ; Confirmer le quitte sans sauvegarder.
+
+#### Ajouter un exercice — Catégories
+
+[Source Figma — `4332:7095`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4332-7095)
+
+![Ajouter un exercice — Catégories](images/figma-4332-7095.png)
+
+#### Ajouter un exercice — Nouvelle catégorie
+
+[Source Figma — `4474:7157`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4474-7157)
+
+![Ajouter un exercice — Nouvelle catégorie](images/figma-4474-7157.png)
+
+#### Ajouter un exercice — Zones corporelles
+
+[Source Figma — `4478:7209`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4478-7209)
+
+![Ajouter un exercice — Zones corporelles](images/ecran-4h-creation-activite-zone-corporelle.png)
+
+#### Ajouter un exercice — Nouvelle zone corporelle
+
+[Source Figma — `4683:6336`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4683-6336)
+
+![Ajouter un exercice — Nouvelle zone corporelle](images/figma-4683-6336.png)
 
 #### Ajouter un exercice — Catégorie — Appui long — Confirmation suppression
 
@@ -1371,26 +1329,23 @@ Réglage de la Pause entre Séries avec validation explicite
 
 ![Ajouter un exercice — Catégorie — Appui long — Confirmation suppression](images/figma-4861-6259.png)
 
-Appui long sur une Catégorie ; confirmation destructive `Annuler / Supprimer`
-
 #### Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression
 
 [Source Figma — `4861:6348`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4861-6348)
 
 ![Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression](images/figma-4861-6348.png)
 
-Appui long sur une Zone corporelle ; confirmation destructive `Annuler / Supprimer`
+#### Modal — Abandonner la création de l’exercice
 
-### Références de contrôles intégrés
+[Source Figma — `4714:6241`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4714-6241)
 
-#### Modèle paramètre — Compte à rebours
+![Modal — Abandonner la création de l’exercice](images/figma-4714-6241.png)
 
-[Source Figma — `4367:7276`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4367-7276)
+### Couverture et écarts de preuve
 
-![Modèle paramètre — Compte à rebours](images/figma-4367-7276.png)
+Le bas des12séries, le segmenté avec l’option alternée sélectionnée, le résumé Répétitions seul, le résumé uniforme alterné, l’activation par copie et G→D n’ont pas de frame dédiée dans le lot actuel. Leurs règles et recettes restent définies dans CE-UI-10/v12 ; aucune capture ancienne n’est présentée comme leur état actuel. Les captures des modales Répétitions et de l’état alterné montrent une partie de cette couverture. Voir l’état des lieux pour la liste exacte.
 
-
-</details>
+Les chiffres derrière le voile appartiennent au parent et ne prouvent pas un calcul du brouillon. Les anciens textes « pause entre les séries » et les5min visibles sur Modifier/confirmations restent des écarts connus : ne pas modifier les règles pour les reproduire. Les médias déjà associés sont consultables ; leur présence ne crée pas de capacité d’import supplémentaire.
 
 ## Calendrier
 
@@ -1794,16 +1749,16 @@ Lorsqu’un Exercice possède plusieurs Séries :
 
 - `Série x/y` indique la Série en cours ;
 - chaque Série exécute la durée cible, les répétitions cibles ou se poursuit jusqu’à l’échec selon le mode ;
-- pour `C` Séries d’un même côté, la Pause est appliquée exactement `C − 1` fois, uniquement entre Séries successives ;
-- si l’Exercice est bilatéral, la Pause au changement de côté éventuelle est exécutée une seule fois entre le premier et le second côté.
+- Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v12 §§3–5, D-247 à D-250.
+- si l’Exercice est bilatéral, la Pause entre les côtés éventuelle est exécutée selon l’Ordre des côtés.
 
 T04 développe toutes les Séries, les répétitions de Tour et les passages de côté dans le Plan d’Exécution avant le démarrage.
 
 ### Récupérations
 
-Deux phases distinctes peuvent exister. `SIDE_RECOVERY` matérialise la Pause au changement de côté d’un Exercice bilatéral et intervient entre le premier et le second côté. `POST_ACTIVITY_RECOVERY` matérialise la Récupération après exercice portée par l’occurrence de Séance ; elle intervient après l’occurrence, y compris après le dernier Exercice avant `SESSION_END` et après chaque passage dans le Circuit à chaque Tour.
+Deux phases distinctes peuvent exister. `SIDE_RECOVERY` matérialise la Pause entre les côtés d’un Exercice bilatéral et intervient entre le premier et le second côté. `POST_ACTIVITY_RECOVERY` matérialise la Récupération après exercice portée par l’occurrence de Séance ; elle intervient après l’occurrence, y compris après le dernier Exercice avant `SESSION_END` et après chaque passage dans le Circuit à chaque Tour.
 
-La valeur `postActivityRecoverySeconds = 0` ne crée pas de phase chronométrée positive. Les récupérations ne sont plus affichées sur les cartes de Composition (D-238), quelle que soit leur valeur. La zone `À suivre` prépare l’élément qui succède à la phase courante. Les données de résultat distinguent la pause au changement de côté de la récupération après occurrence.
+La valeur `postActivityRecoverySeconds = 0` ne crée pas de phase chronométrée positive. Les récupérations ne sont plus affichées sur les cartes de Composition (D-238), quelle que soit leur valeur. La zone `À suivre` prépare l’élément qui succède à la phase courante. Les données de résultat distinguent la Pause entre les côtés de la récupération après occurrence.
 
 ### Commandes principales
 
@@ -2454,7 +2409,7 @@ La règle vaut également :
 - à chaque Tour du Circuit ;
 - après le dernier Exercice de la Séance, avant la Fin de séance.
 
-Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est remplacé par `Pause au changement de côté` et n’est exposé que lorsque `Changement de côté` vaut `D→G` ou `G→D`. La récupération après exercice ne figure ni dans l’éditeur ni dans la synthèse intrinsèque de l’Exercice.
+Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est remplacé par `Pause entre les côtés` et n’est exposé que lorsque `Changement de côté` vaut `D→G` ou `G→D`. La récupération après exercice ne figure ni dans l’éditeur ni dans la synthèse intrinsèque de l’Exercice.
 
 **Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant ouvre une bulle de retrait ; un appui ailleurs referme la bulle sans modification. La Récupération après exercice reste exécutée mais n’est plus affichée sur la carte (D-238) ; le Point d’arrêt reste une action distincte.
 
@@ -2480,9 +2435,9 @@ Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est re
 - **Exécution** : sur les cinq écrans portant `Zone — Progression et suite`, début `y=449`, hauteur `305 px`. Dans la variante haute avec texte, conserver 95 px avant la zone. Variante média : `Série X/3 • Tour X/3` en Roboto Condensed Medium 24 px.
 - **Photo sur les cartes** : la prescription historique de carte déployée est remplacée par D-238 : Photo supprime Déployer ; l’exécution média conserve ses variantes propres.
 
-### Paramètres — référence courante du 01/10/2026
+### Paramètres — référence courante du 02/10/2026
 
-La [spécification v11](SPECIFICATION-PARAMETRES-MODALE-v11.md) remplace le champ éditable v10.2. Les anciennes captures d’éditeur ne constituent plus des écarts à corriger vers la phrase inline. Les limites actuelles sont celles de la feuille (câblage incomplet et données de démonstration), décrites dans la section Créer ou modifier un exercice et CE-UI-10.
+La [spécification v12](SPECIFICATION-PARAMETRES-MODALE-v12.md) remplace le champ éditable v10.2. Les anciennes captures d’éditeur ne constituent plus des écarts à corriger vers la phrase inline. Les limites actuelles sont celles de la feuille (câblage incomplet et données de démonstration), décrites dans la section Créer ou modifier un exercice et CE-UI-10.
 
 ## Archives et références hors prototype actif
 
@@ -2543,4 +2498,5 @@ Référence hors prototype actif — Figma `3841:8375` ; ne vaut pas activation 
 
 
 
-> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transition entre côtés = pause de changement de côté si positive, sinon pause entre Séries, sans cumul ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. Le bloc du côté courant est le périmètre du reset bilatéral. Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v12 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+

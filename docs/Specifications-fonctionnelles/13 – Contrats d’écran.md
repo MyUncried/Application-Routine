@@ -14,7 +14,7 @@ Les 30 contrats actifs sont CE-T03-01 à17, CE-MEDIA-EXEC-01/02, CE-UI-01 à10 e
 
 Pour les contrats actifs :
 
-1. décisions validées dans le chapitre 07, jusqu’à D-246, avec priorité aux décisions explicitement supersédantes ; D-246 et la spécification de paramètres v11 pour l’éditeur ;
+1. décisions validées dans le chapitre 07, jusqu’à D-255, avec priorité aux décisions explicitement supersédantes ; D-247 à D-255 et la spécification de paramètres v12 pour l’éditeur ;
 2. modèle fonctionnel / modèle de données / règles métier ;
 3. API fonctionnelles ;
 4. architecture technique ;
@@ -23,6 +23,12 @@ Pour les contrats actifs :
 7. Figma pour le rendu visuel et les états effectivement représentés.
 
 Figma ne transforme jamais une valeur de démonstration en règle métier. Inversement, un comportement métier ne permet pas d’inventer un composant graphique absent de Figma. Tout détail visuel non représenté et non arbitré est `NON VÉRIFIABLE` ou `À CLARIFIER`.
+
+### Portée transverse des paramètres v12
+
+Catalogue et exécution ACTIVITY : durée intrinsèque. Composition, détails de Séance, calendrier SESSION et exécution SESSION : durée d’occurrence avec substitution terminale, sans ajouter R deux fois. Les résumés compacts variables affichent N séries variables ; le tableau détaillé appartient seulement à CE-UI-10. Copie/duplication et instantané conservent l’état variable explicite, les cibles/Pauses ordonnées et l’Ordre des côtés. Ces règles s’appliquent aux contrats hôtes, y compris CE-UI-01/02/03/05 et CE-T03-01/06/07/08. Les règles propres aux cartes et médias sont conservées.
+
+Réinitialiser conserve D-029/D-150 : recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé. Cette portée s’applique aussi à Les deux côtés à chaque série ; un passage déjà acquis de l’autre côté n’est pas rejoué. Exemple : gauche2/3 → reprise gauche1/3, résultats droits conservés. Pendant une récupération, RM-062 réinitialise seulement cette phase. Le passage anticipé conserve D-150 : côté courant partiel, poursuite des passages restant à exécuter de l’autre côté ; les résultats acquis ne sont pas effacés. Ces conséquences du périmètre existant ne constituent pas un nouvel arbitrage.
 
 ## 3. Structure canonique obligatoire
 
@@ -156,7 +162,7 @@ Le moteur possède la source de vérité temporelle. Le Compte à rebours propre
 | SESSION | Compte à rebours initial → plan avant Circuit → Circuit répété par Tours → plan après Circuit → Fin de séance → Synthèse |
 | Occurrence SESSION | Compte à rebours propre si activé → Exercice intrinsèque (Séries/côtés/pauses) → Fin propre si activée → POST_ACTIVITY_RECOVERY → point d’arrêt éventuel → suite |
 
-C−1 pauses inter-Séries par côté ; SIDE_RECOVERY une fois entre côtés ; POST_ACTIVITY_RECOVERY une fois après chaque occurrence SESSION, y compris la dernière et chaque Tour. Phases de durée 0 instantanées. Aucun Circuit, Tour, Cycle, POST_ACTIVITY_RECOVERY ni SESSION_END en ACTIVITY. Les points d’arrêt sont structurels, hors nombre d’Exercices, et leur attente est exclue du temps actif.
+Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=2×Ri s pour l’estimation ≥ seulement ; À l’échec : aucun total d’Exercice. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v12 §5 ; variable : lecture seule et — si incomplet.
 
 | Action/phase | Effet déterminé | Conservation |
 |---|---|---|
@@ -335,7 +341,9 @@ Surface carte → `CE-T03-04`; Lecture → `CE-T03-09`; `Créer` → règle cont
 
 ### 5. Données affichées et source de vérité
 
-Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées, `updatedAt DESC`. Exécuter ne modifie pas `updatedAt`. Le Catalogue n’affiche aucune récupération post-exercice, car elle n’existe pas sur `ActivityDefinition`; seule la pause au changement de côté éventuelle relève de la définition.
+Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées, `updatedAt DESC`. Exécuter ne modifie pas `updatedAt`. Le Catalogue n’affiche aucune récupération post-exercice, car elle n’existe pas sur `ActivityDefinition`; seule la Pause entre les côtés éventuelle relève de la définition.
+
+Exercice variable : indicateur N séries variables et total intrinsèque selon v12 ; pas de détail exhaustif des cibles sur la carte.
 
 ### 6. Classification des valeurs Figma
 
@@ -397,7 +405,11 @@ Lecture indépendante ; aucune poignée ; carte avec photo sans Déployer et san
 
 Tester zéro/N cartes, active/archivée, avec/sans photo/vidéo, chargement/erreur, texte alternatif, troncature, sélection indépendante et absence de zone Déployer dans Photo. Vérifier formats des trois modes, miroir pour bilatéral et absence des textes retirés. Puis filtres, actions glissées, retour d’état et responsive. Critères CAR/MED/ICO/CTX/ANI du complément.
 
+Vérifier aussi les cartes variables dans les trois modes et la durée intrinsèque sans récupération contextuelle.
+
 ### 21. Traçabilité
+
+Référence variable courante6665:24120 : indicateur N séries variables sans détail ; total intrinsèque selon mode. État ajouté au chapitre06 et à la matrice du03/10.
 
 D-167/D-173/D-187/D-193/D-195 révisée par D-238 ; D-221/D-233–239 ; API-CAT-01 ; frames 3786:5093, 4168:11262, 4521:6220, 4544:6344/6651, 4738:6209/6355. Cible Photo : wireframe 6354:16964 ; limites §5.
 
@@ -495,7 +507,7 @@ D-187/D-221 ; CE-T03-01/02/04/08 ; frames 1992:9910 et 3786:5093.
 
 ### 1. Identification
 
-Éditeur Exercice persistant, CE-T03-04. Frames actives6407:9458 (vide) et6407:9702 (résumé). Feuille propriétaire CE-UI-10. Les anciennes frames de phrase éditable sont historiques ; Catégorie/Zones restent CE-UI-09.
+Formulaire créer/modifier :3943:6064,4217:6980,5088:6398,3542:4656,4734:6342. Carte vide6407:9458, résumé uniforme6407:9702, variables6665:27862/28050. Abandon4714:6241. Feuille CE-UI-10 et référentiels CE-UI-09 ; inventaire courant du03/10.
 
 ### 2. Finalité fonctionnelle
 
@@ -513,6 +525,8 @@ Terminer valide et persiste puis retourne au contexte appelant. Carte Paramètre
 
 Brouillon parent : nom, référentiels, description, paramètres validés par la feuille et médias existants. Aucun texte de démonstration codé en dur.
 
+Paramètres étendus : uniforme/variable, liste ordonnée de cibles/Pauses, Ordre des côtés ; copie complète vers CE-UI-10.
+
 ### 6. Classification des valeurs Figma
 
 Ajouter un exercice/Modifier un exercice, Paramètres d’exécution, Description de l’exercice, Terminer : statiques. Nom et résumé : dynamiques. Mode et Compte à rebours/Fin restent séparés de la phrase intrinsèque.
@@ -525,9 +539,11 @@ En-tête fixe → nom et accès Catégorie/Zones → carte Paramètres avec rés
 
 Carte vide initiale ; après ✓, résumé des valeurs appliquées. Mode cliquable ouvre sa ligne dans la feuille ; valeurs de durée/côté ouvrent la ligne dédiée ; steppers et zone vide ouvrent la feuille sans sélection. Aucun stepper, segmenté ou roulette dans le résumé.
 
+Carte Paramètres : trois premières valeurs variables puis… ; Répétitions suffixe rép., À l’échec liste des pauses sans total ; ordre des côtés dans la phrase.
+
 ### 9. Layout déterministe
 
-Placement du formulaire selon6407:9458/9702. Paramètres de la feuille : DSF-PARAMETRES-MODALE-2026-10-01, CE-UI-10. Aucun remplacement des autres shells ou géométries de référentiels.
+Shell conservé : en-tête fixe, bandeau nom/référentiels, carte Paramètres, Description, Média, action Terminer. Références3943:6064/4734:6342/6407:9702 et6665:27862/28050. Les deux nouveaux résumés gardent cette implantation ; le texte peut grandir, sans déplacement arbitraire des contrôles. Feuille selon DSF-SERIES-VARIABLES-2026-10-02, actualisé le03/10.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -535,11 +551,11 @@ Placement du formulaire selon6407:9458/9702. Paramètres de la feuille : DSF-PAR
 
 ### 11. États de l’écran
 
-Création carte vide, résumé validé, feuille ouverte/annulée/validée, modification préremplie, trois modes et côtés, erreur de sauvegarde, média indisponible.
+Vide, nom seul, catégorie renseignée, nom/description/média renseignés, modification existante, résumé uniforme, résumé variable Durée/Répétitions/À l’échec, bilatéral et chacun des ordres, abandon confirmé/annulé, erreur de sauvegarde. Le résumé Répétitions est visible derrière6665:24844 ; pas de vue parent dédiée actuellement. L’absence de capture ne retire pas cet état du contrat.
 
 ### 12. Contrôles et interactions
 
-Toucher carte/valeur ouvre CE-UI-10 selon le tableau de v11. ✓ de la feuille applique au brouillon sans écrire en base ; ✕ le conserve. Terminer sauvegarde une fois. Référentiels CE-UI-09 inchangés.
+Toucher carte/valeur ouvre CE-UI-10 selon le tableau de v12. ✓ de la feuille applique au brouillon sans écrire en base ; ✕ le conserve. Terminer sauvegarde une fois. Référentiels CE-UI-09 inchangés.
 
 ### 13. Gestes
 
@@ -548,6 +564,8 @@ Tap, saisie et défilement du formulaire ; pas de geste métier supplémentaire.
 ### 14. Validation
 
 Nom, exactement une Catégorie et au moins une Zone pour un nouvel Exercice ; maintien des affectations retirées D-210. Paramètres exécutables issus de CE-UI-10. Terminer inactif si paramètres absents/invalides ; la couleur d’exemple de Figma ne suffit pas à valider.
+
+Toutes les Séries actives doivent être valides ; Total variable en lecture seule, aucune cible uniforme utilisée à sa place.
 
 ### 15. Brouillon et persistance
 
@@ -567,17 +585,17 @@ Carte et raccourcis ont labels explicites ; résumé lisible sans action imposé
 
 ### 19. Invariants
 
-Aucune édition inline de la phrase. Mode/nom exclus de la phrase intrinsèque ; pas de total À l’échec. Calculs v11 avec transition D-242 ; aucun import média ajouté. Aucun enregistrement à la simple fermeture de feuille.
+Aucune édition inline de la phrase. Mode/nom exclus de la phrase intrinsèque ; pas de total À l’échec. Calculs v12, D-248 ; D-242 supersédée ; aucun import média ajouté. Aucun enregistrement à la simple fermeture de feuille.
 
 ### 20. Recette déterministe
 
-Tester vide→feuille→annuler sans changement ; feuille valide→résumé→Terminer ; tous raccourcis ; modification annulée ; trois modes, bilatéralité et q de repli ; source disparue/erreurDB ; champs/référentiels requis ; lecture seule Total Répétitions. Vérifier différences entre exemple Figma et données recalculées.
+Tester vide→feuille→annuler sans changement ; feuille valide→résumé→Terminer ; tous raccourcis ; modification annulée ; trois modes, deux ordres bilatéraux et PC=0 sans repli ; source disparue/erreurDB ; champs/référentiels requis ; lecture seule Total Répétitions. Vérifier différences entre exemple Figma et données recalculées.
+
+Sauvegarder/réouvrir après bascules, déplacement et N1 ; vérifier indépendance copie Catalogue/Séance et résumé v12.
 
 ### 21. Traçabilité
 
-D-246 ; SPECIFICATION-PARAMETRES-MODALE-v11.md ; CE-UI-10/CE-UI-09 ; frames6407:9458/9702 ; DSF-PARAMETRES-MODALE-2026-10-01.
-
----
+D-246 à D-255 ; v12 ; CE-UI-10/09 ; état des lieux du03/10 (chaque frame, capture, statut, contrat). Anciennes copies hors Prototype MVP actuel, aucune modification de règle issue de leurs chiffres.
 
 ## CE-T03-05 — ActivityDefinition — archiver / restaurer / supprimer
 
@@ -865,6 +883,8 @@ Exercice → éditeur de copie locale ; Ajouter un exercice → CE-T03-07 ; Éti
 
 Brouillon Session et occurrences indépendantes. Nom ; étiquette 0..1 ; compte à rebours initial ; Fin de séance ; Circuit unique/Tours 1..99 ; phases propres activées par un booléen global true par défaut. postActivityRecoverySeconds appartient à chaque occurrence, initialisé depuis Profil et conservé au déplacement/duplication ; aucune récupération sur la définition Catalogue.
 
+Chaque occurrence conserve les paramètres variables et son R contextuel ; durée To=T si R=0 sinon T−PN+R. Total de Composition somme ces occurrences développées selon les Tours.
+
 ### 6. Classification des valeurs Figma
 
 Noms/paramètres = dynamiques ; titres structurels = statiques ; positions de cartes d’exemple = démonstration.
@@ -876,6 +896,8 @@ Nom/contexte de Séance, Étiquette et actions → compte à rebours initial →
 ### 8. Éléments obligatoires
 
 Compte à rebours/Fin non déplaçables ; Circuit unique sans changement de côté ; Tours par stepper. Cartes sans pause/récupération affichée. Réglage global D-214 applique/ignore ensemble les deux phases propres ; son emplacement graphique n’est pas représenté dans les captures contrôlées : réserve V-04, pas de composant inventé.
+
+Ligne variable : N séries variables uniquement, sans liste des cibles ; récupération reste visible et attachée à son occurrence.
 
 ### 9. Layout déterministe
 
@@ -925,7 +947,11 @@ Circuit=groupe, Tour=répétition, Parcours=objet autonome hors MVP. Un point in
 
 Créer/éditer/abandonner après nom, insertion, réordre, duplication, Étiquette, roulette et point d’arrêt ; vérifier aucune écriture avant Continuer. Tester sauvegarde atomique/double tap/erreur ; Tours 1/99 ; points avant/après/dans Circuit et frontières interdites ; retrait/fermeture hors bulle ; récupération attachée conservée ; D-214 on/off sans modifier les paramètres propres. Vérifier cible graphique séparément pour V-04.
 
+Scénario B=285s, R0 conserve PN ; déplacer/dupliquer conserve tableau/ordre/R et ne modifie pas la définition Catalogue.
+
 ### 21. Traçabilité
+
+Référence variable courante6665:23973 : N séries variables. Les mots Parcours et récupération visible sont des écarts déjà tracés ; Circuit/Tour et D-238 restent normatifs.
 
 D-188–194/D-208–214/D-217/D-222/D-238 ; CE-T03-06/07/16, CE-EXEC-SESSION-01 ; frames§1 ; prescriptions de brouillon du chapitre 06 et décisions actives priment sur l’ancienne autosauvegarde de Composition.
 
@@ -953,6 +979,8 @@ Après préparation fixe 5 s → compte à rebours propre applicable → premiè
 
 Snapshot ActivityDefinition, nom, préparation 5. `preparation=5` est règle système, pas propriété de la définition.
 
+Paramètres de la Série courante issus de l’instantané variable/uniforme ; ordres v12. En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.
+
 ### 6. Classification des valeurs Figma
 
 Nom = dynamique ; 5 s = règle statique système ; autres exemples = démonstration.
@@ -964,6 +992,8 @@ Shell Exécution, nom Exercice et Catégorie, décompte de préparation ; aucune
 ### 8. Éléments obligatoires
 
 Préparation 5 s, nom Exercice, Catégorie, état de suspension ; Pause/Reprendre et accès Arrêter depuis Pause selon§4.12. Réinitialiser/Suivant pendant cette phase système ne sautent pas la préparation.
+
+Série n/N, côté courant distinct ; aucune barre par Série. À suivre affiche la phase réelle : Pause ou Pause entre les côtés ; aucune Récupération en direct.
 
 ### 9. Layout déterministe
 
@@ -1013,6 +1043,8 @@ Décompte annoncé selon guidage ; aucun label Tour/Séance ; nom accessible.
 
 Tester Catalogue et Calendrier, source invalide/disparue, préparation exactement 5 s, compte à rebours propre 0/>0, absence de Tour/Cycle/SESSION_END, interruption et double démarrage ; vérifier instantané immuable et rattachement d’occurrence.
 
+Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Pause terminale et N1 normalisé. Ne pas déduire les transitions du câblage Figma.
+
 ### 21. Traçabilité
 
 D-172/D-191/D-208/D-209/D-214/D-220 ; règles communes §4.12 ; médias CE-MEDIA-EXEC-01/02 ; Synthèse CE-T03-14 ; frame directe 4968:8188 et variantes média 4997:6113/5588:4363/5009:6069/5021:5994/5581:4257. Leur Tour résiduel ne valide aucun Circuit en ACTIVITY. Préparation et variantes sans frame propre : preuve partagée, pas ancien écran numéroté.
@@ -1041,6 +1073,8 @@ Fin Série → pause inter-Séries seulement s’il reste une Série, sinon Fin 
 
 Snapshot uniquement ; série courante, cible temps, temps restant, progression locale.
 
+Paramètres de la Série courante issus de l’instantané variable/uniforme ; ordres v12. En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.
+
 ### 6. Classification des valeurs Figma
 
 Nom/temps/série = dynamiques ; commandes = statiques ; exemples = démonstration.
@@ -1052,6 +1086,8 @@ Nom Exercice → Catégorie → chrono courant et Série → commandes du shell 
 ### 8. Éléments obligatoires
 
 Compte à rebours de Série ; numéro/total de Séries ; temps total actif ; Catégorie sous le nom ; commandes Réinitialiser, Pause, Suivant et son/vocal ; mode et unité non ambigus.
+
+Série n/N, côté courant distinct ; aucune barre par Série. À suivre affiche la phase réelle : Pause ou Pause entre les côtés ; aucune Récupération en direct.
 
 ### 9. Layout déterministe
 
@@ -1101,6 +1137,8 @@ Aucun Tour/Cycle/SESSION_END ; calculs existants inchangés.
 
 Durée 1 s et plusieurs Séries avec pause 0/>0 ; fin naturelle, saut anticipé confirmé/annulé, reset, pause/reprise/arrêt, Fin propre 0/>0 ; aucun Tour/Cycle/récupération post-occurrence. Vérifier Catégorie, chrono et conservation du temps global après reset.
 
+Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Pause terminale et N1 normalisé. Ne pas déduire les transitions du câblage Figma.
+
 ### 21. Traçabilité
 
 D-172/D-191/D-208/D-209/D-214/D-220 ; règles communes §4.12 ; médias CE-MEDIA-EXEC-01/02 ; Synthèse CE-T03-14 ; frame directe 4968:8188 et variantes média 4997:6113/5588:4363/5009:6069/5021:5994/5581:4257. Leur Tour résiduel ne valide aucun Circuit en ACTIVITY. Préparation et variantes sans frame propre : preuve partagée, pas ancien écran numéroté.
@@ -1129,6 +1167,8 @@ Suivant → fin Série → Pause / Série suivante / `SIDE_RECOVERY` éventuelle
 
 REPS : cible répétitions du snapshot. TO_FAILURE : aucune cible chiffrée. Pauses/Récupérations : durées connues snapshot.
 
+Paramètres de la Série courante issus de l’instantané variable/uniforme ; ordres v12. En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.
+
 ### 6. Classification des valeurs Figma
 
 Cibles REPS = dynamiques ; absence de cible Failure = règle métier ; exemples = démonstration.
@@ -1140,6 +1180,8 @@ Shell Exécution : nom, Catégorie, côté si applicable, numéro de Série, cib
 ### 8. Éléments obligatoires
 
 Chronomètre courant initial 00:00, cible Répétitions inchangée par reset, aucune cible chiffrée en À l’échec. Suivant termine normalement la Série ; Catégorie toujours sous le nom.
+
+Série n/N, côté courant distinct ; aucune barre par Série. À suivre affiche la phase réelle : Pause ou Pause entre les côtés ; aucune Récupération en direct.
 
 ### 9. Layout déterministe
 
@@ -1189,6 +1231,8 @@ Failure sans cible ; Suivant normal ; aucune confirmation chronométrée ; pas S
 
 Deux modes, N=1/N>1, cible 1/100, reset après temps écoulé, Suivant sans dialogue, pauses 0/>0, changement de côté et Fin propre. Aucun total cible inventé pour À l’échec ; aucun Tour/Cycle ni récupération post-occurrence.
 
+Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Pause terminale et N1 normalisé. Ne pas déduire les transitions du câblage Figma.
+
 ### 21. Traçabilité
 
 D-172/D-191/D-208/D-209/D-214/D-220 ; règles communes §4.12 ; médias CE-MEDIA-EXEC-01/02 ; Synthèse CE-T03-14 ; frame directe 4968:8188 et variantes média 4997:6113/5588:4363/5009:6069/5021:5994/5581:4257. Leur Tour résiduel ne valide aucun Circuit en ACTIVITY. Préparation et variantes sans frame propre : preuve partagée, pas ancien écran numéroté.
@@ -1203,7 +1247,7 @@ Bloc B5 ; états S59–S62 ; T03-E E40–E41 ; Shell Execution ; sous-titre côt
 
 ### 2. Finalité fonctionnelle
 
-Exécuter toutes les Séries du premier côté, une pause au changement de côté éventuelle, puis toutes celles du second ; aucun postActivityRecoverySeconds en ACTIVITY.
+L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de v12 §4 ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante. Aucune récupération post-exercice en ACTIVITY.
 
 ### 3. Contexte d’entrée
 
@@ -1217,6 +1261,8 @@ Séries/pauses premier côté → SIDE_RECOVERY si positive → Séries/pauses s
 
 sideMode snapshot ; executionSide RIGHT/LEFT ; résultats séparés par côté.
 
+Paramètres de la Série courante issus de l’instantané variable/uniforme ; ordres v12. En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.
+
 ### 6. Classification des valeurs Figma
 
 `Côté droit/gauche` = libellés calculés ; ordre vient sideMode, jamais de la frame d’exemple.
@@ -1227,7 +1273,9 @@ Shell Execution + nom + sous-titre côté + information Série/mode + commandes.
 
 ### 8. Éléments obligatoires
 
-Sous-titre côté ; aucun `1/2`/`2/2`; même rang logique Activity entre côtés ; Pause uniquement entre Séries ; pause au changement de côté éventuelle avant le second passage.
+Sous-titre côté ; aucun `1/2`/`2/2`; même rang logique Activity entre côtés ; Pauses suivant v12, Pause terminale comprise ; Pause entre les côtés éventuelle avant le second passage.
+
+Série n/N, côté courant distinct ; aucune barre par Série. À suivre affiche la phase réelle : Pause ou Pause entre les côtés ; aucune Récupération en direct.
 
 ### 9. Layout déterministe
 
@@ -1239,11 +1287,11 @@ Nom puis Catégorie, et ligne Côté droit/gauche distincte du contexte ; aucun 
 
 ### 11. États de l’écran
 
-Premier côté ; Pause intra-côté ; pause au changement de côté éventuelle ; second côté ; Partial side ; fin intrinsèque.
+Premier côté ; Pause intra-côté ; Pause entre les côtés éventuelle ; second côté ; Partial side ; fin intrinsèque.
 
 ### 12. Contrôles et interactions
 
-Ordre D→G/G→D strict. Réinitialiser ne touche que le côté courant et conserve l’autre résultat. Passage anticipé du premier côté : résultat partiel conservé, second côté selon D-150 ; transition de durée pC si pC>0, sinon pS ; aucun cumul (§6 R-03).
+Ordre D→G/G→D strict. Réinitialiser ne touche que le côté courant et conserve l’autre résultat. Passage anticipé du premier côté : résultat partiel conservé, second côté selon D-150 ; transition selon la succession du plan v12 (§6 R-03).
 
 ### 13. Gestes
 
@@ -1251,7 +1299,7 @@ Tap commandes uniquement.
 
 ### 14. Validation
 
-Pause inter-Séries C−1 par côté ; SIDE_RECOVERY une seule fois entre côtés si positive ; aucune récupération après le second côté en direct. Valeur 0 saute immédiatement la phase.
+Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v12 §§3–5, D-247 à D-250.
 
 ### 15. Brouillon et persistance
 
@@ -1276,6 +1324,8 @@ Toutes Séries d’un côté avant l’autre ; une seule pause entre côtés ; a
 ### 20. Recette déterministe
 
 D→G/G→D, C=1/2/99, pause inter-Séries 0/>0, SIDE_RECOVERY0/>0, reset second préservant premier, interruption pendant SIDE_RECOVERY, absence de récupération après second. Tester saut anticipé avec pC>0 puis pC=0/pS>0 puis les deux à zéro ; ne jamais cumuler les pauses.
+
+Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Pause terminale et N1 normalisé. Ne pas déduire les transitions du câblage Figma.
 
 ### 21. Traçabilité
 
@@ -1305,6 +1355,8 @@ Fin de la dernière Série/côté puis Fin propre applicable → signal de fin �
 
 État moteur, résultats par Série/côté/phase et instantané ACTIVITY ; total actif exclut pauses utilisateur et attente de point d’arrêt le cas échéant. Instantané figé au départ ; Ressenti/Commentaire finalisés séparément.
 
+Paramètres de la Série courante issus de l’instantané variable/uniforme ; ordres v12. En direct : total intrinsèque, Pause terminale normale, aucune récupération contextuelle.
+
 ### 6. Classification des valeurs Figma
 
 Statut/temps = dynamiques ; libellés confirmation = statiques ; aucune valeur de fin de Séance applicable.
@@ -1316,6 +1368,8 @@ Commandes et dialogue d’arrêt selon§4.12 ; transition de fin vers Synthèse 
 ### 8. Éléments obligatoires
 
 Signal de fin, statut persisté, Synthèse sur fin normale/arrêt volontaire ; interruption technique sans Synthèse seulement si présentation impossible.
+
+Série n/N, côté courant distinct ; aucune barre par Série. À suivre affiche la phase réelle : Pause ou Pause entre les côtés ; aucune Récupération en direct.
 
 ### 9. Layout déterministe
 
@@ -1364,6 +1418,8 @@ Aucun SESSION_END ; aucun Session count ; origin ACTIVITY intact.
 ### 20. Recette déterministe
 
 Fin 0/>0 ; plan terminé/partiel ; arrêt depuis Pause confirmé/annulé ; interruption technique sans Synthèse ; clôture idempotente et aucune duplication historique ; retour par contexte après Enregistrer.
+
+Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Pause terminale et N1 normalisé. Ne pas déduire les transitions du câblage Figma.
 
 ### 21. Traçabilité
 
@@ -1812,6 +1868,8 @@ Tester 0/1/N médias, mélange image/vidéo, premier/dernier, un swipe=un média
 
 ### 21. Traçabilité
 
+Réexport5581:4257 du03/10 ; valeurs Série0/3 et Tour0/3 d’exemple ne définissent ni index initial ni Tour ACTIVITY.
+
 D-203/D-216/D-220/D-237 ; CONCEPTION-EXECUTION-MEDIA §§3–6/9–14 ; DSF-V2-MOTIFS-LOT-3 T10 ; frames§1 ; CE-T03-09..13/CE-EXEC-SESSION-01.
 
 ---
@@ -2101,6 +2159,8 @@ Surface occurrence → CE-UI-05 modification de Routine ; Lecture → moteur sel
 ### 5. Données affichées et source de vérité
 
 Occurrence et type SESSION/ACTIVITY, heure, durée et classement de la source ; jamais déduits du titre.
+
+Sources SESSION : durées d’occurrence et total de Séance sans double ajout de R ; ACTIVITY : durée intrinsèque ; v12§5.
 
 ### 6. Classification des valeurs Figma
 
@@ -2452,7 +2512,7 @@ Modifier → CE-UI-01 ; navigation basse vers les trois autres destinations ; un
 
 ### 5. Données affichées et source de vérité
 
-Préférences locales : Sons, Annonces vocales, Vibration, Notifications ; groupe Exercice : Pause au changement de côté, Compte à rebours d’exercice, Fin d’exercice ; groupe Séance : Récupération après exercice, Compte à rebours initial, Fin de séance.
+Préférences locales : Sons, Annonces vocales, Vibration, Notifications ; groupe Exercice : Pause entre les côtés, Compte à rebours d’exercice, Fin d’exercice ; groupe Séance : Récupération après exercice, Compte à rebours initial, Fin de séance.
 
 ### 6. Classification des valeurs Figma
 
@@ -2465,6 +2525,8 @@ Identité/Modifier, groupes Exercice et Séance de réglages, commandes son/voca
 ### 8. Éléments obligatoires
 
 Six défauts distincts ; aucune Pause inter-Séries globale ajoutée. La pause inter-Séries 5 s appartient à l’initialisation de l’éditeur. Silhouette ne se modifie que dans CE-UI-01.
+
+Libellé unique Pause entre les côtés ; défaut10s ; pas des pauses validé D-252. Les captures anciennes de Profil portant un ancien libellé sont historiques sur ce texte.
 
 ### 9. Layout déterministe
 
@@ -2488,7 +2550,7 @@ Tap bascule ; stepper incrément immédiat, maintien 450 ms puis pas 150 ms, arr
 
 ### 14. Validation
 
-Valeurs non négatives ; pauses côté/récupération 0..300 s, progression 5 s jusqu’à120 puis 30 s. Respecter les bornes des réglages propres déjà définies ; pas de maximum déduit d’un exemple. Les bornes partagées sont consolidées au §6 R-02.
+Valeurs non négatives ; pauses côté/récupération 0..300 s, progression1s jusqu’à5s, puis5s jusqu’à120s, puis30s jusqu’à300s. Respecter les bornes des réglages propres déjà définies ; pas de maximum déduit d’un exemple. Les bornes partagées sont consolidées au §6 R-02.
 
 ### 15. Brouillon et persistance
 
@@ -2542,6 +2604,8 @@ Plan achevé → CE-UI-08 ; arrêt depuis Pause confirmé → CE-UI-08 Interromp
 
 Instantané Session au démarrage, occurrences développées, Série/côté/Tour courants, paramètres propres et booléen global D-214, résultats et temps moteur ; aucune lecture réactive de la source modifiée.
 
+Plan depuis les cibles/Pauses de chaque Série et l’Ordre des côtés de l’instantané ; R>0 remplace PN uniquement en fin d’occurrence.
+
 ### 6. Classification des valeurs Figma
 
 Noms/durées/compteurs calculés ; valeurs Figma démonstratives. Circuit=groupe, Tour=répétition ; Cycle technique 1 jamais affiché.
@@ -2553,6 +2617,8 @@ Shell Execution ; nom Exercice puis contexte nom Séance + Catégorie, côté di
 ### 8. Éléments obligatoires
 
 Phase courante identifiable, temps et progression, commandes Réinitialiser/Pause/Suivant/sons/vocal ; Tour seulement dans contexte de Circuit ; aucune interface de bilatéralité Circuit.
+
+Série n/N et côté séparés ; aucune barre par Série. À suivre : Pause / Pause entre les côtés / Récupération selon la phase.
 
 ### 9. Layout déterministe
 
@@ -2602,7 +2668,11 @@ Circuit unilatéral, Tours 1..99 ; récupération après chaque occurrence y com
 
 Séance avec avant/dans/après Circuit, Tours 1/2, unilatéral/bilatéral, trois modes ; D-214on/off ; toutes phases 0/>0 ; dernière récupération avant Fin ; points frontières/intérieur ; pause/reset/saut/arrêt confirmés/annulés ; source modifiée pendant run ; reprise ; médias ; vérifier poids §6 R-01 et transitions §6 R-03 ; aucun résultat de test applicatif n’est revendiqué ici.
 
+Ordres D→G/G→D, A–F, N1, R0/positif et dernière occurrence/chaque Tour ; jamais cumul PN+R ni récupération ajoutée deux fois.
+
 ### 21. Traçabilité
+
+Réexport courant1992:8132 du03/10 : Série et côté séparés. Références dédiées de récupération terminale/paire de côtés absentes de Prototype MVP actuel ; recette prescrite, preuve visuelle partielle.
 
 D-133/D-149/D-150/D-191/D-197/D-208–220 ; chapitres 04/08/09/10/11/12 ; CE-UI-08 ; frames§1. Spécification de la famille T04, sans lancement d’une implémentation dans cette livraison.
 
@@ -2780,6 +2850,8 @@ Catégorie choix/annulation/création/couleur ; Zones 0/1/N ; noms vide/dupliqu�
 
 ### 21. Traçabilité
 
+Les6frames de référentiels ont été réexportées et contrôlées le03/10 : rendu identique aux PNG publiés. ✓ sur Catégorie reste un écart à D-222 ; validation simple au toucher conservée. Les paramètres variables du parent sont conservés durant ces opérations.
+
 D-199/D-200/D-210–212/D-222/D-238 ; CE-T03-04 ; frames§1. Renommage sans frame dédiée : comportement requis, rendu non prouvé.
 
 ---
@@ -2788,89 +2860,87 @@ D-199/D-200/D-210–212/D-222/D-238 ; CE-T03-04 ; frames§1. Renommage sans fram
 
 ### 1. Identification
 
-Feuille basse Paramètres d’exécution ; CE-UI-10 ; depuis CE-T03-04. États6407:9551/9805/9966/10127/10481,6411:9546/9649,6419:9847/10028,6423:9953. Ce sont des états d’une seule feuille, pas dix écrans métier.
+Une feuille depuis CE-T03-04 :21états courants recensés le03/10. Uniformes6407:9551/9805/9966/10127/10481,6411:9546/9649,6419:9847/10028,6423:9953 ; variables6665:24616/24844/25072/25277/26185/26575/26822/27008/27232/27458/27608. Captures centralisées au chapitre06.
 
 ### 2. Finalité fonctionnelle
 
-Saisir tous les paramètres dans une feuille transactionnelle ; remplacer la phrase éditable en conservant le résumé et ses raccourcis.
+Éditer les paramètres uniformes ou variables et l’ordre des côtés, selon v12. Calculs/comportements issus des spécifications ; Figma fournit seulement le layout.
 
 ### 3. Contexte d’entrée
 
-Carte vide : paramètres initiaux ; carte renseignée : copie des valeurs courantes. Le déclencheur précise la ligne à activer ou aucune. Le nom/référentiels du parent ne sont pas modifiés.
+Copie des paramètres du brouillon parent ; carte vide : N1, Pause0s, mode/durée/côté— ; Répétitions uniforme défaut1, CR10s/Fin5s depuis Profil. Aucune valeur exemple injectée. Séries variables désactivées initialement.
 
 ### 4. Contexte de sortie / destinations
 
-✕ : fermer et restaurer le parent inchangé. ✓ : appliquer tout le brouillon valide, fermer et régénérer le résumé du parent. Aucune sauvegarde en base ni navigation vers un autre formulaire.
+✕ et retour système annulent toute l’ouverture ; ✓ applique atomiquement au parent puis ferme et régénère le résumé. Terminer seul sauvegarde l’Exercice. La feuille ne modifie ni nom ni référentiels.
 
 ### 5. Données affichées et source de vérité
 
-Mode, Séries, cible du mode, pauses, côté, Compte à rebours, Fin ; Total dérivé. Séries initial1, pause entre Séries0 s ; durée/mode/côté initialement — ; répétitions défaut1 ; CR10 s/Fin5 s copiés du Profil ; pause côté copiée à activation bilatérale. Valeurs de démo non persistées.
+Mode commun, N, état variable explicite, cible/Pause communes ou tableau ordonné, direction, ordre des côtés, PC, CR et Fin. Total dérivé intrinsèque. R contextuelle absente de cette feuille. Valeurs alternatives cachées seulement dans le brouillon.
 
 ### 6. Classification des valeurs Figma
 
-Titre Paramètres d’exécution ; libellés des lignes v11 ; valeurs dynamiques et unités ; message « Durée ajustée à {T(N)} pour respecter un nombre entier de séries. ».
+Libellés normatifs v12 ; chiffres, titres de frames et câblages Figma = démonstration. Incomplet— ; Répétitions Durée totale≥ ; À l’échec pas de total. La photo et le résumé derrière le voile ne commandent pas le brouillon.
 
 ### 7. Structure de l’écran
 
-Voile plein écran → feuille ancrée bas → en-tête Annuler/titre/Valider → carte empilée. Ordre Mode, Séries, cible du mode, Pause séries, Côté, Pause côté conditionnelle, Total conditionnel, CR, Fin. Contrôle activé directement sous sa ligne ; message sous Total avant CR.
+En-tête fixe ✕/titre/✓ ; corps défilant : Mode → Séries → Séries variables → cible/Pause uniformes ou tableau → Changement de côté → Ordre des côtés et Pause entre les côtés si bilatéral → Total applicable → CR → Fin.
 
 ### 8. Éléments obligatoires
 
-Steppers permanents sans contour sélectionné. Roulette ou segmenté : une ligne activée avec cadre bleu ; contrôle en dessous hors cadre. Répétitions : cible par stepper et Total ≥ texte simple ; À l’échec : ni cible ni Total. Pause côté uniquement bilatéral. Total visible dans la feuille en Durée/Répétitions même avec une Série.
+Interrupteur sous Séries ; tableau rattaché, ligne numérotée à droite sans symbole, poignée, cible et Pause ; en À l’échec texte fixe et seul stepper Pause. Chevron replie sans désactiver. Steppers permanents, pas de modale supplémentaire. N1 : interrupteur désactivé grisé, Ordre grisé. Total reste dans le corps replié.
 
 ### 9. Layout déterministe
 
-Référence402 : voile noir28%, feuille blanche coins hauts24 ; carte#FCFCFE/contour blanc, lignes42, séparateurs#DEDEE5, libellés14 ; sélection2px#0508E5/fond#F4F4FF/rayon12. Stepper137, bord+ x366 ; long libellé180 sur deux lignes. Segment côté13 sur deux lignes. DSF complément pour tous états.
+402px de référence ; feuille blanche, coins hauts24 et voile28% selon DSF existant. Groupe tableau x24 largeur354, fond gris clair et contour ; ligne variable x36 largeur334 ; deux steppers128px (cible/Pause), numéro et poignée à gauche. Ordre : segmenté330×60, deux options sur deux lignes, titre centré et notation en flèches. Géométrie détaillée/captures DSF du02/10, sans transformer dimensions en règles métier.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-La feuille grandit vers le haut ; en limite de hauteur, contenu scrollable et en-tête accessible dans Safe Areas. Lignes extensibles pour texte agrandi ; les42px ne brident pas la hauteur. À402, message d’ajustement ajoute62px, bas inchangé ; pas de débordement ni de recouvrement tactile.
+Corps entier défilant sous en-tête fixe, Safe Areas et texte agrandi.6665:25277 montre le haut et les12lignes ; total/CR/Fin sous le viewport : accessibles par scroll, pas de second scroll dans le tableau. La position basse n’a plus de frame dédiée dans Prototype MVP et reste à qualifier visuellement. Le total reste dans le flux lorsque le tableau est replié.
 
 ### 11. États de l’écran
 
-Initiale non renseignée ; renseignée sans sélection ; mode/côté activé ; durée/total activé ; bilatéral ; Répétitions ; À l’échec ; message ajustement ; invalide ; annulation. Un seul éditeur développé à la fois.
+Uniforme, variable activé par copie, Durée/Répétitions/À l’échec, 12lignes avec défilement requis, chacun des deux ordres, variable+bilatéral, N1, changement de mode incomplet, erreur de validation, repli du tableau, ligne déplacée, message de total ajusté en Durée uniforme.
 
 ### 12. Contrôles et interactions
 
-Activer une ligne déploie son contrôle ; changement de mode adapte les lignes et conserve les valeurs par mode. Roulette modifie le brouillon sans ouvrir de deuxième dialogue ; steppers agissent au relâchement. ✓ vérifie/applique ; ✕ abandonne tous les changements de l’ouverture.
+Activation copie les paramètres communs ; désactivation sans confirmation/message reprend la première ligne courante ; réactivation avant✓ restaure. N augmente : restaurer retirées puis copier dernière ; réduit : conserver provisoirement les lignes retirées. Changer mode conserve Pauses et met cibles incompatibles—, retour restaure anciennes cibles. Déplacement cible+Pause solidaire ; nouvelle dernière porte PN.
 
 ### 13. Gestes
 
-Tap/roulette/stepper et scroll ; aucune fermeture destructive implicite par swipe de feuille. Arrière-plan bloqué. Règles de maintien et réduction du mouvement D-237 conservées ;120ms de démo n’est pas un retard avant action.
+Tap, steppers, roulette uniforme, glissement via poignée et scroll ; D-237 pour maintien et animations. Repli via chevron = présentation seulement. Retour système annule. Aucune fermeture destructive implicite par swipe de feuille. Ne pas appliquer le déplacement à une valeur isolée.
 
 ### 14. Validation
 
-Mode requis ; Durée renseignée1..5999s ; répétitions1..100 ; Séries1..99 ; pauses0..300s, pas5s jusqu’à120 puis30. Côté vide normalisé Sans changement (défaut existant) ; aucun côté bilatéral implicite. Coche inactive tant qu’ensemble non exécutable. Total borné T(1)..T(99), inverse/arrondi v11 ; Total Répétitions sans action.
+N1..99, répétitions1..100, durée1..5999s, pauses0..300s. Pas durée1s/répétitions1 ; pauses0,1,2,3,4,5,10…120,150…300. ✓ inactif si mode/cible active manquante ; signaler cellule et Série en ligne. Zéro valide pour Pause. Variable : aucune inversion du Total.
 
 ### 15. Brouillon et persistance
 
-Copie de travail locale. ✓ applique atomiquement au parent ; ✕ restitue tous paramètres antérieurs, y compris après changement de mode. Pas d’écriture de phrase ni d’objet Exercice. Valeurs Profil copiées sans rétroaction.
+Brouillon transactionnel v12§3. N1 effectif uniforme/par côté dès calcul, ancien état mémorisé pour retour≥2. À✓ supprimer alternatives cachées et lignes retirées ; aucun état persistant1série variable. Pas d’arrondi des données existantes à la lecture. Copie/duplication incluent tableau et ordre.
 
 ### 16. Navigation et conservation d’état
 
-Réouverture préremplie depuis parent. Raccourci Mode→mode ; Séries/pause/vide→aucune sélection ; durée→roulette concernée ; côté→segmenté. Focus rendu au déclencheur. Retour système suit annulation de la feuille.
+Réouverture depuis parent validé ; raccourcis conservés pour champs compatibles. Cible uniforme Durée/Total uniforme ouvre roulette ; valeurs détaillées variables utilisent steppers dans la feuille. Focus restitué à fermeture ; aucun changement de route parent.
 
 ### 17. Erreurs et cas limites
 
-Valeur — ne vaut pas zéro. Ne pas appliquer de durée exemple aux champs vides. À l’échec retire cible/Total. Erreur de validation conserve brouillon et indique le champ. Message ajustement uniquement si T(N)≠Tv. Aucun échec média n’empêche cette saisie.
+— distinct de0 ; tableau replié ne masque pas une invalidité à la validation. À l’échec n’a jamais de cible numérique/total. Total— tant que cibles actives incomplètes. Annulation restaure aussi ordre et déplacements ; N1 n’efface pas le brouillon avant✓.
 
 ### 18. Accessibilité
 
-Titre annoncé, focus contenu dans feuille, arrière-plan inaccessible. ✕/✓ nommés Annuler/Valider les paramètres ; unités/bornes annoncées ; valeurs — annoncées Non renseigné. Total≥ annonce lecture seule. Contraste/états selon DSF, cibles sans chevauchement.
+Nommer interrupteur/état, chevron développé/replié, Série et unité de chaque stepper, commandes de déplacement et erreurs. Focus dans feuille, parent inaccessible ; texte non tronqué à agrandissement. Total annoncé lecture seule et estimation si≥ ; options grisées non activables.
 
 ### 19. Invariants
 
-Pas d’édition inline, pas de seconde modale de durée, pas de contour sur stepper. Démo1..10 ne limite pas Séries99. Pauses ne se cumulent pas à transition D-242. Ne pas confondre validation de paramètres et sauvegarde Exercice.
+Un mode par Exercice, N par côté, mêmes paramètres des deux côtés, aucune surcharge commune en variable ; total intrinsèque sans R/CR/Fin. Calculs v12 indépendants de Figma. Aucun nouveau design ni mécanisme d’import.
 
 ### 20. Recette déterministe
 
-Tester chaque raccourci et annulation de toutes modifications ; trois modes et conservation de valeurs ; N1/99,R1/100,d1/5999,pauses0/120/150/300 ; Total modifiable seulement Durée ; calcul inverse exact/ajusté et message ; bilatéral pC0/pS>0 ; coche invalide/valide ; scroll360/402/440 et texte agrandi ; parent inerte ; focus restitué. Écarts de câblage du prototype ne valent pas comportements acceptés.
+Scénarios A–F et N1 v12§9 ; 1/99séries, 1/100répétitions,1/5999s ; pauses4→5→10 et120→150 en aller/retour ; activation/désactivation/réactivation ; changement de mode aller/retour ; déplacement puis réduction/restauration ; N1→N≥2 avant✓ et après✓ ; erreur repliée ; duplication/réouverture ; scroll et texte agrandi.
 
 ### 21. Traçabilité
 
-D-246 ; transmission01/10 §3 prioritaire sur câblage ; SPECIFICATION-PARAMETRES-MODALE-v11.md ; DSF-PARAMETRES-MODALE-2026-10-01 ; 12 états illustrés chapitre06. Composant6426:10149 de démonstration exclu du DSF.
-
----
+D-247 à D-255 ; v12 ; DSF actualisé03/10 ; ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03. Les références courantes sont dans Prototype MVP, pas des copies de travail. Les états sans frame dédiée sont listés séparément ; aucune recette interactive ni propagation aux composants maîtres n’est présumée.
 
 ## 5. État des preuves visuelles
 
@@ -2889,7 +2959,7 @@ D-246 ; transmission01/10 §3 prioritaire sur câblage ; SPECIFICATION-PARAMETRE
 | V-11 |Compte à rebours Composition inline 2028:11375 mais description roulette ; pas Fin 5 s contre prescription 1 s | CE-T03-08 ; aucun état de picker déclaré vérifié tant que la description 06 et sa preuve ne sont pas réconciliées |
 | V-12 |Archives Exercice sans écran complet ; Photo à200% non qualifiée ; animations non câblées ; contrastes acceptés | Limites déjà documentées du DSF, pas de nouvelle décision produit |
 
-Les 119 captures restent exclusivement au chapitre 06, dont six références hors prototype qui ne deviennent pas des écrans MVP. Les matrices ci-jointes donnent les rattachements ; la présence de chaque capture a été vérifiée lors de l’audit, pas son fonctionnement interactif.
+Les captures courantes sont centralisées au chapitre06 ; l’état des lieux du03/10 distingue42références du parcours, leurs contrats et les copies historiques remplacées. La matrice donne l’inventaire, dont les références hors prototype qui ne deviennent pas des écrans MVP. Les matrices ci-jointes donnent les rattachements ; la présence de chaque capture a été vérifiée lors de l’audit, pas son fonctionnement interactif.
 
 ## 6. Clôture des réserves fonctionnelles des contrats
 
@@ -2905,16 +2975,18 @@ La convention 2 s/répétition reste celle de la phrase intrinsèque de l’édi
 
 - Planifier : fréquence entière de 1 à 12 semaines incluses ; − inactif à 1 et + inactif à 12 ; toute valeur extérieure est refusée à l’enregistrement.
 - Rappel Autre : délai strictement positif, maximum 24 h (1 440 minutes), avec les unités et le sélecteur existants. Aucun désactive le rappel ; zéro ne crée pas une deuxième manière de désactiver le champ. Une notification dont l’échéance est déjà passée n’est pas envoyée rétroactivement ; les futures occurrences conservent leur rappel.
-- Durée totale : conserver le sélecteur minutes/secondes. La borne dérivée est T(1)..T(99) pour les paramètres courants, et non 99 min 59 s (borne par Série). La colonne minutes doit représenter T(99), sans nouvelle colonne ni nouveau contrôle. Granularité seconde ; le calcul inverse existant choisit N dans 1..99, arrondi .5 vers le haut, puis affiche T(N) et le message d’ajustement si nécessaire. Une diminution à N=1 sans bilatéralité peut masquer la clause redondante du résumé ; la ligne Total reste présente dans la feuille en Durée/Répétitions (D-246).
+- Durée totale : conserver le sélecteur minutes/secondes. La borne dérivée est T(1)..T(99) pour les paramètres courants, et non 99 min 59 s (borne par Série). La colonne minutes doit représenter T(99), sans nouvelle colonne ni nouveau contrôle. Granularité seconde ; le calcul inverse existant choisit N dans 1..99, arrondi .5 vers le haut, puis affiche T(N) et le message d’ajustement si nécessaire. En Durée uniforme, une diminution à N=1 ne masque le total du résumé que s’il égale effectivement la cible ; la ligne Total reste présente dans la feuille en Durée/Répétitions (D-246).
 - Profil : les paramètres identiques héritent des mêmes bornes que leur champ cible, sans maximum tiré des valeurs d’exemple. Compte à rebours initial/Fin de séance : 0..3599 s (D-089) ; pauses et récupération : 0..300 s ; le contrôle et ses pas restent ceux du DSF et de D-232. Les valeurs initiales déjà validées ne changent pas.
 
 ### R-03 — Transition, reset et suspension
 
-À la transition entre côtés, utiliser une seule pause : pC si la pause de changement de côté pC est positive, sinon la pause entre Séries pS. Les deux ne se cumulent jamais. La transition vaut donc q=(pC>0 ? pC : pS) en bilatéral et q=0 en unilatéral. Les N−1 pauses internes à chaque côté restent inchangées. Cette règle vaut aussi au passage anticipé vers le second côté. Si q=0, passer directement au second côté. La phase de transition conserve le rôle SIDE_RECOVERY, avec durée effective q, sans modifier la valeur pC enregistrée.
+L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de v12 §4 ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante.
 
-Durée intrinsèque : T(N)=k×[N×d+(N−1)×pS]+q, k=1 ou 2. En Répétitions dans la phrase, remplacer d par R×2 s. Inversion : N=min(99,max(1,arrondi((Tv−q+k×pS)/(k×(d+pS))))). Compte à rebours, Fin propre et récupération post-exercice restent hors de ce total.
+Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=2×Ri s pour l’estimation ≥ seulement ; À l’échec : aucun total d’Exercice. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v12 §5 ; variable : lecture seule et — si incomplet.
 
-Réinitialisation : D-029/D-150 commandent de recommencer l’exercice ; en bilatéral, son périmètre est le bloc du côté courant depuis sa première Série, sans effacer le résultat de l’autre côté ni le temps total. Pendant une récupération, RM-062 réinitialise uniquement la phase courante. Ne pas présenter ces variantes comme un choix à refaire.
+La source active est v12 §§3–5 ; D-242 est supersédée. Les tests PRE-1 restent figés sur leur source historique.
+
+Réinitialiser conserve D-029/D-150 : recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé. Cette portée s’applique aussi à Les deux côtés à chaque série ; un passage déjà acquis de l’autre côté n’est pas rejoué. Exemple : gauche2/3 → reprise gauche1/3, résultats droits conservés. Pendant une récupération, RM-062 réinitialise seulement cette phase. Le passage anticipé conserve D-150 : côté courant partiel, poursuite des passages restant à exécuter de l’autre côté ; les résultats acquis ne sont pas effacés. Ces conséquences du périmètre existant ne constituent pas un nouvel arbitrage.
 
 Pause de sécurité : sans réponse au choix Reprendre/Arrêter, l’exécution reste suspendue, son état est conservé et son temps n’avance plus. Aucun délai d’arrêt automatique supplémentaire.
 
@@ -3027,6 +3099,6 @@ Chaque contenu E01–E73 est rattaché ci-dessus ; E08 est rattaché à CE-T03-0
 
 ## 8. Frontière de réalisation et recette
 
-T03 décrit l’Exécution ACTIVITY autonome : préparation 5 s, phases propres, Séries/pauses/côtés, pause au changement de côté, Synthèse et Suivi. T04 porte l’orchestration SESSION : Circuit/Tours, phases structurelles, récupération post-occurrence, points d’arrêt et progression globale. Ajouter leurs contrats ne déclenche ni développement ni changement de tranche. Parcours autonome et recherche restent hors MVP.
+T03 décrit l’Exécution ACTIVITY autonome : préparation 5 s, phases propres, Séries/pauses/côtés, Pause entre les côtés, Synthèse et Suivi. T04 porte l’orchestration SESSION : Circuit/Tours, phases structurelles, récupération post-occurrence, points d’arrêt et progression globale. Ajouter leurs contrats ne déclenche ni développement ni changement de tranche. Parcours autonome et recherche restent hors MVP.
 
 Pour chaque contrat : tester nominal/alternatifs/négatifs, comparer le rendu 402 à la preuve lorsqu’elle existe, vérifier 360/402/440 et texte agrandi, accessibilité, données réelles, persistance/annulation, erreurs et absence d’activation hors périmètre. Consigner séparément conformité documentaire, conformité visuelle et recette interactive. Les règles §6 et preuves manquantes §5 ne sont jamais marquées CONFORME en exécution par la seule présence de 21 sections.

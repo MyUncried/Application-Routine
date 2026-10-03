@@ -44,7 +44,7 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 - Choisir parmi 12 couleurs prédéfinies, avec une couleur initialement proposée.
 - Ajouter des Exercices ; chaque occurrence créée dans la Composition possède automatiquement une **Récupération après exercice**, y compris à `0 s`, initialisée depuis le défaut global.
 - Définir un Exercice par une Durée, un nombre de Répétitions ou jusqu’à l’échec.
-- Définir le nombre de Séries et une Pause éventuelle entre les Séries ; pour un Exercice bilatéral, régler séparément la **Pause au changement de côté**.
+- Définir le nombre de Séries et une Pause éventuelle entre les Séries ; pour un Exercice bilatéral, régler séparément la **Pause entre les côtés**.
 - Saisir soit le nombre de Séries, soit une Durée totale cible, puis comprendre immédiatement la valeur entière recalculée par l’application.
 - Organiser les Exercices avant le Circuit, dans le Circuit ou après le Circuit.
 - Exécuter le Circuit de 1 à 99 Tours ; aucun changement de côté n’est exposé au niveau du Circuit dans la version actuelle.
@@ -216,8 +216,8 @@ Lorsqu’un Parcours est fonctionnel, l’utilisateur doit pouvoir le planifier 
 
 #### Régler les récupérations
 
-- Distinguer clairement la Pause entre Séries, la Pause au changement de côté et la Récupération après exercice.
-- Dans l’éditeur d’Exercice, n’exposer la Pause au changement de côté que lorsque le Changement de côté vaut `D→G` ou `G→D`.
+- Distinguer clairement la Pause après chaque série, la Pause entre les côtés et la Récupération après exercice.
+- Dans l’éditeur d’Exercice, n’exposer la Pause entre les côtés que lorsque le Changement de côté vaut `D→G` ou `G→D`.
 - Dans la Composition, voir sous chaque occurrence une ligne `Récupération {durée}`, y compris `Récupération 0 s`, et pouvoir modifier cette durée.
 - Conserver cette récupération avec l’occurrence lors d’un déplacement ou d’une duplication ; la supprimer avec l’occurrence.
 - Exécuter la récupération de la dernier Exercice avant la Fin de séance, et celle de la dernier Exercice du Circuit à chaque Tour.
@@ -227,3 +227,7 @@ Lorsqu’un Parcours est fonctionnel, l’utilisateur doit pouvoir le planifier 
 
 L’utilisateur doit pouvoir classer chaque nouvel Exercice avec exactement une Catégorie et une ou plusieurs Zones corporelles, sans que ces métadonnées conditionnent son exécution. Il peut retirer des valeurs des référentiels sans casser les objets existants. Dans une Séance, il peut décider globalement d’appliquer ou non les Compte à rebours et Fins propres aux Exercices, sans gérer ces paramètres occurrence par occurrence. Les Points d’arrêt restent positionnables dans la séquence selon D-217 et sont rejoués à chaque Tour lorsqu’ils appartiennent au Circuit.
 
+
+## Paramètres d’exécution — complément du02/10/2026
+
+Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v12](SPECIFICATION-PARAMETRES-MODALE-v12.md), CE-T03-04 et CE-UI-10.

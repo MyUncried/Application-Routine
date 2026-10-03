@@ -172,7 +172,7 @@ Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
 - Durée estimée et borne minimale `≥` en présence d’Exercices en Répétitions ou À l’échec ;
 - phrase de synthèse selon D-232 : Durée totale en Durée si plusieurs Séries ou changement de côté ; estimation `≥` en Répétitions avec 2 s/répétition en V1 ; aucune Durée totale en À l’échec ;
 - les noms d’Exercice visibles dans les maquettes renseignées sont des données de démonstration ; `Nom de l’exercice` représente l’état vide/placeholder ;
-- distinction entre **Pause entre Séries**, **Pause au changement de côté** et **Récupération après exercice** ;
+- distinction entre **Pause après chaque série**, **Pause entre les côtés** et **Récupération après exercice** ;
 - temps actif et Durée réelle hors Pause utilisateur ;
 - distinction entre Nombre d’Exercices de la Composition, Nombre total d’Exercices à exécuter et Nombre d’Exercices exécutées ;
 - progression hybride des Exercices chronométrés et des Exercices en Répétitions ou À l’échec ;
@@ -182,7 +182,7 @@ Les chapitres 00 à 13 et les matrices transverses constituent la baseline docum
 
 ## 9. Baseline consolidée — Exercices, Récupération et Bilatéralité
 
-La baseline distingue désormais trois concepts : la Pause entre Séries, la **Pause au changement de côté** intrinsèque à un Exercice bilatéral et la **Récupération après exercice** portée par l’occurrence d’Exercice dans une Séance/Parcours. Une `ActivityDefinition` ne porte plus de récupération post-exercice. Depuis D-189, aucun changement de côté n’est exposé au niveau Tour ; le support technique historique y reste conservé pour non-régression.
+La baseline distingue désormais trois concepts : la Pause après chaque série, la **Pause entre les côtés** intrinsèque à un Exercice bilatéral et la **Récupération après exercice** portée par l’occurrence d’Exercice dans une Séance/Parcours. Une `ActivityDefinition` ne porte plus de récupération post-exercice. Depuis D-189, aucun changement de côté n’est exposé au niveau Tour ; le support technique historique y reste conservé pour non-régression.
 
 ## 10. MVP T03 — Catalogue des exercices
 
@@ -228,14 +228,14 @@ La consultation média pendant l’Exécution décrite ici est **incluse au MVP*
 
 > Décision du 25 septembre 2026 — D-207 : la notion de contenu planifiable est commune aux **Séances, Exercices persistants et Parcours**. Le MVP planifie `SESSION` et `ACTIVITY`; la planification d’un Parcours reste dans sa version prévue (actuellement V3) et réutilisera la même entité Routine avec la source technique `CIRCUIT`, sans second moteur de planification.
 
-> Décision du 25 septembre 2026 — D-208 : le modèle de récupération est refondu. La Pause compte toujours `C−1` occurrences par côté. `sideRecoverySeconds` appartient à l’Exercice et ne s’applique qu’entre les deux côtés d’un Exercice bilatéral. `postActivityRecoverySeconds` appartient à chaque occurrence de Séance/Parcours, existe y compris à `0 s`, est exécuté après l’occurrence et n’entre jamais dans la durée intrinsèque de l’Exercice. D-138 et D-156 sont supersédées sur ces axes. La valeur initiale de la pause au changement de côté lors de l’activation bilatérale provient du défaut global **Pause au changement de côté** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.
+Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=2×Ri s pour l’estimation ≥ seulement ; À l’échec : aucun total d’Exercice. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v12 §5 ; variable : lecture seule et — si incomplet.
 
 ## Consolidation fonctionnelle — 26 septembre 2026
 
 - **Exercice** est le terme UX ; **Circuit** est le groupe ordonné d’Exercices interne à une Séance ; un **Tour** est une répétition du Circuit ; **Parcours** reste l’entité autonome du Catalogue.
 - Un nouvel Exercice valide possède exactement **une Catégorie** et **une ou plusieurs Zones corporelles**. L’Étiquette de Séance reste facultative.
 - Une valeur de référentiel supprimée sort des choix futurs mais reste conservée sur les objets existants. Étiquette/Catégorie conservent nom et dernière couleur. La couleur appartient au référentiel et se répercute sur tous ses objets ; les Zones corporelles n’ont pas de couleur.
-- Les défauts du Profil initialisent les nouveaux objets sans rétroactivité : Pause au changement de côté, Compte à rebours d’exercice et Fin d’exercice pour un nouvel Exercice ; Récupération après exercice pour une nouvelle occurrence de Séance.
+- Les défauts du Profil initialisent les nouveaux objets sans rétroactivité : Pause entre les côtés, Compte à rebours d’exercice et Fin d’exercice pour un nouvel Exercice ; Récupération après exercice pour une nouvelle occurrence de Séance.
 - Une Séance possède un réglage global unique, activé par défaut, pour appliquer ou ignorer ensemble les Compte à rebours d’exercice et Fin d’exercice de tous ses Exercices.
 - Dans le texte éditable, Durée affiche `Durée totale` si plusieurs Séries ou changement de côté (D-232); Répétitions affiche `Durée totale >= {estimation}` ; À l’échec n’affiche pas de Durée totale numérique.
 - Point d’arrêt : `Exercice → Récupération après exercice → Point d’arrêt → suite`; interdit juste après le Compte à rebours initial et juste avant la Fin de séance ; autorisé aux frontières et dans le Circuit ; dans le Circuit il s’exécute à chaque Tour.
@@ -278,8 +278,16 @@ Les 30 contrats du chapitre13 ont chacun21 rubriques. Les contrats média sont c
 
 ## Paramètres en feuille basse —01/10/2026
 
-- [Spécification active v11](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v11.md) — remplace la saisie dans la phrase.
+- [Spécification active v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md) — remplace la saisie dans la phrase.
 - [DSF de la feuille et de ses contrôles](DSF-PARAMETRES-MODALE-2026-10-01.md).
 - [Transmission source](SOURCE-SAISIE-PARAMETRES-MODALE-2026-10-01.md).
 - Chapitre06 :12 états illustrés et confirmation2234:189 restaurée. Chapitre13 :30 contrats ×21rubriques, dont CE-UI-10.
 - v10.2 et ses captures de saisie sont historiques.
+
+## Paramètres — consolidation du02/10/2026
+
+Référence courante : [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md) et [rapport](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md). D-247 à D-255 remplacent les anciennes formules et descriptions uniformes sur ce périmètre. Les règles de cartes sans rapport avec les paramètres restent conservées. Les nouvelles copies fournissent le layout ; elles ne prouvent ni intégration DSF ni conformité du moteur.
+
+## Inventaire courant du parcours Créer un exercice — 03/10/2026
+
+[État des lieux exhaustif,42frames et revue des contrats](ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md). Les références actuelles remplacent les copies du02/10 :37frames de la famille création/modification,2effets Catalogue/Composition et3exécutions. La réserve de réinitialisation a été retirée : D-029/D-150 restent applicables aux deux ordres.
