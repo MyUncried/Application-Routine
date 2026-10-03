@@ -82,12 +82,94 @@ function recover(comment, repository, get = api(repository), protocolRoot = proc
     '\npublished_plan_commit=' + commit + '\npublished_plan_blob=' + blobId + '\nSTATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\n\n' + plan;
 }
 
+// Optional bounded closure of a prior REVISE: the publication names the prior review and pins, in the
+// same plan commit, the prior findings and the correction register. Absent fields: a plain publication.
+const CLOSURE_FIELDS = ['prior_review_comment_id', 'prior_findings_path', 'prior_findings_blob', 'correction_register_path', 'correction_register_blob'];
+function sha256(bytes) { return crypto.createHash('sha256').update(bytes).digest('hex'); }
+function hasField(body, name) { return new RegExp('^' + name + '=', 'm').test(normalize(body)); }
+function taggedFindings(body) {
+  const m = normalize(body).match(/<KODJO_PLAN_REVIEW_FINDINGS_JSON>\s*([\s\S]*?)\s*<\/KODJO_PLAN_REVIEW_FINDINGS_JSON>/);
+  need(m, 'PLAN_CLOSURE_PRIOR_FINDINGS_BLOCK_MISSING');
+  return JSON.parse(m[1]);
+}
+function closureInputs(comment, repository, get = api(repository), protocolRoot = process.cwd()) {
+  const body = normalize(comment && comment.body);
+  const present = CLOSURE_FIELDS.filter((name) => hasField(body, name));
+  if (present.length === 0) return null;
+  need(present.length === CLOSURE_FIELDS.length, 'PLAN_CLOSURE_FIELDS_INCOMPLETE');
+  recover(comment, repository, get, protocolRoot);
+  const slice = field(body, 'slice_id');
+  const commit = field(body, 'plan_commit');
+  const dir = '.github/orchestration/v2-slices/' + slice + '/';
+  const tree = get('git/trees/' + commit + '?recursive=1');
+  need(tree && !tree.truncated, 'PLAN_CLOSURE_TREE_INVALID');
+  const pinned = (pathField, blobField, extension) => {
+    const file = field(body, pathField);
+    const blobId = field(body, blobField);
+    need(file.startsWith(dir) && file.endsWith(extension) && !file.includes('..'), 'PLAN_CLOSURE_PATH_INVALID:' + pathField);
+    need(SHA40.test(blobId) && tree.tree.some((x) => x.path === file && x.sha === blobId && x.type === 'blob'), 'PLAN_CLOSURE_BINDING_MISMATCH:' + pathField);
+    const blob = get('git/blobs/' + blobId);
+    need(blob && blob.sha === blobId && blob.encoding === 'base64', 'PLAN_CLOSURE_BLOB_INVALID:' + blobField);
+    return Buffer.from(blob.content, 'base64');
+  };
+  const findingsBytes = pinned('prior_findings_path', 'prior_findings_blob', '.json');
+  const registerBytes = pinned('correction_register_path', 'correction_register_blob', '.md');
+  const findings = JSON.parse(findingsBytes.toString('utf8'));
+  need(Array.isArray(findings.findings) && findings.findings.length >= 1 && findings.findings.every((f) =>
+    f && typeof f.target_kind === 'string' && typeof f.target === 'string' && typeof f.blocking === 'boolean'), 'PLAN_CLOSURE_FINDINGS_INVALID');
+  need(new Set(findings.findings.map((f) => f.target_kind + '\u0000' + f.target)).size === findings.findings.length, 'PLAN_CLOSURE_TARGETS_NOT_UNIQUE');
+  const priorId = field(body, 'prior_review_comment_id');
+  need(/^[1-9][0-9]*$/.test(priorId), 'PLAN_CLOSURE_PRIOR_REVIEW_ID_INVALID');
+  const prior = get('issues/comments/' + priorId);
+  need(prior && prior.issue_url === comment.issue_url, 'PLAN_CLOSURE_PRIOR_ISSUE_MISMATCH');
+  const priorBody = normalize(prior.body);
+  const marker = priorBody.split('\n')[0].trim();
+  if (marker === '[KODJO_V2] PLAN_REVIEW_RECOVERY') {
+    // Owner-published recovery of a review whose workflow publication failed: bound by the findings digest.
+    need(prior.user && prior.user.login === String(repository).split('/')[0], 'PLAN_CLOSURE_PRIOR_AUTHORITY_INVALID');
+    need(field(priorBody, 'derived_verdict') === 'REVISE', 'PLAN_CLOSURE_PRIOR_NOT_REVISE');
+    need(field(priorBody, 'findings_sha256') === sha256(findingsBytes), 'PLAN_CLOSURE_FINDINGS_DIGEST_MISMATCH');
+  } else if (marker === '[KODJO_V2] PLAN_REVIEW_OUTPUT') {
+    need(prior.user && prior.user.login === 'github-actions[bot]', 'PLAN_CLOSURE_PRIOR_AUTHORITY_INVALID');
+    need(field(priorBody, 'verdict') === 'REVISE', 'PLAN_CLOSURE_PRIOR_NOT_REVISE');
+    need(JSON.stringify(taggedFindings(priorBody)) === JSON.stringify(findings), 'PLAN_CLOSURE_FINDINGS_MISMATCH');
+  } else {
+    need(false, 'PLAN_CLOSURE_PRIOR_REVIEW_INVALID');
+  }
+  need(field(priorBody, 'slice_id') === slice, 'PLAN_CLOSURE_PRIOR_SLICE_MISMATCH');
+  const priorPlanId = field(priorBody, 'source_plan_comment_id');
+  need(/^[1-9][0-9]*$/.test(priorPlanId) && priorPlanId !== String(comment.id), 'PLAN_CLOSURE_PRIOR_PLAN_INVALID');
+  const priorPlanComment = get('issues/comments/' + priorPlanId);
+  need(priorPlanComment && priorPlanComment.issue_url === comment.issue_url, 'PLAN_CLOSURE_PRIOR_PLAN_ISSUE_MISMATCH');
+  let priorPlan;
+  if (isPlanPublication(priorPlanComment)) priorPlan = recover(priorPlanComment, repository, get, protocolRoot);
+  else {
+    need(priorPlanComment.user && priorPlanComment.user.login === 'github-actions[bot]' &&
+      normalize(priorPlanComment.body).split('\n')[0].trim() === '[KODJO_V2] PLAN_OUTPUT', 'PLAN_CLOSURE_PRIOR_PLAN_INVALID');
+    priorPlan = normalize(priorPlanComment.body);
+  }
+  return { priorReviewId: priorId, priorPlanId, findings: findingsBytes, register: registerBytes, priorPlan, count: findings.findings.length };
+}
+
 if (require.main === module) {
   try {
-    const [id, output] = process.argv.slice(2);
+    const args = process.argv.slice(2);
     const repository = process.env.GITHUB_REPOSITORY || 'MyUncried/Application-Routine';
-    need(/^[0-9]+$/.test(String(id || '')) && output, 'PLAN_PUBLICATION_USAGE_INVALID');
     const get = api(repository);
+    if (args[0] === '--closure') {
+      const [, id, outDir] = args;
+      need(/^[0-9]+$/.test(String(id || '')) && outDir, 'PLAN_CLOSURE_USAGE_INVALID');
+      const inputs = closureInputs(get('issues/comments/' + id), repository, get);
+      if (!inputs) { process.stdout.write('closure=false\n'); return; }
+      fs.mkdirSync(outDir, { recursive: true });
+      fs.writeFileSync(path.join(outDir, 'prior-findings.json'), inputs.findings);
+      fs.writeFileSync(path.join(outDir, 'correction-register.md'), inputs.register);
+      fs.writeFileSync(path.join(outDir, 'prior-plan.md'), inputs.priorPlan, 'utf8');
+      process.stdout.write('closure=true\nprior_review_comment_id=' + inputs.priorReviewId + '\nprior_plan_comment_id=' + inputs.priorPlanId + '\nprior_finding_count=' + inputs.count + '\n');
+      return;
+    }
+    const [id, output] = args;
+    need(/^[0-9]+$/.test(String(id || '')) && output, 'PLAN_PUBLICATION_USAGE_INVALID');
     const comment = get('issues/comments/' + id);
     fs.writeFileSync(output, recover(comment, repository, get), 'utf8');
     process.stdout.write('[KODJO_V2] published plan verified: comment=' + id + '\n');
@@ -96,4 +178,4 @@ if (require.main === module) {
     process.exit(1);
   }
 }
-module.exports = { recover, isPlanPublication, MARKER };
+module.exports = { recover, isPlanPublication, closureInputs, CLOSURE_FIELDS, MARKER };
