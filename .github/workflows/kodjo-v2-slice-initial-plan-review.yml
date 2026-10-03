@@ -411,20 +411,19 @@ jobs:
           [IO.File]::WriteAllText($payloadPath,(@{body=[string]$commentBody}|ConvertTo-Json -Depth 3),(New-Object Text.UTF8Encoding($false)))
           $payloadCheck=[IO.File]::ReadAllText($payloadPath)|ConvertFrom-Json
           if($payloadCheck.body -isnot [string] -or $payloadCheck.body -cne $commentBody){throw 'Plan review publication payload body must be an exact string'}
-          # Publication bornée à trois tentatives (run 37136337819 : HTTP 400 transitoire, sortie de revue perdue).
-          # Avant chaque nouvelle tentative, une publication déjà créée pour la même session de revue est reprise : jamais de doublon.
+          # Publication bornée à trois tentatives (run 37136337819 : HTTP 400 de cause non démontrée, sortie de revue perdue).
+          # Après chaque échec, y compris le troisième, une publication déjà créée côté serveur pour la même session et le
+          # même plan est reprise : jamais de doublon. Si cette recherche échoue, aucune nouvelle tentative n'est faite.
           $created=$null
-          for($attempt=1;$attempt -le 3 -and $null -eq $created;$attempt++){
+          for($attempt=1;$attempt -le 3;$attempt++){
             $raw=gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments" --input $payloadPath
             if($LASTEXITCODE -eq 0 -and $raw){$created=$raw|ConvertFrom-Json;break}
             Write-Host "Plan review publication attempt $attempt failed"
-            if($attempt -eq 3){break}
             Start-Sleep -Seconds (15*$attempt)
             $listing=gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments?per_page=100"
-            if($LASTEXITCODE -eq 0 -and $listing){
-              $existing=@(($listing|ConvertFrom-Json)|ForEach-Object{$_}|Where-Object{$_.user.login -eq 'github-actions[bot]' -and ([string]$_.body).StartsWith('[KODJO_V2] PLAN_REVIEW_OUTPUT') -and (([string]$_.body) -replace "`r",'') -cmatch "(?m)^review_session_id=$([regex]::Escape($env:SESSION_ID))$" -and (([string]$_.body) -replace "`r",'') -cmatch "(?m)^source_plan_comment_id=$([regex]::Escape($env:PLAN_ID))$"})
-              if($existing.Count -ge 1){$created=$existing[-1]}
-            }
+            if($LASTEXITCODE -ne 0 -or -not $listing){throw 'Plan review publication lookup failed; no further attempt'}
+            $existing=@(($listing|ConvertFrom-Json)|ForEach-Object{$_}|Where-Object{$_.user.login -eq 'github-actions[bot]' -and ([string]$_.body).StartsWith('[KODJO_V2] PLAN_REVIEW_OUTPUT') -and (([string]$_.body) -replace "`r",'') -cmatch "(?m)^review_session_id=$([regex]::Escape($env:SESSION_ID))$" -and (([string]$_.body) -replace "`r",'') -cmatch "(?m)^source_plan_comment_id=$([regex]::Escape($env:PLAN_ID))$"})
+            if($existing.Count -ge 1){$created=$existing[-1];break}
           }
           if($null-eq$created-or-not$created.id){throw 'Plan review publication failed'}
           $reviewCommentId=[string]$created.id
