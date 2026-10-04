@@ -162,3 +162,38 @@ Voir le commit qui introduit ce rapport. État attendu après fusion :
 - **Non fait, en attente de la validation du propriétaire.** Fusion. Puis publication `[KODJO_V2] PLAN_PUBLICATION` (`planning_mode=REVISION`, `source_head` = commit de fusion, `application_pr=303`, `application_head=10ac761e…`, `supersedes_plan_blob_oid=ae2a7a0d…`, `prior_review_blob_oid=a7fe0ec8…`) et dispatch de la revue indépendante.
 - Le chemin aval (relais, 👍, file, livraison sur #303) n'a pas été rejoué de bout en bout. Seule la lecture de la publication par le relais a été vérifiée dans le code (`materialize-approved-plan-handoff.js` L128–135, L83–96).
 - PR #303 inchangée à `10ac761e` ; aucune opération PRE-2 active.
+
+## Complément — fusion de #310 et publication bloquée
+
+- **Fusion.** Le propriétaire a approuvé (« apprové »). #310 a été fusionnée par commit de fusion : `9bfbba0e195432d9c41e6db377ad41e96ec8a96f` = `main`.
+- **CI de #310.** Le job `protocol` a échoué sur 2 tests : IA-004 (`materialize-boundary-file.js` absent du manifeste) et 0.6.29 (jeton de lancement Claude absent de `kodjo-v2-slice-initial-plan-review.yml`).
+  - Les deux défauts existent à l'identique sur `fd213f2d`, dans des fichiers que #310 ne modifie pas. IA-004 date de `3419d5d3` (01/10/2026).
+  - Ces checks ne sont pas requis (`mergeStateStatus=UNSTABLE`, `MERGEABLE`).
+  - Les deux défauts sont préexistants, hors périmètre et non corrigés.
+- **Contrôle avant publication** à `9bfbba0e` :
+  - plan révisé présent (blob `87b7b664…`) ; plan et revue remplacés (`ae2a7a0d…`, `a7fe0ec8…`) ;
+  - #303 ouverte à `10ac761e` ;
+  - E2E sans modèle avec `source_head` = tête de protocole = `9bfbba0e` : **27/27 PASS**, dont l'identité octet pour octet des 12 entrées produit avec `7a51179f`.
+- **Action bloquée.** La publication `[KODJO_V2] PLAN_PUBLICATION` sur l'issue #288 a été **refusée par le contrôle de permissions** (« External System Writes »). Appel refusé : `gh api --method POST repos/MyUncried/Application-Routine/issues/288/comments`. Aucun contournement n'a été tenté. La revue indépendante n'a pas été lancée.
+- **Contenu prêt à publier** (corps exact) :
+
+```
+[KODJO_V2] PLAN_PUBLICATION
+planning_mode=REVISION
+slice_id=V2-PRE-2
+bootstrap_path=.github/orchestration/v2-slices/V2-PRE-2/slice-bootstrap.json
+source_head=9bfbba0e195432d9c41e6db377ad41e96ec8a96f
+application_pr=303
+application_head=10ac761ef453f360110bf7b668b3998487b071b3
+supersedes_plan_blob_oid=ae2a7a0d30e5895b91e5782e5a85d0a5f1808e94
+prior_review_blob_oid=a7fe0ec8b655ae79e4315fba8bf6548dc684c8b2
+plan_commit=16fdc80ac0796a0195e8cc008690ee5b8162ac7a
+plan_path=.github/orchestration/v2-slices/V2-PRE-2/revision-2026-10-04/technical-plan.md
+plan_blob=87b7b6640498355ae46b17b28ed98a2237a1bf71
+plan_sha256=09598257b087a56ba0111ff97a7c2196e5b7b07f6ac05f86b7d3e0b2804a448f
+plan_size=252796
+```
+
+- **Étapes suivantes**, après autorisation de l'écriture ou publication par le propriétaire :
+  1. Relire la publication avec `recover-published-plan.js <id>`.
+  2. Lancer `kodjo-v2-slice-plan-review.yml` (`issue_number=288`, `slice_id=V2-PRE-2`, `bootstrap_path`, `source_plan_comment_id=<id>`).
