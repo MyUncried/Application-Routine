@@ -247,3 +247,25 @@ plan_size=252796
   1. Dispatch de `kodjo-v2-plan-review-republish.yml` (`run_id=37198105017`, `issue_number=288`, `source_plan_comment_id=5979342848`).
   2. Publication du plan corrigé avec `source_head` = commit de fusion et `plan_commit` = commit du plan.
   3. Une revue indépendante.
+
+## Complément — fusion de #311, republication et revue du plan corrigé
+
+- **Autorisations du propriétaire.** Fusion, republication, publication du plan corrigé et une seule revue indépendante.
+- **Fusion de #311** : `8260bcaa5eba1a6897eb27055728fd3900ace2ae` = `main`. Les échecs CI restants sont les deux mêmes préexistants qu'avant (IA-004, 0.6.29).
+- **Republication sans Claude.** Run `37202050660` (`kodjo-v2-plan-review-republish.yml`) : succès. Revue REVISE de 37198105017 publiée (commentaire `5979898944`, `republished_from_run_id=37198105017`), puis arrêt `PLAN_RETRY_USER_VALIDATION` / `PINNED_PUBLICATION` (`5979899061`). Aucune régénération par le modèle.
+- **Publication du plan corrigé.**
+  - Contrôle préalable : E2E d'admission local à `8260bcaa`, 27/27.
+  - Commentaire `5979912654` : `source_head=8260bcaa…`, `plan_commit=aa50dde2…`, blob `e3daef43…`, sha256 `25e88521…`, 258 391 octets.
+  - Vérifié par `recover-published-plan.js` contre l'API réelle : en-tête exact, octets identiques.
+- **Revue indépendante unique.**
+  - Contrôle préalable : aucune revue en cours, aucun commentaire postérieur, runner libre.
+  - Run `37202181321` : toutes les étapes en succès ; le correctif de publication est validé en conditions réelles.
+  - Résultat publié : commentaire `5980019179`, session `e9c7c78c-066e-48d0-b94e-36ea8e98f7a8`, **verdict REVISE, 5 constats bloquants**, puis arrêt `USER_VALIDATION` / `PINNED_PUBLICATION` (`5980019286`).
+- **Constats.** Les 7 constats précédents n'ont pas été relevés à nouveau.
+  1. REQ-F907047106F88386 (Profil, C08) : plage L1076–1101 tronquée. L1103, quitter Profil sans confirmation, n'est pas assertée, et L1098 (Langue du MVP, clés de traduction centralisées) est omise. Correction attendue : locator L1076–1103, plus une assertion de sortie sans confirmation sur UI-82B1544AE5AE.
+  2. UI-5F3D94866D30 (Catégorie) : aucune assertion RESPONSIVE de CE-UI-09 L2808 (liste défilante, nom long, texte agrandi) ; `CategoryPickerModal.tsx` n'a pas de liste défilante.
+  3. UI-5F3D94866D30 : les chaînes figées de §4.10 L134–L135 (A7819D6C3521A, A14AB0BC67228) ne sont pas liées à `src/shared/i18n/resources/fr.ts` ni à `src/shared/i18n/index.test.ts`. Ces deux chemins sont à ajouter aux critères Catégorie, Zones et Étiquette ; ils sont déjà dans le périmètre.
+  4. UI-96E7FD739BF0 (Modifier le profil) : aucune assertion RESPONSIVE de CE-UI-01 L2004 (défilement, Safe Areas, clavier, texte agrandi) ; `ProfileEditScreen.tsx` n'a ni défilement ni évitement du clavier.
+  5. UI-60B2C84BF572 (Étiquette) : aucune assertion RESPONSIVE de CE-T03-16 L1645 (zone sûre, liste défilante, titre non tronqué, texte agrandi).
+  - Aucun constat ne demande d'extension du périmètre (`dependency_expansion_required=false`, fichiers déjà dans `write_scope`) ni de décision métier.
+- **Arrêt** au résultat publié, conformément à l'instruction (une seule revue). Aucune correction ni nouvelle publication n'a été faite.
