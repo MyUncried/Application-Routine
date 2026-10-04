@@ -114,30 +114,41 @@ export type ActivityDefinitionBodyZoneRow = {
   body_zone_id: string;
 };
 
-/** Une ligne par Zone corporelle persistée (V2-PRE-1, `migration007`). */
+/** Une ligne par Zone corporelle persistée (V2-PRE-1, `migration007` ; `canonical_key` ajoutée NOT NULL/UNIQUE par `migration008`, V2-PRE-2). */
 export type BodyZoneRow = {
   id: string;
   name: string;
+  canonical_key: string;
   is_active: 0 | 1;
   created_at: string;
 };
 
-/** Une ligne par Étiquette persistée (V2-PRE-1, `migration007`). */
+/** Une ligne par Étiquette persistée (V2-PRE-1, `migration007` ; `canonical_key` ajoutée NOT NULL/UNIQUE par `migration008`, V2-PRE-2). */
 export type LabelRow = {
   id: string;
   name: string;
+  canonical_key: string;
   color: string;
   is_active: 0 | 1;
   created_at: string;
 };
 
-/** Ligne unique du Profil singleton (V2-PRE-1, `migration007`, décision D-240). */
+/** Ligne unique du Profil singleton (V2-PRE-1, `migration007`, décision D-240 ; complétée par `migration008`, V2-PRE-2). */
 export type ProfileRow = {
   singleton_key: number;
   side_change_recovery_seconds_default: number;
   post_activity_recovery_seconds_default: number;
   exercise_countdown_seconds_default: number;
   exercise_end_seconds_default: number;
+  session_initial_countdown_seconds_default: number;
+  session_final_phase_seconds_default: number;
+  sounds_enabled: 0 | 1;
+  voice_announcements_enabled: 0 | 1;
+  vibration_enabled: 0 | 1;
+  notifications_enabled: 0 | 1;
+  display_name: string | null;
+  photo_uri: string | null;
+  silhouette: "homme" | "femme" | null;
   updated_at: string;
 };
 

@@ -146,8 +146,8 @@ describe("migrateDatabase", () => {
     expect(table?.count).toBe(0);
 
     await database.runAsync(
-      `INSERT INTO labels (id, name, color, is_active, created_at) VALUES (?, ?, '#3B82F6', 1, 'now')`,
-      ["label-a", "Étiquette A"],
+      `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at) VALUES (?, ?, ?, '#3B82F6', 1, 'now')`,
+      ["label-a", "Étiquette A", "etiquette a"],
     );
     await database.runAsync("UPDATE sessions SET label_id = ? WHERE id = ?", ["label-a", "session-a"]);
 
@@ -222,11 +222,10 @@ describe("migrateDatabase", () => {
       await migrateDatabase(database);
 
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-      // V2-CAT-01 : la chaîne complète mène désormais à la version 6
-      // (`migration006`, persistance des `ActivityDefinition`) — jamais à la
-      // version 3, 4 ou 5.
+      // V2-PRE-2 : la chaîne complète mène désormais à la version 8
+      // (`migration008`) — jamais à une version intermédiaire.
       expect(version?.user_version).toBe(DATABASE_VERSION);
-      expect(DATABASE_VERSION).toBe(7);
+      expect(DATABASE_VERSION).toBe(8);
 
       // La contrainte historique DURATION+repetition reste rejetée.
       await expect(
@@ -759,7 +758,7 @@ describe("migrateDatabase", () => {
 
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       expect(version?.user_version).toBe(DATABASE_VERSION);
-      expect(DATABASE_VERSION).toBe(7);
+      expect(DATABASE_VERSION).toBe(8);
 
       const tables = await database.getAllAsync<{ name: string }>(
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'activity_definition%'",
@@ -992,6 +991,185 @@ describe("migrateDatabase", () => {
       );
       expect(zoneCount?.count).toBe(10);
       expect(profileCount?.count).toBe(1);
+    });
+  });
+
+  /**
+   * V2-PRE-2 — `migration008` : Profil complété, clé normalisée obligatoire
+   * et unique pour Étiquettes/Zones (y compris sur les entrées déjà
+   * persistées par `migration007`), et `activity_body_zones` reconstruite
+   * sans `CHECK` sur les 10 identifiants historiques.
+   */
+  describe("migration008 — Profil complété, clés normalisées, liaison des Zones d'occurrence ouverte (V2-PRE-2)", () => {
+    it("backfills a canonical_key for every Zone already seeded by migration007, matching the Domain's normalization", async () => {
+      await migrateDatabase(database);
+      const rows = await database.getAllAsync<{ id: string; canonical_key: string }>(
+        "SELECT id, canonical_key FROM body_zones ORDER BY id",
+      );
+      expect(rows.every((row) => row.canonical_key.length > 0)).toBe(true);
+      expect(rows.find((row) => row.id === "poignets-mains")?.canonical_key).toBe("poignets et mains");
+    });
+
+    it("rejects inserting a Label or a Zone with a NULL canonical_key", async () => {
+      await migrateDatabase(database);
+
+      await expect(
+        database.runAsync(
+          "INSERT INTO labels (id, name, canonical_key, color, is_active, created_at) VALUES ('l-1', 'Focus', NULL, '#3B82F6', 1, 'now')",
+        ),
+      ).rejects.toThrow();
+      await expect(
+        database.runAsync(
+          "INSERT INTO body_zones (id, name, canonical_key, is_active, created_at) VALUES ('z-1', 'Avant-bras', NULL, 1, 'now')",
+        ),
+      ).rejects.toThrow();
+    });
+
+    it("rejects a duplicate canonical_key among Labels/Zones, including against a retired entry", async () => {
+      await migrateDatabase(database);
+      await database.runAsync(
+        "INSERT INTO labels (id, name, canonical_key, color, is_active, created_at) VALUES ('l-1', 'Focus', 'focus', '#3B82F6', 0, 'now')",
+      );
+
+      await expect(
+        database.runAsync(
+          "INSERT INTO labels (id, name, canonical_key, color, is_active, created_at) VALUES ('l-2', 'Focus', 'focus', '#E5484D', 1, 'now')",
+        ),
+      ).rejects.toThrow();
+    });
+
+    it("lets a newly created Zone be linked to a Session occurrence — the historical CHECK on the 10 ids is gone", async () => {
+      await migrateDatabase(database);
+      await seedStructure(database);
+      await insertActivity(database, {
+        id: "activity-new-zone",
+        executionMode: "DURATION",
+        durationSeconds: 30,
+        repetitionCount: null,
+      });
+      await database.runAsync(
+        "INSERT INTO body_zones (id, name, canonical_key, is_active, created_at) VALUES ('z-new', 'Avant-bras', 'avant-bras', 1, 'now')",
+      );
+
+      await database.runAsync(
+        "INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES (?, ?)",
+        ["activity-new-zone", "z-new"],
+      );
+      const row = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM activity_body_zones WHERE body_zone_id = 'z-new'",
+      );
+      expect(row?.count).toBe(1);
+    });
+
+    it("still rejects an unknown body_zone_id on activity_body_zones (real foreign key, not just a historical CHECK)", async () => {
+      await migrateDatabase(database);
+      await seedStructure(database);
+      await insertActivity(database, {
+        id: "activity-unknown-zone",
+        executionMode: "DURATION",
+        durationSeconds: 30,
+        repetitionCount: null,
+      });
+
+      await expect(
+        database.runAsync("INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES (?, ?)", [
+          "activity-unknown-zone",
+          "not-a-real-zone",
+        ]),
+      ).rejects.toThrow();
+    });
+
+    it("cascades activity_body_zones deletion when the Activity is deleted (preserved through the rebuild)", async () => {
+      await migrateDatabase(database);
+      await seedStructure(database);
+      await insertActivity(database, {
+        id: "activity-cascade",
+        executionMode: "DURATION",
+        durationSeconds: 30,
+        repetitionCount: null,
+      });
+      await database.runAsync(
+        "INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES (?, ?)",
+        ["activity-cascade", "dos"],
+      );
+
+      await database.runAsync("DELETE FROM activities WHERE id = 'activity-cascade'");
+
+      const remaining = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM activity_body_zones WHERE activity_id = 'activity-cascade'",
+      );
+      expect(remaining?.count).toBe(0);
+    });
+
+    it("never re-activates a retired Label or Zone on migration/startup — migrateDatabase is idempotent and leaves is_active untouched", async () => {
+      await migrateDatabase(database);
+      await database.runAsync("UPDATE body_zones SET is_active = 0 WHERE id = 'cou'");
+
+      await migrateDatabase(database);
+
+      const row = await database.getFirstAsync<{ is_active: number }>(
+        "SELECT is_active FROM body_zones WHERE id = 'cou'",
+      );
+      expect(row?.is_active).toBe(0);
+    });
+
+    it("seeds the two new Session defaults (10 s / 5 s) and the four preferences on the singleton Profile row", async () => {
+      await migrateDatabase(database);
+      const profile = await database.getFirstAsync<{
+        session_initial_countdown_seconds_default: number;
+        session_final_phase_seconds_default: number;
+        sounds_enabled: number;
+        voice_announcements_enabled: number;
+        vibration_enabled: number;
+        notifications_enabled: number;
+        display_name: string | null;
+        photo_uri: string | null;
+        silhouette: string | null;
+      }>(
+        `SELECT session_initial_countdown_seconds_default, session_final_phase_seconds_default,
+                sounds_enabled, voice_announcements_enabled, vibration_enabled, notifications_enabled,
+                display_name, photo_uri, silhouette
+         FROM profiles`,
+      );
+      expect(profile).toEqual({
+        session_initial_countdown_seconds_default: 10,
+        session_final_phase_seconds_default: 5,
+        sounds_enabled: 1,
+        voice_announcements_enabled: 1,
+        vibration_enabled: 1,
+        notifications_enabled: 0,
+        display_name: null,
+        photo_uri: null,
+        silhouette: null,
+      });
+    });
+
+    it("rejects a silhouette outside homme/femme", async () => {
+      await migrateDatabase(database);
+      await expect(
+        database.runAsync("UPDATE profiles SET silhouette = 'autre' WHERE singleton_key = 1"),
+      ).rejects.toThrow();
+    });
+
+    it("a fresh installation (v0) reaches version 8 directly, with every canonical_key already populated", async () => {
+      const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
+      expect(version?.user_version ?? 0).toBe(0);
+
+      await migrateDatabase(database);
+
+      const after = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
+      expect(after?.user_version).toBe(8);
+      const zones = await database.getAllAsync<{ canonical_key: string }>(
+        "SELECT canonical_key FROM body_zones",
+      );
+      expect(zones.every((zone) => zone.canonical_key.length > 0)).toBe(true);
+    });
+
+    it("rolls back the entire v7→v8 migration on failure, leaving user_version unchanged", async () => {
+      await database.execAsync(`PRAGMA user_version = ${DATABASE_VERSION + 1}`);
+      await expect(migrateDatabase(database)).rejects.toThrow();
+      const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
+      expect(version?.user_version).toBe(DATABASE_VERSION + 1);
     });
   });
 });

@@ -1,7 +1,5 @@
 import { describe, expect, it, jest } from "@jest/globals";
 
-import { createDefaultProfile, type Profile } from "@/domain/preferences/Profile";
-import type { ProfileRepository } from "@/domain/preferences/ProfileRepository";
 import {
   DEFAULT_SESSION_COLOR,
   type Activity,
@@ -41,10 +39,6 @@ class FakeSessionRepository implements SessionRepository {
   listActive = jest.fn<() => Promise<readonly SessionSummary[]>>();
   update =
     jest.fn<(sessionId: string, input: UpdateSessionInput) => Promise<UpdateSessionOutcome>>();
-}
-
-class FakeProfileRepository implements ProfileRepository {
-  get = jest.fn<() => Promise<Profile>>();
 }
 
 function anActivity(overrides: Partial<Activity> = {}): Activity {
@@ -469,41 +463,37 @@ describe("SessionService.getSession", () => {
 });
 
 /**
- * V2-PRE-1 (plan §3.2, UI-16294D4D4345) : chaque occurrence créée reçoit
- * `postActivityRecoverySeconds` depuis la valeur COURANTE du Profil, lue une
- * seule fois au moment de cette création — jamais depuis la définition
- * source, jamais rederivée ensuite (snapshot atomique).
+ * V2-PRE-2 (plan §6.3, UI-9194767E574D-A3DE880FD82B1) : abroge l'écrasement
+ * V2-PRE-1 — chaque occurrence porte déjà sa propre
+ * `postActivityRecoverySeconds`, copiée du Profil au moment de sa création
+ * RÉELLE (`ActivitySelectionScreen`/`ExerciseScreen` local). `createSession`
+ * ne la relit ni ne l'écrase plus jamais depuis le Profil.
  */
-describe("SessionService.createSession — récupération post-exercice depuis le Profil", () => {
-  it("copies the Profile's current default into every exercise when a ProfileRepository is provided", async () => {
+describe("SessionService.createSession — plus d'écrasement de la récupération post-exercice (V2-PRE-2)", () => {
+  it("persists each exercise's own postActivityRecoverySeconds unchanged, never re-deriving it from the Profile", async () => {
     const sessionRepository = new FakeSessionRepository();
     sessionRepository.create.mockResolvedValue(aSession());
-    const profileRepository = new FakeProfileRepository();
-    profileRepository.get.mockResolvedValue(
-      createDefaultProfile("profile-1", "2026-01-01T00:00:00.000Z"),
-    );
-    const service = new SessionService(sessionRepository, undefined, profileRepository);
+    const service = new SessionService(sessionRepository);
 
     await service.createSession({
       ...aValidDraft(),
       exercises: [
-        { ...createExerciseDraft("ex-1"), name: "Gainage" },
-        { ...createExerciseDraft("ex-2"), name: "Squats" },
+        { ...createExerciseDraft("ex-1", 30), name: "Gainage" },
+        { ...createExerciseDraft("ex-2", 45), name: "Squats" },
       ],
     });
 
-    expect(profileRepository.get).toHaveBeenCalledTimes(1);
     expect(sessionRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({
         exercises: [
           expect.objectContaining({ postActivityRecoverySeconds: 30 }),
-          expect.objectContaining({ postActivityRecoverySeconds: 30 }),
+          expect.objectContaining({ postActivityRecoverySeconds: 45 }),
         ],
       }),
     );
   });
 
-  it("passes the draft's value through unchanged when no ProfileRepository was provided (backward compatibility)", async () => {
+  it("passes the draft's neutral default (0) through unchanged when the occurrence never received one", async () => {
     const sessionRepository = new FakeSessionRepository();
     sessionRepository.create.mockResolvedValue(aSession());
     const service = new SessionService(sessionRepository);

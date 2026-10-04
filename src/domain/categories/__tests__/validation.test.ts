@@ -69,3 +69,18 @@ describe("validateCategoryName", () => {
     });
   });
 });
+
+/**
+ * V2-PRE-2 (plan §6.1, D2) : la réactivation d'une Catégorie retirée par
+ * `CategoryRepository.create` repose entièrement sur la STABILITÉ de
+ * `canonicalCategoryKey` (PRÉSERVÉ, `validation.ts` inchangé) — un nom
+ * retrouvant exactement la même clé après un aller-retour trim/casse/
+ * diacritiques doit retrouver la même entrée, jamais une nouvelle.
+ */
+describe("canonicalCategoryKey stability across a retire/re-create round trip (D2)", () => {
+  it("produces the exact same key for the name as originally created and as re-typed later, regardless of casing/diacritics/spacing drift", () => {
+    const originalKey = canonicalCategoryKey("Étirements doux");
+    const retypedKey = canonicalCategoryKey("  étirements   DOUX  ");
+    expect(retypedKey).toBe(originalKey);
+  });
+});

@@ -9,6 +9,8 @@ import {
   isActivityEditorFormValid,
   type ActivityEditorFormValue,
 } from "@/features/activities/ActivityEditorForm";
+import type { ReferentialService } from "@/features/reference-data/ReferentialService";
+import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 /**
@@ -22,6 +24,22 @@ const BODY_ZONE_FIXTURES: readonly BodyZone[] = [
   { id: "epaules", name: "Épaules", isActive: true, createdAt: "2026-01-01T00:00:01.000Z" },
   { id: "dos", name: "Dos", isActive: true, createdAt: "2026-01-01T00:00:04.000Z" },
 ];
+
+/**
+ * V2-PRE-2 (plan §6.5) : `ActivityEditorForm` ouvre désormais
+ * `BodyZonePickerModal` (confirmation explicite), qui s'auto-alimente via
+ * `ReferentialServiceContext` — jamais `bodyZones` (la prop ne sert plus
+ * qu'à la synthèse affichée hors modale).
+ */
+function fakeReferentialService(): ReferentialService {
+  return {
+    listBodyZones: jest.fn(async () => BODY_ZONE_FIXTURES),
+    createBodyZone: jest.fn(async () => ({ status: "DUPLICATE" as const })),
+    renameBodyZone: jest.fn(async () => ({ status: "NOT_FOUND" as const })),
+    retireBodyZone: jest.fn(async () => ({ status: "NOT_FOUND" as const })),
+    isBodyZoneUsed: jest.fn(async () => false),
+  } as unknown as ReferentialService;
+}
 
 function baseValue(overrides: Partial<ActivityEditorFormValue> = {}): ActivityEditorFormValue {
   const draft = createExerciseDraft("draft-id");
@@ -57,22 +75,24 @@ function Harness({
   const [value, setValue] = useState<ActivityEditorFormValue>(baseValue(initial));
   return (
     <TestSafeAreaProvider>
-      <ActivityEditorForm
-        value={value}
-        onChange={(patch) => {
-          onChangeSpy?.(patch);
-          setValue((current) => ({ ...current, ...patch }));
-        }}
-        bodyZones={BODY_ZONE_FIXTURES}
-        showMediaSection={showMediaSection}
-        finishLabel="Terminer"
-        onFinish={onFinish}
-        isFinishDisabled={isFinishDisabled}
-        errorMessage={errorMessage}
-        finishSlotTestID="test-finish-slot"
-        finishActionTestID="test-finish-action"
-        errorTestID="test-save-error"
-      />
+      <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+        <ActivityEditorForm
+          value={value}
+          onChange={(patch) => {
+            onChangeSpy?.(patch);
+            setValue((current) => ({ ...current, ...patch }));
+          }}
+          bodyZones={BODY_ZONE_FIXTURES}
+          showMediaSection={showMediaSection}
+          finishLabel="Terminer"
+          onFinish={onFinish}
+          isFinishDisabled={isFinishDisabled}
+          errorMessage={errorMessage}
+          finishSlotTestID="test-finish-slot"
+          finishActionTestID="test-finish-action"
+          errorTestID="test-save-error"
+        />
+      </ReferentialServiceContext.Provider>
     </TestSafeAreaProvider>
   );
 }
@@ -112,11 +132,20 @@ describe("ActivityEditorForm", () => {
     expect(screen.getByTestId("exercise-field-repetitionCount")).toBeTruthy();
   });
 
-  it("toggles a body zone by deploying its section", () => {
+  it("selects a body zone via the picker modal and applies it on Confirmer (V2-PRE-2)", async () => {
     const onChangeSpy = jest.fn();
     render(<Harness onChangeSpy={onChangeSpy} />);
     fireEvent.press(screen.getByTestId("exercise-section-body-zones-header"));
-    fireEvent.press(screen.getByLabelText("Dos"));
+    fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
+
+    await screen.findByTestId("body-zone-selector-tag-dos");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("body-zone-selector-tag-dos"));
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
+    });
+
     expect(onChangeSpy).toHaveBeenCalledWith({ bodyZoneIds: ["dos"] });
   });
 
