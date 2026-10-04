@@ -156,11 +156,15 @@ function closureInputs(comment, repository, get = api(repository), protocolRoot 
   need(prior && prior.issue_url === comment.issue_url, 'PLAN_CLOSURE_PRIOR_ISSUE_MISMATCH');
   const priorBody = normalize(prior.body);
   const marker = priorBody.split('\n')[0].trim();
-  if (marker === '[KODJO_V2] PLAN_REVIEW_RECOVERY') {
-    // Owner-published recovery of a review whose workflow publication failed: bound by the findings digest.
+  if (marker === '[KODJO_V2] PLAN_REVIEW_RECOVERY' || marker === '[KODJO_V2] PLAN_CHANGE_REQUEST') {
+    // Owner-published recovery of a review whose workflow publication failed, or owner-arbitrated change request raised
+    // by an implementation run (CHANGE_REQUEST_REQUIRED): bound by the findings digest.
     need(prior.user && prior.user.login === String(repository).split('/')[0], 'PLAN_CLOSURE_PRIOR_AUTHORITY_INVALID');
     need(field(priorBody, 'derived_verdict') === 'REVISE', 'PLAN_CLOSURE_PRIOR_NOT_REVISE');
     need(field(priorBody, 'findings_sha256') === sha256(findingsBytes), 'PLAN_CLOSURE_FINDINGS_DIGEST_MISMATCH');
+    if (marker === '[KODJO_V2] PLAN_CHANGE_REQUEST') {
+      need(hasField(priorBody, 'implementation_run_id') && /^[1-9][0-9]*$/.test(field(priorBody, 'implementation_run_id')), 'PLAN_CLOSURE_CHANGE_REQUEST_RUN_INVALID');
+    }
   } else if (marker === '[KODJO_V2] PLAN_REVIEW_OUTPUT') {
     need(prior.user && prior.user.login === 'github-actions[bot]', 'PLAN_CLOSURE_PRIOR_AUTHORITY_INVALID');
     need(field(priorBody, 'verdict') === 'REVISE', 'PLAN_CLOSURE_PRIOR_NOT_REVISE');
