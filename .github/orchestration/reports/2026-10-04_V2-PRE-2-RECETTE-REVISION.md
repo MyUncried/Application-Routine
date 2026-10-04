@@ -197,3 +197,12 @@ plan_size=252796
 - **Étapes suivantes**, après autorisation de l'écriture ou publication par le propriétaire :
   1. Relire la publication avec `recover-published-plan.js <id>`.
   2. Lancer `kodjo-v2-slice-plan-review.yml` (`issue_number=288`, `slice_id=V2-PRE-2`, `bootstrap_path`, `source_plan_comment_id=<id>`).
+
+## Complément — publication effectuée, revue bloquée
+
+- **Publication.** Sur instruction du propriétaire, la publication préparée a été postée sur #288 : commentaire `5979342848`.
+- **Vérification** par `recover-published-plan.js 5979342848` contre l'API réelle, avec `main` = `9bfbba0e` : **PASS**.
+  - En-tête de révision reconstruit exact : `source_head=9bfbba0e…`, `application_pr=303`, `application_head=10ac761e…`, `supersedes_plan_blob_oid=ae2a7a0d…`, `prior_review_blob_oid=a7fe0ec8…`.
+  - Octets du plan identiques au plan assemblé (sha256 `09598257…`).
+- **Avant lancement** : aucune revue en cours ; seul le run fantôme `34748621746` reste en file, non touché. Runner `KODJO-LOCAL-RUNNER` en ligne et libre.
+- **Action bloquée.** Le lancement de la revue a été **refusé par le contrôle de permissions** (« External System Writes ») : `gh workflow run kodjo-v2-slice-plan-review.yml --ref main -f issue_number=288 -f slice_id=V2-PRE-2 -f bootstrap_path=.github/orchestration/v2-slices/V2-PRE-2/slice-bootstrap.json -f source_plan_comment_id=5979342848`. Aucun contournement n'a été tenté ; aucune revue n'est lancée.
