@@ -110,6 +110,10 @@ function collectTargets({
     }
   }
 
+  for (const criterion of planContract.delivery_preservation?.retained_criteria || []) {
+    catalog.CRITERION.push(criterion.criterion_id);
+    for (const assertion of criterion.assertions || []) catalog.ASSERTION.push(assertion.assertion_id);
+  }
   for (const key of Object.keys(catalog)) {
     catalog[key] = [...new Set(catalog[key])].sort();
   }

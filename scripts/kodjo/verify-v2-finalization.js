@@ -236,6 +236,11 @@ function verify(args) {
       const requirement=nonUi?.requirements?.find(row=>row.requirement_id===derogation.requirement_id);
       if(!requirement||derogation.proof_type!=='DEVICE_CHECK'||!requirement.proof_results?.some(row=>row.proof_type==='DEVICE_CHECK'&&row.status==='PENDING_DEVICE'))fail('V2_FINAL_DEROGATION_SCOPE_INVALID');
     }
+    if(reviewContract.delivery_preservation_reference){
+      const reference=reviewContract.delivery_preservation_reference;
+      if(!SHA40.test(reference.head)||reference.head!==baseHead||reference.proof_policy!=='FRESH_REVIEW_ALL_RETAINED_CRITERIA'||!Array.isArray(reference.not_executed_proofs)||reference.not_executed_proofs.some(row=>row.status!=='NOT_EXECUTED'))fail('VNEXT_DELIVERY_HISTORICAL_PROOF_REFERENCE_INVALID');
+      notExecutedProofs.push(...reference.not_executed_proofs.map(row=>({...row,origin_head:reference.head,evidence_scope:'PREVIOUS_DELIVERY_REFERENCE'})));
+    }
     const boundaries = Array.isArray(reviewContract.boundary_results) ? reviewContract.boundary_results : [];
     if (boundaries.some((row) => String(row && row.status || '') !== 'PASS')) fail('V2_FINAL_BOUNDARY_NOT_PASS');
     criterionCount = ids.length;

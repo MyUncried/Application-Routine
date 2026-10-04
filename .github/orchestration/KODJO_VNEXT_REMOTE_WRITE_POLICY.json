@@ -831,7 +831,7 @@
     },
     {
       "path": "scripts/kodjo/verify-ui-implementation-review.js",
-      "blob_oid": "32ecc5120c809cd8e89387089ec3ffd75f8f641e",
+      "blob_oid": "7f6aeab8208cc5e8d929f2b8e51349b028f49977",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -841,7 +841,7 @@
     },
     {
       "path": "scripts/kodjo/verify-v2-finalization.js",
-      "blob_oid": "55fcff3e648abfcd598d73380344d0e3449fb522",
+      "blob_oid": "337be22cca3ae340dfbe3dc4b111eeca18f840d7",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {

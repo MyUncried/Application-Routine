@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-04T09:29:50.870182+00:00",
+  "recorded_at": "2026-10-04T10:30:28.974831+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
-  "controller_stage": "V8_MARKER_RESPONSE_RECOVERY_QUALIFICATION_REQUESTED",
-  "controller_generation": 48,
+  "controller_stage": "V8_DELIVERY_AND_POST_ACCEPTANCE_COMPLEMENT_QUALIFICATION_REQUESTED",
+  "controller_generation": 49,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -405,9 +405,10 @@
     "full_linux_ci_is_authoritative": true
   },
   "pending_actions": [
-    "Qualify exact marker/response recovery candidate on Linux and Windows before real REVISION preparation.",
-    "Obtain fresh actual base REVISE, one causal correction and corrected APPROVE; then materialize and qualify fresh REVISION transport before execution.",
-    "Preserve acquired INITIAL proof; no consumed request replay, FINAL, promotion or PRE-2."
+    "Qualify the single consolidated delivery-preservation/post-acceptance complement candidate on Linux/Windows.",
+    "Design the missing acceptance-gaps origin and unclosed-delivery baseline; do not claim the full post-acceptance route qualified.",
+    "Obtain fresh actual base REVISE, one causal correction and corrected APPROVE for the bounded plan-review revision campaign; then qualify its fresh transport before execution.",
+    "No replay of consumed INITIAL requests, no FINAL, promotion or PRE-2."
   ],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
@@ -836,7 +837,7 @@
     "audit_head": "c0f72fc2148a5955b9a810a8aca1f6eeefa64870",
     "main_shared_source": "67064d1b3752d71683d11638a602286b9c895482",
     "scope": "Remaining demonstrated v8 defects D1-D9,D11-D12,D15-D18; D10,D13,D14 already delivered in the first tranche. D3 targeted shared-protocol reconciliation only.",
-    "request_generation": 40,
+    "request_generation": 41,
     "runtime_execution": "INITIAL_PASS_REVISION_NOT_EXECUTED",
     "native_windows_parser": "REQUIRED_IN_EXACT_TREE_QUALIFICATION",
     "report": ".github/orchestration/reports/2026-10-03_VNEXT_V8_CONSOLIDATED_CORRECTIONS.md",
@@ -1141,7 +1142,7 @@
         }
       }
     },
-    "preparation_generation": 15,
+    "preparation_generation": 17,
     "initial_preparation": {
       "schema_version": "kodjo.vnext.v8.initial-preparation-evidence.v1",
       "observed_at": "2026-10-03T17:01:28.076Z",
@@ -1484,7 +1485,7 @@
     },
     "marker_response_recovery_corrections": {
       "parent_head": "4c3047368926f19af61a8260d4c56c9514ca9b2b",
-      "qualification": "PENDING",
+      "qualification": "SUCCESS",
       "runtime_execution": "NOT_STARTED",
       "scope": "Lossless marker projection, complete response capture, exact-dossier revalidation without model call, preserve primary validation failure on archive error",
       "prior_initial_pass_preserved": true,
@@ -1495,7 +1496,59 @@
         "regression_pass": 240,
         "fail": 0,
         "targeted_final_pass": 4
-      }
+      },
+      "qualification_head": "d29d59a1dbf1d84cc9172a4a2e1726fcb63bfb1b",
+      "qualification_runs": [
+        37192561739,
+        37192561784,
+        37192561792
+      ]
+    },
+    "delivery_preservation_corrections": {
+      "parent_head": "d29d59a1dbf1d84cc9172a4a2e1726fcb63bfb1b",
+      "qualification": "PENDING",
+      "runtime_execution": "NOT_STARTED",
+      "report": ".github/orchestration/reports/2026-10-04_VNEXT_DELIVERY_PRESERVATION.md",
+      "local_tests": {
+        "regression_pass": 297,
+        "regression_fail": 0,
+        "targeted_final_pass": 8,
+        "targeted_final_fail": 0
+      },
+      "proof_policy": "FRESH_REVIEW_ALL_RETAINED_CRITERIA",
+      "workflow_changes": 0,
+      "new_dependencies": 0,
+      "historical_subjects": 420,
+      "real_device_validation": "NOT_EXECUTED",
+      "prior_initial_pass_preserved": true,
+      "consumed_requests_replay_forbidden": true,
+      "preceding_qualification_observed": {
+        "head": "d29d59a1dbf1d84cc9172a4a2e1726fcb63bfb1b",
+        "qualification_run": 37192561739,
+        "qualification_status": "SUCCESS",
+        "drivers_run": 37192561784,
+        "drivers_status": "SUCCESS",
+        "pilot_run": 37192561792,
+        "pilot_status": "SUCCESS",
+        "windows_job": 111407940421,
+        "observed_at": "2026-10-04T10:30:28.974831+00:00",
+        "linux_counts": {
+          "tests": 985,
+          "pass": 984,
+          "fail": 0,
+          "skip": 1
+        },
+        "windows_counts": {
+          "tests": 985,
+          "pass": 981,
+          "fail": 0,
+          "skip": 4
+        }
+      },
+      "qualification_report": ".github/orchestration/reports/2026-10-04_VNEXT_POST_ACCEPTANCE_REVISION_COVERAGE.md",
+      "supersedes_unactivated_candidate": "e7dc6babab38b506864a5e3cf7ef268ee5b9bf69",
+      "post_acceptance_full_path": "NOT_IMPLEMENTED_END_TO_END_NOT_RUNTIME_QUALIFIED",
+      "scenario_qualification_gate": "PROPOSED_NOT_IMPLEMENTED"
     }
   }
 }

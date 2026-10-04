@@ -58,6 +58,11 @@ function buildArtifactGraph({
     ));
   }
 
+  for (const criterion of planContract.delivery_preservation?.retained_criteria || []) {
+    add(record('CRITERION', criterion.criterion_id, criterion));
+    for (const assertion of criterion.assertions || []) add(record('ASSERTION', assertion.assertion_id, assertion, [criterion.criterion_id]));
+  }
+
   const impactsByRequirement = new Map();
   for (const impact of impactGraph.impacts || []) {
     const list = impactsByRequirement.get(impact.requirement_id) || [];

@@ -128,7 +128,10 @@ function verifyEmbedded(markdown) {
     const {validateMatrix,isUiPath}=require('./ui-criteria-contract');
     validateMatrix(ui,{scope,uiPaths:[...scope].filter(isUiPath),requireAssertions:true});
   }
-  const expectedReq=buildRequirementContract(ui,nonUi,scope);
+  const Delivery=require('./vnext-delivery-preservation');
+  const preservation=Delivery.fromMarkdown(markdown);
+  if(preservation && canonicalJson([...scope].sort())!==canonicalJson([...preservation.correction_write_scope].sort()))fail('VNEXT_DELIVERY_CORRECTION_SCOPE_DRIFT');
+  const expectedReq=buildRequirementContract(Delivery.merge(ui,preservation),nonUi,scope);
   const expectedTests=buildTestContract(expectedReq);
   const expectedBoundaries=buildBoundaryContract(ui);
   const actualReq=extractTaggedJson(markdown,'KODJO_REQUIREMENT_CONTRACT_JSON');

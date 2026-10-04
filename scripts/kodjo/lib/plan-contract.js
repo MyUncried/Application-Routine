@@ -359,6 +359,7 @@ function buildBoundaries(impactGraph, candidateManifest) {
 }
 
 function buildPlanContract({
+  deliveryPreservation = null,
   requirementRegistry,
   impactGraph,
   candidateManifest,
@@ -475,6 +476,7 @@ function buildPlanContract({
     plan_item_count: planItems.length,
     plan_items: planItems,
     boundaries,
+    ...(deliveryPreservation ? { delivery_preservation: require('./vnext-delivery-preservation').build(deliveryPreservation, planItems, boundaries.write_scope) } : {}),
   });
 }
 
@@ -490,7 +492,7 @@ function validatePlanContract(planContract, {
       'candidate_manifest_hash', 'requirement_count', 'plan_item_count',
       'plan_items', 'boundaries', 'contract_hash',
     ],
-    [],
+    ['delivery_preservation'],
     'VNEXT_PLAN_CONTRACT_KEYS_INVALID',
   );
   if (planContract.schema_version !== SCHEMA) V.fail('VNEXT_PLAN_CONTRACT_SCHEMA_INVALID');
@@ -534,6 +536,7 @@ function validatePlanContract(planContract, {
     impactGraph,
     candidateManifest,
     requirementPlans,
+    deliveryPreservation: planContract.delivery_preservation ? {baseline: planContract.delivery_preservation.baseline, replacements: planContract.delivery_preservation.replacements} : null,
   });
   if (V.canonicalStringify(rebuilt) !== V.canonicalStringify(planContract)) {
     V.fail('VNEXT_PLAN_CONTRACT_REBUILD_MISMATCH');

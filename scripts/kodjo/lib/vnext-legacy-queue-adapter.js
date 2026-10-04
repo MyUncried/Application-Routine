@@ -69,9 +69,17 @@ function projectUi(planContract, uiAtomicityContract = null, candidateManifest =
 function renderCompatibilityPlan(executionRequest, planContract, uiAtomicityContract = null, requirementRegistry = null, candidateManifest = null) {
   Plan.verifyMarkdownProjection(Plan.renderMarkdown(planContract), planContract);
   const { matrix, uiPaths } = projectUi(planContract, uiAtomicityContract, candidateManifest);
-  const contract = { schema: 'kodjo.ui-plan-contract.v1', contract_version: 1,
+  const preservation = planContract.delivery_preservation;
+  if (preservation) {
+    require('./vnext-delivery-preservation').validate(preservation, planContract.plan_items, planContract.boundaries.write_scope);
+    for (const row of preservation.replacements) if (!(uiAtomicityContract?.criteria || []).some(c => c.requirement_id === row.requirement_id)) V.fail('VNEXT_DELIVERY_REPLACEMENT_UI_CRITERION_REQUIRED');
+  }
+  const fullMatrix = require('./vnext-delivery-preservation').merge(matrix, preservation);
+  const assertions = fullMatrix.criteria.flatMap(c => c.assertions || []).map(a => a.assertion_id).sort();
+  const contract = { schema: 'kodjo.ui-plan-contract.v1', contract_version: assertions.length ? 2 : 1,
+    ...(assertions.length ? {assertion_count: assertions.length, assertion_ids_sha256: require('./plan-impact').sha256(assertions)} : {}),
     protocol_commit: executionRequest.application_head, scan_revision: executionRequest.application_head,
-    ui_applicable: uiPaths.length > 0, ui_paths: uiPaths, criterion_count: matrix.criteria.length,
+    ui_applicable: fullMatrix.criteria.length > 0, ui_paths: uiPaths, criterion_count: fullMatrix.criteria.length,
     matrix_sha256: require('./ui-criteria-contract').matrixFingerprint(matrix) };
   if (!requirementRegistry || requirementRegistry.contract_hash !== planContract.requirement_registry_hash) V.fail('VNEXT_QUEUE_REQUIREMENT_REGISTRY_REQUIRED');
   const Requirements = require('./requirement-contract');
@@ -88,7 +96,7 @@ function renderCompatibilityPlan(executionRequest, planContract, uiAtomicityCont
       tests: item.proof_obligations.filter(row => row.proof_type === 'FUNCTIONAL_TEST').map(row => impactPaths.get(row.target_test_impact_id)).filter(Boolean),
       proof_required: [...new Set(item.proof_obligations.map(row => row.proof_type))], status: 'DEFINED' };
   });
-  const requirementContract = Requirements.buildRequirementContract(matrix, nonUi, new Set(planContract.boundaries.write_scope.map(row => row.path)));
+  const requirementContract = Requirements.buildRequirementContract(fullMatrix, nonUi, new Set(planContract.boundaries.write_scope.map(row => row.path)));
   const json = value => JSON.stringify(value, null, 2).replace(/</g, '\\u003c');
   const tagged = (tag, value) => ['<' + tag + '>', json(value), '</' + tag + '>'];
   return [
@@ -100,6 +108,7 @@ function renderCompatibilityPlan(executionRequest, planContract, uiAtomicityCont
     Plan.renderMarkdown(planContract).trimEnd(),
     '<KODJO_UI_CRITERIA_MATRIX_JSON>', json(matrix), '</KODJO_UI_CRITERIA_MATRIX_JSON>',
     '<KODJO_UI_PLAN_CONTRACT_JSON>', json(contract), '</KODJO_UI_PLAN_CONTRACT_JSON>',
+    ...(preservation ? tagged('KODJO_VNEXT_DELIVERY_PRESERVATION_JSON', preservation) : []),
     ...tagged('KODJO_VNEXT_SCOPE_JSON', {schema: 'kodjo.vnext.downstream-scope.v1', plan_contract_hash: planContract.contract_hash, scope_allow: planContract.boundaries.write_scope.map(row => row.path)}),
     ...tagged('KODJO_NON_UI_REQUIREMENTS_JSON', nonUi),
     ...tagged('KODJO_REQUIREMENT_CONTRACT_JSON', requirementContract),
@@ -140,6 +149,7 @@ function renderCompatibilityMission(executionRequest, planContract = null, planP
     ...executionRequest.native_primitive_decisions.map(row => 'native_primitive_decision=' + V.canonicalStringify(row)),
     'checks=' + executionRequest.checks.join(','),
     'Rapport obligatoire: lire les contrats UI et NON_UI du plan opposable. Produire KODJO_IMPLEMENTATION_CONFORMANCE avec criteria (vide si aucun critere UI), et KODJO_REQUIREMENT_CONFORMANCE avec chaque requirement_id NON_UI du KODJO_REQUIREMENT_CONTRACT_JSON, sans omission ni nouvel identifiant.',
+    ...(planContract?.delivery_preservation ? ['Lire aussi KODJO_VNEXT_DELIVERY_PRESERVATION_JSON : couvrir tous les retained_criteria dans le rapport, avec preuves fraîches. Leurs change_targets historiques sont des références, jamais des autorisations d’écriture. Ne pas réutiliser une ancienne preuve comme preuve du nouveau HEAD.'] : []),
     'Chaque ligne NON_UI porte implementation_status, files_or_symbols (chemins exacts modifies), tests_run (noms des checks observes: jest, typescript, lint), proof_status et residual_status. Chaque ligne UI ajoute criterion_id, component_used et preserve_status. Aucun test non execute ne peut etre declare PASS.',
     'Encodage: <KODJO_IMPLEMENTATION_CONFORMANCE>{"criteria":[]}</KODJO_IMPLEMENTATION_CONFORMANCE> et <KODJO_REQUIREMENT_CONFORMANCE>{"requirements":[{"requirement_id":"identifiant exact du plan","implementation_status":"IMPLEMENTED","files_or_symbols":["chemin exact"],"tests_run":["check observe"],"proof_status":"preuve observee","residual_status":"NONE ou risque reel"}]}</KODJO_REQUIREMENT_CONFORMANCE>. Les valeurs du modele illustratif ne sont jamais des preuves.',
     'Terminer par exactement une ligne KODJO_STOP_STATUS: NONE, ou un des arrets opposables si necessaire: CHANGE_REQUEST_REQUIRED, SCOPE_EXPANSION_REQUIRED, NATIVE_PRIMITIVE_EXCEPTION_REQUIRED, CLARIFICATION_REQUIRED.',

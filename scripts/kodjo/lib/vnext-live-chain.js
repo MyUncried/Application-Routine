@@ -52,7 +52,7 @@ function unitText(content, locator) {
   if (!m || +m[1] > +m[2] || +m[2] > lines.length) V.fail('VNEXT_SOURCE_UNIT_OBSERVATION_REQUIRED', locator);
   return lines.slice(+m[1] - 1, +m[2]).join('\n');
 }
-function observeSources(manifest, cwd, github = Auth.ghClient()) {
+function observeSources(manifest, cwd, github = Auth.ghClient(), issueId = null) {
   Source.validate(manifest);
   return manifest.sources.map(source => {
     let content;
@@ -60,6 +60,11 @@ function observeSources(manifest, cwd, github = Auth.ghClient()) {
       const m = /^github_issue_comment:([^#]+)#([1-9][0-9]*)$/.exec(source.locator);
       if (!m) V.fail('VNEXT_SOURCE_COMMENT_LOCATOR_INVALID');
       const comment = github.comment(m[1], m[2]);
+      if (source.authority === 'DECISION') {
+        const issue = /^github_issue:([^#]+)#([1-9][0-9]*)$/.exec(issueId || '');
+        if (!issue || issue[1] !== m[1]) V.fail('VNEXT_DECISION_SOURCE_CONTEXT_REQUIRED');
+        require('../verify-source-comment').verify(comment, { repository: issue[1], issue: issue[2], id: m[2], actor: issue[1].split('/')[0] });
+      }
       if (String(comment.id) !== m[2] || comment.updated_at !== source.revision) V.fail('VNEXT_SOURCE_COMMENT_STALE');
       content = String(comment.body);
     } else {
@@ -85,8 +90,9 @@ function observeCandidates(artifacts, cwd) {
 // Recipe fields are constructor inputs, not pre-approved serialized contracts.
 function produce(recipe, { cwd, github } = {}) {
   const sourceManifest = Source.build(recipe.sourceManifestInput);
-  const sourceObservations = observeSources(sourceManifest, cwd, github);
+  const sourceObservations = observeSources(sourceManifest, cwd, github, recipe.planningInput.issue_id);
   const planningEnvelope = Envelope.build({ ...recipe.planningInput, source_manifest: sourceManifest });
+  if (recipe.deliveryCorrection && planningEnvelope.planning_mode !== 'REVISION') V.fail('VNEXT_DELIVERY_CORRECTION_REQUIRES_REVISION');
   const requirementRegistry = Requirements.build({ ...recipe.requirementInput,
     planning_envelope_hash: planningEnvelope.contract_hash, source_manifest: sourceManifest });
   Requirements.assertReady(requirementRegistry);
@@ -97,7 +103,8 @@ function produce(recipe, { cwd, github } = {}) {
   const directImportScan = roots.length ? Impact.scanOneLevelDirectImporters({ cwd, candidateManifest,
     modifyCandidateIds: roots }) : null;
   const impactGraph = Impact.buildImpactGraph({ requirementRegistry, candidateManifest, directImportScan, classifications: recipe.classifications });
-  const planContract = Plan.buildPlanContract({ requirementRegistry, candidateManifest, impactGraph, requirementPlans: recipe.requirementPlans });
+  const deliveryPreservation = recipe.deliveryCorrection ? { baseline: require('./vnext-delivery-preservation').observe(recipe.deliveryCorrection.reference, {cwd, readGit, github: github || Auth.ghClient()}), replacements: recipe.deliveryCorrection.replacements } : null;
+  const planContract = Plan.buildPlanContract({ requirementRegistry, candidateManifest, impactGraph, requirementPlans: recipe.requirementPlans, deliveryPreservation });
   const uiAtomicityContract = recipe.uiInput ? Ui.buildUiAtomicityContract({ ...recipe.uiInput,
     requirementRegistry, candidateManifest, impactGraph, planContract }) : null;
   const artifacts = { planningEnvelope, requirementRegistry, candidateManifest, directImportScan,
@@ -122,11 +129,18 @@ function verifyProduced(produced, cwd, github) {
   if (a.directImportScan) Impact.verifyDirectImportScanAtHead(a.directImportScan, a.candidateManifest, { cwd });
   Impact.validateImpactGraph(a.impactGraph, a);
   Plan.validatePlanContract(a.planContract, a);
+  if (a.planContract.delivery_preservation && a.planningEnvelope.planning_mode !== 'REVISION') V.fail('VNEXT_DELIVERY_CORRECTION_REQUIRES_REVISION');
+  if (a.planContract.delivery_preservation) {
+    const saved = a.planContract.delivery_preservation.baseline;
+    const observed = require('./vnext-delivery-preservation').observe(saved.reference, {cwd, readGit, github: github || Auth.ghClient()});
+    if (V.canonicalStringify(saved) !== V.canonicalStringify(observed)) V.fail('VNEXT_DELIVERY_BASELINE_STALE');
+    if (saved.finalization.slice_id !== a.planningEnvelope.slice_id || saved.finalization.head !== a.planningEnvelope.application_head || a.planningEnvelope.issue_id !== 'github_issue:' + saved.reference.repository + '#' + saved.reference.issue_number) V.fail('VNEXT_DELIVERY_BASELINE_APPLICATION_MISMATCH');
+  }
   if (a.uiAtomicityContract) Ui.validateUiAtomicityContract(a.uiAtomicityContract, a);
   Review.verifyReviewContext(a.reviewContext, a);
   const packet = Review.buildReviewerPacket({ root: cwd, revision: produced.producer_revision, reviewContext: a.reviewContext });
   if (V.canonicalStringify(packet) !== V.canonicalStringify(produced.reviewer_packet)) V.fail('VNEXT_REVIEW_PRODUCER_PACKET_STALE');
-  const observed = observeSources(a.planningEnvelope.source_manifest, cwd, github);
+  const observed = observeSources(a.planningEnvelope.source_manifest, cwd, github, a.planningEnvelope.issue_id);
   if (V.canonicalStringify(observed) !== V.canonicalStringify(produced.source_observations)) V.fail('VNEXT_SOURCE_OBSERVATION_STALE');
   if (V.canonicalStringify(observeCandidates(a, cwd)) !== V.canonicalStringify(produced.candidate_observations)) V.fail('VNEXT_CANDIDATE_OBSERVATION_STALE');
   return a;
