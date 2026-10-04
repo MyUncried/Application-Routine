@@ -222,3 +222,28 @@ plan_size=252796
   6. REQ-156EDCBC434B015A : ordre d'affichage déterministe des référentiels omis (C09 L917, L955).
   7. R10 : « titres de modale en en-tête » annoncé au §0 bis mais porté par aucune assertion.
 - **Arrêt.** Conformément à l'instruction (« arrête-toi à son résultat publié »), aucune correction ni republication n'a été faite. Le protocole prévoit de rejouer uniquement la publication à partir de la sortie validée, sans nouvel appel à Claude ; cela suppose de corriger L248 (`[IO.File]::ReadAllText`) et de disposer d'un chemin de republication. Décision du propriétaire attendue.
+
+## Complément — correctif de publication, republication et plan corrigé (PR #311)
+
+- **Approbation du propriétaire** (« approuvé ») : corriger le défaut, republier le verdict sans Claude, corriger le plan sur les 7 constats, puis lancer une nouvelle revue.
+- **Correctif.** `kodjo-v2-slice-plan-review.yml` lit désormais le corps par `[IO.File]::ReadAllText($commentPath,[Text.Encoding]::UTF8)`. Vérifié sous Windows PowerShell 5.1 : `body` est bien une chaîne.
+- **Republication sans Claude** (`kodjo-v2-plan-review-republish.yml`, `scripts/kodjo/republish-plan-review.js`), sur dispatch uniquement et depuis `main` :
+  - reconstruit le corps depuis l'artefact du run ;
+  - lie ce corps aux octets du plan publié, à la tête de protocole du run et à la session Claude ;
+  - refuse si une revue est déjà publiée pour ce plan ;
+  - applique la suite de l'étape d'origine : APPROVE → relais ; REVISE → arrêt `USER_VALIDATION`, jamais de régénération.
+  - Reconstruction en lecture seule sur l'artefact réel de 37198105017 : verdict REVISE, 44 881 caractères.
+- **Plan corrigé** (même chemin `revision-2026-10-04/technical-plan.md`, commit `aa50dde2`).
+  - Les 7 constats sont intégrés : 3 assertions ajoutées pour les Zones (rendu, clavier, Composition), 1 assertion partagée sur les erreurs, 3 assertions d'accessibilité étendues aux en-têtes, l'exigence des référentiels complétée (nom, ordre) et le §0 bis mis à jour.
+  - Réassemblage local sans modèle : 6 critères, 69 assertions, périmètre 95, 41 tests, `APPROVED_BASE_NEW_CYCLE`.
+  - Empreinte : sha256 `25e88521333c1a691bf2ea6795c8f80887e8629cf507ec716a2c40fa44b122cf`, 258 391 octets, blob `e3daef43e58d9e52d921f561aa3044d201b6ff93`.
+- **Tests.**
+  - `plan-review-republish.pilot.js` : 12/12.
+  - E2E d'admission du plan corrigé (`source_head` = tête de protocole = `aa50dde2`) : 27/27.
+  - Suite pilote : 910/929, avec les mêmes 15 échecs préexistants que `main`.
+  - `validate-workflows` : OK.
+- **Action bloquée.** La fusion de #311 a été refusée par le contrôle de permissions (« Merge Without Review »). Aucun contournement n'a été tenté.
+- **Suite, après fusion :**
+  1. Dispatch de `kodjo-v2-plan-review-republish.yml` (`run_id=37198105017`, `issue_number=288`, `source_plan_comment_id=5979342848`).
+  2. Publication du plan corrigé avec `source_head` = commit de fusion et `plan_commit` = commit du plan.
+  3. Une revue indépendante.
