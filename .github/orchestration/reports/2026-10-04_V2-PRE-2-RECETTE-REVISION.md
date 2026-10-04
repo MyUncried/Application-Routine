@@ -384,3 +384,17 @@ plan_size=252796
   - Rejeu local sur les vraies données : sans correctif, même refus ; avec correctif, préparation PASS (6 critères, 73 assertions).
   - Tests 24/24 ; suite pilote 924/943, avec les mêmes 15 échecs préexistants.
 - **Suite :** fusion, relance unique de la revue d'implémentation sur `5983669824`, puis publication Routine Dev.
+
+## Complément — revue d'implémentation : sorties du relecteur refusées par le validateur
+
+- **#315 fusionnée** (`6ef67784`). Relance de la revue (`5983744351`), run `37229677463` : préparation PASS (6 critères, 73 assertions), puis sortie OpenAI refusée.
+  - Erreur : `UI_IMPLEMENTATION_REVIEW_ASSERTION_PROOF_COVERAGE_INCOMPLETE: UI-60B2C84BF572-AEC754D3ABC2D`.
+  - Cause : preuve `DEVICE_CHECK` ajoutée sans être exigée.
+  - Le reste de la sortie était cohérent : 52 CONFORME, 21 PENDING_DEVICE, aucun NON_CONFORME.
+- **Seconde relance** (`5983797924`), run `37230083901` : sortie refusée.
+  - Erreur : `UI_IMPLEMENTATION_REVIEW_ASSERTION_STATUS_DERIVATION_MISMATCH: UI-5F3D94866D30-AA0B74A61E212`.
+  - Cause : statut PENDING_DEVICE sur une assertion à seule preuve FUNCTIONAL_TEST, réussie.
+  - Résultat de cette sortie : 51 CONFORME, 22 PENDING_DEVICE, aucun NON_CONFORME.
+- **Diagnostic.** Stagnation : même schéma sur deux appels, un relecteur plus prudent que le contrat. Aucune relance aveugle supplémentaire. Le validateur reste strict.
+- **Correctif du prompt** (ce commit) : un doute de confirmation sur appareil va dans le texte d'évidence, porté à la recette humaine ; jamais une preuve ajoutée ni un statut modifié. Tests 25/25. Suite pilote : mêmes échecs préexistants.
+- **Suite :** fusion, puis une relance de la revue.
