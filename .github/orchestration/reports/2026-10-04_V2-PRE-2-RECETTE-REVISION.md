@@ -346,3 +346,26 @@ plan_size=252796
   - Rejeu corrigé 4/4.
   - Suite pilote : mêmes 15 échecs préexistants que la référence, les 3 échecs du rejeu étant corrigés.
 - **Suite :** fusion, nouvelle mise en file `QUEUE_APPROVED_PLAN` du même relais approuvé (admissibilité vérifiée en lecture seule), puis suivi du run, de la revue d'implémentation et de la publication Routine Dev.
+
+## Complément — reprise 37214282333 : demande de changement, révision r4
+
+- **Run 37208114796 → correctif #313** (`65b95dd7`). Le plan autorisé est désormais fourni dans l'arbre de travail ; vérifié sur le runner : blob `0d0e7ce6`, lecture seule, `git status` vide.
+- **Run 37209872108.** 13 fichiers, contrôles verts ; arrêté à la limite de 3 600 s.
+- **Reprise `RESUME_DELTA`** (`cb9de2d0`, requête `1c8db14d`, admission vérifiée localement). Run `37214282333` : 23 fichiers, contrôles verts (jest 1513/1513), arrêt `CHANGE_REQUEST_REQUIRED` sur trois points.
+  1. Retour du focus après le dialogue d'appui long : technique, à traiter à la reprise.
+  2. Rafraîchissement des Zones dans la Composition : technique, à traiter à la reprise.
+  3. **Icône d'étiquette au trait (R7a) :** actif absent et hors périmètre (`CANONICAL_ASSET_UNAVAILABLE`), c'est-à-dire une lacune de périmètre du plan r3.
+- **Arbitrage du propriétaire.** Ajout de `assets/icons/label-outline.svg`, exporté du composant Figma prévu, et enregistrement dans KodjoIcon ; correction bornée et revue limitée à cet ajout ; travail en cours conservé ; aucun autre élargissement.
+- **Export Figma.** Composant `4916:6386` « Icône — Étiquette — cil:tag » (20 × 20, dans `2028:11204`). Vecteur isolé normalisé : 2 087 octets, sha256 `6b3a4b0c…`, blob `a573a076…`.
+- **Plan r4** (commit `37fa6a50`, blob `defeb3744687673d6767b664afd4a5794283982e`) :
+  - un seul critère modifié (`change_targets` + `assets/icons/label-outline.svg`, `src/shared/ui/KodjoIcon.tsx`) ;
+  - assertion R7a précisée (`A5905FEFAED8D` → `A9605C517EBC0`) ;
+  - §0 bis : paragraphe r4 avec les octets exacts de l'actif ;
+  - périmètre 95 → 96 ; tests 41 ; `APPROVED_BASE_NEW_CYCLE` sur la base r3 ;
+  - registre `correction-register-change-37214282333.md` et constat épinglé `prior-findings-change-37214282333.json`.
+- **Protocole** (commit `5faadbea`) : la fermeture bornée accepte comme revue antérieure un `[KODJO_V2] PLAN_CHANGE_REQUEST` publié par le propriétaire. Conditions : `derived_verdict=REVISE`, empreinte des constats, run d'origine. Tests 40/40.
+- **Demande de changement publiée** : commentaire `5982276572`.
+- **Tests.** E2E de fermeture r4 sans modèle : 22/22. Suite pilote 922/941, avec les mêmes 15 échecs préexistants. `validate-workflows` : OK.
+- **Suite :**
+  1. Fusion, publication de r4 avec fermeture, puis une revue de fermeture.
+  2. Après APPROVE, nouveau relais : 👍 du propriétaire requis, puis reprise du paquet de 23 fichiers.
