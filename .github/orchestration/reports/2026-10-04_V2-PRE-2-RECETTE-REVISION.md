@@ -109,3 +109,11 @@ Voir le commit qui introduit ce rapport. État attendu après fusion :
 - `main` à jour ;
 - PR #303 ouverte et inchangée à `10ac761e` ;
 - aucune opération PRE-2 active.
+
+## Complément — diagnostic voie A (décision du propriétaire)
+
+- **Cause démontrée du premier échec.** Le prompt « draft » de révision (`.github/workflows/kodjo-v2-slice-plan.yml` L208–211) demande un bloc texte `<KODJO_MODIFIED_MODULES_JSON>`, que le décodeur interdit dans `plan_markdown` (`scripts/kodjo/generate-ui-plan-contract.js` L153). Le prompt initial a été migré vers le champ structuré `modified_modules` (`kodjo-v2-slice-initial-plan.yml` L158), celui de la révision non.
+- **Cause du second échec.** En phase draft, le périmètre est exactement `modified_modules` (`generate-ui-plan-contract.js` L154–171) et chaque `change_target` doit y figurer (`lib/ui-criteria-contract.js` L176–181). Aucune consigne n'indiquait que, pour une tranche déjà livrée, ce périmètre est cumulatif.
+- **Historique.** Aucun run de `kodjo-v2-slice-plan.yml` n'a abouti dans l'historique consulté : le chemin de révision n'est pas qualifié.
+- **Correctif proposé, non fusionné : PR #307.** Il porte sur le texte du prompt uniquement (décodeur, contrats et validations inchangés). Test `tests/kodjo/v2-revision-draft-prompt.pilot.js` : 3/3 ; `validate-workflows` : OK.
+- **Prochaine action, conditionnée à la validation du propriétaire.** Fusion de #307, puis une seule nouvelle commande `START_PLAN_REVISION` (`resume_command_comment_id=5978226685`).
