@@ -543,6 +543,8 @@ function validatePlanContract(planContract, {
 
 function renderMarkdown(planContract) {
   V.verifyContractHash(planContract, 'VNEXT_PLAN_CONTRACT_HASH_MISMATCH');
+  // Presentation only: decoded machine strings retain their exact original bytes.
+  const text = value => String(value).replace(/</g, '&lt;');
   const lines = [
     '# KODJO VNext — Plan canonique',
     '',
@@ -557,45 +559,45 @@ function renderMarkdown(planContract) {
   ];
 
   for (const row of planContract.boundaries.write_scope) {
-    lines.push(`- CHANGE \`${row.path}\` (${row.change_kind})`);
+    lines.push(`- CHANGE \`${text(row.path)}\` (${row.change_kind})`);
   }
   for (const row of planContract.boundaries.preserve_scope) {
-    lines.push(`- PRESERVE \`${row.path}\``);
+    lines.push(`- PRESERVE \`${text(row.path)}\``);
   }
 
   for (const item of planContract.plan_items) {
     lines.push('', `## ${item.requirement_id}`, '');
     lines.push(`- disposition: \`${item.disposition}\``);
     lines.push(`- kind: \`${item.requirement_kind}\``);
-    lines.push(`- rationale: ${item.rationale}`);
+    lines.push(`- rationale: ${text(item.rationale)}`);
     lines.push('- impacts:');
     for (const id of item.impact_ids) lines.push(`  - \`${id}\``);
     lines.push('- changes:');
     if (item.change_items.length === 0) lines.push('  - none');
     for (const change of item.change_items) {
-      lines.push(`  - \`${change.path}\` — ${change.change_kind} — ${change.intent}`);
+      lines.push(`  - \`${text(change.path)}\` — ${change.change_kind} — ${text(change.intent)}`);
     }
     lines.push('- tests:');
     for (const test of item.test_obligations) {
-      const target = test.path === null ? 'none' : `\`${test.path}\``;
-      lines.push(`  - ${test.action} — ${target} — ${test.expected}`);
+      const target = test.path === null ? 'none' : `\`${text(test.path)}\``;
+      lines.push(`  - ${test.action} — ${target} — ${text(test.expected)}`);
     }
     lines.push('- proofs:');
     for (const proof of item.proof_obligations) {
-      lines.push(`  - ${proof.proof_type} — ${proof.expected}`);
+      lines.push(`  - ${proof.proof_type} — ${text(proof.expected)}`);
     }
     lines.push('- constraints:');
     if (item.implementation_constraints.length === 0) lines.push('  - none');
-    for (const value of item.implementation_constraints) lines.push(`  - ${value}`);
+    for (const value of item.implementation_constraints) lines.push(`  - ${text(value)}`);
     lines.push('- residual_risks:');
     if (item.residual_risks.length === 0) lines.push('  - none');
-    for (const value of item.residual_risks) lines.push(`  - ${value}`);
+    for (const value of item.residual_risks) lines.push(`  - ${text(value)}`);
   }
 
   lines.push(
     '',
     '<KODJO_VNEXT_PLAN_CONTRACT_JSON>',
-    JSON.stringify(planContract, null, 2),
+    JSON.stringify(planContract, null, 2).replace(/</g, '\\u003c'),
     '</KODJO_VNEXT_PLAN_CONTRACT_JSON>',
     '',
   );

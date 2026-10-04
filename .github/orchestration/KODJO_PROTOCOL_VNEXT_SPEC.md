@@ -2357,3 +2357,13 @@ ne certifie pas les scénarios externes historiques ni l'activation de VNext.
 
 Le [rapport de consolidation v8](reports/2026-10-03_VNEXT_V8_CONSOLIDATED_CORRECTIONS.md)
 sépare corrections livrées, qualifications, exécutions réelles et réserves restantes.
+
+### Projection des marqueurs et reprise des réponses de revue (2026-10-04)
+
+Les marqueurs machine sont émis par le renderer. Dans les champs narratifs de la projection Markdown, `<` est représenté par `&lt;`. Dans les valeurs JSON des blocs de transport, `<` est représenté par l'échappement JSON `\u003c`. Le contrat canonique, ses empreintes et les valeurs après décodage JSON restent identiques. Un bloc machine supplémentaire dans la projection reste refusé par les consommateurs. Il n'y a ni suppression de texte ni réécriture sémantique.
+
+Les drivers de préparation et le CLI `vnext-chain review` conservent la réponse complète avant validation dans un répertoire de preuves extérieur au checkout. Le fichier `initial-review-response.json` ou `revision-review-response.json` lie stdout/stderr, l'empreinte stdout, l'état du processus, le produced_chain_hash et le reviewer_packet_hash dans un contrat scellé. Le diagnostic borné et expurgé reste séparé. Une sortie reçue avant timeout est conservée, mais un processus interrompu ne peut être converti en revue acceptée.
+
+`reviewOrRecover` et la commande explicite `recover-review` rejouent uniquement la validation d'une réponse existante du même dossier exact, sans appel modèle ni publication. Toute modification du dossier, mauvaise empreinte, réponse ambiguë, couverture manquante ou processus incomplet bloque. Aucun réparateur de format génératif ou nettoyage automatique n'est ajouté. Une réponse rejetée reste rejetée ; une nouvelle invocation nécessite une reprise explicitement décidée et un nouveau répertoire de preuves, sans écraser les preuves existantes.
+
+Une erreur secondaire de sauvegarde/finalisation ne remplace pas l'erreur primaire ; le diagnostic remonté conserve les deux. Une indisponibilité totale du stockage ou l'échec d'upload GitHub ne peut garantir la durabilité de données que le système n'a pas pu écrire. Cela interdit d'affirmer une preuve archivée ; ce cas demande une reprise de conservation, pas une régénération implicite du plan. Les artefacts capturés sont conservés par l'étape d'upload existante ; aucune infrastructure supplémentaire n'est ajoutée.

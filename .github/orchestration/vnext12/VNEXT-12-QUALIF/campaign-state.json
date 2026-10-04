@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-04T08:35:07.780917+00:00",
+  "recorded_at": "2026-10-04T09:29:50.870182+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
-  "controller_stage": "V8_REVIEW_TRANSPORT_DIAGNOSTICS_QUALIFICATION_REQUESTED",
-  "controller_generation": 47,
+  "controller_stage": "V8_MARKER_RESPONSE_RECOVERY_QUALIFICATION_REQUESTED",
+  "controller_generation": 48,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -164,7 +164,7 @@
       "certifies_materialized_dossier_head": false
     },
     "source_head": "022b78768a55277239c545e1ef8235d0a789874c",
-    "preparation_generation": 12,
+    "preparation_generation": 16,
     "request_generation": 31,
     "initial_executed": true,
     "revision_executed": false,
@@ -405,9 +405,9 @@
     "full_linux_ci_is_authoritative": true
   },
   "pending_actions": [
-    "Qualify timeout correction on exact Linux/Windows candidate and obtain fresh real base REVISE then corrected APPROVE.",
-    "Materialize fresh REVISION dossier/transport/gate; qualify before EXECUTE_REVISION.",
-    "Preserve INITIAL PASS; no consumed request replay, no FINAL, promotion or PRE-1."
+    "Qualify exact marker/response recovery candidate on Linux and Windows before real REVISION preparation.",
+    "Obtain fresh actual base REVISE, one causal correction and corrected APPROVE; then materialize and qualify fresh REVISION transport before execution.",
+    "Preserve acquired INITIAL proof; no consumed request replay, FINAL, promotion or PRE-2."
   ],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
@@ -831,12 +831,12 @@
     "initial_revision_replayed": false
   },
   "v8_consolidation": {
-    "status": "INITIAL_PASS_REVIEW_CORRECTIONS_PENDING_QUALIFICATION",
+    "status": "INITIAL_PASS_MARKER_RESPONSE_RECOVERY_PENDING_QUALIFICATION",
     "parent_head": "952b23b3c0bbe258edb93a155abde5c58a5795e0",
     "audit_head": "c0f72fc2148a5955b9a810a8aca1f6eeefa64870",
     "main_shared_source": "67064d1b3752d71683d11638a602286b9c895482",
     "scope": "Remaining demonstrated v8 defects D1-D9,D11-D12,D15-D18; D10,D13,D14 already delivered in the first tranche. D3 targeted shared-protocol reconciliation only.",
-    "request_generation": 39,
+    "request_generation": 40,
     "runtime_execution": "INITIAL_PASS_REVISION_NOT_EXECUTED",
     "native_windows_parser": "REQUIRED_IN_EXACT_TREE_QUALIFICATION",
     "report": ".github/orchestration/reports/2026-10-03_VNEXT_V8_CONSOLIDATED_CORRECTIONS.md",
@@ -1470,11 +1470,32 @@
       "historical_subjects": 420,
       "workflow_changes": 0,
       "new_dependencies": 0,
-      "qualification": "PENDING",
+      "qualification": "SUCCESS",
       "runtime_execution": "NOT_STARTED",
       "initial_request_replay_forbidden": true,
       "prior_revision_receipt_retarget_forbidden": true,
-      "report": ".github/orchestration/reports/2026-10-04_VNEXT_REVIEW_TRANSPORT_AND_DIAGNOSTICS.md"
+      "report": ".github/orchestration/reports/2026-10-04_VNEXT_REVIEW_TRANSPORT_AND_DIAGNOSTICS.md",
+      "qualification_head": "4c3047368926f19af61a8260d4c56c9514ca9b2b",
+      "qualification_runs": [
+        37189525174,
+        37189525201,
+        37189525262
+      ]
+    },
+    "marker_response_recovery_corrections": {
+      "parent_head": "4c3047368926f19af61a8260d4c56c9514ca9b2b",
+      "qualification": "PENDING",
+      "runtime_execution": "NOT_STARTED",
+      "scope": "Lossless marker projection, complete response capture, exact-dossier revalidation without model call, preserve primary validation failure on archive error",
+      "prior_initial_pass_preserved": true,
+      "consumed_requests_replay_forbidden": true,
+      "format_repair": "NONE; strict revalidation only",
+      "report": ".github/orchestration/reports/2026-10-04_VNEXT_MARKERS_AND_RESPONSE_RECOVERY.md",
+      "local_tests": {
+        "regression_pass": 240,
+        "fail": 0,
+        "targeted_final_pass": 4
+      }
     }
   }
 }

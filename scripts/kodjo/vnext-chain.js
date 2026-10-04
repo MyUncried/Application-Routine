@@ -37,7 +37,7 @@ function finalizeTransport(prepared, draft, reservation, { cwd, github = require
 function main(args = process.argv.slice(2)) {
   const [stage, configFile, output] = args;
   const cwd = process.cwd();
-  if (!stage || !configFile) throw new Error('Usage: vnext-chain.js <produce|review|prepare|reserve-gate|finalize-transport|request-approval|handoff|admit|validate-publication> <config.json|queue.json> [output]');
+  if (!stage || !configFile) throw new Error('Usage: vnext-chain.js <produce|review|recover-review|prepare|reserve-gate|finalize-transport|request-approval|handoff|admit|validate-publication> <config.json|queue.json> [output]');
   if (stage === 'admit') {
     const result = Chain.admit(configFile, { cwd });
     if (output) write(output, result);
@@ -48,7 +48,12 @@ function main(args = process.argv.slice(2)) {
   if (output && ['reserve-gate', 'finalize-transport'].includes(stage) && fs.existsSync(output)) throw Error('VNEXT_CHAIN_OUTPUT_EXISTS');
   if (stage === 'validate-publication') write(output, require('./validate-vnext-publication').main(configFile));
   else if (stage === 'produce') write(output, Chain.produce(config, { cwd }));
-  else if (stage === 'review') write(output, Chain.review(read(config.produced_file), { cwd }));
+  else if (stage === 'review' || stage === 'recover-review') {
+    const produced = read(config.produced_file);
+    const options = { cwd, evidenceDirectory: config.evidence_directory };
+    if (!options.evidenceDirectory) throw Error('VNEXT_REVIEW_EVIDENCE_DIRECTORY_REQUIRED');
+    write(output, stage === 'recover-review' ? Chain.recoverReview(produced, options) : Chain.reviewOrRecover(produced, options));
+  }
   else if (stage === 'prepare') {
     const result = Chain.prepare(read(config.produced_file), read(config.review_receipt_file), config.transport, { cwd });
     write(output, result.prepared);

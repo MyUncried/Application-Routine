@@ -140,7 +140,7 @@ function main() {
     write('base-recipe.json', recipe); write('base-produced.json', base);
     if (stage === 'produce') return;
     phase = 'BASE_REVIEW';
-    const receipt = resumedReceipt || Chain.review(base, { cwd, evidenceDirectory: out });
+    const receipt = resumedReceipt || Chain.reviewOrRecover(base, { cwd, evidenceDirectory: out });
     Chain.verifyReceipt(base, receipt);
     write('base-review-receipt.json', receipt);
     phase = 'BOUNDED_CORRECTION';
@@ -153,7 +153,7 @@ function main() {
     if (stage === 'resume' && fs.existsSync(path.join(out, 'revision-review-receipt.json'))) {
       nextReceipt = JSON.parse(fs.readFileSync(path.join(out, 'revision-review-receipt.json'), 'utf8'));
       Chain.validateReceipt(next, nextReceipt);
-    } else nextReceipt = Chain.review(next, { cwd, evidenceDirectory: out });
+    } else nextReceipt = Chain.reviewOrRecover(next, { cwd, evidenceDirectory: out });
     write('revision-review-receipt.json', nextReceipt);
     phase = 'VERIFY_CAUSAL_OUTCOME';
     const artifacts = completeRevision(base, receipt, correction, next, nextReceipt);
@@ -167,7 +167,7 @@ function main() {
       revision_count: 1, revision_limit: 1, implementation_invoked: false, final_audit_invoked: false });
     console.log('REVIEWED_REVISION_PENDING_HANDOFF');
   } catch (error) {
-    write('status.json', { status: 'FAILED', phase, error: error.message, implementation_invoked: false, final_audit_invoked: false });
+    Chain.preserveFailure(error, () => write('status.json', { status: 'FAILED', phase, error: error.message, implementation_invoked: false, final_audit_invoked: false }));
     throw error;
   }
 }

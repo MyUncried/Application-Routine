@@ -188,6 +188,57 @@ function boundedReviewOutput(text) {
   return { bytes: bytes.length, sha256: V.sha256(text), truncated: bytes.length > limit,
     text: bytes.subarray(0, limit).toString('utf8').replace(/\uFFFD$/, '') };
 }
+function validateReviewResponse(produced, raw) {
+  const artifacts = produced.artifacts;
+  let result;
+  try { result = JSON.parse(raw); } catch (_) { V.fail('VNEXT_REVIEW_OUTPUT_UNPARSEABLE'); }
+  if (result.is_error || result.type !== 'result' || !result.session_id || !result.structured_output) V.fail('VNEXT_REVIEW_STRUCTURED_RESULT_REQUIRED');
+
+  const report = Review.buildReviewReport({ reviewContext: artifacts.reviewContext, semanticReview: decodeReviewOutput(artifacts.reviewContext, result.structured_output.semantic_review) });
+  const expectedResolutions = [...artifacts.planningEnvelope.causal_findings].sort();
+  if (V.canonicalStringify(report.finding_resolutions.map(row => row.finding_id).sort()) !== V.canonicalStringify(expectedResolutions)) V.fail('VNEXT_REVIEW_CAUSAL_RESOLUTION_COVERAGE');
+
+  return V.sealContract({ schema_version: 'kodjo.vnext.live-review-receipt.v1', produced_chain_hash: produced.contract_hash,
+    reviewer_packet_hash: produced.reviewer_packet.contract_hash, review_report: report,
+    session_id: result.session_id, raw_result: raw, raw_result_sha256: V.sha256(raw),
+    native_observations: result.structured_output.native_assessment_observations });
+}
+function responsePath(produced, directory) {
+  return path.join(directory, produced.artifacts.planningEnvelope.planning_mode.toLowerCase() + '-review-response.json');
+}
+function recoverReview(produced, { cwd, github, evidenceDirectory } = {}) {
+  verifyProduced(produced, cwd, github);
+  const rel = evidenceDirectory && path.relative(cwd, path.resolve(evidenceDirectory));
+  if (!rel || (!rel.startsWith('..' + path.sep) && !path.isAbsolute(rel))) V.fail('VNEXT_REVIEW_EVIDENCE_OUTSIDE_CHECKOUT_REQUIRED');
+  const saved = JSON.parse(fs.readFileSync(responsePath(produced, evidenceDirectory), 'utf8'));
+  V.verifyContractHash(saved, 'VNEXT_REVIEW_RESPONSE_HASH_INVALID');
+  if (saved.schema_version !== 'kodjo.vnext.review-response.v1' || saved.produced_chain_hash !== produced.contract_hash || saved.reviewer_packet_hash !== produced.reviewer_packet.contract_hash
+      || V.sha256(saved.stdout) !== saved.stdout_sha256) V.fail('VNEXT_REVIEW_RESPONSE_BINDING_MISMATCH');
+  if (saved.process_result.status !== 0 || saved.process_result.signal || saved.process_result.error_code) V.fail('VNEXT_REVIEW_RESPONSE_PROCESS_INCOMPLETE');
+  // Strict revalidation only. No text repair, model invocation, or publication.
+  const diagnostic = { produced_chain_hash: produced.contract_hash, response_hash: saved.contract_hash,
+    model_invoked: false, review_accepted: false, observed_at: new Date().toISOString() };
+  const record = () => fs.writeFileSync(path.join(evidenceDirectory,
+    produced.artifacts.planningEnvelope.planning_mode.toLowerCase() + '-review-revalidation.json'), JSON.stringify(diagnostic, null, 2) + '\n');
+  let receipt;
+  try { receipt = validateReviewResponse(produced, saved.stdout); }
+  catch (error) { diagnostic.error = boundedReviewOutput(error.message).text; preserveFailure(error, record); throw error; }
+  diagnostic.review_accepted = true; diagnostic.session_id = receipt.session_id; record();
+  return receipt;
+}
+function reviewOrRecover(produced, options) {
+  return options.evidenceDirectory && fs.existsSync(responsePath(produced, options.evidenceDirectory))
+    ? recoverReview(produced, options) : review(produced, options);
+}
+function preserveFailure(error, record) {
+  try { record(); } catch (secondary) {
+    error.primary_error ||= error.message;
+    if (error.archive_error !== secondary.message) error.message += '; VNEXT_EVIDENCE_ARCHIVE_FAILED: ' + secondary.message;
+    error.archive_error = secondary.message;
+  }
+  return error;
+}
+
 function review(produced, { cwd, claude = require('./claude-local').resolveClaudeBinary(), github, invoke = command, evidenceDirectory } = {}) {
   const artifacts = verifyProduced(produced, cwd, github);
   const schema = { type: 'object', additionalProperties: false, required: ['semantic_review', 'native_assessment_observations'],
@@ -225,6 +276,7 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
     if (!rel || (!rel.startsWith('..' + path.sep) && !path.isAbsolute(rel))) V.fail('VNEXT_REVIEW_EVIDENCE_OUTSIDE_CHECKOUT_REQUIRED');
     fs.mkdirSync(evidenceDirectory, { recursive: true });
   }
+  if (evidenceDirectory && fs.existsSync(responsePath(produced, evidenceDirectory))) V.fail('VNEXT_REVIEW_RESPONSE_EXISTS_USE_RECOVERY');
   const configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-vnext-review-'));
   fs.writeFileSync(path.join(configDir, 'mcp.json'), JSON.stringify({ mcpServers: {} }));
   fs.writeFileSync(path.join(configDir, 'settings.json'), JSON.stringify({ disableAllHooks: true }));
@@ -238,45 +290,53 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   const diagnosticPath = evidenceDirectory && path.join(evidenceDirectory,
     artifacts.planningEnvelope.planning_mode.toLowerCase() + '-review-process.json');
   const saveDiagnostic = () => { if (diagnosticPath) fs.writeFileSync(diagnosticPath, JSON.stringify(diagnostic, null, 2) + '\n'); };
-  saveDiagnostic();
   // A revised plan also requires causal resolution evidence. Keep its review
   // bounded at 15 minutes; initial reviews and other commands retain 10.
-  let raw;
+  let raw, primaryError, archiveError;
+  const archive = action => { try { action(); } catch (error) { archiveError ||= error; } };
+  const saveResponse = (stdout, stderr = '', processResult = { status: 0, signal: null, error_code: null }) => {
+    if (evidenceDirectory) fs.writeFileSync(responsePath(produced, evidenceDirectory), JSON.stringify(V.sealContract({
+      schema_version: 'kodjo.vnext.review-response.v1', produced_chain_hash: produced.contract_hash,
+      reviewer_packet_hash: produced.reviewer_packet.contract_hash, process_result: processResult, stdout, stderr, stdout_sha256: V.sha256(stdout)
+    }), null, 2) + '\n', { flag: 'wx' });
+  };
   try {
+    saveDiagnostic();
     raw = invoke(claude, ['-p', '--restricted', '--permission-mode', 'dontAsk', '--permission-prompts', 'none',
       '--output-format', 'json', '--tools', 'Read,Glob,Grep', '--allowedTools', 'Read,Glob,Grep',
       '--disallowedTools', 'mcp__*', '--strict-mcp-config', '--mcp-config', path.join(configDir, 'mcp.json'),
       '--settings', path.join(configDir, 'settings.json'), '--json-schema', JSON.stringify(transportSchema)], cwd, input, env, timeoutMs, { onResult: result => {
         const { stdout, stderr, ...metadata } = result;
+        archive(() => saveResponse(stdout, stderr, metadata));
         Object.assign(diagnostic, metadata, { invocation_completed: true,
           stdout: boundedReviewOutput(stdout), stderr: boundedReviewOutput(stderr) });
-        saveDiagnostic();
+        archive(saveDiagnostic);
       } });
+    if (evidenceDirectory && !fs.existsSync(responsePath(produced, evidenceDirectory))) archive(() => saveResponse(raw));
     diagnostic.stdout = boundedReviewOutput(raw);
+    const receipt = validateReviewResponse(produced, raw);
+    if (archiveError) throw archiveError;
+    diagnostic.session_id = receipt.session_id; diagnostic.review_accepted = true;
+    return receipt;
   } catch (error) {
+    primaryError = error;
+    if (archiveError && archiveError !== error) preserveFailure(error, () => { throw archiveError; });
     diagnostic.error = boundedReviewOutput(error.message).text;
     throw error;
   } finally {
-    try {
+    const finish = () => {
       diagnostic.finished_at ||= new Date().toISOString();
       diagnostic.duration_ms ??= Date.parse(diagnostic.finished_at) - Date.parse(diagnostic.started_at);
       diagnostic.checkout_unchanged = checkoutSnapshot() === before;
       saveDiagnostic();
       if (!diagnostic.checkout_unchanged) V.fail('VNEXT_REVIEW_MUTATED_CHECKOUT');
-    } finally { fs.rmSync(configDir, { recursive: true, force: true }); }
+    };
+    try { if (primaryError) preserveFailure(primaryError, finish); else finish(); }
+    finally {
+      const cleanup = () => fs.rmSync(configDir, { recursive: true, force: true });
+      if (primaryError) preserveFailure(primaryError, cleanup); else cleanup();
+    }
   }
-  let result;
-  try { result = JSON.parse(raw); } catch (_) { V.fail('VNEXT_REVIEW_OUTPUT_UNPARSEABLE'); }
-  if (result.is_error || result.type !== 'result' || !result.session_id || !result.structured_output) V.fail('VNEXT_REVIEW_STRUCTURED_RESULT_REQUIRED');
-  diagnostic.session_id = result.session_id; saveDiagnostic();
-  const report = Review.buildReviewReport({ reviewContext: artifacts.reviewContext, semanticReview: decodeReviewOutput(artifacts.reviewContext, result.structured_output.semantic_review) });
-  const expectedResolutions = [...artifacts.planningEnvelope.causal_findings].sort();
-  if (V.canonicalStringify(report.finding_resolutions.map(row => row.finding_id).sort()) !== V.canonicalStringify(expectedResolutions)) V.fail('VNEXT_REVIEW_CAUSAL_RESOLUTION_COVERAGE');
-  diagnostic.session_id = result.session_id; diagnostic.review_accepted = true; saveDiagnostic();
-  return V.sealContract({ schema_version: 'kodjo.vnext.live-review-receipt.v1', produced_chain_hash: produced.contract_hash,
-    reviewer_packet_hash: produced.reviewer_packet.contract_hash, review_report: report,
-    session_id: result.session_id, raw_result: raw, raw_result_sha256: V.sha256(raw),
-    native_observations: result.structured_output.native_assessment_observations });
 }
 
 function verifyReceipt(produced, receipt) {
@@ -450,4 +510,4 @@ function guardLocalRequest(raw, { cwd, queueFile, github } = {}) {
 }
 
 module.exports = { SCHEMA, command, relative, readGit, unitText, observeSources, produce, verifyProduced,
-  compactReviewDossier, decodeReviewOutput, boundedReviewOutput, review, verifyReceipt, validateReceipt, nativeResolver, preparedArtifacts, prepare, approvalTarget, deriveQueue, admit, guard, guardLocalRequest };
+  compactReviewDossier, decodeReviewOutput, boundedReviewOutput, validateReviewResponse, recoverReview, reviewOrRecover, preserveFailure, review, verifyReceipt, validateReceipt, nativeResolver, preparedArtifacts, prepare, approvalTarget, deriveQueue, admit, guard, guardLocalRequest };

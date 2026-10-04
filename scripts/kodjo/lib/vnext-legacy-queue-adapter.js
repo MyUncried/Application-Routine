@@ -89,7 +89,8 @@ function renderCompatibilityPlan(executionRequest, planContract, uiAtomicityCont
       proof_required: [...new Set(item.proof_obligations.map(row => row.proof_type))], status: 'DEFINED' };
   });
   const requirementContract = Requirements.buildRequirementContract(matrix, nonUi, new Set(planContract.boundaries.write_scope.map(row => row.path)));
-  const tagged = (tag, value) => ['<' + tag + '>', JSON.stringify(value, null, 2), '</' + tag + '>'];
+  const json = value => JSON.stringify(value, null, 2).replace(/</g, '\\u003c');
+  const tagged = (tag, value) => ['<' + tag + '>', json(value), '</' + tag + '>'];
   return [
     '# KODJO VNext — Projection transport du plan',
     '',
@@ -97,15 +98,15 @@ function renderCompatibilityPlan(executionRequest, planContract, uiAtomicityCont
     'plan_contract_hash=' + executionRequest.plan_contract_hash,
     '',
     Plan.renderMarkdown(planContract).trimEnd(),
-    '<KODJO_UI_CRITERIA_MATRIX_JSON>', JSON.stringify(matrix, null, 2), '</KODJO_UI_CRITERIA_MATRIX_JSON>',
-    '<KODJO_UI_PLAN_CONTRACT_JSON>', JSON.stringify(contract, null, 2), '</KODJO_UI_PLAN_CONTRACT_JSON>',
+    '<KODJO_UI_CRITERIA_MATRIX_JSON>', json(matrix), '</KODJO_UI_CRITERIA_MATRIX_JSON>',
+    '<KODJO_UI_PLAN_CONTRACT_JSON>', json(contract), '</KODJO_UI_PLAN_CONTRACT_JSON>',
     ...tagged('KODJO_VNEXT_SCOPE_JSON', {schema: 'kodjo.vnext.downstream-scope.v1', plan_contract_hash: planContract.contract_hash, scope_allow: planContract.boundaries.write_scope.map(row => row.path)}),
     ...tagged('KODJO_NON_UI_REQUIREMENTS_JSON', nonUi),
     ...tagged('KODJO_REQUIREMENT_CONTRACT_JSON', requirementContract),
     ...tagged('KODJO_TEST_CONTRACT_JSON', Requirements.buildTestContract(requirementContract)),
     ...tagged('KODJO_BOUNDARY_CONTRACT_JSON', Requirements.buildBoundaryContract(matrix)),
     ...tagged('KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON', requirementRegistry),
-    ...(uiAtomicityContract ? ['<KODJO_VNEXT_UI_ATOMICITY_JSON>', JSON.stringify(uiAtomicityContract, null, 2), '</KODJO_VNEXT_UI_ATOMICITY_JSON>'] : []),
+    ...(uiAtomicityContract ? ['<KODJO_VNEXT_UI_ATOMICITY_JSON>', json(uiAtomicityContract), '</KODJO_VNEXT_UI_ATOMICITY_JSON>'] : []),
     '',
   ].join('\n');
 }
