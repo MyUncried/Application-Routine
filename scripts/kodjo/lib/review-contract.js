@@ -218,6 +218,7 @@ function buildReviewContext({
     schema_version: CONTEXT_SCHEMA,
     planning_mode: planningEnvelope.planning_mode,
     causal_finding_ids: [...planningEnvelope.causal_findings].sort(),
+    ...(planningEnvelope.created_from.kind === 'ACCEPTANCE_GAPS' ? {acceptance_gaps: planContract.delivery_preservation?.baseline.acceptance?.gaps || []} : {}),
     planning_envelope_hash: planningEnvelope.contract_hash,
     requirement_registry_hash: requirementRegistry.contract_hash,
     candidate_manifest_hash: candidateManifest.contract_hash,
@@ -250,7 +251,7 @@ function validateReviewContext(context) {
       'target_catalog',
       'contract_hash',
     ],
-    [],
+    ['acceptance_gaps'],
     'VNEXT_REVIEW_CONTEXT_KEYS_INVALID',
   );
   if (context.schema_version !== CONTEXT_SCHEMA) V.fail('VNEXT_REVIEW_CONTEXT_SCHEMA_INVALID');
@@ -258,6 +259,7 @@ function validateReviewContext(context) {
     V.fail('VNEXT_REVIEW_CONTEXT_MODE_INVALID', context.planning_mode);
   }
   V.verifyContractHash(context, 'VNEXT_REVIEW_CONTEXT_HASH_MISMATCH');
+  if (context.acceptance_gaps && (context.planning_mode !== 'REVISION' || context.causal_finding_ids.length || !context.acceptance_gaps.length || new Set(context.acceptance_gaps.map(g=>g.gap_id)).size !== context.acceptance_gaps.length)) V.fail('VNEXT_REVIEW_ACCEPTANCE_CONTEXT_INVALID');
   if (!Array.isArray(context.mechanical_checks) || context.mechanical_checks.length === 0) {
     V.fail('VNEXT_REVIEW_MECHANICAL_CHECKS_MISSING');
   }
@@ -291,8 +293,9 @@ function reviewerOutputSchema(reviewContext) {
   return {
     type: 'object',
     additionalProperties: false,
-    required: ['findings', 'reviewed_target_ids', 'finding_resolutions'],
+    required: ['findings', 'reviewed_target_ids', 'finding_resolutions', ...(reviewContext.acceptance_gaps ? ['acceptance_resolutions'] : [])],
     properties: {
+      ...(reviewContext.acceptance_gaps ? {acceptance_resolutions: {type:'array',items:{type:'object',additionalProperties:false,required:['gap_id','status','evidence_refs','note'],properties:{gap_id:{type:'string',enum:reviewContext.acceptance_gaps.map(g=>g.gap_id)},status:{type:'string',enum:['RESOLVED','OPEN']},evidence_refs:{type:'array',minItems:1,items:{type:'string',minLength:1}},note:{type:'string',minLength:1}}}}} : {}),
       reviewed_target_ids: { type: 'array', uniqueItems: true, items: { type: 'string', enum: allTargetIds } },
       finding_resolutions: { type: 'array', items: {
         type: 'object', additionalProperties: false, required: ['finding_id', 'status', 'evidence_refs', 'note'],
@@ -425,7 +428,7 @@ function buildReviewReport({ reviewContext, semanticReview }) {
   V.assertExactKeys(
     semanticReview,
     ['findings', 'reviewed_target_ids', 'finding_resolutions'],
-    [],
+    reviewContext.acceptance_gaps ? ['acceptance_resolutions'] : [],
     'VNEXT_REVIEW_OUTPUT_KEYS_INVALID',
   );
   if (!Array.isArray(semanticReview.findings)) {
@@ -446,6 +449,17 @@ function buildReviewReport({ reviewContext, semanticReview }) {
   }).sort((a,b) => a.finding_id.localeCompare(b.finding_id));
   if (V.canonicalStringify(resolutions.map(row => row.finding_id)) !== V.canonicalStringify(reviewContext.causal_finding_ids)) V.fail('VNEXT_REVIEW_CAUSAL_RESOLUTION_COVERAGE');
   if (reviewContext.planning_mode === 'INITIAL' && resolutions.length) V.fail('VNEXT_INITIAL_RESOLUTIONS_FORBIDDEN');
+  let acceptanceResolutions;
+  if (reviewContext.acceptance_gaps) {
+    if (!Array.isArray(semanticReview.acceptance_resolutions)) V.fail('VNEXT_ACCEPTANCE_RESOLUTION_REQUIRED');
+    acceptanceResolutions = semanticReview.acceptance_resolutions.map(row => {
+      V.assertExactKeys(row,['gap_id','status','evidence_refs','note'],[],'VNEXT_ACCEPTANCE_RESOLUTION_KEYS_INVALID');
+      if (!['RESOLVED','OPEN'].includes(row.status)) V.fail('VNEXT_ACCEPTANCE_RESOLUTION_STATUS_INVALID');
+      V.assertUnicodeExactText(row.note,'VNEXT_ACCEPTANCE_RESOLUTION_NOTE_REQUIRED');
+      return {...row,evidence_refs:V.uniqueStrings(row.evidence_refs,'VNEXT_ACCEPTANCE_RESOLUTION_EVIDENCE_REQUIRED','evidence_refs').sort()};
+    }).sort((a,b)=>a.gap_id.localeCompare(b.gap_id));
+    if (V.canonicalStringify(acceptanceResolutions.map(r=>r.gap_id)) !== V.canonicalStringify(reviewContext.acceptance_gaps.map(g=>g.gap_id).sort())) V.fail('VNEXT_ACCEPTANCE_RESOLUTION_COVERAGE_INVALID');
+  }
   const findings = semanticReview.findings
     .map((row, index) => normalizeFinding(row, index, reviewContext, allTargets))
     .sort((a, b) => a.finding_id.localeCompare(b.finding_id));
@@ -459,7 +473,7 @@ function buildReviewReport({ reviewContext, semanticReview }) {
   } else if (findings.some((finding) => finding.blocking)) {
     verdict = 'REVISE';
   }
-  if (resolutions.some(row => row.status !== 'RESOLVED') && verdict === 'APPROVE') verdict = 'REVISE';
+  if ((resolutions.some(row => row.status !== 'RESOLVED') || acceptanceResolutions?.some(row=>row.status !== 'RESOLVED')) && verdict === 'APPROVE') verdict = 'REVISE';
 
   const blockingFindings = findings.filter((finding) => finding.blocking);
   const affectedTargetIds = [...new Set(blockingFindings.map((finding) => finding.target_id))].sort();
@@ -479,6 +493,7 @@ function buildReviewReport({ reviewContext, semanticReview }) {
     findings,
     reviewed_target_ids: reviewedTargets,
     finding_resolutions: resolutions,
+    ...(acceptanceResolutions ? {acceptance_resolutions:acceptanceResolutions} : {}),
   });
 }
 
@@ -501,7 +516,7 @@ function validateReviewReport(report, reviewContext) {
       'finding_resolutions',
       'contract_hash',
     ],
-    [],
+    reviewContext.acceptance_gaps ? ['acceptance_resolutions'] : [],
     'VNEXT_REVIEW_REPORT_KEYS_INVALID',
   );
   if (report.schema_version !== REPORT_SCHEMA) V.fail('VNEXT_REVIEW_REPORT_SCHEMA_INVALID');
@@ -513,6 +528,7 @@ function validateReviewReport(report, reviewContext) {
   const semanticReview = {
     reviewed_target_ids: report.reviewed_target_ids,
     finding_resolutions: report.finding_resolutions,
+    ...(reviewContext.acceptance_gaps ? {acceptance_resolutions:report.acceptance_resolutions} : {}),
     findings: report.findings.map((finding) => ({
       category: finding.category,
       target_type: finding.target_type,

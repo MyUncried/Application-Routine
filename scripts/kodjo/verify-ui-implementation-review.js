@@ -195,7 +195,7 @@ function buildInput(planBody, changedFiles, previousReview) {
         : proofs.some((p) => DEFERABLE_PROOFS.has(p)),
       review_scope: reviewScope,
       affected_paths: affectedPaths,
-      ...(retained ? {delivery_role: 'RETAINED', previous_head: deliveryPreservation.baseline.finalization.head, previous_result: deliveryPreservation.baseline.review.criteria.find(c=>c.criterion_id===id)} : {}),
+      ...(retained ? {delivery_role: 'RETAINED', previous_head: Delivery.state(deliveryPreservation.baseline).head, previous_result: deliveryPreservation.baseline.review.criteria.find(c=>c.criterion_id===id)} : {}),
     };
     if (reviewScope === 'INHERITED') normalized.inherited_result = normalizeInheritedResult(previousById.get(id));
     return normalized;
@@ -217,7 +217,7 @@ function buildInput(planBody, changedFiles, previousReview) {
 
   return {
     schema: INPUT_SCHEMA,
-    ...(deliveryPreservation ? {delivery_preservation_hash:deliveryPreservation.contract_hash,previous_delivery_head:deliveryPreservation.baseline.finalization.head,historical_not_executed_proofs:deliveryPreservation.baseline.finalization.not_executed_proofs || [],proof_policy:deliveryPreservation.proof_policy} : {}),
+    ...(deliveryPreservation ? {delivery_preservation_hash:deliveryPreservation.contract_hash,previous_delivery_head:Delivery.state(deliveryPreservation.baseline).head,historical_not_executed_proofs:Delivery.state(deliveryPreservation.baseline).not_executed_proofs || [],proof_policy:deliveryPreservation.proof_policy} : {}),
     review_mode: (previousById||previousRequirementById) ? 'DELTA_WITH_INHERITANCE' : 'FULL',
     assertion_mode: assertionMode,
     legacy_proof_policy: matrix.schema==='kodjo.ui-criteria.v1' && !hasRequirementContract ? 'HISTORICAL_V1_ONLY' : 'EXACT_CONTRACT_REQUIRED',

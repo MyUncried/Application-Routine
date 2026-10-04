@@ -21,7 +21,9 @@ const CLAUDE_FOREGROUND_CHECK_ENV = Object.freeze({
   BASH_MAX_TIMEOUT_MS: '900000',
 });
 function claudeEnvironment(inherited, request) {
-  return { ...inherited, KODJO_MUTATION_SCOPE_JSON: JSON.stringify(request.scope_allow), ...CLAUDE_FOREGROUND_CHECK_ENV };
+  const env = { ...inherited, KODJO_MUTATION_SCOPE_JSON: JSON.stringify(request.scope_allow), ...CLAUDE_FOREGROUND_CHECK_ENV };
+  delete env.KODJO_VNEXT_PLAN_READ_JSON;
+  return env;
 }
 function claudeSettings() {
   return { disableAllHooks: true, env: { ...CLAUDE_FOREGROUND_CHECK_ENV } };
@@ -641,6 +643,7 @@ function main() {
   let request;
   let rawRequest;
   let assertVNextAdmission = () => null;
+  let vnextAdmission = null;
   try {
     rawRequest = JSON.parse(fs.readFileSync(path.resolve(requestPath), 'utf8').replace(/^\uFEFF/, ''));
     // Defense in depth: a direct runner invocation must also re-observe the
@@ -648,11 +651,11 @@ function main() {
     const vnextGithub = require('./verify-authorizations').ghClient({
       env: liveToken ? { ...process.env, GH_TOKEN: liveToken } : process.env,
     });
-    assertVNextAdmission = () => require('./lib/vnext-live-chain').guardLocalRequest(rawRequest, {
+    assertVNextAdmission = () => (vnextAdmission = require('./lib/vnext-live-chain').guardLocalRequest(rawRequest, {
       cwd: repoRoot, github: vnextGithub, queueFile: process.env.KODJO_VNEXT_QUEUE_FILE,
-    });
+    }));
     assertVNextAdmission();
-    request = normalizeRequest(rawRequest, repoRoot);
+    request = normalizeRequest(rawRequest, repoRoot, vnextAdmission);
   } catch (err) {
     return die('REQUEST_REFUSED', err.message);
   }
@@ -708,6 +711,12 @@ function main() {
     return writeFailure('PROMPT_PATH_INVALID', promptRelative);
   }
   const promptBuffer = Source.readFileAtHead(promptRelative, request.protocol_source_head, repoRoot);
+  // VNext only: verify the admitted plan before recovery can touch application files.
+  const RuntimePlan = require('./lib/vnext-runtime-plan');
+  if (vnextAdmission) {
+    try { RuntimePlan.verify(vnextAdmission, { cwd: repoRoot, missionBytes: promptBuffer }); }
+    catch (error) { return writeFailure(error.message, 'approved runtime plan refused before recovery or Claude'); }
+  }
   const promptExistsInExecutionTree = fs.existsSync(request.prompt_file);
   const promptWorktreeHashBefore = promptExistsInExecutionTree ? sha256(fs.readFileSync(request.prompt_file)) : null;
   const initialChanges = changedFiles(repoRoot).filter((f) =>
@@ -777,7 +786,16 @@ function main() {
   });
   const restoredDeltaFingerprint = deltaFingerprint(repoRoot, restoredDeltaFiles);
   let result, beforeRefs, beforeGitIntegrity, promptBytes, claudeStartedAt, claudeFinishedAt, claudeDurationMs;
+  let runtimePlan = null, runtimePlanFailure = null;
   const interrupt = (signal) => {
+    if (runtimePlan) {
+      try { RuntimePlan.restore(runtimePlan); }
+      catch (error) { runtimePlanFailure = error.message; }
+    }
+    if (runtimePlan && runtimePlan.identity.state !== 'RESTORED') {
+      writeFailure('VNEXT_RUNTIME_PLAN_RESTORE_REQUIRED', signal, { lock_state: 'RETAINED_CONSERVATIVELY' });
+      process.exit(130);
+    }
     const released = releaseExecutionLock(lock);
     writeFailure('CLAUDE_EXECUTION_INTERRUPTED', signal, { lock_state: released ? 'RELEASED_BY_OWNER' : 'RETAINED_CONSERVATIVELY' });
     process.exit(130);
@@ -793,6 +811,15 @@ function main() {
     fs.chmodSync(path.join(runDir, 'scope-path.js'), 0o400);
     fs.writeFileSync(path.join(runDir, 'mcp.json'), '{"mcpServers":{}}\n', 'utf8');
     fs.writeFileSync(path.join(runDir, 'settings.json'), JSON.stringify(claudeSettings()) + '\n', 'utf8');
+    if (vnextAdmission) {
+      try { runtimePlan = RuntimePlan.install(vnextAdmission, { cwd: repoRoot, runDir, missionBytes: promptBuffer }); }
+      catch (error) {
+        runtimePlan = error.runtime_plan || null;
+        return writeFailure(error.message, 'approved plan read view could not be installed; Claude not invoked',
+          { plan_restore_error: error.restore_error || null,
+            plan_journal: runtimePlan?.journalFile || null });
+      }
+    }
     const taskText = promptBuffer.toString('utf8');
     const prompt = buildPrompt(request, taskText, runDir);
     promptBytes = Buffer.byteLength(prompt, 'utf8');
@@ -818,6 +845,7 @@ function main() {
       limits_effective: request.limits,
       turn_limit_effective: TURN_LIMIT_POLICY,
       recovery_source_head_migration: sourceHeadMigration,
+      ...(runtimePlan ? { approved_plan: runtimePlan.identity } : {}),
       claude_adapter_defaults_sha256: adapterConfigHash(),
       claude_adapter_config_sha256: sha256(JSON.stringify({
         config: adapterConfig(), limits_effective: request.limits,
@@ -836,10 +864,12 @@ function main() {
     intent.command_sha256 = sha256(JSON.stringify([claudeBin, ...claudePrefix, ...args.slice(0, -1), '[PROMPT]']));
     fs.writeFileSync(path.join(runDir, 'invocation.json'), JSON.stringify(intent, null, 2) + '\n', 'utf8');
     const claudeEnv = claudeEnvironment(process.env, request);
+    if (runtimePlan) Object.assign(claudeEnv, RuntimePlan.environment(runtimePlan));
     assertLiveTarget();
     const claudeStartedMs = Date.now();
     claudeStartedAt = new Date(claudeStartedMs).toISOString();
     assertVNextAdmission();
+    if (runtimePlan) RuntimePlan.assertView(runtimePlan);
     result = command(claudeBin, [...claudePrefix, ...args], repoRoot, claudeEnv, request.limits.max_duration_seconds * 1000);
     const claudeFinishedMs = Date.now();
     claudeFinishedAt = new Date(claudeFinishedMs).toISOString();
@@ -849,7 +879,11 @@ function main() {
   } finally {
     process.removeListener('SIGINT', interrupt);
     process.removeListener('SIGTERM', interrupt);
-    releaseExecutionLock(lock);
+    if (runtimePlan) {
+      try { RuntimePlan.restore(runtimePlan); }
+      catch (error) { runtimePlanFailure = error.message; }
+    }
+    if (!runtimePlan || runtimePlan.identity.state === 'RESTORED') releaseExecutionLock(lock);
   }
 
   delete process.env.CLAUDE_CODE_OAUTH_TOKEN;
@@ -885,6 +919,17 @@ function main() {
     recoveryFiles = writeRecovery(runDir, repoRoot, request, files, { runId, integrityStatus });
   } catch (err) {
     return die('RECOVERY_WRITE_FAILED', err.message);
+  }
+
+  if (runtimePlanFailure) {
+    fs.writeFileSync(path.join(runDir, 'result.json'), JSON.stringify({
+      request_id: request.request_id, source_head: request.source_head,
+      status: 'IMPLEMENTATION_INTEGRITY_REFUSED', diagnostic: runtimePlanFailure,
+      modified_files: files, recovery_files: recoveryFiles, recovery_package: null,
+      claude_invoked: true, checks: [], publishable_paths: [],
+      approved_plan: runtimePlan.identity,
+    }, null, 2) + '\n');
+    return die(runtimePlanFailure, 'raw application delta and plan diagnostic conserved; publication refused');
   }
 
   if (gitIntegrityChanges.length) {

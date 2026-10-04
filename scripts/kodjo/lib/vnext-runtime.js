@@ -48,6 +48,15 @@ function validateRevisionChain({
   if (!revisionArtifacts || typeof revisionArtifacts !== 'object' || Array.isArray(revisionArtifacts)) {
     V.fail('VNEXT_RUNTIME_REVISION_ARTIFACTS_REQUIRED');
   }
+  if (planningEnvelope.created_from.kind === 'ACCEPTANCE_GAPS') {
+    V.assertExactKeys(revisionArtifacts,['origin','base_register','outcome'],[],'VNEXT_ACCEPTANCE_RUNTIME_KEYS_INVALID');
+    if(revisionArtifacts.origin !== 'POST_ACCEPTANCE') V.fail('VNEXT_ACCEPTANCE_RUNTIME_ORIGIN_INVALID');
+    const outcome = require('./vnext-post-acceptance').buildOutcome({baseline:nextArtifacts.planContract.delivery_preservation?.baseline,
+      bindings:nextArtifacts.acceptanceBindings,artifacts:{...nextArtifacts,planningEnvelope,reviewContext},reviewReport,
+      baseRegister:revisionArtifacts.base_register,cumulativeRegister});
+    exact(outcome,revisionArtifacts.outcome,'VNEXT_ACCEPTANCE_RUNTIME_OUTCOME_MISMATCH');
+    return Object.freeze({stage:'REVISION',status:'RESOLVED',evidence_hashes:[outcome.contract_hash]});
+  }
   V.assertExactKeys(
     revisionArtifacts,
     ['allowed_change_set', 'revision_patch', 'revision_outcome', 'previous_review_report', 'finding_ledger', 'base_artifacts'],
@@ -158,6 +167,7 @@ function buildRuntimeSnapshot({
   reviewContext,
   reviewReport,
   revisionArtifacts = null,
+  acceptanceBindings = null,
   approvalTarget,
   approvalRecord,
   executionRequest,
@@ -225,7 +235,7 @@ function buildRuntimeSnapshot({
     reviewReport,
     revisionArtifacts,
     cumulativeRegister,
-    nextArtifacts: { requirementRegistry, impactGraph, candidateManifest, planContract, uiAtomicityContract, directImportScan },
+    nextArtifacts: { requirementRegistry, impactGraph, candidateManifest, planContract, uiAtomicityContract, directImportScan, acceptanceBindings },
   });
 
   const rebuiltApprovalTarget = Approval.buildApprovalTarget({

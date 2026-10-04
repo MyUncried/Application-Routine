@@ -40,6 +40,8 @@ function validateCurrentHeads(planningEnvelope, currentState) {
   if (currentState.application_head !== planningEnvelope.application_head) {
     V.fail('VNEXT_APPROVAL_APPLICATION_HEAD_STALE');
   }
+  if (currentState.execution_context.delivery_target
+      && currentState.execution_context.delivery_target.application_head !== currentState.application_head) V.fail('VNEXT_DELIVERY_APPLICATION_HEAD_MISMATCH');
   return Object.freeze({
     product_head: currentState.product_head,
     application_head: currentState.application_head,
@@ -227,6 +229,8 @@ function validateExecutionCore(core) {
   V.assertSha40(core.baseline_head, 'VNEXT_EXECUTION_CORE_BASELINE_INVALID', 'baseline_head');
   V.assertSha40(core.product_head, 'VNEXT_EXECUTION_CORE_PRODUCT_HEAD_INVALID', 'product_head');
   V.assertSha40(core.application_head, 'VNEXT_EXECUTION_CORE_APPLICATION_HEAD_INVALID', 'application_head');
+  if (core.execution_context.delivery_target
+      && core.execution_context.delivery_target.application_head !== core.application_head) V.fail('VNEXT_DELIVERY_APPLICATION_HEAD_MISMATCH');
   V.assertSha40(core.protocol_head, 'VNEXT_EXECUTION_CORE_PROTOCOL_HEAD_INVALID', 'protocol_head');
   if (!['INITIAL', 'REVISION'].includes(core.planning_mode)) {
     V.fail('VNEXT_EXECUTION_CORE_MODE_INVALID', core.planning_mode);

@@ -5,7 +5,7 @@ const SourceManifest = require('./source-manifest');
 
 const SCHEMA = 'kodjo.vnext.planning-envelope.v1';
 const MODES = Object.freeze(['INITIAL', 'REVISION']);
-const CREATED_FROM_KINDS = Object.freeze(['INITIAL_REQUEST', 'PLAN_REVIEW_REVISE', 'CLARIFICATION_RESOLVED']);
+const CREATED_FROM_KINDS = Object.freeze(['INITIAL_REQUEST', 'PLAN_REVIEW_REVISE', 'CLARIFICATION_RESOLVED', 'ACCEPTANCE_GAPS']);
 
 function validateCreatedFrom(value) {
   V.assertExactKeys(value, ['kind', 'refs'], [], 'VNEXT_CREATED_FROM_KEYS_INVALID');
@@ -41,8 +41,10 @@ function build(input) {
   } else {
     V.assertSha64(basePlanHash, 'VNEXT_REVISION_BASE_PLAN_INVALID', 'base_plan_hash');
     V.assertSha64(baseReviewHash, 'VNEXT_REVISION_BASE_REVIEW_INVALID', 'base_review_hash');
-    causalFindings = V.uniqueStrings(causalFindings, 'VNEXT_REVISION_FINDINGS_INVALID', 'causal_findings');
-    if (!['PLAN_REVIEW_REVISE', 'CLARIFICATION_RESOLVED'].includes(createdFrom.kind)) {
+    if (createdFrom.kind === 'ACCEPTANCE_GAPS') {
+      if (!Array.isArray(causalFindings) || causalFindings.length) V.fail('VNEXT_ACCEPTANCE_REVIEW_FINDINGS_FORBIDDEN');
+    } else causalFindings = V.uniqueStrings(causalFindings, 'VNEXT_REVISION_FINDINGS_INVALID', 'causal_findings');
+    if (!['PLAN_REVIEW_REVISE', 'CLARIFICATION_RESOLVED', 'ACCEPTANCE_GAPS'].includes(createdFrom.kind)) {
       V.fail('VNEXT_REVISION_CREATED_FROM_INVALID', createdFrom.kind);
     }
   }

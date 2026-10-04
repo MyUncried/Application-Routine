@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-04T11:22:26.357060+00:00",
+  "recorded_at": "2026-10-04T15:47:12.877531+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
-  "controller_stage": "V8_FROZEN_CONSUMER_FIX_QUALIFICATION_REQUESTED",
-  "controller_generation": 50,
+  "controller_stage": "V8_POST_ACCEPTANCE_AND_APPROVED_PLAN_TRANSMISSION_QUALIFICATION_REQUESTED",
+  "controller_generation": 51,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -405,10 +405,10 @@
     "full_linux_ci_is_authoritative": true
   },
   "pending_actions": [
-    "Qualify the single consolidated delivery-preservation/post-acceptance complement candidate on Linux/Windows.",
-    "Design the missing acceptance-gaps origin and unclosed-delivery baseline; do not claim the full post-acceptance route qualified.",
-    "Obtain fresh actual base REVISE, one causal correction and corrected APPROVE for the bounded plan-review revision campaign; then qualify its fresh transport before execution.",
-    "No replay of consumed INITIAL requests, no FINAL, promotion or PRE-2."
+    "Qualify the consolidated post-acceptance and approved-plan transmission candidate on exact Linux/Windows HEAD.",
+    "Scenario qualification by actual runtime evidence remains distinct from fixture integration; no production promotion authorized.",
+    "After exact candidate qualification, execute fresh real bounded REVISION and post-acceptance routes with exact approval and new identities; never replay consumed requests.",
+    "Complete Work wake/resume qualification, independent audit and promotion dossier in the existing ten-step plan; no PRE-2/V2 intervention."
   ],
   "previous_checkpoint": "63c6c8fb043d935893fb50f71c7abc64f1b244d9",
   "latest_failures": [
@@ -1567,7 +1567,7 @@
         37195843101
       ],
       "prior_drivers_success": 37195843078,
-      "qualification": "PENDING",
+      "qualification": "LINUX_SUCCESS_WINDOWS_CONTRACTS_INCOMPLETE",
       "runtime_execution": "NOT_STARTED",
       "local_complete_pilot": {
         "tests": 1001,
@@ -1575,7 +1575,37 @@
         "fail": 0,
         "skip": 5
       },
-      "post_acceptance_full_path": "NOT_IMPLEMENTED_END_TO_END_NOT_RUNTIME_QUALIFIED"
+      "post_acceptance_full_path": "NOT_IMPLEMENTED_END_TO_END_NOT_RUNTIME_QUALIFIED",
+      "observed_runs": [
+        {
+          "run_id": 37198661773,
+          "status": "SUCCESS"
+        },
+        {
+          "run_id": 37198661774,
+          "status": "SUCCESS"
+        },
+        {
+          "run_id": 37198661771,
+          "status": "CANCELLED",
+          "job_id": 111425636031,
+          "cause": "Windows contracts reached global 15-minute job budget; no complete verdict. Linux contracts and historical Linux/Windows SUCCESS."
+        }
+      ]
+    },
+    "post_acceptance_and_plan_transmission": {
+      "parent_head": "cbdae1633c86d924884e43e5a6b52e0321c47c93",
+      "status": "PUBLISHED_CANDIDATE_QUALIFICATION_REQUESTED",
+      "runtime_execution": "NOT_STARTED",
+      "real_post_acceptance_qualified": false,
+      "scope": "Acceptance-gaps REVISION without fake REVISE; admitted exact plan view on existing PR, no stale checkout fallback, preservation and uniqueness.",
+      "test_evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/post-acceptance-plan-transmission-tests.json",
+      "report": ".github/orchestration/reports/2026-10-04_VNEXT_APPROVED_PLAN_TRANSMISSION_DIAGNOSTIC.md",
+      "scenario_qualification_gate": "PROPOSED_NOT_IMPLEMENTED",
+      "promotion_authorized": false,
+      "new_dependencies": 0,
+      "prior_consumed_requests_replay_forbidden": true,
+      "historical_subjects_preserved": 420
     }
   }
 }

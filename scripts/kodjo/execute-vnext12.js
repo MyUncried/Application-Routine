@@ -35,8 +35,10 @@ function validateAdmittedInitial(a) {
       || a.cumulativeRegister?.revision_limit !== 1 || a.revisionArtifacts) throw Error('VNEXT12_REAL_INITIAL_REQUIRED');
 }
 function validateAdmittedRevision(a) {
+  const outcome = a.revisionArtifacts?.origin === 'POST_ACCEPTANCE'
+    ? a.revisionArtifacts.outcome : a.revisionArtifacts?.revision_outcome;
   if (a.planningEnvelope?.planning_mode !== 'REVISION' || a.cumulativeRegister?.revision_count !== 1
-      || a.cumulativeRegister?.revision_limit !== 1 || a.revisionArtifacts?.revision_outcome?.status !== 'RESOLVED') throw Error('VNEXT12_REAL_BOUNDED_REVISION_REQUIRED');
+      || a.cumulativeRegister?.revision_limit !== 1 || outcome?.status !== 'RESOLVED') throw Error('VNEXT12_REAL_BOUNDED_REVISION_REQUIRED');
 }
 function localOrigin(origin) {
   if (!path.isAbsolute(origin) || /^(https?:|ssh:|git:)|@/.test(origin)) throw Error('VNEXT12_REMOTE_ORIGIN_FORBIDDEN');

@@ -251,6 +251,7 @@ function buildLegacyQueueProjection(args) {
     slice_bootstrap_sha256: transport.slice_bootstrap_sha256,
     mode: 'INITIAL',
     operation_kind: 'IMPLEMENT',
+    ...(executionRequest.execution_context.delivery_target ? { delivery_target: { ...executionRequest.execution_context.delivery_target } } : {}),
     session_id: null,
     prompt_file: transport.prompt_file,
     scope_allow: scopeAllow,
@@ -350,6 +351,7 @@ function validateLegacyQueueProjection(projection, executionRequest) {
   if (V.canonicalStringify(queue.scope_allow) !== V.canonicalStringify(exactScope)) V.fail('VNEXT_QUEUE_SCOPE_WIDENING');
   if (V.canonicalStringify(queue.checks) !== V.canonicalStringify(executionRequest.checks)) V.fail('VNEXT_QUEUE_CHECK_DRIFT');
   if (queue.source_head !== executionRequest.protocol_head || queue.baseline_head !== executionRequest.baseline_head) V.fail('VNEXT_QUEUE_HEAD_DRIFT');
+  if (V.canonicalStringify(queue.delivery_target || null) !== V.canonicalStringify(executionRequest.execution_context.delivery_target || null)) V.fail('VNEXT_QUEUE_DELIVERY_TARGET_DRIFT');
   if (projection.projection_guard.scope_sha256 !== V.canonicalHash(queue.scope_allow)
       || projection.projection_guard.checks_sha256 !== V.canonicalHash(queue.checks)
       || projection.projection_guard.application_head !== executionRequest.application_head

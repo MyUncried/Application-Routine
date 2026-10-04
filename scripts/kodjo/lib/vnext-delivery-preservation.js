@@ -4,6 +4,7 @@ const V = require('./vnext-contract');
 const { extractTaggedJson, canonicalJson, sha256 } = require('./plan-impact');
 const Schema = 'kodjo.vnext.delivery-preservation.v1';
 function validateBaseline(base) {
+  if (base.schema_version === 'kodjo.vnext.post-acceptance-baseline.v1') return require('./vnext-post-acceptance').validateBaseline(base);
   V.verifyContractHash(base, 'VNEXT_DELIVERY_BASELINE_HASH_INVALID');
   V.assertExactKeys(base, ['reference','matrix','review','finalization','plan_blob_oid','contract_hash'], [], 'VNEXT_DELIVERY_BASELINE_KEYS_INVALID');
   const f = base.finalization;
@@ -23,6 +24,7 @@ function validateBaseline(base) {
       || !c.proof_results?.length || c.proof_results.some(p => !['PASS','PENDING_DEVICE'].includes(p.status)))) V.fail('VNEXT_DELIVERY_BASELINE_TECHNICAL_GAP');
 }
 function observe(reference, { cwd, readGit, github }) {
+  if (reference.kind === 'POST_ACCEPTANCE') return require('./vnext-post-acceptance').observe(reference, {cwd,readGit,github});
   V.assertExactKeys(reference, ['revision','plan_path','review_path','finalization_path','repository','issue_number'], [], 'VNEXT_DELIVERY_REFERENCE_KEYS_INVALID');
   V.assertSha40(reference.revision, 'VNEXT_DELIVERY_REFERENCE_REVISION_INVALID');
   const plan = readGit(cwd, reference.revision, reference.plan_path);
@@ -80,4 +82,5 @@ function merge(matrix, preservation) {
 function fromMarkdown(body) {
   return body.includes('<KODJO_VNEXT_DELIVERY_PRESERVATION_JSON>') ? extractTaggedJson(body, 'KODJO_VNEXT_DELIVERY_PRESERVATION_JSON') : null;
 }
-module.exports = { observe, validateBaseline, build, validate, merge, fromMarkdown };
+function state(baseline) { return baseline.delivery || baseline.finalization; }
+module.exports = { observe, validateBaseline, build, validate, merge, fromMarkdown, state };

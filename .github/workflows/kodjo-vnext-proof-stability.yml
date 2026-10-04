@@ -25,7 +25,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    # The expanded Windows fixture suite can exceed the former 15-minute job budget.
+    # Preserve every contract; this is a job allowance, not a model-call timeout.
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:

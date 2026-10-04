@@ -3,10 +3,16 @@
 const V = require('./vnext-contract');
 
 function validateExecutionContext(context) {
-  V.assertExactKeys(context, ['mode', 'writer_id'], [], 'VNEXT_WRITER_CONTEXT_REQUIRED');
+  V.assertExactKeys(context, ['mode', 'writer_id'], ['delivery_target'], 'VNEXT_WRITER_CONTEXT_REQUIRED');
   if (!['LOCAL', 'CLOUD'].includes(context.mode)) V.fail('VNEXT_WRITER_MODE_INVALID');
   V.assertUnicodeExactText(context.writer_id, 'VNEXT_WRITER_ID_REQUIRED', 'writer_id');
-  return { mode: context.mode, writer_id: context.writer_id };
+  if (context.delivery_target !== undefined) {
+    if (context.mode !== 'LOCAL' || !context.writer_id.startsWith('CLAUDE:')) V.fail('VNEXT_DELIVERY_WRITER_INVALID');
+    const error = require('./queue-contract').validateDeliveryTarget(context.delivery_target, { operation_kind: 'IMPLEMENT' });
+    if (error) V.fail('VNEXT_DELIVERY_TARGET_INVALID', error);
+  }
+  return { mode: context.mode, writer_id: context.writer_id,
+    ...(context.delivery_target ? { delivery_target: { ...context.delivery_target } } : {}) };
 }
 
 function validateNativeShape(rows) {

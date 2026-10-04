@@ -152,6 +152,7 @@ function ghClient(options = {}) {
     comment: (repository, id) => call('repos/' + repository + '/issues/comments/' + id),
     reactions: (repository, id) => call('repos/' + repository + '/issues/comments/' + id + '/reactions'),
     artifact: (repository, id) => call('repos/' + repository + '/actions/artifacts/' + id),
+    pullRequest: (repository, id) => call('repos/' + repository + '/pulls/' + id),
   };
 }
 
