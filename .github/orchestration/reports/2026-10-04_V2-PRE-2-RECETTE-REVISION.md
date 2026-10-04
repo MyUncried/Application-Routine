@@ -162,3 +162,88 @@ Voir le commit qui introduit ce rapport. État attendu après fusion :
 - **Non fait, en attente de la validation du propriétaire.** Fusion. Puis publication `[KODJO_V2] PLAN_PUBLICATION` (`planning_mode=REVISION`, `source_head` = commit de fusion, `application_pr=303`, `application_head=10ac761e…`, `supersedes_plan_blob_oid=ae2a7a0d…`, `prior_review_blob_oid=a7fe0ec8…`) et dispatch de la revue indépendante.
 - Le chemin aval (relais, 👍, file, livraison sur #303) n'a pas été rejoué de bout en bout. Seule la lecture de la publication par le relais a été vérifiée dans le code (`materialize-approved-plan-handoff.js` L128–135, L83–96).
 - PR #303 inchangée à `10ac761e` ; aucune opération PRE-2 active.
+
+## Complément — fusion de #310 et publication bloquée
+
+- **Fusion.** Le propriétaire a approuvé (« apprové »). #310 a été fusionnée par commit de fusion : `9bfbba0e195432d9c41e6db377ad41e96ec8a96f` = `main`.
+- **CI de #310.** Le job `protocol` a échoué sur 2 tests : IA-004 (`materialize-boundary-file.js` absent du manifeste) et 0.6.29 (jeton de lancement Claude absent de `kodjo-v2-slice-initial-plan-review.yml`).
+  - Les deux défauts existent à l'identique sur `fd213f2d`, dans des fichiers que #310 ne modifie pas. IA-004 date de `3419d5d3` (01/10/2026).
+  - Ces checks ne sont pas requis (`mergeStateStatus=UNSTABLE`, `MERGEABLE`).
+  - Les deux défauts sont préexistants, hors périmètre et non corrigés.
+- **Contrôle avant publication** à `9bfbba0e` :
+  - plan révisé présent (blob `87b7b664…`) ; plan et revue remplacés (`ae2a7a0d…`, `a7fe0ec8…`) ;
+  - #303 ouverte à `10ac761e` ;
+  - E2E sans modèle avec `source_head` = tête de protocole = `9bfbba0e` : **27/27 PASS**, dont l'identité octet pour octet des 12 entrées produit avec `7a51179f`.
+- **Action bloquée.** La publication `[KODJO_V2] PLAN_PUBLICATION` sur l'issue #288 a été **refusée par le contrôle de permissions** (« External System Writes »). Appel refusé : `gh api --method POST repos/MyUncried/Application-Routine/issues/288/comments`. Aucun contournement n'a été tenté. La revue indépendante n'a pas été lancée.
+- **Contenu prêt à publier** (corps exact) :
+
+```
+[KODJO_V2] PLAN_PUBLICATION
+planning_mode=REVISION
+slice_id=V2-PRE-2
+bootstrap_path=.github/orchestration/v2-slices/V2-PRE-2/slice-bootstrap.json
+source_head=9bfbba0e195432d9c41e6db377ad41e96ec8a96f
+application_pr=303
+application_head=10ac761ef453f360110bf7b668b3998487b071b3
+supersedes_plan_blob_oid=ae2a7a0d30e5895b91e5782e5a85d0a5f1808e94
+prior_review_blob_oid=a7fe0ec8b655ae79e4315fba8bf6548dc684c8b2
+plan_commit=16fdc80ac0796a0195e8cc008690ee5b8162ac7a
+plan_path=.github/orchestration/v2-slices/V2-PRE-2/revision-2026-10-04/technical-plan.md
+plan_blob=87b7b6640498355ae46b17b28ed98a2237a1bf71
+plan_sha256=09598257b087a56ba0111ff97a7c2196e5b7b07f6ac05f86b7d3e0b2804a448f
+plan_size=252796
+```
+
+- **Étapes suivantes**, après autorisation de l'écriture ou publication par le propriétaire :
+  1. Relire la publication avec `recover-published-plan.js <id>`.
+  2. Lancer `kodjo-v2-slice-plan-review.yml` (`issue_number=288`, `slice_id=V2-PRE-2`, `bootstrap_path`, `source_plan_comment_id=<id>`).
+
+## Complément — publication effectuée, revue bloquée
+
+- **Publication.** Sur instruction du propriétaire, la publication préparée a été postée sur #288 : commentaire `5979342848`.
+- **Vérification** par `recover-published-plan.js 5979342848` contre l'API réelle, avec `main` = `9bfbba0e` : **PASS**.
+  - En-tête de révision reconstruit exact : `source_head=9bfbba0e…`, `application_pr=303`, `application_head=10ac761e…`, `supersedes_plan_blob_oid=ae2a7a0d…`, `prior_review_blob_oid=a7fe0ec8…`.
+  - Octets du plan identiques au plan assemblé (sha256 `09598257…`).
+- **Avant lancement** : aucune revue en cours ; seul le run fantôme `34748621746` reste en file, non touché. Runner `KODJO-LOCAL-RUNNER` en ligne et libre.
+- **Action bloquée.** Le lancement de la revue a été **refusé par le contrôle de permissions** (« External System Writes ») : `gh workflow run kodjo-v2-slice-plan-review.yml --ref main -f issue_number=288 -f slice_id=V2-PRE-2 -f bootstrap_path=.github/orchestration/v2-slices/V2-PRE-2/slice-bootstrap.json -f source_plan_comment_id=5979342848`. Aucun contournement n'a été tenté ; aucune revue n'est lancée.
+
+## Complément — revue indépendante 37198105017 : verdict obtenu, publication en échec
+
+- **Lancement.** Vérification préalable : aucun run de `kodjo-v2-slice-plan-review.yml` depuis le 29/09 ; aucun commentaire après `5979342848` (seul le routeur `37197953280` a tourné, `skipped`) ; runner libre. Revue lancée une seule fois sur instruction du propriétaire : run `37198105017`.
+- **Étapes réussies.** Barrière (publication propriétaire admise, `pinned_publication=true`), rejeux d'impact, de cohérence et d'interface à `10ac761e`, revue Claude (session `b68b25ea-a80b-4088-b77c-090dc07d247f`).
+- **Échec de « Publish independent V2 plan review ».** `gh: Invalid request.` (HTTP 400). Rien n'a été posté sur #288 ; aucun relais ni aucune régénération n'a été déclenché.
+- **Cause démontrée (`ORCHESTRATION_FAILURE`, défaut de protocole).** `kodjo-v2-slice-plan-review.yml` L248 lit le corps par `Get-Content -Raw`. Sous Windows PowerShell 5.1, `@{body=$commentBody}|ConvertTo-Json` sérialise alors `body` comme un objet (`value`, `PSPath`, `PSDrive`…), pas comme une chaîne. Reproduit localement. La taille n'est pas en cause : environ 40 000 caractères, sous la limite de 65 536. Ce chemin de publication n'avait jamais abouti auparavant.
+- **Résultat de la revue (artefact `kodjo-v2-slice-plan-review-37198105017`, non publié) : verdict `REVISE`, 7 constats bloquants.**
+  1. Zones : aucune assertion STYLE / VISUAL_COMPARE de la modale et de sa carte de création (CE-UI-09 L2772, L2804 ; frames 4478:7209, 4683:6336, 4861:6348).
+  2. Zones : défilement, clavier, actions visibles et texte agrandi non assertés (CE-UI-09 L2796, L2808), alors que la modale a deux champs en ligne sans ScrollView ni KeyboardAvoidingView.
+  3. R6 : le rafraîchissement doit couvrir aussi la Composition (registre R6) ; `CompositionScreen.tsx:83` n'a pas de jeton de rafraîchissement.
+  4. Référentiels : états d'erreur (nom vide ou invalide, échec d'écriture, saisie conservée) non assertés (CE-UI-09 L2812, L2836 ; CE-T03-16 L1665, L1673).
+  5. REQ-156EDCBC434B015A : validité du nom (non vide après trim, bornes de longueur) omise (C09 L885, L915).
+  6. REQ-156EDCBC434B015A : ordre d'affichage déterministe des référentiels omis (C09 L917, L955).
+  7. R10 : « titres de modale en en-tête » annoncé au §0 bis mais porté par aucune assertion.
+- **Arrêt.** Conformément à l'instruction (« arrête-toi à son résultat publié »), aucune correction ni republication n'a été faite. Le protocole prévoit de rejouer uniquement la publication à partir de la sortie validée, sans nouvel appel à Claude ; cela suppose de corriger L248 (`[IO.File]::ReadAllText`) et de disposer d'un chemin de republication. Décision du propriétaire attendue.
+
+## Complément — correctif de publication, republication et plan corrigé (PR #311)
+
+- **Approbation du propriétaire** (« approuvé ») : corriger le défaut, republier le verdict sans Claude, corriger le plan sur les 7 constats, puis lancer une nouvelle revue.
+- **Correctif.** `kodjo-v2-slice-plan-review.yml` lit désormais le corps par `[IO.File]::ReadAllText($commentPath,[Text.Encoding]::UTF8)`. Vérifié sous Windows PowerShell 5.1 : `body` est bien une chaîne.
+- **Republication sans Claude** (`kodjo-v2-plan-review-republish.yml`, `scripts/kodjo/republish-plan-review.js`), sur dispatch uniquement et depuis `main` :
+  - reconstruit le corps depuis l'artefact du run ;
+  - lie ce corps aux octets du plan publié, à la tête de protocole du run et à la session Claude ;
+  - refuse si une revue est déjà publiée pour ce plan ;
+  - applique la suite de l'étape d'origine : APPROVE → relais ; REVISE → arrêt `USER_VALIDATION`, jamais de régénération.
+  - Reconstruction en lecture seule sur l'artefact réel de 37198105017 : verdict REVISE, 44 881 caractères.
+- **Plan corrigé** (même chemin `revision-2026-10-04/technical-plan.md`, commit `aa50dde2`).
+  - Les 7 constats sont intégrés : 3 assertions ajoutées pour les Zones (rendu, clavier, Composition), 1 assertion partagée sur les erreurs, 3 assertions d'accessibilité étendues aux en-têtes, l'exigence des référentiels complétée (nom, ordre) et le §0 bis mis à jour.
+  - Réassemblage local sans modèle : 6 critères, 69 assertions, périmètre 95, 41 tests, `APPROVED_BASE_NEW_CYCLE`.
+  - Empreinte : sha256 `25e88521333c1a691bf2ea6795c8f80887e8629cf507ec716a2c40fa44b122cf`, 258 391 octets, blob `e3daef43e58d9e52d921f561aa3044d201b6ff93`.
+- **Tests.**
+  - `plan-review-republish.pilot.js` : 12/12.
+  - E2E d'admission du plan corrigé (`source_head` = tête de protocole = `aa50dde2`) : 27/27.
+  - Suite pilote : 910/929, avec les mêmes 15 échecs préexistants que `main`.
+  - `validate-workflows` : OK.
+- **Action bloquée.** La fusion de #311 a été refusée par le contrôle de permissions (« Merge Without Review »). Aucun contournement n'a été tenté.
+- **Suite, après fusion :**
+  1. Dispatch de `kodjo-v2-plan-review-republish.yml` (`run_id=37198105017`, `issue_number=288`, `source_plan_comment_id=5979342848`).
+  2. Publication du plan corrigé avec `source_head` = commit de fusion et `plan_commit` = commit du plan.
+  3. Une revue indépendante.

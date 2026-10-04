@@ -245,7 +245,9 @@ jobs:
                     $findingsProof=$nl+'<KODJO_PLAN_REVIEW_FINDINGS_JSON>'+$nl+(Get-Content -Raw -LiteralPath "$env:RUNNER_TEMP\kodjo-v2-plan-review-findings.json" -Encoding UTF8).Trim()+$nl+'</KODJO_PLAN_REVIEW_FINDINGS_JSON>'+$nl
           [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-v2-plan-review-comment.md",$header+$review+$impact+$contractProof+$uiContractProof+$migration+$findingsProof,(New-Object Text.UTF8Encoding($false)))
           $commentPath=Join-Path $env:RUNNER_TEMP 'kodjo-v2-plan-review-comment.md'
-          $commentBody=Get-Content -Raw -LiteralPath $commentPath -Encoding UTF8
+          # Chaîne .NET brute : sous Windows PowerShell 5.1, la lecture par cmdlet ajoute PSPath/PSDrive… et
+          # ConvertTo-Json sérialise alors body en objet (HTTP 400, run 37198105017).
+          $commentBody=[IO.File]::ReadAllText($commentPath,[Text.Encoding]::UTF8)
           $payloadPath=Join-Path $env:RUNNER_TEMP 'kodjo-v2-plan-review-publish.json'
           [IO.File]::WriteAllText($payloadPath,(@{body=$commentBody}|ConvertTo-Json -Depth 3),(New-Object Text.UTF8Encoding($false)))
           $created=gh api --method POST "repos/$env:GITHUB_REPOSITORY/issues/$env:ISSUE_NUMBER/comments" --input $payloadPath|ConvertFrom-Json

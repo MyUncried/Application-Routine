@@ -2000,12 +2000,14 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
       "change_targets": [
         "src/features/reference-data/BodyZonePickerModal.tsx",
         "src/features/sessions/BodyZoneSelector.tsx",
-        "src/features/activities/ActivityEditorForm.tsx"
+        "src/features/activities/ActivityEditorForm.tsx",
+        "src/features/sessions/CompositionScreen.tsx"
       ],
       "tests": [
         "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
         "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
-        "src/features/activities/__tests__/ActivityEditorForm.test.tsx"
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/sessions/__tests__/CompositionScreen.test.tsx"
       ],
       "proof_required": [
         "ACCESSIBILITY_CHECK",
@@ -2014,13 +2016,13 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
       ],
       "assertions": [
         {
-          "assertion_id": "UI-3D89E598F31D-A2A6B33C0F19A",
+          "assertion_id": "UI-3D89E598F31D-AED410D36D72B",
           "source": {
             "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
             "locator": "CE-UI-09 L2784, L2816, L2840"
           },
           "property_type": "STATE",
-          "expected": "Après Confirmer, la liste des Zones de l’Exercice affiche immédiatement une Zone créée, renommée ou supprimée dans la modale, sans fermer ni rouvrir l’Exercice.",
+          "expected": "Après Confirmer, la liste des Zones de l’Exercice et les noms de Zones affichés sur les occurrences de la Composition sont immédiatement à jour pour une Zone créée, renommée ou supprimée dans la modale, sans fermer ni rouvrir l’Exercice ni remonter la Composition.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -2034,19 +2036,6 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           "property_type": "PRESENCE",
           "expected": "Aucune palette ni couleur n’est proposée ou stockée pour une Zone.",
           "proof_required": [
-            "FUNCTIONAL_TEST"
-          ]
-        },
-        {
-          "assertion_id": "UI-3D89E598F31D-A5664BFCD86C6",
-          "source": {
-            "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
-            "locator": "CE-UI-09 L2808, L2840"
-          },
-          "property_type": "CONTENT",
-          "expected": "Chaque Zone annonce son nom et son état sélectionné ; toutes les Zones sélectionnées restent lisibles, sans troncature ni masquage de la sélection multiple ; Annuler, Modifier, Supprimer et Confirmer ont des libellés accessibles ; le focus reste confiné à la modale ouverte, passe au dialogue puis revient à la liste.",
-          "proof_required": [
-            "ACCESSIBILITY_CHECK",
             "FUNCTIONAL_TEST"
           ]
         },
@@ -2076,6 +2065,32 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           ]
         },
         {
+          "assertion_id": "UI-3D89E598F31D-A39FF697ED918",
+          "source": {
+            "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+            "locator": "CE-UI-09 L2796, L2808"
+          },
+          "property_type": "RESPONSIVE",
+          "expected": "En création comme en renommage d’une Zone, la liste défile, le champ saisi et les actions Annuler, Ajouter, Enregistrer et Confirmer restent entièrement visibles et utilisables, clavier affiché ou masqué ; un nom long reste accessible sans troncature et le texte agrandi ne réduit pas la police.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        },
+        {
+          "assertion_id": "UI-3D89E598F31D-AEE8F212827AE",
+          "source": {
+            "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+            "locator": "CE-UI-09 L2808, L2840"
+          },
+          "property_type": "CONTENT",
+          "expected": "Le titre de la modale est exposé comme en-tête accessible ; chaque Zone annonce son nom et son état sélectionné ; toutes les Zones sélectionnées restent lisibles, sans troncature ni masquage de la sélection multiple ; Annuler, Modifier, Supprimer et Confirmer ont des libellés accessibles ; le focus reste confiné à la modale ouverte, passe au dialogue puis revient à la liste.",
+          "proof_required": [
+            "ACCESSIBILITY_CHECK",
+            "FUNCTIONAL_TEST"
+          ]
+        },
+        {
           "assertion_id": "UI-3D89E598F31D-A6E804F8CBE09",
           "source": {
             "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
@@ -2085,6 +2100,18 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           "expected": "Les dix Zones initiales fournies par KODJO sont renommables et supprimables comme les Zones créées.",
           "proof_required": [
             "FUNCTIONAL_TEST"
+          ]
+        },
+        {
+          "assertion_id": "UI-3D89E598F31D-A4255F88073DB",
+          "source": {
+            "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+            "locator": "CE-UI-09 L2772, L2804 ; D-228"
+          },
+          "property_type": "STYLE",
+          "expected": "Modale de sélection des Zones et sa carte de création au rendu des frames 4478:7209 et 4683:6336 (modale D-228) ; dialogue destructif d’une Zone au rendu de la frame 4861:6348.",
+          "proof_required": [
+            "VISUAL_COMPARE"
           ]
         },
         {
@@ -2160,19 +2187,6 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
       ],
       "assertions": [
         {
-          "assertion_id": "UI-5F3D94866D30-A59E05345510F",
-          "source": {
-            "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
-            "locator": "CE-UI-09 L2808, L2840"
-          },
-          "property_type": "CONTENT",
-          "expected": "Chaque Catégorie annonce son nom et son état sélectionné ; sa couleur est toujours accompagnée du nom ; Annuler, Modifier et Supprimer ont des libellés accessibles ; le focus reste confiné à la modale ouverte, passe au dialogue puis revient à la liste.",
-          "proof_required": [
-            "ACCESSIBILITY_CHECK",
-            "FUNCTIONAL_TEST"
-          ]
-        },
-        {
           "assertion_id": "UI-5F3D94866D30-ACA559B78D94F",
           "source": {
             "path": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
@@ -2234,6 +2248,19 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           ]
         },
         {
+          "assertion_id": "UI-5F3D94866D30-A2B92152E7B5A",
+          "source": {
+            "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+            "locator": "CE-UI-09 L2808, L2840"
+          },
+          "property_type": "CONTENT",
+          "expected": "Le titre de la modale est exposé comme en-tête accessible ; chaque Catégorie annonce son nom et son état sélectionné ; sa couleur est toujours accompagnée du nom ; Annuler, Modifier et Supprimer ont des libellés accessibles ; le focus reste confiné à la modale ouverte, passe au dialogue puis revient à la liste.",
+          "proof_required": [
+            "ACCESSIBILITY_CHECK",
+            "FUNCTIONAL_TEST"
+          ]
+        },
+        {
           "assertion_id": "UI-5F3D94866D30-A511139B9E9D8",
           "source": {
             "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
@@ -2289,6 +2316,18 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           },
           "property_type": "CONTENT",
           "expected": "Pour Catégorie, Zone et Étiquette, la confirmation de suppression a pour titre exact « Supprimer « {nom} » ? » avec le nom courant de la valeur.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        },
+        {
+          "assertion_id": "UI-5F3D94866D30-AFAD4FDE13E6D",
+          "source": {
+            "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+            "locator": "CE-UI-09 L2812, L2836 ; CE-T03-16 L1665, L1673"
+          },
+          "property_type": "STATE",
+          "expected": "Pour Catégorie, Zone et Étiquette, un nom vide ou invalide affiche une erreur liée au champ en conservant la saisie et la modale ; un échec d’écriture d’une opération de référentiel affiche un message, laisse la modale ouverte, ne modifie pas partiellement le référentiel et conserve le brouillon de l’Exercice ou de la Séance.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -2394,19 +2433,6 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           ]
         },
         {
-          "assertion_id": "UI-60B2C84BF572-AB7EEC76F2ECE",
-          "source": {
-            "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
-            "locator": "CE-T03-16 L1677"
-          },
-          "property_type": "CONTENT",
-          "expected": "Chaque Étiquette annonce son nom, son état sélectionné et l’action proposée (choisir ou retirer) ; la couleur n’est jamais le seul identifiant, le nom étant toujours présent ; le focus est captif dans le dialogue de confirmation puis revient à l’Étiquette ou à la liste ; le bouton destructif est nommé Supprimer.",
-          "proof_required": [
-            "ACCESSIBILITY_CHECK",
-            "FUNCTIONAL_TEST"
-          ]
-        },
-        {
           "assertion_id": "UI-60B2C84BF572-A2CD59253F74A",
           "source": {
             "path": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
@@ -2452,6 +2478,19 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           "property_type": "STATE",
           "expected": "L’affectation est enregistrée seulement à Continuer ; les opérations du référentiel n’enregistrent pas la Séance ; la couleur de la Séance suit l’Étiquette.",
           "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        },
+        {
+          "assertion_id": "UI-60B2C84BF572-A7552EF457EC4",
+          "source": {
+            "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+            "locator": "CE-T03-16 L1677"
+          },
+          "property_type": "CONTENT",
+          "expected": "Le titre de la modale est exposé comme en-tête accessible ; chaque Étiquette annonce son nom, son état sélectionné et l’action proposée (choisir ou retirer) ; la couleur n’est jamais le seul identifiant, le nom étant toujours présent ; le focus est captif dans le dialogue de confirmation puis revient à l’Étiquette ou à la liste ; le bouton destructif est nommé Supprimer.",
+          "proof_required": [
+            "ACCESSIBILITY_CHECK",
             "FUNCTIONAL_TEST"
           ]
         },
@@ -3406,7 +3445,7 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
     "source": {
       "path": "docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md",
       "locator": "L885–976 ; L1222–1226",
-      "requirement": "Référentiels Étiquette, Catégorie, Zone : lister, créer avec réactivation d’une entrée retirée de même clé normalisée, renommer sans changer l’identifiant, changer la couleur (Étiquette, Catégorie), retirer logiquement ; refuser un doublon actif ; refuser une nouvelle affectation à une valeur retirée tout en conservant les affectations existantes ; opérations atomiques."
+      "requirement": "Référentiels Étiquette, Catégorie, Zone : lister, créer avec réactivation d’une entrée retirée de même clé normalisée, renommer sans changer l’identifiant, changer la couleur (Étiquette, Catégorie), retirer logiquement ; refuser un doublon actif ; nom non vide après trim et unique selon la normalisation canonique (L885, L915), borné à 40 caractères pour Étiquette et Catégorie et à 1..80 pour une Zone, refusé à la création comme au renommage ; ordre d’affichage déterministe (L917, L955) : Catégories par display_order des prédéfinies puis date de création croissante, Zones dans l’ordre de la liste initiale (L968–977) puis date de création croissante, Étiquettes par date de création croissante, à égalité par ordre d’insertion ; refuser une nouvelle affectation à une valeur retirée tout en conservant les affectations existantes ; opérations atomiques."
     },
     "requirement_type": "FUNCTIONAL",
     "change_targets": [
@@ -3574,7 +3613,7 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
 {
   "schema": "kodjo.requirement-contract.v1",
   "requirement_count": 14,
-  "requirement_ids_sha256": "10b0cfe437d0b1f929062099dd56d59574439c76ea53cc803ea40ab807b0ed42",
+  "requirement_ids_sha256": "a3b6f52a1199d212df52c10d7317cc4b978062e40e25f7ccb1e3154480f297ec",
   "requirements": [
     {
       "requirement_id": "REQ-0FBEF4DDBFAD3BC6",
@@ -3619,15 +3658,6 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           ]
         },
         {
-          "assertion_id": "UI-60B2C84BF572-AB7EEC76F2ECE",
-          "property_type": "CONTENT",
-          "expected": "Chaque Étiquette annonce son nom, son état sélectionné et l’action proposée (choisir ou retirer) ; la couleur n’est jamais le seul identifiant, le nom étant toujours présent ; le focus est captif dans le dialogue de confirmation puis revient à l’Étiquette ou à la liste ; le bouton destructif est nommé Supprimer.",
-          "proof_required": [
-            "ACCESSIBILITY_CHECK",
-            "FUNCTIONAL_TEST"
-          ]
-        },
-        {
           "assertion_id": "UI-60B2C84BF572-A2CD59253F74A",
           "property_type": "STATE",
           "expected": "Créer un nom nouveau ajoute une Étiquette avec la couleur choisie ; un nom actif est refusé ; un nom retiré la réactive avec son identifiant, ses Séances associées et la couleur choisie ; Modifier renomme et recolore sans changer l’identifiant.",
@@ -3661,6 +3691,15 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           ]
         },
         {
+          "assertion_id": "UI-60B2C84BF572-A7552EF457EC4",
+          "property_type": "CONTENT",
+          "expected": "Le titre de la modale est exposé comme en-tête accessible ; chaque Étiquette annonce son nom, son état sélectionné et l’action proposée (choisir ou retirer) ; la couleur n’est jamais le seul identifiant, le nom étant toujours présent ; le focus est captif dans le dialogue de confirmation puis revient à l’Étiquette ou à la liste ; le bouton destructif est nommé Supprimer.",
+          "proof_required": [
+            "ACCESSIBILITY_CHECK",
+            "FUNCTIONAL_TEST"
+          ]
+        },
+        {
           "assertion_id": "UI-60B2C84BF572-AE0DDBADC6EBD",
           "property_type": "STYLE",
           "expected": "Modale d’Étiquettes et palette au rendu des frames 2028:11204, 4581:6404 et 4640:6308.",
@@ -3685,47 +3724,6 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           ]
         }
       ]
-    },
-    {
-      "requirement_id": "REQ-156EDCBC434B015A",
-      "domain": "NON_UI",
-      "requirement_type": "FUNCTIONAL",
-      "source": {
-        "path": "docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md",
-        "locator": "L885–976 ; L1222–1226",
-        "requirement": "Référentiels Étiquette, Catégorie, Zone : lister, créer avec réactivation d’une entrée retirée de même clé normalisée, renommer sans changer l’identifiant, changer la couleur (Étiquette, Catégorie), retirer logiquement ; refuser un doublon actif ; refuser une nouvelle affectation à une valeur retirée tout en conservant les affectations existantes ; opérations atomiques."
-      },
-      "change_targets": [
-        "src/domain/body-zones/BodyZone.ts",
-        "src/domain/body-zones/BodyZoneRepository.ts",
-        "src/domain/body-zones/index.ts",
-        "src/domain/categories/CategoryRepository.ts",
-        "src/domain/categories/errors.ts",
-        "src/domain/categories/index.ts",
-        "src/domain/labels/Label.ts",
-        "src/domain/labels/LabelRepository.ts",
-        "src/domain/labels/index.ts",
-        "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
-        "src/infrastructure/database/repositories/SqliteBodyZoneRepository.ts",
-        "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
-        "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
-        "src/infrastructure/database/repositories/SqliteSessionRepository.ts"
-      ],
-      "tests": [
-        "src/domain/body-zones/__tests__/BodyZone.test.ts",
-        "src/domain/categories/__tests__/validation.test.ts",
-        "src/domain/labels/__tests__/Label.test.ts",
-        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-        "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
-        "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
-        "src/infrastructure/database/__tests__/SqliteLabelRepository.test.ts",
-        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
-      ],
-      "proof_required": [
-        "FUNCTIONAL_TEST"
-      ],
-      "status": "DEFINED",
-      "no_automated_test_reason": "NONE"
     },
     {
       "requirement_id": "REQ-249CDF62C9905704",
@@ -3859,12 +3857,14 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
       "change_targets": [
         "src/features/activities/ActivityEditorForm.tsx",
         "src/features/reference-data/BodyZonePickerModal.tsx",
-        "src/features/sessions/BodyZoneSelector.tsx"
+        "src/features/sessions/BodyZoneSelector.tsx",
+        "src/features/sessions/CompositionScreen.tsx"
       ],
       "tests": [
         "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
         "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
-        "src/features/sessions/__tests__/BodyZoneSelector.test.tsx"
+        "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
+        "src/features/sessions/__tests__/CompositionScreen.test.tsx"
       ],
       "proof_required": [
         "ACCESSIBILITY_CHECK",
@@ -3882,9 +3882,9 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
       },
       "assertions": [
         {
-          "assertion_id": "UI-3D89E598F31D-A2A6B33C0F19A",
+          "assertion_id": "UI-3D89E598F31D-AED410D36D72B",
           "property_type": "STATE",
-          "expected": "Après Confirmer, la liste des Zones de l’Exercice affiche immédiatement une Zone créée, renommée ou supprimée dans la modale, sans fermer ni rouvrir l’Exercice.",
+          "expected": "Après Confirmer, la liste des Zones de l’Exercice et les noms de Zones affichés sur les occurrences de la Composition sont immédiatement à jour pour une Zone créée, renommée ou supprimée dans la modale, sans fermer ni rouvrir l’Exercice ni remonter la Composition.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -3894,15 +3894,6 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           "property_type": "PRESENCE",
           "expected": "Aucune palette ni couleur n’est proposée ou stockée pour une Zone.",
           "proof_required": [
-            "FUNCTIONAL_TEST"
-          ]
-        },
-        {
-          "assertion_id": "UI-3D89E598F31D-A5664BFCD86C6",
-          "property_type": "CONTENT",
-          "expected": "Chaque Zone annonce son nom et son état sélectionné ; toutes les Zones sélectionnées restent lisibles, sans troncature ni masquage de la sélection multiple ; Annuler, Modifier, Supprimer et Confirmer ont des libellés accessibles ; le focus reste confiné à la modale ouverte, passe au dialogue puis revient à la liste.",
-          "proof_required": [
-            "ACCESSIBILITY_CHECK",
             "FUNCTIONAL_TEST"
           ]
         },
@@ -3924,11 +3915,37 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           ]
         },
         {
+          "assertion_id": "UI-3D89E598F31D-A39FF697ED918",
+          "property_type": "RESPONSIVE",
+          "expected": "En création comme en renommage d’une Zone, la liste défile, le champ saisi et les actions Annuler, Ajouter, Enregistrer et Confirmer restent entièrement visibles et utilisables, clavier affiché ou masqué ; un nom long reste accessible sans troncature et le texte agrandi ne réduit pas la police.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        },
+        {
+          "assertion_id": "UI-3D89E598F31D-AEE8F212827AE",
+          "property_type": "CONTENT",
+          "expected": "Le titre de la modale est exposé comme en-tête accessible ; chaque Zone annonce son nom et son état sélectionné ; toutes les Zones sélectionnées restent lisibles, sans troncature ni masquage de la sélection multiple ; Annuler, Modifier, Supprimer et Confirmer ont des libellés accessibles ; le focus reste confiné à la modale ouverte, passe au dialogue puis revient à la liste.",
+          "proof_required": [
+            "ACCESSIBILITY_CHECK",
+            "FUNCTIONAL_TEST"
+          ]
+        },
+        {
           "assertion_id": "UI-3D89E598F31D-A6E804F8CBE09",
           "property_type": "STATE",
           "expected": "Les dix Zones initiales fournies par KODJO sont renommables et supprimables comme les Zones créées.",
           "proof_required": [
             "FUNCTIONAL_TEST"
+          ]
+        },
+        {
+          "assertion_id": "UI-3D89E598F31D-A4255F88073DB",
+          "property_type": "STYLE",
+          "expected": "Modale de sélection des Zones et sa carte de création au rendu des frames 4478:7209 et 4683:6336 (modale D-228) ; dialogue destructif d’une Zone au rendu de la frame 4861:6348.",
+          "proof_required": [
+            "VISUAL_COMPARE"
           ]
         },
         {
@@ -4253,15 +4270,6 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
       },
       "assertions": [
         {
-          "assertion_id": "UI-5F3D94866D30-A59E05345510F",
-          "property_type": "CONTENT",
-          "expected": "Chaque Catégorie annonce son nom et son état sélectionné ; sa couleur est toujours accompagnée du nom ; Annuler, Modifier et Supprimer ont des libellés accessibles ; le focus reste confiné à la modale ouverte, passe au dialogue puis revient à la liste.",
-          "proof_required": [
-            "ACCESSIBILITY_CHECK",
-            "FUNCTIONAL_TEST"
-          ]
-        },
-        {
           "assertion_id": "UI-5F3D94866D30-ACA559B78D94F",
           "property_type": "STATE",
           "expected": "Créer un nom nouveau ajoute une Catégorie active avec la couleur choisie ; un nom d’une Catégorie active est refusé comme doublon ; un nom d’une Catégorie retirée la réactive avec le même identifiant, ses associations et la couleur choisie.",
@@ -4303,6 +4311,15 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           ]
         },
         {
+          "assertion_id": "UI-5F3D94866D30-A2B92152E7B5A",
+          "property_type": "CONTENT",
+          "expected": "Le titre de la modale est exposé comme en-tête accessible ; chaque Catégorie annonce son nom et son état sélectionné ; sa couleur est toujours accompagnée du nom ; Annuler, Modifier et Supprimer ont des libellés accessibles ; le focus reste confiné à la modale ouverte, passe au dialogue puis revient à la liste.",
+          "proof_required": [
+            "ACCESSIBILITY_CHECK",
+            "FUNCTIONAL_TEST"
+          ]
+        },
+        {
           "assertion_id": "UI-5F3D94866D30-A511139B9E9D8",
           "property_type": "STATE",
           "expected": "Les dix Catégories prédéfinies fournies par KODJO sont renommables, recolorables et supprimables comme les Catégories créées ; aucune opération n’est conditionnée par isPredefined.",
@@ -4338,6 +4355,14 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           "assertion_id": "UI-5F3D94866D30-A7819D6C3521A",
           "property_type": "CONTENT",
           "expected": "Pour Catégorie, Zone et Étiquette, la confirmation de suppression a pour titre exact « Supprimer « {nom} » ? » avec le nom courant de la valeur.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        },
+        {
+          "assertion_id": "UI-5F3D94866D30-AFAD4FDE13E6D",
+          "property_type": "STATE",
+          "expected": "Pour Catégorie, Zone et Étiquette, un nom vide ou invalide affiche une erreur liée au champ en conservant la saisie et la modale ; un échec d’écriture d’une opération de référentiel affiche un message, laisse la modale ouverte, ne modifie pas partiellement le référentiel et conserve le brouillon de l’Exercice ou de la Séance.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -4396,6 +4421,47 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
         "src/domain/sessions/__tests__/composition.test.ts",
         "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
         "src/features/sessions/__tests__/SessionService.test.ts"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "DEFINED",
+      "no_automated_test_reason": "NONE"
+    },
+    {
+      "requirement_id": "REQ-C1FE11C0FD998789",
+      "domain": "NON_UI",
+      "requirement_type": "FUNCTIONAL",
+      "source": {
+        "path": "docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md",
+        "locator": "L885–976 ; L1222–1226",
+        "requirement": "Référentiels Étiquette, Catégorie, Zone : lister, créer avec réactivation d’une entrée retirée de même clé normalisée, renommer sans changer l’identifiant, changer la couleur (Étiquette, Catégorie), retirer logiquement ; refuser un doublon actif ; nom non vide après trim et unique selon la normalisation canonique (L885, L915), borné à 40 caractères pour Étiquette et Catégorie et à 1..80 pour une Zone, refusé à la création comme au renommage ; ordre d’affichage déterministe (L917, L955) : Catégories par display_order des prédéfinies puis date de création croissante, Zones dans l’ordre de la liste initiale (L968–977) puis date de création croissante, Étiquettes par date de création croissante, à égalité par ordre d’insertion ; refuser une nouvelle affectation à une valeur retirée tout en conservant les affectations existantes ; opérations atomiques."
+      },
+      "change_targets": [
+        "src/domain/body-zones/BodyZone.ts",
+        "src/domain/body-zones/BodyZoneRepository.ts",
+        "src/domain/body-zones/index.ts",
+        "src/domain/categories/CategoryRepository.ts",
+        "src/domain/categories/errors.ts",
+        "src/domain/categories/index.ts",
+        "src/domain/labels/Label.ts",
+        "src/domain/labels/LabelRepository.ts",
+        "src/domain/labels/index.ts",
+        "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+        "src/infrastructure/database/repositories/SqliteBodyZoneRepository.ts",
+        "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+        "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
+        "src/infrastructure/database/repositories/SqliteSessionRepository.ts"
+      ],
+      "tests": [
+        "src/domain/body-zones/__tests__/BodyZone.test.ts",
+        "src/domain/categories/__tests__/validation.test.ts",
+        "src/domain/labels/__tests__/Label.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteLabelRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
       ],
       "proof_required": [
         "FUNCTIONAL_TEST"
@@ -4577,7 +4643,7 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
 <KODJO_TEST_CONTRACT_JSON>
 {
   "schema": "kodjo.test-contract.v1",
-  "binding_count": 54,
+  "binding_count": 55,
   "bindings": [
     {
       "requirement_id": "REQ-0FBEF4DDBFAD3BC6",
@@ -4592,46 +4658,6 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
     {
       "requirement_id": "REQ-0FBEF4DDBFAD3BC6",
       "test_path": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
-      "proof_type": "FUNCTIONAL_TEST"
-    },
-    {
-      "requirement_id": "REQ-156EDCBC434B015A",
-      "test_path": "src/domain/body-zones/__tests__/BodyZone.test.ts",
-      "proof_type": "FUNCTIONAL_TEST"
-    },
-    {
-      "requirement_id": "REQ-156EDCBC434B015A",
-      "test_path": "src/domain/categories/__tests__/validation.test.ts",
-      "proof_type": "FUNCTIONAL_TEST"
-    },
-    {
-      "requirement_id": "REQ-156EDCBC434B015A",
-      "test_path": "src/domain/labels/__tests__/Label.test.ts",
-      "proof_type": "FUNCTIONAL_TEST"
-    },
-    {
-      "requirement_id": "REQ-156EDCBC434B015A",
-      "test_path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-      "proof_type": "FUNCTIONAL_TEST"
-    },
-    {
-      "requirement_id": "REQ-156EDCBC434B015A",
-      "test_path": "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
-      "proof_type": "FUNCTIONAL_TEST"
-    },
-    {
-      "requirement_id": "REQ-156EDCBC434B015A",
-      "test_path": "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
-      "proof_type": "FUNCTIONAL_TEST"
-    },
-    {
-      "requirement_id": "REQ-156EDCBC434B015A",
-      "test_path": "src/infrastructure/database/__tests__/SqliteLabelRepository.test.ts",
-      "proof_type": "FUNCTIONAL_TEST"
-    },
-    {
-      "requirement_id": "REQ-156EDCBC434B015A",
-      "test_path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
       "proof_type": "FUNCTIONAL_TEST"
     },
     {
@@ -4712,6 +4738,11 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
     {
       "requirement_id": "REQ-443922E10308B36B",
       "test_path": "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-443922E10308B36B",
+      "test_path": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
       "proof_type": "FUNCTIONAL_TEST"
     },
     {
@@ -4812,6 +4843,46 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
     {
       "requirement_id": "REQ-B04373AE337E7685",
       "test_path": "src/features/sessions/__tests__/SessionService.test.ts",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-C1FE11C0FD998789",
+      "test_path": "src/domain/body-zones/__tests__/BodyZone.test.ts",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-C1FE11C0FD998789",
+      "test_path": "src/domain/categories/__tests__/validation.test.ts",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-C1FE11C0FD998789",
+      "test_path": "src/domain/labels/__tests__/Label.test.ts",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-C1FE11C0FD998789",
+      "test_path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-C1FE11C0FD998789",
+      "test_path": "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-C1FE11C0FD998789",
+      "test_path": "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-C1FE11C0FD998789",
+      "test_path": "src/infrastructure/database/__tests__/SqliteLabelRepository.test.ts",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-C1FE11C0FD998789",
+      "test_path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
       "proof_type": "FUNCTIONAL_TEST"
     },
     {
@@ -5278,7 +5349,7 @@ src/shared/ui/__tests__/ProfileStepper.test.tsx
 {
   "schema": "kodjo.ui-plan-contract.v1",
   "contract_version": 2,
-  "protocol_commit": "fd213f2db5fd3dc69ee0484bbe88c490640c22f0",
+  "protocol_commit": "9bfbba0e195432d9c41e6db377ad41e96ec8a96f",
   "scan_revision": "10ac761ef453f360110bf7b668b3998487b071b3",
   "ui_applicable": true,
   "ui_paths": [
@@ -5313,9 +5384,9 @@ src/shared/ui/__tests__/ProfileStepper.test.tsx
     "src/shared/ui/ProfileStepper.tsx"
   ],
   "criterion_count": 6,
-  "assertion_count": 66,
-  "assertion_ids_sha256": "d202469729090d6f711cd93b66705e3e19dc058841eed622309a8ff94f615ef3",
-  "matrix_sha256": "9019391dcdc4b5907a153d94227462d85b9cc790f2e59591df6f58e31cb082a7"
+  "assertion_count": 69,
+  "assertion_ids_sha256": "e9b485d76d4ea609c056699eaca1fd5fe39e6a247b56228e220e0166ff6b0c9c",
+  "matrix_sha256": "3e79ba738c2cf2fb4c6a85b9240186e893d5a7dc0588b56c43958026eb86e693"
 }
 </KODJO_UI_PLAN_CONTRACT_JSON>
 
@@ -5323,7 +5394,7 @@ src/shared/ui/__tests__/ProfileStepper.test.tsx
 {
   "schema": "kodjo.plan-contract-consistency.v2",
   "contract_version": 2,
-  "protocol_commit": "fd213f2db5fd3dc69ee0484bbe88c490640c22f0",
+  "protocol_commit": "9bfbba0e195432d9c41e6db377ad41e96ec8a96f",
   "scan_revision": "10ac761ef453f360110bf7b668b3998487b071b3",
   "write_scope": [
     "app/(tabs)/profile.tsx",
@@ -5465,8 +5536,8 @@ src/shared/ui/__tests__/ProfileStepper.test.tsx
     "src/shared/ui/__tests__/BodyZoneIcon.test.tsx",
     "src/shared/ui/__tests__/ProfileStepper.test.tsx"
   ],
-  "requirement_contract_sha256": "153700d14bcfb1d1bc8995e27eef911714da3bcd78a333e22c05f39b6076370d",
-  "test_contract_sha256": "025f0e01dcb75c3dcfddc5cb72b3b9aadf3a1ebefa47668a45478209ec2e1401",
+  "requirement_contract_sha256": "c5ed48afaf9575c6eb7322a36a656a70c24b6d99a4446df0069e16b57d229fed",
+  "test_contract_sha256": "fa944c3699cca0906b0bdb7a58e5250b850af05de010d7bc6131131fbfcd6b1e",
   "boundary_contract_sha256": "26fed58813921fa4cf2225fa61cc2b68eec90a9bdc2d3a5b9d9a05d1b1b4c64c",
   "requirement_count": 14
 }

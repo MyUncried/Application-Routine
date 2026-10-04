@@ -138,6 +138,7 @@ Ces composants sont livrés au même HEAD que ce manifeste. Leur présence ne va
 | `scripts/kodjo/lib/ui-identities.js` | Entrée normative ou runtime consommé par les workflows candidats |
 | `scripts/kodjo/materialize-approved-plan-handoff.js` | Entrée normative ou runtime consommé par les workflows candidats |
 | `scripts/kodjo/recover-published-plan.js` | Entrée normative ou runtime consommé par les workflows candidats |
+| `scripts/kodjo/republish-plan-review.js` | Entrée normative ou runtime consommé par les workflows candidats |
 | `scripts/kodjo/verify-plan-closure-review.js` | Entrée normative ou runtime consommé par les workflows candidats |
 | `scripts/kodjo/normalize-review-findings.js` | Entrée normative ou runtime consommé par les workflows candidats |
 | `scripts/kodjo/openai-plan-request.js` | Entrée normative ou runtime consommé par les workflows candidats |

@@ -1,0 +1,76 @@
+name: KODJO V2 — Plan Review Republication
+
+# Republie, sans nouvel appel à Claude, la revue d'un plan publié par le propriétaire lorsque seule l'étape
+# « Publish independent V2 plan review » de kodjo-v2-slice-plan-review.yml a échoué. Le corps est reconstruit depuis
+# l'artefact du run (scripts/kodjo/republish-plan-review.js) ; la suite est celle de l'étape d'origine.
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        required: true
+        type: string
+      issue_number:
+        required: true
+        type: string
+      source_plan_comment_id:
+        required: true
+        type: string
+
+permissions:
+  actions: write
+  contents: read
+  issues: write
+
+concurrency:
+  group: kodjo-v2-plan-review-republish-${{ inputs.issue_number }}
+  cancel-in-progress: false
+
+jobs:
+  republish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RUN_ID: ${{ inputs.run_id }}
+      ISSUE_NUMBER: ${{ inputs.issue_number }}
+      PLAN_ID: ${{ inputs.source_plan_comment_id }}
+    steps:
+      - name: Checkout exact main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Rebuild review publication from preserved evidence
+        id: build
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RUN_ID" =~ ^[1-9][0-9]*$ && "$ISSUE_NUMBER" =~ ^[1-9][0-9]*$ && "$PLAN_ID" =~ ^[1-9][0-9]*$ ]]
+          evidence="$RUNNER_TEMP/review-evidence"
+          gh run download "$RUN_ID" --repo "$GITHUB_REPOSITORY" --name "kodjo-v2-slice-plan-review-$RUN_ID" --dir "$evidence"
+          node scripts/kodjo/republish-plan-review.js "$RUN_ID" "$ISSUE_NUMBER" "$PLAN_ID" "$evidence" "$RUNNER_TEMP/review-payload.json" > "$RUNNER_TEMP/review-meta.txt"
+          cat "$RUNNER_TEMP/review-meta.txt" >> "$GITHUB_OUTPUT"
+
+      - name: Publish rebuilt review and apply its verdict
+        shell: bash
+        env:
+          VERDICT: ${{ steps.build.outputs.verdict }}
+          SLICE_ID: ${{ steps.build.outputs.slice_id }}
+        run: |
+          set -euo pipefail
+          created=$(gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --input "$RUNNER_TEMP/review-payload.json" --jq .id)
+          [[ "$created" =~ ^[1-9][0-9]*$ ]] || { echo 'Plan review republication failed' >&2; exit 1; }
+          gh api "repos/$GITHUB_REPOSITORY/issues/comments/$created" --jq .body > "$RUNNER_TEMP/published.md"
+          node -e 'const fs=require("fs");const want=JSON.parse(fs.readFileSync(process.argv[1],"utf8")).body;const got=fs.readFileSync(process.argv[2],"utf8");const n=(s)=>s.replace(/\r\n/g,"\n").replace(/\n+$/,"");if(n(got)!==n(want))process.exit(1)' "$RUNNER_TEMP/review-payload.json" "$RUNNER_TEMP/published.md" || { echo 'Published review differs from rebuilt review' >&2; exit 1; }
+          echo "review_comment_id=$created verdict=$VERDICT"
+          if [ "$VERDICT" = APPROVE ]; then
+            gh workflow run kodjo-v2-plan-handoff-materialize.yml --ref main -f "issue_number=$ISSUE_NUMBER" -f "review_comment_id=$created"
+          else
+            # Plan publié par le propriétaire : jamais régénéré automatiquement par le modèle après REVISE.
+            printf '[KODJO_V2] PLAN_RETRY_USER_VALIDATION\nslice_id=%s\nreview_comment_id=%s\nreason=PINNED_PUBLICATION\nSTATUT : USER_VALIDATION' "$SLICE_ID" "$created" |
+              jq -Rs '{body: .}' > "$RUNNER_TEMP/stop.json"
+            gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$ISSUE_NUMBER/comments" --input "$RUNNER_TEMP/stop.json" --jq .id
+          fi
