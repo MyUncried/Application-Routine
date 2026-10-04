@@ -1,0 +1,68 @@
+{
+  "schema": "kodjo.plan-review-findings.v1",
+  "finding_count": 5,
+  "verdict": "REVISE",
+  "affected_targets": [
+    "REQ-F907047106F88386",
+    "UI-5F3D94866D30",
+    "UI-60B2C84BF572",
+    "UI-96E7FD739BF0"
+  ],
+  "findings": [
+    {
+      "finding_id": "RF-3A570B15C8CE4D28",
+      "category": "REQUIREMENT_GAP",
+      "target_kind": "REQUIREMENT_ID",
+      "target": "REQ-F907047106F88386",
+      "blocking": true,
+      "diagnostic": "Le locator de REQ-F907047106F88386 est « Profil L1076–1101 » alors que la table « Profil / Règles fonctionnelles » du chapitre 08 s’étend jusqu’à L1103 : la plage tronque L1102 (« Profil | Les informations personnelles n’ont aucune incidence sur les séances existantes ») et L1103 (« Retour | Quitter l’écran ne demande aucune confirmation, les modifications étant enregistrées automatiquement »). L1102 est couverte ailleurs (A7EFE96EAC23A, A08668FEC0C22), mais L1103 ne l’est nulle part : recherche exhaustive sur la matrice et le contrat d’exigences, la seule mention d’une sortie sans dialogue est A3E197595DF4F, qui porte sur Modifier le profil et non sur l’écran Profil. Aucune assertion n’exige que quitter l’écran Profil ne déclenche aucune confirmation. L’omission est aggravée par le fait que la tranche introduit simultanément le patron de garde de sortie (T23, useCompositionExitGuard + DecisionDialog) sur l’écran frère : rien n’interdit de l’appliquer par erreur au Profil, dont la persistance est immédiate (CE-UI-07 §15 L2556, « pas de bouton Enregistrer global »). Par ailleurs la règle L1098 « Langue du MVP », pourtant incluse dans la plage citée L1076–1101, est absente du texte de l’exigence, qui ne retient que le nom d’affichage, la Vibration/haptique et l’enregistrement immédiat.",
+      "expected_correction": "Étendre le locator de REQ-F907047106F88386 à « Profil L1076–1103 » et compléter son texte d’exigence par les deux clauses omises : (1) quitter l’écran Profil ne demande aucune confirmation, la persistance étant immédiate et atomique par modification — avec une assertion correspondante sur le critère UI-82B1544AE5AE prouvée par src/features/preferences/__tests__/ProfileScreen.test.tsx ; (2) tous les textes utilisateur et libellés d’accessibilité des composants livrés passent par les clés de traduction centralisées (L1098), prouvé par src/shared/i18n/index.test.ts. Les deux chemins concernés (src/features/preferences/ProfileScreen.tsx, src/shared/i18n/resources/fr.ts) et leurs tests figurent déjà dans write_scope et required_test_writes.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "finding_id": "RF-468EBFAFAA9DF336",
+      "category": "UI_CRITERION",
+      "target_kind": "CRITERION_ID",
+      "target": "UI-5F3D94866D30",
+      "blocking": true,
+      "diagnostic": "CE-UI-09 §10 (L2808) régit indifféremment la modale Catégorie et la modale Zones : « Liste scrollable, clavier et actions visibles ; nom long accessible ; textes agrandis sans réduction de police ; focus confiné à la modale ouverte ». Le critère Zones UI-3D89E598F31D en tire une assertion RESPONSIVE complète (A39FF697ED918 : la liste défile, nom long sans troncature, texte agrandi sans réduction de police). Le critère Catégorie UI-5F3D94866D30 n’a aucune assertion RESPONSIVE : sa seule assertion voisine, AA0B74A61E212, est bornée à la carte de création/modification et à la palette (clavier, Annuler et Ajouter / Enregistrer visibles) et ne dit rien du défilement de la liste des Catégories, de l’accessibilité d’un nom long ni du texte agrandi. La liste est non bornée (dix Catégories prédéfinies plus toute Catégorie créée) et src/features/reference-data/CategoryPickerModal.tsx ne contient ni ScrollView ni FlatList : au-delà de la hauteur de la carte, des Catégories deviennent inatteignables sans qu’aucune assertion ne l’interdise.",
+      "expected_correction": "Ajouter au critère UI-5F3D94866D30 une assertion de property_type RESPONSIVE, de locator CE-UI-09 L2808, exigeant que la liste des Catégories de la modale défile quel que soit le nombre d’entrées, qu’un nom long reste accessible sans troncature et que le texte agrandi ne réduise pas la police, clavier affiché ou masqué ; proof_required FUNCTIONAL_TEST et VISUAL_COMPARE, liée à src/features/reference-data/CategoryPickerModal.tsx et src/features/reference-data/__tests__/CategoryPickerModal.test.tsx déjà déclarés.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "finding_id": "RF-48CF3DE5CA22529E",
+      "category": "PATH",
+      "target_kind": "CRITERION_ID",
+      "target": "UI-5F3D94866D30",
+      "blocking": true,
+      "diagnostic": "Le critère UI-5F3D94866D30 porte les deux assertions qui figent des chaînes françaises exactes pour les TROIS référentiels : A7819D6C3521A (« Pour Catégorie, Zone et Étiquette, la confirmation de suppression a pour titre exact « Supprimer « {nom} » ? » », §4.10 L134) et A14AB0BC67228 (messages différenciés utilisé / non utilisé, §4.10 L135). Or ses change_targets (CategoryPickerModal.tsx, ReferenceValueDialog.tsx, ReferentialService.ts, ReferentialServiceContext.tsx, ExerciseScreen.tsx, ColorPalette.tsx) et ses tests n’incluent ni src/shared/i18n/resources/fr.ts ni src/shared/i18n/index.test.ts. Dans le dépôt ces chaînes résident exactement là : src/shared/i18n/resources/fr.ts L785-793 (referenceData.deleteConfirm.titlePrefix / titleSuffix / usedMessage / unusedMessage). Vérifié sur l’ensemble du bloc : fr.ts et index.test.ts n’apparaissent qu’une seule fois dans la matrice, sous le seul critère UI-82B1544AE5AE. Deux assertions normatives de contenu sont donc non traçables vers le fichier et le test qui doivent les porter. S’y ajoute l’omission de la règle « Langue du MVP » (08 – Conception fonctionnelle détaillée.md L1098 : tous les textes utilisateur ET libellés d’accessibilité par clés de traduction centralisées), qu’aucune exigence ni assertion du plan ne reprend alors que la tranche crée trois modales, deux écrans, un dialogue et un stepper.",
+      "expected_correction": "Ajouter src/shared/i18n/resources/fr.ts aux change_targets et src/shared/i18n/index.test.ts aux tests du critère UI-5F3D94866D30 (et, par cohérence, des critères UI-3D89E598F31D et UI-60B2C84BF572 dont les assertions dépendent des mêmes chaînes partagées), de façon que A7819D6C3521A et A14AB0BC67228 soient liées au fichier de traduction et au test i18n qui les prouvent. Les deux chemins figurent déjà dans write_scope et required_test_writes : aucune extension de périmètre n’est nécessaire.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "finding_id": "RF-71826EAC9882110F",
+      "category": "UI_CRITERION",
+      "target_kind": "CRITERION_ID",
+      "target": "UI-96E7FD739BF0",
+      "blocking": true,
+      "diagnostic": "CE-UI-01 §10 (13 – Contrats d’écran.md L2004) est normatif : « Références 360/402/440, Safe Areas existantes ; texte agrandi sans réduction de police, scroll utile et contrôles accessibles ». Les 10 assertions du critère UI-96E7FD739BF0 ne comportent AUCUNE assertion de property_type RESPONSIVE et aucune ne mentionne défilement, Safe Area, clavier ni texte agrandi (AACD685D38747 photo, A6C731DD19268/AD7703C936790 abandon/enregistrement, A7EFE96EAC23A icône, AB155053543ED libellés, AC99FCD6BEC3F géométrie, A3846B911456D nom, A3E197595DF4F garde de sortie, ADA643B3F4D1A initiales, A38AD88125DB2 silhouette). L’exigence est donc intégralement omise, alors que le critère frère UI-82B1544AE5AE a justement reçu cette couverture le 04/10 (AF03239AB16DE, point R1) après l’échec de recette iPhone sur le même défaut. Le code livré confirme que le défaut est réel et non couvert : src/features/preferences/ProfileEditScreen.tsx (393 lignes) ne contient ni ScrollView, ni KeyboardAvoidingView, ni inset de Safe Area.",
+      "expected_correction": "Ajouter au critère UI-96E7FD739BF0 une assertion de property_type RESPONSIVE, de locator CE-UI-01 L2004, exigeant que Modifier le profil défile avec ses contrôles (photo, champ Nom d’affichage, deux silhouettes, Enregistrer) entièrement atteignables et utilisables dans les Safe Areas, clavier affiché ou masqué, et en texte agrandi sans réduction de police ; proof_required FUNCTIONAL_TEST et VISUAL_COMPARE, liée aux cibles et tests déjà déclarés (src/features/preferences/ProfileEditScreen.tsx, src/features/preferences/__tests__/ProfileEditScreen.test.tsx).",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    },
+    {
+      "finding_id": "RF-9C7E885FAC59837E",
+      "category": "UI_CRITERION",
+      "target_kind": "CRITERION_ID",
+      "target": "UI-60B2C84BF572",
+      "blocking": true,
+      "diagnostic": "CE-T03-16 §10 (L1645) exige cinq propriétés : « Feuille limitée à la zone sûre, liste défilante, titre non tronqué ; clavier fait apparaître le nom saisi et les actions ; texte agrandi selon §4.2 ». Le critère UI-60B2C84BF572 n’en couvre qu’une par AF726088ADFDB (property_type INTERACTION : palette dans le flux, clavier affiché ou masqué, Annuler et Ajouter / Enregistrer visibles). Les quatre autres — limitation à la zone sûre, liste d’Étiquettes défilante, titre non tronqué, texte agrandi — ne sont portées par aucune assertion du critère, qui ne contient aucune property_type RESPONSIVE. Le code confirme la portée du risque : src/features/reference-data/LabelPickerModal.tsx n’a ni ScrollView ni FlatList, alors que le référentiel Étiquette est entièrement créé par l’utilisateur et donc de taille non bornée.",
+      "expected_correction": "Ajouter au critère UI-60B2C84BF572 une assertion de property_type RESPONSIVE, de locator CE-T03-16 L1645, exigeant que la feuille d’Étiquettes reste limitée à la zone sûre, que sa liste défile quel que soit le nombre d’Étiquettes, que son titre ne soit pas tronqué et que le texte agrandi ne réduise pas la police ; proof_required FUNCTIONAL_TEST et VISUAL_COMPARE, liée à src/features/reference-data/LabelPickerModal.tsx et src/features/reference-data/__tests__/LabelPickerModal.test.tsx déjà déclarés.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    }
+  ]
+}

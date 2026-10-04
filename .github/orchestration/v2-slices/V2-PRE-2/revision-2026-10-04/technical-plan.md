@@ -19,12 +19,16 @@ Contexte : livraison #303 (`10ac761e`, revue d'implémentation 5976789183 APPROV
 | D-266 | Libellé « Compte à rebours d'un exercice » | C07 D-266 ; CE-UI-07 §5 L2514 | `fr.ts` et libellés accessibles dérivés ; fixtures de tests |
 | D-267 | Séparateurs entre lignes des groupes du Profil | C07 D-267 ; CE-UI-07 §9 L2532 | Séparateur `colors.divider` entre lignes consécutives de chaque groupe, aucun après la dernière (`ProfileScreen.tsx`, `ProfileStepper.tsx` si nécessaire) |
 | R1 | Profil : défilement, marge basse, accès à Modifier le profil | CE-UI-07 §7 L2522, §10 L2536 ; C08 L1077–1079 | `ScrollView` avec marge finale `navigationBarTotalHeight()` + 16 (patron `CatalogueScreen`) ; bloc Identité en tête (photo ou initiales, nom, action Modifier → `/profile-edit`), en réutilisant les aides d'initiales et de photo de `ProfileEditScreen` |
-| R4 | Palette Catégorie / Étiquette bloquée | §4.10 L133 ; CE-UI-09 §10 L2808 ; CE-T03-16 §10 L1645 ; Figma 4474:7157, 4640:6308 | Palette rendue dans le flux de la carte (mode en ligne de `ColorPalette`, seuls consommateurs : les deux sélecteurs) ; carte évitant le clavier et défilante ; confirmation par Ajouter / Enregistrer ; aucune fermeture automatique imposée ; Zones inchangées |
+| R4 | Palette Catégorie / Étiquette bloquée | §4.10 L133 ; CE-UI-09 §10 L2808 ; CE-T03-16 §10 L1645 ; Figma 4474:7157, 4640:6308 | Palette rendue dans le flux de la carte (mode en ligne de `ColorPalette`, seuls consommateurs : les deux sélecteurs) ; carte évitant le clavier et défilante ; confirmation par Ajouter / Enregistrer ; aucune fermeture automatique imposée ; modale Zones (sans palette) : liste défilante, carte de création et de renommage évitant le clavier (CE-UI-09 L2796, L2808) |
 | R5 | Pastille de Catégorie dans l'éditeur d'Exercice | C09 L926 ; CE-UI-09 §9 L2804 ; Figma 6407:9702 ; DSF L129 | Pastille colorée 26 avant le nom dans la pilule Catégorie de `ExerciseScreen` ; couleur suivie après recoloration |
-| R6 | Zone créée visible après réouverture seulement | CE-UI-09 L2784, L2816, L2840 | Rafraîchissement de la liste des Zones de l'éditeur (jeton de rafraîchissement après création, renommage ou suppression dans la modale), icônes de silhouette conservées |
+| R6 | Zone créée visible après réouverture seulement | CE-UI-09 L2784, L2816, L2840 ; registre R6 | Rafraîchissement de la liste des Zones de l'éditeur et des noms de Zones de la Composition (jeton de rafraîchissement après création, renommage ou suppression dans la modale ; `useBodyZonesReferential` de `CompositionScreen` reçoit ce jeton comme `useLabelsReferential`), icônes de silhouette conservées |
 | R7a | Nom de l'Étiquette absent en Composition | CE-T03-16 L1609 (Figma 4581:6404), §18 L1677 | Pilule avec pastille et nom ; sans Étiquette : icône d'étiquette au trait (Figma 2028:11204 / 4640:6308) ; couleur de présentation d'une Séance sans Étiquette inchangée (R7b, sources muettes) |
 | R9 | Preuves non visibles à l'écran | T21 ; plan initial | Ajout de deux tests d'écran, sans champ : Récupération du Profil sur un Exercice local (`ExerciseScreen.test.tsx` / `CompositionExerciseFlow`), copie de la Pause entre les côtés à l'activation D→G/G→D dans l'éditeur du Catalogue (0 s sinon) |
 | R10 | VoiceOver | CE-UI-07 §18 L2568 ; CE-UI-09 §10 L2808, §18 L2840 ; CE-T03-16 §18 L1677 | Ligne d'interrupteur = un seul élément accessible (rôle interrupteur, état) ; indication d'action « choisir / retirer » sur les Étiquettes ; titres de modale en en-tête ; retour explicite du focus sur l'option après fermeture du dialogue d'appui long |
+
+Corrections après la revue indépendante du run 37198105017 (verdict REVISE, 7 constats bloquants, tous intégrés) : (1) rendu de la modale Zones, de sa carte de création et de son dialogue destructif (CE-UI-09 L2772, L2804 ; frames 4478:7209, 4683:6336, 4861:6348) ; (2) défilement, clavier, actions visibles et texte agrandi de la modale Zones (L2796, L2808) ; (3) R6 étendu à la Composition ; (4) erreurs des modales de référentiel — nom vide ou invalide, échec d'écriture, saisie et brouillon conservés, aucune modification partielle (L2812, L2836 ; CE-T03-16 L1665, L1673) ; (5) validité du nom dans l'exigence des référentiels (C09 L885, L915 ; bornes T9) ; (6) ordre d'affichage déterministe (C09 L917, L955 ; T12) ; (7) titres des trois modales exposés comme en-têtes accessibles (CE-UI-09 L2840 ; CE-T03-16 L1677).
+
+Corrections après la revue indépendante du run 37202181321 (commentaire 5980019179, REVISE, 5 constats bloquants ; registre `revision-2026-10-04/correction-register-5980019179.md`) : (1) exigence Profil étendue à C08 L1076–1103 — quitter le Profil sans confirmation (L1103, CE-UI-07 L2556) et clés de traduction centralisées pour tous les textes et libellés d'accessibilité (Langue du MVP, L1098) ; (2) liste des Catégories défilante, nom long et texte agrandi (CE-UI-09 L2808) ; (3) chaînes de suppression partagées (§4.10 L134–L135) liées à `src/shared/i18n/resources/fr.ts` et `src/shared/i18n/index.test.ts` pour Catégorie, Zones et Étiquette ; (4) Modifier le profil défilant dans les Safe Areas, clavier et texte agrandi (CE-UI-01 L2004) ; (5) feuille d'Étiquettes limitée à la zone sûre, liste défilante, titre non tronqué, texte agrandi (CE-T03-16 L1645). Aucun autre élément du plan n'est modifié.
 
 Hors révision : R8 (retour sans avertissement depuis l'éditeur d'Exercice du Catalogue, CE-T03-04 §12) est préexistant et non régressif, il relève de l'éditeur du Catalogue hors PRE-2 ; R7b n'est pas un défaut. Comportements réussis sur iPhone à préserver : six valeurs initiales, un seul stepper ouvert, persistance des durées et interrupteurs ; suppression avec message adapté, disparition des nouveaux choix, maintien des associations, réactivation ; sélection multiple, annulation, création et conservation des Zones. Séparation PRE-2 / PRE-3 et D-256 à D-259 inchangées.
 
@@ -1999,6 +2003,7 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
       "decision_justification": "Le sélecteur actuel bascule directement le brouillon ; la validation explicite et la restauration à la fermeture exigent une modale dédiée, dont le focus et l’annonce de la sélection multiple ne peuvent être hérités d’un composant existant.",
       "change_targets": [
         "src/features/reference-data/BodyZonePickerModal.tsx",
+        "src/shared/i18n/resources/fr.ts",
         "src/features/sessions/BodyZoneSelector.tsx",
         "src/features/activities/ActivityEditorForm.tsx",
         "src/features/sessions/CompositionScreen.tsx"
@@ -2006,6 +2011,7 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
       "tests": [
         "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
         "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
+        "src/shared/i18n/index.test.ts",
         "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
         "src/features/sessions/__tests__/CompositionScreen.test.tsx"
       ],
@@ -2165,6 +2171,7 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
       "decision_justification": "Le sélecteur inline existant n’a ni palette, ni modification, ni suppression ; une modale dédiée réutilisant ColorPalette et DecisionDialog est créée. Le dialogue d’appui long ReferenceValueDialog est partagé par les trois référentiels.",
       "change_targets": [
         "src/features/reference-data/CategoryPickerModal.tsx",
+        "src/shared/i18n/resources/fr.ts",
         "src/features/reference-data/ReferenceValueDialog.tsx",
         "src/features/reference-data/ReferentialService.ts",
         "src/features/reference-data/ReferentialServiceContext.tsx",
@@ -2173,6 +2180,7 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
       ],
       "tests": [
         "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/shared/i18n/index.test.ts",
         "src/features/reference-data/__tests__/ReferenceValueDialog.test.tsx",
         "src/features/reference-data/__tests__/ReferentialService.test.ts",
         "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
@@ -2233,6 +2241,19 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           "expected": "En création comme en modification d’une Catégorie, la palette s’affiche dans le flux de la carte sans recouvrir le champ ni les actions ; clavier affiché ou masqué, Annuler et Ajouter / Enregistrer restent entièrement visibles et utilisables ; la couleur touchée reste sélectionnée et n’est appliquée que par Ajouter / Enregistrer.",
           "proof_required": [
             "FUNCTIONAL_TEST"
+          ]
+        },
+        {
+          "assertion_id": "UI-5F3D94866D30-A4BEE35F8C506",
+          "source": {
+            "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+            "locator": "CE-UI-09 L2808"
+          },
+          "property_type": "RESPONSIVE",
+          "expected": "La liste des Catégories de la modale défile quel que soit le nombre d’entrées, toutes restant atteignables ; un nom long reste accessible sans troncature et le texte agrandi ne réduit pas la police, clavier affiché ou masqué.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
           ]
         },
         {
@@ -2406,12 +2427,14 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
       "decision_justification": "Aucun sélecteur d’Étiquette n’existe ; le panneau Catégorie ne doit pas être réutilisé (CE-T03-16 L1642). Le sélecteur étant une pastille colorée, l’identification non fondée sur la seule couleur est portée par le nouveau composant.",
       "change_targets": [
         "src/features/reference-data/LabelPickerModal.tsx",
+        "src/shared/i18n/resources/fr.ts",
         "src/features/sessions/CompositionScreen.tsx",
         "src/features/sessions/ColorPalette.tsx"
       ],
       "tests": [
         "src/features/reference-data/__tests__/LabelPickerModal.test.tsx",
         "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+        "src/shared/i18n/index.test.ts",
         "src/features/sessions/__tests__/ColorPalette.test.tsx"
       ],
       "proof_required": [
@@ -2479,6 +2502,19 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           "expected": "L’affectation est enregistrée seulement à Continuer ; les opérations du référentiel n’enregistrent pas la Séance ; la couleur de la Séance suit l’Étiquette.",
           "proof_required": [
             "FUNCTIONAL_TEST"
+          ]
+        },
+        {
+          "assertion_id": "UI-60B2C84BF572-AEC754D3ABC2D",
+          "source": {
+            "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+            "locator": "CE-T03-16 L1645"
+          },
+          "property_type": "RESPONSIVE",
+          "expected": "La feuille d’Étiquettes reste limitée à la zone sûre ; sa liste défile quel que soit le nombre d’Étiquettes, toutes restant atteignables ; son titre n’est pas tronqué et le texte agrandi ne réduit pas la police.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
           ]
         },
         {
@@ -2713,6 +2749,18 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           ]
         },
         {
+          "assertion_id": "UI-82B1544AE5AE-A3B2D83AEBA4C",
+          "source": {
+            "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+            "locator": "CE-UI-07 L2556 ; C08 L1103"
+          },
+          "property_type": "INTERACTION",
+          "expected": "Quitter le Profil (onglet, bouton ou geste de retour) ne déclenche aucun dialogue de confirmation ni garde de sortie : chaque préférence étant déjà enregistrée, le retour est immédiat.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        },
+        {
           "assertion_id": "UI-82B1544AE5AE-A5F5915E3CDE5",
           "source": {
             "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
@@ -2905,6 +2953,19 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           "proof_required": [
             "ACCESSIBILITY_CHECK",
             "FUNCTIONAL_TEST"
+          ]
+        },
+        {
+          "assertion_id": "UI-96E7FD739BF0-A202F52482AC0",
+          "source": {
+            "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+            "locator": "CE-UI-01 L2004"
+          },
+          "property_type": "RESPONSIVE",
+          "expected": "Modifier le profil défile dans les Safe Areas : la photo, le champ Nom d’affichage, les deux silhouettes et Enregistrer restent entièrement atteignables et utilisables, clavier affiché ou masqué, et en texte agrandi sans réduction de police.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
           ]
         },
         {
@@ -3572,17 +3633,21 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
   {
     "source": {
       "path": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
-      "locator": "Profil L1076–1101",
-      "requirement": "Nom d’affichage de 1 à 80 caractères à l’enregistrement (borne à laquelle renvoie CE-UI-01 §14) ; préférence Vibration limitée aux vibrations fonctionnelles de séance, sans effet sur le retour haptique des roulettes numériques ; toute modification du Profil enregistrée immédiatement et sans incidence sur les Séances existantes."
+      "locator": "Profil L1076–1103",
+      "requirement": "Nom d’affichage de 1 à 80 caractères à l’enregistrement (borne à laquelle renvoie CE-UI-01 §14) ; préférence Vibration limitée aux vibrations fonctionnelles de séance, sans effet sur le retour haptique des roulettes numériques ; toute modification du Profil enregistrée immédiatement et sans incidence sur les Séances existantes ; quitter l’écran Profil ne demande aucune confirmation, les modifications étant déjà enregistrées (L1103) ; tous les textes utilisateur et libellés d’accessibilité des écrans, modales, dialogues et steppers livrés utilisent les clés de traduction centralisées (Langue du MVP, L1098)."
     },
     "requirement_type": "FUNCTIONAL",
     "change_targets": [
       "src/domain/preferences/Profile.ts",
-      "src/features/preferences/ProfileService.ts"
+      "src/features/preferences/ProfileService.ts",
+      "src/features/preferences/ProfileScreen.tsx",
+      "src/shared/i18n/resources/fr.ts"
     ],
     "tests": [
       "src/domain/preferences/__tests__/Profile.test.ts",
-      "src/features/preferences/__tests__/ProfileService.test.ts"
+      "src/features/preferences/__tests__/ProfileService.test.ts",
+      "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+      "src/shared/i18n/index.test.ts"
     ],
     "no_automated_test_reason": "NONE",
     "proof_required": [
@@ -3613,7 +3678,7 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
 {
   "schema": "kodjo.requirement-contract.v1",
   "requirement_count": 14,
-  "requirement_ids_sha256": "a3b6f52a1199d212df52c10d7317cc4b978062e40e25f7ccb1e3154480f297ec",
+  "requirement_ids_sha256": "e234fab2288ef09e591c54509c6c73ae77e125cdd8ab5aaa8654624183bd6eae",
   "requirements": [
     {
       "requirement_id": "REQ-0FBEF4DDBFAD3BC6",
@@ -3627,12 +3692,14 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
       "change_targets": [
         "src/features/reference-data/LabelPickerModal.tsx",
         "src/features/sessions/ColorPalette.tsx",
-        "src/features/sessions/CompositionScreen.tsx"
+        "src/features/sessions/CompositionScreen.tsx",
+        "src/shared/i18n/resources/fr.ts"
       ],
       "tests": [
         "src/features/reference-data/__tests__/LabelPickerModal.test.tsx",
         "src/features/sessions/__tests__/ColorPalette.test.tsx",
-        "src/features/sessions/__tests__/CompositionScreen.test.tsx"
+        "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+        "src/shared/i18n/index.test.ts"
       ],
       "proof_required": [
         "ACCESSIBILITY_CHECK",
@@ -3688,6 +3755,15 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           "expected": "L’affectation est enregistrée seulement à Continuer ; les opérations du référentiel n’enregistrent pas la Séance ; la couleur de la Séance suit l’Étiquette.",
           "proof_required": [
             "FUNCTIONAL_TEST"
+          ]
+        },
+        {
+          "assertion_id": "UI-60B2C84BF572-AEC754D3ABC2D",
+          "property_type": "RESPONSIVE",
+          "expected": "La feuille d’Étiquettes reste limitée à la zone sûre ; sa liste défile quel que soit le nombre d’Étiquettes, toutes restant atteignables ; son titre n’est pas tronqué et le texte agrandi ne réduit pas la police.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
           ]
         },
         {
@@ -3858,13 +3934,15 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
         "src/features/activities/ActivityEditorForm.tsx",
         "src/features/reference-data/BodyZonePickerModal.tsx",
         "src/features/sessions/BodyZoneSelector.tsx",
-        "src/features/sessions/CompositionScreen.tsx"
+        "src/features/sessions/CompositionScreen.tsx",
+        "src/shared/i18n/resources/fr.ts"
       ],
       "tests": [
         "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
         "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
         "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
-        "src/features/sessions/__tests__/CompositionScreen.test.tsx"
+        "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+        "src/shared/i18n/index.test.ts"
       ],
       "proof_required": [
         "ACCESSIBILITY_CHECK",
@@ -4122,6 +4200,14 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           ]
         },
         {
+          "assertion_id": "UI-82B1544AE5AE-A3B2D83AEBA4C",
+          "property_type": "INTERACTION",
+          "expected": "Quitter le Profil (onglet, bouton ou geste de retour) ne déclenche aucun dialogue de confirmation ni garde de sortie : chaque préférence étant déjà enregistrée, le retour est immédiat.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        },
+        {
           "assertion_id": "UI-82B1544AE5AE-A5F5915E3CDE5",
           "property_type": "STATE",
           "expected": "Sans modification, les six valeurs affichées sont 10 s, 10 s, 5 s, 30 s, 10 s et 5 s.",
@@ -4243,7 +4329,8 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
         "src/features/reference-data/ReferentialService.ts",
         "src/features/reference-data/ReferentialServiceContext.tsx",
         "src/features/sessions/ColorPalette.tsx",
-        "src/features/sessions/ExerciseScreen.tsx"
+        "src/features/sessions/ExerciseScreen.tsx",
+        "src/shared/i18n/resources/fr.ts"
       ],
       "tests": [
         "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
@@ -4252,7 +4339,8 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
         "src/features/reference-data/__tests__/ReferenceValueDialog.test.tsx",
         "src/features/reference-data/__tests__/ReferentialService.test.ts",
         "src/features/sessions/__tests__/ColorPalette.test.tsx",
-        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/shared/i18n/index.test.ts"
       ],
       "proof_required": [
         "ACCESSIBILITY_CHECK",
@@ -4300,6 +4388,15 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           "expected": "En création comme en modification d’une Catégorie, la palette s’affiche dans le flux de la carte sans recouvrir le champ ni les actions ; clavier affiché ou masqué, Annuler et Ajouter / Enregistrer restent entièrement visibles et utilisables ; la couleur touchée reste sélectionnée et n’est appliquée que par Ajouter / Enregistrer.",
           "proof_required": [
             "FUNCTIONAL_TEST"
+          ]
+        },
+        {
+          "assertion_id": "UI-5F3D94866D30-A4BEE35F8C506",
+          "property_type": "RESPONSIVE",
+          "expected": "La liste des Catégories de la modale défile quel que soit le nombre d’entrées, toutes restant atteignables ; un nom long reste accessible sans troncature et le texte agrandi ne réduit pas la police, clavier affiché ou masqué.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
           ]
         },
         {
@@ -4400,6 +4497,34 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           ]
         }
       ]
+    },
+    {
+      "requirement_id": "REQ-B01623D27FF0E00D",
+      "domain": "NON_UI",
+      "requirement_type": "FUNCTIONAL",
+      "source": {
+        "path": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+        "locator": "Profil L1076–1103",
+        "requirement": "Nom d’affichage de 1 à 80 caractères à l’enregistrement (borne à laquelle renvoie CE-UI-01 §14) ; préférence Vibration limitée aux vibrations fonctionnelles de séance, sans effet sur le retour haptique des roulettes numériques ; toute modification du Profil enregistrée immédiatement et sans incidence sur les Séances existantes ; quitter l’écran Profil ne demande aucune confirmation, les modifications étant déjà enregistrées (L1103) ; tous les textes utilisateur et libellés d’accessibilité des écrans, modales, dialogues et steppers livrés utilisent les clés de traduction centralisées (Langue du MVP, L1098)."
+      },
+      "change_targets": [
+        "src/domain/preferences/Profile.ts",
+        "src/features/preferences/ProfileScreen.tsx",
+        "src/features/preferences/ProfileService.ts",
+        "src/shared/i18n/resources/fr.ts"
+      ],
+      "tests": [
+        "src/domain/preferences/__tests__/Profile.test.ts",
+        "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+        "src/features/preferences/__tests__/ProfileService.test.ts",
+        "src/shared/i18n/index.test.ts"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST",
+        "STATIC_ANALYSIS"
+      ],
+      "status": "DEFINED",
+      "no_automated_test_reason": "NONE"
     },
     {
       "requirement_id": "REQ-B04373AE337E7685",
@@ -4550,6 +4675,15 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           ]
         },
         {
+          "assertion_id": "UI-96E7FD739BF0-A202F52482AC0",
+          "property_type": "RESPONSIVE",
+          "expected": "Modifier le profil défile dans les Safe Areas : la photo, le champ Nom d’affichage, les deux silhouettes et Enregistrer restent entièrement atteignables et utilisables, clavier affiché ou masqué, et en texte agrandi sans réduction de police.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        },
+        {
           "assertion_id": "UI-96E7FD739BF0-AC99FCD6BEC3F",
           "property_type": "STYLE",
           "expected": "Silhouettes dans deux cercles de 64, hauteur 44, écart 24 ; choisie en bleu #0508E5 contour 2, non choisie en gris #9499A8 contour #CCD1E0.",
@@ -4611,30 +4745,6 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
       ],
       "status": "DEFINED",
       "no_automated_test_reason": "NONE"
-    },
-    {
-      "requirement_id": "REQ-F907047106F88386",
-      "domain": "NON_UI",
-      "requirement_type": "FUNCTIONAL",
-      "source": {
-        "path": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
-        "locator": "Profil L1076–1101",
-        "requirement": "Nom d’affichage de 1 à 80 caractères à l’enregistrement (borne à laquelle renvoie CE-UI-01 §14) ; préférence Vibration limitée aux vibrations fonctionnelles de séance, sans effet sur le retour haptique des roulettes numériques ; toute modification du Profil enregistrée immédiatement et sans incidence sur les Séances existantes."
-      },
-      "change_targets": [
-        "src/domain/preferences/Profile.ts",
-        "src/features/preferences/ProfileService.ts"
-      ],
-      "tests": [
-        "src/domain/preferences/__tests__/Profile.test.ts",
-        "src/features/preferences/__tests__/ProfileService.test.ts"
-      ],
-      "proof_required": [
-        "FUNCTIONAL_TEST",
-        "STATIC_ANALYSIS"
-      ],
-      "status": "DEFINED",
-      "no_automated_test_reason": "NONE"
     }
   ]
 }
@@ -4643,7 +4753,7 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
 <KODJO_TEST_CONTRACT_JSON>
 {
   "schema": "kodjo.test-contract.v1",
-  "binding_count": 55,
+  "binding_count": 60,
   "bindings": [
     {
       "requirement_id": "REQ-0FBEF4DDBFAD3BC6",
@@ -4658,6 +4768,11 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
     {
       "requirement_id": "REQ-0FBEF4DDBFAD3BC6",
       "test_path": "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-0FBEF4DDBFAD3BC6",
+      "test_path": "src/shared/i18n/index.test.ts",
       "proof_type": "FUNCTIONAL_TEST"
     },
     {
@@ -4746,6 +4861,11 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
       "proof_type": "FUNCTIONAL_TEST"
     },
     {
+      "requirement_id": "REQ-443922E10308B36B",
+      "test_path": "src/shared/i18n/index.test.ts",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
       "requirement_id": "REQ-531FE70B9D19BBA0",
       "test_path": "src/domain/preferences/__tests__/Profile.test.ts",
       "proof_type": "FUNCTIONAL_TEST"
@@ -4823,6 +4943,31 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
     {
       "requirement_id": "REQ-999D817E7965D8CA",
       "test_path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-999D817E7965D8CA",
+      "test_path": "src/shared/i18n/index.test.ts",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-B01623D27FF0E00D",
+      "test_path": "src/domain/preferences/__tests__/Profile.test.ts",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-B01623D27FF0E00D",
+      "test_path": "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-B01623D27FF0E00D",
+      "test_path": "src/features/preferences/__tests__/ProfileService.test.ts",
+      "proof_type": "FUNCTIONAL_TEST"
+    },
+    {
+      "requirement_id": "REQ-B01623D27FF0E00D",
+      "test_path": "src/shared/i18n/index.test.ts",
       "proof_type": "FUNCTIONAL_TEST"
     },
     {
@@ -4908,16 +5053,6 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
     {
       "requirement_id": "REQ-DD38A3777CC4D034",
       "test_path": "src/domain/preferences/__tests__/Profile.test.ts",
-      "proof_type": "FUNCTIONAL_TEST"
-    },
-    {
-      "requirement_id": "REQ-F907047106F88386",
-      "test_path": "src/domain/preferences/__tests__/Profile.test.ts",
-      "proof_type": "FUNCTIONAL_TEST"
-    },
-    {
-      "requirement_id": "REQ-F907047106F88386",
-      "test_path": "src/features/preferences/__tests__/ProfileService.test.ts",
       "proof_type": "FUNCTIONAL_TEST"
     }
   ]
@@ -5349,7 +5484,7 @@ src/shared/ui/__tests__/ProfileStepper.test.tsx
 {
   "schema": "kodjo.ui-plan-contract.v1",
   "contract_version": 2,
-  "protocol_commit": "9bfbba0e195432d9c41e6db377ad41e96ec8a96f",
+  "protocol_commit": "8260bcaa5eba1a6897eb27055728fd3900ace2ae",
   "scan_revision": "10ac761ef453f360110bf7b668b3998487b071b3",
   "ui_applicable": true,
   "ui_paths": [
@@ -5384,9 +5519,9 @@ src/shared/ui/__tests__/ProfileStepper.test.tsx
     "src/shared/ui/ProfileStepper.tsx"
   ],
   "criterion_count": 6,
-  "assertion_count": 69,
-  "assertion_ids_sha256": "e9b485d76d4ea609c056699eaca1fd5fe39e6a247b56228e220e0166ff6b0c9c",
-  "matrix_sha256": "3e79ba738c2cf2fb4c6a85b9240186e893d5a7dc0588b56c43958026eb86e693"
+  "assertion_count": 73,
+  "assertion_ids_sha256": "01d119b87b8364950506346dd636e5620cadeaa72f62b6db46fd5143c10cfa03",
+  "matrix_sha256": "a6a4991aea38e7f4fe82021ef760a0774a5ca1afee58279e598d37c97f678fa1"
 }
 </KODJO_UI_PLAN_CONTRACT_JSON>
 
@@ -5394,7 +5529,7 @@ src/shared/ui/__tests__/ProfileStepper.test.tsx
 {
   "schema": "kodjo.plan-contract-consistency.v2",
   "contract_version": 2,
-  "protocol_commit": "9bfbba0e195432d9c41e6db377ad41e96ec8a96f",
+  "protocol_commit": "8260bcaa5eba1a6897eb27055728fd3900ace2ae",
   "scan_revision": "10ac761ef453f360110bf7b668b3998487b071b3",
   "write_scope": [
     "app/(tabs)/profile.tsx",
@@ -5536,8 +5671,8 @@ src/shared/ui/__tests__/ProfileStepper.test.tsx
     "src/shared/ui/__tests__/BodyZoneIcon.test.tsx",
     "src/shared/ui/__tests__/ProfileStepper.test.tsx"
   ],
-  "requirement_contract_sha256": "c5ed48afaf9575c6eb7322a36a656a70c24b6d99a4446df0069e16b57d229fed",
-  "test_contract_sha256": "fa944c3699cca0906b0bdb7a58e5250b850af05de010d7bc6131131fbfcd6b1e",
+  "requirement_contract_sha256": "3f768d0583e3a6d679e6edf67614978a31c21b4d269bbeba7f326c655a78edca",
+  "test_contract_sha256": "087d83748736496fa642c42994ef19318b620e670ba1079d91ffaa08e12bfb5b",
   "boundary_contract_sha256": "26fed58813921fa4cf2225fa61cc2b68eec90a9bdc2d3a5b9d9a05d1b1b4c64c",
   "requirement_count": 14
 }
