@@ -1,6 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import type { Silhouette } from "@/domain/preferences/Profile";
+import { BodyZoneIcon } from "@/shared/ui/BodyZoneIcon";
 import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -24,6 +26,15 @@ export type BodyZoneSelectorProps = {
   selectedIds: readonly string[];
   onToggle: (zoneId: string) => void;
   accessibilityLabel: string;
+  /**
+   * V2-PRE-2 (plan §6.5, T13, CE-UI-09 L2805) : silhouette du Profil —
+   * affiche l'icône de Zone correspondante devant chaque nom. `undefined`
+   * (défaut) n'affiche aucune icône, pour les appels hors modale de
+   * référentiel qui n'ont pas cette information à disposition.
+   */
+  silhouette?: Silhouette | null;
+  /** V2-PRE-2 (D4/D-259) : appui long sur une Zone — modale de référentiel uniquement, `undefined` sinon (aucun appui long, comportement inchangé). */
+  onLongPressZone?: (zone: BodyZone) => void;
 };
 
 /**
@@ -47,6 +58,8 @@ export function BodyZoneSelector({
   selectedIds,
   onToggle,
   accessibilityLabel,
+  silhouette,
+  onLongPressZone,
 }: BodyZoneSelectorProps) {
   return (
     <View style={styles.container} accessibilityLabel={accessibilityLabel} testID="body-zone-selector">
@@ -56,12 +69,17 @@ export function BodyZoneSelector({
           <Pressable
             key={zone.id}
             onPress={() => onToggle(zone.id)}
+            onLongPress={onLongPressZone ? () => onLongPressZone(zone) : undefined}
             accessibilityRole="checkbox"
             accessibilityState={{ checked: isSelected }}
             accessibilityLabel={zone.name}
             hitSlop={TAG_HIT_SLOP}
             style={[styles.tag, isSelected ? styles.tagSelected : null]}
+            testID={`body-zone-selector-tag-${zone.id}`}
           >
+            {silhouette !== undefined ? (
+              <BodyZoneIcon silhouette={silhouette} size={16} testID={`body-zone-selector-icon-${zone.id}`} />
+            ) : null}
             <Text style={[styles.tagLabel, isSelected ? styles.tagLabelSelected : null]}>
               {zone.name}
             </Text>

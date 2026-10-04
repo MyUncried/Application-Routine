@@ -4,6 +4,11 @@ import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
+function makeUuidFactory(prefix: string) {
+  let counter = 0;
+  return () => `${prefix}-${(counter += 1)}`;
+}
+
 describe("SqliteCategoryRepository", () => {
   let database: NodeSqliteDatabase;
 
@@ -89,5 +94,126 @@ describe("SqliteCategoryRepository", () => {
     const custom = categories.find((category) => category.id === "custom-retired");
 
     expect(custom).toMatchObject({ color: "#FF2D55", isActive: false });
+  });
+
+  describe("create (V2-PRE-2, D2 reactivation ; §4.10 L137 — predefined categories are administrable like custom ones)", () => {
+    it("creates a new active custom Category with the chosen color", async () => {
+      const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
+      const result = await repository.create({ name: "Danse", color: "#3B82F6" });
+
+      expect(result.status).toBe("OK");
+      if (result.status === "OK") {
+        expect(result.value).toMatchObject({
+          name: "Danse",
+          canonicalKey: "danse",
+          color: "#3B82F6",
+          isActive: true,
+          isPredefined: false,
+          displayOrder: null,
+        });
+      }
+    });
+
+    it("refuses a name whose canonical key matches an ACTIVE Category, including a predefined one (DUPLICATE)", async () => {
+      const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
+      const result = await repository.create({ name: "  cardio  ", color: "#3B82F6" });
+      expect(result).toEqual({ status: "DUPLICATE" });
+    });
+
+    it("reactivates a RETIRED predefined Category of the same canonical key — same identifier, isPredefined/displayOrder unchanged, chosen color applied", async () => {
+      const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
+      await repository.retire("cardio");
+
+      const reactivated = await repository.create({ name: "Cardio", color: "#E5484D" });
+      expect(reactivated.status).toBe("OK");
+      if (reactivated.status === "OK") {
+        expect(reactivated.value).toMatchObject({
+          id: "cardio",
+          isActive: true,
+          isPredefined: true,
+          displayOrder: 1,
+          color: "#E5484D",
+        });
+      }
+
+      const categories = await repository.listAll();
+      expect(categories).toHaveLength(10);
+    });
+  });
+
+  describe("rename", () => {
+    it("renames without changing the identifier or the color", async () => {
+      const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
+      const renamed = await repository.rename("cardio", "Cardio intense");
+      expect(renamed.status).toBe("OK");
+      if (renamed.status === "OK") {
+        expect(renamed.value).toMatchObject({ id: "cardio", name: "Cardio intense", canonicalKey: "cardio intense" });
+      }
+    });
+
+    it("refuses a rename that collides with another ACTIVE Category", async () => {
+      const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
+      const result = await repository.rename("cardio", "Mobilité");
+      expect(result).toEqual({ status: "DUPLICATE" });
+    });
+
+    it("returns NOT_FOUND for an unknown identifier", async () => {
+      const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
+      expect(await repository.rename("unknown", "X")).toEqual({ status: "NOT_FOUND" });
+    });
+  });
+
+  describe("recolor", () => {
+    it("changes the color without changing the identifier or the name, and is reflected by objects that use this Category (derived at read time)", async () => {
+      const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
+      const recolored = await repository.recolor("cardio", "#E5484D");
+      expect(recolored.status).toBe("OK");
+      if (recolored.status === "OK") {
+        expect(recolored.value).toMatchObject({ id: "cardio", name: "Cardio", color: "#E5484D" });
+      }
+    });
+
+    it("returns NOT_FOUND for an unknown identifier", async () => {
+      const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
+      expect(await repository.recolor("unknown", "#E5484D")).toEqual({ status: "NOT_FOUND" });
+    });
+  });
+
+  describe("retire — predefined Categories are retirable exactly like custom ones (§4.10 L137)", () => {
+    it("retires a predefined Category logically — remains listed but inactive", async () => {
+      const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
+      const retired = await repository.retire("cardio");
+      expect(retired.status).toBe("OK");
+      if (retired.status === "OK") {
+        expect(retired.value).toMatchObject({ id: "cardio", isActive: false, isPredefined: true });
+      }
+
+      const categories = await repository.listAll();
+      expect(categories).toHaveLength(10);
+      expect(categories.find((category) => category.id === "cardio")?.isActive).toBe(false);
+    });
+
+    it("returns NOT_FOUND for an unknown identifier", async () => {
+      const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
+      expect(await repository.retire("unknown")).toEqual({ status: "NOT_FOUND" });
+    });
+  });
+
+  describe("isUsed (§4.10 L135 — differentiated deletion message)", () => {
+    it("is false for a Category referenced by no Exercise", async () => {
+      const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
+      expect(await repository.isUsed("cardio")).toBe(false);
+    });
+
+    it("is true once an Exercise of the Catalogue references the Category", async () => {
+      await database.runAsync(
+        `INSERT INTO activity_definitions (
+          id, name, description, execution_mode, duration_seconds, repetition_count,
+          series_count, pause_seconds, category_id, side_mode, side_recovery_seconds, created_at, updated_at
+        ) VALUES ('def-1', 'Squat', NULL, 'DURATION', 30, NULL, 3, 10, 'cardio', 'UNILATERAL', 0, 'now', 'now')`,
+      );
+      const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
+      expect(await repository.isUsed("cardio")).toBe(true);
+    });
   });
 });

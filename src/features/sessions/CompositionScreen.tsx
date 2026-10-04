@@ -34,6 +34,7 @@ import {
 } from "@/domain/sessions/SessionDraft";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
+import { LabelPickerModal } from "@/features/reference-data/LabelPickerModal";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import {
   clampSwipeTranslateX,
@@ -125,6 +126,11 @@ function useBodyZonesReferential(
  */
 function useLabelsReferential(
   activityDefinitionService: ActivityDefinitionService,
+  // V2-PRE-2 (plan §6.5, D2/D4) : incrémenté à la fermeture de
+  // `LabelPickerModal` pour relire ce référentiel d'affichage après une
+  // création/un renommage/un retrait éventuel — jamais pour écrire quoi que
+  // ce soit, cette dérivation reste en lecture seule.
+  refreshToken: number = 0,
 ): readonly Label[] {
   const [labels, setLabels] = useState<readonly Label[]>([]);
   useEffect(() => {
@@ -144,7 +150,7 @@ function useLabelsReferential(
     return () => {
       cancelled = true;
     };
-  }, [activityDefinitionService]);
+  }, [activityDefinitionService, refreshToken]);
   return labels;
 }
 
@@ -245,11 +251,19 @@ export type CompositionScreenProps = {
 export function CompositionScreen({ sessionId = null }: CompositionScreenProps = {}) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { draft, updateDraft, resetDraft, editStatus, retryHydration, hydratedBaseline } =
+  const { draft, updateDraft, resetDraft, editStatus, retryHydration, hydratedBaseline, creationBaseline } =
     useSessionDraft();
   const activityDefinitionService = useActivityDefinitionService();
   const bodyZonesReferential = useBodyZonesReferential(activityDefinitionService);
-  const labelsReferential = useLabelsReferential(activityDefinitionService);
+  // V2-PRE-2 (plan §6.5, CE-T03-16, D2/D4) : la pastille devient interactive
+  // (`LabelPickerModal`, auto-alimentée via `ReferentialServiceContext`) —
+  // `labelsLoadToken` relit ce référentiel d'AFFICHAGE (`sessionColor`
+  // dérivée) après une création/un renommage/un retrait éventuel depuis la
+  // modale ; l'affectation elle-même (`draft.labelId`) n'est jamais écrite
+  // par les opérations du référentiel, seulement par `onSelect` ci-dessous.
+  const [isLabelPickerOpen, setIsLabelPickerOpen] = useState(false);
+  const [labelsLoadToken, setLabelsLoadToken] = useState(0);
+  const labelsReferential = useLabelsReferential(activityDefinitionService, labelsLoadToken);
   // V2-PRE-1 (plan §3.3, UI-74BBA70BF09F-AC8AD824374E8) : couleur affichée
   // DÉRIVÉE en lecture seule de l'Étiquette associée au brouillon (jamais une
   // écriture de `draft.color`, retiré du contrat cible) — `DEFAULT_SESSION_COLOR`
@@ -287,10 +301,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
 
   // T01-S10 (CE-T01-S10-06) : en MODIFICATION, la garde de sortie compare le
   // brouillon à son état RÉHYDRATÉ (le dialogue d'abandon n'apparaît que si
-  // quelque chose a changé) ; en création, elle compare au brouillon vide.
+  // quelque chose a changé) ; en création, V2-PRE-2 (T18) la compare au
+  // brouillon RÉELLEMENT créé (valeurs du Profil au moment de la création),
+  // jamais aux seules constantes du Domaine si le Profil en diffère.
   const shouldBlockExit = hydratedBaseline
     ? !sessionDraftsEqual(draft, hydratedBaseline)
-    : isSessionDraftDirty(draft);
+    : isSessionDraftDirty(draft, creationBaseline);
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(
     shouldBlockExit,
     resetDraft,
@@ -526,16 +542,19 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             style={styles.nameInput}
           />
           {/*
-           * V2-PRE-1 (plan §3.3, UI-74BBA70BF09F-AC8AD824374E8) : pastille
-           * DÉCORATIVE (`accessible={false}`, aucun rôle/libellé — jamais le
-           * sélecteur de couleur autonome historique `ColorPalette`, retiré :
-           * le test « never renders an autonomous color picker » reste donc
-           * vert) montrant la couleur DÉRIVÉE de l'Étiquette associée, sans
-           * aucune interaction ni écriture de `draft.color`.
+           * V2-PRE-2 (plan §6.5, CE-T03-16) : pastille devenue interactive —
+           * ouvre `LabelPickerModal` (zéro ou une Étiquette, administration
+           * du référentiel avec couleur). Libellé d'accessibilité DISTINCT
+           * de l'ancien `colorPicker.label` (retiré, jamais réintroduit : le
+           * test « never renders an autonomous color picker » reste vert).
+           * Toujours la couleur DÉRIVÉE de l'Étiquette associée — aucune
+           * écriture directe de `draft.color`, retiré du contrat cible.
            */}
-          <View
+          <Pressable
+            onPress={() => setIsLabelPickerOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={composition.label.accessibilityLabel}
             style={[styles.sessionColorSwatch, { backgroundColor: sessionColor }]}
-            accessible={false}
             testID="composition-session-color-swatch"
           />
         </View>
@@ -899,6 +918,17 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             </Pressable>
           </View>
         </>
+      ) : null}
+
+      {isLabelPickerOpen ? (
+        <LabelPickerModal
+          selectedId={draft.labelId}
+          onSelect={(labelId) => updateDraft({ labelId })}
+          onClose={() => {
+            setIsLabelPickerOpen(false);
+            setLabelsLoadToken((current) => current + 1);
+          }}
+        />
       ) : null}
     </ScreenShell>
   );

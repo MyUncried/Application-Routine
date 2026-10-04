@@ -507,8 +507,8 @@ describe("SqliteSessionRepository", () => {
     // désormais DÉRIVÉE de l'Étiquette jointe (`labels.color`).
     it("restores the exact persisted colour via the Session's Label, including the yellow of the palette (#F7D154), never a default fallback", async () => {
       await database.runAsync(
-        `INSERT INTO labels (id, name, color, is_active, created_at) VALUES (?, ?, '#F7D154', 1, ?)`,
-        ["label-yellow", "Jaune", "2026-01-01T00:00:00.000Z"],
+        `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at) VALUES (?, ?, ?, '#F7D154', 1, ?)`,
+        ["label-yellow", "Jaune", "jaune", "2026-01-01T00:00:00.000Z"],
       );
       const repository = new SqliteSessionRepository(database, uuidFactory());
       const created = await repository.create({ ...validInput(), labelId: "label-yellow" });
@@ -563,8 +563,8 @@ describe("SqliteSessionRepository", () => {
       const timestamp = "2025-01-01T00:00:00.000Z";
 
       await database.runAsync(
-        `INSERT INTO labels (id, name, color, is_active, created_at) VALUES (?, ?, '#F7D154', 1, ?)`,
-        [labelId, "Jaune historique", timestamp],
+        `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at) VALUES (?, ?, ?, '#F7D154', 1, ?)`,
+        [labelId, "Jaune historique", "jaune historique", timestamp],
       );
       await database.runAsync(
         `INSERT INTO sessions (
@@ -1183,12 +1183,12 @@ describe("SqliteSessionRepository", () => {
 
     it("replaces the Session's Label atomically", async () => {
       await database.runAsync(
-        `INSERT INTO labels (id, name, color, is_active, created_at) VALUES (?, ?, '#3B82F6', 1, ?)`,
-        ["label-a", "Étiquette A", "2026-01-01T00:00:00.000Z"],
+        `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at) VALUES (?, ?, ?, '#3B82F6', 1, ?)`,
+        ["label-a", "Étiquette A", "etiquette a", "2026-01-01T00:00:00.000Z"],
       );
       await database.runAsync(
-        `INSERT INTO labels (id, name, color, is_active, created_at) VALUES (?, ?, '#E5484D', 1, ?)`,
-        ["label-b", "Étiquette B", "2026-01-01T00:00:00.000Z"],
+        `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at) VALUES (?, ?, ?, '#E5484D', 1, ?)`,
+        ["label-b", "Étiquette B", "etiquette b", "2026-01-01T00:00:00.000Z"],
       );
       const repository = new SqliteSessionRepository(database, uuidFactory());
       const created = await repository.create({
@@ -1280,12 +1280,12 @@ describe("SqliteSessionRepository", () => {
     // référence externe restante de la Séance.
     it("rolls back EVERY change when a mid-transaction step fails: session fields, updated_at, tour repeat, Activities + ids + positions and body zones", async () => {
       await database.runAsync(
-        `INSERT INTO labels (id, name, color, is_active, created_at) VALUES (?, ?, '#3B82F6', 1, ?)`,
-        ["label-original", "Étiquette d'origine", "2026-01-01T00:00:00.000Z"],
+        `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at) VALUES (?, ?, ?, '#3B82F6', 1, ?)`,
+        ["label-original", "Étiquette d'origine", "etiquette d'origine", "2026-01-01T00:00:00.000Z"],
       );
       await database.runAsync(
-        `INSERT INTO labels (id, name, color, is_active, created_at) VALUES (?, ?, '#E5484D', 1, ?)`,
-        ["label-new", "Nouvelle étiquette", "2026-01-01T00:00:00.000Z"],
+        `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at) VALUES (?, ?, ?, '#E5484D', 1, ?)`,
+        ["label-new", "Nouvelle étiquette", "nouvelle etiquette", "2026-01-01T00:00:00.000Z"],
       );
       const repository = new SqliteSessionRepository(
         database,
@@ -1412,6 +1412,145 @@ describe("SqliteSessionRepository", () => {
       expect((beforeZoneRows as { body_zone_id: string }[]).map((z) => z.body_zone_id)).toEqual([
         "dos",
       ]);
+    });
+  });
+
+  /**
+   * T16 (D-210, requirement référentiels Étiquette/Catégorie/Zone) : garde
+   * « valeur retirée » côté stockage — une NOUVELLE affectation vers une
+   * entrée retirée est refusée ; une affectation déjà persistée reste
+   * permise même retirée entre-temps.
+   */
+  describe("garde « valeur retirée » côté stockage — Étiquette et Zones (T16, D-210)", () => {
+    async function insertRetiredLabel(id: string, canonicalKey: string): Promise<void> {
+      await database.runAsync(
+        `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at)
+         VALUES (?, ?, ?, '#F7D154', 0, '2026-01-01T00:00:00.000Z')`,
+        [id, canonicalKey, canonicalKey],
+      );
+    }
+
+    it("rejects creating a Session with a retired Label", async () => {
+      await insertRetiredLabel("label-retired", "jaune-retiree");
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+
+      await expect(
+        repository.create({ ...validInput(), labelId: "label-retired" }),
+      ).rejects.toThrow(/retired/i);
+
+      const count = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM sessions",
+      );
+      expect(count?.count).toBe(0);
+    });
+
+    it("rejects creating an Activity with a retired body zone", async () => {
+      await database.runAsync(`UPDATE body_zones SET is_active = 0 WHERE id = 'dos'`);
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+
+      await expect(
+        repository.create({
+          ...validInput(),
+          exercises: [{ ...anExercise(), bodyZoneIds: ["dos"] }],
+        }),
+      ).rejects.toThrow(/retired/i);
+
+      const count = await database.getFirstAsync<{ count: number }>(
+        "SELECT COUNT(*) AS count FROM sessions",
+      );
+      expect(count?.count).toBe(0);
+    });
+
+    it("rejects switching an update to a retired Label, but keeps an already-assigned Label even if it is retired afterwards", async () => {
+      await insertRetiredLabel("label-retired", "jaune-retiree");
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({ ...validInput(), labelId: null });
+      const keptId = created.cycle.tour.exercises[0]!.id;
+
+      await expect(
+        repository.update(
+          created.id,
+          anUpdateInput({
+            sourceSessionId: created.id,
+            labelId: "label-retired",
+            activities: [anUpdateActivity({ id: keptId })],
+          }),
+        ),
+      ).rejects.toThrow(/retired/i);
+
+      // L'affectation existante (ici absente, `null`) n'est jamais altérée par un échec.
+      const reopened = await repository.findById(created.id);
+      expect(reopened?.labelId).toBeNull();
+    });
+
+    it("keeps an already-assigned, now-retired Label unchanged when the update does not touch it", async () => {
+      await database.runAsync(
+        `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at)
+         VALUES ('label-1', 'Sport', 'sport', '#2E9B62', 1, '2026-01-01T00:00:00.000Z')`,
+      );
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({ ...validInput(), labelId: "label-1" });
+      const keptId = created.cycle.tour.exercises[0]!.id;
+
+      await database.runAsync(`UPDATE labels SET is_active = 0 WHERE id = 'label-1'`);
+
+      const outcome = await repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          labelId: "label-1",
+          activities: [anUpdateActivity({ id: keptId })],
+        }),
+      );
+
+      expect(outcome.status).toBe("UPDATED");
+      if (outcome.status !== "UPDATED") throw new Error("expected UPDATED");
+      expect(outcome.session.labelId).toBe("label-1");
+    });
+
+    it("rejects adding a NEW retired body zone on update, but keeps an already-assigned Zone even if it is retired afterwards", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        exercises: [{ ...anExercise(), bodyZoneIds: ["dos"] }],
+      });
+      const keptId = created.cycle.tour.exercises[0]!.id;
+      await database.runAsync(`UPDATE body_zones SET is_active = 0 WHERE id = 'epaules'`);
+
+      await expect(
+        repository.update(
+          created.id,
+          anUpdateInput({
+            sourceSessionId: created.id,
+            activities: [anUpdateActivity({ id: keptId, bodyZoneIds: ["dos", "epaules"] })],
+          }),
+        ),
+      ).rejects.toThrow(/retired/i);
+
+      const reopened = await repository.findById(created.id);
+      expect(reopened?.cycle.tour.exercises[0]?.bodyZoneIds).toEqual(["dos"]);
+    });
+
+    it("keeps an already-assigned, now-retired body zone unchanged when the update resubmits it unchanged", async () => {
+      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const created = await repository.create({
+        ...validInput(),
+        exercises: [{ ...anExercise(), bodyZoneIds: ["dos"] }],
+      });
+      const keptId = created.cycle.tour.exercises[0]!.id;
+      await database.runAsync(`UPDATE body_zones SET is_active = 0 WHERE id = 'dos'`);
+
+      const outcome = await repository.update(
+        created.id,
+        anUpdateInput({
+          sourceSessionId: created.id,
+          activities: [anUpdateActivity({ id: keptId, bodyZoneIds: ["dos"] })],
+        }),
+      );
+
+      expect(outcome.status).toBe("UPDATED");
+      if (outcome.status !== "UPDATED") throw new Error("expected UPDATED");
+      expect(outcome.session.cycle.tour.exercises[0]?.bodyZoneIds).toEqual(["dos"]);
     });
   });
 
