@@ -43,6 +43,89 @@ import type {
 type LocalUserRow = { id: string };
 type UuidFactory = () => string;
 
+/**
+ * Garde « valeur retirée » côté stockage (T16, D-210, requirement
+ * référentiels Étiquette/Catégorie/Zone), côté Étiquette de Séance : une
+ * nouvelle affectation (différente de celle déjà persistée) vers une
+ * Étiquette RETIRÉE est refusée ; l'affectation déjà en place reste permise
+ * même si l'Étiquette a été retirée entre-temps. Même patron que
+ * `RetiredCategoryError` (`SqliteActivityDefinitionRepository.ts`).
+ */
+export class RetiredLabelError extends Error {
+  constructor() {
+    super("The referenced label has been retired and cannot be newly assigned.");
+    this.name = "RetiredLabelError";
+  }
+}
+
+/** Même garde (T16, D-210), côté Zones corporelles d'une Activité — une Zone déjà affectée reste permise même retirée ; une NOUVELLE affectation à une Zone retirée est refusée. */
+export class RetiredBodyZoneError extends Error {
+  constructor() {
+    super("A referenced body zone has been retired and cannot be newly assigned.");
+    this.name = "RetiredBodyZoneError";
+  }
+}
+
+type ReferentialIdRow = { id: string; is_active: 0 | 1 };
+
+/**
+ * Refuse une NOUVELLE affectation d'Étiquette vers une entrée RETIRÉE —
+ * `currentLabelId` est l'affectation déjà persistée avant la modification
+ * (`null` à la création, où aucune affectation existante ne peut donc
+ * jamais être "conservée").
+ */
+async function assertLabelAssignable(
+  transaction: Database,
+  labelId: string | null,
+  currentLabelId: string | null,
+): Promise<void> {
+  if (labelId === null || labelId === currentLabelId) {
+    return;
+  }
+  const row = await transaction.getFirstAsync<ReferentialIdRow>(
+    "SELECT id, is_active FROM labels WHERE id = ?",
+    [labelId],
+  );
+  if (!row) {
+    throw new Error("Referenced label does not exist.");
+  }
+  if (row.is_active === 0) {
+    throw new RetiredLabelError();
+  }
+}
+
+/**
+ * Refuse une NOUVELLE affectation de Zone corporelle vers une entrée
+ * RETIRÉE — `currentBodyZoneIds` porte les Zones déjà affectées à CETTE
+ * Activité avant la modification (ensemble vide pour une Activité
+ * nouvellement créée, où aucune affectation existante ne peut être
+ * "conservée").
+ */
+async function assertBodyZonesAssignable(
+  transaction: Database,
+  bodyZoneIds: readonly string[],
+  currentBodyZoneIds: ReadonlySet<string>,
+): Promise<void> {
+  const newIds = bodyZoneIds.filter((id) => !currentBodyZoneIds.has(id));
+  if (newIds.length === 0) {
+    return;
+  }
+  const placeholders = newIds.map(() => "?").join(", ");
+  const rows = await transaction.getAllAsync<ReferentialIdRow>(
+    `SELECT id, is_active FROM body_zones WHERE id IN (${placeholders})`,
+    newIds,
+  );
+  const foundIds = new Set(rows.map((row) => row.id));
+  for (const id of newIds) {
+    if (!foundIds.has(id)) {
+      throw new Error("Referenced body zone does not exist.");
+    }
+  }
+  if (rows.some((row) => row.is_active === 0)) {
+    throw new RetiredBodyZoneError();
+  }
+}
+
 /** Ordre canonique de restitution des zones structurelles (D-061). */
 const STRUCTURAL_ORDER_SQL = `
   CASE activities.structural_position
@@ -221,6 +304,8 @@ export class SqliteSessionRepository implements SessionRepository {
       const timestamp = this.now();
       const user = await getLocalUser(transaction);
 
+      await assertLabelAssignable(transaction, normalized.labelId ?? null, null);
+
       await transaction.runAsync(
         `INSERT INTO sessions (
           id, owner_id, name, label_id, status,
@@ -312,6 +397,8 @@ export class SqliteSessionRepository implements SessionRepository {
         outcome = { status: "ARCHIVED" };
         return;
       }
+
+      await assertLabelAssignable(transaction, normalized.labelId ?? null, existingRow.label_id);
 
       const sessionUpdate = await transaction.runAsync(
         `UPDATE sessions SET name = ?, label_id = ?, initial_countdown_seconds = ?,
@@ -474,6 +561,10 @@ async function insertActivities(
     const { executionMode, seriesCount, pauseSeconds, postActivityRecoverySeconds, bodyZoneIds, sideMode } =
       toActivitySqlValues(activity);
 
+    // T16 (D-210) : une Activité nouvellement créée n'a aucune affectation
+    // existante à conserver — chaque Zone demandée doit être active.
+    await assertBodyZonesAssignable(transaction, bodyZoneIds, new Set());
+
     await transaction.runAsync(
       `INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})
        VALUES (${ACTIVITY_ROW_PLACEHOLDERS})`,
@@ -619,6 +710,14 @@ async function mergeActivities(
   const existing = new Set(existingActivityIds);
   const incoming = new Set(activities.map((activity) => activity.id));
 
+  // T16 (D-210) : capturée AVANT toute suppression — les Zones déjà
+  // affectées à une Activité CONSERVÉE restent permises même retirées ;
+  // une Activité nouvellement ajoutée n'a par construction aucune entrée ici.
+  const currentBodyZoneIdsByActivity = await getCurrentBodyZoneIdsByActivity(
+    transaction,
+    existingActivityIds,
+  );
+
   for (const id of existingActivityIds) {
     if (!incoming.has(id)) {
       await transaction.runAsync(`DELETE FROM activity_body_zones WHERE activity_id = ?`, [id]);
@@ -650,6 +749,12 @@ async function mergeActivities(
     const { executionMode, seriesCount, pauseSeconds, postActivityRecoverySeconds, bodyZoneIds, sideMode } =
       toActivitySqlValues(activity);
     const instruction = activity.instruction ?? null;
+
+    await assertBodyZonesAssignable(
+      transaction,
+      bodyZoneIds,
+      currentBodyZoneIdsByActivity.get(activity.id) ?? new Set(),
+    );
 
     if (existing.has(activity.id)) {
       await transaction.runAsync(
@@ -766,6 +871,21 @@ async function getStopPoints(
     [sessionId],
   );
   return rows.map((row) => ({ id: row.id, scope: row.scope, order: row.position }));
+}
+
+/** T16 (D-210) : Zones déjà affectées à chacune des Activités données, avant toute modification — même requête que `getBodyZonesForActivities`, regroupée par Activité pour `assertBodyZonesAssignable`. */
+async function getCurrentBodyZoneIdsByActivity(
+  transaction: Database,
+  activityIds: readonly string[],
+): Promise<ReadonlyMap<string, ReadonlySet<string>>> {
+  const rows = await getBodyZonesForActivities(transaction, activityIds);
+  const byActivity = new Map<string, Set<string>>();
+  for (const row of rows) {
+    const set = byActivity.get(row.activity_id) ?? new Set<string>();
+    set.add(row.body_zone_id);
+    byActivity.set(row.activity_id, set);
+  }
+  return byActivity;
 }
 
 async function getBodyZonesForActivities(

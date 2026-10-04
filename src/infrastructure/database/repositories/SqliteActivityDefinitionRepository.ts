@@ -19,7 +19,22 @@ import type {
 } from "@/infrastructure/database/types/DatabaseRows";
 
 type UuidFactory = () => string;
-type CategoryIdRow = { id: string };
+type CategoryIdRow = { id: string; is_active: 0 | 1 };
+
+/**
+ * Garde « valeur retirée » côté stockage (T16, D-210, CE-UI-09 L2825/L2837) :
+ * une référence `EXISTING` vers une Catégorie RETIRÉE est refusée, SAUF si
+ * elle est identique à l'affectation déjà persistée de cet Exercice (une
+ * modification qui ne touche pas la Catégorie reste permise même si celle-ci
+ * a été retirée entre-temps). Le brouillon appelant reste intact : cette
+ * erreur se propage telle quelle, jamais une écriture partielle.
+ */
+export class RetiredCategoryError extends Error {
+  constructor() {
+    super("The referenced category has been retired and cannot be newly assigned.");
+    this.name = "RetiredCategoryError";
+  }
+}
 
 const SELECT_COLUMNS = `
   id, name, description, execution_mode, duration_seconds, repetition_count,
@@ -40,14 +55,19 @@ async function resolveCategoryId(
   category: CreateCategoryInput,
   uuidFactory: UuidFactory,
   timestamp: string,
+  /** Catégorie déjà assignée à cet Exercice avant la modification — `null` à la création (T16). */
+  currentCategoryId: string | null = null,
 ): Promise<string> {
   if (category.kind === "EXISTING") {
     const row = await transaction.getFirstAsync<CategoryIdRow>(
-      "SELECT id FROM categories WHERE id = ?",
+      "SELECT id, is_active FROM categories WHERE id = ?",
       [category.categoryId],
     );
     if (!row) {
       throw new Error("Referenced category does not exist.");
+    }
+    if (row.is_active === 0 && row.id !== currentCategoryId) {
+      throw new RetiredCategoryError();
     }
     return row.id;
   }
@@ -147,15 +167,22 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
     let categoryId = "";
 
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
-      const existing = await transaction.getFirstAsync<{ id: string; created_at: string }>(
-        "SELECT id, created_at FROM activity_definitions WHERE id = ?",
-        [id],
-      );
+      const existing = await transaction.getFirstAsync<{
+        id: string;
+        created_at: string;
+        category_id: string;
+      }>("SELECT id, created_at, category_id FROM activity_definitions WHERE id = ?", [id]);
       if (!existing) {
         return;
       }
       createdAt = existing.created_at;
-      categoryId = await resolveCategoryId(transaction, input.category, this.uuidFactory, timestamp);
+      categoryId = await resolveCategoryId(
+        transaction,
+        input.category,
+        this.uuidFactory,
+        timestamp,
+        existing.category_id,
+      );
 
       await transaction.runAsync(
         `UPDATE activity_definitions SET

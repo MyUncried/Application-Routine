@@ -8,7 +8,10 @@ import { useSessionService } from "@/features/sessions/SessionServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
-import { DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS } from "@/domain/preferences/Profile";
+import { ProfileService } from "@/features/preferences/ProfileService";
+import { useProfileService } from "@/features/preferences/ProfileServiceContext";
+import { ReferentialService } from "@/features/reference-data/ReferentialService";
+import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
 import { createEmptyDraft, createExerciseDraft } from "@/domain/sessions/SessionDraft";
 import {
@@ -286,22 +289,7 @@ describe("SessionServiceProvider — régression : un children applicatif variab
   }, 20000);
 });
 
-describe("SessionServiceProvider — câblage réel du Profil (V2-PRE-1, plan §3.2, UI-16294D4D4345)", () => {
-  /**
-   * Revue indépendante 5938943370 (run 36913774921, REVISE), résolue par le
-   * plan round 5 (revue 5939867521, barrière 5939871764) : `SessionService`
-   * est désormais construit avec `SqliteProfileRepository` en TROISIÈME
-   * argument (même connexion `ExpoDatabase` que les deux autres Repository),
-   * ici prouvé à travers le câblage RÉEL du provider — base migrée en
-   * mémoire (double fidèle `expo-sqlite`, voir le docstring de tête de ce
-   * fichier) — jamais un double de `SessionService`/`ProfileRepository`.
-   *
-   * Le Profil est mutilé directement en base à une valeur VOLONTAIREMENT
-   * distincte de `DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS` (le seed de
-   * `migration007`), afin que ce test ne puisse pas passer par coïncidence
-   * si la valeur par défaut du Domaine était lue à la place du Profil
-   * réellement persisté.
-   */
+describe("SessionServiceProvider — câblage réel du Profil et des référentiels (V2-PRE-2, plan §6.3)", () => {
   beforeEach(() => {
     jest.useFakeTimers();
   });
@@ -310,7 +298,15 @@ describe("SessionServiceProvider — câblage réel du Profil (V2-PRE-1, plan §
     jest.useRealTimers();
   });
 
-  it("initialise postActivityRecoverySeconds d'une occurrence depuis le Profil persisté (valeur distincte du défaut) lors d'une création réelle via le provider", async () => {
+  /**
+   * V2-PRE-2 (plan §6.3) : abroge l'écrasement V2-PRE-1 — `createSession`
+   * ne relit ni n'écrase plus jamais `postActivityRecoverySeconds` depuis le
+   * Profil. Le Profil est mutilé à une valeur volontairement distincte de
+   * celle portée par l'occurrence du brouillon, pour prouver qu'elle n'est
+   * JAMAIS consultée par `createSession` à travers le câblage RÉEL du
+   * provider (jamais un double de `SessionService`).
+   */
+  it("persists each occurrence's own postActivityRecoverySeconds unchanged, never re-reading the Profile, through the real provider wiring", async () => {
     const onReady = jest.fn();
     const openInMemorySpy = jest.spyOn(mockNodeSqliteDatabase, "openInMemory");
 
@@ -323,10 +319,6 @@ describe("SessionServiceProvider — câblage réel du Profil (V2-PRE-1, plan §
       return null;
     }
 
-    // Même patron que le test de régression ci-dessus : `children` ne doit
-    // appeler `useSessionService()` qu'une fois le service RÉELLEMENT prêt
-    // (sans quoi le contexte vaut encore `null` et ce Hook lève). `showContent`
-    // reste donc `false` jusqu'à ce qu'`onReady` ait été signalé.
     function Harness({ showContent }: { showContent: boolean }) {
       return (
         <SessionServiceProvider onReady={onReady}>
@@ -347,34 +339,95 @@ describe("SessionServiceProvider — câblage réel du Profil (V2-PRE-1, plan §
 
     const nativeDatabase = openInMemorySpy.mock.results[0]
       ?.value as ReturnType<typeof mockNodeSqliteDatabase.openInMemory>;
-    const CUSTOM_RECOVERY_SECONDS = 45;
-    expect(CUSTOM_RECOVERY_SECONDS).not.toBe(DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS);
-    // Valeurs entières littérales directement interpolées (même patron que
-    // `SqliteBodyZoneRepository.test.ts`, "UPDATE body_zones SET is_active = 0
-    // WHERE id = 'cou'") — aucun paramètre lié, aucune chaîne utilisateur :
-    // les deux valeurs sont des constantes entières de ce test.
+    const PROFILE_DEFAULT_SECONDS = 45;
+    const OCCURRENCE_OWN_SECONDS = 20;
+    expect(PROFILE_DEFAULT_SECONDS).not.toBe(OCCURRENCE_OWN_SECONDS);
     await nativeDatabase.runAsync(
-      `UPDATE profiles SET post_activity_recovery_seconds_default = ${CUSTOM_RECOVERY_SECONDS} WHERE singleton_key = ${LOCAL_PROFILE_SINGLETON_KEY}`,
+      `UPDATE profiles SET post_activity_recovery_seconds_default = ${PROFILE_DEFAULT_SECONDS} WHERE singleton_key = ${LOCAL_PROFILE_SINGLETON_KEY}`,
     );
 
     const draft = {
       ...createEmptyDraft(),
       name: "Séance simple",
-      exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage" }],
+      exercises: [
+        { ...createExerciseDraft("ex-1", OCCURRENCE_OWN_SECONDS), name: "Gainage" },
+      ],
     };
 
     const result = await capturedService!.createSession(draft);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      // `createExerciseDraft` place l'Exercice à `DEFAULT_STRUCTURAL_POSITION`
-      // (`BEFORE_TOUR`, hors du Circuit) — `cycle.beforeTour`, jamais
-      // `cycle.tour.exercises` (réservé aux Activités `IN_TOUR`).
       expect(result.value.cycle.beforeTour?.[0]?.postActivityRecoverySeconds).toBe(
-        CUSTOM_RECOVERY_SECONDS,
+        OCCURRENCE_OWN_SECONDS,
       );
     }
 
     openInMemorySpy.mockRestore();
+  }, 20000);
+
+  it("exposes a real, functional ProfileService — reads the migrated singleton Profile and persists a preference change", async () => {
+    const onReady = jest.fn();
+
+    let capturedService: ProfileService | null = null;
+    function ServiceCapture() {
+      const service = useProfileService();
+      useEffect(() => {
+        capturedService = service;
+      }, [service]);
+      return null;
+    }
+
+    function Harness({ showContent }: { showContent: boolean }) {
+      return (
+        <SessionServiceProvider onReady={onReady}>
+          {showContent ? <ServiceCapture /> : null}
+        </SessionServiceProvider>
+      );
+    }
+
+    const { rerender } = render(<Harness showContent={false} />);
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1));
+    act(() => {
+      rerender(<Harness showContent={true} />);
+    });
+    await waitFor(() => expect(capturedService).toBeInstanceOf(ProfileService));
+
+    const profile = await capturedService!.getProfile();
+    expect(profile.notificationsEnabled).toBe(false);
+
+    const updated = await capturedService!.setPreference("notificationsEnabled", true);
+    expect(updated.notificationsEnabled).toBe(true);
+  }, 20000);
+
+  it("exposes a real, functional ReferentialService — lists the ten predefined Categories through the migrated database", async () => {
+    const onReady = jest.fn();
+
+    let capturedService: ReferentialService | null = null;
+    function ServiceCapture() {
+      const service = useReferentialService();
+      useEffect(() => {
+        capturedService = service;
+      }, [service]);
+      return null;
+    }
+
+    function Harness({ showContent }: { showContent: boolean }) {
+      return (
+        <SessionServiceProvider onReady={onReady}>
+          {showContent ? <ServiceCapture /> : null}
+        </SessionServiceProvider>
+      );
+    }
+
+    const { rerender } = render(<Harness showContent={false} />);
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1));
+    act(() => {
+      rerender(<Harness showContent={true} />);
+    });
+    await waitFor(() => expect(capturedService).toBeInstanceOf(ReferentialService));
+
+    const categories = await capturedService!.listCategories();
+    expect(categories).toHaveLength(10);
   }, 20000);
 });
 
@@ -686,7 +739,11 @@ describe("SessionServiceProvider — câblage réel des Étiquettes pour la coul
     // que la lecture (`listLabels`), jamais la création d'Étiquette (hors
     // périmètre de cette correction).
     const labelRepository = new SqliteLabelRepository(nativeDatabase);
-    const createdLabel = await labelRepository.create({ name: "Sport", color: "#2E9B62" });
+    const createResult = await labelRepository.create({ name: "Sport", color: "#2E9B62" });
+    if (createResult.status !== "OK") {
+      throw new Error("Expected the Label creation to succeed.");
+    }
+    const createdLabel = createResult.value;
 
     const labels = await service.listLabels();
     expect(labels.some((label) => label.id === createdLabel.id && label.color === "#2E9B62")).toBe(

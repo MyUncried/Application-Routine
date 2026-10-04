@@ -57,6 +57,15 @@ export type SessionDraftContextValue = {
    * n'apparaît que si le brouillon courant en diffère.
    */
   readonly hydratedBaseline?: SessionDraft | null;
+  /**
+   * V2-PRE-2 (plan §6.1/§7, T18) : brouillon de CRÉATION tel qu'il a été
+   * RÉELLEMENT initialisé (valeurs du Profil au moment de la création,
+   * snapshot atomique) — sert de référence à `isSessionDraftDirty` en
+   * création, exactement comme `hydratedBaseline` sert de référence en
+   * modification. Toujours `createEmptyDraft()` (constantes du Domaine) tant
+   * que le Profil n'a pas encore été lu (T19).
+   */
+  readonly creationBaseline?: SessionDraft;
 };
 
 export const SessionDraftContext = createContext<SessionDraftContextValue | null>(null);

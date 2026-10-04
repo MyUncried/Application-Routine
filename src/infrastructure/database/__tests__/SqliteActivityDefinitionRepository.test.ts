@@ -277,4 +277,64 @@ describe("SqliteActivityDefinitionRepository", () => {
       expect(definitions).toHaveLength(0);
     });
   });
+
+  /**
+   * T16, D-210, CE-UI-09 L2825/L2837 (V2-PRE-2) : garde « valeur retirée »
+   * côté stockage — une référence `EXISTING` vers une Catégorie retirée est
+   * refusée à la création ; en modification, elle reste permise UNIQUEMENT
+   * si elle est identique à l'affectation déjà persistée.
+   */
+  describe("T16 — retired category guard (D-210)", () => {
+    it("create(): rejects a reference to a retired category", async () => {
+      await database.runAsync("UPDATE categories SET is_active = 0 WHERE id = 'cardio'");
+      const repository = new SqliteActivityDefinitionRepository(
+        database,
+        makeUuidFactory("def"),
+        makeClock("2026-01-01T00:00:00.000Z"),
+      );
+
+      await expect(repository.create(baseInput())).rejects.toThrow();
+      const definitions = await database.getAllAsync<{ id: string }>(
+        "SELECT id FROM activity_definitions",
+      );
+      expect(definitions).toHaveLength(0);
+    });
+
+    it("update(): keeps the already-assigned category even if it has since been retired", async () => {
+      const repository = new SqliteActivityDefinitionRepository(
+        database,
+        makeUuidFactory("def"),
+        makeClock("2026-01-01T00:00:00.000Z"),
+      );
+      const created = await repository.create(baseInput());
+      await database.runAsync("UPDATE categories SET is_active = 0 WHERE id = 'cardio'");
+
+      const updated = await repository.update(created.id, { ...baseInput(), name: "Squat renommé" });
+      expect(updated?.categoryId).toBe("cardio");
+      expect(updated?.name).toBe("Squat renommé");
+    });
+
+    it("update(): rejects switching to a DIFFERENT retired category", async () => {
+      const repository = new SqliteActivityDefinitionRepository(
+        database,
+        makeUuidFactory("def"),
+        makeClock("2026-01-01T00:00:00.000Z"),
+      );
+      const created = await repository.create(baseInput());
+      await database.runAsync("UPDATE categories SET is_active = 0 WHERE id = 'mobilite'");
+
+      await expect(
+        repository.update(created.id, {
+          ...baseInput(),
+          category: { kind: "EXISTING", categoryId: "mobilite" },
+        }),
+      ).rejects.toThrow();
+
+      const row = await database.getFirstAsync<{ category_id: string }>(
+        "SELECT category_id FROM activity_definitions WHERE id = ?",
+        [created.id],
+      );
+      expect(row?.category_id).toBe("cardio");
+    });
+  });
 });

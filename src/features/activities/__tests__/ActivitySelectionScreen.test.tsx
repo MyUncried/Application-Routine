@@ -4,13 +4,24 @@ import { StyleSheet } from "react-native";
 
 import type { ActivityDefinition } from "@/domain/activities";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import { createDefaultProfile } from "@/domain/preferences/Profile";
 import { createEmptyDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivitySelectionScreen } from "@/features/activities/ActivitySelectionScreen";
+import type { ProfileService } from "@/features/preferences/ProfileService";
+import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import { colors } from "@/shared/ui/tokens";
+
+/** V2-PRE-2 (D-171/D-213) : `ActivitySelectionScreen` lit le Profil une seule fois au montage — doublé minimal. */
+function fakeProfileService(overrides: Partial<ProfileService> = {}): ProfileService {
+  return {
+    getProfile: jest.fn(async () => createDefaultProfile("profile-1", "2026-01-01T00:00:00.000Z")),
+    ...overrides,
+  } as unknown as ProfileService;
+}
 
 const mockBack = jest.fn();
 
@@ -106,9 +117,11 @@ function renderScreen(
   render(
     <TestSafeAreaProvider>
       <ActivityDefinitionServiceContext.Provider value={service as ActivityDefinitionService}>
-        <SessionDraftContext.Provider value={draftValue}>
-          <ActivitySelectionScreen />
-        </SessionDraftContext.Provider>
+        <ProfileServiceContext.Provider value={fakeProfileService()}>
+          <SessionDraftContext.Provider value={draftValue}>
+            <ActivitySelectionScreen />
+          </SessionDraftContext.Provider>
+        </ProfileServiceContext.Provider>
       </ActivityDefinitionServiceContext.Provider>
     </TestSafeAreaProvider>,
   );
@@ -229,11 +242,13 @@ describe("ActivitySelectionScreen", () => {
     render(
       <TestSafeAreaProvider>
         <ActivityDefinitionServiceContext.Provider value={service as ActivityDefinitionService}>
-          <SessionDraftContext.Provider
-            value={{ draft: createEmptyDraft(), updateDraft, resetDraft: jest.fn() }}
-          >
-            <ActivitySelectionScreen />
-          </SessionDraftContext.Provider>
+          <ProfileServiceContext.Provider value={fakeProfileService()}>
+            <SessionDraftContext.Provider
+              value={{ draft: createEmptyDraft(), updateDraft, resetDraft: jest.fn() }}
+            >
+              <ActivitySelectionScreen />
+            </SessionDraftContext.Provider>
+          </ProfileServiceContext.Provider>
         </ActivityDefinitionServiceContext.Provider>
       </TestSafeAreaProvider>,
     );
@@ -290,5 +305,48 @@ describe("ActivitySelectionScreen", () => {
     expect(exercises[1]?.name).toBe("Fentes");
     expect(exercises[0]?.id).not.toBe(exercises[1]?.id);
     expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
+  /** V2-PRE-2 (D-171/D-213) : chaque copie insérée reçoit la Récupération COURANTE du Profil. */
+  it("gives each inserted copy the current Profile's Récupération après exercice default", async () => {
+    const service: Partial<ActivityDefinitionService> = {
+      listActivityDefinitions: jest
+        .fn<ActivityDefinitionService["listActivityDefinitions"]>()
+        .mockResolvedValue([makeDefinition("a", "Squat")]),
+      listBodyZones: jest
+        .fn<ActivityDefinitionService["listBodyZones"]>()
+        .mockResolvedValue(BODY_ZONE_FIXTURES),
+    };
+    const updateDraft = jest.fn<(patch: Partial<SessionDraft>) => void>();
+    render(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider value={service as ActivityDefinitionService}>
+          <ProfileServiceContext.Provider
+            value={fakeProfileService({
+              getProfile: jest.fn(async () => ({
+                ...createDefaultProfile("profile-1", "2026-01-01T00:00:00.000Z"),
+                postActivityRecoverySecondsDefault: 45,
+              })),
+            })}
+          >
+            <SessionDraftContext.Provider
+              value={{ draft: createEmptyDraft(), updateDraft, resetDraft: jest.fn() }}
+            >
+              <ActivitySelectionScreen />
+            </SessionDraftContext.Provider>
+          </ProfileServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    await waitFor(() => expect(screen.getByTestId("activity-selection-list")).toBeTruthy());
+    // Laisse la lecture asynchrone du Profil se résoudre avant l'insertion.
+    await waitFor(() => expect(screen.getByTestId("activity-selection-row-a")).toBeTruthy());
+
+    fireEvent.press(screen.getByTestId("activity-selection-row-a"));
+    fireEvent.press(screen.getByTestId("activity-selection-add"));
+
+    expect(updateDraft).toHaveBeenCalledTimes(1);
+    const exercises = updateDraft.mock.calls[0][0].exercises ?? [];
+    expect(exercises[0]?.postActivityRecoverySeconds).toBe(45);
   });
 });

@@ -10,6 +10,8 @@ import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
+import type { ReferentialService } from "@/features/reference-data/ReferentialService";
+import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { CompositionScreen } from "@/features/sessions/CompositionScreen";
 import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
@@ -39,7 +41,14 @@ const BODY_ZONE_FIXTURES: readonly BodyZone[] = [
  * doublé ci-dessous (`fakeActivityDefinitionService`).
  */
 const LABEL_FIXTURES: readonly Label[] = [
-  { id: "label-sport", name: "Sport", color: "#2E9B62", isActive: true, createdAt: "2026-01-01T00:00:01.000Z" },
+  {
+    id: "label-sport",
+    name: "Sport",
+    canonicalKey: "sport",
+    color: "#2E9B62",
+    isActive: true,
+    createdAt: "2026-01-01T00:00:01.000Z",
+  },
 ];
 
 // T02-S01 : la duplication d'une Activité génère un identifiant frais
@@ -100,13 +109,32 @@ function fakeActivityDefinitionService(
   } as unknown as ActivityDefinitionService;
 }
 
+/**
+ * V2-PRE-2 (plan §6.5, CE-T03-16) : la pastille ouvre désormais
+ * `LabelPickerModal`, qui s'auto-alimente via `ReferentialServiceContext` —
+ * jamais `ActivityDefinitionService` pour cette modale (réservé à la
+ * dérivation d'affichage en lecture seule, `fakeActivityDefinitionService`).
+ */
+function fakeReferentialService(overrides: Partial<ReferentialService> = {}): ReferentialService {
+  return {
+    listLabels: jest.fn(async () => LABEL_FIXTURES),
+    createLabel: jest.fn(async () => ({ status: "DUPLICATE" as const })),
+    renameLabel: jest.fn(async () => ({ status: "NOT_FOUND" as const })),
+    retireLabel: jest.fn(async () => ({ status: "NOT_FOUND" as const })),
+    isLabelUsed: jest.fn(async () => false),
+    ...overrides,
+  } as unknown as ReferentialService;
+}
+
 function renderScreen() {
   return render(
     <TestSafeAreaProvider>
       <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
-        <SessionDraftProvider>
-          <CompositionScreen />
-        </SessionDraftProvider>
+        <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+          <SessionDraftProvider>
+            <CompositionScreen />
+          </SessionDraftProvider>
+        </ReferentialServiceContext.Provider>
       </ActivityDefinitionServiceContext.Provider>
     </TestSafeAreaProvider>,
   );
@@ -171,9 +199,11 @@ function renderScreenWithDraft(
   return render(
     <TestSafeAreaProvider>
       <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
-        <StatefulDraftWrapper initialExercises={exercises} draftOverrides={draftOverrides}>
-          <CompositionScreen />
-        </StatefulDraftWrapper>
+        <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+          <StatefulDraftWrapper initialExercises={exercises} draftOverrides={draftOverrides}>
+            <CompositionScreen />
+          </StatefulDraftWrapper>
+        </ReferentialServiceContext.Provider>
       </ActivityDefinitionServiceContext.Provider>
     </TestSafeAreaProvider>,
   );
@@ -602,6 +632,27 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     });
 
     expect(screen.queryByLabelText(composition.colorPicker.label)).toBeNull();
+  });
+
+  /**
+   * V2-PRE-2 (plan §6.5, CE-T03-16) : la pastille ouvre `LabelPickerModal` —
+   * l'affectation (`draft.labelId`) est enregistrée dans le brouillon local
+   * dès la sélection (seul l'ENREGISTREMENT final de la Séance reste
+   * conditionné à Continuer, hors périmètre de ce test).
+   */
+  it("opens LabelPickerModal from the swatch and applies the selected Label to the draft", async () => {
+    renderScreenWithDraft([], { labelId: null });
+
+    fireEvent.press(screen.getByLabelText(composition.label.accessibilityLabel));
+
+    const tag = await screen.findByTestId("label-picker-tag-label-sport");
+    fireEvent.press(tag);
+
+    expect(screen.queryByTestId("label-picker-backdrop")).toBeNull();
+    await waitFor(() => {
+      const swatch = screen.getByTestId("composition-session-color-swatch");
+      expect(StyleSheet.flatten(swatch.props.style).backgroundColor).toBe("#2E9B62");
+    });
   });
 });
 

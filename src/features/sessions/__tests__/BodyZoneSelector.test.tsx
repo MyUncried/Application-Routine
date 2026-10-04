@@ -129,3 +129,55 @@ describe("BodyZoneSelector", () => {
     }
   });
 });
+
+/**
+ * V2-PRE-2 (plan §6.5, T13, CE-UI-09 L2805 ; D4/D-259) : icône de silhouette
+ * optionnelle (modale de référentiel) et appui long optionnel (jamais
+ * sélection/désaffectation) — comportement inchangé pour tout appelant qui
+ * ne les fournit pas (`ActivityEditorForm.tsx`, préservé par défaut).
+ */
+describe("BodyZoneSelector — V2-PRE-2 additions", () => {
+  it("renders no silhouette icon when the prop is omitted (default, unaffected callers)", () => {
+    render(
+      <BodyZoneSelector
+        zones={ZONES}
+        selectedIds={[]}
+        onToggle={jest.fn()}
+        accessibilityLabel="Zones corporelles"
+      />,
+    );
+    expect(screen.queryByTestId("body-zone-selector-icon-cou")).toBeNull();
+  });
+
+  it("renders the silhouette icon per zone when silhouette is provided (CE-UI-09 L2805)", () => {
+    render(
+      <BodyZoneSelector
+        zones={ZONES}
+        selectedIds={[]}
+        onToggle={jest.fn()}
+        accessibilityLabel="Zones corporelles"
+        silhouette="femme"
+      />,
+    );
+    expect(screen.getByTestId("body-zone-selector-icon-cou")).toBeTruthy();
+  });
+
+  it("invokes onLongPressZone without toggling the selection (D4: l'appui long ne sélectionne ni ne désaffecte)", () => {
+    const onToggle = jest.fn();
+    const onLongPressZone = jest.fn();
+    render(
+      <BodyZoneSelector
+        zones={ZONES}
+        selectedIds={[]}
+        onToggle={onToggle}
+        accessibilityLabel="Zones corporelles"
+        onLongPressZone={onLongPressZone}
+      />,
+    );
+
+    fireEvent(screen.getByLabelText("Cou"), "longPress");
+
+    expect(onLongPressZone).toHaveBeenCalledWith(ZONES[0]);
+    expect(onToggle).not.toHaveBeenCalled();
+  });
+});

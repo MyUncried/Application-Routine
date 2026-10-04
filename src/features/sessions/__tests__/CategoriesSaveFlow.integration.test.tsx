@@ -6,10 +6,16 @@ import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
+import { SqliteLabelRepository } from "@/infrastructure/database/repositories/SqliteLabelRepository";
+import { SqliteProfileRepository } from "@/infrastructure/database/repositories/SqliteProfileRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceProvider } from "@/features/activities/ActivityDefinitionServiceProvider";
+import { ProfileService } from "@/features/preferences/ProfileService";
+import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
+import { ReferentialService } from "@/features/reference-data/ReferentialService";
+import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
@@ -93,13 +99,24 @@ async function renderCreationRouter() {
     new SqliteActivityDefinitionRepository(database),
     new SqliteCategoryRepository(database),
     new SqliteBodyZoneRepository(database),
+    new SqliteLabelRepository(database),
   );
+  const referentialService = new ReferentialService(
+    new SqliteCategoryRepository(database),
+    new SqliteBodyZoneRepository(database),
+    new SqliteLabelRepository(database),
+  );
+  const profileService = new ProfileService(new SqliteProfileRepository(database));
 
   function Wrapper({ children }: { children: ReactNode }) {
     return (
       <SessionServiceContext.Provider value={sessionService}>
         <ActivityDefinitionServiceProvider service={activityDefinitionService}>
-          {children}
+          <ReferentialServiceContext.Provider value={referentialService}>
+            <ProfileServiceContext.Provider value={profileService}>
+              {children}
+            </ProfileServiceContext.Provider>
+          </ReferentialServiceContext.Provider>
         </ActivityDefinitionServiceProvider>
       </SessionServiceContext.Provider>
     );
@@ -139,8 +156,15 @@ describe("Parcours Composition → Catégories → Enregistrer → Catalogue (T0
     // atteinte en déployant sa section, sur le même écran. L'en-tête est
     // ciblé par son `testID` : son titre n'est délibérément pas un nom
     // accessible unique (il est aussi celui du sélecteur qu'il contient).
+    //
+    // V2-PRE-2 (plan §6.5) : la sélection multiple s'ouvre désormais dans
+    // `BodyZonePickerModal` (confirmation explicite par `Confirmer`).
     fireEvent.press(screen.getByTestId("exercise-section-body-zones-header"));
-    fireEvent.press(await screen.findByLabelText("Dos"));
+    fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
+    fireEvent.press(await screen.findByTestId("body-zone-selector-tag-dos"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
+    });
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
     // Activité 2 (Répétitions) — nouvel ajout, jamais un remplacement.
