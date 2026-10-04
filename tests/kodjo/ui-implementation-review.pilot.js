@@ -574,3 +574,11 @@ test('non-UI assessment refuses empty, duplicate or unsubstantiated requirements
     }
   });
 });
+
+test('implementation review prompt: a device doubt beyond the required proofs goes to the evidence text, never to the structure', () => {
+  // Runs 37229677463 (extra DEVICE_CHECK) and 37230083901 (PENDING_DEVICE on a FUNCTIONAL_TEST-only assertion).
+  const wf=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-implementation-review.yml'),'utf8').replace(/\r\n/g,'\n');
+  const step=wf.slice(wf.indexOf('- name: Independent OpenAI review — V2 criterion contract'),wf.indexOf('- name: Independent OpenAI review — legacy path unchanged'));
+  assert.match(step,/Never add a proof type that is not in that assertion's proof_required, and never set an assertion status other than the one derived from its own proof_results/);
+  assert.match(step,/state it only in the evidence text/);
+});
