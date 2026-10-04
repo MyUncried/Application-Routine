@@ -398,3 +398,18 @@ plan_size=252796
 - **Diagnostic.** Stagnation : même schéma sur deux appels, un relecteur plus prudent que le contrat. Aucune relance aveugle supplémentaire. Le validateur reste strict.
 - **Correctif du prompt** (ce commit) : un doute de confirmation sur appareil va dans le texte d'évidence, porté à la recette humaine ; jamais une preuve ajoutée ni un statut modifié. Tests 25/25. Suite pilote : mêmes échecs préexistants.
 - **Suite :** fusion, puis une relance de la revue.
+
+## Complément — revue d'implémentation REVISE pour le seul rapport, correctif du validateur
+
+- **#316 fusionnée** (`6e92a030`). Relance `5983867053`, run `37230631011` : sortie du relecteur valide.
+  - Toutes les assertions sont CONFORME ou PENDING_DEVICE, toutes les exigences et frontières PASS.
+  - Verdict publié **REVISE** (`5983901827`) uniquement par `report_status=NON_VERIFIABLE`.
+- **Causes démontrées** (rejeu local de la préparation sur les vraies données) :
+  1. `REQUIREMENT_COVERAGE_MISMATCH`. La mission exige `KODJO_REQUIREMENT_CONFORMANCE` sur les 14 exigences du contrat (`requirement_count=14`, `lib/implementation-contract.js`) ; le modèle les a fournies, mais le validateur n'attendait que les 8 non UI. Contradiction du protocole.
+  2. `MODIFIED_FILE_NOT_DECLARED` pour 13 fichiers de test, non cités dans les lignes de conformité du rapport.
+- **Correctif** :
+  - le validateur attend tout le contrat d'exigences ;
+  - un fichier de test du contrat de tests approuvé, dont toutes les liaisons sont PASS dans l'évidence validée (60 liaisons PASS), est couvert par cette preuve machine ;
+  - tout autre fichier modifié doit être déclaré.
+  - Rejeu : rapport `COMPLETE`, sans erreur. Tests 13/13. Suite pilote 927/946, avec les mêmes 15 échecs préexistants.
+- **Suite :** fusion, puis une relance de la revue.

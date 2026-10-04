@@ -617,10 +617,27 @@ try {
       }
     }
   }
+  // Test files whose every binding of the approved test contract PASSes in the validated evidence above.
+  const machineDeclaredTests = new Set();
+  if (input.test_contract_evidence && input.test_contract_evidence.schema === 'kodjo.test-contract-evidence.v1' &&
+      Array.isArray(input.test_contract_evidence.bindings) && /<KODJO_REQUIREMENT_CONTRACT_JSON>/.test(planBody)) {
+    const byPath = new Map();
+    for (const row of input.test_contract_evidence.bindings) {
+      const p = String(row.test_path);
+      byPath.set(p, (byPath.get(p) !== false) && row.status === 'PASS');
+    }
+    for (const [p, pass] of byPath) if (pass) machineDeclaredTests.add(p);
+  }
+  // The implementation mission asks for KODJO_REQUIREMENT_CONFORMANCE over every requirement of the requirement contract
+  // (requirement_count, lib/implementation-contract.js), UI-bound requirements included; legacy plans keep the non-UI set.
+  const reportRequirements = /<KODJO_REQUIREMENT_CONTRACT_JSON>/.test(planBody)
+    ? verifyRequirementContracts(planBody).requirement_contract.requirements.map((row) => ({ requirement_id: row.requirement_id }))
+    : input.non_ui_requirements;
   if (evidenceFile) input.implementation_report = inspectImplementation(
     fs.readFileSync(path.resolve(evidenceFile),'utf8'), {
       criteria: input.criteria,
-      requirements: input.non_ui_requirements,
+      requirements: reportRequirements,
+      machine_declared_tests: machineDeclaredTests,
     });
   if (mode === 'prepare') {
     fs.writeFileSync(path.resolve(third), JSON.stringify(input, null, 2) + '\n', 'utf8');
