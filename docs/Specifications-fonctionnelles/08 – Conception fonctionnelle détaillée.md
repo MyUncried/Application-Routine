@@ -1080,8 +1080,8 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 | Sons                                | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                         | Préférences | Activer / Désactiver | Valeur par défaut des séances                        |
 | Annonces vocales                    | Interrupteur    | Toujours |         Oui | Activé                     | Booléen                         | Préférences | Activer / Désactiver | Utilise la voix système                              |
 | Vibration                           | Interrupteur    | Toujours |         Oui | Activée                    | Booléen                         | Préférences | Activer / Désactiver | Vibrations fonctionnelles de séance uniquement       |
-| Compte à rebours initial par défaut | Sélecteur durée | Toujours |         Oui | 10 s                       | 0 à 59 min 59 s                 | Préférences | Modifier             | Valeur utilisée à la création d'une séance (D-089)   |
-| Fin de séance par défaut            | Sélecteur durée | Toujours |         Oui | 5 s                        | 0 à 59 min 59 s                 | Préférences | Modifier             | 0 s = phase instantanée (D-089)                      |
+| Compte à rebours initial par défaut | Sélecteur durée | Toujours |         Oui | 10 s                       | 0 à 60 s, pas 1 s (D-265)       | Préférences | Modifier             | Valeur utilisée à la création d'une séance (D-089)   |
+| Fin de séance par défaut            | Sélecteur durée | Toujours |         Oui | 5 s                        | 0 à 60 s, pas 1 s (D-265)       | Préférences | Modifier             | 0 s = phase instantanée (D-089)                      |
 | Notifications                       | Interrupteur    | Toujours |         Oui | Non autorisées             | Booléen                         | Préférences | Activer / Désactiver | Demande système lors de la première activation d’un rappel |
 ### Règles fonctionnelles
 

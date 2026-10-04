@@ -2511,7 +2511,7 @@ Modifier → CE-UI-01 ; navigation basse vers les trois autres destinations ; un
 
 ### 5. Données affichées et source de vérité
 
-Préférences locales : Sons, Annonces vocales, Vibration, Notifications ; groupe Exercice : Pause entre les côtés, Compte à rebours d’exercice, Fin d’exercice ; groupe Séance : Récupération après exercice, Compte à rebours initial, Fin de séance.
+Préférences locales : Sons, Annonces vocales, Vibration, Notifications ; groupe Exercice : Pause entre les côtés, Compte à rebours d’un exercice (D-266), Fin d’exercice ; groupe Séance : Récupération après exercice, Compte à rebours initial, Fin de séance.
 
 ### 6. Classification des valeurs Figma
 
@@ -2529,7 +2529,7 @@ Libellé unique Pause entre les côtés ; défaut10s ; pas des pauses validé D-
 
 ### 9. Layout déterministe
 
-Groupes selonDSF T5/T6 : fond#FCFCFE, liseré blanc 1, rayon 12, ombre sans rognage. Durées par steppers Profil, pas par roulette d’Exercice ; libellés complets accessibles.
+Groupes selonDSF T5/T6 : fond#FCFCFE, liseré blanc 1, rayon 12, ombre sans rognage. Dans chaque groupe, un séparateur horizontal entre deux lignes consécutives, au style de séparateur de référence, aucun après la dernière ligne (D-267). Durées par steppers Profil, pas par roulette d’Exercice ; libellés complets accessibles.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -2549,7 +2549,7 @@ Tap bascule ; stepper incrément immédiat, maintien 450 ms puis pas 150 ms, arr
 
 ### 14. Validation
 
-Valeurs non négatives ; pauses côté/récupération 0..300 s, progression1s jusqu’à5s, puis5s jusqu’à120s, puis30s jusqu’à300s. Compte à rebours d’exercice et Fin d’exercice : 0..60 s, pas 1 s (D-256) ; pas de maximum déduit d’un exemple. Les bornes partagées sont consolidées au §6 R-02.
+Valeurs non négatives ; pauses côté/récupération 0..300 s, progression1s jusqu’à5s, puis5s jusqu’à120s, puis30s jusqu’à300s. Compte à rebours d’exercice et Fin d’exercice : 0..60 s, pas 1 s (D-256). Compte à rebours initial et Fin de séance (valeurs par défaut) : 0..60 s, pas 1 s (D-265) ; une valeur enregistrée au-delà est conservée sans plafonnement : « + » inactif, « − » ramène d’abord à 60 s. Pas de maximum déduit d’un exemple. Les bornes partagées sont consolidées au §6 R-02.
 
 ### 15. Brouillon et persistance
 
@@ -2975,7 +2975,7 @@ La convention 2 s/répétition reste celle de la phrase intrinsèque de l’édi
 - Planifier : fréquence entière de 1 à 12 semaines incluses ; − inactif à 1 et + inactif à 12 ; toute valeur extérieure est refusée à l’enregistrement.
 - Rappel Autre : délai strictement positif, maximum 24 h (1 440 minutes), avec les unités et le sélecteur existants. Aucun désactive le rappel ; zéro ne crée pas une deuxième manière de désactiver le champ. Une notification dont l’échéance est déjà passée n’est pas envoyée rétroactivement ; les futures occurrences conservent leur rappel.
 - Durée totale : conserver le sélecteur minutes/secondes. La borne dérivée est T(1)..T(99) pour les paramètres courants, et non 99 min 59 s (borne par Série). La colonne minutes doit représenter T(99), sans nouvelle colonne ni nouveau contrôle. Granularité seconde ; le calcul inverse existant choisit N dans 1..99, arrondi .5 vers le haut, puis affiche T(N) et le message d’ajustement si nécessaire. En Durée uniforme, une diminution à N=1 ne masque le total du résumé que s’il égale effectivement la cible ; la ligne Total reste présente dans la feuille en Durée/Répétitions (D-246).
-- Profil : les paramètres identiques héritent des mêmes bornes que leur champ cible, sans maximum tiré des valeurs d’exemple. Compte à rebours initial/Fin de séance : 0..3599 s (D-089) ; Compte à rebours d’exercice/Fin d’exercice : 0..60 s, pas 1 s (D-256) ; pauses et récupération : 0..300 s ; le contrôle et ses pas restent ceux du DSF et de D-232. Les valeurs initiales déjà validées ne changent pas.
+- Profil : les paramètres identiques héritent des mêmes bornes que leur champ cible, sans maximum tiré des valeurs d’exemple, sauf D-265. Compte à rebours initial/Fin de séance : 0..3599 s pour les champs de la Séance (D-089), 0..60 s pas 1 s pour leurs valeurs par défaut du Profil (D-265) ; Compte à rebours d’exercice/Fin d’exercice : 0..60 s, pas 1 s (D-256) ; pauses et récupération : 0..300 s ; le contrôle et ses pas restent ceux du DSF et de D-232. Les valeurs initiales déjà validées ne changent pas.
 
 ### R-03 — Transition, reset et suspension
 
