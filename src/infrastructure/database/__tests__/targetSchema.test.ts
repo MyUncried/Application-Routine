@@ -832,4 +832,139 @@ describe("targetSchema — préservation historique et référentiels additifs (
       }
     });
   });
+
+  /**
+   * V2-PRE-2 (plan §6.2, T22, migration008) : clé normalisée OBLIGATOIRE et
+   * UNIQUE pour les Étiquettes et les Zones corporelles (toutes les
+   * entrées, actives et retirées — garantit la réactivation D2 au niveau du
+   * stockage) ; `activity_body_zones` reconstruite avec une clé étrangère
+   * réelle vers `body_zones(id)`.
+   */
+  describe("v8 — clé normalisée Étiquettes/Zones et clé étrangère réelle de activity_body_zones (plan §6.2, T22)", () => {
+    async function seedSessionAndActivity(database: NodeSqliteDatabase) {
+      await database.runAsync(
+        `INSERT INTO sessions (
+           id, owner_id, name, status, initial_countdown_seconds, final_phase_seconds,
+           created_at, updated_at
+         ) SELECT 'session-v8', id, 'Séance', 'ACTIVE', 10, 5,
+           '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'
+           FROM users WHERE singleton_key = 1`,
+      );
+      await database.runAsync(
+        `INSERT INTO cycles (id, session_id, position, repeat_count) VALUES ('cycle-v8', 'session-v8', 1, 1)`,
+      );
+      await database.runAsync(
+        `INSERT INTO activities (
+           id, session_id, cycle_id, tour_id, type, structural_position,
+           position, name, execution_mode, duration_seconds,
+           repetition_count, series_count, pause_seconds, instruction,
+           created_at, updated_at
+         ) VALUES (
+           'activity-v8', 'session-v8', 'cycle-v8', NULL, 'EXERCISE', 'BEFORE_TOUR',
+           0, 'Squat', 'DURATION', 30, NULL, 3, 10, NULL,
+           '2026-01-01T00:00:00.000Z', '2026-01-01T00:00:00.000Z'
+         )`,
+      );
+    }
+
+    it("rejects a NULL canonical_key on insert for labels and body_zones", async () => {
+      const database = NodeSqliteDatabase.openInMemory();
+      try {
+        await migrateDatabase(database);
+
+        await expect(
+          database.runAsync(
+            `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at)
+             VALUES ('label-null-key', 'Sans clé', NULL, '#2E9B62', 1, '2026-01-01T00:00:00.000Z')`,
+          ),
+        ).rejects.toThrow(/canonical_key/);
+
+        await expect(
+          database.runAsync(
+            `INSERT INTO body_zones (id, name, canonical_key, is_active, created_at)
+             VALUES ('zone-null-key', 'Sans clé', NULL, 1, '2026-01-01T00:00:00.000Z')`,
+          ),
+        ).rejects.toThrow(/canonical_key/);
+      } finally {
+        database.close();
+      }
+    });
+
+    it("rejects setting canonical_key to NULL on update for labels and body_zones", async () => {
+      const database = NodeSqliteDatabase.openInMemory();
+      try {
+        await migrateDatabase(database);
+        await database.runAsync(
+          `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at)
+           VALUES ('label-1', 'Sport', 'sport', '#2E9B62', 1, '2026-01-01T00:00:00.000Z')`,
+        );
+
+        await expect(
+          database.runAsync(`UPDATE labels SET canonical_key = NULL WHERE id = 'label-1'`),
+        ).rejects.toThrow(/canonical_key/);
+
+        // `dos` est déjà semée par migration007 — la clé y est garantie non NULL.
+        await expect(
+          database.runAsync(`UPDATE body_zones SET canonical_key = NULL WHERE id = 'dos'`),
+        ).rejects.toThrow(/canonical_key/);
+      } finally {
+        database.close();
+      }
+    });
+
+    it("rejects a duplicate canonical_key even against a RETIRED entry (D2 reactivation guarantee, storage level)", async () => {
+      const database = NodeSqliteDatabase.openInMemory();
+      try {
+        await migrateDatabase(database);
+        await database.runAsync(
+          `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at)
+           VALUES ('label-retired', 'Sport', 'sport', '#2E9B62', 0, '2026-01-01T00:00:00.000Z')`,
+        );
+
+        await expect(
+          database.runAsync(
+            `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at)
+             VALUES ('label-new', 'Sport', 'sport', '#F47B20', 1, '2026-01-02T00:00:00.000Z')`,
+          ),
+        ).rejects.toThrow();
+      } finally {
+        database.close();
+      }
+    });
+
+    it("cascades activity_body_zones deletion from its Activity (ON DELETE CASCADE preserved)", async () => {
+      const database = NodeSqliteDatabase.openInMemory();
+      try {
+        await migrateDatabase(database);
+        await seedSessionAndActivity(database);
+        await database.runAsync(
+          `INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES ('activity-v8', 'dos')`,
+        );
+
+        await database.runAsync(`DELETE FROM activities WHERE id = 'activity-v8'`);
+
+        const remaining = await database.getFirstAsync<{ count: number }>(
+          "SELECT COUNT(*) AS count FROM activity_body_zones WHERE activity_id = 'activity-v8'",
+        );
+        expect(remaining?.count).toBe(0);
+      } finally {
+        database.close();
+      }
+    });
+
+    it("refuses deleting a Zone still referenced by activity_body_zones (ON DELETE RESTRICT, real foreign key)", async () => {
+      const database = NodeSqliteDatabase.openInMemory();
+      try {
+        await migrateDatabase(database);
+        await seedSessionAndActivity(database);
+        await database.runAsync(
+          `INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES ('activity-v8', 'dos')`,
+        );
+
+        await expect(database.runAsync(`DELETE FROM body_zones WHERE id = 'dos'`)).rejects.toThrow();
+      } finally {
+        database.close();
+      }
+    });
+  });
 });

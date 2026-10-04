@@ -4,6 +4,7 @@ import {
   activityDefinitionToDraftExercise,
   activityDefinitionToInput,
   createEmptyActivityDefinitionDraft,
+  sideRecoveryOnSideModeChange,
   validateActivityDefinitionInput,
   type ActivityDefinition,
   type CreateActivityDefinitionInput,
@@ -231,5 +232,32 @@ describe("activityDefinitionToDraftExercise", () => {
     expect(copy.bodyZoneIds).toEqual(PERSISTED.bodyZoneIds);
     expect(copy.bodyZoneIds).not.toBe(PERSISTED.bodyZoneIds);
     expect(copy.sideMode).toBe(PERSISTED.sideMode);
+  });
+});
+
+describe("sideRecoveryOnSideModeChange (V2-PRE-2, T21, D-213)", () => {
+  it("copies the Profile's current value when activating bilaterality from Sans changement (UNILATERAL) to D→G", () => {
+    expect(sideRecoveryOnSideModeChange("UNILATERAL", "RIGHT_LEFT", 0, 10)).toBe(10);
+  });
+
+  it("copies the Profile's current value when activating bilaterality from Sans changement (UNILATERAL) to G→D", () => {
+    expect(sideRecoveryOnSideModeChange("UNILATERAL", "LEFT_RIGHT", 0, 10)).toBe(10);
+  });
+
+  it("never copies the Profile's value for a unilateral creation (no transition — previous equals next)", () => {
+    expect(sideRecoveryOnSideModeChange("UNILATERAL", "UNILATERAL", 0, 10)).toBe(0);
+  });
+
+  it("keeps the current value unchanged when switching between the two bilateral directions (D→G ↔ G→D)", () => {
+    expect(sideRecoveryOnSideModeChange("RIGHT_LEFT", "LEFT_RIGHT", 15, 10)).toBe(15);
+    expect(sideRecoveryOnSideModeChange("LEFT_RIGHT", "RIGHT_LEFT", 15, 10)).toBe(15);
+  });
+
+  it("keeps the current value unchanged when returning to Sans changement — the value becomes irrelevant but is never reset", () => {
+    expect(sideRecoveryOnSideModeChange("RIGHT_LEFT", "UNILATERAL", 15, 10)).toBe(15);
+  });
+
+  it("keeps an already-bilateral Exercise's stored value unchanged (no-op transition)", () => {
+    expect(sideRecoveryOnSideModeChange("RIGHT_LEFT", "RIGHT_LEFT", 15, 10)).toBe(15);
   });
 });

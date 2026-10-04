@@ -3,9 +3,12 @@ import { describe, expect, it, jest } from "@jest/globals";
 import { useEffect, type ReactNode } from "react";
 import { Text } from "react-native";
 
+import { createDefaultProfile, type Profile } from "@/domain/preferences/Profile";
 import type { Session } from "@/domain/sessions/Session";
 import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
 import { createEmptyDraft, createExerciseDraft } from "@/domain/sessions/SessionDraft";
+import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
+import type { ProfileService } from "@/features/preferences/ProfileService";
 import type { LoadSessionForEditResult, SessionService } from "@/features/sessions/SessionService";
 import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
 import {
@@ -309,5 +312,87 @@ describe("SessionDraftProvider — mode modification (T01-S10)", () => {
       captured.hydrateFromSession?.("session-42");
     });
     await waitFor(() => expect(captured.editStatus).toBe("error"));
+  });
+});
+
+/**
+ * V2-PRE-2 (plan §6.1/§6.3/§7, D-004/D-213, T18/T19) : un nouveau brouillon
+ * de création reçoit Compte à rebours initial et Fin de séance depuis la
+ * valeur COURANTE du Profil — jamais rederivée ensuite (« sans
+ * rétroactivité »). `creationBaseline` expose ce brouillon réellement créé.
+ */
+describe("SessionDraftProvider — initialisation depuis le Profil (V2-PRE-2, D-213)", () => {
+  function fakeProfileService(getProfile: () => Promise<Profile>): ProfileService {
+    return { getProfile } as unknown as ProfileService;
+  }
+
+  function renderWithProfile(
+    profileService: ProfileService,
+    capture: (value: SessionDraftContextValue) => void,
+  ) {
+    function Wrapper({ children }: { children: ReactNode }) {
+      return (
+        <ProfileServiceContext.Provider value={profileService}>
+          <SessionDraftProvider>{children}</SessionDraftProvider>
+        </ProfileServiceContext.Provider>
+      );
+    }
+    return render(
+      <Wrapper>
+        <Capture onRender={capture} />
+      </Wrapper>,
+    );
+  }
+
+  it("initializes a fresh creation draft's Compte à rebours initial / Fin de séance from the Profile's current values, and exposes them via creationBaseline", async () => {
+    const profile = {
+      ...createDefaultProfile("singleton", "2026-01-01T00:00:00.000Z"),
+      sessionInitialCountdownSecondsDefault: 20,
+      sessionFinalPhaseSecondsDefault: 15,
+    };
+    let captured!: SessionDraftContextValue;
+    renderWithProfile(fakeProfileService(async () => profile), (value) => (captured = value));
+
+    await waitFor(() => expect(captured.draft.initialCountdownSeconds).toBe(20));
+    expect(captured.draft.finalPhaseSeconds).toBe(15);
+    expect(captured.creationBaseline?.initialCountdownSeconds).toBe(20);
+    expect(captured.creationBaseline?.finalPhaseSeconds).toBe(15);
+  });
+
+  it("never re-applies the Profile's values to a draft already modified by the user (no retroactivity)", async () => {
+    let resolveProfile!: (profile: Profile) => void;
+    const profileService = fakeProfileService(
+      () => new Promise<Profile>((resolve) => (resolveProfile = resolve)),
+    );
+    let captured!: SessionDraftContextValue;
+    renderWithProfile(profileService, (value) => (captured = value));
+
+    act(() => {
+      captured.updateDraft({ name: "Déjà modifié" });
+    });
+
+    await act(async () => {
+      resolveProfile({
+        ...createDefaultProfile("singleton", "2026-01-01T00:00:00.000Z"),
+        sessionInitialCountdownSecondsDefault: 99,
+        sessionFinalPhaseSecondsDefault: 88,
+      });
+      await Promise.resolve();
+    });
+
+    expect(captured.draft.name).toBe("Déjà modifié");
+    expect(captured.draft.initialCountdownSeconds).not.toBe(99);
+  });
+
+  it("falls back to the Domain's canonical constants when no ProfileService is available (T19)", () => {
+    let captured!: SessionDraftContextValue;
+    render(
+      <SessionDraftProvider>
+        <Capture onRender={(value) => (captured = value)} />
+      </SessionDraftProvider>,
+    );
+
+    expect(captured.draft).toEqual(createEmptyDraft());
+    expect(captured.creationBaseline).toEqual(createEmptyDraft());
   });
 });

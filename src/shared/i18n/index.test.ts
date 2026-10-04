@@ -14,12 +14,77 @@ describe("strings", () => {
   });
 
   it("exposes a title and a placeholder for each tab screen still awaiting its real UI", () => {
-    const tabScreens = [strings.screens.calendar, strings.screens.history, strings.screens.profile];
+    const tabScreens = [strings.screens.calendar, strings.screens.history];
 
     for (const screen of tabScreens) {
       expect(screen.title.length).toBeGreaterThan(0);
       expect(screen.placeholder.length).toBeGreaterThan(0);
     }
+  });
+
+  // V2-PRE-2 : le Profil a désormais une UI réelle (même patron que
+  // `sessions` en son temps) — `placeholder` n'a plus de consommateur.
+  it("exposes the Profile screen title, with no placeholder (it has a real UI, V2-PRE-2)", () => {
+    expect(strings.screens.profile.title).toBe("Profil");
+    expect(strings.screens.profile).not.toHaveProperty("placeholder");
+  });
+
+  it("exposes the Profile's six setting labels/units and three group titles (CE-UI-07 L2515)", () => {
+    expect(strings.screens.profile.groups).toEqual({
+      exercise: "Exercice",
+      session: "Séance",
+      preferences: "Préférences",
+    });
+    expect(strings.screens.profile.settings.sideChangeRecovery).toEqual({
+      label: "Pause entre les côtés",
+      unit: "s",
+    });
+    expect(strings.screens.profile.settings.sessionInitialCountdown.label).toBe(
+      "Compte à rebours initial",
+    );
+  });
+
+  it("exposes the Profile's four preference switch labels (CE-UI-07 L2515/L2519/L2573)", () => {
+    expect(strings.screens.profile.preferencesSwitches).toEqual({
+      sounds: "Sons",
+      voiceAnnouncements: "Annonces vocales",
+      vibration: "Vibration",
+      notifications: "Notifications",
+    });
+  });
+
+  it("exposes the exact Modifier le profil texts (CE-UI-01)", () => {
+    expect(strings.screens.profileEdit.title).toBe("Modifier le profil");
+    expect(strings.screens.profileEdit.name.errorRequired.length).toBeGreaterThan(0);
+    expect(strings.screens.profileEdit.silhouette).toEqual({
+      label: "Silhouette",
+      homme: "Silhouette homme",
+      femme: "Silhouette femme",
+    });
+    expect(strings.screens.profileEdit.abandonModal).toEqual({
+      title: "Abandonner les modifications ?",
+      message: "Les modifications apportées au profil seront perdues.",
+      continueEditing: "Annuler",
+      abandon: "Confirmer",
+    });
+  });
+
+  it("exposes deletion confirmation title fragments composing 'Supprimer « {nom} » ?', and differentiated used/unused messages (§4.10 L134/L135)", () => {
+    const composed = `${strings.referenceData.deleteConfirm.titlePrefix}Focus${strings.referenceData.deleteConfirm.titleSuffix}`;
+    expect(composed).toContain("Supprimer");
+    expect(composed).toContain("Focus");
+    expect(composed.endsWith("?")).toBe(true);
+    expect(strings.referenceData.deleteConfirm.usedMessage).not.toBe(
+      strings.referenceData.deleteConfirm.unusedMessage,
+    );
+  });
+
+  it("exposes the shared long-press dialog labels Annuler/Modifier/Supprimer (D4, D-259)", () => {
+    expect(strings.referenceData.longPressDialog).toEqual({
+      cancel: "Annuler",
+      modify: "Modifier",
+      delete: "Supprimer",
+    });
   });
 
   it("exposes the Catalogue screen title (T01-S06 — no placeholder, it has a real UI)", () => {
@@ -85,6 +150,9 @@ describe("strings", () => {
       label: "Couleur",
       paletteAccessibilityLabel: "Palette de couleurs",
       swatchAccessibilityLabel: "Couleur",
+    });
+    expect(strings.screens.composition.label).toEqual({
+      accessibilityLabel: "Étiquette de la séance",
     });
     expect(strings.screens.composition.countdown.label).toBe("Compte à rebours initial");
     expect(strings.screens.composition.finalPhase.label).toBe("Fin de séance");

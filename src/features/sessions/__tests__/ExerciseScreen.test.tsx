@@ -4,9 +4,14 @@ import { ScrollView, StyleSheet } from "react-native";
 
 import type { ActivityDefinition } from "@/domain/activities";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import { createDefaultProfile } from "@/domain/preferences/Profile";
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
+import type { ProfileService } from "@/features/preferences/ProfileService";
+import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
+import type { ReferentialService } from "@/features/reference-data/ReferentialService";
+import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { ExerciseScreen } from "@/features/sessions/ExerciseScreen";
 import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
@@ -82,6 +87,36 @@ function fakeActivityDefinitionService(
   } as ActivityDefinitionService;
 }
 
+/**
+ * V2-PRE-2 (plan §6.5) : `ActivityEditorForm` ouvre désormais
+ * `BodyZonePickerModal`, qui s'auto-alimente via `ReferentialServiceContext`
+ * — jamais `ActivityDefinitionService` pour cette modale.
+ */
+function fakeReferentialService(overrides: Partial<ReferentialService> = {}): ReferentialService {
+  return {
+    listBodyZones: jest.fn(async () => BODY_ZONE_FIXTURES),
+    createBodyZone: jest.fn(async () => ({ status: "DUPLICATE" as const })),
+    renameBodyZone: jest.fn(async () => ({ status: "NOT_FOUND" as const })),
+    retireBodyZone: jest.fn(async () => ({ status: "NOT_FOUND" as const })),
+    isBodyZoneUsed: jest.fn(async () => false),
+    listCategories: jest.fn(async () => []),
+    ...overrides,
+  } as unknown as ReferentialService;
+}
+
+/**
+ * V2-PRE-2 (plan §6.1/§7, T21) : `CatalogueActivityEditorScreen` lit le
+ * Profil une seule fois au montage (Pause entre les côtés par défaut,
+ * silhouette) — jamais `SessionServiceProvider` en test, un `ProfileService`
+ * doublé minimal suffit.
+ */
+function fakeProfileService(overrides: Partial<ProfileService> = {}): ProfileService {
+  return {
+    getProfile: jest.fn(async () => createDefaultProfile("profile-1", "2026-01-01T00:00:00.000Z")),
+    ...overrides,
+  } as unknown as ProfileService;
+}
+
 function renderScreen(draftExercise: SessionDraftExercise | null = null) {
   const updateDraft = jest.fn();
   mockSearchParams = draftExercise ? { exerciseId: draftExercise.id } : {};
@@ -100,9 +135,13 @@ function renderScreen(draftExercise: SessionDraftExercise | null = null) {
   const { unmount } = render(
     <TestSafeAreaProvider>
       <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
-        <SessionDraftContext.Provider value={contextValue}>
-          <ExerciseScreen />
-        </SessionDraftContext.Provider>
+        <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+          <ProfileServiceContext.Provider value={fakeProfileService()}>
+            <SessionDraftContext.Provider value={contextValue}>
+              <ExerciseScreen />
+            </SessionDraftContext.Provider>
+          </ProfileServiceContext.Provider>
+        </ReferentialServiceContext.Provider>
       </ActivityDefinitionServiceContext.Provider>
     </TestSafeAreaProvider>,
   );
@@ -244,21 +283,25 @@ describe("ExerciseScreen — Shell partagé (header/séparateur fixes, bandeau c
     const { UNSAFE_root } = render(
       <TestSafeAreaProvider>
         <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
-          <SessionDraftContext.Provider
-            value={{
-              draft: {
-                name: "Séance simple",
-                labelId: null,
-                initialCountdownSeconds: 10,
-                finalPhaseSeconds: 5,
-                exercises: [],
-              },
-              updateDraft: jest.fn(),
-              resetDraft: jest.fn(),
-            }}
-          >
-            <ExerciseScreen />
-          </SessionDraftContext.Provider>
+          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+            <ProfileServiceContext.Provider value={fakeProfileService()}>
+              <SessionDraftContext.Provider
+                value={{
+                  draft: {
+                    name: "Séance simple",
+                    labelId: null,
+                    initialCountdownSeconds: 10,
+                    finalPhaseSeconds: 5,
+                    exercises: [],
+                  },
+                  updateDraft: jest.fn(),
+                  resetDraft: jest.fn(),
+                }}
+              >
+                <ExerciseScreen />
+              </SessionDraftContext.Provider>
+            </ProfileServiceContext.Provider>
+          </ReferentialServiceContext.Provider>
         </ActivityDefinitionServiceContext.Provider>
       </TestSafeAreaProvider>,
     );
@@ -1631,9 +1674,16 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
     expandSection("exercise-section-description");
     expect(screen.getByLabelText(t.instruction.label).props.value).toBe("Ne pas creuser le dos");
 
+    // V2-PRE-2 (plan §6.5) : la sélection multiple s'ouvre désormais dans
+    // `BodyZonePickerModal` (confirmation explicite) — la section repliable
+    // n'affiche plus qu'une synthèse des Zones déjà retenues.
     expandSection("exercise-section-body-zones");
-    expect(await screen.findByLabelText("Dos")).toBeTruthy();
-    expect(screen.getByLabelText("Dos").props.accessibilityState).toMatchObject({ checked: true });
+    expect(screen.getByTestId("exercise-body-zones-open")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
+    expect(await screen.findByTestId("body-zone-selector-tag-dos")).toBeTruthy();
+    expect(screen.getByTestId("body-zone-selector-tag-dos").props.accessibilityState).toMatchObject({
+      checked: true,
+    });
   });
 
   it("Terminer on a NEW Activity (no exerciseId param) appends it after any Activity already present, never replacing it", () => {
@@ -1647,21 +1697,25 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
     render(
       <TestSafeAreaProvider>
         <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
-          <SessionDraftContext.Provider
-            value={{
-              draft: {
-                name: "Séance simple",
-                labelId: null,
-                initialCountdownSeconds: 10,
-                finalPhaseSeconds: 5,
-                exercises: [existing],
-              },
-              updateDraft,
-              resetDraft: jest.fn(),
-            }}
-          >
-            <ExerciseScreen />
-          </SessionDraftContext.Provider>
+          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+            <ProfileServiceContext.Provider value={fakeProfileService()}>
+              <SessionDraftContext.Provider
+                value={{
+                  draft: {
+                    name: "Séance simple",
+                    labelId: null,
+                    initialCountdownSeconds: 10,
+                    finalPhaseSeconds: 5,
+                    exercises: [existing],
+                  },
+                  updateDraft,
+                  resetDraft: jest.fn(),
+                }}
+              >
+                <ExerciseScreen />
+              </SessionDraftContext.Provider>
+            </ProfileServiceContext.Provider>
+          </ReferentialServiceContext.Provider>
         </ActivityDefinitionServiceContext.Provider>
       </TestSafeAreaProvider>,
     );
@@ -1690,21 +1744,25 @@ describe("ExerciseScreen — mode modification (draft.exercises contains the tar
     render(
       <TestSafeAreaProvider>
         <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
-          <SessionDraftContext.Provider
-            value={{
-              draft: {
-                name: "Séance simple",
-                labelId: null,
-                initialCountdownSeconds: 10,
-                finalPhaseSeconds: 5,
-                exercises,
-              },
-              updateDraft,
-              resetDraft: jest.fn(),
-            }}
-          >
-            <ExerciseScreen />
-          </SessionDraftContext.Provider>
+          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+            <ProfileServiceContext.Provider value={fakeProfileService()}>
+              <SessionDraftContext.Provider
+                value={{
+                  draft: {
+                    name: "Séance simple",
+                    labelId: null,
+                    initialCountdownSeconds: 10,
+                    finalPhaseSeconds: 5,
+                    exercises,
+                  },
+                  updateDraft,
+                  resetDraft: jest.fn(),
+                }}
+              >
+                <ExerciseScreen />
+              </SessionDraftContext.Provider>
+            </ProfileServiceContext.Provider>
+          </ReferentialServiceContext.Provider>
         </ActivityDefinitionServiceContext.Provider>
       </TestSafeAreaProvider>,
     );
@@ -2017,9 +2075,6 @@ describe("ExerciseScreen — adaptateur Catalogue (V2-CAT-01)", () => {
   ) {
     mockSearchParams = { catalogueDefinitionId };
     const merged: Partial<ActivityDefinitionService> = {
-      listCategories: jest
-        .fn<ActivityDefinitionService["listCategories"]>()
-        .mockResolvedValue([A_CATEGORY]),
       listBodyZones: jest
         .fn<ActivityDefinitionService["listBodyZones"]>()
         .mockResolvedValue(BODY_ZONE_FIXTURES),
@@ -2028,7 +2083,13 @@ describe("ExerciseScreen — adaptateur Catalogue (V2-CAT-01)", () => {
     return render(
       <TestSafeAreaProvider>
         <ActivityDefinitionServiceContext.Provider value={merged as ActivityDefinitionService}>
-          <ExerciseScreen />
+          <ReferentialServiceContext.Provider
+            value={fakeReferentialService({ listCategories: jest.fn(async () => [A_CATEGORY]) })}
+          >
+            <ProfileServiceContext.Provider value={fakeProfileService()}>
+              <ExerciseScreen />
+            </ProfileServiceContext.Provider>
+          </ReferentialServiceContext.Provider>
         </ActivityDefinitionServiceContext.Provider>
       </TestSafeAreaProvider>,
     );
@@ -2037,7 +2098,7 @@ describe("ExerciseScreen — adaptateur Catalogue (V2-CAT-01)", () => {
   /** Sélectionne la Catégorie `Cardio` via la modale de sélection (D-211). */
   async function selectCardioCategory() {
     fireEvent.press(screen.getByTestId("activity-editor-category-button"));
-    const tag = await screen.findByTestId("activity-editor-category-tag-cardio");
+    const tag = await screen.findByTestId("category-picker-tag-cardio");
     fireEvent.press(tag);
   }
 

@@ -126,6 +126,7 @@ export default function RootLayout() {
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="(creation)" options={{ gestureEnabled: false }} />
+              <Stack.Screen name="profile-edit" />
             </Stack>
           ) : null}
           {showAppSplash ? (

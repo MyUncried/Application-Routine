@@ -70,6 +70,33 @@ describe("createExerciseDraft", () => {
     expect(createExerciseDraft("a").id).toBe("a");
     expect(createExerciseDraft("b").id).toBe("b");
   });
+
+  it("uses the Domain's neutral default (0) when no postActivityRecoverySeconds is provided (V2-PRE-2, T19)", () => {
+    expect(createExerciseDraft("ex-1").postActivityRecoverySeconds).toBe(0);
+  });
+
+  it("uses the explicit postActivityRecoverySeconds provided by the caller — the Profile's current value at creation time (V2-PRE-2, D-171/D-213)", () => {
+    expect(createExerciseDraft("ex-1", 30).postActivityRecoverySeconds).toBe(30);
+  });
+});
+
+describe("createEmptyDraft with Profile defaults (V2-PRE-2, D-213)", () => {
+  it("uses the Domain's canonical constants when no defaults are provided (T19)", () => {
+    const draft = createEmptyDraft();
+    expect(draft.initialCountdownSeconds).toBe(DEFAULT_INITIAL_COUNTDOWN_SECONDS);
+    expect(draft.finalPhaseSeconds).toBe(DEFAULT_FINAL_PHASE_SECONDS);
+  });
+
+  it("uses the Profile's current values when provided — a new Session receives Compte à rebours initial and Fin de séance from the Profile", () => {
+    const draft = createEmptyDraft({ initialCountdownSeconds: 20, finalPhaseSeconds: 15 });
+    expect(draft.initialCountdownSeconds).toBe(20);
+    expect(draft.finalPhaseSeconds).toBe(15);
+  });
+
+  it("is not considered modified when compared to itself as a baseline (a fresh draft is never dirty)", () => {
+    const draft = createEmptyDraft({ initialCountdownSeconds: 20, finalPhaseSeconds: 15 });
+    expect(isSessionDraftDirty(draft, draft)).toBe(false);
+  });
 });
 
 function anActivity(overrides: Partial<Activity> = {}): Activity {
@@ -294,6 +321,12 @@ describe("sessionDraftsEqual (T01-S10, CE-T01-S10-06 — garde de sortie en modi
 describe("isSessionDraftDirty", () => {
   it("is false for a freshly created empty draft", () => {
     expect(isSessionDraftDirty(createEmptyDraft())).toBe(false);
+  });
+
+  it("compares against an explicit baseline (V2-PRE-2, T18) — a draft matching its own Profile-derived baseline is never dirty", () => {
+    const baseline = createEmptyDraft({ initialCountdownSeconds: 20, finalPhaseSeconds: 15 });
+    expect(isSessionDraftDirty(baseline, baseline)).toBe(false);
+    expect(isSessionDraftDirty({ ...baseline, name: "Autre" }, baseline)).toBe(true);
   });
 
   it("is true as soon as one Activity is present (empty draft has exercises: [])", () => {

@@ -375,6 +375,35 @@ export function activityDefinitionToInput(
  * le lit depuis le Profil au moment de la création ; cette fonction reste
  * pure et ne lit jamais le Profil elle-même.
  */
+/**
+ * Règle pure de copie de la Pause entre les côtés du Profil, appliquée par
+ * `ExerciseScreen` (adaptateur Catalogue) au changement de côté d'une
+ * `ActivityDefinition` (V2-PRE-2, plan §6.1/§7, T21, D-213) :
+ *
+ * - `Sans changement` (`UNILATERAL`) → `D→G`/`G→D` : copie la valeur
+ *   COURANTE du Profil (snapshot atomique à l'activation, jamais relue
+ *   ensuite) ;
+ * - toute autre transition (`D→G` ↔ `G→D`, ou un retour à `Sans
+ *   changement`) : la valeur stockée est CONSERVÉE inchangée — jamais
+ *   réinitialisée, jamais recopiée du Profil.
+ *
+ * Une création unilatérale (`createEmptyActivityDefinitionDraft`) n'appelle
+ * jamais cette fonction : elle reste à `0` par construction.
+ */
+export function sideRecoveryOnSideModeChange(
+  previousSideMode: SideMode,
+  nextSideMode: SideMode,
+  currentSideRecoverySeconds: number,
+  profileSideChangeRecoverySecondsDefault: number,
+): number {
+  const wasUnilateral = previousSideMode === "UNILATERAL";
+  const isNowBilateral = nextSideMode !== "UNILATERAL";
+  if (wasUnilateral && isNowBilateral) {
+    return profileSideChangeRecoverySecondsDefault;
+  }
+  return currentSideRecoverySeconds;
+}
+
 export function activityDefinitionToDraftExercise(
   definition: ActivityDefinition,
   newId: string,
