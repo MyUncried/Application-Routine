@@ -72,9 +72,9 @@
       "status": "ACTIVE",
       "issue_number": 288,
       "baseline_head": "53cb05c782e17eb19d269f2724a0db3cfbceb1a2",
-      "planning_application_head": "53cb05c782e17eb19d269f2724a0db3cfbceb1a2",
+      "planning_application_head": "10ac761ef453f360110bf7b668b3998487b071b3",
       "bootstrap_path": ".github/orchestration/v2-slices/V2-PRE-2/slice-bootstrap.json",
-      "slice_bootstrap_sha256": "eb8bdca310171b7c02cc9de9b8b91a53c03ea7c521b28aa9f24c6a6b1101104a"
+      "slice_bootstrap_sha256": "a77934a75324bbd9c63b9856a02be1a6630fa3a3b2447cc9af0ee15536e7cb59"
     }
   ]
 }
