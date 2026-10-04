@@ -67,6 +67,11 @@ function projectQueueRequest(queue) {
     if (detail) throw new Error('KODJO_QUEUE_MATERIALIZED_RECOVERY_REFUSED: ' + detail);
     request.materialized_recovery = { ...queue.materialized_recovery };
   }
+  // Livraison sur une PR existante : l'arbre de travail est au HEAD applicatif, dont la copie du plan peut être
+  // antérieure au plan approuvé. Le superviseur fournit au modèle le plan autorisé lu au HEAD protocolaire.
+  if (existingTarget && queue.authorized_plan && queue.authorized_plan.plan_path && queue.authorized_plan.plan_blob_oid) {
+    request.authorized_plan = { plan_path: String(queue.authorized_plan.plan_path), plan_blob_oid: String(queue.authorized_plan.plan_blob_oid) };
+  }
   if (mode === 'RESUME_DELTA') {
     request.retry_reason = {
       code: queue.retry_reason.code,
