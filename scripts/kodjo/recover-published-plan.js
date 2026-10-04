@@ -52,7 +52,22 @@ function recover(comment, repository, get = api(repository), protocolRoot = proc
   need(bootstrap.slice_id === slice && bootstrap.repository === repository, 'PLAN_PUBLICATION_BOOTSTRAP_IDENTITY_MISMATCH');
   need(comment.issue_url === 'https://api.github.com/repos/' + repository + '/issues/' + bootstrap.issue_number, 'PLAN_PUBLICATION_ISSUE_MISMATCH');
   const sourceHead = field(comment.body, 'source_head');
-  need(SHA40.test(sourceHead) && sourceHead === bootstrap.baseline_head, 'PLAN_PUBLICATION_SOURCE_MISMATCH');
+  // REVISION of an already delivered slice (same header as kodjo-v2-slice-plan.yml): the product HEAD is a
+  // target-branch commit, the plan is scanned at the application PR HEAD and supersedes the committed plan/review.
+  const revision = hasField(comment.body, 'planning_mode') && field(comment.body, 'planning_mode') === 'REVISION';
+  if (hasField(comment.body, 'planning_mode')) need(revision, 'PLAN_PUBLICATION_MODE_INVALID');
+  let applicationPr = null, applicationHead = null, supersedes = null, priorReview = null;
+  if (revision) {
+    applicationPr = field(comment.body, 'application_pr');
+    applicationHead = field(comment.body, 'application_head');
+    supersedes = field(comment.body, 'supersedes_plan_blob_oid');
+    priorReview = field(comment.body, 'prior_review_blob_oid');
+    need(/^[1-9][0-9]*$/.test(applicationPr) && SHA40.test(applicationHead) && SHA40.test(sourceHead) && SHA40.test(supersedes) && SHA40.test(priorReview), 'PLAN_PUBLICATION_REVISION_IDENTITY_INVALID');
+    need(!CLOSURE_FIELDS.some((name) => hasField(comment.body, name)), 'PLAN_PUBLICATION_REVISION_CLOSURE_FORBIDDEN');
+  } else {
+    need(SHA40.test(sourceHead) && sourceHead === bootstrap.baseline_head, 'PLAN_PUBLICATION_SOURCE_MISMATCH');
+    need(!['application_pr', 'application_head'].some((name) => hasField(comment.body, name)), 'PLAN_PUBLICATION_INITIAL_APPLICATION_FORBIDDEN');
+  }
   const commit = field(comment.body, 'plan_commit');
   const planPath = field(comment.body, 'plan_path');
   const blobId = field(comment.body, 'plan_blob');
@@ -65,6 +80,15 @@ function recover(comment, repository, get = api(repository), protocolRoot = proc
   need(compare && ['ahead', 'identical'].includes(compare.status), 'PLAN_PUBLICATION_COMMIT_NOT_ON_TARGET');
   const tree = get('git/trees/' + commit + '?recursive=1');
   need(tree && !tree.truncated && tree.tree.some((x) => x.path === planPath && x.sha === blobId && x.type === 'blob'), 'PLAN_PUBLICATION_COMMIT_BINDING_MISMATCH');
+  if (revision) {
+    const sourceCompare = get('compare/' + sourceHead + '...' + encodeURIComponent(target));
+    need(sourceCompare && ['ahead', 'identical'].includes(sourceCompare.status), 'PLAN_PUBLICATION_SOURCE_NOT_ON_TARGET');
+    const sourceTree = get('git/trees/' + sourceHead + '?recursive=1');
+    const dir = '.github/orchestration/v2-slices/' + slice + '/';
+    const blobAt = (file) => (sourceTree && !sourceTree.truncated && sourceTree.tree.find((x) => x.path === dir + file && x.type === 'blob') || {}).sha;
+    need(blobAt('technical-plan.md') === supersedes, 'PLAN_PUBLICATION_SUPERSEDED_PLAN_MISMATCH');
+    need(blobAt('independent-review.md') === priorReview, 'PLAN_PUBLICATION_PRIOR_REVIEW_MISMATCH');
+  }
   const blob = get('git/blobs/' + blobId);
   need(blob && blob.sha === blobId && blob.encoding === 'base64', 'PLAN_PUBLICATION_BLOB_INVALID');
   const bytes = Buffer.from(blob.content, 'base64');
@@ -73,9 +97,17 @@ function recover(comment, repository, get = api(repository), protocolRoot = proc
   const statuses = [...normalize(plan).matchAll(/^PLAN_STATUS: ([A-Z_]+)\s*$/gm)].map((m) => m[1]);
   need(statuses.length === 1 && statuses[0] === 'READY_FOR_INDEPENDENT_REVIEW', 'PLAN_PUBLICATION_PLAN_NOT_REVIEWABLE');
   const impact = normalize(plan).match(/<KODJO_PLAN_IMPACT_JSON>\s*([\s\S]*?)\s*<\/KODJO_PLAN_IMPACT_JSON>/);
-  need(impact && JSON.parse(impact[1]).scan_revision === sourceHead, 'PLAN_PUBLICATION_SCAN_REVISION_MISMATCH');
+  need(impact && JSON.parse(impact[1]).scan_revision === (revision ? applicationHead : sourceHead), 'PLAN_PUBLICATION_SCAN_REVISION_MISMATCH');
   const ui = normalize(plan).match(/<KODJO_UI_PLAN_CONTRACT_JSON>\s*([\s\S]*?)\s*<\/KODJO_UI_PLAN_CONTRACT_JSON>/);
   need(ui && JSON.parse(ui[1]).schema === UI_CONTRACT_SCHEMA, 'PLAN_PUBLICATION_UI_CONTRACT_INVALID');
+  if (revision) {
+    need(/<KODJO_PLAN_REVISION_STATUS_JSON>/.test(plan), 'PLAN_PUBLICATION_REVISION_STATUS_MISSING');
+    // Same header as kodjo-v2-slice-plan.yml « Publish candidate V2 plan » (no planning_mode: non-INITIAL downstream).
+    return '[KODJO_V2] PLAN_OUTPUT\nslice_id=' + slice + '\nbootstrap_path=' + bootstrapPath + '\nsource_head=' + sourceHead +
+      '\napplication_pr=' + applicationPr + '\napplication_head=' + applicationHead + '\nsupersedes_plan_blob_oid=' + supersedes +
+      '\nprior_review_blob_oid=' + priorReview + '\nplanning_contract=kodjo.plan-impact.v1\nui_planning_contract=' + UI_PLANNING_CONTRACT +
+      '\npublished_plan_commit=' + commit + '\npublished_plan_blob=' + blobId + '\nSTATUT : PLAN_READY_FOR_INDEPENDENT_REVIEW\n\n' + plan;
+  }
   // Same header as the planning workflow's bot PLAN_OUTPUT (kodjo-v2-slice-initial-plan.yml).
   return '[KODJO_V2] PLAN_OUTPUT\nslice_id=' + slice + '\nbootstrap_path=' + bootstrapPath + '\nsource_head=' + sourceHead +
     '\nplanning_mode=INITIAL\nplanning_contract=kodjo.plan-impact.v1\nui_planning_contract=' + UI_PLANNING_CONTRACT +
