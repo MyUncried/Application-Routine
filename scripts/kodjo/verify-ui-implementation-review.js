@@ -69,7 +69,7 @@ function readPreviousReview(file) {
   if (body.startsWith('{')) return JSON.parse(body);
   return extractTaggedJson(body, 'KODJO_UI_IMPLEMENTATION_REVIEW_JSON', 'UI_IMPLEMENTATION_PREVIOUS_REVIEW_MISSING');
 }
-function buildInput(planBody, changedFiles, previousReview) {
+function buildInput(planBody, changedFiles, previousReview, deliveredFiles) {
   const matrix = extractTaggedJson(planBody, 'KODJO_UI_CRITERIA_MATRIX_JSON', 'UI_IMPLEMENTATION_REVIEW_PLAN_MATRIX_MISSING');
   const planContract = extractTaggedJson(planBody, 'KODJO_UI_PLAN_CONTRACT_JSON', 'UI_IMPLEMENTATION_REVIEW_PLAN_CONTRACT_MISSING');
   if (!matrix || !['kodjo.ui-criteria.v1',MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3].includes(matrix.schema)) fail('UI_IMPLEMENTATION_REVIEW_PLAN_MATRIX_INVALID', 'schema matrice invalide');
@@ -103,6 +103,7 @@ function buildInput(planBody, changedFiles, previousReview) {
 
   const changed = unique(changedFiles, 'UI_IMPLEMENTATION_REVIEW_CHANGED_FILES_INVALID', 'changed_files').sort();
   const changedSet = new Set(changed);
+  const deliveredSet = Array.isArray(deliveredFiles) ? new Set(deliveredFiles.map(String)) : null;
   const uiApplicable = Boolean(planContract.ui_applicable);
   if (!uiApplicable && criteria.length) fail('NON_UI_PLAN_HAS_UI_CRITERIA', 'contrat non UI contradictoire');
 
@@ -152,7 +153,9 @@ function buildInput(planBody, changedFiles, previousReview) {
   const normalizedCriteria = criteria.map((criterion) => {
     const id = String(criterion.criterion_id);
     const targets = unique(criterion.change_targets || [], 'UI_IMPLEMENTATION_REVIEW_TARGET_INVALID', id + '.change_targets').sort();
-    const missingTargets = targets.filter((target) => !changedSet.has(target));
+    // Livraison sur une PR existante : une cible livrée par une livraison antérieure de la tranche (diff cumulatif depuis la
+    // baseline) reste livrée ; le périmètre de revue (AFFECTED/INHERITED) reste calculé sur l'incrément.
+    const missingTargets = targets.filter((target) => !changedSet.has(target) && !(deliveredSet && deliveredSet.has(target)));
     const tests = Array.isArray(criterion.tests) ? [...criterion.tests].map(String).sort() : [];
     const affectedPaths = [...new Set([...targets, ...tests].filter((target) => changedSet.has(target)))].sort();
     const reviewScope = previousById && affectedPaths.length === 0 ? 'INHERITED' : 'AFFECTED';
@@ -593,7 +596,9 @@ try {
   const outputFile = mode === 'validate' ? args[4] : null;
   const evidenceFile = mode === 'prepare' ? args[4] : args[5];
   const previousFile = mode === 'prepare' ? args[5] : args[6];
-  const input = buildInput(planBody, changedFiles, readPreviousReview(previousFile));
+  const cumulativeFile = String(process.env.KODJO_CUMULATIVE_CHANGED_FILES || '').trim();
+  const deliveredFiles = cumulativeFile ? fs.readFileSync(path.resolve(cumulativeFile), 'utf8').split(String.fromCharCode(10)).map((x)=>x.trim()).filter(Boolean) : null;
+  const input = buildInput(planBody, changedFiles, readPreviousReview(previousFile), deliveredFiles);
   const testEvidenceFile=String(process.env.KODJO_TEST_CONTRACT_EVIDENCE_FILE||'').trim();
   if(input.non_ui_requirement_count>=0&&/<KODJO_REQUIREMENT_CONTRACT_JSON>/.test(planBody)&&process.env.KODJO_REQUIRE_TEST_CONTRACT_EVIDENCE==='1'&&
      (!testEvidenceFile||!fs.existsSync(path.resolve(testEvidenceFile))))throw new Error('TEST_CONTRACT_EVIDENCE_MISSING');

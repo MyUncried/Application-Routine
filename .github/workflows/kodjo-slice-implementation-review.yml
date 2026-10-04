@@ -260,6 +260,14 @@ jobs:
           printf 'slice_id=%s\nhead=%s\nbase=%s\nreview_base=%s\ncumulative_review_base=%s\nsession=%s\nplan=%s\nbranch=%s\nmanifest=%s\nsource_comment_id=%s\nincrement=%s\nimplementation_trigger_comment_id=%s\nv2_operation_kind=%s\nv2_mode=%s\nprevious_review_comment_id=%s\n' "$slice" "$head" "$base" "$review_base" "$cumulative_review_base" "$session" "$plan" "$branch" "$manifest" "$source_comment_id" "$increment" "$implementation_trigger_comment_id" "$v2_operation_kind" "$v2_mode" "$previous_review_comment_id" >> "$GITHUB_OUTPUT"
           printf '%s' "$plan_body" > /tmp/approved-plan.md
           printf '%s' "$source_body" > /tmp/implementation-output.md
+          # Livraison sur une PR existante : les cibles déjà livrées par une livraison antérieure de la tranche restent
+          # livrées ; la baseline de la tranche borne le diff cumulatif (verify-ui-implementation-review.js).
+          delivered_base=''
+          if [ -n "${v2_queue_path:-}" ] && jq -e '.delivery_target.kind == "EXISTING_PR"' "$v2_queue_path" >/dev/null 2>&1; then
+            delivered_base=$(jq -r '.baseline_head' "$v2_queue_path")
+            [[ "$delivered_base" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid V2 delivered baseline SHA' >&2; exit 1; }
+          fi
+          echo "delivered_base=$delivered_base" >> "$GITHUB_OUTPUT"
 
       - name: Freeze criterion review validator before application checkout
         if: startsWith(steps.gate.outputs.manifest, '.github/orchestration/queue/v2/') && steps.gate.outputs.v2_operation_kind == 'IMPLEMENT'
@@ -297,6 +305,11 @@ jobs:
           git diff --name-only "${{ steps.gate.outputs.review_base }}..${{ steps.gate.outputs.head }}" > /tmp/changed-files.txt
           test -s /tmp/changed-files.txt
           ! grep -Fxq 'src/infrastructure/database/migrations/migration001.ts' /tmp/changed-files.txt
+          if [ -n "${{ steps.gate.outputs.delivered_base }}" ]; then
+            git merge-base --is-ancestor "${{ steps.gate.outputs.delivered_base }}" "${{ steps.gate.outputs.head }}"
+            git diff --name-only "${{ steps.gate.outputs.delivered_base }}..${{ steps.gate.outputs.head }}" > /tmp/cumulative-changed-files.txt
+            echo "KODJO_CUMULATIVE_CHANGED_FILES=/tmp/cumulative-changed-files.txt" >> "$GITHUB_ENV"
+          fi
 
       - name: Prepare criterion-complete UI review input
         if: startsWith(steps.gate.outputs.manifest, '.github/orchestration/queue/v2/') && steps.gate.outputs.v2_operation_kind == 'IMPLEMENT'

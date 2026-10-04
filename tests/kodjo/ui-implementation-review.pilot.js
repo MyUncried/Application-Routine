@@ -106,6 +106,31 @@ test('implementation review: refuse un change_target approuvé absent du diff', 
   assert.match(r.stderr,/UI_IMPLEMENTATION_REVIEW_TARGET_NOT_DELIVERED/);
 });
 
+test('implementation review: sur une PR existante, une cible livrée par une livraison antérieure de la tranche reste livrée', () => {
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-ui-review-'));
+  const plan=path.join(dir,'plan.md'), changed=path.join(dir,'changed.txt'), cumulative=path.join(dir,'cumulative.txt'), out=path.join(dir,'input.json');
+  fs.writeFileSync(plan,fixture()); fs.writeFileSync(changed,'src/features/example/Other.tsx\n');
+  // Run 37229130391 : cible inchangée dans l'incrément de révision, livrée dans la livraison initiale de la PR.
+  fs.writeFileSync(cumulative,'src/features/example/ExampleScreen.tsx\nsrc/features/example/Other.tsx\n');
+  process.env.KODJO_CUMULATIVE_CHANGED_FILES=cumulative;
+  let r;
+  try { r=run(['prepare',plan,changed,out],dir); } finally { delete process.env.KODJO_CUMULATIVE_CHANGED_FILES; }
+  assert.equal(r.status,0,r.stderr);
+  fs.writeFileSync(cumulative,'src/features/example/Other.tsx\n');
+  process.env.KODJO_CUMULATIVE_CHANGED_FILES=cumulative;
+  try { r=run(['prepare',plan,changed,out],dir); } finally { delete process.env.KODJO_CUMULATIVE_CHANGED_FILES; }
+  assert.match(r.stderr,/UI_IMPLEMENTATION_REVIEW_TARGET_NOT_DELIVERED/);
+});
+
+test('implementation review workflow: diff cumulatif depuis la baseline seulement pour une livraison EXISTING_PR', () => {
+  const wf=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-implementation-review.yml'),'utf8').replace(/\r\n/g,'\n');
+  assert.match(wf,/jq -e '\.delivery_target\.kind == "EXISTING_PR"' "\$v2_queue_path"/);
+  assert.match(wf,/delivered_base=\$\(jq -r '\.baseline_head' "\$v2_queue_path"\)/);
+  assert.match(wf,/git merge-base --is-ancestor "\$\{\{ steps\.gate\.outputs\.delivered_base \}\}" "\$\{\{ steps\.gate\.outputs\.head \}\}"/);
+  assert.match(wf,/echo "KODJO_CUMULATIVE_CHANGED_FILES=\/tmp\/cumulative-changed-files\.txt" >> "\$GITHUB_ENV"/);
+  assert.ok(wf.indexOf('KODJO_CUMULATIVE_CHANGED_FILES') < wf.indexOf('- name: Prepare criterion-complete UI review input'));
+});
+
 test('implementation review: accepte approbation technique avec preuves device explicitement en attente', () => {
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-ui-review-'));
   const plan=path.join(dir,'plan.md'), changed=path.join(dir,'changed.txt'), review=path.join(dir,'review.json'), out=path.join(dir,'out.json');

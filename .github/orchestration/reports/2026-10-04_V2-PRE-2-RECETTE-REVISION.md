@@ -369,3 +369,18 @@ plan_size=252796
 - **Suite :**
   1. Fusion, publication de r4 avec fermeture, puis une revue de fermeture.
   2. Après APPROVE, nouveau relais : 👍 du propriétaire requis, puis reprise du paquet de 23 fichiers.
+
+## Complément — implémentation livrée sur #303, revue d'implémentation bloquée par le protocole
+
+- **Revue de fermeture r4.** Run `37218795120` : APPROVE (`5982572124`). Relais `5982574417` (plan `014987f6`, `a37aab28`). 👍 du propriétaire vérifié (17:59:01Z) ; `PLAN_HANDOFF_VALIDATED` (`5982831432`).
+- **Reprises** :
+  - du paquet de 23 fichiers du run `37214282333` sous le plan r4 (`0556a595`, code `CLARIFICATION`) : run `37222813533`, 27 fichiers, arrêt sur la limite de 3 600 s ;
+  - puis reprise bornée (`b9098f51`, code `BUDGET_EXHAUSTED`) : run `37227146036`, **`IMPLEMENTED_AND_VERIFIED`**, 28 fichiers, jest, typescript et lint PASS.
+- **Livraison.** #303 `10ac761e` → **`3780eb92`** (commentaire `5983669449`). Actif `assets/icons/label-outline.svg` livré avec le blob attendu `a573a076`.
+- **Revue d'implémentation (run `37229130391`) : échec avant Claude.**
+  - Erreur : `UI_IMPLEMENTATION_REVIEW_TARGET_NOT_DELIVERED: UI-3D89E598F31D: src/features/sessions/BodyZoneSelector.tsx`.
+  - Cause démontrée (défaut de protocole) : la préparation exige chaque cible dans le diff de l'incrément. Or `BodyZoneSelector.tsx` a été livrée par la livraison initiale de #303, et le périmètre d'une révision est cumulatif.
+- **Correctif** : pour une livraison `EXISTING_PR`, la présence des cibles est vérifiée sur le diff cumulatif depuis la baseline de la tranche (`53cb05c7`) ; le périmètre de revue reste l'incrément.
+  - Rejeu local sur les vraies données : sans correctif, même refus ; avec correctif, préparation PASS (6 critères, 73 assertions).
+  - Tests 24/24 ; suite pilote 924/943, avec les mêmes 15 échecs préexistants.
+- **Suite :** fusion, relance unique de la revue d'implémentation sur `5983669824`, puis publication Routine Dev.
