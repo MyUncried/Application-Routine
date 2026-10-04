@@ -67,12 +67,18 @@ for (const [name, o, code] of [
   ['unknown planning mode', { fields: { planning_mode: 'BOUNDED' } }, /PLAN_PUBLICATION_MODE_INVALID/],
   ['missing application head', { drop: ['application_head'] }, /PLAN_PUBLICATION_FIELD_INVALID:application_head/],
   ['malformed application PR', { fields: { application_pr: 'pr303' } }, /PLAN_PUBLICATION_REVISION_IDENTITY_INVALID/],
-  ['closure fields on a revision', { extra: '\nprior_review_comment_id=1' }, /PLAN_PUBLICATION_REVISION_CLOSURE_FORBIDDEN/],
   ['source head not on target', { sourceCompare: 'diverged' }, /PLAN_PUBLICATION_SOURCE_NOT_ON_TARGET/],
   ['superseded plan is not the committed plan at source head', { sourcePlan: '1'.repeat(40) }, /PLAN_PUBLICATION_SUPERSEDED_PLAN_MISMATCH/],
   ['scan not at the application head', { plan: plan({ scan: SOURCE }) }, /PLAN_PUBLICATION_SCAN_REVISION_MISMATCH/],
   ['revision status block missing', { plan: plan({ noStatus: true }) }, /PLAN_PUBLICATION_REVISION_STATUS_MISSING/],
 ]) test('revision publication refuses: ' + name, (t) => assert.throws(() => run(fixture(t, o)), code));
+
+test('a revision may carry closure fields: the plan header is unchanged, closureInputs binds them', (t) => {
+  const plain = run(fixture(t));
+  const closure = run(fixture(t, { extra: '\nprior_review_comment_id=1\nprior_findings_path=' + DIR + 'f.json\nprior_findings_blob=' + '1'.repeat(40) +
+    '\ncorrection_register_path=' + DIR + 'r.md\ncorrection_register_blob=' + '2'.repeat(40) }));
+  assert.equal(closure, plain);
+});
 
 test('an INITIAL publication may not carry application fields', (t) => {
   const f = fixture(t, { drop: ['planning_mode'], fields: { source_head: BASELINE } });

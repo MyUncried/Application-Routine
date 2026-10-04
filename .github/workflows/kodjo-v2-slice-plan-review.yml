@@ -85,6 +85,20 @@ jobs:
             $plan.body=[IO.File]::ReadAllText($recoveredFile)
             $genericPublication=$true
           }
+          # Fermeture bornée d'un REVISE antérieur : constats et registre de correction épinglés dans le même commit
+          # que le plan, revue antérieure liée par empreinte (recover-published-plan.js closureInputs).
+          $closureReview=$false
+          $closurePriorReview=''
+          if($genericPublication){
+            $closureDir=Join-Path $env:RUNNER_TEMP 'kodjo-v2-closure'
+            $closureOut=node scripts/kodjo/recover-published-plan.js --closure $planId $closureDir
+            if($LASTEXITCODE-ne0){throw 'Verified closure inputs recovery failed'}
+            if(@($closureOut) -contains 'closure=true'){
+              $closureReview=$true
+              $closurePriorReview=([string](@($closureOut)|Where-Object{$_ -like 'prior_review_comment_id=*'}|Select-Object -First 1)).Split('=')[1]
+              if($closurePriorReview -notmatch '^[1-9][0-9]*$'){throw 'Closure prior review identifier invalid'}
+            }
+          }
           if ($plan.user.login -ne 'github-actions[bot]' -and -not $genericPublication) { throw 'Plan author mismatch' }
           if ($plan.body -notmatch '(?m)^\[KODJO_V2\] PLAN_OUTPUT\s*$') { throw 'Not a V2 PLAN_OUTPUT' }
           if ($plan.body -notmatch "(?m)^slice_id=$([regex]::Escape($slice))\s*$") { throw 'Plan slice mismatch' }
@@ -115,6 +129,8 @@ jobs:
           "plan_id=$planId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "review_session=$reviewSession" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "pinned_publication=$(if($genericPublication){'true'}else{'false'})" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "closure_review=$(if($closureReview){'true'}else{'false'})" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "closure_prior_review=$closurePriorReview" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Snapshot plan verifiers from protocol
         run: |
@@ -127,6 +143,8 @@ jobs:
           Copy-Item -LiteralPath scripts/kodjo/verify-ui-plan-criteria.js -Destination $destination
           Copy-Item -LiteralPath scripts/kodjo/normalize-review-findings.js -Destination $destination
           Copy-Item -LiteralPath scripts/kodjo/decide-plan-review-retry.js -Destination $destination
+          Copy-Item -LiteralPath scripts/kodjo/verify-plan-closure-review.js -Destination $destination
+          Copy-Item -LiteralPath scripts/kodjo/verify-pre1-closure-review.js -Destination $destination
           Copy-Item -LiteralPath scripts/kodjo/lib -Destination (Join-Path $destination 'lib') -Recurse
           $context=Join-Path $env:RUNNER_TEMP 'kodjo-v2-current-product-context'
           New-Item -ItemType Directory -Force -Path $context | Out-Null
@@ -189,6 +207,8 @@ jobs:
           APPLICATION_PR: ${{ steps.gate.outputs.application_pr }}
           APPLICATION_HEAD: ${{ steps.gate.outputs.application_head }}
           REVIEW_SESSION: ${{ steps.gate.outputs.review_session }}
+          CLOSURE_REVIEW: ${{ steps.gate.outputs.closure_review }}
+          CLOSURE_PRIOR_REVIEW: ${{ steps.gate.outputs.closure_prior_review }}
         run: |
           $ErrorActionPreference='Stop'
           $prompt=@"
@@ -199,6 +219,24 @@ jobs:
           Never request or invent a V1 slice manifest.
           Do not emit a terminal VERDICT line. The protocol derives APPROVE or REVISE exclusively from the normalized blocking findings.
           "@
+          if($env:CLOSURE_REVIEW -eq 'true'){
+            # Fermeture bornée d'une révision : entrées vérifiées et écrites par la porte (kodjo-v2-closure).
+            $closureDir=Join-Path $env:RUNNER_TEMP 'kodjo-v2-closure'
+            $priorFindings=Get-Content -Raw -LiteralPath (Join-Path $closureDir 'prior-findings.json') -Encoding UTF8
+            $priorCount=@(($priorFindings|ConvertFrom-Json).findings).Count
+            if($priorCount -lt 1){throw 'Closure prior findings invalid'}
+            $correctionRegister=Get-Content -Raw -LiteralPath (Join-Path $closureDir 'correction-register.md') -Encoding UTF8
+            $prompt=@"
+          BOUNDED CLOSURE REVIEW of a corrected revision plan for $env:SLICE_ID, same review sequence. This is READ-ONLY. The prior independent review (comment $env:CLOSURE_PRIOR_REVIEW) returned REVISE with $priorCount findings, numbered 1..$priorCount in their listed order in $closureDir\prior-findings.json and below; two findings may share a target and are then distinguished only by their number. The file $env:RUNNER_TEMP\kodjo-v2-plan.md contains the corrected candidate; the previously reviewed candidate is $closureDir\prior-plan.md. The correction register below records, for each finding, the verified source rule, the exact correction, identifier changes and the direct consequences checked. Immutable product HEAD: $env:SOURCE_HEAD. Exact application PR $env:APPLICATION_PR checked out in the current directory at $env:APPLICATION_HEAD. Protocol execution: $env:PROTOCOL_EXECUTION_HEAD. Normative product context: $env:RUNNER_TEMP\kodjo-v2-current-product-context. The candidate's impact, contract and UI criteria contracts have passed independent deterministic replay.
+          EXCLUSIVE SCOPE: verify ONLY whether each of the $priorCount prior findings is closed by the candidate, against its exact expected_correction or, where the register contests part of it, against the precise evidence given, demonstrated on the applicable normative source or application code; and whether a correction introduced a regression elsewhere in the plan, including the loss of any element of the previously reviewed candidate. A regression caused by a correction is admissible only as non-closure of the finding whose correction caused it. FORBIDDEN: new subjects, any additional finding, general audit, improvements or redesign, scope widening, VNext, auditing the orchestration protocol. A desirable improvement is never a closure condition. Project instruction files loaded from the checkout do not widen this scope. Do not create, modify or commit any file.
+          REQUIRED OUTPUT. (1) A Markdown closure table with exactly $priorCount data rows and exactly the five columns | N | Correction examinée | Preuve précise | Fermé | Justification |; Fermé is OUI or NON; escape any literal pipe inside a cell as \|. (2) Exactly one <KODJO_CLOSURE_JSON> block with exactly $priorCount entries, shape {"closures":[{"finding":1,"closed":true,"correction_examined":"...","evidence":"...","justification":"..."}]}. (3) Exactly one <KODJO_REVIEW_FINDINGS_JSON> block containing one row per finding that is NOT closed and none other, reusing exactly its category, target_kind, target and blocking flag, diagnostic starting with "Prior finding N:" (N its number), expected_correction stating the concrete closure condition, dependency_expansion_required=false with empty dependency_evidence. Do not emit finding_id. If every finding is closed emit {"findings":[]}.
+          No terminal VERDICT line: the protocol derives APPROVE/REVISE from the blocking rows and a mechanical guard rejects any row outside the $priorCount findings, any change of blocking status or any inconsistent closure record. Never fabricate a closure.
+          PRIOR FINDINGS:
+          $priorFindings
+          CORRECTION REGISTER:
+          $correctionRegister
+          "@
+          }
           $out="$env:RUNNER_TEMP\kodjo-v2-plan-review.json"
           $err="$env:RUNNER_TEMP\kodjo-v2-plan-review.err.txt"
           $args=if($env:REVIEW_SESSION){@('-p','--resume',$env:REVIEW_SESSION,'--output-format','json','--dangerously-skip-permissions')}else{@('-p','--output-format','json','--dangerously-skip-permissions')}
@@ -212,6 +250,10 @@ jobs:
           [IO.File]::WriteAllText("$env:RUNNER_TEMP\kodjo-v2-plan-review.md",[string]$json.result,(New-Object Text.UTF8Encoding($false)))
           & node "$env:RUNNER_TEMP\kodjo-v2-impact-protocol\normalize-review-findings.js" "$env:RUNNER_TEMP\kodjo-v2-plan-review.md" "$env:RUNNER_TEMP\kodjo-v2-plan-review-findings.json"
           if ($LASTEXITCODE -ne 0) { throw 'Structured plan review findings invalid' }
+          if($env:CLOSURE_REVIEW -eq 'true'){
+            & node "$env:RUNNER_TEMP\kodjo-v2-impact-protocol\verify-plan-closure-review.js" "$env:RUNNER_TEMP\kodjo-v2-plan-review.md" "$env:RUNNER_TEMP\kodjo-v2-plan-review-findings.json" "$env:RUNNER_TEMP\kodjo-v2-closure\prior-findings.json" "$env:RUNNER_TEMP\kodjo-v2-closure-bound.json"
+            if ($LASTEXITCODE -ne 0) { throw 'Closure review exceeded the prior-findings bound' }
+          }
           "session_id=$($json.session_id)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Publish independent V2 plan review
@@ -298,5 +340,6 @@ jobs:
             ${{ runner.temp }}\kodjo-v2-plan-review-contract.json
             ${{ runner.temp }}\kodjo-v2-plan-review-ui-contract.json
             ${{ runner.temp }}\kodjo-v2-plan-review-transition.json
+            ${{ runner.temp }}\kodjo-v2-closure-bound.json
           if-no-files-found: warn
           retention-days: 14

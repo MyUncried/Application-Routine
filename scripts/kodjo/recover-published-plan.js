@@ -63,7 +63,6 @@ function recover(comment, repository, get = api(repository), protocolRoot = proc
     supersedes = field(comment.body, 'supersedes_plan_blob_oid');
     priorReview = field(comment.body, 'prior_review_blob_oid');
     need(/^[1-9][0-9]*$/.test(applicationPr) && SHA40.test(applicationHead) && SHA40.test(sourceHead) && SHA40.test(supersedes) && SHA40.test(priorReview), 'PLAN_PUBLICATION_REVISION_IDENTITY_INVALID');
-    need(!CLOSURE_FIELDS.some((name) => hasField(comment.body, name)), 'PLAN_PUBLICATION_REVISION_CLOSURE_FORBIDDEN');
   } else {
     need(SHA40.test(sourceHead) && sourceHead === bootstrap.baseline_head, 'PLAN_PUBLICATION_SOURCE_MISMATCH');
     need(!['application_pr', 'application_head'].some((name) => hasField(comment.body, name)), 'PLAN_PUBLICATION_INITIAL_APPLICATION_FORBIDDEN');
@@ -149,7 +148,8 @@ function closureInputs(comment, repository, get = api(repository), protocolRoot 
   const findings = JSON.parse(findingsBytes.toString('utf8'));
   need(Array.isArray(findings.findings) && findings.findings.length >= 1 && findings.findings.every((f) =>
     f && typeof f.target_kind === 'string' && typeof f.target === 'string' && typeof f.blocking === 'boolean'), 'PLAN_CLOSURE_FINDINGS_INVALID');
-  need(new Set(findings.findings.map((f) => f.target_kind + '\u0000' + f.target)).size === findings.findings.length, 'PLAN_CLOSURE_TARGETS_NOT_UNIQUE');
+  // Distinct defects may share a target; each prior finding is identified by its number (verify-plan-closure-review.js).
+  need(new Set(findings.findings.map((f) => f.target_kind + '\u0000' + f.target + '\u0000' + f.diagnostic)).size === findings.findings.length, 'PLAN_CLOSURE_FINDINGS_DUPLICATED');
   const priorId = field(body, 'prior_review_comment_id');
   need(/^[1-9][0-9]*$/.test(priorId), 'PLAN_CLOSURE_PRIOR_REVIEW_ID_INVALID');
   const prior = get('issues/comments/' + priorId);
