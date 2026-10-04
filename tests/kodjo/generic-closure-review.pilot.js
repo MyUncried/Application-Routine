@@ -47,7 +47,7 @@ function fixture(t, opts = {}) {
     'prior_findings_blob=' + (opts.findingsBlob || blobs[DIR + 'p2/prior-findings.json']), 'correction_register_path=' + DIR + 'p2/correction-register.md',
     'correction_register_blob=' + blobs[DIR + 'p2/correction-register.md']].join('\n');
   const recovery = { id: 20, user: { login: opts.priorAuthor || 'owner' }, issue_url: opts.priorIssue || ISSUE, body: [opts.priorMarker || '[KODJO_V2] PLAN_REVIEW_RECOVERY', 'slice_id=' + SLICE,
-    'source_plan_comment_id=10', 'derived_verdict=' + (opts.priorVerdict || 'REVISE'), 'findings_sha256=' + (opts.digest || sha256(files[DIR + 'p2/prior-findings.json'])), '', 'review text'].join('\n') };
+    'source_plan_comment_id=10', 'derived_verdict=' + (opts.priorVerdict || 'REVISE'), 'findings_sha256=' + (opts.digest || sha256(files[DIR + 'p2/prior-findings.json'])), ...(opts.priorExtra || []), '', 'review text'].join('\n') };
   const comments = { 10: pub(10, '1'.repeat(40), DIR + 'p1/technical-plan.md'), 20: recovery, 30: pub(30, '2'.repeat(40), DIR + 'p2/technical-plan.md', closure) };
   const get = (route) => {
     if (route.startsWith('issues/comments/')) return comments[route.split('/')[2]];
@@ -69,6 +69,17 @@ test('closure inputs are recovered from a recovery-bound prior review, with the 
   assert.match(out.priorPlan, /^\[KODJO_V2\] PLAN_OUTPUT\n/);
   assert.ok(out.priorPlan.endsWith(f.files[DIR + 'p1/technical-plan.md'].toString('utf8')));
 });
+
+test('an owner-arbitrated implementation change request bounds a closure like a recovered review', (t) => {
+  const out = run(fixture(t, { priorMarker: '[KODJO_V2] PLAN_CHANGE_REQUEST', priorExtra: ['implementation_run_id=37214282333'] }));
+  assert.equal(out.priorReviewId, '20');
+  assert.equal(out.count, 2);
+});
+for (const [name, opts, code] of [
+  ['change request without its implementation run', { priorMarker: '[KODJO_V2] PLAN_CHANGE_REQUEST' }, /PLAN_CLOSURE_CHANGE_REQUEST_RUN_INVALID/],
+  ['change request not published by the owner', { priorMarker: '[KODJO_V2] PLAN_CHANGE_REQUEST', priorExtra: ['implementation_run_id=1'], priorAuthor: 'someone' }, /PLAN_CLOSURE_PRIOR_AUTHORITY_INVALID/],
+  ['change request digest differs from the pinned findings', { priorMarker: '[KODJO_V2] PLAN_CHANGE_REQUEST', priorExtra: ['implementation_run_id=1'], digest: '0'.repeat(64) }, /PLAN_CLOSURE_FINDINGS_DIGEST_MISMATCH/],
+]) test('closure inputs refuse: ' + name, (t) => assert.throws(() => run(fixture(t, opts)), code));
 
 test('a publication without closure fields is a plain publication', (t) => {
   assert.equal(run(fixture(t, { closure: '' })), null);
