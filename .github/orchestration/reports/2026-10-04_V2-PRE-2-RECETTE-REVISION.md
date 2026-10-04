@@ -420,3 +420,30 @@ plan_size=252796
 - **Cause démontrée** (rejeu instrumenté du validateur sur l'artefact) : seule la règle `component_evidence` bloque, sur 5 critères. Pour une décision `CREATE`, chaque cible doit figurer dans le diff de l'incrément ; or les composants ont été créés par la livraison initiale de #303. C'est le même défaut que celui corrigé par #315, à un autre endroit.
 - **Correctif** : sur une PR existante, la preuve de composant utilise le diff cumulatif depuis la baseline. Rejeu de la **même** sortie du relecteur : verdict **APPROVE**, `device_gate_required=true`. Tests 26/26 ; suite pilote 928/947, avec les mêmes 15 échecs préexistants.
 - **Suite :** fusion, relance de la revue ; publication Routine Dev automatique après APPROVE.
+
+## Complément — revue d'implémentation APPROVE et publication Routine Dev
+
+- **#318 fusionnée** (`c9d876b9`). Relance `5984077069`, run `37232224033` : **verdict APPROVE**, `device_gate_required=true` (`5984104726`, `STATUT : IMPLEMENTATION_REVIEW_APPROVED`).
+- **Publication Routine Dev** (job `routine-dev-sync` du même run) :
+  - compatibilité `OTA_COMPATIBLE`, aucun fichier natif sensible ; contrat d'environnement inchangé (`app.json`, `app.config.js`, `eas.json`, `package.json`, `package-lock.json`) ;
+  - mise à jour EAS `01a1089f-13e9-7e55-af54-11cc035d4179` (groupe `555e10c0-b712-4bd5-8199-888a801fbfca`), branche `review`, iOS, runtime `1.1.0`, commit `3780eb92`.
+- **État final.** PR #303 ouverte à `3780eb92`, non fusionnée : la fusion attend la recette humaine. `VISUAL_APPROVED` n'est pas publié.
+- **Vérifications restant sur appareil réel.** Recette iPhone du plan §11 (révision r4), en priorité :
+  - R1 (défilement du Profil, bloc Identité, Modifier le profil défilant) ;
+  - D-265 à D-267 ;
+  - R4 (palette dans la carte, clavier affiché et masqué) ;
+  - R5 ;
+  - R6 (Zones dans l'éditeur et dans la Composition) ;
+  - R7a (nom de l'Étiquette, icône au trait sans Étiquette) ;
+  - R10 (interrupteurs, en-têtes, retour du focus) ;
+  - les preuves PENDING_DEVICE de la revue.
+- **Défauts de protocole corrigés pendant cette phase**, tous sans affaiblir une barrière :
+  - #313 : plan autorisé fourni sur une PR existante ;
+  - #314 : fermeture d'une demande de changement arbitrée ;
+  - #315 et #318 : cibles et preuves de composant cumulatives sur une PR existante ;
+  - #316 : doute appareil du relecteur dans l'évidence ;
+  - #317 : rapport aligné sur la mission.
+- **Hors périmètre, non corrigés :**
+  - échecs préexistants de la suite pilote (IA-004, 0.6.29 et les tests du runtime OpenAI) ;
+  - classification `KODJO-V2-CLAUDE-AUTH` sur un texte de sortie, sans effet ;
+  - run fantôme `34748621746`, laissé en file.
