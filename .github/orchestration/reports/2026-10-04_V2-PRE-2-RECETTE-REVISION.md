@@ -304,3 +304,23 @@ plan_size=252796
   1. Fusion de la PR.
   2. Publication de r3, avec `source_head` = commit de fusion, `plan_commit=6b9a3641…` et les champs de fermeture.
   3. Une seule revue de fermeture.
+
+## Complément — revue de fermeture : APPROVE, relais matérialisé
+
+- **Autorisations du propriétaire** (« Tout autoriser ») : fusion de #312, publication de r3, une seule revue de fermeture.
+- **Fusion de #312** : `4eff1882a65dbb2c80f302aeacd11aa26a12e67a`. E2E de fermeture rejoué à ce commit avant publication : 22/22.
+- **Publication r3.** Commentaire `5980545085` : `source_head=4eff1882…`, `plan_commit=6b9a3641…`, blob `fe46bda9…`, plus les champs de fermeture.
+  - Vérifiée contre l'API réelle par `recover-published-plan.js` : octets identiques.
+  - Entrées de fermeture valides : revue antérieure `5980019179`, candidat précédent `5979912654`, 5 constats.
+- **Revue de fermeture unique.** Run `37206153511`, session reprise `e9c7c78c-066e-48d0-b94e-36ea8e98f7a8`.
+  - Contrôle préalable : aucune revue en cours, aucun commentaire postérieur, runner libre.
+  - Toutes les étapes ont réussi, y compris la garde de fermeture.
+  - Résultat publié : commentaire `5980614371`, **verdict APPROVE**, `finding_count=0`. Les 5 constats sont fermés : exigence Profil (devenue `REQ-B01623D27FF0E00D`), liste des Catégories, liaison i18n des chaînes de suppression, Modifier le profil, feuille d'Étiquettes.
+- **Relais automatique** (étape d'origine après APPROVE). `PLAN_HANDOFF_READY` publié (`5980617069`), commit `99e8d134` sur `main` :
+  - `technical-plan.md` → blob `0d0e7ce6…` ; `independent-review.md` → blob `15dd3dae…` ;
+  - `planning_application_head=10ac761e…` ;
+  - `next_action=ADD_REACTION_THEN_COMMENT`.
+- **Arrêt au résultat publié.** Restent à faire, sous la décision du propriétaire :
+  1. 👍 de Hermann depuis son propre compte sur `5980617069`, puis la commande de mise en file.
+  2. Livraison sur #303.
+  3. Revue d'implémentation, publication Routine Dev et nouvelle recette iPhone (§11 du plan).
