@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import {
   isCategoryAssignable,
@@ -44,8 +44,13 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
   const [editColor, setEditColor] = useState<CategoryColor>(SESSION_COLORS[0]!);
   const [isEditPaletteOpen, setIsEditPaletteOpen] = useState(false);
   const [duplicateError, setDuplicateError] = useState(false);
+  const [writeError, setWriteError] = useState(false);
   const [retiredNotice, setRetiredNotice] = useState(false);
   const [deleteTargetUsed, setDeleteTargetUsed] = useState(false);
+  // R10 (CE-UI-09 L2840) : le focus d'accessibilité revient explicitement
+  // à cette liste après Annuler/Supprimer confirmé dans le dialogue d'appui
+  // long (jamais après Modifier, cf. `ReferenceValueDialog`).
+  const tagRowRef = useRef<View>(null);
   const t = strings.referenceData.category;
 
   function reload() {
@@ -71,18 +76,24 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
     if (!validated.ok) {
       return;
     }
-    const result = await referentialService.createCategory({ name: validated.value, color: newColor });
-    if (result.status === "DUPLICATE") {
-      setDuplicateError(true);
-      return;
-    }
-    reload();
-    setIsCreating(false);
-    setNewName("");
-    setDuplicateError(false);
-    if (result.status === "OK") {
-      onSelect(result.value.id);
-      onClose();
+    setWriteError(false);
+    try {
+      const result = await referentialService.createCategory({ name: validated.value, color: newColor });
+      if (result.status === "DUPLICATE") {
+        setDuplicateError(true);
+        return;
+      }
+      reload();
+      setIsCreating(false);
+      setNewName("");
+      setDuplicateError(false);
+      if (result.status === "OK") {
+        onSelect(result.value.id);
+        onClose();
+      }
+    } catch (error) {
+      console.error("La Catégorie n'a pas pu être créée.", error);
+      setWriteError(true);
     }
   }
 
@@ -91,6 +102,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
     setEditName(category.name);
     setEditColor(category.color);
     setDuplicateError(false);
+    setWriteError(false);
     setLongPressTarget(null);
   }
 
@@ -102,15 +114,21 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
     if (!validated.ok) {
       return;
     }
-    const renamed = await referentialService.renameCategory(editTarget.id, validated.value);
-    if (renamed.status === "DUPLICATE") {
-      setDuplicateError(true);
-      return;
+    setWriteError(false);
+    try {
+      const renamed = await referentialService.renameCategory(editTarget.id, validated.value);
+      if (renamed.status === "DUPLICATE") {
+        setDuplicateError(true);
+        return;
+      }
+      await referentialService.recolorCategory(editTarget.id, editColor);
+      reload();
+      setEditTarget(null);
+      setDuplicateError(false);
+    } catch (error) {
+      console.error("La Catégorie n'a pas pu être modifiée.", error);
+      setWriteError(true);
     }
-    await referentialService.recolorCategory(editTarget.id, editColor);
-    reload();
-    setEditTarget(null);
-    setDuplicateError(false);
   }
 
   async function openDeleteConfirm(category: Category) {
@@ -123,19 +141,32 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
       return;
     }
     const wasSelected = selectedId === longPressTarget.id;
-    await referentialService.retireCategory(longPressTarget.id);
-    reload();
-    setLongPressTarget(null);
-    if (wasSelected) {
-      setRetiredNotice(true);
+    try {
+      await referentialService.retireCategory(longPressTarget.id);
+      reload();
+      setLongPressTarget(null);
+      if (wasSelected) {
+        setRetiredNotice(true);
+      }
+    } catch (error) {
+      console.error("La Catégorie n'a pas pu être supprimée.", error);
+      setLongPressTarget(null);
+      setWriteError(true);
     }
   }
 
   return (
     <Modal transparent visible animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop} testID="category-picker-backdrop">
-        <View style={styles.card} testID="category-picker-card">
-          <Text style={styles.title}>{t.title}</Text>
+        <ScrollView
+          style={styles.card}
+          contentContainerStyle={styles.cardContent}
+          keyboardShouldPersistTaps="handled"
+          testID="category-picker-card"
+        >
+          <Text style={styles.title} accessibilityRole="header">
+            {t.title}
+          </Text>
 
           {retiredNotice ? (
             <Text style={styles.retiredNotice} testID="category-picker-retired-notice">
@@ -143,7 +174,13 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
             </Text>
           ) : null}
 
-          <View style={styles.tagRow} testID="category-picker-tag-row">
+          {writeError ? (
+            <Text style={styles.errorText} testID="category-picker-write-error">
+              {strings.referenceData.writeError}
+            </Text>
+          ) : null}
+
+          <View ref={tagRowRef} style={styles.tagRow} testID="category-picker-tag-row">
             {activeCategories.map((category) => {
               const isSelected = category.id === selectedId;
               return (
@@ -188,6 +225,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
                 onChange={setNewColor}
                 isOpen={isNewPaletteOpen}
                 onToggle={() => setIsNewPaletteOpen((current) => !current)}
+                variant="inline"
               />
               {duplicateError ? (
                 <Text style={styles.errorText} testID="category-picker-new-error">
@@ -200,6 +238,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
                     setIsCreating(false);
                     setNewName("");
                     setDuplicateError(false);
+                    setWriteError(false);
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={t.newEntry.cancelAccessibilityLabel}
@@ -240,6 +279,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
                 onChange={setEditColor}
                 isOpen={isEditPaletteOpen}
                 onToggle={() => setIsEditPaletteOpen((current) => !current)}
+                variant="inline"
               />
               {duplicateError ? (
                 <Text style={styles.errorText} testID="category-picker-edit-error">
@@ -251,6 +291,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
                   onPress={() => {
                     setEditTarget(null);
                     setDuplicateError(false);
+                    setWriteError(false);
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={strings.referenceData.renameDialog.cancelAction}
@@ -294,7 +335,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
           >
             <Text style={styles.closeActionLabel}>{t.closeAccessibilityLabel}</Text>
           </Pressable>
-        </View>
+        </ScrollView>
       </View>
 
       {longPressTarget ? (
@@ -305,6 +346,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
           onModify={() => openEdit(longPressTarget)}
           onDelete={handleDelete}
           testIDPrefix="category-picker-long-press"
+          returnFocusRef={tagRowRef}
         />
       ) : null}
     </Modal>
@@ -322,8 +364,14 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     maxWidth: 420,
+    // R4 (§4.10 L133 ; CE-UI-09 L2808) : hauteur bornée — la liste des
+    // Catégories et la carte de création/modification défilent toujours,
+    // quel que soit le nombre d'entrées ou l'ouverture du clavier.
+    maxHeight: "90%",
     borderRadius: dimensions.standardCard.radius,
     backgroundColor: colors.background,
+  },
+  cardContent: {
     padding: spacing[24],
     gap: spacing[16],
   },

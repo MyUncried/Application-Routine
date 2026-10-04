@@ -168,3 +168,32 @@ describe("BodyZonePickerModal — create / rename / delete with reactivation (D2
     expect(service.retireBodyZone).toHaveBeenCalledWith("cou");
   });
 });
+
+describe("BodyZonePickerModal — R4/R10 (défilement, en-tête accessible, échec d'écriture)", () => {
+  it("exposes the title as an accessible header", async () => {
+    const service = fakeReferentialService();
+    renderModal(service);
+
+    await screen.findByTestId("body-zone-picker-card");
+    const title = screen.getByText("Zones corporelles");
+    expect(title.props.accessibilityRole).toBe("header");
+  });
+
+  it("shows a write-error message and keeps the modal open and the draft intact when createBodyZone throws", async () => {
+    const service = fakeReferentialService({
+      createBodyZone: jest.fn(async () => {
+        throw new Error("transaction annulée");
+      }),
+    });
+    renderModal(service, { selectedIds: [] });
+
+    fireEvent.press(await screen.findByTestId("body-zone-picker-create-action"));
+    fireEvent.changeText(screen.getByTestId("body-zone-picker-new-name-input"), "Avant-bras");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("body-zone-picker-new-add"));
+    });
+
+    expect(screen.getByTestId("body-zone-picker-write-error")).toBeTruthy();
+    expect(screen.getByTestId("body-zone-picker-new-name-input").props.value).toBe("Avant-bras");
+  });
+});

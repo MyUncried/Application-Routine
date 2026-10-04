@@ -58,11 +58,11 @@ describe("ProfileService.setDefault (bounds enforcement, T1/T2/D1/D-089)", () =>
     expect(repository.updateDefault).toHaveBeenCalledWith("sessionInitialCountdownSecondsDefault", 0);
   });
 
-  it("clamps a value above the upper bound (Session phases, 0..3599 s)", async () => {
+  it("clamps a value above the upper bound (Session defaults, 0..60 s, D-265)", async () => {
     const repository = new FakeProfileRepository();
     const service = new ProfileService(repository);
     await service.setDefault("sessionFinalPhaseSecondsDefault", 9999);
-    expect(repository.updateDefault).toHaveBeenCalledWith("sessionFinalPhaseSecondsDefault", 3599);
+    expect(repository.updateDefault).toHaveBeenCalledWith("sessionFinalPhaseSecondsDefault", 60);
   });
 
   it("clamps a pause value above the upper bound (0..300 s)", async () => {

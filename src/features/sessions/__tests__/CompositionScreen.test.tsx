@@ -1,17 +1,19 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { useCallback, useMemo, useState } from "react";
 import { Keyboard, Platform, ScrollView, StyleSheet } from "react-native";
 
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Label } from "@/domain/labels/Label";
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
-import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
-import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
+import {
+  notifyBodyZonesReferentialChanged,
+  ReferentialServiceContext,
+} from "@/features/reference-data/ReferentialServiceContext";
 import { CompositionScreen } from "@/features/sessions/CompositionScreen";
 import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
@@ -616,11 +618,17 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     });
   });
 
-  it("falls back to the neutral presentation colour (DEFAULT_SESSION_COLOR) when the draft has no labelId", () => {
+  /**
+   * Révision r4 (R7a, CE-T03-16 L1609 ; Figma 4916:6386/2028:11204) : sans
+   * Étiquette, le contrôle montre l'icône d'étiquette au trait
+   * (`label-outline`), jamais la pastille remplie — aucun remplissage de
+   * couleur.
+   */
+  it("shows the outline label icon, with no colour fill, when the draft has no labelId (R7a)", () => {
     renderScreenWithDraft([], { labelId: null });
 
-    const swatch = screen.getByTestId("composition-session-color-swatch");
-    expect(StyleSheet.flatten(swatch.props.style).backgroundColor).toBe(DEFAULT_SESSION_COLOR);
+    expect(screen.getByTestId("composition-session-label-outline-icon")).toBeTruthy();
+    expect(screen.queryByTestId("composition-session-color-swatch")).toBeNull();
   });
 
   it("never writes to draft.color when a Label is derived (no autonomous colour write)", async () => {
@@ -653,6 +661,19 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
       const swatch = screen.getByTestId("composition-session-color-swatch");
       expect(StyleSheet.flatten(swatch.props.style).backgroundColor).toBe("#2E9B62");
     });
+  });
+
+  /** R7a (CE-T03-16 L1609, §18 L1677) : le nom de l'Étiquette affectée apparaît à côté de la pastille. */
+  it("shows the assigned Label's name next to the colour swatch, and shows no name without a Label", async () => {
+    renderScreenWithDraft([], { labelId: "label-sport" });
+
+    await waitFor(() =>
+      expect(screen.getByTestId("composition-session-label-name").props.children).toBe("Sport"),
+    );
+
+    renderScreenWithDraft([], { labelId: null });
+
+    expect(screen.queryByTestId("composition-session-label-name")).toBeNull();
   });
 });
 
@@ -2744,6 +2765,56 @@ describe("CompositionScreen — sous-carte Récupération et géométries condit
     ]);
     await screen.findByTestId("composition-exercise-body-zones");
     expect(blockStyle().height).toBe(84);
+  });
+
+  /**
+   * R6 (CE-UI-09 L2784, L2816, L2840) : un renommage de Zone depuis la
+   * modale de l'éditeur d'Exercice (écran distinct) devient immédiatement
+   * visible sur le nom de Zone affiché par la Composition — sans fermer ni
+   * rouvrir l'Exercice ni remonter la Composition. `notifyBodyZonesReferentialChanged`
+   * (`ReferentialServiceContext`) simule ici l'écriture réussie de la
+   * modale ; `useFocusEffect` réel est hors de portée de ce harnais de
+   * test (pas de `NavigationContainer`).
+   */
+  it("reflects a Zone renamed elsewhere (BodyZonePickerModal) without remounting the Composition (R6)", async () => {
+    let currentZones: readonly BodyZone[] = [
+      { id: "dos", name: "Dos", isActive: true, createdAt: "2026-01-01T00:00:00.000Z" },
+    ];
+    const listBodyZones = jest
+      .fn<ActivityDefinitionService["listBodyZones"]>()
+      .mockImplementation(async () => currentZones);
+    render(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider
+          value={fakeActivityDefinitionService({ listBodyZones })}
+        >
+          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+            <StatefulDraftWrapper
+              initialExercises={[
+                anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
+              ]}
+            >
+              <CompositionScreen />
+            </StatefulDraftWrapper>
+          </ReferentialServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId("composition-exercise-body-zones").props.children).toBe("Dos"),
+    );
+
+    currentZones = [{ ...currentZones[0]!, name: "Lombaires" }];
+    act(() => {
+      notifyBodyZonesReferentialChanged();
+    });
+
+    await waitFor(() =>
+      expect(screen.getByTestId("composition-exercise-body-zones").props.children).toBe(
+        "Lombaires",
+      ),
+    );
   });
 
   it("uses the optional Zones line to select 68/84 — the Récupération sub-card (24) is always included", async () => {

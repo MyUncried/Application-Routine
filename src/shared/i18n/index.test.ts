@@ -87,6 +87,25 @@ describe("strings", () => {
     });
   });
 
+  /** R10 (CE-T03-16 L1677) : l'action proposée (choisir/retirer) d'une Étiquette est distincte de son nom et de son état sélectionné. */
+  it("exposes distinct choose/retire action hints for Étiquette (R10)", () => {
+    expect(strings.referenceData.label.chooseActionHint).not.toBe(
+      strings.referenceData.label.retireActionHint,
+    );
+    expect(strings.referenceData.label.chooseActionHint.length).toBeGreaterThan(0);
+    expect(strings.referenceData.label.retireActionHint.length).toBeGreaterThan(0);
+  });
+
+  /**
+   * §4.10 L136 ; CE-UI-09 L2812, L2836 ; CE-T03-16 L1665, L1673 : clé
+   * centralisée partagée par les trois modales de référentiel pour un échec
+   * d'écriture (modale conservée), jamais un texte local improvisé par l'un
+   * des trois consommateurs.
+   */
+  it("exposes the shared referential write-error message (§4.10 L136)", () => {
+    expect(strings.referenceData.writeError.length).toBeGreaterThan(0);
+  });
+
   it("exposes the Catalogue screen title (T01-S06 — no placeholder, it has a real UI)", () => {
     expect(strings.screens.sessions.title.length).toBeGreaterThan(0);
   });

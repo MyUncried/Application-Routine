@@ -80,9 +80,9 @@ describe("createDefaultProfile", () => {
 });
 
 describe("profileDurationBounds", () => {
-  it("bounds Session phases (Compte à rebours initial, Fin de séance) to 0..3599 s (D-089)", () => {
-    expect(profileDurationBounds("sessionInitialCountdownSecondsDefault")).toEqual({ min: 0, max: 3599 });
-    expect(profileDurationBounds("sessionFinalPhaseSecondsDefault")).toEqual({ min: 0, max: 3599 });
+  it("bounds Session defaults (Compte à rebours initial, Fin de séance) to 0..60 s (D-265)", () => {
+    expect(profileDurationBounds("sessionInitialCountdownSecondsDefault")).toEqual({ min: 0, max: 60 });
+    expect(profileDurationBounds("sessionFinalPhaseSecondsDefault")).toEqual({ min: 0, max: 60 });
   });
 
   it("bounds Exercise phases (Compte à rebours d'exercice, Fin d'exercice) to 0..60 s (D1)", () => {

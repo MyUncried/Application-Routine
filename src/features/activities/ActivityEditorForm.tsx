@@ -82,6 +82,15 @@ export type ActivityEditorFormProps = {
    * importé statiquement ici (`BODY_ZONES` n'est plus l'autorité runtime).
    */
   bodyZones: readonly BodyZone[];
+  /**
+   * R6 (CE-UI-09 L2784, L2816, L2840) : appelé à la fermeture de
+   * `BodyZonePickerModal` (Confirmer ou fermeture sans confirmer), en plus
+   * du repli interne de la sélection — permet à l'appelant de relire le
+   * référentiel `bodyZones` après une création, un renommage ou une
+   * suppression éventuels dans la modale, sans fermer ni rouvrir cet
+   * éditeur. Optionnel : `undefined` préserve le comportement existant.
+   */
+  onBodyZonesPickerClose?: () => void;
   /** V2-PRE-2 (plan §6.5, T13) : silhouette du Profil — icône de Zone dans la modale de sélection (CE-UI-09 L2805). `null`/absente affiche homme. */
   silhouette?: Silhouette | null;
   /**
@@ -159,6 +168,7 @@ export function ActivityEditorForm({
   value,
   onChange,
   bodyZones,
+  onBodyZonesPickerClose,
   silhouette = null,
   isSideModeInherited = false,
   showMediaSection = true,
@@ -610,7 +620,12 @@ export function ActivityEditorForm({
         <BodyZonePickerModal
           selectedIds={value.bodyZoneIds}
           onConfirm={(ids) => patch({ bodyZoneIds: ids })}
-          onClose={() => setIsBodyZonePickerOpen(false)}
+          onClose={() => {
+            setIsBodyZonePickerOpen(false);
+            // R6 : relit `bodyZones` (référentiel de l'appelant) après une
+            // création, un renommage ou une suppression dans la modale.
+            onBodyZonesPickerClose?.();
+          }}
           silhouette={silhouette}
         />
       ) : null}

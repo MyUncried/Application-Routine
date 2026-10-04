@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { isLabelAssignable, LABEL_NAME_MAX_LENGTH, validateLabelName, type Label, type LabelColor } from "@/domain/labels/Label";
 import { SESSION_COLORS } from "@/domain/sessions/Session";
@@ -43,7 +43,11 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
   const [editColor, setEditColor] = useState<LabelColor>(SESSION_COLORS[0]!);
   const [isEditPaletteOpen, setIsEditPaletteOpen] = useState(false);
   const [duplicateError, setDuplicateError] = useState(false);
+  const [writeError, setWriteError] = useState(false);
   const [deleteTargetUsed, setDeleteTargetUsed] = useState(false);
+  // R10 (CE-T03-16 L1677) : le focus d'accessibilité revient explicitement
+  // à cette liste après Annuler/Supprimer confirmé (jamais après Modifier).
+  const tagRowRef = useRef<View>(null);
   const t = strings.referenceData.label;
 
   function reload() {
@@ -74,18 +78,24 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
     if (!validated.ok) {
       return;
     }
-    const result = await referentialService.createLabel({ name: validated.value, color: newColor });
-    if (result.status === "DUPLICATE") {
-      setDuplicateError(true);
-      return;
-    }
-    reload();
-    setIsCreating(false);
-    setNewName("");
-    setDuplicateError(false);
-    if (result.status === "OK") {
-      onSelect(result.value.id);
-      onClose();
+    setWriteError(false);
+    try {
+      const result = await referentialService.createLabel({ name: validated.value, color: newColor });
+      if (result.status === "DUPLICATE") {
+        setDuplicateError(true);
+        return;
+      }
+      reload();
+      setIsCreating(false);
+      setNewName("");
+      setDuplicateError(false);
+      if (result.status === "OK") {
+        onSelect(result.value.id);
+        onClose();
+      }
+    } catch (error) {
+      console.error("L'Étiquette n'a pas pu être créée.", error);
+      setWriteError(true);
     }
   }
 
@@ -94,6 +104,7 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
     setEditName(label.name);
     setEditColor(label.color);
     setDuplicateError(false);
+    setWriteError(false);
     setLongPressTarget(null);
   }
 
@@ -105,15 +116,21 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
     if (!validated.ok) {
       return;
     }
-    const renamed = await referentialService.renameLabel(editTarget.id, validated.value);
-    if (renamed.status === "DUPLICATE") {
-      setDuplicateError(true);
-      return;
+    setWriteError(false);
+    try {
+      const renamed = await referentialService.renameLabel(editTarget.id, validated.value);
+      if (renamed.status === "DUPLICATE") {
+        setDuplicateError(true);
+        return;
+      }
+      await referentialService.recolorLabel(editTarget.id, editColor);
+      reload();
+      setEditTarget(null);
+      setDuplicateError(false);
+    } catch (error) {
+      console.error("L'Étiquette n'a pas pu être modifiée.", error);
+      setWriteError(true);
     }
-    await referentialService.recolorLabel(editTarget.id, editColor);
-    reload();
-    setEditTarget(null);
-    setDuplicateError(false);
   }
 
   async function openDeleteConfirm(label: Label) {
@@ -125,18 +142,37 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
     if (!longPressTarget) {
       return;
     }
-    await referentialService.retireLabel(longPressTarget.id);
-    reload();
-    setLongPressTarget(null);
+    try {
+      await referentialService.retireLabel(longPressTarget.id);
+      reload();
+      setLongPressTarget(null);
+    } catch (error) {
+      console.error("L'Étiquette n'a pas pu être supprimée.", error);
+      setLongPressTarget(null);
+      setWriteError(true);
+    }
   }
 
   return (
     <Modal transparent visible animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop} testID="label-picker-backdrop">
-        <View style={styles.card} testID="label-picker-card">
-          <Text style={styles.title}>{t.title}</Text>
+        <ScrollView
+          style={styles.card}
+          contentContainerStyle={styles.cardContent}
+          keyboardShouldPersistTaps="handled"
+          testID="label-picker-card"
+        >
+          <Text style={styles.title} accessibilityRole="header">
+            {t.title}
+          </Text>
 
-          <View style={styles.tagRow} testID="label-picker-tag-row">
+          {writeError ? (
+            <Text style={styles.errorText} testID="label-picker-write-error">
+              {strings.referenceData.writeError}
+            </Text>
+          ) : null}
+
+          <View ref={tagRowRef} style={styles.tagRow} testID="label-picker-tag-row">
             {activeLabels.map((label) => {
               const isSelected = label.id === selectedId;
               return (
@@ -149,6 +185,7 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={`${label.name}${isSelected ? ` — ${strings.screens.categories.tagAccessibility.selectedSuffix}` : ""}`}
+                  accessibilityHint={isSelected ? t.retireActionHint : t.chooseActionHint}
                   accessibilityState={{ selected: isSelected }}
                   style={[styles.tag, isSelected ? styles.tagSelected : null]}
                   testID={`label-picker-tag-${label.id}`}
@@ -181,6 +218,7 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
                 onChange={setNewColor}
                 isOpen={isNewPaletteOpen}
                 onToggle={() => setIsNewPaletteOpen((current) => !current)}
+                variant="inline"
               />
               {duplicateError ? (
                 <Text style={styles.errorText} testID="label-picker-new-error">
@@ -193,6 +231,7 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
                     setIsCreating(false);
                     setNewName("");
                     setDuplicateError(false);
+                    setWriteError(false);
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={t.newEntry.cancelAccessibilityLabel}
@@ -233,6 +272,7 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
                 onChange={setEditColor}
                 isOpen={isEditPaletteOpen}
                 onToggle={() => setIsEditPaletteOpen((current) => !current)}
+                variant="inline"
               />
               {duplicateError ? (
                 <Text style={styles.errorText} testID="label-picker-edit-error">
@@ -244,6 +284,7 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
                   onPress={() => {
                     setEditTarget(null);
                     setDuplicateError(false);
+                    setWriteError(false);
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={strings.referenceData.renameDialog.cancelAction}
@@ -287,7 +328,7 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
           >
             <Text style={styles.closeActionLabel}>{t.closeAccessibilityLabel}</Text>
           </Pressable>
-        </View>
+        </ScrollView>
       </View>
 
       {longPressTarget ? (
@@ -298,6 +339,7 @@ export function LabelPickerModal({ selectedId, onSelect, onClose }: LabelPickerM
           onModify={() => openEdit(longPressTarget)}
           onDelete={handleDelete}
           testIDPrefix="label-picker-long-press"
+          returnFocusRef={tagRowRef}
         />
       ) : null}
     </Modal>
@@ -315,8 +357,14 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     maxWidth: 420,
+    // R4/CE-T03-16 L1645 : hauteur bornée, limitée à la zone sûre — la
+    // liste des Étiquettes et la carte de création/modification défilent
+    // toujours, quel que soit le nombre d'entrées ou l'ouverture du clavier.
+    maxHeight: "90%",
     borderRadius: dimensions.standardCard.radius,
     backgroundColor: colors.background,
+  },
+  cardContent: {
     padding: spacing[24],
     gap: spacing[16],
   },

@@ -69,6 +69,20 @@ describe("LabelPickerModal — zero or one, toggle off on second touch (A3409468
 
     expect(onSelect).toHaveBeenCalledWith(null);
   });
+
+  /** R10 (CE-T03-16 L1677) : l'action proposée (choisir/retirer) est distincte du nom et de l'état sélectionné. */
+  it("hints the proposed action — Choisir when unselected, Retirer when selected", async () => {
+    const service = fakeReferentialService();
+    const unselected = renderModal(service, { selectedId: null });
+
+    const unselectedTag = await screen.findByTestId("label-picker-tag-focus");
+    expect(unselectedTag.props.accessibilityHint).toBe("Choisir");
+    unselected.unmount();
+
+    renderModal(service, { selectedId: "focus" });
+    const selectedTag = await screen.findByTestId("label-picker-tag-focus");
+    expect(selectedTag.props.accessibilityHint).toBe("Retirer");
+  });
 });
 
 describe("LabelPickerModal — long-press menu (A03C567FAE159)", () => {
@@ -149,5 +163,47 @@ describe("LabelPickerModal — create / modify / delete with reactivation (D2, D
 
     expect(service.retireLabel).toHaveBeenCalledWith("focus");
     expect(screen.getByTestId("label-picker-card")).toBeTruthy();
+  });
+});
+
+describe("LabelPickerModal — R4/R10 (palette en flux, défilement, en-tête accessible, échec d'écriture)", () => {
+  it("exposes the title as an accessible header", async () => {
+    const service = fakeReferentialService();
+    renderModal(service);
+
+    await screen.findByTestId("label-picker-card");
+    const title = screen.getByText("Étiquettes");
+    expect(title.props.accessibilityRole).toBe("header");
+  });
+
+  it("renders the create palette inline (never a position: absolute overlay)", async () => {
+    const service = fakeReferentialService();
+    renderModal(service);
+
+    fireEvent.press(await screen.findByTestId("label-picker-create-action"));
+    fireEvent.press(screen.getByLabelText("Couleur"));
+
+    const palette = screen.getByTestId("color-palette-popover");
+    expect(palette.props.style.position).not.toBe("absolute");
+  });
+
+  it("shows a write-error message and keeps the modal open and the draft intact when createLabel throws", async () => {
+    const onClose = jest.fn();
+    const service = fakeReferentialService({
+      createLabel: jest.fn(async () => {
+        throw new Error("transaction annulée");
+      }),
+    });
+    renderModal(service, { onClose });
+
+    fireEvent.press(await screen.findByTestId("label-picker-create-action"));
+    fireEvent.changeText(screen.getByTestId("label-picker-new-name-input"), "Sport");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("label-picker-new-add"));
+    });
+
+    expect(screen.getByTestId("label-picker-write-error")).toBeTruthy();
+    expect(screen.getByTestId("label-picker-new-name-input").props.value).toBe("Sport");
+    expect(onClose).not.toHaveBeenCalled();
   });
 });

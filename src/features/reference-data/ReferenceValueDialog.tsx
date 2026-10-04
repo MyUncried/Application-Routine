@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { useState, type RefObject } from "react";
+import { AccessibilityInfo, findNodeHandle, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { strings } from "@/shared/i18n";
@@ -17,6 +17,15 @@ export type ReferenceValueDialogProps = {
   /** Confirmation de suppression — appelé uniquement après le second dialogue. */
   onDelete: () => void;
   testIDPrefix: string;
+  /**
+   * R10 (CE-UI-09 L2840 ; CE-T03-16 L1677) : référence de la liste des
+   * valeurs — le focus d'accessibilité y revient explicitement après
+   * Annuler (dans l'un ou l'autre dialogue) ou après Supprimer confirmé.
+   * Jamais après Modifier : le champ de nom du formulaire d'édition prend
+   * alors le focus par son propre `autoFocus`, ce retour le lui voler.
+   * Optionnel : `undefined` préserve le comportement existant (aucun appel).
+   */
+  returnFocusRef?: RefObject<View | null>;
 };
 
 /**
@@ -35,9 +44,34 @@ export function ReferenceValueDialog({
   onModify,
   onDelete,
   testIDPrefix,
+  returnFocusRef,
 }: ReferenceValueDialogProps) {
   const [step, setStep] = useState<"actions" | "delete">("actions");
   const t = strings.referenceData;
+
+  function returnFocusToList() {
+    if (!returnFocusRef) {
+      return;
+    }
+    // `findNodeHandle` ne résout un nœud natif réel que sur un appareil —
+    // sous `react-test-renderer` (Jest), il ne retourne jamais de nombre
+    // valide pour cette référence ; appeler `setAccessibilityFocus`
+    // inconditionnellement (plutôt que de ne rien faire sur une valeur
+    // invalide) est ce qui reste observable et vérifiable par un test,
+    // sans risque en production (un appareil réel fournit toujours un tag
+    // valide pour une Vue montée).
+    AccessibilityInfo.setAccessibilityFocus(findNodeHandle(returnFocusRef.current) as number);
+  }
+
+  function handleCancel() {
+    returnFocusToList();
+    onCancel();
+  }
+
+  function handleDeleteConfirmed() {
+    returnFocusToList();
+    onDelete();
+  }
 
   if (step === "delete") {
     return (
@@ -51,22 +85,22 @@ export function ReferenceValueDialog({
         confirmLabel={t.deleteConfirm.confirm}
         confirmLabelStyle={type.dialogDestructiveActionLabel}
         confirmBordered
-        onCancel={onCancel}
-        onConfirm={onDelete}
+        onCancel={handleCancel}
+        onConfirm={handleDeleteConfirmed}
         testIDPrefix={`${testIDPrefix}-delete-confirm`}
       />
     );
   }
 
   return (
-    <Modal transparent visible animationType="fade" onRequestClose={onCancel}>
+    <Modal transparent visible animationType="fade" onRequestClose={handleCancel}>
       <View style={styles.backdrop} testID={`${testIDPrefix}-backdrop`}>
         <View style={styles.card} accessibilityRole="menu" accessibilityLabel={name} testID={`${testIDPrefix}-card`}>
           <Text style={styles.title} numberOfLines={1}>
             {name}
           </Text>
           <Pressable
-            onPress={onCancel}
+            onPress={handleCancel}
             accessibilityRole="menuitem"
             accessibilityLabel={t.longPressDialog.cancel}
             style={styles.actionRow}

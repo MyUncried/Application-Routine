@@ -1,7 +1,26 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
-import { describe, expect, it, jest } from "@jest/globals";
+import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { useRef } from "react";
+import { AccessibilityInfo, View } from "react-native";
 
-import { ReferenceValueDialog } from "@/features/reference-data/ReferenceValueDialog";
+import { ReferenceValueDialog, type ReferenceValueDialogProps } from "@/features/reference-data/ReferenceValueDialog";
+
+/**
+ * R10 (CE-UI-09 L2840 ; CE-T03-16 L1677) : `findNodeHandle` ne résout jamais
+ * de nœud natif réel sous `react-test-renderer` (environnement Jest, hors de
+ * portée de ce composant) — seul `AccessibilityInfo.setAccessibilityFocus`
+ * (invocation et moment exacts) est donc observable ici ; la résolution
+ * réelle du tag natif reste `PENDING_DEVICE` (ACCESSIBILITY_CHECK).
+ */
+function Harness(props: Omit<ReferenceValueDialogProps, "returnFocusRef">) {
+  const listRef = useRef<View>(null);
+  return (
+    <>
+      <View ref={listRef} testID="harness-list" />
+      <ReferenceValueDialog {...props} returnFocusRef={listRef} />
+    </>
+  );
+}
 
 describe("ReferenceValueDialog — long-press menu (D4, D-259)", () => {
   it("offers exactly Annuler, Modifier, Supprimer, without selecting or deselecting the value", () => {
@@ -130,5 +149,119 @@ describe("ReferenceValueDialog — delete confirmation (§4.10 L134/L135)", () =
     fireEvent.press(screen.getByTestId("ref-dialog-delete"));
     fireEvent.press(screen.getByLabelText("Supprimer"));
     expect(onDelete).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("ReferenceValueDialog — retour explicite du focus (R10, CE-UI-09 L2840, CE-T03-16 L1677)", () => {
+  // `jest.spyOn` sur une méthode déjà espionnée réutilise le MÊME mock —
+  // sans restauration explicite, les comptages d'appels s'accumuleraient
+  // entre les tests (ni `restoreMocks` ni `clearMocks` dans jest.config.js).
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("returns accessibility focus to the list's real native node on Annuler (menu step)", () => {
+    const setAccessibilityFocus = jest
+      .spyOn(AccessibilityInfo, "setAccessibilityFocus")
+      .mockImplementation(() => {});
+    // `jest.spyOn` réutilise le MÊME mock s'il est déjà espionné — aucun
+    // `clearMocks`/`restoreMocks` dans `jest.config.js` : l'historique
+    // d'appels d'un test précédent de ce fichier survit sans ce reset
+    // explicite, confirmé empiriquement.
+    setAccessibilityFocus.mockClear();
+    const onCancel = jest.fn();
+    render(
+      <Harness name="Focus" isUsed={false} onCancel={onCancel} onModify={jest.fn()} onDelete={jest.fn()} testIDPrefix="ref-dialog" />,
+    );
+
+    fireEvent.press(screen.getByTestId("ref-dialog-cancel"));
+
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns accessibility focus to the list on Annuler (delete-confirmation step)", () => {
+    const setAccessibilityFocus = jest
+      .spyOn(AccessibilityInfo, "setAccessibilityFocus")
+      .mockImplementation(() => {});
+    // `jest.spyOn` réutilise le MÊME mock s'il est déjà espionné — aucun
+    // `clearMocks`/`restoreMocks` dans `jest.config.js` : l'historique
+    // d'appels d'un test précédent de ce fichier survit sans ce reset
+    // explicite, confirmé empiriquement.
+    setAccessibilityFocus.mockClear();
+    render(
+      <Harness name="Focus" isUsed={false} onCancel={jest.fn()} onModify={jest.fn()} onDelete={jest.fn()} testIDPrefix="ref-dialog" />,
+    );
+
+    fireEvent.press(screen.getByTestId("ref-dialog-delete"));
+    fireEvent.press(screen.getByLabelText("Annuler"));
+
+    expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns accessibility focus to the list once deletion is confirmed", () => {
+    const setAccessibilityFocus = jest
+      .spyOn(AccessibilityInfo, "setAccessibilityFocus")
+      .mockImplementation(() => {});
+    // `jest.spyOn` réutilise le MÊME mock s'il est déjà espionné — aucun
+    // `clearMocks`/`restoreMocks` dans `jest.config.js` : l'historique
+    // d'appels d'un test précédent de ce fichier survit sans ce reset
+    // explicite, confirmé empiriquement.
+    setAccessibilityFocus.mockClear();
+    const onDelete = jest.fn();
+    render(
+      <Harness name="Focus" isUsed={false} onCancel={jest.fn()} onModify={jest.fn()} onDelete={onDelete} testIDPrefix="ref-dialog" />,
+    );
+
+    fireEvent.press(screen.getByTestId("ref-dialog-delete"));
+    fireEvent.press(screen.getByLabelText("Supprimer"));
+
+    expect(onDelete).toHaveBeenCalledTimes(1);
+    expect(setAccessibilityFocus).toHaveBeenCalledTimes(1);
+  });
+
+  it("never returns focus on Modifier — the edit form's own autoFocus takes over instead", () => {
+    const setAccessibilityFocus = jest
+      .spyOn(AccessibilityInfo, "setAccessibilityFocus")
+      .mockImplementation(() => {});
+    // `jest.spyOn` réutilise le MÊME mock s'il est déjà espionné — aucun
+    // `clearMocks`/`restoreMocks` dans `jest.config.js` : l'historique
+    // d'appels d'un test précédent de ce fichier survit sans ce reset
+    // explicite, confirmé empiriquement.
+    setAccessibilityFocus.mockClear();
+    const onModify = jest.fn();
+    render(
+      <Harness name="Focus" isUsed={false} onCancel={jest.fn()} onModify={onModify} onDelete={jest.fn()} testIDPrefix="ref-dialog" />,
+    );
+
+    fireEvent.press(screen.getByTestId("ref-dialog-modify"));
+
+    expect(onModify).toHaveBeenCalledTimes(1);
+    expect(setAccessibilityFocus).not.toHaveBeenCalled();
+  });
+
+  it("never calls setAccessibilityFocus when returnFocusRef is not provided (backwards compatible)", () => {
+    const setAccessibilityFocus = jest
+      .spyOn(AccessibilityInfo, "setAccessibilityFocus")
+      .mockImplementation(() => {});
+    // `jest.spyOn` réutilise le MÊME mock s'il est déjà espionné — aucun
+    // `clearMocks`/`restoreMocks` dans `jest.config.js` : l'historique
+    // d'appels d'un test précédent de ce fichier survit sans ce reset
+    // explicite, confirmé empiriquement.
+    setAccessibilityFocus.mockClear();
+    render(
+      <ReferenceValueDialog
+        name="Focus"
+        isUsed={false}
+        onCancel={jest.fn()}
+        onModify={jest.fn()}
+        onDelete={jest.fn()}
+        testIDPrefix="ref-dialog"
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId("ref-dialog-cancel"));
+
+    expect(setAccessibilityFocus).not.toHaveBeenCalled();
   });
 });

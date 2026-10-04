@@ -75,6 +75,14 @@ describe("ProfileEditScreen", () => {
     mockPhotoExists = false;
   });
 
+  /** R1/UI-96E7FD739BF0 (CE-UI-01 L2004) : l'écran défile dans les Safe Areas, clavier affiché ou masqué. */
+  it("scrolls within the Safe Areas and keeps working with the keyboard shown (keyboardShouldPersistTaps)", async () => {
+    await renderScreen();
+
+    const body = screen.getByTestId("profile-edit-body");
+    expect(body.props.keyboardShouldPersistTaps).toBe("handled");
+  });
+
   it("prefills the name, and shows the initials (no photo) with Silhouette homme selected by default (CE-UI-01 L1985, L2029)", async () => {
     await renderScreen(fakeProfileService({ getProfile: jest.fn(async () => aProfile({ displayName: "Ada Lovelace" })) }));
 

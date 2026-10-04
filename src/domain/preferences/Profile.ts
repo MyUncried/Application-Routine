@@ -92,8 +92,9 @@ export type ProfileDurationSetting =
 export type ProfileDurationBounds = { readonly min: number; readonly max: number };
 
 /**
- * Bornes de chaque réglage (T1, T2, D1, D-089) :
- * - Compte à rebours initial / Fin de séance : `0..3599` s (CR initial et Fin de séance historiques, D-089) ;
+ * Bornes de chaque réglage (T1, T2, D1, D-089, D-265) :
+ * - Compte à rebours initial / Fin de séance (défauts du Profil) : `0..60` s (D-265 — ne borne jamais une valeur
+ *   déjà enregistrée au-delà de 60, affichée et conservée exacte ; les champs de la Séance en Composition restent `0..3599`, D-089) ;
  * - Compte à rebours d'exercice / Fin d'exercice : `0..60` s (D1) ;
  * - Pause entre les côtés / Récupération après exercice : `0..300` s sur la grille (T2).
  */
@@ -101,7 +102,6 @@ export function profileDurationBounds(setting: ProfileDurationSetting): ProfileD
   switch (setting) {
     case "sessionInitialCountdownSecondsDefault":
     case "sessionFinalPhaseSecondsDefault":
-      return { min: 0, max: 3599 };
     case "exerciseCountdownSecondsDefault":
     case "exerciseEndSecondsDefault":
       return { min: 0, max: 60 };

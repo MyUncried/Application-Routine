@@ -35,6 +35,7 @@ import {
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { LabelPickerModal } from "@/features/reference-data/LabelPickerModal";
+import { useBodyZonesReferentialVersion } from "@/features/reference-data/ReferentialServiceContext";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import {
   clampSwipeTranslateX,
@@ -82,6 +83,13 @@ type OverlayKind = "countdown" | "finalPhase" | "tour";
  */
 function useBodyZonesReferential(
   activityDefinitionService: ActivityDefinitionService,
+  // R6 (CE-UI-09 L2784, L2816, L2840) : incrémenté (`useBodyZonesReferentialVersion`,
+  // `ReferentialServiceContext`) après une création, un renommage ou une
+  // suppression de Zone depuis la modale de l'éditeur d'Exercice (écran
+  // distinct) — relit ce référentiel sans fermer ni rouvrir l'Exercice ni
+  // remonter la Composition. Même patron exact que `refreshToken` de
+  // `useLabelsReferential` ci-dessous.
+  refreshToken: number = 0,
 ): readonly BodyZone[] {
   const [zones, setZones] = useState<readonly BodyZone[]>([]);
   useEffect(() => {
@@ -101,7 +109,7 @@ function useBodyZonesReferential(
     return () => {
       cancelled = true;
     };
-  }, [activityDefinitionService]);
+  }, [activityDefinitionService, refreshToken]);
   return zones;
 }
 
@@ -254,7 +262,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const { draft, updateDraft, resetDraft, editStatus, retryHydration, hydratedBaseline, creationBaseline } =
     useSessionDraft();
   const activityDefinitionService = useActivityDefinitionService();
-  const bodyZonesReferential = useBodyZonesReferential(activityDefinitionService);
+  const bodyZonesReferentialVersion = useBodyZonesReferentialVersion();
+  const bodyZonesReferential = useBodyZonesReferential(
+    activityDefinitionService,
+    bodyZonesReferentialVersion,
+  );
   // V2-PRE-2 (plan §6.5, CE-T03-16, D2/D4) : la pastille devient interactive
   // (`LabelPickerModal`, auto-alimentée via `ReferentialServiceContext`) —
   // `labelsLoadToken` relit ce référentiel d'AFFICHAGE (`sessionColor`
@@ -549,14 +561,36 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
            * test « never renders an autonomous color picker » reste vert).
            * Toujours la couleur DÉRIVÉE de l'Étiquette associée — aucune
            * écriture directe de `draft.color`, retiré du contrat cible.
+           *
+           * R7a (CE-T03-16 L1609, §18 L1677) : une Étiquette affectée
+           * affiche son NOM à côté de la pastille (pilule). Sans Étiquette,
+           * l'icône d'étiquette au trait (`label-outline`, révision r4,
+           * Figma 4916:6386/2028:11204) remplace la pastille — jamais de
+           * remplissage de couleur. `sessionColor` (R7b, inchangé) ne reste
+           * utile qu'à la pastille elle-même, affichée seulement quand une
+           * Étiquette est choisie.
            */}
           <Pressable
             onPress={() => setIsLabelPickerOpen(true)}
             accessibilityRole="button"
             accessibilityLabel={composition.label.accessibilityLabel}
-            style={[styles.sessionColorSwatch, { backgroundColor: sessionColor }]}
-            testID="composition-session-color-swatch"
-          />
+            style={sessionLabel ? styles.sessionLabelPill : undefined}
+            testID="composition-session-color-trigger"
+          >
+            {sessionLabel ? (
+              <>
+                <View
+                  style={[styles.sessionColorSwatch, { backgroundColor: sessionColor }]}
+                  testID="composition-session-color-swatch"
+                />
+                <Text style={styles.sessionLabelPillText} testID="composition-session-label-name">
+                  {sessionLabel.name}
+                </Text>
+              </>
+            ) : (
+              <KodjoIcon name="label-outline" testID="composition-session-label-outline-icon" />
+            )}
+          </Pressable>
         </View>
 
         {/*
@@ -2247,6 +2281,20 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 2,
     borderColor: colors.border,
+  },
+  // R7a (CE-T03-16 L1609) : pilule pastille + nom quand une Étiquette est affectée.
+  sessionLabelPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[8],
+    paddingHorizontal: spacing[8],
+    paddingVertical: spacing[4],
+    borderRadius: 20,
+    backgroundColor: colors.surface,
+  },
+  sessionLabelPillText: {
+    ...type.label,
+    color: colors.textPrimary,
   },
   // T01-S09, correction VISUAL (point D) : `elevated` (sélecteurs de
   // roulette ancrés en popover, `AnchoredRow`/`PopoverAnchor`,

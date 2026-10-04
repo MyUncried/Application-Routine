@@ -56,6 +56,11 @@ import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
  */
 function useBodyZonesReferential(
   activityDefinitionService: ActivityDefinitionService,
+  // R6 (CE-UI-09 L2784, L2816, L2840) : incrémenté à la fermeture de
+  // `BodyZonePickerModal` pour relire ce référentiel après une création, un
+  // renommage ou une suppression éventuels — même patron exact que
+  // `refreshToken` de `useLabelsReferential` (`CompositionScreen.tsx`).
+  refreshToken: number = 0,
 ): readonly BodyZone[] {
   const [zones, setZones] = useState<readonly BodyZone[]>([]);
   useEffect(() => {
@@ -75,7 +80,7 @@ function useBodyZonesReferential(
     return () => {
       cancelled = true;
     };
-  }, [activityDefinitionService]);
+  }, [activityDefinitionService, refreshToken]);
   return zones;
 }
 
@@ -125,7 +130,11 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
   const activityDefinitionService = useActivityDefinitionService();
   const referentialService = useReferentialService();
   const profileService = useProfileService();
-  const bodyZonesReferential = useBodyZonesReferential(activityDefinitionService);
+  // R6 : incrémenté à la fermeture de `BodyZonePickerModal` (via
+  // `ActivityEditorForm`), pour que ce référentiel reflète immédiatement une
+  // Zone créée, renommée ou supprimée dans la modale.
+  const [bodyZonesLoadToken, setBodyZonesLoadToken] = useState(0);
+  const bodyZonesReferential = useBodyZonesReferential(activityDefinitionService, bodyZonesLoadToken);
   const isEditingExisting = definitionId !== null;
   const [value, setValue] = useState<ActivityEditorFormValue>(() => {
     const draft = createEmptyActivityDefinitionDraft();
@@ -305,14 +314,24 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
     setValue((current) => ({ ...current, ...next }));
   }
 
+  const selectedExistingCategory =
+    category?.kind === "EXISTING" && categoriesState.status === "ready"
+      ? categoriesState.categories.find((candidate) => candidate.id === category.categoryId)
+      : undefined;
+
   const selectedCategoryName =
     category?.kind === "EXISTING"
-      ? (categoriesState.status === "ready"
-          ? categoriesState.categories.find((candidate) => candidate.id === category.categoryId)?.name
-          : undefined)
+      ? selectedExistingCategory?.name
       : category?.kind === "NEW"
         ? category.name
         : undefined;
+
+  // R5 (CE-UI-09 L2804 ; C09 L926) : pastille colorée 26 avant le nom dans
+  // la pilule Catégorie, suivie après recoloration — seule la Catégorie
+  // EXISTING (toujours le cas après sélection ou création via la modale)
+  // porte une couleur résolue depuis le référentiel.
+  const selectedCategoryColor =
+    category?.kind === "EXISTING" ? selectedExistingCategory?.color : undefined;
 
   function openCategoryPicker() {
     setSaveError(false);
@@ -422,7 +441,15 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
               testID="activity-editor-category-button"
             >
               {selectedCategoryName ? (
-                <Text style={styles.categoryPillLabel}>{selectedCategoryName}</Text>
+                <>
+                  {selectedCategoryColor ? (
+                    <View
+                      style={[styles.categoryPillSwatch, { backgroundColor: selectedCategoryColor }]}
+                      testID="activity-editor-category-swatch"
+                    />
+                  ) : null}
+                  <Text style={styles.categoryPillLabel}>{selectedCategoryName}</Text>
+                </>
               ) : (
                 <KodjoIcon name="icon-tour" testID="activity-editor-category-icon" />
               )}
@@ -433,6 +460,7 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
             value={value}
             onChange={patch}
             bodyZones={bodyZonesReferential}
+            onBodyZonesPickerClose={() => setBodyZonesLoadToken((current) => current + 1)}
             silhouette={silhouette}
             showMediaSection
             finishLabel={t.finishAction}
@@ -493,6 +521,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
+    gap: spacing[6],
     height: dimensions.categoryTag.visualHeight,
     paddingHorizontal: spacing[12],
     borderRadius: dimensions.categoryTag.radius,
@@ -503,6 +532,12 @@ const styles = StyleSheet.create({
   categoryPillSet: {
     borderColor: colors.selection,
     backgroundColor: colors.selectionSurface,
+  },
+  // R5 (CE-UI-09 L2804 ; C09 L926) : pastille colorée de 26 avant le nom.
+  categoryPillSwatch: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
   },
   categoryPillLabel: {
     ...type.label,
@@ -520,7 +555,11 @@ function CompositionExerciseEditor() {
   const router = useRouter();
   const { draft, updateDraft } = useSessionDraft();
   const activityDefinitionService = useActivityDefinitionService();
-  const bodyZonesReferential = useBodyZonesReferential(activityDefinitionService);
+  // R6 : incrémenté à la fermeture de `BodyZonePickerModal`, pour que ce
+  // référentiel reflète immédiatement une Zone créée, renommée ou
+  // supprimée dans la modale.
+  const [bodyZonesLoadToken, setBodyZonesLoadToken] = useState(0);
+  const bodyZonesReferential = useBodyZonesReferential(activityDefinitionService, bodyZonesLoadToken);
   const params = useLocalSearchParams<{ exerciseId?: string }>();
 
   const requestedExerciseId = params.exerciseId;
@@ -629,6 +668,7 @@ function CompositionExerciseEditor() {
         value={local}
         onChange={patchLocal}
         bodyZones={bodyZonesReferential}
+        onBodyZonesPickerClose={() => setBodyZonesLoadToken((current) => current + 1)}
         silhouette={silhouette}
         finishLabel={t.finishAction}
         onFinish={handleTerminer}

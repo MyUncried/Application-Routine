@@ -677,7 +677,7 @@ export const fr = {
       },
       settings: {
         sideChangeRecovery: { label: "Pause entre les côtés", unit: "s" },
-        exerciseCountdown: { label: "Compte à rebours d’exercice", unit: "s" },
+        exerciseCountdown: { label: "Compte à rebours d’un exercice", unit: "s" },
         exerciseEnd: { label: "Fin d’exercice", unit: "s" },
         postActivityRecovery: { label: "Récupération après exercice", unit: "s" },
         sessionInitialCountdown: { label: "Compte à rebours initial", unit: "s" },
@@ -773,6 +773,11 @@ export const fr = {
         addAccessibilityLabel: "Ajouter",
       },
       closeAccessibilityLabel: "Fermer",
+      // CE-T03-16 L1677 (R10) : action proposée distincte du nom et de
+      // l'état sélectionné — « choisir » sur une Étiquette non affectée,
+      // « retirer » sur l'Étiquette déjà affectée (A3409468666E5).
+      chooseActionHint: "Choisir",
+      retireActionHint: "Retirer",
     },
     // D4, D-259 : dialogue d'appui long partagé — Annuler / Modifier / Supprimer.
     longPressDialog: {
@@ -800,5 +805,12 @@ export const fr = {
       duplicateError: "Ce nom existe déjà.",
     },
     retiredValueMessage: "Cette valeur a été retirée. Choisissez-en une autre.",
+    // §4.10 L136 ; CE-UI-09 L2812, L2836 ; CE-T03-16 L1665, L1673 : échec
+    // d'écriture d'une opération de référentiel, partagé par Catégorie/
+    // Zone/Étiquette — message, modale conservée ouverte, aucune
+    // modification partielle (un nom vide ou invalide reste prévenu en
+    // amont par la désactivation d'Ajouter/Enregistrer, jamais par cette
+    // écriture).
+    writeError: "La modification n’a pas pu être enregistrée. Réessayez.",
   },
 } as const;

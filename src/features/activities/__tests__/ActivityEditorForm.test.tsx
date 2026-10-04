@@ -64,6 +64,7 @@ function Harness({
   showMediaSection = true,
   errorMessage = null,
   isFinishDisabled = false,
+  onBodyZonesPickerClose,
 }: {
   initial?: Partial<ActivityEditorFormValue>;
   onChangeSpy?: (patch: Partial<ActivityEditorFormValue>) => void;
@@ -71,6 +72,7 @@ function Harness({
   showMediaSection?: boolean;
   errorMessage?: string | null;
   isFinishDisabled?: boolean;
+  onBodyZonesPickerClose?: () => void;
 }) {
   const [value, setValue] = useState<ActivityEditorFormValue>(baseValue(initial));
   return (
@@ -83,6 +85,7 @@ function Harness({
             setValue((current) => ({ ...current, ...patch }));
           }}
           bodyZones={BODY_ZONE_FIXTURES}
+          onBodyZonesPickerClose={onBodyZonesPickerClose}
           showMediaSection={showMediaSection}
           finishLabel="Terminer"
           onFinish={onFinish}
@@ -147,6 +150,27 @@ describe("ActivityEditorForm", () => {
     });
 
     expect(onChangeSpy).toHaveBeenCalledWith({ bodyZoneIds: ["dos"] });
+  });
+
+  /**
+   * R6 (CE-UI-09 L2784, L2816, L2840) : la fermeture de `BodyZonePickerModal`
+   * (Confirmer) notifie l'appelant via `onBodyZonesPickerClose`, pour qu'il
+   * relise son propre référentiel `bodyZones` — une Zone créée, renommée ou
+   * supprimée dans la modale devient ainsi visible SANS fermer ni rouvrir
+   * cet éditeur.
+   */
+  it("notifies the caller via onBodyZonesPickerClose when the body zone picker closes, so it can reload its referential", async () => {
+    const onBodyZonesPickerClose = jest.fn();
+    render(<Harness onBodyZonesPickerClose={onBodyZonesPickerClose} />);
+    fireEvent.press(screen.getByTestId("exercise-section-body-zones-header"));
+    fireEvent.press(screen.getByTestId("exercise-body-zones-open"));
+
+    await screen.findByTestId("body-zone-picker-confirm");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
+    });
+
+    expect(onBodyZonesPickerClose).toHaveBeenCalledTimes(1);
   });
 
   /**

@@ -198,6 +198,48 @@ describe("CategoryPickerModal — long-press menu and deletion (D4, §4.10)", ()
   });
 });
 
+describe("CategoryPickerModal — R4/R10 (palette en flux, défilement, en-tête accessible, échec d'écriture)", () => {
+  it("exposes the title as an accessible header", async () => {
+    const service = fakeReferentialService();
+    renderModal(service);
+
+    await screen.findByTestId("category-picker-card");
+    const title = screen.getByText("Catégorie");
+    expect(title.props.accessibilityRole).toBe("header");
+  });
+
+  it("renders the create palette inline (never a position: absolute overlay)", async () => {
+    const service = fakeReferentialService();
+    renderModal(service);
+
+    fireEvent.press(await screen.findByTestId("category-picker-create-action"));
+    fireEvent.press(screen.getByLabelText("Couleur"));
+
+    const palette = screen.getByTestId("color-palette-popover");
+    expect(palette.props.style.position).not.toBe("absolute");
+  });
+
+  it("shows a write-error message and keeps the modal open and the draft intact when createCategory throws", async () => {
+    const onClose = jest.fn();
+    const service = fakeReferentialService({
+      createCategory: jest.fn(async () => {
+        throw new Error("transaction annulée");
+      }),
+    });
+    renderModal(service, { onClose });
+
+    fireEvent.press(await screen.findByTestId("category-picker-create-action"));
+    fireEvent.changeText(screen.getByTestId("category-picker-new-name-input"), "Danse");
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("category-picker-new-add"));
+    });
+
+    expect(screen.getByTestId("category-picker-write-error")).toBeTruthy();
+    expect(screen.getByTestId("category-picker-new-name-input").props.value).toBe("Danse");
+    expect(onClose).not.toHaveBeenCalled();
+  });
+});
+
 describe("CategoryPickerModal — predefined categories are administrable like custom ones (§4.10 L137)", () => {
   it("renders no isPredefined guard — a predefined Category offers the same long-press actions", async () => {
     const service = fakeReferentialService();

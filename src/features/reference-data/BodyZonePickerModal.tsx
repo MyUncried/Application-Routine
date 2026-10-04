@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { isBodyZoneAssignable, BODY_ZONE_NAME_MAX_LENGTH, validateBodyZoneName } from "@/domain/body-zones/BodyZone";
 import type { Silhouette } from "@/domain/preferences/Profile";
 import { ReferenceValueDialog } from "@/features/reference-data/ReferenceValueDialog";
-import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
+import {
+  notifyBodyZonesReferentialChanged,
+  useReferentialService,
+} from "@/features/reference-data/ReferentialServiceContext";
 import { BodyZoneSelector } from "@/features/sessions/BodyZoneSelector";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
@@ -42,8 +45,12 @@ export function BodyZonePickerModal({
   const [editTarget, setEditTarget] = useState<BodyZone | null>(null);
   const [editName, setEditName] = useState("");
   const [duplicateError, setDuplicateError] = useState(false);
+  const [writeError, setWriteError] = useState(false);
   const [deleteTargetUsed, setDeleteTargetUsed] = useState(false);
   const [atLeastOneNotice, setAtLeastOneNotice] = useState(false);
+  // R10 (CE-UI-09 L2840) : le focus d'accessibilité revient explicitement
+  // à cette liste après Annuler/Supprimer confirmé (jamais après Modifier).
+  const listRef = useRef<View>(null);
   const t = strings.referenceData.bodyZone;
 
   function reload() {
@@ -54,6 +61,15 @@ export function BodyZonePickerModal({
     reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [referentialService]);
+
+  // R6 : relit cette modale ET notifie la Composition (`CompositionScreen`)
+  // qu'une Zone a été créée, renommée ou supprimée — jamais appelé au
+  // montage initial (`reload()` seul), uniquement après une écriture
+  // réussie (D2/D4).
+  function reloadAndNotify() {
+    reload();
+    notifyBodyZonesReferentialChanged();
+  }
 
   const activeZones = (zones ?? []).filter(isBodyZoneAssignable);
   const canAddZone = validateBodyZoneName(newName).ok;
@@ -83,17 +99,25 @@ export function BodyZonePickerModal({
     if (!validated.ok) {
       return;
     }
-    const result = await referentialService.createBodyZone({ name: validated.value });
-    if (result.status === "DUPLICATE") {
-      setDuplicateError(true);
-      return;
-    }
-    reload();
-    setIsCreating(false);
-    setNewName("");
-    setDuplicateError(false);
-    if (result.status === "OK") {
-      setWorking((current) => (current.includes(result.value.id) ? current : [...current, result.value.id]));
+    setWriteError(false);
+    try {
+      const result = await referentialService.createBodyZone({ name: validated.value });
+      if (result.status === "DUPLICATE") {
+        setDuplicateError(true);
+        return;
+      }
+      reloadAndNotify();
+      setIsCreating(false);
+      setNewName("");
+      setDuplicateError(false);
+      if (result.status === "OK") {
+        setWorking((current) =>
+          current.includes(result.value.id) ? current : [...current, result.value.id],
+        );
+      }
+    } catch (error) {
+      console.error("La Zone n'a pas pu être créée.", error);
+      setWriteError(true);
     }
   }
 
@@ -101,6 +125,7 @@ export function BodyZonePickerModal({
     setEditTarget(zone);
     setEditName(zone.name);
     setDuplicateError(false);
+    setWriteError(false);
     setLongPressTarget(null);
   }
 
@@ -112,14 +137,20 @@ export function BodyZonePickerModal({
     if (!validated.ok) {
       return;
     }
-    const renamed = await referentialService.renameBodyZone(editTarget.id, validated.value);
-    if (renamed.status === "DUPLICATE") {
-      setDuplicateError(true);
-      return;
+    setWriteError(false);
+    try {
+      const renamed = await referentialService.renameBodyZone(editTarget.id, validated.value);
+      if (renamed.status === "DUPLICATE") {
+        setDuplicateError(true);
+        return;
+      }
+      reloadAndNotify();
+      setEditTarget(null);
+      setDuplicateError(false);
+    } catch (error) {
+      console.error("La Zone n'a pas pu être modifiée.", error);
+      setWriteError(true);
     }
-    reload();
-    setEditTarget(null);
-    setDuplicateError(false);
   }
 
   async function openDeleteConfirm(zone: BodyZone) {
@@ -131,17 +162,36 @@ export function BodyZonePickerModal({
     if (!longPressTarget) {
       return;
     }
-    await referentialService.retireBodyZone(longPressTarget.id);
-    reload();
-    setWorking((current) => current.filter((id) => id !== longPressTarget.id));
-    setLongPressTarget(null);
+    try {
+      await referentialService.retireBodyZone(longPressTarget.id);
+      reloadAndNotify();
+      setWorking((current) => current.filter((id) => id !== longPressTarget.id));
+      setLongPressTarget(null);
+    } catch (error) {
+      console.error("La Zone n'a pas pu être supprimée.", error);
+      setLongPressTarget(null);
+      setWriteError(true);
+    }
   }
 
   return (
     <Modal transparent visible animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop} testID="body-zone-picker-backdrop">
-        <View style={styles.card} testID="body-zone-picker-card">
-          <Text style={styles.title}>{t.title}</Text>
+        <ScrollView
+          style={styles.card}
+          contentContainerStyle={styles.cardContent}
+          keyboardShouldPersistTaps="handled"
+          testID="body-zone-picker-card"
+        >
+          <Text style={styles.title} accessibilityRole="header">
+            {t.title}
+          </Text>
+
+          {writeError ? (
+            <Text style={styles.errorText} testID="body-zone-picker-write-error">
+              {strings.referenceData.writeError}
+            </Text>
+          ) : null}
 
           {atLeastOneNotice ? (
             <Text style={styles.notice} testID="body-zone-picker-at-least-one-notice">
@@ -149,17 +199,19 @@ export function BodyZonePickerModal({
             </Text>
           ) : null}
 
-          <BodyZoneSelector
-            zones={activeZones}
-            selectedIds={working}
-            onToggle={handleToggle}
-            accessibilityLabel={t.title}
-            silhouette={silhouette ?? null}
-            onLongPressZone={(zone) => {
-              setLongPressTarget(zone);
-              void openDeleteConfirm(zone);
-            }}
-          />
+          <View ref={listRef}>
+            <BodyZoneSelector
+              zones={activeZones}
+              selectedIds={working}
+              onToggle={handleToggle}
+              accessibilityLabel={t.title}
+              silhouette={silhouette ?? null}
+              onLongPressZone={(zone) => {
+                setLongPressTarget(zone);
+                void openDeleteConfirm(zone);
+              }}
+            />
+          </View>
 
           {isCreating ? (
             <View style={styles.newEntryContainer} testID="body-zone-picker-new-row">
@@ -188,6 +240,7 @@ export function BodyZonePickerModal({
                     setIsCreating(false);
                     setNewName("");
                     setDuplicateError(false);
+                    setWriteError(false);
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={t.newEntry.cancelAccessibilityLabel}
@@ -233,6 +286,7 @@ export function BodyZonePickerModal({
                   onPress={() => {
                     setEditTarget(null);
                     setDuplicateError(false);
+                    setWriteError(false);
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={strings.referenceData.renameDialog.cancelAction}
@@ -287,7 +341,7 @@ export function BodyZonePickerModal({
               <Text style={styles.primaryActionLabel}>{t.confirmAction}</Text>
             </Pressable>
           </View>
-        </View>
+        </ScrollView>
       </View>
 
       {longPressTarget ? (
@@ -298,6 +352,7 @@ export function BodyZonePickerModal({
           onModify={() => openEdit(longPressTarget)}
           onDelete={handleDelete}
           testIDPrefix="body-zone-picker-long-press"
+          returnFocusRef={listRef}
         />
       ) : null}
     </Modal>
@@ -315,8 +370,14 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     maxWidth: 420,
+    // R4 (CE-UI-09 L2796, L2808) : hauteur bornée — la liste des Zones et
+    // la carte de création/renommage défilent toujours, quel que soit le
+    // nombre d'entrées ou l'ouverture du clavier.
+    maxHeight: "90%",
     borderRadius: dimensions.standardCard.radius,
     backgroundColor: colors.background,
+  },
+  cardContent: {
     padding: spacing[24],
     gap: spacing[16],
   },

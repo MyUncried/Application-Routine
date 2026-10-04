@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import type { Profile, Silhouette } from "@/domain/preferences/Profile";
 import {
@@ -35,8 +35,12 @@ function draftsEqual(a: IdentityDraft, b: IdentityDraft): boolean {
   return a.displayName === b.displayName && a.photoUri === b.photoUri && a.silhouette === b.silhouette;
 }
 
-/** Initiales du nom d'affichage (1 ou 2 lettres) — repli visuel sans photo (CE-UI-01 L2033). */
-function computeInitials(displayName: string): string {
+/**
+ * Initiales du nom d'affichage (1 ou 2 lettres) — repli visuel sans photo
+ * (CE-UI-01 L2033). Exportée pour être réutilisée par le bloc Identité du
+ * Profil (`ProfileScreen.tsx`, R1) — même aide, aucune duplication.
+ */
+export function computeInitials(displayName: string): string {
   const parts = displayName.trim().split(/\s+/).filter((part) => part.length > 0);
   return parts
     .slice(0, 2)
@@ -171,7 +175,15 @@ export function ProfileEditScreen() {
       <HeaderSeparator />
 
       {draft ? (
-        <View style={styles.body} testID="profile-edit-body">
+        // CE-UI-01 L2004 (R1/UI-96E7FD739BF0) : l'écran défile dans les Safe
+        // Areas, clavier affiché ou masqué — même patron que `ActivityEditorForm`
+        // (`ScrollView` + `keyboardShouldPersistTaps="handled"`).
+        <ScrollView
+          style={styles.body}
+          contentContainerStyle={styles.bodyContent}
+          keyboardShouldPersistTaps="handled"
+          testID="profile-edit-body"
+        >
           <View style={styles.photoSection}>
             <View style={styles.avatar} testID="profile-edit-avatar">
               {hasPhoto ? (
@@ -278,7 +290,7 @@ export function ProfileEditScreen() {
           >
             <Text style={styles.saveActionLabel}>{t.saveAction}</Text>
           </Pressable>
-        </View>
+        </ScrollView>
       ) : null}
 
       {isPendingExit ? (
@@ -304,8 +316,11 @@ export function ProfileEditScreen() {
 const styles = StyleSheet.create({
   body: {
     flex: 1,
+  },
+  bodyContent: {
     paddingHorizontal: spacing[24],
     paddingTop: spacing[16],
+    paddingBottom: spacing[24],
     gap: spacing[24],
   },
   photoSection: {

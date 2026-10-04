@@ -31,6 +31,12 @@ const sources = {
   // résolue selon la silhouette du Profil, `BodyZoneIcon.tsx`).
   "body-zone-homme": require("../../../assets/icons/body-zone-homme.svg"),
   "body-zone-femme": require("../../../assets/icons/body-zone-femme.svg"),
+  // Révision r4 (demande de changement, run 37214282333) : export canonique
+  // du composant Figma `4916:6386` « Icône — Étiquette — cil:tag »
+  // (20×20, trait #0508E5, dans le cadre `2028:11204`), octets exacts
+  // (2087, sha256 `6b3a4b0c73…`). Utilisé par la pilule d'Étiquette de la
+  // Composition lorsqu'aucune Étiquette n'est choisie (R7a).
+  "label-outline": require("../../../assets/icons/label-outline.svg"),
 } as const;
 
 const sizes = {
@@ -129,6 +135,8 @@ const sizes = {
   // L2001).
   "body-zone-homme": [24, 24],
   "body-zone-femme": [24, 24],
+  // Révision r4 : glyphe intrinsèque 20×20 (viewBox exact de l'export, R7a).
+  "label-outline": [20, 20],
 } as const;
 
 /**
