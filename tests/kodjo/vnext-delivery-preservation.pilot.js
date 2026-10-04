@@ -43,6 +43,26 @@ function prepare(f,changed=f.a.planContract.boundaries.write_scope.map(r=>r.path
  return {input:JSON.parse(fs.readFileSync(input)),plan,delta};
 }
 function reviewValue(input,failed=false){return {schema:'kodjo.ui-implementation-review.v1',verdict:failed?'REVISE':'APPROVE',criteria:input.criteria.map(c=>({criterion_id:c.criterion_id,implementation_status:failed?'NON_CONFORME':'CONFORME',preserve_status:failed?'FAIL':'PASS',evidence:'FIXTURE fresh inspection',proof_results:c.proof_required.map(type=>({proof_type:type,status:failed?'FAIL':'PASS',evidence:'FIXTURE fresh check'})),...(c.assertions?{assertion_results:c.assertions.map(a=>({assertion_id:a.assertion_id,status:failed?'NON_CONFORME':'CONFORME',evidence:'FIXTURE fresh assertion',proof_results:a.proof_required.map(type=>({proof_type:type,status:failed?'FAIL':'PASS',evidence:'FIXTURE fresh assertion check'}))}))}:{})})),non_ui_plan_assessment:{status:'CONFORME',requirements:input.non_ui_requirements.map(r=>({requirement_id:r.requirement_id,status:'CONFORME',evidence:'FIXTURE fresh correction check',proof_results:r.proof_required.map(type=>({proof_type:type,status:'PASS',evidence:'FIXTURE fresh check'}))}))},boundary_results:input.boundary_requirements.map(r=>({category:r.category,target:r.target,status:'PASS',evidence:'FIXTURE exact changed paths'}))};}
+test('frozen workflow consumer prepares and validates retained delivery criteria independently of application code',()=>{
+ const f=fixture(true);try{
+  const prepared=prepare(f);
+  const wf=require('../../scripts/kodjo/lib/yaml').parse(fs.readFileSync(path.join(root,'.github/workflows/kodjo-slice-implementation-review.yml'),'utf8'));
+  const freeze=wf.jobs.review.steps.find(s=>s.name==='Freeze criterion review validator before application checkout');
+  const runtime=path.join(f.dir,'frozen');fs.mkdirSync(path.join(runtime,'lib'),{recursive:true});
+  for(const source of new Set(freeze.run.match(/scripts\/kodjo\/[a-z/.-]+\.js/g)))fs.copyFileSync(path.join(root,source),path.join(runtime,source.replace('scripts/kodjo/','')));
+  fs.mkdirSync(path.join(f.repo.cwd,'scripts/kodjo'),{recursive:true});
+  fs.writeFileSync(path.join(f.repo.cwd,'scripts/kodjo/verify-ui-implementation-review.js'),"throw Error('STALE_APPLICATION_VALIDATOR')");
+  const env={...process.env,KODJO_TEST_CONTRACT_EVIDENCE_FILE:path.join(f.dir,'test-evidence.json'),KODJO_EXPECTED_REVIEW_HEAD:execFileSync('git',['rev-parse','HEAD'],{cwd:f.repo.cwd,encoding:'utf8'}).trim()};
+  const invoke=args=>spawnSync(process.execPath,[path.join(runtime,'verify-ui-implementation-review.js'),...args],{cwd:f.repo.cwd,encoding:'utf8',env});
+  const inputFile=path.join(f.dir,'frozen-input.json');
+  const p=invoke(['prepare',prepared.plan,prepared.delta,inputFile]);assert.equal(p.status,0,p.stderr);
+  const input=JSON.parse(fs.readFileSync(inputFile));assert.deepEqual(input.criteria,prepared.input.criteria);
+  assert.equal(input.criteria[0].delivery_role,'RETAINED');
+  const raw=f.file('frozen-review.json',JSON.stringify(reviewValue(input))),out=path.join(f.dir,'frozen-validated.json');
+  const r=invoke(['validate',prepared.plan,prepared.delta,raw,out]);assert.equal(r.status,0,r.stderr);
+  assert.equal(JSON.parse(fs.readFileSync(out)).verdict,'APPROVE');
+ }finally{f.cleanup();}
+});
 function finalize(f,review){
  const head='d'.repeat(40),base=f.baseline.finalization.head,queuePath='.github/orchestration/queue/v2/test.json';
  const reviewFile=f.file('review.md','[KODJO_SLICE] IMPLEMENTATION_REVIEW_OUTPUT\nslice_id=V2-VNEXT-09\nhead='+head+'\nverdict='+review.verdict+'\ndevice_gate_required=false\nsource_implementation_comment_id=301\nSTATUT : IMPLEMENTATION_REVIEW_APPROVED\n<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'+JSON.stringify(review)+'</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>');

@@ -119,7 +119,7 @@
     },
     {
       "path": ".github/workflows/kodjo-slice-implementation-review.yml",
-      "blob_oid": "68f7ffc523dabc6c989f5c7671411a5ff04fda82",
+      "blob_oid": "116085d8a7219affcd7ed73662d83eae7c915360",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {

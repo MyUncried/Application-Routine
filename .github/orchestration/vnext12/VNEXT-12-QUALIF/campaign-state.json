@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-04T10:30:28.974831+00:00",
+  "recorded_at": "2026-10-04T11:22:26.357060+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
-  "controller_stage": "V8_DELIVERY_AND_POST_ACCEPTANCE_COMPLEMENT_QUALIFICATION_REQUESTED",
-  "controller_generation": 49,
+  "controller_stage": "V8_FROZEN_CONSUMER_FIX_QUALIFICATION_REQUESTED",
+  "controller_generation": 50,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -1548,7 +1548,34 @@
       "qualification_report": ".github/orchestration/reports/2026-10-04_VNEXT_POST_ACCEPTANCE_REVISION_COVERAGE.md",
       "supersedes_unactivated_candidate": "e7dc6babab38b506864a5e3cf7ef268ee5b9bf69",
       "post_acceptance_full_path": "NOT_IMPLEMENTED_END_TO_END_NOT_RUNTIME_QUALIFIED",
-      "scenario_qualification_gate": "PROPOSED_NOT_IMPLEMENTED"
+      "scenario_qualification_gate": "PROPOSED_NOT_IMPLEMENTED",
+      "previous_candidate_qualification": {
+        "head": "dae652cfc31bdc7f36a2be604fc3ef16bb118b50",
+        "qualification_run": 37195843037,
+        "qualification": "FAILED",
+        "pilot_run": 37195843101,
+        "pilot": "FAILED",
+        "drivers_run": 37195843078,
+        "drivers": "SUCCESS"
+      }
+    },
+    "frozen_consumer_fix": {
+      "parent_head": "dae652cfc31bdc7f36a2be604fc3ef16bb118b50",
+      "evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/frozen-consumer-fix-evidence.json",
+      "prior_failed_runs": [
+        37195843037,
+        37195843101
+      ],
+      "prior_drivers_success": 37195843078,
+      "qualification": "PENDING",
+      "runtime_execution": "NOT_STARTED",
+      "local_complete_pilot": {
+        "tests": 1001,
+        "pass": 996,
+        "fail": 0,
+        "skip": 5
+      },
+      "post_acceptance_full_path": "NOT_IMPLEMENTED_END_TO_END_NOT_RUNTIME_QUALIFIED"
     }
   }
 }
