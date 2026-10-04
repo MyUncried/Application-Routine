@@ -138,14 +138,32 @@ export type SessionDraft = {
   readonly exercises: readonly SessionDraftExercise[];
 };
 
-/** Brouillon de Séance vide, initialisé avec les valeurs canoniques par défaut (aucune Activité, aucune Étiquette). */
-export function createEmptyDraft(): SessionDraft {
+/**
+ * V2-PRE-2 (plan §6.1, D-213) : valeurs initiales d'un nouveau brouillon de
+ * Séance — `SessionDraftProvider` les lit depuis le Profil au moment réel
+ * de la création et les transmet ici ; en leur absence (fonction pure, hors
+ * fournisseur Profil — tests, T19), les constantes du Domaine s'appliquent
+ * inchangées.
+ */
+export type SessionDraftDefaults = {
+  readonly initialCountdownSeconds?: number;
+  readonly finalPhaseSeconds?: number;
+};
+
+/**
+ * Brouillon de Séance vide (aucune Activité, aucune Étiquette). `defaults`
+ * optionnel (T19) : fourni par l'appelant réel (valeurs COURANTES du
+ * Profil, snapshot atomique à la création) — jamais relu ni dérivé
+ * ailleurs ; en son absence, les constantes canoniques du Domaine
+ * s'appliquent (patron déjà établi pour `createEmptyActivityDefinitionDraft`).
+ */
+export function createEmptyDraft(defaults: SessionDraftDefaults = {}): SessionDraft {
   return {
     sourceSessionId: null,
     name: "",
     labelId: null,
-    initialCountdownSeconds: DEFAULT_INITIAL_COUNTDOWN_SECONDS,
-    finalPhaseSeconds: DEFAULT_FINAL_PHASE_SECONDS,
+    initialCountdownSeconds: defaults.initialCountdownSeconds ?? DEFAULT_INITIAL_COUNTDOWN_SECONDS,
+    finalPhaseSeconds: defaults.finalPhaseSeconds ?? DEFAULT_FINAL_PHASE_SECONDS,
     tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
     exercises: [],
   };
@@ -160,8 +178,17 @@ export function createEmptyDraft(): SessionDraft {
  *
  * `id` est désormais un paramètre obligatoire (complétion REWORK12) —
  * fourni par l'appelant, jamais généré ici (fonction pure).
+ *
+ * V2-PRE-2 (plan §6.1/§7, D-171/D-213) : `postActivityRecoverySeconds`
+ * devient un second paramètre optionnel — la valeur COURANTE du Profil au
+ * moment réel de la création de cette occurrence locale (snapshot
+ * atomique, jamais relue ensuite). En son absence (T19), la constante
+ * neutre du Domaine (`0`) s'applique inchangée.
  */
-export function createExerciseDraft(id: string): SessionDraftExercise {
+export function createExerciseDraft(
+  id: string,
+  postActivityRecoverySeconds: number = DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
+): SessionDraftExercise {
   return {
     id,
     type: DEFAULT_ACTIVITY_TYPE,
@@ -172,7 +199,7 @@ export function createExerciseDraft(id: string): SessionDraftExercise {
     repetitionCount: null,
     seriesCount: DEFAULT_SERIES_COUNT,
     pauseSeconds: DEFAULT_PAUSE_SECONDS,
-    postActivityRecoverySeconds: DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS,
+    postActivityRecoverySeconds,
     instruction: null,
     bodyZoneIds: [],
     sideMode: DEFAULT_SIDE_MODE,
@@ -306,13 +333,20 @@ function exercisesEqual(
 }
 
 /**
- * Compare les champs fonctionnels d'un brouillon à ceux d'un brouillon vide
- * (`createEmptyDraft()`) — utilisé par la garde de sortie de Composition
- * (T01-S07) pour décider si une navigation sortante doit être bloquée.
- * Fonction pure, aucune dépendance React/navigation.
+ * Compare les champs fonctionnels d'un brouillon à ceux de son brouillon
+ * initial RÉELLEMENT créé (T18) — utilisé par la garde de sortie de
+ * Composition (T01-S07) pour décider si une navigation sortante doit être
+ * bloquée. `baseline` optionnel (T19) : `createEmptyDraft()` par défaut
+ * (constantes du Domaine) — l'appelant réel transmet le brouillon
+ * effectivement créé par `SessionDraftProvider` (valeurs du Profil au
+ * moment de la création), jamais recalculé ici. Fonction pure, aucune
+ * dépendance React/navigation.
  */
-export function isSessionDraftDirty(draft: SessionDraft): boolean {
-  return !sessionDraftsEqual(draft, createEmptyDraft());
+export function isSessionDraftDirty(
+  draft: SessionDraft,
+  baseline: SessionDraft = createEmptyDraft(),
+): boolean {
+  return !sessionDraftsEqual(draft, baseline);
 }
 
 /**

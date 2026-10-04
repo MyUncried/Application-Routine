@@ -7,9 +7,22 @@
  * Séance par un type d'erreur partagé.
  */
 
-export type CategoryValidationErrorCode = "REQUIRED" | "TOO_LONG" | "INVALID_COLOR";
+/**
+ * V2-PRE-2 (plan §6.1) : trois codes additionnels pour les opérations
+ * explicites du référentiel (créer/renommer/recolorer/retirer) — `DUPLICATE`
+ * (nom dont la clé normalisée correspond à une Catégorie déjà ACTIVE, D2),
+ * `RETIRED` (nouvelle affectation refusée à une valeur retirée, T16) et
+ * `NOT_FOUND` (identifiant inconnu lors d'une opération ciblée).
+ */
+export type CategoryValidationErrorCode =
+  | "REQUIRED"
+  | "TOO_LONG"
+  | "INVALID_COLOR"
+  | "DUPLICATE"
+  | "RETIRED"
+  | "NOT_FOUND";
 
-export type CategoryValidationField = "category.name" | "category.color";
+export type CategoryValidationField = "category.name" | "category.color" | "category.id";
 
 export type CategoryValidationDetails = {
   readonly max?: number;

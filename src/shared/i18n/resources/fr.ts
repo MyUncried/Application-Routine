@@ -258,6 +258,14 @@ export const fr = {
         paletteAccessibilityLabel: "Palette de couleurs",
         swatchAccessibilityLabel: "Couleur",
       },
+      // V2-PRE-2 (plan §6.5, CE-T03-16) : la pastille dérivée de l'Étiquette
+      // devient un déclencheur interactif de `LabelPickerModal` — libellé
+      // d'accessibilité DISTINCT de `colorPicker.label` (retiré, jamais
+      // réintroduit) pour que le test « never renders an autonomous color
+      // picker » reste probant.
+      label: {
+        accessibilityLabel: "Étiquette de la séance",
+      },
       countdown: {
         label: "Compte à rebours initial",
       },
@@ -656,10 +664,141 @@ export const fr = {
       placeholder:
         "Le suivi des exécutions sera développé dans une prochaine tranche.",
     },
+    // V2-PRE-2 (plan §6.5, CE-UI-07) : écran Profil — six réglages,
+    // quatre préférences locales, accès à Modifier le profil. `placeholder`
+    // (ancien écran d'attente) est retiré : cet écran porte désormais une
+    // UI réelle (même patron que `sessions`/`activities` en leur temps).
     profile: {
       title: "Profil",
-      placeholder:
-        "Les préférences globales seront développées dans une prochaine tranche.",
+      groups: {
+        exercise: "Exercice",
+        session: "Séance",
+        preferences: "Préférences",
+      },
+      settings: {
+        sideChangeRecovery: { label: "Pause entre les côtés", unit: "s" },
+        exerciseCountdown: { label: "Compte à rebours d’exercice", unit: "s" },
+        exerciseEnd: { label: "Fin d’exercice", unit: "s" },
+        postActivityRecovery: { label: "Récupération après exercice", unit: "s" },
+        sessionInitialCountdown: { label: "Compte à rebours initial", unit: "s" },
+        sessionFinalPhase: { label: "Fin de séance", unit: "s" },
+      },
+      stepper: {
+        decrementAccessibilityLabel: "Diminuer",
+        incrementAccessibilityLabel: "Augmenter",
+        minimumReachedSuffix: "minimum atteint",
+        maximumReachedSuffix: "maximum atteint",
+        // CE-UI-07 L2569 : annoncée par la valeur, en TOUTE position (mi-course,
+        // borne basse, borne haute) — jamais seulement au bouton désactivé à la
+        // limite. Clé de format : `{value}` reprend la valeur déjà unitée
+        // (ex. "10 s"), `{min}` la borne basse SANS unité, `{max}` la borne
+        // haute unitée — ex. "10 s, de 0 à 300 s".
+        boundsAccessibilityLabel: "{value}, de {min} à {max}",
+        saveError: "La modification n’a pas pu être enregistrée. Réessayez.",
+      },
+      preferencesSwitches: {
+        sounds: "Sons",
+        voiceAnnouncements: "Annonces vocales",
+        vibration: "Vibration",
+        notifications: "Notifications",
+      },
+      editProfileAction: "Modifier le profil",
+      identity: {
+        unsetDisplayNameAccessibilityLabel: "Nom non renseigné",
+      },
     },
+    // V2-PRE-2 (plan §6.5, CE-UI-01) : écran Modifier le profil — nom,
+    // photo, silhouette, dans un brouillon enregistré par `Enregistrer`.
+    profileEdit: {
+      title: "Modifier le profil",
+      backAccessibilityLabel: "Retour",
+      name: {
+        label: "Nom",
+        placeholder: "Nom",
+        errorRequired: "Le nom est obligatoire.",
+        errorTooLong: "Le nom ne peut pas dépasser 80 caractères.",
+      },
+      photo: {
+        addAccessibilityLabel: "Ajouter une photo",
+        changeAccessibilityLabel: "Changer la photo",
+        initialsAccessibilityLabel: "Initiales du profil",
+        errorMessage: "La photo n’a pas pu être ajoutée. Réessayez.",
+      },
+      silhouette: {
+        label: "Silhouette",
+        homme: "Silhouette homme",
+        femme: "Silhouette femme",
+      },
+      saveAction: "Enregistrer",
+      saveError: "Le profil n’a pas pu être enregistré. Réessayez.",
+      abandonModal: {
+        title: "Abandonner les modifications ?",
+        message: "Les modifications apportées au profil seront perdues.",
+        continueEditing: "Annuler",
+        abandon: "Confirmer",
+      },
+    },
+  },
+  // V2-PRE-2 (plan §6.5, §4.10) : textes partagés par les trois modales de
+  // référentiel (Catégorie, Zone, Étiquette) et le dialogue d'appui long.
+  referenceData: {
+    category: {
+      title: "Catégorie",
+      createAction: "Créer une catégorie",
+      newEntry: {
+        placeholder: "Nom de la catégorie",
+        cancelAccessibilityLabel: "Annuler",
+        addAccessibilityLabel: "Ajouter",
+      },
+      closeAccessibilityLabel: "Fermer",
+    },
+    bodyZone: {
+      title: "Zones corporelles",
+      createAction: "Créer une zone",
+      newEntry: {
+        placeholder: "Nom de la zone",
+        cancelAccessibilityLabel: "Annuler",
+        addAccessibilityLabel: "Ajouter",
+      },
+      confirmAction: "Confirmer",
+      closeAccessibilityLabel: "Fermer",
+      atLeastOneRequired: "Au moins une Zone doit rester sélectionnée.",
+    },
+    label: {
+      title: "Étiquettes",
+      createAction: "Créer une étiquette",
+      newEntry: {
+        placeholder: "Nom de l’étiquette",
+        cancelAccessibilityLabel: "Annuler",
+        addAccessibilityLabel: "Ajouter",
+      },
+      closeAccessibilityLabel: "Fermer",
+    },
+    // D4, D-259 : dialogue d'appui long partagé — Annuler / Modifier / Supprimer.
+    longPressDialog: {
+      cancel: "Annuler",
+      modify: "Modifier",
+      delete: "Supprimer",
+    },
+    // §4.10 L134/L135/L138/L139 : titre exact et messages différenciés
+    // utilisé/non utilisé, partagés par Catégorie/Zone/Étiquette.
+    deleteConfirm: {
+      titlePrefix: "Supprimer « ",
+      titleSuffix: " » ?",
+      usedMessage:
+        "Elle disparaîtra des nouveaux choix mais restera attachée aux objets qui l’utilisent déjà, avec son nom et sa couleur actuels.",
+      unusedMessage: "Cette valeur sera retirée des choix proposés.",
+      confirm: "Supprimer",
+      cancel: "Annuler",
+    },
+    renameDialog: {
+      title: "Modifier",
+      nameLabel: "Nom",
+      colorLabel: "Couleur",
+      saveAction: "Enregistrer",
+      cancelAction: "Annuler",
+      duplicateError: "Ce nom existe déjà.",
+    },
+    retiredValueMessage: "Cette valeur a été retirée. Choisissez-en une autre.",
   },
 } as const;

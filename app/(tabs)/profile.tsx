@@ -1,12 +1,6 @@
-import { PlaceholderScreen } from "@/shared/ui/PlaceholderScreen";
-import { strings } from "@/shared/i18n";
+import { ProfileScreen } from "@/features/preferences/ProfileScreen";
 
-/** Onglet « Profil » (préférences globales). */
-export default function ProfileScreen() {
-  return (
-    <PlaceholderScreen
-      title={strings.screens.profile.title}
-      description={strings.screens.profile.placeholder}
-    />
-  );
+/** Onglet « Profil » (préférences globales, V2-PRE-2). */
+export default function ProfileRoute() {
+  return <ProfileScreen />;
 }

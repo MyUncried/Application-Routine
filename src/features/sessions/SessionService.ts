@@ -12,8 +12,7 @@
  * telle quelle, sans être confondue avec ce résultat structuré.
  */
 
-import type { ProfileRepository } from "@/domain/preferences/ProfileRepository";
-import type { CreateSessionInput, Session, SessionSummary } from "@/domain/sessions/Session";
+import type { Session, SessionSummary } from "@/domain/sessions/Session";
 import {
   toCreateSessionInput,
   toUpdateSessionInput,
@@ -63,30 +62,23 @@ export class SessionService {
    * cette tranche, `scope_allow`), qui construit encore
    * `new SessionService(sessionRepository, categoryRepository)`.
    *
-   * `profileRepository` (V2-PRE-1, plan §3.2) est un TROISIÈME paramètre
-   * optionnel, pour la même raison de compatibilité : lu UNIQUEMENT par
-   * `createSession`, jamais par `updateSession` (les occurrences déjà
-   * persistées ne sont jamais rederivées du Profil — « sans
-   * rétroactivité »).
+   * **V2-PRE-2 (plan §6.3)** : chaque occurrence porte déjà sa propre
+   * `postActivityRecoverySeconds`, copiée du Profil au moment de sa
+   * création réelle (`ActivitySelectionScreen`, `ExerciseScreen` local) —
+   * `createSession` ne la relit ni ne l'écrase plus jamais depuis le Profil
+   * (abroge l'écrasement V2-PRE-1 : « sans rétroactivité »).
    */
   constructor(
     private readonly sessionRepository: SessionRepository,
     _categoryRepository?: unknown,
-    private readonly profileRepository?: ProfileRepository,
   ) {}
 
   /**
    * Convertit le brouillon via `toCreateSessionInput` (Domaine). En cas
    * d'échec, aucune tentative d'écriture n'est faite : le résultat
    * structuré est renvoyé tel quel. En cas de succès, délègue la
-   * persistance à `SessionRepository.create`.
-   *
-   * **V2-PRE-1 (plan §3.2, UI-16294D4D4345)** : chaque occurrence reçoit
-   * `postActivityRecoverySeconds` depuis la valeur COURANTE du Profil, lue
-   * une seule fois (« snapshot atomique ») au moment de cette création —
-   * jamais depuis la définition source, jamais rederivée ensuite. Sans
-   * `profileRepository` (appelant antérieur à cette tranche), la valeur du
-   * brouillon est transmise inchangée.
+   * persistance à `SessionRepository.create`, sans jamais altérer les
+   * valeurs déjà portées par chaque occurrence du brouillon.
    */
   async createSession(draft: SessionDraft): Promise<CreateSessionResult> {
     const validated = toCreateSessionInput(draft);
@@ -94,23 +86,8 @@ export class SessionService {
       return validated;
     }
 
-    const input = this.profileRepository
-      ? await this.applyProfileRecoveryDefault(validated.value)
-      : validated.value;
-
-    const session = await this.sessionRepository.create(input);
+    const session = await this.sessionRepository.create(validated.value);
     return { ok: true, value: session };
-  }
-
-  private async applyProfileRecoveryDefault(input: CreateSessionInput): Promise<CreateSessionInput> {
-    const profile = await this.profileRepository!.get();
-    return {
-      ...input,
-      exercises: input.exercises.map((exercise) => ({
-        ...exercise,
-        postActivityRecoverySeconds: profile.postActivityRecoverySecondsDefault,
-      })),
-    };
   }
 
   /**

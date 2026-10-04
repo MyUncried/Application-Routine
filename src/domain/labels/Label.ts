@@ -1,17 +1,22 @@
 import { SESSION_COLORS, type SessionColor } from "@/domain/sessions/Session";
+import { normalizeName } from "@/domain/sessions/validation";
 
 /**
- * Étiquette persistante (V2-PRE-1, plan §3.1/§3.3) : nom, couleur, état
- * actif/retiré, affectation FACULTATIVE à une Séance. La couleur affichée
- * d'une Séance est DÉRIVÉE de son Étiquette associée (plan §3.3) — une
+ * Étiquette persistante (V2-PRE-1, plan §3.1/§3.3 ; V2-PRE-2, plan §6.1) :
+ * nom, couleur, état actif/retiré, affectation FACULTATIVE à une Séance. La
+ * couleur affichée d'une Séance est DÉRIVÉE de son Étiquette associée — une
  * Étiquette retirée reste représentable par les Séances qui la référencent
  * déjà, sans être disponible pour une nouvelle affectation (même règle que
  * `@/domain/body-zones`).
  *
+ * V2-PRE-2 : clé normalisée obligatoire et unique (`canonicalKey`,
+ * `canonicalLabelKey`) — créer un nom dont la clé normalisée correspond à
+ * une entrée RETIRÉE la réactive (D2, même identifiant, associations
+ * conservées, couleur choisie appliquée) ; un nom actif de même clé est
+ * refusé comme doublon.
+ *
  * Réutilise l'énumération `SessionColor`/`SESSION_COLORS` déjà établie
- * (`@/domain/sessions/Session`) plutôt que d'en dupliquer une variante — la
- * couleur autonome historique de Séance disparaît du contrat cible, mais la
- * palette elle-même reste la même source unique.
+ * (`@/domain/sessions/Session`) plutôt que d'en dupliquer une variante.
  */
 
 export type LabelColor = SessionColor;
@@ -20,6 +25,7 @@ export const LABEL_COLORS: readonly LabelColor[] = SESSION_COLORS;
 export type Label = {
   readonly id: string;
   readonly name: string;
+  readonly canonicalKey: string;
   readonly color: LabelColor;
   readonly isActive: boolean;
   readonly createdAt: string;
@@ -41,8 +47,16 @@ export type CreateLabelInput = {
   readonly color: LabelColor;
 };
 
-export type LabelValidationErrorCode = "REQUIRED" | "TOO_LONG" | "INVALID_COLOR";
-export type LabelValidationField = "label.name" | "label.color";
+export type LabelValidationErrorCode =
+  | "REQUIRED"
+  | "TOO_LONG"
+  | "INVALID_COLOR"
+  /** Un nom dont la clé normalisée correspond à une Étiquette déjà ACTIVE (D2). */
+  | "DUPLICATE"
+  /** Une nouvelle affectation vise une Étiquette retirée (T16) — la création/réactivation reste permise, seule une AFFECTATION nouvelle à l'identifiant déjà retiré est refusée. */
+  | "RETIRED"
+  | "NOT_FOUND";
+export type LabelValidationField = "label.name" | "label.color" | "label.id";
 export type LabelValidationViolation = {
   readonly code: LabelValidationErrorCode;
   readonly field: LabelValidationField;
@@ -56,7 +70,19 @@ export type LabelValidationResult<T> =
 export const LABEL_NAME_MAX_LENGTH = 40;
 
 function normalizeLabelName(raw: string): string {
-  return raw.trim().replace(/\s+/g, " ");
+  return normalizeName(raw);
+}
+
+/**
+ * Clé canonique de comparaison/unicité (même patron que
+ * `canonicalCategoryKey`, D-106) : normalisation des espaces, casse ET
+ * diacritiques ignorés. Jamais affichée à l'utilisateur.
+ */
+export function canonicalLabelKey(raw: string): string {
+  return normalizeLabelName(raw)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
 }
 
 /** Nom d'une Étiquette : non vide après normalisation, au plus `LABEL_NAME_MAX_LENGTH` points de code (même contrat que `validateCategoryName`). */

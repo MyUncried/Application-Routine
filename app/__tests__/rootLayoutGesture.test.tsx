@@ -83,4 +83,20 @@ describe("RootLayout — geste horizontal natif du navigateur PARENT (T02-S02)",
     expect(tabs).toBeDefined();
     expect(tabs?.options?.gestureEnabled).toBeUndefined();
   });
+
+  /**
+   * V2-PRE-2 (plan §6.5, CE-UI-01) : `profile-edit` est déclaré comme écran
+   * de pile du navigateur RACINE — sa garde de sortie propre
+   * (`useCompositionExitGuard`/`DecisionDialog`) intercepte déjà le geste
+   * natif et la navigation programmatique ; aucune désactivation de geste
+   * n'est donc nécessaire ici, contrairement à `(creation)`.
+   */
+  it("registers profile-edit as a root stack screen, with the native gesture left enabled (its own exit guard intercepts it)", () => {
+    screenCalls.length = 0;
+    render(<RootLayout />);
+
+    const profileEdit = screenCalls.find((call) => call.name === "profile-edit");
+    expect(profileEdit).toBeDefined();
+    expect(profileEdit?.options?.gestureEnabled).toBeUndefined();
+  });
 });
