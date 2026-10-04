@@ -104,6 +104,8 @@ function buildInput(planBody, changedFiles, previousReview, deliveredFiles) {
   const changed = unique(changedFiles, 'UI_IMPLEMENTATION_REVIEW_CHANGED_FILES_INVALID', 'changed_files').sort();
   const changedSet = new Set(changed);
   const deliveredSet = Array.isArray(deliveredFiles) ? new Set(deliveredFiles.map(String)) : null;
+  // Component evidence on an existing PR: a component created or extended by an earlier delivery of the slice stays proven.
+  const evidenceSet = deliveredSet ? new Set([...changedSet, ...deliveredSet]) : changedSet;
   const uiApplicable = Boolean(planContract.ui_applicable);
   if (!uiApplicable && criteria.length) fail('NON_UI_PLAN_HAS_UI_CRITERIA', 'contrat non UI contradictoire');
 
@@ -179,7 +181,7 @@ function buildInput(planBody, changedFiles, previousReview, deliveredFiles) {
       component_decision: criterion.component_decision,
       selected_component: criterion.selected_component,
       ...(assertionMode&&reviewScope==='AFFECTED'&&process.env.KODJO_REQUIRE_COMPONENT_PROOF==='1'
-        ?{component_evidence:componentEvidence(criterion,changedSet,process.cwd())}:{}),
+        ?{component_evidence:componentEvidence(criterion,evidenceSet,process.cwd())}:{}),
       change_targets: targets,
       tests,
       proof_required: proofs,

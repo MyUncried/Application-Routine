@@ -413,3 +413,10 @@ plan_size=252796
   - tout autre fichier modifié doit être déclaré.
   - Rejeu : rapport `COMPLETE`, sans erreur. Tests 13/13. Suite pilote 927/946, avec les mêmes 15 échecs préexistants.
 - **Suite :** fusion, puis une relance de la revue.
+
+## Complément — REVISE par la preuve de composant, correctif cumulatif
+
+- **#317 fusionnée** (`4c759b17`). Relance `5983992483`, run `37231576923` : rapport `COMPLETE` ; toutes les assertions CONFORME ou PENDING_DEVICE ; exigences et frontières PASS. Verdict publié **REVISE** (`5984022692`).
+- **Cause démontrée** (rejeu instrumenté du validateur sur l'artefact) : seule la règle `component_evidence` bloque, sur 5 critères. Pour une décision `CREATE`, chaque cible doit figurer dans le diff de l'incrément ; or les composants ont été créés par la livraison initiale de #303. C'est le même défaut que celui corrigé par #315, à un autre endroit.
+- **Correctif** : sur une PR existante, la preuve de composant utilise le diff cumulatif depuis la baseline. Rejeu de la **même** sortie du relecteur : verdict **APPROVE**, `device_gate_required=true`. Tests 26/26 ; suite pilote 928/947, avec les mêmes 15 échecs préexistants.
+- **Suite :** fusion, relance de la revue ; publication Routine Dev automatique après APPROVE.
