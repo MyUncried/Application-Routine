@@ -117,3 +117,16 @@ Voir le commit qui introduit ce rapport. État attendu après fusion :
 - **Historique.** Aucun run de `kodjo-v2-slice-plan.yml` n'a abouti dans l'historique consulté : le chemin de révision n'est pas qualifié.
 - **Correctif proposé, non fusionné : PR #307.** Il porte sur le texte du prompt uniquement (décodeur, contrats et validations inchangés). Test `tests/kodjo/v2-revision-draft-prompt.pilot.js` : 3/3 ; `validate-workflows` : OK.
 - **Prochaine action, conditionnée à la validation du propriétaire.** Fusion de #307, puis une seule nouvelle commande `START_PLAN_REVISION` (`resume_command_comment_id=5978226685`).
+
+## Complément — génération après correctif #307 (troisième run)
+
+- **Correctif #307.** Validé par le propriétaire, rejoué localement sans API par le vrai décodeur (`tests/kodjo/v2-revision-draft-replay.pilot.js`, 7/7 avec `v2-revision-draft-prompt.pilot.js`), puis fusionné (`297d334c`). Transition `7a51179f` → `main` : PASS (protocole seulement).
+- **Commande.** 5978651284 (reprise de 5978226685). Run 37193280090 : appel au modèle réussi (HTTP 200, 234 871 jetons).
+- **Sortie du modèle.**
+  - Elle passe les deux contrôles corrigés : marqueur dans la narration, périmètre cumulatif.
+  - Elle est refusée sur une troisième règle : `UI_PLAN_ASSERTION_PROOF_COVERAGE_INCOMPLETE: UI-103FBF8D197A: chaque preuve du critere doit etre allouee a au moins une assertion` (`scripts/kodjo/lib/ui-criteria-contract.js` L111).
+- **Classement.** Cette règle figure dans le contrat transmis au modèle (`contractPrompt` inclut le code du validateur). Ce n'est donc pas un défaut du prompt, mais une erreur de contenu de la génération.
+- **Coût.** Trois appels au modèle (environ 235 000 jetons chacun), trois refus sur trois règles différentes. La génération de cette révision par le modèle n'est pas fiable pour ce plan (6 critères, 57 assertions).
+- **Arrêt sans nouvelle relance ; arbitrage demandé au propriétaire.**
+  - Option recommandée : publier une révision assemblée localement, avec les mêmes contrôles déterministes, par une extension bornée de la publication vérifiée (#290/#295) aux révisions sur une livraison existante.
+  - Autre option : une nouvelle tentative du modèle.
