@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-03T22:28:14.717Z",
+  "recorded_at": "2026-10-04T08:35:07.780917+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
-  "controller_stage": "V8_REVISION_TIMEOUT_CORRECTION_PREPARE_REQUESTED",
-  "controller_generation": 46,
+  "controller_stage": "V8_REVIEW_TRANSPORT_DIAGNOSTICS_QUALIFICATION_REQUESTED",
+  "controller_generation": 47,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -831,12 +831,12 @@
     "initial_revision_replayed": false
   },
   "v8_consolidation": {
-    "status": "INITIAL_PASS_REVISION_PREPARATION_RETRY_WITH_BOUNDED_TIMEOUT",
+    "status": "INITIAL_PASS_REVIEW_CORRECTIONS_PENDING_QUALIFICATION",
     "parent_head": "952b23b3c0bbe258edb93a155abde5c58a5795e0",
     "audit_head": "c0f72fc2148a5955b9a810a8aca1f6eeefa64870",
     "main_shared_source": "67064d1b3752d71683d11638a602286b9c895482",
     "scope": "Remaining demonstrated v8 defects D1-D9,D11-D12,D15-D18; D10,D13,D14 already delivered in the first tranche. D3 targeted shared-protocol reconciliation only.",
-    "request_generation": 35,
+    "request_generation": 39,
     "runtime_execution": "INITIAL_PASS_REVISION_NOT_EXECUTED",
     "native_windows_parser": "REQUIRED_IN_EXACT_TREE_QUALIFICATION",
     "report": ".github/orchestration/reports/2026-10-03_VNEXT_V8_CONSOLIDATED_CORRECTIONS.md",
@@ -1435,6 +1435,46 @@
         5973802104,
         5973989973
       ]
+    },
+    "revision_classification_failure": {
+      "schema_version": "kodjo.vnext.revision-diagnostic-evidence.v1",
+      "run_id": 37158701286,
+      "job_id": 111308667776,
+      "candidate_head": "ffd7e415ebb37be9eb44e17204302fd16417cb5f",
+      "phase": "BOUNDED_CORRECTION",
+      "error": "VNEXT12_REVISION_REQUIRES_DIAGNOSIS",
+      "timed_out": false,
+      "artifact_id": 11287781961,
+      "artifact_sha256": "5fd246524d194eec989f8bec7bd5f51350d6b0fd7cfed1a244fa059fe15c80ac",
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/revision-diagnostic-37158701286/failure-artifact.zip",
+      "downloaded_hash_verified": true,
+      "session_id": "0574798a-937b-4c1c-b9aa-911e97d53b97",
+      "base_verdict": "REVISE",
+      "blocking_findings": [
+        "FND-0617bba6eda320d40e8f354c",
+        "FND-5a380a08501c21e6a6118b0a"
+      ],
+      "base_review_duration_ms": 511893,
+      "revision_review_invoked": false,
+      "implementation_invoked": false,
+      "new_revision_timeout_exercised": false,
+      "cause": "TEST_GAP cites the test change intent and its PLAN_ITEM dependency; benchmark previously rejected all non-PLAN_ITEM finding targets.",
+      "old_receipt_reusable_for_new_candidate": false
+    },
+    "review_transport_corrections": {
+      "parent_head": "ffd7e415ebb37be9eb44e17204302fd16417cb5f",
+      "scope": "Transport-only lossless compaction, bounded process diagnostics, exact TEST finding to plan-intent linkage.",
+      "local_tests": 234,
+      "local_pass": 234,
+      "local_fail": 0,
+      "historical_subjects": 420,
+      "workflow_changes": 0,
+      "new_dependencies": 0,
+      "qualification": "PENDING",
+      "runtime_execution": "NOT_STARTED",
+      "initial_request_replay_forbidden": true,
+      "prior_revision_receipt_retarget_forbidden": true,
+      "report": ".github/orchestration/reports/2026-10-04_VNEXT_REVIEW_TRANSPORT_AND_DIAGNOSTICS.md"
     }
   }
 }

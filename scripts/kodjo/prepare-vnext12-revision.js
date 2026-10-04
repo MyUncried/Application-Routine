@@ -30,8 +30,21 @@ function deriveCorrection(cwd, base, receipt) {
   // Dependencies describe the finding's evidence closure; they are not all
   // requested mutations. Only blocking findings on this plan item authorize
   // the benchmark correction. Requirements, impacts, tests and proofs stay exact.
-  if (receipt.review_report.findings.filter(x => x.blocking)
-    .some(x => x.target_type !== 'PLAN_ITEM' || x.target_id !== item.plan_item_id)) throw Error('VNEXT12_REVISION_REQUIRES_DIAGNOSIS');
+  const blocking = receipt.review_report.findings.filter(x => x.blocking);
+  for (const finding of blocking) {
+    if (finding.target_type === 'PLAN_ITEM' && finding.target_id === item.plan_item_id) continue;
+    // A TEST finding can cite an incorrect plan intent while the TEST obligation
+    // itself is correct. Require its exact parent and change identity, retain
+    // the original finding, and authorize only the parent plan's intents.
+    const test = item.test_obligations.find(x => x.test_id === finding.target_id);
+    const change = test && item.change_items.find(x => x.impact_id === test.target_impact_id);
+    if (finding.category !== 'TEST_GAP' || finding.target_type !== 'TEST' || !change
+        || !finding.dependency_target_ids.includes(item.plan_item_id)
+        || !finding.required_correction.includes(change.change_id)
+        || item.change_items.filter(x => finding.required_correction.includes(x.change_id)).length !== 1) {
+      throw Error('VNEXT12_REVISION_REQUIRES_DIAGNOSIS');
+    }
+  }
   const patch = Revision.buildRevisionPatch({ allowedChangeSet: allowed,
     corrections: allowed.authorized_targets.filter(x => x.target_type === 'PLAN_ITEM' && x.target_id === item.plan_item_id).map(x => ({ target_type: x.target_type, target_id: x.target_id,
       finding_ids: x.finding_ids, correction: 'Rétablir exclusivement les intentions value() === 2 et attente Jest 2, conformément à la source Git et aux obligations inchangées.' })) });
@@ -58,7 +71,8 @@ function completeRevision(base, receipt, correction, next, nextReceipt) {
     if (V.canonicalStringify(left[key]) !== V.canonicalStringify(right[key])) throw Error('VNEXT12_REVISION_DEPENDENCY_MUTATED:' + key);
   }
   const freezePlan = plan => ({ boundaries: plan.boundaries,
-    items: plan.plan_items.map(({ change_items, ...item }) => item) });
+    items: plan.plan_items.map(({ change_items, ...item }) => ({ ...item,
+      change_items: change_items.map(({ intent, ...change }) => change) })) });
   if (V.canonicalStringify(freezePlan(base.artifacts.planContract)) !== V.canonicalStringify(freezePlan(next.artifacts.planContract))) throw Error('VNEXT12_REVISION_OBLIGATION_MUTATED');
   const nextArtifacts = { ...next.artifacts, cumulativeRegister: Register.buildRegister({
     ...next.register_input, candidateHead: next.producer_revision, lot: next.artifacts.planningEnvelope.slice_id, phase: 'REVISION' }) };
@@ -126,7 +140,7 @@ function main() {
     write('base-recipe.json', recipe); write('base-produced.json', base);
     if (stage === 'produce') return;
     phase = 'BASE_REVIEW';
-    const receipt = resumedReceipt || Chain.review(base, { cwd });
+    const receipt = resumedReceipt || Chain.review(base, { cwd, evidenceDirectory: out });
     Chain.verifyReceipt(base, receipt);
     write('base-review-receipt.json', receipt);
     phase = 'BOUNDED_CORRECTION';
@@ -139,7 +153,7 @@ function main() {
     if (stage === 'resume' && fs.existsSync(path.join(out, 'revision-review-receipt.json'))) {
       nextReceipt = JSON.parse(fs.readFileSync(path.join(out, 'revision-review-receipt.json'), 'utf8'));
       Chain.validateReceipt(next, nextReceipt);
-    } else nextReceipt = Chain.review(next, { cwd });
+    } else nextReceipt = Chain.review(next, { cwd, evidenceDirectory: out });
     write('revision-review-receipt.json', nextReceipt);
     phase = 'VERIFY_CAUSAL_OUTCOME';
     const artifacts = completeRevision(base, receipt, correction, next, nextReceipt);

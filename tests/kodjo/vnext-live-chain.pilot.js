@@ -37,15 +37,26 @@ function fixture({ largeCatalog = false } = {}) {
   const receipt = Chain.review(produced, { cwd: repo.cwd, claude: 'fixture-only', invoke: (_bin, args, _cwd, input, env) => {
     calls++; assert.ok(args.includes('--json-schema')); assert.equal(env.GH_TOKEN, undefined);
     const dossier = JSON.parse(input);
-    assert.equal(dossier.produced.contract_hash, produced.contract_hash);
+    assert.equal(dossier.produced_chain_hash, produced.contract_hash);
+    assert.equal(dossier.artifacts.reviewContext.target_catalog, undefined);
+    assert.deepEqual(dossier.target_catalog, produced.artifacts.reviewContext.target_catalog);
+    const packed = dossier.artifacts.candidateManifest;
+    assert.deepEqual(packed.rows.map(row => Object.fromEntries(packed.columns.map((key, i) => [key, row[i]]))), produced.artifacts.candidateManifest.candidates);
+    assert.deepEqual(dossier.consumer_sources, produced.reviewer_packet.consumers);
     const compact = JSON.parse(args[args.indexOf('--json-schema') + 1]);
     const compactFields = compact.properties.semantic_review.properties.findings.items.properties;
     assert.equal(compactFields.target_id.enum, undefined);
     assert.equal(compactFields.dependency_target_ids.items.enum, undefined);
-    assert.ok(dossier.output_schema.properties.semantic_review.properties.findings.items.properties.target_id.enum.length);
+    assert.equal(compact.properties.semantic_review.properties.reviewed_target_ids, undefined);
+    assert.equal(compact.properties.semantic_review.properties.reviewed_target_indices.items.type, 'integer');
     assert.ok(args.join(' ').length < 8000, 'review command line must stay bounded');
-    if (largeCatalog) assert.ok(JSON.stringify(dossier.output_schema).length > 32767, 'exercise an actual oversized target catalog');
-    return JSON.stringify({ type: 'result', session_id: 'fixture-session', structured_output: { semantic_review: require('./helpers/review-attestation-fixture').semantic(produced.artifacts.reviewContext), native_assessment_observations: [] } });
+    if (largeCatalog) {
+      const original = JSON.stringify({ produced, output_schema: require('../../scripts/kodjo/lib/review-contract').reviewerOutputSchema(produced.artifacts.reviewContext) });
+      assert.ok(original.length > 32767);
+      assert.ok(Buffer.byteLength(input) < Buffer.byteLength(original) * 0.75, 'compact transport reduces size while retaining every candidate');
+    }
+    return JSON.stringify({ type: 'result', session_id: 'fixture-session', structured_output: { semantic_review: { findings: [], finding_resolutions: [], target_catalog_hash: dossier.target_catalog_hash,
+      reviewed_target_indices: Object.values(dossier.target_catalog).flat().map((_, i) => i) }, native_assessment_observations: [] } });
   } });
   const transport = { ...F.transport(), slice_bootstrap_file: '.github/orchestration/v2-slices/V2-VNEXT-09/slice-bootstrap.json' };
   const ready = Chain.prepare(produced, receipt, transport, { cwd: repo.cwd });
@@ -145,3 +156,54 @@ test('live chain: large immutable target catalog travels on stdin and unknown re
     assert.throws(() => Chain.review(f.produced, { cwd: f.repo.cwd, claude: 'fixture-only', invoke }), /VNEXT_REVIEW_FINDING_DEPENDENCY_UNKNOWN/);
   } finally { fs.rmSync(f.repo.cwd, { recursive: true, force: true }); }
 });
+
+
+test('compact review coverage refuses omission, duplicate, out-of-range, wrong catalog and mixed formats', () => {
+  const context = { target_catalog: { SOURCE_UNIT: ['source'], REQUIREMENT: [], IMPACT: [], CANDIDATE: ['candidate'],
+    PLAN_ITEM: [], TEST: [], PROOF: [], CRITERION: [], ASSERTION: [], PLAN_CONTRACT: [] } };
+  const output = { findings: [], finding_resolutions: [], target_catalog_hash: V.canonicalHash(['source', 'candidate']),
+    reviewed_target_indices: [0, 1] };
+  assert.deepEqual(Chain.decodeReviewOutput(context, output).reviewed_target_ids, ['source', 'candidate']);
+  for (const indices of [[0, 0], [0, 2], [-1, 1], [0, 0.5]]) {
+    assert.throws(() => Chain.decodeReviewOutput(context, { ...output, reviewed_target_indices: indices }), /INDEX_INVALID/);
+  }
+  assert.throws(() => Chain.decodeReviewOutput(context, { ...output, target_catalog_hash: '0'.repeat(64) }), /INDEX_CATALOG_MISMATCH/);
+  assert.throws(() => Chain.decodeReviewOutput(context, { ...output, reviewed_target_ids: ['source', 'candidate'] }), /INDEX_OUTPUT_KEYS_INVALID/);
+  withFixture(f => {
+    const dossier = Chain.compactReviewDossier(f.produced);
+    const indices = Object.values(dossier.target_catalog).flat().map((_, i) => i).slice(1);
+    assert.throws(() => Chain.review(f.produced, { cwd: f.repo.cwd, claude: 'unit-test-only', invoke: () => JSON.stringify({
+      type: 'result', session_id: 'UNIT-TEST-ONLY', structured_output: { native_assessment_observations: [],
+        semantic_review: { ...output, target_catalog_hash: dossier.target_catalog_hash, reviewed_target_indices: indices } } }) }), /COVERAGE_INCOMPLETE/);
+  });
+});
+test('review process captures an actual interrupted child, bounds output and redacts inherited credentials', () => {
+  let observed;
+  assert.throws(() => Chain.command(process.execPath, ['-e', "process.stdout.write('partial'); setInterval(()=>{},1000)"],
+    process.cwd(), undefined, process.env, 300, { onResult: row => { observed = row; } }), /ETIMEDOUT/);
+  assert.equal(observed.error_code, 'ETIMEDOUT');
+  assert.equal(observed.stdout, 'partial');
+  assert.ok(observed.duration_ms >= 250);
+  assert.equal(Chain.boundedReviewOutput('x'.repeat(150000)).truncated, true);
+  assert.ok(Buffer.byteLength(Chain.boundedReviewOutput('x'.repeat(150000)).text) <= 128 * 1024);
+  assert.equal(Chain.boundedReviewOutput('ghp_UNIT_TEST_TOKEN').text, '[REDACTED]');
+});
+test('review diagnostics survive a failed invocation outside the checkout and retain no approval', () => withFixture(f => {
+  const out = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'vnext-review-diagnostic-test-'));
+  try {
+    assert.throws(() => Chain.review(f.produced, { cwd: f.repo.cwd, claude: 'unit-test-only', evidenceDirectory: out,
+      invoke: (_bin, _args, _cwd, _input, _env, _timeout, { onResult }) => {
+        onResult({ status: null, signal: 'SIGTERM', error_code: 'ETIMEDOUT', error: 'UNIT TEST TIMEOUT',
+          duration_ms: 600000, stdout: 'partial session output', stderr: 'ghp_UNIT_TEST_TOKEN' });
+        throw Error('UNIT TEST TIMEOUT');
+      } }), /UNIT TEST TIMEOUT/);
+    const diagnostic = JSON.parse(fs.readFileSync(path.join(out, 'initial-review-process.json')));
+    assert.equal(diagnostic.error_code, 'ETIMEDOUT');
+    assert.equal(diagnostic.review_accepted, false);
+    assert.equal(diagnostic.checkout_unchanged, true);
+    assert.equal(diagnostic.stdout.text, 'partial session output');
+    assert.equal(diagnostic.stderr.text, '[REDACTED]');
+    assert.equal(Object.hasOwn(diagnostic, 'input'), false);
+    assert.throws(() => Chain.review(f.produced, { cwd: f.repo.cwd, evidenceDirectory: f.repo.cwd }), /EVIDENCE_OUTSIDE_CHECKOUT_REQUIRED/);
+  } finally { fs.rmSync(out, { recursive: true, force: true }); }
+}));

@@ -218,3 +218,30 @@ test('D8 canonical VNext projection reaches the common requirement review and fi
   contract.non_ui_plan_assessment.requirements=[];fs.writeFileSync(reviewFile,rendered());
   assert.notEqual(node('verify-v2-finalization.js',args).status,0);
 });
+
+
+test('revision benchmark links a TEST finding to its exact plan intent without altering its obligation', t => {
+  const cwd = fixture(t), base = Chain.produce(Driver.benchmarkRecipe(cwd), { cwd });
+  const item = base.artifacts.planContract.plan_items[0], obligation = item.test_obligations[0];
+  const change = item.change_items.find(row => row.impact_id === obligation.target_impact_id);
+  const finding = { category: 'TEST_GAP', target_type: 'TEST', target_id: obligation.test_id,
+    finding: 'Test intent 3 conflicts with the unchanged obligation 2.', evidence: ['UNIT TEST ONLY'],
+    required_correction: 'Correct the intent of ' + change.change_id + ' to expect 2; preserve the obligation.',
+    dependency_target_ids: [item.plan_item_id] };
+  const report = receipt(cwd, base, [finding]), correction = Driver.deriveCorrection(cwd, base, report);
+  assert.equal(correction.patch.correction_count, 1);
+  assert.equal(correction.patch.corrections[0].target_id, item.plan_item_id);
+  assert.deepEqual(correction.patch.corrections[0].finding_ids, report.review_report.findings.map(row => row.finding_id));
+  const next = Chain.produce(correction.recipe, { cwd });
+  assert.deepEqual(next.artifacts.planContract.plan_items[0].test_obligations, item.test_obligations);
+  assert.equal(Driver.completeRevision(base, report, correction, next, receipt(cwd, next, [])).revision_outcome.status, 'RESOLVED');
+  for (const altered of [
+    { ...finding, required_correction: 'Change the expected test result to 3.' },
+    { ...finding, dependency_target_ids: [] },
+    { ...finding, required_correction: 'Correct ' + item.change_items.find(row => row.change_id !== change.change_id).change_id },
+  ]) assert.throws(() => Driver.deriveCorrection(cwd, base, receipt(cwd, base, [altered])), /CORRECTION_NOT_AUTHORIZED|REQUIRES_DIAGNOSIS/);
+  const mutation = structuredClone(correction.recipe);
+  mutation.requirementPlans[0].test_obligations[0].expected = 'Changed obligation';
+  const mutated = Chain.produce(mutation, { cwd });
+  assert.throws(() => Driver.completeRevision(base, report, correction, mutated, receipt(cwd, mutated, [])), /OBLIGATION_MUTATED/);
+});

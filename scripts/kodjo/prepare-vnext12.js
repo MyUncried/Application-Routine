@@ -101,7 +101,7 @@ function main() {
   if (stage === 'produce') return;
   const receipt = stage === 'publish-reviewed'
     ? JSON.parse(fs.readFileSync(path.join(out, 'review-receipt.json'), 'utf8'))
-    : Chain.review(produced, { cwd });
+    : Chain.review(produced, { cwd, evidenceDirectory: out });
   write('review-receipt.json', receipt);
   // REVISE is retained, never converted to APPROVE or automatically retried.
   if (receipt.review_report.verdict !== 'APPROVE') throw new Error('VNEXT12_INITIAL_REVIEW_' + receipt.review_report.verdict);

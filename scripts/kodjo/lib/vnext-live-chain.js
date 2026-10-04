@@ -24,9 +24,14 @@ const Auth = require('../verify-authorizations');
 const GithubApproval = require('./vnext-github-approval');
 
 const SCHEMA = 'kodjo.vnext.prepared-chain.v1';
-function command(bin, args, cwd, input, env = process.env, timeoutMs = 600000) {
+function command(bin, args, cwd, input, env = process.env, timeoutMs = 600000, { onResult } = {}) {
+  const startedAt = new Date().toISOString(), started = Date.now();
   const r = spawnSync(bin, args, { cwd, input, env, encoding: 'utf8', shell: false,
     windowsHide: true, timeout: timeoutMs, maxBuffer: 64 * 1024 * 1024 });
+  if (onResult) onResult({ started_at: startedAt, finished_at: new Date().toISOString(),
+    duration_ms: Date.now() - started, status: r.status, signal: r.signal,
+    error_code: r.error?.code || null, error: r.error?.message || null,
+    stdout: String(r.stdout || ''), stderr: String(r.stderr || '') });
   if (r.error || r.status !== 0) V.fail('VNEXT_LIVE_PROCESS_FAILED', bin + ': ' + (r.error?.message || r.stderr));
   return String(r.stdout);
 }
@@ -127,7 +132,63 @@ function verifyProduced(produced, cwd, github) {
   return a;
 }
 
-function review(produced, { cwd, claude = require('./claude-local').resolveClaudeBinary(), github, invoke = command } = {}) {
+// Transport-only compaction. Immutable contracts and complete coverage stay exact.
+function reviewTargets(context) {
+  return Review.TARGET_TYPES.flatMap(type => context.target_catalog[type]);
+}
+function compactReviewDossier(produced) {
+  const a = produced.artifacts;
+  const { candidates, ...manifest } = a.candidateManifest;
+  // Columnar encoding retains every candidate field, including archive paths.
+  const columns = Object.keys(candidates[0] || {});
+  const uniform = candidates.every(row => V.canonicalStringify(Object.keys(row).sort())
+    === V.canonicalStringify([...columns].sort()));
+  const { target_catalog, ...context } = a.reviewContext;
+  return {
+    schema_version: 'kodjo.vnext.review-transport.v1',
+    produced_chain_hash: produced.contract_hash,
+    producer_revision: produced.producer_revision,
+    artifacts: { ...a, candidateManifest: { ...manifest,
+      ...(uniform ? { columns, rows: candidates.map(row => columns.map(key => row[key])) } : { candidates }) },
+      reviewContext: context },
+    // One catalog, one consumer closure; schemas/inputs are supplied separately.
+    target_catalog, target_catalog_hash: V.canonicalHash(reviewTargets(a.reviewContext)),
+    target_index_order: Review.TARGET_TYPES,
+    consumer_sources: produced.reviewer_packet.consumers,
+    source_observations: produced.source_observations,
+    candidate_observations: produced.candidate_observations,
+    native_assessment_subjects: produced.native_assessments.map(assessment => ({ assessment,
+      assessment_hash: V.canonicalHash(assessment) })),
+    execution_context: produced.execution_context, register_input: produced.register_input,
+    reviewer_packet: { contract_hash: produced.reviewer_packet.contract_hash,
+      source_revision: produced.reviewer_packet.source_revision, transport: produced.reviewer_packet.transport },
+  };
+}
+function decodeReviewOutput(context, output) {
+  // Earlier durable receipts retain their original format and verification.
+  if (!Object.hasOwn(output, 'reviewed_target_indices')) return output;
+  V.assertExactKeys(output, ['findings', 'reviewed_target_indices', 'target_catalog_hash',
+    'finding_resolutions'], [], 'VNEXT_REVIEW_INDEX_OUTPUT_KEYS_INVALID');
+  const targets = reviewTargets(context), indices = output.reviewed_target_indices;
+  if (output.target_catalog_hash !== V.canonicalHash(targets)) V.fail('VNEXT_REVIEW_INDEX_CATALOG_MISMATCH');
+  if (!Array.isArray(indices) || indices.some(i => !Number.isSafeInteger(i) || i < 0 || i >= targets.length)
+      || new Set(indices).size !== indices.length) V.fail('VNEXT_REVIEW_INDEX_INVALID');
+  // The report builder still requires every exact target: an absent index fails.
+  return { findings: output.findings, finding_resolutions: output.finding_resolutions,
+    reviewed_target_ids: indices.map(i => targets[i]) };
+}
+function boundedReviewOutput(text) {
+  // Credentials are excluded from Claude's env; redact known inherited tokens
+  // as well, without logging the environment or the full input dossier.
+  for (const key of ['GH_TOKEN', 'GITHUB_TOKEN', 'KODJO_LIVE_GH_TOKEN', 'ANTHROPIC_API_KEY']) {
+    if (process.env[key]) text = text.split(process.env[key]).join('[REDACTED]');
+  }
+  text = text.replace(/(?:gh[pousr]_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|sk-ant-[A-Za-z0-9_-]+)/g, '[REDACTED]');
+  const bytes = Buffer.from(text), limit = 128 * 1024;
+  return { bytes: bytes.length, sha256: V.sha256(text), truncated: bytes.length > limit,
+    text: bytes.subarray(0, limit).toString('utf8').replace(/\uFFFD$/, '') };
+}
+function review(produced, { cwd, claude = require('./claude-local').resolveClaudeBinary(), github, invoke = command, evidenceDirectory } = {}) {
   const artifacts = verifyProduced(produced, cwd, github);
   const schema = { type: 'object', additionalProperties: false, required: ['semantic_review', 'native_assessment_observations'],
     properties: { semantic_review: Review.reviewerOutputSchema(artifacts.reviewContext),
@@ -138,15 +199,19 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
             required: ['path', 'revision', 'content_sha256'], properties: { path: { type: 'string' }, revision: { type: 'string' }, content_sha256: { type: 'string' } } } },
           reason: { type: 'string' } } } } } };
   // Windows limits the process command line. The full target catalog belongs
-  // on stdin with the dossier, not in --json-schema. The transport schema only
-  // omits the two unbounded enums; buildReviewReport below still checks every
+  // on stdin with the dossier, not in --json-schema. The transport schema uses
+  // indexed coverage and omits unbounded enums; buildReviewReport still checks every
   // target and dependency against the exact immutable review context.
   const transportSchema = JSON.parse(JSON.stringify(schema));
   const findingProperties = transportSchema.properties.semantic_review.properties.findings.items.properties;
   delete findingProperties.target_id.enum;
   delete findingProperties.dependency_target_ids.items.enum;
-  delete transportSchema.properties.semantic_review.properties.reviewed_target_ids.items.enum;
-  const dossier = { output_schema: schema, produced, native_assessment_subjects: produced.native_assessments.map(assessment => ({ assessment, assessment_hash: V.canonicalHash(assessment) })), instructions: 'Revue indépendante de plan uniquement. Lire les objets Git exacts. Ne pas modifier le dépôt. Refuser une preuve non observée. Pour chaque assessment natif, vérifier le besoin fonctionnel, le choix natif et ses preuves effectives ; ne pas confondre référence et observation. Indiquer verified=false si la preuve ne peut être observée. Attester reviewed_target_ids pour chaque cible effectivement examinee du target_catalog, pas seulement celles portant un finding. En REVISION, fournir finding_resolutions pour chaque causal_finding_id, avec statut OPEN ou RESOLVED, references de preuves observees et explication; ne pas conclure RESOLVED sans observation du correctif. Ceci ne constitue pas un audit FINAL.' };
+  const output = transportSchema.properties.semantic_review;
+  delete output.properties.reviewed_target_ids;
+  output.required = ['findings', 'reviewed_target_indices', 'target_catalog_hash', 'finding_resolutions'];
+  output.properties.reviewed_target_indices = { type: 'array', uniqueItems: true, items: { type: 'integer', minimum: 0 } };
+  output.properties.target_catalog_hash = { type: 'string', pattern: '^[0-9a-f]{64}$' };
+  const dossier = { ...compactReviewDossier(produced), instructions: 'Revue indépendante de plan uniquement. Lire les objets Git exacts. Ne pas modifier le dépôt. Refuser une preuve non observée. Pour chaque assessment natif, vérifier le besoin fonctionnel, le choix natif et ses preuves effectives ; ne pas confondre référence et observation. Indiquer verified=false si la preuve ne peut être observée. Examiner toutes les cibles du target_catalog, pas seulement celles portant un finding. En REVISION, fournir finding_resolutions pour chaque causal_finding_id, avec statut OPEN ou RESOLVED, references de preuves observees et explication; ne pas conclure RESOLVED sans observation du correctif. Ceci ne constitue pas un audit FINAL. Le catalogue complet est conserve : construire les indices a partir de target_index_order puis des tableaux de target_catalog, base zero. Restituer reviewed_target_indices uniquement pour les cibles effectivement examinees et recopier target_catalog_hash exact. Toutes les cibles sont requises ; aucun raccourci de couverture. candidateManifest.columns et rows encodent sans perte les objets candidats. Avant de verifier les empreintes canoniques, reconstruire candidateManifest.candidates depuis columns/rows et reviewContext.target_catalog depuis target_catalog ; cette projection de transport ne remplace pas les contrats canoniques. Les sources de consommateurs sont disponibles une seule fois dans consumer_sources. Si une intention contredit une obligation TEST correcte, identifier le change_id de cette intention dans required_correction et le PLAN_ITEM dans dependency_target_ids ; ne pas demander de modifier une obligation correcte.' };
   const checkoutSnapshot = () => V.canonicalHash({
     status: git(cwd, 'status', '--porcelain=v1', '-z'), diff: git(cwd, 'diff', 'HEAD', '--binary'),
     untracked: git(cwd, 'ls-files', '--others', '--exclude-standard', '-z').split('\0').filter(Boolean)
@@ -155,9 +220,25 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   const before = checkoutSnapshot();
   const env = { ...process.env };
   for (const key of ['GH_TOKEN', 'GITHUB_TOKEN', 'KODJO_LIVE_GH_TOKEN']) delete env[key];
+  if (evidenceDirectory) {
+    const rel = path.relative(cwd, path.resolve(evidenceDirectory));
+    if (!rel || (!rel.startsWith('..' + path.sep) && !path.isAbsolute(rel))) V.fail('VNEXT_REVIEW_EVIDENCE_OUTSIDE_CHECKOUT_REQUIRED');
+    fs.mkdirSync(evidenceDirectory, { recursive: true });
+  }
   const configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-vnext-review-'));
   fs.writeFileSync(path.join(configDir, 'mcp.json'), JSON.stringify({ mcpServers: {} }));
   fs.writeFileSync(path.join(configDir, 'settings.json'), JSON.stringify({ disableAllHooks: true }));
+  const input = JSON.stringify(dossier), timeoutMs = artifacts.planningEnvelope.planning_mode === 'REVISION' ? 900000 : 600000;
+  const diagnostic = { schema_version: 'kodjo.vnext.review-process-diagnostic.v1',
+    produced_chain_hash: produced.contract_hash, review_context_hash: artifacts.reviewContext.contract_hash,
+    planning_mode: artifacts.planningEnvelope.planning_mode, timeout_ms: timeoutMs,
+    input_bytes: Buffer.byteLength(input), input_sha256: V.sha256(input),
+    target_count: reviewTargets(artifacts.reviewContext).length, started_at: new Date().toISOString(),
+    invocation_completed: false, review_accepted: false };
+  const diagnosticPath = evidenceDirectory && path.join(evidenceDirectory,
+    artifacts.planningEnvelope.planning_mode.toLowerCase() + '-review-process.json');
+  const saveDiagnostic = () => { if (diagnosticPath) fs.writeFileSync(diagnosticPath, JSON.stringify(diagnostic, null, 2) + '\n'); };
+  saveDiagnostic();
   // A revised plan also requires causal resolution evidence. Keep its review
   // bounded at 15 minutes; initial reviews and other commands retain 10.
   let raw;
@@ -165,16 +246,33 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
     raw = invoke(claude, ['-p', '--restricted', '--permission-mode', 'dontAsk', '--permission-prompts', 'none',
       '--output-format', 'json', '--tools', 'Read,Glob,Grep', '--allowedTools', 'Read,Glob,Grep',
       '--disallowedTools', 'mcp__*', '--strict-mcp-config', '--mcp-config', path.join(configDir, 'mcp.json'),
-      '--settings', path.join(configDir, 'settings.json'), '--json-schema', JSON.stringify(transportSchema)], cwd, JSON.stringify(dossier), env,
-      artifacts.planningEnvelope.planning_mode === 'REVISION' ? 900000 : 600000);
-  } finally { fs.rmSync(configDir, { recursive: true, force: true }); }
-  if (checkoutSnapshot() !== before) V.fail('VNEXT_REVIEW_MUTATED_CHECKOUT');
+      '--settings', path.join(configDir, 'settings.json'), '--json-schema', JSON.stringify(transportSchema)], cwd, input, env, timeoutMs, { onResult: result => {
+        const { stdout, stderr, ...metadata } = result;
+        Object.assign(diagnostic, metadata, { invocation_completed: true,
+          stdout: boundedReviewOutput(stdout), stderr: boundedReviewOutput(stderr) });
+        saveDiagnostic();
+      } });
+    diagnostic.stdout = boundedReviewOutput(raw);
+  } catch (error) {
+    diagnostic.error = boundedReviewOutput(error.message).text;
+    throw error;
+  } finally {
+    try {
+      diagnostic.finished_at ||= new Date().toISOString();
+      diagnostic.duration_ms ??= Date.parse(diagnostic.finished_at) - Date.parse(diagnostic.started_at);
+      diagnostic.checkout_unchanged = checkoutSnapshot() === before;
+      saveDiagnostic();
+      if (!diagnostic.checkout_unchanged) V.fail('VNEXT_REVIEW_MUTATED_CHECKOUT');
+    } finally { fs.rmSync(configDir, { recursive: true, force: true }); }
+  }
   let result;
   try { result = JSON.parse(raw); } catch (_) { V.fail('VNEXT_REVIEW_OUTPUT_UNPARSEABLE'); }
   if (result.is_error || result.type !== 'result' || !result.session_id || !result.structured_output) V.fail('VNEXT_REVIEW_STRUCTURED_RESULT_REQUIRED');
-  const report = Review.buildReviewReport({ reviewContext: artifacts.reviewContext, semanticReview: result.structured_output.semantic_review });
+  diagnostic.session_id = result.session_id; saveDiagnostic();
+  const report = Review.buildReviewReport({ reviewContext: artifacts.reviewContext, semanticReview: decodeReviewOutput(artifacts.reviewContext, result.structured_output.semantic_review) });
   const expectedResolutions = [...artifacts.planningEnvelope.causal_findings].sort();
   if (V.canonicalStringify(report.finding_resolutions.map(row => row.finding_id).sort()) !== V.canonicalStringify(expectedResolutions)) V.fail('VNEXT_REVIEW_CAUSAL_RESOLUTION_COVERAGE');
+  diagnostic.session_id = result.session_id; diagnostic.review_accepted = true; saveDiagnostic();
   return V.sealContract({ schema_version: 'kodjo.vnext.live-review-receipt.v1', produced_chain_hash: produced.contract_hash,
     reviewer_packet_hash: produced.reviewer_packet.contract_hash, review_report: report,
     session_id: result.session_id, raw_result: raw, raw_result_sha256: V.sha256(raw),
@@ -188,7 +286,7 @@ function verifyReceipt(produced, receipt) {
       || V.sha256(receipt.raw_result) !== receipt.raw_result_sha256) V.fail('VNEXT_REVIEW_RECEIPT_BINDING_MISMATCH');
   const raw = JSON.parse(receipt.raw_result);
   if (raw.is_error || raw.type !== 'result' || raw.session_id !== receipt.session_id || !raw.structured_output) V.fail('VNEXT_REVIEW_RECEIPT_RESULT_INVALID');
-  const report = Review.buildReviewReport({ reviewContext: produced.artifacts.reviewContext, semanticReview: raw.structured_output.semantic_review });
+  const report = Review.buildReviewReport({ reviewContext: produced.artifacts.reviewContext, semanticReview: decodeReviewOutput(produced.artifacts.reviewContext, raw.structured_output.semantic_review) });
   if (V.canonicalStringify(report.finding_resolutions.map(row => row.finding_id).sort())
       !== V.canonicalStringify([...produced.artifacts.planningEnvelope.causal_findings].sort())) V.fail('VNEXT_REVIEW_CAUSAL_RESOLUTION_COVERAGE');
   if (V.canonicalStringify(report) !== V.canonicalStringify(receipt.review_report)
@@ -352,4 +450,4 @@ function guardLocalRequest(raw, { cwd, queueFile, github } = {}) {
 }
 
 module.exports = { SCHEMA, command, relative, readGit, unitText, observeSources, produce, verifyProduced,
-  review, verifyReceipt, validateReceipt, nativeResolver, preparedArtifacts, prepare, approvalTarget, deriveQueue, admit, guard, guardLocalRequest };
+  compactReviewDossier, decodeReviewOutput, boundedReviewOutput, review, verifyReceipt, validateReceipt, nativeResolver, preparedArtifacts, prepare, approvalTarget, deriveQueue, admit, guard, guardLocalRequest };
