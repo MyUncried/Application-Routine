@@ -1,0 +1,14 @@
+{
+  "findings": [
+    {
+      "category": "PATH",
+      "target_kind": "CRITERION_ID",
+      "target": "UI-60B2C84BF572",
+      "blocking": true,
+      "diagnostic": "Demande de changement du run d’implémentation 37214282333 (CHANGE_REQUEST_REQUIRED, CANONICAL_ASSET_UNAVAILABLE) : l’assertion R7a du critère Étiquette (UI-60B2C84BF572-A5905FEFAED8D, CE-T03-16 L1609, L1677) exige, sans Étiquette, l’icône d’étiquette au trait ; aucun actif de ce type n’existe dans assets/icons et le périmètre approuvé n’inclut aucun fichier assets/. Le propriétaire a autorisé l’ajout de ce seul fichier, exporté du composant Figma prévu, et son enregistrement dans KodjoIcon, sans autre élargissement.",
+      "expected_correction": "Ajouter au critère UI-60B2C84BF572 la cible assets/icons/label-outline.svg (export du composant Figma 4916:6386 « Icône — Étiquette — cil:tag », 20 × 20, dans 2028:11204) et src/shared/ui/KodjoIcon.tsx ; préciser l’assertion R7a pour qu’elle désigne cet actif enregistré sous label-outline ; fixer dans le plan les octets exacts du fichier ; ne rien modifier d’autre.",
+      "dependency_expansion_required": false,
+      "dependency_evidence": ""
+    }
+  ]
+}

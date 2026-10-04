@@ -30,6 +30,22 @@ Corrections après la revue indépendante du run 37198105017 (verdict REVISE, 7 
 
 Corrections après la revue indépendante du run 37202181321 (commentaire 5980019179, REVISE, 5 constats bloquants ; registre `revision-2026-10-04/correction-register-5980019179.md`) : (1) exigence Profil étendue à C08 L1076–1103 — quitter le Profil sans confirmation (L1103, CE-UI-07 L2556) et clés de traduction centralisées pour tous les textes et libellés d'accessibilité (Langue du MVP, L1098) ; (2) liste des Catégories défilante, nom long et texte agrandi (CE-UI-09 L2808) ; (3) chaînes de suppression partagées (§4.10 L134–L135) liées à `src/shared/i18n/resources/fr.ts` et `src/shared/i18n/index.test.ts` pour Catégorie, Zones et Étiquette ; (4) Modifier le profil défilant dans les Safe Areas, clavier et texte agrandi (CE-UI-01 L2004) ; (5) feuille d'Étiquettes limitée à la zone sûre, liste défilante, titre non tronqué, texte agrandi (CE-T03-16 L1645). Aucun autre élément du plan n'est modifié.
 
+Révision r4 (demande de changement du run d’implémentation 37214282333, arbitrée par le propriétaire le 04/10/2026 ; registre `revision-2026-10-04/correction-register-change-37214282333.md`) : R7a exige, sans Étiquette, l’icône d’étiquette au trait ; elle n’existait pas parmi les actifs du projet. Seul ajout de périmètre : `assets/icons/label-outline.svg`, export du composant Figma 4916:6386 « Icône — Étiquette — cil:tag » (20 × 20, trait #0508E5, dans 2028:11204), enregistré dans `src/shared/ui/KodjoIcon.tsx` sous `label-outline` (taille 20 × 20) et utilisé par la pilule d’Étiquette de la Composition lorsqu’aucune Étiquette n’est choisie. Le fichier doit avoir exactement les octets ci-dessous (2087 octets, sha256 `6b3a4b0c7334ce5af7bbcf6b49ceaa3b16715dda8d902d67658dd9ceba2e9da3`, blob `a573a07698cde1a368c95905678946e3e38ba2d7`) :
+
+```svg
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_4916_6386)">
+<path d="M18.98 10.2836L9.6875 0.991137C9.57169 0.874715 9.43394 0.782412 9.28223 0.719566C9.13052 0.656721 8.96785 0.62458 8.80363 0.625004H2.5C2.00289 0.625573 1.52631 0.823299 1.1748 1.17481C0.823295 1.52631 0.625569 2.0029 0.625 2.5V8.79211C0.625285 8.96279 0.66039 9.13162 0.728167 9.28826C0.795943 9.4449 0.894967 9.58607 1.01918 9.70313L10.9044 18.9893C11.0776 19.153 11.307 19.244 11.5454 19.2436C11.557 19.2436 11.5688 19.2433 11.5805 19.2429C11.7045 19.2388 11.8263 19.2099 11.939 19.158C12.0516 19.1061 12.1527 19.0323 12.2364 18.9408L19.0071 11.5812C19.1714 11.4035 19.2603 11.1689 19.2553 10.927C19.2502 10.685 19.1515 10.4544 18.98 10.2836ZM11.5301 17.8621L1.875 8.79211V2.5C1.87521 2.33431 1.94112 2.17546 2.05829 2.05829C2.17545 1.94113 2.3343 1.87521 2.5 1.875H8.80363L17.8841 10.9556L11.5301 17.8621Z" fill="#0508E5"/>
+<path d="M5.78125 3.75C5.37951 3.75 4.98679 3.86913 4.65275 4.09233C4.31871 4.31552 4.05836 4.63276 3.90462 5.00392C3.75088 5.37509 3.71065 5.7835 3.78903 6.17753C3.86741 6.57155 4.06086 6.93348 4.34494 7.21756C4.62902 7.50164 4.99095 7.69509 5.38497 7.77347C5.779 7.85185 6.18741 7.81162 6.55858 7.65788C6.92974 7.50414 7.24698 7.24379 7.47017 6.90975C7.69337 6.57571 7.8125 6.18299 7.8125 5.78125C7.81188 5.24272 7.59768 4.72642 7.21688 4.34562C6.83608 3.96483 6.31978 3.75062 5.78125 3.75ZM5.78125 6.5625C5.62673 6.5625 5.47569 6.51668 5.34721 6.43084C5.21874 6.34499 5.1186 6.22298 5.05947 6.08022C5.00034 5.93747 4.98487 5.78038 5.01501 5.62884C5.04516 5.47729 5.11956 5.33808 5.22882 5.22882C5.33808 5.11956 5.47729 5.04516 5.62884 5.01501C5.78038 4.98487 5.93747 5.00034 6.08022 5.05947C6.22298 5.1186 6.34499 5.21873 6.43084 5.34721C6.51668 5.47569 6.5625 5.62673 6.5625 5.78125C6.56226 5.98838 6.47988 6.18695 6.33342 6.33341C6.18695 6.47988 5.98838 6.56226 5.78125 6.5625Z" fill="#0508E5"/>
+</g>
+<defs>
+<clipPath id="clip0_4916_6386">
+<rect width="20" height="20" fill="white"/>
+</clipPath>
+</defs>
+</svg>
+```
+
 Hors révision : R8 (retour sans avertissement depuis l'éditeur d'Exercice du Catalogue, CE-T03-04 §12) est préexistant et non régressif, il relève de l'éditeur du Catalogue hors PRE-2 ; R7b n'est pas un défaut. Comportements réussis sur iPhone à préserver : six valeurs initiales, un seul stepper ouvert, persistance des durées et interrupteurs ; suppression avec message adapté, disparition des nouveaux choix, maintien des associations, réactivation ; sélection multiple, annulation, création et conservation des Zones. Séparation PRE-2 / PRE-3 et D-256 à D-259 inchangées.
 
 ## 1. Baseline et sources
@@ -317,6 +333,10 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
     {
       "path": "app/profile-edit.tsx",
       "change": "MODIFY"
+    },
+    {
+      "path": "assets/icons/label-outline.svg",
+      "change": "CREATE"
     },
     {
       "path": "src/domain/activities/ActivityDefinition.ts",
@@ -659,7 +679,7 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
       "change": "MODIFY"
     }
   ],
-  "scan_sha256": "558c1caeb4f6c10bc41cca058b22375da1d3e4413751abee4a2267e0fa2e75d9",
+  "scan_sha256": "07efac49c0c360418b5a37c3af8440db953f74c0a8bf7c4fd90d8f51c570875d",
   "rows": [
     {
       "path": "app/(tabs)/profile.tsx",
@@ -687,6 +707,14 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
     },
     {
       "path": "app/profile-edit.tsx",
+      "candidate_kind": "MODIFIED_MODULE",
+      "triggered_by": [],
+      "risk_score": 0,
+      "classification": "MODIFY",
+      "justification": "Module declare CREATE ou MODIFY dans le plan."
+    },
+    {
+      "path": "assets/icons/label-outline.svg",
       "candidate_kind": "MODIFIED_MODULE",
       "triggered_by": [],
       "risk_score": 0,
@@ -1880,6 +1908,7 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
     "app/__tests__/rootLayoutGesture.test.tsx",
     "app/_layout.tsx",
     "app/profile-edit.tsx",
+    "assets/icons/label-outline.svg",
     "src/domain/activities/ActivityDefinition.ts",
     "src/domain/activities/__tests__/ActivityDefinition.test.ts",
     "src/domain/body-zones/BodyZone.ts",
@@ -2428,6 +2457,8 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
       "change_targets": [
         "src/features/reference-data/LabelPickerModal.tsx",
         "src/shared/i18n/resources/fr.ts",
+        "assets/icons/label-outline.svg",
+        "src/shared/ui/KodjoIcon.tsx",
         "src/features/sessions/CompositionScreen.tsx",
         "src/features/sessions/ColorPalette.tsx"
       ],
@@ -2468,13 +2499,13 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           ]
         },
         {
-          "assertion_id": "UI-60B2C84BF572-A5905FEFAED8D",
+          "assertion_id": "UI-60B2C84BF572-A9605C517EBC0",
           "source": {
             "path": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
             "locator": "CE-T03-16 L1609, L1677"
           },
           "property_type": "CONTENT",
-          "expected": "Dans la Composition, l’Étiquette sélectionnée apparaît avec sa pastille colorée et son nom ; sans Étiquette, le contrôle montre l’icône d’étiquette au trait, sans remplissage de couleur.",
+          "expected": "Dans la Composition, l’Étiquette sélectionnée apparaît avec sa pastille colorée et son nom ; sans Étiquette, le contrôle montre l’icône d’étiquette au trait, sans remplissage de couleur, rendue par l’actif canonique assets/icons/label-outline.svg (Figma 4916:6386 « Icône — Étiquette — cil:tag », 20 × 20) enregistré dans KodjoIcon sous label-outline.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE"
@@ -3690,10 +3721,12 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
         "requirement": "Étiquette de Séance : zéro ou une, choix au toucher, désaffectation par nouveau toucher, administration du référentiel avec couleur, affectation enregistrée seulement à Continuer."
       },
       "change_targets": [
+        "assets/icons/label-outline.svg",
         "src/features/reference-data/LabelPickerModal.tsx",
         "src/features/sessions/ColorPalette.tsx",
         "src/features/sessions/CompositionScreen.tsx",
-        "src/shared/i18n/resources/fr.ts"
+        "src/shared/i18n/resources/fr.ts",
+        "src/shared/ui/KodjoIcon.tsx"
       ],
       "tests": [
         "src/features/reference-data/__tests__/LabelPickerModal.test.tsx",
@@ -3733,9 +3766,9 @@ Tests existants modifiés : domaine (`Profile`, `Label`, `validation`, `BodyZone
           ]
         },
         {
-          "assertion_id": "UI-60B2C84BF572-A5905FEFAED8D",
+          "assertion_id": "UI-60B2C84BF572-A9605C517EBC0",
           "property_type": "CONTENT",
-          "expected": "Dans la Composition, l’Étiquette sélectionnée apparaît avec sa pastille colorée et son nom ; sans Étiquette, le contrôle montre l’icône d’étiquette au trait, sans remplissage de couleur.",
+          "expected": "Dans la Composition, l’Étiquette sélectionnée apparaît avec sa pastille colorée et son nom ; sans Étiquette, le contrôle montre l’icône d’étiquette au trait, sans remplissage de couleur, rendue par l’actif canonique assets/icons/label-outline.svg (Figma 4916:6386 « Icône — Étiquette — cil:tag », 20 × 20) enregistré dans KodjoIcon sous label-outline.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE"
@@ -5381,6 +5414,7 @@ app/(tabs)/profile.tsx
 app/__tests__/rootLayoutGesture.test.tsx
 app/_layout.tsx
 app/profile-edit.tsx
+assets/icons/label-outline.svg
 src/domain/activities/ActivityDefinition.ts
 src/domain/activities/__tests__/ActivityDefinition.test.ts
 src/domain/body-zones/BodyZone.ts
@@ -5484,13 +5518,14 @@ src/shared/ui/__tests__/ProfileStepper.test.tsx
 {
   "schema": "kodjo.ui-plan-contract.v1",
   "contract_version": 2,
-  "protocol_commit": "8260bcaa5eba1a6897eb27055728fd3900ace2ae",
+  "protocol_commit": "cb9de2d0eb92d9381b15f1c91cd0cd54351d1cce",
   "scan_revision": "10ac761ef453f360110bf7b668b3998487b071b3",
   "ui_applicable": true,
   "ui_paths": [
     "app/(tabs)/profile.tsx",
     "app/_layout.tsx",
     "app/profile-edit.tsx",
+    "assets/icons/label-outline.svg",
     "src/features/activities/ActivityEditorForm.tsx",
     "src/features/activities/ActivitySelectionScreen.tsx",
     "src/features/preferences/ProfileEditScreen.tsx",
@@ -5520,8 +5555,8 @@ src/shared/ui/__tests__/ProfileStepper.test.tsx
   ],
   "criterion_count": 6,
   "assertion_count": 73,
-  "assertion_ids_sha256": "01d119b87b8364950506346dd636e5620cadeaa72f62b6db46fd5143c10cfa03",
-  "matrix_sha256": "a6a4991aea38e7f4fe82021ef760a0774a5ca1afee58279e598d37c97f678fa1"
+  "assertion_ids_sha256": "7f66bff7d237c0e165ad5c74937bd04f5fa77bf4929f0b45565916aee273524e",
+  "matrix_sha256": "4b69fcaff132ba6aeda2f3e909d335e82f6ce07e69ebe29b36a09ac4511b46f9"
 }
 </KODJO_UI_PLAN_CONTRACT_JSON>
 
@@ -5529,13 +5564,14 @@ src/shared/ui/__tests__/ProfileStepper.test.tsx
 {
   "schema": "kodjo.plan-contract-consistency.v2",
   "contract_version": 2,
-  "protocol_commit": "8260bcaa5eba1a6897eb27055728fd3900ace2ae",
+  "protocol_commit": "cb9de2d0eb92d9381b15f1c91cd0cd54351d1cce",
   "scan_revision": "10ac761ef453f360110bf7b668b3998487b071b3",
   "write_scope": [
     "app/(tabs)/profile.tsx",
     "app/__tests__/rootLayoutGesture.test.tsx",
     "app/_layout.tsx",
     "app/profile-edit.tsx",
+    "assets/icons/label-outline.svg",
     "src/domain/activities/ActivityDefinition.ts",
     "src/domain/activities/__tests__/ActivityDefinition.test.ts",
     "src/domain/body-zones/BodyZone.ts",
@@ -5671,7 +5707,7 @@ src/shared/ui/__tests__/ProfileStepper.test.tsx
     "src/shared/ui/__tests__/BodyZoneIcon.test.tsx",
     "src/shared/ui/__tests__/ProfileStepper.test.tsx"
   ],
-  "requirement_contract_sha256": "3f768d0583e3a6d679e6edf67614978a31c21b4d269bbeba7f326c655a78edca",
+  "requirement_contract_sha256": "fae104cca9061ae42de44607b726c8634d29d36390c7cb2966a8b4d6fc17d183",
   "test_contract_sha256": "087d83748736496fa642c42994ef19318b620e670ba1079d91ffaa08e12bfb5b",
   "boundary_contract_sha256": "26fed58813921fa4cf2225fa61cc2b68eec90a9bdc2d3a5b9d9a05d1b1b4c64c",
   "requirement_count": 14
