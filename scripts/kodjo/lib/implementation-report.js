@@ -109,7 +109,10 @@ function inspectImplementation(body,expected){
           if(!observed.has(check))report.errors.push(id+':DECLARED_CHECK_NOT_RUN:'+check);
         }
       }
-      for(const file of modified)if(!declared.has(file))report.errors.push('MODIFIED_FILE_NOT_DECLARED:'+file);
+      // A test file of the approved test contract whose bindings all PASS in the validated test-contract evidence is
+      // accounted for by machine evidence; every other modified file must be declared by the report (run 37230631011).
+      const machineTests=expected&&expected.machine_declared_tests instanceof Set?expected.machine_declared_tests:new Set();
+      for(const file of modified)if(!declared.has(file)&&!machineTests.has(file))report.errors.push('MODIFIED_FILE_NOT_DECLARED:'+file);
     }
     report.machine_evidence=machine||null;
     report.status=report.errors.length?'NON_VERIFIABLE':'COMPLETE';return report;

@@ -215,6 +215,30 @@ test('F-06: a claimed file or check absent from machine observations is NON_VERI
   assert.ok(result.errors.some(x=>x.includes('DECLARED_CHECK_NOT_RUN:jest')));
 });
 
+test('an undeclared modified test file is accounted for only by PASS test-contract evidence (run 37230631011)',()=>{
+  const row={criterion_id:'UI-001',implementation_status:'IMPLEMENTED',files_or_symbols:['src/actual.tsx'],
+    component_used:'Existing',tests_run:['jest'],proof_status:'PASS',preserve_status:'PASS',residual_status:'NONE'};
+  const reportText='<KODJO_IMPLEMENTATION_CONFORMANCE>'+JSON.stringify({criteria:[row]})+'</KODJO_IMPLEMENTATION_CONFORMANCE>\nKODJO_STOP_STATUS: NONE';
+  const envelope={request_id:'a',source_head:'b',truncated:false,report_text:reportText,
+    original_text_sha256:require('node:crypto').createHash('sha256').update(reportText).digest('hex'),
+    machine_evidence:{modified_files:['src/actual.tsx','src/__tests__/actual.test.tsx','src/other.tsx'],checks:[{check:'jest',status:'PASS'}],out_of_scope_files:[]}};
+  const body='v2_request_id=a\nbase_head=b\n<KODJO_IMPLEMENTATION_REPORT_JSON>'+JSON.stringify(envelope)+'</KODJO_IMPLEMENTATION_REPORT_JSON>';
+  const without=inspectImplementation(body,{criteria:['UI-001']});
+  assert.ok(without.errors.includes('MODIFIED_FILE_NOT_DECLARED:src/__tests__/actual.test.tsx'));
+  const withEvidence=inspectImplementation(body,{criteria:['UI-001'],machine_declared_tests:new Set(['src/__tests__/actual.test.tsx'])});
+  assert.ok(!withEvidence.errors.some(x=>x.includes('actual.test.tsx')),JSON.stringify(withEvidence.errors));
+  // Only machine-evidenced test files are excused: an undeclared production file stays an error.
+  assert.ok(withEvidence.errors.includes('MODIFIED_FILE_NOT_DECLARED:src/other.tsx'));
+});
+
+test('implementation review: the report requirement set is the whole requirement contract, as the mission requires', () => {
+  const src=fs.readFileSync(path.join(root,'scripts','kodjo','verify-ui-implementation-review.js'),'utf8').replace(/\r\n/g,'\n');
+  assert.match(src,/verifyRequirementContracts\(planBody\)\.requirement_contract\.requirements\.map\(\(row\) => \(\{ requirement_id: row\.requirement_id \}\)\)/);
+  assert.match(src,/requirements: reportRequirements,\n\s+machine_declared_tests: machineDeclaredTests,/);
+  const contract=fs.readFileSync(path.join(root,'scripts','kodjo','lib','implementation-contract.js'),'utf8');
+  assert.match(contract,/requirement_count: requirementContracts\.requirement_contract\.requirement_count/);
+});
+
 test('rapport sans modification et checks non exécutés reste structuré sans fausse preuve',()=>{
   const row={criterion_id:'UI-001',implementation_status:'IMPLEMENTED',files_or_symbols:[],no_code_change_reason:'Invariant préservé sans mutation.',
     component_used:'Existing',tests_run:[],tests_not_run:[{check:'jest',reason:'Aucun test requis pour cet invariant.'}],proof_status:'NON_VERIFIABLE',preserve_status:'PASS',residual_status:'NONE'};
