@@ -582,3 +582,15 @@ test('implementation review prompt: a device doubt beyond the required proofs go
   assert.match(step,/Never add a proof type that is not in that assertion's proof_required, and never set an assertion status other than the one derived from its own proof_results/);
   assert.match(step,/state it only in the evidence text/);
 });
+
+test('implementation review: component evidence on an existing PR uses the cumulative delivered files (run 37231576923)', () => {
+  const src=fs.readFileSync(verifier,'utf8').replace(/\r\n/g,'\n');
+  assert.match(src,/const evidenceSet = deliveredSet \? new Set\(\[\.\.\.changedSet, \.\.\.deliveredSet\]\) : changedSet;/);
+  assert.match(src,/component_evidence:componentEvidence\(criterion,evidenceSet,process\.cwd\(\)\)/);
+  const {componentEvidence}=require('../../scripts/kodjo/lib/component-evidence');
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-component-'));
+  fs.mkdirSync(path.join(dir,'src'));fs.writeFileSync(path.join(dir,'src','Created.tsx'),'export const Created = 1;\n');
+  const criterion={component_decision:'CREATE',change_targets:['src/Created.tsx']};
+  assert.equal(componentEvidence(criterion,new Set(['src/Other.tsx']),dir).status,'FAIL');
+  assert.equal(componentEvidence(criterion,new Set(['src/Other.tsx','src/Created.tsx']),dir).status,'PASS');
+});
