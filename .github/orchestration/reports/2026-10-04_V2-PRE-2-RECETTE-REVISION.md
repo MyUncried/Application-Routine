@@ -206,3 +206,19 @@ plan_size=252796
   - Octets du plan identiques au plan assemblé (sha256 `09598257…`).
 - **Avant lancement** : aucune revue en cours ; seul le run fantôme `34748621746` reste en file, non touché. Runner `KODJO-LOCAL-RUNNER` en ligne et libre.
 - **Action bloquée.** Le lancement de la revue a été **refusé par le contrôle de permissions** (« External System Writes ») : `gh workflow run kodjo-v2-slice-plan-review.yml --ref main -f issue_number=288 -f slice_id=V2-PRE-2 -f bootstrap_path=.github/orchestration/v2-slices/V2-PRE-2/slice-bootstrap.json -f source_plan_comment_id=5979342848`. Aucun contournement n'a été tenté ; aucune revue n'est lancée.
+
+## Complément — revue indépendante 37198105017 : verdict obtenu, publication en échec
+
+- **Lancement.** Vérification préalable : aucun run de `kodjo-v2-slice-plan-review.yml` depuis le 29/09 ; aucun commentaire après `5979342848` (seul le routeur `37197953280` a tourné, `skipped`) ; runner libre. Revue lancée une seule fois sur instruction du propriétaire : run `37198105017`.
+- **Étapes réussies.** Barrière (publication propriétaire admise, `pinned_publication=true`), rejeux d'impact, de cohérence et d'interface à `10ac761e`, revue Claude (session `b68b25ea-a80b-4088-b77c-090dc07d247f`).
+- **Échec de « Publish independent V2 plan review ».** `gh: Invalid request.` (HTTP 400). Rien n'a été posté sur #288 ; aucun relais ni aucune régénération n'a été déclenché.
+- **Cause démontrée (`ORCHESTRATION_FAILURE`, défaut de protocole).** `kodjo-v2-slice-plan-review.yml` L248 lit le corps par `Get-Content -Raw`. Sous Windows PowerShell 5.1, `@{body=$commentBody}|ConvertTo-Json` sérialise alors `body` comme un objet (`value`, `PSPath`, `PSDrive`…), pas comme une chaîne. Reproduit localement. La taille n'est pas en cause : environ 40 000 caractères, sous la limite de 65 536. Ce chemin de publication n'avait jamais abouti auparavant.
+- **Résultat de la revue (artefact `kodjo-v2-slice-plan-review-37198105017`, non publié) : verdict `REVISE`, 7 constats bloquants.**
+  1. Zones : aucune assertion STYLE / VISUAL_COMPARE de la modale et de sa carte de création (CE-UI-09 L2772, L2804 ; frames 4478:7209, 4683:6336, 4861:6348).
+  2. Zones : défilement, clavier, actions visibles et texte agrandi non assertés (CE-UI-09 L2796, L2808), alors que la modale a deux champs en ligne sans ScrollView ni KeyboardAvoidingView.
+  3. R6 : le rafraîchissement doit couvrir aussi la Composition (registre R6) ; `CompositionScreen.tsx:83` n'a pas de jeton de rafraîchissement.
+  4. Référentiels : états d'erreur (nom vide ou invalide, échec d'écriture, saisie conservée) non assertés (CE-UI-09 L2812, L2836 ; CE-T03-16 L1665, L1673).
+  5. REQ-156EDCBC434B015A : validité du nom (non vide après trim, bornes de longueur) omise (C09 L885, L915).
+  6. REQ-156EDCBC434B015A : ordre d'affichage déterministe des référentiels omis (C09 L917, L955).
+  7. R10 : « titres de modale en en-tête » annoncé au §0 bis mais porté par aucune assertion.
+- **Arrêt.** Conformément à l'instruction (« arrête-toi à son résultat publié »), aucune correction ni republication n'a été faite. Le protocole prévoit de rejouer uniquement la publication à partir de la sortie validée, sans nouvel appel à Claude ; cela suppose de corriger L248 (`[IO.File]::ReadAllText`) et de disposer d'un chemin de republication. Décision du propriétaire attendue.
