@@ -1,23 +1,19 @@
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import {
   activityDefinitionToInput,
   createEmptyActivityDefinitionDraft,
+  sideRecoveryOnSideModeChange,
 } from "@/domain/activities";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
-import {
-  isCategoryAssignable,
-  type Category,
-  type CategoryColor,
-  type CreateCategoryInput,
-} from "@/domain/categories/Category";
-import { findCategoryMatch } from "@/domain/categories/matching";
-import { CATEGORY_NAME_MAX_LENGTH, canonicalCategoryKey, validateCategoryName } from "@/domain/categories/validation";
+import type { Category, CreateCategoryInput } from "@/domain/categories/Category";
+import { DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS, type Silhouette } from "@/domain/preferences/Profile";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
 import { DEFAULT_SIDE_MODE } from "@/domain/sessions/defaults";
+import type { SideMode } from "@/domain/sessions/sideMode";
 import { createExerciseDraft, exerciseEquals, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import {
   ActivityEditorForm,
@@ -25,6 +21,9 @@ import {
 } from "@/features/activities/ActivityEditorForm";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
+import { useProfileService } from "@/features/preferences/ProfileServiceContext";
+import { CategoryPickerModal } from "@/features/reference-data/CategoryPickerModal";
+import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
@@ -81,17 +80,6 @@ function useBodyZonesReferential(
 }
 
 /**
- * Couleur par défaut d'une Catégorie créée depuis l'éditeur d'Activité
- * (V2-PRE-1, D-211) : aucune interaction de couleur n'est documentée pour
- * cette création (`08 – Conception fonctionnelle détaillée.md` l.978 ne
- * décrit qu'une icône/pilule, jamais de sélecteur de couleur) — la couleur
- * neutre déjà établie ailleurs pour « aucune valeur assignée »
- * (`DEFAULT_SESSION_COLOR`, `#8E8E93`) est réutilisée telle quelle plutôt
- * qu'une teinte inventée.
- */
-const NEW_CATEGORY_DEFAULT_COLOR: CategoryColor = "#8E8E93";
-
-/**
  * Route `Ajouter / Modifier une activité` (T02-S02 ; V2-CAT-01, revue
  * indépendante 5732014381, obligation 5 — formulaire commun) : point
  * d'entrée unique de `app/(creation)/exercise.tsx`. Un paramètre
@@ -135,6 +123,8 @@ export function ExerciseScreen() {
 function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string | null }) {
   const router = useRouter();
   const activityDefinitionService = useActivityDefinitionService();
+  const referentialService = useReferentialService();
+  const profileService = useProfileService();
   const bodyZonesReferential = useBodyZonesReferential(activityDefinitionService);
   const isEditingExisting = definitionId !== null;
   const [value, setValue] = useState<ActivityEditorFormValue>(() => {
@@ -164,8 +154,13 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
     | { status: "error" }
   >({ status: "loading" });
   const [isCategoryPickerOpen, setIsCategoryPickerOpen] = useState(false);
-  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState("");
+  // V2-PRE-2 (plan §6.1/§7, T21) : valeur COURANTE du Profil (snapshot — la
+  // seule lecture d'un changement de côté, jamais rederivée), et silhouette
+  // pour l'icône de Zone de `BodyZonePickerModal` (CE-UI-09 L2805).
+  const [profileSideChangeRecoveryDefault, setProfileSideChangeRecoveryDefault] = useState<number>(
+    DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
+  );
+  const [silhouette, setSilhouette] = useState<Silhouette | null>(null);
   // V2-CAT-01 (UI-CAT-R-008) : `"error"` couvre à la fois une définition
   // ABSENTE (`getActivityDefinition` résolu à `null` — supprimée ou
   // identifiant invalide) et un échec TECHNIQUE de chargement (promesse
@@ -237,40 +232,79 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
     };
   }, [fetchDefinition]);
 
-  // V2-PRE-1 (plan §3.1, D-211) : Catégories disponibles pour la modale de
-  // sélection — même patron de chargement que `fetchDefinition` ci-dessus.
+  /**
+   * Catégories disponibles — nécessaires uniquement à l'affichage du nom
+   * sur la pilule (D-211) ; `CategoryPickerModal` s'auto-alimente de son
+   * côté. Rechargée à chaque fermeture de la modale, pour refléter une
+   * création/un renommage/une suppression éventuels (D2/D4).
+   */
+  const reloadCategories = useCallback(() => {
+    referentialService.listCategories().then(
+      (categories) => setCategoriesState({ status: "ready", categories }),
+      (error: unknown) => {
+        console.error("Impossible de charger les catégories.", error);
+        setCategoriesState({ status: "error" });
+      },
+    );
+  }, [referentialService]);
+
+  useEffect(() => {
+    reloadCategories();
+  }, [reloadCategories]);
+
+  // V2-PRE-2 (plan §6.1/§7, T21) : lu une seule fois — la Pause entre les
+  // côtés n'est copiée qu'à l'activation bilatérale (`patch` ci-dessous),
+  // jamais rederivée après.
   useEffect(() => {
     let cancelled = false;
-    activityDefinitionService.listCategories().then(
-      (categories) => {
+    profileService.getProfile().then(
+      (profile) => {
         if (!cancelled) {
-          setCategoriesState({ status: "ready", categories });
+          setProfileSideChangeRecoveryDefault((current) =>
+            current === profile.sideChangeRecoverySecondsDefault
+              ? current
+              : profile.sideChangeRecoverySecondsDefault,
+          );
+          setSilhouette((current) => (current === profile.silhouette ? current : profile.silhouette));
         }
       },
       (error: unknown) => {
         if (!cancelled) {
-          console.error("Impossible de charger les catégories.", error);
-          setCategoriesState({ status: "error" });
+          console.error("Impossible de charger le Profil.", error);
         }
       },
     );
     return () => {
       cancelled = true;
     };
-  }, [activityDefinitionService]);
+  }, [profileService]);
 
   const handleRetryLoad = useCallback(() => {
     setLoadState("loading");
     fetchDefinition(() => false);
   }, [fetchDefinition]);
 
+  /**
+   * T21 : à l'activation bilatérale (`Sans changement` → `D→G`/`G→D`), la
+   * Pause entre les côtés copie la valeur COURANTE du Profil ; toute autre
+   * transition conserve la valeur stockée inchangée.
+   */
   function patch(next: Partial<ActivityEditorFormValue>) {
     setSaveError(false);
+    if (next.sideMode !== undefined && next.sideMode !== value.sideMode) {
+      const nextSideMode: SideMode = next.sideMode;
+      setSideRecoverySeconds((current) =>
+        sideRecoveryOnSideModeChange(
+          value.sideMode,
+          nextSideMode,
+          current,
+          profileSideChangeRecoveryDefault,
+        ),
+      );
+    }
     setValue((current) => ({ ...current, ...next }));
   }
 
-  const availableTags: readonly { readonly id: string; readonly name: string }[] =
-    categoriesState.status === "ready" ? categoriesState.categories.filter(isCategoryAssignable) : [];
   const selectedCategoryName =
     category?.kind === "EXISTING"
       ? (categoriesState.status === "ready"
@@ -287,44 +321,11 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
 
   function closeCategoryPicker() {
     setIsCategoryPickerOpen(false);
-    setIsCreatingCategory(false);
-    setNewCategoryName("");
+    reloadCategories();
   }
-
-  function openCreateCategoryRow() {
-    setIsCreatingCategory(true);
-    setNewCategoryName("");
-  }
-
-  function cancelCreateCategoryRow() {
-    setIsCreatingCategory(false);
-    setNewCategoryName("");
-  }
-
-  const canAddCategory = validateCategoryName(newCategoryName).ok;
 
   function selectCategory(id: string) {
     setCategory({ kind: "EXISTING", categoryId: id });
-    closeCategoryPicker();
-  }
-
-  function handleAddCategory() {
-    const validated = validateCategoryName(newCategoryName);
-    if (!validated.ok) {
-      return;
-    }
-    const normalizedName = validated.value;
-    const candidates = availableTags.map((tag) => ({
-      id: tag.id,
-      canonicalKey: canonicalCategoryKey(tag.name),
-    }));
-    const match = findCategoryMatch(candidates, normalizedName);
-    if (match) {
-      selectCategory(match.id);
-      return;
-    }
-    setCategory({ kind: "NEW", name: normalizedName, color: NEW_CATEGORY_DEFAULT_COLOR });
-    closeCategoryPicker();
   }
 
   async function handleFinish() {
@@ -432,6 +433,7 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
             value={value}
             onChange={patch}
             bodyZones={bodyZonesReferential}
+            silhouette={silhouette}
             showMediaSection
             finishLabel={t.finishAction}
             onFinish={handleFinish}
@@ -445,87 +447,11 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
       ) : null}
 
       {isCategoryPickerOpen ? (
-        <View style={styles.categoryModalOverlay} testID="activity-editor-category-modal">
-          <View style={styles.categoryModalBody}>
-            <Text style={styles.categoryModalTitle}>{t.category.modalTitle}</Text>
-            <View style={styles.tagRow} testID="activity-editor-category-tag-row">
-              {availableTags.map((tag) => (
-                <Pressable
-                  key={tag.id}
-                  onPress={() => selectCategory(tag.id)}
-                  accessibilityRole="button"
-                  accessibilityLabel={tag.name}
-                  style={styles.tag}
-                  testID={`activity-editor-category-tag-${tag.id}`}
-                >
-                  <Text style={styles.tagLabel}>{tag.name}</Text>
-                </Pressable>
-              ))}
-            </View>
-            {isCreatingCategory ? (
-              <View style={styles.newCategoryContainer} testID="activity-editor-category-new-row">
-                <TextInput
-                  value={newCategoryName}
-                  onChangeText={setNewCategoryName}
-                  placeholder={t.category.newCategory.placeholder}
-                  placeholderTextColor={colors.textSecondary}
-                  accessibilityLabel={t.category.newCategory.placeholder}
-                  maxLength={CATEGORY_NAME_MAX_LENGTH}
-                  autoFocus
-                  style={styles.newCategoryInput}
-                  testID="activity-editor-category-new-name-input"
-                />
-                <View style={styles.newCategoryActionsRow}>
-                  <Pressable
-                    onPress={cancelCreateCategoryRow}
-                    accessibilityRole="button"
-                    accessibilityLabel={t.category.newCategory.cancelAccessibilityLabel}
-                    style={styles.newCategoryCancelAction}
-                  >
-                    <Text style={styles.newCategoryCancelLabel}>
-                      {t.category.newCategory.cancelAccessibilityLabel}
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    disabled={!canAddCategory}
-                    onPress={handleAddCategory}
-                    accessibilityRole="button"
-                    accessibilityState={{ disabled: !canAddCategory }}
-                    accessibilityLabel={t.category.newCategory.addAccessibilityLabel}
-                    style={[
-                      styles.newCategoryAddAction,
-                      !canAddCategory ? styles.newCategoryAddActionDisabled : null,
-                    ]}
-                  >
-                    <Text style={styles.newCategoryAddLabel}>
-                      {t.category.newCategory.addAccessibilityLabel}
-                    </Text>
-                  </Pressable>
-                </View>
-              </View>
-            ) : (
-              <Pressable
-                onPress={openCreateCategoryRow}
-                accessibilityRole="button"
-                accessibilityLabel={t.category.createAction}
-                style={styles.createCategoryAction}
-                testID="activity-editor-category-create-action"
-              >
-                <KodjoIcon name="action-add" testID="activity-editor-category-create-icon" />
-                <Text style={styles.createCategoryActionLabel}>{t.category.createAction}</Text>
-              </Pressable>
-            )}
-            <Pressable
-              onPress={closeCategoryPicker}
-              accessibilityRole="button"
-              accessibilityLabel={t.category.closeAccessibilityLabel}
-              style={styles.categoryModalClose}
-              testID="activity-editor-category-close"
-            >
-              <Text style={styles.categoryModalCloseLabel}>{t.category.closeAccessibilityLabel}</Text>
-            </Pressable>
-          </View>
-        </View>
+        <CategoryPickerModal
+          selectedId={category?.kind === "EXISTING" ? category.categoryId : null}
+          onSelect={selectCategory}
+          onClose={closeCategoryPicker}
+        />
       ) : null}
     </ScreenShell>
   );
@@ -582,122 +508,6 @@ const styles = StyleSheet.create({
     ...type.label,
     color: colors.selection,
   },
-  categoryModalOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.overlayScrim,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: spacing[24],
-  },
-  categoryModalBody: {
-    width: "100%",
-    maxWidth: 420,
-    borderRadius: dimensions.standardCard.radius,
-    backgroundColor: colors.background,
-    padding: spacing[24],
-    gap: spacing[16],
-  },
-  categoryModalTitle: {
-    ...type.sectionTitle,
-    color: colors.textPrimary,
-  },
-  tagRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing[8],
-  },
-  tag: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[4],
-    height: dimensions.categoryTag.visualHeight,
-    paddingHorizontal: spacing[12],
-    borderRadius: dimensions.categoryTag.radius,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  tagLabel: {
-    ...type.label,
-    color: colors.textPrimary,
-  },
-  createCategoryAction: {
-    alignSelf: "center",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing[6],
-    height: dimensions.compactSecondaryButton.visualHeight,
-    paddingHorizontal: spacing[16],
-    borderRadius: dimensions.compactSecondaryButton.radius,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    backgroundColor: colors.background,
-  },
-  createCategoryActionLabel: {
-    ...type.button,
-    color: colors.primary,
-  },
-  newCategoryContainer: {
-    gap: spacing[12],
-  },
-  newCategoryInput: {
-    ...type.body,
-    width: "100%",
-    color: colors.textPrimary,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: dimensions.exerciseTextField.radius,
-    paddingHorizontal: dimensions.exerciseTextField.paddingHorizontal,
-    height: dimensions.exerciseTextField.height,
-  },
-  newCategoryActionsRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: spacing[12],
-  },
-  newCategoryCancelAction: {
-    height: dimensions.categoryTag.visualHeight,
-    borderRadius: dimensions.categoryTag.visualHeight / 2,
-    paddingHorizontal: spacing[16],
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.dialogNeutralActionBackground,
-  },
-  newCategoryCancelLabel: {
-    ...type.button,
-    color: colors.dialogNeutralActionText,
-  },
-  newCategoryAddAction: {
-    height: dimensions.categoryTag.visualHeight,
-    borderRadius: dimensions.categoryTag.visualHeight / 2,
-    paddingHorizontal: spacing[16],
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.primary,
-  },
-  newCategoryAddActionDisabled: {
-    backgroundColor: colors.disabled,
-  },
-  newCategoryAddLabel: {
-    ...type.button,
-    color: colors.background,
-  },
-  categoryModalClose: {
-    alignSelf: "center",
-    paddingVertical: spacing[8],
-    paddingHorizontal: spacing[16],
-  },
-  categoryModalCloseLabel: {
-    ...type.button,
-    color: colors.textSecondary,
-  },
 });
 
 /**
@@ -720,12 +530,60 @@ function CompositionExerciseEditor() {
       : null;
   const isEditingExisting = existingExercise !== null;
 
-  const [initialSnapshot] = useState<SessionDraftExercise>(
+  const [initialSnapshot, setInitialSnapshot] = useState<SessionDraftExercise>(
     () => existingExercise ?? createExerciseDraft(Crypto.randomUUID()),
   );
   const [local, setLocal] = useState<SessionDraftExercise>(initialSnapshot);
   const [isFinishing, setIsFinishing] = useState(false);
   const finishingRef = useRef(false);
+  const localRef = useRef(local);
+  useEffect(() => {
+    localRef.current = local;
+  }, [local]);
+
+  const profileService = useProfileService();
+  const [silhouette, setSilhouette] = useState<Silhouette | null>(null);
+  const appliedProfileDefaultRef = useRef(false);
+  // V2-PRE-2 (plan §6.1/§7, D-171/D-213) : une occurrence créée ici (jamais
+  // en modification d'une Activité déjà présente dans le brouillon) reçoit
+  // la Récupération du Profil, lue une seule fois — sans rétroactivité si
+  // l'utilisateur a déjà modifié sa copie de travail avant la résolution de
+  // cette lecture asynchrone (`localRef`, toujours à jour, comparé à
+  // `initialSnapshot`, capturé une seule fois au montage).
+  useEffect(() => {
+    let cancelled = false;
+    profileService.getProfile().then(
+      (profile) => {
+        if (cancelled) {
+          return;
+        }
+        setSilhouette((current) => (current === profile.silhouette ? current : profile.silhouette));
+        if (!isEditingExisting && !appliedProfileDefaultRef.current) {
+          appliedProfileDefaultRef.current = true;
+          if (
+            exerciseEquals(localRef.current, initialSnapshot) &&
+            initialSnapshot.postActivityRecoverySeconds !== profile.postActivityRecoverySecondsDefault
+          ) {
+            const next = {
+              ...initialSnapshot,
+              postActivityRecoverySeconds: profile.postActivityRecoverySecondsDefault,
+            };
+            setInitialSnapshot(next);
+            setLocal(next);
+          }
+        }
+      },
+      (error: unknown) => {
+        if (!cancelled) {
+          console.error("Impossible de charger le Profil.", error);
+        }
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileService, isEditingExisting]);
 
   const shouldBlockExit = !isFinishing && !exerciseEquals(local, initialSnapshot);
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(
@@ -771,6 +629,7 @@ function CompositionExerciseEditor() {
         value={local}
         onChange={patchLocal}
         bodyZones={bodyZonesReferential}
+        silhouette={silhouette}
         finishLabel={t.finishAction}
         onFinish={handleTerminer}
         finishSlotTestID="exercise-finish-action-slot"

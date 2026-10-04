@@ -82,4 +82,44 @@ describe("useSessionDraft", () => {
 
     expect(onCapture.mock.calls[0]?.[0]).toBe(draft);
   });
+
+  /**
+   * V2-PRE-2 (plan §6.1/§7, T18) : `creationBaseline` — brouillon de
+   * création RÉELLEMENT initialisé (valeurs du Profil) — est un champ
+   * optionnel de transition, exposé sans altération, exactement comme
+   * `hydratedBaseline` (T01-S10).
+   */
+  it("exposes the creationBaseline field supplied by the context, undefined when the provider omits it", () => {
+    const creationBaseline: SessionDraft = {
+      ...createEmptyDraft(),
+      initialCountdownSeconds: 30,
+      finalPhaseSeconds: 20,
+    };
+    const onCapture = jest.fn();
+
+    function Capture() {
+      const { creationBaseline: received } = useSessionDraft();
+      useEffect(() => {
+        onCapture(received);
+      }, [received]);
+      return <Text>captured</Text>;
+    }
+
+    render(
+      <SessionDraftContext.Provider value={aContextValue({ creationBaseline })}>
+        <Capture />
+      </SessionDraftContext.Provider>,
+    );
+
+    expect(onCapture.mock.calls[0]?.[0]).toBe(creationBaseline);
+
+    onCapture.mockClear();
+    render(
+      <SessionDraftContext.Provider value={aContextValue()}>
+        <Capture />
+      </SessionDraftContext.Provider>,
+    );
+
+    expect(onCapture.mock.calls[0]?.[0]).toBeUndefined();
+  });
 });

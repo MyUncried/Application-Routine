@@ -80,6 +80,18 @@ class FakeBodyZoneRepository implements BodyZoneRepository {
   listAll(): Promise<readonly BodyZone[]> {
     return Promise.resolve(BODY_ZONE_FIXTURES);
   }
+  create(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+  rename(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+  retire(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+  isUsed(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
 }
 
 const sessions = strings.screens.sessions;
@@ -179,6 +191,21 @@ class FakeSessionRepository implements SessionRepository {
 class NoopCategoryRepository implements CategoryRepository {
   listAll(): Promise<readonly Category[]> {
     return Promise.resolve([]);
+  }
+  create(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+  rename(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+  recolor(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+  retire(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+  isUsed(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
   }
 }
 

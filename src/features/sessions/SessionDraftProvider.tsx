@@ -8,7 +8,14 @@ import {
   type ReactNode,
 } from "react";
 
-import { createEmptyDraft, toSessionDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
+import {
+  createEmptyDraft,
+  sessionDraftsEqual,
+  toSessionDraft,
+  type SessionDraft,
+  type SessionDraftDefaults,
+} from "@/domain/sessions/SessionDraft";
+import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import {
   SessionDraftContext,
   type SessionDraftContextValue,
@@ -42,6 +49,14 @@ export type SessionDraftProviderProps = {
  * un brouillon de création. Le `SessionService` est facultatif ici (le
  * parcours de création n'en a pas besoin) : en son absence, une demande de
  * réhydratation échoue proprement en `"error"`.
+ *
+ * **V2-PRE-2 (plan §6.1/§6.3, D-213)** : un nouveau brouillon de CRÉATION
+ * reçoit Compte à rebours initial et Fin de séance depuis la valeur
+ * COURANTE du Profil, lue une seule fois (`ProfileService`, facultatif —
+ * en son absence, T19, les constantes du Domaine s'appliquent inchangées).
+ * `creationBaseline` expose le brouillon RÉELLEMENT créé, pour que la garde
+ * de sortie compare le brouillon courant à ses valeurs initiales réelles
+ * (T18), jamais aux constantes du Domaine si le Profil en diffère.
  */
 export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
   const service = useContext(SessionServiceContext);
@@ -50,7 +65,11 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
     serviceRef.current = service;
   }, [service]);
 
+  const profileService = useContext(ProfileServiceContext);
+  const sessionDefaultsRef = useRef<SessionDraftDefaults>({});
+
   const [draft, setDraft] = useState<SessionDraft>(() => createEmptyDraft());
+  const [creationBaseline, setCreationBaseline] = useState<SessionDraft>(() => createEmptyDraft());
   const [editStatus, setEditStatusState] = useState<SessionDraftEditStatus>("creating");
   const [hydratedBaseline, setHydratedBaseline] = useState<SessionDraft | null>(null);
 
@@ -72,7 +91,9 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
   const resetDraft = useCallback(() => {
     requestSeq.current += 1;
     currentSessionId.current = null;
-    setDraft(createEmptyDraft());
+    const fresh = createEmptyDraft(sessionDefaultsRef.current);
+    setDraft(fresh);
+    setCreationBaseline(fresh);
     setHydratedBaseline(null);
     setEditStatus("creating");
   }, [setEditStatus]);
@@ -147,6 +168,44 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
     }
   }, [runHydration]);
 
+  // V2-PRE-2 (D-213) : lu une seule fois par montage de ce fournisseur — un
+  // changement ultérieur du Profil n'affecte jamais un brouillon déjà
+  // initialisé (« sans rétroactivité »). N'applique les valeurs lues que si
+  // le brouillon courant est encore le brouillon de création VIERGE (jamais
+  // sur un brouillon de modification réhydraté, ni sur un brouillon de
+  // création déjà modifié par l'utilisateur).
+  useEffect(() => {
+    if (!profileService) {
+      return;
+    }
+    let cancelled = false;
+    profileService.getProfile().then(
+      (profile) => {
+        if (cancelled) {
+          return;
+        }
+        const defaults: SessionDraftDefaults = {
+          initialCountdownSeconds: profile.sessionInitialCountdownSecondsDefault,
+          finalPhaseSeconds: profile.sessionFinalPhaseSecondsDefault,
+        };
+        sessionDefaultsRef.current = defaults;
+        if (statusRef.current === "creating" && currentSessionId.current === null) {
+          const fresh = createEmptyDraft(defaults);
+          setDraft((current) => (sessionDraftsEqual(current, createEmptyDraft()) ? fresh : current));
+          setCreationBaseline(fresh);
+        }
+      },
+      (error: unknown) => {
+        if (!cancelled) {
+          console.error("Impossible de charger les valeurs initiales du Profil.", error);
+        }
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [profileService]);
+
   const value = useMemo<SessionDraftContextValue>(
     () => ({
       draft,
@@ -156,6 +215,7 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
       hydrateFromSession,
       retryHydration,
       hydratedBaseline,
+      creationBaseline,
     }),
     [
       draft,
@@ -165,6 +225,7 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
       hydrateFromSession,
       retryHydration,
       hydratedBaseline,
+      creationBaseline,
     ],
   );
 

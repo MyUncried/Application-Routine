@@ -7,10 +7,14 @@ import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
 import type { Category } from "@/domain/categories/Category";
 import type { CategoryRepository } from "@/domain/categories/CategoryRepository";
+import { createDefaultProfile, type Profile } from "@/domain/preferences/Profile";
+import type { ProfileIdentityInput, ProfileRepository } from "@/domain/preferences/ProfileRepository";
 import type { Session, SessionSummary } from "@/domain/sessions/Session";
 import type { SessionRepository, UpdateSessionOutcome } from "@/domain/sessions/SessionRepository";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceProvider } from "@/features/activities/ActivityDefinitionServiceProvider";
+import { ProfileService } from "@/features/preferences/ProfileService";
+import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { strings } from "@/shared/i18n";
@@ -79,6 +83,21 @@ class NoopCategoryRepository implements CategoryRepository {
   listAll(): Promise<readonly Category[]> {
     return Promise.resolve([]);
   }
+  create(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+  rename(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+  recolor(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+  retire(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+  isUsed(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
 }
 
 /**
@@ -104,9 +123,43 @@ class NoopActivityDefinitionRepository implements ActivityDefinitionRepository {
   }
 }
 
+/**
+ * V2-PRE-2 (plan §6.1/§7) : `ExerciseScreen` lit désormais le Profil
+ * (Pause entre les côtés, silhouette, Récupération après exercice) — un
+ * Profil par défaut réel (jamais un rejet) laisse ce parcours de navigation
+ * fonctionner exactement comme avant, les autres méthodes ne sont pas
+ * exercées par ce fichier.
+ */
+class NoopProfileRepository implements ProfileRepository {
+  get(): Promise<Profile> {
+    return Promise.resolve(createDefaultProfile("profile-1", "2026-01-01T00:00:00.000Z"));
+  }
+  updateDefault(): Promise<Profile> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+  updatePreference(): Promise<Profile> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+  updateIdentity(_input: ProfileIdentityInput): Promise<Profile> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+}
+
 class NoopBodyZoneRepository implements BodyZoneRepository {
   listAll(): Promise<readonly BodyZone[]> {
     return Promise.resolve([]);
+  }
+  create(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+  rename(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+  retire(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
+  }
+  isUsed(): Promise<never> {
+    return Promise.reject(new Error("not used by this navigation test"));
   }
 }
 
@@ -124,7 +177,9 @@ function SessionServiceTestWrapper({ children }: { children: ReactNode }) {
           )
         }
       >
-        {children}
+        <ProfileServiceContext.Provider value={new ProfileService(new NoopProfileRepository())}>
+          {children}
+        </ProfileServiceContext.Provider>
       </ActivityDefinitionServiceProvider>
     </SessionServiceContext.Provider>
   );
