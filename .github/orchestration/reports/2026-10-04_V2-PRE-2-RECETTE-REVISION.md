@@ -130,3 +130,35 @@ Voir le commit qui introduit ce rapport. État attendu après fusion :
 - **Arrêt sans nouvelle relance ; arbitrage demandé au propriétaire.**
   - Option recommandée : publier une révision assemblée localement, avec les mêmes contrôles déterministes, par une extension bornée de la publication vérifiée (#290/#295) aux révisions sur une livraison existante.
   - Autre option : une nouvelle tentative du modèle.
+
+## Complément — option A : révision assemblée localement et extension de publication
+
+- **Décision.** Le propriétaire a choisi A. Aucun nouvel appel au modèle de planification n'a été fait. Branche `fix/kodjo-v2-revision-publication`, partie de `fd213f2d` (`main`) ; PR ouverte, **non fusionnée**.
+- **Révision du plan.**
+  - Fichier : `.github/orchestration/v2-slices/V2-PRE-2/revision-2026-10-04/technical-plan.md`.
+  - Périmètre : écarts de recette R1, R4, R5, R6, R7a, R9 et R10, plus D-265 à D-267. Le reste du plan approuvé est conservé (§0 bis du plan) ; R8 et R7b restent hors révision.
+  - Assemblage local avec les vrais scripts de `kodjo-v2-slice-plan.yml` : décodage draft et final, analyse d'impact à `10ac761e`, fermeture en 1 itération, réconciliation de la prose, `verify-bounded-plan-revision` = `APPROVED_BASE_NEW_CYCLE`, contrat UI (6 critères, 66 assertions), cohérence (périmètre 95, tests 41), impact vérifié.
+  - Empreinte : sha256 `09598257b087a56ba0111ff97a7c2196e5b7b07f6ac05f86b7d3e0b2804a448f`, 252 796 octets, blob `87b7b6640498355ae46b17b28ed98a2237a1bf71`.
+- **Défaut de protocole corrigé.** Pour une base approuvée à constats structurés, `verify-bounded-plan-revision.js` levait `PLAN_REVISION_REVIEW_INVALID`. Le chemin canonique aurait donc échoué lui aussi, même avec une génération correcte. Correctif : un nouveau cycle, comme pour une approbation non structurée. Un REVISE exige toujours un constat bloquant.
+- **Extension bornée de publication** (`recover-published-plan.js`, `kodjo-v2-slice-plan-review.yml`) :
+  - `planning_mode=REVISION` impose : PR et tête applicatives ; plan et revue remplacés liés par blob à `source_head` ; `source_head` sur `main` ; analyse à la tête applicative ; bloc de statut de révision.
+  - L'en-tête reconstruit est identique au PLAN_OUTPUT du bot, sans `planning_mode`, ce qui laisse le relais non INITIAL inchangé.
+  - La revue admet une publication vérifiée du propriétaire et expose `pinned_publication` ; après REVISE, cette publication n'est jamais régénérée par le modèle (arrêt `USER_VALIDATION`).
+- **Contrainte découverte et respectée.** Le fichier du plan publié n'est pas un chemin protocolaire fermé (`verify-plan-review-transition.js`). Un `source_head` antérieur au commit du plan est donc refusé (`PLAN_REVIEW_NON_PROTOCOL_CHANGE`, démontré). La publication devra déclarer pour `source_head` le commit de `main` contenant le plan. Les 12 entrées produit protégées de ce commit sont identiques octet pour octet à celles de `7a51179f` (démontré). La politique de transition n'a pas été assouplie.
+
+### Preuves et tests
+
+- `node --test tests/kodjo/generic-revision-publication.pilot.js` : **12/12 PASS** (nominal, 8 refus, INITIAL avec champs applicatifs, borne de révision, branchement de la revue).
+- E2E local sans modèle (`scratchpad/pre2/e2e/run-revision-e2e.js`) : vraie étape PowerShell « Validate immutable V2 review gate » contre une API simulée, puis les trois rejeux de la revue à `10ac761e`. Résultat **27/27 PASS**, avec `source_head` = tête de protocole = `16fdc80a`.
+  - Admission et sorties exactes.
+  - Corps relu = en-tête de révision + octets exacts.
+  - 8 refus, chacun avec son code : auteur, octets altérés, plan remplacé, source divergente, tête analysée, `source_head` antérieur au plan, PR déplacée, PR fermée.
+  - Rejeux impact, cohérence et UI (consume) : PASS ; rejeu à la baseline antérieure : refusé.
+- `node tests/kodjo/run-all.js` : 917 tests, 898 PASS, 15 FAIL. Les 15 échecs sont **identiques sur `main` intact `fd213f2d`** (905 tests, 886 PASS, même ensemble d'échecs, comparé par diff) : tests du runtime OpenAI, IA-004 (`materialize-boundary-file.js`), 0.6.29, synchronisation d'environnement. Aucune régression introduite.
+- `validate-workflows.js` : OK ; `verify-artifact-retention.js` : OK.
+
+### Hors périmètre et suite
+
+- **Non fait, en attente de la validation du propriétaire.** Fusion. Puis publication `[KODJO_V2] PLAN_PUBLICATION` (`planning_mode=REVISION`, `source_head` = commit de fusion, `application_pr=303`, `application_head=10ac761e…`, `supersedes_plan_blob_oid=ae2a7a0d…`, `prior_review_blob_oid=a7fe0ec8…`) et dispatch de la revue indépendante.
+- Le chemin aval (relais, 👍, file, livraison sur #303) n'a pas été rejoué de bout en bout. Seule la lecture de la publication par le relais a été vérifiée dans le code (`materialize-approved-plan-handoff.js` L128–135, L83–96).
+- PR #303 inchangée à `10ac761e` ; aucune opération PRE-2 active.

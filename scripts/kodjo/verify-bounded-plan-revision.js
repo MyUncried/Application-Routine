@@ -35,6 +35,10 @@ function verify(basePlan,baseReview,candidate){
     }
     throw new Error('PLAN_REVISION_STRUCTURED_FINDINGS_REQUIRED');
   }
+  // An approved base with structured findings opens a new cycle exactly like an unstructured approval:
+  // a new owner decision or device evidence may revise it, and the independent review revalidates the whole plan.
+  if(review.verdict==='APPROVE'&&Array.isArray(review.findings)&&!review.findings.some(x=>x&&x.blocking===true)&&
+     /^(?:verdict=APPROVE|Verdict\s*:\s*`?APPROVED`?|STATUT\s*:\s*PLAN_REVIEW_APPROVED)\s*$/m.test(baseReview))return {status:'APPROVED_BASE_NEW_CYCLE'};
   if(review.verdict!=='REVISE'||!Array.isArray(review.findings))throw new Error('PLAN_REVISION_REVIEW_INVALID');
   const blocking=review.findings.filter(x=>x.blocking===true);
   if(!blocking.length)throw new Error('PLAN_REVISION_BLOCKING_FINDING_MISSING');
