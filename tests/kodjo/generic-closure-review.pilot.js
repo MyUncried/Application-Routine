@@ -82,7 +82,7 @@ for (const [name, opts, code] of [
   ['prior review not REVISE', { priorVerdict: 'APPROVE' }, /PLAN_CLOSURE_PRIOR_NOT_REVISE/],
   ['prior review on another issue', { priorIssue: ISSUE.replace('/7', '/8') }, /PLAN_CLOSURE_PRIOR_ISSUE_MISMATCH/],
   ['prior comment is not a review', { priorMarker: '[KODJO_V2] PLAN_PUBLICATION' }, /PLAN_CLOSURE_PRIOR_REVIEW_INVALID/],
-  ['duplicated prior targets', { findings: { verdict: 'REVISE', findings: [FINDINGS.findings[0], FINDINGS.findings[0]] } }, /PLAN_CLOSURE_TARGETS_NOT_UNIQUE/],
+  ['duplicated prior targets', { findings: { verdict: 'REVISE', findings: [FINDINGS.findings[0], FINDINGS.findings[0]] } }, /PLAN_CLOSURE_FINDINGS_DUPLICATED/],
 ]) test('closure inputs refuse: ' + name, (t) => assert.throws(() => run(fixture(t, opts)), code));
 
 const review = (rows, closures) => '| N | Correction examinée | Preuve précise | Fermé | Justification |\n|---|---|---|---|---|\n' +

@@ -29,12 +29,17 @@ function verify(reviewMarkdown, normalized, prior) {
   need(Array.isArray(prior.findings) && prior.findings.length >= 1, 'CLOSURE_PRIOR_FINDINGS_INVALID');
   const count = prior.findings.length;
   const key = (f) => f.target_kind + '\u0000' + f.target;
-  const numberOf = new Map(prior.findings.map((f, i) => [key(f), i + 1]));
-  need(numberOf.size === count, 'CLOSURE_PRIOR_TARGETS_NOT_UNIQUE');
+  // Two prior findings may share a target (distinct defects of one criterion): the row is identified by its
+  // « Prior finding N » number, which must designate a prior finding with exactly this target.
+  const numbersOf = new Map();
+  prior.findings.forEach((f, i) => numbersOf.set(key(f), [...(numbersOf.get(key(f)) || []), i + 1]));
   const open = new Set();
   for (const f of normalized.findings) {
-    const n = numberOf.get(key(f));
-    need(n, 'CLOSURE_FINDING_OUTSIDE_BOUND:' + f.target_kind + ':' + f.target);
+    const candidates = numbersOf.get(key(f));
+    need(candidates, 'CLOSURE_FINDING_OUTSIDE_BOUND:' + f.target_kind + ':' + f.target);
+    const m = /^Prior finding ([1-9][0-9]*)\b/.exec(String(f.diagnostic || ''));
+    const n = m ? Number(m[1]) : candidates.length === 1 ? candidates[0] : 0;
+    need(candidates.includes(n), 'CLOSURE_FINDING_NUMBER_MISMATCH:' + (n || candidates.join('|')));
     need(f.blocking === prior.findings[n - 1].blocking, 'CLOSURE_BLOCKING_STATUS_CHANGED:' + n);
     need(f.category === prior.findings[n - 1].category, 'CLOSURE_CATEGORY_CHANGED:' + n);
     need(new RegExp('^Prior finding ' + n + '\\b').test(f.diagnostic), 'CLOSURE_FINDING_NUMBER_MISMATCH:' + n);

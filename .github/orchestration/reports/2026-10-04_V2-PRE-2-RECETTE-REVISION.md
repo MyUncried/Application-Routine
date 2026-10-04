@@ -247,3 +247,60 @@ plan_size=252796
   1. Dispatch de `kodjo-v2-plan-review-republish.yml` (`run_id=37198105017`, `issue_number=288`, `source_plan_comment_id=5979342848`).
   2. Publication du plan corrigé avec `source_head` = commit de fusion et `plan_commit` = commit du plan.
   3. Une revue indépendante.
+
+## Complément — fusion de #311, republication et revue du plan corrigé
+
+- **Autorisations du propriétaire.** Fusion, republication, publication du plan corrigé et une seule revue indépendante.
+- **Fusion de #311** : `8260bcaa5eba1a6897eb27055728fd3900ace2ae` = `main`. Les échecs CI restants sont les deux mêmes préexistants qu'avant (IA-004, 0.6.29).
+- **Republication sans Claude.** Run `37202050660` (`kodjo-v2-plan-review-republish.yml`) : succès. Revue REVISE de 37198105017 publiée (commentaire `5979898944`, `republished_from_run_id=37198105017`), puis arrêt `PLAN_RETRY_USER_VALIDATION` / `PINNED_PUBLICATION` (`5979899061`). Aucune régénération par le modèle.
+- **Publication du plan corrigé.**
+  - Contrôle préalable : E2E d'admission local à `8260bcaa`, 27/27.
+  - Commentaire `5979912654` : `source_head=8260bcaa…`, `plan_commit=aa50dde2…`, blob `e3daef43…`, sha256 `25e88521…`, 258 391 octets.
+  - Vérifié par `recover-published-plan.js` contre l'API réelle : en-tête exact, octets identiques.
+- **Revue indépendante unique.**
+  - Contrôle préalable : aucune revue en cours, aucun commentaire postérieur, runner libre.
+  - Run `37202181321` : toutes les étapes en succès ; le correctif de publication est validé en conditions réelles.
+  - Résultat publié : commentaire `5980019179`, session `e9c7c78c-066e-48d0-b94e-36ea8e98f7a8`, **verdict REVISE, 5 constats bloquants**, puis arrêt `USER_VALIDATION` / `PINNED_PUBLICATION` (`5980019286`).
+- **Constats.** Les 7 constats précédents n'ont pas été relevés à nouveau.
+  1. REQ-F907047106F88386 (Profil, C08) : plage L1076–1101 tronquée. L1103, quitter Profil sans confirmation, n'est pas assertée, et L1098 (Langue du MVP, clés de traduction centralisées) est omise. Correction attendue : locator L1076–1103, plus une assertion de sortie sans confirmation sur UI-82B1544AE5AE.
+  2. UI-5F3D94866D30 (Catégorie) : aucune assertion RESPONSIVE de CE-UI-09 L2808 (liste défilante, nom long, texte agrandi) ; `CategoryPickerModal.tsx` n'a pas de liste défilante.
+  3. UI-5F3D94866D30 : les chaînes figées de §4.10 L134–L135 (A7819D6C3521A, A14AB0BC67228) ne sont pas liées à `src/shared/i18n/resources/fr.ts` ni à `src/shared/i18n/index.test.ts`. Ces deux chemins sont à ajouter aux critères Catégorie, Zones et Étiquette ; ils sont déjà dans le périmètre.
+  4. UI-96E7FD739BF0 (Modifier le profil) : aucune assertion RESPONSIVE de CE-UI-01 L2004 (défilement, Safe Areas, clavier, texte agrandi) ; `ProfileEditScreen.tsx` n'a ni défilement ni évitement du clavier.
+  5. UI-60B2C84BF572 (Étiquette) : aucune assertion RESPONSIVE de CE-T03-16 L1645 (zone sûre, liste défilante, titre non tronqué, texte agrandi).
+  - Aucun constat ne demande d'extension du périmètre (`dependency_expansion_required=false`, fichiers déjà dans `write_scope`) ni de décision métier.
+- **Arrêt** au résultat publié, conformément à l'instruction (une seule revue). Aucune correction ni nouvelle publication n'a été faite.
+
+## Complément — correction r3 et revue de fermeture bornée (préparées)
+
+- **Instruction du propriétaire.**
+  - Corriger localement les 5 constats de `5980019179`, sans nouvelle génération ; tenir un registre ; vérifier les règles citées.
+  - Faire passer les contrôles.
+  - Préparer une revue de fermeture limitée à ces 5 constats et aux régressions causées par leurs corrections, en conservant les acquis.
+  - Poursuivre jusqu'aux demandes de permission.
+- **Règles vérifiées dans les sources** (à `8260bcaa`, contenu identique à `7a51179f`) :
+  - C08 L1098 (Langue du MVP) et L1103 (Retour sans confirmation) ;
+  - C13 §4.10 L134–L135, CE-UI-07 L2556, CE-UI-09 L2808, CE-UI-01 L2004, CE-T03-16 L1645.
+  - Les 5 constats sont confirmés.
+- **Registre** : `.github/orchestration/v2-slices/V2-PRE-2/revision-2026-10-04/correction-register-5980019179.md`. Pour chaque constat : observation, exigence avec citation de la source, qualification, correction, preuve ; plus les changements d'identifiant (`REQ-F907047106F88386` → `REQ-B01623D27FF0E00D`) et les conséquences vérifiées.
+- **Constats épinglés** : `prior-findings-5980019179.json`, identiques au bloc de la revue publiée.
+- **Plan r3** (commit `6b9a3641`, blob `fe46bda9f32c20a190e5a5fb6db9993defe6e27b`, sha256 `9da8a1eb724eb1a9dca813688e58ad6ce3b7818b882627ae918dd77aea39ee64`, 267 121 octets) :
+  - 73 assertions, dont les 69 de r2 conservées à l'identique et 4 ajoutées ;
+  - périmètre 95, tests 41, impact `558c1cae…` inchangé ; `APPROVED_BASE_NEW_CYCLE`.
+- **Défaut découvert et corrigé : narration r2.** Le générateur local de la narration était en erreur de syntaxe depuis r2. L'assemblage, qui enchaînait les générateurs par `&&`, n'a pas échoué.
+  - Effet : le candidat publié `5979912654` avait des blocs structurés complets, mais un §0 bis non mis à jour.
+  - Correction : générateur corrigé, assemblage rendu strict ; la narration r3 aligne la prose sur les blocs (consigné au registre).
+- **Protocole** (commit `d11aef0e`) : fermeture bornée sur le chemin de révision.
+  - Publication de révision avec champs de fermeture.
+  - Constats antérieurs pouvant partager une cible, identifiés par leur numéro (cas des constats 2 et 3).
+  - Porte, prompt exclusif (5 constats, régressions causées par les corrections, perte d'un acquis du candidat précédent), garde mécanique avant publication, preuve conservée.
+- **Tests.**
+  - `revision-closure-review.pilot.js` 3/3 ; tests associés 48/48.
+  - E2E de fermeture sans modèle (`run-closure-r3-e2e.js`), avec la vraie barrière PowerShell, les vrais commentaires `5980019179` et `5979912654` et les vrais blobs : **22/22**. Admission en fermeture, 4 refus, 3 rejeux, garde sur des sorties synthétiques.
+  - Prompt de fermeture évalué sous PowerShell 5.1 : 5 constats, registre inclus.
+  - Suite pilote 913/932, avec les mêmes 15 échecs préexistants que `main`.
+  - `validate-workflows` et `verify-artifact-retention` : OK.
+- **Session du relecteur précédent** `e9c7c78c-066e-48d0-b94e-36ea8e98f7a8` présente sur le runner : la revue de fermeture la reprendra (`review_session_id`).
+- **En attente des permissions du propriétaire :**
+  1. Fusion de la PR.
+  2. Publication de r3, avec `source_head` = commit de fusion, `plan_commit=6b9a3641…` et les champs de fermeture.
+  3. Une seule revue de fermeture.
