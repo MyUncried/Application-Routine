@@ -11,7 +11,7 @@
 
 ## 0 bis. Révision du 04/10/2026 — recette iPhone
 
-Contexte : livraison #303 (`10ac761e`, revue d'implémentation 5976789183 APPROVE, `device_gate_required=true`), recette iPhone non validée. Registre : `.github/orchestration/v2-slices/V2-PRE-2/recette-2026-10-04.md`. Révision appliquée à la livraison existante (PR #303) : le code livré est conservé, seuls les points ci-dessous changent. Sources à `source_head` `7a51179f` (D-265 à D-267, #304) ; les numéros de ligne du chapitre 13 sont réancrés sur cette révision.
+Contexte : livraison #303 (`10ac761e`, revue d'implémentation 5976789183 APPROVE, `device_gate_required=true`), recette iPhone non validée. Registre : `.github/orchestration/v2-slices/V2-PRE-2/recette-2026-10-04.md`. Révision appliquée à la livraison existante (PR #303) : le code livré est conservé, seuls les points ci-dessous changent. Sources lues à `7a51179f` (D-265 à D-267, #304) ; les entrées produit de `source_head` (commit de `main` contenant ce plan publié) leur sont identiques octet pour octet ; les numéros de ligne du chapitre 13 sont réancrés sur cette révision.
 
 | # | Point | Exigence | Delta d'implémentation sur #303 |
 |---|---|---|---|
