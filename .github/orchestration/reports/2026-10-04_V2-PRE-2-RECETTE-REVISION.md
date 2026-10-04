@@ -324,3 +324,25 @@ plan_size=252796
   1. 👍 de Hermann depuis son propre compte sur `5980617069`, puis la commande de mise en file.
   2. Livraison sur #303.
   3. Revue d'implémentation, publication Routine Dev et nouvelle recette iPhone (§11 du plan).
+
+## Complément — implémentation : run 37208114796 sans livraison, correctif du superviseur
+
+- **Mise en file.**
+  - 👍 de MyUncried vérifié sur `5980617069` (14:05:41Z).
+  - Requête générée en lecture seule : `EXISTING_PR` #303, tête `10ac761e`, plan `0d0e7ce6`, 95 chemins.
+  - `VALIDATE_PLAN_HANDOFF` → `PLAN_HANDOFF_VALIDATED` (`5980864146`) ; `QUEUE_APPROVED_PLAN` → `IMPLEMENTATION_QUEUED` (`5980867212`, requête `70ca9c09`).
+- **Run de développement 37208114796 : échec `KODJO_QUEUE_NO_DELIVERY`.** Claude a déclaré `IMPLEMENTED_AND_VERIFIED` avec « fichiers modifiés : aucun » (jest 1486/1486, typescript, lint PASS). #303 n'a pas bougé.
+- **Cause démontrée (`ORCHESTRATION_FAILURE`, défaut de protocole).**
+  - L'arbre de travail est au HEAD applicatif `10ac761e`, dont `technical-plan.md` est le plan remplacé (`ae2a7a0d`, 57 assertions).
+  - La mission, lue au HEAD protocolaire, désigne le plan approuvé `0d0e7ce6` (73 assertions), mais le modèle a lu la copie de l'arbre et conclu que tout était déjà implémenté (sortie : « ne contient que 57 assertion_id »).
+  - Autre observation : `claude_failure=KODJO-V2-CLAUDE-AUTH` est une classification par texte (« 401 » ou « token » dans la sortie), sans effet ici (`exit 0`). Non corrigée, hors périmètre.
+- **Correctif** (commit `71306821`) :
+  - le plan autorisé est lu au HEAD protocolaire et lié à son blob ;
+  - il est déposé en lecture seule dans `.kodjo-authorized-plan/technical-plan.md` (Read est confiné à l'arbre en mode `--restricted` : vérifié par un appel local réel), exclu de Git, puis retiré après l'appel ;
+  - le prompt le désigne comme seul plan opposable.
+  - Le test `v2-revision-draft-replay.pilot.js`, qui échouait sur `main` depuis `99e8d134`, est figé sur le blob du plan qu'il rejoue.
+- **Tests.**
+  - `existing-pr-authorized-plan.pilot.js` 5/5, dont un dépôt git réel : copie invisible pour `git status` et l'indexation, lecture seule, exclusion idempotente.
+  - Rejeu corrigé 4/4.
+  - Suite pilote : mêmes 15 échecs préexistants que la référence, les 3 échecs du rejeu étant corrigés.
+- **Suite :** fusion, nouvelle mise en file `QUEUE_APPROVED_PLAN` du même relais approuvé (admissibilité vérifiée en lecture seule), puis suivi du run, de la revue d'implémentation et de la publication Routine Dev.
