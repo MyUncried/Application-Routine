@@ -150,6 +150,25 @@ function entryPaths(entries) {
   return [...new Set(out)];
 }
 
+/**
+ * Dépose le plan autorisé dans l'arbre de travail (Read est confiné à ce répertoire en mode --restricted), en lecture
+ * seule et exclu de Git par .git/info/exclude : ni les contrôles de périmètre ni la publication ne le voient.
+ */
+function materializeAuthorizedPlan(repoRoot, buffer) {
+  const { AUTHORIZED_PLAN_DIR, authorizedPlanPath } = require('./lib/claude-local');
+  const exclude = path.resolve(repoRoot, gitRaw(['rev-parse', '--git-path', 'info/exclude'], repoRoot).trim());
+  fs.mkdirSync(path.dirname(exclude), { recursive: true });
+  const rule = '/' + AUTHORIZED_PLAN_DIR + '/';
+  const current = fs.existsSync(exclude) ? fs.readFileSync(exclude, 'utf8') : '';
+  if (!current.split(/\r?\n/).includes(rule)) fs.appendFileSync(exclude, (current && !current.endsWith('\n') ? '\n' : '') + rule + '\n', 'utf8');
+  const file = path.join(repoRoot, authorizedPlanPath());
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  if (fs.existsSync(file)) { fs.chmodSync(file, 0o600); fs.rmSync(file); }
+  fs.writeFileSync(file, buffer, { mode: 0o400 });
+  fs.chmodSync(file, 0o400);
+  return file;
+}
+
 function changedFiles(cwd) {
   return entryPaths(changedEntries(cwd));
 }
@@ -692,11 +711,29 @@ function main() {
     return writeFailure('PROMPT_PATH_INVALID', promptRelative);
   }
   const promptBuffer = Source.readFileAtHead(promptRelative, request.protocol_source_head, repoRoot);
+  // PR existante : le plan approuvé est lu au HEAD protocolaire et lié à son blob ; la copie de l'arbre applicatif
+  // peut être celle d'un plan remplacé (run 37208114796).
+  let authorizedPlanBuffer = null;
+  if (request.authorized_plan) {
+    try { authorizedPlanBuffer = Source.readFileAtHead(request.authorized_plan.plan_path, request.protocol_source_head, repoRoot); }
+    catch (err) { return writeFailure('AUTHORIZED_PLAN_UNREADABLE', err.message); }
+    const planBlob = require('node:crypto').createHash('sha1').update('blob ' + authorizedPlanBuffer.length + '\0').update(authorizedPlanBuffer).digest('hex');
+    if (planBlob !== request.authorized_plan.plan_blob_oid) {
+      return writeFailure('AUTHORIZED_PLAN_BLOB_MISMATCH', planBlob + ' != ' + request.authorized_plan.plan_blob_oid);
+    }
+  }
   const promptExistsInExecutionTree = fs.existsSync(request.prompt_file);
   const promptWorktreeHashBefore = promptExistsInExecutionTree ? sha256(fs.readFileSync(request.prompt_file)) : null;
   const initialChanges = changedFiles(repoRoot).filter((f) =>
     path.resolve(f) !== path.resolve(requestPath));
   if (initialChanges.length) return writeFailure('WORKTREE_NOT_CLEAN', initialChanges.join(', '));
+  let authorizedPlanFile = null;
+  if (authorizedPlanBuffer) {
+    try { authorizedPlanFile = materializeAuthorizedPlan(repoRoot, authorizedPlanBuffer); }
+    catch (err) { return writeFailure('AUTHORIZED_PLAN_MATERIALIZATION_FAILED', err.message); }
+    const visible = changedFiles(repoRoot).filter((f) => path.resolve(f) !== path.resolve(requestPath));
+    if (visible.length) return writeFailure('AUTHORIZED_PLAN_NOT_EXCLUDED', visible.join(', '));
+  }
 
   const fetch = command('git', ['fetch', '--quiet'], repoRoot, process.env, 120000);
   if (fetch.error || fetch.status !== 0) return writeFailure('REMOTE_HEAD_UNAVAILABLE', fetch.error ? fetch.error.message : fetch.stderr);
@@ -828,6 +865,10 @@ function main() {
     const claudeFinishedMs = Date.now();
     claudeFinishedAt = new Date(claudeFinishedMs).toISOString();
     claudeDurationMs = claudeFinishedMs - claudeStartedMs;
+    if (authorizedPlanFile) {
+      try { fs.chmodSync(authorizedPlanFile, 0o600); fs.rmSync(path.dirname(authorizedPlanFile), { recursive: true, force: true }); }
+      catch (err) { process.stderr.write('KODJO_AUTHORIZED_PLAN_CLEANUP_WARNING: ' + err.message + '\n'); }
+    }
     fs.writeFileSync(path.join(runDir, 'claude-output.json'), redact(result.stdout || ''), 'utf8');
     fs.writeFileSync(path.join(runDir, 'claude-stderr.txt'), redact(result.stderr || ''), 'utf8');
   } finally {
@@ -1036,7 +1077,7 @@ if (require.main === module) {
 }
 
 module.exports = {
-  inScope, changedFiles, changedEntries, entryPaths, refs,
+  inScope, changedFiles, changedEntries, entryPaths, refs, materializeAuthorizedPlan,
   exactRecoveryPaths, inCumulativeScope, mutationPathsSinceRestore, patchPathsFromNumstat,
   recoveryPayload, writeRecovery, restoreRecovery, applyRecovery, consumeLegacyBootstrap,
   deltaFingerprint, fingerprintDrift,

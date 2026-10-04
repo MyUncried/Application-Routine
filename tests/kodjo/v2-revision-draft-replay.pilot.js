@@ -12,12 +12,15 @@ const { spawnSync } = require('node:child_process');
 const { decode } = require('../../scripts/kodjo/generate-ui-plan-contract');
 
 const ROOT = path.join(__dirname, '..', '..');
-const PLAN = path.join(ROOT, '.github/orchestration/v2-slices/V2-PRE-2/technical-plan.md');
+// Plan approuvé rejoué, figé par son blob : technical-plan.md est remplacé à chaque relais approuvé (99e8d134).
+const PLAN_BLOB = 'ae2a7a0d30e5895b91e5782e5a85d0a5f1808e94';
 const PHOTO = 'src/features/preferences/profilePhoto.ts';
 const IDENTITY = 'UI-103FBF8D197A';
 
 function approved() {
-  const text = fs.readFileSync(PLAN, 'utf8').replace(/\r\n/g, '\n');
+  const blob = spawnSync('git', ['cat-file', 'blob', PLAN_BLOB], { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  assert.equal(blob.status, 0, blob.stderr);
+  const text = blob.stdout.replace(/\r\n/g, '\n');
   const block = (name) => JSON.parse(text.match(new RegExp('<KODJO_' + name + '_JSON>\\s*([\\s\\S]*?)\\s*</KODJO_' + name + '_JSON>'))[1]);
   // Narrative = the plan body after the PLAN_OUTPUT header, before the first machine block, without status lines.
   const body = text.slice(text.indexOf('\n\n') + 2);

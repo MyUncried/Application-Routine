@@ -232,6 +232,16 @@ function normalizeRequest(raw, repoRoot) {
     allow_legacy_recovery_bootstrap: raw.allow_legacy_recovery_bootstrap === true,
     retry_of_run_id: raw.retry_of_run_id === undefined ? null : String(raw.retry_of_run_id),
   };
+  if (raw.authorized_plan !== undefined) {
+    const plan = raw.authorized_plan;
+    if (!deliveryTarget || !plan || typeof plan !== 'object' || Array.isArray(plan) ||
+        typeof plan.plan_path !== 'string' || !plan.plan_path.startsWith('.github/orchestration/v2-slices/' + String(raw.slice_id) + '/') ||
+        !plan.plan_path.endsWith('.md') || plan.plan_path.includes('..') || plan.plan_path.includes('\\') ||
+        !/^[0-9a-f]{40}$/.test(String(plan.plan_blob_oid || ''))) {
+      throw new Error('AUTHORIZED_PLAN_INVALID');
+    }
+    request.authorized_plan = { plan_path: plan.plan_path, plan_blob_oid: String(plan.plan_blob_oid) };
+  }
   if (mode === 'RESUME_DELTA') request.retry_reason = retryReason;
   if (mode === 'RESUME_DELTA' && operationKind !== 'VISUAL_CORRECTION' && raw.recovery_migration !== undefined) {
     request.recovery_migration = { ...raw.recovery_migration };
@@ -242,6 +252,13 @@ function normalizeRequest(raw, repoRoot) {
     request.initial_restart = {...raw.initial_restart};
   }
   return request;
+}
+
+// Copie du plan autorisé déposée par le superviseur dans l'arbre de travail (Read est confiné à ce répertoire en mode
+// --restricted), exclue de Git par .git/info/exclude : invisible pour les contrôles de périmètre et la publication.
+const AUTHORIZED_PLAN_DIR = '.kodjo-authorized-plan';
+function authorizedPlanPath() {
+  return AUTHORIZED_PLAN_DIR + '/technical-plan.md';
 }
 
 function checkRunnerPath(configDir) {
@@ -292,6 +309,13 @@ function buildPrompt(request, taskText, configDir) {
     'Baseline HEAD: ' + request.baseline_head,
     'Slice bootstrap SHA-256: ' + request.slice_bootstrap_sha256,
     '',
+    ...(request.authorized_plan ? [
+      'Plan approuvé opposable (blob ' + request.authorized_plan.plan_blob_oid + ', lu au HEAD protocolaire, en lecture seule): ' +
+        authorizedPlanPath() + ' (chemin relatif au répertoire de travail).',
+      '- Toute mention de `' + path.posix.basename(request.authorized_plan.plan_path) + '` dans la mission désigne ce fichier. La copie de ' +
+        request.authorized_plan.plan_path + ' présente dans l’arbre de travail applicatif est celle de la livraison existante : elle n’est pas opposable et ne doit pas être lue comme plan.',
+      '',
+    ] : []),
     'Mission:',
     taskText.trim(),
     ...retryContext,
@@ -357,6 +381,8 @@ module.exports = {
   DISALLOWED_TOOLS,
   adapterConfig,
   adapterConfigHash,
+  AUTHORIZED_PLAN_DIR,
+  authorizedPlanPath,
   resolveClaudeBinary,
   canonical,
   sha256,
