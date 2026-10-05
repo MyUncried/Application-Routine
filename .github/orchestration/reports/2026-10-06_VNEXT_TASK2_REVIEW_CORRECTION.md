@@ -27,3 +27,15 @@ PRESERVE : contrats canoniques, couverture intégrale, qualification acquise his
 Fichiers de code : `scripts/kodjo/lib/vnext-live-chain.js`, `scripts/kodjo/lib/vnext-review-process.js` ; tests : `vnext-live-chain.pilot.js`, `vnext-figma-source.pilot.js`, `vnext-review-process.pilot.js`. Workflow : `.github/workflows/kodjo-vnext-proof-stability.yml`. Documentation/preuves : checkpoint, ce rapport, journaux et mesures locaux ; preuves d'échec préexistantes conservées.
 
 Qualification distante et parcours réel : en attente de publication à ce point. Aucune réussite de tâche 2 revendiquée. Aucun test sur appareil réel ; fixture isolée et références Figma figées uniquement. Commit final et état Git seront fournis après publication/relancement ; le commit de ce rapport est retrouvable avec `git log -1 --format=%H -- .github/orchestration/reports/2026-10-06_VNEXT_TASK2_REVIEW_CORRECTION.md`.
+
+## Publication et lancement de qualification
+
+Correctif publié sur `434adeef6d42e861a3dbee7c6236e77cc1ba74f9`, arbre `a836475f25373b89e3117e436b4caf4858acdce8` identique au candidat local. Fenêtre de publication vérifiée avec HEAD, checkpoint exact et pagination complète des runs de branche. Validation du tree : 420 sujets, writers historiques gelés conservés, aucun bloc PowerShell modifié. Précheck réel de préparation PASS sans modèle ; référence Figma et trois exigences/quatre assertions inchangées.
+
+Branche dédiée créée une fois sur le SHA exact. Run de qualification `37390574772`, événement create, initialement queued. Aucune demande runtime nouvelle ni appel Claude à ce point. Ce checkpoint et ces preuves de lancement sont conservés localement pendant la qualification, sans nouvelle publication de branche.
+
+## Qualification acquise et nouvelle demande
+
+Run `37390574772` entièrement SUCCESS, SHA exact `434adeef6d42e861a3dbee7c6236e77cc1ba74f9`, cinq jobs requis VERIFIED par le validateur réel. Contrats Linux et Windows : 318/318 PASS, zéro échec et zéro SKIP ; durées 48,48 s et 225,89 s. Équivalence historique et couverture croisées réussies. Deux archives historiques téléchargées, intégrité ZIP, digest GitHub et SHA candidat vérifiés ; réserves historiques SKIP conservées.
+
+Nouvelle demande `7576668a-8e6a-4678-a9b9-36698847d7f1`, génération 50, même campagne FIGMA_INITIAL, limite de correction 1. L’ancien UUID `86d8f6ce-e621-47b1-9e11-f9d67d32aa52` est consommé et demeure non rejoué. Préparation documentaire seulement ; publication runtime encore à effectuer après relecture HEAD/checkpoint/fenêtre. Les fichiers de code et workflows doivent rester exactement identiques au candidat qualifié.

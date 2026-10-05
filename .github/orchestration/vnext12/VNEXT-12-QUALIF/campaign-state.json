@@ -6,9 +6,9 @@
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
-  "code_head_before_checkpoint": "d1402d91c56b55b3ff8b8a925afd5f7bcd279f4c",
-  "controller_stage": "FIGMA_TASK2_REVIEW_FIX_QUALIFICATION_PENDING",
-  "controller_generation": 62,
+  "code_head_before_checkpoint": "434adeef6d42e861a3dbee7c6236e77cc1ba74f9",
+  "controller_stage": "FIGMA_TASK2_REVIEW_FIX_QUALIFIED_RUNTIME_READY",
+  "controller_generation": 63,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -1856,9 +1856,54 @@
     "scope": "TASK2_ONLY",
     "qualification_branch": "qualification/vnext-task2-review-20261006",
     "claude_timeout_ms": 600000,
-    "fresh_qualification_required": true,
+    "fresh_qualification_required": false,
     "runtime_launched": false,
     "task3_authorized": false,
-    "closure_authorized": false
+    "closure_authorized": false,
+    "candidate_head": "434adeef6d42e861a3dbee7c6236e77cc1ba74f9",
+    "qualification_run": 37390574772,
+    "qualification_status": "VERIFIED",
+    "launch_count": 1,
+    "local_precheck": "PASS",
+    "next_action": "PUBLISH_FRESH_REQUEST_ONCE_AFTER_WINDOW_CHECK",
+    "historical_counts": {
+      "Linux": {
+        "tests": 1085,
+        "failed": 0,
+        "passed": 1084,
+        "cancelled": 0,
+        "skipped": 1,
+        "todo": 0,
+        "topLevel": 1072,
+        "suites": 0
+      },
+      "Windows": {
+        "tests": 1085,
+        "failed": 0,
+        "passed": 1082,
+        "cancelled": 0,
+        "skipped": 3,
+        "todo": 0,
+        "topLevel": 1072,
+        "suites": 0
+      }
+    },
+    "contracts_linux": {
+      "tests": 318,
+      "pass": 318,
+      "fail": 0,
+      "skip": 0,
+      "duration_ms": 48477.810091
+    },
+    "contracts_windows": {
+      "tests": 318,
+      "pass": 318,
+      "fail": 0,
+      "skip": 0,
+      "duration_ms": 225886.2084
+    },
+    "new_request_id": "7576668a-8e6a-4678-a9b9-36698847d7f1",
+    "previous_consumed_request_id": "86d8f6ce-e621-47b1-9e11-f9d67d32aa52",
+    "request_generation": 50
   }
 }
