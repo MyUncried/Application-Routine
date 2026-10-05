@@ -91,7 +91,7 @@ function review(planBody,options){
  const before=Chain.command('git',['status','--porcelain','--untracked-files=all'],options.cwd)+Chain.command('git',['diff','--binary'],options.cwd);
  let raw;
  try{
-  raw=(options.invoke||Chain.command)(options.claude||require('./claude-local').resolveClaudeBinary(),['-p','--restricted','--permission-mode','dontAsk','--permission-prompts','none','--output-format','json','--tools','Read,Glob,Grep','--allowedTools','Read,Glob,Grep','--disallowedTools','mcp__*','--strict-mcp-config','--mcp-config',path.join(temp,'mcp.json'),'--settings',path.join(temp,'settings.json'),'--json-schema',JSON.stringify(schema)],options.cwd,JSON.stringify(input),env,600000);
+  raw=(options.invoke||Chain.command)(options.claude||require('./claude-local').resolveClaudeBinary(),['--add-dir',directory,'-p','--restricted','--permission-mode','dontAsk','--permission-prompts','none','--output-format','json','--tools','Read,Glob,Grep','--allowedTools','Read,Glob,Grep','--disallowedTools','mcp__*','--strict-mcp-config','--mcp-config',path.join(temp,'mcp.json'),'--settings',path.join(temp,'settings.json'),'--json-schema',JSON.stringify(schema)],options.cwd,JSON.stringify(input),env,600000);
   fs.writeFileSync(path.join(directory,'implementation-review-response.json'),raw);
   const response=JSON.parse(raw);if(response.type!=='result'||response.is_error||!response.session_id||!response.structured_output)V.fail('VNEXT_FIGMA_REVIEW_PROCESS_RESULT_INVALID');
   const assessment=validateAssessment(dossier,response.structured_output);

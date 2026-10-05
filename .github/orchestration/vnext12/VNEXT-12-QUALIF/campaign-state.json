@@ -1689,5 +1689,21 @@
     "fresh_figma_acquisition": "NOT_CERTIFIED",
     "next_task": "Publish/qualify exact candidate before any authorized real Windows path; adapt existing campaign driver and preserve evidence before cleanup.",
     "request_json_changed": false
+  },
+  "figma_task2_initial": {
+    "status": "CI_QUALIFICATION_REQUIRED_BEFORE_REAL_INITIAL",
+    "parent_head": "c1ea9aef65e7f61662cb91eee8c5fa8d93032c09",
+    "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+    "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
+    "local_tests": {
+      "tests": 321,
+      "pass": 321,
+      "fail": 0,
+      "skip": 0
+    },
+    "no_post_acceptance_or_closure_authorized": true,
+    "capture_provenance": "FROZEN_GIT_CAPTURE_REPLAY_NOT_FRESH_ACQUISITION",
+    "evidence_preservation": "Git bundle, working delta, raw model/process responses, delivery snapshots; cleanup only after successful preservation.",
+    "duplicate_policy": "Exclusive persistent request-id claim; reruns refused; no release after partial invocation."
   }
 }

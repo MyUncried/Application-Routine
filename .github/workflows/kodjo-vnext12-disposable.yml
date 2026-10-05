@@ -29,7 +29,8 @@ jobs:
           node - <<'JS'
           const fs = require('fs');
           const c = JSON.parse(fs.readFileSync('.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json'));
-          if (!['PREPARE_INITIAL', 'EXECUTE_INITIAL', 'EXECUTE_REVISION', 'QUALIFY_ONLY', 'PREPARE_REVISION'].includes(c.stage) || c.pre1_in_scope !== false || c.final_audit_authorized !== false || c.revision_limit !== 1) throw Error('VNEXT12_STAGE_REFUSED');
+          if (!['PREPARE_INITIAL', 'EXECUTE_INITIAL', 'EXECUTE_REVISION', 'QUALIFY_ONLY', 'PREPARE_REVISION', 'FIGMA_INITIAL'].includes(c.stage) || c.pre1_in_scope !== false || c.final_audit_authorized !== false || c.revision_limit !== 1) throw Error('VNEXT12_STAGE_REFUSED');
+          if (c.stage === 'FIGMA_INITIAL') require('./scripts/kodjo/qualify-vnext-figma-real-path').validateConfig(c);
           if (['EXECUTE_INITIAL', 'EXECUTE_REVISION'].includes(c.stage)) require('./scripts/kodjo/execute-vnext12').validateConfig(c);
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'stage=' + c.stage + '\napproved_head=' + c.approved_protocol_head + '\n');
           JS
@@ -238,4 +239,46 @@ jobs:
           name: kodjo-vnext12-execution-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/vnext12-execution-${{ github.run_id }}/**
           retention-days: 14
+          if-no-files-found: error
+
+  figma-initial:
+    name: Real Figma INITIAL and one bounded correction
+    needs: select-stage
+    if: needs.select-stage.outputs.stage == 'FIGMA_INITIAL'
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 70
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    env:
+      CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+      KODJO_FIGMA_CONTROLLER_HEAD: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+          path: _vnext12-figma/${{ github.run_id }}
+      - name: Qualify admission then execute the disposable Figma path once
+        working-directory: _vnext12-figma/${{ github.run_id }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          node scripts/kodjo/qualify-vnext-figma-real-path.js initial "$RUNNER_TEMP/vnext12-figma-${{ github.run_id }}-${{ github.run_attempt }}" .github/orchestration/vnext12/VNEXT-12-QUALIF/request.json
+      - name: Preserve Figma sessions, exact delivery, comparisons and reservations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-vnext12-figma-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vnext12-figma-${{ github.run_id }}-${{ github.run_attempt }}/**
+          retention-days: 90
           if-no-files-found: error
