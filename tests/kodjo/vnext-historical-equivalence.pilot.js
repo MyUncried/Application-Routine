@@ -60,8 +60,9 @@ test('historical reporter preserves the actual test runner failure and nested br
   const fixture = path.join(directory, 'failure.js');
   fs.writeFileSync(fixture, "require('node:test')('browser failure fixture',()=>{throw Error('VNEXT_FIGMA_BROWSER_EXIT_BEFORE_CONNECTION:actual stderr')});\n");
   const env = { ...process.env }; delete env.NODE_TEST_CONTEXT;
-  const run = spawnSync(process.execPath, ['--test', '--test-reporter=' + path.join(cwd, 'scripts/kodjo/lib/vnext-equivalence-reporter.js'), fixture], { cwd, encoding: 'utf8', env });
-  assert.equal(run.status, 1);
+  const reporterUrl = require('node:url').pathToFileURL(path.join(cwd, 'scripts/kodjo/lib/vnext-equivalence-reporter.js')).href;
+  const run = spawnSync(process.execPath, ['--test', '--test-reporter=' + reporterUrl, fixture], { cwd, encoding: 'utf8', env });
+  assert.equal(run.status, 1, run.stderr);
   const records = run.stdout.trim().split('\n').map(line => JSON.parse(line));
   const failure = records.find(row => row.type === 'test' && row.status === 'FAIL');
   assert.equal(failure.name, 'browser failure fixture');
