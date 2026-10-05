@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-04T15:47:12.877531+00:00",
+  "recorded_at": "2026-10-05T10:54:47.587261+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
-  "controller_stage": "V8_POST_ACCEPTANCE_AND_APPROVED_PLAN_TRANSMISSION_QUALIFICATION_REQUESTED",
-  "controller_generation": 51,
+  "controller_stage": "FIGMA_TASK2_INITIAL_REQUESTED",
+  "controller_generation": 52,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -377,7 +377,26 @@
     "consumption_tag": "9e2e693061c8d0d53d00d15519a4f1b216e6a081",
     "replay_forbidden": true
   },
-  "active_runs": [],
+  "active_runs": [
+    {
+      "id": 37293649217,
+      "status": "completed",
+      "conclusion": "success",
+      "head": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed"
+    },
+    {
+      "id": 37293649182,
+      "status": "completed",
+      "conclusion": "success",
+      "head": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed"
+    },
+    {
+      "id": 37293649180,
+      "status": "completed",
+      "conclusion": "success",
+      "head": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed"
+    }
+  ],
   "obsolete_runs": [
     {
       "run_id": "36848654104",
@@ -1691,7 +1710,7 @@
     "request_json_changed": false
   },
   "figma_task2_initial": {
-    "status": "CI_QUALIFICATION_REQUIRED_BEFORE_REAL_INITIAL",
+    "status": "QUALIFIED_INITIAL_REQUESTED",
     "parent_head": "c1ea9aef65e7f61662cb91eee8c5fa8d93032c09",
     "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
     "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
@@ -1704,6 +1723,21 @@
     "no_post_acceptance_or_closure_authorized": true,
     "capture_provenance": "FROZEN_GIT_CAPTURE_REPLAY_NOT_FRESH_ACQUISITION",
     "evidence_preservation": "Git bundle, working delta, raw model/process responses, delivery snapshots; cleanup only after successful preservation.",
-    "duplicate_policy": "Exclusive persistent request-id claim; reruns refused; no release after partial invocation."
+    "duplicate_policy": "Exclusive persistent request-id claim; reruns refused; no release after partial invocation.",
+    "qualified_protocol_head": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed",
+    "qualification_run_id": 37293649217,
+    "request_id": "1c9be701-2e24-43f7-bd24-2030d1d3c6c1",
+    "qualification_evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/qualification.json",
+    "windows_preflight": {
+      "run_id": 37293649182,
+      "job_id": 111710809124,
+      "tests": 1072,
+      "pass": 1068,
+      "fail": 0,
+      "skip": 4,
+      "status": "SUCCESS",
+      "historical_recovery_reserve": "OLD_ARTIFACT_UNAVAILABLE_NOT_RETRIED"
+    },
+    "user_instruction": "Reprends uniquement la tâche 2; terminer qualification et parcours initial isolé; aucun lancement dupliqué; tâche 3 et clôture hors périmètre."
   }
 }

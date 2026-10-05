@@ -1,0 +1,29 @@
+# VNext Figma — tâche 2, qualification et parcours initial isolé
+
+## Mission et point de départ
+
+Reprise autorisée le 5 octobre 2026 après suspension, sur `d5d14c1cb6a9f490a03e35a8047f83ed064dbbed`, PR #269, branche `protocol/vnext-proof-stability-20260930`, campagne existante `628b3349-88b4-4bf1-be6b-50bc09e7d245` / `VNEXT-12-QUALIF`. Répertoire local : `/workspace/scratch/2190f7a471f1/vnext`.
+
+Instruction : terminer la qualification et le parcours initial isolé, préserver les preuves et le bilan. Aucune tâche 3, reprise après validation utilisateur, revue indépendante de clôture, activation V2, PRE-2 ou PRE-3. La correction bornée prévue par le pilote est une injection technique déclarée ; elle ne vaut pas reprise après recette utilisateur.
+
+## État de reprise observé
+
+HEAD local et distant identiques ; aucun changement non committé au début de la reprise. Les trois workflows déclenchés par le commit précédent sont réutilisés, sans relance : `37293649217` (qualification VNext), `37293649180` (qualification du pilote), `37293649182` (tests de régression historiques). Requête initialement `QUALIFY_ONLY` ; jobs Claude INITIAL/REVISION ignorés. Ancienne file V2 `34748621746` laissée intacte.
+
+## Preuves locales réutilisées
+
+Commande déjà terminée : `node --test tests/kodjo/vnext-*.pilot.js tests/kodjo/ui-implementation-review.pilot.js` : 321 tests, 321 PASS, 0 FAIL, 0 SKIP. Journal conservé dans `.github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/local-tests.log.gz` (compression sans perte ; empreinte des octets décompressés), SHA-256 `3898db1e35498f34b456780e4074727c2c0beabefda3eb47517104af33a54467`. Le workflow VNext exclut les 16 tests du reviewer historique : 305 tests dans cette commande CI.
+
+## Limites de preuve et périmètre
+
+Le pilote rejoue le paquet Figma figé dans Git. Il conserve 222 éléments, 50 variables et quatre ressources de contexte, mais qualifie seulement trois propriétés (largeur, hauteur, titre) et deux scénarios de bascule dans une fixture JavaScript isolée. Les faits JSON exécutés ne certifient ni les pixels natifs ni une livraison applicative, et ne démontrent pas l'accès authentifié Figma du runner ou une acquisition fraîche. L'utilisation sémantique des ressources exige des preuves effectives et ne découle pas de leurs empreintes.
+
+## Résultat
+
+QUALIFICATION RÉUSSIE — les cinq jobs exigés par `vnext-github-qualification.verifyQualification` sont SUCCESS sur le candidat exact, run `37293649217`. Le pilote Ubuntu/Windows, run `37293649180`, est SUCCESS. Le préflight local, run `37293649182`, est SUCCESS : 1 072 tests, 1 068 PASS, 0 FAIL, 4 SKIP ; réserve historique séparée : ancien artefact `kodjo-v2-recovery-34606534268-1` indisponible, sans relance.
+
+Les artefacts historiques Linux/Windows ont été téléchargés et leurs empreintes d'archive comparées aux digests GitHub. Le guard de publication a vérifié HEAD/checkpoint et parcouru les deux pages de workflows de la branche (168 résultats), sans opération active.
+
+La requête `FIGMA_INITIAL` unique `1c9be701-2e24-43f7-bd24-2030d1d3c6c1` référence ce candidat qualifié. Les changements de cette publication portent uniquement sur la requête et les preuves/checkpoints ; le fingerprint du code protocolaire doit rester identique au candidat qualifié. La publication déclenche le job réel dédié et les CI automatiques existantes ; elle ne dispatch pas V2 et ne sélectionne ni PRE-2/PRE-3 ni les reprises après validation.
+
+EN ATTENTE DU RÉSULTAT RÉEL — le résultat final, les sessions, les réserves, les fichiers modifiés et l'état Git seront renseignés après collecte des preuves effectives.
