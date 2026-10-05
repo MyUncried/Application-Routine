@@ -43,7 +43,12 @@ function fixture({ largeCatalog = false } = {}) {
     assert.deepEqual(dossier.target_catalog, produced.artifacts.reviewContext.target_catalog);
     const packed = dossier.artifacts.candidateManifest;
     assert.deepEqual(packed.rows.map(row => Object.fromEntries(packed.columns.map((key, i) => [key, row[i]]))), produced.artifacts.candidateManifest.candidates);
-    assert.deepEqual(dossier.consumer_sources, produced.reviewer_packet.consumers);
+    assert.deepEqual(dossier.consumer_sources.map(row => ({ path: row.path, source_hash: row.source_hash,
+      source: fs.readFileSync(row.source_path, 'utf8') })), produced.reviewer_packet.consumers);
+    assert.deepEqual(JSON.parse(fs.readFileSync(dossier.canonical_observation.path)), produced.artifacts);
+    assert.equal(dossier.canonical_observation.reconstruction_verified, true);
+    assert.ok(!dossier.instructions.includes('Avant de verifier les empreintes canoniques, reconstruire'));
+    assert.ok(args.includes('stream-json')); assert.ok(args.includes('--verbose'));
     const compact = JSON.parse(args[args.indexOf('--json-schema') + 1]);
     const compactFields = compact.properties.semantic_review.properties.findings.items.properties;
     assert.equal(compactFields.target_id.enum, undefined);

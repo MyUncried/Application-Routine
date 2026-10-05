@@ -13,6 +13,8 @@ test('Figma nominal: frozen Git -> source units -> requirements -> plan -> asser
  assert.deepEqual(F.unpackUi(packed.artifacts.uiAtomicityContract),a.uiAtomicityContract);
  const receipt=Chain.review(p,{cwd:f.cwd,claude:'TEST-INJECTED',invoke:(_bin,_args,_cwd,input)=>{
   const dossier=JSON.parse(input);assert.equal(dossier.figma_consumer_observation.references[0].reference_hash,f.snapshot.contract_hash);
+  assert.deepEqual(JSON.parse(fs.readFileSync(dossier.canonical_observation.path)).uiAtomicityContract,p.artifacts.uiAtomicityContract);
+  assert.ok(!dossier.instructions.includes('appeler unpackUi'));
   for(const r of dossier.figma_consumer_observation.references[0].assets)assert.ok(fs.readFileSync(r.path).length>0);
   assert.equal(JSON.parse(fs.readFileSync(dossier.figma_consumer_observation.manifest)).semantic_use,'NOT_ATTESTED_BY_BYTE_OBSERVATION');
   return JSON.stringify({type:'result',session_id:'TEST',structured_output:{semantic_review:{findings:[],finding_resolutions:[],target_catalog_hash:dossier.target_catalog_hash,reviewed_target_indices:Object.values(dossier.target_catalog).flat().map((_,i)=>i)},native_assessment_observations:dossier.native_assessment_subjects.map(r=>({criterion_id:r.assessment.criterion_id,assessment_hash:r.assessment_hash,verified:true,observed_git_evidence:[{path:"docs/spec.md",revision:f.docHead,content_sha256:V.sha256("Pressable toggle on press\n")}],reason:"TEST injected observation; no real native proof"}))}});

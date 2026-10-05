@@ -1,0 +1,29 @@
+# Tâche 2 — correction de la revue et reprise autorisée
+
+Mission VNEXT_TASK2_REVIEW_CORRECTION. Autorisation utilisateur du 6 octobre 2026 à 01:39 Paris : corriger et relancer le protocole. Branche `protocol/vnext-proof-stability-20260930`, PR #269 draft ; départ local `1054bcb501b1ccf6890ace35fcebf4fc2957ca69`, distant `6ec750620a690b777884d255200ca43bd2a3ae43`. Portée : revue et reprise de la tâche 2 isolée uniquement. Pas de tâche 3, revue de clôture, activation, V2, PRE-2 ou PRE-3.
+
+## Correctif
+
+Le contrôleur reconstruit les candidats, le catalogue et les références Figma ; compare intégralement les objets reconstruits aux contrats canoniques vérifiés et matérialise un fichier canonique exact. Claude reçoit l'identité de ce fichier et les empreintes vérifiées. Les instructions n'exigent plus qu'il exécute `unpackUi` ou calcule les hashes avec ses outils de lecture.
+
+Les sources exactes des 28 consommateurs sont matérialisées en fichiers hors checkout, relues et contrôlées par empreinte. Le dossier contient leurs chemins Git, chemins de lecture et hashes ; aucun consommateur ni cible n'est supprimé. Mesure hors ligne sur le précédent `produced.json` : 1 078 245 → 755 364 octets du dossier compact, avant instructions et chemins Figma. Cette réduction d'environ 30 % ne mesure pas les lectures futures du modèle ni sa durée. Une consultation reste requise ; disponibilité et conformité sémantique restent distinctes.
+
+Le nouveau superviseur lit le flux `stream-json`, conserve uniquement le résultat final exact pour la validation existante et persiste pendant l'appel la version CLI, PID, dates, nombre et types des événements. Aucun texte d'assistant, raisonnement, entrée d'outil ou secret n'entre dans ce journal de progression. Un flux malformé, un résultat final absent ou dupliqué, une erreur d'archivage ou un timeout sont refusés. La revue reste restreinte à Read/Glob/Grep, sans MCP, écriture ou Bash. La limite de l'appel Claude reste 600 000 ms en INITIAL ; le parent accorde seulement la marge de supervision/version/nettoyage, sans prolonger cet appel.
+
+La qualification dédiée utilisera une seule branche nouvelle `qualification/vnext-task2-review-20261006`. La précédente demande consommée reste inchangée jusqu'à la qualification ; elle ne sera jamais rejouée. La nouvelle demande ne sera publiée qu'après vérification du SHA exact et des cinq jobs réussis. Les preuves et rapports locaux de l'échec sont inclus dans la publication documentaire du correctif.
+
+## Vérifications et seconde passe
+
+Tests ciblés : 27/27 PASS. Tests locaux élargis : 334 cas, 333 PASS, 0 FAIL, 1 SKIP (navigateur absent de ce workspace). Ce SKIP n'est pas revendiqué comme une observation réelle. Syntaxe YAML indépendante : 64 workflows acceptés ; invariants exécutables des workflows et whitespace : PASS. Journaux et hashes sous `task2/review-fix-20261006/`.
+
+Le test de processus utilise un vrai enfant Node : résultat JSON UTF-8 conservé, progression sans contenu sensible, événement avant interruption conservé, absence de résultat refusée, flux invalides ou résultat dupliqué refusés. Les tests de chaîne vérifient la correspondance exacte entre les fichiers matérialisés et les contrats/sources. Une substitution de candidat est refusée avant invocation. Les contrôles de couverture, dépendances, récupération sans nouvel appel et checkout immuable restent actifs.
+
+Seconde passe séparée : diff et limites du superviseur relus ; décodage UTF-8 par stream explicite ; version CLI extraite par motif numérique ; validation finale originale conservée ; refus d'échec et de résultat manquant vérifiés. La cause profonde du timeout précédent demeure non démontrée. Aucun appel Claude réel pendant les tests locaux.
+
+## Livraison et état de reprise
+
+PRESERVE : contrats canoniques, couverture intégrale, qualification acquise historique, preuves, code applicatif, workflows historiques. CHANGE : préparation du dossier de revue, superviseur, tests concernés, branche de qualification dédiée, checkpoint et ce rapport. FORBIDDEN : toute extension de périmètre ou rejeu de l'UUID consommé.
+
+Fichiers de code : `scripts/kodjo/lib/vnext-live-chain.js`, `scripts/kodjo/lib/vnext-review-process.js` ; tests : `vnext-live-chain.pilot.js`, `vnext-figma-source.pilot.js`, `vnext-review-process.pilot.js`. Workflow : `.github/workflows/kodjo-vnext-proof-stability.yml`. Documentation/preuves : checkpoint, ce rapport, journaux et mesures locaux ; preuves d'échec préexistantes conservées.
+
+Qualification distante et parcours réel : en attente de publication à ce point. Aucune réussite de tâche 2 revendiquée. Aucun test sur appareil réel ; fixture isolée et références Figma figées uniquement. Commit final et état Git seront fournis après publication/relancement ; le commit de ce rapport est retrouvable avec `git log -1 --format=%H -- .github/orchestration/reports/2026-10-06_VNEXT_TASK2_REVIEW_CORRECTION.md`.

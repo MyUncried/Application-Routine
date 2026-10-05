@@ -298,7 +298,35 @@ function preserveFailure(error, record) {
   return error;
 }
 
-function review(produced, { cwd, claude = require('./claude-local').resolveClaudeBinary(), github, invoke = command, evidenceDirectory } = {}) {
+function materializeReviewDossier(dossier, produced, directory) {
+  const canonical = structuredClone(dossier.artifacts);
+  const manifest = canonical.candidateManifest;
+  if (manifest.rows) {
+    manifest.candidates = manifest.rows.map(row => Object.fromEntries(manifest.columns.map((key, i) => [key, row[i]])));
+    delete manifest.columns; delete manifest.rows;
+  }
+  canonical.reviewContext.target_catalog = dossier.target_catalog;
+  if (canonical.uiAtomicityContract?.figma_references?.length)
+    canonical.uiAtomicityContract = require('./vnext-figma-source').unpackUi(canonical.uiAtomicityContract);
+  if (V.canonicalStringify(canonical) !== V.canonicalStringify(produced.artifacts)) V.fail('VNEXT_REVIEW_CANONICAL_RECONSTRUCTION_MISMATCH');
+  const file = path.join(directory, 'canonical-artifacts.json');
+  const content = JSON.stringify(canonical);
+  fs.writeFileSync(file, content, { flag: 'wx' });
+  dossier.canonical_observation = { path: file, sha256: V.sha256(fs.readFileSync(file)),
+    reconstruction_verified: true, artifact_hashes: Object.fromEntries(Object.entries(canonical)
+      .filter(([, value]) => value?.contract_hash).map(([key, value]) => [key, value.contract_hash])),
+    semantic_use: 'NOT_ATTESTED_BY_BYTE_OBSERVATION' };
+  const consumers = path.join(directory, 'consumers'); fs.mkdirSync(consumers);
+  dossier.consumer_sources = dossier.consumer_sources.map((consumer, index) => {
+    if (V.sha256(consumer.source) !== consumer.source_hash) V.fail('VNEXT_REVIEW_CONSUMER_SOURCE_MISMATCH');
+    const sourcePath = path.join(consumers, index + '.js');
+    fs.writeFileSync(sourcePath, consumer.source, { flag: 'wx' });
+    if (V.sha256(fs.readFileSync(sourcePath)) !== consumer.source_hash) V.fail('VNEXT_REVIEW_CONSUMER_MATERIALIZATION_MISMATCH');
+    return { path: consumer.path, source_hash: consumer.source_hash, source_path: sourcePath };
+  });
+  return dossier;
+}
+function review(produced, { cwd, claude = require('./claude-local').resolveClaudeBinary(), github, invoke = require('./vnext-review-process').command, evidenceDirectory } = {}) {
   const artifacts = verifyProduced(produced, cwd, github);
   const schema = { type: 'object', additionalProperties: false, required: ['semantic_review', 'native_assessment_observations'],
     properties: { semantic_review: Review.reviewerOutputSchema(artifacts.reviewContext),
@@ -344,6 +372,11 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   }
   if (evidenceDirectory && fs.existsSync(responsePath(produced, evidenceDirectory))) V.fail('VNEXT_REVIEW_RESPONSE_EXISTS_USE_RECOVERY');
   const configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-vnext-review-'));
+  try { materializeReviewDossier(dossier, produced, configDir); }
+  catch (error) { fs.rmSync(configDir, { recursive: true, force: true }); throw error; }
+  dossier.instructions = dossier.instructions.replace('Avant de verifier les empreintes canoniques, reconstruire candidateManifest.candidates depuis columns/rows et reviewContext.target_catalog depuis target_catalog ; cette projection de transport ne remplace pas les contrats canoniques.',
+    'Le controleur a reconstruit et verifie les objets canoniques avant cet appel ; canonical_observation indique le fichier exact et les empreintes verifiees. Lire ce fichier selon les besoins de la revue ; aucun calcul de hash ni execution de code ne vous est demande. La projection de transport ne remplace pas les contrats canoniques.');
+  dossier.instructions += ' Les sources exactes des consommateurs sont disponibles dans consumer_sources[].source_path, avec leur chemin Git et empreinte verifies. Utiliser Read pour les consulter ; ne pas executer les consommateurs.';
   fs.writeFileSync(path.join(configDir, 'mcp.json'), JSON.stringify({ mcpServers: {} }));
   fs.writeFileSync(path.join(configDir, 'settings.json'), JSON.stringify({ disableAllHooks: true }));
   if(artifacts.uiAtomicityContract?.figma_references?.length){
@@ -351,7 +384,7 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
     const plan='<KODJO_VNEXT_UI_ATOMICITY_JSON>'+JSON.stringify(artifacts.uiAtomicityContract)+'</KODJO_VNEXT_UI_ATOMICITY_JSON>\n<KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON>'+JSON.stringify(artifacts.requirementRegistry)+'</KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON>';
     const observation=require('./vnext-figma-source').consume(plan,directory,'PLANNER'),manifest=path.join(directory,'observation.json');fs.writeFileSync(manifest,JSON.stringify(observation,null,2)+'\n');
     dossier.figma_consumer_observation={stage:'PLANNER',manifest,contract_hash:observation.contract_hash,references:observation.references.map(r=>({source_id:r.source_id,reference_hash:r.reference_hash,assets:r.assets}))};
-    dossier.instructions+=' Les ressources Figma sont materialisees dans figma_consumer_observation.references[].assets ; ouvrir les captures PNG avec Read et lire le manifeste des proprietes et les SVG exacts. Le transport Figma columnar est sans perte : appeler unpackUi du consommateur fourni pour reconstruire les objets canoniques avant verification des hashes. Un octet transporte n’est pas une preuve de consultation ni de conformite. Signaler toute ressource inaccessible comme finding ; ne pas approuver par simple reference au composant reutilise.';
+    dossier.instructions+=' Les ressources Figma sont materialisees dans figma_consumer_observation.references[].assets ; ouvrir les captures PNG avec Read et lire le manifeste des proprietes et les SVG exacts. Le controleur a deja execute unpackUi et verifie la reconstruction canonique Figma ; aucun appel de fonction ne vous est demande. Un octet transporte n’est pas une preuve de consultation ni de conformite. Signaler toute ressource inaccessible comme finding ; ne pas approuver par simple reference au composant reutilise.';
   }
   const input = JSON.stringify(dossier), timeoutMs = artifacts.planningEnvelope.planning_mode === 'REVISION' ? 900000 : 600000;
   const diagnostic = { schema_version: 'kodjo.vnext.review-process-diagnostic.v1',
@@ -376,7 +409,7 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   try {
     saveDiagnostic();
     raw = invoke(claude, ['--add-dir', configDir, '-p', '--restricted', '--permission-mode', 'dontAsk', '--permission-prompts', 'none',
-      '--output-format', 'json', '--tools', 'Read,Glob,Grep', '--allowedTools', 'Read,Glob,Grep',
+      '--output-format', 'stream-json', '--verbose', '--tools', 'Read,Glob,Grep', '--allowedTools', 'Read,Glob,Grep',
       '--disallowedTools', 'mcp__*', '--strict-mcp-config', '--mcp-config', path.join(configDir, 'mcp.json'),
       '--settings', path.join(configDir, 'settings.json'), '--json-schema', JSON.stringify(transportSchema)], cwd, input, env, timeoutMs, { onResult: result => {
         const { stdout, stderr, ...metadata } = result;
@@ -384,7 +417,8 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
         Object.assign(diagnostic, metadata, { invocation_completed: true,
           stdout: boundedReviewOutput(stdout), stderr: boundedReviewOutput(stderr) });
         archive(saveDiagnostic);
-      } });
+      }, progressPath: evidenceDirectory && path.join(evidenceDirectory,
+        artifacts.planningEnvelope.planning_mode.toLowerCase() + '-review-progress.json') });
     if (evidenceDirectory && !fs.existsSync(responsePath(produced, evidenceDirectory))) archive(() => saveResponse(raw));
     diagnostic.stdout = boundedReviewOutput(raw);
     const receipt = validateReviewResponse(produced, raw);
@@ -614,4 +648,4 @@ function guardLocalRequest(raw, { cwd, queueFile, github } = {}) {
 }
 
 module.exports = { SCHEMA, command, relative, readGit, unitText, observeSources, launchAndProduce, produce, verifyProduced,
-  compactReviewDossier, decodeReviewOutput, boundedReviewOutput, validateReviewResponse, recoverReview, reviewOrRecover, preserveFailure, review, verifyReceipt, validateReceipt, nativeResolver, preparedArtifacts, prepare, approvalTarget, deriveQueue, admit, guard, guardLocalRequest };
+  compactReviewDossier, materializeReviewDossier, decodeReviewOutput, boundedReviewOutput, validateReviewResponse, recoverReview, reviewOrRecover, preserveFailure, review, verifyReceipt, validateReceipt, nativeResolver, preparedArtifacts, prepare, approvalTarget, deriveQueue, admit, guard, guardLocalRequest };
