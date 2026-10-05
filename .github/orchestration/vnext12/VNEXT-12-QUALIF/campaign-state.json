@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-05T14:32:22.673076+00:00",
+  "recorded_at": "2026-10-05T22:51:00Z",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "73787f296d78ab3c435fa04ef993f0ef8382141f",
-  "controller_stage": "FIGMA_TASK2_TARGETED_PERFORMANCE_AUTHORIZED",
-  "controller_generation": 58,
+  "controller_stage": "FIGMA_TASK2_QUALIFICATION_ADMISSION_REPAIR",
+  "controller_generation": 59,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -1842,5 +1842,19 @@
       "next_launch_authorized": false
     }
   },
-  "pending_actions_scope_notice": "Existing historical pending_actions are not execution authorization. Current authorization covers task 2 only; task 3, independent closure, V2, PRE-2 and PRE-3 remain excluded."
+  "pending_actions_scope_notice": "Existing historical pending_actions are not execution authorization. Current authorization covers task 2 only; task 3, independent closure, V2, PRE-2 and PRE-3 remain excluded.",
+  "task2_resume_20261006": {
+    "authorization": "USER_2026-10-06_00:46_PARIS_TASK2_ONLY",
+    "qualified_head": "3ad6426f4ffec579247da4062950091d4e5497ea",
+    "qualified_run": 37380874773,
+    "qualification_result": "SUCCESS",
+    "admission_gap": "Existing verifier accepts only pull_request but successful exact-head run event is create",
+    "repair": "Accept create evidence only on dedicated qualification/vnext-* branches while preserving repository workflow head and all five completed-success jobs",
+    "qualification_branch": "qualification/vnext-task2-admission-20261006",
+    "old_request_consumed": true,
+    "new_request_pending": true,
+    "runtime_launched": false,
+    "task3_authorized": false,
+    "closure_authorized": false
+  }
 }

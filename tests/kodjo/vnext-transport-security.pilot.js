@@ -27,6 +27,21 @@ test('qualification admission refuses stale, incomplete, failed or wrong workflo
   }
   assert.throws(() => Q.verifyQualification({ repository, head, read: f.read }), /RUN_REQUIRED/);
 });
+test('dedicated branch qualification preserves exact-head and every-job admission gates', () => {
+  const f = qualification();
+  f.run.event = 'create'; f.run.head_branch = 'qualification/vnext-task2-admission-20261006';
+  assert.equal(Q.verifyQualification({ repository, head, runId: 42, read: f.read }).status, 'VERIFIED');
+  for (const patch of [{ head_branch: 'main' }, { head_branch: 'feature/test' }, { head_branch: null },
+    { event: 'workflow_dispatch' }, { head_sha: 'b'.repeat(40) }, { conclusion: 'failure' }]) {
+    assert.throws(() => Q.verifyQualification({ repository, head, runId: 42,
+      read: endpoint => endpoint.endsWith('/42') ? { ...f.run, ...patch } : { jobs: f.jobs } }), /RUN_NOT_VERIFIED/);
+  }
+  for (const jobs of [f.jobs.slice(1), f.jobs.map((j,i) => i ? j : { ...j, conclusion: 'skipped' }),
+    f.jobs.map((j,i) => i ? j : { ...j, head_sha: 'b'.repeat(40) }), [...f.jobs, f.jobs[0]]]) {
+    assert.throws(() => Q.verifyQualification({ repository, head, runId: 42,
+      read: endpoint => endpoint.endsWith('/42') ? f.run : { jobs } }), /JOB_NOT_VERIFIED/);
+  }
+});
 test('publication admission refuses a moved parent, checkpoint or active phase including later API pages', () => {
   const branch = 'protocol/test', checkpointSha = 'c'.repeat(40);
   const state = { repository, branch, controller_generation: 18, active_runs: [] };

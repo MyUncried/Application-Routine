@@ -24,8 +24,12 @@ function verifyQualification({ repository, head, runId, read = readGithub }) {
   if (!/^[1-9][0-9]*$/.test(String(runId))) V.fail('VNEXT_QUALIFICATION_RUN_REQUIRED');
   const base = 'repos/' + repository + '/actions/runs/' + runId;
   const run = read(base);
+  // Dedicated qualification branches execute the same exact-head matrix without
+  // the automatic PR workflows. Accept that evidence only with all jobs below.
+  const qualifiedEvent = run.event === 'pull_request' || (run.event === 'create'
+    && typeof run.head_branch === 'string' && run.head_branch.startsWith('qualification/vnext-'));
   if (String(run.id) !== String(runId) || run.repository?.full_name !== repository
-      || run.head_sha !== head || run.path !== WORKFLOW || run.event !== 'pull_request'
+      || run.head_sha !== head || run.path !== WORKFLOW || !qualifiedEvent
       || run.status !== 'completed' || run.conclusion !== 'success'
       || !Number.isInteger(run.run_attempt) || run.run_attempt < 1) V.fail('VNEXT_QUALIFICATION_RUN_NOT_VERIFIED');
   const jobs = pages(base + '/attempts/' + run.run_attempt + '/jobs', 'jobs', read);
