@@ -47,18 +47,22 @@ function sha256(value) {
   return crypto.createHash('sha256').update(typeof value === 'string' ? value : canonical(value), 'utf8').digest('hex');
 }
 const DEVICE_PROOF_TYPES = new Set(['VISUAL_COMPARE', 'DEVICE_CHECK']);
-// True when there is at least one proof and every proof is either a technical PASS or a device
+// Same deferral rule as verify-ui-implementation-review.js (DEFERABLE_PROOFS): an accessibility
+// proof may be PASS, or PENDING_DEVICE when only runtime VoiceOver/TalkBack evidence remains,
+// and is then closed by the human gate (PRE-2, finalization run 37244733631).
+const ACCESSIBILITY_PROOF_TYPE = 'ACCESSIBILITY_CHECK';
+const DEFERABLE_PROOF_TYPES = new Set([...DEVICE_PROOF_TYPES, ACCESSIBILITY_PROOF_TYPE]);
+function proofAllowedBeforeGate(type, status) {
+  if (DEVICE_PROOF_TYPES.has(type)) return status === 'PENDING_DEVICE';
+  if (type === ACCESSIBILITY_PROOF_TYPE) return status === 'PASS' || status === 'PENDING_DEVICE';
+  return status === 'PASS';
+}
+// True when there is at least one proof and every proof is either a technical PASS or a deferable
 // proof still PENDING_DEVICE (a device PASS before the human gate is never accepted).
 function devicePendingOnly(proofs) {
   const rows = Array.isArray(proofs) ? proofs : [];
   for (const proof of rows) {
-    const type = String(proof && proof.proof_type || '');
-    const status = String(proof && proof.status || '');
-    if (DEVICE_PROOF_TYPES.has(type)) {
-      if (status !== 'PENDING_DEVICE') return false;
-    } else if (status !== 'PASS') {
-      return false;
-    }
+    if (!proofAllowedBeforeGate(String(proof && proof.proof_type || ''), String(proof && proof.status || ''))) return false;
   }
   return rows.length > 0;
 }
@@ -66,7 +70,7 @@ function hasPendingDeviceProof(criterion) {
   const rows = [...(Array.isArray(criterion.proof_results) ? criterion.proof_results : []),
     ...(Array.isArray(criterion.assertion_results) ? criterion.assertion_results : [])
       .flatMap((assertion) => Array.isArray(assertion && assertion.proof_results) ? assertion.proof_results : [])];
-  return rows.some((proof) => DEVICE_PROOF_TYPES.has(String(proof && proof.proof_type || '')) &&
+  return rows.some((proof) => DEFERABLE_PROOF_TYPES.has(String(proof && proof.proof_type || '')) &&
     String(proof && proof.status || '') === 'PENDING_DEVICE');
 }
 
@@ -197,6 +201,8 @@ function verify(args) {
         const status = String(proof.status || '');
         if (type === 'VISUAL_COMPARE' || type === 'DEVICE_CHECK') {
           if (status !== 'PENDING_DEVICE') fail('V2_FINAL_DEVICE_PROOF_PRE_GATE_INVALID', String(criterion.criterion_id) + ':' + type);
+        } else if (type === ACCESSIBILITY_PROOF_TYPE) {
+          if (!proofAllowedBeforeGate(type, status)) fail('V2_FINAL_TECHNICAL_PROOF_NOT_PASS', String(criterion.criterion_id) + ':' + type);
         } else if (status !== 'PASS') {
           fail('V2_FINAL_TECHNICAL_PROOF_NOT_PASS', String(criterion.criterion_id) + ':' + type);
         }
