@@ -7,6 +7,8 @@ const V=require('./lib/vnext-contract'),F=require('./lib/vnext-figma-source'),La
 const GitIntegrity=require('./lib/git-runtime-integrity'),Lock=require('./lib/execution-lock');
 const ROOT='.github/orchestration/vnext12/VNEXT-12-QUALIF';
 const CAMPAIGN='628b3349-88b4-4bf1-be6b-50bc09e7d245';
+const Browser=require('./lib/vnext-figma-browser-observer');
+const BINDING={decision:'CREATE',justification:'Create the disposable render surface in the declared application path; the unchanged Existing Boolean export is a preserved dependency, not an extendable UI component.'};
 const SCREEN='src/features/example/Screen.js',TEST='tests/ui.test.js',KEEP='src/shared/ui/Existing.js';
 const digest=b=>crypto.createHash('sha256').update(b).digest('hex');
 function seal(p){const x=structuredClone(p);delete x.contract_hash;return V.sealContract(x);}
@@ -56,14 +58,16 @@ function invokeClaude(cwd,prompt,directory,role,{write=false}={}){
  const response=JSON.parse(raw);if(response.type!=='result'||response.is_error||!response.session_id)throw Error('VNEXT_FIGMA_REAL_CLAUDE_RESULT_INVALID:'+role);return {session_id:response.session_id,raw_response_sha256:V.sha256(raw),role};
 }
 function observe(f,packet,dir){
- const modulePath=path.join(f.cwd,SCREEN);delete require.cache[require.resolve(modulePath)];const screen=require(modulePath);
- if(typeof screen.render!=='function'||typeof screen.toggle!=='function'||typeof screen.reset!=='function')throw Error('VNEXT_FIGMA_REAL_EXPORTS_MISSING');
- const actual=screen.render(),values={};
+ const required=F.required(packet),frame=required.find(d=>d.property==='width'),title=required.find(d=>d.property==='characters');
+ if(!frame||!title)throw Error('VNEXT_FIGMA_REAL_RENDER_SUBJECTS_MISSING');
+ const browserConfig={screen:path.join(f.cwd,SCREEN),keep:path.join(f.cwd,KEEP),directory:dir,viewport:frame.rule.viewports[0],height:required.find(d=>d.property==='height').rule.value,frameId:frame.element_id,titleId:title.element_id,transitions:[{scenario_id:'toggle-off-on',method:'toggle',expected:true},{scenario_id:'toggle-on-off',method:'toggle',expected:false}]};
+ const configPath=path.join(dir,'browser-config.json');fs.writeFileSync(configPath,JSON.stringify(browserConfig));
+ const actual=JSON.parse(Chain.command(process.execPath,[path.resolve(__dirname,'lib/vnext-figma-browser-observer.js'),configPath],f.cwd,null,process.env,60000)),values={};
  for(const d of F.required(packet)){const key=d.property==='characters'?'title':d.property;if(!Object.hasOwn(actual,key))throw Error('VNEXT_FIGMA_REAL_RENDER_VALUE_MISSING:'+key);values[d.property_id]=actual[key];}
- screen.reset();const first=screen.toggle(),second=screen.toggle();const states={'toggle-off-on':first===true,'toggle-on-off':second===false};
+ const states=actual.scenarios;
  const content=JSON.stringify({values,scenarios:states});fs.writeFileSync(path.join(dir,'execution.json'),content);
  const head=f.git('rev-parse','HEAD'),artifact={artifact_path:'execution.json',artifact_sha256:digest(Buffer.from(content)),observer:'EXECUTED_JSON_FACT',delivery_head:head};
- return {measurements:F.required(packet).flatMap(d=>d.rule.viewports.map(viewport=>({...artifact,measurement_id:d.property_id+'@'+viewport,property_id:d.property_id,reference_hash:packet.contract_hash,viewport,value:values[d.property_id],value_path:['values',d.property_id],evidence:'Executed disposable render() output; this is not a native pixel measurement.'}))),scenarioResults:packet.states.flatMap(s=>(s.scenarios||[]).map(s=>({...artifact,scenario_id:s.scenario_id,reference_hash:packet.contract_hash,status:states[s.scenario_id]?'PASS':'FAIL',value:states[s.scenario_id],value_path:['scenarios',s.scenario_id],proof_results:s.proof_required.map(proof_type=>({proof_type,status:states[s.scenario_id]?'PASS':'FAIL'}))})))};
+ return {measurements:F.required(packet).flatMap(d=>d.rule.viewports.map(viewport=>({...artifact,measurement_id:d.property_id+'@'+viewport,property_id:d.property_id,reference_hash:packet.contract_hash,viewport,value:values[d.property_id],value_path:['values',d.property_id],evidence:'Measured browser DOM bounds and text at the declared viewport; screenshot preserved. Browser pixels are not native-device certification.'}))),scenarioResults:packet.states.flatMap(s=>(s.scenarios||[]).map(s=>({...artifact,scenario_id:s.scenario_id,reference_hash:packet.contract_hash,status:states[s.scenario_id]?'PASS':'FAIL',value:states[s.scenario_id],value_path:['scenarios',s.scenario_id],proof_results:s.proof_required.map(proof_type=>({proof_type,status:states[s.scenario_id]?'PASS':'FAIL'}))})))};
 }
 function assertDelta(f,beforeKeep){if(f.gitIntegrity&&GitIntegrity.compare(f.gitIntegrity,GitIntegrity.snapshot(f.cwd)).length)throw Error('VNEXT_FIGMA_REAL_GIT_METADATA_CHANGED');const changed=f.git('diff','--name-only','HEAD').split('\n').filter(Boolean);if(changed.some(p=>![SCREEN,TEST].includes(p))||f.git('ls-files','--others','--exclude-standard'))throw Error('VNEXT_FIGMA_REAL_WRITE_SCOPE_REFUSED');if(digest(fs.readFileSync(path.join(f.cwd,KEEP)))!==beforeKeep)throw Error('VNEXT_FIGMA_REAL_PRESERVATION_FAILED');}
 function compare(f,packet,plan,dir){fs.mkdirSync(dir,{recursive:true});const observations=observe(f,packet,dir);const options={cwd:f.cwd,approvedPlanSha256:V.sha256(plan),deliveryHead:f.git('rev-parse','HEAD'),evidenceDirectory:dir,...observations};Review.prepare(plan,options);return options;}
@@ -77,8 +81,8 @@ async function initial(output){
  try{
   const scope={slice_id:'VNEXT-12-QUALIF',launch_id:'figma-real-'+crypto.randomUUID(),file_key:f.snapshot.file_key,frames:f.snapshot.frames,documents:f.snapshot.documents};
   const checkpoint=await Launch.launch(scope,{capture:s=>capture(f.snapshot,s),reconcile:(raw,documents)=>({...raw,documents,states:f.snapshot.states,decisions:f.snapshot.decisions,conflicts:[]}),persist:()=>({revision:f.head,path:f.packetPath,content:Chain.readGit(f.cwd,f.head,f.packetPath)})});save('launch.json',checkpoint);
-  const intent='Disposable protocol qualification only: in '+SCREEN+' preserve the Existing import/export and add render() returning width 402, height 874, title "Zones corporelles" from the frozen property reference; selected starts false; reset() sets false; toggle() reverses and returns the Boolean. In '+TEST+' add executable checks of this output and the two toggle transitions. No native-device or pixel compliance claim. Only these two files may change; no dependencies.';
-  const recipe=Recipe.build(f.cwd,checkpoint,{applicationPath:SCREEN,testPath:TEST,componentPath:KEEP,issueId:'github_issue:MyUncried/Application-Routine#269',intent,executionContext:{mode:'LOCAL',writer_id:'CLAUDE:figma-disposable'}});
+  const intent='Disposable browser qualification: in '+SCREEN+' preserve the Existing import/export and add render() returning HTML markup for a frame data-figma-id="4478:7209" with CSS width 402px and height 874px, containing title data-figma-id="4953:6611" with text "Zones corporelles". These browser layout units map one-to-one to the fixed reference logical points for this isolated case. A trusted separate browser measures getBoundingClientRect and textContent at viewport 402, retains a screenshot, and checks the reference without reading numeric return constants. Selection initially off; toggle() reverses and returns Boolean. In '+TEST+' check the rendered markup contract and both toggle transitions. Only these two files may change; no dependencies. Native device certification is outside this isolated browser case.';
+  const recipe=Recipe.build(f.cwd,checkpoint,{applicationPath:SCREEN,testPath:TEST,componentPath:KEEP,componentBinding:BINDING,scenarioPropertyType:'STATE',observationIntent:'The trusted observer measures the rendered browser DOM geometry and text at the fixed viewport and retains a screenshot; functional checks execute the declared selection transitions. Browser measurement does not certify a native device.',issueId:'github_issue:MyUncried/Application-Routine#269',intent,executionContext:{mode:'LOCAL',writer_id:'CLAUDE:figma-disposable'}});
   const produced=Chain.produce(recipe,{cwd:f.cwd});save('produced.json',produced);const receipt=Chain.reviewOrRecover(produced,{cwd:f.cwd,evidenceDirectory:path.join(output,'plan-review')});save('plan-review.json',receipt);Chain.validateReceipt(produced,receipt);
   const a=produced.artifacts,plan=Adapter.renderCompatibilityPlan({application_head:a.planningEnvelope.application_head,plan_contract_hash:a.planContract.contract_hash},a.planContract,a.uiAtomicityContract,a.requirementRegistry,a.candidateManifest);fs.writeFileSync(path.join(output,'approved-plan.md'),plan);
   const references=path.join(output,'implementation-references');fs.mkdirSync(references);const observed=F.consume(plan,references,'IMPLEMENTER');save('implementation-observation.json',observed);
@@ -90,9 +94,9 @@ async function initial(output){
   fs.writeFileSync(path.join(output,'initial-screen.js'),fs.readFileSync(path.join(f.cwd,SCREEN)));fs.writeFileSync(path.join(output,'initial-test.js'),fs.readFileSync(path.join(f.cwd,TEST)));
   // Explicit fault injection demonstrates the measurement gate. It is not an
   // application defect and no reviewer verdict is manufactured.
-  fs.appendFileSync(path.join(f.cwd,SCREEN),'\nconst originalRender = module.exports.render; module.exports.render = () => ({...originalRender(), width: originalRender().width + 1});\n');
+  fs.appendFileSync(path.join(f.cwd,SCREEN),'\nmodule.exports.__figmaWidthDelta = 1;\n');
   let rejection;try{compare(f,f.snapshot,plan,path.join(output,'negative-review'));}catch(e){rejection=e.message;}if(!rejection||!rejection.includes('TARGET_NOT_SATISFIED'))throw Error('VNEXT_FIGMA_REAL_NEGATIVE_NOT_REFUSED');save('negative.json',{fault_injection:true,diagnostic:rejection,model_approval_fabricated:false});
-  status.correction=invokeClaude(f.cwd,{instructions:'One causal correction only: remove the explicitly injected width+1 override at the end of '+SCREEN+'. Preserve the rest of the delivered implementation and test. Do not rewrite the initial implementation. The exact fixed reference and plan still apply.',approved_plan:path.join(output,'approved-plan.md'),diagnostic:rejection},path.join(output,'correction'),'BOUNDED_CORRECTION',{write:true});verifyReferences();assertDelta(f,keep);Chain.command(process.execPath,[TEST],f.cwd);
+  status.correction=invokeClaude(f.cwd,{instructions:'One causal correction only: remove the explicitly injected __figmaWidthDelta = 1 line at the end of '+SCREEN+'. Preserve the rest of the delivered implementation and test. Do not rewrite the initial implementation. The exact fixed reference and plan still apply.',approved_plan:path.join(output,'approved-plan.md'),diagnostic:rejection},path.join(output,'correction'),'BOUNDED_CORRECTION',{write:true});verifyReferences();assertDelta(f,keep);Chain.command(process.execPath,[TEST],f.cwd);
   if(!fs.readFileSync(path.join(f.cwd,SCREEN)).equals(fs.readFileSync(path.join(output,'initial-screen.js'))))throw Error('VNEXT_FIGMA_REAL_CORRECTION_PRESERVATION_FAILED');
   const corrected=Review.review(plan,compare(f,f.snapshot,plan,path.join(output,'corrected-review')));save('corrected-review.json',corrected);if(corrected.assessment.verdict!=='APPROVE')throw Error('VNEXT_FIGMA_REAL_CORRECTION_REVISE');
   status.delivery_head=f.git('rev-parse','HEAD');status.approved_plan_sha256=V.sha256(plan);status.reference_hash=f.snapshot.contract_hash;status.preservation_sha256=keep;status.acceptance_target_hash=V.canonicalHash({campaign_id:CAMPAIGN,delivery_head:status.delivery_head,approved_plan_sha256:status.approved_plan_sha256,reference_hash:status.reference_hash});status.status='INITIAL_AND_CORRECTION_PASS_AWAITING_OWNER_TECHNICAL_ACCEPTANCE';
@@ -109,7 +113,7 @@ async function precheck(output){
   const produced=await Chain.launchAndProduce(scope,{
    cwd:f.cwd,capture:s=>capture(f.snapshot,s),reconcile:(raw,documents)=>({...raw,documents,states:Launch.documentStates(documents),decisions:f.snapshot.decisions,conflicts:[]}),
    persist:()=>({revision:f.head,path:f.packetPath,content:Chain.readGit(f.cwd,f.head,f.packetPath)}),
-   buildRecipe:c=>Recipe.build(f.cwd,c,{applicationPath:SCREEN,testPath:TEST,componentPath:KEEP,issueId:'github_issue:MyUncried/Application-Routine#269',intent:'Local contract precheck of the declared disposable code and test mapping.',executionContext:{mode:'LOCAL',writer_id:'CLAUDE:figma-disposable'}})
+   buildRecipe:c=>Recipe.build(f.cwd,c,{applicationPath:SCREEN,testPath:TEST,componentPath:KEEP,componentBinding:BINDING,scenarioPropertyType:'STATE',observationIntent:'The trusted observer measures the rendered browser DOM geometry and text at the fixed viewport and retains a screenshot; functional checks execute the declared selection transitions. Browser measurement does not certify a native device.',issueId:'github_issue:MyUncried/Application-Routine#269',intent:'Local contract precheck of the declared disposable code and test mapping.',executionContext:{mode:'LOCAL',writer_id:'CLAUDE:figma-disposable'}})
   });
   Chain.verifyProduced(produced,f.cwd);
   const source=produced.artifacts.planningEnvelope.source_manifest.sources.find(s=>s.source_kind==='FIGMA'),bytes=Chain.readGit(f.cwd,source.revision,source.locator.slice(15));
@@ -124,6 +128,7 @@ async function main(){
  if(fs.existsSync(directory)&&fs.readdirSync(directory).length)throw Error('VNEXT_FIGMA_REAL_EVIDENCE_ALREADY_EXISTS');fs.mkdirSync(directory,{recursive:true});
  if(stage==='precheck'){process.stdout.write(JSON.stringify(await precheck(directory))+'\n');return;}
  if(process.platform!=='win32'||!requestFile)throw Error('VNEXT_FIGMA_REAL_WINDOWS_REQUEST_REQUIRED');
+ Browser.resolveBrowser();
  if(Lock.claudeProcessState().state!=='NONE')throw Error('VNEXT_FIGMA_REAL_OTHER_CLAUDE_ACTIVE_OR_AMBIGUOUS');
  const request=JSON.parse(fs.readFileSync(requestFile,'utf8')),claimed=claimRequest(request,{cwd:process.cwd()});
  for(const key of ['GH_TOKEN','GITHUB_TOKEN','KODJO_LIVE_GH_TOKEN','KODJO_VNEXT_CONSUMPTION_TOKEN'])delete process.env[key];

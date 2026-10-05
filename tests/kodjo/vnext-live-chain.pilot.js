@@ -17,7 +17,8 @@ function fixture({ largeCatalog = false } = {}) {
   const repo = F.fixtureRepo();
   const git = (...args) => execFileSync('git', args, { cwd: repo.cwd, encoding: 'utf8' }).trim();
   const write = (file, content) => { fs.mkdirSync(path.dirname(path.join(repo.cwd, file)), { recursive: true }); fs.writeFileSync(path.join(repo.cwd, file), content); };
-  fs.cpSync(path.resolve(__dirname, '../../scripts/kodjo'), path.join(repo.cwd, 'scripts/kodjo'), { recursive: true });
+  require('../../scripts/kodjo/lib/vnext-performance').measure('fixture.copy-producer', () =>
+    fs.cpSync(path.resolve(__dirname, '../../scripts/kodjo'), path.join(repo.cwd, 'scripts/kodjo'), { recursive: true }));
   const sourceText = 'Modifier le comportement du module.\n';
   write('docs/functional.md', sourceText);
   if (largeCatalog) for (let i = 0; i < 700; i++) write('catalog/entry-' + i + '.js', 'module.exports = ' + i + ';\n');
@@ -46,7 +47,9 @@ function fixture({ largeCatalog = false } = {}) {
     const compact = JSON.parse(args[args.indexOf('--json-schema') + 1]);
     const compactFields = compact.properties.semantic_review.properties.findings.items.properties;
     assert.equal(compactFields.target_id.enum, undefined);
-    assert.equal(compactFields.dependency_target_ids.items.enum, undefined);
+    assert.equal(compactFields.dependency_target_ids, undefined);
+    assert.equal(compactFields.dependency_target_indices.items.type, 'integer');
+    assert.ok(args.includes('--add-dir'));
     assert.equal(compact.properties.semantic_review.properties.reviewed_target_ids, undefined);
     assert.equal(compact.properties.semantic_review.properties.reviewed_target_indices.items.type, 'integer');
     assert.ok(args.join(' ').length < 8000, 'review command line must stay bounded');

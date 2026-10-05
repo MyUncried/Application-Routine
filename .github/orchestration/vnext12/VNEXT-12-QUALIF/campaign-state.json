@@ -7,8 +7,8 @@
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "73787f296d78ab3c435fa04ef993f0ef8382141f",
-  "controller_stage": "FIGMA_TASK2_INITIAL_REQUESTED_AFTER_TERMINAL_PREFLIGHT",
-  "controller_generation": 56,
+  "controller_stage": "FIGMA_TASK2_LOCAL_OPTIMIZATION_WAITING_USER_RUN_SIGNAL",
+  "controller_generation": 57,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -379,22 +379,22 @@
   },
   "active_runs": [
     {
-      "id": 37307334832,
+      "id": 37325776512,
       "status": "completed",
-      "conclusion": "success",
-      "head": "73787f296d78ab3c435fa04ef993f0ef8382141f"
+      "conclusion": "failure",
+      "head": "e0c766feda827c2df6d3d8a523759007a9f05c85"
     },
     {
-      "id": 37307334666,
+      "id": 37325776649,
       "status": "completed",
       "conclusion": "success",
-      "head": "73787f296d78ab3c435fa04ef993f0ef8382141f"
+      "head": "e0c766feda827c2df6d3d8a523759007a9f05c85"
     },
     {
-      "id": 37307334786,
+      "id": 37325776552,
       "status": "completed",
       "conclusion": "cancelled",
-      "head": "73787f296d78ab3c435fa04ef993f0ef8382141f"
+      "head": "e0c766feda827c2df6d3d8a523759007a9f05c85"
     }
   ],
   "obsolete_runs": [
@@ -1710,15 +1710,15 @@
     "request_json_changed": false
   },
   "figma_task2_initial": {
-    "status": "INITIAL_REQUESTED_NOT_YET_CONSUMED",
+    "status": "INITIAL_FAILED_LOCAL_CORRECTIONS_AND_OPTIMIZATION_PENDING_FRESH_QUALIFICATION",
     "parent_head": "c1ea9aef65e7f61662cb91eee8c5fa8d93032c09",
     "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
     "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
     "local_tests": {
-      "tests": 321,
-      "pass": 321,
+      "tests": 327,
+      "pass": 326,
       "fail": 0,
-      "skip": 0
+      "skip": 1
     },
     "no_post_acceptance_or_closure_authorized": true,
     "capture_provenance": "FROZEN_GIT_CAPTURE_REPLAY_NOT_FRESH_ACQUISITION",
@@ -1748,8 +1748,8 @@
     "failed_job_id": 111730479414,
     "failed_controller_head": "06dda327a1684a989de35086b5df51b7f01703bf",
     "failure": "bash: command not found",
-    "real_model_calls": 0,
-    "request_consumption_reached": false,
+    "real_model_calls": 1,
+    "request_consumption_reached": true,
     "shell_correction": "cmd with %RUNNER_TEMP%; no change to admission or duplicate protections",
     "failure_evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/initial-shell-failure.json",
     "qualification_test_correction": {
@@ -1813,7 +1813,17 @@
       "Verify publication window and reuse qualified head 73787f296d78ab3c435fa04ef993f0ef8382141f / run 37307334832; metadata checkpoint has the same protocol code.",
       "Publish one FIGMA_INITIAL request with logical UUID 1c9be701-2e24-43f7-bd24-2030d1d3c6c1, proved unconsumed at the failed shell entry.",
       "Collect actual isolated initial delivery, declared one-correction proof and sealed evidence; stop before task 3 or closure."
-    ]
+    ],
+    "initial_run_id": 37325776512,
+    "initial_job_id": 111816099880,
+    "initial_failure": "VNEXT_REVIEW_FINDING_DEPENDENCY_UNKNOWN: PLAN_CONTRACT",
+    "implementation_calls": 0,
+    "correction_calls": 0,
+    "fresh_qualification_required": true,
+    "new_request_id_required_before_next_initial": true,
+    "waiting_for": "EXPLICIT_USER_SIGNAL_BEFORE_PUBLICATION_OR_REMOTE_RUNS",
+    "local_optimization_evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/local-optimization-20261005/summary.json",
+    "plan_review_session_id": "f7282e15-2022-48d5-9be6-3abd1236e885"
   },
   "pending_actions_scope_notice": "Existing historical pending_actions are not execution authorization. Current authorization covers task 2 only; task 3, independent closure, V2, PRE-2 and PRE-3 remain excluded."
 }

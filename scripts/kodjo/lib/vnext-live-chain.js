@@ -7,6 +7,7 @@ const path = require('node:path');
 const os = require('node:os');
 const { spawnSync } = require('node:child_process');
 const V = require('./vnext-contract');
+const Perf = require('./vnext-performance');
 const Source = require('./source-manifest');
 const Envelope = require('./planning-envelope');
 const Requirements = require('./requirement-registry');
@@ -26,8 +27,8 @@ const GithubApproval = require('./vnext-github-approval');
 const SCHEMA = 'kodjo.vnext.prepared-chain.v1';
 function command(bin, args, cwd, input, env = process.env, timeoutMs = 600000, { onResult } = {}) {
   const startedAt = new Date().toISOString(), started = Date.now();
-  const r = spawnSync(bin, args, { cwd, input, env, encoding: 'utf8', shell: false,
-    windowsHide: true, timeout: timeoutMs, maxBuffer: 64 * 1024 * 1024 });
+  const r = Perf.measure(bin === 'git' ? 'chain.git.' + args[0] : 'chain.process', () => spawnSync(bin, args, { cwd, input, env, encoding: 'utf8', shell: false,
+    windowsHide: true, timeout: timeoutMs, maxBuffer: 64 * 1024 * 1024 }));
   if (onResult) onResult({ started_at: startedAt, finished_at: new Date().toISOString(),
     duration_ms: Date.now() - started, status: r.status, signal: r.signal,
     error_code: r.error?.code || null, error: r.error?.message || null,
@@ -97,7 +98,10 @@ async function launchAndProduce(scope,{capture,reconcile,persist,buildRecipe,cwd
   recipe.figmaScope=scope;recipe.figmaLaunch=checkpoint;
   return produce(recipe,{cwd,github});
 }
-function produce(recipe, { cwd, github } = {}) {
+function produce(recipe, options = {}) {
+  return Perf.measure('chain.produce', () => produceInternal(recipe, options));
+}
+function produceInternal(recipe, { cwd, github } = {}) {
   if(recipe.figmaScope&&!recipe.figmaLaunch)V.fail('VNEXT_FIGMA_LAUNCH_REQUIRED');
   if(recipe.figmaLaunch){
     require('./vnext-figma-launch').validate(recipe.figmaLaunch,recipe);
@@ -219,7 +223,16 @@ function decodeReviewOutput(context, output) {
   if (!Array.isArray(indices) || indices.some(i => !Number.isSafeInteger(i) || i < 0 || i >= targets.length)
       || new Set(indices).size !== indices.length) V.fail('VNEXT_REVIEW_INDEX_INVALID');
   // The report builder still requires every exact target: an absent index fails.
-  return { findings: output.findings, finding_resolutions: output.finding_resolutions,
+  if (!Array.isArray(output.findings)) V.fail('VNEXT_REVIEW_FINDINGS_INVALID');
+  const findings = output.findings.map(row => {
+    if (!Object.hasOwn(row, 'dependency_target_indices')) return row; // sealed older responses
+    if (Object.hasOwn(row, 'dependency_target_ids')) V.fail('VNEXT_REVIEW_DEPENDENCY_INDEX_AMBIGUOUS');
+    const { dependency_target_indices: deps, ...finding } = row;
+    if (!Array.isArray(deps) || deps.some(i => !Number.isSafeInteger(i) || i < 0 || i >= targets.length)
+        || new Set(deps).size !== deps.length) V.fail('VNEXT_REVIEW_DEPENDENCY_INDEX_INVALID');
+    return { ...finding, dependency_target_ids: deps.map(i => targets[i]) };
+  });
+  return { findings, finding_resolutions: output.finding_resolutions,
     ...(context.acceptance_gaps ? {acceptance_resolutions:output.acceptance_resolutions} : {}),
     reviewed_target_ids: indices.map(i => targets[i]) };
 }
@@ -303,6 +316,11 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   const findingProperties = transportSchema.properties.semantic_review.properties.findings.items.properties;
   delete findingProperties.target_id.enum;
   delete findingProperties.dependency_target_ids.items.enum;
+  delete findingProperties.dependency_target_ids;
+  findingProperties.dependency_target_indices = { type: 'array', uniqueItems: true,
+    items: { type: 'integer', minimum: 0, maximum: reviewTargets(artifacts.reviewContext).length - 1 } };
+  transportSchema.properties.semantic_review.properties.findings.items.required =
+    transportSchema.properties.semantic_review.properties.findings.items.required.map(key => key === 'dependency_target_ids' ? 'dependency_target_indices' : key);
   const output = transportSchema.properties.semantic_review;
   delete output.properties.reviewed_target_ids;
   output.required = ['findings', 'reviewed_target_indices', 'target_catalog_hash', 'finding_resolutions', ...(artifacts.reviewContext.acceptance_gaps ? ['acceptance_resolutions'] : [])];
@@ -310,6 +328,7 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   output.properties.target_catalog_hash = { type: 'string', pattern: '^[0-9a-f]{64}$' };
   const dossier = { ...compactReviewDossier(produced), instructions: 'Revue indépendante de plan uniquement. Lire les objets Git exacts. Ne pas modifier le dépôt. Refuser une preuve non observée. Pour chaque assessment natif, vérifier le besoin fonctionnel, le choix natif et ses preuves effectives ; ne pas confondre référence et observation. Indiquer verified=false si la preuve ne peut être observée. Examiner toutes les cibles du target_catalog, pas seulement celles portant un finding. En REVISION, fournir finding_resolutions pour chaque causal_finding_id, avec statut OPEN ou RESOLVED, references de preuves observees et explication; ne pas conclure RESOLVED sans observation du correctif. Ceci ne constitue pas un audit FINAL. Le catalogue complet est conserve : construire les indices a partir de target_index_order puis des tableaux de target_catalog, base zero. Restituer reviewed_target_indices uniquement pour les cibles effectivement examinees et recopier target_catalog_hash exact. Toutes les cibles sont requises ; aucun raccourci de couverture. candidateManifest.columns et rows encodent sans perte les objets candidats. Avant de verifier les empreintes canoniques, reconstruire candidateManifest.candidates depuis columns/rows et reviewContext.target_catalog depuis target_catalog ; cette projection de transport ne remplace pas les contrats canoniques. Les sources de consommateurs sont disponibles une seule fois dans consumer_sources. Si une intention contredit une obligation TEST correcte, identifier le change_id de cette intention dans required_correction et le PLAN_ITEM dans dependency_target_ids ; ne pas demander de modifier une obligation correcte.' };
   if (artifacts.reviewContext.acceptance_gaps) dossier.instructions += ' Pour une révision après recette, les acceptance_gaps sont des écarts utilisateur authentifiés, pas des findings Claude. Fournir acceptance_resolutions pour chaque gap_id avec preuves observées et note causale. La revue de plan initiale APPROVE reste inchangée ; ne pas inventer de REVISE. Le format structuré demandé est obligatoire.';
+  dossier.instructions += ' Pour chaque finding, utiliser dependency_target_indices : indices entiers zero-based du meme catalogue scelle. Ne jamais employer un nom de type tel que PLAN_CONTRACT comme identifiant de cible. Le decodeur reconstruit les identifiants exacts et les controles canoniques restent obligatoires.';
   const checkoutSnapshot = () => V.canonicalHash({
     status: git(cwd, 'status', '--porcelain=v1', '-z'), diff: git(cwd, 'diff', 'HEAD', '--binary'),
     untracked: git(cwd, 'ls-files', '--others', '--exclude-standard', '-z').split('\0').filter(Boolean)
@@ -356,7 +375,7 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   };
   try {
     saveDiagnostic();
-    raw = invoke(claude, ['-p', '--restricted', '--permission-mode', 'dontAsk', '--permission-prompts', 'none',
+    raw = invoke(claude, ['--add-dir', configDir, '-p', '--restricted', '--permission-mode', 'dontAsk', '--permission-prompts', 'none',
       '--output-format', 'json', '--tools', 'Read,Glob,Grep', '--allowedTools', 'Read,Glob,Grep',
       '--disallowedTools', 'mcp__*', '--strict-mcp-config', '--mcp-config', path.join(configDir, 'mcp.json'),
       '--settings', path.join(configDir, 'settings.json'), '--json-schema', JSON.stringify(transportSchema)], cwd, input, env, timeoutMs, { onResult: result => {

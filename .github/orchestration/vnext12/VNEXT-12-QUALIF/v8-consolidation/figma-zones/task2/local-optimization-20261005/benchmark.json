@@ -1,0 +1,11 @@
+{
+  "files": 701,
+  "before_ms": 3418.028121,
+  "after_ms": 156.31867699999998,
+  "identical": true,
+  "contract_hash": "48741015d64a1c02e290414665340d8342e26e0e431f95c882f7d15a29ba1066",
+  "baseline_controller_head": "e0c766feda827c2df6d3d8a523759007a9f05c85",
+  "dataset": "701 committed JavaScript files; 700 scanned; 70 direct importers; no checkout cache",
+  "platform": "LOCAL_LINUX_NOT_WINDOWS",
+  "scope": "scanner only; one before/after sample; not full-suite certification"
+}
