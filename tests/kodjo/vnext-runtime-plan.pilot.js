@@ -115,6 +115,7 @@ test('approved revised plan transmission on an existing application PR', async t
     // A Git commit may be packed: a missing loose-object pathname does not
     // mean the commit is unavailable. Supply an actual object store containing
     // the readable old delivery only, without the approved descendant commit.
+    const originalGitPlan=f.git('show','HEAD:'+f.transport.plan_path);
     const objects=path.join(f.runDir(),'objects');fs.mkdirSync(path.join(objects,'pack'),{recursive:true});
     const packed=spawnSync('git',['pack-objects',path.join(objects,'pack','baseline'),'--revs'],
       {cwd:f.cwd,input:f.baseline.delivery.head+'\n',encoding:'utf8',windowsHide:true});
@@ -122,7 +123,7 @@ test('approved revised plan transmission on an existing application PR', async t
     const previous=process.env.GIT_OBJECT_DIRECTORY,alternates=process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES;
     process.env.GIT_OBJECT_DIRECTORY=objects;delete process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES;
     try {
-      assert.equal(f.git('show','HEAD:'+f.transport.plan_path),f.original.toString('utf8').trim());
+      assert.equal(f.git('show','HEAD:'+f.transport.plan_path),originalGitPlan);
       assert.throws(()=>f.git('cat-file','-e',f.head+'^{commit}'));
       assert.throws(() => PlanView.install(f.admitted,{...args,runDir:f.runDir()}),/APPROVED_FILE_UNAVAILABLE/);
     } finally {

@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-05T11:12:21.039277+00:00",
+  "recorded_at": "2026-10-05T11:31:58.792772+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
-  "controller_stage": "FIGMA_TASK2_SHELL_CORRECTION_QUALIFICATION_PENDING",
-  "controller_generation": 53,
+  "controller_stage": "FIGMA_TASK2_FINAL_TEST_PORTABILITY_QUALIFICATION_PENDING",
+  "controller_generation": 54,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -1710,7 +1710,7 @@
     "request_json_changed": false
   },
   "figma_task2_initial": {
-    "status": "FAILED_BEFORE_NODE_ENTRY_SHELL_CORRECTION_PENDING",
+    "status": "SHELL_CORRECTED_TEST_CRLF_COMPARISON_FINAL_DELTA_PENDING",
     "parent_head": "c1ea9aef65e7f61662cb91eee8c5fa8d93032c09",
     "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
     "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
@@ -1766,6 +1766,25 @@
       "workflow_invariants": "PASS",
       "real_claude_calls": 0,
       "real_initial_status": "FAILED_BEFORE_NODE_ENTRY_NOT_REPLAYED"
+    },
+    "crlf_comparison_checks": {
+      "cause": "New negative test compared working-tree CRLF bytes to Git blob LF bytes under core.autocrlf=true",
+      "correction": "Compare the original Git blob output to the same Git blob in the isolated object store; no byte normalization or production gate change",
+      "crlf_tests": {
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "skip": 0
+      },
+      "full_local_suite": {
+        "tests": 321,
+        "pass": 321,
+        "fail": 0,
+        "skip": 0
+      },
+      "latest_local_log_sha256": "f883227dd3c9f79e31c5e4458b7a0170e35b6864186d98b43c4974c5732f129d",
+      "remote_qualification": "REQUIRED_FOR_THIS_FINAL_TEST_DELTA",
+      "real_claude_calls": 0
     }
   }
 }
