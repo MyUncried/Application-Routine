@@ -61,5 +61,61 @@
     "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/browser-fix-20261005/original-linux-diagnostics.zip",
     "sha256": "8449b0d8edbd1a8b963d40607a563891bc8379276fd408149c8abc329988448f"
   },
-  "full_qualification_claimed": false
+  "full_qualification_claimed": false,
+  "follow_up": {
+    "candidate_head": "9058cd57853390d099cdb255cff2ee09c2c79ecb",
+    "run_id": 37368144544,
+    "attempt1": {
+      "historical_windows": {
+        "tests": 1080,
+        "pass": 1077,
+        "fail": 0,
+        "skip": 3
+      },
+      "other_matrix_jobs": "CANCELLED_BEFORE_EXECUTION",
+      "cancellation_cause": "NON_VERIFIABLE"
+    },
+    "attempt2": {
+      "qualification_linux": {
+        "tests": 313,
+        "pass": 313,
+        "fail": 0,
+        "skip": 0,
+        "duration_ms": 46867.458523
+      },
+      "historical_linux": {
+        "tests": 1080,
+        "pass": 1078,
+        "fail": 1,
+        "skip": 1,
+        "duration_ms": 90158.48983,
+        "failure": "actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta",
+        "exact_error": "NOT_RECORDED_BY_STRUCTURED_REPORTER"
+      },
+      "qualification_windows": {
+        "tests": 313,
+        "pass": 313,
+        "fail": 0,
+        "skip": 0,
+        "duration_ms": 336098.2443
+      },
+      "historical_windows": "SUCCESS_REUSED_FROM_ATTEMPT1"
+    },
+    "diagnostic_correction": "Retain real test runner error and nested cause in structured failure records; pass/skip/fail policy unchanged",
+    "local_reporter_tests": {
+      "pass": 5,
+      "fail": 0
+    },
+    "next_branch": "qualification/vnext-browser-diagnostics-20261005",
+    "artifacts": [
+      {
+        "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/browser-fix-20261005/historical-linux-attempt2.zip",
+        "sha256": "002f4bd8f8e8589777e5ab72d4a534cbc7bb220b4c9a0c85d58b31869a56ffe5"
+      },
+      {
+        "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/browser-fix-20261005/historical-windows-attempt1.zip",
+        "sha256": "8a1d2aa06540f289400db2a690b9747f1b75b9244e57fe414da46fa06f38e030"
+      }
+    ]
+  }
 }

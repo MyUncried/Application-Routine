@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   qualification:
-    if: github.event_name != 'create' || (github.event.ref_type == 'branch' && github.event.ref == 'qualification/vnext-browser-fix-20261005')
+    if: github.event_name != 'create' || (github.event.ref_type == 'branch' && github.event.ref == 'qualification/vnext-browser-diagnostics-20261005')
     strategy:
       fail-fast: false
       matrix:
@@ -72,7 +72,7 @@ jobs:
         run: git diff --check
 
   historical-equivalence:
-    if: github.event_name != 'create' || (github.event.ref_type == 'branch' && github.event.ref == 'qualification/vnext-browser-fix-20261005')
+    if: github.event_name != 'create' || (github.event.ref_type == 'branch' && github.event.ref == 'qualification/vnext-browser-diagnostics-20261005')
     # Step 3 only: disposable fixture assertions, no queue, Claude or cutover.
     strategy:
       fail-fast: false
@@ -123,7 +123,7 @@ jobs:
           retention-days: 14
 
   historical-platform-coverage:
-    if: github.event_name != 'create' || (github.event.ref_type == 'branch' && github.event.ref == 'qualification/vnext-browser-fix-20261005')
+    if: github.event_name != 'create' || (github.event.ref_type == 'branch' && github.event.ref == 'qualification/vnext-browser-diagnostics-20261005')
     needs: historical-equivalence
     runs-on: ubuntu-latest
     steps:

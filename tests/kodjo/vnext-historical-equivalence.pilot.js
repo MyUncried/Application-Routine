@@ -51,3 +51,22 @@ test('historical structured reporter ignores stdout that imitates a passing asse
   const output = []; for await (const line of reporter(events())) output.push(JSON.parse(line));
   assert.equal(output.length, 2); assert.equal(output[1].name, 'real'); assert.equal(output[1].status, 'SKIP');
 });
+
+test('historical reporter preserves the actual test runner failure and nested browser diagnostic', async t => {
+  const os = require('node:os');
+  const { spawnSync } = require('node:child_process');
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'vnext-reporter-failure-'));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const fixture = path.join(directory, 'failure.js');
+  fs.writeFileSync(fixture, "require('node:test')('browser failure fixture',()=>{throw Error('VNEXT_FIGMA_BROWSER_EXIT_BEFORE_CONNECTION:actual stderr')});\n");
+  const env = { ...process.env }; delete env.NODE_TEST_CONTEXT;
+  const run = spawnSync(process.execPath, ['--test', '--test-reporter=' + path.join(cwd, 'scripts/kodjo/lib/vnext-equivalence-reporter.js'), fixture], { cwd, encoding: 'utf8', env });
+  assert.equal(run.status, 1);
+  const records = run.stdout.trim().split('\n').map(line => JSON.parse(line));
+  const failure = records.find(row => row.type === 'test' && row.status === 'FAIL');
+  assert.equal(failure.name, 'browser failure fixture');
+  assert.equal(failure.error.failureType, 'testCodeFailure');
+  assert.match(failure.error.cause.message, /VNEXT_FIGMA_BROWSER_EXIT_BEFORE_CONNECTION:actual stderr/);
+  assert.match(failure.error.cause.stack, /failure.js/);
+  assert.equal(records.at(-1).success, false);
+});
