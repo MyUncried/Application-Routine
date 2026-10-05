@@ -7,7 +7,8 @@ const V = require('./vnext-contract');
 const Github = require('./vnext-github-qualification');
 const CHECKPOINT = '.github/orchestration/vnext12/VNEXT-12-QUALIF/campaign-state.json';
 const WORKFLOWS = new Set(['.github/workflows/kodjo-vnext12-disposable.yml',
-  '.github/workflows/kodjo-vnext-proof-stability.yml', '.github/workflows/kodjo-v2-pilot-tests.yml']);
+  '.github/workflows/kodjo-vnext-proof-stability.yml', '.github/workflows/kodjo-v2-pilot-tests.yml',
+  '.github/workflows/kodjo-vnext-performance.yml']);
 function verifyWindow({ repository, branch, expectedParent, checkpointSha, read = Github.readGithub }) {
   V.assertSha40(expectedParent, 'VNEXT_PUBLICATION_PARENT_REQUIRED');
   V.assertSha40(checkpointSha, 'VNEXT_PUBLICATION_CHECKPOINT_REQUIRED');

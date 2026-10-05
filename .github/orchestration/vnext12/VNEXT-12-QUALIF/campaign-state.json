@@ -7,8 +7,8 @@
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "73787f296d78ab3c435fa04ef993f0ef8382141f",
-  "controller_stage": "FIGMA_TASK2_LOCAL_OPTIMIZATION_WAITING_USER_RUN_SIGNAL",
-  "controller_generation": 57,
+  "controller_stage": "FIGMA_TASK2_TARGETED_PERFORMANCE_AUTHORIZED",
+  "controller_generation": 58,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -1821,9 +1821,17 @@
     "correction_calls": 0,
     "fresh_qualification_required": true,
     "new_request_id_required_before_next_initial": true,
-    "waiting_for": "EXPLICIT_USER_SIGNAL_BEFORE_PUBLICATION_OR_REMOTE_RUNS",
+    "waiting_for": "TARGETED_WINDOWS_DIAGNOSTIC_RESULT",
     "local_optimization_evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/local-optimization-20261005/summary.json",
-    "plan_review_session_id": "f7282e15-2022-48d5-9be6-3abd1236e885"
+    "plan_review_session_id": "f7282e15-2022-48d5-9be6-3abd1236e885",
+    "performance_measurement": {
+      "status": "READY_TO_LAUNCH",
+      "workflow": ".github/workflows/kodjo-vnext-performance.yml",
+      "label": "vnext-performance-task2-20261005",
+      "authorization": "USER_2026-10-05_18:39_PARIS_TEST_SIGNAL",
+      "operational_qualification": false,
+      "claude_authorized": false
+    }
   },
   "pending_actions_scope_notice": "Existing historical pending_actions are not execution authorization. Current authorization covers task 2 only; task 3, independent closure, V2, PRE-2 and PRE-3 remain excluded."
 }

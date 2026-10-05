@@ -41,6 +41,8 @@ test('publication admission refuses a moved parent, checkpoint or active phase i
   assert.throws(() => P.verifyWindow({ ...args, checkpointSha: 'd'.repeat(40) }), /CHECKPOINT_MOVED/);
   assert.throws(() => P.verifyWindow({ ...args, read: endpoint => endpoint.includes('/actions/runs')
     ? { workflow_runs: endpoint.endsWith('&page=1') ? Array.from({ length: 100 }, () => ({ path: 'other.yml', status: 'completed' })) : [{ path: Q.WORKFLOW, status: 'queued' }] } : read(endpoint) }), /PHASE_ACTIVE/);
+  assert.throws(() => P.verifyWindow({ ...args, read: endpoint => endpoint.includes('/actions/runs')
+    ? { workflow_runs: [{ path: '.github/workflows/kodjo-vnext-performance.yml', status: 'in_progress' }] } : read(endpoint) }), /PHASE_ACTIVE/);
 });
 function candidate(t, file, content) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'publication-index-'));

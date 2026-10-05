@@ -1,0 +1,41 @@
+name: KODJO VNext targeted Windows performance
+on:
+  pull_request:
+    types: [labeled]
+permissions:
+  contents: read
+concurrency:
+  group: kodjo-vnext-performance-269
+  cancel-in-progress: false
+jobs:
+  measure:
+    if: github.event.pull_request.number == 269 && github.head_ref == 'protocol/vnext-proof-stability-20260930' && github.event.label.name == 'vnext-performance-task2-20261005'
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install only the pinned planning tokenizer used by fixture tests
+        shell: cmd
+        run: npm ci --prefix scripts/kodjo/openai-runtime --ignore-scripts --no-audit --no-fund
+      - name: Measure only scanner and targeted fixture concurrency without Claude
+        shell: cmd
+        env:
+          VNEXT_PERF_EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: >-
+          node -e "if(process.env.GITHUB_RUN_ATTEMPT!=='1')throw Error('VNEXT_PERF_RERUN_REFUSED');const r=require('./scripts/kodjo/measure-vnext-windows');r.run(require('path').join(process.env.RUNNER_TEMP,'vnext-performance-'+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT));"
+      - name: Preserve diagnostic results even on a bounded failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vnext-performance-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vnext-performance-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: error
+          retention-days: 14
