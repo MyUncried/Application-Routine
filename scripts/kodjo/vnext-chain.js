@@ -82,7 +82,7 @@ function finalizeTransport(prepared, draft, reservation, { cwd, github = require
 function main(args = process.argv.slice(2)) {
   const [stage, configFile, output] = args;
   const cwd = process.cwd();
-  if (!stage || !configFile) throw new Error('Usage: vnext-chain.js <produce|review|recover-review|prepare|reserve-gate|finalize-transport|request-approval|handoff|admit|validate-publication> <config.json|queue.json> [output]');
+  if (!stage || !configFile) throw new Error('Usage: vnext-chain.js <launch|produce|review|recover-review|prepare-implementation-review|implementation-review|verify-implementation-review|prepare|reserve-gate|finalize-transport|request-approval|handoff|admit|validate-publication> <config.json|queue.json> [output]');
   if (stage === 'admit') {
     const result = Chain.admit(configFile, { cwd });
     if (output) write(output, result);
@@ -92,7 +92,19 @@ function main(args = process.argv.slice(2)) {
   if (!output && stage !== 'request-approval') throw new Error('VNEXT_CHAIN_OUTPUT_REQUIRED');
   if (output && ['reserve-gate', 'finalize-transport'].includes(stage) && fs.existsSync(output)) throw Error('VNEXT_CHAIN_OUTPUT_EXISTS');
   if (stage === 'validate-publication') write(output, require('./validate-vnext-publication').main(configFile));
-  else if (stage === 'produce') write(output, Chain.produce(config, { cwd }));
+  else if (stage === 'produce') {
+    if(config.sourceManifestInput?.sources.some(s=>s.source_kind==='FIGMA')&&!config.figmaLaunch)throw Error('VNEXT_FIGMA_LAUNCH_REQUIRED');
+    write(output, Chain.produce(config, { cwd }));
+  }
+  else if(['prepare-implementation-review','implementation-review','verify-implementation-review'].includes(stage)){
+    const R=require('./lib/vnext-figma-implementation-review');
+    const planBody=fs.readFileSync(config.approved_plan_file,'utf8'),observed=read(config.observations_file);
+    const options={...observed,cwd,evidenceDirectory:config.evidence_directory};
+    if(!options.evidenceDirectory)throw Error('VNEXT_FIGMA_REVIEW_EVIDENCE_DIRECTORY_REQUIRED');
+    if(stage==='prepare-implementation-review')write(output,R.prepare(planBody,options));
+    else if(stage==='verify-implementation-review')write(output,R.verifyReceipt(planBody,options,read(config.receipt_file),fs.readFileSync(config.response_file,'utf8')));
+    else write(output,R.review(planBody,options));
+  }
   else if (stage === 'review' || stage === 'recover-review') {
     const produced = read(config.produced_file);
     const options = { cwd, evidenceDirectory: config.evidence_directory };
@@ -148,8 +160,19 @@ function main(args = process.argv.slice(2)) {
   } else throw new Error('VNEXT_CHAIN_COMMAND_INVALID');
   return { stage, status: 'RECORDED', output };
 }
+async function launchMain(configFile,output){
+  if(!configFile||!output||fs.existsSync(output))throw Error('VNEXT_FIGMA_LAUNCH_NEW_OUTPUT_REQUIRED');
+  const cwd=process.cwd(),config=read(configFile),relative=Chain.relative(config.adapter_module);
+  const head=Chain.command('git',['rev-parse','HEAD'],cwd).trim();
+  // Only a reviewed, tracked adapter from the exact checkout may execute.
+  if(Chain.readGit(cwd,head,relative)!==fs.readFileSync(path.resolve(cwd,relative),'utf8'))throw Error('VNEXT_FIGMA_LAUNCH_ADAPTER_NOT_COMMITTED');
+  const adapter=require(path.resolve(cwd,relative));
+  const produced=await Chain.launchAndProduce(config.scope,{...adapter,cwd});
+  write(output,produced);return {stage:'launch',status:'RECORDED',output};
+}
 if (require.main === module) {
-  try { process.stdout.write(JSON.stringify(main()) + '\n'); }
+  if(process.argv[2]==='launch'){launchMain(process.argv[3],process.argv[4]).then(r=>process.stdout.write(JSON.stringify(r)+'\n')).catch(error=>{process.stderr.write(String(error.message)+'\n');process.exitCode=1;});}
+  else try { process.stdout.write(JSON.stringify(main()) + '\n'); }
   catch (error) { process.stderr.write(String(error.message) + '\n'); process.exitCode = 1; }
 }
-module.exports = { main, reservationMessage, verifyReservation, finalizeTransport, reserveComment, publishReservedApproval };
+module.exports = { main, launchMain, reservationMessage, verifyReservation, finalizeTransport, reserveComment, publishReservedApproval };

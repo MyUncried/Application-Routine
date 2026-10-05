@@ -90,7 +90,19 @@ function observeCandidates(artifacts, cwd) {
 }
 
 // Recipe fields are constructor inputs, not pre-approved serialized contracts.
+async function launchAndProduce(scope,{capture,reconcile,persist,buildRecipe,cwd,github}){
+  if(typeof buildRecipe!=='function')V.fail('VNEXT_FIGMA_TECHNICAL_RECIPE_BUILDER_REQUIRED');
+  const checkpoint=await require('./vnext-figma-launch').launch(scope,{capture,reconcile,persist});
+  const recipe=await buildRecipe(structuredClone(checkpoint));
+  recipe.figmaScope=scope;recipe.figmaLaunch=checkpoint;
+  return produce(recipe,{cwd,github});
+}
 function produce(recipe, { cwd, github } = {}) {
+  if(recipe.figmaScope&&!recipe.figmaLaunch)V.fail('VNEXT_FIGMA_LAUNCH_REQUIRED');
+  if(recipe.figmaLaunch){
+    require('./vnext-figma-launch').validate(recipe.figmaLaunch,recipe);
+    if(V.canonicalStringify(recipe.figmaScope)!==V.canonicalStringify(recipe.figmaLaunch.scope))V.fail('VNEXT_FIGMA_LAUNCH_SCOPE_MISMATCH');
+  }
   const sourceManifest = Source.build(recipe.sourceManifestInput);
   const sourceObservations = observeSources(sourceManifest, cwd, github, recipe.planningInput.issue_id);
   const figmaReferences=sourceManifest.sources.filter(s=>s.source_kind==='FIGMA').map(s=>({source_id:s.source_id,packet:JSON.parse(sourceObservations.find(o=>o.source_id===s.source_id).content)}));
@@ -120,6 +132,7 @@ function produce(recipe, { cwd, github } = {}) {
   const producerRevision = git(cwd, 'rev-parse', 'HEAD').trim();
   const reviewerPacket = Review.buildReviewerPacket({ root: cwd, revision: producerRevision, reviewContext });
   return V.sealContract({ schema_version: 'kodjo.vnext.produced-chain.v1', producer_revision: producerRevision,
+    ...(recipe.figmaLaunch?{figma_launch:recipe.figmaLaunch}:{}),
     artifacts: { ...artifacts, reviewContext }, source_observations: sourceObservations,
     candidate_observations: observeCandidates(artifacts, cwd),
     reviewer_packet: reviewerPacket, execution_context: recipe.executionContext,
@@ -130,6 +143,13 @@ function verifyProduced(produced, cwd, github) {
   V.verifyContractHash(produced, 'VNEXT_PRODUCED_CHAIN_HASH_INVALID');
   if (produced.schema_version !== 'kodjo.vnext.produced-chain.v1') V.fail('VNEXT_PRODUCED_CHAIN_SCHEMA_INVALID');
   const a = produced.artifacts;
+  if(produced.figma_launch){
+    const Launch=require('./vnext-figma-launch');Launch.validate(produced.figma_launch);
+    const manifest=Source.build(produced.figma_launch.sourceManifestInput);
+    if(V.canonicalStringify(manifest)!==V.canonicalStringify(a.planningEnvelope.source_manifest))V.fail('VNEXT_FIGMA_LAUNCH_SOURCES_MISMATCH');
+    const registry=Requirements.build({...produced.figma_launch.requirementInput,planning_envelope_hash:a.planningEnvelope.contract_hash,source_manifest:manifest});
+    if(V.canonicalStringify(registry)!==V.canonicalStringify(a.requirementRegistry))V.fail('VNEXT_FIGMA_LAUNCH_REQUIREMENTS_MISMATCH');
+  }
   Envelope.validate(a.planningEnvelope);
   Requirements.validate(a.requirementRegistry, a.planningEnvelope.source_manifest);
   Impact.verifyCandidateManifestAtHead(a.candidateManifest, { cwd });
@@ -574,5 +594,5 @@ function guardLocalRequest(raw, { cwd, queueFile, github } = {}) {
   return admit(queueFile, { cwd, github, allowExternalQueueFile: true });
 }
 
-module.exports = { SCHEMA, command, relative, readGit, unitText, observeSources, produce, verifyProduced,
+module.exports = { SCHEMA, command, relative, readGit, unitText, observeSources, launchAndProduce, produce, verifyProduced,
   compactReviewDossier, decodeReviewOutput, boundedReviewOutput, validateReviewResponse, recoverReview, reviewOrRecover, preserveFailure, review, verifyReceipt, validateReceipt, nativeResolver, preparedArtifacts, prepare, approvalTarget, deriveQueue, admit, guard, guardLocalRequest };

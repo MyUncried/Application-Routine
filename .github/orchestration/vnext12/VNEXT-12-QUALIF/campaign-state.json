@@ -1678,5 +1678,16 @@
       37251628493
     ],
     "real_figma_path": "NOT_EXECUTED"
+  },
+  "figma_task1_local_integration": {
+    "status": "LOCAL_VERIFIED_REAL_QUALIFICATION_PENDING",
+    "parent_head": "66eb4eaac092564301813d80950e8c739ee8746e",
+    "scope": "Task 1 only; same VNEXT-12-QUALIF campaign. No V2/PRE-2/PRE-3 activation.",
+    "report": ".github/orchestration/reports/2026-10-05_VNEXT_FIGMA_TASK1_LOCAL_INTEGRATION.md",
+    "checks": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task1/local-checks.json",
+    "real_calls": 0,
+    "fresh_figma_acquisition": "NOT_CERTIFIED",
+    "next_task": "Publish/qualify exact candidate before any authorized real Windows path; adapt existing campaign driver and preserve evidence before cleanup.",
+    "request_json_changed": false
   }
 }

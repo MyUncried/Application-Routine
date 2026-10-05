@@ -216,11 +216,24 @@ function validateCoverage(references,criteria,registry){
       const assertions=criteria.flatMap(c=>c.assertions.map(a=>({c,a}))).filter(({a})=>a.figma_document_state?.source_id===ref.source_id&&a.figma_document_state.state_id===state.state_id);
       if(!assertions.length)V.fail('VNEXT_FIGMA_DOCUMENT_STATE_UNCOVERED',state.state_id);
       for(const {c,a}of assertions){
-        V.assertExactKeys(a.figma_document_state,['source_id','reference_hash','state_id'],[],'VNEXT_FIGMA_DOCUMENT_BINDING_INVALID');
+        V.assertExactKeys(a.figma_document_state,['source_id','reference_hash','state_id'],['scenario_ids'],'VNEXT_FIGMA_DOCUMENT_BINDING_INVALID');
         const r=registry.requirements.find(r=>r.requirement_id===c.requirement_id),docs=ref.packet.documents.filter(d=>state.document_ids.includes(d.document_id));
         if(a.figma_document_state.reference_hash!==ref.packet.contract_hash||a.expected!==state.expected||!r||r.source.authority!=='FUNCTIONAL'
             ||!docs.some(d=>d.path===r.source.locator&&d.revision===r.source.revision))V.fail('VNEXT_FIGMA_DOCUMENT_ASSERTION_MISMATCH');
         if(!a.proof_required.some(p=>['FUNCTIONAL_TEST','STATIC_ANALYSIS'].includes(p)))V.fail('VNEXT_FIGMA_DOCUMENT_PROOF_REQUIRED');
+      }
+      if(state.scenarios){
+        const seenScenarios=new Set();
+        for(const {a}of assertions){
+          if(!Array.isArray(a.figma_document_state.scenario_ids)||!a.figma_document_state.scenario_ids.length)V.fail('VNEXT_FIGMA_DOCUMENT_SCENARIO_UNCOVERED',state.state_id);
+          for(const id of a.figma_document_state.scenario_ids){
+            const scenario=state.scenarios.find(s=>s.scenario_id===id);
+            if(!scenario||seenScenarios.has(id))V.fail('VNEXT_FIGMA_DOCUMENT_SCENARIO_BINDING_INVALID',id);
+            if(scenario.proof_required.some(p=>!a.proof_required.includes(p)))V.fail('VNEXT_FIGMA_DOCUMENT_SCENARIO_PROOF_REQUIRED',id);
+            seenScenarios.add(id);
+          }
+        }
+        eq([...seenScenarios].sort(),state.scenarios.map(s=>s.scenario_id).sort(),'VNEXT_FIGMA_DOCUMENT_SCENARIO_UNCOVERED');
       }
     }
   }
@@ -234,7 +247,9 @@ function assertCurrent(packet,current){
 function verifyMeasurements(packet,measurements){
   validate(packet,{ready:true});
   const rows=index(measurements,'measurement_id','VNEXT_FIGMA_MEASUREMENT_DUPLICATE');
-  for(const d of required(packet))for(const viewport of d.rule.viewports){
+  const targets=required(packet);
+  for(const m of rows.values())if(m.reference_hash!==packet.contract_hash||!targets.some(d=>d.property_id===m.property_id&&d.rule.viewports.includes(m.viewport)))V.fail('VNEXT_FIGMA_MEASUREMENT_UNBOUND');
+  for(const d of targets)for(const viewport of d.rule.viewports){
     const matches=[...rows.values()].filter(m=>m.property_id===d.property_id&&m.viewport===viewport&&m.reference_hash===packet.contract_hash);
     if(matches.length!==1)V.fail('VNEXT_FIGMA_MEASUREMENT_REQUIRED',d.property_id);
     const m=matches[0];text(m.evidence,'VNEXT_FIGMA_MEASUREMENT_EVIDENCE_REQUIRED');
@@ -287,9 +302,11 @@ function consume(planBody,directory,stage){
     for(const r of ref.packet.resources){const target=path.resolve(base,safePath(r.path));
       // Reject existing symlink parents before writing even within a disposable view.
       let parent=path.dirname(target);while(parent!==base){if(fs.existsSync(parent)&&fs.lstatSync(parent).isSymbolicLink())V.fail('VNEXT_FIGMA_RESOURCE_SYMLINK');parent=path.dirname(parent);}
-      if(fs.existsSync(target)&&fs.lstatSync(target).isSymbolicLink())V.fail('VNEXT_FIGMA_RESOURCE_SYMLINK');fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,checkResource(r));
+      if(fs.existsSync(target)&&fs.lstatSync(target).isSymbolicLink())V.fail('VNEXT_FIGMA_RESOURCE_SYMLINK');
+      if(fs.existsSync(target)){if(!fs.readFileSync(target).equals(checkResource(r)))V.fail('VNEXT_FIGMA_RESOURCE_DESTINATION_CHANGED');}
+      else{fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,checkResource(r),{flag:'wx'});}
       if(!fs.readFileSync(target).equals(checkResource(r)))V.fail('VNEXT_FIGMA_RESOURCE_MATERIALIZATION_MISMATCH');assets.push({resource_id:r.resource_id,path:target,sha256:r.sha256});}
-    observed.push({source_id:ref.source_id,reference_hash:ref.packet.contract_hash,properties:required(ref.packet).map(d=>propertyUnit(ref.packet,d.property_id)),assets});
+    observed.push({source_id:ref.source_id,reference_hash:ref.packet.contract_hash,documentary_states:ref.packet.states,properties:required(ref.packet).map(d=>propertyUnit(ref.packet,d.property_id)),assets});
   }
   return V.sealContract({schema_version:'kodjo.vnext.figma-consumer-observation.v1',stage,plan_sha256:V.sha256(planBody),references:observed,semantic_use:'NOT_ATTESTED_BY_BYTE_OBSERVATION'});
 }
