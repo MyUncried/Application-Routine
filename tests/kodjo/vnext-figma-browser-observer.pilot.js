@@ -26,7 +26,7 @@ test('browser refusal is explicit and no normal browser profile is opened by bin
 });
 let available;try{available=Browser.resolveBrowser();}catch(_){}
 test('actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta',
- {skip:!available&&process.platform!=='win32',timeout:60000},async t=>{
+ {skip:!available&&process.platform!=='win32',timeout:180000},async t=>{
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-dom-observer-test-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true,maxRetries:10,retryDelay:100}));
  const screen=path.join(root,'screen.js'),keep=path.join(root,'keep.js');fs.writeFileSync(keep,'module.exports={Existing:true};\n');
  const code="let selected=false;module.exports={width:999,height:999,render:()=>'<section data-figma-id=\"frame\" style=\"width:401px;height:874px\"><span data-figma-id=\"title\">Observed title</span></section>',toggle:()=>selected=!selected};\n";

@@ -234,5 +234,61 @@
       "artifact_sha256": "5081b99887405adb1e81067a50e5a5bba49376097c09cd034118738ff9a9e752"
     },
     "platform_coverage": "PASS"
+  },
+  "startup_budget_diagnostic": {
+    "candidate_head": "960533eddbfd733cb75b10ecf51b20a4ecc4dd6c",
+    "run_id": 37379675225,
+    "qualification_linux": {
+      "tests": 314,
+      "pass": 313,
+      "fail": 1,
+      "skip": 0,
+      "duration_ms": 32576.4107,
+      "failed_test_duration_ms": 23013.539787,
+      "error": "VNEXT_FIGMA_BROWSER_START_TIMEOUT",
+      "stderr": ""
+    },
+    "historical_linux": {
+      "counts": {
+        "tests": 1081,
+        "failed": 0,
+        "passed": 1080,
+        "cancelled": 0,
+        "skipped": 1,
+        "todo": 0,
+        "topLevel": 1068,
+        "suites": 0
+      },
+      "readiness": "NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT",
+      "artifact_sha256": "2058ea17ca4198a8424d02eb296f5b1a21d577e1efcefe56db9604ee0403feb0"
+    },
+    "windows": "TERMINAL_SUCCESS",
+    "session_workaround": "DID_NOT_RESOLVE_FAILURE_REMOVED",
+    "established": "20-second browser startup deadline expires intermittently; identical DOM/screenshot assertion passes in historical suite on same candidate",
+    "internal_cause": "NOT_VERIFIABLE",
+    "next_check": "Increase bounded browser startup deadline to 60 seconds, allow 180 seconds for test which launches two browsers; preserve every assertion and all job budgets",
+    "next_branch": "qualification/vnext-browser-budget-20261005",
+    "qualification_windows": {
+      "tests": 314,
+      "pass": 314,
+      "fail": 0,
+      "skip": 0,
+      "duration_ms": 358549.0619
+    },
+    "historical_windows": {
+      "counts": {
+        "tests": 1081,
+        "failed": 0,
+        "passed": 1078,
+        "cancelled": 0,
+        "skipped": 3,
+        "todo": 0,
+        "topLevel": 1068,
+        "suites": 0
+      },
+      "readiness": "NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT",
+      "artifact_sha256": "5aadbbf158915f83d07d5dc14cde33f45115426896d258022a211706e803fb5d"
+    },
+    "platform_coverage": "PASS"
   }
 }
