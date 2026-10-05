@@ -1,80 +1,85 @@
 {
-  "schema_version": "kodjo.protocol.v2.activation-registry.0.6.12",
-  "activations": [
-    {
-      "slice_id": "V2-BILAT-01",
-      "status": "CLOSED",
-      "issue_number": 52,
-      "baseline_head": "e07039a85c61d6106f4e09f9c7710797401f76d9",
-      "bootstrap_path": ".github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json",
-      "slice_bootstrap_sha256": "e096473ca508175f865688a1aee37750edd2f9c29bcafc2501f3e15544bb3281",
-      "planning_application_head": "df38ade5e8737ed8f59a3a7472ebe9b168a85145",
-      "planning_documentary_head": "a9877597fe41d20d88780517a4b7595cc6161289"
-    },
-    {
-      "slice_id": "V2-QUALIF-00",
-      "status": "ACTIVE",
-      "issue_number": 75,
-      "baseline_head": "7236b7446ad68451db7009f47c90b097b8257d21",
-      "bootstrap_path": ".github/orchestration/v2-slices/V2-QUALIF-00/slice-bootstrap.json",
-      "slice_bootstrap_sha256": "f22d08763010db8c7c15018a079888497ff222e865e9ab252dcd507303b3ae1a"
-    },
-    {
-      "slice_id": "V2-QUALIF-01",
-      "status": "ACTIVE",
-      "issue_number": 77,
-      "baseline_head": "2cb6197198ae6e1f988a9472a3685048b832c8f4",
-      "bootstrap_path": ".github/orchestration/v2-slices/V2-QUALIF-01/slice-bootstrap.json",
-      "slice_bootstrap_sha256": "d8c40b1ae2dcbe7df82a7624e505b05aecf75b564c41184fbfe18dab6fd7d07e"
-    },
-    {
-      "slice_id": "V2-PROD-00",
-      "status": "ACTIVE",
-      "issue_number": 79,
-      "baseline_head": "90a88a96d9dd6ccd80e2f0611d20c6285f02e0b2",
-      "bootstrap_path": ".github/orchestration/v2-slices/V2-PROD-00/slice-bootstrap.json",
-      "slice_bootstrap_sha256": "1180141045af7bd311f84dce6dd74ebb7602fb28a9028de14c12f5e3d7e8962b"
-    },
-    {
-      "slice_id": "V2-CAT-01",
-      "status": "ACTIVE",
-      "issue_number": 150,
-      "baseline_head": "63a3c26ed492f7c0925cfb57419f3dc2dcc5e476",
-      "bootstrap_path": ".github/orchestration/v2-slices/V2-CAT-01/slice-bootstrap.json",
-      "slice_bootstrap_sha256": "771d65fd1d44bcb598b420622026d8e27253bf3a89ee586d75f026a66f06c0d0",
-      "planning_application_head": "e43004df9f04a10aa091ba28cc681592bea759ca"
-    },
-    {
-      "slice_id": "V2-E2E-20260919",
-      "status": "ACTIVE",
-      "issue_number": 212,
-      "baseline_head": "55a5b618181b98fde7d52684a975d5b4af2b3bb9",
-      "planning_application_head": "55a5b618181b98fde7d52684a975d5b4af2b3bb9",
-      "bootstrap_path": ".github/orchestration/v2-slices/V2-E2E-20260919/slice-bootstrap.json",
-      "slice_bootstrap_sha256": "10d160ed9f1fd15f6aeb0e407ca191cc0c701b4837aaefd83fecfc44c7e2ab29"
-    },
-    {
-      "slice_id": "V2-PRE-1",
-      "status": "CLOSED",
-      "issue_number": 249,
-      "baseline_head": "e216294506bed87dd80855937e3fabfbfa322b82",
-      "planning_application_head": "e216294506bed87dd80855937e3fabfbfa322b82",
-      "bootstrap_path": ".github/orchestration/v2-slices/V2-PRE-1/slice-bootstrap.json",
-      "slice_bootstrap_sha256": "8ba79d4b71b029ce78cf0d380d34425b7094b4ddbea18c6e00b4b35d0e4f0776",
-      "closure": {
-        "final_head": "2a6e92c0593a1269f1ac101cde8f306718787d15",
-        "implementation_review_comment_id": "5951796347",
-        "visual_approval_comment_id": "5954987738"
-      }
-    },
-    {
-      "slice_id": "V2-PRE-2",
-      "status": "ACTIVE",
-      "issue_number": 288,
-      "baseline_head": "53cb05c782e17eb19d269f2724a0db3cfbceb1a2",
-      "planning_application_head": "10ac761ef453f360110bf7b668b3998487b071b3",
-      "bootstrap_path": ".github/orchestration/v2-slices/V2-PRE-2/slice-bootstrap.json",
-      "slice_bootstrap_sha256": "a77934a75324bbd9c63b9856a02be1a6630fa3a3b2447cc9af0ee15536e7cb59"
-    }
-  ]
+    "schema_version":  "kodjo.protocol.v2.activation-registry.0.6.12",
+    "activations":  [
+                        {
+                            "slice_id":  "V2-BILAT-01",
+                            "status":  "CLOSED",
+                            "issue_number":  52,
+                            "baseline_head":  "e07039a85c61d6106f4e09f9c7710797401f76d9",
+                            "bootstrap_path":  ".github/orchestration/v2-slices/V2-BILAT-01/slice-bootstrap.json",
+                            "slice_bootstrap_sha256":  "e096473ca508175f865688a1aee37750edd2f9c29bcafc2501f3e15544bb3281",
+                            "planning_application_head":  "df38ade5e8737ed8f59a3a7472ebe9b168a85145",
+                            "planning_documentary_head":  "a9877597fe41d20d88780517a4b7595cc6161289"
+                        },
+                        {
+                            "slice_id":  "V2-QUALIF-00",
+                            "status":  "ACTIVE",
+                            "issue_number":  75,
+                            "baseline_head":  "7236b7446ad68451db7009f47c90b097b8257d21",
+                            "bootstrap_path":  ".github/orchestration/v2-slices/V2-QUALIF-00/slice-bootstrap.json",
+                            "slice_bootstrap_sha256":  "f22d08763010db8c7c15018a079888497ff222e865e9ab252dcd507303b3ae1a"
+                        },
+                        {
+                            "slice_id":  "V2-QUALIF-01",
+                            "status":  "ACTIVE",
+                            "issue_number":  77,
+                            "baseline_head":  "2cb6197198ae6e1f988a9472a3685048b832c8f4",
+                            "bootstrap_path":  ".github/orchestration/v2-slices/V2-QUALIF-01/slice-bootstrap.json",
+                            "slice_bootstrap_sha256":  "d8c40b1ae2dcbe7df82a7624e505b05aecf75b564c41184fbfe18dab6fd7d07e"
+                        },
+                        {
+                            "slice_id":  "V2-PROD-00",
+                            "status":  "ACTIVE",
+                            "issue_number":  79,
+                            "baseline_head":  "90a88a96d9dd6ccd80e2f0611d20c6285f02e0b2",
+                            "bootstrap_path":  ".github/orchestration/v2-slices/V2-PROD-00/slice-bootstrap.json",
+                            "slice_bootstrap_sha256":  "1180141045af7bd311f84dce6dd74ebb7602fb28a9028de14c12f5e3d7e8962b"
+                        },
+                        {
+                            "slice_id":  "V2-CAT-01",
+                            "status":  "ACTIVE",
+                            "issue_number":  150,
+                            "baseline_head":  "63a3c26ed492f7c0925cfb57419f3dc2dcc5e476",
+                            "bootstrap_path":  ".github/orchestration/v2-slices/V2-CAT-01/slice-bootstrap.json",
+                            "slice_bootstrap_sha256":  "771d65fd1d44bcb598b420622026d8e27253bf3a89ee586d75f026a66f06c0d0",
+                            "planning_application_head":  "e43004df9f04a10aa091ba28cc681592bea759ca"
+                        },
+                        {
+                            "slice_id":  "V2-E2E-20260919",
+                            "status":  "ACTIVE",
+                            "issue_number":  212,
+                            "baseline_head":  "55a5b618181b98fde7d52684a975d5b4af2b3bb9",
+                            "planning_application_head":  "55a5b618181b98fde7d52684a975d5b4af2b3bb9",
+                            "bootstrap_path":  ".github/orchestration/v2-slices/V2-E2E-20260919/slice-bootstrap.json",
+                            "slice_bootstrap_sha256":  "10d160ed9f1fd15f6aeb0e407ca191cc0c701b4837aaefd83fecfc44c7e2ab29"
+                        },
+                        {
+                            "slice_id":  "V2-PRE-1",
+                            "status":  "CLOSED",
+                            "issue_number":  249,
+                            "baseline_head":  "e216294506bed87dd80855937e3fabfbfa322b82",
+                            "planning_application_head":  "e216294506bed87dd80855937e3fabfbfa322b82",
+                            "bootstrap_path":  ".github/orchestration/v2-slices/V2-PRE-1/slice-bootstrap.json",
+                            "slice_bootstrap_sha256":  "8ba79d4b71b029ce78cf0d380d34425b7094b4ddbea18c6e00b4b35d0e4f0776",
+                            "closure":  {
+                                            "final_head":  "2a6e92c0593a1269f1ac101cde8f306718787d15",
+                                            "implementation_review_comment_id":  "5951796347",
+                                            "visual_approval_comment_id":  "5954987738"
+                                        }
+                        },
+                        {
+                            "slice_id":  "V2-PRE-2",
+                            "status":  "CLOSED",
+                            "issue_number":  288,
+                            "baseline_head":  "53cb05c782e17eb19d269f2724a0db3cfbceb1a2",
+                            "planning_application_head":  "10ac761ef453f360110bf7b668b3998487b071b3",
+                            "bootstrap_path":  ".github/orchestration/v2-slices/V2-PRE-2/slice-bootstrap.json",
+                            "slice_bootstrap_sha256":  "a77934a75324bbd9c63b9856a02be1a6630fa3a3b2447cc9af0ee15536e7cb59",
+                            "closure":  {
+                                            "final_head":  "3780eb9287cf8bc60c79dc322c1662542469a389",
+                                            "implementation_review_comment_id":  "5984104726",
+                                            "visual_approval_comment_id":  "5990475371"
+                                        }
+                        }
+                    ]
 }
