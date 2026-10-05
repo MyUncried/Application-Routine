@@ -50,12 +50,14 @@ function validateBaseline(base) {
     for(const assertion of row.assertion_results||[]){
       const required=criterion.assertions.find(a=>a.assertion_id===assertion.assertion_id).proof_required;
       equal(assertion.proof_results.map(p=>p.proof_type).sort(),[...required].sort(),'VNEXT_ACCEPTANCE_ASSERTION_PROOF_COVERAGE_INVALID');
-      if(!['CONFORME','NON_VERIFIABLE'].includes(assertion.status)||!assertion.proof_results?.length
+      if(!['CONFORME','NON_VERIFIABLE','PENDING_DEVICE'].includes(assertion.status)||!assertion.proof_results?.length
         ||assertion.proof_results.some(p=>p.status!=='PASS'&&!(p.status==='PENDING_DEVICE'&&Device.isDeferred(p))))V.fail('VNEXT_ACCEPTANCE_TECHNICAL_GAP');
     }
   }
   if((base.review.boundary_results||[]).some(row=>row.status!=='PASS'))V.fail('VNEXT_ACCEPTANCE_TECHNICAL_GAP');
-  if(base.review.non_ui_plan_assessment && (base.review.non_ui_plan_assessment.status!=='CONFORME'||base.review.non_ui_plan_assessment.requirements.some(r=>r.status!=='CONFORME'||r.proof_results.some(p=>p.status!=='PASS'))))V.fail('VNEXT_ACCEPTANCE_TECHNICAL_GAP');
+  const ProofPolicy=require('./vnext-delivery-preservation');
+  ProofPolicy.validateUiProofs(base.matrix,base.review,'VNEXT_ACCEPTANCE_TECHNICAL_GAP');
+  ProofPolicy.validateNonUiProofs(base.review,'VNEXT_ACCEPTANCE_TECHNICAL_GAP');
 }
 function observe(reference,{cwd,readGit,github}) {
   const source=require('../verify-source-comment');

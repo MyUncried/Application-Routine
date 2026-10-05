@@ -18,6 +18,8 @@ function validateBaseline(base) {
     if (row.implementation_status === 'NON_VERIFIABLE' && !DevicePolicy.deviceOnlyGap(row.proof_results, true)) V.fail('VNEXT_DELIVERY_BASELINE_TECHNICAL_GAP');
   }
   const ids = base.matrix.criteria.map(c => c.criterion_id).sort();
+  validateUiProofs(base.matrix,base.review,'VNEXT_DELIVERY_BASELINE_TECHNICAL_GAP');
+  validateNonUiProofs(base.review,'VNEXT_DELIVERY_BASELINE_TECHNICAL_GAP');
   if (new Set(ids).size !== ids.length || V.canonicalStringify(ids) !== V.canonicalStringify(base.review.criteria.map(c => c.criterion_id).sort())) V.fail('VNEXT_DELIVERY_BASELINE_COVERAGE_INVALID');
   if (f.criterion_count !== ids.length || f.criterion_ids_sha256 !== sha256(ids)) V.fail('VNEXT_DELIVERY_FINALIZATION_COVERAGE_INVALID');
   if (base.review.criteria.some(c => !['CONFORME','NON_VERIFIABLE'].includes(c.implementation_status) || c.preserve_status !== 'PASS'
@@ -83,4 +85,51 @@ function fromMarkdown(body) {
   return body.includes('<KODJO_VNEXT_DELIVERY_PRESERVATION_JSON>') ? extractTaggedJson(body, 'KODJO_VNEXT_DELIVERY_PRESERVATION_JSON') : null;
 }
 function state(baseline) { return baseline.delivery || baseline.finalization; }
-module.exports = { observe, validateBaseline, build, validate, merge, fromMarkdown, state };
+module.exports = { validateUiProofs, validateNonUiProofs, observe, validateBaseline, build, validate, merge, fromMarkdown, state };
+
+const Device = require('./device-proof-policy');
+const TYPES = new Set(['FUNCTIONAL_TEST','STATIC_ANALYSIS',...Device.DEFERABLE_PROOFS]);
+function proofs(rows, required, code) {
+  if (!Array.isArray(rows) || !rows.length) V.fail(code);
+  const types = rows.map(p=>p.proof_type).sort();
+  if (new Set(types).size !== types.length || types.some(t=>!TYPES.has(t))
+      || (required && V.canonicalStringify(types)!==V.canonicalStringify([...required].sort()))) V.fail(code);
+  for (const p of rows) {
+    if (typeof p.evidence!=='string' || !p.evidence.trim()) V.fail(code);
+    if (Device.isDeferred(p)) continue;
+    if (p.status!=='PASS' || ['VISUAL_COMPARE','DEVICE_CHECK'].includes(p.proof_type)) V.fail(code);
+  }
+}
+function validateUiProofs(matrix, review, code) {
+  for (const criterion of matrix.criteria) {
+    const row=review.criteria.find(r=>r.criterion_id===criterion.criterion_id);
+    if (!row) V.fail(code);
+    proofs(row.proof_results,criterion.proof_required,code);
+    const expected=criterion.assertions||[], observed=row.assertion_results||[];
+    if (V.canonicalStringify(expected.map(a=>a.assertion_id).sort())!==V.canonicalStringify(observed.map(a=>a.assertion_id).sort())) V.fail(code);
+    for (const a of observed) {
+      proofs(a.proof_results,expected.find(e=>e.assertion_id===a.assertion_id).proof_required,code);
+      if (!['CONFORME','NON_VERIFIABLE','PENDING_DEVICE'].includes(a.status)
+          || (a.status!=='CONFORME'&&!Device.deviceOnlyGap(a.proof_results,true))) V.fail(code);
+    }
+  }
+}
+function validateNonUiProofs(review, code) {
+  const nonUi=review.non_ui_plan_assessment;
+  const derogations=review.device_check_derogations||[];
+  const seen=new Set();
+  for (const d of derogations) {
+    const r=nonUi?.requirements?.find(r=>r.requirement_id===d.requirement_id);
+    if (!r || seen.has(d.requirement_id) || d.proof_type!=='DEVICE_CHECK' || d.status!=='NOT_EXECUTED'
+        || !d.decided_by || !d.decision || !d.residual_risk
+        || !r.proof_results?.some(p=>p.proof_type==='DEVICE_CHECK'&&p.status==='PENDING_DEVICE')) V.fail(code);
+    seen.add(d.requirement_id);
+  }
+  if (!nonUi) return;
+  if (nonUi.status!=='CONFORME'||!nonUi.requirements?.length) V.fail(code);
+  for (const r of nonUi.requirements) {
+    proofs(r.proof_results,null,code);
+    if (!['CONFORME','NON_VERIFIABLE'].includes(r.status)
+        || (r.status!=='CONFORME'&&!Device.deviceOnlyGap(r.proof_results,true))) V.fail(code);
+  }
+}
