@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   qualification:
-    if: github.event_name != 'create' || (github.event.ref_type == 'branch' && github.event.ref == 'qualification/vnext-browser-load-20261005')
+    if: github.event_name != 'create' || (github.event.ref_type == 'branch' && github.event.ref == 'qualification/vnext-browser-session-20261005')
     strategy:
       fail-fast: false
       matrix:
@@ -64,8 +64,12 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Execute VNext contracts on exact candidate
         shell: bash
-        # Bound simultaneous fixture processes so browser startup is not starved.
-        run: node --test --test-concurrency=4 tests/kodjo/vnext-*.pilot.js
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            dbus-run-session -- node --test tests/kodjo/vnext-*.pilot.js
+          else
+            node --test tests/kodjo/vnext-*.pilot.js
+          fi
       - name: Validate executable workflow invariants
         run: node scripts/kodjo/validate-workflows.js
       - name: Check patch whitespace
@@ -73,7 +77,7 @@ jobs:
         run: git diff --check
 
   historical-equivalence:
-    if: github.event_name != 'create' || (github.event.ref_type == 'branch' && github.event.ref == 'qualification/vnext-browser-load-20261005')
+    if: github.event_name != 'create' || (github.event.ref_type == 'branch' && github.event.ref == 'qualification/vnext-browser-session-20261005')
     # Step 3 only: disposable fixture assertions, no queue, Claude or cutover.
     strategy:
       fail-fast: false
@@ -101,7 +105,11 @@ jobs:
       - name: Execute structured historical assertion evidence
         shell: bash
         run: |
-          node --test --test-concurrency=4 --test-reporter=./scripts/kodjo/lib/vnext-equivalence-reporter.js tests/kodjo/*.pilot.js > "$RUNNER_TEMP/historical-equivalence.jsonl"
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            dbus-run-session -- node --test --test-reporter=./scripts/kodjo/lib/vnext-equivalence-reporter.js tests/kodjo/*.pilot.js > "$RUNNER_TEMP/historical-equivalence.jsonl"
+          else
+            node --test --test-reporter=./scripts/kodjo/lib/vnext-equivalence-reporter.js tests/kodjo/*.pilot.js > "$RUNNER_TEMP/historical-equivalence.jsonl"
+          fi
       - name: Resolve each historical assertion on the exact candidate
         if: always()
         shell: bash
@@ -124,7 +132,7 @@ jobs:
           retention-days: 14
 
   historical-platform-coverage:
-    if: github.event_name != 'create' || (github.event.ref_type == 'branch' && github.event.ref == 'qualification/vnext-browser-load-20261005')
+    if: github.event_name != 'create' || (github.event.ref_type == 'branch' && github.event.ref == 'qualification/vnext-browser-session-20261005')
     needs: historical-equivalence
     runs-on: ubuntu-latest
     steps:
