@@ -55,7 +55,7 @@ function unitText(content, locator) {
 function observeSources(manifest, cwd, github = Auth.ghClient(), issueId = null) {
   Source.validate(manifest);
   return manifest.sources.map(source => {
-    let content;
+    let content, figma;
     if (source.source_kind === 'GITHUB_COMMENT') {
       const m = /^github_issue_comment:([^#]+)#([1-9][0-9]*)$/.exec(source.locator);
       if (!m) V.fail('VNEXT_SOURCE_COMMENT_LOCATOR_INVALID');
@@ -70,11 +70,13 @@ function observeSources(manifest, cwd, github = Auth.ghClient(), issueId = null)
     } else {
       // External snapshots must first be frozen by their source adapter. They
       // are not silently attested by a path or a declarative VERIFIED flag.
-      if (source.source_kind === 'FIGMA' || source.source_kind === 'OTHER') V.fail('WAIT_FOR_PROOF', source.locator);
-      content = readGit(cwd, source.revision, source.locator);
+      if (source.source_kind === 'OTHER') V.fail('WAIT_FOR_PROOF', source.locator);
+      if (source.source_kind === 'FIGMA') {
+        const observed=require('./vnext-figma-source').observe(source,{cwd,readGit});content=observed.content;figma=observed.packet;
+      } else content = readGit(cwd, source.revision, source.locator);
     }
     if (V.sha256(content) !== source.fingerprint) V.fail('VNEXT_SOURCE_OBSERVATION_HASH_MISMATCH', source.locator);
-    for (const unit of source.units) if (V.sha256(unitText(content, unit.locator)) !== unit.fingerprint) V.fail('VNEXT_SOURCE_UNIT_OBSERVATION_MISMATCH', unit.unit_id);
+    for (const unit of source.units) if (V.sha256(figma ? require('./vnext-figma-source').unitText(figma,unit.locator) : unitText(content, unit.locator)) !== unit.fingerprint) V.fail('VNEXT_SOURCE_UNIT_OBSERVATION_MISMATCH', unit.unit_id);
     return { source_id: source.source_id, revision: source.revision, fingerprint: source.fingerprint, content };
   });
 }
@@ -91,11 +93,14 @@ function observeCandidates(artifacts, cwd) {
 function produce(recipe, { cwd, github } = {}) {
   const sourceManifest = Source.build(recipe.sourceManifestInput);
   const sourceObservations = observeSources(sourceManifest, cwd, github, recipe.planningInput.issue_id);
+  const figmaReferences=sourceManifest.sources.filter(s=>s.source_kind==='FIGMA').map(s=>({source_id:s.source_id,packet:JSON.parse(sourceObservations.find(o=>o.source_id===s.source_id).content)}));
+  if(figmaReferences.length&&!recipe.uiInput)V.fail('VNEXT_FIGMA_UI_MAPPING_REQUIRED');
   const planningEnvelope = Envelope.build({ ...recipe.planningInput, source_manifest: sourceManifest });
   if (recipe.deliveryCorrection && planningEnvelope.planning_mode !== 'REVISION') V.fail('VNEXT_DELIVERY_CORRECTION_REQUIRES_REVISION');
   const requirementRegistry = Requirements.build({ ...recipe.requirementInput,
     planning_envelope_hash: planningEnvelope.contract_hash, source_manifest: sourceManifest });
   Requirements.assertReady(requirementRegistry);
+  if(figmaReferences.length)require('./vnext-figma-source').validateRegistry(figmaReferences,requirementRegistry);
   const candidateManifest = Impact.buildCandidateManifest({ cwd, revision: planningEnvelope.application_head, createSlots: recipe.createSlots || [] });
   const roots = [...new Set(recipe.classifications.filter(c => c.change_kind === 'MODIFY')
     .map(c => c.candidate_id))].filter(id => candidateManifest.candidates.some(c => c.candidate_id === id
@@ -106,7 +111,7 @@ function produce(recipe, { cwd, github } = {}) {
   const deliveryPreservation = recipe.deliveryCorrection ? { baseline: require('./vnext-delivery-preservation').observe(recipe.deliveryCorrection.reference, {cwd, readGit, github: github || Auth.ghClient()}), replacements: recipe.deliveryCorrection.replacements } : null;
   const planContract = Plan.buildPlanContract({ requirementRegistry, candidateManifest, impactGraph, requirementPlans: recipe.requirementPlans, deliveryPreservation });
   const uiAtomicityContract = recipe.uiInput ? Ui.buildUiAtomicityContract({ ...recipe.uiInput,
-    requirementRegistry, candidateManifest, impactGraph, planContract }) : null;
+    requirementRegistry, candidateManifest, impactGraph, planContract,figmaReferences }) : null;
   const artifacts = { planningEnvelope, requirementRegistry, candidateManifest, directImportScan,
     impactGraph, planContract, uiAtomicityContract, revisionArtifacts: recipe.revisionArtifacts || null,
     ...(planningEnvelope.created_from.kind === 'ACCEPTANCE_GAPS' ? {acceptanceBindings:recipe.deliveryCorrection?.bindings} : {}) };
@@ -145,6 +150,8 @@ function verifyProduced(produced, cwd, github) {
   const packet = Review.buildReviewerPacket({ root: cwd, revision: produced.producer_revision, reviewContext: a.reviewContext });
   if (V.canonicalStringify(packet) !== V.canonicalStringify(produced.reviewer_packet)) V.fail('VNEXT_REVIEW_PRODUCER_PACKET_STALE');
   const observed = observeSources(a.planningEnvelope.source_manifest, cwd, github, a.planningEnvelope.issue_id);
+  const refs=observed.filter(o=>a.planningEnvelope.source_manifest.sources.find(s=>s.source_id===o.source_id)?.source_kind==='FIGMA').map(o=>({source_id:o.source_id,packet:JSON.parse(o.content)}));
+  if(refs.length&&V.canonicalStringify(refs)!==V.canonicalStringify(a.uiAtomicityContract?.figma_references))V.fail('VNEXT_FIGMA_PLAN_REFERENCE_MISMATCH');
   if (V.canonicalStringify(observed) !== V.canonicalStringify(produced.source_observations)) V.fail('VNEXT_SOURCE_OBSERVATION_STALE');
   if (V.canonicalStringify(observeCandidates(a, cwd)) !== V.canonicalStringify(produced.candidate_observations)) V.fail('VNEXT_CANDIDATE_OBSERVATION_STALE');
   return a;
@@ -166,14 +173,14 @@ function compactReviewDossier(produced) {
     schema_version: 'kodjo.vnext.review-transport.v1',
     produced_chain_hash: produced.contract_hash,
     producer_revision: produced.producer_revision,
-    artifacts: { ...a, candidateManifest: { ...manifest,
+    artifacts: { ...a,...(a.uiAtomicityContract?.figma_references?.length ? {uiAtomicityContract:require('./vnext-figma-source').packUi(a.uiAtomicityContract)} : {}), candidateManifest: { ...manifest,
       ...(uniform ? { columns, rows: candidates.map(row => columns.map(key => row[key])) } : { candidates }) },
       reviewContext: context },
     // One catalog, one consumer closure; schemas/inputs are supplied separately.
     target_catalog, target_catalog_hash: V.canonicalHash(reviewTargets(a.reviewContext)),
     target_index_order: Review.TARGET_TYPES,
     consumer_sources: produced.reviewer_packet.consumers,
-    source_observations: produced.source_observations,
+    source_observations: produced.source_observations.map(o=>a.uiAtomicityContract?.figma_references?.some(r=>r.source_id===o.source_id)?{source_id:o.source_id,revision:o.revision,fingerprint:o.fingerprint,content_reference:'artifacts.uiAtomicityContract.figma_references'}:o),
     candidate_observations: produced.candidate_observations,
     native_assessment_subjects: produced.native_assessments.map(assessment => ({ assessment,
       assessment_hash: V.canonicalHash(assessment) })),
@@ -300,6 +307,13 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   const configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-vnext-review-'));
   fs.writeFileSync(path.join(configDir, 'mcp.json'), JSON.stringify({ mcpServers: {} }));
   fs.writeFileSync(path.join(configDir, 'settings.json'), JSON.stringify({ disableAllHooks: true }));
+  if(artifacts.uiAtomicityContract?.figma_references?.length){
+    const directory=path.join(configDir,'figma');fs.mkdirSync(directory);
+    const plan='<KODJO_VNEXT_UI_ATOMICITY_JSON>'+JSON.stringify(artifacts.uiAtomicityContract)+'</KODJO_VNEXT_UI_ATOMICITY_JSON>\n<KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON>'+JSON.stringify(artifacts.requirementRegistry)+'</KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON>';
+    const observation=require('./vnext-figma-source').consume(plan,directory,'PLANNER'),manifest=path.join(directory,'observation.json');fs.writeFileSync(manifest,JSON.stringify(observation,null,2)+'\n');
+    dossier.figma_consumer_observation={stage:'PLANNER',manifest,contract_hash:observation.contract_hash,references:observation.references.map(r=>({source_id:r.source_id,reference_hash:r.reference_hash,assets:r.assets}))};
+    dossier.instructions+=' Les ressources Figma sont materialisees dans figma_consumer_observation.references[].assets ; ouvrir les captures PNG avec Read et lire le manifeste des proprietes et les SVG exacts. Le transport Figma columnar est sans perte : appeler unpackUi du consommateur fourni pour reconstruire les objets canoniques avant verification des hashes. Un octet transporte n’est pas une preuve de consultation ni de conformite. Signaler toute ressource inaccessible comme finding ; ne pas approuver par simple reference au composant reutilise.';
+  }
   const input = JSON.stringify(dossier), timeoutMs = artifacts.planningEnvelope.planning_mode === 'REVISION' ? 900000 : 600000;
   const diagnostic = { schema_version: 'kodjo.vnext.review-process-diagnostic.v1',
     produced_chain_hash: produced.contract_hash, review_context_hash: artifacts.reviewContext.contract_hash,

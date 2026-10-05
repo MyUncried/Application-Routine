@@ -1,0 +1,175 @@
+{
+  "schema_version": "kodjo.vnext.figma-implementation-evidence.v1",
+  "recorded_at": "2026-10-05T01:23:02.997424+00:00",
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "parent_head": "978d78198b27c55e56bff71a3dd0c310f5a3a50e",
+  "status": "LOCAL_LINUX_PASS_REMOTE_QUALIFICATION_PENDING",
+  "reference_hash": "f1951e9f6d9fc3579f9878ae669cc61bcd312079515a73a0618993db5caaaff9",
+  "inventory": {
+    "frame_nodes": 149,
+    "master_nodes": 73,
+    "nodes": 222,
+    "property_slots": 8425,
+    "required_properties": 1235,
+    "required_elements": 79,
+    "required_measurement_rows": 1237,
+    "documentary_obligations": 24,
+    "variables_including_aliases": 50,
+    "resources": 4
+  },
+  "transport": {
+    "json_bytes": 3373964,
+    "compact_json_bytes": 611796,
+    "reduction_percent": 81.86714499621218,
+    "lossless_roundtrip": true,
+    "claude_duration_improvement": "NOT_MEASURED"
+  },
+  "checks": [
+    {
+      "command": "node --test tests/kodjo/vnext-*.pilot.js",
+      "tests": 286,
+      "pass": 286,
+      "fail": 0,
+      "skipped": 0,
+      "log": "tests-linux.log"
+    },
+    {
+      "command": "node --test tests/kodjo/vnext-ui-atomicity.pilot.js tests/kodjo/vnext-figma-source.pilot.js",
+      "tests": 26,
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0,
+      "log": "tests-ui-figma-linux.log"
+    },
+    {
+      "command": "python scripts/kodjo/validate-workflow-syntax.py",
+      "workflows_accepted": 64,
+      "status": "PASS"
+    },
+    {
+      "command": "node scripts/kodjo/validate-workflows.js",
+      "status": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "status": "PASS"
+    },
+    {
+      "command": "build-snapshot.build() reference hash comparison",
+      "status": "PASS"
+    }
+  ],
+  "code_files": [
+    {
+      "path": "scripts/kodjo/consume-vnext-figma.js",
+      "byte_length": 556,
+      "sha256": "a18f5c2bdd82844b3879ce259bf65c5daba7313cd64b13484b72c904046c7de5"
+    },
+    {
+      "path": "scripts/kodjo/freeze-vnext-figma.js",
+      "byte_length": 1992,
+      "sha256": "d789a88b06600f9ed2d3b5da29231e26f80a93f340c7c27f7788a7508d7d9207"
+    },
+    {
+      "path": "scripts/kodjo/lib/ui-atomicity-contract.js",
+      "byte_length": 21887,
+      "sha256": "551b49ae2ddc3833ebff5a44c62959fb1226a471e712841f269deb3571ce2fa2"
+    },
+    {
+      "path": "scripts/kodjo/lib/vnext-figma-source.js",
+      "byte_length": 24589,
+      "sha256": "efd998b66b1f618838c8c5ca52f6a876ace19be60db0e18ca298cb327bb89471"
+    },
+    {
+      "path": "scripts/kodjo/lib/vnext-legacy-queue-adapter.js",
+      "byte_length": 26917,
+      "sha256": "01e0a38ae8c5ca9f14c9f214bb3cb4f407a0fb0150c315f68491d3e380c43855"
+    },
+    {
+      "path": "scripts/kodjo/lib/vnext-live-chain.js",
+      "byte_length": 47827,
+      "sha256": "0e8c42229745a72422c514a2b4ba248f785ec601cbe997664a9e1384bf09d131"
+    },
+    {
+      "path": "scripts/kodjo/lib/vnext-runtime-plan.js",
+      "byte_length": 10397,
+      "sha256": "179b0d01938c757338c6efc5cbcd6f97bbb6d4c73a08886339c3fe466f1c9450"
+    },
+    {
+      "path": "tests/kodjo/helpers/vnext-figma-fixture.js",
+      "byte_length": 12856,
+      "sha256": "70b1cf6b9b38df208d65440dad2baa9c90340f1465476d549814592d3f330317"
+    },
+    {
+      "path": "tests/kodjo/vnext-figma-source.pilot.js",
+      "byte_length": 11357,
+      "sha256": "ce2f25a6671820ba944307df4600775381a35bb251f11e48ee58b4805ef15810"
+    }
+  ],
+  "source_files": [
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/fresh-frame.json",
+      "byte_length": 442223,
+      "sha256": "1729c56571491aecd72f635232c412ebfdbdcb8f4a630b4a80ee5543866a3bd2"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/master-closure.json",
+      "byte_length": 174382,
+      "sha256": "e3df1cfaf5f001a26aea745a95b30784d09e675ddeac43c82635302c05e030ed"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/master-details.json",
+      "byte_length": 26858,
+      "sha256": "8006d57ac3e69b9be70733d25c769a1cd35349101fd0a3881d8c3fe755bf22d6"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/variable-closure.json",
+      "byte_length": 27512,
+      "sha256": "3b2018b2608710a0c0d906093f4a3ad4b598a4bdaa19e3002b95df1f2cf0e8a6"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/documentary-current.json",
+      "byte_length": 5768,
+      "sha256": "74713f1473c32e35cb9db6fd7e1d49167d120386c3286498eea7b2fa94324699"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/frame-current.png",
+      "byte_length": 86951,
+      "sha256": "740962f17a355f8cc1fe208e2cdf0639bad3709430849f12d3dd4f4c76ec5649"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/actions.json",
+      "byte_length": 3059,
+      "sha256": "24d1a525a418e2bde9a032ffd672f99fbf5dd0cd70945917979da2a64f206e6d"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/build-snapshot.js",
+      "byte_length": 8778,
+      "sha256": "dedd422be4623fd699185f67431e120f0de38f2f6dddac1c946db428f004fbf7"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/frozen-source.json",
+      "byte_length": 4519618,
+      "sha256": "8a59de5dd33ee0a6f276938ad52b477eadb4ec7a80e987314c46de309cbbfdf5"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/tests-linux.log",
+      "byte_length": 102397,
+      "sha256": "18f4b7503be48cfce19e220eefca6dc99234faf83f32da03eb9c346bd90fc1fc"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/tests-ui-figma-linux.log",
+      "byte_length": 10695,
+      "sha256": "510b6205dbff42904fa23e1b93fbb59d6535dc34e1095710c26b750fd6e7a646"
+    }
+  ],
+  "real_claude_invoked": false,
+  "real_device_proofs": "NOT_EXECUTED",
+  "reviewer_service_in_tests": "INJECTED",
+  "approval_service_in_tests": "INJECTED",
+  "implementation_reviewer_automatic_hook": "NOT_CONNECTED_SHARED_V2_WORKFLOW_UNCHANGED",
+  "new_campaign": false,
+  "workflow_changes": 0,
+  "v2_pre2_changes": 0,
+  "promotion_authorized": false
+}

@@ -37,7 +37,7 @@ function projectUi(planContract, uiAtomicityContract = null, candidateManifest =
     if(criterion.component_decision!=='CREATE' && (!selected.path || !/^(?:default|[A-Za-z_$][A-Za-z0-9_$]*)$/.test(selected.export))) V.fail('VNEXT_QUEUE_COMPONENT_BINDING_UNREPRESENTABLE');
     return {
       criterion_id:id,
-      source:{path:criterion.source.locator,locator:criterion.source.unit_locator,requirement:criterion.statement},
+      source:{path:criterion.source.source_kind==='FIGMA' ? criterion.source.locator.slice('figma-snapshot:'.length) : criterion.source.locator,locator:criterion.source.unit_locator,requirement:criterion.statement},
       risk_types:criterion.risk_types,
       reuse_search:criterion.reuse_search_candidate_ids.map(candidateId=>{
         const row=candidates.get(candidateId);if(!row)V.fail('VNEXT_QUEUE_REUSE_CANDIDATE_MISSING');return row.path;
@@ -49,7 +49,7 @@ function projectUi(planContract, uiAtomicityContract = null, candidateManifest =
       proof_required:criterion.proof_required,
       assertions:criterion.assertions.map(assertion=>({
         assertion_id:id+'-A'+V.sha256(assertion.assertion_id).slice(0,12).toUpperCase(),
-        source:{path:criterion.source.locator,locator:criterion.source.unit_locator},
+        source:{path:criterion.source.source_kind==='FIGMA' ? criterion.source.locator.slice('figma-snapshot:'.length) : criterion.source.locator,locator:criterion.source.unit_locator},
         property_type:assertion.property_type,expected:assertion.subject+': '+assertion.expected,
         proof_required:[...new Set(assertion.proof_ids.map(proofId=>proofs.get(proofId)?.proof_type))].sort(),
       })),
@@ -108,6 +108,7 @@ function renderCompatibilityPlan(executionRequest, planContract, uiAtomicityCont
     Plan.renderMarkdown(planContract).trimEnd(),
     '<KODJO_UI_CRITERIA_MATRIX_JSON>', json(matrix), '</KODJO_UI_CRITERIA_MATRIX_JSON>',
     '<KODJO_UI_PLAN_CONTRACT_JSON>', json(contract), '</KODJO_UI_PLAN_CONTRACT_JSON>',
+    ...(uiAtomicityContract?.figma_references?.length ? ['Références Figma figées : lire KODJO_VNEXT_UI_ATOMICITY_JSON.figma_references, matérialiser les ressources avec scripts/kodjo/consume-vnext-figma.js avant toute comparaison. Examiner chaque propriété et chaque état documentaire ; aucune attestation de conformité ne résulte de la seule lecture des octets. Les noms et sélections de démonstration ne sont pas des règles métier. Une modification du Figma vivant exige une nouvelle extraction et une requalification explicites.'] : []),
     ...(preservation ? tagged('KODJO_VNEXT_DELIVERY_PRESERVATION_JSON', preservation) : []),
     ...tagged('KODJO_VNEXT_SCOPE_JSON', {schema: 'kodjo.vnext.downstream-scope.v1', plan_contract_hash: planContract.contract_hash, scope_allow: planContract.boundaries.write_scope.map(row => row.path)}),
     ...tagged('KODJO_NON_UI_REQUIREMENTS_JSON', nonUi),
@@ -115,7 +116,7 @@ function renderCompatibilityPlan(executionRequest, planContract, uiAtomicityCont
     ...tagged('KODJO_TEST_CONTRACT_JSON', Requirements.buildTestContract(requirementContract)),
     ...tagged('KODJO_BOUNDARY_CONTRACT_JSON', Requirements.buildBoundaryContract(matrix)),
     ...tagged('KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON', requirementRegistry),
-    ...(uiAtomicityContract ? ['<KODJO_VNEXT_UI_ATOMICITY_JSON>', json(uiAtomicityContract), '</KODJO_VNEXT_UI_ATOMICITY_JSON>'] : []),
+    ...(uiAtomicityContract ? ['<KODJO_VNEXT_UI_ATOMICITY_JSON>', uiAtomicityContract.figma_references?.length ? JSON.stringify(require('./vnext-figma-source').packUi(uiAtomicityContract)).replace(/</g,'\\u003c') : json(uiAtomicityContract), '</KODJO_VNEXT_UI_ATOMICITY_JSON>'] : []),
     '',
   ].join('\n');
 }
@@ -149,6 +150,7 @@ function renderCompatibilityMission(executionRequest, planContract = null, planP
     ...executionRequest.native_primitive_decisions.map(row => 'native_primitive_decision=' + V.canonicalStringify(row)),
     'checks=' + executionRequest.checks.join(','),
     'Rapport obligatoire: lire les contrats UI et NON_UI du plan opposable. Produire KODJO_IMPLEMENTATION_CONFORMANCE avec criteria (vide si aucun critere UI), et KODJO_REQUIREMENT_CONFORMANCE avec chaque requirement_id NON_UI du KODJO_REQUIREMENT_CONTRACT_JSON, sans omission ni nouvel identifiant.',
+    'Si le plan contient figma_references : lire le bloc exact KODJO_VNEXT_UI_ATOMICITY_JSON ; consulter les captures et ressources de KODJO_VNEXT_FIGMA_READ_JSON et respecter les predicates de chaque assertion. Leur hash doit rester celui de la reference approuvee. La lecture seule n’est pas une preuve de conformite. Ne pas convertir les exemples Figma en regles metier ; toute ambiguite mixte reste CLARIFICATION_REQUIRED.',
     ...(planContract?.delivery_preservation ? ['Lire aussi KODJO_VNEXT_DELIVERY_PRESERVATION_JSON : couvrir tous les retained_criteria dans le rapport, avec preuves fraîches. Leurs change_targets historiques sont des références, jamais des autorisations d’écriture. Ne pas réutiliser une ancienne preuve comme preuve du nouveau HEAD.'] : []),
     'Chaque ligne NON_UI porte implementation_status, files_or_symbols (chemins exacts modifies), tests_run (noms des checks observes: jest, typescript, lint), proof_status et residual_status. Chaque ligne UI ajoute criterion_id, component_used et preserve_status. Aucun test non execute ne peut etre declare PASS.',
     'Encodage: <KODJO_IMPLEMENTATION_CONFORMANCE>{"criteria":[]}</KODJO_IMPLEMENTATION_CONFORMANCE> et <KODJO_REQUIREMENT_CONFORMANCE>{"requirements":[{"requirement_id":"identifiant exact du plan","implementation_status":"IMPLEMENTED","files_or_symbols":["chemin exact"],"tests_run":["check observe"],"proof_status":"preuve observee","residual_status":"NONE ou risque reel"}]}</KODJO_REQUIREMENT_CONFORMANCE>. Les valeurs du modele illustratif ne sont jamais des preuves.',

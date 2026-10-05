@@ -75,6 +75,12 @@ function install(admitted, { cwd, runDir, missionBytes }) {
     if (existed) fs.chmodSync(target, mode | 0o200);
     fs.writeFileSync(target, checked.bytes);
     fs.chmodSync(target, 0o400);
+    if(checked.bytes.includes(Buffer.from('"figma_references"'))){
+      const resources=path.join(directory,'vnext-figma-resources');fs.mkdirSync(resources,{recursive:true});
+      const observation=require('./vnext-figma-source').consume(checked.bytes.toString('utf8'),resources,'IMPLEMENTER');
+      const observationFile=path.join(directory,'vnext-figma-observation.json');fs.writeFileSync(observationFile,JSON.stringify(observation,null,2)+'\n');
+      identity.figma_observation={path:observationFile,sha256:digest(fs.readFileSync(observationFile)),resources:observation.references.flatMap(r=>r.assets)};
+    }
     identity.state = 'INSTALLED';
     fs.writeFileSync(journalFile, JSON.stringify(identity, null, 2) + '\n');
     assertView(handle);
@@ -94,6 +100,10 @@ function assertView(handle) {
   for (const file of [handle.identity.snapshot, handle.target]) {
     if (!fs.existsSync(file) || !fs.lstatSync(file).isFile() || fs.lstatSync(file).isSymbolicLink()
         || digest(fs.readFileSync(file)) !== handle.identity.content_sha256) fail('VIEW_CHANGED');
+  }
+  const figma=handle.identity.figma_observation;
+  if(figma){
+    for(const f of [{path:figma.path,sha256:figma.sha256},...figma.resources])if(!fs.existsSync(f.path)||fs.lstatSync(f.path).isSymbolicLink()||digest(fs.readFileSync(f.path))!==f.sha256)fail('FIGMA_RESOURCES_CHANGED');
   }
   return true;
 }
@@ -149,6 +159,7 @@ function environment(handle) {
   assertView(handle);
   return { KODJO_VNEXT_PLAN_READ_JSON: JSON.stringify({ path: handle.identity.path,
     blob_oid: handle.identity.blob_oid, original_blob_oid: handle.identity.original_blob_oid,
-    content_sha256: handle.identity.content_sha256, protocol_head: handle.identity.protocol_head }) };
+    content_sha256: handle.identity.content_sha256, protocol_head: handle.identity.protocol_head }),
+    ...(handle.identity.figma_observation ? {KODJO_VNEXT_FIGMA_READ_JSON:JSON.stringify(handle.identity.figma_observation)} : {}) };
 }
 module.exports = { verify, install, assertView, restore, recover, environment };

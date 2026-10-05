@@ -239,7 +239,7 @@ function normalizeAssertions({
         'subject', 'property_type', 'expected',
         'proof_ids', 'covered_change_impact_ids',
       ],
-      [],
+      ['figma_reference','figma_document_state'],
       'VNEXT_UI_ASSERTION_KEYS_INVALID',
     );
 
@@ -295,6 +295,8 @@ function normalizeAssertions({
       assertion.expected,
       proofIds,
       coveredChangeImpactIds,
+      ...(assertion.figma_reference ? [assertion.figma_reference] : []),
+      ...(assertion.figma_document_state ? [assertion.figma_document_state] : []),
     ]);
     if (seen.has(assertionId)) V.fail('VNEXT_UI_ASSERTION_DUPLICATE', assertionId);
     seen.add(assertionId);
@@ -308,6 +310,8 @@ function normalizeAssertions({
       proof_ids: proofIds,
       proof_required: [...new Set(proofTypes)].sort(),
       covered_change_impact_ids: coveredChangeImpactIds,
+      ...(assertion.figma_reference ? {figma_reference:assertion.figma_reference} : {}),
+      ...(assertion.figma_document_state ? {figma_document_state:assertion.figma_document_state} : {}),
     };
   }).sort((a, b) => a.assertion_id.localeCompare(b.assertion_id));
 
@@ -336,6 +340,7 @@ function buildUiAtomicityContract({
   candidateManifest,
   planContract,
   criteria,
+  figmaReferences = [],
 }) {
   RequirementRegistry.assertReady(requirementRegistry);
   Impact.validateCandidateManifest(candidateManifest);
@@ -511,6 +516,8 @@ function buildUiAtomicityContract({
     V.fail('VNEXT_UI_ASSERTION_GLOBAL_DUPLICATE');
   }
 
+  if (figmaReferences.length) require('./vnext-figma-source').validateCoverage(figmaReferences,normalizedCriteria,requirementRegistry);
+  else if (normalizedCriteria.some(c=>c.assertions.some(a=>a.figma_reference||a.figma_document_state))) V.fail('VNEXT_FIGMA_REFERENCE_REQUIRED');
   return V.sealContract({
     schema_version: SCHEMA,
     requirement_registry_hash: requirementRegistry.contract_hash,
@@ -523,6 +530,7 @@ function buildUiAtomicityContract({
     assertion_count: assertionIds.length,
     assertion_ids_sha256: V.canonicalHash([...assertionIds].sort()),
     criteria: normalizedCriteria,
+    ...(figmaReferences.length ? {figma_references:figmaReferences} : {}),
   });
 }
 
@@ -548,7 +556,7 @@ function validateUiAtomicityContract(contract, {
       'criteria',
       'contract_hash',
     ],
-    [],
+    ['figma_references'],
     'VNEXT_UI_CONTRACT_KEYS_INVALID',
   );
   if (contract.schema_version !== SCHEMA) V.fail('VNEXT_UI_CONTRACT_SCHEMA_INVALID');
@@ -584,6 +592,8 @@ function validateUiAtomicityContract(contract, {
       expected: assertion.expected,
       proof_ids: assertion.proof_ids,
       covered_change_impact_ids: assertion.covered_change_impact_ids,
+      ...(assertion.figma_reference ? {figma_reference:assertion.figma_reference} : {}),
+      ...(assertion.figma_document_state ? {figma_document_state:assertion.figma_document_state} : {}),
     })),
   }));
 
@@ -593,6 +603,7 @@ function validateUiAtomicityContract(contract, {
     candidateManifest,
     planContract,
     criteria: criteriaInput,
+    figmaReferences: contract.figma_references || [],
   });
 
   if (V.canonicalStringify(rebuilt) !== V.canonicalStringify(contract)) {

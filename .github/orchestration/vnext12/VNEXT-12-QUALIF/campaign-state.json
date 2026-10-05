@@ -1611,11 +1611,11 @@
   "recovery_20261005": {
     "observed_candidate": "3ca40be0acf2001a59119ddfbec93c8ec171414a",
     "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
-    "status": "FIGMA_DIAGNOSTIC_AND_DESIGN_IN_PROGRESS",
+    "status": "FIGMA_CONNECTION_IMPLEMENTED_LOCAL_QUALIFICATION_PASS",
     "report": ".github/orchestration/reports/2026-10-05_VNEXT_RECOVERY_AND_FIGMA_CONNECTION.md",
     "windows_pilot_limit_minutes": 60,
     "windows_preflight": "CANCELLED_INCOMPLETE",
-    "figma_raccordement": "NOT_IMPLEMENTED_NOT_QUALIFIED",
+    "figma_raccordement": "CONTRACT_AND_RUNTIME_VIEW_IMPLEMENTED_REAL_SEMANTIC_USE_PENDING",
     "local_ui_tests": {
       "pass": 15,
       "fail": 0,
@@ -1625,7 +1625,7 @@
     "runtime_claude_invoked": false,
     "main_promotion_authorized": false,
     "original_ten_step_plan_location": "NOT_RECOVERED",
-    "next_action": "Complete master/variant properties and documentary reconciliation; then implement the adapter and inventory/property coverage in the existing chain before consolidated qualification."
+    "next_action": "Qualify exact consolidated candidate on existing PR Linux/Windows; then existing real INITIAL/REVISION/post-acceptance paths, reviewer resource consumption and final audit. No V2/PRE-2/main promotion."
   },
   "proof_lifecycle_20261005": {
     "status": "LOCAL_LINUX_PASS_WINDOWS_AND_REAL_RUNTIME_PENDING",
@@ -1646,5 +1646,27 @@
     "promotion_authorized": false,
     "new_campaign": false,
     "new_workflows_launched": false
+  },
+  "figma_source_20261005": {
+    "status": "LOCAL_LINUX_PASS_REMOTE_QUALIFICATION_PENDING",
+    "reference_hash": "f1951e9f6d9fc3579f9878ae669cc61bcd312079515a73a0618993db5caaaff9",
+    "report": ".github/orchestration/reports/2026-10-05_VNEXT_FIGMA_SOURCE_IMPLEMENTATION.md",
+    "evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/implementation-evidence.json",
+    "tests": {
+      "tests": 286,
+      "pass": 286,
+      "fail": 0,
+      "skipped": 0
+    },
+    "targeted_ui_figma": {
+      "tests": 26,
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0
+    },
+    "runtime_claude_invoked": false,
+    "implementation_reviewer_automatic_hook": "NOT_CONNECTED_SHARED_V2_WORKFLOW_UNCHANGED",
+    "new_campaign": false,
+    "promotion_authorized": false
   }
 }
