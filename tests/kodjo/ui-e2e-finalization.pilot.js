@@ -465,3 +465,24 @@ test('finalization checks the final HEAD out with exact blob bytes on the Window
   const step=wf.slice(rewrite,checks);
   for(const cmd of ['git config --local core.autocrlf false','git rm -r --cached -q .','git reset --hard -q HEAD','git status --porcelain'])assert.ok(step.includes(cmd),cmd);
 });
+
+test('finalization replays the review with the cumulative delivered files of an EXISTING_PR delivery (PRE-2)',()=>{
+  const wf=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-finalize.yml'),'utf8').replace(/\r\n/g,'\n');
+  const checkout=wf.indexOf('git worktree add --detach -- $finalApplication $head');
+  const reset=wf.indexOf('Remove-Item Env:KODJO_CUMULATIVE_CHANGED_FILES',checkout);
+  const condition=wf.indexOf("if([string]$queue.delivery_target.kind-eq'EXISTING_PR'){",checkout);
+  const ancestor=wf.indexOf('git merge-base --is-ancestor $deliveredBase $head',checkout);
+  const diff=wf.indexOf('git diff --name-only "$deliveredBase..$head"',checkout);
+  const exported=wf.indexOf('$env:KODJO_CUMULATIVE_CHANGED_FILES=$cumulativeFile',checkout);
+  const replay=wf.indexOf('node $reviewVerifier validate $planFile $changedFile $reviewContractFile $reviewReplay $implFile');
+  assert.ok(checkout>0&&checkout<reset&&reset<condition&&condition<ancestor&&ancestor<diff&&diff<exported&&exported<replay,
+    'the cumulative delivered files must be reset, bounded by the baseline ancestry and exported before the review replay');
+  const block=wf.slice(condition,exported);
+  assert.ok(block.includes('$deliveredBase=[string]$queue.baseline_head'));
+  assert.ok(block.includes("if($deliveredBase-notmatch'^[0-9a-f]{40}$'){throw 'Invalid V2 delivered baseline SHA'}"));
+  assert.ok(block.includes("throw 'V2 delivered baseline is not an ancestor of the final HEAD'"));
+  const review=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-implementation-review.yml'),'utf8');
+  assert.match(review,/\.delivery_target\.kind == "EXISTING_PR"/);
+  assert.match(review,/delivered_base=\$\(jq -r '\.baseline_head'/);
+  assert.match(review,/KODJO_CUMULATIVE_CHANGED_FILES=/);
+});
