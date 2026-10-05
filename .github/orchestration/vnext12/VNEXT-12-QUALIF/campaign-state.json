@@ -1611,10 +1611,10 @@
   "recovery_20261005": {
     "observed_candidate": "3ca40be0acf2001a59119ddfbec93c8ec171414a",
     "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
-    "status": "FIGMA_CONNECTION_IMPLEMENTED_LOCAL_QUALIFICATION_PASS",
+    "status": "FIGMA_CONNECTION_TECHNICALLY_QUALIFIED_REAL_PATH_PENDING",
     "report": ".github/orchestration/reports/2026-10-05_VNEXT_RECOVERY_AND_FIGMA_CONNECTION.md",
     "windows_pilot_limit_minutes": 60,
-    "windows_preflight": "CANCELLED_INCOMPLETE",
+    "windows_preflight": "SUCCESS_ON_12041962",
     "figma_raccordement": "CONTRACT_AND_RUNTIME_VIEW_IMPLEMENTED_REAL_SEMANTIC_USE_PENDING",
     "local_ui_tests": {
       "pass": 15,
@@ -1625,10 +1625,10 @@
     "runtime_claude_invoked": false,
     "main_promotion_authorized": false,
     "original_ten_step_plan_location": "NOT_RECOVERED",
-    "next_action": "Qualify exact consolidated candidate on existing PR Linux/Windows; then existing real INITIAL/REVISION/post-acceptance paths, reviewer resource consumption and final audit. No V2/PRE-2/main promotion."
+    "next_action": "Complete VNext-only implementation reviewer hookup and exercise the exact Figma-bearing plan in the existing real paths; QUALIFY_ONLY does not prove semantic consumption or visual compliance."
   },
   "proof_lifecycle_20261005": {
-    "status": "LOCAL_LINUX_PASS_WINDOWS_AND_REAL_RUNTIME_PENDING",
+    "status": "REMOTE_CONTRACTS_LINUX_WINDOWS_PASS_REAL_RUNTIME_PENDING",
     "incident_run": 37244733631,
     "incident_source": "USER_REPORTED_PRE2_NOT_MODIFIED",
     "evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/proof-lifecycle-20261005/evidence.json",
@@ -1648,7 +1648,7 @@
     "new_workflows_launched": false
   },
   "figma_source_20261005": {
-    "status": "LOCAL_LINUX_PASS_REMOTE_QUALIFICATION_PENDING",
+    "status": "REMOTE_LINUX_WINDOWS_TECHNICAL_PASS_REAL_FIGMA_PATH_PENDING",
     "reference_hash": "84e4759b5a160bef1aa591a7b8800ac6e070bebe2d3851e50e1fe14432af2981",
     "report": ".github/orchestration/reports/2026-10-05_VNEXT_FIGMA_SOURCE_IMPLEMENTATION.md",
     "evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/implementation-evidence.json",
@@ -1669,6 +1669,14 @@
     "new_campaign": false,
     "promotion_authorized": false,
     "superseded_candidate": "c6bbacad6f3f959dd396be18dcb8753596d4e935",
-    "supersession_reason": "Second pass demonstrated two fixed UI labels wrongly classified as demo data; corrected title and create action only."
+    "supersession_reason": "Second pass demonstrated two fixed UI labels wrongly classified as demo data; corrected title and create action only.",
+    "qualified_code_head": "12041962da5d3283a889dea6f3868014da4dfff3",
+    "remote_qualification_evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/recovery-qualification.json",
+    "remote_runs": [
+      37251628601,
+      37251628495,
+      37251628493
+    ],
+    "real_figma_path": "NOT_EXECUTED"
   }
 }
