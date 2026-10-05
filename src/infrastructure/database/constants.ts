@@ -31,8 +31,14 @@ export const DATABASE_NAME = "kodjo.db";
  * Migration strictement additive — voir `migration007.ts` pour la limite
  * disclosée de cette invocation bornée (aucune reconstruction des tables
  * existantes).
+ *
+ * **V2-PRE-2 (version 8, `migration008`)** : Profil complété (deux défauts
+ * de Séance, quatre préférences, identité, silhouette), clé normalisée
+ * obligatoire et unique pour Étiquettes et Zones, et `activity_body_zones`
+ * reconstruite sans `CHECK` sur les 10 identifiants historiques — une Zone
+ * créée devient liable à une occurrence de Séance (plan §6.2).
  */
-export const DATABASE_VERSION = 7;
+export const DATABASE_VERSION = 8;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

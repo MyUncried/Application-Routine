@@ -1,3 +1,5 @@
+import { canonicalBodyZoneKey } from "@/domain/body-zones/BodyZone";
+import { canonicalLabelKey } from "@/domain/labels/Label";
 import { DATABASE_VERSION, LOCAL_USER_SINGLETON_KEY } from "./constants";
 import type { Database } from "./Database";
 import { MIGRATION_001 } from "./migrations/migration001";
@@ -7,9 +9,11 @@ import { MIGRATION_004 } from "./migrations/migration004";
 import { MIGRATION_005 } from "./migrations/migration005";
 import { MIGRATION_006 } from "./migrations/migration006";
 import { MIGRATION_007 } from "./migrations/migration007";
+import { MIGRATION_008_COLUMNS, MIGRATION_008_FINALIZE } from "./migrations/migration008";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
+type NamedRow = { id: string; name: string };
 
 /**
  * Applique séquentiellement chaque migration additive manquante, jamais en
@@ -90,6 +94,36 @@ export async function migrateDatabase(database: Database): Promise<void> {
     if (version === 6) {
       await transaction.execAsync(MIGRATION_007);
       version = 7;
+    }
+
+    if (version === 7) {
+      await transaction.execAsync(MIGRATION_008_COLUMNS);
+
+      // Les clés normalisées (NFD, casse) ne sont pas exprimables en SQL
+      // pur : chaque Étiquette/Zone déjà persistée (seed `migration007`, ou
+      // une installation antérieure) reçoit la sienne, calculée en
+      // JavaScript par la MÊME fonction que `LabelRepository.create`/
+      // `BodyZoneRepository.create` — jamais une seconde implémentation
+      // divergente.
+      const labelRows = await transaction.getAllAsync<NamedRow>("SELECT id, name FROM labels");
+      for (const row of labelRows) {
+        await transaction.runAsync("UPDATE labels SET canonical_key = ? WHERE id = ?", [
+          canonicalLabelKey(row.name),
+          row.id,
+        ]);
+      }
+      const bodyZoneRows = await transaction.getAllAsync<NamedRow>(
+        "SELECT id, name FROM body_zones",
+      );
+      for (const row of bodyZoneRows) {
+        await transaction.runAsync("UPDATE body_zones SET canonical_key = ? WHERE id = ?", [
+          canonicalBodyZoneKey(row.name),
+          row.id,
+        ]);
+      }
+
+      await transaction.execAsync(MIGRATION_008_FINALIZE);
+      version = 8;
     }
 
     const userCount = await transaction.getFirstAsync<CountRow>(

@@ -10,6 +10,18 @@ export type ColorPaletteProps = {
   onChange: (color: SessionColor) => void;
   isOpen: boolean;
   onToggle: () => void;
+  /**
+   * V2-PRE-2 (plan §6.5, R4, §4.10 L133) : `"popover"` (défaut) préserve le
+   * comportement existant de `CompositionScreen` (grille `position:
+   * "absolute"`, ancrée sous le déclencheur, superposée au contenu).
+   * `"inline"` — seuls consommateurs les cartes de création/modification
+   * Catégorie et Étiquette (`CategoryPickerModal`/`LabelPickerModal`) —
+   * rend la grille dans le flux normal de la carte, sans superposition :
+   * la carte grandit et défile, le champ saisi et les actions `Annuler`/
+   * `Ajouter`/`Enregistrer` restent entièrement visibles et utilisables,
+   * clavier affiché ou masqué.
+   */
+  variant?: "popover" | "inline";
 };
 
 /**
@@ -34,12 +46,39 @@ export type ColorPaletteProps = {
  *   couleur »), en plus du contour distinct — un indicateur de sélection
  *   n'est jamais porté par la seule couleur (CE-T01-06).
  */
-export function ColorPalette({ value, onChange, isOpen, onToggle }: ColorPaletteProps) {
+export function ColorPalette({ value, onChange, isOpen, onToggle, variant = "popover" }: ColorPaletteProps) {
   const swatchHitSlop = (minTouchTarget - SWATCH_SIZE) / 2;
   const gridSwatchHitSlop = (minTouchTarget - GRID_SWATCH_SIZE) / 2;
 
+  const grid = (
+    <View style={styles.grid}>
+      {SESSION_COLORS.map((color) => {
+        const isSelected = color === value;
+        return (
+          <Pressable
+            key={color}
+            onPress={() => onChange(color)}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: isSelected }}
+            accessibilityLabel={`${strings.screens.composition.colorPicker.swatchAccessibilityLabel} ${color}`}
+            hitSlop={gridSwatchHitSlop}
+            style={[
+              styles.gridSwatch,
+              { backgroundColor: color },
+              isSelected ? styles.gridSwatchSelected : null,
+            ]}
+          >
+            {isSelected ? (
+              <KodjoIcon name="state-selected" testID="color-palette-selected-icon" />
+            ) : null}
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+
   return (
-    <View style={styles.anchor}>
+    <View style={variant === "inline" ? styles.inlineContainer : styles.anchor}>
       <Pressable
         onPress={onToggle}
         accessibilityRole="button"
@@ -49,37 +88,25 @@ export function ColorPalette({ value, onChange, isOpen, onToggle }: ColorPalette
         style={[styles.swatch, { backgroundColor: value }]}
       />
       {isOpen ? (
-        <View
-          style={styles.popover}
-          accessibilityRole="radiogroup"
-          accessibilityLabel={strings.screens.composition.colorPicker.paletteAccessibilityLabel}
-          testID="color-palette-popover"
-        >
-          <View style={styles.grid}>
-            {SESSION_COLORS.map((color) => {
-              const isSelected = color === value;
-              return (
-                <Pressable
-                  key={color}
-                  onPress={() => onChange(color)}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: isSelected }}
-                  accessibilityLabel={`${strings.screens.composition.colorPicker.swatchAccessibilityLabel} ${color}`}
-                  hitSlop={gridSwatchHitSlop}
-                  style={[
-                    styles.gridSwatch,
-                    { backgroundColor: color },
-                    isSelected ? styles.gridSwatchSelected : null,
-                  ]}
-                >
-                  {isSelected ? (
-                    <KodjoIcon name="state-selected" testID="color-palette-selected-icon" />
-                  ) : null}
-                </Pressable>
-              );
-            })}
+        variant === "inline" ? (
+          <View
+            style={styles.inlinePalette}
+            accessibilityRole="radiogroup"
+            accessibilityLabel={strings.screens.composition.colorPicker.paletteAccessibilityLabel}
+            testID="color-palette-popover"
+          >
+            {grid}
           </View>
-        </View>
+        ) : (
+          <View
+            style={styles.popover}
+            accessibilityRole="radiogroup"
+            accessibilityLabel={strings.screens.composition.colorPicker.paletteAccessibilityLabel}
+            testID="color-palette-popover"
+          >
+            {grid}
+          </View>
+        )
       ) : null}
     </View>
   );
@@ -94,6 +121,16 @@ const styles = StyleSheet.create({
     // enfant `position: "absolute"` relativement à la boîte de son parent
     // immédiat, sans exiger que ce parent porte explicitement
     // `position: "relative"` (contrairement au web).
+  },
+  // R4 (§4.10 L133) : aucun `position: "absolute"` — la grille participe au
+  // flux normal de la carte, jamais une superposition.
+  inlineContainer: {
+    gap: spacing[8],
+  },
+  inlinePalette: {
+    padding: spacing[8],
+    borderRadius: 16,
+    backgroundColor: colors.surface,
   },
   swatch: {
     width: SWATCH_SIZE,

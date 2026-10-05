@@ -12,6 +12,10 @@ import { SqliteProfileRepository } from "@/infrastructure/database/repositories/
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceProvider } from "@/features/activities/ActivityDefinitionServiceProvider";
+import { ProfileService } from "@/features/preferences/ProfileService";
+import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
+import { ReferentialService } from "@/features/reference-data/ReferentialService";
+import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
 
@@ -38,6 +42,11 @@ import { SessionService } from "@/features/sessions/SessionService";
  * réel ne traverse jamais `SQLiteProvider` : il est enveloppé directement
  * par `SessionServiceContext.Provider` (notre propre composant, non
  * mémoïsé), rendu en dehors de `SQLiteProvider`, donc toujours à jour.
+ *
+ * **V2-PRE-2 (plan §6.3)** : `ProfileService` et `ReferentialService` sont
+ * construits ici, sur la MÊME connexion SQLite que `SessionService` —
+ * aucune seconde connexion, aucun second cycle de migration (rationale
+ * d'injection SQLite déjà établie par `ActivityDefinitionService`).
  */
 
 /**
@@ -72,6 +81,10 @@ type SessionServiceInitializerProps = {
    * migration.
    */
   onActivityDefinitionServiceReady: (service: ActivityDefinitionService) => void;
+  /** V2-PRE-2 : remonte `ProfileService`, même connexion SQLite. */
+  onProfileServiceReady: (service: ProfileService) => void;
+  /** V2-PRE-2 : remonte `ReferentialService`, même connexion SQLite. */
+  onReferentialServiceReady: (service: ReferentialService) => void;
 };
 
 /**
@@ -80,23 +93,20 @@ type SessionServiceInitializerProps = {
  * ci-dessous : `SQLiteProvider` ne reçoit donc jamais de `children`
  * différent d'un rendu à l'autre, et son bail-out mémoïsé (comparateur qui
  * ignore `children`) n'a alors aucune conséquence observable. Ne rend rien
- * visuellement — son seul rôle est de construire `SessionService` et
- * `ActivityDefinitionService` (mémoïsés sur la connexion native stable) et
- * de signaler leur disponibilité.
+ * visuellement — son seul rôle est de construire les services (mémoïsés sur
+ * la connexion native stable) et de signaler leur disponibilité.
  */
 function SessionServiceInitializer({
   onServiceReady,
   onActivityDefinitionServiceReady,
+  onProfileServiceReady,
+  onReferentialServiceReady,
 }: SessionServiceInitializerProps) {
   const nativeDatabase = useSQLiteContext();
 
   const sessionService = useMemo(() => {
     const database = new ExpoDatabase(nativeDatabase);
-    return new SessionService(
-      new SqliteSessionRepository(database),
-      new SqliteCategoryRepository(database),
-      new SqliteProfileRepository(database),
-    );
+    return new SessionService(new SqliteSessionRepository(database), new SqliteCategoryRepository(database));
   }, [nativeDatabase]);
 
   // Correction (device check Hermann, commentaire 5948936550 ; revue
@@ -119,6 +129,20 @@ function SessionServiceInitializer({
     );
   }, [nativeDatabase]);
 
+  const profileService = useMemo(() => {
+    const database = new ExpoDatabase(nativeDatabase);
+    return new ProfileService(new SqliteProfileRepository(database));
+  }, [nativeDatabase]);
+
+  const referentialService = useMemo(() => {
+    const database = new ExpoDatabase(nativeDatabase);
+    return new ReferentialService(
+      new SqliteCategoryRepository(database),
+      new SqliteBodyZoneRepository(database),
+      new SqliteLabelRepository(database),
+    );
+  }, [nativeDatabase]);
+
   useEffect(() => {
     onServiceReady(sessionService);
   }, [sessionService, onServiceReady]);
@@ -126,6 +150,14 @@ function SessionServiceInitializer({
   useEffect(() => {
     onActivityDefinitionServiceReady(activityDefinitionService);
   }, [activityDefinitionService, onActivityDefinitionServiceReady]);
+
+  useEffect(() => {
+    onProfileServiceReady(profileService);
+  }, [profileService, onProfileServiceReady]);
+
+  useEffect(() => {
+    onReferentialServiceReady(referentialService);
+  }, [referentialService, onReferentialServiceReady]);
 
   return null;
 }
@@ -142,14 +174,18 @@ export function SessionServiceProvider({ children, onReady }: SessionServiceProv
   const [sessionService, setSessionService] = useState<SessionService | null>(null);
   const [activityDefinitionService, setActivityDefinitionService] =
     useState<ActivityDefinitionService | null>(null);
+  const [profileService, setProfileService] = useState<ProfileService | null>(null);
+  const [referentialService, setReferentialService] = useState<ReferentialService | null>(null);
+  // V2-PRE-2 (plan §6.3) : `onReady` attend aussi le CHARGEMENT du Profil
+  // (pas seulement la construction de `ProfileService`) — un échec de
+  // lecture suit le traitement d'erreur déjà établi ailleurs dans le projet
+  // pour cette même lecture (`console.error`, jamais un blocage indéfini de
+  // l'ouverture de l'application).
+  const [isProfileLoaded, setIsProfileLoaded] = useState(false);
 
-  const handleServiceReady = useCallback(
-    (service: SessionService) => {
-      setSessionService(service);
-      onReady?.();
-    },
-    [onReady],
-  );
+  const handleServiceReady = useCallback((service: SessionService) => {
+    setSessionService(service);
+  }, []);
 
   const handleActivityDefinitionServiceReady = useCallback(
     (service: ActivityDefinitionService) => {
@@ -158,17 +194,48 @@ export function SessionServiceProvider({ children, onReady }: SessionServiceProv
     [],
   );
 
+  const handleProfileServiceReady = useCallback((service: ProfileService) => {
+    setProfileService(service);
+    service.getProfile().then(
+      () => setIsProfileLoaded(true),
+      (error: unknown) => {
+        console.error("Le Profil n'a pas pu être chargé.", error);
+        setIsProfileLoaded(true);
+      },
+    );
+  }, []);
+
+  const handleReferentialServiceReady = useCallback((service: ReferentialService) => {
+    setReferentialService(service);
+  }, []);
+
+  // V2-PRE-2 (plan §6.3) : un seul signal `onReady`, une fois `SessionService`,
+  // `ProfileService`, `ReferentialService` ET le Profil chargé — jamais dès
+  // que `SessionService` seul est construit. Aucun écran n'est donc jamais
+  // rendu avec un contexte Profil ou référentiel nul.
+  useEffect(() => {
+    if (sessionService && profileService && referentialService && isProfileLoaded) {
+      onReady?.();
+    }
+  }, [sessionService, profileService, referentialService, isProfileLoaded, onReady]);
+
   return (
     <>
       <SQLiteProvider databaseName={DATABASE_NAME} onInit={onDatabaseInit}>
         <SessionServiceInitializer
           onServiceReady={handleServiceReady}
           onActivityDefinitionServiceReady={handleActivityDefinitionServiceReady}
+          onProfileServiceReady={handleProfileServiceReady}
+          onReferentialServiceReady={handleReferentialServiceReady}
         />
       </SQLiteProvider>
       <SessionServiceContext.Provider value={sessionService}>
         <ActivityDefinitionServiceProvider service={activityDefinitionService}>
-          {children}
+          <ProfileServiceContext.Provider value={profileService}>
+            <ReferentialServiceContext.Provider value={referentialService}>
+              {children}
+            </ReferentialServiceContext.Provider>
+          </ProfileServiceContext.Provider>
         </ActivityDefinitionServiceProvider>
       </SessionServiceContext.Provider>
     </>

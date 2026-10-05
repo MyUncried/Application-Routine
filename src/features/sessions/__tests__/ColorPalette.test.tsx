@@ -115,4 +115,60 @@ describe("ColorPalette", () => {
       expect(flattened.position).toBe("absolute");
     });
   });
+
+  /**
+   * R4 (plan §6.5, §4.10 L133) : `variant="inline"` — seuls consommateurs
+   * `CategoryPickerModal`/`LabelPickerModal` — rend la grille dans le flux
+   * normal de la carte, jamais une superposition `position: "absolute"`.
+   */
+  describe('variant="inline" (R4)', () => {
+    it("never positions the grid as an absolute overlay", () => {
+      render(
+        <ColorPalette
+          value={SESSION_COLORS[0]}
+          onChange={jest.fn()}
+          isOpen={true}
+          onToggle={jest.fn()}
+          variant="inline"
+        />,
+      );
+
+      const palette = screen.getByTestId("color-palette-popover");
+      const flattened = StyleSheet.flatten(palette.props.style);
+      expect(flattened.position).not.toBe("absolute");
+    });
+
+    it("still renders the 12 colours as an accessible radiogroup, and still applies onChange", () => {
+      const onChange = jest.fn();
+      render(
+        <ColorPalette
+          value={SESSION_COLORS[0]}
+          onChange={onChange}
+          isOpen={true}
+          onToggle={jest.fn()}
+          variant="inline"
+        />,
+      );
+
+      const group = screen.getByLabelText(
+        strings.screens.composition.colorPicker.paletteAccessibilityLabel,
+      );
+      expect(group.props.accessibilityRole).toBe("radiogroup");
+
+      fireEvent.press(
+        screen.getByLabelText(
+          `${strings.screens.composition.colorPicker.swatchAccessibilityLabel} ${SESSION_COLORS[5]}`,
+        ),
+      );
+      expect(onChange).toHaveBeenCalledWith(SESSION_COLORS[5]);
+    });
+
+    it("renders nothing extra when closed, defaulting variant to popover (backwards compatible)", () => {
+      render(
+        <ColorPalette value={SESSION_COLORS[0]} onChange={jest.fn()} isOpen={false} onToggle={jest.fn()} />,
+      );
+
+      expect(screen.queryByTestId("color-palette-popover")).toBeNull();
+    });
+  });
 });

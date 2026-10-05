@@ -153,6 +153,18 @@ describe("moveActivity (AC-04)", () => {
     expect(next[0]?.sideMode).toBe("RIGHT_LEFT");
     expect(next[0]?.structuralPosition).toBe("IN_TOUR");
   });
+
+  /**
+   * V2-PRE-2 (plan §6.1, UI-9194767E574D-A0D8A00099FB7 ; 04 L259, CE-T03-08
+   * L884) : la Récupération après exercice appartient à l'occurrence — un
+   * déplacement ne la relit jamais du Profil, même si celui-ci a changé
+   * depuis la création de l'occurrence.
+   */
+  it("preserves the occurrence's own postActivityRecoverySeconds on any displacement, never re-reading the Profile (V2-PRE-2)", () => {
+    const source = anActivity("before-1", "BEFORE_TOUR", { postActivityRecoverySeconds: 45 });
+    const next = moveActivity([source], "before-1", "AFTER_TOUR", 0);
+    expect(next[0]?.postActivityRecoverySeconds).toBe(45);
+  });
 });
 
 describe("removeActivity (AC-07)", () => {
@@ -374,6 +386,17 @@ describe("duplicateActivity (AC-06 ; T02-S02, D-138)", () => {
     const bilateral = anActivity("in-3", "IN_TOUR", { sideMode: "RIGHT_LEFT" });
     const next = duplicateActivity([...activities, bilateral], "in-3", "copy-1");
     expect(next.find((activity) => activity.id === "copy-1")?.sideMode).toBe("RIGHT_LEFT");
+  });
+
+  /**
+   * V2-PRE-2 (plan §6.1, UI-9194767E574D-A0D8A00099FB7 ; 04 L259, CE-T03-08
+   * L884) : la duplication reproduit la Récupération après exercice
+   * attachée EXACTEMENT, sans jamais la relire du Profil.
+   */
+  it("conserves the source's own postActivityRecoverySeconds on the copy, never re-reading the Profile (V2-PRE-2)", () => {
+    const withRecovery = anActivity("in-3", "IN_TOUR", { postActivityRecoverySeconds: 45 });
+    const next = duplicateActivity([...activities, withRecovery], "in-3", "copy-1");
+    expect(next.find((activity) => activity.id === "copy-1")?.postActivityRecoverySeconds).toBe(45);
   });
 });
 

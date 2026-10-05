@@ -25,6 +25,18 @@ const sources = {
   "wheel-action-cancel": require("../../../assets/icons/wheel-action-cancel.svg"),
   "wheel-action-validate": require("../../../assets/icons/wheel-action-validate.svg"),
   "select-field-chevron": require("../../../assets/icons/select-field-chevron.svg"),
+  // V2-PRE-1 (#287, masters Figma `6322:10874`/`6322:10877`) ; V2-PRE-2
+  // (plan §6.5, T13) : silhouette de Zone corporelle — variante homme/femme,
+  // affichée dans Modifier le profil (choix) et la modale Zones (icône
+  // résolue selon la silhouette du Profil, `BodyZoneIcon.tsx`).
+  "body-zone-homme": require("../../../assets/icons/body-zone-homme.svg"),
+  "body-zone-femme": require("../../../assets/icons/body-zone-femme.svg"),
+  // Révision r4 (demande de changement, run 37214282333) : export canonique
+  // du composant Figma `4916:6386` « Icône — Étiquette — cil:tag »
+  // (20×20, trait #0508E5, dans le cadre `2028:11204`), octets exacts
+  // (2087, sha256 `6b3a4b0c73…`). Utilisé par la pilule d'Étiquette de la
+  // Composition lorsqu'aucune Étiquette n'est choisie (R7a).
+  "label-outline": require("../../../assets/icons/label-outline.svg"),
 } as const;
 
 const sizes = {
@@ -116,6 +128,15 @@ const sizes = {
   // générique entre familles d'icônes (voir `2026-09-04_repetition-pull-
   // down-canonical-icon.md`, § « Contrôle des icônes similaires »).
   "select-field-chevron": [14, 14],
+  // V2-PRE-1/#287, V2-PRE-2 (T13) : glyphe intrinsèque `24×24` (export SVG
+  // exact) — taille d'affichage par défaut (`BodyZoneIcon.tsx`, modale
+  // Zones) ; `ProfileEditScreen.tsx` passe `size={44}` explicitement pour
+  // le sélecteur de silhouette (deux cercles `64`, icône `44` — CE-UI-01
+  // L2001).
+  "body-zone-homme": [24, 24],
+  "body-zone-femme": [24, 24],
+  // Révision r4 : glyphe intrinsèque 20×20 (viewBox exact de l'export, R7a).
+  "label-outline": [20, 20],
 } as const;
 
 /**

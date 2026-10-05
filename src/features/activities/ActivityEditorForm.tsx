@@ -3,6 +3,7 @@ import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } fr
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import type { Silhouette } from "@/domain/preferences/Profile";
 import {
   applyTargetTotalDuration,
   computeTotalDurationSeconds,
@@ -18,10 +19,11 @@ import {
   validateExerciseName,
   validateRepetitionCount,
 } from "@/domain/sessions/validation";
-import { BodyZoneSelector } from "@/features/sessions/BodyZoneSelector";
+import { BodyZonePickerModal } from "@/features/reference-data/BodyZonePickerModal";
 import {
   formatCompactDuration,
   formatDurationRowValue,
+  formatExerciseBodyZones,
   formatExerciseDurationLine,
   formatExerciseRecap,
 } from "@/features/sessions/compositionPresentation";
@@ -80,6 +82,17 @@ export type ActivityEditorFormProps = {
    * importé statiquement ici (`BODY_ZONES` n'est plus l'autorité runtime).
    */
   bodyZones: readonly BodyZone[];
+  /**
+   * R6 (CE-UI-09 L2784, L2816, L2840) : appelé à la fermeture de
+   * `BodyZonePickerModal` (Confirmer ou fermeture sans confirmer), en plus
+   * du repli interne de la sélection — permet à l'appelant de relire le
+   * référentiel `bodyZones` après une création, un renommage ou une
+   * suppression éventuels dans la modale, sans fermer ni rouvrir cet
+   * éditeur. Optionnel : `undefined` préserve le comportement existant.
+   */
+  onBodyZonesPickerClose?: () => void;
+  /** V2-PRE-2 (plan §6.5, T13) : silhouette du Profil — icône de Zone dans la modale de sélection (CE-UI-09 L2805). `null`/absente affiche homme. */
+  silhouette?: Silhouette | null;
   /**
    * V2-BILAT-01 : `true` uniquement pour une Activité `IN_TOUR` de la
    * Composition gouvernée par un Tour déjà bilatéral (le contrôle `Côté`
@@ -155,6 +168,8 @@ export function ActivityEditorForm({
   value,
   onChange,
   bodyZones,
+  onBodyZonesPickerClose,
+  silhouette = null,
   isSideModeInherited = false,
   showMediaSection = true,
   finishLabel,
@@ -167,6 +182,7 @@ export function ActivityEditorForm({
 }: ActivityEditorFormProps) {
   const insets = useSafeAreaInsets();
   const [openOverlay, setOpenOverlay] = useState<OverlayKind | null>(null);
+  const [isBodyZonePickerOpen, setIsBodyZonePickerOpen] = useState(false);
   // CE-T01-15 : Description et Zone corporelle FERMÉES par défaut, Mode
   // d'exécution DÉPLOYÉ par défaut ; Médias (Catalogue) fermée par défaut.
   const [expandedSections, setExpandedSections] = useState<Record<SectionKey, boolean>>({
@@ -227,14 +243,6 @@ export function ActivityEditorForm({
     } else {
       patch({ executionMode: "TO_FAILURE", durationSeconds: null, repetitionCount: null });
     }
-  }
-
-  function toggleBodyZone(zoneId: string) {
-    patch({
-      bodyZoneIds: value.bodyZoneIds.includes(zoneId)
-        ? value.bodyZoneIds.filter((id) => id !== zoneId)
-        : [...value.bodyZoneIds, zoneId],
-    });
   }
 
   /**
@@ -365,12 +373,22 @@ export function ActivityEditorForm({
           expanded={expandedSections.bodyZones}
           onToggle={() => toggleSection("bodyZones")}
         >
-          <BodyZoneSelector
-            zones={bodyZones}
-            selectedIds={value.bodyZoneIds}
-            onToggle={toggleBodyZone}
+          {/*
+           * V2-PRE-2 (plan §6.5, CE-UI-09 L2769-2857) : la sélection multiple
+           * s'ouvre désormais dans `BodyZonePickerModal` (validation explicite
+           * par `Confirmer`) — jamais le bascule immédiat historique.
+           */}
+          <Pressable
+            onPress={() => setIsBodyZonePickerOpen(true)}
+            accessibilityRole="button"
             accessibilityLabel={t.bodyZones.accessibilityLabel}
-          />
+            style={styles.bodyZonesSummaryRow}
+            testID="exercise-body-zones-open"
+          >
+            <Text style={styles.bodyZonesSummaryText}>
+              {formatExerciseBodyZones(value.bodyZoneIds, bodyZones) ?? t.bodyZones.accessibilityLabel}
+            </Text>
+          </Pressable>
         </CollapsibleSection>
 
         <CollapsibleSection
@@ -597,6 +615,20 @@ export function ActivityEditorForm({
           />
         ) : null}
       </WheelPickerOverlay>
+
+      {isBodyZonePickerOpen ? (
+        <BodyZonePickerModal
+          selectedIds={value.bodyZoneIds}
+          onConfirm={(ids) => patch({ bodyZoneIds: ids })}
+          onClose={() => {
+            setIsBodyZonePickerOpen(false);
+            // R6 : relit `bodyZones` (référentiel de l'appelant) après une
+            // création, un renommage ou une suppression dans la modale.
+            onBodyZonesPickerClose?.();
+          }}
+          silhouette={silhouette}
+        />
+      ) : null}
 
       {/*
        * Action finale unique (D-137) : `Terminer`. Enveloppée dans un
@@ -905,6 +937,20 @@ const styles = StyleSheet.create({
   },
   executionModeGroup: {
     gap: spacing[8],
+  },
+  bodyZonesSummaryRow: {
+    minHeight: minTouchTarget,
+    justifyContent: "center",
+    paddingVertical: spacing[8],
+    paddingHorizontal: spacing[12],
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  bodyZonesSummaryText: {
+    ...type.body,
+    color: colors.textPrimary,
   },
   addMediaButton: {
     alignSelf: "center",
