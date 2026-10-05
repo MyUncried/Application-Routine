@@ -1,7 +1,6 @@
 name: KODJO VNext targeted Windows performance
 on:
-  pull_request:
-    types: [labeled]
+  create:
 permissions:
   contents: read
 concurrency:
@@ -9,7 +8,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   measure:
-    if: github.event.pull_request.number == 269 && github.head_ref == 'protocol/vnext-proof-stability-20260930' && github.event.label.name == 'vnext-performance-task2-20261005'
+    if: github.event_name == 'create' && github.event.ref_type == 'branch' && github.event.ref == 'diagnostic/vnext-performance-task2-20261005'
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 20
     steps:
@@ -19,7 +18,7 @@ jobs:
           GIT_CONFIG_KEY_0: core.autocrlf
           GIT_CONFIG_VALUE_0: 'false'
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
       - name: Install only the pinned planning tokenizer used by fixture tests
@@ -28,7 +27,7 @@ jobs:
       - name: Measure only scanner and targeted fixture concurrency without Claude
         shell: cmd
         env:
-          VNEXT_PERF_EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+          VNEXT_PERF_EXPECTED_HEAD: ${{ github.sha }}
         run: >-
           node -e "if(process.env.GITHUB_RUN_ATTEMPT!=='1')throw Error('VNEXT_PERF_RERUN_REFUSED');const r=require('./scripts/kodjo/measure-vnext-windows');r.run(require('path').join(process.env.RUNNER_TEMP,'vnext-performance-'+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT));"
       - name: Preserve diagnostic results even on a bounded failure
@@ -39,3 +38,4 @@ jobs:
           path: ${{ runner.temp }}/vnext-performance-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: error
           retention-days: 14
+
