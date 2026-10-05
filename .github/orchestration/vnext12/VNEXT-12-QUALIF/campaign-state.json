@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-05T22:51:00Z",
+  "recorded_at": "2026-10-05T23:03:17.909794+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
-  "code_head_before_checkpoint": "73787f296d78ab3c435fa04ef993f0ef8382141f",
-  "controller_stage": "FIGMA_TASK2_QUALIFICATION_ADMISSION_REPAIR",
-  "controller_generation": 59,
+  "code_head_before_checkpoint": "d1402d91c56b55b3ff8b8a925afd5f7bcd279f4c",
+  "controller_stage": "FIGMA_TASK2_FRESH_INITIAL_AUTHORIZED",
+  "controller_generation": 60,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -377,26 +377,7 @@
     "consumption_tag": "9e2e693061c8d0d53d00d15519a4f1b216e6a081",
     "replay_forbidden": true
   },
-  "active_runs": [
-    {
-      "id": 37325776512,
-      "status": "completed",
-      "conclusion": "failure",
-      "head": "e0c766feda827c2df6d3d8a523759007a9f05c85"
-    },
-    {
-      "id": 37325776649,
-      "status": "completed",
-      "conclusion": "success",
-      "head": "e0c766feda827c2df6d3d8a523759007a9f05c85"
-    },
-    {
-      "id": 37325776552,
-      "status": "completed",
-      "conclusion": "cancelled",
-      "head": "e0c766feda827c2df6d3d8a523759007a9f05c85"
-    }
-  ],
+  "active_runs": [],
   "obsolete_runs": [
     {
       "run_id": "36848654104",
@@ -1710,7 +1691,7 @@
     "request_json_changed": false
   },
   "figma_task2_initial": {
-    "status": "INITIAL_FAILED_LOCAL_CORRECTIONS_AND_OPTIMIZATION_PENDING_FRESH_QUALIFICATION",
+    "status": "QUALIFIED_FRESH_INITIAL_AUTHORIZED",
     "parent_head": "c1ea9aef65e7f61662cb91eee8c5fa8d93032c09",
     "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
     "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
@@ -1724,9 +1705,9 @@
     "capture_provenance": "FROZEN_GIT_CAPTURE_REPLAY_NOT_FRESH_ACQUISITION",
     "evidence_preservation": "Git bundle, working delta, raw model/process responses, delivery snapshots; cleanup only after successful preservation.",
     "duplicate_policy": "Exclusive persistent request-id claim; reruns refused; no release after partial invocation.",
-    "qualified_protocol_head": "73787f296d78ab3c435fa04ef993f0ef8382141f",
-    "qualification_run_id": 37307334832,
-    "request_id": "1c9be701-2e24-43f7-bd24-2030d1d3c6c1",
+    "qualified_protocol_head": "d1402d91c56b55b3ff8b8a925afd5f7bcd279f4c",
+    "qualification_run_id": 37385093752,
+    "request_id": "86d8f6ce-e621-47b1-9e11-f9d67d32aa52",
     "qualification_evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/final-qualification.json",
     "windows_preflight": {
       "run_id": 37307334786,
@@ -1808,20 +1789,18 @@
     "driver_qualification_run_id": 37307334666,
     "publication_block": null,
     "remaining_actions": [
-      "Let existing local preflight job 111755046302 complete; do not duplicate or cancel it.",
-      "Read current active runs and runner/Claude process state before admission.",
-      "Verify publication window and reuse qualified head 73787f296d78ab3c435fa04ef993f0ef8382141f / run 37307334832; metadata checkpoint has the same protocol code.",
-      "Publish one FIGMA_INITIAL request with logical UUID 1c9be701-2e24-43f7-bd24-2030d1d3c6c1, proved unconsumed at the failed shell entry.",
-      "Collect actual isolated initial delivery, declared one-correction proof and sealed evidence; stop before task 3 or closure."
+      "Publish this new FIGMA_INITIAL request once after rechecking publication window",
+      "Collect actual isolated initial delivery and one declared bounded correction with retained evidence",
+      "Stop before task 3 or closure"
     ],
     "initial_run_id": 37325776512,
     "initial_job_id": 111816099880,
     "initial_failure": "VNEXT_REVIEW_FINDING_DEPENDENCY_UNKNOWN: PLAN_CONTRACT",
     "implementation_calls": 0,
     "correction_calls": 0,
-    "fresh_qualification_required": true,
-    "new_request_id_required_before_next_initial": true,
-    "waiting_for": "USER_NEXT_SCOPE_AFTER_TARGETED_DIAGNOSTIC",
+    "fresh_qualification_required": false,
+    "new_request_id_required_before_next_initial": false,
+    "waiting_for": "REAL_INITIAL_RESULT",
     "local_optimization_evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/local-optimization-20261005/summary.json",
     "plan_review_session_id": "f7282e15-2022-48d5-9be6-3abd1236e885",
     "performance_measurement": {
@@ -1855,6 +1834,11 @@
     "new_request_pending": true,
     "runtime_launched": false,
     "task3_authorized": false,
-    "closure_authorized": false
+    "closure_authorized": false,
+    "repair_head": "d1402d91c56b55b3ff8b8a925afd5f7bcd279f4c",
+    "repair_qualification_run": 37385093752,
+    "repair_qualification_result": "VERIFIED",
+    "new_request_id": "86d8f6ce-e621-47b1-9e11-f9d67d32aa52",
+    "old_request_id": "1c9be701-2e24-43f7-bd24-2030d1d3c6c1"
   }
 }

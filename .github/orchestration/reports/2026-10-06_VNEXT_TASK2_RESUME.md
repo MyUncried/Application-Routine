@@ -17,3 +17,13 @@ Le workflow de qualification existant cible une seule nouvelle branche dédiée.
 Références : run 37380874773, checkpoint `campaign-state.json`, test `tests/kodjo/vnext-transport-security.pilot.js`. L’UUID précédent est consommé et ne sera pas rejoué. Une nouvelle demande sera préparée après qualification du correctif, avec commit exact et run vérifiés. Le parcours reste une fixture isolée avec capture Figma figée dans Git ; il ne certifie pas l’application native ni une acquisition Figma fraîche.
 
 Bilan, SHA final, état Git et résultats réels seront actualisés à la prochaine barrière. Aucun test sur appareil réel n’est inclus dans cette reprise.
+
+## Vérifications préalables acquises
+
+Le correctif est publié sur `d1402d91c56b55b3ff8b8a925afd5f7bcd279f4c`, arbre Git vérifié identique au candidat local. Les neuf tests d’admission passent ; la validation du tree conserve les writers historiques gelés et les 420 sujets. Le précheck du dossier réel passe sans appel Claude et sans acquisition Figma fraîche. Le run unique de qualification du correctif est 37385093752 : contrats Linux et Windows 315/315 PASS, 0 FAIL, 0 SKIP ; contrats Windows 380,20 s, Linux 47,21 s. La suite historique et la couverture finales sont encore attendues à ce point.
+
+Deuxième passe : diff du validateur et du workflow relu séparément ; tous les cinq jobs exacts restent requis. Les refus des mauvaises branches/événements/SHA et des jobs manquants, ignorés ou dupliqués ont été exercés. La section 23 de la spécification exige le workflow, le candidat exact et les cinq jobs, sans imposer un événement contradictoire. La portée documentée reste la fixture isolée.
+
+## Admission de la nouvelle demande
+
+La qualification 37385093752 du commit `d1402d91c56b55b3ff8b8a925afd5f7bcd279f4c` est désormais entièrement SUCCESS. Le validateur du protocole retourne VERIFIED sur les cinq jobs réels et le SHA exact. La fenêtre de publication est vérifiée ; aucun run VNext actif et aucun changement de HEAD ne sont observés. Nouvelle demande `86d8f6ce-e621-47b1-9e11-f9d67d32aa52`, génération 49, FIGMA_INITIAL, même campagne. L’ancienne demande consommée `1c9be701-2e24-43f7-bd24-2030d1d3c6c1` reste non rejouée. Le commit contrôleur ne change que demande, checkpoint, rapport et preuves ; il devra conserver exactement le code du candidat qualifié. Publication sans skip afin de déclencher l’entrée PR préparée. Aucun lancement de tâche 3, de revue de clôture ou de PRE-X.
