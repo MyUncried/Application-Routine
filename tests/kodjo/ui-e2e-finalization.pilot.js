@@ -414,6 +414,48 @@ test('device gate (PRE-1): VISUAL_APPROVED still never closes a technical gap, a
   }
 });
 
+const accessibilityPendingCriterion=value=>{
+  value.criteria[0].implementation_status='NON_VERIFIABLE';
+  value.criteria[0].proof_results=[
+    {proof_type:'ACCESSIBILITY_CHECK',status:'PENDING_DEVICE',evidence:'VoiceOver/TalkBack runtime requis.'},
+    {proof_type:'FUNCTIONAL_TEST',status:'PASS',evidence:'Test déterministe PASS.'},
+    {proof_type:'VISUAL_COMPARE',status:'PENDING_DEVICE',evidence:'Contrôle humain requis.'},
+  ];
+  value.criteria[0].assertion_results=[
+    {assertion_id:'UI-001-A1',status:'CONFORME',proof_results:[{proof_type:'FUNCTIONAL_TEST',status:'PASS'}]},
+    {assertion_id:'UI-001-A2',status:'PENDING_DEVICE',proof_results:[{proof_type:'ACCESSIBILITY_CHECK',status:'PENDING_DEVICE'},{proof_type:'FUNCTIONAL_TEST',status:'PASS'}]},
+    {assertion_id:'UI-001-A3',status:'PENDING_DEVICE',proof_results:[{proof_type:'VISUAL_COMPARE',status:'PENDING_DEVICE'}]},
+  ];
+};
+
+test('device gate (PRE-2): ACCESSIBILITY_CHECK pending on device is deferred to VISUAL_APPROVED like the review',()=>{
+  const r=finalizeWith(accessibilityPendingCriterion);
+  assert.equal(r.status,0,r.stderr);
+  assert.equal(r.result.final_status,'READY_TO_CLOSE');
+  assert.equal(r.result.review_mode,'CRITERION_COMPLETE');
+  const passed=finalizeWith(value=>{accessibilityPendingCriterion(value);value.criteria[0].proof_results[0].status='PASS';value.criteria[0].assertion_results[1].proof_results[0].status='PASS';});
+  assert.equal(passed.status,0,passed.stderr);
+});
+
+test('device gate (PRE-2): VISUAL_APPROVED never closes a failed or unverifiable accessibility proof, nor a criterion with nothing pending',()=>{
+  for(const mutate of [
+    value=>{accessibilityPendingCriterion(value);value.criteria[0].proof_results[0].status='FAIL';},
+    value=>{accessibilityPendingCriterion(value);value.criteria[0].proof_results[0].status='NON_VERIFIABLE';},
+    value=>{accessibilityPendingCriterion(value);value.criteria[0].assertion_results[1].proof_results[0].status='NON_VERIFIABLE';},
+    value=>{accessibilityPendingCriterion(value);value.criteria[0].assertion_results[1].proof_results[1].status='NON_VERIFIABLE';},
+    value=>{accessibilityPendingCriterion(value);value.criteria[0].proof_results[2].status='PASS';},
+    value=>{
+      accessibilityPendingCriterion(value);
+      value.criteria[0].proof_results=[{proof_type:'ACCESSIBILITY_CHECK',status:'PASS',evidence:'Structurel.'},{proof_type:'FUNCTIONAL_TEST',status:'PASS',evidence:'PASS.'}];
+      value.criteria[0].assertion_results=[{assertion_id:'UI-001-A1',status:'CONFORME',proof_results:[{proof_type:'ACCESSIBILITY_CHECK',status:'PASS'}]}];
+    },
+  ]){
+    const r=finalizeWith(mutate);
+    assert.notEqual(r.status,0);
+    assert.match(r.stderr,/V2_FINAL_(CRITERION_NOT_CLOSED|TECHNICAL_PROOF_NOT_PASS|DEVICE_PROOF_PRE_GATE_INVALID)/);
+  }
+});
+
 test('finalization checks the final HEAD out with exact blob bytes on the Windows runner (PRE-1)',()=>{
   const wf=fs.readFileSync(path.join(root,'.github','workflows','kodjo-slice-finalize.yml'),'utf8').replace(/\r\n/g,'\n');
   const finalCheckout=wf.indexOf('- name: Checkout final HEAD');
