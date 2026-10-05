@@ -268,12 +268,11 @@ jobs:
           path: _vnext12-figma/${{ github.run_id }}
       - name: Qualify admission then execute the disposable Figma path once
         working-directory: _vnext12-figma/${{ github.run_id }}
-        shell: bash
+        shell: cmd
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-          node scripts/kodjo/qualify-vnext-figma-real-path.js initial "$RUNNER_TEMP/vnext12-figma-${{ github.run_id }}-${{ github.run_attempt }}" .github/orchestration/vnext12/VNEXT-12-QUALIF/request.json
+          node scripts/kodjo/qualify-vnext-figma-real-path.js initial "%RUNNER_TEMP%/vnext12-figma-${{ github.run_id }}-${{ github.run_attempt }}" .github/orchestration/vnext12/VNEXT-12-QUALIF/request.json
       - name: Preserve Figma sessions, exact delivery, comparisons and reservations
         if: always()
         uses: actions/upload-artifact@v4

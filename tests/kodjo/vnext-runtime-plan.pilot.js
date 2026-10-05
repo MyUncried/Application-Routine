@@ -112,11 +112,23 @@ test('approved revised plan transmission on an existing application PR', async t
     const unavailable = structuredClone(f.admitted);
     unavailable.executionRequest.protocol_head = 'f'.repeat(40);
     assert.throws(() => PlanView.install(unavailable,{...args,runDir:f.runDir()}),/ADMISSION_MISMATCH/);
-    // Delete only the approved commit object in this temporary repository.
-    const object = path.join(f.cwd,'.git','objects',f.head.slice(0,2),f.head.slice(2));
-    const saved = fs.readFileSync(object); fs.unlinkSync(object);
-    try { assert.throws(() => PlanView.install(f.admitted,{...args,runDir:f.runDir()}),/APPROVED_FILE_UNAVAILABLE/); }
-    finally { fs.writeFileSync(object,saved); }
+    // A Git commit may be packed: a missing loose-object pathname does not
+    // mean the commit is unavailable. Supply an actual object store containing
+    // the readable old delivery only, without the approved descendant commit.
+    const objects=path.join(f.runDir(),'objects');fs.mkdirSync(path.join(objects,'pack'),{recursive:true});
+    const packed=spawnSync('git',['pack-objects',path.join(objects,'pack','baseline'),'--revs'],
+      {cwd:f.cwd,input:f.baseline.delivery.head+'\n',encoding:'utf8',windowsHide:true});
+    assert.equal(packed.status,0,packed.stderr);
+    const previous=process.env.GIT_OBJECT_DIRECTORY,alternates=process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES;
+    process.env.GIT_OBJECT_DIRECTORY=objects;delete process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES;
+    try {
+      assert.equal(f.git('show','HEAD:'+f.transport.plan_path),f.original.toString('utf8').trim());
+      assert.throws(()=>f.git('cat-file','-e',f.head+'^{commit}'));
+      assert.throws(() => PlanView.install(f.admitted,{...args,runDir:f.runDir()}),/APPROVED_FILE_UNAVAILABLE/);
+    } finally {
+      if(previous===undefined)delete process.env.GIT_OBJECT_DIRECTORY;else process.env.GIT_OBJECT_DIRECTORY=previous;
+      if(alternates===undefined)delete process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES;else process.env.GIT_ALTERNATE_OBJECT_DIRECTORIES=alternates;
+    }
     assert.deepEqual(fs.readFileSync(planFile),f.original);
   });
   await t.test('interrupted view recovery preserves existing application work; installation and execution lock cannot be duplicated', () => {

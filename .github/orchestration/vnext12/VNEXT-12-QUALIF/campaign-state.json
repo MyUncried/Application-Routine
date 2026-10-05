@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-05T10:54:47.587261+00:00",
+  "recorded_at": "2026-10-05T11:12:21.039277+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
-  "controller_stage": "FIGMA_TASK2_INITIAL_REQUESTED",
-  "controller_generation": 52,
+  "controller_stage": "FIGMA_TASK2_SHELL_CORRECTION_QUALIFICATION_PENDING",
+  "controller_generation": 53,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -1710,7 +1710,7 @@
     "request_json_changed": false
   },
   "figma_task2_initial": {
-    "status": "QUALIFIED_INITIAL_REQUESTED",
+    "status": "FAILED_BEFORE_NODE_ENTRY_SHELL_CORRECTION_PENDING",
     "parent_head": "c1ea9aef65e7f61662cb91eee8c5fa8d93032c09",
     "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
     "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
@@ -1738,6 +1738,34 @@
       "status": "SUCCESS",
       "historical_recovery_reserve": "OLD_ARTIFACT_UNAVAILABLE_NOT_RETRIED"
     },
-    "user_instruction": "Reprends uniquement la tâche 2; terminer qualification et parcours initial isolé; aucun lancement dupliqué; tâche 3 et clôture hors périmètre."
+    "user_instruction": "Reprends uniquement la tâche 2; terminer qualification et parcours initial isolé; aucun lancement dupliqué; tâche 3 et clôture hors périmètre.",
+    "failed_run_id": 37300068654,
+    "failed_job_id": 111730479414,
+    "failed_controller_head": "06dda327a1684a989de35086b5df51b7f01703bf",
+    "failure": "bash: command not found",
+    "real_model_calls": 0,
+    "request_consumption_reached": false,
+    "shell_correction": "cmd with %RUNNER_TEMP%; no change to admission or duplicate protections",
+    "failure_evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/initial-shell-failure.json",
+    "qualification_test_correction": {
+      "failure_run": 37300068646,
+      "test_file": "tests/kodjo/vnext-runtime-plan.pilot.js",
+      "cause": "Loose-object pathname assumed by negative-test preparation",
+      "production_gate_changed": false
+    },
+    "shell_correction_local_checks": {
+      "tests": 321,
+      "pass": 321,
+      "fail": 0,
+      "skip": 0,
+      "raw_log_sha256": "bc4206d9ee903db7cd0193f8983bcd93d5330eecffeb6381765214d8cc017f15",
+      "raw_log_bytes": 106102,
+      "targeted_shell_tests": 11,
+      "packed_object_tests": 7,
+      "yaml_workflows": 64,
+      "workflow_invariants": "PASS",
+      "real_claude_calls": 0,
+      "real_initial_status": "FAILED_BEFORE_NODE_ENTRY_NOT_REPLAYED"
+    }
   }
 }

@@ -27,3 +27,19 @@ Les artefacts historiques Linux/Windows ont été téléchargés et leurs emprei
 La requête `FIGMA_INITIAL` unique `1c9be701-2e24-43f7-bd24-2030d1d3c6c1` référence ce candidat qualifié. Les changements de cette publication portent uniquement sur la requête et les preuves/checkpoints ; le fingerprint du code protocolaire doit rester identique au candidat qualifié. La publication déclenche le job réel dédié et les CI automatiques existantes ; elle ne dispatch pas V2 et ne sélectionne ni PRE-2/PRE-3 ni les reprises après validation.
 
 EN ATTENTE DU RÉSULTAT RÉEL — le résultat final, les sessions, les réserves, les fichiers modifiés et l'état Git seront renseignés après collecte des preuves effectives.
+
+## Premier lancement — refus technique avant entrée du pilote
+
+Publication de la demande : `06dda327a1684a989de35086b5df51b7f01703bf` (arbre exact validé `46b159425a01d26301b28ba33c8125be4ceb6bdc`). Run `37300068654`, job `111730479414`, runner `KODJO-LOCAL-RUNNER`. Le shell `bash` ne figure pas dans le PATH du runner ; GitHub échoue avant d'exécuter Node avec `bash: command not found`. Aucune session Claude, claim persistant, modification de fixture ou livraison. Aucun artefact n'a été produit ; le diagnostic est conservé depuis les logs GitHub dans `task2/initial-shell-failure.json`.
+
+Correction minimale : le seul step de lancement FIGMA_INITIAL utilise maintenant `cmd` et `%RUNNER_TEMP%`, déjà utilisés par les opérations Windows existantes. Le hash déclaré du producteur VNext est recalculé ; les capacités et writers legacy gelés restent inchangés. La requête repasse à QUALIFY_ONLY avant nouvelle qualification du workflow. L'identifiant logique non consommé est conservé ; aucun rerun ni relancement à l'identique de l'appel échoué n'a été effectué. Les contrôles automatiques accompagnant la demande précédente doivent finir avant publication du correctif.
+
+## Incident de qualification automatique et correction du test négatif
+
+Le run automatique `37300068646`, job `111730424464`, a échoué dans la préparation du test VNext « unavailable approved plan stops without falling back to the readable old plan » : ENOENT en ouvrant directement le chemin d'objet loose du commit approuvé. Le code protocolaire du commit de demande était identique au candidat qualifié.
+
+Reproduction contrôlée : `git repack -ad` dans une fixture retire le fichier loose, tandis que `git cat-file -e <head>^{commit}` réussit. Le défaut démontré est donc l'hypothèse de stockage loose du test. L'acteur ayant empaqueté l'objet en CI n'est pas observable dans les logs récupérés ; aucune attribution certaine au GC automatique n'est revendiquée.
+
+Correction VNext uniquement : le test fournit désormais un magasin Git empaqueté contenant l'ascendance de l'ancienne livraison, vérifie que l'ancien plan est lisible et le commit approuvé réellement absent, exige encore `APPROVED_FILE_UNAVAILABLE`, puis restaure l'environnement Git. Aucun gate de production n'est changé. Test ciblé : 7 PASS, 0 FAIL, 0 SKIP. Contrôles shell/publication/writers : 11 PASS, 0 FAIL, 0 SKIP ; 64 YAML valides et invariants exécutables PASS. Les journaux sont conservés sans perte en gzip.
+
+Vérification finale locale après les deux corrections : **321 tests, 321 PASS, 0 FAIL, 0 SKIP**. Les octets du journal sont conservés sans perte dans `task2/corrected-local-tests.log.gz`, avec leur empreinte dans `task2/shell-correction-local-checks.json`. Cette preuve ne qualifie pas l'exécution du shell cmd sur le runner et ne vaut pas session Claude réelle. Publication et qualification distante de ce correctif encore attendues.

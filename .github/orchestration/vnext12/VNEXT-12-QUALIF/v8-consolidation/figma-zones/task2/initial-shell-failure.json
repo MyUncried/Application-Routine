@@ -1,0 +1,18 @@
+{
+  "run_id": 37300068654,
+  "job_id": 111730479414,
+  "controller_head": "06dda327a1684a989de35086b5df51b7f01703bf",
+  "request_id": "1c9be701-2e24-43f7-bd24-2030d1d3c6c1",
+  "status": "FAILED_BEFORE_NODE_ENTRY",
+  "shell": "bash",
+  "cause": "bash: command not found",
+  "claude_calls": 0,
+  "request_consumption": "NOT_REACHED",
+  "artifact_uploaded": false,
+  "observed_log_lines": [
+    "2026-10-05T11:00:13.3568206Z \u001b[36;1mnode scripts/kodjo/qualify-vnext-figma-real-path.js initial \"$RUNNER_TEMP/vnext12-figma-37300068654-1\" .github/orchestration/vnext12/VNEXT-12-QUALIF/request.json\u001b[0m\r",
+    "2026-10-05T11:00:13.3908968Z ##[error]bash: command not found\r",
+    "2026-10-05T11:00:14.4652220Z ##[error]No files were found with the provided path: C:\\actions-runner\\_work\\_temp/vnext12-figma-37300068654-1/**. No artifacts will be uploaded.\r"
+  ],
+  "correction": "Use the runner's cmd shell; preserve admission, claims and qualification gates."
+}
