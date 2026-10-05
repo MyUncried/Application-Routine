@@ -1649,7 +1649,7 @@
   },
   "figma_source_20261005": {
     "status": "LOCAL_LINUX_PASS_REMOTE_QUALIFICATION_PENDING",
-    "reference_hash": "f1951e9f6d9fc3579f9878ae669cc61bcd312079515a73a0618993db5caaaff9",
+    "reference_hash": "84e4759b5a160bef1aa591a7b8800ac6e070bebe2d3851e50e1fe14432af2981",
     "report": ".github/orchestration/reports/2026-10-05_VNEXT_FIGMA_SOURCE_IMPLEMENTATION.md",
     "evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/implementation-evidence.json",
     "tests": {
@@ -1667,6 +1667,8 @@
     "runtime_claude_invoked": false,
     "implementation_reviewer_automatic_hook": "NOT_CONNECTED_SHARED_V2_WORKFLOW_UNCHANGED",
     "new_campaign": false,
-    "promotion_authorized": false
+    "promotion_authorized": false,
+    "superseded_candidate": "c6bbacad6f3f959dd396be18dcb8753596d4e935",
+    "supersession_reason": "Second pass demonstrated two fixed UI labels wrongly classified as demo data; corrected title and create action only."
   }
 }

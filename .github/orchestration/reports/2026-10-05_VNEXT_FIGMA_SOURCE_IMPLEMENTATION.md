@@ -2,7 +2,7 @@
 
 Date : 2026-10-05. PR #269, branche `protocol/vnext-proof-stability-20260930`.
 Campagne conservée : `628b3349-88b4-4bf1-be6b-50bc09e7d245`, VNEXT-12-QUALIF.
-Parent : `978d78198b27c55e56bff71a3dd0c310f5a3a50e`.
+Base de l’évolution : `978d78198b27c55e56bff71a3dd0c310f5a3a50e`. Le premier candidat `c6bbacad6f3f959dd396be18dcb8753596d4e935` est remplacé pour corriger la disposition des deux libellés fixes constatée lors de la seconde lecture ; ses qualifications ne valent pas qualification du nouveau paquet.
 
 ## Résultat et portée
 
@@ -14,7 +14,7 @@ Ce rapport poursuit le diagnostic historique `2026-10-05_VNEXT_RECOVERY_AND_FIGM
 
 Référence lue directement, sans écriture Figma : fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page `510:101`, frame `4478:7209`, 402×874. Les 149 nœuds du frame et les 73 nœuds de fermeture des maîtres/variantes donnent 222 nœuds. Les 9 racines propriétaires couvrent les ensembles et leurs variantes ; les chemins vectoriels et segments de texte sont complétés séparément. Les 50 variables incluent les alias transitifs et les modes des collections. Une capture PNG courante et trois SVG d’actions sont transportés avec leurs octets et empreintes.
 
-Les 8 425 emplacements de propriétés observées reçoivent une disposition motivée. Parmi eux, 1 235 propriétés sont obligatoires, sur 79 éléments. Les règles distinguent valeurs observées, relations au parent à 402 pt et contraintes adaptatives aux largeurs 360/402/440. Le frame de référence demeure un jeu de démonstration : ses libellés et sélections ne ferment pas le référentiel métier.
+Les 8 425 emplacements de propriétés observées reçoivent une disposition motivée. Parmi eux, 1 237 propriétés sont obligatoires, sur 79 éléments. Les règles distinguent valeurs observées, relations au parent à 402 pt et contraintes adaptatives aux largeurs 360/402/440. Le titre « Zones corporelles » et l’action « Créer une zone corporelle » sont des libellés fixes obligatoires. Les noms et sélections de zones restent un jeu de démonstration et ne ferment pas le référentiel métier.
 
 CE-UI-09 et §4.2 du chapitre 13 ont été rapprochés à la révision main `9fad303d8bf72f447dde2d0c91295e696d2c50ac`. Les extraits exacts et leurs empreintes sont conservés. Le consommateur relit cette révision Git ; une copie locale ou un Figma vivant ne remplace pas silencieusement la source approuvée. Les 24 obligations documentaires couvrent notamment sélection multiple/confirmation/annulation, scroll, noms longs, texte agrandi, focus, états de liste/création/erreur, identité et réactivation explicite, persistance et accessibilité. Certaines obligations décrivent plusieurs états : leur décomposition en scénarios exécutables reste à examiner dans le vrai plan produit ; le compteur n’est pas une preuve d’exhaustivité sémantique.
 
@@ -28,8 +28,8 @@ Les bounds Figma de certains tags se recouvrent ; cela ne prouve pas le recouvre
 - Le plan approuvé porte le même paquet compact sans perte. `vnext-runtime-plan.js` matérialise les ressources hors dépôt pour l’implémenteur, transmet le manifeste dans son environnement et refuse une modification du plan, du manifeste ou des ressources après admission. La restauration conserve le diagnostic.
 - `consume-vnext-figma.js` expose les trois rôles PLANNER, IMPLEMENTER et IMPLEMENTATION_REVIEWER. `verifyMeasurements` refuse une mesure absente, une mauvaise référence ou une valeur ne satisfaisant pas la cible ; la réutilisation d’un composant ne dispense pas de cette comparaison.
 
-Identité figée : `f1951e9f6d9fc3579f9878ae669cc61bcd312079515a73a0618993db5caaaff9`.
-Transport JSON : 3 373 964 → 611 796 octets, réduction de 81,87 %, reconstruction et hash contrôlés. Cette mesure concerne le paquet seul ; elle ne démontre ni gain de durée Claude ni coût total du dossier. Aucun délai n’est augmenté.
+Identité figée : `84e4759b5a160bef1aa591a7b8800ac6e070bebe2d3851e50e1fe14432af2981`.
+Transport JSON : 3 373 987 → 612 126 octets, réduction de 81,86 %, reconstruction et hash contrôlés. Cette mesure concerne le paquet seul ; elle ne démontre ni gain de durée Claude ni coût total du dossier. Aucun délai n’est augmenté.
 
 ## Couverture
 

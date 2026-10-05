@@ -52492,13 +52492,21 @@
       "property_id": "FIGPROP-14eff1f237c41d5b6e0ba677",
       "element_id": "4953:6611",
       "property": "characters",
-      "disposition": "OBSERVED_ONLY",
-      "reason": "Noms et sélections de démonstration (CE-UI-09 §6), ou texte de contexte. Les règles de libellés et de contenu relèvent des sources documentaires ; aucun nom de zone ni sélection n’est figé comme règle métier.",
+      "disposition": "REALIZE",
+      "reason": "Libellé fixe de présentation du titre ou de création : référence Figma à conserver ; distinct des noms de zones dynamiques du référentiel.",
       "document_ids": [
         "CE-UI-09",
         "RESPONSIVE-4.2"
       ],
-      "rule": null
+      "rule": {
+        "kind": "EQUALS",
+        "value": "Zones corporelles",
+        "viewports": [
+          402
+        ],
+        "tolerance": 0,
+        "unit": "TEXT"
+      }
     },
     {
       "property_id": "FIGPROP-a7e4e0a8552e9ae6800735c6",
@@ -76873,13 +76881,21 @@
       "property_id": "FIGPROP-d49ff794c4490a2a59837e53",
       "element_id": "I4953:6624;4152:6181",
       "property": "characters",
-      "disposition": "OBSERVED_ONLY",
-      "reason": "Noms et sélections de démonstration (CE-UI-09 §6), ou texte de contexte. Les règles de libellés et de contenu relèvent des sources documentaires ; aucun nom de zone ni sélection n’est figé comme règle métier.",
+      "disposition": "REALIZE",
+      "reason": "Libellé fixe de présentation du titre ou de création : référence Figma à conserver ; distinct des noms de zones dynamiques du référentiel.",
       "document_ids": [
         "CE-UI-09",
         "RESPONSIVE-4.2"
       ],
-      "rule": null
+      "rule": {
+        "kind": "EQUALS",
+        "value": "Créer une zone corporelle",
+        "viewports": [
+          402
+        ],
+        "tolerance": 0,
+        "unit": "TEXT"
+      }
     },
     {
       "property_id": "FIGPROP-ec72a21fd0edbd4a102c50e6",
@@ -135837,5 +135853,5 @@
       }
     }
   ],
-  "contract_hash": "f1951e9f6d9fc3579f9878ae669cc61bcd312079515a73a0618993db5caaaff9"
+  "contract_hash": "84e4759b5a160bef1aa591a7b8800ac6e070bebe2d3851e50e1fe14432af2981"
 }

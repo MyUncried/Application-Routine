@@ -1,26 +1,26 @@
 {
   "schema_version": "kodjo.vnext.figma-implementation-evidence.v1",
-  "recorded_at": "2026-10-05T01:23:02.997424+00:00",
+  "recorded_at": "2026-10-05T01:28:34.491733+00:00",
   "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
   "parent_head": "978d78198b27c55e56bff71a3dd0c310f5a3a50e",
   "status": "LOCAL_LINUX_PASS_REMOTE_QUALIFICATION_PENDING",
-  "reference_hash": "f1951e9f6d9fc3579f9878ae669cc61bcd312079515a73a0618993db5caaaff9",
+  "reference_hash": "84e4759b5a160bef1aa591a7b8800ac6e070bebe2d3851e50e1fe14432af2981",
   "inventory": {
     "frame_nodes": 149,
     "master_nodes": 73,
     "nodes": 222,
     "property_slots": 8425,
-    "required_properties": 1235,
+    "required_properties": 1237,
     "required_elements": 79,
-    "required_measurement_rows": 1237,
+    "required_measurement_rows": 1239,
     "documentary_obligations": 24,
     "variables_including_aliases": 50,
     "resources": 4
   },
   "transport": {
-    "json_bytes": 3373964,
-    "compact_json_bytes": 611796,
-    "reduction_percent": 81.86714499621218,
+    "json_bytes": 3373987,
+    "compact_json_bytes": 612126,
+    "reduction_percent": 81.85748789192134,
     "lossless_roundtrip": true,
     "claude_duration_improvement": "NOT_MEASURED"
   },
@@ -102,8 +102,8 @@
     },
     {
       "path": "tests/kodjo/vnext-figma-source.pilot.js",
-      "byte_length": 11357,
-      "sha256": "ce2f25a6671820ba944307df4600775381a35bb251f11e48ee58b4805ef15810"
+      "byte_length": 11681,
+      "sha256": "b6136b33a00019b021c0c8deb79452e322b0c94de1577e10feac5c3c98e0f585"
     }
   ],
   "source_files": [
@@ -144,23 +144,23 @@
     },
     {
       "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/build-snapshot.js",
-      "byte_length": 8778,
-      "sha256": "dedd422be4623fd699185f67431e120f0de38f2f6dddac1c946db428f004fbf7"
+      "byte_length": 9119,
+      "sha256": "7754e8797e2386b1e67e41f9ba87e28c9420ee557eef7882730d4f3f9527f671"
     },
     {
       "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/frozen-source.json",
-      "byte_length": 4519618,
-      "sha256": "8a59de5dd33ee0a6f276938ad52b477eadb4ec7a80e987314c46de309cbbfdf5"
+      "byte_length": 4519795,
+      "sha256": "6b0078efc3ee019fd4c7fc7bbbb12b6db83cd35cf2b66cd89fd7b9cf1b164f45"
     },
     {
       "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/tests-linux.log",
-      "byte_length": 102397,
-      "sha256": "18f4b7503be48cfce19e220eefca6dc99234faf83f32da03eb9c346bd90fc1fc"
+      "byte_length": 102389,
+      "sha256": "0418771db6f54244b0073585d236c1afdb338c409f106d049fb35534e7c5033c"
     },
     {
       "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/tests-ui-figma-linux.log",
-      "byte_length": 10695,
-      "sha256": "510b6205dbff42904fa23e1b93fbb59d6535dc34e1095710c26b750fd6e7a646"
+      "byte_length": 10693,
+      "sha256": "dfcca0dd76dfd243ae49c5331b9bf594a4459fce31aa976db02e9ae3b390ce53"
     }
   ],
   "real_claude_invoked": false,
@@ -171,5 +171,7 @@
   "new_campaign": false,
   "workflow_changes": 0,
   "v2_pre2_changes": 0,
-  "promotion_authorized": false
+  "promotion_authorized": false,
+  "superseded_candidate": "c6bbacad6f3f959dd396be18dcb8753596d4e935",
+  "supersession_reason": "Second pass demonstrated two fixed UI labels wrongly classified as demo data; corrected title and create action only."
 }

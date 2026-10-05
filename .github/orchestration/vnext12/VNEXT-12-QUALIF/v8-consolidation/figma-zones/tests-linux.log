@@ -214,25 +214,25 @@ hint:
 hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
-✔ VNext preserved writer: mode and designated writer are explicit and change invalidates approval (90.280409ms)
-✔ VNext preserved native: an exact target still requires explicit exception approval before execution (59.494567ms)
-✔ VNext-08 construit une cible d’approbation sur l’exécution exacte (65.867276ms)
-✔ VNext-08 refuse de demander une approbation tant que la review n’est pas APPROVE (56.462175ms)
-✔ VNext-08 produit un message actionnable lié à l’objet canonique (50.969867ms)
-✔ VNext-08 le transport du message ne change pas l’identité de la cible approuvée (54.587057ms)
-✔ VNext-08 exige une action utilisateur explicite liée au hash exact (49.820798ms)
-✔ VNext-08 refuse un ApprovalTarget re-signé avec une identité interne falsifiée (52.380956ms)
-✔ VNext-08 refuse un ApprovalRecord re-signé avec une identité interne falsifiée (53.07631ms)
-✔ VNext-08 une décision REJECTED bloque toujours le handoff (46.911821ms)
-✔ VNext-08 construit le handoff canonique bit-for-bit depuis l’approbation (46.554059ms)
-✔ VNext-08 refuse une approbation devenue obsolète après modification du plan (51.279968ms)
-✔ VNext-08 refuse un DirectImportScan différent de celui revu (47.45637ms)
-✔ VNext-08 refuse le handoff si le HEAD applicatif a bougé (52.792248ms)
-✔ VNext-08 refuse le handoff si le HEAD produit a bougé (41.651005ms)
-✔ VNext-08 invalide l’approbation si la version protocolaire change (56.590837ms)
-✔ VNext-08 refuse tout élargissement manuel du write_scope dans ExecutionRequest (62.1253ms)
-✔ VNext-08 refuse un transport d’approbation non reconnu (54.728358ms)
-✔ VNext-08 ne permet aucun path libre ni scope libre en entrée de handoff (0.333025ms)
+✔ VNext preserved writer: mode and designated writer are explicit and change invalidates approval (94.925857ms)
+✔ VNext preserved native: an exact target still requires explicit exception approval before execution (48.950121ms)
+✔ VNext-08 construit une cible d’approbation sur l’exécution exacte (40.634492ms)
+✔ VNext-08 refuse de demander une approbation tant que la review n’est pas APPROVE (47.5345ms)
+✔ VNext-08 produit un message actionnable lié à l’objet canonique (66.789257ms)
+✔ VNext-08 le transport du message ne change pas l’identité de la cible approuvée (51.821726ms)
+✔ VNext-08 exige une action utilisateur explicite liée au hash exact (63.576203ms)
+✔ VNext-08 refuse un ApprovalTarget re-signé avec une identité interne falsifiée (77.798566ms)
+✔ VNext-08 refuse un ApprovalRecord re-signé avec une identité interne falsifiée (66.57284ms)
+✔ VNext-08 une décision REJECTED bloque toujours le handoff (61.252801ms)
+✔ VNext-08 construit le handoff canonique bit-for-bit depuis l’approbation (67.707913ms)
+✔ VNext-08 refuse une approbation devenue obsolète après modification du plan (62.43908ms)
+✔ VNext-08 refuse un DirectImportScan différent de celui revu (59.309005ms)
+✔ VNext-08 refuse le handoff si le HEAD applicatif a bougé (59.350706ms)
+✔ VNext-08 refuse le handoff si le HEAD produit a bougé (63.78022ms)
+✔ VNext-08 invalide l’approbation si la version protocolaire change (57.401292ms)
+✔ VNext-08 refuse tout élargissement manuel du write_scope dans ExecutionRequest (67.538321ms)
+✔ VNext-08 refuse un transport d’approbation non reconnu (57.638121ms)
+✔ VNext-08 ne permet aucun path libre ni scope libre en entrée de handoff (0.410791ms)
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
 hint: of your new repositories, which will suppress this warning, call:
@@ -269,11 +269,11 @@ hint:
 hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
-✔ architecture: approval refuses a resealed context whose target catalog was emptied (113.582161ms)
-✔ architecture: runtime binds observed Git tree and cumulative proof gate (113.984139ms)
-✔ architecture: source UI requirement applies outside legacy roots and ignores test candidates (1.226595ms)
-✔ architecture: REST destination preserves owner names containing s (1.513612ms)
-✔ architecture: actual Markdown CRLF conversion is rejected without canonical LF bytes (63.089875ms)
+✔ architecture: approval refuses a resealed context whose target catalog was emptied (91.773799ms)
+✔ architecture: runtime binds observed Git tree and cumulative proof gate (106.702826ms)
+✔ architecture: source UI requirement applies outside legacy roots and ignores test candidates (1.945373ms)
+✔ architecture: REST destination preserves owner names containing s (1.221938ms)
+✔ architecture: actual Markdown CRLF conversion is rejected without canonical LF bytes (72.870637ms)
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
 hint: of your new repositories, which will suppress this warning, call:
@@ -286,136 +286,32 @@ hint:
 hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
-✔ architecture: final audit refuses a different protocol candidate and forged context (15.229133ms)
-✔ VNext-11 interdit la fermeture d’un finding par simple disparition (2.001187ms)
-✔ VNext-11 ferme explicitement un finding avec preuve de résolution (1.118474ms)
-✔ VNext-11 refuse de résoudre un finding qui persiste encore (1.143812ms)
-✔ VNext-11 exige la couverture complète du manifeste d’audit figé (0.873809ms)
-✔ VNext-11 un critère REQUIRED ne peut pas devenir NOT_APPLICABLE pendant l’audit (0.496458ms)
-✔ VNext-11 refuse un finding bloquant sans source normative préexistante (4.665971ms)
-✔ VNext-11 une recommandation nouvelle reste SUGGESTION et ne bloque pas (3.293849ms)
-✔ VNext-11 un axe CHECKED_FAIL doit être relié à un finding (3.851629ms)
-✔ VNext-11 le dernier REVISE devient terminal et ne déclenche aucune réentrée (6.611625ms)
-✔ VNext-11 un rapport final ne peut pas être transféré vers un manifeste d’audit modifié (2.508591ms)
-✔ VNext-11 refuse une provenance normative re-signée mais supprimée (4.136322ms)
-✔ VNext unavailable evidence remains distinct and cannot produce FINAL_APPROVED (9.605768ms)
-✔ VNext-10 état réel : PRE-1 actif bloque l’activation mais pas la préparation (843.524999ms)
-✔ VNext-10 avant activation toutes les slices restent LEGACY (786.029861ms)
-✔ VNext-10 PRE-1 fermé rend le plan READY sans modifier les autres slices actives (814.386609ms)
-✔ VNext-10 activation exige une approbation explicite du plan exact (811.278252ms)
-✔ VNext-10 activation refuse un registre legacy ayant dérivé après préparation (783.04113ms)
-✔ VNext-10 après activation les slices legacy existantes restent LEGACY et une nouvelle slice passe VNEXT (766.560475ms)
-✔ VNext-10 une slice legacy ne change jamais de protocole en cours de cycle (745.617031ms)
-✔ VNext-10 refuse un CutoverPlan re-signé qui masque artificiellement PRE-1 (709.045061ms)
-✔ VNext-10 refuse un ActivationRecord re-signé qui retire une slice legacy grandfathered (732.803527ms)
-✔ VNext-10 rollback remet les nouvelles slices en LEGACY sans interrompre les cycles VNext actifs (730.229096ms)
-✔ VNext-10 rollback exige une approbation explicite liée à l’activation exacte (721.367391ms)
-✔ VNext-10 ne modifie aucun workflow actif dans le lot de préparation (0.358453ms)
-✔ F-01 — le cutover est bloqué si les dernières slices legacy ferment sans retrait des anciens writers (724.921678ms)
-hint: Using 'master' as the name for the initial branch. This default branch name
-hint: is subject to change. To configure the initial branch name to use in all
-hint: of your new repositories, which will suppress this warning, call:
-hint:
-hint: 	git config --global init.defaultBranch <name>
-hint:
-hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-hint: 'development'. The just-created branch can be renamed via this command:
-hint:
-hint: 	git branch -m <name>
-hint:
-hint: Disable this message with "git config set advice.defaultBranchName false"
-hint: Using 'master' as the name for the initial branch. This default branch name
-hint: is subject to change. To configure the initial branch name to use in all
-hint: of your new repositories, which will suppress this warning, call:
-hint:
-hint: 	git config --global init.defaultBranch <name>
-hint:
-hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-hint: 'development'. The just-created branch can be renamed via this command:
-hint:
-hint: 	git branch -m <name>
-hint:
-hint: Disable this message with "git config set advice.defaultBranchName false"
-hint: Using 'master' as the name for the initial branch. This default branch name
-hint: is subject to change. To configure the initial branch name to use in all
-hint: of your new repositories, which will suppress this warning, call:
-hint:
-hint: 	git config --global init.defaultBranch <name>
-hint:
-hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-hint: 'development'. The just-created branch can be renamed via this command:
-hint:
-hint: 	git branch -m <name>
-hint:
-hint: Disable this message with "git config set advice.defaultBranchName false"
-hint: Using 'master' as the name for the initial branch. This default branch name
-hint: is subject to change. To configure the initial branch name to use in all
-hint: of your new repositories, which will suppress this warning, call:
-hint:
-hint: 	git config --global init.defaultBranch <name>
-hint:
-hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-hint: 'development'. The just-created branch can be renamed via this command:
-hint:
-hint: 	git branch -m <name>
-hint:
-hint: Disable this message with "git config set advice.defaultBranchName false"
-hint: Using 'master' as the name for the initial branch. This default branch name
-hint: is subject to change. To configure the initial branch name to use in all
-hint: of your new repositories, which will suppress this warning, call:
-hint:
-hint: 	git config --global init.defaultBranch <name>
-hint:
-hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-hint: 'development'. The just-created branch can be renamed via this command:
-hint:
-hint: 	git branch -m <name>
-hint:
-hint: Disable this message with "git config set advice.defaultBranchName false"
-hint: Using 'master' as the name for the initial branch. This default branch name
-hint: is subject to change. To configure the initial branch name to use in all
-hint: of your new repositories, which will suppress this warning, call:
-hint:
-hint: 	git config --global init.defaultBranch <name>
-hint:
-hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-hint: 'development'. The just-created branch can be renamed via this command:
-hint:
-hint: 	git branch -m <name>
-hint:
-hint: Disable this message with "git config set advice.defaultBranchName false"
-hint: Using 'master' as the name for the initial branch. This default branch name
-hint: is subject to change. To configure the initial branch name to use in all
-hint: of your new repositories, which will suppress this warning, call:
-hint:
-hint: 	git config --global init.defaultBranch <name>
-hint:
-hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-hint: 'development'. The just-created branch can be renamed via this command:
-hint:
-hint: 	git branch -m <name>
-hint:
-hint: Disable this message with "git config set advice.defaultBranchName false"
-hint: Using 'master' as the name for the initial branch. This default branch name
-hint: is subject to change. To configure the initial branch name to use in all
-hint: of your new repositories, which will suppress this warning, call:
-hint:
-hint: 	git config --global init.defaultBranch <name>
-hint:
-hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-hint: 'development'. The just-created branch can be renamed via this command:
-hint:
-hint: 	git branch -m <name>
-hint:
-hint: Disable this message with "git config set advice.defaultBranchName false"
-✔ frozen workflow consumer prepares and validates retained delivery criteria independently of application code (712.690766ms)
-✔ delivered criterion outside correction scope is reviewed and finalized without expanding write authority (885.357008ms)
-✔ real modification outside correction scope is refused even if mentioned by a delivered criterion (204.443958ms)
-✔ regression in a retained previously conforming criterion blocks approval and finalization (660.672847ms)
-✔ delivery evidence rejects wrong authors, altered proof binding and incomplete retained coverage (100.43406ms)
-✔ atomic retained assertions keep coverage through planning review and implementation finalization (585.510604ms)
-✔ a changed criterion requires the profile in the explicit correction scope and replaces its old version (347.827411ms)
-✔ a subsequent correction observes the complete delivered matrix, including retained criteria (118.791406ms)
+✔ architecture: final audit refuses a different protocol candidate and forged context (7.109535ms)
+✔ VNext-11 interdit la fermeture d’un finding par simple disparition (0.983784ms)
+✔ VNext-11 ferme explicitement un finding avec preuve de résolution (0.728533ms)
+✔ VNext-11 refuse de résoudre un finding qui persiste encore (0.522598ms)
+✔ VNext-11 exige la couverture complète du manifeste d’audit figé (0.377622ms)
+✔ VNext-11 un critère REQUIRED ne peut pas devenir NOT_APPLICABLE pendant l’audit (0.476909ms)
+✔ VNext-11 refuse un finding bloquant sans source normative préexistante (2.570043ms)
+✔ VNext-11 une recommandation nouvelle reste SUGGESTION et ne bloque pas (1.711205ms)
+✔ VNext-11 un axe CHECKED_FAIL doit être relié à un finding (2.078402ms)
+✔ VNext-11 le dernier REVISE devient terminal et ne déclenche aucune réentrée (4.236842ms)
+✔ VNext-11 un rapport final ne peut pas être transféré vers un manifeste d’audit modifié (1.570917ms)
+✔ VNext-11 refuse une provenance normative re-signée mais supprimée (2.657643ms)
+✔ VNext unavailable evidence remains distinct and cannot produce FINAL_APPROVED (3.688106ms)
+✔ VNext-10 état réel : PRE-1 actif bloque l’activation mais pas la préparation (871.955474ms)
+✔ VNext-10 avant activation toutes les slices restent LEGACY (900.441734ms)
+✔ VNext-10 PRE-1 fermé rend le plan READY sans modifier les autres slices actives (949.56174ms)
+✔ VNext-10 activation exige une approbation explicite du plan exact (923.421207ms)
+✔ VNext-10 activation refuse un registre legacy ayant dérivé après préparation (906.60008ms)
+✔ VNext-10 après activation les slices legacy existantes restent LEGACY et une nouvelle slice passe VNEXT (843.601738ms)
+✔ VNext-10 une slice legacy ne change jamais de protocole en cours de cycle (882.320857ms)
+✔ VNext-10 refuse un CutoverPlan re-signé qui masque artificiellement PRE-1 (751.001719ms)
+✔ VNext-10 refuse un ActivationRecord re-signé qui retire une slice legacy grandfathered (842.415069ms)
+✔ VNext-10 rollback remet les nouvelles slices en LEGACY sans interrompre les cycles VNext actifs (771.025002ms)
+✔ VNext-10 rollback exige une approbation explicite liée à l’activation exacte (719.778951ms)
+✔ VNext-10 ne modifie aucun workflow actif dans le lot de préparation (0.343111ms)
+✔ F-01 — le cutover est bloqué si les dernières slices legacy ferment sans retrait des anciens writers (690.231476ms)
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
 hint: of your new repositories, which will suppress this warning, call:
@@ -512,50 +408,14 @@ hint:
 hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
-✔ projection blob OIDs agree with independent Git bytes for LF CRLF Unicode and empty input (12.487104ms)
-✔ projection emits real lines and refuses Windows traversal and absolute paths (1.722242ms)
-✔ VNext-09 E2E INITIAL atteint HANDOFF_READY et se projette sans élargissement (171.942509ms)
-✔ VNext-09 runtime refuse un snapshot re-signé avec statut d’étape falsifié (92.975279ms)
-✔ VNext-09 projection refuse un scope legacy élargi même si le JSON est re-signé (64.668993ms)
-✔ VNext-09 projection refuse un fichier de compatibilité re-signé mais altéré (51.547046ms)
-✔ VNext-09 projection refuse un changement de checks (61.216858ms)
-✔ VNext-09 projection legacy exige le transport GITHUB_REACTION compatible avec la queue active (56.833268ms)
-✔ VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY après résolution (145.419459ms)
-✔ VNext-09 runtime refuse une REVISION sans preuve de résolution bornée (73.900891ms)
-✔ VNext-09 inventaire anti-régression : 24 invariants, 165 incidents, 138 tests, sans trou (2.80374ms)
-✔ Figma nominal: frozen Git -> source units -> requirements -> plan -> assertions -> review -> all consumers (7416.333705ms)
-✔ negative 1: omitted element blocks independently of declared assertions (3.992814ms)
-✔ negative 2: omitted property or false source disposition cannot disappear from coverage (692.824257ms)
-✔ negative 3: a vague expected string or unstructured relational predicate is refused (1274.198318ms)
-✔ negative 4: wrong frame, property, reference hash or screenshot dimensions is refused (1278.987797ms)
-✔ negative 5: unresolved mixed conflict blocks planning; domain precedence does not silently resolve it (663.313946ms)
-✔ negative 6: an existing reused component with a measured radius below the target fails (1.689843ms)
-✔ negative 7: forgotten variant, required assertion or documentary-only state blocks (2425.833333ms)
-✔ negative 8: inaccessible, truncated or changed-after-approval sources require recovery or requalification (1188.697852ms)
-✔ negative 9: corrupt or missing transported screenshot/properties/resources blocks effective byte consumption (1048.091322ms)
-✔ real qualification frame 4478:7209: complete inventory, aliases, vectors, resources and lossless compact transport (462.794904ms)
-✔ VNext-01 canonical JSON is deterministic and fail-closed (1.608683ms)
-✔ VNext-01 stable IDs are machine-derived and source-sensitive (0.358213ms)
-✔ VNext-01 Unicode is preserved exactly and degraded forms are rejected (0.338243ms)
-✔ VNext-01 SourceManifest seals sources and units with deterministic IDs (1.055149ms)
-✔ VNext-01 SourceManifest refuses duplicate physical source identity (0.271323ms)
-✔ VNext-01 INITIAL PlanningEnvelope forbids revision causal state (0.904085ms)
-✔ VNext-01 REVISION PlanningEnvelope requires exact causal base and findings (1.437518ms)
-✔ VNext-01 DecisionRecord: a question alone is never a durable decision (0.952727ms)
-✔ VNext-01 DecisionRecord refuses an answer outside the offered options (0.340847ms)
-✔ VNext-01 common error policy is deterministic and never retries an unknown error (3.627466ms)
-✔ VNext-01 specification fixes the foundational anti-regression rules (0.495246ms)
-✔ historical coverage inventories each original incident/test and exact normative paragraph (55.820632ms)
-✔ historical cardinality cannot certify individual coverage or launch VNext-12 (47.293959ms)
-✔ historical ready flags cannot replace resolved per-subject evidence at the candidate commit (89.628801ms)
-✔ historical inventory rejects same-cardinality substituted IDs and changed sources (29.466651ms)
-✔ historical rows preserve source meaning across eight, nine and six-column layouts (29.339933ms)
-✔ historical normative coverage refuses omitted prose or reference-format units (108.585022ms)
-✔ historical fingerprints use Git bytes rather than converted CRLF checkout bytes (101.506895ms)
-✔ historical equivalence binds all 420 exact source subjects and named test locations (472.889575ms)
-✔ historical equivalence refuses stale candidate, forged stdout and incomplete summary (0.612841ms)
-✔ historical equivalence preserves SKIP and refuses operational certification from fixture PASS (0.195601ms)
-✔ historical structured reporter ignores stdout that imitates a passing assertion (4.014531ms)
+✔ frozen workflow consumer prepares and validates retained delivery criteria independently of application code (684.626847ms)
+✔ delivered criterion outside correction scope is reviewed and finalized without expanding write authority (945.696325ms)
+✔ real modification outside correction scope is refused even if mentioned by a delivered criterion (229.0795ms)
+✔ regression in a retained previously conforming criterion blocks approval and finalization (829.892349ms)
+✔ delivery evidence rejects wrong authors, altered proof binding and incomplete retained coverage (114.507002ms)
+✔ atomic retained assertions keep coverage through planning review and implementation finalization (733.751383ms)
+✔ a changed criterion requires the profile in the explicit correction scope and replaces its old version (370.052965ms)
+✔ a subsequent correction observes the complete delivered matrix, including retained criteria (134.218056ms)
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
 hint: of your new repositories, which will suppress this warning, call:
@@ -652,66 +512,50 @@ hint:
 hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
-hint: Using 'master' as the name for the initial branch. This default branch name
-hint: is subject to change. To configure the initial branch name to use in all
-hint: of your new repositories, which will suppress this warning, call:
-hint:
-hint: 	git config --global init.defaultBranch <name>
-hint:
-hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-hint: 'development'. The just-created branch can be renamed via this command:
-hint:
-hint: 	git branch -m <name>
-hint:
-hint: Disable this message with "git config set advice.defaultBranchName false"
-hint: Using 'master' as the name for the initial branch. This default branch name
-hint: is subject to change. To configure the initial branch name to use in all
-hint: of your new repositories, which will suppress this warning, call:
-hint:
-hint: 	git config --global init.defaultBranch <name>
-hint:
-hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-hint: 'development'. The just-created branch can be renamed via this command:
-hint:
-hint: 	git branch -m <name>
-hint:
-hint: Disable this message with "git config set advice.defaultBranchName false"
-hint: Using 'master' as the name for the initial branch. This default branch name
-hint: is subject to change. To configure the initial branch name to use in all
-hint: of your new repositories, which will suppress this warning, call:
-hint:
-hint: 	git config --global init.defaultBranch <name>
-hint:
-hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-hint: 'development'. The just-created branch can be renamed via this command:
-hint:
-hint: 	git branch -m <name>
-hint:
-hint: Disable this message with "git config set advice.defaultBranchName false"
-hint: Using 'master' as the name for the initial branch. This default branch name
-hint: is subject to change. To configure the initial branch name to use in all
-hint: of your new repositories, which will suppress this warning, call:
-hint:
-hint: 	git config --global init.defaultBranch <name>
-hint:
-hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-hint: 'development'. The just-created branch can be renamed via this command:
-hint:
-hint: 	git branch -m <name>
-hint:
-hint: Disable this message with "git config set advice.defaultBranchName false"
-✔ VNext-03 inventorie mécaniquement les chemins Git et les slots CREATE (70.007425ms)
-✔ VNext-03 refuse CREATE sur un fichier existant et hors racine autorisée (62.350385ms)
-✔ VNext-03 scanne uniquement les importeurs directs, sans fermeture transitive (54.74018ms)
-✔ VNext-03 construit ImpactGraph avec classification par candidate_id, jamais par path libre (59.271975ms)
-✔ VNext-03 refuse un importeur direct non classé (59.916735ms)
-✔ VNext-03 refuse un candidate_id inventé (43.752997ms)
-✔ VNext-03 autorise CREATE uniquement via un slot machine validé (94.923757ms)
-✔ VNext-03 autorise DELETE uniquement sur un fichier existant (47.402526ms)
-✔ VNext-03 accepte NO_CHANGE au niveau exigence avec justification (47.007974ms)
-✔ VNext-03 refuse une exigence sans impact ni NO_CHANGE (53.935198ms)
-✔ VNext-03 lie le scan direct au même CandidateManifest et au même target set (60.158134ms)
-✔ VNext-03 refuse un RequirementRegistry bloqué avant analyse d’impact (50.412517ms)
+✔ projection blob OIDs agree with independent Git bytes for LF CRLF Unicode and empty input (15.090151ms)
+✔ projection emits real lines and refuses Windows traversal and absolute paths (1.134147ms)
+✔ VNext-09 E2E INITIAL atteint HANDOFF_READY et se projette sans élargissement (180.927455ms)
+✔ VNext-09 runtime refuse un snapshot re-signé avec statut d’étape falsifié (103.907002ms)
+✔ VNext-09 projection refuse un scope legacy élargi même si le JSON est re-signé (68.670654ms)
+✔ VNext-09 projection refuse un fichier de compatibilité re-signé mais altéré (67.267978ms)
+✔ VNext-09 projection refuse un changement de checks (73.702204ms)
+✔ VNext-09 projection legacy exige le transport GITHUB_REACTION compatible avec la queue active (58.26395ms)
+✔ VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY après résolution (153.390702ms)
+✔ VNext-09 runtime refuse une REVISION sans preuve de résolution bornée (105.111358ms)
+✔ VNext-09 inventaire anti-régression : 24 invariants, 165 incidents, 138 tests, sans trou (2.022919ms)
+✔ Figma nominal: frozen Git -> source units -> requirements -> plan -> assertions -> review -> all consumers (8494.776462ms)
+✔ negative 1: omitted element blocks independently of declared assertions (1.545819ms)
+✔ negative 2: omitted property or false source disposition cannot disappear from coverage (687.594443ms)
+✔ negative 3: a vague expected string or unstructured relational predicate is refused (1298.140138ms)
+✔ negative 4: wrong frame, property, reference hash or screenshot dimensions is refused (1221.025431ms)
+✔ negative 5: unresolved mixed conflict blocks planning; domain precedence does not silently resolve it (640.739322ms)
+✔ negative 6: an existing reused component with a measured radius below the target fails (2.227553ms)
+✔ negative 7: forgotten variant, required assertion or documentary-only state blocks (2263.677803ms)
+✔ negative 8: inaccessible, truncated or changed-after-approval sources require recovery or requalification (1317.649785ms)
+✔ negative 9: corrupt or missing transported screenshot/properties/resources blocks effective byte consumption (1141.304164ms)
+✔ real qualification frame 4478:7209: complete inventory, aliases, vectors, resources and lossless compact transport (474.761845ms)
+✔ VNext-01 canonical JSON is deterministic and fail-closed (2.267322ms)
+✔ VNext-01 stable IDs are machine-derived and source-sensitive (0.429098ms)
+✔ VNext-01 Unicode is preserved exactly and degraded forms are rejected (0.661314ms)
+✔ VNext-01 SourceManifest seals sources and units with deterministic IDs (1.561052ms)
+✔ VNext-01 SourceManifest refuses duplicate physical source identity (0.380836ms)
+✔ VNext-01 INITIAL PlanningEnvelope forbids revision causal state (1.636565ms)
+✔ VNext-01 REVISION PlanningEnvelope requires exact causal base and findings (2.478617ms)
+✔ VNext-01 DecisionRecord: a question alone is never a durable decision (1.442075ms)
+✔ VNext-01 DecisionRecord refuses an answer outside the offered options (0.526904ms)
+✔ VNext-01 common error policy is deterministic and never retries an unknown error (0.546192ms)
+✔ VNext-01 specification fixes the foundational anti-regression rules (0.660873ms)
+✔ historical coverage inventories each original incident/test and exact normative paragraph (54.641156ms)
+✔ historical cardinality cannot certify individual coverage or launch VNext-12 (47.178596ms)
+✔ historical ready flags cannot replace resolved per-subject evidence at the candidate commit (100.874501ms)
+✔ historical inventory rejects same-cardinality substituted IDs and changed sources (27.849865ms)
+✔ historical rows preserve source meaning across eight, nine and six-column layouts (27.513725ms)
+✔ historical normative coverage refuses omitted prose or reference-format units (107.94625ms)
+✔ historical fingerprints use Git bytes rather than converted CRLF checkout bytes (113.978053ms)
+✔ historical equivalence binds all 420 exact source subjects and named test locations (415.370885ms)
+✔ historical equivalence refuses stale candidate, forged stdout and incomplete summary (0.932347ms)
+✔ historical equivalence preserves SKIP and refuses operational certification from fixture PASS (0.276922ms)
+✔ historical structured reporter ignores stdout that imitates a passing assertion (4.774512ms)
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
 hint: of your new repositories, which will suppress this warning, call:
@@ -856,19 +700,18 @@ hint:
 hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
-✔ live chain: observed Git sources, structured reviewer, exact approval and real queue authorization compose (8769.397371ms)
-✔ live chain: revoked, edited, mismatched approval and altered queue are refused (6962.786549ms)
-✔ live chain: source bytes and unobserved native proof cannot be asserted by flags (3474.250098ms)
-✔ live chain: direct implementation runner refuses before invoking Claude when queue authority is absent (3144.276913ms)
-✔ live chain: real queue preflight validates VNext plan mission and runtime identity without legacy UI blocks (8003.53303ms)
-✔ live chain: large immutable target catalog travels on stdin and unknown reviewer targets remain refused (19741.079299ms)
-✔ compact review coverage refuses omission, duplicate, out-of-range, wrong catalog and mixed formats (3989.213053ms)
-✔ review process captures an actual interrupted child, bounds output and redacts inherited credentials (305.350119ms)
-✔ review diagnostics survive a failed invocation outside the checkout and retain no approval (4666.438245ms)
-✔ quoted markers and old machine blocks remain lossless data through downstream transport (3534.890535ms)
-✔ complete raw review survives semantic rejection and recovery never invokes the model (5360.130533ms)
-✔ semantic failure remains primary when its diagnostic archive also fails (3838.500409ms)
-✔ malformed response and interrupted process are retained but cannot become a review (6265.083823ms)
+✔ VNext-03 inventorie mécaniquement les chemins Git et les slots CREATE (80.489024ms)
+✔ VNext-03 refuse CREATE sur un fichier existant et hors racine autorisée (60.801745ms)
+✔ VNext-03 scanne uniquement les importeurs directs, sans fermeture transitive (61.496726ms)
+✔ VNext-03 construit ImpactGraph avec classification par candidate_id, jamais par path libre (63.899679ms)
+✔ VNext-03 refuse un importeur direct non classé (58.940027ms)
+✔ VNext-03 refuse un candidate_id inventé (46.525069ms)
+✔ VNext-03 autorise CREATE uniquement via un slot machine validé (56.443659ms)
+✔ VNext-03 autorise DELETE uniquement sur un fichier existant (56.061631ms)
+✔ VNext-03 accepte NO_CHANGE au niveau exigence avec justification (50.883203ms)
+✔ VNext-03 refuse une exigence sans impact ni NO_CHANGE (47.916684ms)
+✔ VNext-03 lie le scan direct au même CandidateManifest et au même target set (95.423184ms)
+✔ VNext-03 refuse un RequirementRegistry bloqué avant analyse d’impact (47.86634ms)
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
 hint: of your new repositories, which will suppress this warning, call:
@@ -1013,18 +856,175 @@ hint:
 hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
-✔ VNext-04 construit la chaîne Requirement → Impact → Change → Test → Proof → Boundary (82.202565ms)
-✔ VNext-04 dérive les paths exclusivement depuis ImpactGraph (55.627464ms)
-✔ VNext-04 refuse un changement sans implementation intent (48.565461ms)
-✔ VNext-04 refuse un changement non couvert par un test (49.597971ms)
-✔ VNext-04 refuse un changement non couvert par une preuve (81.122478ms)
-✔ VNext-04 refuse un test affecté qui n’a pas son propre impact (50.328318ms)
-✔ VNext-04 refuse une preuve FUNCTIONAL_TEST qui ne correspond pas au test déclaré (50.820073ms)
-✔ VNext-04 exige une preuve alternative pour un test supprimé (49.88265ms)
-✔ VNext-04 refuse une boundary à la fois CHANGE et PRESERVE (57.255045ms)
-✔ VNext-04 exige un plan item pour chaque requirement (50.698193ms)
-✔ VNext-04 supporte un requirement NO_CHANGE avec testability explicite (41.312912ms)
-✔ VNext-04 génère une projection Markdown déterministe du seul contrat canonique (54.533052ms)
+✔ live chain: observed Git sources, structured reviewer, exact approval and real queue authorization compose (9576.80029ms)
+✔ live chain: revoked, edited, mismatched approval and altered queue are refused (6966.94009ms)
+✔ live chain: source bytes and unobserved native proof cannot be asserted by flags (3866.550817ms)
+✔ live chain: direct implementation runner refuses before invoking Claude when queue authority is absent (3404.82881ms)
+✔ live chain: real queue preflight validates VNext plan mission and runtime identity without legacy UI blocks (8928.464952ms)
+✔ live chain: large immutable target catalog travels on stdin and unknown reviewer targets remain refused (19455.26988ms)
+✔ compact review coverage refuses omission, duplicate, out-of-range, wrong catalog and mixed formats (3501.151701ms)
+✔ review process captures an actual interrupted child, bounds output and redacts inherited credentials (305.538103ms)
+✔ review diagnostics survive a failed invocation outside the checkout and retain no approval (4070.77428ms)
+✔ quoted markers and old machine blocks remain lossless data through downstream transport (3320.910983ms)
+✔ complete raw review survives semantic rejection and recovery never invokes the model (5133.743738ms)
+✔ semantic failure remains primary when its diagnostic archive also fails (3526.294976ms)
+✔ malformed response and interrupted process are retained but cannot become a review (5165.958982ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ VNext-04 construit la chaîne Requirement → Impact → Change → Test → Proof → Boundary (72.691585ms)
+✔ VNext-04 dérive les paths exclusivement depuis ImpactGraph (57.758804ms)
+✔ VNext-04 refuse un changement sans implementation intent (65.088503ms)
+✔ VNext-04 refuse un changement non couvert par un test (57.423336ms)
+✔ VNext-04 refuse un changement non couvert par une preuve (50.631704ms)
+✔ VNext-04 refuse un test affecté qui n’a pas son propre impact (42.734942ms)
+✔ VNext-04 refuse une preuve FUNCTIONAL_TEST qui ne correspond pas au test déclaré (57.717394ms)
+✔ VNext-04 exige une preuve alternative pour un test supprimé (61.265825ms)
+✔ VNext-04 refuse une boundary à la fois CHANGE et PRESERVE (71.861191ms)
+✔ VNext-04 exige un plan item pour chaque requirement (61.740568ms)
+✔ VNext-04 supporte un requirement NO_CHANGE avec testability explicite (56.070087ms)
+✔ VNext-04 génère une projection Markdown déterministe du seul contrat canonique (102.880734ms)
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
 hint: of your new repositories, which will suppress this warning, call:
@@ -1038,24 +1038,24 @@ hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
 ▶ post-acceptance revision integration uses owner gaps, preserves APPROVE and prepares an authorized correction
-  ✔ nominal: approved delivery -> acceptance gaps -> revision -> review -> immutable plan -> runtime admission (3402.460881ms)
-  ✔ owner identity, issue, exact delivered head and old review identity are mandatory (0.503669ms)
-  ✔ a genuine correction outside the owner-authorized paths is refused (1.140877ms)
-  ✔ missing, duplicate or unresolved gap resolutions cannot yield an approved revised plan (1.565218ms)
-  ✔ technical failures and omitted retained assertions cannot enter the pre-closure baseline (0.876183ms)
-  ✔ the old approved plan bytes and independent receipt remain bound, not replaceable by a fake REVISE (2738.772235ms)
-  ✔ recovery revalidates the saved response without another model call or a new approval target (1242.68406ms)
-✔ post-acceptance revision integration uses owner gaps, preserves APPROVE and prepares an authorized correction (13887.279238ms)
-✔ lost reservation response after server creation is reconciled without a second POST (3.684831ms)
-✔ unknown reservation and duplicate exact remote matches stop without another creation (1.16288ms)
-✔ reservation keeps the raw server response before final receipt persistence (1.298491ms)
-✔ lost approval PATCH response reuses the exact reserved comment without resetting its timestamp (0.832187ms)
-✔ CLI approval requires the reserved gate and handoff cannot silently mint a new retry identity (1.3982ms)
-✔ valid response survives validation archival failure and recovers exact bytes without a new model call (2840.258243ms)
-✔ delivery correction cannot be routed as INITIAL and a REVISION cannot prepare without its causal evidence (3327.695929ms)
-✔ a decision source requires the actual owner and exact repository/issue before planning (1.925474ms)
-✔ native preservation: every UI criterion needs an explicit sourced native assessment and branch assertion (2.777502ms)
-✔ native preservation: style or Jest difficulty cannot authorize a substitute and functional proof must be scoped (1.261456ms)
+  ✔ nominal: approved delivery -> acceptance gaps -> revision -> review -> immutable plan -> runtime admission (3348.381535ms)
+  ✔ owner identity, issue, exact delivered head and old review identity are mandatory (0.432713ms)
+  ✔ a genuine correction outside the owner-authorized paths is refused (1.08257ms)
+  ✔ missing, duplicate or unresolved gap resolutions cannot yield an approved revised plan (1.462876ms)
+  ✔ technical failures and omitted retained assertions cannot enter the pre-closure baseline (0.85386ms)
+  ✔ the old approved plan bytes and independent receipt remain bound, not replaceable by a fake REVISE (2586.559344ms)
+  ✔ recovery revalidates the saved response without another model call or a new approval target (1367.535602ms)
+✔ post-acceptance revision integration uses owner gaps, preserves APPROVE and prepares an authorized correction (14697.131196ms)
+✔ lost reservation response after server creation is reconciled without a second POST (3.61705ms)
+✔ unknown reservation and duplicate exact remote matches stop without another creation (1.094808ms)
+✔ reservation keeps the raw server response before final receipt persistence (1.531808ms)
+✔ lost approval PATCH response reuses the exact reserved comment without resetting its timestamp (1.21661ms)
+✔ CLI approval requires the reserved gate and handoff cannot silently mint a new retry identity (2.361647ms)
+✔ valid response survives validation archival failure and recovers exact bytes without a new model call (3447.716155ms)
+✔ delivery correction cannot be routed as INITIAL and a REVISION cannot prepare without its causal evidence (3785.97274ms)
+✔ a decision source requires the actual owner and exact repository/issue before planning (1.563897ms)
+✔ native preservation: every UI criterion needs an explicit sourced native assessment and branch assertion (3.588197ms)
+✔ native preservation: style or Jest difficulty cannot authorize a substitute and functional proof must be scoped (2.120899ms)
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
 hint: of your new repositories, which will suppress this warning, call:
@@ -1068,84 +1068,45 @@ hint:
 hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
-✔ accessibility PASS: real review CLI -> exact user approval -> finalization -> VNext retained baseline (201.882634ms)
-✔ accessibility PENDING_DEVICE: real review CLI -> exact user approval -> finalization -> VNext retained baseline (375.582853ms)
-✔ review proof policy FUNCTIONAL_TEST / PASS (282.3371ms)
-✔ review proof policy FUNCTIONAL_TEST / FAIL (270.558469ms)
-✔ review proof policy FUNCTIONAL_TEST / NON_VERIFIABLE (247.556079ms)
-✔ review proof policy FUNCTIONAL_TEST / PENDING_DEVICE (257.366401ms)
-✔ review proof policy STATIC_ANALYSIS / PASS (251.260959ms)
-✔ review proof policy STATIC_ANALYSIS / FAIL (247.415514ms)
-✔ review proof policy STATIC_ANALYSIS / NON_VERIFIABLE (247.355014ms)
-✔ review proof policy STATIC_ANALYSIS / PENDING_DEVICE (271.310198ms)
-✔ review proof policy VISUAL_COMPARE / PASS (257.127496ms)
-✔ review proof policy VISUAL_COMPARE / FAIL (260.281677ms)
-✔ review proof policy VISUAL_COMPARE / NON_VERIFIABLE (269.849004ms)
-✔ review proof policy VISUAL_COMPARE / PENDING_DEVICE (253.520691ms)
-✔ review proof policy DEVICE_CHECK / PASS (281.297939ms)
-✔ review proof policy DEVICE_CHECK / FAIL (288.455836ms)
-✔ review proof policy DEVICE_CHECK / NON_VERIFIABLE (254.95211ms)
-✔ review proof policy DEVICE_CHECK / PENDING_DEVICE (230.010595ms)
-✔ review proof policy ACCESSIBILITY_CHECK / PASS (254.306524ms)
-✔ review proof policy ACCESSIBILITY_CHECK / FAIL (251.723102ms)
-✔ review proof policy ACCESSIBILITY_CHECK / NON_VERIFIABLE (262.656771ms)
-✔ review proof policy ACCESSIBILITY_CHECK / PENDING_DEVICE (265.988771ms)
-✔ missing technical evidence and unjustified pending-to-PASS conversion are refused (567.631158ms)
-✔ retained assertion proofs are rechecked even after resealing a forged finalization (170.718533ms)
-✔ scoped explicit waiver closes only its pending proof and retains NOT_EXECUTED reservations (611.231533ms)
-✔ post-acceptance revision preserves pending assertions and explicit waiver without laundering failures (4610.818419ms)
-✔ unsupported resolver syntax is NON_VERIFIABLE even if caller claims PASS or FAIL (2.217658ms)
-✔ demonstrated defect, unavailable proof and nonrequired proof have separate gate consequences (0.287027ms)
-✔ accepted reserve persists if absent from subsequent bounded audit (2.081566ms)
-✔ new wording or new auditor cannot escalate unchanged subject (1.051124ms)
-✔ unchanged defect cannot be removed from its gate or severity downgraded without cause (0.886699ms)
-✔ proof unavailability cannot become a defect without new evidence (0.491711ms)
-✔ changed target reopens reserve with causal trace (3.369031ms)
-✔ change of applicable phase is explicit and severity remains independent of gate necessity (0.7527ms)
-✔ closure requires success evidence and authorized owner, never disappearance (1.567191ms)
-✔ retry limit cannot be enlarged during a cycle and exhausted retry is terminal (0.597909ms)
-✔ producer packet includes boundary validators in actual transitive closure and LF/CRLF transport preserves exact packet (122.643031ms)
-✔ producer packet rejects dynamic consumer dependency instead of claiming complete coverage (31.860874ms)
-✔ absence of legacy writers cannot attest retirement without pending/replay inventory (1.783493ms)
-hint: Using 'master' as the name for the initial branch. This default branch name
-hint: is subject to change. To configure the initial branch name to use in all
-hint: of your new repositories, which will suppress this warning, call:
-hint:
-hint: 	git config --global init.defaultBranch <name>
-hint:
-hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-hint: 'development'. The just-created branch can be renamed via this command:
-hint:
-hint: 	git branch -m <name>
-hint:
-hint: Disable this message with "git config set advice.defaultBranchName false"
-hint: Using 'master' as the name for the initial branch. This default branch name
-hint: is subject to change. To configure the initial branch name to use in all
-hint: of your new repositories, which will suppress this warning, call:
-hint:
-hint: 	git config --global init.defaultBranch <name>
-hint:
-hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-hint: 'development'. The just-created branch can be renamed via this command:
-hint:
-hint: 	git branch -m <name>
-hint:
-hint: Disable this message with "git config set advice.defaultBranchName false"
-hint: Using 'master' as the name for the initial branch. This default branch name
-hint: is subject to change. To configure the initial branch name to use in all
-hint: of your new repositories, which will suppress this warning, call:
-hint:
-hint: 	git config --global init.defaultBranch <name>
-hint:
-hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
-hint: 'development'. The just-created branch can be renamed via this command:
-hint:
-hint: 	git branch -m <name>
-hint:
-hint: Disable this message with "git config set advice.defaultBranchName false"
-✔ queue admission: pre-approval Git files stay identical after exact commit approval and reach the real consumer (246.927218ms)
-✔ queue admission: approval evidence must authenticate the exact target and owner reaction (464.319367ms)
-✔ queue admission: missing committed mission, altered queue and resealed projection are refused (182.726203ms)
+✔ accessibility PASS: real review CLI -> exact user approval -> finalization -> VNext retained baseline (180.776686ms)
+✔ accessibility PENDING_DEVICE: real review CLI -> exact user approval -> finalization -> VNext retained baseline (452.862737ms)
+✔ review proof policy FUNCTIONAL_TEST / PASS (295.228064ms)
+✔ review proof policy FUNCTIONAL_TEST / FAIL (333.992796ms)
+✔ review proof policy FUNCTIONAL_TEST / NON_VERIFIABLE (284.221168ms)
+✔ review proof policy FUNCTIONAL_TEST / PENDING_DEVICE (331.942606ms)
+✔ review proof policy STATIC_ANALYSIS / PASS (329.390129ms)
+✔ review proof policy STATIC_ANALYSIS / FAIL (339.398022ms)
+✔ review proof policy STATIC_ANALYSIS / NON_VERIFIABLE (284.248573ms)
+✔ review proof policy STATIC_ANALYSIS / PENDING_DEVICE (268.536742ms)
+✔ review proof policy VISUAL_COMPARE / PASS (299.864643ms)
+✔ review proof policy VISUAL_COMPARE / FAIL (326.458843ms)
+✔ review proof policy VISUAL_COMPARE / NON_VERIFIABLE (311.417599ms)
+✔ review proof policy VISUAL_COMPARE / PENDING_DEVICE (326.714176ms)
+✔ review proof policy DEVICE_CHECK / PASS (251.944192ms)
+✔ review proof policy DEVICE_CHECK / FAIL (241.835435ms)
+✔ review proof policy DEVICE_CHECK / NON_VERIFIABLE (285.498038ms)
+✔ review proof policy DEVICE_CHECK / PENDING_DEVICE (316.201106ms)
+✔ review proof policy ACCESSIBILITY_CHECK / PASS (289.641949ms)
+✔ review proof policy ACCESSIBILITY_CHECK / FAIL (293.6117ms)
+✔ review proof policy ACCESSIBILITY_CHECK / NON_VERIFIABLE (274.33433ms)
+✔ review proof policy ACCESSIBILITY_CHECK / PENDING_DEVICE (315.095735ms)
+✔ missing technical evidence and unjustified pending-to-PASS conversion are refused (610.633716ms)
+✔ retained assertion proofs are rechecked even after resealing a forged finalization (171.971182ms)
+✔ scoped explicit waiver closes only its pending proof and retains NOT_EXECUTED reservations (612.114018ms)
+✔ post-acceptance revision preserves pending assertions and explicit waiver without laundering failures (4420.502957ms)
+✔ unsupported resolver syntax is NON_VERIFIABLE even if caller claims PASS or FAIL (1.537627ms)
+✔ demonstrated defect, unavailable proof and nonrequired proof have separate gate consequences (0.313747ms)
+✔ accepted reserve persists if absent from subsequent bounded audit (1.373162ms)
+✔ new wording or new auditor cannot escalate unchanged subject (0.722455ms)
+✔ unchanged defect cannot be removed from its gate or severity downgraded without cause (0.570629ms)
+✔ proof unavailability cannot become a defect without new evidence (0.319395ms)
+✔ changed target reopens reserve with causal trace (0.942021ms)
+✔ change of applicable phase is explicit and severity remains independent of gate necessity (0.491711ms)
+✔ closure requires success evidence and authorized owner, never disappearance (0.612931ms)
+✔ retry limit cannot be enlarged during a cycle and exhausted retry is terminal (0.474706ms)
+✔ producer packet includes boundary validators in actual transitive closure and LF/CRLF transport preserves exact packet (135.54193ms)
+✔ producer packet rejects dynamic consumer dependency instead of claiming complete coverage (34.249145ms)
+✔ absence of legacy writers cannot attest retirement without pending/replay inventory (3.046322ms)
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
 hint: of your new repositories, which will suppress this warning, call:
@@ -1170,6 +1131,21 @@ hint:
 hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ queue admission: pre-approval Git files stay identical after exact commit approval and reach the real consumer (318.698296ms)
+✔ queue admission: approval evidence must authenticate the exact target and owner reaction (514.386042ms)
+✔ queue admission: missing committed mission, altered queue and resealed projection are refused (227.656931ms)
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
 hint: of your new repositories, which will suppress this warning, call:
@@ -1230,26 +1206,6 @@ hint:
 hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
-✔ F-01 — le dépôt VNext courant est entièrement inventorié sans filtre de préfixe (742.756426ms)
-✔ F-01 — un workflow arbitrairement nommé avec écriture non déclarée est refusé (19.312447ms)
-✔ F-01 — un script appelé pouvant pousser au dépôt est refusé même si le workflow ne porte pas le préfixe historique (26.311057ms)
-✔ F-01 — une écriture REST repository non déclarée est refusée (16.282895ms)
-✔ F-01 — une surface legacy exacte peut coexister uniquement tant qu’une slice legacy reste active (25.44856ms)
-✔ F-01 — ajouter une écriture à un workflow legacy figé invalide son empreinte (27.597732ms)
-✔ F-01 — un writer VNext doit déclarer producteur, destination, condition et job exact (23.16025ms)
-✔ F-01 — VNext interdit une permission write au niveau workflow (25.201567ms)
-✔ VNext-02 construit un registre source-first complet incluant UI et non-UI (10.6825ms)
-✔ VNext-02 refuse toute unité REQUIREMENT_SOURCE oubliée (0.695725ms)
-✔ VNext-02 refuse une exigence sans source connue (1.131693ms)
-✔ VNext-02 interdit de fabriquer une exigence depuis CONTEXT_ONLY (0.582236ms)
-✔ VNext-02 exige CLARIFICATION_REQUIRED pour toute source AMBIGUOUS (0.556929ms)
-✔ VNext-02 rend les conflits symétriques et bloquants (0.584249ms)
-✔ VNext-02 dérive mécaniquement les relations entre exigences (0.516268ms)
-✔ VNext-02 refuse les doublons de requirement_id calculé (0.397111ms)
-✔ VNext-02 lie le registre au SourceManifest exact (0.541295ms)
-✔ VNext-02 consomme une décision résolue comme source normative (1.188108ms)
-✔ VNext-02 refuse un registre sans aucune unité normative (0.294258ms)
-✔ VNext-02 interdit structurellement la dérivation circulaire depuis les critères UI (0.298754ms)
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
 hint: of your new repositories, which will suppress this warning, call:
@@ -1274,6 +1230,26 @@ hint:
 hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ F-01 — le dépôt VNext courant est entièrement inventorié sans filtre de préfixe (811.330859ms)
+✔ F-01 — un workflow arbitrairement nommé avec écriture non déclarée est refusé (23.835744ms)
+✔ F-01 — un script appelé pouvant pousser au dépôt est refusé même si le workflow ne porte pas le préfixe historique (25.331469ms)
+✔ F-01 — une écriture REST repository non déclarée est refusée (18.756154ms)
+✔ F-01 — une surface legacy exacte peut coexister uniquement tant qu’une slice legacy reste active (22.341387ms)
+✔ F-01 — ajouter une écriture à un workflow legacy figé invalide son empreinte (20.58269ms)
+✔ F-01 — un writer VNext doit déclarer producteur, destination, condition et job exact (24.192365ms)
+✔ F-01 — VNext interdit une permission write au niveau workflow (17.61396ms)
+✔ VNext-02 construit un registre source-first complet incluant UI et non-UI (12.803384ms)
+✔ VNext-02 refuse toute unité REQUIREMENT_SOURCE oubliée (0.844977ms)
+✔ VNext-02 refuse une exigence sans source connue (1.093256ms)
+✔ VNext-02 interdit de fabriquer une exigence depuis CONTEXT_ONLY (0.472723ms)
+✔ VNext-02 exige CLARIFICATION_REQUIRED pour toute source AMBIGUOUS (0.535646ms)
+✔ VNext-02 rend les conflits symétriques et bloquants (0.682876ms)
+✔ VNext-02 dérive mécaniquement les relations entre exigences (0.697097ms)
+✔ VNext-02 refuse les doublons de requirement_id calculé (0.37625ms)
+✔ VNext-02 lie le registre au SourceManifest exact (0.99518ms)
+✔ VNext-02 consomme une décision résolue comme source normative (1.423077ms)
+✔ VNext-02 refuse un registre sans aucune unité normative (0.325374ms)
+✔ VNext-02 interdit structurellement la dérivation circulaire depuis les critères UI (0.581505ms)
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
 hint: of your new repositories, which will suppress this warning, call:
@@ -1442,21 +1418,45 @@ hint:
 hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
-✔ VNext-06 INITIAL et REVISION utilisent le même contrat de review (119.837758ms)
-✔ VNext-06 sans finding produit APPROVE mécaniquement (52.655104ms)
-✔ VNext-06 un finding bloquant produit REVISE et réentrée calculée (43.004729ms)
-✔ VNext-06 PRODUCT_AMBIGUITY produit CLARIFICATION_REQUIRED (44.567164ms)
-✔ VNext-06 une suggestion seule ne bloque pas APPROVE (49.911032ms)
-✔ VNext-06 refuse verdict, blocking, finding_id ou reentry fournis par l’IA (41.650089ms)
-✔ VNext-06 refuse un target_id inventé (44.922462ms)
-✔ VNext-06 refuse une catégorie associée à un mauvais type de cible (48.126588ms)
-✔ VNext-06 refuse les findings identiques dupliqués (43.580165ms)
-✔ VNext-06 le schéma reviewer borne les IDs et ne contient aucun verdict libre (39.029693ms)
-✔ VNext-06 exécute les validations mécaniques avant de produire le contexte reviewer (49.867236ms)
-✔ VNext-06 exige le contrat atomique avant review d’un plan UI (53.131798ms)
-✔ VNext-06 accepte des findings ciblant Criterion et Assertion réels (49.808189ms)
-✔ VNext-06 finding_id est déterministe et lié au contexte exact (42.629832ms)
-✔ D7 no findings cannot stand in for missing, partial, duplicate or unknown review coverage (48.075488ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ VNext-06 INITIAL et REVISION utilisent le même contrat de review (147.945421ms)
+✔ VNext-06 sans finding produit APPROVE mécaniquement (59.597945ms)
+✔ VNext-06 un finding bloquant produit REVISE et réentrée calculée (56.376064ms)
+✔ VNext-06 PRODUCT_AMBIGUITY produit CLARIFICATION_REQUIRED (66.202944ms)
+✔ VNext-06 une suggestion seule ne bloque pas APPROVE (52.274878ms)
+✔ VNext-06 refuse verdict, blocking, finding_id ou reentry fournis par l’IA (50.453078ms)
+✔ VNext-06 refuse un target_id inventé (54.042496ms)
+✔ VNext-06 refuse une catégorie associée à un mauvais type de cible (53.975387ms)
+✔ VNext-06 refuse les findings identiques dupliqués (53.885658ms)
+✔ VNext-06 le schéma reviewer borne les IDs et ne contient aucun verdict libre (67.960409ms)
+✔ VNext-06 exécute les validations mécaniques avant de produire le contexte reviewer (52.963091ms)
+✔ VNext-06 exige le contrat atomique avant review d’un plan UI (62.994167ms)
+✔ VNext-06 accepte des findings ciblant Criterion et Assertion réels (52.736545ms)
+✔ VNext-06 finding_id est déterministe et lié au contexte exact (52.93195ms)
+✔ D7 no findings cannot stand in for missing, partial, duplicate or unknown review coverage (54.940021ms)
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
 hint: of your new repositories, which will suppress this warning, call:
@@ -1625,20 +1625,20 @@ hint:
 hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
-✔ VNext-07 construit un AllowedChangeSet borné et préserve le plan item non ciblé (80.916142ms)
-✔ VNext-07 refuse un finding PLAN_CONTRACT trop large sans dépendances ciblées (52.838878ms)
-✔ VNext-07 calcule la réentrée la plus amont quand plusieurs findings coexistent (54.725839ms)
-✔ VNext-07 SOURCE_UNIT reste un anchor et non un objet librement mutable (51.759712ms)
-✔ VNext-07 refuse une correction sur une cible hors AllowedChangeSet (50.999046ms)
-✔ VNext-07 exige que chaque finding bloquant soit couvert par le RevisionPatch (59.227131ms)
-✔ VNext-07 produit une application bornée sans exposer les cibles dérivées à l’IA (53.805355ms)
-✔ VNext-07 accepte une correction ciblée et vérifie la préservation exacte (92.438315ms)
-✔ VNext-07 autorise un nouvel objet dérivé uniquement sous la cible corrigée (72.302365ms)
-✔ VNext-07 détecte une modification d’un objet préservé (73.187817ms)
-✔ VNext-07 détecte REVISION_STALLED si le même finding persiste (64.582827ms)
-✔ VNext-07 détecte un nouveau finding bloquant sur un objet préservé (68.248143ms)
-✔ VNext-07 finding_id reste stable entre INITIAL et REVISION pour le même problème (62.696746ms)
-✔ VNext-07 le schéma de correction ne permet ni verdict ni path libre (49.496041ms)
+✔ VNext-07 construit un AllowedChangeSet borné et préserve le plan item non ciblé (83.11405ms)
+✔ VNext-07 refuse un finding PLAN_CONTRACT trop large sans dépendances ciblées (59.848858ms)
+✔ VNext-07 calcule la réentrée la plus amont quand plusieurs findings coexistent (53.203208ms)
+✔ VNext-07 SOURCE_UNIT reste un anchor et non un objet librement mutable (56.076763ms)
+✔ VNext-07 refuse une correction sur une cible hors AllowedChangeSet (52.682042ms)
+✔ VNext-07 exige que chaque finding bloquant soit couvert par le RevisionPatch (51.729316ms)
+✔ VNext-07 produit une application bornée sans exposer les cibles dérivées à l’IA (54.059432ms)
+✔ VNext-07 accepte une correction ciblée et vérifie la préservation exacte (99.203081ms)
+✔ VNext-07 autorise un nouvel objet dérivé uniquement sous la cible corrigée (66.95297ms)
+✔ VNext-07 détecte une modification d’un objet préservé (67.738349ms)
+✔ VNext-07 détecte REVISION_STALLED si le même finding persiste (64.258793ms)
+✔ VNext-07 détecte un nouveau finding bloquant sur un objet préservé (67.118288ms)
+✔ VNext-07 finding_id reste stable entre INITIAL et REVISION pour le même problème (84.327168ms)
+✔ VNext-07 le schéma de correction ne permet ni verdict ni path libre (49.341309ms)
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
 hint: of your new repositories, which will suppress this warning, call:
@@ -1652,14 +1652,14 @@ hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
 ▶ approved revised plan transmission on an existing application PR
-  ✔ existing PR routing and missing local mission retain the exact approved plan authority (2035.485291ms)
-  ✔ new exact plan is supplied at the old path; repeated filesystem and Git reads use the approved bytes (188.865796ms)
-  ✔ a supplied plan or mission different from the admitted identity stops before application writes (11.535598ms)
-  ✔ unavailable approved plan stops without falling back to the readable old plan (3.889675ms)
-  ✔ interrupted view recovery preserves existing application work; installation and execution lock cannot be duplicated (71.206325ms)
-  ✔ tampered view is refused, its evidence is retained and the old file is restored (11.115204ms)
-✔ approved revised plan transmission on an existing application PR (12227.225284ms)
-/tmp/kodjo-publication-gezd1D/.github/workflows/broken.yml: while parsing a flow sequence
+  ✔ existing PR routing and missing local mission retain the exact approved plan authority (2305.007802ms)
+  ✔ new exact plan is supplied at the old path; repeated filesystem and Git reads use the approved bytes (195.033235ms)
+  ✔ a supplied plan or mission different from the admitted identity stops before application writes (12.894844ms)
+  ✔ unavailable approved plan stops without falling back to the readable old plan (4.03729ms)
+  ✔ interrupted view recovery preserves existing application work; installation and execution lock cannot be duplicated (76.897298ms)
+  ✔ tampered view is refused, its evidence is retained and the old file is restored (13.662943ms)
+✔ approved revised plan transmission on an existing application PR (12687.587347ms)
+/tmp/kodjo-publication-6zbREM/.github/workflows/broken.yml: while parsing a flow sequence
   in "<unicode string>", line 2, column 5:
     on: [unterminated
         ^
@@ -1667,7 +1667,7 @@ expected ',' or ']', but got '<stream end>'
   in "<unicode string>", line 3, column 1:
     
     ^
-/tmp/kodjo-publication-tSXudq/.github/workflows/broken.yaml: while parsing a flow sequence
+/tmp/kodjo-publication-gD2S0Z/.github/workflows/broken.yaml: while parsing a flow sequence
   in "<unicode string>", line 2, column 5:
     on: [unterminated
         ^
@@ -1675,14 +1675,14 @@ expected ',' or ']', but got '<stream end>'
   in "<unicode string>", line 3, column 1:
     
     ^
-✔ qualification admission refuses stale, incomplete, failed or wrong workflow evidence (2.602301ms)
-✔ publication admission refuses a moved parent, checkpoint or active phase including later API pages (0.806279ms)
-✔ prepublication validation refuses malformed workflow bytes before publication (1415.693177ms)
-✔ prepublication validation refuses exact writer blob drift (1531.801431ms)
-✔ prepublication validation refuses stale historical test correspondence (1669.318355ms)
-✔ environmental and unknown failures request technical diagnosis without automatic retry (0.582306ms)
-✔ changed PowerShell must be parsed and invalid or unavailable parsing refuses publication (1595.612205ms)
-✔ execution qualification binds a separately changed controller and refuses missing controller proof (37.330198ms)
+✔ qualification admission refuses stale, incomplete, failed or wrong workflow evidence (1.933986ms)
+✔ publication admission refuses a moved parent, checkpoint or active phase including later API pages (0.647213ms)
+✔ prepublication validation refuses malformed workflow bytes before publication (1545.267027ms)
+✔ prepublication validation refuses exact writer blob drift (1542.362963ms)
+✔ prepublication validation refuses stale historical test correspondence (1634.264358ms)
+✔ environmental and unknown failures request technical diagnosis without automatic retry (2.813345ms)
+✔ changed PowerShell must be parsed and invalid or unavailable parsing refuses publication (1547.163036ms)
+✔ execution qualification binds a separately changed controller and refuses missing controller proof (46.135918ms)
 hint: Using 'master' as the name for the initial branch. This default branch name
 hint: is subject to change. To configure the initial branch name to use in all
 hint: of your new repositories, which will suppress this warning, call:
@@ -1851,29 +1851,29 @@ hint:
 hint: 	git branch -m <name>
 hint:
 hint: Disable this message with "git config set advice.defaultBranchName false"
-✔ VNext-05 construit Requirement → Criterion → Atomic Assertions avec IDs mécaniques (62.863108ms)
-✔ VNext-05 refuse les IDs de critère fournis par l’IA (44.148125ms)
-✔ VNext-05 impose VISUAL_COMPARE aux propriétés visuelles (46.314712ms)
-✔ VNext-05 interdit une propriété visuelle sans source VISUAL ou DECISION (49.183515ms)
-✔ VNext-05 accepte INTERACTION uniquement avec source fonctionnelle et preuve fonctionnelle (52.942292ms)
-✔ VNext-05 interdit une preuve d’assertion absente du critère parent (45.86903ms)
-✔ VNext-05 exige que chaque preuve du critère soit allouée à une assertion (42.53469ms)
-✔ VNext-05 exige que les assertions couvrent tous les changements du critère (40.842553ms)
-✔ VNext-05 exige que chaque changement UI soit couvert par un critère (54.091915ms)
-✔ VNext-05 refuse qu’un requirement non-UI porte silencieusement un changement UI (45.462961ms)
-✔ VNext-05 limite la recherche de réutilisation aux candidats UI (38.747817ms)
-✔ VNext-05 impose une recherche de réutilisation et lie REUSE/EXTEND au candidat sélectionné (43.127306ms)
-✔ VNext-05 CREATE ne peut pas prétendre réutiliser un composant existant (42.815457ms)
-✔ VNext-05 lie le contrat atomique au PlanContract exact (43.430328ms)
-✔ VNext-05 ne réintroduit aucune dérivation Requirement depuis Criterion/Assertion (0.433846ms)
-✔ D2 source evidence rejects foreign authors, issues, repositories and comment IDs (1.229679ms)
-✔ D11 ignored files and Git executable metadata cannot change invisibly (25.847408ms)
-✔ D11 safe Git commands suppress a real pre-commit hook (13.623875ms)
-✔ D9 scanner detects concatenated REST destinations and Git writes behind safety options (2.666115ms)
-✔ D16 a comment marker cannot authorize an executable legacy push (75.725515ms)
-✔ D4 two skipped platforms never satisfy mapped historical coverage (0.922522ms)
-✔ D15 simultaneous stale-lock reclaimers produce exactly one owner (111.894907ms)
-✔ D8 UI projection retains atomic assertions and an exact component path/export binding (15.745551ms)
+✔ VNext-05 construit Requirement → Criterion → Atomic Assertions avec IDs mécaniques (77.244179ms)
+✔ VNext-05 refuse les IDs de critère fournis par l’IA (48.866758ms)
+✔ VNext-05 impose VISUAL_COMPARE aux propriétés visuelles (53.466805ms)
+✔ VNext-05 interdit une propriété visuelle sans source VISUAL ou DECISION (51.817778ms)
+✔ VNext-05 accepte INTERACTION uniquement avec source fonctionnelle et preuve fonctionnelle (50.524114ms)
+✔ VNext-05 interdit une preuve d’assertion absente du critère parent (57.223488ms)
+✔ VNext-05 exige que chaque preuve du critère soit allouée à une assertion (44.704616ms)
+✔ VNext-05 exige que les assertions couvrent tous les changements du critère (49.492383ms)
+✔ VNext-05 exige que chaque changement UI soit couvert par un critère (48.137949ms)
+✔ VNext-05 refuse qu’un requirement non-UI porte silencieusement un changement UI (46.714617ms)
+✔ VNext-05 limite la recherche de réutilisation aux candidats UI (40.428246ms)
+✔ VNext-05 impose une recherche de réutilisation et lie REUSE/EXTEND au candidat sélectionné (47.68437ms)
+✔ VNext-05 CREATE ne peut pas prétendre réutiliser un composant existant (50.289615ms)
+✔ VNext-05 lie le contrat atomique au PlanContract exact (52.365794ms)
+✔ VNext-05 ne réintroduit aucune dérivation Requirement depuis Criterion/Assertion (0.464931ms)
+✔ D2 source evidence rejects foreign authors, issues, repositories and comment IDs (1.193275ms)
+✔ D11 ignored files and Git executable metadata cannot change invisibly (24.606306ms)
+✔ D11 safe Git commands suppress a real pre-commit hook (17.259663ms)
+✔ D9 scanner detects concatenated REST destinations and Git writes behind safety options (2.767947ms)
+✔ D16 a comment marker cannot authorize an executable legacy push (98.035318ms)
+✔ D4 two skipped platforms never satisfy mapped historical coverage (1.015631ms)
+✔ D15 simultaneous stale-lock reclaimers produce exactly one owner (105.101065ms)
+✔ D8 UI projection retains atomic assertions and an exact component path/export binding (13.930592ms)
 ℹ tests 286
 ℹ suites 0
 ℹ pass 286
@@ -1881,4 +1881,4 @@ hint: Disable this message with "git config set advice.defaultBranchName false"
 ℹ cancelled 0
 ℹ skipped 0
 ℹ todo 0
-ℹ duration_ms 79183.006882
+ℹ duration_ms 78294.125918

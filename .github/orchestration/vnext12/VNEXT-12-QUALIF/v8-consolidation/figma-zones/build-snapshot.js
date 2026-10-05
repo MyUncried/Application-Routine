@@ -33,6 +33,10 @@ function build(){
    disposition='REALIZE';reason='Espacement ou padding effectif du conteneur auto-layout dans la référence, à vérifier par mesure sans imposer la technique d’implémentation.';
    rule={kind:'EQUALS',value,viewports:[402],tolerance:0.01,unit:'pt'};
   }
+  if(property==='characters'&&['4953:6611','I4953:6624;4152:6181'].includes(n.id)){
+   disposition='REALIZE';reason='Libellé fixe de présentation du titre ou de création : référence Figma à conserver ; distinct des noms de zones dynamiques du référentiel.';
+   rule={kind:'EQUALS',value,viewports:[402],tolerance:0,unit:'TEXT'};
+  }
   if(property==='cornerRadius'&&value==='MIXED')reason='Agrégat Figma MIXED ; les quatre rayons individuels observés sont les propriétés de référence.';
   return {property_id:F.id(n.id,property),element_id:n.id,property,disposition,reason,document_ids:['CE-UI-09','RESPONSIVE-4.2'],rule};
  }));

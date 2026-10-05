@@ -88,9 +88,12 @@ test('negative 9: corrupt or missing transported screenshot/properties/resources
 test('real qualification frame 4478:7209: complete inventory, aliases, vectors, resources and lossless compact transport',()=>{
  const p=require('../../.github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/frozen-source.json');F.validate(p,{ready:true});
  assert.equal(p.nodes.length,222);assert.equal(p.variables.length,50);assert.equal(p.states.filter(s=>s.disposition==='REQUIRED').length,24);assert.equal(p.resources.length,4);
- assert.equal(F.required(p).length,1235);assert.equal(p.decisions.length,8425);
+ assert.equal(F.required(p).length,1237);assert.equal(p.decisions.length,8425);
  const packed=F.pack(p);assert.deepEqual(F.unpack(packed),p);assert.ok(Buffer.byteLength(JSON.stringify(packed))<Buffer.byteLength(JSON.stringify(p))*.25);
  const adapt=p.decisions.find(d=>d.element_id==='4478:7209'&&d.property==='constraints');assert.deepEqual(adapt.rule.viewports,[360,402,440]);
  assert.ok(adapt.rule.value.constraints.some(c=>c.field==='minimumTouchHeight'&&c.value===44));
- assert.ok(p.decisions.filter(d=>d.property==='characters').every(d=>d.disposition==='OBSERVED_ONLY'));
+ const labels=p.decisions.filter(d=>d.property==='characters'&&d.disposition==='REALIZE');
+ assert.deepEqual(labels.map(d=>d.element_id).sort(),['4953:6611','I4953:6624;4152:6181'].sort());
+ assert.ok(p.decisions.filter(d=>d.property==='characters'&&!labels.includes(d)).every(d=>d.disposition==='OBSERVED_ONLY'));
+ assert.deepEqual(labels.map(d=>d.rule.value).sort(),['Créer une zone corporelle','Zones corporelles'].sort());
 });
