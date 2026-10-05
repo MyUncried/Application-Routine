@@ -36,3 +36,19 @@ test('actual browser measures DOM geometry rather than numeric exports, preserve
  assert.deepEqual(fs.readFileSync(path.join(first,'rendered.png')).subarray(0,8),Buffer.from([137,80,78,71,13,10,26,10]));
  fs.appendFileSync(screen,'module.exports.__figmaWidthDelta=1;\n');const second=path.join(root,'second');fs.mkdirSync(second);assert.equal((await Browser.observe({...config,directory:second})).width,402);
 });
+test('packaged Chrome precedes Chromium on Linux while an explicit browser remains authoritative',()=>{
+ const installed=new Set(['/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser']);
+ assert.equal(Browser.resolveBrowser({},p=>installed.has(p)),'/usr/bin/google-chrome');
+ assert.equal(Browser.resolveBrowser({KODJO_FIGMA_BROWSER:'/usr/bin/chromium'},p=>installed.has(p)),'/usr/bin/chromium');
+ assert.throws(()=>Browser.resolveBrowser({KODJO_FIGMA_BROWSER:'/missing/browser'},p=>installed.has(p)),/BROWSER_CONFIG_INVALID/);
+ installed.delete('/usr/bin/google-chrome');assert.equal(Browser.resolveBrowser({},p=>installed.has(p)),'/usr/bin/chromium');
+});
+test('early browser exit retains executable, exit code and actual stderr in the failure',async t=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-browser-exit-test-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true,maxRetries:10,retryDelay:100}));
+ const screen=path.join(root,'screen.js'),keep=path.join(root,'keep.js');fs.writeFileSync(screen,'module.exports={render:()=>""};');fs.writeFileSync(keep,'module.exports={};');
+ // Node is a real executable which rejects the browser-only --headless option.
+ await assert.rejects(Browser.observe({screen,keep,directory:root,viewport:402,height:874,frameId:'frame',titleId:'title',transitions:[],browser:process.execPath}),e=>{
+  assert.ok(e.message.startsWith('VNEXT_FIGMA_BROWSER_EXIT_BEFORE_CONNECTION:'));const details=JSON.parse(e.message.slice(e.message.indexOf(':')+1));
+  assert.equal(details.browser,process.execPath);assert.notEqual(details.exit_code,0);assert.match(details.stderr,/headless/);assert.equal(details.stderr,fs.readFileSync(path.join(root,'browser-stderr.log'),'utf8'));return true;
+ });
+});

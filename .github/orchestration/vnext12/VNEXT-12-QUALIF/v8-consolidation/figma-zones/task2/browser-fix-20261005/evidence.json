@@ -1,0 +1,65 @@
+{
+  "schema_version": "kodjo.vnext.browser-start-diagnostic.v1",
+  "original_head": "b286a6bb79aca9fa45c5ec96a5970af39c458218",
+  "original_run": 37366161539,
+  "original_status": "TERMINAL_FAILURE",
+  "original_linux_qualification": {
+    "tests": 311,
+    "pass": 310,
+    "fail": 1,
+    "skip": 0,
+    "error": "VNEXT_FIGMA_BROWSER_EXIT_BEFORE_CONNECTION"
+  },
+  "original_linux_historical": {
+    "tests": 1078,
+    "pass": 1076,
+    "fail": 1,
+    "skip": 1,
+    "same_failed_test": true,
+    "follow_on_error": "VNEXT_EQ_EXECUTION_INCOMPLETE"
+  },
+  "original_windows_qualification": {
+    "tests": 311,
+    "pass": 311,
+    "fail": 0,
+    "skip": 0,
+    "status": "SUCCESS"
+  },
+  "original_windows_historical": {
+    "status": "CANCELLED_BEFORE_RUNNER_EXECUTION",
+    "cause": "NON_VERIFIABLE"
+  },
+  "diagnosis": {
+    "established": "Chromium precedes installed packaged Chrome in Linux browser discovery; browser exits before DevTools connection; original stderr lost in fixture cleanup",
+    "probable_cause": "Ubuntu runner Chromium snapshot sandbox incompatibility, reported by runner-images issue 12096",
+    "exact_original_exit_cause": "NON_VERIFIABLE",
+    "sources": [
+      "https://github.com/actions/runner-images/issues/12096",
+      "https://github.com/actions/runner-images/blob/main/images/ubuntu/scripts/build/install-google-chrome.sh"
+    ]
+  },
+  "correction": [
+    "Prefer packaged Chrome on Linux; retain explicit override and Chromium fallback",
+    "Report executable, exit code, signal and actual stderr after process close",
+    "Retain real DOM and screenshot assertions; no no-sandbox flag or browser-test bypass"
+  ],
+  "local_checks": {
+    "tests": 6,
+    "pass": 5,
+    "fail": 0,
+    "skip": 1,
+    "skip_reason": "No browser binary installed locally; real browser CI test remains required",
+    "yaml_workflows": 64,
+    "invariants": "PASS"
+  },
+  "relaunch": {
+    "branch": "qualification/vnext-browser-fix-20261005",
+    "expected_launch_count": 1,
+    "scope": "Existing contracts and historical assertion matrix; no Claude or real Figma path"
+  },
+  "artifact": {
+    "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/browser-fix-20261005/original-linux-diagnostics.zip",
+    "sha256": "8449b0d8edbd1a8b963d40607a563891bc8379276fd408149c8abc329988448f"
+  },
+  "full_qualification_claimed": false
+}

@@ -1,10 +1,12 @@
 'use strict';
 // Disposable browser measurement, never a native-device certification.
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),{spawn}=require('node:child_process'),{pathToFileURL}=require('node:url');
-function resolveBrowser(env=process.env){
- if(env.KODJO_FIGMA_BROWSER&&(!path.isAbsolute(env.KODJO_FIGMA_BROWSER)||!fs.existsSync(env.KODJO_FIGMA_BROWSER)))throw Error('VNEXT_FIGMA_BROWSER_CONFIG_INVALID');
- const candidates=[env.KODJO_FIGMA_BROWSER,'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe','C:/Program Files/Microsoft/Edge/Application/msedge.exe','C:/Program Files/Google/Chrome/Application/chrome.exe','/usr/bin/chromium','/usr/bin/chromium-browser','/usr/bin/google-chrome'].filter(Boolean);
- const found=candidates.find(p=>path.isAbsolute(p)&&fs.existsSync(p));if(!found)throw Error('VNEXT_FIGMA_BROWSER_UNAVAILABLE');return found;
+function resolveBrowser(env=process.env,exists=fs.existsSync){
+ if(env.KODJO_FIGMA_BROWSER&&(!path.isAbsolute(env.KODJO_FIGMA_BROWSER)||!exists(env.KODJO_FIGMA_BROWSER)))throw Error('VNEXT_FIGMA_BROWSER_CONFIG_INVALID');
+ // Ubuntu runners provide packaged Chrome; prefer it over the Chromium snapshot,
+ // whose sandbox can be refused by the host's unprivileged-namespace policy.
+ const candidates=[env.KODJO_FIGMA_BROWSER,'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe','C:/Program Files/Microsoft/Edge/Application/msedge.exe','C:/Program Files/Google/Chrome/Application/chrome.exe','/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser'].filter(Boolean);
+ const found=candidates.find(p=>path.isAbsolute(p)&&exists(p));if(!found)throw Error('VNEXT_FIGMA_BROWSER_UNAVAILABLE');return found;
 }
 function host(screen,keep){
  const script=s=>s.replace(/<\/script/gi,'<\\/script');
@@ -25,7 +27,7 @@ async function observe({screen,keep,directory,viewport,height,frameId,titleId,tr
   const endpoint=await new Promise((resolve,reject)=>{
    const timer=setTimeout(()=>reject(Error('VNEXT_FIGMA_BROWSER_START_TIMEOUT')),20000);
    child=spawn(browser,['--headless','--no-first-run','--no-default-browser-check','--disable-extensions','--disable-background-networking','--remote-debugging-address=127.0.0.1','--remote-debugging-port=0','--user-data-dir='+profile,'about:blank'],{windowsHide:true,stdio:['ignore','pipe','pipe']});
-   child.on('error',e=>{clearTimeout(timer);reject(e);});child.on('exit',()=>{clearTimeout(timer);reject(Error('VNEXT_FIGMA_BROWSER_EXIT_BEFORE_CONNECTION'));});
+   child.on('error',e=>{clearTimeout(timer);reject(e);});child.on('close',(code,signal)=>{clearTimeout(timer);reject(Error('VNEXT_FIGMA_BROWSER_EXIT_BEFORE_CONNECTION:'+JSON.stringify({browser,exit_code:code,signal,stderr:stderr.slice(-8192)})));});
    child.stderr.on('data',b=>{stderr+=b.toString();const match=stderr.match(/DevTools listening on (ws:\/\/127\.0\.0\.1:[0-9]+\/devtools\/browser\/[^\s]+)/);if(match){clearTimeout(timer);resolve(match[1]);}});
   });
   ws=new WebSocket(endpoint);await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('VNEXT_FIGMA_BROWSER_CONNECTION_TIMEOUT')),10000);ws.addEventListener('open',()=>{clearTimeout(timer);resolve();},{once:true});ws.addEventListener('error',()=>{clearTimeout(timer);reject(Error('VNEXT_FIGMA_BROWSER_CONNECTION_FAILED'));},{once:true});});
