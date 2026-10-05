@@ -1821,16 +1821,25 @@
     "correction_calls": 0,
     "fresh_qualification_required": true,
     "new_request_id_required_before_next_initial": true,
-    "waiting_for": "TARGETED_WINDOWS_DIAGNOSTIC_RESULT",
+    "waiting_for": "USER_NEXT_SCOPE_AFTER_TARGETED_DIAGNOSTIC",
     "local_optimization_evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/local-optimization-20261005/summary.json",
     "plan_review_session_id": "f7282e15-2022-48d5-9be6-3abd1236e885",
     "performance_measurement": {
-      "status": "READY_TO_LAUNCH",
+      "status": "TERMINAL_TIMEOUT_AUTOMATIC_WORKFLOW_REMOVED",
       "workflow": ".github/workflows/kodjo-vnext-performance.yml",
       "label": "vnext-performance-task2-20261005",
       "authorization": "USER_2026-10-05_18:39_PARIS_TEST_SIGNAL",
       "operational_qualification": false,
-      "claude_authorized": false
+      "claude_authorized": false,
+      "run_id": 37360701899,
+      "job_id": 111934288612,
+      "candidate_head": "5f8763dfade776f2bfa8139dea7ff1f23fc3aee3",
+      "workflow_removed": true,
+      "launch_count": 1,
+      "scanner_equivalent": true,
+      "targeted_suite_completed": false,
+      "evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/windows-measurement-37360701899/evidence.json",
+      "next_launch_authorized": false
     }
   },
   "pending_actions_scope_notice": "Existing historical pending_actions are not execution authorization. Current authorization covers task 2 only; task 3, independent closure, V2, PRE-2 and PRE-3 remain excluded."
