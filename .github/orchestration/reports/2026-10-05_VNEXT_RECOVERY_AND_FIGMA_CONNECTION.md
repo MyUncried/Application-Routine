@@ -50,7 +50,8 @@ Voile 4953:6605 : calque opacity=1 ; peinture opacity=0.3400000035762787 (34 %).
 L'export courant des actions a des boîtes SVG différentes de l'export initial : annuler 53×58, valider 56×58 ; boîtes tactiles Figma 48×53 et disque Ø38 inchangés dans ces données. Ne pas utiliser une ancienne boîte d'export comme dimension du contrôle.
 
 Preuves locales versionnées dans ../vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/ : observed-frame.json, variables.json, actions.json, frame.png et integrity.json.
-Limites : descendants des maîtres et propriétés détaillées des autres variantes non extraits intégralement ; liens aliases variables à résoudre si requis ; ressources du fond non exhaustives ; règles d'adaptation et états pressés/désactivés non établis ; rapprochement avec la documentation courante de main non encore effectué. Aucun choix de réalisation/conservation/exclusion finalisé. Ce paquet ne peut être étiqueté READY pour planification.
+Limites : descendants des maîtres et propriétés détaillées des autres variantes non extraits intégralement ; liens aliases variables à résoudre si requis ; ressources du fond non exhaustives ; règle de retour à la ligne précise et états pressés/désactivés non établis. Aucun choix de réalisation/conservation/exclusion finalisé. Ce paquet ne peut être étiqueté READY pour planification.
+Un rapprochement initial est enregistré dans documentary-reconciliation.json : chapitre 13 courant lu à main b961719cd3e22704709d7c75c12b0a286bade2f1, CE-UI-09 et §4.2. Les libellés/choix montrés sont dynamiques/démonstratifs ; sélection multiple puis confirmation, annulation restaure la sélection antérieure ; viewport 402 et contrôles 360/402/440 ; coordonnées non copiées en positions absolues ; scroll et focus modal ; états vide/enrichi/retiré/création/erreur requis au-delà de cette seule frame. Les bounds d'instances de 48 hauts sont espacés verticalement de 38 : ils se recouvrent de 10, mais ne prouvent pas à eux seuls une cible tactile native. Le rapprochement avec la règle ≥44 sans chevauchement doit être explicite, sans inventer l'équivalence bounds=cible ni un comportement observé sur appareil. Ce rapprochement partiel ne ferme pas les adaptations ni toutes les contradictions transverses.
 L'accès de cette session à Figma ne prouve pas celui du runner ni l'utilisation effective par Claude.
 
 ## 5. Lacunes démontrées et conception du raccordement
@@ -75,4 +76,3 @@ Conception à implémenter, sans schéma concurrent aux contrats d'écran :
 Étapes 6–8 : parcours réels, réveils de ChatGPT et audit final exact ouverts. Aucun signal envoyé n'est une preuve de réveil.
 Étapes 9–10 : promotion préparée puis activation seulement avec autorisation finale ; main et PRE-3 interdits avant qualification requise.
 Sujet ouvert non intégré : consolidation de modules entiers/outils de review/profiling appareil. Aucun outil installé, aucune campagne créée.
-
