@@ -149,6 +149,21 @@ jobs:
               $env:SLICE_ID=$slice
               git worktree add --detach -- $finalApplication $head
               if($LASTEXITCODE-ne0){throw 'Exact application HEAD unavailable for final proof'}
+              # Same cumulative delivered files as the implementation review for an EXISTING_PR delivery:
+              # targets delivered by an earlier delivery of the slice stay delivered (PRE-2, run 37244733631).
+              Remove-Item Env:KODJO_CUMULATIVE_CHANGED_FILES -ErrorAction SilentlyContinue
+              if([string]$queue.delivery_target.kind-eq'EXISTING_PR'){
+                $deliveredBase=[string]$queue.baseline_head
+                if($deliveredBase-notmatch'^[0-9a-f]{40}$'){throw 'Invalid V2 delivered baseline SHA'}
+                git merge-base --is-ancestor $deliveredBase $head
+                if($LASTEXITCODE-ne0){throw 'V2 delivered baseline is not an ancestor of the final HEAD'}
+                $cumulativeFile=Join-Path $env:RUNNER_TEMP 'kodjo-v2-final-cumulative-changed-files.txt'
+                $cumulativeText=((@(git diff --name-only "$deliveredBase..$head")) -join [Environment]::NewLine)
+                if($LASTEXITCODE-ne0){throw 'V2 cumulative delivered files unavailable'}
+                if(-not[string]::IsNullOrWhiteSpace($cumulativeText)){$cumulativeText+=[Environment]::NewLine}
+                [IO.File]::WriteAllText($cumulativeFile,$cumulativeText,$utf8NoBom)
+                $env:KODJO_CUMULATIVE_CHANGED_FILES=$cumulativeFile
+              }
               Push-Location $finalApplication
               try{
                 if((git rev-parse HEAD).Trim()-ne$head){throw 'Final proof checkout HEAD mismatch'}
