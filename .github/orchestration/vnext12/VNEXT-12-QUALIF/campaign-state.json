@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-05T11:31:58.792772+00:00",
+  "recorded_at": "2026-10-05T14:32:22.673076+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
-  "code_head_before_checkpoint": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
-  "controller_stage": "FIGMA_TASK2_FINAL_TEST_PORTABILITY_QUALIFICATION_PENDING",
-  "controller_generation": 54,
+  "code_head_before_checkpoint": "73787f296d78ab3c435fa04ef993f0ef8382141f",
+  "controller_stage": "FIGMA_TASK2_INITIAL_REQUESTED_AFTER_TERMINAL_PREFLIGHT",
+  "controller_generation": 56,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -379,22 +379,22 @@
   },
   "active_runs": [
     {
-      "id": 37293649217,
+      "id": 37307334832,
       "status": "completed",
       "conclusion": "success",
-      "head": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed"
+      "head": "73787f296d78ab3c435fa04ef993f0ef8382141f"
     },
     {
-      "id": 37293649182,
+      "id": 37307334666,
       "status": "completed",
       "conclusion": "success",
-      "head": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed"
+      "head": "73787f296d78ab3c435fa04ef993f0ef8382141f"
     },
     {
-      "id": 37293649180,
+      "id": 37307334786,
       "status": "completed",
-      "conclusion": "success",
-      "head": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed"
+      "conclusion": "cancelled",
+      "head": "73787f296d78ab3c435fa04ef993f0ef8382141f"
     }
   ],
   "obsolete_runs": [
@@ -1710,7 +1710,7 @@
     "request_json_changed": false
   },
   "figma_task2_initial": {
-    "status": "SHELL_CORRECTED_TEST_CRLF_COMPARISON_FINAL_DELTA_PENDING",
+    "status": "INITIAL_REQUESTED_NOT_YET_CONSUMED",
     "parent_head": "c1ea9aef65e7f61662cb91eee8c5fa8d93032c09",
     "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
     "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
@@ -1724,18 +1724,23 @@
     "capture_provenance": "FROZEN_GIT_CAPTURE_REPLAY_NOT_FRESH_ACQUISITION",
     "evidence_preservation": "Git bundle, working delta, raw model/process responses, delivery snapshots; cleanup only after successful preservation.",
     "duplicate_policy": "Exclusive persistent request-id claim; reruns refused; no release after partial invocation.",
-    "qualified_protocol_head": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed",
-    "qualification_run_id": 37293649217,
+    "qualified_protocol_head": "73787f296d78ab3c435fa04ef993f0ef8382141f",
+    "qualification_run_id": 37307334832,
     "request_id": "1c9be701-2e24-43f7-bd24-2030d1d3c6c1",
-    "qualification_evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/qualification.json",
+    "qualification_evidence": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/final-qualification.json",
     "windows_preflight": {
-      "run_id": 37293649182,
-      "job_id": 111710809124,
-      "tests": 1072,
-      "pass": 1068,
-      "fail": 0,
-      "skip": 4,
-      "status": "SUCCESS",
+      "run_id": 37307334786,
+      "job_id": 111755046302,
+      "status": "CANCELLED_TERMINAL",
+      "suite": {
+        "tests": 1072,
+        "pass": 1068,
+        "fail": 0,
+        "skip": 4
+      },
+      "isolated_queue_step": "SUCCESS",
+      "disposable_preflight_step": "SUCCESS",
+      "cancellation_cause": "NOT_VERIFIABLE",
       "historical_recovery_reserve": "OLD_ARTIFACT_UNAVAILABLE_NOT_RETRIED"
     },
     "user_instruction": "Reprends uniquement la tâche 2; terminer qualification et parcours initial isolé; aucun lancement dupliqué; tâche 3 et clôture hors périmètre.",
@@ -1783,8 +1788,32 @@
         "skip": 0
       },
       "latest_local_log_sha256": "f883227dd3c9f79e31c5e4458b7a0170e35b6864186d98b43c4974c5732f129d",
-      "remote_qualification": "REQUIRED_FOR_THIS_FINAL_TEST_DELTA",
+      "remote_qualification": "VERIFIED_ON_EXACT_FINAL_HEAD",
       "real_claude_calls": 0
-    }
-  }
+    },
+    "prior_qualification_reference": {
+      "head": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed",
+      "run_id": 37293649217,
+      "windows_preflight": {
+        "run_id": 37293649182,
+        "job_id": 111710809124,
+        "tests": 1072,
+        "pass": 1068,
+        "fail": 0,
+        "skip": 4,
+        "status": "SUCCESS",
+        "historical_recovery_reserve": "OLD_ARTIFACT_UNAVAILABLE_NOT_RETRIED"
+      }
+    },
+    "driver_qualification_run_id": 37307334666,
+    "publication_block": null,
+    "remaining_actions": [
+      "Let existing local preflight job 111755046302 complete; do not duplicate or cancel it.",
+      "Read current active runs and runner/Claude process state before admission.",
+      "Verify publication window and reuse qualified head 73787f296d78ab3c435fa04ef993f0ef8382141f / run 37307334832; metadata checkpoint has the same protocol code.",
+      "Publish one FIGMA_INITIAL request with logical UUID 1c9be701-2e24-43f7-bd24-2030d1d3c6c1, proved unconsumed at the failed shell entry.",
+      "Collect actual isolated initial delivery, declared one-correction proof and sealed evidence; stop before task 3 or closure."
+    ]
+  },
+  "pending_actions_scope_notice": "Existing historical pending_actions are not execution authorization. Current authorization covers task 2 only; task 3, independent closure, V2, PRE-2 and PRE-3 remain excluded."
 }

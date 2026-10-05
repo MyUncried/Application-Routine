@@ -1,51 +1,86 @@
-# VNext Figma — tâche 2, qualification et parcours initial isolé
+# VNext Figma — tâche 2 : qualification vérifiée, parcours initial bloqué
 
-## Mission et point de départ
+## Résultat au point de récupération du 5 octobre 2026
 
-Reprise autorisée le 5 octobre 2026 après suspension, sur `d5d14c1cb6a9f490a03e35a8047f83ed064dbbed`, PR #269, branche `protocol/vnext-proof-stability-20260930`, campagne existante `628b3349-88b4-4bf1-be6b-50bc09e7d245` / `VNEXT-12-QUALIF`. Répertoire local : `/workspace/scratch/2190f7a471f1/vnext`.
+**La tâche 2 reste inachevée.** Le code final est qualifié sur le commit publié `73787f296d78ab3c435fa04ef993f0ef8382141f`. Le parcours Claude initial isolé n'a pas été exécuté avec succès. La publication de sa demande est refusée par le verrou existant : `VNEXT_PUBLICATION_PHASE_ACTIVE`, car le préflight local `37307334786` / job `111755046302` reste en file d'attente, sans runner attribué. Le diagnostic est enregistré dans `task2/publication-block.json`.
 
-Instruction : terminer la qualification et le parcours initial isolé, préserver les preuves et le bilan. Aucune tâche 3, reprise après validation utilisateur, revue indépendante de clôture, activation V2, PRE-2 ou PRE-3. La correction bornée prévue par le pilote est une injection technique déclarée ; elle ne vaut pas reprise après recette utilisateur.
+Chantier existant : PR #269, branche `protocol/vnext-proof-stability-20260930`, campagne `628b3349-88b4-4bf1-be6b-50bc09e7d245` / `VNEXT-12-QUALIF`. Répertoire : `/workspace/scratch/2190f7a471f1/vnext`. Aucun rerun, duplication de requête ou campagne distincte. Aucune tâche 3, reprise après validation utilisateur, revue indépendante de clôture, activation V2, PRE-2 ou PRE-3.
 
-## État de reprise observé
+## Qualification finale et preuves
 
-HEAD local et distant identiques ; aucun changement non committé au début de la reprise. Les trois workflows déclenchés par le commit précédent sont réutilisés, sans relance : `37293649217` (qualification VNext), `37293649180` (qualification du pilote), `37293649182` (tests de régression historiques). Requête initialement `QUALIFY_ONLY` ; jobs Claude INITIAL/REVISION ignorés. Ancienne file V2 `34748621746` laissée intacte.
+Le validateur existant `vnext-github-qualification.verifyQualification` a retourné VERIFIED sur le candidat exact, run `37307334832`, tentative 1. Ses cinq jobs sont SUCCESS :
 
-## Preuves locales réutilisées
+| Contrôle | Job |
+| --- | --- |
+| Qualification Ubuntu | 111754077752 |
+| Qualification Windows | 111754077744 |
+| Équivalence historique Ubuntu | 111754077443 |
+| Équivalence historique Windows | 111754077598 |
+| Couverture entre plateformes | 111763675753 |
 
-Commande déjà terminée : `node --test tests/kodjo/vnext-*.pilot.js tests/kodjo/ui-implementation-review.pilot.js` : 321 tests, 321 PASS, 0 FAIL, 0 SKIP. Journal conservé dans `.github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/local-tests.log.gz` (compression sans perte ; empreinte des octets décompressés), SHA-256 `3898db1e35498f34b456780e4074727c2c0beabefda3eb47517104af33a54467`. Le workflow VNext exclut les 16 tests du reviewer historique : 305 tests dans cette commande CI.
+Le driver Ubuntu/Windows est également SUCCESS, run `37307334666`, jobs `111754540847` et `111754540914`. Les jobs réels INITIAL/REVISION sont ignorés, conformément à la demande QUALIFY_ONLY.
 
-## Limites de preuve et périmètre
+| Vérification exécutée | Résultat |
+| --- | --- |
+| Suite locale finale VNext + reviewer UI historique | 321 PASS, 0 FAIL, 0 SKIP |
+| Test négatif du plan, magasin Git isolé | 7 PASS |
+| Même suite ciblée avec core.autocrlf=true | 7 PASS |
+| Contrôles ciblés shell/publication/writers | 11 PASS |
+| YAML et invariants de workflows | 64 YAML valides, invariants PASS |
+| Qualification VNext Windows finale | 305 PASS, 0 FAIL, 0 SKIP |
+| Équivalence historique Linux finale | 1 072 tests : 1 071 PASS, 0 FAIL, 1 SKIP |
+| Équivalence historique Windows finale | 1 072 tests : 1 069 PASS, 0 FAIL, 3 SKIP |
 
-Le pilote rejoue le paquet Figma figé dans Git. Il conserve 222 éléments, 50 variables et quatre ressources de contexte, mais qualifie seulement trois propriétés (largeur, hauteur, titre) et deux scénarios de bascule dans une fixture JavaScript isolée. Les faits JSON exécutés ne certifient ni les pixels natifs ni une livraison applicative, et ne démontrent pas l'accès authentifié Figma du runner ou une acquisition fraîche. L'utilisation sémantique des ressources exige des preuves effectives et ne découle pas de leurs empreintes.
+Les deux rapports historiques couvrent 402 cas et 420 sujets ; leur readiness reste explicitement `NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT`. Les archives téléchargées sont comparées aux digests GitHub avant extraction. Les octets des rapports et du journal Windows sont conservés sans perte en gzip.
 
-## Résultat
+Preuves sous `.github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/` : `final-qualification.json`, `final-local-tests.log.gz`, `final-windows-qualification.log.gz`, `final-historical-Linux.json.gz`, `final-historical-Windows.json.gz`, diagnostics précédents et blocage de publication. Les preuves des qualifications antérieures sont conservées et ne remplacent pas celles du candidat final.
 
-QUALIFICATION RÉUSSIE — les cinq jobs exigés par `vnext-github-qualification.verifyQualification` sont SUCCESS sur le candidat exact, run `37293649217`. Le pilote Ubuntu/Windows, run `37293649180`, est SUCCESS. Le préflight local, run `37293649182`, est SUCCESS : 1 072 tests, 1 068 PASS, 0 FAIL, 4 SKIP ; réserve historique séparée : ancien artefact `kodjo-v2-recovery-34606534268-1` indisponible, sans relance.
+## Lancement Windows précédent et correctifs démontrés
 
-Les artefacts historiques Linux/Windows ont été téléchargés et leurs empreintes d'archive comparées aux digests GitHub. Le guard de publication a vérifié HEAD/checkpoint et parcouru les deux pages de workflows de la branche (168 résultats), sans opération active.
+Le candidat initial `d5d14c1cb6a9f490a03e35a8047f83ed064dbbed` avait été qualifié par les runs `37293649217` et `37293649180`. Son ancien préflight local `37293649182` avait réussi : 1 072 tests, 1 068 PASS, 0 FAIL, 4 SKIP. L'absence de l'ancien artefact de recovery reste une réserve séparée ; aucune relance.
 
-La requête `FIGMA_INITIAL` unique `1c9be701-2e24-43f7-bd24-2030d1d3c6c1` référence ce candidat qualifié. Les changements de cette publication portent uniquement sur la requête et les preuves/checkpoints ; le fingerprint du code protocolaire doit rester identique au candidat qualifié. La publication déclenche le job réel dédié et les CI automatiques existantes ; elle ne dispatch pas V2 et ne sélectionne ni PRE-2/PRE-3 ni les reprises après validation.
+La demande initiale a été publiée dans `06dda327a1684a989de35086b5df51b7f01703bf`. Le job Windows `111730479414`, run `37300068654`, a bien démarré sur KODJO-LOCAL-RUNNER, puis échoué avec `bash: command not found` avant Node. Aucun claim de requête, appel Claude, livraison ou artefact de parcours. La cause est le shell bare bash absent du PATH du runner, et ne démontre pas l'absence de Claude local.
 
-EN ATTENTE DU RÉSULTAT RÉEL — le résultat final, les sessions, les réserves, les fichiers modifiés et l'état Git seront renseignés après collecte des preuves effectives.
+Correction : seul le step FIGMA_INITIAL passe à `cmd` et `%RUNNER_TEMP%`. Le hash du producteur VNext déclaré dans la policy est recalculé ; les capacités et writers legacy gelés sont inchangés. Cette commande cmd n'a pas encore été exercée dans un vrai parcours initial.
 
-## Premier lancement — refus technique avant entrée du pilote
+Un contrôle automatique de la demande précédente a également révélé une hypothèse erronée dans le test négatif du plan : il ouvrait directement le fichier loose du commit Git. Une reproduction `git repack -ad` rend ce chemin absent alors que le commit reste lisible. L'acteur ayant empaqueté l'objet en CI n'est pas vérifiable. Le test utilise désormais un magasin réellement isolé contenant l'ancienne livraison empaquetée, vérifie l'absence du commit approuvé et exige toujours `APPROVED_FILE_UNAVAILABLE`. Aucun gate de production n'est modifié.
 
-Publication de la demande : `06dda327a1684a989de35086b5df51b7f01703bf` (arbre exact validé `46b159425a01d26301b28ba33c8125be4ceb6bdc`). Run `37300068654`, job `111730479414`, runner `KODJO-LOCAL-RUNNER`. Le shell `bash` ne figure pas dans le PATH du runner ; GitHub échoue avant d'exécuter Node avec `bash: command not found`. Aucune session Claude, claim persistant, modification de fixture ou livraison. Aucun artefact n'a été produit ; le diagnostic est conservé depuis les logs GitHub dans `task2/initial-shell-failure.json`.
+Le contrôle CRLF a ensuite révélé une erreur dans ma nouvelle assertion : Git LF comparé au checkout CRLF. Le correctif final compare exactement le résultat Git original au résultat Git du magasin isolé, sans normalisation. Les échecs Windows sur `621263540738675ef4ab1726c5d490d420d7315e` sont enregistrés ; la qualification finale sur `73787f29…` réussit.
 
-Correction minimale : le seul step de lancement FIGMA_INITIAL utilise maintenant `cmd` et `%RUNNER_TEMP%`, déjà utilisés par les opérations Windows existantes. Le hash déclaré du producteur VNext est recalculé ; les capacités et writers legacy gelés restent inchangés. La requête repasse à QUALIFY_ONLY avant nouvelle qualification du workflow. L'identifiant logique non consommé est conservé ; aucun rerun ni relancement à l'identique de l'appel échoué n'a été effectué. Les contrôles automatiques accompagnant la demande précédente doivent finir avant publication du correctif.
+Le préflight local précédent `37302526730` / job `111739485552` s'est terminé en échec à 12:05:50 UTC, avec la suite encore marquée in_progress et sans log final accessible (GitHub BlobNotFound). Sa cause et son résultat complet ne sont pas vérifiables. Aucun verdict CRLF n'est attribué à ce job sans preuve.
 
-## Incident de qualification automatique et correction du test négatif
+## Contrats et limites conservés
 
-Le run automatique `37300068646`, job `111730424464`, a échoué dans la préparation du test VNext « unavailable approved plan stops without falling back to the readable old plan » : ENOENT en ouvrant directement le chemin d'objet loose du commit approuvé. Le code protocolaire du commit de demande était identique au candidat qualifié.
+Figma fait autorité pour la présentation ; la documentation pour les comportements, règles métier, validation, navigation et persistance. La préparation intervient après définition des écrans/états et avant le plan et sa revue, complète les contrats existants et conserve la chaîne élément → propriétés → assertions atomiques → plan → réalisation → preuves. Le protocole reste générique ; le driver utilise « Zones corporelles » comme qualification isolée.
 
-Reproduction contrôlée : `git repack -ad` dans une fixture retire le fichier loose, tandis que `git cat-file -e <head>^{commit}` réussit. Le défaut démontré est donc l'hypothèse de stockage loose du test. L'acteur ayant empaqueté l'objet en CI n'est pas observable dans les logs récupérés ; aucune attribution certaine au GC automatique n'est revendiquée.
+Le parcours préparé rejoue le paquet figé dans Git, avec 222 éléments, 50 variables et quatre ressources de contexte. Il qualifie seulement trois propriétés (largeur, hauteur, titre) et deux transitions de bascule dans une fixture JavaScript. Les tests synthétiques et faits JSON ne certifient ni une livraison applicative, ni les pixels natifs, ni une acquisition fraîche Figma ou l'accès authentifié Figma du runner. La consultation sémantique par les intervenants devra être évaluée dans les preuves réelles.
 
-Correction VNext uniquement : le test fournit désormais un magasin Git empaqueté contenant l'ascendance de l'ancienne livraison, vérifie que l'ancien plan est lisible et le commit approuvé réellement absent, exige encore `APPROVED_FILE_UNAVAILABLE`, puis restaure l'environnement Git. Aucun gate de production n'est changé. Test ciblé : 7 PASS, 0 FAIL, 0 SKIP. Contrôles shell/publication/writers : 11 PASS, 0 FAIL, 0 SKIP ; 64 YAML valides et invariants exécutables PASS. Les journaux sont conservés sans perte en gzip.
+## Git et fichiers
 
-Vérification finale locale après les deux corrections : **321 tests, 321 PASS, 0 FAIL, 0 SKIP**. Les octets du journal sont conservés sans perte dans `task2/corrected-local-tests.log.gz`, avec leur empreinte dans `task2/shell-correction-local-checks.json`. Cette preuve ne qualifie pas l'exécution du shell cmd sur le runner et ne vaut pas session Claude réelle. Publication et qualification distante de ce correctif encore attendues.
+Publications réalisées pendant la reprise : `06dda327…` (demande initiale), `62126354…` (shell cmd / magasin Git), `73787f29…` (assertion portable CRLF). Tête distante vérifiée de la PR : `73787f296d78ab3c435fa04ef993f0ef8382141f`.
 
-## Vérification complémentaire CRLF du test corrigé
+Le point de récupération supplémentaire est committé localement, sans publication incompatible avec le verrou. Son SHA exact est donné dans le bilan de conversation et se retrouve par `git log -1 --format=%H -- .github/orchestration/reports/2026-10-05_VNEXT_FIGMA_TASK2_INITIAL.md`. Son code protocolaire reste identique au candidat qualifié ; les changements sont les preuves, ce bilan, request.json et campaign-state.json.
 
-Le contrôle local avec `core.autocrlf=true` a révélé une erreur dans la nouvelle assertion du test : elle comparait le fichier de checkout CRLF au blob Git LF. L'assertion compare maintenant le résultat Git original au résultat Git dans le magasin isolé, avec égalité exacte et sans normalisation. Le refus `APPROVED_FILE_UNAVAILABLE` reste exigé ; aucune validation de production ni empreinte attendue n'est modifiée. Résultat : 7 PASS sous autocrlf=true, et suite complète finale 321 PASS, 0 FAIL, 0 SKIP. Journaux CRLF avant/après et journal final conservés en gzip, avec empreinte du journal final.
+Fichiers de code modifiés pour la tâche 2 depuis la fin de la tâche 1 : workflow VNext disposable, policy VNext (hash du producteur), `scripts/kodjo/qualify-vnext-figma-real-path.js`, `scripts/kodjo/lib/vnext-figma-implementation-review.js`, `scripts/kodjo/lib/vnext-publication.js`, `tests/kodjo/vnext-figma-real-supervisor.pilot.js`, `tests/kodjo/vnext-runtime-plan.pilot.js`. Les autres fichiers sont les checkpoints et preuves de cette campagne. Aucun workflow V2 ou PRE-2/PRE-3 n'est modifié.
 
-Le commit publié `621263540738675ef4ab1726c5d490d420d7315e` qualifie le shell cmd et le premier correctif du magasin Git ; cette dernière assertion portable constitue un delta de test encore local, à qualifier avant déclaration de qualification finale. Aucun appel Claude réel ni parcours initial réussi n'est revendiqué.
+## Opérations et reprise exacte
+
+Au dernier contrôle, seule la CI héritée de régression `37307334786` est en attente sur cette branche. L'ancienne file V2 `34748621746` sur main reste queued et intacte. Aucune session de shell locale persistante ni appel Claude n'a été lancé depuis cet environnement. L'état actuel des processus Claude sur la machine Windows et la santé du service runner ne sont pas vérifiables via les outils accessibles.
+
+La requête versionnée reste QUALIFY_ONLY, génération 46 ; elle référence désormais le candidat final qualifié et son run. Identifiant logique `1c9be701-2e24-43f7-bd24-2030d1d3c6c1`, jamais consommé par l'entrée échouée avant Node.
+
+Reprendre **la tâche 2**, pas la tâche 3 :
+
+1. Rétablir la disponibilité du runner Windows si nécessaire et laisser le job existant 111755046302 terminer, sans duplication ni rerun.
+2. Relire ses résultats et toutes les opérations actives. Vérifier un nouveau créneau de publication, HEAD et checkpoint exacts ; ne pas contourner le verrou.
+3. Réutiliser la qualification 37307334832 du commit 73787f29… ; contrôler l'identité du code de tout checkpoint de métadonnées.
+4. Publier une seule demande FIGMA_INITIAL avec cet identifiant non consommé. Le driver contrôle PR HEAD, qualifications, absence de Claude concurrent, claim exclusif et tentative 1.
+5. Collecter la livraison initiale isolée, la correction technique bornée déclarée, les reçus réels, le bundle et leurs empreintes ; enregistrer le bilan. Arrêter avant toute reprise après validation utilisateur ou clôture.
+
+La tâche 3 n'a pas de cible d'acceptation disponible : elle nécessite d'abord ce parcours réussi, ses preuves préservées et la validation technique utilisateur du hash exact de livraison.
+
+## Reprise après fin des runs — 5 octobre, après 16 h 30 Paris
+
+Le préflight 37307334786 est désormais terminé (conclusion GitHub cancelled). Son journal et ses steps établissent 1 072 tests, 1 068 PASS, 0 FAIL, 4 SKIP, ainsi que queue isolée et préflight disposable SUCCESS. La cause de la conclusion finale annulée n’est pas démontrée ; l’ancien artefact recovery reste absent. Aucun rerun. Aucun run actif dans le dépôt ; seule l’ancienne file V2 34748621746 reste queued, intacte. Ces faits remplacent le blocage courant décrit dans les sections historiques ci-dessus.
+
+La requête passe à FIGMA_INITIAL, génération 47, même UUID non consommé, candidat qualifié 73787f29… / run 37307334832. Aucun code protocolaire nouveau : les preuves et checkpoints locaux sont inclus dans la publication. Le verrou doit être reverifié immédiatement avant cette publication. Le résultat réel sera enregistré après collecte, sans tâche 3 ni clôture.
