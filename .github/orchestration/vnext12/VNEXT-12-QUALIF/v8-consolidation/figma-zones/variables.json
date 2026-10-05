@@ -1,0 +1,541 @@
+{
+  "requested_ids": [
+    "VariableID:2290:78",
+    "VariableID:2290:57",
+    "VariableID:2290:71",
+    "VariableID:3382:53",
+    "VariableID:2290:80",
+    "VariableID:2290:54",
+    "VariableID:3382:54",
+    "VariableID:2290:79",
+    "VariableID:2290:85",
+    "VariableID:2290:58",
+    "VariableID:2612:8",
+    "VariableID:2612:10",
+    "VariableID:3641:69",
+    "VariableID:4096:6161",
+    "VariableID:3072:4057",
+    "VariableID:3072:4056",
+    "VariableID:3072:4058",
+    "VariableID:3078:64",
+    "VariableID:3078:63",
+    "VariableID:3078:61",
+    "VariableID:3078:65",
+    "VariableID:2290:60",
+    "VariableID:2290:56",
+    "VariableID:2290:53",
+    "VariableID:4151:6160",
+    "VariableID:2290:52",
+    "VariableID:4151:6163",
+    "VariableID:2290:51"
+  ],
+  "variables": [
+    {
+      "id": "VariableID:2290:78",
+      "name": "radius/10",
+      "resolved_type": "FLOAT",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:24"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:2290:57",
+      "name": "color/text-primary",
+      "resolved_type": "COLOR",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:8"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:2290:71",
+      "name": "spacing/8",
+      "resolved_type": "FLOAT",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:23"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:3382:53",
+      "name": "color/media/surface",
+      "resolved_type": "COLOR",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:3382:51"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:2290:80",
+      "name": "radius/16",
+      "resolved_type": "FLOAT",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:26"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:2290:54",
+      "name": "color/background",
+      "resolved_type": "COLOR",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:5"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:3382:54",
+      "name": "color/media/border",
+      "resolved_type": "COLOR",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:3382:52"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:2290:79",
+      "name": "radius/12",
+      "resolved_type": "FLOAT",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:25"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:2290:85",
+      "name": "border/default",
+      "resolved_type": "FLOAT",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:19"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:2290:58",
+      "name": "color/text-secondary",
+      "resolved_type": "COLOR",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:9"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:2612:8",
+      "name": "size/header-fixed-height",
+      "resolved_type": "FLOAT",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:3485:61"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:2612:10",
+      "name": "size/touch-target-min",
+      "resolved_type": "FLOAT",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:37"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:3641:69",
+      "name": "component/action/circular-visual-box",
+      "resolved_type": "FLOAT",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:3641:68"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:4096:6161",
+      "name": "color/overlay-scrim",
+      "resolved_type": "COLOR",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:4096:6160"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:3072:4057",
+      "name": "component/wheel/action-hit-target",
+      "resolved_type": "FLOAT",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:37"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:3072:4056",
+      "name": "component/wheel/action-bar-height",
+      "resolved_type": "FLOAT",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:3644:68"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:3072:4058",
+      "name": "component/wheel/action-icon",
+      "resolved_type": "FLOAT",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:30"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:3078:64",
+      "name": "color/wheel-action/cancel-icon",
+      "resolved_type": "COLOR",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:57"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:3078:63",
+      "name": "color/wheel-action/confirm-background",
+      "resolved_type": "COLOR",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:51"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:3078:61",
+      "name": "component/wheel/action-visual-box",
+      "resolved_type": "FLOAT",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:3641:69"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:3078:65",
+      "name": "color/wheel-action/confirm-icon",
+      "resolved_type": "COLOR",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:5"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:2290:60",
+      "name": "color/border",
+      "resolved_type": "COLOR",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:11"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:2290:56",
+      "name": "color/surface-subtle",
+      "resolved_type": "COLOR",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:7"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:2290:53",
+      "name": "color/selection-surface",
+      "resolved_type": "COLOR",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:4"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:4151:6160",
+      "name": "color/blue/category-action-border-8283F2",
+      "resolved_type": "COLOR",
+      "values_by_mode": {
+        "2289:0": {
+          "r": 0.5098039507865906,
+          "g": 0.5137255191802979,
+          "b": 0.9490196108818054,
+          "a": 1
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:2",
+      "collection_modes": [
+        {
+          "name": "Base",
+          "modeId": "2289:0"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:2290:52",
+      "name": "color/selection",
+      "resolved_type": "COLOR",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:3"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:4151:6163",
+      "name": "color/category-action/create-border",
+      "resolved_type": "COLOR",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:4151:6160"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    },
+    {
+      "id": "VariableID:2290:51",
+      "name": "color/primary",
+      "resolved_type": "COLOR",
+      "values_by_mode": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:2"
+        }
+      },
+      "collection_id": "VariableCollectionId:2289:3",
+      "collection_modes": [
+        {
+          "name": "Clair",
+          "modeId": "2289:1"
+        }
+      ]
+    }
+  ],
+  "end": true
+}

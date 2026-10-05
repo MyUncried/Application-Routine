@@ -1607,5 +1607,24 @@
       "prior_consumed_requests_replay_forbidden": true,
       "historical_subjects_preserved": 420
     }
+  },
+  "recovery_20261005": {
+    "observed_candidate": "3ca40be0acf2001a59119ddfbec93c8ec171414a",
+    "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+    "status": "FIGMA_DIAGNOSTIC_AND_DESIGN_IN_PROGRESS",
+    "report": ".github/orchestration/reports/2026-10-05_VNEXT_RECOVERY_AND_FIGMA_CONNECTION.md",
+    "windows_pilot_limit_minutes": 60,
+    "windows_preflight": "CANCELLED_INCOMPLETE",
+    "figma_raccordement": "NOT_IMPLEMENTED_NOT_QUALIFIED",
+    "local_ui_tests": {
+      "pass": 15,
+      "fail": 0,
+      "skip": 0
+    },
+    "new_workflows_launched": false,
+    "runtime_claude_invoked": false,
+    "main_promotion_authorized": false,
+    "original_ten_step_plan_location": "NOT_RECOVERED",
+    "next_action": "Complete master/variant properties and documentary reconciliation; then implement the adapter and inventory/property coverage in the existing chain before consolidated qualification."
   }
 }
