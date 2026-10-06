@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-06T06:57:32.920431+00:00",
+  "recorded_at": "2026-10-06T07:12:10.046Z",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "434adeef6d42e861a3dbee7c6236e77cc1ba74f9",
-  "controller_stage": "FIGMA_TASK2_REGRESSION_FIX_QUALIFICATION_READY",
-  "controller_generation": 79,
+  "controller_stage": "FIGMA_TASK2_REGRESSION_FIX_FRESH_REQUEST_READY",
+  "controller_generation": 80,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -377,26 +377,7 @@
     "consumption_tag": "9e2e693061c8d0d53d00d15519a4f1b216e6a081",
     "replay_forbidden": true
   },
-  "active_runs": [
-    {
-      "id": 37402330270,
-      "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
-      "status": "completed",
-      "conclusion": "failure"
-    },
-    {
-      "id": 37402330072,
-      "path": ".github/workflows/kodjo-vnext-proof-stability.yml",
-      "status": "completed",
-      "conclusion": "success"
-    },
-    {
-      "id": 37402330192,
-      "path": ".github/workflows/kodjo-vnext12-disposable.yml",
-      "status": "completed",
-      "conclusion": "failure"
-    }
-  ],
+  "active_runs": [],
   "obsolete_runs": [
     {
       "run_id": "36848654104",
@@ -2094,13 +2075,18 @@
   "task2_regression_fix_20261006": {
     "authorization": "USER_2026-10-06_08:50_PARIS_CONFIRM_CORRECT_AND_RELAUNCH",
     "qualification_branch": "qualification/vnext-task2-regression-fix-20261006",
-    "qualification_launch_count": 0,
+    "qualification_launch_count": 1,
     "runtime_launch_count": 0,
     "previous_consumed_request_id": "55015f80-1d0e-4333-941d-e0dbdab8600d",
     "claude_timeout_ms": 7200000,
     "workflow_timeout_minutes": 120,
     "task3_authorized": false,
     "closure_authorized": false,
-    "next_action": "QUALIFY_CORRECTED_EXACT_HEAD"
+    "next_action": "PUBLISH_FRESH_REQUEST_ONCE",
+    "candidate_head": "cf80c57c69a1f74e0ff3e4b6c62da169a1fd30c9",
+    "qualification_run": 37426909256,
+    "qualification_status": "SUCCESS",
+    "new_request_id": "99afa62c-632d-4670-9bd1-f3ed857b1d87",
+    "request_generation": 53
   }
 }

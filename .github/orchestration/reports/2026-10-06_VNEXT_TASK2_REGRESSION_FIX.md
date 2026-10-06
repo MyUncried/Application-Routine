@@ -25,3 +25,11 @@ Première suite ciblée : 38 tests, 36 PASS, 0 FAIL, 2 SKIP navigateur absent lo
 Fichiers : scripts/kodjo/lib/vnext-live-chain.js, vnext-figma-browser-observer.js, vnext-figma-recipe.js, scripts/kodjo/qualify-vnext-figma-real-path.js, tests/kodjo/vnext-figma-browser-observer.pilot.js, workflow proof-stability (branche uniquement), ce rapport/checkpoint/preuves. Zéro correspondance historique nommée pour le fichier de tests modifié ; registre et protections inchangés. Qualification requise sur la tête de code corrigée puis nouvelle demande génération 53 / UUID neuf, une seule exécution. L’ancien UUID n’est jamais rejoué. Publication après validation tree/fenêtre et relecture séparée. Démarrage du run ne vaut pas réussite du parcours.
 
 Commit final du rapport et état Git fournis en conversation, disponibles par git log -1 --format=%H -- ce rapport. Les observations suivantes seront ajoutées sans remplacer les preuves antérieures.
+
+## Qualification lancée
+
+Candidat cf80c57c69a1f74e0ff3e4b6c62da169a1fd30c9, arbre c5ec130ed51ae865e8903a14cfb32f922e725e54 identique au local ; tree VALIDATED, 420 protections historiques, policy PASS_WITH_FROZEN_LEGACY. Fenêtre HEAD/checkpoint et 192 runs vérifiés avant publication. Qualification 37426909256 lancée une fois par branche dédiée. Preuves du run précédent publiées avec les corrections. Aucun appel Claude ni nouvelle demande runtime à cette étape.
+
+## Qualification acquise
+
+Run 37426909256 SUCCESS, cinq jobs requis exact-head vérifiés. Contrats 322/322 PASS sur Linux et Windows, zéro échec/skip ; contre-exemples navigateur réellement exécutés sur les deux OS. Historique 1 089 tests par OS, Linux 1 088 PASS/1 SKIP, Windows 1 086 PASS/3 SKIP, aucun échec. Comparaison des preuves interplateformes réussie ; archives SHA-256 et ZIP vérifiés. Nouvelle demande génération 53, UUID 99afa62c-632d-4670-9bd1-f3ed857b1d87 ; démarrage réel encore à vérifier. Aucun résultat de parcours ni stabilité absolue du PC physique revendiqués.
