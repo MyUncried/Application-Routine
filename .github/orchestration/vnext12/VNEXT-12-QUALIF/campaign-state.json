@@ -8,7 +8,7 @@
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "c30c57682a7864b5b548a2470c6f514b849bdf37",
   "controller_stage": "FIGMA_REAL_INITIAL_RELAUNCH_AFTER_PLAN_COMPLETION",
-  "controller_generation": 88,
+  "controller_generation": 89,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -379,19 +379,7 @@
   },
   "active_runs": [
     {
-      "id": 37435583814,
-      "path": ".github/workflows/kodjo-vnext-proof-stability.yml",
-      "status": "completed",
-      "conclusion": "success"
-    },
-    {
-      "id": 37435583847,
-      "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
-      "status": "completed",
-      "conclusion": "failure"
-    },
-    {
-      "id": 37435583811,
+      "id": 37446216690,
       "path": ".github/workflows/kodjo-vnext12-disposable.yml",
       "status": "completed",
       "conclusion": "failure"
@@ -2224,21 +2212,21 @@
   },
   "task2_plan_completion_fix_20261006": {
     "authorization": "USER_2026-10-06_10:59_PARIS_APPLY_FIXES_AND_AUTOMATIC_RELAUNCH",
-    "stage": "CONTROLS_VERIFIED_CONTROLLER_READY",
+    "stage": "POWER_INTERRUPTION_RECOVERED_FRESH_REQUEST_READY",
     "report": ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_COMPLETION_FIX.md",
     "prior_runtime_run": 37435583811,
     "prior_pilot_run": 37435583847,
     "runtime_launched": false,
     "qualification_branch": "qualification/vnext-task2-native-templates-20261006",
     "qualification_launch_count": 5,
-    "runtime_launch_count": 1,
+    "runtime_launch_count": 2,
     "task3_authorized": false,
     "closure_authorized": false,
     "candidate_head": "83a192883b78d6df09f4a9d74135524f1f57c4ce",
     "qualification_run": 37444999937,
     "qualification_status": "SUCCESS",
-    "new_request_id": "6ea7b481-9de4-463a-a79b-26327a2bbcca",
-    "request_generation": 56,
+    "new_request_id": "02717571-6ad3-4f5f-ab1b-40fa92ced0a3",
+    "request_generation": 57,
     "request_published": true,
     "qualification_attempts": [
       {
@@ -2310,10 +2298,10 @@
       }
     },
     "runtime_startup_run": 37443238973,
-    "runtime_status": "STARTUP_FAILURE_ZERO_JOBS",
-    "controller_head": "9cc4a9bfa9d510b6d89f7c19987659f6494ac3c3",
+    "runtime_status": "FAILURE",
+    "controller_head": "32893aad0f934c29fdccbb4ced9c5a7e231567df",
     "request_consumed": false,
-    "claude_invoked": false,
+    "claude_invoked": "UNKNOWN_NO_RUNTIME_ARTIFACT",
     "sequence_fix": {
       "cause": "REUSABLE_CALLEE_UNUSED_JOB_REQUIRES_WRITE",
       "origin_commit": "e72309a30792b573d604b987edba351732aa3099",
@@ -2324,6 +2312,15 @@
       "native_validation_job": 112207578928
     },
     "previous_startup_request_id": "b79dcc3e-1962-416c-a701-bd1325b78492",
-    "native_validation_pending": false
+    "native_validation_pending": false,
+    "runtime_run": 37446216690,
+    "admission_job": 112211616416,
+    "admission_status": "SUCCESS",
+    "artifact_upload_status": "FAILED_403_JOB_COMPLETED",
+    "runtime_artifacts_available": false,
+    "recovery_run": 37453377364,
+    "recovery_artifact_id": 11408440209,
+    "previous_request_consumed": true,
+    "previous_request_id": "6ea7b481-9de4-463a-a79b-26327a2bbcca"
   }
 }

@@ -1,0 +1,12 @@
+{
+  "schema_version": "kodjo.protocol.v2.execution-lock.0.6.17",
+  "token": "a4f5f8d1-5b44-4282-aaa3-a254048cda37",
+  "owner_pid": 29812,
+  "owner_started_at": "2026-10-06T09:55:52.2296170Z",
+  "github_run_id": null,
+  "github_run_attempt": "1",
+  "run_id": "37446216690",
+  "request_id": "6ea7b481-9de4-463a-a79b-26327a2bbcca",
+  "session_id": null,
+  "acquired_at": "2026-10-06T09:55:59.188Z"
+}
