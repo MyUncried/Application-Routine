@@ -54,7 +54,7 @@ test('actual browser measures DOM geometry rather than numeric exports, preserve
  const code="let selected=false;module.exports={width:999,height:999,render:()=>'<section data-figma-id=\"frame\" style=\"width:401px;height:874px\"><span data-figma-id=\"title\">Observed title</span></section>',toggle:()=>selected=!selected};\n";
  fs.writeFileSync(screen,code);const first=path.join(root,'first');fs.mkdirSync(first);
  const config={screen,keep,directory:first,viewport:402,height:874,frameId:'frame',titleId:'title',transitions:[{scenario_id:'off-on',method:'toggle',expected:true},{scenario_id:'on-off',method:'toggle',expected:false}]};
- const facts=await Browser.observe(config);assert.equal(facts.width,401);assert.equal(facts.height,874);assert.equal(facts.title,'Observed title');assert.deepEqual(facts.scenarios,{'off-on':true,'on-off':true});assert.equal(facts.native_certification,false);
+ const facts=await Browser.observe(config);assert.equal(facts.width,401);assert.equal(facts.height,874);assert.equal(facts.title,'Observed title');assert.deepEqual(facts.scenarios,{'off-on':true,'on-off':true});assert.equal(facts.native_certification,false);assert.equal(facts.provenance.verified,true);assert.equal(facts.provenance.loaded_document_sha256,facts.provenance.generated_host_sha256);assert.equal(facts.provenance.measured_mount_sha256,facts.provenance.canonical_render_sha256);assert.match(facts.provenance.render_string_sha256,/^[a-f0-9]{64}$/);
  assert.deepEqual(fs.readFileSync(path.join(first,'rendered.png')).subarray(0,8),Buffer.from([137,80,78,71,13,10,26,10]));
  fs.appendFileSync(screen,'module.exports.__figmaWidthDelta=1;\n');const second=path.join(root,'second');fs.mkdirSync(second);assert.equal((await Browser.observe({...config,directory:second})).width,401);
  const cleanup=JSON.parse(fs.readFileSync(path.join(second,'browser-cleanup.json')));assert.equal(cleanup.process_close_verified,true);assert.equal(cleanup.profile_removed,true);assert.equal(fs.existsSync(cleanup.profile),false);
@@ -122,6 +122,12 @@ test('Windows termination races are accepted only after root and profile are gon
  const child={pid:123,exitCode:null,signalCode:null},diagnostic={};let waits=0,checks=0;const calls=[];
  await Browser.closeProcess(child,{profile:'isolated-profile',platform:'win32',diagnostic,wait:async()=>++waits!==1,terminate:async(file,args)=>{calls.push(args);throw Object.assign(Error('already gone'),{diagnostic_stderr:'no running task'});},inventory:async()=>++checks===1?[{ProcessId:456}]:[]});
  assert.deepEqual(calls,[['/PID','123','/F'],['/PID','456','/F']]);assert.equal(diagnostic.process_close_verified,true);assert.equal(diagnostic.force_raced_with_exit,true);assert.equal(diagnostic.profile_termination_errors.length,1);
- await assert.rejects(Browser.closeProcess(child,{profile:'isolated-profile',platform:'win32',wait:async()=>false,terminate:async()=>{throw Error('root still alive');},inventory:async()=>[]}),/root still alive/);
+ await assert.rejects(Browser.closeProcess(child,{profile:'isolated-profile',platform:'win32',wait:async()=>false,terminate:async()=>{throw Error('root still alive');},inventory:async()=>[]}),/PROCESS_NOT_CLOSED/);
  await assert.rejects(Browser.closeProcess(null,{profile:'isolated-profile',platform:'win32',profileTimeoutMs:0,inventory:async()=>[{ProcessId:456}]}),/PROFILE_PROCESSES_REMAIN/);
+});
+
+test('Windows cleanup inventories profile before waiting for forced root exit',async()=>{
+ const calls=[],child={pid:123,exitCode:null,signalCode:null};let inventoryDone=false;
+ await Browser.closeProcess(child,{profile:'isolated-profile',platform:'win32',wait:async(c,timeout)=>{calls.push('wait:'+timeout);if(timeout===3000)return false;assert.equal(inventoryDone,true);return true;},terminate:async(file,args)=>{calls.push('kill:'+args[1]);},inventory:async()=>{inventoryDone=true;calls.push('inventory');return [];}});
+ assert.deepEqual(calls,['wait:3000','kill:123','inventory','wait:10000']);
 });

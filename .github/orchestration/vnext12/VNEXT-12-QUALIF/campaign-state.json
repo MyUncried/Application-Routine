@@ -1,13 +1,13 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-06T08:49:41.016828+00:00",
+  "recorded_at": "2026-10-06T09:02:53.791196+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "c30c57682a7864b5b548a2470c6f514b849bdf37",
-  "controller_stage": "VNEXT_SEQUENTIAL_TEST_CAMPAIGN_PREPARED",
+  "controller_stage": "VNEXT_SEQUENTIAL_TEST_CAMPAIGN_PUBLISHED",
   "controller_generation": 86,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
@@ -2135,7 +2135,7 @@
     "runtime_launched": true,
     "task3_authorized": false,
     "closure_authorized": false,
-    "next_action": "DIAGNOSE_PRESERVED_RESULT_BEFORE_FRESH_REQUEST",
+    "next_action": "FIX_PLAN_COMPOSITION_BOX_MODEL_CONTAINMENT_PROVENANCE_TEST_ISOLATION_AND_LOCAL_WINDOWS_CLEANUP_BEFORE_FRESH_REQUEST",
     "candidate_head": "988bd1da798b8290135adc122ceb960f69745de1",
     "qualification_run": 37433965073,
     "qualification_status": "SUCCESS",
@@ -2171,8 +2171,30 @@
     "runtime_run": 37435583811,
     "runtime_job": 112176515378,
     "runtime_status": "FAILED_PLAN_REVISE",
-    "internal_claim": "NOT_YET_OBSERVED",
-    "claude_activity": "NOT_YET_OBSERVED"
+    "internal_claim": "VERIFIED_QUALIFICATION_ADMISSION",
+    "claude_activity": "COMPLETED_REVIEW_ACCEPTED_PLAN_REVISE",
+    "claude_duration_ms": 501598,
+    "reviewed_target_count": 436,
+    "blocking_finding_count": 5,
+    "implementation_started": false,
+    "diagnostic_report": ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_PROOF_RESULT.md",
+    "findings_categories": [
+      "PLAN_GAP",
+      "TECHNICAL_RISK",
+      "UI_ASSERTION_GAP",
+      "PROOF_GAP",
+      "TEST_GAP"
+    ],
+    "local_windows_result": {
+      "run_id": 37435583847,
+      "job_id": 112177160722,
+      "status": "FAILED",
+      "tests": 1091,
+      "pass": 1085,
+      "fail": 2,
+      "skip": 4,
+      "diagnostic": "VNEXT_FIGMA_BROWSER_PROCESS_NOT_CLOSED"
+    }
   },
   "test_sequence_20261006": {
     "authorization": "USER_2026-10-06_10:43_PARIS_APPLY_AFTER_CURRENT_SERIES_ENDS",
@@ -2191,6 +2213,26 @@
     "legacy_windows_preserved": true,
     "new_runtime_launched": false,
     "fully_validated": false,
-    "next_action": "FRESH_EXACT_CODE_AUTOMATIC_QUALIFICATION_BEFORE_ANY_NEW_CLAUDE_REQUEST"
+    "next_action": "FRESH_EXACT_CODE_AUTOMATIC_QUALIFICATION_BEFORE_ANY_NEW_CLAUDE_REQUEST",
+    "published_head": "e72309a30792b573d604b987edba351732aa3099",
+    "tests": {
+      "targeted_pass": 23,
+      "routing_pass": 4,
+      "fail": 0
+    },
+    "real_sequence_executed": false
+  },
+  "task2_plan_completion_fix_20261006": {
+    "authorization": "USER_2026-10-06_10:59_PARIS_APPLY_FIXES_AND_AUTOMATIC_RELAUNCH",
+    "stage": "FIXED_PENDING_AUTOMATIC_CONTROLS",
+    "report": ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_COMPLETION_FIX.md",
+    "prior_runtime_run": 37435583811,
+    "prior_pilot_run": 37435583847,
+    "runtime_launched": false,
+    "qualification_branch": "qualification/vnext-task2-plan-completion-20261006",
+    "qualification_launch_count": 0,
+    "runtime_launch_count": 0,
+    "task3_authorized": false,
+    "closure_authorized": false
   }
 }

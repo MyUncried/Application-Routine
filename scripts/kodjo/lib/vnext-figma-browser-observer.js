@@ -12,29 +12,30 @@ function waitForClose(child,timeout){
  if(child.exitCode!==null||child.signalCode!==null)return Promise.resolve(true);
  return new Promise(resolve=>{const finish=value=>{clearTimeout(timer);child.removeListener('close',closed);resolve(value);},closed=()=>finish(true),timer=setTimeout(()=>finish(false),timeout);child.once('close',closed);});
 }
-async function closeProcess(child,{profile,platform=process.platform,inventory=profileProcesses,terminate=invoke,wait=waitForClose,profileTimeoutMs=10000,diagnostic={}}){
+function waitForExit(child,timeout){
+ if(child.exitCode!==null||child.signalCode!==null)return Promise.resolve(true);
+ return new Promise(resolve=>{const finish=value=>{clearTimeout(timer);child.removeListener('exit',exited);resolve(value);},exited=()=>finish(true),timer=setTimeout(()=>finish(false),timeout);child.once('exit',exited);});
+}
+async function closeProcess(child,{profile,platform=process.platform,inventory=profileProcesses,terminate=invoke,wait=waitForExit,profileTimeoutMs=10000,diagnostic={}}){
  diagnostic.pid=child?.pid||null;diagnostic.profile=profile;
  if(child?.pid){
-  diagnostic.graceful_close=await wait(child,3000);
-  if(!diagnostic.graceful_close){
+  diagnostic.graceful_exit=await wait(child,3000);
+  if(!diagnostic.graceful_exit){
    diagnostic.forced_close=true;
-   // Terminate only our still-running isolated browser tree, never a user's browser.
    if(platform==='win32'){
     try{await terminate('taskkill.exe',['/PID',String(child.pid),'/F']);}
-    catch(error){diagnostic.force_error={message:error.message,stderr:error.diagnostic_stderr||null};if(!await wait(child,10000))throw error;diagnostic.force_raced_with_exit=true;}
+    catch(error){diagnostic.force_error={message:error.message,stderr:error.diagnostic_stderr||null};}
    }else child.kill('SIGKILL');
-   if(!await wait(child,10000))throw Error('VNEXT_FIGMA_BROWSER_PROCESS_NOT_CLOSED');
   }
-  diagnostic.exit_code=child.exitCode;diagnostic.signal=child.signalCode;
  }
+ // Descendants can keep inherited streams open after the root exits. Inventory
+ // and terminate our unique profile BEFORE waiting for root/stream completion.
  if(platform==='win32'){
   const deadline=Date.now()+profileTimeoutMs;diagnostic.profile_process_checks=[];
   do{
    const rows=await inventory(profile);diagnostic.profile_process_checks.push({at:new Date().toISOString(),processes:rows});
    if(!rows.length){diagnostic.profile_processes_closed=true;break;}
    if(Date.now()>=deadline)throw Error('VNEXT_FIGMA_BROWSER_PROFILE_PROCESSES_REMAIN');
-   // Terminate only PIDs freshly observed with our unique profile, without /T.
-   // A PID disappearing during termination is verified by the next inventory.
    for(const row of rows){
     if(!Number.isSafeInteger(row.ProcessId)||row.ProcessId<=0||row.ProcessId===process.pid)throw Error('VNEXT_FIGMA_BROWSER_PROFILE_PID_INVALID');
     try{await terminate('taskkill.exe',['/PID',String(row.ProcessId),'/F']);}
@@ -42,6 +43,14 @@ async function closeProcess(child,{profile,platform=process.platform,inventory=p
    }
    await delay(200);
   }while(true);
+ }
+ if(child?.pid){
+  if(!await wait(child,10000))throw Error('VNEXT_FIGMA_BROWSER_PROCESS_NOT_CLOSED');
+  if(diagnostic.force_error)diagnostic.force_raced_with_exit=true;
+  diagnostic.exit_code=child.exitCode;diagnostic.signal=child.signalCode;
+  // Once root exit and profile absence are verified, detach inherited pipes;
+  // no observed process remains which can produce browser diagnostics.
+  child.stdout?.destroy();child.stderr?.destroy();
  }
  diagnostic.process_close_verified=true;
 }
@@ -68,7 +77,9 @@ function host(screen,keep){
 const kept={exports:{}};((module)=>{${keep}\n})(kept);
 const app={exports:{}};((module,require)=>{${screen}\n})(app,()=>kept.exports);
 window.subject=app.exports;
-document.getElementById('mount').innerHTML=subject.render();
+window.renderedMarkup=subject.render();
+if(typeof window.renderedMarkup!=='string')throw Error('Render must return HTML');
+document.getElementById('mount').innerHTML=window.renderedMarkup;
 window.subjectReady=true;
 `)+'</script>';
 }
@@ -76,7 +87,8 @@ async function observe({screen,keep,directory,viewport,height,frameId,titleId,tr
  if(!Number.isSafeInteger(viewport)||viewport<1||!Number.isSafeInteger(height)||height<1)throw Error('VNEXT_FIGMA_BROWSER_VIEWPORT_INVALID');
  if(typeof frameId!=='string'||!frameId||typeof titleId!=='string'||!titleId||!Array.isArray(transitions)||transitions.some(t=>typeof t.scenario_id!=='string'||typeof t.method!=='string'||typeof t.expected!=='boolean'))throw Error('VNEXT_FIGMA_BROWSER_SUBJECTS_INVALID');
  const profile=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-figma-browser-'));let child,ws,send,primaryError,stderr='',sequence=0;const pending=new Map(),cleanupDiagnostic={browser};
- const html=path.join(directory,'rendered.html');fs.writeFileSync(html,host(fs.readFileSync(screen,'utf8'),fs.readFileSync(keep,'utf8')),{flag:'wx'});
+ const screenSource=fs.readFileSync(screen,'utf8'),keepSource=fs.readFileSync(keep,'utf8'),hostSource=host(screenSource,keepSource);
+ const html=path.join(directory,'rendered.html');fs.writeFileSync(html,hostSource,{flag:'wx'});
  try{
   const endpoint=await new Promise((resolve,reject)=>{
    // Fresh runner browser startup can outlast the former 20-second allowance.
@@ -100,11 +112,19 @@ async function observe({screen,keep,directory,viewport,height,frameId,titleId,tr
    const frame=nodes.find(n=>n.getAttribute('data-figma-id')===${JSON.stringify(frameId)}),title=nodes.find(n=>n.getAttribute('data-figma-id')===${JSON.stringify(titleId)});
    if(!frame||!title)throw Error('Required rendered subjects absent');
    const rect=frame.getBoundingClientRect(),scenarios={};
+   const canonical=document.createElement('template');canonical.innerHTML=window.renderedMarkup;
+   const provenance={render_string:window.renderedMarkup,canonical_render:canonical.innerHTML,measured_mount:document.getElementById('mount').innerHTML};
    for(const t of ${JSON.stringify(transitions)}){if(typeof subject[t.method]!=='function')throw Error('Scenario method absent');scenarios[t.scenario_id]=subject[t.method]()===t.expected;}
-   return {viewport:innerWidth,width:rect.width,height:rect.height,title:title.textContent,scenarios,observer:'BROWSER_DOM_LAYOUT',native_certification:false};
+   return {viewport:innerWidth,width:rect.width,height:rect.height,title:title.textContent,scenarios,provenance,observer:'BROWSER_DOM_LAYOUT',native_certification:false};
   })()`,returnByValue:true},sessionId);
   if(result.exceptionDetails)throw Error('VNEXT_FIGMA_BROWSER_OBSERVATION_FAILED:'+result.exceptionDetails.text);
-  const facts={...result.result.value,browser_version:version.product};if(facts.viewport!==viewport)throw Error('VNEXT_FIGMA_BROWSER_VIEWPORT_MISMATCH');
+  const loaded=await send('Page.getResourceTree',{},sessionId);
+  const resource=await send('Page.getResourceContent',{frameId:loaded.frameTree.frame.id,url:pathToFileURL(html).href},sessionId);
+  const loadedDocument=resource.base64Encoded?Buffer.from(resource.content,'base64'):resource.content;
+  const facts={...result.result.value,browser_version:version.product};
+  const p=facts.provenance;
+  if(digest(loadedDocument)!==digest(hostSource)||p.canonical_render!==p.measured_mount)throw Error('VNEXT_FIGMA_BROWSER_PROVENANCE_MISMATCH');
+  facts.provenance={screen_source_sha256:digest(screenSource),preserved_source_sha256:digest(keepSource),render_string_sha256:digest(p.render_string),generated_host_sha256:digest(hostSource),loaded_document_sha256:digest(loadedDocument),canonical_render_sha256:digest(p.canonical_render),measured_mount_sha256:digest(p.measured_mount),verified:true};if(facts.viewport!==viewport)throw Error('VNEXT_FIGMA_BROWSER_VIEWPORT_MISMATCH');
   const image=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},sessionId);fs.writeFileSync(path.join(directory,'rendered.png'),Buffer.from(image.data,'base64'),{flag:'wx'});
   fs.writeFileSync(path.join(directory,'browser-facts.json'),JSON.stringify(facts,null,2)+'\n',{flag:'wx'});return facts;
  }catch(error){primaryError=error;throw error;}finally{
