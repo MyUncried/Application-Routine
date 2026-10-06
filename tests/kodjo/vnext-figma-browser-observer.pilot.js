@@ -40,12 +40,6 @@ test('review dependency indices resolve exact catalog IDs while ambiguity, unkno
 test('browser refusal is explicit and no normal browser profile is opened by binary discovery',()=>{
  assert.throws(()=>Browser.resolveBrowser({KODJO_FIGMA_BROWSER:'relative/unsafe'}),/BROWSER_CONFIG_INVALID/);
 });
-test('disposable markup checks exact dimension values rather than declaration presence',()=>{
- const Driver=require('../../scripts/kodjo/qualify-vnext-figma-real-path');const render=(w,h)=>`<section style="width:${w}; height:${h}" data-figma-id="4478:7209"><span data-figma-id="4953:6611">Zones corporelles</span></section>`;
- assert.doesNotThrow(()=>Driver.assertMarkup(render('402px','874px')));assert.doesNotThrow(()=>Driver.assertMarkup(render('402.0px','874.0px')));
- for(const [w,h]of [['1px','1px'],['100%','100vh'],['400px','874px'],['402px','873px']])assert.throws(()=>Driver.assertMarkup(render(w,h)),/EXACT_DIMENSION_REQUIRED/);
- assert.throws(()=>Driver.assertMarkup(render('402px','874px').replace('Zones corporelles','Wrong title')),/EXACT_TITLE_REQUIRED/);
-});
 let available;try{available=Browser.resolveBrowser();}catch(_){}
 test('actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta',
  {skip:!available&&process.platform!=='win32',timeout:180000},async t=>{
@@ -61,7 +55,7 @@ test('actual browser measures DOM geometry rather than numeric exports, preserve
  // A genuine rendered defect stays visible even with a compensating export.
  fs.writeFileSync(screen,code.replace('401px','400px')+'module.exports.__figmaWidthDelta=2;\n');const third=path.join(root,'third');fs.mkdirSync(third);assert.equal((await Browser.observe({...config,directory:third})).width,400);
  const Driver=require('../../scripts/kodjo/qualify-vnext-figma-real-path');
- fs.writeFileSync(screen,code.replace('401px','402px')+Driver.NEGATIVE_RENDER_FAULT);const fourth=path.join(root,'fourth');fs.mkdirSync(fourth);assert.equal((await Browser.observe({...config,directory:fourth})).width,403);
+ fs.writeFileSync(screen,code.replace('401px','402px')+Driver.negativeRenderFault('frame'));const fourth=path.join(root,'fourth');fs.mkdirSync(fourth);const faultFacts=await Browser.observe({...config,directory:fourth});assert.equal(faultFacts.width,403);assert.equal(faultFacts.height,874);
 });
 test('disposable fixed geometry refuses a viewport-relative counterexample at an independent viewport',
  {skip:!available&&process.platform!=='win32',timeout:180000},t=>{
@@ -69,7 +63,7 @@ test('disposable fixed geometry refuses a viewport-relative counterexample at an
  fs.mkdirSync(path.join(root,'src/features/example'),{recursive:true});fs.mkdirSync(path.join(root,'src/shared/ui'),{recursive:true});fs.writeFileSync(path.join(root,'src/shared/ui/Existing.js'),'module.exports={Existing:true};');
  const screen=path.join(root,'src/features/example/Screen.js');const markup=(width,height)=>`let selected=false;module.exports={render:()=>'<section data-figma-id="frame" style="width:${width};height:${height}"><span data-figma-id="title">Observed title</span></section>',toggle:()=>selected=!selected};`;
  const packet={contract_hash:'a'.repeat(64),states:[],decisions:[{disposition:'REALIZE',property:'width',element_id:'frame',property_id:'W',rule:{viewports:[402],value:402}},{disposition:'REALIZE',property:'height',element_id:'frame',property_id:'H',rule:{viewports:[402],value:874}},{disposition:'REALIZE',property:'characters',element_id:'title',property_id:'T',rule:{viewports:[402],value:'Observed title'}}]};
- const f={cwd:root,git:()=> 'b'.repeat(40)};const fixed=path.join(root,'fixed');fs.mkdirSync(fixed);fs.writeFileSync(screen,markup('402px','874px'));
+ const f={cwd:root,git:()=> 'b'.repeat(40)};const fixed=path.join(root,'fixed');fs.mkdirSync(fixed);fs.writeFileSync(screen,markup('402px','874px').replace('style=\"width:402px;height:874px\"','class=\"frame\"').replace('<section','<style>.frame{width:402px;height:874px}</style><section').replace('Observed title</span>','<b>Observed </b><i>title</i></span>'));
  const observed=Driver.observe(f,packet,fixed);assert.deepEqual(observed.measurements.map(m=>m.value),[402,874,'Observed title']);
  const alternate=JSON.parse(fs.readFileSync(path.join(fixed,'independent-viewport/browser-facts.json')));assert.equal(alternate.viewport,503);assert.equal(alternate.height,874);
  const relative=path.join(root,'relative');fs.mkdirSync(relative);fs.writeFileSync(screen,markup('100%','100vh'));

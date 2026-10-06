@@ -379,7 +379,7 @@
   },
   "active_runs": [
     {
-      "id": 37457022185,
+      "id": 37460970429,
       "path": ".github/workflows/kodjo-vnext12-disposable.yml",
       "status": "completed",
       "conclusion": "failure"
@@ -2212,14 +2212,14 @@
   },
   "task2_plan_completion_fix_20261006": {
     "authorization": "USER_2026-10-06_10:59_PARIS_APPLY_FIXES_AND_AUTOMATIC_RELAUNCH",
-    "stage": "INLINE_MARKUP_REAL_PATH_REQUEST_READY",
+    "stage": "INLINE_MARKUP_REVIEW_FAILED_DIAGNOSED",
     "report": ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_COMPLETION_FIX.md",
     "prior_runtime_run": 37435583811,
     "prior_pilot_run": 37435583847,
-    "runtime_launched": false,
+    "runtime_launched": true,
     "qualification_branch": "qualification/vnext-task2-inline-contract-20261006",
     "qualification_launch_count": 7,
-    "runtime_launch_count": 4,
+    "runtime_launch_count": 5,
     "task3_authorized": false,
     "closure_authorized": false,
     "candidate_head": "8e6aafebd659dcbbf5a7890dad07bbf4def524dc",
@@ -2286,22 +2286,22 @@
     "contracts": {
       "Linux": {
         "tests": 341,
-        "pass_count": 341,
+        "pass": 341,
         "fail": 0,
         "skip": 0
       },
       "Windows": {
         "tests": 341,
-        "pass_count": 341,
+        "pass": 341,
         "fail": 0,
         "skip": 0
       }
     },
     "runtime_startup_run": 37443238973,
     "runtime_status": "FAILURE",
-    "controller_head": "038c7754004613fd9223aa22c08782381f111143",
-    "request_consumed": false,
-    "claude_invoked": false,
+    "controller_head": "189cf014d5790bff405fed0c365a566b5f97cd4c",
+    "request_consumed": true,
+    "claude_invoked": true,
     "sequence_fix": {
       "cause": "REUSABLE_CALLEE_UNUSED_JOB_REQUIRES_WRITE",
       "origin_commit": "e72309a30792b573d604b987edba351732aa3099",
@@ -2313,8 +2313,8 @@
     },
     "previous_startup_request_id": "b79dcc3e-1962-416c-a701-bd1325b78492",
     "native_validation_pending": false,
-    "runtime_run": 37457022185,
-    "admission_job": 112247258536,
+    "runtime_run": 37460970429,
+    "admission_job": 112260215044,
     "admission_status": "SUCCESS",
     "artifact_upload_status": "SUCCESS",
     "runtime_artifacts_available": true,
@@ -2322,17 +2322,17 @@
     "recovery_artifact_id": 11408440209,
     "previous_request_consumed": true,
     "previous_request_id": "6ea7b481-9de4-463a-a79b-26327a2bbcca",
-    "claude_verdict": null,
-    "claude_duration_ms": null,
-    "blocking_findings": null,
+    "claude_verdict": "REVISE",
+    "claude_duration_ms": 678876,
+    "blocking_findings": 3,
     "latest_completed_runtime": {
-      "run_id": 37457022185,
-      "controller_head": "038c7754004613fd9223aa22c08782381f111143",
+      "run_id": 37460970429,
+      "controller_head": "189cf014d5790bff405fed0c365a566b5f97cd4c",
       "verdict": "REVISE",
-      "blocking_findings": 2,
-      "claude_duration_ms": 542823,
-      "artifact_id": 11410731858,
-      "artifact_sha256": "483c2e5f889aefaf035b3d6cdf5db250fa399c1df3aebc28acc0a274edcbc54d",
+      "blocking_findings": 3,
+      "claude_duration_ms": 678876,
+      "artifact_id": 11412899398,
+      "artifact_sha256": "bdf0757478d42fc993253694a13b2c9ec026922f532b0aca03cc347835233f8f",
       "implementation_exercised": false,
       "historical_tests_exercised": false
     },
