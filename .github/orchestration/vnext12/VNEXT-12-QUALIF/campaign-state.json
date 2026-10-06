@@ -146,7 +146,7 @@
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "df2cfc406ac67c0b29b61bc6a4c7bfc9ae011bca",
   "controller_stage": "FIGMA_INITIAL_REQUESTED_AFTER_ABSOLUTE_PATH_CLARIFICATION_NO_DISPOSABLE_PREFLIGHT",
-  "controller_generation": 103,
+  "controller_generation": 104,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -2561,9 +2561,16 @@
     "base_verdict": "REVISE",
     "revision_verdict": "APPROVE",
     "causal_outcome": "RESOLVED",
-    "stage": "HANDOFF_PREPARATION",
+    "stage": "EXECUTE_REVISION",
     "qualification_policy": "DIRECT_REAL_USER_REQUEST",
     "human_review_performed": false,
-    "application_published": false
+    "application_published": false,
+    "approved_protocol_head": "d1c5241be95a1e27933d8049cb6c0dfb8dbec4d9",
+    "gate_ref": "issue_comment:6027571827",
+    "approval_target_hash": "1f89bbd6e487faec2bf014809c6495bec3105762c7e8e553d62d16fe1caa6ad6",
+    "request_id": "e14d7980-e0cf-410f-8591-f3e29536ec08",
+    "generation": 71,
+    "approval_materialized_by": "CODEX_CONNECTOR_ON_EXPLICIT_USER_CONTINUE_INSTRUCTION",
+    "reaction_id": 434139744
   }
 }
