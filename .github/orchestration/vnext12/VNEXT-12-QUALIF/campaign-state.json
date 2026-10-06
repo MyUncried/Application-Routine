@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-06T09:06:20.648460+00:00",
+  "recorded_at": "2026-10-06T09:27:28.714223+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "c30c57682a7864b5b548a2470c6f514b849bdf37",
-  "controller_stage": "VNEXT_SEQUENTIAL_TEST_CAMPAIGN_PUBLISHED",
-  "controller_generation": 86,
+  "controller_stage": "FIGMA_REAL_INITIAL_RELAUNCH_AFTER_PLAN_COMPLETION",
+  "controller_generation": 87,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -2224,19 +2224,19 @@
   },
   "task2_plan_completion_fix_20261006": {
     "authorization": "USER_2026-10-06_10:59_PARIS_APPLY_FIXES_AND_AUTOMATIC_RELAUNCH",
-    "stage": "CORRECTING_PROVENANCE_HELPER",
+    "stage": "CONTROLS_PASSED_PENDING_RUNTIME_PUBLICATION",
     "report": ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_COMPLETION_FIX.md",
     "prior_runtime_run": 37435583811,
     "prior_pilot_run": 37435583847,
     "runtime_launched": false,
-    "qualification_branch": "qualification/vnext-task2-plan-completion-http-20261006",
-    "qualification_launch_count": 2,
+    "qualification_branch": "qualification/vnext-task2-provenance-20261006",
+    "qualification_launch_count": 3,
     "runtime_launch_count": 0,
     "task3_authorized": false,
     "closure_authorized": false,
-    "candidate_head": "92015bd3e640bbe71a65d78b5cbc50a45d2c38f2",
-    "qualification_run": 37441523810,
-    "qualification_status": "LINUX_FAILED_WINDOWS_PENDING",
+    "candidate_head": "ae4420751d64bfc98add0eb75df975ac14ee8728",
+    "qualification_run": 37442048532,
+    "qualification_status": "SUCCESS",
     "new_request_id": "b79dcc3e-1962-416c-a701-bd1325b78492",
     "request_generation": 55,
     "request_published": false,
@@ -2258,10 +2258,39 @@
         "run_id": 37441523810,
         "candidate_head": "92015bd3e640bbe71a65d78b5cbc50a45d2c38f2",
         "linux": "FAILURE",
-        "windows": "IN_PROGRESS",
+        "windows": "FAILURE",
         "diagnostic": "DIGEST_NOT_DEFINED",
+        "claude_invoked": false,
+        "status": "FAILURE",
+        "tests_per_platform": 329,
+        "pass_per_platform": 327,
+        "fail_per_platform": 2,
+        "skip_per_platform": 0
+      },
+      {
+        "run_id": 37442048532,
+        "candidate_head": "ae4420751d64bfc98add0eb75df975ac14ee8728",
+        "status": "SUCCESS",
+        "linux": "SUCCESS",
+        "windows": "SUCCESS",
+        "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+        "tests_per_platform": 330,
         "claude_invoked": false
       }
-    ]
+    ],
+    "contracts": {
+      "Linux": {
+        "tests": 330,
+        "pass": 330,
+        "fail": 0,
+        "skip": 0
+      },
+      "Windows": {
+        "tests": 330,
+        "pass": 330,
+        "fail": 0,
+        "skip": 0
+      }
+    }
   }
 }
