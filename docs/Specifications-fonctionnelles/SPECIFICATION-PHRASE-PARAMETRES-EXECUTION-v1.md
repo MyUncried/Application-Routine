@@ -21,7 +21,7 @@ Ordre : Séries → cible et cadence → pause selon contexte → côtés → li
 | Deux cibles variables | «2 séries de 12 puis 8 répétitions» ; Durée : «2 séries de durée variable (30 s puis 45 s)» |
 | Trois cibles variables | «3 séries de 12, 10 puis 8 répétitions» ; Durée : «3 séries de durée variable (30 s, 45 s puis 1 min)» |
 | Plus de trois cibles | «6 séries variables, de 6 à 15 répétitions» ; Durée : «6 séries variables, de 30 s à 1 min 30 s» |
-| Plusieurs Séries uniformes, pause positive | «séparées par 15 s de pause» |
+| Plusieurs Séries uniformes, pause positive | Ajouter « + 15 s de pause chacune » ; exemple complet : «3 séries de 30 s + 15 s de pause chacune» |
 | Plusieurs Séries uniformes, pause nulle | «enchaînées sans pause» |
 | Une Série, pause positive | «suivie de 15 s de pause» ; la pause terminale est conservée par la spécification |
 | Une Série, pause nulle | Omettre la clause pause |
@@ -29,6 +29,8 @@ Ordre : Séries → cible et cadence → pause selon contexte → côtés → li
 | À l’échec variable | Décrire les pauses selon le résumé existant : «3 séries menées jusqu’à l’échec, avec des pauses de 30 s, 45 s puis 1 min» ; au-delà de3, plage min/max des pauses. Aucun total d’Exercice. |
 
 Séries variables est un état explicite même si les valeurs sont égales. N=1 est normalisé uniforme avant génération. Les plages utilisent le minimum et maximum des cibles actives, pas les première/dernière lignes. Aucun résumé «trois premières valeurs puis ellipse».
+
+Choix rédactionnel du propriétaire du 06/10/2026 (H-03) : conserver le signe `+`, et non « séparées par », « puis », « et » ou « chacune suivie de ». La phrase décrit les paramètres intrinsèques de l’Exercice : la pause de chaque Série, dernière comprise. Dans une occurrence de Séance, une Récupération positive remplace la dernière Pause selon v13 §4–5 (`To = T − PN + R`) ; la formulation intrinsèque ne prescrit jamais leur addition. La transition d’exécution et le total contextuel restent déterminés par le plan de l’occurrence.
 
 ## 3. Côtés
 
