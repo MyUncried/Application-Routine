@@ -51,7 +51,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Circuit** | Groupe ordonné d’Exercices placé dans la Composition d’une Séance et répété en Tours. Les Exercices peuvent aussi être placés avant le Circuit ou après celui-ci. Le Circuit est une structure interne à la Séance, pas un contenu autonome du Catalogue. |
 | **Tour** | Une répétition du Circuit. Le nombre de Tours indique combien de fois le groupe ordonné d’Exercices du Circuit est exécuté. Le Tour ne constitue pas une entité métier autonome. Exemple : Mobilité → gainage, répété 3 Tours. |
 | **Série** | Définition subordonnée à l’Exercice : cible éventuelle et Pause. N signifie N Séries par côté en bilatéral. Paramètres communs en uniforme, collection ordonnée propre à chaque Série en variable. Pas une entité autonome. |
-| **Répétition** | Unité quantitative d’un Exercice non chronométré. Le pluriel `Répétitions` désigne également ce mode d’Exercice dans l’interface. |
+| **Répétition** | Unité quantitative d’un Exercice en mode Répétitions, avec ou sans cadence ; aucune mesure automatique de sa réalisation physique. Le pluriel `Répétitions` désigne également ce mode d’Exercice dans l’interface. |
 | **Exercice avant le Circuit** | Exercice exécuté une seule fois avant la première Tour du Circuit. |
 | **Exercice dans le Circuit** | Exercice exécuté à chaque Tour du Circuit. |
 | **Exercice après le Circuit** | Exercice exécuté une seule fois après la dernière Tour du Circuit et avant la Fin de séance. |

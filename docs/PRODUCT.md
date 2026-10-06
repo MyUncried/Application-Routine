@@ -132,9 +132,9 @@ Chaque occurrence d’Exercice dans une Séance porte explicitement une **Récup
 
 Le contrôle utilisateur `Changement de côté` d’un Exercice propose `Aucun`, `D→G` et `G→D`. Aucun contrôle de changement de côté n’est exposé sur le Circuit dans la version actuelle ; le support technique historique correspondant reste conservé mais fixé à `UNILATERAL` et non modifiable.
 
-Dans la Composition, une carte affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien avec `Aucun`. L’indicateur respecte la géométrie Figma validée. Le texte de la carte ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Ajouter/Modifier un Exercice, la synthèse ajoute `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode et avant la Pause ; elle omet cette clause avec `Aucun`. Le nom de l’Exercice est en gras dans cette Synthèse.
+Dans la Composition, une carte affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien avec `Aucun`. L’indicateur respecte la géométrie Figma validée. Le texte de la carte ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Ajouter/Modifier un Exercice, la phrase suit D-298 : Série/cible/cadence, puis Pause et côtés selon leur contexte. Elle distingue l’ordre par paire de l’ordre par côté et inverse droite/gauche selon la direction. Le nom reste hors de la phrase intrinsèque ; les valeurs des paramètres sont en gras dans le texte courant.
 
-Dans la phrase de synthèse des paramètres d’exécution, le mode est affiché séparément et la phrase commence par le nombre de Séries. Tant qu’aucun mode n’est sélectionné, le champ est vide. En Durée, la clause `Durée totale` est affichée pour plusieurs Séries ou un changement de côté ; en Répétitions, `Durée totale {symbole éventuel}{total fourni}` utilise conventionnellement **2 secondes par répétition** ; en À l’échec, aucune Durée totale n’est affichée. La phrase est régénérée à chaque modification et suit D-232.
+Dans la phrase de synthèse des paramètres d’exécution, le mode est affiché séparément et la phrase commence par le nombre de Séries. Tant qu’aucun mode n’est sélectionné, le champ est vide. Le total intrinsèque fourni par le calcul est affiché sauf en À l’échec ou lorsqu’il est réellement redondant en Durée unilatérale à une Série et Pause0. En Répétitions, Ti=Ri×Ci avec cadence, sans symbole ; sans cadence, Ti≈2×Ri, avec ≈. La phrase est régénérée lors de ✓ de la feuille valide ; ✕ conserve la phrase précédente. Elle suit D-298 et Phrase v1.
 
 Le Compte à rebours initial et la Fin de séance sont structurels et non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
 
@@ -408,7 +408,7 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 - après validation de la Composition, la cible est `Catalogue des séances`, segment `Séances` ;
 - la navigation d’avancement canonique fait entrer la cible depuis la droite et sortir l’écran courant vers la gauche ;
 - dans le Catalogue, la rangée `Créer / Filtrer / Trier` suit la géométrie commune validée ; les options de `Filtrer` sont contextuelles et `Trier` reste visible disabled dans T03 ;
-- dans l’éditeur Exercice, `Renforcement du genou` est une donnée de démonstration et l’état vide affiche `Nom de l’exercice` ; dans la phrase de synthèse, Répétitions affiche `Durée totale {symbole éventuel}{total fourni}` (cadence : Ri×Ci sans symbole ; absence :≈2Ri), tandis que Durée avec une seule Série unilatérale et Pause0, ainsi qu’À l’échec n’affichent pas de clause Durée totale (D-232).
+- dans l’éditeur Exercice, `Renforcement du genou` est une donnée de démonstration et l’état vide affiche `Nom de l’exercice` ; dans la phrase de synthèse, Répétitions affiche `Durée totale {symbole éventuel}{total fourni}` (cadence : Ri×Ci sans symbole ; absence :≈2Ri), tandis que Durée avec une seule Série unilatérale et Pause0, ainsi qu’À l’échec n’affichent pas de clause Durée totale (D-298).
 
 ### Médias et Parcours
 
@@ -477,7 +477,7 @@ Toute occurrence d’Exercice intégrée à une Séance porte une propriété co
 - La couleur est une propriété de l’Étiquette/Catégorie, source de vérité commune : modifier la couleur modifie l’affichage de tous les objets qui la référencent. Les Zones corporelles n’ont pas de couleur.
 - Les valeurs du Profil sont des valeurs initiales proposées, sans rétroactivité : Pause entre les côtés, Compte à rebours d’exercice et Fin d’exercice pour un nouvel Exercice ; Récupération après exercice pour une nouvelle occurrence de Séance.
 - Une Séance possède un réglage global unique, **activé par défaut**, pour appliquer ou ignorer ensemble les Compte à rebours d’exercice et Fin d’exercice de tous ses Exercices. Aucun réglage occurrence par occurrence n’est exposé.
-- La phrase de synthèse suit D-232 : champ vide sans mode ; mode hors phrase ; Durée totale en mode Durée sauf redondance réelle (N1 unilatéral/Pause0) ; Répétitions : durée fournie déterminable avec cadence,≈ sans cadence ; À l’échec = aucune Durée totale.
+- La phrase de synthèse suit D-298 : champ vide sans mode ; mode hors phrase ; Durée totale en mode Durée sauf redondance réelle (N1 unilatéral/Pause0) ; Répétitions : durée fournie déterminable avec cadence,≈ sans cadence ; À l’échec = aucune Durée totale.
 - Point d’arrêt : ordre `Exercice → Récupération après exercice → Point d’arrêt → suite`; interdit immédiatement après le Compte à rebours initial et immédiatement avant la Fin de séance ; autorisé aux frontières et à l’intérieur du Circuit ; lorsqu’il est dans le Circuit, il est exécuté à chaque Tour.
 - Média d’Exécution compact : le bouton Lecture central disparaît pendant la lecture vidéo ; le retour à Information met la vidéo en pause ; le plein écran n’interrompt pas l’Exécution.
 

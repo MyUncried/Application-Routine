@@ -8,7 +8,7 @@
 >
 > Mise à jour fonctionnelle et Figma du 24 septembre 2026 — D-188 à D-198 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Exercice ; changement de côté non exposé au niveau Tour ; Point d’arrêt ; Compte à rebours et Fin propres à l’Exercice ; filtre mémorisé uniquement dans la session courante ; roulettes en modale basse ; parcours de composition exposant la sélection depuis le Catalogue sans suppression de la création locale existante ; média en gouttière permanente dans le Catalogue des Exercices depuis D-260/D-261 du03/10/2026 ; actions `Planifier / Dupliquer / Archiver`, puis `Supprimer` dans les archives ; nouveau layout/typographie d’Exécution.
 >
-> Mise à jour Figma/documentation du 24 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. Les options de filtre sont contextuelles au Catalogue ; `Trier` reste visible disabled T03. L’éditeur Exercice applique D-232 : Répétitions affiche `Durée totale {symbole éventuel}{total fourni}` (cadence : Ri×Ci ; absence :≈2Ri) ; À l’échec n’affiche pas de Durée totale ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’exercice` l’état vide/placeholder.
+> Mise à jour Figma/documentation du 24 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. Les options de filtre sont contextuelles au Catalogue ; `Trier` reste visible disabled T03. L’éditeur Exercice applique D-298 : Répétitions affiche `Durée totale {symbole éventuel}{total fourni}` (cadence : Ri×Ci ; absence :≈2Ri) ; À l’échec n’affiche pas de Durée totale ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’exercice` l’état vide/placeholder.
 >
 > Décision du 24 septembre 2026 — D-199 : les Zones corporelles constituent désormais un référentiel utilisateur administrable. L’utilisateur peut créer, renommer et supprimer des Zones corporelles ; la liste initiale de dix zones devient un jeu de valeurs par défaut et non une liste fermée. La frame Figma `4683:6336` matérialise la création inline d’une nouvelle zone.
 >
@@ -170,7 +170,7 @@ Obsidian reste l’outil de rédaction de la documentation fonctionnelle. Le dos
 
 Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
 - Durée prévisionnelle déterminable, approximation≈ sans cadence et borne≥ en présence de travail non estimable ;
-- phrase de synthèse selon D-232 : Durée totale en Durée sauf redondance réelle (N1 unilatéral/Pause0) ; Répétitions : Ri×Ci avec cadence,≈2Ri sans cadence ; aucune Durée totale en À l’échec ;
+- phrase de synthèse selon D-298 : Durée totale en Durée sauf redondance réelle (N1 unilatéral/Pause0) ; Répétitions : Ri×Ci avec cadence,≈2Ri sans cadence ; aucune Durée totale en À l’échec ;
 - les noms d’Exercice visibles dans les maquettes renseignées sont des données de démonstration ; `Nom de l’exercice` représente l’état vide/placeholder ;
 - distinction entre **Pause après chaque série**, **Pause entre les côtés** et **Récupération après exercice** ;
 - temps actif et Durée réelle hors Pause utilisateur ;
@@ -237,7 +237,7 @@ Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(T
 - Une valeur de référentiel supprimée sort des choix futurs mais reste conservée sur les objets existants. Étiquette/Catégorie conservent nom et dernière couleur. La couleur appartient au référentiel et se répercute sur tous ses objets ; les Zones corporelles n’ont pas de couleur.
 - Les défauts du Profil initialisent les nouveaux objets sans rétroactivité : Pause entre les côtés, Compte à rebours d’exercice et Fin d’exercice pour un nouvel Exercice ; Récupération après exercice pour une nouvelle occurrence de Séance.
 - Une Séance possède un réglage global unique, activé par défaut, pour appliquer ou ignorer ensemble les Compte à rebours d’exercice et Fin d’exercice de tous ses Exercices.
-- Dans le texte éditable, Durée affiche `Durée totale` si plusieurs Séries ou changement de côté (D-232); Répétitions affiche `Durée totale >= {estimation}` ; À l’échec n’affiche pas de Durée totale numérique.
+- Dans la phrase unique (D-298), Durée affiche le total sauf redondance réelle (une Série unilatérale, Pause0) ; Répétitions affiche le total fourni, sans symbole avec cadence et avec ≈ sans cadence ; À l’échec n’affiche pas de total d’Exercice. ≥ reste réservé aux agrégats comportant une partie non estimable.
 - Point d’arrêt : `Exercice → Récupération après exercice → Point d’arrêt → suite`; interdit juste après le Compte à rebours initial et juste avant la Fin de séance ; autorisé aux frontières et dans le Circuit ; dans le Circuit il s’exécute à chaque Tour.
 - En face Média compacte, le bouton Lecture central disparaît pendant la lecture vidéo ; le retour à Information met la vidéo en pause ; le plein écran n’interrompt pas l’Exécution.
 

@@ -45,3 +45,32 @@ Ces vérifications portent sur la documentation et ses artefacts, pas sur le fon
 | Livraison | Implémentation Cadence, migration, son en arrière-plan et reprise sur appareil restent à réaliser et tester ; cette mise à jour ne les déclare pas livrés. |
 
 La consolidation documentaire est effectuée pour les décisions établies. La clôture graphique complète ne peut pas être annoncée tant que les réserves ci-dessus ne sont pas matérialisées ou qualifiées. Aucun nouveau design n’a été entrepris.
+
+## Reprise et revue finale du 06/10/2026
+
+Le chantier a été retrouvé dans `/workspace/scratch/80107acc5c6f/cadence-doc-update/work`, accompagné du plan, des sources, du manifeste des captures et des contrôles. Ce dossier est un export de travail, pas un dépôt Git local : aucun commit local supplémentaire ne peut y être attesté. Ses 181 fichiers sont identiques octet pour octet au commit GitHub `806536ad2278d69157a7f64e27305d966d78ee9e`, effectivement publié sur `docs/cadence-dsf-2026-10-06` et dans la [PR #323](https://github.com/MyUncried/Application-Routine/pull/323), en brouillon. Les blobs ont donc été assemblés dans un arbre et un commit, puis la branche a été publiée ; ils ne sont pas seulement des blobs isolés. L’état interne de l’ancienne conversation et d’éventuels appels distants non publiés reste non vérifiable.
+
+La reprise utilise un checkout séparé dans `/workspace/scratch/1dd8ead422bb/cadence-recovery`, sans écraser le dossier précédent. Le plan joint par le propriétaire est identique au plan récupéré (révision2). Les cinq sources demandées ont été récupérées et comparées aux archives : toutes sont identiques, classeur compris. Les versions précédentes de POINTS ne sont pas intégrées comme de nouvelles exigences.
+
+### Corrections de cohérence après récupération
+
+| Sujet relu | Correction / preuve normative |
+|---|---|
+| Progression | Chapitres06/12 : exception cadencée ajoutée aux anciennes descriptions génériques ; progression temporelle, fin nominale distincte de Suivant, fraction abandonnée à Pause. Cadence v1 §§3–4, RM-077, contrat13 R-01. |
+| Reset et suspension | Chapitre08 et RM-062 : Série unilatérale / bloc du côté bilatéral / récupération courante ; autre côté et temps réel conservés. D-029/D-150, v13 §7, CAD-22/23. D-045 est explicitement historique sur l’ancienne clôture automatique sans réponse ; contrat13 R-03 conservé. |
+| Calcul des agrégats | RM-071/RM-159 rapprochées de v13 §5 : To=T si R=0, sinon T−PN+R ; ni Pause terminale ni R comptée deux fois. Les formules D-248 sont inchangées. |
+| Phrase et validation | PRODUCT, INDEX, RM-152 et API-ACT-03 renvoient à D-298/Phrase v1 ; texte dérivé à✓, annulé à✕, total fourni par calcul. Suppression des anciennes affirmations ≥ pour toute Répétition et estimation2s pour les Séries cadencées. |
+| Référence rédactionnelle | Lecture des100 formulations de la feuille Toutes les phrases, sans reprendre leurs totaux ni la feuille Calcul des durées. Formulation «menée/menées jusqu’à l’échec» rétablie dans Phrase v1. Accords, cadence, deux ordres, pauses, énumérations et plages rapprochés des règles rédactionnelles ; exceptions de calcul C04/C06 du plan conservées. |
+| Éditeur et témoins historiques | Chapitre06 et registre des captures : ancien déploiement média et ancienne frame3561:7802 qualifiés historiques ; feuille v13/CE-UI-10 active, roulettes inline, Profil à steppers. Aucun nouveau contrôle de suppression de cadence inventé. |
+| Unicité des règles | Ancienne ligne RM-221 de phrase qualifiée historique ; une seule RM-221 active pour les Catalogues. Aucun nouvel identifiant de décision ni arbitrage produit ajouté. |
+
+### Contrôles renouvelés
+
+- 136 fichiers PNG décodés : dimensions, SHA-256 et empreinte Git identiques au manifeste conservé ; IDs et chemins uniques ; tous affichés dans le chapitre06. Aucun PNG réexporté ou retouché pendant la reprise.
+- Inventaire Figma en lecture seule : mêmes133IDs de frames et3IDs d’ensembles que le manifeste. Le relevé Cadence reste limité aux paramètres ; il ne démontre pas la matérialisation des trois états d’exécution manquants. Les planches conservées ont été relues ; elles ne certifient pas chaque propriété graphique ni une identité pixel à pixel avec un nouvel export.
+- 30 contrats, rubriques1..21 dans l’ordre et renseignées ; références contrat des133frames valides, trois ensembles reliés par la matrice ; aucune image dupliquée dans les contrats.
+- Relecture transverse des familles création/paramètres, Catalogue/composition, exécution directe/Séance, média, synthèse/suivi et calendrier : mêmes règles de cadence, total intrinsèque/occurrence, fin explicite et temps réel. Le décompte des rubriques ne vaut pas recette applicative.
+- Aucun lien local de fichier manquant dans les Markdown actifs modifiés contrôlés ; IDs D et RM actifs uniques. Les ancres internes ne sont pas certifiées par ce contrôle. Diff limité à `docs/`, sans erreur de whitespace ; code, protocoles, assets applicatifs et Figma inchangés.
+- Destinations contrôlées : branche documentaire existante vers main, PR323 ouverte et non fusionnée. Les workflows V2/qualification sont filtrés sur les fichiers de protocole, non sur `docs/` ; la synchronisation locale n’intervient qu’à la fermeture de PR. Aucun lancement manuel, appel Claude, fusion ou synchronisation du PC dans cette reprise.
+
+Les réserves CAD-V01–04, CAD-T01, rôles typographiques, assets et prototype ci-dessus restent à traiter dans des chantiers distincts. La livraison documentaire est reviewable dans la PR ; la conformité graphique complète et la livraison applicative ne sont pas déclarées.

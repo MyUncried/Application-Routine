@@ -477,12 +477,12 @@ Lorsque cette action est demandée, l'application affiche une demande de confirm
 
 Si l'utilisateur confirme :
 
-- l'exercice en cours est immédiatement réinitialisée ;
-- son chronomètre repart de son état initial ;
-- les répétitions éventuellement réalisées sont annulées ;
-- la progression générale de la séance est conservée.
+- en unilatéral, la Série courante recommence ; en bilatéral, le bloc du côté courant recommence selon D-029/D-150 et v13 §7, dans les deux ordres ;
+- pendant une récupération, seule la phase courante recommence (RM-062) ;
+- le chronomètre de tentative et la progression du périmètre reviennent à zéro ; les paramètres, l’autre côté et les résultats hors périmètre sont conservés ;
+- le temps actif réel cumulé, y compris celui des tentatives antérieures, reste enregistré ; aucun nombre de répétitions physiquement réalisées n’est déduit ni annulé.
 
-Si l'utilisateur annule, la séance reprend exactement à l'état où elle se trouvait.
+Si l'utilisateur annule, aucun reset n’est appliqué. Les règles de confirmation et de suspension ci-dessous s’appliquent ; une reprise de Série cadencée suit l’exception d’intervalle complet de Cadence v1 §4.
 
 Les confirmations appliquées pendant l'Exécution suivent la règle suivante :
 

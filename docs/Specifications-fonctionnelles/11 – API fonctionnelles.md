@@ -357,7 +357,7 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 - Mise à jour Séance : expose un booléen global de prise en compte des Compte à rebours et Fins propres aux Exercices, activé par défaut.
 - Construction du Plan : développe le Circuit pour `tourCount` Tours ; tout Point d’arrêt interne au Circuit est reproduit à chaque Tour ; après un Exercice, `POST_ACTIVITY_RECOVERY` précède le Point d’arrêt.
 
-| API-ACT-03 | Générer la phrase de synthèse | Paramètres courants de l’Exercice | Phrase dérivée ou vide | Applique les fragments/conditions de D-232 ; sans mode retourne vide ; aucune persistance autonome de la phrase comme source de vérité. | Exercice |
+| API-ACT-03 | Générer la phrase de synthèse | Paramètres courants de l’Exercice | Phrase dérivée ou vide | Applique D-298 et Phrase v1 à partir des paramètres et du résultat de calcul fourni (total et niveau d’incertitude) ; sans mode retourne vide. Ne recalcule aucune durée et ne persiste pas la phrase comme source de vérité. | Exercice |
 
 | API-ACT-04 | Valider les bornes des paramètres | Paramètres d’exécution | paramètres valides / erreur | Séries `1..99`; Répétitions `1..100`; durée par Série `1..5999 s`; pauses inter-Séries/inter-côtés `0..300 s`. | Exercice |
 
