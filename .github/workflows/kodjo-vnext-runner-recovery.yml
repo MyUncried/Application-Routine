@@ -1,0 +1,26 @@
+name: KODJO recover interrupted run 37446216690
+on:
+  create:
+permissions:
+  contents: read
+jobs:
+  recover:
+    if: github.event.ref_type == 'branch' && github.event.ref == 'recovery/vnext-run-37446216690-20261006'
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 120
+    steps:
+      - name: Inventory and summarize retained evidence without executing Claude
+        shell: cmd
+        run: |
+          node -e "const fs=require('fs'),p=require('path'),os=require('os'); const root=p.join(process.env.RUNNER_TEMP,'vnext12-figma-37446216690-1'); const claim=p.join(os.homedir(),'.kodjo-vnext12','628b3349-88b4-4bf1-be6b-50bc09e7d245','figma','6ea7b481-9de4-463a-a79b-26327a2bbcca'); for(const dir of [root,claim]) {console.log('RECOVERY_DIRECTORY '+dir); if(!fs.existsSync(dir)){console.log('NOT_FOUND');continue;} const walk=d=>{for(const e of fs.readdirSync(d,{withFileTypes:true})){const f=p.join(d,e.name);if(e.isDirectory())walk(f);else{console.log('RECOVERY_FILE '+f+' '+fs.statSync(f).size);if(/(?:status|process|admission|started|lock|response|review).*\.json$/.test(e.name)){const t=fs.readFileSync(f,'utf8'); if(t.length<100000)console.log('RECOVERY_JSON '+p.relative(dir,f)+' '+t);}}}}; walk(dir);}"
+      - name: Preserve original evidence and exact request reservation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: recovery-original-37446216690
+          path: |
+            ${{ runner.temp }}/vnext12-figma-37446216690-1/**
+            C:/Users/hadjo/.kodjo-vnext12/628b3349-88b4-4bf1-be6b-50bc09e7d245/figma/6ea7b481-9de4-463a-a79b-26327a2bbcca/**
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
