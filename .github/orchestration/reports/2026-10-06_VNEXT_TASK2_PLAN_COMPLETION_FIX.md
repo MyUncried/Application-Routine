@@ -29,3 +29,7 @@ Commit final identifiable par git log sur ce rapport et communiqué dans la rép
 ## Validation de publication
 
 14 tests de publication et séquence PASS, 0 FAIL, 0 SKIP. validateTree VALIDATED, politique writer PASS_WITH_FROZEN_LEGACY, 420 sujets historiques, aucune unité PowerShell modifiée. Fenêtre vérifiée contre HEAD distant e72309a3 et blob checkpoint 8a6ffddc77bab1df8bc516d5b9e6457c6c27de69 ; 198 runs terminés examinés, aucun actif. ZIP précédent et reçus conservés intégralement dans la livraison.
+
+## Correction révélée par les contrôles du premier candidat
+
+Candidat a1ab2ab641536d90df288136af843c1989a5e940, contrôles seuls 37440545157 : Linux échoue sur les deux tests navigateur. Page.getResourceContent refuse le document file:// non mis en cache. Ce défaut est introduit dans cette mission par la nouvelle attestation, pas par b0bf. Aucun Claude lancé. Remplacement par serveur HTTP strictement local 127.0.0.1, document exact généré, Network.enable avant navigation, attente loadingFinished et Network.getResponseBody pour capturer les octets réellement reçus. Serveur fermé dans finally. Les comparaisons de hashes et les deux viewports restent exigés. Nouvelle qualification exacte nécessaire ; ancien échec conservé, jamais masqué.

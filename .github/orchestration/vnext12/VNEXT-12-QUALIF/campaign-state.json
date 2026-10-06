@@ -1,6 +1,6 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-06T09:02:53.791196+00:00",
+  "recorded_at": "2026-10-06T09:06:20.648460+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
@@ -2224,15 +2224,30 @@
   },
   "task2_plan_completion_fix_20261006": {
     "authorization": "USER_2026-10-06_10:59_PARIS_APPLY_FIXES_AND_AUTOMATIC_RELAUNCH",
-    "stage": "FIXED_PENDING_AUTOMATIC_CONTROLS",
+    "stage": "CORRECTING_QUALIFICATION_DOCUMENT_CAPTURE",
     "report": ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_COMPLETION_FIX.md",
     "prior_runtime_run": 37435583811,
     "prior_pilot_run": 37435583847,
     "runtime_launched": false,
     "qualification_branch": "qualification/vnext-task2-plan-completion-20261006",
-    "qualification_launch_count": 0,
+    "qualification_launch_count": 1,
     "runtime_launch_count": 0,
     "task3_authorized": false,
-    "closure_authorized": false
+    "closure_authorized": false,
+    "candidate_head": "a1ab2ab641536d90df288136af843c1989a5e940",
+    "qualification_run": 37440545157,
+    "qualification_status": "LINUX_FAILED_WINDOWS_PENDING",
+    "new_request_id": "b79dcc3e-1962-416c-a701-bd1325b78492",
+    "request_generation": 55,
+    "request_published": false,
+    "qualification_attempts": [
+      {
+        "run_id": 37440545157,
+        "candidate_head": "a1ab2ab641536d90df288136af843c1989a5e940",
+        "linux": "FAILURE",
+        "diagnostic": "FILE_DOCUMENT_RESOURCE_NOT_CACHED",
+        "claude_invoked": false
+      }
+    ]
   }
 }

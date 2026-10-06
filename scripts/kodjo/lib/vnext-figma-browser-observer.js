@@ -1,6 +1,6 @@
 'use strict';
 // Disposable browser measurement, never a native-device certification.
-const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),{spawn,execFile}=require('node:child_process'),{pathToFileURL}=require('node:url');
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),{spawn,execFile}=require('node:child_process'),http=require('node:http');
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 function invoke(file,args){return new Promise((resolve,reject)=>execFile(file,args,{windowsHide:true,timeout:15000,maxBuffer:1024*1024},(error,stdout,stderr)=>error?reject(Object.assign(error,{diagnostic_stderr:stderr})):resolve(stdout)));}
 async function profileProcesses(profile){
@@ -86,10 +86,13 @@ window.subjectReady=true;
 async function observe({screen,keep,directory,viewport,height,frameId,titleId,transitions,browser=resolveBrowser()}){
  if(!Number.isSafeInteger(viewport)||viewport<1||!Number.isSafeInteger(height)||height<1)throw Error('VNEXT_FIGMA_BROWSER_VIEWPORT_INVALID');
  if(typeof frameId!=='string'||!frameId||typeof titleId!=='string'||!titleId||!Array.isArray(transitions)||transitions.some(t=>typeof t.scenario_id!=='string'||typeof t.method!=='string'||typeof t.expected!=='boolean'))throw Error('VNEXT_FIGMA_BROWSER_SUBJECTS_INVALID');
- const profile=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-figma-browser-'));let child,ws,send,primaryError,stderr='',sequence=0;const pending=new Map(),cleanupDiagnostic={browser};
+ const profile=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-figma-browser-'));let child,ws,send,server,documentUrl,documentRequestId,documentFinished=false,primaryError,stderr='',sequence=0;const pending=new Map(),cleanupDiagnostic={browser};
  const screenSource=fs.readFileSync(screen,'utf8'),keepSource=fs.readFileSync(keep,'utf8'),hostSource=host(screenSource,keepSource);
  const html=path.join(directory,'rendered.html');fs.writeFileSync(html,hostSource,{flag:'wx'});
  try{
+  server=http.createServer((request,response)=>{if(request.url!=='/rendered.html'){response.writeHead(404);response.end();return;}response.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Connection':'close'});response.end(hostSource);});
+  await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(0,'127.0.0.1',resolve);});
+  documentUrl='http://127.0.0.1:'+server.address().port+'/rendered.html';
   const endpoint=await new Promise((resolve,reject)=>{
    // Fresh runner browser startup can outlast the former 20-second allowance.
    // Keep a finite deadline; DOM and screenshot assertions still require CDP.
@@ -99,12 +102,13 @@ async function observe({screen,keep,directory,viewport,height,frameId,titleId,tr
    child.stderr.on('data',b=>{stderr+=b.toString();const match=stderr.match(/DevTools listening on (ws:\/\/127\.0\.0\.1:[0-9]+\/devtools\/browser\/[^\s]+)/);if(match){clearTimeout(timer);resolve(match[1]);}});
   });
   ws=new WebSocket(endpoint);await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('VNEXT_FIGMA_BROWSER_CONNECTION_TIMEOUT')),10000);ws.addEventListener('open',()=>{clearTimeout(timer);resolve();},{once:true});ws.addEventListener('error',()=>{clearTimeout(timer);reject(Error('VNEXT_FIGMA_BROWSER_CONNECTION_FAILED'));},{once:true});});
-  ws.addEventListener('message',e=>{const row=JSON.parse(e.data);if(!row.id)return;const item=pending.get(row.id);if(!item)return;pending.delete(row.id);clearTimeout(item.timer);row.error?item.reject(Error('VNEXT_FIGMA_BROWSER_CDP:'+JSON.stringify(row.error))):item.resolve(row.result);});
+  ws.addEventListener('message',e=>{const row=JSON.parse(e.data);if(!row.id){if(row.method==='Network.responseReceived'&&row.params.type==='Document'&&row.params.response.url===documentUrl)documentRequestId=row.params.requestId;if(row.method==='Network.loadingFinished'&&row.params.requestId===documentRequestId)documentFinished=true;return;}const item=pending.get(row.id);if(!item)return;pending.delete(row.id);clearTimeout(item.timer);row.error?item.reject(Error('VNEXT_FIGMA_BROWSER_CDP:'+JSON.stringify(row.error))):item.resolve(row.result);});
   send=(method,params={},sessionId)=>new Promise((resolve,reject)=>{const id=++sequence,timer=setTimeout(()=>{pending.delete(id);reject(Error('VNEXT_FIGMA_BROWSER_COMMAND_TIMEOUT:'+method));},10000);pending.set(id,{resolve,reject,timer});ws.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}));});
   const version=await send('Browser.getVersion');
   const {targetId}=await send('Target.createTarget',{url:'about:blank'}),{sessionId}=await send('Target.attachToTarget',{targetId,flatten:true});
-  await send('Page.enable',{},sessionId);await send('Emulation.setDeviceMetricsOverride',{width:viewport,height,deviceScaleFactor:1,mobile:false},sessionId);
-  await send('Page.navigate',{url:pathToFileURL(html).href},sessionId);
+  await send('Page.enable',{},sessionId);await send('Network.enable',{},sessionId);await send('Emulation.setDeviceMetricsOverride',{width:viewport,height,deviceScaleFactor:1,mobile:false},sessionId);
+  await send('Page.navigate',{url:documentUrl},sessionId);
+  const documentDeadline=Date.now()+10000;while(!documentFinished){if(Date.now()>=documentDeadline)throw Error('VNEXT_FIGMA_BROWSER_DOCUMENT_NOT_LOADED');await delay(20);}
   const ready=await send('Runtime.evaluate',{expression:"new Promise((resolve,reject)=>{let n=0;const tick=()=>{if(window.subjectReady)return resolve(true);if(++n>100)return reject(Error('Render not ready'));setTimeout(tick,50)};tick()})",awaitPromise:true,returnByValue:true},sessionId);
   if(ready.exceptionDetails)throw Error('VNEXT_FIGMA_BROWSER_RENDER_FAILED');
   const result=await send('Runtime.evaluate',{expression:`(()=>{
@@ -118,9 +122,8 @@ async function observe({screen,keep,directory,viewport,height,frameId,titleId,tr
    return {viewport:innerWidth,width:rect.width,height:rect.height,title:title.textContent,scenarios,provenance,observer:'BROWSER_DOM_LAYOUT',native_certification:false};
   })()`,returnByValue:true},sessionId);
   if(result.exceptionDetails)throw Error('VNEXT_FIGMA_BROWSER_OBSERVATION_FAILED:'+result.exceptionDetails.text);
-  const loaded=await send('Page.getResourceTree',{},sessionId);
-  const resource=await send('Page.getResourceContent',{frameId:loaded.frameTree.frame.id,url:pathToFileURL(html).href},sessionId);
-  const loadedDocument=resource.base64Encoded?Buffer.from(resource.content,'base64'):resource.content;
+  const resource=await send('Network.getResponseBody',{requestId:documentRequestId},sessionId);
+  const loadedDocument=resource.base64Encoded?Buffer.from(resource.body,'base64'):resource.body;
   const facts={...result.result.value,browser_version:version.product};
   const p=facts.provenance;
   if(digest(loadedDocument)!==digest(hostSource)||p.canonical_render!==p.measured_mount)throw Error('VNEXT_FIGMA_BROWSER_PROVENANCE_MISMATCH');
@@ -130,6 +133,7 @@ async function observe({screen,keep,directory,viewport,height,frameId,titleId,tr
  }catch(error){primaryError=error;throw error;}finally{
   if(send&&ws?.readyState===WebSocket.OPEN){try{await send('Browser.close');cleanupDiagnostic.browser_close_sent=true;}catch(error){cleanupDiagnostic.browser_close_error=error.message;}ws.close();}
   for(const item of pending.values()){clearTimeout(item.timer);item.reject(Error('VNEXT_FIGMA_BROWSER_CLOSED'));}pending.clear();
+  if(server){server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
   await cleanupProfile({child,profile,directory,stderr,primaryError,diagnostic:cleanupDiagnostic});
  }
 }
