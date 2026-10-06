@@ -24,6 +24,12 @@ function verifyWindow({ repository, branch, expectedParent, checkpointSha, read 
   return { expected_parent: expectedParent, checkpoint_sha: checkpointSha,
     controller_generation: state.controller_generation, observed_at: new Date().toISOString() };
 }
+function renderGithubExpressionsForSyntax(block) {
+  // GitHub expands its expressions before invoking the PowerShell parser.
+  // Keep real PowerShell interpolation intact; neutral values certify only
+  // static grammar, not the escaping or meaning of runtime input values.
+  return block.replace(/\$\{\{[\s\S]*?\}\}/g, 'VNEXT_GITHUB_EXPRESSION');
+}
 function validateTree({ cwd, expectedParent, candidateTree, run = execFileSync }) {
   V.assertSha40(expectedParent, 'VNEXT_PUBLICATION_PARENT_REQUIRED');
   V.assertSha40(candidateTree, 'VNEXT_PUBLICATION_TREE_REQUIRED');
@@ -75,7 +81,7 @@ function validateTree({ cwd, expectedParent, candidateTree, run = execFileSync }
       fs.writeFileSync(old, before);
       const script = "import yaml,json,sys; a=yaml.safe_load(open(sys.argv[1])) or {}; b=yaml.safe_load(open(sys.argv[2])) or {}; runs=lambda d:[s.get('run') for j in d.get('jobs',{}).values() for s in j.get('steps',[]) if s.get('run') and s.get('shell',j.get('defaults',d.get('defaults',{})).get('run',{}).get('shell','')) in ['powershell','pwsh']]; print(json.dumps([x for x in runs(b) if x not in runs(a)]))";
       const blocks = JSON.parse(invoke(process.env.KODJO_PYTHON || 'python', ['-c', script, old, path.join(temporary, file)]));
-      for (const block of blocks) { const name = 'changed-block-' + psFiles.length + '.ps1'; fs.writeFileSync(path.join(temporary, name), block); psFiles.push(name); }
+      for (const block of blocks) { const name = 'changed-block-' + psFiles.length + '.ps1'; fs.writeFileSync(path.join(temporary, name), renderGithubExpressionsForSyntax(block)); psFiles.push(name); }
       fs.rmSync(old);
     }
     if (psFiles.length) {
@@ -90,4 +96,4 @@ function validateTree({ cwd, expectedParent, candidateTree, run = execFileSync }
       historical_subjects: inventory.incidents.length + inventory.tests.length + inventory.normative_paragraphs.length };
   } finally { fs.rmSync(temporary, { recursive: true, force: true }); }
 }
-module.exports = { CHECKPOINT, WORKFLOWS, verifyWindow, validateTree };
+module.exports = { CHECKPOINT, WORKFLOWS, verifyWindow, validateTree, renderGithubExpressionsForSyntax };

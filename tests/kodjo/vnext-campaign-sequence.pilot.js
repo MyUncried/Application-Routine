@@ -56,3 +56,10 @@ test('independent workflow parser rejects nested write permissions even for a sk
  fs.writeFileSync(path.join(dir,'callee.yml'),callee('write'));assert.throws(run,e=>String(e.stderr).includes('REUSABLE_PERMISSION_ESCALATION'));
  fs.writeFileSync(path.join(dir,'callee.yml'),callee('read'));assert.match(run(),/workflows accepted/);
 });
+
+test('native syntax preparation expands GitHub templates while preserving PowerShell interpolation and invalid code',()=>{
+ const {renderGithubExpressionsForSyntax:render}=require('../../scripts/kodjo/lib/vnext-publication');
+ assert.equal(render('$run="${{ github.run_id }}"; $local="${name}"; $bad = {'),'$run="VNEXT_GITHUB_EXPRESSION"; $local="${name}"; $bad = {');
+ assert.equal(render("$name='${{ github.repository }}'\nif($x){Write-Output $x}"),"$name='VNEXT_GITHUB_EXPRESSION'\nif($x){Write-Output $x}");
+ assert.equal(render('$bad = "${{ incomplete"'),'$bad = "${{ incomplete"');
+});

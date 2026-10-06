@@ -2224,13 +2224,13 @@
   },
   "task2_plan_completion_fix_20261006": {
     "authorization": "USER_2026-10-06_10:59_PARIS_APPLY_FIXES_AND_AUTOMATIC_RELAUNCH",
-    "stage": "FIXING_SEQUENCE_STARTUP_BEFORE_FRESH_RUNTIME",
+    "stage": "CORRECTING_NATIVE_TEMPLATE_VALIDATION",
     "report": ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_COMPLETION_FIX.md",
     "prior_runtime_run": 37435583811,
     "prior_pilot_run": 37435583847,
     "runtime_launched": false,
     "qualification_branch": "qualification/vnext-task2-provenance-20261006",
-    "qualification_launch_count": 3,
+    "qualification_launch_count": 4,
     "runtime_launch_count": 1,
     "task3_authorized": false,
     "closure_authorized": false,
@@ -2275,6 +2275,15 @@
         "windows": "SUCCESS",
         "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
         "tests_per_platform": 330,
+        "claude_invoked": false
+      },
+      {
+        "run_id": 37444282563,
+        "candidate_head": "5ef22f089610779f6b098bb385623bd4a54c6060",
+        "status": "FAILURE",
+        "linux": "SUCCESS",
+        "windows": "NATIVE_PARSER_FAILURE_BEFORE_CONTRACTS",
+        "diagnostic": "RAW_GITHUB_EXPRESSION_PARSING",
         "claude_invoked": false
       }
     ],

@@ -1,0 +1,48 @@
+                       Message                                IncompleteInput
+2026-10-06T09:38:49.9040223Z ------ -------                                    -------                                ---------------
+2026-10-06T09:38:49.9041488Z        OpenBraceNeedsToBeBackTickedInVariableName Use `{ instead of { in variable names.           False
+2026-10-06T09:38:49.9043130Z At C:\Users\runneradmin\AppData\Local\Temp\kodjo-publication-B9e3ZF\parse-changed-powershell.ps1:1 char:297
+2026-10-06T09:38:49.9044373Z + ... ile($f,[ref]$t,[ref]$e)|Out-Null;if($e.Count){throw ($e|Out-String)}}
+2026-10-06T09:38:49.9045179Z +                                                   ~~~~~~~~~~~~~~~~~~~~~
+2026-10-06T09:38:49.9045842Z     + CategoryInfo          : OperationStopped: (
+2026-10-06T09:38:49.9046385Z Extent ErrorI...    False
+2026-10-06T09:38:49.9046833Z :String) [], RuntimeException
+2026-10-06T09:38:49.9047286Z     + FullyQualifiedErrorId :
+2026-10-06T09:38:49.9048078Z Extent ErrorId                                    Message                                IncompleteInput
+2026-10-06T09:38:49.9049147Z ------ -------                                    -------                                ---------------
+2026-10-06T09:38:49.9050328Z        OpenBraceNeedsToBeBackTickedInVariableName Use `{ instead of { in variable names.           False
+2026-10-06T09:38:49.9051424Z
+2026-10-06T09:38:51.0453224Z D:\a\Application-Routine\Application-Routine\scripts\kodjo\lib\vnext-contract.js:13
+2026-10-06T09:38:51.0454045Z   throw error;
+2026-10-06T09:38:51.0454324Z   ^
+2026-10-06T09:38:51.0454475Z
+2026-10-06T09:38:51.0458478Z Error: VNEXT_PUBLICATION_POWERSHELL_VALIDATION_REQUIRED
+2026-10-06T09:38:51.0459815Z     at Object.fail (D:\a\Application-Routine\Application-Routine\scripts\kodjo\lib\vnext-contract.js:11:17)
+2026-10-06T09:38:51.0461371Z     at Object.validateTree (D:\a\Application-Routine\Application-Routine\scripts\kodjo\lib\vnext-publication.js:86:21)
+2026-10-06T09:38:51.0462372Z     at [eval]:1:88
+2026-10-06T09:38:51.0462867Z     at runScriptInThisContext (node:internal/vm:219:10)
+2026-10-06T09:38:51.0463509Z     at node:internal/process/execution:451:12
+2026-10-06T09:38:51.0464110Z     at [eval]-wrapper:6:24
+2026-10-06T09:38:51.0464730Z     at runScriptInContext (node:internal/process/execution:449:60)
+2026-10-06T09:38:51.0465512Z     at evalFunction (node:internal/process/execution:283:30)
+2026-10-06T09:38:51.0466288Z     at evalTypeScript (node:internal/process/execution:295:3)
+2026-10-06T09:38:51.0466956Z     at node:internal/main/eval_string:71:3 {
+2026-10-06T09:38:51.0468016Z   code: 'VNEXT_PUBLICATION_POWERSHELL_VALIDATION_REQUIRED'
+2026-10-06T09:38:51.0468568Z }
+2026-10-06T09:38:51.0468730Z
+2026-10-06T09:38:51.0468857Z Node.js v24.21.0
+2026-10-06T09:38:51.0784481Z ##[error]Process completed with exit code 1.
+2026-10-06T09:38:51.1027647Z Post job cleanup.
+2026-10-06T09:38:51.3153635Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-10-06T09:38:51.3425430Z git version 2.55.0.windows.5
+2026-10-06T09:38:51.3493519Z Temporarily overriding HOME='D:\a\_temp\0cbacfbf-f741-428c-9a4d-04a0ca61b4c9' before making global git config changes
+2026-10-06T09:38:51.3494627Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-06T09:38:51.3504853Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\Application-Routine\Application-Routine
+2026-10-06T09:38:51.3807684Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-10-06T09:38:51.4140893Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-10-06T09:38:52.3278016Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-06T09:38:52.3666858Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-10-06T09:38:52.9097513Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-06T09:38:52.9393476Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-10-06T09:38:53.4723126Z Cleaning up orphan processes
+2026-10-06T09:38:53.5384525Z ##[warning]Node.js 20 is deprecated. The follo
