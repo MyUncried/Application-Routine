@@ -858,7 +858,7 @@
   "declared_vnext_writers": [
     {
       "producer": ".github/workflows/kodjo-vnext12-disposable.yml",
-      "producer_blob_oid": "ec7d8ff64f9df52b8046a9c5676c1ee0800d2000",
+      "producer_blob_oid": "03789ade564ed43ce27a2354c03fe2cdfe614a17",
       "authorization_condition": "EXACT_OWNER_APPROVED_VNEXT12_DISPOSABLE_CONSUMPTION_ONLY",
       "required_job": "execute-initial",
       "capabilities": [

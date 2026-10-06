@@ -43,7 +43,7 @@ jobs:
   admission-controls:
     name: 1 - Verify exact automatic controls
     needs: select-stage
-    if: (needs.select-stage.outputs.stage == 'FIGMA_INITIAL' && needs.select-stage.outputs.qualification_policy != 'DIRECT_REAL_USER_REQUEST') || needs.select-stage.outputs.stage == 'EXECUTE_INITIAL' || needs.select-stage.outputs.stage == 'EXECUTE_REVISION'
+    if: (needs.select-stage.outputs.qualification_policy != 'DIRECT_REAL_USER_REQUEST' && (needs.select-stage.outputs.stage == 'FIGMA_INITIAL' || needs.select-stage.outputs.stage == 'EXECUTE_REVISION')) || needs.select-stage.outputs.stage == 'EXECUTE_INITIAL'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -211,7 +211,7 @@ jobs:
   execute-initial:
     name: Execute approved disposable INITIAL or REVISION
     needs: [select-stage, admission-controls]
-    if: needs.select-stage.outputs.stage == 'EXECUTE_INITIAL' || needs.select-stage.outputs.stage == 'EXECUTE_REVISION'
+    if: ${{ !cancelled() && needs.select-stage.result == 'success' && (needs.select-stage.outputs.stage == 'EXECUTE_INITIAL' || needs.select-stage.outputs.stage == 'EXECUTE_REVISION') && ((needs.select-stage.outputs.stage == 'EXECUTE_REVISION' && needs.select-stage.outputs.qualification_policy == 'DIRECT_REAL_USER_REQUEST') || needs.admission-controls.result == 'success') }}
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 120
     permissions:

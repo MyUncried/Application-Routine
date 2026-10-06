@@ -138,7 +138,7 @@
     "runtime_success_claimed": false,
     "browser_or_visual_gate": "NONE"
   },
-  "recorded_at": "2026-10-06T23:26:54.654817+00:00",
+  "recorded_at": "2026-10-06T23:44:20.078907+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
@@ -146,7 +146,7 @@
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "df2cfc406ac67c0b29b61bc6a4c7bfc9ae011bca",
   "controller_stage": "FIGMA_INITIAL_REQUESTED_AFTER_ABSOLUTE_PATH_CLARIFICATION_NO_DISPOSABLE_PREFLIGHT",
-  "controller_generation": 102,
+  "controller_generation": 103,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -517,11 +517,11 @@
   },
   "active_runs": [
     {
-      "run_id": 37546076263,
+      "run_id": 37546751570,
       "status": "completed",
-      "conclusion": "failure",
+      "conclusion": "success",
       "stage": "PREPARE_REVISION",
-      "controller_head": "1e1061f006cd3a2e9ed7c57beb4841305ec2a4bc"
+      "controller_head": "7992c924aa13cd3e6dc495814b9d15a78baf9152"
     }
   ],
   "obsolete_runs": [
@@ -2554,5 +2554,16 @@
     "new_request_id": "96c44f96-b631-48d4-832e-24efafa497f0",
     "generation": 70,
     "qualification_policy": "DIRECT_REAL_USER_REQUEST"
+  },
+  "revision_execution_20261007": {
+    "authorization": "USER_CONTINUE_PROTOCOL_20261007_014153_PARIS",
+    "plan_run": 37546751570,
+    "base_verdict": "REVISE",
+    "revision_verdict": "APPROVE",
+    "causal_outcome": "RESOLVED",
+    "stage": "HANDOFF_PREPARATION",
+    "qualification_policy": "DIRECT_REAL_USER_REQUEST",
+    "human_review_performed": false,
+    "application_published": false
   }
 }

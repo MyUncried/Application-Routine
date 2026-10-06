@@ -1,7 +1,7 @@
 # KODJO VNext — Projection transport de la revue
 
 Plan revu : technical-plan.md
-review_report_hash=fb0cfa59d6df0766c7665a63b42d58451a6b386f3bea1a95a40f31c10d036a1a
-plan_contract_hash=f45c4079a5a6e5e8248254361b6ff29d710290af8ec66f2b432ae913771317c2
+review_report_hash=051693443128e712966f0ba43ae9362238c0b1814f8fa2bc0607d7511c46dcbd
+plan_contract_hash=e3bea1e4fcfdf2edd67c9ff666da22a4b1b0d4800c78a26c4f26c36f9b59d903
 
 Verdict: APPROVED

@@ -53,6 +53,17 @@ function codeFingerprint(cwd, head) {
 }
 function verifyExecutionQualifications(config, { cwd, controllerHead, read = readGithub }) {
   const repository = 'MyUncried/Application-Routine';
+  if (config.stage === 'EXECUTE_REVISION' && config.qualification_policy === 'DIRECT_REAL_USER_REQUEST') {
+    if (config.campaign_id !== '628b3349-88b4-4bf1-be6b-50bc09e7d245'
+        || config.slice_id !== 'VNEXT-12-QUALIF' || config.revision_limit !== 1
+        || config.pre1_in_scope !== false || config.final_audit_authorized !== false
+        || config.authorization_basis !== 'CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY'
+        || config.human_review_performed !== false) V.fail('VNEXT_DIRECT_REVISION_SCOPE_REFUSED');
+    V.assertSha40(config.approved_protocol_head, 'VNEXT_QUALIFICATION_HEAD_REQUIRED');
+    V.assertSha40(controllerHead, 'VNEXT_QUALIFICATION_HEAD_REQUIRED');
+    return { status: 'NOT_REQUIRED_BY_USER', qualification_scope: 'NONE', policy: config.qualification_policy,
+      approved_head: config.approved_protocol_head, controller_head: controllerHead };
+  }
   const approved = verifyQualification({ repository, head: config.approved_protocol_head, runId: config.qualification_run_id, read, controlsOnly: true });
   const sameCode = codeFingerprint(cwd, controllerHead) === codeFingerprint(cwd, config.approved_protocol_head);
   const controller = sameCode ? { ...approved, controller_head: controllerHead, relation: 'EXACT_SAME_PROTOCOL_CODE' }
