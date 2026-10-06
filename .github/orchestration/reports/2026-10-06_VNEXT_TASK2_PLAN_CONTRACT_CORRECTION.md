@@ -29,3 +29,13 @@ PRESERVE : contrats et validations strictes, capture Figma, scope, consommateurs
 Seconde passe indépendante effectuée avant publication : diff final, compatibilité sans contrat optionnel, transport Windows borné, source documentaire cohérente, tests exacts, arbre/fenêtre de publication. Le hash final, l’état Git et le lancement observé seront consignés après les étapes correspondantes. Le commit de ce rapport est consultable par `git log -1 --format=%H -- .github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_CONTRACT_CORRECTION.md`.
 
 Relecture séparée : absence de contrat optionnel conserve les anciennes obligations et justification ; la matrice reste présente dans la copie de schéma transport ; les tests de chaîne vérifient que la commande reste inférieure à 8 000 caractères. Document, état et exigence sont issus des mêmes octets. Les alertes initiales ont été corrigées à leur source sans réutiliser la réponse rejetée.
+
+## Qualification lancée
+
+Correctif publié sur SHA 67d18be21e865846fac780351b34bc6cd4c636a3, arbre ebfbbcf1fcbd41ef98e3d35a42e5e0d806aeba85 identique au candidat local. Validation du tree : 420 sujets historiques, politique writers PASS_WITH_FROZEN_LEGACY, aucun bloc PowerShell changé. Fenêtre HEAD/checkpoint et pagination de 186 runs vérifiées avant publication. Branche dédiée créée une fois ; qualification 37395284603 sur le SHA exact, événement create. Aucun nouvel UUID runtime ni appel Claude encore lancé. Checkpoint et preuves de lancement conservés localement pendant cette qualification.
+
+## Qualification acquise et nouvelle demande
+
+Run 37395284603 entièrement SUCCESS, candidat exact 67d18be21e865846fac780351b34bc6cd4c636a3, attempt 1 et cinq jobs requis VERIFIED par le validateur canonique. Contrats : 318/318 PASS sur Linux et Windows, zéro échec et zéro SKIP. Correspondance historique : 1 085 cas, Linux 1 084 PASS/1 SKIP, Windows 1 082 PASS/3 SKIP ; réserves historiques conservées. Archives des deux plateformes téléchargées, intégrité ZIP, empreintes GitHub et SHA exact vérifiés. Comparaison finale croisée PASS.
+
+Nouvelle demande 96c53d61-f780-41dc-afb7-3c1f992c910f, génération 51, même campagne FIGMA_INITIAL et même limite d’une correction causale. Ancien UUID 7576668a-8e6a-4678-a9b9-36698847d7f1 consommé, jamais rejoué. Publication runtime encore à effectuer après validation du tree, fenêtre HEAD/checkpoint/runs et identité exacte du code qualifié.

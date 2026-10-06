@@ -1,0 +1,34 @@
+{
+  "status": "VERIFIED",
+  "candidate_head": "67d18be21e865846fac780351b34bc6cd4c636a3",
+  "run_id": "37395284603",
+  "run_attempt": 1,
+  "jobs": [
+    {
+      "id": 112049678601,
+      "name": "historical-equivalence (windows-latest)",
+      "conclusion": "success"
+    },
+    {
+      "id": 112049678833,
+      "name": "qualification (windows-latest)",
+      "conclusion": "success"
+    },
+    {
+      "id": 112049678839,
+      "name": "historical-equivalence (ubuntu-latest)",
+      "conclusion": "success"
+    },
+    {
+      "id": 112049678902,
+      "name": "qualification (ubuntu-latest)",
+      "conclusion": "success"
+    },
+    {
+      "id": 112052651881,
+      "name": "historical-platform-coverage",
+      "conclusion": "success"
+    }
+  ],
+  "observed_at": "2026-10-06T00:52:44.632Z"
+}

@@ -1,0 +1,28 @@
+{
+  "status": "VALIDATED",
+  "expected_parent": "297c875f3bad9c95a1ad004b18bea933ae4763f0",
+  "candidate_tree": "ebfbbcf1fcbd41ef98e3d35a42e5e0d806aeba85",
+  "changed_paths": [
+    ".github/orchestration/KODJO_VNEXT_HISTORICAL_EQUIVALENCE.json",
+    ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_CONTRACT_CORRECTION.md",
+    ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_REVIEW_CORRECTION.md",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/campaign-state.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-contract-fix-20261006/local-evidence.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-contract-fix-20261006/local-logs.zip",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-contract-fix-20261006/precheck.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/review-fix-20261006/runtime-37391444927.zip",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/review-fix-20261006/runtime-launch.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/review-fix-20261006/runtime-result.json",
+    ".github/workflows/kodjo-vnext-proof-stability.yml",
+    "scripts/kodjo/lib/review-contract.js",
+    "scripts/kodjo/lib/vnext-figma-recipe.js",
+    "scripts/kodjo/lib/vnext-live-chain.js",
+    "scripts/kodjo/qualify-vnext-figma-real-path.js",
+    "tests/kodjo/vnext-figma-browser-observer.pilot.js",
+    "tests/kodjo/vnext-review-contract.pilot.js"
+  ],
+  "targeted_tests": [],
+  "powershell_changed_units": 0,
+  "writer_policy": "PASS_WITH_FROZEN_LEGACY",
+  "historical_subjects": 420
+}

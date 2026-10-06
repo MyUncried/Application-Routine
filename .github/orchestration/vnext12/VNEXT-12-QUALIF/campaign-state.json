@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-06T00:39:00.281460+00:00",
+  "recorded_at": "2026-10-06T00:53:15.610434+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "434adeef6d42e861a3dbee7c6236e77cc1ba74f9",
-  "controller_stage": "FIGMA_TASK2_PLAN_CONTRACT_CORRECTED_QUALIFICATION_PENDING",
-  "controller_generation": 66,
+  "controller_stage": "FIGMA_TASK2_PLAN_CONTRACT_QUALIFIED_RUNTIME_READY",
+  "controller_generation": 68,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -1935,9 +1935,52 @@
       "OBSERVABLE_BOOLEAN_STATE"
     ],
     "local_precheck": "PASS",
-    "fresh_qualification_required": true,
+    "fresh_qualification_required": false,
     "runtime_launched": false,
     "task3_authorized": false,
-    "closure_authorized": false
+    "closure_authorized": false,
+    "candidate_head": "67d18be21e865846fac780351b34bc6cd4c636a3",
+    "qualification_run": 37395284603,
+    "qualification_status": "VERIFIED",
+    "qualification_launch_count": 1,
+    "qualification_jobs": 5,
+    "historical_counts": {
+      "Linux": {
+        "tests": 1085,
+        "failed": 0,
+        "passed": 1084,
+        "cancelled": 0,
+        "skipped": 1,
+        "todo": 0,
+        "topLevel": 1072,
+        "suites": 0
+      },
+      "Windows": {
+        "tests": 1085,
+        "failed": 0,
+        "passed": 1082,
+        "cancelled": 0,
+        "skipped": 3,
+        "todo": 0,
+        "topLevel": 1072,
+        "suites": 0
+      }
+    },
+    "contracts_linux": {
+      "tests": 318,
+      "pass": 318,
+      "fail": 0,
+      "skip": 0
+    },
+    "contracts_windows": {
+      "tests": 318,
+      "pass": 318,
+      "fail": 0,
+      "skip": 0
+    },
+    "new_request_id": "96c53d61-f780-41dc-afb7-3c1f992c910f",
+    "request_generation": 51,
+    "runtime_launch_count": 0,
+    "next_action": "PUBLISH_FRESH_RUNTIME_REQUEST_ON_EXACT_SAME_QUALIFIED_CODE"
   }
 }
