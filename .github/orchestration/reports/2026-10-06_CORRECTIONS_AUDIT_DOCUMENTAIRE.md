@@ -56,3 +56,7 @@ Restes : confirmer dans la session Figma de référence la persistance des 24 re
 - `docs/archives/cadence-2026-10-06/audit-dsf-seconde-passe-source.md`
 - `docs/archives/cadence-2026-10-06/brief-alignement-code-v2.1-source.md`
 - `docs/archives/cadence-2026-10-06/plan-documentaire-valide-source.md`
+
+## Mise à jour ultérieure du suivi — F-09 et F-14
+
+Ce rapport conserve les constats de son contrôle initial. La réserve F-09 a ensuite été levée par [vérification directe](2026-10-06_VERIFICATION_F09_REPERES.md), commit `145b9ed4046e9235b9902e247194ea8116022e13`. F-14 est désormais **archivé, réserve de version levée** : deux états successifs du brief expliqués par Claude ; référence retenue = brief reçu archivé, journal prioritaire sur l’annexe G. La preuve de comparaison caractère pour caractère est celle de Claude, non rejouée ici. Voir [clarification F-14](2026-10-06_CLARIFICATION_F14_BRIEF.md). Il n’est plus nécessaire d’obtenir sa copie pour désigner la référence du lot code.
