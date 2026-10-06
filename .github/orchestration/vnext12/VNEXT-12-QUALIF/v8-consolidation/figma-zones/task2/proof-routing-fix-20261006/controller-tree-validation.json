@@ -1,0 +1,21 @@
+{
+  "status": "VALIDATED",
+  "expected_parent": "bd34c389e46191670d0ec446cadd6826720282e9",
+  "candidate_tree": "dbdba68707c5fc2a9af1e124290a749596425cf2",
+  "changed_paths": [
+    ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_COMPLETION_FIX.md",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/campaign-state.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/request.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/proof-routing-fix-20261006/native-tree-validation.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/proof-routing-fix-20261006/precheck.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/proof-routing-fix-20261006/qualification-admission.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/proof-routing-fix-20261006/qualification-jobs.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/proof-routing-fix-20261006/qualification-linux-excerpt.log",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/proof-routing-fix-20261006/qualification-windows-excerpt.log",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/proof-routing-fix-20261006/targeted-tests.log"
+  ],
+  "targeted_tests": [],
+  "powershell_changed_units": 0,
+  "writer_policy": "PASS_WITH_FROZEN_LEGACY",
+  "historical_subjects": 420
+}
