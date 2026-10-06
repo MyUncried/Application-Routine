@@ -8,7 +8,7 @@
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "c30c57682a7864b5b548a2470c6f514b849bdf37",
   "controller_stage": "FIGMA_REAL_INITIAL_RELAUNCH_AFTER_PLAN_COMPLETION",
-  "controller_generation": 91,
+  "controller_generation": 92,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -2212,21 +2212,21 @@
   },
   "task2_plan_completion_fix_20261006": {
     "authorization": "USER_2026-10-06_10:59_PARIS_APPLY_FIXES_AND_AUTOMATIC_RELAUNCH",
-    "stage": "INLINE_MARKUP_REVIEW_FAILED_DIAGNOSED",
+    "stage": "NO_HTML_GATE_REAL_PATH_REQUEST_READY",
     "report": ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_COMPLETION_FIX.md",
     "prior_runtime_run": 37435583811,
     "prior_pilot_run": 37435583847,
-    "runtime_launched": true,
-    "qualification_branch": "qualification/vnext-task2-inline-contract-20261006",
-    "qualification_launch_count": 7,
+    "runtime_launched": false,
+    "qualification_branch": "qualification/vnext-task2-no-html-gate-20261006",
+    "qualification_launch_count": 8,
     "runtime_launch_count": 5,
     "task3_authorized": false,
     "closure_authorized": false,
-    "candidate_head": "8e6aafebd659dcbbf5a7890dad07bbf4def524dc",
-    "qualification_run": 37459797714,
+    "candidate_head": "187b8846ff22981c9c79662eb453ec77fdc3fd32",
+    "qualification_run": 37465935126,
     "qualification_status": "SUCCESS",
-    "new_request_id": "6e37c0c2-45e6-4655-bae9-fe5914f2fe11",
-    "request_generation": 59,
+    "new_request_id": "0e6f24e7-595a-4fce-b113-d9b2bf89494b",
+    "request_generation": 60,
     "request_published": true,
     "qualification_attempts": [
       {
@@ -2285,14 +2285,14 @@
     ],
     "contracts": {
       "Linux": {
-        "tests": 341,
-        "pass": 341,
+        "tests": 338,
+        "pass": 338,
         "fail": 0,
         "skip": 0
       },
       "Windows": {
-        "tests": 341,
-        "pass": 341,
+        "tests": 338,
+        "pass": 338,
         "fail": 0,
         "skip": 0
       }
@@ -2300,8 +2300,8 @@
     "runtime_startup_run": 37443238973,
     "runtime_status": "FAILURE",
     "controller_head": "189cf014d5790bff405fed0c365a566b5f97cd4c",
-    "request_consumed": true,
-    "claude_invoked": true,
+    "request_consumed": false,
+    "claude_invoked": null,
     "sequence_fix": {
       "cause": "REUSABLE_CALLEE_UNUSED_JOB_REQUIRES_WRITE",
       "origin_commit": "e72309a30792b573d604b987edba351732aa3099",
@@ -2322,9 +2322,9 @@
     "recovery_artifact_id": 11408440209,
     "previous_request_consumed": true,
     "previous_request_id": "6ea7b481-9de4-463a-a79b-26327a2bbcca",
-    "claude_verdict": "REVISE",
-    "claude_duration_ms": 678876,
-    "blocking_findings": 3,
+    "claude_verdict": null,
+    "claude_duration_ms": null,
+    "blocking_findings": null,
     "latest_completed_runtime": {
       "run_id": 37460970429,
       "controller_head": "189cf014d5790bff405fed0c365a566b5f97cd4c",
@@ -2336,6 +2336,6 @@
       "implementation_exercised": false,
       "historical_tests_exercised": false
     },
-    "native_validation_job": 112256226455
+    "native_validation_job": 112276836952
   }
 }
