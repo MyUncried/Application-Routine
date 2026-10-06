@@ -1,5 +1,28 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
+  "resource_integrity_recovery_20261006": {
+    "failed_run_id": 37520798420,
+    "failed_controller_head": "8bc773a9992ee5c88248d3ce15562a48cc71f000",
+    "failure_diagnostic": "VNEXT_FIGMA_REVIEW_RESOURCES_UNCOVERED",
+    "actual_model_verdict": "APPROVE",
+    "actual_functional_test": "PASS",
+    "expected_resources": 4,
+    "declared_resources": 5,
+    "extra_hash_is_execution_artifact": true,
+    "correction": "Actual file-byte integrity is computed by orchestration; model consultation declarations no longer block approval.",
+    "qualification_head": "4280eefa7f94c0989154d626e038b6d0c18fb9c3",
+    "qualification_run_id": 37533961912,
+    "qualification_status": "SUCCESS",
+    "qualification_evidence": ".github/orchestration/reports/evidence/37533961912/corrected-qualification.json",
+    "remote_controls": {"Linux": {"pass": 369, "fail": 0, "skip": 0}, "Windows": {"pass": 369, "fail": 0, "skip": 0}},
+    "request_id": "59fda9ab-a754-43e7-878c-d7c73b05f420",
+    "request_generation": 66,
+    "local_controls": {"pass": 369, "fail": 0, "skip": 0},
+    "report": ".github/orchestration/reports/2026-10-06_VNEXT_DETERMINISTIC_RESOURCE_INTEGRITY.md",
+    "reading_attested": false,
+    "browser_or_visual_gate": "NONE",
+    "runtime_success_claimed": false
+  },
   "plan_review_recovery_20261006": {
     "failed_run_id": 37516102783,
     "failed_controller_head": "f776cf813dffd8800c7645cb4438e003562b6989",
@@ -43,15 +66,15 @@
     "runtime_success_claimed": false,
     "browser_or_visual_gate": "NONE"
   },
-  "recorded_at": "2026-10-06T19:36:51.928Z",
+  "recorded_at": "2026-10-06T21:29:24.612Z",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au r\u00e9sultat r\u00e9el, diagnostiquer/corriger/relancer les \u00e9checs techniques ; solliciter uniquement une validation m\u00e9tier.",
-  "code_head_before_checkpoint": "67bafd3371e59f2d95c91f566d793c69346a825c",
-  "controller_stage": "FIGMA_INITIAL_REQUESTED_AFTER_PLAN_REVIEW_CORRECTION",
-  "controller_generation": 97,
+  "code_head_before_checkpoint": "4280eefa7f94c0989154d626e038b6d0c18fb9c3",
+  "controller_stage": "FIGMA_INITIAL_REQUESTED_AFTER_DETERMINISTIC_RESOURCE_CORRECTION",
+  "controller_generation": 98,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -422,11 +445,11 @@
   },
   "active_runs": [
     {
-      "run_id": 37516102783,
+      "run_id": 37520798420,
       "status": "completed",
       "conclusion": "failure",
       "stage": "FIGMA_INITIAL",
-      "controller_head": "f776cf813dffd8800c7645cb4438e003562b6989"
+      "controller_head": "8bc773a9992ee5c88248d3ce15562a48cc71f000"
     }
   ],
   "obsolete_runs": [

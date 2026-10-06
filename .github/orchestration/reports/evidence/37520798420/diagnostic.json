@@ -1,0 +1,19 @@
+{
+  "run_id": 37520798420,
+  "controller_head": "8bc773a9992ee5c88248d3ce15562a48cc71f000",
+  "artifact_id": 11440353152,
+  "archive_sha256": "fbaa498a98b7bdd8666735cb62eff8ce19c7a817d9177e727db3a3d786c8b56b",
+  "actual_review_verdict": "APPROVE",
+  "actual_review_session": "f830a082-5b59-452c-a020-c551d163eb42",
+  "expected_resource_sha256": [
+    "740962f17a355f8cc1fe208e2cdf0639bad3709430849f12d3dd4f4c76ec5649",
+    "6875dc1f6fa987323400f3682096901c38d26dc722124edd817dfaee4514b9a7",
+    "dd9a0d8503396194e29565a9492d1325ca0f89b1895f78305ebdb8ea3627b6bd",
+    "538cf40b4552fa33185f798f568f9a63207a48e60c33473fc1b23455aa895027"
+  ],
+  "extra_declared_sha256": "ca71bb85baaa6c8f844e9455759b14f3ac076c4daf02d37ac9b5fe1fcb59d56f",
+  "extra_matches_actual_execution_json_bytes": true,
+  "corrected_assessment_validation": "APPROVE",
+  "old_run_reclassified": false,
+  "reading_attested": false
+}

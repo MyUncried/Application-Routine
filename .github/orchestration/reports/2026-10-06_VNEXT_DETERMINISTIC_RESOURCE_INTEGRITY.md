@@ -25,4 +25,10 @@ L'intégrité mécanique n'atteste pas que Claude a lu chaque fichier et ne gara
 
 32 tests ciblés passent. Trois régressions couvrent l'absence de déclaration du modèle, le fichier d'exécution supplémentaire dans une ancienne déclaration et le rejet d'une altération réelle sans écriture d'un reçu de succès.
 
-Qualification complète, publication et relance : en cours. Les identifiants et résultats seront consignés après observation.
+Suite locale complète : **369 PASS, 0 FAIL, 0 SKIP**. Même code dans le commit local `7e4932aee21d685354198cf365c7faf7f20ce964` et le candidat distant `4280eefa7f94c0989154d626e038b6d0c18fb9c3` (empreinte du protocole `5f58a0a6d3a3766118aca4ac2e19ca781afc5957e5951ec0523e04621ffd524f`).
+
+Qualification distante `37533961912` : **SUCCESS**, 369 PASS / 0 FAIL / 0 SKIP sur Linux et sur Windows ; validation native Windows PowerShell 5.1 passée. Résultats réels et certificat dans `evidence/37533961912/`. Audit d'architecture et historique sautés dans cette qualification préalable.
+
+Nouvelle demande : génération 66, identifiant `59fda9ab-a754-43e7-878c-d7c73b05f420`, étape FIGMA_INITIAL, même code qualifié. La séquence reste contrôles automatiques → parcours Claude → historique seulement si le parcours réussit.
+
+Publication et démarrage du parcours réel : en cours. Aucun succès du parcours réel n'est revendiqué à ce stade.
