@@ -19,6 +19,7 @@ jobs:
     outputs:
       stage: ${{ steps.stage.outputs.stage }}
       approved_head: ${{ steps.stage.outputs.approved_head }}
+      qualification_policy: ${{ steps.stage.outputs.qualification_policy }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,7 +35,7 @@ jobs:
           if (!['PREPARE_INITIAL', 'EXECUTE_INITIAL', 'EXECUTE_REVISION', 'QUALIFY_ONLY', 'PREPARE_REVISION', 'FIGMA_INITIAL'].includes(c.stage) || c.pre1_in_scope !== false || c.final_audit_authorized !== false || c.revision_limit !== 1) throw Error('VNEXT12_STAGE_REFUSED');
           if (c.stage === 'FIGMA_INITIAL') require('./scripts/kodjo/qualify-vnext-figma-real-path').validateConfig(c);
           if (['EXECUTE_INITIAL', 'EXECUTE_REVISION'].includes(c.stage)) require('./scripts/kodjo/execute-vnext12').validateConfig(c);
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'stage=' + c.stage + '\napproved_head=' + c.approved_protocol_head + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'stage=' + c.stage + '\napproved_head=' + (c.approved_protocol_head || '') + '\nqualification_policy=' + (c.qualification_policy || '') + '\n');
           JS
       - name: Check the disposable supervisor before any runtime execution
         if: steps.stage.outputs.stage == 'EXECUTE_INITIAL' || steps.stage.outputs.stage == 'EXECUTE_REVISION' || steps.stage.outputs.stage == 'QUALIFY_ONLY' || steps.stage.outputs.stage == 'PREPARE_REVISION'
@@ -42,7 +43,7 @@ jobs:
   admission-controls:
     name: 1 - Verify exact automatic controls
     needs: select-stage
-    if: needs.select-stage.outputs.stage == 'FIGMA_INITIAL' || needs.select-stage.outputs.stage == 'EXECUTE_INITIAL' || needs.select-stage.outputs.stage == 'EXECUTE_REVISION'
+    if: (needs.select-stage.outputs.stage == 'FIGMA_INITIAL' && needs.select-stage.outputs.qualification_policy != 'DIRECT_REAL_USER_REQUEST') || needs.select-stage.outputs.stage == 'EXECUTE_INITIAL' || needs.select-stage.outputs.stage == 'EXECUTE_REVISION'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -271,7 +272,7 @@ jobs:
   figma-initial:
     name: Real Figma INITIAL and one bounded correction
     needs: [select-stage, admission-controls]
-    if: needs.select-stage.outputs.stage == 'FIGMA_INITIAL'
+    if: always() && needs.select-stage.result == 'success' && needs.select-stage.outputs.stage == 'FIGMA_INITIAL' && (needs.select-stage.outputs.qualification_policy == 'DIRECT_REAL_USER_REQUEST' || needs.admission-controls.result == 'success')
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 120
     permissions:

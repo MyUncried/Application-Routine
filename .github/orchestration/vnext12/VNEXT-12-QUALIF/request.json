@@ -4,14 +4,13 @@
   "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
   "revision_limit": 1,
   "preparation_generation": 17,
-  "generation": 66,
+  "generation": 67,
   "preflight_format": "VNEXT_EXECUTION_REQUEST",
   "final_audit_authorized": false,
   "pre1_in_scope": false,
   "revision_scenario": "DECLARED_NEGATIVE_PLAN_THEN_ONE_CAUSAL_CORRECTION",
-  "approved_protocol_head": "4280eefa7f94c0989154d626e038b6d0c18fb9c3",
-  "qualification_run_id": 37533961912,
-  "request_id": "59fda9ab-a754-43e7-878c-d7c73b05f420",
+  "qualification_policy": "DIRECT_REAL_USER_REQUEST",
+  "request_id": "0ac56f59-a1a2-4d76-849e-ec3fac61f75c",
   "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
   "human_review_performed": false
 }

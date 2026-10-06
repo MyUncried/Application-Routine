@@ -68,6 +68,10 @@ Ne pas remplacer ou écraser les rapports antérieurs correspondant à une autre
 
 ## Diagnostic historique obligatoire de VNext
 
+### Parcours demandé : pas de relance du test jetable
+
+Instructions utilisateur des 6 et 7 octobre 2026 : ne plus relancer le test jetable ni les qualifications Linux/Windows ; passer directement au parcours réel après correction. Ne lancer aucun parcours jetable, préflight jetable, session Claude préalable, matrix de qualification ou audit d'architecture préalable. Pour la tâche 2, utiliser FIGMA_INITIAL avec qualification_policy=DIRECT_REAL_USER_REQUEST : select-stage puis Real Figma INITIAL, sans admission-controls ni qualify-driver. Les vérifications de syntaxe et de publication restent des vérifications locales de fichiers ; elles ne doivent pas déclencher les suites de qualification. Conserver les protections d'identité du runner, de tête Git, de demande unique, de portée et les vérifications exécutées pendant le parcours réel. Aucun navigateur ni contrôle visuel. L'historique ne démarre qu'après succès du réel. Ne pas présenter une qualification comme une preuve du réel.
+
 ### Validation visuelle : règle utilisateur du 6 octobre 2026
 
 Le parcours de test VNext, ses qualifications automatiques et ses tests historiques ne doivent lancer aucun navigateur ni contrôler automatiquement un rendu HTML, une géométrie, des pixels ou des captures. Aucun contrôle visuel humain n’est non plus requis dans les tests jetables ou réels du protocole. Les vérifications visuelles réalisées exclusivement par l’utilisateur concernent le développement du produit, pas une étape de ces tests. Une lecture de sources Figma n’est pas une validation visuelle. Ne jamais déclarer une preuve visuelle PASS à partir des tests fonctionnels. Toute réintroduction d’un navigateur, d’un contrôle automatique de rendu ou d’un gate visuel humain dans ces tests nécessite une nouvelle autorisation utilisateur explicite ; une réserve de revue ne l’autorise pas.

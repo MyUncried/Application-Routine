@@ -35,8 +35,11 @@ function scopedPacket(observed,doc){
 function capture(packet,scope){return {launch_id:scope.launch_id,file_key:packet.file_key,captured_at:packet.captured_at,frames:packet.frames,inventories:[{end:true,count:packet.nodes.length,rows:packet.nodes.map(n=>[n.id,n.parent_id,n.type,n.name])}],batches:[{end:true,requested_ids:packet.nodes.map(n=>n.id),rows:packet.nodes.map(n=>({id:n.id,child_ids:n.child_ids,properties:n.properties}))}],variables:packet.variables,collections:packet.collections,resources:packet.resources};}
 function validateConfig(c){
  if(c.stage!=='FIGMA_INITIAL'||c.campaign_id!==CAMPAIGN||c.slice_id!=='VNEXT-12-QUALIF'||c.revision_limit!==1||c.pre1_in_scope!==false||c.final_audit_authorized!==false||c.authorization_basis!=='CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY'||c.human_review_performed!==false)V.fail('VNEXT_FIGMA_REAL_CONFIG_REFUSED');
- V.assertSha40(c.approved_protocol_head,'VNEXT_FIGMA_REAL_QUALIFIED_HEAD_REQUIRED');
- if(!/^[1-9][0-9]*$/.test(String(c.qualification_run_id))||! /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(c.request_id||''))V.fail('VNEXT_FIGMA_REAL_REQUEST_REQUIRED');
+ if(c.qualification_policy!=='DIRECT_REAL_USER_REQUEST'){
+  V.assertSha40(c.approved_protocol_head,'VNEXT_FIGMA_REAL_QUALIFIED_HEAD_REQUIRED');
+  if(!/^[1-9][0-9]*$/.test(String(c.qualification_run_id)))V.fail('VNEXT_FIGMA_REAL_REQUEST_REQUIRED');
+ }
+ if(! /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(c.request_id||''))V.fail('VNEXT_FIGMA_REAL_REQUEST_REQUIRED');
  return c;
 }
 function claimRequest(config,{cwd,env=process.env,read,stateRoot}={}){
@@ -46,7 +49,9 @@ function claimRequest(config,{cwd,env=process.env,read,stateRoot}={}){
  if(env.KODJO_FIGMA_CONTROLLER_HEAD!==head)V.fail('VNEXT_FIGMA_REAL_CONTROLLER_HEAD_MISMATCH');
  const Q=require('./lib/vnext-github-qualification'),get=read||Q.readGithub;
  if(get('repos/MyUncried/Application-Routine/pulls/269').head?.sha!==head)V.fail('VNEXT_FIGMA_REAL_REMOTE_HEAD_MOVED');
- const qualifications=Q.verifyExecutionQualifications(config,{cwd,controllerHead:head,read:get});
+ const qualifications=config.qualification_policy==='DIRECT_REAL_USER_REQUEST'
+  ? {status:'NOT_REQUIRED_BY_USER',qualification_scope:'NONE',controller_head:head,policy:config.qualification_policy}
+  : Q.verifyExecutionQualifications(config,{cwd,controllerHead:head,read:get});
  const directory=path.join(stateRoot||path.join(os.homedir(),'.kodjo-vnext12'),CAMPAIGN,'figma',config.request_id);fs.mkdirSync(directory,{recursive:true});
  const claim={campaign_id:CAMPAIGN,request_id:config.request_id,controller_head:head,qualified_head:config.approved_protocol_head,run_id:env.GITHUB_RUN_ID,run_attempt:env.GITHUB_RUN_ATTEMPT,qualifications,started_at:new Date().toISOString()};
  const fd=fs.openSync(path.join(directory,'started.json'),'wx',0o600);try{fs.writeFileSync(fd,JSON.stringify(claim,null,2)+'\n');fs.fsyncSync(fd);}finally{fs.closeSync(fd);}
