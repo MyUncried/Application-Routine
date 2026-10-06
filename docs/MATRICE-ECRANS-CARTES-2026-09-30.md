@@ -143,7 +143,7 @@ Matrice des cartes actualisée le04/10/2026 après D-260 à D-264 ; relevés com
 | Appui | D-237 : dilatation centrée, action immédiate au relâchement ; sortie de cible annule ; réduction des animations par opacité |
 | Commandes contextuelles |34 visibles,20 dessin,44 cible ; gap12 ou10 Composition ; Aujourd’hui/Planifier Calendrier32 acceptés aprèsT04 |
 | Segmenté trois choix |354 sur402, marges24, padding4, gaps4, options112,67 ; pas de généralisation aux autres sélecteurs |
-| Sélection | #0508E5 / #5C636E / #C2C4D1 ; Ressenti/statuts/boutons à fond coloré exclus |
+| Sélection | #0508E5 / #595E66 (iconNeutral/textSecondary ; ancien #5C636E historique) / #C2C4D1 ; Ressenti/statuts/boutons à fond coloré exclus |
 | Données | Pas d’inférence depuis les exemples ; données/calculs préservés malgré retrait de textes de carte |
 
 ## Documents mis à jour à leur emplacement

@@ -27,6 +27,7 @@ Les comptes du journal50styles ou ceux du04/09 ne sont pas des mesures simultan�
 | navigation/pill | surfaceSubtle#F9FAFC | Surface de navigation |
 | textLabel | color/text-label#46464C | Libellés secondaires selon contexte |
 | textTertiary | color/text-tertiary#7A7A80 | Texte tertiaire |
+| cardsBorder | color/cards/border#CCD1E0 | Bordure renforcée des cartes |
 | onPrimary | color/on-primary#FFFFFF | Texte/icône sur primaire |
 | primarySoft | color/primary-soft#8283F2 | Décor ; ne remplace pas selection#5F60EE pour du texte blanc normal |
 | calendarMarker | color/calendar-marker#1F9E7A | Point de séance Calendrier ; positive#4F9F83 conservé ailleurs |
@@ -39,17 +40,32 @@ Les comptes du journal50styles ou ceux du04/09 ne sont pas des mesures simultan�
 
 Fusions déclarées par le journal§5.3 :
 
-| Token supprimé | Cible |
-|---|---|
-|color/cards/badge|color/surface|
-|color/cards/surface|color/surface-subtle|
-|color/cards/archive-surface|color/surface|
-|color/progress-track|color/disabled|
-|color/text-muted|color/text-tertiary|
-|color/card-surface|color/background|
-|color/stroke-inverse|color/on-primary|
-|color/icon-on-primary|color/on-primary|
+| Token supprimé | Ancienne valeur | Cible | Valeur courante | Écart source | Usage |
+|---|---|---|---|---:|---|
+| color/cards/badge | #F4F4F8 | color/surface | #F5F7FA | 4 | Badge replié |
+| color/cards/surface | #FCFCFE | color/surface-subtle | #F9FAFC | 4 | Surface des cartes |
+| color/cards/archive-surface | Non précisée dans la source | color/surface | #F5F7FA | 4 | Surface archivée |
+| color/progress-track | #BABDD1 | color/disabled | #BEC2CC | 8 | Repères chronomètre |
+| color/text-muted | #6B6E7A | color/text-tertiary | #7A7A80 | 20 | Texte atténué |
+| color/card-surface | #FFFFFF | color/background | #FFFFFF | 0 | Surface blanche |
+| color/stroke-inverse | #FFFFFF | color/on-primary | #FFFFFF | 0 | Traits inverses |
+| color/icon-on-primary | #FFFFFF | color/on-primary | #FFFFFF | 0 | Icônes sur primaire |
 
+Les écarts sont ceux du journal, pas une nouvelle mesure colorimétrique. `color/text-on-primary` est renommé `color/on-primary` : rôle étendu aux textes, formes et traits.
+
+### Opacités de présentation
+
+Valeurs du journal §7.1/§9 et du brief annexe H ; aucune nouvelle règle métier. L’opacité d’un nœud et celle de son remplissage sont distinctes.
+
+| Élément | Couleur / opacité | Portée |
+|---|---|---|
+| Contrôle segmenté | Blanc, remplissage 50 % | Surface du contrôle |
+| Tri DSF | Blanc 72 % ; trait disabled #BEC2CC 75 % | Master 34 × 34, rayon 17 |
+| Rappel / Option | #FBFAF7, 82 % | Fond de l’option |
+| Repères principaux 3 h / 6 h / 9 h | disabled #BEC2CC, remplissage 62 % | Cible ; persistance actuelle F-09 non certifiée |
+| 16 petits traits du chronomètre | Nœud 40 % | Variantes visibles ; variantes masquées d’animation restent à 0 % |
+| Libellé Renforcement… | textTertiary #7A7A80, 75 % | Usage contextualisé |
+| Textes de roulette périphériques | #1A1A1F, 20 % ou 45 % selon rangée | Ne pas appliquer indistinctement à la sélection centrale |
 
 ## 3. Typographie par rôle
 
@@ -79,14 +95,14 @@ Cadence : ligne commune REPETITIONS, valeur Aucune ou secondes, sous la cible un
 
 Phrase unique Inter13/20, valeurs en gras ; zone entière cliquable ; aucun segment éditable. Les textes des frames13/14/phrase longue servent de témoins de layout ; Phrase v1 gouverne le texte généré et le calcul métier fournit le total. Leur harmonisation éditoriale Figma est facultative pour le développement tant que le layout ne change pas. Les états avant/après nominal et Pause/Reprise réemploient le layout d’exécution ; les spécifications suffisent, sans trois frames supplémentaires exigées.
 
-Séance sans photo ; liste mixte sans photo ; Exercice Catalogue/choix garde la gouttière64, premier média ou icône, hauteur inchangée. Circuit structure de Séance et N tours répétition ; «N circuits» présent dans un exemple serait un écart de libellé, pas une nouvelle règle. Catalogue : Parcours, hors MVP ; ancien arbre Un circuit retiré.
+Séance sans photo ; liste mixte sans photo ; Exercice Catalogue/choix garde la gouttière64, premier média ou icône, hauteur inchangée. Circuit structure de Séance et N tours répétition ; «N circuits» sur l’écran de composition `4893:6675` est un écart de libellé, pas une nouvelle règle. Catalogue : Parcours, hors MVP ; ancien arbre Un circuit retiré.
 
 ## 5. Corrections A01–A15 : provenance et suite
 
 | ID | Statut documentaire courant | Preuve / limite |
 |---|---|---|
-| A01 | Correction déclarée :6 repères revenus à62% | Rapport ; pas de prétention de nouvelle revue indépendante complète |
-| A02 | Réparation manuelle confiée au propriétaire, non démontrée | Rapport contradictoire entre§1 et§5 ; base410/285 conservée comme mesure datée ; non bloquant pour développement |
+| A01 | Correction initiale non persistante à l’audit ; nouvelle correction de 24 repères déclarée par le propriétaire | 12 sur Prototype MVP, incluant 6452:10120/10201, et 12 sur Communautaire (6464:18896/18926/19023/19053). La lecture accessible du 06/10 renvoie encore 100 % de remplissage sur ces instances et 6452:10039/9958 ; divergence de persistance ou de session non résolue, aucun changement Figma effectué ici |
+| A02 | Clos par décision du propriétaire : recréation manuelle en temps voulu | Les §1 et §5 du rapport sont cohérents ; base410/285 datée. Présence des interactions non contrôlée et non requise pour le développement |
 | A03 | Mapping partiel, sources probables | Comparaison de tracés nécessaire avant manifeste canonique |
 | A04 | Dimensions navigation à qualifier | Sources et viewBox divergent du manifeste ; conserver exports existants |
 | A05 | Code à aligner | Plus/moins textuels de ProfileStepper, aucun correctif code dans cette PR |
@@ -138,3 +154,50 @@ Les exports courants sont déposés et tracés dans [figma-current-exports.json]
 Exports SVG_STRING directs, XML/viewBox et empreintes vérifiés, rendu des sept sources relu. Aucun dessin recréé approximativement. Les nouveaux fichiers sont disponibles pour le lot code ; le manifeste historique consommé par l’application et le branchement runtime restent inchangés. Les différences de dimensions des anciennes navigations sont un écart à résoudre lors de cet alignement, pas une absence d’assets.
 
 Les interactions du prototype sont hors conditions de livraison documentaire ou de développement : le journal§7 en confie déjà la reprise au propriétaire, sans impact sur le développement. Aucun contrôle de présence d’interactions supplémentaire n’est requis.
+
+Les SVG exportés conservent les couleurs littérales de Figma (#1F2023 suivant/précédent, #141414 fermer/retour, #9499A8 tri, #595E66 photo, #0508E5 ajouter). Lors du futur branchement runtime, leur teinte doit être fournie par le token correspondant au rôle et à l’état ; ne pas transformer ces littéraux en nouvelles couleurs canoniques. Les exports sources restent intacts.
+
+## 7. Correspondance des composants après rationalisation
+
+Noms et identifiants relus directement dans Figma le 06/10. Les 659 migrations et 31 familles restaurées sont des volumes du journal §6, pas un recomptage des instances. Les 13 lignes ci-dessous détaillent les familles archivées, y compris le bouton désactivé séparé ; les anciennes déclinaisons Segmenté /3/1 et /2/1 suivent le même set cible. L’archive contient également les trois masters résiduels : sa taille ne doit pas être confondue avec le nombre de familles fusionnées.
+
+| Ancien nom archivé | Nom courant | Identifiant | Variantes / exception |
+|---|---|---|---|
+| Controls / Switch — Source exact | DSF / Controls / Interrupteur | `5544:4632` | Actif / Inactif |
+| Controls / Disclosure — Source exact | DSF / Controls / Disclosure | `5544:4650` | Replié / Déployé / Désactivé |
+| Modal / Header Action — Source exact | DSF / Actions / Fermer et valider | `5544:4541` | Fermer / Valider |
+| Header / Sound Control — Source exact | DSF / Controls / Son | `5544:4770` | Activé / Désactivé |
+| Header / Voice Control — Source exact | DSF / Controls / Voix | `5544:4790` | Activée / Désactivée |
+| Indicator / Sides — Source exact | DSF / Status & Tags / Indicateur de côté | `5544:6944` | Droite → Gauche / Gauche → Droite |
+| Overlay / Decision Dialog | DSF / Overlays / Confirmation | `5544:6095` | Primaire / Destructive / Trois actions / Abandon ; 6 dialogues longs conservés dans la primitive ancienne |
+| Button / Primary — Source exact | DSF / Actions / Bouton primaire | `5544:4522` | Actif / Désactivé |
+| Button / Primary — Source exact/Disabled | DSF / Actions / Bouton primaire | `5544:4522` | Désactivé |
+| Controls / Segmented | DSF / Controls / Segmenté | `5548:9818` | 6 variantes : Deux détaillé (1/2), Trois (1/2/3), Deux (1) |
+| Activity / Name Field — Source exact | DSF / Forms / Nom | `5544:4821` | Exercice / Profil / Séance / Étiquette / Nom exercice champ vide |
+| Selection / Category Tag | DSF / Status & Tags / Catégorie sélectionnable | `5548:10518` | Sélectionnée / Non sélectionnée × standard / Libellé seul |
+| Status / Badge — Source exact | DSF / Status & Tags / Statut d’exécution | `5544:6902` | Catalogue / Planifiée / Exécutée / Archivée / Partielle / Terminée / Interrompue |
+
+Les 18 renommages conservent leurs identifiants ; les primitives « ancien » restent des exceptions identifiées, pas la nouvelle référence générique.
+
+| Ancien nom | Nom courant conservé | Identifiant | Variantes / statut |
+|---|---|---|---|
+| Icon / Modal Action — Source exact | DSF / Primitives / Icône d’action de modale | `4155:6201` | Cancel / Validate |
+| Icon / Tour | DSF / Primitives / Icône de tour | `3066:4685` | Unique |
+| Icon / Structure / Movable | DSF / Primitives / Icône de structure — déplaçable | `3066:4676` | Unique |
+| Icon / Search | DSF / Primitives / Icône de recherche | `3847:5508` | Unique |
+| Overlay / Decision Dialog/Icon/Add — Source exact | DSF / Primitives / Icône d’ajout — dialogue | `4173:6713` | Unique |
+| Calendrier / Jour mensuel | DSF / Primitives / Jour mensuel | `138:14` | Unique |
+| Composition / Activity Row | DSF / Primitives / Composition — ligne d’activité | `2588:2679` | Unique |
+| Composition / Boundary Activity — Source exact | DSF / Primitives / Composition — activité de bord | `2537:1475` | Initial countdown / End session |
+| Action / Categories — Source exact/Create | DSF / Primitives / Action — créer une catégorie | `4152:6182` | Unique |
+| Action / Back | DSF / Primitives / Action — retour | `2624:3105` | Unique |
+| Forms / Text Field — Source exact | DSF / Primitives / Champ de texte | `2537:1075` | Single line / Multiline |
+| Header / Fixed | DSF / Primitives / En-tête fixe (ancien) | `2581:2740` | Standard Back Off / On / Close ; exception résiduelle |
+| Header / Fixed/Execution/On | DSF / Primitives / En-tête fixe — exécution | `2581:2727` | 5 en-têtes conservés selon journal |
+| Overlay / Decision Dialog | DSF / Primitives / Dialogue de décision (ancien) | `2590:2961` | 4 variantes ; 6 instances longues conservées selon journal |
+| Indicator / Sides — Source exact | DSF / Primitives / Indicateur de côté (ancien) | `3706:5020` | RightLeft / LeftRight |
+| Shell / Screen | DSF / Gabarits / Écran | `2718:69` | Context On/Off × Bottom Navigation/Action |
+| Shell / Execution | DSF / Gabarits / Exécution | `2700:94` | Run / Summary |
+| Shell / Modal Fullscreen | DSF / Gabarits / Modale plein écran | `2700:75` | Unique |
+
+La nouvelle navigation est `DSF / Navigation / Barre inférieure` (`5544:4441`), états Catalogue / Calendrier / Suivi / Profil. L’en-tête courant est `DSF / Navigation / En-tête fixe` (`5544:4504`), états Standard / Retour / Fermer, propriétés Titre et Démarcation ; la barre d’état décorative est `6955:26633`. L’en-tête de modale courant est `DSF / Overlays / En-tête de modale` (`5544:5567`), variantes Classification / Roulette / Sélection. La présence d’une variante ne l’active pas dans le produit.

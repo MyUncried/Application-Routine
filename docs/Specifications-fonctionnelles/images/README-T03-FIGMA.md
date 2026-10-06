@@ -114,13 +114,13 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 | Modale 5 | Réinitialiser l’activité | `1992:8224` | `modale-5-reinitialiser-activite.png` | `402 × 874` | écran | COURANT |
 | Modale 6 | Passer à l’activité suivante | `1992:8326` | `modale-6-activite-suivante.png` | `402 × 874` | écran | COURANT |
 | Modale 7 | Séance en pause | `1992:8428` | `modale-7-seance-en-pause.png` | `402 × 874` | écran | COURANT |
-| Composant | `Status / Badge — Source exact` | `3959:5970` | `status-badge-composant.png` | `1374 × 128` | composant | COURANT |
+| Composant | `Status / Badge — Source exact` | `3959:5970` | `status-badge-composant.png` | `1374 × 128` | composant | HISTORIQUE / ARCHIVÉ |
 
 Les quatre fichiers `CE-ACT-EXE-02`, `CE-ACT-EXE-03`, `CE-ACT-EXE-04` et `CE-ACT-EXE-05` ont été réexportés depuis leurs nodes courants : leur binaire est strictement identique à l’existant, ils étaient donc déjà courants. Tous les autres fichiers listés ci-dessus ont vu leur binaire remplacé.
 
 ## 4. Composant transverse `Status / Badge`
 
-Le node `3959:5970`, `Status / Badge — Source exact`, est la **preuve canonique du composant**. Il mesure `687 × 64 pt` et porte les sept variantes de la propriété `Status` dans un composant unique. Le composant n’est pas scindé et aucune variante supplémentaire n’est introduite.
+Le node `3959:5970`, `Status / Badge — Source exact`, est une **preuve historique du composant**, désormais archivé. La référence courante est `DSF / Status & Tags / Statut d’exécution` (`5544:6902`), correspondance DSF-CADENCE §7. Le relevé historique mesure `687 × 64 pt` et porte les sept variantes de la propriété `Status` dans un composant unique. Le composant n’est pas scindé et aucune variante supplémentaire n’est introduite.
 
 | Famille sémantique | Variante | Node de variante |
 | --- | --- | ---: |

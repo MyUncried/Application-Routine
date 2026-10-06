@@ -66,3 +66,10 @@ Le dossier `node_modules` est local et ne doit jamais être ajouté à GitHub.
 5. Chapitre06 : captures centralisées ; chapitre13 :30 contrats dont CE-UI-10,21 rubriques chacun, états et limites graphiques explicites.
 
 v12 et v10.2 sont historiques ; leurs règles remplacées ne doivent pas être utilisées pour la cible. Les sources reçues sont conservées dans `archives/cadence-2026-10-06` ; elles ne remplacent pas cette chaîne normative consolidée.
+
+## Traçabilité de la correction de l’audit du 06/10
+
+- [Rapport de mise à jour Cadence](RAPPORT-MISE-A-JOUR-CADENCE-2026-10-06.md)
+- [Provenance des exports SVG](../assets/icons/figma-current-exports.json)
+- [Audit documentaire de Claude](../.github/orchestration/reports/2026-10-06_AUDIT_COMPLETUDE_COHERENCE_DOCUMENTAIRE_CADENCE_DSF.md)
+- [Résolution des constats F-01 à F-15](../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_DOCUMENTAIRE.md)

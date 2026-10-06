@@ -457,3 +457,7 @@ D-268 à D-297 transcrivent CAD-01 à CAD-30 sans nouvel arbitrage. D-248 (pause
 | D-298 | Phrase unique, valeurs en gras, zone entièrement cliquable ; cibles variables énumérées jusqu’à3 puis min/max ; pas de clause sans changement ; omission de total seulement À l’échec ou redondance réelle. Excel exclusivement rédactionnel. | Validée, consolidation | Spécification de phrase v1 et clarification propriétaire06/10 |
 | D-299 | DSF : neutres rationalisés, danger#D92D20, deux rôles scrim distincts, Roboto Condensed pour chrono/compteurs, compactCardTitle15/18 ; cardTitle16 conservé pour son rôle historique. Barre d’état rendue par le système. | Décisions consignées ; mesures datées séparées | DSF-CADENCE-2026-10-06 |
 | D-300 | Figma définit layout/rendu uniquement ; nombres et câblages ne définissent ni calculs ni comportement. Excel ne définit pas les pauses/durées. Circuit/Tour/Parcours et cartes média restent inchangés. | Confirmation de D-255 | Clarifications propriétaire et plan révisé06/10 |
+
+## Qualification des valeurs historiques — audit du 06/10
+
+Les décisions datées conservent leur texte d’origine. Le badge replié décrit en #F4F4F8 utilise désormais surface #F5F7FA (journal §5.3, D-299) ; cette ancienne valeur ne prescrit plus le rendu courant. Les fonds de cartes #FCFCFE deviennent surfaceSubtle #F9FAFC, les icônes neutres #5C636E deviennent iconNeutral/textSecondary #595E66. Les autres décisions métier restent inchangées.

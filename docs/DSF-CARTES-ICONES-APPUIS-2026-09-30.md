@@ -29,12 +29,12 @@ Une carte présente le titre et son badge, puis le classement, puis les valeurs.
 | Élément | Valeur de référence |
 |---|---|
 | Largeur sur écran de 402 | 354 ; marges extérieures 24 |
-| Fond / bord intérieur | `#FCFCFE` / `#CCD1E0`, 0,5 |
+| Fond / bord intérieur | `#F9FAFC (surfaceSubtle ; ancienne valeur historique #FCFCFE)` / `#CCD1E0`, 0,5 |
 | Rayon | 8 |
 | Ombre | `#1A1A26` à 8 %, x=0, y=2, flou=10 |
 | Archivée | fond `#F6F6F6`, bord `#D9D9D9` 0,5 ; même ombre ; Restaurer remplace Lecture |
 | Titre / informations secondaires | Inter Semi Bold 15 / Inter 12 |
-| Badge durée ou heure | `#F4F4F8`, sans bord, rayon 5, padding vertical 2 / horizontal 7, hauteur 19 |
+| Badge durée ou heure | `#F5F7FA (surface ; ancienne valeur historique #F4F4F8)`, sans bord, rayon 5, padding vertical 2 / horizontal 7, hauteur 19 |
 | Espacement vertical | titre → classement 8 ; classement → valeurs 4 |
 | Pastille de classement | 20 ; pictogramme blanc sur fond coloré ou gris `#9499A8` sur fond vide et contour 0,5 |
 | Icône de valeur | 16, gris `#9499A8`, trait fin |
@@ -55,7 +55,7 @@ Ces dimensions décrivent la référence à taille de texte standard. Le média 
 
 Dans le Suivi, la carte fait 354 × 67. Statut à x=262/y=9 (76 × 24), Ressenti à x=318/y=39 (20 × 20). Ligne 1 : nature, titre, statut ; ligne 2 : durée, catégorie, ressenti. Aucun chevron, heure, zone corporelle ou étiquette. La boîte du Ressenti et son dessin font 20 × 20 ; aucune zone tactile ni action. Les données historiques complètes restent conservées. D-175 reste la règle des gestes dans les contextes où ils sont accessibles.
 
-Le cercle de nature est réservé aux cartes Semaine et Suivi : diamètre 26, marge 12 depuis le bord, fond `#FCFCFE`, bord blanc 0,5, ombre `#1A1A26` à 28 % (0,2,6), pictogramme `#14141A`. Séance : liste ; exercice : `person-simple-tai-chi-light`, dessin 15. Dans le Catalogue et les choix d’exercices, la nature apparaît dans la gouttière permanente sans média ; ce dessin24 n’est pas le cercle26 des cartes Semaine/Suivi/Jour. Le contexte Calendrier Jour emploie aussi le cercle de nature, selon les dimensions compactes ci-dessous.
+Le cercle de nature est réservé aux cartes Semaine et Suivi : diamètre 26, marge 12 depuis le bord, fond `#F9FAFC (surfaceSubtle ; ancienne valeur historique #FCFCFE)`, bord blanc 0,5, ombre `#1A1A26` à 28 % (0,2,6), pictogramme `#14141A`. Séance : liste ; exercice : `person-simple-tai-chi-light`, dessin 15. Dans le Catalogue et les choix d’exercices, la nature apparaît dans la gouttière permanente sans média ; ce dessin24 n’est pas le cercle26 des cartes Semaine/Suivi/Jour. Le contexte Calendrier Jour emploie aussi le cercle de nature, selon les dimensions compactes ci-dessous.
 
 ## Iconographie et couleurs
 
