@@ -12,27 +12,34 @@ function waitForClose(child,timeout){
  if(child.exitCode!==null||child.signalCode!==null)return Promise.resolve(true);
  return new Promise(resolve=>{const finish=value=>{clearTimeout(timer);child.removeListener('close',closed);resolve(value);},closed=()=>finish(true),timer=setTimeout(()=>finish(false),timeout);child.once('close',closed);});
 }
-async function closeProcess(child,{profile,platform=process.platform,inventory=profileProcesses,terminate=invoke,diagnostic={}}){
+async function closeProcess(child,{profile,platform=process.platform,inventory=profileProcesses,terminate=invoke,wait=waitForClose,profileTimeoutMs=10000,diagnostic={}}){
  diagnostic.pid=child?.pid||null;diagnostic.profile=profile;
  if(child?.pid){
-  diagnostic.graceful_close=await waitForClose(child,3000);
+  diagnostic.graceful_close=await wait(child,3000);
   if(!diagnostic.graceful_close){
    diagnostic.forced_close=true;
    // Terminate only our still-running isolated browser tree, never a user's browser.
    if(platform==='win32'){
-    try{await terminate('taskkill.exe',['/PID',String(child.pid),'/T','/F']);}
-    catch(error){if(!await waitForClose(child,1000))throw error;diagnostic.force_raced_with_exit=true;}
+    try{await terminate('taskkill.exe',['/PID',String(child.pid),'/F']);}
+    catch(error){diagnostic.force_error={message:error.message,stderr:error.diagnostic_stderr||null};if(!await wait(child,10000))throw error;diagnostic.force_raced_with_exit=true;}
    }else child.kill('SIGKILL');
-   if(!await waitForClose(child,10000))throw Error('VNEXT_FIGMA_BROWSER_PROCESS_NOT_CLOSED');
+   if(!await wait(child,10000))throw Error('VNEXT_FIGMA_BROWSER_PROCESS_NOT_CLOSED');
   }
   diagnostic.exit_code=child.exitCode;diagnostic.signal=child.signalCode;
  }
  if(platform==='win32'){
-  const deadline=Date.now()+10000;diagnostic.profile_process_checks=[];
+  const deadline=Date.now()+profileTimeoutMs;diagnostic.profile_process_checks=[];
   do{
    const rows=await inventory(profile);diagnostic.profile_process_checks.push({at:new Date().toISOString(),processes:rows});
    if(!rows.length){diagnostic.profile_processes_closed=true;break;}
    if(Date.now()>=deadline)throw Error('VNEXT_FIGMA_BROWSER_PROFILE_PROCESSES_REMAIN');
+   // Terminate only PIDs freshly observed with our unique profile, without /T.
+   // A PID disappearing during termination is verified by the next inventory.
+   for(const row of rows){
+    if(!Number.isSafeInteger(row.ProcessId)||row.ProcessId<=0||row.ProcessId===process.pid)throw Error('VNEXT_FIGMA_BROWSER_PROFILE_PID_INVALID');
+    try{await terminate('taskkill.exe',['/PID',String(row.ProcessId),'/F']);}
+    catch(error){(diagnostic.profile_termination_errors||=[]).push({pid:row.ProcessId,message:error.message,stderr:error.diagnostic_stderr||null});}
+   }
    await delay(200);
   }while(true);
  }

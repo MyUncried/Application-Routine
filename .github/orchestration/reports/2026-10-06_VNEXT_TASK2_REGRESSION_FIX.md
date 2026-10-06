@@ -33,3 +33,9 @@ Candidat cf80c57c69a1f74e0ff3e4b6c62da169a1fd30c9, arbre c5ec130ed51ae865e8903a1
 ## Qualification acquise
 
 Run 37426909256 SUCCESS, cinq jobs requis exact-head vérifiés. Contrats 322/322 PASS sur Linux et Windows, zéro échec/skip ; contre-exemples navigateur réellement exécutés sur les deux OS. Historique 1 089 tests par OS, Linux 1 088 PASS/1 SKIP, Windows 1 086 PASS/3 SKIP, aucun échec. Comparaison des preuves interplateformes réussie ; archives SHA-256 et ZIP vérifiés. Nouvelle demande génération 53, UUID 99afa62c-632d-4670-9bd1-f3ed857b1d87 ; démarrage réel encore à vérifier. Aucun résultat de parcours ni stabilité absolue du PC physique revendiqués.
+
+## Test réel relancé une fois
+
+Contrôleur 4311eabe62bf83de724eb99ef5056c34ce21307c publié, arbre 5cbed405864e97949feec8dae5d7145fcb613291 identique au local et VALIDATED ; fenêtre HEAD/checkpoint, 192 runs vérifiés avant publication. Admission EXACT_SAME_PROTOCOL_CODE avec le candidat qualifié cf80c57c69a1f74e0ff3e4b6c62da169a1fd30c9 vérifiée. UUID 99afa62c-632d-4670-9bd1-f3ed857b1d87, génération 53. Run 37428291785, tentative 1, job 112152955517 en cours sur KODJO-LOCAL-RUNNER ; étape Qualify admission then execute the disposable Figma path once observée en cours à 2026-10-06T07:14:55.069Z. Claim interne, appels Claude et résultat final restent à vérifier dans les preuves terminales ; démarrage ne vaut pas réussite du parcours. Plafonds Claude 7 200 000 ms et job 120 minutes cumulatives conservés. Aucun appel ajouté pour mesurer la performance.
+
+Seconde passe : code qualifié identique au code exécuté, protections historiques conservées, contre-exemples réellement exécutés sur les deux OS, une demande neuve et aucun rejeu du run consommé. Git propre vérifié après commit documentaire final. Rapport final conservé localement pendant les runs actifs ; aucune publication concurrente de checkpoint. Résultat du test réel reste à récupérer au terme du run 37428291785.

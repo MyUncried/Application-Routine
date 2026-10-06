@@ -21,7 +21,7 @@ test('generic recipe requires a concrete binding and projects a created surface 
   assert.ok(item.test_obligations.every(o=>o.expected.includes(Driver.QUALIFICATION_CONTRACT.preservation_test_expected)));
   const functional=item.proof_obligations.find(o=>o.proof_type==='FUNCTIONAL_TEST');
   const visual=item.proof_obligations.find(o=>o.proof_type==='VISUAL_COMPARE');
-  if(visual){assert.ok(functional.expected.includes(Driver.QUALIFICATION_CONTRACT.visual_test_expected));assert.equal(visual.expected,qualified.requirementRegistry.requirements.find(r=>r.requirement_id===item.requirement_id).statement);}
+  if(visual){assert.ok(functional.expected.includes(Driver.QUALIFICATION_CONTRACT.visual_test_expected));assert.ok(visual.expected.includes(qualified.requirementRegistry.requirements.find(r=>r.requirement_id===item.requirement_id).statement));assert.ok(visual.expected.includes(Driver.QUALIFICATION_CONTRACT.visual_proof_expected));}
  }
  assert.ok(qualified.uiAtomicityContract.criteria.flatMap(c=>c.assertions).filter(a=>a.figma_document_state).every(a=>a.subject===Driver.QUALIFICATION_CONTRACT.documentary_subject));
  assert.doesNotThrow(()=>Driver.assertPreservedExport(f.cwd));
@@ -80,7 +80,7 @@ test('disposable fixed geometry refuses a viewport-relative counterexample at an
 test('browser cleanup waits for the actual process and profile descendants before removal',async t=>{
  const {spawn}=require('node:child_process');const root=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-browser-close-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
  const child=spawn(process.execPath,['-e','setTimeout(()=>process.exit(0),40)'],{stdio:'ignore'});t.after(()=>{if(child.exitCode===null)child.kill();});const diagnostic={};let checks=0;
- await Browser.closeProcess(child,{profile:root,platform:'win32',diagnostic,inventory:async()=>{assert.notEqual(child.exitCode,null);return ++checks===1?[{ProcessId:123,Name:'fixture.exe'}]:[];}});
+ await Browser.closeProcess(child,{profile:root,platform:'win32',diagnostic,terminate:async()=>{},inventory:async()=>{assert.notEqual(child.exitCode,null);return ++checks===1?[{ProcessId:123,Name:'fixture.exe'}]:[];}});
  assert.equal(diagnostic.process_close_verified,true);assert.equal(diagnostic.profile_processes_closed,true);assert.equal(checks,2);
 });
 test('browser cleanup failure retains stderr, primary error and isolated profile diagnostics',async t=>{
@@ -106,4 +106,22 @@ test('early browser exit retains executable, exit code and actual stderr in the 
   assert.ok(e.message.startsWith('VNEXT_FIGMA_BROWSER_EXIT_BEFORE_CONNECTION:'));const details=JSON.parse(e.message.slice(e.message.indexOf(':')+1));
   assert.equal(details.browser,process.execPath);assert.notEqual(details.exit_code,0);assert.match(details.stderr,/headless/);assert.equal(details.stderr,fs.readFileSync(path.join(root,'browser-stderr.log'),'utf8'));return true;
  });
+});
+
+test('preservation proves a live re-export and rejects a hardcoded equal primitive',t=>{
+ const Driver=require('../../scripts/kodjo/qualify-vnext-figma-real-path');
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-provenance-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+ const screen=path.join(root,'screen.js'),keep=path.join(root,'keep.js');fs.writeFileSync(keep,'module.exports={Existing:true};');
+ fs.writeFileSync(screen,'module.exports={Existing:require("./keep").Existing};');
+ const oldKeep=require(keep),oldScreen=require(screen);
+ Driver.preservedExportAssertion(screen,keep);assert.equal(require(keep),oldKeep);assert.equal(require(screen),oldScreen);assert.equal(oldKeep.Existing,true);
+ fs.writeFileSync(screen,'module.exports={Existing:true};');assert.throws(()=>Driver.preservedExportAssertion(screen,keep),/EXPORT_PROVENANCE_FAILED/);
+ assert.equal(require(keep),oldKeep);assert.equal(oldKeep.Existing,true);delete require.cache[require.resolve(screen)];delete require.cache[require.resolve(keep)];
+});
+test('Windows termination races are accepted only after root and profile are gone',async()=>{
+ const child={pid:123,exitCode:null,signalCode:null},diagnostic={};let waits=0,checks=0;const calls=[];
+ await Browser.closeProcess(child,{profile:'isolated-profile',platform:'win32',diagnostic,wait:async()=>++waits!==1,terminate:async(file,args)=>{calls.push(args);throw Object.assign(Error('already gone'),{diagnostic_stderr:'no running task'});},inventory:async()=>++checks===1?[{ProcessId:456}]:[]});
+ assert.deepEqual(calls,[['/PID','123','/F'],['/PID','456','/F']]);assert.equal(diagnostic.process_close_verified,true);assert.equal(diagnostic.force_raced_with_exit,true);assert.equal(diagnostic.profile_termination_errors.length,1);
+ await assert.rejects(Browser.closeProcess(child,{profile:'isolated-profile',platform:'win32',wait:async()=>false,terminate:async()=>{throw Error('root still alive');},inventory:async()=>[]}),/root still alive/);
+ await assert.rejects(Browser.closeProcess(null,{profile:'isolated-profile',platform:'win32',profileTimeoutMs:0,inventory:async()=>[{ProcessId:456}]}),/PROFILE_PROCESSES_REMAIN/);
 });

@@ -13,8 +13,9 @@ const SCREEN='src/features/example/Screen.js',TEST='tests/ui.test.js',KEEP='src/
 const DOCUMENT='Selection toggles off to on and on to off. In this disposable protocol test, selection is the observable Boolean returned by Screen.toggle(), initially off; it is not a rendered chip selection and certifies no production interaction.\n';
 const QUALIFICATION_CONTRACT={
  preservation_constraint:'Keep the Existing import and re-export in '+SCREEN+'; its value must remain identical to the Existing export of '+KEEP+'.',
- observer_constraint:'The implementation must not export or execute any adjustment to the independent observer or its measurements. Geometry is fixed 402px by 874px at both 402x874 and 503x971 viewports.',
- preservation_test_expected:'Execute an assertion that Screen.Existing is strictly equal to the Existing export of '+KEEP+'; dropping the re-export must fail.',
+ observer_constraint:'Orchestration supplies the independent browser observer scripts/kodjo/lib/vnext-figma-browser-observer.js, its generated rendered.html host page, and the two-viewport driver scripts/kodjo/qualify-vnext-figma-real-path.js outside application write_scope. These require no implementer writes. Evidence is deposited under the external run evidence directory in initial-review/, negative-review/ and corrected-review/; each contains rendered.png, browser-facts.json and independent-viewport/rendered.png plus independent-viewport/browser-facts.json. The implementation exports render() from '+SCREEN+' with zero arguments returning an HTML string containing frame 4478:7209 and title 4953:6611. The implementation must not export or execute any adjustment to the independent observer or its measurements. Geometry is fixed 402px by 874px at both 402x874 and 503x971 viewports.',
+ preservation_test_expected:'Verify the normal Existing value, then clear require.cache for '+KEEP+' and '+SCREEN+', require the shared module, replace its cached Existing export with a fresh unique object sentinel S, re-require Screen and assert Screen.Existing === S by reference identity. Restore both cache entries in finally. Dropping the shared import/re-export or hardcoding true must fail.',
+ visual_proof_expected:'Orchestration must measure unadjusted getBoundingClientRect of frame 4478:7209: width=402 and height=874, tolerance 0, at BOTH viewport 402x874 AND independent viewport 503x971, and exact title text Zones corporelles for element 4953:6611 at both. Retain rendered.png and browser-facts.json at each viewport. Equality at the required viewport alone is insufficient. The second viewport is a falsification condition on the delivery, not a change to the Figma source viewports.',
  visual_test_expected:'Execute Screen.render() and assert that the frame data-figma-id="4478:7209" declares exactly width:402px and height:874px, and the title data-figma-id="4953:6611" contains exactly "Zones corporelles". Presence alone, other dimension values, 100% and 100vh must fail. This Node check observes markup, not rendered geometry; the separate independent browser VISUAL_COMPARE proof measures the exact fixed dimensions at both the required viewport and a second, different viewport.',
  residual_risks:['Figma logical pt and browser CSS px are mapped one-to-one only in this disposable qualification; no general unit conversion is certified.','Browser geometry and screenshots do not certify a native device.','Selection is limited to the exported Boolean transition of Screen.toggle(); rendered chip selection, colours and production interaction are outside this disposable qualification.'],
  documentary_subject:SCREEN+'#toggle() return value',
@@ -86,8 +87,22 @@ function observe(f,packet,dir){
  const head=f.git('rev-parse','HEAD'),artifact={artifact_path:'execution.json',artifact_sha256:digest(Buffer.from(content)),observer:'EXECUTED_JSON_FACT',delivery_head:head};
  return {measurements:F.required(packet).flatMap(d=>d.rule.viewports.map(viewport=>({...artifact,measurement_id:d.property_id+'@'+viewport,property_id:d.property_id,reference_hash:packet.contract_hash,viewport,value:values[d.property_id],value_path:['values',d.property_id],evidence:'Measured unadjusted browser DOM bounds and text at the required viewport and confirmed equal fixed geometry at an independent viewport; both screenshots preserved. Browser pixels are not native-device certification.'}))),scenarioResults:packet.states.flatMap(s=>(s.scenarios||[]).map(s=>({...artifact,scenario_id:s.scenario_id,reference_hash:packet.contract_hash,status:states[s.scenario_id]?'PASS':'FAIL',value:states[s.scenario_id],value_path:['scenarios',s.scenario_id],proof_results:s.proof_required.map(proof_type=>({proof_type,status:states[s.scenario_id]?'PASS':'FAIL'}))})))};
 }
+function preservedExportAssertion(screenPath,keepPath){
+ const screenId=require.resolve(screenPath),keepId=require.resolve(keepPath);
+ const oldScreen=require.cache[screenId],oldKeep=require.cache[keepId];
+ try{
+  delete require.cache[screenId];delete require.cache[keepId];
+  const shared=require(keepId),normal=require(screenId);
+  if(!Object.hasOwn(normal,'Existing')||normal.Existing!==shared.Existing)throw Error('VNEXT_FIGMA_REAL_EXPORT_PRESERVATION_FAILED');
+  delete require.cache[screenId];const sentinel={};shared.Existing=sentinel;
+  if(require(screenId).Existing!==sentinel)throw Error('VNEXT_FIGMA_REAL_EXPORT_PROVENANCE_FAILED');
+ }finally{
+  if(oldScreen)require.cache[screenId]=oldScreen;else delete require.cache[screenId];
+  if(oldKeep)require.cache[keepId]=oldKeep;else delete require.cache[keepId];
+ }
+}
 function assertPreservedExport(cwd){
- Chain.command(process.execPath,['-e',"const s=require('./"+SCREEN+"'),e=require('./"+KEEP+"');if(!Object.hasOwn(s,'Existing')||s.Existing!==e.Existing)throw Error('VNEXT_FIGMA_REAL_EXPORT_PRESERVATION_FAILED');"],cwd);
+ Chain.command(process.execPath,['-e','('+preservedExportAssertion.toString()+')('+JSON.stringify(path.resolve(cwd,SCREEN))+','+JSON.stringify(path.resolve(cwd,KEEP))+');'],cwd);
 }
 function assertMarkup(html){
  if(typeof html!=='string')throw Error('VNEXT_FIGMA_REAL_MARKUP_REQUIRED');
@@ -168,4 +183,4 @@ async function main(){
 }
 
 if(require.main===module)main().catch(e=>{process.stderr.write(e.message+'\n');process.exitCode=1;});
-module.exports={scopedPacket,capture,observe,assertDelta,assertPreservedExport,assertMarkup,compare,initial,precheck,invokeClaude,validateConfig,claimRequest,preserveFixture,QUALIFICATION_CONTRACT,NEGATIVE_RENDER_FAULT};
+module.exports={scopedPacket,capture,observe,assertDelta,assertPreservedExport,preservedExportAssertion,assertMarkup,compare,initial,precheck,invokeClaude,validateConfig,claimRequest,preserveFixture,QUALIFICATION_CONTRACT,NEGATIVE_RENDER_FAULT};
