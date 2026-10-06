@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-06T01:36:34.107044+00:00",
+  "recorded_at": "2026-10-06T01:42:12.391391+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "434adeef6d42e861a3dbee7c6236e77cc1ba74f9",
-  "controller_stage": "FIGMA_TASK2_TWO_HOUR_TIMEOUTS_UPDATED_PENDING_QUALIFICATION",
-  "controller_generation": 71,
+  "controller_stage": "FIGMA_TASK2_TWO_HOURS_RELAUNCH_QUALIFICATION_PENDING",
+  "controller_generation": 72,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -2006,5 +2006,17 @@
     "task3_authorized": false,
     "closure_authorized": false,
     "next_action": "QUALIFY_NEW_EXACT_HEAD_BEFORE_ANY_FRESH_RUNTIME_REQUEST"
+  },
+  "task2_two_hours_relaunch_20261006": {
+    "authorization": "USER_2026-10-06_03:41_PARIS_LAUNCH_TASK2",
+    "scope": "TASK2_ONLY",
+    "qualification_branch": "qualification/vnext-task2-two-hours-20261006",
+    "claude_timeout_ms": 7200000,
+    "workflow_timeout_minutes": 120,
+    "previous_consumed_request_id": "96c53d61-f780-41dc-afb7-3c1f992c910f",
+    "fresh_qualification_required": true,
+    "runtime_launched": false,
+    "task3_authorized": false,
+    "closure_authorized": false
   }
 }
