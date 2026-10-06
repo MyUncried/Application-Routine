@@ -1,0 +1,18 @@
+{
+  "status": "LOCAL_PRECHECK_PASS",
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "revision": "aadb7b91cea6f812f7a3395e07876394b0681b09",
+  "source_sha256": "b7777053aa0d7738c8d0ee469702a6464270bf7ce0aa5fe05100cad927dcf014",
+  "observed_sha256": "b7777053aa0d7738c8d0ee469702a6464270bf7ce0aa5fe05100cad927dcf014",
+  "byte_length": 4448805,
+  "reference_hash": "691acdccec2ba439142d8735a8ae2c843bb412bf394a06868dea330aa8bebc01",
+  "requirements": 1,
+  "assertions": 1,
+  "scenario_ids": [
+    "toggle-off-on",
+    "toggle-on-off"
+  ],
+  "real_model_calls": 0,
+  "live_figma_acquisition": false,
+  "native_certification": false
+}

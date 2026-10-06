@@ -7,7 +7,7 @@
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au r\u00e9sultat r\u00e9el, diagnostiquer/corriger/relancer les \u00e9checs techniques ; solliciter uniquement une validation m\u00e9tier.",
   "code_head_before_checkpoint": "c30c57682a7864b5b548a2470c6f514b849bdf37",
-  "controller_stage": "EVIDENCE_BASIS_FIX_QUALIFIED_READY_FOR_REAL_PATH",
+  "controller_stage": "EVIDENCE_BASIS_FIX_REAL_PATH_IN_PROGRESS",
   "controller_generation": 94,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
@@ -379,10 +379,10 @@
   },
   "active_runs": [
     {
-      "id": 37471294088,
-      "path": ".github/workflows/kodjo-vnext12-disposable.yml",
+      "run_id": 37486926450,
       "status": "completed",
-      "conclusion": null
+      "stage": "FIGMA_INITIAL",
+      "controller_head": "0e4850d90bc4be6b8689a22fc368cca1296d8a93"
     }
   ],
   "obsolete_runs": [
@@ -2212,14 +2212,14 @@
   },
   "task2_plan_completion_fix_20261006": {
     "authorization": "USER_2026-10-06_10:59_PARIS_APPLY_FIXES_AND_AUTOMATIC_RELAUNCH",
-    "stage": "EVIDENCE_BASIS_QUALIFIED_READY_FOR_REAL_PATH",
+    "stage": "EVIDENCE_BASIS_REAL_PATH_RELAUNCHED",
     "report": ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_COMPLETION_FIX.md",
     "prior_runtime_run": 37435583811,
     "prior_pilot_run": 37435583847,
-    "runtime_launched": false,
+    "runtime_launched": true,
     "qualification_branch": "qualification/vnext-task2-evidence-basis-20261006",
     "qualification_launch_count": 10,
-    "runtime_launch_count": 7,
+    "runtime_launch_count": 8,
     "task3_authorized": false,
     "closure_authorized": false,
     "candidate_head": "90c590504d9e5942b7989e4469117a4ff48cd583",
@@ -2298,8 +2298,8 @@
       }
     },
     "runtime_startup_run": 37443238973,
-    "runtime_status": "PENDING_NEW_RUN",
-    "controller_head": "25ce4ff8f4e093e77f3cd2b5c732d5a29ca1c538",
+    "runtime_status": "FAILED_PLAN_REVISE",
+    "controller_head": "0e4850d90bc4be6b8689a22fc368cca1296d8a93",
     "request_consumed": null,
     "claude_invoked": null,
     "sequence_fix": {
@@ -2313,26 +2313,34 @@
     },
     "previous_startup_request_id": "b79dcc3e-1962-416c-a701-bd1325b78492",
     "native_validation_pending": false,
-    "runtime_run": null,
-    "admission_job": 112295237450,
+    "runtime_run": 37486926450,
+    "admission_job": 112349336952,
     "admission_status": "SUCCESS",
-    "artifact_upload_status": "SUCCESS",
-    "runtime_artifacts_available": true,
+    "artifact_upload_status": "PENDING",
+    "runtime_artifacts_available": false,
     "recovery_run": 37453377364,
     "recovery_artifact_id": 11408440209,
     "previous_request_consumed": true,
     "previous_request_id": "6ea7b481-9de4-463a-a79b-26327a2bbcca",
-    "claude_verdict": null,
+    "claude_verdict": "REVISE",
     "claude_duration_ms": null,
-    "blocking_findings": null,
+    "blocking_findings": 2,
     "latest_completed_runtime": {
-      "run_id": 37471294088,
+      "run_id": 37486926450,
       "verdict": "REVISE",
-      "claude_duration_ms": 680336,
-      "artifact_id": 11417867054,
-      "artifact_sha256": "abea85ac017e8b747f244ef955809fa83fcdfea0d7ba1164e4c8f48f05673065",
+      "artifact_id": 11424810959,
       "implementation_exercised": false
     },
-    "native_validation_job": 112344547287
+    "native_validation_job": 112344547287,
+    "runtime_job": 112349437177
+  },
+  "task2_no_browser_20261006": {
+    "authorization": "USER_EXPLICIT_2026-10-06_17:37_PARIS",
+    "stage": "CORRECTED_PENDING_QUALIFICATION",
+    "browser_removed": true,
+    "automatic_render_controls_removed": true,
+    "visual_validation": "USER_ONLY_NOT_EXECUTED",
+    "report": ".github/orchestration/reports/2026-10-06_VNEXT_NO_BROWSER_REMOVAL.md",
+    "runtime_launched": false
   }
 }
