@@ -7,7 +7,7 @@
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au r\u00e9sultat r\u00e9el, diagnostiquer/corriger/relancer les \u00e9checs techniques ; solliciter uniquement une validation m\u00e9tier.",
   "code_head_before_checkpoint": "c30c57682a7864b5b548a2470c6f514b849bdf37",
-  "controller_stage": "NO_BROWSER_QUALIFIED_READY_FOR_REAL_PATH",
+  "controller_stage": "NO_BROWSER_PLAN_REVISE_DIAGNOSTIC_ONLY",
   "controller_generation": 95,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
@@ -379,10 +379,10 @@
   },
   "active_runs": [
     {
-      "run_id": 37486926450,
+      "run_id": 37491799216,
       "status": "completed",
       "stage": "FIGMA_INITIAL",
-      "controller_head": "0e4850d90bc4be6b8689a22fc368cca1296d8a93"
+      "controller_head": "37e85e0e6dc6b7cd7785c1e285a2a38245ace779"
     }
   ],
   "obsolete_runs": [
@@ -2336,12 +2336,12 @@
   },
   "task2_no_browser_20261006": {
     "authorization": "USER_EXPLICIT_2026-10-06_17:37_PARIS",
-    "stage": "QUALIFIED_READY_FOR_REAL_PATH",
+    "stage": "FAILED_PLAN_REVISE_DIAGNOSED",
     "browser_removed": true,
     "automatic_render_controls_removed": true,
     "visual_validation": "USER_ONLY_NOT_EXECUTED",
     "report": ".github/orchestration/reports/2026-10-06_VNEXT_NO_BROWSER_REMOVAL.md",
-    "runtime_launched": false,
+    "runtime_launched": true,
     "candidate_head": "f15aa64eef32549e2c37b2fa242a6541146fa460",
     "qualification_run": 37490564500,
     "qualification_status": "SUCCESS",
@@ -2362,6 +2362,18 @@
         "fail": 0,
         "skip": 0
       }
-    }
+    },
+    "runtime_run": 37491799216,
+    "runtime_job": 112366331664,
+    "admission_job": 112366232402,
+    "admission_status": "SUCCESS",
+    "runtime_status": "FAILED_PLAN_REVISE",
+    "controller_head": "37e85e0e6dc6b7cd7785c1e285a2a38245ace779",
+    "claude_verdict": "REVISE",
+    "claude_duration_ms": 408768,
+    "blocking_findings": 3,
+    "implementation_exercised": false,
+    "artifact_id": 11426097501,
+    "diagnostic_report": ".github/orchestration/reports/2026-10-06_VNEXT_NO_BROWSER_RESULT_DIAGNOSTIC.md"
   }
 }

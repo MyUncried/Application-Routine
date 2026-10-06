@@ -5,17 +5,18 @@
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),crypto=require('node:crypto');
 const V=require('./lib/vnext-contract'),F=require('./lib/vnext-figma-source'),Launch=require('./lib/vnext-figma-launch'),Chain=require('./lib/vnext-live-chain'),Recipe=require('./lib/vnext-figma-recipe'),Review=require('./lib/vnext-figma-implementation-review'),Adapter=require('./lib/vnext-legacy-queue-adapter');
 const GitIntegrity=require('./lib/git-runtime-integrity'),Lock=require('./lib/execution-lock');
+const Functional=require('./lib/vnext-disposable-functional-contract');
 const ROOT='.github/orchestration/vnext12/VNEXT-12-QUALIF';
 const CAMPAIGN='628b3349-88b4-4bf1-be6b-50bc09e7d245';
-const BINDING={decision:'CREATE',justification:'Create the disposable functional module in the declared application path; the unchanged Existing Boolean export is a preserved dependency, not an extendable UI component.'};
+const BINDING={decision:'CREATE',justification:'CREATE refers only to the new toggle() behaviour/export, not a new file or replacement module. MODIFY the existing Screen file and preserve its Existing import/re-export from the unchanged shared dependency.'};
 const SCREEN='src/features/example/Screen.js',TEST='tests/ui.test.js',KEEP='src/shared/ui/Existing.js';
 const DOCUMENT='Selection toggles off to on and on to off. In this disposable protocol test, selection is the observable Boolean returned by Screen.toggle(), initially off; it is not a rendered chip selection and certifies no production interaction.\n';
 const DOCUMENTARY_STATES=[{state_id:'STATE-1',origin:'DOCUMENT_ONLY',disposition:'REQUIRED',expected:DOCUMENT.trim(),reason:'Boolean toggle observable defined exclusively in docs/spec.md for the disposable driver; not a Figma chip state.',scenarios:[{scenario_id:'toggle-off-on',given:'Selection is off',when:'Activate the toggle',then:'Selection is on',proof_required:['FUNCTIONAL_TEST']},{scenario_id:'toggle-on-off',given:'Selection is on',when:'Activate the toggle again',then:'Selection is off',proof_required:['FUNCTIONAL_TEST']}]}];
 const QUALIFICATION_CONTRACT={
  preservation_constraint:'Keep the Existing import and re-export in '+SCREEN+' identical to the export from '+KEEP+'.',
  observer_constraint:'This disposable test is functional only. Screen exports Existing and toggle() as CommonJS. Only Screen.js and tests/ui.test.js may change. Orchestration executes the delivered Node test and independently calls toggle twice in a fresh Node process. No render(), HTML, browser, geometry, screenshots or automatic visual comparison is required. Visual acceptance belongs exclusively to the user; this run does not certify it.',
- preservation_test_expected:'In an isolated child Node process load Screen freshly and assert toggle() returns true then false on that same instance. In another isolated child Node process verify the normal Existing value, clear both module cache entries, replace the shared Existing export by a unique object sentinel, reload Screen and assert reference identity. Restore caches in finally. Use inline subprocess source; create no helper files. The test must not modify its own source or Screen source; orchestration checks scope, preservation and hashes after execution.',
- visual_proof_expected:'NOT_EXECUTED: visual verification is performed exclusively by the user, outside this functional test.',
+ preservation_test_expected:Functional.EXPECTED,
+ visual_proof_expected:'NOT_APPLICABLE_FOR_PROTOCOL_TEST: no automatic or human visual gate. User visual verification concerns actual product development only.',
  visual_test_expected:'NOT_EXECUTED: no automatic rendering test is authorized.',
  residual_risks:['This run certifies only the documentary Boolean transitions and preserved shared export, not any Figma appearance or product interaction.','Visual validation is reserved exclusively to the user and is not claimed PASS by this functional run.','Delivered tests and independent Node transition observations are distinct execution facts.','The full frozen Figma inventory remains context, not a set of automatically certified visual properties.'],
  documentary_subject:SCREEN+'#toggle() return value',
@@ -69,11 +70,12 @@ function invokeClaude(cwd,prompt,directory,role,{write=false}={}){
  const response=JSON.parse(raw);if(response.type!=='result'||response.is_error||!response.session_id)throw Error('VNEXT_FIGMA_REAL_CLAUDE_RESULT_INVALID:'+role);return {session_id:response.session_id,raw_response_sha256:V.sha256(raw),role};
 }
 function observe(f,packet,dir,nodeTestReceipt){
- const code='const subject=require('+JSON.stringify(path.resolve(f.cwd,SCREEN))+');const first=subject.toggle(),second=subject.toggle();process.stdout.write(JSON.stringify({scenarios:{"toggle-off-on":first===true,"toggle-on-off":second===false}}));';
- const actual=JSON.parse(Chain.command(process.execPath,['-e',code],f.cwd));
+ const actual=Functional.observe(f.cwd,Chain.command);
  if(nodeTestReceipt){
   if(nodeTestReceipt.status!=='PASS'||nodeTestReceipt.exit_code!==0||nodeTestReceipt.test_path!==TEST)throw Error('VNEXT_FUNCTIONAL_GATE_RECEIPT_INVALID');
   for(const p of [SCREEN,TEST])if(nodeTestReceipt.source_sha256[p]!==digest(fs.readFileSync(path.join(f.cwd,p))))throw Error('VNEXT_FUNCTIONAL_GATE_RECEIPT_SOURCE_DRIFT');
+  if(nodeTestReceipt.contract_id!==Functional.ID||nodeTestReceipt.preservation_probe?.status!=='PASS'||nodeTestReceipt.preservation_probe.normal_identity!==true||nodeTestReceipt.preservation_probe.sentinel_identity!==true)throw Error('VNEXT_FUNCTIONAL_PRESERVATION_RECEIPT_INVALID');
+  if(nodeTestReceipt.source_sha256[KEEP]!==digest(fs.readFileSync(path.join(f.cwd,KEEP))))throw Error('VNEXT_FUNCTIONAL_GATE_RECEIPT_SOURCE_DRIFT');
   actual.node_test_receipt=nodeTestReceipt;
  }
  const content=JSON.stringify(actual);
@@ -81,29 +83,16 @@ function observe(f,packet,dir,nodeTestReceipt){
  const artifact={artifact_path:'execution.json',artifact_sha256:digest(Buffer.from(content)),observer:'EXECUTED_JSON_FACT',delivery_head:f.git('rev-parse','HEAD')};
  return {measurements:[],scenarioResults:packet.states.filter(s=>s.disposition==='REQUIRED').flatMap(s=>s.scenarios.map(s=>({...artifact,scenario_id:s.scenario_id,reference_hash:packet.contract_hash,status:actual.scenarios[s.scenario_id]?'PASS':'FAIL',value:actual.scenarios[s.scenario_id],value_path:['scenarios',s.scenario_id],proof_results:s.proof_required.map(proof_type=>({proof_type,status:actual.scenarios[s.scenario_id]?'PASS':'FAIL'}))})))};
 }
-function preservedExportAssertion(screenPath,keepPath){
- const screenId=require.resolve(screenPath),keepId=require.resolve(keepPath);
- const oldScreen=require.cache[screenId],oldKeep=require.cache[keepId];
- try{
-  delete require.cache[screenId];delete require.cache[keepId];
-  const shared=require(keepId),normal=require(screenId);
-  if(!Object.hasOwn(normal,'Existing')||normal.Existing!==shared.Existing)throw Error('VNEXT_FIGMA_REAL_EXPORT_PRESERVATION_FAILED');
-  delete require.cache[screenId];const sentinel={};shared.Existing=sentinel;
-  if(require(screenId).Existing!==sentinel)throw Error('VNEXT_FIGMA_REAL_EXPORT_PROVENANCE_FAILED');
- }finally{
-  if(oldScreen)require.cache[screenId]=oldScreen;else delete require.cache[screenId];
-  if(oldKeep)require.cache[keepId]=oldKeep;else delete require.cache[keepId];
- }
-}
+const preservedExportAssertion=Functional.preservation;
 function assertPreservedExport(cwd){
- Chain.command(process.execPath,['-e','('+preservedExportAssertion.toString()+')('+JSON.stringify(path.resolve(cwd,SCREEN))+','+JSON.stringify(path.resolve(cwd,KEEP))+');'],cwd);
+ return Functional.preserve(cwd,Chain.command);
 }
-function assertDelta(f,beforeKeep){if(f.gitIntegrity&&GitIntegrity.compare(f.gitIntegrity,GitIntegrity.snapshot(f.cwd)).length)throw Error('VNEXT_FIGMA_REAL_GIT_METADATA_CHANGED');const changed=f.git('diff','--name-only','HEAD').split('\n').filter(Boolean);if(changed.some(p=>![SCREEN,TEST].includes(p))||f.git('ls-files','--others','--exclude-standard'))throw Error('VNEXT_FIGMA_REAL_WRITE_SCOPE_REFUSED');if(digest(fs.readFileSync(path.join(f.cwd,KEEP)))!==beforeKeep)throw Error('VNEXT_FIGMA_REAL_PRESERVATION_FAILED');assertPreservedExport(f.cwd);}
+function assertDelta(f,beforeKeep){if(f.gitIntegrity&&GitIntegrity.compare(f.gitIntegrity,GitIntegrity.snapshot(f.cwd)).length)throw Error('VNEXT_FIGMA_REAL_GIT_METADATA_CHANGED');const changed=f.git('diff','--name-only','HEAD').split('\n').filter(Boolean);if(changed.some(p=>![SCREEN,TEST].includes(p))||f.git('ls-files','--others','--exclude-standard'))throw Error('VNEXT_FIGMA_REAL_WRITE_SCOPE_REFUSED');if(digest(fs.readFileSync(path.join(f.cwd,KEEP)))!==beforeKeep)throw Error('VNEXT_FIGMA_REAL_PRESERVATION_FAILED');return assertPreservedExport(f.cwd);}
 function runDeliveredTests(f,beforeKeep,receiptPath){
- const paths=[SCREEN,TEST],sources=Object.fromEntries(paths.map(p=>[p,digest(fs.readFileSync(path.join(f.cwd,p)))]));
- const receipt={test_path:TEST,command:[process.execPath,TEST],source_sha256:sources,started_at:new Date().toISOString(),status:'FAIL',scenario_status_source:'ISOLATED_NODE_TRANSITIONS',role:'SEPARATE_NODE_GATE_NOT_PER_SCENARIO_OUTPUT'};
+ const paths=[SCREEN,TEST,KEEP],sources=Object.fromEntries(paths.map(p=>[p,digest(fs.readFileSync(path.join(f.cwd,p)))]));
+ const receipt={contract_id:Functional.ID,test_path:TEST,command:[process.execPath,TEST],source_sha256:sources,started_at:new Date().toISOString(),status:'FAIL',scenario_status_source:'ISOLATED_NODE_TRANSITIONS',role:'SEPARATE_NODE_GATE_NOT_PER_SCENARIO_OUTPUT'};
  try{
-  const output=Chain.command(process.execPath,[TEST],f.cwd);assertDelta(f,beforeKeep);
+  const output=Chain.command(process.execPath,[TEST],f.cwd);receipt.preservation_probe=assertDelta(f,beforeKeep);
   for(const p of paths)if(digest(fs.readFileSync(path.join(f.cwd,p)))!==sources[p])throw Error('VNEXT_FIGMA_REAL_TEST_SOURCE_CHANGED:'+p);
   receipt.exit_code=0;receipt.stdout_sha256=digest(output);receipt.status='PASS';return receipt;
  }catch(error){receipt.diagnostic=error.message;throw error;}
@@ -176,4 +165,4 @@ async function main(){
 }
 
 if(require.main===module)main().catch(e=>{process.stderr.write(e.message+'\n');process.exitCode=1;});
-module.exports={DOCUMENTARY_STATES,runDeliveredTests,scopedPacket,capture,observe,assertDelta,assertPreservedExport,preservedExportAssertion,compare,initial,precheck,invokeClaude,validateConfig,claimRequest,preserveFixture,QUALIFICATION_CONTRACT,NEGATIVE_FUNCTIONAL_FAULT};
+module.exports={DOCUMENT,BINDING,DOCUMENTARY_STATES,runDeliveredTests,scopedPacket,capture,observe,assertDelta,assertPreservedExport,preservedExportAssertion,compare,initial,precheck,invokeClaude,validateConfig,claimRequest,preserveFixture,QUALIFICATION_CONTRACT,NEGATIVE_FUNCTIONAL_FAULT};

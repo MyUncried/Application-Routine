@@ -57,6 +57,19 @@ Chaque règle historique reçoit une disposition explicite :
 
 ## 2. Machine cible
 
+### Périmètre des tests du protocole — décision utilisateur du 6 octobre 2026
+
+Les tests jetables et parcours réels de test du protocole n'exécutent aucun
+navigateur, aucun contrôle automatique de rendu et aucun gate visuel humain.
+Le banc fonctionnel ne certifie aucune apparence produit. Les validations
+visuelles effectuées exclusivement par l'utilisateur concernent le développement
+du produit, pas une étape de ces tests. Les types de preuve visuelle restent
+des contrats génériques testables par fixtures, sans exécuter un rendu. Une
+réserve du reviewer ne peut réintroduire de telles obligations sans nouvelle
+autorisation explicite. Référence : `KODJO_VNEXT_STABILIZATION_TRACE.md`.
+
+### Ordre nominal
+
 1. ADMISSION
 2. REQUIREMENTS
 3. IMPACT

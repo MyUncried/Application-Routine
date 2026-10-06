@@ -65,7 +65,15 @@ jobs:
       - name: Execute VNext contracts on exact candidate
         shell: bash
         run: |
-          node --test tests/kodjo/vnext-*.pilot.js
+          node --test --test-reporter=spec tests/kodjo/vnext-*.pilot.js > "$RUNNER_TEMP/vnext-controls-${{ runner.os }}.txt"
+      - name: Preserve automatic control results for independent audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qualification-controls-${{ runner.os }}
+          path: ${{ runner.temp }}/vnext-controls-${{ runner.os }}.txt
+          if-no-files-found: error
+          retention-days: 14
       - name: Validate executable workflow invariants
         run: node scripts/kodjo/validate-workflows.js
       - name: Check patch whitespace
@@ -145,21 +153,23 @@ jobs:
 
   architecture-audit:
     # One early read-only architecture audit, never a final approval or PRE-1 gate.
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.head_ref, 'protocol/vnext-proof-stability-') && github.event.action == 'opened' && github.run_attempt == 1
+    if: github.run_attempt == 1 && ((github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.head_ref, 'protocol/vnext-proof-stability-') && github.event.action == 'opened') || (github.event_name == 'create' && github.event.ref_type == 'branch' && startsWith(github.event.ref, 'qualification/vnext-stabilization-audit-')))
     needs: qualification
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
-    timeout-minutes: 60
+    timeout-minutes: 125
     env:
       EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
       CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
-      CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
+      CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      AUDIT_BRANCH: ${{ github.head_ref || github.event.ref }}
+      QUALIFICATION_RESULT: ${{ needs.qualification.result }}
     defaults:
       run:
         shell: powershell
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
           fetch-depth: 0
       - name: Freeze architecture dossier
@@ -173,6 +183,11 @@ jobs:
           $mission=Get-Content -LiteralPath '.github/orchestration/KODJO_VNEXT_ARCHITECTURE_AUDIT_MISSION.md' -Raw -Encoding UTF8
           $prompt=$mission+[Environment]::NewLine+'candidate_sha='+$env:CANDIDATE_SHA
           [IO.File]::WriteAllText((Join-Path $dir 'prompt.txt'),$prompt,(New-Object Text.UTF8Encoding($false)))
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: qualification-controls-*
+          path: ${{ runner.temp }}/vnext-architecture-${{ github.run_id }}/qualification
+          merge-multiple: true
       - name: Run one architecture audit without repository credentials
         run: |
           $ErrorActionPreference='Stop'
@@ -180,6 +195,11 @@ jobs:
           $prompt=Get-Content -LiteralPath (Join-Path $dir 'prompt.txt') -Raw -Encoding UTF8
           Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
           Remove-Item Env:GITHUB_TOKEN -ErrorAction SilentlyContinue
+          if ($env:AUDIT_BRANCH -like 'qualification/vnext-stabilization-audit-*') {
+            node scripts/kodjo/qualify-vnext-stabilization-audit.js $dir
+            if ($LASTEXITCODE -ne 0) { throw 'Stabilization audit failed; no automatic retry' }
+            exit 0
+          }
           $saved=$OutputEncoding
           try {
             $OutputEncoding=New-Object Text.UTF8Encoding($false)

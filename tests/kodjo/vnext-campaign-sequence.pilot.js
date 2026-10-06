@@ -63,3 +63,17 @@ test('native syntax preparation expands GitHub templates while preserving PowerS
  assert.equal(render("$name='${{ github.repository }}'\nif($x){Write-Output $x}"),"$name='VNEXT_GITHUB_EXPRESSION'\nif($x){Write-Output $x}");
  assert.equal(render('$bad = "${{ incomplete"'),'$bad = "${{ incomplete"');
 });
+
+test('stabilization audit is read-only, waits for both automatic platforms, and launches no runtime or history',()=>{
+ const proof=workflow('kodjo-vnext-proof-stability.yml'),audit=proof.jobs['architecture-audit'];
+ const evaluate=(expression,github)=>Function('github','startsWith','return ('+expression+');')(github,(a,b)=>String(a||'').startsWith(b));
+ const event={event_name:'create',run_attempt:1,event:{ref_type:'branch',ref:'qualification/vnext-stabilization-audit-REFERENCE'}};
+ assert.equal(evaluate(proof.jobs.qualification.if,event),true);assert.equal(audit.needs,'qualification');assert.equal(evaluate(audit.if,event),true);
+ assert.equal(evaluate(audit.if,{...event,run_attempt:2}),false);assert.equal(evaluate(audit.if,{...event,event:{...event.event,ref:'qualification/vnext-normal'}}),false);
+ assert.equal(evaluate(proof.jobs['historical-equivalence'].if,event),false);assert.equal(evaluate(proof.jobs['historical-platform-coverage'].if,event),false);
+ const disposable=workflow('kodjo-vnext12-disposable.yml');assert.equal(Object.hasOwn(disposable.on,'create'),false);
+ assert.ok(audit['timeout-minutes']>=120);assert.equal(proof.permissions.contents,'read');
+ const source=fs.readFileSync(path.join(__dirname,'../../scripts/kodjo/qualify-vnext-stabilization-audit.js'),'utf8');
+ assert.match(source,/7200000/);assert.match(source,/disableAllHooks:true/);assert.match(source,/mcp__\*,Bash,Edit,Write/);assert.match(source,/READ_ONLY_AUDIT_RETURNED_NOT_RUNTIME_APPROVAL/);
+ assert.doesNotMatch(source,/\.initial\(|\.review\(|write:true|--resume/);
+});

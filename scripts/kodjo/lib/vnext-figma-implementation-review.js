@@ -84,7 +84,7 @@ function review(planBody,options){
  const dossier=prepare(planBody,options),directory=options.evidenceDirectory;
  fs.writeFileSync(path.join(directory,'implementation-dossier.json'),JSON.stringify(dossier,null,2)+'\n');
  const schema=assessmentSchema();
- const input={instructions:'Independent implementation review. Read each Figma PNG and SVG asset using Read, read the property manifest and the execution facts, check every bound assertion and documentary scenario against the observed delivery. Facts are synthetic fixture observations: keep native/pixel/device limitations explicit. No inferred PASS. Return REVISE for semantic gaps, wrong scope or evidence. Do not change files or use network.',dossier};
+ const input={instructions:'Independent implementation review. Read each referenced Figma PNG and SVG asset using Read, read the property manifest and execution artifacts, check every bound assertion and documentary scenario against the observed delivery. Distinguish actual execution facts on a disposable fixture from injected unit-test observations; neither proves product appearance or native-device compliance. For the functional-only protocol benchmark, no browser, automatic rendering or human visual gate is required or authorized. Do not invent such obligations. No inferred PASS. Return REVISE for semantic gaps, wrong scope or evidence. Do not change files or use network.',dossier};
  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-figma-review-'));
  fs.writeFileSync(path.join(temp,'mcp.json'),JSON.stringify({mcpServers:{}}));fs.writeFileSync(path.join(temp,'settings.json'),JSON.stringify({disableAllHooks:true}));
  const env={...process.env};for(const k of ['GH_TOKEN','GITHUB_TOKEN','KODJO_LIVE_GH_TOKEN'])delete env[k];
