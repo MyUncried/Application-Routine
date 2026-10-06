@@ -1,0 +1,17 @@
+{
+  "status": "VALIDATED",
+  "expected_parent": "f317d534b8a5e190692d061d212628c100a8b168",
+  "candidate_tree": "0b273a0c3fb3e642b8878bc70da8344def9235ef",
+  "changed_paths": [
+    ".github/orchestration/reports/2026-10-06_VNEXT_CLAUDE_TWO_HOURS.md",
+    ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_TWO_HOURS_RELAUNCH.md",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/campaign-state.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/two-hours-20261006/publication-window.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/two-hours-20261006/tree-validation.json",
+    ".github/workflows/kodjo-vnext-proof-stability.yml"
+  ],
+  "targeted_tests": [],
+  "powershell_changed_units": 0,
+  "writer_policy": "PASS_WITH_FROZEN_LEGACY",
+  "historical_subjects": 420
+}

@@ -7,8 +7,8 @@
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "434adeef6d42e861a3dbee7c6236e77cc1ba74f9",
-  "controller_stage": "FIGMA_TASK2_TWO_HOURS_RELAUNCH_QUALIFICATION_PENDING",
-  "controller_generation": 72,
+  "controller_stage": "FIGMA_TASK2_TWO_HOURS_STALE_TEST_ASSERTION_CORRECTED",
+  "controller_generation": 74,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -2010,13 +2010,20 @@
   "task2_two_hours_relaunch_20261006": {
     "authorization": "USER_2026-10-06_03:41_PARIS_LAUNCH_TASK2",
     "scope": "TASK2_ONLY",
-    "qualification_branch": "qualification/vnext-task2-two-hours-20261006",
+    "qualification_branch": "qualification/vnext-task2-two-hours-r2-20261006",
     "claude_timeout_ms": 7200000,
     "workflow_timeout_minutes": 120,
     "previous_consumed_request_id": "96c53d61-f780-41dc-afb7-3c1f992c910f",
     "fresh_qualification_required": true,
     "runtime_launched": false,
     "task3_authorized": false,
-    "closure_authorized": false
+    "closure_authorized": false,
+    "candidate_head": "d1746b16bbe957861e369c66b72823579e2ed05e",
+    "qualification_run": 37400585436,
+    "qualification_status": "NEW_CANDIDATE_PENDING",
+    "qualification_launch_count": 1,
+    "failed_qualification_run": 37400585436,
+    "failed_qualification_candidate": "d1746b16bbe957861e369c66b72823579e2ed05e",
+    "failure": "STALE_TEST_EXPECTED_600000_OR_900000_INSTEAD_OF_7200000"
   }
 }
