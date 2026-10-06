@@ -13,6 +13,20 @@ test('generic recipe requires a concrete binding and projects a created surface 
  assert.ok(a.uiAtomicityContract.criteria.flatMap(c=>c.assertions).filter(a=>a.figma_document_state).every(a=>a.property_type==='STATE'));
  assert.doesNotThrow(()=>Adapter.renderCompatibilityPlan({application_head:a.planningEnvelope.application_head,plan_contract_hash:a.planContract.contract_hash},a.planContract,a.uiAtomicityContract,a.requirementRegistry,a.candidateManifest));
  assert.ok(a.planContract.boundaries.preserve_scope.some(c=>c.path===mapping.componentPath));
+ const qualified=Chain.produce(Recipe.build(f.cwd,checkpoint,{...mapping,componentBinding:{decision:'CREATE',justification:'Create the render surface; preserve the utility.'},scenarioPropertyType:'STATE',qualificationContract:Driver.QUALIFICATION_CONTRACT}),{cwd:f.cwd}).artifacts;
+ for(const item of qualified.planContract.plan_items){
+  assert.ok(item.implementation_constraints.includes(Driver.QUALIFICATION_CONTRACT.preservation_constraint));
+  assert.deepEqual(item.residual_risks,Driver.QUALIFICATION_CONTRACT.residual_risks);
+  assert.ok(item.test_obligations.every(o=>o.expected.includes(Driver.QUALIFICATION_CONTRACT.preservation_test_expected)));
+  const functional=item.proof_obligations.find(o=>o.proof_type==='FUNCTIONAL_TEST');
+  const visual=item.proof_obligations.find(o=>o.proof_type==='VISUAL_COMPARE');
+  if(visual){assert.ok(functional.expected.includes(Driver.QUALIFICATION_CONTRACT.visual_test_expected));assert.equal(visual.expected,qualified.requirementRegistry.requirements.find(r=>r.requirement_id===item.requirement_id).statement);}
+ }
+ assert.ok(qualified.uiAtomicityContract.criteria.flatMap(c=>c.assertions).filter(a=>a.figma_document_state).every(a=>a.subject===Driver.QUALIFICATION_CONTRACT.documentary_subject));
+ assert.doesNotThrow(()=>Driver.assertPreservedExport(f.cwd));
+ fs.writeFileSync(path.join(f.cwd,mapping.applicationPath),'module.exports={render:()=>""};\n');
+ assert.throws(()=>Driver.assertPreservedExport(f.cwd),/VNEXT_FIGMA_REAL_EXPORT_PRESERVATION_FAILED/);
+
 });
 test('review dependency indices resolve exact catalog IDs while ambiguity, unknown types and bounds stay refused',()=>{
  const context={target_catalog:{SOURCE_UNIT:['SRC-one'],REQUIREMENT:[],IMPACT:[],CANDIDATE:['CAND-two'],PLAN_ITEM:[],TEST:[],PROOF:[],CRITERION:[],ASSERTION:[],PLAN_CONTRACT:[]}};

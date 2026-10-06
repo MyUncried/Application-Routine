@@ -307,6 +307,11 @@ function reviewerOutputSchema(reviewContext) {
         items: {
           type: 'object',
           additionalProperties: false,
+          // The model output must obey the same category/target matrix as the
+          // canonical validator. Independent enums allowed invalid pairings.
+          anyOf: FINDING_CATEGORIES.map(category => ({ properties: {
+            category: { const: category }, target_type: { enum: [...CATEGORY_TARGETS[category]] },
+          } })),
           required: [
             'category',
             'target_type',

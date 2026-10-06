@@ -414,6 +414,15 @@ test('VNext-06 le schéma reviewer borne les IDs et ne contient aucun verdict li
   const findingSchema = schema.properties.findings.items;
   assert.ok(findingSchema.properties.target_id.enum.includes(fx.reqId));
   assert.ok(findingSchema.properties.target_id.enum.includes(fx.planContract.contract_hash));
+  assert.deepEqual(findingSchema.anyOf.map(branch => [branch.properties.category.const, branch.properties.target_type.enum]),
+    Review.FINDING_CATEGORIES.map(category => [category, [...Review.CATEGORY_TARGETS[category]]]));
+  const preservation = findingSchema.anyOf.find(branch => branch.properties.category.const === 'PRESERVATION_RISK');
+  assert.ok(preservation.properties.target_type.enum.includes('PLAN_ITEM'));
+  assert.equal(preservation.properties.target_type.enum.includes('PLAN_CONTRACT'), false);
+  assert.throws(() => Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
+    reviewContext: fx.reviewContext,
+    semanticReview: { findings: [finding('PLAN_CONTRACT', fx.planContract.contract_hash, { category: 'PRESERVATION_RISK' })] },
+  })), /VNEXT_REVIEW_FINDING_TARGET_TYPE_INCOMPATIBLE/);
   assert.equal(Object.hasOwn(findingSchema.properties, 'verdict'), false);
   assert.equal(Object.hasOwn(findingSchema.properties, 'blocking'), false);
   assert.equal(Object.hasOwn(findingSchema.properties, 'finding_id'), false);

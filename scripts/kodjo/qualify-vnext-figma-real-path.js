@@ -10,6 +10,14 @@ const CAMPAIGN='628b3349-88b4-4bf1-be6b-50bc09e7d245';
 const Browser=require('./lib/vnext-figma-browser-observer');
 const BINDING={decision:'CREATE',justification:'Create the disposable render surface in the declared application path; the unchanged Existing Boolean export is a preserved dependency, not an extendable UI component.'};
 const SCREEN='src/features/example/Screen.js',TEST='tests/ui.test.js',KEEP='src/shared/ui/Existing.js';
+const DOCUMENT='Selection toggles off to on and on to off. In this disposable protocol test, selection is the observable Boolean returned by Screen.toggle(), initially off; it is not a rendered chip selection and certifies no production interaction.\n';
+const QUALIFICATION_CONTRACT={
+ preservation_constraint:'Keep the Existing import and re-export in '+SCREEN+'; its value must remain identical to the Existing export of '+KEEP+'.',
+ preservation_test_expected:'Execute an assertion that Screen.Existing is strictly equal to the Existing export of '+KEEP+'; dropping the re-export must fail.',
+ visual_test_expected:'Execute Screen.render() and inspect its HTML markup: the frame and title data-figma-id locators, width/height CSS declarations and title text are present. This Node check observes markup, not rendered geometry; exact width/height measurement belongs to the separate browser VISUAL_COMPARE proof.',
+ residual_risks:['Figma logical pt and browser CSS px are mapped one-to-one only in this disposable qualification; no general unit conversion is certified.','Browser geometry and screenshots do not certify a native device.','Selection is limited to the exported Boolean transition of Screen.toggle(); rendered chip selection, colours and production interaction are outside this disposable qualification.'],
+ documentary_subject:SCREEN+'#toggle() return value',
+};
 const digest=b=>crypto.createHash('sha256').update(b).digest('hex');
 function seal(p){const x=structuredClone(p);delete x.contract_hash;return V.sealContract(x);}
 function scopedPacket(observed,doc){
@@ -69,20 +77,23 @@ function observe(f,packet,dir){
  const head=f.git('rev-parse','HEAD'),artifact={artifact_path:'execution.json',artifact_sha256:digest(Buffer.from(content)),observer:'EXECUTED_JSON_FACT',delivery_head:head};
  return {measurements:F.required(packet).flatMap(d=>d.rule.viewports.map(viewport=>({...artifact,measurement_id:d.property_id+'@'+viewport,property_id:d.property_id,reference_hash:packet.contract_hash,viewport,value:values[d.property_id],value_path:['values',d.property_id],evidence:'Measured browser DOM bounds and text at the declared viewport; screenshot preserved. Browser pixels are not native-device certification.'}))),scenarioResults:packet.states.flatMap(s=>(s.scenarios||[]).map(s=>({...artifact,scenario_id:s.scenario_id,reference_hash:packet.contract_hash,status:states[s.scenario_id]?'PASS':'FAIL',value:states[s.scenario_id],value_path:['scenarios',s.scenario_id],proof_results:s.proof_required.map(proof_type=>({proof_type,status:states[s.scenario_id]?'PASS':'FAIL'}))})))};
 }
-function assertDelta(f,beforeKeep){if(f.gitIntegrity&&GitIntegrity.compare(f.gitIntegrity,GitIntegrity.snapshot(f.cwd)).length)throw Error('VNEXT_FIGMA_REAL_GIT_METADATA_CHANGED');const changed=f.git('diff','--name-only','HEAD').split('\n').filter(Boolean);if(changed.some(p=>![SCREEN,TEST].includes(p))||f.git('ls-files','--others','--exclude-standard'))throw Error('VNEXT_FIGMA_REAL_WRITE_SCOPE_REFUSED');if(digest(fs.readFileSync(path.join(f.cwd,KEEP)))!==beforeKeep)throw Error('VNEXT_FIGMA_REAL_PRESERVATION_FAILED');}
+function assertPreservedExport(cwd){
+ Chain.command(process.execPath,['-e',"const s=require('./"+SCREEN+"'),e=require('./"+KEEP+"');if(!Object.hasOwn(s,'Existing')||s.Existing!==e.Existing)throw Error('VNEXT_FIGMA_REAL_EXPORT_PRESERVATION_FAILED');"],cwd);
+}
+function assertDelta(f,beforeKeep){if(f.gitIntegrity&&GitIntegrity.compare(f.gitIntegrity,GitIntegrity.snapshot(f.cwd)).length)throw Error('VNEXT_FIGMA_REAL_GIT_METADATA_CHANGED');const changed=f.git('diff','--name-only','HEAD').split('\n').filter(Boolean);if(changed.some(p=>![SCREEN,TEST].includes(p))||f.git('ls-files','--others','--exclude-standard'))throw Error('VNEXT_FIGMA_REAL_WRITE_SCOPE_REFUSED');if(digest(fs.readFileSync(path.join(f.cwd,KEEP)))!==beforeKeep)throw Error('VNEXT_FIGMA_REAL_PRESERVATION_FAILED');assertPreservedExport(f.cwd);}
 function compare(f,packet,plan,dir){fs.mkdirSync(dir,{recursive:true});const observations=observe(f,packet,dir);const options={cwd:f.cwd,approvedPlanSha256:V.sha256(plan),deliveryHead:f.git('rev-parse','HEAD'),evidenceDirectory:dir,...observations};Review.prepare(plan,options);return options;}
 async function initial(output){
  const original=JSON.parse(fs.readFileSync(ROOT+'/v8-consolidation/figma-zones/frozen-source.json','utf8'));F.validate(original,{ready:true});
  // Reuse only the established disposable scaffold. No injected reviewer,
  // approval, or implementation function is used in this real benchmark.
- const f=require('../../tests/kodjo/helpers/vnext-figma-fixture').fixture({launchMode:true,documentContent:'Selection toggles off to on and on to off.\n',transformPacket:p=>scopedPacket(original,p.documents[0])});
+ const f=require('../../tests/kodjo/helpers/vnext-figma-fixture').fixture({launchMode:true,documentContent:DOCUMENT,transformPacket:p=>scopedPacket(original,p.documents[0])});
  let status={campaign_id:CAMPAIGN,stage:'FIGMA_INITIAL',status:'STARTED',code_head:Chain.command('git',['rev-parse','HEAD'],process.cwd()).trim(),live_figma_acquisition:'NOT_EXERCISED_FROZEN_GIT_CAPTURE_REPLAY',human_review_performed:false,application_published:false};
  const save=(name,data)=>fs.writeFileSync(path.join(output,name),JSON.stringify(data,null,2)+'\n');
  try{
   const scope={slice_id:'VNEXT-12-QUALIF',launch_id:'figma-real-'+crypto.randomUUID(),file_key:f.snapshot.file_key,frames:f.snapshot.frames,documents:f.snapshot.documents};
   const checkpoint=await Launch.launch(scope,{capture:s=>capture(f.snapshot,s),reconcile:(raw,documents)=>({...raw,documents,states:f.snapshot.states,decisions:f.snapshot.decisions,conflicts:[]}),persist:()=>({revision:f.head,path:f.packetPath,content:Chain.readGit(f.cwd,f.head,f.packetPath)})});save('launch.json',checkpoint);
   const intent='Disposable browser qualification: in '+SCREEN+' preserve the Existing import/export and add render() returning HTML markup for a frame data-figma-id="4478:7209" with CSS width 402px and height 874px, containing title data-figma-id="4953:6611" with text "Zones corporelles". These browser layout units map one-to-one to the fixed reference logical points for this isolated case. A trusted separate browser measures getBoundingClientRect and textContent at viewport 402, retains a screenshot, and checks the reference without reading numeric return constants. Selection initially off; toggle() reverses and returns Boolean. In '+TEST+' check the rendered markup contract and both toggle transitions. Only these two files may change; no dependencies. Native device certification is outside this isolated browser case.';
-  const recipe=Recipe.build(f.cwd,checkpoint,{applicationPath:SCREEN,testPath:TEST,componentPath:KEEP,componentBinding:BINDING,scenarioPropertyType:'STATE',observationIntent:'The trusted observer measures the rendered browser DOM geometry and text at the fixed viewport and retains a screenshot; functional checks execute the declared selection transitions. Browser measurement does not certify a native device.',issueId:'github_issue:MyUncried/Application-Routine#269',intent,executionContext:{mode:'LOCAL',writer_id:'CLAUDE:figma-disposable'}});
+  const recipe=Recipe.build(f.cwd,checkpoint,{applicationPath:SCREEN,testPath:TEST,componentPath:KEEP,componentBinding:BINDING,qualificationContract:QUALIFICATION_CONTRACT,scenarioPropertyType:'STATE',observationIntent:'The trusted observer measures the rendered browser DOM geometry and text at the fixed viewport and retains a screenshot; functional checks execute the declared selection transitions. Browser measurement does not certify a native device.',issueId:'github_issue:MyUncried/Application-Routine#269',intent,executionContext:{mode:'LOCAL',writer_id:'CLAUDE:figma-disposable'}});
   const produced=Chain.produce(recipe,{cwd:f.cwd});save('produced.json',produced);const receipt=Chain.reviewOrRecover(produced,{cwd:f.cwd,evidenceDirectory:path.join(output,'plan-review')});save('plan-review.json',receipt);Chain.validateReceipt(produced,receipt);
   const a=produced.artifacts,plan=Adapter.renderCompatibilityPlan({application_head:a.planningEnvelope.application_head,plan_contract_hash:a.planContract.contract_hash},a.planContract,a.uiAtomicityContract,a.requirementRegistry,a.candidateManifest);fs.writeFileSync(path.join(output,'approved-plan.md'),plan);
   const references=path.join(output,'implementation-references');fs.mkdirSync(references);const observed=F.consume(plan,references,'IMPLEMENTER');save('implementation-observation.json',observed);
@@ -107,13 +118,13 @@ async function initial(output){
 async function precheck(output){
  const original=JSON.parse(fs.readFileSync(ROOT+'/v8-consolidation/figma-zones/frozen-source.json','utf8'));
  F.validate(original,{ready:true});
- const f=require('../../tests/kodjo/helpers/vnext-figma-fixture').fixture({launchMode:true,documentContent:'Selection toggles off to on and on to off.\n',transformPacket:p=>scopedPacket(original,p.documents[0])});
+ const f=require('../../tests/kodjo/helpers/vnext-figma-fixture').fixture({launchMode:true,documentContent:DOCUMENT,transformPacket:p=>scopedPacket(original,p.documents[0])});
  try{
   const scope={slice_id:'VNEXT-12-QUALIF',launch_id:'local-precheck',file_key:f.snapshot.file_key,frames:f.snapshot.frames,documents:f.snapshot.documents};
   const produced=await Chain.launchAndProduce(scope,{
    cwd:f.cwd,capture:s=>capture(f.snapshot,s),reconcile:(raw,documents)=>({...raw,documents,states:Launch.documentStates(documents),decisions:f.snapshot.decisions,conflicts:[]}),
    persist:()=>({revision:f.head,path:f.packetPath,content:Chain.readGit(f.cwd,f.head,f.packetPath)}),
-   buildRecipe:c=>Recipe.build(f.cwd,c,{applicationPath:SCREEN,testPath:TEST,componentPath:KEEP,componentBinding:BINDING,scenarioPropertyType:'STATE',observationIntent:'The trusted observer measures the rendered browser DOM geometry and text at the fixed viewport and retains a screenshot; functional checks execute the declared selection transitions. Browser measurement does not certify a native device.',issueId:'github_issue:MyUncried/Application-Routine#269',intent:'Local contract precheck of the declared disposable code and test mapping.',executionContext:{mode:'LOCAL',writer_id:'CLAUDE:figma-disposable'}})
+   buildRecipe:c=>Recipe.build(f.cwd,c,{applicationPath:SCREEN,testPath:TEST,componentPath:KEEP,componentBinding:BINDING,qualificationContract:QUALIFICATION_CONTRACT,scenarioPropertyType:'STATE',observationIntent:'The trusted observer measures the rendered browser DOM geometry and text at the fixed viewport and retains a screenshot; functional checks execute the declared selection transitions. Browser measurement does not certify a native device.',issueId:'github_issue:MyUncried/Application-Routine#269',intent:'Local contract precheck of the declared disposable code and test mapping.',executionContext:{mode:'LOCAL',writer_id:'CLAUDE:figma-disposable'}})
   });
   Chain.verifyProduced(produced,f.cwd);
   const source=produced.artifacts.planningEnvelope.source_manifest.sources.find(s=>s.source_kind==='FIGMA'),bytes=Chain.readGit(f.cwd,source.revision,source.locator.slice(15));
@@ -138,4 +149,4 @@ async function main(){
 }
 
 if(require.main===module)main().catch(e=>{process.stderr.write(e.message+'\n');process.exitCode=1;});
-module.exports={scopedPacket,capture,observe,assertDelta,compare,initial,precheck,invokeClaude,validateConfig,claimRequest,preserveFixture};
+module.exports={scopedPacket,capture,observe,assertDelta,assertPreservedExport,compare,initial,precheck,invokeClaude,validateConfig,claimRequest,preserveFixture,QUALIFICATION_CONTRACT};
