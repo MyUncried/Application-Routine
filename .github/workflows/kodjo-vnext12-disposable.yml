@@ -6,6 +6,8 @@ on:
       - '.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json'
 permissions:
   contents: read
+  actions: read
+  pull-requests: read
 concurrency:
   group: kodjo-vnext12-disposable
   # An implementation must never be cancelled by a later preparation commit.
@@ -37,6 +39,31 @@ jobs:
       - name: Check the disposable supervisor before any runtime execution
         if: steps.stage.outputs.stage == 'EXECUTE_INITIAL' || steps.stage.outputs.stage == 'EXECUTE_REVISION' || steps.stage.outputs.stage == 'QUALIFY_ONLY' || steps.stage.outputs.stage == 'PREPARE_REVISION'
         run: node --test tests/kodjo/vnext12-supervisor.pilot.js tests/kodjo/vnext12-revision-supervisor.pilot.js
+  admission-controls:
+    name: 1 - Verify exact automatic controls
+    needs: select-stage
+    if: needs.select-stage.outputs.stage == 'FIGMA_INITIAL' || needs.select-stage.outputs.stage == 'EXECUTE_INITIAL' || needs.select-stage.outputs.stage == 'EXECUTE_REVISION'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Require successful exact-code Linux and Windows controls before Claude
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CONTROLLER_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node - <<'JS'
+          const fs=require('fs'),Q=require('./scripts/kodjo/lib/vnext-github-qualification');
+          const config=JSON.parse(fs.readFileSync('.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json'));
+          const result=Q.verifyExecutionQualifications(config,{cwd:process.cwd(),controllerHead:process.env.CONTROLLER_HEAD});
+          console.log(JSON.stringify(result));
+          JS
   qualify-driver:
     needs: select-stage
     if: needs.select-stage.outputs.stage == 'PREPARE_INITIAL' || needs.select-stage.outputs.stage == 'QUALIFY_ONLY' || needs.select-stage.outputs.stage == 'PREPARE_REVISION'
@@ -182,7 +209,7 @@ jobs:
           if-no-files-found: error
   execute-initial:
     name: Execute approved disposable INITIAL or REVISION
-    needs: select-stage
+    needs: [select-stage, admission-controls]
     if: needs.select-stage.outputs.stage == 'EXECUTE_INITIAL' || needs.select-stage.outputs.stage == 'EXECUTE_REVISION'
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 120
@@ -243,7 +270,7 @@ jobs:
 
   figma-initial:
     name: Real Figma INITIAL and one bounded correction
-    needs: select-stage
+    needs: [select-stage, admission-controls]
     if: needs.select-stage.outputs.stage == 'FIGMA_INITIAL'
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 120
@@ -281,3 +308,71 @@ jobs:
           path: ${{ runner.temp }}/vnext12-figma-${{ github.run_id }}-${{ github.run_attempt }}/**
           retention-days: 90
           if-no-files-found: error
+
+  historical-equivalence:
+    name: 3 - Historical assertions (${{ matrix.os }})
+    needs: [select-stage, figma-initial, execute-initial]
+    if: always() && needs.select-stage.result == 'success' && (needs.figma-initial.result == 'success' || needs.execute-initial.result == 'success')
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install isolated pinned tokenizer
+        run: npm ci --prefix scripts/kodjo/openai-runtime --ignore-scripts
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent YAML parser
+        run: python -m pip install PyYAML==6.0.3
+      - name: Execute full historical assertions after the successful runtime
+        shell: bash
+        run: node --test --test-reporter=./scripts/kodjo/lib/vnext-equivalence-reporter.js tests/kodjo/*.pilot.js > "$RUNNER_TEMP/historical-equivalence.jsonl"
+      - name: Resolve retained assertions on the exact candidate
+        if: always()
+        shell: bash
+        run: node scripts/kodjo/qualify-vnext-historical-equivalence.js "$RUNNER_TEMP/historical-equivalence.jsonl" "$RUNNER_TEMP/historical-${{ runner.os }}.json"
+      - name: Preserve historical evidence and actual diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-equivalence-${{ runner.os }}
+          path: |
+            ${{ runner.temp }}/historical-${{ runner.os }}.json
+            ${{ runner.temp }}/historical-equivalence.jsonl
+          if-no-files-found: error
+          retention-days: 90
+  historical-platform-coverage:
+    needs: historical-equivalence
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: historical-equivalence-*
+          path: platform-evidence
+          merge-multiple: true
+      - name: Require every mapped assertion to pass on at least one OS
+        run: node scripts/kodjo/verify-vnext-platform-coverage.js platform-evidence/historical-Linux.json platform-evidence/historical-Windows.json
+  historical-local-windows:
+    name: 3 - Historical checks on the persistent Windows runner
+    needs: historical-platform-coverage
+    uses: ./.github/workflows/kodjo-v2-pilot-tests.yml
+    with:
+      sequenced_vnext: true

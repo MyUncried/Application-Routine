@@ -19,7 +19,7 @@ function pages(endpoint, key, read) {
   }
   V.fail('VNEXT_GITHUB_PAGINATION_INCOMPLETE');
 }
-function verifyQualification({ repository, head, runId, read = readGithub }) {
+function verifyQualification({ repository, head, runId, read = readGithub, controlsOnly = false }) {
   V.assertSha40(head, 'VNEXT_QUALIFICATION_HEAD_REQUIRED');
   if (!/^[1-9][0-9]*$/.test(String(runId))) V.fail('VNEXT_QUALIFICATION_RUN_REQUIRED');
   const base = 'repos/' + repository + '/actions/runs/' + runId;
@@ -33,13 +33,14 @@ function verifyQualification({ repository, head, runId, read = readGithub }) {
       || run.status !== 'completed' || run.conclusion !== 'success'
       || !Number.isInteger(run.run_attempt) || run.run_attempt < 1) V.fail('VNEXT_QUALIFICATION_RUN_NOT_VERIFIED');
   const jobs = pages(base + '/attempts/' + run.run_attempt + '/jobs', 'jobs', read);
-  for (const name of JOBS) {
+  const requiredJobs = controlsOnly ? JOBS.slice(0, 2) : JOBS;
+  for (const name of requiredJobs) {
     const matches = jobs.filter(job => job.name === name);
     if (matches.length !== 1 || matches[0].head_sha !== head || matches[0].status !== 'completed'
         || matches[0].conclusion !== 'success') V.fail('VNEXT_QUALIFICATION_JOB_NOT_VERIFIED', name);
   }
-  return { status: 'VERIFIED', candidate_head: head, run_id: String(run.id), run_attempt: run.run_attempt,
-    jobs: jobs.filter(job => JOBS.includes(job.name)).map(job => ({ id: job.id, name: job.name, conclusion: job.conclusion })),
+  return { status: 'VERIFIED', qualification_scope: controlsOnly ? 'AUTOMATIC_CONTROLS_ONLY' : 'FULL_HISTORICAL', candidate_head: head, run_id: String(run.id), run_attempt: run.run_attempt,
+    jobs: jobs.filter(job => requiredJobs.includes(job.name)).map(job => ({ id: job.id, name: job.name, conclusion: job.conclusion })),
     observed_at: new Date().toISOString() };
 }
 function codeFingerprint(cwd, head) {
@@ -51,10 +52,10 @@ function codeFingerprint(cwd, head) {
 }
 function verifyExecutionQualifications(config, { cwd, controllerHead, read = readGithub }) {
   const repository = 'MyUncried/Application-Routine';
-  const approved = verifyQualification({ repository, head: config.approved_protocol_head, runId: config.qualification_run_id, read });
+  const approved = verifyQualification({ repository, head: config.approved_protocol_head, runId: config.qualification_run_id, read, controlsOnly: true });
   const sameCode = codeFingerprint(cwd, controllerHead) === codeFingerprint(cwd, config.approved_protocol_head);
   const controller = sameCode ? { ...approved, controller_head: controllerHead, relation: 'EXACT_SAME_PROTOCOL_CODE' }
-    : verifyQualification({ repository, head: controllerHead, runId: config.controller_qualification_run_id, read });
+    : verifyQualification({ repository, head: controllerHead, runId: config.controller_qualification_run_id, read, controlsOnly: true });
   return { approved, controller };
 }
 module.exports = { WORKFLOW, JOBS, readGithub, pages, verifyQualification, codeFingerprint, verifyExecutionQualifications };

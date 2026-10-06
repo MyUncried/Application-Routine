@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-06T08:20:38.868520+00:00",
+  "recorded_at": "2026-10-06T08:49:41.016828+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
-  "code_head_before_checkpoint": "acd9c6089fc44c84ecb25750ad0ce5d25ed9b003",
-  "controller_stage": "FIGMA_TASK2_PLAN_PROOF_FIX_QUALIFIED_REQUEST_PREPARED",
-  "controller_generation": 84,
+  "code_head_before_checkpoint": "c30c57682a7864b5b548a2470c6f514b849bdf37",
+  "controller_stage": "VNEXT_SEQUENTIAL_TEST_CAMPAIGN_PREPARED",
+  "controller_generation": 86,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -379,19 +379,19 @@
   },
   "active_runs": [
     {
-      "id": 37428291663,
-      "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
-      "status": "completed",
-      "conclusion": "failure"
-    },
-    {
-      "id": 37428291641,
+      "id": 37435583814,
       "path": ".github/workflows/kodjo-vnext-proof-stability.yml",
       "status": "completed",
       "conclusion": "success"
     },
     {
-      "id": 37428291785,
+      "id": 37435583847,
+      "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "id": 37435583811,
       "path": ".github/workflows/kodjo-vnext12-disposable.yml",
       "status": "completed",
       "conclusion": "failure"
@@ -2131,11 +2131,11 @@
     "previous_consumed_request_id": "99afa62c-632d-4670-9bd1-f3ed857b1d87",
     "qualification_branch": "qualification/vnext-task2-plan-proof-fix-20261006",
     "qualification_launch_count": 1,
-    "runtime_launch_count": 0,
-    "runtime_launched": false,
+    "runtime_launch_count": 1,
+    "runtime_launched": true,
     "task3_authorized": false,
     "closure_authorized": false,
-    "next_action": "PUBLISH_FRESH_REQUEST_ONCE",
+    "next_action": "DIAGNOSE_PRESERVED_RESULT_BEFORE_FRESH_REQUEST",
     "candidate_head": "988bd1da798b8290135adc122ceb960f69745de1",
     "qualification_run": 37433965073,
     "qualification_status": "SUCCESS",
@@ -2166,6 +2166,31 @@
         "fail": 0,
         "skip": 3
       }
-    }
+    },
+    "controller_head": "4b623a022b731880980bb71cfc6f66eb48c7c301",
+    "runtime_run": 37435583811,
+    "runtime_job": 112176515378,
+    "runtime_status": "FAILED_PLAN_REVISE",
+    "internal_claim": "NOT_YET_OBSERVED",
+    "claude_activity": "NOT_YET_OBSERVED"
+  },
+  "test_sequence_20261006": {
+    "authorization": "USER_2026-10-06_10:43_PARIS_APPLY_AFTER_CURRENT_SERIES_ENDS",
+    "previous_series_completed": true,
+    "prior_runs": [
+      37435583811,
+      37435583814,
+      37435583847
+    ],
+    "phases": [
+      "AUTOMATIC_CONTROLS_EXACT_CODE",
+      "CLAUDE_RUNTIME",
+      "HISTORICAL_FINAL_VALIDATION"
+    ],
+    "standalone_vnext_repeats_disabled": true,
+    "legacy_windows_preserved": true,
+    "new_runtime_launched": false,
+    "fully_validated": false,
+    "next_action": "FRESH_EXACT_CODE_AUTOMATIC_QUALIFICATION_BEFORE_ANY_NEW_CLAUDE_REQUEST"
   }
 }

@@ -1,0 +1,42 @@
+
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const {parse}=require('../../scripts/kodjo/lib/yaml'),Q=require('../../scripts/kodjo/lib/vnext-github-qualification');
+const workflow=name=>parse(fs.readFileSync(path.join(__dirname,'../../.github/workflows',name),'utf8'));
+function condition(expression,needs){return Function('needs','always', 'return ('+expression.replace(/needs\.([a-z-]+)\./g,(_,key)=>'needs['+JSON.stringify(key)+'].')+');')(needs,()=>true);}
+test('runtime history waits for a successful selected Claude job and never runs after refusal or cancellation',()=>{
+ const w=workflow('kodjo-vnext12-disposable.yml'),jobs=w.jobs;
+ assert.deepEqual(jobs['figma-initial'].needs,['select-stage','admission-controls']);assert.deepEqual(jobs['execute-initial'].needs,['select-stage','admission-controls']);
+ const gate=jobs['historical-equivalence'];assert.deepEqual(gate.needs,['select-stage','figma-initial','execute-initial']);
+ for(const result of ['failure','cancelled','skipped'])assert.equal(condition(gate.if,{'select-stage':{result:'success'},'figma-initial':{result},'execute-initial':{result:'skipped'}}),false);
+ assert.equal(condition(gate.if,{'select-stage':{result:'success'},'figma-initial':{result:'success'},'execute-initial':{result:'skipped'}}),true);
+ assert.equal(condition(gate.if,{'select-stage':{result:'failure'},'figma-initial':{result:'success'},'execute-initial':{result:'skipped'}}),false);
+ assert.equal(jobs['historical-platform-coverage'].needs,'historical-equivalence');assert.equal(jobs['historical-local-windows'].needs,'historical-platform-coverage');assert.equal(jobs['historical-local-windows'].with.sequenced_vnext,true);
+});
+test('automatic admission does not claim full validation before historical jobs',()=>{
+ const head='a'.repeat(40),repository='MyUncried/Application-Routine';
+ const run={id:42,repository:{full_name:repository},head_sha:head,path:Q.WORKFLOW,event:'create',head_branch:'qualification/vnext-sequence',status:'completed',conclusion:'success',run_attempt:1};
+ const jobs=Q.JOBS.slice(0,2).map((name,i)=>({id:i+1,name,head_sha:head,status:'completed',conclusion:'success'}));const read=e=>e.endsWith('/42')?run:{jobs};
+ assert.equal(Q.verifyQualification({repository,head,runId:42,read,controlsOnly:true}).qualification_scope,'AUTOMATIC_CONTROLS_ONLY');
+ assert.throws(()=>Q.verifyQualification({repository,head,runId:42,read}),/JOB_NOT_VERIFIED/);
+ for(const conclusion of ['failure','skipped','cancelled'])assert.throws(()=>Q.verifyQualification({repository,head,runId:42,controlsOnly:true,read:e=>e.endsWith('/42')?run:{jobs:jobs.map((j,i)=>i?j:{...j,conclusion})}}),/JOB_NOT_VERIFIED/);
+});
+test('historical V2 preflight is reusable after Claude while independent VNext PR repeats are skipped',()=>{
+ const legacy=workflow('kodjo-v2-pilot-tests.yml'),proof=workflow('kodjo-vnext-proof-stability.yml');
+ assert.equal(legacy.on.workflow_call.inputs.sequenced_vnext.default,false);
+ assert.match(legacy.jobs.protocol.if,/inputs.sequenced_vnext == true/);assert.match(legacy.jobs.protocol.if,/protocol\/vnext-proof-stability-20260930/);
+ assert.equal(legacy.jobs.protocol.steps.find(s=>s.name==='Run complete KODJO pilot suite').if,'inputs.sequenced_vnext != true');
+ assert.match(proof.jobs.qualification.if,/github.head_ref != 'protocol\/vnext-proof-stability-20260930'/);
+ assert.match(proof.jobs['historical-equivalence'].if,/github.event_name != 'create'/);
+});
+test('event routing reuses VNext admission and preserves unrelated legacy events',()=>{
+ const proof=workflow('kodjo-vnext-proof-stability.yml'),legacy=workflow('kodjo-v2-pilot-tests.yml');
+ const evaluate=(expression,github,inputs={})=>Function('github','inputs','startsWith','return ('+expression+');')(github,inputs,(a,b)=>String(a||'').startsWith(b));
+ const campaign={event_name:'pull_request',head_ref:'protocol/vnext-proof-stability-20260930',event:{}};
+ assert.equal(evaluate(proof.jobs.qualification.if,campaign),false);assert.equal(evaluate(proof.jobs['historical-equivalence'].if,campaign),false);assert.equal(evaluate(legacy.jobs.protocol.if,campaign),false);
+ assert.equal(evaluate(legacy.jobs.protocol.if,campaign,{sequenced_vnext:true}),true);
+ const candidate={event_name:'create',head_ref:'',event:{ref_type:'branch',ref:'qualification/vnext-sequence'}};
+ assert.equal(evaluate(proof.jobs.qualification.if,candidate),true);assert.equal(evaluate(proof.jobs['historical-equivalence'].if,candidate),false);
+ const unrelated={event_name:'pull_request',head_ref:'feature/other',event:{}};
+ assert.equal(evaluate(proof.jobs.qualification.if,unrelated),true);assert.equal(evaluate(proof.jobs['historical-equivalence'].if,unrelated),true);assert.equal(evaluate(legacy.jobs.protocol.if,unrelated),true);
+});

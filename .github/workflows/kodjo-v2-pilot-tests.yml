@@ -16,6 +16,12 @@ on:
       - '.github/workflows/kodjo-slice-implementation-review.yml'
       - 'scripts/kodjo/**'
       - 'tests/kodjo/**'
+  workflow_call:
+    inputs:
+      sequenced_vnext:
+        description: Historical Windows checks after a successful VNext runtime
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       preserve_complete_source:
@@ -36,6 +42,7 @@ permissions:
 
 jobs:
   protocol:
+    if: github.event_name != 'pull_request' || github.head_ref != 'protocol/vnext-proof-stability-20260930' || inputs.sequenced_vnext == true
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
@@ -113,6 +120,8 @@ jobs:
             gh api "repos/$GITHUB_REPOSITORY/pulls?state=all&per_page=1" --jq '.[0] | (.number > 0) and (.head.sha | test("^[0-9a-f]{40}$")) and (.base.ref | length > 0)' | grep -Fx true
           fi
       - name: Run complete KODJO pilot suite
+        # Sequenced VNext already ran this exact Linux suite in the historical matrix.
+        if: inputs.sequenced_vnext != true
         run: node tests/kodjo/run-all.js
       - name: Validate executable workflow invariants
         run: node scripts/kodjo/validate-workflows.js
