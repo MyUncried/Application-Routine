@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-06T07:47:37.058888+00:00",
+  "recorded_at": "2026-10-06T08:20:38.868520+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "acd9c6089fc44c84ecb25750ad0ce5d25ed9b003",
-  "controller_stage": "FIGMA_TASK2_PLAN_PROOF_FIX_PREPARED",
-  "controller_generation": 83,
+  "controller_stage": "FIGMA_TASK2_PLAN_PROOF_FIX_QUALIFIED_REQUEST_PREPARED",
+  "controller_generation": 84,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -2130,11 +2130,42 @@
     "historical_analysis": ".github/orchestration/reports/2026-10-06_VNEXT_SYSTEMATIC_HISTORY.md",
     "previous_consumed_request_id": "99afa62c-632d-4670-9bd1-f3ed857b1d87",
     "qualification_branch": "qualification/vnext-task2-plan-proof-fix-20261006",
-    "qualification_launch_count": 0,
+    "qualification_launch_count": 1,
     "runtime_launch_count": 0,
     "runtime_launched": false,
     "task3_authorized": false,
     "closure_authorized": false,
-    "next_action": "QUALIFY_EXACT_CORRECTED_CODE_THEN_FRESH_REQUEST_ONCE"
+    "next_action": "PUBLISH_FRESH_REQUEST_ONCE",
+    "candidate_head": "988bd1da798b8290135adc122ceb960f69745de1",
+    "qualification_run": 37433965073,
+    "qualification_status": "SUCCESS",
+    "new_request_id": "7855f901-9ebb-4913-82a3-f68323046d31",
+    "request_generation": 54,
+    "contracts": {
+      "Linux": {
+        "pass": 324,
+        "fail": 0,
+        "skip": 0
+      },
+      "Windows": {
+        "pass": 324,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    "historical": {
+      "Linux": {
+        "tests": 1091,
+        "pass": 1090,
+        "fail": 0,
+        "skip": 1
+      },
+      "Windows": {
+        "tests": 1091,
+        "pass": 1088,
+        "fail": 0,
+        "skip": 3
+      }
+    }
   }
 }
