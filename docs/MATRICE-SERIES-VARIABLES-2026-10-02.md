@@ -100,4 +100,3 @@ Ces critères sont documentaires ; aucune exécution de tests applicatifs ni rec
 | [6623:17745](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6623-17745) — Copie — Séries variables — 14 Tableau masqué | CE-UI-10 / CE-T03-04 | [PNG](Specifications-fonctionnelles/images/figma-6623-17745.png) | `e598f8788c97d7c33d1f8ddb86c1dae03badb57f` |
 | [6623:18007](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6623-18007) — Copie — Séries variables — 15 Déplacement d’une série | CE-UI-10 / CE-T03-04 | [PNG](Specifications-fonctionnelles/images/figma-6623-18007.png) | `7b96caa830237fc88592cbef7c2f877b9820cec1` |
 | [6637:13132](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6637-13132) — Copie — Composition séance — Standard — Séries variables | CE-T03-08 | [PNG](Specifications-fonctionnelles/images/figma-6637-13132.png) | `7f3bf1c0ec65c012b88a973f174332fdfd8ec8d7` |
-

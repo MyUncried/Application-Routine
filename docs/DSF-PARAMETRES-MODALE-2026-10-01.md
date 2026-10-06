@@ -8,4 +8,3 @@
 - [Spécification normative v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md).
 - [DSF actuel](DSF-SERIES-VARIABLES-2026-10-02.md).
 - [Matrice de propagation et vérification](MATRICE-SERIES-VARIABLES-2026-10-02.md).
-

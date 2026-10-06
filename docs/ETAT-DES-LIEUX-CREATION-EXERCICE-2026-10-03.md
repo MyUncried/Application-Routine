@@ -140,4 +140,3 @@ D-029/D-150 restent applicables dans les deux ordres : recommencer le côté cou
 - 42exports inspectés, SHA comparés, chaque image référencée dans chapitre06 et chaque frame rattachée à un contrat ; liens locaux et concordance des IDs contrôlés avant publication.
 
 La documentation du parcours est complète au regard des décisions établies. Les limites de preuve Figma sont listées ci-dessus : aucune affirmation de recette interactive ou de conformité applicative. Aucun code/test/moteur modifié ; PRE-1 reste fermé.
-

@@ -269,5 +269,3 @@ Lecture directe des trois sets : **0 remplissage/contour SOLID en dur, 831 liés
 **130 instances / 38 écrans** dans Prototype MVP. Deux écrans sont des états déployés historiques hors MVP : `1992:8996` et `4738:6355` ; ils ne sont pas réexportés comme cible courante. Les 36 autres captures sont renouvelées ; registre des fichiers dans `Specifications-fonctionnelles/images/README-T03-FIGMA.md`. Les traits Ressenti 1,6/0,9 px sont conservés, sans redessin. Cette inspection/export ne constitue pas une recette de l’application ni une preuve d’absence d’activité interne dans l’ancienne conversation.
 
 Correction du04/10/2026 : conteneurs Titre + durée totale `6214:4075`/`6214:4117` ajustés à la largeur207 du parent par FILL, au lieu de322. Badge en largeur intrinsèque, titre prenant le reste et tronqué ; bord droit du badge x295 sur carte354. Aucune hauteur ni donnée modifiée. Zones Calendrier Semaine `6214:4272` : troncature ENDING, une ligne, largeur145 conservée. Ces deux écarts d’assemblage sont corrigés ; cela ne vaut pas recette applicative.
-
-
