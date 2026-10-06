@@ -18,10 +18,10 @@ test('generic recipe requires a concrete binding and projects a created surface 
   assert.ok(item.implementation_constraints.includes(Driver.QUALIFICATION_CONTRACT.preservation_constraint));
   assert.ok(item.implementation_constraints.includes(Driver.QUALIFICATION_CONTRACT.observer_constraint));
   assert.deepEqual(item.residual_risks,Driver.QUALIFICATION_CONTRACT.residual_risks);
-  assert.ok(item.test_obligations.every(o=>o.expected.includes(Driver.QUALIFICATION_CONTRACT.preservation_test_expected)));
+
   const functional=item.proof_obligations.find(o=>o.proof_type==='FUNCTIONAL_TEST');
   const visual=item.proof_obligations.find(o=>o.proof_type==='VISUAL_COMPARE');
-  if(visual){assert.ok(functional.expected.includes(Driver.QUALIFICATION_CONTRACT.visual_test_expected));assert.ok(visual.expected.includes(qualified.requirementRegistry.requirements.find(r=>r.requirement_id===item.requirement_id).statement));assert.ok(visual.expected.includes(Driver.QUALIFICATION_CONTRACT.visual_proof_expected));}
+  if(visual){assert.equal(functional,undefined);assert.deepEqual(item.proof_obligations.map(p=>p.proof_type),['VISUAL_COMPARE']);assert.ok(item.test_obligations.every(t=>t.target_impact_id===null));assert.ok(qualified.uiAtomicityContract.criteria.filter(c=>c.requirement_id===item.requirement_id).every(c=>c.proof_required.length===1&&c.proof_required[0]==='VISUAL_COMPARE'));assert.ok(visual.expected.includes(qualified.requirementRegistry.requirements.find(r=>r.requirement_id===item.requirement_id).statement));assert.ok(visual.expected.includes(Driver.QUALIFICATION_CONTRACT.visual_proof_expected));}
  }
  assert.ok(qualified.uiAtomicityContract.criteria.flatMap(c=>c.assertions).filter(a=>a.figma_document_state).every(a=>a.subject===Driver.QUALIFICATION_CONTRACT.documentary_subject));
  assert.doesNotThrow(()=>Driver.assertPreservedExport(f.cwd));
@@ -133,3 +133,5 @@ test('provenance attestation rejects a substituted document or mounted fragment 
  assert.throws(()=>Browser.attestProvenance({...input,loadedDocument:'substituted host'}),/PROVENANCE_MISMATCH/);
  assert.throws(()=>Browser.attestProvenance({...input,measuredMount:'<p>Other title</p>'}),/PROVENANCE_MISMATCH/);
 });
+
+test('browser host resolves only the declared shared import and refuses unrelated modules',()=>{const vm=require('node:vm');const run=code=>{const ctx={document:{getElementById:()=>({innerHTML:''})}};ctx.window=ctx;vm.runInNewContext(Browser.host(code,'module.exports={Existing:true};','./keep.js').match(/<script>([\s\S]*)<\/script>/)[1],ctx);return ctx;};for(const name of ['./keep','./keep.js'])assert.equal(run(`const {Existing}=require(${JSON.stringify(name)});module.exports={Existing,render:()=>""};`).subject.Existing,true);assert.throws(()=>run('require("node:fs");module.exports={render:()=>""};'),/REQUIRE_NOT_ALLOWED/);});

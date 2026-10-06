@@ -76,11 +76,11 @@ function resolveBrowser(env=process.env,exists=fs.existsSync){
  const candidates=[env.KODJO_FIGMA_BROWSER,'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe','C:/Program Files/Microsoft/Edge/Application/msedge.exe','C:/Program Files/Google/Chrome/Application/chrome.exe','/usr/bin/google-chrome','/usr/bin/chromium','/usr/bin/chromium-browser'].filter(Boolean);
  const found=candidates.find(p=>path.isAbsolute(p)&&exists(p));if(!found)throw Error('VNEXT_FIGMA_BROWSER_UNAVAILABLE');return found;
 }
-function host(screen,keep){
+function host(screen,keep,sharedSpecifier='../../shared/ui/Existing.js'){
  const script=s=>s.replace(/<\/script/gi,'<\\/script');
  return '<!doctype html><meta charset="utf-8"><style>html,body{margin:0;padding:0}</style><main id="mount"></main><script>'+script(`
 const kept={exports:{}};((module)=>{${keep}\n})(kept);
-const app={exports:{}};((module,require)=>{${screen}\n})(app,()=>kept.exports);
+const app={exports:{}};((module,require)=>{${screen}\n})(app,(specifier)=>{if(specifier!==${JSON.stringify(sharedSpecifier)}&&specifier!==${JSON.stringify(sharedSpecifier.replace(/\.js$/,''))})throw Error('VNEXT_FIGMA_BROWSER_REQUIRE_NOT_ALLOWED:'+specifier);return kept.exports;});
 window.subject=app.exports;
 window.renderedMarkup=subject.render();
 if(typeof window.renderedMarkup!=='string')throw Error('Render must return HTML');
@@ -92,7 +92,7 @@ async function observe({screen,keep,directory,viewport,height,frameId,titleId,tr
  if(!Number.isSafeInteger(viewport)||viewport<1||!Number.isSafeInteger(height)||height<1)throw Error('VNEXT_FIGMA_BROWSER_VIEWPORT_INVALID');
  if(typeof frameId!=='string'||!frameId||typeof titleId!=='string'||!titleId||!Array.isArray(transitions)||transitions.some(t=>typeof t.scenario_id!=='string'||typeof t.method!=='string'||typeof t.expected!=='boolean'))throw Error('VNEXT_FIGMA_BROWSER_SUBJECTS_INVALID');
  const profile=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-figma-browser-'));let child,ws,send,server,documentUrl,documentRequestId,documentFinished=false,primaryError,stderr='',sequence=0;const pending=new Map(),cleanupDiagnostic={browser};
- const screenSource=fs.readFileSync(screen,'utf8'),keepSource=fs.readFileSync(keep,'utf8'),hostSource=host(screenSource,keepSource);
+ const screenSource=fs.readFileSync(screen,'utf8'),keepSource=fs.readFileSync(keep,'utf8'),hostSource=host(screenSource,keepSource,((relative)=>relative.startsWith('.')?relative:'./'+relative)(path.relative(path.dirname(screen),keep).replace(/\\/g,'/')));
  const html=path.join(directory,'rendered.html');fs.writeFileSync(html,hostSource,{flag:'wx'});
  try{
   server=http.createServer((request,response)=>{if(request.url!=='/rendered.html'){response.writeHead(404);response.end();return;}response.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Connection':'close'});response.end(hostSource);});
