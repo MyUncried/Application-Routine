@@ -1,5 +1,7 @@
 # DSF — Cartes, icônes et animations d’appui
 
+**État courant06/10 :** [DSF Cadence et corrections](DSF-CADENCE-2026-10-06.md), [matrice courante](MATRICE-CADENCE-FIGMA-2026-10-06.md). Les mesures/captures datées ci-dessous restent historiques lorsqu’elles sont remplacées ; règles cartes média conservées. Cadence commune REPS et phrase unique selon paramètres v13, Phrase v1.
+
 ## Références et portée
 
 Mise à jour du 30 septembre 2026, issue de `prompt_maj_DSF_et_documentation_cartes_point fermés.md`, complété par les six corrections du propriétaire et de la précision du propriétaire sur les pages Figma. Base documentaire : `MyUncried/Application-Routine`, `main`, commit `48b444ededb735da47a42474c39e150224e92395`. Aucun ZIP ancien n’est réintégré.
@@ -88,9 +90,9 @@ Le booléen Figma `Bilatéral` est faux par défaut. Il est présent sur les var
 
 Ces couleurs documentent les références fournies ; elles ne créent ni catégories obligatoires ni couleur déduite du nom en production. Cardio et Récupération sont validées. Le contraste du pictogramme blanc inférieur à 3:1 est une situation connue et acceptée : environ 1,9:1 pour Cardio, 1,5:1 pour Récupération, 2,3:1 pour Étirements ; le nom de catégorie reste affiché à côté. Les autres catégories non concernées conservent leur définition.
 
-Navigation : `Navigation / Bottom` (`6298:12462`), variantes Catalogue `6298:11827`, Calendar `6298:11988`, History `6298:12149`, Profile `6298:12310`, Search `6298:12461`. La présence de Search ne valide pas une destination fonctionnelle supplémentaire. Icônes : Catalogue `6296:10468` (quatre formes), Calendrier `6296:10484` (contour), Suivi `6296:10498` (quatre barres), Profil `6296:10514` (`people-outline`). Trait 2, dessin maximal 24 dans boîte optique 32, profil 24 × 20,1, centrage conservant le ratio. Actif `#0508E5`, non actif `#5C636E`.
+Navigation : `Navigation / Bottom` (`6298:12462`), variantes Catalogue `6298:11827`, Calendar `6298:11988`, History `6298:12149`, Profile `6298:12310`, Search `6298:12461`. La présence de Search ne valide pas une destination fonctionnelle supplémentaire. Icônes : Catalogue `6296:10468` (quatre formes), Calendrier `6296:10484` (contour), Suivi `6296:10498` (quatre barres), Profil `6296:10514` (`people-outline`). Trait 2, dessin maximal 24 dans boîte optique 32, profil 24 × 20,1, centrage conservant le ratio. Actif `#0508E5`, non actif `#595E66`.
 
-Icônes de sélection hors navigation : sélectionné `#0508E5`, non sélectionné `#5C636E`, inactif `#C2C4D1`. Cette palette ne recolore pas les visages de Ressenti, les statuts, les boutons à fond coloré ou les icônes purement informatives de valeur. `target-light` reste réservé au Programme ; `pulse-light` reste réservé aux rapports ou au Suivi ; ces icônes ne sont pas encore utilisées. Les nouvelles icônes suivent `icon/<nom>` ; les icônes existantes ne sont pas renommées.
+Icônes de sélection hors navigation : sélectionné `#0508E5`, non sélectionné `#595E66`, inactif `#C2C4D1`. Cette palette ne recolore pas les visages de Ressenti, les statuts, les boutons à fond coloré ou les icônes purement informatives de valeur. `target-light` reste réservé au Programme ; `pulse-light` reste réservé aux rapports ou au Suivi ; ces icônes ne sont pas encore utilisées. Les nouvelles icônes suivent `icon/<nom>` ; les icônes existantes ne sont pas renommées.
 
 ## Composants et écarts d’assemblage
 
@@ -169,7 +171,7 @@ Les réactions Figma utilisent ON_CLICK puis AFTER_TIMEOUT de 10 ms pour la dém
 | Zones corporelles | Ancienne icône body/man-outline | Famille silhouette Homme/Femme | Cartes, Profil, éditeur | Validé, RG-5/RG-10 |
 | Bilatéral | Texte « de chaque côté » | Miroir dans les variantes concernées | Exercice Catalogue/choix | Validé |
 | Prochaine planification | D-206 impose une ligne conditionnelle | Ligne retirée du rendu | Deux Catalogues | Validé ; D-206 révisée sur l’affichage seul |
-| Pause/récupération | Synthèses documentées et D-208 | Absentes de certaines synthèses graphiques | Catalogue, choix, Composition | Validé ; affichage révisé, données conservées ; calculs révisés par D-248/v12 |
+| Pause/récupération | Synthèses documentées et D-208 | Absentes de certaines synthèses graphiques | Catalogue, choix, Composition | Validé ; affichage révisé, données conservées ; calculs révisés par D-248/v13 |
 | Format de synthèse | Format métier existant | N séries de X / N séries de N rép. / N séries à l’échec | Exercice | Validé |
 | Heure / classement | Formats et agrégations existants | 08:00 en Semaine ; Suivi sans heure depuis D-262 ; étiquette sinon catégories hors Suivi | Cartes | Validé |
 | Appui | Non décrit dans le DSF documentaire courant | Démonstrations et variantes accessibilité identifiées | Contrôles | Spécification v2 du 29/09 reprise ; action immédiate au relâchement |
@@ -238,7 +240,7 @@ Total rapporté par le propriétaire : 133 cartes / 38 écrans / environ 27 inte
 22. ANI-04 : l’action se déclenche au relâchement sans attendre le ressort ; une sortie du doigt annule l’action.
 23. ANI-05 : un appui rapide interrompt et reprend l’animation depuis son état courant.
 24. ANI-06 : le stepper répète après 450 ms puis toutes les 150 ms et s’arrête au relâchement.
-25. DAT-02 : les sources de Routine et les instantanés historiques sont conservés ; les calculs actifs suivent D-248/v12.
+25. DAT-02 : les sources de Routine et les instantanés historiques sont conservés ; les calculs actifs suivent D-248/v13.
 
 26. MED-05 : aucun bouton Déployer sur Exercice, avec ou sans média, ni sur les cartes Suivi.
 27. MED-06 : vignette centrée et recadrée sans déformation ; couverture pour la vidéo.
@@ -260,11 +262,12 @@ Le token historique `size/touch-target-min` conserve sa valeur48 pour ne pas ré
 
 ## Contrôle de reprise — 03/10/2026
 
-Baseline documentaire : `main` `d05473055722b0b7677b3604daed5fa02fae1a42`, après PR #285 à #291 ; D-256 à D-259 préservées. Aucune règle de calcul v12 modifiée.
+Baseline documentaire : `main` `d05473055722b0b7677b3604daed5fa02fae1a42`, après PR #285 à #291 ; D-256 à D-259 préservées. Aucune règle de calcul v13 modifiée.
 
 Lecture directe des trois sets : **0 remplissage/contour SOLID en dur, 831 liés**. Le compte antérieur 829 précède l’ajout du fond Calendrier Jour Exercice (remplissage et contour liés). Les tokens sont `color/cards/media-placeholder`, `color/cards/calendar-day-border`, `color/feeling/good` ; valeurs visuelles conservées. Aucun calque nommé Défilement horizontal dans les trois sets. Le fond `6770:13202` du Calendrier Jour Exercice fait 298 × 48 ; la carte reste rayon 8, contour #D6D9E0 de 1 px intérieur.
 
 **130 instances / 38 écrans** dans Prototype MVP. Deux écrans sont des états déployés historiques hors MVP : `1992:8996` et `4738:6355` ; ils ne sont pas réexportés comme cible courante. Les 36 autres captures sont renouvelées ; registre des fichiers dans `Specifications-fonctionnelles/images/README-T03-FIGMA.md`. Les traits Ressenti 1,6/0,9 px sont conservés, sans redessin. Cette inspection/export ne constitue pas une recette de l’application ni une preuve d’absence d’activité interne dans l’ancienne conversation.
 
 Correction du04/10/2026 : conteneurs Titre + durée totale `6214:4075`/`6214:4117` ajustés à la largeur207 du parent par FILL, au lieu de322. Badge en largeur intrinsèque, titre prenant le reste et tronqué ; bord droit du badge x295 sur carte354. Aucune hauteur ni donnée modifiée. Zones Calendrier Semaine `6214:4272` : troncature ENDING, une ligne, largeur145 conservée. Ces deux écarts d’assemblage sont corrigés ; cela ne vaut pas recette applicative.
+
 

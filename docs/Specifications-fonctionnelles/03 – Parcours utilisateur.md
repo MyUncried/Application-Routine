@@ -293,7 +293,7 @@ La séance peut avoir été lancée directement ou à partir d'une routine plani
 - La règle permettant de reprendre une séance après une très longue interruption est définie comme suit :
 	- Si une Séance reste en pause pendant au moins 30 minutes consécutives, l'application demande à l'utilisateur s'il souhaite reprendre son Exécution.
 	- Si l'utilisateur confirme, la séance reprend à l'exercice où elle avait été interrompue.
-	- En l'absence de réponse, la séance est automatiquement enregistrée avec le statut Interrompue.
+	- En l’absence de réponse, la Séance reste suspendue avec son état conservé ; aucun arrêt automatique supplémentaire (chapitre13 R-03).
 	- Dans une version ultérieure, cette durée maximale pourra être configurée dans les préférences utilisateur.
 ## Résultat attendu
 
@@ -396,7 +396,7 @@ Un Exercice créé directement dans une Séance ne rejoint pas le catalogue. L�
 
 ## Exécuter un Exercice À l’échec — MVP
 
-L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La Pause configurée s’exécute après chaque Série, selon l’Ordre des côtés et la substitution terminale v12. Si l’Exercice est bilatéral, la Pause entre les côtés éventuelle intervient entre les deux passages. En Exécution directe, aucune Récupération après exercice n’est ajoutée ; dans une Séance/Parcours, la Récupération après exercice appartient à l’occurrence et s’exécute après celle-ci.
+L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La Pause configurée s’exécute après chaque Série, selon l’Ordre des côtés et la substitution terminale v13. Si l’Exercice est bilatéral, la Pause entre les côtés éventuelle intervient entre les deux passages. En Exécution directe, aucune Récupération après exercice n’est ajoutée ; dans une Séance/Parcours, la Récupération après exercice appartient à l’occurrence et s’exécute après celle-ci.
 
 ## Créer et exécuter un Parcours — hors MVP, conception partielle
 
@@ -541,4 +541,10 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 
 ## Paramètres d’exécution — complément du02/10/2026
 
-Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v12](SPECIFICATION-PARAMETRES-MODALE-v12.md), CE-T03-04 et CE-UI-10.
+Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), CE-T03-04 et CE-UI-10.
+
+## Parcours Répétitions avec cadence
+
+Dans créer/modifier un Exercice, ouvrir la zone Paramètres, choisir Répétitions puis renseigner éventuellement Cadence. Aucune reste valide ; suppression remet l’absence. En Séries variables, le réglage commun s’applique à toutes les lignes. ✓ actualise le parent et sa phrase ; ✕ annule ; Terminer enregistre.
+
+En direct comme en Séance, la première répétition commence immédiatement, puis les signaux rythment les intervalles. Le signal final nominal ne change pas de Série ; Suivant le fait normalement. Pause abandonne l’intervalle incomplet pour la progression et Reprendre lance un intervalle complet ; le temps actif est conservé. Réinitialiser suit le périmètre existant. La Synthèse restitue le temps réellement passé sans demander de compte de répétitions. Le Profil n’ajoute aucun réglage Cadence.

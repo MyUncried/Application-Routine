@@ -230,4 +230,8 @@ L’utilisateur doit pouvoir classer chaque nouvel Exercice avec exactement une 
 
 ## Paramètres d’exécution — complément du02/10/2026
 
-Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v12](SPECIFICATION-PARAMETRES-MODALE-v12.md), CE-T03-04 et CE-UI-10.
+Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), CE-T03-04 et CE-UI-10.
+
+## Besoin de rythme reproductible
+
+Pour un entraînement ou une rééducation, prescrire un intervalle entre répétitions et disposer de signaux réguliers, tout en gardant la maîtrise de la fin de Série. La cadence est facultative ; aucune mesure automatique des répétitions ni preuve de mouvement effectué n’est promise. La Synthèse conserve le temps actif réel et la prescription de l’instantané.

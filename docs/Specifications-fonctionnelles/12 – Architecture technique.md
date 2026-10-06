@@ -287,7 +287,7 @@ Le moteur gère ensuite :
 - l’étape courante ;
 - les répétitions du Circuit, c’est-à-dire les Tours, et le Cycle technique fixé à une répétition ;
 - les Séries propres à chaque Exercice ;
-- Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v12 §§3–5, D-247 à D-250.
+- Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v13 §§3–5, D-247 à D-250.
 - l’insertion éventuelle d’une phase `SIDE_RECOVERY` entre les deux côtés lorsque `sideRecoverySeconds > 0` ;
 - l’insertion d’une phase `POST_ACTIVITY_RECOVERY` après chaque occurrence de Séance/Parcours lorsque `postActivityRecoverySeconds > 0` ;
 - la progression dans le Circuit au cours du Tour courant ;
@@ -357,8 +357,8 @@ Le passage en arrière-plan ou le verrouillage ne met pas automatiquement l’Ex
 
 Le moteur applique une pause de sécurité en l’absence d’interaction :
 
-- 30 minutes après la fin théorique d’un Exercice chronométré ;
-- 2 heures après le démarrage d’un Exercice en Répétitions ou À l’échec.
+- 30 minutes après la fin théorique d’un Exercice chronométré ou la fin nominale recalculée d’une Série cadencée ;
+- 2 heures après le démarrage d’un Exercice en Répétitions sans cadence ou À l’échec.
 
 Cette pause est déterminée à partir des horodatages et ne suppose pas qu’un timer JavaScript reste actif en permanence en arrière-plan.
 
@@ -810,7 +810,7 @@ Pour l’Exécution, les composants textuels du contenu utilisent **Roboto Conde
 | Composition | `Composition / Tour Section — Source exact` | section Tour, synthèse calculée des exercices et répétition contextuelle |
 | Composition | `Composition / Boundary Activity — Source exact` | `Type=Initial countdown/End session` |
 | Exercice | `Activity / Name Field — Source exact` (`3382:4303`) | champ Nom canonique placé en tête du bandeau bleu |
-| Exercice | `Activity / Parameter Row — Source exact` et `Controls / Segmented` (`2586:2759`) | `Mode=Duration/Repetitions/ToFailure` ; ordre invariant `Séries` → cible → `Pause` ; `ToFailure` remplace la cible par le cadre informatif `à l’échec` ; seconde rangée `Récupération` → `Durée totale`, cette dernière étant masquée sans déplacement hors mode Durée |
+| Exercice | Feuille Paramètres, Valeur modifiable6944:26423 et Roulette5544:5146 | Structure v13 : Séries/variables/cible/Cadence si REPETITIONS/Pause, côtés, total, CR/Fin ; les anciennes lignes Source exact ne sont plus une deuxième architecture cible |
 | Exercice | États de calcul (`3580:4733`, `3580:4845`, `3580:4957`) | respectivement Séries pilote, Durée totale pilote et durée cible ajustée ; le pilote confirmé reçoit un contour lié à `color/selection` |
 | Média | `Action / Add Media — Source exact` (`3382:60`) | visible mais désactivé dans le MVP ; actif en V2 ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais un caractère typographique `+` |
 | Média | `Media / Preview` (`3382:59`) | aperçu Photo ou Vidéo |
@@ -836,11 +836,11 @@ Le contrôle `Controls / Disclosure — Source exact` est la référence normati
 
 ### Design tokens canoniques
 
-Le Figma contient les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`. Au contrôle du 4 septembre 2026, elles contiennent respectivement `59`, `62` et `4` variables. La collection Responsive possède les modes `Compact 360`, `Standard 402` et `Grand téléphone 440`. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente ces modes pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail.
+Le Figma contient les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`. Au relevé direct du06/10/2026, elles contiennent respectivement350,432 et4 variables ;51 styles de texte. Les anciens comptes59/62/4 et9styles sont historiques. La collection Responsive possède les modes `Compact 360`, `Standard 402` et `Grand téléphone 440`. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente ces modes pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail.
 
-Le `Prototype MVP` n’est pas intégralement relié aux variables ni aux Text Styles. Cette absence de liaison ne crée pas une seconde source de vérité : les valeurs historiques répétées dans ses frames sont rapprochées des tokens canoniques lors du développement, sous réserve de conserver toute différence visuelle explicitement démontrée comme intentionnelle. Une valeur brute telle que `13,16`, `16,92`, `18,8` ou `9,4` ne doit pas être créée comme token : elle est ramenée au niveau canonique correspondant.
+Le journal du05/10 documente la liaison et la rationalisation du Prototype MVP ; le relevé courant ne revendique pas un audit exhaustif de chaque liaison. Les valeurs sont rapprochées par rôle, avec exceptions explicites, selon DSF-CADENCE-2026-10-06 ; ne pas réutiliser le constat du04/09 comme état courant. Une valeur brute telle que `13,16`, `16,92`, `18,8` ou `9,4` ne doit pas être créée comme token : elle est ramenée au niveau canonique correspondant.
 
-Les noms avec barre oblique, par exemple `color/primary`, sont les noms physiques des variables Figma. Les noms avec point employés dans le code, par exemple `color.primary`, sont leurs identifiants d’implémentation. La table de correspondance doit rester bijective ; deux tokens de code ne peuvent pas représenter silencieusement une même variable Figma.
+Les noms avec barre oblique, par exemple `color/primary`, sont les noms physiques des variables Figma. Les noms avec point employés dans le code, par exemple `color.primary`, sont leurs identifiants d’implémentation. La correspondance distingue les rôles ; les alias explicitement conservés (divider/border, iconNeutral/textSecondary, etc.) sont documentés et ne justifient pas une duplication silencieuse.
 
 #### Couleurs
 
@@ -854,9 +854,9 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.surfaceSubtle` | `#F9FAFC` | Contrôles neutres et fonds légers |
 | `color.textPrimary` | `#141414` | Texte principal canonique |
 | `color.textSecondary` | `#595E66` | Texte secondaire |
-| `color.iconNeutral` | `#5C636E` | Icônes inactives |
+| `color.iconNeutral` | `#595E66` | Icônes inactives |
 | `color.border` | `#E0E3E8` | Bordure standard |
-| `color.divider` | `#DBE0E8` | Séparateurs et démarcation d’en-tête |
+| `color.divider` | `#E0E3E8` | Séparateurs et démarcation d’en-tête |
 | `color.disabled` | `#BEC2CC` | Fond d’action désactivée |
 | `color.snackbar` | `#292B33` | Fond des messages temporaires |
 | `color.positive` | `#4F9F83` | Ressenti positif sélectionné |
@@ -868,9 +868,16 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.wheelActionCancelIcon` | `#141414` | Croix d’annulation ; alias de `color.textPrimary` |
 | `color.wheelActionConfirmIcon` | `#FFFFFF` | Coche de confirmation sur fond primaire |
 | `color.sessionNameBorder` | `#FFFFFF` | Liseré du champ `Nom de la séance` sur la surface colorée de Composition ; variable Figma `color/session-name-border` |
-| `color.mediaSurface` | `#F6F6FF` | Surface des aperçus Média ; variable sémantique Figma `color/media/surface`, alias exact de la primitive `color/media/surface-F6F6FF` |
+| `color.mediaSurface` | `#F5F7FA` | Alias conservé de surface ; anciennes valeurs F6F6FF historiques |
 | `color.mediaBorder` | `#CDCEFA` | Bordure des aperçus Média ; variable sémantique Figma `color/media/border`, alias exact de la primitive `color/media/border-CDCEFA` |
 | `color.overlayScrim` | `rgba(31, 33, 41, 0.34)` | Voile bloquant des roulettes ouvertes ; variable sémantique Figma `color/overlay/scrim`, alias exact de la primitive `color/overlay/scrim-1F2129-34` |
+| `color.textLabel` | `#46464C` | Libellés, Figma color/text-label |
+| `color.textTertiary` | `#7A7A80` | Texte tertiaire |
+| `color.onPrimary` | `#FFFFFF` | Texte et icône sur primaire |
+| `color.primarySoft` | `#8283F2` | Décor, pas fond de sélection portant du texte blanc normal |
+| `color.calendarMarker` | `#1F9E7A` | Point de séance Calendrier |
+| `color.breakpoint` | `#ED7314` | Action de point d’arrêt |
+| `color.compositionDraggedCardShadow` | `#14171F` | Teinte d’ombre ; distincte du voile modal |
 
 Les couleurs de statut sont toujours accompagnées d’un libellé, d’une icône ou des deux. Les rares variantes historiques de noir ou de gris présentes dans les frames sont normalisées vers les tokens ci-dessus lors du développement, sauf différence visuelle explicitement documentée.
 
@@ -878,27 +885,27 @@ L’ancienne valeur `#8283F2` ne doit plus servir de fond à un texte blanc de t
 
 #### Typographie
 
-La famille du MVP est `Inter`. La hauteur de ligne explicite ci-dessous remplace la valeur Figma `AUTO` afin d’obtenir un rendu stable entre plateformes.
+Les textes d’interface utilisent Inter ; chronomètres et compteurs concernés utilisent volontairement Roboto Condensed. Ces deux familles doivent être chargées, avec les graisses effectivement utilisées. La hauteur de ligne explicite ci-dessous remplace la valeur Figma `AUTO` afin d’obtenir un rendu stable entre plateformes.
 
-Les neuf Text Styles locaux actuellement présents sont : `KODJO / Timer`, `Screen title`, `Modal title`, `Section title`, `Body`, `Label`, `Button`, `Supporting` et `Navigation label`. Ils ne couvrent pas encore à eux seuls toute la gamme fonctionnelle ci-dessous et ne sont pas appliqués aux 2 614 nœuds texte de `Prototype MVP`. La gamme suivante constitue donc le contrat typographique canonique d’implémentation et de rationalisation ; elle ne doit pas être présentée comme une liaison Figma déjà exhaustive.
+Le relevé du06/10 comporte51 styles. La correspondance code/Figma se fait par rôle et contexte, jamais par égalité de corps. Les styles historiques subsistent ; DSF / Card title17 est obsolète, et le chrono secondaire5017:6051 utilise le style neutre Inter Semi Bold17.
 
 | Token | Graisse | Taille | Hauteur de ligne | Usage |
 | --- | --- | ---: | ---: | --- |
-| `type.timerPrimary` | Semi Bold | `58` | `64` | Temps principal pendant l’Exécution |
+| Temps principal d’Exécution — rôle à mapper | Roboto Condensed Bold | `100` | Rendu Auto Figma à mesurer par rôle, ne pas réutiliser64 | Témoin DSF / Timer ; ancien type.timerPrimary Inter58/64 non conforme |
 | `type.activityTitle` | Semi Bold | `28` | `34` | Nom de l’Exercice en cours d’Exécution |
 | `type.metricPrimary` | Semi Bold | `22` | `28` | Durée, résultat ou métrique dominante |
 | `type.screenTitle` | Semi Bold | `20` | `24` | Titre d’écran |
 | `type.modalTitle` | Semi Bold | `18` | `22` | Titre de modale, bottom sheet ou date principale |
-| `type.sectionTitle` | Semi Bold | `16` | `20` | Titre de section ou de formulaire |
+| `type.sectionTitle` | Semi Bold | `16` | `19` Auto ;20 si style explicite | Titre de section ou de formulaire |
 | `type.cardTitle` | Semi Bold | `16` | `20` | Titres hors famille Cartes du 30 septembre |
-| Titre des nouvelles cartes | Semi Bold | `15` | Selon référence Figma | Catalogue, choix, Calendrier Semaine et Suivi ; exception documentée à D-083 |
-| `type.compactCardTitle` | Semi Bold | `13` | `18` | Titre d’une carte compacte imbriquée, notamment dans une Composition |
-| `type.body` | Regular | `14` | `20` | Texte courant |
-| `type.label` | Medium | `14` | `18` | Libellé de champ ou valeur importante |
-| `type.button` | Semi Bold | `14` | `18` | Bouton principal et secondaire |
-| `type.supporting` | Regular | `12` | `16` | Aide, métadonnée et information secondaire |
-| `type.caption` | Regular | `11` | `16` | Légende compacte et information contrainte |
-| `type.navLabel` | Regular | `11` | `16` | Libellé de destination active |
+| Titre des nouvelles cartes (rôle distinct de cardTitle) | Semi Bold | `15` | `18` | Catalogue, choix, Calendrier Semaine et Suivi ; exception documentée à D-083 |
+| `type.compactCardTitle` | Semi Bold | `15` | `18` | Titre d’une carte compacte imbriquée, notamment dans une Composition |
+| `type.body` | Regular | `14` | `17` Auto ;20 si style explicite | Texte courant |
+| `type.label` | Medium | `14` | `17` Auto ;18 si style explicite | Libellé de champ ou valeur importante |
+| `type.button` | Semi Bold | `14` | `17` Auto ;18 si style explicite | Bouton principal et secondaire |
+| `type.supporting` | Regular | `12` | `15` explicite selon rôle ;16 historique | Aide, métadonnée et information secondaire |
+| `type.caption` | Regular | `11` | Cible13 à confirmer selon source ; ancien16 périmé | Légende compacte ; ne pas annoncer la migration code qualifiée |
+| `type.navLabel` | Regular | `11` | Rôle à qualifier ; recommandation13, ancien16 historique | Libellé de destination active, pas migration par égalité de taille |
 
 La taille minimale d’un texte fonctionnel est `11`. Une information secondaire utilise normalement `type.supporting` en `12`. Les tailles `8`, `10` et `10,5` ne sont pas utilisées pour du texte fonctionnel ; les points du Calendrier mensuel sont des indicateurs graphiques et non des caractères typographiques. Les titres et noms fonctionnels utilisent `type.cardTitle` en `16`, sauf les nouvelles cartes en `15` et le niveau compact explicitement prévu par `type.compactCardTitle`. La taille `15` est désormais le titre fonctionnel des nouvelles cartes du 30 septembre, exception explicite à D-083 ; les autres titres conservent leur niveau propre.
 
@@ -1394,7 +1401,7 @@ L’implémentation de la navigation et des composants visuels respecte D-224 à
 
 ### Référence DSF V2 détaillée — clôture 28 septembre 2026
 
-- **Navigation basse** : pilule `322 × 62 px`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur/rayon 10 offset `0,2`; token `color/navigation/pill`. Icône Profil selon D-233/D-236 dans boîte 32×32 ; actif `#0508E5`, inactif `#5C636E`. Cadre actif `76 × 50 px`, bleu `#0508E5` à 10 %. Boîtes d’icônes aux abscisses 68/146/224/302 dans la référence 402 px, soit 28 px entre bord de pilule et boîte extrême et 78 px entre centres. Intégration écran : 16 px sous la pilule, bande opaque 16 px puis dégradé transparent→fond sur 40 px ; ces bandes appartiennent à l’écran.
+- **Navigation basse** : pilule `322 × 62 px`, `#F9FAFC`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur/rayon 10 offset `0,2`; token `color/navigation/pill`. Icône Profil selon D-233/D-236 dans boîte 32×32 ; actif `#0508E5`, inactif `#595E66`. Cadre actif `76 × 50 px`, bleu `#0508E5` à 10 %. Boîtes d’icônes aux abscisses 68/146/224/302 dans la référence 402 px, soit 28 px entre bord de pilule et boîte extrême et 78 px entre centres. Intégration écran : 16 px sous la pilule, bande opaque 16 px puis dégradé transparent→fond sur 40 px ; ces bandes appartiennent à l’écran.
 - **Fond / contexte** : écran ordinaire `#FFFFFF`; Splash `#0006F1`; média plein écran `#0A0A0C`. Zone de contexte `#EAEAFF`→transparent sur les 20 % inférieurs pour Catalogues, Composition, Calendrier, Suivi, Profil et Ajout d’exercice. Le séparateur 1 px n’est retiré que si ce dégradé assure la séparation.
 - **Halo et action circulaire** : halo Annuler/Retour blanc opaque `59,28 px`, placé devant la zone de contexte et hors du conteneur clippé ; bouton circulaire clair `32 × 32`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur 10 offset `0,2`.
 - **Stepper / valeur** : variante lavande `#F2F2FF` pour Profil/paramètres, variante blanche pour Tours de Composition ; `−/+` ronds bleus, 12 px autour de la valeur centrale. Le stepper remplace la valeur sur la même ligne sans étirer le groupe ; un seul stepper actif à la fois. Badge replié `#F4F4F8`, texte bleu Semi Bold 13 px, rayon 6, marges 8 px horizontales et 2 px verticales ; contour bleu 1,5 px lorsque le contrôle est ouvert (DSF V2 lot 3, T4). Le nombre de semaines utilise la pilule de stepper rayon 18.
@@ -1405,13 +1412,13 @@ L’implémentation de la navigation et des composants visuels respecte D-224 à
 - **Cartes d’Exercice** : D-260/D-261 remplacent l’ancien état média déployé ; gouttière permanente au Catalogue et dans les choix d’exercices, photo ou icône de nature ; aucun Déployer. Aucune photo sur Séance, dans les listes mixtes, le Calendrier ou le Suivi. Les variantes média d’Exécution conservent leur fonctionnement propre.
 
 
-### Générateur et validation des paramètres v12
+### Générateur et validation des paramètres v13
 
-Fonctions pures communes de calcul, résumé et construction des phases : v12 §§3–8, D-247 à D-255. Fournir explicitement le contexte intrinsèque/occurrence. Ne pas extraire de données métier du texte du résumé ni des valeurs Figma. Le tableau ordonné est la source des paramètres variables. Le total est dérivé, jamais éditable en variable.
+Fonctions pures communes de calcul, résumé et construction des phases : v13 §§3–8, D-247 à D-255. Fournir explicitement le contexte intrinsèque/occurrence. Ne pas extraire de données métier du texte du résumé ni des valeurs Figma. Le tableau ordonné est la source des paramètres variables. Le total est dérivé, jamais éditable en variable.
 
 Bornes : N1..99, répétitions1..100, durée1..5999s, pauses0..300s. Pas des pauses D-252 : 1s jusqu’à5s, 5s jusqu’à120s, 30s jusqu’à300s ; pas durée1s/répétitions1. Les valeurs stockées ne sont pas arrondies à l’ouverture. PC reprend le défaut Profil (10s). L’estimation locale vaut2s/répétition, sans cadence imposée au moteur.
 
-Prévoir la représentation versionnée uniforme/variable et Ordre des côtés dans les définitions, copies et instantanés. Les données anciennes sont lues uniforme/Un côté après l’autre ; la nouvelle politique des pauses s’applique aux nouvelles exécutions de ces données. Les résultats historiques restent immuables. La migration physique doit être planifiée avec l’implémentation ; aucune réinitialisation de base n’est autorisée par cette mise à jour documentaire. PRE-1 reste fermé. Les anciens jeux v10 sont des preuves historiques ; la recette cible est v12 §9 et la matrice du02/10.
+Prévoir la représentation versionnée uniforme/variable et Ordre des côtés dans les définitions, copies et instantanés. Les données anciennes sont lues uniforme/Un côté après l’autre ; la nouvelle politique des pauses s’applique aux nouvelles exécutions de ces données. Les résultats historiques restent immuables. La migration physique doit être planifiée avec l’implémentation ; aucune réinitialisation de base n’est autorisée par cette mise à jour documentaire. PRE-1 reste fermé. Les anciens jeux v10 sont des preuves historiques ; la recette cible est v13 §9 et la matrice du02/10.
 
 
 ## DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)
@@ -1431,9 +1438,17 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper indépendant (450 ms puis 150 ms pour la répétition) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
 
 
-> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v12 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
 
 
 ### Saisie des paramètres — D-246
 
-La référence active est [Paramètres en modale v12](SPECIFICATION-PARAMETRES-MODALE-v12.md), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
+La référence active est [Paramètres en modale v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
+
+## Moteur Cadence — cible technique du06/10/2026
+
+Séparer `durationDeterminable` de `autoComplete` dans l’adaptateur du plan : Répétitions cadencées fournissent Ri×Ci mais attendent Suivant. La phase Série porte cadence/cible ; pas une phase par répétition. Les Séries sans cadence et À l’échec gardent leur poids à validation ; les cadencées entrent dans le groupe temporel R-01 (chapitre13).
+
+Scheduler fondé sur ancres monotones, nombre d’intervalles acquis, début du courant, nominal atteint ; état persistable et transitions idempotentes. Le compteur de tentative est distinct de l’accumulateur actif réel : fraction abandonnée par Pause et temps avant reset restent dans le résultat par Série/côté. Reprise avec intervalle complet ; arrière-plan avec recalcul et sans rejeu des sons manqués. Le seuil30min est ancré sur la fin nominale recalculée. Aucun100% global avant finalisation.
+
+Ordre de développement : représentation variable effective, migration absence de cadence, snapshot versionné, calcul/incertitude, ordonnanceur/progression/audio, restitution/phrase, tests sur appareils. Les modules audio en arrière-plan, interruptions système, verrouillage et reprise doivent être qualifiés iOS/Android ; aucune réussite de test n’est revendiquée ici. Les sons concrets et leur adaptation aux préférences existantes restent du travail d’implémentation, pas un nouveau réglage Profil.

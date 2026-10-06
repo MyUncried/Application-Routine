@@ -15,7 +15,7 @@ Permettre à un utilisateur de créer des Séances structurées et des Exercices
   - une consigne ;
   - une durée, un nombre de répétitions ou le mode À l’échec ;
   - un nombre de Séries propre à l'Exercice ;
-- Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v12 §§3–5, D-247 à D-250.
+- Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v13 §§3–5, D-247 à D-250.
   - une Pause entre les côtés éventuelle, uniquement pour un Exercice bilatéral ;
   - en mode Durée, une Durée totale calculée et dépendante du nombre de Séries ;
 - afficher dans le MVP la vignette média associée à l’Exercice ; aucun Déployer avec ou sans média (D-261) ; la gestion multiple et les mécanismes d’acquisition suivent leur périmètre propre ;
@@ -269,4 +269,8 @@ D-221 : le MVP n’inclut aucune recherche globale ni recherche locale dans les 
 
 ## Paramètres d’exécution — complément du02/10/2026
 
-Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v12](SPECIFICATION-PARAMETRES-MODALE-v12.md), CE-T03-04 et CE-UI-10.
+Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), CE-T03-04 et CE-UI-10.
+
+## Évolution Cadence — statut au06/10/2026
+
+Cible fonctionnelle documentée, non déclarée livrée : option Cadence du mode Répétitions, nouvelle phrase et propagation au moteur/instantanés. Dépendances de développement : collection effective de Séries variables, cadence facultative, scheduler/progression/audio, résultats et migration compatible. Les écrans de paramètres existent ; les trois états d’exécution cadence et le contrôle visuel de suppression restent à matérialiser/qualifier. La présence de Figma ne certifie ni le code ni une recette mobile.

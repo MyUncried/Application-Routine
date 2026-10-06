@@ -1,6 +1,8 @@
 # Matrice de couverture Figma ↔ documentation
 
-**Complément courant02/10 :** [39nouveaux exports et contrats](MATRICE-SERIES-VARIABLES-2026-10-02.md). L’inventaire ci-dessous conserve la preuve du30/09 ; les états de paramètres6407/6411/6423 sont remplacés par les copies6603/6611/6623 dans le chapitre06. Les anciennes empreintes restent historiques, sans prétendre recenser les copies récentes.
+**Inventaire courant :** [matrice06/10](MATRICE-CADENCE-FIGMA-2026-10-06.md). Ce relevé antérieur conserve sa provenance ; ses empreintes datées ne décrivent pas les PNG réexportés le06/10. Les états6603/6611/6623 ne remplacent plus les frames6407/6411/6423 réintégrées. Cadence/phrase/DSF actifs : paramètres v13, Phrase v1 et DSF-CADENCE-2026-10-06.
+
+**Complément historique02/10 :** [matrice séries variables](MATRICE-SERIES-VARIABLES-2026-10-02.md). Les copies de travail ont été remplacées le03/10 ; la matrice06/10 fait autorité sur les références courantes.
 
 Contrôle exhaustif du 30 septembre 2026 : 113 frames du prototype et les 6 références complémentaires du rapport utilisateur, soit 119 captures Figma. Les 84 écrans du rapport sont couverts (78 dans le prototype). 74 fichiers existants sont actualisés et 45 copies documentaires complètent des écrans déjà présents dans Figma ; aucun écran applicatif ou Figma créé.
 
@@ -327,3 +329,4 @@ Les captures sont intégrées en Markdown standard et regroupées dans leur fami
 ## Inventaire courant du parcours Créer un exercice — 03/10/2026
 
 [État des lieux exhaustif,42frames et revue des contrats](ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md). Les références actuelles remplacent les copies du02/10 :37frames de la famille création/modification,2effets Catalogue/Composition et3exécutions. La réserve de réinitialisation a été retirée : D-029/D-150 restent applicables aux deux ordres.
+

@@ -51,9 +51,9 @@ Une Série désigne la répétition d’un même Exercice.
 
 Le Nombre de Séries est un paramètre de l’Exercice et ne constitue pas un conteneur structurel de la Séance.
 
-Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v12 §§3–5, D-247 à D-250.
+Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v13 §§3–5, D-247 à D-250.
 
-Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=2×Ri s pour l’estimation ≥ seulement ; À l’échec : aucun total d’Exercice. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v12 §5 ; variable : lecture seule et — si incomplet.
+Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=Ri×Ci secondes avec cadence (durée prévisionnelle déterminable, sans symbole), Ti≈2×Ri sans cadence (≈) ; À l’échec : aucun total d’Exercice. Dans un agrégat, une composante non estimable impose ≥, qui prévaut sur ≈. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v13 §5 ; variable : lecture seule et — si incomplet.
 
 ### Circuit, Tours et Cycle
 
@@ -134,7 +134,7 @@ Le contrôle utilisateur `Changement de côté` d’un Exercice propose `Aucun`,
 
 Dans la Composition, une carte affiche `D→G` ou `G→D` dans son indicateur secondaire si sa direction propre est bilatérale ; elle n’affiche rien avec `Aucun`. L’indicateur respecte la géométrie Figma validée. Le texte de la carte ne développe jamais la direction : l’indicateur `D→G` ou `G→D` la porte seul. Dans l’écran Ajouter/Modifier un Exercice, la synthèse ajoute `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode et avant la Pause ; elle omet cette clause avec `Aucun`. Le nom de l’Exercice est en gras dans cette Synthèse.
 
-Dans la phrase de synthèse des paramètres d’exécution, le mode est affiché séparément et la phrase commence par le nombre de Séries. Tant qu’aucun mode n’est sélectionné, le champ est vide. En Durée, la clause `Durée totale` est affichée pour plusieurs Séries ou un changement de côté ; en Répétitions, `Durée totale ≥ {estimation}` utilise conventionnellement **2 secondes par répétition** ; en À l’échec, aucune Durée totale n’est affichée. La phrase est régénérée à chaque modification et suit D-232.
+Dans la phrase de synthèse des paramètres d’exécution, le mode est affiché séparément et la phrase commence par le nombre de Séries. Tant qu’aucun mode n’est sélectionné, le champ est vide. En Durée, la clause `Durée totale` est affichée pour plusieurs Séries ou un changement de côté ; en Répétitions, `Durée totale {symbole éventuel}{total fourni}` utilise conventionnellement **2 secondes par répétition** ; en À l’échec, aucune Durée totale n’est affichée. La phrase est régénérée à chaque modification et suit D-232.
 
 Le Compte à rebours initial et la Fin de séance sont structurels et non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
 
@@ -176,7 +176,7 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 
 La Durée estimée est calculée à partir de toutes les durées déterminables du plan d’Exécution développé, passages bilatéraux et Récupérations d’Exercice compris.
 
-Aucune durée conventionnelle n’est attribuée aux Exercices en mode Répétitions ou À l’échec. Lorsqu’au moins un tel Exercice existe, la valeur affichée est une borne minimale avec le signe `≥`, par exemple `≥ 18 min`, qui additionne les Pauses et Récupérations connues.
+Répétitions cadencées : Ti=Ri×Ci, durée prévisionnelle déterminable ; sans cadence : Ti≈2×Ri. Si une composante est non estimable, ≥ prévaut sur≈. Périmètres, Pauses et Récupérations selon paramètres v13 ; aucun calcul issu du classeur.
 
 Le temps total écoulé et la Durée réelle excluent les périodes de Pause utilisateur.
 
@@ -208,7 +208,7 @@ Le guidage comprend :
 
 La désactivation spécifique du bip grave est reportée à une version ultérieure.
 
-En arrière-plan ou écran verrouillé, le Plan d’Exécution continue selon ses horodatages de référence et l’état est recalculé au retour. Une pause de sécurité intervient 30 minutes après la fin théorique d’un Exercice chronométré sans interaction, ou après 2 heures sans interaction pour un Exercice en Répétitions ou À l’échec. Les mécanismes natifs restent soumis aux validations techniques prévues dans l’architecture.
+En arrière-plan ou écran verrouillé, le Plan d’Exécution continue selon ses horodatages de référence et l’état est recalculé au retour. Une pause de sécurité intervient 30 minutes après la fin théorique d’un Exercice chronométré ou la fin nominale recalculée d’une Série cadencée sans interaction, ou après 2 heures sans interaction pour un Exercice en Répétitions sans cadence ou À l’échec. Les mécanismes natifs restent soumis aux validations techniques prévues dans l’architecture.
 
 ### Planification et Calendrier
 
@@ -408,7 +408,7 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 - après validation de la Composition, la cible est `Catalogue des séances`, segment `Séances` ;
 - la navigation d’avancement canonique fait entrer la cible depuis la droite et sortir l’écran courant vers la gauche ;
 - dans le Catalogue, la rangée `Créer / Filtrer / Trier` suit la géométrie commune validée ; les options de `Filtrer` sont contextuelles et `Trier` reste visible disabled dans T03 ;
-- dans l’éditeur Exercice, `Renforcement du genou` est une donnée de démonstration et l’état vide affiche `Nom de l’exercice` ; dans la phrase de synthèse, Répétitions affiche `Durée totale ≥ {estimation}` avec 2 secondes conventionnelles par répétition, tandis que Durée avec une seule Série sans changement de côté et À l’échec n’affichent pas de clause Durée totale (D-232).
+- dans l’éditeur Exercice, `Renforcement du genou` est une donnée de démonstration et l’état vide affiche `Nom de l’exercice` ; dans la phrase de synthèse, Répétitions affiche `Durée totale {symbole éventuel}{total fourni}` (cadence : Ri×Ci sans symbole ; absence :≈2Ri), tandis que Durée avec une seule Série unilatérale et Pause0, ainsi qu’À l’échec n’affichent pas de clause Durée totale (D-232).
 
 ### Médias et Parcours
 
@@ -477,7 +477,7 @@ Toute occurrence d’Exercice intégrée à une Séance porte une propriété co
 - La couleur est une propriété de l’Étiquette/Catégorie, source de vérité commune : modifier la couleur modifie l’affichage de tous les objets qui la référencent. Les Zones corporelles n’ont pas de couleur.
 - Les valeurs du Profil sont des valeurs initiales proposées, sans rétroactivité : Pause entre les côtés, Compte à rebours d’exercice et Fin d’exercice pour un nouvel Exercice ; Récupération après exercice pour une nouvelle occurrence de Séance.
 - Une Séance possède un réglage global unique, **activé par défaut**, pour appliquer ou ignorer ensemble les Compte à rebours d’exercice et Fin d’exercice de tous ses Exercices. Aucun réglage occurrence par occurrence n’est exposé.
-- La phrase de synthèse suit D-232 : champ vide sans mode ; mode hors phrase ; Durée totale en mode Durée avec plusieurs Séries ou changement de côté ; Répétitions = `Durée totale ≥ {estimation}` à 2 s/répétition ; À l’échec = aucune Durée totale.
+- La phrase de synthèse suit D-232 : champ vide sans mode ; mode hors phrase ; Durée totale en mode Durée sauf redondance réelle (N1 unilatéral/Pause0) ; Répétitions : durée fournie déterminable avec cadence,≈ sans cadence ; À l’échec = aucune Durée totale.
 - Point d’arrêt : ordre `Exercice → Récupération après exercice → Point d’arrêt → suite`; interdit immédiatement après le Compte à rebours initial et immédiatement avant la Fin de séance ; autorisé aux frontières et à l’intérieur du Circuit ; lorsqu’il est dans le Circuit, il est exécuté à chaque Tour.
 - Média d’Exécution compact : le bouton Lecture central disparaît pendant la lecture vidéo ; le retour à Information met la vidéo en pause ; le plein écran n’interrompt pas l’Exécution.
 
@@ -495,9 +495,9 @@ Le Prototype MVP comporte exactement quatre destinations principales : `Catalogu
 Les fondations visuelles et composants communs suivent DSF V2 : fonds et zones de contexte D-224, navigation basse D-225, actions flottantes et boutons circulaires D-226, steppers/badges D-227, modales D-228, roulettes et modale Planifier D-229, listes et états spécialisés D-230. Ces prescriptions sont des contraintes de rendu/recette lorsqu’elles ne portent pas un comportement métier.
 
 
-### Générateur de phrase — v10.2
+### Générateur de phrase — référence active v1 (06/10/2026)
 
-Le générateur suit v12 §7. Le résumé omet le total uniquement lorsqu’il égale réellement la cible ; une Pause positive à N=1 rend ces valeurs différentes. En variable : trois premières valeurs puis ellipse, total en lecture seule. Compte à rebours et Fin d'exercice restent hors phrase et hors calcul de Durée totale. Les pauses d’Exercice utilisent des roulettes sur `0..5 min` ; les réglages de durée du Profil utilisent des steppers. Les pauses progressent par1s jusqu’à5s, puis5s jusqu’à120s, puis30s jusqu’à300s (D-252). Séries = `1..99`, Répétitions = `1..100`, Durée par Série = `1 s..99 min 59 s`.
+Le générateur suit v13 §7. Le résumé omet le total uniquement lorsqu’il égale réellement la cible ; une Pause positive à N=1 rend ces valeurs différentes. En variable : énumération jusqu’à3 puis plage min/max, total en lecture seule. Compte à rebours et Fin d'exercice restent hors phrase et hors calcul de Durée totale. Les pauses d’Exercice utilisent les steppers de la feuille sur0..300s ; les réglages de durée du Profil utilisent des steppers. Les pauses progressent par1s jusqu’à5s, puis5s jusqu’à120s, puis30s jusqu’à300s (D-252). Séries = `1..99`, Répétitions = `1..100`, Durée par Série = `1 s..99 min 59 s`.
 
 ## Mise à jour visuelle du 30 septembre 2026
 
@@ -505,8 +505,14 @@ Le générateur suit v12 §7. Le résumé omet le total uniquement lorsqu’il �
 
 ## Paramètres — consolidation du02/10/2026
 
-Référence courante : [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md) et [rapport](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md). D-247 à D-255 remplacent les anciennes formules et descriptions uniformes sur ce périmètre. Les règles de cartes sans rapport avec les paramètres restent conservées. Les nouvelles copies fournissent le layout ; elles ne prouvent ni intégration DSF ni conformité du moteur.
+Référence courante : [v13](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md) et [rapport](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md). D-247 à D-255 remplacent les anciennes formules et descriptions uniformes sur ce périmètre. Les règles de cartes sans rapport avec les paramètres restent conservées. Les nouvelles copies fournissent le layout ; elles ne prouvent ni intégration DSF ni conformité du moteur.
 
 ## Inventaire courant du parcours Créer un exercice — 03/10/2026
 
 [État des lieux exhaustif,42frames et revue des contrats](ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md). Les références actuelles remplacent les copies du02/10 :37frames de la famille création/modification,2effets Catalogue/Composition et3exécutions. La réserve de réinitialisation a été retirée : D-029/D-150 restent applicables aux deux ordres.
+
+## Cadence et DSF — cible documentaire06/10/2026
+
+Répétitions accepte une cadence facultative1..60s, aucune par défaut. Chronomètre croissant et signaux rythment la Série ; Suivant la termine normalement. La phrase de paramètres est unique, valeurs en gras, issue des paramètres validés et d’un total calculé par la spécification. Sans cadence : estimation≈ ; non estimable :≥ au niveau agrégé, total d’Exercice À l’échec omis.
+
+Références actives : paramètres v13, Cadence v1, Phrase v1, chapitre13 et DSF-CADENCE-2026-10-06. Cible à implémenter/qualifier ; aucune annonce de livraison. Les règles photos, Circuit/Tour, pauses et récupération restent conservées. Le classeur v13 est exclusivement rédactionnel.

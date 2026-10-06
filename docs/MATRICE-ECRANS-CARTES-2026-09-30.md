@@ -1,5 +1,7 @@
 # Écrans modifiés — traçabilité des cartes, icônes et appuis
 
+**Inventaire courant :** [matrice06/10](MATRICE-CADENCE-FIGMA-2026-10-06.md). Ce relevé antérieur conserve sa provenance ; ses empreintes datées ne décrivent pas les PNG réexportés le06/10. Les états6603/6611/6623 ne remplacent plus les frames6407/6411/6423 réintégrées. Cadence/phrase/DSF actifs : paramètres v13, Phrase v1 et DSF-CADENCE-2026-10-06.
+
 Matrice des cartes actualisée le04/10/2026 après D-260 à D-264 ; relevés complémentaires datés conservés comme historiques. Contrôle initial du 30 septembre 2026, Figma `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype MVP. Cette matrice relie les frames courantes aux descriptions locales du chapitre06 et aux contrats du chapitre13. Elle remplace, dans ce périmètre, la simple dépendance au complément DSF.
 
 ## Couverture et limites
@@ -176,4 +178,5 @@ Le chapitre13 compte29 contrats de21 sections. CE-T03-16 appartient à Compositi
 ## Paramètres — consolidation du02/10/2026
 
 Référence courante : [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md) et [rapport](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md). D-247 à D-255 remplacent les anciennes formules et descriptions uniformes sur ce périmètre. Les règles de cartes sans rapport avec les paramètres restent conservées. Les nouvelles copies fournissent le layout ; elles ne prouvent ni intégration DSF ni conformité du moteur.
+
 

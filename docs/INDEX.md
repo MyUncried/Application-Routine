@@ -8,7 +8,7 @@
 >
 > Mise à jour fonctionnelle et Figma du 24 septembre 2026 — D-188 à D-198 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Exercice ; changement de côté non exposé au niveau Tour ; Point d’arrêt ; Compte à rebours et Fin propres à l’Exercice ; filtre mémorisé uniquement dans la session courante ; roulettes en modale basse ; parcours de composition exposant la sélection depuis le Catalogue sans suppression de la création locale existante ; média en gouttière permanente dans le Catalogue des Exercices depuis D-260/D-261 du03/10/2026 ; actions `Planifier / Dupliquer / Archiver`, puis `Supprimer` dans les archives ; nouveau layout/typographie d’Exécution.
 >
-> Mise à jour Figma/documentation du 24 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. Les options de filtre sont contextuelles au Catalogue ; `Trier` reste visible disabled T03. L’éditeur Exercice applique D-232 : Répétitions affiche `Durée totale ≥ {estimation}` avec 2 secondes par répétition en V1 ; À l’échec n’affiche pas de Durée totale ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’exercice` l’état vide/placeholder.
+> Mise à jour Figma/documentation du 24 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. Les options de filtre sont contextuelles au Catalogue ; `Trier` reste visible disabled T03. L’éditeur Exercice applique D-232 : Répétitions affiche `Durée totale {symbole éventuel}{total fourni}` (cadence : Ri×Ci ; absence :≈2Ri) ; À l’échec n’affiche pas de Durée totale ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’exercice` l’état vide/placeholder.
 >
 > Décision du 24 septembre 2026 — D-199 : les Zones corporelles constituent désormais un référentiel utilisateur administrable. L’utilisateur peut créer, renommer et supprimer des Zones corporelles ; la liste initiale de dix zones devient un jeu de valeurs par défaut et non une liste fermée. La frame Figma `4683:6336` matérialise la création inline d’une nouvelle zone.
 >
@@ -169,8 +169,8 @@ Obsidian reste l’outil de rédaction de la documentation fonctionnelle. Le dos
 ## 8. État de la baseline avant développement
 
 Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
-- Durée estimée et borne minimale `≥` en présence d’Exercices en Répétitions ou À l’échec ;
-- phrase de synthèse selon D-232 : Durée totale en Durée si plusieurs Séries ou changement de côté ; estimation `≥` en Répétitions avec 2 s/répétition en V1 ; aucune Durée totale en À l’échec ;
+- Durée prévisionnelle déterminable, approximation≈ sans cadence et borne≥ en présence de travail non estimable ;
+- phrase de synthèse selon D-232 : Durée totale en Durée sauf redondance réelle (N1 unilatéral/Pause0) ; Répétitions : Ri×Ci avec cadence,≈2Ri sans cadence ; aucune Durée totale en À l’échec ;
 - les noms d’Exercice visibles dans les maquettes renseignées sont des données de démonstration ; `Nom de l’exercice` représente l’état vide/placeholder ;
 - distinction entre **Pause après chaque série**, **Pause entre les côtés** et **Récupération après exercice** ;
 - temps actif et Durée réelle hors Pause utilisateur ;
@@ -228,7 +228,7 @@ La consultation média pendant l’Exécution décrite ici est **incluse au MVP*
 
 > Décision du 25 septembre 2026 — D-207 : la notion de contenu planifiable est commune aux **Séances, Exercices persistants et Parcours**. Le MVP planifie `SESSION` et `ACTIVITY`; la planification d’un Parcours reste dans sa version prévue (actuellement V3) et réutilisera la même entité Routine avec la source technique `CIRCUIT`, sans second moteur de planification.
 
-Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=2×Ri s pour l’estimation ≥ seulement ; À l’échec : aucun total d’Exercice. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v12 §5 ; variable : lecture seule et — si incomplet.
+Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=Ri×Ci secondes avec cadence (durée prévisionnelle déterminable, sans symbole), Ti≈2×Ri sans cadence (≈) ; À l’échec : aucun total d’Exercice. Dans un agrégat, une composante non estimable impose ≥, qui prévaut sur ≈. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v13 §5 ; variable : lecture seule et — si incomplet.
 
 ## Consolidation fonctionnelle — 26 septembre 2026
 
@@ -249,7 +249,7 @@ Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(T
 > Clôture Figma / DSF du 28 septembre 2026 — D-221 à D-230 : aucune recherche globale ou locale dans le MVP ; quatre destinations `Catalogues / Calendrier / Suivi / Profil` ; sélection simple validée au toucher versus sélection multiple avec `Sélectionner` ; titre `Planifier` contextuel ; fonds/zones de contexte, navigation basse, halos/actions circulaires, steppers/badges, modales/listes, roulettes et états spécialisés alignés sur DSF V2.
 
 
-> Générateur de phrase des paramètres d’exécution : règles actives consolidées par D-232 (classeur v10 / spécification v10.2 + arbitrages du 28/09/2026). La stratégie V2 de la durée standard d’une répétition reste À CLARIFIER et n’affecte pas la V1.
+> Générateur actif : Phrase v1, paramètres v13 et Cadence v1 ; D-268 à D-300. La convention2s/rép. reste une approximation sans cadence, jamais une valeur par défaut. v10.2 est historique.
 
 ## Mise à jour visuelle du 30 septembre 2026
 
@@ -278,7 +278,7 @@ Les 30 contrats du chapitre13 ont chacun21 rubriques. Les contrats média sont c
 
 ## Paramètres en feuille basse —01/10/2026
 
-- [Spécification active v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md) — remplace la saisie dans la phrase.
+- [Spécification active v13](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md) — remplace la saisie dans la phrase.
 - [DSF de la feuille et de ses contrôles](DSF-PARAMETRES-MODALE-2026-10-01.md).
 - [Transmission source](SOURCE-SAISIE-PARAMETRES-MODALE-2026-10-01.md).
 - Chapitre06 :12 états illustrés et confirmation2234:189 restaurée. Chapitre13 :30 contrats ×21rubriques, dont CE-UI-10.
@@ -286,8 +286,18 @@ Les 30 contrats du chapitre13 ont chacun21 rubriques. Les contrats média sont c
 
 ## Paramètres — consolidation du02/10/2026
 
-Référence courante : [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md) et [rapport](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md). D-247 à D-255 remplacent les anciennes formules et descriptions uniformes sur ce périmètre. Les règles de cartes sans rapport avec les paramètres restent conservées. Les nouvelles copies fournissent le layout ; elles ne prouvent ni intégration DSF ni conformité du moteur.
+Référence courante : [v13](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md) et [rapport](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md). D-247 à D-255 remplacent les anciennes formules et descriptions uniformes sur ce périmètre. Les règles de cartes sans rapport avec les paramètres restent conservées. Les nouvelles copies fournissent le layout ; elles ne prouvent ni intégration DSF ni conformité du moteur.
 
 ## Inventaire courant du parcours Créer un exercice — 03/10/2026
 
 [État des lieux exhaustif,42frames et revue des contrats](ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md). Les références actuelles remplacent les copies du02/10 :37frames de la famille création/modification,2effets Catalogue/Composition et3exécutions. La réserve de réinitialisation a été retirée : D-029/D-150 restent applicables aux deux ordres.
+
+## Références actives — Cadence et documentation du06/10/2026
+
+1. [Paramètres v13](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md) — pauses/côtés conservés, cadence et symboles.
+2. [Cadence v1](Specifications-fonctionnelles/SPECIFICATION-CADENCE-REPETITIONS-v1.md) — calculs, exécution, données et recette.
+3. [Phrase v1](Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md) — grammaire et rendu ; Excel exclusivement rédactionnel.
+4. [DSF courant](DSF-CADENCE-2026-10-06.md) et [matrice courante Figma](MATRICE-CADENCE-FIGMA-2026-10-06.md).
+5. Chapitre06 : captures centralisées ; chapitre13 :30 contrats dont CE-UI-10,21 rubriques chacun, états et limites graphiques explicites.
+
+v12 et v10.2 sont historiques ; leurs règles remplacées ne doivent pas être utilisées pour la cible. Les sources reçues sont conservées dans `archives/cadence-2026-10-06` ; elles ne remplacent pas cette chaîne normative consolidée.

@@ -1,6 +1,8 @@
 # DSF — Séries variables et Ordre des côtés — 02/10/2026
 
-Complément des shells et composants existants ; aucun nouveau design. Actualisé le03/10. Sources : métadonnées et captures courantes de Prototype MVP, fichierG6RY5Ebhgwb4AHIOYDwwvg. Figma fixe le layout ; [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md) et CE-UI-10 fixent les comportements et calculs. Les composants maîtres ne sont pas modifiés par cette livraison documentaire. Inventaire actuel : ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md.
+**État courant06/10 :** [DSF Cadence et corrections](DSF-CADENCE-2026-10-06.md), [matrice courante](MATRICE-CADENCE-FIGMA-2026-10-06.md). Les mesures/captures datées ci-dessous restent historiques lorsqu’elles sont remplacées ; règles cartes média conservées. Cadence commune REPS et phrase unique selon paramètres v13, Phrase v1.
+
+Complément des shells et composants existants ; aucun nouveau design. Actualisé le03/10. Sources : métadonnées et captures courantes de Prototype MVP, fichierG6RY5Ebhgwb4AHIOYDwwvg. Figma fixe le layout ; [v13](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md) et CE-UI-10 fixent les comportements et calculs. Les composants maîtres ne sont pas modifiés par cette livraison documentaire. Inventaire actuel : ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md.
 
 ## Fondations conservées et implantation
 
@@ -48,3 +50,4 @@ Les anciennes copies et le frame d’essai6607:10896 ne sont plus présents sur 
 La confirmation Supprimer cette séance ? (2234:189) conserve le dialogue destructif du DSF du01/10 : Annuler gris à gauche, Confirmer terre cuite à droite. Sa présence ne prouve aucun câblage interactif.
 
 Inventaire et recettes : [matrice du02/10](MATRICE-SERIES-VARIABLES-2026-10-02.md). Captures exclusivement dans le chapitre06.
+

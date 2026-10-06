@@ -1,5 +1,7 @@
 > Relevé du02/10, complété et remplacé pour les références Figma par [l’état des lieux du03/10](ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md). Les39copies sont une preuve historique, pas l’inventaire actuel. La réserve reset/saut a été retirée : D-029/D-150 s’appliquent aux deux ordres.
 
+**Inventaire courant :** [matrice06/10](MATRICE-CADENCE-FIGMA-2026-10-06.md). Ce relevé antérieur conserve sa provenance ; ses empreintes datées ne décrivent pas les PNG réexportés le06/10. Les états6603/6611/6623 ne remplacent plus les frames6407/6411/6423 réintégrées. Cadence/phrase/DSF actifs : paramètres v13, Phrase v1 et DSF-CADENCE-2026-10-06.
+
 # Matrice — Séries variables et Ordre des côtés — 02/10/2026
 
 Source active : [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md), D-247 à D-255. Baseline main8fc58a466679a85ea74752f0273939f901efa1b8, dernier identifiant antérieur D-246. Ce document remplace les anciennes matrices de calcul/bilatéralité sur le périmètre modifié ; il ne certifie pas le code.
@@ -98,3 +100,4 @@ Ces critères sont documentaires ; aucune exécution de tests applicatifs ni rec
 | [6623:17745](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6623-17745) — Copie — Séries variables — 14 Tableau masqué | CE-UI-10 / CE-T03-04 | [PNG](Specifications-fonctionnelles/images/figma-6623-17745.png) | `e598f8788c97d7c33d1f8ddb86c1dae03badb57f` |
 | [6623:18007](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6623-18007) — Copie — Séries variables — 15 Déplacement d’une série | CE-UI-10 / CE-T03-04 | [PNG](Specifications-fonctionnelles/images/figma-6623-18007.png) | `7b96caa830237fc88592cbef7c2f877b9820cec1` |
 | [6637:13132](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6637-13132) — Copie — Composition séance — Standard — Séries variables | CE-T03-08 | [PNG](Specifications-fonctionnelles/images/figma-6637-13132.png) | `7f3bf1c0ec65c012b88a973f174332fdfd8ec8d7` |
+
