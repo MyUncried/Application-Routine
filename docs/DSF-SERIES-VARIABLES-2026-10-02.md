@@ -11,7 +11,7 @@ Complément des shells et composants existants ; aucun nouveau design. Actualis�
 | Feuille | Blanche, ancrée au bas, coins supérieurs24 px, rognage aux coins, ombre légère vers le haut ; hauteur selon contenu |
 | Voile | Noir28 %, plein écran ; arrière-plan inerte et inaccessible au focus |
 | En-tête | Composant DSF En-tête de modale ; ✕ à gauche, titre Paramètres d’exécution, ✓ à droite ; labels accessibles Annuler/Valider les paramètres |
-| Carte empilée | Fond#FCFCFE, contour blanc, lignes42 px à texte standard, séparateurs#DEDEE5 ; libellé14 px à gauche, valeur/contrôle à droite |
+| Carte empilée | Fond `surfaceSubtle` `#F9FAFC` (ancien `#FCFCFE`, historique avant la fusion du journal §5.3), contour blanc, lignes42 px à texte standard, séparateurs#DEDEE5 ; libellé14 px à gauche, valeur/contrôle à droite |
 | Ligne sélectionnée | Roulette ou segmenté uniquement : bord2 px#0508E5, fond#F4F4FF, rayon12 px ; contour limité à la ligne ; contrôle déployé dessous hors contour |
 | Stepper commun | Largeur137 px à402, fond blanc, boutons#F2F2FF, glyphes/valeur bleus, valeur centrée ; aucun cadre sélectionné ; bord droit du + àx370 dans les copies du02/10 (x366 dans la référence du01/10) sur402, donc marge32 px pour le contrôle, avec marge36 px de la ligne de valeur ; boutons alignés entre lignes |
 | Valeur modifiable | Composant Valeur modifiable du DSF, sans chevron ; la sélection est portée par la ligne |

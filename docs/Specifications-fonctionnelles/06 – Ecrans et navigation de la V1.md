@@ -812,7 +812,7 @@ L’icône affichée à gauche de `Nombre de tours` est exclusivement une instan
 
 Le Circuit possède un nombre de Tours compris entre **1 et 99**, avec **1** comme valeur par défaut.
 
-Dans l’interface courante, le nombre apparaît dans un stepper permanent à droite de l’en-tête du Circuit. Le libellé « Parcours » encore présent dans les captures est un écart de terminologie à corriger dans Figma (D-209). La référence `2028:11700` montre `− / 3 tours / +`, sur 137 × 36 px. La valeur provient du brouillon, jamais de l’exemple Figma. La synthèse des exercices et de leur durée reste associée au conteneur ; Compte à rebours et Fin en sont exclus. Les anciennes dimensions 66 × 34 et l’ancien déclencheur violet de roulette ne sont plus une prescription visuelle active.
+Dans l’interface courante, le nombre apparaît dans un stepper permanent à droite de l’en-tête du Circuit. Le libellé de Composition a été corrigé en « Circuit » le 05/10/2026 (journal des modifications, §8 ; D-209) ; aucune nouvelle correction Figma n’est requise sur ce point. La référence `2028:11700` montre `− / 3 tours / +`, sur 137 × 36 px. La valeur provient du brouillon, jamais de l’exemple Figma. La synthèse des exercices et de leur durée reste associée au conteneur ; Compte à rebours et Fin en sont exclus. Les anciennes dimensions 66 × 34 et l’ancien déclencheur violet de roulette ne sont plus une prescription visuelle active.
 
 La synthèse n’est plus affichée isolément au bas de l’écran. Elle est recalculée uniquement après une modification validée qui affecte les Exercices ou le nombre de Tours. La confirmation du `Compte à rebours initial` ou de la `Fin de séance` actualise seulement le jalon structurel concerné et ne modifie jamais cette synthèse. Celle-ci reste attachée au conteneur Circuit dans ses états applicables.
 
@@ -1719,7 +1719,7 @@ Variante de planification unique
 
 Le vocabulaire d’interface attendu est **Exercice** (glossaire : anciennement Activité). Les captures Figma sont conservées sans retouche : les confirmations `1992:8224` et `1992:8326`, ainsi que certains contrôles de sélection, affichent encore « activité ». Leur rendu n’est donc pas une preuve de conformité terminologique. Les identifiants techniques `ActivityDefinition`, `SessionActivity` et `ACTIVITY` ne sont pas renommés.
 
-**Circuit et Tour — D-209** : le Circuit est le conteneur ordonné d’exercices ; un Tour est une exécution de ce Circuit. Le nombre de Tours règle ses répétitions. Le Parcours reste autonome. Les captures peuvent encore porter les anciens libellés ; elles ne remettent pas en cause cette décision.
+**Circuit et Tour — D-209** : le Circuit est le conteneur ordonné d’exercices ; un Tour est une exécution de ce Circuit. Le nombre de Tours règle ses répétitions. Le Parcours reste autonome. Les 17 occurrences du libellé de Composition ont été corrigées en « Circuit » le 05/10/2026 (journal, §8). Les anciens états archivés restent historiques ; cette correction ne renomme pas l’entité autonome Parcours.
 
 ### Objectif
 

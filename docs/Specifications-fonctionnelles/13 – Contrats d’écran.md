@@ -1004,7 +1004,7 @@ Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans l
 
 ### 21. Traçabilité
 
-Référence variable courante6665:23973 : N séries variables. Les mots Parcours et récupération visible sont des écarts déjà tracés ; Circuit/Tour et D-238 restent normatifs.
+Référence variable courante6665:23973 : N séries variables. Le libellé de Composition « Parcours » a été remplacé par « Circuit » le 05/10/2026 (journal, §8). L’écart de récupération visible reste tracé séparément selon D-238 ; Circuit/Tour restent normatifs.
 
 D-188–194/D-208–214/D-217/D-222/D-238 ; CE-T03-06/07/16, CE-EXEC-SESSION-01 ; frames§1 ; prescriptions de brouillon du chapitre 06 et décisions actives priment sur l’ancienne autosauvegarde de Composition.
 

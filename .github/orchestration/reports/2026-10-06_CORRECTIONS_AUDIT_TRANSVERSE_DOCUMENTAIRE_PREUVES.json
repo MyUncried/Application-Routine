@@ -1,0 +1,104 @@
+{
+  "mission": "CORRECTIONS_AUDIT_TRANSVERSE_DOCUMENTAIRE",
+  "base_commit": "4665654580740059eacd649cc79e615fd07b9a66",
+  "branch": "docs/cadence-dsf-2026-10-06",
+  "source_pack": [
+    {
+      "file": "2026-10-06_AUDIT_TRANSVERSE_FINAL_DOCUMENTATION_KODJO.md",
+      "sha256": "6799d9295750b895a08ac7a2be7dd7691613b0adbd76b5817ff73ddc7c757882"
+    },
+    {
+      "file": "0001-docs-rapport-d-audit-transverse-final-de-la-document.patch",
+      "sha256": "7cabcd2f63409325d06c1bcfa9043c6af820bf7d333c97cd5e9ed7b2c7f4d2cf"
+    },
+    {
+      "file": "2026-10-06_AUDIT_TRANSVERSE_FINAL_PREUVES.json",
+      "sha256": "2cca4af5f6fe8058d5fb012e384057ea51c47b1920165cd918e1bacbc84b532a"
+    }
+  ],
+  "capture_reexports": [
+    {
+      "node": "4997:6113",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4997-6113.png",
+      "sha256": "f57843e8ab40d2d535ca85ee286f74ea0c38ebd58e3f245f1f36d63e5d2115fd",
+      "gitBlob": "8ae9b6c5077ad9ff3febc4285a21a78e58ea22ac",
+      "width": 402,
+      "height": 874,
+      "changed_pixels": 66,
+      "comparison": "66 pixels des trois repères uniquement ; aucun autre pixel changé",
+      "old_marker_rgb": [
+        190,
+        194,
+        204
+      ],
+      "new_marker_rgb": [
+        215,
+        217,
+        223
+      ],
+      "interpretation": "#BEC2CC à 62 % sur fond blanc"
+    },
+    {
+      "node": "5021:5994",
+      "path": "docs/Specifications-fonctionnelles/images/figma-5021-5994.png",
+      "sha256": "564e2749d951d14ba3c7111724fc1f2d9b8da7e0e183ce8ba0e691dbd37ff202",
+      "gitBlob": "5240c74c82ca75ccbb1368d1580599c6e90007d2",
+      "width": 402,
+      "height": 874,
+      "changed_pixels": 66,
+      "comparison": "66 pixels des trois repères uniquement ; aucun autre pixel changé",
+      "old_marker_rgb": [
+        190,
+        194,
+        204
+      ],
+      "new_marker_rgb": [
+        215,
+        217,
+        223
+      ],
+      "interpretation": "#BEC2CC à 62 % sur fond blanc"
+    }
+  ],
+  "component_set_check": {
+    "node": "6451:10942",
+    "dimensions": [
+      1688,
+      2041
+    ],
+    "changed_pixels": 0,
+    "existing_file_retained": true
+  },
+  "functional_pass": "En cours chez Claude ; aucune clôture fonctionnelle déclarée",
+  "figma_modified": false,
+  "application_modified": false,
+  "checks": {
+    "baseline": "6d03f5be579f2d0e2e7602b6abf1c2b46f4c740b",
+    "recovered_commit": "4665654580740059eacd649cc79e615fd07b9a66",
+    "exports": {
+      "frames": 133,
+      "sets": 3,
+      "png_decoded_dimensions_and_hashes": 136,
+      "unique_ids_and_paths": true,
+      "chapter06_links": 136,
+      "current_figma_ids_match": true
+    },
+    "contracts": {
+      "count": 30,
+      "ordered_nonempty_sections_each": 21,
+      "capture_contract_references_valid": true
+    },
+    "decision_ids_unique": true,
+    "active_rm_ids_unique": true,
+    "missing_local_file_links": [],
+    "scope_docs_only": false,
+    "scope_documentation_and_existing_asset_exports_only": true,
+    "additional_new_report_local_links": 1,
+    "anchors": {
+      "checked": 9,
+      "files_with_anchor_links": 9,
+      "broken_anchors": [],
+      "missing_files": []
+    }
+  }
+}

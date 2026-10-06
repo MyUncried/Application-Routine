@@ -1,0 +1,203 @@
+{
+ "mission": "AUDIT_TRANSVERSE_FINAL_DOCUMENTATION_KODJO",
+ "date": "2026-10-06",
+ "commitAudite": "4665654580740059eacd649cc79e615fd07b9a66",
+ "main": "6d03f5be579f2d0e2e7602b6abf1c2b46f4c740b",
+ "tetes": {
+  "docs/cadence-dsf-2026-10-06": "4665654580740059eacd649cc79e615fd07b9a66",
+  "refs/pull/323/head": "4665654580740059eacd649cc79e615fd07b9a66",
+  "refs/heads/main": "6d03f5be579f2d0e2e7602b6abf1c2b46f4c740b",
+  "refs/pull/323/merge": "d508829e3e9bcd07020035c81d84a1b0c37b63f2"
+ },
+ "inventaire": {
+  "documentsActifsMd": 57,
+  "tailleKo": 1597,
+  "contrats": 30,
+  "rubriquesParContrat": 21,
+  "lignesMatriceAvecPng": 133,
+  "identifiantsUniques": 133,
+  "pngManquants": 0,
+  "empreintesGitDifferentes": 0,
+  "dimensionsPng": "402x874 x133",
+  "jeuxDeComposants": 3
+ },
+ "liensLocaux": {
+  "controles": 737,
+  "fichiersManquants": 0,
+  "ancresControlees": 9,
+  "ancresNonRetrouvees": 0
+ },
+ "archives": {
+  "empreintesDeclarees": 10,
+  "concordantes": 10,
+  "fichiersSansEmpreinte": 0
+ },
+ "figmaRelevé2026-10-06": {
+  "frames": 133,
+  "jeux": 3,
+  "variables": {
+   "Primitives": 350,
+   "Sémantiques": 432,
+   "Responsive": 4
+  },
+  "stylesTexte": 51,
+  "reperesPrincipauxA62pct": "171/171 (propriété) ; rendu SVG 0,62 sur les instances visibles",
+  "compositionTextes": {
+   "Parcours": 0,
+   "Circuit": 17
+  }
+ },
+ "capturesObsoletes": [
+  {
+   "png": "docs/Specifications-fonctionnelles/images/figma-4997-6113.png",
+   "figmaId": "4997:6113",
+   "pixels3h6h9h": [
+    [
+     355,
+     277,
+     [
+      190,
+      194,
+      204
+     ]
+    ],
+    [
+     200,
+     433,
+     [
+      190,
+      194,
+      204
+     ]
+    ],
+    [
+     48,
+     277,
+     [
+      190,
+      194,
+      204
+     ]
+    ]
+   ],
+   "attendu62pct": [
+    215,
+    217,
+    223
+   ],
+   "constat": "repères à 100 % (#BEC2CC)"
+  },
+  {
+   "png": "docs/Specifications-fonctionnelles/images/figma-5021-5994.png",
+   "figmaId": "5021:5994",
+   "pixels3h6h9h": [
+    [
+     355,
+     277,
+     [
+      190,
+      194,
+      204
+     ]
+    ],
+    [
+     200,
+     433,
+     [
+      190,
+      194,
+      204
+     ]
+    ],
+    [
+     48,
+     277,
+     [
+      190,
+      194,
+      204
+     ]
+    ]
+   ],
+   "attendu62pct": [
+    215,
+    217,
+    223
+   ],
+   "constat": "repères à 100 % (#BEC2CC)"
+  }
+ ],
+ "capturesCoherentesPixel": [
+  {
+   "figmaId": "1992:8132",
+   "pixel": [
+    215,
+    217,
+    223
+   ]
+  },
+  {
+   "figmaId": "4968:8188",
+   "pixel": [
+    215,
+    217,
+    223
+   ]
+  },
+  {
+   "figmaId": "1992:8530",
+   "pixel": [
+    215,
+    217,
+    223
+   ]
+  },
+  {
+   "figmaId": "1992:8626",
+   "pixel": [
+    215,
+    217,
+    223
+   ]
+  },
+  {
+   "figmaId": "2234:189",
+   "rougeBouton": [
+    217,
+    45,
+    32
+   ],
+   "attendu": "danger #D92D20"
+  },
+  {
+   "figmaId": "4861:6348",
+   "rougeBouton": [
+    217,
+    45,
+    32
+   ],
+   "attendu": "danger #D92D20"
+  },
+  {
+   "figmaId": "1992:9910",
+   "fondCarte": [
+    249,
+    250,
+    252
+   ],
+   "attendu": "surfaceSubtle #F9FAFC"
+  }
+ ],
+ "comparaisonBytesFigmaDepot": "non exploitable : les exports du plugin Figma et les PNG du dépôt diffèrent en octets même pour des frames inchangées",
+ "assetsSvg": {
+  "fichiersIdentiquesExportFigma": "7/7 (relevé du 2026-10-06)",
+  "sha256EtGitBlobDuJson": "7/7 corrects"
+ },
+ "demonstrationsFigma": {
+  "7059:13302": "phrase et total 4 min 45 s ; v13 §5 unilatéral T=N×(d+p)=4×(60+15)=300 s=5 min",
+  "7061:13383": "identique à 7059:13302 (roulette ouverte)",
+  "7119:27855": "total 5 min 53 s ; v13 §5 un côté après l’autre T=2N(d+p)+PC ≥ 2×3×(48+15)=378 s",
+  "7069:13464": "phrase de fond « sans changement de côté, 5 min 15 s » ; feuille ouverte « Droite puis gauche », total 10 min 40 s (conforme à 2N(d+p)+PC pour d=90, p=15, PC=10)",
+  "7069:13573": "phrase de fond en mode Durée ; feuille ouverte en Répétitions, total ≈ 3 min (conforme à 4×(2×15+15)=180 s)"
+ }
+}

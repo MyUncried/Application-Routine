@@ -264,3 +264,14 @@ Les titres de famille remplacent désormais la numérotation dans le chapitre 06
 ## Corrections après audit — 04/10/2026
 
 Douze captures courantes réexportées après correction des badges Catalogue Exercice et activation de la troncature des zones Semaine. Quatre PNG ont changé (Catalogue, deux filtres, actions glissées) ; huit sont identiques, notamment lorsque le panneau masque les badges ou que le libellé court ne nécessite pas de troncature. Les empreintes du tableau ci-dessus sont actualisées. Les deux déploiements historiques restent hors cible.
+
+## Réexport ciblé du 06/10/2026 — G-01
+
+Les deux captures ci-dessous remplacent les fichiers antérieurs après correction Figma des repères à 62 %. Export direct natif, sans retouche. Les liens des chapitres restent identiques. La planche `6451:10942` (1688 × 2041) a aussi été réexportée pour comparaison : tous ses pixels sont identiques au fichier conservé.
+
+| Nœud Figma | Capture courante | Dimensions | Empreinte Git |
+|---|---|---|---|
+| `4997:6113` | [PNG](figma-4997-6113.png) | 402 × 874 | `8ae9b6c5077ad9ff3febc4285a21a78e58ea22ac` |
+| `5021:5994` | [PNG](figma-5021-5994.png) | 402 × 874 | `5240c74c82ca75ccbb1368d1580599c6e90007d2` |
+
+[Preuves et contrôle comparatif](../../../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_TRANSVERSE_DOCUMENTAIRE_PREUVES.json). Le relevé du 30/09 reste historique ; la matrice du 06/10 contient les empreintes courantes.

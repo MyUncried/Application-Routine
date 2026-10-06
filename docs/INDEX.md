@@ -308,3 +308,10 @@ v12 et v10.2 sont historiques ; leurs règles remplacées ne doivent pas être u
 - [Provenance des exports SVG](../assets/icons/figma-current-exports.json)
 - [Audit documentaire de Claude](../.github/orchestration/reports/2026-10-06_AUDIT_COMPLETUDE_COHERENCE_DOCUMENTAIRE_CADENCE_DSF.md)
 - [Résolution des constats F-01 à F-15](../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_DOCUMENTAIRE.md)
+
+- [Vérification des repères F-09](../.github/orchestration/reports/2026-10-06_VERIFICATION_F09_REPERES.md)
+- [Clarification de la référence du brief F-14](../.github/orchestration/reports/2026-10-06_CLARIFICATION_F14_BRIEF.md)
+- [Audit transverse reçu de Claude](../.github/orchestration/reports/2026-10-06_AUDIT_TRANSVERSE_FINAL_DOCUMENTATION_KODJO.md)
+- [Corrections G-01 à G-05 et contrôles](../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_TRANSVERSE_DOCUMENTAIRE.md)
+
+**Statut :** les écarts établis de cette passe transverse sont traités ; l’alignement fonctionnel total et la clôture restent en attente de la seconde passe de Claude (chapitres fonctionnels et contenu des 30 contrats).

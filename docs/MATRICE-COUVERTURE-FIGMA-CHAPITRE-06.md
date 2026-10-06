@@ -301,7 +301,7 @@ Les captures sont intégrées en Markdown standard et regroupées dans leur fami
 ### Écarts restant explicitement distingués
 
 - **NON CONFORME (vocabulaire Figma)** : les confirmations `1992:8224` et `1992:8326` emploient encore Activité ; le vocabulaire cible du chapitre est Exercice.
-- **Terminologie tranchée (D-209)** : Circuit désigne le groupe interne ; Tour désigne une répétition ; Parcours reste autonome. Les anciens libellés Figma sont des écarts visuels, pas des décisions à rouvrir.
+- **Terminologie tranchée (D-209)** : Circuit désigne le groupe interne ; Tour désigne une répétition ; Parcours reste autonome. Les 17 occurrences du libellé de Composition ont été corrigées en Circuit le 05/10/2026 (journal, §8). Les libellés antérieurs conservés dans les relevés historiques ne constituent pas une correction Figma encore à réaliser.
 - **Périmètre corrigé depuis #247** : D-203 inclut la consultation média représentée au MVP ; ses cinq variantes sont regroupées dans Exécution. Aucun mécanisme d’import n’est ajouté.
 - **Limite de contrôle** : les fichiers image existants ont été réutilisés ; aucun nouvel export global n’a été effectué. Leur correspondance par nœud et leur intégration Markdown ont été contrôlées.
 
