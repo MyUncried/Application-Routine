@@ -73,20 +73,29 @@ function prepare(planBody,{cwd,approvedPlanSha256,deliveryHead,evidenceDirectory
  return {schema_version:'kodjo.vnext.figma-implementation-dossier.v1',approved_plan_sha256:approvedPlanSha256,delivery_head:deliveryHead,observation,ui:F.packUi(ui),measurements,scenario_results:scenarioResults,preservation_results:[...preservationResults.values()],preservation_ids:[...preservationResults.keys()].sort(),observed_files:[...observedFiles].map(([file,sha256])=>({file,sha256})),assertion_ids:ui.criteria.flatMap(c=>c.assertions.map(a=>a.assertion_id)).sort(),scenario_ids:scenarioResults.map(s=>s.scenario_id).sort(),limits:['Execution JSON facts attest the disposable fixture only; they are not pixel or native-device compliance.','Reading resource bytes alone does not attest semantic use.']};
 }
 function validateAssessment(dossier,assessment){
- V.assertExactKeys(assessment,['verdict','reference_hashes','reviewed_assertion_ids','reviewed_scenario_ids','consulted_resource_sha256','findings','reservations','reason'],['reviewed_preservation_ids'],'VNEXT_FIGMA_REVIEW_ASSESSMENT_INVALID');
+ V.assertExactKeys(assessment,['verdict','reference_hashes','reviewed_assertion_ids','reviewed_scenario_ids','findings','reservations','reason'],['reviewed_preservation_ids','consulted_resource_sha256'],'VNEXT_FIGMA_REVIEW_ASSESSMENT_INVALID');
  if(!['APPROVE','REVISE'].includes(assessment.verdict)||!Array.isArray(assessment.findings)||!Array.isArray(assessment.reservations))V.fail('VNEXT_FIGMA_REVIEW_ASSESSMENT_INVALID');
  V.assertUnicodeExactText(assessment.reason,'VNEXT_FIGMA_REVIEW_REASON_REQUIRED');
  equal(assessment.reference_hashes.slice().sort(),dossier.observation.references.map(r=>r.reference_hash).sort(),'VNEXT_FIGMA_REVIEW_REFERENCES_UNCOVERED');
  equal(assessment.reviewed_assertion_ids.slice().sort(),dossier.assertion_ids,'VNEXT_FIGMA_REVIEW_ASSERTIONS_UNCOVERED');
  equal(assessment.reviewed_scenario_ids.slice().sort(),dossier.scenario_ids,'VNEXT_FIGMA_REVIEW_SCENARIOS_UNCOVERED');
  if(dossier.preservation_ids?.length||assessment.reviewed_preservation_ids)equal((assessment.reviewed_preservation_ids||[]).slice().sort(),dossier.preservation_ids||[],'VNEXT_FIGMA_REVIEW_PRESERVATION_UNCOVERED');
- equal(assessment.consulted_resource_sha256.slice().sort(),dossier.observation.references.flatMap(r=>r.assets.map(a=>a.sha256)).sort(),'VNEXT_FIGMA_REVIEW_RESOURCES_UNCOVERED');
+ // Legacy declarations remain readable, but are not evidence of file integrity
+ // or tool use and never determine approval. Orchestration checks actual bytes.
  for(const f of assessment.findings){V.assertExactKeys(f,['blocking','reason'],[],'VNEXT_FIGMA_REVIEW_FINDING_INVALID');if(typeof f.blocking!=='boolean')V.fail('VNEXT_FIGMA_REVIEW_FINDING_INVALID');V.assertUnicodeExactText(f.reason,'VNEXT_FIGMA_REVIEW_FINDING_INVALID');}
  for(const reservation of assessment.reservations)V.assertUnicodeExactText(reservation,'VNEXT_FIGMA_REVIEW_RESERVATION_INVALID');
  if(assessment.verdict==='APPROVE'&&assessment.findings.some(f=>f.blocking!==false))V.fail('VNEXT_FIGMA_REVIEW_FALSE_APPROVAL');
  return assessment;
 }
-function assessmentSchema(){return {type:'object',additionalProperties:false,properties:{verdict:{enum:['APPROVE','REVISE']},reference_hashes:{type:'array',items:{type:'string'}},reviewed_assertion_ids:{type:'array',items:{type:'string'}},reviewed_scenario_ids:{type:'array',items:{type:'string'}},reviewed_preservation_ids:{type:'array',items:{type:'string'}},consulted_resource_sha256:{type:'array',items:{type:'string'}},findings:{type:'array',items:{type:'object',properties:{blocking:{type:'boolean'},reason:{type:'string'}},required:['blocking','reason'],additionalProperties:false}},reservations:{type:'array',items:{type:'string'}},reason:{type:'string'}},required:['verdict','reference_hashes','reviewed_assertion_ids','reviewed_scenario_ids','consulted_resource_sha256','findings','reservations','reason']};}
+function assessmentSchema(){return {type:'object',additionalProperties:false,properties:{verdict:{enum:['APPROVE','REVISE']},reference_hashes:{type:'array',items:{type:'string'}},reviewed_assertion_ids:{type:'array',items:{type:'string'}},reviewed_scenario_ids:{type:'array',items:{type:'string'}},reviewed_preservation_ids:{type:'array',items:{type:'string'}},findings:{type:'array',items:{type:'object',properties:{blocking:{type:'boolean'},reason:{type:'string'}},required:['blocking','reason'],additionalProperties:false}},reservations:{type:'array',items:{type:'string'}},reason:{type:'string'}},required:['verdict','reference_hashes','reviewed_assertion_ids','reviewed_scenario_ids','findings','reservations','reason']};}
+function resourceIntegrity(dossier){
+ const resources=dossier.observation.references.flatMap(ref=>ref.assets.map(asset=>{
+  const actual=digest(fs.readFileSync(asset.path));
+  if(actual!==asset.sha256)V.fail('VNEXT_FIGMA_REVIEW_RESOURCE_CHANGED');
+  return {resource_id:asset.resource_id,expected_sha256:asset.sha256,actual_sha256:actual};
+ }));
+ return {producer:'ORCHESTRATION',status:'PASS',reading_attested:false,resources};
+}
 function verifyReceipt(planBody,options,receipt,raw){
  V.verifyContractHash(receipt,'VNEXT_FIGMA_REVIEW_RECEIPT_HASH_INVALID');
  const dossier=prepare(planBody,options),response=JSON.parse(raw);
@@ -94,6 +103,8 @@ function verifyReceipt(planBody,options,receipt,raw){
  if(receipt.approved_plan_sha256!==dossier.approved_plan_sha256||receipt.delivery_head!==dossier.delivery_head||receipt.dossier_hash!==V.canonicalHash(dossier)||receipt.raw_response_sha256!==V.sha256(raw)||receipt.session_id!==response.session_id)V.fail('VNEXT_FIGMA_REVIEW_RECEIPT_BINDING_INVALID');
  equal(receipt.assessment,response.structured_output,'VNEXT_FIGMA_REVIEW_RECEIPT_ASSESSMENT_CHANGED');
  equal(receipt.limits,dossier.limits,'VNEXT_FIGMA_REVIEW_RECEIPT_LIMITS_CHANGED');
+ const integrity=resourceIntegrity(dossier);
+ if(receipt.resource_integrity)equal(receipt.resource_integrity,integrity,'VNEXT_FIGMA_REVIEW_RECEIPT_BINDING_INVALID');
  validateAssessment(dossier,receipt.assessment);return receipt;
 }
 function review(planBody,options){
@@ -101,9 +112,10 @@ function review(planBody,options){
  if(fs.existsSync(receiptFile)&&fs.existsSync(responseFile))return verifyReceipt(planBody,options,JSON.parse(fs.readFileSync(receiptFile,'utf8')),fs.readFileSync(responseFile,'utf8'));
  if(fs.existsSync(receiptFile)||fs.existsSync(responseFile))V.fail('VNEXT_FIGMA_REVIEW_PREVIOUS_RESULT_UNKNOWN');
  const dossier=prepare(planBody,options),directory=options.evidenceDirectory;
+ resourceIntegrity(dossier);
  fs.writeFileSync(path.join(directory,'implementation-dossier.json'),JSON.stringify(dossier,null,2)+'\n');
  const schema=assessmentSchema();
-const input={instructions:'Independent implementation review. Read each referenced Figma PNG and SVG asset using Read, read the property manifest and execution artifacts, check every bound assertion and documentary scenario against the observed delivery. Distinguish actual execution facts on a disposable fixture from injected unit-test observations; neither proves product appearance or native-device compliance. For the functional-only protocol benchmark, no browser, automatic rendering or human visual gate is required or authorized. Do not invent such obligations. Read every preservation_results fact and cover every preservation_id in reviewed_preservation_ids when present; these are the existing shared-export preservation obligations. No inferred PASS. Return REVISE for semantic gaps, wrong scope or evidence. Do not change files or use network.',dossier};
+const input={instructions:'Independent implementation review. Read the referenced source context, property manifest and execution artifacts, check every bound assertion and documentary scenario against the observed delivery. Orchestration constructs the resource inventory and verifies actual file SHA-256 bytes before and after review; do not compute or report consulted-resource hashes. This mechanical integrity check does not attest which files you read. Distinguish actual execution facts on a disposable fixture from injected unit-test observations; neither proves product appearance or native-device compliance. For the functional-only protocol benchmark, no browser, automatic rendering or human visual gate is required or authorized. Do not invent such obligations. Read every preservation_results fact and cover every preservation_id in reviewed_preservation_ids when present; these are the existing shared-export preservation obligations. No inferred PASS. Return REVISE for semantic gaps, wrong scope or evidence. Do not change files or use network.',dossier};
  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-figma-review-'));
  fs.writeFileSync(path.join(temp,'mcp.json'),JSON.stringify({mcpServers:{}}));fs.writeFileSync(path.join(temp,'settings.json'),JSON.stringify({disableAllHooks:true}));
  const env={...process.env};for(const k of ['GH_TOKEN','GITHUB_TOKEN','KODJO_LIVE_GH_TOKEN'])delete env[k];
@@ -114,9 +126,9 @@ const input={instructions:'Independent implementation review. Read each referenc
   fs.writeFileSync(path.join(directory,'implementation-review-response.json'),raw);
   const response=JSON.parse(raw);if(response.type!=='result'||response.is_error||!response.session_id||!response.structured_output)V.fail('VNEXT_FIGMA_REVIEW_PROCESS_RESULT_INVALID');
   const assessment=validateAssessment(dossier,response.structured_output);
-  for(const ref of dossier.observation.references)for(const a of ref.assets)if(digest(fs.readFileSync(a.path))!==a.sha256)V.fail('VNEXT_FIGMA_REVIEW_RESOURCE_CHANGED');
+  const resource_integrity=resourceIntegrity(dossier);
   for(const a of dossier.observed_files)if(digest(fs.readFileSync(a.file))!==a.sha256)V.fail('VNEXT_FIGMA_REVIEW_ARTIFACT_CHANGED');
-  const receipt=V.sealContract({schema_version:'kodjo.vnext.figma-implementation-review.v1',approved_plan_sha256:dossier.approved_plan_sha256,delivery_head:dossier.delivery_head,dossier_hash:V.canonicalHash(dossier),session_id:response.session_id,raw_response_sha256:V.sha256(raw),assessment,limits:dossier.limits});
+  const receipt=V.sealContract({schema_version:'kodjo.vnext.figma-implementation-review.v1',approved_plan_sha256:dossier.approved_plan_sha256,delivery_head:dossier.delivery_head,dossier_hash:V.canonicalHash(dossier),session_id:response.session_id,raw_response_sha256:V.sha256(raw),assessment,resource_integrity,limits:dossier.limits});
   fs.writeFileSync(path.join(directory,'implementation-review-receipt.json'),JSON.stringify(receipt,null,2)+'\n');return receipt;
  }finally{
   fs.rmSync(temp,{recursive:true,force:true});

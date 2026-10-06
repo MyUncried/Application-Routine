@@ -9,6 +9,40 @@ async function launched(f,options={}){const scope={slice_id:f.recipe.planningInp
 function plan(f){const p=f.produce(),a=p.artifacts;return Adapter.renderCompatibilityPlan({application_head:a.planningEnvelope.application_head,plan_contract_hash:a.planContract.contract_hash},a.planContract,a.uiAtomicityContract,a.requirementRegistry,a.candidateManifest);}
 function facts(f,dir){const values=Object.fromEntries(F.required(f.snapshot).map(d=>[d.property_id,d.rule.value]));const observations={values,scenarios:{'toggle-off-on':true,'toggle-on-off':true}},content=JSON.stringify(observations);fs.writeFileSync(path.join(dir,'execution.json'),content);const artifact={artifact_path:'execution.json',artifact_sha256:V.sha256(content),observer:'EXECUTED_JSON_FACT',delivery_head:f.head};return {measurements:F.required(f.snapshot).flatMap(d=>d.rule.viewports.map(viewport=>({...artifact,measurement_id:d.property_id+'@'+viewport,property_id:d.property_id,reference_hash:f.snapshot.contract_hash,viewport,value:d.rule.value,value_path:['values',d.property_id],evidence:'TEST fixture execution facts; no pixel or device evidence'}))),scenarioResults:f.snapshot.states[0].scenarios.map(s=>({...artifact,scenario_id:s.scenario_id,reference_hash:f.snapshot.contract_hash,status:'PASS',value:true,value_path:['scenarios',s.scenario_id],proof_results:s.proof_required.map(proof_type=>({proof_type,status:'PASS'}))}))};}
 function reviewOptions(f,t){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-figma-evidence-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));const body=plan(f);return {body,options:{cwd:f.cwd,approvedPlanSha256:V.sha256(body),deliveryHead:f.head,evidenceDirectory:dir,...facts(f,dir)}};}
+function resourceAssessment(dossier){return {verdict:'APPROVE',reference_hashes:dossier.observation.references.map(r=>r.reference_hash),reviewed_assertion_ids:dossier.assertion_ids,reviewed_scenario_ids:dossier.scenario_ids,findings:[],reservations:[],reason:'Injected semantic assessment; orchestration verifies file integrity.'};}
+test('resource integrity is computed from actual files without a model consultation declaration',t=>{
+ const f=setup(t),{body,options}=reviewOptions(f,t);
+ const receipt=Review.review(body,{...options,invoke:(_bin,args,_cwd,input)=>{
+  const schema=JSON.parse(args[args.indexOf('--json-schema')+1]);
+  assert.equal(Object.hasOwn(schema.properties,'consulted_resource_sha256'),false);
+  const {dossier}=JSON.parse(input);
+  return JSON.stringify({type:'result',session_id:'TEST-INTEGRITY',structured_output:resourceAssessment(dossier)});
+ }});
+ assert.equal(receipt.resource_integrity.producer,'ORCHESTRATION');
+ assert.equal(receipt.resource_integrity.reading_attested,false);
+ assert.ok(receipt.resource_integrity.resources.length>0);
+ for(const row of receipt.resource_integrity.resources)assert.equal(row.actual_sha256,row.expected_sha256);
+ Review.verifyReceipt(body,options,receipt,fs.readFileSync(path.join(options.evidenceDirectory,'implementation-review-response.json'),'utf8'));
+});
+test('an execution artifact included in a legacy consultation list cannot reject valid resource bytes',t=>{
+ const f=setup(t),{body,options}=reviewOptions(f,t);
+ const receipt=Review.review(body,{...options,invoke:(_bin,_args,_cwd,input)=>{
+  const {dossier}=JSON.parse(input),assessment=resourceAssessment(dossier);
+  assessment.consulted_resource_sha256=[...dossier.observation.references.flatMap(r=>r.assets.map(a=>a.sha256)),dossier.scenario_results[0].artifact_sha256];
+  return JSON.stringify({type:'result',session_id:'TEST-LEGACY-EXTRA',structured_output:assessment});
+ }});
+ assert.equal(receipt.assessment.verdict,'APPROVE');
+ assert.equal(receipt.resource_integrity.resources.length,receipt.assessment.consulted_resource_sha256.length-1);
+});
+test('actual resource tampering still rejects a review without a consultation declaration',t=>{
+ const f=setup(t),{body,options}=reviewOptions(f,t);
+ assert.throws(()=>Review.review(body,{...options,invoke:(_bin,_args,_cwd,input)=>{
+  const {dossier}=JSON.parse(input);
+  fs.appendFileSync(dossier.observation.references[0].assets[0].path,'tampered');
+  return JSON.stringify({type:'result',session_id:'TEST-TAMPER',structured_output:resourceAssessment(dossier)});
+ }}),/VNEXT_FIGMA_REVIEW_RESOURCE_CHANGED/);
+ assert.equal(fs.existsSync(path.join(options.evidenceDirectory,'implementation-review-receipt.json')),false);
+});
 test('generic launch automatically orders capture, reconciliation, freeze and requirements before planning',async t=>{const f=setup(t),{c,scope}=await launched(f);Launch.validate(c);f.recipe.figmaScope=scope;f.recipe.figmaLaunch=c;f.recipe.sourceManifestInput=c.sourceManifestInput;f.recipe.requirementInput=c.requirementInput;const p=f.produce();assert.ok(p.figma_launch);Chain.verifyProduced(p,f.cwd);assert.deepEqual(c.stages,['CAPTURE','RECONCILE','INVENTORY_AND_SCENARIOS_VALIDATED','GIT_FREEZE','ATOMIC_REQUIREMENTS']);});
 test('a declared Figma slice cannot skip source preparation or change the frozen requirement set',async t=>{const f=setup(t),{c,scope}=await launched(f);f.recipe.figmaScope=scope;assert.throws(()=>f.produce(),/LAUNCH_REQUIRED/);f.recipe.figmaLaunch=c;f.recipe.requirementInput.requirements.pop();assert.throws(()=>f.produce(),/RECIPE_REQUIREMENTS_MISMATCH/);});
 test('new launch identity and different file/frame IDs are generic, not Zones-specific',async t=>{
