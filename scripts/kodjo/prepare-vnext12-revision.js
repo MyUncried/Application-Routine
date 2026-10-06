@@ -33,6 +33,14 @@ function deriveCorrection(cwd, base, receipt) {
   const blocking = receipt.review_report.findings.filter(x => x.blocking);
   for (const finding of blocking) {
     if (finding.target_type === 'PLAN_ITEM' && finding.target_id === item.plan_item_id) continue;
+    // A root finding may describe these same two contradictory intents. Its
+    // exact item and change IDs bound the correction; the root is not patched.
+    if (finding.category === 'PLAN_GAP' && finding.target_type === 'PLAN_CONTRACT'
+        && finding.target_id === a.planContract.contract_hash
+        && a.planContract.plan_items.length === 1 && item.change_items.length === 2
+        && finding.reentry_stage === 'PLAN'
+        && finding.dependency_target_ids.includes(item.plan_item_id)
+        && item.change_items.every(x => finding.required_correction.includes(x.change_id))) continue;
     // A TEST finding can cite an incorrect plan intent while the TEST obligation
     // itself is correct. Require its exact parent and change identity, retain
     // the original finding, and authorize only the parent plan's intents.
