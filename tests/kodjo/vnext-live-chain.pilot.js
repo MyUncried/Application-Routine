@@ -35,8 +35,8 @@ function fixture({ largeCatalog = false } = {}) {
     executionContext: { mode: 'LOCAL', writer_id: 'CLAUDE:fixture-writer' }, nativeAssessments: [], registerInput: { authorizedActor: 'MyUncried', revisionCount: 0, revisionLimit: 1, observations: [] } };
   const produced = Chain.produce(recipe, { cwd: repo.cwd });
   let calls = 0;
-  const receipt = Chain.review(produced, { cwd: repo.cwd, claude: 'fixture-only', invoke: (_bin, args, _cwd, input, env) => {
-    calls++; assert.ok(args.includes('--json-schema')); assert.equal(env.GH_TOKEN, undefined);
+  const receipt = Chain.review(produced, { cwd: repo.cwd, claude: 'fixture-only', invoke: (_bin, args, _cwd, input, env, timeoutMs) => {
+    calls++; assert.ok(args.includes('--json-schema')); assert.equal(env.GH_TOKEN, undefined); assert.equal(timeoutMs, 7200000);
     const dossier = JSON.parse(input);
     assert.equal(dossier.produced_chain_hash, produced.contract_hash);
     assert.equal(dossier.artifacts.reviewContext.target_catalog, undefined);

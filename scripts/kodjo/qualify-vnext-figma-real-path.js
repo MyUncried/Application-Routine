@@ -62,7 +62,7 @@ function invokeClaude(cwd,prompt,directory,role,{write=false}={}){
  const env={...process.env};for(const k of ['GH_TOKEN','GITHUB_TOKEN','KODJO_LIVE_GH_TOKEN'])delete env[k];
  const args=['--add-dir',path.resolve(directory,'..','implementation-references'),'--add-dir',path.resolve(directory,'..'),'-p','--restricted','--permission-mode','dontAsk','--permission-prompts','none','--output-format','json','--tools',write?'Read,Edit,Write,Glob,Grep':'Read,Glob,Grep','--allowedTools',write?'Read,Edit,Write,Glob,Grep':'Read,Glob,Grep','--disallowedTools','mcp__*,Bash','--strict-mcp-config','--mcp-config',config,'--settings',settings];
  fs.writeFileSync(path.join(directory,'prompt.json'),JSON.stringify(prompt,null,2)+'\n');
- const raw=Chain.command(require('./lib/claude-local').resolveClaudeBinary(),args,cwd,JSON.stringify(prompt),env,600000,{onResult:r=>{fs.writeFileSync(path.join(directory,'process.json'),JSON.stringify(r,null,2)+'\n',{flag:'wx'});fs.writeFileSync(path.join(directory,'response.json'),r.stdout||'',{flag:'wx'});}});
+ const raw=Chain.command(require('./lib/claude-local').resolveClaudeBinary(),args,cwd,JSON.stringify(prompt),env,Chain.CLAUDE_TIMEOUT_MS,{onResult:r=>{fs.writeFileSync(path.join(directory,'process.json'),JSON.stringify(r,null,2)+'\n',{flag:'wx'});fs.writeFileSync(path.join(directory,'response.json'),r.stdout||'',{flag:'wx'});}});
  const response=JSON.parse(raw);if(response.type!=='result'||response.is_error||!response.session_id)throw Error('VNEXT_FIGMA_REAL_CLAUDE_RESULT_INVALID:'+role);return {session_id:response.session_id,raw_response_sha256:V.sha256(raw),role};
 }
 function observe(f,packet,dir){

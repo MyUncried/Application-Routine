@@ -39,3 +39,13 @@ Correctif publié sur SHA 67d18be21e865846fac780351b34bc6cd4c636a3, arbre ebfbbc
 Run 37395284603 entièrement SUCCESS, candidat exact 67d18be21e865846fac780351b34bc6cd4c636a3, attempt 1 et cinq jobs requis VERIFIED par le validateur canonique. Contrats : 318/318 PASS sur Linux et Windows, zéro échec et zéro SKIP. Correspondance historique : 1 085 cas, Linux 1 084 PASS/1 SKIP, Windows 1 082 PASS/3 SKIP ; réserves historiques conservées. Archives des deux plateformes téléchargées, intégrité ZIP, empreintes GitHub et SHA exact vérifiés. Comparaison finale croisée PASS.
 
 Nouvelle demande 96c53d61-f780-41dc-afb7-3c1f992c910f, génération 51, même campagne FIGMA_INITIAL et même limite d’une correction causale. Ancien UUID 7576668a-8e6a-4678-a9b9-36698847d7f1 consommé, jamais rejoué. Publication runtime encore à effectuer après validation du tree, fenêtre HEAD/checkpoint/runs et identité exacte du code qualifié.
+
+## Parcours réel relancé — état observé
+
+Contrôleur publié une fois sur 5b2047bbd9b2ab0b7254e1b0d7bd600d53e6015a, code identique au candidat qualifié 67d18be21e865846fac780351b34bc6cd4c636a3. Nouvelle demande 96c53d61-f780-41dc-afb7-3c1f992c910f, génération 51. Run 37396415216, attempt 1, job 112053405854 IN_PROGRESS sur KODJO-LOCAL-RUNNER dans « Qualify admission then execute the disposable Figma path once ». Démarrage réel du conducteur observé ; claim interne et activité Claude non encore accessibles. Aucun verdict ou succès de tâche 2 revendiqué. Les deux CI automatiques du même commit sont des vérifications, pas des rejouements de la demande.
+
+Seconde passe de livraison : PR HEAD exact, UUID/génération, qualification attempt/cinq jobs, fingerprint du code contrôleur, arbre/fenêtre de publication et job réel confrontés. Preuves finales et checkpoint conservés dans un commit local pendant les runs actifs ; aucune publication concurrente de ce bilan. Git propre après ce commit, hash final communiqué en conversation. Prochaine action : collecter le résultat de ce run, sans nouvel appel ni relance automatique. Aucun résultat sur application ou appareil réel.
+
+## Résultat terminal du parcours relancé
+
+Run 37396415216 FAILURE : revue Claude interrompue à 600 077 ms, ETIMEDOUT ; 432 événements, aucun résultat final, aucune implémentation ou correction. L’admission était VERIFIED et le code exact. La correction catégorie/type n’a pas reçu de verdict réel sur ce run. Cause précise du timeout non établie. Preuves et analyse conservées dans 2026-10-06_VNEXT_TASK2_RUN_37396415216_RESULT.md. Fixture nettoyée, checkout inchangé, bundle vérifié. Aucune opération de branche active, aucune nouvelle relance.

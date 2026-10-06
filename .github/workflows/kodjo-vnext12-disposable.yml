@@ -69,7 +69,7 @@ jobs:
     if: needs.select-stage.outputs.stage == 'PREPARE_REVISION'
     needs: [select-stage, qualify-driver]
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
-    timeout-minutes: 35
+    timeout-minutes: 120
     permissions:
       contents: read
       actions: read
@@ -140,7 +140,7 @@ jobs:
     if: needs.select-stage.outputs.stage == 'PREPARE_INITIAL'
     needs: [select-stage, qualify-driver]
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
-    timeout-minutes: 30
+    timeout-minutes: 120
     env:
       CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
       EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
@@ -246,7 +246,7 @@ jobs:
     needs: select-stage
     if: needs.select-stage.outputs.stage == 'FIGMA_INITIAL'
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
-    timeout-minutes: 70
+    timeout-minutes: 120
     permissions:
       contents: read
       actions: read

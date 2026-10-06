@@ -1,0 +1,19 @@
+# VNext — plafonds Claude portés à deux heures
+
+Mission VNEXT_CLAUDE_TWO_HOURS. Instruction utilisateur du 6 octobre 2026 à 03:33 Paris : changer immédiatement les plafonds, les supprimer ou tous les porter à 2 h. Branche protocol/vnext-proof-stability-20260930 ; départ local 8aed27191cd4418b03269239ca04f2781b97cdb4, distant 5b2047bbd9b2ab0b7254e1b0d7bd600d53e6015a.
+
+Périmètre traité : appels Claude du parcours VNext/Figma courant et jobs du workflow de campagne. La revue INITIAL comme REVISION utilise une constante commune CLAUDE_TIMEOUT_MS = 7 200 000 ms. Implémentation, correction causale et les deux revues d’implémentation utilisent cette même valeur. Les jobs du workflow kodjo-vnext12-disposable ont tous un plafond global de 120 minutes (auparavant 35, 30, 120 et 70). Le plafond global est cumulatif : il inclut tous les appels et contrôles du job ; il ne donne pas deux heures supplémentaires à chaque étape.
+
+Le superviseur conserve seulement ses 20 secondes de marge de version/archivage/nettoyage au-delà du plafond de l’enfant. Les commandes techniques courtes (Git, version CLI, observation navigateur) ne sont pas des appels Claude et restent inchangées. La politique et les demandes historiques V2 ne sont pas modifiées ; aucune demande consommée n’est rejouée. Les contrôles de contenu, couverture, intégrité, qualification et périmètre demeurent stricts.
+
+Cette modification suit l’autorisation explicite de l’utilisateur ; elle ne revendique aucune optimisation ni garantie de durée. Le plafond précédent de dix minutes a arrêté le dernier appel sans résultat final. La cause profonde de son absence de résultat reste inconnue. La modification de délai permet une tentative plus longue ; elle ne certifie pas la réussite réelle.
+
+Vérifications effectuées : tests des appels de revue avec capture explicite du timeout de 7 200 000 ms, tests du vrai superviseur et de ses interruptions, correspondance historique, invariants des workflows, syntaxe des fichiers, seconde passe et validation du tree/fenêtre avant publication. Les tests ne simulent pas un appel de deux heures et ne lancent pas Claude. Aucun test applicatif sur appareil ni résultat du parcours réel revendiqué.
+
+Fichiers modifiés : scripts/kodjo/lib/vnext-live-chain.js, scripts/kodjo/lib/vnext-figma-implementation-review.js, scripts/kodjo/qualify-vnext-figma-real-path.js, .github/workflows/kodjo-vnext12-disposable.yml, tests/kodjo/vnext-live-chain.pilot.js, tests/kodjo/vnext-figma-launch-review.pilot.js, checkpoint et ce rapport. Les preuves terminales précédentes seront conservées dans la publication documentaire. Aucune nouvelle demande runtime ni qualification distante lancée par cette mission.
+
+La qualification exacte acquise pour l’ancien SHA ne vaut pas qualification de ce nouveau code. Une nouvelle qualification sera nécessaire avant une future exécution réelle. Commit final et état Git communiqués en conversation ; commit du rapport consultable avec git log -1 --format=%H -- .github/orchestration/reports/2026-10-06_VNEXT_CLAUDE_TWO_HOURS.md.
+
+Résultats : 37/37 tests PASS, zéro échec et zéro SKIP ; invariants des workflows PASS, whitespace PASS. Relecture séparée : les trois sites d’appel Claude utilisent la même constante ; INITIAL et REVISION ne divergent plus ; les quatre jobs de campagne déclarent 120 minutes ; les tests court-circuités de supervision vérifient encore le refus d’une absence de résultat. Les correspondances historiques restent valides. Vérification du tree et de la fenêtre de publication à effectuer avant déplacement de la branche. Git propre après commit de livraison.
+
+Le contrôle du tree a détecté l’empreinte devenue périmée du workflow modifié dans KODJO_VNEXT_REMOTE_WRITE_POLICY.json. Son producer_blob_oid est actualisé au blob exact ; aucune capacité, condition d’autorisation ou règle de writer historique changée. Le contrôle strict de dérive est conservé et rejoué.

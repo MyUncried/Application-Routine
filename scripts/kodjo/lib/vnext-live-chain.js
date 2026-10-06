@@ -25,6 +25,8 @@ const Auth = require('../verify-authorizations');
 const GithubApproval = require('./vnext-github-approval');
 
 const SCHEMA = 'kodjo.vnext.prepared-chain.v1';
+// Explicit user budget (2026-10-06): two hours for each Claude invocation.
+const CLAUDE_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 function command(bin, args, cwd, input, env = process.env, timeoutMs = 600000, { onResult } = {}) {
   const startedAt = new Date().toISOString(), started = Date.now();
   const r = Perf.measure(bin === 'git' ? 'chain.git.' + args[0] : 'chain.process', () => spawnSync(bin, args, { cwd, input, env, encoding: 'utf8', shell: false,
@@ -388,7 +390,7 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
     dossier.figma_consumer_observation={stage:'PLANNER',manifest,contract_hash:observation.contract_hash,references:observation.references.map(r=>({source_id:r.source_id,reference_hash:r.reference_hash,assets:r.assets}))};
     dossier.instructions+=' Les ressources Figma sont materialisees dans figma_consumer_observation.references[].assets ; ouvrir les captures PNG avec Read et lire le manifeste des proprietes et les SVG exacts. Le controleur a deja execute unpackUi et verifie la reconstruction canonique Figma ; aucun appel de fonction ne vous est demande. Un octet transporte n’est pas une preuve de consultation ni de conformite. Signaler toute ressource inaccessible comme finding ; ne pas approuver par simple reference au composant reutilise.';
   }
-  const input = JSON.stringify(dossier), timeoutMs = artifacts.planningEnvelope.planning_mode === 'REVISION' ? 900000 : 600000;
+  const input = JSON.stringify(dossier), timeoutMs = CLAUDE_TIMEOUT_MS;
   const diagnostic = { schema_version: 'kodjo.vnext.review-process-diagnostic.v1',
     produced_chain_hash: produced.contract_hash, review_context_hash: artifacts.reviewContext.contract_hash,
     planning_mode: artifacts.planningEnvelope.planning_mode, timeout_ms: timeoutMs,
@@ -649,5 +651,5 @@ function guardLocalRequest(raw, { cwd, queueFile, github } = {}) {
   return admit(queueFile, { cwd, github, allowExternalQueueFile: true });
 }
 
-module.exports = { SCHEMA, command, relative, readGit, unitText, observeSources, launchAndProduce, produce, verifyProduced,
+module.exports = { SCHEMA, CLAUDE_TIMEOUT_MS, command, relative, readGit, unitText, observeSources, launchAndProduce, produce, verifyProduced,
   compactReviewDossier, materializeReviewDossier, decodeReviewOutput, boundedReviewOutput, validateReviewResponse, recoverReview, reviewOrRecover, preserveFailure, review, verifyReceipt, validateReceipt, nativeResolver, preparedArtifacts, prepare, approvalTarget, deriveQueue, admit, guard, guardLocalRequest };
