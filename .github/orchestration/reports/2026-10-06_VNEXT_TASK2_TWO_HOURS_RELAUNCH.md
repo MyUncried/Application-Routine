@@ -19,3 +19,11 @@ Candidat publié d1746b16bbe957861e369c66b72823579e2ed05e, arbre 0b273a0c3fb3e64
 Qualification 37400585436 : contrats Linux 318 PASS, mais historique Linux 11 FAIL sur 1 085 cas. Les 11 échecs proviennent exclusivement de la fixture tests/kodjo/vnext12-revision-supervisor.pilot.js, dont l’assertion attendait encore INITIAL 600 000 ms / REVISION 900 000 ms. Le changement demandé produit 7 200 000 ms. Omission dans la première vérification ciblée, pas anomalie sémantique du plan ou de l’implémentation. Assertion mise à jour à 7 200 000 ms, correspondance historique vérifiée sans changer ses IDs/protections/limites (ce fichier est exécuté dans la suite mais ne porte aucune correspondance nommée dans le registre). Archive de diagnostic Linux conservée. Aucun code Claude changé après le candidat d1746b16 ; seule l’assertion historique et la condition de nouvelle qualification changent. Nouvelle branche dédiée r2, candidat distinct à qualifier ; aucun rerun du candidat refusé.
 
 Correction ciblée vérifiée : 16/16 PASS, zéro échec/SKIP, dont les 11 cas du superviseur de révision auparavant refusés. Journaux archivés. Relecture séparée : seule l’assertion de délai est modifiée ; les tests causaux, refus de faux APPROVE, scope et base préservée restent actifs.
+
+## Qualification du test corrigé lancée
+
+Candidat abecf87e88abbf387c1e22e319cda1374762018d, arbre 83a3607867c7fbc5b769a1eb27a9cf8278ef1589 identique au local. Tree/fenêtre VALIDATED, 420 sujets historiques et writers gelés conservés. Qualification 37401096314 lancée une fois sur la branche r2. Le premier candidat refusé n’est pas rejoué. Aucune nouvelle demande runtime avant qualification acquise. Rapport/checkpoint/preuves locaux conservés pendant les opérations actives.
+
+## Qualification acquise et demande neuve
+
+Qualification 37401096314 SUCCESS, cinq jobs requis vérifiés sur abecf87e88abbf387c1e22e319cda1374762018d. Contrats Linux et Windows : 318 PASS chacun, aucun échec/skip. Historique Linux : 1 084 PASS, 1 SKIP ; Windows : 1 082 PASS, 3 SKIP, aucun échec sur 1 085 cas par plateforme. Comparaison interplateformes réussie. Archives SHA-256 vérifiées et preuves exactes conservées. Demande génération 52, UUID 55015f80-1d0e-4333-941d-e0dbdab8600d, référence au candidat qualifié ; publication puis démarrage réel restant à vérifier. Aucun verdict du parcours réel revendiqué.

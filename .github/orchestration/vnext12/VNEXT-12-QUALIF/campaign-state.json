@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-06T01:42:12.391391+00:00",
+  "recorded_at": "2026-10-06T02:03:20.730Z",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "434adeef6d42e861a3dbee7c6236e77cc1ba74f9",
-  "controller_stage": "FIGMA_TASK2_TWO_HOURS_STALE_TEST_ASSERTION_CORRECTED",
-  "controller_generation": 74,
+  "controller_stage": "FIGMA_TASK2_TWO_HOURS_RUNTIME_REQUEST_READY",
+  "controller_generation": 76,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -2001,11 +2001,11 @@
     "scope": "CURRENT_VNEXT_FIGMA_CLAUDE_CALLS_AND_CAMPAIGN_WORKFLOW",
     "claude_timeout_ms": 7200000,
     "workflow_timeout_minutes": 120,
-    "fresh_qualification_required": true,
+    "fresh_qualification_required": false,
     "runtime_launched": false,
     "task3_authorized": false,
     "closure_authorized": false,
-    "next_action": "QUALIFY_NEW_EXACT_HEAD_BEFORE_ANY_FRESH_RUNTIME_REQUEST"
+    "next_action": "LAUNCH_FRESH_TASK2_REQUEST"
   },
   "task2_two_hours_relaunch_20261006": {
     "authorization": "USER_2026-10-06_03:41_PARIS_LAUNCH_TASK2",
@@ -2014,16 +2014,49 @@
     "claude_timeout_ms": 7200000,
     "workflow_timeout_minutes": 120,
     "previous_consumed_request_id": "96c53d61-f780-41dc-afb7-3c1f992c910f",
-    "fresh_qualification_required": true,
+    "fresh_qualification_required": false,
     "runtime_launched": false,
     "task3_authorized": false,
     "closure_authorized": false,
-    "candidate_head": "d1746b16bbe957861e369c66b72823579e2ed05e",
-    "qualification_run": 37400585436,
-    "qualification_status": "NEW_CANDIDATE_PENDING",
+    "candidate_head": "abecf87e88abbf387c1e22e319cda1374762018d",
+    "qualification_run": 37401096314,
+    "qualification_status": "SUCCESS",
     "qualification_launch_count": 1,
     "failed_qualification_run": 37400585436,
     "failed_qualification_candidate": "d1746b16bbe957861e369c66b72823579e2ed05e",
-    "failure": "STALE_TEST_EXPECTED_600000_OR_900000_INSTEAD_OF_7200000"
+    "failure": "STALE_TEST_EXPECTED_600000_OR_900000_INSTEAD_OF_7200000",
+    "qualification_candidates_launched": 2,
+    "runtime_launch_count": 0,
+    "new_request_id": "55015f80-1d0e-4333-941d-e0dbdab8600d",
+    "request_generation": 52,
+    "contracts": {
+      "Linux": {
+        "tests": 318,
+        "pass": 318,
+        "fail": 0,
+        "skip": 0
+      },
+      "Windows": {
+        "tests": 318,
+        "pass": 318,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    "historical": {
+      "Linux": {
+        "tests": 1085,
+        "passed": 1084,
+        "failed": 0,
+        "skipped": 1
+      },
+      "Windows": {
+        "tests": 1085,
+        "passed": 1082,
+        "failed": 0,
+        "skipped": 3
+      }
+    },
+    "next_action": "PUBLISH_FRESH_REQUEST_ONCE"
   }
 }
