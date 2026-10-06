@@ -7,8 +7,8 @@
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au r\u00e9sultat r\u00e9el, diagnostiquer/corriger/relancer les \u00e9checs techniques ; solliciter uniquement une validation m\u00e9tier.",
   "code_head_before_checkpoint": "c30c57682a7864b5b548a2470c6f514b849bdf37",
-  "controller_stage": "EVIDENCE_BASIS_FIX_REAL_PATH_IN_PROGRESS",
-  "controller_generation": 94,
+  "controller_stage": "NO_BROWSER_QUALIFIED_READY_FOR_REAL_PATH",
+  "controller_generation": 95,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -2336,11 +2336,32 @@
   },
   "task2_no_browser_20261006": {
     "authorization": "USER_EXPLICIT_2026-10-06_17:37_PARIS",
-    "stage": "CORRECTED_PENDING_QUALIFICATION",
+    "stage": "QUALIFIED_READY_FOR_REAL_PATH",
     "browser_removed": true,
     "automatic_render_controls_removed": true,
     "visual_validation": "USER_ONLY_NOT_EXECUTED",
     "report": ".github/orchestration/reports/2026-10-06_VNEXT_NO_BROWSER_REMOVAL.md",
-    "runtime_launched": false
+    "runtime_launched": false,
+    "candidate_head": "f15aa64eef32549e2c37b2fa242a6541146fa460",
+    "qualification_run": 37490564500,
+    "qualification_status": "SUCCESS",
+    "qualification_branch": "qualification/vnext-task2-no-browser-20261006",
+    "request_generation": 63,
+    "request_id": "41010699-3777-4e8c-95bc-bf98996acdee",
+    "request_published": true,
+    "contracts": {
+      "Linux": {
+        "tests": 329,
+        "pass": 329,
+        "fail": 0,
+        "skip": 0
+      },
+      "Windows": {
+        "tests": 329,
+        "pass": 329,
+        "fail": 0,
+        "skip": 0
+      }
+    }
   }
 }
