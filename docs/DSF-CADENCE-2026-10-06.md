@@ -207,3 +207,9 @@ Le nouveau contrôle F-09 lève la réserve de persistance précédente ; preuve
 ## Coche de sélection multiple — clôture H-10
 
 La carte courante `DSF / Cards / Exercice` `6214:4425` (Choix composition, Sélectionné) contient la case20 ×20 `6214:4423` et la coche `6214:4424`. Le dessin courant est conservé sous forme de [SVG vectorisé](../assets/icons/selection-check.svg), export exact du glyphe, tracé10 ×8 dans un slot20 ×20 ; la case bleue `#0508E5`, rayon6, appartient au contrôle hôte. Les dimensions24 ×24 et le fond `#5F60EE` de l’ancien composant supprimé ne s’appliquent plus à cet usage. Voir chapitre12 et [preuves H-10](../.github/orchestration/reports/2026-10-06_CLOTURE_H10_COCHE_SELECTION.md).
+
+## Clarifications de Composition — H-08 et H-09
+
+La ligne structurelle Récupération / Point d’arrêt reste toujours présente entre les Exercices, y compris avec `Récupération 0 s` et sans Point d’arrêt. La récupération se règle sur cette ligne et appartient à l’occurrence. Les deux éléments restent distincts ; pendant le placement d’un Point d’arrêt, les emplacements autorisés sont mis en évidence pour permettre leur sélection. Le retrait des informations de pause/récupération sur les cartes (D-238) ne supprime ni cette ligne ni son réglage.
+
+Lorsque deux Exercices consécutifs n’ont ni Pause terminale après le premier ni Récupération positive après son occurrence, la Composition affiche l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre. Le libellé est prescrit par D-301 ; la présente livraison ne modifie pas Figma et ne prétend pas certifier le rendu de cet avertissement.

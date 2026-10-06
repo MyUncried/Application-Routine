@@ -29,7 +29,7 @@ L’inventaire du 24 septembre était un état des lieux ; il ne borne plus le c
 
 ## Lecture des écarts visuels et des décisions
 
-La capture décrit l’état Figma observé ; elle ne remplace pas une décision métier validée. Certaines frames de Composition montrent encore une ligne de récupération, alors que D-238 en retire l’affichage dans la cible ; les données et calculs restent conservés. Les frames `4738:6355` (Exercice déployé) et `1992:8996` (Suivi déployé) sont historiques hors MVP depuis D-261/D-262 ; elles ne servent plus de cible accessible. Ces écarts d’assemblage n’ouvrent aucun nouvel arbitrage et les PNG ne sont pas retouchés pour les masquer. Les cartes standard ne sont pas déclarées propagées dans les frames qui n’en contiennent pas.
+La capture décrit l’état Figma observé ; elle ne remplace pas une décision métier validée. Les lignes de récupération en Composition sont conservées : toujours présentes et réglables, même à 0 s sans Point d’arrêt ; D-238 ne retire que les informations du corps des cartes (D-217, clarification du propriétaire du 06/10/2026). Les emplacements autorisés sont mis en évidence pendant le placement d’un Point d’arrêt. Les frames `4738:6355` (Exercice déployé) et `1992:8996` (Suivi déployé) sont historiques hors MVP depuis D-261/D-262 ; elles ne servent plus de cible accessible. Ces écarts d’assemblage n’ouvrent aucun nouvel arbitrage et les PNG ne sont pas retouchés pour les masquer. Les cartes standard ne sont pas déclarées propagées dans les frames qui n’en contiennent pas.
 
 Codes : C cartes ; J cartes Jour ; N navigation ; B commandes contextuelles ; S segmenté à trois options ; I icônes catégorie/zone hors cartes ; P silhouette Profil ; — absent du rapport.
 

@@ -1,0 +1,185 @@
+{
+  "base": "d4b1bfc9c247af4329dbb7829a65956ac1b9f569",
+  "changes": [
+    {
+      "file": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+      "old": "La ligne visuelle partagée avec deux zones de réglage décrite le 26/09 est historique sur le rendu courant retiré par D-238 ; son éventuelle exception dans le mode de placement reste à confirmer, sans rouvrir le retrait d’affichage.",
+      "new": "La ligne structurelle Récupération / Point d’arrêt reste toujours présente entre les Exercices, y compris avec `Récupération 0 s` et sans Point d’arrêt. La récupération se règle sur cette ligne et appartient à l’occurrence. Les deux éléments restent distincts ; pendant le placement d’un Point d’arrêt, les emplacements autorisés sont mis en évidence pour permettre leur sélection. Le retrait des informations de pause/récupération sur les cartes (D-238) ne supprime ni cette ligne ni son réglage.",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+      "old": "L’action d’ajout dédiée révèle les positions autorisées ;",
+      "new": "L’action d’ajout dédiée met en évidence les positions autorisées sur la ligne permanente ;",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+      "old": "Révise D-195, l’affichage de D-206 et l’affichage de D-208/D-095 uniquement ; données et calculs inchangés ; RG-3 seule reportée",
+      "new": "Révise D-195, l’affichage de D-206 et l’affichage de D-208/D-095 sur les cartes uniquement ; la ligne structurelle de Composition, toujours visible et réglable même à 0 s sans Point d’arrêt, est conservée (D-217, clarification propriétaire du 06/10/2026) ; données et calculs inchangés ; RG-3 seule reportée",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "old": "La valeur `0 s` reste conservée dans les données ; son affichage dans la Composition est historique, antérieur à D-238, et n’est plus prescrit ;",
+      "new": "La ligne structurelle affiche toujours `Récupération {durée}`, y compris `Récupération 0 s` et sans Point d’arrêt ; toucher son contrôle de récupération permet d’en régler la durée dans le brouillon. D-238 retire les informations sur les cartes, sans supprimer cette ligne ;",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "old": "**Réserve H-09 — avertissement sans pause :** la mention antérieure d’un avertissement discret lorsque deux Exercices s’enchaînent sans Pause et avec Récupération `0 s` ne renvoie à aucune règle active identifiée. Son maintien ou retrait et, s’il est maintenu, son déclenchement exact restent à confirmer ; cette mention ne constitue pas une nouvelle prescription d’interface.",
+      "new": "**Avertissement d’enchaînement sans pause (D-301).** Lorsque deux Exercices consécutifs n’ont ni Pause terminale après le premier ni Récupération positive après son occurrence, la Composition affiche l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre.",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "old": "Aucun texte de pause/récupération, aucune ligne attachée `Récupération {durée}` : cette ancienne exigence d’affichage est supprimée.",
+      "new": "Aucun texte de pause/récupération dans le corps de la carte. La ligne structurelle attachée `Récupération {durée}` reste toujours affichée et réglable, même à `0 s` sans Point d’arrêt (D-217 ; clarification du propriétaire du 06/10).",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "old": "Aucun nouvel accès de réglage n’est inventé ici.",
+      "new": "Le réglage de récupération existant sur cette ligne est conservé.",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "old": "la Récupération reste une donnée de l’occurrence, sans ligne affichée (D-238).",
+      "new": "la carte et sa ligne structurelle de Récupération forment le bloc déplacé ; la ligne demeure affichée (D-217).",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "old": "sa donnée de récupération après exercice reste attachée sans ligne visible jusqu’à une position de dépose valide.",
+      "new": "sa ligne de récupération après exercice reste attachée et visible jusqu’à une position de dépose valide.",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+      "old": "D-238 retire l’affichage de la ligne Récupération.",
+      "new": "D-238 retire les informations de pause/récupération du corps de la carte, sans supprimer la ligne structurelle toujours visible et réglable, y compris à 0 s sans Point d’arrêt (D-217).",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+      "old": "L’ancienne ligne visible à `0 s`, y compris après le dernier Exercice du Circuit et avant la Fin de séance, est historique : D-238 retire son affichage sans supprimer la valeur ni son exécution.",
+      "new": "La ligne structurelle reste toujours visible et permet le réglage de la récupération, y compris à `0 s`, sans Point d’arrêt, après le dernier Exercice du Circuit et avant la Fin de séance. D-238 retire seulement les informations de pause/récupération dans le corps des cartes.",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+      "old": "L’ancienne ligne visuelle partagée Récupération / Point d’arrêt est une référence antérieure au retrait d’affichage D-238 ; elle ne prescrit pas de ligne Récupération dans la Composition courante. Les concepts restent distincts.",
+      "new": "La ligne structurelle Récupération / Point d’arrêt reste toujours présente entre les Exercices, y compris avec `Récupération 0 s` et sans Point d’arrêt. La récupération se règle sur cette ligne et appartient à l’occurrence. Les deux éléments restent distincts ; pendant le placement d’un Point d’arrêt, les emplacements autorisés sont mis en évidence pour permettre leur sélection. Le retrait des informations de pause/récupération sur les cartes (D-238) ne supprime ni cette ligne ni son réglage.",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+      "old": "La ligne partagée décrite avant D-238 reste historique ; sa présence éventuelle dans le seul mode de placement du Point d’arrêt n’est pas confirmée. Ce point de présentation reste à clarifier, sans réintroduire une ligne Récupération dans la Composition courante ni inventer un nouvel accès de réglage.",
+      "new": "Le mode de placement met en évidence les positions autorisées sur la ligne structurelle permanente ; il ne crée pas une ligne temporaire. La récupération reste réglable sur cette ligne hors du mode de placement.",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/12 – Architecture technique.md",
+      "old": "D-238 supprime ensuite sa ligne visible, et l’éditeur utilise une récupération entre côtés conditionnelle.",
+      "new": "D-238 retire les informations de pause/récupération du corps des cartes mais conserve la ligne structurelle de Composition toujours visible et réglable, y compris à 0 s sans Point d’arrêt (D-217). L’éditeur utilise une récupération entre côtés conditionnelle.",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "old": "Cartes sans pause/récupération affichée.",
+      "new": "Cartes sans texte de pause/récupération dans leur corps ; ligne structurelle Récupération / Point d’arrêt toujours présente et récupération réglable, y compris à 0 s sans Point d’arrêt (D-217).",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "old": "Occurrence et récupération restent solidaires dans les données ; aucune ligne Récupération affichée.",
+      "new": "Occurrence et ligne de récupération restent solidaires dans les données et dans le bloc déplacé ; la ligne Récupération reste affichée, y compris à 0 s sans Point d’arrêt.",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "old": "Pas de récupération visible sur carte, donnée conservée ; pas d’écriture avant Continuer.",
+      "new": "Pas de texte de récupération dans le corps de la carte ; ligne structurelle et réglage de récupération conservés, y compris à 0 s sans Point d’arrêt ; pas d’écriture avant Continuer. Avertissement D-301 informatif, sans blocage ni modification de Pause/Récupération.",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "old": "récupération attachée conservée ; D-214 on/off",
+      "new": "récupération attachée conservée et réglable ; ligne toujours présente avec R=0 ou R>0, avec/sans Point d’arrêt ; positions autorisées mises en évidence pendant le placement ; D-214 on/off",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "old": "L’écart de récupération visible concerne les 13 frames peuplées sur 17, dont 2028:11700 et 4893:6675 (relevé Claude du 06/10), et reste tracé séparément selon D-238. La ligne partagée dans le mode de placement du Point d’arrêt reste à confirmer ; aucun nouvel accès de réglage n’est prescrit.",
+      "new": "Les lignes de récupération des 13 frames peuplées sur 17, dont 2028:11700 et 4893:6675 (relevé Claude du 06/10), ne constituent pas un écart à D-238 : le propriétaire confirme la ligne permanente, son réglage à 0 s et la mise en évidence des positions autorisées pendant le placement (D-217).",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "old": "D-188–194/D-208–214/D-217/D-222/D-238 ; CE-T03-06/07/16",
+      "new": "D-188–194/D-208–214/D-217/D-222/D-238/D-301 ; CE-T03-06/07/16",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "old": "Récupération visible dans les 13 frames de Composition peuplées sur 17 (relevé Claude du 06/10), dont 2028:11700 et 4893:6675 ; 4738:6355 et 1992:8996 représentent des déploiements historiques",
+      "new": "Lignes structurelles de récupération conformes au principe de visibilité permanente (H-08, clarification propriétaire du 06/10), dont 2028:11700 à 0 s sans Point d’arrêt ; 4738:6355 et 1992:8996 représentent des déploiements historiques",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md",
+      "old": "Certaines frames de Composition montrent encore une ligne de récupération, alors que D-238 en retire l’affichage dans la cible ; les données et calculs restent conservés.",
+      "new": "Les lignes de récupération en Composition sont conservées : toujours présentes et réglables, même à 0 s sans Point d’arrêt ; D-238 ne retire que les informations du corps des cartes (D-217, clarification du propriétaire du 06/10/2026). Les emplacements autorisés sont mis en évidence pendant le placement d’un Point d’arrêt.",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/DSF-CARTES-ICONES-APPUIS-2026-09-30.md",
+      "old": "Les pauses et récupérations ne sont plus affichées sur les cartes du Catalogue, des choix et de Composition ; leurs données, paramètres et calculs restent inchangés. D-208 est révisée sur l’affichage des cartes uniquement.",
+      "new": "Les pauses et récupérations ne sont plus affichées dans le corps des cartes du Catalogue, des choix et de Composition ; leurs données, paramètres et calculs restent inchangés. D-208 est révisée sur l’affichage des cartes uniquement. La ligne structurelle Récupération / Point d’arrêt de Composition reste toujours présente et réglable, y compris à 0 s sans Point d’arrêt (D-217 ; clarification propriétaire du 06/10). Le mode de placement met en évidence ses emplacements autorisés sans créer une ligne temporaire.",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/INDEX.md",
+      "old": "**Statut :** la seconde passe fonctionnelle de Claude est reçue, mais sa couverture reste partielle. Les contradictions déterminées sont corrigées dans le lot H ; H-03 est clos par la formulation intrinsèque avec `+` ; les arbitrages de placement du Point d’arrêt H-08 et d’avertissement H-09 restent explicites. H-10 est clos : la coche courante est identifiée, vectorisée et archivée. L’alignement total et la clôture ne sont pas déclarés.",
+      "new": "**Statut :** la seconde passe fonctionnelle de Claude est reçue, mais sa couverture reste partielle. Les corrections déterminées du lot H sont reportées ; H-03 est clos par la formulation intrinsèque avec `+`, H-08 par la ligne structurelle toujours présente et réglable (même à 0 s sans Point d’arrêt), H-09 par l’avertissement non bloquant entre Exercices (D-301), H-10 par la coche courante vectorisée et archivée. Aucun arbitrage H-08/H-09 ne reste ouvert. La couverture partielle de l’audit ne permet pas de déclarer l’alignement fonctionnel total.",
+      "occurrences": 1
+    },
+    {
+      "file": "docs/README.md",
+      "old": "**Statut :** la seconde passe fonctionnelle de Claude est reçue, mais sa couverture reste partielle. Les contradictions déterminées sont corrigées dans le lot H ; H-03 est clos par la formulation intrinsèque avec `+` ; les arbitrages de placement du Point d’arrêt H-08 et d’avertissement H-09 restent explicites. H-10 est clos : la coche courante est identifiée, vectorisée et archivée. L’alignement total et la clôture ne sont pas déclarés.",
+      "new": "**Statut :** la seconde passe fonctionnelle de Claude est reçue, mais sa couverture reste partielle. Les corrections déterminées du lot H sont reportées ; H-03 est clos par la formulation intrinsèque avec `+`, H-08 par la ligne structurelle toujours présente et réglable (même à 0 s sans Point d’arrêt), H-09 par l’avertissement non bloquant entre Exercices (D-301), H-10 par la coche courante vectorisée et archivée. Aucun arbitrage H-08/H-09 ne reste ouvert. La couverture partielle de l’audit ne permet pas de déclarer l’alignement fonctionnel total.",
+      "occurrences": 1
+    }
+  ],
+  "checks": {
+    "baseline": "6d03f5be579f2d0e2e7602b6abf1c2b46f4c740b",
+    "recovered_commit": "806536ad2278d69157a7f64e27305d966d78ee9e",
+    "exports": {
+      "frames": 133,
+      "sets": 3,
+      "png_decoded_dimensions_and_hashes": 136,
+      "unique_ids_and_paths": true,
+      "chapter06_links": 136
+    },
+    "contracts": {
+      "count": 30,
+      "ordered_nonempty_sections_each": 21,
+      "capture_contract_references_valid": true
+    },
+    "decision_ids_unique": true,
+    "active_rm_ids_unique": true,
+    "missing_local_file_links": [],
+    "current_lot_scope": "11 active documentation files and 2 mission reports",
+    "anchor_check": {
+      "checked": 9,
+      "files_with_anchor_links": 9,
+      "broken_anchors": [],
+      "missing_files": []
+    },
+    "local_links_current_lot_missing": [],
+    "whitespace_diff_check": "pass",
+    "fresh_figma_read": false,
+    "source": "owner clarifications, supplied screenshot inspected, preserved screen capture and existing functional sources"
+  }
+}

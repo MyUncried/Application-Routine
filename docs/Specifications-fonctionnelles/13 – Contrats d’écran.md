@@ -946,13 +946,13 @@ Nom/contexte de Séance, Étiquette et actions → compte à rebours initial →
 
 ### 8. Éléments obligatoires
 
-Compte à rebours/Fin non déplaçables ; Circuit unique sans changement de côté ; Tours par stepper. Cartes sans pause/récupération affichée. Réglage global D-214 applique/ignore ensemble les deux phases propres ; son emplacement graphique n’est pas représenté dans les captures contrôlées : réserve V-04, pas de composant inventé.
+Compte à rebours/Fin non déplaçables ; Circuit unique sans changement de côté ; Tours par stepper. Cartes sans texte de pause/récupération dans leur corps ; ligne structurelle Récupération / Point d’arrêt toujours présente et récupération réglable, y compris à 0 s sans Point d’arrêt (D-217). Réglage global D-214 applique/ignore ensemble les deux phases propres ; son emplacement graphique n’est pas représenté dans les captures contrôlées : réserve V-04, pas de composant inventé.
 
 Ligne variable : N séries variables uniquement, sans liste des cibles ; récupération reste visible et attachée à son occurrence.
 
 ### 9. Layout déterministe
 
-Swipe : déplacement réel, gap et Dupliquer selon référence. Occurrence et récupération restent solidaires dans les données ; aucune ligne Récupération affichée. Commandes contextuelles 34/dessin 20/gap 10/cibles 44 dans bande 32, durée immobile et actions à droite 6 plus bas.
+Swipe : déplacement réel, gap et Dupliquer selon référence. Occurrence et ligne de récupération restent solidaires dans les données et dans le bloc déplacé ; la ligne Récupération reste affichée, y compris à 0 s sans Point d’arrêt. Commandes contextuelles 34/dessin 20/gap 10/cibles 44 dans bande 32, durée immobile et actions à droite 6 plus bas.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -963,6 +963,8 @@ Swipe : déplacement réel, gap et Dupliquer selon référence. Occurrence et r�
 Création vide ; nom saisi ; composition valide/invalide ; édition ; Étiquette sélectionnée/absente ; glissé ; déplacement ; réglage initial/fin ; placement point d’arrêt ; bulle Retirer ; abandon ; sauvegarde/erreur.
 
 ### 12. Contrôles et interactions
+
+Lorsque deux Exercices consécutifs n’ont ni Pause terminale après le premier ni Récupération positive après son occurrence, la Composition affiche l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre.
 
 Modifier les champs dans le brouillon. Réordonner une occurrence avec sa récupération ; dupliquer copie les paramètres ; retirer supprime occurrence et récupération associée. Point d’arrêt : entrer en placement, choisir une position valide ; appui long sur point ouvre Retirer, tap hors bulle ferme sans suppression. Le booléen global D-214 ne modifie pas les valeurs propres enregistrées des Exercices.
 
@@ -992,11 +994,13 @@ Nom des occurrences et côté développés pour lecteur d’écran. Compte à re
 
 ### 19. Invariants
 
-Circuit=groupe, Tour=répétition, Parcours=objet autonome hors MVP. Un point interne s’exécute à chaque Tour ; ordre occurrence→récupération→point→suite ; attente exclue des durées. Pas de récupération visible sur carte, donnée conservée ; pas d’écriture avant Continuer.
+Circuit=groupe, Tour=répétition, Parcours=objet autonome hors MVP. Un point interne s’exécute à chaque Tour ; ordre occurrence→récupération→point→suite ; attente exclue des durées. Pas de texte de récupération dans le corps de la carte ; ligne structurelle et réglage de récupération conservés, y compris à 0 s sans Point d’arrêt ; pas d’écriture avant Continuer. Avertissement D-301 informatif, sans blocage ni modification de Pause/Récupération.
 
 ### 20. Recette déterministe
 
-Créer/éditer/abandonner après nom, insertion, réordre, duplication, Étiquette, roulette et point d’arrêt ; vérifier aucune écriture avant Continuer. Tester sauvegarde atomique/double tap/erreur ; Tours 1/99 ; points avant/après/dans Circuit et frontières interdites ; retrait/fermeture hors bulle ; récupération attachée conservée ; D-214 on/off sans modifier les paramètres propres. Vérifier cible graphique séparément pour V-04.
+Créer/éditer/abandonner après nom, insertion, réordre, duplication, Étiquette, roulette et point d’arrêt ; vérifier aucune écriture avant Continuer. Tester sauvegarde atomique/double tap/erreur ; Tours 1/99 ; points avant/après/dans Circuit et frontières interdites ; retrait/fermeture hors bulle ; récupération attachée conservée et réglable ; ligne toujours présente avec R=0 ou R>0, avec/sans Point d’arrêt ; positions autorisées mises en évidence pendant le placement ; D-214 on/off sans modifier les paramètres propres. Vérifier cible graphique séparément pour V-04.
+
+Vérifier l’avertissement avec Pause terminale=0 et R=0 ; son absence si l’une est positive ; enregistrement et exécution restent possibles. Aucun avertissement entre Séries ajouté.
 
 Scénario B=285s, R0 conserve PN ; déplacer/dupliquer conserve tableau/ordre/R et ne modifie pas la définition Catalogue.
 
@@ -1004,9 +1008,9 @@ Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans l
 
 ### 21. Traçabilité
 
-Référence variable courante6665:23973 : N séries variables. Le libellé de Composition « Parcours » a été remplacé par « Circuit » le 05/10/2026 (journal, §8). L’écart de récupération visible concerne les 13 frames peuplées sur 17, dont 2028:11700 et 4893:6675 (relevé Claude du 06/10), et reste tracé séparément selon D-238. La ligne partagée dans le mode de placement du Point d’arrêt reste à confirmer ; aucun nouvel accès de réglage n’est prescrit. Circuit/Tour restent normatifs.
+Référence variable courante6665:23973 : N séries variables. Le libellé de Composition « Parcours » a été remplacé par « Circuit » le 05/10/2026 (journal, §8). Les lignes de récupération des 13 frames peuplées sur 17, dont 2028:11700 et 4893:6675 (relevé Claude du 06/10), ne constituent pas un écart à D-238 : le propriétaire confirme la ligne permanente, son réglage à 0 s et la mise en évidence des positions autorisées pendant le placement (D-217). Circuit/Tour restent normatifs.
 
-D-188–194/D-208–214/D-217/D-222/D-238 ; CE-T03-06/07/16, CE-EXEC-SESSION-01 ; frames§1 ; prescriptions de brouillon du chapitre 06 et décisions actives priment sur l’ancienne autosauvegarde de Composition.
+D-188–194/D-208–214/D-217/D-222/D-238/D-301 ; CE-T03-06/07/16, CE-EXEC-SESSION-01 ; frames§1 ; prescriptions de brouillon du chapitre 06 et décisions actives priment sur l’ancienne autosauvegarde de Composition.
 
 ---
 
@@ -3178,7 +3182,7 @@ Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figm
 | V-07 |Direct/media montre Tour ;17 px/24 px divergent ; état Démarré parfois incohérent | CE-T03-09..13/MEDIA ; Tour absentACTIVITY,24 px cibleDSF T10 |
 | V-08 |Étiquette 4861:6145 mentionne Exercices au lieu de Séances ; renommages sans preuve dédiée | CE-T03-16/CE-UI-09 ; textes et comportement explicités, pas de preuve inventée |
 | V-09 |Récurrence 2 semaines avec récapitulatif hebdomadaire ; filtre dit inactif avec critère appliqué | CE-UI-05/CE-T03-02 ; récapitulatif et état dérivés des données |
-| V-10 | Récupération visible dans les 13 frames de Composition peuplées sur 17 (relevé Claude du 06/10), dont 2028:11700 et 4893:6675 ; 4738:6355 et 1992:8996 représentent des déploiements historiques | D-260/D-261/D-262 gouvernent les cartes courantes ; variantes déployées Exercice/Suivi hors MVP. Copies historiques conservées, sans retouche |
+| V-10 | Lignes structurelles de récupération conformes au principe de visibilité permanente (H-08, clarification propriétaire du 06/10), dont 2028:11700 à 0 s sans Point d’arrêt ; 4738:6355 et 1992:8996 représentent des déploiements historiques | D-260/D-261/D-262 gouvernent les cartes courantes ; variantes déployées Exercice/Suivi hors MVP. Copies historiques conservées, sans retouche |
 | V-11 |Compte à rebours Composition inline 2028:11375 mais description roulette ; pas Fin 5 s contre prescription 1 s | CE-T03-08 ; aucun état de picker déclaré vérifié tant que la description 06 et sa preuve ne sont pas réconciliées |
 | V-12 |Archives Exercice sans écran complet ; Photo à200% non qualifiée ; animations non câblées ; contrastes acceptés | Limites déjà documentées du DSF, pas de nouvelle décision produit |
 

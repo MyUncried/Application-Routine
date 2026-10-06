@@ -182,7 +182,7 @@ Les 17 points du 30/09 sont clos ; les situations acceptées ne sont pas rouvert
 
 ## Situations connues, acceptées et portée normative
 
-- Les pauses et récupérations ne sont plus affichées sur les cartes du Catalogue, des choix et de Composition ; leurs données, paramètres et calculs restent inchangés. D-208 est révisée sur l’affichage des cartes uniquement.
+- Les pauses et récupérations ne sont plus affichées dans le corps des cartes du Catalogue, des choix et de Composition ; leurs données, paramètres et calculs restent inchangés. D-208 est révisée sur l’affichage des cartes uniquement. La ligne structurelle Récupération / Point d’arrêt de Composition reste toujours présente et réglable, y compris à 0 s sans Point d’arrêt (D-217 ; clarification propriétaire du 06/10). Le mode de placement met en évidence ses emplacements autorisés sans créer une ligne temporaire.
 - La prochaine planification n’est plus affichée dans les deux Catalogues. D-206 conserve la planification directe SESSION/ACTIVITY et son calcul ; seule son exigence d’affichage sur carte est révisée.
 - Synthèse exercice : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par icône miroir dans les contextes prévus. Badge heure Semaine « 08:00 » ; aucune heure dans la carte du Suivi.
 - Une séance sans étiquette affiche ses catégories issues des exercices. Plusieurs catégories/zones : point médian, puis points de suspension selon l’espace ; données complètes conservées. Aucun nouveau champ Catégorie de Séance.

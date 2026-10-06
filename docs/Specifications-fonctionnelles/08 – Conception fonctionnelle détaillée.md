@@ -900,7 +900,7 @@ Le nom, l’Étiquette/couleur et la Composition sont réunis dans le même écr
 | Étiquette | Facultative ; sa couleur devient la couleur affichée de la Séance. La sélection/création s’effectue dans la modale Étiquettes intégrée à la Composition. |
 | Compte à rebours initial | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 10 s. |
 | Circuit | Seul conteneur structurel affiché ; `1` par défaut, de 1 à 99, réglé par stepper permanent − / valeur / +. Référence `2028:11700`, contrôle `4913:7432` de 137 × 36 ; pas de roulette Tours séparée. La synthèse compte les exercices et leurs durées, hors Compte à rebours et Fin. |
-| Exercices | D-238 retire l’affichage de la ligne Récupération. La donnée `postActivityRecoverySeconds` appartient toujours à l’occurrence et accompagne déplacement, duplication et suppression. Le corps principal de la carte affiche le nom, la Catégorie et les Zones corporelles ; toucher ouvre la modification. |
+| Exercices | D-238 retire les informations de pause/récupération du corps de la carte, sans supprimer la ligne structurelle toujours visible et réglable, y compris à 0 s sans Point d’arrêt (D-217). La donnée `postActivityRecoverySeconds` appartient toujours à l’occurrence et accompagne déplacement, duplication et suppression. Le corps principal de la carte affiche le nom, la Catégorie et les Zones corporelles ; toucher ouvre la modification. |
 | Fin de séance | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 5 s. |
 | Résumé | `N exercice(s) · durée des Exercices`, placé dans l’en-tête du conteneur Circuit immédiatement sous `Nombre de tours`. Le nombre porte sur les Exercices seulement ; la durée de Séance intègre les durées intrinsèques des Exercices ainsi que leurs récupérations après exercice. Le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide, affiche exactement `0 exercice · 0 min`, au singulier — exception locale à cet écran (D-091). |
 | Ajouter un exercice | Un seul bouton secondaire `+ Ajouter un exercice`, placé en haut. |
@@ -1178,7 +1178,7 @@ Référence normative détaillée : `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 L’éditeur d’Exercice porte `sideRecoverySeconds` uniquement pour un Exercice bilatéral. Le passage à `Aucun` rend ce paramètre sans objet. Lors du passage de `Aucun` à une direction bilatérale, la valeur initiale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.
 
-La Composition porte `postActivityRecoverySeconds` sur chaque occurrence. L’ancienne ligne visible à `0 s`, y compris après le dernier Exercice du Circuit et avant la Fin de séance, est historique : D-238 retire son affichage sans supprimer la valeur ni son exécution. Dans un Circuit répété, cette même valeur est exécutée à chaque Tour. Une Exécution directe ne possède jamais de récupération post-exercice.
+La Composition porte `postActivityRecoverySeconds` sur chaque occurrence. La ligne structurelle reste toujours visible et permet le réglage de la récupération, y compris à `0 s`, sans Point d’arrêt, après le dernier Exercice du Circuit et avant la Fin de séance. D-238 retire seulement les informations de pause/récupération dans le corps des cartes. Dans un Circuit répété, cette même valeur est exécutée à chaque Tour. Une Exécution directe ne possède jamais de récupération post-exercice.
 
 ## Consolidation détaillée — D-209 à D-217
 
@@ -1186,12 +1186,12 @@ La Composition présente un **Circuit** interne à la Séance et un nombre de **
 
 L’éditeur d’Exercice exige exactement une Catégorie et au moins une Zone corporelle. Dans la phrase de synthèse, `Durée totale` est omise en mode Durée avec une seule Série conformément à D-232. Les valeurs Profil utilisées à la création deviennent propres à l’Exercice après initialisation.
 
-L’ancienne ligne visuelle partagée Récupération / Point d’arrêt est une référence antérieure au retrait d’affichage D-238 ; elle ne prescrit pas de ligne Récupération dans la Composition courante. Les concepts restent distincts. Si les deux sont actifs : `Exercice → Récupération après exercice → Point d’arrêt → suite`. Les positions immédiatement après le Compte à rebours initial et immédiatement avant la Fin de séance ne sont jamais proposées. Les positions avant/après Circuit et entre Exercices du Circuit sont autorisées ; un Point d’arrêt interne est répété à chaque Tour.
+La ligne structurelle Récupération / Point d’arrêt reste toujours présente entre les Exercices, y compris avec `Récupération 0 s` et sans Point d’arrêt. La récupération se règle sur cette ligne et appartient à l’occurrence. Les deux éléments restent distincts ; pendant le placement d’un Point d’arrêt, les emplacements autorisés sont mis en évidence pour permettre leur sélection. Le retrait des informations de pause/récupération sur les cartes (D-238) ne supprime ni cette ligne ni son réglage. Si les deux sont actifs : `Exercice → Récupération après exercice → Point d’arrêt → suite`. Les positions immédiatement après le Compte à rebours initial et immédiatement avant la Fin de séance ne sont jamais proposées. Les positions avant/après Circuit et entre Exercices du Circuit sont autorisées ; un Point d’arrêt interne est répété à chaque Tour.
 
 Dans la face Média compacte, le bouton Lecture central est affiché avant lecture et disparaît pendant la lecture vidéo. Le retour à Information met la vidéo en pause.
 
 
-**Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant ouvre une bulle de retrait ; un appui ailleurs referme la bulle sans modification. La ligne partagée décrite avant D-238 reste historique ; sa présence éventuelle dans le seul mode de placement du Point d’arrêt n’est pas confirmée. Ce point de présentation reste à clarifier, sans réintroduire une ligne Récupération dans la Composition courante ni inventer un nouvel accès de réglage.
+**Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant ouvre une bulle de retrait ; un appui ailleurs referme la bulle sans modification. Le mode de placement met en évidence les positions autorisées sur la ligne structurelle permanente ; il ne crée pas une ligne temporaire. La récupération reste réglable sur cette ligne hors du mode de placement.
 
 
 ## 12. Clôture Figma / DSF — 28 septembre 2026
@@ -1237,3 +1237,7 @@ La référence active est [Paramètres en modale v13](SPECIFICATION-PARAMETRES-M
 ## Cadence — comportements communs complémentaires
 
 La [spécification Cadence v1](SPECIFICATION-CADENCE-REPETITIONS-v1.md) fait autorité sur les signaux, Pause/Reprise, reset, temps réel, arrière-plan et seuil de sécurité ; paramètres v13 pour pauses/côtés/Récupération, phrase v1 pour le texte. Elle s’applique à chaque occurrence/côté/Tour. Cadence absente n’est ni0 ni2s. Suivant avant la fin nominale est une fin normale, pas une preuve de répétitions réalisées ni une fin partielle automatique. Le passage anticipé d’un Exercice chronométré conserve ses règles distinctes.
+
+### Avertissement d’enchaînement sans pause (D-301)
+
+Lorsque deux Exercices consécutifs n’ont ni Pause terminale après le premier ni Récupération positive après son occurrence, la Composition affiche l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre.
