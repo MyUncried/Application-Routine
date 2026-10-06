@@ -843,7 +843,6 @@ Elles ne contiennent pas directement :
 | Durée par défaut d'un exercice Exercice           | Valeur initiale proposée                                                   | Facultatif  | Création uniquement                                                      |
 | Pause entre les côtés par défaut              | Valeur globale du Profil utilisée pour initialiser `sideRecoverySeconds` lors de l’activation `D→G` ou `G→D` d’un Exercice | Facultatif | `10 s` dans le Figma de référence ; valeur proposée à la création/activation bilatérale puis modifiable dans l’éditeur |
 | Récupération après exercice par défaut              | Valeur globale utilisée pour initialiser `postActivityRecoverySeconds` lors de la création d’une occurrence | Facultatif | `30 s` dans le Figma de référence ; création de l’occurrence uniquement ; une modification ultérieure ne change pas les occurrences existantes |
-| Pause après chaque série par défaut                      | Valeur proposée entre deux Séries d'un Exercice                           | Facultatif  | Création uniquement                                                      |
 | Date de création                                   | Date de création                                                           | Obligatoire | Générée automatiquement                                                  |
 | Date de modification                               | Dernière modification                                                      | Obligatoire | Mise à jour automatiquement                                              |
 | Durée du compte à rebours initial par défaut       | Durée proposée pour le compte à rebours initial d'une nouvelle séance      | Obligatoire | Valeur initiale : `10 s`                                                 |
@@ -853,6 +852,8 @@ Elles ne contiennent pas directement :
 | Durée du compte à rebours d’Exercice par défaut    | Durée proposée pour le Compte à rebours propre d’une nouvelle Exercice     | Obligatoire | Valeur proposée par le Profil                                             |
 | Durée de la Fin d’exercice par défaut              | Durée proposée pour la Fin propre d’une nouvelle Exercice                  | Obligatoire | Valeur proposée par le Profil                                             |
 ## Règles métier
+
+La Pause après chaque série n’est pas un défaut du Profil ; elle est initialisée à `0 s` dans la feuille de création (v13 §6, CE-UI-10 §3). L’ancien attribut global est historique et ne doit pas être ajouté au modèle cible. Les valeurs déjà propres aux Exercices restent conservées.
 
 - Chaque utilisateur possède une seule structure de préférences globales.
 - Les préférences s'appliquent à toutes les séances et à toutes les exécutions.

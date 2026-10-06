@@ -211,7 +211,7 @@ L’action Lecture est disponible uniquement pour une référence valide. Le lan
 
 Le Plan contient `DIRECT_PREPARE(5 s)`, puis les Séries, Pauses, côtés et, si l’Exercice est bilatéral, `SIDE_RECOVERY` de durée PC>0, selon l’Ordre des côtés ; aucun repli lorsque PC=0. Il ne contient jamais `POST_ACTIVITY_RECOVERY`, ni Tour, ni Cycle visible, ni `SESSION_END`. Le dernier achèvement produit le signal de fin et ouvre immédiatement la Synthèse.
 
-La Synthèse affiche les données compatibles d’un Exercice seul. Le Ressenti est obligatoire pour activer `Terminer`; le Commentaire est facultatif. La finalisation enregistre l’Exécution dans le Suivi général, alimente les statistiques compatibles sans compter une Séance, puis restaure filtres et position de défilement du Catalogue.
+La Synthèse affiche les données compatibles d’un Exercice seul. Le Ressenti est obligatoire pour activer `Enregistrer`; le Commentaire est facultatif. La finalisation enregistre l’Exécution dans le Suivi général, alimente les statistiques compatibles sans compter une Séance, puis restaure filtres et position de défilement du Catalogue.
 
 ## 2 bis.5 Médias d’Exercice
 
@@ -472,7 +472,7 @@ Toutes les autres informations sont consultatives.
 
 ## 4.6 Réinitialisation d'un exercice
 
-L'utilisateur peut décider de recommencer l'exercice en cours depuis son début.
+L’utilisateur peut réinitialiser la Série courante en unilatéral ou le bloc du côté courant depuis sa première Série en bilatéral ; pendant une récupération, seule la phase courante est réinitialisée (D-029/D-150, RM-062).
 Lorsque cette action est demandée, l'application affiche une demande de confirmation.
 
 Si l'utilisateur confirme :
@@ -958,9 +958,9 @@ L’Étiquette est gérée directement dans la Composition via une modale basse.
 | Nombre de Séries          | Stepper intégré | Mode déployé                  | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Commandes − / valeur / + permanentes dans la feuille CE-UI-10 ; valeur canonique persistée |
 | Changement de côté | Contrôle | Mode déployé | Non | `Aucun` (`UNILATERAL`) | `UNILATERAL`, `D→G`, `G→D` | Activité | Déployer le contrôle sous sa ligne dans la feuille | Aucun réglage de côté n’est exposé au niveau Tour |
 | Pause entre les côtés | Stepper permanent CE-UI-10 | Visible uniquement en `D→G/G→D` | Non | Copie de la valeur courante du Profil (initialement 10 s) | 0..5 min ; 1 s jusqu’à 5 s, puis 5 s jusqu’à 120 s, puis 30 s jusqu’à 300 s (D-232) | Activité | Sélection | `sideRecoverySeconds`; une phase entre les côtés selon l’Ordre des côtés ; aucune récupération post-activité dans l’éditeur |
-| Cadence | Roulette secondes avec unité | Répétitions seulement, commune | Non | Aucune | Entier1..60s ou absence | Série | Modifier/supprimer dans le brouillon ; contrôle de suppression visuellement manquant | Propagation à toutes les Séries ; aucun défaut2s |
+| Cadence | Roulette secondes avec unité | Répétitions seulement, commune | Non | Aucune | Entier1..60s ou absence | Série | Modifier dans le brouillon ; supprimer par « Aucun » dans la même roulette (CAD-V01 levée) | Propagation à toutes les Séries ; aucun défaut2s |
 | Durée totale | Valeur calculée | Durée/Répétitions | Non | Calculée | Formules v13 §5 | Calcul | Roulette en Durée uniforme seulement | Variable : lecture seule, — si incomplet ; Répétitions cadencées sans symbole / non cadencées≈ ; À l’échec absente |
-| Médias                    | Zone média | Selon état | Non | Vide | Le média associé peut être affiché dans la carte Catalogue déployée du MVP ; les capacités d’import/capture suivent leur périmètre propre | Activité | Afficher / masquer | La Synthèse reste au-dessus en cas de chevauchement dans l’éditeur |
+| Médias                    | Zone média | Selon état | Non | Vide | Le média associé est présenté dans la gouttière permanente de 64 px de la carte Catalogue ; aucun déploiement de carte d’Exercice n’est accessible au MVP (D-260/D-261) ; les capacités d’import/capture suivent leur périmètre propre | Activité | Afficher / masquer | La Synthèse reste au-dessus en cas de chevauchement dans l’éditeur |
 | Bouton Terminer           | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom, une Catégorie, au moins une Zone et un mode obligatoires ; cible valide selon le mode (D-211/D-232) | Statique | Enregistrer | Remplace l’ancien libellé `Valider` puisqu’il n’existe plus de second écran |
 
 **Règle transverse des roulettes numériques :** chaque changement effectif de valeur déclenche un retour haptique léger et bref, une seule fois par cran. Ce feedback est systématique et indépendant de la préférence `Vibrations` du Profil.
@@ -1049,7 +1049,7 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 | Titre Commentaire     | Texte            | Toujours |         Oui | Texte fixe                                           |                             | Statique    | Aucune         |                                      |
 | Mention "Facultatif"  | Texte            | Toujours |         Oui | Visible                                              | Texte fixe                  | Statique    | Aucune         |                                      |
 | Champ Commentaire     | Texte multiligne | Toujours |         Non | Vide                                                 | **200 caractères max**      | Utilisateur | Saisie         | Environ 2 à 3 lignes                 |
-| Bouton Terminer       | Bouton           | Toujours |         Oui | Désactivé tant que le ressenti n'est pas sélectionné | Une seule action            | Statique    | Aller au Suivi | Enregistre définitivement la séance  |
+| Bouton Enregistrer       | Bouton           | Toujours |         Oui | Désactivé tant que le ressenti n'est pas sélectionné | Une seule action            | Statique    | Aller au Suivi | Enregistre définitivement la séance  |
 ### Règles fonctionnelles
 | Règle               | Description                                                                      |
 | ------------------- | -------------------------------------------------------------------------------- |
@@ -1058,8 +1058,8 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 | Exercices partiellement réalisées | Affichées uniquement si leur nombre est supérieur à zéro ; `Partielle` reste le terme métier. |                        |
 | Ressenti            | Obligatoire dès lors que la Synthèse est présentée ; peut être absent après une interruption technique sans Synthèse.                                            |
 | Commentaire         | Facultatif, **200 caractères maximum**.                                                                      |
-| Validation          | Le bouton **Terminer** reste désactivé tant qu'aucun ressenti n'est sélectionné. |
-| Navigation          | Appui sur **Terminer** → écran **Suivi**.                                        |
+| Validation          | Le bouton **Enregistrer** reste désactivé tant qu'aucun ressenti n'est sélectionné. |
+| Navigation          | Appui sur **Enregistrer** → écran **Suivi**.                                        |
 | Sauvegarde          | Le ressenti et le commentaire sont enregistrés avec la séance.                   |
 | Séance interrompue  | Même écran, avec un statut et une icône adaptés.                                 |
 ## Profil
@@ -1178,7 +1178,7 @@ Référence normative détaillée : `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 L’éditeur d’Exercice porte `sideRecoverySeconds` uniquement pour un Exercice bilatéral. Le passage à `Aucun` rend ce paramètre sans objet. Lors du passage de `Aucun` à une direction bilatérale, la valeur initiale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.
 
-La Composition porte `postActivityRecoverySeconds` sur chaque occurrence. La ligne reste visible à `0 s`, y compris après le dernier Exercice du Circuit et avant la Fin de séance. Dans un Circuit répété, cette même valeur est exécutée à chaque Tour. Une Exécution directe ne possède jamais de récupération post-exercice.
+La Composition porte `postActivityRecoverySeconds` sur chaque occurrence. L’ancienne ligne visible à `0 s`, y compris après le dernier Exercice du Circuit et avant la Fin de séance, est historique : D-238 retire son affichage sans supprimer la valeur ni son exécution. Dans un Circuit répété, cette même valeur est exécutée à chaque Tour. Une Exécution directe ne possède jamais de récupération post-exercice.
 
 ## Consolidation détaillée — D-209 à D-217
 
@@ -1186,12 +1186,12 @@ La Composition présente un **Circuit** interne à la Séance et un nombre de **
 
 L’éditeur d’Exercice exige exactement une Catégorie et au moins une Zone corporelle. Dans la phrase de synthèse, `Durée totale` est omise en mode Durée avec une seule Série conformément à D-232. Les valeurs Profil utilisées à la création deviennent propres à l’Exercice après initialisation.
 
-Dans la Composition, la ligne visuelle Récupération / Point d’arrêt ne fusionne pas les concepts. Si les deux sont actifs : `Exercice → Récupération après exercice → Point d’arrêt → suite`. Les positions immédiatement après le Compte à rebours initial et immédiatement avant la Fin de séance ne sont jamais proposées. Les positions avant/après Circuit et entre Exercices du Circuit sont autorisées ; un Point d’arrêt interne est répété à chaque Tour.
+L’ancienne ligne visuelle partagée Récupération / Point d’arrêt est une référence antérieure au retrait d’affichage D-238 ; elle ne prescrit pas de ligne Récupération dans la Composition courante. Les concepts restent distincts. Si les deux sont actifs : `Exercice → Récupération après exercice → Point d’arrêt → suite`. Les positions immédiatement après le Compte à rebours initial et immédiatement avant la Fin de séance ne sont jamais proposées. Les positions avant/après Circuit et entre Exercices du Circuit sont autorisées ; un Point d’arrêt interne est répété à chaque Tour.
 
 Dans la face Média compacte, le bouton Lecture central est affiché avant lecture et disparaît pendant la lecture vidéo. Le retour à Information met la vidéo en pause.
 
 
-**Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant ouvre une bulle de retrait ; un appui ailleurs referme la bulle sans modification. La Récupération après exercice et le Point d’arrêt peuvent partager une même ligne visuelle mais restent deux zones et deux concepts distincts.
+**Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant ouvre une bulle de retrait ; un appui ailleurs referme la bulle sans modification. La ligne partagée décrite avant D-238 reste historique ; sa présence éventuelle dans le seul mode de placement du Point d’arrêt n’est pas confirmée. Ce point de présentation reste à clarifier, sans réintroduire une ligne Récupération dans la Composition courante ni inventer un nouvel accès de réglage.
 
 
 ## 12. Clôture Figma / DSF — 28 septembre 2026

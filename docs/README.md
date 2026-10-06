@@ -79,4 +79,7 @@ v12 et v10.2 sont historiques ; leurs règles remplacées ne doivent pas être u
 - [Audit transverse reçu de Claude](../.github/orchestration/reports/2026-10-06_AUDIT_TRANSVERSE_FINAL_DOCUMENTATION_KODJO.md)
 - [Corrections G-01 à G-05 et contrôles](../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_TRANSVERSE_DOCUMENTAIRE.md)
 
-**Statut :** les écarts établis de cette passe transverse sont traités ; l’alignement fonctionnel total et la clôture restent en attente de la seconde passe de Claude (chapitres fonctionnels et contenu des 30 contrats).
+**Statut :** la seconde passe fonctionnelle de Claude est reçue, mais sa couverture reste partielle. Les contradictions déterminées sont corrigées dans le lot H ; les arbitrages H-03, placement du Point d’arrêt H-08 et avertissement H-09 ainsi que la source de sélection H-10 restent explicites. L’alignement total et la clôture ne sont pas déclarés.
+
+- [Audit fonctionnel reçu](../.github/orchestration/reports/2026-10-06_AUDIT_FONCTIONNEL_CHAPITRES_CONTRATS_KODJO.md)
+- [Corrections fonctionnelles et réserves](../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_FONCTIONNEL_DOCUMENTAIRE.md)

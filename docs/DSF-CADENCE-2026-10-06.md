@@ -44,7 +44,7 @@ Fusions déclarées par le journal§5.3 :
 |---|---|---|---|---:|---|
 | color/cards/badge | #F4F4F8 | color/surface | #F5F7FA | 4 | Badge replié |
 | color/cards/surface | #FCFCFE | color/surface-subtle | #F9FAFC | 4 | Surface des cartes |
-| color/cards/archive-surface | Non précisée dans la source | color/surface | #F5F7FA | 4 | Surface archivée |
+| color/cards/archive-surface | `#F6F6F6` dans l’ancienne prescription documentaire (chapitres06/13) ; valeur historique du token non attestée par le journal | color/surface | #F5F7FA | 4 | Surface archivée |
 | color/progress-track | #BABDD1 | color/disabled | #BEC2CC | 8 | Repères chronomètre |
 | color/text-muted | #6B6E7A | color/text-tertiary | #7A7A80 | 20 | Texte atténué |
 | color/card-surface | #FFFFFF | color/background | #FFFFFF | 0 | Surface blanche |

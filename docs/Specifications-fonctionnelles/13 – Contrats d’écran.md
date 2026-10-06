@@ -28,7 +28,7 @@ Figma ne transforme jamais une valeur de démonstration en règle métier. Inver
 
 Catalogue et exécution ACTIVITY : durée intrinsèque. Composition, détails de Séance, calendrier SESSION et exécution SESSION : durée d’occurrence avec substitution terminale, sans ajouter R deux fois. Les résumés compacts variables affichent N séries variables ; le tableau détaillé appartient seulement à CE-UI-10. Copie/duplication et instantané conservent l’état variable explicite, les cibles/Pauses ordonnées et l’Ordre des côtés. Ces règles s’appliquent aux contrats hôtes, y compris CE-UI-01/02/03/05 et CE-T03-01/06/07/08. Les règles propres aux cartes et médias sont conservées.
 
-Réinitialiser conserve D-029/D-150 : recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé. Cette portée s’applique aussi à Les deux côtés à chaque série ; un passage déjà acquis de l’autre côté n’est pas rejoué. Exemple : gauche2/3 → reprise gauche1/3, résultats droits conservés. Pendant une récupération, RM-062 réinitialise seulement cette phase. Le saut confirmé d’un bloc chronométré conserve D-150 : côté courant partiel, poursuite des passages restant à exécuter de l’autre côté ; les résultats acquis ne sont pas effacés. Ces conséquences du périmètre existant ne constituent pas un nouvel arbitrage.
+Réinitialiser conserve D-029/D-150 et RM-062 : recommencer la Série courante en unilatéral ; en bilatéral, recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé. Cette portée s’applique aussi à Les deux côtés à chaque série ; un passage déjà acquis de l’autre côté n’est pas rejoué. Exemple : gauche2/3 → reprise gauche1/3, résultats droits conservés. Pendant une récupération, RM-062 réinitialise seulement cette phase. Le saut confirmé d’un bloc chronométré conserve D-150 : côté courant partiel, poursuite des passages restant à exécuter de l’autre côté ; les résultats acquis ne sont pas effacés. Ces conséquences du périmètre existant ne constituent pas un nouvel arbitrage.
 
 ## 3. Structure canonique obligatoire
 
@@ -265,7 +265,7 @@ Header fixe → segmenté trois types → rangée commandes Catalogue (`Créer`,
 
 ### 8. Éléments obligatoires
 
-Carte : titre et badge durée, Étiquette puis catégories issues des exercices (catégories seules sans Étiquette), `N exercices` et `N tours`. Pas de prochaine planification ni pause/récupération. Séance sans vignette. Archivée : fond #F6F6F6, bord #D9D9D9, Restaurer. Catalogue : Séances sélectionné, Exercices actif, Parcours et Trier désactivés ; commandes §4.5 et navigation Catalogues.
+Carte : titre et badge durée, Étiquette puis catégories issues des exercices (catégories seules sans Étiquette), `N exercices` et `N tours`. Pas de prochaine planification ni pause/récupération. Séance sans vignette. Archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9, Restaurer. Catalogue : Séances sélectionné, Exercices actif, Parcours et Trier désactivés ; commandes §4.5 et navigation Catalogues.
 
 ### 9. Layout déterministe
 
@@ -426,7 +426,7 @@ Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans l
 
 ### 21. Traçabilité
 
-Référence variable courante6665:24120 : indicateur N séries variables sans détail ; total intrinsèque selon mode. État ajouté au chapitre06 et à la matrice du03/10.
+Référence variable historique `6665:24120`, disparue du Figma courant : l’ancien état du 03/10 n’est plus une preuve active. L’indicateur fonctionnel « N séries variables » sans détail et le total intrinsèque selon mode restent prescrits par v13 §7 ; aucun nœud de remplacement n’est inventé.
 
 D-167/D-173/D-187/D-193/D-195 supersédée par D-261 après D-238 ; D-221/D-233–239 ; API-CAT-01 ; frames 3786:5093, 4168:11262, 4521:6220, 4544:6344/6651, 4738:6209/6355. Cible Photo : wireframe 6354:16964 ; limites §5.
 
@@ -666,7 +666,7 @@ Accès Archives via Filtrer ; Restaurer ; Supprimer uniquement depuis Archives ;
 
 ### 9. Layout déterministe
 
-Variante archivée : fond #F6F6F6, bord #D9D9D9 à0,5, même rayon/ombre ; Restaurer remplace Lecture. Avec média, RG-4 et RG-11 à RG-13 s’appliquent ; aucune prochaine planification. L’état existe dans le composant sans écran d’archive d’exercice dédié ; ne pas déclarer un écran Figma créé.
+Variante archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9 à0,5, même rayon/ombre ; Restaurer remplace Lecture. Avec média, RG-4 et RG-11 à RG-13 s’appliquent ; aucune prochaine planification. L’état existe dans le composant sans écran d’archive d’exercice dédié ; ne pas déclarer un écran Figma créé.
 
 Actions destructives : token danger#D92D20 ; séparateurs#E0E3E8 et labels par rôle DSF. Aucune reprise des anciens rouges locaux.
 
@@ -1004,7 +1004,7 @@ Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans l
 
 ### 21. Traçabilité
 
-Référence variable courante6665:23973 : N séries variables. Le libellé de Composition « Parcours » a été remplacé par « Circuit » le 05/10/2026 (journal, §8). L’écart de récupération visible reste tracé séparément selon D-238 ; Circuit/Tour restent normatifs.
+Référence variable courante6665:23973 : N séries variables. Le libellé de Composition « Parcours » a été remplacé par « Circuit » le 05/10/2026 (journal, §8). L’écart de récupération visible concerne les 13 frames peuplées sur 17, dont 2028:11700 et 4893:6675 (relevé Claude du 06/10), et reste tracé séparément selon D-238. La ligne partagée dans le mode de placement du Point d’arrêt reste à confirmer ; aucun nouvel accès de réglage n’est prescrit. Circuit/Tour restent normatifs.
 
 D-188–194/D-208–214/D-217/D-222/D-238 ; CE-T03-06/07/16, CE-EXEC-SESSION-01 ; frames§1 ; prescriptions de brouillon du chapitre 06 et décisions actives priment sur l’ancienne autosauvegarde de Composition.
 
@@ -1050,7 +1050,7 @@ Shell Exécution, nom Exercice et Catégorie, décompte de préparation ; aucune
 
 Préparation 5 s, nom Exercice, Catégorie, état de suspension ; Pause/Reprendre et accès Arrêter depuis Pause selon§4.12. Réinitialiser/Suivant pendant cette phase système ne sautent pas la préparation.
 
-Série n/N, côté courant distinct ; aucune barre par Série. À suivre affiche la phase réelle : Pause ou Pause entre les côtés ; aucune Récupération en direct.
+Série n/N ; côté courant distinct uniquement en bilatéral, absent en unilatéral ; aucune barre par Série. À suivre affiche la phase réelle : Pause (y compris terminale) ou, uniquement en bilatéral, Pause entre les côtés ; aucune Récupération en direct.
 
 ### 9. Layout déterministe
 
@@ -1130,7 +1130,7 @@ Fin CE-T03-09 ; mode DURATION ; sideMode UNILATERAL.
 
 ### 4. Contexte de sortie / destinations
 
-Fin Série → pause inter-Séries seulement s’il reste une Série, sinon Fin d’exercice propre applicable → CE-T03-13. Aucune récupération de côté en unilatéral, aucune récupération post-occurrence en direct.
+Fin Série → Pause si positive, y compris la Pause terminale après la dernière Série → Fin d’exercice propre applicable → CE-T03-13. Aucune récupération de côté en unilatéral, aucune récupération post-occurrence en direct.
 
 ### 5. Données affichées et source de vérité
 
@@ -1152,7 +1152,7 @@ Nom Exercice → Catégorie → chrono courant et Série → commandes du shell 
 
 Compte à rebours de Série ; numéro/total de Séries ; temps total actif ; Catégorie sous le nom ; commandes Réinitialiser, Pause, Suivant et son/vocal ; mode et unité non ambigus.
 
-Série n/N, côté courant distinct ; aucune barre par Série. À suivre affiche la phase réelle : Pause ou Pause entre les côtés ; aucune Récupération en direct.
+Série n/N ; côté courant distinct uniquement en bilatéral, absent en unilatéral ; aucune barre par Série. À suivre affiche la phase réelle : Pause (y compris terminale) ou, uniquement en bilatéral, Pause entre les côtés ; aucune Récupération en direct.
 
 ### 9. Layout déterministe
 
@@ -1254,7 +1254,7 @@ Shell Exécution : nom, Catégorie, côté si applicable, numéro de Série, cib
 
 Chronomètre courant initial 00:00, cible Répétitions inchangée par reset, aucune cible chiffrée en À l’échec. Suivant termine normalement la Série ; Catégorie toujours sous le nom.
 
-Série n/N, côté courant distinct ; aucune barre par Série. À suivre affiche la phase réelle : Pause ou Pause entre les côtés ; aucune Récupération en direct.
+Série n/N ; côté courant distinct uniquement en bilatéral, absent en unilatéral ; aucune barre par Série. À suivre affiche la phase réelle : Pause (y compris terminale) ou, uniquement en bilatéral, Pause entre les côtés ; aucune Récupération en direct.
 
 Avec cadence : première répétition immédiate, intervalles sonores et signal nominal distinct ; aucun bip minute. Après nominal : chrono croît, silence cadence et Suivant toujours disponible ; aucun nouveau compteur de répétitions réalisées.
 
@@ -1366,7 +1366,7 @@ Shell Execution + nom + sous-titre côté + information Série/mode + commandes.
 
 Sous-titre côté ; aucun `1/2`/`2/2`; même rang logique Activity entre côtés ; Pauses suivant v13, Pause terminale comprise ; Pause entre les côtés éventuelle avant le second passage.
 
-Série n/N, côté courant distinct ; aucune barre par Série. À suivre affiche la phase réelle : Pause ou Pause entre les côtés ; aucune Récupération en direct.
+Série n/N ; côté courant distinct uniquement en bilatéral, absent en unilatéral ; aucune barre par Série. À suivre affiche la phase réelle : Pause (y compris terminale) ou, uniquement en bilatéral, Pause entre les côtés ; aucune Récupération en direct.
 
 ### 9. Layout déterministe
 
@@ -1468,7 +1468,7 @@ Commandes et dialogue d’arrêt selon§4.12 ; transition de fin vers Synthèse 
 
 Signal de fin, statut persisté, Synthèse sur fin normale/arrêt volontaire ; interruption technique sans Synthèse seulement si présentation impossible.
 
-Série n/N, côté courant distinct ; aucune barre par Série. À suivre affiche la phase réelle : Pause ou Pause entre les côtés ; aucune Récupération en direct.
+Série n/N ; côté courant distinct uniquement en bilatéral, absent en unilatéral ; aucune barre par Série. À suivre affiche la phase réelle : Pause (y compris terminale) ou, uniquement en bilatéral, Pause entre les côtés ; aucune Récupération en direct.
 
 ### 9. Layout déterministe
 
@@ -2695,7 +2695,7 @@ Identité/Modifier, groupes Exercice et Séance de réglages, commandes son/voca
 
 ### 8. Éléments obligatoires
 
-Six défauts distincts ; aucune Pause inter-Séries globale ajoutée. La pause inter-Séries 5 s appartient à l’initialisation de l’éditeur. Silhouette ne se modifie que dans CE-UI-01.
+Six défauts distincts ; aucune Pause inter-Séries globale ajoutée. La Pause après chaque série est initialisée à 0 s dans l’éditeur (v13 §6, CE-UI-10 §3), sans défaut global du Profil. Silhouette ne se modifie que dans CE-UI-01.
 
 Libellé unique Pause entre les côtés ; défaut10s ; pas des pauses validé D-252. Les captures anciennes de Profil portant un ancien libellé sont historiques sur ce texte.
 
@@ -3107,7 +3107,7 @@ L’ajout de la roulette ne crée aucun scroll imbriqué : corps entier sous en-
 
 Uniforme, variable activé par copie, Durée/Répétitions/À l’échec, 12lignes avec défilement requis, chacun des deux ordres, variable+bilatéral, N1, changement de mode incomplet, erreur de validation, repli du tableau, ligne déplacée, message de total ajusté en Durée uniforme.
 
-Cadence Aucune, renseignée, roulette ouverte, supprimée ; retour de mode avec restauration avant✓ et élimination à✓ hors REPETITIONS. État graphique de suppression non identifié ; ne pas l’annoncer couvert.
+Cadence Aucune, renseignée, roulette ouverte, supprimée ; retour de mode avec restauration avant✓ et élimination à✓ hors REPETITIONS. Suppression par « Aucun » dans la même roulette : CAD-V01 levée ; aucun bouton ni frame dédié requis.
 
 ### 12. Contrôles et interactions
 
@@ -3139,7 +3139,7 @@ Réouverture depuis parent validé ; la zone de phrase ne comporte aucun raccour
 
 — distinct de0 ; tableau replié ne masque pas une invalidité à la validation. À l’échec n’a jamais de cible numérique/total. Total— tant que cibles actives incomplètes. Annulation restaure aussi ordre et déplacements ; N1 n’efface pas le brouillon avant✓.
 
-Contrôle de suppression non démontré par Figma : seule sa matérialisation demeure ouverte. Donnée absente et erreur de borne restent deux états distincts ; annulation récupère la valeur du parent.
+Suppression par « Aucun » dans la même roulette : CAD-V01 levée, aucun contrôle supplémentaire requis. Donnée absente et erreur de borne restent deux états distincts ; annulation récupère la valeur du parent.
 
 ### 18. Accessibilité
 
@@ -3155,7 +3155,7 @@ Un mode par Exercice, N par côté, mêmes paramètres des deux côtés, aucune 
 
 Scénarios A–F et N1 v13§9 ; 1/99séries, 1/100répétitions,1/5999s ; pauses4→5→10 et120→150 en aller/retour ; activation/désactivation/réactivation ; changement de mode aller/retour ; déplacement puis réduction/restauration ; N1→N≥2 avant✓ et après✓ ; erreur repliée ; duplication/réouverture ; scroll et texte agrandi.
 
-Tester absence/1/60 et refus0/61/fraction ; uniforme→variable et changement/suppression communs ; mode aller/retour avant✓ puis validation hors REPETITIONS ;✕/✓/Terminer ; roulette et unité, scroll sous header, suppression lorsque son témoin sera complété.
+Tester absence/1/60 et refus0/61/fraction ; uniforme→variable et changement/suppression communs ; mode aller/retour avant✓ puis validation hors REPETITIONS ;✕/✓/Terminer ; roulette et unité, scroll sous header, suppression par « Aucun » dans la même roulette.
 
 ### 21. Traçabilité
 
@@ -3178,7 +3178,7 @@ Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figm
 | V-07 |Direct/media montre Tour ;17 px/24 px divergent ; état Démarré parfois incohérent | CE-T03-09..13/MEDIA ; Tour absentACTIVITY,24 px cibleDSF T10 |
 | V-08 |Étiquette 4861:6145 mentionne Exercices au lieu de Séances ; renommages sans preuve dédiée | CE-T03-16/CE-UI-09 ; textes et comportement explicités, pas de preuve inventée |
 | V-09 |Récurrence 2 semaines avec récapitulatif hebdomadaire ; filtre dit inactif avec critère appliqué | CE-UI-05/CE-T03-02 ; récapitulatif et état dérivés des données |
-| V-10 | Récupération visible dans certaines cartes Composition ; 4738:6355 et 1992:8996 représentent des déploiements historiques | D-260/D-261/D-262 gouvernent les cartes courantes ; variantes déployées Exercice/Suivi hors MVP. Copies historiques conservées, sans retouche |
+| V-10 | Récupération visible dans les 13 frames de Composition peuplées sur 17 (relevé Claude du 06/10), dont 2028:11700 et 4893:6675 ; 4738:6355 et 1992:8996 représentent des déploiements historiques | D-260/D-261/D-262 gouvernent les cartes courantes ; variantes déployées Exercice/Suivi hors MVP. Copies historiques conservées, sans retouche |
 | V-11 |Compte à rebours Composition inline 2028:11375 mais description roulette ; pas Fin 5 s contre prescription 1 s | CE-T03-08 ; aucun état de picker déclaré vérifié tant que la description 06 et sa preuve ne sont pas réconciliées |
 | V-12 |Archives Exercice sans écran complet ; Photo à200% non qualifiée ; animations non câblées ; contrastes acceptés | Limites déjà documentées du DSF, pas de nouvelle décision produit |
 
@@ -3209,7 +3209,7 @@ Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(T
 
 La source active est v13 §§3–5 ; D-242 est supersédée. Les tests PRE-1 restent figés sur leur source historique.
 
-Réinitialiser conserve D-029/D-150 : recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé. Cette portée s’applique aussi à Les deux côtés à chaque série ; un passage déjà acquis de l’autre côté n’est pas rejoué. Exemple : gauche2/3 → reprise gauche1/3, résultats droits conservés. Pendant une récupération, RM-062 réinitialise seulement cette phase. Le saut confirmé d’un bloc chronométré conserve D-150 : côté courant partiel, poursuite des passages restant à exécuter de l’autre côté ; les résultats acquis ne sont pas effacés. Ces conséquences du périmètre existant ne constituent pas un nouvel arbitrage.
+Réinitialiser conserve D-029/D-150 et RM-062 : recommencer la Série courante en unilatéral ; en bilatéral, recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé. Cette portée s’applique aussi à Les deux côtés à chaque série ; un passage déjà acquis de l’autre côté n’est pas rejoué. Exemple : gauche2/3 → reprise gauche1/3, résultats droits conservés. Pendant une récupération, RM-062 réinitialise seulement cette phase. Le saut confirmé d’un bloc chronométré conserve D-150 : côté courant partiel, poursuite des passages restant à exécuter de l’autre côté ; les résultats acquis ne sont pas effacés. Ces conséquences du périmètre existant ne constituent pas un nouvel arbitrage.
 
 Pause de sécurité : sans réponse au choix Reprendre/Arrêter, l’exécution reste suspendue, son état est conservé et son temps n’avance plus. Aucun délai d’arrêt automatique supplémentaire.
 

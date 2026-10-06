@@ -1,0 +1,407 @@
+{
+  "mission": "CORRECTIONS_AUDIT_FONCTIONNEL_DOCUMENTAIRE",
+  "base_commit": "81dc851fc882dbafbb60045062d57cefdcfdd8f1",
+  "branch": "docs/cadence-dsf-2026-10-06",
+  "sources": [
+    {
+      "file": "2026-10-06 AUDIT FONCTIONNEL CHAPITRES CONTRATS KODJO.md",
+      "sha256": "a2a850b3cdd31b6c9ba483cfa4fe6817c91fae296c4c4978251a181fb5113852"
+    },
+    {
+      "file": "0001-docs-audit-fonctionnel-des-chapitres-et-contrats-KOD.diff",
+      "sha256": "c8b73772627025f47d9210c74389d41df86512c6023a98b6c12e10b1dbec6492"
+    }
+  ],
+  "audit_saved_identically": true,
+  "findings": [
+    {
+      "id": "H-01",
+      "status": "Corrigé",
+      "result": "Réserves CAD-V01–04 levées partout aux passages signalés et dans v13 §10 ; suppression par Aucun, layout existant."
+    },
+    {
+      "id": "H-02",
+      "status": "Corrigé",
+      "result": "D-029 annotée ; chapitre08, v13 et deux formulations du chapitre13 précisent Série courante unilatérale / bloc du côté courant bilatéral / phase courante en récupération."
+    },
+    {
+      "id": "H-03",
+      "status": "À arbitrer",
+      "result": "Grammaire validée « séparées par » conservée. N pauses restent comptées, pause terminale incluse. La précision rédactionnelle éventuelle nécessite une décision du propriétaire."
+    },
+    {
+      "id": "H-06",
+      "status": "Corrigé",
+      "result": "CE-T03-10 conserve la Pause terminale positive en direct ; cinq phrases communes rendent le côté et la Pause entre les côtés conditionnels au bilatéral."
+    },
+    {
+      "id": "H-08",
+      "status": "Partiellement corrigé",
+      "result": "Ancienne ligne visible à 0 s qualifiée historique ; donnée et calcul conservés ; 13/17 frames documentées dans V-10 et CE-T03-08. L’exception éventuelle du mode placement de Point d’arrêt et l’accès au réglage par occurrence restent à clarifier, sans nouvelle interface inventée."
+    },
+    {
+      "id": "H-09",
+      "status": "Partiellement corrigé",
+      "result": "Synthèse : Enregistrer, jamais changement global de Terminer dans l’éditeur ; média : gouttière permanente, aucun déploiement Exercice. Avertissement sans pause : absence de source signalée, maintien/retrait et déclenchement à confirmer."
+    },
+    {
+      "id": "H-10",
+      "status": "Citations corrigées ; source manquante explicite",
+      "result": "Référence ajout courante 6959:15706 (24×24, pas preuve de 16×16) ; composant Tour canonique 3066:4685 conservé ; IDs supprimés qualifiés historiques, y compris Profil, confirmation, catalogue variable et INDEX. Source courante de Selection Check non retrouvée, aucun remplacement inventé. Pas de certification globale des 214 IDs."
+    },
+    {
+      "id": "H-12",
+      "status": "Corrigé",
+      "result": "CE-UI-07 : Pause initiale 0 s. Ancien attribut Pause après chaque série par défaut retiré du modèle cible Profil, note historique conservée ; paramètres existants des Exercices inchangés."
+    },
+    {
+      "id": "H-13",
+      "status": "Corrigé documentairement",
+      "result": "Navigation #F9FAFC, cartes archivées #F5F7FA ; référence centralisée au chapitre12. Fond circulaire Retour #FCFCFE conservé comme observation distincte. Ancienne prescription #F6F6F6 identifiée sans l’assimiler à une preuve de la valeur historique du token supprimé."
+    }
+  ],
+  "changes": [
+    {
+      "file": "docs/Specifications-fonctionnelles/05 – Versions du produit.md",
+      "occurrences": 1,
+      "old": "Les écrans de paramètres existent ; les trois états d’exécution cadence et le contrôle visuel de suppression restent à matérialiser/qualifier.",
+      "new": "Les écrans de paramètres existent ; la suppression utilise « Aucun » dans la même roulette (CAD-V01 levée). Les états avant/après fin nominale et Pause/Reprise réutilisent le layout existant (CAD-V02 à CAD-V04 levées), sans frame ni contrôle dédié supplémentaire."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "occurrences": 1,
+      "old": "Suppression de cadence : fonction définie, contrôle exact non trouvé ; réserve CAD-V01.",
+      "new": "Suppression de cadence par « Aucun » dans la même roulette : CAD-V01 levée, aucun bouton ni frame dédié requis."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "occurrences": 1,
+      "old": "Les états avant/après nominal et Pause/Reprise sont à matérialiser graphiquement (matrice CAD-V02–04), sans nouvelle règle métier.",
+      "new": "Les états avant/après nominal et Pause/Reprise utilisent le layout existant ; CAD-V02 à CAD-V04 sont levées, sans frame dédiée ni nouvelle règle métier."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+      "occurrences": 1,
+      "old": "Modifier/supprimer dans le brouillon ; contrôle de suppression visuellement manquant",
+      "new": "Modifier dans le brouillon ; supprimer par « Aucun » dans la même roulette (CAD-V01 levée)"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "occurrences": 1,
+      "old": "État graphique de suppression non identifié ; ne pas l’annoncer couvert.",
+      "new": "Suppression par « Aucun » dans la même roulette : CAD-V01 levée ; aucun bouton ni frame dédié requis."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "occurrences": 1,
+      "old": "Contrôle de suppression non démontré par Figma : seule sa matérialisation demeure ouverte.",
+      "new": "Suppression par « Aucun » dans la même roulette : CAD-V01 levée, aucun contrôle supplémentaire requis."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "occurrences": 1,
+      "old": "suppression lorsque son témoin sera complété.",
+      "new": "suppression par « Aucun » dans la même roulette."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md",
+      "occurrences": 1,
+      "old": "La suppression fonctionnelle est requise et retourne à Aucune. Le relevé Figma du06/10 montre Aucune et la roulette renseignée, mais aucun contrôle de suppression identifiable : CE-UI-10 signale ce manque de layout sans inventer un bouton. Bornes, suppression, annulation et propagation sont déjà définies ; seule leur matérialisation graphique manque.",
+      "new": "La suppression sélectionne « Aucun » dans la même roulette et retourne à Aucune. CAD-V01 est levée : aucun bouton ni frame dédié supplémentaire n’est requis. Bornes, suppression, annulation et propagation restent celles définies ci-dessus et dans CE-UI-10."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+      "occurrences": 1,
+      "old": "Après confirmation, seule l'exercice en cours est recommencée depuis le début ; la progression de la séance est conservée.",
+      "new": "Après confirmation, la progression de la séance hors périmètre est conservée. Portée précisée par RM-062, D-150 et v13 §7 : Série courante en unilatéral ; bloc du côté courant depuis sa première Série en bilatéral ; phase courante pendant une récupération. L’autre côté, les résultats hors périmètre et le temps actif cumulé sont conservés."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+      "occurrences": 1,
+      "old": "L'utilisateur peut décider de recommencer l'exercice en cours depuis son début.",
+      "new": "L’utilisateur peut réinitialiser la Série courante en unilatéral ou le bloc du côté courant depuis sa première Série en bilatéral ; pendant une récupération, seule la phase courante est réinitialisée (D-029/D-150, RM-062)."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "occurrences": 2,
+      "old": "Réinitialiser conserve D-029/D-150 : recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé.",
+      "new": "Réinitialiser conserve D-029/D-150 et RM-062 : recommencer la Série courante en unilatéral ; en bilatéral, recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md",
+      "occurrences": 1,
+      "old": "Réinitialiser conserve D-029/D-150 : recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé.",
+      "new": "Réinitialiser conserve D-029/D-150 et RM-062 : recommencer la Série courante en unilatéral ; en bilatéral, recommencer le côté courant depuis sa première Série, préserver les résultats de l’autre côté et le temps total écoulé."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "occurrences": 1,
+      "old": "Fin Série → pause inter-Séries seulement s’il reste une Série, sinon Fin d’exercice propre applicable → CE-T03-13.",
+      "new": "Fin Série → Pause si positive, y compris la Pause terminale après la dernière Série → Fin d’exercice propre applicable → CE-T03-13."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "occurrences": 5,
+      "old": "Série n/N, côté courant distinct ; aucune barre par Série. À suivre affiche la phase réelle : Pause ou Pause entre les côtés ; aucune Récupération en direct.",
+      "new": "Série n/N ; côté courant distinct uniquement en bilatéral, absent en unilatéral ; aucune barre par Série. À suivre affiche la phase réelle : Pause (y compris terminale) ou, uniquement en bilatéral, Pause entre les côtés ; aucune Récupération en direct."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "occurrences": 1,
+      "old": "La valeur `0 s` reste affichée dans la Composition ;",
+      "new": "La valeur `0 s` reste conservée dans les données ; son affichage dans la Composition est historique, antérieur à D-238, et n’est plus prescrit ;"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+      "occurrences": 1,
+      "old": "La ligne reste visible à `0 s`, y compris après le dernier Exercice du Circuit et avant la Fin de séance.",
+      "new": "L’ancienne ligne visible à `0 s`, y compris après le dernier Exercice du Circuit et avant la Fin de séance, est historique : D-238 retire son affichage sans supprimer la valeur ni son exécution."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "occurrences": 1,
+      "old": "Un appui long sur l’ensemble du bloc Exercice–Récupération déclenche sa réorganisation sans ouvrir la modification.",
+      "new": "Un appui long sur la carte de l’occurrence Exercice déclenche sa réorganisation sans ouvrir la modification ; la Récupération reste une donnée de l’occurrence, sans ligne affichée (D-238)."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+      "occurrences": 1,
+      "old": "Dans la Composition, la ligne visuelle Récupération / Point d’arrêt ne fusionne pas les concepts.",
+      "new": "L’ancienne ligne visuelle partagée Récupération / Point d’arrêt est une référence antérieure au retrait d’affichage D-238 ; elle ne prescrit pas de ligne Récupération dans la Composition courante. Les concepts restent distincts."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+      "occurrences": 1,
+      "old": "La Récupération après exercice et le Point d’arrêt peuvent partager une même ligne visuelle mais restent deux zones et deux concepts distincts.",
+      "new": "La ligne partagée décrite avant D-238 reste historique ; sa présence éventuelle dans le seul mode de placement du Point d’arrêt n’est pas confirmée. Ce point de présentation reste à clarifier, sans réintroduire une ligne Récupération dans la Composition courante ni inventer un nouvel accès de réglage."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+      "occurrences": 1,
+      "old": "Le Point d’arrêt est distinct de la Récupération même lorsqu’ils partagent une ligne visuelle avec deux zones de réglage.",
+      "new": "Le Point d’arrêt est distinct de la Récupération. La ligne visuelle partagée avec deux zones de réglage décrite le 26/09 est historique sur le rendu courant retiré par D-238 ; son éventuelle exception dans le mode de placement reste à confirmer, sans rouvrir le retrait d’affichage."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "occurrences": 1,
+      "old": "Récupération visible dans certaines cartes Composition ;",
+      "new": "Récupération visible dans les 13 frames de Composition peuplées sur 17 (relevé Claude du 06/10), dont 2028:11700 et 4893:6675 ;"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "occurrences": 1,
+      "old": "L’écart de récupération visible reste tracé séparément selon D-238 ; Circuit/Tour restent normatifs.",
+      "new": "L’écart de récupération visible concerne les 13 frames peuplées sur 17, dont 2028:11700 et 4893:6675 (relevé Claude du 06/10), et reste tracé séparément selon D-238. La ligne partagée dans le mode de placement du Point d’arrêt reste à confirmer ; aucun nouvel accès de réglage n’est prescrit. Circuit/Tour restent normatifs."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+      "occurrences": 1,
+      "old": "Le Ressenti est obligatoire pour activer `Terminer`;",
+      "new": "Le Ressenti est obligatoire pour activer `Enregistrer`;"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+      "section": "Synthèse de séance",
+      "old": "Terminer",
+      "new": "Enregistrer",
+      "occurrences": 3
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md",
+      "occurrences": 1,
+      "old": "| RM-080 | `Terminer` reste désactivé tant qu’aucun Ressenti n’est sélectionné, puis enregistre la Synthèse et ouvre le Suivi. |",
+      "new": "| RM-080 | `Enregistrer` reste désactivé tant qu’aucun Ressenti n’est sélectionné, puis enregistre la Synthèse et ouvre le Suivi. |"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md",
+      "occurrences": 1,
+      "old": "| RM-101 | Le Ressenti reste obligatoire lorsque la Synthèse est présentée ; `Terminer` reste désactivé avant sa sélection. |",
+      "new": "| RM-101 | Le Ressenti reste obligatoire lorsque la Synthèse est présentée ; `Enregistrer` reste désactivé avant sa sélection. |"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/08 – Conception fonctionnelle détaillée.md",
+      "occurrences": 1,
+      "old": "Le média associé peut être affiché dans la carte Catalogue déployée du MVP ;",
+      "new": "Le média associé est présenté dans la gouttière permanente de 64 px de la carte Catalogue ; aucun déploiement de carte d’Exercice n’est accessible au MVP (D-260/D-261) ;"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "occurrences": 1,
+      "old": "Si deux Exercices s’enchaînent sans Pause après chaque série et avec une récupération après exercice à `0 s`, un avertissement discret et non bloquant peut être affiché selon la règle existante.",
+      "new": "**Réserve H-09 — avertissement sans pause :** la mention antérieure d’un avertissement discret lorsque deux Exercices s’enchaînent sans Pause et avec Récupération `0 s` ne renvoie à aucune règle active identifiée. Son maintien ou retrait et, s’il est maintenu, son déclenchement exact restent à confirmer ; cette mention ne constitue pas une nouvelle prescription d’interface."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/12 – Architecture technique.md",
+      "occurrences": 1,
+      "old": "Icônes fonctionnelles incorporées à un contrôle compact, par exemple `icon/ajouter` (`2884:4315`) dans `Action / Add Activity — Source exact` (`2537:1484`).",
+      "new": "Icônes fonctionnelles incorporées à un contrôle compact. L’ancien exemple `icon/ajouter` (`2884:4315`) dans `Action / Add Activity — Source exact` (`2537:1484`) est historique, supprimé lors du nettoyage Figma ; il ne prouve plus ce format."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/12 – Architecture technique.md",
+      "occurrences": 1,
+      "old": "L’exemple DSF canonique est le signe d’ajout vectoriel `icon/ajouter` (`2884:4315`), de `16 × 16`, dans le composant `Action / Add Activity — Source exact` (`2537:1484`, contrôle `174 × 32`).",
+      "new": "L’ancien exemple `icon/ajouter` (`2884:4315`, 16 × 16) dans `Action / Add Activity — Source exact` (`2537:1484`, 174 × 32) est historique et n’est plus une source Figma courante. La référence courante du signe d’ajout est `icon/ajouter` (`6959:15706`, 24 × 24), export `assets/icons/action-add.svg` selon DSF-CADENCE §6 ; elle ne démontre pas à elle seule un usage `icon.compact` de 16 × 16."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/12 – Architecture technique.md",
+      "occurrences": 1,
+      "old": "| Écran concerné | Frame | Instance `DSF / Primitives / Icône de tour` |",
+      "new": "Le tableau suivant conserve le **relevé historique des instances**, antérieur au nettoyage du 05/10 : les IDs locaux supprimés ne constituent plus des cibles courantes. Le composant canonique `3066:4685` ci-dessus reste la source ; `4913:7432` est le stepper de Tours, pas une instance de l’icône. Aucun remplacement d’ID local n’est inventé.\n\n| Écran historique concerné | Frame du relevé historique | Instance / élément du relevé historique |"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/12 – Architecture technique.md",
+      "occurrences": 1,
+      "old": "| Exercice sélectionnée | `Icon / Selection Check` |",
+      "new": "| Exercice sélectionnée — référence historique supprimée, aucun composant courant de ce nom identifié (audit Claude du 06/10) | `Icon / Selection Check` |"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/12 – Architecture technique.md",
+      "occurrences": 1,
+      "old": "Chaque composant possède un cadre vectoriel `24 × 24 pt`.",
+      "new": "Le relevé historique attribuait à ces composants un cadre vectoriel `24 × 24 pt` ; il ne certifie pas l’existence courante de `Icon / Selection Check`. La référence courante de cet élément reste à retrouver avant export, sans inventer de composant de remplacement."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+      "occurrences": 1,
+      "old": "utilise la frame `3224:4082` et",
+      "new": "utilisait la frame historique `3224:4082` (supprimée, non exploitable comme cible courante) et conserve"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "occurrences": 2,
+      "old": "(`4179:9550`)",
+      "new": "(ancien nœud `4179:9550`, historique supprimé ; le contrôle fonctionnel reste prescrit)"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "occurrences": 2,
+      "old": "(`4179:9556`)",
+      "new": "(ancien nœud `4179:9556`, historique supprimé ; le contrôle fonctionnel reste prescrit)"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "occurrences": 1,
+      "old": "Référence variable courante6665:24120 : indicateur N séries variables sans détail ; total intrinsèque selon mode. État ajouté au chapitre06 et à la matrice du03/10.",
+      "new": "Référence variable historique `6665:24120`, disparue du Figma courant : l’ancien état du 03/10 n’est plus une preuve active. L’indicateur fonctionnel « N séries variables » sans détail et le total intrinsèque selon mode restent prescrits par v13 §7 ; aucun nœud de remplacement n’est inventé."
+    },
+    {
+      "file": "docs/INDEX.md",
+      "occurrences": 1,
+      "old": "`3788:5258` — Composition — Ajouter un exercice — arbre ;",
+      "new": "`3788:5258` — Composition — Ajouter un exercice — arbre  — relevé historique, IDs supprimés à qualifier via la matrice courante du 06/10 ;"
+    },
+    {
+      "file": "docs/INDEX.md",
+      "occurrences": 1,
+      "old": "`3789:5349` et `3789:5405` — sélection multiple d’Exercices existants ;",
+      "new": "`3789:5349` et `3789:5405` — sélection multiple d’Exercices existants  — relevé historique, IDs supprimés à qualifier via la matrice courante du 06/10 ;"
+    },
+    {
+      "file": "docs/INDEX.md",
+      "occurrences": 1,
+      "old": "`3879:5947` / `3879:6079` — création/modification d’un Exercice persistante ;",
+      "new": "`3879:5947` / `3879:6079` — création/modification d’un Exercice persistante  — relevé historique, IDs supprimés à qualifier via la matrice courante du 06/10 ;"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "occurrences": 1,
+      "old": "La pause inter-Séries 5 s appartient à l’initialisation de l’éditeur.",
+      "new": "La Pause après chaque série est initialisée à 0 s dans l’éditeur (v13 §6, CE-UI-10 §3), sans défaut global du Profil."
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md",
+      "occurrences": 1,
+      "old": "| Pause après chaque série par défaut                      | Valeur proposée entre deux Séries d'un Exercice                           | Facultatif  | Création uniquement                                                      |\n",
+      "new": ""
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "occurrences": 2,
+      "old": "fond #F6F6F6",
+      "new": "fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12)"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/13 – Contrats d’écran.md",
+      "occurrences": 2,
+      "old": "fond #F6F6F6",
+      "new": "fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12)"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "occurrences": 1,
+      "old": "pilule `322 × 62 px`, `#FCFCFE`,",
+      "new": "pilule `322 × 62 px`, `color/navigation/pill #F9FAFC` (référence couleur centralisée au chapitre12),"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+      "occurrences": 1,
+      "old": "La pilule DSF mesure `322 × 62`, utilise `#FCFCFE`,",
+      "new": "La pilule DSF mesure `322 × 62`, utilise `color/navigation/pill #F9FAFC` (ancienne valeur `#FCFCFE` historique ; référence couleur chapitre12),"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/06 – Ecrans et navigation de la V1.md",
+      "occurrences": 1,
+      "old": "bouton circulaire clair `32 × 32`, `#FCFCFE`",
+      "new": "bouton circulaire clair `32 × 32`, la valeur observée référencée au chapitre12"
+    },
+    {
+      "file": "docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md",
+      "occurrences": 1,
+      "old": "bouton d’action circulaire clair `32 × 32` utilise `#FCFCFE`",
+      "new": "bouton d’action circulaire clair `32 × 32` utilise la valeur observée référencée au chapitre12"
+    },
+    {
+      "file": "docs/DSF-CADENCE-2026-10-06.md",
+      "occurrences": 1,
+      "old": "| color/cards/archive-surface | Non précisée dans la source |",
+      "new": "| color/cards/archive-surface | `#F6F6F6` dans l’ancienne prescription documentaire (chapitres06/13) ; valeur historique du token non attestée par le journal |"
+    },
+    {
+      "file": "docs/INDEX.md",
+      "occurrences": 1,
+      "old": "**Statut :** les écarts établis de cette passe transverse sont traités ; l’alignement fonctionnel total et la clôture restent en attente de la seconde passe de Claude (chapitres fonctionnels et contenu des 30 contrats).",
+      "new": "**Statut :** la seconde passe fonctionnelle de Claude est reçue, mais sa couverture reste partielle. Les contradictions déterminées sont corrigées dans le lot H ; les arbitrages H-03, placement du Point d’arrêt H-08 et avertissement H-09 ainsi que la source de sélection H-10 restent explicites. L’alignement total et la clôture ne sont pas déclarés.\n\n- [Audit fonctionnel reçu](../.github/orchestration/reports/2026-10-06_AUDIT_FONCTIONNEL_CHAPITRES_CONTRATS_KODJO.md)\n- [Corrections fonctionnelles et réserves](../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_FONCTIONNEL_DOCUMENTAIRE.md)"
+    },
+    {
+      "file": "docs/README.md",
+      "occurrences": 1,
+      "old": "**Statut :** les écarts établis de cette passe transverse sont traités ; l’alignement fonctionnel total et la clôture restent en attente de la seconde passe de Claude (chapitres fonctionnels et contenu des 30 contrats).",
+      "new": "**Statut :** la seconde passe fonctionnelle de Claude est reçue, mais sa couverture reste partielle. Les contradictions déterminées sont corrigées dans le lot H ; les arbitrages H-03, placement du Point d’arrêt H-08 et avertissement H-09 ainsi que la source de sélection H-10 restent explicites. L’alignement total et la clôture ne sont pas déclarés.\n\n- [Audit fonctionnel reçu](../.github/orchestration/reports/2026-10-06_AUDIT_FONCTIONNEL_CHAPITRES_CONTRATS_KODJO.md)\n- [Corrections fonctionnelles et réserves](../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_FONCTIONNEL_DOCUMENTAIRE.md)"
+    }
+  ],
+  "application_modified": false,
+  "figma_modified": false,
+  "protocol_modified": false,
+  "captures_unchanged_in_this_lot": true,
+  "full_functional_alignment_certified": false,
+  "checks": {
+    "baseline": "6d03f5be579f2d0e2e7602b6abf1c2b46f4c740b",
+    "recovered_commit": "81dc851fc882dbafbb60045062d57cefdcfdd8f1",
+    "exports": {
+      "frames": 133,
+      "sets": 3,
+      "png_decoded_dimensions_and_hashes": 136,
+      "unique_ids_and_paths": true,
+      "chapter06_links": 136,
+      "current_figma_ids_match": true
+    },
+    "contracts": {
+      "count": 30,
+      "ordered_nonempty_sections_each": 21,
+      "capture_contract_references_valid": true
+    },
+    "decision_ids_unique": true,
+    "active_rm_ids_unique": true,
+    "missing_local_file_links": [],
+    "scope_documentation_only": true,
+    "new_report_local_links_checked": 2,
+    "anchors": {
+      "checked": 9,
+      "files_with_anchor_links": 9,
+      "broken_anchors": [],
+      "missing_files": []
+    },
+    "cadence_and_phrase_specs_unchanged": true,
+    "captures_unchanged": true
+  }
+}

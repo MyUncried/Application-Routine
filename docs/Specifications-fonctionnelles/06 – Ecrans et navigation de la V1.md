@@ -388,7 +388,7 @@ L’écran comporte notamment :
 - la `Fin d’exercice` ;
 - `Notifications` et rappels.
 
-Les préférences de Compte à rebours initial et de Fin de séance servent de valeurs proposées lors de la création d’une nouvelle Séance. Elles restent modifiables au niveau de chaque Séance. Les lignes `Compte à rebours d’exercice` (`4179:9550`) et `Fin d’exercice` (`4179:9556`) sont des contrôles intégrés à cet écran Profil, pas des écrans distincts ; leurs valeurs sont proposées à la création d’un Exercice et restent modifiables dans chaque Exercice.
+Les préférences de Compte à rebours initial et de Fin de séance servent de valeurs proposées lors de la création d’une nouvelle Séance. Elles restent modifiables au niveau de chaque Séance. Les lignes `Compte à rebours d’exercice` (ancien nœud `4179:9550`, historique supprimé ; le contrôle fonctionnel reste prescrit) et `Fin d’exercice` (ancien nœud `4179:9556`, historique supprimé ; le contrôle fonctionnel reste prescrit) sont des contrôles intégrés à cet écran Profil, pas des écrans distincts ; leurs valeurs sont proposées à la création d’un Exercice et restent modifiables dans chaque Exercice.
 
 Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial, `5 s` pour la Fin de séance et `activée` pour Vibration. L’état désactivé montré dans le parcours Figma illustre une modification utilisateur et ne définit pas la valeur initiale.
 
@@ -480,7 +480,7 @@ Les Séances archivées restent exclues de la liste active et ne sont accessible
 
 Carte standard 354 × 90 px à largeur de référence 402, rayon 8, titre 15 Semi Bold, sans barre verticale ni cercle de nature. Ligne de classement : Étiquette puis catégories issues des exercices ; en l’absence d’Étiquette, afficher les catégories. Pastilles 20 ; pictogramme blanc sur couleur. Ligne des valeurs : `N exercices` et `N tours`, icônes nues 16. Badge durée en haut à droite ; la durée exclut Compte à rebours initial et Fin de séance.
 
-Aucune prochaine planification ni ligne de pause/récupération sur la carte. Les séances restent sans vignette, définitivement (D-260). Les listes de catégories utilisent ` · ` puis `…` si nécessaire ; la donnée complète est conservée. Les cartes archivées utilisent fond #F6F6F6 et bord #D9D9D9 ; Restaurer remplace Lecture.
+Aucune prochaine planification ni ligne de pause/récupération sur la carte. Les séances restent sans vignette, définitivement (D-260). Les listes de catégories utilisent ` · ` puis `…` si nécessaire ; la donnée complète est conservée. Les cartes archivées utilisent fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12) et bord #D9D9D9 ; Restaurer remplace Lecture.
 
 Ces règles s’appliquent aux listes, filtres actifs/inactifs, recherches, états restaurés, actions glissées et arrière-plans de modales. Les actions révélées suivent la hauteur réelle de la carte. Les séances restent triées par dernière modification décroissante ; exécuter ne change pas cet ordre.
 
@@ -697,7 +697,7 @@ La rangée `Créer / Filtrer / Trier` est identique au Catalogue des Séances : 
 
 Chaque carte utilise la nouvelle grammaire DSF : aucune barre verticale ; la couleur de Catégorie est portée par sa pastille dans le Catalogue. Sa surface principale ouvre la consultation ou la modification ; le bouton Lecture, dans une cible séparée, lance uniquement l’Exécution directe. La carte d’Exercice possède un seul format à gouttière permanente de64 px dans le Catalogue : photo associée ou icône de nature sans média. Aucun Déployer avec ou sans média ; Lecture reste indépendante. Chargement/erreur conservent la place réservée, texte alternatif = nom de l’exercice. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Exercices actifs et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
 
-Titre15 Semi Bold, badge durée en haut à droite, classement Catégorie puis Zones, valeurs16 et synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`. Bilatéralité par miroir16 à12 après la synthèse. Aucune pause/récupération ni prochaine planification affichée. Format unique : carte354 × 91, gouttière64 à12, texte x88/largeur207, catégorie conservée et pictogramme de zone conservé. Variante archivée : fond #F6F6F6, bord #D9D9D9, Restaurer ; l’absence d’écran d’archive dédié est acceptée. Ces règles valent aussi derrière les panneaux de filtres et dans les états glissés ; les actions suivent la hauteur de la carte.
+Titre15 Semi Bold, badge durée en haut à droite, classement Catégorie puis Zones, valeurs16 et synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`. Bilatéralité par miroir16 à12 après la synthèse. Aucune pause/récupération ni prochaine planification affichée. Format unique : carte354 × 91, gouttière64 à12, texte x88/largeur207, catégorie conservée et pictogramme de zone conservé. Variante archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9, Restaurer ; l’absence d’écran d’archive dédié est acceptée. Ces règles valent aussi derrière les panneaux de filtres et dans les états glissés ; les actions suivent la hauteur de la carte.
 
 États Figma complémentaires de la famille Catalogue des Exercices :
 
@@ -836,9 +836,9 @@ La poignée de chaque carte d’Exercice est exclusivement une instance du compo
 
 Le MVP ne propose pas de menu d’ajout rapide `Pause 15 s / 30 s / 45 s`.
 
-Chaque occurrence possède explicitement `postActivityRecoverySeconds`, initialisé depuis le défaut global. La valeur `0 s` reste affichée dans la Composition ; une phase `POST_ACTIVITY_RECOVERY` chronométrée n’est créée que si cette valeur est positive.
+Chaque occurrence possède explicitement `postActivityRecoverySeconds`, initialisé depuis le défaut global. La valeur `0 s` reste conservée dans les données ; son affichage dans la Composition est historique, antérieur à D-238, et n’est plus prescrit ; une phase `POST_ACTIVITY_RECOVERY` chronométrée n’est créée que si cette valeur est positive.
 
-Si deux Exercices s’enchaînent sans Pause après chaque série et avec une récupération après exercice à `0 s`, un avertissement discret et non bloquant peut être affiché selon la règle existante.
+**Réserve H-09 — avertissement sans pause :** la mention antérieure d’un avertissement discret lorsque deux Exercices s’enchaînent sans Pause et avec Récupération `0 s` ne renvoie à aucune règle active identifiée. Son maintien ou retrait et, s’il est maintenu, son déclenchement exact restent à confirmer ; cette mention ne constitue pas une nouvelle prescription d’interface.
 
 ### Composition — ligne de Série variable — références du03/10
 
@@ -864,7 +864,7 @@ Les commandes contextuelles de Composition font 34 px, dessins 20, gaps 10, cibl
 
 ### Consultation et modification d’un Exercice
 
-Un appui court sur une carte Exercice ouvre directement son parcours de modification. Un appui long sur l’ensemble du bloc Exercice–Récupération déclenche sa réorganisation sans ouvrir la modification. Un glissement gauche déplace le bloc avec le geste et révèle progressivement les actions `Dupliquer` et `Supprimer` placées derrière. `Dupliquer` crée un Exercice de Séance indépendant avec un nouvel identifiant, reprend tous les paramètres de la source, y compris Pause et Récupération, la nomme `{nom} (copie)` puis `{nom} (copie 2)`, etc., sans collision, et l’insère immédiatement après la source dans la même zone structurelle. Cette action ne crée aucun Exercice dans le catalogue. `Supprimer` retire le bloc du brouillon ; la suppression n’est persistée qu’avec l’enregistrement final de la Séance et l’abandon restitue la version persistée.
+Un appui court sur une carte Exercice ouvre directement son parcours de modification. Un appui long sur la carte de l’occurrence Exercice déclenche sa réorganisation sans ouvrir la modification ; la Récupération reste une donnée de l’occurrence, sans ligne affichée (D-238). Un glissement gauche déplace le bloc avec le geste et révèle progressivement les actions `Dupliquer` et `Supprimer` placées derrière. `Dupliquer` crée un Exercice de Séance indépendant avec un nouvel identifiant, reprend tous les paramètres de la source, y compris Pause et Récupération, la nomme `{nom} (copie)` puis `{nom} (copie 2)`, etc., sans collision, et l’insère immédiatement après la source dans la même zone structurelle. Cette action ne crée aucun Exercice dans le catalogue. `Supprimer` retire le bloc du brouillon ; la suppression n’est persistée qu’avec l’enregistrement final de la Séance et l’abandon restitue la version persistée.
 
 Dans l’état Figma `Composition d’une séance — actions glissées` (`2028:11808`), la carte/bloc suit le geste. L’action `Dupliquer` reprend son rayon DSF et un espace visuel sépare son bord gauche de la portion encore visible de la carte, laissant apparaître le fond du conteneur Circuit. Aucun overlay immobile ne remplace ce mouvement réel.
 
@@ -1359,7 +1359,7 @@ Les chiffres derrière le voile appartiennent au parent et ne prouvent pas un ca
 
 Contrats hôtes CE-T03-04 et CE-UI-10, sans nouvelle page fonctionnelle. Cadence commune facultative en Répétitions, Aucune initialement,1..60s ; sous la cible uniforme et avant Pause, hors lignes en variable. La roulette avec unité se place immédiatement sous la ligne ouverte. ✓ applique au parent et régénère une phrase unique ; toute la zone de phrase ouvre la feuille. Valeurs en gras, Inter13/20, largeur324 sur402, hauteur auto.
 
-Les textes des frames13/14/phrase longue ne suivent pas tous la grammaire finale (par exemple «sans changement de côté» ou «à raison de…»). Ils servent de témoins de layout ; appliquer Phrase v1 sans reprendre ces textes ni leurs nombres comme règles. Suppression de cadence : fonction définie, contrôle exact non trouvé ; réserve CAD-V01. Aucune question sur l’existence de cette fonction n’est rouverte.
+Les textes des frames13/14/phrase longue ne suivent pas tous la grammaire finale (par exemple «sans changement de côté» ou «à raison de…»). Ils servent de témoins de layout ; appliquer Phrase v1 sans reprendre ces textes ni leurs nombres comme règles. Suppression de cadence par « Aucun » dans la même roulette : CAD-V01 levée, aucun bouton ni frame dédié requis. Aucune question sur l’existence de cette fonction n’est rouverte.
 
 #### Répétitions avec cadence renseignée
 
@@ -1782,7 +1782,7 @@ Sans cadence, le cercle du minuteur effectue une rotation complète par minute :
 - à `01:00`, il recommence une nouvelle rotation ;
 - le chronomètre continue à croître (`01:01`, `01:02`, etc.).
 
-Sans cadence, un bip minute est émis. Avec cadence : première répétition immédiate, signal à chaque intervalle, dernier distinct à la fin nominale puis plus de bip de cadence. Suivant reste la fin normale avant/après nominal ; aucun bip minute ajouté. Les états avant/après nominal et Pause/Reprise sont à matérialiser graphiquement (matrice CAD-V02–04), sans nouvelle règle métier.
+Sans cadence, un bip minute est émis. Avec cadence : première répétition immédiate, signal à chaque intervalle, dernier distinct à la fin nominale puis plus de bip de cadence. Suivant reste la fin normale avant/après nominal ; aucun bip minute ajouté. Les états avant/après nominal et Pause/Reprise utilisent le layout existant ; CAD-V02 à CAD-V04 sont levées, sans frame dédiée ni nouvelle règle métier.
 
 `Pause` suspend le chronomètre et la rotation du cercle. `Reprendre` les relance depuis l’état exact où ils ont été suspendus.
 
@@ -2330,7 +2330,7 @@ Cette règle s’applique aux valeurs initiales comme aux valeurs créées ensui
 ### Contrôles à roulette – Compte à rebours et fins
 Les anciennes modales basses de durée restent des références historiques. Dans la feuille v13, les roulettes s’ouvrent inline sous la ligne active ; dans le Profil, les durées utilisent les steppers validés. Les autres contextes suivent leur contrat propre. Les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent des steppers inline conformément à D-219. Les sélections d’objets utilisent leurs modales dédiées.
 
-Dans le Profil, les contrôles `Compte à rebours initial`, `Fin de séance`, `Compte à rebours d’exercice` (`4179:9550`) et `Fin d’exercice` (`4179:9556`) servent de préférences proposées à la création de nouveaux contenus. Ces valeurs suivent la validation des contrôles du Profil (CE-UI-07), sans importer la confirmation des anciennes roulettes.
+Dans le Profil, les contrôles `Compte à rebours initial`, `Fin de séance`, `Compte à rebours d’exercice` (ancien nœud `4179:9550`, historique supprimé ; le contrôle fonctionnel reste prescrit) et `Fin d’exercice` (ancien nœud `4179:9556`, historique supprimé ; le contrôle fonctionnel reste prescrit) servent de préférences proposées à la création de nouveaux contenus. Ces valeurs suivent la validation des contrôles du Profil (CE-UI-07), sans importer la confirmation des anciennes roulettes.
 
 Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial et `5 s` pour la Fin de séance. Une durée de `0 s`, lorsqu’elle est choisie par l’utilisateur, rend la phase instantanée sans supprimer l’élément structurel.
 
@@ -2475,9 +2475,9 @@ Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est re
 
 ### Référence DSF V2 détaillée — clôture 28 septembre 2026
 
-- **Navigation basse** : pilule `322 × 62 px`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur/rayon 10 offset `0,2`; token `color/navigation/pill`. Icône Profil selon D-233/D-236, dans une boîte de navigation 32×32 ; actif `#0508E5`, inactif `#595E66 (iconNeutral/textSecondary ; ancien #5C636E historique)`. Cadre actif `76 × 50 px`, bleu `#0508E5` à 10 %. Boîtes d’icônes aux abscisses 68/146/224/302 dans la référence 402 px, soit 28 px entre bord de pilule et boîte extrême et 78 px entre centres. Intégration écran : 16 px sous la pilule, bande opaque 16 px puis dégradé transparent→fond sur 40 px ; ces bandes appartiennent à l’écran.
+- **Navigation basse** : pilule `322 × 62 px`, `color/navigation/pill #F9FAFC` (référence couleur centralisée au chapitre12), stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur/rayon 10 offset `0,2`; token `color/navigation/pill`. Icône Profil selon D-233/D-236, dans une boîte de navigation 32×32 ; actif `#0508E5`, inactif `#595E66 (iconNeutral/textSecondary ; ancien #5C636E historique)`. Cadre actif `76 × 50 px`, bleu `#0508E5` à 10 %. Boîtes d’icônes aux abscisses 68/146/224/302 dans la référence 402 px, soit 28 px entre bord de pilule et boîte extrême et 78 px entre centres. Intégration écran : 16 px sous la pilule, bande opaque 16 px puis dégradé transparent→fond sur 40 px ; ces bandes appartiennent à l’écran.
 - **Fond / contexte** : écran ordinaire `#FFFFFF`; Splash `#0006F1`; média plein écran `#0A0A0C`. Zone de contexte `#EAEAFF`→transparent sur les 20 % inférieurs pour Catalogues, Composition, Calendrier, Suivi, Profil et Ajout d’exercice. Le séparateur 1 px n’est retiré que si ce dégradé assure la séparation.
-- **Halo et action circulaire** : halo Annuler/Retour blanc opaque `59,28 px`, placé devant la zone de contexte et hors du conteneur clippé ; bouton circulaire clair `32 × 32`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur 10 offset `0,2`.
+- **Halo et action circulaire** : halo Annuler/Retour blanc opaque `59,28 px`, placé devant la zone de contexte et hors du conteneur clippé ; bouton circulaire clair `32 × 32`, la valeur observée référencée au chapitre12, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur 10 offset `0,2`.
 - **Stepper / valeur** : variante lavande `#F2F2FF` pour Profil/paramètres, variante blanche pour Tours de Composition ; `−/+` ronds bleus, 12 px autour de la valeur centrale. Le stepper remplace la valeur sur la même ligne sans étirer le groupe ; un seul stepper actif à la fois. Badge replié `#F5F7FA (surface ; ancienne valeur historique #F4F4F8)`, texte bleu Semi Bold 13 px, rayon 6, marges 8 px horizontales et 2 px verticales ; contour bleu 1,5 px lorsque le contrôle est ouvert (DSF V2 lot 3, T4). Le nombre de semaines utilise la pilule de stepper rayon 18.
 - **Point d’arrêt** : bouton rond blanc opaque, icône Pause, contour 1 px `#0508E5`; l’action complète porte le contour. Les occurrences de Composition utilisent cette référence commune.
 - **Ressenti** : ne pas confondre contrôle de choix et pictogramme de résultat. Résultats : vert Bien, orange Neutre, rouge Mal ; rouge source `#EF4444`. Aucun état actif Figma ne prouve un contrôle « Mal sélectionné ».

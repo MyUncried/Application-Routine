@@ -92,9 +92,9 @@ La maquette Figma constitue la référence visuelle et interactive. Les document
 - `3841:8375` — historique/supersédé — ancien Catalogue des séances — Créer — arbre d’actions ;
 - `3561:4695`, `3561:7673`, `3561:7802` — éditeur Exercice Répétitions/À l’échec et roulette ;
 - `3943:6064` — éditeur Exercice — état vide ;
-- `3788:5258` — Composition — Ajouter un exercice — arbre ;
-- `3789:5349` et `3789:5405` — sélection multiple d’Exercices existants ;
-- `3879:5947` / `3879:6079` — création/modification d’un Exercice persistante ;
+- `3788:5258` — Composition — Ajouter un exercice — arbre  — relevé historique, IDs supprimés à qualifier via la matrice courante du 06/10 ;
+- `3789:5349` et `3789:5405` — sélection multiple d’Exercices existants  — relevé historique, IDs supprimés à qualifier via la matrice courante du 06/10 ;
+- `3879:5947` / `3879:6079` — création/modification d’un Exercice persistante  — relevé historique, IDs supprimés à qualifier via la matrice courante du 06/10 ;
 - `2028:11700` / `2028:11808` — Composition et actions glissées ;
 - `2028:11204` — Composition séance — Étiquettes ;
 - `1992:8626`, `1992:8132`, `1992:8718`, `1992:8780`, `1992:8843`, `1992:8996` — structures visuelles réutilisées pour Exécution directe, Synthèse et Suivi ;
@@ -314,4 +314,7 @@ v12 et v10.2 sont historiques ; leurs règles remplacées ne doivent pas être u
 - [Audit transverse reçu de Claude](../.github/orchestration/reports/2026-10-06_AUDIT_TRANSVERSE_FINAL_DOCUMENTATION_KODJO.md)
 - [Corrections G-01 à G-05 et contrôles](../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_TRANSVERSE_DOCUMENTAIRE.md)
 
-**Statut :** les écarts établis de cette passe transverse sont traités ; l’alignement fonctionnel total et la clôture restent en attente de la seconde passe de Claude (chapitres fonctionnels et contenu des 30 contrats).
+**Statut :** la seconde passe fonctionnelle de Claude est reçue, mais sa couverture reste partielle. Les contradictions déterminées sont corrigées dans le lot H ; les arbitrages H-03, placement du Point d’arrêt H-08 et avertissement H-09 ainsi que la source de sélection H-10 restent explicites. L’alignement total et la clôture ne sont pas déclarés.
+
+- [Audit fonctionnel reçu](../.github/orchestration/reports/2026-10-06_AUDIT_FONCTIONNEL_CHAPITRES_CONTRATS_KODJO.md)
+- [Corrections fonctionnelles et réserves](../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_FONCTIONNEL_DOCUMENTAIRE.md)

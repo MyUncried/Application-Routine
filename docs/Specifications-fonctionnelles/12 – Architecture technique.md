@@ -939,7 +939,7 @@ La taille canonique désigne la boîte visuelle de l’icône. Le tracé interne
 | Token | Taille visuelle | Usage |
 | --- | ---: | --- |
 | `icon.control` | `14 × 14` | Chevrons et indicateurs de sélecteurs compacts |
-| `icon.compact` | `16 × 16` | Icônes fonctionnelles incorporées à un contrôle compact, par exemple `icon/ajouter` (`2884:4315`) dans `Action / Add Activity — Source exact` (`2537:1484`). Ne s’applique jamais aux icônes structurelles de carte |
+| `icon.compact` | `16 × 16` | Icônes fonctionnelles incorporées à un contrôle compact. L’ancien exemple `icon/ajouter` (`2884:4315`) dans `Action / Add Activity — Source exact` (`2537:1484`) est historique, supprimé lors du nettoyage Figma ; il ne prouve plus ce format. Ne s’applique jamais aux icônes structurelles de carte |
 | `icon.section` | `18 × 18` | Icônes de contenu, repli de section et restauration interne |
 | `icon.standard` | `24 × 24` | Retour, fermeture, ajout, navigation précédent/suivant et commandes de section |
 | `icon.action` | `28 × 28` | Démarrer, restaurer et actions circulaires |
@@ -948,7 +948,7 @@ La taille canonique désigne la boîte visuelle de l’icône. Le tracé interne
 
 Les pictogrammes de navigation sont centrés dans leur boîte `32 × 32` sans mise à l’échelle forcée de leurs tracés : leurs dimensions internes peuvent donc différer. Les triangles de lecture, chevrons ou autres chemins vectoriels internes ne créent pas de tokens supplémentaires.
 
-`icon.compact` décrit exclusivement la boîte visuelle d’une petite icône fonctionnelle intégrée à un contrôle. L’exemple DSF canonique est le signe d’ajout vectoriel `icon/ajouter` (`2884:4315`), de `16 × 16`, dans le composant `Action / Add Activity — Source exact` (`2537:1484`, contrôle `174 × 32`). Ce token ne définit ni la taille de la cible tactile ni celle d’un slot structurel.
+`icon.compact` décrit exclusivement la boîte visuelle d’une petite icône fonctionnelle intégrée à un contrôle. L’ancien exemple `icon/ajouter` (`2884:4315`, 16 × 16) dans `Action / Add Activity — Source exact` (`2537:1484`, 174 × 32) est historique et n’est plus une source Figma courante. La référence courante du signe d’ajout est `icon/ajouter` (`6959:15706`, 24 × 24), export `assets/icons/action-add.svg` selon DSF-CADENCE §6 ; elle ne démontre pas à elle seule un usage `icon.compact` de 16 × 16. Ce token ne définit ni la taille de la cible tactile ni celle d’un slot structurel.
 
 La poignée de déplacement constitue une exception structurelle explicite : `DSF / Primitives / Icône de structure — déplaçable` (`3066:4676`) utilise un dessin `20 × 20`, centré dans un slot `28 × 28`, avec une opacité de `50 %` et la couleur `color.iconNeutral`. L’ancien dessin local `icon/réorganiser` en `16 × 16` est obsolète et interdit comme source ou comme implémentation de cette poignée. Il ne doit jamais être déduit de `icon.compact`.
 
@@ -1073,7 +1073,9 @@ Dans `Composition / Circuit Section`, le groupe `Nombre de tours` + synthèse me
 
 Le composant DSF `DSF / Primitives / Icône de tour` (`3066:4685`) est l’unique source Figma autorisée. Son dessin provient de l’icône validée dans la frame `Nouvelle séance — Nom renseigné` (`2028:12003`), ancien nœud graphique local `2028:12040`, désormais remplacé dans l’écran par une instance du composant DSF. La référence exportable unique est `assets/icons/icon-tour.svg`, déclarée sous la clé `icon.tour` dans `assets/icons/manifest.json` et destinée à `KodjoIcon name="icon-tour"`. L’ancienne géométrie `20 × 20`, les copies `icon/contenu-principal` et toute autre entrée de manifeste concurrente ne sont plus canoniques.
 
-| Écran concerné | Frame | Instance `DSF / Primitives / Icône de tour` |
+Le tableau suivant conserve le **relevé historique des instances**, antérieur au nettoyage du 05/10 : les IDs locaux supprimés ne constituent plus des cibles courantes. Le composant canonique `3066:4685` ci-dessus reste la source ; `4913:7432` est le stepper de Tours, pas une instance de l’icône. Aucun remplacement d’ID local n’est inventé.
+
+| Écran historique concerné | Frame du relevé historique | Instance / élément du relevé historique |
 | --- | --- | --- |
 | Nouvelle séance — État initial | `2028:11137` | `I3067:4835;3067:247` |
 | Modal — Abandonner la création de la séance | `2028:11298` | `3272:4126` |
@@ -1371,9 +1373,9 @@ Les pictogrammes de `CE-COMP-SEL-01` proviennent des composants locaux DSF du fi
 | Usage | Composant Figma | ID / clé | Tokens liés |
 |---|---|---|---|
 | Recherche dans le panneau | `DSF / Primitives / Icône de recherche` | `3847:5508` / `8468835f0e5ce8676ea419e838c19dccddac0d71` | trait `color/icon-neutral` — `VariableID:2290:59` |
-| Exercice sélectionnée | `Icon / Selection Check` | `3847:5512` / `27a55ca50eec5411d0e087bbf6bd6f0222c0ebf4` | fond `color/selection` — `VariableID:2290:52` ; liseré et coche blancs — `VariableID:2290:5` |
+| Exercice sélectionnée — référence historique supprimée, aucun composant courant de ce nom identifié (audit Claude du 06/10) | `Icon / Selection Check` | `3847:5512` / `27a55ca50eec5411d0e087bbf6bd6f0222c0ebf4` | fond `color/selection` — `VariableID:2290:52` ; liseré et coche blancs — `VariableID:2290:5` |
 
-Chaque composant possède un cadre vectoriel `24 × 24 pt`. L’implémentation réutilise l’asset exporté ou son équivalent code connecté au composant, sans caractère Unicode, emoji, glyphe de police, icône système ni redessin approximatif. La cible tactile appartient au contrôle hôte et reste au minimum `48 × 48 pt`.
+Le relevé historique attribuait à ces composants un cadre vectoriel `24 × 24 pt` ; il ne certifie pas l’existence courante de `Icon / Selection Check`. La référence courante de cet élément reste à retrouver avant export, sans inventer de composant de remplacement. L’implémentation réutilise l’asset exporté ou son équivalent code connecté au composant, sans caractère Unicode, emoji, glyphe de police, icône système ni redessin approximatif. La cible tactile appartient au contrôle hôte et reste au minimum `48 × 48 pt`.
 
 ## Architecture cible — média pendant l’Exécution
 
@@ -1482,3 +1484,13 @@ Séparer `durationDeterminable` de `autoComplete` dans l’adaptateur du plan : 
 Scheduler fondé sur ancres monotones, nombre d’intervalles acquis, début du courant, nominal atteint ; état persistable et transitions idempotentes. Le compteur de tentative est distinct de l’accumulateur actif réel : fraction abandonnée par Pause et temps avant reset restent dans le résultat par Série/côté. Reprise avec intervalle complet ; arrière-plan avec recalcul et sans rejeu des sons manqués. Le seuil30min est ancré sur la fin nominale recalculée. Aucun100% global avant finalisation.
 
 Ordre de développement : représentation variable effective, migration absence de cadence, snapshot versionné, calcul/incertitude, ordonnanceur/progression/audio, restitution/phrase, tests sur appareils. Les modules audio en arrière-plan, interruptions système, verrouillage et reprise doivent être qualifiés iOS/Android ; aucune réussite de test n’est revendiquée ici. Les sons concrets et leur adaptation aux préférences existantes restent du travail d’implémentation, pas un nouveau réglage Profil.
+
+## Cohérence des couleurs après rationalisation — H-13, 06/10/2026
+
+| Élément | Valeur de référence | État observé / provenance |
+|---|---|---|
+| Pilule de navigation | `color/navigation/pill #F9FAFC` | L’ancienne prescription `#FCFCFE` des chapitres06/07 est historique ; la valeur du token est la référence courante. |
+| Surface de carte archivée | `color/surface #F5F7FA` | Le composant Cartes / Exercice Archivé est lié à ce token (relevé Claude du 06/10). `#F6F6F6` figure dans l’ancienne documentation ; cela ne prouve pas à lui seul la valeur historique du token supprimé `color/cards/archive-surface`. |
+| Fond circulaire Retour | `#FCFCFE` observé dans Figma | Selon Claude, 85 calques de Prototype MVP restent liés à des primitives `color/observed/…`, sans token sémantique. Ne pas leur attribuer `color/navigation/pill` par analogie. Le rendu existant est conservé. |
+
+Les faibles écarts de couleurs relèvent des fusions déjà acceptées dans le journal §5.3. Les chapitres06/07/13 renvoient ici pour éviter deux prescriptions concurrentes ; aucun token de code ni asset n’est modifié. Les anciennes valeurs sont des preuves datées, pas des cibles simultanées.
