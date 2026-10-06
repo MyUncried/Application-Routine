@@ -153,7 +153,10 @@ function main() {
     if (stage === 'resume' && fs.existsSync(path.join(out, 'revision-review-receipt.json'))) {
       nextReceipt = JSON.parse(fs.readFileSync(path.join(out, 'revision-review-receipt.json'), 'utf8'));
       Chain.validateReceipt(next, nextReceipt);
-    } else nextReceipt = Chain.reviewOrRecover(next, { cwd, evidenceDirectory: out });
+    } else nextReceipt = Chain.reviewOrRecover(next, { cwd, evidenceDirectory: out,
+      causalEvidence: { base_plan: base.artifacts.planContract,
+        previous_review_report: receipt.review_report,
+        allowed_change_set: correction.allowed, revision_patch: correction.patch } });
     write('revision-review-receipt.json', nextReceipt);
     phase = 'VERIFY_CAUSAL_OUTCOME';
     const artifacts = completeRevision(base, receipt, correction, next, nextReceipt);

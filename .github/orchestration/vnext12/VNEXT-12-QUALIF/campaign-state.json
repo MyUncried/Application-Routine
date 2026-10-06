@@ -146,7 +146,7 @@
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "df2cfc406ac67c0b29b61bc6a4c7bfc9ae011bca",
   "controller_stage": "FIGMA_INITIAL_REQUESTED_AFTER_ABSOLUTE_PATH_CLARIFICATION_NO_DISPOSABLE_PREFLIGHT",
-  "controller_generation": 100,
+  "controller_generation": 101,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -517,11 +517,12 @@
   },
   "active_runs": [
     {
-      "run_id": 37538282108,
+      "run_id": 37543466873,
       "status": "completed",
-      "conclusion": "success",
-      "stage": "FIGMA_INITIAL",
-      "controller_head": "39d8976d2605b806354ce463471a35f6a8ffb3be"
+      "conclusion": "cancelled",
+      "job_conclusion": "failure",
+      "stage": "PREPARE_REVISION",
+      "controller_head": "119c72777c9ee14246a6074cd7144ddb63ad68de"
     }
   ],
   "obsolete_runs": [
@@ -2527,5 +2528,21 @@
     "full_revision_success_claimed": false,
     "next_action": "REAL_CAUSAL_PLAN_REVISION_THEN_HANDOFF_AND_EXECUTION",
     "report": ".github/orchestration/reports/2026-10-07_VNEXT_REVISION_LAUNCH.md"
+  },
+  "revision_causal_evidence_fix_20261007": {
+    "authorization": "USER_2026-10-07_00:56_STOP_CORRECT_RELAUNCH_AND_00:58_BROWSER_APPROVAL",
+    "previous_run": 37543466873,
+    "cancellation_requested": true,
+    "cancellation_confirmed": true,
+    "request_generation": 69,
+    "request_id": "345ba07c-f105-48c3-9f75-e24b49d4ceb6",
+    "qualification_policy": "DIRECT_REAL_USER_REQUEST",
+    "correction": "TRANSMIT_PREVIOUS_PLAN_REVIEW_ALLOWED_CHANGES_AND_PATCH_WITH_EXACT_READABLE_PATHS",
+    "runtime_launched": false,
+    "report": ".github/orchestration/reports/2026-10-07_VNEXT_REVISION_CAUSAL_EVIDENCE_FIX.md",
+    "previous_run_terminal": "CANCELLED_WITH_REAL_REVISION_REVIEW_FAILURE",
+    "previous_failure": "VNEXT_LIVE_REVIEW_NOT_APPROVED: REVISE",
+    "previous_finding_resolution": "OPEN_MISSING_PREVIOUS_REVIEW_AND_PATCH",
+    "previous_revision_blocking_findings": 0
   }
 }

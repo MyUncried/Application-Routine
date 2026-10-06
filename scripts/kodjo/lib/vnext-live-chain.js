@@ -302,7 +302,7 @@ function preserveFailure(error, record) {
   return error;
 }
 
-function materializeReviewDossier(dossier, produced, directory) {
+function materializeReviewDossier(dossier, produced, directory, causalEvidence = null) {
   const canonical = structuredClone(dossier.artifacts);
   const manifest = canonical.candidateManifest;
   if (manifest.rows) {
@@ -328,9 +328,23 @@ function materializeReviewDossier(dossier, produced, directory) {
     if (V.sha256(fs.readFileSync(sourcePath)) !== consumer.source_hash) V.fail('VNEXT_REVIEW_CONSUMER_MATERIALIZATION_MISMATCH');
     return { path: consumer.path, source_hash: consumer.source_hash, source_path: sourcePath };
   });
+  if (causalEvidence) {
+    const evidenceDirectory = path.join(directory, 'causal-revision');
+    fs.mkdirSync(evidenceDirectory);
+    dossier.causal_revision_evidence = Object.fromEntries([
+      ['base_plan', causalEvidence.base_plan],
+      ['previous_review_report', causalEvidence.previous_review_report],
+      ['allowed_change_set', causalEvidence.allowed_change_set],
+      ['revision_patch', causalEvidence.revision_patch],
+    ].map(([name, value]) => {
+      const evidencePath = path.join(evidenceDirectory, name + '.json');
+      fs.writeFileSync(evidencePath, JSON.stringify(value, null, 2) + '\n', { flag: 'wx' });
+      return [name, { path: evidencePath, contract_hash: value.contract_hash }];
+    }));
+  }
   return dossier;
 }
-function review(produced, { cwd, claude = require('./claude-local').resolveClaudeBinary(), github, invoke = require('./vnext-review-process').command, evidenceDirectory } = {}) {
+function review(produced, { cwd, claude = require('./claude-local').resolveClaudeBinary(), github, invoke = require('./vnext-review-process').command, evidenceDirectory, causalEvidence = null } = {}) {
   const artifacts = verifyProduced(produced, cwd, github);
   const schema = { type: 'object', additionalProperties: false, required: ['semantic_review', 'native_assessment_observations'],
     properties: { semantic_review: Review.reviewerOutputSchema(artifacts.reviewContext),
@@ -380,11 +394,12 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   }
   if (evidenceDirectory && fs.existsSync(responsePath(produced, evidenceDirectory))) V.fail('VNEXT_REVIEW_RESPONSE_EXISTS_USE_RECOVERY');
   const configDir = fs.mkdtempSync(path.join(os.tmpdir(), 'kodjo-vnext-review-'));
-  try { materializeReviewDossier(dossier, produced, configDir); }
+  try { materializeReviewDossier(dossier, produced, configDir, causalEvidence); }
   catch (error) { fs.rmSync(configDir, { recursive: true, force: true }); throw error; }
   dossier.instructions = dossier.instructions.replace('Avant de verifier les empreintes canoniques, reconstruire candidateManifest.candidates depuis columns/rows et reviewContext.target_catalog depuis target_catalog ; cette projection de transport ne remplace pas les contrats canoniques.',
     'Le controleur a reconstruit et verifie les objets canoniques avant cet appel ; canonical_observation indique le fichier exact et les empreintes verifiees. Lire ce fichier selon les besoins de la revue ; aucun calcul de hash ni execution de code ne vous est demande. La projection de transport ne remplace pas les contrats canoniques.');
   dossier.instructions += ' Les sources exactes des consommateurs sont disponibles dans consumer_sources[].source_path, avec leur chemin Git et empreinte verifies. Utiliser Read pour les consulter ; ne pas executer les consommateurs.';
+  if (causalEvidence) dossier.instructions += ' Pour cette REVISION, lire les quatre fichiers de causal_revision_evidence aux chemins absolus indiques : base_plan, previous_review_report, allowed_change_set et revision_patch. previous_review_report contient le texte exact de chaque constat anterieur ; revision_patch contient la correction autorisee. Comparer ces preuves au plan revise du dossier canonique pour renseigner finding_resolutions. Ne pas deviner le sens d’un finding_id ni chercher ces preuves par un identifiant de session Claude. Il s’agit de preuves de revision du plan, pas d’un resultat de developpement ni d’une resolution deja approuvee.';
   fs.writeFileSync(path.join(configDir, 'mcp.json'), JSON.stringify({ mcpServers: {} }));
   fs.writeFileSync(path.join(configDir, 'settings.json'), JSON.stringify({ disableAllHooks: true }));
   if(artifacts.uiAtomicityContract?.figma_references?.length){

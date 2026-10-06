@@ -94,7 +94,7 @@ jobs:
         shell: bash
         run: node --test tests/kodjo/vnext*.pilot.js
   prepare-revision:
-    if: always() && needs.select-stage.result == 'success' && needs.select-stage.outputs.stage == 'PREPARE_REVISION' && (needs.select-stage.outputs.qualification_policy == 'DIRECT_REAL_USER_REQUEST' || needs.qualify-driver.result == 'success')
+    if: ${{ !cancelled() && needs.select-stage.result == 'success' && needs.select-stage.outputs.stage == 'PREPARE_REVISION' && (needs.select-stage.outputs.qualification_policy == 'DIRECT_REAL_USER_REQUEST' || needs.qualify-driver.result == 'success') }}
     needs: [select-stage, qualify-driver]
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 120
