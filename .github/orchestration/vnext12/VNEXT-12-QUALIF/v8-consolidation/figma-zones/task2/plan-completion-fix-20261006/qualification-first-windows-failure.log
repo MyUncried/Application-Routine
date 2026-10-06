@@ -1,0 +1,43 @@
+failing tests:
+2026-10-06T09:13:20.9987616Z
+2026-10-06T09:13:20.9987836Z test at tests\kodjo\vnext-figma-browser-observer.pilot.js:50:1
+2026-10-06T09:13:20.9988550Z ✖ actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta (9821.2871ms)
+2026-10-06T09:13:20.9989287Z   Error: VNEXT_FIGMA_BROWSER_CDP:{"code":-32000,"message":"Content unavailable. Resource was not cached"}
+2026-10-06T09:13:20.9990042Z       at WebSocket.<anonymous> (D:\a\Application-Routine\Application-Routine\scripts\kodjo\lib\vnext-figma-browser-observer.js:102:201)
+2026-10-06T09:13:20.9990678Z       at [nodejs.internal.kHybridDispatch] (node:internal/event_target:848:20)
+2026-10-06T09:13:20.9991141Z       at WebSocket.dispatchEvent (node:internal/event_target:789:26)
+2026-10-06T09:13:20.9991575Z       at fireEvent (node:internal/deps/undici/undici:14438:14)
+2026-10-06T09:13:20.9991964Z       at #onMessage (node:internal/deps/undici/undici:15762:9)
+2026-10-06T09:13:20.9992369Z       at Object.onMessage (node:internal/deps/undici/undici:15469:76)
+2026-10-06T09:13:20.9992819Z       at websocketMessageReceived (node:internal/deps/undici/undici:14442:15)
+2026-10-06T09:13:20.9993228Z       at node:internal/deps/undici/undici:15171:21
+2026-10-06T09:13:20.9993594Z       at node:internal/deps/undici/undici:14951:11
+2026-10-06T09:13:20.9993943Z       at afterWrite (node:internal/streams/writable:712:5)
+2026-10-06T09:13:20.9994135Z
+2026-10-06T09:13:20.9994385Z test at tests\kodjo\vnext-figma-browser-observer.pilot.js:66:1
+2026-10-06T09:13:20.9995081Z ✖ disposable fixed geometry refuses a viewport-relative counterexample at an independent viewport (5347.2416ms)
+2026-10-06T09:13:20.9996053Z   Error: VNEXT_LIVE_PROCESS_FAILED: C:\hostedtoolcache\windows\node\24.21.0\x64\node.exe: VNEXT_FIGMA_BROWSER_CDP:{"code":-32000,"message":"Content unavailable. Resource was not cached"}
+2026-10-06T09:13:20.9996918Z
+2026-10-06T09:13:20.9997476Z       at Object.fail (D:\a\Application-Routine\Application-Routine\scripts\kodjo\lib\vnext-contract.js:11:17)
+2026-10-06T09:13:20.9998443Z       at Object.command (D:\a\Application-Routine\Application-Routine\scripts\kodjo\lib\vnext-live-chain.js:38:36)
+2026-10-06T09:13:20.9999206Z       at Object.observe (D:\a\Application-Routine\Application-Routine\scripts\kodjo\qualify-vnext-figma-real-path.js:76:32)
+2026-10-06T09:13:21.0000085Z       at TestContext.<anonymous> (D:\a\Application-Routine\Application-Routine\tests\kodjo\vnext-figma-browser-observer.pilot.js:73:24)
+2026-10-06T09:13:21.0000710Z       at Test.runInAsyncScope (node:async_hooks:227:14)
+2026-10-06T09:13:21.0001111Z       at Test.run (node:internal/test_runner/test:1402:25)
+2026-10-06T09:13:21.0001566Z       at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+2026-10-06T09:13:21.0002065Z       at Test.postRun (node:internal/test_runner/test:1542:19)
+2026-10-06T09:13:21.0002457Z       at Test.run (node:internal/test_runner/test:1467:12)
+2026-10-06T09:13:21.0002950Z       at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+2026-10-06T09:13:21.0003439Z     code: 'VNEXT_LIVE_PROCESS_FAILED'
+2026-10-06T09:13:21.0003720Z   }
+2026-10-06T09:13:21.0017755Z ##[error]Process completed with exit code 1.
+2026-10-06T09:13:21.0282668Z Post job cleanup.
+2026-10-06T09:13:21.1996766Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-10-06T09:13:21.2259117Z git version 2.55.0.windows.5
+2026-10-06T09:13:21.2328963Z Temporarily overriding HOME='D:\a\_temp\12eeb013-c804-494e-b9b0-d3c1784d8a6c' before making global git config changes
+2026-10-06T09:13:21.2330146Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-06T09:13:21.2340364Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\Application-Routine\Application-Routine
+2026-10-06T09:13:21.2643381Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-10-06T09:13:21.2919280Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-10-06T09:13:21.7734105Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-06T09:13:21.7996092Z [comma

@@ -1,6 +1,11 @@
 'use strict';
 // Disposable browser measurement, never a native-device certification.
-const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),{spawn,execFile}=require('node:child_process'),http=require('node:http');
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),{spawn,execFile}=require('node:child_process'),http=require('node:http'),crypto=require('node:crypto');
+const digest=s=>crypto.createHash('sha256').update(s).digest('hex');
+function attestProvenance({screenSource,keepSource,hostSource,loadedDocument,renderString,canonicalRender,measuredMount}){
+ if(digest(loadedDocument)!==digest(hostSource)||canonicalRender!==measuredMount)throw Error('VNEXT_FIGMA_BROWSER_PROVENANCE_MISMATCH');
+ return {screen_source_sha256:digest(screenSource),preserved_source_sha256:digest(keepSource),render_string_sha256:digest(renderString),generated_host_sha256:digest(hostSource),loaded_document_sha256:digest(loadedDocument),canonical_render_sha256:digest(canonicalRender),measured_mount_sha256:digest(measuredMount),verified:true};
+}
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 function invoke(file,args){return new Promise((resolve,reject)=>execFile(file,args,{windowsHide:true,timeout:15000,maxBuffer:1024*1024},(error,stdout,stderr)=>error?reject(Object.assign(error,{diagnostic_stderr:stderr})):resolve(stdout)));}
 async function profileProcesses(profile){
@@ -126,8 +131,7 @@ async function observe({screen,keep,directory,viewport,height,frameId,titleId,tr
   const loadedDocument=resource.base64Encoded?Buffer.from(resource.body,'base64'):resource.body;
   const facts={...result.result.value,browser_version:version.product};
   const p=facts.provenance;
-  if(digest(loadedDocument)!==digest(hostSource)||p.canonical_render!==p.measured_mount)throw Error('VNEXT_FIGMA_BROWSER_PROVENANCE_MISMATCH');
-  facts.provenance={screen_source_sha256:digest(screenSource),preserved_source_sha256:digest(keepSource),render_string_sha256:digest(p.render_string),generated_host_sha256:digest(hostSource),loaded_document_sha256:digest(loadedDocument),canonical_render_sha256:digest(p.canonical_render),measured_mount_sha256:digest(p.measured_mount),verified:true};if(facts.viewport!==viewport)throw Error('VNEXT_FIGMA_BROWSER_VIEWPORT_MISMATCH');
+  facts.provenance=attestProvenance({screenSource,keepSource,hostSource,loadedDocument,renderString:p.render_string,canonicalRender:p.canonical_render,measuredMount:p.measured_mount});if(facts.viewport!==viewport)throw Error('VNEXT_FIGMA_BROWSER_VIEWPORT_MISMATCH');
   const image=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},sessionId);fs.writeFileSync(path.join(directory,'rendered.png'),Buffer.from(image.data,'base64'),{flag:'wx'});
   fs.writeFileSync(path.join(directory,'browser-facts.json'),JSON.stringify(facts,null,2)+'\n',{flag:'wx'});return facts;
  }catch(error){primaryError=error;throw error;}finally{
@@ -138,4 +142,4 @@ async function observe({screen,keep,directory,viewport,height,frameId,titleId,tr
  }
 }
 if(require.main===module)observe(JSON.parse(fs.readFileSync(process.argv[2],'utf8'))).then(r=>process.stdout.write(JSON.stringify(r))).catch(e=>{process.stderr.write(e.message+'\n');process.exitCode=1;});
-module.exports={resolveBrowser,host,observe,closeProcess,cleanupProfile};
+module.exports={resolveBrowser,host,observe,closeProcess,cleanupProfile,attestProvenance};

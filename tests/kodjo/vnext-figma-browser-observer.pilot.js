@@ -131,3 +131,11 @@ test('Windows cleanup inventories profile before waiting for forced root exit',a
  await Browser.closeProcess(child,{profile:'isolated-profile',platform:'win32',wait:async(c,timeout)=>{calls.push('wait:'+timeout);if(timeout===3000)return false;assert.equal(inventoryDone,true);return true;},terminate:async(file,args)=>{calls.push('kill:'+args[1]);},inventory:async()=>{inventoryDone=true;calls.push('inventory');return [];}});
  assert.deepEqual(calls,['wait:3000','kill:123','inventory','wait:10000']);
 });
+
+test('provenance attestation rejects a substituted document or mounted fragment without a browser',()=>{
+ const input={screenSource:'source',keepSource:'dependency',hostSource:'host',loadedDocument:Buffer.from('host'),renderString:'<p>Title</p>',canonicalRender:'<p>Title</p>',measuredMount:'<p>Title</p>'};
+ const facts=Browser.attestProvenance(input);assert.equal(facts.verified,true);assert.equal(facts.loaded_document_sha256,require('crypto').createHash('sha256').update('host').digest('hex'));
+ assert.notEqual(facts.render_string_sha256,facts.loaded_document_sha256);
+ assert.throws(()=>Browser.attestProvenance({...input,loadedDocument:'substituted host'}),/PROVENANCE_MISMATCH/);
+ assert.throws(()=>Browser.attestProvenance({...input,measuredMount:'<p>Other title</p>'}),/PROVENANCE_MISMATCH/);
+});
