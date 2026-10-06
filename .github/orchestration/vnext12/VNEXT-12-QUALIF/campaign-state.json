@@ -7,8 +7,8 @@
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au r\u00e9sultat r\u00e9el, diagnostiquer/corriger/relancer les \u00e9checs techniques ; solliciter uniquement une validation m\u00e9tier.",
   "code_head_before_checkpoint": "c30c57682a7864b5b548a2470c6f514b849bdf37",
-  "controller_stage": "FIGMA_REAL_INITIAL_RELAUNCH_AFTER_PLAN_COMPLETION",
-  "controller_generation": 93,
+  "controller_stage": "EVIDENCE_BASIS_FIX_QUALIFIED_READY_FOR_REAL_PATH",
+  "controller_generation": 94,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -2212,21 +2212,21 @@
   },
   "task2_plan_completion_fix_20261006": {
     "authorization": "USER_2026-10-06_10:59_PARIS_APPLY_FIXES_AND_AUTOMATIC_RELAUNCH",
-    "stage": "EVIDENCE_BASIS_CORRECTION_PENDING_QUALIFICATION",
+    "stage": "EVIDENCE_BASIS_QUALIFIED_READY_FOR_REAL_PATH",
     "report": ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_COMPLETION_FIX.md",
     "prior_runtime_run": 37435583811,
     "prior_pilot_run": 37435583847,
-    "runtime_launched": true,
-    "qualification_branch": "qualification/vnext-task2-proof-routing-20261006",
-    "qualification_launch_count": 9,
+    "runtime_launched": false,
+    "qualification_branch": "qualification/vnext-task2-evidence-basis-20261006",
+    "qualification_launch_count": 10,
     "runtime_launch_count": 7,
     "task3_authorized": false,
     "closure_authorized": false,
-    "candidate_head": "bd34c389e46191670d0ec446cadd6826720282e9",
-    "qualification_run": 37470153137,
+    "candidate_head": "90c590504d9e5942b7989e4469117a4ff48cd583",
+    "qualification_run": 37485565531,
     "qualification_status": "SUCCESS",
-    "new_request_id": "464b0e67-cd73-45c3-a393-28e92a0e0720",
-    "request_generation": 61,
+    "new_request_id": "4f59bc1a-4fd6-4f68-8f23-28ec70eb4e77",
+    "request_generation": 62,
     "request_published": true,
     "qualification_attempts": [
       {
@@ -2285,20 +2285,20 @@
     ],
     "contracts": {
       "Linux": {
-        "tests": 339,
-        "pass": 339,
+        "tests": 341,
+        "pass": 341,
         "fail": 0,
         "skip": 0
       },
       "Windows": {
-        "tests": 339,
-        "pass": 339,
+        "tests": 341,
+        "pass": 341,
         "fail": 0,
         "skip": 0
       }
     },
     "runtime_startup_run": 37443238973,
-    "runtime_status": "FAILED_PLAN_REVISE",
+    "runtime_status": "PENDING_NEW_RUN",
     "controller_head": "25ce4ff8f4e093e77f3cd2b5c732d5a29ca1c538",
     "request_consumed": null,
     "claude_invoked": null,
@@ -2313,7 +2313,7 @@
     },
     "previous_startup_request_id": "b79dcc3e-1962-416c-a701-bd1325b78492",
     "native_validation_pending": false,
-    "runtime_run": 37471294088,
+    "runtime_run": null,
     "admission_job": 112295237450,
     "admission_status": "SUCCESS",
     "artifact_upload_status": "SUCCESS",
@@ -2322,9 +2322,9 @@
     "recovery_artifact_id": 11408440209,
     "previous_request_consumed": true,
     "previous_request_id": "6ea7b481-9de4-463a-a79b-26327a2bbcca",
-    "claude_verdict": "REVISE",
-    "claude_duration_ms": 680336,
-    "blocking_findings": 3,
+    "claude_verdict": null,
+    "claude_duration_ms": null,
+    "blocking_findings": null,
     "latest_completed_runtime": {
       "run_id": 37471294088,
       "verdict": "REVISE",
@@ -2333,6 +2333,6 @@
       "artifact_sha256": "abea85ac017e8b747f244ef955809fa83fcdfea0d7ba1164e4c8f48f05673065",
       "implementation_exercised": false
     },
-    "native_validation_job": 112291231131
+    "native_validation_job": 112344547287
   }
 }
