@@ -1,14 +1,14 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
-  "recorded_at": "2026-10-06T02:03:20.730Z",
+  "recorded_at": "2026-10-06T06:57:32.920431+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "434adeef6d42e861a3dbee7c6236e77cc1ba74f9",
-  "controller_stage": "FIGMA_TASK2_TWO_HOURS_RUNTIME_REQUEST_READY",
-  "controller_generation": 76,
+  "controller_stage": "FIGMA_TASK2_REGRESSION_FIX_QUALIFICATION_READY",
+  "controller_generation": 79,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -377,7 +377,26 @@
     "consumption_tag": "9e2e693061c8d0d53d00d15519a4f1b216e6a081",
     "replay_forbidden": true
   },
-  "active_runs": [],
+  "active_runs": [
+    {
+      "id": 37402330270,
+      "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "id": 37402330072,
+      "path": ".github/workflows/kodjo-vnext-proof-stability.yml",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 37402330192,
+      "path": ".github/workflows/kodjo-vnext12-disposable.yml",
+      "status": "completed",
+      "conclusion": "failure"
+    }
+  ],
   "obsolete_runs": [
     {
       "run_id": "36848654104",
@@ -2002,10 +2021,10 @@
     "claude_timeout_ms": 7200000,
     "workflow_timeout_minutes": 120,
     "fresh_qualification_required": false,
-    "runtime_launched": false,
+    "runtime_launched": true,
     "task3_authorized": false,
     "closure_authorized": false,
-    "next_action": "LAUNCH_FRESH_TASK2_REQUEST"
+    "next_action": "COLLECT_RUNNING_TASK2_RESULT"
   },
   "task2_two_hours_relaunch_20261006": {
     "authorization": "USER_2026-10-06_03:41_PARIS_LAUNCH_TASK2",
@@ -2015,7 +2034,7 @@
     "workflow_timeout_minutes": 120,
     "previous_consumed_request_id": "96c53d61-f780-41dc-afb7-3c1f992c910f",
     "fresh_qualification_required": false,
-    "runtime_launched": false,
+    "runtime_launched": true,
     "task3_authorized": false,
     "closure_authorized": false,
     "candidate_head": "abecf87e88abbf387c1e22e319cda1374762018d",
@@ -2026,7 +2045,7 @@
     "failed_qualification_candidate": "d1746b16bbe957861e369c66b72823579e2ed05e",
     "failure": "STALE_TEST_EXPECTED_600000_OR_900000_INSTEAD_OF_7200000",
     "qualification_candidates_launched": 2,
-    "runtime_launch_count": 0,
+    "runtime_launch_count": 1,
     "new_request_id": "55015f80-1d0e-4333-941d-e0dbdab8600d",
     "request_generation": 52,
     "contracts": {
@@ -2057,6 +2076,31 @@
         "skipped": 3
       }
     },
-    "next_action": "PUBLISH_FRESH_REQUEST_ONCE"
+    "next_action": "CORRECT_REVIEW_TRANSPORT_AND_DISPOSABLE_PROOF_GAPS_BEFORE_FRESH_RUN",
+    "controller_head": "bb6dcf7b0927242a0612c6ac11cdc7de99109b09",
+    "runtime_run": 37402330192,
+    "runtime_job": 112072091323,
+    "runtime_status": "FAILED_REVIEW_RESPONSE_SELF_DEPENDENCY",
+    "internal_claim": "VERIFIED_ARTIFACT",
+    "claude_activity": "COMPLETED_FINAL_STRUCTURED_RESPONSE",
+    "runtime_request_consumed": true,
+    "review_duration_ms": 440167,
+    "timeout_ms": 7200000,
+    "implementation_calls": 0,
+    "correction_calls": 0,
+    "blocking_findings": 3,
+    "related_windows_pilot_diagnostic": "EPERM_BROWSER_TEMP_DIRECTORY_CLEANUP"
+  },
+  "task2_regression_fix_20261006": {
+    "authorization": "USER_2026-10-06_08:50_PARIS_CONFIRM_CORRECT_AND_RELAUNCH",
+    "qualification_branch": "qualification/vnext-task2-regression-fix-20261006",
+    "qualification_launch_count": 0,
+    "runtime_launch_count": 0,
+    "previous_consumed_request_id": "55015f80-1d0e-4333-941d-e0dbdab8600d",
+    "claude_timeout_ms": 7200000,
+    "workflow_timeout_minutes": 120,
+    "task3_authorized": false,
+    "closure_authorized": false,
+    "next_action": "QUALIFY_CORRECTED_EXACT_HEAD"
   }
 }

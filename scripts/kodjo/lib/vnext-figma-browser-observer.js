@@ -1,6 +1,53 @@
 'use strict';
 // Disposable browser measurement, never a native-device certification.
-const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),{spawn}=require('node:child_process'),{pathToFileURL}=require('node:url');
+const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),{spawn,execFile}=require('node:child_process'),{pathToFileURL}=require('node:url');
+const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+function invoke(file,args){return new Promise((resolve,reject)=>execFile(file,args,{windowsHide:true,timeout:15000,maxBuffer:1024*1024},(error,stdout,stderr)=>error?reject(Object.assign(error,{diagnostic_stderr:stderr})):resolve(stdout)));}
+async function profileProcesses(profile){
+ const literal="'"+profile.replace(/'/g,"''")+"'";
+ const script="$ErrorActionPreference='Stop'; $profile="+literal+"; $rows=@(Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -ne $PID -and $_.Name -notmatch '^(powershell|pwsh)\\.exe$' -and $_.CommandLine -and $_.CommandLine.Contains($profile) } | Select-Object ProcessId,ParentProcessId,Name); ConvertTo-Json -InputObject $rows -Compress";
+ return JSON.parse((await invoke('powershell.exe',['-NoProfile','-NonInteractive','-Command',script])).trim()||'[]');
+}
+function waitForClose(child,timeout){
+ if(child.exitCode!==null||child.signalCode!==null)return Promise.resolve(true);
+ return new Promise(resolve=>{const finish=value=>{clearTimeout(timer);child.removeListener('close',closed);resolve(value);},closed=()=>finish(true),timer=setTimeout(()=>finish(false),timeout);child.once('close',closed);});
+}
+async function closeProcess(child,{profile,platform=process.platform,inventory=profileProcesses,terminate=invoke,diagnostic={}}){
+ diagnostic.pid=child?.pid||null;diagnostic.profile=profile;
+ if(child?.pid){
+  diagnostic.graceful_close=await waitForClose(child,3000);
+  if(!diagnostic.graceful_close){
+   diagnostic.forced_close=true;
+   // Terminate only our still-running isolated browser tree, never a user's browser.
+   if(platform==='win32'){
+    try{await terminate('taskkill.exe',['/PID',String(child.pid),'/T','/F']);}
+    catch(error){if(!await waitForClose(child,1000))throw error;diagnostic.force_raced_with_exit=true;}
+   }else child.kill('SIGKILL');
+   if(!await waitForClose(child,10000))throw Error('VNEXT_FIGMA_BROWSER_PROCESS_NOT_CLOSED');
+  }
+  diagnostic.exit_code=child.exitCode;diagnostic.signal=child.signalCode;
+ }
+ if(platform==='win32'){
+  const deadline=Date.now()+10000;diagnostic.profile_process_checks=[];
+  do{
+   const rows=await inventory(profile);diagnostic.profile_process_checks.push({at:new Date().toISOString(),processes:rows});
+   if(!rows.length){diagnostic.profile_processes_closed=true;break;}
+   if(Date.now()>=deadline)throw Error('VNEXT_FIGMA_BROWSER_PROFILE_PROCESSES_REMAIN');
+   await delay(200);
+  }while(true);
+ }
+ diagnostic.process_close_verified=true;
+}
+async function cleanupProfile({child,profile,directory,stderr,primaryError,diagnostic={},close=closeProcess,remove=fs.rmSync}){
+ fs.writeFileSync(path.join(directory,'browser-stderr.log'),stderr);
+ try{
+  await close(child,{profile,diagnostic});
+  remove(profile,{recursive:true,force:true,maxRetries:10,retryDelay:200});diagnostic.profile_removed=true;
+ }catch(error){
+  diagnostic.cleanup_error={message:error.message,code:error.code||null,stderr:error.diagnostic_stderr||null};
+  if(primaryError)primaryError.cleanup_error=diagnostic.cleanup_error;else throw error;
+ }finally{fs.writeFileSync(path.join(directory,'browser-cleanup.json'),JSON.stringify(diagnostic,null,2)+'\n');}
+}
 function resolveBrowser(env=process.env,exists=fs.existsSync){
  if(env.KODJO_FIGMA_BROWSER&&(!path.isAbsolute(env.KODJO_FIGMA_BROWSER)||!exists(env.KODJO_FIGMA_BROWSER)))throw Error('VNEXT_FIGMA_BROWSER_CONFIG_INVALID');
  // Ubuntu runners provide packaged Chrome; prefer it over the Chromium snapshot,
@@ -21,7 +68,7 @@ window.subjectReady=true;
 async function observe({screen,keep,directory,viewport,height,frameId,titleId,transitions,browser=resolveBrowser()}){
  if(!Number.isSafeInteger(viewport)||viewport<1||!Number.isSafeInteger(height)||height<1)throw Error('VNEXT_FIGMA_BROWSER_VIEWPORT_INVALID');
  if(typeof frameId!=='string'||!frameId||typeof titleId!=='string'||!titleId||!Array.isArray(transitions)||transitions.some(t=>typeof t.scenario_id!=='string'||typeof t.method!=='string'||typeof t.expected!=='boolean'))throw Error('VNEXT_FIGMA_BROWSER_SUBJECTS_INVALID');
- const profile=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-figma-browser-'));let child,ws,send,stderr='',sequence=0;const pending=new Map();
+ const profile=fs.mkdtempSync(path.join(os.tmpdir(),'kodjo-figma-browser-'));let child,ws,send,primaryError,stderr='',sequence=0;const pending=new Map(),cleanupDiagnostic={browser};
  const html=path.join(directory,'rendered.html');fs.writeFileSync(html,host(fs.readFileSync(screen,'utf8'),fs.readFileSync(keep,'utf8')),{flag:'wx'});
  try{
   const endpoint=await new Promise((resolve,reject)=>{
@@ -45,7 +92,6 @@ async function observe({screen,keep,directory,viewport,height,frameId,titleId,tr
    const nodes=Array.from(document.querySelectorAll('[data-figma-id]'));
    const frame=nodes.find(n=>n.getAttribute('data-figma-id')===${JSON.stringify(frameId)}),title=nodes.find(n=>n.getAttribute('data-figma-id')===${JSON.stringify(titleId)});
    if(!frame||!title)throw Error('Required rendered subjects absent');
-   if(subject.__figmaWidthDelta)frame.style.width=(frame.getBoundingClientRect().width+subject.__figmaWidthDelta)+'px';
    const rect=frame.getBoundingClientRect(),scenarios={};
    for(const t of ${JSON.stringify(transitions)}){if(typeof subject[t.method]!=='function')throw Error('Scenario method absent');scenarios[t.scenario_id]=subject[t.method]()===t.expected;}
    return {viewport:innerWidth,width:rect.width,height:rect.height,title:title.textContent,scenarios,observer:'BROWSER_DOM_LAYOUT',native_certification:false};
@@ -54,13 +100,11 @@ async function observe({screen,keep,directory,viewport,height,frameId,titleId,tr
   const facts={...result.result.value,browser_version:version.product};if(facts.viewport!==viewport)throw Error('VNEXT_FIGMA_BROWSER_VIEWPORT_MISMATCH');
   const image=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false},sessionId);fs.writeFileSync(path.join(directory,'rendered.png'),Buffer.from(image.data,'base64'),{flag:'wx'});
   fs.writeFileSync(path.join(directory,'browser-facts.json'),JSON.stringify(facts,null,2)+'\n',{flag:'wx'});return facts;
- }finally{
-  if(send&&ws?.readyState===WebSocket.OPEN){try{await send('Browser.close');}catch(_){}ws.close();}
+ }catch(error){primaryError=error;throw error;}finally{
+  if(send&&ws?.readyState===WebSocket.OPEN){try{await send('Browser.close');cleanupDiagnostic.browser_close_sent=true;}catch(error){cleanupDiagnostic.browser_close_error=error.message;}ws.close();}
   for(const item of pending.values()){clearTimeout(item.timer);item.reject(Error('VNEXT_FIGMA_BROWSER_CLOSED'));}pending.clear();
-  if(child&&child.exitCode===null){await new Promise(resolve=>{const timer=setTimeout(()=>{child.kill();resolve();},3000);child.once('exit',()=>{clearTimeout(timer);resolve();});});}
-  fs.writeFileSync(path.join(directory,'browser-stderr.log'),stderr);
-  fs.rmSync(profile,{recursive:true,force:true,maxRetries:10,retryDelay:200});
+  await cleanupProfile({child,profile,directory,stderr,primaryError,diagnostic:cleanupDiagnostic});
  }
 }
 if(require.main===module)observe(JSON.parse(fs.readFileSync(process.argv[2],'utf8'))).then(r=>process.stdout.write(JSON.stringify(r))).catch(e=>{process.stderr.write(e.message+'\n');process.exitCode=1;});
-module.exports={resolveBrowser,host,observe};
+module.exports={resolveBrowser,host,observe,closeProcess,cleanupProfile};

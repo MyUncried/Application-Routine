@@ -232,7 +232,9 @@ function decodeReviewOutput(context, output) {
     const { dependency_target_indices: deps, ...finding } = row;
     if (!Array.isArray(deps) || deps.some(i => !Number.isSafeInteger(i) || i < 0 || i >= targets.length)
         || new Set(deps).size !== deps.length) V.fail('VNEXT_REVIEW_DEPENDENCY_INDEX_INVALID');
-    return { ...finding, dependency_target_ids: deps.map(i => targets[i]) };
+    const ids = deps.map(i => targets[i]);
+    if (ids.includes(finding.target_id)) V.fail('VNEXT_REVIEW_FINDING_SELF_DEPENDENCY', finding.target_id);
+    return { ...finding, dependency_target_ids: ids };
   });
   return { findings, finding_resolutions: output.finding_resolutions,
     ...(context.acceptance_gaps ? {acceptance_resolutions:output.acceptance_resolutions} : {}),
@@ -348,6 +350,7 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   delete findingProperties.dependency_target_ids.items.enum;
   delete findingProperties.dependency_target_ids;
   findingProperties.dependency_target_indices = { type: 'array', uniqueItems: true,
+    description: 'Other affected targets only. Exclude the index whose catalog ID equals this finding target_id. Use [] when no other target is affected. The finding target is already covered by target_id.',
     items: { type: 'integer', minimum: 0, maximum: reviewTargets(artifacts.reviewContext).length - 1 } };
   transportSchema.properties.semantic_review.properties.findings.items.required =
     transportSchema.properties.semantic_review.properties.findings.items.required.map(key => key === 'dependency_target_ids' ? 'dependency_target_indices' : key);
@@ -359,6 +362,7 @@ function review(produced, { cwd, claude = require('./claude-local').resolveClaud
   const dossier = { ...compactReviewDossier(produced), instructions: 'Revue indépendante de plan uniquement. Lire les objets Git exacts. Ne pas modifier le dépôt. Refuser une preuve non observée. Pour chaque assessment natif, vérifier le besoin fonctionnel, le choix natif et ses preuves effectives ; ne pas confondre référence et observation. Indiquer verified=false si la preuve ne peut être observée. Examiner toutes les cibles du target_catalog, pas seulement celles portant un finding. En REVISION, fournir finding_resolutions pour chaque causal_finding_id, avec statut OPEN ou RESOLVED, references de preuves observees et explication; ne pas conclure RESOLVED sans observation du correctif. Ceci ne constitue pas un audit FINAL. Le catalogue complet est conserve : construire les indices a partir de target_index_order puis des tableaux de target_catalog, base zero. Restituer reviewed_target_indices uniquement pour les cibles effectivement examinees et recopier target_catalog_hash exact. Toutes les cibles sont requises ; aucun raccourci de couverture. candidateManifest.columns et rows encodent sans perte les objets candidats. Avant de verifier les empreintes canoniques, reconstruire candidateManifest.candidates depuis columns/rows et reviewContext.target_catalog depuis target_catalog ; cette projection de transport ne remplace pas les contrats canoniques. Les sources de consommateurs sont disponibles une seule fois dans consumer_sources. Si une intention contredit une obligation TEST correcte, identifier le change_id de cette intention dans required_correction et le PLAN_ITEM dans dependency_target_ids ; ne pas demander de modifier une obligation correcte.' };
   if (artifacts.reviewContext.acceptance_gaps) dossier.instructions += ' Pour une révision après recette, les acceptance_gaps sont des écarts utilisateur authentifiés, pas des findings Claude. Fournir acceptance_resolutions pour chaque gap_id avec preuves observées et note causale. La revue de plan initiale APPROVE reste inchangée ; ne pas inventer de REVISE. Le format structuré demandé est obligatoire.';
   dossier.instructions += ' Pour chaque finding, utiliser dependency_target_indices : indices entiers zero-based du meme catalogue scelle. Ne jamais employer un nom de type tel que PLAN_CONTRACT comme identifiant de cible. Le decodeur reconstruit les identifiants exacts et les controles canoniques restent obligatoires.';
+  dossier.instructions += ' AUTODEPENDANCE INTERDITE : target_id designe deja la cible du constat. dependency_target_indices designe exclusivement les AUTRES cibles affectees. Rechercher l’indice de target_id dans le catalogue et l’exclure de cette liste ; si aucune autre cible n’est affectee, retourner []. Avant de rendre chaque finding, verifier que chaque indice de dependance se decode en un identifiant different de target_id. Ne pas confondre cette liste avec reviewed_target_indices, qui doit toujours couvrir toutes les cibles examinees. Une reponse contenant sa propre cible sera refusee, jamais corrigee silencieusement.';
   dossier.finding_category_targets = Review.CATEGORY_TARGETS;
   dossier.instructions += ' Pour chaque finding, choisir target_type dans finding_category_targets[category], puis target_id dans target_catalog[target_type]. Une alerte de preservation doit cibler le PLAN_ITEM, IMPACT ou CANDIDATE affecte ; PLAN_CONTRACT peut etre cite comme preuve ou dependance mais pas comme cible de PRESERVATION_RISK. Ne jamais changer le fond d’une alerte pour obtenir une approbation.';
   const checkoutSnapshot = () => V.canonicalHash({
