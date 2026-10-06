@@ -1,5 +1,27 @@
 {
   "schema_version": "kodjo.vnext12.campaign-checkpoint.v1",
+  "plan_review_recovery_20261006": {
+    "failed_run_id": 37516102783,
+    "failed_controller_head": "f776cf813dffd8800c7645cb4438e003562b6989",
+    "failure_stage": "INITIAL_PLAN_REVIEW",
+    "failure_diagnostic": "VNEXT_LIVE_REVIEW_NOT_APPROVED: REVISE",
+    "model_process_status": 0,
+    "model_duration_ms": 458017,
+    "implementation_started": false,
+    "historical_started": false,
+    "report": ".github/orchestration/reports/2026-10-06_VNEXT_PLAN_REVIEW_RESULT_37516102783.md",
+    "qualification_head": "67bafd3371e59f2d95c91f566d793c69346a825c",
+    "qualification_run_id": 37518686328,
+    "qualification_status": "SUCCESS",
+    "qualification_evidence": ".github/orchestration/reports/evidence/37516102783/corrected-qualification.json",
+    "remote_controls": {"Linux": {"pass": 366, "fail": 0, "skip": 0}, "Windows": {"pass": 366, "fail": 0, "skip": 0}},
+    "request_id": "4eb21d6a-feda-43ba-b4e5-b07f396b2af1",
+    "request_generation": 65,
+    "local_controls": {"pass": 366, "fail": 0, "skip": 0},
+    "reference_status": "PASS_DETERMINISTIC_NOT_MODEL_APPROVAL",
+    "browser_or_visual_gate": "NONE",
+    "runtime_success_claimed": false
+  },
   "stabilization_audit_20261006": {
     "audit_run_id": 37501814430,
     "audit_status": "SUCCESS_READ_ONLY_REPORT_CONFRONTED",
@@ -21,15 +43,15 @@
     "runtime_success_claimed": false,
     "browser_or_visual_gate": "NONE"
   },
-  "recorded_at": "2026-10-06T19:01:53.692Z",
+  "recorded_at": "2026-10-06T19:36:51.928Z",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
   "user_instruction": "Mener la campagne jusqu'au r\u00e9sultat r\u00e9el, diagnostiquer/corriger/relancer les \u00e9checs techniques ; solliciter uniquement une validation m\u00e9tier.",
-  "code_head_before_checkpoint": "0fb8ad80703c4dc86caa1dd2e011e1a17a821c2c",
-  "controller_stage": "FIGMA_INITIAL_REQUESTED_AFTER_STABILIZATION",
-  "controller_generation": 96,
+  "code_head_before_checkpoint": "67bafd3371e59f2d95c91f566d793c69346a825c",
+  "controller_stage": "FIGMA_INITIAL_REQUESTED_AFTER_PLAN_REVIEW_CORRECTION",
+  "controller_generation": 97,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -400,10 +422,11 @@
   },
   "active_runs": [
     {
-      "run_id": 37491799216,
+      "run_id": 37516102783,
       "status": "completed",
+      "conclusion": "failure",
       "stage": "FIGMA_INITIAL",
-      "controller_head": "37e85e0e6dc6b7cd7785c1e285a2a38245ace779"
+      "controller_head": "f776cf813dffd8800c7645cb4438e003562b6989"
     }
   ],
   "obsolete_runs": [

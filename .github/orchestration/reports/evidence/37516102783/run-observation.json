@@ -1,0 +1,94 @@
+{
+  "observed_at": "2026-10-06T19:30:22.970Z",
+  "artifact": {
+    "id": 11437855977,
+    "size_bytes": 2237086,
+    "sha256": "6124b844a0deabe44b51ea9009cc1f08dc823afe1355d48fb9716e53237e65e9"
+  },
+  "run": {
+    "id": 37516102783,
+    "head_sha": "f776cf813dffd8800c7645cb4438e003562b6989",
+    "path": ".github/workflows/kodjo-vnext12-disposable.yml",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "failure",
+    "run_attempt": 1,
+    "created_at": "2026-10-06T19:03:43Z",
+    "updated_at": "2026-10-06T19:12:49Z",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37516102783"
+  },
+  "jobs": [
+    {
+      "id": 112449276035,
+      "name": "select-stage",
+      "status": "completed",
+      "conclusion": "success",
+      "failed_steps": []
+    },
+    {
+      "id": 112449341464,
+      "name": "1 - Verify exact automatic controls",
+      "status": "completed",
+      "conclusion": "success",
+      "failed_steps": []
+    },
+    {
+      "id": 112449343168,
+      "name": "qualify-driver",
+      "status": "completed",
+      "conclusion": "skipped",
+      "failed_steps": []
+    },
+    {
+      "id": 112449344669,
+      "name": "prepare-revision",
+      "status": "completed",
+      "conclusion": "skipped",
+      "failed_steps": []
+    },
+    {
+      "id": 112449345622,
+      "name": "prepare-initial",
+      "status": "completed",
+      "conclusion": "skipped",
+      "failed_steps": []
+    },
+    {
+      "id": 112449435950,
+      "name": "Real Figma INITIAL and one bounded correction",
+      "status": "completed",
+      "conclusion": "failure",
+      "failed_steps": [
+        "Qualify admission then execute the disposable Figma path once"
+      ]
+    },
+    {
+      "id": 112449438529,
+      "name": "Execute approved disposable INITIAL or REVISION",
+      "status": "completed",
+      "conclusion": "skipped",
+      "failed_steps": []
+    },
+    {
+      "id": 112453233108,
+      "name": "3 - Historical assertions (${{ matrix.os }})",
+      "status": "completed",
+      "conclusion": "skipped",
+      "failed_steps": []
+    },
+    {
+      "id": 112453234422,
+      "name": "historical-platform-coverage",
+      "status": "completed",
+      "conclusion": "skipped",
+      "failed_steps": []
+    },
+    {
+      "id": 112453235355,
+      "name": "3 - Historical checks on the persistent Windows runner",
+      "status": "completed",
+      "conclusion": "skipped",
+      "failed_steps": []
+    }
+  ]
+}

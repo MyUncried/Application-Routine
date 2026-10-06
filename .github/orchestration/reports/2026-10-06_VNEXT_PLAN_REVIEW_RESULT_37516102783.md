@@ -57,6 +57,41 @@ tâche 2. Cette limite n'est pas cachée par une modification du reviewer.
 
 ## Corrections et vérifications
 
+### Construction des prescriptions du banc
+
+Le protocole normatif n'a pas ajouté spontanément les trois prescriptions.
+Le contrôleur compose le scénario de qualification dans
+qualify-vnext-figma-real-path.js : DOCUMENT/DOCUMENTARY_STATES définissent
+le comportement fictif ; QUALIFICATION_CONTRACT ajoute les contraintes de
+test et de conservation. vnext-figma-recipe.build transforme ces entrées en
+implementation_constraints, intentions, test_obligations et proof_obligations
+du plan. Le texte Functional.EXPECTED fournit notamment les deux processus,
+la sentinelle et la gestion des caches. Ce détail vient du banc, pas d'une
+nouvelle exigence utilisateur ou produit.
+
+La revue indépendante lit ce plan via vnext-live-chain. Claude propose les
+findings et leur catégorie. Dans review-contract.js, isBlockingCategory
+retourne true pour toute catégorie sauf SUGGESTION : PLAN_GAP devient donc
+automatiquement bloquant et buildReviewReport en déduit REVISE. Ce classement
+s'applique aussi à TECHNICAL_RISK : le finding de cache relève
+exactement de cette catégorie, les deux autres de PLAN_GAP. La fonction
+isBlockingCategory est identique dans c1ea9aef, avant l'optimisation b0bf7edf.
+La règle de refus n'est donc pas nouvelle ; le plan enrichi et ses nouvelles
+prescriptions techniques exposent de nouveaux motifs à cette règle existante.
+Le driver exige APPROVE avant tout développement. Cette chaîne explique comment une
+imprécision, même rédactionnelle ou hypothétique, produit un arrêt complet.
+Le programme n'avait pas oublié comment lancer le test : ses instructions
+transmises au reviewer/implémenteur ne décrivaient pas entièrement ce qu'il
+exécutait déjà. Le nettoyage demandé découle d'une technique de preuve
+introduite dans le banc au fil des corrections, pas du comportement produit.
+
+L'accumulation de prescriptions techniques dans le banc augmente les motifs
+possibles de refus. Les findings ne sont pas traités comme des autorisations
+automatiques d'étendre le protocole : les demandes sont confrontées aux sources,
+leur limite est notée pour le risque de cache, et les corrections restent locales
+au scénario existant. Aucune catégorie de revue ni barrière générale n'est
+supprimée/modifiée dans cette mission ; aucune exigence de navigateur ajoutée.
+
 Trois fichiers producteurs corrigés :
 - scripts/kodjo/lib/vnext-disposable-functional-contract.js : texte cohérent
   et restauration du shared.Existing exact avant restauration des caches ;
@@ -88,3 +123,57 @@ si Claude réussit. Il n'est pas déclaré réussi avant observation effective.
 Restent hors scope : performance globale, produit, appareils réels et visuel.
 Les SHA de livraison, résultat distant, identité de relance et état Git final
 seront consignés dans le suivi et la réponse finale après publication vérifiée.
+
+## Rectification du rappel des axes d'optimisation
+
+L'utilisateur a fourni le 6 octobre à 21:35 Paris la capture
+image(20261006-193444).png. Elle a été effectivement lue. Elle établit sept
+axes ; le rappel précédent de quatre axes de transport/contexte était une
+confusion avec un autre chantier. La liste de cette capture est la référence
+de la présente comparaison, sans prétendre que chaque proposition a été
+autorisée ou achevée simplement parce qu'elle figure dans le tableau.
+
+| Axe de la capture | Mise en œuvre vérifiée |
+| --- | --- |
+| Ajouter des chronométrages | Profilage opt-in vnext-performance.js des opérations Git/contrats/copies, diagnostics de durée de revue. Appliqué ; les journaux de profilage ne sont pas forcés dans tous les jobs. |
+| Régler le parallélisme | test-vnext.js accepte 1 à 32 ; mesures ciblées 1/2/4. Réglage optimal Windows non établi, non généralisé aux workflows qui lancent directement node --test. |
+| Mettre en cache les téléchargements npm | Aucun cache npm dédié déclaré dans les workflows VNext observés. Le cache implicite de npm n'est pas une optimisation nouvelle livrée. |
+| Regrouper les lectures Git | impact-graph/vnext-git-batch : lots bornés, empreintes vérifiées, benchmark équivalent. Appliqué dans b0bf7edf. Aucun défaut de ce lecteur identifié dans les échecs observés. |
+| Mutualiser la base des fixtures | Pas de base Git préparée une fois puis réutilisée : les helpers créent encore un répertoire et un dépôt/copie par fixture. Partager un helper n'est pas mutualiser cette base. Non réalisé. |
+| Séparer les jobs | Qualification, runtime Claude et historique séparés ; enchaînement contrôles → Claude → historique dans e72309a3, selon demande utilisateur. Appliqué. |
+| Sélectionner les tests ou réutiliser des qualifications | Réutilisation d'une qualification réussie lorsque scripts/tests/workflows/policy/source gelée ont une empreinte identique ; sélection différentielle de tests selon les changements non mise en place. L'historique complet reste exigé après runtime réussi. |
+
+Le pilote Figma, le navigateur ajouté dans b0bf7edf, les contrôles HTML et les
+tests de provenance/conservation enrichis n'appartiennent pas à cette liste
+d'optimisation. Le chantier Figma était distinct et autorisé séparément ;
+l'ajout de navigateur/contrôles de rendu était une interprétation du contrôleur,
+retirée à la demande explicite de l'utilisateur. Le lot b0bf7edf mélangeait
+donc optimisation de lecture Git et autres modifications du parcours. La
+compaction transport 4c304736 puis c6bbacad est aussi un chantier distinct :
+la consigne impossible d'exécuter unpackUi avec Read/Glob/Grep venait de
+c6bbacad, ensuite corrigée par reconstruction machine. Elle ne doit pas être
+effacée de l'attribution sous prétexte que le scanner Git était équivalent.
+
+Le dernier refus 37516102783 porte sur le plan enrichi de ce nouveau banc,
+pas sur un mauvais contenu lu par le scanner. Les succès antérieurs du
+parcours réel restent établis. Le nouveau pilote et ses preuves ont changé
+ce qui était demandé : une réduction de durée à parcours inchangé ne peut
+pas être revendiquée à partir de ce lot. Mes réponses antérieures confondaient
+ces niveaux ; cette correction documentaire les distingue explicitement.
+
+## Qualification exacte du correctif de plan
+
+Candidat distant 67bafd3371e59f2d95c91f566d793c69346a825c,
+arbre 068587337342c8496973633dc1e37beb98ed5129, parent
+f776cf813dffd8800c7645cb4438e003562b6989. Run 37518686328,
+create, tentative 1 : SUCCESS. Jobs Linux 112458131079 et Windows
+112458131354 SUCCESS, 366 PASS / 0 FAIL / 0 SKIP chacun, artefacts
+11439050499 et 11439465979 effectivement lus. Validation native
+PowerShell 5.1 SUCCESS. Architecture-audit 112462082957 SKIPPED.
+Preuve structurée dans evidence/37516102783/corrected-qualification.json.
+
+Nouvelle demande FIGMA_INITIAL génération 65, request_id
+4eb21d6a-feda-43ba-b4e5-b07f396b2af1, qualifiée sur ce candidat exact.
+Le contrôleur ne change que rapport/preuves/checkpoint/demande ; l'empreinte
+de code reste 4661dac776a0577274364128094b47ac13c71cfe22193aa7c86b7e3acf6e7090.
+La publication et le run réel seront confirmés dans le suivi après leur lecture.
