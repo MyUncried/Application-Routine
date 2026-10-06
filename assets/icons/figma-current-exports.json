@@ -69,6 +69,21 @@
       "height": 24,
       "sha256": "e4a60f56dd1122a721af51fe55f4ec39854064663018e5178090dfba2dbbbce0",
       "gitBlob": "d3f06972637db503c238bd465cb474fc0b21e3d1"
+    },
+    {
+      "file": "assets/icons/selection-check.svg",
+      "id": "6214:4424",
+      "name": "✓ — glyph outlined from selected exercise card",
+      "width": 10,
+      "height": 8,
+      "sourceNodeWidth": 20,
+      "sourceNodeHeight": 20,
+      "method": "Figma exportAsync SVG with svgOutlineText=true, exact bytes",
+      "masterComponentId": "6214:4425",
+      "sha256": "cef10630d72dbd0172cef19168a7626e2cc333b2a2eeb0a7a4c8cd009dd25fd8",
+      "gitBlob": "e1b29fb0f1d16a4b2873369211d3c97c2f3845e2",
+      "usage": "CE-COMP-SEL-01, selection composition",
+      "runtimeWiringChanged": false
     }
   ]
 }

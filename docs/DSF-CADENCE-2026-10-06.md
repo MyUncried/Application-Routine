@@ -203,3 +203,7 @@ Les 18 renommages conservent leurs identifiants ; les primitives « ancien » re
 La nouvelle navigation est `DSF / Navigation / Barre inférieure` (`5544:4441`), états Catalogue / Calendrier / Suivi / Profil. L’en-tête courant est `DSF / Navigation / En-tête fixe` (`5544:4504`), états Standard / Retour / Fermer, propriétés Titre et Démarcation ; la barre d’état décorative est `6955:26633`. L’en-tête de modale courant est `DSF / Overlays / En-tête de modale` (`5544:5567`), variantes Classification / Roulette / Sélection. La présence d’une variante ne l’active pas dans le produit.
 
 Le nouveau contrôle F-09 lève la réserve de persistance précédente ; preuves et limites dans [2026-10-06_VERIFICATION_F09_REPERES.md](../.github/orchestration/reports/2026-10-06_VERIFICATION_F09_REPERES.md). Les rapports précédents restent des relevés datés.
+
+## Coche de sélection multiple — clôture H-10
+
+La carte courante `DSF / Cards / Exercice` `6214:4425` (Choix composition, Sélectionné) contient la case20 ×20 `6214:4423` et la coche `6214:4424`. Le dessin courant est conservé sous forme de [SVG vectorisé](../assets/icons/selection-check.svg), export exact du glyphe, tracé10 ×8 dans un slot20 ×20 ; la case bleue `#0508E5`, rayon6, appartient au contrôle hôte. Les dimensions24 ×24 et le fond `#5F60EE` de l’ancien composant supprimé ne s’appliquent plus à cet usage. Voir chapitre12 et [preuves H-10](../.github/orchestration/reports/2026-10-06_CLOTURE_H10_COCHE_SELECTION.md).

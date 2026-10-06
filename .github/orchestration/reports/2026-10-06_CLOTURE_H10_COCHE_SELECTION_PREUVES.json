@@ -1,0 +1,131 @@
+{
+  "oldNodeExists": false,
+  "master": {
+    "id": "6214:4425",
+    "parentId": "6214:7278",
+    "parentName": "DSF / Cards / Exercice"
+  },
+  "glyph": {
+    "id": "6214:4424",
+    "name": "✓",
+    "characters": "✓",
+    "fontName": {
+      "family": "Inter",
+      "style": "Semi Bold",
+      "variationSettings": {
+        "wght": 600,
+        "slnt": 0
+      }
+    },
+    "fontSize": 14,
+    "lineHeight": {
+      "unit": "AUTO"
+    },
+    "width": 20,
+    "height": 20,
+    "x": 312,
+    "y": 34.5,
+    "fills": [
+      {
+        "type": "SOLID",
+        "visible": true,
+        "opacity": 1,
+        "blendMode": "NORMAL",
+        "color": {
+          "r": 1,
+          "g": 1,
+          "b": 1
+        },
+        "boundVariables": {
+          "color": {
+            "type": "VARIABLE_ALIAS",
+            "id": "VariableID:2290:5"
+          }
+        }
+      }
+    ],
+    "boundVariables": {
+      "fills": [
+        {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:5"
+        }
+      ]
+    }
+  },
+  "box": {
+    "id": "6214:4423",
+    "width": 20,
+    "height": 20,
+    "x": 312,
+    "y": 35.5,
+    "cornerRadius": 6,
+    "fills": [
+      {
+        "type": "SOLID",
+        "visible": true,
+        "opacity": 1,
+        "blendMode": "NORMAL",
+        "color": {
+          "r": 0.019607843831181526,
+          "g": 0.0313725508749485,
+          "b": 0.8980392217636108
+        },
+        "boundVariables": {
+          "color": {
+            "type": "VARIABLE_ALIAS",
+            "id": "VariableID:2290:2"
+          }
+        }
+      }
+    ],
+    "strokes": [],
+    "strokeWeight": 1,
+    "boundVariables": {
+      "topLeftRadius": {
+        "type": "VARIABLE_ALIAS",
+        "id": "VariableID:2290:76"
+      },
+      "topRightRadius": {
+        "type": "VARIABLE_ALIAS",
+        "id": "VariableID:2290:76"
+      },
+      "bottomLeftRadius": {
+        "type": "VARIABLE_ALIAS",
+        "id": "VariableID:2290:76"
+      },
+      "bottomRightRadius": {
+        "type": "VARIABLE_ALIAS",
+        "id": "VariableID:2290:76"
+      },
+      "fills": [
+        {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:2"
+        }
+      ]
+    }
+  },
+  "svg": "<svg width=\"10\" height=\"8\" viewBox=\"0 0 10 8\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M-0.000355095 4.02188L1.18288 2.82373L3.59411 5.19518L8.8093 -0.000133395L10.0025 1.19802L3.59411 7.58154L-0.000355095 4.02188Z\" fill=\"white\"/>\n</svg>\n",
+  "base_commit": "c3731726da86d446dff1973240bb6a327d5b44b6",
+  "asset": {
+    "path": "assets/icons/selection-check.svg",
+    "sha256": "cef10630d72dbd0172cef19168a7626e2cc333b2a2eeb0a7a4c8cd009dd25fd8",
+    "gitBlob": "e1b29fb0f1d16a4b2873369211d3c97c2f3845e2",
+    "export_dimensions": [
+      10,
+      8
+    ],
+    "source_slot": [
+      20,
+      20
+    ],
+    "existing_state_selected_retained": true
+  },
+  "figma_modified": false,
+  "runtime_modified": false,
+  "visible_instances": [
+    "6221:3519",
+    "6221:3586"
+  ]
+}

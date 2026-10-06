@@ -314,9 +314,11 @@ v12 et v10.2 sont historiques ; leurs règles remplacées ne doivent pas être u
 - [Audit transverse reçu de Claude](../.github/orchestration/reports/2026-10-06_AUDIT_TRANSVERSE_FINAL_DOCUMENTATION_KODJO.md)
 - [Corrections G-01 à G-05 et contrôles](../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_TRANSVERSE_DOCUMENTAIRE.md)
 
-**Statut :** la seconde passe fonctionnelle de Claude est reçue, mais sa couverture reste partielle. Les contradictions déterminées sont corrigées dans le lot H ; H-03 est clos par la formulation intrinsèque avec `+` ; les arbitrages de placement du Point d’arrêt H-08 et d’avertissement H-09 ainsi que la source de sélection H-10 restent explicites. L’alignement total et la clôture ne sont pas déclarés.
+**Statut :** la seconde passe fonctionnelle de Claude est reçue, mais sa couverture reste partielle. Les contradictions déterminées sont corrigées dans le lot H ; H-03 est clos par la formulation intrinsèque avec `+` ; les arbitrages de placement du Point d’arrêt H-08 et d’avertissement H-09 restent explicites. H-10 est clos : la coche courante est identifiée, vectorisée et archivée. L’alignement total et la clôture ne sont pas déclarés.
 
 - [Audit fonctionnel reçu](../.github/orchestration/reports/2026-10-06_AUDIT_FONCTIONNEL_CHAPITRES_CONTRATS_KODJO.md)
 - [Corrections fonctionnelles et réserves](../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_FONCTIONNEL_DOCUMENTAIRE.md)
 
 - [Décision rédactionnelle H-03 : pause avec +](../.github/orchestration/reports/2026-10-06_CLOTURE_H03_PHRASE_PAUSE.md)
+
+- [Clôture H-10 : coche de sélection multiple](../.github/orchestration/reports/2026-10-06_CLOTURE_H10_COCHE_SELECTION.md)
