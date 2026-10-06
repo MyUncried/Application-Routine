@@ -373,6 +373,6 @@ jobs:
   historical-local-windows:
     name: 3 - Historical checks on the persistent Windows runner
     needs: historical-platform-coverage
-    uses: ./.github/workflows/kodjo-v2-pilot-tests.yml
+    uses: ./.github/workflows/kodjo-vnext-historical-checks.yml
     with:
       sequenced_vnext: true

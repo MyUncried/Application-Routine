@@ -11,7 +11,7 @@ test('runtime history waits for a successful selected Claude job and never runs 
  for(const result of ['failure','cancelled','skipped'])assert.equal(condition(gate.if,{'select-stage':{result:'success'},'figma-initial':{result},'execute-initial':{result:'skipped'}}),false);
  assert.equal(condition(gate.if,{'select-stage':{result:'success'},'figma-initial':{result:'success'},'execute-initial':{result:'skipped'}}),true);
  assert.equal(condition(gate.if,{'select-stage':{result:'failure'},'figma-initial':{result:'success'},'execute-initial':{result:'skipped'}}),false);
- assert.equal(jobs['historical-platform-coverage'].needs,'historical-equivalence');assert.equal(jobs['historical-local-windows'].needs,'historical-platform-coverage');assert.equal(jobs['historical-local-windows'].with.sequenced_vnext,true);
+ assert.equal(jobs['historical-platform-coverage'].needs,'historical-equivalence');assert.equal(jobs['historical-local-windows'].needs,'historical-platform-coverage');assert.equal(jobs['historical-local-windows'].with.sequenced_vnext,true);assert.equal(jobs['historical-local-windows'].uses,'./.github/workflows/kodjo-vnext-historical-checks.yml');
 });
 test('automatic admission does not claim full validation before historical jobs',()=>{
  const head='a'.repeat(40),repository='MyUncried/Application-Routine';
@@ -39,4 +39,20 @@ test('event routing reuses VNext admission and preserves unrelated legacy events
  assert.equal(evaluate(proof.jobs.qualification.if,candidate),true);assert.equal(evaluate(proof.jobs['historical-equivalence'].if,candidate),false);
  const unrelated={event_name:'pull_request',head_ref:'feature/other',event:{}};
  assert.equal(evaluate(proof.jobs.qualification.if,unrelated),true);assert.equal(evaluate(proof.jobs['historical-equivalence'].if,unrelated),true);assert.equal(evaluate(legacy.jobs.protocol.if,unrelated),true);
+});
+
+test('read-only historical callee preserves exact legacy checks and excludes its privileged disposable job',()=>{
+ const legacy=workflow('kodjo-v2-pilot-tests.yml'),callee=workflow('kodjo-vnext-historical-checks.yml');
+ assert.deepEqual(Object.keys(callee.jobs),['protocol','protocol-windows-preflight']);
+ assert.deepEqual(callee.permissions,{contents:'read',actions:'read','pull-requests':'read'});
+ for(const name of Object.keys(callee.jobs))assert.deepEqual(callee.jobs[name],legacy.jobs[name]);
+});
+test('independent workflow parser rejects nested write permissions even for a skipped callee job',t=>{
+ const {execFileSync}=require('child_process'),os=require('os');const root=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-reusable-permissions-'));t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
+ const dir=path.join(root,'.github/workflows');fs.mkdirSync(dir,{recursive:true});
+ fs.writeFileSync(path.join(dir,'caller.yml'),'permissions: {contents: read}\njobs:\n  history:\n    uses: ./.github/workflows/callee.yml\n');
+ const callee=level=>'permissions: {contents: read}\njobs:\n  unused:\n    if: false\n    permissions: {contents: '+level+'}\n    runs-on: ubuntu-latest\n    steps: []\n';
+ const run=()=>execFileSync(process.env.KODJO_PYTHON||'python',[path.join(__dirname,'../../scripts/kodjo/validate-workflow-syntax.py'),root],{encoding:'utf8',stdio:'pipe'});
+ fs.writeFileSync(path.join(dir,'callee.yml'),callee('write'));assert.throws(run,e=>String(e.stderr).includes('REUSABLE_PERMISSION_ESCALATION'));
+ fs.writeFileSync(path.join(dir,'callee.yml'),callee('read'));assert.match(run(),/workflows accepted/);
 });

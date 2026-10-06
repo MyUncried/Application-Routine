@@ -1,0 +1,8 @@
+{
+  "run_id": 37443238973,
+  "controller_head": "9cc4a9bfa9d510b6d89f7c19987659f6494ac3c3",
+  "conclusion": "startup_failure",
+  "jobs_count": 0,
+  "claude_invoked": false,
+  "annotation": "The workflow is not valid. .github/workflows/kodjo-vnext12-disposable.yml (Line: 373, Col: 3): Error calling workflow 'MyUncried/Application-Routine/.github/workflows/kodjo-v2-pilot-tests.yml@f1b535d2ab69ef9a2d4bdc920357cf7d058ecef3'. The nested job 'disposable-qualification' is requesting 'contents: write', but is only allowed 'contents: read'."
+}

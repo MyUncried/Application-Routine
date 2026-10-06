@@ -2224,14 +2224,14 @@
   },
   "task2_plan_completion_fix_20261006": {
     "authorization": "USER_2026-10-06_10:59_PARIS_APPLY_FIXES_AND_AUTOMATIC_RELAUNCH",
-    "stage": "CONTROLS_PASSED_PENDING_RUNTIME_PUBLICATION",
+    "stage": "FIXING_SEQUENCE_STARTUP_BEFORE_FRESH_RUNTIME",
     "report": ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_COMPLETION_FIX.md",
     "prior_runtime_run": 37435583811,
     "prior_pilot_run": 37435583847,
     "runtime_launched": false,
     "qualification_branch": "qualification/vnext-task2-provenance-20261006",
     "qualification_launch_count": 3,
-    "runtime_launch_count": 0,
+    "runtime_launch_count": 1,
     "task3_authorized": false,
     "closure_authorized": false,
     "candidate_head": "ae4420751d64bfc98add0eb75df975ac14ee8728",
@@ -2239,7 +2239,7 @@
     "qualification_status": "SUCCESS",
     "new_request_id": "b79dcc3e-1962-416c-a701-bd1325b78492",
     "request_generation": 55,
-    "request_published": false,
+    "request_published": true,
     "qualification_attempts": [
       {
         "run_id": 37440545157,
@@ -2291,6 +2291,19 @@
         "fail": 0,
         "skip": 0
       }
+    },
+    "runtime_startup_run": 37443238973,
+    "runtime_status": "STARTUP_FAILURE_ZERO_JOBS",
+    "controller_head": "9cc4a9bfa9d510b6d89f7c19987659f6494ac3c3",
+    "request_consumed": false,
+    "claude_invoked": false,
+    "sequence_fix": {
+      "cause": "REUSABLE_CALLEE_UNUSED_JOB_REQUIRES_WRITE",
+      "origin_commit": "e72309a30792b573d604b987edba351732aa3099",
+      "read_only_callee": ".github/workflows/kodjo-vnext-historical-checks.yml",
+      "legacy_steps_identical": true,
+      "native_validation_pending": true,
+      "qualification_scope": "AUTOMATIC_CONTROLS_ONLY"
     }
   }
 }
