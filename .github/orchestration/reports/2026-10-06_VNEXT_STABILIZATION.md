@@ -107,3 +107,17 @@ Le commit documentaire final est celui retourné par
 `git log -1 --format=%H -- .github/orchestration/reports/2026-10-06_VNEXT_STABILIZATION.md`.
 Le SHA exact du candidat distant et l'état Git après dépôt sont fournis dans
 le suivi de mission. Aucune publication produit ni activation de VNext.
+
+## Suivi du dépôt et lancement
+
+Code/documentation local : `fb87a0e50b3088d9d90928531c36087d42fabccb`.
+Candidat distant : `cc35919d408759ee26c2e37033ba85374fad37f1`.
+Tree identique vérifié avant création de branche :
+`435725046b2d8e80d639dc72786b2fed4e5b9669`.
+Branche dédiée : `qualification/vnext-stabilization-audit-20261006`.
+Run réel : `37500062282`, événement create, attempt 1, SHA exact du candidat.
+Le lancement est observé IN_PROGRESS. Linux/Windows précèdent l'audit ; les
+historiques sont explicitement skipped ; aucun workflow runtime n'est déclenché.
+La branche principale de PR269 reste à `37e85e0e6dc6b7cd7785c1e285a2a38245ace779`.
+Ce suivi documentaire local n'est pas republié sur une branche en cours de run.
+Les résultats Windows et Claude ne sont pas encore attestés à cette observation.

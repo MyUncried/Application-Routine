@@ -6,7 +6,7 @@ const ID='kodjo.vnext.disposable-functional.v1';
 const EXPECTED='In one fresh child Node process, require Screen once, call toggle() twice on that same module instance, and assert true then false in that order. In a separate fresh child Node process, clear both Screen and shared module cache entries, require the shared module again, require Screen, and check the normal Existing export identity. Clear only Screen from the cache, replace shared.Existing by a unique object sentinel, require Screen again, and check sentinel reference identity. Restore the original cache entries in finally. Use inline subprocess source; create no helper files. The trusted orchestration independently executes both probes, not just the delivered test. It records their actual results in execution.json alongside the delivered-test receipt, source hashes and separate gate outcome. Neither the test nor its probes may modify test or implementation source.';
 function transitions(screenPath){
  const subject=require(screenPath),first=subject.toggle(),second=subject.toggle();
- return {contract_id:'kodjo.vnext.disposable-functional.v1',module_instances:1,call_order:['toggle-off-on','toggle-on-off'],returned_values:[first,second],scenarios:{'toggle-off-on':first===true,'toggle-on-off':second===false}};
+ return {contract_id:'kodjo.vnext.disposable-functional.v1',execution_model:'ONE_MODULE_INSTANCE_TWO_ORDERED_CALLS_BY_CONSTRUCTION',process_id:process.pid,module_path:require.resolve(screenPath),call_order:['toggle-off-on','toggle-on-off'],returned_values:[first,second],scenarios:{'toggle-off-on':first===true,'toggle-on-off':first===true&&second===false}};
 }
 function preservation(screenPath,keepPath){
  const screenId=require.resolve(screenPath),keepId=require.resolve(keepPath);

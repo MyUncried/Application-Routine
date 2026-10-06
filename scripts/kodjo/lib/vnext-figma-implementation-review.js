@@ -22,6 +22,19 @@ function actualFact(row,root){
  let actual=JSON.parse(bytes.toString('utf8'));for(const k of row.value_path){if(actual===null||typeof actual!=='object'||!Object.hasOwn(actual,k))V.fail('VNEXT_FIGMA_REVIEW_FACT_MISSING');actual=actual[k];}
  equal(actual,row.value,'VNEXT_FIGMA_REVIEW_FACT_MISMATCH');return {path:real,sha256:row.artifact_sha256};
 }
+function functionalPreservation(row,cwd,root){
+ const C=require('./vnext-disposable-functional-contract'),payload=JSON.parse(fs.readFileSync(path.join(root,row.artifact_path),'utf8'));
+ if(payload.contract_id!==C.ID)return [];
+ const receipt=payload.node_test_receipt;
+ if(!receipt)V.fail('VNEXT_FUNCTIONAL_GATE_RECEIPT_REQUIRED');
+ if(receipt.contract_id!==C.ID||receipt.status!=='PASS'||receipt.exit_code!==0||receipt.test_path!==C.TEST)V.fail('VNEXT_FUNCTIONAL_GATE_RECEIPT_INVALID');
+ for(const file of [C.SCREEN,C.TEST,C.KEEP])if(receipt.source_sha256?.[file]!==digest(fs.readFileSync(path.join(cwd,file))))V.fail('VNEXT_FUNCTIONAL_GATE_RECEIPT_SOURCE_DRIFT');
+ if(receipt.preservation_probe?.status!=='PASS'||receipt.preservation_probe.independent_child_process!==true)V.fail('VNEXT_FUNCTIONAL_PRESERVATION_NOT_PASSED');
+ return ['normal_identity','sentinel_identity'].map(key=>{
+  const proof={...row,preservation_id:'Existing.'+key,value:true,value_path:['node_test_receipt','preservation_probe',key]};
+  actualFact(proof,root);return proof;
+ });
+}
 function prepare(planBody,{cwd,approvedPlanSha256,deliveryHead,evidenceDirectory,measurements,scenarioResults}){
  V.assertSha40(deliveryHead,'VNEXT_FIGMA_REVIEW_DELIVERY_HEAD_REQUIRED');
  V.assertSha64(approvedPlanSha256,'VNEXT_FIGMA_REVIEW_APPROVED_PLAN_REQUIRED');
@@ -33,6 +46,7 @@ function prepare(planBody,{cwd,approvedPlanSha256,deliveryHead,evidenceDirectory
  const ui=F.unpackUi(extractTaggedJson(planBody,'KODJO_VNEXT_UI_ATOMICITY_JSON'));
  if(!ui.figma_references?.length)V.fail('VNEXT_FIGMA_REVIEW_REFERENCE_REQUIRED');
  const observedFiles=new Map();
+ const preservationResults=new Map();
  require('./vnext-figma-launch').validateScenarios({states:ui.figma_references.flatMap(r=>r.packet.states)});
  for(const ref of ui.figma_references){
   for(const row of measurements.filter(m=>m.reference_hash===ref.packet.contract_hash)){
@@ -47,27 +61,32 @@ function prepare(planBody,{cwd,approvedPlanSha256,deliveryHead,evidenceDirectory
   for(const row of matches){
    const scenario=expected.find(s=>s.scenario_id===row.scenario_id),artifact=actualFact(row,evidenceDirectory);observedFiles.set(artifact.path,artifact.sha256);
    if(row.delivery_head!==deliveryHead||row.status!=='PASS'||row.value!==true)V.fail('VNEXT_FIGMA_REVIEW_SCENARIO_NOT_PASSED');
+   for(const proof of functionalPreservation(row,cwd,evidenceDirectory)){
+    if(preservationResults.has(proof.preservation_id)&&preservationResults.get(proof.preservation_id).artifact_sha256!==proof.artifact_sha256)V.fail('VNEXT_FUNCTIONAL_PRESERVATION_ARTIFACT_CONTRADICTION');
+    preservationResults.set(proof.preservation_id,proof);
+   }
    equal(row.proof_results.map(p=>p.proof_type).sort(),scenario.proof_required.slice().sort(),'VNEXT_FIGMA_REVIEW_SCENARIO_PROOF_MISSING');
    if(row.proof_results.some(p=>p.status!=='PASS'))V.fail('VNEXT_FIGMA_REVIEW_SCENARIO_NOT_PASSED');
   }
  }
  if(measurements.some(m=>!ui.figma_references.some(r=>r.packet.contract_hash===m.reference_hash))||scenarioResults.some(s=>!ui.figma_references.some(r=>r.packet.contract_hash===s.reference_hash)))V.fail('VNEXT_FIGMA_REVIEW_FOREIGN_REFERENCE');
- return {schema_version:'kodjo.vnext.figma-implementation-dossier.v1',approved_plan_sha256:approvedPlanSha256,delivery_head:deliveryHead,observation,ui:F.packUi(ui),measurements,scenario_results:scenarioResults,observed_files:[...observedFiles].map(([file,sha256])=>({file,sha256})),assertion_ids:ui.criteria.flatMap(c=>c.assertions.map(a=>a.assertion_id)).sort(),scenario_ids:scenarioResults.map(s=>s.scenario_id).sort(),limits:['Execution JSON facts attest the disposable fixture only; they are not pixel or native-device compliance.','Reading resource bytes alone does not attest semantic use.']};
+ return {schema_version:'kodjo.vnext.figma-implementation-dossier.v1',approved_plan_sha256:approvedPlanSha256,delivery_head:deliveryHead,observation,ui:F.packUi(ui),measurements,scenario_results:scenarioResults,preservation_results:[...preservationResults.values()],preservation_ids:[...preservationResults.keys()].sort(),observed_files:[...observedFiles].map(([file,sha256])=>({file,sha256})),assertion_ids:ui.criteria.flatMap(c=>c.assertions.map(a=>a.assertion_id)).sort(),scenario_ids:scenarioResults.map(s=>s.scenario_id).sort(),limits:['Execution JSON facts attest the disposable fixture only; they are not pixel or native-device compliance.','Reading resource bytes alone does not attest semantic use.']};
 }
 function validateAssessment(dossier,assessment){
- V.assertExactKeys(assessment,['verdict','reference_hashes','reviewed_assertion_ids','reviewed_scenario_ids','consulted_resource_sha256','findings','reservations','reason'],[],'VNEXT_FIGMA_REVIEW_ASSESSMENT_INVALID');
+ V.assertExactKeys(assessment,['verdict','reference_hashes','reviewed_assertion_ids','reviewed_scenario_ids','consulted_resource_sha256','findings','reservations','reason'],['reviewed_preservation_ids'],'VNEXT_FIGMA_REVIEW_ASSESSMENT_INVALID');
  if(!['APPROVE','REVISE'].includes(assessment.verdict)||!Array.isArray(assessment.findings)||!Array.isArray(assessment.reservations))V.fail('VNEXT_FIGMA_REVIEW_ASSESSMENT_INVALID');
  V.assertUnicodeExactText(assessment.reason,'VNEXT_FIGMA_REVIEW_REASON_REQUIRED');
  equal(assessment.reference_hashes.slice().sort(),dossier.observation.references.map(r=>r.reference_hash).sort(),'VNEXT_FIGMA_REVIEW_REFERENCES_UNCOVERED');
  equal(assessment.reviewed_assertion_ids.slice().sort(),dossier.assertion_ids,'VNEXT_FIGMA_REVIEW_ASSERTIONS_UNCOVERED');
  equal(assessment.reviewed_scenario_ids.slice().sort(),dossier.scenario_ids,'VNEXT_FIGMA_REVIEW_SCENARIOS_UNCOVERED');
+ if(dossier.preservation_ids?.length||assessment.reviewed_preservation_ids)equal((assessment.reviewed_preservation_ids||[]).slice().sort(),dossier.preservation_ids||[],'VNEXT_FIGMA_REVIEW_PRESERVATION_UNCOVERED');
  equal(assessment.consulted_resource_sha256.slice().sort(),dossier.observation.references.flatMap(r=>r.assets.map(a=>a.sha256)).sort(),'VNEXT_FIGMA_REVIEW_RESOURCES_UNCOVERED');
  for(const f of assessment.findings){V.assertExactKeys(f,['blocking','reason'],[],'VNEXT_FIGMA_REVIEW_FINDING_INVALID');if(typeof f.blocking!=='boolean')V.fail('VNEXT_FIGMA_REVIEW_FINDING_INVALID');V.assertUnicodeExactText(f.reason,'VNEXT_FIGMA_REVIEW_FINDING_INVALID');}
  for(const reservation of assessment.reservations)V.assertUnicodeExactText(reservation,'VNEXT_FIGMA_REVIEW_RESERVATION_INVALID');
  if(assessment.verdict==='APPROVE'&&assessment.findings.some(f=>f.blocking!==false))V.fail('VNEXT_FIGMA_REVIEW_FALSE_APPROVAL');
  return assessment;
 }
-function assessmentSchema(){return {type:'object',additionalProperties:false,properties:{verdict:{enum:['APPROVE','REVISE']},reference_hashes:{type:'array',items:{type:'string'}},reviewed_assertion_ids:{type:'array',items:{type:'string'}},reviewed_scenario_ids:{type:'array',items:{type:'string'}},consulted_resource_sha256:{type:'array',items:{type:'string'}},findings:{type:'array',items:{type:'object',properties:{blocking:{type:'boolean'},reason:{type:'string'}},required:['blocking','reason'],additionalProperties:false}},reservations:{type:'array',items:{type:'string'}},reason:{type:'string'}},required:['verdict','reference_hashes','reviewed_assertion_ids','reviewed_scenario_ids','consulted_resource_sha256','findings','reservations','reason']};}
+function assessmentSchema(){return {type:'object',additionalProperties:false,properties:{verdict:{enum:['APPROVE','REVISE']},reference_hashes:{type:'array',items:{type:'string'}},reviewed_assertion_ids:{type:'array',items:{type:'string'}},reviewed_scenario_ids:{type:'array',items:{type:'string'}},reviewed_preservation_ids:{type:'array',items:{type:'string'}},consulted_resource_sha256:{type:'array',items:{type:'string'}},findings:{type:'array',items:{type:'object',properties:{blocking:{type:'boolean'},reason:{type:'string'}},required:['blocking','reason'],additionalProperties:false}},reservations:{type:'array',items:{type:'string'}},reason:{type:'string'}},required:['verdict','reference_hashes','reviewed_assertion_ids','reviewed_scenario_ids','consulted_resource_sha256','findings','reservations','reason']};}
 function verifyReceipt(planBody,options,receipt,raw){
  V.verifyContractHash(receipt,'VNEXT_FIGMA_REVIEW_RECEIPT_HASH_INVALID');
  const dossier=prepare(planBody,options),response=JSON.parse(raw);
@@ -84,7 +103,7 @@ function review(planBody,options){
  const dossier=prepare(planBody,options),directory=options.evidenceDirectory;
  fs.writeFileSync(path.join(directory,'implementation-dossier.json'),JSON.stringify(dossier,null,2)+'\n');
  const schema=assessmentSchema();
- const input={instructions:'Independent implementation review. Read each referenced Figma PNG and SVG asset using Read, read the property manifest and execution artifacts, check every bound assertion and documentary scenario against the observed delivery. Distinguish actual execution facts on a disposable fixture from injected unit-test observations; neither proves product appearance or native-device compliance. For the functional-only protocol benchmark, no browser, automatic rendering or human visual gate is required or authorized. Do not invent such obligations. No inferred PASS. Return REVISE for semantic gaps, wrong scope or evidence. Do not change files or use network.',dossier};
+const input={instructions:'Independent implementation review. Read each referenced Figma PNG and SVG asset using Read, read the property manifest and execution artifacts, check every bound assertion and documentary scenario against the observed delivery. Distinguish actual execution facts on a disposable fixture from injected unit-test observations; neither proves product appearance or native-device compliance. For the functional-only protocol benchmark, no browser, automatic rendering or human visual gate is required or authorized. Do not invent such obligations. Read every preservation_results fact and cover every preservation_id in reviewed_preservation_ids when present; these are the existing shared-export preservation obligations. No inferred PASS. Return REVISE for semantic gaps, wrong scope or evidence. Do not change files or use network.',dossier};
  const temp=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-figma-review-'));
  fs.writeFileSync(path.join(temp,'mcp.json'),JSON.stringify({mcpServers:{}}));fs.writeFileSync(path.join(temp,'settings.json'),JSON.stringify({disableAllHooks:true}));
  const env={...process.env};for(const k of ['GH_TOKEN','GITHUB_TOKEN','KODJO_LIVE_GH_TOKEN'])delete env[k];

@@ -1,0 +1,20 @@
+{
+  "status": "DETERMINISTIC_REFERENCE_PASS_NOT_MODEL_APPROVAL",
+  "frozen_source_sha256": "6b0078efc3ee019fd4c7fc7bbbb12b6db83cd35cf2b66cd89fd7b9cf1b164f45",
+  "reference_hash": "3f60e57a70a43dd5d77f805300e803309e5ca8c4c530bce0abd89b59c5f67433",
+  "plan_sha256": "aaccf47a5f789ee682e6910f174e7e6228b241aeeb27f872f6efc63572328704",
+  "node_test_status": "PASS",
+  "scenario_ids": [
+    "toggle-off-on",
+    "toggle-on-off"
+  ],
+  "preservation_ids": [
+    "Existing.normal_identity",
+    "Existing.sentinel_identity"
+  ],
+  "measurements": 0,
+  "figma_nodes": 222,
+  "figma_dispositions": 8425,
+  "real_model_calls": 0,
+  "visual_validation": "NOT_APPLICABLE_FOR_PROTOCOL_TEST"
+}

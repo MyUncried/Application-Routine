@@ -65,7 +65,7 @@ jobs:
       - name: Execute VNext contracts on exact candidate
         shell: bash
         run: |
-          node --test --test-reporter=spec tests/kodjo/vnext-*.pilot.js > "$RUNNER_TEMP/vnext-controls-${{ runner.os }}.txt"
+          node --test --test-reporter=spec tests/kodjo/vnext*.pilot.js > "$RUNNER_TEMP/vnext-controls-${{ runner.os }}.txt"
       - name: Preserve automatic control results for independent audit
         if: always()
         uses: actions/upload-artifact@v4

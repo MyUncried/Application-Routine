@@ -46,7 +46,8 @@ function verifyQualification({ repository, head, runId, read = readGithub, contr
 function codeFingerprint(cwd, head) {
   V.assertSha40(head, 'VNEXT_QUALIFICATION_HEAD_REQUIRED');
   const tree = execFileSync('git', ['ls-tree', '-r', head, '--', 'scripts/kodjo', 'tests/kodjo',
-    '.github/workflows', '.github/orchestration/KODJO_VNEXT_REMOTE_WRITE_POLICY.json'], { cwd, encoding: 'utf8', windowsHide: true });
+    '.github/workflows', '.github/orchestration/KODJO_VNEXT_REMOTE_WRITE_POLICY.json',
+    '.github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/frozen-source.json'], { cwd, encoding: 'utf8', windowsHide: true });
   if (!tree.trim()) V.fail('VNEXT_QUALIFICATION_CODE_REQUIRED');
   return V.sha256(tree);
 }

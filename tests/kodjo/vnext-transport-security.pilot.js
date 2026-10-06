@@ -105,3 +105,12 @@ test('execution qualification binds a separately changed controller and refuses 
   assert.throws(() => Q.verifyExecutionQualifications({ approved_protocol_head: approved, qualification_run_id: 42 },
     { cwd: ROOT, controllerHead: controller, read: f.read }), /RUN_REQUIRED/);
 });
+
+test('changed frozen Figma source requires a qualification of the changed controller',t=>{
+ const approved=execFileSync('git',['rev-parse','HEAD'],{cwd:ROOT,encoding:'utf8'}).trim(),file='.github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/frozen-source.json';
+ const tree=candidate(t,file,fs.readFileSync(path.join(ROOT,file),'utf8')+'\n').candidateTree;
+ const controller=execFileSync('git',['-c','user.name=Fixture','-c','user.email=test@example.test','commit-tree',tree,'-p',approved,'-m','Fixture frozen source drift; no remote write'],{cwd:ROOT,encoding:'utf8'}).trim();
+ const f=qualification();f.run.head_sha=approved;f.jobs.forEach(j=>j.head_sha=approved);
+ assert.notEqual(Q.codeFingerprint(ROOT,approved),Q.codeFingerprint(ROOT,controller));
+ assert.throws(()=>Q.verifyExecutionQualifications({approved_protocol_head:approved,qualification_run_id:42},{cwd:ROOT,controllerHead:controller,read:f.read}),/RUN_REQUIRED/);
+});

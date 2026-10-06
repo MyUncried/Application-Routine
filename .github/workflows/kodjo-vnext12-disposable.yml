@@ -91,7 +91,7 @@ jobs:
         run: node scripts/kodjo/prepare-vnext12.js produce "$RUNNER_TEMP/vnext12-produce-${{ github.run_id }}"
       - name: Verify inherited VNext contracts
         shell: bash
-        run: node --test tests/kodjo/vnext-*.pilot.js
+        run: node --test tests/kodjo/vnext*.pilot.js
   prepare-revision:
     if: needs.select-stage.outputs.stage == 'PREPARE_REVISION'
     needs: [select-stage, qualify-driver]
