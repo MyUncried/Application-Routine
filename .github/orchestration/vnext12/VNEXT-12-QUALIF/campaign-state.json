@@ -8,7 +8,7 @@
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "c30c57682a7864b5b548a2470c6f514b849bdf37",
   "controller_stage": "FIGMA_REAL_INITIAL_RELAUNCH_AFTER_PLAN_COMPLETION",
-  "controller_generation": 89,
+  "controller_generation": 90,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -2212,21 +2212,21 @@
   },
   "task2_plan_completion_fix_20261006": {
     "authorization": "USER_2026-10-06_10:59_PARIS_APPLY_FIXES_AND_AUTOMATIC_RELAUNCH",
-    "stage": "PLAN_CLARIFICATION_FIX_LOCAL",
+    "stage": "DOCUMENTARY_SCOPE_CONTROLS_VERIFIED_CONTROLLER_READY",
     "report": ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_COMPLETION_FIX.md",
     "prior_runtime_run": 37435583811,
     "prior_pilot_run": 37435583847,
-    "runtime_launched": true,
-    "qualification_branch": "qualification/vnext-task2-native-templates-20261006",
-    "qualification_launch_count": 5,
+    "runtime_launched": false,
+    "qualification_branch": "qualification/vnext-task2-documentary-scope-20261006",
+    "qualification_launch_count": 6,
     "runtime_launch_count": 3,
     "task3_authorized": false,
     "closure_authorized": false,
-    "candidate_head": "83a192883b78d6df09f4a9d74135524f1f57c4ce",
-    "qualification_run": 37444999937,
+    "candidate_head": "676a3b8f68dab3ee3986b2e92d6b7ac66af41fb4",
+    "qualification_run": 37455799687,
     "qualification_status": "SUCCESS",
-    "new_request_id": "02717571-6ad3-4f5f-ab1b-40fa92ced0a3",
-    "request_generation": 57,
+    "new_request_id": "779fd476-87ac-4298-8ed5-4e40229868f4",
+    "request_generation": 58,
     "request_published": true,
     "qualification_attempts": [
       {
@@ -2285,14 +2285,14 @@
     ],
     "contracts": {
       "Linux": {
-        "tests": 333,
-        "pass": 333,
+        "tests": 337,
+        "pass": 337,
         "fail": 0,
         "skip": 0
       },
       "Windows": {
-        "tests": 333,
-        "pass": 333,
+        "tests": 337,
+        "pass": 337,
         "fail": 0,
         "skip": 0
       }
@@ -2300,7 +2300,7 @@
     "runtime_startup_run": 37443238973,
     "runtime_status": "CLARIFICATION_REQUIRED",
     "controller_head": "b1503c4a01b53953d36b425e13acba2bc39c5eff",
-    "request_consumed": true,
+    "request_consumed": false,
     "claude_invoked": true,
     "sequence_fix": {
       "cause": "REUSABLE_CALLEE_UNUSED_JOB_REQUIRES_WRITE",
