@@ -62,7 +62,7 @@ Valeurs du journal §7.1/§9 et du brief annexe H ; aucune nouvelle règle méti
 | Contrôle segmenté | Blanc, remplissage 50 % | Surface du contrôle |
 | Tri DSF | Blanc 72 % ; trait disabled #BEC2CC 75 % | Master 34 × 34, rayon 17 |
 | Rappel / Option | #FBFAF7, 82 % | Fond de l’option |
-| Repères principaux 3 h / 6 h / 9 h | disabled #BEC2CC, remplissage 62 % | Cible ; persistance actuelle F-09 non certifiée |
+| Repères principaux 3 h / 6 h / 9 h | disabled #BEC2CC, remplissage 62 % | Cible confirmée au nouveau contrôle du 06/10 : 171 repères à 62 % |
 | 16 petits traits du chronomètre | Nœud 40 % | Variantes visibles ; variantes masquées d’animation restent à 0 % |
 | Libellé Renforcement… | textTertiary #7A7A80, 75 % | Usage contextualisé |
 | Textes de roulette périphériques | #1A1A1F, 20 % ou 45 % selon rangée | Ne pas appliquer indistinctement à la sélection centrale |
@@ -101,7 +101,7 @@ Séance sans photo ; liste mixte sans photo ; Exercice Catalogue/choix garde la 
 
 | ID | Statut documentaire courant | Preuve / limite |
 |---|---|---|
-| A01 | Correction initiale non persistante à l’audit ; nouvelle correction de 24 repères déclarée par le propriétaire | 12 sur Prototype MVP, incluant 6452:10120/10201, et 12 sur Communautaire (6464:18896/18926/19023/19053). La lecture accessible du 06/10 renvoie encore 100 % de remplissage sur ces instances et 6452:10039/9958 ; divergence de persistance ou de session non résolue, aucun changement Figma effectué ici |
+| A01 | Correction confirmée le06/10 :171 repères à62%, sans surcharge sur les8instances concernées | Lecture des11pages ;69Prototype MVP+69Communautaire+9Fondations+15Validation responsive+9Référence responsive. Huit composants maîtres : #BEC2CC, remplissage62%, aucune variable liée. Douze repères des4instances visibles exportés enPNG : alpha158/255, cohérent avec62%. Les4autres jeux restent masqués à0% de nœud ; leur remplissage est aussi62%. Voir rapport VERIFICATION_F09_REPERES |
 | A02 | Clos par décision du propriétaire : recréation manuelle en temps voulu | Les §1 et §5 du rapport sont cohérents ; base410/285 datée. Présence des interactions non contrôlée et non requise pour le développement |
 | A03 | Mapping partiel, sources probables | Comparaison de tracés nécessaire avant manifeste canonique |
 | A04 | Dimensions navigation à qualifier | Sources et viewBox divergent du manifeste ; conserver exports existants |
@@ -201,3 +201,5 @@ Les 18 renommages conservent leurs identifiants ; les primitives « ancien » re
 | Shell / Modal Fullscreen | DSF / Gabarits / Modale plein écran | `2700:75` | Unique |
 
 La nouvelle navigation est `DSF / Navigation / Barre inférieure` (`5544:4441`), états Catalogue / Calendrier / Suivi / Profil. L’en-tête courant est `DSF / Navigation / En-tête fixe` (`5544:4504`), états Standard / Retour / Fermer, propriétés Titre et Démarcation ; la barre d’état décorative est `6955:26633`. L’en-tête de modale courant est `DSF / Overlays / En-tête de modale` (`5544:5567`), variantes Classification / Roulette / Sélection. La présence d’une variante ne l’active pas dans le produit.
+
+Le nouveau contrôle F-09 lève la réserve de persistance précédente ; preuves et limites dans [2026-10-06_VERIFICATION_F09_REPERES.md](../.github/orchestration/reports/2026-10-06_VERIFICATION_F09_REPERES.md). Les rapports précédents restent des relevés datés.
