@@ -109,3 +109,23 @@ motif `vnext*.pilot.js`. Parseur YAML indépendant : 65 workflows acceptés ;
 validate-workflows PASS ; patch whitespace PASS. La qualification Windows native
 du candidat corrigé reste requise avant publication opérationnelle ; les 339
 tests du candidat audité ne la remplacent pas.
+
+## Qualification corrigée et demande opérationnelle
+
+Candidat exact corrigé : 0fb8ad80703c4dc86caa1dd2e011e1a17a821c2c,
+arbre 249fb22f749ea03ec23a3e3da74d2c7baa6c2597. Run 37514358519,
+tentative 1, create sur qualification/vnext-stabilization-fixes-20261006,
+terminé SUCCESS. Jobs Linux 112443344768 et Windows 112443345150 :
+SUCCESS, 364 PASS / 0 FAIL / 0 SKIP chacun (artefacts lus réellement).
+La validation complète native Windows PowerShell 5.1 a passé ; aucun
+second audit global ni test historique anticipé n'a été exécuté.
+Preuve API projetée et résultats dans evidence/37501814430/corrected-qualification.json.
+
+Demande de relance FIGMA_INITIAL : génération 64,
+request_id aab9e38b-f0a1-483d-bc4a-d894f720de94, qualification_run_id
+37514358519 et approved_protocol_head exact ci-dessus. Elle conserve le
+scope tâche 2, une seule révision, sans PRE-1, navigateur ou contrôle visuel
+humain. Admission sur les mêmes octets de protocole puis Claude ; les tests
+historiques dépendent strictement du succès du runtime. Cette préparation
+et la qualification ne constituent pas une réussite du parcours réel.
+L'identifiant effectif du nouveau run sera consigné après publication vérifiée.
