@@ -32,19 +32,19 @@ Les formules de pauses/côtés/Récupération de D-248 sont conservées ; seule 
 
 Ces vérifications portent sur la documentation et ses artefacts, pas sur le fonctionnement d’une application ou une recette iOS/Android.
 
-## Limites explicites de la clôture
+## Statut actualisé des points de clôture
 
 | Sujet | Statut restant |
 |---|---|
-| CAD-V01 — suppression de cadence | Fonction décidée et documentée ; aucun contrôle exact de suppression identifié dans Figma. Son emplacement ne peut être certifié ni inventé. |
-| CAD-V02–04 — exécution cadencée | Avant nominal, après nominal et Pause/Reprise : comportements documentés dans les contrats hôtes, mais aucune frame dédiée identifiée. |
-| CAD-T01 — textes d’exemple | Plusieurs phrases Figma restent antérieures à la formulation finale ; Phrase v1 gouverne le texte. Les captures montrent l’état réel. |
-| Typographie | compactCardTitle 15/18 et cardTitle 16 dans son rôle sont consignés ; `caption` 11/13 reste présenté avec le statut de confirmation de la source ; certains rôles/interlignes restent à mesurer avant migration du code. |
-| Assets | Six rôles sans source actuelle établie et dimensions de navigation divergentes ; tracés et exports à qualifier dans le lot assets. Aucun mapping « probable » promu canonique. |
-| Prototype | Recréation des interactions et version Figma nommée non démontrées ; anciennes décisions non rouvertes. |
+| CAD-V01 — levée | Suppression par « Aucun » dans la même roulette, puis✓ ; clarification propriétaire06/10. Aucun bouton supplémentaire requis. |
+| CAD-V02–04 — levées | Variantes fonctionnelles sur le layout d’exécution existant ; spécifications suffisantes. Aucune exigence de trois frames dédiées. |
+| CAD-T01 — exemples éditoriaux | Formulations de démonstration différentes de Phrase v1, décrites précisément dans la matrice. Aucune modification Figma nécessaire pour le développement sans changement de layout ; ne pas utiliser ces exemples comme règles de génération ni de calcul. |
+| Typographie — documentation complétée | Rationalisation/audits conservés ; compactCardTitle15/18, cardTitle16 dans son rôle. Caption et navigation Inter11 Auto relus par usage ; traduction11/13 selon D2. Interlignes explicites et métriques Roboto conservés ; migration code ultérieure. |
+| Assets — dépôt complété | Les six fichiers cités existent ;25/25entrées historiques ont leur SVG. Six nouveaux SVG exacts déposés et une source ajouter déjà présente identique ; traçabilité dans figma-current-exports.json. Anciennes dimensions de navigation à aligner dans le lot code. |
+| Prototype — hors conditions de clôture | Interactions reprises ultérieurement par le propriétaire ; aucune présence à vérifier pour le développement. |
 | Livraison | Implémentation Cadence, migration, son en arrière-plan et reprise sur appareil restent à réaliser et tester ; cette mise à jour ne les déclare pas livrés. |
 
-La consolidation documentaire est effectuée pour les décisions établies. La clôture graphique complète ne peut pas être annoncée tant que les réserves ci-dessus ne sont pas matérialisées ou qualifiées. Aucun nouveau design n’a été entrepris.
+La consolidation documentaire porte sur les décisions établies. Les anciens points CAD-V01–04 et prototype ne sont plus des conditions bloquantes. La livraison applicative reste distincte ; aucun nouveau design n’a été entrepris.
 
 ## Reprise et revue finale du 06/10/2026
 
@@ -73,4 +73,15 @@ La reprise utilise un checkout séparé dans `/workspace/scratch/1dd8ead422bb/ca
 - Aucun lien local de fichier manquant dans les Markdown actifs modifiés contrôlés ; IDs D et RM actifs uniques. Les ancres internes ne sont pas certifiées par ce contrôle. Diff limité à `docs/` ; contrôle de whitespace sans erreur sur les documents actifs après retrait des lignes vides finales héritées. Les archives sont préservées à l’identique, y compris les sauts de ligne Markdown par espaces terminaux et une ligne vide finale historique ; code, protocoles, assets applicatifs et Figma inchangés.
 - Destinations contrôlées : branche documentaire existante vers main, PR323 ouverte et non fusionnée. Les workflows V2/qualification sont filtrés sur les fichiers de protocole, non sur `docs/` ; la synchronisation locale n’intervient qu’à la fermeture de PR. Aucun lancement manuel, appel Claude, fusion ou synchronisation du PC dans cette reprise.
 
-Les réserves CAD-V01–04, CAD-T01, rôles typographiques, assets et prototype ci-dessus restent à traiter dans des chantiers distincts. La livraison documentaire est reviewable dans la PR ; la conformité graphique complète et la livraison applicative ne sont pas déclarées.
+Ce bilan de récupération précède les clarifications et contrôles complémentaires ci-dessous ; le tableau de statut actualisé et cette dernière section prévalent. La livraison applicative n’est pas déclarée.
+
+## Clarifications du propriétaire et contrôles complémentaires — 06/10/2026
+
+- CAD-V01 : sélection « Aucun » dans la même roulette ; documentation propagée à Cadence v1, DSF, matrice et CE-UI-10. Les valeurs visibles autour de4 dans la frame ne prouvent pas une absence de la valeur hors viewport. La clarification du propriétaire fait foi ; aucune interaction Figma ni nouvelle frame demandée.
+- CAD-V02–04 : règles d’exécution sans nouveau layout ; réserves levées. Les interactions du prototype ne sont pas nécessaires au développement, conformément au journal§7 et à l’instruction du propriétaire.
+- Phrases : frames7059:13302/7061:13383 affichent «rép. à4s», «avec15s de pause après chaque série», «sans changement de côté» ; Phrase v1 demande «répétitions cadencées toutes les4s», «séparées par15s de pause» et omet la clause sans changement.7119:27855 emploie «à raison de4s par répétition» ; seul le texte rédactionnel diffère sur ce point. Aucun total Figma promu source de calcul. Mise à jour des exemples facultative tant que leur rôle de témoin de layout est explicite.
+- Typographie : les travaux de rationalisation et audits ne sont pas remis en cause. Caption (heures et jours du Calendrier) et libellés de Navigation / Bottom sont actuellement Inter Regular11 Auto ; traduction11/13 par la règle D2 déjà validée. Ce sont des mesures par rôle ; le style historique Navigation label11/16 n’est pas appliqué aux témoins relus. Correction du statut trop général «à confirmer» dans DSF et chapitre12, sans migration des tokens applicatifs.
+- Assets : inventaires GitHub main/branche documentaire vérifiés,25entrées historiques/25SVG présents. Six fichiers existants nommés dans le DSF, sans recréation. Sept exports SVG_STRING courants : ajouter est déjà identique à action-add.svg, six autres déposés. XML, viewBox, empreintes et rendu contrôlés ; fichier de provenance ajouté. Les nouveaux assets sont enregistrés sur la branche documentaire à la demande explicite du propriétaire ; aucun fichier source applicatif ni ancien asset consommé n’est modifié.
+- Ancres : neuf liens locaux Markdown vers des sections, répartis dans neuf documents hors archives, contrôlés contre les titres/IDs de destination ; zéro ancre cassée et zéro fichier cible absent. Les archives source restent inchangées. Une ancre est simplement la partie #section qui fait ouvrir le document au bon titre.
+
+La portée autorisée s’étend au dépôt des assets manquants ; les déclarations «assets inchangés» de la reprise précédente décrivent uniquement cette phase antérieure. Main, Figma et PC restent inchangés ; aucun workflow de qualification, protocole ou appel Claude lancé.

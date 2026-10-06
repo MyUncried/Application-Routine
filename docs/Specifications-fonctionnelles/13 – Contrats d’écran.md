@@ -187,7 +187,7 @@ Les références actives sont [paramètres v13](SPECIFICATION-PARAMETRES-MODALE-
 
 Les durées des contrats Catalogue/Composition/Calendrier utilisent leur périmètre défini : intrinsèque pour ACTIVITY, occurrences avec substitution de PN pour SESSION. Incertitude sans symbole/≈/≥ issue du calcul ; aucune formule locale ni nombre Figma recopié. Suivi/Synthèse affichent le réalisé issu de l’instantané et des accumulateurs, pas une estimation.
 
-Cadence : aucun changement de shell, route ou préférence Profil. Les trois états cadencés avant fin nominale, après fin nominale et Pause/Reprise ont une règle complète dans les contrats hôtes, mais pas de frame dédiée identifiée dans Prototype MVP au06/10. La suppression vers Aucune est fonctionnellement requise ; son contrôle exact n’est pas matérialisé. Ces limites sont suivies dans la matrice, sans inventer un placement.
+Cadence : aucun changement de shell, route ou préférence Profil. Les états avant fin nominale, après fin nominale et Pause/Reprise réemploient le layout d’exécution ; leurs règles sont complètes dans les contrats hôtes. Aucune frame dédiée ni interaction de prototype n’est exigée pour ces comportements sans nouveau layout. La suppression utilise « Aucun » dans la roulette, puis✓ (clarification du propriétaire06/10), sans bouton supplémentaire.
 
 ## Inventaire des contrats actifs
 
@@ -1272,7 +1272,7 @@ Conserver le shell et les commandes existantes. Les états cadencés sont spéci
 
 Série Répétitions/À l’échec ; pause inter-Séries ; côté suivant via CE-T03-12 ; pause utilisateur ; fin propre ; résultat terminé/interrompu.
 
-Cadencée avant nominal ; nominal atteint sans Suivant ; Pause/Reprise avec intervalle complet ; reset. Ces trois premières variantes sont sans témoin dédié identifié (CAD-V02–04).
+Cadencée avant nominal ; nominal atteint sans Suivant ; Pause/Reprise avec intervalle complet ; reset. Ces variantes fonctionnelles réemploient le layout existant et ne nécessitent pas trois maquettes dédiées (CAD-V02–04 levées comme réserves de développement).
 
 ### 12. Contrôles et interactions
 
@@ -3101,7 +3101,7 @@ Référence402 : ligne de groupe à x36, sous-lignes Séries variables/cible/Cad
 
 Corps entier défilant sous en-tête fixe, Safe Areas et texte agrandi.6665:25277 montre le haut et les12lignes ; total/CR/Fin sous le viewport : accessibles par scroll, pas de second scroll dans le tableau. La position basse n’a plus de frame dédiée dans Prototype MVP et reste à qualifier visuellement. Le total reste dans le flux lorsque le tableau est replié.
 
-L’ajout de la roulette ne crée aucun scroll imbriqué : corps entier sous en-tête fixe. Cibles tactiles au moins44, unités lisibles, valeurs non tronquées. Le contrôle de suppression ne doit pas être inventé faute de témoin.
+L’ajout de la roulette ne crée aucun scroll imbriqué : corps entier sous en-tête fixe. Cibles tactiles au moins44, unités lisibles, valeurs non tronquées. « Aucun » est une valeur de la même roulette, au même titre que les secondes ; aucune cible tactile supplémentaire.
 
 ### 11. États de l’écran
 
@@ -3113,7 +3113,7 @@ Cadence Aucune, renseignée, roulette ouverte, supprimée ; retour de mode avec 
 
 Activation copie les paramètres communs ; désactivation sans confirmation/message reprend la première ligne courante ; réactivation avant✓ restaure. N augmente : restaurer retirées puis copier dernière ; réduit : conserver provisoirement les lignes retirées. Changer mode conserve Pauses et met cibles incompatibles—, retour restaure anciennes cibles. Déplacement cible+Pause solidaire ; nouvelle dernière porte PN.
 
-Cadence : tap ouvre/ferme la roulette, sélection modifie le brouillon commun et toutes les Séries. Suppression retourne à Aucune sur toutes les Séries ; contrôle visuel exact en réserve CAD-V01. Bascule hors REPETITIONS masque sans perdre avant✓, retour restaure ; ✓ hors REPETITIONS élimine. Déplacement garde cible/Pause/cadence solidaires.
+Cadence : tap ouvre/ferme la roulette, sélection modifie le brouillon commun et toutes les Séries. Sélectionner « Aucun » dans la roulette retire la cadence de toutes les Séries dans le brouillon ;✓ applique,✕ conserve les valeurs précédentes. Bascule hors REPETITIONS masque sans perdre avant✓, retour restaure ; ✓ hors REPETITIONS élimine. Déplacement garde cible/Pause/cadence solidaires.
 
 ### 13. Gestes
 
@@ -3161,7 +3161,7 @@ Tester absence/1/60 et refus0/61/fraction ; uniforme→variable et changement/su
 
 D-247 à D-255 ; v13 ; DSF actualisé03/10 ; ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03. Les références courantes sont dans Prototype MVP, pas des copies de travail. Les états sans frame dédiée sont listés séparément ; aucune recette interactive ni propagation aux composants maîtres n’est présumée.
 
-D-268 à D-300 ; Cadence v1/Phrase v1 ; matrice06/10 : CAD-V01 et CAD-V02–04 distincts de règles métier closes.
+D-268 à D-300 ; Cadence v1/Phrase v1 ; matrice06/10 : CAD-V01 clarifiée par le propriétaire ; CAD-V02–04 ne demandent aucun nouveau layout, réserves levées. Les règles métier restent closes.
 
 Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figma ; maintien des rubriques sans changement fonctionnel lorsque non concernées. Les captures sont centralisées au chapitre06, aucun test applicatif présumé.
 

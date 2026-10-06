@@ -4,7 +4,7 @@
 
 ## 1. Paramétrage et données
 
-Cadence est une option du mode Répétitions, pas un quatrième mode. `repetitionIntervalSeconds?: integer|null`, 1..60 secondes, aucune présélection ; absent/null = Aucune. Ni0 ni une fraction ne sont valides. Aucun objet Répétition ni nouveau type de phase du plan.
+Cadence est une option du mode Répétitions, pas un quatrième mode. `repetitionIntervalSeconds?: integer|null`, 1..60 secondes, aucune présélection ; absent/null = Aucune. La roulette propose « Aucun » en plus des secondes1..60 ; ce choix retire la cadence (absence/null) de toutes les Séries dans le brouillon,✓ applique et✕ annule. Aucun bouton de suppression distinct. Ni0 ni une fraction ne sont valides. Aucun objet Répétition ni nouveau type de phase du plan.
 
 Elle appartient à la Série. Le réglage commun uniforme est copié dans toutes les Séries à l’activation variable ; toute modification/suppression commune s’applique à toutes. Pas d’édition individuelle dans cette version. La collection ordonnée demeure la seule source effective ; pas de surcharge commune concurrente persistée. Revenir au mode Répétitions avant✓ restaure la cadence du brouillon ; ✓ dans un autre mode élimine la valeur cachée. ✕ annule l’ouverture, ✓ applique au brouillon parent, Terminer sauvegarde. Copie, duplication et instantané incluent la cadence ; migration d’un objet existant sans champ = absence, jamais2s.
 

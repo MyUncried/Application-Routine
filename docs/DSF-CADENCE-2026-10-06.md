@@ -65,8 +65,8 @@ Inter pour interface, Roboto Condensed volontaire pour chronomètres/compteurs. 
 | Compteurs | Roboto Condensed Bold/SemiBold30 | Rôles à mapper selon usage ; pas remplacement par taille seule |
 | Indication média | Roboto Condensed Medium24 | Style DSF courant |
 | Chronomètre secondaire5017:6051 | Inter Semi Bold17, style neutre | Ne plus le mapper à Card title17 obsolète |
-| Caption |11, cible de ligne13 | Source la donne à confirmer au plan ; code11/14 et ancienne doc11/16 ne constituent pas qualification |
-| Navigation label | Rôle/interligne à vérifier | Recommandation13 non assimilée à décision mesurée |
+| Caption | Inter Regular11/13 | Cible établie par la règle D2 : round(1,21×11)=13 ; usages Calendrier Jour/Semaine relus (1992:5552/5554, 1992:5125/5131), Inter11 Auto. Anciennes valeurs code14/doc16 à aligner dans le lot code |
+| Navigation label | Inter Regular11/13 | Usages de Navigation / Bottom relus (I2565:968;6298:11912, I2565:1597;6298:12073, 5828:3139), Inter11 Auto ; traduction selon D2. Ancien style local Navigation label11/16 non représentatif de ces usages |
 | Exceptions |14/18 ;10/16 ; Roboto16/22 ; Inter12/15 | Interlignes explicites à conserver par rôle |
 
 Ne pas remplacer toutes les tailles15/16/17 ensemble. `tokens.ts`, chargement des polices et `ProfileStepper.tsx` devront être alignés dans un lot code ; aucun de ces fichiers n’est changé par cette révision documentaire.
@@ -75,9 +75,9 @@ Ne pas remplacer toutes les tailles15/16/17 ensemble. `tokens.ts`, chargement de
 
 En-tête fixe : propriétés Titre et Démarcation ; barre d’état9:41 purement décorative Figma, rendue par le système sur appareil. Respecter les Safe Areas réelles, pas une constante d’en-tête95px. Poignée de modale et Progression par tours sont des composants DSF ; pas de réinvention du shell.
 
-Cadence : ligne commune REPETITIONS, valeur Aucune ou secondes, sous la cible uniforme et avant Pause ; indentation52px contre36 pour groupe sur402, séparateurs314 ; roulette avec unité immédiatement sous la ligne, contenu poussé dans le flux. En variable : ligne commune hors tableau, aucun contrôle par Série. Valeur Grisé signifie indisponibilité effective ; Aucune reste sélectionnable. Suppression vers Aucune fonctionnellement définie mais contrôle non identifié au relevé : réserve graphique CAD-V01, pas création d’un bouton arbitraire.
+Cadence : ligne commune REPETITIONS, valeur Aucune ou secondes, sous la cible uniforme et avant Pause ; indentation52px contre36 pour groupe sur402, séparateurs314 ; roulette avec unité immédiatement sous la ligne, contenu poussé dans le flux. En variable : ligne commune hors tableau, aucun contrôle par Série. Valeur Grisé signifie indisponibilité effective ; Aucune reste sélectionnable. Suppression par sélection de « Aucun » dans la même roulette (clarification du propriétaire le06/10), suivie de✓ ; retour à absence/null sur toutes les Séries. Le libellé de ligne est Aucune. Le viewport centré sur4 n’affiche qu’un extrait des valeurs : aucune exigence de bouton supplémentaire ni de prototype interactif.
 
-Phrase unique Inter13/20, valeurs en gras ; zone entière cliquable ; aucun segment éditable. Les textes restés anciens dans les frames13/14/phrase longue sont des démonstrations et doivent être rapprochés de Phrase v1, sans importer leurs totaux. Les trois états d’exécution cadencée déclarés manquants ne sont pas retrouvés parmi les frames courantes ; suivre CAD-V02–04.
+Phrase unique Inter13/20, valeurs en gras ; zone entière cliquable ; aucun segment éditable. Les textes des frames13/14/phrase longue servent de témoins de layout ; Phrase v1 gouverne le texte généré et le calcul métier fournit le total. Leur harmonisation éditoriale Figma est facultative pour le développement tant que le layout ne change pas. Les états avant/après nominal et Pause/Reprise réemploient le layout d’exécution ; les spécifications suffisent, sans trois frames supplémentaires exigées.
 
 Séance sans photo ; liste mixte sans photo ; Exercice Catalogue/choix garde la gouttière64, premier média ou icône, hauteur inchangée. Circuit structure de Séance et N tours répétition ; «N circuits» présent dans un exemple serait un écart de libellé, pas une nouvelle règle. Catalogue : Parcours, hors MVP ; ancien arbre Un circuit retiré.
 
@@ -91,8 +91,8 @@ Séance sans photo ; liste mixte sans photo ; Exercice Catalogue/choix garde la 
 | A04 | Dimensions navigation à qualifier | Sources et viewBox divergent du manifeste ; conserver exports existants |
 | A05 | Code à aligner | Plus/moins textuels de ProfileStepper, aucun correctif code dans cette PR |
 | A06 | Documentation corrigée | Divider/iconNeutral ; code restant à aligner |
-| A07 | Rôles documentés | Roboto à charger ; interlignes/roles non qualifiés explicités |
-| A08 | Correction Figma déclarée, témoin chrono17 relu |40 masters à15 selon rapport ; compactCardTitle15/18 déjà décidé ; caption reste à qualifier |
+| A07 | Rationalisation documentée ; vérification ciblée complétée | Caption/navLabel11/13 issus des usages Inter11 Auto et D2 ; exceptions explicites et métriques Roboto préservées. Chargement des polices et migration des tokens relèvent du code |
+| A08 | Correction Figma documentée ; décisions conservées |40 masters à15 selon rapport, ancien Card title17 marqué obsolète dans le style courant ; compactCardTitle15/18, cardTitle16 hors nouvelles cartes ; aucun arbitrage rouvert |
 | A09 | Correction déclarée, composant24×24 retrouvé |38 glyphes remplacés selon rapport ; pas38 nouvelles vérifications indépendantes |
 | A10 | Archivage confirmé par inventaire |3 masters résiduels encore présents, aucune suppression |
 | A11 | Correction mesurée directement | Tri34×34/r17/72%/75% |
@@ -118,3 +118,23 @@ Au baseline, rapport :27SVG pour25entrées, deux fichiers hors manifeste (`selec
 | Nouveaux vecteurs |tri6939:26387(20²),photo7021:13149(24²),suivant/précédent/ajouter/fermer/retour | Export et raccordement dans lot assets explicite |
 
 Le présent document ne certifie pas que le manifeste est prêt à être remplacé. Les fichiers sources et exports applicatifs restent inchangés. Les animations Smart Animate ne sont pas des règles de développement ; le comportement du retournement vient des contrats.
+
+### Vérification et dépôt des assets — 06/10/2026
+
+Les25entrées du manifeste historique ont chacune un SVG présent dans `assets/icons/`, vérifié aussi par l’inventaire GitHub sur main et sur la branche documentaire. Les six fichiers précédemment regroupés comme sources non établies sont : `action-start.svg`, `control-chevron-down.svg`, `control-chevron-up.svg`, `control-repetition-pull-down.svg`, `state-selected.svg`, `composition-fixed.svg`. Ils ne sont pas manquants ; leurs anciens IDs Figma absents restent un sujet de traçabilité, pas une demande de dessin ni un motif de blocage documentaire.
+
+Les exports courants sont déposés et tracés dans [figma-current-exports.json](../assets/icons/figma-current-exports.json) :
+
+| Composant Figma | Fichier exact dans le dépôt | Résultat |
+|---|---|---|
+| icon/tri6939:26387 | [icon-tri.svg](../assets/icons/icon-tri.svg) | Nouveau SVG20×20 |
+| icon/suivant6959:15460 | [icon-suivant.svg](../assets/icons/icon-suivant.svg) | Nouveau SVG24×24 |
+| icon/précédent6959:15579 | [icon-precedent.svg](../assets/icons/icon-precedent.svg) | Nouveau SVG24×24 |
+| icon/ajouter6959:15706 | [action-add.svg](../assets/icons/action-add.svg) | Déjà présent, identité octet pour octet ; aucun doublon ajouté |
+| icon/fermer6959:15825 | [icon-fermer.svg](../assets/icons/icon-fermer.svg) | Nouveau SVG24×24 |
+| icon/retour6959:15940 | [icon-retour.svg](../assets/icons/icon-retour.svg) | Nouveau SVG24×24 ; control-back existant conservé |
+| icon/photo-ajouter7021:13149 | [icon-photo-ajouter.svg](../assets/icons/icon-photo-ajouter.svg) | Nouveau SVG24×24 |
+
+Exports SVG_STRING directs, XML/viewBox et empreintes vérifiés, rendu des sept sources relu. Aucun dessin recréé approximativement. Les nouveaux fichiers sont disponibles pour le lot code ; le manifeste historique consommé par l’application et le branchement runtime restent inchangés. Les différences de dimensions des anciennes navigations sont un écart à résoudre lors de cet alignement, pas une absence d’assets.
+
+Les interactions du prototype sont hors conditions de livraison documentaire ou de développement : le journal§7 en confie déjà la reprise au propriétaire, sans impact sur le développement. Aucun contrôle de présence d’interactions supplémentaire n’est requis.

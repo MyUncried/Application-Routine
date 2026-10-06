@@ -904,8 +904,8 @@ Le relevé du06/10 comporte51 styles. La correspondance code/Figma se fait par r
 | `type.label` | Medium | `14` | `17` Auto ;18 si style explicite | Libellé de champ ou valeur importante |
 | `type.button` | Semi Bold | `14` | `17` Auto ;18 si style explicite | Bouton principal et secondaire |
 | `type.supporting` | Regular | `12` | `15` explicite selon rôle ;16 historique | Aide, métadonnée et information secondaire |
-| `type.caption` | Regular | `11` | Cible13 à confirmer selon source ; ancien16 périmé | Légende compacte ; ne pas annoncer la migration code qualifiée |
-| `type.navLabel` | Regular | `11` | Rôle à qualifier ; recommandation13, ancien16 historique | Libellé de destination active, pas migration par égalité de taille |
+| `type.caption` | Regular | `11` | `13` (Inter Auto traduit selon D2) | Légende compacte ; usages Calendrier relus, ancien code14/doc16 à aligner |
+| `type.navLabel` | Regular | `11` | `13` (usages Navigation / Bottom Inter11 Auto) | Rôle vérifié sur libellés Calendrier/Suivi/Profil ; ancien style11/16 historique |
 
 La taille minimale d’un texte fonctionnel est `11`. Une information secondaire utilise normalement `type.supporting` en `12`. Les tailles `8`, `10` et `10,5` ne sont pas utilisées pour du texte fonctionnel ; les points du Calendrier mensuel sont des indicateurs graphiques et non des caractères typographiques. Les titres et noms fonctionnels utilisent `type.cardTitle` en `16`, sauf les nouvelles cartes en `15` et le niveau compact explicitement prévu par `type.compactCardTitle`. La taille `15` est désormais le titre fonctionnel des nouvelles cartes du 30 septembre, exception explicite à D-083 ; les autres titres conservent leur niveau propre.
 

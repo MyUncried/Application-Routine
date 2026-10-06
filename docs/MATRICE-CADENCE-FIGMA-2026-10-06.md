@@ -156,13 +156,13 @@ Ces ensembles ne sont pas trois écrans applicatifs supplémentaires. Ils docume
 
 | Réserve | Attendu documenté | Contrat / constat06/10 |
 |---|---|---|
-| CAD-V01 | Supprimer une cadence, retour Aucune sur toutes les Séries | CE-UI-10 : Aucune existe6419:9847/6665:24844, roulette7061:13383 ; aucun contrôle de suppression identifié ni interaction probante. Ne pas inventer un bouton. |
-| CAD-V02 | Répétitions cadencées avant fin nominale | CE-T03-11 / CE-EXEC-SESSION-01 ; règles complètes, aucune frame dédiée identifiée |
-| CAD-V03 | Fin nominale atteinte, Série toujours active et Suivant disponible | Mêmes contrats ; aucune frame dédiée identifiée |
-| CAD-V04 | Pause/Reprise, nouvel intervalle complet et temps actif conservé | Mêmes contrats ; dialogue partagé existant, variante cadencée non identifiée |
-| CAD-T01 | Phrase finale dans les frames de démonstration |7059/7061/7119 conservent des formulations antérieures ; appliquer Phrase v1. Les PNG restent fidèles à Figma, sans retouche. |
+| CAD-V01 — levée | Supprimer une cadence | « Aucun » dans la même roulette, puis✓ ; clarification du propriétaire06/10. Le viewport7061:13383 centré sur4 montre un extrait, pas toutes les valeurs. Aucun bouton supplémentaire |
+| CAD-V02 — levée | Répétitions cadencées avant fin nominale | CE-T03-11 / CE-EXEC-SESSION-01 ; layout existant réutilisé, comportement dans les spécifications ; frame dédiée non requise |
+| CAD-V03 — levée | Fin nominale atteinte, Série toujours active et Suivant disponible | Mêmes contrats et layout ; règle fonctionnelle sans nouvelle maquette exigée |
+| CAD-V04 — levée | Pause/Reprise, intervalle complet et temps actif conservé | Dialogue partagé existant ; comportement prescrit sans variante graphique nécessaire |
+| CAD-T01 — exemple éditorial | Phrase finale dans les frames de démonstration |7059/7061 : « rép. à4s », « avec15s de pause après chaque série », « sans changement de côté » ; cible Phrase v1 : « répétitions cadencées toutes les4s », « séparées par15s de pause », omission sans changement.7119 : « à raison de4s par répétition » devient la clause cadence. Harmonisation Figma facultative pour le développement tant que le layout reste valide ; total fourni par le calcul métier |
 
-Le relevé de texte sur Prototype MVP retrouve Cadence dans les paramètres, pas dans une frame d’exécution dédiée. Une absence de nom seul n’est pas présentée comme preuve ; elle est rapprochée des textes relevés et du dossier source qui annonce ces états absents. Aucun écran ancien de préparation16/17 n’est réintroduit.
+Figma fait autorité pour la présentation, les spécifications pour les règles. L’absence de frames dédiées aux variantes fonctionnelles sans changement de layout ne constitue pas une réserve de développement. Aucun écran ancien de préparation16/17 n’est réintroduit. Les interactions du prototype restent à la charge du propriétaire en temps voulu, sans exigence de vérification ni condition de clôture documentaire.
 
 ## Références retirées et portée des archives
 
