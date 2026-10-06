@@ -38,7 +38,7 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'stage=' + c.stage + '\napproved_head=' + (c.approved_protocol_head || '') + '\nqualification_policy=' + (c.qualification_policy || '') + '\n');
           JS
       - name: Check the disposable supervisor before any runtime execution
-        if: steps.stage.outputs.stage == 'EXECUTE_INITIAL' || steps.stage.outputs.stage == 'EXECUTE_REVISION' || steps.stage.outputs.stage == 'QUALIFY_ONLY' || steps.stage.outputs.stage == 'PREPARE_REVISION'
+        if: steps.stage.outputs.qualification_policy != 'DIRECT_REAL_USER_REQUEST' && (steps.stage.outputs.stage == 'EXECUTE_INITIAL' || steps.stage.outputs.stage == 'EXECUTE_REVISION' || steps.stage.outputs.stage == 'QUALIFY_ONLY' || steps.stage.outputs.stage == 'PREPARE_REVISION')
         run: node --test tests/kodjo/vnext12-supervisor.pilot.js tests/kodjo/vnext12-revision-supervisor.pilot.js
   admission-controls:
     name: 1 - Verify exact automatic controls
@@ -67,7 +67,7 @@ jobs:
           JS
   qualify-driver:
     needs: select-stage
-    if: needs.select-stage.outputs.stage == 'PREPARE_INITIAL' || needs.select-stage.outputs.stage == 'QUALIFY_ONLY' || needs.select-stage.outputs.stage == 'PREPARE_REVISION'
+    if: needs.select-stage.outputs.qualification_policy != 'DIRECT_REAL_USER_REQUEST' && (needs.select-stage.outputs.stage == 'PREPARE_INITIAL' || needs.select-stage.outputs.stage == 'QUALIFY_ONLY' || needs.select-stage.outputs.stage == 'PREPARE_REVISION')
     strategy:
       fail-fast: false
       matrix:
@@ -94,7 +94,7 @@ jobs:
         shell: bash
         run: node --test tests/kodjo/vnext*.pilot.js
   prepare-revision:
-    if: needs.select-stage.outputs.stage == 'PREPARE_REVISION'
+    if: always() && needs.select-stage.result == 'success' && needs.select-stage.outputs.stage == 'PREPARE_REVISION' && (needs.select-stage.outputs.qualification_policy == 'DIRECT_REAL_USER_REQUEST' || needs.qualify-driver.result == 'success')
     needs: [select-stage, qualify-driver]
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 120
