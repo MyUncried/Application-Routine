@@ -6,6 +6,11 @@ const reference="const {Existing}=require('../../shared/ui/Existing');let select
 const {prepare}=require('./helpers/vnext-functional-reference');
 test('generated plan, real reference delivery, independent probes and reviewer-accessible dossier agree',async t=>{
  const {f,out,plan,produced,keepHash}=await prepare(t);assert.ok(plan.includes(C.EXPECTED));assert.match(plan,/require the shared module again/);assert.match(plan,/SAME Screen module instance in ONE fresh child/);
+ const item=produced.artifacts.planContract.plan_items[0];
+ assert.ok(item.implementation_constraints.some(c=>c.includes('node tests/ui.test.js')&&c.includes('Node built-in modules')&&c.includes('non-zero exit status')));
+ const testIntent=item.change_items.find(c=>c.path===C.TEST).intent;
+ assert.match(testIntent,/Tests must exercise the implementation and assert observed results/);
+ assert.equal(testIntent.includes('source. against the implementation'),false);
  assert.deepEqual(produced.artifacts.impactGraph.impacts.filter(i=>i.change_kind==='MODIFY').map(i=>i.candidate_id).sort(),produced.artifacts.candidateManifest.candidates.filter(c=>[C.SCREEN,C.TEST].includes(c.path)).map(c=>c.candidate_id).sort());
  assert.equal(produced.artifacts.planContract.plan_items.flatMap(p=>p.proof_obligations).some(p=>p.proof_type==='VISUAL_COMPARE'),false);
  const receipt=D.runDeliveredTests(f,keepHash,path.join(out,'gate.json'));f.git('add',C.SCREEN,C.TEST);f.git('commit','-m','REFERENCE deterministic delivery; no model');
@@ -15,6 +20,19 @@ test('generated plan, real reference delivery, independent probes and reviewer-a
  assert.deepEqual(artifact.node_test_receipt.preservation_probe,{status:'PASS',normal_identity:true,sentinel_identity:true,independent_child_process:true});
  assert.equal(dossier.observed_files.length,1);assert.equal(dossier.observed_files[0].file,path.join(out,'review','execution.json'));assert.equal(artifact.node_test_receipt.source_sha256[C.KEEP],keepHash);
  assert.equal(dossier.measurements.length,0);assert.equal(dossier.scenario_ids.length,2);
+});
+
+for(const fails of [false,true])test('preservation restores shared export and cache entries after '+(fails?'a failed sentinel assertion':'success'),t=>{
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-cache-restore-')),screen=path.join(dir,'Screen.js'),shared=path.join(dir,'Existing.js'),key='__vnextProbe'+path.basename(dir).replace(/\W/g,'');
+ globalThis[key]=[];
+ fs.writeFileSync(shared,`module.exports={Existing:{original:true}};globalThis[${JSON.stringify(key)}].push({shared:module.exports,original:module.exports.Existing});`);
+ fs.writeFileSync(screen,`const {Existing}=require('./Existing');module.exports={Existing:${fails?'Object.keys(Existing).length===0?null:Existing':'Existing'}};`);
+ t.after(()=>{delete require.cache[screen];delete require.cache[shared];delete globalThis[key];fs.rmSync(dir,{recursive:true,force:true});});
+ require(screen);const oldScreen=require.cache[screen],oldShared=require.cache[shared],original=oldShared.exports.Existing;
+ if(fails)assert.throws(()=>C.preservation(screen,shared),/PROVENANCE_FAILED/);else assert.equal(C.preservation(screen,shared).status,'PASS');
+ assert.equal(globalThis[key].length,2);
+ assert.equal(globalThis[key][1].shared.Existing,globalThis[key][1].original);
+ assert.equal(require.cache[screen],oldScreen);assert.equal(require.cache[shared],oldShared);assert.equal(require(shared).Existing,original);
 });
 for(const [name,body,diagnostic] of [
  ['constant shared value',"let selected=false;module.exports={Existing:true,toggle:()=>selected=!selected};",/PROVENANCE_FAILED/],

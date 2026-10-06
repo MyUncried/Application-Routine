@@ -129,3 +129,40 @@ humain. Admission sur les mêmes octets de protocole puis Claude ; les tests
 historiques dépendent strictement du succès du runtime. Cette préparation
 et la qualification ne constituent pas une réussite du parcours réel.
 L'identifiant effectif du nouveau run sera consigné après publication vérifiée.
+
+## Livraison et relance vérifiées
+
+Publication par avance normale avec lease sur
+37e85e0e6dc6b7cd7785c1e285a2a38245ace779, checkpoint
+bda2bf3093862f3e5d22952f6328700a47cd157f. Fenêtre vérifiée : 225 runs
+de la branche consultés sur trois pages, aucun workflow protocole actif.
+Le candidat contrôleur a passé validateTree : writer policy
+PASS_WITH_FROZEN_LEGACY, 420 sujets historiques, zéro unité PowerShell
+modifiée depuis le code qualifié. L'arbre API a été comparé à l'arbre Git
+local complet : a44186a67e35ff1385b9ad6953bfa8b8800db4dc.
+
+Commit opérationnel distant publié et relu :
+f776cf813dffd8800c7645cb4438e003562b6989, parent
+0fb8ad80703c4dc86caa1dd2e011e1a17a821c2c. Relation d'admission
+EXACT_SAME_PROTOCOL_CODE vérifiée sur ce commit effectif.
+Run réel : https://github.com/MyUncried/Application-Routine/actions/runs/37516102783,
+tentative 1, head exact f776cf813dffd8800c7645cb4438e003562b6989.
+select-stage et admission-controls SUCCESS ; job Claude
+112449435950 IN_PROGRESS au relevé. Les workflows séparés proof stability
+37516102255 et V2 37516102341 sont SKIPPED ; aucun nouvel audit global.
+Les tests historiques du même parcours dépendent du succès de Claude.
+Preuve du démarrage dans evidence/37501814430/real-restart.json.
+
+Cette clôture concerne l'audit, les correctifs et la relance ; le succès du
+runtime reste à constater. Pas de navigateur ni de contrôle visuel humain.
+Fichiers de code modifiés : contrat fonctionnel, qualification GitHub,
+revue d'implémentation, pilote Figma, deux workflows de qualification,
+writer policy, trois tests de contrat et helper/CLI de référence complète.
+Fichiers documentaires : rapport indépendant et disposition, preuves
+immuables, référence complète, demande et checkpoint de reprise.
+Livraisons locales de code/rapport : 4e5e0c6eca2a9785eb053ecc6fed7af1eeef2e71,
+3a3ba7418e0bfd4629cd08c0d6e73ecf7c4b6552 et
+cc33cb16126638bf8064aaafd241c0fc9028a7aa. La dernière observation de
+relance est committée dans un complément documentaire local sans déplacer
+la branche distante pendant le runtime ; son SHA final et l'état Git propre
+figurent dans la réponse de livraison. Aucun fichier applicatif modifié.
