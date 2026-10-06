@@ -1,0 +1,204 @@
+{
+  "run_id": 37457022185,
+  "controller_head": "038c7754004613fd9223aa22c08782381f111143",
+  "qualification_run": 37455799687,
+  "observed_at": "2026-10-06T11:33:51.076Z",
+  "jobs": [
+    {
+      "id": 112247018627,
+      "name": "select-stage",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-06T11:32:31Z",
+          "completed_at": "2026-10-06T11:32:31Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-06T11:32:31Z",
+          "completed_at": "2026-10-06T11:32:33Z"
+        },
+        {
+          "name": "Select the explicitly requested stage",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-06T11:32:33Z",
+          "completed_at": "2026-10-06T11:32:34Z"
+        },
+        {
+          "name": "Check the disposable supervisor before any runtime execution",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 4,
+          "started_at": "2026-10-06T11:32:34Z",
+          "completed_at": "2026-10-06T11:32:34Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-06T11:32:34Z",
+          "completed_at": "2026-10-06T11:32:34Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-06T11:32:34Z",
+          "completed_at": "2026-10-06T11:32:34Z"
+        }
+      ]
+    },
+    {
+      "id": 112247258536,
+      "name": "1 - Verify exact automatic controls",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-06T11:32:42Z",
+          "completed_at": "2026-10-06T11:32:43Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-06T11:32:43Z",
+          "completed_at": "2026-10-06T11:32:46Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-06T11:32:46Z",
+          "completed_at": "2026-10-06T11:32:46Z"
+        },
+        {
+          "name": "Require successful exact-code Linux and Windows controls before Claude",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-06T11:32:46Z",
+          "completed_at": "2026-10-06T11:32:47Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-06T11:32:47Z",
+          "completed_at": "2026-10-06T11:32:47Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-06T11:32:47Z",
+          "completed_at": "2026-10-06T11:32:47Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-06T11:32:47Z",
+          "completed_at": "2026-10-06T11:32:47Z"
+        }
+      ]
+    },
+    {
+      "id": 112247260379,
+      "name": "qualify-driver",
+      "status": "completed",
+      "conclusion": "skipped",
+      "steps": []
+    },
+    {
+      "id": 112247261690,
+      "name": "prepare-revision",
+      "status": "completed",
+      "conclusion": "skipped",
+      "steps": []
+    },
+    {
+      "id": 112247261987,
+      "name": "prepare-initial",
+      "status": "completed",
+      "conclusion": "skipped",
+      "steps": []
+    },
+    {
+      "id": 112247339488,
+      "name": "Real Figma INITIAL and one bounded correction",
+      "status": "in_progress",
+      "conclusion": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-06T11:32:54Z",
+          "completed_at": "2026-10-06T11:33:00Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-06T11:33:00Z",
+          "completed_at": "2026-10-06T11:33:20Z"
+        },
+        {
+          "name": "Qualify admission then execute the disposable Figma path once",
+          "status": "in_progress",
+          "conclusion": null,
+          "number": 3,
+          "started_at": "2026-10-06T11:33:20Z",
+          "completed_at": null
+        },
+        {
+          "name": "Preserve Figma sessions, exact delivery, comparisons and reservations",
+          "status": "pending",
+          "conclusion": null,
+          "number": 4,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "pending",
+          "conclusion": null,
+          "number": 8,
+          "started_at": null,
+          "completed_at": null
+        }
+      ]
+    },
+    {
+      "id": 112247341029,
+      "name": "Execute approved disposable INITIAL or REVISION",
+      "status": "completed",
+      "conclusion": "skipped",
+      "steps": []
+    }
+  ]
+}

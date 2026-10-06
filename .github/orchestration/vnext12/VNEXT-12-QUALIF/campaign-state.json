@@ -379,7 +379,7 @@
   },
   "active_runs": [
     {
-      "id": 37453662295,
+      "id": 37457022185,
       "path": ".github/workflows/kodjo-vnext12-disposable.yml",
       "status": "completed",
       "conclusion": "failure"
@@ -2212,14 +2212,14 @@
   },
   "task2_plan_completion_fix_20261006": {
     "authorization": "USER_2026-10-06_10:59_PARIS_APPLY_FIXES_AND_AUTOMATIC_RELAUNCH",
-    "stage": "DOCUMENTARY_SCOPE_CONTROLS_VERIFIED_CONTROLLER_READY",
+    "stage": "INLINE_MARKUP_CONTRACT_CORRECTED",
     "report": ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_COMPLETION_FIX.md",
     "prior_runtime_run": 37435583811,
     "prior_pilot_run": 37435583847,
-    "runtime_launched": false,
+    "runtime_launched": true,
     "qualification_branch": "qualification/vnext-task2-documentary-scope-20261006",
     "qualification_launch_count": 6,
-    "runtime_launch_count": 3,
+    "runtime_launch_count": 4,
     "task3_authorized": false,
     "closure_authorized": false,
     "candidate_head": "676a3b8f68dab3ee3986b2e92d6b7ac66af41fb4",
@@ -2298,9 +2298,9 @@
       }
     },
     "runtime_startup_run": 37443238973,
-    "runtime_status": "CLARIFICATION_REQUIRED",
-    "controller_head": "b1503c4a01b53953d36b425e13acba2bc39c5eff",
-    "request_consumed": false,
+    "runtime_status": "FAILURE",
+    "controller_head": "038c7754004613fd9223aa22c08782381f111143",
+    "request_consumed": true,
     "claude_invoked": true,
     "sequence_fix": {
       "cause": "REUSABLE_CALLEE_UNUSED_JOB_REQUIRES_WRITE",
@@ -2313,14 +2313,17 @@
     },
     "previous_startup_request_id": "b79dcc3e-1962-416c-a701-bd1325b78492",
     "native_validation_pending": false,
-    "runtime_run": 37453662295,
-    "admission_job": 112236000475,
+    "runtime_run": 37457022185,
+    "admission_job": 112247258536,
     "admission_status": "SUCCESS",
-    "artifact_upload_status": "FAILED_403_JOB_COMPLETED",
-    "runtime_artifacts_available": false,
+    "artifact_upload_status": "SUCCESS",
+    "runtime_artifacts_available": true,
     "recovery_run": 37453377364,
     "recovery_artifact_id": 11408440209,
     "previous_request_consumed": true,
-    "previous_request_id": "6ea7b481-9de4-463a-a79b-26327a2bbcca"
+    "previous_request_id": "6ea7b481-9de4-463a-a79b-26327a2bbcca",
+    "claude_verdict": "REVISE",
+    "claude_duration_ms": 542823,
+    "blocking_findings": 2
   }
 }
