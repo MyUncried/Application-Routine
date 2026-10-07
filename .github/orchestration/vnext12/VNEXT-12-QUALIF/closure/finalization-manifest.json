@@ -25,5 +25,11 @@
       "head": "PASS",
       "clean": "PASS"
     }
+  },
+  "reviewSource": {
+    "kind": "CONNECTOR_TECHNICAL_REVIEW",
+    "actor": "MyUncried",
+    "application_slug": "chatgpt-codex-connector",
+    "body_sha256": "5d76048aab52350143f2e7551608f61ddce9e7f55b340df899dc01c605f86606"
   }
 }

@@ -10,6 +10,17 @@ const Delivery = require('./lib/vnext-delivery-preservation');
 const { extractTaggedJson } = require('./lib/plan-impact');
 const { matrixFingerprint } = require('./lib/ui-criteria-contract');
 const Source = require('./verify-source-comment');
+function verifyReviewSource(comment,input) {
+  const origin=input.reviewSource;
+  if(!origin)return Source.verify(comment,{repository:input.repository,issue:input.issue,id:input.reviewId});
+  if(origin.kind!=='CONNECTOR_TECHNICAL_REVIEW' || origin.actor!=='MyUncried'
+      || origin.application_slug!=='chatgpt-codex-connector'
+      || comment.performed_via_github_app?.slug!==origin.application_slug
+      || !/^[0-9a-f]{64}$/.test(origin.body_sha256 || '') || V.sha256(comment.body)!==origin.body_sha256
+      || !comment.body.startsWith('[KODJO_VNEXT] IMPLEMENTATION_REVIEW\n')
+      || !/^reviewer=ChatGPT$/m.test(comment.body) || !/^human_review_performed=false$/m.test(comment.body)) V.fail('VNEXT_FINAL_REVIEW_SOURCE_INVALID');
+  return Source.verify(comment,{repository:input.repository,issue:input.issue,id:input.reviewId,actor:origin.actor});
+}
 function execute(input, { cwd, directory, github }) {
   const read = (revision, file) => execFileSync('git', ['show', revision + ':' + file], { cwd, encoding:'utf8', windowsHide:true, maxBuffer:32*1024*1024 });
   V.assertSha40(input.planRevision, 'VNEXT_FINAL_PLAN_REVISION_REQUIRED');
@@ -24,8 +35,7 @@ function execute(input, { cwd, directory, github }) {
   const matrix = Delivery.merge(initialMatrix, preservation);
   const nonUiRequirements = plan.includes('<KODJO_REQUIREMENT_CONTRACT_JSON>')
     ? require('./lib/requirement-contract').verifyEmbedded(plan).requirement_contract.requirements.filter(r=>r.domain==='NON_UI') : [];
-  const reviewComment = Source.verify(github.comment(input.repository,input.reviewId),
-    {repository:input.repository,issue:input.issue,id:input.reviewId});
+  const reviewComment = verifyReviewSource(github.comment(input.repository,input.reviewId),input);
   const heads = [...reviewComment.body.replace(/\r\n/g,'\n').matchAll(/^head=([^\n]+)$/gm)].map(m=>m[1].trim());
   if (heads.length !== 1 || heads[0] !== input.head) V.fail('VNEXT_FINAL_REVIEW_HEAD_MISMATCH');
   const slices=[...reviewComment.body.replace(/\r\n/g,'\n').matchAll(/^slice_id=([^\n]+)$/gm)].map(m=>m[1].trim());
@@ -50,4 +60,4 @@ if (require.main === module) {
     execute(JSON.parse(fs.readFileSync(manifest,'utf8')),{cwd:process.cwd(),directory:path.resolve(directory),github});
   } catch (error) { console.error(error.message); process.exitCode=1; }
 }
-module.exports = {execute};
+module.exports = {execute,verifyReviewSource};

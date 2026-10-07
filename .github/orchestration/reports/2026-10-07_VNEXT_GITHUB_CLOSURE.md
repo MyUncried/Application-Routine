@@ -49,3 +49,7 @@ Fichiers : workflow VNext existant, politique VNext, entrée/module de clôture 
 Le writer relit également la clôture une seconde fois sur GitHub et exige les mêmes IDs de records et la même empreinte ; recovery.json prouve cette reprise réelle sans nouveau record. Une interruption forcée en plein writer reste distincte de cette reprise et de ses tests de réponse perdue.
 
 Le premier transport CLI de publication a été refusé faute de credentials Git HTTPS locaux ; la tête distante est restée inchangée. La publication utilise le connecteur GitHub avec contrôle de bail, sans configuration ni exposition de credentials.
+
+## Premier passage et correction du transport de revue
+
+Publication ffdd724ab16be39908677c3a29f2b91ae9357438, run #37596957178 : 30 tests PASS, puis SOURCE_COMMENT_ORIGIN_MISMATCH avant écriture ; #324 reste ouverte. Cause démontrée : verify-source-comment impose github-actions[bot] par défaut, alors que la revue technique ChatGPT a été publiée par MyUncried via chatgpt-codex-connector. Correctif VNext seulement : origine CONNECTOR_TECHNICAL_REVIEW explicite, compte exact, slug d’application exact, empreinte du corps et marqueurs reviewer/human_review_performed vérifiés. Le défaut bot par défaut et le module V2 de source restent inchangés. Tests de mauvais acteur, absence d’application, corps altéré et mauvaise issue. Une nouvelle demande generation 76 charge le correctif ; aucune relance de l’ancien workflow.

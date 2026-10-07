@@ -2637,11 +2637,13 @@
     "tested_tree": "9cb1628b755948fb3b57f24bcf1cf187e9114282",
     "review_comment_id": 6034331428,
     "source_revision_run": 37548553181,
-    "generation": 75,
+    "generation": 76,
     "report": ".github/orchestration/reports/2026-10-07_VNEXT_GITHUB_CLOSURE.md",
-    "status": "PREPARED_NOT_YET_EXECUTED",
+    "status": "SOURCE_ORIGIN_FIXED_NEW_EVENT_REQUIRED",
     "github_issue_closed": false,
     "application_published": false,
-    "final_audit_authorized": false
+    "final_audit_authorized": false,
+    "failed_run": 37596957178,
+    "failure": "SOURCE_COMMENT_ORIGIN_MISMATCH"
   }
 }
