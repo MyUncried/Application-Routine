@@ -192,3 +192,10 @@ Le run 37670103040 est terminé SUCCESS, tentative 1, sur la tête exacte 9d2274
 L'artefact 11505705096 est conservé sous le SHA-256 bad2d4200832f28811a1a7f60dccb2c129c59ac2a1e581112708a5a3e46e459d. La finalisation réelle lie les cinq dépendances non-UI conservées par leurs OID Git inchangés. Le signal de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:81a107ff-5c61-4df1-a2c0-fed949a331bc:37670103040:1 est revendiqué une seule fois.
 
 Le passage suivant exige l'agrégation historique Linux/Windows et le contrôle Windows persistant. Ces jobs existent déjà, mais leur condition de lancement ne couvrait que les sorties INITIAL/Figma. Le correctif minimal ajoute un état CERTIFY_HISTORICAL qui réutilise exactement ces jobs et leur ordre existants. La demande est terminale pendant la qualification Linux/Windows de ce raccordement ; aucun test acquis n'est relancé avant SUCCESS.
+
+
+## Premier échec de qualification du raccordement historique (2026-10-07T19:02:25.938Z)
+
+Le run [37671322228](https://github.com/MyUncried/Application-Routine/actions/runs/37671322228), événement `create`, tête exacte `9b57e713ce4d14d1664caddbac916799100ad44d`, est FAILURE sur Linux et Windows avant tout job historique. Le garde `VNEXT_PUBLICATION_WRITER_POLICY_INVALID` refuse deux producteurs déclarés dont les empreintes n'avaient pas été renouvelées après l'ajout de `CERTIFY_HISTORICAL` : le workflow d'exécution et le script de signal. Aucun historique, rejeu d'incident ni appel Claude n'a été lancé.
+
+Dernier succès comparable : run 37667669032, tête `fe4e36e…`. La correction causale borne la modification aux deux `producer_blob_oid` exacts (`6b5a2942…` et `e9271515…`) dans la politique de writers ; les capacités et conditions d'autorisation restent inchangées. L'échec et l'artefact Linux 11504782620 sont archivés. Le run en échec ne sera pas relancé à l'identique ; une nouvelle qualification partira d'un commit correctif distinct.

@@ -858,7 +858,7 @@
   "declared_vnext_writers": [
     {
       "producer": ".github/workflows/kodjo-vnext12-disposable.yml",
-      "producer_blob_oid": "b101b0979486c28fdbf2d96ff4c2b087c91bf170",
+      "producer_blob_oid": "6b5a2942c52e995c8766f323de724f889b7962f8",
       "authorization_condition": "EXACT_APPROVED_EXECUTION_SERIALIZED_CERTIFICATION_CLOSURE_OR_ISOLATED_CYCLE_SIGNAL_ONLY",
       "required_job": null,
       "capabilities": [
@@ -907,7 +907,7 @@
     },
     {
       "producer": "scripts/kodjo/signal-vnext-cycle-continuation.js",
-      "producer_blob_oid": "1560fb0bb44d96d629955215bea43129ffd7c901",
+      "producer_blob_oid": "e927151528307e8dfda5129cc9025aa1995bb8cc",
       "authorization_condition": "SERIALIZED_EXISTING_CAMPAIGN_SINGLE_SIGNAL_PATH_NONFORCED_HEAD_CHECK_ONLY",
       "required_job": null,
       "capabilities": [

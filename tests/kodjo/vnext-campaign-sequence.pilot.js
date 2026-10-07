@@ -8,9 +8,10 @@ test('runtime history waits for a successful selected Claude job and never runs 
  const w=workflow('kodjo-vnext12-disposable.yml'),jobs=w.jobs;
  assert.deepEqual(jobs['figma-initial'].needs,['select-stage','admission-controls']);assert.deepEqual(jobs['execute-initial'].needs,['select-stage','admission-controls']);
  const gate=jobs['historical-equivalence'];assert.deepEqual(gate.needs,['select-stage','figma-initial','execute-initial']);
- for(const result of ['failure','cancelled','skipped'])assert.equal(condition(gate.if,{'select-stage':{result:'success'},'figma-initial':{result},'execute-initial':{result:'skipped'}}),false);
- assert.equal(condition(gate.if,{'select-stage':{result:'success'},'figma-initial':{result:'success'},'execute-initial':{result:'skipped'}}),true);
- assert.equal(condition(gate.if,{'select-stage':{result:'failure'},'figma-initial':{result:'success'},'execute-initial':{result:'skipped'}}),false);
+ for(const result of ['failure','cancelled','skipped'])assert.equal(condition(gate.if,{'select-stage':{result:'success',outputs:{stage:'TARGETED_RESULT_RECORDED'}},'figma-initial':{result},'execute-initial':{result:'skipped'}}),false);
+ assert.equal(condition(gate.if,{'select-stage':{result:'success',outputs:{stage:'TARGETED_RESULT_RECORDED'}},'figma-initial':{result:'success'},'execute-initial':{result:'skipped'}}),true);
+ assert.equal(condition(gate.if,{'select-stage':{result:'success',outputs:{stage:'CERTIFY_HISTORICAL'}},'figma-initial':{result:'skipped'},'execute-initial':{result:'skipped'}}),true);
+ assert.equal(condition(gate.if,{'select-stage':{result:'failure',outputs:{stage:'CERTIFY_HISTORICAL'}},'figma-initial':{result:'success'},'execute-initial':{result:'skipped'}}),false);
  assert.equal(jobs['historical-platform-coverage'].needs,'historical-equivalence');assert.equal(jobs['historical-local-windows'].needs,'historical-platform-coverage');assert.equal(jobs['historical-local-windows'].with.sequenced_vnext,true);assert.equal(jobs['historical-local-windows'].uses,'./.github/workflows/kodjo-vnext-historical-checks.yml');
 });
 test('automatic admission does not claim full validation before historical jobs',()=>{
