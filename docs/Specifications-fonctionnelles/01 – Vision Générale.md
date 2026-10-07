@@ -1,6 +1,6 @@
 # Vision générale de KODJO
 
-**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Signaux de cadence conservés ; symboles, placement explicite et distinction contenu/trait révisés.
+**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
 
 ## L’idée en une phrase
 
@@ -75,7 +75,7 @@ Le Cycle est conservé uniquement dans le modèle technique pour l’évolutivit
 
 Un Exercice est une action exécutée en mode Durée, Répétitions ou À l’échec. Elle comprend au moins une Série et peut inclure une Pause après chaque série. Un Exercice bilatéral peut en outre définir une **Pause entre les côtés**, exécutée selon l’Ordre des côtés. La **Récupération après exercice** n’est pas intrinsèque à l’Exercice : elle appartient à son occurrence lorsqu’elle est placée dans une Séance ou un Parcours.
 
-Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=Ri×Ci avec cadence (estimation ≈) ; sans cadence, symbole ≥ acté, montant à arbitrer en Q-07 (calcul antérieur Ti≈2×Ri conservé pour traçabilité) ; À l’échec : aucun total d’Exercice. Dans un agrégat, une composante non estimable impose ≥, qui prévaut sur ≈. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v13 §5 ; variable : lecture seule et — si incomplet.
+Durée intrinsèque calculable : unilatéral ΣTi+Σ(P1..P(N−1)) ; succession des côtés 2ΣTi+2Σ(P1..P(N−1))+PN+PC ; par paire 2ΣTi+Σ(P1..P(N−1))+N×PC. N=1 normalisé succession. Occurrence calculable To=T+R, sans soustraction terminale. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pauses entre Séries, sans Pause terminale ; Récupération explicite ajoutée une seule fois. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 Les valeurs initiales de l’application sont de 10 secondes pour le Compte à rebours initial et de 5 secondes pour la Fin de séance. L’utilisateur peut choisir 0 seconde, ce qui rend la phase instantanée sans la supprimer du modèle. Ces deux cartes structurelles ne sont pas déplaçables.
 
@@ -175,5 +175,5 @@ La référence active est [Paramètres en modale v13](SPECIFICATION-PARAMETRES-M
 
 ## Cadence facultative — cible documentaire
 
-Le mode Répétitions peut guider un rythme prescrit1..60s, sans valeur par défaut ni quatrième mode. Chronomètre croissant et signaux guident l’utilisateur ; Suivant conserve la fin normale de Série, même après la fin nominale. KODJO ne détecte ni ne demande les répétitions effectivement accomplies. Référence : [Cadence v1](SPECIFICATION-CADENCE-REPETITIONS-v1.md).
+Les trois modes peuvent émettre un Bip de cadence, intervalle0..10s,0=Aucun, sans quatrième mode. Chronomètre croissant et signaux guident l’utilisateur ; Suivant conserve la fin normale de Série, même après la fin nominale. KODJO ne détecte ni ne demande les répétitions effectivement accomplies. Référence : [Bip v2](SPECIFICATION-BIP-CADENCE-v2.md).
 

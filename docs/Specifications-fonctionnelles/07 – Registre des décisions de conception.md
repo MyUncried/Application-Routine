@@ -312,7 +312,7 @@ Les décisions historiques D-173, D-179, D-181 et D-184 s’appuyaient sur l’�
 | D-229 | Les roulettes utilisent le gabarit DSF `330 px` avec marges latérales `36 px`, cinq lignes visibles 14/16/20/16/14 px et capsule centrale `56 × 34 px`. La modale Heure affiche `heures` et non `:`. La modale Planifier est alignée en haut sur la zone de contexte, utilise le halo d’en-tête, un champ d’objet transparent, `Autre` pour le rappel personnalisé, six options de 54 px et `Enregistrer` ancré en bas. | Validée DSF — 28/09/2026 | Planification / roulettes. |
 | D-230 | Les listes défilantes rognent leur contenu (`clipsContent: true`). La carte média déployée du Catalogue des Exercices est un état réellement étendu avec carte/barre latérale étendues, chevron haut et aperçus média ; l’ancienne carte condensée ne doit plus être documentée sous ce nom. Les règles spécialisées Profil, Exécution, Ressenti et Point d’arrêt suivent les composants/tokens DSF V2 validés au 28/09/2026. | Révisée par D-260/D-261/D-262 le 03/10/2026 ; ancienne règle d’affichage ci-contre historique ; autres dispositions conservées | Recette UI / composants spécialisés. |
 | D-231 | La phrase de synthèse des paramètres d’exécution suit la spécification v9 du 28/09/2026. | **Supersédée par D-232 / v10.2**. | Historique de la conception du générateur. |
-| D-232 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** Bornes conservées : N1..99, répétitions1..100, durée1..5999s, pauses0..300s ; estimation2s/répétition. Anciennes saisie inline, valeurs initiales, formules et granularités remplacées par D-246 puis D-247 à D-253/v12. | Supersédée sur ces points le 02/10/2026 | Historique conservé dans Git ; référence active v12 |
+| D-232 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** Bornes conservées : N1..99, répétitions1..100, durée1..5999s, pauses0..300s ; aucune estimation forfaitaire de répétition (Bip v2). Anciennes saisie inline, valeurs initiales, formules et granularités remplacées par D-246 puis D-247 à D-253/v12. | Supersédée sur ces points le 02/10/2026 | Historique conservé dans Git ; référence active v12 |
 
 
 ## Décisions du 30 septembre 2026 — cartes, icônes et appuis
@@ -330,7 +330,7 @@ Le complément porte RG-1 à RG-13 et leurs critères. Les 17 points sont clos. 
 
 | ID | Décision | Statut | Portée |
 |---|---|---|---|
-| D-237 | La spécification d’animation d’appui figée v2 du 29/09/2026 est reprise : dilatation uniforme centrée au contact ; retour au relâchement ; action immédiate au relâchement/tap, sans attendre la fin de l’animation. Rebond et Discret, annulation hors cible, reprise depuis l’état courant, stepper indépendant et opacité seule en réduction des animations suivent le complément DSF. | Validée — reprise de la spécification v2 | Supersède l’ancienne formulation action après animation ; aucune nouvelle temporisation métier |
+| D-237 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
 
 ## Clôture des 17 points et ajout Calendrier Jour — 30 septembre 2026
 
@@ -375,11 +375,11 @@ Dernier identifiant publié vérifié sur main 8fc58a4 : D-246.
 | ID | Décision | Statut | Traçabilité |
 |---|---|---|---|
 | D-247 | Séries variables explicites, mode unique et N Séries par côté ; collection ordonnée cible/Pause, aucune surcharge commune. Direction et Ordre des côtés indépendants ; Un côté après l’autre par défaut / Les deux côtés à chaque série. | Validée | C1/C4–6/C8/C11/C19–20, prompt§4.1–4.2 |
-| D-248 | Pause terminale incluse. Successions et formules v12§§4–5 : unilatéral Σ(Ti+Pi), par côté2Σ(Ti+Pi)+PC, par paire2ΣTi+ΣPi+N×PC. R>0 remplace seulement PN : To=T−PN+R ; R=0 conserve T. Aucun repli PC vers Pi. | Validée | C3/C5/C12/C14/C25–27 ; remplace D-208/D-242 sur calculs/transitions |
-| D-249 | Brouillon transactionnel, bascules uniforme/variable, restauration des cibles par mode et lignes retirées ; déplacement conjoint cible/Pause, nouvelle dernière Pause terminale et nouvelle première ligne reprise à désactivation. Ordre relatif des lignes retirées conservé à restauration. | Validée | C2/C7/C9 et arbitrage déplacement02/10 |
+| D-248 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
+| D-249 | Brouillon transactionnel, bascules uniforme/variable, restauration des cibles par mode et lignes retirées ; déplacement conjoint cible/Pause, nouvelle dernière Pause stockée non exécutée en fin d’Exercice et nouvelle première ligne reprise à désactivation. Ordre relatif des lignes retirées conservé à restauration. | Validée | C2/C7/C9 et arbitrage déplacement02/10 |
 | D-250 | À N=1 : uniforme et Un côté après l’autre effectifs dès le brouillon/calcul ; options grisées, interrupteur visuellement désactivé. Ancien état conservé seulement pour retour N≥2 avant ✓ ; normalisation persistée à ✓. | Validée | C17/C18 corrigées, réponses explicites02/10 |
 | D-251 | Feuille scrollable, en-tête fixe, tableau rattaché à l’interrupteur, steppers directs et chevron de repli sans effet métier. Cible incomplète : total—, ✓ grisé, cellule et message en ligne. Durée totale variable non éditable. | Validée | C10/C13/C15/C22, prompt§4.3–4.4 |
-| D-252 | Durée des steppers : pas1s ; répétitions : pas1. Pauses : 0,1,2,3,4,5,10…120,150…300s. Bornes inchangées ; maintien D-237 conservé. | Validée | Arbitrage propriétaire02/10 |
+| D-252 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
 | D-253 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** Libellé Pause entre les côtés dans tout le produit, Profil compris ; défaut10s inchangé. Ancien résumé paramètres à trois premières valeurs variables remplacé par D-298/Phrase v1 (énumération jusqu’à trois puis min/max) ; lignes séance : N séries variables seul. Compteur Série n/N et côté séparé ; aucune barre par Série. | Validée | Prompt§4 et confirmation vocabulaire02/10 |
 | D-254 | Nouvelle politique des pauses appliquée aussi aux Exercices existants ; quantité de travail et ordre par défaut conservés, augmentation de durée assumée ; aucun recalcul des résultats historiques. R>0 ne garantit pas une durée identique à l’ancienne règle en bilatéral. | Validée | C21 amendée et confirmation02/10/2026 |
 | D-255 | Spécifications et arbitrages déterminent calculs et comportements ; Figma définit uniquement le layout/rendu. Exemples chiffrés et câblages ne sont jamais une règle. PRE-1 reste figé ; cible documentaire préalable à PRE-2. | Validée | Clarification explicite02/10/2026 |
@@ -416,41 +416,41 @@ Source : retour de recette iPhone du propriétaire sur la livraison V2-PRE-2 (PR
 
 ## Cadence et phrase — intégration du06/10/2026
 
-D-268 à D-297 transcrivent CAD-01 à CAD-30 sans nouvel arbitrage. D-248 (pauses/récupération) reste applicable ; seule Ti évolue. Les estimations D-080/D-111/D-112/D-131 et progressions D-133/D-241 sont amendées pour distinguer cadence, approximation et partie non estimable. La phrase de D-232/D-253 est remplacée dans sa présentation seulement. Les preuves PRE-1 restent historiques.
+D-268 à D-297 transcrivent CAD-01 à CAD-30 sans nouvel arbitrage. Ce paragraphe historique est supersédé par Bip v2 et D-308–313 : pauses terminales, portée, signaux et durées révisés. Les estimations D-080/D-111/D-112/D-131 et progressions D-133/D-241 sont amendées pour distinguer cadence, approximation et partie non estimable. La phrase de D-232/D-253 est remplacée dans sa présentation seulement. Les preuves PRE-1 restent historiques.
 
 | ID | Décision | Statut | Traçabilité |
 |---|---|---|---|
-| D-268 | La cadence est une option du mode `Répétitions`, pas un nouveau mode. | Validée — CAD-01 | Conception Cadence, intégration06/10/2026 |
-| D-269 | La cadence est une propriété de Série. | Validée — CAD-02 | Conception Cadence, intégration06/10/2026 |
-| D-270 | Valeur facultative entière de `1..60 s`. | Validée — CAD-03 | Conception Cadence, intégration06/10/2026 |
-| D-271 | Aucune cadence par défaut ; `2 s` reste une convention d’estimation. | Révision 07/10 : affichage, initialisation et symboles incompatibles remplacés par D-302–D-307 ; autres règles conservées.  Validée — CAD-04 | Conception Cadence, intégration06/10/2026 |
+| D-268 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
+| D-269 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
+| D-270 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
+| D-271 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
 | D-272 | À l’activation des Séries variables, chaque Série reçoit la cadence commune. | Validée — CAD-05 | Conception Cadence, intégration06/10/2026 |
 | D-273 | La modification commune est propagée à toutes les Séries variables. | Validée — CAD-06 | Conception Cadence, intégration06/10/2026 |
-| D-274 | Le chronomètre reste croissant. | Validée — CAD-07 | Conception Cadence, intégration06/10/2026 |
-| D-275 | La première répétition commence immédiatement. | Validée — CAD-08 | Conception Cadence, intégration06/10/2026 |
-| D-276 | Signal à chaque intervalle ; dernier signal distinct. | Validée — CAD-09 | Conception Cadence, intégration06/10/2026 |
-| D-277 | Le dernier signal ne termine pas la Série. | Validée — CAD-10 | Conception Cadence, intégration06/10/2026 |
+| D-274 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
+| D-275 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
+| D-276 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
+| D-277 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
 | D-278 | `Suivant` termine normalement sans confirmation, avant ou après l’estimation. | Validée — CAD-11 | Conception Cadence, intégration06/10/2026 |
-| D-279 | Une Série cadencée est temporellement déterminable pour les calculs. | Révision 07/10 : affichage, initialisation et symboles incompatibles remplacés par D-302–D-307 ; autres règles conservées.  Validée — CAD-12 | Conception Cadence, intégration06/10/2026 |
-| D-280 | Une Série non cadencée reste estimée à `2 s/répétition`. | Révision 07/10 : affichage, initialisation et symboles incompatibles remplacés par D-302–D-307 ; autres règles conservées.  Validée — CAD-13 | Conception Cadence, intégration06/10/2026 |
-| D-281 | Non cadencée → `≈`; non estimable → `≥`. | Révision 07/10 : affichage, initialisation et symboles incompatibles remplacés par D-302–D-307 ; autres règles conservées.  Validée — CAD-14 | Conception Cadence, intégration06/10/2026 |
-| D-282 | Progression cadencée temporelle et continue. | Validée — CAD-15 | Conception Cadence, intégration06/10/2026 |
-| D-283 | `Suivant` anticipé complète la part restante. | Validée — CAD-16 | Conception Cadence, intégration06/10/2026 |
-| D-284 | Après fin nominale, progression plafonnée à 100 %, Série encore active. | Validée — CAD-17 | Conception Cadence, intégration06/10/2026 |
-| D-285 | Une Pause abandonne la fraction d’intervalle en cours. | Validée — CAD-18 | Conception Cadence, intégration06/10/2026 |
-| D-286 | À la reprise, un intervalle complet redémarre. | Validée — CAD-19 | Conception Cadence, intégration06/10/2026 |
+| D-279 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
+| D-280 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
+| D-281 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
+| D-282 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
+| D-283 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
+| D-284 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
+| D-285 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
+| D-286 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
 | D-287 | Le temps actif de l’intervalle abandonné reste dans la durée réelle. | Validée — CAD-20 | Conception Cadence, intégration06/10/2026 |
-| D-288 | La progression revient au dernier intervalle complet. | Validée — CAD-21 | Conception Cadence, intégration06/10/2026 |
+| D-288 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
 | D-289 | Réinitialiser recommence la cadence selon la portée existante du reset. | Validée — CAD-22 | Conception Cadence, intégration06/10/2026 |
 | D-290 | La durée réelle conserve le temps des tentatives réinitialisées. | Validée — CAD-23 | Conception Cadence, intégration06/10/2026 |
 | D-291 | La cadence continue en arrière-plan ; les signaux manqués ne sont pas rejoués. | Validée — CAD-24 | Conception Cadence, intégration06/10/2026 |
-| D-292 | Pause de sécurité : 30 min après fin nominale recalculée. | Validée — CAD-25 | Conception Cadence, intégration06/10/2026 |
+| D-292 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
 | D-293 | KODJO ne déduit ni ne demande le nombre de répétitions réellement effectuées. | Validée — CAD-26 | Conception Cadence, intégration06/10/2026 |
 | D-294 | Durée réelle conservée par Série et par côté lorsque pertinent. | Validée — CAD-27 | Conception Cadence, intégration06/10/2026 |
-| D-295 | Changement de mode : restauration en brouillon, aucune cadence cachée persistée. | Validée — CAD-28 | Conception Cadence, intégration06/10/2026 |
-| D-296 | Aucun bip minute supplémentaire en Série cadencée. | Validée — CAD-29 | Conception Cadence, intégration06/10/2026 |
+| D-295 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
+| D-296 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
 | D-297 | Aucun nouvel objet Répétition ni nouveau type de phase de Plan. | Validée — CAD-30 | Conception Cadence, intégration06/10/2026 |
-| D-298 | Phrase unique, valeurs en gras, zone entièrement cliquable ; cibles variables énumérées jusqu’à3 puis min/max ; pas de clause sans changement ; omission de total seulement À l’échec ou redondance réelle. Excel exclusivement rédactionnel. | Validée, consolidation | Spécification de phrase v1 et clarification propriétaire06/10 |
+| D-298 | Phrase unique, valeurs en gras, zone entièrement cliquable ; cibles variables énumérées jusqu’à3 puis min/max ; pas de clause sans changement ; omission Répétitions sans bip/À l’échec ou redondance Durée ; phrases de pauses en réserve Q-08. Excel exclusivement rédactionnel. | Validée, consolidation | Spécification de phrase v1 et clarification propriétaire06/10 |
 | D-299 | DSF : neutres rationalisés, danger#D92D20, deux rôles scrim distincts, Roboto Condensed pour chrono/compteurs, compactCardTitle15/18 ; cardTitle16 conservé pour son rôle historique. Barre d’état rendue par le système. | Décisions consignées ; mesures datées séparées | DSF-CADENCE-2026-10-06 |
 | D-300 | Figma définit layout/rendu uniquement ; nombres et câblages ne définissent ni calculs ni comportement. Excel ne définit pas les pauses/durées. Circuit/Tour/Parcours et cartes média restent inchangés. | Confirmation de D-255 | Clarifications propriétaire et plan révisé06/10 |
 
@@ -462,24 +462,35 @@ Les décisions datées conservent leur texte d’origine. Le badge replié décr
 
 | ID | Décision | Statut | Portée |
 |---|---|---|---|
-| D-301 | Lorsque deux Exercices consécutifs n’ont ni Pause terminale après le premier ni Récupération positive après son occurrence, la Composition affiche l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre. | Validée par le propriétaire — 06/10/2026 | H-09 ; Composition CE-T03-08 ; aucun changement de calcul. |
+| D-301 | Lorsque deux Exercices consécutifs n’ont ni pause effective de transition ni Récupération positive après son occurrence, la Composition affiche l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre. | Validée par le propriétaire — 06/10/2026 | H-09 ; Composition CE-T03-08 ; aucun changement de calcul. |
 
 
 ## Consolidation du 07/10/2026
 
 | ID | Décision | Statut | Source |
 |---|---|---|---|
-| D-302 | Cadence : signaux, progression, reprise/reset, arrière-plan et sécurité conservés ; Suivant termine explicitement. | Confirmée par le propriétaire | 07/10, confirmation 03:47 |
+| D-302 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
 | D-303 | Récupération absente/0 et aucun point : aucune information. Trait conservé hors placement, absent pendant le choix. | Clarification propriétaire, remplace l’interprétation H-08 imposant Récupération0s | 07/10 |
 | D-304 | Aucune récupération automatique ; placement unifié multiple, durée immédiatement demandée, confirmation décomptée et retrait par bulle. | Prompt autorisé | Spécification Pauses et symboles |
-| D-305 | Durée sans symbole ; cadence ≈ ; sans cadence ≥ ; Exercice À l’échec omitted. Calcul antérieur2s/rép. incompatible avec un minimum garanti : Q-07 ouvert. | Symboles arbitrés ; formule du minorant non arbitrée (Q-07) | 07/10 et prompt révisé |
+| D-305 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
 | D-306 | Icônes contextuelles contour/plein, cercle inchangé, + sans activé ; chronomètre cartes16px/0,9/#9499A8. | Layout relevé | DSF07/10 |
 | D-307 | Défaut Profil de récupération, initialement30s, proposé à l’ajout explicite ; aucune création automatique, aucun effet rétroactif. | Conséquence dérivée : conserver le réglage et déplacer son moment d’application | D-304, CE-UI-07 |
 
-H-03 (+ pause chacune), D-248 (substitution terminale), D-301 (avertissement), Circuit/Tour et autorité seulement rédactionnelle d’Excel sont conservés.
+Bip v2 remplace D-248 sur Pause terminale ; H-03 en réserve rédactionnelle Q-08. D-301, Circuit/Tour et Excel uniquement rédactionnel conservés.
 
-## Q-07 — montant du minorant sans cadence
+## Q-07 — clos par la seconde clarification du07/10
 
-Le symbole ≥ sans cadence est acté. La spécification antérieure calcule Ti≈2×Ri : cette estimation n’est pas un minimum garanti. Aucun nouveau calcul n’est décidé dans ce lot. Le montant à afficher avec ≥ reste à arbitrer (Q-07) ; ne pas réétiqueter automatiquement une estimation en borne ni appliquer silencieusement Ti=0.
+Répétitions sans bip : total d’Exercice omis. ≥ uniquement en Séance, selon contributions connues. Aucun calcul forfaitaire de répétition conservé.
 
-Option à soumettre au propriétaire : ne conserver dans le minorant que les phases de durée prescrite certaine, et exclure le travail seulement estimé dans les agrégats mixtes. Les formules de pauses, côtés et substitution terminale restent inchangées.
+## Bip de cadence — seconde clarification du07/10
+
+| ID | Décision | Statut | Source |
+|---|---|---|---|
+| D-308 | Bip de cadence transverse aux trois modes, stepper0..10,0=Aucun, aucun effacement à bascule de mode. | Explicite | Prompt Bip§§1–2,6 |
+| D-309 | Exercice : exact Durée, ≈ Répétitions avec bip, omitted sans bip/À l’échec ; ≥ seulement Séance. | Explicite | Prompt§3 |
+| D-310 | Bip périodique durant Série, aucune fin/transition/compteur automatique ; Durée garde sa fin au minuteur. | Explicite et articulation dérivée | Prompt§2 et règles de modes conservées |
+| D-311 | Travail+pauses entre Séries,n−1 unilatéral ; plus de Pause terminale. To=T+R et formules bilatérales conservent la pause à la frontière des côtés. | Explicite ; conséquences dérivées | Prompt§3.3 et Bip v2§3 |
+| D-312 | Stepper : tap1,maintien≈500ms,paliers5 après2s/10 après4s avec multiples directionnels ; Bip/CR/Fin sans accélération. | Explicite ; fréquence150ms conservée | Prompt§4,DSF Bip |
+| D-313 | Champ cadenceBeepIntervalSeconds0..10 dans trois modes ; collection et snapshot communs ; modèle scalaire à migrer avant intégration. | Nom logique dérivé et portée explicite | Prompt§6 |
+
+Q-08 : demande de conserver les formulations de pauses incompatible avec leur ancienne signification terminale. Proposition : « + 15 s de pause entre les séries » ; aucune clause de pause pour une Série unilatérale. Le calcul n−1 est acté, seule la rédaction reste à arbitrer.

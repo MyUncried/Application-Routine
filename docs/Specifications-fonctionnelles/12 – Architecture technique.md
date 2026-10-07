@@ -1,6 +1,6 @@
 ## 12.0 Objet et périmètre
 
-**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Signaux de cadence conservés ; symboles, placement explicite et distinction contenu/trait révisés.
+**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
 
 Ce chapitre définit l’architecture technique du MVP.
 
@@ -140,7 +140,7 @@ La couche Domaine contient :
 - les transitions d’état ;
 - les calculs indépendants de l’interface et du stockage.
 
-Les calculs de Durée estimée d’exécution, Durée synthétique des Exercices, Durée réelle, nombres d’Exercices, progression globale et occurrences périodiques sont implémentés comme des règles déterministes distinctes du Domaine conformément au chapitre 10. L’interface ne peut substituer l’une de ces deux métriques estimées à l’autre : le Catalogue et la Composition consomment la Durée synthétique des Exercices, tandis que l’Exécution consomme la Durée estimée d’exécution. La progression couvre le Plan complet, `INITIAL_COUNTDOWN` et `SESSION_END` compris, et ne vaut `100 %` qu’après l’achèvement de `SESSION_END` ; dans T04, les étapes chronométrées sont pondérées par leur durée planifiée et les Séries Répétitions sans cadence et À l’échec acquièrent leur part avec `Suivant`. Les Séries cadencées suivent une progression temporelle continue, plafonnée à la fin nominale sans terminer la Série ; `Suivant` acquiert le reste éventuel. La Pause abandonne la fraction d’intervalle pour la progression et la reprise lance un intervalle complet, sans effacer le temps actif réel. Les Pauses manuelles sont exclues. Ces règles ne doivent pas être redéfinies dans l’interface ou la couche de persistance.
+Les calculs de Durée estimée d’exécution, Durée synthétique des Exercices, Durée réelle, nombres d’Exercices, progression globale et occurrences périodiques sont implémentés comme des règles déterministes distinctes du Domaine conformément au chapitre 10. L’interface ne peut substituer l’une de ces deux métriques estimées à l’autre : le Catalogue et la Composition consomment la Durée synthétique des Exercices, tandis que l’Exécution consomme la Durée estimée d’exécution. La progression couvre le Plan complet, `INITIAL_COUNTDOWN` et `SESSION_END` compris, et ne vaut `100 %` qu’après l’achèvement de `SESSION_END` ; dans T04, les étapes chronométrées sont pondérées par leur durée planifiée et les Séries Répétitions sans cadence et À l’échec acquièrent leur part avec `Suivant`. Les Séries Répétitions avec bip suivent une progression temporelle continue, plafonnée à la fin nominale sans terminer la Série ; `Suivant` acquiert le reste éventuel. La Pause abandonne la fraction d’intervalle pour la progression et la reprise lance un intervalle complet, sans effacer le temps actif réel. Les Pauses manuelles sont exclues. Ces règles ne doivent pas être redéfinies dans l’interface ou la couche de persistance.
 
 Les objets du domaine ne doivent pas dépendre directement :
 - de l’interface utilisateur ;
@@ -289,7 +289,7 @@ Le moteur gère ensuite :
 - l’étape courante ;
 - les répétitions du Circuit, c’est-à-dire les Tours, et le Cycle technique fixé à une répétition ;
 - les Séries propres à chaque Exercice ;
-- Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v13 §§3–5, D-247 à D-250.
+- Pi reste stockée sur chaque Série ; elle est exécutée entre les Séries, jamais après la toute dernière de l’Exercice. À la frontière des côtés successifs, PN puis PC sont conservées. Par paire, Pi entre paires et PC dans chaque paire. Récupération explicite ajoutée après l’occurrence, aucune en direct ; aucune soustraction de PN. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
 - l’insertion éventuelle d’une phase `SIDE_RECOVERY` entre les deux côtés lorsque `sideRecoverySeconds > 0` ;
 - l’insertion d’une phase `POST_ACTIVITY_RECOVERY` après chaque occurrence de Séance/Parcours lorsque `postActivityRecoverySeconds > 0` ;
 - la progression dans le Circuit au cours du Tour courant ;
@@ -1450,7 +1450,7 @@ L’implémentation de la navigation et des composants visuels respecte D-224 à
 
 Fonctions pures communes de calcul, résumé et construction des phases : v13 §§3–8, D-247 à D-255. Fournir explicitement le contexte intrinsèque/occurrence. Ne pas extraire de données métier du texte du résumé ni des valeurs Figma. Le tableau ordonné est la source des paramètres variables. Le total est dérivé, jamais éditable en variable.
 
-Bornes : N1..99, répétitions1..100, durée1..5999s, pauses0..300s. Pas des pauses D-252 : 1s jusqu’à5s, 5s jusqu’à120s, 30s jusqu’à300s ; pas durée1s/répétitions1. Les valeurs stockées ne sont pas arrondies à l’ouverture. PC reprend le défaut Profil (10s). L’estimation locale vaut2s/répétition, sans cadence imposée au moteur.
+Bornes : N1..99, répétitions1..100, durée1..5999s, pauses0..300s. Steppers : tap1 ; maintien avec paliers1/5/10 et arrondi directionnel selon DSF Bip ; Bip/Compte à rebours/Fin sans accélération. Les valeurs stockées ne sont pas arrondies à l’ouverture. PC reprend le défaut Profil (10s). Aucune estimation forfaitaire de répétition ; Bip v2 gouverne le total.
 
 Prévoir la représentation versionnée uniforme/variable et Ordre des côtés dans les définitions, copies et instantanés. Les données anciennes sont lues uniforme/Un côté après l’autre ; la nouvelle politique des pauses s’applique aux nouvelles exécutions de ces données. Les résultats historiques restent immuables. La migration physique doit être planifiée avec l’implémentation ; aucune réinitialisation de base n’est autorisée par cette mise à jour documentaire. PRE-1 reste fermé. Les anciens jeux v10 sont des preuves historiques ; la recette cible est v13 §9 et la matrice du02/10.
 
@@ -1469,7 +1469,7 @@ Implémentation attendue : conserver la préférence dans le mécanisme persista
 
 Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
 
-Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper indépendant (450 ms puis 150 ms pour la répétition) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
+Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper selon DSF Bip (maintien≈500ms, répétition150ms, paliers1/5/10) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
 
 
 > **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
@@ -1502,3 +1502,7 @@ Les faibles écarts de couleurs relèvent des fusions déjà acceptées dans le 
 ## Propagation Pauses et symboles — 07/10
 
 Conserver les shells. Composition : sous-brouillon isolé pour placement multiple et roulette ; commit parent avant sauvegarde finale. Modèle de pauses explicites et projection R unique pour calcul/snapshot. Moteur : phases de récupération et d’attente existantes, cadence sonore et ancres temporelles inchangées. Rendu de durée discriminé (exact/estimated/lowerBound/omitted), sans formater omitted en0. Pas de migration numérotée ni de version de dépendance prescrite sans lecture du code. DSF et assets : voir ../DSF-PAUSES-ICONES-2026-10-07.md.
+
+## Vérification de l’existant pour Bip de cadence — 07/10
+
+À la tête4365c0c de la PR323 (base main6d03f5be), l’arbre contient migrations001 à008 ; ActivityDefinition.ts expose encore repetitionCount,seriesCount,pauseSeconds scalaires, sans champ de bip. Ceci confirme le prérequis de refonte SeriesParameters/pauses ; cela ne réserve pas un numéro de migration. Bip v2 exige un ordonnanceur périodique récupérable et une qualification sur appareil (arrière-plan, verrouillage, suspension, interruptions audio), sans annoncer le comportement natif déjà livré. Aucun code n’est modifié par ce lot.

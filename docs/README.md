@@ -1,12 +1,18 @@
 # Application Routine
 
+## Dernière clarification — Bip de cadence
+
+[Spécification Bip v2](Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md) · [DSF Bip/steppers](DSF-BIP-CADENCE-2026-10-07.md) · [Inventaire et captures](MATRICE-BIP-FIGMA-2026-10-07.md) · [Rapport de cohérence](REPORT-BIP-2026-10-07.md).
+
+Bip0..10 transverse aux trois modes ; omission des durées non calculables d’Exercice ; ≥ réservé aux Séances ; pauses entre séries sans Pause terminale. Q-07 clos ; réserve rédactionnelle Q-08 sur les anciennes phrases de pauses. Cette clarification remplace les règles incompatibles du premier lot du07/10.
+
 ## Consolidation du 07/10/2026
 
 - [Spécification Pauses et symboles](Specifications-fonctionnelles/SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md)
 - [DSF — Pauses et icônes](DSF-PAUSES-ICONES-2026-10-07.md)
 - [Inventaire des références Figma](MATRICE-FIGMA-2026-10-07.md)
 
-Les documents source de Claude sont archivés sans altération ; les arbitrages D-302 à D-307 précisent les passages qui ne font pas autorité. Cadence sonore conservée ; Durée sans symbole, cadence ≈, sans cadence ≥ ; contenu de récupération et trait de démarcation distingués.
+Les documents source de Claude sont archivés sans altération ; les arbitrages D-302 à D-307 précisent les passages qui ne font pas autorité. Bip transverse0..10 ; Durée exacte, Répétitions avec bip ≈, sans bip durée omise ; contenu de récupération et trait de démarcation distingués.
 
 
 Application mobile de création, d’exécution et de suivi de routines personnelles, développée avec React Native et Expo.
@@ -69,7 +75,7 @@ Le dossier `node_modules` est local et ne doit jamais être ajouté à GitHub.
 ## Références actives — Cadence et documentation du06/10/2026
 
 1. [Paramètres v13](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md) — pauses/côtés conservés, cadence et symboles.
-2. [Cadence v1](Specifications-fonctionnelles/SPECIFICATION-CADENCE-REPETITIONS-v1.md) — calculs, exécution, données et recette.
+2. [Bip v2](Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md) — calculs, exécution, données et recette.
 3. [Phrase v1](Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md) — grammaire et rendu ; Excel exclusivement rédactionnel.
 4. [DSF courant](DSF-CADENCE-2026-10-06.md) et [matrice courante Figma](MATRICE-CADENCE-FIGMA-2026-10-06.md).
 5. Chapitre06 : captures centralisées ; chapitre13 :30 contrats dont CE-UI-10,21 rubriques chacun, états et limites graphiques explicites.

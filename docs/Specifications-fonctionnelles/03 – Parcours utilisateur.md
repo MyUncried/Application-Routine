@@ -1,6 +1,6 @@
 # Objectif de cette note
 
-**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Signaux de cadence conservés ; symboles, placement explicite et distinction contenu/trait révisés.
+**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
 
 Décrire, du point de vue de l'utilisateur, les principaux parcours permettant de créer, planifier, exécuter et suivre ses séances dans l'application.
 
@@ -398,7 +398,7 @@ Un Exercice créé directement dans une Séance ne rejoint pas le catalogue. L�
 
 ## Exécuter un Exercice À l’échec — MVP
 
-L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La Pause configurée s’exécute après chaque Série, selon l’Ordre des côtés et la substitution terminale v13. Si l’Exercice est bilatéral, la Pause entre les côtés éventuelle intervient entre les deux passages. En Exécution directe, aucune Récupération après exercice n’est ajoutée ; dans une Séance/Parcours, la Récupération après exercice appartient à l’occurrence et s’exécute après celle-ci.
+L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La Pause configurée s’exécute après chaque Série, entre les Séries selon l’Ordre des côtés, sans Pause terminale (Bip v2). Si l’Exercice est bilatéral, la Pause entre les côtés éventuelle intervient entre les deux passages. En Exécution directe, aucune Récupération après exercice n’est ajoutée ; dans une Séance/Parcours, la Récupération après exercice appartient à l’occurrence et s’exécute après celle-ci.
 
 ## Créer et exécuter un Parcours — hors MVP, conception partielle
 

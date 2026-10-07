@@ -1,12 +1,18 @@
 # INDEX — Documentation du projet Routine
 
+## Dernière clarification — Bip de cadence
+
+[Spécification Bip v2](Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md) · [DSF Bip/steppers](DSF-BIP-CADENCE-2026-10-07.md) · [Inventaire et captures](MATRICE-BIP-FIGMA-2026-10-07.md) · [Rapport de cohérence](REPORT-BIP-2026-10-07.md).
+
+Bip0..10 transverse aux trois modes ; omission des durées non calculables d’Exercice ; ≥ réservé aux Séances ; pauses entre séries sans Pause terminale. Q-07 clos ; réserve rédactionnelle Q-08 sur les anciennes phrases de pauses. Cette clarification remplace les règles incompatibles du premier lot du07/10.
+
 ## Consolidation du 07/10/2026
 
 - [Spécification Pauses et symboles](Specifications-fonctionnelles/SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md)
 - [DSF — Pauses et icônes](DSF-PAUSES-ICONES-2026-10-07.md)
 - [Inventaire des références Figma](MATRICE-FIGMA-2026-10-07.md)
 
-Les documents source de Claude sont archivés sans altération ; les arbitrages D-302 à D-307 précisent les passages qui ne font pas autorité. Cadence sonore conservée ; Durée sans symbole, cadence ≈, sans cadence ≥ ; contenu de récupération et trait de démarcation distingués.
+Les documents source de Claude sont archivés sans altération ; les arbitrages D-302 à D-307 précisent les passages qui ne font pas autorité. Bip transverse0..10 ; Durée exacte, Répétitions avec bip ≈, sans bip durée omise ; contenu de récupération et trait de démarcation distingués.
 
 
 > Historique Bilatéralité du 13 septembre 2026 : cette séquence introduisait notamment un contrôle de côté au niveau Tour. Elle est supersédée sur ce point par D-189 du 24 septembre 2026 : aucun changement de côté n’est désormais exposé au niveau Tour ; la capacité technique historique est conservée pour non-régression.
@@ -17,7 +23,7 @@ Les documents source de Claude sont archivés sans altération ; les arbitrages 
 >
 > Mise à jour fonctionnelle et Figma du 24 septembre 2026 — D-188 à D-198 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Exercice ; changement de côté non exposé au niveau Tour ; Point d’arrêt ; Compte à rebours et Fin propres à l’Exercice ; filtre mémorisé uniquement dans la session courante ; roulettes en modale basse ; parcours de composition exposant la sélection depuis le Catalogue sans suppression de la création locale existante ; média en gouttière permanente dans le Catalogue des Exercices depuis D-260/D-261 du03/10/2026 ; actions `Planifier / Dupliquer / Archiver`, puis `Supprimer` dans les archives ; nouveau layout/typographie d’Exécution.
 >
-> Mise à jour Figma/documentation du 24 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. Les options de filtre sont contextuelles au Catalogue ; `Trier` reste visible disabled T03. L’éditeur Exercice applique D-298 : Répétitions affiche `Durée totale {symbole éventuel}{total fourni}` (cadence : ≈, prévision Ri×Ci ; absence : ≥, montant Q-07) ; À l’échec n’affiche pas de Durée totale ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’exercice` l’état vide/placeholder.
+> Mise à jour Figma/documentation du 24 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. Les options de filtre sont contextuelles au Catalogue ; `Trier` reste visible disabled T03. L’éditeur Exercice applique D-298 : Répétitions affiche `Durée totale {symbole éventuel}{total fourni}` (bip positif : ≈, prévision Ri×b ; bip nul : durée omise) ; À l’échec n’affiche pas de Durée totale ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’exercice` l’état vide/placeholder.
 >
 > Décision du 24 septembre 2026 — D-199 : les Zones corporelles constituent désormais un référentiel utilisateur administrable. L’utilisateur peut créer, renommer et supprimer des Zones corporelles ; la liste initiale de dix zones devient un jeu de valeurs par défaut et non une liste fermée. La frame Figma `4683:6336` matérialise la création inline d’une nouvelle zone.
 >
@@ -178,8 +184,8 @@ Obsidian reste l’outil de rédaction de la documentation fonctionnelle. Le dos
 ## 8. État de la baseline avant développement
 
 Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
-- Durée prévisionnelle déterminable, approximation≈ sans cadence et borne≥ en présence de travail non estimable ;
-- phrase de synthèse selon D-298 : Durée totale en Durée sauf redondance réelle (N1 unilatéral/Pause0) ; Répétitions : ≈ avec cadence (Ri×Ci), ≥ sans cadence (montant Q-07) ; aucune Durée totale en À l’échec ;
+- Durée prévisionnelle déterminable, omission d’Exercice sans bip en Répétitions et borne≥ en présence de travail non estimable ;
+- phrase de synthèse selon D-298 : Durée totale en Durée sauf redondance réelle (N1 unilatéral) ; Répétitions : ≈ avec cadence (Ri×Ci), omission sans bip à l’Exercice (Q-07 clos) ; aucune Durée totale en À l’échec ;
 - les noms d’Exercice visibles dans les maquettes renseignées sont des données de démonstration ; `Nom de l’exercice` représente l’état vide/placeholder ;
 - distinction entre **Pause après chaque série**, **Pause entre les côtés** et **Récupération après exercice** ;
 - temps actif et Durée réelle hors Pause utilisateur ;
@@ -237,7 +243,7 @@ La consultation média pendant l’Exécution décrite ici est **incluse au MVP*
 
 > Décision du 25 septembre 2026 — D-207 : la notion de contenu planifiable est commune aux **Séances, Exercices persistants et Parcours**. Le MVP planifie `SESSION` et `ACTIVITY`; la planification d’un Parcours reste dans sa version prévue (actuellement V3) et réutilisera la même entité Routine avec la source technique `CIRCUIT`, sans second moteur de planification.
 
-Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=Ri×Ci avec cadence (estimation ≈) ; sans cadence, symbole ≥ acté, montant à arbitrer en Q-07 (calcul antérieur Ti≈2×Ri conservé pour traçabilité) ; À l’échec : aucun total d’Exercice. Dans un agrégat, une composante non estimable impose ≥, qui prévaut sur ≈. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v13 §5 ; variable : lecture seule et — si incomplet.
+Durée intrinsèque calculable : unilatéral ΣTi+Σ(P1..P(N−1)) ; succession des côtés 2ΣTi+2Σ(P1..P(N−1))+PN+PC ; par paire 2ΣTi+Σ(P1..P(N−1))+N×PC. N=1 normalisé succession. Occurrence calculable To=T+R, sans soustraction terminale. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pauses entre Séries, sans Pause terminale ; Récupération explicite ajoutée une seule fois. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 ## Consolidation fonctionnelle — 26 septembre 2026
 
@@ -246,7 +252,7 @@ Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(T
 - Une valeur de référentiel supprimée sort des choix futurs mais reste conservée sur les objets existants. Étiquette/Catégorie conservent nom et dernière couleur. La couleur appartient au référentiel et se répercute sur tous ses objets ; les Zones corporelles n’ont pas de couleur.
 - Les défauts du Profil initialisent les nouveaux objets sans rétroactivité : Pause entre les côtés, Compte à rebours d’exercice et Fin d’exercice pour un nouvel Exercice ; Récupération après exercice pour une nouvelle occurrence de Séance.
 - Une Séance possède un réglage global unique, activé par défaut, pour appliquer ou ignorer ensemble les Compte à rebours d’exercice et Fin d’exercice de tous ses Exercices.
-- Dans la phrase unique (D-298), Durée affiche le total sauf redondance réelle (une Série unilatérale, Pause0) ; Répétitions affiche le total fourni, avec ≈ avec cadence et avec ≥ sans cadence ; À l’échec n’affiche pas de total d’Exercice. ≥ qualifie également les Répétitions sans cadence ; son montant est une borne, pas une estimation réétiquetée.
+- Dans la phrase unique (D-298), Durée affiche le total sauf redondance réelle (une Série unilatérale, Pause0) ; Répétitions affiche le total fourni, avec ≈ avec cadence et avec omission sans bip à l’Exercice ; À l’échec n’affiche pas de total d’Exercice. ≥ est réservé aux Séances contenant du travail inconnu ; jamais à une carte d’Exercice.
 - Point d’arrêt : `Exercice → Récupération après exercice → Point d’arrêt → suite`; interdit juste après le Compte à rebours initial et juste avant la Fin de séance ; autorisé aux frontières et dans le Circuit ; dans le Circuit il s’exécute à chaque Tour.
 - En face Média compacte, le bouton Lecture central disparaît pendant la lecture vidéo ; le retour à Information met la vidéo en pause ; le plein écran n’interrompt pas l’Exécution.
 
@@ -258,7 +264,7 @@ Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(T
 > Clôture Figma / DSF du 28 septembre 2026 — D-221 à D-230 : aucune recherche globale ou locale dans le MVP ; quatre destinations `Catalogues / Calendrier / Suivi / Profil` ; sélection simple validée au toucher versus sélection multiple avec `Sélectionner` ; titre `Planifier` contextuel ; fonds/zones de contexte, navigation basse, halos/actions circulaires, steppers/badges, modales/listes, roulettes et états spécialisés alignés sur DSF V2.
 
 
-> Générateur actif : Phrase v1, paramètres v13 et Cadence v1 ; D-268 à D-300. La convention2s/rép. reste une approximation sans cadence, jamais une valeur par défaut. v10.2 est historique.
+> Générateur actif : Phrase v1, paramètres v13 et Bip v2 ; D-268 à D-300. Aucune estimation forfaitaire des répétitions sans bip ; durée omise. v10.2 est historique.
 
 ## Mise à jour visuelle du 30 septembre 2026
 
@@ -304,7 +310,7 @@ Référence courante : [v13](Specifications-fonctionnelles/SPECIFICATION-PARAMET
 ## Références actives — Cadence et documentation du06/10/2026
 
 1. [Paramètres v13](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md) — pauses/côtés conservés, cadence et symboles.
-2. [Cadence v1](Specifications-fonctionnelles/SPECIFICATION-CADENCE-REPETITIONS-v1.md) — calculs, exécution, données et recette.
+2. [Bip v2](Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md) — calculs, exécution, données et recette.
 3. [Phrase v1](Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md) — grammaire et rendu ; Excel exclusivement rédactionnel.
 4. [DSF courant](DSF-CADENCE-2026-10-06.md) et [matrice courante Figma](MATRICE-CADENCE-FIGMA-2026-10-06.md).
 5. Chapitre06 : captures centralisées ; chapitre13 :30 contrats dont CE-UI-10,21 rubriques chacun, états et limites graphiques explicites.

@@ -1,8 +1,9 @@
 # Écrans et navigation
 
-**État des captures au 07/10 :** [inventaire vérifié et limites](../MATRICE-FIGMA-2026-10-07.md). Les trois nouveaux états de Composition sont illustrés ci-dessous. Les anciennes captures non renouvelées sont indiquées comme telles ; règles et libellés métier restent ceux des contrats.
+**Captures courantes — lot Bip :** [139 références,17 captures renouvelées et écarts restants](../MATRICE-BIP-FIGMA-2026-10-07.md). Ancienne roulette7061:13383 retirée ; les cinq états Bip remplacent leurs images précédentes.
 
-**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Signaux de cadence conservés ; symboles, placement explicite et distinction contenu/trait révisés.
+
+**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
 
 ## Organisation et lecture
 
@@ -19,7 +20,7 @@ Une frame Figma de 402 × 874 peut représenter une modale et son arrière-plan 
 
 Baseline documentaire6d03f5be579f2d0e2e7602b6abf1c2b46f4c740b ;133 frames courantes de Prototype MVP recensées et captures renouvelées sans retouche. [Matrice courante](../MATRICE-CADENCE-FIGMA-2026-10-06.md) : chaque frame, fichier et contrat hôte. Les références datées précédentes restent des preuves historiques, notamment les états retirés ou horsMVP.
 
-Cadence et phrase relèvent de [paramètres v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), [Cadence v1](SPECIFICATION-CADENCE-REPETITIONS-v1.md) et [Phrase v1](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Figma fournit le rendu ; Excel seulement les formulations. Aucun chiffre de capture ne constitue une règle de durée. DSF, couleurs, composants, police et Safe Areas : [référence courante](../DSF-CADENCE-2026-10-06.md).
+Cadence et phrase relèvent de [paramètres v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), [Bip v2](SPECIFICATION-BIP-CADENCE-v2.md) et [Phrase v1](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Figma fournit le rendu ; Excel seulement les formulations. Aucun chiffre de capture ne constitue une règle de durée. DSF, couleurs, composants, police et Safe Areas : [référence courante](../DSF-CADENCE-2026-10-06.md).
 
 ## Objectif de conception
 L’interface du produit fini doit être principalement visuelle, intuitive et utilisable avec le moins de touchers possible.
@@ -842,7 +843,7 @@ Le MVP ne propose pas de menu d’ajout rapide `Pause 15 s / 30 s / 45 s`.
 
 Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303).
 
-**Avertissement d’enchaînement sans pause (D-301).** Lorsque deux Exercices consécutifs n’ont ni Pause terminale après le premier ni Récupération positive après son occurrence, la Composition affiche l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre.
+**Avertissement d’enchaînement sans pause (D-301).** Lorsque deux Exercices consécutifs n’ont ni pause effective de transition ni Récupération positive après son occurrence, la Composition affiche l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre.
 
 ### Composition — ligne de Série variable — références du03/10
 
@@ -1125,7 +1126,7 @@ Contrats : CE-T03-04 (formulaire et abandon), CE-UI-10 (une feuille, plusieurs �
 
 Créer depuis Catalogue ouvre le formulaire ; Modifier reprend les données existantes. Nom, une Catégorie et au moins une Zone sont requis pour un nouvel Exercice. Carte Paramètres → feuille transactionnelle ; ✕/retour annule son brouillon, ✓ applique au parent ; Terminer seul persiste. Abandon du formulaire modifié ouvre la confirmation existante. Ouvrir un référentiel conserve les paramètres, même variables.
 
-Spécification [v13](SPECIFICATION-PARAMETRES-MODALE-v13.md) : mode unique, N séries par côté, cibles/Pauses propres à chaque ligne en variable, direction et Ordre des côtés indépendants. N=1 effectif uniforme/Un côté après l’autre ; restauration temporaire avant✓. Déplacement cible/Pause conjoint ; nouvelle première reprise à désactivation, nouvelle dernière Pause terminale. Total variable readonly et — si incomplet ; Répétitions : ≈ avec cadence, ≥ sans cadence ; À l’échec aucun total.
+Spécification [v13](SPECIFICATION-PARAMETRES-MODALE-v13.md) : mode unique, N séries par côté, cibles/Pauses propres à chaque ligne en variable, direction et Ordre des côtés indépendants. N=1 effectif uniforme/Un côté après l’autre ; restauration temporaire avant✓. Déplacement cible/Pause conjoint ; nouvelle première reprise à désactivation, nouvelle dernière Pause stockée non exécutée en fin d’Exercice. Total variable readonly et — si incomplet ; Répétitions : ≈ avec cadence, omission sans bip à l’Exercice ; À l’échec aucun total.
 
 ### Placement et contrôles
 
@@ -1185,7 +1186,6 @@ Figma définit le layout. Les valeurs, calculs, validations et comportements res
 
 ![Résumé — Durée variable bilatérale Les deux côtés à chaque série](images/figma-6665-27862.png)
 
-*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 #### Résumé — À l’échec variable
 
@@ -1257,7 +1257,6 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 
 ![Création exercice — Paramètres en modale — Modale complète — steppers (séries, pauses) avec message de durée totale ajustée](images/figma-6423-9953.png)
 
-*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 #### Séries variables — Durée variable (scénario A)
 
@@ -1265,7 +1264,6 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 
 ![Séries variables — Durée variable (scénario A)](images/figma-6665-24616.png)
 
-*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 #### Séries variables — Répétitions variables (scénario E)
 
@@ -1285,7 +1283,6 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 
 ![Séries variables — Douze séries (défilement — haut)](images/figma-6665-25277.png)
 
-*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 #### Ordre des côtés — Sélection : Un côté après l’autre
 
@@ -1293,7 +1290,6 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 
 ![Ordre des côtés — Sélection : Un côté après l’autre](images/figma-6665-26185.png)
 
-*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 #### Séries variables + Les deux côtés à chaque série — (scénario D)
 
@@ -1307,7 +1303,6 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 
 ![Une seule série — Options sans effet](images/figma-6665-26822.png)
 
-*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 #### Changement de mode — Cibles à renseigner
 
@@ -1321,7 +1316,6 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 
 ![Validation impossible — Série incomplète](images/figma-6665-27232.png)
 
-*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 #### Séries variables — Tableau masqué
 
@@ -1335,7 +1329,6 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 
 ![Séries variables — Déplacement d’une série](images/figma-6665-27608.png)
 
-*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 ### Sélections, créations de référentiels et confirmations
 
@@ -1389,11 +1382,11 @@ Le bas des12séries, le segmenté avec l’option alternée sélectionnée, le r
 
 Les chiffres derrière le voile appartiennent au parent et ne prouvent pas un calcul du brouillon. Les anciens textes « pause entre les séries » et les5min visibles sur Modifier/confirmations restent des écarts connus : ne pas modifier les règles pour les reproduire. Les médias déjà associés sont consultables ; leur présence ne crée pas de capacité d’import supplémentaire.
 
-### Cadence et phrase — états complémentaires du06/10
+### Bip de cadence et phrase — états complémentaires du06/10
 
-Contrats hôtes CE-T03-04 et CE-UI-10, sans nouvelle page fonctionnelle. Cadence commune facultative en Répétitions, Aucune initialement,1..60s ; sous la cible uniforme et avant Pause, hors lignes en variable. La roulette avec unité se place immédiatement sous la ligne ouverte. ✓ applique au parent et régénère une phrase unique ; toute la zone de phrase ouvre la feuille. Valeurs en gras, Inter13/20, largeur324 sur402, hauteur auto.
+Contrats hôtes CE-T03-04 et CE-UI-10, sans nouvelle page fonctionnelle. Bip de cadence commun0..10 dans les trois modes, initialement0=Aucun ; stepper au premier niveau juste avant le total applicable, hors tableau variable. Aucune roulette Bip. ✓ applique au parent et régénère une phrase unique ; toute la zone de phrase ouvre la feuille. Valeurs en gras, Inter13/20, largeur324 sur402, hauteur auto.
 
-Les textes des frames13/14/phrase longue ne suivent pas tous la grammaire finale (par exemple «sans changement de côté» ou «à raison de…»). Ils servent de témoins de layout ; appliquer Phrase v1 sans reprendre ces textes ni leurs nombres comme règles. Suppression de cadence par « Aucun » dans la même roulette : CAD-V01 levée, aucun bouton ni frame dédié requis. Aucune question sur l’existence de cette fonction n’est rouverte.
+Les textes des frames13/14/phrase longue ne suivent pas tous la grammaire finale (par exemple «sans changement de côté» ou «à raison de…»). Ils servent de témoins de layout ; appliquer Phrase v1 sans reprendre ces textes ni leurs nombres comme règles. Bip supprimé en mettant le stepper à0=Aucun. Ancien écran de roulette supprimé ; aucune commande additionnelle.
 
 #### Répétitions avec cadence renseignée
 
@@ -1401,11 +1394,6 @@ Les textes des frames13/14/phrase longue ne suivent pas tous la grammaire finale
 
 ![Paramètres Répétitions avec cadence](images/figma-7059-13302.png)
 
-#### Cadence — roulette ouverte
-
-[Figma7061:13383](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7061-13383) — nouvelle frame ; variante Secondes avec unité7130:13496.
-
-![Cadence, roulette avec unité](images/figma-7061-13383.png)
 
 #### Changement de côté — état9b
 
@@ -1413,7 +1401,6 @@ Les textes des frames13/14/phrase longue ne suivent pas tous la grammaire finale
 
 ![Paramètres avec changement de côté, état9b](images/figma-7069-13464.png)
 
-*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 #### Répétitions sans cadence — état10b
 
@@ -1421,7 +1408,6 @@ Les textes des frames13/14/phrase longue ne suivent pas tous la grammaire finale
 
 ![Paramètres Répétitions, état10b](images/figma-7069-13573.png)
 
-*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 #### Phrase longue — parent de la feuille
 
@@ -1429,7 +1415,6 @@ Les textes des frames13/14/phrase longue ne suivent pas tous la grammaire finale
 
 ![Formulaire et phrase longue](images/figma-7119-27855.png)
 
-*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 
 ## Calendrier
@@ -1795,8 +1780,8 @@ L’écran affiche, de haut en bas :
 - une progression discrète du Tour ;
 - la zone `À suivre` avec le nom et la durée ou le nombre de reps de l’Exercice suivant ;
 - les commandes `Réinitialiser`, `Pause` et `Exercice suivant` ;
-- le temps total écoulé et la durée estimée d’exécution de la Séance ; le temps écoulé inclut toutes les phases effectivement exécutées, Compte à rebours initial et Fin de séance compris, mais exclut les Pauses manuelles ; durée exacte sans symbole en mode Durée, estimée ≈ avec cadence et borne ≥ sans cadence ou en présence de composante inconnue ;
-- une barre de progression globale structurée en segments correspondant aux Tours, conformément au prototype Figma. Elle occupe exactement la largeur utile sans débordement. Les segments se répartissent dans cette largeur après déduction des espacements et ne conservent jamais la largeur fixe du gabarit `402`. Le remplissage représente l’avancement dans le Plan d’Exécution complet, Compte à rebours initial et `SESSION_END` compris, selon la pondération définie dans les chapitres 08 et 10 ; il n’est pas le simple rapport `temps écoulé / durée estimée d’exécution`. Il atteint `100 %` uniquement à l’achèvement de `SESSION_END`. Dans T04, les étapes chronométrées sont pondérées par leur durée planifiée ; les Séries Répétitions sans cadence et À l’échec acquièrent leur part avec `Suivant`. Les Séries cadencées suivent une progression temporelle continue, plafonnée à la fin nominale sans terminer la Série ; `Suivant` acquiert le reste éventuel. La Pause abandonne la fraction d’intervalle pour la progression et la reprise lance un intervalle complet, sans effacer le temps actif réel. Les Pauses manuelles n’augmentent pas le remplissage.
+- le temps total écoulé et la durée estimée d’exécution de la Séance ; le temps écoulé inclut toutes les phases effectivement exécutées, Compte à rebours initial et Fin de séance compris, mais exclut les Pauses manuelles ; durée exacte sans symbole en mode Durée, estimée ≈ avec cadence et borne omission sans bip à l’Exercice ou en présence de composante inconnue ;
+- une barre de progression globale structurée en segments correspondant aux Tours, conformément au prototype Figma. Elle occupe exactement la largeur utile sans débordement. Les segments se répartissent dans cette largeur après déduction des espacements et ne conservent jamais la largeur fixe du gabarit `402`. Le remplissage représente l’avancement dans le Plan d’Exécution complet, Compte à rebours initial et `SESSION_END` compris, selon la pondération définie dans les chapitres 08 et 10 ; il n’est pas le simple rapport `temps écoulé / durée estimée d’exécution`. Il atteint `100 %` uniquement à l’achèvement de `SESSION_END`. Dans T04, les étapes chronométrées sont pondérées par leur durée planifiée ; les Séries Répétitions sans cadence et À l’échec acquièrent leur part avec `Suivant`. Les Séries Répétitions avec bip suivent une progression temporelle continue, plafonnée à la fin nominale sans terminer la Série ; `Suivant` acquiert le reste éventuel. La Pause abandonne la fraction d’intervalle pour la progression et la reprise lance un intervalle complet, sans effacer le temps actif réel. Les Pauses manuelles n’augmentent pas le remplissage.
 
 Le Cycle n’est jamais affiché. Le nombre total d’étapes et la position sous la forme `x sur y` ne sont pas affichés dans le MVP.
 
@@ -1822,7 +1807,7 @@ Sans cadence, le cercle du minuteur effectue une rotation complète par minute :
 - à `01:00`, il recommence une nouvelle rotation ;
 - le chronomètre continue à croître (`01:01`, `01:02`, etc.).
 
-Sans cadence, un bip minute est émis. Avec cadence : première répétition immédiate, signal à chaque intervalle, dernier distinct à la fin nominale puis plus de bip de cadence. Suivant reste la fin normale avant/après nominal ; aucun bip minute ajouté. Les états avant/après nominal et Pause/Reprise utilisent le layout existant ; CAD-V02 à CAD-V04 sont levées, sans frame dédiée ni nouvelle règle métier.
+Bip positif : signal périodique dans les trois modes pendant Série, y compris après le nominal Répétitions ; aucun dernier signal nominal distinct ni bip minute superposé. Bip0 : règles antérieures de signal minute conservées pour les modes concernés. Fin Durée au minuteur ; Répétitions/À l’échec manuelles. Même shell, pas de nouvel écran.
 
 `Pause` suspend le chronomètre et la rotation du cercle. `Reprendre` les relance depuis l’état exact où ils ont été suspendus.
 
@@ -1834,7 +1819,7 @@ Lorsqu’un Exercice possède plusieurs Séries :
 
 - `Série x/y` indique la Série en cours ;
 - chaque Série exécute la durée cible, les répétitions cibles ou se poursuit jusqu’à l’échec selon le mode ;
-- Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v13 §§3–5, D-247 à D-250.
+- Pi reste stockée sur chaque Série ; elle est exécutée entre les Séries, jamais après la toute dernière de l’Exercice. À la frontière des côtés successifs, PN puis PC sont conservées. Par paire, Pi entre paires et PC dans chaque paire. Récupération explicite ajoutée après l’occurrence, aucune en direct ; aucune soustraction de PN. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
 - si l’Exercice est bilatéral, la Pause entre les côtés éventuelle est exécutée selon l’Ordre des côtés.
 
 T04 développe toutes les Séries, les répétitions de Tour et les passages de côté dans le Plan d’Exécution avant le démarrage.
@@ -1918,7 +1903,7 @@ Au début d’un Exercice, son nom peut être annoncé vocalement lorsque les An
 
 Pour les Exercices chronométrés, les signaux sonores de fin de compte à rebours sont appliqués conformément aux règles métier définies pour le MVP.
 
-Répétitions sans cadence/À l’échec : aucun signal de fin de compte à rebours et bip minute. Répétitions cadencées : signal nominal final distinct, sans transition automatique ni bip minute ; chronomètre toujours croissant.
+Répétitions sans bip/À l’échec sans bip : aucun signal de fin de compte à rebours, bip minute. À l’échec avec bip : périodique sans bip minute superposé. Répétitions cadencées : signal périodique maintenu après nominal sans signal final distinct, sans transition automatique ni bip minute ; chronomètre toujours croissant.
 
 ### Arrière-plan et verrouillage
 
@@ -2492,7 +2477,7 @@ D-239 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 
 
 Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
 
-Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper indépendant (450 ms puis 150 ms pour la répétition) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
+Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper selon DSF Bip (maintien≈500ms, répétition150ms, paliers1/5/10) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
 
 La règle vaut également :
 - après le dernier Exercice d’un Tour ;
@@ -2600,7 +2585,6 @@ Ensemble6426:10149, export06/10 ; pas un écran autonome.
 
 ![Stepper — Séries (interactif)](images/figma-6426-10149.png)
 
-*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 
 ### Référence de composant — Cadre bas — retournement

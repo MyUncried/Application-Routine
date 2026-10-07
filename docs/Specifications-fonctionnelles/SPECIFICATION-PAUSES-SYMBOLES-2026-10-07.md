@@ -1,28 +1,16 @@
 # Pauses de Composition et symboles de durée — consolidation du 07/10/2026
 
-Version normative complémentaire à Paramètres v13, Cadence v1 et Phrase v1. Décisions D-302 à D-307. Sources : [prompt révisé](../archives/figma-2026-10-07/prompt-claude-source.md), arbitrages explicites du propriétaire et lecture Figma du 07/10. Les arbitrages prévalent sur les passages contradictoires du prompt ; Figma définit le layout, jamais les calculs. Aucun redesign des shells.
+Version normative complémentaire à Paramètres v13, Bip v2 et Phrase v1. Décisions D-302 à D-307. Sources : [prompt révisé](../archives/figma-2026-10-07/prompt-claude-source.md), arbitrages explicites du propriétaire et lecture Figma du 07/10. Les arbitrages prévalent sur les passages contradictoires du prompt ; Figma définit le layout, jamais les calculs. Aucun redesign des shells.
 
 ## 1. Autorité et règles conservées
 
 La cadence conserve ses signaux intermédiaires/final, sa progression temporelle, les intervalles de reprise, la portée du Reset, l’arrière-plan et les seuils de sécurité. Le chronomètre continue après le nominal ; Suivant termine normalement, même avant le nominal. Aucun compteur de répétitions réalisées n’est déduit. La qualification « cadence déclarative sans signaux » du prompt est rejetée.
 
-Phrase H-03 : « 3 séries de 30 s + 15 s de pause chacune ». La phrase décrit l’intrinsèque ; une Récupération positive remplace uniquement PN terminale dans l’occurrence : To=T−PN+R ; sans récupération positive To=T. Ordres bilatéraux, pause au changement de côté et D-248 inchangés. Excel présente des formulations, pas un modèle de durée. Le rendu des textes de démonstration Figma ne supersède pas Phrase v1.
+Phrase H-03 conservée rédactionnellement mais conflit avec la suppression de Pause terminale identifié en Q-08 (Bip v2). Bilatéralité et pause à la frontière des côtés conservées selon les nouvelles formules. Excel reste rédactionnel.
 
-## 2. Résultat temporel et symboles
+## 2. Résultats temporels — remplacés par Bip v2
 
-| Nature | Condition | Rendu |
-|---|---|---|
-| exact | Travail prescrit en mode Durée | Valeur sans symbole |
-| estimated | Répétitions avec cadence, pas de travail inconnu dans le total | ≈ valeur |
-| lowerBound | Répétitions sans cadence ; agrégat comportant du travail inconnu | ≥ ; montant soumis à Q-07 |
-| omitted | Total intrinsèque d’Exercice À l’échec | Ligne absente, ni ≥0 ni tiret |
-| incomplete | Paramètre actif requis manquant/invalide | — et validation refusée ; ce n’est pas un cinquième résultat valide |
-
-La cadence donne Ri×Ci comme prévision, sans imposer la réalisation ni la fin ; ≈ est donc compatible avec les signaux. Les durées réalisées ne reçoivent aucun symbole prévisionnel.
-
-**Q-07 — compatibilité du calcul avec le symbole ≥.** Le symbole ≥ sans cadence est acté. La spécification antérieure calcule Ti≈2×Ri : cette estimation n’est pas un minimum garanti. Aucun nouveau calcul n’est décidé dans ce lot. Le montant à afficher avec ≥ reste à arbitrer (Q-07) ; ne pas réétiqueter automatiquement une estimation en borne ni appliquer silencieusement Ti=0. Une option cohérente mathématiquement serait de ne retenir que les phases temporelles certaines ; elle reste une proposition à valider, pas une règle issue de Figma ou du classeur.
-
-Pour un Exercice À l’échec, omitted supprime le total propre même si des pauses sont connues ; un agrégat de Séance conserve ses phases temporelles ; le montant du minorant relève de Q-07. Un retour omitted ne contient pas un faux montant0. Les API exposent nature et montant seulement lorsque pertinent ; le générateur de phrase reçoit ce résultat et le formate sans recalcul.
+[Bip v2](SPECIFICATION-BIP-CADENCE-v2.md) fait autorité : exact Durée, ≈ Répétitions avec bip, omitted Répétitions sans bip et À l’échec ; ≥ seulement en Séance avec travail inconnu. Q-07 clos. Travail et pauses entre séries, aucune Pause terminale ; Récupération explicite ajoutée sans soustraction. Les règles de placement, brouillon et trait ci-dessous restent applicables.
 
 ## 3. Pause de Composition : deux types, un parcours
 
@@ -64,7 +52,7 @@ Récupération uniquement après une occurrence, y compris la dernière ; aucune
 
 À un emplacement partagé : Exercice → récupération positive → Point d’arrêt → suite. Les éléments internes au Circuit s’exécutent à chaque Tour. Circuit désigne le groupe, Tour sa répétition.
 
-Appui long sur la récupération existante ouvre la bulle Retirer la récupération, comme Retirer le point d’arrêt. Choisir Retirer supprime du brouillon ; toucher hors bulle ferme sans mutation. Ne pas ajouter un second dialogue absent de la référence. La suppression d’une récupération rétablit la Pause terminale PN dans le calcul d’occurrence ; elle ne modifie pas la définition d’Exercice.
+Appui long sur la récupération existante ouvre la bulle Retirer la récupération, comme Retirer le point d’arrêt. Choisir Retirer supprime du brouillon ; toucher hors bulle ferme sans mutation. Ne pas ajouter un second dialogue absent de la référence. La suppression d’une récupération retire sa durée du plan sans recréer de Pause terminale ; elle ne modifie pas la définition d’Exercice.
 
 ## 7. Modèle fonctionnel et API
 
@@ -88,7 +76,7 @@ Déplacer/dupliquer l’occurrence conserve sa récupération explicite et ses p
 
 Vérifier R absente, R0, Rpositive croisés avec point absent/présent, dans/hors placement ; absence d’informations n’efface pas le trait hors placement. Vérifier annulation de roulette, annulation du placement, sélection de plusieurs types/positions, désélection et décompte. Vérifier retrait par bulle, fermeture extérieure, déplacement, duplication, suppression, limites terminales, répétition par Tour, sauvegarde atomique et abandon.
 
-D-301 reste non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » si aucune Pause terminale ni récupération positive entre deux Exercices. Aucun avertissement de Série ajouté.
+D-301 reste non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » si aucune pause effective de transition ni récupération positive entre deux Exercices. Aucun avertissement de Série ajouté.
 
-Durées : Durée sans symbole ; cadencée ≈ ; non cadencée ≥ ; À l’échec omitted ; invalide incomplete. Une estimation2Ri ne doit jamais être formatée comme borne. Bips10×4s à4..36 puis final40 ; Série encore active ; Suivant20/45s normal ; Pause6s puis reprise avec4s complètes. Les cas proviennent des spécifications, pas du classeur. Tests applicatifs non exécutés par ce lot documentaire.
+Durées et signaux : appliquer la recette Bip v2, notamment les six combinaisons, l’omission et le bip périodique au-delà du nominal. Aucun test applicatif exécuté par ce lot.
 

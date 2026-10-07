@@ -15,7 +15,7 @@ Permettre à un utilisateur de créer des Séances structurées et des Exercices
   - une consigne ;
   - une durée, un nombre de répétitions ou le mode À l’échec ;
   - un nombre de Séries propre à l'Exercice ;
-- Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v13 §§3–5, D-247 à D-250.
+- Pi reste stockée sur chaque Série ; elle est exécutée entre les Séries, jamais après la toute dernière de l’Exercice. À la frontière des côtés successifs, PN puis PC sont conservées. Par paire, Pi entre paires et PC dans chaque paire. Récupération explicite ajoutée après l’occurrence, aucune en direct ; aucune soustraction de PN. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
   - une Pause entre les côtés éventuelle, uniquement pour un Exercice bilatéral ;
   - en mode Durée, une Durée totale calculée et dépendante du nombre de Séries ;
 - afficher dans le MVP la vignette média associée à l’Exercice ; aucun Déployer avec ou sans média (D-261) ; la gestion multiple et les mécanismes d’acquisition suivent leur périmètre propre ;
@@ -273,4 +273,5 @@ Le parcours existant permet maintenant des Séries variables dans la même feuil
 
 ## Évolution Cadence — statut au06/10/2026
 
-Cible fonctionnelle documentée, non déclarée livrée : option Cadence du mode Répétitions, nouvelle phrase et propagation au moteur/instantanés. Dépendances de développement : collection effective de Séries variables, cadence facultative, scheduler/progression/audio, résultats et migration compatible. Les écrans de paramètres existent ; la suppression utilise « Aucun » dans la même roulette (CAD-V01 levée). Les états avant/après fin nominale et Pause/Reprise réutilisent le layout existant (CAD-V02 à CAD-V04 levées), sans frame ni contrôle dédié supplémentaire. La présence de Figma ne certifie ni le code ni une recette mobile.
+Cible documentée, non déclarée livrée : Bip de cadence0..10 dans trois modes, steppers et calculs Bip v2. Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé.
+

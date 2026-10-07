@@ -151,7 +151,7 @@ Deux motifs communs : Rebond pour actions rondes, navigation et actions principa
 
 Navigation composée : barre à 106 % pendant 200 ms avec déplacement du cadre actif ; arrivée en 400 ms, barre revenue à 100 %, cadre de sélection de 76 × 50 à 82 × 78 (dépassement surtout vertical) ; stabilisation 700 ms Bouncy. La démo d’onglet individuel décrit le motif, celle de barre le comportement composé.
 
-Stepper : seul le bouton touché s’anime, nombre/fond/bouton opposé immobiles. Premier incrément immédiat, début de répétition après 450 ms, puis pas toutes les 150 ms ; arrêt au relâchement. Ces délais sont les valeurs initiales prévues, ajustables après essai appareil. L’amplitude est limitée pour éviter le chevauchement du nombre.
+Stepper : tap1 ; maintien≈500ms, répétition150ms, après2s pas5 et après4s pas10 avec arrondi directionnel au multiple. Bip/Compte à rebours/Fin sans accélération. Relâchement arrête et rétablit le pas1 ; saturation aux bornes. Seul le bouton touché s’anime, sans chevauchement.
 
 Réduction des animations : opacité 100 % → environ 55 % → 100 %, sans mise à l’échelle, pour toutes les familles. Annulation par sortie du doigt : pas d’action, retour animé à 100 %. Appuis rapides : interruption du ressort puis reprise depuis l’état courant, sans attendre la fin du rebond.
 
@@ -239,7 +239,7 @@ Total rapporté par le propriétaire : 133 cartes / 38 écrans / environ 27 inte
 21. DAT-01 : aucun titre/heure/statut d’exemple ne devient une constante métier ou une règle d’inférence.
 22. ANI-04 : l’action se déclenche au relâchement sans attendre le ressort ; une sortie du doigt annule l’action.
 23. ANI-05 : un appui rapide interrompt et reprend l’animation depuis son état courant.
-24. ANI-06 : le stepper répète après 450 ms puis toutes les 150 ms et s’arrête au relâchement.
+24. ANI-06 : Stepper : tap1 ; maintien≈500ms, répétition150ms, après2s pas5 et après4s pas10 avec arrondi directionnel au multiple. Bip/Compte à rebours/Fin sans accélération. Relâchement arrête et rétablit le pas1 ; saturation aux bornes. Seul le bouton touché s’anime, sans chevauchement.
 25. DAT-02 : les sources de Routine et les instantanés historiques sont conservés ; les calculs actifs suivent D-248/v13.
 
 26. MED-05 : aucun bouton Déployer sur Exercice, avec ou sans média, ni sur les cartes Suivi.

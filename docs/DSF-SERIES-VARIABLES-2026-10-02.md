@@ -41,7 +41,7 @@ Dimensions de référence à402px ; coordonnées locales au contenu de la feuill
 | Ligne de Séance | N séries variables, sans liste des valeurs | 6665:23973 |
 | Exécution | Série n/N et côté distinct ; aucune barre par Série ; barre Tour réservée à la Séance | 1992:8132,4968:8188,5581:4257 ; états spécialisés non représentés actuellement |
 
-Les largeurs sont des références de rendu : adapter dans le shell360/402/440, Safe Areas et texte agrandi, sans couper les valeurs ni chevaucher les cibles tactiles. Garder les contrôles directs dans la feuille, aucun sous-dialogue variable. Nommer chaque stepper avec Série et unité ; annoncer erreur et lecture seule ; fournir une action accessible de déplacement utilisant le même ordre métier. D-237 régit appuis et maintien450/150ms ; ne pas inventer de temporisation métier.
+Les largeurs sont des références de rendu : adapter dans le shell360/402/440, Safe Areas et texte agrandi, sans couper les valeurs ni chevaucher les cibles tactiles. Garder les contrôles directs dans la feuille, aucun sous-dialogue variable. Nommer chaque stepper avec Série et unité ; annoncer erreur et lecture seule ; fournir une action accessible de déplacement utilisant le même ordre métier. D-237 régit appuis et maintien≈500ms, répétition150ms et accélération selon DSF Bip ; ne pas inventer de temporisation métier.
 
 ## Portée et écarts observés
 
@@ -50,3 +50,4 @@ Les anciennes copies et le frame d’essai6607:10896 ne sont plus présents sur 
 La confirmation Supprimer cette séance ? (2234:189) conserve le dialogue destructif du DSF du01/10 : Annuler gris à gauche, Confirmer terre cuite à droite. Sa présence ne prouve aucun câblage interactif.
 
 Inventaire et recettes : [matrice du02/10](MATRICE-SERIES-VARIABLES-2026-10-02.md). Captures exclusivement dans le chapitre06.
+

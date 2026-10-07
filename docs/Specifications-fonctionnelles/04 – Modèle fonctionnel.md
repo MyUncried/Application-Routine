@@ -1,6 +1,6 @@
 # 4.1 Objectif
 
-**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Signaux de cadence conservés ; symboles, placement explicite et distinction contenu/trait révisés.
+**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
 
 Ce chapitre présente le modèle fonctionnel de l'application et les principaux concepts métier qui la composent.
 
@@ -103,7 +103,7 @@ Chaque Exercice possède notamment :
 
 La Pause et la Pause entre les côtés sont indépendantes. Avec `Aucun`, `sideRecoverySeconds` est sans objet. En bilatéral, l’ordre est : successions définies par l’Ordre des côtés (v13 §4).
 
-Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=Ri×Ci avec cadence (estimation ≈) ; sans cadence, symbole ≥ acté, montant à arbitrer en Q-07 (calcul antérieur Ti≈2×Ri conservé pour traçabilité) ; À l’échec : aucun total d’Exercice. Dans un agrégat, une composante non estimable impose ≥, qui prévaut sur ≈. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v13 §5 ; variable : lecture seule et — si incomplet.
+Durée intrinsèque calculable : unilatéral ΣTi+Σ(P1..P(N−1)) ; succession des côtés 2ΣTi+2Σ(P1..P(N−1))+PN+PC ; par paire 2ΣTi+Σ(P1..P(N−1))+N×PC. N=1 normalisé succession. Occurrence calculable To=T+R, sans soustraction terminale. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pauses entre Séries, sans Pause terminale ; Récupération explicite ajoutée une seule fois. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 ### Exercice de référence et Exercice de Séance
 
@@ -248,7 +248,7 @@ Les propriétés intrinsèques communes portent notamment :
 - un mode d’exécution parmi `Durée`, `Répétitions` et `À l’échec` ;
 - la cible du mode lorsqu’elle existe ;
 - un nombre de **Séries** ;
-- Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v13 §§3–5, D-247 à D-250.
+- Pi reste stockée sur chaque Série ; elle est exécutée entre les Séries, jamais après la toute dernière de l’Exercice. À la frontière des côtés successifs, PN puis PC sont conservées. Par paire, Pi entre paires et PC dans chaque paire. Récupération explicite ajoutée après l’occurrence, aucune en direct ; aucune soustraction de PN. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
 - un **Changement de côté** propre : `Aucun`, `D→G` ou `G→D` ;
 - une **Pause entre les côtés** `sideRecoverySeconds` éventuelle, pertinente uniquement en `D→G/G→D` ;
 - un **Compte à rebours d’Exercice** propre lorsqu’il est utilisé ;
@@ -272,7 +272,7 @@ Dans une occurrence, R>0 se substitue à la seule Pause terminale ; R reste une 
 
 L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de v13 §4 ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante.
 
-Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v13 §§3–5, D-247 à D-250.
+Pi reste stockée sur chaque Série ; elle est exécutée entre les Séries, jamais après la toute dernière de l’Exercice. À la frontière des côtés successifs, PN puis PC sont conservées. Par paire, Pi entre paires et PC dans chaque paire. Récupération explicite ajoutée après l’occurrence, aucune en direct ; aucune soustraction de PN. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
 
 Le Compte à rebours propre précède les passages et la Fin propre reste unique à l’Exercice complet. En Durée, chaque cible Ti est chronométrée ; en Répétitions/À l’échec, Suivant termine la Série selon le contrat du mode. Construire le plan depuis les paramètres effectifs de chaque Série. Les phases terminales sont substituées avant sommation ; ne jamais ajouter une récupération déjà comprise dans To. Le plan de Séance conserve ses phases structurelles et ses Points d’arrêt.
 
@@ -407,7 +407,7 @@ Le Point d’arrêt reste un élément structurel distinct de la Récupération.
 
 La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, Pause après chaque série si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Source normative : v13 §§3–7, D-247 à D-255 ; classeur v10 historique.
 
-Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série `1..100`, Durée par Série `1 s..99 min 59 s`, Pause après chaque série et Pause entre les côtés `0..5 min`. Dans le Profil, les réglages de durée utilisent un stepper ; dans la feuille de paramètres d’un Exercice, les pauses sont réglées par stepper. Les pauses progressent par1s jusqu’à5s, puis5s jusqu’à120s, puis30s jusqu’à300s (D-252). La Pause entre les côtés est copiée depuis le Profil lorsqu’elle devient applicable.
+Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série `1..100`, Durée par Série `1 s..99 min 59 s`, Pause après chaque série et Pause entre les côtés `0..5 min`. Dans le Profil, les réglages de durée utilisent un stepper ; dans la feuille de paramètres d’un Exercice, les pauses sont réglées par stepper. Les steppers de pauses utilisent tap1s puis maintien accéléré1/5/10 selon DSF Bip ; ancienne grille dépendante de la valeur abandonnée. La Pause entre les côtés est copiée depuis le Profil lorsqu’elle devient applicable.
 
 ## Présentation des objets — 30 septembre 2026
 
@@ -438,9 +438,9 @@ Copie Catalogue→Séance, duplication et nouvel instantané conservent tout cet
 
 ## Extension Cadence du modèle de Série
 
-La Série porte `repetitionIntervalSeconds?` (entier1..60, absence par défaut), applicable uniquement en Répétitions. L’édition commune est une projection de brouillon, pas une seconde vérité persistée au-dessus de la collection variable. Activation, modification, suppression et déplacement conservent l’intégrité de la collection. Définition, copie de Séance et instantané transportent la même propriété.
+La Série porte `cadenceBeepIntervalSeconds` (entier0..10,0 par défaut), applicable aux trois modes. L’édition commune est une projection de brouillon, pas une seconde vérité persistée au-dessus de la collection variable. Activation, modification, suppression et déplacement conservent l’intégrité de la collection. Définition, copie de Séance et instantané transportent la même propriété.
 
-Une durée prévisionnelle déterminable ne signifie pas une fin automatique : Ri×Ci fournit le poids temporel et la fin nominale, Suivant l’achèvement. L’accumulateur réel inclut tentatives réinitialisées et intervalles abandonnés ; il est distinct de la progression et du chronomètre courant. Aucun nouvel objet Répétition. Voir Cadence v1 et modèle09.
+Une durée prévisionnelle déterminable ne signifie pas une fin automatique : Ri×Ci fournit le poids temporel et la fin nominale, Suivant l’achèvement. L’accumulateur réel inclut tentatives réinitialisées et intervalles abandonnés ; il est distinct de la progression et du chronomètre courant. Aucun nouvel objet Répétition. Voir Bip v2 et modèle09.
 
 
 

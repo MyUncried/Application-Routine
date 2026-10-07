@@ -1,5 +1,7 @@
 # Matrice courante — Figma, Cadence, captures et contrats
 
+**État antérieur au lot Bip de cadence.** La [matrice Bip du07/10](MATRICE-BIP-FIGMA-2026-10-07.md) porte les références courantes et remplace les états de captures en attente.
+
 **Inventaire historique du 06/10.** Consulter la [matrice courante du 07/10](MATRICE-FIGMA-2026-10-07.md) pour les remplacements et les captures actualisées.
 
 Relevé direct du06/10/2026. FichierG6RY5Ebhgwb4AHIOYDwwvg, page Prototype MVP510:101. Baseline dépôt6d03f5be579f2d0e2e7602b6abf1c2b46f4c740b.133 frames et3 ensembles au premier niveau, exportés sans retouche ;5 frames supplémentaires depuis l’inventaire128 du03/10. Les noms Figma sont reproduits pour identifier les sources, pas comme vocabulaire métier ni numérotation documentaire.

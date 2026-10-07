@@ -4,7 +4,7 @@
 
 ## 1. Entrées et génération
 
-Entrées : mode, nombre de Séries, état uniforme/variable, cibles ordonnées, pauses, cadence commune facultative, direction/ordre des côtés, pause entre les côtés ; résultat du calcul intrinsèque applicable (secondes et nature déterminable/approximative/non estimable/incomplète). Le générateur ne calcule pas les durées et ne relit pas une phrase pour produire les paramètres. Phrase dérivée, non stockée comme source indépendante.
+Entrées : mode, nombre de Séries, état uniforme/variable, cibles ordonnées, pauses, bip commun0..10, direction/ordre des côtés, pause entre les côtés ; résultat du calcul intrinsèque applicable (secondes et nature déterminable/approximative/non estimable/incomplète). Le générateur ne calcule pas les durées et ne relit pas une phrase pour produire les paramètres. Phrase dérivée, non stockée comme source indépendante.
 
 ✓ de la feuille applique le brouillon valide et régénère une seule phrase ; ✕ conserve la phrase précédente. Pendant le brouillon incomplet, afficher— aux valeurs requises et interdire✓ ; pas de cible inventée. Compte à rebours/Fin restent des lignes séparées, exclus de la phrase et de son total intrinsèque. Nom, Catégorie, mode comme étiquette et Récupération contextuelle sont exclus du texte intrinsèque.
 
@@ -16,21 +16,21 @@ Ordre : Séries → cible et cadence → pause selon contexte → côtés → li
 |---|---|
 | Durée uniforme | «3 séries de 30 s» |
 | Répétitions uniformes | «3 séries de 12 répétitions» |
-| Avec cadence | Ajouter à répétitions «cadencées toutes les 4 s» ; singulier «1 répétition cadencée toutes les 4 s» |
+| Répétitions avec bip positif | Ajouter à répétitions «cadencées toutes les 4 s» ; singulier «1 répétition cadencée toutes les 4 s» |
 | À l’échec | «3 séries menées jusqu’à l’échec» / «1 série menée jusqu’à l’échec» |
 | Deux cibles variables | «2 séries de 12 puis 8 répétitions» ; Durée : «2 séries de durée variable (30 s puis 45 s)» |
 | Trois cibles variables | «3 séries de 12, 10 puis 8 répétitions» ; Durée : «3 séries de durée variable (30 s, 45 s puis 1 min)» |
 | Plus de trois cibles | «6 séries variables, de 6 à 15 répétitions» ; Durée : «6 séries variables, de 30 s à 1 min 30 s» |
 | Plusieurs Séries uniformes, pause positive | Ajouter « + 15 s de pause chacune » ; exemple complet : «3 séries de 30 s + 15 s de pause chacune» |
 | Plusieurs Séries uniformes, pause nulle | «enchaînées sans pause» |
-| Une Série, pause positive | «suivie de 15 s de pause» ; la pause terminale est conservée par la spécification |
+| Une Série, pause positive | «suivie de 15 s de pause» ; formulation historique conservée sur demande mais contradictoire avec la suppression de pause terminale : Q-08 |
 | Une Série, pause nulle | Omettre la clause pause |
 | Séries variables Durée/Répétitions | Omettre la clause de pause ; l’énumération décrit les cibles, pas les pauses. Cette omission rédactionnelle ne retire aucune pause du calcul. |
 | À l’échec variable | Décrire les pauses selon le résumé existant : «3 séries menées jusqu’à l’échec, avec des pauses de 30 s, 45 s puis 1 min» ; au-delà de3, plage min/max des pauses. Aucun total d’Exercice. |
 
 Séries variables est un état explicite même si les valeurs sont égales. N=1 est normalisé uniforme avant génération. Les plages utilisent le minimum et maximum des cibles actives, pas les première/dernière lignes. Aucun résumé «trois premières valeurs puis ellipse».
 
-Choix rédactionnel du propriétaire du 06/10/2026 (H-03) : conserver le signe `+`, et non « séparées par », « puis », « et » ou « chacune suivie de ». La phrase décrit les paramètres intrinsèques de l’Exercice : la pause de chaque Série, dernière comprise. Dans une occurrence de Séance, une Récupération positive remplace la dernière Pause selon v13 §4–5 (`To = T − PN + R`) ; la formulation intrinsèque ne prescrit jamais leur addition. La transition d’exécution et le total contextuel restent déterminés par le plan de l’occurrence.
+Choix rédactionnel du propriétaire du 06/10/2026 (H-03) : conserver le signe `+`, et non « séparées par », « puis », « et » ou « chacune suivie de ». La phrase décrit les paramètres intrinsèques de l’Exercice : la pause configurée des Séries. La dernière pause n’est plus exécutée selon Bip v2 ; formulation en réserve Q-08. Une Récupération explicite est ajoutée après l’Exercice, sans substitution de Pause terminale. La formulation ne pilote jamais les phases du plan.
 
 ## 3. Côtés
 
@@ -38,9 +38,9 @@ Sans changement : aucune clause «sans changement de côté». Une Série bilat�
 
 ## 4. Durée et exceptions
 
-Sur une nouvelle ligne : «Durée totale : {symbole éventuel}{durée}.» Durée sans symbole ; cadence ≈ ; sans cadence ≥. Le calcul fournit le montant correspondant à cette nature, jamais une estimation simplement réétiquetée en borne. omitted supprime la ligne À l’échec ; incomplete affiche —. À l’échec : omettre le total d’Exercice. Une Série Durée unilatérale : omettre seulement si total réellement égal à la cible (Pause0) ; avec une pause positive, le conserver. Cette condition préserve D-248 face aux exemples simplifiés.
+Sur une nouvelle ligne, uniquement si applicable : « Durée totale : {symbole éventuel}{durée}. » Durée exacte sans symbole ; Répétitions avec bip positif ≈ ; Répétitions sans bip et À l’échec : omission intégrale, aucun ≥, zéro ou tiret. Une Série Durée unilatérale : total redondant avec sa cible, clause omise dans la phrase. Le calcul reste exact et affichable dans la feuille. En Durée/À l’échec, le bip ne change pas les formulations ; en Répétitions, « cadencées » est explicitement conservé. Les pauses configurées n’altèrent pas le symbole. Erreur de saisie distincte de omitted.
 
-Le total et son niveau d’incertitude sont fournis par les [paramètres v13](SPECIFICATION-PARAMETRES-MODALE-v13.md) et la [Cadence](SPECIFICATION-CADENCE-REPETITIONS-v1.md). Aucun montant du classeur ou de Figma n’est un oracle de calcul.
+Le total et son niveau d’incertitude sont fournis par les [paramètres v13](SPECIFICATION-PARAMETRES-MODALE-v13.md) et la [Cadence](SPECIFICATION-BIP-CADENCE-v2.md). Aucun montant du classeur ou de Figma n’est un oracle de calcul.
 
 ## 5. Rendu, interaction et accessibilité
 
@@ -48,5 +48,9 @@ Une zone cliquable unique, sans pastilles de paramètres ni segments interactifs
 
 ## 6. Recette rédactionnelle
 
-Vérifier singulier/pluriel, deux/trois/plus de trois cibles, min=max, Durée/Répétitions/À l’échec, cadence absente/présente, pause0/positive, deux directions et deux ordres, PC0/positive. Injecter un total déterminable puis approximatif et vérifier uniquement son rendu. Vérifier omission du total seulement aux conditions ci-dessus, annulation et validation, absence de troncature à360/402/440 et texte agrandi. Les100 phrases du classeur constituent une référence de formulation ; les précisions explicites ci-dessus priment sur les omissions simplifiées. Aucune validation numérique du classeur n’est requise.
+Vérifier singulier/pluriel, deux/trois/plus de trois cibles, min=max, Durée/Répétitions/À l’échec, bip0/positif, pause0/positive, deux directions et deux ordres, PC0/positive. Injecter un total déterminable puis approximatif et vérifier uniquement son rendu. Vérifier omission du total seulement aux conditions ci-dessus, annulation et validation, absence de troncature à360/402/440 et texte agrandi. Les100 phrases du classeur constituent une référence de formulation ; les précisions explicites ci-dessus priment sur les omissions simplifiées. Aucune validation numérique du classeur n’est requise.
 
+
+## 7. Réserve Q-08 — phrases de pauses
+
+La source demande de conserver les formulations tout en supprimant la Pause terminale. « +15s de pause chacune » et « une série suivie de15s de pause » restent donc à arbitrer sur le texte, sans remettre en cause la règle de calcul n−1. Proposition : « + 15 s de pause entre les séries » et omission de cette clause pour une Série unilatérale. Le classeur reste uniquement rédactionnel.

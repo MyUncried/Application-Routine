@@ -26,7 +26,9 @@ Le set historique icon/zone-corporelle existe ; le faire évoluer plutôt que cr
 
 [Planche des icônes — source Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7174-13554)
 
-Capture non jointe : quota Figma atteint lors du renouvellement.
+Capture reprise lors du lot Bip :
+
+![Planche des icônes](Specifications-fonctionnelles/images/figma-7174-13554.png)
 
 Cette planche conserve des explorations et annotations anciennes (dont sablier noir) ; la composition bleue/orange de la planche des états et les règles suivantes définissent la cible.
 
@@ -58,5 +60,5 @@ Phrase unique Inter13/20, largeur324 à402, hauteur adaptée ; valeurs en gras, 
 
 ## Vérifications et dette restante
 
-Boutons locaux à componentiser ; contrôler layoutMode, centrage et liaisons aux tokens. Carte séance, Carte exercice et Ressenti hors DSF ne sont pas déclarés promus par ce lot. Aucune obligation de trois nouvelles maquettes d’exécution : shell existant réutilisé. La suppression de cadence reste « Aucun » dans la roulette ; aucune nouvelle commande inventée.
+Boutons locaux à componentiser ; contrôler layoutMode, centrage et liaisons aux tokens. Carte séance, Carte exercice et Ressenti hors DSF ne sont pas déclarés promus par ce lot. Aucune obligation de trois nouvelles maquettes d’exécution : shell existant réutilisé. Le Bip de cadence est désactivé en ramenant son stepper à0, affiché Aucun ; aucune nouvelle commande inventée.
 
