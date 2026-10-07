@@ -1,0 +1,45 @@
+{
+  "schema_version": "kodjo.vnext.full-cycle-qualification-evidence.v1",
+  "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+  "request_id": "6db62fdd-31b6-4c00-8097-d85af9f675b8",
+  "generation": 87,
+  "run_id": 37622823611,
+  "run_attempt": 1,
+  "workflow_path": ".github/workflows/kodjo-vnext-proof-stability.yml",
+  "event": "create",
+  "branch": "qualification/vnext-full-cycle-revision-6db62fdd-20261007",
+  "source_head": "53ebeae733286b55b6d96478cd27c76276e5a346",
+  "run_conclusion": "SUCCESS",
+  "jobs": {
+    "linux": {
+      "job_id": 112797073698,
+      "conclusion": "SUCCESS",
+      "pass": 407,
+      "fail": 0,
+      "skip": 0,
+      "artifact_id": 11482692377,
+      "artifact_sha256": "14dfd3f23428d2dcdd6f2559189124a8f4575c98445386f47049324e85ef60e6"
+    },
+    "windows": {
+      "job_id": 112797073265,
+      "conclusion": "SUCCESS",
+      "pass": 407,
+      "fail": 0,
+      "skip": 0,
+      "artifact_id": 11482983685,
+      "artifact_sha256": "31072aa5b9fd1910b4d08ed2ca7896815ee3898c28d9e4f24995df80c6cbf275"
+    }
+  },
+  "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:6db62fdd-31b6-4c00-8097-d85af9f675b8:37622823611:1",
+  "signal_head": "b8db0c6d45d225b9c6002b5d6bea25086bbd63f7",
+  "approval": {
+    "comment_id": 6038423494,
+    "reaction_id": 434657349,
+    "actor": "MyUncried",
+    "target_hash": "700ec15796938ae31b48fa246f4b978365e6f9d328b6bcfe0ec09abcdd35ea27",
+    "human_review_performed": false,
+    "observation": "VERIFIED"
+  },
+  "admission": "AUTHORIZED",
+  "recorded_at": "2026-10-07T13:01:58Z"
+}
