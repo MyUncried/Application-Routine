@@ -1,12 +1,14 @@
 # Application Routine
 
-**Référence courante du07/10 :** [matrice cartes/phrases](MATRICE-CARTES-PHRASES-2026-10-07.md) ; [DSF cartes sans cadre de durée](DSF-CARTES-DUREE-2026-10-07.md). Pause après chaque série, récupération substitutive,276 textes v14, segments non persistés.
+**Référence courante — évolutions v15 :** [inventaire, plan et preuves](MATRICE-EVOLUTIONS-V15-2026-10-07.md), [consolidation fonctionnelle](Specifications-fonctionnelles/CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases](DSF-PHRASES-V15-2026-10-07.md). Corpus276 actualisé ; calculs conservés ; captures et contrats repris.
+
+**Lot cartes du07/10, avant v15 :** [matrice cartes/phrases](MATRICE-CARTES-PHRASES-2026-10-07.md) ; [DSF cartes sans cadre de durée](DSF-CARTES-DUREE-2026-10-07.md). Pause après chaque série, récupération substitutive,276 textes v15, segments non persistés.
 
 ## Dernière clarification — Bip de cadence
 
 [Spécification Bip v2](Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md) · [DSF Bip/steppers](DSF-BIP-CADENCE-2026-10-07.md) · [Inventaire et captures](MATRICE-BIP-FIGMA-2026-10-07.md) · [Rapport de cohérence](REPORT-BIP-2026-10-07.md).
 
-Bip0..10 transverse aux trois modes ; omission des durées non calculables d’Exercice ; ≥ réservé aux Séances ; pause après chaque série, dernière comprise, remplacée seulement par la récupération positive qui suit. Q-07 et Q-08 clos ; les276 formulations v14 font référence. Cette clarification remplace les règles incompatibles du premier lot du07/10.
+Bip0..10 transverse aux trois modes ; omission des durées non calculables d’Exercice ; ≥ réservé aux Séances ; pause après chaque série, dernière comprise, remplacée seulement par la récupération positive qui suit. Q-07 et Q-08 clos ; les276 formulations v15 font référence. Cette clarification remplace les règles incompatibles du premier lot du07/10.
 
 ## Consolidation du 07/10/2026
 
@@ -96,12 +98,12 @@ v12 et v10.2 sont historiques ; leurs règles remplacées ne doivent pas être u
 - [Audit transverse reçu de Claude](../.github/orchestration/reports/2026-10-06_AUDIT_TRANSVERSE_FINAL_DOCUMENTATION_KODJO.md)
 - [Corrections G-01 à G-05 et contrôles](../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_TRANSVERSE_DOCUMENTAIRE.md)
 
-**Statut :** la seconde passe fonctionnelle de Claude est reçue, mais sa couverture reste partielle. Les corrections déterminées du lot H sont reportées ; H-03 est clos par la formulation intrinsèque avec `+`, H-08 précisé par D-303 : aucune information de récupération à 0 s, trait conservé hors placement et absent pendant le choix, H-09 par l’avertissement non bloquant entre Exercices (D-301), H-10 par la coche courante vectorisée et archivée. Aucun arbitrage H-08/H-09 ne reste ouvert. La couverture partielle de l’audit ne permet pas de déclarer l’alignement fonctionnel total.
+**Statut :** la seconde passe fonctionnelle de Claude est reçue, mais sa couverture reste partielle. Les corrections déterminées du lot H sont reportées ; H-03 a été remplacé par D-315 : formulation « pause après chaque série », corpus courantv15, H-08 précisé par D-303 : aucune information de récupération à 0 s, trait conservé hors placement et absent pendant le choix, H-09 par l’avertissement non bloquant entre Exercices (D-301), H-10 par la coche courante vectorisée et archivée. Aucun arbitrage H-08/H-09 ne reste ouvert. La couverture partielle de l’audit ne permet pas de déclarer l’alignement fonctionnel total.
 
 - [Audit fonctionnel reçu](../.github/orchestration/reports/2026-10-06_AUDIT_FONCTIONNEL_CHAPITRES_CONTRATS_KODJO.md)
 - [Corrections fonctionnelles et réserves](../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_FONCTIONNEL_DOCUMENTAIRE.md)
 
-- [Décision rédactionnelle H-03 : pause avec +](../.github/orchestration/reports/2026-10-06_CLOTURE_H03_PHRASE_PAUSE.md)
+- [Décision H-03 historique, remplacée par D-315](../.github/orchestration/reports/2026-10-06_CLOTURE_H03_PHRASE_PAUSE.md)
 
 - [Clôture H-10 : coche de sélection multiple](../.github/orchestration/reports/2026-10-06_CLOTURE_H10_COCHE_SELECTION.md)
 

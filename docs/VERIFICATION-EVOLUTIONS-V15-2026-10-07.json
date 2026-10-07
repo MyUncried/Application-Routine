@@ -1,0 +1,1622 @@
+{
+  "base_commit": "72d1bf47add0a80b4241f9706e3d2f8913a484ff",
+  "base_tree": "b505d7b21192813de586132b1ad849609bd3ccb4",
+  "scope": "documentation only",
+  "traceability_points": 21,
+  "corpus_cases": 276,
+  "templates_changed": 0,
+  "example_amounts_changed": 36,
+  "phrase_blocks_observed": 30,
+  "modals_with_bip": 24,
+  "captures_exported": 36,
+  "png_changed": 15,
+  "png_identical": 21,
+  "long_phrase": {
+    "id": "7119:27855",
+    "name": "Création activité — Phrase longue (224 caractères)",
+    "phrase": "6 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en faisant d’abord toutes les séries à droite, puis à gauche, avec 5 s de pause au changement de côté.\nDurée totale : ≈ 12 min 41 s.",
+    "width": 324,
+    "height": 100
+  },
+  "contracts": [
+    {
+      "contract": "CE-T03-01",
+      "sections": 21
+    },
+    {
+      "contract": "CE-T03-02",
+      "sections": 21
+    },
+    {
+      "contract": "CE-T03-03",
+      "sections": 21
+    },
+    {
+      "contract": "CE-T03-04",
+      "sections": 21
+    },
+    {
+      "contract": "CE-T03-05",
+      "sections": 21
+    },
+    {
+      "contract": "CE-T03-06",
+      "sections": 21
+    },
+    {
+      "contract": "CE-T03-07",
+      "sections": 21
+    },
+    {
+      "contract": "CE-T03-08",
+      "sections": 21
+    },
+    {
+      "contract": "CE-T03-09",
+      "sections": 21
+    },
+    {
+      "contract": "CE-T03-10",
+      "sections": 21
+    },
+    {
+      "contract": "CE-T03-11",
+      "sections": 21
+    },
+    {
+      "contract": "CE-T03-12",
+      "sections": 21
+    },
+    {
+      "contract": "CE-T03-13",
+      "sections": 21
+    },
+    {
+      "contract": "CE-T03-14",
+      "sections": 21
+    },
+    {
+      "contract": "CE-T03-15",
+      "sections": 21
+    },
+    {
+      "contract": "CE-T03-16",
+      "sections": 21
+    },
+    {
+      "contract": "CE-T03-17",
+      "sections": 21
+    },
+    {
+      "contract": "CE-MEDIA-EXEC-01",
+      "sections": 21
+    },
+    {
+      "contract": "CE-MEDIA-EXEC-02",
+      "sections": 21
+    },
+    {
+      "contract": "CE-UI-01",
+      "sections": 21
+    },
+    {
+      "contract": "CE-UI-02",
+      "sections": 21
+    },
+    {
+      "contract": "CE-UI-03",
+      "sections": 21
+    },
+    {
+      "contract": "CE-UI-04",
+      "sections": 21
+    },
+    {
+      "contract": "CE-UI-05",
+      "sections": 21
+    },
+    {
+      "contract": "CE-UI-06",
+      "sections": 21
+    },
+    {
+      "contract": "CE-UI-07",
+      "sections": 21
+    },
+    {
+      "contract": "CE-EXEC-SESSION-01",
+      "sections": 21
+    },
+    {
+      "contract": "CE-UI-08",
+      "sections": 21
+    },
+    {
+      "contract": "CE-UI-09",
+      "sections": 21
+    },
+    {
+      "contract": "CE-UI-10",
+      "sections": 21
+    }
+  ],
+  "captures": [
+    {
+      "id": "4714:6241",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4714-6241.png",
+      "sha": "9e045152d5950163dad131741b7601bde890223c",
+      "changed": true
+    },
+    {
+      "id": "4734:6342",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-15a-modification-activite-persistante.png",
+      "sha": "e5ba529da25fd1d22ca267d42b939824bd6ad799",
+      "changed": true
+    },
+    {
+      "id": "4861:6348",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4861-6348.png",
+      "sha": "936f461c380445e82fff0e07de67af659774b9d9",
+      "changed": true
+    },
+    {
+      "id": "6407:10127",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6407-10127.png",
+      "sha": "424cacf2c95e5807bdce002fc16f7033641af0dc",
+      "changed": false
+    },
+    {
+      "id": "6407:10481",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6407-10481.png",
+      "sha": "05b15381efef453c02e1f9a3531e81c43388d5f0",
+      "changed": false
+    },
+    {
+      "id": "6407:9551",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6407-9551.png",
+      "sha": "d7ce3373628ff8e8351b059bd3858f76a8bbf2e6",
+      "changed": false
+    },
+    {
+      "id": "6407:9702",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6407-9702.png",
+      "sha": "2dac88ada12d81dec67c845ca018116f06d7933c",
+      "changed": true
+    },
+    {
+      "id": "6407:9805",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6407-9805.png",
+      "sha": "cd7422bdebac746942198e22010d10bcf9a6c8a1",
+      "changed": false
+    },
+    {
+      "id": "6407:9966",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6407-9966.png",
+      "sha": "ddb2bbe594b3d225bd694616c17e4b1fe1029e32",
+      "changed": true
+    },
+    {
+      "id": "6411:9546",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6411-9546.png",
+      "sha": "301170fbf7d37a0ef807d76df880c9f119854bd6",
+      "changed": false
+    },
+    {
+      "id": "6411:9649",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6411-9649.png",
+      "sha": "c5d6bdda603301d8ecbed8132a6db518e6bcf32a",
+      "changed": false
+    },
+    {
+      "id": "6419:10028",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6419-10028.png",
+      "sha": "f92207890533658ba41528b44d313cb715b37bd1",
+      "changed": false
+    },
+    {
+      "id": "6419:9847",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6419-9847.png",
+      "sha": "e5edae04bc37f5a06310b12d1fbe3b5edcd81bc1",
+      "changed": false
+    },
+    {
+      "id": "6423:9953",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6423-9953.png",
+      "sha": "e7cb1dc76a30a2dc45a5f7e27695fa8649678ff7",
+      "changed": false
+    },
+    {
+      "id": "6665:24616",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-24616.png",
+      "sha": "95c7d47f340d6da87e8b64cd5937514135ed302e",
+      "changed": true
+    },
+    {
+      "id": "6665:24844",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-24844.png",
+      "sha": "699ae35c5e46fb7c42e7af92591e318d74701eb9",
+      "changed": true
+    },
+    {
+      "id": "6665:25072",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-25072.png",
+      "sha": "216a35a5293d841c9b27ce1d00cd73e99001cb64",
+      "changed": false
+    },
+    {
+      "id": "6665:25277",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-25277.png",
+      "sha": "f03ded85dd0ea315707fea2b2d3974298b81e740",
+      "changed": false
+    },
+    {
+      "id": "6665:26185",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-26185.png",
+      "sha": "ed9b6e67b5ad9745cecd8d8a14004760577e801f",
+      "changed": false
+    },
+    {
+      "id": "6665:26575",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-26575.png",
+      "sha": "99411d13286fbbd2913333d344de6916b9aa6a82",
+      "changed": false
+    },
+    {
+      "id": "6665:26822",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-26822.png",
+      "sha": "1ec2b552594e9c7653acc22793693ad84cac82a6",
+      "changed": false
+    },
+    {
+      "id": "6665:27008",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-27008.png",
+      "sha": "9869398dda6c7078a2afdb116909539accb350cc",
+      "changed": true
+    },
+    {
+      "id": "6665:27232",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-27232.png",
+      "sha": "dbba49720934568a3d963668181282e9baa27027",
+      "changed": true
+    },
+    {
+      "id": "6665:27458",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-27458.png",
+      "sha": "52332b83f3919ec5e9e407d0a6a71973b342b5c4",
+      "changed": true
+    },
+    {
+      "id": "6665:27608",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-27608.png",
+      "sha": "c6342d5364fb264e749d2ad420f2f99f25a2c9e2",
+      "changed": true
+    },
+    {
+      "id": "6665:27862",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-27862.png",
+      "sha": "7bac4334c4b05ba9eb8ae5c6ff7eaa3af4759ba8",
+      "changed": true
+    },
+    {
+      "id": "6665:28050",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-28050.png",
+      "sha": "2c345e70954e5c182954a9e71d8428f2dd119580",
+      "changed": false
+    },
+    {
+      "id": "7059:13302",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7059-13302.png",
+      "sha": "f7979f3716c3db01c65dd5f0a54218deed5ccfa4",
+      "changed": true
+    },
+    {
+      "id": "7069:13464",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7069-13464.png",
+      "sha": "82e899a6923af4b58c3638f81ff241776f73a84f",
+      "changed": false
+    },
+    {
+      "id": "7069:13573",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7069-13573.png",
+      "sha": "26cbb28a51473b4628fe951a5a56b8a1d8ed1edf",
+      "changed": false
+    },
+    {
+      "id": "7119:27855",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7119-27855.png",
+      "sha": "532013e46dc10986b53a52f1462e96a713f1732f",
+      "changed": true
+    },
+    {
+      "id": "7167:13503",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7167-13503.png",
+      "sha": "4fcae1a93cbdf4b42aba0bc2cd0a53c09f13ad9e",
+      "changed": false
+    },
+    {
+      "id": "7173:13521",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7173-13521.png",
+      "sha": "15a49ab18674d3faa878cd8e21d9412c34e0be31",
+      "changed": false
+    },
+    {
+      "id": "7174:13554",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7174-13554.png",
+      "sha": "8137f2e5c971908e60b599fe3ad4b49bb49fabce",
+      "changed": true
+    },
+    {
+      "id": "7245:13718",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7245-13718.png",
+      "sha": "b98e1b9f2270d11777b4723f2cd7e2ab6c81043c",
+      "changed": false
+    },
+    {
+      "id": "7296:13696",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7296-13696.png",
+      "sha": "12ff799817f251ae051f9a71583b6cc4659b6418",
+      "changed": false
+    }
+  ],
+  "inventory": [
+    {
+      "id": "1992:375",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-1-profil.png",
+      "sha": "beee2cb93b19d0da4d67c6b606e92c7020a71be5",
+      "renewed": false,
+      "name": "Profil — Vue d'ensemble - Vibration désactivée",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:469",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-0-splash-kodjo.png",
+      "sha": "6b0730794fa14d507a89d728c3ccf32d91cdd4e4",
+      "renewed": false,
+      "name": "Splash — Kodjo",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:474",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-1c-profil-compte-rebours-ouvert.png",
+      "sha": "15c89716c17d87f3edbdd1eeab6e39b34322cc0f",
+      "renewed": false,
+      "name": "Profil — Stepper Pause changement de côté",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:579",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-1d-profil-fin-seance-ouverte.png",
+      "sha": "7fee858844b2d1623090fa4a05cc90dc549ec50c",
+      "renewed": false,
+      "name": "Profil — Stepper Récupération après activité",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:684",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-1b-profil-vibration-activee.png",
+      "sha": "6581b6be08381a2517032db678ea70a818ea668c",
+      "renewed": false,
+      "name": "Profil — Vue d'ensemble - Vibration activée",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:778",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-1a-modifier-profil.png",
+      "sha": "d360b0ec3b609db5d58034f447d3034d91dcf391",
+      "renewed": false,
+      "name": "Profil — Modifier le profil — MVP",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:5101",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-7a-calendrier-semaine.png",
+      "sha": "5630439e71d4795496ae8fe4fdbbaf67c0735225",
+      "renewed": true,
+      "name": "Calendrier — Semaine",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:5237",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-7b-calendrier-mois.png",
+      "sha": "7f8e6d9871af3157b77c4f935a6fbc0126778766",
+      "renewed": false,
+      "name": "Calendrier — Mois",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:5365",
+      "path": "docs/Specifications-fonctionnelles/images/modale-4-suppression-planification-unique.png",
+      "sha": "b4574858d07db7320a8f5e2d29358cdf7c55b673",
+      "renewed": true,
+      "name": "Modal — Supprimer une planification unique — Calendrier",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:5510",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-7-calendrier-jour.png",
+      "sha": "26e4097b6c090e423d69de79274b75638532180e",
+      "renewed": true,
+      "name": "Calendrier — Jour — MVP",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:5602",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-7c-calendrier-jour-appui-long.png",
+      "sha": "aca1b7507796cc07ab759cbb206deac1b327b18a",
+      "renewed": true,
+      "name": "Calendrier — Jour — Appui long — MVP",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:5697",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-7f-calendrier-jour-apres-planification.png",
+      "sha": "f4705215f942e82f2a97ea86b64f375eace61f35",
+      "renewed": true,
+      "name": "Calendrier — Jour — MAJ — MVP",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:5794",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-7e-calendrier-creneau-a-planifier.png",
+      "sha": "d8ce47abeabde8b62f4a3f2d4f6e28e55a0525a8",
+      "renewed": true,
+      "name": "Calendrier — Jour — Créneau à planifier — MVP",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:5962",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-7j-calendrier-semaine-actions.png",
+      "sha": "b5d662616f66e4d8946c80e563b6eaee4b4f1e92",
+      "renewed": true,
+      "name": "Calendrier — Semaine — Actions glissées",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:6102",
+      "path": "docs/Specifications-fonctionnelles/images/modale-4a-suppression-occurrences.png",
+      "sha": "c61fc9cff7c757dc3f0394a43f50bb28a6983fc2",
+      "renewed": true,
+      "name": "Modal — Supprimer des occurrences — Calendrier",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:6249",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-7d-calendrier-choisir-seance.png",
+      "sha": "850ba03cdf1171c3d478e657a990c94f7c51c1d8",
+      "renewed": true,
+      "name": "Modal — Choisir une séance — Planification — Liste longue",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:6389",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-7i-calendrier-semaine-deployee.png",
+      "sha": "52462bb58bd72d453f631021bdf0fa818cf01053",
+      "renewed": true,
+      "name": "Calendrier — Semaine — Séance déployée",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:6622",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-8a-planifier-date-ouverte.png",
+      "sha": "8adce2855d898c6aaddbbe821f5d01aef9a349a9",
+      "renewed": false,
+      "name": "Planifier une séance — Test picker date ouvert",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:6838",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-8-planifier-seance.png",
+      "sha": "302aa0fa790930b5ce2b1770d8c48410e3698bfa",
+      "renewed": false,
+      "name": "Planifier une séance — Création",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:7187",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-8c-planifier-rappel-ouvert.png",
+      "sha": "19816f9b0ef60ac160e3661d23cbedfb132d53f4",
+      "renewed": false,
+      "name": "Planifier une séance — Test picker rappel personnalisé ouvert",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:7369",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-8d-planifier-rappel-selectionne.png",
+      "sha": "a3419dacd69809a94c6acecc9ebcfd7d325ebd77",
+      "renewed": false,
+      "name": "Planifier une séance — Test rappel personnalisé sélectionné",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:7537",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-8e-planifier-semaines-ouvert.png",
+      "sha": "c1e2d32d8aa3221c1d75fcdc6d80b3a39943afe6",
+      "renewed": false,
+      "name": "Planifier une séance — Stepper Nombre de semaines",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:7716",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-8f-planifier-sans-repetition.png",
+      "sha": "0d1070e6b5ab35de31324c34bf4754cffe4b715d",
+      "renewed": false,
+      "name": "Planifier une séance — Aucune répétition",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:7861",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-8g-planifier-changer-seance.png",
+      "sha": "5f39738c6add79f34ae24568332af0ad3b9bab87",
+      "renewed": true,
+      "name": "Planifier une séance — Chioisir la séance",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:8132",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-9-execution-seance.png",
+      "sha": "5eeb294683f9afaa70ddd81d29e1e4e0c98a6299",
+      "renewed": false,
+      "name": "Exécution d'une séance — Démarrée",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4968:8188",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4968-8188.png",
+      "sha": "98174593829e64b0258e473fe34037593fb0c92d",
+      "renewed": false,
+      "name": "Exécution d'un exercice — Démarrée",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:8224",
+      "path": "docs/Specifications-fonctionnelles/images/modale-5-reinitialiser-activite.png",
+      "sha": "0213edabfbf65ffd1052fdf3590ff6924d0293d4",
+      "renewed": false,
+      "name": "Modal — Réinitialiser l’activité",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:8326",
+      "path": "docs/Specifications-fonctionnelles/images/modale-6-activite-suivante.png",
+      "sha": "0dc19b18cfcb82a3c5f0d1908775d6c393930bd4",
+      "renewed": false,
+      "name": "Modal — Passer à l’activité suivante",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:8428",
+      "path": "docs/Specifications-fonctionnelles/images/modale-7-seance-en-pause.png",
+      "sha": "84535d689c0f3a0aff49bdccd1943a5bc1b78ff3",
+      "renewed": false,
+      "name": "Modal — Séance en pause",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:8530",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-9b-execution-sons-annonces-desactives.png",
+      "sha": "0af316b0dd3d2a0445b0a8e9fc78215aabebd5f0",
+      "renewed": false,
+      "name": "Exécution d'une séance — Démarrée — Bips et vocal désactivés",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:8626",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-9a-execution-etat-initial.png",
+      "sha": "17c0f96731ef1fd5d90ed5fee9ef4012c1c2bcc3",
+      "renewed": false,
+      "name": "Exécution d'une séance — Initial",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:8718",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-10a-synthese-evaluation-initiale.png",
+      "sha": "acd4537229b30871ea744f1efa94d7c6b380ff9b",
+      "renewed": false,
+      "name": "Synthèse de séance — Terminée —  Évaluation initiale",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:8780",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-10-synthese-seance.png",
+      "sha": "14f1a23adef0605e6f076272ffe23210923d71f6",
+      "renewed": false,
+      "name": "Synthèse de séance — Terminée — Ressenti sélectionné",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4968:8055",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4968-8055.png",
+      "sha": "fdb84973ca606dc40ce943d8fbfb9717647b13e9",
+      "renewed": false,
+      "name": "Synthèse d'exécution — Exercice Terminé —  Évaluation initiale",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4968:8105",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4968-8105.png",
+      "sha": "21ab9d76d83e3f97705f7029511a55063bc07857",
+      "renewed": false,
+      "name": "Synthèse d'exécution — Exercice Terminé —  Ressenti sélectionné",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4760:6448",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4760-6448.png",
+      "sha": "37e4732eb954f9a35c2dc157ecfee1ed8c3cb77c",
+      "renewed": false,
+      "name": "Synthèse de séance — Partielle — Évaluation initiale",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4760:6500",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4760-6500.png",
+      "sha": "050f30933d6144e7a0fe568c7ce6d2a59dc315eb",
+      "renewed": false,
+      "name": "Synthèse de séance — Partielle — Ressenti sélectionné",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:8843",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-11-suivi-condense.png",
+      "sha": "a3792a662ec2a726bd3bca04504c7edd4086065f",
+      "renewed": true,
+      "name": "Suivi — Séances — Liste condensée",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:8996",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-11a-suivi-deploye.png",
+      "sha": "ce7db5901b0c34ab14c01204acfa1e036bc5f8d3",
+      "renewed": true,
+      "name": "Suivi — Séances — Vue déployée",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:9910",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-2-catalogue-seances.png",
+      "sha": "fe927d5afe430d8642a3ee261bcaf3a756418ef9",
+      "renewed": true,
+      "name": "Catalogue des séances — Liste par défaut",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:10014",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-2b-catalogue-seance-deployee.png",
+      "sha": "fd9c4cdc5996e640ee1aa8768f49a0be42e90150",
+      "renewed": true,
+      "name": "Catalogue des séances — Séance déployée",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:10518",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-2d-catalogue-condense-actions.png",
+      "sha": "a5c892ebb4c7a4e927119e1e0251126043c112f4",
+      "renewed": true,
+      "name": "Catalogue des séances — Liste condensée — actions glissées",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:10628",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-2e-catalogue-deployee-actions.png",
+      "sha": "a75bec715d239acae3f262a2d7ed3b4dee2dd381",
+      "renewed": true,
+      "name": "Catalogue des séances — Séance déployée — actions glissées",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:10848",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-2g-catalogue-seance-restauree.png",
+      "sha": "0aae71b97fed14f5d5d01ed383e45aac16433e52",
+      "renewed": true,
+      "name": "Catalogue des séances — Archivées — Séance restaurée",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "1992:10937",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-2h-catalogue-apres-archivage.png",
+      "sha": "9b097152437b42fc9056026cac67a77834191451",
+      "renewed": true,
+      "name": "Catalogue des séances — Liste sans Renforcement du genou",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2028:11137",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-3b-composition-etat-initial.png",
+      "sha": "829ab3ed74099e758689364a1e28f2cb2074d54d",
+      "renewed": false,
+      "name": "Composition séance — Initial",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2028:11204",
+      "path": "docs/Specifications-fonctionnelles/images/figma-2028-11204.png",
+      "sha": "b7d8886c1fc1c1ec604256e7f7330de540366e7f",
+      "renewed": false,
+      "name": "Composition séance — Étiquettes",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2028:11298",
+      "path": "docs/Specifications-fonctionnelles/images/modale-1-abandon-creation-seance.png",
+      "sha": "92bcaf25ec1b7afb74a7abe1e5d1376140d9f128",
+      "renewed": false,
+      "name": "Composition séance — Abandon",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2028:11375",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-3e-composition-compte-rebours-ouvert.png",
+      "sha": "9def35a86467370f923d1937dae3bb416d73bdab",
+      "renewed": false,
+      "name": "Composition séance — Compte à rebours",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2028:11457",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-3f-composition-fin-seance-ouverte.png",
+      "sha": "e1ad7bc522862876f64c0ce2d542655e0b9f7786",
+      "renewed": false,
+      "name": "Composition séance — Fin",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2028:11700",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-3-composition-seance.png",
+      "sha": "cac1a19a5e30695481ceb0a0570adc67e2ebdfac",
+      "renewed": false,
+      "name": "Composition séance — Standard",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2028:11808",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-3a-composition-actions-glissees.png",
+      "sha": "317ade9a23c512d2570c7adbd94e90d7b9362ab8",
+      "renewed": false,
+      "name": "Composition séance — Actions glissées",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2028:12003",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-3c-composition-nom-renseigne.png",
+      "sha": "6da70e0f9fdf56a68344418eea0908be27ce6177",
+      "renewed": false,
+      "name": "Composition séance — Nom saisi",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2059:267",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-7g-calendrier-jour-suivant.png",
+      "sha": "6d5a05a91819196195c0dc524a9102ddf696d232",
+      "renewed": true,
+      "name": "Calendrier — Jour suivant — Glissement gauche — MVP",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2074:86",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-7l-calendrier-apres-suppression.png",
+      "sha": "624e23a0aa085c5af00515e2f7bd059018bf9434",
+      "renewed": true,
+      "name": "Calendrier — Semaine — Après suppression d’une planification",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2094:86",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-7k-calendrier-etirements-actions.png",
+      "sha": "1320d3c042455dc92980ca01147d32c2d6b4a6a8",
+      "renewed": true,
+      "name": "Calendrier — Semaine — Étirements — Actions glissées",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2117:86",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-2i-catalogue-vide.png",
+      "sha": "a8fe7b1de030b71e9e5fd6151313536ea0d440b0",
+      "renewed": false,
+      "name": "Catalogue des séances — État vide",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2117:190",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-11b-suivi-vide.png",
+      "sha": "614ad3f4b421ef19d35f0175d805858da800312c",
+      "renewed": false,
+      "name": "Suivi — Séances — État vide",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2128:86",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-7m-calendrier-vide.png",
+      "sha": "b11cf4930b6b92779ecdcbf6fe2316f2e9e6bca1",
+      "renewed": false,
+      "name": "Calendrier — Jour — État vide",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2139:86",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-1e-profil-parcours-vide.png",
+      "sha": "6581b6be08381a2517032db678ea70a818ea668c",
+      "renewed": false,
+      "name": "Profil — Vue d'ensemble — Parcours vide",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2234:88",
+      "path": "docs/Specifications-fonctionnelles/images/modale-3-seance-archivee-action-supprimer.png",
+      "sha": "6dcb221ed33834ec1442e8f6aa1086dbbadc7aa1",
+      "renewed": true,
+      "name": "Catalogue des séances — Archivées — actions glissées",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2234:189",
+      "path": "docs/Specifications-fonctionnelles/images/modale-3a-confirmer-suppression-seance-archivee.png",
+      "sha": "4987f268650c7c53104a5ea2efa88b2c12afe106",
+      "renewed": true,
+      "name": "Modal — Confirmer la suppression d’une séance archivée",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "2252:86",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-7h-calendrier-semaine-mardi.png",
+      "sha": "ee3a5878cd28c6e7d56c59dc62e89906acd679e1",
+      "renewed": true,
+      "name": "Calendrier — Semaine — Mardi sélectionné",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "3518:4576",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-3h-composition-appui-long.png",
+      "sha": "b816ce6f7ad3d2ccbec8d10141fc8190a97bc726",
+      "renewed": false,
+      "name": "Composition séance — Déplacement",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "3542:4656",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-4-creation-activite-duree.png",
+      "sha": "d743b00467d488e947e76145256ece54a6c3dbfe",
+      "renewed": false,
+      "name": "Création activité — Avant Paramètres d'exécution",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "3943:6064",
+      "path": "docs/Specifications-fonctionnelles/images/figma-3943-6064.png",
+      "sha": "45be55048678f3f2e752c0aeb5ddfbb3332cbba0",
+      "renewed": false,
+      "name": "Ajouter un exercice — Initial",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "3722:5061",
+      "path": "docs/Specifications-fonctionnelles/images/figma-3722-5061.png",
+      "sha": "708c106dec26c3aa0e28511e4c8e84b764436481",
+      "renewed": false,
+      "name": "Composition séance — Point d’arrêt",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4581:6404",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4581-6404.png",
+      "sha": "1f6310ea83af24dd7eea8626288ac6c9b729ad3b",
+      "renewed": false,
+      "name": "Composition séance — Étiquette sélectionnée",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "5271:5455",
+      "path": "docs/Specifications-fonctionnelles/images/figma-5271-5455.png",
+      "sha": "dd98d44832f35ed52a4ebffdc2d921e86d1e814c",
+      "renewed": false,
+      "name": "Modification d'une séance",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "3786:5093",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-12-catalogue-activites-liste.png",
+      "sha": "4720546433d16e756c5b0157fda437fecd1b2df1",
+      "renewed": true,
+      "latest_batch": "lot précédent",
+      "name": "Catalogue des Exercices — Liste",
+      "recaptured": false
+    },
+    {
+      "id": "3789:5349",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-14-selection-activites-existantes.png",
+      "sha": "3c285ba4d42395fa20afbb6c7042fc8a917f2eb7",
+      "renewed": true,
+      "name": "Composition séance — Sélection exercices",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4168:11149",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4168-11149.png",
+      "sha": "9e56cfcc88d612b7993e51064bf4f380dc45876f",
+      "renewed": true,
+      "name": "Catalogue des séances — Filtrer — Panneau ouvert",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4168:11262",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4168-11262.png",
+      "sha": "b702d35e05b947544503dd02cbc93ffdee6a280e",
+      "renewed": true,
+      "name": "Catalogue des Exercices — Filtrer — Panneau ouvert",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4593:6285",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4593-6285.png",
+      "sha": "d957ff4e1b4021625ccd5e5b6b0882008d7d27ff",
+      "renewed": true,
+      "name": "Modal — Confirmer l’archivage d’une séance planifiée",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4217:6980",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-15-creation-activite-persistante.png",
+      "sha": "d4878c8245eca8603c890cd0202ffcd5327fdd77",
+      "renewed": false,
+      "name": "Ajouter un exercice — Nom Description Media",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "5088:6398",
+      "path": "docs/Specifications-fonctionnelles/images/figma-5088-6398.png",
+      "sha": "686537cd11a30722bc34e96b6941b8c7f152b5c1",
+      "renewed": false,
+      "name": "Ajouter un exercice — Catégorie renseignée",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4734:6342",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-15a-modification-activite-persistante.png",
+      "sha": "e5ba529da25fd1d22ca267d42b939824bd6ad799",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Modifier un exercice",
+      "recaptured": true
+    },
+    {
+      "id": "4332:7095",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4332-7095.png",
+      "sha": "0db50716cc181801df84970e15b76031359cfd8c",
+      "renewed": false,
+      "name": "Ajouter un exercice — Catégories",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4474:7157",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4474-7157.png",
+      "sha": "867a9a0037ea4ada0ea052819edfbc36a63f3943",
+      "renewed": false,
+      "name": "Ajouter un exercice — Nouvelle catégorie",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4478:7209",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-4h-creation-activite-zone-corporelle.png",
+      "sha": "5ed843464ffe811d38c5aa0c9caa7756d8ebed71",
+      "renewed": false,
+      "name": "Ajouter un exercice — Zones corporelles",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4521:6220",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4521-6220.png",
+      "sha": "1a525c866628737c7ff951b1364dd132c85a2eac",
+      "renewed": false,
+      "name": "Catalogue des exercices — État vide",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4544:6344",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4544-6344.png",
+      "sha": "f45fb4e6708e973707beef8a0662fd61e8f30bc9",
+      "renewed": true,
+      "name": "Catalogue des Exercices — Liste — Filtre inactif étendu",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4544:6651",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4544-6651.png",
+      "sha": "ecdba64f64c5ff78473bb86c98ff6e88169b31f2",
+      "renewed": true,
+      "name": "Catalogue des Exercices — Liste — Filtre actif étendu",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4549:6382",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4549-6382.png",
+      "sha": "d45c5b6d8c03fcc59c88434736a5cb7330be9c1c",
+      "renewed": true,
+      "name": "Catalogue des séances — Liste — Filtre inactif étendu",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4549:6742",
+      "path": "docs/Specifications-fonctionnelles/images/ecran-2f-catalogue-archivees.png",
+      "sha": "9742fbc86f1c3e05d933c29e47ecc7f9597b0004",
+      "renewed": true,
+      "name": "Catalogue des séances — Filtre actif Archivé",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4592:6217",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4592-6217.png",
+      "sha": "53c164211da18eb55a60449710b6238041afa4fa",
+      "renewed": true,
+      "name": "Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4640:6308",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4640-6308.png",
+      "sha": "cc1079907f0920e5b78a6fac11af553fa2db9944",
+      "renewed": false,
+      "name": "Composition séance — Nouvelle étiquette",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4683:6336",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4683-6336.png",
+      "sha": "2927f66b236a9abfc6c6599a37f4d5dc33a984c9",
+      "renewed": false,
+      "name": "Ajouter un exercice — Nouvelle zone corporelle",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4714:6241",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4714-6241.png",
+      "sha": "9e045152d5950163dad131741b7601bde890223c",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Modal — Abandonner la création de l’activité",
+      "recaptured": true
+    },
+    {
+      "id": "4738:6209",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4738-6209.png",
+      "sha": "144d6b39533d8901d9b0c947b554e6a340e8326d",
+      "renewed": true,
+      "name": "Catalogue des Exercices — Liste — actions glissées",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4738:6355",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4738-6355.png",
+      "sha": "96a3a919acc4ab6b1a2e8f7bbfe8e291377ada6f",
+      "renewed": true,
+      "name": "Catalogue des Exercices — Liste — Première carte déployée — Média",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4861:6145",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4861-6145.png",
+      "sha": "3d9df06679e94ebb48ad515531c5a038204dd07a",
+      "renewed": false,
+      "name": "Composition séance — Étiquettes — Appui long — Confirmation suppression",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4861:6259",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4861-6259.png",
+      "sha": "10d9ae13959743cc36853ac6a1c55c5830f7a9e4",
+      "renewed": false,
+      "name": "Ajouter un exercice — Catégorie — Appui long — Confirmation suppression",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "4861:6348",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4861-6348.png",
+      "sha": "936f461c380445e82fff0e07de67af659774b9d9",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression",
+      "recaptured": true
+    },
+    {
+      "id": "4997:6113",
+      "path": "docs/Specifications-fonctionnelles/images/figma-4997-6113.png",
+      "sha": "8ae9b6c5077ad9ff3febc4285a21a78e58ea22ac",
+      "renewed": false,
+      "name": "Exécution d'un exercice — Initial — Bascule basse (média) avec Cercle",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "5588:4363",
+      "path": "docs/Specifications-fonctionnelles/images/figma-5588-4363.png",
+      "sha": "bf3377945c30216ac8cb189dbad7f3f3d203d5ec",
+      "renewed": false,
+      "name": "Exécution d'un exercice — Initial — Bascule haute avec média",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "5009:6069",
+      "path": "docs/Specifications-fonctionnelles/images/figma-5009-6069.png",
+      "sha": "c9aaeb8139c50b50da895c1c7bd1a21f582003b2",
+      "renewed": false,
+      "name": "Exécution d'un exercice — Média plein écran",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "5021:5994",
+      "path": "docs/Specifications-fonctionnelles/images/figma-5021-5994.png",
+      "sha": "5240c74c82ca75ccbb1368d1580599c6e90007d2",
+      "renewed": false,
+      "name": "Exécution d'un exercice — Initial - Cercle avec Texte",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "5581:4257",
+      "path": "docs/Specifications-fonctionnelles/images/figma-5581-4257.png",
+      "sha": "1ee03564a4a711d072739ba3b6dff3b9aadd863a",
+      "renewed": false,
+      "name": "Exécution d'un exercice — Démarré —  Bascule haute avec texte",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "5301:5443",
+      "path": "docs/Specifications-fonctionnelles/images/figma-5301-5443.png",
+      "sha": "1981cf9e5a5a03da065e3e6a3c793a353bda4836",
+      "renewed": false,
+      "name": "Composition séance — Retirer un point d’arrêt",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "5451:4272",
+      "path": "docs/Specifications-fonctionnelles/images/figma-5451-4272.png",
+      "sha": "41cbf73f22d89c0c31562961c1dce00b00421ba9",
+      "renewed": true,
+      "name": "Modal — Choisir un exercice — Planification — Liste longue",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "6407:9458",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6407-9458.png",
+      "sha": "d743b00467d488e947e76145256ece54a6c3dbfe",
+      "renewed": false,
+      "name": "Création activité — Paramètres en modale — 1 Champ vide",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "6407:9551",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6407-9551.png",
+      "sha": "d7ce3373628ff8e8351b059bd3858f76a8bbf2e6",
+      "renewed": true,
+      "name": "Création activité — Paramètres en modale — 2 Modale ouverte (champs vides)",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    },
+    {
+      "id": "6407:9702",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6407-9702.png",
+      "sha": "2dac88ada12d81dec67c845ca018116f06d7933c",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Création activité — Paramètres en modale — 3 Texte affiché",
+      "recaptured": true
+    },
+    {
+      "id": "6407:9805",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6407-9805.png",
+      "sha": "cd7422bdebac746942198e22010d10bcf9a6c8a1",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Création activité — Paramètres en modale — 4 Modale complète — mode activé",
+      "recaptured": true
+    },
+    {
+      "id": "6407:9966",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6407-9966.png",
+      "sha": "ddb2bbe594b3d225bd694616c17e4b1fe1029e32",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Création activité — Paramètres en modale — 5 Modale complète — steppers (séries, pauses)",
+      "recaptured": true
+    },
+    {
+      "id": "6407:10127",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6407-10127.png",
+      "sha": "424cacf2c95e5807bdce002fc16f7033641af0dc",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Création activité — Paramètres en modale — 6 Durée activée (roulette ouverte)",
+      "recaptured": true
+    },
+    {
+      "id": "6407:10481",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6407-10481.png",
+      "sha": "05b15381efef453c02e1f9a3531e81c43388d5f0",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Création activité — Paramètres en modale — 8 Changement de côté activé (contrôle segmenté)",
+      "recaptured": true
+    },
+    {
+      "id": "6411:9546",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6411-9546.png",
+      "sha": "301170fbf7d37a0ef807d76df880c9f119854bd6",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Création activité — Paramètres en modale — 7 Durée totale activée (roulette ouverte)",
+      "recaptured": true
+    },
+    {
+      "id": "6411:9649",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6411-9649.png",
+      "sha": "c5d6bdda603301d8ecbed8132a6db518e6bcf32a",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Création activité — Paramètres en modale — 9 Avec changement de côté (pause au changement de côté)",
+      "recaptured": true
+    },
+    {
+      "id": "6419:9847",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6419-9847.png",
+      "sha": "e5edae04bc37f5a06310b12d1fbe3b5edcd81bc1",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Création activité — Paramètres en modale — 10 Répétitions (mode activé)",
+      "recaptured": true
+    },
+    {
+      "id": "6419:10028",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6419-10028.png",
+      "sha": "f92207890533658ba41528b44d313cb715b37bd1",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Création activité — Paramètres en modale — 11 À l’échec (mode activé)",
+      "recaptured": true
+    },
+    {
+      "id": "6423:9953",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6423-9953.png",
+      "sha": "e7cb1dc76a30a2dc45a5f7e27695fa8649678ff7",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Création activité — Paramètres en modale — 12 Modale complète — steppers (séries, pauses) avec message de durée totale ajustée",
+      "recaptured": true
+    },
+    {
+      "id": "6426:10149",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6426-10149.png",
+      "sha": "9103a5661147d72d9bdf9e872204f5cd736a0eea",
+      "renewed": false,
+      "name": "Stepper — Séries (interactif)",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "6446:10103",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6446-10103.png",
+      "sha": "ac0359887e0fc9f7cc51a8af44de46958060410a",
+      "renewed": false,
+      "name": "Cadre bas — retournement",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "6451:10942",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6451-10942.png",
+      "sha": "d839754f71fb50df4899a1aef9dba4176622e937",
+      "renewed": false,
+      "name": "Zone d’exécution — retournements",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "6665:23973",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-23973.png",
+      "sha": "589ecc3c5bdab2ec2edcbe9b52fb5749700c226f",
+      "renewed": false,
+      "name": "Composition séance — Standard — Séries variables",
+      "latest_batch": "lot précédent",
+      "recaptured": false
+    },
+    {
+      "id": "6665:24616",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-24616.png",
+      "sha": "95c7d47f340d6da87e8b64cd5937514135ed302e",
+      "renewed": true,
+      "name": "Séries variables — 2 Durée variable (scénario A)",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    },
+    {
+      "id": "6665:24844",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-24844.png",
+      "sha": "699ae35c5e46fb7c42e7af92591e318d74701eb9",
+      "renewed": true,
+      "name": "Séries variables — 3 Répétitions variables (scénario E)",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    },
+    {
+      "id": "6665:25072",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-25072.png",
+      "sha": "216a35a5293d841c9b27ce1d00cd73e99001cb64",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Séries variables — 4 À l’échec variable (scénario F)",
+      "recaptured": true
+    },
+    {
+      "id": "6665:25277",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-25277.png",
+      "sha": "f03ded85dd0ea315707fea2b2d3974298b81e740",
+      "renewed": true,
+      "name": "Séries variables — 5 Douze séries (défilement — haut)",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    },
+    {
+      "id": "6665:26185",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-26185.png",
+      "sha": "ed9b6e67b5ad9745cecd8d8a14004760577e801f",
+      "renewed": true,
+      "name": "Ordre des côtés — 7 Sélection : Un côté après l’autre",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    },
+    {
+      "id": "6665:26575",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-26575.png",
+      "sha": "99411d13286fbbd2913333d344de6916b9aa6a82",
+      "renewed": true,
+      "name": "Séries variables + Les deux côtés à chaque série — 9 (scénario D)",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    },
+    {
+      "id": "6665:26822",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-26822.png",
+      "sha": "1ec2b552594e9c7653acc22793693ad84cac82a6",
+      "renewed": true,
+      "name": "Une seule série — 10 Options sans effet",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    },
+    {
+      "id": "6665:27008",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-27008.png",
+      "sha": "9869398dda6c7078a2afdb116909539accb350cc",
+      "renewed": true,
+      "name": "Changement de mode — 11 Cibles à renseigner",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    },
+    {
+      "id": "6665:27232",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-27232.png",
+      "sha": "dbba49720934568a3d963668181282e9baa27027",
+      "renewed": true,
+      "name": "Validation impossible — 12 Série incomplète",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    },
+    {
+      "id": "6665:27458",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-27458.png",
+      "sha": "52332b83f3919ec5e9e407d0a6a71973b342b5c4",
+      "renewed": true,
+      "name": "Séries variables — 13 Tableau masqué",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    },
+    {
+      "id": "6665:27608",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-27608.png",
+      "sha": "c6342d5364fb264e749d2ad420f2f99f25a2c9e2",
+      "renewed": true,
+      "name": "Séries variables — 14 Déplacement d’une série",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    },
+    {
+      "id": "6665:27862",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-27862.png",
+      "sha": "7bac4334c4b05ba9eb8ae5c6ff7eaa3af4759ba8",
+      "renewed": true,
+      "name": "Résumé — 15 Durée variable bilatérale Par série",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    },
+    {
+      "id": "6665:28050",
+      "path": "docs/Specifications-fonctionnelles/images/figma-6665-28050.png",
+      "sha": "2c345e70954e5c182954a9e71d8428f2dd119580",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Résumé — 17 À l’échec variable",
+      "recaptured": true
+    },
+    {
+      "id": "7059:13302",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7059-13302.png",
+      "sha": "f7979f3716c3db01c65dd5f0a54218deed5ccfa4",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Création activité — Paramètres en modale — 13 Répétitions avec cadence",
+      "recaptured": true
+    },
+    {
+      "id": "7069:13464",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7069-13464.png",
+      "sha": "82e899a6923af4b58c3638f81ff241776f73a84f",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Création activité — Paramètres en modale — 9b Avec changement de côté (copie)",
+      "recaptured": true
+    },
+    {
+      "id": "7069:13573",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7069-13573.png",
+      "sha": "26cbb28a51473b4628fe951a5a56b8a1d8ed1edf",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Création activité — Paramètres en modale — 10b Répétitions (copie)",
+      "recaptured": true
+    },
+    {
+      "id": "7119:27855",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7119-27855.png",
+      "sha": "532013e46dc10986b53a52f1462e96a713f1732f",
+      "renewed": true,
+      "latest_batch": "evolutions-v15",
+      "name": "Création activité — Phrase longue (224 caractères)",
+      "recaptured": true
+    },
+    {
+      "id": "7167:13503",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7167-13503.png",
+      "sha": "4fcae1a93cbdf4b42aba0bc2cd0a53c09f13ad9e",
+      "renewed": false,
+      "name": "Composition d’une séance — Placement d’une pause",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    },
+    {
+      "id": "7173:13521",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7173-13521.png",
+      "sha": "15a49ab18674d3faa878cd8e21d9412c34e0be31",
+      "renewed": false,
+      "name": "Composition d’une séance — Durée de récupération (modale)",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    },
+    {
+      "id": "7174:13554",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7174-13554.png",
+      "sha": "8137f2e5c971908e60b599fe3ad4b49bb49fabce",
+      "renewed": false,
+      "name": "Icônes retenues — Récupération / Durée / Point d’arrêt / Générique",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    },
+    {
+      "id": "7245:13718",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7245-13718.png",
+      "sha": "b98e1b9f2270d11777b4723f2cd7e2ab6c81043c",
+      "renewed": false,
+      "name": "Boutons d’action contextuelle — repos et activé",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    },
+    {
+      "id": "7296:13696",
+      "path": "docs/Specifications-fonctionnelles/images/figma-7296-13696.png",
+      "sha": "12ff799817f251ae051f9a71583b6cc4659b6418",
+      "renewed": false,
+      "name": "Composition séance — Retirer une récupération",
+      "latest_batch": "evolutions-v15",
+      "recaptured": true
+    }
+  ],
+  "application_tests": "not run; documentation only",
+  "local_dev_pull": "not executed; Windows workspace inaccessible",
+  "source_sha256": {
+    "generateur-phrase-activite_v15.xlsx": "4fec5a817c925b72889501c555d93c5481567e3ebb5441eaf282ea9d1ecf0e79",
+    "source-evolutions.md": "72aae909ebfe088aac990ff01e5623d35ec9e2302c8266dc0963594e3d7f41df"
+  },
+  "new_link_failures": [],
+  "preexisting_missing_links": []
+}

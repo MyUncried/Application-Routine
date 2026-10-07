@@ -1,0 +1,191 @@
+{
+  "base": "72d1bf47add0a80b4241f9706e3d2f8913a484ff",
+  "cases": 276,
+  "changed_templates": 0,
+  "changed_example_amounts": [
+    {
+      "id": 15,
+      "before": "3 séries de 1 min 30 s, enchaînées sans pause, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 9 min 5 s.",
+      "after": "3 séries de 1 min 30 s, enchaînées sans pause, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 9 min 15 s."
+    },
+    {
+      "id": 19,
+      "before": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série. Durée totale : 10 min 30 s.",
+      "after": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série. Durée totale : 9 min 45 s."
+    },
+    {
+      "id": 20,
+      "before": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 10 min 35 s.",
+      "after": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 10 min."
+    },
+    {
+      "id": 25,
+      "before": "3 séries de 1 min 30 s, enchaînées sans pause, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 9 min 5 s.",
+      "after": "3 séries de 1 min 30 s, enchaînées sans pause, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 9 min 15 s."
+    },
+    {
+      "id": 29,
+      "before": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série. Durée totale : 10 min 30 s.",
+      "after": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série. Durée totale : 9 min 45 s."
+    },
+    {
+      "id": 30,
+      "before": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 10 min 35 s.",
+      "after": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 10 min."
+    },
+    {
+      "id": 35,
+      "before": "6 séries de 1 min 30 s, enchaînées sans pause, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 18 min 5 s.",
+      "after": "6 séries de 1 min 30 s, enchaînées sans pause, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 18 min 30 s."
+    },
+    {
+      "id": 39,
+      "before": "6 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série. Durée totale : 21 min.",
+      "after": "6 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série. Durée totale : 19 min 30 s."
+    },
+    {
+      "id": 40,
+      "before": "6 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 21 min 5 s.",
+      "after": "6 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 20 min."
+    },
+    {
+      "id": 45,
+      "before": "6 séries de 1 min 30 s, enchaînées sans pause, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 18 min 5 s.",
+      "after": "6 séries de 1 min 30 s, enchaînées sans pause, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 18 min 30 s."
+    },
+    {
+      "id": 49,
+      "before": "6 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série. Durée totale : 21 min.",
+      "after": "6 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série. Durée totale : 19 min 30 s."
+    },
+    {
+      "id": 50,
+      "before": "6 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 21 min 5 s.",
+      "after": "6 séries de 1 min 30 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 20 min."
+    },
+    {
+      "id": 55,
+      "before": "3 séries de durée variable (30 s, 45 s puis 1 min), en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 4 min 35 s.",
+      "after": "3 séries de durée variable (30 s, 45 s puis 1 min), en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 4 min 45 s."
+    },
+    {
+      "id": 59,
+      "before": "3 séries de durée variable (30 s, 45 s puis 1 min), en alternant le côté droit puis le gauche à chaque série. Durée totale : 6 min.",
+      "after": "3 séries de durée variable (30 s, 45 s puis 1 min), en alternant le côté droit puis le gauche à chaque série. Durée totale : 5 min 15 s."
+    },
+    {
+      "id": 60,
+      "before": "3 séries de durée variable (30 s, 45 s puis 1 min), en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 6 min 5 s.",
+      "after": "3 séries de durée variable (30 s, 45 s puis 1 min), en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 5 min 30 s."
+    },
+    {
+      "id": 65,
+      "before": "3 séries de durée variable (30 s, 45 s puis 1 min), en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 4 min 35 s.",
+      "after": "3 séries de durée variable (30 s, 45 s puis 1 min), en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 4 min 45 s."
+    },
+    {
+      "id": 69,
+      "before": "3 séries de durée variable (30 s, 45 s puis 1 min), en alternant le côté droit puis le gauche à chaque série. Durée totale : 6 min.",
+      "after": "3 séries de durée variable (30 s, 45 s puis 1 min), en alternant le côté droit puis le gauche à chaque série. Durée totale : 5 min 15 s."
+    },
+    {
+      "id": 70,
+      "before": "3 séries de durée variable (30 s, 45 s puis 1 min), en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 6 min 5 s.",
+      "after": "3 séries de durée variable (30 s, 45 s puis 1 min), en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 5 min 30 s."
+    },
+    {
+      "id": 75,
+      "before": "6 séries variables, de 30 s à 1 min 45 s, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 13 min 35 s.",
+      "after": "6 séries variables, de 30 s à 1 min 45 s, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 14 min."
+    },
+    {
+      "id": 79,
+      "before": "6 séries variables, de 30 s à 1 min 45 s, en alternant le côté droit puis le gauche à chaque série. Durée totale : 16 min 30 s.",
+      "after": "6 séries variables, de 30 s à 1 min 45 s, en alternant le côté droit puis le gauche à chaque série. Durée totale : 15 min."
+    },
+    {
+      "id": 80,
+      "before": "6 séries variables, de 30 s à 1 min 45 s, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 16 min 35 s.",
+      "after": "6 séries variables, de 30 s à 1 min 45 s, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 15 min 30 s."
+    },
+    {
+      "id": 85,
+      "before": "6 séries variables, de 30 s à 1 min 45 s, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 13 min 35 s.",
+      "after": "6 séries variables, de 30 s à 1 min 45 s, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 14 min."
+    },
+    {
+      "id": 89,
+      "before": "6 séries variables, de 30 s à 1 min 45 s, en alternant le côté droit puis le gauche à chaque série. Durée totale : 16 min 30 s.",
+      "after": "6 séries variables, de 30 s à 1 min 45 s, en alternant le côté droit puis le gauche à chaque série. Durée totale : 15 min."
+    },
+    {
+      "id": 90,
+      "before": "6 séries variables, de 30 s à 1 min 45 s, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 16 min 35 s.",
+      "after": "6 séries variables, de 30 s à 1 min 45 s, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : 15 min 30 s."
+    },
+    {
+      "id": 117,
+      "before": "3 séries de 12 répétitions cadencées toutes les 4 s, enchaînées sans pause, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : ≈ 4 min 53 s.",
+      "after": "3 séries de 12 répétitions cadencées toutes les 4 s, enchaînées sans pause, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : ≈ 5 min 3 s."
+    },
+    {
+      "id": 121,
+      "before": "3 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série. Durée totale : ≈ 6 min 18 s.",
+      "after": "3 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série. Durée totale : ≈ 5 min 33 s."
+    },
+    {
+      "id": 122,
+      "before": "3 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : ≈ 6 min 23 s.",
+      "after": "3 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : ≈ 5 min 48 s."
+    },
+    {
+      "id": 137,
+      "before": "6 séries de 12 répétitions cadencées toutes les 4 s, enchaînées sans pause, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : ≈ 9 min 41 s.",
+      "after": "6 séries de 12 répétitions cadencées toutes les 4 s, enchaînées sans pause, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : ≈ 10 min 6 s."
+    },
+    {
+      "id": 141,
+      "before": "6 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série. Durée totale : ≈ 12 min 36 s.",
+      "after": "6 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série. Durée totale : ≈ 11 min 6 s."
+    },
+    {
+      "id": 142,
+      "before": "6 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : ≈ 12 min 41 s.",
+      "after": "6 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : ≈ 11 min 36 s."
+    },
+    {
+      "id": 157,
+      "before": "3 séries de 12, 10 puis 8 répétitions cadencées toutes les 4 s, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : ≈ 4 min 5 s.",
+      "after": "3 séries de 12, 10 puis 8 répétitions cadencées toutes les 4 s, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : ≈ 4 min 15 s."
+    },
+    {
+      "id": 161,
+      "before": "3 séries de 12, 10 puis 8 répétitions cadencées toutes les 4 s, en alternant le côté droit puis le gauche à chaque série. Durée totale : ≈ 5 min 30 s.",
+      "after": "3 séries de 12, 10 puis 8 répétitions cadencées toutes les 4 s, en alternant le côté droit puis le gauche à chaque série. Durée totale : ≈ 4 min 45 s."
+    },
+    {
+      "id": 162,
+      "before": "3 séries de 12, 10 puis 8 répétitions cadencées toutes les 4 s, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : ≈ 5 min 35 s.",
+      "after": "3 séries de 12, 10 puis 8 répétitions cadencées toutes les 4 s, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : ≈ 5 min."
+    },
+    {
+      "id": 177,
+      "before": "6 séries variables, de 6 à 15 répétitions cadencées toutes les 4 s, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : ≈ 8 min 5 s.",
+      "after": "6 séries variables, de 6 à 15 répétitions cadencées toutes les 4 s, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : ≈ 8 min 30 s."
+    },
+    {
+      "id": 181,
+      "before": "6 séries variables, de 6 à 15 répétitions cadencées toutes les 4 s, en alternant le côté droit puis le gauche à chaque série. Durée totale : ≈ 11 min.",
+      "after": "6 séries variables, de 6 à 15 répétitions cadencées toutes les 4 s, en alternant le côté droit puis le gauche à chaque série. Durée totale : ≈ 9 min 30 s."
+    },
+    {
+      "id": 182,
+      "before": "6 séries variables, de 6 à 15 répétitions cadencées toutes les 4 s, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : ≈ 11 min 5 s.",
+      "after": "6 séries variables, de 6 à 15 répétitions cadencées toutes les 4 s, en alternant le côté droit puis le gauche à chaque série, avec 5 s de pause au changement de côté. Durée totale : ≈ 10 min."
+    }
+  ],
+  "without_total": 140,
+  "estimated": 46,
+  "exact": 90,
+  "max_characters": 224
+}

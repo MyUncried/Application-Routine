@@ -4,9 +4,9 @@ Version normative complémentaire à Paramètres v13, Bip v2 et Phrase v1. Déci
 
 ## 1. Autorité et règles conservées
 
-La cadence conserve ses signaux intermédiaires/final, sa progression temporelle, les intervalles de reprise, la portée du Reset, l’arrière-plan et les seuils de sécurité. Le chronomètre continue après le nominal ; Suivant termine normalement, même avant le nominal. Aucun compteur de répétitions réalisées n’est déduit. La qualification « cadence déclarative sans signaux » du prompt est rejetée.
+Bip v2 gouverne les signaux périodiques pendant le travail, la progression, la reprise et le Reset. Aucun bip terminal distinct n’est déduit du nominal. En Répétitions et À l’échec, l’utilisateur termine la Série ; le chronomètre peut dépasser le nominal en Répétitions. En Durée, le minuteur conserve la fin automatique prévue. Le bip ne termine jamais lui-même une Série et ne compte aucune répétition réalisée.
 
-Phrase selon les276 cas Excel v14 : « pause après chaque série », Q-08 clos et H-03 remplacé. Bilatéralité et pause à la frontière des côtés conservées selon les nouvelles formules. Excel reste rédactionnel.
+Phrase selon les276 cas Excel v15 : « pause après chaque série », Q-08 clos et H-03 remplacé. Bilatéralité et pause à la frontière des côtés conservées selon les nouvelles formules. Excel reste rédactionnel.
 
 ## 2. Résultats temporels — remplacés par Bip v2
 
@@ -32,7 +32,7 @@ Le bouton indique « Confirmer N pauses ajoutées » ; N compte les ajouts du so
 
 Confirmer applique atomiquement le sous-brouillon au brouillon parent. Continuer seul enregistre la Séance. Quitter/abandonner la Composition restitue la version persistée. Échec de validation, double appui et erreur d’écriture ne produisent pas d’ajout partiel.
 
-Les récupérations restent 0..300s avec la grille de pas déjà validée ; 0 est valide, ne produit pas de phase et n’affiche pas d’information de récupération. Un objet explicitement réglé à0 peut rester distinct de l’absence pour la persistance ; la suppression enlève l’objet. Ce choix ne modifie ni les calculs ni l’affichage conditionnel.
+Les récupérations restent 0..300s avec la grille de pas déjà validée ; 0 est valide, ne produit pas de phase et n’affiche pas d’information de récupération. Un objet explicitement réglé à0 est conservé en base, distinct de l’absence ; seul son retrait explicite supprime l’objet. La valeur0 ne crée aucune phase et ne remplace pas la Pause finale de Série. Tester séparément présence de données et visibilité.
 
 ## 5. Contenu et trait de démarcation
 
@@ -58,7 +58,7 @@ Appui long sur la récupération existante ouvre la bulle Retirer la récupérat
 
 Le modèle logique distingue deux objets de pause : recovery (durée, occurrence source) et breakpoint (position structurelle). La présence explicite n’est pas déduite de la durée. Un identifiant stable permet les opérations idempotentes. L’attachement de recovery à l’occurrence est conservé ; le Point d’arrêt garde ses règles de position structurelle.
 
-postActivityRecoverySeconds devient une projection compatible pour les calculs : durée de recovery si présente,0 sinon. Il n’est pas une seconde source persistée concurrente. Schéma physique, index et numéro de migration relèvent du développement ; aucune migration009 ni version de stack n’est prescrite sans revue du code. Aucune reprise des séances anciennes n’est demandée dans ce lot de conception.
+postActivityRecoverySeconds devient une projection compatible pour les calculs : durée de recovery si présente,0 sinon. Il n’est pas une seconde source persistée concurrente. Schéma physique et index relèvent du développement. Au main72d1bf4, seules les migrations001..008 existent :009 est le numéro suivant constaté, à revalider à l’ouverture de la tranche, pas une réservation globale. Aucune reprise des séances anciennes n’est demandée dans ce lot de conception.
 
 Déplacer/dupliquer l’occurrence conserve sa récupération explicite et ses paramètres ; supprimer l’occurrence supprime sa récupération. Les règles structurelles des points d’arrêt restent celles de la Composition. Le snapshot copie les pauses effectives ; POST_ACTIVITY_RECOVERY est générée seulement pour recovery positive. Aucune récupération post-exercice en exécution directe. La machine distingue récupération chronométrée et attente au point d’arrêt ; phases existantes réutilisées.
 
@@ -71,6 +71,8 @@ Déplacer/dupliquer l’occurrence conserve sa récupération explicite et ses p
 | Confirmer/Annuler | Sous-brouillon | Application atomique ou restitution, décompte correct |
 | Calculer le total | Plan et séries effectives | exact/estimated/lowerBound/omitted, ou incomplete |
 | Exécuter | Snapshot | Séries/pauses/côtés/récupérations/points selon plan, cadence sonore conservée |
+
+Le scalaire historique `ActivityDefinition.pauseSeconds` représente la Pause après chaque série : sa refonte doit porter cette valeur dans chaque `SeriesParameters.pauseSeconds`. Il ne peut pas être remplacé par la collection de pauses de Composition, qui représente récupération/point d’arrêt. Les deux collections et leurs cycles de vie restent distincts.
 
 ## 8. Recette documentaire et fonctionnelle
 

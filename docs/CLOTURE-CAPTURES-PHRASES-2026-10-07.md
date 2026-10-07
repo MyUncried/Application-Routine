@@ -1,5 +1,7 @@
 # Clôture des corrections Figma — phrases et catalogue — 07/10/2026
 
+**Relevé historique du lot précédent.** La [matrice v15](MATRICE-EVOLUTIONS-V15-2026-10-07.md) porte la référence courante, les derniers noms/captures et les limites vérifiées. Les empreintes ci-dessous décrivent leur lot daté.
+
 Base documentaire :48c48b69bbd99578c9c4a4264a982bc30c2fbbdd, PR323. Corrections réalisées dans Figma par le propriétaire ; vérification en lecture seule et propagation documentaire.20 captures reprises, dont19 écrans de sa liste et le catalogue3786:5093. Mêmes chemins d’image : les copies du chapitre06 se mettent à jour sans duplication de galerie.
 
 Le libellé à l’échec de la carte Étirement du quadriceps n’est plus visible dans l’emplacement temporel. Les19 phrases ci-dessous proviennent du contenu des nœuds Figma, pas des noms de couches. Les nombres illustratifs sont conservés dans les copies, sans validation ni déduction de calcul. Le classeurv14 et les spécifications gardent leur autorité respective. Aucune modification de formule, modèle, contrat de données ou grammaire.

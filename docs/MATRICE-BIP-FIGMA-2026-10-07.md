@@ -1,5 +1,7 @@
 # Inventaire Bip de cadence — deuxième lot du07/10/2026
 
+**Relevé historique du lot précédent.** La [matrice v15](MATRICE-EVOLUTIONS-V15-2026-10-07.md) porte la référence courante, les derniers noms/captures et les limites vérifiées. Les empreintes ci-dessous décrivent leur lot daté.
+
 **État historique supersédé :** la [matrice cartes/phrases](MATRICE-CARTES-PHRASES-2026-10-07.md) remplace ce bilan. Q-08 clos, Pause terminale rétablie et19 modales Bip désormais propagées. Les constats ci-dessous décrivent uniquement le lot antérieur.
 
 139 références courantes :136 frames et3 ensembles. Le nœud7061:13383 (roulette Cadence) n’existe plus dans Prototype MVP ; retiré des références actives.17 captures renouvelées dans ce lot : les cinq écrans amendés et les12 autres exports précédemment manquants. Tous les139 nœuds ont maintenant une image PNG disponible et décodable ; les122 images non renouvelées ici restent datées du premier lot. Cela ne prouve pas une conformité fonctionnelle ou graphique complète.
