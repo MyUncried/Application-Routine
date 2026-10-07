@@ -33,8 +33,8 @@ Les comptes du journal50styles ou ceux du04/09 ne sont pas des mesures simultan�
 | calendarMarker | color/calendar-marker#1F9E7A | Point de séance Calendrier ; positive#4F9F83 conservé ailleurs |
 | breakpoint | color/action/breakpoint#ED7314 | Point d’arrêt |
 | danger | #D92D20 | Fond/bord des actions destructives ; remplaceE62B1E/DB2E2E |
-| overlayScrim | color/overlay/scrim#1F2129,alpha34% | Voile modal |
-| compositionDraggedCardShadow | color/overlay-scrim#14171F | Teinte d’ombre, alpha d’effet propre ; jamais fusionnée au voile |
+| overlayScrim | `color/overlay/scrim` #1F2129, alpha 34 % | Voile unique de tous les dialogues, feuilles de sélection, roues, filtres, classification, catégorie, zones corporelles, calendrier ouvert, abandon/confirmation et CE-UI-10 |
+| compositionDraggedCardShadow | color/overlay-scrim#14171F | Teinte d’ombre de la carte déplacée, alpha d’effet propre ; distinct de `overlayScrim`, jamais utilisé comme voile |
 | Espacements |10,14,20 ajoutés à l’échelle | Compléments, pas remplacement global des marges |
 | Rayons |14,17 ajoutés |17 notamment Tri |
 
@@ -113,7 +113,7 @@ Séance sans photo ; liste mixte sans photo ; Exercice Catalogue/choix garde la 
 | A10 | Archivage confirmé par inventaire |3 masters résiduels encore présents, aucune suppression |
 | A11 | Correction mesurée directement | Tri34×34/r17/72%/75% |
 | A12 | Registre sans suppression |44 tokens sans usage détecté :40réserve+4couleurs ; absence d’usage≠suppression autorisée |
-| A13 | Deux scrims documentés | Voile et ombre, aucune fusion |
+| A13 | Rôles clarifiés : un voile et une ombre distincts | `overlayScrim` pour toutes les modales ; `compositionDraggedCardShadow` pour l’ombre uniquement. Aucune fusion |
 | A14 | Préexistant selon rapport | Débordement15px dans35écrans, parent clippé ; aucune retouche |
 | A15 | Version Figma nommée non démontrée | À enregistrer par propriétaire après contrôle ; captures du06/10 fournissent une preuve datée, pas cette version nommée |
 
@@ -216,3 +216,7 @@ Lorsque deux Exercices consécutifs n’ont ni pause effective de transition ni 
 
 
 **Complément courant cartes :** [durée sans cadre, propriété Durée et géométrie](DSF-CARTES-DUREE-2026-10-07.md). Les276 textes v15 et les segments `{texte, gras}` sont définis dans [Phrase v1 actualisée](Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md).
+
+## Clôture ciblée — voile modal, 07/10/2026
+
+**POINTS-A-REINTEGRER n°18 : clos. H-15 (voile), cité dans la demande du 07/10 : clos sur ce périmètre.** Valeur unique #1F2129 à 34 %, liée à `color/overlay/scrim` sur les 62 voiles de Prototype MVP, répartis sur 57 écrans. Le registre original H-15 n’a pas été retrouvé dans le dépôt ; cette clôture porte sur le libellé reçu et ne requalifie pas un autre audit. H-08, H-09, H-10, H-13, H-14 et H-16 restent ouverts selon la demande, hors de ce lot. [Matrice, preuves et captures](MATRICE-VOILE-MODAL-2026-10-07.md).

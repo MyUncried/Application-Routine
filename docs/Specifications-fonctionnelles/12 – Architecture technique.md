@@ -884,14 +884,14 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.sessionNameBorder` | `#FFFFFF` | Liseré du champ `Nom de la séance` sur la surface colorée de Composition ; variable Figma `color/session-name-border` |
 | `color.mediaSurface` | `#F5F7FA` | Alias conservé de surface ; anciennes valeurs F6F6FF historiques |
 | `color.mediaBorder` | `#CDCEFA` | Bordure des aperçus Média ; variable sémantique Figma `color/media/border`, alias exact de la primitive `color/media/border-CDCEFA` |
-| `color.overlayScrim` | `rgba(31, 33, 41, 0.34)` | Voile bloquant des roulettes ouvertes ; variable sémantique Figma `color/overlay/scrim`, alias exact de la primitive `color/overlay/scrim-1F2129-34` |
+| `color.overlayScrim` | `rgba(31, 33, 41, 0.34)` | Voile unique de tous les dialogues, feuilles, roues et modales, y compris CE-UI-10 ; variable sémantique Figma `color/overlay/scrim`, alias exact de la primitive `color/overlay/scrim-1F2129-34` |
 | `color.textLabel` | `#46464C` | Libellés, Figma color/text-label |
 | `color.textTertiary` | `#7A7A80` | Texte tertiaire |
 | `color.onPrimary` | `#FFFFFF` | Texte et icône sur primaire |
 | `color.primarySoft` | `#8283F2` | Décor, pas fond de sélection portant du texte blanc normal |
 | `color.calendarMarker` | `#1F9E7A` | Point de séance Calendrier |
 | `color.breakpoint` | `#ED7314` | Action de point d’arrêt |
-| `color.compositionDraggedCardShadow` | `#14171F` | Teinte d’ombre ; distincte du voile modal |
+| `color.compositionDraggedCardShadow` | `#14171F` | Teinte d’ombre de la carte déplacée ; distincte de `overlayScrim`, jamais utilisée comme voile. L’alpha relève de l’effet d’ombre |
 
 Les couleurs de statut sont toujours accompagnées d’un libellé, d’une icône ou des deux. Les rares variantes historiques de noir ou de gris présentes dans les frames sont normalisées vers les tokens ci-dessus lors du développement, sauf différence visuelle explicitement documentée.
 
@@ -1336,10 +1336,10 @@ Les alias Figma sont bijectifs et explicites :
 | --- | --- | --- |
 | `color/media/surface-F6F6FF` | `color/media/surface` | Surface Média |
 | `color/media/border-CDCEFA` | `color/media/border` | Bordure Média |
-| `color/overlay/scrim-1F2129-34` | `color/overlay/scrim` | Voile bloquant des roulettes ouvertes |
+| `color/overlay/scrim-1F2129-34` | `color/overlay/scrim` | Voile unique de tous les dialogues, feuilles, roues et modales, y compris CE-UI-10 |
 | `color/blue/selection-5F60EE` | `color/selection` | Contour du contrôle pilote après confirmation ; alias exact `VariableID:2290:52` → `VariableID:2290:3` |
 
-Hors CE-UI-10 (voile noir28% de la feuille, roulette inline), toutes les roulettes ouvertes recouvrent le shell par `color/overlay/scrim`; aucune interaction ni aucun défilement de l’arrière-plan n’est possible tant que la roulette est ouverte.
+Toutes les modales utilisent le voile `overlayScrim` (`color/overlay/scrim`, #1F2129 à 34 %). Hors CE-UI-10, les roulettes ouvertes recouvrent le shell ; dans CE-UI-10, la roulette reste inline dans la feuille, avec le même voile `overlayScrim` ; aucune interaction ni aucun défilement de l’arrière-plan n’est possible tant que la roulette est ouverte.
 
 ## Architecture de la bilatéralité
 

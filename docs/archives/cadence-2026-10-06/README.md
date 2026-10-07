@@ -28,3 +28,7 @@ Le plan est la révision 2 conservée dans le chantier initial, identique à la 
 L’annexe G du brief reçu reste intacte comme pièce source. Son total « 4 172 + 183 liaisons de styles de texte » est erroné : le journal §4 établit 4 172 textes, et son §9 attribue les 183 aux remplissages et traits semi-transparents. Les valeurs « ≈ 2 100 » et « ≈ 3 000 » sont des approximations historiques, pas des décomptes courants ; consulter les opérations détaillées du journal. Aucune réécriture du brief ou du journal d’origine.
 
 Preuve de la clarification et contrôles : [rapport F-14](../../../.github/orchestration/reports/2026-10-06_CLARIFICATION_F14_BRIEF.md).
+
+## Suivi du point 18 — 07/10/2026
+
+Le point 18 de `points-documentaires-source.md` est **clos** par la [mise à jour du voile](../../MATRICE-VOILE-MODAL-2026-10-07.md) : voile unique `overlayScrim` #1F2129 à 34 %, ombre de déplacement distincte. Les originaux archivés conservent leur état daté ; leurs statuts ne constituent pas le suivi courant.

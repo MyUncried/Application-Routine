@@ -1,5 +1,7 @@
 # Application Routine
 
+**Voile modal unifié — 07/10/2026 :** [décision, clôtures et captures](MATRICE-VOILE-MODAL-2026-10-07.md). `overlayScrim` #1F2129 à 34 % pour toutes les modales ; ombre de déplacement distincte.
+
 **Référence courante — évolutions v15 :** [inventaire, plan et preuves](MATRICE-EVOLUTIONS-V15-2026-10-07.md), [consolidation fonctionnelle](Specifications-fonctionnelles/CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases](DSF-PHRASES-V15-2026-10-07.md). Corpus276 actualisé ; calculs conservés ; captures et contrats repris.
 
 **Lot cartes du07/10, avant v15 :** [matrice cartes/phrases](MATRICE-CARTES-PHRASES-2026-10-07.md) ; [DSF cartes sans cadre de durée](DSF-CARTES-DUREE-2026-10-07.md). Pause après chaque série, récupération substitutive,276 textes v15, segments non persistés.

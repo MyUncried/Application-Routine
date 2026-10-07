@@ -9,7 +9,7 @@ Complément des shells et composants existants ; aucun nouveau design. Actualis�
 | Élément | Prescription |
 |---|---|
 | Feuille | Blanche, ancrée au bas, coins supérieurs24 px, rognage aux coins, ombre légère vers le haut ; hauteur selon contenu |
-| Voile | Noir28 %, plein écran ; arrière-plan inerte et inaccessible au focus |
+| Voile | `overlayScrim` (`color/overlay/scrim`) #1F2129 à 34 %, plein écran ; arrière-plan inerte et inaccessible au focus |
 | En-tête | Composant DSF En-tête de modale ; ✕ à gauche, titre Paramètres d’exécution, ✓ à droite ; labels accessibles Annuler/Valider les paramètres |
 | Carte empilée | Fond `surfaceSubtle` `#F9FAFC` (ancien `#FCFCFE`, historique avant la fusion du journal §5.3), contour blanc, lignes42 px à texte standard, séparateurs#DEDEE5 ; libellé14 px à gauche, valeur/contrôle à droite |
 | Ligne sélectionnée | Roulette ou segmenté uniquement : bord2 px#0508E5, fond#F4F4FF, rayon12 px ; contour limité à la ligne ; contrôle déployé dessous hors contour |
