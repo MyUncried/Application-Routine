@@ -27,7 +27,10 @@ function signal(c,{api,head,runId,attempt,kind,results}){
  const stages=['PREPARE_INITIAL','EXECUTE_INITIAL','PREPARE_REVISION','EXECUTE_REVISION','FIGMA_INITIAL','CERTIFY_INCIDENTS','CERTIFY_HISTORICAL','FINALIZE_DELIVERY'];
  if(kind==='QUALIFICATION'){
   if(!['qualification'].every(k=>results[k]?.result==='success'))throw Error('VNEXT_CYCLE_QUALIFICATION_SIGNAL_NOT_READY');
- }else if(kind!=='OPERATIONAL'||!stages.includes(c.stage))throw Error('VNEXT_CYCLE_SIGNAL_STAGE_REFUSED');
+ }else{
+  if(kind!=='OPERATIONAL'||!stages.includes(c.stage))throw Error('VNEXT_CYCLE_SIGNAL_STAGE_REFUSED');
+  if(c.stage==='CERTIFY_HISTORICAL'&&!['historical-platform-coverage','historical-local-windows'].every(k=>results[k]?.result==='success'))throw Error('VNEXT_CYCLE_HISTORICAL_SIGNAL_NOT_READY');
+ }
  const path=ROOT+'/full-cycle-20261007/continuation-signal.json';
  const key=c.cycle_id+':'+c.request_id+':'+runId+':'+attempt;
  const ref='repos/'+REPO+'/git/refs/heads/'+BRANCH;

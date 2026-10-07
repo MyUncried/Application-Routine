@@ -442,6 +442,7 @@ jobs:
           retention-days: 90
   historical-platform-coverage:
     needs: historical-equivalence
+    if: always() && needs.historical-equivalence.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -461,6 +462,7 @@ jobs:
   historical-local-windows:
     name: 3 - Historical checks on the persistent Windows runner
     needs: historical-platform-coverage
+    if: always() && needs.historical-platform-coverage.result == 'success'
     uses: ./.github/workflows/kodjo-vnext-historical-checks.yml
     with:
       sequenced_vnext: true
