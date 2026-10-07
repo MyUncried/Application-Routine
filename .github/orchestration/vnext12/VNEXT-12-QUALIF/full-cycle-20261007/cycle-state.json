@@ -5,9 +5,9 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "REAL_TEST_CORRECTION_QUALIFICATION_PENDING",
-  "request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
-  "generation": 89,
+  "current_stage": "REAL_TEST_REQUESTED",
+  "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
+  "generation": 90,
   "previous_terminal_generation": 77,
   "previous_closed_issue": 324,
   "reuse_previous_closure_as_new_cycle": false,
@@ -160,10 +160,10 @@
     "automatic_visual_validation"
   ],
   "active_run_ids": [],
-  "next_action": "Qualify the two bounded real-test contract corrections on the exact candidate head for Linux and Windows. After SUCCESS, publish one fresh FIGMA_INITIAL request with a new request_id; do not replay run 37629963561.",
+  "next_action": "Await the unique new real-test run; verify actual sessions, functional results, preservation and cleanup before incidents. No replay of the failed run.",
   "controller_head": "03188df4ef54e19af65facb614e3f90071dd3238",
   "qualification_branch": "qualification/vnext-full-cycle-revision-6db62fdd-20261007",
-  "observed_at": "2026-10-07T14:02:00Z",
+  "observed_at": "2026-10-07T14:13:27.318Z",
   "documentation_modals": "WAIT_FOR_USER_COMPLETION_SIGNAL",
   "pending_initial_request": {
     "stage": "EXECUTE_INITIAL",
@@ -191,7 +191,7 @@
   "automation_id": "6ac62299aa5c819198996171d4a1ff13",
   "automation_title": "Enchaîner le cycle VNext",
   "automation_trigger": "PR269_COMMIT_UPDATES",
-  "automatic_continuation_status": "REAL_TEST_CORRECTION_QUALIFICATION_PENDING",
+  "automatic_continuation_status": "REAL_TEST_REQUESTED",
   "initial_binding_requires_new_qualified_source_head": false,
   "previous_initial_gate": {
     "comment_id": 6035666121,
@@ -204,24 +204,20 @@
   "transition": {
     "schema_version": "kodjo.vnext.cycle-transition.v1",
     "status": "CLAIMED_BEFORE_LAUNCH",
-    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:6db62fdd-31b6-4c00-8097-d85af9f675b8:37625815436:1",
-    "request_id": "6db62fdd-31b6-4c00-8097-d85af9f675b8",
-    "generation": 87,
+    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8:37632486111:1",
+    "request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
+    "generation": 89,
     "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
-    "source_head": "bccc1d0cc8b00936af1aa3277f5a0c325224294b",
-    "observed_signal_head": "5c3d2411b410229051c704d420562b2c85e63221",
-    "run_id": 37625815436,
+    "source_head": "9411096c1d78d9b930346af02a30b077b4ccc7e3",
+    "observed_signal_head": "60e6d4c6cfa6e37cd1a6bf3e75a86e215114c733",
+    "run_id": 37632486111,
     "run_attempt": 1,
     "next_stage": "FIGMA_INITIAL",
-    "next_request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
-    "published_generation": 88,
-    "controller_id": "webhook-c8207340-c253-11f1-848a-174421e9c0b6",
-    "claimed_at": "2026-10-07T13:36:00Z",
+    "next_request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
+    "published_generation": 90,
+    "claimed_at": "2026-10-07T14:13:27.318Z",
     "qualification_verified": true,
-    "execution_verified": true,
-    "historical_linux_verified": true,
-    "historical_windows_verified": true,
-    "admission": "DIRECT_USER_AUTHORIZATION"
+    "admission": "AUTHORIZED_BY_EXISTING_FULL_CYCLE_USER_REQUEST"
   },
   "processed_signals": [
     {
@@ -271,6 +267,13 @@
       "request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
       "generation": 89,
       "outcome": "REAL_TEST_FAILURE_RECORDED_CORRECTION_PENDING_QUALIFICATION"
+    },
+    {
+      "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8:37632486111:1",
+      "request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
+      "next_request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
+      "generation": 90,
+      "outcome": "CORRECTED_REAL_TEST_PUBLISHED"
     }
   ],
   "initial_failure": {
@@ -517,20 +520,24 @@
     "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
     "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
     "revision_limit": 1,
-    "generation": 88,
+    "generation": 90,
     "final_audit_authorized": false,
     "pre1_in_scope": false,
-    "qualification_policy": "DIRECT_REAL_USER_REQUEST",
+    "qualification_policy": "FULL_CYCLE_USER_REQUEST",
     "auto_continue": true,
     "repository": "MyUncried/Application-Routine",
-    "request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
+    "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
     "human_review_performed": false,
     "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
-    "created_at": "2026-10-07T13:36:00Z",
+    "created_at": "2026-10-07T14:13:27.318Z",
     "source_revision_run_id": 37625815436,
     "source_revision_signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:6db62fdd-31b6-4c00-8097-d85af9f675b8:37625815436:1",
     "live_figma_acquisition": "NOT_EXERCISED_FROZEN_GIT_CAPTURE_REPLAY",
-    "visual_validation": "NOT_EXECUTED_USER_ONLY"
+    "visual_validation": "NOT_EXECUTED_USER_ONLY",
+    "approved_protocol_head": "9411096c1d78d9b930346af02a30b077b4ccc7e3",
+    "qualification_run_id": 37632486111,
+    "source_qualification_signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8:37632486111:1",
+    "previous_failed_request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8"
   },
   "real_test_failure": {
     "run_id": 37629963561,
@@ -551,7 +558,73 @@
       "state_identity": "Frozen frame remains zones-reference/FIGMA/CONTEXT_ONLY; documentary Boolean uses DOC-toggle-boolean/DOCUMENT_ONLY/REQUIRED.",
       "child_process_gate": "Every child must have no error, null signal and status 0; stdout/stderr are surfaced and the parent exits non-zero on failure.",
       "local_controls": "46/46 targeted and 408/408 VNext PASS; 65 workflow YAML files accepted; runtime workflow validator and diff check PASS.",
-      "qualification": "PENDING_LINUX_WINDOWS_EXACT_HEAD"
+      "qualification": "SUCCESS"
     }
+  },
+  "real_test_correction_qualification": {
+    "status": "VERIFIED",
+    "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+    "candidate_head": "9411096c1d78d9b930346af02a30b077b4ccc7e3",
+    "run_id": "37632486111",
+    "run_attempt": 1,
+    "jobs": [
+      {
+        "id": 112830057553,
+        "name": "qualification (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 112830057869,
+        "name": "qualification (windows-latest)",
+        "conclusion": "success"
+      }
+    ],
+    "observed_at": "2026-10-07T14:13:27.305Z",
+    "admission": {
+      "approved": {
+        "status": "VERIFIED",
+        "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+        "candidate_head": "9411096c1d78d9b930346af02a30b077b4ccc7e3",
+        "run_id": "37632486111",
+        "run_attempt": 1,
+        "jobs": [
+          {
+            "id": 112830057553,
+            "name": "qualification (ubuntu-latest)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112830057869,
+            "name": "qualification (windows-latest)",
+            "conclusion": "success"
+          }
+        ],
+        "observed_at": "2026-10-07T14:13:27.339Z"
+      },
+      "controller": {
+        "status": "VERIFIED",
+        "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+        "candidate_head": "9411096c1d78d9b930346af02a30b077b4ccc7e3",
+        "run_id": "37632486111",
+        "run_attempt": 1,
+        "jobs": [
+          {
+            "id": 112830057553,
+            "name": "qualification (ubuntu-latest)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112830057869,
+            "name": "qualification (windows-latest)",
+            "conclusion": "success"
+          }
+        ],
+        "observed_at": "2026-10-07T14:13:27.339Z",
+        "controller_head": "60e6d4c6cfa6e37cd1a6bf3e75a86e215114c733",
+        "relation": "EXACT_SAME_PROTOCOL_CODE"
+      }
+    },
+    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8:37632486111:1",
+    "observed_signal_head": "60e6d4c6cfa6e37cd1a6bf3e75a86e215114c733"
   }
 }
