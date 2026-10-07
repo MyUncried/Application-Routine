@@ -26,9 +26,9 @@ function readSourcesAtRevision(matrix, { cwd, revision = 'HEAD' }) {
   if (matrix.register_path !== '.github/orchestration/KODJO_PROTOCOL_INCIDENT_REGISTER.md'
       || matrix.normative_path !== '.github/AI_ORCHESTRATION.md') V.fail('VNEXT_HISTORY_SOURCE_PATH_INVALID');
   const git = args => execFileSync('git', args, { cwd, encoding: 'utf8', windowsHide: true, maxBuffer: 8 * 1024 * 1024 });
-  const commit = git(['rev-parse', revision + '^{commit}']).trim();
-  return { register: git(['show', commit + ':' + matrix.register_path]),
-    normativeSource: git(['show', commit + ':' + matrix.normative_path]) };
+  const tree = git(['rev-parse', revision + '^{tree}']).trim();
+  return { register: git(['show', tree + ':' + matrix.register_path]),
+    normativeSource: git(['show', tree + ':' + matrix.normative_path]) };
 }
 
 function interpretSourceRow(source, prefix) {

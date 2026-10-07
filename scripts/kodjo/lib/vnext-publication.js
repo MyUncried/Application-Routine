@@ -73,7 +73,7 @@ function validateTree({ cwd, expectedParent, candidateTree, run = execFileSync }
     const History = require('./vnext-historical-coverage');
     const inventory = json('.github/orchestration/KODJO_VNEXT_HISTORICAL_DISPOSITION.json');
     require('./vnext-historical-equivalence').validateCorrespondence(json('.github/orchestration/KODJO_VNEXT_HISTORICAL_EQUIVALENCE.json'),
-      inventory, History.readSourcesAtRevision(inventory, { cwd: temporary, revision: expectedParent }), { cwd: temporary });
+      inventory, History.readSourcesAtRevision(inventory, { cwd: temporary, revision: candidateTree }), { cwd: temporary });
     // Embedded PowerShell only needs a new parse if its executable bytes change.
     const psFiles = changed.filter(file => file.endsWith('.ps1') && fs.existsSync(path.join(temporary, file)));
     const workflows = changed.filter(file => /^\.github\/workflows\/.*\.ya?ml$/.test(file));
