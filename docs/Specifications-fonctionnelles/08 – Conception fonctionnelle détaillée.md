@@ -83,7 +83,7 @@ Les modifications apportées à une séance n'ont aucun effet sur les exécution
 
 La création d'une séance se déroule en quatre étapes successives :
 
-1. saisie du nom, sélection de la couleur et construction de la Composition dans l’écran unique `Composition d’une séance` ;
+1. saisie du nom, sélection de la couleur et construction de la Composition dans l’écran unique `Composer une séance` ;
 2. sélection de l’Étiquette de Séance ;
 3. retour au Catalogue des séances.
 
@@ -95,7 +95,7 @@ Aucune routine n'est créée automatiquement.
 
 Une séance peut être modifiée à tout moment depuis le catalogue des séances.
 
-La modification d’une Séance ouvre directement l’écran unique `Composition d’une séance`, prérempli avec le nom, la couleur et les Exercices. Les modifications sont enregistrées selon les validations explicites prévues par les écrans.
+La modification d’une Séance ouvre directement l’écran unique `Modifier une séance`, prérempli avec le nom, la couleur et les Exercices. Les modifications sont enregistrées selon les validations explicites prévues par les écrans.
 
 L'utilisateur peut notamment modifier :
 
@@ -187,7 +187,7 @@ Une Séance peut donc être simultanément `Active`, planifiée et déjà exécu
 
 ## 2 bis.1 Catalogue multi-type
 
-Le Catalogue distingue `Exercices`, `Séances` et `Parcours`. `Séances` reste le type actif par défaut ; `Exercices` devient également actif dans le MVP à partir de T03. Dans le MVP T03, sélectionner `Exercices` charge les références persistantes ; sélectionner `Parcours` charge les Parcours persistants lorsque cette capacité est livrée.
+Le Catalogue distingue `Exercices` et `Séances`. `Séances` reste le type actif par défaut ; `Exercices` devient également actif dans le MVP à partir de T03. Dans le MVP T03, sélectionner `Exercices` charge les références persistantes ; sélectionner `Parcours` charge les Parcours persistants lorsque cette capacité est livrée.
 
 La liste des Exercices conserve recherche, filtres, tri et position de défilement dans l’état de navigation. Chaque carte utilise une pastille de Catégorie colorée, sans barre verticale. Sa surface ouvre la consultation ou la modification ; le bouton Lecture lance uniquement l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Exercices actives et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
 

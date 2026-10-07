@@ -804,7 +804,7 @@ Le catalogue courant et les exceptions sont détaillés dans [DSF-CADENCE](../DS
 | Indicateur de côté | DSF / Status & Tags / Indicateur de côté `5544:6944` | Droite → Gauche / Gauche → Droite |
 | Confirmation | DSF / Overlays / Confirmation `5544:6095` | Primaire / Destructive / Trois actions / Abandon ; 6 dialogues longs conservés dans la primitive ancienne |
 | Bouton primaire | DSF / Actions / Bouton primaire `5544:4522` | Actif / Désactivé |
-| Segmenté | DSF / Controls / Segmenté `5548:9818` | 6 variantes : Deux détaillé (1/2), Trois (1/2/3), Deux (1) |
+| Segmenté | DSF / Controls / Segmenté `5548:9818` | 8 variantes : les 6 existantes conservées, plus Deux options — 1 sélectionné `7388:13779` et Deux options — 2 sélectionné `7388:13786` ; références courantes du Catalogue (DSF Segmentés/Titres du07/10) |
 | Nom | DSF / Forms / Nom `5544:4821` | Exercice / Profil / Séance / Étiquette / Nom exercice champ vide |
 | Catégorie sélectionnable | DSF / Status & Tags / Catégorie sélectionnable `5548:10518` | Sélectionnée / Non sélectionnée × standard / Libellé seul |
 | Statut d’exécution | DSF / Status & Tags / Statut d’exécution `5544:6902` | Catalogue / Planifiée / Exécutée / Archivée / Partielle / Terminée / Interrompue |
@@ -1322,7 +1322,7 @@ Le schéma d’`ActivityDefinition` utilise `executionMode ∈ {DURATION, REPETI
 |---|---|---|
 | Exercices | désactivé, aucune requête | `ActivityDefinitionRepository` |
 | Séances | `SessionRepository` | `SessionRepository` |
-| Parcours | désactivé, aucune requête | `CircuitRepository` |
+| Parcours (concept post-MVP, pas de segment MVP) | absent de l’interface, aucune requête | `CircuitRepository` |
 
 Le filtrage et le tri sont des paramètres de requête indépendants du segment. L’ordre par défaut est `updatedAt DESC`; l’exécution d’une Séance ne modifie jamais `updatedAt`.
 
@@ -1520,3 +1520,9 @@ Français uniquement au MVP. Internationalisation ultérieure : gabarits et règ
 Contrôle du main72d1bf47add0a80b4241f9706e3d2f8913a484ff : migrations001..008 présentes ;009 est le prochain numéro observé, à revalider avant création. Aucune reprise fonctionnelle des anciennes séances demandée dans le lot de conception ; contrôler les données réellement présentes avant livraison applicative. La collection SeriesParameters conserve Pi ; Pause de Composition est distincte. Voir [consolidation et dépendancesF-0 àF-8](CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md).
 
 Le jeu de276phrasesv15 teste le générateur avec un total injecté ; la feuille Calcul des durées ne teste pas le moteur. Rendu RN en Text imbriqués, aucune phrase persistée ; recette de césure et cas224caractères. Qualification audio/appareils séparée.
+
+## Segmentés — complément du07/10
+
+[Contrat DSF courant](../DSF-SEGMENTES-TITRES-2026-10-07.md) : deux choix Exercices/Séances pour les catalogues et sélecteurs de type ; rendu standard354×42, options171×34, padding/gap4, radius14/10, fond blanc50%, inactive#EAEAFF, libellés16/20. Calendrier et modes conservent leurs trois choix. Exceptions de texte13 et14/11 pour côtés ; géométries de feuille conservées et écarts mesurés explicités dans le DSF. Lors d’une liaison de peinture au token, restaurer l’alpha0,5 du **remplissage** ; ne pas appliquer0,5 au nœud entier, ce qui atténuerait textes et options.
+
+La suppression du troisième segment est une évolution fonctionnelle [FUNC-SEG-02](../BACKLOG-SEGMENTS-CATALOGUE-2026-10-07.md), distincte de l’alignement visuel. Elle ne supprime aucune entité ni table Circuit/Parcours et ne modifie pas l’Exécution.

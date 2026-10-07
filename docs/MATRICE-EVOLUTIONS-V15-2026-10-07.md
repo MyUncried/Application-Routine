@@ -1,5 +1,7 @@
 # Évolutions v15 — inventaire des écarts et plan — 07/10/2026
 
+> État des captures postérieur : voir les [compléments segmentés et titres](MATRICE-COMPLEMENTS-2026-10-07.md) et VERIFICATION-COMPLEMENTS-2026-10-07.json. Les preuves de ce lot restent datées.
+
 > Captures : le [lot voile modal](MATRICE-VOILE-MODAL-2026-10-07.md) postérieur reprend 57 écrans. Les SHA et mesures ci-dessous restent les preuves datées du lot v15 ; l’inventaire courant est dans VERIFICATION-VOILE-MODAL-2026-10-07.json.
 
 Base vérifiée : **main72d1bf47add0a80b4241f9706e3d2f8913a484ff**, arbreb505d7b21192813de586132b1ad849609bd3ccb4, après fusionPR323. Le commit6d03f5b cité dans le document reçu n’est plus la base documentaire. Les fichiers de travail ont été comparés aux blobs Git : aucune différence de base. Sources et écarts de montants : [archive](archives/evolutions-v15-2026-10-07/README.md).

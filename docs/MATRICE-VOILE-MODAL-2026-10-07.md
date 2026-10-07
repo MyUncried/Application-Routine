@@ -1,5 +1,7 @@
 # Voile modal unique — traçabilité du 07/10/2026
 
+> État des captures postérieur : voir les [compléments segmentés et titres](MATRICE-COMPLEMENTS-2026-10-07.md) et VERIFICATION-COMPLEMENTS-2026-10-07.json. Les preuves de ce lot restent datées.
+
 Base vérifiée : `main` `ce7d641de233b8aad937ab513c979debf11c0696` (fusion #327). [Demande reçue](archives/voile-2026-10-07/demande-source.md), [preuves structurées et inventaire courant](VERIFICATION-VOILE-MODAL-2026-10-07.json).
 
 ## Règle consolidée

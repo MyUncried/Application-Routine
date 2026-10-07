@@ -261,7 +261,7 @@ Depuis `Catalogues`, segment `Séances`, l’utilisateur peut créer une Séance
 
 La création suit le parcours suivant :
 
-1. saisie du nom et construction de la Composition dans l’écran unique `Composition d’une séance` ;
+1. saisie du nom et construction de la Composition dans l’écran unique `Composer une séance` ;
 2. sélection facultative de l’Étiquette de Séance dans la modale intégrée ; la couleur de l’Étiquette devient la couleur de la Séance ;
 3. ajout d’au moins un Exercice valide ;
 4. action `Continuer` pour valider et enregistrer ;
@@ -281,7 +281,7 @@ Depuis la Composition d’une Séance, `Ajouter un exercice` ouvre directement l
 
 ### Parcours d’ouverture et de modification d’une Séance
 
-Dans le `Catalogue des séances`, toucher la zone principale d’une carte active ouvre directement la Séance en mode modification dans `Composition d’une séance`. Cette action est disponible que la carte soit condensée ou déployée.
+Dans le `Catalogue des séances`, toucher la zone principale d’une carte active ouvre directement la Séance en mode modification dans `Modifier une séance`. Cette action est disponible que la carte soit condensée ou déployée.
 
 Le déploiement de la carte est facultatif et sert uniquement à consulter rapidement son contenu.
 
@@ -315,7 +315,7 @@ Les familles sont identifiées par leur titre : Profil, Catalogues, Composition,
 
 En dehors d’une Exécution en cours, revenir à l’écran précédent ne nécessite pas de confirmation lorsque les modifications ont déjà été enregistrées ou lorsqu’aucune donnée temporaire ne risque d’être perdue.
 
-La modale `Abandonner la création d’une séance` concerne la création en cours dans l’écran `Composition d’une séance`.
+La modale `Abandonner la création d’une séance` concerne la création en cours dans l’écran `Composer une séance`.
 
 Pendant une Exécution, aucune sortie directe vers la navigation principale n’est proposée. L’arrêt de la Séance est accessible uniquement après mise en pause.
 
@@ -478,7 +478,7 @@ Cet écran constitue l’accueil de l’application.
 
 ### Filtres
 
-Le Catalogue présente le sélecteur `Exercices / Séances / Parcours`, avec `Séances` sélectionné par défaut, `Exercices` actif en T03 et `Parcours` visible mais désactivé. Sous ce sélecteur, la rangée commune `Créer / Filtrer / Trier` utilise les boutons contextuels de `34 pt`, pictogrammes `20 pt`, gaps `12 pt`, cibles ≥ `44 × 44 pt` sans chevauchement. Les panneaux ouverts de `Filtrer` sont définis dans Figma et contextuels au Catalogue. `Trier` reste visible mais désactivé en T03.
+Le Catalogue présente le sélecteur `Exercices / Séances`, avec `Séances` sélectionné par défaut, `Exercices` actif en T03 et aucun segment `Parcours`. Sous ce sélecteur, la rangée commune `Créer / Filtrer / Trier` utilise les boutons contextuels de `34 pt`, pictogrammes `20 pt`, gaps `12 pt`, cibles ≥ `44 × 44 pt` sans chevauchement. Les panneaux ouverts de `Filtrer` sont définis dans Figma et contextuels au Catalogue. `Trier` reste visible mais désactivé en T03.
 
 Les Catalogues du MVP ne comportent aucune recherche globale ni recherche locale. Les filtres restent contextuels au Catalogue et suivent les règles décrites ci-dessous.
 
@@ -521,7 +521,7 @@ Exemples : `12 reps · x3`, `45 s · x2` ou simplement `30 s` lorsque le nombre 
 
 ### Création d’une Séance
 
-Toucher l’action de création ouvre `Composition d’une séance`, qui réunit le nom, l’Étiquette/couleur et la Composition.
+Toucher l’action de création ouvre `Composer une séance`, qui réunit le nom, l’Étiquette/couleur et la Composition.
 
 La création suit ensuite le parcours défini dans la section de navigation générale. `Continuer` valide la Séance ; l’ancien écran autonome de classification de la Séance n’est plus utilisé en sortie de Composition.
 
@@ -777,7 +777,7 @@ La frame6665:24120 n’est plus présente dans Prototype MVP au06/10 ; le témoi
 ![Catalogue des exercices — Liste — Séries variables](images/figma-6665-24120.png)
 
 
-## Composition d’une séance
+## Composer une séance / Modifier une séance
 
 ### Objectif
 
@@ -948,11 +948,11 @@ Le retrait utilise une bulle contextuelle : « Retirer la récupération » (729
 
 #### Objectif
 
-Éviter la perte accidentelle des informations saisies dans la nouvelle `Composition d’une séance`.
+Éviter la perte accidentelle des informations saisies dans la nouvelle `Composer une séance`.
 
 #### Ouverture
 
-La modale s’affiche depuis `Composition d’une séance` lorsque l’utilisateur appuie sur Retour pendant une création en cours.
+La modale s’affiche depuis `Composer une séance` lorsque l’utilisateur appuie sur Retour pendant une création en cours.
 
 La Composition reste visible en arrière-plan, assombrie et non interactive.
 
@@ -1667,7 +1667,7 @@ Les cartes des deux Catalogues n’affichent aucune prochaine planification et n
 
 ### Extension future du parcours de planification — Parcours
 
-Le parcours générique de planification est conçu pour accepter à terme un Parcours comme troisième source. Dans le MVP, les sources actives sont Séance et Exercice ; l’option Parcours reste désactivée tant que la version correspondante n’est pas livrée. Lorsqu’elle le sera, aucune nouvelle famille d’écran de planification ne devra être créée : le même gabarit est réutilisé avec la source Parcours.
+Le parcours générique de planification est conçu pour accepter à terme un Parcours comme troisième source. Dans le MVP, les sources actives sont Séance et Exercice ; l’option Parcours est absente du sélecteur tant que la version correspondante n’est pas livrée. Lorsqu’elle le sera, aucune nouvelle famille d’écran de planification ne devra être créée : le même gabarit est réutilisé avec la source Parcours.
 
 ### Modales, panneaux et confirmations
 
@@ -2603,3 +2603,14 @@ Ensemble6451:10942, export06/10 ; pas un écran autonome.
 
 ![Zone d’exécution — retournements](images/figma-6451-10942.png)
 
+
+## Titres affichés — 07/10/2026
+
+| Contexte | Titre visible | Contrat |
+|---|---|---|
+| Création d’Exercice | Créer un exercice | CE-T03-04 |
+| Modification d’Exercice | Modifier un exercice | CE-T03-04 |
+| Composition d’une nouvelle Séance | Composer une séance | CE-T03-08 |
+| Modification d’une Séance | Modifier une séance | CE-T03-08 |
+
+Les noms de frames Figma et annotations restent des références techniques : ils peuvent conserver « Ajouter un exercice » ou « Composition d’une séance ». Ils ne prescrivent pas le titre affiché. Les actions Ajouter gardent leur sens et leur destination définis par le contrat ; aucun arbre de création supplémentaire. « Créer une activité » n’est pas concerné. D-325.

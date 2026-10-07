@@ -1,5 +1,7 @@
 # INDEX — Documentation du projet Routine
 
+**Compléments du07/10 — segmentés et titres :** [analyse, plan et traçabilité](MATRICE-COMPLEMENTS-2026-10-07.md), [DSF](DSF-SEGMENTES-TITRES-2026-10-07.md), [backlog fonctionnel](BACKLOG-SEGMENTS-CATALOGUE-2026-10-07.md). Catalogues à deux choix ; titres Composer/Modifier une séance et Créer un exercice ; noms de frames et IDs conservés.
+
 **Référence courante — évolutions v15 :** [inventaire, plan et preuves](MATRICE-EVOLUTIONS-V15-2026-10-07.md), [consolidation fonctionnelle](Specifications-fonctionnelles/CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases](DSF-PHRASES-V15-2026-10-07.md). Corpus276 actualisé ; calculs conservés ; captures et contrats repris.
 
 **Lot cartes du07/10, avant v15 :** [matrice cartes/phrases](MATRICE-CARTES-PHRASES-2026-10-07.md) ; [DSF cartes sans cadre de durée](DSF-CARTES-DUREE-2026-10-07.md). Pause après chaque série, récupération substitutive,276 textes v15, segments non persistés.
@@ -205,7 +207,7 @@ La baseline distingue désormais trois concepts : la Pause après chaque série,
 
 ## 10. MVP T03 — Catalogue des exercices
 
-Le Catalogue multi-type présente `Exercices / Séances / Parcours`. `Séances` reste sélectionné par défaut à l’ouverture initiale et après relance complète. T03 active le Catalogue des exercices persistantes, leur cycle de vie, leur insertion dans une Composition et leur Exécution directe. `Parcours` reste visible mais désactivé.
+Le Catalogue multi-type présente `Exercices / Séances`. `Séances` reste sélectionné par défaut à l’ouverture initiale et après relance complète. T03 active le Catalogue des exercices persistantes, leur cycle de vie, leur insertion dans une Composition et leur Exécution directe. `Parcours` est absent du sélecteur.
 
 La navigation basse utilise le libellé permanent `Catalogues`. Les titres contextuels sont `Catalogue des séances`, `Catalogue des exercices` et `Catalogue des parcours`.
 

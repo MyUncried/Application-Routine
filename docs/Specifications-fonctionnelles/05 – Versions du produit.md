@@ -191,7 +191,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 ### MVP
 
 - troisième mode d’Exercice `À l’échec`, exécuté comme le mode Répétitions avec `Suivant` ;
-- Catalogue affichant `Exercices / Séances / Parcours` ; `Séances` est actif dès T01 et `Exercices` devient actif dans le MVP avec T03 ; `Parcours` reste visible mais désactivé ;
+- Catalogue affichant `Exercices / Séances` ; `Séances` est actif dès T01 et `Exercices` devient actif dans le MVP avec T03 ; `Parcours` est absent du sélecteur ;
 - carte d’Exercice à gouttière permanente au MVP, photo ou icône de nature, sans Déployer quel que soit le média (D-260/D-261) ; l’activation de cet affichage n’implique pas de nouveau mécanisme d’import ou de capture.
 - nouvelle structure d’édition d’un Exercice : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Pause entre les côtés / Durée totale`, la Pause entre les côtés étant conditionnelle à `D→G/G→D` ;
 - référentiels Étiquettes / Catégories / Zones corporelles administrables dans le MVP : toutes les valeurs, initiales comme personnalisées, sont supprimables par appui long puis confirmation ; création et renommage suivent les parcours propres à chaque référentiel ;

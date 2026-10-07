@@ -95,7 +95,7 @@ Bip de cadence : ligne commune aux trois modes,0..10s et0=Aucun, stepper au prem
 
 Phrase unique Inter13/20, valeurs en gras ; zone entière cliquable ; aucun segment éditable. Les textes des frames13/14/phrase longue servent de témoins de layout ; Phrase v1 gouverne le texte généré et le calcul métier fournit le total. Leur harmonisation éditoriale Figma est facultative pour le développement tant que le layout ne change pas. Les états avant/après nominal et Pause/Reprise réemploient le layout d’exécution ; les spécifications suffisent, sans trois frames supplémentaires exigées.
 
-Séance sans photo ; liste mixte sans photo ; Exercice Catalogue/choix garde la gouttière64, premier média ou icône, hauteur inchangée. Circuit structure de Séance et N tours répétition ; «N circuits» sur l’écran de composition `4893:6675` est un écart de libellé, pas une nouvelle règle. Catalogue : Parcours, hors MVP ; ancien arbre Un circuit retiré.
+Séance sans photo ; liste mixte sans photo ; Exercice Catalogue/choix garde la gouttière64, premier média ou icône, hauteur inchangée. Circuit structure de Séance et N tours répétition ; «N circuits» sur l’écran de composition `4893:6675` est un écart de libellé, pas une nouvelle règle. Catalogue et modales de sélection de type : Exercices / Séances uniquement ; segment Parcours supprimé (D-324). Le concept post-MVP demeure distinct du Circuit ; ancien arbre Un circuit retiré.
 
 ## 5. Corrections A01–A15 : provenance et suite
 
@@ -172,7 +172,7 @@ Noms et identifiants relus directement dans Figma le 06/10. Les 659 migrations e
 | Overlay / Decision Dialog | DSF / Overlays / Confirmation | `5544:6095` | Primaire / Destructive / Trois actions / Abandon ; 6 dialogues longs conservés dans la primitive ancienne |
 | Button / Primary — Source exact | DSF / Actions / Bouton primaire | `5544:4522` | Actif / Désactivé |
 | Button / Primary — Source exact/Disabled | DSF / Actions / Bouton primaire | `5544:4522` | Désactivé |
-| Controls / Segmented | DSF / Controls / Segmenté | `5548:9818` | 6 variantes : Deux détaillé (1/2), Trois (1/2/3), Deux (1) |
+| Controls / Segmented | DSF / Controls / Segmenté | `5548:9818` | 8 variantes : les 6 existantes conservées, plus Deux options — 1 sélectionné `7388:13779` et Deux options — 2 sélectionné `7388:13786` ; références courantes du Catalogue (DSF Segmentés/Titres du07/10) |
 | Activity / Name Field — Source exact | DSF / Forms / Nom | `5544:4821` | Exercice / Profil / Séance / Étiquette / Nom exercice champ vide |
 | Selection / Category Tag | DSF / Status & Tags / Catégorie sélectionnable | `5548:10518` | Sélectionnée / Non sélectionnée × standard / Libellé seul |
 | Status / Badge — Source exact | DSF / Status & Tags / Statut d’exécution | `5544:6902` | Catalogue / Planifiée / Exécutée / Archivée / Partielle / Terminée / Interrompue |
@@ -220,3 +220,7 @@ Lorsque deux Exercices consécutifs n’ont ni pause effective de transition ni 
 ## Clôture ciblée — voile modal, 07/10/2026
 
 **POINTS-A-REINTEGRER n°18 : clos. H-15 (voile), cité dans la demande du 07/10 : clos sur ce périmètre.** Valeur unique #1F2129 à 34 %, liée à `color/overlay/scrim` sur les 62 voiles de Prototype MVP, répartis sur 57 écrans. Le registre original H-15 n’a pas été retrouvé dans le dépôt ; cette clôture porte sur le libellé reçu et ne requalifie pas un autre audit. H-08, H-09, H-10, H-13, H-14 et H-16 restent ouverts selon la demande, hors de ce lot. [Matrice, preuves et captures](MATRICE-VOILE-MODAL-2026-10-07.md).
+
+## Compléments segmentés et titres du07/10
+
+[DSF courant](DSF-SEGMENTES-TITRES-2026-10-07.md) : deux options de catalogue, style16/20, exceptions côtés, variantes et limites de propagation. Le [journal§6.3](JOURNAL-DSF-COMPLEMENTS-2026-10-07.md) complète le journal historique sans le réécrire.

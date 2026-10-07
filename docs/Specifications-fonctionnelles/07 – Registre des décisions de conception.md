@@ -212,7 +212,7 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 
 | ID | Décision | Statut | Supersède / précise |
 | --- | --- | --- | --- |
-| D-167 | Le Catalogue comporte les segments `Exercices / Séances / Parcours`. `Séances` est sélectionné par défaut à chaque ouverture initiale et après relance complète. T03 rend `Exercices` fonctionnel ; `Parcours` reste visible et désactivé. Le libellé permanent de navigation basse est `Catalogues`. Les titres contextuels sont `Catalogue des séances`, `Catalogue des exercices` et `Catalogue des parcours`. | Validée | D-108, `RES-NAV-LABEL-01` (`Séances`) et formulations `Séances` de navigation basse |
+| D-167 | Catalogue à deux segments `Exercices / Séances`, Séances par défaut à l’ouverture initiale et après relance complète. Navigation basse `Catalogues`. Les titres contextuels sont `Catalogue des exercices` et `Catalogue des séances`. L’ancienne prescription d’un segment Parcours visible désactivé est remplacée par D-324. | Révisée le 07/10/2026, D-324 | D-108, RES-NAV-LABEL-01 |
 | D-168 | L’état filtres/tri/scroll d’un Catalogue est restauré uniquement lors d’un aller-retour dans le parcours courant. Il n’est pas persisté après fermeture complète ou relance de l’application. Après l’enregistrement d’une Séance depuis Catégories, la cible est `Catalogue des séances`, segment `Séances`. | **Révisée par D-221** pour supprimer la recherche Catalogue du MVP. | D-163 pour sa portée de persistance |
 | D-169 | Une `ActivityDefinition` T03 suit le cycle créer, consulter/modifier, archiver, restaurer et supprimer définitivement depuis les archives. La suppression définitive retire uniquement la définition de Catalogue ; les `SessionActivity` déjà copiées et les Instantanés/Exécutions historiques restent intacts. | Validée | Précise D-121 |
 | D-170 | La capacité de créer un Exercice propre à la Séance, non enregistrée dans le Catalogue, est conservée fonctionnellement et techniquement. | Révisée par D-194 : capacité non exposée dans le parcours courant | D-114 |
@@ -516,3 +516,11 @@ Q-08 clos par instruction explicite du propriétaire : pause après chaque séri
 | D-323 | Recovery explicitement0 reste conservée ; Pi demeure dans SeriesParameters, distinct de Pause de Composition. | §6 rapproché des règles publiées | Précision modèle ; D-303 sur le trait conservée |
 
 CF1/CF2/CF3 sont déjà résolus par les règles publiées ; CF4 reste un contrôle de données avant implémentation, aucune reprise fonctionnelle supplémentaire demandée ici. Le montant330s et le trait hors placement priment sur les passages contradictoires de la source. [Matrice des écarts et preuves](../MATRICE-EVOLUTIONS-V15-2026-10-07.md).
+
+## Compléments segmentés et titres — 07/10/2026
+
+| ID | Décision | Statut | Traçabilité |
+|---|---|---|---|
+| D-324 | Catalogues et modales de sélection de type de contenu : seulement Exercices et Séances ; troisième segment Parcours/Circuits supprimé, y compris son espace et son annonce accessible. Séances par défaut conservé. Circuit dans la Composition inchangé ; concept Parcours post-MVP conservé sans entrée MVP. | Validée, décision propriétaire | Complément 1 ; remplace D10 du brief visuel pour le catalogue et précise D-167/RM-109. Backlog fonctionnel FUNC-SEG-02 |
+| D-325 | Titres visibles : Composer une séance, Modifier une séance, Créer un exercice ; Modifier un exercice et Créer une activité inchangés. Aucun renommage des IDs/noms de cadres ni changement de destination induit par les boutons Ajouter. | Validée | Complément 2 ; CE-T03-04/08, chapitre06 |
+| D-326 | Deux nouvelles variantes Deux options — 1/2 sélectionné dans DSF Segmenté ; 354×42, options171×34. Typographie segmentés Inter Semi Bold16/20 ; exceptions Changement de côté13 et Ordre14/11 conservées. Fond standard blanc50%, rayon14 ; options rayon10, inactive#EAEAFF. | Validée ; état Figma et limites distingués | Complément 3 ; DSF-SEGMENTES-TITRES-2026-10-07 |

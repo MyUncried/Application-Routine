@@ -32,3 +32,7 @@ Preuve de la clarification et contrôles : [rapport F-14](../../../.github/orche
 ## Suivi du point 18 — 07/10/2026
 
 Le point 18 de `points-documentaires-source.md` est **clos** par la [mise à jour du voile](../../MATRICE-VOILE-MODAL-2026-10-07.md) : voile unique `overlayScrim` #1F2129 à 34 %, ombre de déplacement distincte. Les originaux archivés conservent leur état daté ; leurs statuts ne constituent pas le suivi courant.
+
+## Suivi du point 4 et de D10 — complément du07/10
+
+Point4 traité par D-324 : le troisième segment Parcours/Circuits est supprimé des Catalogues et sélecteurs de type ; Circuit dans Composition reste inchangé. D10 du brief est caduc sur le renommage du segment Catalogue. Les sources et le journal §6.3 restent datés ; leur suivi courant est le [journal complémentaire](../../JOURNAL-DSF-COMPLEMENTS-2026-10-07.md). Le [backlog fonctionnel](../../BACKLOG-SEGMENTS-CATALOGUE-2026-10-07.md) porte la suppression de code, pas le brief visuel.

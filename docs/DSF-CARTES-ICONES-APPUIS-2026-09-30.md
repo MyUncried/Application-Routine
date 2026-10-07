@@ -130,7 +130,7 @@ Profil : silhouettes dans deux cercles de 64, hauteur de silhouette 44, écart 2
 
 Boutons contextuels : diamètre 34, dessin 20 ; pilules hauteur 34, pastille de catégorie interne 26 ; écart visuel 12 (Catalogues, Suivi, Ajouter un exercice), 10 dans la Composition. Cible transparente 44 × 44 centrée ; pour une pilule, largeur visible +10 et hauteur 44. La rangée est centrée verticalement dans sa zone de contexte existante, sans en changer la hauteur. La Composition conserve la bande Durée + actions de 32 et le texte de durée ; les actions sont à droite et 6 plus bas. Les commandes Aujourd’hui/Planifier du Calendrier restent visuellement 32 : sans zone tactile de 44 ; situation connue et acceptée, à revoir ultérieurement et à développer après T04.
 
-Segmentés à trois choix : largeur 354, padding 4 de chaque côté, deux gaps de 4, trois options de `(354−8−8)/3 = 112,6667`. Le dernier bord tombe à 350 et ne déborde pas. Mesure vérifiée sur `2586:2749`/`2586:2757`. Les exemples concernés sont Exercices/Séances/Parcours et Jour/Semaine/Mois. Les autres sélecteurs conservent leurs propres dimensions. Retraits volontaires : chronologie Composition 50/60 ; paramètres et Changement de côté de l’éditeur 39 ; sélecteurs 36 ; modales 12.
+Segmentés à trois choix : largeur 354, padding 4 de chaque côté, deux gaps de 4, trois options de `(354−8−8)/3 = 112,6667`. Le dernier bord tombe à 350 et ne déborde pas. Mesure vérifiée sur `2586:2749`/`2586:2757`. Ce format concerne Jour/Semaine/Mois. Depuis D-324, les Catalogues et sélecteurs de type n’ont que Exercices/Séances : cadre354×42, padding4, gap4, options171×34, libellés16/20 ; voir DSF-SEGMENTES-TITRES-2026-10-07.md. Les autres sélecteurs conservent leurs propres dimensions. Retraits volontaires : chronologie Composition 50/60 ; paramètres et Changement de côté de l’éditeur 39 ; sélecteurs 36 ; modales 12.
 
 ## Animations d’appui
 
@@ -232,7 +232,7 @@ Total rapporté par le propriétaire : 133 cartes / 38 écrans / environ 27 inte
 14. ICO-03 : la palette de sélection respecte les trois états sans recolorer Ressenti/statuts.
 15. CTX-01 : bouton contextuel visible 34, dessin 20, cible au moins 44 et sans chevauchement.
 16. CTX-02 : gaps 12, ou 10 en Composition ; les cibles existantes de 48 ne sont pas réduites automatiquement.
-17. SEG-01 : le segmenté de 354 conserve 4 de padding, gaps 4, options 112,6667, sans débordement.
+17. SEG-01 : cadre354, padding4/gap4 ; options112,6667 pour trois choix (Calendrier),171 pour deux choix (Catalogue/sélecteur de type), sans débordement. D-324/326.
 18. ANI-01 : l’action contextuelle passe de 34 à 40,8 selon la démonstration.
 19. ANI-02 : le retour discret utilise Gentle, le retour rebondissant Bouncy.
 20. ANI-03 : avec réduction des animations, aucune dilatation ; seule l’opacité varie.

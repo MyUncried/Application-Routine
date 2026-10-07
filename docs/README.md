@@ -1,5 +1,7 @@
 # Application Routine
 
+**Compléments du07/10 — segmentés et titres :** [analyse, plan et traçabilité](MATRICE-COMPLEMENTS-2026-10-07.md), [DSF](DSF-SEGMENTES-TITRES-2026-10-07.md), [backlog fonctionnel](BACKLOG-SEGMENTS-CATALOGUE-2026-10-07.md). Catalogues à deux choix ; titres Composer/Modifier une séance et Créer un exercice ; noms de frames et IDs conservés.
+
 **Voile modal unifié — 07/10/2026 :** [décision, clôtures et captures](MATRICE-VOILE-MODAL-2026-10-07.md). `overlayScrim` #1F2129 à 34 % pour toutes les modales ; ombre de déplacement distincte.
 
 **Référence courante — évolutions v15 :** [inventaire, plan et preuves](MATRICE-EVOLUTIONS-V15-2026-10-07.md), [consolidation fonctionnelle](Specifications-fonctionnelles/CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases](DSF-PHRASES-V15-2026-10-07.md). Corpus276 actualisé ; calculs conservés ; captures et contrats repris.
