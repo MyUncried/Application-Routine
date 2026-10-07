@@ -95,7 +95,9 @@ export function DecisionDialog({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: "rgba(20, 20, 20, 0.5)",
+    // Alignement DSF 07/10 : même valeur que `colors.overlayScrim`, désormais
+    // référencée plutôt que recopiée (rendu inchangé).
+    backgroundColor: colors.overlayScrim,
     alignItems: "center",
     justifyContent: "center",
     padding: 24,

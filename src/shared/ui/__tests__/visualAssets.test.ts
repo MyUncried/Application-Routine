@@ -1,11 +1,13 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "@jest/globals";
 
 type AssetEntry = {
   key: string;
   file: string;
-  figmaNodeId: string;
+  figmaNodeId: string | null;
+  figmaStatus?: string;
+  historicalFigmaNodeId?: string;
   width: number;
   height: number;
 };
@@ -35,8 +37,22 @@ describe("canonical T01 visual assets", () => {
       );
       expect(svg).not.toMatch(/<text\b/i);
       expect(svg).not.toMatch(/[�]/);
-      expect(asset.figmaNodeId).toMatch(/^\d+:\d+$/);
+      // Alignement DSF 07/10 : un identifiant Figma nul n'est admis que pour
+      // une source disparue de Figma, dont l'identifiant historique reste
+      // tracé.
+      if (asset.figmaNodeId === null) {
+        expect(asset.figmaStatus).toBe("SOURCE_REMOVED");
+        expect(asset.historicalFigmaNodeId).toMatch(/^\d+:\d+$/);
+      } else {
+        expect(asset.figmaNodeId).toMatch(/^\d+:\d+$/);
+      }
     }
+  });
+
+  it("lists every SVG of assets/icons in the manifest (no asset without an entry)", () => {
+    const listed = new Set(manifest.assets.map((asset) => `${asset.file}.svg`));
+    const files = readdirSync(iconDirectory).filter((file) => file.endsWith(".svg"));
+    expect(files.filter((file) => !listed.has(file))).toEqual([]);
   });
 
   it("uses a sufficiently resolved, square PNG for the splash logo", () => {

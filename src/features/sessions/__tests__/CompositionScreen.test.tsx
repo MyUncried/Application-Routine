@@ -988,7 +988,8 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(valueTextStyle.color).not.toBe(colors.background);
     expect(valueTextStyle.textAlign).toBe("center");
     expect(valueTextStyle.fontSize).toBe(16);
-    expect(valueTextStyle.lineHeight).toBe(20);
+    // Alignement DSF 07/10 (D2) : interligne Inter Auto 16 → 19 (ancien 20).
+    expect(valueTextStyle.lineHeight).toBe(19);
     expect(valueTextStyle.fontWeight).toBe("600");
 
     // D-130 : plus aucun chevron de repli, ni son carré violet.
@@ -1237,7 +1238,9 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
     expect(nameField.props.placeholderTextColor).not.toBe(colors.textSecondary);
   });
 
-  it("R4-03/REWORK06 — Boundary Activity and Tour card titles use the KODJO / Card / Title style, now 16/20 Semi Bold (up from 14/18 — addendum 'titres des cartes encore trop petits')", () => {
+  // Alignement DSF 07/10 (D2) : `type.cardTitle` passe de 16/20 à 16/19
+  // (rendu Inter Auto de Figma).
+  it("R4-03/REWORK06 — Boundary Activity and Tour card titles use the card title style, 16/19 Semi Bold (up from 14/18 — addendum 'titres des cartes encore trop petits')", () => {
     renderScreen();
 
     const countdownLabel = within(screen.getByLabelText(composition.countdown.label)).getByText(
@@ -1245,7 +1248,7 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
     );
     const flattened = StyleSheet.flatten(countdownLabel.props.style);
     expect(flattened.fontSize).toBe(16);
-    expect(flattened.lineHeight).toBe(20);
+    expect(flattened.lineHeight).toBe(19);
     expect(flattened.fontWeight).toBe("600");
     expect(flattened.color).toBe(colors.textPrimary);
 
@@ -1255,7 +1258,8 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
     expect(StyleSheet.flatten(tourLabel.props.style).fontSize).toBe(16);
   });
 
-  it("R4-03 — the Boundary Activity secondary duration line uses the KODJO / Card / Supporting style (11/14)", () => {
+  // Alignement DSF 07/10 (D2/D9) : `type.caption` passe de 11/14 à 11/13.
+  it("R4-03 — the Boundary Activity secondary duration line uses the caption style (11/13)", () => {
     renderScreen();
 
     const secondaryLine = within(screen.getByLabelText(composition.countdown.label)).getByText(
@@ -1263,7 +1267,7 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
     );
     const flattened = StyleSheet.flatten(secondaryLine.props.style);
     expect(flattened.fontSize).toBe(11);
-    expect(flattened.lineHeight).toBe(14);
+    expect(flattened.lineHeight).toBe(13);
   });
 
   it("REWORK07-A — the structure/move slot is back to the canonical 28×28 (down from 32×32/REWORK06 — the oversized container compensated for an undersized glyph, no longer needed once the asset itself was replaced) — the icon inside renders the canonical 20×20 glyph at opacity 0.5, with no local opacity prop needed", () => {
@@ -1797,10 +1801,11 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
     expect(StyleSheet.flatten(zones.props.style)).toEqual(
       StyleSheet.flatten(summary.props.style),
     );
-    // Taille de la synthèse (KODJO / Card / Supporting, 11/14) et couleur neutre.
+    // Taille de la synthèse (`type.caption`, 11/13 depuis l'alignement DSF
+    // du 07/10 — ancien 11/14) et couleur neutre.
     const flattened = StyleSheet.flatten(zones.props.style);
     expect(flattened.fontSize).toBe(11);
-    expect(flattened.lineHeight).toBe(14);
+    expect(flattened.lineHeight).toBe(13);
     expect(flattened.color).toBe(colors.textSecondary);
   });
 

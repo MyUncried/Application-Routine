@@ -88,17 +88,18 @@ describe("ExerciseExitConfirmModal (D-094, CE-T01-16)", () => {
 
       const action = StyleSheet.flatten(screen.getByLabelText("Annuler").props.style);
       expect(action.backgroundColor).toBe(colors.dialogNeutralActionBackground);
-      expect(action.backgroundColor).toBe("#F3F4F6");
+      // Alignement DSF 07/10 (D3) : ramené à `color.surface` (ancien `#F3F4F6`).
+      expect(action.backgroundColor).toBe(colors.surface);
     });
 
-    it("gives Confirmer the same destructive red background token as the Session dialog (color.dialogDestructiveActionBackground) with white text — never color.danger", () => {
+    // Alignement DSF 07/10 (D3) : rouge destructif fusionné avec `color.danger`.
+    it("gives Confirmer the same destructive red background token as the Session dialog (color.dialogDestructiveActionBackground, now color.danger) with white text", () => {
       render(<ExerciseExitConfirmModal onCancel={jest.fn()} onConfirm={jest.fn()} />);
 
       const action = StyleSheet.flatten(screen.getByLabelText("Confirmer").props.style);
       const label = StyleSheet.flatten(screen.getByText("Confirmer").props.style);
       expect(action.backgroundColor).toBe(colors.dialogDestructiveActionBackground);
-      expect(action.backgroundColor).toBe("#E62B1E");
-      expect(action.backgroundColor).not.toBe(colors.danger);
+      expect(action.backgroundColor).toBe(colors.danger);
       expect(label.color).toBe(colors.background);
     });
 

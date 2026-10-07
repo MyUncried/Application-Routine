@@ -96,18 +96,21 @@ describe("AbandonCreationModal", () => {
       const action = StyleSheet.flatten(screen.getByLabelText("Annuler").props.style);
       const label = StyleSheet.flatten(screen.getByText("Annuler").props.style);
       expect(action.backgroundColor).toBe(colors.dialogNeutralActionBackground);
-      expect(action.backgroundColor).toBe("#F3F4F6");
+      // Alignement DSF 07/10 (D3) : ramené à `color.surface` (ancien `#F3F4F6`).
+      expect(action.backgroundColor).toBe(colors.surface);
       expect(label.color).toBe(colors.dialogNeutralActionText);
     });
 
-    it("gives Confirmer a destructive red background with white text, using the dedicated DSF tokens — never color.danger, a different red used elsewhere", () => {
+    // Alignement DSF 07/10 (D3) : le rouge destructif du dialogue est fusionné
+    // avec `color.danger` — `DSF / Overlays / Confirmation` (`5544:6095`) lie
+    // désormais ce bouton à `color/danger` (anciens `#E62B1E`/`#DB2E2E`).
+    it("gives Confirmer a destructive red background with white text, using the dialog tokens, now aliases of color.danger", () => {
       render(<AbandonCreationModal onCancel={jest.fn()} onConfirm={jest.fn()} />);
 
       const action = StyleSheet.flatten(screen.getByLabelText("Confirmer").props.style);
       const label = StyleSheet.flatten(screen.getByText("Confirmer").props.style);
       expect(action.backgroundColor).toBe(colors.dialogDestructiveActionBackground);
-      expect(action.backgroundColor).toBe("#E62B1E");
-      expect(action.backgroundColor).not.toBe(colors.danger);
+      expect(action.backgroundColor).toBe(colors.danger);
       expect(action.borderColor).toBe(colors.dialogDestructiveActionBorder);
       expect(label.color).toBe(colors.background);
     });

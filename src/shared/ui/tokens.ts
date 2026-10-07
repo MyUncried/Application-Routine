@@ -5,23 +5,62 @@
  * « Design tokens canoniques ».
  */
 
-export const colors = {
+/**
+ * Valeurs canoniques partagées — chacune correspond à une variable
+ * sémantique Figma (`KODJO / Sémantiques`, relevé direct du 07/10/2026,
+ * mission d'alignement DSF). Les tokens d'usage ci-dessous qui portent le
+ * même rôle visuel en sont des alias : deux valeurs voisines ne coexistent
+ * plus pour un même rôle.
+ */
+const canonical = {
   primary: "#0508E5",
-  selection: "#5F60EE",
-  selectionSurface: "#E5F0FF",
-  background: "#FFFFFF",
+  primarySoft: "#8283F2",
   surface: "#F5F7FA",
   surfaceSubtle: "#F9FAFC",
   textPrimary: "#141414",
   textSecondary: "#595E66",
-  iconNeutral: "#5C636E",
+  textLabel: "#46464C",
   border: "#E0E3E8",
-  divider: "#DBE0E8",
+  danger: "#D92D20",
+  mediaBorder: "#CDCEFA",
+} as const;
+
+export const colors = {
+  primary: canonical.primary,
+  selection: "#5F60EE",
+  selectionSurface: "#E5F0FF",
+  background: "#FFFFFF",
+  surface: canonical.surface,
+  surfaceSubtle: canonical.surfaceSubtle,
+  textPrimary: canonical.textPrimary,
+  textSecondary: canonical.textSecondary,
+  // Alignement DSF 07/10 (D7) : `color/icon-neutral` est un alias Figma de
+  // `color/text-secondary` — l'ancienne valeur `#5C636E` est historique.
+  iconNeutral: canonical.textSecondary,
+  // `color/text-label` — libellés et message de dialogue (D3).
+  textLabel: canonical.textLabel,
+  border: canonical.border,
+  // D7/D8 : `color/divider` est un alias Figma de `color/border` ; les deux
+  // noms coexistent, l'ancienne valeur `#DBE0E8` est historique.
+  divider: canonical.border,
+  // `color/cards/border` — bordure renforcée (choix de silhouette du Profil).
+  cardsBorder: "#CCD1E0",
+  // `color/primary-soft` — décor, jamais un fond portant du texte blanc de
+  // taille normale.
+  primarySoft: canonical.primarySoft,
+  // `color/media/surface` (alias Figma de `color/surface`) et
+  // `color/media/border`.
+  mediaSurface: canonical.surface,
+  mediaBorder: canonical.mediaBorder,
+  // Fond lavande du stepper ouvert (`DSF / Controls / Stepper / Profil`,
+  // `5544:4732`, variable Figma `color/observed/f2f2ff`) — valeur observée,
+  // sans token sémantique Figma à ce jour.
+  stepperSurface: "#F2F2FF",
   disabled: "#BEC2CC",
   snackbar: "#292B33",
   positive: "#4F9F83",
   warning: "#FF8D28",
-  danger: "#D92D20",
+  danger: canonical.danger,
   dangerSurface: "#FFF1F0",
   // R4 (`[ChatGPT] REWORK04 IMPLEMENTATION AUTHORIZED — DESIGN COMPLEMENTS
   // REVIEWED`, 2026-09-03 ; `12 – Architecture technique.md`, tokens
@@ -50,7 +89,8 @@ export const colors = {
   // **structure extérieure** de `Composition / Tour Section` (`3067:270`)
   // — distinct de `selectionSurface` (`#E5F0FF`), jusqu'ici réutilisé par
   // erreur pour ce rôle alors que la source canonique documente `#CDCEFA`.
-  tourSurface: "#CDCEFA",
+  // Alignement DSF 07/10 : alias de `mediaBorder` (même valeur Figma).
+  tourSurface: canonical.mediaBorder,
   // REWORK09 (mission directe utilisateur, 2026-09-04, « CORRECTIONS
   // CONNEXES DÉJÀ VALIDÉES — COMPOSITION » ; `12 – Architecture
   // technique.md`, `color.sessionNameBorder`) : liseré du champ `Nom de la
@@ -66,10 +106,14 @@ export const colors = {
   // valeurs canoniques distinctes vérifiées directement sur les nœuds
   // Figma `1992:9166`/`1992:9246`, aucune ne coïncidant avec un token
   // existant.
-  exerciseParameterCardBackground: "#F6F6FF",
-  exerciseParameterControlBorder: "#DBDBE5",
-  exerciseParameterValueText: "#14171C",
-  exerciseParameterLabelText: "#1F1F26",
+  //
+  // Alignement DSF 07/10 (D3) : ramenées aux tokens canoniques
+  // (`mediaSurface`, `divider`, `textPrimary`) — les anciennes valeurs
+  // `#F6F6FF`/`#DBDBE5`/`#14171C`/`#1F1F26` sont historiques.
+  exerciseParameterCardBackground: canonical.surface,
+  exerciseParameterControlBorder: canonical.border,
+  exerciseParameterValueText: canonical.textPrimary,
+  exerciseParameterLabelText: canonical.textPrimary,
   // REWORK10 (`[ChatGPT] CHANGES_REQUESTED — REWORK10 — dialogue
   // d'abandon de création`, 2026-09-04) : `Overlay / Decision Dialog`
   // (`2590:2961`, instance `2591:3083` sur la frame CE-T01-08 `2028:11298`)
@@ -77,12 +121,18 @@ export const colors = {
   // coïncidant avec un token existant (notamment le rouge destructif,
   // `#E62B1E`/`#DB2E2E`, distinct de `color.danger`, `#D92D20`, déjà
   // utilisé ailleurs pour un rouge différent).
-  dialogTitleText: "#121212",
-  dialogMessageText: "#474D57",
-  dialogNeutralActionBackground: "#F3F4F6",
+  //
+  // Alignement DSF 07/10 (D3) : titre → `textPrimary`, message →
+  // `textLabel`, fond neutre → `surface`, rouge destructif → `danger`
+  // (`DSF / Overlays / Confirmation` `5544:6095` lie désormais le bouton
+  // destructif à `color/danger`). `dialogNeutralActionText` reste `#292E38`
+  // (exception explicite de D3).
+  dialogTitleText: canonical.textPrimary,
+  dialogMessageText: canonical.textLabel,
+  dialogNeutralActionBackground: canonical.surface,
   dialogNeutralActionText: "#292E38",
-  dialogDestructiveActionBackground: "#E62B1E",
-  dialogDestructiveActionBorder: "#DB2E2E",
+  dialogDestructiveActionBackground: canonical.danger,
+  dialogDestructiveActionBorder: canonical.danger,
   // REWORK12-bis (`[ChatGPT] Applique impérativement le protocole KODJO
   // actif...`, 2026-09-04, complétion REWORK12 après mise à jour Figma/
   // documentaire) : fond de la « Zone bleue — Contexte séance et nom de
@@ -91,7 +141,10 @@ export const colors = {
   // conservé comme token propre : rôle sémantique différent (bandeau de
   // contexte plein écran vs cadre compact de paramètres), jamais réutilisé
   // à tort l'un pour l'autre.
-  exerciseContextBandBackground: "#F7F7FF",
+  //
+  // Alignement DSF 07/10 (D3) : ramené à `surface` ; l'ancienne valeur
+  // `#F7F7FF` est historique.
+  exerciseContextBandBackground: canonical.surface,
   // T01-S09 correction VISUAL (point D) — voile d'arrière-plan de la
   // superposition plein écran, transversale à tout sélecteur numérique à
   // roulette (`WheelPickerOverlay.tsx`) : approximation raisonnée à partir
@@ -108,9 +161,17 @@ export const colors = {
   // `#FFFFFF`) — remplace l'ancien cadre non sourcé de `SessionCard.tsx`
   // (`colors.tourSurface`/opacité `0.45`, jamais documentés pour ce
   // contrôle).
+  //
+  // Alignement DSF 07/10 : `DSF / Controls / Disclosure` (`5544:4650`) porte
+  // TOUJOURS `#FBFCFF`, `#D6D9E3` et `#8282F2` (variables `color/observed/…`,
+  // relevé direct) — Figma faisant foi pour le rendu, ces trois valeurs ne
+  // sont pas ramenées à `surfaceSubtle`/`divider`/`primarySoft` comme le
+  // proposait l'annexe A.3 du brief. Seule la bordure déployée, liée dans
+  // Figma à une variable de même valeur que `color/primary-soft`, en devient
+  // l'alias.
   disclosureBackground: "#FBFCFF",
   disclosureBorderCollapsed: "#D6D9E3",
-  disclosureBorderExpanded: "#8283F2",
+  disclosureBorderExpanded: canonical.primarySoft,
   disclosureChevronCollapsed: "#8282F2",
   // T02-S01 — état transitoire `Composition d'une séance — Appui long —
   // carte soulevée` (`3518:4576`/`3518:4621`), valeurs littéralement
@@ -130,35 +191,49 @@ const regular = { fontFamily: "Inter_400Regular", fontWeight: "400" } as const;
 const medium = { fontFamily: "Inter_500Medium", fontWeight: "500" } as const;
 const semiBold = { fontFamily: "Inter_600SemiBold", fontWeight: "600" } as const;
 
+/**
+ * Alignement DSF 07/10 (D2) : les interlignes reproduisent le rendu « Auto »
+ * de Figma pour Inter, `round(1,2102 × corps)` ; un style Figma à interligne
+ * EXPLICITE conserve sa valeur (`dialogMessage` 21 et `contextLine` 17,
+ * vérifiés sur les nœuds Figma). L'ancien `timerPrimary` (Inter 58/64, sans
+ * consommateur) est retiré : le chronomètre d'Exécution utilisera Roboto
+ * Condensed lorsque cet écran sera développé (chapitre 12, Typographie).
+ */
 export const type = {
-  timerPrimary: { ...semiBold, fontSize: 58, lineHeight: 64 },
   activityTitle: { ...semiBold, fontSize: 28, lineHeight: 34 },
-  metricPrimary: { ...semiBold, fontSize: 22, lineHeight: 28 },
+  metricPrimary: { ...semiBold, fontSize: 22, lineHeight: 27 },
   screenTitle: { ...semiBold, fontSize: 20, lineHeight: 24 },
   modalTitle: { ...semiBold, fontSize: 18, lineHeight: 22 },
-  sectionTitle: { ...semiBold, fontSize: 16, lineHeight: 20 },
-  cardTitle: { ...semiBold, fontSize: 16, lineHeight: 20 },
-  // R4-03 (`KODJO / Card / Title`) : `14/18` Semi Bold — jusqu'ici déclaré
-  // à `13/18`, jamais réellement consommé (aucun appelant avant cette
-  // mission). Complété au lieu de dupliquer un nouveau token, conformément
-  // au garde-fou DSF (« interdire un duplicat local aux mêmes
-  // dimensions »).
-  compactCardTitle: { ...semiBold, fontSize: 14, lineHeight: 18 },
-  body: { ...regular, fontSize: 14, lineHeight: 20 },
-  label: { ...medium, fontSize: 14, lineHeight: 18 },
-  button: { ...semiBold, fontSize: 14, lineHeight: 18 },
-  supporting: { ...regular, fontSize: 12, lineHeight: 16 },
-  // R4-03 (`KODJO / Card / Supporting`) : `11/14` — jusqu'ici déclaré à
-  // `11/16`, jamais consommé ailleurs. Même remarque que `compactCardTitle`
-  // ci-dessus.
-  caption: { ...regular, fontSize: 11, lineHeight: 14 },
+  sectionTitle: { ...semiBold, fontSize: 16, lineHeight: 19 },
+  cardTitle: { ...semiBold, fontSize: 16, lineHeight: 19 },
+  // Alignement DSF 07/10 (D9) : `15/18` Semi Bold (Figma `KODJO / Texte /
+  // Inter Semi Bold 15`, Auto) — remplace le `14/18` de R4-03.
+  compactCardTitle: { ...semiBold, fontSize: 15, lineHeight: 18 },
+  // Alignement DSF 07/10 (§ 5.1 du brief) : titre des cartes de Séance et
+  // d'Exercice (`DSF / Cards / Séance` `6214:7276`, `DSF / Cards / Exercice`
+  // `6214:7278`), rôle distinct de `cardTitle` (16, conservé hors famille
+  // Cartes).
+  listCardTitle: { ...semiBold, fontSize: 15, lineHeight: 18 },
+  // Alignement DSF 07/10 (D11) : durée affichée sans cadre sur les cartes,
+  // Inter Semi Bold 12, Auto.
+  cardDuration: { ...semiBold, fontSize: 12, lineHeight: 15 },
+  // `DSF / Forms / Valeur modifiable` (`6944:26423`), variante `Texte=13` :
+  // Inter Semi Bold 13, Auto — valeur d'un réglage, fermé ou en stepper.
+  editableValue: { ...semiBold, fontSize: 13, lineHeight: 16 },
+  body: { ...regular, fontSize: 14, lineHeight: 17 },
+  label: { ...medium, fontSize: 14, lineHeight: 17 },
+  button: { ...semiBold, fontSize: 14, lineHeight: 17 },
+  supporting: { ...regular, fontSize: 12, lineHeight: 15 },
+  // Alignement DSF 07/10 (D2/D9) : `11/13` (Inter Regular 11, Auto) —
+  // remplace le `11/14` de R4-03.
+  caption: { ...regular, fontSize: 11, lineHeight: 13 },
   // `captionStrong` (`11/14` Semi Bold) a existé le temps d'une continuation,
   // pour le libellé `Récupération` d'une carte de Composition. La seconde
   // recette visuelle (T02-S02, point 8) en demande une taille SUPÉRIEURE :
   // ce libellé consomme désormais `compactCardTitle` (`14/18` Semi Bold,
   // token déjà canonique, même graisse), et `captionStrong` est supprimé
   // plutôt que laissé sans consommateur.
-  navLabel: { ...regular, fontSize: 11, lineHeight: 16 },
+  navLabel: { ...regular, fontSize: 11, lineHeight: 13 },
   // REWORK09 (mission directe utilisateur, 2026-09-04) — vérifiés sur les
   // nœuds Figma actuels de `Activity / Parameter Row — Source exact`
   // (`1992:9166`/`1992:9246`), sans équivalent parmi les tokens existants.
@@ -169,11 +244,9 @@ export const type = {
   // telle par Figma (« leading: normal »).
   parameterColumnLabel: { ...semiBold, fontSize: 15, lineHeight: 18 },
   // Valeur saisie dans `Forms / Text Field — Source exact` (`2537:1075`),
-  // `13px` Regular — hauteur de ligne `18` estimée par interpolation entre
-  // `caption` (`11/14`) et `body`/`label` (`14/18`…`14/20`), Figma ne
-  // documentant pas explicitement de hauteur de ligne fixe pour ce texte
-  // (« leading: normal ») — estimation raisonnée, signalée comme telle.
-  exerciseFieldValue: { ...regular, fontSize: 13, lineHeight: 18 },
+  // `13px` Regular, interligne Auto Figma — `16` selon D2 (l'ancienne
+  // estimation `18` est remplacée).
+  exerciseFieldValue: { ...regular, fontSize: 13, lineHeight: 16 },
   // REWORK10 (`Overlay / Decision Dialog`, `2590:2961`/`2591:3083`,
   // vérifié directement sur `2028:11298`) : message du dialogue, `14px`
   // Regular, hauteur de ligne `21` (documentée explicitement par Figma,
@@ -183,12 +256,12 @@ export const type = {
   // un token dédié plutôt qu'une réutilisation approximative.
   dialogMessage: { ...regular, fontSize: 14, lineHeight: 21 },
   // Libellé de l'action neutre (« Annuler »), `16px` Semi Bold.
-  dialogNeutralActionLabel: { ...semiBold, fontSize: 16, lineHeight: 20 },
+  dialogNeutralActionLabel: { ...semiBold, fontSize: 16, lineHeight: 19 },
   // Libellé de l'action destructive (« Confirmer »), `16px` MEDIUM —
   // vérifié explicitement distinct en graisse du libellé neutre
   // ci-dessus sur le nœud Figma (`font-['Inter:Medium']` vs `Inter:Semi_
   // Bold`), pas une incohérence à corriger silencieusement.
-  dialogDestructiveActionLabel: { ...medium, fontSize: 16, lineHeight: 20 },
+  dialogDestructiveActionLabel: { ...medium, fontSize: 16, lineHeight: 19 },
   // REWORK12-bis : `Contexte — Nom de la séance` (`3261:4152`, bandeau
   // Activité), vérifié directement `Inter Regular`, `14/17` — hauteur de
   // ligne `17` documentée explicitement par Figma (`leading-[17px]`),
@@ -203,8 +276,11 @@ export const spacing = {
   4: 4,
   6: 6,
   8: 8,
+  10: 10,
   12: 12,
+  14: 14,
   16: 16,
+  20: 20,
   24: 24,
   32: 32,
 } as const;
@@ -214,7 +290,9 @@ export const fixedRadii = {
   8: 8,
   10: 10,
   12: 12,
+  14: 14,
   16: 16,
+  17: 17,
   20: 20,
   24: 24,
 } as const;

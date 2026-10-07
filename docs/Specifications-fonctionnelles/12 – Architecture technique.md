@@ -892,6 +892,33 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.calendarMarker` | `#1F9E7A` | Point de séance Calendrier |
 | `color.breakpoint` | `#ED7314` | Action de point d’arrêt |
 | `color.compositionDraggedCardShadow` | `#14171F` | Teinte d’ombre de la carte déplacée ; distincte de `overlayScrim`, jamais utilisée comme voile. L’alpha relève de l’effet d’ombre |
+| `color.stepperSurface` | `#F2F2FF` | Fond lavande du stepper ouvert (`DSF / Controls / Stepper / Profil` `5544:4732`) ; variable Figma observée `color/observed/f2f2ff`, sans token sémantique |
+
+##### Alias d’usage du code — alignement DSF du 07/10/2026
+
+Les tokens d’usage ci-dessous existent dans `src/shared/ui/tokens.ts` pour exprimer un rôle local ; chacun est un alias d’un token canonique ci-dessus ou une valeur observée explicitement conservée. Ils sont contrôlés par `src/shared/ui/__tests__/tokensSpecification.test.ts`.
+
+| Token de code | Valeur | Alias de / provenance |
+| --- | --- | --- |
+| `color.wheelActionValidateBackground` | `#0508E5` | Nom de code de `color.wheelActionConfirmBackground` |
+| `color.wheelActionValidateIcon` | `#FFFFFF` | Nom de code de `color.wheelActionConfirmIcon` |
+| `color.tourSurface` | `#CDCEFA` | `color.mediaBorder` |
+| `color.exerciseParameterCardBackground` | `#F5F7FA` | `color.mediaSurface` (ancienne valeur `#F6F6FF`) |
+| `color.exerciseParameterControlBorder` | `#E0E3E8` | `color.divider` (ancienne valeur `#DBDBE5`) |
+| `color.exerciseParameterValueText` | `#141414` | `color.textPrimary` (ancienne valeur `#14171C`) |
+| `color.exerciseParameterLabelText` | `#141414` | `color.textPrimary` (ancienne valeur `#1F1F26`) |
+| `color.exerciseContextBandBackground` | `#F5F7FA` | `color.surface` (ancienne valeur `#F7F7FF`) |
+| `color.dialogTitleText` | `#141414` | `color.textPrimary` (ancienne valeur `#121212`) |
+| `color.dialogMessageText` | `#46464C` | `color.textLabel` (ancienne valeur `#474D57`) |
+| `color.dialogNeutralActionBackground` | `#F5F7FA` | `color.surface` (ancienne valeur `#F3F4F6`) |
+| `color.dialogNeutralActionText` | `#292E38` | Valeur propre conservée (décision D3 du brief d’alignement) |
+| `color.dialogDestructiveActionBackground` | `#D92D20` | `color.danger` (ancienne valeur `#E62B1E`) ; Figma lie le bouton destructif de `DSF / Overlays / Confirmation` à `color/danger` |
+| `color.dialogDestructiveActionBorder` | `#D92D20` | `color.danger` (ancienne valeur `#DB2E2E`) |
+| `color.disclosureBackground` | `#FBFCFF` | Valeur observée conservée : `DSF / Controls / Disclosure` `5544:4650` la porte toujours (`color/observed/fbfcff`) |
+| `color.disclosureBorderCollapsed` | `#D6D9E3` | Valeur observée conservée (`color/observed/d6d9e3` sur `5544:4650`) ; non ramenée à `color.divider` |
+| `color.disclosureBorderExpanded` | `#8283F2` | `color.primarySoft` |
+| `color.disclosureChevronCollapsed` | `#8282F2` | Valeur observée conservée (`color/observed/8282f2` sur `5544:4650`) |
+| `color.compositionDraggedCardBorder` | `#D1D1D6` | Valeur propre conservée (D-129) ; la variante Figma `4916:6844` ne porte pas de contour au premier niveau — à reconfirmer |
 
 Les couleurs de statut sont toujours accompagnées d’un libellé, d’une icône ou des deux. Les rares variantes historiques de noir ou de gris présentes dans les frames sont normalisées vers les tokens ci-dessus lors du développement, sauf différence visuelle explicitement documentée.
 
@@ -916,12 +943,14 @@ Le relevé du06/10 comporte51 styles. La correspondance code/Figma se fait par r
 | `20` | Espacement contextualisé validé par le journal §3 |
 | `12` | Auto Figma | Rôle compact |
 | `type.activityTitle` | Semi Bold | `28` | `34` | Nom de l’Exercice en cours d’Exécution |
-| `type.metricPrimary` | Semi Bold | `22` | `28` | Durée, résultat ou métrique dominante |
+| `type.metricPrimary` | Semi Bold | `22` | `27` | Durée, résultat ou métrique dominante (Inter Auto selon D2 ; ancien `28` historique) |
 | `type.screenTitle` | Semi Bold | `20` | `24` | Titre d’écran |
 | `type.modalTitle` | Semi Bold | `18` | `22` | Titre de modale, bottom sheet ou date principale |
 | `type.sectionTitle` | Semi Bold | `16` | `19` Auto ;20 si style explicite | Titre de section ou de formulaire |
 | `type.cardTitle` | Semi Bold | `16` | `19` Auto ;20 si style explicite | Titres hors famille Cartes du 30 septembre |
-| Titre des nouvelles cartes (rôle distinct de cardTitle) | Semi Bold | `15` | `18` | Catalogue, choix, Calendrier Semaine et Suivi ; exception documentée à D-083 |
+| `type.listCardTitle` | Semi Bold | `15` | `18` | Titre des nouvelles cartes (rôle distinct de `type.cardTitle`) : Catalogue, choix, Calendrier Semaine et Suivi ; exception documentée à D-083 |
+| `type.cardDuration` | Semi Bold | `12` | `15` | Durée des cartes, sans cadre, `color.textPrimary`, calée à droite à 16 du bord (D11) |
+| `type.editableValue` | Semi Bold | `13` | `16` | `DSF / Forms / Valeur modifiable` `Texte=13` et valeur du stepper ; état `Grisé` = texte `color.disabled`, jamais une opacité de conteneur |
 | `type.compactCardTitle` | Semi Bold | `15` | `18` | Titre d’une carte compacte imbriquée, notamment dans une Composition |
 | `type.body` | Regular | `14` | `17` Auto ;20 si style explicite | Texte courant |
 | `type.label` | Medium | `14` | `17` Auto ;18 si style explicite | Libellé de champ ou valeur importante |
@@ -929,6 +958,12 @@ Le relevé du06/10 comporte51 styles. La correspondance code/Figma se fait par r
 | `type.supporting` | Regular | `12` | `15` explicite selon rôle ;16 historique | Aide, métadonnée et information secondaire |
 | `type.caption` | Regular | `11` | `13` (Inter Auto traduit selon D2) | Légende compacte ; usages Calendrier relus, ancien code14/doc16 à aligner |
 | `type.navLabel` | Regular | `11` | `13` (usages Navigation / Bottom Inter11 Auto) | Rôle vérifié sur libellés Calendrier/Suivi/Profil ; ancien style11/16 historique |
+| `type.parameterColumnLabel` | Semi Bold | `15` | `18` | Libellé de colonne de l’ancienne rangée de paramètres (Auto) |
+| `type.exerciseFieldValue` | Regular | `13` | `16` | Valeur saisie d’un champ de texte (Auto ; ancienne estimation `18`) |
+| `type.dialogMessage` | Regular | `14` | `21` | Message des dialogues de décision — interligne **explicite** `21` sur `DSF / Overlays / Confirmation`, variante `Abandon` (`5544:6095`) et l’ancienne primitive `2590:2961` : exception D2, la valeur `17` proposée par l’annexe B du brief n’est pas appliquée |
+| `type.dialogNeutralActionLabel` | Semi Bold | `16` | `19` | Libellé de l’action neutre d’un dialogue (Auto) |
+| `type.dialogDestructiveActionLabel` | Medium | `16` | `19` | Libellé de l’action destructive d’un dialogue (Auto) |
+| `type.contextLine` | Regular | `14` | `17` | Ligne de contexte du bandeau (interligne explicite `17`) |
 
 La taille minimale d’un texte fonctionnel est `11`. Une information secondaire utilise normalement `type.supporting` en `12`. Les tailles `8`, `10` et `10,5` ne sont pas utilisées pour du texte fonctionnel ; les points du Calendrier mensuel sont des indicateurs graphiques et non des caractères typographiques. Les titres et noms fonctionnels utilisent `type.cardTitle` en `16`, sauf les nouvelles cartes en `15` et le niveau compact explicitement prévu par `type.compactCardTitle`. La taille `15` est désormais le titre fonctionnel des nouvelles cartes du 30 septembre, exception explicite à D-083 ; les autres titres conservent leur niveau propre.
 
@@ -1526,3 +1561,7 @@ Le jeu de276phrasesv15 teste le générateur avec un total injecté ; la feuille
 [Contrat DSF courant](../DSF-SEGMENTES-TITRES-2026-10-07.md) : deux choix Exercices/Séances pour les catalogues et sélecteurs de type ; rendu standard354×42, options171×34, padding/gap4, radius14/10, fond blanc50%, inactive#EAEAFF, libellés16/20. Calendrier et modes conservent leurs trois choix. Exceptions de texte13 et14/11 pour côtés ; géométries de feuille conservées et écarts mesurés explicités dans le DSF. Lors d’une liaison de peinture au token, restaurer l’alpha0,5 du **remplissage** ; ne pas appliquer0,5 au nœud entier, ce qui atténuerait textes et options.
 
 La suppression du troisième segment est une évolution fonctionnelle [FUNC-SEG-02](../BACKLOG-SEGMENTS-CATALOGUE-2026-10-07.md), distincte de l’alignement visuel. Elle ne supprime aucune entité ni table Circuit/Parcours et ne modifie pas l’Exécution.
+
+## Écart d’implémentation constaté lors de la fusion documentaire — 07/10/2026
+
+La cible normative de `color.overlayScrim` est `rgba(31, 33, 41, 0.34)`, conformément au brief de voile appliqué et au relevé Figma de cette mission. La mention « cible à arbitrer » de la PR #326 est dépassée. Le code de `src/shared/ui/tokens.ts` au commit `a0a07602` conserve `rgba(20, 20, 20, 0.5)` : son alignement reste à réaliser dans une intervention de développement. Le test `tokensSpecification.test.ts`, qui compare le code au présent registre, signalera cet écart tant que le code ne sera pas aligné. Cette fusion documentaire ne modifie pas le code et ne clôture pas cet écart d’implémentation.

@@ -9,9 +9,9 @@ import {
   formatExerciseRowSummary,
 } from "@/features/sessions/compositionPresentation";
 import { strings } from "@/shared/i18n";
-import { DisclosureControl } from "@/shared/ui/DisclosureControl";
+import { CardTitleLine } from "@/shared/ui/CardTitleLine";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Référentiel persistant des Zones corporelles (V2-PRE-1, plan §3.1,
@@ -89,6 +89,19 @@ export type ActivityCardProps = {
  * n'est donc plus rendue ici. `Déployer` et `Lecture` sont visibles mais
  * désactivés, sans handler fonctionnel — la même zone est réservée sur
  * toutes les cartes (plan §4.1). Aucun swipe ni action de gestion.
+ *
+ * Alignement DSF 07/10/2026 (`DSF / Cards / Exercice`, variante
+ * `Contexte=Catalogue, État=Replié` `6214:4111`, annexe I.2 du brief) :
+ * - le chevron Déployer, qui n'était qu'un contrôle désactivé sans action,
+ *   est retiré : Figma ne le porte plus sur aucune carte d'Exercice ;
+ * - titre Inter Semi Bold 15 (`CardTitleLine`, colonne de texte sans
+ *   gouttière : 16 de chaque côté) ; la durée y est un champ optionnel que
+ *   cette carte ne renseigne pas — règle d'affichage actuelle inchangée ;
+ * - Lecture reste visible et désactivée, en bas à droite ;
+ * - conteneur : fond `color/surface-subtle`, contour 0,5
+ *   `color/cards/border`, rayon 8.
+ * La gouttière photo/icône de nature (64 × 64) n'est pas ajoutée : elle
+ * dépend de la vignette du premier média (D-264), non implémentée.
  */
 export function ActivityCard({ definition, onOpen }: ActivityCardProps) {
   const t = strings.screens.activities.card;
@@ -102,9 +115,7 @@ export function ActivityCard({ definition, onOpen }: ActivityCardProps) {
       <View style={styles.body}>
         <View style={styles.mainRow}>
           <ActivityCardMainArea onOpen={onOpen}>
-            <Text style={styles.name} numberOfLines={2}>
-              {definition.name}
-            </Text>
+            <CardTitleLine title={definition.name} testID={`activity-card-${definition.id}`} />
             {bodyZones !== null ? (
               <Text
                 style={styles.secondaryLine}
@@ -121,13 +132,7 @@ export function ActivityCard({ definition, onOpen }: ActivityCardProps) {
              */}
             <Text style={styles.secondaryLine}>{summary}</Text>
           </ActivityCardMainArea>
-          <View style={styles.actions}>
-            <DisclosureControl
-              expanded={false}
-              disabled
-              accessibilityLabel={t.deployAccessibilityLabel}
-              testID="activity-card-disclosure"
-            />
+          <View style={styles.actions} pointerEvents="box-none">
             <Pressable
               disabled
               accessibilityRole="button"
@@ -171,10 +176,10 @@ function ActivityCardMainArea({
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: dimensions.standardCard.radius,
+    backgroundColor: colors.surfaceSubtle,
+    borderWidth: 0.5,
+    borderColor: colors.cardsBorder,
+    borderRadius: fixedRadii[8],
     overflow: "hidden",
   },
   // UI-CAT-R-002 : marque de couleur FIXE (`colors.primary`) — une
@@ -194,32 +199,29 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
   },
+  // `minHeight` : hauteur de la variante Figma (91) ; Lecture (48, ancrée
+  // en bas à droite) ne recouvre jamais la ligne de titre.
   mainRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    minHeight: 91,
   },
   content: {
-    flex: 1,
     paddingVertical: spacing[12],
     paddingHorizontal: spacing[16],
     gap: spacing[4],
   },
-  name: {
-    ...type.cardTitle,
-    color: colors.textPrimary,
-  },
-  // Même hiérarchie typographique que `Boundary Activity`
-  // (`boundaryRowSecondaryLine`, `CompositionScreen.tsx`) — réutilisée,
-  // jamais redéfinie localement.
+  // Alignement DSF 07/10 : métadonnées en Inter Regular 12
+  // (`type.supporting`) ; les lignes basses s'arrêtent avant Lecture.
   secondaryLine: {
-    ...type.caption,
+    ...type.supporting,
+    marginRight: minTouchTarget + spacing[2] - spacing[16],
     color: colors.textSecondary,
   },
   actions: {
+    position: "absolute",
+    right: spacing[2],
+    bottom: 0,
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing[8],
-    paddingHorizontal: spacing[12],
   },
   playButton: {
     minWidth: minTouchTarget,

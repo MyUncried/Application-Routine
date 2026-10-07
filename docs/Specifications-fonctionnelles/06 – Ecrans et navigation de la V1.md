@@ -2204,7 +2204,7 @@ Le ressenti est obligatoire.
 
 Le MVP propose trois niveaux, conformément au wireframe.
 
-Le libellé `Comment s’est passée la séance ?` utilise `type.cardTitle` (`16/20`, Semi Bold). À la taille système standard, son conteneur occupe la largeur utile et maintient le libellé sur une ligne sur les largeurs prises en charge de `360` à `440` points ; la référence Figma `402` utilise une largeur de `322` points. Avec l’agrandissement d’accessibilité, le conteneur grandit verticalement et autorise le retour à la ligne sans chevaucher les choix de ressenti.
+Le libellé `Comment s’est passée la séance ?` utilise `type.cardTitle` (`16/19`, Semi Bold — interligne Inter Auto depuis l’alignement DSF du 07/10/2026, ancien `16/20`). À la taille système standard, son conteneur occupe la largeur utile et maintient le libellé sur une ligne sur les largeurs prises en charge de `360` à `440` points ; la référence Figma `402` utilise une largeur de `322` points. Avec l’agrandissement d’accessibilité, le conteneur grandit verticalement et autorise le retour à la ligne sans chevaucher les choix de ressenti.
 
 Le bouton `Enregistrer` reste désactivé tant qu’aucun ressenti n’a été sélectionné.
 

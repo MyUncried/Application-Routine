@@ -5,7 +5,10 @@ import { dimensions } from "./tokens";
 const sources = {
   "action-add": require("../../../assets/icons/action-add.svg"),
   "action-start": require("../../../assets/icons/action-start.svg"),
-  "control-back": require("../../../assets/icons/control-back.svg"),
+  // Alignement DSF 07/10 : export exact de `icon/retour` (`6959:15940`) —
+  // même tracé que l'ancien `control-back.svg` (`2884:4426`, supprimé de
+  // Figma), trait `#141414` au lieu de `#1F2023`.
+  "control-back": require("../../../assets/icons/icon-retour.svg"),
   "control-chevron-down": require("../../../assets/icons/control-chevron-down.svg"),
   "control-chevron-up": require("../../../assets/icons/control-chevron-up.svg"),
   "navigation-sessions-active": require("../../../assets/icons/navigation-sessions.svg"),
@@ -37,6 +40,13 @@ const sources = {
   // (2087, sha256 `6b3a4b0c73…`). Utilisé par la pilule d'Étiquette de la
   // Composition lorsqu'aucune Étiquette n'est choisie (R7a).
   "label-outline": require("../../../assets/icons/label-outline.svg"),
+  // Alignement DSF 07/10 (annexe E.7) : signes « − » et « + » du stepper,
+  // jusqu'ici rendus en caractères typographiques. Figma les dessine en
+  // texte Inter Medium 16 (`DSF / Controls / Stepper / Profil`, `5826:4101`
+  // et `5826:4105`) : ces assets sont l'export vectorisé exact de ces deux
+  // glyphes (`SVG_STRING`, `svgOutlineText`), jamais redessinés.
+  "stepper-minus": require("../../../assets/icons/stepper-minus.svg"),
+  "stepper-plus": require("../../../assets/icons/stepper-plus.svg"),
 } as const;
 
 const sizes = {
@@ -137,6 +147,10 @@ const sizes = {
   "body-zone-femme": [24, 24],
   // Révision r4 : glyphe intrinsèque 20×20 (viewBox exact de l'export, R7a).
   "label-outline": [20, 20],
+  // Boîtes intrinsèques des glyphes exportés (centrés par l'appelant dans
+  // le cercle `28 × 28` du stepper).
+  "stepper-minus": [8, 2],
+  "stepper-plus": [8, 8],
 } as const;
 
 /**
