@@ -12,7 +12,10 @@ export type SegmentedControlOption<T extends string> = {
 };
 
 /** Épaisseur de la bordure de `styles.container` — extraite en constante pour que le centrage vertical du cadre (`indicatorTop`) la prenne en compte sans jamais dupliquer la valeur en dur (drift). */
-const CONTAINER_BORDER_WIDTH = 1;
+// Complément d'alignement du 07/10 (ajout C) : le cadre standard n'a plus de
+// contour (`DSF / Controls / Segmenté` `7388:13779`) ; la constante reste la
+// seule source du calcul de centrage vertical.
+const CONTAINER_BORDER_WIDTH = 0;
 
 export type SegmentedControlProps<T extends string> = {
   readonly options: readonly SegmentedControlOption<T>[];
@@ -99,6 +102,26 @@ export function SegmentedControl<T extends string>({
     outputRange: options.map((_, index) => index * step),
   });
 
+  // Ajout C : chaque option inactive porte un fond `#EAEAFF` de rayon 10.
+  // Ces fonds sont une couche FIXE sous l'indicateur animé (l'option
+  // sélectionnée est recouverte par l'indicateur), pour que le glissement de
+  // la sélection reste inchangé et que les zones pressables restent
+  // transparentes.
+  const inactiveTiles =
+    containerWidth > 0
+      ? options.map((option, index) => (
+          <View
+            key={`tile-${option.value}`}
+            pointerEvents="none"
+            testID={testID ? `${testID}-tile-${option.value}` : undefined}
+            style={[
+              styles.tile,
+              { left: padding + index * step, top: indicatorTop, width: segmentWidth },
+            ]}
+          />
+        ))
+      : null;
+
   return (
     <View
       style={styles.container}
@@ -107,6 +130,7 @@ export function SegmentedControl<T extends string>({
       onLayout={handleContainerLayout}
       testID={testID}
     >
+      {inactiveTiles}
       {containerWidth > 0 ? (
         <Animated.View
           pointerEvents="none"
@@ -161,12 +185,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     height: dimensions.segmentedControl.height,
-    backgroundColor: colors.background,
+    backgroundColor: colors.segmentedSurface,
     borderWidth: CONTAINER_BORDER_WIDTH,
-    borderColor: colors.border,
     borderRadius: dimensions.segmentedControl.containerRadius,
     padding: dimensions.segmentedControl.padding,
     gap: dimensions.segmentedControl.gap,
+  },
+  tile: {
+    position: "absolute",
+    height: dimensions.segmentedControl.segmentHeight,
+    borderRadius: dimensions.segmentedControl.segmentRadius,
+    backgroundColor: colors.segmentedInactiveSurface,
   },
   indicator: {
     position: "absolute",
@@ -181,9 +210,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderRadius: dimensions.segmentedControl.segmentRadius,
   },
+  // Ajout C : libellés `type.segmentedLabel` (Semi Bold 16/20) ; texte
+  // inactif `color/text-label`, sélectionné blanc (inchangé), désactivé
+  // `color/disabled` (inchangé).
   label: {
-    ...type.label,
-    color: colors.textSecondary,
+    ...type.segmentedLabel,
+    color: colors.textLabel,
   },
   labelSelected: {
     color: colors.background,

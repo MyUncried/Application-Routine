@@ -164,7 +164,8 @@ describe("strings", () => {
   });
 
   it("exposes the Composition screen texts (T01-S07)", () => {
-    expect(strings.screens.composition.title).toBe("Composition d’une séance");
+    // Complément d'alignement du 07/10 (ajout D).
+    expect(strings.screens.composition.title).toBe("Composer une séance");
     expect(strings.screens.composition.name).toBe("Nom de la séance");
     expect(strings.screens.composition.colorPicker).toEqual({
       label: "Couleur",
@@ -369,7 +370,8 @@ describe("strings", () => {
   });
 
   it("REWORK12 — exposes the functional titles Ajouter/Modifier une activité, and the Séance context prefix (D-105)", () => {
-    expect(strings.screens.exercise.titleAdd).toBe("Ajouter un exercice");
+    // Complément d'alignement du 07/10 (ajout D).
+    expect(strings.screens.exercise.titleAdd).toBe("Créer un exercice");
     expect(strings.screens.exercise.titleEdit).toBe("Modifier un exercice");
     expect(strings.screens.exercise.context).toEqual({ prefix: "Séance" });
     // T02-S02 (D-137) : l'écran unifié n'a plus de seconde étape —

@@ -884,7 +884,7 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.sessionNameBorder` | `#FFFFFF` | Liseré du champ `Nom de la séance` sur la surface colorée de Composition ; variable Figma `color/session-name-border` |
 | `color.mediaSurface` | `#F5F7FA` | Alias conservé de surface ; anciennes valeurs F6F6FF historiques |
 | `color.mediaBorder` | `#CDCEFA` | Bordure des aperçus Média ; variable sémantique Figma `color/media/border`, alias exact de la primitive `color/media/border-CDCEFA` |
-| `color.overlayScrim` | `rgba(20, 20, 20, 0.5)` | Voile bloquant des roulettes ouvertes et des dialogues de décision. **Valeur de code conservée, cible Figma à arbitrer** : la variable sémantique `color/overlay/scrim` vaut `#1F2129` à 34 %, mais les voiles réellement dessinés diffèrent (`#000000` à 28 % sur `Composition séance — Abandon` `2028:11298` et la roulette `6407:10127` ; `#14171F` à 34 % lié à `color/overlay-scrim` sur `4861:6145`) — relevé du 07/10/2026 |
+| `color.overlayScrim` | `rgba(31, 33, 41, 0.34)` | Voile modal unique de tous les voiles existants (dialogues de décision, feuilles de sélection, roulettes, options de création) ; variable sémantique Figma `color/overlay/scrim`, alias de la primitive `color/overlay/scrim-1F2129-34` (complément d’alignement du 07/10, ajout A ; l’ancienne valeur de code `rgba(20, 20, 20, 0.5)` est historique) |
 | `color.textLabel` | `#46464C` | Libellés, Figma color/text-label |
 | `color.textTertiary` | `#7A7A80` | Texte tertiaire |
 | `color.onPrimary` | `#FFFFFF` | Texte et icône sur primaire |
@@ -893,6 +893,8 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.breakpoint` | `#ED7314` | Action de point d’arrêt |
 | `color.compositionDraggedCardShadow` | `#14171F` | Teinte d’ombre ; distincte du voile modal. Valeur de la variable Figma `color/overlay-scrim` (opaque) : le nom de code est conservé car il ne se confond pas avec `color.overlayScrim` (`color/overlay/scrim`) |
 | `color.stepperSurface` | `#F2F2FF` | Fond lavande du stepper ouvert (`DSF / Controls / Stepper / Profil` `5544:4732`) ; variable Figma observée `color/observed/f2f2ff`, sans token sémantique |
+| `color.segmentedSurface` | `rgba(255, 255, 255, 0.5)` | Cadre du contrôle segmenté standard : `color/background` (`2290:54`) avec opacité de remplissage 0,5, jamais une opacité de conteneur (`DSF / Controls / Segmenté` `7388:13779`) |
+| `color.segmentedInactiveSurface` | `#EAEAFF` | Fond des options inactives du contrôle segmenté standard, rayon 10 ; peinture locale du maître `7388:13779`, sans variable Figma |
 
 ##### Alias d’usage du code — alignement DSF du 07/10/2026
 
@@ -964,6 +966,7 @@ Le relevé du06/10 comporte51 styles. La correspondance code/Figma se fait par r
 | `type.dialogNeutralActionLabel` | Semi Bold | `16` | `19` | Libellé de l’action neutre d’un dialogue (Auto) |
 | `type.dialogDestructiveActionLabel` | Medium | `16` | `19` | Libellé de l’action destructive d’un dialogue (Auto) |
 | `type.contextLine` | Regular | `14` | `17` | Ligne de contexte du bandeau (interligne explicite `17`) |
+| `type.segmentedLabel` | Semi Bold | `16` | `20` | Libellés des contrôles segmentés, sélectionnés ou non — style `KODJO / Section title` à interligne explicite 20 ; exceptions conservées : Changement de côté (13) et Ordre des côtés (14/11) |
 
 La taille minimale d’un texte fonctionnel est `11`. Une information secondaire utilise normalement `type.supporting` en `12`. Les tailles `8`, `10` et `10,5` ne sont pas utilisées pour du texte fonctionnel ; les points du Calendrier mensuel sont des indicateurs graphiques et non des caractères typographiques. Les titres et noms fonctionnels utilisent `type.cardTitle` en `16`, sauf les nouvelles cartes en `15` et le niveau compact explicitement prévu par `type.compactCardTitle`. La taille `15` est désormais le titre fonctionnel des nouvelles cartes du 30 septembre, exception explicite à D-083 ; les autres titres conservent leur niveau propre.
 

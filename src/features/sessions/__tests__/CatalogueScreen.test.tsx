@@ -212,7 +212,10 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(within(contextBand).queryByText(strings.screens.sessions.title)).toBeNull();
   });
 
-  it("keeps the segmented control's own container white, distinct from the pale Context band behind it (CAT-R01, contre-recette iPhone 2026-09-03)", async () => {
+  // Complément d'alignement du 07/10 (ajout C) : le cadre standard devient
+  // blanc à 50 % (`color/background`, opacité de remplissage 0,5) — il reste
+  // un fond propre au contrôle, plus clair que la zone de contexte.
+  it("gives the segmented control its own white 50 % container over the pale Context band (CAT-R01, ajout C du 07/10)", async () => {
     const { service, listActiveSessions } = makeFakeService();
     listActiveSessions.mockResolvedValue([]);
 
@@ -224,7 +227,8 @@ describe("CatalogueScreen — cadre commun", () => {
     });
 
     const filterRow = screen.getByTestId("catalogue-content-type-row");
-    expect(StyleSheet.flatten(filterRow.props.style).backgroundColor).toBe(colors.background);
+    expect(StyleSheet.flatten(filterRow.props.style).backgroundColor).toBe(colors.segmentedSurface);
+    expect(colors.segmentedSurface).toBe("rgba(255, 255, 255, 0.5)");
 
     // Le segment sélectionné (`Séances`, au centre) reste annoncé comme tel,
     // et son texte reste blanc — non touché par le passage au sélecteur de

@@ -204,7 +204,9 @@ export const fr = {
         openAccessibilityLabel: "Modifier l’exercice",
       },
       editor: {
-        titleAdd: "Ajouter un exercice",
+        // Complément d'alignement du 07/10 (ajout D) : titre d'écran de
+        // création « Créer un exercice » ; « Modifier un exercice » inchangé.
+        titleAdd: "Créer un exercice",
         titleEdit: "Modifier un exercice",
         backAccessibilityLabel: "Retour",
         name: "Nom de l’exercice",
@@ -253,7 +255,8 @@ export const fr = {
       },
     },
     composition: {
-      title: "Composition d’une séance",
+      // Complément d'alignement du 07/10 (ajout D) : titre d'écran.
+      title: "Composer une séance",
       backAccessibilityLabel: "Retour",
       name: "Nom de la séance",
       colorPicker: {
@@ -404,7 +407,8 @@ export const fr = {
       // explicitement demandée par l'autorisation, même patron que
       // `08 – Conception fonctionnelle détaillée.md` (« Titre de l'écran »).
       // V2-PRE-1 (critère UI-D35DA2C4F266) : « exercice » remplace « activité ».
-      titleAdd: "Ajouter un exercice",
+      // Complément d'alignement du 07/10 (ajout D) : « Créer un exercice ».
+      titleAdd: "Créer un exercice",
       titleEdit: "Modifier un exercice",
       backAccessibilityLabel: "Retour",
       // Complétion REWORK12 (D-105) : « Zone bleue — Contexte séance et nom
