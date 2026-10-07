@@ -5,7 +5,7 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "CERTIFY_INCIDENTS_REQUESTED",
+  "current_stage": "INCIDENT_REPLAY_COVERAGE_DIAGNOSIS_REQUIRED",
   "request_id": "ee55d53d-448b-4dbb-b403-bab1b7cd4487",
   "generation": 94,
   "previous_terminal_generation": 77,
@@ -187,7 +187,7 @@
     "automatic_visual_validation"
   ],
   "active_run_ids": [],
-  "next_action": "Wait for the unique CERTIFY_INCIDENTS run, then verify targeted validator tests and read-only historical replay before historical aggregation, technical review and effective closure.",
+  "next_action": "Design and qualify bounded handling of the five unchanged NON_UI dependency targets in the historical read-only replay; preserve non-UI coverage obligations and successful 82 targeted tests. No identical retry.",
   "controller_head": "a05710a28a016dfd37cdf9e7b522324f42cdb4df",
   "qualification_branch": "qualification/vnext-full-cycle-real-stdin-232ae5f7-20261007",
   "observed_at": "2026-10-07T18:12:10.382Z",
@@ -995,5 +995,30 @@
     "next_request_id": "4417857a-3b3c-4c38-b715-7f43ef4677bf",
     "status": "CONSUMED_FOR_UNIQUE_REQUEST",
     "published_generation": 93
+  },
+  "incident_failure": {
+    "run_id": 37665950253,
+    "run_attempt": 1,
+    "source_head": "ada406f9cc690fe4c9557038f21a19b864f0a0da",
+    "tests": {
+      "pass": 82,
+      "fail": 0,
+      "skip": 0
+    },
+    "replay": "FAILED",
+    "diagnostic": "VNEXT_FINAL_TARGET_NOT_DELIVERED",
+    "artifact_id": 11502622229,
+    "artifact_sha256": "027731628e3afc11e0f21d4b73773c116e1a2815974b0f157bb95a2c8c764efe",
+    "last_comparable_success": 37559490452,
+    "regression_commit": "ffdd724a",
+    "missing_non_ui_targets": [
+      "src/domain/sessions/defaults.ts",
+      "src/domain/preferences/index.ts",
+      "src/domain/body-zones/index.ts",
+      "src/domain/categories/index.ts",
+      "src/domain/labels/index.ts"
+    ],
+    "cause": "ffdd724a adds all NON_UI requirement targets to cumulative delivered-file coverage; five plan dependency targets are unchanged relative to historical baseline and are not in retained UI targets.",
+    "operational_closure_certified": false
   }
 }
