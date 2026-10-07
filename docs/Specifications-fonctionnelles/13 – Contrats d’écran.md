@@ -448,6 +448,8 @@ D-167/D-173/D-187/D-193/D-195 supersédée par D-261 après D-238 ; D-221/D-233�
 
 Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figma ; maintien des rubriques sans changement fonctionnel lorsque non concernées. Les captures sont centralisées au chapitre06, aucun test applicatif présumé.
 
+Vérification complémentairev15 : règle de durée omise sans libellé de remplacement conservée ; états icônes et textes de fond selon [matrice v15](../MATRICE-EVOLUTIONS-V15-2026-10-07.md). Aucune nouvelle variante ni action.
+
 ## CE-T03-03 — Catalogue — action `Créer` contextuelle
 
 ### 1. Identification
@@ -562,7 +564,7 @@ Terminer valide et persiste puis retourne au contexte appelant. Carte Paramètre
 
 ### 5. Données affichées et source de vérité
 
-Phrase selon les276 cas v14, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus.
+Phrase selon les276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus.
 
 Brouillon parent : nom, référentiels, description, paramètres validés par la feuille et médias existants. Aucun texte de démonstration codé en dur.
 
@@ -573,6 +575,8 @@ La collection inclut la bip commun0..10 de chaque Série. Phrase dérivée des p
 ### 6. Classification des valeurs Figma
 
 Ajouter un exercice/Modifier un exercice, Paramètres d’exécution, Description de l’exercice, Terminer : statiques. Nom et résumé : dynamiques. Mode et Compte à rebours/Fin restent séparés de la phrase intrinsèque.
+
+Le champ du mode est distinct de la durée : Répétitions sur7059:13302 et7119:27855. La phrase et le mode reflètent les paramètres appliqués ; les montants statiques des copies ne sont pas des valeurs par défaut.
 
 ### 7. Structure de l’écran
 
@@ -589,6 +593,8 @@ Shell conservé : en-tête fixe, bandeau nom/référentiels, carte Paramètres, 
 Phrase : Inter13, interligne20, texte sombre et valeurs en gras ; largeur324/x39 dans la référence402. Hauteur auto et retour naturel ; le contenu inférieur suit la croissance. Aucune limite de198/211 caractères. Le layout du shell reste celui des frames du formulaire.
 
 Icônes Catégorie et Zones : états contour/plein de la planche7245:13718 ; une seule silhouette, issue du Profil, jamais deux boutons homme/femme dans l’éditeur.
+
+Référence longue7119:27855 :224caractères, cinq lignes/100px à largeur324, carte193px en AUTO. Contenu et contrôles suivants suivent la hauteur intrinsèque, sans plafond.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -638,7 +644,7 @@ Aucune édition inline de la phrase. Mode/nom exclus de la phrase intrinsèque ;
 
 ### 20. Recette déterministe
 
-Recette rédactionnelle :276 gabarits v14 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés.
+Recette rédactionnelle :276 gabarits v15 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés.
 
 Tester vide→feuille→annuler sans changement ; feuille valide→résumé→Terminer ; zone de phrase entière ; modification annulée ; trois modes, deux ordres bilatéraux et PC=0 sans repli ; source disparue/erreurDB ; champs/référentiels requis ; lecture seule Total Répétitions. Vérifier différences entre exemple Figma et données recalculées.
 
@@ -648,6 +654,8 @@ Bip0/1/10, supprimer puis annuler/confirmer, phrase à3/4cibles, singulier et de
 
 Vérifier état repos/activé à ouverture/fermeture du panneau et symbole du total selon D-305.
 
+Corpusv15 :276gabarits, total métier injecté ; aucun changement grammatical vs v14. Tester virgule jamais isolée en début de ligne, cas144 long et ordre des cibles après déplacement. Les cas de brouillon incomplet restent hors des276sorties validées.
+
 ### 21. Traçabilité
 
 Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
@@ -655,6 +663,8 @@ Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](
 D-246 à D-255 ; v13 ; CE-UI-10/09 ; état des lieux du03/10 (chaque frame, capture, statut, contrat). Anciennes copies hors Prototype MVP actuel, aucune modification de règle issue de leurs chiffres.
 
 Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figma ; maintien des rubriques sans changement fonctionnel lorsque non concernées. Les captures sont centralisées au chapitre06, aucun test applicatif présumé.
+
+E01/E02/E13–E15/E19/E20 — [matrice v15](../MATRICE-EVOLUTIONS-V15-2026-10-07.md) et DSF Phrases v15 ; captures reprises aux chemins du chapitre06.
 
 ## CE-T03-05 — ActivityDefinition — archiver / restaurer / supprimer
 
@@ -1008,6 +1018,8 @@ Continuer exige nom et au moins un Exercice valide. Récupération0..300s, grill
 
 Brouillon de placement isolé du brouillon Composition ; roulette incluse dans cette transaction. Confirmer applique atomiquement au parent, Continuer seul persiste Session+Composition. Annuler la roulette ne confirme pas un ajout ; Annuler placement restaure son état d’entrée ; abandon Séance restaure la version persistée.
 
+Une récupération explicitement réglée à0 reste persistée ; seule l’action Retirer supprime l’objet. Elle ne produit aucune phase et ne remplace pasPN. Pause après chaque série et Pause de Composition sont deux données distinctes.
+
 ### 16. Navigation et conservation d’état
 
 Sous-parcours : conserver brouillon, insertion et scroll. Continuer succès → Catalogues/Séances avec transition canonique ; aucune page Catégories. Échec : rester, brouillon intact, action réactivée.
@@ -1026,6 +1038,8 @@ Pause après chaque série, dernière comprise, même N1. PN puis PC se cumulent
 
 Circuit=groupe, Tour=répétition ; récupération positive avant point, attente exclue du prévu ; éléments internes répétés à chaque Tour. Aucune récupération automatique ni récupération directe ACTIVITY. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). D-248 confirmée sur pause terminale et substitution par R ; D-301 maintenu pour l’absence de pause effective entre Exercices ; aucune persistance avant Continuer.
 
+CF3 déjà tranché par RM-151/RM-152 : indicateur compact D→G/G→D conservé, sans nouvelle ligne de pause ni phrase longue injectée dans les cartes.
+
 ### 20. Recette déterministe
 
 Tester annulation roulette/placement/Séance, sélection multiple/désélection/décompte, Rabsente/0/positive et point absent/présent, dans/hors placement. Tester frontières des deux types, dernière récupération, répétition par Tour, retrait/extérieur bulle, duplication/déplacement/suppression et sauvegarde atomique. Tester erreur/double tap ; D-214/V-04 conservés. D-301 présent uniquement sans pause effective de transition ni Rpositive, sans blocage. Vérifier symbole ≈ avec bip/omission sans bip à l’Exercice et montants issus de la spécification, aucune formule de capture.
@@ -1035,6 +1049,8 @@ Tester annulation roulette/placement/Séance, sélection multiple/désélection/
 Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
 D-208/214/217/238 conservées pour leurs dispositions non supersédées ; D-301–307 et Spécification Pauses et symboles07/10. CE-T03-06/07/16, CE-EXEC-SESSION-01 ; références§1. Les captures fidèles ne prouvent pas la conformité du trait. Aucun test applicatif exécuté.
+
+E06/E09/E10/E16 — consolidationv15 ; D-303 conserve le trait hors placement malgré le passage contradictoire de la source. Les copies7167:13503/7173:13521/7296:13696 ont été réexportées, identiques au lot précédent.
 
 ## CE-T03-09 — Lancement direct et préparation fixe 5 s
 
@@ -3151,12 +3167,14 @@ D-199/D-200/D-210–212/D-222/D-238 ; CE-T03-04 ; frames§1. Renommage et couleu
 
 Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figma ; maintien des rubriques sans changement fonctionnel lorsque non concernées. Les captures sont centralisées au chapitre06, aucun test applicatif présumé.
 
+Vérification complémentairev15 : règle de durée omise sans libellé de remplacement conservée ; états icônes et textes de fond selon [matrice v15](../MATRICE-EVOLUTIONS-V15-2026-10-07.md). Aucune nouvelle variante ni action.
+
 ## CE-UI-10 — Paramètres d’exécution — feuille basse
 
 
 ### 1. Identification
 
-Feuille Paramètres d’exécution de CE-T03-04. Références actualisées6419:9847,6665:24844,6665:27008,7059:13302,7069:13573 ; ancien7061:13383 supprimé. Captures au chapitre06, inventaire Bip du07/10. Les autres états Durée/À l’échec doivent encore recevoir visuellement le champ transverse.
+Feuille Paramètres d’exécution de CE-T03-04. Références actualisées6419:9847,6665:24844,6665:27008,7059:13302,7069:13573 ; ancien7061:13383 supprimé. Captures au chapitre06, inventaire Bip du07/10. Les24modales relues portent désormais le champ transverse dans les trois modes.
 
 ### 2. Finalité fonctionnelle
 
@@ -3172,7 +3190,7 @@ Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initi
 
 ### 5. Données affichées et source de vérité
 
-Phrase selon les276 cas v14, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus.
+Phrase selon les276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus.
 
 Collection effective des Séries, cible/Pause/bip, mode, direction, ordre,PC,Compte à rebours/Fin. Bip commun à toutes les lignes,0..10 dans trois modes ; aucune surcharge persistée. Calcul typé fourni par Bip v2 ; phrase et montants Figma ne pilotent aucune donnée.
 
@@ -3191,6 +3209,8 @@ Stepper Bip permanent0..10,0 libellé Aucun ; contrôle actif même à0. Aucun i
 ### 9. Layout déterministe
 
 À402 : Bip au premier niveau x36, séparateur330 ; Séries variables/cible/Pause et Ordre/PC indentés x52, séparateur314. Bip juste au-dessus du total ou avant Compte à rebours si total absent. Retrait du total raccourcit la feuille de42px par le haut, bas ancré. Valeurs/steppers à droite ; marges adaptées, pas de coordonnées absolues sur toutes largeurs. Voile#1F2129 à34%, distinct de l’ombre.
+
+Référence longue7119:27855 :224caractères, cinq lignes/100px à largeur324, carte193px en AUTO. Contenu et contrôles suivants suivent la hauteur intrinsèque, sans plafond.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -3236,17 +3256,21 @@ Bip sonore uniquement pendant Série, aucune transition/compteur automatique. So
 
 ### 20. Recette déterministe
 
-Recette rédactionnelle :276 gabarits v14 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés.
+Recette rédactionnelle :276 gabarits v15 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés.
 
-Six combinaisons mode×bip ;0/1/10 et rejets−1/11/fraction ; conservation lors des bascules, annulation et duplication.4×15×4+4×15=300s≈ ; sans bip ligne absente. Tester N1,variable,repli,réordre de dernière Série,inversion Durée,deux côtés/R ; géométrie42px, texte agrandi et accessibilité. Phrase de pauses conforme aux276 formulations v14 ; Q-08 clos.
+Six combinaisons mode×bip ;0/1/10 et rejets−1/11/fraction ; conservation lors des bascules, annulation et duplication.4×15×4+4×15=300s≈ ; sans bip ligne absente. Tester N1,variable,repli,réordre de dernière Série,inversion Durée,deux côtés/R ; géométrie42px, texte agrandi et accessibilité. Phrase de pauses conforme aux276 formulations v15 ; Q-08 clos.
+
+Corpusv15 :276gabarits, total métier injecté ; aucun changement grammatical vs v14. Tester virgule jamais isolée en début de ligne, cas144 long et ordre des cibles après déplacement. Les cas de brouillon incomplet restent hors des276sorties validées.
 
 ### 21. Traçabilité
 
 Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
-Bip v2,Paramètres v13,Phrase v1,DSF Bip,source propriétaire07/10 et inventaire courant. D-308–313 supersèdent les anciennes dispositions incompatibles. Copies de cinq écrans vérifiées ; propagation Figma aux autres modes encore incomplète, aucun alignement global déclaré.
+Bip v2,Paramètres v13,Phrase v1,DSF Bip,source propriétaire07/10 et inventaire courant. D-308–313 supersèdent les anciennes dispositions incompatibles. Les24modales ont été relues pour le Bip ; les autres réserves visuelles sont listées séparément dans la matricev15.
 
 ---
+
+E01/E02/E13–E15/E19/E20 — [matrice v15](../MATRICE-EVOLUTIONS-V15-2026-10-07.md) et DSF Phrases v15 ; captures reprises aux chemins du chapitre06.
 
 ## 5. État des preuves visuelles
 

@@ -28,6 +28,8 @@ Seul le bouton touché s’anime ; nombre, fond et bouton opposé immobiles. Dil
 
 Les24 frames portant le libellé Bip ont été relues et recapturées ; les19 modales auparavant signalées sont maintenant couvertes.7061:13383 reste supprimé. Voir la [matrice courante](MATRICE-CARTES-PHRASES-2026-10-07.md), avec captures et écarts résiduels de texte ; présence du champ ne vaut pas qualification du comportement.
 
-Le composant Roulette Secondes existant n’est pas supprimé de la bibliothèque au seul motif que le Bip ne l’utilise plus. Réutiliser les steppers existants, aucun doublon de famille. Les phrases gardent Inter13/20 et valeurs en gras ; les276 formulations v14 gouvernent leur texte, Q-08 clos.
+Le composant Roulette Secondes existant n’est pas supprimé de la bibliothèque au seul motif que le Bip ne l’utilise plus. Réutiliser les steppers existants, aucun doublon de famille. Les phrases gardent Inter13/20 et valeurs en gras ; les276 formulations v15 gouvernent leur texte, Q-08 clos.
 
-**Complément courant cartes :** [durée sans cadre, propriété Durée et géométrie](DSF-CARTES-DUREE-2026-10-07.md). Les276 textes v14 et les segments `{texte, gras}` sont définis dans [Phrase v1 actualisée](Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md).
+**Complément courant cartes :** [durée sans cadre, propriété Durée et géométrie](DSF-CARTES-DUREE-2026-10-07.md). Les276 textes v15 et les segments `{texte, gras}` sont définis dans [Phrase v1 actualisée](Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md).
+
+**Complément v15 :** [phrases longues, conteneurs et textes de fond](DSF-PHRASES-V15-2026-10-07.md). Corpus276v15 exclusivement rédactionnel ; règles de durée et de carte conservées.

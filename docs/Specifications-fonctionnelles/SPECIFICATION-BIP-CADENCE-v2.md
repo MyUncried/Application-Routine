@@ -1,6 +1,6 @@
 # Bip de cadence — spécification normative v2
 
-07/10/2026, clarification finale pauses et v14. Source : [prompt transmis par le propriétaire](../archives/bip-cadence-2026-10-07/prompt-source.md). Remplace Cadence v1 et les dispositions incompatibles de D-268–297/D-305 ; D-248 confirmée pour les pauses, D-311 remplacée par D-314. Figma détermine le layout ; les règles ci-dessous proviennent du document expressément transmis, pas d’une déduction de ses chiffres. Excel reste une référence de phrases, jamais le calculateur métier.
+07/10/2026, clarification finale pauses et v15. Source : [prompt transmis par le propriétaire](../archives/bip-cadence-2026-10-07/prompt-source.md). Remplace Cadence v1 et les dispositions incompatibles de D-268–297/D-305 ; D-248 confirmée pour les pauses, D-311 remplacée par D-314. Figma détermine le layout ; les règles ci-dessous proviennent du document expressément transmis, pas d’une déduction de ses chiffres. Excel reste une référence de phrases, jamais le calculateur métier.
 
 ## 1. Paramètre commun aux trois modes
 
@@ -82,9 +82,9 @@ Résultats temporels typés exact/estimated/lowerBound/omitted ; omitted sans mo
 
 Le prérequis SeriesParameters et les objets de pause doit être planifié avant intégration de cette évolution au modèle scalaire existant. Le numéro de migration n’est pas décidé par Figma. Ce lot documentaire ne livre ni migration SQL ni code audio.
 
-## 8. Phrase et classeur v14
+## 8. Phrase et classeur v15
 
-Les276 formulations du [classeur v14](../archives/cartes-phrases-v14-2026-10-07/generateur-phrase-activite_v14.xlsx) gouvernent le texte, exclusivement. Terme retenu : « pause après chaque série ». Q-08 clos ; ancienne proposition « pause entre les séries » et ancien signe+ abandonnés. Le générateur reçoit le résultat métier, retourne des segments `{texte, gras}`, ne persiste aucune phrase et régénère à chaque affichage. Voir [Phrase v1 actualisée](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md).
+Les276 formulations du [classeur v15](../archives/evolutions-v15-2026-10-07/generateur-phrase-activite_v15.xlsx) gouvernent le texte, exclusivement. Terme retenu : « pause après chaque série ». Q-08 clos ; ancienne proposition « pause entre les séries » et ancien signe+ abandonnés. Le générateur reçoit le résultat métier, retourne des segments `{texte, gras}`, ne persiste aucune phrase et régénère à chaque affichage. Voir [Phrase v1 actualisée](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md).
 
 ## 9. Recette attendue
 

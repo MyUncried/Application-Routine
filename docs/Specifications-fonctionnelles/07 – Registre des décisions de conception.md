@@ -506,3 +506,13 @@ Q-08 clos par instruction explicite du propriétaire : pause après chaque séri
 | D-318 | Durée des cartes Catalogue sans fond/cadre/padding, Inter Semi Bold12 #141414, alignée à16px du bord droit ; propriété booléenne Durée. | Prompt et composants vérifiés | Deux composants actifs, variantes repliée/archivée/déployée ; ne rouvre pas l’accès Exercice Déployé hors MVP |
 | D-319 | Exercice : titre250px, lignes basses207px ; gouttière12px et texte x88 conservés. Séance marges16/16. | Explicite prompt | Coupe60/69/145 dérivée des lignes basses ; asymétrie acceptée |
 | D-320 | Variabilité de visibilité via propriété de composant ; cinq composants sans instance obsolètes, pas de mise à jour ni suppression dans ce lot. | Méthode et inventaire | Incident des cinq instances signalé ; aucun caractère universel d’irréversibilité déduit |
+
+## Consolidation du07/10 — corpusv15 et références actualisées
+
+| ID | Décision / précision | Autorité | Portée |
+|---|---|---|---|
+| D-321 | v15 remplace v14 comme corpus des276phrases ; aucun gabarit changé,36montants d’exemple changés. Excel reste exclusivement rédactionnel. | Demande propriétaire et comparaison des sources | Actualise la référence deD-315 ; calculs inchangés |
+| D-322 | Phrase longue224caractères, cinq lignes à largeur324 ; hauteur intrinsèque sans plafond ; césure sans virgule isolée. | Source reçue et layout Figma relu | CE-T03-04/CE-UI-10 ; aucun nouveau shell |
+| D-323 | Recovery explicitement0 reste conservée ; Pi demeure dans SeriesParameters, distinct de Pause de Composition. | §6 rapproché des règles publiées | Précision modèle ; D-303 sur le trait conservée |
+
+CF1/CF2/CF3 sont déjà résolus par les règles publiées ; CF4 reste un contrôle de données avant implémentation, aucune reprise fonctionnelle supplémentaire demandée ici. Le montant330s et le trait hors placement priment sur les passages contradictoires de la source. [Matrice des écarts et preuves](../MATRICE-EVOLUTIONS-V15-2026-10-07.md).

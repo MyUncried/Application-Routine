@@ -1,5 +1,7 @@
 # Matrice de traçabilité — pauses, phrases v14 et cartes — 07/10/2026
 
+**Relevé historique du lot précédent.** La [matrice v15](MATRICE-EVOLUTIONS-V15-2026-10-07.md) porte la référence courante, les derniers noms/captures et les limites vérifiées. Les empreintes ci-dessous décrivent leur lot daté.
+
 Base contrôlée : PR323, commit37e372cd5b1b1ce73b7174449fbc2f3338d6347a ; main6d03f5be579f2d0e2e7602b6abf1c2b46f4c740b. Aucune fusion ni modification du code/Figma dans ce lot. Les sources originales sont [archivées](archives/cartes-phrases-v14-2026-10-07/README.md). Les décisions explicites du propriétaire priment sur les contradictions des prompts.
 
 Références : **Bip**=[spécification](Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md), **Paramètres**=[v13](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md), **Phrase**=[v1 actualisée](Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md), **Cartes**=[DSF](DSF-CARTES-DUREE-2026-10-07.md), **Contrats**=[chapitre13](Specifications-fonctionnelles/13%20–%20Contrats%20d’écran.md), **Registre**=[chapitre07](Specifications-fonctionnelles/07%20–%20Registre%20des%20décisions%20de%20conception.md). « Traité » signifie documentation corrigée/recette prescrite, pas fonctionnalité développée.

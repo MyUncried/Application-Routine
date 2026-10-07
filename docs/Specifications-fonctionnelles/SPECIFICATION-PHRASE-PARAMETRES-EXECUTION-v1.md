@@ -1,12 +1,14 @@
 # Phrase des paramètres d’exécution — spécification rédactionnelle v1
 
-Actualisée le07/10/2026 selon la clarification explicite du propriétaire et le classeur v14. La version du document reste indépendante de celle du classeur. Q-08 est clos ; les formulations antérieures « + … de pause chacune », « suivie de » et la proposition « pause entre les séries » sont remplacées.
+Actualisée le07/10/2026 selon la clarification explicite du propriétaire et le classeur v15. La version du document reste indépendante de celle du classeur. Q-08 est clos ; les formulations antérieures « + … de pause chacune », « suivie de » et la proposition « pause entre les séries » sont remplacées.
 
 ## 1. Sources et responsabilité
 
-Les [276 cas v14](../archives/cartes-phrases-v14-2026-10-07/phrases-276.json), extraits des cellules I4:I279 du [classeur original](../archives/cartes-phrases-v14-2026-10-07/generateur-phrase-activite_v14.xlsx), fixent les formulations. Leur total numérique est un exemple injecté, jamais un oracle métier. Le générateur reçoit le résultat calculé par [Bip v2](SPECIFICATION-BIP-CADENCE-v2.md) et [Paramètres v13](SPECIFICATION-PARAMETRES-MODALE-v13.md). Ne pas exécuter les formules Excel pour calculer l’application. Figma définit le layout ; ses chiffres n’amendent aucune règle.
+Les [276 cas v15](../archives/evolutions-v15-2026-10-07/phrases-276.json), extraits des cellules I4:I279 du [classeur original](../archives/evolutions-v15-2026-10-07/generateur-phrase-activite_v15.xlsx), fixent les formulations. Leur total numérique est un exemple injecté, jamais un oracle métier. Le générateur reçoit le résultat calculé par [Bip v2](SPECIFICATION-BIP-CADENCE-v2.md) et [Paramètres v13](SPECIFICATION-PARAMETRES-MODALE-v13.md). Ne pas exécuter les formules Excel pour calculer l’application. Figma définit le layout ; ses chiffres n’amendent aucune règle.
 
 Entrées : mode, N, uniforme/variable, cibles et pauses ordonnées, bip commun, direction et ordre des côtés, PC ; résultat intrinsèque exact/estimated/omitted. Le contexte de récupération de Séance ne réécrit pas cette description intrinsèque.
+
+La comparaison v14→v15 ne change aucun gabarit : seuls36montants d’exemple diffèrent. Le corpus courant contient140phrases sans total,46avec≈ et90avec total exact ; aucun≥. Les tests métier de durée restent indépendants de la colonneJ et de la feuille Calcul des durées. [Preuve de comparaison](../archives/evolutions-v15-2026-10-07/comparaison-v14-v15.json).
 
 ## 2. Contrat de génération et persistance
 
@@ -18,7 +20,7 @@ Exemple de début : `[{texte:"3",gras:true},{texte:" séries de ",gras:false},{t
 
 Pendant un brouillon incomplet, aucune cible inventée : conserver les règles de champs manquants/validation et interdire✓. Compte à rebours et Fin sont des lignes séparées, exclus du texte et du total intrinsèque.
 
-## 3. Grammaire française v14
+## 3. Grammaire française v15
 
 Ordre : nombre de séries → contenu → pause → côtés → durée applicable. Ponctuation et accords conformes aux276 cas ; série/séries, menée/menées. Les espaces et unités font partie du texte. Mode affiché à part, absent du début de phrase.
 
@@ -51,7 +53,11 @@ La pause après chaque série, dernière comprise, fait partie du calcul intrins
 
 ## 5. Rendu et accessibilité
 
-Zone cliquable unique, segments non interactifs. Inter13 Regular, interligne20 ; valeurs Semi Bold dans le texte courant. Référence402 : x39, largeur324 ; hauteur intrinsèque, retour naturel, aucune limite189/198/211 caractères. Le titre et les lignes Compte à rebours/Fin gardent leur hiérarchie. Zone entière → CE-UI-10, focus unique « Modifier les paramètres d’exécution ». Texte complet accessible et agrandissable ; retour de ligne de présentation avant Durée totale sans changement de grammaire.
+Zone cliquable unique, segments non interactifs. Inter13 Regular, interligne20 ; valeurs Semi Bold dans le texte courant. Référence402 : x39, largeur324 ; hauteur intrinsèque, retour naturel, aucun plafond de caractères. Le titre et les lignes Compte à rebours/Fin gardent leur hiérarchie. Zone entière → CE-UI-10, focus unique « Modifier les paramètres d’exécution ». Texte complet accessible et agrandissable ; retour de ligne de présentation avant Durée totale sans changement de grammaire.
+
+La référence7119:27855 est désormais « Phrase longue (224 caractères) », cas144 du corpusv15 : largeur324px, cinq lignes de20px, bloc100px, carte de paramètres193px à hauteur automatique. Ces mesures constatées ne deviennent pas des hauteurs fixes : agrandissement de texte et autres largeurs doivent étendre le contenu sans rogner Compte à rebours/Fin.
+
+Une virgule reste attachée au mot qui la précède : aucune virgule isolée en début de ligne. Les segments sont rendus dans un même flux Text, sans espace ajouté avant la ponctuation ni segments disposés chacun comme une boîte indépendante. Le retour visuel avant Durée totale est une propriété de rendu, pas une modification du texte canonique utilisé par la recette.
 
 ## 6. Internationalisation — décision et dette explicites
 

@@ -1,6 +1,6 @@
 # 1. Principes généraux
 
-**Mise à jour du07/10 — cartes, pauses et phrases :** [matrice de traçabilité](../MATRICE-CARTES-PHRASES-2026-10-07.md), [DSF des cartes](../DSF-CARTES-DUREE-2026-10-07.md), [phrase v14](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Captures reprises pour les cartes, modales Bip et résumés ; chiffres Figma illustratifs.
+**Mise à jour du07/10 — cartes, pauses et phrases :** [matrice de traçabilité](../MATRICE-CARTES-PHRASES-2026-10-07.md), [DSF des cartes](../DSF-CARTES-DUREE-2026-10-07.md), [phrase v15](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Captures reprises pour les cartes, modales Bip et résumés ; chiffres Figma illustratifs.
 
 **Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
 

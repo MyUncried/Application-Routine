@@ -1514,3 +1514,9 @@ La [spécification de phrase](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md) g
 Aucune colonne phrase ni sérialisation des segments dans définition/occurrence/snapshot. Génération à chaque affichage depuis les paramètres ; ✓ applique le brouillon, ne persiste pas le texte. Un changement rédactionnel est visible au prochain rendu des objets existants. Paramètres historiques et temps réalisés préservés.
 
 Français uniquement au MVP. Internationalisation ultérieure : gabarits et règles de pluriel/genre/ordre par locale, avec recette dédiée ; prévoir la réécriture de la grammaire française, pas une traduction des segments isolés. Corpus276 utilisé uniquement pour les phrases, valeurs totales injectées par le calcul métier.
+
+## Transmission au développement — évolutions v15
+
+Contrôle du main72d1bf47add0a80b4241f9706e3d2f8913a484ff : migrations001..008 présentes ;009 est le prochain numéro observé, à revalider avant création. Aucune reprise fonctionnelle des anciennes séances demandée dans le lot de conception ; contrôler les données réellement présentes avant livraison applicative. La collection SeriesParameters conserve Pi ; Pause de Composition est distincte. Voir [consolidation et dépendancesF-0 àF-8](CONSOLIDATION-EVOLUTIONS-V15-2026-10-07.md).
+
+Le jeu de276phrasesv15 teste le générateur avec un total injecté ; la feuille Calcul des durées ne teste pas le moteur. Rendu RN en Text imbriqués, aucune phrase persistée ; recette de césure et cas224caractères. Qualification audio/appareils séparée.

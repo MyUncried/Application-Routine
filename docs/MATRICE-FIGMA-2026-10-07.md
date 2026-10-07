@@ -1,5 +1,7 @@
 # Inventaire courant des références Figma — 07/10/2026
 
+**Relevé historique du lot précédent.** La [matrice v15](MATRICE-EVOLUTIONS-V15-2026-10-07.md) porte la référence courante, les derniers noms/captures et les limites vérifiées. Les empreintes ci-dessous décrivent leur lot daté.
+
 **État antérieur au lot Bip de cadence.** La [matrice Bip du07/10](MATRICE-BIP-FIGMA-2026-10-07.md) porte les références courantes et remplace les états de captures en attente.
 
 Page Prototype MVP du fichier G6RY5Ebhgwb4AHIOYDwwvg : 137 frames et 3 ensembles de composants au premier niveau. Cet inventaire remplace les matrices antérieures pour les références actives. Il ne signifie pas 140 écrans applicatifs : il distingue états, modales, bulles et planches DSF.

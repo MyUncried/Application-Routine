@@ -1,8 +1,8 @@
 # Écrans et navigation
 
-**Corrections Figma complémentaires du07/10 :** les19 phrases signalées et le catalogue corrigé disposent de nouvelles captures, aux mêmes chemins. [Liste et preuves](../CLOTURE-CAPTURES-PHRASES-2026-10-07.md). Vue longue renommée182 caractères ; aucune modification des règles métier.
+**Évolutions v15 du07/10 :**36captations vérifiées, dont15PNG changés depuis main72d1bf4. [Inventaire et preuves](../MATRICE-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases](../DSF-PHRASES-V15-2026-10-07.md). Vue longue renommée224caractères ; les calculs déjà décidés sont conservés.
 
-**Mise à jour du07/10 — cartes, pauses et phrases :** [matrice de traçabilité](../MATRICE-CARTES-PHRASES-2026-10-07.md), [DSF des cartes](../DSF-CARTES-DUREE-2026-10-07.md), [phrase v14](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Captures reprises pour les cartes, modales Bip et résumés ; chiffres Figma illustratifs.
+**Mise à jour du07/10 — cartes, pauses et phrases :** [matrice de traçabilité](../MATRICE-CARTES-PHRASES-2026-10-07.md), [DSF des cartes](../DSF-CARTES-DUREE-2026-10-07.md), [phrase v15](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Captures reprises pour les cartes, modales Bip et résumés ; chiffres Figma illustratifs.
 
 
 
@@ -705,7 +705,7 @@ La rangée `Créer / Filtrer / Trier` est identique au Catalogue des Séances : 
 
 Chaque carte utilise la nouvelle grammaire DSF : aucune barre verticale ; la couleur de Catégorie est portée par sa pastille dans le Catalogue. Sa surface principale ouvre la consultation ou la modification ; le bouton Lecture, dans une cible séparée, lance uniquement l’Exécution directe. La carte d’Exercice possède un seul format à gouttière permanente de64 px dans le Catalogue : photo associée ou icône de nature sans média. Aucun Déployer avec ou sans média ; Lecture reste indépendante. Chargement/erreur conservent la place réservée, texte alternatif = nom de l’exercice. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Exercices actifs et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
 
-Titre15 Semi Bold, badge durée en haut à droite, classement Catégorie puis Zones, valeurs16 et synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`. Bilatéralité par miroir16 à12 après la synthèse. Aucune pause/récupération ni prochaine planification affichée. Format unique : carte354 × 91, gouttière64 à12, texte x88/largeur207, catégorie conservée et pictogramme de zone conservé. Variante archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9, Restaurer ; l’absence d’écran d’archive dédié est acceptée. Ces règles valent aussi derrière les panneaux de filtres et dans les états glissés ; les actions suivent la hauteur de la carte.
+Titre15 Semi Bold, durée sans cadre en haut à droite, seulement si calculable, classement Catégorie puis Zones, valeurs16 et synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`. Bilatéralité par miroir16 à12 après la synthèse. Aucune pause/récupération ni prochaine planification affichée. Format unique : carte354 × 91, gouttière64 à12, titre x88/largeur250, lignes basses de largeur207, catégorie conservée et pictogramme de zone conservé. Variante archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9, Restaurer ; l’absence d’écran d’archive dédié est acceptée. Ces règles valent aussi derrière les panneaux de filtres et dans les états glissés ; les actions suivent la hauteur de la carte.
 
 États Figma complémentaires de la famille Catalogue des Exercices :
 
@@ -2455,7 +2455,7 @@ Dans la Composition actuelle, aucun contrôle de changement de côté n’est af
 
 Aucune confirmation d’activation bilatérale du Tour n’est exposée dans la version actuelle. Le support technique historique du côté Tour reste conservé pour non-régression, fixé à `UNILATERAL` et non modifiable.
 
-Dans une carte d’Exercice, l’indicateur propre affiche `D→G` ou `G→D` lorsque l’Exercice est bilatéral ; il est absent avec `Aucun`. La synthèse place `à droite, puis à gauche` ou `à gauche, puis à droite` après la cible du mode — après `jusqu’à l’échec` — et avant la Pause. Les références géométriques suivent le Figma courant.
+Dans une carte d’Exercice, l’indicateur propre affiche `D→G` ou `G→D` lorsque l’Exercice est bilatéral ; il est absent avec `Aucun`. La phrase complète de l’éditeur suit Phrase v1/corpusv15 : cible, Pause, côtés puis total applicable. La carte de Composition utilise son indicateur compact distinct. Les références géométriques suivent le Figma courant.
 
 Dans la famille Exécution — séance ou exercice, un Exercice effectivement bilatéral affiche `Côté droit` ou `Côté gauche` sous son nom. Les indicateurs de progression gardent leur sémantique ; aucun compteur de côté n’est ajouté. Les frames d’Exécution existantes restent inchangées.
 

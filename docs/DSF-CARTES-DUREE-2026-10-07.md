@@ -41,4 +41,6 @@ Composants historiques sans instance selon le prompt :5544:6324 Exercice—catal
 
 Contrôler catalogue Exercice/Séance replié, archivé et référence déployée ; durée longue et titre long, présence/absence puis retour sans perdre les autres données, modes et bip, marges et texte agrandi. Absence ne laisse aucune pastille vide. Sélecteurs sans durée et Suivi réel conservés. [Matrice des captures courantes](MATRICE-CARTES-PHRASES-2026-10-07.md) :38 écrans contenant des instances des sets actifs réexportés, plus paramètres et résumés. Les montants illustratifs ne sont pas évalués comme une recette de calcul.
 
-La forme compacte « Pause de15s par série » citée dans le prompt est un texte témoin Figma, pas une autorisation de réintroduire une ligne de pause dans les cartes Catalogue/Choix/Composition qui l’excluent. Le libellé métier demeure « Pause après chaque série » ; la phrase complète suit exclusivement les276 cas v14.
+La forme compacte « Pause de15s par série » citée dans le prompt est un texte témoin Figma, pas une autorisation de réintroduire une ligne de pause dans les cartes Catalogue/Choix/Composition qui l’excluent. Le libellé métier demeure « Pause après chaque série » ; la phrase complète suit exclusivement les276 cas v15.
+
+**Complément v15 :** [phrases longues, conteneurs et textes de fond](DSF-PHRASES-V15-2026-10-07.md). Corpus276v15 exclusivement rédactionnel ; règles de durée et de carte conservées.
