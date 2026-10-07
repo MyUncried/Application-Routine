@@ -5,9 +5,9 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "REAL_TEST_MANUAL_RECOVERY_CLAIMED_BEFORE_LAUNCH",
+  "current_stage": "FIGMA_INITIAL_REQUESTED_AFTER_VERIFIED_MANUAL_RECOVERY",
   "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
-  "generation": 92,
+  "generation": 93,
   "previous_terminal_generation": 77,
   "previous_closed_issue": 324,
   "reuse_previous_closure_as_new_cycle": false,
@@ -287,6 +287,13 @@
       "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
       "generation": 92,
       "outcome": "FAILURE_ARCHIVED_CAUSAL_FIX_NEW_QUALIFICATION"
+    },
+    {
+      "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:232ae5f7-dd22-4c95-af90-403e9f9149a4:37641572717:2",
+      "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
+      "next_request_id": "4417857a-3b3c-4c38-b715-7f43ef4677bf",
+      "generation": 93,
+      "outcome": "MANUAL_CONTINUATION_RECOVERED_REAL_TEST_PUBLISHED"
     }
   ],
   "initial_failure": {
@@ -824,7 +831,7 @@
             "conclusion": "success"
           }
         ],
-        "observed_at": "2026-10-07T17:32:24.016Z"
+        "observed_at": "2026-10-07T17:33:27.293Z"
       },
       "controller": {
         "status": "VERIFIED",
@@ -844,8 +851,8 @@
             "conclusion": "success"
           }
         ],
-        "observed_at": "2026-10-07T17:32:24.016Z",
-        "controller_head": "3d918984b1ccc4035ce7482680834e2d4b134a54",
+        "observed_at": "2026-10-07T17:33:27.293Z",
+        "controller_head": "f3cba5fddcc2fa12e2d25685f3ea0cf543b686ab",
         "relation": "EXACT_SAME_PROTOCOL_CODE"
       }
     },
@@ -871,6 +878,7 @@
     "synthetic_workflow_signal": false,
     "claimed_at": "2026-10-07T17:32:23.982Z",
     "next_request_id": "4417857a-3b3c-4c38-b715-7f43ef4677bf",
-    "status": "CLAIMED_BEFORE_LAUNCH"
+    "status": "CONSUMED_FOR_UNIQUE_REQUEST",
+    "published_generation": 93
   }
 }
