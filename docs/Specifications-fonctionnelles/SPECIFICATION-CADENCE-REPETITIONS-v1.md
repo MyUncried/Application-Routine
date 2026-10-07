@@ -8,18 +8,23 @@ Cadence est une option du mode Répétitions, pas un quatrième mode. `repetitio
 
 Elle appartient à la Série. Le réglage commun uniforme est copié dans toutes les Séries à l’activation variable ; toute modification/suppression commune s’applique à toutes. Pas d’édition individuelle dans cette version. La collection ordonnée demeure la seule source effective ; pas de surcharge commune concurrente persistée. Revenir au mode Répétitions avant✓ restaure la cadence du brouillon ; ✓ dans un autre mode élimine la valeur cachée. ✕ annule l’ouverture, ✓ applique au brouillon parent, Terminer sauvegarde. Copie, duplication et instantané incluent la cadence ; migration d’un objet existant sans champ = absence, jamais2s.
 
-## 2. Calcul et incertitude
+## 2. Calcul et incertitude — révision du 07/10
 
-Pour chaque Série i : Durée → Ti=cible temporelle ; Répétitions avec cadence → Ti=Ri×Ci ; Répétitions sans cadence → Ti≈2×Ri ; À l’échec → Ti non estimable. Les formules de pauses, côtés et substitution terminale R de [v13§§4–5](SPECIFICATION-PARAMETRES-MODALE-v13.md) sont inchangées. Compte à rebours et Fin propres sont exclus du total intrinsèque de paramètres, présents dans le plan complet lorsqu’applicables.
+Le guidage sonore, la progression et les comportements des sections suivantes sont conservés. Les signaux ne contraignent ni le mouvement ni la fin de Série : Ri×Ci est une estimation ≈. Le prompt « cadence déclarative sans signaux » est rejeté par le propriétaire.
 
-| Nature du résultat | Valeur et affichage |
-|---|---|
-| Déterminable | Toutes les composantes temporelles prescrites sont connues ; aucun symbole. Il s’agit d’une prévision, pas d’une promesse de temps réalisé. |
-| Approximative | Au moins une Série Répétitions sans cadence et aucune partie non estimable ; convention2s/rép., symbole≈. |
-| Non estimable | Au moins une partie À l’échec ; total d’Exercice omis. Pour un agrégat, borne≥ selon son périmètre ; le symbole≥ prévaut sur≈ lorsque les deux niveaux coexistent. Les contributions Ti restent celles définies ci-dessus, sans nouvelle formule locale. |
-| Incomplète | Cible active invalide/manquante : total— et validation refusée ; jamais assimilée à0. |
+| Retour | Condition | Rendu |
+|---|---|---|
+| exact | Travail Durée et phases temporelles prescrites | Valeur sans symbole |
+| estimated | Travail cadencé, aucune composante inconnue | ≈ valeur, avec Ri×Ci pour le travail |
+| lowerBound | Répétitions sans cadence ou agrégat avec travail inconnu | ≥ ; montant soumis à Q-07 |
+| omitted | Exercice À l’échec | Aucune ligne Durée totale, ni zéro ni tiret |
+| incomplete | Paramètre requis invalide/manquant | — et validation refusée ; état de validation distinct des quatre résultats valides |
 
-Le générateur de phrase reçoit ce résultat et le met en forme ; aucune formule du classeur n’est importée. La durée réalisée vient du temps effectivement exécuté, jamais de Ri×Ci ni du texte de synthèse.
+Le symbole ≥ sans cadence est acté. La spécification antérieure calcule Ti≈2×Ri : cette estimation n’est pas un minimum garanti. Aucun nouveau calcul n’est décidé dans ce lot. Le montant à afficher avec ≥ reste à arbitrer (Q-07) ; ne pas réétiqueter automatiquement une estimation en borne ni appliquer silencieusement Ti=0.
+
+Pauses, côtés et substitution R/PN suivent v13 §§4–5. Compte à rebours/Fin propres exclus du total intrinsèque et inclus dans le plan complet si applicables. L’omission propre À l’échec ne supprime pas les durées chronométrées du plan. Le montant des agrégats mixtes relève de Q-07. Durées réalisées inchangées. Le générateur reçoit le résultat typé ; aucune formule du classeur importée.
+
+Voir [consolidation du 07/10](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md).
 
 ## 3. Exécution, son et fin nominale
 
@@ -45,7 +50,7 @@ Sans interaction : pause de sécurité30min après fin nominale recalculée (une
 
 ## 6. Contrat technique et résultats
 
-Instantané immuable et versionné : séries ordonnées, cible répétitions et cadence prescrite facultative. Plan : phase Série existante avec `targetRepetitions`, `repetitionIntervalSeconds?`, `estimatedCadenceDurationSeconds` dérivé. Capacité de calcul temporel et terminaison automatique sont deux propriétés distinctes : une Série cadencée est déterminable mais terminée par Suivant.
+Instantané immuable et versionné : séries ordonnées, cible répétitions et cadence prescrite facultative. Plan : phase Série existante avec `targetRepetitions`, `repetitionIntervalSeconds?`, `estimatedCadenceDurationSeconds` dérivé. Capacité de calcul temporel et terminaison automatique sont deux propriétés distinctes : une Série cadencée fournit une estimation mais se termine par Suivant.
 
 État moteur récupérable : intervalles complets acquis, ancre du courant, durée de cadence, fin nominale atteinte, état suspendu et accumulateur de temps réel distinct du chronomètre de tentative. Persistance atomique/idempotente aux transitions ; résultat par Série et côté si pertinent. Une réinitialisation conserve les temps des tentatives ; un changement ultérieur du Catalogue ne modifie pas l’historique.
 
@@ -63,3 +68,4 @@ Instantané immuable et versionné : séries ordonnées, cible répétitions et 
 | Catalogue/Séance/Calendrier/Suivi |≈ seulement pour estimation ;≥ seulement borne non estimable ; temps réalisé sans réécriture |
 
 Ces cas sont des exigences de recette, pas des tests annoncés exécutés. Les montants du classeur ne les définissent pas.
+

@@ -1,5 +1,7 @@
 # Matrice de couverture Figma ↔ documentation
 
+**Inventaire historique.** La [matrice du 07/10](MATRICE-FIGMA-2026-10-07.md) porte les références actives, notamment le remplacement de 4893:6675.
+
 **Inventaire courant :** [matrice06/10](MATRICE-CADENCE-FIGMA-2026-10-06.md). Ce relevé antérieur conserve sa provenance ; ses empreintes datées ne décrivent pas les PNG réexportés le06/10. Les états6603/6611/6623 ne remplacent plus les frames6407/6411/6423 réintégrées. Cadence/phrase/DSF actifs : paramètres v13, Phrase v1 et DSF-CADENCE-2026-10-06.
 
 **Complément historique02/10 :** [matrice séries variables](MATRICE-SERIES-VARIABLES-2026-10-02.md). Les copies de travail ont été remplacées le03/10 ; la matrice06/10 fait autorité sur les références courantes.
@@ -29,7 +31,7 @@ L’inventaire du 24 septembre était un état des lieux ; il ne borne plus le c
 
 ## Lecture des écarts visuels et des décisions
 
-La capture décrit l’état Figma observé ; elle ne remplace pas une décision métier validée. Les lignes de récupération en Composition sont conservées : toujours présentes et réglables, même à 0 s sans Point d’arrêt ; D-238 ne retire que les informations du corps des cartes (D-217, clarification du propriétaire du 06/10/2026). Les emplacements autorisés sont mis en évidence pendant le placement d’un Point d’arrêt. Les frames `4738:6355` (Exercice déployé) et `1992:8996` (Suivi déployé) sont historiques hors MVP depuis D-261/D-262 ; elles ne servent plus de cible accessible. Ces écarts d’assemblage n’ouvrent aucun nouvel arbitrage et les PNG ne sont pas retouchés pour les masquer. Les cartes standard ne sont pas déclarées propagées dans les frames qui n’en contiennent pas.
+La capture décrit l’état Figma observé ; elle ne remplace pas une décision métier validée. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). Les frames `4738:6355` (Exercice déployé) et `1992:8996` (Suivi déployé) sont historiques hors MVP depuis D-261/D-262 ; elles ne servent plus de cible accessible. Ces écarts d’assemblage n’ouvrent aucun nouvel arbitrage et les PNG ne sont pas retouchés pour les masquer. Les cartes standard ne sont pas déclarées propagées dans les frames qui n’en contiennent pas.
 
 Codes : C cartes ; J cartes Jour ; N navigation ; B commandes contextuelles ; S segmenté à trois options ; I icônes catégorie/zone hors cartes ; P silhouette Profil ; — absent du rapport.
 
@@ -329,3 +331,4 @@ Les captures sont intégrées en Markdown standard et regroupées dans leur fami
 ## Inventaire courant du parcours Créer un exercice — 03/10/2026
 
 [État des lieux exhaustif,42frames et revue des contrats](ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md). Les références actuelles remplacent les copies du02/10 :37frames de la famille création/modification,2effets Catalogue/Composition et3exécutions. La réserve de réinitialisation a été retirée : D-029/D-150 restent applicables aux deux ordres.
+

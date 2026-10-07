@@ -1,5 +1,7 @@
 # 13 — Contrats d’écran
 
+**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Signaux de cadence conservés ; symboles, placement explicite et distinction contenu/trait révisés.
+
 > **Règle documentaire :** le chapitre 13 ne contient aucune copie d’écran. Les captures et copies physiques d’écrans/modales sont centralisées exclusivement dans le chapitre 06. Le chapitre 13 conserve uniquement les contrats, états, règles et références de nodes Figma nécessaires à la recette.
 
 ## 1. Objet et statut normatif
@@ -162,7 +164,7 @@ Le moteur possède la source de vérité temporelle. Le Compte à rebours propre
 | SESSION | Compte à rebours initial → plan avant Circuit → Circuit répété par Tours → plan après Circuit → Fin de séance → Synthèse |
 | Occurrence SESSION | Compte à rebours propre si activé → Exercice intrinsèque (Séries/côtés/pauses) → Fin propre si activée → POST_ACTIVITY_RECOVERY → point d’arrêt éventuel → suite |
 
-Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=Ri×Ci secondes avec cadence (durée prévisionnelle déterminable, sans symbole), Ti≈2×Ri sans cadence (≈) ; À l’échec : aucun total d’Exercice. Dans un agrégat, une composante non estimable impose ≥, qui prévaut sur ≈. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v13 §5 ; variable : lecture seule et — si incomplet.
+Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=Ri×Ci avec cadence (estimation ≈) ; sans cadence, symbole ≥ acté, montant à arbitrer en Q-07 (calcul antérieur Ti≈2×Ri conservé pour traçabilité) ; À l’échec : aucun total d’Exercice. Dans un agrégat, une composante non estimable impose ≥, qui prévaut sur ≈. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v13 §5 ; variable : lecture seule et — si incomplet.
 
 | Action/phase | Effet déterminé | Conservation |
 |---|---|---|
@@ -253,7 +255,7 @@ Segment Exercices → CE-T03-02 ; Séances reste ; Parcours sans action ; Créer
 
 Séances enregistrées du dépôt local, non archivées par défaut, tri updatedAt décroissant. Étiquette facultative ; en son absence, catégories issues des Exercices. Aucun champ Catégorie propre à la Séance. Les objets historiques incomplets restent consultables mais Démarrer est désactivé tant qu’ils ne sont pas exécutables.
 
-Durée et symbole viennent du calcul commun : déterminable sans symbole, approximation≈, composante non estimable≥ ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Durée et symbole viennent du calcul commun : Durée sans symbole, cadence estimée ≈, travail inconnu ≥ ; total propre À l’échec omis ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
 
 ### 6. Classification des valeurs Figma
 
@@ -358,7 +360,7 @@ Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées
 
 Exercice variable : indicateur N séries variables et total intrinsèque selon v13 ; pas de détail exhaustif des cibles sur la carte.
 
-Durée et symbole viennent du calcul commun : déterminable sans symbole, approximation≈, composante non estimable≥ ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Durée et symbole viennent du calcul commun : Durée sans symbole, cadence estimée ≈, travail inconnu ≥ ; total propre À l’échec omis ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
 
 ### 6. Classification des valeurs Figma
 
@@ -572,6 +574,8 @@ Shell conservé : en-tête fixe, bandeau nom/référentiels, carte Paramètres, 
 
 Phrase : Inter13, interligne20, texte sombre et valeurs en gras ; largeur324/x39 dans la référence402. Hauteur auto et retour naturel ; le contenu inférieur suit la croissance. Aucune limite de198/211 caractères. Le layout du shell reste celui des frames du formulaire.
 
+Icônes Catégorie et Zones : états contour/plein de la planche7245:13718 ; une seule silhouette, issue du Profil, jamais deux boutons homme/femme dans l’éditeur.
+
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
 360/402/440, Safe Areas, texte agrandi et clavier. Formulaire défilant ; Terminer accessible. Feuille ouverte : formulaire parent inerte et hors parcours de focus.
@@ -623,6 +627,8 @@ Tester vide→feuille→annuler sans changement ; feuille valide→résumé→Te
 Sauvegarder/réouvrir après bascules, déplacement et N1 ; vérifier indépendance copie Catalogue/Séance et résumé v13.
 
 Cadence absente/1/60, supprimer puis annuler/confirmer, phrase à3/4cibles, singulier et deux directions, omission réelle du total (N1 Durée unilatérale P0 seulement), texte agrandi. Le classeur teste la formulation avec un total fourni, jamais les calculs.
+
+Vérifier état repos/activé à ouverture/fermeture du panneau et symbole du total selon D-305.
 
 ### 21. Traçabilité
 
@@ -744,7 +750,7 @@ Ouvre CE-T03-07 au-dessus du brouillon courant. Fermer sans Sélectionner rend l
 
 Aucune donnée métier n’est créée à l’ouverture. Le brouillon de Composition existant est conservé.
 
-Durée et symbole viennent du calcul commun : déterminable sans symbole, approximation≈, composante non estimable≥ ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Durée et symbole viennent du calcul commun : Durée sans symbole, cadence estimée ≈, travail inconnu ≥ ; total propre À l’échec omis ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
 
 ### 6. Classification des valeurs Figma
 
@@ -838,7 +844,7 @@ Fermer/Annuler → Composition sans mutation ; Sélectionner avec N>0 → insert
 
 Définitions actives et ensemble d’IDs sélectionnés en mémoire. Ordre de la liste affichée, stable pendant la sélection. Aucun filtre/recherche supplémentaire n’est exposé par cette modale de référence ; les règles de filtres Catalogue ne créent pas ici un contrôle. Il n’existe donc pas de sélection cachée par un filtre local.
 
-Durée et symbole viennent du calcul commun : déterminable sans symbole, approximation≈, composante non estimable≥ ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Durée et symbole viennent du calcul commun : Durée sans symbole, cadence estimée ≈, travail inconnu ≥ ; total propre À l’échec omis ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
 
 ### 6. Classification des valeurs Figma
 
@@ -878,7 +884,7 @@ N>0 et toutes définitions encore disponibles avant insertion. L’ordre final e
 
 ### 15. Brouillon et persistance
 
-Les copies sont ajoutées atomiquement au brouillon de Composition ; aucune sauvegarde de Séance avant Continuer. Une erreur ne laisse aucune copie partielle. Les copies portent les paramètres intrinsèques ; leur récupération post-occurrence est initialisée depuis Profil.
+Les copies sont ajoutées atomiquement au brouillon de Composition ; aucune sauvegarde de Séance avant Continuer. Une erreur ne laisse aucune copie partielle. Les copies portent les paramètres intrinsèques ; aucune récupération post-occurrence n’est ajoutée automatiquement ; le défaut Profil est proposé seulement à son ajout explicite.
 
 ### 16. Navigation et conservation d’état
 
@@ -914,11 +920,11 @@ Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figm
 
 ### 1. Identification
 
-Composition d’une séance : 2028:11137/11700/11808/12003,3518:4576,5271:5455. Points d’arrêt 3722:5061/4893:6675/5301:5443. Étiquette CE-T03-16 ; sélection CE-T03-07. Réglages 2028:11375/11457 ; limites de preuve §5.
+Composition2028:11137/11700/11808/12003,3518:4576,5271:5455. Placement unifié7167:13503 ; durée7173:13521 ; retrait récupération7296:13696 ; point présent3722:5061/retrait5301:5443. Ancien4893:6675 supprimé, historique seulement. Étiquettes CE-T03-16, sélection CE-T03-07. Réglages2028:11375/11457.
 
 ### 2. Finalité fonctionnelle
 
-Créer/modifier le brouillon de Séance, son nom, son Étiquette facultative, ses occurrences avant/dans/après un Circuit, ses Tours et points d’arrêt ; valider une seule fois vers le Catalogue.
+Créer/modifier la Séance : nom, Étiquette facultative, occurrences avant/dans/après Circuit, Tours et pauses explicites. Valider une seule fois vers le Catalogue.
 
 ### 3. Contexte d’entrée
 
@@ -930,11 +936,7 @@ Exercice → éditeur de copie locale ; Ajouter un exercice → CE-T03-07 ; Éti
 
 ### 5. Données affichées et source de vérité
 
-Brouillon Session et occurrences indépendantes. Nom ; étiquette 0..1 ; compte à rebours initial ; Fin de séance ; Circuit unique/Tours 1..99 ; phases propres activées par un booléen global true par défaut. postActivityRecoverySeconds appartient à chaque occurrence, initialisé depuis Profil et conservé au déplacement/duplication ; aucune récupération sur la définition Catalogue.
-
-Chaque occurrence conserve les paramètres variables et son R contextuel ; durée To=T si R=0 sinon T−PN+R. Total de Composition somme ces occurrences développées selon les Tours.
-
-Durée et symbole viennent du calcul commun : déterminable sans symbole, approximation≈, composante non estimable≥ ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Brouillon Session indépendant, nom, Étiquette0..1, compte à rebours/Fin, Circuit unique/Tours 1..99, activation globale des phases propres D-214 (true par défaut, sans modifier les valeurs propres enregistrées). Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Chaque occurrence conserve ses séries/cadences ; To=T si R=0, sinon T−PN+R. Total développé par Tours, symboles D-305. Point d’arrêt sans durée prévue.
 
 ### 6. Classification des valeurs Figma
 
@@ -946,13 +948,11 @@ Nom/contexte de Séance, Étiquette et actions → compte à rebours initial →
 
 ### 8. Éléments obligatoires
 
-Compte à rebours/Fin non déplaçables ; Circuit unique sans changement de côté ; Tours par stepper. Cartes sans texte de pause/récupération dans leur corps ; ligne structurelle Récupération / Point d’arrêt toujours présente et récupération réglable, y compris à 0 s sans Point d’arrêt (D-217). Réglage global D-214 applique/ignore ensemble les deux phases propres ; son emplacement graphique n’est pas représenté dans les captures contrôlées : réserve V-04, pas de composant inventé.
-
-Ligne variable : N séries variables uniquement, sans liste des cibles ; récupération reste visible et attachée à son occurrence.
+Compte à rebours/Fin non déplaçables ; Tours par stepper ; aucun côté au Circuit. Carte sans texte de pause/récupération dans son corps. Ligne variable : N séries variables uniquement, sans liste de cibles. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). V-04 reste : emplacement du réglage global D-214 non représenté, aucun composant inventé.
 
 ### 9. Layout déterministe
 
-Swipe : déplacement réel, gap et Dupliquer selon référence. Occurrence et ligne de récupération restent solidaires dans les données et dans le bloc déplacé ; la ligne Récupération reste affichée, y compris à 0 s sans Point d’arrêt. Commandes contextuelles 34/dessin 20/gap 10/cibles 44 dans bande 32, durée immobile et actions à droite 6 plus bas.
+Shell de Composition conservé. Commandes contextuelles34/dessin20/gap10/cibles44 dans bande32, durée immobile et actions à droite6 plus bas. En placement, deux blocs de largeur égale et marges alignées aux cartes ; récupération à gauche, point à droite, selon7167:13503. Trait masqué uniquement pendant le choix. La récupération ajoutée reste attachée au bloc de l’occurrence lors du déplacement ; carte levée selon3518:4576. Annuler et Confirmer restent accessibles en bas. Captures à géométrie encore divergente sur le trait qualifiées au chapitre06.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -960,25 +960,23 @@ Swipe : déplacement réel, gap et Dupliquer selon référence. Occurrence et li
 
 ### 11. États de l’écran
 
-Création vide ; nom saisi ; composition valide/invalide ; édition ; Étiquette sélectionnée/absente ; glissé ; déplacement ; réglage initial/fin ; placement point d’arrêt ; bulle Retirer ; abandon ; sauvegarde/erreur.
+Création vide ; nom saisi ; composition valide/invalide ; édition ; Étiquette sélectionnée/absente ; réglages initial/fin ; glissé/déplacement ; placement multiple sans/avec sélection ; roulette récupération ; confirmation décomptée ; retour/annulation ; bulle retrait récupération/point ; abandon/sauvegarde/erreur. Rabsente/R0/Rpositive croisés avec point absent/présent et trait hors/en placement.
 
 ### 12. Contrôles et interactions
 
-Lorsque deux Exercices consécutifs n’ont ni Pause terminale après le premier ni Récupération positive après son occurrence, la Composition affiche l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre.
-
-Modifier les champs dans le brouillon. Réordonner une occurrence avec sa récupération ; dupliquer copie les paramètres ; retirer supprime occurrence et récupération associée. Point d’arrêt : entrer en placement, choisir une position valide ; appui long sur point ouvre Retirer, tap hors bulle ferme sans suppression. Le booléen global D-214 ne modifie pas les valeurs propres enregistrées des Exercices.
+Pause ouvre le sous-brouillon de placement. Sélection Point d’arrêt bascule l’ajout ; sélectionner Récupération ouvre immédiatement la durée proposée du Profil, initialement30s. Valider la roulette confirme au sous-brouillon, Annuler restitue l’état de cet emplacement. Confirmer N pauses ajoutées applique au parent ; Annuler le placement restitue tout l’état d’entrée. Décompte par objet nouvellement ajouté, récupération+point=2 ; désélection retranche, N0 sans confirmation active. Tap sur récupération positive ouvre son réglage ; appui long ouvre Retirer. L’avertissement D-301 reste « Attention, les exercices vont s’enchaîner sans pause. » si aucune Pause terminale ni Rpositive entre deux Exercices ; informatif, aucune mutation ni blocage.
 
 ### 13. Gestes
 
-Swipe §4.7 sur occurrence ; appui long/déplacement des occurrences ; placement et retrait des points d’arrêt D-217. Aucun déplacement du compte à rebours initial ni de la Fin. Aucun réglage de côté du Circuit.
+Swipe occurrence : Dupliquer/Supprimer ; appui long puis glisser : déplacer. Appui long récupération ou point : bulle Retirer ; tap hors bulle ferme sans mutation. Aucun second dialogue imposé par ces bulles. Compte à rebours/Fin non déplaçables.
 
 ### 14. Validation
 
-Continuer exige nom et au moins un Exercice valide ; Étiquette facultative. Point d’arrêt interdit juste après le compte à rebours initial et juste avant Fin de séance ; autorisé avant/après Circuit et entre ses Exercices. Drop invalide restaure la position initiale. Les affectations de référentiels retirées restent valides D-210.
+Continuer exige nom et au moins un Exercice valide. Récupération0..300s, grille1s jusqu’à5,5s jusqu’à120,30s jusqu’à300 ; aucune durée requise pour point. Récupération après occurrence, dernière comprise ; pas avant première. Point interdit immédiatement après compte à rebours initial et avant Fin ; autorisé avant/après Circuit et entre ses Exercices. Un élément de chaque type au même emplacement ; pas de doublon du même type. Drop invalide restitue la position. Les affectations de référentiels retirées restent valides selon D-210.
 
 ### 15. Brouillon et persistance
 
-Toutes les opérations modifient le brouillon ; Continuer seul enregistre Session+Composition atomiquement. Une dépose ou confirmation de roulette n’écrit pas le modèle enregistré. Abandon restaure la version antérieure. Des brouillons techniques ne sont pas des Séances de Catalogue.
+Brouillon de placement isolé du brouillon Composition ; roulette incluse dans cette transaction. Confirmer applique atomiquement au parent, Continuer seul persiste Session+Composition. Annuler la roulette ne confirme pas un ajout ; Annuler placement restaure son état d’entrée ; abandon Séance restaure la version persistée.
 
 ### 16. Navigation et conservation d’état
 
@@ -986,35 +984,23 @@ Sous-parcours : conserver brouillon, insertion et scroll. Continuer succès → 
 
 ### 17. Erreurs et cas limites
 
-Drop invalide ; liste vide ; source disparue ; doublon de soumission ; échec de transaction ; point d’arrêt à frontière interdite : aucune mutation partielle. Les anciennes Séances incomplètes peuvent être ouvertes, mais ne deviennent exécutables qu’après correction.
+Liste vide, position interdite, erreur durée, double tap et erreur de transaction : pas de mutation partielle. R0 ne génère aucune phase. Suppression recovery rend la pause terminale PN applicable ; aucun changement de définition Catalogue. Anciennes séances : aucune reprise imposée par ce lot ; ne pas confondre migration de schéma et reprise fonctionnelle.
 
 ### 18. Accessibilité
 
-Nom des occurrences et côté développés pour lecteur d’écran. Compte à rebours/Fin sans action Déplacer. Actions accessibles équivalentes au swipe/drag ; position de point annoncée et confirmation de retrait accessible ; état du réglage global annoncé quand son rendu est spécifié.
+Annoncer type, position, durée, sélection et nombre d’ajouts ; ordre de focus récupération puis point à chaque emplacement. Focus contenu dans la roulette/bulle puis rendu à la commande d’origine. Alternatives accessibles au drag/swipe ; sélection non fondée sur couleur seule ; suppression et annulation explicitement nommées.
 
 ### 19. Invariants
 
-Circuit=groupe, Tour=répétition, Parcours=objet autonome hors MVP. Un point interne s’exécute à chaque Tour ; ordre occurrence→récupération→point→suite ; attente exclue des durées. Pas de texte de récupération dans le corps de la carte ; ligne structurelle et réglage de récupération conservés, y compris à 0 s sans Point d’arrêt ; pas d’écriture avant Continuer. Avertissement D-301 informatif, sans blocage ni modification de Pause/Récupération.
+Circuit=groupe, Tour=répétition ; récupération positive avant point, attente exclue du prévu ; éléments internes répétés à chaque Tour. Aucune récupération automatique ni récupération directe ACTIVITY. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). D-248 et D-301 conservés ; aucune persistance avant Continuer.
 
 ### 20. Recette déterministe
 
-Créer/éditer/abandonner après nom, insertion, réordre, duplication, Étiquette, roulette et point d’arrêt ; vérifier aucune écriture avant Continuer. Tester sauvegarde atomique/double tap/erreur ; Tours 1/99 ; points avant/après/dans Circuit et frontières interdites ; retrait/fermeture hors bulle ; récupération attachée conservée et réglable ; ligne toujours présente avec R=0 ou R>0, avec/sans Point d’arrêt ; positions autorisées mises en évidence pendant le placement ; D-214 on/off sans modifier les paramètres propres. Vérifier cible graphique séparément pour V-04.
-
-Vérifier l’avertissement avec Pause terminale=0 et R=0 ; son absence si l’une est positive ; enregistrement et exécution restent possibles. Aucun avertissement entre Séries ajouté.
-
-Scénario B=285s, R0 conserve PN ; déplacer/dupliquer conserve tableau/ordre/R et ne modifie pas la définition Catalogue.
-
-Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans les emplacements de durée existants ; conserver masquages des cartes de choix, aucune formule locale et aucune photo de Séance/liste mixte.
+Tester annulation roulette/placement/Séance, sélection multiple/désélection/décompte, Rabsente/0/positive et point absent/présent, dans/hors placement. Tester frontières des deux types, dernière récupération, répétition par Tour, retrait/extérieur bulle, duplication/déplacement/suppression et sauvegarde atomique. Tester erreur/double tap ; D-214/V-04 conservés. D-301 présent uniquement sans Pause terminale ni Rpositive, sans blocage. Vérifier symbole ≈ avec cadence/≥ sans cadence et montants issus de la spécification, aucune formule de capture.
 
 ### 21. Traçabilité
 
-Référence variable courante6665:23973 : N séries variables. Le libellé de Composition « Parcours » a été remplacé par « Circuit » le 05/10/2026 (journal, §8). Les lignes de récupération des 13 frames peuplées sur 17, dont 2028:11700 et 4893:6675 (relevé Claude du 06/10), ne constituent pas un écart à D-238 : le propriétaire confirme la ligne permanente, son réglage à 0 s et la mise en évidence des positions autorisées pendant le placement (D-217). Circuit/Tour restent normatifs.
-
-D-188–194/D-208–214/D-217/D-222/D-238/D-301 ; CE-T03-06/07/16, CE-EXEC-SESSION-01 ; frames§1 ; prescriptions de brouillon du chapitre 06 et décisions actives priment sur l’ancienne autosauvegarde de Composition.
-
----
-
-Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figma ; maintien des rubriques sans changement fonctionnel lorsque non concernées. Les captures sont centralisées au chapitre06, aucun test applicatif présumé.
+D-208/214/217/238 conservées pour leurs dispositions non supersédées ; D-301–307 et Spécification Pauses et symboles07/10. CE-T03-06/07/16, CE-EXEC-SESSION-01 ; références§1. Les captures fidèles ne prouvent pas la conformité du trait. Aucun test applicatif exécuté.
 
 ## CE-T03-09 — Lancement direct et préparation fixe 5 s
 
@@ -1228,7 +1214,7 @@ Bloc B5 ; états S57/S58 ; T03-E E40/E43 ; Shell Execution partagé.
 
 ### 2. Finalité fonctionnelle
 
-Exécuter REPETITIONS avec/sans cadence ou TO_FAILURE ; chronomètre croissant, Suivant fin normale. Avec cadence la durée prescrite Ri×Ci est déterminable mais ne termine pas la Série.
+Exécuter REPETITIONS avec/sans cadence ou TO_FAILURE ; chronomètre croissant, Suivant fin normale. Avec cadence la durée prescrite Ri×Ci est estimée et ne termine pas la Série.
 
 ### 3. Contexte d’entrée
 
@@ -1268,6 +1254,8 @@ Même architecture visuelle que CE-T03-10 ; ne jamais combler un espace Failure 
 
 Conserver le shell et les commandes existantes. Les états cadencés sont spécifiés fonctionnellement ; placement d’un éventuel libellé de cadence/nominal non certifié faute de frame. Ne pas créer un indicateur par Série ou un nouveau design.
 
+La durée cible Ri×Ci, lorsqu’affichée, utilise la ligne de temps existante et le style du compte à rebours, sans nouveau shell. Elle est une estimation ≈, aucun compteur automatique de répétitions.
+
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
 360/402/440 ; pas clavier ; labels modes non tronqués.
@@ -1290,7 +1278,7 @@ Tap commandes uniquement.
 
 ### 14. Validation
 
-REPETITIONS : cible valide et cadence facultative entière1..60 ; Failure sans cible ni cadence. Le résultat prévisionnel2s/rép. sans cadence ne commande ni les bips ni la fin.
+REPETITIONS : cible valide et cadence facultative entière1..60 ; Failure sans cible ni cadence. La convention historique 2 s/rép. ne définit ni la borne ≥ ni les bips ni la fin.
 
 ### 15. Brouillon et persistance
 
@@ -1315,6 +1303,8 @@ Cadence et état utiles annoncés sans dépendre du son ; ne pas annoncer chaque
 ### 19. Invariants
 
 Failure sans cible ; Suivant normal ; aucune confirmation chronométrée ; pas SESSION_END.
+
+D-302 confirme tous les signaux et comportements de cadence ; ≈ ne signifie pas absence de guidage.
 
 ### 20. Recette déterministe
 
@@ -1417,6 +1407,8 @@ Annonce vocale côté au début et au changement selon règles ; label accessibl
 ### 19. Invariants
 
 Respecter l’ordre effectif : successif, PC une fois ; par paire, PC à chaque Série. Pi et PC selon v13§4 ; aucune Récupération contextuelle en ACTIVITY ; résultats séparés par côté ; rang logique Exercice inchangé.
+
+L’ajout explicite de recovery concerne SESSION seulement ; aucune récupération contextuelle en ACTIVITY. Cadence sonore propre à chaque Série/côté conservée.
 
 ### 20. Recette déterministe
 
@@ -1670,6 +1662,8 @@ Ligne 1 : nature 26 liste ou tai-chi, titre15, statut76 aligné à droite. Ligne
 
 Carte354 × 67 à texte standard ; bloc texte y12/hauteur43 ; statut x262/y9 (76 × 24), Ressenti x318/y39 (20 × 20), marge droite16. Marge haute12/basse8 assumée. Ces coordonnées sont la référence Figma402, pas des positions absolues à imposer au responsive. Pas de champs Session-only fictifs sur activité. Filtrer/Trier 34, dessins 20, gap 12, cibles 44 ; liste scrollable, navigation fixe.
 
+Durée des cartes : chronomètre16×16, trait0,9, #9499A8 lié au rôle catégorie ; texte durée #595E66 et nature #14141A. Suivi = temps réalisé, sans symbole prévisionnel ; Calendrier = nature de calcul fournie.
+
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
 360/402/440 ; liste scrollable ; carte adapte sa hauteur au texte agrandi sans réduire la police ; aucun clavier hors fonctions existantes.
@@ -1764,6 +1758,8 @@ Modale DSF D-228 ; lignes/pastilles selon 2028:11204 ; palette 4640:6308 ; dialo
 
 Actions destructives : token danger#D92D20 ; séparateurs#E0E3E8 et labels par rôle DSF. Aucune reprise des anciens rouges locaux.
 
+Étiquette contour au repos, pleine durant le panneau contextuel ; cercle blanc/trait inchangé. La sélection d’une valeur ne remplace pas la distinction ouvert/fermé.
+
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
 Feuille limitée à la zone sûre, liste défilante, titre non tronqué ; clavier fait apparaître le nom saisi et les actions ; texte agrandi selon§4.2.
@@ -1807,6 +1803,8 @@ Zéro ou une Étiquette ; couleur appartient au référentiel, propagée aux obj
 ### 20. Recette déterministe
 
 Aucune/une sélection, changement/fermeture ; créer nom valide/vide/dupliqué et couleur ; renommer/recolorer ; supprimer valeur utilisée/inutilisée, Annuler ; conserver ancienne affectation et couleur ; abandonner Composition ne sauvegarde pas son affectation ; historique inchangé.
+
+Vérifier icône sur ouverture, annulation et validation du panneau.
 
 ### 21. Traçabilité
 
@@ -1995,6 +1993,8 @@ Labels Changer de face, Lire la vidéo et Agrandir le média ; pagination annonc
 
 Un média à la fois, ordre source, aucun bouclage ; moteur indépendant ; pas d’import ; pas de Tour en direct ; vidéo ne redémarre jamais sans action utilisateur.
 
+Cadence sonore et progression continuent lors du changement de face ; symbole prévisionnel ≈ sans effet sur la durée réelle.
+
 ### 20. Recette déterministe
 
 Tester 0/1/N médias, mélange image/vidéo, premier/dernier, un swipe=un média, retour Information pendant lecture, retour même Exercice et autre Tour, nouveau run, erreur média, ducking, plein écran, fin naturelle et saut d’Exercice. Vérifier réduction des animations et contrôles accessibles ; essais interactifs nécessaires.
@@ -2092,6 +2092,8 @@ Distinguer vocalement Pause vidéo et Pause exécution ; nommer Fermer le plein 
 ### 19. Invariants
 
 Pas de suspension implicite, pas d’autoplay, ratio conservé, un seul état moteur ; Tour conditionnel SESSION ; lecteur et commandes Exécution séparés.
+
+Consulter le média ne crée ni Pause utilisateur ni cadence implicite ; comportements D-302 conservés.
 
 ### 20. Recette déterministe
 
@@ -2221,7 +2223,7 @@ Surface occurrence → CE-UI-05 en modification ; Lecture → moteur SESSION/ACT
 
 Occurrences futures Routine SESSION/ACTIVITY ; titre, heure, durée et couleur de l’événement. Nature issue du type de source.
 
-Durée et symbole viennent du calcul commun : déterminable sans symbole, approximation≈, composante non estimable≥ ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Durée et symbole viennent du calcul commun : Durée sans symbole, cadence estimée ≈, travail inconnu ≥ ; total propre À l’échec omis ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
 
 ### 6. Classification des valeurs Figma
 
@@ -2238,6 +2240,8 @@ Barre couleur 4 ; nature 26 ; titre 13 gras ; heure/durée 11 gris ; Lecture 26.
 ### 9. Layout déterministe
 
 Référence 402 : x80, largeur 298 ; séance 46 de haut, exercice 48. Hauteur d’instance adaptée à l’événement. Exemple heure/durée : 08 h · 13 min.
+
+Durée des cartes : chronomètre16×16, trait0,9, #9499A8 lié au rôle catégorie ; texte durée #595E66 et nature #14141A. Suivi = temps réalisé, sans symbole prévisionnel ; Calendrier = nature de calcul fournie.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -2317,7 +2321,7 @@ Occurrence et type SESSION/ACTIVITY, heure, durée et classement de la source ; 
 
 Sources SESSION : durées d’occurrence et total de Séance sans double ajout de R ; ACTIVITY : durée intrinsèque ; v13§5.
 
-Durée et symbole viennent du calcul commun : déterminable sans symbole, approximation≈, composante non estimable≥ ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Durée et symbole viennent du calcul commun : Durée sans symbole, cadence estimée ≈, travail inconnu ≥ ; total propre À l’échec omis ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
 
 ### 6. Classification des valeurs Figma
 
@@ -2334,6 +2338,8 @@ Semaine : nature 26, badge heure 08:00, classement puis durée avec sablier ; st
 ### 9. Layout déterministe
 
 Carte 354×95,5 repliée ; séance déployée 254,5. Segmenté 354/padding 4/gaps 4/options 112,67. Aucune barre de carte Semaine.
+
+Durée des cartes : chronomètre16×16, trait0,9, #9499A8 lié au rôle catégorie ; texte durée #595E66 et nature #14141A. Suivi = temps réalisé, sans symbole prévisionnel ; Calendrier = nature de calcul fournie.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -2411,7 +2417,7 @@ Toucher une source valide met à jour le brouillon et ferme immédiatement vers 
 
 Séances/Exercices persistants sélectionnables ; identifiant choisi dans le brouillon.
 
-Durée et symbole viennent du calcul commun : déterminable sans symbole, approximation≈, composante non estimable≥ ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Durée et symbole viennent du calcul commun : Durée sans symbole, cadence estimée ≈, travail inconnu ≥ ; total propre À l’échec omis ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
 
 ### 6. Classification des valeurs Figma
 
@@ -2505,7 +2511,7 @@ Enregistrer réussit → écran appelant Catalogue ou Calendrier, occurrence rec
 
 Source, début, heure, périodicité, fin et rappel du brouillon.
 
-Durée et symbole viennent du calcul commun : déterminable sans symbole, approximation≈, composante non estimable≥ ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Durée et symbole viennent du calcul commun : Durée sans symbole, cadence estimée ≈, travail inconnu ≥ ; total propre À l’échec omis ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
 
 ### 6. Classification des valeurs Figma
 
@@ -2689,6 +2695,8 @@ Modifier → CE-UI-01 ; navigation basse vers les trois autres destinations ; un
 
 Préférences locales : Sons, Annonces vocales, Vibration, Notifications ; groupe Exercice : Pause entre les côtés, Compte à rebours d’un exercice (D-266), Fin d’exercice ; groupe Séance : Récupération après exercice, Compte à rebours initial, Fin de séance.
 
+Révision D-307 : le défaut récupération est proposé à son ajout explicite en Composition, pas à l’insertion de chaque Exercice.
+
 ### 6. Classification des valeurs Figma
 
 Labels statiques ; valeurs locales dynamiques. Défauts actés : côté 10 s, récupération après exercice 30 s, comptes à rebours 10 s, fins 5 s, Vibration activée. L’état vibration désactivée est un exemple utilisateur.
@@ -2753,6 +2761,8 @@ Aucune préférence Cadence ajoutée au Profil ; sons selon réglages existants.
 
 Changer chacun des six défauts, créer un nouvel objet puis comparer ancien objet inchangé ; relancer ; erreur écriture ; vibration off et haptique roulette maintenu ; notification refusée ; Modifier puis Annuler sans changement identité.
 
+Insérer un Exercice : aucune récupération. Ajouter recovery : défaut Profil proposé ; ancien objet inchangé après modification du Profil.
+
 ### 21. Traçabilité
 
 D-191/D-208/D-213/D-232 ; chapitre 06 Profil ; DSF T5/T6 ; CE-UI-01 et CE-UI-05 ; frames§1.
@@ -2786,6 +2796,8 @@ Instantané Session au démarrage, occurrences développées, Série/côté/Tour
 Plan depuis les cibles/Pauses de chaque Série et l’Ordre des côtés de l’instantané ; R>0 remplace PN uniquement en fin d’occurrence.
 
 Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; applicable seulement en REPETITIONS, aucun changement du mode Durée.
+
+Snapshot : récupérations explicitement ajoutées uniquement ; projection R0 si absente. Ordre Exercice→Rpositive→point→suite ; D-248 conservée.
 
 ### 6. Classification des valeurs Figma
 
@@ -2846,6 +2858,8 @@ Annoncer phase, nom et côté au démarrage/changement ; commandes nommées selo
 ### 19. Invariants
 
 Circuit unilatéral, Tours 1..99 ; récupération après chaque occurrence y compris dernière et chaque Tour ; point interne répété chaque Tour ; attente hors durée ; pas de mutation de la source ; média indépendant du moteur.
+
+D-302 confirme la cadence sonore ; D-305 qualifie le prévisionnel, jamais la durée réelle.
 
 ### 20. Recette déterministe
 
@@ -3001,6 +3015,8 @@ Modales D-228 ; pastille Catégorie colorée et nom ; Zones icône silhouette de
 
 Actions destructives : token danger#D92D20 ; séparateurs#E0E3E8 et labels par rôle DSF. Aucune reprise des anciens rouges locaux.
 
+Catégorie et Zones utilisent contour au repos et plein pendant l’ouverture du panneau ; cercle inchangé. Silhouette selon Profil, homme par défaut.
+
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
 Liste scrollable, clavier et actions visibles ; nom long accessible ; textes agrandis sans réduction ; focus confiné à la modale ouverte.
@@ -3045,6 +3061,8 @@ Classification sans effet sur moteur ; Catégorie colore les objets courants ré
 
 Catégorie choix/annulation/création/couleur ; Zones 0/1/N ; noms vide/dupliqué ; supprimer initiale/personnelle utilisée/inutilisée ; sauvegarder ancienne affectation retirée ; interdire nouvelle ; renommer sans changer ID ; historique inchangé.
 
+Vérifier les deux silhouettes et le retour au repos après validation/annulation ; pas de suppression de la variante femme.
+
 ### 21. Traçabilité
 
 Les6frames de référentiels ont été réexportées et contrôlées le03/10 : rendu identique aux PNG publiés. ✓ sur Catégorie reste un écart à D-222 ; validation simple au toucher conservée. Les paramètres variables du parent sont conservés durant ces opérations.
@@ -3085,7 +3103,9 @@ Cadence facultative1..60 par Série ; contrôle commun dans cette version, propa
 
 ### 6. Classification des valeurs Figma
 
-Libellés normatifs v13 ; chiffres, titres de frames et câblages Figma = démonstration. Incomplet— ; Répétitions : Durée totale sans symbole avec cadence,≈ sans cadence ; À l’échec pas de total. La photo et le résumé derrière le voile ne commandent pas le brouillon.
+Libellés normatifs v13 ; chiffres, titres de frames et câblages Figma = démonstration. Incomplet— ; Répétitions : Durée totale ≈ avec cadence, ≥ sans cadence ; À l’échec pas de total. La photo et le résumé derrière le voile ne commandent pas le brouillon.
+
+Rendu discriminé exact/estimated/lowerBound/omitted ; incomplete reste —. Source normative D-305, sans calcul dérivé du montant Figma.
 
 ### 7. Structure de l’écran
 
@@ -3161,6 +3181,8 @@ Scénarios A–F et N1 v13§9 ; 1/99séries, 1/100répétitions,1/5999s ; pauses
 
 Tester absence/1/60 et refus0/61/fraction ; uniforme→variable et changement/suppression communs ; mode aller/retour avant✓ puis validation hors REPETITIONS ;✕/✓/Terminer ; roulette et unité, scroll sous header, suppression par « Aucun » dans la même roulette.
 
+Tester ≈ avec cadence, ≥ sans cadence, omitted À l’échec et Aucun pour retrait de cadence ; aucun total fictif0 en À l’échec.
+
 ### 21. Traçabilité
 
 D-247 à D-255 ; v13 ; DSF actualisé03/10 ; ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03. Les références courantes sont dans Prototype MVP, pas des copies de travail. Les états sans frame dédiée sont listés séparément ; aucune recette interactive ni propagation aux composants maîtres n’est présumée.
@@ -3196,7 +3218,7 @@ Les arbitrages des 30 septembre et 1er octobre 2026 ferment les points fonctionn
 
 Le calcul porte sur le plan développé et conserve la piste existante. M compte les étapes contributives ; R compte les Séries Répétitions sans cadence et À l’échec ; T somme les durées des phases chronométrées positives et les Ri×Ci des Séries cadencées. Chaque Série sans durée déterminable pèse1/M ; chaque étape temporelle de durée d pèse(1−R/M)×d/T. Sans R, poids d/T ; sans T, poids1/M. Phases0s, Pause manuelle et attente de point n’ont aucun poids. Les non-cadencées/À l’échec acquièrent leur part à Suivant ; les cadencées progressent continûment, Suivant acquiert leur reste. À fin nominale, part de Série100% mais Série active. Pause abandonne la fraction d’intervalle pour la progression, conserve le temps réel ; reprise sur intervalle complet. Aucun100% global publié avant finalisation du plan. Poids figés au départ ; reset remet à zéro son périmètre seulement. Aucun nouveau composant de progression par Série.
 
-Répétitions cadencées : Ti=Ri×Ci, sans symbole ; non cadencées : Ti≈2×Ri, symbole≈ ; À l’échec : durée propre non estimable, aucun total d’Exercice. Pour les agrégats, ≥ prévaut sur≈ en présence de travail non estimable ; les périmètres et pauses restent ceux de v13§5. La convention2s n’impose aucune cadence et ne rend pas la progression des non-cadencées temporelle.
+Répétitions cadencées : estimation Ri×Ci, symbole ≈ ; sans cadence : symbole ≥ acté, montant à arbitrer en Q-07. À l’échec : total intrinsèque omis. Dans les agrégats, ≥ prévaut sur ≈ si une durée de travail est inconnue ; la composition du montant de cette borne est couverte par Q-07. Pauses et périmètres suivent v13 §5. La convention2s n’impose aucune cadence et ne rend pas la progression des non-cadencées temporelle.
 
 ### R-02 — Validation des contrôles existants
 
@@ -3209,7 +3231,7 @@ Répétitions cadencées : Ti=Ri×Ci, sans symbole ; non cadencées : Ti≈2×Ri
 
 L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de v13 §4 ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante.
 
-Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=Ri×Ci secondes avec cadence (durée prévisionnelle déterminable, sans symbole), Ti≈2×Ri sans cadence (≈) ; À l’échec : aucun total d’Exercice. Dans un agrégat, une composante non estimable impose ≥, qui prévaut sur ≈. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v13 §5 ; variable : lecture seule et — si incomplet.
+Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=Ri×Ci avec cadence (estimation ≈) ; sans cadence, symbole ≥ acté, montant à arbitrer en Q-07 (calcul antérieur Ti≈2×Ri conservé pour traçabilité) ; À l’échec : aucun total d’Exercice. Dans un agrégat, une composante non estimable impose ≥, qui prévaut sur ≈. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v13 §5 ; variable : lecture seule et — si incomplet.
 
 La source active est v13 §§3–5 ; D-242 est supersédée. Les tests PRE-1 restent figés sur leur source historique.
 
@@ -3275,7 +3297,7 @@ Le comportement utilisateur est déjà fixé. L’exclusion d’une occurrence i
 | E48 | Stats compatibles sans compter Séance |
 | E49 | Retour au contexte appelant ACTIVITY avec état restauré |
 | E50 | Résumé des paramètres sans nom ; valeurs dynamiques, saisie exclusivement CE-UI-10 |
-| E51 | Répétitions : phrase avec total fourni : sans symbole si cadence,≈ sans cadence (2s/rép.) |
+| E51 | Répétitions : phrase avec total fourni : ≈ si cadence, ≥ sans cadence |
 | E52 | À l’échec : aucune Durée totale dans le texte éditable |
 | E53 | Pas texte direction développé cartes Composition |
 | E54 | Feuille de paramètres bloque arrière-plan ; roulette déployée sous sa ligne |
@@ -3329,3 +3351,4 @@ Chaque contenu E01–E73 est rattaché ci-dessus ; E08 est rattaché à CE-T03-0
 T03 décrit l’Exécution ACTIVITY autonome : préparation 5 s, phases propres, Séries/pauses/côtés, Pause entre les côtés, Synthèse et Suivi. T04 porte l’orchestration SESSION : Circuit/Tours, phases structurelles, récupération post-occurrence, points d’arrêt et progression globale. Ajouter leurs contrats ne déclenche ni développement ni changement de tranche. Parcours autonome et recherche restent hors MVP.
 
 Pour chaque contrat : tester nominal/alternatifs/négatifs, comparer le rendu 402 à la preuve lorsqu’elle existe, vérifier 360/402/440 et texte agrandi, accessibilité, données réelles, persistance/annulation, erreurs et absence d’activation hors périmètre. Consigner séparément conformité documentaire, conformité visuelle et recette interactive. Les règles §6 et preuves manquantes §5 ne sont jamais marquées CONFORME en exécution par la seule présence de 21 sections.
+

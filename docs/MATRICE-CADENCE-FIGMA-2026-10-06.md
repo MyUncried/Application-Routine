@@ -1,5 +1,7 @@
 # Matrice courante — Figma, Cadence, captures et contrats
 
+**Inventaire historique du 06/10.** Consulter la [matrice courante du 07/10](MATRICE-FIGMA-2026-10-07.md) pour les remplacements et les captures actualisées.
+
 Relevé direct du06/10/2026. FichierG6RY5Ebhgwb4AHIOYDwwvg, page Prototype MVP510:101. Baseline dépôt6d03f5be579f2d0e2e7602b6abf1c2b46f4c740b.133 frames et3 ensembles au premier niveau, exportés sans retouche ;5 frames supplémentaires depuis l’inventaire128 du03/10. Les noms Figma sont reproduits pour identifier les sources, pas comme vocabulaire métier ni numérotation documentaire.
 
 Cette matrice supersède l’inventaire actif des matrices datées30/09–03/10. «Existant, export actualisé» signifie présence et capture renouvelée ; sans historique Figma avant/après exhaustif, elle ne certifie pas que chaque pixel de la frame a changé. L’union d’IDs évite de compter deux fois les31phrases/25modales/3créations annoncées par opérations.
@@ -183,3 +185,4 @@ La spécification Paramètres v13 (§§4–5 et 9) fait autorité : total intrin
 | `7069:13573` | Arrière-plan : exemple Durée précédent ; feuille ouverte : 4 séries de 15 répétitions, pause 15 s, unilatéral, Cadence Aucun, `≈ 3 min` | Total estimé de la feuille cohérent : `4 × (2 × 15 + 15) = 180 s`, soit **≈ 3 min**. Les 2 s sont une convention d’estimation, jamais une Cadence implicite. Le texte de fond représente un autre paramétrage et ne sert pas de résultat attendu. |
 
 Les textes ont été relus dans les cinq frames. Aucun changement Figma n’est requis pour appliquer ces règles au code ; une éventuelle harmonisation des exemples reste une opération éditoriale distincte. Cette qualification ne vaut pas audit fonctionnel exhaustif des chapitres ou des 30 contrats : la seconde passe de Claude reste en cours.
+

@@ -38,7 +38,7 @@ Sans changement : aucune clause «sans changement de côté». Une Série bilat�
 
 ## 4. Durée et exceptions
 
-Sur une nouvelle ligne : «Durée totale : {symbole éventuel}{durée}.» Aucun symbole si déterminable ;≈ si approximative ;≥ pour une borne non estimable dans un contexte agrégé qui l’affiche. Ne pas convertir≈ en≥. À l’échec : omettre le total d’Exercice. Une Série Durée unilatérale : omettre seulement si total réellement égal à la cible (Pause0) ; avec une pause positive, le conserver. Cette condition préserve D-248 face aux exemples simplifiés.
+Sur une nouvelle ligne : «Durée totale : {symbole éventuel}{durée}.» Durée sans symbole ; cadence ≈ ; sans cadence ≥. Le calcul fournit le montant correspondant à cette nature, jamais une estimation simplement réétiquetée en borne. omitted supprime la ligne À l’échec ; incomplete affiche —. À l’échec : omettre le total d’Exercice. Une Série Durée unilatérale : omettre seulement si total réellement égal à la cible (Pause0) ; avec une pause positive, le conserver. Cette condition préserve D-248 face aux exemples simplifiés.
 
 Le total et son niveau d’incertitude sont fournis par les [paramètres v13](SPECIFICATION-PARAMETRES-MODALE-v13.md) et la [Cadence](SPECIFICATION-CADENCE-REPETITIONS-v1.md). Aucun montant du classeur ou de Figma n’est un oracle de calcul.
 
@@ -49,3 +49,4 @@ Une zone cliquable unique, sans pastilles de paramètres ni segments interactifs
 ## 6. Recette rédactionnelle
 
 Vérifier singulier/pluriel, deux/trois/plus de trois cibles, min=max, Durée/Répétitions/À l’échec, cadence absente/présente, pause0/positive, deux directions et deux ordres, PC0/positive. Injecter un total déterminable puis approximatif et vérifier uniquement son rendu. Vérifier omission du total seulement aux conditions ci-dessus, annulation et validation, absence de troncature à360/402/440 et texte agrandi. Les100 phrases du classeur constituent une référence de formulation ; les précisions explicites ci-dessus priment sur les omissions simplifiées. Aucune validation numérique du classeur n’est requise.
+

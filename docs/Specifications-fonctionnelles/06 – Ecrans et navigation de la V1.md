@@ -1,5 +1,9 @@
 # Écrans et navigation
 
+**État des captures au 07/10 :** [inventaire vérifié et limites](../MATRICE-FIGMA-2026-10-07.md). Les trois nouveaux états de Composition sont illustrés ci-dessous. Les anciennes captures non renouvelées sont indiquées comme telles ; règles et libellés métier restent ceux des contrats.
+
+**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Signaux de cadence conservés ; symboles, placement explicite et distinction contenu/trait révisés.
+
 ## Organisation et lecture
 
 Les familles sont identifiées par leur **titre**, sans numérotation d’écran. Les noms physiques des images sont conservés pour préserver les références existantes. Chaque famille rassemble ses règles et toutes ses captures :
@@ -836,7 +840,7 @@ La poignée de chaque carte d’Exercice est exclusivement une instance du compo
 
 Le MVP ne propose pas de menu d’ajout rapide `Pause 15 s / 30 s / 45 s`.
 
-Chaque occurrence possède explicitement `postActivityRecoverySeconds`, initialisé depuis le défaut global. La ligne structurelle affiche toujours `Récupération {durée}`, y compris `Récupération 0 s` et sans Point d’arrêt ; toucher son contrôle de récupération permet d’en régler la durée dans le brouillon. D-238 retire les informations sur les cartes, sans supprimer cette ligne ; une phase `POST_ACTIVITY_RECOVERY` chronométrée n’est créée que si cette valeur est positive.
+Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303).
 
 **Avertissement d’enchaînement sans pause (D-301).** Lorsque deux Exercices consécutifs n’ont ni Pause terminale après le premier ni Récupération positive après son occurrence, la Composition affiche l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre.
 
@@ -856,7 +860,7 @@ La ligne présente le nom, la Catégorie puis les Zones corporelles sur une lign
 - Répétitions : `N séries de N rép.` ;
 - À l’échec : `N séries à l’échec`.
 
-Le nom n’est pas répété, le mode n’est pas nommé. Aucun texte de pause/récupération dans le corps de la carte. La ligne structurelle attachée `Récupération {durée}` reste toujours affichée et réglable, même à `0 s` sans Point d’arrêt (D-217 ; clarification du propriétaire du 06/10). Les valeurs et phases D-208 restent conservées, solidaires de l’occurrence lors des opérations et utilisées dans les calculs. Le réglage de récupération existant sur cette ligne est conservé.
+Le nom n’est pas répété, le mode n’est pas nommé. Aucun texte de pause/récupération dans le corps de la carte. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). Les valeurs et phases D-208 restent conservées, solidaires de l’occurrence lors des opérations et utilisées dans les calculs. Le réglage de récupération existant sur cette ligne est conservé.
 
 La bilatéralité est indiquée par le miroir dans les variantes concernées ; le paramètre de direction et `Indicator / Sides` ne sont pas supprimés du modèle. Le texte développé « à droite, puis à gauche » reste propre à l’éditeur. La Description est absente des cartes. Texte complet conservé derrière la troncature.
 
@@ -930,9 +934,11 @@ Permettre de sélectionner ou créer l’Étiquette de la Séance. L’Étiquett
 
 La validation de la Séance reste portée par l’action `Continuer` de la Composition ; l’Étiquette est enregistrée avec la Séance dans le même flux de validation.
 
-### Placement et retrait d’un point d’arrêt
+### Placement et retrait des pauses
 
-Le placement est un état de la Composition, représenté par `4893:6675`, avec les emplacements `Placer ici` et l’action `Annuler`. Ce n’est pas une nouvelle page applicative. Le point inséré est visible dans `3722:5061`. Le retrait utilise la bulle contextuelle `Retirer le point d’arrêt` de `5301:5443`, rattachée au point concerné ; ce n’est pas une modale de confirmation. Les emplacements autorisés et le comportement à l’exécution restent ceux des règles du Point d’arrêt.
+Le placement est un état de la Composition, représenté par 7167:13503. Chaque position autorisée propose Récupération et Point d’arrêt côte à côte ; plusieurs ajouts peuvent être confirmés ensemble. Récupération ouvre immédiatement la modale de durée 7173:13521. Le bouton indique « Confirmer N pauses ajoutées » ; Annuler restitue le brouillon antérieur au placement. Les frontières autorisées restent propres à chaque type.
+
+Le retrait utilise une bulle contextuelle : « Retirer la récupération » (7296:13696) ou « Retirer le point d’arrêt » (5301:5443). Toucher hors bulle ferme sans mutation. Il ne s’agit pas de modales de confirmation. Les règles, transactions, états à zéro et critères de recette sont détaillés dans CE-T03-08 et la spécification Pauses et symboles. L’ancien état 4893:6675 est remplacé.
 
 ### Confirmation — Abandonner la création d’une séance
 
@@ -1029,11 +1035,23 @@ Point d’arrêt inséré dans la Composition, sans écran dédié ; élément d
 
 ![Modification d'une séance](images/figma-5271-5455.png)
 
-#### Composition d’une séance — Placement d’un point d’arrêt
+#### Composition d’une séance — Placement des pauses
 
-[Source Figma — `4893:6675`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4893-6675)
+[Source Figma — 7167:13503](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7167-13503)
 
-![Composition d’une séance — Placement d’un point d’arrêt](images/figma-4893-6675.png)
+![Placement des pauses](images/figma-7167-13503.png)
+
+#### Modale — Durée de récupération
+
+[Source Figma — 7173:13521](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7173-13521)
+
+![Durée de récupération](images/figma-7173-13521.png)
+
+#### Bulle — Retirer la récupération
+
+[Source Figma — 7296:13696](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7296-13696)
+
+![Retirer la récupération](images/figma-7296-13696.png)
 
 ### Modales, panneaux et confirmations
 
@@ -1107,7 +1125,7 @@ Contrats : CE-T03-04 (formulaire et abandon), CE-UI-10 (une feuille, plusieurs �
 
 Créer depuis Catalogue ouvre le formulaire ; Modifier reprend les données existantes. Nom, une Catégorie et au moins une Zone sont requis pour un nouvel Exercice. Carte Paramètres → feuille transactionnelle ; ✕/retour annule son brouillon, ✓ applique au parent ; Terminer seul persiste. Abandon du formulaire modifié ouvre la confirmation existante. Ouvrir un référentiel conserve les paramètres, même variables.
 
-Spécification [v13](SPECIFICATION-PARAMETRES-MODALE-v13.md) : mode unique, N séries par côté, cibles/Pauses propres à chaque ligne en variable, direction et Ordre des côtés indépendants. N=1 effectif uniforme/Un côté après l’autre ; restauration temporaire avant✓. Déplacement cible/Pause conjoint ; nouvelle première reprise à désactivation, nouvelle dernière Pause terminale. Total variable readonly et — si incomplet ; Répétitions : sans symbole avec cadence,≈ sans cadence ; À l’échec aucun total.
+Spécification [v13](SPECIFICATION-PARAMETRES-MODALE-v13.md) : mode unique, N séries par côté, cibles/Pauses propres à chaque ligne en variable, direction et Ordre des côtés indépendants. N=1 effectif uniforme/Un côté après l’autre ; restauration temporaire avant✓. Déplacement cible/Pause conjoint ; nouvelle première reprise à désactivation, nouvelle dernière Pause terminale. Total variable readonly et — si incomplet ; Répétitions : ≈ avec cadence, ≥ sans cadence ; À l’échec aucun total.
 
 ### Placement et contrôles
 
@@ -1166,6 +1184,8 @@ Figma définit le layout. Les valeurs, calculs, validations et comportements res
 [Source Figma — `6665:27862`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27862)
 
 ![Résumé — Durée variable bilatérale Les deux côtés à chaque série](images/figma-6665-27862.png)
+
+*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 #### Résumé — À l’échec variable
 
@@ -1237,11 +1257,15 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 
 ![Création exercice — Paramètres en modale — Modale complète — steppers (séries, pauses) avec message de durée totale ajustée](images/figma-6423-9953.png)
 
+*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
+
 #### Séries variables — Durée variable (scénario A)
 
 [Source Figma — `6665:24616`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-24616)
 
 ![Séries variables — Durée variable (scénario A)](images/figma-6665-24616.png)
+
+*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 #### Séries variables — Répétitions variables (scénario E)
 
@@ -1261,11 +1285,15 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 
 ![Séries variables — Douze séries (défilement — haut)](images/figma-6665-25277.png)
 
+*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
+
 #### Ordre des côtés — Sélection : Un côté après l’autre
 
 [Source Figma — `6665:26185`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-26185)
 
 ![Ordre des côtés — Sélection : Un côté après l’autre](images/figma-6665-26185.png)
+
+*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 #### Séries variables + Les deux côtés à chaque série — (scénario D)
 
@@ -1279,6 +1307,8 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 
 ![Une seule série — Options sans effet](images/figma-6665-26822.png)
 
+*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
+
 #### Changement de mode — Cibles à renseigner
 
 [Source Figma — `6665:27008`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27008)
@@ -1291,6 +1321,8 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 
 ![Validation impossible — Série incomplète](images/figma-6665-27232.png)
 
+*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
+
 #### Séries variables — Tableau masqué
 
 [Source Figma — `6665:27458`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27458)
@@ -1302,6 +1334,8 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 [Source Figma — `6665:27608`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27608)
 
 ![Séries variables — Déplacement d’une série](images/figma-6665-27608.png)
+
+*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 ### Sélections, créations de référentiels et confirmations
 
@@ -1379,17 +1413,23 @@ Les textes des frames13/14/phrase longue ne suivent pas tous la grammaire finale
 
 ![Paramètres avec changement de côté, état9b](images/figma-7069-13464.png)
 
+*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
+
 #### Répétitions sans cadence — état10b
 
 [Figma7069:13573](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7069-13573) — copie supplémentaire présente ; Aucune est valide.
 
 ![Paramètres Répétitions, état10b](images/figma-7069-13573.png)
 
+*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
+
 #### Phrase longue — parent de la feuille
 
 [Figma7119:27855](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7119-27855) — nouvelle frame, CE-T03-04. Le nombre de caractères du nom est une annotation, pas une limite produit.
 
 ![Formulaire et phrase longue](images/figma-7119-27855.png)
+
+*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
 
 
 ## Calendrier
@@ -1755,7 +1795,7 @@ L’écran affiche, de haut en bas :
 - une progression discrète du Tour ;
 - la zone `À suivre` avec le nom et la durée ou le nombre de reps de l’Exercice suivant ;
 - les commandes `Réinitialiser`, `Pause` et `Exercice suivant` ;
-- le temps total écoulé et la durée estimée d’exécution de la Séance ; le temps écoulé inclut toutes les phases effectivement exécutées, Compte à rebours initial et Fin de séance compris, mais exclut les Pauses manuelles ; durée prévisionnelle déterminable sans symbole avec cadence, approximative≈ sans cadence et borne≥ en présence de composante non estimable ;
+- le temps total écoulé et la durée estimée d’exécution de la Séance ; le temps écoulé inclut toutes les phases effectivement exécutées, Compte à rebours initial et Fin de séance compris, mais exclut les Pauses manuelles ; durée exacte sans symbole en mode Durée, estimée ≈ avec cadence et borne ≥ sans cadence ou en présence de composante inconnue ;
 - une barre de progression globale structurée en segments correspondant aux Tours, conformément au prototype Figma. Elle occupe exactement la largeur utile sans débordement. Les segments se répartissent dans cette largeur après déduction des espacements et ne conservent jamais la largeur fixe du gabarit `402`. Le remplissage représente l’avancement dans le Plan d’Exécution complet, Compte à rebours initial et `SESSION_END` compris, selon la pondération définie dans les chapitres 08 et 10 ; il n’est pas le simple rapport `temps écoulé / durée estimée d’exécution`. Il atteint `100 %` uniquement à l’achèvement de `SESSION_END`. Dans T04, les étapes chronométrées sont pondérées par leur durée planifiée ; les Séries Répétitions sans cadence et À l’échec acquièrent leur part avec `Suivant`. Les Séries cadencées suivent une progression temporelle continue, plafonnée à la fin nominale sans terminer la Série ; `Suivant` acquiert le reste éventuel. La Pause abandonne la fraction d’intervalle pour la progression et la reprise lance un intervalle complet, sans effacer le temps actif réel. Les Pauses manuelles n’augmentent pas le remplissage.
 
 Le Cycle n’est jamais affiché. Le nombre total d’étapes et la position sous la forme `x sur y` ne sont pas affichés dans le MVP.
@@ -2560,6 +2600,8 @@ Ensemble6426:10149, export06/10 ; pas un écran autonome.
 
 ![Stepper — Séries (interactif)](images/figma-6426-10149.png)
 
+*Capture antérieure : renouvellement du 07/10 bloqué par quota Figma. Voir le contrat et la référence Figma pour les règles courantes.*
+
 
 ### Référence de composant — Cadre bas — retournement
 
@@ -2573,3 +2615,4 @@ Ensemble6446:10103, export06/10 ; pas un écran autonome.
 Ensemble6451:10942, export06/10 ; pas un écran autonome.
 
 ![Zone d’exécution — retournements](images/figma-6451-10942.png)
+

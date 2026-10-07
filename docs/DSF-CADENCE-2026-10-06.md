@@ -210,6 +210,7 @@ La carte courante `DSF / Cards / Exercice` `6214:4425` (Choix composition, Séle
 
 ## Clarifications de Composition — H-08 et H-09
 
-La ligne structurelle Récupération / Point d’arrêt reste toujours présente entre les Exercices, y compris avec `Récupération 0 s` et sans Point d’arrêt. La récupération se règle sur cette ligne et appartient à l’occurrence. Les deux éléments restent distincts ; pendant le placement d’un Point d’arrêt, les emplacements autorisés sont mis en évidence pour permettre leur sélection. Le retrait des informations de pause/récupération sur les cartes (D-238) ne supprime ni cette ligne ni son réglage.
+Révision D-303/D-304 : la Composition propose le placement unifié Récupération / Point d’arrêt. Sans récupération positive et sans point, aucune information de pause ne reste visible. Le trait de démarcation est conservé hors placement et supprimé pendant le choix ; les contrôles de placement restent accessibles. Voir [DSF courant](DSF-PAUSES-ICONES-2026-10-07.md).
 
 Lorsque deux Exercices consécutifs n’ont ni Pause terminale après le premier ni Récupération positive après son occurrence, la Composition affiche l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre. Le libellé est prescrit par D-301 ; la présente livraison ne modifie pas Figma et ne prétend pas certifier le rendu de cet avertissement.
+

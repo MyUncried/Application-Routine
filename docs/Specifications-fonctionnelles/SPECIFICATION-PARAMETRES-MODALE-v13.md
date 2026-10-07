@@ -17,7 +17,7 @@ Un Exercice possède un mode unique : Durée, Répétitions ou À l’échec. Un
 - **Changement de côté** : Sans changement / Droite puis gauche / Gauche puis droite ; détermine la bilatéralité et le départ.
 - **Ordre des côtés** : Un côté après l’autre (défaut) / Les deux côtés à chaque série. Sans objet en unilatéral.
 - **Pause entre les côtés** : PC, libellé unique y compris dans le Profil ; initialisée depuis le Profil (défaut 10 s). Le nom technique existant `sideRecoverySeconds` peut être conservé.
-- **Récupération après exercice** : R, portée uniquement par l’occurrence de Séance (`postActivityRecoverySeconds`), jamais par ActivityDefinition.
+- **Récupération après exercice** : R, ajoutée explicitement et portée uniquement par l’occurrence de Séance (`postActivityRecoverySeconds`), jamais par ActivityDefinition.
 
 En uniforme, une cible et une Pause communes sont effectives. En variable, la collection ordonnée des N cibles/Pauses est l’unique source de vérité : aucune combinaison valeur commune + surcharge. Durée : cible Ti ; Répétitions : cible Ri ; À l’échec : aucune cible numérique, seules les Pauses varient. Cibles d’intensité (charge, RPE, etc.) hors périmètre.
 
@@ -53,7 +53,7 @@ Le Compte à rebours propre et la Fin d’exercice propre sont joués une seule 
 
 ## 5. Durées, affichage et inversion
 
-N = Séries par côté ; Ti = cible temporelle de la Série i ; Pi = Pause de cette Série ; PC = Pause entre les côtés ; R = Récupération de l’occurrence. En Répétitions : Ti=Ri×Ci secondes si une cadence Ci est renseignée ; sans cadence, Ti≈2×Ri secondes. Cette convention de 2 s ne crée aucune cadence. À l’échec, Ti reste non estimable. Le niveau d’incertitude est propagé avec le total, selon la [spécification Cadence](SPECIFICATION-CADENCE-REPETITIONS-v1.md).
+N = Séries par côté ; Ti = cible temporelle de la Série i ; Pi = Pause de cette Série ; PC = Pause entre les côtés ; R = Récupération de l’occurrence. En Répétitions cadencées, Ti=Ri×Ci fournit une estimation ≈. Sans cadence, le calcul antérieur utilise Ti≈2×Ri. Le nouveau symbole ≥ est acté mais cette estimation ne constitue pas un minorant garanti : voir Q-07 dans la spécification Pauses et symboles ; aucune substitution implicite par Ti=0. À l’échec, Ti reste non estimable. Le niveau d’incertitude est propagé avec le total, selon la [spécification Cadence](SPECIFICATION-CADENCE-REPETITIONS-v1.md).
 
 | Configuration | Durée intrinsèque T | Uniforme (cible d, Pause p) |
 |---|---|---|
@@ -67,7 +67,7 @@ Catalogue d’exercices, paramètres de l’Exercice et exécution directe : dur
 
 Compte à rebours propre et Fin propre sont exclus du total intrinsèque de paramètres et de To défini ici. Ils restent des phases du plan complet lorsqu’ils sont configurés. L’affichage doit distinguer le total de l’occurrence du total du plan de Séance, sans les assimiler.
 
-Durée : total déterminable sans symbole. Répétitions : total non éditable, sans symbole avec cadence, **Durée totale ≈** sans cadence. Un agrégat comportant du travail non estimable conserve **≥**. À l’échec : aucun total d’Exercice affiché. En variable, total toujours en lecture seule et — si une Série active est incomplète. Il reste dans le contenu lorsque le tableau est replié (pas nécessairement dans le viewport pendant le scroll). Le total uniforme reste affiché dans la feuille même à N=1 ; le résumé ne peut l’omettre comme redondant que si sa valeur égale réellement la cible de la Série.
+Durée : total déterminable sans symbole. Répétitions : total non éditable, **Durée totale ≈** avec cadence, **Durée totale ≥** sans cadence. Un agrégat comportant du travail non estimable conserve **≥**. À l’échec : aucun total d’Exercice affiché. En variable, total toujours en lecture seule et — si une Série active est incomplète. Il reste dans le contenu lorsque le tableau est replié (pas nécessairement dans le viewport pendant le scroll). Le total uniforme reste affiché dans la feuille même à N=1 ; le résumé ne peut l’omettre comme redondant que si sa valeur égale réellement la cible de la Série.
 
 **Saisie du total uniquement en Durée uniforme** : déterminer N dans1..99 au plus proche, égalité vers le haut, puis afficher la durée réalisable. Pour l’unilatéral : arrondi(Tv/(d+p)) ; pour Un côté après l’autre : arrondi((Tv−PC)/(2(d+p))). Pour Les deux côtés à chaque série et N≥2 : arrondi(Tv/(2d+p+PC)). Tenir compte de la normalisation N=1 : comparer les candidats réalisables et le candidat1 calculé Un côté après l’autre, puis retenir le total le plus proche (égalité : N le plus grand). Cette comparaison est nécessaire pour ne pas afficher un total calculé avec un ordre devenu inactif. Borner dans1..99 ; domaine du sélecteur = totaux réalisables extrêmes, selon l’ordre effectif. Le sélecteur conserve minutes/secondes.
 
@@ -131,7 +131,7 @@ API de validation/calcul/duplication et construction du plan doivent consommer l
 | B | A dans une Séance ; R120s | 195−30+120=285s =4min45s |
 | C | A bilatéral Un côté après l’autre ; PC15s | 2×195+15=405s =6min45s |
 | D | A bilatéral Les deux côtés à chaque série ; PC15s | 2×135+60+3×15=375s =6min15s |
-| E | Répétitions12/10/8 ; Pauses30/45/60s ; unilatéral | ≈195s =≈3min15s |
+| E | Répétitions12/10/8 ; Pauses30/45/60s ; unilatéral | Estimation historique195s =3min15s ; ne pas convertir en ≥195s sans arbitrage Q-07. La formule du nouveau minorant n’est pas décidée |
 | F | À l’échec ; Pauses30/45/60s | Aucun total |
 | Uniforme | N3,d90s,p15s,unilatéral | 315s =5min15s |
 | Uniforme bilatéral | N3,d90s,p15s,PC10s | Par côté640s =10min40s ; par paire615s =10min15s |
@@ -147,3 +147,4 @@ La [spécification Cadence v1](SPECIFICATION-CADENCE-REPETITIONS-v1.md) complèt
 Une bascule de mode conserve la cadence dans le brouillon pour un retour avant✓ ; valider un autre mode la supprime. ✕ annule ; ✓ applique atomiquement au parent ; Terminer persiste. Déplacement, duplication et instantané conservent la cadence. Existant sans champ : absence, jamais2s.
 
 La suppression sélectionne « Aucun » dans la même roulette et retourne à Aucune. CAD-V01 est levée : aucun bouton ni frame dédié supplémentaire n’est requis. Bornes, suppression, annulation et propagation restent celles définies ci-dessus et dans CE-UI-10.
+
