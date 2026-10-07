@@ -30,11 +30,15 @@ function aSummary(overrides: Partial<SessionSummary> = {}): SessionSummary {
 }
 
 describe("SessionCard", () => {
-  it("displays the session name and the formatted summary line", () => {
+  // Alignement DSF 07/10 (D11, `DSF / Cards / Séance` `6214:3572`) : la durée
+  // quitte la ligne de synthèse pour la ligne de titre, sans cadre — même
+  // valeur, même format ; la synthèse garde Exercices et Tours.
+  it("displays the session name, the duration on the title line, and the summary line", () => {
     render(<SessionCard session={aSummary()} />);
 
     expect(screen.getByText("Renforcement du genou")).toBeTruthy();
-    expect(screen.getByText("1 exercice · 18 min · 1 tour")).toBeTruthy();
+    expect(screen.getByTestId("session-card-duration").props.children).toBe("18 min");
+    expect(screen.getByText("1 exercice · 1 tour")).toBeTruthy();
   });
 
   it("never displays fictional data for planning, last execution, or activity detail — only the exact summary line, name, and (T01-S09) a tag line strictly reflecting the real categoryNames/bodyZoneNames provided", () => {
@@ -182,6 +186,7 @@ describe("SessionCard", () => {
   it("prefixes the estimated duration with ≥ when it is approximate (T01-S09, RM-072)", () => {
     render(<SessionCard session={aSummary({ isEstimatedDurationApproximate: true })} />);
 
-    expect(screen.getByText("1 exercice · ≥ 18 min · 1 tour")).toBeTruthy();
+    expect(screen.getByTestId("session-card-duration").props.children).toBe("≥ 18 min");
+    expect(screen.getByText("1 exercice · 1 tour")).toBeTruthy();
   });
 });

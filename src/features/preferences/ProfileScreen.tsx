@@ -342,10 +342,12 @@ const styles = StyleSheet.create({
   // CE-UI-07 L2533 : fond #FCFCFE, liseré blanc de 1, rayon 12, ombre non
   // rognée — valeurs du chapitre 13 propres aux GROUPES du Profil (jamais
   // le bord 0,5/rayon 8 de DSF-CARTES L30, qui ne concerne que les cartes).
+  // Alignement DSF 07/10 (annexe F) : `#FCFCFE` est ramené au token
+  // canonique le plus proche, `surfaceSubtle` (`#F9FAFC`).
   group: {
-    backgroundColor: "#FCFCFE",
+    backgroundColor: colors.surfaceSubtle,
     borderWidth: 1,
-    borderColor: "#FFFFFF",
+    borderColor: colors.background,
     borderRadius: 12,
     padding: spacing[16],
     shadowColor: "#000000",

@@ -10,9 +10,10 @@ import {
   formatTourCount,
 } from "@/features/sessions/formatSessionSummary";
 import { strings } from "@/shared/i18n";
+import { CardTitleLine } from "@/shared/ui/CardTitleLine";
 import { DisclosureControl } from "@/shared/ui/DisclosureControl";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 export type SessionCardProps = {
   session: SessionSummary;
@@ -88,11 +89,25 @@ export type SessionCardProps = {
  *
  * Le corps de la carte n'est pas pressable : aucune route de modification
  * (`Composition d'une séance`) n'existe avant T01-S07.
+ *
+ * Alignement DSF 07/10/2026 (`DSF / Cards / Séance`, variante
+ * `Contexte=Catalogue, État=Replié` `6214:3572`, D11) :
+ * - la durée quitte la ligne de synthèse pour la ligne de titre, sans cadre,
+ *   calée à droite à 16 du bord de la carte (`CardTitleLine`) ; son calcul
+ *   et son format (`formatEstimatedDuration`, préfixe « ≥ ») sont inchangés ;
+ * - la ligne de titre occupe toute la largeur de la colonne de texte (322 à
+ *   la largeur de référence) ; Déployer et Démarrer restent en bas à droite ;
+ * - conteneur : fond `color/surface-subtle`, contour 0,5 `color/cards/border`,
+ *   rayon 8 (`component/cards/radius`).
+ * Le chevron de déploiement est conservé (annexe I.3).
  */
 export function SessionCard({ session, onOpen }: SessionCardProps) {
+  const duration = formatEstimatedDuration(
+    session.estimatedDurationSeconds,
+    session.isEstimatedDurationApproximate,
+  );
   const summaryLine = [
     formatActivityCount(session.activityCount),
-    formatEstimatedDuration(session.estimatedDurationSeconds, session.isEstimatedDurationApproximate),
     formatTourCount(session.tourRepeatCount),
   ].join(" · ");
   const categoriesSegment = formatCategoryNamesSegment(session.categoryNames);
@@ -105,42 +120,42 @@ export function SessionCard({ session, onOpen }: SessionCardProps) {
         style={[styles.colorBar, { backgroundColor: session.color }]}
         testID="session-card-color-bar"
       />
-      <SessionCardMainArea onOpen={onOpen}>
-        <Text style={styles.name} numberOfLines={2}>
-          {session.name}
-        </Text>
-        {hasTagLine ? (
-          <Text style={styles.tagLine} numberOfLines={1} testID="session-card-tag-line">
-            {categoriesSegment !== null ? (
-              <Text
-                style={{ color: session.color }}
-                testID="session-card-tag-line-categories"
-              >
-                {categoriesSegment}
-              </Text>
-            ) : null}
-            {categoriesSegment !== null && zonesSegment !== null ? " : " : null}
-            {zonesSegment}
-          </Text>
-        ) : null}
-        <Text style={styles.summary}>{summaryLine}</Text>
-      </SessionCardMainArea>
-      <View style={styles.actions}>
-        <DisclosureControl
-          expanded={false}
-          disabled
-          accessibilityLabel={strings.screens.sessions.card.expandAccessibilityLabel}
-          testID="session-card-disclosure"
-        />
-        <Pressable
-          disabled
-          accessibilityRole="button"
-          accessibilityState={{ disabled: true }}
-          accessibilityLabel={strings.screens.sessions.card.startAccessibilityLabel}
-          style={styles.startButton}
-        >
-          <KodjoIcon name="action-start" opacity={0.55} testID="session-card-start" />
-        </Pressable>
+      <View style={styles.body}>
+        <SessionCardMainArea onOpen={onOpen}>
+          <CardTitleLine title={session.name} duration={duration} testID="session-card" />
+          {hasTagLine ? (
+            <Text style={styles.tagLine} numberOfLines={1} testID="session-card-tag-line">
+              {categoriesSegment !== null ? (
+                <Text
+                  style={{ color: session.color }}
+                  testID="session-card-tag-line-categories"
+                >
+                  {categoriesSegment}
+                </Text>
+              ) : null}
+              {categoriesSegment !== null && zonesSegment !== null ? " : " : null}
+              {zonesSegment}
+            </Text>
+          ) : null}
+          <Text style={styles.summary}>{summaryLine}</Text>
+        </SessionCardMainArea>
+        <View style={styles.actions} pointerEvents="box-none">
+          <DisclosureControl
+            expanded={false}
+            disabled
+            accessibilityLabel={strings.screens.sessions.card.expandAccessibilityLabel}
+            testID="session-card-disclosure"
+          />
+          <Pressable
+            disabled
+            accessibilityRole="button"
+            accessibilityState={{ disabled: true }}
+            accessibilityLabel={strings.screens.sessions.card.startAccessibilityLabel}
+            style={styles.startButton}
+          >
+            <KodjoIcon name="action-start" opacity={0.55} testID="session-card-start" />
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -178,37 +193,49 @@ function SessionCardMainArea({
   );
 }
 
+/** Largeur réservée aux actions Déployer/Démarrer, depuis le bord droit de la colonne de texte. */
+const LOWER_LINES_ACTION_RESERVE = 2 * minTouchTarget + spacing[2] - spacing[16];
+
 const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: dimensions.standardCard.radius,
+    backgroundColor: colors.surfaceSubtle,
+    borderWidth: 0.5,
+    borderColor: colors.cardsBorder,
+    borderRadius: fixedRadii[8],
     overflow: "hidden",
   },
   colorBar: {
     alignSelf: "stretch",
     width: 4,
   },
-  content: {
+  // Colonne de la carte : zone principale (titre/durée pleine largeur, puis
+  // classement et synthèse) ; les actions se superposent en bas à droite
+  // sans réduire la ligne de titre.
+  // `minHeight` : hauteur de la variante Figma (90), qui garantit que les
+  // actions (48, ancrées en bas) ne recouvrent jamais la ligne de titre ;
+  // la carte grandit avec le texte (police agrandie).
+  body: {
     flex: 1,
+    minHeight: 90,
+  },
+  content: {
     paddingVertical: spacing[12],
     paddingHorizontal: spacing[16],
     gap: spacing[4],
-  },
-  name: {
-    ...type.cardTitle,
-    color: colors.textPrimary,
   },
   // Correction VISUAL tentative 2 (point B) : ligne Catégories/Zones
   // corporelles restaurée sous le nom — même typographie que la ligne
   // secondaire de `Boundary Activity` (`boundaryRowSecondaryLine`,
   // `CompositionScreen.tsx`, `type.caption`/`colors.textSecondary`), pas de
   // nouveau style inventé localement.
+  //
+  // Alignement DSF 07/10 : métadonnées des cartes en Inter Regular 12
+  // (`type.supporting`), comme dans `DSF / Cards / Séance` ; les lignes
+  // basses s'arrêtent avant les deux actions (2 × 48, à 2 du bord).
   tagLine: {
-    ...type.caption,
+    ...type.supporting,
+    marginRight: LOWER_LINES_ACTION_RESERVE,
     color: colors.textSecondary,
   },
   // Correction VISUAL tentative 2 (point B) : `type.body` → `type.caption`,
@@ -217,14 +244,16 @@ const styles = StyleSheet.create({
   // typographique désormais identique entre les deux cartes, réutilisée
   // plutôt que redéfinie.
   summary: {
-    ...type.caption,
+    ...type.supporting,
+    marginRight: LOWER_LINES_ACTION_RESERVE,
     color: colors.textSecondary,
   },
   actions: {
+    position: "absolute",
+    right: spacing[2],
+    bottom: 0,
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing[8],
-    paddingHorizontal: spacing[12],
   },
   startButton: {
     minWidth: minTouchTarget,

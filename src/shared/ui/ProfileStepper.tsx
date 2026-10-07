@@ -3,7 +3,19 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { nextGridValue, previousGridValue } from "@/domain/preferences/Profile";
 import { strings } from "@/shared/i18n";
-import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+
+/**
+ * Alignement DSF 07/10 — `DSF / Controls / Stepper / Profil` (`5544:4732`) :
+ * pilule `#F2F2FF` de 36 de haut, rayon 18, marge interne 4, écart 2 ;
+ * deux cercles blancs de 28 (rayon 14) portant les signes « − »/« + » ;
+ * valeur Inter Semi Bold 13 en `color/primary`, centrée sur 50. La cible
+ * tactile reste 48 × 48 via `hitSlop`.
+ */
+const STEP_CIRCLE = 28;
+const STEPPER_HEIGHT = 36;
+const STEPPER_VALUE_WIDTH = 50;
 
 /** Maintien : immédiat, puis 450 ms, puis toutes les 150 ms (T5, ANI-06, CE-UI-07 L2549). */
 const INITIAL_REPEAT_DELAY_MS = 450;
@@ -160,42 +172,52 @@ export function ProfileStepper({
 
   return (
     <View style={styles.openRow} testID={testID}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.controls}>
-        <Pressable
-          disabled={atMin}
-          onPressIn={() => startRepeating(-1)}
-          onPressOut={stopRepeating}
-          accessibilityRole="button"
-          accessibilityLabel={atMin ? `${t.decrementAccessibilityLabel} — ${t.minimumReachedSuffix}` : t.decrementAccessibilityLabel}
-          accessibilityState={{ disabled: atMin }}
-          hitSlop={(minTouchTarget - 32) / 2}
-          style={[styles.stepButton, atMin ? styles.stepButtonDisabled : null]}
-          testID={`${testID}-decrement`}
-        >
-          <Text style={[styles.stepButtonLabel, atMin ? styles.stepButtonLabelDisabled : null]}>−</Text>
-        </Pressable>
-        <Text
-          style={styles.openValue}
-          accessibilityLabel={boundsLabel}
-          accessibilityValue={{ min, max, now: working }}
-          testID={`${testID}-value`}
-        >
-          {valueLabel}
-        </Text>
-        <Pressable
-          disabled={atMax}
-          onPressIn={() => startRepeating(1)}
-          onPressOut={stopRepeating}
-          accessibilityRole="button"
-          accessibilityLabel={atMax ? `${t.incrementAccessibilityLabel} — ${t.maximumReachedSuffix}` : t.incrementAccessibilityLabel}
-          accessibilityState={{ disabled: atMax }}
-          hitSlop={(minTouchTarget - 32) / 2}
-          style={[styles.stepButton, atMax ? styles.stepButtonDisabled : null]}
-          testID={`${testID}-increment`}
-        >
-          <Text style={[styles.stepButtonLabel, atMax ? styles.stepButtonLabelDisabled : null]}>+</Text>
-        </Pressable>
+      <View style={styles.openLine}>
+        <Text style={styles.label}>{label}</Text>
+        <View style={styles.controls}>
+          <Pressable
+            disabled={atMin}
+            onPressIn={() => startRepeating(-1)}
+            onPressOut={stopRepeating}
+            accessibilityRole="button"
+            accessibilityLabel={atMin ? `${t.decrementAccessibilityLabel} — ${t.minimumReachedSuffix}` : t.decrementAccessibilityLabel}
+            accessibilityState={{ disabled: atMin }}
+            hitSlop={(minTouchTarget - STEP_CIRCLE) / 2}
+            style={styles.stepButton}
+            testID={`${testID}-decrement`}
+          >
+            <KodjoIcon
+              name="stepper-minus"
+              tintColor={atMin ? colors.disabled : colors.primary}
+              testID={`${testID}-decrement-icon`}
+            />
+          </Pressable>
+          <Text
+            style={styles.openValue}
+            accessibilityLabel={boundsLabel}
+            accessibilityValue={{ min, max, now: working }}
+            testID={`${testID}-value`}
+          >
+            {valueLabel}
+          </Text>
+          <Pressable
+            disabled={atMax}
+            onPressIn={() => startRepeating(1)}
+            onPressOut={stopRepeating}
+            accessibilityRole="button"
+            accessibilityLabel={atMax ? `${t.incrementAccessibilityLabel} — ${t.maximumReachedSuffix}` : t.incrementAccessibilityLabel}
+            accessibilityState={{ disabled: atMax }}
+            hitSlop={(minTouchTarget - STEP_CIRCLE) / 2}
+            style={styles.stepButton}
+            testID={`${testID}-increment`}
+          >
+            <KodjoIcon
+              name="stepper-plus"
+              tintColor={atMax ? colors.disabled : colors.primary}
+              testID={`${testID}-increment-icon`}
+            />
+          </Pressable>
+        </View>
       </View>
       {errorMessage ? (
         <Text style={styles.errorText} testID={`${testID}-error`}>
@@ -214,52 +236,62 @@ const styles = StyleSheet.create({
     minHeight: minTouchTarget,
     paddingVertical: spacing[8],
   },
+  // Alignement DSF 07/10 : le stepper ouvert remplace la valeur SUR LA MÊME
+  // LIGNE que le libellé (`Profil — Stepper Pause changement de côté`,
+  // `1992:474`), sans étirer le groupe ; le message d'erreur éventuel
+  // reste sous la ligne.
   openRow: {
-    paddingVertical: spacing[8],
+    paddingVertical: spacing[6],
+    gap: spacing[8],
+  },
+  openLine: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: spacing[8],
   },
   label: {
     ...type.body,
+    flexShrink: 1,
     color: colors.textPrimary,
   },
+  // `DSF / Forms / Valeur modifiable` (`6944:26423`, `Texte=13, État=Normal`) :
+  // fond `color/surface`, rayon 10, marges 4 × 10, texte Semi Bold 13 en
+  // `color/primary`.
   closedValue: {
-    ...type.label,
-    color: colors.textSecondary,
+    ...type.editableValue,
+    color: colors.primary,
+    backgroundColor: colors.surface,
+    borderRadius: fixedRadii[10],
+    overflow: "hidden",
+    paddingVertical: spacing[4],
+    paddingHorizontal: spacing[10],
   },
   controls: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-end",
-    gap: spacing[12],
+    minHeight: STEPPER_HEIGHT,
+    padding: spacing[4],
+    gap: spacing[2],
+    borderRadius: STEPPER_HEIGHT / 2,
+    backgroundColor: colors.stepperSurface,
   },
-  // D-227 : rendu lavande DSF — réutilise `colors.selectionSurface`/`colors.selection`, déjà les tokens canoniques du projet pour cette teinte.
   openValue: {
-    ...type.label,
-    minWidth: 56,
+    ...type.editableValue,
+    minWidth: STEPPER_VALUE_WIDTH,
     textAlign: "center",
-    paddingVertical: spacing[6],
-    paddingHorizontal: spacing[12],
-    borderRadius: 16,
-    backgroundColor: colors.selectionSurface,
-    color: colors.selection,
+    paddingHorizontal: spacing[4],
+    color: colors.primary,
   },
+  // Le cercle reste identique aux bornes : seul le signe passe en
+  // `color/disabled` (l'état reste annoncé par `accessibilityState`).
   stepButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: STEP_CIRCLE,
+    height: STEP_CIRCLE,
+    borderRadius: STEP_CIRCLE / 2,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.selectionSurface,
-  },
-  stepButtonDisabled: {
-    backgroundColor: colors.surface,
-  },
-  stepButtonLabel: {
-    ...type.button,
-    color: colors.selection,
-  },
-  stepButtonLabelDisabled: {
-    color: colors.disabled,
+    backgroundColor: colors.background,
   },
   errorText: {
     ...type.caption,

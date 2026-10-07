@@ -122,9 +122,10 @@ describe("strings", () => {
     expect(strings.screens.sessions.contentTypes).toEqual({
       activities: "Exercices",
       sessions: "Séances",
-      circuits: "Circuits",
+      // Alignement DSF 07/10 (D10) : « Parcours » dans les catalogues.
+      circuits: "Parcours",
       activitiesUnavailableAccessibilityLabel: "Exercices — indisponible",
-      circuitsUnavailableAccessibilityLabel: "Circuits — indisponible",
+      circuitsUnavailableAccessibilityLabel: "Parcours — indisponible",
     });
   });
 

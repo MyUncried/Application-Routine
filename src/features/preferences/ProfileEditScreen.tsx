@@ -387,12 +387,12 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 2,
-    borderColor: "#CCD1E0",
+    borderColor: colors.cardsBorder,
     alignItems: "center",
     justifyContent: "center",
   },
   silhouetteCircleSelected: {
-    borderColor: "#0508E5",
+    borderColor: colors.primary,
   },
   saveAction: {
     minHeight: minTouchTarget,
