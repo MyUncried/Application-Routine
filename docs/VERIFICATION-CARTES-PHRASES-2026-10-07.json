@@ -30,8 +30,7 @@
   "app_tests_executed": false,
   "figma_written": false,
   "remaining_graphic_examples": [
-    "3786:5093 : à l’échec dans emplacement durée",
-    "6419:10028 : phrase du parent et mode de fond non harmonisés"
+    "Étiquettes du parent distinctes des phrases non harmonisées, dont Durée derrière6419:10028"
   ],
   "inventory": [
     {
@@ -451,8 +450,9 @@
     {
       "id": "3786:5093",
       "path": "docs/Specifications-fonctionnelles/images/ecran-12-catalogue-activites-liste.png",
-      "sha": "ce3c7e822f03389da37e3326785c8dd61a4c5e3a",
-      "renewed": true
+      "sha": "4720546433d16e756c5b0157fda437fecd1b2df1",
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "3789:5349",
@@ -493,8 +493,9 @@
     {
       "id": "4734:6342",
       "path": "docs/Specifications-fonctionnelles/images/ecran-15a-modification-activite-persistante.png",
-      "sha": "8be7f19f033ba800054c84dfd9c1b725b1d339a0",
-      "renewed": false
+      "sha": "e6a6ed759a0510ad83b228e2ef8396114e0c940f",
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "4332:7095",
@@ -565,8 +566,9 @@
     {
       "id": "4714:6241",
       "path": "docs/Specifications-fonctionnelles/images/figma-4714-6241.png",
-      "sha": "90f1c9c3d1bc87991832fae1de0904f76c3b1507",
-      "renewed": false
+      "sha": "69922d40dc7710ff772b87883ef841b3cdca3bfa",
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "4738:6209",
@@ -595,8 +597,9 @@
     {
       "id": "4861:6348",
       "path": "docs/Specifications-fonctionnelles/images/figma-4861-6348.png",
-      "sha": "b3899f7b9b2d4af21db6cc0f15a92a7240088380",
-      "renewed": false
+      "sha": "3ee5c77de1d450c9f95c1f811154f73cf005acb7",
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "4997:6113",
@@ -655,62 +658,72 @@
     {
       "id": "6407:9702",
       "path": "docs/Specifications-fonctionnelles/images/figma-6407-9702.png",
-      "sha": "417dd41ddecf46dfc83e9f99aa485f3a772b38f3",
-      "renewed": true
+      "sha": "03fd25415b941f9fa3a3b6bc226e6854d004397b",
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "6407:9805",
       "path": "docs/Specifications-fonctionnelles/images/figma-6407-9805.png",
-      "sha": "108866215fc8c0eec5f82959ffa15f4cd7d2e893",
-      "renewed": true
+      "sha": "cd7422bdebac746942198e22010d10bcf9a6c8a1",
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "6407:9966",
       "path": "docs/Specifications-fonctionnelles/images/figma-6407-9966.png",
-      "sha": "94b1cac3237a23de09f7c270aed349e051974a00",
-      "renewed": true
+      "sha": "8465fe95bf4f9a2a05c30baa36d7f81b4fd2ce34",
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "6407:10127",
       "path": "docs/Specifications-fonctionnelles/images/figma-6407-10127.png",
       "sha": "424cacf2c95e5807bdce002fc16f7033641af0dc",
-      "renewed": true
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "6407:10481",
       "path": "docs/Specifications-fonctionnelles/images/figma-6407-10481.png",
-      "sha": "4f5d4364504aa2a7412f9c7d066c6ad63dba711d",
-      "renewed": true
+      "sha": "05b15381efef453c02e1f9a3531e81c43388d5f0",
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "6411:9546",
       "path": "docs/Specifications-fonctionnelles/images/figma-6411-9546.png",
       "sha": "301170fbf7d37a0ef807d76df880c9f119854bd6",
-      "renewed": true
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "6411:9649",
       "path": "docs/Specifications-fonctionnelles/images/figma-6411-9649.png",
       "sha": "c5d6bdda603301d8ecbed8132a6db518e6bcf32a",
-      "renewed": true
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "6419:9847",
       "path": "docs/Specifications-fonctionnelles/images/figma-6419-9847.png",
-      "sha": "9bf59cb4838effc629e3c32d2c8030d0509d9897",
-      "renewed": true
+      "sha": "e5edae04bc37f5a06310b12d1fbe3b5edcd81bc1",
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "6419:10028",
       "path": "docs/Specifications-fonctionnelles/images/figma-6419-10028.png",
-      "sha": "874b893f1a1c1f3c23666b9ad8d96685137ca513",
-      "renewed": true
+      "sha": "f92207890533658ba41528b44d313cb715b37bd1",
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "6423:9953",
       "path": "docs/Specifications-fonctionnelles/images/figma-6423-9953.png",
-      "sha": "5adf393a3cec04922cc9f5b32a51b7aac2684af6",
-      "renewed": true
+      "sha": "e7cb1dc76a30a2dc45a5f7e27695fa8649678ff7",
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "6426:10149",
@@ -751,8 +764,9 @@
     {
       "id": "6665:25072",
       "path": "docs/Specifications-fonctionnelles/images/figma-6665-25072.png",
-      "sha": "9cd10910b313d5e52aa8c89fd39c0b75e622b717",
-      "renewed": true
+      "sha": "216a35a5293d841c9b27ce1d00cd73e99001cb64",
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "6665:25277",
@@ -811,32 +825,37 @@
     {
       "id": "6665:28050",
       "path": "docs/Specifications-fonctionnelles/images/figma-6665-28050.png",
-      "sha": "36d61175cc7e4a9e3a3deb3b8f9125e1cef7f4d0",
-      "renewed": true
+      "sha": "2c345e70954e5c182954a9e71d8428f2dd119580",
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "7059:13302",
       "path": "docs/Specifications-fonctionnelles/images/figma-7059-13302.png",
-      "sha": "ab48401a10aea1cadfcab5400bd4b1f4c692c046",
-      "renewed": true
+      "sha": "eb6ee2cb2466ade4252f28199d7f38ee546b61ad",
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "7069:13464",
       "path": "docs/Specifications-fonctionnelles/images/figma-7069-13464.png",
       "sha": "82e899a6923af4b58c3638f81ff241776f73a84f",
-      "renewed": true
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "7069:13573",
       "path": "docs/Specifications-fonctionnelles/images/figma-7069-13573.png",
-      "sha": "5bcd880a47c623a49566d05508d5973c52140825",
-      "renewed": true
+      "sha": "26cbb28a51473b4628fe951a5a56b8a1d8ed1edf",
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "7119:27855",
       "path": "docs/Specifications-fonctionnelles/images/figma-7119-27855.png",
-      "sha": "a9757f1a369ebb5cc4a835fe069199ac68ef95cb",
-      "renewed": true
+      "sha": "a7b8c52b7e3b0a6c6e54f240c69abd2ab9e88c4b",
+      "renewed": true,
+      "latest_batch": "corrections19-phrases"
     },
     {
       "id": "7167:13503",
@@ -868,5 +887,231 @@
       "sha": "12ff799817f251ae051f9a71583b6cc4659b6418",
       "renewed": false
     }
-  ]
+  ],
+  "closure_followup": {
+    "base_commit": "48c48b69bbd99578c9c4a4264a982bc30c2fbbdd",
+    "corrected_phrases": 19,
+    "screens_recaptured": 20,
+    "catalogue_label_absent": true,
+    "long_frame_name": "Création activité — Phrase longue (182 caractères)",
+    "captures": [
+      {
+        "id": "4734:6342",
+        "name": "Modifier un exercice",
+        "path": "docs/Specifications-fonctionnelles/images/ecran-15a-modification-activite-persistante.png",
+        "sha": "e6a6ed759a0510ad83b228e2ef8396114e0c940f"
+      },
+      {
+        "id": "4714:6241",
+        "name": "Modal — Abandonner la création de l’activité",
+        "path": "docs/Specifications-fonctionnelles/images/figma-4714-6241.png",
+        "sha": "69922d40dc7710ff772b87883ef841b3cdca3bfa"
+      },
+      {
+        "id": "4861:6348",
+        "name": "Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression",
+        "path": "docs/Specifications-fonctionnelles/images/figma-4861-6348.png",
+        "sha": "3ee5c77de1d450c9f95c1f811154f73cf005acb7"
+      },
+      {
+        "id": "6407:9702",
+        "name": "Création activité — Paramètres en modale — 3 Texte affiché",
+        "path": "docs/Specifications-fonctionnelles/images/figma-6407-9702.png",
+        "sha": "03fd25415b941f9fa3a3b6bc226e6854d004397b"
+      },
+      {
+        "id": "6407:9805",
+        "name": "Création activité — Paramètres en modale — 4 Modale complète — mode activé",
+        "path": "docs/Specifications-fonctionnelles/images/figma-6407-9805.png",
+        "sha": "cd7422bdebac746942198e22010d10bcf9a6c8a1"
+      },
+      {
+        "id": "6407:9966",
+        "name": "Création activité — Paramètres en modale — 5 Modale complète — steppers (séries, pauses)",
+        "path": "docs/Specifications-fonctionnelles/images/figma-6407-9966.png",
+        "sha": "8465fe95bf4f9a2a05c30baa36d7f81b4fd2ce34"
+      },
+      {
+        "id": "6407:10127",
+        "name": "Création activité — Paramètres en modale — 6 Durée activée (roulette ouverte)",
+        "path": "docs/Specifications-fonctionnelles/images/figma-6407-10127.png",
+        "sha": "424cacf2c95e5807bdce002fc16f7033641af0dc"
+      },
+      {
+        "id": "6411:9546",
+        "name": "Création activité — Paramètres en modale — 7 Durée totale activée (roulette ouverte)",
+        "path": "docs/Specifications-fonctionnelles/images/figma-6411-9546.png",
+        "sha": "301170fbf7d37a0ef807d76df880c9f119854bd6"
+      },
+      {
+        "id": "6407:10481",
+        "name": "Création activité — Paramètres en modale — 8 Changement de côté activé (contrôle segmenté)",
+        "path": "docs/Specifications-fonctionnelles/images/figma-6407-10481.png",
+        "sha": "05b15381efef453c02e1f9a3531e81c43388d5f0"
+      },
+      {
+        "id": "6411:9649",
+        "name": "Création activité — Paramètres en modale — 9 Avec changement de côté (pause au changement de côté)",
+        "path": "docs/Specifications-fonctionnelles/images/figma-6411-9649.png",
+        "sha": "c5d6bdda603301d8ecbed8132a6db518e6bcf32a"
+      },
+      {
+        "id": "7069:13464",
+        "name": "Création activité — Paramètres en modale — 9b Avec changement de côté (copie)",
+        "path": "docs/Specifications-fonctionnelles/images/figma-7069-13464.png",
+        "sha": "82e899a6923af4b58c3638f81ff241776f73a84f"
+      },
+      {
+        "id": "6419:9847",
+        "name": "Création activité — Paramètres en modale — 10 Répétitions (mode activé)",
+        "path": "docs/Specifications-fonctionnelles/images/figma-6419-9847.png",
+        "sha": "e5edae04bc37f5a06310b12d1fbe3b5edcd81bc1"
+      },
+      {
+        "id": "7069:13573",
+        "name": "Création activité — Paramètres en modale — 10b Répétitions (copie)",
+        "path": "docs/Specifications-fonctionnelles/images/figma-7069-13573.png",
+        "sha": "26cbb28a51473b4628fe951a5a56b8a1d8ed1edf"
+      },
+      {
+        "id": "6419:10028",
+        "name": "Création activité — Paramètres en modale — 11 À l’échec (mode activé)",
+        "path": "docs/Specifications-fonctionnelles/images/figma-6419-10028.png",
+        "sha": "f92207890533658ba41528b44d313cb715b37bd1"
+      },
+      {
+        "id": "6423:9953",
+        "name": "Création activité — Paramètres en modale — 12 Modale complète — steppers (séries, pauses) avec message de durée totale ajustée",
+        "path": "docs/Specifications-fonctionnelles/images/figma-6423-9953.png",
+        "sha": "e7cb1dc76a30a2dc45a5f7e27695fa8649678ff7"
+      },
+      {
+        "id": "7059:13302",
+        "name": "Création activité — Paramètres en modale — 13 Répétitions avec cadence",
+        "path": "docs/Specifications-fonctionnelles/images/figma-7059-13302.png",
+        "sha": "eb6ee2cb2466ade4252f28199d7f38ee546b61ad"
+      },
+      {
+        "id": "7119:27855",
+        "name": "Création activité — Phrase longue (182 caractères)",
+        "path": "docs/Specifications-fonctionnelles/images/figma-7119-27855.png",
+        "sha": "a7b8c52b7e3b0a6c6e54f240c69abd2ab9e88c4b"
+      },
+      {
+        "id": "6665:25072",
+        "name": "Séries variables — 4 À l’échec variable (scénario F)",
+        "path": "docs/Specifications-fonctionnelles/images/figma-6665-25072.png",
+        "sha": "216a35a5293d841c9b27ce1d00cd73e99001cb64"
+      },
+      {
+        "id": "6665:28050",
+        "name": "Résumé — 17 À l’échec variable",
+        "path": "docs/Specifications-fonctionnelles/images/figma-6665-28050.png",
+        "sha": "2c345e70954e5c182954a9e71d8428f2dd119580"
+      },
+      {
+        "id": "3786:5093",
+        "name": "Catalogue des Exercices — Liste",
+        "path": "docs/Specifications-fonctionnelles/images/ecran-12-catalogue-activites-liste.png",
+        "sha": "4720546433d16e756c5b0157fda437fecd1b2df1"
+      }
+    ],
+    "phrases": [
+      {
+        "id": "4734:6342",
+        "name": "Modifier un exercice",
+        "phrase": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série.\nDurée totale : 5 min 15 s"
+      },
+      {
+        "id": "4714:6241",
+        "name": "Modal — Abandonner la création de l’activité",
+        "phrase": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série.\nDurée totale : 5 min 15 s"
+      },
+      {
+        "id": "4861:6348",
+        "name": "Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression",
+        "phrase": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série.\nDurée totale : 5 min 15 s"
+      },
+      {
+        "id": "6407:9702",
+        "name": "Création activité — Paramètres en modale — 3 Texte affiché",
+        "phrase": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série.\nDurée totale : 5 min 15 s"
+      },
+      {
+        "id": "6407:9805",
+        "name": "Création activité — Paramètres en modale — 4 Modale complète — mode activé",
+        "phrase": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série.\nDurée totale : 5 min 15 s"
+      },
+      {
+        "id": "6407:9966",
+        "name": "Création activité — Paramètres en modale — 5 Modale complète — steppers (séries, pauses)",
+        "phrase": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série.\nDurée totale : 5 min 15 s"
+      },
+      {
+        "id": "6407:10127",
+        "name": "Création activité — Paramètres en modale — 6 Durée activée (roulette ouverte)",
+        "phrase": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série.\nDurée totale : 5 min 15 s"
+      },
+      {
+        "id": "6411:9546",
+        "name": "Création activité — Paramètres en modale — 7 Durée totale activée (roulette ouverte)",
+        "phrase": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série.\nDurée totale : 5 min 15 s"
+      },
+      {
+        "id": "6407:10481",
+        "name": "Création activité — Paramètres en modale — 8 Changement de côté activé (contrôle segmenté)",
+        "phrase": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série.\nDurée totale : 5 min 15 s"
+      },
+      {
+        "id": "6411:9649",
+        "name": "Création activité — Paramètres en modale — 9 Avec changement de côté (pause au changement de côté)",
+        "phrase": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série.\nDurée totale : 5 min 15 s"
+      },
+      {
+        "id": "7069:13464",
+        "name": "Création activité — Paramètres en modale — 9b Avec changement de côté (copie)",
+        "phrase": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série.\nDurée totale : 5 min 15 s"
+      },
+      {
+        "id": "6419:9847",
+        "name": "Création activité — Paramètres en modale — 10 Répétitions (mode activé)",
+        "phrase": "4 séries de 15 répétitions, avec 15 s de pause après chaque série."
+      },
+      {
+        "id": "7069:13573",
+        "name": "Création activité — Paramètres en modale — 10b Répétitions (copie)",
+        "phrase": "4 séries de 15 répétitions, avec 15 s de pause après chaque série."
+      },
+      {
+        "id": "6419:10028",
+        "name": "Création activité — Paramètres en modale — 11 À l’échec (mode activé)",
+        "phrase": "3 séries menées jusqu’à l’échec, avec 15 s de pause après chaque série."
+      },
+      {
+        "id": "6423:9953",
+        "name": "Création activité — Paramètres en modale — 12 Modale complète — steppers (séries, pauses) avec message de durée totale ajustée",
+        "phrase": "3 séries de 1 min 30 s, avec 15 s de pause après chaque série.\nDurée totale : 5 min 15 s"
+      },
+      {
+        "id": "7059:13302",
+        "name": "Création activité — Paramètres en modale — 13 Répétitions avec cadence",
+        "phrase": "4 séries de 15 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série.\nDurée totale : ≈ 5 min"
+      },
+      {
+        "id": "7119:27855",
+        "name": "Création activité — Phrase longue (182 caractères)",
+        "phrase": "3 séries de 12 répétitions cadencées toutes les 4 s, avec 15 s de pause après chaque série, en faisant d’abord toutes les séries à droite, puis à gauche.\nDurée totale : ≈ 5 min 53 s."
+      },
+      {
+        "id": "6665:25072",
+        "name": "Séries variables — 4 À l’échec variable (scénario F)",
+        "phrase": "3 séries menées jusqu’à l’échec."
+      },
+      {
+        "id": "6665:28050",
+        "name": "Résumé — 17 À l’échec variable",
+        "phrase": "3 séries menées jusqu’à l’échec."
+      }
+    ]
+  }
 }

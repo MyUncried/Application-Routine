@@ -15,7 +15,7 @@ Référence402, carte354. Format vérifié dans les trois variantes Catalogue re
 
 Texte Inter Semi Bold12, #141414, alignement droite ; aucun fond #F5F7FA, aucun cadre, aucun rayon ni padding8/2 du précédent badge. Bord droit à16px du bord de carte. Le nom de couche « Durée totale — badge » subsiste dans Figma mais ne signifie plus un badge visuel. Le gain de16px profite à la ligne de titre. Durée en lecture seule, aucune cible interactive créée.
 
-À l’Exercice : Durée → valeur exacte ; Répétitions avec bip → ≈valeur ; Répétitions sans bip et À l’échec → aucun contenu dans cet emplacement. Aucun zéro, tiret ni libellé de mode de remplacement. « à l’échec » encore dessiné sur certaines instances est un écart graphique à la règle déjà actée ; il reste dans le résumé du mode. À la Séance : exact/≈/≥ selon Bip v2, jamais calculé depuis un chiffre Figma. Le rendu reçoit un champ optionnel ; absence ne signifie pas durée0. La visibilité effective tient aussi compte de la variante de contexte, pas seulement de la valeurpar défauttrue dans Figma.
+À l’Exercice : Durée → valeur exacte ; Répétitions avec bip → ≈valeur ; Répétitions sans bip et À l’échec → aucun contenu dans cet emplacement. Aucun zéro, tiret ni libellé de mode de remplacement. Le libellé « à l’échec » signalé sur la carte Étirement du quadriceps (3786:5093) a été masqué par le propriétaire ; absence vérifiée et capture renouvelée. Le mode reste décrit dans le résumé. À la Séance : exact/≈/≥ selon Bip v2, jamais calculé depuis un chiffre Figma. Le rendu reçoit un champ optionnel ; absence ne signifie pas durée0. La visibilité effective tient aussi compte de la variante de contexte, pas seulement de la valeurpar défauttrue dans Figma.
 
 ## Géométrie
 

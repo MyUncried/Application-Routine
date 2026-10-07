@@ -1,5 +1,7 @@
 # Écrans et navigation
 
+**Corrections Figma complémentaires du07/10 :** les19 phrases signalées et le catalogue corrigé disposent de nouvelles captures, aux mêmes chemins. [Liste et preuves](../CLOTURE-CAPTURES-PHRASES-2026-10-07.md). Vue longue renommée182 caractères ; aucune modification des règles métier.
+
 **Mise à jour du07/10 — cartes, pauses et phrases :** [matrice de traçabilité](../MATRICE-CARTES-PHRASES-2026-10-07.md), [DSF des cartes](../DSF-CARTES-DUREE-2026-10-07.md), [phrase v14](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Captures reprises pour les cartes, modales Bip et résumés ; chiffres Figma illustratifs.
 
 
