@@ -1,0 +1,68 @@
+{
+  "schema_version": "kodjo.vnext.full-cycle-real-test-evidence.v1",
+  "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "slice_id": "VNEXT-12-QUALIF",
+  "request_id": "4417857a-3b3c-4c38-b715-7f43ef4677bf",
+  "generation": 93,
+  "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:4417857a-3b3c-4c38-b715-7f43ef4677bf:37660064830:1",
+  "run_id": 37660064830,
+  "run_attempt": 1,
+  "workflow_path": ".github/workflows/kodjo-vnext12-disposable.yml",
+  "source_head": "79776aaff47daacd8deb2504ef6f9450b15d5906",
+  "run_conclusion": "SUCCESS",
+  "real_test": {
+    "job_id": 112925192126,
+    "result": "SUCCESS",
+    "status": "INITIAL_AND_CORRECTION_PASS_AWAITING_OWNER_TECHNICAL_ACCEPTANCE",
+    "implementation_session_id": "01e126a2-8438-44a1-852c-fb17f07825ea",
+    "correction_session_id": "4bf48bce-4f05-4fb6-a1a2-249d9d6e7a1f",
+    "initial_review_session_id": "cf1a817f-2153-4530-8f23-7b8338882dca",
+    "initial_review_verdict": "APPROVE",
+    "corrected_review_session_id": "06ea3a70-2e0c-4387-bee9-e21affb67124",
+    "corrected_review_verdict": "APPROVE",
+    "negative_probe": "VNEXT_FIGMA_REVIEW_SCENARIO_NOT_PASSED",
+    "functional_initial": "PASS",
+    "functional_corrected": "PASS",
+    "delivery_head": "951ac1506b415ead832639b0bc1e246d2339ea82",
+    "preservation": "PASS",
+    "disposable_cleanup": true,
+    "application_published": false,
+    "human_review_performed": false,
+    "live_figma_acquisition": "NOT_EXERCISED_FROZEN_GIT_CAPTURE_REPLAY",
+    "visual_validation": "NOT_EXECUTED_USER_ONLY"
+  },
+  "artifacts": {
+    "execution": {
+      "artifact_id": 11501697188,
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/real-test-37660064830/execution.zip",
+      "sha256": "181552540108afc3bdf0c444de0ffc714bec2b57ceb11ad63ec42c4c7e975f89"
+    },
+    "historical_linux": {
+      "artifact_id": 11500638565,
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/real-test-37660064830/historical-linux.zip",
+      "sha256": "5fa15ebffb893aafb08de00bc1c2052e28acaf128b9885441bb5c657943a7b16",
+      "tests": 1154,
+      "passed": 1153,
+      "failed": 0,
+      "skipped": 1,
+      "readiness": "NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT"
+    },
+    "historical_windows": {
+      "artifact_id": 11501014609,
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/real-test-37660064830/historical-windows.zip",
+      "sha256": "008ac8146ebce73a859aa0950a277e9a4e949999aac029b178c59a550927e909",
+      "tests": 1154,
+      "passed": 1151,
+      "failed": 0,
+      "skipped": 3,
+      "readiness": "NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT"
+    }
+  },
+  "remaining_limits": [
+    "The frozen Figma capture is source context only; no fresh acquisition, browser, rendering or visual/accessibility certification was performed.",
+    "Historical platform aggregation and persistent Windows coverage were SKIPPED in this run and remain required before operational closure.",
+    "The incident stage must distinguish validator tests, read-only replay of historical incident data, and the still-pending operational closure."
+  ],
+  "observed_at": "2026-10-07T18:12:10.382Z"
+}

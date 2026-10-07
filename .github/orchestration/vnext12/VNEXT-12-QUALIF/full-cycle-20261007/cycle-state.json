@@ -5,8 +5,8 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "FIGMA_INITIAL_REQUESTED_AFTER_VERIFIED_MANUAL_RECOVERY",
-  "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
+  "current_stage": "REAL_TEST_PASS_RECORDED_INCIDENTS_PENDING_REQUEST",
+  "request_id": "4417857a-3b3c-4c38-b715-7f43ef4677bf",
   "generation": 93,
   "previous_terminal_generation": 77,
   "previous_closed_issue": 324,
@@ -125,17 +125,41 @@
     },
     {
       "stage": "REAL_CLAUDE_FIGMA_FROZEN_SOURCE",
-      "status": "FAILED_PRE_IMPLEMENTATION_REVISE",
-      "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
-      "generation": 90,
-      "run_id": 37634990777,
-      "review_verdict": "REVISE",
-      "implementation_invoked": false,
-      "correction_status": "PENDING_EXACT_HEAD_QUALIFICATION"
+      "status": "PASS",
+      "request_id": "4417857a-3b3c-4c38-b715-7f43ef4677bf",
+      "generation": 93,
+      "run_id": 37660064830,
+      "run_attempt": 1,
+      "source_head": "79776aaff47daacd8deb2504ef6f9450b15d5906",
+      "initial_review_verdict": "APPROVE",
+      "corrected_review_verdict": "APPROVE",
+      "implementation_invoked": true,
+      "bounded_correction_invoked": true,
+      "functional_initial": "PASS",
+      "functional_corrected": "PASS",
+      "preservation": "PASS",
+      "cleanup": "SUCCESS",
+      "application_published": false,
+      "visual_validation": "NOT_EXECUTED_USER_ONLY"
     },
     {
       "stage": "THREE_INCIDENTS_TARGETED_CERTIFICATION",
-      "status": "PENDING"
+      "status": "ASSERTIONS_PASS_AGGREGATION_PENDING",
+      "run_id": 37660064830,
+      "linux": {
+        "passed": 1153,
+        "failed": 0,
+        "skipped": 1,
+        "tests": 1154
+      },
+      "windows": {
+        "passed": 1151,
+        "failed": 0,
+        "skipped": 3,
+        "tests": 1154
+      },
+      "platform_coverage": "SKIPPED",
+      "persistent_windows": "SKIPPED"
     },
     {
       "stage": "HISTORICAL_LINUX_WINDOWS_COVERAGE",
@@ -160,10 +184,10 @@
     "automatic_visual_validation"
   ],
   "active_run_ids": [],
-  "next_action": "Recover the skipped qualification signal with an explicit verified descendant-head handoff, preserving exact qualified source_head and request identity. Do not rerun acquired controls or launch an unready phase.",
-  "controller_head": "a467a5b34c1cb3e362c6e27b4b622c9ede632be7",
+  "next_action": "Publish the unique CERTIFY_INCIDENTS request after this durable signal claim, then verify targeted tests and read-only replay before historical aggregation, technical review and effective closure.",
+  "controller_head": "174cbe5f1acd2668901cbb5ede7d70a31cd20867",
   "qualification_branch": "qualification/vnext-full-cycle-real-stdin-232ae5f7-20261007",
-  "observed_at": "2026-10-07T16:51:38.061Z",
+  "observed_at": "2026-10-07T18:12:10.382Z",
   "documentation_modals": "WAIT_FOR_USER_COMPLETION_SIGNAL",
   "pending_initial_request": {
     "stage": "EXECUTE_INITIAL",
@@ -191,7 +215,7 @@
   "automation_id": "6ac62299aa5c819198996171d4a1ff13",
   "automation_title": "Enchaîner le cycle VNext",
   "automation_trigger": "PR269_COMMIT_UPDATES",
-  "automatic_continuation_status": "QUALIFICATION_SUCCESS_SIGNAL_RECOVERY_REQUIRED",
+  "automatic_continuation_status": "REAL_TEST_PASS_SIGNAL_CLAIMED_INCIDENT_REQUEST_PENDING",
   "initial_binding_requires_new_qualified_source_head": false,
   "previous_initial_gate": {
     "comment_id": 6035666121,
@@ -204,20 +228,20 @@
   "transition": {
     "schema_version": "kodjo.vnext.cycle-transition.v1",
     "status": "CLAIMED_BEFORE_LAUNCH",
-    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:232ae5f7-dd22-4c95-af90-403e9f9149a4:37634990777:1",
-    "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
-    "generation": 90,
+    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:4417857a-3b3c-4c38-b715-7f43ef4677bf:37660064830:1",
+    "request_id": "4417857a-3b3c-4c38-b715-7f43ef4677bf",
+    "generation": 93,
     "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
-    "source_head": "bbdb6c458783828fd595ab08c43efc2238f86698",
-    "observed_signal_head": "a467a5b34c1cb3e362c6e27b4b622c9ede632be7",
-    "run_id": 37634990777,
+    "source_head": "79776aaff47daacd8deb2504ef6f9450b15d5906",
+    "observed_signal_head": "174cbe5f1acd2668901cbb5ede7d70a31cd20867",
+    "run_id": 37660064830,
     "run_attempt": 1,
-    "next_stage": "EXACT_HEAD_QUALIFICATION",
-    "published_generation": 91,
-    "controller_id": "webhook-c282e740-c25a-11f1-9ef3-206bfe138f71",
-    "claimed_at": "2026-10-07T14:32:37.473Z",
+    "next_stage": "CERTIFY_INCIDENTS",
+    "published_generation": null,
+    "controller_id": "webhook-ef15ca10-c279-11f1-829f-5d4354678e31",
+    "claimed_at": "2026-10-07T18:12:10.382Z",
     "qualification_verified": true,
-    "execution_verified": false,
+    "execution_verified": true,
     "admission": "OPERATIONAL_RESULT_VERIFIED"
   },
   "processed_signals": [
@@ -294,8 +318,70 @@
       "next_request_id": "4417857a-3b3c-4c38-b715-7f43ef4677bf",
       "generation": 93,
       "outcome": "MANUAL_CONTINUATION_RECOVERED_REAL_TEST_PUBLISHED"
+    },
+    {
+      "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:4417857a-3b3c-4c38-b715-7f43ef4677bf:37660064830:1",
+      "request_id": "4417857a-3b3c-4c38-b715-7f43ef4677bf",
+      "next_request_id": "ee55d53d-448b-4dbb-b403-bab1b7cd4487",
+      "generation": 94,
+      "outcome": "REAL_TEST_PASS_RECORDED_INCIDENT_CERTIFICATION_CLAIMED"
     }
   ],
+  "real_test_success": {
+    "run_id": 37660064830,
+    "run_attempt": 1,
+    "source_head": "79776aaff47daacd8deb2504ef6f9450b15d5906",
+    "request_id": "4417857a-3b3c-4c38-b715-7f43ef4677bf",
+    "generation": 93,
+    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:4417857a-3b3c-4c38-b715-7f43ef4677bf:37660064830:1",
+    "status": "PASS",
+    "implementation_session_id": "01e126a2-8438-44a1-852c-fb17f07825ea",
+    "correction_session_id": "4bf48bce-4f05-4fb6-a1a2-249d9d6e7a1f",
+    "initial_review_session_id": "cf1a817f-2153-4530-8f23-7b8338882dca",
+    "corrected_review_session_id": "06ea3a70-2e0c-4387-bee9-e21affb67124",
+    "reviews": [
+      "APPROVE",
+      "APPROVE"
+    ],
+    "functional_tests": [
+      "PASS",
+      "PASS"
+    ],
+    "negative_probe": "VNEXT_FIGMA_REVIEW_SCENARIO_NOT_PASSED",
+    "delivery_head": "951ac1506b415ead832639b0bc1e246d2339ea82",
+    "preservation": "PASS",
+    "cleanup": true,
+    "application_published": false,
+    "execution_artifact_id": 11501697188,
+    "execution_artifact_sha256": "181552540108afc3bdf0c444de0ffc714bec2b57ceb11ad63ec42c4c7e975f89",
+    "historical_same_run": {
+      "linux": {
+        "job_id": 112934387285,
+        "artifact_id": 11500638565,
+        "sha256": "5fa15ebffb893aafb08de00bc1c2052e28acaf128b9885441bb5c657943a7b16",
+        "tests": 1154,
+        "passed": 1153,
+        "failed": 0,
+        "skipped": 1
+      },
+      "windows": {
+        "job_id": 112934387614,
+        "artifact_id": 11501014609,
+        "sha256": "008ac8146ebce73a859aa0950a277e9a4e949999aac029b178c59a550927e909",
+        "tests": 1154,
+        "passed": 1151,
+        "failed": 0,
+        "skipped": 3
+      },
+      "platform_coverage": "SKIPPED",
+      "persistent_windows": "SKIPPED"
+    },
+    "limits": [
+      "frozen Figma capture only; no fresh acquisition or browser",
+      "no automatic render, visual or accessibility compliance asserted",
+      "historical readiness remains NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT until platform aggregation and persistent Windows coverage"
+    ]
+  },
   "initial_failure": {
     "run_id": 37611838767,
     "run_attempt": 1,
