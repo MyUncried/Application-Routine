@@ -5,7 +5,7 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "HISTORICAL_REQUEST_CLAIMED_NOT_YET_PUBLISHED",
+  "current_stage": "HISTORICAL_CERTIFICATION_PENDING",
   "request_id": "81a107ff-5c61-4df1-a2c0-fed949a331bc",
   "generation": 96,
   "previous_terminal_generation": 77,
@@ -160,7 +160,10 @@
     },
     {
       "stage": "HISTORICAL_LINUX_WINDOWS_COVERAGE",
-      "status": "REQUEST_CLAIMED_NOT_YET_PUBLISHED",
+      "status": "PENDING",
+      "historical_request_id": "3b3a2190-3862-4f69-8b17-6dee73e5bf1b",
+      "historical_generation": 97,
+      "qualification_run_id": 37674851193,
       "request_id": "81a107ff-5c61-4df1-a2c0-fed949a331bc",
       "generation": 96,
       "source_real_test_run_id": 37660064830,
@@ -185,8 +188,8 @@
     "automatic_visual_validation"
   ],
   "active_run_ids": [],
-  "next_action": "Publish the claimed generation 97 CERTIFY_HISTORICAL request by nonforce advance, then wait for the complete historical chain.",
-  "controller_head": "88516d91bdc7ff266c1fe9e730662969748d3719",
+  "next_action": "Wait for the complete historical chain and verify Linux, Windows, platform aggregation, persistent Windows and the exact completion signal before finalization.",
+  "controller_head": "bc38355a5e38e5fc668e2c9ef9b0b7de4b91d34d",
   "qualification_branch": "qualification/vnext-full-cycle-historical-relay-terminal-81a107ff-20261007",
   "observed_at": "2026-10-07T19:40:08.107Z",
   "documentation_modals": "WAIT_FOR_USER_COMPLETION_SIGNAL",
@@ -216,7 +219,7 @@
   "automation_id": "6ac62299aa5c819198996171d4a1ff13",
   "automation_title": "Encha\u00eener le cycle VNext",
   "automation_trigger": "PR269_COMMIT_UPDATES",
-  "automatic_continuation_status": "HISTORICAL_REQUEST_CLAIMED_NOT_YET_PUBLISHED",
+  "automatic_continuation_status": "HISTORICAL_CERTIFICATION_PENDING",
   "initial_binding_requires_new_qualified_source_head": false,
   "previous_initial_gate": {
     "comment_id": 6035666121,
@@ -1242,6 +1245,6 @@
     "qualification_relation": "EXACT_SAME_PROTOCOL_CODE",
     "source_incident_run_id": 37670103040,
     "auto_continue": true,
-    "status": "CLAIMED_NOT_YET_PUBLISHED"
+    "status": "PUBLISHED_PENDING_RUN"
   }
 }
