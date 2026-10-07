@@ -3,22 +3,23 @@
   "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
   "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
   "slice_id": "VNEXT-12-QUALIF",
-  "request_id": "a0fe36c3-246b-4ffb-b962-a6c4a527fce0",
-  "generation": 99,
-  "stage": "CERTIFY_HISTORICAL",
+  "request_id": "afa92cf0-b265-4839-b5c6-823f39bdf1b5",
+  "generation": 101,
+  "stage": "FINALIZE_DELIVERY",
   "kind": "OPERATIONAL",
-  "run_id": 37680862427,
+  "run_id": 37688962970,
   "run_attempt": 1,
-  "source_head": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
-  "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:a0fe36c3-246b-4ffb-b962-a6c4a527fce0:37680862427:1",
+  "source_head": "38e3152b53c6f2b8c206514b341bdd308f67df0f",
+  "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:afa92cf0-b265-4839-b5c6-823f39bdf1b5:37688962970:1",
   "job_results": {
     "select-stage": {
       "result": "success",
       "outputs": {
-        "stage": "CERTIFY_HISTORICAL",
         "approved_head": "e21c9a142ed41d4863f1273d22bd1f43643adcbd",
         "qualification_policy": "FULL_CYCLE_USER_REQUEST",
-        "auto_continue": "true"
+        "delivery_head": "3db2ac6129f0aaf5b6e47bf1d3030a1fe8a57609",
+        "auto_continue": "true",
+        "stage": "FINALIZE_DELIVERY"
       }
     },
     "prepare-initial": {
@@ -42,15 +43,15 @@
       "outputs": {}
     },
     "close-vnext-delivery": {
-      "result": "skipped",
+      "result": "success",
       "outputs": {}
     },
     "historical-platform-coverage": {
-      "result": "success",
+      "result": "skipped",
       "outputs": {}
     },
     "historical-local-windows": {
-      "result": "success",
+      "result": "skipped",
       "outputs": {}
     }
   },
