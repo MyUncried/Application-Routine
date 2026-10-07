@@ -5,7 +5,7 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "INCIDENT_CERTIFICATION_PASS_HISTORICAL_CONNECTOR_QUALIFICATION_PENDING",
+  "current_stage": "INCIDENT_CERTIFICATION_PASS_HISTORICAL_CONNECTOR_REQUALIFICATION_PENDING",
   "request_id": "81a107ff-5c61-4df1-a2c0-fed949a331bc",
   "generation": 96,
   "previous_terminal_generation": 77,
@@ -160,7 +160,7 @@
     },
     {
       "stage": "HISTORICAL_LINUX_WINDOWS_COVERAGE",
-      "status": "CONNECTOR_QUALIFICATION_PENDING",
+      "status": "CONNECTOR_REQUALIFICATION_PENDING",
       "request_id": "81a107ff-5c61-4df1-a2c0-fed949a331bc",
       "generation": 96,
       "source_real_test_run_id": 37660064830,
@@ -185,10 +185,10 @@
     "automatic_visual_validation"
   ],
   "active_run_ids": [],
-  "next_action": "Qualify the minimal CERTIFY_HISTORICAL routing on Linux and Windows, then publish one unique historical coverage request.",
-  "controller_head": "c689275e01411eebdbd047e6f8d5e69e637755cb",
-  "qualification_branch": "qualification/vnext-full-cycle-incidents-retention-ee55d53d-20261007",
-  "observed_at": "2026-10-07T18:58:30Z",
+  "next_action": "Requalify the terminal-safe qualification relay, then publish one unique CERTIFY_HISTORICAL request after a globally successful exact-head run.",
+  "controller_head": "eccc1d55eca0543667dd185193db17559a242617",
+  "qualification_branch": "qualification/vnext-full-cycle-historical-writer-policy-81a107ff-20261007",
+  "observed_at": "2026-10-07T19:20:00Z",
   "documentation_modals": "WAIT_FOR_USER_COMPLETION_SIGNAL",
   "pending_initial_request": {
     "stage": "EXECUTE_INITIAL",
@@ -216,7 +216,7 @@
   "automation_id": "6ac62299aa5c819198996171d4a1ff13",
   "automation_title": "Encha\u00eener le cycle VNext",
   "automation_trigger": "PR269_COMMIT_UPDATES",
-  "automatic_continuation_status": "INCIDENT_PASS_CLAIMED_HISTORICAL_CONNECTOR_QUALIFICATION_PENDING",
+  "automatic_continuation_status": "INCIDENT_PASS_CLAIMED_HISTORICAL_CONNECTOR_REQUALIFICATION_PENDING",
   "initial_binding_requires_new_qualified_source_head": false,
   "previous_initial_gate": {
     "comment_id": 6035666121,
@@ -1166,5 +1166,42 @@
     "claude_invoked": false,
     "incident_replay_invoked": false,
     "observed_at": "2026-10-07T19:02:25.938Z"
+  },
+  "historical_connector_relay_failure": {
+    "schema_version": "kodjo.vnext.historical-connector-relay-failure.v1",
+    "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+    "request_id": "81a107ff-5c61-4df1-a2c0-fed949a331bc",
+    "request_generation": 96,
+    "request_stage": "TARGETED_RESULT_RECORDED",
+    "request_auto_continue": false,
+    "run_id": 37672051960,
+    "run_attempt": 1,
+    "source_head": "eccc1d55eca0543667dd185193db17559a242617",
+    "workflow_path": ".github/workflows/kodjo-vnext-proof-stability.yml",
+    "event": "create",
+    "run_conclusion": "FAILURE",
+    "qualification_jobs": {
+      "linux": {
+        "job_id": 112966000153,
+        "conclusion": "SUCCESS",
+        "artifact_id": 11504179463,
+        "artifact_sha256": "3bfa9d6f38a1c2ec8104e637230de6d2904745b74d2bf3d322faba58dbfd3f05"
+      },
+      "windows": {
+        "job_id": 112965999779,
+        "conclusion": "SUCCESS",
+        "artifact_id": 11506580100,
+        "artifact_sha256": "3d886861200b2299fd81e95b0d017cf11772387c5c85468ddc2bdf00d802fd2f"
+      }
+    },
+    "relay_job_id": 112971376624,
+    "diagnostic": "VNEXT_CYCLE_CONTINUATION_SCOPE_REFUSED",
+    "cause": "The qualification relay called the strict signal writer while the controller request was intentionally terminal.",
+    "correction": "Return SKIPPED_SCOPE_NOT_READY with exit code zero for terminal QUALIFICATION requests after immutable-scope validation; keep terminal writes refused.",
+    "global_success_required_for_admission": true,
+    "qualification_admission": "REFUSED_UNTIL_NEW_GLOBAL_SUCCESS",
+    "historical_jobs_started": false,
+    "continuation_signal_written": false,
+    "observed_at": "2026-10-07T19:20:00Z"
   }
 }

@@ -2,9 +2,16 @@
 const fs=require('node:fs'),{execFileSync}=require('node:child_process');
 const ROOT='.github/orchestration/vnext12/VNEXT-12-QUALIF';
 const REPO='MyUncried/Application-Routine',BRANCH='protocol/vnext-proof-stability-20260930';
-function validate(c){
- if(c.repository!==REPO||c.campaign_id!=='628b3349-88b4-4bf1-be6b-50bc09e7d245'||c.slice_id!=='VNEXT-12-QUALIF'||c.auto_continue!==true||c.pre1_in_scope!==false||c.final_audit_authorized!==false||c.revision_limit!==1||c.human_review_performed!==false||!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(c.cycle_id)||!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(c.request_id))throw Error('VNEXT_CYCLE_CONTINUATION_SCOPE_REFUSED');
+function validateScope(c){
+ if(c.repository!==REPO||c.campaign_id!=='628b3349-88b4-4bf1-be6b-50bc09e7d245'||c.slice_id!=='VNEXT-12-QUALIF'||c.pre1_in_scope!==false||c.final_audit_authorized!==false||c.revision_limit!==1||c.human_review_performed!==false||!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(c.cycle_id)||!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(c.request_id))throw Error('VNEXT_CYCLE_CONTINUATION_SCOPE_REFUSED');
  return c;
+}
+function validate(c){validateScope(c);if(c.auto_continue!==true)throw Error('VNEXT_CYCLE_CONTINUATION_SCOPE_REFUSED');return c;}
+function signalDisposition(c,kind){
+ validateScope(c);
+ if(kind==='QUALIFICATION'&&c.auto_continue===false)return{status:'SKIPPED_SCOPE_NOT_READY',reason:'TERMINAL_REQUEST',request_id:c.request_id,generation:c.generation,stage:c.stage};
+ validate(c);
+ return null;
 }
 function materializeTransport(t,c){
  validate(c);
@@ -47,7 +54,10 @@ function main(){
  if(env.GITHUB_ACTIONS!=='true'||env.GITHUB_REPOSITORY!==REPO||env.VNEXT_CONTINUATION_JOB!=='wake-orchestrator')throw Error('VNEXT_CYCLE_SERIALIZED_SIGNAL_JOB_REQUIRED');
  const head=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
  if(head!==env.CONTROLLER_HEAD)throw Error('VNEXT_CYCLE_SIGNAL_CHECKOUT_MISMATCH');
- return signal(JSON.parse(fs.readFileSync(ROOT+'/request.json')),{api:ghClient(),head,runId:Number(env.GITHUB_RUN_ID),attempt:Number(env.GITHUB_RUN_ATTEMPT),kind:env.VNEXT_RUN_KIND,results:JSON.parse(env.VNEXT_JOB_RESULTS)});
+ const request=JSON.parse(fs.readFileSync(ROOT+'/request.json'));
+ const disposition=signalDisposition(request,env.VNEXT_RUN_KIND);
+ if(disposition)return disposition;
+ return signal(request,{api:ghClient(),head,runId:Number(env.GITHUB_RUN_ID),attempt:Number(env.GITHUB_RUN_ATTEMPT),kind:env.VNEXT_RUN_KIND,results:JSON.parse(env.VNEXT_JOB_RESULTS)});
 }
 if(require.main===module){try{console.log(JSON.stringify(main()));}catch(e){console.error(e.message);process.exitCode=1;}}
-module.exports={validate,materializeTransport,signal};
+module.exports={validate,signalDisposition,materializeTransport,signal};

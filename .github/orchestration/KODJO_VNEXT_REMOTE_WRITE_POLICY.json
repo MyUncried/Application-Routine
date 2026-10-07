@@ -907,7 +907,7 @@
     },
     {
       "producer": "scripts/kodjo/signal-vnext-cycle-continuation.js",
-      "producer_blob_oid": "e927151528307e8dfda5129cc9025aa1995bb8cc",
+      "producer_blob_oid": "b7fea4be372bb11f7690d8e883fa4827e9a51707",
       "authorization_condition": "SERIALIZED_EXISTING_CAMPAIGN_SINGLE_SIGNAL_PATH_NONFORCED_HEAD_CHECK_ONLY",
       "required_job": null,
       "capabilities": [
