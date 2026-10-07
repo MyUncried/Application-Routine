@@ -138,7 +138,7 @@
     "runtime_success_claimed": false,
     "browser_or_visual_gate": "NONE"
   },
-  "recorded_at": "2026-10-06T23:44:20.078907+00:00",
+  "recorded_at": "2026-10-07T01:09:08.537571+00:00",
   "repository": "MyUncried/Application-Routine",
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
@@ -146,7 +146,7 @@
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "df2cfc406ac67c0b29b61bc6a4c7bfc9ae011bca",
   "controller_stage": "FIGMA_INITIAL_REQUESTED_AFTER_ABSOLUTE_PATH_CLARIFICATION_NO_DISPOSABLE_PREFLIGHT",
-  "controller_generation": 104,
+  "controller_generation": 105,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -517,11 +517,11 @@
   },
   "active_runs": [
     {
-      "run_id": 37546751570,
+      "run_id": 37548553181,
       "status": "completed",
       "conclusion": "success",
-      "stage": "PREPARE_REVISION",
-      "controller_head": "7992c924aa13cd3e6dc495814b9d15a78baf9152"
+      "stage": "EXECUTE_REVISION",
+      "controller_head": "82e6ccc4dba4d124d77e9de4c9476d3d93421ed3"
     }
   ],
   "obsolete_runs": [
@@ -2571,6 +2571,21 @@
     "request_id": "e14d7980-e0cf-410f-8591-f3e29536ec08",
     "generation": 71,
     "approval_materialized_by": "CODEX_CONNECTOR_ON_EXPLICIT_USER_CONTINUE_INSTRUCTION",
-    "reaction_id": 434139744
+    "reaction_id": 434139744,
+    "runtime_run": 37548553181,
+    "runtime_verdict": "REVISION_PASS",
+    "runtime_status": "IMPLEMENTED_AND_VERIFIED",
+    "historical_linux": {
+      "passed": 1113,
+      "failed": 0,
+      "skipped": 1
+    },
+    "historical_windows": {
+      "passed": 1111,
+      "failed": 0,
+      "skipped": 3
+    },
+    "platform_coverage": "MAPPED_ASSERTIONS_PASS_ON_AT_LEAST_ONE_PLATFORM_RECOVERED_FROM_ACTUAL_ARTIFACTS",
+    "historical_local_windows": "SKIPPED_NOT_CLAIMED_EXECUTED"
   }
 }

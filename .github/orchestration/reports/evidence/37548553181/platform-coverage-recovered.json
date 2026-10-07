@@ -1,0 +1,7 @@
+{
+  "candidate_head": "82e6ccc4dba4d124d77e9de4c9476d3d93421ed3",
+  "status": "MAPPED_ASSERTIONS_PASS_ON_AT_LEAST_ONE_PLATFORM",
+  "case_count": 402,
+  "individual_equivalence_proven": false,
+  "readiness": "NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT"
+}
