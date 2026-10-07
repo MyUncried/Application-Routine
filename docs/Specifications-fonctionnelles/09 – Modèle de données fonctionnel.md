@@ -581,11 +581,11 @@ Elle ne contient pas directement :
 
 # 09.6 Entité Média
 
-> **Périmètre :** consultation des médias déjà associés pendant l’Exécution incluse au MVP (D-203). Cette entité prépare l’acquisition et le stockage régis par D-066/D-068 ; ces mécanismes ne sont pas activés implicitement.
+> **Périmètre :** consultation des médias pendant l’Exécution incluse au MVP (D-203). L’ajout/import et le stockage local sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-327). Les règles de partage des fichiers et de conservation de D-066/D-068 sont conservées ; seul leur report post-MVP est remplacé.
 
 ## Définition
 
-Un **Média** est une ressource visuelle qui pourra être associée à un Exercice après le MVP. Aucune association Média n’est créée ni exposée dans le MVP.
+Un **Média** est une ressource visuelle locale associée à un Exercice. L’import/ajout et la persistance de ces associations sont livrés dans PRE-3 au MVP (D-327), avant leur consultation pendant l’Exécution.
 
 ## Périmètre
 
@@ -713,8 +713,8 @@ Contient notamment :
 |---|---|---|
 | `ActivityDefinition` | MVP T03 | Référence persistante autonome sans type d’Exercice, directement exécutable et copiable dans une Séance. |
 | `SessionActivity` | MVP | Copie complète appartenant à une seule Séance ; contient sa position et son ordre. |
-| `MediaAsset` | V2 | Fichier local immuable et métadonnées techniques ; peut être partagé. |
-| `ActivityMedia` | V2 | Association ordonnée entre un exercice et un `MediaAsset`. |
+| `MediaAsset` | MVP PRE-3 | Fichier local immuable et métadonnées techniques ; peut être partagé. |
+| `ActivityMedia` | MVP PRE-3 | Association ordonnée entre un exercice et un `MediaAsset`. |
 | `Parcours` | V2 | Racine persistante avec nom, couleur et configuration de transition. |
 | `CircuitSession` | V2 | Étape ordonnée référençant une Séance ; plusieurs lignes peuvent viser la même Séance. |
 | `CircuitExecution` | V2 | Exécution globale et instantané immuable du Parcours. |
