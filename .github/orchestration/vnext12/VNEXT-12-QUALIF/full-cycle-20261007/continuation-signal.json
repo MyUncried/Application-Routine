@@ -4,52 +4,16 @@
   "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
   "slice_id": "VNEXT-12-QUALIF",
   "request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
-  "generation": 88,
-  "stage": "FIGMA_INITIAL",
-  "kind": "OPERATIONAL",
-  "run_id": 37629963561,
+  "generation": 89,
+  "stage": "TARGETED_RESULT_RECORDED",
+  "kind": "QUALIFICATION",
+  "run_id": 37632486111,
   "run_attempt": 1,
-  "source_head": "69a050ded3320c8f17df6c4b676974c98307f5b8",
-  "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8:37629963561:1",
+  "source_head": "9411096c1d78d9b930346af02a30b077b4ccc7e3",
+  "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8:37632486111:1",
   "job_results": {
-    "select-stage": {
+    "qualification": {
       "result": "success",
-      "outputs": {
-        "stage": "FIGMA_INITIAL",
-        "qualification_policy": "DIRECT_REAL_USER_REQUEST",
-        "auto_continue": "true"
-      }
-    },
-    "prepare-initial": {
-      "result": "skipped",
-      "outputs": {}
-    },
-    "prepare-revision": {
-      "result": "skipped",
-      "outputs": {}
-    },
-    "execute-initial": {
-      "result": "skipped",
-      "outputs": {}
-    },
-    "figma-initial": {
-      "result": "failure",
-      "outputs": {}
-    },
-    "certify-incidents": {
-      "result": "skipped",
-      "outputs": {}
-    },
-    "close-vnext-delivery": {
-      "result": "skipped",
-      "outputs": {}
-    },
-    "historical-platform-coverage": {
-      "result": "skipped",
-      "outputs": {}
-    },
-    "historical-local-windows": {
-      "result": "skipped",
       "outputs": {}
     }
   },
