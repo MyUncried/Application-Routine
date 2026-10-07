@@ -14,7 +14,7 @@
     "request_generation": 67,
     "report": ".github/orchestration/reports/2026-10-06_VNEXT_ABSOLUTE_PATH_INSTRUCTIONS.md",
     "disposable_preflight_authorized": false,
-    "user_rule": "Ne plus relancer le test jetable ni les qualifications Linux/Windows ; passer directement au parcours r\u00e9el.",
+    "user_rule": "Ne plus relancer le test jetable ni les qualifications Linux/Windows ; passer directement au parcours réel.",
     "browser_or_visual_gate": "NONE",
     "runtime_success_claimed": false
   },
@@ -143,7 +143,7 @@
   "pull_request": 269,
   "branch": "protocol/vnext-proof-stability-20260930",
   "active_step": 3,
-  "user_instruction": "Mener la campagne jusqu'au r\u00e9sultat r\u00e9el, diagnostiquer/corriger/relancer les \u00e9checs techniques ; solliciter uniquement une validation m\u00e9tier.",
+  "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "df2cfc406ac67c0b29b61bc6a4c7bfc9ae011bca",
   "controller_stage": "FIGMA_INITIAL_REQUESTED_AFTER_ABSOLUTE_PATH_CLARIFICATION_NO_DISPOSABLE_PREFLIGHT",
   "controller_generation": 108,
@@ -614,7 +614,7 @@
     "initial_replayed": false,
     "delegation": {
       "kind": "USER_AUTHORIZED_TECHNICAL_DISPOSABLE_CAMPAIGN",
-      "instruction": "m\u00e8ne cette campagne de test jusqu\u2019\u00e0 son terme, diagnostique, explique corrige et relance le test lorsqu\u2019un \u00e9chec intervient. Ne m\u2019implique que lorsqu\u2019une validation m\u00e9tier est n\u00e9cessaire.",
+      "instruction": "mène cette campagne de test jusqu’à son terme, diagnostique, explique corrige et relance le test lorsqu’un échec intervient. Ne m’implique que lorsqu’une validation métier est nécessaire.",
       "human_review_performed": false,
       "approval_reaction_not_yet_created": false,
       "actual_reaction_id": "429910266"
@@ -1204,51 +1204,51 @@
         {
           "job_id": 111221324963,
           "lines": [
-            "2026-10-03T14:58:49.3052624Z \u2139 tests 977",
-            "2026-10-03T14:58:49.3055026Z \u2139 pass 973",
-            "2026-10-03T14:58:49.3056530Z \u2139 fail 0",
-            "2026-10-03T14:58:49.3057845Z \u2139 cancelled 0",
-            "2026-10-03T14:58:49.3059213Z \u2139 skipped 4"
+            "2026-10-03T14:58:49.3052624Z ℹ tests 977",
+            "2026-10-03T14:58:49.3055026Z ℹ pass 973",
+            "2026-10-03T14:58:49.3056530Z ℹ fail 0",
+            "2026-10-03T14:58:49.3057845Z ℹ cancelled 0",
+            "2026-10-03T14:58:49.3059213Z ℹ skipped 4"
           ]
         },
         {
           "job_id": 111220844614,
           "lines": [
-            "2026-10-03T14:29:25.1465430Z \u2139 tests 211",
-            "2026-10-03T14:29:25.1474983Z \u2139 pass 211",
-            "2026-10-03T14:29:25.1475257Z \u2139 fail 0",
-            "2026-10-03T14:29:25.1475487Z \u2139 cancelled 0",
-            "2026-10-03T14:29:25.1475730Z \u2139 skipped 0"
+            "2026-10-03T14:29:25.1465430Z ℹ tests 211",
+            "2026-10-03T14:29:25.1474983Z ℹ pass 211",
+            "2026-10-03T14:29:25.1475257Z ℹ fail 0",
+            "2026-10-03T14:29:25.1475487Z ℹ cancelled 0",
+            "2026-10-03T14:29:25.1475730Z ℹ skipped 0"
           ]
         },
         {
           "job_id": 111220844765,
           "lines": [
-            "2026-10-03T14:21:45.1791768Z \u2139 tests 211",
-            "2026-10-03T14:21:45.1801614Z \u2139 pass 211",
-            "2026-10-03T14:21:45.1802345Z \u2139 fail 0",
-            "2026-10-03T14:21:45.1803043Z \u2139 cancelled 0",
-            "2026-10-03T14:21:45.1803771Z \u2139 skipped 0"
+            "2026-10-03T14:21:45.1791768Z ℹ tests 211",
+            "2026-10-03T14:21:45.1801614Z ℹ pass 211",
+            "2026-10-03T14:21:45.1802345Z ℹ fail 0",
+            "2026-10-03T14:21:45.1803043Z ℹ cancelled 0",
+            "2026-10-03T14:21:45.1803771Z ℹ skipped 0"
           ]
         },
         {
           "job_id": 111220998264,
           "lines": [
-            "2026-10-03T14:35:40.2374138Z \u2139 tests 211",
-            "2026-10-03T14:35:40.2376076Z \u2139 pass 211",
-            "2026-10-03T14:35:40.2376706Z \u2139 fail 0",
-            "2026-10-03T14:35:40.2377384Z \u2139 cancelled 0",
-            "2026-10-03T14:35:40.2378107Z \u2139 skipped 0"
+            "2026-10-03T14:35:40.2374138Z ℹ tests 211",
+            "2026-10-03T14:35:40.2376076Z ℹ pass 211",
+            "2026-10-03T14:35:40.2376706Z ℹ fail 0",
+            "2026-10-03T14:35:40.2377384Z ℹ cancelled 0",
+            "2026-10-03T14:35:40.2378107Z ℹ skipped 0"
           ]
         },
         {
           "job_id": 111220998272,
           "lines": [
-            "2026-10-03T14:22:37.5500569Z \u2139 tests 211",
-            "2026-10-03T14:22:37.5502677Z \u2139 pass 211",
-            "2026-10-03T14:22:37.5503442Z \u2139 fail 0",
-            "2026-10-03T14:22:37.5504672Z \u2139 cancelled 0",
-            "2026-10-03T14:22:37.5505459Z \u2139 skipped 0"
+            "2026-10-03T14:22:37.5500569Z ℹ tests 211",
+            "2026-10-03T14:22:37.5502677Z ℹ pass 211",
+            "2026-10-03T14:22:37.5503442Z ℹ fail 0",
+            "2026-10-03T14:22:37.5504672Z ℹ cancelled 0",
+            "2026-10-03T14:22:37.5505459Z ℹ skipped 0"
           ]
         },
         {
@@ -1306,14 +1306,14 @@
           "target_type": "PLAN_CONTRACT",
           "target_id": "03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7ace",
           "blocking": false,
-          "finding": "L'exigence source impose explicitement de conserver scripts/kodjo/fixtures/vnext12/keep.js octet pour octet, mais cette obligation n'est port\u00e9e que par boundaries.preserve_scope, par impact.preservation_candidate_ids et par une contrainte en prose. Aucune exigence de type PRESERVATION n'est enregistr\u00e9e et aucune obligation de preuve n'observe l'invariance de ce fichier. L'application reste n\u00e9anmoins effective : keep.js est absent du write_scope et forbidden_policy vaut ALL_OUTSIDE_WRITE_SCOPE, donc toute \u00e9criture y est interdite. Aucun risque de pr\u00e9servation observ\u00e9 n'en d\u00e9coule ; il s'agit d'un d\u00e9faut de typage contractuel, pas d'un trou d'application.",
+          "finding": "L'exigence source impose explicitement de conserver scripts/kodjo/fixtures/vnext12/keep.js octet pour octet, mais cette obligation n'est portée que par boundaries.preserve_scope, par impact.preservation_candidate_ids et par une contrainte en prose. Aucune exigence de type PRESERVATION n'est enregistrée et aucune obligation de preuve n'observe l'invariance de ce fichier. L'application reste néanmoins effective : keep.js est absent du write_scope et forbidden_policy vaut ALL_OUTSIDE_WRITE_SCOPE, donc toute écriture y est interdite. Aucun risque de préservation observé n'en découle ; il s'agit d'un défaut de typage contractuel, pas d'un trou d'application.",
           "evidence": [
-            "git:7fac320080f83eb74359272b9d039e7b1d8fac5f:.github/orchestration/vnext12/VNEXT-12-QUALIF/requirement.md \u2014 \u00ab Conserver le fichier scripts/kodjo/fixtures/vnext12/keep.js octet pour octet. \u00bb",
-            "planContract.boundaries.preserve_scope = [{candidate_id: CAND-30ceff46ee0ac607974766df, path: scripts/kodjo/fixtures/vnext12/keep.js}] ; boundaries.forbidden_policy = ALL_OUTSIDE_WRITE_SCOPE ; write_scope limit\u00e9 \u00e0 core.js et core.test.js",
+            "git:7fac320080f83eb74359272b9d039e7b1d8fac5f:.github/orchestration/vnext12/VNEXT-12-QUALIF/requirement.md — « Conserver le fichier scripts/kodjo/fixtures/vnext12/keep.js octet pour octet. »",
+            "planContract.boundaries.preserve_scope = [{candidate_id: CAND-30ceff46ee0ac607974766df, path: scripts/kodjo/fixtures/vnext12/keep.js}] ; boundaries.forbidden_policy = ALL_OUTSIDE_WRITE_SCOPE ; write_scope limité à core.js et core.test.js",
             "planContract.plan_items[0].proof_obligations ne contient qu'une preuve FUNCTIONAL_TEST (PROOF-795c6002c59f2385828b1735) portant sur la valeur 2 ; aucune preuve n'observe l'empreinte de keep.js",
-            "requirementRegistry.requirements[0].preservation = NONE_DECLARED alors que l'unit\u00e9 source FULL_FILE \u00e9nonce une obligation de pr\u00e9servation"
+            "requirementRegistry.requirements[0].preservation = NONE_DECLARED alors que l'unité source FULL_FILE énonce une obligation de préservation"
           ],
-          "required_correction": "Renforcement optionnel, non requis pour admettre ce plan : enregistrer une exigence de type PRESERVATION sur keep.js (qui porterait preservation=REQUIRED) ou ajouter une obligation de preuve STATIC_ANALYSIS observant l'empreinte SHA-256 de keep.js avant et apr\u00e8s ex\u00e9cution. \u00c0 d\u00e9faut, conserver l'application actuelle par la fronti\u00e8re d'\u00e9criture, qui suffit \u00e0 interdire la modification.",
+          "required_correction": "Renforcement optionnel, non requis pour admettre ce plan : enregistrer une exigence de type PRESERVATION sur keep.js (qui porterait preservation=REQUIRED) ou ajouter une obligation de preuve STATIC_ANALYSIS observant l'empreinte SHA-256 de keep.js avant et après exécution. À défaut, conserver l'application actuelle par la frontière d'écriture, qui suffit à interdire la modification.",
           "dependency_target_ids": [
             "CAND-30ceff46ee0ac607974766df",
             "REQ-9dddc2972fcd3efdc7a4a12b"
@@ -1869,7 +1869,7 @@
       "cancellation_cause": "NOT_VERIFIABLE",
       "historical_recovery_reserve": "OLD_ARTIFACT_UNAVAILABLE_NOT_RETRIED"
     },
-    "user_instruction": "Reprends uniquement la t\u00e2che 2; terminer qualification et parcours initial isol\u00e9; aucun lancement dupliqu\u00e9; t\u00e2che 3 et cl\u00f4ture hors p\u00e9rim\u00e8tre.",
+    "user_instruction": "Reprends uniquement la tâche 2; terminer qualification et parcours initial isolé; aucun lancement dupliqué; tâche 3 et clôture hors périmètre.",
     "failed_run_id": 37300068654,
     "failed_job_id": 111730479414,
     "failed_controller_head": "06dda327a1684a989de35086b5df51b7f01703bf",
@@ -2654,12 +2654,16 @@
   },
   "full_cycle_20261007": {
     "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
-    "stage": "EXECUTE_INITIAL_REQUESTED",
-    "request_generation": 82,
+    "stage": "EXECUTE_INITIAL_REPUBLISHED_AFTER_CONTROLLER_BYTE_FIX",
+    "request_generation": 84,
     "request_id": "db5ed26b-e1f7-4e0c-a417-1ee1f44748a4",
-    "qualification_run_id": 37609828137,
-    "qualified_head": "e19cfcef2fd7e3ec88ba5e274aa71fa65ece6824",
-    "transition_marker": ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/transition-37609828137-1.json",
-    "human_review_performed": false
+    "qualification_run_id": 37612631759,
+    "qualified_head": "661bdba157cab2f791c2941125f2867058bc1ace",
+    "transition_marker": ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/transition-37612631759-1.json",
+    "human_review_performed": false,
+    "approval_gate": "issue_comment:6036950170",
+    "approval_target_hash": "b4cd9e23325716ca96fbb443b2c7fa61ac3405c385d93f0437c5b01228bfc639",
+    "previous_failed_run": 37611838767,
+    "previous_failure": "VNEXT_EXECUTED_SOURCE_DRIFT_PRE_CLAUDE"
   }
 }

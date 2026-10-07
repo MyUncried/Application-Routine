@@ -1,0 +1,93 @@
+{
+  "qualification": {
+    "status": "VERIFIED",
+    "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+    "candidate_head": "661bdba157cab2f791c2941125f2867058bc1ace",
+    "run_id": "37612631759",
+    "run_attempt": 1,
+    "workflow_path": ".github/workflows/kodjo-vnext-proof-stability.yml",
+    "event": "create",
+    "branch": "qualification/vnext-full-cycle-initial-bytefix-de2b9683-20261007",
+    "jobs": [
+      {
+        "id": 112763320606,
+        "name": "qualification (ubuntu-latest)",
+        "conclusion": "success",
+        "tests": 407,
+        "pass": 407,
+        "fail": 0,
+        "skip": 0,
+        "artifact_id": 11478224555,
+        "artifact_sha256": "6c6a504f06305749a673491ab469e16ff2c64883ad86a4f63eb7b7163164336d"
+      },
+      {
+        "id": 112763320236,
+        "name": "qualification (windows-latest)",
+        "conclusion": "success",
+        "tests": 407,
+        "pass": 407,
+        "fail": 0,
+        "skip": 0,
+        "artifact_id": 11479336318,
+        "artifact_sha256": "d4e5d2f90680bd9bff21ee9c6ab0e55bed4551694a29267198139e8168e937ff"
+      }
+    ],
+    "observed_at": "2026-10-07T11:31:27.860Z"
+  },
+  "signal": {
+    "schema_version": "kodjo.vnext.cycle-signal.v1",
+    "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+    "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+    "slice_id": "VNEXT-12-QUALIF",
+    "request_id": "db5ed26b-e1f7-4e0c-a417-1ee1f44748a4",
+    "generation": 83,
+    "stage": "TARGETED_RESULT_RECORDED",
+    "kind": "QUALIFICATION",
+    "run_id": 37612631759,
+    "run_attempt": 1,
+    "source_head": "661bdba157cab2f791c2941125f2867058bc1ace",
+    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:db5ed26b-e1f7-4e0c-a417-1ee1f44748a4:37612631759:1",
+    "job_results": {
+      "qualification": {
+        "result": "success",
+        "outputs": {}
+      }
+    },
+    "business_write": false,
+    "implementation_authorized": false,
+    "human_review_performed": false
+  },
+  "approval": {
+    "comment_id": 6036950170,
+    "reaction_id": 434588487,
+    "target_hash": "b4cd9e23325716ca96fbb443b2c7fa61ac3405c385d93f0437c5b01228bfc639",
+    "source_head": "661bdba157cab2f791c2941125f2867058bc1ace",
+    "exact_message_verified": true,
+    "actor": "MyUncried",
+    "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
+    "human_review_performed": false
+  },
+  "admission_status": "AUTHORIZED",
+  "request": {
+    "stage": "EXECUTE_INITIAL",
+    "slice_id": "VNEXT-12-QUALIF",
+    "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+    "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+    "revision_limit": 1,
+    "generation": 84,
+    "final_audit_authorized": false,
+    "pre1_in_scope": false,
+    "qualification_policy": "FULL_CYCLE_USER_REQUEST",
+    "request_id": "db5ed26b-e1f7-4e0c-a417-1ee1f44748a4",
+    "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
+    "human_review_performed": false,
+    "repository": "MyUncried/Application-Routine",
+    "preparation_run_id": 37599633548,
+    "auto_continue": true,
+    "created_at": "2026-10-07T10:45:50.134507+00:00",
+    "approved_protocol_head": "661bdba157cab2f791c2941125f2867058bc1ace",
+    "gate_ref": "issue_comment:6036950170",
+    "approval_target_hash": "b4cd9e23325716ca96fbb443b2c7fa61ac3405c385d93f0437c5b01228bfc639",
+    "qualification_run_id": 37612631759
+  }
+}

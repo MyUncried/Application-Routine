@@ -1,6 +1,6 @@
 {
   "schema_version": "kodjo.vnext.cycle-transition.v1",
-  "status": "QUALIFIED_SIGNAL_CLAIMED_PENDING_INITIAL_REPUBLICATION",
+  "status": "EXECUTE_INITIAL_REPUBLICATION_ADMITTED",
   "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:db5ed26b-e1f7-4e0c-a417-1ee1f44748a4:37612631759:1",
   "request_id": "db5ed26b-e1f7-4e0c-a417-1ee1f44748a4",
   "generation": 83,
@@ -14,5 +14,12 @@
   "controller_id": "webhook-89058860-c241-11f1-9ca9-80ef43862595",
   "claimed_at": "2026-10-07T11:27:44.959Z",
   "claim_time_basis": "orchestrator UTC clock",
-  "human_review_performed": false
+  "human_review_performed": false,
+  "approval_comment_id": 6036950170,
+  "reaction_id": 434588487,
+  "approval_target_hash": "b4cd9e23325716ca96fbb443b2c7fa61ac3405c385d93f0437c5b01228bfc639",
+  "admission_status": "AUTHORIZED",
+  "published_generation": 84,
+  "approved_protocol_head": "661bdba157cab2f791c2941125f2867058bc1ace",
+  "qualified_at": "2026-10-07T11:31:27.860Z"
 }
