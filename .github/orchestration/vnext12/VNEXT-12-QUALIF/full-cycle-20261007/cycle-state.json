@@ -5,9 +5,9 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "HISTORICAL_PASS_IMPLEMENTATION_REVIEW_CLAIMED",
-  "request_id": "a0fe36c3-246b-4ffb-b962-a6c4a527fce0",
-  "generation": 100,
+  "current_stage": "IMPLEMENTATION_REVIEW_PASS_FINALIZATION_READY",
+  "request_id": "afa92cf0-b265-4839-b5c6-823f39bdf1b5",
+  "generation": 101,
   "previous_terminal_generation": 77,
   "previous_closed_issue": 324,
   "reuse_previous_closure_as_new_cycle": false,
@@ -207,11 +207,20 @@
     },
     {
       "stage": "IMPLEMENTATION_REVIEW",
-      "status": "PENDING"
+      "status": "PASS",
+      "review_comment_id": 6047064806,
+      "head": "3db2ac6129f0aaf5b6e47bf1d3030a1fe8a57609",
+      "reviewer": "ChatGPT",
+      "human_review_performed": false
     },
     {
       "stage": "GITHUB_EFFECTIVE_CLOSURE",
-      "status": "PENDING"
+      "status": "READY",
+      "issue": 329,
+      "pr": 330,
+      "head": "3db2ac6129f0aaf5b6e47bf1d3030a1fe8a57609",
+      "request_id": "afa92cf0-b265-4839-b5c6-823f39bdf1b5",
+      "generation": 101
     }
   ],
   "excluded": [
@@ -224,10 +233,10 @@
     "automatic_visual_validation"
   ],
   "active_run_ids": [],
-  "next_action": "Review and publish one new certification delivery for this cycle; preserve issue324/PR325 and require existing finalization contract before closing.",
+  "next_action": "Launch the existing serialized FINALIZE_DELIVERY workflow for new issue329/PR330 exactly once.",
   "controller_head": "e21c9a142ed41d4863f1273d22bd1f43643adcbd",
   "qualification_branch": "qualification/vnext-full-cycle-historical-sequence-3b3a2190-20261007",
-  "observed_at": "2026-10-07T21:10:30.873704+00:00",
+  "observed_at": "2026-10-07T21:20:55.110932+00:00",
   "documentation_modals": "WAIT_FOR_USER_COMPLETION_SIGNAL",
   "pending_initial_request": {
     "stage": "EXECUTE_INITIAL",
@@ -253,9 +262,9 @@
   },
   "auto_continue": true,
   "automation_id": "6ac62299aa5c819198996171d4a1ff13",
-  "automation_title": "Encha\u00eener le cycle VNext",
+  "automation_title": "Enchaîner le cycle VNext",
   "automation_trigger": "PR269_COMMIT_UPDATES",
-  "automatic_continuation_status": "HISTORICAL_PASS_IMPLEMENTATION_REVIEW_CLAIMED",
+  "automatic_continuation_status": "FINALIZE_DELIVERY_ADMITTED",
   "initial_binding_requires_new_qualified_source_head": false,
   "previous_initial_gate": {
     "comment_id": 6035666121,
@@ -267,7 +276,7 @@
   "completed_controls_run": 37605050877,
   "transition": {
     "schema_version": "kodjo.vnext.cycle-transition.v1",
-    "status": "HISTORICAL_PASS_IMPLEMENTATION_REVIEW_CLAIMED",
+    "status": "FINALIZE_DELIVERY_ADMITTED",
     "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
     "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
     "slice_id": "VNEXT-12-QUALIF",
@@ -280,7 +289,11 @@
     "run_attempt": 1,
     "claimed_at": "2026-10-07T21:10:30.873704+00:00",
     "controller": "WORK_WEBHOOK_HISTORICAL_COMPLETION",
-    "operational_closure_certified": false
+    "operational_closure_certified": false,
+    "next_request_id": "afa92cf0-b265-4839-b5c6-823f39bdf1b5",
+    "next_generation": 101,
+    "new_issue": 329,
+    "new_pr": 330
   },
   "pending_incident_request": {
     "stage": "CERTIFY_INCIDENTS",
@@ -1403,5 +1416,50 @@
     "historical_recovery": "NON_CERTIFIED_ARTIFACT_UNAVAILABLE",
     "operational_closure_certified": false,
     "observed_at": "2026-10-07T21:10:30.873704+00:00"
+  },
+  "new_delivery": {
+    "issue": 329,
+    "pr": 330,
+    "head": "3db2ac6129f0aaf5b6e47bf1d3030a1fe8a57609",
+    "tested_tree_oid": "85fca7ca1de91639ed5e23ecfaa7311ddba07b29",
+    "manifest_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/new-delivery-329/finalization-manifest.json",
+    "review_comment_id": 6047064806,
+    "reviewer": "ChatGPT",
+    "human_review_performed": false,
+    "source_revision_run_id": 37625815436,
+    "preserved_historical_issue": 324,
+    "archived_historical_pr": 325,
+    "preserved_historical_head": "b4dbde78215b4ff1adb1443a0ed6d581716eb38b",
+    "historical_head_is_ancestor": true,
+    "product_merge": false,
+    "operational_closure_certified": false
+  },
+  "pending_finalization_request": {
+    "stage": "FINALIZE_DELIVERY",
+    "repository": "MyUncried/Application-Routine",
+    "slice_id": "VNEXT-12-QUALIF",
+    "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+    "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+    "request_id": "afa92cf0-b265-4839-b5c6-823f39bdf1b5",
+    "created_at": "2026-10-07T21:19:49.819757+00:00",
+    "generation": 101,
+    "revision_limit": 1,
+    "pre1_in_scope": false,
+    "final_audit_authorized": false,
+    "qualification_policy": "FULL_CYCLE_USER_REQUEST",
+    "auto_continue": true,
+    "authorization_basis": "FULL_CYCLE_USER_REQUEST_20261007",
+    "human_review_performed": false,
+    "approved_protocol_head": "e21c9a142ed41d4863f1273d22bd1f43643adcbd",
+    "qualification_run_id": 37679156484,
+    "closure_scope": "GITHUB_CERTIFICATION_DELIVERY",
+    "issue_number": 329,
+    "delivery_pr_number": 330,
+    "delivery_branch": "certification/vnext/628b3349-88b4-4bf1-be6b-50bc09e7d245",
+    "issue_body_sha256": "ab555a7c9c206b641295ae0194779ae1a1c748763b866ef15d5a7a1dea6deae2",
+    "delivery_head": "3db2ac6129f0aaf5b6e47bf1d3030a1fe8a57609",
+    "finalization_manifest": ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/new-delivery-329/finalization-manifest.json",
+    "source_historical_run_id": 37680862427,
+    "source_historical_signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:a0fe36c3-246b-4ffb-b962-a6c4a527fce0:37680862427:1"
   }
 }
