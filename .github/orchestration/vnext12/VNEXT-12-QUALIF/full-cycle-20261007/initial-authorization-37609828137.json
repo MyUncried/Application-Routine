@@ -1,0 +1,78 @@
+{
+  "qualification": {
+    "status": "VERIFIED",
+    "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+    "candidate_head": "e19cfcef2fd7e3ec88ba5e274aa71fa65ece6824",
+    "run_id": "37609828137",
+    "run_attempt": 1,
+    "jobs": [
+      {
+        "id": 112754113182,
+        "name": "qualification (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 112754113558,
+        "name": "qualification (windows-latest)",
+        "conclusion": "success"
+      }
+    ],
+    "observed_at": "2026-10-07T11:03:26.661Z"
+  },
+  "signal": {
+    "schema_version": "kodjo.vnext.cycle-signal.v1",
+    "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+    "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+    "slice_id": "VNEXT-12-QUALIF",
+    "request_id": "11bea52c-4396-457a-8093-19073dc2d112",
+    "generation": 81,
+    "stage": "TARGETED_RESULT_RECORDED",
+    "kind": "QUALIFICATION",
+    "run_id": 37609828137,
+    "run_attempt": 1,
+    "source_head": "e19cfcef2fd7e3ec88ba5e274aa71fa65ece6824",
+    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:11bea52c-4396-457a-8093-19073dc2d112:37609828137:1",
+    "job_results": {
+      "qualification": {
+        "result": "success",
+        "outputs": {}
+      }
+    },
+    "business_write": false,
+    "implementation_authorized": false,
+    "human_review_performed": false
+  },
+  "approval": {
+    "comment_id": 6036544575,
+    "reaction_id": 434570595,
+    "target_hash": "e137bfd00306aa0c07a44e3bf8b6ba98fdea68f6b5982409e0458bb9e307a733",
+    "source_head": "e19cfcef2fd7e3ec88ba5e274aa71fa65ece6824",
+    "exact_message_verified": true,
+    "actor": "MyUncried",
+    "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
+    "human_review_performed": false
+  },
+  "admission_status": "AUTHORIZED",
+  "request": {
+    "stage": "EXECUTE_INITIAL",
+    "slice_id": "VNEXT-12-QUALIF",
+    "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+    "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+    "revision_limit": 1,
+    "generation": 82,
+    "final_audit_authorized": false,
+    "pre1_in_scope": false,
+    "qualification_policy": "FULL_CYCLE_USER_REQUEST",
+    "request_id": "db5ed26b-e1f7-4e0c-a417-1ee1f44748a4",
+    "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
+    "human_review_performed": false,
+    "repository": "MyUncried/Application-Routine",
+    "preparation_run_id": 37599633548,
+    "auto_continue": true,
+    "created_at": "2026-10-07T10:45:50.134507+00:00",
+    "approved_protocol_head": "e19cfcef2fd7e3ec88ba5e274aa71fa65ece6824",
+    "gate_ref": "issue_comment:6036544575",
+    "approval_target_hash": "e137bfd00306aa0c07a44e3bf8b6ba98fdea68f6b5982409e0458bb9e307a733",
+    "qualification_run_id": 37609828137
+  }
+}

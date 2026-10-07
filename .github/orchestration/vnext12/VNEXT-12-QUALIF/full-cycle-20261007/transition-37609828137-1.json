@@ -1,6 +1,6 @@
 {
   "schema_version": "kodjo.vnext.cycle-transition.v1",
-  "status": "CLAIMED_BEFORE_LAUNCH",
+  "status": "EXECUTE_INITIAL_PUBLICATION_PREPARED",
   "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:11bea52c-4396-457a-8093-19073dc2d112:37609828137:1",
   "request_id": "11bea52c-4396-457a-8093-19073dc2d112",
   "generation": 81,
@@ -14,5 +14,8 @@
   "controller_id": "webhook-fc2c95d0-c23d-11f1-84e6-9e006f03a7e7",
   "claimed_at": "2026-10-07T11:00:57Z",
   "human_review_performed": false,
-  "claim_time_basis": "GitHub commit server timestamp"
+  "claim_time_basis": "GitHub commit server timestamp",
+  "approval_comment_id": 6036544575,
+  "reaction_id": 434570595,
+  "approval_target_hash": "e137bfd00306aa0c07a44e3bf8b6ba98fdea68f6b5982409e0458bb9e307a733"
 }
