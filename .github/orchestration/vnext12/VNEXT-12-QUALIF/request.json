@@ -17,6 +17,6 @@
   "failed_run_attempt": 1,
   "failure_stage": "FIGMA_INITIAL",
   "failure_status": "PRE_IMPLEMENTATION_REVIEW_REVISE",
-  "correction_status": "PENDING_EXACT_HEAD_QUALIFICATION_AFTER_TEST_STDIN_FIX",
-  "failed_qualification_run_id": 37638510918
+  "correction_status": "QUALIFICATION_CONTROLS_PASS_RELAY_GITHUB_ERROR_BLOCKED",
+  "failed_qualification_run_id": 37641572717
 }

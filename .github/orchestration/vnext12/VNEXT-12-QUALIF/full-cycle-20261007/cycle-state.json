@@ -5,7 +5,7 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "REAL_TEST_STDIN_FIX_QUALIFICATION_PENDING",
+  "current_stage": "QUALIFICATION_RELAY_GITHUB_INTERNAL_ERROR_BLOCKED",
   "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
   "generation": 92,
   "previous_terminal_generation": 77,
@@ -160,10 +160,10 @@
     "automatic_visual_validation"
   ],
   "active_run_ids": [],
-  "next_action": "Await new exact-head Linux/Windows qualification of the fixture stdin synchronization; publish a fresh real-test request only after SUCCESS. No identical retry.",
+  "next_action": "Recover the GitHub scheduling/continuation failure without duplicating successful qualification jobs. A completed SUCCESS run and a fresh causal signal remain required before real-test admission.",
   "controller_head": "a467a5b34c1cb3e362c6e27b4b622c9ede632be7",
   "qualification_branch": "qualification/vnext-full-cycle-real-stdin-232ae5f7-20261007",
-  "observed_at": "2026-10-07T15:00:33.257Z",
+  "observed_at": "2026-10-07T15:33:41.991Z",
   "documentation_modals": "WAIT_FOR_USER_COMPLETION_SIGNAL",
   "pending_initial_request": {
     "stage": "EXECUTE_INITIAL",
@@ -191,7 +191,7 @@
   "automation_id": "6ac62299aa5c819198996171d4a1ff13",
   "automation_title": "Enchaîner le cycle VNext",
   "automation_trigger": "PR269_COMMIT_UPDATES",
-  "automatic_continuation_status": "REAL_TEST_STDIN_FIX_QUALIFICATION_PENDING",
+  "automatic_continuation_status": "QUALIFICATION_RELAY_GITHUB_INTERNAL_ERROR_BLOCKED",
   "initial_binding_requires_new_qualified_source_head": false,
   "previous_initial_gate": {
     "comment_id": 6035666121,
@@ -710,5 +710,20 @@
     "next_qualification_branch": "qualification/vnext-full-cycle-real-stdin-232ae5f7-20261007",
     "observed_at": "2026-10-07T15:00:33.257Z",
     "implementation_invoked": false
+  },
+  "qualification_relay_failure": {
+    "run_id": 37641572717,
+    "run_attempt": 1,
+    "source_head": "42d10d8a7500a55d69ddeb26866fea7b625affa0",
+    "controls": "409_PASS_PER_OS",
+    "run_conclusion": "FAILURE",
+    "diagnostic": "Internal server error. Correlation ID: 2414f049-87da-4b79-9039-fc6422ba0c4a",
+    "recovery": {
+      "operation": "rerun_failed_workflow_run_jobs",
+      "status": 403,
+      "message": "This workflow run cannot be retried"
+    },
+    "admission": "REFUSED_RUN_CONCLUSION_FAILURE",
+    "evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/qualification-relay-failure-37641572717/evidence.json"
   }
 }
