@@ -181,7 +181,7 @@ test('un contenu pré-indexé hors périmètre ne survit pas à la publication b
 });
 
 test('le script de publication remet l’index à zéro avant l’ajout borné', () => {
-  const source = fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'run-queued-request.ps1'), 'utf8');
+  const source = require('./helpers/normalized-git-source')(fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'run-queued-request.ps1'), 'utf8'));
   assert.doesNotMatch(source, /git add --all\s*$/m, 'aucun git add --all non borné');
   assert.match(source, /git reset --quiet/);
   assert.match(source, /--pathspec-from-file=\$publishPathspec --pathspec-file-nul/);
@@ -287,7 +287,7 @@ test('réserve 3 · un renommage indexé fait contrôler ses deux chemins', () =
 });
 
 test('réserve 4 · le script refuse une mutation du dépôt causée par npm ci', () => {
-  const source = fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'run-queued-request.ps1'), 'utf8');
+  const source = require('./helpers/normalized-git-source')(fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'run-queued-request.ps1'), 'utf8'));
   assert.match(source, /KODJO_QUEUE_DEPENDENCIES_MUTATED_REPO/);
   const install = source.indexOf('npm ci --no-audit --no-fund');
   const guard = source.indexOf('KODJO_QUEUE_DEPENDENCIES_MUTATED_REPO');
@@ -297,7 +297,7 @@ test('réserve 4 · le script refuse une mutation du dépôt causée par npm ci'
 });
 
 test('réserve 3 · le script vérifie l’index avant de committer', () => {
-  const source = fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'run-queued-request.ps1'), 'utf8');
+  const source = require('./helpers/normalized-git-source')(fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'run-queued-request.ps1'), 'utf8'));
   assert.match(source, /verify-staged-scope\.js/);
   const verify = source.indexOf('verify-staged-scope.js');
   const commit = source.indexOf('commit -m');
@@ -305,17 +305,17 @@ test('réserve 3 · le script vérifie l’index avant de committer', () => {
 });
 
 test('B1 · le jeton est retiré de la configuration sur tous les chemins de sortie', () => {
-  const source = fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'run-queued-request.ps1'), 'utf8');
+  const source = require('./helpers/normalized-git-source')(fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'run-queued-request.ps1'), 'utf8'));
   assert.match(source, /git config --local --unset-all http\.https:\/\/github\.com\/\.extraheader/);
-  const pose = source.indexOf('git config --local http.https://github.com/.extraheader');
-  const bloc = source.indexOf('try {', pose - 200);
-  const retrait = source.indexOf('--unset-all http.https://github.com/.extraheader');
-  const finallyIdx = source.indexOf('finally {', pose);
-  assert.ok(bloc > 0 && bloc < pose, 'la pose est dans un try');
-  assert.ok(finallyIdx > 0 && finallyIdx < retrait, 'le retrait est dans le finally');
-  // Le push et la création de PR sont à l'intérieur du bloc protégé.
-  assert.ok(source.indexOf('git push --set-upstream') > bloc);
-  assert.ok(source.indexOf('gh pr create') < finallyIdx);
+  const raw=fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8');
+  assert.doesNotMatch(raw,/git(?: -c [^\r\n]+)? config --local http\.https:\/\/github\.com\/\.extraheader(?: |$)/m);
+  for(const line of raw.split(/\r?\n/).filter(line=>/\bpush(?: --set-upstream)? origin/.test(line))){
+    assert.match(line,/-c core.hooksPath=NUL -c core.fsmonitor=false/);
+    assert.match(line,/-c "http\.https:\/\/github\.com\/\.extraheader=AUTHORIZATION: basic \$auth"/);
+  }
+  assert.ok(raw.indexOf('$env:GH_TOKEN = $githubToken')>raw.indexOf('commit -m'), 'REST token restored only after safe commit');
+  assert.ok(source.indexOf('finally {')<source.lastIndexOf('--unset-all http.https://github.com/.extraheader'));
+
 });
 
 test('B1 · le scanner voit désormais un en-tête d’autorisation', () => {

@@ -1,0 +1,25 @@
+✔ runtime history waits for a successful selected Claude job and never runs after refusal or cancellation (24.582155ms)
+✔ automatic admission does not claim full validation before historical jobs (3.113939ms)
+✔ historical V2 preflight is reusable after Claude while independent VNext PR repeats are skipped (15.898974ms)
+✔ event routing reuses VNext admission and preserves unrelated legacy events (13.772656ms)
+✔ generic recipe requires a concrete binding and projects a created surface without extending a preserved dependency (2436.453416ms)
+✔ review dependency indices resolve exact catalog IDs while ambiguity, unknown types and bounds stay refused (1.17782ms)
+✔ browser refusal is explicit and no normal browser profile is opened by binary discovery (1.258463ms)
+✔ disposable markup checks exact dimension values rather than declaration presence (4.250096ms)
+﹣ actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta (2.623334ms) # SKIP
+﹣ disposable fixed geometry refuses a viewport-relative counterexample at an independent viewport (0.193419ms) # SKIP
+✔ browser cleanup waits for the actual process and profile descendants before removal (350.438094ms)
+✔ browser cleanup failure retains stderr, primary error and isolated profile diagnostics (2.334913ms)
+✔ packaged Chrome precedes Chromium on Linux while an explicit browser remains authoritative (0.316431ms)
+✔ early browser exit retains executable, exit code and actual stderr in the failure (21.231019ms)
+✔ preservation proves a live re-export and rejects a hardcoded equal primitive (5.856412ms)
+✔ Windows termination races are accepted only after root and profile are gone (202.159663ms)
+✔ Windows cleanup inventories profile before waiting for forced root exit (0.905176ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 2
+ℹ todo 0
+ℹ duration_ms 3394.297636

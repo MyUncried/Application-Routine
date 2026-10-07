@@ -1,0 +1,30 @@
+✔ generic recipe requires a concrete binding and projects a created surface without extending a preserved dependency (1725.730202ms)
+✔ review dependency indices resolve exact catalog IDs while ambiguity, unknown types and bounds stay refused (5.621567ms)
+✔ browser refusal is explicit and no normal browser profile is opened by binary discovery (0.499796ms)
+﹣ actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta (0.238414ms) # SKIP
+﹣ disposable fixed geometry refuses a viewport-relative counterexample at an independent viewport (0.247029ms) # SKIP
+✔ browser cleanup waits for the actual process and profile descendants before removal (343.715172ms)
+✔ browser cleanup failure retains stderr, primary error and isolated profile diagnostics (4.010213ms)
+✔ packaged Chrome precedes Chromium on Linux while an explicit browser remains authoritative (0.254405ms)
+✔ early browser exit retains executable, exit code and actual stderr in the failure (47.55342ms)
+✔ preservation proves a live re-export and rejects a hardcoded equal primitive (3.775261ms)
+✔ Windows termination races are accepted only after root and profile are gone (200.716275ms)
+✔ Windows cleanup inventories profile before waiting for forced root exit (0.483818ms)
+✔ provenance attestation rejects a substituted document or mounted fragment without a browser (0.517861ms)
+✔ real Figma driver requires the same campaign, bounded scope and explicit technical delegation (2.134299ms)
+✔ qualification and current PR head precede an exclusive persistent claim; duplicate calls cannot reclaim it (479.905462ms)
+✔ delivery bundle and uncommitted working delta remain recoverable after fixture cleanup (703.968498ms)
+✔ delivered inline child tests pass the post-execution write boundary (768.912315ms)
+✔ post-execution boundary refuses untracked helper (617.084468ms)
+✔ post-execution boundary refuses tracked dependency mutation (568.475197ms)
+✔ real driver imports the Boolean behaviour as DOCUMENT_ONLY and retains both scenarios (398.748877ms)
+✔ write boundary accepts stylesheet geometry and a nested title without an HTML gate (493.699064ms)
+✔ fault injection targets the frame independently of the original CSS declaration syntax (3.288871ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 2
+ℹ todo 0
+ℹ duration_ms 4207.860642

@@ -144,7 +144,7 @@ test('controles — un remplacement de commande est ignore sans le drapeau de te
   assert.match(res.stderr, /CHECK_COMMAND_OVERRIDE_IGNORED/);
   assert.equal(fs.existsSync(marker), false, 'the overridden command must not be executed');
   const out = readJson(path.join(ctx.delivery, 'checks', 'lint.json'));
-  assert.equal(out.command, 'npm run lint --silent', 'the repository command must be used');
+  assert.equal(out.command, 'npm run lint --silent -- --no-cache', 'the fixed repository command must avoid mutating ignored cache files');
 });
 
 test('garde git — un etat intact est constate avant et apres l adaptateur', () => {

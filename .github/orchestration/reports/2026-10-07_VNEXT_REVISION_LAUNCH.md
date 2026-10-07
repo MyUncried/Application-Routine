@@ -1,0 +1,15 @@
+# Lancement du parcours REVISION
+
+Mission autorisée par l’utilisateur le 7 octobre 2026 à 00:51 Paris : « Lance le test révision ». Départ local b48962456a18e4d5ceddb0b61c64aee149c69bb9, branche protocol/vnext-proof-stability-20260930 ; départ distant 39d8976d2605b806354ce463471a35f6a8ffb3be.
+
+Le succès INITIAL 37538282108 est conservé. Il comprend une correction de code après injection d’un défaut fonctionnel, pas une enveloppe de plan REVISION. La REVISION historique 36881458781 sur 3a931996 est une preuve antérieure distincte ; elle ne démontre pas le parcours sur le contrôleur actuel.
+
+Le point d’entrée REVISION déjà implémenté est PREPARE_REVISION, scripts/kodjo/prepare-vnext12-revision.js. Il utilise deux vraies revues Claude : plan volontairement contraire à la source (value()=3 au lieu de 2), refus REVISE attendu, correction causale des seules intentions du plan, revue fraîche du plan en mode REVISION, vérification RESOLVED et préparation du handoff. Aucun verdict fabriqué. Cette étape ne développe pas encore l’exemple ; EXECUTE_REVISION est la suite après conservation et admission de ce plan. Ne pas déclarer le parcours complet réussi sur le seul résultat de préparation.
+
+Modifications minimales pour appliquer la consigne permanente de passage direct : trois conditions du workflow sautent les tests locaux de superviseur et qualify-driver quand DIRECT_REAL_USER_REQUEST est demandé, puis autorisent prepare-revision malgré qualify-driver SKIPPED. Aucun bloc PowerShell exécutable modifié. Mise à jour de l’empreinte de ce workflow dans la politique existante, sans droit supplémentaire. Nouvelle demande PREPARE_REVISION génération 68 avec identité UUID fraîche ; checkpoint génération 100 conserve le succès précédent. Instruction persistante mise à jour dans CLAUDE.md.
+
+Aucun test jetable préalable, qualification Linux/Windows, audit d’architecture, navigateur ou contrôle visuel humain. Aucun fichier applicatif modifié. Plafonds Claude et workflow existants de deux heures conservés. Vérifications de syntaxe, de tree et de publication uniquement ; aucune suite de tests lancée localement. Les historiques ne précèdent pas le réel.
+
+Fichiers modifiés : workflow kodjo-vnext12-disposable.yml, politique KODJO_VNEXT_REMOTE_WRITE_POLICY.json, request.json et campaign-state.json de VNEXT-12-QUALIF, CLAUDE.md et ce rapport. Preuve de lancement et identifiants de publication à compléter après publication ; aucun succès REVISION anticipé. Aucun contrôle sur appareil réel applicable au test du protocole. Livraison par commit documentaire/code local et publication sélective distante, sans fusion ni activation produit.
+
+Commit de livraison : commit contenant ce rapport, identifiable par git log -1 --format=%H -- .github/orchestration/reports/2026-10-07_VNEXT_REVISION_LAUNCH.md ; hash complet fourni à la clôture. État Git à vérifier après commit final. Suite autorisée : récupérer le dossier de revue révisé, puis poursuivre le parcours REVISION ; ne pas relancer INITIAL ni ses préalables.

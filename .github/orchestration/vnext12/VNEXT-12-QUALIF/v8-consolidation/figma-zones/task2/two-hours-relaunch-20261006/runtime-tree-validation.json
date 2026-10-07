@@ -1,0 +1,22 @@
+{
+  "status": "VALIDATED",
+  "expected_parent": "abecf87e88abbf387c1e22e319cda1374762018d",
+  "candidate_tree": "157b63279dad1cc9c05d4026bbc53aac0e8d34a0",
+  "changed_paths": [
+    ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_TWO_HOURS_RELAUNCH.md",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/campaign-state.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/request.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/two-hours-relaunch-20261006/qualification-r2-Linux.zip",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/two-hours-relaunch-20261006/qualification-r2-Windows.zip",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/two-hours-relaunch-20261006/qualification-r2-admission.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/two-hours-relaunch-20261006/qualification-r2-contracts.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/two-hours-relaunch-20261006/qualification-r2-launch.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/two-hours-relaunch-20261006/qualification-r2-snapshot.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/two-hours-relaunch-20261006/r2-publication-window.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/two-hours-relaunch-20261006/r2-tree-validation.json"
+  ],
+  "targeted_tests": [],
+  "powershell_changed_units": 0,
+  "writer_policy": "PASS_WITH_FROZEN_LEGACY",
+  "historical_subjects": 420
+}

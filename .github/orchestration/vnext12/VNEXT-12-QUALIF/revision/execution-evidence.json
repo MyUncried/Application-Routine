@@ -1,0 +1,927 @@
+{
+  "schema_version": "kodjo.vnext12.real-revision-execution-evidence.v1",
+  "status": {
+    "schema_version": "kodjo.vnext.disposable-initial-evidence.v1",
+    "approved_protocol_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+    "controller_head": "9895877b9230c902eea229841a46a8c18c437f41",
+    "gate_ref": "issue_comment:5932536175",
+    "approval_target_hash": "c670199c72c128ee0ef2e397aceb7975e268c69e82a29256889d23898f3572e6",
+    "revision_limit": 1,
+    "implementation_invoked": true,
+    "application_published": false,
+    "pre1_in_scope": false,
+    "final_audit_invoked": false,
+    "initial_status": "IMPLEMENTED_AND_VERIFIED",
+    "verdict": "REVISION_PASS",
+    "planning_mode": "REVISION",
+    "disposable_cleanup": true
+  },
+  "run_id": "36881458781",
+  "job_id": "110434328636",
+  "artifact_id": "11173635576",
+  "artifact_sha256": "e9722592f56f90b5af1fee0fbd541506edf2820c423daf27c8d775e23cb24145",
+  "artifact_members": {
+    "admission-before-install.json": "fe41466c6e7f1275315e2a6f4102cb6637062de94cf50b51c9881746a8a176bb",
+    "admission-before-runtime.json": "541536fa26298d4ce879e06230d21d152257da9577d70a047b36cc34da1128e6",
+    "application-delta/scripts/kodjo/fixtures/vnext12/core.js": "63d9832d775e3b06b4a75bf56af1e065ce70ef82392293fa696c2de541a25a54",
+    "application-delta/tests/fixtures/vnext12/core.test.js": "e91bb83e5a5af744137d68d9ca2571ac6e92ee8b385a0c4937725c5615646a9f",
+    "approved-queue.json": "c8422a236d54291d36a68472a85df36f90afdb85a353b9585814cf2920e00ed5",
+    "baseline-checks.json": "7ac66ca8d0e21b197d297cf270881260640f634fd30dd4dc54cbfe831c2e0b92",
+    "baseline-jest.json": "b86d7941981950a4c2a339f04f31f2fd0eb185cd379c9bbc7cd9878519dac9f9",
+    "baseline-lint.json": "20e76e48e9890dc653d839bf1b9aeed4db8ec740fc25c2324a2af7ec26c38f5e",
+    "baseline-typescript.json": "0d046551996d953e26b27417040591c6e1d63cfa0b4882ad7a4e5847bc26a3c2",
+    "command-001.log": "58b250c1b7f3bb3025ca2d5c881dd6fdf65965132ffd83c458d8f147022dbe96",
+    "command-002.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-003.log": "73e83e8e247354405ac91825eec316491e3be74c2a14f70a673a798a0f525232",
+    "command-004.log": "6f587d2023a2a2e534374077f87cc6600c58111704982de38223b597125fd99a",
+    "command-005.log": "17a918506c590fec6eebe2cb27209bea34ac54b045df006e4b6b5948fda21ac6",
+    "command-006.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-007.log": "61972736dfb7c26c4806a80355497d7e1b2d66db53f6dd49fd1331a903eb506a",
+    "command-008.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-009.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-010.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-011.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-012.log": "921babc1437975c4ad7a4d32422eb0866c1c3f683bf525bd7c6a2296954518b1",
+    "command-013.log": "7627e4ad77aee78fa02a1781e5651120be836f0046b5be9d4e992bd9563fc9af",
+    "command-014.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-015.log": "f1827ea5cfda5ab6b7787d1ceea9b2eebcb4a804a9688489028b818f666c04aa",
+    "command-016.log": "087426252c1c9db3d7de93c70d3e25d1199043b134b06235221923ed1f505fba",
+    "command-017.log": "0b17e80d4bd9d5b428ff56d8b2de86e23965a370ffda004aa1a7d7e36a720dd2",
+    "command-018.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-019.log": "44d108000161f8ac872367631c2569baa6f87f76affc869c066d284036ea2b49",
+    "command-020.log": "656970d14fe166cef0cfdb2ab2069f315c63f58c57f11d425366caf2873d392a",
+    "command-021.log": "d2d930ff2bfafd21f79851310067b9d27fa76d7b5456f07b8f4605e9819c745e",
+    "command-022.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-023.log": "220dccdef99060d617c42f00425d39a26df60a06920a0e4d9e139799c999b764",
+    "consumed-request.json": "657020511aaa3421b8f4dcdbeacd7d865e17879e070c5b44580f47da32511123",
+    "consumption-credential.json": "3b2a6032de32846e429ce34202c109757348170d2b51d349be5f4802a6c251d3",
+    "consumption.json": "66645f5551fb28b9c12d6e9f7ddaedce38f9f75b1e6cb5497609162dd3d774b3",
+    "functional-proof.json": "74e3d694a953a285f7794a02dc00af8f37e00f260872faf6c9c3aeab1bdc9b22",
+    "handoff-runtime.json": "4515119a938866dc25b2806df596f0c9c5dbf4f8e8f4c0acf060f6faeec084d0",
+    "implementation.patch": "656970d14fe166cef0cfdb2ab2069f315c63f58c57f11d425366caf2873d392a",
+    "local-request.json": "65962c711694d321a247c302f6dbbe6072f9832238ffce3947a47f4bec19f412",
+    "negative-before-claude.json": "f1b49444b7f8bb07c8f1e9c0cd2d3960507b193c4835ade3c2a7f1c7a10f9d00",
+    "negative-missing-review-proof.json": "e1843348ff00d8fdb6060a53527f7d269048652390a16f79155c039b32144d3b",
+    "runner-lock-certification.json": "b4bad6af054bde8684abc426fed2df94d6b4c0d24fae016d5244695250e47e43",
+    "runtime/claude-output.json": "8fbb4396409b91da76bb544ad56051ba00ee9fdd236d2dc86c0c466c4fdd6f91",
+    "runtime/claude-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/consumed-request.json": "657020511aaa3421b8f4dcdbeacd7d865e17879e070c5b44580f47da32511123",
+    "runtime/consumption.json": "66645f5551fb28b9c12d6e9f7ddaedce38f9f75b1e6cb5497609162dd3d774b3",
+    "runtime/invocation.json": "1bc8924a53394f02b232f055285cf2fb017ede216a8fd72373a5edd36a4238ab",
+    "runtime/kodjo-check-runner.js": "bc878a5a0d5c432112abe3f98ac2e78e5195ff6874b5aa62bb4bdc3f86ca0148",
+    "runtime/kodjo-file-mutation.js": "5f813907e25232cc4a307a0a092d795b5d9dbb57209a74b0af697361c5d7c4f4",
+    "runtime/kodjo-git-read.js": "a1ad532fb4c504a1ce5aa1dff9c97460c92516912a8000b4233919b4a03740d1",
+    "runtime/mcp.json": "e93fc8db2b1bd77107fe6c758bca9545fa864cf7cce8ab93a7b2b93a1d566a7b",
+    "runtime/recovery-package/implementation.patch": "1ca1806e5657edfce6b2864b0d2a55fc94f7d4b27a8a2da543d436e2d31f39fb",
+    "runtime/recovery-package/manifest.json": "55e34e6fd354a5a51be061368581ba9d656e8f0cbcd3038835d186d05513e8b8",
+    "runtime/recovery.json": "c94acf98ccdb04fe2596fccbc3da10d5affb5d009d49d739f20810ff7bef66ec",
+    "runtime/result.json": "8cb02dad30ca8c021119f12cacc4353cdb2cdb1f15460cccd30e8669ef56f3b0",
+    "runtime/run-context.json": "62325f7e8ed5e6b902607a71aa60df8e45f83f5995db8f87b107a5e8610fb61d",
+    "runtime/scope-path.js": "d11236b8b1ec97a85f518dc562716573dc50414509071e4e875ed9589ebd6620",
+    "runtime/settings.json": "79ce827cfe1b577235a440271ebd5c93af5ed812a7a4561f253c7f0a031f04de",
+    "runtime-copy.json": "49804765a6d15c572e5c913d7692ed909bd2aace02ecb68f89e0d6acb6a2a636",
+    "runtime-result.json": "8cb02dad30ca8c021119f12cacc4353cdb2cdb1f15460cccd30e8669ef56f3b0",
+    "status.json": "7859bf2a2fa6bbb4b709f20323c7a337dec5a89fa1d1d8eb8b60aff3552654a7"
+  },
+  "request_id": "be4f7b4b-77d0-4d43-a49f-d3d9f999e2cf",
+  "claude_session": "0b55ef38-9c5e-40ed-8e3a-aefe01767e34",
+  "runtime_result": {
+    "schema_version": "kodjo.protocol.v2.local-result.0.6.11",
+    "run_id": "github-36881458781-1",
+    "request_id": "be4f7b4b-77d0-4d43-a49f-d3d9f999e2cf",
+    "session_id": "0b55ef38-9c5e-40ed-8e3a-aefe01767e34",
+    "claude_exit_code": 0,
+    "claude_error": null,
+    "claude_failure": null,
+    "claude_started_at": "2026-10-01T15:18:15.504Z",
+    "claude_finished_at": "2026-10-01T15:20:58.702Z",
+    "claude_duration_ms": 163198,
+    "timed_out": false,
+    "source_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+    "package_lock_sha256": "8b1eeb9718adc2a4dfe45612eacfa91c971518916a031224a4a4a72a53e4b42a",
+    "modified_files": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "recovered_files": [],
+    "recovery_files": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "recovery_scope_paths": [],
+    "mutation_scope_allow": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "agent_mutation_files": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "integrity_status": "INTACT",
+    "recovery_package": {
+      "schema_version": "kodjo.protocol.v2.recovery-package.0.6.16",
+      "slice_id": "VNEXT-12-QUALIF",
+      "session_id": "0b55ef38-9c5e-40ed-8e3a-aefe01767e34",
+      "source_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+      "baseline_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+      "run_id": "github-36881458781-1",
+      "github_run_id": "36881458781",
+      "request_id": "be4f7b4b-77d0-4d43-a49f-d3d9f999e2cf",
+      "integrity_status": "INTACT",
+      "scope_allow": [
+        "scripts/kodjo/fixtures/vnext12/core.js",
+        "tests/fixtures/vnext12/core.test.js"
+      ],
+      "recovery_paths": [],
+      "paths": [
+        "scripts/kodjo/fixtures/vnext12/core.js",
+        "tests/fixtures/vnext12/core.test.js"
+      ],
+      "patch_sha256": "1ca1806e5657edfce6b2864b0d2a55fc94f7d4b27a8a2da543d436e2d31f39fb",
+      "patch_bytes": 849,
+      "created_at": "2026-10-01T15:20:58.996Z"
+    },
+    "recovery_source_head_migration": null,
+    "legacy_recovery_bootstrap_consumed": false,
+    "out_of_scope_files": [],
+    "post_check_files": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "post_check_drift": [],
+    "checks": [
+      {
+        "check": "jest",
+        "command": "npm test --silent -- --cacheDirectory \"C:\\\\actions-runner\\\\_work\\\\_temp\\\\kodjo-vnext12-revision-36881458781-1\\\\check-cache\\\\jest\"",
+        "status": "PASS",
+        "exit_code": 0,
+        "started_at": "2026-10-01T15:20:58.998Z",
+        "finished_at": "2026-10-01T15:21:29.489Z",
+        "duration_ms": 30491,
+        "reason": null,
+        "passed_tests": 1257,
+        "failed_tests": 0,
+        "total_tests": 1257,
+        "log_excerpt": "3)\n      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13224:22)\n      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13068:41)\n      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13049:11)\n      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12181:11)\n      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2908:7)\n      at flushActQueue (node_modules/react/cjs/react.development.js:590:34)\n      at Object.<anonymous>.process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:884:10)\n      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)\n      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)\n      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)\n      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)\n      at Object.<anonymous> (app/__tests__/rootLayoutGesture.test.tsx:71:11)\n\nPASS src/features/sessions/__tests__/ColorPalette.test.tsx\nPASS src/features/activities/__tests__/ActivityCatalogueList.test.tsx\nPASS src/shared/ui/__tests__/DisclosureControl.test.tsx\nPASS src/features/activities/__tests__/useActivityCatalogue.test.ts\nPASS src/shared/ui/__tests__/ScreenShell.test.tsx\nPASS src/features/sessions/__tests__/compositionPresentation.test.ts\nPASS src/features/activities/__tests__/ActivityCard.test.tsx\nPASS src/features/sessions/__tests__/ExerciseExitConfirmModal.test.tsx\nPASS src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts\nPASS src/features/sessions/__tests__/AbandonCreationModal.test.tsx\nPASS src/features/activities/__tests__/CatalogueCreateOptions.test.tsx\nPASS src/shared/ui/__tests__/TransientNotification.test.tsx\nPASS src/features/sessions/__tests__/SessionService.test.ts\nPASS src/domain/sessions/__tests__/validation.test.ts\nPASS src/domain/sessions/__tests__/composition.test.ts\nPASS src/features/sessions/__tests__/useSessionCatalogue.test.ts\nPASS src/shared/ui/__tests__/SegmentedControl.test.tsx\nPASS src/features/sessions/__tests__/SideModeControl.test.tsx\nPASS src/features/sessions/__tests__/BodyZoneSelector.test.tsx\nPASS src/domain/sessions/__tests__/SessionDraft.test.ts\nPASS src/features/sessions/__tests__/useCompositionExitGuard.test.ts\nPASS src/domain/sessions/__tests__/calculations.test.ts\nPASS src/features/sessions/__tests__/WheelPickerOverlay.test.tsx\nPASS src/features/sessions/__tests__/SessionDraftContext.test.tsx\nPASS src/features/activities/__tests__/ActivityDefinitionService.test.ts\nPASS src/infrastructure/database/__tests__/initializeDatabase.test.ts\nPASS src/shared/ui/__tests__/RootErrorBoundary.test.tsx\nPASS src/features/sessions/__tests__/SessionServiceContext.test.tsx\nPASS src/shared/i18n/index.test.ts\nPASS src/shared/ui/__tests__/visualAssets.test.ts\nPASS src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts\nPASS src/shared/ui/__tests__/RootErrorFallback.test.tsx\nPASS src/domain/sessions/__tests__/sideMode.test.ts\nPASS src/features/sessions/__tests__/wheelPickerMath.test.ts\nPASS src/features/sessions/__tests__/compositionGesture.test.ts\nPASS app/__tests__/creationLayout.test.tsx\nPASS src/domain/activities/__tests__/ActivityDefinition.test.ts\nPASS tests/fixtures/vnext12/core.test.js\nPASS src/domain/categories/__tests__/matching.test.ts\nPASS src/features/reference-data/__tests__/bodyZones.test.ts\nPASS src/features/sessions/__tests__/formatSessionSummary.test.ts\nPASS src/domain/categories/__tests__/validation.test.ts\nPASS src/shared/ui/__tests__/navigationLayout.test.ts\nPASS tests/kodjo-prod-qualif/preflight.test.ts\n\nTest Suites: 64 passed, 64 total\nTests:       1257 passed, 1257 total\nSnapshots:   0 total\nTime:        29.686 s, estimated 49 s\nRan all test suites.\n",
+        "rerun_in_this_attempt": true
+      },
+      {
+        "check": "typescript",
+        "command": "npx --no-install tsc --noEmit",
+        "status": "PASS",
+        "exit_code": 0,
+        "started_at": "2026-10-01T15:21:29.490Z",
+        "finished_at": "2026-10-01T15:21:32.750Z",
+        "duration_ms": 3260,
+        "reason": null,
+        "passed_tests": null,
+        "failed_tests": null,
+        "total_tests": null,
+        "log_excerpt": "",
+        "rerun_in_this_attempt": true
+      },
+      {
+        "check": "lint",
+        "command": "npm run lint --silent -- --no-cache",
+        "status": "PASS",
+        "exit_code": 0,
+        "started_at": "2026-10-01T15:21:32.751Z",
+        "finished_at": "2026-10-01T15:21:45.845Z",
+        "duration_ms": 13094,
+        "reason": null,
+        "passed_tests": null,
+        "failed_tests": null,
+        "total_tests": null,
+        "log_excerpt": "",
+        "rerun_in_this_attempt": true
+      }
+    ],
+    "limits_effective": {
+      "max_ai_calls": 1,
+      "max_duration_seconds": 3600,
+      "max_prompt_bytes": 32768,
+      "max_total_prompt_bytes": 32768,
+      "max_rollovers": 0
+    },
+    "turn_limit_effective": {
+      "source": "CLAUDE_SUBSCRIPTION",
+      "protocol_max_turns": null,
+      "cli_argument_emitted": false
+    },
+    "claude_invoked": true,
+    "status": "IMPLEMENTED_AND_VERIFIED",
+    "publishable_paths": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "publishable_pathspec_file": null
+  },
+  "functional_proof": {
+    "observed_value": 2,
+    "targeted_jest_exit_code": 0,
+    "preserve_before_sha256": "db387ac0aab607cda76e230c38f08a343d1d3d6281c2062b48bf023f06331f56",
+    "preserve_after_sha256": "db387ac0aab607cda76e230c38f08a343d1d3d6281c2062b48bf023f06331f56",
+    "modified_files": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ]
+  },
+  "negative_probes": {
+    "fault_injection": true,
+    "production_runner": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_vnext12-approved\\36881458781\\scripts\\kodjo\\run-local-claude.js",
+    "missing_authority": {
+      "refused": true,
+      "exit_code": 1,
+      "diagnostic": "VNEXT_LOCAL_QUEUE_AUTHORITY_REQUIRED"
+    },
+    "missing_review_proof": {
+      "refused": true,
+      "exit_code": 1,
+      "diagnostic": "VNEXT_QUEUE_ADMISSION_REQUEST_MISMATCH"
+    },
+    "runtime_state_created": false,
+    "claude_invoked": false
+  },
+  "admission_before_install": {
+    "admission": {
+      "schema_version": "kodjo.vnext.queue-admission.v1",
+      "status": "AUTHORIZED",
+      "execution_request_hash": "466f1680417cd949a18ba0aa3d3ba7844ac3e9b40a99cdabaeae7e4517ce3e85",
+      "projection_hash": "fd45befcea7907cae017e4b1df6fd846506663560ee1807c7b0633f289d31fad",
+      "runtime_snapshot_hash": "a988af2825f9e23a8902b5ee02faf9081e5f80cfdeb9ca4f7717ede428f8e4b6",
+      "protocol_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+      "authorization": {
+        "slice_id": "VNEXT-12-QUALIF",
+        "plan_blob_oid": "9cc6f63b3bf4ba2855488bb0c365c06a91103d0d",
+        "gate_ref": "issue_comment:5932536175",
+        "review_blob_oid": "691b29b06b9cb3937714e11566afa9a10192e643",
+        "recovery_migration_blob_oid": null,
+        "evidence_kinds": {
+          "authorized_plan": "ARTIFACT_HASH",
+          "independent_review": "ARTIFACT_HASH",
+          "user_gate": "ORGANISATIONAL",
+          "materialized_recovery": null
+        },
+        "notes": [
+          "REVIEW_ACTOR_INDEPENDENCE_NOT_GUARANTEED",
+          "REVIEW_PLAN_REVISION_NOT_DECLARED",
+          "PLAN_IMPACT_LEGACY_NOT_ENFORCED"
+        ],
+        "plan_impact_sha256": null
+      },
+      "contract_hash": "1a8095b9653b3a44a1dd2795b63110d27d70547537a6fb49ffdc1b4a47c23574"
+    },
+    "approvalTarget": {
+      "schema_version": "kodjo.vnext.approval-target.v2",
+      "approval_target_id": "APRT-476c769c79c0cd505b5759b8",
+      "action_expected": "APPROVE_EXACT_EXECUTION",
+      "execution_fingerprint": "547ad34b7b740ae9f07039b3529bad2363eb522aefe9ce4e76a90912038bbd76",
+      "execution_core": {
+        "slice_id": "VNEXT-12-QUALIF",
+        "issue_id": "github_issue:MyUncried/Application-Routine#269",
+        "baseline_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+        "product_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+        "application_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+        "protocol_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+        "execution_context": {
+          "mode": "LOCAL",
+          "writer_id": "CLAUDE:kodjo-local-vnext12"
+        },
+        "native_primitive_decisions": [],
+        "planning_mode": "REVISION",
+        "planning_envelope_hash": "0f5504bad8a2dcaaf64462c3d5177fa45311e36255e1cb7ab8ef162e3b86e09f",
+        "direct_import_scan_hash": "46b3ffab94a41e838f853c72744835de32fa032e1fb48621012a3ed4a53f6d02",
+        "plan_contract_hash": "cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484",
+        "review_context_hash": "e2c0a67f06f40179e63b089d2603a8079675d8b589c996de40ddd252690a1055",
+        "review_report_hash": "151c63028c659db819c70407263e0bf8708a89beb099bb488afcce155c972f4e",
+        "ui_atomicity_hash": null,
+        "operation_kind": "IMPLEMENT",
+        "write_scope": [
+          {
+            "candidate_id": "CAND-5615de1e896030d87fa3d20a",
+            "path": "scripts/kodjo/fixtures/vnext12/core.js",
+            "change_kind": "MODIFY"
+          },
+          {
+            "candidate_id": "CAND-62bbd5ecc4fc22dc7b42157f",
+            "path": "tests/fixtures/vnext12/core.test.js",
+            "change_kind": "MODIFY"
+          }
+        ],
+        "preserve_scope": [
+          {
+            "candidate_id": "CAND-0636dfbdbb718bf31dd64265",
+            "path": "scripts/kodjo/fixtures/vnext12/keep.js"
+          }
+        ],
+        "forbidden_policy": "ALL_OUTSIDE_WRITE_SCOPE",
+        "checks": [
+          "jest",
+          "typescript",
+          "lint"
+        ]
+      },
+      "summary": {
+        "write_scope_count": 2,
+        "preserve_scope_count": 1,
+        "check_count": 3
+      },
+      "contract_hash": "c670199c72c128ee0ef2e397aceb7975e268c69e82a29256889d23898f3572e6"
+    },
+    "approvalRecord": {
+      "schema_version": "kodjo.vnext.approval-record.v2",
+      "approval_record_id": "APRV-ef19edbfc19ac7c6ea3a20a5",
+      "approval_target_hash": "c670199c72c128ee0ef2e397aceb7975e268c69e82a29256889d23898f3572e6",
+      "execution_fingerprint": "547ad34b7b740ae9f07039b3529bad2363eb522aefe9ce4e76a90912038bbd76",
+      "decision": "APPROVED",
+      "actor_id": "MyUncried",
+      "evidence_kind": "VERIFIED_USER_ACTION",
+      "transport": "GITHUB_REACTION",
+      "evidence_ref": "issue_comment:5932536175#reaction:429910266",
+      "observed_at": "2026-10-01T15:11:45.409Z",
+      "native_exception_approvals": [],
+      "contract_hash": "b1e27f183b11087d7eb156c6d6549d61fb7f3a0201dee1372ef9c3485fc93793"
+    },
+    "executionRequest": {
+      "schema_version": "kodjo.vnext.execution-request.v2",
+      "execution_request_id": "EXEC-b1b5e1be79ede6fd7278dcb9",
+      "approval_target_hash": "c670199c72c128ee0ef2e397aceb7975e268c69e82a29256889d23898f3572e6",
+      "approval_record_hash": "b1e27f183b11087d7eb156c6d6549d61fb7f3a0201dee1372ef9c3485fc93793",
+      "execution_fingerprint": "547ad34b7b740ae9f07039b3529bad2363eb522aefe9ce4e76a90912038bbd76",
+      "slice_id": "VNEXT-12-QUALIF",
+      "issue_id": "github_issue:MyUncried/Application-Routine#269",
+      "baseline_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+      "product_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+      "application_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+      "protocol_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+      "execution_context": {
+        "mode": "LOCAL",
+        "writer_id": "CLAUDE:kodjo-local-vnext12"
+      },
+      "native_primitive_decisions": [],
+      "planning_mode": "REVISION",
+      "planning_envelope_hash": "0f5504bad8a2dcaaf64462c3d5177fa45311e36255e1cb7ab8ef162e3b86e09f",
+      "direct_import_scan_hash": "46b3ffab94a41e838f853c72744835de32fa032e1fb48621012a3ed4a53f6d02",
+      "plan_contract_hash": "cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484",
+      "review_context_hash": "e2c0a67f06f40179e63b089d2603a8079675d8b589c996de40ddd252690a1055",
+      "review_report_hash": "151c63028c659db819c70407263e0bf8708a89beb099bb488afcce155c972f4e",
+      "ui_atomicity_hash": null,
+      "operation_kind": "IMPLEMENT",
+      "write_scope": [
+        {
+          "candidate_id": "CAND-5615de1e896030d87fa3d20a",
+          "path": "scripts/kodjo/fixtures/vnext12/core.js",
+          "change_kind": "MODIFY"
+        },
+        {
+          "candidate_id": "CAND-62bbd5ecc4fc22dc7b42157f",
+          "path": "tests/fixtures/vnext12/core.test.js",
+          "change_kind": "MODIFY"
+        }
+      ],
+      "preserve_scope": [
+        {
+          "candidate_id": "CAND-0636dfbdbb718bf31dd64265",
+          "path": "scripts/kodjo/fixtures/vnext12/keep.js"
+        }
+      ],
+      "forbidden_policy": "ALL_OUTSIDE_WRITE_SCOPE",
+      "checks": [
+        "jest",
+        "typescript",
+        "lint"
+      ],
+      "contract_hash": "466f1680417cd949a18ba0aa3d3ba7844ac3e9b40a99cdabaeae7e4517ce3e85"
+    },
+    "projection": {
+      "schema_version": "kodjo.vnext.legacy-queue-projection.v1",
+      "execution_request_hash": "466f1680417cd949a18ba0aa3d3ba7844ac3e9b40a99cdabaeae7e4517ce3e85",
+      "execution_fingerprint": "547ad34b7b740ae9f07039b3529bad2363eb522aefe9ce4e76a90912038bbd76",
+      "projection_mode": "LEGACY_TRANSPORT_ONLY",
+      "canonical_authority": "VNEXT_EXECUTION_REQUEST",
+      "compatibility_files": {
+        "plan": {
+          "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/technical-plan.md",
+          "blob_oid": "9cc6f63b3bf4ba2855488bb0c365c06a91103d0d",
+          "content_sha256": "454b1138e4c74f9f92079b6a2cc5fd97f0eae16712fe98a7051617819b2b92f9",
+          "content": "# KODJO VNext — Projection transport du plan\n\napplication_head=f7350762ce44a593a9cc5c85e2f22d46c4f8ae74\nplan_contract_hash=cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484\n\n# KODJO VNext — Plan canonique\n\n- schema: `kodjo.vnext.plan-contract.v1`\n- contract_hash: `cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484`\n- requirements: 1\n- write_scope: 2\n\n## Boundaries\n\n- forbidden_policy: `ALL_OUTSIDE_WRITE_SCOPE`\n- CHANGE `scripts/kodjo/fixtures/vnext12/core.js` (MODIFY)\n- CHANGE `tests/fixtures/vnext12/core.test.js` (MODIFY)\n- PRESERVE `scripts/kodjo/fixtures/vnext12/keep.js`\n\n## REQ-a99b50399ba259bf28ec11b5\n\n- disposition: `CHANGE`\n- kind: `FUNCTIONAL`\n- rationale: INITIAL opérationnel nominal, deux fichiers, une exigence observable.\n- impacts:\n  - `IMP-43c15e27c8e32e1f2a1a13ca`\n  - `IMP-e889445a28c8e797456bde91`\n- changes:\n  - `tests/fixtures/vnext12/core.test.js` — MODIFY — Conserver le test Jest et son import direct ; remplacer son attente 1 par 2 ; exécuter ce test puis les checks contractuels.\n  - `scripts/kodjo/fixtures/vnext12/core.js` — MODIFY — Conserver l’export CommonJS value() ; retourner exactement le nombre 2, sans autre comportement ni dépendance.\n- tests:\n  - ADAPT — `tests/fixtures/vnext12/core.test.js` — Le test Jest observe value() === 2.\n- proofs:\n  - FUNCTIONAL_TEST — Le test Jest passe avec la valeur 2.\n- constraints:\n  - Modifier uniquement les deux fichiers du write_scope.\n  - Préserver keep.js octet pour octet.\n  - Ne pas créer de dépendance ; aucun composant UI ni exception native.\n  - Ne pas publier, fusionner, activer VNext ni intervenir sur PRE-1.\n- residual_risks:\n  - Tranche synthétique jetable : ne certifie aucun comportement produit réel.\n\n<KODJO_VNEXT_PLAN_CONTRACT_JSON>\n{\n  \"schema_version\": \"kodjo.vnext.plan-contract.v1\",\n  \"requirement_registry_hash\": \"ffbb52aed96c13901d9cad9c6632e0ab64ac56ea18b087075d324cae75d0e3f9\",\n  \"impact_graph_hash\": \"ff2496fe28711963e5975d8e60372d433a93d2ee1ddf6a826cefe9317f506902\",\n  \"candidate_manifest_hash\": \"662da62f8524be5e72df360358da7e173e9c4fc8412eb296e9b190f1e2960c1f\",\n  \"requirement_count\": 1,\n  \"plan_item_count\": 1,\n  \"plan_items\": [\n    {\n      \"plan_item_id\": \"PLAN-f41dd003abe7d5f542bddad4\",\n      \"requirement_id\": \"REQ-a99b50399ba259bf28ec11b5\",\n      \"requirement_kind\": \"FUNCTIONAL\",\n      \"disposition\": \"CHANGE\",\n      \"impact_ids\": [\n        \"IMP-43c15e27c8e32e1f2a1a13ca\",\n        \"IMP-e889445a28c8e797456bde91\"\n      ],\n      \"change_items\": [\n        {\n          \"change_id\": \"CHG-67f6e17c41561aae92a0e861\",\n          \"impact_id\": \"IMP-43c15e27c8e32e1f2a1a13ca\",\n          \"candidate_id\": \"CAND-62bbd5ecc4fc22dc7b42157f\",\n          \"path\": \"tests/fixtures/vnext12/core.test.js\",\n          \"change_kind\": \"MODIFY\",\n          \"intent\": \"Conserver le test Jest et son import direct ; remplacer son attente 1 par 2 ; exécuter ce test puis les checks contractuels.\"\n        },\n        {\n          \"change_id\": \"CHG-79bdc5d448de43c2d06e4998\",\n          \"impact_id\": \"IMP-e889445a28c8e797456bde91\",\n          \"candidate_id\": \"CAND-5615de1e896030d87fa3d20a\",\n          \"path\": \"scripts/kodjo/fixtures/vnext12/core.js\",\n          \"change_kind\": \"MODIFY\",\n          \"intent\": \"Conserver l’export CommonJS value() ; retourner exactement le nombre 2, sans autre comportement ni dépendance.\"\n        }\n      ],\n      \"test_obligations\": [\n        {\n          \"test_id\": \"TEST-0ff46cdd833a779fc78d1567\",\n          \"target_impact_id\": \"IMP-43c15e27c8e32e1f2a1a13ca\",\n          \"target_candidate_id\": \"CAND-62bbd5ecc4fc22dc7b42157f\",\n          \"path\": \"tests/fixtures/vnext12/core.test.js\",\n          \"action\": \"ADAPT\",\n          \"covered_change_impact_ids\": [\n            \"IMP-43c15e27c8e32e1f2a1a13ca\",\n            \"IMP-e889445a28c8e797456bde91\"\n          ],\n          \"expected\": \"Le test Jest observe value() === 2.\",\n          \"justification\": \"Vérification directe de la fonction réellement modifiée.\"\n        }\n      ],\n      \"proof_obligations\": [\n        {\n          \"proof_id\": \"PROOF-b21210d3f8791b4d88a93769\",\n          \"proof_type\": \"FUNCTIONAL_TEST\",\n          \"target_test_impact_id\": \"IMP-43c15e27c8e32e1f2a1a13ca\",\n          \"covered_change_impact_ids\": [\n            \"IMP-43c15e27c8e32e1f2a1a13ca\",\n            \"IMP-e889445a28c8e797456bde91\"\n          ],\n          \"expected\": \"Le test Jest passe avec la valeur 2.\",\n          \"justification\": \"Résultat exécuté ; pas de statut déclaré sans observation.\"\n        }\n      ],\n      \"implementation_constraints\": [\n        \"Modifier uniquement les deux fichiers du write_scope.\",\n        \"Préserver keep.js octet pour octet.\",\n        \"Ne pas créer de dépendance ; aucun composant UI ni exception native.\",\n        \"Ne pas publier, fusionner, activer VNext ni intervenir sur PRE-1.\"\n      ],\n      \"residual_risks\": [\n        \"Tranche synthétique jetable : ne certifie aucun comportement produit réel.\"\n      ],\n      \"rationale\": \"INITIAL opérationnel nominal, deux fichiers, une exigence observable.\"\n    }\n  ],\n  \"boundaries\": {\n    \"write_scope\": [\n      {\n        \"candidate_id\": \"CAND-5615de1e896030d87fa3d20a\",\n        \"path\": \"scripts/kodjo/fixtures/vnext12/core.js\",\n        \"change_kind\": \"MODIFY\"\n      },\n      {\n        \"candidate_id\": \"CAND-62bbd5ecc4fc22dc7b42157f\",\n        \"path\": \"tests/fixtures/vnext12/core.test.js\",\n        \"change_kind\": \"MODIFY\"\n      }\n    ],\n    \"preserve_scope\": [\n      {\n        \"candidate_id\": \"CAND-0636dfbdbb718bf31dd64265\",\n        \"path\": \"scripts/kodjo/fixtures/vnext12/keep.js\"\n      }\n    ],\n    \"forbidden_policy\": \"ALL_OUTSIDE_WRITE_SCOPE\"\n  },\n  \"contract_hash\": \"cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484\"\n}\n</KODJO_VNEXT_PLAN_CONTRACT_JSON>\n"
+        },
+        "review": {
+          "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/independent-review.md",
+          "blob_oid": "691b29b06b9cb3937714e11566afa9a10192e643",
+          "content_sha256": "e9519ea0bc8593c3989de4b42add67fbed91acba9e582ac4932decd7908fbfad",
+          "content": "# KODJO VNext — Projection transport de la revue\n\nPlan revu : technical-plan.md\nreview_report_hash=151c63028c659db819c70407263e0bf8708a89beb099bb488afcce155c972f4e\nplan_contract_hash=cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484\n\nVerdict: APPROVED\n"
+        },
+        "mission": {
+          "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/implementation-mission.md",
+          "blob_oid": "69cb7a10f15f57f26b1aa176d6cef8ed8a5bfed4",
+          "content_sha256": "0b5980480a4b9919f0e35942b4fcf50d3ee820b006383d997f125054899f3287",
+          "content": "# Mission d’implémentation — VNEXT-12-QUALIF\n\nplan_contract_hash=cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484\napplication_head=f7350762ce44a593a9cc5c85e2f22d46c4f8ae74\noperation_kind=IMPLEMENT\nexecution_context={\"mode\":\"LOCAL\",\"writer_id\":\"CLAUDE:kodjo-local-vnext12\"}\nchecks=jest,typescript,lint\n\n## Autorisation\n\nImplémenter exclusivement le périmètre autorisé par l’ExecutionRequest VNext.\nAucun élargissement de scope n’est autorisé.\nLe scope opposable de transport est exactement :\n- scripts/kodjo/fixtures/vnext12/core.js\n- tests/fixtures/vnext12/core.test.js\n\nTout besoin hors scope doit arrêter l’exécution avant modification.\nToute substitution native sans autorisation explicite doit arrêter en NATIVE_PRIMITIVE_EXCEPTION_REQUIRED avant code.\n\n## Plan exact approuvé à exécuter\n\nLire le plan opposable .github/orchestration/vnext12/VNEXT-12-QUALIF/revision/technical-plan.md avant toute modification. Sa projection exacte suit.\nLe plan impose les intentions, tests, preuves et préservations. Arrêter en CLARIFICATION_REQUIRED si une exigence est ambiguë.\n# KODJO VNext — Plan canonique\n\n- schema: `kodjo.vnext.plan-contract.v1`\n- contract_hash: `cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484`\n- requirements: 1\n- write_scope: 2\n\n## Boundaries\n\n- forbidden_policy: `ALL_OUTSIDE_WRITE_SCOPE`\n- CHANGE `scripts/kodjo/fixtures/vnext12/core.js` (MODIFY)\n- CHANGE `tests/fixtures/vnext12/core.test.js` (MODIFY)\n- PRESERVE `scripts/kodjo/fixtures/vnext12/keep.js`\n\n## REQ-a99b50399ba259bf28ec11b5\n\n- disposition: `CHANGE`\n- kind: `FUNCTIONAL`\n- rationale: INITIAL opérationnel nominal, deux fichiers, une exigence observable.\n- impacts:\n  - `IMP-43c15e27c8e32e1f2a1a13ca`\n  - `IMP-e889445a28c8e797456bde91`\n- changes:\n  - `tests/fixtures/vnext12/core.test.js` — MODIFY — Conserver le test Jest et son import direct ; remplacer son attente 1 par 2 ; exécuter ce test puis les checks contractuels.\n  - `scripts/kodjo/fixtures/vnext12/core.js` — MODIFY — Conserver l’export CommonJS value() ; retourner exactement le nombre 2, sans autre comportement ni dépendance.\n- tests:\n  - ADAPT — `tests/fixtures/vnext12/core.test.js` — Le test Jest observe value() === 2.\n- proofs:\n  - FUNCTIONAL_TEST — Le test Jest passe avec la valeur 2.\n- constraints:\n  - Modifier uniquement les deux fichiers du write_scope.\n  - Préserver keep.js octet pour octet.\n  - Ne pas créer de dépendance ; aucun composant UI ni exception native.\n  - Ne pas publier, fusionner, activer VNext ni intervenir sur PRE-1.\n- residual_risks:\n  - Tranche synthétique jetable : ne certifie aucun comportement produit réel.\n\n<KODJO_VNEXT_PLAN_CONTRACT_JSON>\n{\n  \"schema_version\": \"kodjo.vnext.plan-contract.v1\",\n  \"requirement_registry_hash\": \"ffbb52aed96c13901d9cad9c6632e0ab64ac56ea18b087075d324cae75d0e3f9\",\n  \"impact_graph_hash\": \"ff2496fe28711963e5975d8e60372d433a93d2ee1ddf6a826cefe9317f506902\",\n  \"candidate_manifest_hash\": \"662da62f8524be5e72df360358da7e173e9c4fc8412eb296e9b190f1e2960c1f\",\n  \"requirement_count\": 1,\n  \"plan_item_count\": 1,\n  \"plan_items\": [\n    {\n      \"plan_item_id\": \"PLAN-f41dd003abe7d5f542bddad4\",\n      \"requirement_id\": \"REQ-a99b50399ba259bf28ec11b5\",\n      \"requirement_kind\": \"FUNCTIONAL\",\n      \"disposition\": \"CHANGE\",\n      \"impact_ids\": [\n        \"IMP-43c15e27c8e32e1f2a1a13ca\",\n        \"IMP-e889445a28c8e797456bde91\"\n      ],\n      \"change_items\": [\n        {\n          \"change_id\": \"CHG-67f6e17c41561aae92a0e861\",\n          \"impact_id\": \"IMP-43c15e27c8e32e1f2a1a13ca\",\n          \"candidate_id\": \"CAND-62bbd5ecc4fc22dc7b42157f\",\n          \"path\": \"tests/fixtures/vnext12/core.test.js\",\n          \"change_kind\": \"MODIFY\",\n          \"intent\": \"Conserver le test Jest et son import direct ; remplacer son attente 1 par 2 ; exécuter ce test puis les checks contractuels.\"\n        },\n        {\n          \"change_id\": \"CHG-79bdc5d448de43c2d06e4998\",\n          \"impact_id\": \"IMP-e889445a28c8e797456bde91\",\n          \"candidate_id\": \"CAND-5615de1e896030d87fa3d20a\",\n          \"path\": \"scripts/kodjo/fixtures/vnext12/core.js\",\n          \"change_kind\": \"MODIFY\",\n          \"intent\": \"Conserver l’export CommonJS value() ; retourner exactement le nombre 2, sans autre comportement ni dépendance.\"\n        }\n      ],\n      \"test_obligations\": [\n        {\n          \"test_id\": \"TEST-0ff46cdd833a779fc78d1567\",\n          \"target_impact_id\": \"IMP-43c15e27c8e32e1f2a1a13ca\",\n          \"target_candidate_id\": \"CAND-62bbd5ecc4fc22dc7b42157f\",\n          \"path\": \"tests/fixtures/vnext12/core.test.js\",\n          \"action\": \"ADAPT\",\n          \"covered_change_impact_ids\": [\n            \"IMP-43c15e27c8e32e1f2a1a13ca\",\n            \"IMP-e889445a28c8e797456bde91\"\n          ],\n          \"expected\": \"Le test Jest observe value() === 2.\",\n          \"justification\": \"Vérification directe de la fonction réellement modifiée.\"\n        }\n      ],\n      \"proof_obligations\": [\n        {\n          \"proof_id\": \"PROOF-b21210d3f8791b4d88a93769\",\n          \"proof_type\": \"FUNCTIONAL_TEST\",\n          \"target_test_impact_id\": \"IMP-43c15e27c8e32e1f2a1a13ca\",\n          \"covered_change_impact_ids\": [\n            \"IMP-43c15e27c8e32e1f2a1a13ca\",\n            \"IMP-e889445a28c8e797456bde91\"\n          ],\n          \"expected\": \"Le test Jest passe avec la valeur 2.\",\n          \"justification\": \"Résultat exécuté ; pas de statut déclaré sans observation.\"\n        }\n      ],\n      \"implementation_constraints\": [\n        \"Modifier uniquement les deux fichiers du write_scope.\",\n        \"Préserver keep.js octet pour octet.\",\n        \"Ne pas créer de dépendance ; aucun composant UI ni exception native.\",\n        \"Ne pas publier, fusionner, activer VNext ni intervenir sur PRE-1.\"\n      ],\n      \"residual_risks\": [\n        \"Tranche synthétique jetable : ne certifie aucun comportement produit réel.\"\n      ],\n      \"rationale\": \"INITIAL opérationnel nominal, deux fichiers, une exigence observable.\"\n    }\n  ],\n  \"boundaries\": {\n    \"write_scope\": [\n      {\n        \"candidate_id\": \"CAND-5615de1e896030d87fa3d20a\",\n        \"path\": \"scripts/kodjo/fixtures/vnext12/core.js\",\n        \"change_kind\": \"MODIFY\"\n      },\n      {\n        \"candidate_id\": \"CAND-62bbd5ecc4fc22dc7b42157f\",\n        \"path\": \"tests/fixtures/vnext12/core.test.js\",\n        \"change_kind\": \"MODIFY\"\n      }\n    ],\n    \"preserve_scope\": [\n      {\n        \"candidate_id\": \"CAND-0636dfbdbb718bf31dd64265\",\n        \"path\": \"scripts/kodjo/fixtures/vnext12/keep.js\"\n      }\n    ],\n    \"forbidden_policy\": \"ALL_OUTSIDE_WRITE_SCOPE\"\n  },\n  \"contract_hash\": \"cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484\"\n}\n</KODJO_VNEXT_PLAN_CONTRACT_JSON>\n"
+        }
+      },
+      "legacy_queue_request": {
+        "schema_version": "kodjo.protocol.v2.lean-request.0.6.13",
+        "slice_id": "VNEXT-12-QUALIF",
+        "issue_number": 269,
+        "source_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+        "baseline_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+        "slice_bootstrap_file": ".github/orchestration/v2-slices/VNEXT-12-QUALIF/slice-bootstrap.json",
+        "slice_bootstrap_sha256": "3c94a663a353ce537af6848b14599cbe156b563ca6d2e483ecdafdb402d55d29",
+        "mode": "INITIAL",
+        "operation_kind": "IMPLEMENT",
+        "session_id": null,
+        "prompt_file": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/implementation-mission.md",
+        "scope_allow": [
+          "scripts/kodjo/fixtures/vnext12/core.js",
+          "tests/fixtures/vnext12/core.test.js"
+        ],
+        "checks": [
+          "jest",
+          "typescript",
+          "lint"
+        ],
+        "request_id": "be4f7b4b-77d0-4d43-a49f-d3d9f999e2cf",
+        "created_at": "2026-10-01T13:34:32.574Z",
+        "authorized_plan": {
+          "plan_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/technical-plan.md",
+          "plan_blob_oid": "9cc6f63b3bf4ba2855488bb0c365c06a91103d0d",
+          "approved_at_commit": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+          "evidence_kind": "ARTIFACT_HASH"
+        },
+        "independent_review": {
+          "review_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/independent-review.md",
+          "review_blob_oid": "691b29b06b9cb3937714e11566afa9a10192e643",
+          "reviewed_plan_blob_oid": "9cc6f63b3bf4ba2855488bb0c365c06a91103d0d",
+          "verdict": "APPROVED",
+          "evidence_kind": "ARTIFACT_HASH"
+        },
+        "user_gate": {
+          "gate_ref": "issue_comment:5932536175",
+          "gated_reference": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+          "decision": "APPROVED",
+          "user_login": "MyUncried",
+          "evidence_kind": "ORGANISATIONAL"
+        }
+      },
+      "projection_guard": {
+        "scope_sha256": "52da73415b1d1db1033216b1c6b223ac6bc61d6d87e4b63e428cb82a73908620",
+        "checks_sha256": "3dee7271fcb8d82909462a7570e2b7ca0eab0fa182943923d7a3a9803fbcba00",
+        "application_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+        "protocol_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+        "approval_record_hash": "b1e27f183b11087d7eb156c6d6549d61fb7f3a0201dee1372ef9c3485fc93793"
+      },
+      "contract_hash": "fd45befcea7907cae017e4b1df6fd846506663560ee1807c7b0633f289d31fad"
+    }
+  },
+  "admission_before_runtime": {
+    "admission": {
+      "schema_version": "kodjo.vnext.queue-admission.v1",
+      "status": "AUTHORIZED",
+      "execution_request_hash": "8a55c8663932c647b3f00c6856a2e83b3a1c3b3680c64216a77b4bf2016408d7",
+      "projection_hash": "e085c3bad25fad15245101a59b19f424b29ad7abe5f2bd4e29b0ba426c5bc0ae",
+      "runtime_snapshot_hash": "140eb6d916bcaac48e8d6289411f29018a2f8441c6d4ebd5b6bcacc3cdb547e8",
+      "protocol_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+      "authorization": {
+        "slice_id": "VNEXT-12-QUALIF",
+        "plan_blob_oid": "9cc6f63b3bf4ba2855488bb0c365c06a91103d0d",
+        "gate_ref": "issue_comment:5932536175",
+        "review_blob_oid": "691b29b06b9cb3937714e11566afa9a10192e643",
+        "recovery_migration_blob_oid": null,
+        "evidence_kinds": {
+          "authorized_plan": "ARTIFACT_HASH",
+          "independent_review": "ARTIFACT_HASH",
+          "user_gate": "ORGANISATIONAL",
+          "materialized_recovery": null
+        },
+        "notes": [
+          "REVIEW_ACTOR_INDEPENDENCE_NOT_GUARANTEED",
+          "REVIEW_PLAN_REVISION_NOT_DECLARED",
+          "PLAN_IMPACT_LEGACY_NOT_ENFORCED"
+        ],
+        "plan_impact_sha256": null
+      },
+      "contract_hash": "8c93c64d5766ae2a0409706ed552b574ab69d2a34def8d6397fcc0de3e410133"
+    },
+    "approvalTarget": {
+      "schema_version": "kodjo.vnext.approval-target.v2",
+      "approval_target_id": "APRT-476c769c79c0cd505b5759b8",
+      "action_expected": "APPROVE_EXACT_EXECUTION",
+      "execution_fingerprint": "547ad34b7b740ae9f07039b3529bad2363eb522aefe9ce4e76a90912038bbd76",
+      "execution_core": {
+        "slice_id": "VNEXT-12-QUALIF",
+        "issue_id": "github_issue:MyUncried/Application-Routine#269",
+        "baseline_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+        "product_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+        "application_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+        "protocol_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+        "execution_context": {
+          "mode": "LOCAL",
+          "writer_id": "CLAUDE:kodjo-local-vnext12"
+        },
+        "native_primitive_decisions": [],
+        "planning_mode": "REVISION",
+        "planning_envelope_hash": "0f5504bad8a2dcaaf64462c3d5177fa45311e36255e1cb7ab8ef162e3b86e09f",
+        "direct_import_scan_hash": "46b3ffab94a41e838f853c72744835de32fa032e1fb48621012a3ed4a53f6d02",
+        "plan_contract_hash": "cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484",
+        "review_context_hash": "e2c0a67f06f40179e63b089d2603a8079675d8b589c996de40ddd252690a1055",
+        "review_report_hash": "151c63028c659db819c70407263e0bf8708a89beb099bb488afcce155c972f4e",
+        "ui_atomicity_hash": null,
+        "operation_kind": "IMPLEMENT",
+        "write_scope": [
+          {
+            "candidate_id": "CAND-5615de1e896030d87fa3d20a",
+            "path": "scripts/kodjo/fixtures/vnext12/core.js",
+            "change_kind": "MODIFY"
+          },
+          {
+            "candidate_id": "CAND-62bbd5ecc4fc22dc7b42157f",
+            "path": "tests/fixtures/vnext12/core.test.js",
+            "change_kind": "MODIFY"
+          }
+        ],
+        "preserve_scope": [
+          {
+            "candidate_id": "CAND-0636dfbdbb718bf31dd64265",
+            "path": "scripts/kodjo/fixtures/vnext12/keep.js"
+          }
+        ],
+        "forbidden_policy": "ALL_OUTSIDE_WRITE_SCOPE",
+        "checks": [
+          "jest",
+          "typescript",
+          "lint"
+        ]
+      },
+      "summary": {
+        "write_scope_count": 2,
+        "preserve_scope_count": 1,
+        "check_count": 3
+      },
+      "contract_hash": "c670199c72c128ee0ef2e397aceb7975e268c69e82a29256889d23898f3572e6"
+    },
+    "approvalRecord": {
+      "schema_version": "kodjo.vnext.approval-record.v2",
+      "approval_record_id": "APRV-ef19edbfc19ac7c6ea3a20a5",
+      "approval_target_hash": "c670199c72c128ee0ef2e397aceb7975e268c69e82a29256889d23898f3572e6",
+      "execution_fingerprint": "547ad34b7b740ae9f07039b3529bad2363eb522aefe9ce4e76a90912038bbd76",
+      "decision": "APPROVED",
+      "actor_id": "MyUncried",
+      "evidence_kind": "VERIFIED_USER_ACTION",
+      "transport": "GITHUB_REACTION",
+      "evidence_ref": "issue_comment:5932536175#reaction:429910266",
+      "observed_at": "2026-10-01T15:16:43.161Z",
+      "native_exception_approvals": [],
+      "contract_hash": "ff7638f147a71298c02fd067dd93c51c48b03ce8f7fe230bb12e82a957edea85"
+    },
+    "executionRequest": {
+      "schema_version": "kodjo.vnext.execution-request.v2",
+      "execution_request_id": "EXEC-b7a4a1c37edffa54bf6583d5",
+      "approval_target_hash": "c670199c72c128ee0ef2e397aceb7975e268c69e82a29256889d23898f3572e6",
+      "approval_record_hash": "ff7638f147a71298c02fd067dd93c51c48b03ce8f7fe230bb12e82a957edea85",
+      "execution_fingerprint": "547ad34b7b740ae9f07039b3529bad2363eb522aefe9ce4e76a90912038bbd76",
+      "slice_id": "VNEXT-12-QUALIF",
+      "issue_id": "github_issue:MyUncried/Application-Routine#269",
+      "baseline_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+      "product_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+      "application_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+      "protocol_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+      "execution_context": {
+        "mode": "LOCAL",
+        "writer_id": "CLAUDE:kodjo-local-vnext12"
+      },
+      "native_primitive_decisions": [],
+      "planning_mode": "REVISION",
+      "planning_envelope_hash": "0f5504bad8a2dcaaf64462c3d5177fa45311e36255e1cb7ab8ef162e3b86e09f",
+      "direct_import_scan_hash": "46b3ffab94a41e838f853c72744835de32fa032e1fb48621012a3ed4a53f6d02",
+      "plan_contract_hash": "cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484",
+      "review_context_hash": "e2c0a67f06f40179e63b089d2603a8079675d8b589c996de40ddd252690a1055",
+      "review_report_hash": "151c63028c659db819c70407263e0bf8708a89beb099bb488afcce155c972f4e",
+      "ui_atomicity_hash": null,
+      "operation_kind": "IMPLEMENT",
+      "write_scope": [
+        {
+          "candidate_id": "CAND-5615de1e896030d87fa3d20a",
+          "path": "scripts/kodjo/fixtures/vnext12/core.js",
+          "change_kind": "MODIFY"
+        },
+        {
+          "candidate_id": "CAND-62bbd5ecc4fc22dc7b42157f",
+          "path": "tests/fixtures/vnext12/core.test.js",
+          "change_kind": "MODIFY"
+        }
+      ],
+      "preserve_scope": [
+        {
+          "candidate_id": "CAND-0636dfbdbb718bf31dd64265",
+          "path": "scripts/kodjo/fixtures/vnext12/keep.js"
+        }
+      ],
+      "forbidden_policy": "ALL_OUTSIDE_WRITE_SCOPE",
+      "checks": [
+        "jest",
+        "typescript",
+        "lint"
+      ],
+      "contract_hash": "8a55c8663932c647b3f00c6856a2e83b3a1c3b3680c64216a77b4bf2016408d7"
+    },
+    "projection": {
+      "schema_version": "kodjo.vnext.legacy-queue-projection.v1",
+      "execution_request_hash": "8a55c8663932c647b3f00c6856a2e83b3a1c3b3680c64216a77b4bf2016408d7",
+      "execution_fingerprint": "547ad34b7b740ae9f07039b3529bad2363eb522aefe9ce4e76a90912038bbd76",
+      "projection_mode": "LEGACY_TRANSPORT_ONLY",
+      "canonical_authority": "VNEXT_EXECUTION_REQUEST",
+      "compatibility_files": {
+        "plan": {
+          "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/technical-plan.md",
+          "blob_oid": "9cc6f63b3bf4ba2855488bb0c365c06a91103d0d",
+          "content_sha256": "454b1138e4c74f9f92079b6a2cc5fd97f0eae16712fe98a7051617819b2b92f9",
+          "content": "# KODJO VNext — Projection transport du plan\n\napplication_head=f7350762ce44a593a9cc5c85e2f22d46c4f8ae74\nplan_contract_hash=cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484\n\n# KODJO VNext — Plan canonique\n\n- schema: `kodjo.vnext.plan-contract.v1`\n- contract_hash: `cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484`\n- requirements: 1\n- write_scope: 2\n\n## Boundaries\n\n- forbidden_policy: `ALL_OUTSIDE_WRITE_SCOPE`\n- CHANGE `scripts/kodjo/fixtures/vnext12/core.js` (MODIFY)\n- CHANGE `tests/fixtures/vnext12/core.test.js` (MODIFY)\n- PRESERVE `scripts/kodjo/fixtures/vnext12/keep.js`\n\n## REQ-a99b50399ba259bf28ec11b5\n\n- disposition: `CHANGE`\n- kind: `FUNCTIONAL`\n- rationale: INITIAL opérationnel nominal, deux fichiers, une exigence observable.\n- impacts:\n  - `IMP-43c15e27c8e32e1f2a1a13ca`\n  - `IMP-e889445a28c8e797456bde91`\n- changes:\n  - `tests/fixtures/vnext12/core.test.js` — MODIFY — Conserver le test Jest et son import direct ; remplacer son attente 1 par 2 ; exécuter ce test puis les checks contractuels.\n  - `scripts/kodjo/fixtures/vnext12/core.js` — MODIFY — Conserver l’export CommonJS value() ; retourner exactement le nombre 2, sans autre comportement ni dépendance.\n- tests:\n  - ADAPT — `tests/fixtures/vnext12/core.test.js` — Le test Jest observe value() === 2.\n- proofs:\n  - FUNCTIONAL_TEST — Le test Jest passe avec la valeur 2.\n- constraints:\n  - Modifier uniquement les deux fichiers du write_scope.\n  - Préserver keep.js octet pour octet.\n  - Ne pas créer de dépendance ; aucun composant UI ni exception native.\n  - Ne pas publier, fusionner, activer VNext ni intervenir sur PRE-1.\n- residual_risks:\n  - Tranche synthétique jetable : ne certifie aucun comportement produit réel.\n\n<KODJO_VNEXT_PLAN_CONTRACT_JSON>\n{\n  \"schema_version\": \"kodjo.vnext.plan-contract.v1\",\n  \"requirement_registry_hash\": \"ffbb52aed96c13901d9cad9c6632e0ab64ac56ea18b087075d324cae75d0e3f9\",\n  \"impact_graph_hash\": \"ff2496fe28711963e5975d8e60372d433a93d2ee1ddf6a826cefe9317f506902\",\n  \"candidate_manifest_hash\": \"662da62f8524be5e72df360358da7e173e9c4fc8412eb296e9b190f1e2960c1f\",\n  \"requirement_count\": 1,\n  \"plan_item_count\": 1,\n  \"plan_items\": [\n    {\n      \"plan_item_id\": \"PLAN-f41dd003abe7d5f542bddad4\",\n      \"requirement_id\": \"REQ-a99b50399ba259bf28ec11b5\",\n      \"requirement_kind\": \"FUNCTIONAL\",\n      \"disposition\": \"CHANGE\",\n      \"impact_ids\": [\n        \"IMP-43c15e27c8e32e1f2a1a13ca\",\n        \"IMP-e889445a28c8e797456bde91\"\n      ],\n      \"change_items\": [\n        {\n          \"change_id\": \"CHG-67f6e17c41561aae92a0e861\",\n          \"impact_id\": \"IMP-43c15e27c8e32e1f2a1a13ca\",\n          \"candidate_id\": \"CAND-62bbd5ecc4fc22dc7b42157f\",\n          \"path\": \"tests/fixtures/vnext12/core.test.js\",\n          \"change_kind\": \"MODIFY\",\n          \"intent\": \"Conserver le test Jest et son import direct ; remplacer son attente 1 par 2 ; exécuter ce test puis les checks contractuels.\"\n        },\n        {\n          \"change_id\": \"CHG-79bdc5d448de43c2d06e4998\",\n          \"impact_id\": \"IMP-e889445a28c8e797456bde91\",\n          \"candidate_id\": \"CAND-5615de1e896030d87fa3d20a\",\n          \"path\": \"scripts/kodjo/fixtures/vnext12/core.js\",\n          \"change_kind\": \"MODIFY\",\n          \"intent\": \"Conserver l’export CommonJS value() ; retourner exactement le nombre 2, sans autre comportement ni dépendance.\"\n        }\n      ],\n      \"test_obligations\": [\n        {\n          \"test_id\": \"TEST-0ff46cdd833a779fc78d1567\",\n          \"target_impact_id\": \"IMP-43c15e27c8e32e1f2a1a13ca\",\n          \"target_candidate_id\": \"CAND-62bbd5ecc4fc22dc7b42157f\",\n          \"path\": \"tests/fixtures/vnext12/core.test.js\",\n          \"action\": \"ADAPT\",\n          \"covered_change_impact_ids\": [\n            \"IMP-43c15e27c8e32e1f2a1a13ca\",\n            \"IMP-e889445a28c8e797456bde91\"\n          ],\n          \"expected\": \"Le test Jest observe value() === 2.\",\n          \"justification\": \"Vérification directe de la fonction réellement modifiée.\"\n        }\n      ],\n      \"proof_obligations\": [\n        {\n          \"proof_id\": \"PROOF-b21210d3f8791b4d88a93769\",\n          \"proof_type\": \"FUNCTIONAL_TEST\",\n          \"target_test_impact_id\": \"IMP-43c15e27c8e32e1f2a1a13ca\",\n          \"covered_change_impact_ids\": [\n            \"IMP-43c15e27c8e32e1f2a1a13ca\",\n            \"IMP-e889445a28c8e797456bde91\"\n          ],\n          \"expected\": \"Le test Jest passe avec la valeur 2.\",\n          \"justification\": \"Résultat exécuté ; pas de statut déclaré sans observation.\"\n        }\n      ],\n      \"implementation_constraints\": [\n        \"Modifier uniquement les deux fichiers du write_scope.\",\n        \"Préserver keep.js octet pour octet.\",\n        \"Ne pas créer de dépendance ; aucun composant UI ni exception native.\",\n        \"Ne pas publier, fusionner, activer VNext ni intervenir sur PRE-1.\"\n      ],\n      \"residual_risks\": [\n        \"Tranche synthétique jetable : ne certifie aucun comportement produit réel.\"\n      ],\n      \"rationale\": \"INITIAL opérationnel nominal, deux fichiers, une exigence observable.\"\n    }\n  ],\n  \"boundaries\": {\n    \"write_scope\": [\n      {\n        \"candidate_id\": \"CAND-5615de1e896030d87fa3d20a\",\n        \"path\": \"scripts/kodjo/fixtures/vnext12/core.js\",\n        \"change_kind\": \"MODIFY\"\n      },\n      {\n        \"candidate_id\": \"CAND-62bbd5ecc4fc22dc7b42157f\",\n        \"path\": \"tests/fixtures/vnext12/core.test.js\",\n        \"change_kind\": \"MODIFY\"\n      }\n    ],\n    \"preserve_scope\": [\n      {\n        \"candidate_id\": \"CAND-0636dfbdbb718bf31dd64265\",\n        \"path\": \"scripts/kodjo/fixtures/vnext12/keep.js\"\n      }\n    ],\n    \"forbidden_policy\": \"ALL_OUTSIDE_WRITE_SCOPE\"\n  },\n  \"contract_hash\": \"cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484\"\n}\n</KODJO_VNEXT_PLAN_CONTRACT_JSON>\n"
+        },
+        "review": {
+          "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/independent-review.md",
+          "blob_oid": "691b29b06b9cb3937714e11566afa9a10192e643",
+          "content_sha256": "e9519ea0bc8593c3989de4b42add67fbed91acba9e582ac4932decd7908fbfad",
+          "content": "# KODJO VNext — Projection transport de la revue\n\nPlan revu : technical-plan.md\nreview_report_hash=151c63028c659db819c70407263e0bf8708a89beb099bb488afcce155c972f4e\nplan_contract_hash=cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484\n\nVerdict: APPROVED\n"
+        },
+        "mission": {
+          "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/implementation-mission.md",
+          "blob_oid": "69cb7a10f15f57f26b1aa176d6cef8ed8a5bfed4",
+          "content_sha256": "0b5980480a4b9919f0e35942b4fcf50d3ee820b006383d997f125054899f3287",
+          "content": "# Mission d’implémentation — VNEXT-12-QUALIF\n\nplan_contract_hash=cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484\napplication_head=f7350762ce44a593a9cc5c85e2f22d46c4f8ae74\noperation_kind=IMPLEMENT\nexecution_context={\"mode\":\"LOCAL\",\"writer_id\":\"CLAUDE:kodjo-local-vnext12\"}\nchecks=jest,typescript,lint\n\n## Autorisation\n\nImplémenter exclusivement le périmètre autorisé par l’ExecutionRequest VNext.\nAucun élargissement de scope n’est autorisé.\nLe scope opposable de transport est exactement :\n- scripts/kodjo/fixtures/vnext12/core.js\n- tests/fixtures/vnext12/core.test.js\n\nTout besoin hors scope doit arrêter l’exécution avant modification.\nToute substitution native sans autorisation explicite doit arrêter en NATIVE_PRIMITIVE_EXCEPTION_REQUIRED avant code.\n\n## Plan exact approuvé à exécuter\n\nLire le plan opposable .github/orchestration/vnext12/VNEXT-12-QUALIF/revision/technical-plan.md avant toute modification. Sa projection exacte suit.\nLe plan impose les intentions, tests, preuves et préservations. Arrêter en CLARIFICATION_REQUIRED si une exigence est ambiguë.\n# KODJO VNext — Plan canonique\n\n- schema: `kodjo.vnext.plan-contract.v1`\n- contract_hash: `cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484`\n- requirements: 1\n- write_scope: 2\n\n## Boundaries\n\n- forbidden_policy: `ALL_OUTSIDE_WRITE_SCOPE`\n- CHANGE `scripts/kodjo/fixtures/vnext12/core.js` (MODIFY)\n- CHANGE `tests/fixtures/vnext12/core.test.js` (MODIFY)\n- PRESERVE `scripts/kodjo/fixtures/vnext12/keep.js`\n\n## REQ-a99b50399ba259bf28ec11b5\n\n- disposition: `CHANGE`\n- kind: `FUNCTIONAL`\n- rationale: INITIAL opérationnel nominal, deux fichiers, une exigence observable.\n- impacts:\n  - `IMP-43c15e27c8e32e1f2a1a13ca`\n  - `IMP-e889445a28c8e797456bde91`\n- changes:\n  - `tests/fixtures/vnext12/core.test.js` — MODIFY — Conserver le test Jest et son import direct ; remplacer son attente 1 par 2 ; exécuter ce test puis les checks contractuels.\n  - `scripts/kodjo/fixtures/vnext12/core.js` — MODIFY — Conserver l’export CommonJS value() ; retourner exactement le nombre 2, sans autre comportement ni dépendance.\n- tests:\n  - ADAPT — `tests/fixtures/vnext12/core.test.js` — Le test Jest observe value() === 2.\n- proofs:\n  - FUNCTIONAL_TEST — Le test Jest passe avec la valeur 2.\n- constraints:\n  - Modifier uniquement les deux fichiers du write_scope.\n  - Préserver keep.js octet pour octet.\n  - Ne pas créer de dépendance ; aucun composant UI ni exception native.\n  - Ne pas publier, fusionner, activer VNext ni intervenir sur PRE-1.\n- residual_risks:\n  - Tranche synthétique jetable : ne certifie aucun comportement produit réel.\n\n<KODJO_VNEXT_PLAN_CONTRACT_JSON>\n{\n  \"schema_version\": \"kodjo.vnext.plan-contract.v1\",\n  \"requirement_registry_hash\": \"ffbb52aed96c13901d9cad9c6632e0ab64ac56ea18b087075d324cae75d0e3f9\",\n  \"impact_graph_hash\": \"ff2496fe28711963e5975d8e60372d433a93d2ee1ddf6a826cefe9317f506902\",\n  \"candidate_manifest_hash\": \"662da62f8524be5e72df360358da7e173e9c4fc8412eb296e9b190f1e2960c1f\",\n  \"requirement_count\": 1,\n  \"plan_item_count\": 1,\n  \"plan_items\": [\n    {\n      \"plan_item_id\": \"PLAN-f41dd003abe7d5f542bddad4\",\n      \"requirement_id\": \"REQ-a99b50399ba259bf28ec11b5\",\n      \"requirement_kind\": \"FUNCTIONAL\",\n      \"disposition\": \"CHANGE\",\n      \"impact_ids\": [\n        \"IMP-43c15e27c8e32e1f2a1a13ca\",\n        \"IMP-e889445a28c8e797456bde91\"\n      ],\n      \"change_items\": [\n        {\n          \"change_id\": \"CHG-67f6e17c41561aae92a0e861\",\n          \"impact_id\": \"IMP-43c15e27c8e32e1f2a1a13ca\",\n          \"candidate_id\": \"CAND-62bbd5ecc4fc22dc7b42157f\",\n          \"path\": \"tests/fixtures/vnext12/core.test.js\",\n          \"change_kind\": \"MODIFY\",\n          \"intent\": \"Conserver le test Jest et son import direct ; remplacer son attente 1 par 2 ; exécuter ce test puis les checks contractuels.\"\n        },\n        {\n          \"change_id\": \"CHG-79bdc5d448de43c2d06e4998\",\n          \"impact_id\": \"IMP-e889445a28c8e797456bde91\",\n          \"candidate_id\": \"CAND-5615de1e896030d87fa3d20a\",\n          \"path\": \"scripts/kodjo/fixtures/vnext12/core.js\",\n          \"change_kind\": \"MODIFY\",\n          \"intent\": \"Conserver l’export CommonJS value() ; retourner exactement le nombre 2, sans autre comportement ni dépendance.\"\n        }\n      ],\n      \"test_obligations\": [\n        {\n          \"test_id\": \"TEST-0ff46cdd833a779fc78d1567\",\n          \"target_impact_id\": \"IMP-43c15e27c8e32e1f2a1a13ca\",\n          \"target_candidate_id\": \"CAND-62bbd5ecc4fc22dc7b42157f\",\n          \"path\": \"tests/fixtures/vnext12/core.test.js\",\n          \"action\": \"ADAPT\",\n          \"covered_change_impact_ids\": [\n            \"IMP-43c15e27c8e32e1f2a1a13ca\",\n            \"IMP-e889445a28c8e797456bde91\"\n          ],\n          \"expected\": \"Le test Jest observe value() === 2.\",\n          \"justification\": \"Vérification directe de la fonction réellement modifiée.\"\n        }\n      ],\n      \"proof_obligations\": [\n        {\n          \"proof_id\": \"PROOF-b21210d3f8791b4d88a93769\",\n          \"proof_type\": \"FUNCTIONAL_TEST\",\n          \"target_test_impact_id\": \"IMP-43c15e27c8e32e1f2a1a13ca\",\n          \"covered_change_impact_ids\": [\n            \"IMP-43c15e27c8e32e1f2a1a13ca\",\n            \"IMP-e889445a28c8e797456bde91\"\n          ],\n          \"expected\": \"Le test Jest passe avec la valeur 2.\",\n          \"justification\": \"Résultat exécuté ; pas de statut déclaré sans observation.\"\n        }\n      ],\n      \"implementation_constraints\": [\n        \"Modifier uniquement les deux fichiers du write_scope.\",\n        \"Préserver keep.js octet pour octet.\",\n        \"Ne pas créer de dépendance ; aucun composant UI ni exception native.\",\n        \"Ne pas publier, fusionner, activer VNext ni intervenir sur PRE-1.\"\n      ],\n      \"residual_risks\": [\n        \"Tranche synthétique jetable : ne certifie aucun comportement produit réel.\"\n      ],\n      \"rationale\": \"INITIAL opérationnel nominal, deux fichiers, une exigence observable.\"\n    }\n  ],\n  \"boundaries\": {\n    \"write_scope\": [\n      {\n        \"candidate_id\": \"CAND-5615de1e896030d87fa3d20a\",\n        \"path\": \"scripts/kodjo/fixtures/vnext12/core.js\",\n        \"change_kind\": \"MODIFY\"\n      },\n      {\n        \"candidate_id\": \"CAND-62bbd5ecc4fc22dc7b42157f\",\n        \"path\": \"tests/fixtures/vnext12/core.test.js\",\n        \"change_kind\": \"MODIFY\"\n      }\n    ],\n    \"preserve_scope\": [\n      {\n        \"candidate_id\": \"CAND-0636dfbdbb718bf31dd64265\",\n        \"path\": \"scripts/kodjo/fixtures/vnext12/keep.js\"\n      }\n    ],\n    \"forbidden_policy\": \"ALL_OUTSIDE_WRITE_SCOPE\"\n  },\n  \"contract_hash\": \"cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484\"\n}\n</KODJO_VNEXT_PLAN_CONTRACT_JSON>\n"
+        }
+      },
+      "legacy_queue_request": {
+        "schema_version": "kodjo.protocol.v2.lean-request.0.6.13",
+        "slice_id": "VNEXT-12-QUALIF",
+        "issue_number": 269,
+        "source_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+        "baseline_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+        "slice_bootstrap_file": ".github/orchestration/v2-slices/VNEXT-12-QUALIF/slice-bootstrap.json",
+        "slice_bootstrap_sha256": "3c94a663a353ce537af6848b14599cbe156b563ca6d2e483ecdafdb402d55d29",
+        "mode": "INITIAL",
+        "operation_kind": "IMPLEMENT",
+        "session_id": null,
+        "prompt_file": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/implementation-mission.md",
+        "scope_allow": [
+          "scripts/kodjo/fixtures/vnext12/core.js",
+          "tests/fixtures/vnext12/core.test.js"
+        ],
+        "checks": [
+          "jest",
+          "typescript",
+          "lint"
+        ],
+        "request_id": "be4f7b4b-77d0-4d43-a49f-d3d9f999e2cf",
+        "created_at": "2026-10-01T13:34:32.574Z",
+        "authorized_plan": {
+          "plan_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/technical-plan.md",
+          "plan_blob_oid": "9cc6f63b3bf4ba2855488bb0c365c06a91103d0d",
+          "approved_at_commit": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+          "evidence_kind": "ARTIFACT_HASH"
+        },
+        "independent_review": {
+          "review_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/independent-review.md",
+          "review_blob_oid": "691b29b06b9cb3937714e11566afa9a10192e643",
+          "reviewed_plan_blob_oid": "9cc6f63b3bf4ba2855488bb0c365c06a91103d0d",
+          "verdict": "APPROVED",
+          "evidence_kind": "ARTIFACT_HASH"
+        },
+        "user_gate": {
+          "gate_ref": "issue_comment:5932536175",
+          "gated_reference": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+          "decision": "APPROVED",
+          "user_login": "MyUncried",
+          "evidence_kind": "ORGANISATIONAL"
+        }
+      },
+      "projection_guard": {
+        "scope_sha256": "52da73415b1d1db1033216b1c6b223ac6bc61d6d87e4b63e428cb82a73908620",
+        "checks_sha256": "3dee7271fcb8d82909462a7570e2b7ca0eab0fa182943923d7a3a9803fbcba00",
+        "application_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+        "protocol_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+        "approval_record_hash": "ff7638f147a71298c02fd067dd93c51c48b03ce8f7fe230bb12e82a957edea85"
+      },
+      "contract_hash": "e085c3bad25fad15245101a59b19f424b29ad7abe5f2bd4e29b0ba426c5bc0ae"
+    }
+  },
+  "consumption": {
+    "ref": "refs/tags/kodjo-consumed/be4f7b4b-77d0-4d43-a49f-d3d9f999e2cf",
+    "tag_oid": "ef85ef28362dd949adb8cd060e61ea0d12ccae65",
+    "schema": "kodjo.disposable-consumption.v1",
+    "evidence_kind": "DISPOSABLE_LOCAL_REQUEST",
+    "repository": "MyUncried/Application-Routine",
+    "request_id": "be4f7b4b-77d0-4d43-a49f-d3d9f999e2cf",
+    "queue_commit": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+    "queue_blob_oid": "45692d6cca19e5026ed417a880f3bc393a1b7118",
+    "queue_path": null,
+    "request": {
+      "schema_version": "kodjo.protocol.v2.local-implementation.0.6.12",
+      "slice_id": "VNEXT-12-QUALIF",
+      "source_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+      "protocol_source_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+      "baseline_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+      "slice_bootstrap_file": ".github/orchestration/v2-slices/VNEXT-12-QUALIF/slice-bootstrap.json",
+      "slice_bootstrap_sha256": "3c94a663a353ce537af6848b14599cbe156b563ca6d2e483ecdafdb402d55d29",
+      "mode": "INITIAL",
+      "operation_kind": "IMPLEMENT",
+      "delivery_target": null,
+      "session_id": null,
+      "prompt_file": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/implementation-mission.md",
+      "scope_allow": [
+        "scripts/kodjo/fixtures/vnext12/core.js",
+        "tests/fixtures/vnext12/core.test.js"
+      ],
+      "checks": [
+        "jest",
+        "typescript",
+        "lint"
+      ],
+      "request_id": "be4f7b4b-77d0-4d43-a49f-d3d9f999e2cf"
+    },
+    "session_id": "0b55ef38-9c5e-40ed-8e3a-aefe01767e34",
+    "source_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+    "run_id": "36881458781",
+    "run_attempt": "1",
+    "mode": "INITIAL",
+    "retry_of_run_id": null,
+    "retry_reason": null
+  },
+  "claude_output": {
+    "duration_api_ms": 24573,
+    "stop_reason": "end_turn",
+    "session_id": "0b55ef38-9c5e-40ed-8e3a-aefe01767e34",
+    "total_cost_usd": 0.12005440000000002,
+    "usage": {
+      "input_tokens": 18,
+      "cache_creation_input_tokens": 17750,
+      "cache_read_input_tokens": 110472,
+      "output_tokens": 2264,
+      "output_tokens_details": {
+        "thinking_tokens": 116
+      },
+      "server_tool_use": {
+        "web_search_requests": 0,
+        "web_fetch_requests": 0
+      },
+      "service_tier": "standard",
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 17750,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "inference_geo": "not_available",
+      "iterations": [
+        {
+          "input_tokens": 2,
+          "output_tokens": 521,
+          "cache_read_input_tokens": 17143,
+          "cache_creation_input_tokens": 607,
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 607
+          },
+          "type": "message"
+        }
+      ],
+      "speed": "standard"
+    },
+    "modelUsage": {
+      "claude-haiku-4-5-20251001": {
+        "inputTokens": 4164,
+        "outputTokens": 24,
+        "cacheReadInputTokens": 0,
+        "cacheCreationInputTokens": 0,
+        "webSearchRequests": 0,
+        "costUSD": 0.0042840000000000005,
+        "contextWindow": 200000,
+        "maxOutputTokens": 32000,
+        "thinkingTokens": 0,
+        "canonicalModel": "claude-haiku-4-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      },
+      "claude-sonnet-5": {
+        "inputTokens": 18,
+        "outputTokens": 2264,
+        "cacheReadInputTokens": 110472,
+        "cacheCreationInputTokens": 17750,
+        "webSearchRequests": 0,
+        "costUSD": 0.11577040000000001,
+        "contextWindow": 1000000,
+        "maxOutputTokens": 64000,
+        "thinkingTokens": 116,
+        "canonicalModel": "claude-sonnet-5",
+        "provider": "firstParty",
+        "costBasis": "list"
+      }
+    },
+    "permission_denials": [],
+    "terminal_reason": "completed",
+    "fast_mode_state": "off",
+    "fast_mode_disabled_reason": "sdk_opt_in_required",
+    "subagent_stats": {
+      "spawned": 0,
+      "requested": {
+        "background": 0,
+        "foreground": 0,
+        "unset": 0
+      },
+      "started_in_background": 0,
+      "max_depth": 0,
+      "spawned_by_subagents": 0,
+      "completed": 0,
+      "failed": 0,
+      "killed": {
+        "parent": 0,
+        "user": 0,
+        "system": 0
+      },
+      "refused": {
+        "depth_limit": 0,
+        "concurrency_limit": 0,
+        "budget": 0
+      },
+      "by_type": {}
+    },
+    "is_error": false,
+    "num_turns": 12,
+    "subtype": "success",
+    "api_error_status": null,
+    "result": "Le diff confirme que seuls les deux fichiers du périmètre ont été modifiés, et `keep.js` n'apparaît pas (préservé octet pour octet).\n\n## Résumé\n\n**Fichiers modifiés (exactement le write_scope autorisé) :**\n- `scripts/kodjo/fixtures/vnext12/core.js` — `value: () => 1` → `value: () => 2`\n- `tests/fixtures/vnext12/core.test.js` — `expect(value()).toBe(1)` → `expect(value()).toBe(2)`\n\n**Préservation :**\n- `scripts/kodjo/fixtures/vnext12/keep.js` non touché (hors diff).\n\n**Corrections nécessaires :** aucune — les modifications ont été correctes dès la première application, aucun échec de contrôle à corriger.\n\n**Contrôles exécutés et résultats :**\n- `jest` → PASS — 64 suites / 1257 tests passés, dont `tests/fixtures/vnext12/core.test.js` qui observe `value() === 2`.\n- `typescript` → PASS — aucune erreur.\n- `lint` → PASS — aucune erreur.\n\nToutes les preuves et obligations du plan (`TEST-0ff46cdd833a779fc78d1567`, `PROOF-b21210d3f8791b4d88a93769`) sont satisfaites sans élargissement de scope, sans substitution native, et sans aucune commande Git/gh/réseau/mutation en dehors des outils de lecture/mutation fournis.",
+    "ttft_ms": 1661,
+    "type": "result",
+    "duration_ms": 95965,
+    "uuid": "a9e64b5b-4863-41cd-bc25-58c68f811b81",
+    "ttft_stream_ms": 890,
+    "time_to_request_ms": 180,
+    "first_content_frame_ms": 891,
+    "queued_turn_count": 0
+  },
+  "planning_envelope": {
+    "schema_version": "kodjo.vnext.planning-envelope.v1",
+    "slice_id": "VNEXT-12-QUALIF",
+    "planning_mode": "REVISION",
+    "baseline_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+    "product_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+    "application_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+    "issue_id": "github_issue:MyUncried/Application-Routine#269",
+    "source_manifest": {
+      "schema_version": "kodjo.vnext.source-manifest.v1",
+      "slice_id": "VNEXT-12-QUALIF",
+      "product_head": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+      "sources": [
+        {
+          "source_id": "SRC-6a1da401a5904e4d75bad0cb",
+          "source_kind": "MARKDOWN",
+          "authority": "FUNCTIONAL",
+          "locator": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requirement.md",
+          "revision": "f7350762ce44a593a9cc5c85e2f22d46c4f8ae74",
+          "fingerprint": "4a9e1c9ced7cd6125c65012293f2941f4d24e1d198405f7c111e7443ae92014e",
+          "units": [
+            {
+              "unit_id": "UNIT-64b9c628f870210de00533bd",
+              "locator": "FULL_FILE",
+              "fingerprint": "4a9e1c9ced7cd6125c65012293f2941f4d24e1d198405f7c111e7443ae92014e",
+              "disposition": "REQUIREMENT_SOURCE"
+            }
+          ]
+        }
+      ],
+      "contract_hash": "6d2b436525621d78709872e493750229974d4505b39408a6ea1c62d9ea844ed2"
+    },
+    "base_plan_hash": "f91e1a82712dbbcc58abe335453538f7377e8d4e2320936a94f7cbc64c0eb177",
+    "base_review_hash": "ed8363426353e81ca0bae2a433775258185fe923d208f3a4fd7d62b1c3001b5c",
+    "causal_findings": [
+      "FND-089af4b8d844cebaac27765b",
+      "FND-c66894fc0bbacbb6c5ff4e9c"
+    ],
+    "created_from": {
+      "kind": "PLAN_REVIEW_REVISE",
+      "refs": [
+        "claude_session:e147985e-3291-4222-b671-8afe4148806b#347f76e7ae2f2438ab41abc240c99f38fbd40001d2ba970d1c1a405bbc4fb778"
+      ]
+    },
+    "contract_hash": "0f5504bad8a2dcaaf64462c3d5177fa45311e36255e1cb7ab8ef162e3b86e09f"
+  },
+  "planning_runtime_mode_note": "Canonical planning_mode is REVISION. The legacy local implementation transport starts a fresh session in mode INITIAL; it does not replay the consumed initial campaign request.",
+  "delegation_attribution": "CODEX_ON_BEHALF_OF_USER_EXPLICIT_TECHNICAL_DISPOSABLE_DELEGATION",
+  "human_review_performed": false,
+  "qualification_run": "36881458767",
+  "qualification_status": "SUCCESS_LINUX_WINDOWS_AND_HISTORICAL_EQUIVALENCE",
+  "historical_recovery_status": "NON_CERTIFIED_OLD_RUN16_ARTIFACT_UNAVAILABLE",
+  "archive_durable_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/execution-artifact.zip",
+  "revision_outcome": {
+    "schema_version": "kodjo.vnext.revision-outcome.v1",
+    "allowed_change_set_hash": "b5df62e8e15c4ff60b6feb2d51b7d1e663abca6d106344c1c84e0faf713c16d5",
+    "revision_patch_hash": "468e82c384cfecde49cdf3d0e04f2c17f0a15651969fcfe92c878aa9095e67c3",
+    "next_review_context_hash": "e2c0a67f06f40179e63b089d2603a8079675d8b589c996de40ddd252690a1055",
+    "next_review_report_hash": "151c63028c659db819c70407263e0bf8708a89beb099bb488afcce155c972f4e",
+    "status": "RESOLVED",
+    "preserved_target_count": 1072,
+    "authorized_target_count": 7,
+    "derived_target_count": 1,
+    "new_target_count": 1,
+    "contract_hash": "761778e7bfe0cc70bf7334d10e30a628eecd1e86c6d1fedd785ac52c67672bed"
+  },
+  "revision_count": 1,
+  "revision_limit": 1
+}

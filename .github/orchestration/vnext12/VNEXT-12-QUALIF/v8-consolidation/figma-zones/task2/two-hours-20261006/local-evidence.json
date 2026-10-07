@@ -1,0 +1,11 @@
+{
+  "tests": 37,
+  "pass": 37,
+  "fail": 0,
+  "skip": 0,
+  "claude_timeout_ms": 7200000,
+  "workflow_timeout_minutes": 120,
+  "workflow_invariants": "PASS",
+  "logs_sha256": "be4903bc0dd967f75a7e05e98acce700af1875ae5eb356724c23b9987c5bc2ac",
+  "real_model_calls": 0
+}

@@ -1,0 +1,141 @@
+✖ failing tests:
+2026-10-06T07:33:50.9849468Z 
+2026-10-06T07:33:50.9850160Z test at tests\kodjo\vnext-figma-browser-observer.pilot.js:50:1
+2026-10-06T07:33:50.9852031Z ✖ actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta (10139.2963ms)
+2026-10-06T07:33:50.9853694Z   Error: Command failed: taskkill.exe /PID 35408 /T /F
+2026-10-06T07:33:50.9855057Z   Erreur�: le processus de PID 31984 (processus enfant de PID 35408) n'a pas �t� arr�t�.
+2026-10-06T07:33:50.9856421Z   Raison�: Il n'existe aucune instance en cours de cette t�che.
+2026-10-06T07:33:50.9857748Z   Erreur�: le processus de PID 40532 (processus enfant de PID 35408) n'a pas �t� arr�t�.
+2026-10-06T07:33:50.9859170Z   Raison�: Il n'existe aucune instance en cours de cette t�che.
+2026-10-06T07:33:50.9860523Z   Erreur�: le processus de PID 22016 (processus enfant de PID 35408) n'a pas �t� arr�t�.
+2026-10-06T07:33:50.9861844Z   Raison�: Il n'existe aucune instance en cours de cette t�che.
+2026-10-06T07:33:50.9863164Z   Erreur�: le processus de PID 27768 (processus enfant de PID 35408) n'a pas �t� arr�t�.
+2026-10-06T07:33:50.9864487Z   Raison�: Il n'existe aucune instance en cours de cette t�che.
+2026-10-06T07:33:50.9865806Z   Erreur�: le processus de PID 38440 (processus enfant de PID 35408) n'a pas �t� arr�t�.
+2026-10-06T07:33:50.9867138Z   Raison�: Il n'existe aucune instance en cours de cette t�che.
+2026-10-06T07:33:50.9868473Z   Erreur�: le processus de PID 34436 (processus enfant de PID 35408) n'a pas �t� arr�t�.
+2026-10-06T07:33:50.9869797Z   Raison�: Il n'existe aucune instance en cours de cette t�che.
+2026-10-06T07:33:50.9877178Z   Erreur�: le processus de PID 28976 (processus enfant de PID 35408) n'a pas �t� arr�t�.
+2026-10-06T07:33:50.9878759Z   Raison�: Il n'existe aucune instance en cours de cette t�che.
+2026-10-06T07:33:50.9880160Z   Erreur�: le processus de PID 34768 (processus enfant de PID 35408) n'a pas �t� arr�t�.
+2026-10-06T07:33:50.9881501Z   Raison�: Il n'existe aucune instance en cours de cette t�che.
+2026-10-06T07:33:50.9882463Z   
+2026-10-06T07:33:50.9883270Z       at genericNodeError (node:internal/errors:985:15)
+2026-10-06T07:33:50.9884571Z       at wrappedFn (node:internal/errors:539:14)
+2026-10-06T07:33:50.9885638Z       at ChildProcess.exithandler (node:child_process:417:12)
+2026-10-06T07:33:50.9886691Z       at ChildProcess.emit (node:events:509:28)
+2026-10-06T07:33:50.9887709Z       at maybeClose (node:internal/child_process:1141:16)
+2026-10-06T07:33:50.9888912Z       at ChildProcess._handle.onexit (node:internal/child_process:306:5) {
+2026-10-06T07:33:50.9890043Z     code: 128,
+2026-10-06T07:33:50.9890717Z     killed: false,
+2026-10-06T07:33:50.9891439Z     signal: null,
+2026-10-06T07:33:50.9892198Z     cmd: 'taskkill.exe /PID 35408 /T /F',
+2026-10-06T07:33:50.9903510Z     diagnostic_stderr: "Erreur�: le processus de PID 31984 (processus enfant de PID 35408) n'a pas �t� arr�t�.\r\nRaison�: Il n'existe aucune instance en cours de cette t�che.\r\r\nErreur�: le processus de PID 40532 (processus enfant de PID 35408) n'a pas �t� arr�t�.\r\nRaison�: Il n'existe aucune instance en cours de cette t�che.\r\r\nErreur�: le processus de PID 22016 (processus enfant de PID 35408) n'a pas �t� arr�t�.\r\nRaison�: Il n'existe aucune instance en cours de cette t�che.\r\r\nErreur�: le processus de PID 27768 (processus enfant de PID 35408) n'a pas �t� arr�t�.\r\nRaison�: Il n'existe aucune instance en cours de cette t�che.\r\r\nErreur�: le processus de PID 38440 (processus enfant de PID 35408) n'a pas �t� arr�t�.\r\nRaison�: Il n'existe aucune instance en cours de cette t�che.\r\r\nErreur�: le processus de PID 34436 (processus enfant de PID 35408) n'a pas �t� arr�t�.\r\nRaison�: Il n'existe aucune instance en cours de cette t�che.\r\r\nErreur�: le processus de PID 28976 (processus enfant de PID 35408) n'a pas �t� arr�t�.\r\nRaison�: Il n'existe aucune instance en cours de cette t�che.\r\r\nErreur�: le processus de PID 34768 (processus enfant de PID 35408) n'a pas �t� arr�t�.\r\nRaison�: Il n'existe aucune instance en cours de cette t�che.\r\r\n"
+2026-10-06T07:33:50.9914890Z   }
+2026-10-06T07:33:50.9915248Z 
+2026-10-06T07:33:50.9915829Z test at tests\kodjo\vnext-figma-browser-observer.pilot.js:66:1
+2026-10-06T07:33:50.9917466Z ✖ disposable fixed geometry refuses a viewport-relative counterexample at an independent viewport (38233.358ms)
+2026-10-06T07:33:50.9919433Z   Error: VNEXT_LIVE_PROCESS_FAILED: C:\Program Files\nodejs\node.exe: Command failed: taskkill.exe /PID 40328 /T /F
+2026-10-06T07:33:50.9921138Z   Erreur�: le processus de PID 2836 (processus enfant de PID 40328) n'a pas �t� arr�t�.
+2026-10-06T07:33:50.9922490Z   Raison�: Il n'existe aucune instance en cours de cette t�che.
+2026-10-06T07:33:50.9923809Z   Erreur�: le processus de PID 31416 (processus enfant de PID 40328) n'a pas �t� arr�t�.
+2026-10-06T07:33:50.9925154Z   Raison�: Il n'existe aucune instance en cours de cette t�che.
+2026-10-06T07:33:50.9926467Z   Erreur�: le processus de PID 12048 (processus enfant de PID 40328) n'a pas �t� arr�t�.
+2026-10-06T07:33:50.9927792Z   Raison�: Il n'existe aucune instance en cours de cette t�che.
+2026-10-06T07:33:50.9929168Z   Erreur�: le processus de PID 10908 (processus enfant de PID 40328) n'a pas �t� arr�t�.
+2026-10-06T07:33:50.9930492Z   Raison�: Il n'existe aucune instance en cours de cette t�che.
+2026-10-06T07:33:50.9931803Z   Erreur�: le processus de PID 40880 (processus enfant de PID 40328) n'a pas �t� arr�t�.
+2026-10-06T07:33:50.9933123Z   Raison�: Il n'existe aucune instance en cours de cette t�che.
+2026-10-06T07:33:50.9934052Z   
+2026-10-06T07:33:50.9934654Z   
+2026-10-06T07:33:50.9936506Z       at Object.fail (C:\actions-runner\_work\Application-Routine\Application-Routine\_qualification\37428291663\scripts\kodjo\lib\vnext-contract.js:11:17)
+2026-10-06T07:33:50.9939249Z       at Object.command (C:\actions-runner\_work\Application-Routine\Application-Routine\_qualification\37428291663\scripts\kodjo\lib\vnext-live-chain.js:38:36)
+2026-10-06T07:33:50.9942040Z       at Object.observe (C:\actions-runner\_work\Application-Routine\Application-Routine\_qualification\37428291663\scripts\kodjo\qualify-vnext-figma-real-path.js:75:32)
+2026-10-06T07:33:50.9945113Z       at TestContext.<anonymous> (C:\actions-runner\_work\Application-Routine\Application-Routine\_qualification\37428291663\tests\kodjo\vnext-figma-browser-observer.pilot.js:73:24)
+2026-10-06T07:33:50.9947134Z       at Test.runInAsyncScope (node:async_hooks:227:14)
+2026-10-06T07:33:50.9948188Z       at Test.run (node:internal/test_runner/test:1382:25)
+2026-10-06T07:33:50.9949446Z       at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+2026-10-06T07:33:50.9950712Z       at Test.postRun (node:internal/test_runner/test:1522:19)
+2026-10-06T07:33:50.9951804Z       at Test.run (node:internal/test_runner/test:1447:12)
+2026-10-06T07:33:50.9953731Z       at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+2026-10-06T07:33:50.9954979Z     code: 'VNEXT_LIVE_PROCESS_FAILED'
+2026-10-06T07:33:50.9955768Z   }
+2026-10-06T07:33:51.3223660Z ##[error]Process completed with exit code 1.
+2026-10-06T07:33:51.4144741Z ##[group]Run actions/upload-artifact@v4
+2026-10-06T07:33:51.4145518Z with:
+2026-10-06T07:33:51.4146131Z   name: kodjo-v2-disposable-preflight-37428291663-1
+2026-10-06T07:33:51.4146994Z   path: _qualification/37428291663/disposable-preflight-evidence
+2026-10-06T07:33:51.4147759Z   if-no-files-found: error
+2026-10-06T07:33:51.4148311Z   retention-days: 90
+2026-10-06T07:33:51.4148836Z   compression-level: 6
+2026-10-06T07:33:51.4149355Z   overwrite: false
+2026-10-06T07:33:51.4149875Z   include-hidden-files: false
+2026-10-06T07:33:51.4150449Z env:
+2026-10-06T07:33:51.4151094Z   pythonLocation: C:\actions-runner\_work\_tool\Python\3.12.10\x64
+2026-10-06T07:33:51.4152094Z   PKG_CONFIG_PATH: C:\actions-runner\_work\_tool\Python\3.12.10\x64/lib/pkgconfig
+2026-10-06T07:33:51.4153043Z   Python_ROOT_DIR: C:\actions-runner\_work\_tool\Python\3.12.10\x64
+2026-10-06T07:33:51.4153923Z   Python2_ROOT_DIR: C:\actions-runner\_work\_tool\Python\3.12.10\x64
+2026-10-06T07:33:51.4154954Z   Python3_ROOT_DIR: C:\actions-runner\_work\_tool\Python\3.12.10\x64
+2026-10-06T07:33:51.4155718Z ##[endgroup]
+2026-10-06T07:33:51.7783126Z (node:30212) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-06T07:33:51.7785261Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-06T07:33:51.7901235Z ##[error]No files were found with the provided path: _qualification/37428291663/disposable-preflight-evidence. No artifacts will be uploaded.
+2026-10-06T07:33:51.8547157Z ##[group]Run if (-not (Test-Path -LiteralPath 'real-recovery-certification.json')) {
+2026-10-06T07:33:51.8551871Z [36;1mif (-not (Test-Path -LiteralPath 'real-recovery-certification.json')) {[0m
+2026-10-06T07:33:51.8553038Z [36;1m  $proof = [ordered]@{[0m
+2026-10-06T07:33:51.8553815Z [36;1m    status = 'FAIL'[0m
+2026-10-06T07:33:51.8554710Z [36;1m    reason = 'HISTORICAL_RECOVERY_CERTIFICATION_FAILED'[0m
+2026-10-06T07:33:51.8555678Z [36;1m    claude_invoked = $false[0m
+2026-10-06T07:33:51.8556466Z [36;1m    run_id = '37428291663'[0m
+2026-10-06T07:33:51.8557228Z [36;1m    run_attempt = '1'[0m
+2026-10-06T07:33:51.8558146Z [36;1m    source_sha = '4311eabe62bf83de724eb99ef5056c34ce21307c'[0m
+2026-10-06T07:33:51.8559082Z [36;1m  }[0m
+2026-10-06T07:33:51.8560016Z [36;1m  $proofJson = ($proof | ConvertTo-Json -Depth 5).Replace("`r`n", "`n") + "`n"[0m
+2026-10-06T07:33:51.8561859Z [36;1m  [IO.File]::WriteAllText('real-recovery-certification.json', $proofJson, (New-Object Text.UTF8Encoding($false)))[0m
+2026-10-06T07:33:51.8563240Z [36;1m}[0m
+2026-10-06T07:33:51.8610580Z shell: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.EXE -command ". '{0}'"
+2026-10-06T07:33:51.8611821Z env:
+2026-10-06T07:33:51.8612697Z   pythonLocation: C:\actions-runner\_work\_tool\Python\3.12.10\x64
+2026-10-06T07:33:51.8613974Z   PKG_CONFIG_PATH: C:\actions-runner\_work\_tool\Python\3.12.10\x64/lib/pkgconfig
+2026-10-06T07:33:51.8615232Z   Python_ROOT_DIR: C:\actions-runner\_work\_tool\Python\3.12.10\x64
+2026-10-06T07:33:51.8616390Z   Python2_ROOT_DIR: C:\actions-runner\_work\_tool\Python\3.12.10\x64
+2026-10-06T07:33:51.8617562Z   Python3_ROOT_DIR: C:\actions-runner\_work\_tool\Python\3.12.10\x64
+2026-10-06T07:33:51.8618560Z ##[endgroup]
+2026-10-06T07:33:53.1114164Z ##[group]Run node scripts/kodjo/record-unavailable-recovery.js real-recovery-certification.json
+2026-10-06T07:33:53.1117150Z [36;1mnode scripts/kodjo/record-unavailable-recovery.js real-recovery-certification.json[0m
+2026-10-06T07:33:53.1135216Z shell: C:\Windows\system32\cmd.EXE /D /E:ON /V:OFF /S /C "CALL "{0}""
+2026-10-06T07:33:53.1137642Z env:
+2026-10-06T07:33:53.1139024Z   pythonLocation: C:\actions-runner\_work\_tool\Python\3.12.10\x64
+2026-10-06T07:33:53.1141054Z   PKG_CONFIG_PATH: C:\actions-runner\_work\_tool\Python\3.12.10\x64/lib/pkgconfig
+2026-10-06T07:33:53.1143069Z   Python_ROOT_DIR: C:\actions-runner\_work\_tool\Python\3.12.10\x64
+2026-10-06T07:33:53.1144987Z   Python2_ROOT_DIR: C:\actions-runner\_work\_tool\Python\3.12.10\x64
+2026-10-06T07:33:53.1146849Z   Python3_ROOT_DIR: C:\actions-runner\_work\_tool\Python\3.12.10\x64
+2026-10-06T07:33:53.1148400Z ##[endgroup]
+2026-10-06T07:33:53.3110760Z ##[group]Run actions/upload-artifact@v4
+2026-10-06T07:33:53.3122359Z with:
+2026-10-06T07:33:53.3123078Z   name: kodjo-v2-real-recovery-certification-37428291663-1
+2026-10-06T07:33:53.3123984Z   path: _qualification/37428291663/real-recovery-certification.json
+2026-10-06T07:33:53.3124769Z   if-no-files-found: error
+2026-10-06T07:33:53.3125329Z   retention-days: 90
+2026-10-06T07:33:53.3125853Z   compression-level: 6
+2026-10-06T07:33:53.3126425Z   overwrite: false
+2026-10-06T07:33:53.3126946Z   include-hidden-files: false
+2026-10-06T07:33:53.3127535Z env:
+2026-10-06T07:33:53.3128182Z   pythonLocation: C:\actions-runner\_work\_tool\Python\3.12.10\x64
+2026-10-06T07:33:53.3129157Z   PKG_CONFIG_PATH: C:\actions-runner\_work\_tool\Python\3.12.10\x64/lib/pkgconfig
+2026-10-06T07:33:53.3130106Z   Python_ROOT_DIR: C:\actions-runner\_work\_tool\Python\3.12.10\x64
+2026-10-06T07:33:53.3130992Z   Python2_ROOT_DIR: C:\actions-runner\_work\_tool\Python\3.12.10\x64
+2026-10-06T07:33:53.3131986Z   Python3_ROOT_DIR: C:\actions-runner\_work\_tool\Python\3.12.10\x64
+2026-10-06T07:33:53.3132748Z ##[endgroup]
+2026-10-06T07:33:53.6669515Z (node:40432) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-06T07:33:53.6673478Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-06T07:33:53.6813153Z With the provided path, there will be 1 file uploaded
+2026-10-06T07:33:53.6855484Z Artifact name is valid!
+2026-10-06T07:33:53.6867698Z Root directory input is valid!
+2026-10-06T07:33:53.7025382Z ##[warning]Retention days cannot be greater than the maximum allowed retention set within the repository. Using 14 instead.
+2026-10-06T07:33:54.1913082Z Beginning upload of artifact content to blob storage
+2026-10-06T07:33:54.2638721Z (node:40432) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-06T07:33:54.6628401Z Uploaded bytes 357
+2026-10-06T07:33:54.7849109Z Finished uploading artifact content to blob storage!
+2026-10-06T07:33:54.7862302Z SHA256 digest of uploaded artifact zip is 8593ce69beba1152ca2a997570820febfbf5dad2240c3be7e6e831c9280274f6
+2026-10-06T07:33:54.786411

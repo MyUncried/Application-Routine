@@ -1,0 +1,10 @@
+2026-10-06T09:18:40.2794204Z HEAD is now at ae442075 fix(vnext): define and test independent provenance attestation [skip ci]
+2026-10-06T09:18:57.1890516Z ✔ actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta (9346.50833ms)
+2026-10-06T09:18:57.1891588Z ✔ disposable fixed geometry refuses a viewport-relative counterexample at an independent viewport (3569.207798ms)
+2026-10-06T09:18:57.6744753Z ✔ Windows cleanup inventories profile before waiting for forced root exit (0.415608ms)
+2026-10-06T09:18:57.6757502Z ✔ provenance attestation rejects a substituted document or mounted fragment without a browser (0.312712ms)
+2026-10-06T09:19:18.3339124Z ℹ tests 330
+2026-10-06T09:19:18.3339245Z ℹ pass 330
+2026-10-06T09:19:18.3339300Z ℹ fail 0
+2026-10-06T09:19:18.3339424Z ℹ skipped 0
+2026-10-06T09:19:18.3339559Z ℹ duration_ms 36292.94391

@@ -1,0 +1,31 @@
+{
+  "run_id": 37325776512,
+  "job_id": 111816099880,
+  "artifact_id": 11352474287,
+  "artifact_sha256": "8affb852e295f6f17b58e42b059edfa1ccc9c5d6e187f1eee0c2694343136dbf",
+  "request_consumed": true,
+  "implementation_calls": 0,
+  "correction_calls": 0,
+  "plan_review_session_id": "f7282e15-2022-48d5-9be6-3abd1236e885",
+  "review_accepted": false,
+  "diagnostic": "VNEXT_REVIEW_FINDING_DEPENDENCY_UNKNOWN: PLAN_CONTRACT",
+  "permission_denials": [
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_01BfEtxbyrvriUqMH9Zq8XcK",
+      "tool_input": {
+        "file_path": "C:\\Users\\hadjo\\AppData\\Local\\Temp\\kodjo-vnext-review-2nAeEQ\\figma\\observation.json"
+      }
+    },
+    {
+      "tool_name": "Read",
+      "tool_use_id": "toolu_012TLvFaQzjpDDCBxjMAJMpY",
+      "tool_input": {
+        "file_path": "C:\\Users\\hadjo\\AppData\\Local\\Temp\\kodjo-vnext-review-2nAeEQ\\figma\\figma-evidence\\zones-reference.png"
+      }
+    }
+  ],
+  "raw_findings_count": 8,
+  "response_not_modified": true,
+  "native_rendering_certified": false
+}

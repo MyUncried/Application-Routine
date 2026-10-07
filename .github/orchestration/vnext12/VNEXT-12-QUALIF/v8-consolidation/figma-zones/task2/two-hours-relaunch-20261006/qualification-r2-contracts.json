@@ -1,0 +1,18 @@
+{
+  "candidate_head": "abecf87e88abbf387c1e22e319cda1374762018d",
+  "run_id": 37401096314,
+  "platforms": {
+    "Linux": {
+      "tests": 318,
+      "pass": 318,
+      "fail": 0,
+      "skip": 0
+    },
+    "Windows": {
+      "tests": 318,
+      "pass": 318,
+      "fail": 0,
+      "skip": 0
+    }
+  }
+}

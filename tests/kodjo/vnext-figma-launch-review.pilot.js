@@ -1,0 +1,101 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+const V=require('../../scripts/kodjo/lib/vnext-contract'),F=require('../../scripts/kodjo/lib/vnext-figma-source'),Launch=require('../../scripts/kodjo/lib/vnext-figma-launch'),Review=require('../../scripts/kodjo/lib/vnext-figma-implementation-review'),Chain=require('../../scripts/kodjo/lib/vnext-live-chain'),Fixture=require('./helpers/vnext-figma-fixture'),Adapter=require('../../scripts/kodjo/lib/vnext-legacy-queue-adapter');
+function seal(p){const c=structuredClone(p);delete c.contract_hash;return V.sealContract(c);}
+function scenarios(p){p.states[0].scenarios=[{scenario_id:'toggle-off-on',given:'Selection is off',when:'Activate the toggle',then:'Selection is on',proof_required:['FUNCTIONAL_TEST']},{scenario_id:'toggle-on-off',given:'Selection is on',when:'Activate the toggle again',then:'Selection is off',proof_required:['FUNCTIONAL_TEST']}];return seal(p);}
+function setup(t){const f=Fixture.fixture({transformPacket:scenarios,launchMode:true});t.after(()=>f.cleanup());return f;}
+function capture(f,scope){const p=f.snapshot;return {launch_id:scope.launch_id,file_key:p.file_key,captured_at:p.captured_at,frames:p.frames,inventories:[{end:true,count:p.nodes.length,rows:p.nodes.map(n=>[n.id,n.parent_id,n.type,n.name])}],batches:[{end:true,requested_ids:p.nodes.map(n=>n.id),rows:p.nodes.map(n=>({id:n.id,child_ids:n.child_ids,properties:n.properties}))}],variables:p.variables,collections:p.collections,resources:p.resources};}
+async function launched(f,options={}){const scope={slice_id:f.recipe.planningInput.slice_id,launch_id:'TEST launch '+(options.suffix||'a'),file_key:f.snapshot.file_key,frames:f.snapshot.frames,documents:f.snapshot.documents};const c=await Launch.launch(scope,{capture:options.capture||((s)=>capture(f,s)),reconcile:options.reconcile||((raw,docs)=>({...raw,documents:docs,states:f.snapshot.states,decisions:f.snapshot.decisions,conflicts:[]})),persist:options.persist||(()=>({revision:f.head,path:f.packetPath,content:JSON.stringify(f.snapshot,null,2)+'\n'}))});return {c,scope};}
+function plan(f){const p=f.produce(),a=p.artifacts;return Adapter.renderCompatibilityPlan({application_head:a.planningEnvelope.application_head,plan_contract_hash:a.planContract.contract_hash},a.planContract,a.uiAtomicityContract,a.requirementRegistry,a.candidateManifest);}
+function facts(f,dir){const values=Object.fromEntries(F.required(f.snapshot).map(d=>[d.property_id,d.rule.value]));const observations={values,scenarios:{'toggle-off-on':true,'toggle-on-off':true}},content=JSON.stringify(observations);fs.writeFileSync(path.join(dir,'execution.json'),content);const artifact={artifact_path:'execution.json',artifact_sha256:V.sha256(content),observer:'EXECUTED_JSON_FACT',delivery_head:f.head};return {measurements:F.required(f.snapshot).flatMap(d=>d.rule.viewports.map(viewport=>({...artifact,measurement_id:d.property_id+'@'+viewport,property_id:d.property_id,reference_hash:f.snapshot.contract_hash,viewport,value:d.rule.value,value_path:['values',d.property_id],evidence:'TEST fixture execution facts; no pixel or device evidence'}))),scenarioResults:f.snapshot.states[0].scenarios.map(s=>({...artifact,scenario_id:s.scenario_id,reference_hash:f.snapshot.contract_hash,status:'PASS',value:true,value_path:['scenarios',s.scenario_id],proof_results:s.proof_required.map(proof_type=>({proof_type,status:'PASS'}))}))};}
+function reviewOptions(f,t){const dir=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-figma-evidence-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));const body=plan(f);return {body,options:{cwd:f.cwd,approvedPlanSha256:V.sha256(body),deliveryHead:f.head,evidenceDirectory:dir,...facts(f,dir)}};}
+function resourceAssessment(dossier){return {verdict:'APPROVE',reference_hashes:dossier.observation.references.map(r=>r.reference_hash),reviewed_assertion_ids:dossier.assertion_ids,reviewed_scenario_ids:dossier.scenario_ids,findings:[],reservations:[],reason:'Injected semantic assessment; orchestration verifies file integrity.'};}
+test('resource integrity is computed from actual files without a model consultation declaration',t=>{
+ const f=setup(t),{body,options}=reviewOptions(f,t);
+ const receipt=Review.review(body,{...options,invoke:(_bin,args,_cwd,input)=>{
+  const schema=JSON.parse(args[args.indexOf('--json-schema')+1]);
+  assert.equal(Object.hasOwn(schema.properties,'consulted_resource_sha256'),false);
+  const {dossier}=JSON.parse(input);
+  return JSON.stringify({type:'result',session_id:'TEST-INTEGRITY',structured_output:resourceAssessment(dossier)});
+ }});
+ assert.equal(receipt.resource_integrity.producer,'ORCHESTRATION');
+ assert.equal(receipt.resource_integrity.reading_attested,false);
+ assert.ok(receipt.resource_integrity.resources.length>0);
+ for(const row of receipt.resource_integrity.resources)assert.equal(row.actual_sha256,row.expected_sha256);
+ Review.verifyReceipt(body,options,receipt,fs.readFileSync(path.join(options.evidenceDirectory,'implementation-review-response.json'),'utf8'));
+});
+test('an execution artifact included in a legacy consultation list cannot reject valid resource bytes',t=>{
+ const f=setup(t),{body,options}=reviewOptions(f,t);
+ const receipt=Review.review(body,{...options,invoke:(_bin,_args,_cwd,input)=>{
+  const {dossier}=JSON.parse(input),assessment=resourceAssessment(dossier);
+  assessment.consulted_resource_sha256=[...dossier.observation.references.flatMap(r=>r.assets.map(a=>a.sha256)),dossier.scenario_results[0].artifact_sha256];
+  return JSON.stringify({type:'result',session_id:'TEST-LEGACY-EXTRA',structured_output:assessment});
+ }});
+ assert.equal(receipt.assessment.verdict,'APPROVE');
+ assert.equal(receipt.resource_integrity.resources.length,receipt.assessment.consulted_resource_sha256.length-1);
+});
+test('actual resource tampering still rejects a review without a consultation declaration',t=>{
+ const f=setup(t),{body,options}=reviewOptions(f,t);
+ assert.throws(()=>Review.review(body,{...options,invoke:(_bin,_args,_cwd,input)=>{
+  const {dossier}=JSON.parse(input);
+  fs.appendFileSync(dossier.observation.references[0].assets[0].path,'tampered');
+  return JSON.stringify({type:'result',session_id:'TEST-TAMPER',structured_output:resourceAssessment(dossier)});
+ }}),/VNEXT_FIGMA_REVIEW_RESOURCE_CHANGED/);
+ assert.equal(fs.existsSync(path.join(options.evidenceDirectory,'implementation-review-receipt.json')),false);
+});
+test('generic launch automatically orders capture, reconciliation, freeze and requirements before planning',async t=>{const f=setup(t),{c,scope}=await launched(f);Launch.validate(c);f.recipe.figmaScope=scope;f.recipe.figmaLaunch=c;f.recipe.sourceManifestInput=c.sourceManifestInput;f.recipe.requirementInput=c.requirementInput;const p=f.produce();assert.ok(p.figma_launch);Chain.verifyProduced(p,f.cwd);assert.deepEqual(c.stages,['CAPTURE','RECONCILE','INVENTORY_AND_SCENARIOS_VALIDATED','GIT_FREEZE','ATOMIC_REQUIREMENTS']);});
+test('a declared Figma slice cannot skip source preparation or change the frozen requirement set',async t=>{const f=setup(t),{c,scope}=await launched(f);f.recipe.figmaScope=scope;assert.throws(()=>f.produce(),/LAUNCH_REQUIRED/);f.recipe.figmaLaunch=c;f.recipe.requirementInput.requirements.pop();assert.throws(()=>f.produce(),/RECIPE_REQUIREMENTS_MISMATCH/);});
+test('new launch identity and different file/frame IDs are generic, not Zones-specific',async t=>{
+ const f=setup(t),first=await launched(f),second=await launched(f,{suffix:'b'});assert.notEqual(first.c.contract_hash,second.c.contract_hash);assert.equal(first.c.reference_hash,second.c.reference_hash);
+ const other=Fixture.fixture({launchMode:true,transformPacket:p=>{const x=structuredClone(scenarios(p)),ids=new Map(x.nodes.map((n,i)=>[n.id,'81:'+(i+1)]));x.file_key='ANOTHER-FILE';x.frames.forEach(f=>{f.frame_id=ids.get(f.frame_id);f.page_id='80:1';});x.nodes.forEach(n=>{n.id=ids.get(n.id);n.parent_id=ids.get(n.parent_id)||n.parent_id;n.child_ids=n.child_ids.map(id=>ids.get(id));if(n.properties.main_component_id)n.properties.main_component_id=ids.get(n.properties.main_component_id);});x.decisions.forEach(d=>{d.element_id=ids.get(d.element_id);d.property_id=F.id(d.element_id,d.property);});x.resources.forEach(r=>{r.node_ids=r.node_ids.map(id=>ids.get(id));});return seal(x);}});t.after(()=>other.cleanup());
+ const alt=await launched(other);assert.equal(alt.scope.file_key,'ANOTHER-FILE');assert.equal(alt.scope.frames[0].frame_id,'81:1');Launch.validate(alt.c);
+});
+test('capture failure, foreign scope and rewritten observations stop before persistence',async t=>{const f=setup(t);await assert.rejects(launched(f,{capture:()=>{throw Error('CAPTURE_UNAVAILABLE');}}),/UNAVAILABLE/);await assert.rejects(launched(f,{capture:s=>({...capture(f,s),launch_id:'stale'})}),/CAPTURE_MISMATCH/);await assert.rejects(launched(f,{reconcile:(raw,docs)=>({...raw,file_key:'changed',documents:docs})}),/OBSERVATION_CHANGED/);});
+test('documentary state needs scenarios and every scenario needs an allocated executable proof',t=>{const f=setup(t);const p=structuredClone(f.snapshot);delete p.states[0].scenarios;assert.throws(()=>Launch.validateScenarios(p),/SCENARIOS_REQUIRED/);const row=f.recipe.uiInput.criteria.find(c=>c.assertions[0].figma_document_state);row.assertions[0].figma_document_state.scenario_ids.pop();assert.throws(()=>f.produce(),/SCENARIO_UNCOVERED/);});
+test('review automatically consumes approved references and compares executed artifact facts',t=>{const f=setup(t),{body,options}=reviewOptions(f,t),d=Review.prepare(body,options);assert.equal(d.observation.stage,'IMPLEMENTATION_REVIEWER');assert.equal(d.scenario_ids.length,2);const receipt=Review.review(body,{...options,claude:'TEST-INJECTED',invoke:(_bin,_args,_cwd,input,_env,timeoutMs)=>{assert.equal(timeoutMs,7200000);const {dossier}=JSON.parse(input);return JSON.stringify({type:'result',session_id:'TEST',structured_output:{verdict:'APPROVE',reference_hashes:dossier.observation.references.map(r=>r.reference_hash),reviewed_assertion_ids:dossier.assertion_ids,reviewed_scenario_ids:dossier.scenario_ids,consulted_resource_sha256:dossier.observation.references.flatMap(r=>r.assets.map(a=>a.sha256)),findings:[],reservations:dossier.limits,reason:'TEST injected reviewer; no real semantic compliance'}});}});assert.equal(receipt.assessment.verdict,'APPROVE');assert.ok(receipt.limits.length);Review.verifyReceipt(body,options,receipt,fs.readFileSync(path.join(options.evidenceDirectory,'implementation-review-response.json'),'utf8'));assert.deepEqual(Review.review(body,{...options,invoke:()=>{throw Error('DUPLICATE_CALL');}}),receipt);});
+test('missing/wrong measurement, forged value and wrong delivery head block review',t=>{const f=setup(t),{body,options}=reviewOptions(f,t);const missing=structuredClone(options);missing.measurements.pop();assert.throws(()=>Review.prepare(body,missing),/MEASUREMENT_REQUIRED/);const forged=structuredClone(options);forged.measurements[0].value=99;assert.throws(()=>Review.prepare(body,forged),/FACT_MISMATCH/);const head=structuredClone(options);head.measurements[0].delivery_head='a'.repeat(40);assert.throws(()=>Review.prepare(body,head),/HEAD_MISMATCH/);});
+test('omitted scenario, failed proof, changed artifact and changed approved plan block review',t=>{const f=setup(t),{body,options}=reviewOptions(f,t);const missing=structuredClone(options);missing.scenarioResults.pop();assert.throws(()=>Review.prepare(body,missing),/SCENARIO_COVERAGE/);const failed=structuredClone(options);failed.scenarioResults[0].proof_results[0].status='FAIL';assert.throws(()=>Review.prepare(body,failed),/SCENARIO_NOT_PASSED/);assert.throws(()=>Review.prepare(body+'drift',options),/PLAN_DRIFT/);fs.writeFileSync(path.join(options.evidenceDirectory,'execution.json'),'{}');assert.throws(()=>Review.prepare(body,options),/ARTIFACT_CHANGED/);});
+test('a model cannot approve omitted assertions or blocking findings',t=>{const f=setup(t),{body,options}=reviewOptions(f,t),d=Review.prepare(body,options),a={verdict:'APPROVE',reference_hashes:[f.snapshot.contract_hash],reviewed_assertion_ids:d.assertion_ids,reviewed_scenario_ids:d.scenario_ids,consulted_resource_sha256:d.observation.references.flatMap(r=>r.assets.map(a=>a.sha256)),findings:[],reservations:[],reason:'TEST only'};const missing=structuredClone(a);missing.reviewed_assertion_ids.pop();assert.throws(()=>Review.validateAssessment(d,missing),/ASSERTIONS_UNCOVERED/);a.findings=[{blocking:true,reason:'TEST gap'}];assert.throws(()=>Review.validateAssessment(d,a),/FALSE_APPROVAL/);});
+
+test('frozen Git serialization survives reordered logical reconstruction and byte drift is still refused',async t=>{
+ const f=Fixture.fixture({launchMode:true,transformPacket:p=>{const {nodes,...rest}=p;return {...rest,nodes};}});t.after(()=>f.cleanup());
+ const {c,scope}=await launched(f);assert.equal(c.sourceManifestInput.sources[0].fingerprint,V.sha256(Chain.readGit(f.cwd,f.head,f.packetPath)));
+ f.recipe.figmaScope=scope;f.recipe.figmaLaunch=c;f.recipe.sourceManifestInput=c.sourceManifestInput;f.recipe.requirementInput=c.requirementInput;
+ Chain.verifyProduced(f.produce(),f.cwd);
+ const bytes=Chain.readGit(f.cwd,f.head,f.packetPath);f.write(f.packetPath,bytes+'\n');f.git('add',f.packetPath);f.git('commit','-m','TEST byte drift');
+ const source=structuredClone(c.sourceManifestInput.sources[0]);source.revision=f.git('rev-parse','HEAD');
+ assert.throws(()=>Chain.observeSources(require('../../scripts/kodjo/lib/source-manifest').build({...c.sourceManifestInput,sources:[source]}),f.cwd),/SOURCE_OBSERVATION_HASH_MISMATCH/);
+});
+test('authoritative document inventory forbids missing states, scenario omission and rewritten documents',async t=>{
+ const f=setup(t);
+ await assert.rejects(launched(f,{reconcile:(raw,docs)=>({...raw,documents:docs,states:[],decisions:f.snapshot.decisions,conflicts:[]})}),/STATES_INVALID|SCOPE_REQUIRED/);
+ await assert.rejects(launched(f,{reconcile:(raw,docs)=>{const states=structuredClone(f.snapshot.states);states[0].scenarios.pop();return {...raw,documents:docs,states,decisions:f.snapshot.decisions,conflicts:[]};}}),/INVENTORY_COVERAGE_MISMATCH/);
+ await assert.rejects(launched(f,{reconcile:(raw,docs)=>({...raw,documents:docs.map(d=>({...d,document_id:'changed'})),states:f.snapshot.states,decisions:f.snapshot.decisions,conflicts:[]})}),/DOCUMENT_REQUIRED|DOCUMENT_MISMATCH|DISPOSITION_INVALID/);
+ assert.throws(()=>Launch.documentStates([{document_id:'NO_INVENTORY',content:'Free-form prose without an authoritative inventory.'}]),/INVENTORY_REQUIRED/);
+ const d=structuredClone(f.snapshot.documents[0]),tag=/<KODJO_SCREEN_STATES_JSON>\s*([\s\S]*?)\s*<\/KODJO_SCREEN_STATES_JSON>/.exec(d.content),inv=JSON.parse(tag[1]);inv.states.push({...inv.states[0],expected:'contradictory'});d.content=d.content.replace(tag[1],JSON.stringify(inv));
+ assert.throws(()=>Launch.documentStates([d]),/INVENTORY_CONTRADICTION/);
+});
+test('measurement extras and altered reference destinations are refused without overwrite',t=>{
+ const f=setup(t),{body,options}=reviewOptions(f,t),bad=structuredClone(options);bad.measurements.push({...bad.measurements[0],measurement_id:'extra',property_id:'unknown'});assert.throws(()=>Review.prepare(body,bad),/MEASUREMENT_UNBOUND/);
+ const dossier=Review.prepare(body,options),asset=dossier.observation.references[0].assets[0].path;fs.writeFileSync(asset,'existing changed local bytes');assert.throws(()=>Review.prepare(body,options),/DESTINATION_CHANGED/);assert.equal(fs.readFileSync(asset,'utf8'),'existing changed local bytes');
+});
+test('operational produce entry refuses a Figma recipe without launch even when scope is omitted',t=>{
+ const f=setup(t),{spawnSync}=require('node:child_process');f.write('recipe.json',JSON.stringify(f.recipe));
+ const result=spawnSync(process.execPath,[path.resolve(__dirname,'../../scripts/kodjo/vnext-chain.js'),'produce','recipe.json','produced.json'],{cwd:f.cwd,encoding:'utf8'});
+ assert.notEqual(result.status,0);assert.match(result.stderr,/LAUNCH_REQUIRED/);assert.equal(fs.existsSync(path.join(f.cwd,'produced.json')),false);
+});
+test('the original real-reference precheck completes through generic launchAndProduce without any model call',async()=>{
+ const result=await require('../../scripts/kodjo/qualify-vnext-figma-real-path').precheck();assert.equal(result.status,'LOCAL_PRECHECK_PASS');assert.equal(result.source_sha256,result.observed_sha256);assert.equal(result.real_model_calls,0);assert.equal(result.live_figma_acquisition,false);assert.equal(result.native_certification,false);
+});
+test('document-only conditional/persistence state is generated and cannot disappear behind the graphic inventory',async t=>{
+ const states=[{state_id:'STATE-1',origin:'FIGMA',disposition:'REQUIRED',expected:'Pressable toggle on press',reason:'TEST visible state',scenarios:[{scenario_id:'toggle',given:'Off',when:'Activate',then:'On',proof_required:['FUNCTIONAL_TEST']}]},{state_id:'PERSISTED',origin:'DOCUMENT_ONLY',disposition:'REQUIRED',expected:'Restore the selected value after reopening',reason:'TEST conditional persisted state absent from Figma',scenarios:[{scenario_id:'restore',given:'Selected value saved',when:'Reopen',then:'Selected value restored',proof_required:['FUNCTIONAL_TEST']}]}];
+ const f=Fixture.fixture({launchMode:true,documentaryStates:states});t.after(()=>f.cleanup());
+ const {c}=await launched(f);assert.ok(c.requirementInput.requirements.some(r=>r.statement===states[1].expected));assert.ok(c.scenario_ids.includes('restore'));
+ await assert.rejects(launched(f,{reconcile:(raw,documents)=>({...raw,documents,states:f.snapshot.states.slice(0,1),decisions:f.snapshot.decisions,conflicts:[]})}),/INVENTORY_COVERAGE_MISMATCH/);
+});
+test('existing VNext operational review entry prepares the exact dossier locally without invoking a model',t=>{
+ const f=setup(t),{body,options}=reviewOptions(f,t),{spawnSync}=require('node:child_process'),root=options.evidenceDirectory;
+ fs.writeFileSync(path.join(root,'plan.md'),body);fs.writeFileSync(path.join(root,'observations.json'),JSON.stringify(options));fs.writeFileSync(path.join(root,'config.json'),JSON.stringify({approved_plan_file:path.join(root,'plan.md'),observations_file:path.join(root,'observations.json'),evidence_directory:root}));
+ const out=path.join(root,'dossier.json'),r=spawnSync(process.execPath,[path.resolve(__dirname,'../../scripts/kodjo/vnext-chain.js'),'prepare-implementation-review',path.join(root,'config.json'),out],{cwd:f.cwd,encoding:'utf8'});
+ assert.equal(r.status,0,r.stderr);const d=JSON.parse(fs.readFileSync(out));assert.equal(d.observation.stage,'IMPLEMENTATION_REVIEWER');assert.equal(d.observation.plan_sha256,V.sha256(body));assert.equal(d.scenario_ids.length,2);
+});

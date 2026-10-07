@@ -1,0 +1,42 @@
+{
+  "schema_version": "kodjo.vnext.local-test-evidence.v1",
+  "recorded_at": "2026-10-04T15:47:12.877531+00:00",
+  "parent_head": "cbdae1633c86d924884e43e5a6b52e0321c47c93",
+  "model_calls": "INJECTED_FIXTURES_ONLY",
+  "github_approvals": "INJECTED_FIXTURES_ONLY",
+  "device_validation": "NOT_EXECUTED",
+  "git_read_processes": "REAL_LOCAL_GIT",
+  "real_runtime_qualification": false,
+  "results": [
+    {
+      "log": "runtime-plan-consolidated.log",
+      "sha256": "132f9a51941e9f4d7d9bd8031dcfafff2e2515519a76b682fe4998f4f6999d3d",
+      "tests": 78,
+      "pass": 78,
+      "fail": 0,
+      "skip": 0
+    },
+    {
+      "log": "vnext-consolidated-complete.log",
+      "sha256": "1f50217b392f7bee3fe4fa22260f7b3db1a3ec5fab808afb67cfb0ac11ae4686",
+      "tests": 1016,
+      "pass": 1011,
+      "fail": 0,
+      "skip": 5
+    },
+    {
+      "log": "runtime-plan-last-changes.log",
+      "sha256": "c0dcc6a0ab35e97258cc2dc30f3d778b5897552e3ab9431f8b6432c57e1b44a2",
+      "tests": 24,
+      "pass": 24,
+      "fail": 0,
+      "skip": 0
+    }
+  ],
+  "notes": [
+    "Complete pilot suite passed before final restoration error-handling and supervisor routing adjustment; affected runtime and supervisor tests rerun afterward with 24 PASS.",
+    "Workflow invariants: 64 valid. Remote writer policy findings: 0. Historical subjects: 420 unchanged.",
+    "Four requested transmission cases tested in vnext-runtime-plan.pilot.js, including real local Git reader processes.",
+    "No genuine Claude invocation, owner approval or device check claimed; Work wake and production scenario gate remain unqualified."
+  ]
+}

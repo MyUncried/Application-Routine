@@ -1,0 +1,47 @@
+2026-10-06T15:13:20.8503248Z ✔ architecture: source UI requirement applies outside legacy roots and ignores test candidates (0.852215ms)
+2026-10-06T15:13:20.8521884Z ✔ VNext-11 refuse un finding bloquant sans source normative préexistante (2.445009ms)
+2026-10-06T15:13:20.8527412Z ✔ VNext-11 refuse une provenance normative re-signée mais supprimée (4.274467ms)
+2026-10-06T15:13:33.2289429Z ✔ browser refusal is explicit and no normal browser profile is opened by binary discovery (0.175032ms)
+2026-10-06T15:13:33.2290973Z ✔ actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta (4336.053316ms)
+2026-10-06T15:13:33.5063593Z ✔ browser cleanup waits for the actual process and profile descendants before removal (275.82511ms)
+2026-10-06T15:13:33.5065105Z ✔ browser cleanup failure retains stderr, primary error and isolated profile diagnostics (1.75706ms)
+2026-10-06T15:13:33.5066401Z ✔ packaged Chrome precedes Chromium on Linux while an explicit browser remains authoritative (0.176302ms)
+2026-10-06T15:13:33.5112978Z ✔ early browser exit retains executable, exit code and actual stderr in the failure (8.13804ms)
+2026-10-06T15:13:33.7173863Z ✔ provenance attestation rejects a substituted document or mounted fragment without a browser (0.339885ms)
+2026-10-06T15:13:33.7181906Z ✔ browser host resolves only the declared shared import and refuses unrelated modules (3.033536ms)
+2026-10-06T15:13:41.7595944Z ✔ a declared Figma slice cannot skip source preparation or change the frozen requirement set (545.1393ms)
+2026-10-06T15:13:41.8146051Z ✔ functional gate receipt identifies the executed target and does not masquerade as browser scenario output (326.97497ms)
+2026-10-06T15:13:41.8147377Z ✔ test execution cannot change its own target source and retain a passing receipt (442.948706ms)
+2026-10-06T15:13:41.8148779Z ✔ Figma nominal: frozen Git -> source units -> requirements -> plan -> assertions -> review -> all consumers (2756.614036ms)
+2026-10-06T15:13:41.8151411Z ✔ negative 2: omitted property or false source disposition cannot disappear from coverage (258.931447ms)
+2026-10-06T15:13:41.8159737Z ✔ negative 8: inaccessible, truncated or changed-after-approval sources require recovery or requalification (510.048988ms)
+2026-10-06T15:13:41.8161516Z ✔ negative 9: corrupt or missing transported screenshot/properties/resources blocks effective byte consumption (461.884522ms)
+2026-10-06T15:13:41.8163116Z ✔ real qualification frame 4478:7209: complete inventory, aliases, vectors, resources and lossless compact transport (505.43338ms)
+2026-10-06T15:13:41.8165258Z ✔ VNext-01 stable IDs are machine-derived and source-sensitive (0.423797ms)
+2026-10-06T15:13:41.8167355Z ✔ VNext-01 SourceManifest seals sources and units with deterministic IDs (2.205348ms)
+2026-10-06T15:13:41.8168412Z ✔ VNext-01 SourceManifest refuses duplicate physical source identity (0.298028ms)
+2026-10-06T15:13:41.8182670Z ✔ historical inventory rejects same-cardinality substituted IDs and changed sources (28.176541ms)
+2026-10-06T15:13:41.8183777Z ✔ historical rows preserve source meaning across eight, nine and six-column layouts (30.91244ms)
+2026-10-06T15:13:41.8187102Z ✔ historical equivalence binds all 420 exact source subjects and named test locations (395.026141ms)
+2026-10-06T15:13:41.8191733Z ✔ historical reporter preserves the actual test runner failure and nested browser diagnostic (108.784435ms)
+2026-10-06T15:14:03.7795673Z ✔ live chain: observed Git sources, structured reviewer, exact approval and real queue authorization compose (2714.880964ms)
+2026-10-06T15:14:03.7798343Z ✔ live chain: source bytes and unobserved native proof cannot be asserted by flags (1627.166585ms)
+2026-10-06T15:14:03.8252978Z   ✔ the old approved plan bytes and independent receipt remain bound, not replaceable by a fake REVISE (900.103215ms)
+2026-10-06T15:14:03.8256916Z ✔ reservation keeps the raw server response before final receipt persistence (1.092955ms)
+2026-10-06T15:14:03.8260801Z ✔ a decision source requires the actual owner and exact repository/issue before planning (1.464065ms)
+2026-10-06T15:14:03.8261565Z ✔ native preservation: every UI criterion needs an explicit sourced native assessment and branch assertion (3.539937ms)
+2026-10-06T15:14:03.8337752Z ✔ VNext-02 construit un registre source-first complet incluant UI et non-UI (14.63557ms)
+2026-10-06T15:14:03.8338676Z ✔ VNext-02 refuse une exigence sans source connue (0.329804ms)
+2026-10-06T15:14:03.8339841Z ✔ VNext-02 exige CLARIFICATION_REQUIRED pour toute source AMBIGUOUS (0.691655ms)
+2026-10-06T15:14:03.8342106Z ✔ VNext-02 consomme une décision résolue comme source normative (4.366852ms)
+2026-10-06T15:14:03.8552974Z ✔ VNext-05 interdit une propriété visuelle sans source VISUAL ou DECISION (46.202305ms)
+2026-10-06T15:14:03.8553365Z ✔ VNext-05 accepte INTERACTION uniquement avec source fonctionnelle et preuve fonctionnelle (40.375655ms)
+2026-10-06T15:14:03.8556846Z ✔ D2 source evidence rejects foreign authors, issues, repositories and comment IDs (1.411813ms)
+2026-10-06T15:14:03.8559013Z ℹ tests 341
+2026-10-06T15:14:03.8559179Z ℹ suites 0
+2026-10-06T15:14:03.8559270Z ℹ pass 341
+2026-10-06T15:14:03.8559347Z ℹ fail 0
+2026-10-06T15:14:03.8559437Z ℹ cancelled 0
+2026-10-06T15:14:03.8559524Z ℹ skipped 0
+2026-10-06T15:14:03.8559600Z ℹ todo 0
+2026-10-06T15:14:03.8559718Z ℹ duration_ms 43998.14746

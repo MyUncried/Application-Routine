@@ -277,7 +277,8 @@ jobs:
           runtime="$RUNNER_TEMP/kodjo-review-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           mkdir -p "$runtime/lib"
           cp scripts/kodjo/verify-ui-implementation-review.js scripts/kodjo/verify-test-contract-results.js scripts/kodjo/verify-review-format-repair.js scripts/kodjo/repair-review-nonui-coverage.js "$runtime/"
-          cp scripts/kodjo/lib/plan-impact.js scripts/kodjo/lib/implementation-contract.js scripts/kodjo/lib/implementation-report.js scripts/kodjo/lib/ui-criteria-contract.js scripts/kodjo/lib/requirement-contract.js scripts/kodjo/lib/boundary-proof.js scripts/kodjo/lib/ui-identities.js scripts/kodjo/lib/component-evidence.js "$runtime/lib/"
+          cp scripts/kodjo/lib/plan-impact.js scripts/kodjo/lib/implementation-contract.js scripts/kodjo/lib/device-proof-policy.js scripts/kodjo/lib/implementation-report.js scripts/kodjo/lib/ui-criteria-contract.js scripts/kodjo/lib/requirement-contract.js scripts/kodjo/lib/boundary-proof.js scripts/kodjo/lib/ui-identities.js scripts/kodjo/lib/component-evidence.js "$runtime/lib/"
+          cp scripts/kodjo/lib/vnext-delivery-preservation.js scripts/kodjo/lib/vnext-contract.js scripts/kodjo/lib/vnext-post-acceptance.js "$runtime/lib/"
           derogation=".github/orchestration/v2-slices/${{ steps.gate.outputs.slice_id }}/device-check-derogation.json"
           if [ -f "$derogation" ]; then cp "$derogation" "$runtime/device-check-derogation.json"; fi
           echo "KODJO_REVIEW_RUNTIME=$runtime" >> "$GITHUB_ENV"

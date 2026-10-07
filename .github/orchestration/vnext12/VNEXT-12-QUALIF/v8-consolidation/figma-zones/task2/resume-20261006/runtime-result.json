@@ -1,0 +1,22 @@
+{
+  "run_id": 37386304781,
+  "controller_head": "6ec750620a690b777884d255200ca43bd2a3ae43",
+  "request_id": "86d8f6ce-e621-47b1-9e11-f9d67d32aa52",
+  "status": "FAILED",
+  "admission": "VERIFIED",
+  "phase": "PLAN_REVIEW",
+  "review_duration_ms": 600056,
+  "review_input_bytes": 1081989,
+  "review_targets": 435,
+  "error_code": "ETIMEDOUT",
+  "stdout_bytes": 0,
+  "stderr_bytes": 0,
+  "implementation_calls": 0,
+  "correction_calls": 0,
+  "checkout_unchanged": true,
+  "cleanup": true,
+  "archive_sha256": "9d7598deb2640b9e1907738ac02208406ebc1c285053a6b207682d15dfb5f0e8",
+  "bundle_sha256": "fd3d76973d53b98c9dae27e8474ab6de31183e81a90a486b8f15bbb83cef7a8f",
+  "cause": "NOT_DEMONSTRATED",
+  "new_launch": false
+}

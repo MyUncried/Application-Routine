@@ -1,0 +1,68 @@
+'use strict';
+// Local Git + injected services only: no genuine model, owner or device claim.
+const fs=require('node:fs'),path=require('node:path'),{execFileSync}=require('node:child_process');
+const ROOT=path.resolve(__dirname,'../../..'),F=require('./vnext-planning-fixture');
+const V=require('../../../scripts/kodjo/lib/vnext-contract'),Source=require('../../../scripts/kodjo/lib/source-manifest');
+const Envelope=require('../../../scripts/kodjo/lib/planning-envelope'),Req=require('../../../scripts/kodjo/lib/requirement-registry');
+const Impact=require('../../../scripts/kodjo/lib/impact-graph'),Plan=require('../../../scripts/kodjo/lib/plan-contract');
+const Chain=require('../../../scripts/kodjo/lib/vnext-live-chain'),Adapter=require('../../../scripts/kodjo/lib/vnext-legacy-queue-adapter');
+const Audit=require('../../../scripts/kodjo/lib/vnext-audit-register'),Post=require('../../../scripts/kodjo/lib/vnext-post-acceptance');
+const select=(r,keys)=>Object.fromEntries(keys.map(k=>[k,r[k]]));
+function makeRecipe(cwd,sourceInput,planningInput,target,test,ui=false){
+ const manifest=Source.build(sourceInput),envelope=Envelope.build({...planningInput,source_manifest:manifest});
+ const requirementInput={requirements:[{source_id:manifest.sources[0].source_id,unit_id:manifest.sources[0].units[0].unit_id,kind:ui?'UI':'FUNCTIONAL',statement:'FIXTURE: correct requested behavior',priority:'MUST',status:'ACTIVE',rationale:'Explicit test source',related_unit_ids:[],conflict_unit_ids:[]}]};
+ const registry=Req.build({...requirementInput,source_manifest:manifest,planning_envelope_hash:envelope.contract_hash});
+ const candidates=Impact.buildCandidateManifest({cwd,revision:planningInput.application_head});
+ const at=p=>candidates.candidates.find(c=>c.path===p),id=registry.requirements[0].requirement_id;
+ const classifications=[{requirement_id:id,candidate_id:at(target).candidate_id,change_kind:'MODIFY',impact_reason:'FIXTURE correction',dependency_evidence:['FIXTURE authorized source'],tests_affected_candidate_ids:[at(test).candidate_id],preservation_candidate_ids:[at('src/keep.js').candidate_id]},
+ {requirement_id:id,candidate_id:at(test).candidate_id,change_kind:'MODIFY',impact_reason:'FIXTURE direct check',dependency_evidence:['FIXTURE target'],tests_affected_candidate_ids:[],preservation_candidate_ids:[]}];
+ const scan=Impact.scanOneLevelDirectImporters({cwd,candidateManifest:candidates,modifyCandidateIds:[at(target).candidate_id]});
+ for(const importer of scan.importers)if(!classifications.some(c=>c.candidate_id===importer.candidate_id))classifications.push({requirement_id:id,candidate_id:importer.candidate_id,change_kind:'NO_CHANGE',impact_reason:'FIXTURE retained importer requires fresh regression checks, no write authority',dependency_evidence:['FIXTURE observed import'],tests_affected_candidate_ids:[],preservation_candidate_ids:[]});
+ const graph=Impact.buildImpactGraph({requirementRegistry:registry,candidateManifest:candidates,directImportScan:scan,classifications});
+ const change=graph.impacts.find(i=>i.path===target),testImpact=graph.impacts.find(i=>i.path===test),covered=[change.impact_id,testImpact.impact_id].sort();
+ const requirementPlans=[{requirement_id:id,implementation_intents:[{impact_id:change.impact_id,intent:'FIXTURE: bounded correction'},{impact_id:testImpact.impact_id,intent:'FIXTURE: test correction'}],test_obligations:[{target_impact_id:testImpact.impact_id,covered_change_impact_ids:covered,expected:'Correct behavior',justification:'Direct executable fixture'}],proof_obligations:[{proof_type:'FUNCTIONAL_TEST',target_test_impact_id:testImpact.impact_id,covered_change_impact_ids:covered,expected:'Test passes',justification:'Executed fixture check'}],implementation_constraints:[],residual_risks:[],rationale:'FIXTURE only'}];
+ const plan=Plan.buildPlanContract({requirementRegistry:registry,candidateManifest:candidates,impactGraph:graph,requirementPlans});
+ const criterion=ui?require('../../../scripts/kodjo/lib/ui-atomicity-contract').buildUiAtomicityContract({requirementRegistry:registry,candidateManifest:candidates,impactGraph:graph,planContract:plan,criteria:[{requirement_id:id,statement:'FIXTURE profile remains correct',risk_types:['FUNCTIONAL'],reuse_search_candidate_ids:[at(target).candidate_id],component_decision:'EXTEND',selected_component:'default',selected_component_candidate_id:at(target).candidate_id,decision_justification:'Use existing component',change_impact_ids:[change.impact_id],proof_ids:[plan.plan_items[0].proof_obligations[0].proof_id],assertions:[{subject:'Profile',property_type:'STATE',expected:'Correct profile behavior',proof_ids:[plan.plan_items[0].proof_obligations[0].proof_id],covered_change_impact_ids:[change.impact_id]}]}]}).criteria[0]:null;
+ return {sourceManifestInput:sourceInput,planningInput,requirementInput,classifications,requirementPlans,
+  ...(ui?{uiInput:{criteria:[{requirement_id:id,statement:'FIXTURE profile remains correct',risk_types:['FUNCTIONAL'],reuse_search_candidate_ids:[at(target).candidate_id],component_decision:'EXTEND',selected_component:'default',selected_component_candidate_id:at(target).candidate_id,decision_justification:'Use existing component',change_impact_ids:[change.impact_id],proof_ids:[plan.plan_items[0].proof_obligations[0].proof_id],assertions:[{subject:'Profile',property_type:'STATE',expected:'Correct profile behavior',proof_ids:[plan.plan_items[0].proof_obligations[0].proof_id],covered_change_impact_ids:[change.impact_id]}]}]}}:{}),
+  executionContext:{mode:'LOCAL',writer_id:'CLAUDE:fixture-writer'},nativeAssessments:criterion?[{criterion_id:criterion.criterion_id,availability:'NOT_APPLICABLE',primitive:null,selected_primitive:null,functional_requirement_id:null,evidence_refs:['source:'+manifest.sources[0].source_id+'#'+manifest.sources[0].units[0].unit_id],justification:'FIXTURE state criterion has no native interaction',exception_reason:null}]:[],registerInput:{authorizedActor:'MyUncried',revisionCount:0,revisionLimit:1,observations:[]}};
+}
+function response(produced,status='RESOLVED'){
+ const semantic=require('./review-attestation-fixture').semantic(produced.artifacts.reviewContext);
+ if(produced.artifacts.reviewContext.acceptance_gaps)semantic.acceptance_resolutions=produced.artifacts.reviewContext.acceptance_gaps.map(g=>({gap_id:g.gap_id,status,evidence_refs:['FIXTURE ONLY: correction inspected'],note:'Injected reviewer resolution, no real model call'}));
+ return JSON.stringify({type:'result',session_id:'FIXTURE-NOT-A-REAL-SESSION',structured_output:{semantic_review:semantic,native_assessment_observations:produced.native_assessments.map(assessment=>({criterion_id:assessment.criterion_id,assessment_hash:V.canonicalHash(assessment),verified:true,observed_git_evidence:[{path:'docs/profile.md',revision:produced.artifacts.planningEnvelope.application_head,content_sha256:V.sha256('FIXTURE profile delivery\n')}],reason:'FIXTURE injected review, actual local Git bytes'}))}});
+}
+function fixture({existingPR=false}={}){
+ const repo=F.fixtureRepo(),cwd=repo.cwd,git=(...a)=>execFileSync('git',a,{cwd,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
+ const write=(p,b)=>{fs.mkdirSync(path.dirname(path.join(cwd,p)),{recursive:true});fs.writeFileSync(path.join(cwd,p),b);};
+ fs.cpSync(path.join(ROOT,'scripts/kodjo'),path.join(cwd,'scripts/kodjo'),{recursive:true});
+ const profile='src/features/preferences/profilePhoto.ts',profileTest='tests/profile.test.js',text='FIXTURE profile delivery\n';
+ write(profile,"module.exports={value:require('../../core.js').value};\n");write(profileTest,"require('../src/features/preferences/profilePhoto.ts');\n");write('docs/profile.md',text);git('add','.');git('commit','-m','fixture source and exact producer');
+ const head=git('rev-parse','HEAD'),sourceInput={slice_id:'V2-VNEXT-09',product_head:head,sources:[{source_kind:'MARKDOWN',authority:'FUNCTIONAL',locator:'docs/profile.md',revision:head,fingerprint:V.sha256(text),units:[{locator:'FULL_FILE',fingerprint:V.sha256(text),disposition:'REQUIREMENT_SOURCE'}]}]};
+ const planning={slice_id:'V2-VNEXT-09',planning_mode:'INITIAL',baseline_head:head,product_head:head,application_head:head,issue_id:'github_issue:MyUncried/Application-Routine#999',base_plan_hash:null,base_review_hash:null,causal_findings:[],created_from:{kind:'INITIAL_REQUEST',refs:['issue_comment:100']}};
+ const recipe=makeRecipe(cwd,sourceInput,planning,profile,profileTest,true),baseProduced=Chain.produce(recipe,{cwd});
+ const baseReceipt=Chain.review(baseProduced,{cwd,claude:'TEST-FIXTURE',invoke:()=>response(baseProduced)});
+ const prior=Chain.prepare(baseProduced,baseReceipt,F.transport(),{cwd}).compatibility_files.plan.content;
+ const matrix=require('../../../scripts/kodjo/lib/plan-impact').extractTaggedJson(prior,'KODJO_UI_CRITERIA_MATRIX_JSON');
+ const oldReview={schema:'kodjo.ui-implementation-review.v1',verdict:'APPROVE',boundary_results:[],criteria:matrix.criteria.map(c=>({criterion_id:c.criterion_id,implementation_status:'CONFORME',preserve_status:'PASS',evidence:'FIXTURE prior review',proof_results:c.proof_required.map(type=>({proof_type:type,status:'PASS',evidence:'FIXTURE old check'})),assertion_results:c.assertions.map(a=>({assertion_id:a.assertion_id,status:'CONFORME',evidence:'FIXTURE old assertion',proof_results:a.proof_required.map(type=>({proof_type:type,status:'PASS',evidence:'FIXTURE check'}))}))}))};
+ write('delivered-plan.md',prior);write(F.transport().plan_path,prior);write('delivered-review.json',JSON.stringify(oldReview));git('add','.');git('commit','-m','fixture delivered baseline before acceptance');const deliveryHead=git('rev-parse','HEAD');
+ const acceptance={schema_version:Post.GAPS_SCHEMA,decision:'AUTHORIZE_REVISION',slice_id:planning.slice_id,head:deliveryHead,source_review_comment_id:'201',base_plan_hash:baseProduced.artifacts.planContract.contract_hash,base_review_hash:baseReceipt.review_report.contract_hash,gaps:[{gap_id:'GAP-FIXTURE-1',criterion_id:matrix.criteria[0].criterion_id,description:'FIXTURE acceptance requests core correction',evidence_refs:['FIXTURE-device-observation'],allowed_write_paths:['src/core.js','tests/core.test.js']}]};
+ const acceptanceBody='<KODJO_VNEXT_ACCEPTANCE_GAPS_JSON>'+JSON.stringify(acceptance)+'</KODJO_VNEXT_ACCEPTANCE_GAPS_JSON>',stamp='2026-10-04T12:00:00Z';
+ const comments={201:{id:201,user:{login:'github-actions[bot]'},issue_url:'https://api.github.com/repos/MyUncried/Application-Routine/issues/999',body:'slice_id='+planning.slice_id+'\nhead='+deliveryHead+'\n<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'+JSON.stringify(oldReview)+'</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'},202:{id:202,user:{login:'MyUncried'},issue_url:'https://api.github.com/repos/MyUncried/Application-Routine/issues/999',updated_at:stamp,body:acceptanceBody}};
+ const github={comment:(_r,id)=>comments[id]},reference={kind:'POST_ACCEPTANCE',revision:deliveryHead,plan_path:'delivered-plan.md',review_path:'delivered-review.json',repository:'MyUncried/Application-Routine',issue_number:999,delivery_head:deliveryHead,implementation_review_comment_id:'201',acceptance_comment_id:'202'};
+ const baseline=Post.observe(reference,{cwd,readGit:Chain.readGit,github}),baseRegister=Audit.buildRegister({...baseProduced.register_input,candidateHead:baseProduced.producer_revision,lot:planning.slice_id,phase:'REVIEW'});
+ const input={slice_id:planning.slice_id,product_head:deliveryHead,sources:[{source_kind:'GITHUB_COMMENT',authority:'DECISION',locator:'github_issue_comment:MyUncried/Application-Routine#202',revision:stamp,fingerprint:V.sha256(acceptanceBody),units:[{locator:'FULL_FILE',fingerprint:V.sha256(acceptanceBody),disposition:'REQUIREMENT_SOURCE'}]}]};
+ const nextPlanning={...planning,planning_mode:'REVISION',application_head:deliveryHead,product_head:deliveryHead,base_plan_hash:acceptance.base_plan_hash,base_review_hash:acceptance.base_review_hash,created_from:{kind:'ACCEPTANCE_GAPS',refs:[input.sources[0].locator]}};
+ const nextRecipe=makeRecipe(cwd,input,nextPlanning,'src/core.js','tests/core.test.js');
+ if(existingPR){
+  nextRecipe.executionContext.delivery_target={kind:'EXISTING_PR',application_pr:9999,application_head:deliveryHead,branch:'fixture/application'};
+  github.pullRequest=()=>({number:9999,state:'open',base:{ref:'main',repo:{full_name:'MyUncried/Application-Routine'}},head:{sha:deliveryHead,ref:'fixture/application',repo:{full_name:'MyUncried/Application-Routine'}}});
+ }
+ nextRecipe.deliveryCorrection={reference,replacements:[],bindings:[{gap_id:acceptance.gaps[0].gap_id,requirement_id:nextRecipe.requirementPlans[0].requirement_id}]};nextRecipe.registerInput={...nextRecipe.registerInput,revisionCount:1,previous:baseRegister};
+ const produced=Chain.produce(nextRecipe,{cwd,github}),receipt=Chain.review(produced,{cwd,github,claude:'TEST-FIXTURE',invoke:()=>response(produced)});
+ const nextRegister=Audit.buildRegister({...produced.register_input,candidateHead:produced.producer_revision,lot:planning.slice_id,phase:'REVISION'});
+ const outcome=Post.buildOutcome({baseline,bindings:produced.artifacts.acceptanceBindings,artifacts:produced.artifacts,reviewReport:receipt.review_report,baseRegister,cumulativeRegister:nextRegister});
+ const revisionEvidence={origin:'POST_ACCEPTANCE',base_produced:baseProduced,base_review_receipt:baseReceipt,outcome};
+ return {repo,cwd,git,write,profile,profileTest,comments,github,reference,baseline,baseProduced,baseReceipt,baseRegister,produced,receipt,nextRecipe,nextRegister,outcome,revisionEvidence,cleanup:()=>fs.rmSync(cwd,{recursive:true,force:true})};
+}
+module.exports={fixture,response,makeRecipe};

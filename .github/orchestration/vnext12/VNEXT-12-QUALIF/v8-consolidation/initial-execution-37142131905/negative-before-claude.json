@@ -1,0 +1,16 @@
+{
+  "fault_injection": true,
+  "production_runner": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_vnext12-approved\\37142131905\\scripts\\kodjo\\run-local-claude.js",
+  "missing_authority": {
+    "refused": true,
+    "exit_code": 1,
+    "diagnostic": "VNEXT_LOCAL_QUEUE_AUTHORITY_REQUIRED"
+  },
+  "missing_review_proof": {
+    "refused": true,
+    "exit_code": 1,
+    "diagnostic": "VNEXT_QUEUE_ADMISSION_REQUEST_MISMATCH"
+  },
+  "runtime_state_created": false,
+  "claude_invoked": false
+}

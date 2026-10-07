@@ -1,0 +1,154 @@
+{
+  "observed_at": "2026-10-05T12:34:07.510Z",
+  "run": {
+    "id": 37307334832,
+    "repository": {
+      "id": 1322287555,
+      "node_id": "R_kgDOTtCBww",
+      "name": "Application-Routine",
+      "full_name": "MyUncried/Application-Routine",
+      "private": false,
+      "owner": {
+        "login": "MyUncried",
+        "id": 312719496,
+        "node_id": "U_kgDOEqO4iA",
+        "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/MyUncried",
+        "html_url": "https://github.com/MyUncried",
+        "followers_url": "https://api.github.com/users/MyUncried/followers",
+        "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+        "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+        "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+        "repos_url": "https://api.github.com/users/MyUncried/repos",
+        "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "html_url": "https://github.com/MyUncried/Application-Routine",
+      "description": "Application Routine",
+      "fork": false,
+      "url": "https://api.github.com/repos/MyUncried/Application-Routine",
+      "forks_url": "https://api.github.com/repos/MyUncried/Application-Routine/forks",
+      "keys_url": "https://api.github.com/repos/MyUncried/Application-Routine/keys{/key_id}",
+      "collaborators_url": "https://api.github.com/repos/MyUncried/Application-Routine/collaborators{/collaborator}",
+      "teams_url": "https://api.github.com/repos/MyUncried/Application-Routine/teams",
+      "hooks_url": "https://api.github.com/repos/MyUncried/Application-Routine/hooks",
+      "issue_events_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/events{/number}",
+      "events_url": "https://api.github.com/repos/MyUncried/Application-Routine/events",
+      "assignees_url": "https://api.github.com/repos/MyUncried/Application-Routine/assignees{/user}",
+      "branches_url": "https://api.github.com/repos/MyUncried/Application-Routine/branches{/branch}",
+      "tags_url": "https://api.github.com/repos/MyUncried/Application-Routine/tags",
+      "blobs_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/blobs{/sha}",
+      "git_tags_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/tags{/sha}",
+      "git_refs_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/refs{/sha}",
+      "trees_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/trees{/sha}",
+      "statuses_url": "https://api.github.com/repos/MyUncried/Application-Routine/statuses/{sha}",
+      "languages_url": "https://api.github.com/repos/MyUncried/Application-Routine/languages",
+      "stargazers_url": "https://api.github.com/repos/MyUncried/Application-Routine/stargazers",
+      "contributors_url": "https://api.github.com/repos/MyUncried/Application-Routine/contributors",
+      "subscribers_url": "https://api.github.com/repos/MyUncried/Application-Routine/subscribers",
+      "subscription_url": "https://api.github.com/repos/MyUncried/Application-Routine/subscription",
+      "commits_url": "https://api.github.com/repos/MyUncried/Application-Routine/commits{/sha}",
+      "git_commits_url": "https://api.github.com/repos/MyUncried/Application-Routine/git/commits{/sha}",
+      "comments_url": "https://api.github.com/repos/MyUncried/Application-Routine/comments{/number}",
+      "issue_comment_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/comments{/number}",
+      "contents_url": "https://api.github.com/repos/MyUncried/Application-Routine/contents/{+path}",
+      "compare_url": "https://api.github.com/repos/MyUncried/Application-Routine/compare/{base}...{head}",
+      "merges_url": "https://api.github.com/repos/MyUncried/Application-Routine/merges",
+      "archive_url": "https://api.github.com/repos/MyUncried/Application-Routine/{archive_format}{/ref}",
+      "downloads_url": "https://api.github.com/repos/MyUncried/Application-Routine/downloads",
+      "issues_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues{/number}",
+      "pulls_url": "https://api.github.com/repos/MyUncried/Application-Routine/pulls{/number}",
+      "milestones_url": "https://api.github.com/repos/MyUncried/Application-Routine/milestones{/number}",
+      "notifications_url": "https://api.github.com/repos/MyUncried/Application-Routine/notifications{?since,all,participating}",
+      "labels_url": "https://api.github.com/repos/MyUncried/Application-Routine/labels{/name}",
+      "releases_url": "https://api.github.com/repos/MyUncried/Application-Routine/releases{/id}",
+      "deployments_url": "https://api.github.com/repos/MyUncried/Application-Routine/deployments"
+    },
+    "head_sha": "73787f296d78ab3c435fa04ef993f0ef8382141f",
+    "path": ".github/workflows/kodjo-vnext-proof-stability.yml",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "run_attempt": 1
+  },
+  "jobs": [
+    {
+      "id": 111754077443,
+      "name": "historical-equivalence (ubuntu-latest)",
+      "head_sha": "73787f296d78ab3c435fa04ef993f0ef8382141f",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 111754077598,
+      "name": "historical-equivalence (windows-latest)",
+      "head_sha": "73787f296d78ab3c435fa04ef993f0ef8382141f",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 111754077744,
+      "name": "qualification (windows-latest)",
+      "head_sha": "73787f296d78ab3c435fa04ef993f0ef8382141f",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 111754077752,
+      "name": "qualification (ubuntu-latest)",
+      "head_sha": "73787f296d78ab3c435fa04ef993f0ef8382141f",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 111760490173,
+      "name": "architecture-audit",
+      "head_sha": "73787f296d78ab3c435fa04ef993f0ef8382141f",
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    {
+      "id": 111763675753,
+      "name": "historical-platform-coverage",
+      "head_sha": "73787f296d78ab3c435fa04ef993f0ef8382141f",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "windows_tests": {
+    "tests": 305,
+    "pass": 305,
+    "fail": 0,
+    "skip": 0,
+    "job_id": 111754077744,
+    "raw_log_sha256": "f488acb02b88ec30ba230a331e7aee2f8d42cfa228f91590c467897901c53d64",
+    "path": "final-windows-qualification.log.gz"
+  },
+  "driver": {
+    "run_id": 37307334666,
+    "head": "73787f296d78ab3c435fa04ef993f0ef8382141f",
+    "status": "completed",
+    "conclusion": "success",
+    "ubuntu_job_id": 111754540847,
+    "windows_job_id": 111754540914,
+    "real_initial": "skipped"
+  },
+  "artifacts": [
+    {
+      "id": 11345023956,
+      "name": "historical-equivalence-Windows",
+      "digest": "sha256:35ada0c8089289bbceb3ada571e46152201a15a56a1c181da067b5fcda957434"
+    },
+    {
+      "id": 11344028548,
+      "name": "historical-equivalence-Linux",
+      "digest": "sha256:f100f7ad16ae7c006c9e5ea49ddc89266812886c1b9219ee225596429f5d639e"
+    }
+  ]
+}

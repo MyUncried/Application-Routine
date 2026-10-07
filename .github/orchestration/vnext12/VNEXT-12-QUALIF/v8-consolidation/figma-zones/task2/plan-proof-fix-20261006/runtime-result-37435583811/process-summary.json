@@ -1,0 +1,15 @@
+{
+  "timeout_ms": 7200000,
+  "input_bytes": 774512,
+  "target_count": 436,
+  "started_at": "2026-10-06T08:23:05.986Z",
+  "invocation_completed": true,
+  "review_accepted": true,
+  "status": 0,
+  "signal": null,
+  "finished_at": "2026-10-06T08:31:27.783Z",
+  "duration_ms": 501598,
+  "error_code": null,
+  "error": null,
+  "checkout_unchanged": true
+}

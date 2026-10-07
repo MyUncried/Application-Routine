@@ -1,0 +1,72 @@
+{
+  "approved": {
+    "status": "VERIFIED",
+    "candidate_head": "16b70bab70fad2adc64b0ea7a0069cbc206eee17",
+    "run_id": "37139109523",
+    "run_attempt": 1,
+    "jobs": [
+      {
+        "id": 111249664990,
+        "name": "qualification (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 111249665055,
+        "name": "qualification (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 111249665095,
+        "name": "historical-equivalence (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 111249665117,
+        "name": "historical-equivalence (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 111252371335,
+        "name": "historical-platform-coverage",
+        "conclusion": "success"
+      }
+    ],
+    "observed_at": "2026-10-03T17:54:35.821Z"
+  },
+  "controller": {
+    "status": "VERIFIED",
+    "candidate_head": "16b70bab70fad2adc64b0ea7a0069cbc206eee17",
+    "run_id": "37139109523",
+    "run_attempt": 1,
+    "jobs": [
+      {
+        "id": 111249664990,
+        "name": "qualification (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 111249665055,
+        "name": "qualification (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 111249665095,
+        "name": "historical-equivalence (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 111249665117,
+        "name": "historical-equivalence (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 111252371335,
+        "name": "historical-platform-coverage",
+        "conclusion": "success"
+      }
+    ],
+    "observed_at": "2026-10-03T17:54:35.821Z",
+    "controller_head": "88b9c75f4f587438340aeb604eb233bf31afaee5",
+    "relation": "EXACT_SAME_PROTOCOL_CODE"
+  }
+}

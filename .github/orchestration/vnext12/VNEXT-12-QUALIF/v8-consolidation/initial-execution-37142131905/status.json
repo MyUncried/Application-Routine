@@ -1,0 +1,16 @@
+{
+  "schema_version": "kodjo.vnext.disposable-initial-evidence.v1",
+  "approved_protocol_head": "16b70bab70fad2adc64b0ea7a0069cbc206eee17",
+  "controller_head": "88b9c75f4f587438340aeb604eb233bf31afaee5",
+  "gate_ref": "issue_comment:5971337496",
+  "approval_target_hash": "a606e75fcb7a9bd07838c0479be0ffd939772df48e11aeb7453265aca57f5e21",
+  "revision_limit": 1,
+  "implementation_invoked": true,
+  "application_published": false,
+  "pre1_in_scope": false,
+  "final_audit_invoked": false,
+  "initial_status": "IMPLEMENTED_AND_VERIFIED",
+  "verdict": "INITIAL_PASS",
+  "planning_mode": "INITIAL",
+  "disposable_cleanup": true
+}

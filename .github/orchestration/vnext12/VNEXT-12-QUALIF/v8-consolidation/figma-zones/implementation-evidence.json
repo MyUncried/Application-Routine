@@ -1,0 +1,177 @@
+{
+  "schema_version": "kodjo.vnext.figma-implementation-evidence.v1",
+  "recorded_at": "2026-10-05T01:28:34.491733+00:00",
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "parent_head": "978d78198b27c55e56bff71a3dd0c310f5a3a50e",
+  "status": "LOCAL_LINUX_PASS_REMOTE_QUALIFICATION_PENDING",
+  "reference_hash": "84e4759b5a160bef1aa591a7b8800ac6e070bebe2d3851e50e1fe14432af2981",
+  "inventory": {
+    "frame_nodes": 149,
+    "master_nodes": 73,
+    "nodes": 222,
+    "property_slots": 8425,
+    "required_properties": 1237,
+    "required_elements": 79,
+    "required_measurement_rows": 1239,
+    "documentary_obligations": 24,
+    "variables_including_aliases": 50,
+    "resources": 4
+  },
+  "transport": {
+    "json_bytes": 3373987,
+    "compact_json_bytes": 612126,
+    "reduction_percent": 81.85748789192134,
+    "lossless_roundtrip": true,
+    "claude_duration_improvement": "NOT_MEASURED"
+  },
+  "checks": [
+    {
+      "command": "node --test tests/kodjo/vnext-*.pilot.js",
+      "tests": 286,
+      "pass": 286,
+      "fail": 0,
+      "skipped": 0,
+      "log": "tests-linux.log"
+    },
+    {
+      "command": "node --test tests/kodjo/vnext-ui-atomicity.pilot.js tests/kodjo/vnext-figma-source.pilot.js",
+      "tests": 26,
+      "pass": 26,
+      "fail": 0,
+      "skipped": 0,
+      "log": "tests-ui-figma-linux.log"
+    },
+    {
+      "command": "python scripts/kodjo/validate-workflow-syntax.py",
+      "workflows_accepted": 64,
+      "status": "PASS"
+    },
+    {
+      "command": "node scripts/kodjo/validate-workflows.js",
+      "status": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "status": "PASS"
+    },
+    {
+      "command": "build-snapshot.build() reference hash comparison",
+      "status": "PASS"
+    }
+  ],
+  "code_files": [
+    {
+      "path": "scripts/kodjo/consume-vnext-figma.js",
+      "byte_length": 556,
+      "sha256": "a18f5c2bdd82844b3879ce259bf65c5daba7313cd64b13484b72c904046c7de5"
+    },
+    {
+      "path": "scripts/kodjo/freeze-vnext-figma.js",
+      "byte_length": 1992,
+      "sha256": "d789a88b06600f9ed2d3b5da29231e26f80a93f340c7c27f7788a7508d7d9207"
+    },
+    {
+      "path": "scripts/kodjo/lib/ui-atomicity-contract.js",
+      "byte_length": 21887,
+      "sha256": "551b49ae2ddc3833ebff5a44c62959fb1226a471e712841f269deb3571ce2fa2"
+    },
+    {
+      "path": "scripts/kodjo/lib/vnext-figma-source.js",
+      "byte_length": 24589,
+      "sha256": "efd998b66b1f618838c8c5ca52f6a876ace19be60db0e18ca298cb327bb89471"
+    },
+    {
+      "path": "scripts/kodjo/lib/vnext-legacy-queue-adapter.js",
+      "byte_length": 26917,
+      "sha256": "01e0a38ae8c5ca9f14c9f214bb3cb4f407a0fb0150c315f68491d3e380c43855"
+    },
+    {
+      "path": "scripts/kodjo/lib/vnext-live-chain.js",
+      "byte_length": 47827,
+      "sha256": "0e8c42229745a72422c514a2b4ba248f785ec601cbe997664a9e1384bf09d131"
+    },
+    {
+      "path": "scripts/kodjo/lib/vnext-runtime-plan.js",
+      "byte_length": 10397,
+      "sha256": "179b0d01938c757338c6efc5cbcd6f97bbb6d4c73a08886339c3fe466f1c9450"
+    },
+    {
+      "path": "tests/kodjo/helpers/vnext-figma-fixture.js",
+      "byte_length": 12856,
+      "sha256": "70b1cf6b9b38df208d65440dad2baa9c90340f1465476d549814592d3f330317"
+    },
+    {
+      "path": "tests/kodjo/vnext-figma-source.pilot.js",
+      "byte_length": 11681,
+      "sha256": "b6136b33a00019b021c0c8deb79452e322b0c94de1577e10feac5c3c98e0f585"
+    }
+  ],
+  "source_files": [
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/fresh-frame.json",
+      "byte_length": 442223,
+      "sha256": "1729c56571491aecd72f635232c412ebfdbdcb8f4a630b4a80ee5543866a3bd2"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/master-closure.json",
+      "byte_length": 174382,
+      "sha256": "e3df1cfaf5f001a26aea745a95b30784d09e675ddeac43c82635302c05e030ed"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/master-details.json",
+      "byte_length": 26858,
+      "sha256": "8006d57ac3e69b9be70733d25c769a1cd35349101fd0a3881d8c3fe755bf22d6"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/variable-closure.json",
+      "byte_length": 27512,
+      "sha256": "3b2018b2608710a0c0d906093f4a3ad4b598a4bdaa19e3002b95df1f2cf0e8a6"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/documentary-current.json",
+      "byte_length": 5768,
+      "sha256": "74713f1473c32e35cb9db6fd7e1d49167d120386c3286498eea7b2fa94324699"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/frame-current.png",
+      "byte_length": 86951,
+      "sha256": "740962f17a355f8cc1fe208e2cdf0639bad3709430849f12d3dd4f4c76ec5649"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/actions.json",
+      "byte_length": 3059,
+      "sha256": "24d1a525a418e2bde9a032ffd672f99fbf5dd0cd70945917979da2a64f206e6d"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/build-snapshot.js",
+      "byte_length": 9119,
+      "sha256": "7754e8797e2386b1e67e41f9ba87e28c9420ee557eef7882730d4f3f9527f671"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/frozen-source.json",
+      "byte_length": 4519795,
+      "sha256": "6b0078efc3ee019fd4c7fc7bbbb12b6db83cd35cf2b66cd89fd7b9cf1b164f45"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/tests-linux.log",
+      "byte_length": 102389,
+      "sha256": "0418771db6f54244b0073585d236c1afdb338c409f106d049fb35534e7c5033c"
+    },
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/tests-ui-figma-linux.log",
+      "byte_length": 10693,
+      "sha256": "dfcca0dd76dfd243ae49c5331b9bf594a4459fce31aa976db02e9ae3b390ce53"
+    }
+  ],
+  "real_claude_invoked": false,
+  "real_device_proofs": "NOT_EXECUTED",
+  "reviewer_service_in_tests": "INJECTED",
+  "approval_service_in_tests": "INJECTED",
+  "implementation_reviewer_automatic_hook": "NOT_CONNECTED_SHARED_V2_WORKFLOW_UNCHANGED",
+  "new_campaign": false,
+  "workflow_changes": 0,
+  "v2_pre2_changes": 0,
+  "promotion_authorized": false,
+  "superseded_candidate": "c6bbacad6f3f959dd396be18dcb8753596d4e935",
+  "supersession_reason": "Second pass demonstrated two fixed UI labels wrongly classified as demo data; corrected title and create action only."
+}

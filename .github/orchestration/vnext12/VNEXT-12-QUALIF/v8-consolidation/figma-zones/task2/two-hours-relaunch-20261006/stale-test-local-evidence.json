@@ -1,0 +1,10 @@
+{
+  "tests": 16,
+  "pass": 16,
+  "fail": 0,
+  "skip": 0,
+  "expected_timeout_ms": 7200000,
+  "historical_case_bindings_changed": 0,
+  "scope": "TEST_ASSERTION_ONLY",
+  "logs_sha256": "9b998f598e9d5615d08bba2c2c9cf2321b1ef6ceae056881dd9813b59ff20eac"
+}

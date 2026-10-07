@@ -1,0 +1,26 @@
+{
+  "contract_id": "kodjo.vnext.disposable-functional.v1",
+  "test_path": "tests/ui.test.js",
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "tests/ui.test.js"
+  ],
+  "source_sha256": {
+    "src/features/example/Screen.js": "64e776567728e3f486ce3162f448cabd50182823e1530718c01547ef616e41cb",
+    "tests/ui.test.js": "bf82a7b46f9607e1ea6e754e5ff04b30160a1713e85070b5743dcf5493ff9a3c",
+    "src/shared/ui/Existing.js": "22de78c984ee61c2d554310eb3c8f5578e55847cba15428adc3eaf21de884ddb"
+  },
+  "started_at": "2026-10-06T19:22:03.964Z",
+  "status": "PASS",
+  "scenario_status_source": "ISOLATED_NODE_TRANSITIONS",
+  "role": "SEPARATE_NODE_GATE_NOT_PER_SCENARIO_OUTPUT",
+  "preservation_probe": {
+    "status": "PASS",
+    "normal_identity": true,
+    "sentinel_identity": true,
+    "independent_child_process": true
+  },
+  "exit_code": 0,
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "completed_at": "2026-10-06T19:22:04.201Z"
+}

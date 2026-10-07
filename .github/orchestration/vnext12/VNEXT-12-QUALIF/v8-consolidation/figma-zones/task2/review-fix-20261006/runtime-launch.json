@@ -1,0 +1,36 @@
+{
+  "observed_at": "2026-10-05T23:59:59.412Z",
+  "controller_head": "297c875f3bad9c95a1ad004b18bea933ae4763f0",
+  "qualified_head": "434adeef6d42e861a3dbee7c6236e77cc1ba74f9",
+  "qualification_run": 37390574772,
+  "request_id": "7576668a-8e6a-4678-a9b9-36698847d7f1",
+  "request_generation": 50,
+  "launch_count": 1,
+  "runtime": {
+    "run_id": 37391444927,
+    "job_id": 112037283221,
+    "job_status": "in_progress",
+    "runner": "KODJO-LOCAL-RUNNER",
+    "current_step": "Qualify admission then execute the disposable Figma path once",
+    "conclusion": null,
+    "claim_verified": false,
+    "claude_activity_verified": false
+  },
+  "active_runs": [
+    {
+      "id": 37391445116,
+      "status": "in_progress",
+      "path": ".github/workflows/kodjo-v2-pilot-tests.yml"
+    },
+    {
+      "id": 37391445079,
+      "status": "in_progress",
+      "path": ".github/workflows/kodjo-vnext-proof-stability.yml"
+    },
+    {
+      "id": 37391444927,
+      "status": "in_progress",
+      "path": ".github/workflows/kodjo-vnext12-disposable.yml"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "user_confirmed_pc_off": true,
+  "recovery_run": 37453377364,
+  "reservation_recovered": true,
+  "temporary_evidence_exists": false,
+  "runner_cleanup_utc": "2026-10-06T10:52:52Z",
+  "fixture_head": "2de535bddc717efe2073f7d675c341b7f4e9e14c",
+  "fixture_status_clean": true,
+  "fixture_screen": "const {Existing}=require('../../shared/ui/Existing');module.exports={Existing};\n",
+  "claude_verdict": "UNAVAILABLE",
+  "raw_recovery_zip_sha256": "16eae3a2a9e1f5d018d272fda95abab6439d57c56bf28ed54b765d807e5ad454"
+}

@@ -65,7 +65,7 @@ function normalizeModules(input) {
     if (!item || typeof item !== 'object') fail('PLAN_SCAN_PATH_INVALID', 'module invalide');
     const modulePath = normalizeRepoPath(item.path, 'modified_module');
     const change = String(item.change || 'MODIFY').toUpperCase();
-    if (!['MODIFY', 'CREATE'].includes(change)) fail('PLAN_SCOPE_CONTRADICTION', 'change inconnu pour ' + modulePath);
+    if (!['MODIFY', 'CREATE', 'DELETE'].includes(change)) fail('PLAN_SCOPE_CONTRADICTION', 'change inconnu pour ' + modulePath);
     if (seen.has(modulePath)) fail('PLAN_SCOPE_CONTRADICTION', 'module duplique: ' + modulePath);
     seen.add(modulePath);
     return { path: modulePath, change };
@@ -88,7 +88,8 @@ function extractSpecifiers(source) {
 
 function resolveSpecifier(importer, specifier, fileSet) {
   let base;
-  if (specifier.startsWith('@/')) base = 'src/' + specifier.slice(2);
+  if (specifier.startsWith('@/assets/')) base = 'assets/' + specifier.slice(9);
+  else if (specifier.startsWith('@/')) base = 'src/' + specifier.slice(2);
   else if (specifier.startsWith('.')) {
     base = path.posix.normalize(path.posix.join(path.posix.dirname(importer), specifier));
     if (base === '..' || base.startsWith('../')) fail('PLAN_SCAN_PATH_AMBIGUOUS', importer + ' -> ' + specifier);
@@ -98,8 +99,8 @@ function resolveSpecifier(importer, specifier, fileSet) {
   const add = (candidate) => { if (fileSet.has(candidate)) candidates.push(candidate); };
   add(base);
   if (!SOURCE_EXTENSIONS.some((ext) => base.endsWith(ext))) {
-    for (const ext of SOURCE_EXTENSIONS) add(base + ext);
-    for (const ext of SOURCE_EXTENSIONS) add(base + '/index' + ext);
+    for (const ext of [...SOURCE_EXTENSIONS, '.json']) add(base + ext);
+    for (const ext of [...SOURCE_EXTENSIONS, '.json']) add(base + '/index' + ext);
   }
   const unique = [...new Set(candidates)].sort(compareText);
   if (unique.length > 1) fail('PLAN_SCAN_PATH_AMBIGUOUS', importer + ' -> ' + specifier + ': ' + unique.join(', '));
@@ -119,20 +120,20 @@ function scanDirectImporters(options) {
   if (!/^[0-9a-f]{40}$/i.test(revision)) fail('PLAN_SCAN_STALE', 'revision Git invalide: ' + revision);
   git(['cat-file', '-e', revision + '^{commit}'], cwd);
   const modules = normalizeModules(options.modifiedModules);
-  const rawTree = git(['ls-tree', '-r', '-z', revision, '--', 'app', 'src'], cwd, 'buffer');
+  const rawTree = git(['ls-tree', '-r', '-z', revision, '--', 'app', 'src', 'assets', 'tsconfig.json'], cwd, 'buffer');
   const applicationTreeSha256 = crypto.createHash('sha256').update(rawTree).digest('hex');
-  const rawFiles = git(['ls-tree', '-r', '--name-only', '-z', revision, '--', 'app', 'src'], cwd, 'buffer');
+  const rawFiles = git(['ls-tree', '-r', '--name-only', '-z', revision, '--', 'app', 'src', 'assets'], cwd, 'buffer');
   const files = rawFiles.toString('utf8').split('\0').filter(Boolean).map((file) => normalizeRepoPath(file)).sort(compareText);
   const fileSet = new Set(files);
   for (const module of modules) {
-    if (module.change === 'MODIFY' && !fileSet.has(module.path)) {
+    if (['MODIFY', 'DELETE'].includes(module.change) && !fileSet.has(module.path)) {
       fail('PLAN_SCAN_PATH_INVALID', 'module MODIFY absent a ' + revision + ': ' + module.path);
     }
     if (module.change === 'CREATE' && fileSet.has(module.path)) {
       fail('PLAN_SCOPE_CONTRADICTION', 'module CREATE existe deja: ' + module.path);
     }
   }
-  const targetSet = new Set(modules.filter((module) => module.change === 'MODIFY').map((module) => module.path));
+  const targetSet = new Set(modules.filter((module) => module.change !== 'CREATE').map((module) => module.path));
   const candidates = [];
   for (const file of files) {
     if (!SOURCE_EXTENSIONS.some((ext) => file.endsWith(ext))) continue;

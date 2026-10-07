@@ -1,0 +1,31 @@
+{
+  "scope": "TASK2_REVIEW_ONLY",
+  "real_claude_calls": 0,
+  "timeout_ms": 600000,
+  "targeted_tests": {
+    "tests": 27,
+    "pass": 27,
+    "fail": 0,
+    "skip": 0
+  },
+  "full_local_tests": {
+    "tests": 334,
+    "pass": 333,
+    "fail": 0,
+    "skip": 1,
+    "skip_reason": "Browser binary unavailable in this execution workspace; remote Linux/Windows real-browser qualification required"
+  },
+  "offline_profile_on_previous_produced": {
+    "compact_before_bytes": 1078245,
+    "materialized_after_bytes": 755364,
+    "consumer_count": 28,
+    "canonical_reconstruction_verified": true,
+    "candidate_substitution": "REFUSED"
+  },
+  "logs_sha256": {
+    "local-targeted.log": "9f421d54b447ad8d203182aa20914d33393e41c47ff0861f6011c2f5fc2fcd34",
+    "local-full.log": "aad7d41fb6686020cf699597763f047bc77540271dca0d36f4c5e54d6ce5a516"
+  },
+  "log_archive_sha256": "4cc18a1deb4c7b00d28cd209dee7fb68296b129c38a77e8c4e64ff4843630f62",
+  "archive_reason": "Preserve raw log bytes including whitespace without introducing source patch whitespace errors"
+}

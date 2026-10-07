@@ -153,7 +153,6 @@ test('0.6.29 — les frontières aval de la revue initiale sont ordonnées et ut
 
   for (const source of [initial,historical]) {
     for (const token of [
-      "@('-p','--output-format','json','--dangerously-skip-permissions')",
       'if (!$json.session_id -or !$json.result)',
       'KODJO_REVIEW_FINDINGS_JSON',
       'normalize-review-findings.js',
@@ -162,6 +161,11 @@ test('0.6.29 — les frontières aval de la revue initiale sont ordonnées et ut
       'gh api --method POST',
     ]) assert.ok(source.includes(token), `review no longer proves structured boundary: ${token}`);
   }
+  assert.match(initial,/node \$reviewCli \$promptFile \$out \$err \$claudeBinary/);
+  const reviewCli=read('scripts/kodjo/run-plan-review-cli.js');
+  assert.match(reviewCli,/--output-format/);
+  assert.match(reviewCli,/json/);
+  assert.match(historical,/@\('-p','--output-format','json','--dangerously-skip-permissions'\)/);
   assert.match(initial,/kodjo-v2-plan-handoff-materialize\.yml/);
   assert.match(initial,/kodjo-v2-slice-initial-plan\.yml/);
   assert.match(historical,/kodjo-v2-plan-handoff-materialize\.yml/);

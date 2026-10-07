@@ -81,7 +81,7 @@ test('workflow pilote qualifie et archive le HEAD de PR, pas le merge temporaire
   const expected = 'ref: ${{ github.event.pull_request.head.sha || github.sha }}';
   assert.equal(workflow.split(expected).length - 1, 3);
   assert.match(workflow, /test "\$\(git rev-parse HEAD\)" = "\$SOURCE_SHA"/);
-  assert.doesNotMatch(workflow, /kodjo-v2-complete-source-/);
+  assert.match(workflow, /if: github.event_name == 'workflow_dispatch' && inputs.preserve_complete_source == true/);
   assert.match(workflow, /Record immutable qualification identity/);
   assert.match(workflow, /source_tree_manifest_sha256/);
 });
@@ -148,7 +148,8 @@ test('qualification jetable: cache Jest isolée et cache lint désactivée dans 
   assert.match(pilotWorkflow,/full_required: \$\{\{ steps\.change_class\.outputs\.full_required \}\}/);
   assert.match(pilotWorkflow,/if: needs\.classify\.outputs\.full_required == 'true'/);
   assert.ok(pilotWorkflow.includes("if: needs.protocol.outputs.full_windows_required == 'true'"));
-  assert.ok(pilotWorkflow.includes('timeout-minutes: 25'));
+  const windowsJob = pilotWorkflow.split('  protocol-windows-preflight:')[1].split('\n  disposable-qualification:')[0];
+  assert.match(windowsJob, /timeout-minutes: 60/);
   assert.match(pilotWorkflow, /needs: \[protocol, protocol-windows-preflight\]/);
 });
 

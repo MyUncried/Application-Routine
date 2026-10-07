@@ -1,0 +1,113 @@
+{
+  "observed_at": "2026-10-05T10:26:02.942Z",
+  "candidate_head": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed",
+  "run": {
+    "id": 37293649217,
+    "path": ".github/workflows/kodjo-vnext-proof-stability.yml",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "run_attempt": 1,
+    "head_sha": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37293649217",
+    "created_at": "2026-10-05T09:59:33Z",
+    "updated_at": "2026-10-05T10:23:52Z",
+    "repository": {
+      "full_name": "MyUncried/Application-Routine"
+    }
+  },
+  "jobs": [
+    {
+      "id": 111709703268,
+      "name": "qualification (windows-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37293649217/job/111709703268",
+      "started_at": "2026-10-05T09:59:36Z",
+      "completed_at": "2026-10-05T10:17:54Z",
+      "runner_name": "GitHub Actions 1000001642"
+    },
+    {
+      "id": 111709703549,
+      "name": "historical-equivalence (ubuntu-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37293649217/job/111709703549",
+      "started_at": "2026-10-05T09:59:37Z",
+      "completed_at": "2026-10-05T10:02:50Z",
+      "runner_name": "GitHub Actions 1000001643"
+    },
+    {
+      "id": 111709703559,
+      "name": "historical-equivalence (windows-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37293649217/job/111709703559",
+      "started_at": "2026-10-05T09:59:37Z",
+      "completed_at": "2026-10-05T10:23:33Z",
+      "runner_name": "GitHub Actions 1000001646"
+    },
+    {
+      "id": 111709703629,
+      "name": "qualification (ubuntu-latest)",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37293649217/job/111709703629",
+      "started_at": "2026-10-05T09:59:36Z",
+      "completed_at": "2026-10-05T10:01:49Z",
+      "runner_name": "GitHub Actions 1000001644"
+    },
+    {
+      "id": 111716202734,
+      "name": "architecture-audit",
+      "status": "completed",
+      "conclusion": "skipped",
+      "head_sha": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37293649217/job/111716202734",
+      "started_at": "2026-10-05T10:17:55Z",
+      "completed_at": "2026-10-05T10:17:55Z",
+      "runner_name": null
+    },
+    {
+      "id": 111718158651,
+      "name": "historical-platform-coverage",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "d5d14c1cb6a9f490a03e35a8047f83ed064dbbed",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37293649217/job/111718158651",
+      "started_at": "2026-10-05T10:23:39Z",
+      "completed_at": "2026-10-05T10:23:51Z",
+      "runner_name": "GitHub Actions 1000001649"
+    }
+  ],
+  "log_summaries": {
+    "qualification_ubuntu": {
+      "tests": 305,
+      "pass": 305,
+      "fail": 0,
+      "skipped": 0
+    },
+    "qualification_windows": {
+      "tests": 305,
+      "pass": 305,
+      "fail": 0,
+      "skipped": 0
+    },
+    "driver_windows": {
+      "tests": 305,
+      "pass": 305,
+      "fail": 0,
+      "skipped": 0
+    },
+    "platform_coverage": {
+      "status": "MAPPED_ASSERTIONS_PASS_ON_AT_LEAST_ONE_PLATFORM",
+      "case_count": 402,
+      "individual_equivalence_proven": false,
+      "readiness": "NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT"
+    }
+  }
+}

@@ -1,0 +1,211 @@
+✔ disposable: persisted request/session and typed receipt precede execution, across distinct processes (215.539104ms)
+✔ disposable: concurrent real Git create-ref operations permit one execution only (140.020936ms)
+✔ disposable: lost-response never authorizes or releases consumption (46.000262ms)
+✔ disposable: bad-readback never authorizes or releases consumption (37.602415ms)
+✔ disposable: disk-after-consumption never authorizes or releases consumption (47.468298ms)
+✔ disposable refuses wrong HEAD before remote effects (24.226357ms)
+✔ disposable refuses session absent before remote effects (24.759792ms)
+✔ disposable refuses production context before remote effects (28.264703ms)
+✔ disposable refuses attempt 2 before remote effects (22.692532ms)
+✔ disposable refuses restart cannot impersonate queue before remote effects (23.269798ms)
+✔ disposable refuses resume wrong session before remote effects (23.48296ms)
+✔ disposable wiring: preflight exits before enabling consumption; token is removed before any Claude command (0.589159ms)
+﹣ native request generator: exact RESUME causality, new ids, missing provenance and INITIAL retry refused (0.095053ms) # Native PowerShell required; executed on Windows CI
+✔ durable permission declaration refuses another job, global scope, credentials and functional writes (3.421856ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ frozen workflow consumer prepares and validates retained delivery criteria independently of application code (640.930596ms)
+✔ delivered criterion outside correction scope is reviewed and finalized without expanding write authority (786.274243ms)
+✔ real modification outside correction scope is refused even if mentioned by a delivered criterion (148.499986ms)
+✔ regression in a retained previously conforming criterion blocks approval and finalization (569.683541ms)
+✔ delivery evidence rejects wrong authors, altered proof binding and incomplete retained coverage (63.306172ms)
+✔ atomic retained assertions keep coverage through planning review and implementation finalization (444.792231ms)
+✔ a changed criterion requires the profile in the explicit correction scope and replaces its old version (237.178837ms)
+✔ a subsequent correction observes the complete delivered matrix, including retained criteria (78.848409ms)
+✔ incident 1: admitted accessibility waiting closes functionally with original reserves and no fabricated PASS (85.565806ms)
+✔ incident 1: actual accessibility PASS remains technical PASS without asking for a visual gate (81.949426ms)
+✔ incident 1: existing scoped non-UI waiver is reused without a second human gate (89.315021ms)
+✔ incident 1: functional FAIL cannot be waived by the owner (58.603047ms)
+✔ incident 1: functional NON_VERIFIABLE cannot be waived by the owner (65.740338ms)
+✔ incident 1: functional PENDING_DEVICE cannot be waived by the owner (69.725513ms)
+✔ incident 1: missing technical proof, missing pending resolution and invented reserves are refused (94.201672ms)
+✔ incident 2: initial and multiple corrections keep cumulative delivery separate from last increment (81.817872ms)
+✔ incident 2: previously delivered but subsequently deleted file is refused even with a stale green review (102.565713ms)
+✔ incident 2: retained regression and inherited PASS do not close (51.130021ms)
+✔ incident 2: unrelated baseline, missing target and different approved head are refused (120.802424ms)
+✔ incident 3: technical restart retains exact original decision and reserves, rejects a different delivery (100.629816ms)
+✔ incident 3: interrupted local closure resumes without duplicate or overwriting a different closure (70.914092ms)
+✔ incident 3: script fix reuses the operation, workflow fix requires a new event, runtime fix requires new handoff (0.470951ms)
+✔ incident 3: observer reads actual Git workflow and source bytes and rejects old workflow or working-copy drift (123.06511ms)
+✔ VNext entry reads the approved Git plan and actual comment bindings instead of trusting a supplied review object (126.872663ms)
+✔ targeted continuation preserves the existing campaign and disables runtime/qualification routes (1.103806ms)
+✔ incident 3: corrected controller script is actually observed with an unchanged workflow and immutable approved runtime (119.542988ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+▶ post-acceptance revision integration uses owner gaps, preserves APPROVE and prepares an authorized correction
+  ✔ nominal: approved delivery -> acceptance gaps -> revision -> review -> immutable plan -> runtime admission (950.320167ms)
+  ✔ owner identity, issue, exact delivered head and old review identity are mandatory (0.402047ms)
+  ✔ a genuine correction outside the owner-authorized paths is refused (1.268565ms)
+  ✔ missing, duplicate or unresolved gap resolutions cannot yield an approved revised plan (2.315586ms)
+  ✔ technical failures and omitted retained assertions cannot enter the pre-closure baseline (1.105008ms)
+  ✔ the old approved plan bytes and independent receipt remain bound, not replaceable by a fake REVISE (721.281839ms)
+  ✔ recovery revalidates the saved response without another model call or a new approval target (384.968037ms)
+✔ post-acceptance revision integration uses owner gaps, preserves APPROVE and prepares an authorized correction (4041.077124ms)
+✔ lost reservation response after server creation is reconciled without a second POST (4.110836ms)
+✔ unknown reservation and duplicate exact remote matches stop without another creation (3.117817ms)
+✔ reservation keeps the raw server response before final receipt persistence (1.236837ms)
+✔ lost approval PATCH response reuses the exact reserved comment without resetting its timestamp (1.09946ms)
+✔ CLI approval requires the reserved gate and handoff cannot silently mint a new retry identity (1.593415ms)
+✔ valid response survives validation archival failure and recovers exact bytes without a new model call (929.246614ms)
+✔ delivery correction cannot be routed as INITIAL and a REVISION cannot prepare without its causal evidence (979.852745ms)
+✔ a decision source requires the actual owner and exact repository/issue before planning (1.393995ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ accessibility PASS: real review CLI -> exact user approval -> finalization -> VNext retained baseline (206.79579ms)
+✔ accessibility PENDING_DEVICE: real review CLI -> exact user approval -> finalization -> VNext retained baseline (407.003509ms)
+✔ review proof policy FUNCTIONAL_TEST / PASS (256.476202ms)
+✔ review proof policy FUNCTIONAL_TEST / FAIL (239.766998ms)
+✔ review proof policy FUNCTIONAL_TEST / NON_VERIFIABLE (246.774537ms)
+✔ review proof policy FUNCTIONAL_TEST / PENDING_DEVICE (238.523466ms)
+✔ review proof policy STATIC_ANALYSIS / PASS (227.569389ms)
+✔ review proof policy STATIC_ANALYSIS / FAIL (216.956914ms)
+✔ review proof policy STATIC_ANALYSIS / NON_VERIFIABLE (215.414ms)
+✔ review proof policy STATIC_ANALYSIS / PENDING_DEVICE (210.59538ms)
+✔ review proof policy VISUAL_COMPARE / PASS (205.087241ms)
+✔ review proof policy VISUAL_COMPARE / FAIL (216.738498ms)
+✔ review proof policy VISUAL_COMPARE / NON_VERIFIABLE (214.799808ms)
+✔ review proof policy VISUAL_COMPARE / PENDING_DEVICE (212.160524ms)
+✔ review proof policy DEVICE_CHECK / PASS (195.944967ms)
+✔ review proof policy DEVICE_CHECK / FAIL (205.911614ms)
+✔ review proof policy DEVICE_CHECK / NON_VERIFIABLE (222.283535ms)
+✔ review proof policy DEVICE_CHECK / PENDING_DEVICE (211.557359ms)
+✔ review proof policy ACCESSIBILITY_CHECK / PASS (213.06023ms)
+✔ review proof policy ACCESSIBILITY_CHECK / FAIL (214.35704ms)
+✔ review proof policy ACCESSIBILITY_CHECK / NON_VERIFIABLE (234.965138ms)
+✔ review proof policy ACCESSIBILITY_CHECK / PENDING_DEVICE (212.423106ms)
+✔ missing technical evidence and unjustified pending-to-PASS conversion are refused (496.760952ms)
+✔ retained assertion proofs are rechecked even after resealing a forged finalization (140.42757ms)
+✔ scoped explicit waiver closes only its pending proof and retains NOT_EXECUTED reservations (530.387491ms)
+✔ post-acceptance revision preserves pending assertions and explicit waiver without laundering failures (1358.984241ms)
+ℹ tests 82
+ℹ suites 0
+ℹ pass 81
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 7668.347894

@@ -1,0 +1,19 @@
+{
+  "cause": "New negative test compared working-tree CRLF bytes to Git blob LF bytes under core.autocrlf=true",
+  "correction": "Compare the original Git blob output to the same Git blob in the isolated object store; no byte normalization or production gate change",
+  "crlf_tests": {
+    "tests": 7,
+    "pass": 7,
+    "fail": 0,
+    "skip": 0
+  },
+  "full_local_suite": {
+    "tests": 321,
+    "pass": 321,
+    "fail": 0,
+    "skip": 0
+  },
+  "latest_local_log_sha256": "f883227dd3c9f79e31c5e4458b7a0170e35b6864186d98b43c4974c5732f129d",
+  "remote_qualification": "REQUIRED_FOR_THIS_FINAL_TEST_DELTA",
+  "real_claude_calls": 0
+}

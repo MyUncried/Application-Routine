@@ -6,7 +6,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const root = path.resolve(__dirname, '..', '..');
-const source = fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'run-queued-request.ps1'), 'utf8');
+const source = require('./helpers/normalized-git-source')(fs.readFileSync(path.join(root, 'scripts', 'kodjo', 'run-queued-request.ps1'), 'utf8'));
 
 test('queued execution freezes current protocol runtime before application checkout', () => {
   const copyIndex = source.indexOf('Copy-Item -LiteralPath $PSScriptRoot -Destination $runtimeScriptRoot');

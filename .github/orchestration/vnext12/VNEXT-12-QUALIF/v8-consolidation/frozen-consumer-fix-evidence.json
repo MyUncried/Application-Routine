@@ -1,0 +1,142 @@
+{
+  "recorded_at": "2026-10-04T11:22:26.357060+00:00",
+  "parent_head": "dae652cfc31bdc7f36a2be604fc3ef16bb118b50",
+  "failure": {
+    "pilot_run": 37195843101,
+    "pilot_job": 111417406700,
+    "error": "Cannot find module './lib/vnext-delivery-preservation'",
+    "historical_failures": [
+      {
+        "run_id": 37195843037,
+        "artifact_id": 11301405976,
+        "artifact_sha256": "ec1efc56f5691f114a424434b7955730706b662fe30648e58eb1ed6f3133b228",
+        "entry_sha256": "5b020881c026036f49a5b73d80c3c1e85458ef15cc759d3b968d819e9c98c937",
+        "identity": [
+          {
+            "type": "identity",
+            "candidate_head": "dae652cfc31bdc7f36a2be604fc3ef16bb118b50",
+            "platform": "linux",
+            "node_version": "v24.21.0"
+          }
+        ],
+        "summary": [
+          {
+            "type": "summary",
+            "success": false,
+            "counts": {
+              "tests": 1000,
+              "failed": 1,
+              "passed": 998,
+              "cancelled": 0,
+              "skipped": 1,
+              "todo": 0,
+              "topLevel": 1000,
+              "suites": 0
+            },
+            "duration_ms": 95554.764928
+          }
+        ],
+        "failed_tests": [
+          {
+            "type": "test",
+            "file": "tests/kodjo/audit-report-consumption.pilot.js",
+            "name": "F12: protocol consumer remains effective when application HEAD contains an old validator",
+            "line": 72,
+            "status": "FAIL"
+          }
+        ]
+      },
+      {
+        "run_id": 37195843037,
+        "artifact_id": 11301481378,
+        "artifact_sha256": "69dfb11a74c8a5bb536d641498ce8bd0a2464a0465346b19181892b2186372ce",
+        "entry_sha256": "1ae2af83289ae28bb2c32db4f59b533f87aa1a109a55271d57e34649114f42d0",
+        "identity": [
+          {
+            "type": "identity",
+            "candidate_head": "dae652cfc31bdc7f36a2be604fc3ef16bb118b50",
+            "platform": "win32",
+            "node_version": "v24.21.0"
+          }
+        ],
+        "summary": [
+          {
+            "type": "summary",
+            "success": false,
+            "counts": {
+              "tests": 1000,
+              "failed": 1,
+              "passed": 996,
+              "cancelled": 0,
+              "skipped": 3,
+              "todo": 0,
+              "topLevel": 1000,
+              "suites": 0
+            },
+            "duration_ms": 983439.4771
+          }
+        ],
+        "failed_tests": [
+          {
+            "type": "test",
+            "file": "tests/kodjo/audit-report-consumption.pilot.js",
+            "name": "F12: protocol consumer remains effective when application HEAD contains an old validator",
+            "line": 72,
+            "status": "FAIL"
+          }
+        ]
+      }
+    ],
+    "root_cause": "Isolated workflow consumer omitted newly required internal vnext-delivery-preservation and vnext-contract modules."
+  },
+  "correction": {
+    "workflow": ".github/workflows/kodjo-slice-implementation-review.yml",
+    "internal_files_added_to_frozen_runtime": [
+      "scripts/kodjo/lib/vnext-delivery-preservation.js",
+      "scripts/kodjo/lib/vnext-contract.js"
+    ],
+    "validation_rules_changed": false,
+    "package_dependencies_added": false,
+    "historical_test_source_changed": false,
+    "historical_subjects": 420
+  },
+  "local_tests": {
+    "kind": "LOCAL_FIXTURE_AND_REAL_CLI_TESTS_NOT_EXTERNAL_RUNTIME_QUALIFICATION",
+    "complete_pilot": {
+      "tests": 1001,
+      "pass": 996,
+      "fail": 0,
+      "skip": 5
+    },
+    "frozen_vnext_integration_suite": {
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "skip": 0
+    },
+    "skipped_reasons": [
+      "3 native PowerShell checks unavailable locally",
+      "1 archived source scenario lacks historical Git metadata",
+      "1 pre-existing cleanup SKIP"
+    ],
+    "workflow_syntax": {
+      "accepted": 64
+    },
+    "logs": [
+      {
+        "name": "frozen-consumer-focused.log",
+        "sha256": "e70b4b2521f99c4e65c5705bf6af925361808a650ad12e2023033ad94d5db645"
+      },
+      {
+        "name": "frozen-consumer-integration.log",
+        "sha256": "6c49841809272213195adb3744f59505ebeda9f1830a5401b3d03bc0f62a3165"
+      },
+      {
+        "name": "frozen-consumer-complete-pilot.log",
+        "sha256": "276d79cd7ef8bac37dd12ae547124dacaf62c699e3c51fdd30c9304685444f41"
+      }
+    ]
+  },
+  "new_candidate_qualification": "PENDING",
+  "post_acceptance_full_path": "NOT_IMPLEMENTED_END_TO_END_NOT_RUNTIME_QUALIFIED"
+}

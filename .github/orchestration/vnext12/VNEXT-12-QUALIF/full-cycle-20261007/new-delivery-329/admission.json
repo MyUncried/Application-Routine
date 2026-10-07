@@ -1,0 +1,62 @@
+{
+  "status": "ADMITTED",
+  "request_id": "afa92cf0-b265-4839-b5c6-823f39bdf1b5",
+  "generation": 101,
+  "delivery_head": "3db2ac6129f0aaf5b6e47bf1d3030a1fe8a57609",
+  "finalization_status": "READY_TO_CLOSE",
+  "review_comment_id": 6047064806,
+  "window": {
+    "expected_parent": "969dcec9fbfc8fda805392466694ab986f3c3182",
+    "checkpoint_sha": "3ecfaca8e2f7f88204617fbc996cf44118112ad3",
+    "controller_generation": 108,
+    "observed_at": "2026-10-07T21:21:16.988Z"
+  },
+  "qualification": {
+    "approved": {
+      "status": "VERIFIED",
+      "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+      "candidate_head": "e21c9a142ed41d4863f1273d22bd1f43643adcbd",
+      "run_id": "37679156484",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 112990359763,
+          "name": "qualification (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112990360162,
+          "name": "qualification (ubuntu-latest)",
+          "conclusion": "success"
+        }
+      ],
+      "observed_at": "2026-10-07T21:21:16.989Z"
+    },
+    "controller": {
+      "status": "VERIFIED",
+      "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+      "candidate_head": "e21c9a142ed41d4863f1273d22bd1f43643adcbd",
+      "run_id": "37679156484",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 112990359763,
+          "name": "qualification (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112990360162,
+          "name": "qualification (ubuntu-latest)",
+          "conclusion": "success"
+        }
+      ],
+      "observed_at": "2026-10-07T21:21:16.989Z",
+      "controller_head": "969dcec9fbfc8fda805392466694ab986f3c3182",
+      "relation": "EXACT_SAME_PROTOCOL_CODE"
+    }
+  },
+  "issue_observed_open": true,
+  "pr_observed_open": true,
+  "human_review_performed": false,
+  "observed_at": "2026-10-07T21:21:16.995Z"
+}

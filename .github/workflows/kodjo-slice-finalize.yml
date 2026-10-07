@@ -50,6 +50,10 @@ jobs:
 
           $review=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$reviewId"|ConvertFrom-Json
           if($LASTEXITCODE-ne0-or$null-eq$review){throw 'Implementation review unreadable'}
+          $sourceCommentFile=Join-Path $env:RUNNER_TEMP 'kodjo-final-source-comment.json'
+          [IO.File]::WriteAllText($sourceCommentFile,($review|ConvertTo-Json -Depth 20),(New-Object Text.UTF8Encoding($false)))
+          node scripts/kodjo/verify-source-comment.js $sourceCommentFile $env:GITHUB_REPOSITORY $env:ISSUE_NUMBER $reviewId
+          if($LASTEXITCODE-ne0){throw 'Implementation review origin invalid'}
 
           $reviewBody=([string]$review.body) -replace "`r",''
           if($reviewBody-notmatch'(?m)^\[KODJO_SLICE\] IMPLEMENTATION_REVIEW_OUTPUT$'-or$reviewBody-notmatch'(?m)^verdict=APPROVE$'-or$reviewBody-notmatch'(?m)^STATUT : IMPLEMENTATION_REVIEW_APPROVED$'){throw 'Technical approval missing'}
@@ -60,6 +64,9 @@ jobs:
           if($sourceImplMatch.Success){
             $implementation=gh api "repos/$env:GITHUB_REPOSITORY/issues/comments/$($sourceImplMatch.Groups[1].Value)"|ConvertFrom-Json
             if($LASTEXITCODE-ne0-or$null-eq$implementation){throw 'Source implementation unreadable'}
+            [IO.File]::WriteAllText($sourceCommentFile,($implementation|ConvertTo-Json -Depth 20),(New-Object Text.UTF8Encoding($false)))
+            node scripts/kodjo/verify-source-comment.js $sourceCommentFile $env:GITHUB_REPOSITORY $env:ISSUE_NUMBER ($sourceImplMatch.Groups[1].Value)
+            if($LASTEXITCODE-ne0){throw 'Source implementation origin invalid'}
             $implementationBody=([string]$implementation.body) -replace "`r",''
           }
           if($implementationBody-match'(?m)^continuity_origin=V2_LEAN_QUEUE$'){

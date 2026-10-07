@@ -1,0 +1,72 @@
+{
+  "a": {
+    "approved": {
+      "status": "VERIFIED",
+      "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+      "candidate_head": "83a192883b78d6df09f4a9d74135524f1f57c4ce",
+      "run_id": "37444999937",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 112207578721,
+          "name": "qualification (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112207578928,
+          "name": "qualification (windows-latest)",
+          "conclusion": "success"
+        }
+      ],
+      "observed_at": "2026-10-06T11:01:08.536Z"
+    },
+    "controller": {
+      "status": "VERIFIED",
+      "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+      "candidate_head": "83a192883b78d6df09f4a9d74135524f1f57c4ce",
+      "run_id": "37444999937",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 112207578721,
+          "name": "qualification (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112207578928,
+          "name": "qualification (windows-latest)",
+          "conclusion": "success"
+        }
+      ],
+      "observed_at": "2026-10-06T11:01:08.536Z",
+      "controller_head": "41b5a70c1271662059766ec5ab6b671383aec997",
+      "relation": "EXACT_SAME_PROTOCOL_CODE"
+    }
+  },
+  "w": {
+    "expected_parent": "32893aad0f934c29fdccbb4ced9c5a7e231567df",
+    "checkpoint_sha": "b1641fcf968550064943d85433ea3c4495cb8608",
+    "controller_generation": 88,
+    "observed_at": "2026-10-06T11:01:08.550Z"
+  },
+  "v": {
+    "status": "VALIDATED",
+    "expected_parent": "32893aad0f934c29fdccbb4ced9c5a7e231567df",
+    "candidate_tree": "ba7b55e5ab7a4fce7a5be4615c6170377c53877b",
+    "changed_paths": [
+      ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_COMPLETION_FIX.md",
+      ".github/orchestration/vnext12/VNEXT-12-QUALIF/campaign-state.json",
+      ".github/orchestration/vnext12/VNEXT-12-QUALIF/request.json",
+      ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-completion-fix-20261006/runtime-launch-37446216690.json",
+      ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-completion-fix-20261006/runtime-result-37446216690/recovered-diagnostic.json",
+      ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-completion-fix-20261006/runtime-result-37446216690/recovered-execution.lock",
+      ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-completion-fix-20261006/runtime-result-37446216690/recovered-started.json",
+      ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-completion-fix-20261006/runtime-result-37446216690/terminal-excerpt.log",
+      ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-completion-fix-20261006/runtime-result-37446216690/terminal.json"
+    ],
+    "targeted_tests": [],
+    "powershell_changed_units": 0,
+    "writer_policy": "PASS_WITH_FROZEN_LEGACY",
+    "historical_subjects": 420
+  }
+}

@@ -1,0 +1,40 @@
+✖ failing tests:
+2026-10-06T08:43:39.2056785Z 
+2026-10-06T08:43:39.2057901Z test at tests\kodjo\vnext-figma-browser-observer.pilot.js:50:1
+2026-10-06T08:43:39.2060245Z ✖ actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta (18817.6142ms)
+2026-10-06T08:43:39.2063211Z   Error: VNEXT_FIGMA_BROWSER_PROCESS_NOT_CLOSED
+2026-10-06T08:43:39.2065810Z       at closeProcess (C:\actions-runner\_work\Application-Routine\Application-Routine\_qualification\37435583847\scripts\kodjo\lib\vnext-figma-browser-observer.js:26:38)
+2026-10-06T08:43:39.2069628Z       at async cleanupProfile (C:\actions-runner\_work\Application-Routine\Application-Routine\_qualification\37435583847\scripts\kodjo\lib\vnext-figma-browser-observer.js:51:3)
+2026-10-06T08:43:39.2073446Z       at async Object.observe (C:\actions-runner\_work\Application-Routine\Application-Routine\_qualification\37435583847\scripts\kodjo\lib\vnext-figma-browser-observer.js:113:3)
+2026-10-06T08:43:39.2077557Z       at async TestContext.<anonymous> (C:\actions-runner\_work\Application-Routine\Application-Routine\_qualification\37435583847\tests\kodjo\vnext-figma-browser-observer.pilot.js:57:14)
+2026-10-06T08:43:39.2080264Z       at async Test.run (node:internal/test_runner/test:1389:7)
+2026-10-06T08:43:39.2081862Z       at async Test.processPendingSubtests (node:internal/test_runner/test:960:7)
+2026-10-06T08:43:39.2082853Z 
+2026-10-06T08:43:39.2083495Z test at tests\kodjo\vnext-figma-browser-observer.pilot.js:66:1
+2026-10-06T08:43:39.2085491Z ✖ disposable fixed geometry refuses a viewport-relative counterexample at an independent viewport (40233.4904ms)
+2026-10-06T08:43:39.2087859Z   Error: VNEXT_LIVE_PROCESS_FAILED: C:\Program Files\nodejs\node.exe: VNEXT_FIGMA_BROWSER_PROCESS_NOT_CLOSED
+2026-10-06T08:43:39.2089360Z   
+2026-10-06T08:43:39.2091306Z       at Object.fail (C:\actions-runner\_work\Application-Routine\Application-Routine\_qualification\37435583847\scripts\kodjo\lib\vnext-contract.js:11:17)
+2026-10-06T08:43:39.2094701Z       at Object.command (C:\actions-runner\_work\Application-Routine\Application-Routine\_qualification\37435583847\scripts\kodjo\lib\vnext-live-chain.js:38:36)
+2026-10-06T08:43:39.2098256Z       at Object.observe (C:\actions-runner\_work\Application-Routine\Application-Routine\_qualification\37435583847\scripts\kodjo\qualify-vnext-figma-real-path.js:76:32)
+2026-10-06T08:43:39.2102128Z       at TestContext.<anonymous> (C:\actions-runner\_work\Application-Routine\Application-Routine\_qualification\37435583847\tests\kodjo\vnext-figma-browser-observer.pilot.js:73:24)
+2026-10-06T08:43:39.2105618Z       at Test.runInAsyncScope (node:async_hooks:227:14)
+2026-10-06T08:43:39.2106842Z       at Test.run (node:internal/test_runner/test:1382:25)
+2026-10-06T08:43:39.2108319Z       at Test.processPendingSubtests (node:internal/test_runner/test:960:18)
+2026-10-06T08:43:39.2110253Z       at Test.postRun (node:internal/test_runner/test:1522:19)
+2026-10-06T08:43:39.2141486Z       at Test.run (node:internal/test_runner/test:1447:12)
+2026-10-06T08:43:39.2143745Z       at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+2026-10-06T08:43:39.2145266Z     code: 'VNEXT_LIVE_PROCESS_FAILED'
+2026-10-06T08:43:39.2146149Z   }
+2026-10-06T08:43:39.6375729Z ##[error]Process completed with exit code 1.
+2026-10-06T08:43:39.7993384Z ##[group]Run actions/upload-artifact@v4
+2026-10-06T08:43:39.7994534Z with:
+2026-10-06T08:43:39.7995233Z   name: kodjo-v2-disposable-preflight-37435583847-1
+2026-10-06T08:43:39.7997436Z   path: _qualification/37435583847/disposable-preflight-evidence
+2026-10-06T08:43:39.7998342Z   if-no-files-found: error
+2026-10-06T08:43:39.7999041Z   retention-days: 90
+2026-10-06T08:43:39.7999595Z   compression-level: 6
+2026-10-06T08:43:39.8000170Z   overwrite: false
+2026-10-06T08:43:39.8011678Z   include-hidden-files: false
+2026-10-06T08:43:39.8012859Z env:
+2026-1

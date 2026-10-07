@@ -1,0 +1,1208 @@
+{
+  "status": "DIAGNOSTIC_PASS",
+  "diagnostic_only": true,
+  "operational_qualification": false,
+  "claude_invoked": false,
+  "baseline": "e0c766feda827c2df6d3d8a523759007a9f05c85",
+  "head": "e9e6ca41fc77d718b1f1fdd670a4c1a6e716d2dd",
+  "platform": "linux",
+  "node": "v24.19.0",
+  "selected_files": [
+    "vnext-live-chain.pilot.js",
+    "vnext-runtime-plan.pilot.js",
+    "vnext-post-acceptance.pilot.js",
+    "vnext12-revision-supervisor.pilot.js"
+  ],
+  "scanner": [
+    {
+      "mode": "before",
+      "duration_ms": 3251.205395,
+      "scan": {
+        "schema_version": "kodjo.vnext.direct-import-scan.v1",
+        "revision": "13b764c7b09ac775da295dcd82bdf53b184d4da2",
+        "candidate_manifest_hash": "79319f272acbe03fd21744de47df5df3a721659ba8aa3d422e50858d377337de",
+        "target_candidate_ids": [
+          "CAND-a075d0cef35a0ab380e3943d"
+        ],
+        "importer_count": 70,
+        "importers": [
+          {
+            "candidate_id": "CAND-b10859764eaaa3d3a107b335",
+            "path": "entry-0.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-b1acec322ac774a20bd7feac",
+            "path": "entry-10.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-5cf42cd6206ef75d2f65bff7",
+            "path": "entry-100.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-5f1bd91b6697762e2dafe437",
+            "path": "entry-110.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-5fb560a8d12652de835e505e",
+            "path": "entry-120.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-57c19c0bc5b9bea5d5edb2cc",
+            "path": "entry-130.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-86ebed64d6db39a52e62e173",
+            "path": "entry-140.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-97515d03770c5e962c10889f",
+            "path": "entry-150.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-7f5b5c8618280da0f5f861e4",
+            "path": "entry-160.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-275e6ab60921be750cd55f54",
+            "path": "entry-170.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-9c2d5a4ce5383c6ddfd7eeda",
+            "path": "entry-180.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-37a9e0bb0c09f3b30979e7b6",
+            "path": "entry-190.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-08faf224b4c4b0b29b7d844f",
+            "path": "entry-20.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-fd2277dc45afdb4a62aac83a",
+            "path": "entry-200.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-da3d481f6e44f2bb0e9146f1",
+            "path": "entry-210.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-26fd0d15342cd8f0ea471a03",
+            "path": "entry-220.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-f44bdf794859e947755038fe",
+            "path": "entry-230.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-fbc9afd8bb7c06b4519a1a68",
+            "path": "entry-240.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-7ec04ac19de3a62115dac17b",
+            "path": "entry-250.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-bcc0618ad631ed5fa64e3f4e",
+            "path": "entry-260.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-77ab6d7b8755d5cf87f5d7ea",
+            "path": "entry-270.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-0dc2f4606e13cfe98876852d",
+            "path": "entry-280.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-24457b4c0ed0a59cec50c990",
+            "path": "entry-290.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-555028760ce0d88599993197",
+            "path": "entry-30.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-18b0d14e19770204e76d626a",
+            "path": "entry-300.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-031d901f28a85e809e29faf4",
+            "path": "entry-310.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-860debf062058eca683b1fa1",
+            "path": "entry-320.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-c555603e228a417d603c3c2a",
+            "path": "entry-330.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-73450c149e0d8eb96e117ce4",
+            "path": "entry-340.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-e64ea3423e848c0848ec08c9",
+            "path": "entry-350.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-0e3aa60089141c54384d31c4",
+            "path": "entry-360.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-f505afe7b164341ee055a7c0",
+            "path": "entry-370.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-9e6e9113a3c4c28484427a28",
+            "path": "entry-380.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-97063eedd4c1009193075a16",
+            "path": "entry-390.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-c96a4d582f294a73b0c49b41",
+            "path": "entry-40.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-cb84dfad9679170317434b02",
+            "path": "entry-400.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-32bd7c55e8eb4d86bd588351",
+            "path": "entry-410.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-0801a2fa48367cf640753537",
+            "path": "entry-420.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-1d7c52ef0974d996e96a7731",
+            "path": "entry-430.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-5828d16cad1e6cf0fa63eedb",
+            "path": "entry-440.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-69c546038bef2fede59fd1ac",
+            "path": "entry-450.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-b1bae3bb0aeedaad8df9b3c4",
+            "path": "entry-460.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-91384b8973eb2c54c6f2e18a",
+            "path": "entry-470.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-adae8b31d080b89be8128542",
+            "path": "entry-480.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-2f82bce6855f6983ebd2013c",
+            "path": "entry-490.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-700168ca1750f10056e39da8",
+            "path": "entry-50.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-216c27e8bf7c5dfabc4de582",
+            "path": "entry-500.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-2e9037e244c3b7b22ad67467",
+            "path": "entry-510.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-34d0354ba8de233e26f696d4",
+            "path": "entry-520.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-af4aae55979342dd08cbc455",
+            "path": "entry-530.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-912eb458db1fc8a369335eee",
+            "path": "entry-540.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-4a8c4499061b207718aa2e84",
+            "path": "entry-550.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-6620171d78704527b4c25f6a",
+            "path": "entry-560.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-3fb45518a305a36a0e853fef",
+            "path": "entry-570.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-1fd6ce726ea1cadb03c27937",
+            "path": "entry-580.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-097d73b2632f31a40d2c28d3",
+            "path": "entry-590.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-97127f061f2149252dcc5a01",
+            "path": "entry-60.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-03fc0c7efc4c2a29a4d623fb",
+            "path": "entry-600.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-a802169db6c77ac29a58eb36",
+            "path": "entry-610.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-c32e978894017039d29edc5b",
+            "path": "entry-620.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-71e73f4d852daf4322acf09a",
+            "path": "entry-630.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-41b7da797c16e444d06f779c",
+            "path": "entry-640.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-4aee4d6bcae13d9e6d0d53d4",
+            "path": "entry-650.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-a7125066752e99388f5172ae",
+            "path": "entry-660.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-ae67d9b533f64adffba6b7bb",
+            "path": "entry-670.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-072192bd3faf3d9df254fbc5",
+            "path": "entry-680.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-3beddc143e4a8407a2f178fe",
+            "path": "entry-690.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-b556fcff2c91544de83a4731",
+            "path": "entry-70.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-23dd93bd48ab4e156cd00e75",
+            "path": "entry-80.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-915f8269c1c8a236ba038750",
+            "path": "entry-90.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          }
+        ],
+        "contract_hash": "3000011757bee7be993a63fc642bc927ead9f9ab93a98bf5f48d087d2db1cbf6"
+      }
+    },
+    {
+      "mode": "after",
+      "duration_ms": 88.26155800000001,
+      "scan": {
+        "schema_version": "kodjo.vnext.direct-import-scan.v1",
+        "revision": "13b764c7b09ac775da295dcd82bdf53b184d4da2",
+        "candidate_manifest_hash": "79319f272acbe03fd21744de47df5df3a721659ba8aa3d422e50858d377337de",
+        "target_candidate_ids": [
+          "CAND-a075d0cef35a0ab380e3943d"
+        ],
+        "importer_count": 70,
+        "importers": [
+          {
+            "candidate_id": "CAND-b10859764eaaa3d3a107b335",
+            "path": "entry-0.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-b1acec322ac774a20bd7feac",
+            "path": "entry-10.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-5cf42cd6206ef75d2f65bff7",
+            "path": "entry-100.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-5f1bd91b6697762e2dafe437",
+            "path": "entry-110.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-5fb560a8d12652de835e505e",
+            "path": "entry-120.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-57c19c0bc5b9bea5d5edb2cc",
+            "path": "entry-130.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-86ebed64d6db39a52e62e173",
+            "path": "entry-140.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-97515d03770c5e962c10889f",
+            "path": "entry-150.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-7f5b5c8618280da0f5f861e4",
+            "path": "entry-160.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-275e6ab60921be750cd55f54",
+            "path": "entry-170.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-9c2d5a4ce5383c6ddfd7eeda",
+            "path": "entry-180.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-37a9e0bb0c09f3b30979e7b6",
+            "path": "entry-190.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-08faf224b4c4b0b29b7d844f",
+            "path": "entry-20.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-fd2277dc45afdb4a62aac83a",
+            "path": "entry-200.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-da3d481f6e44f2bb0e9146f1",
+            "path": "entry-210.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-26fd0d15342cd8f0ea471a03",
+            "path": "entry-220.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-f44bdf794859e947755038fe",
+            "path": "entry-230.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-fbc9afd8bb7c06b4519a1a68",
+            "path": "entry-240.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-7ec04ac19de3a62115dac17b",
+            "path": "entry-250.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-bcc0618ad631ed5fa64e3f4e",
+            "path": "entry-260.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-77ab6d7b8755d5cf87f5d7ea",
+            "path": "entry-270.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-0dc2f4606e13cfe98876852d",
+            "path": "entry-280.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-24457b4c0ed0a59cec50c990",
+            "path": "entry-290.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-555028760ce0d88599993197",
+            "path": "entry-30.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-18b0d14e19770204e76d626a",
+            "path": "entry-300.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-031d901f28a85e809e29faf4",
+            "path": "entry-310.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-860debf062058eca683b1fa1",
+            "path": "entry-320.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-c555603e228a417d603c3c2a",
+            "path": "entry-330.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-73450c149e0d8eb96e117ce4",
+            "path": "entry-340.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-e64ea3423e848c0848ec08c9",
+            "path": "entry-350.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-0e3aa60089141c54384d31c4",
+            "path": "entry-360.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-f505afe7b164341ee055a7c0",
+            "path": "entry-370.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-9e6e9113a3c4c28484427a28",
+            "path": "entry-380.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-97063eedd4c1009193075a16",
+            "path": "entry-390.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-c96a4d582f294a73b0c49b41",
+            "path": "entry-40.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-cb84dfad9679170317434b02",
+            "path": "entry-400.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-32bd7c55e8eb4d86bd588351",
+            "path": "entry-410.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-0801a2fa48367cf640753537",
+            "path": "entry-420.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-1d7c52ef0974d996e96a7731",
+            "path": "entry-430.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-5828d16cad1e6cf0fa63eedb",
+            "path": "entry-440.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-69c546038bef2fede59fd1ac",
+            "path": "entry-450.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-b1bae3bb0aeedaad8df9b3c4",
+            "path": "entry-460.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-91384b8973eb2c54c6f2e18a",
+            "path": "entry-470.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-adae8b31d080b89be8128542",
+            "path": "entry-480.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-2f82bce6855f6983ebd2013c",
+            "path": "entry-490.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-700168ca1750f10056e39da8",
+            "path": "entry-50.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-216c27e8bf7c5dfabc4de582",
+            "path": "entry-500.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-2e9037e244c3b7b22ad67467",
+            "path": "entry-510.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-34d0354ba8de233e26f696d4",
+            "path": "entry-520.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-af4aae55979342dd08cbc455",
+            "path": "entry-530.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-912eb458db1fc8a369335eee",
+            "path": "entry-540.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-4a8c4499061b207718aa2e84",
+            "path": "entry-550.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-6620171d78704527b4c25f6a",
+            "path": "entry-560.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-3fb45518a305a36a0e853fef",
+            "path": "entry-570.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-1fd6ce726ea1cadb03c27937",
+            "path": "entry-580.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-097d73b2632f31a40d2c28d3",
+            "path": "entry-590.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-97127f061f2149252dcc5a01",
+            "path": "entry-60.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-03fc0c7efc4c2a29a4d623fb",
+            "path": "entry-600.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-a802169db6c77ac29a58eb36",
+            "path": "entry-610.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-c32e978894017039d29edc5b",
+            "path": "entry-620.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-71e73f4d852daf4322acf09a",
+            "path": "entry-630.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-41b7da797c16e444d06f779c",
+            "path": "entry-640.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-4aee4d6bcae13d9e6d0d53d4",
+            "path": "entry-650.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-a7125066752e99388f5172ae",
+            "path": "entry-660.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-ae67d9b533f64adffba6b7bb",
+            "path": "entry-670.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-072192bd3faf3d9df254fbc5",
+            "path": "entry-680.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-3beddc143e4a8407a2f178fe",
+            "path": "entry-690.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-b556fcff2c91544de83a4731",
+            "path": "entry-70.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-23dd93bd48ab4e156cd00e75",
+            "path": "entry-80.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          },
+          {
+            "candidate_id": "CAND-915f8269c1c8a236ba038750",
+            "path": "entry-90.js",
+            "candidate_kind": "CODE",
+            "triggered_by_candidate_ids": [
+              "CAND-a075d0cef35a0ab380e3943d"
+            ]
+          }
+        ],
+        "contract_hash": "3000011757bee7be993a63fc642bc927ead9f9ab93a98bf5f48d087d2db1cbf6"
+      }
+    }
+  ],
+  "concurrency": [
+    {
+      "concurrency": 1,
+      "duration_ms": 94282.788896,
+      "exit_code": 0,
+      "error_code": null,
+      "tests": 39,
+      "pass": 39,
+      "fail": 0,
+      "skipped": 0,
+      "stdout_sha256": "d202dccce8f73c47486178c36e2a2aa7bf04ae80aa39a7b75e516c1770f14540"
+    },
+    {
+      "concurrency": 2,
+      "duration_ms": 56318.166452000005,
+      "exit_code": 0,
+      "error_code": null,
+      "tests": 39,
+      "pass": 39,
+      "fail": 0,
+      "skipped": 0,
+      "stdout_sha256": "db8d6026824bf4a9937e599f6bfb85e963f88dc9b733f5034d5b9e2d0b7be041"
+    },
+    {
+      "concurrency": 4,
+      "duration_ms": 50461.676019999984,
+      "exit_code": 0,
+      "error_code": null,
+      "tests": 39,
+      "pass": 39,
+      "fail": 0,
+      "skipped": 0,
+      "stdout_sha256": "7b89fae9a2314a93e48e4b2b05f93ee77fa43b587b1c4dae2d915d96d537fd5e"
+    }
+  ],
+  "scanner_equivalent": true,
+  "fastest_observed_concurrency": 4,
+  "harness_sha256": "afc3a2ff4404af68996899c453fc83fd481e05ae88b65e8b07548c818b2ed4ef"
+}

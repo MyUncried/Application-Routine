@@ -1,0 +1,18 @@
+{
+  "status": "VALIDATED",
+  "expected_parent": "676a3b8f68dab3ee3986b2e92d6b7ac66af41fb4",
+  "candidate_tree": "faba583855079b2c5826a5c8e58e78acfd6628ad",
+  "changed_paths": [
+    ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_COMPLETION_FIX.md",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/campaign-state.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/request.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/clarification-fix-20261006/history-causal-excerpts.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/clarification-fix-20261006/qualification-admission-final.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/clarification-fix-20261006/qualification-linux-success.log",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/clarification-fix-20261006/qualification-windows-success.log"
+  ],
+  "targeted_tests": [],
+  "powershell_changed_units": 0,
+  "writer_policy": "PASS_WITH_FROZEN_LEGACY",
+  "historical_subjects": 420
+}
