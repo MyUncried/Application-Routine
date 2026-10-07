@@ -7,7 +7,10 @@ test('stream supervisor preserves the exact final result and records metadata wi
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   const progressPath = path.join(dir, 'progress.json');
   const final = { type: 'result', session_id: 'TEST', structured_output: { label: 'épreuve' } };
-  const code = `process.stdout.write(JSON.stringify({type:'assistant',content:'SECRET_NOT_FOR_PROGRESS'})+'\\n');process.stdout.write(JSON.stringify(${JSON.stringify(final)})+'\\n');`;
+  // A successful reviewer consumes the prompt before emitting its final result.
+  // Waiting for EOF prevents a fast fixture exit from racing the supervisor's
+  // stdin close on Linux; real prompt transport errors still fail closed.
+  const code = `process.stdin.resume();process.stdin.on('end',()=>{process.stdout.write(JSON.stringify({type:'assistant',content:'SECRET_NOT_FOR_PROGRESS'})+'\\n');process.stdout.write(JSON.stringify(${JSON.stringify(final)})+'\\n');});`;
   let observed;
   const raw = Process.command(process.execPath, ['-e', code], process.cwd(), '', process.env, 5000,
     { progressPath, onResult: row => { observed = row; } });

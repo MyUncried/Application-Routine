@@ -4,7 +4,7 @@
   "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
   "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
   "revision_limit": 1,
-  "generation": 91,
+  "generation": 92,
   "final_audit_authorized": false,
   "pre1_in_scope": false,
   "qualification_policy": "FULL_CYCLE_USER_REQUEST",
@@ -17,5 +17,6 @@
   "failed_run_attempt": 1,
   "failure_stage": "FIGMA_INITIAL",
   "failure_status": "PRE_IMPLEMENTATION_REVIEW_REVISE",
-  "correction_status": "PENDING_EXACT_HEAD_QUALIFICATION"
+  "correction_status": "PENDING_EXACT_HEAD_QUALIFICATION_AFTER_TEST_STDIN_FIX",
+  "failed_qualification_run_id": 37638510918
 }
