@@ -5,20 +5,22 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "PREPARE_INITIAL_REQUESTED",
+  "current_stage": "INITIAL_DOSSIER_APPROVED_AWAITING_EXACT_PUBLISHED_HEAD_CONTROLS",
   "request_id": "11bea52c-4396-457a-8093-19073dc2d112",
-  "generation": 78,
+  "generation": 79,
   "previous_terminal_generation": 77,
   "previous_closed_issue": 324,
   "reuse_previous_closure_as_new_cycle": false,
   "stages": [
     {
       "stage": "DISPOSABLE_PREPARATION_AND_LINUX_WINDOWS_CONTROLS",
-      "status": "PENDING"
+      "status": "PASS",
+      "run_id": 37599633548
     },
     {
       "stage": "EXACT_HEAD_QUALIFICATION",
-      "status": "PENDING"
+      "status": "PASS_CODE_BEFORE_DOSSIER_PUBLICATION",
+      "run_id": 37599709262
     },
     {
       "stage": "DISPOSABLE_INITIAL",
@@ -63,5 +65,9 @@
     "automatic_visual_validation"
   ],
   "active_run_ids": [],
-  "next_action": "Observe PREPARE_INITIAL artifacts and both matrix results; preserve and publish reviewed dossier, then qualify exact published head before execution."
+  "next_action": "Qualify newly published approved dossier HEAD then exact technical delegated approval and EXECUTE_INITIAL. Preserve every subsequent real runtime result.",
+  "controller_head": "3bb64be15d7662a76160bbe918a3bac297731935",
+  "qualification_branch": "qualification/vnext-full-cycle-de2b9683-20261007",
+  "observed_at": "2026-10-07T09:19:22.154762+00:00",
+  "documentation_modals": "WAIT_FOR_USER_COMPLETION_SIGNAL"
 }

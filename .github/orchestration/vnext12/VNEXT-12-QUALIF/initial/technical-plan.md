@@ -1,12 +1,12 @@
 # KODJO VNext — Projection transport du plan
 
-application_head=7fac320080f83eb74359272b9d039e7b1d8fac5f
-plan_contract_hash=03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7ace
+application_head=3bb64be15d7662a76160bbe918a3bac297731935
+plan_contract_hash=10c0874fa012c538b0ac92d7b14e46b09f17eb5da727821ffcbc1bcc56102557
 
 # KODJO VNext — Plan canonique
 
 - schema: `kodjo.vnext.plan-contract.v1`
-- contract_hash: `03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7ace`
+- contract_hash: `10c0874fa012c538b0ac92d7b14e46b09f17eb5da727821ffcbc1bcc56102557`
 - requirements: 1
 - write_scope: 2
 
@@ -17,14 +17,14 @@ plan_contract_hash=03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7
 - CHANGE `tests/fixtures/vnext12/core.test.js` (MODIFY)
 - PRESERVE `scripts/kodjo/fixtures/vnext12/keep.js`
 
-## REQ-9dddc2972fcd3efdc7a4a12b
+## REQ-8aca95ddb8af1f5c583c78a8
 
 - disposition: `CHANGE`
 - kind: `FUNCTIONAL`
 - rationale: INITIAL opérationnel nominal, deux fichiers, une exigence observable.
 - impacts:
-  - `IMP-8ffc4a063a93d6664a2ddba3`
-  - `IMP-dc2c178ee0f91395e50a979b`
+  - `IMP-79197b9529c84dd2718de01c`
+  - `IMP-86e2c44271d08e527daf37ba`
 - changes:
   - `scripts/kodjo/fixtures/vnext12/core.js` — MODIFY — Conserver l’export CommonJS value() ; retourner exactement le nombre 2, sans autre comportement ni dépendance.
   - `tests/fixtures/vnext12/core.test.js` — MODIFY — Conserver le test Jest et son import direct ; remplacer son attente 1 par 2 ; exécuter ce test puis les checks contractuels.
@@ -43,34 +43,34 @@ plan_contract_hash=03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7
 <KODJO_VNEXT_PLAN_CONTRACT_JSON>
 {
   "schema_version": "kodjo.vnext.plan-contract.v1",
-  "requirement_registry_hash": "f963f1a1e1f062f0152242d995977d8738a41f4a4a86bda189472fdcb144f366",
-  "impact_graph_hash": "0fb7bc3e7b17c27e8ecf9a9eda44896464e9d1758b28dc8e3cc2e0778567ff91",
-  "candidate_manifest_hash": "aabd74e71c1e4730cf03d04fac510c46c595b7a829d8a411263af79db6de284f",
+  "requirement_registry_hash": "fb451829c747f32d5a08d5b625975107c18380159f528300572bb037e1cff150",
+  "impact_graph_hash": "6d87addd7af06f072c50919e42a60686ade5b0aabbbc6262b827410126c3f58c",
+  "candidate_manifest_hash": "82726662008e7be960e0722cf72b2aa6d725ebf585d481eafef30d24d2ef380b",
   "requirement_count": 1,
   "plan_item_count": 1,
   "plan_items": [
     {
-      "plan_item_id": "PLAN-1004dfa27a21b3cd2c3e567c",
-      "requirement_id": "REQ-9dddc2972fcd3efdc7a4a12b",
+      "plan_item_id": "PLAN-d5bb287983b6d77b1b381fc0",
+      "requirement_id": "REQ-8aca95ddb8af1f5c583c78a8",
       "requirement_kind": "FUNCTIONAL",
       "disposition": "CHANGE",
       "impact_ids": [
-        "IMP-8ffc4a063a93d6664a2ddba3",
-        "IMP-dc2c178ee0f91395e50a979b"
+        "IMP-79197b9529c84dd2718de01c",
+        "IMP-86e2c44271d08e527daf37ba"
       ],
       "change_items": [
         {
-          "change_id": "CHG-5f3180c5dad3d09ca1de63a9",
-          "impact_id": "IMP-8ffc4a063a93d6664a2ddba3",
-          "candidate_id": "CAND-be60773f2e3e5a208de31c53",
+          "change_id": "CHG-6521a48fe3c72ab7f39c246c",
+          "impact_id": "IMP-86e2c44271d08e527daf37ba",
+          "candidate_id": "CAND-4a0f135a8f922960f21f136f",
           "path": "scripts/kodjo/fixtures/vnext12/core.js",
           "change_kind": "MODIFY",
           "intent": "Conserver l’export CommonJS value() ; retourner exactement le nombre 2, sans autre comportement ni dépendance."
         },
         {
-          "change_id": "CHG-80526ddf926d41392e24d8d3",
-          "impact_id": "IMP-dc2c178ee0f91395e50a979b",
-          "candidate_id": "CAND-35e0bb8cab320b2411e4958e",
+          "change_id": "CHG-fd1a8ccf06e49c1a4ecce3b3",
+          "impact_id": "IMP-79197b9529c84dd2718de01c",
+          "candidate_id": "CAND-0f876570c118f92bf2ac0b92",
           "path": "tests/fixtures/vnext12/core.test.js",
           "change_kind": "MODIFY",
           "intent": "Conserver le test Jest et son import direct ; remplacer son attente 1 par 2 ; exécuter ce test puis les checks contractuels."
@@ -78,14 +78,14 @@ plan_contract_hash=03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7
       ],
       "test_obligations": [
         {
-          "test_id": "TEST-9a9b4bc1756bba687548ceeb",
-          "target_impact_id": "IMP-dc2c178ee0f91395e50a979b",
-          "target_candidate_id": "CAND-35e0bb8cab320b2411e4958e",
+          "test_id": "TEST-907ec31573116b65b17af2cc",
+          "target_impact_id": "IMP-79197b9529c84dd2718de01c",
+          "target_candidate_id": "CAND-0f876570c118f92bf2ac0b92",
           "path": "tests/fixtures/vnext12/core.test.js",
           "action": "ADAPT",
           "covered_change_impact_ids": [
-            "IMP-8ffc4a063a93d6664a2ddba3",
-            "IMP-dc2c178ee0f91395e50a979b"
+            "IMP-79197b9529c84dd2718de01c",
+            "IMP-86e2c44271d08e527daf37ba"
           ],
           "expected": "Le test Jest observe value() === 2.",
           "justification": "Vérification directe de la fonction réellement modifiée."
@@ -93,12 +93,12 @@ plan_contract_hash=03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7
       ],
       "proof_obligations": [
         {
-          "proof_id": "PROOF-795c6002c59f2385828b1735",
+          "proof_id": "PROOF-d46fedc59e461c3d157d3265",
           "proof_type": "FUNCTIONAL_TEST",
-          "target_test_impact_id": "IMP-dc2c178ee0f91395e50a979b",
+          "target_test_impact_id": "IMP-79197b9529c84dd2718de01c",
           "covered_change_impact_ids": [
-            "IMP-8ffc4a063a93d6664a2ddba3",
-            "IMP-dc2c178ee0f91395e50a979b"
+            "IMP-79197b9529c84dd2718de01c",
+            "IMP-86e2c44271d08e527daf37ba"
           ],
           "expected": "Le test Jest passe avec la valeur 2.",
           "justification": "Résultat exécuté ; pas de statut déclaré sans observation."
@@ -119,25 +119,25 @@ plan_contract_hash=03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7
   "boundaries": {
     "write_scope": [
       {
-        "candidate_id": "CAND-be60773f2e3e5a208de31c53",
+        "candidate_id": "CAND-4a0f135a8f922960f21f136f",
         "path": "scripts/kodjo/fixtures/vnext12/core.js",
         "change_kind": "MODIFY"
       },
       {
-        "candidate_id": "CAND-35e0bb8cab320b2411e4958e",
+        "candidate_id": "CAND-0f876570c118f92bf2ac0b92",
         "path": "tests/fixtures/vnext12/core.test.js",
         "change_kind": "MODIFY"
       }
     ],
     "preserve_scope": [
       {
-        "candidate_id": "CAND-30ceff46ee0ac607974766df",
+        "candidate_id": "CAND-a55a6a4f23f08d016fededda",
         "path": "scripts/kodjo/fixtures/vnext12/keep.js"
       }
     ],
     "forbidden_policy": "ALL_OUTSIDE_WRITE_SCOPE"
   },
-  "contract_hash": "03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7ace"
+  "contract_hash": "10c0874fa012c538b0ac92d7b14e46b09f17eb5da727821ffcbc1bcc56102557"
 }
 </KODJO_VNEXT_PLAN_CONTRACT_JSON>
 <KODJO_UI_CRITERIA_MATRIX_JSON>
@@ -174,8 +174,8 @@ plan_contract_hash=03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7
 {
   "schema": "kodjo.ui-plan-contract.v1",
   "contract_version": 1,
-  "protocol_commit": "7fac320080f83eb74359272b9d039e7b1d8fac5f",
-  "scan_revision": "7fac320080f83eb74359272b9d039e7b1d8fac5f",
+  "protocol_commit": "3bb64be15d7662a76160bbe918a3bac297731935",
+  "scan_revision": "3bb64be15d7662a76160bbe918a3bac297731935",
   "ui_applicable": false,
   "ui_paths": [],
   "criterion_count": 0,
@@ -185,7 +185,7 @@ plan_contract_hash=03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7
 <KODJO_VNEXT_SCOPE_JSON>
 {
   "schema": "kodjo.vnext.downstream-scope.v1",
-  "plan_contract_hash": "03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7ace",
+  "plan_contract_hash": "10c0874fa012c538b0ac92d7b14e46b09f17eb5da727821ffcbc1bcc56102557",
   "scope_allow": [
     "scripts/kodjo/fixtures/vnext12/core.js",
     "tests/fixtures/vnext12/core.test.js"
@@ -199,7 +199,7 @@ plan_contract_hash=03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7
     "source": {
       "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requirement.md",
       "locator": "FULL_FILE",
-      "requirement": "La fonction CommonJS value() de scripts/kodjo/fixtures/vnext12/core.js doit retourner exactement le nombre 2 au lieu de 1. Son test Jest direct tests/fixtures/vnext12/core.test.js doit vérifier cette valeur 2. Conserver le fichier scripts/kodjo/fixtures/vnext12/keep.js octet pour octet. Ne modifier que la fonction et son test, sans dépendance supplémentaire, sans UI ni exception native. Il s’agit d’une tranche jetable de qualification VNext-12 ; aucune publication applicative, fusion, activation ou intervention sur PRE-1.\nVNext requirement_id=REQ-9dddc2972fcd3efdc7a4a12b"
+      "requirement": "La fonction CommonJS value() de scripts/kodjo/fixtures/vnext12/core.js doit retourner exactement le nombre 2 au lieu de 1. Son test Jest direct tests/fixtures/vnext12/core.test.js doit vérifier cette valeur 2. Conserver le fichier scripts/kodjo/fixtures/vnext12/keep.js octet pour octet. Ne modifier que la fonction et son test, sans dépendance supplémentaire, sans UI ni exception native. Il s’agit d’une tranche jetable de qualification VNext-12 ; aucune publication applicative, fusion, activation ou intervention sur PRE-1.\nVNext requirement_id=REQ-8aca95ddb8af1f5c583c78a8"
     },
     "change_targets": [
       "scripts/kodjo/fixtures/vnext12/core.js",
@@ -219,16 +219,16 @@ plan_contract_hash=03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7
 {
   "schema": "kodjo.requirement-contract.v1",
   "requirement_count": 1,
-  "requirement_ids_sha256": "d016df276390e87e0ba4e3655e55eeaae65344e88b38079fe7cb611005b45d28",
+  "requirement_ids_sha256": "2998a4475914ab0cb87308850cb2da2ab8d9436af3867e31cb07b0b7224f2f05",
   "requirements": [
     {
-      "requirement_id": "REQ-89FAC24300A3BF1D",
+      "requirement_id": "REQ-E9A3ADD89E5402C4",
       "domain": "NON_UI",
       "requirement_type": "FUNCTIONAL",
       "source": {
         "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requirement.md",
         "locator": "FULL_FILE",
-        "requirement": "La fonction CommonJS value() de scripts/kodjo/fixtures/vnext12/core.js doit retourner exactement le nombre 2 au lieu de 1. Son test Jest direct tests/fixtures/vnext12/core.test.js doit vérifier cette valeur 2. Conserver le fichier scripts/kodjo/fixtures/vnext12/keep.js octet pour octet. Ne modifier que la fonction et son test, sans dépendance supplémentaire, sans UI ni exception native. Il s’agit d’une tranche jetable de qualification VNext-12 ; aucune publication applicative, fusion, activation ou intervention sur PRE-1.\nVNext requirement_id=REQ-9dddc2972fcd3efdc7a4a12b"
+        "requirement": "La fonction CommonJS value() de scripts/kodjo/fixtures/vnext12/core.js doit retourner exactement le nombre 2 au lieu de 1. Son test Jest direct tests/fixtures/vnext12/core.test.js doit vérifier cette valeur 2. Conserver le fichier scripts/kodjo/fixtures/vnext12/keep.js octet pour octet. Ne modifier que la fonction et son test, sans dépendance supplémentaire, sans UI ni exception native. Il s’agit d’une tranche jetable de qualification VNext-12 ; aucune publication applicative, fusion, activation ou intervention sur PRE-1.\nVNext requirement_id=REQ-8aca95ddb8af1f5c583c78a8"
       },
       "change_targets": [
         "scripts/kodjo/fixtures/vnext12/core.js",
@@ -251,7 +251,7 @@ plan_contract_hash=03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7
   "binding_count": 1,
   "bindings": [
     {
-      "requirement_id": "REQ-89FAC24300A3BF1D",
+      "requirement_id": "REQ-E9A3ADD89E5402C4",
       "test_path": "tests/fixtures/vnext12/core.test.js",
       "proof_type": "FUNCTIONAL_TEST"
     }
@@ -287,30 +287,30 @@ plan_contract_hash=03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7
 <KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON>
 {
   "schema_version": "kodjo.vnext.requirement-registry.v1",
-  "planning_envelope_hash": "c995c2e16fc775129ed360447420fe24365af4d4df8f63fdc51fbc02354793bc",
-  "source_manifest_hash": "42cf5b68a2e594757b5c577518504359540903f6769e27844382065e34030fba",
+  "planning_envelope_hash": "a865e604a4a56a3feb8fffdbce1abbdfbb6a8102f03b42a7309070406426b190",
+  "source_manifest_hash": "37a3a6c2cd7472f2a5d07e29ed02cb9552af7401c5d65eb6f09822d78b9027d1",
   "registry_status": "READY",
   "blocking_reasons": [],
   "source_unit_count": 1,
   "requirement_source_unit_count": 1,
   "requirement_count": 1,
-  "requirement_ids_sha256": "1004dfa27a21b3cd2c3e567c0d4df800e732cd0eb18e9731d2b037954875f127",
+  "requirement_ids_sha256": "d5bb287983b6d77b1b381fc01a07f4d34836d57fdb88ba61243dd0aad5f4da0d",
   "coverage": [
     {
-      "source_id": "SRC-a6e97fd61810ad5d225f12d0",
-      "unit_id": "UNIT-5c5f964cba18cf3af3c52067",
+      "source_id": "SRC-96a468e158d814ccc8091e8b",
+      "unit_id": "UNIT-ca7ad261317da9dadf7bfa63",
       "disposition": "REQUIREMENT_SOURCE",
       "requirement_ids": [
-        "REQ-9dddc2972fcd3efdc7a4a12b"
+        "REQ-8aca95ddb8af1f5c583c78a8"
       ],
       "coverage_status": "COVERED"
     }
   ],
   "requirements": [
     {
-      "requirement_id": "REQ-9dddc2972fcd3efdc7a4a12b",
-      "source_id": "SRC-a6e97fd61810ad5d225f12d0",
-      "unit_id": "UNIT-5c5f964cba18cf3af3c52067",
+      "requirement_id": "REQ-8aca95ddb8af1f5c583c78a8",
+      "source_id": "SRC-96a468e158d814ccc8091e8b",
+      "unit_id": "UNIT-ca7ad261317da9dadf7bfa63",
       "kind": "FUNCTIONAL",
       "statement": "La fonction CommonJS value() de scripts/kodjo/fixtures/vnext12/core.js doit retourner exactement le nombre 2 au lieu de 1. Son test Jest direct tests/fixtures/vnext12/core.test.js doit vérifier cette valeur 2. Conserver le fichier scripts/kodjo/fixtures/vnext12/keep.js octet pour octet. Ne modifier que la fonction et son test, sans dépendance supplémentaire, sans UI ni exception native. Il s’agit d’une tranche jetable de qualification VNext-12 ; aucune publication applicative, fusion, activation ou intervention sur PRE-1.",
       "priority": "MUST",
@@ -323,7 +323,7 @@ plan_contract_hash=03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7
         "source_kind": "MARKDOWN",
         "authority": "FUNCTIONAL",
         "locator": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requirement.md",
-        "revision": "7fac320080f83eb74359272b9d039e7b1d8fac5f",
+        "revision": "3bb64be15d7662a76160bbe918a3bac297731935",
         "unit_locator": "FULL_FILE",
         "unit_fingerprint": "4a9e1c9ced7cd6125c65012293f2941f4d24e1d198405f7c111e7443ae92014e",
         "unit_disposition": "REQUIREMENT_SOURCE"
@@ -332,6 +332,6 @@ plan_contract_hash=03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7
       "conflict_ids": []
     }
   ],
-  "contract_hash": "f963f1a1e1f062f0152242d995977d8738a41f4a4a86bda189472fdcb144f366"
+  "contract_hash": "fb451829c747f32d5a08d5b625975107c18380159f528300572bb037e1cff150"
 }
 </KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON>
