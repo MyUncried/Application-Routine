@@ -1,5 +1,7 @@
 # Synthèse — Saisie des paramètres d'exécution par modale
 
+> Source historique du 01/10. Les valeurs de voile décrites ci-dessous sont supersédées : appliquer exclusivement `overlayScrim` (#1F2129 à 34 %) pour toutes les modales, y compris CE-UI-10. Voir la [clôture du voile](MATRICE-VOILE-MODAL-2026-10-07.md).
+
 Document de transmission pour la mise à jour de la documentation et du DSF. Il décrit ce qui a été créé ou modifié, les comportements du prototype et les règles de gestion qui en découlent. Les identifiants sont ceux des nœuds Figma actuels.
 
 ## 1. Principe retenu

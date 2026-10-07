@@ -382,7 +382,7 @@ Les versions futures pourront notamment introduire :
 
 ### Catalogue multi-type
 
-Le Catalogue conserve un seul espace mais distingue `Exercices`, `Séances` et `Parcours`. `Séances` est le segment sélectionné par défaut ; `Exercices` devient fonctionnel en T03 ; `Parcours` reste visible mais désactivé. Une fermeture/reprise complète ne mémorise pas le dernier segment et revient à `Séances`.
+Le Catalogue conserve un seul espace mais distingue `Exercices` et `Séances`. `Séances` est le segment sélectionné par défaut ; `Exercices` devient fonctionnel en T03 ; `Parcours` est absent du sélecteur. Une fermeture/reprise complète ne mémorise pas le dernier segment et revient à `Séances`.
 
 `Créer`, `Filtrer` et `Trier` constituent la rangée commune de commandes d’entrée. La référence courante utilise des boutons contextuels visibles de `34 pt`, des pictogrammes de `20 pt`, des gaps de `12 pt` et des cibles ≥ `44 × 44 pt` sans chevauchement. `Filtrer` et `Trier` sont communs aux trois contextes de Catalogue ; le contenu des options peut dépendre du segment actif. Pour T03 / Exercices, `Filtrer` est fonctionnel au minimum pour `Archivées`, `Trier` est visible mais désactivé, et le tri appliqué reste la dernière modification décroissante. Toute autre option est hors contrat tant qu’elle n’est pas arbitrée.
 
@@ -418,7 +418,7 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 
 L’affichage du média associé dans la gouttière permanente de la carte du Catalogue des Exercices appartient au MVP, sans déploiement (D-260/D-261). Les médias multiples ordonnés ainsi que les mécanismes d’import/capture suivent leur périmètre d’évolution propre.
 
-Un Parcours reste conceptualisé et préparé dans le modèle/architecture, mais T03 ne développe ni création, ni modification, ni Exécution, ni planification de Parcours. Le segment `Parcours` est visible et désactivé. **La cible fonctionnelle prévoit qu’un Parcours soit, lui aussi, directement planifiable** lorsqu’il entrera dans la version qui livre cette capacité ; cette planification réutilisera les Routines communes et ne créera pas un système distinct. **La cible fonctionnelle prévoit qu’un Parcours soit, lui aussi, directement planifiable** lorsqu’il entrera dans la version qui livre cette capacité ; cette planification réutilisera les Routines communes et ne créera pas un système distinct.
+Un Parcours reste conceptualisé et préparé dans le modèle/architecture, mais T03 ne développe ni création, ni modification, ni Exécution, ni planification de Parcours. Le segment `Parcours` est absent au MVP. **La cible fonctionnelle prévoit qu’un Parcours soit, lui aussi, directement planifiable** lorsqu’il entrera dans la version qui livre cette capacité ; cette planification réutilisera les Routines communes et ne créera pas un système distinct. **La cible fonctionnelle prévoit qu’un Parcours soit, lui aussi, directement planifiable** lorsqu’il entrera dans la version qui livre cette capacité ; cette planification réutilisera les Routines communes et ne créera pas un système distinct.
 
 ## 12. Roadmap des tranches MVP
 

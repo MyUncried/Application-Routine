@@ -226,7 +226,7 @@ Légende : C = CONFORME, P = PARTIEL, NC = NON CONFORME, NV = NON VÉRIFIABLE.
 
 | # | Changement source | Preuve | Document et section | Résultat | Correction |
 |---:|---|---|---|---|---|
-| 42 | Parcours (contrôles segmentés) / Circuit (composition) | décision D10 ; Figma : 17 écrans « Circuit », 0 « Parcours » | glossaire l. 51 et 138 ; INDEX l. 189 ; `13` l. 515 ; DSF-CADENCE § 4 | C | — |
+| 42 | Parcours (contrôles segmentés) / Circuit (composition) | Complément propriétaire du07/10, D-324 : suppression du troisième segment ; Circuit inchangé | glossaire, INDEX, chapitre13, DSF Segmentés/Titres, backlog FUNC-SEG-02 | Révisé le07/10 : documentation traitée ; développement à faire | D10 caduc sur le Catalogue ; preuve dans MATRICE-COMPLEMENTS-2026-10-07 |
 | 43 | « N circuits » (écran `4893:6675`) | Figma : 1 écran contre 15 « N tour(s) » | DSF-CADENCE § 4 | P | F-13 |
 | 44 | Entrée « Un circuit » de l'arbre de création | décision documentaire antérieure | `13` l. 515 (« retiré ») | C (documentation) | lot code |
 | 45 | Zones corporelles de démonstration (11 noms) | Figma : 0 étiquette par défaut | `13` l. 2980 (référentiel 10 + Fessier) | C | — |
@@ -251,7 +251,7 @@ Légende : C = CONFORME, P = PARTIEL, NC = NON CONFORME, NV = NON VÉRIFIABLE.
 
 - `tokens.ts` : valeurs de `divider`, `iconNeutral`, `mediaSurface` ; ajout de `textLabel`, `textTertiary`, `onPrimary`, `primarySoft`, `calendarMarker`, bordure renforcée ; espacements 10, 14, 20 et rayons 14, 17 ; interlignes des rôles ; `compactCardTitle` 15/18 ; `caption` et `navLabel` 13 ; remplacement des couleurs destructives des dialogues par `danger`.
 - Polices : chargement de Roboto Condensed (Medium, SemiBold, Bold) et tokens de chronomètre.
-- Libellés : le segment de catalogue « Circuits » du code doit devenir « Parcours » ; l'entrée « Un circuit » de l'arbre de création.
+- Suivi du07/10 : le renommage du segment « Circuits » en « Parcours » est caduc (D-324). Supprimer le troisième segment via FUNC-SEG-02 ; ne pas réintroduire l’ancien arbre de création. Ce changement fonctionnel est séparé du brief visuel.
 - `ProfileStepper.tsx` : « − » et « + » en texte.
 - Assets : manifeste (12 identifiants obsolètes, dimensions de navigation, 8 SVG non inscrits), branchement runtime, teinte des icônes par token.
 
@@ -281,3 +281,7 @@ Aucune pour cette mission documentaire. Pour le lot code ultérieur : rendu du c
 - Destination prévue : branche `docs/cadence-dsf-2026-10-06` (PR n° 323, ouverte, non fusionnée).
 - **Publication non réalisée** : l'environnement de cette mission n'a aucun accès en écriture à GitHub (aucun identifiant, aucun connecteur).
 - Le commit final est local (voir la réponse de la mission pour son hash et l'état Git) ; un patch applicable (`git am`) est fourni.
+
+## Suivi ciblé du07/10 — ligne42
+
+Complément propriétaire intégré : voir [matrice](../../../docs/MATRICE-COMPLEMENTS-2026-10-07.md). La ligne42 reflète la nouvelle décision de suppression ; les autres mesures de cet audit restent celles du06/10. Aucun nouvel audit global ni qualification du code.
