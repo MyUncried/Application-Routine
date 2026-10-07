@@ -36,6 +36,7 @@ function observe({ controllerCwd, approvedCwd, controllerHead, approvedHead, env
   return V.sealContract({ schema_version: 'kodjo.vnext.execution-provenance.v1',
     run_id: String(env.GITHUB_RUN_ID), run_attempt: String(env.GITHUB_RUN_ATTEMPT),
     workflow_ref: env.GITHUB_WORKFLOW_REF, workflow,
+    controller_loading: 'IMMUTABLE_EVENT_HEAD',
     controller: observed(controllerCwd, controllerHead, controllerScript),
     runtime: observed(approvedCwd, approvedHead, runtimeScript),
     contracts: ['scripts/kodjo/lib/vnext-contract.js', 'scripts/kodjo/lib/vnext-legacy-queue-adapter.js'].map(file => observed(approvedCwd, approvedHead, file)) });
@@ -45,7 +46,9 @@ function recovery(previous, expected) {
   const immutableChanged = ['runtime', 'contracts'].some(key => V.canonicalStringify(previous[key]) !== V.canonicalStringify(expected[key]));
   if (immutableChanged) return { action: 'REBUILD_APPROVED_HANDOFF', reuse_human_decision: false, reason: 'Approved runtime or contracts changed.' };
   if (previous.workflow.sha256 !== expected.workflow.sha256) return { action: 'NEW_EVENT_SAME_DELIVERY', reuse_human_decision: true, reason: 'Rerun cannot load corrected workflow; retain exact decision and reserves.' };
+  if(previous.controller.sha256!==expected.controller.sha256)return {action:'NEW_EVENT_SAME_DELIVERY',reuse_human_decision:true,
+    reason:'VNext controller is pinned to the original event head; a rerun does not load a later script fix.'};
   return { action: 'RESUME_EXISTING_OPERATION', reuse_human_decision: true,
-    reason: previous.controller.sha256 === expected.controller.sha256 ? 'Versions unchanged; check consumption before executing.' : 'Controller script can be loaded from corrected checkout; check consumption before executing.' };
+    reason: 'Versions unchanged; check consumption before executing.' };
 }
 module.exports = { WORKFLOW, blob, observe, recovery };

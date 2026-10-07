@@ -28,7 +28,12 @@ function main(configFile,directory) {
     const provenance = Versions.observe({controllerCwd:cwd,approvedCwd:cwd,controllerHead:head,approvedHead:head,
       controllerScript:'scripts/kodjo/certify-vnext-incidents.js',runtimeScript:'scripts/kodjo/finalize-vnext-delivery.js'});
     save('execution-provenance.json',provenance);
-    const result = spawnSync(process.execPath,['--test',...TESTS],{cwd,encoding:'utf8',windowsHide:true,timeout:7200000,maxBuffer:16*1024*1024});
+    const tests=config.consumer_completion_only
+      ? ['tests/kodjo/vnext-finalization-incidents.pilot.js','tests/kodjo/vnext-delivery-preservation.pilot.js'] : TESTS;
+    if(config.consumer_completion_only&&config.reused_targeted_run!==37557921183)V.fail('VNEXT_INCIDENT_REUSE_SOURCE_REQUIRED');
+    summary.reused_targeted_run=config.consumer_completion_only?config.reused_targeted_run:null;
+    summary.executed_test_paths=tests;
+    const result = spawnSync(process.execPath,['--test',...tests],{cwd,encoding:'utf8',windowsHide:true,timeout:7200000,maxBuffer:16*1024*1024});
     fs.writeFileSync(path.join(out,'targeted-tests.log'),String(result.stdout||'') + String(result.stderr||''));
     if (result.error || result.status !== 0) V.fail('VNEXT_INCIDENT_TARGETED_TESTS_FAILED');
     summary.tests_status='PASS';
@@ -42,6 +47,12 @@ function main(configFile,directory) {
     for(const id of [manifest.reviewId,manifest.decisionId,manifest.originDecisionId]) comments[id]=github.comment(repository,id);
     save('observed-source-comments.json',comments);
     const finalization=require('./finalize-vnext-delivery').execute(manifest,{cwd,directory:path.join(out,'real-data-replay'),github:{comment:(_r,id)=>comments[id]}});
+    const Delivery=require('./lib/vnext-delivery-preservation'),extract=require('./lib/plan-impact').extractTaggedJson;
+    const plan=execFileSync('git',['show',manifest.planRevision+':'+manifest.planPath],{cwd,encoding:'utf8',maxBuffer:32*1024*1024});
+    const matrix=Delivery.merge(extract(plan,'KODJO_UI_CRITERIA_MATRIX_JSON'),Delivery.fromMarkdown(plan));
+    Delivery.validateBaseline(V.sealContract({reference:{kind:'READ_ONLY_REPLAY',source_run:37281056162},matrix,
+      review:extract(comments[manifest.reviewId].body,'KODJO_UI_IMPLEMENTATION_REVIEW_JSON'),finalization,plan_blob_oid:manifest.approvedPlanBlobOid}));
+    summary.real_data_next_consumer='DELIVERY_BASELINE_ADMITTED';
     summary.real_data_replay='PASS';
     summary.real_data_replay_scope='V2_INCIDENT_DATA_THROUGH_VNEXT_ENTRY_READ_ONLY';
     summary.increment_count=finalization.delivery_coverage.increment_files.length;

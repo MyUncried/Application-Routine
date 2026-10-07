@@ -1,5 +1,6 @@
 {
   "schema_version": "kodjo.vnext.finalization.v1",
+  "schema": "kodjo.ui-final-verification.v1",
   "slice_id": "V2-PRE-2",
   "repository": "MyUncried/Application-Routine",
   "issue_number": 288,
@@ -315,6 +316,11 @@
       }
     ]
   },
+  "technical_review_sha256": "392a786da579ef957413bd280e705d7b953ed5e8907317e9dbb92bc1112e17e3",
+  "implementation_review_comment_id": "5984104726",
+  "human_device_approval_comment_id": "5990475371",
+  "criterion_count": 6,
+  "criterion_ids_sha256": "0e07c93292cb5bbfe478af44e384d4afeee4fcb827bbed3d90ae6856f2bf9b13",
   "acceptance": {
     "comment_id": "5990475371",
     "updated_at": "2026-10-05T08:01:13Z",
@@ -871,5 +877,5 @@
   "accessibility_compliance_attested": false,
   "final_status": "READY_TO_CLOSE",
   "plan_blob_oid": "014987f69b9738fbed839f9300733539b00505ca",
-  "contract_hash": "a9871a8a139654053374921e2808166bc752e33ca4c6865bb337efa49adc810e"
+  "contract_hash": "22dcfaff4823b9a5bbd99453f4fc5fb828dafca41bb2e6906524af339b55076f"
 }

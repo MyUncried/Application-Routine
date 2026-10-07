@@ -26,6 +26,8 @@ function execute(input, { cwd, directory, github }) {
     {repository:input.repository,issue:input.issue,id:input.reviewId});
   const heads = [...reviewComment.body.replace(/\r\n/g,'\n').matchAll(/^head=([^\n]+)$/gm)].map(m=>m[1].trim());
   if (heads.length !== 1 || heads[0] !== input.head) V.fail('VNEXT_FINAL_REVIEW_HEAD_MISMATCH');
+  const slices=[...reviewComment.body.replace(/\r\n/g,'\n').matchAll(/^slice_id=([^\n]+)$/gm)].map(m=>m[1].trim());
+  if(slices.length!==1||slices[0]!==input.sliceId)V.fail('VNEXT_FINAL_REVIEW_SLICE_MISMATCH');
   const review = extractTaggedJson(reviewComment.body,'KODJO_UI_IMPLEMENTATION_REVIEW_JSON');
   if (input.checksReceipt?.head !== input.head) V.fail('VNEXT_FINAL_CHECKS_HEAD_MISMATCH');
   const result = Final.finalize({...input,cwd,matrix,review,checks:input.checksReceipt.checks,

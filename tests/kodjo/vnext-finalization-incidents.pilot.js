@@ -128,10 +128,11 @@ test('incident 3: interrupted local closure resumes without duplicate or overwri
     assert.equal(first.github_issue_closed,false);
   } finally { f.cleanup(); }
 });
-test('incident 3: script fix reuses the operation, workflow fix requires a new event, runtime fix requires new handoff', () => {
+test('incident 3: pinned script or workflow fix requires a new event; runtime fix requires new handoff', () => {
   const row = { workflow: { sha256:'a' }, controller: { sha256:'b' }, runtime:{revision:'c'}, contracts:[] };
   const previous = V.sealContract(row);
-  assert.equal(Versions.recovery(previous,{ ...row, controller:{sha256:'new-script'} }).action,'RESUME_EXISTING_OPERATION');
+  assert.equal(Versions.recovery(previous,{ ...row, controller:{sha256:'new-script'} }).action,'NEW_EVENT_SAME_DELIVERY');
+  assert.equal(Versions.recovery(previous,row).action,'RESUME_EXISTING_OPERATION');
   assert.equal(Versions.recovery(previous,{ ...row, workflow:{sha256:'new-workflow'} }).action,'NEW_EVENT_SAME_DELIVERY');
   assert.equal(Versions.recovery(previous,{ ...row, runtime:{revision:'new-runtime'} }).reuse_human_decision,false);
 });
@@ -157,11 +158,26 @@ test('VNext entry reads the approved Git plan and actual comment bindings instea
     const plan='<KODJO_UI_CRITERIA_MATRIX_JSON>'+JSON.stringify(matrix)+'</KODJO_UI_CRITERIA_MATRIX_JSON>\n<KODJO_UI_PLAN_CONTRACT_JSON>'+JSON.stringify(contract)+'</KODJO_UI_PLAN_CONTRACT_JSON>';
     fs.writeFileSync(path.join(f.cwd,'plan.md'),plan);const revision=f.commit('versioned plan');
     const reviewComment={id:501,user:{login:'github-actions[bot]'},issue_url:f.args.acceptance.issue_url,
-      body:'head='+f.head+'\n<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'+JSON.stringify(f.args.review)+'</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'};
+      body:'slice_id='+f.args.sliceId+'\nhead='+f.head+'\n<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'+JSON.stringify(f.args.review)+'</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'};
     const input={...f.args,planRevision:revision,planPath:'plan.md',approvedPlanBlobOid:require('../../scripts/kodjo/lib/vnext-legacy-queue-adapter').gitBlobOid(plan),decisionId:502,checksReceipt:{head:f.head,checks:f.args.checks}};
     const options={cwd:f.cwd,directory:path.join(f.cwd,'evidence'),github:{comment:(_r,id)=>String(id)==='501'?reviewComment:f.args.acceptance}};
     const Entry=require('../../scripts/kodjo/finalize-vnext-delivery');
-    assert.equal(Entry.execute(input,options).final_status,'READY_TO_CLOSE');
+    f.args.review.schema='kodjo.ui-implementation-review.v1';
+    reviewComment.body='slice_id='+f.args.sliceId+'\nhead='+f.head+'\n<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'+JSON.stringify(f.args.review)+'</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>';
+    const finalized=Entry.execute(input,options);
+    assert.equal(finalized.final_status,'READY_TO_CLOSE');
+    const baseline=V.sealContract({reference:{},matrix,review:f.args.review,finalization:finalized,plan_blob_oid:input.approvedPlanBlobOid});
+    const Delivery=require('../../scripts/kodjo/lib/vnext-delivery-preservation');Delivery.validateBaseline(baseline);
+    for(const change of [{proof_resolutions:[]},{acceptance:null,original_decision:null},{all_device_proofs_executed:true}]){
+      const changed={...finalized,...change};delete changed.contract_hash;
+      const altered={...baseline,finalization:V.sealContract(changed)};delete altered.contract_hash;
+      assert.throws(()=>Delivery.validateBaseline(V.sealContract(altered)),/RESOLUTION|DRIFT/);
+    }
+    fs.writeFileSync(path.join(f.cwd,'review.json'),JSON.stringify(f.args.review));fs.writeFileSync(path.join(f.cwd,'final.json'),JSON.stringify(finalized));const proofRevision=f.commit('versioned final proof');
+    const reference={revision:proofRevision,plan_path:'plan.md',review_path:'review.json',finalization_path:'final.json',repository:f.args.repository,issue_number:f.args.issue};
+    const observed=Delivery.observe(reference,{cwd:f.cwd,readGit:(cwd,rev,file)=>execFileSync('git',['show',rev+':'+file],{cwd,encoding:'utf8'}),github:options.github});
+    assert.equal(Delivery.build({baseline:observed,replacements:[]},[],[]).retained_criteria.length,1);
+    assert.deepEqual(observed.finalization.reservations,f.args.reservations);
     assert.throws(()=>Entry.execute({...input,approvedPlanBlobOid:'f'.repeat(40)},options),/PLAN_BLOB_MISMATCH/);
     assert.throws(()=>Entry.execute({...input,checksReceipt:{head:f.first,checks:f.args.checks}},options),/CHECKS_HEAD_MISMATCH/);
     reviewComment.body=reviewComment.body.replace(f.head,f.first);

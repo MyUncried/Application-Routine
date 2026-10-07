@@ -146,7 +146,7 @@
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "df2cfc406ac67c0b29b61bc6a4c7bfc9ae011bca",
   "controller_stage": "FIGMA_INITIAL_REQUESTED_AFTER_ABSOLUTE_PATH_CLARIFICATION_NO_DISPOSABLE_PREFLIGHT",
-  "controller_generation": 106,
+  "controller_generation": 107,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -517,11 +517,10 @@
   },
   "active_runs": [
     {
-      "run_id": 37548553181,
+      "run_id": 37557921183,
       "status": "completed",
       "conclusion": "success",
-      "stage": "EXECUTE_REVISION",
-      "controller_head": "82e6ccc4dba4d124d77e9de4c9476d3d93421ed3"
+      "head_sha": "564acba33a19214032742c46a46f7c3ea431a32a"
     }
   ],
   "obsolete_runs": [
@@ -2602,6 +2601,16 @@
     "vnext_live_closure_certified": false,
     "report": ".github/orchestration/reports/2026-10-07_VNEXT_THREE_INCIDENTS.md",
     "cases_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/incidents/certification-cases.json",
-    "recorded_at": "2026-10-07T01:25:30.556148+00:00"
+    "recorded_at": "2026-10-07T01:25:30.556148+00:00",
+    "first_targeted_run": 37557921183,
+    "first_targeted_result": {
+      "tests": 82,
+      "pass": 82,
+      "fail": 0,
+      "skip": 0,
+      "real_data_replay": "PASS",
+      "next_consumer_gap_found": true
+    },
+    "consumer_completion_only": true
   }
 }
