@@ -5,7 +5,7 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "QUALIFICATION_SUCCESS_SIGNAL_RECOVERY_REQUIRED",
+  "current_stage": "REAL_TEST_MANUAL_RECOVERY_CLAIMED_BEFORE_LAUNCH",
   "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
   "generation": 92,
   "previous_terminal_generation": 77,
@@ -533,24 +533,25 @@
     "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
     "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
     "revision_limit": 1,
-    "generation": 90,
+    "generation": 93,
     "final_audit_authorized": false,
     "pre1_in_scope": false,
     "qualification_policy": "FULL_CYCLE_USER_REQUEST",
     "auto_continue": true,
     "repository": "MyUncried/Application-Routine",
-    "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
+    "request_id": "4417857a-3b3c-4c38-b715-7f43ef4677bf",
     "human_review_performed": false,
     "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
-    "created_at": "2026-10-07T14:13:27.318Z",
+    "created_at": "2026-10-07T17:32:23.982Z",
     "source_revision_run_id": 37625815436,
     "source_revision_signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:6db62fdd-31b6-4c00-8097-d85af9f675b8:37625815436:1",
     "live_figma_acquisition": "NOT_EXERCISED_FROZEN_GIT_CAPTURE_REPLAY",
     "visual_validation": "NOT_EXECUTED_USER_ONLY",
-    "approved_protocol_head": "9411096c1d78d9b930346af02a30b077b4ccc7e3",
-    "qualification_run_id": 37632486111,
-    "source_qualification_signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8:37632486111:1",
-    "previous_failed_request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8"
+    "approved_protocol_head": "42d10d8a7500a55d69ddeb26866fea7b625affa0",
+    "qualification_run_id": 37641572717,
+    "previous_failed_request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
+    "qualification_run_attempt": 2,
+    "source_qualification_recovery_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:232ae5f7-dd22-4c95-af90-403e9f9149a4:37641572717:2"
   },
   "real_test_failure": {
     "run_id": 37629963561,
@@ -773,5 +774,103 @@
     "observed_controller_head": "6a7e62d83fa9f8bc12ebb58300f3aa9c2bc1104f",
     "qualification_signal_published": false,
     "implementation_invoked": false
+  },
+  "manual_continuation_recovery": {
+    "schema_version": "kodjo.vnext.manual-continuation-recovery.v1",
+    "recovery_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:232ae5f7-dd22-4c95-af90-403e9f9149a4:37641572717:2",
+    "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+    "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
+    "generation": 92,
+    "source_head": "42d10d8a7500a55d69ddeb26866fea7b625affa0",
+    "observed_controller_head": "3d918984b1ccc4035ce7482680834e2d4b134a54",
+    "run_id": 37641572717,
+    "run_attempt": 2,
+    "qualification": {
+      "status": "VERIFIED",
+      "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+      "candidate_head": "42d10d8a7500a55d69ddeb26866fea7b625affa0",
+      "run_id": "37641572717",
+      "run_attempt": 2,
+      "jobs": [
+        {
+          "id": 112894878733,
+          "name": "qualification (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112894879057,
+          "name": "qualification (windows-latest)",
+          "conclusion": "success"
+        }
+      ],
+      "observed_at": "2026-10-07T17:32:23.908Z"
+    },
+    "admission": {
+      "approved": {
+        "status": "VERIFIED",
+        "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+        "candidate_head": "42d10d8a7500a55d69ddeb26866fea7b625affa0",
+        "run_id": "37641572717",
+        "run_attempt": 2,
+        "jobs": [
+          {
+            "id": 112894878733,
+            "name": "qualification (ubuntu-latest)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112894879057,
+            "name": "qualification (windows-latest)",
+            "conclusion": "success"
+          }
+        ],
+        "observed_at": "2026-10-07T17:32:24.016Z"
+      },
+      "controller": {
+        "status": "VERIFIED",
+        "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+        "candidate_head": "42d10d8a7500a55d69ddeb26866fea7b625affa0",
+        "run_id": "37641572717",
+        "run_attempt": 2,
+        "jobs": [
+          {
+            "id": 112894878733,
+            "name": "qualification (ubuntu-latest)",
+            "conclusion": "success"
+          },
+          {
+            "id": 112894879057,
+            "name": "qualification (windows-latest)",
+            "conclusion": "success"
+          }
+        ],
+        "observed_at": "2026-10-07T17:32:24.016Z",
+        "controller_head": "3d918984b1ccc4035ce7482680834e2d4b134a54",
+        "relation": "EXACT_SAME_PROTOCOL_CODE"
+      }
+    },
+    "window": {
+      "expected_parent": "3d918984b1ccc4035ce7482680834e2d4b134a54",
+      "checkpoint_sha": "3ecfaca8e2f7f88204617fbc996cf44118112ad3",
+      "controller_generation": 108,
+      "observed_at": "2026-10-07T17:32:23.982Z"
+    },
+    "documentary_delta": [
+      ".github/orchestration/reports/2026-10-07_VNEXT_FULL_CERTIFICATION_CYCLE.md",
+      ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/cycle-state.json",
+      ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/qualification-attempt2-37641572717.json",
+      ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/qualification-relay-failure-37641572717/evidence.json",
+      ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/qualification-relay-failure-37641572717/linux.zip",
+      ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/qualification-relay-failure-37641572717/windows.zip",
+      ".github/orchestration/vnext12/VNEXT-12-QUALIF/request.json"
+    ],
+    "code_fingerprint": "29b4aa4a0cd9f71adb658dfaf43decd942c9b0b32b342cb69f8f8668bfb6278d",
+    "authorization": "USER_20261007_1929_PROACTIVE_CONTINUATION_RECOVERY",
+    "method": "MANUAL_ORCHESTRATOR_RESUME_FROM_VERIFIED_GITHUB_RESULT",
+    "relay_signal_published": false,
+    "synthetic_workflow_signal": false,
+    "claimed_at": "2026-10-07T17:32:23.982Z",
+    "next_request_id": "4417857a-3b3c-4c38-b715-7f43ef4677bf",
+    "status": "CLAIMED_BEFORE_LAUNCH"
   }
 }
