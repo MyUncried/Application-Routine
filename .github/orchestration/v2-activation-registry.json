@@ -66,9 +66,9 @@
       "slice_id": "VNEXT-12-QUALIF",
       "status": "ACTIVE",
       "issue_number": 269,
-      "baseline_head": "7992c924aa13cd3e6dc495814b9d15a78baf9152",
+      "baseline_head": "061660b233e58719d3963a2efd9092880c9f3961",
       "bootstrap_path": ".github/orchestration/v2-slices/VNEXT-12-QUALIF/slice-bootstrap.json",
-      "slice_bootstrap_sha256": "90b66fa51407250bd31d4cd218b5ff8f12b3d543646a98e9106ed66add14d4c7"
+      "slice_bootstrap_sha256": "f6fb8948d421014b5883094bba6671cf684ec5d341977fa0f1692371ae50f2b7"
     }
   ]
 }

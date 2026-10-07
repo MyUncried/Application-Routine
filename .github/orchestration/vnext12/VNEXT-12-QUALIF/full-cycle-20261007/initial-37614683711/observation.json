@@ -1,0 +1,93 @@
+{
+  "schema_version": "kodjo.vnext.initial-observation.v1",
+  "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+  "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:db5ed26b-e1f7-4e0c-a417-1ee1f44748a4:37614683711:1",
+  "observed_at": "2026-10-07T12:09:02.223Z",
+  "workflow_run": {
+    "id": 37614683711,
+    "attempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "4853a2852740ae963f8ebb22afe279c6c4be419e"
+  },
+  "execution": {
+    "job_id": 112770315720,
+    "conclusion": "success",
+    "verdict": "INITIAL_PASS",
+    "implementation_status": "IMPLEMENTED_AND_VERIFIED",
+    "implementation_invoked": true,
+    "claude_session_id": "d2ef8084-5609-418d-b927-2a3b85085694",
+    "claude_exit_code": 0,
+    "observed_value": 2,
+    "targeted_jest_exit_code": 0,
+    "modified_files": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "keep_js_sha256_before": "db387ac0aab607cda76e230c38f08a343d1d3d6281c2062b48bf023f06331f56",
+    "keep_js_sha256_after": "db387ac0aab607cda76e230c38f08a343d1d3d6281c2062b48bf023f06331f56",
+    "checks": {
+      "jest": {
+        "passed": 1257,
+        "failed": 0,
+        "total": 1257
+      },
+      "typescript": "PASS",
+      "lint": "PASS"
+    },
+    "cleanup": true
+  },
+  "artifacts": [
+    {
+      "id": 11480271120,
+      "name": "kodjo-vnext12-execution-37614683711-1",
+      "sha256": "92d4c47edff35d76dbc5f43480a83979c7d7a5ac58836462957755402820ef15"
+    },
+    {
+      "id": 11479861766,
+      "name": "historical-equivalence-Linux",
+      "sha256": "8a19e1e878c6471730a968b6d63648d3be03b017921d660c90e18b4d551dda41"
+    },
+    {
+      "id": 11480497795,
+      "name": "historical-equivalence-Windows",
+      "sha256": "0ec0b8cc2f3c81b74de9899b00e1df240ab18373fea57ce5222908e5a3ec873d"
+    }
+  ],
+  "historical_jobs": {
+    "linux": {
+      "job_id": 112776408859,
+      "conclusion": "success",
+      "counts": {
+        "tests": 1152,
+        "passed": 1151,
+        "failed": 0,
+        "skipped": 1
+      }
+    },
+    "windows": {
+      "job_id": 112776408639,
+      "conclusion": "success",
+      "counts": {
+        "tests": 1152,
+        "passed": 1149,
+        "failed": 0,
+        "skipped": 3
+      }
+    },
+    "platform_coverage": {
+      "job_id": 112781087851,
+      "conclusion": "skipped"
+    },
+    "persistent_windows": {
+      "job_id": 112781087928,
+      "conclusion": "skipped"
+    }
+  },
+  "boundaries": {
+    "application_published": false,
+    "business_write": false,
+    "final_audit_invoked": false,
+    "pre1_in_scope": false
+  }
+}

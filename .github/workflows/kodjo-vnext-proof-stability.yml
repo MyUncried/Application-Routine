@@ -220,3 +220,28 @@ jobs:
           path: ${{ runner.temp }}/vnext-architecture-${{ github.run_id }}/*
           retention-days: 14
           if-no-files-found: error
+
+  wake-orchestrator:
+    name: Signal exact VNext cycle controls to Work
+    needs: qualification
+    if: always() && github.event_name == 'create' && startsWith(github.event.ref, 'qualification/vnext-full-cycle-') && needs.qualification.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Publish only a deduplicated qualification signal
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CONTROLLER_HEAD: ${{ github.sha }}
+          VNEXT_CONTINUATION_JOB: wake-orchestrator
+          VNEXT_RUN_KIND: QUALIFICATION
+          VNEXT_JOB_RESULTS: ${{ toJson(needs) }}
+        run: node scripts/kodjo/signal-vnext-cycle-continuation.js

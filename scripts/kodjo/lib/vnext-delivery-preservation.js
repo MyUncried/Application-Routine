@@ -8,6 +8,7 @@ function validateBaseline(base) {
   V.verifyContractHash(base, 'VNEXT_DELIVERY_BASELINE_HASH_INVALID');
   V.assertExactKeys(base, ['reference','matrix','review','finalization','plan_blob_oid','contract_hash'], [], 'VNEXT_DELIVERY_BASELINE_KEYS_INVALID');
   const f = base.finalization;
+  if(f.schema_version==='kodjo.vnext.finalization.v1') require('./vnext-finalization').validateResult(f,base.review);
   if (f.schema !== 'kodjo.ui-final-verification.v1' || f.final_status !== 'READY_TO_CLOSE'
       || f.plan_blob_oid !== base.plan_blob_oid || f.technical_review_sha256 !== sha256(base.review)
       || base.review.schema !== 'kodjo.ui-implementation-review.v1' || base.review.verdict !== 'APPROVE') V.fail('VNEXT_DELIVERY_BASELINE_NOT_APPROVED');
@@ -38,6 +39,23 @@ function observe(reference, { cwd, readGit, github }) {
     { repository: reference.repository, issue: reference.issue_number, id: finalization.implementation_review_comment_id });
   if (canonicalJson(extractTaggedJson(comment.body, 'KODJO_UI_IMPLEMENTATION_REVIEW_JSON')) !== canonicalJson(review)
       || canonicalJson([...comment.body.matchAll(/^head=([^\n]+)$/gm)].map(m=>m[1].trim())) !== canonicalJson([finalization.head])) V.fail('VNEXT_DELIVERY_REVIEW_COMMENT_MISMATCH');
+  if(finalization.schema_version==='kodjo.vnext.finalization.v1'){
+    if(finalization.repository!==reference.repository||Number(finalization.issue_number)!==reference.issue_number)V.fail('VNEXT_DELIVERY_REFERENCE_MISMATCH');
+    const Final=require('./vnext-finalization');
+    const binding={repository:reference.repository,issue:reference.issue_number,head:finalization.head,sliceId:finalization.slice_id,reviewId:finalization.implementation_review_comment_id};
+    for(const snapshot of [finalization.acceptance,finalization.original_decision].filter(Boolean)){
+      const observed=Final.decision(github.comment(reference.repository,snapshot.comment_id),binding);
+      if(canonicalJson(observed)!==canonicalJson(snapshot)) V.fail('VNEXT_DELIVERY_OWNER_DECISION_CHANGED');
+    }
+    const matrix=merge(extractTaggedJson(plan,'KODJO_UI_CRITERIA_MATRIX_JSON'),fromMarkdown(plan));
+    const observedCoverage=Final.coverage({cwd,baselineHead:finalization.delivery_coverage.baseline_head,
+      incrementHead:finalization.delivery_coverage.increment_head,head:finalization.head,approvedHead:finalization.head,matrix,
+      retainedTargets:fromMarkdown(plan)?.retained_criteria.flatMap(c=>c.change_targets)||[]});
+    if(canonicalJson(observedCoverage)!==canonicalJson(finalization.delivery_coverage))V.fail('VNEXT_DELIVERY_CURRENT_COVERAGE_CHANGED');
+    const base=V.sealContract({reference,matrix:merge(extractTaggedJson(plan,'KODJO_UI_CRITERIA_MATRIX_JSON'),fromMarkdown(plan)),review,finalization,
+      plan_blob_oid:require('./vnext-legacy-queue-adapter').gitBlobOid(plan)});
+    validateBaseline(base);return base;
+  }
   const approval = source.verify(github.comment(reference.repository, finalization.human_device_approval_comment_id),
     { repository: reference.repository, issue: reference.issue_number, id: finalization.human_device_approval_comment_id, actor: 'MyUncried' });
   const fields = name => [...approval.body.matchAll(new RegExp('^' + name + '=([^\\n]+)$', 'gm'))].map(m => m[1].trim());

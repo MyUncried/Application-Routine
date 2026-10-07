@@ -162,6 +162,10 @@ async function main(){
  if(stage==='precheck'){process.stdout.write(JSON.stringify(await precheck(directory))+'\n');return;}
  if(process.platform!=='win32'||!requestFile)throw Error('VNEXT_FIGMA_REAL_WINDOWS_REQUEST_REQUIRED');
  if(Lock.claudeProcessState().state!=='NONE')throw Error('VNEXT_FIGMA_REAL_OTHER_CLAUDE_ACTIVE_OR_AMBIGUOUS');
+ const controllerHead=Chain.command('git',['rev-parse','HEAD'],process.cwd()).trim();
+ const provenance=require('./lib/vnext-execution-provenance').observe({controllerCwd:process.cwd(),approvedCwd:process.cwd(),controllerHead,approvedHead:controllerHead,
+  controllerScript:'scripts/kodjo/qualify-vnext-figma-real-path.js',runtimeScript:'scripts/kodjo/lib/vnext-figma-implementation-review.js'});
+ fs.writeFileSync(path.join(directory,'execution-provenance.json'),JSON.stringify(provenance,null,2)+'\n',{flag:'wx'});
  const request=JSON.parse(fs.readFileSync(requestFile,'utf8')),claimed=claimRequest(request,{cwd:process.cwd()});
  for(const key of ['GH_TOKEN','GITHUB_TOKEN','KODJO_LIVE_GH_TOKEN','KODJO_VNEXT_CONSUMPTION_TOKEN'])delete process.env[key];
  fs.writeFileSync(path.join(directory,'qualification-admission.json'),JSON.stringify(claimed.claim,null,2)+'\n',{flag:'wx'});

@@ -20,6 +20,8 @@ jobs:
       stage: ${{ steps.stage.outputs.stage }}
       approved_head: ${{ steps.stage.outputs.approved_head }}
       qualification_policy: ${{ steps.stage.outputs.qualification_policy }}
+      delivery_head: ${{ steps.stage.outputs.delivery_head }}
+      auto_continue: ${{ steps.stage.outputs.auto_continue }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,10 +34,14 @@ jobs:
           node - <<'JS'
           const fs = require('fs');
           const c = JSON.parse(fs.readFileSync('.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json'));
-          if (!['PREPARE_INITIAL', 'EXECUTE_INITIAL', 'EXECUTE_REVISION', 'QUALIFY_ONLY', 'PREPARE_REVISION', 'FIGMA_INITIAL'].includes(c.stage) || c.pre1_in_scope !== false || c.final_audit_authorized !== false || c.revision_limit !== 1) throw Error('VNEXT12_STAGE_REFUSED');
+          if (!['PREPARE_INITIAL', 'EXECUTE_INITIAL', 'EXECUTE_REVISION', 'QUALIFY_ONLY', 'PREPARE_REVISION', 'FIGMA_INITIAL', 'CERTIFY_INCIDENTS', 'TARGETED_RESULT_RECORDED', 'FINALIZE_DELIVERY'].includes(c.stage) || c.pre1_in_scope !== false || c.final_audit_authorized !== false || c.revision_limit !== 1) throw Error('VNEXT12_STAGE_REFUSED');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'auto_continue=' + (c.auto_continue === true) + '\n');
+          if (c.stage === 'FINALIZE_DELIVERY') require('./scripts/kodjo/lib/vnext-github-closure').validateConfig(c);
+          if (c.stage === 'CERTIFY_INCIDENTS') require('./scripts/kodjo/certify-vnext-incidents').validateConfig(c);
           if (c.stage === 'FIGMA_INITIAL') require('./scripts/kodjo/qualify-vnext-figma-real-path').validateConfig(c);
           if (['EXECUTE_INITIAL', 'EXECUTE_REVISION'].includes(c.stage)) require('./scripts/kodjo/execute-vnext12').validateConfig(c);
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'stage=' + c.stage + '\napproved_head=' + (c.approved_protocol_head || '') + '\nqualification_policy=' + (c.qualification_policy || '') + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'delivery_head=' + (c.delivery_head || '') + '\n');
           JS
       - name: Check the disposable supervisor before any runtime execution
         if: steps.stage.outputs.qualification_policy != 'DIRECT_REAL_USER_REQUEST' && (steps.stage.outputs.stage == 'EXECUTE_INITIAL' || steps.stage.outputs.stage == 'EXECUTE_REVISION' || steps.stage.outputs.stage == 'QUALIFY_ONLY' || steps.stage.outputs.stage == 'PREPARE_REVISION')
@@ -230,6 +236,10 @@ jobs:
         shell: powershell
     steps:
       - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
@@ -310,6 +320,83 @@ jobs:
           retention-days: 90
           if-no-files-found: error
 
+  certify-incidents:
+    name: Continue VNext certification - three incidents only
+    needs: select-stage
+    if: needs.select-stage.result == 'success' && needs.select-stage.outputs.stage == 'CERTIFY_INCIDENTS'
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      issues: read
+    steps:
+      - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+          path: _vnext12-incidents/${{ github.run_id }}
+      - name: Check targeted cases and replay incident data read-only
+        working-directory: _vnext12-incidents/${{ github.run_id }}
+        shell: cmd
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/kodjo/certify-vnext-incidents.js .github/orchestration/vnext12/VNEXT-12-QUALIF/request.json "%RUNNER_TEMP%/vnext12-incidents-${{ github.run_id }}-${{ github.run_attempt }}"
+      - name: Preserve targeted certification evidence and limits
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-vnext12-incidents-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vnext12-incidents-${{ github.run_id }}-${{ github.run_attempt }}/**
+          retention-days: 90
+          if-no-files-found: error
+
+  close-vnext-delivery:
+    name: Finalize the published VNext certification delivery
+    needs: select-stage
+    if: needs.select-stage.result == 'success' && needs.select-stage.outputs.stage == 'FINALIZE_DELIVERY'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check the affected closure contracts before writing
+        run: node --test tests/kodjo/vnext-github-closure.pilot.js tests/kodjo/vnext-finalization-incidents.pilot.js
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.select-stage.outputs.delivery_head }}
+          path: _closure-delivery
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Revalidate finalization and close the exact certification issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VNEXT_CLOSURE_JOB: close-vnext-delivery
+          VNEXT_DELIVERY_CWD: _closure-delivery
+        run: node scripts/kodjo/close-vnext-github-delivery.js .github/orchestration/vnext12/VNEXT-12-QUALIF/request.json "$RUNNER_TEMP/vnext-closure-${{ github.run_id }}-${{ github.run_attempt }}"
+      - name: Preserve finalization and observed GitHub closure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-vnext-closure-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vnext-closure-${{ github.run_id }}-${{ github.run_attempt }}/**
+          retention-days: 90
+          if-no-files-found: error
+
   historical-equivalence:
     name: 3 - Historical assertions (${{ matrix.os }})
     needs: [select-stage, figma-initial, execute-initial]
@@ -377,3 +464,28 @@ jobs:
     uses: ./.github/workflows/kodjo-vnext-historical-checks.yml
     with:
       sequenced_vnext: true
+
+  wake-orchestrator:
+    name: Signal the completed VNext stage to Work
+    needs: [select-stage, prepare-initial, prepare-revision, execute-initial, figma-initial, certify-incidents, close-vnext-delivery, historical-platform-coverage, historical-local-windows]
+    if: always() && needs.select-stage.result == 'success' && needs.select-stage.outputs.auto_continue == 'true' && needs.select-stage.outputs.stage != 'TARGETED_RESULT_RECORDED' && needs.select-stage.outputs.stage != 'QUALIFY_ONLY'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Publish only a deduplicated completion signal
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CONTROLLER_HEAD: ${{ github.event.pull_request.head.sha }}
+          VNEXT_CONTINUATION_JOB: wake-orchestrator
+          VNEXT_RUN_KIND: OPERATIONAL
+          VNEXT_JOB_RESULTS: ${{ toJson(needs) }}
+        run: node scripts/kodjo/signal-vnext-cycle-continuation.js

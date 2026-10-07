@@ -1,0 +1,27 @@
+{
+  "stage": "FINALIZE_DELIVERY",
+  "slice_id": "VNEXT-12-QUALIF",
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "revision_limit": 1,
+  "generation": 76,
+  "final_audit_authorized": false,
+  "pre1_in_scope": false,
+  "qualification_policy": "TARGETED_EXISTING_CERTIFICATION",
+  "request_id": "241b97ea-c97a-45a8-86fd-b9d0ebe5c2f2",
+  "authorization_basis": "USER_20261007_102954_PARIS_FINALIZE_GITHUB_CLOSURE",
+  "human_review_performed": false,
+  "repository": "MyUncried/Application-Routine",
+  "closure_scope": "GITHUB_CERTIFICATION_DELIVERY",
+  "issue_number": 324,
+  "delivery_pr_number": 325,
+  "delivery_branch": "certification/vnext/628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "delivery_head": "b4dbde78215b4ff1adb1443a0ed6d581716eb38b",
+  "issue_body_sha256": "dd73869df5ab2ddfdc34b4253f0e453fb5641e7facf48822d797f5f018dd9a7c",
+  "finalization_manifest": ".github/orchestration/vnext12/VNEXT-12-QUALIF/closure/finalization-manifest.json",
+  "reused_targeted_runs": [
+    37557921183,
+    37559490452
+  ],
+  "source_revision_run": 37548553181,
+  "previous_closure_run": 37596957178
+}

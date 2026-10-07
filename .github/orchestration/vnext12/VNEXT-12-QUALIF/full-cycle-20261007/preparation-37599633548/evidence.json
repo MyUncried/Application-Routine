@@ -1,0 +1,37 @@
+{
+  "head": "3bb64be15d7662a76160bbe918a3bac297731935",
+  "preparation_run": 37599633548,
+  "qualification_run": 37599709262,
+  "status": {
+    "status": "PREPARED_FOR_PUBLICATION",
+    "candidate_head": "3bb64be15d7662a76160bbe918a3bac297731935",
+    "review_verdict": "APPROVE",
+    "claude_session_id": "4e25f395-711c-4759-9a70-636dc581718b",
+    "implementation_invoked": false,
+    "user_approval_observed": false,
+    "revision_limit": 1
+  },
+  "blocking_findings": 0,
+  "suggestions": 1,
+  "qualification": {
+    "Linux": {
+      "pass": 400,
+      "fail": 0,
+      "skip": 0,
+      "duration_ms": 44160.071344
+    },
+    "Windows": {
+      "pass": 400,
+      "fail": 0,
+      "skip": 0,
+      "duration_ms": 519986.6082
+    }
+  },
+  "historical": "NOT_YET_EXECUTED",
+  "archive_sha256": {
+    "preparation.zip": "f57729b4f7a6fc7c0c315e21cec0859bd83fb189874379c4fc9050726dc525f1",
+    "qualification-Windows.zip": "5ca5866a50ef6ce26cbe5d131b846cc31ad0644f669d3d019a2a91783afaa5e2",
+    "qualification-Linux.zip": "e009770f5e9fae55917f9eacf4a096df6c004a71c65fd3422f8b9babc6e44065"
+  },
+  "verified_produced_and_actual_review": true
+}

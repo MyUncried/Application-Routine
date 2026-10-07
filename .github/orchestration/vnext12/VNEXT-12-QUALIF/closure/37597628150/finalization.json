@@ -1,0 +1,51 @@
+{
+  "schema_version": "kodjo.vnext.finalization.v1",
+  "schema": "kodjo.ui-final-verification.v1",
+  "slice_id": "VNEXT-12-QUALIF",
+  "repository": "MyUncried/Application-Routine",
+  "issue_number": 324,
+  "head": "b4dbde78215b4ff1adb1443a0ed6d581716eb38b",
+  "review_comment_id": "6034331428",
+  "review_sha256": "a299a77b0ae0a19d4f536700c4bc401797ba4f89d2d55997b0899a8c634875c2",
+  "delivery_coverage": {
+    "baseline_head": "d1c5241be95a1e27933d8049cb6c0dfb8dbec4d9",
+    "increment_head": "d1c5241be95a1e27933d8049cb6c0dfb8dbec4d9",
+    "head": "b4dbde78215b4ff1adb1443a0ed6d581716eb38b",
+    "increment_files": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "cumulative_files": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "current_files": [
+      {
+        "path": "scripts/kodjo/fixtures/vnext12/core.js",
+        "blob_oid": "37452ce0e5d820e3095734191e2df3c75815b3ff"
+      },
+      {
+        "path": "tests/fixtures/vnext12/core.test.js",
+        "blob_oid": "c1c358f203b672e7192ec94846dbcf6245f8bcce"
+      }
+    ]
+  },
+  "technical_review_sha256": "a299a77b0ae0a19d4f536700c4bc401797ba4f89d2d55997b0899a8c634875c2",
+  "implementation_review_comment_id": "6034331428",
+  "human_device_approval_comment_id": null,
+  "criterion_count": 0,
+  "criterion_ids_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "acceptance": null,
+  "original_decision": null,
+  "reservations": [],
+  "pending_proofs": [],
+  "not_executed_proofs": [],
+  "proof_resolutions": [],
+  "all_device_proofs_executed": true,
+  "acceptance_scope": "TECHNICAL_VERIFICATION",
+  "visual_compliance_attested": false,
+  "accessibility_compliance_attested": false,
+  "final_status": "READY_TO_CLOSE",
+  "plan_blob_oid": "d251be05996546eb080879039f3786578b3eed82",
+  "contract_hash": "16875bcc8d7f6e4f646ca2cc2af9c2bc8aaeda66249ca81e2c1f7a003b5299cd"
+}

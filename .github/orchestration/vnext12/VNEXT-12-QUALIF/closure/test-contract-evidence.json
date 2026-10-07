@@ -1,0 +1,18 @@
+{
+  "schema": "kodjo.test-contract-evidence.v1",
+  "head": "b4dbde78215b4ff1adb1443a0ed6d581716eb38b",
+  "source_run": 37548553181,
+  "source_head": "d1c5241be95a1e27933d8049cb6c0dfb8dbec4d9",
+  "reuse_basis": "IDENTICAL_COMPLETE_TESTED_TREE",
+  "tested_tree_oid": "9cb1628b755948fb3b57f24bcf1cf187e9114282",
+  "binding_count": 1,
+  "bindings": [
+    {
+      "requirement_id": "REQ-8CF0779C445C35FE",
+      "test_path": "tests/fixtures/vnext12/core.test.js",
+      "proof_type": "FUNCTIONAL_TEST",
+      "status": "PASS",
+      "evidence": "Source functional-proof.json targeted_jest_exit_code=0; original targeted command log retained in run 37548553181 artifact 11451904254. No new execution claimed."
+    }
+  ]
+}

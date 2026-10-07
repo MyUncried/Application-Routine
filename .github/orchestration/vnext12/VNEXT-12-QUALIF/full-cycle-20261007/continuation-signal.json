@@ -1,0 +1,60 @@
+{
+  "schema_version": "kodjo.vnext.cycle-signal.v1",
+  "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "slice_id": "VNEXT-12-QUALIF",
+  "request_id": "db5ed26b-e1f7-4e0c-a417-1ee1f44748a4",
+  "generation": 84,
+  "stage": "EXECUTE_INITIAL",
+  "kind": "OPERATIONAL",
+  "run_id": 37614683711,
+  "run_attempt": 1,
+  "source_head": "4853a2852740ae963f8ebb22afe279c6c4be419e",
+  "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:db5ed26b-e1f7-4e0c-a417-1ee1f44748a4:37614683711:1",
+  "job_results": {
+    "select-stage": {
+      "result": "success",
+      "outputs": {
+        "stage": "EXECUTE_INITIAL",
+        "approved_head": "661bdba157cab2f791c2941125f2867058bc1ace",
+        "qualification_policy": "FULL_CYCLE_USER_REQUEST",
+        "auto_continue": "true"
+      }
+    },
+    "prepare-initial": {
+      "result": "skipped",
+      "outputs": {}
+    },
+    "prepare-revision": {
+      "result": "skipped",
+      "outputs": {}
+    },
+    "execute-initial": {
+      "result": "success",
+      "outputs": {}
+    },
+    "figma-initial": {
+      "result": "skipped",
+      "outputs": {}
+    },
+    "certify-incidents": {
+      "result": "skipped",
+      "outputs": {}
+    },
+    "close-vnext-delivery": {
+      "result": "skipped",
+      "outputs": {}
+    },
+    "historical-platform-coverage": {
+      "result": "skipped",
+      "outputs": {}
+    },
+    "historical-local-windows": {
+      "result": "skipped",
+      "outputs": {}
+    }
+  },
+  "business_write": false,
+  "implementation_authorized": false,
+  "human_review_performed": false
+}

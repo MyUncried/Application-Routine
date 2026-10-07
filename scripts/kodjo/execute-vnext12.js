@@ -115,6 +115,11 @@ function main(configFile, evidenceDirectory) {
     cwd: source, controllerHead: process.env.VNEXT12_CONTROLLER_HEAD,
   });
   save('qualification-admission.json', qualifications);
+  const controllerCwd = path.dirname(path.dirname(path.dirname(__filename)));
+  save('execution-provenance.json', require('./lib/vnext-execution-provenance').observe({
+    controllerCwd, approvedCwd: source, controllerHead: process.env.VNEXT12_CONTROLLER_HEAD,
+    approvedHead: APPROVED_HEAD,
+  }));
   let credential;
   try { credential = consumptionCredential(); }
   catch (error) {
@@ -167,7 +172,8 @@ function main(configFile, evidenceDirectory) {
       slice_bootstrap_file: transport.slice_bootstrap_file, slice_bootstrap_sha256: transport.slice_bootstrap_sha256,
       authorized_plan: { plan_path: transport.plan_path }, independent_review: { review_path: transport.review_path },
       prompt_file: transport.prompt_file, user_gate: { gate_ref: GATE },
-      request_id: transport.request_id, created_at: transport.created_at };
+      request_id: config.qualification_policy === 'DIRECT_REAL_USER_REQUEST' ? config.request_id : transport.request_id,
+      created_at: config.qualification_policy === 'DIRECT_REAL_USER_REQUEST' ? config.created_at : transport.created_at };
     const derived = Chain.deriveQueue(seed, { cwd: source, github });
     if (revision) validateAdmittedRevision(derived.artifacts);
     else validateAdmittedInitial(derived.artifacts);
@@ -230,7 +236,7 @@ function main(configFile, evidenceDirectory) {
     { env: { ...cleanEnv, KODJO_LIVE_GH_TOKEN: token, KODJO_VNEXT_QUEUE_FILE: queueFile,
         KODJO_DISPOSABLE_EVIDENCE_DIR: evidence, KODJO_QUALIFICATION_ISOLATED_CHECKS: '1',
         KODJO_QUALIFICATION_CHECK_CACHE_DIR: path.join(root, 'check-cache') },
-      allowFailure: true, timeout: 6000000 });
+      allowFailure: true, timeout: 7200000 });
     if (!fs.existsSync(path.join(runDir, 'result.json'))) throw Error('VNEXT12_RUNTIME_RESULT_MISSING:' + result.code);
     const actual = JSON.parse(fs.readFileSync(path.join(runDir, 'result.json'), 'utf8'));
     summary.initial_status = actual.status; summary.implementation_invoked = actual.claude_invoked === true;

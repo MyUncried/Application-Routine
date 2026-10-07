@@ -59,9 +59,11 @@ function validateTree({ cwd, expectedParent, candidateTree, run = execFileSync }
     const json = file => JSON.parse(fs.readFileSync(path.join(temporary, file), 'utf8'));
     for (const file of changed.filter(file => file.endsWith('.json') && fs.existsSync(path.join(temporary, file)))) json(file);
     const request = json('.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json');
-    if (!['PREPARE_INITIAL', 'PREPARE_REVISION', 'QUALIFY_ONLY', 'EXECUTE_INITIAL', 'EXECUTE_REVISION', 'FIGMA_INITIAL'].includes(request.stage)
+    if (!['PREPARE_INITIAL', 'PREPARE_REVISION', 'QUALIFY_ONLY', 'EXECUTE_INITIAL', 'EXECUTE_REVISION', 'FIGMA_INITIAL', 'CERTIFY_INCIDENTS', 'TARGETED_RESULT_RECORDED', 'FINALIZE_DELIVERY'].includes(request.stage)
         || request.pre1_in_scope !== false || request.final_audit_authorized !== false || request.revision_limit !== 1) V.fail('VNEXT_PUBLICATION_STAGE_INVALID');
     if (request.stage === 'FIGMA_INITIAL') require('../qualify-vnext-figma-real-path').validateConfig(request);
+    if (request.stage === 'CERTIFY_INCIDENTS') require('../certify-vnext-incidents').validateConfig(request);
+    if (request.stage === 'FINALIZE_DELIVERY') require('./vnext-github-closure').validateConfig(request);
     if (request.stage.startsWith('EXECUTE_')) require('../execute-vnext12').validateConfig(request);
 
     const security = Security.evaluateRemoteWriteSecurity({ root: temporary,
