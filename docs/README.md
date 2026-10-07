@@ -1,10 +1,12 @@
 # Application Routine
 
+**Référence courante du07/10 :** [matrice cartes/phrases](MATRICE-CARTES-PHRASES-2026-10-07.md) ; [DSF cartes sans cadre de durée](DSF-CARTES-DUREE-2026-10-07.md). Pause après chaque série, récupération substitutive,276 textes v14, segments non persistés.
+
 ## Dernière clarification — Bip de cadence
 
 [Spécification Bip v2](Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md) · [DSF Bip/steppers](DSF-BIP-CADENCE-2026-10-07.md) · [Inventaire et captures](MATRICE-BIP-FIGMA-2026-10-07.md) · [Rapport de cohérence](REPORT-BIP-2026-10-07.md).
 
-Bip0..10 transverse aux trois modes ; omission des durées non calculables d’Exercice ; ≥ réservé aux Séances ; pauses entre séries sans Pause terminale. Q-07 clos ; réserve rédactionnelle Q-08 sur les anciennes phrases de pauses. Cette clarification remplace les règles incompatibles du premier lot du07/10.
+Bip0..10 transverse aux trois modes ; omission des durées non calculables d’Exercice ; ≥ réservé aux Séances ; pause après chaque série, dernière comprise, remplacée seulement par la récupération positive qui suit. Q-07 et Q-08 clos ; les276 formulations v14 font référence. Cette clarification remplace les règles incompatibles du premier lot du07/10.
 
 ## Consolidation du 07/10/2026
 

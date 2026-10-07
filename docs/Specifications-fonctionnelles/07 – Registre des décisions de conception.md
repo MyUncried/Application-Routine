@@ -375,8 +375,8 @@ Dernier identifiant publié vérifié sur main 8fc58a4 : D-246.
 | ID | Décision | Statut | Traçabilité |
 |---|---|---|---|
 | D-247 | Séries variables explicites, mode unique et N Séries par côté ; collection ordonnée cible/Pause, aucune surcharge commune. Direction et Ordre des côtés indépendants ; Un côté après l’autre par défaut / Les deux côtés à chaque série. | Validée | C1/C4–6/C8/C11/C19–20, prompt§4.1–4.2 |
-| D-248 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
-| D-249 | Brouillon transactionnel, bascules uniforme/variable, restauration des cibles par mode et lignes retirées ; déplacement conjoint cible/Pause, nouvelle dernière Pause stockée non exécutée en fin d’Exercice et nouvelle première ligne reprise à désactivation. Ordre relatif des lignes retirées conservé à restauration. | Validée | C2/C7/C9 et arbitrage déplacement02/10 |
+| D-248 | Pause après chaque série, dernière comprise ; PN puis PC à la frontière des côtés successifs. Seule la dernière Pause est remplacée par R positive dans une occurrence ; aucune récupération contextuelle en direct. Formules et inversion : Paramètres v13. | Confirmée par D-314 le07/10 | Remplace l’interprétation contraire de D-311 ; conserve ordre par paire et normalisation N1 |
+| D-249 | Brouillon transactionnel, bascules uniforme/variable, restauration des cibles par mode et lignes retirées ; déplacement conjoint cible/Pause, nouvelle dernière Pause stockée et exécutée, sauf substitution par récupération positive et nouvelle première ligne reprise à désactivation. Ordre relatif des lignes retirées conservé à restauration. | Validée | C2/C7/C9 et arbitrage déplacement02/10 |
 | D-250 | À N=1 : uniforme et Un côté après l’autre effectifs dès le brouillon/calcul ; options grisées, interrupteur visuellement désactivé. Ancien état conservé seulement pour retour N≥2 avant ✓ ; normalisation persistée à ✓. | Validée | C17/C18 corrigées, réponses explicites02/10 |
 | D-251 | Feuille scrollable, en-tête fixe, tableau rattaché à l’interrupteur, steppers directs et chevron de repli sans effet métier. Cible incomplète : total—, ✓ grisé, cellule et message en ligne. Durée totale variable non éditable. | Validée | C10/C13/C15/C22, prompt§4.3–4.4 |
 | D-252 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
@@ -450,7 +450,7 @@ D-268 à D-297 transcrivent CAD-01 à CAD-30 sans nouvel arbitrage. Ce paragraph
 | D-295 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
 | D-296 | Prescription courante : Bip v2 et D-308–313 ; ancienne version conservée dans Git. | Révisée le07/10 — seconde clarification | Portée, pauses, signaux, données, steppers ou durées selon la décision concernée |
 | D-297 | Aucun nouvel objet Répétition ni nouveau type de phase de Plan. | Validée — CAD-30 | Conception Cadence, intégration06/10/2026 |
-| D-298 | Phrase unique, valeurs en gras, zone entièrement cliquable ; cibles variables énumérées jusqu’à3 puis min/max ; pas de clause sans changement ; omission Répétitions sans bip/À l’échec ou redondance Durée ; phrases de pauses en réserve Q-08. Excel exclusivement rédactionnel. | Validée, consolidation | Spécification de phrase v1 et clarification propriétaire06/10 |
+| D-298 | Phrase unique, valeurs en gras, zone entièrement cliquable ; cibles variables énumérées jusqu’à3 puis min/max ; pas de clause sans changement ; omission Répétitions sans bip/À l’échec ou redondance Durée ; phrases de pauses fixées par les276 cas v14. Excel exclusivement rédactionnel. | Validée, consolidation | Spécification de phrase v1 et clarification propriétaire06/10 |
 | D-299 | DSF : neutres rationalisés, danger#D92D20, deux rôles scrim distincts, Roboto Condensed pour chrono/compteurs, compactCardTitle15/18 ; cardTitle16 conservé pour son rôle historique. Barre d’état rendue par le système. | Décisions consignées ; mesures datées séparées | DSF-CADENCE-2026-10-06 |
 | D-300 | Figma définit layout/rendu uniquement ; nombres et câblages ne définissent ni calculs ni comportement. Excel ne définit pas les pauses/durées. Circuit/Tour/Parcours et cartes média restent inchangés. | Confirmation de D-255 | Clarifications propriétaire et plan révisé06/10 |
 
@@ -476,7 +476,7 @@ Les décisions datées conservent leur texte d’origine. Le badge replié décr
 | D-306 | Icônes contextuelles contour/plein, cercle inchangé, + sans activé ; chronomètre cartes16px/0,9/#9499A8. | Layout relevé | DSF07/10 |
 | D-307 | Défaut Profil de récupération, initialement30s, proposé à l’ajout explicite ; aucune création automatique, aucun effet rétroactif. | Conséquence dérivée : conserver le réglage et déplacer son moment d’application | D-304, CE-UI-07 |
 
-Bip v2 remplace D-248 sur Pause terminale ; H-03 en réserve rédactionnelle Q-08. D-301, Circuit/Tour et Excel uniquement rédactionnel conservés.
+D-314 confirme D-248 sur Pause terminale et récupération ; D-315 remplace H-03, Q-08 clos. D-301, Circuit/Tour et Excel uniquement rédactionnel conservés.
 
 ## Q-07 — clos par la seconde clarification du07/10
 
@@ -489,8 +489,20 @@ Répétitions sans bip : total d’Exercice omis. ≥ uniquement en Séance, sel
 | D-308 | Bip de cadence transverse aux trois modes, stepper0..10,0=Aucun, aucun effacement à bascule de mode. | Explicite | Prompt Bip§§1–2,6 |
 | D-309 | Exercice : exact Durée, ≈ Répétitions avec bip, omitted sans bip/À l’échec ; ≥ seulement Séance. | Explicite | Prompt§3 |
 | D-310 | Bip périodique durant Série, aucune fin/transition/compteur automatique ; Durée garde sa fin au minuteur. | Explicite et articulation dérivée | Prompt§2 et règles de modes conservées |
-| D-311 | Travail+pauses entre Séries,n−1 unilatéral ; plus de Pause terminale. To=T+R et formules bilatérales conservent la pause à la frontière des côtés. | Explicite ; conséquences dérivées | Prompt§3.3 et Bip v2§3 |
+| D-311 | Ancienne suppression de la Pause terminale. | Supersédée par D-314 le07/10/2026 | Ne plus appliquer ; historique conservé dans Git |
 | D-312 | Stepper : tap1,maintien≈500ms,paliers5 après2s/10 après4s avec multiples directionnels ; Bip/CR/Fin sans accélération. | Explicite ; fréquence150ms conservée | Prompt§4,DSF Bip |
 | D-313 | Champ cadenceBeepIntervalSeconds0..10 dans trois modes ; collection et snapshot communs ; modèle scalaire à migrer avant intégration. | Nom logique dérivé et portée explicite | Prompt§6 |
 
-Q-08 : demande de conserver les formulations de pauses incompatible avec leur ancienne signification terminale. Proposition : « + 15 s de pause entre les séries » ; aucune clause de pause pour une Série unilatérale. Le calcul n−1 est acté, seule la rédaction reste à arbitrer.
+Q-08 clos par instruction explicite du propriétaire : pause après chaque série, dernière comprise ; les276 formulations v14 remplacent les propositions antérieures.
+
+## Clarification finale du07/10/2026 — pauses, phrases et cartes
+
+| ID | Décision | Statut | Portée |
+|---|---|---|---|
+| D-314 | Pause après chaque série, y compris N1 et dernière ; seule la toute dernière Pause est remplacée par une récupération positive qui suit. PN puis PC se cumulent à la frontière des côtés successifs. | Explicite propriétaire | Confirme D-248 ; remplace D-311 ; calculs, plan, progression et inversion |
+| D-315 | Les276 cas v14 fixent les formulations ; terme « pause après chaque série ». Excel exclusivement rédactionnel. | Explicite propriétaire | Q-08 clos ; remplace H-03 et phrases de pauses antérieures de D-298 |
+| D-316 | Générateur pur de segments `{texte, gras}`, à chaque affichage ; aucune phrase en base. | Explicite propriétaire | API, modèle, architecture, contrats ; aucune recherche de valeurs pour le gras |
+| D-317 | MVP français ; extension multilingue exige grammaires/règles de pluriel et genre par locale. | Dette documentée | Réécriture des assemblages français à planifier avant i18n |
+| D-318 | Durée des cartes Catalogue sans fond/cadre/padding, Inter Semi Bold12 #141414, alignée à16px du bord droit ; propriété booléenne Durée. | Prompt et composants vérifiés | Deux composants actifs, variantes repliée/archivée/déployée ; ne rouvre pas l’accès Exercice Déployé hors MVP |
+| D-319 | Exercice : titre250px, lignes basses207px ; gouttière12px et texte x88 conservés. Séance marges16/16. | Explicite prompt | Coupe60/69/145 dérivée des lignes basses ; asymétrie acceptée |
+| D-320 | Variabilité de visibilité via propriété de composant ; cinq composants sans instance obsolètes, pas de mise à jour ni suppression dans ce lot. | Méthode et inventaire | Incident des cinq instances signalé ; aucun caractère universel d’irréversibilité déduit |

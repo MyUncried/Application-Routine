@@ -150,7 +150,7 @@ Références Figma : `4861:6145` (Étiquette), `4861:6259` (Catégorie), `4861:6
 
 ### 4.11 Cartes, médias de carte et appuis — référence courante
 
-D-233–239 révisées par D-260 à D-264 et DSF-CARTES-ICONES-APPUIS-2026-09-30 gouvernent le rendu. Carte standard 354 sur 402, rayon 8, fond#F9FAFC/bord 0,5#CCD1E0, titre 15 Semi Bold, pastilles 20 et valeurs 16 ; marges adaptatives, aucune barre verticale hors Jour. Carte d’Exercice Catalogue/choix : gouttière permanente 64, photo recadrée centrée sans déformation ou icône de nature sans média/pendant chargement/erreur ; texte à x88, largeur207 ; aucun Déployer. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi ; texte alternatif de la vignette égal au nom. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). La galerie d’Exécution conserve au contraire le média intégral sans recadrage. Séance sans photo (D-260). Choix sans badge durée/heure ni Lecture/Déployer. Pauses/récupérations absentes des cartes Catalogue/choix/Composition ; prochaine planification absente des Catalogues ; données et calculs conservés.
+D-233–239 révisées par D-260 à D-264 et DSF-CARTES-ICONES-APPUIS-2026-09-30 gouvernent le rendu. Carte standard 354 sur 402, rayon 8, fond#F9FAFC/bord 0,5#CCD1E0, titre 15 Semi Bold, pastilles 20 et valeurs 16 ; marges adaptatives, aucune barre verticale hors Jour. Carte d’Exercice Catalogue/choix : gouttière permanente 64, photo recadrée centrée sans déformation ou icône de nature sans média/pendant chargement/erreur ; texte à x88 ; Catalogue replié/archivé : titre250, lignes basses207 ; Choix conserve sa coupe propre ; aucun Déployer. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi ; texte alternatif de la vignette égal au nom. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). La galerie d’Exécution conserve au contraire le média intégral sans recadrage. Séance sans photo (D-260). Choix sans badge durée/heure ni Lecture/Déployer. Pauses/récupérations absentes des cartes Catalogue/choix/Composition ; prochaine planification absente des Catalogues ; données et calculs conservés.
 
 Commandes contextuelles 34/dessin 20/cible 44, gaps 12 ou 10 en Composition ; dimensions spécifiques 48 conservées. Jour compact 298×46/48, barre 4, nature 26, titre 13, valeurs 11, Lecture 26 ; pas de déploiement. Aujourd’hui/Planifier 32 restent l’exception acceptée aprèsT04. Action au relâchement, sans attendre le retour animé ; sortie de cible annule ; stepper : maintien≈500ms, répétition150ms et paliers1/5/10 selon DSF Bip ; réduction des animations par opacité sans dilatation. Les dimensions à402 ne sont pas des coordonnées absolues d’implémentation.
 
@@ -164,7 +164,7 @@ Le moteur possède la source de vérité temporelle. Le Compte à rebours propre
 | SESSION | Compte à rebours initial → plan avant Circuit → Circuit répété par Tours → plan après Circuit → Fin de séance → Synthèse |
 | Occurrence SESSION | Compte à rebours propre si activé → Exercice intrinsèque (Séries/côtés/pauses) → Fin propre si activée → POST_ACTIVITY_RECOVERY → point d’arrêt éventuel → suite |
 
-Durée intrinsèque calculable : unilatéral ΣTi+Σ(P1..P(N−1)) ; succession des côtés 2ΣTi+2Σ(P1..P(N−1))+PN+PC ; par paire 2ΣTi+Σ(P1..P(N−1))+N×PC. N=1 normalisé succession. Occurrence calculable To=T+R, sans soustraction terminale. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pauses entre Séries, sans Pause terminale ; Récupération explicite ajoutée une seule fois. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
+Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 | Action/phase | Effet déterminé | Conservation |
 |---|---|---|
@@ -271,6 +271,8 @@ Carte : titre et badge durée, Étiquette puis catégories issues des exercices 
 
 ### 9. Layout déterministe
 
+Cartes Catalogue : [DSF Durée du07/10](../DSF-CARTES-DUREE-2026-10-07.md). Texte de durée sans fond/cadre/padding, Inter Semi Bold12 #141414, droite16px. Propriété booléenne Durée des sets6214:7276/7278 ; absence → aucun contenu de remplacement. Exercice replié/archivé : titre250px, lignes basses207px àx88 ; coupes60/69/145 fondées sur207. Gouttière12px conservée ; Séance16/16. La référence Exercice Déployé ne crée aucun accès MVP.
+
 Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Hauteur repliée 90, déployée 235. Commandes 34/dessins 20/gaps 12/cibles 44. Segmenté 354 : padding 4, gaps 4, options 112,67. Actions glissées de même hauteur que la carte, y compris déployée.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
@@ -315,11 +317,15 @@ Séances = défaut/relaunch ; Exercices = actif T03 ; Parcours = disabled ; bott
 
 ### 20. Recette déterministe
 
+Vérifier présence/absence puis retour de durée sans perdre titre/catégorie/zones ; aucun badge vide, aucun libellé « à l’échec » dans l’emplacement temporel. Texte long et agrandi : durée alignée à droite, titre sans collision. Durée exacte / Répétitions avec bip≈ / autres modes sans total ; ne pas tester les calculs sur les montants dessinés.
+
 Tester liste vide 2117:86, cartes repliées/déployées, filtres actifs/archives, surface Modifier distincte de Démarrer, état non exécutable, archivage planifié confirmé/annulé, restauration, suppression définitive confirmée/annulée et conservation de l’historique. Après Continuer dans Composition : Séances sélectionné, aucune étape Catégories. Vérifier Étiquette ou catégories de repli, sans prochaine planification affichée.
 
 Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans les emplacements de durée existants ; conserver masquages des cartes de choix, aucune formule locale et aucune photo de Séance/liste mixte.
 
 ### 21. Traçabilité
+
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
 D-187/D-188/D-196/D-206/D-209/D-211/D-238 ; CE-T03-08 et CE-UI-05. Frames 1992:9910/10014/10518/10628/10848/10937, 2117:86, 2234:88/189, 4168:11149, 4549:6382/6742, 4592:6217, 4593:6285 ; écarts de preuve §5.
 
@@ -376,7 +382,9 @@ Pastille Catégorie colorée, Zones corporelles, titre et badge durée ; synthè
 
 ### 9. Layout déterministe
 
-Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée 354 × 91. Gouttière permanente d’exercice : carré 64 à12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur 207 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Badge durée/heure conservé selon contexte, catégorie conservée, pictogramme de zone conservé ; Déployer absent. Séance sans vignette (D-260). Commandes 34/dessins 20/gaps 12/cibles 44. La référence Exercice Déployé est historique hors MVP, sans chemin d’accès.
+Cartes Catalogue : [DSF Durée du07/10](../DSF-CARTES-DUREE-2026-10-07.md). Texte de durée sans fond/cadre/padding, Inter Semi Bold12 #141414, droite16px. Propriété booléenne Durée des sets6214:7276/7278 ; absence → aucun contenu de remplacement. Exercice replié/archivé : titre250px, lignes basses207px àx88 ; coupes60/69/145 fondées sur207. Gouttière12px conservée ; Séance16/16. La référence Exercice Déployé ne crée aucun accès MVP.
+
+Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Repliée 354 × 91. Gouttière permanente d’exercice : carré 64 à12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88 ; titre250 en Catalogue replié/archivé, lignes basses207 ; Choix conserve sa largeur liée au contrôle ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Durée Catalogue sans cadre, Inter Semi Bold12 #141414 à16px du bord droit, présence selon Bip v2 ; heure selon contexte, catégorie conservée, pictogramme de zone conservé ; Déployer absent. Séance sans vignette (D-260). Commandes 34/dessins 20/gaps 12/cibles 44. La référence Exercice Déployé est historique hors MVP, sans chemin d’accès.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -420,6 +428,8 @@ Lecture indépendante ; aucune poignée ; carte à gouttière permanente sans D�
 
 ### 20. Recette déterministe
 
+Vérifier présence/absence puis retour de durée sans perdre titre/catégorie/zones ; aucun badge vide, aucun libellé « à l’échec » dans l’emplacement temporel. Texte long et agrandi : durée alignée à droite, titre sans collision. Durée exacte / Répétitions avec bip≈ / autres modes sans total ; ne pas tester les calculs sur les montants dessinés.
+
 Tester zéro/N cartes, active/archivée, avec/sans photo/vidéo, chargement/erreur, texte alternatif, troncature, sélection indépendante et absence de zone Déployer avec ou sans média. Vérifier formats des trois modes, miroir pour bilatéral et absence des textes retirés. Puis filtres, actions glissées, retour d’état et responsive. Critères CAR/MED/ICO/CTX/ANI du complément.
 
 Vérifier aussi les cartes variables dans les trois modes et la durée intrinsèque sans récupération contextuelle.
@@ -427,6 +437,8 @@ Vérifier aussi les cartes variables dans les trois modes et la durée intrinsè
 Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans les emplacements de durée existants ; conserver masquages des cartes de choix, aucune formule locale et aucune photo de Séance/liste mixte.
 
 ### 21. Traçabilité
+
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
 Référence variable historique `6665:24120`, disparue du Figma courant : l’ancien état du 03/10 n’est plus une preuve active. L’indicateur fonctionnel « N séries variables » sans détail et le total intrinsèque selon mode restent prescrits par v13 §7 ; aucun nœud de remplacement n’est inventé.
 
@@ -550,6 +562,8 @@ Terminer valide et persiste puis retourne au contexte appelant. Carte Paramètre
 
 ### 5. Données affichées et source de vérité
 
+Phrase selon les276 cas v14, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus.
+
 Brouillon parent : nom, référentiels, description, paramètres validés par la feuille et médias existants. Aucun texte de démonstration codé en dur.
 
 Paramètres étendus : uniforme/variable, liste ordonnée de cibles/Pauses, Ordre des côtés ; copie complète vers CE-UI-10.
@@ -602,6 +616,8 @@ Toutes les Séries actives doivent être valides ; Total variable en lecture seu
 
 ### 15. Brouillon et persistance
 
+Aucune phrase ni aucun segment en base, occurrence ou snapshot. Régénération à chaque affichage depuis les paramètres ; ✓ applique, ✕ annule, Terminer persiste les paramètres. Une règle rédactionnelle amendée s’applique au prochain affichage des objets existants.
+
 Persistance à Terminer uniquement, atomique. Le brouillon de la feuille est distinct du brouillon parent ; annuler la feuille ne modifie aucun paramètre du parent.
 
 ### 16. Navigation et conservation d’état
@@ -622,6 +638,8 @@ Aucune édition inline de la phrase. Mode/nom exclus de la phrase intrinsèque ;
 
 ### 20. Recette déterministe
 
+Recette rédactionnelle :276 gabarits v14 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés.
+
 Tester vide→feuille→annuler sans changement ; feuille valide→résumé→Terminer ; zone de phrase entière ; modification annulée ; trois modes, deux ordres bilatéraux et PC=0 sans repli ; source disparue/erreurDB ; champs/référentiels requis ; lecture seule Total Répétitions. Vérifier différences entre exemple Figma et données recalculées.
 
 Sauvegarder/réouvrir après bascules, déplacement et N1 ; vérifier indépendance copie Catalogue/Séance et résumé v13.
@@ -631,6 +649,8 @@ Bip0/1/10, supprimer puis annuler/confirmer, phrase à3/4cibles, singulier et de
 Vérifier état repos/activé à ouverture/fermeture du panneau et symbole du total selon D-305.
 
 ### 21. Traçabilité
+
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
 D-246 à D-255 ; v13 ; CE-UI-10/09 ; état des lieux du03/10 (chaque frame, capture, statut, contrat). Anciennes copies hors Prototype MVP actuel, aucune modification de règle issue de leurs chiffres.
 
@@ -671,6 +691,8 @@ Catalogue filtré Archives, cartes archivées et actions de cycle de vie ; confi
 Accès Archives via Filtrer ; Restaurer ; Supprimer uniquement depuis Archives ; confirmation avant suppression définitive ; feedback succès selon pattern commun.
 
 ### 9. Layout déterministe
+
+Cartes Catalogue : [DSF Durée du07/10](../DSF-CARTES-DUREE-2026-10-07.md). Texte de durée sans fond/cadre/padding, Inter Semi Bold12 #141414, droite16px. Propriété booléenne Durée des sets6214:7276/7278 ; absence → aucun contenu de remplacement. Exercice replié/archivé : titre250px, lignes basses207px àx88 ; coupes60/69/145 fondées sur207. Gouttière12px conservée ; Séance16/16. La référence Exercice Déployé ne crée aucun accès MVP.
 
 Variante archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9 à0,5, même rayon/ombre ; Restaurer remplace Lecture. Avec média, RG-4 et RG-11 à RG-13 s’appliquent ; aucune prochaine planification. L’état existe dans le composant sans écran d’archive d’exercice dédié ; ne pas déclarer un écran Figma créé.
 
@@ -718,9 +740,13 @@ Suppression seulement Archives ; aucune suppression de SessionActivity, snapshot
 
 ### 20. Recette déterministe
 
+Vérifier présence/absence puis retour de durée sans perdre titre/catégorie/zones ; aucun badge vide, aucun libellé « à l’échec » dans l’emplacement temporel. Texte long et agrandi : durée alignée à droite, titre sans collision. Durée exacte / Répétitions avec bip≈ / autres modes sans total ; ne pas tester les calculs sur les montants dessinés.
+
 Archiver/restaurer/supprimer une définition non planifiée puis planifiée ; confirmer/annuler ; vérifier Routines futures retirées à l’archivage confirmé, copies et instantanés conservés. Restauration ne recrée pas les Routines supprimées. Vérifier double tap, échec atomique, filtre archives vide, absence Lecture dans l’état archivé.
 
 ### 21. Traçabilité
+
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
 D-173/D-196/D-206/D-238 ; API-ACT-REF ; règles cycle de vie chapitre 08 §5.9 ; CE-T03-02/CE-UI-05. Variante archivée dans Carte exercice 6214:7278 ; absence d’écran complet dédiée acceptée.
 
@@ -860,7 +886,9 @@ Case 20, titre 15, pastilles 20, valeurs 16, compteur et Sélectionner désactiv
 
 ### 9. Layout déterministe
 
-Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Choix Composition 354 × 91 ; cadre des zones corporelles arrêté à8 px de la case, points de suspension en fin, liste seule défilante ; actions fixes. Gouttière permanente d’exercice : carré 64 à12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88/largeur 207 ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Aucun badge durée/heure dans ce choix, catégorie conservée, pictogramme de zone conservé ; Déployer absent.
+Composants actifs et propriété Durée : [DSF cartes du07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.
+
+Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Choix Composition 354 × 91 ; cadre des zones corporelles arrêté à8 px de la case, points de suspension en fin, liste seule défilante ; actions fixes. Gouttière permanente d’exercice : carré 64 à12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88 ; titre250 en Catalogue replié/archivé, lignes basses207 ; Choix conserve sa largeur liée au contrôle ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Aucun badge durée/heure dans ce choix, catégorie conservée, pictogramme de zone conservé ; Déployer absent.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -910,6 +938,8 @@ Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans l
 
 ### 21. Traçabilité
 
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
+
 D-171/D-194/D-208/D-213/D-222/D-238 ; frame 3789:5349 ; CE-T03-08. Clarification dérivée : aucun filtre non représenté ajouté à cette modale.
 
 ---
@@ -936,7 +966,7 @@ Exercice → éditeur de copie locale ; Ajouter un exercice → CE-T03-07 ; Éti
 
 ### 5. Données affichées et source de vérité
 
-Brouillon Session indépendant, nom, Étiquette0..1, compte à rebours/Fin, Circuit unique/Tours 1..99, activation globale des phases propres D-214 (true par défaut, sans modifier les valeurs propres enregistrées). Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Chaque occurrence conserve ses séries/cadences ; To=T+R pour un travail calculable. Total développé par Tours, symboles D-305. Point d’arrêt sans durée prévue.
+Brouillon Session indépendant, nom, Étiquette0..1, compte à rebours/Fin, Circuit unique/Tours 1..99, activation globale des phases propres D-214 (true par défaut, sans modifier les valeurs propres enregistrées). Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Chaque occurrence conserve ses séries/cadences ; To=T−PN+R si R>0, sinon To=T pour un travail calculable. Total développé par Tours, symboles D-305. Point d’arrêt sans durée prévue.
 
 ### 6. Classification des valeurs Figma
 
@@ -984,7 +1014,7 @@ Sous-parcours : conserver brouillon, insertion et scroll. Continuer succès → 
 
 ### 17. Erreurs et cas limites
 
-Liste vide, position interdite, erreur durée, double tap et erreur de transaction : pas de mutation partielle. R0 ne génère aucune phase. Suppression recovery retire seulement cette phase ; aucune Pause terminale recréée ; aucun changement de définition Catalogue. Anciennes séances : aucune reprise imposée par ce lot ; ne pas confondre migration de schéma et reprise fonctionnelle.
+Liste vide, position interdite, erreur durée, double tap et erreur de transaction : pas de mutation partielle. R0 ne génère aucune phase. Suppression recovery retire cette phase et rétablit la Pause terminale configurée ; aucun changement de définition Catalogue. Anciennes séances : aucune reprise imposée par ce lot ; ne pas confondre migration de schéma et reprise fonctionnelle.
 
 ### 18. Accessibilité
 
@@ -992,13 +1022,17 @@ Annoncer type, position, durée, sélection et nombre d’ajouts ; ordre de focu
 
 ### 19. Invariants
 
-Circuit=groupe, Tour=répétition ; récupération positive avant point, attente exclue du prévu ; éléments internes répétés à chaque Tour. Aucune récupération automatique ni récupération directe ACTIVITY. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). D-248 remplacée sur pause terminale ; D-301 maintenu pour l’absence de pause effective entre Exercices ; aucune persistance avant Continuer.
+Pause après chaque série, dernière comprise, même N1. PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
+
+Circuit=groupe, Tour=répétition ; récupération positive avant point, attente exclue du prévu ; éléments internes répétés à chaque Tour. Aucune récupération automatique ni récupération directe ACTIVITY. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). D-248 confirmée sur pause terminale et substitution par R ; D-301 maintenu pour l’absence de pause effective entre Exercices ; aucune persistance avant Continuer.
 
 ### 20. Recette déterministe
 
 Tester annulation roulette/placement/Séance, sélection multiple/désélection/décompte, Rabsente/0/positive et point absent/présent, dans/hors placement. Tester frontières des deux types, dernière récupération, répétition par Tour, retrait/extérieur bulle, duplication/déplacement/suppression et sauvegarde atomique. Tester erreur/double tap ; D-214/V-04 conservés. D-301 présent uniquement sans pause effective de transition ni Rpositive, sans blocage. Vérifier symbole ≈ avec bip/omission sans bip à l’Exercice et montants issus de la spécification, aucune formule de capture.
 
 ### 21. Traçabilité
+
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
 D-208/214/217/238 conservées pour leurs dispositions non supersédées ; D-301–307 et Spécification Pauses et symboles07/10. CE-T03-06/07/16, CE-EXEC-SESSION-01 ; références§1. Les captures fidèles ne prouvent pas la conformité du trait. Aucun test applicatif exécuté.
 
@@ -1086,6 +1120,8 @@ Décompte annoncé selon guidage ; aucun label Tour/Séance ; nom accessible.
 
 ### 19. Invariants
 
+Pause après chaque série, dernière comprise, même N1. PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
+
 5 s fixes ; origin ACTIVITY ; pas de Session artificielle ; pas SESSION_END.
 
 ### 20. Recette déterministe
@@ -1097,6 +1133,8 @@ Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Paus
 Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les trois modes ; aucun signal hors phase Série.
 
 ### 21. Traçabilité
+
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
 D-172/D-191/D-208/D-209/D-214/D-220 ; règles communes §4.12 ; médias CE-MEDIA-EXEC-01/02 ; Synthèse CE-T03-14 ; frame directe 4968:8188 et variantes média 4997:6113/5588:4363/5009:6069/5021:5994/5581:4257. Leur Tour résiduel ne valide aucun Circuit en ACTIVITY. Préparation et variantes sans frame propre : preuve partagée, pas ancien écran numéroté.
 
@@ -1188,6 +1226,8 @@ Timer/commandes nommés ; aucun côté annoncé en UNILATERAL ; état pause anno
 
 ### 19. Invariants
 
+Pause après chaque série, dernière comprise, même N1. PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
+
 Aucun Tour/Cycle/SESSION_END ; calculs existants inchangés.
 
 ### 20. Recette déterministe
@@ -1199,6 +1239,8 @@ Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Paus
 Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les trois modes ; aucun signal hors phase Série.
 
 ### 21. Traçabilité
+
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
 D-172/D-191/D-208/D-209/D-214/D-220 ; règles communes §4.12 ; médias CE-MEDIA-EXEC-01/02 ; Synthèse CE-T03-14 ; frame directe 4968:8188 et variantes média 4997:6113/5588:4363/5009:6069/5021:5994/5581:4257. Leur Tour résiduel ne valide aucun Circuit en ACTIVITY. Préparation et variantes sans frame propre : preuve partagée, pas ancien écran numéroté.
 
@@ -1302,6 +1344,8 @@ Cadence et état utiles annoncés sans dépendre du son ; ne pas annoncer chaque
 
 ### 19. Invariants
 
+Pause après chaque série, dernière comprise, même N1. PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
+
 Failure sans cible ; Suivant normal ; aucune confirmation chronométrée ; pas SESSION_END.
 
 D-302 confirme tous les signaux et comportements de cadence ; ≈ ne signifie pas absence de guidage.
@@ -1315,6 +1359,8 @@ Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Paus
 10×4s : début0, bips4..36, final40 ; Suivant20/45s normal ; Pause6s puis intervalle4s complet ; reset6s puis10s → réel16s. Arrière-plan sans rejeu ; après nominal aucun bip, Série active. Recette prescrite, non exécutée.
 
 ### 21. Traçabilité
+
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
 D-172/D-191/D-208/D-209/D-214/D-220 ; règles communes §4.12 ; médias CE-MEDIA-EXEC-01/02 ; Synthèse CE-T03-14 ; frame directe 4968:8188 et variantes média 4997:6113/5588:4363/5009:6069/5021:5994/5581:4257. Leur Tour résiduel ne valide aucun Circuit en ACTIVITY. Préparation et variantes sans frame propre : preuve partagée, pas ancien écran numéroté.
 
@@ -1386,7 +1432,7 @@ Tap commandes uniquement.
 
 ### 14. Validation
 
-Pi reste stockée sur chaque Série ; elle est exécutée entre les Séries, jamais après la toute dernière de l’Exercice. À la frontière des côtés successifs, PN puis PC sont conservées. Par paire, Pi entre paires et PC dans chaque paire. Récupération explicite ajoutée après l’occurrence, aucune en direct ; aucune soustraction de PN. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
+Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
 
 ### 15. Brouillon et persistance
 
@@ -1406,6 +1452,8 @@ Annonce vocale côté au début et au changement selon règles ; label accessibl
 
 ### 19. Invariants
 
+Pause après chaque série, dernière comprise, même N1. PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
+
 Respecter l’ordre effectif : successif, PC une fois ; par paire, PC à chaque Série. Pi et PC selon v13§4 ; aucune Récupération contextuelle en ACTIVITY ; résultats séparés par côté ; rang logique Exercice inchangé.
 
 L’ajout explicite de recovery concerne SESSION seulement ; aucune récupération contextuelle en ACTIVITY. Cadence sonore propre à chaque Série/côté conservée.
@@ -1419,6 +1467,8 @@ Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Paus
 Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les trois modes ; aucun signal hors phase Série.
 
 ### 21. Traçabilité
+
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
 D-172/D-191/D-208/D-209/D-214/D-220 ; règles communes §4.12 ; médias CE-MEDIA-EXEC-01/02 ; Synthèse CE-T03-14 ; frame directe 4968:8188 et variantes média 4997:6113/5588:4363/5009:6069/5021:5994/5581:4257. Leur Tour résiduel ne valide aucun Circuit en ACTIVITY. Préparation et variantes sans frame propre : preuve partagée, pas ancien écran numéroté.
 
@@ -1510,6 +1560,8 @@ Signal de fin non uniquement sonore ; dialogues lisibles ; focus sur décision.
 
 ### 19. Invariants
 
+Pause après chaque série, dernière comprise, même N1. PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
+
 Aucun SESSION_END ; aucun Session count ; origin ACTIVITY intact.
 
 ### 20. Recette déterministe
@@ -1521,6 +1573,8 @@ Vérifier les deux ordres et directions, valeurs variables, PC0 sans repli, Paus
 Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les trois modes ; aucun signal hors phase Série.
 
 ### 21. Traçabilité
+
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
 D-172/D-191/D-208/D-209/D-214/D-220 ; règles communes §4.12 ; médias CE-MEDIA-EXEC-01/02 ; Synthèse CE-T03-14 ; frame directe 4968:8188 et variantes média 4997:6113/5588:4363/5009:6069/5021:5994/5581:4257. Leur Tour résiduel ne valide aucun Circuit en ACTIVITY. Préparation et variantes sans frame propre : preuve partagée, pas ancien écran numéroté.
 
@@ -1660,6 +1714,8 @@ Ligne 1 : nature 26 liste ou tai-chi, titre15, statut76 aligné à droite. Ligne
 
 ### 9. Layout déterministe
 
+Composants actifs et propriété Durée : [DSF cartes du07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.
+
 Carte354 × 67 à texte standard ; bloc texte y12/hauteur43 ; statut x262/y9 (76 × 24), Ressenti x318/y39 (20 × 20), marge droite16. Marge haute12/basse8 assumée. Ces coordonnées sont la référence Figma402, pas des positions absolues à imposer au responsive. Pas de champs Session-only fictifs sur activité. Filtrer/Trier 34, dessins 20, gap 12, cibles 44 ; liste scrollable, navigation fixe.
 
 Durée des cartes : chronomètre16×16, trait0,9, #9499A8 lié au rôle catégorie ; texte durée #595E66 et nature #14141A. Suivi = temps réalisé, sans symbole prévisionnel ; Calendrier = nature de calcul fournie.
@@ -1711,6 +1767,8 @@ SESSION/ACTIVITY, statuts, source modifiée/supprimée, instantané conservé, a
 10×4s terminé avec Suivant20s : temps réel20s et fin normale ; reset6s puis10s : cumulé16s ; modifier la définition après exécution ne change pas prescription/résultat. Aucun symbole d’estimation collé au temps réel.
 
 ### 21. Traçabilité
+
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
 D-172 et Suivi chapitre 06 ; 1992:8843/8996,2117:190 ; D-233–239 révisées par D-260 à D-264. CE-T03-14 et CE-UI-08 ; archives 1842:2/3401:86 hors cible MVP.
 
@@ -2239,6 +2297,8 @@ Barre couleur 4 ; nature 26 ; titre 13 gras ; heure/durée 11 gris ; Lecture 26.
 
 ### 9. Layout déterministe
 
+Composants actifs et propriété Durée : [DSF cartes du07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.
+
 Référence 402 : x80, largeur 298 ; séance 46 de haut, exercice 48. Hauteur d’instance adaptée à l’événement. Exemple heure/durée : 08 h · 13 min.
 
 Durée des cartes : chronomètre16×16, trait0,9, #9499A8 lié au rôle catégorie ; texte durée #595E66 et nature #14141A. Suivi = temps réalisé, sans symbole prévisionnel ; Calendrier = nature de calcul fournie.
@@ -2291,6 +2351,8 @@ Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans l
 
 ### 21. Traçabilité
 
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
+
 D-206/D-223/D-239 ; chapitre 06 Calendrier ;1992:5510/5602/5697/5794,2059:267,2128:86 ; CE-UI-03/04/05.
 
 ---
@@ -2336,6 +2398,8 @@ Semaine : segmenté, barre 7 jours, sections chronologiques, navigation fixe. Mo
 Semaine : nature 26, badge heure 08:00, classement puis durée avec sablier ; statut Suivi non ajouté. Mois : grille 7colonnes conservée.
 
 ### 9. Layout déterministe
+
+Composants actifs et propriété Durée : [DSF cartes du07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.
 
 Carte 354×95,5 repliée ; séance déployée 254,5. Segmenté 354/padding 4/gaps 4/options 112,67. Aucune barre de carte Semaine.
 
@@ -2389,6 +2453,8 @@ Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans l
 
 ### 21. Traçabilité
 
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
+
 Chapitre 06 Calendrier ; D-206/D-233–239 ;1992:5101/5237/5365/5962/6102/6389,2252:86,2094:86,2074:86 ; CE-UI-02/04/05.
 
 ---
@@ -2432,6 +2498,8 @@ Modale avec titre/fermeture et liste défilante de cartes radio ; aucun pied de 
 Radio de sélection ; pas de badge durée, Lecture ou Déployer ; titre/classement/valeurs, état sélectionné ou non.
 
 ### 9. Layout déterministe
+
+Composants actifs et propriété Durée : [DSF cartes du07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.
 
 Largeur 354, marges 24 sur 402, hauteur 91 ; radio côté droit ; zones d’Exercice : cadre de coupe à8 px du radio ; Séance : minimum20 conservé ; titre 15/pastilles 20/valeurs 16.
 
@@ -2483,6 +2551,8 @@ Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans l
 
 ### 21. Traçabilité
 
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
+
 D-206/D-222/D-223/D-238 ;1992:6249/7861,5451:4272 ; CE-UI-05 ; distinction multisélection CE-T03-07.
 
 ---
@@ -2526,6 +2596,8 @@ Titre Planifier sans type puis Planifier une séance/un exercice ; source → Da
 Source SESSION/ACTIVITY ; une date et une heure ; mode Aucune ou Périodique. Périodique : fréquence entière de 1 à 12 semaines,≥1jour, fin obligatoire≥début. Rappel unique facultatif : Aucun,5 min,15 min,30 min,1h,Autre. Autre ouvre le délai personnalisé. Les anciens 10 min/Personnalisé ne sont pas les labels cibles D-229.
 
 ### 9. Layout déterministe
+
+Composants actifs et propriété Durée : [DSF cartes du07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.
 
 Shell Modal Fullscreen ; blocs sur marges 24 ; Date de début/Heure au même niveau, pas de titre Quand ?. Rappel : Aucun/Autre fixes aux extrémités, choix rapides défilants. Récapitulatif multi-ligne dans son cadre ; fréquence par stepper inline, date/heure/rappel dans leurs sélecteurs dédiés.
 
@@ -2576,6 +2648,8 @@ SESSION/ACTIVITY depuis chaque entrée ; Aucune et Périodique 1/2 semaines avec
 Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans les emplacements de durée existants ; conserver masquages des cartes de choix, aucune formule locale et aucune photo de Séance/liste mixte.
 
 ### 21. Traçabilité
+
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
 D-206/D-222/D-223/D-229 ; chapitre 06 Planifier et 08 calcul des occurrences ;1992:6622/6838/7187/7369/7537/7716 ; CE-UI-04. Les valeurs de démonstration incohérentes ne sont pas recopiées dans le récapitulatif.
 
@@ -2793,7 +2867,7 @@ Plan achevé → CE-UI-08 ; arrêt depuis Pause confirmé → CE-UI-08 Interromp
 
 Instantané Session au démarrage, occurrences développées, Série/côté/Tour courants, paramètres propres et booléen global D-214, résultats et temps moteur ; aucune lecture réactive de la source modifiée.
 
-Plan depuis les cibles/Pauses de chaque Série et l’Ordre des côtés de l’instantané ; R positive s’ajoute après l’occurrence, sans Pause terminale à remplacer.
+Plan depuis les cibles/Pauses de chaque Série et l’Ordre des côtés de l’instantané ; R positive remplace seulement la dernière Pause de l’occurrence.
 
 Cadence éventuelle issue de la Série de l’instantané, jamais du Profil ou des chiffres Figma. Temps réellement dépensé cumulatif distinct du chrono de tentative ; bip applicable aux trois modes, sans modifier leur terminaison propre.
 
@@ -2857,6 +2931,8 @@ Annoncer phase, nom et côté au démarrage/changement ; commandes nommées selo
 
 ### 19. Invariants
 
+Pause après chaque série, dernière comprise, même N1. PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon Paramètres v13. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
+
 Circuit unilatéral, Tours 1..99 ; récupération après chaque occurrence y compris dernière et chaque Tour ; point interne répété chaque Tour ; attente hors durée ; pas de mutation de la source ; média indépendant du moteur.
 
 Bip v2 remplace D-302/D-305 sur portée, signaux et symboles ; durées réelles conservées.
@@ -2870,6 +2946,8 @@ Ordres D→G/G→D, A–F, N1, R0/positif et dernière occurrence/chaque Tour ; 
 Vérifier passage entre préparation, Série cadencée, pauses programmées et fin ; deux côtés/deux ordres si applicables ; reset préservant autre côté et temps cumulé ; absence de double signal/transition. Bip valide dans les trois modes ; aucun signal hors phase Série.
 
 ### 21. Traçabilité
+
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
 Réexport courant1992:8132 du03/10 : Série et côté séparés. Références dédiées de récupération terminale/paire de côtés absentes de Prototype MVP actuel ; recette prescrite, preuve visuelle partielle.
 
@@ -3094,6 +3172,8 @@ Ouverture depuis la zone Paramètres d’exécution. Copie du parent ; Bip initi
 
 ### 5. Données affichées et source de vérité
 
+Phrase selon les276 cas v14, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus.
+
 Collection effective des Séries, cible/Pause/bip, mode, direction, ordre,PC,Compte à rebours/Fin. Bip commun à toutes les lignes,0..10 dans trois modes ; aucune surcharge persistée. Calcul typé fourni par Bip v2 ; phrase et montants Figma ne pilotent aucune donnée.
 
 ### 6. Classification des valeurs Figma
@@ -3134,11 +3214,13 @@ Mode et cibles actives requis ; N1..99,Ri1..100,Ti1..5999s,Pauses0..300s,Bip ent
 
 ### 15. Brouillon et persistance
 
+Aucune phrase ni aucun segment en base, occurrence ou snapshot. Régénération à chaque affichage depuis les paramètres ; ✓ applique, ✕ annule, Terminer persiste les paramètres. Une règle rédactionnelle amendée s’applique au prochain affichage des objets existants.
+
 Brouillon isolé ; ✓ atomique au parent ; ✕ restaure totalité avant ouverture. Bip persiste quel que soit le mode. Les variantes cachées de cibles/tableaux ne sont pas persistées hors état actif. Duplication/copie/snapshot incluent Bip ; aucune mutation partielle.
 
 ### 16. Navigation et conservation d’état
 
-Retour au parent même position et contenu, phrase régénérée seulement après✓ valide. Une bascule de mode seule ne sauvegarde rien. Pas de navigation vers un écran de cadence ni de nouvelle route.
+Retour au parent même position et contenu, phrase régénérée à chaque affichage depuis les paramètres appliqués, notamment après✓ valide. Une bascule de mode seule ne sauvegarde rien. Pas de navigation vers un écran de cadence ni de nouvelle route.
 
 ### 17. Erreurs et cas limites
 
@@ -3150,13 +3232,17 @@ Nom accessible Bip de cadence ; valeur Aucun ou intervalle en secondes ; boutons
 
 ### 19. Invariants
 
-Bip sonore uniquement pendant Série, aucune transition/compteur automatique. Son ne transforme pas À l’échec en durée connue. Aucune estimation forfaitaire, aucun≥ à l’Exercice. Pauses n−1 en unilatéral ; pas de Pause terminale, récupération contextuelle distincte. Les images ne gouvernent ni calculs ni persistance.
+Bip sonore uniquement pendant Série, aucune transition/compteur automatique. Son ne transforme pas À l’échec en durée connue. Aucune estimation forfaitaire, aucun≥ à l’Exercice. Pause après chaque série, y compris la dernière ; récupération contextuelle positive remplaçant seulement la dernière Pause. Les images ne gouvernent ni calculs ni persistance.
 
 ### 20. Recette déterministe
 
-Six combinaisons mode×bip ;0/1/10 et rejets−1/11/fraction ; conservation lors des bascules, annulation et duplication.4×15×4+3×15=285s≈ ; sans bip ligne absente. Tester N1,variable,repli,réordre de dernière Série,inversion Durée,deux côtés/R ; géométrie42px, texte agrandi et accessibilité. Phrase de pauses en réserve Q-08 ; ne pas certifier sa cohérence avant arbitrage.
+Recette rédactionnelle :276 gabarits v14 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés.
+
+Six combinaisons mode×bip ;0/1/10 et rejets−1/11/fraction ; conservation lors des bascules, annulation et duplication.4×15×4+4×15=300s≈ ; sans bip ligne absente. Tester N1,variable,repli,réordre de dernière Série,inversion Durée,deux côtés/R ; géométrie42px, texte agrandi et accessibilité. Phrase de pauses conforme aux276 formulations v14 ; Q-08 clos.
 
 ### 21. Traçabilité
+
+Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
 
 Bip v2,Paramètres v13,Phrase v1,DSF Bip,source propriétaire07/10 et inventaire courant. D-308–313 supersèdent les anciennes dispositions incompatibles. Copies de cinq écrans vérifiées ; propagation Figma aux autres modes encore incomplète, aucun alignement global déclaré.
 
@@ -3189,7 +3275,7 @@ Les arbitrages des 30 septembre et 1er octobre 2026 ferment les points fonctionn
 
 Le calcul porte sur le plan développé et conserve la piste existante. M compte les étapes contributives ; R compte les Séries Répétitions sans cadence et À l’échec ; T somme les durées des phases chronométrées positives et les Ri×Ci des Séries cadencées. Chaque Série sans durée déterminable pèse1/M ; chaque étape temporelle de durée d pèse(1−R/M)×d/T. Sans R, poids d/T ; sans T, poids1/M. Phases0s, Pause manuelle et attente de point n’ont aucun poids. Les non-cadencées/À l’échec acquièrent leur part à Suivant ; les Répétitions avec bip progressent continûment, Suivant acquiert leur reste. À fin nominale, part de Série100% mais Série active. Pause abandonne la fraction d’intervalle pour la progression, conserve le temps réel ; reprise sur intervalle complet. Aucun100% global publié avant finalisation du plan. Poids figés au départ ; reset remet à zéro son périmètre seulement. Aucun nouveau composant de progression par Série.
 
-Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pauses entre Séries, sans Pause terminale ; Récupération explicite ajoutée une seule fois. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
+Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 ### R-02 — Validation des contrôles existants
 
@@ -3202,7 +3288,7 @@ Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip
 
 L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de v13 §4 ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante.
 
-Durée intrinsèque calculable : unilatéral ΣTi+Σ(P1..P(N−1)) ; succession des côtés 2ΣTi+2Σ(P1..P(N−1))+PN+PC ; par paire 2ΣTi+Σ(P1..P(N−1))+N×PC. N=1 normalisé succession. Occurrence calculable To=T+R, sans soustraction terminale. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pauses entre Séries, sans Pause terminale ; Récupération explicite ajoutée une seule fois. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
+Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 La source active est v13 §§3–5 ; D-242 est supersédée. Les tests PRE-1 restent figés sur leur source historique.
 

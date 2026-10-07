@@ -1,5 +1,7 @@
 # Propagation et cohérence — Bip de cadence — 07/10/2026
 
+**État historique supersédé :** la [matrice cartes/phrases](MATRICE-CARTES-PHRASES-2026-10-07.md) remplace ce bilan. Q-08 clos, Pause terminale rétablie et19 modales Bip désormais propagées. Les constats ci-dessous décrivent uniquement le lot antérieur.
+
 Base vérifiée : PR323 ouverte en brouillon, tête4365c0cd913c6dfb6d89fd27f156db1946839e54, base main6d03f5be. Aucun run en cours sur la branche lors du contrôle initial. Travail limité à docs/ ; aucune fusion, aucun code ou Figma modifié.
 
 ## Source et décisions

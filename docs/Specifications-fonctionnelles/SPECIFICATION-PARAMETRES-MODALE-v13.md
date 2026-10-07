@@ -1,6 +1,6 @@
 # Paramètres d’exécution — Séries variables, Bip de cadence et phrase — v13
 
-Référence actualisée le07/10/2026. Bip v2 remplace les dispositions de cadence, durée et pauses terminales incompatibles de D-248 et D-268–297. Les autres paramètres et comportements du brouillon sont conservés. Cible documentaire, pas preuve d’implémentation ; version indépendante du classeur.
+Référence actualisée le07/10/2026. Bip v2 actualise cadence et durée ; D-314 confirme les pauses de D-248 et remplace D-311. Les autres paramètres et comportements du brouillon sont conservés. Cible documentaire, pas preuve d’implémentation ; version indépendante du classeur.
 
 ## 1. Autorité, portée et sources
 
@@ -13,7 +13,7 @@ Sources originales immuables : [conception C1–C27](../archives/series-variable
 Un Exercice possède un mode unique : Durée, Répétitions ou À l’échec. Une Série est une définition subordonnée à l’Exercice, numérotée 1..N : une cible éventuelle et une Pause. Elle n’est pas une entité autonome, ni un groupe d’exercices. En bilatéral, N signifie N Séries **par côté**, avec les mêmes paramètres pour les deux côtés.
 
 - **Séries variables** : état explicite, indépendant de l’égalité éventuelle des valeurs.
-- **Pause après chaque série** : libellé d’interface ; Pi est la Pause configurée de la Série i. Elle est exécutée entre les Séries, jamais après la toute dernière Série de l’Exercice ; PN reste stockée. Zéro signifie absence de phase positive.
+- **Pause après chaque série** : libellé d’interface ; Pi est la Pause configurée de la Série i. Elle est exécutée après chaque Série, dernière comprise ; seule PN est remplacée par une récupération positive qui suit l’Exercice. Zéro signifie absence de phase positive.
 - **Changement de côté** : Sans changement / Droite puis gauche / Gauche puis droite ; détermine la bilatéralité et le départ.
 - **Ordre des côtés** : Un côté après l’autre (défaut) / Les deux côtés à chaque série. Sans objet en unilatéral.
 - **Pause entre les côtés** : PC, libellé unique y compris dans le Profil ; initialisée depuis le Profil (défaut 10 s). Le nom technique existant `sideRecoverySeconds` peut être conservé.
@@ -37,9 +37,9 @@ Changement de mode : conserver N et les Pauses ; remplacer les cibles incompatib
 
 ## 4. Ordres d’exécution et pauses
 
-La spécification [Bip v2 §3](SPECIFICATION-BIP-CADENCE-v2.md#3-calcul-pauses-et-périmètres) définit la succession des phases. Sans côté : S1→P1→S2→P2→S3. Par côté : D1→P1→D2→P2→D3→PN→PC→G1→P1→G2→P2→G3. Par paire : D1→PC→G1→P1→D2→PC→G2→P2→D3→PC→G3. Inverser D/G si départ gauche.
+La spécification [Bip v2 §3](SPECIFICATION-BIP-CADENCE-v2.md#3-calcul-pauses-et-périmètres) définit la succession des phases. Sans côté : S1→P1→S2→P2→S3→P3. Par côté : D1→P1→D2→P2→D3→PN→PC→G1→P1→G2→P2→G3→P3. Par paire : D1→PC→G1→P1→D2→PC→G2→P2→D3→PC→G3→P3. Inverser D/G si départ gauche.
 
-Aucune Pause terminale d’Exercice. À la frontière des deux côtés successifs, PN du premier côté puis PC restent exécutées selon la règle déjà validée. Par paire, Pi entre deux paires seulement et PC à l’intérieur de chaque paire. N=1 est normalisé par côté. Compte à rebours/Fin propres joués une fois pour l’Exercice complet. Récupération explicite après l’occurrence seulement ; aucune en direct. Phases nulles franchies de façon idempotente.
+Pause terminale incluse, même avec une seule Série. À la frontière des deux côtés successifs, PN du premier côté puis PC restent exécutées selon la règle déjà validée. Par paire, Pi après chaque paire, dernière comprise et PC à l’intérieur de chaque paire. N=1 est normalisé par côté. Compte à rebours/Fin propres joués une fois pour l’Exercice complet. Récupération explicite après l’occurrence seulement ; aucune en direct. Phases nulles franchies de façon idempotente.
 
 ## 5. Durées, affichage et inversion
 
@@ -47,15 +47,15 @@ N=Séries par côté ; Ti=travail calculable de la Série ; Pi=Pause configurée
 
 | Configuration | Total intrinsèque calculable | Uniforme |
 |---|---|---|
-| Unilatéral | ΣTi+Σ(P1..P(N−1)) | N×d+(N−1)×p |
-| Un côté après l’autre | 2ΣTi+2Σ(P1..P(N−1))+PN+PC | 2N×d+(2N−1)×p+PC |
-| Les deux côtés à chaque série, N≥2 | 2ΣTi+Σ(P1..P(N−1))+N×PC | 2N×d+(N−1)×p+N×PC |
+| Unilatéral | Σ(Ti+Pi) | N×(d+p) |
+| Un côté après l’autre | 2Σ(Ti+Pi)+PC | 2N×(d+p)+PC |
+| Les deux côtés à chaque série, N≥2 | 2ΣTi+ΣPi+N×PC | N×(2d+p+PC) |
 
-Occurrence calculable To=T+R. Aucun PN à soustraire ; R n’est pas ajouté deux fois. Les totaux de Séance développent les Tours et les phases réellement prévues. Même si le total d’Exercice est omitted, ses pauses connues contribuent au total partiel de Séance selon Bip v2§3. Périmètres Catalogue/Composition/plan complet inchangés ; Compte à rebours et Fin propres restent exclus du total intrinsèque et inclus dans le plan complet si applicables. Temps réalisé jamais réécrit.
+Occurrence calculable To=T−PN+R si R>0 ; sinon To=T. R remplace uniquement la toute dernière Pause et n’est pas ajouté deux fois. Les totaux de Séance développent les Tours et les phases réellement prévues. Même si le total d’Exercice est omitted, ses pauses connues contribuent au total partiel de Séance selon Bip v2§3. Périmètres Catalogue/Composition/plan complet inchangés ; Compte à rebours et Fin propres restent exclus du total intrinsèque et inclus dans le plan complet si applicables. Temps réalisé jamais réécrit.
 
 Rendu à l’Exercice : Durée exact sans symbole ; Répétitions avec bip ≈ ; Répétitions sans bip et À l’échec aucune ligne, jamais ≥ ou —. Les pauses n’altèrent pas cette nature. Séance : exact si tout exact, ≈ si au moins une estimation et aucun inconnu, ≥ si au moins un inconnu. Erreur de cible : validation distincte, aucune fausse valeur.
 
-**Inversion réservée à Durée uniforme.** N dans1..99 au plus proche, égalité vers le haut. Candidats : unilatéral arrondi((Tv+p)/(d+p)) ; succession des côtés arrondi((Tv+p−PC)/(2(d+p))) ; par paire arrondi((Tv+p)/(2d+p+PC)). Comparer les candidats réalisables et N=1 calculé avec l’ordre normalisé par côté ; retenir le total le plus proche, égalité N le plus grand. Les bornes du sélecteur suivent les extrêmes réalisables. Si T(N)≠Tv : « Durée ajustée à {T(N)} pour respecter un nombre entier de séries. » Sinon aucun message. Total variable et Répétitions non éditable.
+**Inversion réservée à Durée uniforme.** N dans1..99 au plus proche, égalité vers le haut. Candidats : unilatéral arrondi(Tv/(d+p)) ; succession des côtés arrondi((Tv−PC)/(2(d+p))) ; par paire arrondi(Tv/(2d+p+PC)). Comparer les candidats réalisables et N=1 calculé avec l’ordre normalisé par côté ; retenir le total le plus proche, égalité N le plus grand. Les bornes du sélecteur suivent les extrêmes réalisables. Si T(N)≠Tv : « Durée ajustée à {T(N)} pour respecter un nombre entier de séries. » Sinon aucun message. Total variable et Répétitions non éditable.
 
 ## 6. Feuille et contrôles
 
@@ -90,7 +90,7 @@ Steppers : tap1 ; maintien≈500ms, puis paliers5 après≈2s et10 après≈4s, 
 
 ## 7. Résumés et exécution
 
-Carte Paramètres : phrase unique régénérée sur ✓ selon la [spécification de phrase v1](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Énumérer les cibles variables jusqu’à trois Séries, puis min/max ; aucune ellipse des trois premières valeurs. Valeurs en gras dans le texte courant, pas de segments interactifs. Total fourni par le calcul, omis en Répétitions sans bip et À l’échec, ou par redondance en Durée unilatérale N=1. La zone entière ouvre la feuille.
+Carte Paramètres : phrase unique régénérée à chaque affichage, notamment après ✓ selon la [spécification de phrase v1](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Énumérer les cibles variables jusqu’à trois Séries, puis min/max ; aucune ellipse des trois premières valeurs. Valeurs en gras dans le texte courant, pas de segments interactifs. Total fourni par le calcul, omis en Répétitions sans bip et À l’échec, ou par redondance en Durée unilatérale N=1 sans pause. La zone entière ouvre la feuille.
 
 Ligne d’Exercice en Composition ou dans une Séance déployée : **N séries variables** sans détail des valeurs. Catalogue variable : même indicateur compact, total intrinsèque applicable. Les règles de cartes avec/sans média restent inchangées.
 
@@ -102,7 +102,7 @@ Réinitialiser conserve D-029/D-150 et RM-062 : recommencer la Série courante e
 
 Existant sans nouveaux attributs : uniforme, Un côté après l’autre. Quantité de travail, cibles, Pauses stockées et direction conservées. **Le changement de durée et de pauses exécutées est assumé pour les exercices existants**, confirmé le02/10. Les instantanés et résultats historiques restent immuables ; ne pas réécrire les durées réalisées.
 
-La règle du07/10 retire la Pause terminale de chaque Exercice ; les comparaisons de durées fondées sur son ancienne inclusion sont remplacées par les scénarios ci-dessous. Les snapshots existants demeurent immuables ; la migration physique doit être planifiée.
+La clarification du07/10 conserve la Pause après chaque série, dernière comprise ; seule une récupération positive qui suit remplace la dernière Pause. Les snapshots existants demeurent immuables ; la migration physique doit être planifiée.
 
 Le modèle persistant et les copies/duplications doivent conserver le mode uniforme/variable explicite, N, la collection ordonnée cible/Pause lorsque variable, la direction, l’ordre des côtés, PC, Compte à rebours et Fin. R reste dans l’occurrence. Les paramètres variables remplacent les paramètres uniformes comme source effective, sans surcharges. Prévoir représentation et version d’instantané compatibles ; la structure SQL exacte et la migration relèvent de la planification technique, pas d’un nouveau choix Figma.
 
@@ -112,19 +112,19 @@ API de validation/calcul/duplication et construction du plan doivent consommer l
 
 | Cas | Paramètres | Résultat courant |
 |---|---|---|
-| A | Unilatéral ; cibles30/45/60s ; Pauses10/20/30s | 135+10+20=165s =2min45s |
-| B | A avec R120s | 165+120=285s =4min45s |
-| C | A par côté ; PC15s | 270+60+30+15=375s =6min15s |
-| D | A par paire ; PC15s | 270+30+45=345s =5min45s |
-| E | Répétitions12/10/8 ; bip0 ; Pauses30/45/60s | omitted, aucune durée d’Exercice ;75s de pauses connues dans le plan |
+| A | Unilatéral ; cibles30/45/60s ; Pauses10/20/30s | 135+10+20+30=195s =3min15s |
+| B | A avec R120s | 195−30+120=285s =4min45s |
+| C | A par côté ; PC15s | 270+120+15=405s =6min45s |
+| D | A par paire ; PC15s | 270+60+45=375s =6min15s |
+| E | Répétitions12/10/8 ; bip0 ; Pauses30/45/60s | omitted, aucune durée d’Exercice ;135s de pauses connues dans le plan |
 | F | À l’échec ; bip0 ou4 ; Pauses30/45/60s | omitted, même avec bip |
-| Uniforme | N3,d90s,p15s | 270+30=300s =5min |
-| Bilatéral | N3,d90s,p15s,PC10s | Par côté625s ; par paire600s |
-| N1 bilatéral | d90s,p15s,PC10s | Ordre par côté,205s ; R30s →235s |
-| Douze séries | Total travail390s,Pause10s | 390+11×10=500s =8min20s |
-| Répétitions avec bip | N4,Ri15,b4s,p15s | 240+45=285s ; ≈4min45s |
-| Durée avec bip | N4,Ti60s,b4s,p15s | 285s exact ; bip sans effet sur total |
-| Une Série unilatérale | Ti30s,p15s | 30s, aucune pause terminale ; formulation historique en réserve Q-08 |
+| Uniforme | N3,d90s,p15s | 270+45=315s =5min15s |
+| Bilatéral | N3,d90s,p15s,PC10s | Par côté640s ; par paire615s |
+| N1 bilatéral | d90s,p15s,PC10s | Ordre par côté,220s ; R30s →235s |
+| Douze séries | Total travail390s,Pause10s | 390+12×10=510s =8min30s |
+| Répétitions avec bip | N4,Ri15,b4s,p15s | 240+60=300s ; ≈5min |
+| Durée avec bip | N4,Ti60s,b4s,p15s | 300s exact ; bip sans effet sur total |
+| Une Série unilatérale | Ti30s,p15s | 45s, dont15s de pause après chaque série |
 
 Tester les deux directions/ordres, p0/PC0 sans repli, R0/positive, N1/99, bascules/annulation/restauration, nouvelle dernière ligne après déplacement, copie et snapshot. Inversion et résultats dérivés de la spécification, pas des exemples Figma ni d’Excel.
 

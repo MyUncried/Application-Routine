@@ -1,56 +1,64 @@
 # Phrase des paramètres d’exécution — spécification rédactionnelle v1
 
-06/10/2026. D-298. Remplace la présentation de v12§7 et l’ancien document v10.2, conservé historique. Sources : [dossier](../archives/cadence-2026-10-06/dossier-cadence-phrase-source.md) et [classeur v13](../archives/cadence-2026-10-06/generateur-phrase-activite_v13.xlsx), utilisé uniquement pour ses formulations. La version de ce document est indépendante de celle du classeur.
+Actualisée le07/10/2026 selon la clarification explicite du propriétaire et le classeur v14. La version du document reste indépendante de celle du classeur. Q-08 est clos ; les formulations antérieures « + … de pause chacune », « suivie de » et la proposition « pause entre les séries » sont remplacées.
 
-## 1. Entrées et génération
+## 1. Sources et responsabilité
 
-Entrées : mode, nombre de Séries, état uniforme/variable, cibles ordonnées, pauses, bip commun0..10, direction/ordre des côtés, pause entre les côtés ; résultat du calcul intrinsèque applicable (secondes et nature déterminable/approximative/non estimable/incomplète). Le générateur ne calcule pas les durées et ne relit pas une phrase pour produire les paramètres. Phrase dérivée, non stockée comme source indépendante.
+Les [276 cas v14](../archives/cartes-phrases-v14-2026-10-07/phrases-276.json), extraits des cellules I4:I279 du [classeur original](../archives/cartes-phrases-v14-2026-10-07/generateur-phrase-activite_v14.xlsx), fixent les formulations. Leur total numérique est un exemple injecté, jamais un oracle métier. Le générateur reçoit le résultat calculé par [Bip v2](SPECIFICATION-BIP-CADENCE-v2.md) et [Paramètres v13](SPECIFICATION-PARAMETRES-MODALE-v13.md). Ne pas exécuter les formules Excel pour calculer l’application. Figma définit le layout ; ses chiffres n’amendent aucune règle.
 
-✓ de la feuille applique le brouillon valide et régénère une seule phrase ; ✕ conserve la phrase précédente. Pendant le brouillon incomplet, afficher— aux valeurs requises et interdire✓ ; pas de cible inventée. Compte à rebours/Fin restent des lignes séparées, exclus de la phrase et de son total intrinsèque. Nom, Catégorie, mode comme étiquette et Récupération contextuelle sont exclus du texte intrinsèque.
+Entrées : mode, N, uniforme/variable, cibles et pauses ordonnées, bip commun, direction et ordre des côtés, PC ; résultat intrinsèque exact/estimated/omitted. Le contexte de récupération de Séance ne réécrit pas cette description intrinsèque.
 
-## 2. Grammaire et ordre
+## 2. Contrat de génération et persistance
 
-Ordre : Séries → cible et cadence → pause selon contexte → côtés → ligne de durée lorsqu’applicable. Phrase terminée par un point. Valeurs numériques et unités en gras dans le texte courant. Singulier :1série,1répétition ; accords menée/menées sur série(s), cadencée/cadencées sur répétition(s). Unités s et min ; espaces homogènes ; durée composée «1min30s» rendue «1 min 30 s».
+Fonction pure : mêmes paramètres, même locale et même résultat métier donnent les mêmes segments. Retour **`Array<{texte: string, gras: boolean}>`**, jamais une chaîne à redécouper par recherche de valeurs. Le choix du gras appartient au gabarit à l’émission des segments ; deux valeurs identiques restent deux occurrences distinctes. La concaténation des `texte` restitue la phrase exacte. Valeurs et unités paramétrées en gras, texte grammatical normal.
 
-| Contexte | Formulation cible (exemples de texte, pas tests de calcul) |
+Exemple de début : `[{texte:"3",gras:true},{texte:" séries de ",gras:false},{texte:"30 s",gras:true}]`. React Native rend les segments directement en `<Text>` imbriqués dans un `<Text>` parent. Aucun balisage Markdown à analyser au rendu, aucune recherche/remplacement de sous-chaînes pour le gras.
+
+**Aucune phrase ni aucun segment n’est stocké en base**, dans la définition, l’occurrence ou l’instantané. Seuls les paramètres métier sont persistés ; la phrase se régénère **à chaque affichage**, notamment après validation ✓. ✕ annule le brouillon ; ✓ applique atomiquement au parent ; Terminer persiste ses paramètres. Le retour sur une séance existante utilise la grammaire courante, pas une phrase figée avant correction. Les paramètres et durées réelles historiques restent immuables.
+
+Pendant un brouillon incomplet, aucune cible inventée : conserver les règles de champs manquants/validation et interdire✓. Compte à rebours et Fin sont des lignes séparées, exclus du texte et du total intrinsèque.
+
+## 3. Grammaire française v14
+
+Ordre : nombre de séries → contenu → pause → côtés → durée applicable. Ponctuation et accords conformes aux276 cas ; série/séries, menée/menées. Les espaces et unités font partie du texte. Mode affiché à part, absent du début de phrase.
+
+| Cas | Forme |
 |---|---|
-| Durée uniforme | «3 séries de 30 s» |
-| Répétitions uniformes | «3 séries de 12 répétitions» |
-| Répétitions avec bip positif | Ajouter à répétitions «cadencées toutes les 4 s» ; singulier «1 répétition cadencée toutes les 4 s» |
-| À l’échec | «3 séries menées jusqu’à l’échec» / «1 série menée jusqu’à l’échec» |
-| Deux cibles variables | «2 séries de 12 puis 8 répétitions» ; Durée : «2 séries de durée variable (30 s puis 45 s)» |
-| Trois cibles variables | «3 séries de 12, 10 puis 8 répétitions» ; Durée : «3 séries de durée variable (30 s, 45 s puis 1 min)» |
-| Plus de trois cibles | «6 séries variables, de 6 à 15 répétitions» ; Durée : «6 séries variables, de 30 s à 1 min 30 s» |
-| Plusieurs Séries uniformes, pause positive | Ajouter « + 15 s de pause chacune » ; exemple complet : «3 séries de 30 s + 15 s de pause chacune» |
-| Plusieurs Séries uniformes, pause nulle | «enchaînées sans pause» |
-| Une Série, pause positive | «suivie de 15 s de pause» ; formulation historique conservée sur demande mais contradictoire avec la suppression de pause terminale : Q-08 |
-| Une Série, pause nulle | Omettre la clause pause |
-| Séries variables Durée/Répétitions | Omettre la clause de pause ; l’énumération décrit les cibles, pas les pauses. Cette omission rédactionnelle ne retire aucune pause du calcul. |
-| À l’échec variable | Décrire les pauses selon le résumé existant : «3 séries menées jusqu’à l’échec, avec des pauses de 30 s, 45 s puis 1 min» ; au-delà de3, plage min/max des pauses. Aucun total d’Exercice. |
+| Durée uniforme | `{N} séries de {durée}` |
+| Durée variable, jusqu’à3 | `{N} séries de durée variable ({d1}, {d2} puis {d3})` ; à2, séparer par « puis » |
+| Durée variable, plus de3 | `{N} séries variables, de {min} à {max}` |
+| Répétitions uniformes | `{N} séries de {R} répétitions` |
+| Répétitions variables, jusqu’à3 | `{N} séries de {r1}, {r2} puis {r3} répétitions` |
+| Répétitions variables, plus de3 | `{N} séries variables, de {min} à {max} répétitions` |
+| Bip positif en Répétitions | Accoler `cadencées toutes les {bip}` aux répétitions |
+| À l’échec | `1 série menée jusqu’à l’échec` / `{N} séries menées jusqu’à l’échec` |
+| Uniforme, pause positive, N≥1 | `, avec {pause} de pause après chaque série` |
+| Uniforme, pause nulle, N>1 | `, enchaînées sans pause` |
+| Uniforme, pause nulle, N=1 | Aucune clause de pause |
+| Séries variables, tous modes | Clause de pause omise conformément aux276 cas, même À l’échec ; aucune liste de pauses ajoutée |
 
-Séries variables est un état explicite même si les valeurs sont égales. N=1 est normalisé uniforme avant génération. Les plages utilisent le minimum et maximum des cibles actives, pas les première/dernière lignes. Aucun résumé «trois premières valeurs puis ellipse».
+N=1 est normalisé uniforme avant génération. Les min/max viennent des cibles actives, pas de la première et dernière ligne. Aucune ellipse après les trois premières valeurs. L’omission rédactionnelle des pauses variables ne les retire jamais du plan ni du calcul. La grammaire du classeur dit « la pause figure dans l’énumération », mais ses276 phrases variables n’énumèrent pas les pauses : conserver exactement leurs formulations, sans inventer cette énumération.
 
-Choix rédactionnel du propriétaire du 06/10/2026 (H-03) : conserver le signe `+`, et non « séparées par », « puis », « et » ou « chacune suivie de ». La phrase décrit les paramètres intrinsèques de l’Exercice : la pause configurée des Séries. La dernière pause n’est plus exécutée selon Bip v2 ; formulation en réserve Q-08. Une Récupération explicite est ajoutée après l’Exercice, sans substitution de Pause terminale. La formulation ne pilote jamais les phases du plan.
+En Durée et À l’échec, le bip n’ajoute aucune clause. En Répétitions, le suffixe cadencé n’existe que pour b>0. Le texte n’explique pas les règles audio.
 
-## 3. Côtés
+## 4. Côtés et durée
 
-Sans changement : aucune clause «sans changement de côté». Une Série bilatérale : «en faisant le côté droit puis le gauche». Plusieurs Séries par paire : «en alternant le côté droit puis le gauche à chaque série». Plusieurs Séries successives : «en faisant d’abord toutes les séries à droite, puis à gauche». Si PC>0, ajouter «avec 10 s de pause au changement de côté». Inverser droite/gauche pour un départ gauche. PC=0 : omettre sa clause ; aucune pause de remplacement déduite du texte.
+Sans changement : aucune clause. N=1 bilatéral : « en faisant le côté droit puis le gauche ». N>1 par paire : « en alternant le côté droit puis le gauche à chaque série ». N>1 par côté : « en faisant d’abord toutes les séries à droite, puis à gauche ». Inverser les directions pour un départ gauche. PC>0 ajoute « , avec {PC} de pause au changement de côté » ; PC=0 omet le suffixe. Les modèles exacts de ponctuation sont ceux des276 cas.
 
-## 4. Durée et exceptions
+Après le point final, afficher « Durée totale : {total}. » sans symbole en Durée ; « Durée totale : ≈ {total}. » en Répétitions avec bip. Omettre intégralement en Répétitions sans bip et À l’échec. Aucun≥, zéro ni tiret de remplacement. **Redondance : omettre le total seulement pour une Série Durée sans côté ET sans pause.** Avec une pause positive, même une seule Série possède son total affiché. Cette exception rédactionnelle ne masque pas la durée de la carte Catalogue.
 
-Sur une nouvelle ligne, uniquement si applicable : « Durée totale : {symbole éventuel}{durée}. » Durée exacte sans symbole ; Répétitions avec bip positif ≈ ; Répétitions sans bip et À l’échec : omission intégrale, aucun ≥, zéro ou tiret. Une Série Durée unilatérale : total redondant avec sa cible, clause omise dans la phrase. Le calcul reste exact et affichable dans la feuille. En Durée/À l’échec, le bip ne change pas les formulations ; en Répétitions, « cadencées » est explicitement conservé. Les pauses configurées n’altèrent pas le symbole. Erreur de saisie distincte de omitted.
+La pause après chaque série, dernière comprise, fait partie du calcul intrinsèque. Une récupération positive qui suit l’Exercice remplace seulement la dernière pause dans le plan de Séance ; la phrase intrinsèque demeure descriptive des paramètres de l’Exercice.
 
-Le total et son niveau d’incertitude sont fournis par les [paramètres v13](SPECIFICATION-PARAMETRES-MODALE-v13.md) et la [Cadence](SPECIFICATION-BIP-CADENCE-v2.md). Aucun montant du classeur ou de Figma n’est un oracle de calcul.
+## 5. Rendu et accessibilité
 
-## 5. Rendu, interaction et accessibilité
+Zone cliquable unique, segments non interactifs. Inter13 Regular, interligne20 ; valeurs Semi Bold dans le texte courant. Référence402 : x39, largeur324 ; hauteur intrinsèque, retour naturel, aucune limite189/198/211 caractères. Le titre et les lignes Compte à rebours/Fin gardent leur hiérarchie. Zone entière → CE-UI-10, focus unique « Modifier les paramètres d’exécution ». Texte complet accessible et agrandissable ; retour de ligne de présentation avant Durée totale sans changement de grammaire.
 
-Une zone cliquable unique, sans pastilles de paramètres ni segments interactifs. Texte sombre Inter13 Regular, interligne20 ; valeurs Semi Bold/gras dans la même phrase. Référence402 : x39, largeur324 ; hauteur intrinsèque, retour à la ligne naturel et croissance de la carte ; pas de limite198/211 caractères. Le titre Paramètres d’exécution et les lignes Compte à rebours/Fin gardent leur hiérarchie. La zone entière ouvre CE-UI-10 ; focus accessible unique «Modifier les paramètres d’exécution», texte intégral lisible et agrandissable.
+## 6. Internationalisation — décision et dette explicites
 
-## 6. Recette rédactionnelle
+Le générateur livré pour le MVP est **francophone uniquement**. Les segments de rendu ne sont pas des fragments à traduire isolément : ordre des groupes, accords de nombre et de genre, ponctuation et placement des unités dépendent de la langue. Une future version multilingue nécessite des gabarits par locale avec règles de pluriel/genre (par exemple un système de messages à règles), puis génération de segments depuis ces gabarits. Prévoir une réécriture de la grammaire française concaténée et des tests par langue ; ne pas chiffrer cette évolution comme une simple traduction de libellés. Aucun moteur i18n supplémentaire imposé au MVP monolingue.
 
-Vérifier singulier/pluriel, deux/trois/plus de trois cibles, min=max, Durée/Répétitions/À l’échec, bip0/positif, pause0/positive, deux directions et deux ordres, PC0/positive. Injecter un total déterminable puis approximatif et vérifier uniquement son rendu. Vérifier omission du total seulement aux conditions ci-dessus, annulation et validation, absence de troncature à360/402/440 et texte agrandi. Les100 phrases du classeur constituent une référence de formulation ; les précisions explicites ci-dessus priment sur les omissions simplifiées. Aucune validation numérique du classeur n’est requise.
+## 7. Recette de développement
 
+276 cas de référence conservés sans altération ; injecter le total métier de test à la place du montant d’exemple avant comparaison. Vérifier texte/ponctuation exacts et absence de clause ajoutée aux cas variables. Vérifier singulier, côtés inversés, deux/trois/plus de trois cibles, min=max, bip0/positif dans trois modes, pause0/positive, N1 avec/sans pause et PC0/positive. Les cas complémentaires ne remplacent pas le corpus.
 
-## 7. Réserve Q-08 — phrases de pauses
-
-La source demande de conserver les formulations tout en supprimant la Pause terminale. « +15s de pause chacune » et « une série suivie de15s de pause » restent donc à arbitrer sur le texte, sans remettre en cause la règle de calcul n−1. Proposition : « + 15 s de pause entre les séries » et omission de cette clause pour une Série unilatérale. Le classeur reste uniquement rédactionnel.
+Contrôler les segments et le gras, notamment deux valeurs identiques à des positions différentes ; concaténation égale au texte attendu. Relire un objet ancien après modification de grammaire : nouvelle phrase, aucune migration de chaîne. Vérifier absence de champ persistant phrase/segments et génération au rendu, annulation/validation, accès clavier/lecteur d’écran et absence de troncature à360/402/440 avec texte agrandi. Il s’agit de recette prescrite, pas d’une implémentation ou de tests applicatifs exécutés dans ce lot documentaire.

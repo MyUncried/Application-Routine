@@ -113,7 +113,7 @@ Les trois composants canoniques sont désormais implantés dans Design system �
 | RG-3 | Les Séances ne portent jamais de visuel ; aucune photo dans les listes mixtes, le Calendrier ou le Suivi. | Validé définitivement — D-260 |
 | RG-4 | Aucun déploiement accessible sur les cartes d’Exercice ou du Suivi, avec ou sans média. Déploiement des Séances conservé au Catalogue et au Calendrier Semaine. | Validé — D-261/D-262 |
 | RG-5 | Une seule famille d’icônes de zone corporelle dans toute l’application ; variante Homme/Femme suivant la préférence de Profil définie par RG-10. | Validé |
-| RG-6 | La gouttière permanente est 64 ; texte à x=88, bloc de 207 px dans les variantes Catalogue/choix d’exercices. Le chargement du média ne change pas la hauteur. | Validé ; référence à taille standard |
+| RG-6 | La gouttière permanente est 64 ; texte à x=88 ; Catalogue replié/archivé : titre250px et lignes basses207px ; Choix : largeur selon son contrôle de sélection. Le chargement du média ne change pas la hauteur. | Validé ; référence à taille standard |
 | RG-7 | Minimum tactile 44 × 44, sans chevauchement. Boutons contextuels visibles 34. Une cible existante de 48 reste conforme et ne doit pas être réduite sans nécessité. | Validé ; révise le minimum commun de D-087, conserve les dimensions spécifiques supérieures |
 | RG-8 | Zones des cartes d’Exercice : largeur du cadre = position du contrôle droit − début du texte − 8 px ; troncature finale, une ligne, sans scroll horizontal (D-263). Les Séances conservent leur minimum20. | Clarification validée par correction de l’audit du04/10/2026 ; aucune marge optique20 additionnelle pour ces zones |
 | RG-9 | Marges latérales 24 sur la référence écran 402, sauf retraits volontaires documentés. | Validé ; ne remplace pas les règles responsive |
@@ -270,3 +270,7 @@ Lecture directe des trois sets : **0 remplissage/contour SOLID en dur, 831 liés
 
 Correction du04/10/2026 : conteneurs Titre + durée totale `6214:4075`/`6214:4117` ajustés à la largeur207 du parent par FILL, au lieu de322. Badge en largeur intrinsèque, titre prenant le reste et tronqué ; bord droit du badge x295 sur carte354. Aucune hauteur ni donnée modifiée. Zones Calendrier Semaine `6214:4272` : troncature ENDING, une ligne, largeur145 conservée. Ces deux écarts d’assemblage sont corrigés ; cela ne vaut pas recette applicative.
 
+
+## Durée des cartes — complément du07/10
+
+[Référence normative courante](DSF-CARTES-DUREE-2026-10-07.md) : durée Catalogue sans cadre/padding, Inter Semi Bold12, droite16 ; propriété Durée ; titre250/lignes basses207 en Exercice, coupes60/69/145 fondées sur207. Composants actifs6214:7278 et6214:7276 ; anciennes cartes5544 ne sont pas les références.

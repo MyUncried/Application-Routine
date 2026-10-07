@@ -1,6 +1,6 @@
 # Bip de cadence — spécification normative v2
 
-07/10/2026, seconde clarification. Source : [prompt transmis par le propriétaire](../archives/bip-cadence-2026-10-07/prompt-source.md). Remplace Cadence v1 et les dispositions incompatibles de D-248, D-268–297 et D-305. Figma détermine le layout ; les règles ci-dessous proviennent du document expressément transmis, pas d’une déduction de ses chiffres. Excel reste une référence de phrases, jamais le calculateur métier.
+07/10/2026, clarification finale pauses et v14. Source : [prompt transmis par le propriétaire](../archives/bip-cadence-2026-10-07/prompt-source.md). Remplace Cadence v1 et les dispositions incompatibles de D-268–297/D-305 ; D-248 confirmée pour les pauses, D-311 remplacée par D-314. Figma détermine le layout ; les règles ci-dessous proviennent du document expressément transmis, pas d’une déduction de ses chiffres. Excel reste une référence de phrases, jamais le calculateur métier.
 
 ## 1. Paramètre commun aux trois modes
 
@@ -28,25 +28,23 @@ Une durée réelle réalisée reste réelle, sans symbole prévisionnel ni réé
 
 Pour une Série i : Durée → Ti=durée prescrite ; Répétitions avec bip b>0 → Ti=Ri×b ; Répétitions sans bip et À l’échec → durée de travail inconnue. Aucune estimation forfaitaire de répétition n’est utilisée.
 
-Le total intrinsèque exclut Compte à rebours et Fin d’exercice. En unilatéral : T=ΣTi+Σ(Pi, i=1..N−1), soit N×d+(N−1)×p en uniforme. Aucune Pause après la toute dernière Série de l’Exercice. PN peut rester stockée pour un déplacement, une réaugmentation de N ou la frontière entre côtés ; elle ne crée pas une phase terminale.
-
-**Conséquences dérivées, en conservant les règles de changement de côté déjà actées :**
+Le total intrinsèque exclut Compte à rebours et Fin d’exercice. **Pause après chaque série**, dernière comprise, même avec N=1 et même avec une Pause entre les côtés. Pi=0 ne crée pas de phase positive. Cette clarification explicite du propriétaire remplace les passages contraires du prompt précédent.
 
 | Configuration | Total intrinsèque, si travail calculable | Succession N=3, départ D |
 |---|---|---|
-| Unilatéral | ΣTi+Σ(P1..P(N−1)) | S1→P1→S2→P2→S3 |
-| Un côté après l’autre | 2ΣTi+2Σ(P1..P(N−1))+PN+PC | D1→P1→D2→P2→D3→PN→PC→G1→P1→G2→P2→G3 |
-| Les deux côtés à chaque série, N≥2 | 2ΣTi+Σ(P1..P(N−1))+N×PC | D1→PC→G1→P1→D2→PC→G2→P2→D3→PC→G3 |
+| Unilatéral | Σ(Ti+Pi) | S1→P1→S2→P2→S3→P3 |
+| Un côté après l’autre | 2Σ(Ti+Pi)+PC | D1→P1→D2→P2→D3→P3→PC→G1→P1→G2→P2→G3→P3 |
+| Les deux côtés à chaque série, N≥2 | 2ΣTi+ΣPi+N×PC | D1→PC→G1→P1→D2→PC→G2→P2→D3→PC→G3→P3 |
 
-N reste par côté. En succession des côtés, PN du premier côté reste suivie de PC selon la décision antérieure ; seule la Pause finale de l’Exercice disparaît. N=1 demeure normalisé Un côté après l’autre : T=2d+p+PC. En ordre par paire, aucune PC supplémentaire au retour à la première direction. PC=0 ne déclenche aucun remplacement par une autre Pause.
+N reste par côté. Au changement de côté en ordre successif, PN et PC se cumulent, même si PC>0. En ordre par paire, Pi suit la paire complète ; aucune PC supplémentaire au retour au premier côté. N=1 est normalisé Un côté après l’autre : T=2(d+p)+PC. PC=0 ne supprime ni ne remplace Pi.
 
-Une Récupération explicite de Séance s’ajoute après l’Exercice : To=T+R pour un travail calculable. Il n’existe plus de Pause terminale à soustraire. R=0 ne produit pas de phase. L’exécution directe n’a aucune Récupération contextuelle. Déplacement des Séries oblige à déterminer la nouvelle dernière ligne avant calcul. Tours développés avant sommation ; pas de double addition de R.
+Une Récupération positive explicite de Séance qui suit l’Exercice remplace **uniquement sa toute dernière Pause** : To=T−PN+R. Sans récupération positive : To=T. R=0 ne produit pas de phase et ne supprime pas PN. La Pause du premier côté reste intacte. En direct, aucune Récupération contextuelle : PN reste exécutée. Déplacement des Séries : déterminer la nouvelle dernière ligne avant substitution. Développer les Tours avant sommation ; ne jamais ajouter R une seconde fois. Retirer une récupération rétablit la dernière Pause configurée.
 
 Pour une Séance avec travail inconnu, sommer les phases chronométrées réellement prévues et les travaux estimables, une seule fois ; le travail inconnu n’ajoute aucun montant inventé mais impose lowerBound. Les pauses prévues d’un Exercice dont le total propre est omitted contribuent à cette somme. Conformément au prompt, une estimation cadencée reste incluse dans les contributions connues : ≥ exprime ici un total prévisionnel partiel, pas une garantie mathématique sur le temps réel si l’utilisateur accélère ou abrège. Ne pas présenter cette estimation comme une mesure.
 
 Les métriques Catalogue/Composition conservent leur périmètre de phases structurelles ; le plan complet inclut Compte à rebours/Fin quand applicables. L’omission du total d’Exercice ne supprime ni ses phases, ni ses données, ni leur exécution.
 
-Exemple normatif : 4×15×4+3×15=285 s, soit ≈4 min45 s. Il est justifié par la formule du prompt, pas seulement par le texte de la capture. Q-07 est clos : omission à l’Exercice, agrégation partielle uniquement à la Séance.
+Exemple normatif : 4×15×4+4×15=300 s, soit ≈5 min. Il est justifié par la règle explicite du propriétaire, pas seulement par le texte de la capture. Q-07 est clos : omission à l’Exercice, agrégation partielle uniquement à la Séance.
 
 ## 4. Exécution et son
 
@@ -84,16 +82,12 @@ Résultats temporels typés exact/estimated/lowerBound/omitted ; omitted sans mo
 
 Le prérequis SeriesParameters et les objets de pause doit être planifié avant intégration de cette évolution au modèle scalaire existant. Le numéro de migration n’est pas décidé par Figma. Ce lot documentaire ne livre ni migration SQL ni code audio.
 
-## 8. Phrase, classeur et réserve rédactionnelle
+## 8. Phrase et classeur v14
 
-Formulations conservées, y compris « répétitions cadencées » quand b>0. En Durée et À l’échec, le bip n’ajoute aucune clause. En Répétitions sans bip, supprimer la ligne de total ; aucune substitution par ≥. Le générateur reçoit le résultat de calcul, il ne calcule rien depuis Excel.
-
-Q-08 : conserver toutes les formulations laisse une contradiction avec « + pause chacune » et surtout « une série suivie de15s de pause », alors que la pause terminale est supprimée. Ces textes historiques restent identifiés dans Phrase v1, sans valeur de règle d’exécution. Proposition rédactionnelle soumise au propriétaire : « + 15 s de pause entre les séries » et aucune clause de pause pour une Série unilatérale. Aucune modification silencieuse de H-03.
-
-Le classeur pourra recevoir Bip de cadence et les six combinaisons mode×bip, avec durées fournies/omises. Sa feuille de calcul n’est pas une source normative : conserver la séparation explicitement décidée par le propriétaire.
+Les276 formulations du [classeur v14](../archives/cartes-phrases-v14-2026-10-07/generateur-phrase-activite_v14.xlsx) gouvernent le texte, exclusivement. Terme retenu : « pause après chaque série ». Q-08 clos ; ancienne proposition « pause entre les séries » et ancien signe+ abandonnés. Le générateur reçoit le résultat métier, retourne des segments `{texte, gras}`, ne persiste aucune phrase et régénère à chaque affichage. Voir [Phrase v1 actualisée](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md).
 
 ## 9. Recette attendue
 
-Six combinaisons mode×bip ; bornes0/1/10 et rejets−1/11/fraction ; bascule des trois modes sans perdre le bip ; annulation et application atomique ; duplication/snapshot. Exercice sans bip en Répétitions : aucune durée même avec pauses ; Séance mixte : retour partiel. Unilatéral N1 sans pause terminale, N4×15rep×4s+3×15s=285s. Bilatéral deux ordres, PC0/positive, R0/positive, inversion Durée et déplacement de dernière Série.
+Six combinaisons mode×bip ; bornes0/1/10 et rejets−1/11/fraction ; bascule des trois modes sans perdre le bip ; annulation et application atomique ; duplication/snapshot. Exercice sans bip en Répétitions : aucune durée même avec pauses ; Séance mixte : retour partiel. Unilatéral N1 avec sa pause terminale, N4×15rep×4s+4×15s=300s. Bilatéral deux ordres, PC0/positive, R0/positive, inversion Durée et déplacement de dernière Série.
 
 Bip périodique dans les trois modes, arrêt hors Série, maintien après nominal Répétitions, fin Durée prioritaire, Pause/Reprise, reset et temps réel, arrière-plan sans rafale, seuils de sécurité. Steppers : tap, maintien500ms/2s/4s, arrondi directionnel, petites plages et saturation, annulation tactile et lecteur d’écran. Ces cas sont prescrits, pas annoncés exécutés dans l’application.

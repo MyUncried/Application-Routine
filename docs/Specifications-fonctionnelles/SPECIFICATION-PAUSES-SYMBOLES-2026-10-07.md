@@ -6,11 +6,11 @@ Version normative complémentaire à Paramètres v13, Bip v2 et Phrase v1. Déci
 
 La cadence conserve ses signaux intermédiaires/final, sa progression temporelle, les intervalles de reprise, la portée du Reset, l’arrière-plan et les seuils de sécurité. Le chronomètre continue après le nominal ; Suivant termine normalement, même avant le nominal. Aucun compteur de répétitions réalisées n’est déduit. La qualification « cadence déclarative sans signaux » du prompt est rejetée.
 
-Phrase H-03 conservée rédactionnellement mais conflit avec la suppression de Pause terminale identifié en Q-08 (Bip v2). Bilatéralité et pause à la frontière des côtés conservées selon les nouvelles formules. Excel reste rédactionnel.
+Phrase selon les276 cas Excel v14 : « pause après chaque série », Q-08 clos et H-03 remplacé. Bilatéralité et pause à la frontière des côtés conservées selon les nouvelles formules. Excel reste rédactionnel.
 
 ## 2. Résultats temporels — remplacés par Bip v2
 
-[Bip v2](SPECIFICATION-BIP-CADENCE-v2.md) fait autorité : exact Durée, ≈ Répétitions avec bip, omitted Répétitions sans bip et À l’échec ; ≥ seulement en Séance avec travail inconnu. Q-07 clos. Travail et pauses entre séries, aucune Pause terminale ; Récupération explicite ajoutée sans soustraction. Les règles de placement, brouillon et trait ci-dessous restent applicables.
+[Bip v2](SPECIFICATION-BIP-CADENCE-v2.md) fait autorité : exact Durée, ≈ Répétitions avec bip, omitted Répétitions sans bip et À l’échec ; ≥ seulement en Séance avec travail inconnu. Q-07 clos. Travail et pause après chaque série, dernière comprise ; Récupération positive remplaçant seulement cette dernière Pause. Les règles de placement, brouillon et trait ci-dessous restent applicables.
 
 ## 3. Pause de Composition : deux types, un parcours
 
@@ -52,7 +52,7 @@ Récupération uniquement après une occurrence, y compris la dernière ; aucune
 
 À un emplacement partagé : Exercice → récupération positive → Point d’arrêt → suite. Les éléments internes au Circuit s’exécutent à chaque Tour. Circuit désigne le groupe, Tour sa répétition.
 
-Appui long sur la récupération existante ouvre la bulle Retirer la récupération, comme Retirer le point d’arrêt. Choisir Retirer supprime du brouillon ; toucher hors bulle ferme sans mutation. Ne pas ajouter un second dialogue absent de la référence. La suppression d’une récupération retire sa durée du plan sans recréer de Pause terminale ; elle ne modifie pas la définition d’Exercice.
+Appui long sur la récupération existante ouvre la bulle Retirer la récupération, comme Retirer le point d’arrêt. Choisir Retirer supprime du brouillon ; toucher hors bulle ferme sans mutation. Ne pas ajouter un second dialogue absent de la référence. La suppression d’une récupération retire sa durée du plan et rétablit la Pause terminale configurée ; elle ne modifie pas la définition d’Exercice.
 
 ## 7. Modèle fonctionnel et API
 

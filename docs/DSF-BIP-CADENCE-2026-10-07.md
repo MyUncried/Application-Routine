@@ -26,6 +26,8 @@ Seul le bouton touché s’anime ; nombre, fond et bouton opposé immobiles. Dil
 
 ## Contrôle et état Figma
 
-Les cinq vues6419:9847,6665:24844,6665:27008,7059:13302,7069:13573 sont recapturées au chapitre06.7061:13383 est supprimé, jamais une référence active. Les autres modales Durée/À l’échec restent à compléter dans Figma : [inventaire courant](MATRICE-BIP-FIGMA-2026-10-07.md). La documentation prescrit déjà la portée transverse sans prétendre qu’elle est dessinée partout.
+Les24 frames portant le libellé Bip ont été relues et recapturées ; les19 modales auparavant signalées sont maintenant couvertes.7061:13383 reste supprimé. Voir la [matrice courante](MATRICE-CARTES-PHRASES-2026-10-07.md), avec captures et écarts résiduels de texte ; présence du champ ne vaut pas qualification du comportement.
 
-Le composant Roulette Secondes existant n’est pas supprimé de la bibliothèque au seul motif que le Bip ne l’utilise plus. Réutiliser les steppers existants, aucun doublon de famille. Les phrases gardent Inter13/20 et valeurs en gras ; leur réserve rédactionnelle Q-08 est distincte du layout.
+Le composant Roulette Secondes existant n’est pas supprimé de la bibliothèque au seul motif que le Bip ne l’utilise plus. Réutiliser les steppers existants, aucun doublon de famille. Les phrases gardent Inter13/20 et valeurs en gras ; les276 formulations v14 gouvernent leur texte, Q-08 clos.
+
+**Complément courant cartes :** [durée sans cadre, propriété Durée et géométrie](DSF-CARTES-DUREE-2026-10-07.md). Les276 textes v14 et les segments `{texte, gras}` sont définis dans [Phrase v1 actualisée](Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md).

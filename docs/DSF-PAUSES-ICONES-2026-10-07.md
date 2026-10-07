@@ -62,3 +62,5 @@ Phrase unique Inter13/20, largeur324 à402, hauteur adaptée ; valeurs en gras, 
 
 Boutons locaux à componentiser ; contrôler layoutMode, centrage et liaisons aux tokens. Carte séance, Carte exercice et Ressenti hors DSF ne sont pas déclarés promus par ce lot. Aucune obligation de trois nouvelles maquettes d’exécution : shell existant réutilisé. Le Bip de cadence est désactivé en ramenant son stepper à0, affiché Aucun ; aucune nouvelle commande inventée.
 
+
+**Complément courant cartes :** [durée sans cadre, propriété Durée et géométrie](DSF-CARTES-DUREE-2026-10-07.md). Les276 textes v14 et les segments `{texte, gras}` sont définis dans [Phrase v1 actualisée](Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md).
