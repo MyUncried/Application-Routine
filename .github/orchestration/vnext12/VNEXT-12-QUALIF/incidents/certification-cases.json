@@ -1,0 +1,98 @@
+{
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "slice_id": "VNEXT-12-QUALIF",
+  "scope": "EXISTING_CERTIFICATION_CONTINUATION",
+  "vnext_live_closure_certified": false,
+  "cases": [
+    {
+      "id": "I1-A",
+      "description": "ACCESSIBILITY pending admitted, resolved functionally with reserves",
+      "incident": 1,
+      "test_path": "tests/kodjo/vnext-finalization-incidents.pilot.js",
+      "automatic_status": "PASS_LOCAL",
+      "real_data_replay": "AVAILABLE_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED"
+    },
+    {
+      "id": "I1-B",
+      "description": "Failed or missing technical proof refused",
+      "incident": 1,
+      "test_path": "tests/kodjo/vnext-proof-lifecycle.pilot.js",
+      "automatic_status": "PASS_LOCAL",
+      "real_data_replay": "AVAILABLE_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED"
+    },
+    {
+      "id": "I1-C",
+      "description": "Waiver preserved; no manufactured PASS",
+      "incident": 1,
+      "test_path": "tests/kodjo/vnext-proof-lifecycle.pilot.js",
+      "automatic_status": "PASS_LOCAL",
+      "real_data_replay": "AVAILABLE_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED"
+    },
+    {
+      "id": "I2-A",
+      "description": "Initial delivery followed by multiple corrections",
+      "incident": 2,
+      "test_path": "tests/kodjo/vnext-finalization-incidents.pilot.js",
+      "automatic_status": "PASS_LOCAL",
+      "real_data_replay": "AVAILABLE_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED"
+    },
+    {
+      "id": "I2-B",
+      "description": "Retained file recognized; missing/deleted/regressed refused",
+      "incident": 2,
+      "test_path": "tests/kodjo/vnext-delivery-preservation.pilot.js",
+      "automatic_status": "PASS_LOCAL",
+      "real_data_replay": "AVAILABLE_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED"
+    },
+    {
+      "id": "I2-C",
+      "description": "Unrelated baseline and unapproved head refused",
+      "incident": 2,
+      "test_path": "tests/kodjo/vnext-finalization-incidents.pilot.js",
+      "automatic_status": "PASS_LOCAL",
+      "real_data_replay": "AVAILABLE_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED"
+    },
+    {
+      "id": "I3-A",
+      "description": "Executed workflow, controller, runtime and contracts identities",
+      "incident": 3,
+      "test_path": "tests/kodjo/vnext-finalization-incidents.pilot.js",
+      "automatic_status": "PASS_LOCAL",
+      "real_data_replay": "AVAILABLE_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED"
+    },
+    {
+      "id": "I3-B",
+      "description": "Decision provenance and reserves retained on restart",
+      "incident": 3,
+      "test_path": "tests/kodjo/vnext-finalization-incidents.pilot.js",
+      "automatic_status": "PASS_LOCAL",
+      "real_data_replay": "AVAILABLE_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED"
+    },
+    {
+      "id": "I3-C",
+      "description": "No double consumption or local closure after interruption",
+      "incident": 3,
+      "test_path": "tests/kodjo/disposable-consumption.pilot.js",
+      "automatic_status": "PASS_LOCAL",
+      "real_data_replay": "AVAILABLE_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED"
+    },
+    {
+      "id": "END",
+      "description": "Effective VNext GitHub SLICE_CLOSED",
+      "incident": null,
+      "test_path": null,
+      "automatic_status": "NOT_EXECUTED",
+      "real_data_replay": "NOT_EXECUTED",
+      "operational_vnext_certification": "NOT_OBTAINED"
+    }
+  ]
+}

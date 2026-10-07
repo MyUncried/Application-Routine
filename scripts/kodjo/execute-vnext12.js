@@ -115,6 +115,11 @@ function main(configFile, evidenceDirectory) {
     cwd: source, controllerHead: process.env.VNEXT12_CONTROLLER_HEAD,
   });
   save('qualification-admission.json', qualifications);
+  const controllerCwd = path.dirname(path.dirname(path.dirname(__filename)));
+  save('execution-provenance.json', require('./lib/vnext-execution-provenance').observe({
+    controllerCwd, approvedCwd: source, controllerHead: process.env.VNEXT12_CONTROLLER_HEAD,
+    approvedHead: APPROVED_HEAD,
+  }));
   let credential;
   try { credential = consumptionCredential(); }
   catch (error) {
