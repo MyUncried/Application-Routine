@@ -5,19 +5,24 @@ const D=require('../../scripts/kodjo/qualify-vnext-figma-real-path'),C=require('
 const reference="const {Existing}=require('../../shared/ui/Existing');let selected=false;module.exports={Existing,toggle(){return selected=!selected;}};\n";
 const {prepare}=require('./helpers/vnext-functional-reference');
 test('generated plan, real reference delivery, independent probes and reviewer-accessible dossier agree',async t=>{
- const {f,out,plan,produced,keepHash}=await prepare(t);assert.ok(plan.includes(C.EXPECTED));assert.match(plan,/require the shared module again/);assert.match(plan,/SAME Screen module instance in ONE fresh child/);
+ const {f,out,plan,produced,keepHash}=await prepare(t);assert.ok(plan.includes(C.EXPECTED));assert.match(plan,/require the shared module again/);assert.match(plan,/four ordered calls on the SAME Screen module instance in ONE fresh child/);assert.match(plan,/pre-implementation baseline hash/);
  const item=produced.artifacts.planContract.plan_items[0];
  assert.ok(item.implementation_constraints.some(c=>c.includes('node tests/ui.test.js')&&c.includes('Node built-in modules')&&c.includes('non-zero exit status')));
  const testIntent=item.change_items.find(c=>c.path===C.TEST).intent;
  assert.match(testIntent,/Tests must exercise the implementation and assert observed results/);
  assert.equal(testIntent.includes('source. against the implementation'),false);
+ const screenIntent=item.change_items.find(c=>c.path===C.SCREEN).intent;
+ assert.match(screenIntent,/Retain the existing shared Existing require unchanged; no dependency changes/);
+ const screenImpact=produced.artifacts.impactGraph.impacts.find(i=>i.candidate_id===produced.artifacts.candidateManifest.candidates.find(c=>c.path===C.SCREEN).candidate_id);
+ assert.match(screenImpact.impact_reason,/retain its existing require unchanged; no dependency changes/);
  assert.deepEqual(produced.artifacts.impactGraph.impacts.filter(i=>i.change_kind==='MODIFY').map(i=>i.candidate_id).sort(),produced.artifacts.candidateManifest.candidates.filter(c=>[C.SCREEN,C.TEST].includes(c.path)).map(c=>c.candidate_id).sort());
  assert.equal(produced.artifacts.planContract.plan_items.flatMap(p=>p.proof_obligations).some(p=>p.proof_type==='VISUAL_COMPARE'),false);
  const receipt=D.runDeliveredTests(f,keepHash,path.join(out,'gate.json'));f.git('add',C.SCREEN,C.TEST);f.git('commit','-m','REFERENCE deterministic delivery; no model');
  const options=D.compare(f,f.snapshot,plan,path.join(out,'review'),receipt),dossier=Review.prepare(plan,options);
  const artifact=JSON.parse(fs.readFileSync(path.join(out,'review','execution.json')));
- assert.deepEqual(artifact.returned_values,[true,false]);assert.equal(artifact.execution_model,'ONE_MODULE_INSTANCE_TWO_ORDERED_CALLS_BY_CONSTRUCTION');assert.ok(artifact.process_id>0);assert.deepEqual(artifact.call_order,['toggle-off-on','toggle-on-off']);
- assert.deepEqual(artifact.node_test_receipt.preservation_probe,{status:'PASS',normal_identity:true,sentinel_identity:true,independent_child_process:true});
+ assert.deepEqual(artifact.returned_values,[true,false,true,false]);assert.equal(artifact.execution_model,'ONE_MODULE_INSTANCE_FOUR_ORDERED_CALLS_BY_CONSTRUCTION');assert.ok(artifact.process_id>0);assert.deepEqual(artifact.call_order,['toggle-off-on','toggle-on-off','toggle-off-on','toggle-on-off']);
+ assert.deepEqual(artifact.node_test_receipt.preservation_probe,{status:'PASS',baseline_existing:true,normal_identity:true,sentinel_identity:true,independent_child_process:true});
+ assert.deepEqual(artifact.node_test_receipt.source_hash_gate,{path:C.KEEP,expected_sha256:keepHash,observed_sha256:keepHash,status:'PASS'});
  assert.equal(dossier.observed_files.length,1);assert.equal(dossier.observed_files[0].file,path.join(out,'review','execution.json'));assert.equal(artifact.node_test_receipt.source_sha256[C.KEEP],keepHash);
  assert.equal(dossier.measurements.length,0);assert.equal(dossier.scenario_ids.length,2);
 });
@@ -25,8 +30,8 @@ test('generated plan, real reference delivery, independent probes and reviewer-a
 for(const fails of [false,true])test('preservation restores shared export and cache entries after '+(fails?'a failed sentinel assertion':'success'),t=>{
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-cache-restore-')),screen=path.join(dir,'Screen.js'),shared=path.join(dir,'Existing.js'),key='__vnextProbe'+path.basename(dir).replace(/\W/g,'');
  globalThis[key]=[];
- fs.writeFileSync(shared,`module.exports={Existing:{original:true}};globalThis[${JSON.stringify(key)}].push({shared:module.exports,original:module.exports.Existing});`);
- fs.writeFileSync(screen,`const {Existing}=require('./Existing');module.exports={Existing:${fails?'Object.keys(Existing).length===0?null:Existing':'Existing'}};`);
+ fs.writeFileSync(shared,`module.exports={Existing:true};globalThis[${JSON.stringify(key)}].push({shared:module.exports,original:module.exports.Existing});`);
+ fs.writeFileSync(screen,`const {Existing}=require('./Existing');module.exports={Existing:${fails?"Existing&&typeof Existing==='object'&&Object.keys(Existing).length===0?null:Existing":'Existing'}};`);
  t.after(()=>{delete require.cache[screen];delete require.cache[shared];delete globalThis[key];fs.rmSync(dir,{recursive:true,force:true});});
  require(screen);const oldScreen=require.cache[screen],oldShared=require.cache[shared],original=oldShared.exports.Existing;
  if(fails)assert.throws(()=>C.preservation(screen,shared),/PROVENANCE_FAILED/);else assert.equal(C.preservation(screen,shared).status,'PASS');
@@ -42,6 +47,7 @@ for(const [name,body,diagnostic] of [
 for(const [name,body] of [
  ['always true',"const {Existing}=require('../../shared/ui/Existing');module.exports={Existing,toggle:()=>true};"],
  ['wrong initial state',"const {Existing}=require('../../shared/ui/Existing');let selected=true;module.exports={Existing,toggle:()=>selected=!selected};"],
+ ['two-value prefix only',"const {Existing}=require('../../shared/ui/Existing');let calls=0;module.exports={Existing,toggle(){calls+=1;return calls===1;}};"],
  ['injected functional fault',reference+D.NEGATIVE_FUNCTIONAL_FAULT]
 ])test('real generated dossier refuses '+name+' despite a passing delivered Node test',async t=>{const {f,out,plan,keepHash}=await prepare(t);f.write(C.SCREEN,body);f.write(C.TEST,'// Intentionally vacuous test; independent observer must refuse.\n');const receipt=D.runDeliveredTests(f,keepHash);assert.equal(receipt.status,'PASS');assert.throws(()=>D.compare(f,f.snapshot,plan,path.join(out,'negative'),receipt),/SCENARIO_NOT_PASSED/);});
 test('receipt corruption and changed shared source cannot reach the reviewer',async t=>{const {f,out,keepHash}=await prepare(t),receipt=D.runDeliveredTests(f,keepHash);const bad=structuredClone(receipt);delete bad.preservation_probe;assert.throws(()=>D.observe(f,f.snapshot,path.join(out,'unused'),bad),/PRESERVATION_RECEIPT_INVALID/);f.write(C.KEEP,'module.exports={Existing:true};\n// drift\n');assert.throws(()=>D.observe(f,f.snapshot,path.join(out,'unused'),receipt),/RECEIPT_SOURCE_DRIFT/);});

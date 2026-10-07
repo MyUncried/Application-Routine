@@ -5,9 +5,9 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "REAL_TEST_REQUESTED",
+  "current_stage": "REAL_TEST_SECOND_CORRECTION_QUALIFICATION_PENDING",
   "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
-  "generation": 90,
+  "generation": 91,
   "previous_terminal_generation": 77,
   "previous_closed_issue": 324,
   "reuse_previous_closure_as_new_cycle": false,
@@ -125,11 +125,11 @@
     },
     {
       "stage": "REAL_CLAUDE_FIGMA_FROZEN_SOURCE",
-      "status": "FAILED_PRE_IMPLEMENTATION",
-      "request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
-      "generation": 88,
-      "run_id": 37629963561,
-      "review_verdict": "CLARIFICATION_REQUIRED",
+      "status": "FAILED_PRE_IMPLEMENTATION_REVISE",
+      "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
+      "generation": 90,
+      "run_id": 37634990777,
+      "review_verdict": "REVISE",
       "implementation_invoked": false,
       "correction_status": "PENDING_EXACT_HEAD_QUALIFICATION"
     },
@@ -160,10 +160,10 @@
     "automatic_visual_validation"
   ],
   "active_run_ids": [],
-  "next_action": "Await the unique new real-test run; verify actual sessions, functional results, preservation and cleanup before incidents. No replay of the failed run.",
-  "controller_head": "03188df4ef54e19af65facb614e3f90071dd3238",
-  "qualification_branch": "qualification/vnext-full-cycle-revision-6db62fdd-20261007",
-  "observed_at": "2026-10-07T14:13:27.318Z",
+  "next_action": "Qualify the bounded four-call alternation, absolute Existing baseline/hash gate and dependency wording corrections on the exact candidate head for Linux and Windows. Do not replay run 37634990777.",
+  "controller_head": "a467a5b34c1cb3e362c6e27b4b622c9ede632be7",
+  "qualification_branch": "qualification/vnext-full-cycle-real-fix2-232ae5f7-20261007",
+  "observed_at": "2026-10-07T14:32:37.473Z",
   "documentation_modals": "WAIT_FOR_USER_COMPLETION_SIGNAL",
   "pending_initial_request": {
     "stage": "EXECUTE_INITIAL",
@@ -191,7 +191,7 @@
   "automation_id": "6ac62299aa5c819198996171d4a1ff13",
   "automation_title": "Enchaîner le cycle VNext",
   "automation_trigger": "PR269_COMMIT_UPDATES",
-  "automatic_continuation_status": "REAL_TEST_REQUESTED",
+  "automatic_continuation_status": "REAL_TEST_SECOND_CORRECTION_QUALIFICATION_PENDING",
   "initial_binding_requires_new_qualified_source_head": false,
   "previous_initial_gate": {
     "comment_id": 6035666121,
@@ -204,20 +204,21 @@
   "transition": {
     "schema_version": "kodjo.vnext.cycle-transition.v1",
     "status": "CLAIMED_BEFORE_LAUNCH",
-    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8:37632486111:1",
-    "request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
-    "generation": 89,
+    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:232ae5f7-dd22-4c95-af90-403e9f9149a4:37634990777:1",
+    "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
+    "generation": 90,
     "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
-    "source_head": "9411096c1d78d9b930346af02a30b077b4ccc7e3",
-    "observed_signal_head": "60e6d4c6cfa6e37cd1a6bf3e75a86e215114c733",
-    "run_id": 37632486111,
+    "source_head": "bbdb6c458783828fd595ab08c43efc2238f86698",
+    "observed_signal_head": "a467a5b34c1cb3e362c6e27b4b622c9ede632be7",
+    "run_id": 37634990777,
     "run_attempt": 1,
-    "next_stage": "FIGMA_INITIAL",
-    "next_request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
-    "published_generation": 90,
-    "claimed_at": "2026-10-07T14:13:27.318Z",
+    "next_stage": "EXACT_HEAD_QUALIFICATION",
+    "published_generation": 91,
+    "controller_id": "webhook-c282e740-c25a-11f1-9ef3-206bfe138f71",
+    "claimed_at": "2026-10-07T14:32:37.473Z",
     "qualification_verified": true,
-    "admission": "AUTHORIZED_BY_EXISTING_FULL_CYCLE_USER_REQUEST"
+    "execution_verified": false,
+    "admission": "OPERATIONAL_RESULT_VERIFIED"
   },
   "processed_signals": [
     {
@@ -274,6 +275,12 @@
       "next_request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
       "generation": 90,
       "outcome": "CORRECTED_REAL_TEST_PUBLISHED"
+    },
+    {
+      "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:232ae5f7-dd22-4c95-af90-403e9f9149a4:37634990777:1",
+      "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
+      "generation": 91,
+      "outcome": "REAL_TEST_REVISE_RECORDED_SECOND_CORRECTION_PENDING_QUALIFICATION"
     }
   ],
   "initial_failure": {
@@ -626,5 +633,30 @@
     },
     "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8:37632486111:1",
     "observed_signal_head": "60e6d4c6cfa6e37cd1a6bf3e75a86e215114c733"
+  },
+  "real_test_review_failure_37634990777": {
+    "run_id": 37634990777,
+    "run_attempt": 1,
+    "source_head": "bbdb6c458783828fd595ab08c43efc2238f86698",
+    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:232ae5f7-dd22-4c95-af90-403e9f9149a4:37634990777:1",
+    "artifact_id": 11490345171,
+    "artifact_sha256": "44f66f7f07994ded3a5e20b9b51f69485333b5446790c6f972445af727d27f3d",
+    "status": "FAILED_PRE_IMPLEMENTATION",
+    "diagnostic": "VNEXT_LIVE_REVIEW_NOT_APPROVED: REVISE",
+    "review_session_id": "51a391cf-1a27-454d-8c63-2f023f82d22f",
+    "review_verdict": "REVISE",
+    "blocking_findings": 2,
+    "suggestions": 1,
+    "implementation_invoked": false,
+    "application_published": false,
+    "disposable_cleanup": true,
+    "preserved_delivery_head": "5280e1957761c635bac596d6a096530fcf5646e0",
+    "correction": {
+      "toggle_alternation": "One fresh child process now calls the same Screen module instance four times and requires true, false, true, false; the two existing scenario IDs are retained.",
+      "preservation_gate": "The independent probe requires shared Existing to equal the baseline value true and the receipt compares the recorded Existing.js hash with the pre-implementation baseline as a pass/fail gate.",
+      "dependency_wording": "The impact and change intent say no dependency changes and explicitly retain the existing shared require unchanged.",
+      "local_controls": "47/47 targeted and 409/409 VNext PASS.",
+      "qualification": "PENDING_LINUX_WINDOWS_EXACT_HEAD"
+    }
   }
 }

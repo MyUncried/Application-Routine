@@ -1,10 +1,10 @@
 {
-  "stage": "FIGMA_INITIAL",
+  "stage": "TARGETED_RESULT_RECORDED",
   "slice_id": "VNEXT-12-QUALIF",
   "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
   "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
   "revision_limit": 1,
-  "generation": 90,
+  "generation": 91,
   "final_audit_authorized": false,
   "pre1_in_scope": false,
   "qualification_policy": "FULL_CYCLE_USER_REQUEST",
@@ -13,13 +13,9 @@
   "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
   "human_review_performed": false,
   "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
-  "created_at": "2026-10-07T14:13:27.318Z",
-  "source_revision_run_id": 37625815436,
-  "source_revision_signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:6db62fdd-31b6-4c00-8097-d85af9f675b8:37625815436:1",
-  "live_figma_acquisition": "NOT_EXERCISED_FROZEN_GIT_CAPTURE_REPLAY",
-  "visual_validation": "NOT_EXECUTED_USER_ONLY",
-  "approved_protocol_head": "9411096c1d78d9b930346af02a30b077b4ccc7e3",
-  "qualification_run_id": 37632486111,
-  "source_qualification_signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8:37632486111:1",
-  "previous_failed_request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8"
+  "failed_run_id": 37634990777,
+  "failed_run_attempt": 1,
+  "failure_stage": "FIGMA_INITIAL",
+  "failure_status": "PRE_IMPLEMENTATION_REVIEW_REVISE",
+  "correction_status": "PENDING_EXACT_HEAD_QUALIFICATION"
 }
