@@ -108,3 +108,34 @@ Non fait : fusion de la PR #331, modification de Routine stable, cycle V2/VNext.
 1. A — voile plus clair et légèrement bleuté (`#1F2129` à 34 %) derrière les dialogues d’abandon, la roulette, les feuilles Catégorie, Zones corporelles et Étiquettes, et les options de création du Catalogue.
 2. C — sélecteur du Catalogue et Mode d’exécution de la Création d’activité : cadre blanc translucide sans contour, options inactives lavande `#EAEAFF`, libellés Semi Bold 16, sélection indigo qui glisse comme avant ; « Parcours » toujours grisé et inactif.
 3. D — titres « Composer une séance » et « Créer un exercice ».
+
+## 11. Clôture — validation et fusion (2026-10-07)
+
+**Décision d’Hermann** : le complément d’alignement A à D, publié sur Routine Dev depuis `5b3fff07` (mise à jour EAS `01a1184a-65db-7b4d-8264-74e82e3b9af5`), est **validé** ; clôture et fusion de la PR #331 autorisées. Cette validation est **limitée au complément livré** : elle n’atteste pas une conformité globale à Figma et ne rouvre aucun écart précédemment reporté (notamment la réserve du stepper du Profil, PR #326). Aucune recette supplémentaire, aucun correctif, aucune republication.
+
+### 11.1 Résultat de fusion avec `main`
+
+- `main` a avancé pendant la mission : PR #328 (documentation) fusionnée (`009d74b1`).
+- Conflit unique : chapitre 12, ligne `color.overlayScrim`. Même valeur des deux côtés (`rgba(31, 33, 41, 0.34)`) ; résolution : description normative de #328 conservée (voile unique, y compris CE-UI-10) + trace de son application dans le code par l’ajout A. Commit de résolution `2be9be4c` (fusion de `origin/main` dans la branche).
+- Le Catalogue à deux options documenté par #328 (FUNC-SEG-02) **n’est pas introduit** dans le code : le sélecteur garde ses trois options.
+- Code applicatif (`src`, `app`, `assets`, configuration) **identique** à `5b3fff07`, la tête publiée (`git diff` vide).
+
+### 11.2 Contrôles sur le résultat de fusion (`2be9be4c`)
+
+| Contrôle | Résultat | Comparaison avec la base |
+|---|---|---|
+| `tsc --noEmit` | 1 erreur : `expo-image-picker` introuvable | identique, aucune nouvelle |
+| `expo lint` | 1 erreur, même cause | identique |
+| `jest --ci` | 3 suites en échec (`targetSchema` CRLF ; `ProfileScreen`, `profilePhoto` non chargés) ; 1500/1501 | mêmes échecs d’environnement |
+| `tokensSpecification.test` sur le chapitre 12 fusionné | réussi | — |
+
+Aucune nouvelle régression ; seuls les échecs d’environnement déjà reproduits sur la base subsistent.
+
+### 11.3 Restant ouvert
+
+- Écarts reportés de la PR #326 (stepper du Profil, points du § 6 de son rapport) : non rouverts.
+- Catalogue à deux options (FUNC-SEG-02) : évolution fonctionnelle à traiter séparément.
+- Repères du chronomètre (ajout B) et voiles/segmentés des écrans non codés : à appliquer lors du développement de ces écrans.
+- Échecs d’environnement locaux (`expo-image-picker` absent des `node_modules` partagés ; empreinte `targetSchema` faussée par CRLF).
+
+Le commit de fusion de la PR #331 est communiqué dans un commentaire de la PR et dans le message de clôture.
