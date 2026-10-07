@@ -1,2 +1,2 @@
 'use strict';
-module.exports = { value: () => 1 };
+module.exports = { value: () => 2 };
