@@ -74,14 +74,16 @@ describe("ActivityCard", () => {
     expect(screen.queryByTestId("activity-card-open")).toBeNull();
   });
 
-  it("renders Déployer and Lecture as disabled, without handlers", () => {
+  // Alignement DSF 07/10 (annexe I.2, `DSF / Cards / Exercice` `6214:4111`) :
+  // le chevron Déployer — un contrôle désactivé, sans action — n'existe plus
+  // sur les cartes d'Exercice ; Lecture reste visible et désactivée.
+  it("renders Lecture as disabled, without handler, and no Déployer chevron", () => {
     renderCard(<ActivityCard definition={DEFINITION} onOpen={jest.fn()} />);
 
     const play = screen.getByTestId("activity-card-play");
     expect(play.props.accessibilityState.disabled).toBe(true);
 
-    const disclosure = screen.getByLabelText("Déployer l’exercice");
-    expect(disclosure.props.accessibilityState?.disabled ?? disclosure.props.disabled).toBeTruthy();
+    expect(screen.queryByLabelText("Déployer l’exercice")).toBeNull();
   });
 
   /**

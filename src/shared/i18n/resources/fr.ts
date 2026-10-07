@@ -126,11 +126,14 @@ export const fr = {
         // fonctionnelle cible — « Exercices » remplace « Activités ».
         activities: "Exercices",
         sessions: "Séances",
-        circuits: "Circuits",
+        // Alignement DSF 07/10 (D10) : « Parcours » dans les contrôles
+        // segmentés des catalogues ; « Circuit » reste le terme de la
+        // Composition. Clés non renommées.
+        circuits: "Parcours",
         // Nom accessible des segments désactivés — annonce explicitement
         // l'indisponibilité MVP (D-108).
         activitiesUnavailableAccessibilityLabel: "Exercices — indisponible",
-        circuitsUnavailableAccessibilityLabel: "Circuits — indisponible",
+        circuitsUnavailableAccessibilityLabel: "Parcours — indisponible",
       },
       // T01-S10 (D-109) : `Toutes`/`Planifiées`/`Archivées` restent des
       // filtres de domaine FUTURS — jamais rendus comme contrôle principal
