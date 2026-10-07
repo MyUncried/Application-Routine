@@ -1,0 +1,2 @@
+scripts/kodjo/fixtures/vnext12/core.js
+tests/fixtures/vnext12/core.test.js

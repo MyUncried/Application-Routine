@@ -2593,8 +2593,8 @@
     "platform_coverage": "MAPPED_ASSERTIONS_PASS_ON_AT_LEAST_ONE_PLATFORM_RECOVERED_FROM_ACTUAL_ARTIFACTS",
     "historical_local_windows": "SKIPPED_NOT_CLAIMED_EXECUTED"
   },
-  "stage": "TARGETED_RESULT_RECORDED",
-  "next_action": "VNEXT_LIVE_CLOSURE_STILL_OPEN",
+  "stage": "FINALIZE_DELIVERY",
+  "next_action": "OBSERVE_TARGETED_GITHUB_CLOSURE",
   "incidents_20261007": {
     "source_revision_run": 37548553181,
     "source_initial_run": 37538282108,
@@ -2628,5 +2628,20 @@
       "next_consumer": "DELIVERY_BASELINE_ADMITTED",
       "vnext_live_closure_certified": false
     }
+  },
+  "github_closure_20261007": {
+    "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+    "issue": 324,
+    "delivery_pr": 325,
+    "head": "b4dbde78215b4ff1adb1443a0ed6d581716eb38b",
+    "tested_tree": "9cb1628b755948fb3b57f24bcf1cf187e9114282",
+    "review_comment_id": 6034331428,
+    "source_revision_run": 37548553181,
+    "generation": 75,
+    "report": ".github/orchestration/reports/2026-10-07_VNEXT_GITHUB_CLOSURE.md",
+    "status": "PREPARED_NOT_YET_EXECUTED",
+    "github_issue_closed": false,
+    "application_published": false,
+    "final_audit_authorized": false
   }
 }

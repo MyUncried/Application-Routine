@@ -22,6 +22,8 @@ function execute(input, { cwd, directory, github }) {
   if (contract.matrix_sha256 !== matrixFingerprint(initialMatrix)) V.fail('VNEXT_FINAL_APPROVED_PLAN_DRIFT');
   const preservation = Delivery.fromMarkdown(plan);
   const matrix = Delivery.merge(initialMatrix, preservation);
+  const nonUiRequirements = plan.includes('<KODJO_REQUIREMENT_CONTRACT_JSON>')
+    ? require('./lib/requirement-contract').verifyEmbedded(plan).requirement_contract.requirements.filter(r=>r.domain==='NON_UI') : [];
   const reviewComment = Source.verify(github.comment(input.repository,input.reviewId),
     {repository:input.repository,issue:input.issue,id:input.reviewId});
   const heads = [...reviewComment.body.replace(/\r\n/g,'\n').matchAll(/^head=([^\n]+)$/gm)].map(m=>m[1].trim());
@@ -30,7 +32,7 @@ function execute(input, { cwd, directory, github }) {
   if(slices.length!==1||slices[0]!==input.sliceId)V.fail('VNEXT_FINAL_REVIEW_SLICE_MISMATCH');
   const review = extractTaggedJson(reviewComment.body,'KODJO_UI_IMPLEMENTATION_REVIEW_JSON');
   if (input.checksReceipt?.head !== input.head) V.fail('VNEXT_FINAL_CHECKS_HEAD_MISMATCH');
-  const result = Final.finalize({...input,cwd,matrix,review,checks:input.checksReceipt.checks,
+  const result = Final.finalize({...input,cwd,matrix,review,nonUiRequirements,checks:input.checksReceipt.checks,
     retainedTargets:preservation?.retained_criteria.flatMap(c=>c.change_targets) || [],
     acceptance: input.decisionId ? github.comment(input.repository,input.decisionId) : null,
     originDecision: input.originDecisionId ? github.comment(input.repository,input.originDecisionId) : null});

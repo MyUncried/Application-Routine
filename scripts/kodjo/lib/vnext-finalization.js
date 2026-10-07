@@ -13,7 +13,7 @@ const Source = require('../verify-source-comment');
 function git(cwd, ...args) {
   return execFileSync('git', args, { cwd, encoding: 'utf8', windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 }
-function coverage({ cwd, baselineHead, incrementHead, head, approvedHead, matrix, retainedTargets = [] }) {
+function coverage({ cwd, baselineHead, incrementHead, head, approvedHead, matrix, retainedTargets = [], requiredTargets = [] }) {
   for (const sha of [baselineHead, incrementHead, head, approvedHead]) V.assertSha40(sha, 'VNEXT_FINAL_HEAD_REQUIRED');
   if (head !== approvedHead) V.fail('VNEXT_FINAL_UNAPPROVED_HEAD');
   for (const base of [baselineHead, incrementHead]) {
@@ -21,7 +21,7 @@ function coverage({ cwd, baselineHead, incrementHead, head, approvedHead, matrix
     catch (_) { V.fail('VNEXT_FINAL_BASELINE_NOT_ANCESTOR'); }
   }
   const diff = base => git(cwd, 'diff', '--no-renames', '--name-only', base, head).split('\n').filter(Boolean).sort();
-  const targets = [...new Set(matrix.criteria.flatMap(c => c.change_targets))].sort();
+  const targets = [...new Set([...matrix.criteria.flatMap(c => c.change_targets), ...requiredTargets])].sort();
   const cumulativeFiles = diff(baselineHead);
   const currentFiles = targets.map(file => {
     require('./vnext-figma-source').safePath(file);
@@ -70,19 +70,28 @@ function proofResolutions(deferred,derogations,origin,reservations) {
   });
 }
 function finalize({ cwd, matrix, review, baselineHead, incrementHead, head, approvedHead,
-  repository, issue, sliceId, reviewId, acceptance, originDecision, reservations = [], checks, retainedTargets = [] }) {
+  repository, issue, sliceId, reviewId, acceptance, originDecision, reservations = [], checks, retainedTargets = [], nonUiRequirements = [] }) {
   if (review.verdict !== 'APPROVE') V.fail('VNEXT_FINAL_REVIEW_NOT_APPROVED');
   const ids = matrix.criteria.map(c => c.criterion_id).sort();
   if (new Set(ids).size !== ids.length || V.canonicalStringify(ids) !== V.canonicalStringify(review.criteria.map(c => c.criterion_id).sort())) V.fail('VNEXT_FINAL_REVIEW_COVERAGE_INVALID');
   Delivery.validateUiProofs(matrix, review, 'VNEXT_FINAL_TECHNICAL_PROOF_NOT_PASSED');
   Delivery.validateNonUiProofs(review, 'VNEXT_FINAL_TECHNICAL_PROOF_NOT_PASSED');
+  if (nonUiRequirements.length) {
+    const actual = review.non_ui_plan_assessment?.requirements || [];
+    if (V.canonicalStringify(nonUiRequirements.map(r=>r.requirement_id).sort()) !== V.canonicalStringify(actual.map(r=>r.requirement_id).sort())) V.fail('VNEXT_FINAL_NON_UI_COVERAGE_INVALID');
+    for (const expected of nonUiRequirements) {
+      const row=actual.find(r=>r.requirement_id===expected.requirement_id);
+      if(row.review_scope==='INHERITED' || V.canonicalStringify([...expected.proof_required].sort()) !== V.canonicalStringify(row.proof_results.map(p=>p.proof_type).sort())) V.fail('VNEXT_FINAL_NON_UI_PROOF_COVERAGE_INVALID');
+    }
+  }
   for (const row of review.criteria) {
     if (row.preserve_status !== 'PASS' || !['CONFORME', 'NON_VERIFIABLE'].includes(row.implementation_status)
         || (row.implementation_status !== 'CONFORME' && !Device.deviceOnlyGap(row.proof_results, true))) V.fail('VNEXT_FINAL_CRITERION_NOT_CLOSED');
     if (row.review_scope === 'INHERITED') V.fail('VNEXT_FINAL_FRESH_REVIEW_REQUIRED');
   }
   if (!checks || ['jest', 'typescript', 'lint', 'head', 'clean'].some(k => checks[k] !== 'PASS')) V.fail('VNEXT_FINAL_CHECKS_NOT_PASSED');
-  const delivered = coverage({ cwd, baselineHead, incrementHead, head, approvedHead, matrix, retainedTargets });
+  const delivered = coverage({ cwd, baselineHead, incrementHead, head, approvedHead, matrix, retainedTargets,
+    requiredTargets: nonUiRequirements.flatMap(r=>r.change_targets) });
   const deferred = pending(review);
   const scopedWaiver = p => (review.device_check_derogations || []).find(d => d.requirement_id === p.target_id && d.proof_type === p.proof_type);
   const unresolved = deferred.filter(p => !scopedWaiver(p));

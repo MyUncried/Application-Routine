@@ -858,14 +858,32 @@
   "declared_vnext_writers": [
     {
       "producer": ".github/workflows/kodjo-vnext12-disposable.yml",
-      "producer_blob_oid": "86aca067d05c123532f5d57bb46bde12776eba96",
-      "authorization_condition": "EXACT_OWNER_APPROVED_VNEXT12_DISPOSABLE_CONSUMPTION_ONLY",
-      "required_job": "execute-initial",
+      "producer_blob_oid": "7ee0a66541d9dc1950370af61ea001957b827d8d",
+      "authorization_condition": "EXACT_OWNER_APPROVED_INITIAL_OR_SERIALIZED_CERTIFICATION_CLOSURE_ONLY",
+      "required_job": null,
       "capabilities": [
         {
           "capability": "GITHUB_PERMISSION_WRITE:contents",
           "destination": "github-token:contents",
           "scope": "JOB:execute-initial"
+        },
+        {
+          "capability": "GITHUB_PERMISSION_WRITE:issues",
+          "destination": "github-token:issues",
+          "scope": "JOB:close-vnext-delivery"
+        }
+      ]
+    },
+    {
+      "producer": "scripts/kodjo/close-vnext-github-delivery.js",
+      "producer_blob_oid": "e655111cddc1b81e2867a204ab2342217cb4c7c6",
+      "authorization_condition": "SERIALIZED_FINALIZE_DELIVERY_EXACT_CERTIFICATION_TARGET_ONLY",
+      "required_job": null,
+      "capabilities": [
+        {
+          "capability": "REST_REPOSITORY_WRITE",
+          "destination": "static-source-line",
+          "scope": "SCRIPT"
         }
       ]
     }

@@ -1,0 +1,131 @@
+{
+  "schema_version": "kodjo.protocol.v2.local-result.0.6.11",
+  "run_id": "github-37548553181-1",
+  "request_id": "e14d7980-e0cf-410f-8591-f3e29536ec08",
+  "session_id": "b5900afc-25c6-4164-a8d6-fcce02777a92",
+  "claude_exit_code": 0,
+  "claude_error": null,
+  "claude_failure": null,
+  "claude_started_at": "2026-10-07T00:10:55.759Z",
+  "claude_finished_at": "2026-10-07T00:15:30.925Z",
+  "claude_duration_ms": 275166,
+  "timed_out": false,
+  "source_head": "d1c5241be95a1e27933d8049cb6c0dfb8dbec4d9",
+  "package_lock_sha256": "8b1eeb9718adc2a4dfe45612eacfa91c971518916a031224a4a4a72a53e4b42a",
+  "modified_files": [
+    "scripts/kodjo/fixtures/vnext12/core.js",
+    "tests/fixtures/vnext12/core.test.js"
+  ],
+  "recovered_files": [],
+  "recovery_files": [
+    "scripts/kodjo/fixtures/vnext12/core.js",
+    "tests/fixtures/vnext12/core.test.js"
+  ],
+  "recovery_scope_paths": [],
+  "mutation_scope_allow": [
+    "scripts/kodjo/fixtures/vnext12/core.js",
+    "tests/fixtures/vnext12/core.test.js"
+  ],
+  "agent_mutation_files": [
+    "scripts/kodjo/fixtures/vnext12/core.js",
+    "tests/fixtures/vnext12/core.test.js"
+  ],
+  "integrity_status": "INTACT",
+  "recovery_package": {
+    "schema_version": "kodjo.protocol.v2.recovery-package.0.6.16",
+    "slice_id": "VNEXT-12-QUALIF",
+    "session_id": "b5900afc-25c6-4164-a8d6-fcce02777a92",
+    "source_head": "d1c5241be95a1e27933d8049cb6c0dfb8dbec4d9",
+    "baseline_head": "7992c924aa13cd3e6dc495814b9d15a78baf9152",
+    "run_id": "github-37548553181-1",
+    "github_run_id": "37548553181",
+    "request_id": "e14d7980-e0cf-410f-8591-f3e29536ec08",
+    "integrity_status": "INTACT",
+    "scope_allow": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "recovery_paths": [],
+    "paths": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "patch_sha256": "1ca1806e5657edfce6b2864b0d2a55fc94f7d4b27a8a2da543d436e2d31f39fb",
+    "patch_bytes": 849,
+    "created_at": "2026-10-07T00:16:25.658Z"
+  },
+  "recovery_source_head_migration": null,
+  "legacy_recovery_bootstrap_consumed": false,
+  "out_of_scope_files": [],
+  "post_check_files": [
+    "scripts/kodjo/fixtures/vnext12/core.js",
+    "tests/fixtures/vnext12/core.test.js"
+  ],
+  "post_check_drift": [],
+  "checks": [
+    {
+      "check": "jest",
+      "command": "npm test --silent -- --cacheDirectory \"C:\\\\actions-runner\\\\_work\\\\_temp\\\\kodjo-vnext12-revision-37548553181-1\\\\check-cache\\\\jest\"",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at": "2026-10-07T00:16:25.663Z",
+      "finished_at": "2026-10-07T00:17:44.495Z",
+      "duration_ms": 78831,
+      "reason": null,
+      "passed_tests": 1257,
+      "failed_tests": 0,
+      "total_tests": 1257,
+      "log_excerpt": " Learn more at https://react.dev/link/wrap-tests-with-act\n\n      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14402:19\n      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2315:13)\n      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14401:9)\n      at scheduleUpdateOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12086:9)\n      at dispatchReducerAction (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:6155:13)\n      at Object.scheduleUpdate [as current] (node_modules/react-native/src/private/animated/createAnimatedPropsHook.js:131:20)\n      at AnimatedProps._callback (node_modules/react-native/src/private/animated/createAnimatedPropsHook.js:71:36)\n      at AnimatedProps._callback [as update] (node_modules/react-native/Libraries/Animated/nodes/AnimatedProps.js:237:10)\n      at update (node_modules/react-native/Libraries/Animated/nodes/AnimatedValue.js:67:31)\n          at Set.forEach (<anonymous>)\n      at forEach (node_modules/react-native/Libraries/Animated/nodes/AnimatedValue.js:67:10)\n      at AnimatedValue.flushValue [as _updateValue] (node_modules/react-native/Libraries/Animated/nodes/AnimatedValue.js:361:7)\n      at TimingAnimation._updateValue [as _onUpdate] (node_modules/react-native/Libraries/Animated/nodes/AnimatedValue.js:325:14)\n      at TimingAnimation._onUpdate [as onUpdate] (node_modules/react-native/Libraries/Animated/animations/TimingAnimation.js:157:10)\n      at onUpdate (node_modules/react-native/Libraries/Animated/animations/TimingAnimation.js:132:67)\n      at Timeout.callback [as _onTimeout] (node_modules/@react-native/jest-preset/jest/setup.js:61:31)\n\nPASS src/features/sessions/__tests__/SideModeControl.test.tsx\nPASS src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts\nPASS src/shared/ui/__tests__/TransientNotification.test.tsx\nPASS src/features/activities/__tests__/useActivityCatalogue.test.ts\nPASS src/features/sessions/__tests__/AbandonCreationModal.test.tsx\nPASS src/features/sessions/__tests__/compositionPresentation.test.ts\nPASS src/features/sessions/__tests__/useSessionCatalogue.test.ts\nPASS src/features/sessions/__tests__/useCompositionExitGuard.test.ts\nPASS src/features/sessions/__tests__/BodyZoneSelector.test.tsx\nPASS src/shared/i18n/index.test.ts\nPASS src/features/sessions/__tests__/SessionDraftContext.test.tsx\nPASS src/features/sessions/__tests__/SessionServiceContext.test.tsx\nPASS src/domain/sessions/__tests__/SessionDraft.test.ts\nPASS src/domain/sessions/__tests__/composition.test.ts\nPASS src/features/sessions/__tests__/WheelPickerOverlay.test.tsx\nPASS src/domain/sessions/__tests__/calculations.test.ts\nPASS src/shared/ui/__tests__/visualAssets.test.ts\nPASS src/infrastructure/database/__tests__/initializeDatabase.test.ts\nPASS src/domain/sessions/__tests__/sideMode.test.ts\nPASS src/features/activities/__tests__/ActivityDefinitionService.test.ts\nPASS app/__tests__/creationLayout.test.tsx\nPASS src/features/sessions/__tests__/wheelPickerMath.test.ts\nPASS src/domain/categories/__tests__/validation.test.ts\nPASS src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts\nPASS src/shared/ui/__tests__/RootErrorBoundary.test.tsx\nPASS src/features/sessions/__tests__/formatSessionSummary.test.ts\nPASS src/shared/ui/__tests__/RootErrorFallback.test.tsx\nPASS src/features/reference-data/__tests__/bodyZones.test.ts\nPASS src/domain/activities/__tests__/ActivityDefinition.test.ts\nPASS src/features/sessions/__tests__/compositionGesture.test.ts\nPASS src/shared/ui/__tests__/navigationLayout.test.ts\nPASS tests/fixtures/vnext12/core.test.js\nPASS src/domain/categories/__tests__/matching.test.ts\nPASS tests/kodjo-prod-qualif/preflight.test.ts\n\nTest Suites: 64 passed, 64 total\nTests:       1257 passed, 1257 total\nSnapshots:   0 total\nTime:        74.934 s, estimated 128 s\nRan all test suites.\n",
+      "rerun_in_this_attempt": true
+    },
+    {
+      "check": "typescript",
+      "command": "npx --no-install tsc --noEmit",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at": "2026-10-07T00:17:44.498Z",
+      "finished_at": "2026-10-07T00:18:00.454Z",
+      "duration_ms": 15956,
+      "reason": null,
+      "passed_tests": null,
+      "failed_tests": null,
+      "total_tests": null,
+      "log_excerpt": "",
+      "rerun_in_this_attempt": true
+    },
+    {
+      "check": "lint",
+      "command": "npm run lint --silent -- --no-cache",
+      "status": "PASS",
+      "exit_code": 0,
+      "started_at": "2026-10-07T00:18:00.455Z",
+      "finished_at": "2026-10-07T00:18:41.759Z",
+      "duration_ms": 41304,
+      "reason": null,
+      "passed_tests": null,
+      "failed_tests": null,
+      "total_tests": null,
+      "log_excerpt": "",
+      "rerun_in_this_attempt": true
+    }
+  ],
+  "limits_effective": {
+    "max_ai_calls": 1,
+    "max_duration_seconds": 3600,
+    "max_prompt_bytes": 32768,
+    "max_total_prompt_bytes": 32768,
+    "max_rollovers": 0
+  },
+  "turn_limit_effective": {
+    "source": "CLAUDE_SUBSCRIPTION",
+    "protocol_max_turns": null,
+    "cli_argument_emitted": false
+  },
+  "claude_invoked": true,
+  "status": "IMPLEMENTED_AND_VERIFIED",
+  "publishable_paths": [
+    "scripts/kodjo/fixtures/vnext12/core.js",
+    "tests/fixtures/vnext12/core.test.js"
+  ],
+  "publishable_pathspec_file": null
+}
