@@ -517,16 +517,10 @@
   },
   "active_runs": [
     {
-      "run_id": 37557921183,
+      "run_id": 37597628150,
       "status": "completed",
       "conclusion": "success",
-      "head_sha": "564acba33a19214032742c46a46f7c3ea431a32a"
-    },
-    {
-      "run_id": 37559490452,
-      "status": "completed",
-      "conclusion": "success",
-      "head_sha": "363e3d16eb821a4fc60b9763869405f805bb4fb8"
+      "head_sha": "166ee58dee2d9343de44f49958f84c774aeb7b23"
     }
   ],
   "obsolete_runs": [
@@ -2593,8 +2587,8 @@
     "platform_coverage": "MAPPED_ASSERTIONS_PASS_ON_AT_LEAST_ONE_PLATFORM_RECOVERED_FROM_ACTUAL_ARTIFACTS",
     "historical_local_windows": "SKIPPED_NOT_CLAIMED_EXECUTED"
   },
-  "stage": "FINALIZE_DELIVERY",
-  "next_action": "OBSERVE_TARGETED_GITHUB_CLOSURE",
+  "stage": "TARGETED_RESULT_RECORDED",
+  "next_action": "NO_AUTOMATIC_RESTART_CERTIFICATION_DELIVERY_CLOSED",
   "incidents_20261007": {
     "source_revision_run": 37548553181,
     "source_initial_run": 37538282108,
@@ -2637,13 +2631,25 @@
     "tested_tree": "9cb1628b755948fb3b57f24bcf1cf187e9114282",
     "review_comment_id": 6034331428,
     "source_revision_run": 37548553181,
-    "generation": 76,
+    "generation": 77,
     "report": ".github/orchestration/reports/2026-10-07_VNEXT_GITHUB_CLOSURE.md",
-    "status": "SOURCE_ORIGIN_FIXED_NEW_EVENT_REQUIRED",
-    "github_issue_closed": false,
+    "status": "GITHUB_CERTIFICATION_DELIVERY_CLOSED",
+    "github_issue_closed": true,
     "application_published": false,
     "final_audit_authorized": false,
     "failed_run": 37596957178,
-    "failure": "SOURCE_COMMENT_ORIGIN_MISMATCH"
+    "failure": "SOURCE_COMMENT_ORIGIN_MISMATCH",
+    "executed_generation": 76,
+    "run": 37597628150,
+    "controller_head": "166ee58dee2d9343de44f49958f84c774aeb7b23",
+    "tests": {
+      "pass": 31,
+      "fail": 0,
+      "skip": 0
+    },
+    "final_output_comment_id": "6034600556",
+    "slice_closed_comment_id": "6034601446",
+    "recovery_status": "REUSED_EXISTING_CLOSURE",
+    "operational_incident_cases": "NOT_ALL_EXERCISED"
   }
 }

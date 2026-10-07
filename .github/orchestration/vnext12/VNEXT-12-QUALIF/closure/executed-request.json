@@ -1,9 +1,9 @@
 {
-  "stage": "TARGETED_RESULT_RECORDED",
+  "stage": "FINALIZE_DELIVERY",
   "slice_id": "VNEXT-12-QUALIF",
   "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
   "revision_limit": 1,
-  "generation": 77,
+  "generation": 76,
   "final_audit_authorized": false,
   "pre1_in_scope": false,
   "qualification_policy": "TARGETED_EXISTING_CERTIFICATION",
@@ -23,7 +23,5 @@
     37559490452
   ],
   "source_revision_run": 37548553181,
-  "previous_closure_run": 37596957178,
-  "last_closure_run": 37597628150,
-  "closure_result": "GITHUB_CERTIFICATION_DELIVERY_CLOSED"
+  "previous_closure_run": 37596957178
 }

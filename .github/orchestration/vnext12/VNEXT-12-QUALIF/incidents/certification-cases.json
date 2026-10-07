@@ -126,9 +126,17 @@
       "description": "Effective VNext GitHub SLICE_CLOSED",
       "incident": null,
       "test_path": null,
-      "automatic_status": "NOT_EXECUTED",
-      "real_data_replay": "NOT_EXECUTED",
-      "operational_vnext_certification": "NOT_OBTAINED"
+      "automatic_status": "PASS_TARGETED_RUNNER",
+      "real_data_replay": "NOT_APPLICABLE_GITHUB_EXECUTION",
+      "operational_vnext_certification": "PASS_GITHUB_CERTIFICATION_DELIVERY",
+      "scope": "GITHUB_CERTIFICATION_DELIVERY",
+      "evidence_run": 37597628150,
+      "issue": 324,
+      "delivery_pr": 325,
+      "final_output_comment_id": "6034600556",
+      "slice_closed_comment_id": "6034601446",
+      "application_published": false,
+      "full_incident_operational_certification": false
     }
   ],
   "targeted_runs": [
