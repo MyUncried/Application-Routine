@@ -5,9 +5,9 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "EXECUTE_INITIAL_REQUESTED",
+  "current_stage": "INITIAL_TECHNICAL_FAILURE_FIX_PENDING_QUALIFICATION",
   "request_id": "db5ed26b-e1f7-4e0c-a417-1ee1f44748a4",
-  "generation": 82,
+  "generation": 83,
   "previous_terminal_generation": 77,
   "previous_closed_issue": 324,
   "reuse_previous_closure_as_new_cycle": false,
@@ -30,8 +30,12 @@
     },
     {
       "stage": "DISPOSABLE_INITIAL",
-      "status": "REQUESTED_NOT_YET_OBSERVED",
-      "request_id": "db5ed26b-e1f7-4e0c-a417-1ee1f44748a4"
+      "status": "TECHNICAL_FAILURE_PRE_CLAUDE",
+      "request_id": "db5ed26b-e1f7-4e0c-a417-1ee1f44748a4",
+      "run_id": 37611838767,
+      "diagnostic": "VNEXT_EXECUTED_SOURCE_DRIFT",
+      "implementation_invoked": false,
+      "historical_jobs": "SKIPPED"
     },
     {
       "stage": "NEGATIVE_PLAN_AND_CAUSAL_REVISION",
@@ -72,10 +76,10 @@
     "automatic_visual_validation"
   ],
   "active_run_ids": [],
-  "next_action": "Observe the unique INITIAL run and its historical jobs; on actual INITIAL_PASS persist/hash proofs, then publish unique PREPARE_REVISION. Do not replay the qualification signal.",
+  "next_action": "Qualify the controller checkout LF-byte fix on a new qualification/vnext-full-cycle-* branch. After exact Linux/Windows SUCCESS, publish a new EXECUTE_INITIAL event for the same unconsumed transport; do not rerun 37611838767.",
   "controller_head": "2284a218b53ed71e816500a73543c4568e50f86a",
   "qualification_branch": "qualification/vnext-full-cycle-initial-de2b9683-20261007",
-  "observed_at": "2026-10-07T11:03:11Z",
+  "observed_at": "2026-10-07T11:10:00Z",
   "documentation_modals": "WAIT_FOR_USER_COMPLETION_SIGNAL",
   "pending_initial_request": {
     "stage": "EXECUTE_INITIAL",
@@ -101,9 +105,9 @@
   },
   "auto_continue": true,
   "automation_id": "6ac62299aa5c819198996171d4a1ff13",
-  "automation_title": "Encha\u00eener le cycle VNext",
+  "automation_title": "Enchaîner le cycle VNext",
   "automation_trigger": "PR269_COMMIT_UPDATES",
-  "automatic_continuation_status": "QUALIFICATION_SIGNAL_PROCESSED_INITIAL_REQUEST_AUTHORIZED",
+  "automatic_continuation_status": "INITIAL_TECHNICAL_FAILURE_RECORDED_FIX_PENDING_QUALIFICATION",
   "initial_binding_requires_new_qualified_source_head": true,
   "previous_initial_gate": {
     "comment_id": 6035666121,
@@ -140,6 +144,29 @@
       "request_id": "11bea52c-4396-457a-8093-19073dc2d112",
       "next_request_id": "db5ed26b-e1f7-4e0c-a417-1ee1f44748a4",
       "generation": 82
+    },
+    {
+      "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:db5ed26b-e1f7-4e0c-a417-1ee1f44748a4:37611838767:1",
+      "request_id": "db5ed26b-e1f7-4e0c-a417-1ee1f44748a4",
+      "generation": 83,
+      "outcome": "TECHNICAL_FAILURE_RECORDED"
     }
-  ]
+  ],
+  "initial_failure": {
+    "run_id": 37611838767,
+    "run_attempt": 1,
+    "job_id": 112760944798,
+    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:db5ed26b-e1f7-4e0c-a417-1ee1f44748a4:37611838767:1",
+    "source_head": "058d6280aa899eaeaf5a1dd86035044d07d7df42",
+    "artifact_id": 11477898513,
+    "artifact_sha256": "d2175d14b4a65d62bdbda533006343a1043320467d8de044e9071356b5f37448",
+    "diagnostic": "VNEXT_EXECUTED_SOURCE_DRIFT",
+    "qualification_admission": "VERIFIED",
+    "implementation_invoked": false,
+    "request_consumed": false,
+    "cleanup": "SUCCESS",
+    "cause": "The controller checkout inherited Windows core.autocrlf while provenance compares working bytes with immutable Git blob bytes. The approved checkout already forced core.autocrlf=false.",
+    "correction": "Pin core.autocrlf=false on the controller actions/checkout step as already done for the approved checkout.",
+    "retry_policy": "NEW_EVENT_AFTER_EXACT_QUALIFICATION_SAME_UNCONSUMED_DELIVERY"
+  }
 }
