@@ -15,7 +15,7 @@ Permettre à un utilisateur de créer des Séances structurées et des Exercices
   - une consigne ;
   - une durée, un nombre de répétitions ou le mode À l’échec ;
   - un nombre de Séries propre à l'Exercice ;
-- Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v12 §§3–5, D-247 à D-250.
+- Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
   - une Pause entre les côtés éventuelle, uniquement pour un Exercice bilatéral ;
   - en mode Durée, une Durée totale calculée et dépendante du nombre de Séries ;
 - afficher dans le MVP la vignette média associée à l’Exercice ; aucun Déployer avec ou sans média (D-261) ; la gestion multiple et les mécanismes d’acquisition suivent leur périmètre propre ;
@@ -269,4 +269,9 @@ D-221 : le MVP n’inclut aucune recherche globale ni recherche locale dans les 
 
 ## Paramètres d’exécution — complément du02/10/2026
 
-Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v12](SPECIFICATION-PARAMETRES-MODALE-v12.md), CE-T03-04 et CE-UI-10.
+Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), CE-T03-04 et CE-UI-10.
+
+## Évolution Cadence — statut au06/10/2026
+
+Cible documentée, non déclarée livrée : Bip de cadence0..10 dans trois modes, steppers et calculs Bip v2. Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé.
+

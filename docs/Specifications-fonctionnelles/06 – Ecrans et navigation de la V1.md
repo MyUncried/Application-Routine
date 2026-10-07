@@ -1,5 +1,13 @@
 # Écrans et navigation
 
+**Corrections Figma complémentaires du07/10 :** les19 phrases signalées et le catalogue corrigé disposent de nouvelles captures, aux mêmes chemins. [Liste et preuves](../CLOTURE-CAPTURES-PHRASES-2026-10-07.md). Vue longue renommée182 caractères ; aucune modification des règles métier.
+
+**Mise à jour du07/10 — cartes, pauses et phrases :** [matrice de traçabilité](../MATRICE-CARTES-PHRASES-2026-10-07.md), [DSF des cartes](../DSF-CARTES-DUREE-2026-10-07.md), [phrase v14](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Captures reprises pour les cartes, modales Bip et résumés ; chiffres Figma illustratifs.
+
+
+
+**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
+
 ## Organisation et lecture
 
 Les familles sont identifiées par leur **titre**, sans numérotation d’écran. Les noms physiques des images sont conservés pour préserver les références existantes. Chaque famille rassemble ses règles et toutes ses captures :
@@ -10,6 +18,12 @@ Les familles sont identifiées par leur **titre**, sans numérotation d’écran
 - **Variantes Information et Média** : rangées dans Exécution, avec leur statut de livraison propre.
 
 Une frame Figma de 402 × 874 peut représenter une modale et son arrière-plan ; sa taille n’en fait pas un écran autonome. Les captures sont intégrées en Markdown standard, affichables hors Obsidian. La [matrice de couverture](../MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md) sert d’inventaire ; les images se trouvent dans les familles ci-dessous, sans seconde galerie en fin de chapitre.
+
+### Mise à jour Cadence et DSF du06/10/2026
+
+Baseline documentaire6d03f5be579f2d0e2e7602b6abf1c2b46f4c740b ;133 frames courantes de Prototype MVP recensées et captures renouvelées sans retouche. [Matrice courante](../MATRICE-CADENCE-FIGMA-2026-10-06.md) : chaque frame, fichier et contrat hôte. Les références datées précédentes restent des preuves historiques, notamment les états retirés ou horsMVP.
+
+Cadence et phrase relèvent de [paramètres v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), [Bip v2](SPECIFICATION-BIP-CADENCE-v2.md) et [Phrase v1](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Figma fournit le rendu ; Excel seulement les formulations. Aucun chiffre de capture ne constitue une règle de durée. DSF, couleurs, composants, police et Safe Areas : [référence courante](../DSF-CADENCE-2026-10-06.md).
 
 ## Objectif de conception
 L’interface du produit fini doit être principalement visuelle, intuitive et utilisable avec le moins de touchers possible.
@@ -212,7 +226,7 @@ Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` utilisent la mêm
 | Splash | Logo et textes sont centrés dans la zone sûre ; le logo conserve ses proportions et ne doit jamais être étiré. Aucun défilement n’est prévu. |
 | Catalogue, Calendrier, Suivi, Profil | En-tête et navigation basse fixes ; seule la zone centrale défile. Les listes conservent un espace final d’au moins `16` points avant la séparation ou la navigation, en plus de l’inset inférieur applicable. |
 | Composition, Exercice, Planification | En-tête et action finale fixes ; le formulaire central défile. Avec le clavier ouvert, l’action reste atteignable sans recouvrir le champ actif. |
-| Exercice | Aucun contrôle de type n’est affiché. Les accès `Catégorie` et `Zones corporelles`, le `Mode d’exécution` et la zone Média suivent le Figma courant. Le segment `Durée / Répétitions / À l’échec` utilise trois zones égales. Le résumé et la feuille de paramètres suivent D-247 à D-255/v12 et CE-T03-04/CE-UI-10 ; aucune ancienne double rangée fixe de synthèse. L’action `Terminer` reste accessible avec le clavier et le texte agrandi. |
+| Exercice | Aucun contrôle de type n’est affiché. Les accès `Catégorie` et `Zones corporelles`, le `Mode d’exécution` et la zone Média suivent le Figma courant. Le segment `Durée / Répétitions / À l’échec` utilise trois zones égales. Le résumé et la feuille de paramètres suivent D-247 à D-255/v13 et CE-T03-04/CE-UI-10 ; aucune ancienne double rangée fixe de synthèse. L’action `Terminer` reste accessible avec le clavier et le texte agrandi. |
 | Planification | `Aucun` et `Autre` restent fixes aux extrémités du contrôle de rappel. Les raccourcis intermédiaires occupent une zone horizontale défilante et extensible. Le récapitulatif de planification reste contenu dans son cadre avec ses marges internes. |
 | Calendrier Semaine | La barre des jours reste lisible sur la largeur compacte ; les sept jours se répartissent la largeur disponible sans défilement horizontal. La liste journalière défile verticalement, utilise `8` points entre ses cartes et s’arrête `16` points avant la séparation de navigation. |
 | Calendrier Mois | Les sept colonnes se répartissent la largeur disponible ; une cellule peut grandir verticalement mais ne défile pas horizontalement. |
@@ -382,7 +396,7 @@ L’écran comporte notamment :
 - la `Fin d’exercice` ;
 - `Notifications` et rappels.
 
-Les préférences de Compte à rebours initial et de Fin de séance servent de valeurs proposées lors de la création d’une nouvelle Séance. Elles restent modifiables au niveau de chaque Séance. Les lignes `Compte à rebours d’exercice` (`4179:9550`) et `Fin d’exercice` (`4179:9556`) sont des contrôles intégrés à cet écran Profil, pas des écrans distincts ; leurs valeurs sont proposées à la création d’un Exercice et restent modifiables dans chaque Exercice.
+Les préférences de Compte à rebours initial et de Fin de séance servent de valeurs proposées lors de la création d’une nouvelle Séance. Elles restent modifiables au niveau de chaque Séance. Les lignes `Compte à rebours d’exercice` (ancien nœud `4179:9550`, historique supprimé ; le contrôle fonctionnel reste prescrit) et `Fin d’exercice` (ancien nœud `4179:9556`, historique supprimé ; le contrôle fonctionnel reste prescrit) sont des contrôles intégrés à cet écran Profil, pas des écrans distincts ; leurs valeurs sont proposées à la création d’un Exercice et restent modifiables dans chaque Exercice.
 
 Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial, `5 s` pour la Fin de séance et `activée` pour Vibration. L’état désactivé montré dans le parcours Figma illustre une modification utilisateur et ne définit pas la valeur initiale.
 
@@ -474,7 +488,7 @@ Les Séances archivées restent exclues de la liste active et ne sont accessible
 
 Carte standard 354 × 90 px à largeur de référence 402, rayon 8, titre 15 Semi Bold, sans barre verticale ni cercle de nature. Ligne de classement : Étiquette puis catégories issues des exercices ; en l’absence d’Étiquette, afficher les catégories. Pastilles 20 ; pictogramme blanc sur couleur. Ligne des valeurs : `N exercices` et `N tours`, icônes nues 16. Badge durée en haut à droite ; la durée exclut Compte à rebours initial et Fin de séance.
 
-Aucune prochaine planification ni ligne de pause/récupération sur la carte. Les séances restent sans vignette, définitivement (D-260). Les listes de catégories utilisent ` · ` puis `…` si nécessaire ; la donnée complète est conservée. Les cartes archivées utilisent fond #F6F6F6 et bord #D9D9D9 ; Restaurer remplace Lecture.
+Aucune prochaine planification ni ligne de pause/récupération sur la carte. Les séances restent sans vignette, définitivement (D-260). Les listes de catégories utilisent ` · ` puis `…` si nécessaire ; la donnée complète est conservée. Les cartes archivées utilisent fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12) et bord #D9D9D9 ; Restaurer remplace Lecture.
 
 Ces règles s’appliquent aux listes, filtres actifs/inactifs, recherches, états restaurés, actions glissées et arrière-plans de modales. Les actions révélées suivent la hauteur réelle de la carte. Les séances restent triées par dernière modification décroissante ; exécuter ne change pas cet ordre.
 
@@ -691,7 +705,7 @@ La rangée `Créer / Filtrer / Trier` est identique au Catalogue des Séances : 
 
 Chaque carte utilise la nouvelle grammaire DSF : aucune barre verticale ; la couleur de Catégorie est portée par sa pastille dans le Catalogue. Sa surface principale ouvre la consultation ou la modification ; le bouton Lecture, dans une cible séparée, lance uniquement l’Exécution directe. La carte d’Exercice possède un seul format à gouttière permanente de64 px dans le Catalogue : photo associée ou icône de nature sans média. Aucun Déployer avec ou sans média ; Lecture reste indépendante. Chargement/erreur conservent la place réservée, texte alternatif = nom de l’exercice. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Exercices actifs et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
 
-Titre15 Semi Bold, badge durée en haut à droite, classement Catégorie puis Zones, valeurs16 et synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`. Bilatéralité par miroir16 à12 après la synthèse. Aucune pause/récupération ni prochaine planification affichée. Format unique : carte354 × 91, gouttière64 à12, texte x88/largeur207, catégorie conservée et pictogramme de zone conservé. Variante archivée : fond #F6F6F6, bord #D9D9D9, Restaurer ; l’absence d’écran d’archive dédié est acceptée. Ces règles valent aussi derrière les panneaux de filtres et dans les états glissés ; les actions suivent la hauteur de la carte.
+Titre15 Semi Bold, badge durée en haut à droite, classement Catégorie puis Zones, valeurs16 et synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`. Bilatéralité par miroir16 à12 après la synthèse. Aucune pause/récupération ni prochaine planification affichée. Format unique : carte354 × 91, gouttière64 à12, texte x88/largeur207, catégorie conservée et pictogramme de zone conservé. Variante archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9, Restaurer ; l’absence d’écran d’archive dédié est acceptée. Ces règles valent aussi derrière les panneaux de filtres et dans les états glissés ; les actions suivent la hauteur de la carte.
 
 États Figma complémentaires de la famille Catalogue des Exercices :
 
@@ -752,7 +766,9 @@ L’ancienne référence Figma `3787:5209 — Catalogue — action contextuelle 
 
 ![Catalogue des Exercices — Filtrer — Panneau ouvert](images/figma-4168-11262.png)
 
-### Catalogue — Séries variables — références du03/10
+### Catalogue — Séries variables — référence historique du03/10
+
+La frame6665:24120 n’est plus présente dans Prototype MVP au06/10 ; le témoin ci-dessous reste historique. La règle d’indication N séries variables demeure applicable.
 
 #### Catalogue des exercices — Liste — Séries variables
 
@@ -804,7 +820,7 @@ L’icône affichée à gauche de `Nombre de tours` est exclusivement une instan
 
 Le Circuit possède un nombre de Tours compris entre **1 et 99**, avec **1** comme valeur par défaut.
 
-Dans l’interface courante, le nombre apparaît dans un stepper permanent à droite de l’en-tête du Circuit. Le libellé « Parcours » encore présent dans les captures est un écart de terminologie à corriger dans Figma (D-209). La référence `2028:11700` montre `− / 3 tours / +`, sur 137 × 36 px. La valeur provient du brouillon, jamais de l’exemple Figma. La synthèse des exercices et de leur durée reste associée au conteneur ; Compte à rebours et Fin en sont exclus. Les anciennes dimensions 66 × 34 et l’ancien déclencheur violet de roulette ne sont plus une prescription visuelle active.
+Dans l’interface courante, le nombre apparaît dans un stepper permanent à droite de l’en-tête du Circuit. Le libellé de Composition a été corrigé en « Circuit » le 05/10/2026 (journal des modifications, §8 ; D-209) ; aucune nouvelle correction Figma n’est requise sur ce point. La référence `2028:11700` montre `− / 3 tours / +`, sur 137 × 36 px. La valeur provient du brouillon, jamais de l’exemple Figma. La synthèse des exercices et de leur durée reste associée au conteneur ; Compte à rebours et Fin en sont exclus. Les anciennes dimensions 66 × 34 et l’ancien déclencheur violet de roulette ne sont plus une prescription visuelle active.
 
 La synthèse n’est plus affichée isolément au bas de l’écran. Elle est recalculée uniquement après une modification validée qui affecte les Exercices ou le nombre de Tours. La confirmation du `Compte à rebours initial` ou de la `Fin de séance` actualise seulement le jalon structurel concerné et ne modifie jamais cette synthèse. Celle-ci reste attachée au conteneur Circuit dans ses états applicables.
 
@@ -828,9 +844,9 @@ La poignée de chaque carte d’Exercice est exclusivement une instance du compo
 
 Le MVP ne propose pas de menu d’ajout rapide `Pause 15 s / 30 s / 45 s`.
 
-Chaque occurrence possède explicitement `postActivityRecoverySeconds`, initialisé depuis le défaut global. La valeur `0 s` reste affichée dans la Composition ; une phase `POST_ACTIVITY_RECOVERY` chronométrée n’est créée que si cette valeur est positive.
+Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303).
 
-Si deux Exercices s’enchaînent sans Pause après chaque série et avec une récupération après exercice à `0 s`, un avertissement discret et non bloquant peut être affiché selon la règle existante.
+**Avertissement d’enchaînement sans pause (D-301).** Lorsque deux Exercices consécutifs n’ont ni pause effective de transition ni Récupération positive après son occurrence, la Composition affiche l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre.
 
 ### Composition — ligne de Série variable — références du03/10
 
@@ -848,7 +864,7 @@ La ligne présente le nom, la Catégorie puis les Zones corporelles sur une lign
 - Répétitions : `N séries de N rép.` ;
 - À l’échec : `N séries à l’échec`.
 
-Le nom n’est pas répété, le mode n’est pas nommé. Aucun texte de pause/récupération, aucune ligne attachée `Récupération {durée}` : cette ancienne exigence d’affichage est supprimée. Les valeurs et phases D-208 restent conservées, solidaires de l’occurrence lors des opérations et utilisées dans les calculs. Aucun nouvel accès de réglage n’est inventé ici.
+Le nom n’est pas répété, le mode n’est pas nommé. Aucun texte de pause/récupération dans le corps de la carte. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). Les valeurs et phases D-208 restent conservées, solidaires de l’occurrence lors des opérations et utilisées dans les calculs. Le réglage de récupération existant sur cette ligne est conservé.
 
 La bilatéralité est indiquée par le miroir dans les variantes concernées ; le paramètre de direction et `Indicator / Sides` ne sont pas supprimés du modèle. Le texte développé « à droite, puis à gauche » reste propre à l’éditeur. La Description est absente des cartes. Texte complet conservé derrière la troncature.
 
@@ -856,13 +872,13 @@ Les commandes contextuelles de Composition font 34 px, dessins 20, gaps 10, cibl
 
 ### Consultation et modification d’un Exercice
 
-Un appui court sur une carte Exercice ouvre directement son parcours de modification. Un appui long sur l’ensemble du bloc Exercice–Récupération déclenche sa réorganisation sans ouvrir la modification. Un glissement gauche déplace le bloc avec le geste et révèle progressivement les actions `Dupliquer` et `Supprimer` placées derrière. `Dupliquer` crée un Exercice de Séance indépendant avec un nouvel identifiant, reprend tous les paramètres de la source, y compris Pause et Récupération, la nomme `{nom} (copie)` puis `{nom} (copie 2)`, etc., sans collision, et l’insère immédiatement après la source dans la même zone structurelle. Cette action ne crée aucun Exercice dans le catalogue. `Supprimer` retire le bloc du brouillon ; la suppression n’est persistée qu’avec l’enregistrement final de la Séance et l’abandon restitue la version persistée.
+Un appui court sur une carte Exercice ouvre directement son parcours de modification. Un appui long sur la carte de l’occurrence Exercice déclenche sa réorganisation sans ouvrir la modification ; la carte et sa ligne structurelle de Récupération forment le bloc déplacé ; la ligne demeure affichée (D-217). Un glissement gauche déplace le bloc avec le geste et révèle progressivement les actions `Dupliquer` et `Supprimer` placées derrière. `Dupliquer` crée un Exercice de Séance indépendant avec un nouvel identifiant, reprend tous les paramètres de la source, y compris Pause et Récupération, la nomme `{nom} (copie)` puis `{nom} (copie 2)`, etc., sans collision, et l’insère immédiatement après la source dans la même zone structurelle. Cette action ne crée aucun Exercice dans le catalogue. `Supprimer` retire le bloc du brouillon ; la suppression n’est persistée qu’avec l’enregistrement final de la Séance et l’abandon restitue la version persistée.
 
 Dans l’état Figma `Composition d’une séance — actions glissées` (`2028:11808`), la carte/bloc suit le geste. L’action `Dupliquer` reprend son rayon DSF et un espace visuel sépare son bord gauche de la portion encore visible de la carte, laissant apparaître le fond du conteneur Circuit. Aucun overlay immobile ne remplace ce mouvement réel.
 
 ### Réorganisation
 
-Les Exercices peuvent être réorganisés dans leur zone ou déplacés par glisser-déposer avant le Circuit, dans le Circuit ou après le Circuit. Le geste commence par un appui long sur le bloc complet ; la carte de l’occurrence passe dans l’état soulevé puis suit le glissement ; sa donnée de récupération après exercice reste attachée sans ligne visible jusqu’à une position de dépose valide. Un toucher court conserve son comportement d’ouverture de l’Exercice en modification. Le déplacement conserve l’identifiant et tous les paramètres, met à jour la position structurelle et renumérote continûment les positions de chaque zone. Il ne persiste rien avant l’enregistrement final.
+Les Exercices peuvent être réorganisés dans leur zone ou déplacés par glisser-déposer avant le Circuit, dans le Circuit ou après le Circuit. Le geste commence par un appui long sur le bloc complet ; la carte de l’occurrence passe dans l’état soulevé puis suit le glissement ; sa ligne de récupération après exercice reste attachée et visible jusqu’à une position de dépose valide. Un toucher court conserve son comportement d’ouverture de l’Exercice en modification. Le déplacement conserve l’identifiant et tous les paramètres, met à jour la position structurelle et renumérote continûment les positions de chaque zone. Il ne persiste rien avant l’enregistrement final.
 
 L’état Figma `Composition d'une séance — Appui long — carte soulevée` (`3518:4576`) matérialise ce retour visuel. Avec Récupération, le bloc actif passe de `354 × 93` à `362 × 97`, reste centré dans la section (`x = 6`, contre `x = 10` au repos), utilise le fond bleu très clair `#F7F7FF`, un contenu atténué, un contour `1` point `#D1D1D6`, un rayon `12` et une ombre périphérique `#14171F` à `22 %`, décalage `0 / 0`, flou `10`, étalement `2`. L’ombre et le contour entourent l’Exercice et sa Récupération. Les autres cartes et éléments structurels restent inchangés.
 
@@ -896,7 +912,7 @@ Depuis `Ajouter un exercice`, la frame `3789:5349` ouvre directement la sélecti
 
 Les Exercices sont insérés selon leur ordre courant de présentation dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers. L’état sélectionné de la sélection multiple utilise le composant DSF dédié ; aucun glyphe texte ne peut le remplacer.
 
-Chaque carte de choix Composition mesure354 × 91, rayon8, titre15, case arrondie20 ; aucun badge durée ni Lecture/Déployer. Cadre des zones corporelles arrêté à8 px de la case, troncature finale par points de suspension (D-263). Catégorie/Zones en classement, synthèse et miroir selon bilatéralité. Gouttière permanente64 : photo associée centrée/recadrée, icône de nature sans média/pendant chargement/erreur, texte alternatif nom ; aucune hausse de hauteur. États sélectionné/non sélectionné/inactif suivent la palette #0508E5/#5C636E/#C2C4D1, sans remplacer le composant vectoriel par un glyphe. Les règles d’insertion et de validation à0 restent inchangées. Contrat CE-T03-07.
+Chaque carte de choix Composition mesure354 × 91, rayon8, titre15, case arrondie20 ; aucun badge durée ni Lecture/Déployer. Cadre des zones corporelles arrêté à8 px de la case, troncature finale par points de suspension (D-263). Catégorie/Zones en classement, synthèse et miroir selon bilatéralité. Gouttière permanente64 : photo associée centrée/recadrée, icône de nature sans média/pendant chargement/erreur, texte alternatif nom ; aucune hausse de hauteur. États sélectionné/non sélectionné/inactif suivent la palette #0508E5/#595E66 (iconNeutral/textSecondary ; ancien #5C636E historique)/#C2C4D1, sans remplacer le composant vectoriel par un glyphe. Les règles d’insertion et de validation à0 restent inchangées. Contrat CE-T03-07.
 
 ### Étiquettes — sélection et création en modale
 
@@ -922,9 +938,11 @@ Permettre de sélectionner ou créer l’Étiquette de la Séance. L’Étiquett
 
 La validation de la Séance reste portée par l’action `Continuer` de la Composition ; l’Étiquette est enregistrée avec la Séance dans le même flux de validation.
 
-### Placement et retrait d’un point d’arrêt
+### Placement et retrait des pauses
 
-Le placement est un état de la Composition, représenté par `4893:6675`, avec les emplacements `Placer ici` et l’action `Annuler`. Ce n’est pas une nouvelle page applicative. Le point inséré est visible dans `3722:5061`. Le retrait utilise la bulle contextuelle `Retirer le point d’arrêt` de `5301:5443`, rattachée au point concerné ; ce n’est pas une modale de confirmation. Les emplacements autorisés et le comportement à l’exécution restent ceux des règles du Point d’arrêt.
+Le placement est un état de la Composition, représenté par 7167:13503. Chaque position autorisée propose Récupération et Point d’arrêt côte à côte ; plusieurs ajouts peuvent être confirmés ensemble. Récupération ouvre immédiatement la modale de durée 7173:13521. Le bouton indique « Confirmer N pauses ajoutées » ; Annuler restitue le brouillon antérieur au placement. Les frontières autorisées restent propres à chaque type.
+
+Le retrait utilise une bulle contextuelle : « Retirer la récupération » (7296:13696) ou « Retirer le point d’arrêt » (5301:5443). Toucher hors bulle ferme sans mutation. Il ne s’agit pas de modales de confirmation. Les règles, transactions, états à zéro et critères de recette sont détaillés dans CE-T03-08 et la spécification Pauses et symboles. L’ancien état 4893:6675 est remplacé.
 
 ### Confirmation — Abandonner la création d’une séance
 
@@ -1021,11 +1039,23 @@ Point d’arrêt inséré dans la Composition, sans écran dédié ; élément d
 
 ![Modification d'une séance](images/figma-5271-5455.png)
 
-#### Composition d’une séance — Placement d’un point d’arrêt
+#### Composition d’une séance — Placement des pauses
 
-[Source Figma — `4893:6675`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4893-6675)
+[Source Figma — 7167:13503](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7167-13503)
 
-![Composition d’une séance — Placement d’un point d’arrêt](images/figma-4893-6675.png)
+![Placement des pauses](images/figma-7167-13503.png)
+
+#### Modale — Durée de récupération
+
+[Source Figma — 7173:13521](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7173-13521)
+
+![Durée de récupération](images/figma-7173-13521.png)
+
+#### Bulle — Retirer la récupération
+
+[Source Figma — 7296:13696](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7296-13696)
+
+![Retirer la récupération](images/figma-7296-13696.png)
 
 ### Modales, panneaux et confirmations
 
@@ -1091,7 +1121,7 @@ Appui long sur une Étiquette ; confirmation destructive `Annuler / Supprimer`
 
 ## Créer ou modifier un exercice
 
-Inventaire refait le 03/10/2026 sur Prototype MVP : **37 frames pour cette famille** (9 vues du formulaire/résumé, 21 états de la feuille de paramètres, 7 sélections/créations/confirmations). Les titres suffisent ; les numéros contenus dans les noms Figma sont des identifiants de travail, pas une numérotation documentaire.
+Inventaire initial du03/10 :37frames pour cette famille ;5frames supplémentaires sont intégrées au06/10 (cadence13/14, copies9b/10b et phrase longue). Le détail courant et les captures figurent dans la matrice06/10. Les titres suffisent ; les numéros contenus dans les noms Figma sont des identifiants de travail, pas une numérotation documentaire.
 
 Contrats : CE-T03-04 (formulaire et abandon), CE-UI-10 (une feuille, plusieurs états), CE-UI-09 (Catégorie/Zones et confirmations). [État des lieux et vérification par frame](../ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md). Les anciens exports Copie6603/6611/6612/6623 ne définissent plus ce parcours courant. Leurs fichiers sont conservés comme historique.
 
@@ -1099,11 +1129,11 @@ Contrats : CE-T03-04 (formulaire et abandon), CE-UI-10 (une feuille, plusieurs �
 
 Créer depuis Catalogue ouvre le formulaire ; Modifier reprend les données existantes. Nom, une Catégorie et au moins une Zone sont requis pour un nouvel Exercice. Carte Paramètres → feuille transactionnelle ; ✕/retour annule son brouillon, ✓ applique au parent ; Terminer seul persiste. Abandon du formulaire modifié ouvre la confirmation existante. Ouvrir un référentiel conserve les paramètres, même variables.
 
-Spécification [v12](SPECIFICATION-PARAMETRES-MODALE-v12.md) : mode unique, N séries par côté, cibles/Pauses propres à chaque ligne en variable, direction et Ordre des côtés indépendants. N=1 effectif uniforme/Un côté après l’autre ; restauration temporaire avant✓. Déplacement cible/Pause conjoint ; nouvelle première reprise à désactivation, nouvelle dernière Pause terminale. Total variable readonly et — si incomplet ; Répétitions≥ ; À l’échec aucun total.
+Spécification [v13](SPECIFICATION-PARAMETRES-MODALE-v13.md) : mode unique, N séries par côté, cibles/Pauses propres à chaque ligne en variable, direction et Ordre des côtés indépendants. N=1 effectif uniforme/Un côté après l’autre ; restauration temporaire avant✓. Déplacement cible/Pause conjoint ; nouvelle première reprise à désactivation, nouvelle dernière Pause stockée et exécutée, sauf substitution par récupération positive. Total variable readonly et — si incomplet ; Répétitions : ≈ avec cadence, omission sans bip à l’Exercice ; À l’échec aucun total.
 
 ### Placement et contrôles
 
-Formulaire : en-tête → nom/référentiels → carte Paramètres → Description → Média → Terminer. Feuille : en-tête fixe ✕/titre/✓ ; corps défilant Mode → Séries → Séries variables → cible/Pause communes ou tableau → Changement de côté → Ordre des côtés/PC si bilatéral → Total applicable → Compte à rebours → Fin.
+Formulaire : en-tête → nom/référentiels → carte Paramètres → Description → Média → Terminer. Feuille : en-tête fixe ✕/titre/✓ ; corps défilant Mode → Séries → Séries variables → cible commune → Cadence si Répétitions → Pause commune (ou tableau puis Cadence commune en variable) → Changement de côté → Ordre des côtés/PC si bilatéral → Total applicable → Compte à rebours → Fin.
 
 Tableau rattaché à l’interrupteur : poignée, numéro aligné à droite, cible et Pause par steppers ; À l’échec cible textuelle. Chevron replie seulement le tableau. Les modes/directions/ordre utilisent les segmentés ; Durée/Total uniformes utilisent les roulettes ; aucune sous-modale variable. Détails géométriques : [DSF](../DSF-SERIES-VARIABLES-2026-10-02.md). Le contrôle devient accessible par défilement, sans tableau à scroll indépendant.
 
@@ -1158,6 +1188,7 @@ Figma définit le layout. Les valeurs, calculs, validations et comportements res
 [Source Figma — `6665:27862`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27862)
 
 ![Résumé — Durée variable bilatérale Les deux côtés à chaque série](images/figma-6665-27862.png)
+
 
 #### Résumé — À l’échec variable
 
@@ -1229,11 +1260,13 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 
 ![Création exercice — Paramètres en modale — Modale complète — steppers (séries, pauses) avec message de durée totale ajustée](images/figma-6423-9953.png)
 
+
 #### Séries variables — Durée variable (scénario A)
 
 [Source Figma — `6665:24616`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-24616)
 
 ![Séries variables — Durée variable (scénario A)](images/figma-6665-24616.png)
+
 
 #### Séries variables — Répétitions variables (scénario E)
 
@@ -1253,11 +1286,13 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 
 ![Séries variables — Douze séries (défilement — haut)](images/figma-6665-25277.png)
 
+
 #### Ordre des côtés — Sélection : Un côté après l’autre
 
 [Source Figma — `6665:26185`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-26185)
 
 ![Ordre des côtés — Sélection : Un côté après l’autre](images/figma-6665-26185.png)
+
 
 #### Séries variables + Les deux côtés à chaque série — (scénario D)
 
@@ -1271,6 +1306,7 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 
 ![Une seule série — Options sans effet](images/figma-6665-26822.png)
 
+
 #### Changement de mode — Cibles à renseigner
 
 [Source Figma — `6665:27008`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27008)
@@ -1283,6 +1319,7 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 
 ![Validation impossible — Série incomplète](images/figma-6665-27232.png)
 
+
 #### Séries variables — Tableau masqué
 
 [Source Figma — `6665:27458`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27458)
@@ -1294,6 +1331,7 @@ Les21frames suivantes décrivent CE-UI-10 ; elles ne constituent pas21écrans in
 [Source Figma — `6665:27608`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6665-27608)
 
 ![Séries variables — Déplacement d’une série](images/figma-6665-27608.png)
+
 
 ### Sélections, créations de référentiels et confirmations
 
@@ -1343,9 +1381,44 @@ Sélection simple Catégorie validée au toucher selon D-222 ; Zones multiples a
 
 ### Couverture et écarts de preuve
 
-Le bas des12séries, le segmenté avec l’option alternée sélectionnée, le résumé Répétitions seul, le résumé uniforme alterné, l’activation par copie et G→D n’ont pas de frame dédiée dans le lot actuel. Leurs règles et recettes restent définies dans CE-UI-10/v12 ; aucune capture ancienne n’est présentée comme leur état actuel. Les captures des modales Répétitions et de l’état alterné montrent une partie de cette couverture. Voir l’état des lieux pour la liste exacte.
+Le bas des12séries, le segmenté avec l’option alternée sélectionnée, le résumé Répétitions seul, le résumé uniforme alterné, l’activation par copie et G→D n’ont pas de frame dédiée dans le lot actuel. Leurs règles et recettes restent définies dans CE-UI-10/v13 ; aucune capture ancienne n’est présentée comme leur état actuel. Les captures des modales Répétitions et de l’état alterné montrent une partie de cette couverture. Voir l’état des lieux pour la liste exacte.
 
 Les chiffres derrière le voile appartiennent au parent et ne prouvent pas un calcul du brouillon. Les anciens textes « pause entre les séries » et les5min visibles sur Modifier/confirmations restent des écarts connus : ne pas modifier les règles pour les reproduire. Les médias déjà associés sont consultables ; leur présence ne crée pas de capacité d’import supplémentaire.
+
+### Bip de cadence et phrase — états complémentaires du06/10
+
+Contrats hôtes CE-T03-04 et CE-UI-10, sans nouvelle page fonctionnelle. Bip de cadence commun0..10 dans les trois modes, initialement0=Aucun ; stepper au premier niveau juste avant le total applicable, hors tableau variable. Aucune roulette Bip. ✓ applique au parent et régénère une phrase unique ; toute la zone de phrase ouvre la feuille. Valeurs en gras, Inter13/20, largeur324 sur402, hauteur auto.
+
+Les textes des frames13/14/phrase longue ne suivent pas tous la grammaire finale (par exemple «sans changement de côté» ou «à raison de…»). Ils servent de témoins de layout ; appliquer Phrase v1 sans reprendre ces textes ni leurs nombres comme règles. Bip supprimé en mettant le stepper à0=Aucun. Ancien écran de roulette supprimé ; aucune commande additionnelle.
+
+#### Répétitions avec cadence renseignée
+
+[Figma7059:13302](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7059-13302) — nouvelle frame ; feuille sur formulaire, CE-UI-10.
+
+![Paramètres Répétitions avec cadence](images/figma-7059-13302.png)
+
+
+#### Changement de côté — état9b
+
+[Figma7069:13464](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7069-13464) — copie supplémentaire présente ; même contrat CE-UI-10, pas nouvelle règle.
+
+![Paramètres avec changement de côté, état9b](images/figma-7069-13464.png)
+
+
+#### Répétitions sans cadence — état10b
+
+[Figma7069:13573](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7069-13573) — copie supplémentaire présente ; Aucune est valide.
+
+![Paramètres Répétitions, état10b](images/figma-7069-13573.png)
+
+
+#### Phrase longue — parent de la feuille
+
+[Figma7119:27855](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7119-27855) — nouvelle frame, CE-T03-04. Le nombre de caractères du nom est une annotation, pas une limite produit.
+
+![Formulaire et phrase longue](images/figma-7119-27855.png)
+
+
 
 ## Calendrier
 
@@ -1674,7 +1747,7 @@ Variante de planification unique
 
 Le vocabulaire d’interface attendu est **Exercice** (glossaire : anciennement Activité). Les captures Figma sont conservées sans retouche : les confirmations `1992:8224` et `1992:8326`, ainsi que certains contrôles de sélection, affichent encore « activité ». Leur rendu n’est donc pas une preuve de conformité terminologique. Les identifiants techniques `ActivityDefinition`, `SessionActivity` et `ACTIVITY` ne sont pas renommés.
 
-**Circuit et Tour — D-209** : le Circuit est le conteneur ordonné d’exercices ; un Tour est une exécution de ce Circuit. Le nombre de Tours règle ses répétitions. Le Parcours reste autonome. Les captures peuvent encore porter les anciens libellés ; elles ne remettent pas en cause cette décision.
+**Circuit et Tour — D-209** : le Circuit est le conteneur ordonné d’exercices ; un Tour est une exécution de ce Circuit. Le nombre de Tours règle ses répétitions. Le Parcours reste autonome. Les 17 occurrences du libellé de Composition ont été corrigées en « Circuit » le 05/10/2026 (journal, §8). Les anciens états archivés restent historiques ; cette correction ne renomme pas l’entité autonome Parcours.
 
 ### Objectif
 
@@ -1710,8 +1783,8 @@ L’écran affiche, de haut en bas :
 - une progression discrète du Tour ;
 - la zone `À suivre` avec le nom et la durée ou le nombre de reps de l’Exercice suivant ;
 - les commandes `Réinitialiser`, `Pause` et `Exercice suivant` ;
-- le temps total écoulé et la durée estimée d’exécution de la Séance ; le temps écoulé inclut toutes les phases effectivement exécutées, Compte à rebours initial et Fin de séance compris, mais exclut les Pauses manuelles ; si le plan contient au moins un Exercice en mode Répétitions ou À l’échec, la durée estimée d’exécution est affichée sous forme de borne minimale, par exemple `≥ 18 min` ;
-- une barre de progression globale structurée en segments correspondant aux Tours, conformément au prototype Figma. Elle occupe exactement la largeur utile sans débordement. Les segments se répartissent dans cette largeur après déduction des espacements et ne conservent jamais la largeur fixe du gabarit `402`. Le remplissage représente l’avancement dans le Plan d’Exécution complet, Compte à rebours initial et `SESSION_END` compris, selon la pondération définie dans les chapitres 08 et 10 ; il n’est pas le simple rapport `temps écoulé / durée estimée d’exécution`. Il atteint `100 %` uniquement à l’achèvement de `SESSION_END`. Dans T04, les étapes chronométrées sont pondérées par leur durée planifiée ; la part d’une occurrence en Répétitions ou À l’échec est acquise avec `Suivant`. Les Pauses manuelles n’augmentent pas le remplissage.
+- le temps total écoulé et la durée estimée d’exécution de la Séance ; le temps écoulé inclut toutes les phases effectivement exécutées, Compte à rebours initial et Fin de séance compris, mais exclut les Pauses manuelles ; durée exacte sans symbole en mode Durée, estimée ≈ avec cadence et borne omission sans bip à l’Exercice ou en présence de composante inconnue ;
+- une barre de progression globale structurée en segments correspondant aux Tours, conformément au prototype Figma. Elle occupe exactement la largeur utile sans débordement. Les segments se répartissent dans cette largeur après déduction des espacements et ne conservent jamais la largeur fixe du gabarit `402`. Le remplissage représente l’avancement dans le Plan d’Exécution complet, Compte à rebours initial et `SESSION_END` compris, selon la pondération définie dans les chapitres 08 et 10 ; il n’est pas le simple rapport `temps écoulé / durée estimée d’exécution`. Il atteint `100 %` uniquement à l’achèvement de `SESSION_END`. Dans T04, les étapes chronométrées sont pondérées par leur durée planifiée ; les Séries Répétitions sans cadence et À l’échec acquièrent leur part avec `Suivant`. Les Séries Répétitions avec bip suivent une progression temporelle continue, plafonnée à la fin nominale sans terminer la Série ; `Suivant` acquiert le reste éventuel. La Pause abandonne la fraction d’intervalle pour la progression et la reprise lance un intervalle complet, sans effacer le temps actif réel. Les Pauses manuelles n’augmentent pas le remplissage.
 
 Le Cycle n’est jamais affiché. Le nombre total d’étapes et la position sous la forme `x sur y` ne sont pas affichés dans le MVP.
 
@@ -1729,15 +1802,15 @@ Si l’utilisateur appuie sur `Exercice suivant` avant zéro, une confirmation e
 
 Pour un Exercice défini par un nombre de répétitions, l’écran conserve le même layout que pour un Exercice chronométré.
 
-Le temps actif est affiché par un chronomètre croissant à partir de `00:00`. Il n’existe pas de durée cible.
+Le temps actif est affiché par un chronomètre croissant à partir de00:00. Sans cadence, aucune durée prescrite ; avec cadence, Ri×Ci définit une fin nominale, sans fin automatique de Série.
 
-Le cercle du minuteur effectue une rotation complète par minute :
+Sans cadence, le cercle du minuteur effectue une rotation complète par minute :
 
 - une rotation complète représente 60 secondes ;
 - à `01:00`, il recommence une nouvelle rotation ;
 - le chronomètre continue à croître (`01:01`, `01:02`, etc.).
 
-Un bip est émis à chaque minute écoulée. Dans le MVP, ce bip est fixe et non paramétrable.
+Bip positif : signal périodique dans les trois modes pendant Série, y compris après le nominal Répétitions ; aucun dernier signal nominal distinct ni bip minute superposé. Bip0 : règles antérieures de signal minute conservées pour les modes concernés. Fin Durée au minuteur ; Répétitions/À l’échec manuelles. Même shell, pas de nouvel écran.
 
 `Pause` suspend le chronomètre et la rotation du cercle. `Reprendre` les relance depuis l’état exact où ils ont été suspendus.
 
@@ -1749,7 +1822,7 @@ Lorsqu’un Exercice possède plusieurs Séries :
 
 - `Série x/y` indique la Série en cours ;
 - chaque Série exécute la durée cible, les répétitions cibles ou se poursuit jusqu’à l’échec selon le mode ;
-- Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v12 §§3–5, D-247 à D-250.
+- Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
 - si l’Exercice est bilatéral, la Pause entre les côtés éventuelle est exécutée selon l’Ordre des côtés.
 
 T04 développe toutes les Séries, les répétitions de Tour et les passages de côté dans le Plan d’Exécution avant le démarrage.
@@ -1833,7 +1906,7 @@ Au début d’un Exercice, son nom peut être annoncé vocalement lorsque les An
 
 Pour les Exercices chronométrés, les signaux sonores de fin de compte à rebours sont appliqués conformément aux règles métier définies pour le MVP.
 
-Pour un Exercice en Répétitions ou À l’échec, aucun signal de fin de compte à rebours n’est utilisé puisqu’il n’existe pas de temps cible. Un bip fixe est toutefois émis à chaque minute écoulée dans le MVP.
+Répétitions sans bip/À l’échec sans bip : aucun signal de fin de compte à rebours, bip minute. À l’échec avec bip : périodique sans bip minute superposé. Répétitions cadencées : signal périodique maintenu après nominal sans signal final distinct, sans transition automatique ni bip minute ; chronomètre toujours croissant.
 
 ### Arrière-plan et verrouillage
 
@@ -1847,7 +1920,8 @@ Si l’application passe en arrière-plan ou si l’écran se verrouille :
 Une mise en pause de sécurité est appliquée en cas d’inexercice prolongée :
 
 - pour un Exercice chronométré, si aucune interaction n’a eu lieu 30 minutes après sa fin théorique ;
-- pour un Exercice en Répétitions ou À l’échec, après 2 heures sans interaction depuis son démarrage.
+- pour une Série Répétitions cadencée,30min après la fin nominale recalculée sans interaction ;
+- pour un Exercice en Répétitions sans cadence ou À l’échec,2h sans interaction depuis son démarrage.
 
 Le comportement précis fait l’objet du spike technique prévu avant le développement complet du moteur d’Exécution.
 
@@ -1976,6 +2050,8 @@ L’Exécution est immédiatement suspendue.
 > L’exercice « Squats assistés » est suspendue.  
 > Le chronomètre reprendra là où il s’est arrêté.
 
+Ce texte décrit le temps actif. En cadence, l’intervalle sonore reprend entier et la progression reste au dernier intervalle complet, selon la spécification Cadence ; la fraction déjà dépensée reste comptée au réel.
+
 Le nom d’Exercice est dynamique ; `Squats assistés` est uniquement la donnée d’illustration de la frame.
 
 **Actions**
@@ -1987,7 +2063,7 @@ Les deux boutons `147 × 48` sont alignés sur une ligne avec un écart de `12`.
 
 #### Reprendre la séance
 
-Ferme la modale et reprend l’Exercice à l’état exact où elle a été suspendue.
+Ferme la modale et reprend le plan conservé. En cadence, la fraction d’intervalle abandonnée pour la progression n’est pas reprise : nouvel intervalle complet, temps actif cumulé conservé.
 
 Pour un Exercice chronométré, le compte à rebours reprend.  
 Pour un Exercice en Répétitions ou À l’échec, le chronomètre croissant reprend.
@@ -2280,19 +2356,19 @@ Actions :
 Cette règle s’applique aux valeurs initiales comme aux valeurs créées ensuite par l’utilisateur.
 
 ### Contrôles à roulette – Compte à rebours et fins
-Toutes les **durées** réglées par roulette utilisent une modale basse standardisée. Les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent des steppers inline conformément à D-219. Les sélections d’objets utilisent leurs modales dédiées.
+Les anciennes modales basses de durée restent des références historiques. Dans la feuille v13, les roulettes s’ouvrent inline sous la ligne active ; dans le Profil, les durées utilisent les steppers validés. Les autres contextes suivent leur contrat propre. Les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent des steppers inline conformément à D-219. Les sélections d’objets utilisent leurs modales dédiées.
 
-Dans le Profil, les contrôles `Compte à rebours initial`, `Fin de séance`, `Compte à rebours d’exercice` (`4179:9550`) et `Fin d’exercice` (`4179:9556`) servent de préférences proposées à la création de nouveaux contenus. Les valeurs ne sont appliquées qu’après `Confirmer`.
+Dans le Profil, les contrôles `Compte à rebours initial`, `Fin de séance`, `Compte à rebours d’exercice` (ancien nœud `4179:9550`, historique supprimé ; le contrôle fonctionnel reste prescrit) et `Fin d’exercice` (ancien nœud `4179:9556`, historique supprimé ; le contrôle fonctionnel reste prescrit) servent de préférences proposées à la création de nouveaux contenus. Ces valeurs suivent la validation des contrôles du Profil (CE-UI-07), sans importer la confirmation des anciennes roulettes.
 
 Les valeurs initiales de l’application sont `10 s` pour le Compte à rebours initial et `5 s` pour la Fin de séance. Une durée de `0 s`, lorsqu’elle est choisie par l’utilisateur, rend la phase instantanée sans supprimer l’élément structurel.
 
 ## Règles transverses de l’éditeur d’Exercice
-Les écrans Exercice placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Exercice n’est affiché. Le segment Mode contient trois options égales : `Durée`, `Répétitions`, `À l’échec`. Dans le MVP, la zone Média suit les frames courantes et la carte d’Exercice du Catalogue peut être déployée pour afficher le média associé. Les capacités d’import/capture restent régies par leur périmètre propre. Les accès `Catégorie` et `Zones corporelles` utilisent une icône `+` séparée de leur libellé.
+Les écrans Exercice placent le champ Nom en premier dans la zone bleue et suppriment le contexte de Séance. Aucun type d’Exercice n’est affiché. Le segment Mode contient trois options égales : `Durée`, `Répétitions`, `À l’échec`. Dans le MVP, la zone Média suit les frames courantes et la carte d’Exercice du Catalogue conserve sa gouttière permanente avec premier média ou icône de nature, sans déploiement (D-260/D-261/D-264). Les capacités d’import/capture restent régies par leur périmètre propre. Les accès `Catégorie` et `Zones corporelles` utilisent une icône `+` séparée de leur libellé.
 
-La frame `3561:7802` documente l’état À l’échec : ordre `Séries` → cadre informatif `à l’échec` → `Pause`, seconde rangée `Changement de côté / Récupération / Durée totale >=`, sans cible chiffrée. Les états actuels des roulettes utilisent les modales basses standardisées. Dans les états renseignés, `Renforcement du genou` est une donnée de démonstration ; seul `3943:6064` conserve `Nom de l’exercice` comme placeholder de l’état vide.
+La frame historique `3561:7802` illustrait l’état À l’échec : ordre `Séries` → cadre informatif `à l’échec` → `Pause`, seconde rangée `Changement de côté / Récupération / Durée totale >=`, sans cible chiffrée. Cette ancienne disposition ne définit plus l’éditeur actif : la feuille v13 utilise les contrôles de CE-UI-10 et aucun total d’Exercice en À l’échec. Les roulettes de cette feuille restent inline ; les contrôles de durée du Profil sont des steppers. Dans les états renseignés, `Renforcement du genou` est une donnée de démonstration ; seul `3943:6064` conserve `Nom de l’exercice` comme placeholder de l’état vide.
 
 ## Composant transverse `Status / Badge`
-La preuve visuelle canonique du composant est le node `3959:5970`, `Status / Badge — Source exact`. Elle porte les sept variantes de la propriété `Status` dans un composant unique.
+La référence historique du composant est le node `3959:5970`, `Status / Badge — Source exact`. Les références courantes et archivées suivent l’inventaire DSF-CADENCE-2026-10-06 ; l’ancienne référence ne doit pas remplacer le mapping courant. Elle porte les sept variantes de la propriété `Status` dans un composant unique.
 
 *Composant — `Status / Badge — Source exact` — Figma `3959:5970` — export PNG ×2*
 
@@ -2404,7 +2480,7 @@ D-239 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 
 
 Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
 
-Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper indépendant (450 ms puis 150 ms pour la répétition) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
+Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper selon DSF Bip (maintien≈500ms, répétition150ms, paliers1/5/10) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
 
 La règle vaut également :
 - après le dernier Exercice d’un Tour ;
@@ -2427,10 +2503,10 @@ Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est re
 
 ### Référence DSF V2 détaillée — clôture 28 septembre 2026
 
-- **Navigation basse** : pilule `322 × 62 px`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur/rayon 10 offset `0,2`; token `color/navigation/pill`. Icône Profil selon D-233/D-236, dans une boîte de navigation 32×32 ; actif `#0508E5`, inactif `#5C636E`. Cadre actif `76 × 50 px`, bleu `#0508E5` à 10 %. Boîtes d’icônes aux abscisses 68/146/224/302 dans la référence 402 px, soit 28 px entre bord de pilule et boîte extrême et 78 px entre centres. Intégration écran : 16 px sous la pilule, bande opaque 16 px puis dégradé transparent→fond sur 40 px ; ces bandes appartiennent à l’écran.
+- **Navigation basse** : pilule `322 × 62 px`, `color/navigation/pill #F9FAFC` (référence couleur centralisée au chapitre12), stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur/rayon 10 offset `0,2`; token `color/navigation/pill`. Icône Profil selon D-233/D-236, dans une boîte de navigation 32×32 ; actif `#0508E5`, inactif `#595E66 (iconNeutral/textSecondary ; ancien #5C636E historique)`. Cadre actif `76 × 50 px`, bleu `#0508E5` à 10 %. Boîtes d’icônes aux abscisses 68/146/224/302 dans la référence 402 px, soit 28 px entre bord de pilule et boîte extrême et 78 px entre centres. Intégration écran : 16 px sous la pilule, bande opaque 16 px puis dégradé transparent→fond sur 40 px ; ces bandes appartiennent à l’écran.
 - **Fond / contexte** : écran ordinaire `#FFFFFF`; Splash `#0006F1`; média plein écran `#0A0A0C`. Zone de contexte `#EAEAFF`→transparent sur les 20 % inférieurs pour Catalogues, Composition, Calendrier, Suivi, Profil et Ajout d’exercice. Le séparateur 1 px n’est retiré que si ce dégradé assure la séparation.
-- **Halo et action circulaire** : halo Annuler/Retour blanc opaque `59,28 px`, placé devant la zone de contexte et hors du conteneur clippé ; bouton circulaire clair `32 × 32`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur 10 offset `0,2`.
-- **Stepper / valeur** : variante lavande `#F2F2FF` pour Profil/paramètres, variante blanche pour Tours de Composition ; `−/+` ronds bleus, 12 px autour de la valeur centrale. Le stepper remplace la valeur sur la même ligne sans étirer le groupe ; un seul stepper actif à la fois. Badge replié `#F4F4F8`, texte bleu Semi Bold 13 px, rayon 6, marges 8 px horizontales et 2 px verticales ; contour bleu 1,5 px lorsque le contrôle est ouvert (DSF V2 lot 3, T4). Le nombre de semaines utilise la pilule de stepper rayon 18.
+- **Halo et action circulaire** : halo Annuler/Retour blanc opaque `59,28 px`, placé devant la zone de contexte et hors du conteneur clippé ; bouton circulaire clair `32 × 32`, la valeur observée référencée au chapitre12, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur 10 offset `0,2`.
+- **Stepper / valeur** : variante lavande `#F2F2FF` pour Profil/paramètres, variante blanche pour Tours de Composition ; `−/+` ronds bleus, 12 px autour de la valeur centrale. Le stepper remplace la valeur sur la même ligne sans étirer le groupe ; un seul stepper actif à la fois. Badge replié `#F5F7FA (surface ; ancienne valeur historique #F4F4F8)`, texte bleu Semi Bold 13 px, rayon 6, marges 8 px horizontales et 2 px verticales ; contour bleu 1,5 px lorsque le contrôle est ouvert (DSF V2 lot 3, T4). Le nombre de semaines utilise la pilule de stepper rayon 18.
 - **Point d’arrêt** : bouton rond blanc opaque, icône Pause, contour 1 px `#0508E5`; l’action complète porte le contour. Les occurrences de Composition utilisent cette référence commune.
 - **Ressenti** : ne pas confondre contrôle de choix et pictogramme de résultat. Résultats : vert Bien, orange Neutre, rouge Mal ; rouge source `#EF4444`. Aucun état actif Figma ne prouve un contrôle « Mal sélectionné ».
 - **Profil** : titres de section Semi Bold 16 px ; `Modifier` en `#0508E5`; groupes blancs 126 px ; zone de contexte 115 px ; ouverture d’un stepper sans étirement du groupe.
@@ -2439,7 +2515,7 @@ Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est re
 
 ### Paramètres — référence courante du 02/10/2026
 
-La [spécification v12](SPECIFICATION-PARAMETRES-MODALE-v12.md) remplace le champ éditable v10.2. Les anciennes captures d’éditeur ne constituent plus des écarts à corriger vers la phrase inline. Les limites actuelles sont celles de la feuille (câblage incomplet et données de démonstration), décrites dans la section Créer ou modifier un exercice et CE-UI-10.
+La [spécification v13](SPECIFICATION-PARAMETRES-MODALE-v13.md) remplace le champ éditable v10.2. Les anciennes captures d’éditeur ne constituent plus des écarts à corriger vers la phrase inline. Les limites actuelles sont celles de la feuille (câblage incomplet et données de démonstration), décrites dans la section Créer ou modifier un exercice et CE-UI-10.
 
 ## Archives et références hors prototype actif
 
@@ -2500,6 +2576,30 @@ Référence hors prototype actif — Figma `3841:8375` ; ne vaut pas activation 
 
 
 
-> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v12 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
 
+
+
+
+
+### Référence de composant — Stepper — Séries (interactif)
+
+Ensemble6426:10149, export06/10 ; pas un écran autonome.
+
+![Stepper — Séries (interactif)](images/figma-6426-10149.png)
+
+
+
+### Référence de composant — Cadre bas — retournement
+
+Ensemble6446:10103, export06/10 ; pas un écran autonome.
+
+![Cadre bas — retournement](images/figma-6446-10103.png)
+
+
+### Référence de composant — Zone d’exécution — retournements
+
+Ensemble6451:10942, export06/10 ; pas un écran autonome.
+
+![Zone d’exécution — retournements](images/figma-6451-10942.png)
 

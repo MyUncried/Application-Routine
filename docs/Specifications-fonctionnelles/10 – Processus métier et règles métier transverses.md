@@ -1,5 +1,7 @@
 # Processus métier et règles métier transverses
 
+**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
+
 ## Objet
 
 Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs écrans ou parcours. Le détail visuel et les interactions écran par écran restent définis dans le chapitre 06.
@@ -59,18 +61,18 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-033 | Le modèle cible ne possède aucun type d’Exercice `Exercice` ou `Récupération`. Un Exercice utilise exactement un mode parmi Durée, Répétitions et À l’échec. |
 | RM-034 | Uniforme : cible/Pause communes ; variable : paramètres ordonnés propres à chaque Série. PC intrinsèque ; R contextuelle à l’occurrence. |
 | RM-035 | Toute Exercice possède un nombre entier de Séries de 1 à 99 (D-092) ; la valeur initiale est 1. |
-| RM-036 | Une Série est une définition cible/Pause subordonnée à l’Exercice ; N1..99 par côté, modes non mélangés. Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v12 §§3–5, D-247 à D-250. |
-| RM-037 | L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de v12 §4 ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante. |
-| RM-038 | Récupération contextuelle présente même à0. R=0 conserve PN ; R>0 remplace PN de fin d’Exercice complet à chaque occurrence/Tour, y compris dernière occurrence. La définition de PN reste inchangée. |
+| RM-036 | Une Série est une définition cible/Pause subordonnée à l’Exercice ; N1..99 par côté, modes non mélangés. Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5. |
+| RM-037 | L’ordre d’exécution vient du paramètre Ordre des côtés : Un côté après l’autre (défaut) ou Les deux côtés à chaque série. En bilatéral N est toujours par côté, paramètres communs aux deux côtés. Les successions et pauses sont celles de v13 §4 ; aucun repli de PC vers la Pause. Les cibles et Pauses variables proviennent de la ligne courante. |
+| RM-038 | Récupération ajoutée explicitement à l’occurrence ;0 sans phase ; positive après l’Exercice à chaque Tour concerné. R positive remplace seulement la dernière Pause ; sa suppression la rétablit. |
 | RM-039 | Un nouvel Exercice valide est associé à une ou plusieurs Zones corporelles ; la sélection reste multiple. |
 | RM-040 | Les Zones corporelles constituent un référentiel utilisateur administrable : sélection multiple sur un Exercice, création, renommage et suppression sont autorisés dans le MVP. Une suppression utilisée demande confirmation, retire la valeur des choix futurs, conserve les associations des Exercices existants et préserve les Instantanés/Exécutions historiques. |
 | RM-200 | Dans les modales de sélection des Étiquettes, Catégories et Zones corporelles, l’appui court valide et ferme une sélection simple ou sélectionne/désélectionne en sélection multiple (D-222) ; l’appui long ouvre une confirmation de suppression sans modifier la sélection. Toutes les valeurs sont supprimables, initiales comme personnalisées. `Annuler` ne modifie rien ; `Supprimer` retire la valeur des nouveaux choix, conserve les affectations existantes sur les objets déjà enregistrés, puis conserve la modale de sélection ouverte. L’historique reste inchangé. |
 | RM-041 | Dans le MVP, le média associé à un Exercice est affiché dans la gouttière permanente de sa carte Catalogue, sans déploiement (D-260/D-261). Les capacités d’import/capture et de gestion multiple suivent leur périmètre propre. |
 | RM-042 | L’action de validation de l’édition d’un Exercice est libellée `Terminer`. |
-| RM-129 | Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=2×Ri s pour l’estimation ≥ seulement ; À l’échec : aucun total d’Exercice. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v12 §5 ; variable : lecture seule et — si incomplet. |
-| RM-130 | En Durée uniforme seulement, saisie Tv recalcule N1..99 au plus proche, égalité vers le haut, avec normalisation N=1 ; réafficher T(N), message si différent. En variable aucune inversion ; v12§5. |
+| RM-129 | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. |
+| RM-130 | En Durée uniforme seulement, saisie Tv recalcule N1..99 au plus proche, égalité vers le haut, avec normalisation N=1 ; réafficher T(N), message si différent. En variable aucune inversion ; v13§5. |
 | RM-131 | La ligne active de roulette/segmenté porte le contour ; les steppers restent permanents sans contour pilote. Le total variable/Répétitions est en lecture seule ; aucun état pilote persisté. |
-| RM-132 | Répétitions : estimation Ti=2×Ri s, ≥ ; À l’échec : aucun total d’Exercice. Formules et périmètres v12§5. |
+| RM-132 | Exercice : exact en Durée, ≈ en Répétitions avec bip, omitted en Répétitions sans bip et À l’échec. Séance : exact si tout exact, ≈ avec estimation sans inconnu, ≥ avec travail inconnu. Bip v2 gouverne calculs et périmètres. |
 
 ## 5. Planification et Calendrier
 
@@ -105,11 +107,11 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-055 | Chaque démarrage crée une Exécution distincte fondée sur un Instantané immuable de la Séance. |
 | RM-056 | L’entrée dans l’Exécution ne démarre pas immédiatement le décompte. L’utilisateur déclenche explicitement le démarrage. |
 | RM-057 | Une Exécution peut être `En cours`, `Suspendue`, `Terminée`, `Partielle` ou `Interrompue`. |
-| RM-058 | Pour un Exercice en Répétitions ou À l’échec, le temps actif est un chronomètre croissant. Une rotation complète de l’indicateur représente une minute et un bip est émis à chaque minute. |
+| RM-058 | Bip0..10 dans trois modes : périodique pendant Série, au-delà du nominal Répétitions ; aucun signal nominal distinct ni bip minute superposé. Durée conserve le minuteur ; Répétitions/À l’échec conservent Suivant. |
 | RM-059 | `Suivant` termine normalement la Série courante d’un Exercice en Répétitions ou À l’échec sans confirmation. |
 | RM-060 | Pour un Exercice chronométré non arrivée à zéro, `Exercice suivant` demande confirmation. Si elle est confirmée, le Résultat d’Exercice est `Partielle` et l’Exécution continue. |
 | RM-061 | Un Exercice chronométré arrivée à zéro se termine automatiquement. |
-| RM-062 | `Réinitialiser l’exercice` recommence uniquement l’Exercice ou la Série courante. Pendant `SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`, l’action devient `Réinitialiser la récupération` et recommence uniquement la phase courante ; les Séries déjà acquises et les Résultats antérieurs restent inchangés. |
+| RM-062 | `Réinitialiser l’exercice` recommence la Série courante en unilatéral ou le bloc du côté courant en bilatéral, dans les deux ordres (D-029/D-150, v13 §7). L’autre côté et le temps actif réel cumulé sont conservés ; seule la progression du périmètre est remise à zéro. Pendant `SIDE_RECOVERY` ou `POST_ACTIVITY_RECOVERY`, l’action devient `Réinitialiser la récupération` et recommence uniquement la phase courante ; les Séries déjà acquises et les Résultats antérieurs restent inchangés. |
 | RM-063 | Aucun retour à un Exercice précédente et aucune sélection libre d’une autre Exercice ne font partie du MVP. |
 | RM-064 | Après une interruption technique d’une Exécution en cours, l’utilisateur doit choisir `Reprendre la séance` ou `Arrêter la séance` avant d’en démarrer une nouvelle. |
 | RM-065 | Le bouton Retour de l’Exécution revient au contexte réel de lancement. Dans le prototype de démonstration, il revient au Catalogue des séances non vide. |
@@ -121,24 +123,24 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | --- | --- |
 | RM-066 | Une Exécution chronométrée ne se fige pas lorsque l’application passe en arrière-plan ou que l’écran se verrouille. |
 | RM-067 | L’état temporel est fondé sur des horodatages de référence ; au retour, l’application recalcule la position qui aurait dû être atteinte. |
-| RM-068 | Sans interaction, une pause de sécurité intervient 30 minutes après la fin théorique d’un Exercice chronométré. |
-| RM-069 | Pour un Exercice en Répétitions ou À l’échec, une pause de sécurité intervient après 2 heures sans interaction depuis son démarrage. |
+| RM-068 | Sans interaction, une pause de sécurité intervient 30 minutes après la fin théorique d’un Exercice chronométré ou la fin nominale recalculée d’une Série cadencée. |
+| RM-069 | Répétitions sans cadence et À l’échec : pause de sécurité après2h sans interaction depuis démarrage ; cadence :30min après fin nominale recalculée (RM-068). |
 | RM-070 | Les limites des mécanismes natifs en arrière-plan doivent être validées sur appareils iOS et Android réels conformément au chapitre 12. |
 
 ## 9. Calculs et progression
 
 | ID | Règle |
 | --- | --- |
-| RM-071 | La Durée estimée d’exécution est la somme des durées déterminables du Plan développé complet : Compte à rebours initial, durées intrinsèques des Exercices (incluant `sideRecoverySeconds` éventuel), Pauses entre Séries, `postActivityRecoverySeconds` des occurrences, puis Fin de séance. |
-| RM-072 | Aucun temps conventionnel n’est attribué aux Exercices en Répétitions ou À l’échec. Toute métrique estimée qui en comprend au moins un devient une borne minimale précédée de `≥` et additionne uniquement les temps connus de son propre périmètre. |
+| RM-071 | La Durée estimée d’exécution agrège les étapes contributives du Plan développé complet, Compte à rebours initial et Fin de séance compris. Les durées d’occurrence appliquent v13 §5 : R positive remplace uniquement la dernière PN ; aucune Pause, Pause entre les côtés ou Récupération n’est comptée deux fois. Les phases propres configurées sont incluses selon le réglage de Séance. L’incertitude suit RM-072. |
+| RM-072 | Exercice : exact en Durée, ≈ en Répétitions avec bip, omitted en Répétitions sans bip et À l’échec. Séance : exact si tout exact, ≈ avec estimation sans inconnu, ≥ avec travail inconnu. Bip v2 gouverne calculs et périmètres. |
 | RM-073 | Le temps total écoulé et la Durée réelle excluent uniquement les Pauses manuelles déclenchées par l’utilisateur. Ils incluent le Compte à rebours initial, les Exercices, les Pauses entre Séries, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et la Fin de séance. |
 | RM-074 | Le Nombre d’Exercices de la Composition compte les Exercices définies par l’utilisateur une seule fois, sans développer Séries ni Tours et sans compter les Pauses ou les deux types de récupération. |
 | RM-075 | Le Nombre total d’Exercices à exécuter compte les occurrences d’Exercice du plan développé après Séries et Tours, mais ne compte pas `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY`, le Compte à rebours initial ni la Fin de séance comme Exercices. |
 | RM-076 | Le Nombre d’Exercices exécutés correspond aux Résultats d’Exercice créés. Un Exercice `Partielle` compte ; un Exercice jamais atteinte ne compte pas. |
-| RM-077 | Le calcul porte sur les étapes du plan développé, sans modifier la piste segmentée existante. Soit M le nombre d’étapes contributives (Séries non chronométrées et phases chronométrées de durée strictement positive), R le nombre de Séries non chronométrées et T la somme des durées chronométrées. Chaque Série non chronométrée pèse 1/M ; chaque phase chronométrée de durée d pèse (1−R/M)×d/T. Avec R=0, les poids sont d/T ; sans phase chronométrée, chaque Série pèse 1/M. Les phases à 0 s, pauses manuelles et attentes aux points d’arrêt n’ont pas de poids. Une Série non chronométrée acquiert sa part à validation ; une phase chronométrée la remplit progressivement. Un passage anticipé confirmé franchit les étapes effectivement sautées sans leur attribuer de temps réalisé. Le moteur ne publie 100 % qu’à la finalisation du plan (SESSION_END compris pour une Séance) ; une étape finale instantanée est finalisée avant de publier 100 %. Les poids sont figés au démarrage. Un reset remet à zéro les parts de son périmètre, en préservant les parts antérieures hors de ce périmètre. |
-| RM-159 | La Durée synthétique du Catalogue porte sur la durée intrinsèque des Exercices, incluant `sideRecoverySeconds` éventuel. Dans la Composition/Séance, le calcul de durée ajoute les `postActivityRecoverySeconds` des occurrences après développement des Séries et Tours du Circuit ; il exclut toujours le Compte à rebours initial et la Fin de séance. Exprimée en secondes dans le Domaine, elle est convertie en minutes par arrondi à la minute supérieure (`Math.ceil`). Elle est distincte de la Durée estimée d’exécution définie par RM-071. |
+| RM-077 | Le calcul porte sur le plan développé et conserve la piste existante. M compte les étapes contributives ; R compte les Séries Répétitions sans cadence et À l’échec ; T somme les durées des phases chronométrées positives et les Ri×Ci des Séries cadencées. Chaque Série sans durée déterminable pèse1/M ; chaque étape temporelle de durée d pèse(1−R/M)×d/T. Sans R, poids d/T ; sans T, poids1/M. Phases0s, Pause manuelle et attente de point n’ont aucun poids. Les non-cadencées/À l’échec acquièrent leur part à Suivant ; les Répétitions avec bip progressent continûment, Suivant acquiert leur reste. À fin nominale, part de Série100% mais Série active. Pause abandonne la fraction d’intervalle pour la progression, conserve le temps réel ; reprise sur intervalle complet. Aucun100% global publié avant finalisation du plan. Poids figés au départ ; reset remet à zéro son périmètre seulement. Aucun nouveau composant de progression par Série. |
+| RM-159 | La Durée synthétique du Catalogue porte sur la durée intrinsèque des Exercices, incluant `sideRecoverySeconds` éventuel. Dans la Composition/Séance, il utilise les durées d’occurrence avec récupération explicite (To=T−PN+R si R>0, sinon To=T pour un travail calculable), puis développe les Tours sans ajouter R une seconde fois ; il exclut toujours le Compte à rebours initial et la Fin de séance. Exprimée en secondes dans le Domaine, elle est convertie en minutes par arrondi à la minute supérieure (`Math.ceil`). Elle est distincte de la Durée estimée d’exécution définie par RM-071. |
 | RM-125 | La fin de le dernier Exercice déclenche `SESSION_END`. La clôture, l’enregistrement et la détermination du statut interviennent après son achèvement. Une durée de `0 s` l’achève immédiatement ; tout arrêt antérieur, y compris pendant cette phase, produit le statut `Interrompue`. L’écran suivant est la fin minimale dans T04, puis la Synthèse dans la tranche qui la livre. |
-| RM-126 | La barre de progression couvre le Plan d’Exécution complet et inclut `INITIAL_COUNTDOWN` et `SESSION_END`. Elle atteint `100 %` uniquement à l’achèvement de `SESSION_END`. Dans T04, les étapes chronométrées sont pondérées proportionnellement à leur durée planifiée ; les occurrences en Répétitions ou À l’échec suivent RM-077 et leur part est acquise avec `Suivant`. Les Pauses manuelles sont exclues de l’avancement. |
+| RM-126 | La barre de progression couvre le Plan d’Exécution complet et inclut `INITIAL_COUNTDOWN` et `SESSION_END`. Elle atteint `100 %` uniquement à l’achèvement de `SESSION_END`. Dans T04, les étapes chronométrées sont pondérées proportionnellement à leur durée planifiée ; les occurrences Répétitions sans cadence/À l’échec acquièrent leur part avec Suivant ; les cadencées suivent la progression temporelle RM-077 sans fin automatique. Les Pauses manuelles sont exclues de l’avancement. |
 | RM-127 | T04 accepte les Exercices en Durée, Répétitions ou À l’échec, les Séries multiples, les Tours multiples et les passages bilatéraux. Elle refuse avant toute écriture uniquement un Plan invalide ou impossible à développer. |
 | RM-128 | Dans T04, Sons et Annonces vocales sont activés par défaut. Aucun réglage utilisateur ni aucune préférence correspondante ne sont lus ou persistés par cette tranche ; la configuration depuis le Profil est hors T04. |
 
@@ -148,7 +150,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | --- | --- |
 | RM-078 | Le Ressenti est obligatoire lorsque l’écran de Synthèse est présenté. Il peut être absent après une interruption technique sans passage par la Synthèse. |
 | RM-079 | Le Commentaire de Synthèse est facultatif et limité à 200 caractères. |
-| RM-080 | `Terminer` reste désactivé tant qu’aucun Ressenti n’est sélectionné, puis enregistre la Synthèse et ouvre le Suivi. |
+| RM-080 | `Enregistrer` reste désactivé tant qu’aucun Ressenti n’est sélectionné, puis enregistre la Synthèse et ouvre le Suivi. |
 | RM-081 | Le Suivi conserve les Exécutions `Terminées`, `Partielles` et `Interrompues`. |
 | RM-082 | Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` sont visibles mais désactivées dans le MVP. |
 | RM-083 | Chaque Résultat d’Exercice conserve les informations nécessaires à sa restitution, notamment sa position, ses indices de Série et de Tour, son statut et sa durée réelle. Le Cycle technique peut être conservé dans les données mais n’est jamais affiché. |
@@ -171,7 +173,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | --- | --- |
 | RM-091 | Le MVP est affiché uniquement en français et ne présente aucun sélecteur de langue. |
 | RM-092 | Tous les textes applicatifs sont centralisés dans un lexique fondé sur des clés de traduction ; un changement de terme ou l’ajout d’une langue ne doit pas exiger la modification de chaque écran. |
-| RM-093 | Les termes `Séance`, `Exercice`, `Exercice`, `Récupération`, `Série`, `Tour`, `Routine` et `Exécution` sont utilisés conformément au glossaire et de manière uniforme. |
+| RM-093 | Les termes `Séance`, `Exercice`, `Circuit`, `Récupération`, `Série`, `Tour`, `Routine` et `Exécution` sont utilisés conformément au glossaire et de manière uniforme. |
 | RM-094 | Les écrans respectent les Safe Areas du système, y compris l’inset inférieur sous la navigation fixe. |
 | RM-095 | Les cibles tactiles principales respectent une zone commune minimale de 44 × 44 points logiques (RG-7 du 30 septembre ; cibles spécifiques de 48 conservées) sur iOS et Android, même si leur représentation visuelle est plus petite. Un conteneur tactile ou un `hitSlop` étend les contrôles compacts sans agrandir leur pictogramme. |
 | RM-154 | Les éléments de navigation restent au premier plan et les contenus défilants ne doivent pas passer visuellement au-dessus d’eux. |
@@ -189,7 +191,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-109 | Le Catalogue sélectionne `Exercices`, `Séances` ou `Parcours`. `Séances` est sélectionné par défaut à l’ouverture initiale et après relance complète ; `Exercices` est actif à partir de T03 ; `Parcours` reste visible mais désactivé. |
 | RM-110 | Sans filtre, toutes les Séances non archivées sont triées par dernière modification décroissante. Les filtres sont Toutes, Planifiées, Non planifiées, Archivées ; les tris initiaux portent uniquement sur dernière modification et nom. |
 | RM-111 | Un Exercice À l’échec n’a ni durée ni répétitions cibles ; `Suivant` termine chaque Série comme en mode Répétitions. |
-| RM-112 | Répétitions et À l’échec rendent la durée totale indéterminée ; l’affichage `≥` additionne uniquement les temps connus. |
+| RM-112 | Exercice : exact en Durée, ≈ en Répétitions avec bip, omitted en Répétitions sans bip et À l’échec. Séance : exact si tout exact, ≈ avec estimation sans inconnu, ≥ avec travail inconnu. Bip v2 gouverne calculs et périmètres. |
 | RM-113 | Une référence d’Exercice du MVP T03 est copiée dans une Séance sans lien de propagation et ses copies ne figurent pas au catalogue. |
 | RM-114 | Dans le MVP, une carte d’Exercice du Catalogue affiche son média associé dans une gouttière permanente ; sans média, l’icône de nature occupe la même place. Aucun déploiement n’est accessible (D-260/D-261). Cette activation d’affichage n’introduit pas à elle seule d’import ou de capture supplémentaire dans l’éditeur. |
 | RM-115 | Une association média est copiée indépendamment mais partage un fichier immuable ; le fichier n’est supprimé que sans aucune référence. |
@@ -207,8 +209,8 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-149 | Réinitialiser ne touche que le côté courant. Confirmer la modale générique de passage anticipé sur le premier côté conserve un résultat partiel et ouvre le second côté. |
 | RM-150 | Les résultats sont séparés par côté ; l’état global est partiel dès qu’un côté est partiel ou manquant après avancement. |
 | RM-151 | Dans la Composition, une carte affiche sa direction propre `D→G` ou `G→D` lorsqu’elle est bilatérale ; aucune indication avec `Aucun`. Le Tour ne porte pas de direction exposée. |
-| RM-152 | Dans l’écran Ajouter/Modifier un Exercice, la synthèse bilatérale place la direction développée après la cible du mode et avant la Pause. Cette clause est absente avec `Aucun`. Dans une carte de Composition, le petit indicateur `D→G` ou `G→D` porte seul la direction. |
-| RM-153 | **Supersédée par RM-232 / D-232** pour la phrase de synthèse v10.2. |
+| RM-152 | Dans l’écran Ajouter/Modifier un Exercice, la phrase unique suit RM-232/D-298 : cible/cadence, Pause, puis côtés selon le contexte ; deux directions et deux ordres distingués. La clause de côté est absente avec `Aucun`. Dans une carte de Composition, le petit indicateur `D→G` ou `G→D` porte seul la direction. |
+| RM-153 | **Supersédée par RM-232 / D-298** pour la phrase active v1. |
 
 ## 12. Règles métier — Exécution directe d’un Exercice — MVP T03
 
@@ -219,7 +221,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-098 | La préparation directe dure exactement `5 s` et n’est pas persistée dans la définition de l’Exercice. |
 | RM-099 | Le plan applique les règles communes de mode, Séries, Pauses, bilatéralité et Récupération, sans Tour, Cycle visible ni `SESSION_END`. |
 | RM-100 | La dernière phase achevée déclenche le signal de fin puis la Synthèse. |
-| RM-101 | Le Ressenti reste obligatoire lorsque la Synthèse est présentée ; `Terminer` reste désactivé avant sa sélection. |
+| RM-101 | Le Ressenti reste obligatoire lorsque la Synthèse est présentée ; `Enregistrer` reste désactivé avant sa sélection. |
 | RM-102 | Le Suivi conserve l’origine `ACTIVITY` et les statistiques compatibles, sans incrémenter le nombre de Séances. |
 | RM-103 | La finalisation restaure l’état antérieur du Catalogue des Exercices pour l’aller-retour courant ; cet état n’est pas persisté après une fermeture/reprise complète de l’application. |
 | RM-162 | Dans le Catalogue des Exercices, un appui sur la carte hors bouton Lecture ouvre l’Exercice en consultation ou modification ; le bouton Lecture lance uniquement l’Exécution directe. `Déployer` affiche/masque le média associé. Un swipe gauche sur un Exercice active expose `Planifier / Dupliquer / Archiver`; dans les archives il expose `Supprimer`. |
@@ -249,7 +251,7 @@ Ces règles décrivent une conception post-MVP à planifier.
 
 | RM-208 | Lorsqu’un Parcours devient planifiable, il utilise les mêmes Routines et règles de planification que les Séances et Exercices : une source par Routine, planification unique ou périodique, rappel facultatif, occurrences calculées dynamiquement et historique conservé. Cette règle n’active pas la capacité avant la version Parcours planifiable. |
 
-| RM-209 | `postActivityRecoverySeconds` est initialisé lors de la création d’une occurrence depuis le défaut global de récupération après exercice puis devient indépendant ; modifier le défaut global ne modifie pas les occurrences existantes. |
+| RM-209 | Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). |
 | RM-210 | La récupération après exercice se déplace avec l’occurrence, est copiée lors de sa duplication et supprimée avec elle ; aucun recalcul ne dépend de l’adjacence. |
 | RM-211 | Une Exécution directe d’`ActivityDefinition` n’exécute jamais de récupération post-exercice ; elle peut uniquement exécuter la Pause entre les côtés si l’Exercice est bilatéral. |
 | RM-212 | `sideRecoverySeconds` est initialisé depuis le défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) lorsqu’un Exercice passe de `Aucun` à `D→G` ou `G→D`; la valeur reste modifiable dans l’éditeur de l’Exercice. |
@@ -266,17 +268,17 @@ Ces règles décrivent une conception post-MVP à planifier.
 | RM-218 | Une Séance applique par défaut les Compte à rebours d’exercice et Fin d’exercice. Son réglage global peut neutraliser ensemble ces deux phases pour tous ses Exercices sans modifier leurs définitions. |
 | RM-219 | Après un Exercice, la Récupération après exercice est exécutée avant un éventuel Point d’arrêt. Aucun Point d’arrêt juste après le Compte à rebours initial ni juste avant la Fin de séance. |
 | RM-220 | Un Point d’arrêt peut être placé avant/après le Circuit et entre ses Exercices ; s’il est dans le Circuit, il est rencontré à chaque Tour. |
-| RM-221 | **Supersédée par RM-232 / D-232** pour la phrase de synthèse v10.2. |
+| Ancienne RM-221 (phrase, historique) | Supersédée par RM-232 / D-298 ; la RM-221 active ci-dessous porte sur les Catalogues. |
 
 | RM-221 | Les Catalogues du MVP ne proposent aucune recherche globale ou locale ; filtres et tri restent les mécanismes de réduction/organisation disponibles selon leur périmètre. |
 | RM-222 | Une sélection simple d’objet planifiable est exclusive, validée au toucher et ferme la modale sans CTA `Sélectionner`; une sélection multiple de Composition conserve cases à cocher et validation explicite. |
 | RM-223 | Le titre de planification est `Planifier` tant que le type n’est pas connu, puis `Planifier une séance` ou `Planifier un exercice` selon la source. |
 
-| RM-231 | **Supersédée par RM-232 / D-232.** | 
-| RM-232 | Résumé v12 §7 : trois premières valeurs variables puis ellipse, valeurs manquantes — ; À l’échec résumé des Pauses et aucun total ; Répétitions ≥ à2s/rép. Direction et Ordre des côtés dans la carte Paramètres. Ligne de Séance : N séries variables seulement. Total omissible comme redondant uniquement si égal à la cible ; compte à rebours/Fin hors calcul. |
+| RM-231 | **Supersédée par RM-232 / D-298.** |
+| RM-232 | Phrase normative v1 (D-298) : une zone entière cliquable, valeurs en gras ; cibles énumérées jusqu’à3 puis min/max, omission de clause sans changement ; total fourni par le calcul, omis À l’échec ou redondance réelle. Ligne compacte de Séance : N séries variables seul. Compte à rebours/Fin hors phrase et hors total intrinsèque. Excel uniquement rédactionnel. |
 
 | RM-233 | Au changement de mode, conserver les paramètres communs et, pendant l’édition, la dernière valeur spécifique de chaque mode. Après la première sélection, aucun retour à l’état « aucun mode » ; `Terminer` reste désactivé avant cette première sélection. |
-| RM-234 | Séries `1..99`; Répétitions `1..100`; Durée par Série `1..5999 s`; pauses inter-Séries/inter-côtés `0..300 s`. Les deux pauses utilisent un stepper : pas 1 s jusqu’à 5 s, puis 5 s jusqu’à 120 s, puis 30 s jusqu’à 300 s. |
+| RM-234 | Séries `1..99`; Répétitions `1..100`; Durée par Série `1..5999 s`; pauses inter-Séries/inter-côtés `0..300 s`. Les deux pauses utilisent un stepper : tap1s, maintien accéléré1/5/10 selon DSF Bip. |
 
 ## RG des cartes — 30 septembre 2026
 
@@ -290,12 +292,21 @@ D-239 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 
 
 Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
 
-Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper indépendant (450 ms puis 150 ms pour la répétition) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
+Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper selon DSF Bip (maintien≈500ms, répétition150ms, paliers1/5/10) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
 
 
-> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v12 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
 
 
 ### Saisie des paramètres — D-246
 
-La référence active est [Paramètres en modale v12](SPECIFICATION-PARAMETRES-MODALE-v12.md), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
+La référence active est [Paramètres en modale v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
+
+## Cadence — règles transverses complémentaires
+
+CAD-01 à CAD-30 sont transcrites sans doublon dans D-268 à D-297 ; appliquer la spécification Bip v2. Intervalles sonores et progression sont distincts de la fin métier. Pause abandonne la fraction pour progression seulement ; reset n’efface pas le temps réel. Arrière-plan n’est pas Pause, aucun rejeu de signal manqué. Cadence commune à toutes les Séries dans l’éditeur, aucun défaut ni préférence Profil. Les formules de pauses/Récupération de RM-129 restent inchangées hors Ti.
+
+## Avertissement non bloquant d’enchaînement (D-301)
+
+Lorsque deux Exercices consécutifs n’ont ni pause effective de transition ni Récupération positive après son occurrence, la Composition affiche l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre. La condition concerne la frontière entre deux Exercices dans leur ordre d’exécution, y compris aux transitions du Circuit ; elle utilise les paramètres de l’occurrence, sans modifier les règles de substitution R/PN de v13.
+

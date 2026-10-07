@@ -1,5 +1,22 @@
 # INDEX — Documentation du projet Routine
 
+**Référence courante du07/10 :** [matrice cartes/phrases](MATRICE-CARTES-PHRASES-2026-10-07.md) ; [DSF cartes sans cadre de durée](DSF-CARTES-DUREE-2026-10-07.md). Pause après chaque série, récupération substitutive,276 textes v14, segments non persistés.
+
+## Dernière clarification — Bip de cadence
+
+[Spécification Bip v2](Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md) · [DSF Bip/steppers](DSF-BIP-CADENCE-2026-10-07.md) · [Inventaire et captures](MATRICE-BIP-FIGMA-2026-10-07.md) · [Rapport de cohérence](REPORT-BIP-2026-10-07.md).
+
+Bip0..10 transverse aux trois modes ; omission des durées non calculables d’Exercice ; ≥ réservé aux Séances ; pause après chaque série, dernière comprise, remplacée seulement par la récupération positive qui suit. Q-07 et Q-08 clos ; les276 formulations v14 font référence. Cette clarification remplace les règles incompatibles du premier lot du07/10.
+
+## Consolidation du 07/10/2026
+
+- [Spécification Pauses et symboles](Specifications-fonctionnelles/SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md)
+- [DSF — Pauses et icônes](DSF-PAUSES-ICONES-2026-10-07.md)
+- [Inventaire des références Figma](MATRICE-FIGMA-2026-10-07.md)
+
+Les documents source de Claude sont archivés sans altération ; les arbitrages D-302 à D-307 précisent les passages qui ne font pas autorité. Bip transverse0..10 ; Durée exacte, Répétitions avec bip ≈, sans bip durée omise ; contenu de récupération et trait de démarcation distingués.
+
+
 > Historique Bilatéralité du 13 septembre 2026 : cette séquence introduisait notamment un contrôle de côté au niveau Tour. Elle est supersédée sur ce point par D-189 du 24 septembre 2026 : aucun changement de côté n’est désormais exposé au niveau Tour ; la capacité technique historique est conservée pour non-régression.
 >
 > Mise à jour T03 du 15–16 septembre 2026 : le Catalogue des exercices entre dans le MVP T03 ; l’ancien T03 Exécution devient T04. Les corrections UX T03 sont intégrées directement au chapitre 06 et les décisions D-167 à D-187 au registre 07. Le modèle et la migration T03 sont désormais intégrés directement au chapitre 09. Le chapitre 13 constitue l’unique référence des contrats d’écran actifs : `CE-T03-01` à `CE-T03-17`, `CE-MEDIA-EXEC-01/02`, `CE-UI-01` à `CE-UI-09` et `CE-EXEC-SESSION-01`.
@@ -8,7 +25,7 @@
 >
 > Mise à jour fonctionnelle et Figma du 24 septembre 2026 — D-188 à D-198 : Étiquette = classification/couleur de Séance ; Catégorie = classification/couleur d’Exercice ; changement de côté non exposé au niveau Tour ; Point d’arrêt ; Compte à rebours et Fin propres à l’Exercice ; filtre mémorisé uniquement dans la session courante ; roulettes en modale basse ; parcours de composition exposant la sélection depuis le Catalogue sans suppression de la création locale existante ; média en gouttière permanente dans le Catalogue des Exercices depuis D-260/D-261 du03/10/2026 ; actions `Planifier / Dupliquer / Archiver`, puis `Supprimer` dans les archives ; nouveau layout/typographie d’Exécution.
 >
-> Mise à jour Figma/documentation du 24 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. Les options de filtre sont contextuelles au Catalogue ; `Trier` reste visible disabled T03. L’éditeur Exercice applique D-232 : Répétitions affiche `Durée totale ≥ {estimation}` avec 2 secondes par répétition en V1 ; À l’échec n’affiche pas de Durée totale ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’exercice` l’état vide/placeholder.
+> Mise à jour Figma/documentation du 24 septembre 2026 : la rangée Catalogue `Créer / Filtrer / Trier` et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. Les options de filtre sont contextuelles au Catalogue ; `Trier` reste visible disabled T03. L’éditeur Exercice applique D-298 : Répétitions affiche `Durée totale {symbole éventuel}{total fourni}` (bip positif : ≈, prévision Ri×b ; bip nul : durée omise) ; À l’échec n’affiche pas de Durée totale ; `Renforcement du genou` est une valeur de démonstration et `Nom de l’exercice` l’état vide/placeholder.
 >
 > Décision du 24 septembre 2026 — D-199 : les Zones corporelles constituent désormais un référentiel utilisateur administrable. L’utilisateur peut créer, renommer et supprimer des Zones corporelles ; la liste initiale de dix zones devient un jeu de valeurs par défaut et non une liste fermée. La frame Figma `4683:6336` matérialise la création inline d’une nouvelle zone.
 >
@@ -92,9 +109,9 @@ La maquette Figma constitue la référence visuelle et interactive. Les document
 - `3841:8375` — historique/supersédé — ancien Catalogue des séances — Créer — arbre d’actions ;
 - `3561:4695`, `3561:7673`, `3561:7802` — éditeur Exercice Répétitions/À l’échec et roulette ;
 - `3943:6064` — éditeur Exercice — état vide ;
-- `3788:5258` — Composition — Ajouter un exercice — arbre ;
-- `3789:5349` et `3789:5405` — sélection multiple d’Exercices existants ;
-- `3879:5947` / `3879:6079` — création/modification d’un Exercice persistante ;
+- `3788:5258` — Composition — Ajouter un exercice — arbre  — relevé historique, IDs supprimés à qualifier via la matrice courante du 06/10 ;
+- `3789:5349` et `3789:5405` — sélection multiple d’Exercices existants  — relevé historique, IDs supprimés à qualifier via la matrice courante du 06/10 ;
+- `3879:5947` / `3879:6079` — création/modification d’un Exercice persistante  — relevé historique, IDs supprimés à qualifier via la matrice courante du 06/10 ;
 - `2028:11700` / `2028:11808` — Composition et actions glissées ;
 - `2028:11204` — Composition séance — Étiquettes ;
 - `1992:8626`, `1992:8132`, `1992:8718`, `1992:8780`, `1992:8843`, `1992:8996` — structures visuelles réutilisées pour Exécution directe, Synthèse et Suivi ;
@@ -169,8 +186,8 @@ Obsidian reste l’outil de rédaction de la documentation fonctionnelle. Le dos
 ## 8. État de la baseline avant développement
 
 Les règles de calcul nécessaires au MVP ont été formalisées, notamment :
-- Durée estimée et borne minimale `≥` en présence d’Exercices en Répétitions ou À l’échec ;
-- phrase de synthèse selon D-232 : Durée totale en Durée si plusieurs Séries ou changement de côté ; estimation `≥` en Répétitions avec 2 s/répétition en V1 ; aucune Durée totale en À l’échec ;
+- Durée prévisionnelle déterminable, omission d’Exercice sans bip en Répétitions et borne≥ en présence de travail non estimable ;
+- phrase de synthèse selon D-298 : Durée totale en Durée sauf redondance réelle (N1 unilatéral) ; Répétitions : ≈ avec cadence (Ri×Ci), omission sans bip à l’Exercice (Q-07 clos) ; aucune Durée totale en À l’échec ;
 - les noms d’Exercice visibles dans les maquettes renseignées sont des données de démonstration ; `Nom de l’exercice` représente l’état vide/placeholder ;
 - distinction entre **Pause après chaque série**, **Pause entre les côtés** et **Récupération après exercice** ;
 - temps actif et Durée réelle hors Pause utilisateur ;
@@ -228,7 +245,7 @@ La consultation média pendant l’Exécution décrite ici est **incluse au MVP*
 
 > Décision du 25 septembre 2026 — D-207 : la notion de contenu planifiable est commune aux **Séances, Exercices persistants et Parcours**. Le MVP planifie `SESSION` et `ACTIVITY`; la planification d’un Parcours reste dans sa version prévue (actuellement V3) et réutilisera la même entité Routine avec la source technique `CIRCUIT`, sans second moteur de planification.
 
-Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=2×Ri s pour l’estimation ≥ seulement ; À l’échec : aucun total d’Exercice. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v12 §5 ; variable : lecture seule et — si incomplet.
+Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 ## Consolidation fonctionnelle — 26 septembre 2026
 
@@ -237,7 +254,7 @@ Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(T
 - Une valeur de référentiel supprimée sort des choix futurs mais reste conservée sur les objets existants. Étiquette/Catégorie conservent nom et dernière couleur. La couleur appartient au référentiel et se répercute sur tous ses objets ; les Zones corporelles n’ont pas de couleur.
 - Les défauts du Profil initialisent les nouveaux objets sans rétroactivité : Pause entre les côtés, Compte à rebours d’exercice et Fin d’exercice pour un nouvel Exercice ; Récupération après exercice pour une nouvelle occurrence de Séance.
 - Une Séance possède un réglage global unique, activé par défaut, pour appliquer ou ignorer ensemble les Compte à rebours d’exercice et Fin d’exercice de tous ses Exercices.
-- Dans le texte éditable, Durée affiche `Durée totale` si plusieurs Séries ou changement de côté (D-232); Répétitions affiche `Durée totale >= {estimation}` ; À l’échec n’affiche pas de Durée totale numérique.
+- Dans la phrase unique (D-298), Durée affiche le total sauf redondance réelle (une Série unilatérale, Pause0) ; Répétitions affiche le total fourni, avec ≈ avec cadence et avec omission sans bip à l’Exercice ; À l’échec n’affiche pas de total d’Exercice. ≥ est réservé aux Séances contenant du travail inconnu ; jamais à une carte d’Exercice.
 - Point d’arrêt : `Exercice → Récupération après exercice → Point d’arrêt → suite`; interdit juste après le Compte à rebours initial et juste avant la Fin de séance ; autorisé aux frontières et dans le Circuit ; dans le Circuit il s’exécute à chaque Tour.
 - En face Média compacte, le bouton Lecture central disparaît pendant la lecture vidéo ; le retour à Information met la vidéo en pause ; le plein écran n’interrompt pas l’Exécution.
 
@@ -249,7 +266,7 @@ Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(T
 > Clôture Figma / DSF du 28 septembre 2026 — D-221 à D-230 : aucune recherche globale ou locale dans le MVP ; quatre destinations `Catalogues / Calendrier / Suivi / Profil` ; sélection simple validée au toucher versus sélection multiple avec `Sélectionner` ; titre `Planifier` contextuel ; fonds/zones de contexte, navigation basse, halos/actions circulaires, steppers/badges, modales/listes, roulettes et états spécialisés alignés sur DSF V2.
 
 
-> Générateur de phrase des paramètres d’exécution : règles actives consolidées par D-232 (classeur v10 / spécification v10.2 + arbitrages du 28/09/2026). La stratégie V2 de la durée standard d’une répétition reste À CLARIFIER et n’affecte pas la V1.
+> Générateur actif : Phrase v1, paramètres v13 et Bip v2 ; D-268 à D-300. Aucune estimation forfaitaire des répétitions sans bip ; durée omise. v10.2 est historique.
 
 ## Mise à jour visuelle du 30 septembre 2026
 
@@ -278,7 +295,7 @@ Les 30 contrats du chapitre13 ont chacun21 rubriques. Les contrats média sont c
 
 ## Paramètres en feuille basse —01/10/2026
 
-- [Spécification active v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md) — remplace la saisie dans la phrase.
+- [Spécification active v13](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md) — remplace la saisie dans la phrase.
 - [DSF de la feuille et de ses contrôles](DSF-PARAMETRES-MODALE-2026-10-01.md).
 - [Transmission source](SOURCE-SAISIE-PARAMETRES-MODALE-2026-10-01.md).
 - Chapitre06 :12 états illustrés et confirmation2234:189 restaurée. Chapitre13 :30 contrats ×21rubriques, dont CE-UI-10.
@@ -286,8 +303,42 @@ Les 30 contrats du chapitre13 ont chacun21 rubriques. Les contrats média sont c
 
 ## Paramètres — consolidation du02/10/2026
 
-Référence courante : [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md) et [rapport](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md). D-247 à D-255 remplacent les anciennes formules et descriptions uniformes sur ce périmètre. Les règles de cartes sans rapport avec les paramètres restent conservées. Les nouvelles copies fournissent le layout ; elles ne prouvent ni intégration DSF ni conformité du moteur.
+Référence courante : [v13](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md) et [rapport](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md). D-247 à D-255 remplacent les anciennes formules et descriptions uniformes sur ce périmètre. Les règles de cartes sans rapport avec les paramètres restent conservées. Les nouvelles copies fournissent le layout ; elles ne prouvent ni intégration DSF ni conformité du moteur.
 
 ## Inventaire courant du parcours Créer un exercice — 03/10/2026
 
 [État des lieux exhaustif,42frames et revue des contrats](ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md). Les références actuelles remplacent les copies du02/10 :37frames de la famille création/modification,2effets Catalogue/Composition et3exécutions. La réserve de réinitialisation a été retirée : D-029/D-150 restent applicables aux deux ordres.
+
+## Références actives — Cadence et documentation du06/10/2026
+
+1. [Paramètres v13](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md) — pauses/côtés conservés, cadence et symboles.
+2. [Bip v2](Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md) — calculs, exécution, données et recette.
+3. [Phrase v1](Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md) — grammaire et rendu ; Excel exclusivement rédactionnel.
+4. [DSF courant](DSF-CADENCE-2026-10-06.md) et [matrice courante Figma](MATRICE-CADENCE-FIGMA-2026-10-06.md).
+5. Chapitre06 : captures centralisées ; chapitre13 :30 contrats dont CE-UI-10,21 rubriques chacun, états et limites graphiques explicites.
+
+v12 et v10.2 sont historiques ; leurs règles remplacées ne doivent pas être utilisées pour la cible. Les sources reçues sont conservées dans `archives/cadence-2026-10-06` ; elles ne remplacent pas cette chaîne normative consolidée.
+
+## Traçabilité de la correction de l’audit du 06/10
+
+- [Rapport de mise à jour Cadence](RAPPORT-MISE-A-JOUR-CADENCE-2026-10-06.md)
+- [Provenance des exports SVG](../assets/icons/figma-current-exports.json)
+- [Audit documentaire de Claude](../.github/orchestration/reports/2026-10-06_AUDIT_COMPLETUDE_COHERENCE_DOCUMENTAIRE_CADENCE_DSF.md)
+- [Résolution des constats F-01 à F-15](../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_DOCUMENTAIRE.md)
+
+- [Vérification des repères F-09](../.github/orchestration/reports/2026-10-06_VERIFICATION_F09_REPERES.md)
+- [Clarification de la référence du brief F-14](../.github/orchestration/reports/2026-10-06_CLARIFICATION_F14_BRIEF.md)
+- [Audit transverse reçu de Claude](../.github/orchestration/reports/2026-10-06_AUDIT_TRANSVERSE_FINAL_DOCUMENTATION_KODJO.md)
+- [Corrections G-01 à G-05 et contrôles](../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_TRANSVERSE_DOCUMENTAIRE.md)
+
+**Statut :** la seconde passe fonctionnelle de Claude est reçue, mais sa couverture reste partielle. Les corrections déterminées du lot H sont reportées ; H-03 est clos par la formulation intrinsèque avec `+`, H-08 précisé par D-303 : aucune information de récupération à 0 s, trait conservé hors placement et absent pendant le choix, H-09 par l’avertissement non bloquant entre Exercices (D-301), H-10 par la coche courante vectorisée et archivée. Aucun arbitrage H-08/H-09 ne reste ouvert. La couverture partielle de l’audit ne permet pas de déclarer l’alignement fonctionnel total.
+
+- [Audit fonctionnel reçu](../.github/orchestration/reports/2026-10-06_AUDIT_FONCTIONNEL_CHAPITRES_CONTRATS_KODJO.md)
+- [Corrections fonctionnelles et réserves](../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_FONCTIONNEL_DOCUMENTAIRE.md)
+
+- [Décision rédactionnelle H-03 : pause avec +](../.github/orchestration/reports/2026-10-06_CLOTURE_H03_PHRASE_PAUSE.md)
+
+- [Clôture H-10 : coche de sélection multiple](../.github/orchestration/reports/2026-10-06_CLOTURE_H10_COCHE_SELECTION.md)
+
+- [Report des dernières décisions : H-08 et H-09](../.github/orchestration/reports/2026-10-06_REPORT_DECISIONS_H08_H09.md) — rectifie l’interprétation de D-238 dans les rapports antérieurs ; décisions H-03/H-10 déjà conservées.
+

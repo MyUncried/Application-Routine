@@ -1,5 +1,7 @@
 # Utilisateurs et besoins
 
+**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
+
 ## Objectif du chapitre
 
 Ce chapitre décrit les utilisateurs visés, leurs problèmes et leurs besoins. Il sépare explicitement l’utilisateur prioritaire du MVP des profils et usages envisagés après le MVP.
@@ -42,7 +44,7 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 
 - Saisir le nom et choisir une couleur dans le même écran de Composition.
 - Choisir parmi 12 couleurs prédéfinies, avec une couleur initialement proposée.
-- Ajouter des Exercices ; chaque occurrence créée dans la Composition possède automatiquement une **Récupération après exercice**, y compris à `0 s`, initialisée depuis le défaut global.
+- Ajouter des Exercices ; aucune **Récupération après exercice** n’est créée automatiquement ; elle se place explicitement, avec une valeur proposée au moment de l’ajout.
 - Définir un Exercice par une Durée, un nombre de Répétitions ou jusqu’à l’échec.
 - Définir le nombre de Séries et une Pause éventuelle entre les Séries ; pour un Exercice bilatéral, régler séparément la **Pause entre les côtés**.
 - Saisir soit le nombre de Séries, soit une Durée totale cible, puis comprendre immédiatement la valeur entière recalculée par l’application.
@@ -218,7 +220,7 @@ Lorsqu’un Parcours est fonctionnel, l’utilisateur doit pouvoir le planifier 
 
 - Distinguer clairement la Pause après chaque série, la Pause entre les côtés et la Récupération après exercice.
 - Dans l’éditeur d’Exercice, n’exposer la Pause entre les côtés que lorsque le Changement de côté vaut `D→G` ou `G→D`.
-- Dans la Composition, voir sous chaque occurrence une ligne `Récupération {durée}`, y compris `Récupération 0 s`, et pouvoir modifier cette durée.
+- Dans la Composition, ajouter explicitement une récupération, en modifier la durée et la retirer. À 0 s ou en son absence, aucune information de récupération ; le trait reste indépendant du contenu (D-303).
 - Conserver cette récupération avec l’occurrence lors d’un déplacement ou d’une duplication ; la supprimer avec l’occurrence.
 - Exécuter la récupération de la dernier Exercice avant la Fin de séance, et celle de la dernier Exercice du Circuit à chaque Tour.
 - Ne pas ajouter de récupération post-exercice lors de l’Exécution directe depuis le Catalogue.
@@ -230,4 +232,9 @@ L’utilisateur doit pouvoir classer chaque nouvel Exercice avec exactement une 
 
 ## Paramètres d’exécution — complément du02/10/2026
 
-Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v12](SPECIFICATION-PARAMETRES-MODALE-v12.md), CE-T03-04 et CE-UI-10.
+Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), CE-T03-04 et CE-UI-10.
+
+## Besoin de rythme reproductible
+
+Pour un entraînement ou une rééducation, prescrire un intervalle entre répétitions et disposer de signaux réguliers, tout en gardant la maîtrise de la fin de Série. La cadence est facultative ; aucune mesure automatique des répétitions ni preuve de mouvement effectué n’est promise. La Synthèse conserve le temps actif réel et la prescription de l’instantané.
+

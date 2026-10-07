@@ -1,5 +1,7 @@
 ## 12.0 Objet et périmètre
 
+**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
+
 Ce chapitre définit l’architecture technique du MVP.
 
 L’architecture doit permettre :
@@ -138,7 +140,7 @@ La couche Domaine contient :
 - les transitions d’état ;
 - les calculs indépendants de l’interface et du stockage.
 
-Les calculs de Durée estimée d’exécution, Durée synthétique des Exercices, Durée réelle, nombres d’Exercices, progression globale et occurrences périodiques sont implémentés comme des règles déterministes distinctes du Domaine conformément au chapitre 10. L’interface ne peut substituer l’une de ces deux métriques estimées à l’autre : le Catalogue et la Composition consomment la Durée synthétique des Exercices, tandis que l’Exécution consomme la Durée estimée d’exécution. La progression couvre le Plan complet, `INITIAL_COUNTDOWN` et `SESSION_END` compris, et ne vaut `100 %` qu’après l’achèvement de `SESSION_END` ; dans T04, les étapes chronométrées sont pondérées par leur durée planifiée et la part d’une occurrence en Répétitions ou À l’échec est acquise avec `Suivant`. Les Pauses manuelles sont exclues. Ces règles ne doivent pas être redéfinies dans l’interface ou la couche de persistance.
+Les calculs de Durée estimée d’exécution, Durée synthétique des Exercices, Durée réelle, nombres d’Exercices, progression globale et occurrences périodiques sont implémentés comme des règles déterministes distinctes du Domaine conformément au chapitre 10. L’interface ne peut substituer l’une de ces deux métriques estimées à l’autre : le Catalogue et la Composition consomment la Durée synthétique des Exercices, tandis que l’Exécution consomme la Durée estimée d’exécution. La progression couvre le Plan complet, `INITIAL_COUNTDOWN` et `SESSION_END` compris, et ne vaut `100 %` qu’après l’achèvement de `SESSION_END` ; dans T04, les étapes chronométrées sont pondérées par leur durée planifiée et les Séries Répétitions sans cadence et À l’échec acquièrent leur part avec `Suivant`. Les Séries Répétitions avec bip suivent une progression temporelle continue, plafonnée à la fin nominale sans terminer la Série ; `Suivant` acquiert le reste éventuel. La Pause abandonne la fraction d’intervalle pour la progression et la reprise lance un intervalle complet, sans effacer le temps actif réel. Les Pauses manuelles sont exclues. Ces règles ne doivent pas être redéfinies dans l’interface ou la couche de persistance.
 
 Les objets du domaine ne doivent pas dépendre directement :
 - de l’interface utilisateur ;
@@ -287,7 +289,7 @@ Le moteur gère ensuite :
 - l’étape courante ;
 - les répétitions du Circuit, c’est-à-dire les Tours, et le Cycle technique fixé à une répétition ;
 - les Séries propres à chaque Exercice ;
-- Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v12 §§3–5, D-247 à D-250.
+- Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
 - l’insertion éventuelle d’une phase `SIDE_RECOVERY` entre les deux côtés lorsque `sideRecoverySeconds > 0` ;
 - l’insertion d’une phase `POST_ACTIVITY_RECOVERY` après chaque occurrence de Séance/Parcours lorsque `postActivityRecoverySeconds > 0` ;
 - la progression dans le Circuit au cours du Tour courant ;
@@ -357,8 +359,8 @@ Le passage en arrière-plan ou le verrouillage ne met pas automatiquement l’Ex
 
 Le moteur applique une pause de sécurité en l’absence d’interaction :
 
-- 30 minutes après la fin théorique d’un Exercice chronométré ;
-- 2 heures après le démarrage d’un Exercice en Répétitions ou À l’échec.
+- 30 minutes après la fin théorique d’un Exercice chronométré ou la fin nominale recalculée d’une Série cadencée ;
+- 2 heures après le démarrage d’un Exercice en Répétitions sans cadence ou À l’échec.
 
 Cette pause est déterminée à partir des horodatages et ne suppose pas qu’un timer JavaScript reste actif en permanence en arrière-plan.
 
@@ -753,7 +755,7 @@ Une valeur contextuelle, un libellé métier ou une condition fonctionnelle ne d
 
 Les dimensions ci-dessous décrivent le gabarit Figma de référence. Les insets système réels remplacent les réserves de Safe Area lors de l’implémentation ; ils ne sont jamais déduits d’une coordonnée fixe du gabarit.
 
-#### `Shell / Screen` — `402 × 874`
+#### `DSF / Gabarits / Écran` — `402 × 874`
 
 | Variante Figma | Header | Context | Body | Zone basse |
 | --- | ---: | ---: | ---: | ---: |
@@ -762,7 +764,7 @@ Les dimensions ci-dessous décrivent le gabarit Figma de référence. Les insets
 | `Context=On, Bottom=Action` | `0–92` | `92–207` | `207–790` | Action `790–874` |
 | `Context=Off, Bottom=Action` | `0–92` | — | `92–790` | Action `790–874` |
 
-#### `Shell / Modal Fullscreen` — `378 × 822`
+#### `DSF / Gabarits / Modale plein écran` — `378 × 822`
 
 | Zone | Bornes Figma | Dimension |
 | --- | ---: | ---: |
@@ -772,56 +774,67 @@ Les dimensions ci-dessous décrivent le gabarit Figma de référence. Les insets
 
 Le Bottom Action contient un bouton `354 × 48` placé à `x=12`, avec un espace inférieur de référence de `22`. La réaction du prototype et le libellé du bouton restent propres à chaque instance.
 
-#### `Shell / Execution` — `402 × 874`
+#### `DSF / Gabarits / Exécution` — `402 × 874`
 
 | Variante Figma | Header | Content | Footer |
 | --- | ---: | ---: | ---: |
 | `Mode=Run` | `0–92` | `92–782` | `782–874` |
 | `Mode=Summary` | `0–92` | `92–874` | — |
 
-La page Figma `Prototype MVP` contient `74` frames de production. Le contrôle du 1er septembre 2026 établit que `73` utilisent au moins un Screen Shell ; le Splash `1992:469` est l’unique exception. Les neuf états de planification concernés utilisent également `Shell / Modal Fullscreen` à l’intérieur de leur écran de contexte.
+Au relevé historique du 1er septembre 2026, `Prototype MVP` contenait `74` frames de production (133 frames au relevé du 06/10). Le contrôle daté établit que `73` utilisent au moins un Screen Shell ; le Splash `1992:469` est l’unique exception. Les neuf états de planification concernés utilisent également `DSF / Gabarits / Modale plein écran` à l’intérieur de leur écran de contexte.
 
 ### Composants et contrôles réutilisables
 
 Les composants ci-dessous constituent le catalogue structurel actuellement vérifié
 
-Pour l’Exécution, les composants textuels du contenu utilisent **Roboto Condensed** ; le titre supérieur de Séance et les dialogues de décision utilisent **Inter**. Les écrans d’Exécution réutilisent une seule instance d’en-tête canonique. dans la page Figma `Design system — Fondations`. Leur nom Figma est conservé pour permettre une correspondance déterministe.
+Pour l’Exécution, les composants textuels du contenu utilisent **Roboto Condensed** ; le titre supérieur de Séance et les dialogues de décision utilisent **Inter**. Les écrans d’Exécution réutilisent une seule instance d’en-tête canonique dans la page Figma `Design system — Fondations`. Leur nom Figma est conservé pour permettre une correspondance déterministe.
 
-| Famille | Composant ou set Figma | Variantes ou propriétés génériques vérifiées |
-| --- | --- | --- |
-| Navigation | `Navigation / Bottom` (`6298:12462`) | Active=Catalogue, Calendar, History, Profile, Search ; la variante Search ne valide pas son exposition produit |
-| En-tête | `Header / Fixed` | `Mode=Standard/Execution`, `Back=On/Off` |
-| Retour | `Action / Back` (`2624:3105`) | cible `48 × 48` liée à `size/touch-target-min`, cercle `38 × 38` (`2624:3106`) lié à `component/action/circular-visual-box`, cadre d’icône `24 × 24` (`3089:61`) lié à `component/action/circular-icon` |
-| En-tête de modale | `Modal / Header` | `378 × 60`, titre d’instance, Retour standardisé |
-| Action basse de modale | `Modal / Bottom Action` | `378 × 70`, bouton `354 × 48`, libellé d’instance |
-| Bouton principal | `Button / Primary — Source exact` | `State=Active/Disabled` |
-| Interrupteur | `Controls / Switch — Source exact` | `State=On/Off` |
-| Disclosure | `Controls / Disclosure — Source exact` | `State=Collapsed` (`2537:1033`) / `State=Expanded` (`2537:1038`) |
-| Segmented | `Controls / Segmented` (`2586:2759`) | nombre d’items et position sélectionnée ; trois options égales pour `Durée / Répétitions / À l’échec` |
-| Champs | `Forms / Text Field — Source exact` | `Type=Single line/Multiline` |
-| Sélection | `Forms / Select Field — Source exact` | `Size=Full/Compact/Compact narrow`, hauteur `42` |
-| Pickers | `Picker / Popover — Source exact` (`2537:1174`) | `Type=Duration` (`2537:1110`), `Type=Numeric wheel` (`3210:49`), `Type=Time` (`2884:4415`) ou Date selon contrat ; les variantes numériques ouvertes sont rendues dans un overlay d’écran centré, jamais dans le flux ou le `ScrollView` hôte |
-| Décision | `Overlay / Decision Dialog` (`2590:2961`) | deux actions primaire/neutre ou danger/neutre ; trois actions danger/neutre ; dialogue centré. L’abandon des modifications d’un Exercice utilise `PrimaryTone=Danger,SecondaryTone=Neutral,Actions=2` (`2590:2934`) dans la frame `3224:4082` |
-| Nom de séance | `Session / Name Field — Source exact` (`2537:1480`) | `354 × 42`, fond transparent, liseré blanc intérieur `1` |
-| Catalogue | `Carte séance` (`6214:7276`) / `Carte exercice` (`6214:7278`) | Contexte=Catalogue ; Séance Replié/Archivé/Déployé, Exercice Replié/Archivé ; variante Exercice Déployé historique hors MVP ; classement en pastilles, valeurs nues ; gouttière Exercice permanente (D-260/D-261) |
-| Calendrier | `Carte séance` / `Carte exercice` | Contexte=Calendrier Semaine ; états réellement présents selon inventaire du complément |
-| Suivi | `Carte séance` / `Carte exercice`, `Ressenti` (`6234:8895`) | Contexte=Suivi ; carte 67 px à deux lignes, statut en haut à droite, Ressenti indicateur 20 × 20 en bas à droite ; aucun déploiement (D-262) |
-| Composition | `Composition / Activity Row with Recovery` (`3572:64`) | bloc `354 × 93` lorsque Récupération > 0 ; carte principale puis sous-carte attachée `Récupération X min Y s` ; Nom / Zones corporelles / Synthèse ; déplacement, duplication et suppression portent sur le bloc entier |
-| Composition | `Composition / Tour Section — Source exact` | section Tour, synthèse calculée des exercices et répétition contextuelle |
-| Composition | `Composition / Boundary Activity — Source exact` | `Type=Initial countdown/End session` |
-| Exercice | `Activity / Name Field — Source exact` (`3382:4303`) | champ Nom canonique placé en tête du bandeau bleu |
-| Exercice | `Activity / Parameter Row — Source exact` et `Controls / Segmented` (`2586:2759`) | `Mode=Duration/Repetitions/ToFailure` ; ordre invariant `Séries` → cible → `Pause` ; `ToFailure` remplace la cible par le cadre informatif `à l’échec` ; seconde rangée `Récupération` → `Durée totale`, cette dernière étant masquée sans déplacement hors mode Durée |
-| Exercice | États de calcul (`3580:4733`, `3580:4845`, `3580:4957`) | respectivement Séries pilote, Durée totale pilote et durée cible ajustée ; le pilote confirmé reçoit un contour lié à `color/selection` |
-| Média | `Action / Add Media — Source exact` (`3382:60`) | visible mais désactivé dans le MVP ; actif en V2 ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais un caractère typographique `+` |
-| Média | `Media / Preview` (`3382:59`) | aperçu Photo ou Vidéo |
-| Média | `Media / Gallery — Source exact` (`3382:64`) | liste horizontale ordonnée avec aperçu suivant tronqué |
-| Média | `Media / Section — Source exact` (`3382:71`) | section masquée dans le MVP ; conteneur de galerie en V2 |
-| Stepper entier simple | Composant standard/DSF compatible React Native/Expo | Stepper permanent pour Séries/Répétitions dans CE-UI-10 et Tours dans Composition ; bornes métier appliquées ; pas de roulette entière |
-| Catégorie | `Selection / Category Tag` (`3302:4166`) | `State=Unselected/Selected`, propriété texte `Label`; cible tactile `48` de haut, pilule visuelle `30`, rayon `15`, Inter Regular `12/15` |
+Le catalogue courant et les exceptions sont détaillés dans [DSF-CADENCE](../DSF-CADENCE-2026-10-06.md), §7. Les anciens noms Source exact et leurs variantes ne constituent plus le catalogue cible.
 
-Les composants suffixés `Source exact` ont été extraits d’un écran source identifié dans `Prototype MVP`. Ce suffixe qualifie leur provenance visuelle ; il ne transforme pas le contenu métier de l’écran source en propriété du composant.
+| Famille | Référence courante | Variantes / portée |
+|---|---|---|
+| Navigation | DSF / Navigation / Barre inférieure `5544:4441` | Catalogue / Calendrier / Suivi / Profil |
+| En-tête | DSF / Navigation / En-tête fixe `5544:4504` | Standard / Retour / Fermer ; Titre, Démarcation ; exceptions anciennes identifiées dans DSF §7 |
+| En-tête de modale | DSF / Overlays / En-tête de modale `5544:5567` | Classification / Roulette / Sélection |
+| Interrupteur | DSF / Controls / Interrupteur `5544:4632` | Actif / Inactif |
+| Disclosure | DSF / Controls / Disclosure `5544:4650` | Replié / Déployé / Désactivé |
+| Fermer et valider | DSF / Actions / Fermer et valider `5544:4541` | Fermer / Valider |
+| Son | DSF / Controls / Son `5544:4770` | Activé / Désactivé |
+| Voix | DSF / Controls / Voix `5544:4790` | Activée / Désactivée |
+| Indicateur de côté | DSF / Status & Tags / Indicateur de côté `5544:6944` | Droite → Gauche / Gauche → Droite |
+| Confirmation | DSF / Overlays / Confirmation `5544:6095` | Primaire / Destructive / Trois actions / Abandon ; 6 dialogues longs conservés dans la primitive ancienne |
+| Bouton primaire | DSF / Actions / Bouton primaire `5544:4522` | Actif / Désactivé |
+| Segmenté | DSF / Controls / Segmenté `5548:9818` | 6 variantes : Deux détaillé (1/2), Trois (1/2/3), Deux (1) |
+| Nom | DSF / Forms / Nom `5544:4821` | Exercice / Profil / Séance / Étiquette / Nom exercice champ vide |
+| Catégorie sélectionnable | DSF / Status & Tags / Catégorie sélectionnable `5548:10518` | Sélectionnée / Non sélectionnée × standard / Libellé seul |
+| Statut d’exécution | DSF / Status & Tags / Statut d’exécution `5544:6902` | Catalogue / Planifiée / Exécutée / Archivée / Partielle / Terminée / Interrompue |
+| Cartes | DSF / Cards / Séance `6214:7276`, Exercice `6214:7278` | Contextes et états activés selon contrats Catalogue, choix, Calendrier Semaine, Suivi ; présence ne signifie pas activation MVP |
+| Paramètres | Valeur modifiable `6944:26423`, Roulette `5544:5146` | 4 variantes chacune, détails DSF §1 ; structure v13 |
+| Composition / Média / Pickers | Primitives et compositions conservées | Références par contrat ; exceptions historiques ne sont pas de nouvelles règles métier |
 
-Le contrôle `Controls / Disclosure — Source exact` est la référence normative de tout bouton de déploiement ou de repli utilisant cette famille. Chaque occurrence est une instance de la variante appropriée, sans copie graphique locale : cible tactile `48 × 48`, cadre visible centré `28 × 28`, rayon `6`, fond `#FBFCFF` et chevron `8 × 4` tracé en violet sur `2` points. La variante `State=Collapsed` (`2537:1033`) utilise une bordure grise `#D6D9E3` sur `1` point et un chevron bas `#8282F2`. La variante `State=Expanded` (`2537:1038`) utilise une bordure violette `#8283F2` sur `2` points et un chevron haut de même couleur. Les destinations et réactions de prototype restent définies par l’écran hôte ; elles ne sont pas héritées comme comportement métier du composant.
+Les contraintes de contexte déjà validées restent applicables ; les noms ci-dessous sont des repères de provenance historique, avec correspondance courante dans DSF §7.
+
+| Famille | Référence contextuelle | Règle conservée |
+|---|---|---|
+| Retour | Référence conservée par contrat ; ancien nom de provenance : `Action / Back` (`2624:3105`) | cible `48 × 48` liée à `size/touch-target-min`, cercle `38 × 38` (`2624:3106`) lié à `component/action/circular-visual-box`, cadre d’icône `24 × 24` (`3089:61`) lié à `component/action/circular-icon` |
+| Action basse de modale | Référence conservée par contrat ; ancien nom de provenance : `Modal / Bottom Action` | `378 × 70`, bouton `354 × 48`, libellé d’instance |
+| Sélection | Référence conservée par contrat ; ancien nom de provenance : `Forms / Select Field — Source exact` | `Size=Full/Compact/Compact narrow`, hauteur `42` |
+| Pickers | Référence conservée par contrat ; ancien nom de provenance : `Picker / Popover — Source exact` (`2537:1174`) | `Type=Duration` (`2537:1110`), `Type=Numeric wheel` (`3210:49`), `Type=Time` (`2884:4415`) ou Date selon contrat ; les variantes numériques ouvertes sont rendues dans un overlay d’écran centré, jamais dans le flux ou le `ScrollView` hôte |
+| Nom de séance | Référence conservée par contrat ; ancien nom de provenance : `Session / Name Field — Source exact` (`2537:1480`) | `354 × 42`, fond transparent, liseré blanc intérieur `1` |
+| Catalogue | Famille Cartes courante (voir ci-dessus) ; Ressenti selon contrat | Contexte=Catalogue ; Séance Replié/Archivé/Déployé, Exercice Replié/Archivé ; variante Exercice Déployé historique hors MVP ; classement en pastilles, valeurs nues ; gouttière Exercice permanente (D-260/D-261) |
+| Calendrier | Famille Cartes courante (voir ci-dessus) ; Ressenti selon contrat | Contexte=Calendrier Semaine ; états réellement présents selon inventaire du complément |
+| Suivi | Famille Cartes courante (voir ci-dessus) ; Ressenti selon contrat | Contexte=Suivi ; carte 67 px à deux lignes, statut en haut à droite, Ressenti indicateur 20 × 20 en bas à droite ; aucun déploiement (D-262) |
+| Composition | Référence conservée par contrat ; ancien nom de provenance : `Composition / Activity Row with Recovery` (`3572:64`) | bloc `354 × 93` lorsque Récupération > 0 ; carte principale puis sous-carte attachée `Récupération X min Y s` ; Nom / Zones corporelles / Synthèse ; déplacement, duplication et suppression portent sur le bloc entier |
+| Composition | Référence conservée par contrat ; ancien nom de provenance : `Composition / Tour Section — Source exact` | section Tour, synthèse calculée des exercices et répétition contextuelle |
+| Composition | Référence conservée par contrat ; ancien nom de provenance : `Composition / Boundary Activity — Source exact` | `Type=Initial countdown/End session` |
+| Exercice | Référence conservée par contrat ; ancien nom de provenance : États de calcul (`3580:4733`, `3580:4845`, `3580:4957`) | respectivement Séries pilote, Durée totale pilote et durée cible ajustée ; le pilote confirmé reçoit un contour lié à `color/selection` |
+| Média | Référence conservée par contrat ; ancien nom de provenance : `Action / Add Media — Source exact` (`3382:60`) | visible mais désactivé dans le MVP ; actif en V2 ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais un caractère typographique `+` |
+| Média | Référence conservée par contrat ; ancien nom de provenance : `Media / Preview` (`3382:59`) | aperçu Photo ou Vidéo |
+| Média | Référence conservée par contrat ; ancien nom de provenance : `Media / Gallery — Source exact` (`3382:64`) | liste horizontale ordonnée avec aperçu suivant tronqué |
+| Média | Référence conservée par contrat ; ancien nom de provenance : `Media / Section — Source exact` (`3382:71`) | section masquée dans le MVP ; conteneur de galerie en V2 |
+| Stepper entier simple | Référence conservée par contrat ; ancien nom de provenance : Composant standard/DSF compatible React Native/Expo | Stepper permanent pour Séries/Répétitions dans CE-UI-10 et Tours dans Composition ; bornes métier appliquées ; pas de roulette entière |
+
+Disclosure `5544:4650` : Replié / Déployé / Désactivé, cibles `48 × 48` relues. Les anciennes variantes 2537:1033/1038 sont archivées. Réutiliser le master courant, sans copie graphique locale ; les destinations relèvent du contrat hôte.
 
 ### Règles de réutilisation et de contrôle
 
@@ -836,11 +849,11 @@ Le contrôle `Controls / Disclosure — Source exact` est la référence normati
 
 ### Design tokens canoniques
 
-Le Figma contient les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`. Au contrôle du 4 septembre 2026, elles contiennent respectivement `59`, `62` et `4` variables. La collection Responsive possède les modes `Compact 360`, `Standard 402` et `Grand téléphone 440`. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente ces modes pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail.
+Le Figma contient les collections locales `KODJO / Primitives`, `KODJO / Sémantiques` et `KODJO / Responsive`. Au relevé direct du06/10/2026, elles contiennent respectivement350,432 et4 variables ;51 styles de texte. Les anciens comptes59/62/4 et9styles sont historiques. La collection Responsive possède les modes `Compact 360`, `Standard 402` et `Grand téléphone 440`. Ils sont documentés dans la page `Design system — Fondations`. La page `Référence responsive — Cible` présente ces modes pour huit familles structurantes, déclinées en neuf groupes d’écrans puisque le Calendrier est contrôlé séparément en vues Semaine et Mois, soit vingt-sept écrans de travail.
 
-Le `Prototype MVP` n’est pas intégralement relié aux variables ni aux Text Styles. Cette absence de liaison ne crée pas une seconde source de vérité : les valeurs historiques répétées dans ses frames sont rapprochées des tokens canoniques lors du développement, sous réserve de conserver toute différence visuelle explicitement démontrée comme intentionnelle. Une valeur brute telle que `13,16`, `16,92`, `18,8` ou `9,4` ne doit pas être créée comme token : elle est ramenée au niveau canonique correspondant.
+Le journal du05/10 documente la liaison et la rationalisation du Prototype MVP ; le relevé courant ne revendique pas un audit exhaustif de chaque liaison. Les valeurs sont rapprochées par rôle, avec exceptions explicites, selon DSF-CADENCE-2026-10-06 ; ne pas réutiliser le constat du04/09 comme état courant. Une valeur brute telle que `13,16`, `16,92`, `18,8` ou `9,4` ne doit pas être créée comme token : elle est ramenée au niveau canonique correspondant.
 
-Les noms avec barre oblique, par exemple `color/primary`, sont les noms physiques des variables Figma. Les noms avec point employés dans le code, par exemple `color.primary`, sont leurs identifiants d’implémentation. La table de correspondance doit rester bijective ; deux tokens de code ne peuvent pas représenter silencieusement une même variable Figma.
+Les noms avec barre oblique, par exemple `color/primary`, sont les noms physiques des variables Figma. Les noms avec point employés dans le code, par exemple `color.primary`, sont leurs identifiants d’implémentation. La correspondance distingue les rôles ; les alias explicitement conservés (divider/border, iconNeutral/textSecondary, etc.) sont documentés et ne justifient pas une duplication silencieuse.
 
 #### Couleurs
 
@@ -854,9 +867,10 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.surfaceSubtle` | `#F9FAFC` | Contrôles neutres et fonds légers |
 | `color.textPrimary` | `#141414` | Texte principal canonique |
 | `color.textSecondary` | `#595E66` | Texte secondaire |
-| `color.iconNeutral` | `#5C636E` | Icônes inactives |
+| `color.iconNeutral` | `#595E66` | Icônes inactives |
+| `color.cardsBorder` | `#CCD1E0` | Bordure renforcée ; Figma `color/cards/border` |
 | `color.border` | `#E0E3E8` | Bordure standard |
-| `color.divider` | `#DBE0E8` | Séparateurs et démarcation d’en-tête |
+| `color.divider` | `#E0E3E8` | Séparateurs et démarcation d’en-tête |
 | `color.disabled` | `#BEC2CC` | Fond d’action désactivée |
 | `color.snackbar` | `#292B33` | Fond des messages temporaires |
 | `color.positive` | `#4F9F83` | Ressenti positif sélectionné |
@@ -868,9 +882,16 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.wheelActionCancelIcon` | `#141414` | Croix d’annulation ; alias de `color.textPrimary` |
 | `color.wheelActionConfirmIcon` | `#FFFFFF` | Coche de confirmation sur fond primaire |
 | `color.sessionNameBorder` | `#FFFFFF` | Liseré du champ `Nom de la séance` sur la surface colorée de Composition ; variable Figma `color/session-name-border` |
-| `color.mediaSurface` | `#F6F6FF` | Surface des aperçus Média ; variable sémantique Figma `color/media/surface`, alias exact de la primitive `color/media/surface-F6F6FF` |
+| `color.mediaSurface` | `#F5F7FA` | Alias conservé de surface ; anciennes valeurs F6F6FF historiques |
 | `color.mediaBorder` | `#CDCEFA` | Bordure des aperçus Média ; variable sémantique Figma `color/media/border`, alias exact de la primitive `color/media/border-CDCEFA` |
 | `color.overlayScrim` | `rgba(31, 33, 41, 0.34)` | Voile bloquant des roulettes ouvertes ; variable sémantique Figma `color/overlay/scrim`, alias exact de la primitive `color/overlay/scrim-1F2129-34` |
+| `color.textLabel` | `#46464C` | Libellés, Figma color/text-label |
+| `color.textTertiary` | `#7A7A80` | Texte tertiaire |
+| `color.onPrimary` | `#FFFFFF` | Texte et icône sur primaire |
+| `color.primarySoft` | `#8283F2` | Décor, pas fond de sélection portant du texte blanc normal |
+| `color.calendarMarker` | `#1F9E7A` | Point de séance Calendrier |
+| `color.breakpoint` | `#ED7314` | Action de point d’arrêt |
+| `color.compositionDraggedCardShadow` | `#14171F` | Teinte d’ombre ; distincte du voile modal |
 
 Les couleurs de statut sont toujours accompagnées d’un libellé, d’une icône ou des deux. Les rares variantes historiques de noir ou de gris présentes dans les frames sont normalisées vers les tokens ci-dessus lors du développement, sauf différence visuelle explicitement documentée.
 
@@ -878,27 +899,36 @@ L’ancienne valeur `#8283F2` ne doit plus servir de fond à un texte blanc de t
 
 #### Typographie
 
-La famille du MVP est `Inter`. La hauteur de ligne explicite ci-dessous remplace la valeur Figma `AUTO` afin d’obtenir un rendu stable entre plateformes.
+Les textes d’interface utilisent Inter ; chronomètres et compteurs concernés utilisent volontairement Roboto Condensed. Ces deux familles doivent être chargées ; Roboto Condensed utilise Medium, SemiBold et Bold. Les rendus Auto Inter sont explicités par la règle D2 ; les interlignes explicites sont conservés. Les métriques Auto Roboto se mesurent par rôle, sans leur appliquer le facteur Inter.
 
-Les neuf Text Styles locaux actuellement présents sont : `KODJO / Timer`, `Screen title`, `Modal title`, `Section title`, `Body`, `Label`, `Button`, `Supporting` et `Navigation label`. Ils ne couvrent pas encore à eux seuls toute la gamme fonctionnelle ci-dessous et ne sont pas appliqués aux 2 614 nœuds texte de `Prototype MVP`. La gamme suivante constitue donc le contrat typographique canonique d’implémentation et de rationalisation ; elle ne doit pas être présentée comme une liaison Figma déjà exhaustive.
+Le relevé du06/10 comporte51 styles. La correspondance code/Figma se fait par rôle et contexte, jamais par égalité de corps. Les styles historiques subsistent ; DSF / Card title17 est obsolète, et le chrono secondaire5017:6051 utilise le style neutre Inter Semi Bold17.
 
 | Token | Graisse | Taille | Hauteur de ligne | Usage |
 | --- | --- | ---: | ---: | --- |
-| `type.timerPrimary` | Semi Bold | `58` | `64` | Temps principal pendant l’Exécution |
+| Temps principal d’Exécution — rôle à mapper | Roboto Condensed Bold | `100` | Rendu Auto Figma à mesurer par rôle, ne pas réutiliser64 | Témoin DSF / Timer ; ancien type.timerPrimary Inter58/64 non conforme |
+| Grand chronomètre — rôle contextuel | Roboto Condensed Bold | `158` | Auto Figma, à mesurer par rôle | 6 occurrences selon brief, ne pas généraliser à tous les chronomètres |
+| Compteurs | Roboto Condensed Bold / SemiBold | `30` | Interligne propre au contexte Figma | Compteurs de tours / répétitions |
+| Indication média | Roboto Condensed Medium | `24` | Interligne propre au contexte Figma | Indication média |
+| Chronomètre / libellé secondaire | Roboto Condensed SemiBold | `16` | `22` explicite | Exception conservée |
+| Information secondaire | Roboto Condensed Medium | `16` / `17` | Auto Figma | Rôles contextuels, ne pas appliquer le facteur Inter |
+| Information compacte | Roboto Condensed SemiBold | `10` | Espacement contextualisé validé par le journal §3 |
+| `14` | Espacement contextualisé validé par le journal §3 |
+| `20` | Espacement contextualisé validé par le journal §3 |
+| `12` | Auto Figma | Rôle compact |
 | `type.activityTitle` | Semi Bold | `28` | `34` | Nom de l’Exercice en cours d’Exécution |
 | `type.metricPrimary` | Semi Bold | `22` | `28` | Durée, résultat ou métrique dominante |
 | `type.screenTitle` | Semi Bold | `20` | `24` | Titre d’écran |
 | `type.modalTitle` | Semi Bold | `18` | `22` | Titre de modale, bottom sheet ou date principale |
-| `type.sectionTitle` | Semi Bold | `16` | `20` | Titre de section ou de formulaire |
-| `type.cardTitle` | Semi Bold | `16` | `20` | Titres hors famille Cartes du 30 septembre |
-| Titre des nouvelles cartes | Semi Bold | `15` | Selon référence Figma | Catalogue, choix, Calendrier Semaine et Suivi ; exception documentée à D-083 |
-| `type.compactCardTitle` | Semi Bold | `13` | `18` | Titre d’une carte compacte imbriquée, notamment dans une Composition |
-| `type.body` | Regular | `14` | `20` | Texte courant |
-| `type.label` | Medium | `14` | `18` | Libellé de champ ou valeur importante |
-| `type.button` | Semi Bold | `14` | `18` | Bouton principal et secondaire |
-| `type.supporting` | Regular | `12` | `16` | Aide, métadonnée et information secondaire |
-| `type.caption` | Regular | `11` | `16` | Légende compacte et information contrainte |
-| `type.navLabel` | Regular | `11` | `16` | Libellé de destination active |
+| `type.sectionTitle` | Semi Bold | `16` | `19` Auto ;20 si style explicite | Titre de section ou de formulaire |
+| `type.cardTitle` | Semi Bold | `16` | `19` Auto ;20 si style explicite | Titres hors famille Cartes du 30 septembre |
+| Titre des nouvelles cartes (rôle distinct de cardTitle) | Semi Bold | `15` | `18` | Catalogue, choix, Calendrier Semaine et Suivi ; exception documentée à D-083 |
+| `type.compactCardTitle` | Semi Bold | `15` | `18` | Titre d’une carte compacte imbriquée, notamment dans une Composition |
+| `type.body` | Regular | `14` | `17` Auto ;20 si style explicite | Texte courant |
+| `type.label` | Medium | `14` | `17` Auto ;18 si style explicite | Libellé de champ ou valeur importante |
+| `type.button` | Semi Bold | `14` | `17` Auto ;18 si style explicite | Bouton principal et secondaire |
+| `type.supporting` | Regular | `12` | `15` explicite selon rôle ;16 historique | Aide, métadonnée et information secondaire |
+| `type.caption` | Regular | `11` | `13` (Inter Auto traduit selon D2) | Légende compacte ; usages Calendrier relus, ancien code14/doc16 à aligner |
+| `type.navLabel` | Regular | `11` | `13` (usages Navigation / Bottom Inter11 Auto) | Rôle vérifié sur libellés Calendrier/Suivi/Profil ; ancien style11/16 historique |
 
 La taille minimale d’un texte fonctionnel est `11`. Une information secondaire utilise normalement `type.supporting` en `12`. Les tailles `8`, `10` et `10,5` ne sont pas utilisées pour du texte fonctionnel ; les points du Calendrier mensuel sont des indicateurs graphiques et non des caractères typographiques. Les titres et noms fonctionnels utilisent `type.cardTitle` en `16`, sauf les nouvelles cartes en `15` et le niveau compact explicitement prévu par `type.compactCardTitle`. La taille `15` est désormais le titre fonctionnel des nouvelles cartes du 30 septembre, exception explicite à D-083 ; les autres titres conservent leur niveau propre.
 
@@ -911,7 +941,7 @@ La taille canonique désigne la boîte visuelle de l’icône. Le tracé interne
 | Token | Taille visuelle | Usage |
 | --- | ---: | --- |
 | `icon.control` | `14 × 14` | Chevrons et indicateurs de sélecteurs compacts |
-| `icon.compact` | `16 × 16` | Icônes fonctionnelles incorporées à un contrôle compact, par exemple `icon/ajouter` (`2884:4315`) dans `Action / Add Activity — Source exact` (`2537:1484`). Ne s’applique jamais aux icônes structurelles de carte |
+| `icon.compact` | `16 × 16` | Icônes fonctionnelles incorporées à un contrôle compact. L’ancien exemple `icon/ajouter` (`2884:4315`) dans `Action / Add Activity — Source exact` (`2537:1484`) est historique, supprimé lors du nettoyage Figma ; il ne prouve plus ce format. Ne s’applique jamais aux icônes structurelles de carte |
 | `icon.section` | `18 × 18` | Icônes de contenu, repli de section et restauration interne |
 | `icon.standard` | `24 × 24` | Retour, fermeture, ajout, navigation précédent/suivant et commandes de section |
 | `icon.action` | `28 × 28` | Démarrer, restaurer et actions circulaires |
@@ -920,9 +950,9 @@ La taille canonique désigne la boîte visuelle de l’icône. Le tracé interne
 
 Les pictogrammes de navigation sont centrés dans leur boîte `32 × 32` sans mise à l’échelle forcée de leurs tracés : leurs dimensions internes peuvent donc différer. Les triangles de lecture, chevrons ou autres chemins vectoriels internes ne créent pas de tokens supplémentaires.
 
-`icon.compact` décrit exclusivement la boîte visuelle d’une petite icône fonctionnelle intégrée à un contrôle. L’exemple DSF canonique est le signe d’ajout vectoriel `icon/ajouter` (`2884:4315`), de `16 × 16`, dans le composant `Action / Add Activity — Source exact` (`2537:1484`, contrôle `174 × 32`). Ce token ne définit ni la taille de la cible tactile ni celle d’un slot structurel.
+`icon.compact` décrit exclusivement la boîte visuelle d’une petite icône fonctionnelle intégrée à un contrôle. L’ancien exemple `icon/ajouter` (`2884:4315`, 16 × 16) dans `Action / Add Activity — Source exact` (`2537:1484`, 174 × 32) est historique et n’est plus une source Figma courante. La référence courante du signe d’ajout est `icon/ajouter` (`6959:15706`, 24 × 24), export `assets/icons/action-add.svg` selon DSF-CADENCE §6 ; elle ne démontre pas à elle seule un usage `icon.compact` de 16 × 16. Ce token ne définit ni la taille de la cible tactile ni celle d’un slot structurel.
 
-La poignée de déplacement constitue une exception structurelle explicite : `Icon / Structure / Movable` (`3066:4676`) utilise un dessin `20 × 20`, centré dans un slot `28 × 28`, avec une opacité de `50 %` et la couleur `color.iconNeutral`. L’ancien dessin local `icon/réorganiser` en `16 × 16` est obsolète et interdit comme source ou comme implémentation de cette poignée. Il ne doit jamais être déduit de `icon.compact`.
+La poignée de déplacement constitue une exception structurelle explicite : `DSF / Primitives / Icône de structure — déplaçable` (`3066:4676`) utilise un dessin `20 × 20`, centré dans un slot `28 × 28`, avec une opacité de `50 %` et la couleur `color.iconNeutral`. L’ancien dessin local `icon/réorganiser` en `16 × 16` est obsolète et interdit comme source ou comme implémentation de cette poignée. Il ne doit jamais être déduit de `icon.compact`.
 
 Les caractères typographiques `+`, `×`, `‹`, `›` et les coches ne sont pas utilisés comme icônes dans l’application. Ils sont remplacés par des tracés vectoriels nommés, centrés dans la boîte visuelle appropriée et colorés avec les tokens d’icône ou d’action.
 
@@ -930,8 +960,8 @@ Les caractères typographiques `+`, `×`, `‹`, `›` et les coches ne sont pas
 
 | Famille | Tokens autorisés | Usage principal |
 | --- | --- | --- |
-| Espacements | `2`, `4`, `6`, `8`, `12`, `16`, `24`, `32` | Écart interne et externe ; `24` est la marge standard, `16` la marge compacte |
-| Rayons fixes | `6`, `8`, `10`, `12`, `16`, `20`, `24` | Petits indicateurs, contrôles, champs, cartes, modales et boutons |
+| Espacements | `2`, `4`, `6`, `8`, `10`, `12`, `14`, `16`, `20`, `24`, `32` | Écart interne et externe ; `24` est la marge standard, `16` la marge compacte |
+| Rayons fixes | `6`, `8`, `10`, `12`, `14`, `16`, `17`, `20`, `24` | Petits indicateurs, contrôles, champs, cartes, modales et boutons |
 | Rayons dérivés | Demi-hauteur ou demi-largeur du composant | Cercles et capsules ; notamment `28`, `29` et `33` dans les composants actuellement validés |
 | Bordure | `1`, `2` | `1` par défaut ; `2` pour un état actif ou fortement accentué |
 
@@ -964,7 +994,9 @@ La hauteur totale d’une modale basse suit son contenu, dans la limite de haute
 | `24` | Marge horizontale standard, séparation entre groupes fonctionnels et espacement information/progression de l’Exécution |
 | `32` | Séparation majeure entre sections ou entre une barre d’actions et le début d’une liste |
 
-Les valeurs `10`, `14`, `18`, `26`, `29` et `30` observées historiquement dans certaines frames ne sont pas des tokens. Elles ont été rationalisées vers l’échelle ci-dessus lorsqu’elles représentaient un véritable espacement. Une distance mesurée entre deux boîtes Figma peut néanmoins résulter de la hauteur de ligne, de la hauteur d’un contrôle, d’une grille horaire ou d’un sélecteur système : elle n’est alors pas convertie en token et ne doit pas être arrondie mécaniquement.
+Les espacements `10`, `14`, `20` et rayons `14`, `17` sont des tokens courants (journal §3) ; ne pas les arrondir vers une ancienne échelle.
+
+Les valeurs `18`, `26`, `29` et `30` observées historiquement dans certaines frames ne sont pas des tokens. Elles ont été rationalisées vers l’échelle ci-dessus lorsqu’elles représentaient un véritable espacement. Une distance mesurée entre deux boîtes Figma peut néanmoins résulter de la hauteur de ligne, de la hauteur d’un contrôle, d’une grille horaire ou d’un sélecteur système : elle n’est alors pas convertie en token et ne doit pas être arrondie mécaniquement.
 
 ##### Espacements validés par composant
 
@@ -993,23 +1025,30 @@ Les espacements sont appliqués par `gap`, `padding`, `margin` ou par la structu
 | `8` | Petit champ ou contrôle compact |
 | `10` | Options de contrôles segmentés et options de rappel |
 | `12` | Carte et champ standard |
+| `14` | Complément de rationalisation du journal §3, conserver par contexte |
+| `17` | Contrôle Tri, rayon de demi-hauteur 34 |
 | `16` | Bouton secondaire compact, calendrier contextuel et message temporaire |
 | `20` | Modale compacte, notamment `Choisir une séance` et les modales de planification validées |
 | `24` | Bouton principal de hauteur minimale `48` |
 
-Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes ont été rationalisées respectivement vers `10`, `16` ou `20` selon le composant. Le token sémantique `radius/20` est lié à la primitive `dimension/20`. Les valeurs de demi-hauteur ou demi-diamètre propres aux destinations actives et à la navigation principale ne complètent pas l’échelle fixe. Les cercles, capsules, indicateurs graphiques de demi-hauteur et rayons supérieurs propres aux bottom sheets restent calculés depuis la géométrie du composant et ne sont jamais arrondis mécaniquement vers un token fixe.
+Les valeurs historiques `9`, `9,4` et `18,8` utilisées comme rayons fixes ont été rationalisées respectivement vers `10`, `16` ou `20` selon le composant. Le token sémantique `radius/20` est lié à la primitive `dimension/20`. Les valeurs de demi-hauteur ou demi-diamètre propres aux destinations actives et à la navigation principale ne complètent pas l’échelle fixe. Les cercles, capsules, indicateurs graphiques de demi-hauteur et rayons supérieurs propres aux bottom sheets restent calculés depuis la géométrie du composant et ne sont jamais arrondis mécaniquement vers un token fixe.
 
 #### Dimensions structurantes
 
 | Élément | Règle |
 | --- | --- |
+| `size/header-fixed-height` | `95`, référence Figma incluant la barre d’état ; utiliser l’inset système réel, pas une hauteur fixe de 95 |
+| `size/main-navigation-region-height` | `77`, région de navigation de référence |
+| `size/modal-bottom-action-height` | `70`, région d’action basse de modale |
+| `size/content-max-width` | `440`, largeur maximale de contenu |
+| `size/modal-width` / `size/modal-height` | `378` / `822`, gabarit de référence |
 | Bouton principal | Hauteur minimale `48`, rayon `24`, largeur utile complète |
 | Bouton secondaire compact | Hauteur visuelle `32`, rayon `16`, dans une cible tactile de `48 × 48` minimum |
 | Cible tactile commune | Minimum `48 × 48` points logiques sur iOS et Android |
 | Minimum natif iOS | `44 × 44` points ; le MVP retient volontairement la règle commune plus exigeante de `48 × 48` |
 | Minimum natif Android | `48 × 48 dp` |
 | En-tête | Hauteur de contenu `48` + inset supérieur dynamique |
-| Région d’en-tête du gabarit | `92` ; zone utile `48` et réserve système de référence, remplacée par l’inset supérieur réel |
+| Région d’en-tête du gabarit historique | `92` (référence ancienne ; token courant 95) ; zone utile `48` et réserve système de référence, remplacée par l’inset supérieur réel |
 | Action finale d’écran | Région de référence `84` (`790–874`) ; bouton de `48` dans un conteneur intégrant marges et inset inférieur réel |
 | Action finale de modale plein écran | Région de référence `70` (`752–822`) ; bouton `354 × 48` et espace inférieur de référence `22` |
 | Région de navigation du gabarit | `77` (`797–874`) ; contient la barre principale visuelle de `66` et la réserve d’inset inférieur |
@@ -1025,18 +1064,20 @@ Les valeurs historiques `9`, `9,4`, `14` et `18,8` utilisées comme rayons fixes
 | Bandeau contextuel Exercice | `402 × 115`, accolé à la ligne basse de l’en-tête ; contexte Inter Regular `14/17` ; padding supérieur `spacing/12`, espacement contexte/champ `spacing/24`, padding inférieur `spacing/16` explicitement porté par le shell |
 | Champ Nom de l’Exercice | Largeur utile `354`, hauteur visuelle `46`, fond transparent, liseré blanc intérieur `1`; valeur en token canonique `KODJO / Screen title` (`20/24`, Semi Bold), identique au champ `Nom de la séance` |
 | Synthèse de l’Exercice | Largeur utile `354`, texte `KODJO / Body` (`14/20`), cadre extensible ; espacement vertical `spacing/24` avant l’action finale |
-| Tag de Catégorie | Composant DSF `Selection / Category Tag` (`3302:4166`) ; `State=Unselected/Selected` ; cible tactile de hauteur `48`, pilule visuelle de hauteur `30` centrée dans la cible, rayon `15`, libellé Inter Regular `12/15`; rangées espacées sur un pas minimal de `48` afin que les cibles ne se chevauchent pas ; largeur adaptée au libellé dans la largeur utile |
+| Tag de Catégorie | Composant DSF `DSF / Status & Tags / Catégorie sélectionnable` (`5548:10518`) (`3302:4166`) ; `State=Unselected/Selected` ; cible tactile de hauteur `48`, pilule visuelle de hauteur `30` centrée dans la cible, rayon `15`, libellé Inter Regular `12/15`; rangées espacées sur un pas minimal de `48` afin que les cibles ne se chevauchent pas ; largeur adaptée au libellé dans la largeur utile |
 | Conteneur Circuit | Largeur `374` ; hauteur `54` fermé ou `175` déployé ; en-tête intérieur `354 × 34` avec marges externes de `10` |
 | Stepper du nombre de Tours | Contrôle inline ; valeur de `1..99` sans ouverture de modale ; alignement et dimensions suivent le Figma actif ; aucun chevron de repli |
-| Icône Tour | composant DSF `Icon / Tour` (`3066:4685`) ; dessin `18 × 18` ; trait `1,35` ; `color.textPrimary` (`#141414`) ; actif `assets/icons/icon-tour.svg` ; clé `icon.tour` |
+| Icône Tour | composant DSF `DSF / Primitives / Icône de tour` (`3066:4685`) ; dessin `18 × 18` ; trait `1,35` ; `color.textPrimary` (`#141414`) ; actif `assets/icons/icon-tour.svg` ; clé `icon.tour` |
 
 Dans `Composition / Circuit Section`, le groupe `Nombre de tours` + synthèse mesure `33` points de haut et est centré verticalement face au sélecteur. La synthèse utilise `type.caption` (`11/13`), `color.textSecondary` et un espacement vertical de `4` points sous le titre. Son calcul consomme la Durée synthétique des Exercices et exclut toujours le `Compte à rebours initial` et la `Fin de séance`, éléments structurels hors Circuit. Ces valeurs réemploient les tokens existants ; aucun nouveau token n’est créé. Les variantes `State=Collapsed` et `State=Expanded` partagent strictement cet en-tête.
 
 ##### Source canonique de l’icône Tour
 
-Le composant DSF `Icon / Tour` (`3066:4685`) est l’unique source Figma autorisée. Son dessin provient de l’icône validée dans la frame `Nouvelle séance — Nom renseigné` (`2028:12003`), ancien nœud graphique local `2028:12040`, désormais remplacé dans l’écran par une instance du composant DSF. La référence exportable unique est `assets/icons/icon-tour.svg`, déclarée sous la clé `icon.tour` dans `assets/icons/manifest.json` et destinée à `KodjoIcon name="icon-tour"`. L’ancienne géométrie `20 × 20`, les copies `icon/contenu-principal` et toute autre entrée de manifeste concurrente ne sont plus canoniques.
+Le composant DSF `DSF / Primitives / Icône de tour` (`3066:4685`) est l’unique source Figma autorisée. Son dessin provient de l’icône validée dans la frame `Nouvelle séance — Nom renseigné` (`2028:12003`), ancien nœud graphique local `2028:12040`, désormais remplacé dans l’écran par une instance du composant DSF. La référence exportable unique est `assets/icons/icon-tour.svg`, déclarée sous la clé `icon.tour` dans `assets/icons/manifest.json` et destinée à `KodjoIcon name="icon-tour"`. L’ancienne géométrie `20 × 20`, les copies `icon/contenu-principal` et toute autre entrée de manifeste concurrente ne sont plus canoniques.
 
-| Écran concerné | Frame | Instance `Icon / Tour` |
+Le tableau suivant conserve le **relevé historique des instances**, antérieur au nettoyage du 05/10 : les IDs locaux supprimés ne constituent plus des cibles courantes. Le composant canonique `3066:4685` ci-dessus reste la source ; `4913:7432` est le stepper de Tours, pas une instance de l’icône. Aucun remplacement d’ID local n’est inventé.
+
+| Écran historique concerné | Frame du relevé historique | Instance / élément du relevé historique |
 | --- | --- | --- |
 | Nouvelle séance — État initial | `2028:11137` | `I3067:4835;3067:247` |
 | Modal — Abandonner la création de la séance | `2028:11298` | `3272:4126` |
@@ -1051,7 +1092,7 @@ Le composant DSF `Icon / Tour` (`3066:4685`) est l’unique source Figma autoris
 
 L’état de déplacement par appui long ne crée pas un second composant. Il applique temporairement au bloc Exercice + Récupération les dimensions `362 × 97`, le bleu du bandeau supérieur, un fond interne transparent, un contour `1` point `#D1D1D6`, un rayon `12` et une ombre `#14171F` à `22 %` avec décalage `0 / 0`, flou `10` et étalement `2`. Au repos, le bloc reprend `354 × 93`; sans Récupération, la carte conserve `354 × 69`. La persistance de l’ordre intervient uniquement après une dépose valide via `API-COM-06`.
 
-Les tokens Figma associés sont `component/wheel/compact-height`, `component/wheel/numeric-compact-width`, `component/wheel/selection-column-width`, `component/wheel/action-bar-height`, `component/wheel/content-height`, `component/wheel/action-hit-target`, `component/wheel/action-visual-box`, `component/wheel/action-icon`, `component/action/circular-visual-box`, `component/action/circular-icon`, `color/wheel-action/cancel-background`, `color/wheel-action/confirm-background`, `color/wheel-action/cancel-icon` et `color/wheel-action/confirm-icon`. Les primitives `dimension/38` (`VariableID:3641:68`), `dimension/53` (`VariableID:3644:68`), `dimension/144` (`VariableID:3644:69`) et `dimension/203` (`VariableID:3644:70`) valent respectivement `38`, `53`, `144` et `203`. `component/action/circular-visual-box` (`VariableID:3641:69`) aliasse `dimension/38`, puis `component/wheel/action-visual-box` (`VariableID:3078:61`) aliasse ce token sémantique. `component/wheel/action-bar-height` (`VariableID:3072:4056`) aliasse `dimension/53`; `component/wheel/numeric-compact-width` (`VariableID:3218:4021`) aliasse `dimension/144`; `component/wheel/compact-height` (`VariableID:3072:4060`) aliasse `dimension/203`. `component/wheel/action-hit-target` (`VariableID:3072:4057`) et `size/touch-target-min` (`VariableID:2612:10`) restent aliasés à `dimension/48` (`VariableID:2290:37`). `component/action/circular-icon` (`VariableID:3648:68`) et `component/wheel/action-icon` (`VariableID:3072:4058`) aliasent `dimension/24` (`VariableID:2290:30`). Ces tokens décrivent `Action / Back` (`2624:3105`) et le component set unique `Picker / Popover — Source exact` (`2537:1174`), notamment les variantes `Type=Duration` et `Type=Numeric wheel`, dans la section `Forms` du Design System Foundation ; aucune seconde famille de composant Wheel ne doit être créée.
+Les tokens Figma associés sont `component/wheel/compact-height`, `component/wheel/numeric-compact-width`, `component/wheel/selection-column-width`, `component/wheel/action-bar-height`, `component/wheel/content-height`, `component/wheel/action-hit-target`, `component/wheel/action-visual-box`, `component/wheel/action-icon`, `component/action/circular-visual-box`, `component/action/circular-icon`, `color/wheel-action/cancel-background`, `color/wheel-action/confirm-background`, `color/wheel-action/cancel-icon` et `color/wheel-action/confirm-icon`. Les primitives `dimension/38` (`VariableID:3641:68`), `dimension/53` (`VariableID:3644:68`), `dimension/144` (`VariableID:3644:69`) et `dimension/203` (`VariableID:3644:70`) valent respectivement `38`, `53`, `144` et `203`. `component/action/circular-visual-box` (`VariableID:3641:69`) aliasse `dimension/38`, puis `component/wheel/action-visual-box` (`VariableID:3078:61`) aliasse ce token sémantique. `component/wheel/action-bar-height` (`VariableID:3072:4056`) aliasse `dimension/53`; `component/wheel/numeric-compact-width` (`VariableID:3218:4021`) aliasse `dimension/144`; `component/wheel/compact-height` (`VariableID:3072:4060`) aliasse `dimension/203`. `component/wheel/action-hit-target` (`VariableID:3072:4057`) et `size/touch-target-min` (`VariableID:2612:10`) restent aliasés à `dimension/48` (`VariableID:2290:37`). `component/action/circular-icon` (`VariableID:3648:68`) et `component/wheel/action-icon` (`VariableID:3072:4058`) aliasent `dimension/24` (`VariableID:2290:30`). Ces tokens décrivent `DSF / Primitives / Action — retour` (`2624:3105`) et le component set unique `Picker / Popover — Source exact` (`2537:1174`), notamment les variantes `Type=Duration` et `Type=Numeric wheel`, dans la section `Forms` du Design System Foundation ; aucune seconde famille de composant Wheel ne doit être créée.
 
 ### Règles de dimensionnement des composants
 
@@ -1287,7 +1328,7 @@ Le filtrage et le tri sont des paramètres de requête indépendants du segment.
 
 ### Composants et tokens Figma
 
-Les composants d’éditeur et de Composition restent la base visuelle, mais le composant historique `Composition / Activity Row with Recovery` (`3572:64`) est **supersédé sur la sémantique récupération par D-208** : la donnée post-activité reste systématique, y compris à `0 s` ; D-238 supprime ensuite sa ligne visible, et l’éditeur utilise une récupération entre côtés conditionnelle. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
+Les composants d’éditeur et de Composition restent la base visuelle, mais le composant historique `Composition / Activity Row with Recovery` (`3572:64`) est **supersédé sur la sémantique récupération par D-208** : la récupération post-activité est ajoutée explicitement ; D-238 retire les informations de pause/récupération du corps des cartes ; le trait reste hors placement, indépendamment du contenu (D-303). L’éditeur utilise une récupération entre côtés conditionnelle. Les états d’écran de calcul sont `3580:4733` (Séries pilote), `3580:4845` (Durée totale pilote) et `3580:4957` (durée ajustée).
 
 Les alias Figma sont bijectifs et explicites :
 
@@ -1308,7 +1349,7 @@ Le générateur de Plan est l’unique composant autorisé à développer les pa
 
 Les services de calcul utilisent des fonctions pures couvrant les deux valeurs de `L`, l’arrondi `.5` vers le haut, les bornes et le recalcul. Les tests combinent trois modes × trois réglages × Exercice/Tour × Séries × Pauses/Récupérations × interruptions. Les tests d’intégration vérifient l’ordre `D→G` et `G→D`, l’idempotence des résultats, la reprise, la progression monotone, les annonces uniques et la préservation du premier côté lors d’une réinitialisation du second.
 
-Le DSF normalise `Controls / Sides — Source exact` (`3704:5021`) à `74 × 42 pt` pour toutes ses variantes ; il est déjà placé ligne 2, colonne 1 sous `Séries`. `Controls / Tour Sides — Source exact` (`3705:5021`) reste `42 × 34 pt`, avec `8 pt` après le cadre numérique `66 × 34 pt` dans `2028:11743`. `Indicator / Sides — Source exact` (`3706:5020`) reste `42 × 20 pt` dans les informations secondaires de carte. Les descriptions DSF portent les libellés accessibles, les conditions de désactivation et de confirmation. Cette rectification ne crée aucun token, champ, enum ou calcul.
+Le DSF normalise `Controls / Sides — Source exact` (`3704:5021`) à `74 × 42 pt` pour toutes ses variantes ; il est déjà placé ligne 2, colonne 1 sous `Séries`. `Controls / Tour Sides — Source exact` (`3705:5021`) reste `42 × 34 pt`, avec `8 pt` après le cadre numérique `66 × 34 pt` dans `2028:11743`. `DSF / Status & Tags / Indicateur de côté` (`5544:6944`) remplace l’ancienne référence `3706:5020`, historiquement `42 × 20 pt` dans les informations secondaires de carte. Les descriptions DSF portent les libellés accessibles, les conditions de désactivation et de confirmation. Cette rectification ne crée aucun token, champ, enum ou calcul.
 
 Le Shell d’Exécution affiche un texte secondaire centré de 16 points sous le nom de l’Exercice pour le côté courant. Les écrans unilatéraux le masquent. Cette présentation réutilise les couleurs et la typographie existantes ; aucun nouveau token n’est requis.
 
@@ -1333,10 +1374,10 @@ Les pictogrammes de `CE-COMP-SEL-01` proviennent des composants locaux DSF du fi
 
 | Usage | Composant Figma | ID / clé | Tokens liés |
 |---|---|---|---|
-| Recherche dans le panneau | `Icon / Search` | `3847:5508` / `8468835f0e5ce8676ea419e838c19dccddac0d71` | trait `color/icon-neutral` — `VariableID:2290:59` |
-| Exercice sélectionnée | `Icon / Selection Check` | `3847:5512` / `27a55ca50eec5411d0e087bbf6bd6f0222c0ebf4` | fond `color/selection` — `VariableID:2290:52` ; liseré et coche blancs — `VariableID:2290:5` |
+| Recherche dans le panneau | `DSF / Primitives / Icône de recherche` | `3847:5508` / `8468835f0e5ce8676ea419e838c19dccddac0d71` | trait `color/icon-neutral` — `VariableID:2290:59` |
+| Exercice sélectionné — choix Composition | `DSF / Cards / Exercice`, variante `Contexte=Choix composition, État=Sélectionné` | carte `6214:4425` ; case `6214:4423` ; coche `6214:4424` | case `#0508E5` liée à `color/blue/primary-0508E5` (`VariableID:2290:2`), rayon6 ; coche blanche (`VariableID:2290:5`) |
 
-Chaque composant possède un cadre vectoriel `24 × 24 pt`. L’implémentation réutilise l’asset exporté ou son équivalent code connecté au composant, sans caractère Unicode, emoji, glyphe de police, icône système ni redessin approximatif. La cible tactile appartient au contrôle hôte et reste au minimum `48 × 48 pt`.
+L’ancien composant autonome `Icon / Selection Check` (`3847:5512`) est absent. La référence actuelle est vérifiée dans la frame `3789:5349`, instances sélectionnées `6221:3519` et `6221:3586`, issues de la carte `6214:4425`. La case mesure20 ×20, rayon6, sans stroke ; la coche source est un glyphe Inter14 Semi Bold dans un calque20 ×20. Son export SVG vectorisé exact est [selection-check.svg](../../assets/icons/selection-check.svg), `viewBox 0 0 10 8` : dimensions du tracé exporté, pas du slot. Aucun glyphe de police n’est requis côté code. Le calque de coche se place 1px au-dessus de la case ; le tracé visible a un décalage d’environ5,236px horizontal et5,598px vertical dans la case selon ses bounds Figma. Ne pas agrandir le tracé10 ×8 à20 ×20. Le fond et son rayon appartiennent au contrôle hôte, pas à cet asset. L’ancien fond `color/selection #5F60EE` et le cadre24 ×24 sont historiques pour cet usage. [Provenance](../../assets/icons/figma-current-exports.json). L’implémentation réutilise l’asset exporté ou son équivalent code connecté au composant, sans caractère Unicode, emoji, glyphe de police, icône système ni redessin approximatif. La cible tactile appartient au contrôle hôte et reste au minimum `48 × 48 pt`.
 
 ## Architecture cible — média pendant l’Exécution
 
@@ -1394,10 +1435,10 @@ L’implémentation de la navigation et des composants visuels respecte D-224 à
 
 ### Référence DSF V2 détaillée — clôture 28 septembre 2026
 
-- **Navigation basse** : pilule `322 × 62 px`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur/rayon 10 offset `0,2`; token `color/navigation/pill`. Icône Profil selon D-233/D-236 dans boîte 32×32 ; actif `#0508E5`, inactif `#5C636E`. Cadre actif `76 × 50 px`, bleu `#0508E5` à 10 %. Boîtes d’icônes aux abscisses 68/146/224/302 dans la référence 402 px, soit 28 px entre bord de pilule et boîte extrême et 78 px entre centres. Intégration écran : 16 px sous la pilule, bande opaque 16 px puis dégradé transparent→fond sur 40 px ; ces bandes appartiennent à l’écran.
+- **Navigation basse** : pilule `322 × 62 px`, `#F9FAFC`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur/rayon 10 offset `0,2`; token `color/navigation/pill`. Icône Profil selon D-233/D-236 dans boîte 32×32 ; actif `#0508E5`, inactif `#595E66`. Cadre actif `76 × 50 px`, bleu `#0508E5` à 10 %. Boîtes d’icônes aux abscisses 68/146/224/302 dans la référence 402 px, soit 28 px entre bord de pilule et boîte extrême et 78 px entre centres. Intégration écran : 16 px sous la pilule, bande opaque 16 px puis dégradé transparent→fond sur 40 px ; ces bandes appartiennent à l’écran.
 - **Fond / contexte** : écran ordinaire `#FFFFFF`; Splash `#0006F1`; média plein écran `#0A0A0C`. Zone de contexte `#EAEAFF`→transparent sur les 20 % inférieurs pour Catalogues, Composition, Calendrier, Suivi, Profil et Ajout d’exercice. Le séparateur 1 px n’est retiré que si ce dégradé assure la séparation.
 - **Halo et action circulaire** : halo Annuler/Retour blanc opaque `59,28 px`, placé devant la zone de contexte et hors du conteneur clippé ; bouton circulaire clair `32 × 32`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur 10 offset `0,2`.
-- **Stepper / valeur** : variante lavande `#F2F2FF` pour Profil/paramètres, variante blanche pour Tours de Composition ; `−/+` ronds bleus, 12 px autour de la valeur centrale. Le stepper remplace la valeur sur la même ligne sans étirer le groupe ; un seul stepper actif à la fois. Badge replié `#F4F4F8`, texte bleu Semi Bold 13 px, rayon 6, marges 8 px horizontales et 2 px verticales ; contour bleu 1,5 px lorsque le contrôle est ouvert (DSF V2 lot 3, T4). Le nombre de semaines utilise la pilule de stepper rayon 18.
+- **Stepper / valeur** : variante lavande `#F2F2FF` pour Profil/paramètres, variante blanche pour Tours de Composition ; `−/+` ronds bleus, 12 px autour de la valeur centrale. Le stepper remplace la valeur sur la même ligne sans étirer le groupe ; un seul stepper actif à la fois. Badge replié `#F5F7FA (surface ; ancienne valeur historique #F4F4F8)`, texte bleu Semi Bold 13 px, rayon 6, marges 8 px horizontales et 2 px verticales ; contour bleu 1,5 px lorsque le contrôle est ouvert (DSF V2 lot 3, T4). Le nombre de semaines utilise la pilule de stepper rayon 18.
 - **Point d’arrêt** : bouton rond blanc opaque, icône Pause, contour 1 px `#0508E5`; l’action complète porte le contour. Les occurrences de Composition utilisent cette référence commune.
 - **Ressenti** : ne pas confondre contrôle de choix et pictogramme de résultat. Résultats : vert Bien, orange Neutre, rouge Mal ; rouge source `#EF4444`. Aucun état actif Figma ne prouve un contrôle « Mal sélectionné ».
 - **Profil** : titres de section Semi Bold 16 px ; `Modifier` en `#0508E5`; groupes blancs 126 px ; zone de contexte 115 px ; ouverture d’un stepper sans étirement du groupe.
@@ -1405,13 +1446,13 @@ L’implémentation de la navigation et des composants visuels respecte D-224 à
 - **Cartes d’Exercice** : D-260/D-261 remplacent l’ancien état média déployé ; gouttière permanente au Catalogue et dans les choix d’exercices, photo ou icône de nature ; aucun Déployer. Aucune photo sur Séance, dans les listes mixtes, le Calendrier ou le Suivi. Les variantes média d’Exécution conservent leur fonctionnement propre.
 
 
-### Générateur et validation des paramètres v12
+### Générateur et validation des paramètres v13
 
-Fonctions pures communes de calcul, résumé et construction des phases : v12 §§3–8, D-247 à D-255. Fournir explicitement le contexte intrinsèque/occurrence. Ne pas extraire de données métier du texte du résumé ni des valeurs Figma. Le tableau ordonné est la source des paramètres variables. Le total est dérivé, jamais éditable en variable.
+Fonctions pures communes de calcul, résumé et construction des phases : v13 §§3–8, D-247 à D-255. Fournir explicitement le contexte intrinsèque/occurrence. Ne pas extraire de données métier du texte du résumé ni des valeurs Figma. Le tableau ordonné est la source des paramètres variables. Le total est dérivé, jamais éditable en variable.
 
-Bornes : N1..99, répétitions1..100, durée1..5999s, pauses0..300s. Pas des pauses D-252 : 1s jusqu’à5s, 5s jusqu’à120s, 30s jusqu’à300s ; pas durée1s/répétitions1. Les valeurs stockées ne sont pas arrondies à l’ouverture. PC reprend le défaut Profil (10s). L’estimation locale vaut2s/répétition, sans cadence imposée au moteur.
+Bornes : N1..99, répétitions1..100, durée1..5999s, pauses0..300s. Steppers : tap1 ; maintien avec paliers1/5/10 et arrondi directionnel selon DSF Bip ; Bip/Compte à rebours/Fin sans accélération. Les valeurs stockées ne sont pas arrondies à l’ouverture. PC reprend le défaut Profil (10s). Aucune estimation forfaitaire de répétition ; Bip v2 gouverne le total.
 
-Prévoir la représentation versionnée uniforme/variable et Ordre des côtés dans les définitions, copies et instantanés. Les données anciennes sont lues uniforme/Un côté après l’autre ; la nouvelle politique des pauses s’applique aux nouvelles exécutions de ces données. Les résultats historiques restent immuables. La migration physique doit être planifiée avec l’implémentation ; aucune réinitialisation de base n’est autorisée par cette mise à jour documentaire. PRE-1 reste fermé. Les anciens jeux v10 sont des preuves historiques ; la recette cible est v12 §9 et la matrice du02/10.
+Prévoir la représentation versionnée uniforme/variable et Ordre des côtés dans les définitions, copies et instantanés. Les données anciennes sont lues uniforme/Un côté après l’autre ; la nouvelle politique des pauses s’applique aux nouvelles exécutions de ces données. Les résultats historiques restent immuables. La migration physique doit être planifiée avec l’implémentation ; aucune réinitialisation de base n’est autorisée par cette mise à jour documentaire. PRE-1 reste fermé. Les anciens jeux v10 sont des preuves historiques ; la recette cible est v13 §9 et la matrice du02/10.
 
 
 ## DSF courant — Cartes, icônes et animations d’appui (30 septembre 2026)
@@ -1428,12 +1469,48 @@ Implémentation attendue : conserver la préférence dans le mécanisme persista
 
 Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
 
-Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper indépendant (450 ms puis 150 ms pour la répétition) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
+Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper selon DSF Bip (maintien≈500ms, répétition150ms, paliers1/5/10) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
 
 
-> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v12 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
 
 
 ### Saisie des paramètres — D-246
 
-La référence active est [Paramètres en modale v12](SPECIFICATION-PARAMETRES-MODALE-v12.md), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
+La référence active est [Paramètres en modale v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
+
+## Moteur Cadence — cible technique du06/10/2026
+
+Séparer `durationDeterminable` de `autoComplete` dans l’adaptateur du plan : Répétitions cadencées fournissent Ri×Ci mais attendent Suivant. La phase Série porte cadence/cible ; pas une phase par répétition. Les Séries sans cadence et À l’échec gardent leur poids à validation ; les cadencées entrent dans le groupe temporel R-01 (chapitre13).
+
+Scheduler fondé sur ancres monotones, nombre d’intervalles acquis, début du courant, nominal atteint ; état persistable et transitions idempotentes. Le compteur de tentative est distinct de l’accumulateur actif réel : fraction abandonnée par Pause et temps avant reset restent dans le résultat par Série/côté. Reprise avec intervalle complet ; arrière-plan avec recalcul et sans rejeu des sons manqués. Le seuil30min est ancré sur la fin nominale recalculée. Aucun100% global avant finalisation.
+
+Ordre de développement : représentation variable effective, migration absence de cadence, snapshot versionné, calcul/incertitude, ordonnanceur/progression/audio, restitution/phrase, tests sur appareils. Les modules audio en arrière-plan, interruptions système, verrouillage et reprise doivent être qualifiés iOS/Android ; aucune réussite de test n’est revendiquée ici. Les sons concrets et leur adaptation aux préférences existantes restent du travail d’implémentation, pas un nouveau réglage Profil.
+
+## Cohérence des couleurs après rationalisation — H-13, 06/10/2026
+
+| Élément | Valeur de référence | État observé / provenance |
+|---|---|---|
+| Pilule de navigation | `color/navigation/pill #F9FAFC` | L’ancienne prescription `#FCFCFE` des chapitres06/07 est historique ; la valeur du token est la référence courante. |
+| Surface de carte archivée | `color/surface #F5F7FA` | Le composant Cartes / Exercice Archivé est lié à ce token (relevé Claude du 06/10). `#F6F6F6` figure dans l’ancienne documentation ; cela ne prouve pas à lui seul la valeur historique du token supprimé `color/cards/archive-surface`. |
+| Fond circulaire Retour | `#FCFCFE` observé dans Figma | Selon Claude, 85 calques de Prototype MVP restent liés à des primitives `color/observed/…`, sans token sémantique. Ne pas leur attribuer `color/navigation/pill` par analogie. Le rendu existant est conservé. |
+
+Les faibles écarts de couleurs relèvent des fusions déjà acceptées dans le journal §5.3. Les chapitres06/07/13 renvoient ici pour éviter deux prescriptions concurrentes ; aucun token de code ni asset n’est modifié. Les anciennes valeurs sont des preuves datées, pas des cibles simultanées.
+
+
+
+## Propagation Pauses et symboles — 07/10
+
+Conserver les shells. Composition : sous-brouillon isolé pour placement multiple et roulette ; commit parent avant sauvegarde finale. Modèle de pauses explicites et projection R unique pour calcul/snapshot. Moteur : phases de récupération et d’attente existantes, cadence sonore et ancres temporelles inchangées. Rendu de durée discriminé (exact/estimated/lowerBound/omitted), sans formater omitted en0. Pas de migration numérotée ni de version de dépendance prescrite sans lecture du code. DSF et assets : voir ../DSF-PAUSES-ICONES-2026-10-07.md.
+
+## Vérification de l’existant pour Bip de cadence — 07/10
+
+À la tête4365c0c de la PR323 (base main6d03f5be), l’arbre contient migrations001 à008 ; ActivityDefinition.ts expose encore repetitionCount,seriesCount,pauseSeconds scalaires, sans champ de bip. Ceci confirme le prérequis de refonte SeriesParameters/pauses ; cela ne réserve pas un numéro de migration. Bip v2 exige un ordonnanceur périodique récupérable et une qualification sur appareil (arrière-plan, verrouillage, suspension, interruptions audio), sans annoncer le comportement natif déjà livré. Aucun code n’est modifié par ce lot.
+
+## Contrat technique de phrase — clarification du07/10
+
+La [spécification de phrase](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md) gouverne le générateur pur : paramètres métier + résultat de durée + locale française → `Array<{texte: string, gras: boolean}>`. Retour vide `[]` si aucune phrase applicable. Aucun calcul depuis Excel, aucune chaîne à redécouper pour trouver les valeurs en gras. React Native utilise des Text imbriqués ; le découpage est émis par le gabarit, y compris si une valeur se répète.
+
+Aucune colonne phrase ni sérialisation des segments dans définition/occurrence/snapshot. Génération à chaque affichage depuis les paramètres ; ✓ applique le brouillon, ne persiste pas le texte. Un changement rédactionnel est visible au prochain rendu des objets existants. Paramètres historiques et temps réalisés préservés.
+
+Français uniquement au MVP. Internationalisation ultérieure : gabarits et règles de pluriel/genre/ordre par locale, avec recette dédiée ; prévoir la réécriture de la grammaire française, pas une traduction des segments isolés. Corpus276 utilisé uniquement pour les phrases, valeurs totales injectées par le calcul métier.

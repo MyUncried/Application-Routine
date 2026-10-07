@@ -1,0 +1,19 @@
+{
+  "base_head": "e2f236381d8c9d2e762033f3161e98d7e25922f9",
+  "contracts": 30,
+  "sections_each": 21,
+  "empty_sections": 0,
+  "missing_local_links": [],
+  "verified_local_png": 139,
+  "renewed_png": 127,
+  "pending_png": 13,
+  "changed_files": 89,
+  "changed_png": 52,
+  "source": "prompt Claude révisé et décisions propriétaire",
+  "limits": [
+    "Q-07 : formule du minorant sans cadence à arbitrer",
+    "13 exports bloqués par quota Figma ; 12 anciens conservés, 1 nouvelle planche liée seulement",
+    "Écarts Figma de trait, compteur circuits et position terminale documentés",
+    "Pas de tests applicatifs ni de validation indépendante complète"
+  ]
+}

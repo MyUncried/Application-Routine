@@ -1,0 +1,122 @@
+{
+  "nodes": 139,
+  "renewed": [
+    "6665:27608",
+    "6419:9847",
+    "6665:26185",
+    "6665:26822",
+    "6665:24616",
+    "7119:27855",
+    "7069:13464",
+    "6665:27862",
+    "7059:13302",
+    "6665:27232",
+    "6665:25277",
+    "6423:9953",
+    "6426:10149",
+    "7069:13573",
+    "7174:13554",
+    "6665:24844",
+    "6665:27008"
+  ],
+  "missing_bip_modal_candidates": [
+    {
+      "id": "6407:9551",
+      "name": "Création activité — Paramètres en modale — 2 Modale ouverte (champs vides)"
+    },
+    {
+      "id": "6407:9805",
+      "name": "Création activité — Paramètres en modale — 4 Modale complète — mode activé"
+    },
+    {
+      "id": "6407:9966",
+      "name": "Création activité — Paramètres en modale — 5 Modale complète — steppers (séries, pauses)"
+    },
+    {
+      "id": "6407:10127",
+      "name": "Création activité — Paramètres en modale — 6 Durée activée (roulette ouverte)"
+    },
+    {
+      "id": "6407:10481",
+      "name": "Création activité — Paramètres en modale — 8 Changement de côté activé (contrôle segmenté)"
+    },
+    {
+      "id": "6411:9546",
+      "name": "Création activité — Paramètres en modale — 7 Durée totale activée (roulette ouverte)"
+    },
+    {
+      "id": "6411:9649",
+      "name": "Création activité — Paramètres en modale — 9 Avec changement de côté (pause au changement de côté)"
+    },
+    {
+      "id": "6419:10028",
+      "name": "Création activité — Paramètres en modale — 11 À l’échec (mode activé)"
+    },
+    {
+      "id": "6423:9953",
+      "name": "Création activité — Paramètres en modale — 12 Modale complète — steppers (séries, pauses) avec message de durée totale ajustée"
+    },
+    {
+      "id": "6665:24616",
+      "name": "Séries variables — 2 Durée variable (scénario A)"
+    },
+    {
+      "id": "6665:25072",
+      "name": "Séries variables — 4 À l’échec variable (scénario F)"
+    },
+    {
+      "id": "6665:25277",
+      "name": "Séries variables — 5 Douze séries (défilement — haut)"
+    },
+    {
+      "id": "6665:26185",
+      "name": "Ordre des côtés — 7 Sélection : Un côté après l’autre"
+    },
+    {
+      "id": "6665:26575",
+      "name": "Séries variables + Les deux côtés à chaque série — 9 (scénario D)"
+    },
+    {
+      "id": "6665:26822",
+      "name": "Une seule série — 10 Options sans effet"
+    },
+    {
+      "id": "6665:27232",
+      "name": "Validation impossible — 12 Série incomplète"
+    },
+    {
+      "id": "6665:27458",
+      "name": "Séries variables — 13 Tableau masqué"
+    },
+    {
+      "id": "6665:27608",
+      "name": "Séries variables — 14 Déplacement d’une série"
+    },
+    {
+      "id": "7069:13464",
+      "name": "Création activité — Paramètres en modale — 9b Avec changement de côté (copie)"
+    }
+  ],
+  "removed": [
+    "7061:13383"
+  ],
+  "parent": "4365c0cd913c6dfb6d89fd27f156db1946839e54",
+  "contracts": 30,
+  "sections_each": 21,
+  "missing_links": [],
+  "source_identical": true,
+  "arithmetic_examples": {
+    "A": 165,
+    "B": 285,
+    "C": 375,
+    "D": 345,
+    "bip_example": 285
+  },
+  "realizable_inverse_cases": 5346,
+  "app_tests_executed": false,
+  "unresolved": [
+    "Q-08 : formulations de pauses",
+    "19 modales candidates sans Bip",
+    "Écarts graphiques antérieurs et qualification mobile"
+  ]
+}

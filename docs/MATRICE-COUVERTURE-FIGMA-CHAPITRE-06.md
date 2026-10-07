@@ -1,6 +1,12 @@
 # Matrice de couverture Figma ↔ documentation
 
-**Complément courant02/10 :** [39nouveaux exports et contrats](MATRICE-SERIES-VARIABLES-2026-10-02.md). L’inventaire ci-dessous conserve la preuve du30/09 ; les états de paramètres6407/6411/6423 sont remplacés par les copies6603/6611/6623 dans le chapitre06. Les anciennes empreintes restent historiques, sans prétendre recenser les copies récentes.
+**État antérieur au lot Bip de cadence.** La [matrice Bip du07/10](MATRICE-BIP-FIGMA-2026-10-07.md) porte les références courantes et remplace les états de captures en attente.
+
+**Inventaire historique.** La [matrice du 07/10](MATRICE-FIGMA-2026-10-07.md) porte les références actives, notamment le remplacement de 4893:6675.
+
+**Inventaire courant :** [matrice06/10](MATRICE-CADENCE-FIGMA-2026-10-06.md). Ce relevé antérieur conserve sa provenance ; ses empreintes datées ne décrivent pas les PNG réexportés le06/10. Les états6603/6611/6623 ne remplacent plus les frames6407/6411/6423 réintégrées. Cadence/phrase/DSF actifs : paramètres v13, Phrase v1 et DSF-CADENCE-2026-10-06.
+
+**Complément historique02/10 :** [matrice séries variables](MATRICE-SERIES-VARIABLES-2026-10-02.md). Les copies de travail ont été remplacées le03/10 ; la matrice06/10 fait autorité sur les références courantes.
 
 Contrôle exhaustif du 30 septembre 2026 : 113 frames du prototype et les 6 références complémentaires du rapport utilisateur, soit 119 captures Figma. Les 84 écrans du rapport sont couverts (78 dans le prototype). 74 fichiers existants sont actualisés et 45 copies documentaires complètent des écrans déjà présents dans Figma ; aucun écran applicatif ou Figma créé.
 
@@ -27,7 +33,7 @@ L’inventaire du 24 septembre était un état des lieux ; il ne borne plus le c
 
 ## Lecture des écarts visuels et des décisions
 
-La capture décrit l’état Figma observé ; elle ne remplace pas une décision métier validée. Certaines frames de Composition montrent encore une ligne de récupération, alors que D-238 en retire l’affichage dans la cible ; les données et calculs restent conservés. Les frames `4738:6355` (Exercice déployé) et `1992:8996` (Suivi déployé) sont historiques hors MVP depuis D-261/D-262 ; elles ne servent plus de cible accessible. Ces écarts d’assemblage n’ouvrent aucun nouvel arbitrage et les PNG ne sont pas retouchés pour les masquer. Les cartes standard ne sont pas déclarées propagées dans les frames qui n’en contiennent pas.
+La capture décrit l’état Figma observé ; elle ne remplace pas une décision métier validée. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). Les frames `4738:6355` (Exercice déployé) et `1992:8996` (Suivi déployé) sont historiques hors MVP depuis D-261/D-262 ; elles ne servent plus de cible accessible. Ces écarts d’assemblage n’ouvrent aucun nouvel arbitrage et les PNG ne sont pas retouchés pour les masquer. Les cartes standard ne sont pas déclarées propagées dans les frames qui n’en contiennent pas.
 
 Codes : C cartes ; J cartes Jour ; N navigation ; B commandes contextuelles ; S segmenté à trois options ; I icônes catégorie/zone hors cartes ; P silhouette Profil ; — absent du rapport.
 
@@ -299,7 +305,7 @@ Les captures sont intégrées en Markdown standard et regroupées dans leur fami
 ### Écarts restant explicitement distingués
 
 - **NON CONFORME (vocabulaire Figma)** : les confirmations `1992:8224` et `1992:8326` emploient encore Activité ; le vocabulaire cible du chapitre est Exercice.
-- **Terminologie tranchée (D-209)** : Circuit désigne le groupe interne ; Tour désigne une répétition ; Parcours reste autonome. Les anciens libellés Figma sont des écarts visuels, pas des décisions à rouvrir.
+- **Terminologie tranchée (D-209)** : Circuit désigne le groupe interne ; Tour désigne une répétition ; Parcours reste autonome. Les 17 occurrences du libellé de Composition ont été corrigées en Circuit le 05/10/2026 (journal, §8). Les libellés antérieurs conservés dans les relevés historiques ne constituent pas une correction Figma encore à réaliser.
 - **Périmètre corrigé depuis #247** : D-203 inclut la consultation média représentée au MVP ; ses cinq variantes sont regroupées dans Exécution. Aucun mécanisme d’import n’est ajouté.
 - **Limite de contrôle** : les fichiers image existants ont été réutilisés ; aucun nouvel export global n’a été effectué. Leur correspondance par nœud et leur intégration Markdown ont été contrôlées.
 
@@ -327,3 +333,4 @@ Les captures sont intégrées en Markdown standard et regroupées dans leur fami
 ## Inventaire courant du parcours Créer un exercice — 03/10/2026
 
 [État des lieux exhaustif,42frames et revue des contrats](ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md). Les références actuelles remplacent les copies du02/10 :37frames de la famille création/modification,2effets Catalogue/Composition et3exécutions. La réserve de réinitialisation a été retirée : D-029/D-150 restent applicables aux deux ordres.
+

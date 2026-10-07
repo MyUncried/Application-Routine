@@ -254,3 +254,5 @@ Tous les cas ci-dessous ont été vérifiés contre une implémentation indépen
 
 
 > **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transition entre côtés = pause de changement de côté si positive, sinon pause entre Séries, sans cumul ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. Le bloc du côté courant est le périmètre du reset bilatéral. Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+
+Référence active depuis le06/10/2026 : [Phrase v1](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Le présent texte reste historique, y compris ses calculs et segments interactifs.

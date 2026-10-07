@@ -114,13 +114,13 @@ Un statut ne peut pas devenir `COURANT` au seul motif qu’un fichier du même n
 | Modale 5 | Réinitialiser l’activité | `1992:8224` | `modale-5-reinitialiser-activite.png` | `402 × 874` | écran | COURANT |
 | Modale 6 | Passer à l’activité suivante | `1992:8326` | `modale-6-activite-suivante.png` | `402 × 874` | écran | COURANT |
 | Modale 7 | Séance en pause | `1992:8428` | `modale-7-seance-en-pause.png` | `402 × 874` | écran | COURANT |
-| Composant | `Status / Badge — Source exact` | `3959:5970` | `status-badge-composant.png` | `1374 × 128` | composant | COURANT |
+| Composant | `Status / Badge — Source exact` | `3959:5970` | `status-badge-composant.png` | `1374 × 128` | composant | HISTORIQUE / ARCHIVÉ |
 
 Les quatre fichiers `CE-ACT-EXE-02`, `CE-ACT-EXE-03`, `CE-ACT-EXE-04` et `CE-ACT-EXE-05` ont été réexportés depuis leurs nodes courants : leur binaire est strictement identique à l’existant, ils étaient donc déjà courants. Tous les autres fichiers listés ci-dessus ont vu leur binaire remplacé.
 
 ## 4. Composant transverse `Status / Badge`
 
-Le node `3959:5970`, `Status / Badge — Source exact`, est la **preuve canonique du composant**. Il mesure `687 × 64 pt` et porte les sept variantes de la propriété `Status` dans un composant unique. Le composant n’est pas scindé et aucune variante supplémentaire n’est introduite.
+Le node `3959:5970`, `Status / Badge — Source exact`, est une **preuve historique du composant**, désormais archivé. La référence courante est `DSF / Status & Tags / Statut d’exécution` (`5544:6902`), correspondance DSF-CADENCE §7. Le relevé historique mesure `687 × 64 pt` et porte les sept variantes de la propriété `Status` dans un composant unique. Le composant n’est pas scindé et aucune variante supplémentaire n’est introduite.
 
 | Famille sémantique | Variante | Node de variante |
 | --- | --- | ---: |
@@ -182,7 +182,7 @@ La présence de la rangée `Créer / Filtrer / Trier` et l’état `disabled` de
 
 `Renforcement du genou` est une **valeur de démonstration Figma**, jamais un libellé statique. Seul l’état vide `3943:6064` conserve `Nom de l’activité` comme état vide/placeholder. Les frames `3879:5947` et `3879:6079` utilisent respectivement `Étirement du quadriceps` et `Squat assisté` comme valeurs de démonstration.
 
-Selon D-204, le texte éditable distingue désormais les modes : en Répétitions, il affiche `Durée totale >= {estimation}` avec 2 secondes conventionnelles par répétition ; en À l’échec, il n’affiche pas de Durée totale. Les frames `3561:4695` et `3561:7802` matérialisent ces deux états.
+Les frames historiques `3561:4695` et `3561:7802` témoignent de l’ancienne formulation D-204. La phrase active est régie par D-298/Phrase v1 : total fourni sans symbole avec cadence, ≈ sans cadence ; aucun total d’Exercice en À l’échec. Ces captures ne constituent pas la référence de l’éditeur v13.
 
 ## 9. Historique des exports
 
@@ -264,3 +264,14 @@ Les titres de famille remplacent désormais la numérotation dans le chapitre 06
 ## Corrections après audit — 04/10/2026
 
 Douze captures courantes réexportées après correction des badges Catalogue Exercice et activation de la troncature des zones Semaine. Quatre PNG ont changé (Catalogue, deux filtres, actions glissées) ; huit sont identiques, notamment lorsque le panneau masque les badges ou que le libellé court ne nécessite pas de troncature. Les empreintes du tableau ci-dessus sont actualisées. Les deux déploiements historiques restent hors cible.
+
+## Réexport ciblé du 06/10/2026 — G-01
+
+Les deux captures ci-dessous remplacent les fichiers antérieurs après correction Figma des repères à 62 %. Export direct natif, sans retouche. Les liens des chapitres restent identiques. La planche `6451:10942` (1688 × 2041) a aussi été réexportée pour comparaison : tous ses pixels sont identiques au fichier conservé.
+
+| Nœud Figma | Capture courante | Dimensions | Empreinte Git |
+|---|---|---|---|
+| `4997:6113` | [PNG](figma-4997-6113.png) | 402 × 874 | `8ae9b6c5077ad9ff3febc4285a21a78e58ea22ac` |
+| `5021:5994` | [PNG](figma-5021-5994.png) | 402 × 874 | `5240c74c82ca75ccbb1368d1580599c6e90007d2` |
+
+[Preuves et contrôle comparatif](../../../.github/orchestration/reports/2026-10-06_CORRECTIONS_AUDIT_TRANSVERSE_DOCUMENTAIRE_PREUVES.json). Le relevé du 30/09 reste historique ; la matrice du 06/10 contient les empreintes courantes.

@@ -1,5 +1,9 @@
 # 1. Principes généraux
 
+**Mise à jour du07/10 — cartes, pauses et phrases :** [matrice de traçabilité](../MATRICE-CARTES-PHRASES-2026-10-07.md), [DSF des cartes](../DSF-CARTES-DUREE-2026-10-07.md), [phrase v14](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Captures reprises pour les cartes, modales Bip et résumés ; chiffres Figma illustratifs.
+
+**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
+
 ## 1.1 Objectif du document
 
 Ce document décrit le fonctionnement détaillé des principales fonctionnalités du MVP.
@@ -211,7 +215,7 @@ L’action Lecture est disponible uniquement pour une référence valide. Le lan
 
 Le Plan contient `DIRECT_PREPARE(5 s)`, puis les Séries, Pauses, côtés et, si l’Exercice est bilatéral, `SIDE_RECOVERY` de durée PC>0, selon l’Ordre des côtés ; aucun repli lorsque PC=0. Il ne contient jamais `POST_ACTIVITY_RECOVERY`, ni Tour, ni Cycle visible, ni `SESSION_END`. Le dernier achèvement produit le signal de fin et ouvre immédiatement la Synthèse.
 
-La Synthèse affiche les données compatibles d’un Exercice seul. Le Ressenti est obligatoire pour activer `Terminer`; le Commentaire est facultatif. La finalisation enregistre l’Exécution dans le Suivi général, alimente les statistiques compatibles sans compter une Séance, puis restaure filtres et position de défilement du Catalogue.
+La Synthèse affiche les données compatibles d’un Exercice seul. Le Ressenti est obligatoire pour activer `Enregistrer`; le Commentaire est facultatif. La finalisation enregistre l’Exécution dans le Suivi général, alimente les statistiques compatibles sans compter une Séance, puis restaure filtres et position de défilement du Catalogue.
 
 ## 2 bis.5 Médias d’Exercice
 
@@ -264,7 +268,7 @@ Un exercice possède notamment :
 
 - un nom ;
 - une durée cible, un nombre de répétitions cible ou le mode À l’échec sans cible chiffrée ;
-- Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v12 §§3–5, D-247 à D-250.
+- Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
 - une **Pause entre les côtés** facultative, visible uniquement en `D→G/G→D` et exécutée selon l’Ordre des côtés (une fois par Exercice ou une fois par Série) ;
 - une Description facultative et une ou plusieurs Zones corporelles obligatoires ;
 - un média associé est affiché dans la gouttière permanente de la carte du Catalogue dans le MVP, sans déploiement ; les mécanismes d’import/capture et la gestion multiple restent régis par leur périmètre propre.
@@ -356,16 +360,13 @@ Le calcul tient compte :
 - des répétitions du Cycle ;
 - de la position structurelle de chaque Exercice dans la Séance.
 
-Un Exercice en mode Répétitions ou À l’échec ne reçoit **aucune durée conventionnelle** dans ce calcul.
-
-- Si toutes les durées sont déterminables, la durée est affichée normalement, par exemple `18 min`.
-- Si au moins un Exercice est en mode Répétitions ou À l’échec, la somme des durées connues constitue une **borne minimale** et l’interface affiche le signe `≥`, par exemple `≥ 18 min`.
+Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 ### Durée synthétique des Exercices
 
 La durée synthétique des Exercices est affichée sur les cartes du Catalogue et sous `Nombre de tours` dans la Composition. Elle applique les règles de développement des Séries, Pauses entre Séries et, pour un Exercice bilatéral, de `sideRecoverySeconds`. Dans une Composition, la durée de Séance ajoute également les `postActivityRecoverySeconds` des occurrences selon leur développement dans le Circuit. Elle exclut toujours le Compte à rebours initial et la Fin de séance.
 
-Si elle comprend un Exercice en mode Répétitions ou À l’échec, elle additionne uniquement les temps connus de son périmètre et devient une borne minimale précédée de `≥`. Son affichage en minutes est arrondi à la minute supérieure.
+Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 ### Nombre d'Exercices de la Composition
 
@@ -457,11 +458,11 @@ La barre couvre le Plan d’Exécution complet : le Compte à rebours initial et
 
 La progression mathématique de la barre est continue. Sa piste est toutefois structurée visuellement par Tours conformément au prototype Figma. Ces séparations sont uniquement des repères de lecture et ne modifient ni les poids ni le calcul de l’avancement global.
 
-Le calcul porte sur les étapes du plan développé, sans modifier la piste segmentée existante. Soit M le nombre d’étapes contributives (Séries non chronométrées et phases chronométrées de durée strictement positive), R le nombre de Séries non chronométrées et T la somme des durées chronométrées. Chaque Série non chronométrée pèse 1/M ; chaque phase chronométrée de durée d pèse (1−R/M)×d/T. Avec R=0, les poids sont d/T ; sans phase chronométrée, chaque Série pèse 1/M. Les phases à 0 s, pauses manuelles et attentes aux points d’arrêt n’ont pas de poids. Une Série non chronométrée acquiert sa part à validation ; une phase chronométrée la remplit progressivement. Un passage anticipé confirmé franchit les étapes effectivement sautées sans leur attribuer de temps réalisé. Le moteur ne publie 100 % qu’à la finalisation du plan (SESSION_END compris pour une Séance) ; une étape finale instantanée est finalisée avant de publier 100 %. Les poids sont figés au démarrage. Un reset remet à zéro les parts de son périmètre, en préservant les parts antérieures hors de ce périmètre.
+Le calcul porte sur le plan développé et conserve la piste existante. M compte les étapes contributives ; R compte les Séries Répétitions sans cadence et À l’échec ; T somme les durées des phases chronométrées positives et les Ri×Ci des Séries cadencées. Chaque Série sans durée déterminable pèse1/M ; chaque étape temporelle de durée d pèse(1−R/M)×d/T. Sans R, poids d/T ; sans T, poids1/M. Phases0s, Pause manuelle et attente de point n’ont aucun poids. Les non-cadencées/À l’échec acquièrent leur part à Suivant ; les Répétitions avec bip progressent continûment, Suivant acquiert leur reste. À fin nominale, part de Série100% mais Série active. Pause abandonne la fraction d’intervalle pour la progression, conserve le temps réel ; reprise sur intervalle complet. Aucun100% global publié avant finalisation du plan. Poids figés au départ ; reset remet à zéro son périmètre seulement. Aucun nouveau composant de progression par Série.
 
 La barre représente donc l'**avancement global dans le plan d'Exécution**. Elle n'est pas le simple rapport entre le temps total écoulé et la durée estimée d’exécution.
 
-Pour un Exercice en mode Répétitions ou À l’échec, le cercle effectue une rotation complète par minute. Le chronomètre continue à croître au-delà d’une minute et un bip fixe est émis à chaque minute écoulée. Pause suspend le chronomètre et la rotation du cercle.
+Répétitions et À l’échec : chronomètre croissant ; sans bip périodique, rotation et bip minute selon règles existantes. Répétitions cadencées : chronomètre croissant, intervalles sonores et signal périodique maintenu après nominal sans signal final distinct ; aucun bip minute ajouté et aucune fin automatique. Pause/Reprise suit la spécification Cadence§4.
 
 ## 4.5 Actions disponibles
 
@@ -475,17 +476,17 @@ Toutes les autres informations sont consultatives.
 
 ## 4.6 Réinitialisation d'un exercice
 
-L'utilisateur peut décider de recommencer l'exercice en cours depuis son début.
+L’utilisateur peut réinitialiser la Série courante en unilatéral ou le bloc du côté courant depuis sa première Série en bilatéral ; pendant une récupération, seule la phase courante est réinitialisée (D-029/D-150, RM-062).
 Lorsque cette action est demandée, l'application affiche une demande de confirmation.
 
 Si l'utilisateur confirme :
 
-- l'exercice en cours est immédiatement réinitialisée ;
-- son chronomètre repart de son état initial ;
-- les répétitions éventuellement réalisées sont annulées ;
-- la progression générale de la séance est conservée.
+- en unilatéral, la Série courante recommence ; en bilatéral, le bloc du côté courant recommence selon D-029/D-150 et v13 §7, dans les deux ordres ;
+- pendant une récupération, seule la phase courante recommence (RM-062) ;
+- le chronomètre de tentative et la progression du périmètre reviennent à zéro ; les paramètres, l’autre côté et les résultats hors périmètre sont conservés ;
+- le temps actif réel cumulé, y compris celui des tentatives antérieures, reste enregistré ; aucun nombre de répétitions physiquement réalisées n’est déduit ni annulé.
 
-Si l'utilisateur annule, la séance reprend exactement à l'état où elle se trouvait.
+Si l'utilisateur annule, aucun reset n’est appliqué. Les règles de confirmation et de suspension ci-dessous s’appliquent ; une reprise de Série cadencée suit l’exception d’intervalle complet de Bip v2 §4.
 
 Les confirmations appliquées pendant l'Exécution suivent la règle suivante :
 
@@ -514,7 +515,7 @@ La mise en pause suspend immédiatement :
 - les signaux sonores ;
 - la progression automatique.
 
-La séance conserve exactement son état.
+La séance conserve son plan et ses résultats ; en cadence, la progression revient au dernier intervalle complet et le temps actif cumulé est conservé.
 
 Depuis l'écran de pause, l'utilisateur peut :
 
@@ -523,11 +524,7 @@ Depuis l'écran de pause, l'utilisateur peut :
 
 ## 4.9 Reprise
 
-La reprise restaure immédiatement l'état exact de la séance au moment de sa mise en pause.
-
-L'exercice reprend avec le temps restant.
-
-Les indicateurs de progression sont conservés.
+La reprise conserve le plan et les résultats. Pour les décomptes, elle reprend le temps restant. Exception Cadence : la fraction incomplète a été abandonnée pour la progression ; un nouvel intervalle complet démarre, et le temps réel déjà dépensé est conservé (Cadence§4).
 
 ### Arrière-plan et verrouillage
 
@@ -535,8 +532,8 @@ Le passage en arrière-plan ou le verrouillage de l’écran ne constitue pas un
 
 Une pause de sécurité est appliquée si aucune interaction n’a eu lieu :
 
-- 30 minutes après la fin théorique d’un Exercice chronométré ;
-- 2 heures après le démarrage d’un Exercice en Répétitions ou À l’échec.
+- 30 minutes après la fin théorique d’un Exercice chronométré ou la fin nominale recalculée d’une Série cadencée ;
+- 2 heures après le démarrage d’un Exercice en Répétitions sans cadence ou À l’échec.
 
 La pause de sécurité conserve l’état recalculé au moment de son déclenchement et demande à l’utilisateur de reprendre ou d’arrêter la Séance.
 
@@ -561,7 +558,7 @@ L'utilisateur peut :
 - reprendre la séance ;
 - arrêter la séance.
 
-En l'absence de réponse, la séance est automatiquement interrompue et enregistrée avec le statut **Interrompue**.
+En l’absence de réponse, la Séance reste suspendue avec son état conservé, sans délai d’arrêt automatique (chapitre13 R-03).
 
 La durée de 30 minutes pourra devenir un paramètre utilisateur dans une version ultérieure.
 
@@ -907,7 +904,7 @@ Le nom, l’Étiquette/couleur et la Composition sont réunis dans le même écr
 | Étiquette | Facultative ; sa couleur devient la couleur affichée de la Séance. La sélection/création s’effectue dans la modale Étiquettes intégrée à la Composition. |
 | Compte à rebours initial | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 10 s. |
 | Circuit | Seul conteneur structurel affiché ; `1` par défaut, de 1 à 99, réglé par stepper permanent − / valeur / +. Référence `2028:11700`, contrôle `4913:7432` de 137 × 36 ; pas de roulette Tours séparée. La synthèse compte les exercices et leurs durées, hors Compte à rebours et Fin. |
-| Exercices | D-238 retire l’affichage de la ligne Récupération. La donnée `postActivityRecoverySeconds` appartient toujours à l’occurrence et accompagne déplacement, duplication et suppression. Le corps principal de la carte affiche le nom, la Catégorie et les Zones corporelles ; toucher ouvre la modification. |
+| Exercices | D-238 retire les informations de pause/récupération du corps de la carte, en distinguant contenu conditionnel et trait de démarcation (D-303). La donnée `postActivityRecoverySeconds` appartient toujours à l’occurrence et accompagne déplacement, duplication et suppression. Le corps principal de la carte affiche le nom, la Catégorie et les Zones corporelles ; toucher ouvre la modification. |
 | Fin de séance | Élément structurel ; roulette minutes/secondes intégrée ; valeur initiale 5 s. |
 | Résumé | `N exercice(s) · durée des Exercices`, placé dans l’en-tête du conteneur Circuit immédiatement sous `Nombre de tours`. Le nombre porte sur les Exercices seulement ; la durée de Séance intègre les durées intrinsèques des Exercices ainsi que leurs récupérations après exercice. Le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide, affiche exactement `0 exercice · 0 min`, au singulier — exception locale à cet écran (D-091). |
 | Ajouter un exercice | Un seul bouton secondaire `+ Ajouter un exercice`, placé en haut. |
@@ -961,17 +958,18 @@ L’Étiquette est gérée directement dans la Composition via une modale basse.
 | Mode d'exécution          | Ligne et segmenté dans CE-UI-10 | Toujours ; déployée par défaut | Oui | Aucun mode | Durée / Répétitions / À l’échec | Activité | Déployer / sélectionner | Phrase vide et Terminer désactivé sans mode ; premier choix irréversible vers aucun mode (D-232) |
 | Durée                     | Roulette min/sec  | Étape 1, mode Durée                | Oui         | 1 min                           | 1 s à 99 min 59 s                              | Activité | Sélection      | Deux colonnes : minutes et secondes |
 | Nombre de répétitions     | Stepper intégré | Étape 1, mode Répétition      | Oui         | 1                              | Entier de 1 à 100 (D-232)                       | Activité | Sélection      | Commandes − / valeur / + permanentes dans la feuille CE-UI-10 |
-| Pause après chaque série | Stepper permanent | Uniforme ou par ligne variable CE-UI-10 | Non | 0 s | 0..300 s ; grille D-252 | Exercice / Série | −/+ | Pause terminale incluse ; substitution R>0 seulement en occurrence |
+| Pause après chaque série | Stepper permanent | Uniforme ou par ligne variable CE-UI-10 | Non | 0 s | 0..300 s ; tap1 et maintien DSF Bip | Exercice / Série | −/+ | Après chaque série, dernière comprise ; seule la dernière Pause est remplacée par R positive en occurrence |
 | Nombre de Séries          | Stepper intégré | Mode déployé                  | Oui         | 1                              | Entier de 1 à 99 (D-092)                       | Activité | Sélection      | Commandes − / valeur / + permanentes dans la feuille CE-UI-10 ; valeur canonique persistée |
 | Changement de côté | Contrôle | Mode déployé | Non | `Aucun` (`UNILATERAL`) | `UNILATERAL`, `D→G`, `G→D` | Activité | Déployer le contrôle sous sa ligne dans la feuille | Aucun réglage de côté n’est exposé au niveau Tour |
-| Pause entre les côtés | Stepper permanent CE-UI-10 | Visible uniquement en `D→G/G→D` | Non | Copie de la valeur courante du Profil (initialement 10 s) | 0..5 min ; 1 s jusqu’à 5 s, puis 5 s jusqu’à 120 s, puis 30 s jusqu’à 300 s (D-232) | Activité | Sélection | `sideRecoverySeconds`; une phase entre les côtés selon l’Ordre des côtés ; aucune récupération post-activité dans l’éditeur |
-| Durée totale | Valeur calculée | Durée/Répétitions | Non | Calculée | Formules v12 §5 | Calcul | Roulette en Durée uniforme seulement | Variable : lecture seule, — si incomplet ; Répétitions ≥ ; À l’échec absente |
-| Médias                    | Zone média | Selon état | Non | Vide | Le média associé peut être affiché dans la carte Catalogue déployée du MVP ; les capacités d’import/capture suivent leur périmètre propre | Activité | Afficher / masquer | La Synthèse reste au-dessus en cas de chevauchement dans l’éditeur |
+| Pause entre les côtés | Stepper permanent CE-UI-10 | Visible uniquement en `D→G/G→D` | Non | Copie de la valeur courante du Profil (initialement 10 s) | 0..5min ; tap1s, maintien DSF Bip | Activité | Sélection | `sideRecoverySeconds`; une phase entre les côtés selon l’Ordre des côtés ; aucune récupération post-activité dans l’éditeur |
+| Bip de cadence | Stepper | Trois modes, réglage commun | Non | Aucun (0) | Entier0..10s | Série | ± dans le brouillon ;0 retire le bip | Propagation à toutes les Séries ; conservation au changement de mode |
+| Durée totale | Valeur calculée | Durée/Répétitions | Non | Calculée | Formules v13 §5 | Calcul | Roulette en Durée uniforme seulement | Variable : lecture seule, — si incomplet ; Répétitions cadencées ≈ / non cadencées ≥ ; À l’échec absente |
+| Médias                    | Zone média | Selon état | Non | Vide | Le média associé est présenté dans la gouttière permanente de 64 px de la carte Catalogue ; aucun déploiement de carte d’Exercice n’est accessible au MVP (D-260/D-261) ; les capacités d’import/capture suivent leur périmètre propre | Activité | Afficher / masquer | La Synthèse reste au-dessus en cas de chevauchement dans l’éditeur |
 | Bouton Terminer           | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom, une Catégorie, au moins une Zone et un mode obligatoires ; cible valide selon le mode (D-211/D-232) | Statique | Enregistrer | Remplace l’ancien libellé `Valider` puisqu’il n’existe plus de second écran |
 
 **Règle transverse des roulettes numériques :** chaque changement effectif de valeur déclenche un retour haptique léger et bref, une seule fois par cran. Ce feedback est systématique et indépendant de la préférence `Vibrations` du Profil.
 
-**Présentation courante des paramètres :** la carte présente un résumé et des raccourcis. Les steppers sont permanents dans la feuille CE-UI-10 ; les roulettes de durée se déploient sous leur ligne dans cette même feuille. Les anciennes rangées de cadres ne sont plus la référence de placement.
+**Présentation courante des paramètres :** la carte présente une phrase unique ; sa zone entière ouvre la feuille, sans raccourci autonome par segment. Les steppers sont permanents dans la feuille CE-UI-10 ; les roulettes de durée se déploient sous leur ligne dans cette même feuille. Les anciennes rangées de cadres ne sont plus la référence de placement.
 
 Dans CE-UI-10, durée par Série et Durée totale utilisent des roulettes sous leur ligne ; les pauses utilisent des steppers. Séries `1..99` et Répétitions `1..100` utilisent des steppers ; les réglages du Profil utilisent des steppers. Les bornes et pas suivent D-232, les valeurs initiales D-246. Annuler et Valider portent sur l’ensemble de la feuille, sans seconde validation par roulette.
 ### Règles fonctionnelles
@@ -981,13 +979,13 @@ Dans CE-UI-10, durée par Série et Durée totale utilisent des roulettes sous l
 | Mode Durée        | Affiche le sélecteur de durée.                                                                                                                                                                                                                                                                                                                                                             |
 | Mode Répétitions  | Affiche le champ "Nombre de répétitions".                                                                                                                                                                                                                                                                                                                                                  |
 | Mode À l’échec    | N’affiche aucune cible chiffrée ; conserve l’ordre `Séries` → cadre informatif transparent bordé `à l’échec` → `Pause`. |
-| Séries            | Un Exercice possède un nombre de Séries propre, de 1 à 99 (D-092). En bilatéral autonome, ce nombre s’entend par côté. Une Série exécute la cible du mode ; chaque Série porte sa Pause, y compris la dernière, avec les successions et substitution terminale de v12. |
+| Séries            | Un Exercice possède un nombre de Séries propre, de 1 à 99 (D-092). En bilatéral autonome, ce nombre s’entend par côté. Une Série exécute la cible du mode ; chaque Série porte sa Pause, y compris la dernière, selon les successions de Bip v2, Pause terminale comprise. |
 | Changement de côté | Réglage propre `Aucun` (`UNILATERAL`), `D→G` (`RIGHT_LEFT`) ou `G→D` (`LEFT_RIGHT`). Aucun réglage de côté n’est exposé au niveau Tour. |
 | Pause entre les côtés | Durée intrinsèque facultative `sideRecoverySeconds`, uniquement en bilatéral. Elle intervient selon l’Ordre des côtés. Sa valeur initiale lors de l’activation bilatérale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice. |
-| Durée totale calculée | Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=2×Ri s pour l’estimation ≥ seulement ; À l’échec : aucun total d’Exercice. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v12 §5 ; variable : lecture seule et — si incomplet. |
-| Durée totale pilotée | Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=2×Ri s pour l’estimation ≥ seulement ; À l’échec : aucun total d’Exercice. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v12 §5 ; variable : lecture seule et — si incomplet. |
+| Durée totale calculée | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. |
+| Durée totale pilotée | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. |
 | Sélection de ligne | Dans CE-UI-10, le contour désigne uniquement la ligne de roulette/segmenté activée. Aucun contour sur Séries/stepper. Si T(N)≠Tv, message sous Total ; sinon aucun message. |
-| Modes non chronométrés | Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=2×Ri s pour l’estimation ≥ seulement ; À l’échec : aucun total d’Exercice. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v12 §5 ; variable : lecture seule et — si incomplet. |
+| Modes non chronométrés | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. |
 | Zones corporelles | Sélection multiple dans un référentiel utilisateur administrable. Le référentiel est initialisé avec dix valeurs par défaut ; l’utilisateur peut créer, renommer et supprimer une Zone corporelle. Une suppression retire la valeur des choix futurs après confirmation et conserve les affectations existantes ainsi que l’historique. |
 
 ### Gestion commune des référentiels de classification
@@ -1006,7 +1004,7 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 | Nom de l’Exercice courant | Texte | Toujours | Oui | Exercice courant | Plan d’Exécution | Aucune | |
 | Série | Texte | Exercice | Non | `x/y` | Plan d’Exécution | Aucune | Paramètre propre à l’Exercice |
 | Temps de l’Exercice | Minuteur | Toujours | Oui | Compte à rebours si chronométrée ; chronomètre croissant si Répétition | Exécution | Aucune | |
-| Cercle du minuteur | Indicateur | Toujours | Oui | Progression temporelle | Exécution | Aucune | En Répétition : un tour par minute |
+| Cercle du minuteur | Indicateur | Toujours | Oui | Progression temporelle | Exécution | Aucune | Répétitions sans cadence/À l’échec : rotation minute ; cadence : progression temporelle, voir spécification Cadence |
 | Série / Tour | Texte | Toujours | Oui | Série à gauche, Tour à droite ; aucun Cycle affiché | Plan d’Exécution | Aucune | |
 | À suivre | Texte | Sauf dernier Exercice | Non | Nom + durée/reps de l’Exercice suivant | Plan d’Exécution | Aucune | |
 | Réinitialiser | Bouton | Pendant Exécution | Oui | Actif | Statique | Ouvrir confirmation | Réinitialise l’Exercice courant |
@@ -1021,7 +1019,7 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 | --- | --- |
 | Ouverture | Ouvrir l’écran d’Exécution ne démarre pas automatiquement la premier Exercice. |
 | Exercice chronométré | Compte à rebours. `Exercice suivant` avant zéro demande confirmation et enregistre l’Exercice comme `Partielle`. |
-| Exercice en Répétitions ou À l’échec | Chronomètre croissant ; le cercle effectue une rotation par minute ; bip fixe à chaque minute ; `Pause` suspend chrono et cercle ; `Suivant` termine normalement la Série. |
+| Exercice en Répétitions ou À l’échec | Chronomètre croissant ; sans cadence/À l’échec : rotation et bip minute. Avec cadence : intervalles et signal nominal final, progression temporelle sans fin automatique ; Pause/Reprise sur intervalle complet. Suivant termine normalement dans les deux cas. |
 | Réinitialisation | Demande confirmation et remet l’Exercice courant à son état initial sans revenir à un Exercice antérieur. |
 | Pause / arrêt | `Pause` ouvre la modale permettant `Reprendre la séance` ou `Arrêter la séance`. Aucun bouton Arrêter direct n’est présent sur l’écran. |
 | Présentation | Le nouveau layout regroupe chrono circulaire, côté courant, cible `Sur`, Série/Tour, progression segmentée et bloc `Temps écoulé / À suivre`. Le contenu d’Exécution utilise Roboto Condensed ; le titre supérieur de Séance et les dialogues utilisent Inter. |
@@ -1032,7 +1030,7 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 
 - bip pendant les trois dernières secondes d’un Exercice chronométré selon les règles audio ;
 - annonce vocale du nom de l’Exercice au démarrage ;
-- pour un Exercice en Répétitions ou À l’échec, bip fixe à chaque minute écoulée dans le MVP.
+- pour un Exercice en Répétitions sans cadence ou À l’échec, bip fixe à chaque minute écoulée dans le MVP.
 
 ## Synthèse de séance
 
@@ -1055,7 +1053,7 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 | Titre Commentaire     | Texte            | Toujours |         Oui | Texte fixe                                           |                             | Statique    | Aucune         |                                      |
 | Mention "Facultatif"  | Texte            | Toujours |         Oui | Visible                                              | Texte fixe                  | Statique    | Aucune         |                                      |
 | Champ Commentaire     | Texte multiligne | Toujours |         Non | Vide                                                 | **200 caractères max**      | Utilisateur | Saisie         | Environ 2 à 3 lignes                 |
-| Bouton Terminer       | Bouton           | Toujours |         Oui | Désactivé tant que le ressenti n'est pas sélectionné | Une seule action            | Statique    | Aller au Suivi | Enregistre définitivement la séance  |
+| Bouton Enregistrer       | Bouton           | Toujours |         Oui | Désactivé tant que le ressenti n'est pas sélectionné | Une seule action            | Statique    | Aller au Suivi | Enregistre définitivement la séance  |
 ### Règles fonctionnelles
 | Règle               | Description                                                                      |
 | ------------------- | -------------------------------------------------------------------------------- |
@@ -1064,8 +1062,8 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 | Exercices partiellement réalisées | Affichées uniquement si leur nombre est supérieur à zéro ; `Partielle` reste le terme métier. |                        |
 | Ressenti            | Obligatoire dès lors que la Synthèse est présentée ; peut être absent après une interruption technique sans Synthèse.                                            |
 | Commentaire         | Facultatif, **200 caractères maximum**.                                                                      |
-| Validation          | Le bouton **Terminer** reste désactivé tant qu'aucun ressenti n'est sélectionné. |
-| Navigation          | Appui sur **Terminer** → écran **Suivi**.                                        |
+| Validation          | Le bouton **Enregistrer** reste désactivé tant qu'aucun ressenti n'est sélectionné. |
+| Navigation          | Appui sur **Enregistrer** → écran **Suivi**.                                        |
 | Sauvegarde          | Le ressenti et le commentaire sont enregistrés avec la séance.                   |
 | Séance interrompue  | Même écran, avec un statut et une icône adaptés.                                 |
 ## Profil
@@ -1184,7 +1182,7 @@ Référence normative détaillée : `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 L’éditeur d’Exercice porte `sideRecoverySeconds` uniquement pour un Exercice bilatéral. Le passage à `Aucun` rend ce paramètre sans objet. Lors du passage de `Aucun` à une direction bilatérale, la valeur initiale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice.
 
-La Composition porte `postActivityRecoverySeconds` sur chaque occurrence. La ligne reste visible à `0 s`, y compris après le dernier Exercice du Circuit et avant la Fin de séance. Dans un Circuit répété, cette même valeur est exécutée à chaque Tour. Une Exécution directe ne possède jamais de récupération post-exercice.
+La Composition porte `postActivityRecoverySeconds` sur chaque occurrence. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). D-238 retire seulement les informations de pause/récupération dans le corps des cartes. Dans un Circuit répété, cette même valeur est exécutée à chaque Tour. Une Exécution directe ne possède jamais de récupération post-exercice.
 
 ## Consolidation détaillée — D-209 à D-217
 
@@ -1192,12 +1190,12 @@ La Composition présente un **Circuit** interne à la Séance et un nombre de **
 
 L’éditeur d’Exercice exige exactement une Catégorie et au moins une Zone corporelle. Dans la phrase de synthèse, `Durée totale` est omise en mode Durée avec une seule Série conformément à D-232. Les valeurs Profil utilisées à la création deviennent propres à l’Exercice après initialisation.
 
-Dans la Composition, la ligne visuelle Récupération / Point d’arrêt ne fusionne pas les concepts. Si les deux sont actifs : `Exercice → Récupération après exercice → Point d’arrêt → suite`. Les positions immédiatement après le Compte à rebours initial et immédiatement avant la Fin de séance ne sont jamais proposées. Les positions avant/après Circuit et entre Exercices du Circuit sont autorisées ; un Point d’arrêt interne est répété à chaque Tour.
+Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). Placement multiple unifié selon D-304. Si les deux sont actifs : `Exercice → Récupération après exercice → Point d’arrêt → suite`. Les positions immédiatement après le Compte à rebours initial et immédiatement avant la Fin de séance ne sont jamais proposées. Les positions avant/après Circuit et entre Exercices du Circuit sont autorisées ; un Point d’arrêt interne est répété à chaque Tour.
 
 Dans la face Média compacte, le bouton Lecture central est affiché avant lecture et disparaît pendant la lecture vidéo. Le retour à Information met la vidéo en pause.
 
 
-**Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant ouvre une bulle de retrait ; un appui ailleurs referme la bulle sans modification. La Récupération après exercice et le Point d’arrêt peuvent partager une même ligne visuelle mais restent deux zones et deux concepts distincts.
+**Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant ouvre une bulle de retrait ; un appui ailleurs referme la bulle sans modification. Le mode de placement met en évidence les positions autorisées sur la ligne structurelle permanente ; il ne crée pas une ligne temporaire. La récupération reste réglable sur cette ligne hors du mode de placement.
 
 
 ## 12. Clôture Figma / DSF — 28 septembre 2026
@@ -1205,14 +1203,14 @@ Dans la face Média compacte, le bouton Lecture central est affiché avant lectu
 D-221 retire la recherche globale et toute recherche locale des Catalogues du MVP. D-222 distingue sélection simple auto-validée et sélection multiple avec validation explicite. D-223 rend le titre de Planifier contextuel. Les règles de rendu communes sont celles de D-224 à D-230 : fonds/zones de contexte, navigation, halo et actions circulaires, steppers/badges, listes/modales, roulettes et composants spécialisés. Elles ne modifient le métier que lorsqu’un comportement est explicitement décrit.
 
 
-### 8.x Générateur de phrase de synthèse v12
+### 8.x Générateur de phrase de synthèse v13
 
-Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=2×Ri s pour l’estimation ≥ seulement ; À l’échec : aucun total d’Exercice. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v12 §5 ; variable : lecture seule et — si incomplet.
+Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
 
-### Contrôles et bornes v12
+### Contrôles et bornes v13
 
-Séries : stepper `1..99`. Répétitions : stepper `1..100`. Durée par Série : roulette `1 s..99 min 59 s`. Pause après chaque série et Pause entre les côtés : stepper dans la feuille Exercice, `0..5 min`, valeurs0,1,2,3,4,5,10…120,150…300s (D-252) ; stepper pour les réglages du Profil. La Pause après chaque série est initialisée à `0 s` dans la feuille ; la Pause entre les côtés copie la valeur courante du Profil. Au changement de mode, les paramètres communs et les dernières valeurs spécifiques de chaque mode sont conservés pendant l’édition. Après la première sélection, le mode ne peut plus revenir à l’état vide. `Terminer` est désactivé avant cette première sélection.
+Séries : stepper `1..99`. Répétitions : stepper `1..100`. Durée par Série : roulette `1 s..99 min 59 s`. Pause après chaque série et Pause entre les côtés : stepper dans la feuille Exercice, `0..5 min`, tap1s et maintien accéléré1/5/10 selon DSF Bip (D-313) ; stepper pour les réglages du Profil. La Pause après chaque série est initialisée à `0 s` dans la feuille ; la Pause entre les côtés copie la valeur courante du Profil. Au changement de mode, les paramètres communs et les dernières valeurs spécifiques de chaque mode sont conservés pendant l’édition. Après la première sélection, le mode ne peut plus revenir à l’état vide. `Terminer` est désactivé avant cette première sélection.
 
 ## Présentation et interactions des cartes — 30 septembre 2026
 
@@ -1226,17 +1224,30 @@ D-239 : Calendrier Jour est une exception compacte (séance 298 × 46, exercice 
 
 Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md). Ces règles finales prévalent sur les anciennes formulations d’affichage du présent chapitre dans ce périmètre uniquement.
 
-Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper indépendant (450 ms puis 150 ms pour la répétition) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
+Appuis — D-237 : la spécification figée v2 du 29 septembre impose une dilatation au contact, un retour au relâchement et une action immédiate au relâchement, sans attendre le ressort. Annulation hors cible : retour sans action ; nouvel appui : reprise depuis l’état courant. Stepper selon DSF Bip (maintien≈500ms, répétition150ms, paliers1/5/10) et réduction des animations par opacité seule. Paramètres et preuves dans le complément DSF.
 
 ### Implantation des contrôles — réconciliation Figma du 30 septembre
 
 L’ordre et la présentation visuelle courants sont décrits dans le chapitre06 : carte récapitulative ouvrant CE-UI-10, Compte à rebours/Fin, Description, Média, Terminer. Les anciennes rangées de cadres et sections repliables ne constituent plus une prescription de layout. Les accès Catégorie et Zones corporelles sont représentés par leurs icônes dans les états non renseignés. Les valeurs métier, bornes, formules et conditions d’enregistrement restent inchangées.
 
 
-> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v12 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
 
 
 ### Saisie des paramètres — D-246
 
-La référence active est [Paramètres en modale v12](SPECIFICATION-PARAMETRES-MODALE-v12.md), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
+La référence active est [Paramètres en modale v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
 
+## Cadence — comportements communs complémentaires
+
+La [spécification Bip v2](SPECIFICATION-BIP-CADENCE-v2.md) fait autorité sur les signaux, Pause/Reprise, reset, temps réel, arrière-plan et seuil de sécurité ; paramètres v13 pour pauses/côtés/Récupération, phrase v1 pour le texte. Elle s’applique à chaque occurrence/côté/Tour. Bip0 signifie Aucun ; aucune valeur positive implicite. Suivant avant la fin nominale est une fin normale, pas une preuve de répétitions réalisées ni une fin partielle automatique. Le passage anticipé d’un Exercice chronométré conserve ses règles distinctes.
+
+### Avertissement d’enchaînement sans pause (D-301)
+
+Lorsque deux Exercices consécutifs n’ont ni pause effective de transition ni Récupération positive après son occurrence, la Composition affiche l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre.
+
+
+
+## Propagation Pauses et symboles — 07/10
+
+Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). Sélection multiple, ouverture immédiate de la durée, sous-brouillon atomique et retrait par bulle selon la spécification consolidée. Les frontières du Point d’arrêt ne deviennent pas celles de toutes les récupérations.

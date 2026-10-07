@@ -1,5 +1,7 @@
 # DSF — Cartes, icônes et animations d’appui
 
+**État courant06/10 :** [DSF Cadence et corrections](DSF-CADENCE-2026-10-06.md), [matrice courante](MATRICE-CADENCE-FIGMA-2026-10-06.md). Les mesures/captures datées ci-dessous restent historiques lorsqu’elles sont remplacées ; règles cartes média conservées. Cadence commune REPS et phrase unique selon paramètres v13, Phrase v1.
+
 ## Références et portée
 
 Mise à jour du 30 septembre 2026, issue de `prompt_maj_DSF_et_documentation_cartes_point fermés.md`, complété par les six corrections du propriétaire et de la précision du propriétaire sur les pages Figma. Base documentaire : `MyUncried/Application-Routine`, `main`, commit `48b444ededb735da47a42474c39e150224e92395`. Aucun ZIP ancien n’est réintégré.
@@ -27,12 +29,12 @@ Une carte présente le titre et son badge, puis le classement, puis les valeurs.
 | Élément | Valeur de référence |
 |---|---|
 | Largeur sur écran de 402 | 354 ; marges extérieures 24 |
-| Fond / bord intérieur | `#FCFCFE` / `#CCD1E0`, 0,5 |
+| Fond / bord intérieur | `#F9FAFC (surfaceSubtle ; ancienne valeur historique #FCFCFE)` / `#CCD1E0`, 0,5 |
 | Rayon | 8 |
 | Ombre | `#1A1A26` à 8 %, x=0, y=2, flou=10 |
 | Archivée | fond `#F6F6F6`, bord `#D9D9D9` 0,5 ; même ombre ; Restaurer remplace Lecture |
 | Titre / informations secondaires | Inter Semi Bold 15 / Inter 12 |
-| Badge durée ou heure | `#F4F4F8`, sans bord, rayon 5, padding vertical 2 / horizontal 7, hauteur 19 |
+| Badge durée ou heure | `#F5F7FA (surface ; ancienne valeur historique #F4F4F8)`, sans bord, rayon 5, padding vertical 2 / horizontal 7, hauteur 19 |
 | Espacement vertical | titre → classement 8 ; classement → valeurs 4 |
 | Pastille de classement | 20 ; pictogramme blanc sur fond coloré ou gris `#9499A8` sur fond vide et contour 0,5 |
 | Icône de valeur | 16, gris `#9499A8`, trait fin |
@@ -53,7 +55,7 @@ Ces dimensions décrivent la référence à taille de texte standard. Le média 
 
 Dans le Suivi, la carte fait 354 × 67. Statut à x=262/y=9 (76 × 24), Ressenti à x=318/y=39 (20 × 20). Ligne 1 : nature, titre, statut ; ligne 2 : durée, catégorie, ressenti. Aucun chevron, heure, zone corporelle ou étiquette. La boîte du Ressenti et son dessin font 20 × 20 ; aucune zone tactile ni action. Les données historiques complètes restent conservées. D-175 reste la règle des gestes dans les contextes où ils sont accessibles.
 
-Le cercle de nature est réservé aux cartes Semaine et Suivi : diamètre 26, marge 12 depuis le bord, fond `#FCFCFE`, bord blanc 0,5, ombre `#1A1A26` à 28 % (0,2,6), pictogramme `#14141A`. Séance : liste ; exercice : `person-simple-tai-chi-light`, dessin 15. Dans le Catalogue et les choix d’exercices, la nature apparaît dans la gouttière permanente sans média ; ce dessin24 n’est pas le cercle26 des cartes Semaine/Suivi/Jour. Le contexte Calendrier Jour emploie aussi le cercle de nature, selon les dimensions compactes ci-dessous.
+Le cercle de nature est réservé aux cartes Semaine et Suivi : diamètre 26, marge 12 depuis le bord, fond `#F9FAFC (surfaceSubtle ; ancienne valeur historique #FCFCFE)`, bord blanc 0,5, ombre `#1A1A26` à 28 % (0,2,6), pictogramme `#14141A`. Séance : liste ; exercice : `person-simple-tai-chi-light`, dessin 15. Dans le Catalogue et les choix d’exercices, la nature apparaît dans la gouttière permanente sans média ; ce dessin24 n’est pas le cercle26 des cartes Semaine/Suivi/Jour. Le contexte Calendrier Jour emploie aussi le cercle de nature, selon les dimensions compactes ci-dessous.
 
 ## Iconographie et couleurs
 
@@ -88,9 +90,9 @@ Le booléen Figma `Bilatéral` est faux par défaut. Il est présent sur les var
 
 Ces couleurs documentent les références fournies ; elles ne créent ni catégories obligatoires ni couleur déduite du nom en production. Cardio et Récupération sont validées. Le contraste du pictogramme blanc inférieur à 3:1 est une situation connue et acceptée : environ 1,9:1 pour Cardio, 1,5:1 pour Récupération, 2,3:1 pour Étirements ; le nom de catégorie reste affiché à côté. Les autres catégories non concernées conservent leur définition.
 
-Navigation : `Navigation / Bottom` (`6298:12462`), variantes Catalogue `6298:11827`, Calendar `6298:11988`, History `6298:12149`, Profile `6298:12310`, Search `6298:12461`. La présence de Search ne valide pas une destination fonctionnelle supplémentaire. Icônes : Catalogue `6296:10468` (quatre formes), Calendrier `6296:10484` (contour), Suivi `6296:10498` (quatre barres), Profil `6296:10514` (`people-outline`). Trait 2, dessin maximal 24 dans boîte optique 32, profil 24 × 20,1, centrage conservant le ratio. Actif `#0508E5`, non actif `#5C636E`.
+Navigation : `Navigation / Bottom` (`6298:12462`), variantes Catalogue `6298:11827`, Calendar `6298:11988`, History `6298:12149`, Profile `6298:12310`, Search `6298:12461`. La présence de Search ne valide pas une destination fonctionnelle supplémentaire. Icônes : Catalogue `6296:10468` (quatre formes), Calendrier `6296:10484` (contour), Suivi `6296:10498` (quatre barres), Profil `6296:10514` (`people-outline`). Trait 2, dessin maximal 24 dans boîte optique 32, profil 24 × 20,1, centrage conservant le ratio. Actif `#0508E5`, non actif `#595E66`.
 
-Icônes de sélection hors navigation : sélectionné `#0508E5`, non sélectionné `#5C636E`, inactif `#C2C4D1`. Cette palette ne recolore pas les visages de Ressenti, les statuts, les boutons à fond coloré ou les icônes purement informatives de valeur. `target-light` reste réservé au Programme ; `pulse-light` reste réservé aux rapports ou au Suivi ; ces icônes ne sont pas encore utilisées. Les nouvelles icônes suivent `icon/<nom>` ; les icônes existantes ne sont pas renommées.
+Icônes de sélection hors navigation : sélectionné `#0508E5`, non sélectionné `#595E66`, inactif `#C2C4D1`. Cette palette ne recolore pas les visages de Ressenti, les statuts, les boutons à fond coloré ou les icônes purement informatives de valeur. `target-light` reste réservé au Programme ; `pulse-light` reste réservé aux rapports ou au Suivi ; ces icônes ne sont pas encore utilisées. Les nouvelles icônes suivent `icon/<nom>` ; les icônes existantes ne sont pas renommées.
 
 ## Composants et écarts d’assemblage
 
@@ -111,7 +113,7 @@ Les trois composants canoniques sont désormais implantés dans Design system �
 | RG-3 | Les Séances ne portent jamais de visuel ; aucune photo dans les listes mixtes, le Calendrier ou le Suivi. | Validé définitivement — D-260 |
 | RG-4 | Aucun déploiement accessible sur les cartes d’Exercice ou du Suivi, avec ou sans média. Déploiement des Séances conservé au Catalogue et au Calendrier Semaine. | Validé — D-261/D-262 |
 | RG-5 | Une seule famille d’icônes de zone corporelle dans toute l’application ; variante Homme/Femme suivant la préférence de Profil définie par RG-10. | Validé |
-| RG-6 | La gouttière permanente est 64 ; texte à x=88, bloc de 207 px dans les variantes Catalogue/choix d’exercices. Le chargement du média ne change pas la hauteur. | Validé ; référence à taille standard |
+| RG-6 | La gouttière permanente est 64 ; texte à x=88 ; Catalogue replié/archivé : titre250px et lignes basses207px ; Choix : largeur selon son contrôle de sélection. Le chargement du média ne change pas la hauteur. | Validé ; référence à taille standard |
 | RG-7 | Minimum tactile 44 × 44, sans chevauchement. Boutons contextuels visibles 34. Une cible existante de 48 reste conforme et ne doit pas être réduite sans nécessité. | Validé ; révise le minimum commun de D-087, conserve les dimensions spécifiques supérieures |
 | RG-8 | Zones des cartes d’Exercice : largeur du cadre = position du contrôle droit − début du texte − 8 px ; troncature finale, une ligne, sans scroll horizontal (D-263). Les Séances conservent leur minimum20. | Clarification validée par correction de l’audit du04/10/2026 ; aucune marge optique20 additionnelle pour ces zones |
 | RG-9 | Marges latérales 24 sur la référence écran 402, sauf retraits volontaires documentés. | Validé ; ne remplace pas les règles responsive |
@@ -149,7 +151,7 @@ Deux motifs communs : Rebond pour actions rondes, navigation et actions principa
 
 Navigation composée : barre à 106 % pendant 200 ms avec déplacement du cadre actif ; arrivée en 400 ms, barre revenue à 100 %, cadre de sélection de 76 × 50 à 82 × 78 (dépassement surtout vertical) ; stabilisation 700 ms Bouncy. La démo d’onglet individuel décrit le motif, celle de barre le comportement composé.
 
-Stepper : seul le bouton touché s’anime, nombre/fond/bouton opposé immobiles. Premier incrément immédiat, début de répétition après 450 ms, puis pas toutes les 150 ms ; arrêt au relâchement. Ces délais sont les valeurs initiales prévues, ajustables après essai appareil. L’amplitude est limitée pour éviter le chevauchement du nombre.
+Stepper : tap1 ; maintien≈500ms, répétition150ms, après2s pas5 et après4s pas10 avec arrondi directionnel au multiple. Bip/Compte à rebours/Fin sans accélération. Relâchement arrête et rétablit le pas1 ; saturation aux bornes. Seul le bouton touché s’anime, sans chevauchement.
 
 Réduction des animations : opacité 100 % → environ 55 % → 100 %, sans mise à l’échelle, pour toutes les familles. Annulation par sortie du doigt : pas d’action, retour animé à 100 %. Appuis rapides : interruption du ressort puis reprise depuis l’état courant, sans attendre la fin du rebond.
 
@@ -169,7 +171,7 @@ Les réactions Figma utilisent ON_CLICK puis AFTER_TIMEOUT de 10 ms pour la dém
 | Zones corporelles | Ancienne icône body/man-outline | Famille silhouette Homme/Femme | Cartes, Profil, éditeur | Validé, RG-5/RG-10 |
 | Bilatéral | Texte « de chaque côté » | Miroir dans les variantes concernées | Exercice Catalogue/choix | Validé |
 | Prochaine planification | D-206 impose une ligne conditionnelle | Ligne retirée du rendu | Deux Catalogues | Validé ; D-206 révisée sur l’affichage seul |
-| Pause/récupération | Synthèses documentées et D-208 | Absentes de certaines synthèses graphiques | Catalogue, choix, Composition | Validé ; affichage révisé, données conservées ; calculs révisés par D-248/v12 |
+| Pause/récupération | Synthèses documentées et D-208 | Absentes de certaines synthèses graphiques | Catalogue, choix, Composition | Validé ; affichage révisé, données conservées ; calculs révisés par D-248/v13 |
 | Format de synthèse | Format métier existant | N séries de X / N séries de N rép. / N séries à l’échec | Exercice | Validé |
 | Heure / classement | Formats et agrégations existants | 08:00 en Semaine ; Suivi sans heure depuis D-262 ; étiquette sinon catégories hors Suivi | Cartes | Validé |
 | Appui | Non décrit dans le DSF documentaire courant | Démonstrations et variantes accessibilité identifiées | Contrôles | Spécification v2 du 29/09 reprise ; action immédiate au relâchement |
@@ -180,7 +182,7 @@ Les 17 points du 30/09 sont clos ; les situations acceptées ne sont pas rouvert
 
 ## Situations connues, acceptées et portée normative
 
-- Les pauses et récupérations ne sont plus affichées sur les cartes du Catalogue, des choix et de Composition ; leurs données, paramètres et calculs restent inchangés. D-208 est révisée sur l’affichage des cartes uniquement.
+- Les pauses et récupérations ne sont plus affichées dans le corps des cartes du Catalogue, des choix et de Composition ; leurs données, paramètres et calculs restent inchangés. D-208 est révisée sur l’affichage des cartes uniquement. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303).
 - La prochaine planification n’est plus affichée dans les deux Catalogues. D-206 conserve la planification directe SESSION/ACTIVITY et son calcul ; seule son exigence d’affichage sur carte est révisée.
 - Synthèse exercice : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par icône miroir dans les contextes prévus. Badge heure Semaine « 08:00 » ; aucune heure dans la carte du Suivi.
 - Une séance sans étiquette affiche ses catégories issues des exercices. Plusieurs catégories/zones : point médian, puis points de suspension selon l’espace ; données complètes conservées. Aucun nouveau champ Catégorie de Séance.
@@ -237,8 +239,8 @@ Total rapporté par le propriétaire : 133 cartes / 38 écrans / environ 27 inte
 21. DAT-01 : aucun titre/heure/statut d’exemple ne devient une constante métier ou une règle d’inférence.
 22. ANI-04 : l’action se déclenche au relâchement sans attendre le ressort ; une sortie du doigt annule l’action.
 23. ANI-05 : un appui rapide interrompt et reprend l’animation depuis son état courant.
-24. ANI-06 : le stepper répète après 450 ms puis toutes les 150 ms et s’arrête au relâchement.
-25. DAT-02 : les sources de Routine et les instantanés historiques sont conservés ; les calculs actifs suivent D-248/v12.
+24. ANI-06 : Stepper : tap1 ; maintien≈500ms, répétition150ms, après2s pas5 et après4s pas10 avec arrondi directionnel au multiple. Bip/Compte à rebours/Fin sans accélération. Relâchement arrête et rétablit le pas1 ; saturation aux bornes. Seul le bouton touché s’anime, sans chevauchement.
+25. DAT-02 : les sources de Routine et les instantanés historiques sont conservés ; les calculs actifs suivent D-248/v13.
 
 26. MED-05 : aucun bouton Déployer sur Exercice, avec ou sans média, ni sur les cartes Suivi.
 27. MED-06 : vignette centrée et recadrée sans déformation ; couverture pour la vidéo.
@@ -260,7 +262,7 @@ Le token historique `size/touch-target-min` conserve sa valeur48 pour ne pas ré
 
 ## Contrôle de reprise — 03/10/2026
 
-Baseline documentaire : `main` `d05473055722b0b7677b3604daed5fa02fae1a42`, après PR #285 à #291 ; D-256 à D-259 préservées. Aucune règle de calcul v12 modifiée.
+Baseline documentaire : `main` `d05473055722b0b7677b3604daed5fa02fae1a42`, après PR #285 à #291 ; D-256 à D-259 préservées. Aucune règle de calcul v13 modifiée.
 
 Lecture directe des trois sets : **0 remplissage/contour SOLID en dur, 831 liés**. Le compte antérieur 829 précède l’ajout du fond Calendrier Jour Exercice (remplissage et contour liés). Les tokens sont `color/cards/media-placeholder`, `color/cards/calendar-day-border`, `color/feeling/good` ; valeurs visuelles conservées. Aucun calque nommé Défilement horizontal dans les trois sets. Le fond `6770:13202` du Calendrier Jour Exercice fait 298 × 48 ; la carte reste rayon 8, contour #D6D9E0 de 1 px intérieur.
 
@@ -268,3 +270,7 @@ Lecture directe des trois sets : **0 remplissage/contour SOLID en dur, 831 liés
 
 Correction du04/10/2026 : conteneurs Titre + durée totale `6214:4075`/`6214:4117` ajustés à la largeur207 du parent par FILL, au lieu de322. Badge en largeur intrinsèque, titre prenant le reste et tronqué ; bord droit du badge x295 sur carte354. Aucune hauteur ni donnée modifiée. Zones Calendrier Semaine `6214:4272` : troncature ENDING, une ligne, largeur145 conservée. Ces deux écarts d’assemblage sont corrigés ; cela ne vaut pas recette applicative.
 
+
+## Durée des cartes — complément du07/10
+
+[Référence normative courante](DSF-CARTES-DUREE-2026-10-07.md) : durée Catalogue sans cadre/padding, Inter Semi Bold12, droite16 ; propriété Durée ; titre250/lignes basses207 en Exercice, coupes60/69/145 fondées sur207. Composants actifs6214:7278 et6214:7276 ; anciennes cartes5544 ne sont pas les références.

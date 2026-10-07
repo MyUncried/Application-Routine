@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "exportedAt": "2026-10-06",
+  "figmaFileKey": "G6RY5Ebhgwb4AHIOYDwwvg",
+  "pageId": "2291:2",
+  "method": "Figma SVG_STRING, exact bytes",
+  "scope": "Source assets deposited; runtime wiring unchanged",
+  "exports": [
+    {
+      "file": "assets/icons/icon-tri.svg",
+      "id": "6939:26387",
+      "name": "icon/tri",
+      "width": 20,
+      "height": 20,
+      "sha256": "3f81dbbcac357cd6869f9b359f9634d0d4ecf5d80f93884e1ffbfebcf13254fa",
+      "gitBlob": "fc2a4a65f49a963ec9f70e6bd74bb6c84a158ed5"
+    },
+    {
+      "file": "assets/icons/icon-suivant.svg",
+      "id": "6959:15460",
+      "name": "icon/suivant",
+      "width": 24,
+      "height": 24,
+      "sha256": "2b1b3c9f251aa46ba7ac78f03a587ddfc8f0d9cbd4bb623e7e27b76d2a53f960",
+      "gitBlob": "d33d6ae53802431461c0e9cfb6b13280a294e84a"
+    },
+    {
+      "file": "assets/icons/icon-precedent.svg",
+      "id": "6959:15579",
+      "name": "icon/précédent",
+      "width": 24,
+      "height": 24,
+      "sha256": "24c08d3e357b74528a2f2eb3a891ea0b83d0794e826f52b41b47c7d340b207d9",
+      "gitBlob": "97c01cf8e98ac47f9c7a986a985206f434675222"
+    },
+    {
+      "file": "assets/icons/action-add.svg",
+      "id": "6959:15706",
+      "name": "icon/ajouter",
+      "width": 24,
+      "height": 24,
+      "sha256": "a1ea9fc54eb177efe5f28ea2e9cdbb489ad2112c0e659110df07efc4344f3ab2",
+      "gitBlob": "da4c807ed8a9323d7b1759184bd6ba64a4731422",
+      "status": "Existing file, exact byte identity with current Figma export"
+    },
+    {
+      "file": "assets/icons/icon-fermer.svg",
+      "id": "6959:15825",
+      "name": "icon/fermer",
+      "width": 24,
+      "height": 24,
+      "sha256": "fdd5b037a1e0c7361fc6e1256a1a692a87554b57ecc0c0950f56255ad2ca4a37",
+      "gitBlob": "57ad54c87e77f5caa828e1239acdeb30fe8510b1"
+    },
+    {
+      "file": "assets/icons/icon-retour.svg",
+      "id": "6959:15940",
+      "name": "icon/retour",
+      "width": 24,
+      "height": 24,
+      "sha256": "2ad4f3ceba9f32ae6fd872c31d893638d9f7c2ff0f2ff54e1c81946ddfcd8c9b",
+      "gitBlob": "bbde95a94a92bb21ab8f36255644adaeafcae5e9"
+    },
+    {
+      "file": "assets/icons/icon-photo-ajouter.svg",
+      "id": "7021:13149",
+      "name": "icon/photo-ajouter",
+      "width": 24,
+      "height": 24,
+      "sha256": "e4a60f56dd1122a721af51fe55f4ec39854064663018e5178090dfba2dbbbce0",
+      "gitBlob": "d3f06972637db503c238bd465cb474fc0b21e3d1"
+    },
+    {
+      "file": "assets/icons/selection-check.svg",
+      "id": "6214:4424",
+      "name": "✓ — glyph outlined from selected exercise card",
+      "width": 10,
+      "height": 8,
+      "sourceNodeWidth": 20,
+      "sourceNodeHeight": 20,
+      "method": "Figma exportAsync SVG with svgOutlineText=true, exact bytes",
+      "masterComponentId": "6214:4425",
+      "sha256": "cef10630d72dbd0172cef19168a7626e2cc333b2a2eeb0a7a4c8cd009dd25fd8",
+      "gitBlob": "e1b29fb0f1d16a4b2873369211d3c97c2f3845e2",
+      "usage": "CE-COMP-SEL-01, selection composition",
+      "runtimeWiringChanged": false
+    }
+  ]
+}

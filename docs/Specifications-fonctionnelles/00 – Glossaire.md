@@ -23,11 +23,11 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Compte à rebours d’Exercice** | Phase optionnelle propre à un Exercice, distincte du Compte à rebours initial de la Séance. | |
 | **Fin d’exercice** | Phase optionnelle propre à un Exercice, distincte de la Fin de séance. | |
 | **Plan d’Exécution** | Liste ordonnée calculée au démarrage après développement des Séries, Pauses, phases `SIDE_RECOVERY`/`POST_ACTIVITY_RECOVERY` applicables et répétitions du Circuit en Tours. | |
-| **Pause après chaque série** | Pause Pi attachée à la Série i, y compris la dernière. En occurrence, R>0 remplace uniquement PN terminale ; R=0 la conserve. La fréquence dépend de l’Ordre des côtés (v12 §4). | 15 s après une Série |
+| **Pause après chaque série** | Pi configurée et exécutée après chaque Série, dernière comprise, même à N=1. Seule la dernière Pause est remplacée par la récupération positive qui suit l’Exercice. Pause de série et pause de changement de côté se cumulent à leur frontière. | 15s après chaque Série |
 | **Pause entre les côtés** | Durée intrinsèque facultative d’un Exercice bilatéral, portée par `sideRecoverySeconds`. Elle n’a de sens qu’avec `D→G` ou `G→D`, s’exécute selon l’Ordre des côtés : une fois entre les blocs ou une fois à l’intérieur de chaque paire, et entre dans la durée intrinsèque de l’Exercice. Avec `Aucun`, elle est sans objet. Sa valeur initiale lors de l’activation bilatérale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice. | 30 s entre côté droit et côté gauche |
-| **Récupération après exercice** | Durée contextuelle portée par chaque occurrence d’Exercice dans une Séance ou un Parcours via `postActivityRecoverySeconds`. Elle existe toujours, y compris à `0 s`, reste visible dans la Composition, se déplace/duplique/supprime avec l’occurrence et s’exécute après celle-ci. Elle n’existe pas sur `ActivityDefinition` et n’entre pas dans la durée intrinsèque de l’Exercice. | Récupération 30 s après Squats |
+| **Récupération après exercice** | Pause chronométrée ajoutée explicitement à une occurrence, absente par défaut ; jamais sur ActivityDefinition. Attachée à l’occurrence lors des opérations. À 0s : aucune information de récupération ni phase ; trait indépendant D-303. | Récupération30s ajoutée |
 | **Phase de récupération** | Phase d’Exécution positive matérialisée soit par `SIDE_RECOVERY`, entre les deux côtés d’un Exercice bilatéral, soit par `POST_ACTIVITY_RECOVERY`, après une occurrence de Séance/Parcours. Elles ont des porteurs et positions distincts et ne sont pas comptées comme des Exercices. | |
-| **Durée totale de l’Exercice** | Total intrinsèque calculé suivant v12 §5 : exact en Durée, estimé ≥ en Répétitions (2 s/rép.), absent À l’échec. Inclut les Pauses et PC applicables ; exclut R contextuelle, Compte à rebours et Fin propres. |  |
+| **Durée totale de l’Exercice** | Total intrinsèque calculé suivant v13 §5 : exact en Durée, estimé ≈ avec cadence, borne omission sans bip à l’Exercice, omis À l’échec. Inclut les Pauses et PC applicables ; exclut R contextuelle, Compte à rebours et Fin propres. |  |
 | **Cycle** | Structure technique unique qui enveloppe les Exercices placés avant le Circuit, le Circuit et les Exercices placés après le Circuit. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur. | Cycle technique × 1 |
 | **Routine** | Planification d’un contenu autonome. Dans le MVP, la source est une Séance ou un Exercice persistant ; lorsqu’un Parcours devient planifiable, il utilise la même Routine. Elle est unique ou périodique et possède zéro ou un rappel. | Squats chaque lundi à 8 h |
 | **Occurrence planifiée** | Instance temporelle calculée à partir d’une Routine, pour une Séance ou un Exercice. Une occurrence future peut être exécutée en avance ; une occurrence passée sans Exécution disparaît de l’interface du MVP. | Exercice prévu mardi à 18 h |
@@ -51,7 +51,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Circuit** | Groupe ordonné d’Exercices placé dans la Composition d’une Séance et répété en Tours. Les Exercices peuvent aussi être placés avant le Circuit ou après celui-ci. Le Circuit est une structure interne à la Séance, pas un contenu autonome du Catalogue. |
 | **Tour** | Une répétition du Circuit. Le nombre de Tours indique combien de fois le groupe ordonné d’Exercices du Circuit est exécuté. Le Tour ne constitue pas une entité métier autonome. Exemple : Mobilité → gainage, répété 3 Tours. |
 | **Série** | Définition subordonnée à l’Exercice : cible éventuelle et Pause. N signifie N Séries par côté en bilatéral. Paramètres communs en uniforme, collection ordonnée propre à chaque Série en variable. Pas une entité autonome. |
-| **Répétition** | Unité quantitative d’un Exercice non chronométré. Le pluriel `Répétitions` désigne également ce mode d’Exercice dans l’interface. |
+| **Répétition** | Unité quantitative d’un Exercice en mode Répétitions, avec ou sans cadence ; aucune mesure automatique de sa réalisation physique. Le pluriel `Répétitions` désigne également ce mode d’Exercice dans l’interface. |
 | **Exercice avant le Circuit** | Exercice exécuté une seule fois avant la première Tour du Circuit. |
 | **Exercice dans le Circuit** | Exercice exécuté à chaque Tour du Circuit. |
 | **Exercice après le Circuit** | Exercice exécuté une seule fois après la dernière Tour du Circuit et avant la Fin de séance. |
@@ -88,7 +88,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Nombre d’Exercices de la Composition** | Nombre d’Exercices définies par l’utilisateur, sans développement des Séries ou Tours et sans compter leurs phases de Récupération. |
 | **Nombre total d’Exercices à exécuter** | Nombre d’occurrences d’Exercices du Plan développé. Les Pauses et phases de Récupération, le Compte à rebours initial et la Fin de séance ne sont pas des Exercices et ne sont pas comptés. |
 | **Nombre d’Exercices exécutés** | Nombre de Résultats d’Exercice enregistrés. Un Exercice Partielle compte ; un Exercice jamais atteinte ne compte pas. |
-| **Durée estimée d’exécution** | Somme des durées déterminables du Plan d’Exécution complet : Compte à rebours initial, Exercices, Pauses, phases de Récupération et Fin de séance pour une Exécution de Séance. En présence d’un Exercice en Répétitions ou À l’échec, elle devient une borne minimale précédée de `≥`. |
+| **Durée estimée d’exécution** | Somme des durées déterminables du Plan d’Exécution complet : Compte à rebours initial, Exercices, Pauses, phases de Récupération et Fin de séance pour une Exécution de Séance. Exercice : exact en Durée, ≈ en Répétitions avec bip, omitted en Répétitions sans bip et À l’échec. Séance : exact si tout exact, ≈ avec estimation sans inconnu, ≥ avec travail inconnu. Bip v2 gouverne calculs et périmètres. |
 | **Durée synthétique des Exercices** | Somme des durées déterminables des occurrences d’Exercices, de leurs Séries, Pauses, Récupérations et Tours du Circuit. Elle exclut toujours le Compte à rebours initial et la Fin de séance. Elle est utilisée dans le Catalogue et dans la synthèse du Circuit de la Composition. |
 | **Durée réelle** | Temps actif effectivement exécuté, Compte à rebours initial et Fin de séance inclus lorsqu’ils appartiennent au Plan exécuté, hors Pauses déclenchées manuellement par l’utilisateur. |
 
@@ -189,3 +189,27 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 |---|---|
 | **Séries variables** | État explicite : chaque Série a ses propres cible et Pause, avec un mode commun à l’Exercice. |
 | **Ordre des côtés** | Un côté après l’autre (défaut) ou Les deux côtés à chaque série. Indépendant de la direction D→G/G→D ; normalisé au premier ordre à N=1. |
+
+## Cadence et métriques — complément du06/10/2026
+
+| Terme | Définition unique |
+|---|---|
+| Bip de cadence | Stepper | Trois modes, réglage commun | Non | Aucun (0) | Entier0..10s | Série | ± dans le brouillon ;0 retire le bip | Propagation à toutes les Séries ; conservation au changement de mode |
+| Intervalle de cadence | Fenêtre temporelle de Ci secondes ; première répétition commence immédiatement. Une fraction abandonnée par Pause n’est pas acquise pour la progression. |
+| Fin nominale | Instant auquel Ri intervalles prescrits ont été acquis ; signal distinct, Série encore active jusqu’à Suivant. Décalée après interruption d’intervalle. |
+| Temps actif cumulé | Temps réellement dépensé, incluant fractions abandonnées et tentatives réinitialisées ; distinct du chronomètre de la tentative courante. |
+| Incertitude de durée | Déterminable : sans symbole ; approximation :≈ ; composante non estimable :≥ pour les agrégats. Le total d’Exercice À l’échec reste omis. |
+
+Références normatives : Bip v2 et paramètres v13. Circuit reste la structure interne de Séance, Tour son nombre de passages, Parcours l’objet autonome post-MVP ; aucun ancien arbre de création n’est réintroduit.
+
+
+## Vocabulaire complémentaire — 07/10
+
+| Terme | Définition |
+|---|---|
+| Pause de Composition | Regroupe Récupération chronométrée et Point d’arrêt. Distincte de la Pause de Série et de la Pause utilisateur. |
+| Trait de démarcation | Élément graphique indépendant des informations récupération/point ; conservé hors placement, absent pendant le choix. |
+
+| Terme | Définition |
+|---|---|
+| Bip de cadence | Signal sonore périodique pendant les Séries des trois modes. Intervalle entier0..10s ;0=Aucun. Ne compte pas les répétitions et ne termine pas la Série. |

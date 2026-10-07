@@ -1,5 +1,7 @@
 # État des lieux — Créer ou modifier un exercice — 03/10/2026
 
+**Inventaire courant :** [matrice06/10](MATRICE-CADENCE-FIGMA-2026-10-06.md). Ce relevé antérieur conserve sa provenance ; ses empreintes datées ne décrivent pas les PNG réexportés le06/10. Les états6603/6611/6623 ne remplacent plus les frames6407/6411/6423 réintégrées. Cadence/phrase/DSF actifs : paramètres v13, Phrase v1 et DSF-CADENCE-2026-10-06.
+
 ## Base et méthode
 
 GitHub vérifié : main `8fc58a466679a85ea74752f0273939f901efa1b8`, PR284 à `117bedcb27a7290d8dc35bdd7bcee58ad0c739b5` avant cette correction. Le travail continue sur cette PR, pas sur une ancienne version documentaire. Figma : fichier `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype MVP `510:101`, **132 frames directement sous la page** au relevé. Ce nombre n’est pas un nombre d’écrans fonctionnels.

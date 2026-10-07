@@ -1,5 +1,7 @@
 # Objectif de cette note
 
+**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
+
 Décrire, du point de vue de l'utilisateur, les principaux parcours permettant de créer, planifier, exécuter et suivre ses séances dans l'application.
 
 Cette note décrit les objectifs de l'utilisateur et l'enchaînement logique des actions, sans détailler encore les écrans ni les choix techniques.
@@ -126,7 +128,7 @@ Il peut notamment :
 
 Les modifications sont immédiatement prises en compte pour les futures exécutions.
 
-Chaque occurrence de Séance affiche systématiquement sa **Récupération après exercice**, y compris lorsqu’elle vaut `0 s`. Cette récupération se déplace avec l’occurrence, est copiée lors de sa duplication et disparaît lors de sa suppression. Sa valeur n’est jamais recalculée en fonction de l’Exercice suivant.
+Chaque occurrence peut recevoir explicitement une **Récupération après exercice**. Elle affiche ses informations seulement si sa durée est positive. Le trait de démarcation est conservé hors placement et supprimé pendant le choix (D-303). Cette récupération se déplace avec l’occurrence, est copiée lors de sa duplication et disparaît lors de sa suppression. Sa valeur n’est jamais recalculée en fonction de l’Exercice suivant.
 ### 3. Démarrer une séance
 
 L'utilisateur choisit la zone `Démarrer` d’une séance et ouvre d’abord l’état initial d’Exécution. Toucher la partie principale de la carte ouvre au contraire la Séance en modification.
@@ -293,7 +295,7 @@ La séance peut avoir été lancée directement ou à partir d'une routine plani
 - La règle permettant de reprendre une séance après une très longue interruption est définie comme suit :
 	- Si une Séance reste en pause pendant au moins 30 minutes consécutives, l'application demande à l'utilisateur s'il souhaite reprendre son Exécution.
 	- Si l'utilisateur confirme, la séance reprend à l'exercice où elle avait été interrompue.
-	- En l'absence de réponse, la séance est automatiquement enregistrée avec le statut Interrompue.
+	- En l’absence de réponse, la Séance reste suspendue avec son état conservé ; aucun arrêt automatique supplémentaire (chapitre13 R-03).
 	- Dans une version ultérieure, cette durée maximale pourra être configurée dans les préférences utilisateur.
 ## Résultat attendu
 
@@ -396,7 +398,7 @@ Un Exercice créé directement dans une Séance ne rejoint pas le catalogue. L�
 
 ## Exécuter un Exercice À l’échec — MVP
 
-L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La Pause configurée s’exécute après chaque Série, selon l’Ordre des côtés et la substitution terminale v12. Si l’Exercice est bilatéral, la Pause entre les côtés éventuelle intervient entre les deux passages. En Exécution directe, aucune Récupération après exercice n’est ajoutée ; dans une Séance/Parcours, la Récupération après exercice appartient à l’occurrence et s’exécute après celle-ci.
+L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La Pause configurée s’exécute après chaque Série, selon l’Ordre des côtés, dernière Pause comprise (Bip v2). Si l’Exercice est bilatéral, la Pause entre les côtés éventuelle intervient entre les deux passages. En Exécution directe, aucune Récupération après exercice n’est ajoutée ; dans une Séance/Parcours, la Récupération après exercice appartient à l’occurrence et s’exécute après celle-ci.
 
 ## Créer et exécuter un Parcours — hors MVP, conception partielle
 
@@ -541,4 +543,16 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 
 ## Paramètres d’exécution — complément du02/10/2026
 
-Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v12](SPECIFICATION-PARAMETRES-MODALE-v12.md), CE-T03-04 et CE-UI-10.
+Le parcours existant permet maintenant des Séries variables dans la même feuille de paramètres, avec un mode commun et des cibles/Pauses par Série. La direction et l’Ordre des côtés sont indépendants. L’utilisateur peut choisir Un côté après l’autre ou Les deux côtés à chaque série ; N=1 est normalisé au premier ordre et au mode uniforme. Aucun nouveau parcours ni shell. Référence normative : [v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), CE-T03-04 et CE-UI-10.
+
+## Parcours Répétitions avec cadence
+
+Dans créer/modifier un Exercice, ouvrir la zone Paramètres, choisir Répétitions puis renseigner éventuellement Cadence. Aucune reste valide ; suppression remet l’absence. En Séries variables, le réglage commun s’applique à toutes les lignes. ✓ actualise le parent et sa phrase ; ✕ annule ; Terminer enregistre.
+
+En direct comme en Séance, la première répétition commence immédiatement, puis les signaux rythment les intervalles. Le signal final nominal ne change pas de Série ; Suivant le fait normalement. Pause abandonne l’intervalle incomplet pour la progression et Reprendre lance un intervalle complet ; le temps actif est conservé. Réinitialiser suit le périmètre existant. La Synthèse restitue le temps réellement passé sans demander de compte de répétitions. Le Profil n’ajoute aucun réglage Cadence.
+
+
+
+## Propagation Pauses et symboles — 07/10
+
+Entrer en placement Pause depuis Composition → sélectionner plusieurs emplacements/types → renseigner immédiatement la durée des récupérations → Confirmer N pauses ajoutées ou Annuler → retour au brouillon. Retrait par bulle. Continuer seul persiste.

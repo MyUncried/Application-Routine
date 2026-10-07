@@ -1,5 +1,7 @@
 ## 11.0 Objet et périmètre
 
+**Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
+
 Ce chapitre définit les API fonctionnelles internes nécessaires au fonctionnement du MVP.
 
 Une API fonctionnelle décrit une opération mise à disposition des composants de l’application pour manipuler les objets métier et appliquer les règles fonctionnelles.
@@ -67,9 +69,9 @@ Les API fonctionnelles respectent les principes suivants :
 
 |ID|Opération|Entrées principales|Résultat|Règles / validations|Objets impactés|
 |---|---|---|---|---|---|
-| API-ACT-01 | Paramétrer un Exercice | Nom, référentiels, mode unique, N, uniforme/variable, cibles/Pauses ordonnées, direction, ordre des côtés, PC, CR/Fin | Exercice validé | Validation v12 ; N1 normalisé ; aucune R contextuelle sur ActivityDefinition ; écriture atomique | Exercice |
-| API-ACT-02 | Calculer les paramètres temporels | Mode, N, uniforme/variable, cibles/Pauses ordonnées, direction, ordre des côtés, PC, R contextuel éventuel, Tv en Durée uniforme | Total dérivé et N canonique si inversion | Durée intrinsèque : unilatéral Σ(Ti+Pi) ; Un côté après l’autre 2×Σ(Ti+Pi)+PC ; Les deux côtés à chaque série (N≥2) 2×ΣTi+ΣPi+N×PC. Répétitions : Ti=2×Ri s pour l’estimation ≥ seulement ; À l’échec : aucun total d’Exercice. Occurrence : T si R=0, T−PN+R si R>0. Compte à rebours propre/Fin propre exclus de ce total. Calcul inverse réservé à Durée uniforme, suivant v12 §5 ; variable : lecture seule et — si incomplet. | Exercice / occurrence |
-| API-ACT-03 | Définir les pauses | Paramètres uniformes/variables, PC | Exercice validé | Chaque Série possède une Pause, y compris la dernière. En unilatéral, chaque Pi est exécutée une fois ; en bilatéral Un côté après l’autre, chaque Pi deux fois et PC une fois ; en Les deux côtés à chaque série, chaque Pi une fois et PC une fois par paire. Seule PN terminale est remplacée par R si R>0 dans une occurrence de Séance ; aucune Récupération en direct. N=1 est normalisé en uniforme/Un côté après l’autre dès le brouillon. Référence normative : v12 §§3–5, D-247 à D-250. | Exercice |
+| API-ACT-01 | Paramétrer un Exercice | Nom, référentiels, mode unique, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, direction, ordre des côtés, PC, CR/Fin | Exercice validé | Validation v13 ; N1 normalisé ; aucune R contextuelle sur ActivityDefinition ; écriture atomique | Exercice |
+| API-ACT-02 | Calculer les paramètres temporels | Mode, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, direction, ordre des côtés, PC, R contextuel éventuel, Tv en Durée uniforme | Total dérivé avec niveau d’incertitude, statut incomplet et N canonique si inversion | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. | Exercice / occurrence |
+| API-ACT-03 | Définir les pauses | Paramètres uniformes/variables, PC | Exercice validé | Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5. | Exercice |
 |API-ACT-04|Lire/afficher les médias associés|ID Exercice|Média(s) associé(s) pour la gouttière permanente de la carte d’Exercice|L’affichage en gouttière, sans déploiement, fait partie du MVP (D-260/D-261) ; cette API fonctionnelle ne préjuge pas du mécanisme d’import/capture|Exercice, Média|
 |API-ACT-05|Associer des zones corporelles|ID Exercice, zones corporelles|Zones corporelles mises à jour|Zéro à plusieurs zones du référentiel utilisateur courant|Exercice, Zone corporelle|
 |API-ACT-06|Définir le nombre de Séries|ID Exercice, nombre de Séries|Exercice mis à jour|Entier de 1 à 99 ; valeur par défaut 1 ; valeur canonique persistée ; ne crée aucune entité Série autonome|Exercice|
@@ -115,7 +117,7 @@ Une même Séance ou un même Exercice persistant peut être associé à plusieu
 | API-EXE-06 | Arrêter l’exécution               | ID Exécution, confirmation       | Exécution clôturée                                                        | Arrêt disponible depuis l’état Pause ; après confirmation, l’Exécution est clôturée avec le statut `Interrompue` et la Synthèse est ouverte                                                          | Exécution                        |
 | API-EXE-07 | Terminer l’exécution              | ID Exécution                     | Exécution terminée, statut déterminé, résultats enregistrés et écran de sortie applicable ouvert | L’étape `SESSION_END` doit être achevée ; si sa durée vaut `0 s`, l’achèvement est immédiat. T04 ouvre la fin minimale ; la Synthèse n’est ouverte que par la tranche qui la livre. Un arrêt avant cet achèvement relève d’API-EXE-06 et produit le statut `Interrompue` | Exécution, Occurrence éventuelle |
 | API-EXE-08 | Obtenir l’état courant            | ID Exécution                     | Étape courante, progression, temps total écoulé, Durée estimée d’exécution, état temporel courant et prochaine étape | Le temps total écoulé inclut toutes les phases effectivement exécutées, dont Pauses entre Séries, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY`, Compte à rebours initial et Fin de séance, et exclut uniquement les Pauses manuelles ; l’état temporel fournit le temps restant pour un Exercice chronométré ou une phase de récupération et le temps écoulé pour un Exercice en Répétitions ou À l’échec | Exécution, lecture |
-| API-EXE-09 | Gérer une suspension prolongée     | ID Exécution, durée de suspension, réponse utilisateur éventuelle | Exécution reprise ou clôturée avec le statut `Interrompue` | à partir de 30 minutes consécutives en pause, l’application demande si l’utilisateur souhaite reprendre ; si oui, reprise à l’exercice interrompue ; en l’absence de réponse, clôture automatique au statut `Interrompue` | Exécution |
+| API-EXE-09 | Gérer une suspension prolongée     | ID Exécution, durée de suspension, réponse utilisateur éventuelle | Exécution reprise ou clôturée avec le statut `Interrompue` | à partir de30min consécutives en pause, proposer Reprendre/Arrêter ; sans réponse, rester suspendu. Reprise : plan conservé, intervalle complet si cadence, aucun effacement du temps actif | Exécution |
 | API-EXE-10 | Réconcilier une Exécution après interruption technique | ID Exécution, choix `Reprendre` ou `Arrêter` | Exécution reprise ou clôturée `Interrompue` | Aucune nouvelle Exécution tant que la réconciliation n’est pas faite | Exécution |
 | API-EXE-11 | Enregistrer la Synthèse | ID Exécution, Ressenti, Commentaire éventuel | Exécution finalisée et données de Synthèse enregistrées | Ressenti obligatoire si Synthèse présentée ; Commentaire ≤ 200 caractères | Exécution |
 
@@ -328,7 +330,7 @@ Lorsque la planification des Parcours est livrée, `API-ROU-*` accepte une trois
 
 | ID | Opération | Entrées | Résultat | Règle |
 | --- | --- | --- | --- | --- |
-| API-COM-REC-01 | Initialiser la récupération après exercice | nouvelle occurrence | `postActivityRecoverySeconds` | Valeur issue du défaut global, jamais copiée depuis `ActivityDefinition`. |
+| API-COM-REC-01 | Ajouter explicitement une récupération | occurrence, durée validée | pause recovery du brouillon | Proposer le défaut Profil à l’ajout, jamais créer de récupération avec une occurrence. |
 | API-COM-REC-02 | Modifier la récupération après exercice | ID occurrence, durée ≥ 0 | occurrence mise à jour | `0 s` est une valeur valide et conservée. |
 | API-COM-REC-03 | Déplacer une occurrence | ID occurrence, nouvelle position | ordre mis à jour | `postActivityRecoverySeconds` reste inchangé. |
 | API-COM-REC-04 | Dupliquer une occurrence | ID occurrence | copie indépendante | Copie `postActivityRecoverySeconds`. |
@@ -357,19 +359,46 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 - Mise à jour Séance : expose un booléen global de prise en compte des Compte à rebours et Fins propres aux Exercices, activé par défaut.
 - Construction du Plan : développe le Circuit pour `tourCount` Tours ; tout Point d’arrêt interne au Circuit est reproduit à chaque Tour ; après un Exercice, `POST_ACTIVITY_RECOVERY` précède le Point d’arrêt.
 
-| API-ACT-03 | Générer la phrase de synthèse | Paramètres courants de l’Exercice | Phrase dérivée ou vide | Applique les fragments/conditions de D-232 ; sans mode retourne vide ; aucune persistance autonome de la phrase comme source de vérité. | Exercice |
+| API-PHRASE-01 | Générer la phrase de synthèse | Paramètres courants de l’Exercice | Segments `{texte, gras}` ou tableau vide | Applique D-298 et Phrase v1 à partir des paramètres et du résultat de calcul fourni (total et niveau d’incertitude) ; sans mode retourne un tableau vide. Ne recalcule aucune durée et ne persiste aucune phrase ni aucun segment, même en cache en base. | Exercice |
 
-| API-ACT-04 | Valider les bornes des paramètres | Paramètres d’exécution | paramètres valides / erreur | Séries `1..99`; Répétitions `1..100`; durée par Série `1..5999 s`; pauses inter-Séries/inter-côtés `0..300 s`. | Exercice |
+| API-PARAM-01 | Valider les bornes des paramètres | Paramètres d’exécution | paramètres valides / erreur | Séries `1..99`; Répétitions `1..100`; durée par Série `1..5999 s`; pauses inter-Séries/inter-côtés `0..300 s`. | Exercice |
 
 
 
-> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v12 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
+> **Clôture des contrats — 01/10/2026.** Les règles consolidées du [chapitre 13, §6](13%20–%20Contrats%20d’écran.md#6-clôture-des-réserves-fonctionnelles-des-contrats) s’appliquent : progression sur le plan complet ; transitions et pauses selon D-248/v13 (ancien repli D-242 retiré) ; fréquence 1..12 semaines ; rappel personnalisé au plus 24 h. En Un côté après l’autre, le reset porte sur le bloc du côté courant ; la même règle s’applique à l’ordre alterné en conservant les résultats de l’autre côté (chapitre13 R-03). Les étapes et calculs ci-dessous se lisent avec ces précisions ; aucune nouvelle disposition d’écran.
 
 
 ### Saisie des paramètres — D-246
 
-La référence active est [Paramètres en modale v12](SPECIFICATION-PARAMETRES-MODALE-v12.md), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
+La référence active est [Paramètres en modale v13](SPECIFICATION-PARAMETRES-MODALE-v13.md), contrats CE-T03-04/CE-UI-10. Elle intègre Séries variables, Ordre des côtés, pauses terminales et récupération de l’occurrence. Feuille transactionnelle : ✕ annule, ✓ applique au parent, Terminer persiste. Les calculs et comportements sont normatifs dans les spécifications ; Figma définit le layout seulement. Les anciens textes v11 sont historiques.
 
-### Contrat transverse des paramètres v12
+### Contrat transverse des paramètres v13
 
-Validation, calcul, duplication, insertion dans une Séance et instantané partagent la représentation de v12 §8. Le tableau ordonné cible/Pause et l’état variable explicite sont copiés intégralement. Les API de Séance calculent To après substitution terminale, sans ajouter R deux fois. Les API de lecture ne réécrivent pas les résultats historiques. Aucun champ caché de brouillon ne traverse la persistance.
+Validation, calcul, duplication, insertion dans une Séance et instantané partagent la représentation de v13 §8. Le tableau ordonné cible/Pause et l’état variable explicite sont copiés intégralement. Les API de Séance calculent To avec récupération explicite, sans ajouter R deux fois. Les API de lecture ne réécrivent pas les résultats historiques. Aucun champ caché de brouillon ne traverse la persistance.
+
+## Extension des API — Cadence et phrase
+
+| Opération | Entrées | Sortie / effet atomique | Refus et compatibilité |
+|---|---|---|---|
+| Valider/appliquer paramètres | Brouillon mode, Séries ordonnées et Bip commun0..10 | Normalise N1 ; propage cadence ; ✓ remplace le brouillon parent ; Terminer seul persiste | Bip−1/11/non entier : validation refusée et erreur champ ;0 valide ; les trois modes conservent le Bip |
+| Calculer paramètres (API-ACT-02) | Collection effective, côtés, PC, R contextuelle éventuelle | Total intrinsèque/occurrence et niveau d’incertitude, ou incomplet ; Ri×b si bip positif en Répétitions, omitted sinon ; Durée exacte et À l’échec omitted | Pas d’inversion Répétitions ; ni Figma ni Excel en entrée de calcul |
+| Générer la phrase | Paramètres valides et résultat temporel fourni | Segments ordonnés `{texte, gras}` ; régénérés à chaque affichage | Aucun recalcul de pause/durée dans cette fonction ; aucune mutation métier |
+| Démarrer/copier/dupliquer | Définition ou occurrence avec cadences | Snapshot/collection complets ; début immédiat de première répétition ; aucune nouvelle phase Répétition | Ancien objet sans champ : Bip0=Aucun ; aucun tempo implicite |
+| Pause/Reprendre/Réinitialiser/Suivant | Exécution, identifiant de transition et horodatage monotone | État récupérable + temps actif cumulé ; intervalle complet après Pause, scope existant pour reset ; Suivant fin normale | Idempotence ; mauvais état refusé ; fin nominale ne déclenche pas Suivant |
+| Lire/finaliser résultats | Snapshot et accumulateurs par Série/côté | Prescription immuable et durées réelles, statut existant | Aucun compte de répétitions réalisées ; reset ne supprime pas le temps dépensé |
+
+Les erreurs utilisent les catégories existantes de validation et INVALID_STATE, avec champ/Série localisés ; aucune nouvelle API réseau ou nouvelle entité imposée. La nouvelle version d’instantané doit rester lisible avec les snapshots antérieurs ; qualification technique et mobile à réaliser.
+
+
+
+## Propagation Pauses et symboles — 07/10
+
+Les API de placement travaillent dans un sous-brouillon : ouverture, ajout/édition/retrait par identifiant, validation des positions par type, confirmation atomique/annulation. Le calcul renvoie exact/estimated/lowerBound/omitted ; incomplete reste une erreur de validité distincte. Le générateur reçoit la nature et le montant applicable, jamais les formules Excel.
+
+## Contrat technique de phrase — clarification du07/10
+
+La [spécification de phrase](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md) gouverne le générateur pur : paramètres métier + résultat de durée + locale française → `Array<{texte: string, gras: boolean}>`. Retour vide `[]` si aucune phrase applicable. Aucun calcul depuis Excel, aucune chaîne à redécouper pour trouver les valeurs en gras. React Native utilise des Text imbriqués ; le découpage est émis par le gabarit, y compris si une valeur se répète.
+
+Aucune colonne phrase ni sérialisation des segments dans définition/occurrence/snapshot. Génération à chaque affichage depuis les paramètres ; ✓ applique le brouillon, ne persiste pas le texte. Un changement rédactionnel est visible au prochain rendu des objets existants. Paramètres historiques et temps réalisés préservés.
+
+Français uniquement au MVP. Internationalisation ultérieure : gabarits et règles de pluriel/genre/ordre par locale, avec recette dédiée ; prévoir la réécriture de la grammaire française, pas une traduction des segments isolés. Corpus276 utilisé uniquement pour les phrases, valeurs totales injectées par le calcul métier.
