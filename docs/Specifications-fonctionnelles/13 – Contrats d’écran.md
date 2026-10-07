@@ -94,7 +94,7 @@ Filtre appliqué, tri implicite et scroll sont conservés pendant la session app
 
 `Créer`, `Filtrer` et `Trier` forment la rangée commune de commandes. Référence du 30 septembre : cercles visibles `34 pt`, pictogrammes `20 pt`, gap visuel `12 pt`, cibles transparentes ≥ `44 × 44 pt` sans chevauchement. Les pilules étendues conservent une hauteur de `34 pt`. Le groupe est centré verticalement dans la zone de contexte existante. Les coordonnées de maquette ne deviennent pas des positions absolues React Native.
 
-`Filtrer` et `Trier` sont communs à `Exercices / Séances / Parcours`; leur représentation d’entrée est commune, leurs options peuvent être contextuelles. Le filtre inactif est un bouton rond blanc. Un appui l’étend en `Filtres / Aucun` sans modifier la liste. Après sélection d’un critère, le contrôle actif est bleu et étendu ; le rond bleu retire le filtre, tandis que la zone texte ouvre la modale. `Réinitialiser` revient à `Aucun`. `Créer` reste actif. `Trier` reste visible mais disabled en T03.
+`Filtrer` et `Trier` sont communs à `Exercices / Séances`; leur représentation d’entrée est commune, leurs options peuvent être contextuelles. Le filtre inactif est un bouton rond blanc. Un appui l’étend en `Filtres / Aucun` sans modifier la liste. Après sélection d’un critère, le contrôle actif est bleu et étendu ; le rond bleu retire le filtre, tandis que la zone texte ouvre la modale. `Réinitialiser` revient à `Aucun`. `Créer` reste actif. `Trier` reste visible mais disabled en T03.
 
 Pour T03 / `Exercices` :
 
@@ -109,9 +109,23 @@ Pour T03 / `Exercices` :
 
 Les **contrôles d’entrée** et les panneaux ouverts de `Filtrer` sont conçus et vérifiables dans Figma. `Trier` reste visible mais désactivé dans le périmètre T03.
 
+### 4.5 bis — Segmentés et titres courants (07/10/2026)
+
+Catalogues et sélecteurs de type de contenu dans les modales « Choisir une séance / Choisir un exercice » : exactement **Exercices / Séances**, dans cet ordre, sans troisième segment Parcours/Circuits, sans espace réservé ni annonce accessible résiduelle. Le catalogue conserve Séances par défaut et les comportements existants de sélection. Cette suppression n’ajoute aucun sélecteur à une modale qui n’en présente pas : CE-T03-07 reste la sélection multiple d’Exercices de Composition, sans choix de Séance ni nouveau parcours de création.
+
+À largeur de référence 354 : cadre 354×42, padding 4, gap 4, deux options 171×34 ; rayon extérieur 14, fond blanc `VariableID:2290:54` à 50 %, sans contour. Rayon des options 10 ; sélection indigo, texte blanc ; inactive #EAEAFF, texte sombre, sans contour. Largeurs flexibles : répartir la largeur utile, sans figer 171 sur tous appareils.
+
+Libellés de tous les segmentés : `KODJO / Section title`, Inter Semi Bold 16/20, notamment Catalogue, Calendrier Jour/Semaine/Mois, Suivi, Mode, Mode d’exécution et Statut. Exceptions conservées : Changement de côté 13 px sur deux lignes ; Ordre des côtés 14 px + sous-titre 11 px. Les Calendriers et modes à trois choix gardent leurs trois options. La typographie ne modifie ni les libellés, ni les règles de sélection, ni l’état actif/désactivé propre à leur contexte.
+
+Titres affichés : CE-T03-04 `Créer un exercice` / `Modifier un exercice` ; CE-T03-08 `Composer une séance` / `Modifier une séance`. `Créer une activité` reste inchangé. Les noms techniques de frames et annotations historiques peuvent différer : les IDs et chemins restent stables. Un libellé d’action `Ajouter` ne devient pas automatiquement `Créer` ; depuis Composition, `Ajouter un exercice` conserve la destination CE-T03-07. Aucun arbre de création retiré n’est réintroduit.
+
+[DSF détaillé et écarts de propagation](../DSF-SEGMENTES-TITRES-2026-10-07.md) ; [traçabilité et captures](../MATRICE-COMPLEMENTS-2026-10-07.md).
+
 ### 4.6 Roulettes de durée et steppers
 
 Toutes les roulettes de **durée** actives utilisent la famille de modales basses du DSF. Les entiers simples `Nombre de Séries`, `Nombre de répétitions` et `Nombre de Tours` utilisent un **stepper inline** et n’ouvrent aucune roulette. Les anciennes représentations contraires ne constituent plus une référence active.
+
+Tous les voiles modaux utilisent exclusivement `overlayScrim` (`color/overlay/scrim`) = #1F2129 à 34 % : dialogues de décision, feuilles de sélection, roues, filtres, classification, catégorie, zones corporelles, calendrier ouvert, abandon/confirmation et CE-UI-10. Cette règle est commune à tous les contrats ci-dessous. L’exception de CE-UI-10 concerne uniquement la roulette inline, jamais la couleur ou l’opacité du voile. `compositionDraggedCardShadow` (`color/overlay-scrim`, #14171F) est réservé à l’ombre de la carte déplacée. Voir [traçabilité et captures](../MATRICE-VOILE-MODAL-2026-10-07.md).
 
 Hors CE-UI-10 (roulette déployée dans la feuille), roulette ouverte : **modale basse standardisée** avec scrim bloquant arrière-plan et scroll ; CTA principal fixe reste visuellement normal mais fonctionnellement et accessibilité-inactif ; `Annuler` restaure ; `Confirmer` applique puis recalcule. Les valeurs restent brouillon jusqu’à confirmation.
 
@@ -202,7 +216,7 @@ Bip de cadence : shell et préférences Profil conservés ; stepper0..10 dans le
 | CE-T03-05 | ActivityDefinition — archiver / restaurer / supprimer |
 | CE-T03-06 | Composition — `Ajouter un exercice` vers le Catalogue |
 | CE-T03-07 | Sélection multiple d’Exercices existants |
-| CE-T03-08 | Composition d’une séance — brouillon, Circuit, points d’arrêt et validation |
+| CE-T03-08 | Composer une séance / Modifier une séance — brouillon, Circuit, points d’arrêt et validation |
 | CE-T03-09 | Lancement direct et préparation fixe 5 s |
 | CE-T03-10 | Exécution directe — Durée unilatérale |
 | CE-T03-11 | Exécution directe — Répétitions et À l’échec |
@@ -241,7 +255,7 @@ Bip de cadence : shell et préférences Profil conservés ; stepper0..10 dans le
 
 ### 2. Finalité fonctionnelle
 
-Faire du Catalogue des séances le segment d’entrée par défaut du Catalogue multi-type, avec navigation `Catalogues`, segment Exercices désormais actif, Parcours visible disabled, rangée déterministe `Créer / Filtrer / Trier` et action `Créer` contextuelle.
+Faire du Catalogue des séances le segment d’entrée par défaut du Catalogue multi-type, avec navigation `Catalogues`, segment Exercices désormais actif, aucun troisième segment, rangée déterministe `Créer / Filtrer / Trier` et action `Créer` contextuelle.
 
 ### 3. Contexte d’entrée
 
@@ -249,7 +263,7 @@ Ouverture initiale/reprise complète : segment Séances ; retour de Composition 
 
 ### 4. Contexte de sortie / destinations
 
-Segment Exercices → CE-T03-02 ; Séances reste ; Parcours sans action ; Créer → CE-T03-08 nouveau brouillon ; surface carte → CE-T03-08 modification ; Démarrer → CE-EXEC-SESSION-01 ; Planifier → CE-UI-05 ; navigation basse → destination correspondante. Les zones surface/Déployer/Démarrer restent indépendantes.
+Segment Exercices → CE-T03-02 ; Séances reste ; Créer → CE-T03-08 nouveau brouillon ; surface carte → CE-T03-08 modification ; Démarrer → CE-EXEC-SESSION-01 ; Planifier → CE-UI-05 ; navigation basse → destination correspondante. Les zones surface/Déployer/Démarrer restent indépendantes.
 
 ### 5. Données affichées et source de vérité
 
@@ -259,7 +273,7 @@ Durée et symbole viennent du calcul commun : Durée exacte, Répétitions avec 
 
 ### 6. Classification des valeurs Figma
 
-`Catalogue des séances`, `Exercices`, `Séances`, `Parcours`, `Créer`, `Filtrer`, `Trier`, `Catalogues` = statiques. Contenus de cartes = dynamiques/démonstration.
+`Catalogue des séances`, `Exercices`, `Séances`, `Créer`, `Filtrer`, `Trier`, `Catalogues` = statiques. Contenus de cartes = dynamiques/démonstration.
 
 ### 7. Structure de l’écran
 
@@ -267,13 +281,13 @@ Header fixe → segmenté trois types → rangée commandes Catalogue (`Créer`,
 
 ### 8. Éléments obligatoires
 
-Carte : titre et badge durée, Étiquette puis catégories issues des exercices (catégories seules sans Étiquette), `N exercices` et `N tours`. Pas de prochaine planification ni pause/récupération. Séance sans vignette. Archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9, Restaurer. Catalogue : Séances sélectionné, Exercices actif, Parcours et Trier désactivés ; commandes §4.5 et navigation Catalogues.
+Carte : titre et badge durée, Étiquette puis catégories issues des exercices (catégories seules sans Étiquette), `N exercices` et `N tours`. Pas de prochaine planification ni pause/récupération. Séance sans vignette. Archivée : fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre12), bord #D9D9D9, Restaurer. Catalogue : Séances sélectionné, Exercices actif, Trier désactivé et aucun segment Parcours ; commandes §4.5 et navigation Catalogues.
 
 ### 9. Layout déterministe
 
 Cartes Catalogue : [DSF Durée du07/10](../DSF-CARTES-DUREE-2026-10-07.md). Texte de durée sans fond/cadre/padding, Inter Semi Bold12 #141414, droite16px. Propriété booléenne Durée des sets6214:7276/7278 ; absence → aucun contenu de remplacement. Exercice replié/archivé : titre250px, lignes basses207px àx88 ; coupes60/69/145 fondées sur207. Gouttière12px conservée ; Séance16/16. La référence Exercice Déployé ne crée aucun accès MVP.
 
-Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Hauteur repliée 90, déployée 235. Commandes 34/dessins 20/gaps 12/cibles 44. Segmenté 354 : padding 4, gaps 4, options 112,67. Actions glissées de même hauteur que la carte, y compris déployée.
+Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Hauteur repliée 90, déployée 235. Commandes 34/dessins 20/gaps 12/cibles 44. Segmenté à deux options 354×42 : padding 4, gap 4, options 171×34 ; typographie 16/20 et styles communs ci-dessus. Actions glissées de même hauteur que la carte, y compris déployée.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -285,7 +299,7 @@ Vide réel ; liste ; retour Composition ; retour d’un sous-parcours ; relaunch
 
 ### 12. Contrôles et interactions
 
-Exercices navigue ; Séances maintient ; Parcours disabled ; `Créer` initialise directement le parcours de création d’une Séance. Sur une Séance active, `Archiver` agit immédiatement lorsqu’aucune Routine n’est associée et affiche ensuite un snackbar `Séance archivée` avec `Annuler`. Si au moins une Routine est associée, une confirmation explicite précède obligatoirement l’archivage et la suppression de ces Routines ; après confirmation, aucun snackbar d’annulation n’est affiché. `Trier` reste non déclenchable en T03. T03 n’invente aucune nouvelle option Filtrer/Trier propre aux Séances.
+Exercices navigue ; Séances maintient ; `Créer` initialise directement le parcours de création d’une Séance. Sur une Séance active, `Archiver` agit immédiatement lorsqu’aucune Routine n’est associée et affiche ensuite un snackbar `Séance archivée` avec `Annuler`. Si au moins une Routine est associée, une confirmation explicite précède obligatoirement l’archivage et la suppression de ces Routines ; après confirmation, aucun snackbar d’annulation n’est affiché. `Trier` reste non déclenchable en T03. T03 n’invente aucune nouvelle option Filtrer/Trier propre aux Séances.
 
 ### 13. Gestes
 
@@ -293,7 +307,7 @@ Cartes de Séance utilisant des actions contextuelles suivent §4.7. Aucun geste
 
 ### 14. Validation
 
-Aucune validation pour changer de segment. Parcours et `Trier` ne déclenchent aucun événement métier. Créer n’écrit aucune donnée à l’ouverture. Pour `Archiver`, la confirmation est requise si et seulement si au moins une Routine est associée à la Séance. Le snackbar d’annulation est affiché si et seulement si l’archivage a été réalisé sans dialogue de confirmation.
+Aucune validation pour changer de segment. Aucun segment Parcours n’est rendu ; `Trier` ne déclenche aucun événement métier. Créer n’écrit aucune donnée à l’ouverture. Pour `Archiver`, la confirmation est requise si et seulement si au moins une Routine est associée à la Séance. Le snackbar d’annulation est affiché si et seulement si l’archivage a été réalisé sans dialogue de confirmation.
 
 ### 15. Brouillon et persistance
 
@@ -309,11 +323,11 @@ Liste vide et archives vides : aucun contenu de démonstration. Suppression conc
 
 ### 18. Accessibilité
 
-Parcours annonce disabled ; Séances selected ; `Catalogues` est le label accessible du premier onglet ; `Trier` annonce disabled ; focus cohérent et cibles ≥44 malgré la hauteur visuelle `34 pt` des commandes contextuelles.
+Aucun élément Parcours dans l’arbre d’accessibilité ; Séances selected ; `Catalogues` est le label accessible du premier onglet ; `Trier` annonce disabled ; focus cohérent et cibles ≥44 malgré la hauteur visuelle `34 pt` des commandes contextuelles.
 
 ### 19. Invariants
 
-Séances = défaut/relaunch ; Exercices = actif T03 ; Parcours = disabled ; bottom label = `Catalogues`, jamais `Séances` ; rangée Catalogue = trois commandes présentes selon §4.5 ; `Trier` disabled.
+Séances = défaut/relaunch ; Exercices = actif T03 ; Parcours = absent ; bottom label = `Catalogues`, jamais `Séances` ; rangée Catalogue = trois commandes présentes selon §4.5 ; `Trier` disabled.
 
 ### 20. Recette déterministe
 
@@ -466,7 +480,7 @@ Tap `Créer` depuis le Catalogue courant. Le type de Catalogue affiché détermi
 
 ### 4. Contexte de sortie / destinations
 
-Exercices → CE-T03-04 en création ; Séances → CE-T03-08 en création ; Parcours désactivé, aucune navigation. Annuler le formulaire ouvert restaure le Catalogue appelant sans créer d’objet.
+Exercices → CE-T03-04 en création ; Séances → CE-T03-08 en création. Aucun troisième segment n’est présenté. Annuler le formulaire ouvert restaure le Catalogue appelant sans créer d’objet.
 
 ### 5. Données affichées et source de vérité
 
@@ -494,7 +508,7 @@ Appliquer les règles du Catalogue courant. Aucun layout responsive propre à un
 
 ### 11. États de l’écran
 
-Action disponible depuis les Catalogues actifs. Dans T03 : `Exercices` et `Séances` ; `Parcours` reste disabled.
+Action disponible depuis les Catalogues actifs. Dans T03 : `Exercices` et `Séances`. Aucun troisième segment n’est présenté.
 
 ### 12. Contrôles et interactions
 
@@ -528,11 +542,11 @@ Si le parcours cible ne peut pas être initialisé, aucune donnée partielle n�
 
 Destination déterminée par le Catalogue courant ; aucun écran/arbre intermédiaire ; aucun choix transversal d’un autre type d’objet ; Parcours non activés par cette règle en T03.
 
-Action Créer contextuelle conservée D-187 ; ancien arbre Un circuit retiré, Parcours désactivé au Catalogue. Aucune règle Cadence ajoutée à ce contrôle.
+Action Créer contextuelle conservée D-187 ; ancien arbre Un circuit retiré, Parcours absent du Catalogue. Aucune règle Cadence ajoutée à ce contrôle.
 
 ### 20. Recette déterministe
 
-Depuis chaque segment actif, un tap ouvre exactement le formulaire correspondant ; aucun arbre. Annuler ne crée rien ; double tap n’empile pas deux formulaires ; Parcours désactivé ne produit aucun événement.
+Depuis chaque segment actif, un tap ouvre exactement le formulaire correspondant ; aucun arbre. Annuler ne crée rien ; double tap n’empile pas deux formulaires ; aucun segment Parcours, aucune cible ni annonce accessible résiduelle.
 
 ### 21. Traçabilité
 
@@ -574,7 +588,7 @@ La collection inclut la bip commun0..10 de chaque Série. Phrase dérivée des p
 
 ### 6. Classification des valeurs Figma
 
-Ajouter un exercice/Modifier un exercice, Paramètres d’exécution, Description de l’exercice, Terminer : statiques. Nom et résumé : dynamiques. Mode et Compte à rebours/Fin restent séparés de la phrase intrinsèque.
+Créer un exercice/Modifier un exercice, Paramètres d’exécution, Description de l’exercice, Terminer : statiques. Nom et résumé : dynamiques. Mode et Compte à rebours/Fin restent séparés de la phrase intrinsèque.
 
 Le champ du mode est distinct de la durée : Répétitions sur7059:13302 et7119:27855. La phrase et le mode reflètent les paramètres appliqués ; les montants statiques des copies ne sont pas des valeurs par défaut.
 
@@ -956,7 +970,7 @@ D-171/D-194/D-208/D-213/D-222/D-238 ; frame 3789:5349 ; CE-T03-08. Clarification
 
 Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figma ; maintien des rubriques sans changement fonctionnel lorsque non concernées. Les captures sont centralisées au chapitre06, aucun test applicatif présumé.
 
-## CE-T03-08 — Composition d’une séance — brouillon, Circuit, points d’arrêt et validation
+## CE-T03-08 — Composer une séance / Modifier une séance — brouillon, Circuit, points d’arrêt et validation
 
 ### 1. Identification
 
@@ -980,7 +994,7 @@ Brouillon Session indépendant, nom, Étiquette0..1, compte à rebours/Fin, Circ
 
 ### 6. Classification des valeurs Figma
 
-Noms/paramètres = dynamiques ; titres structurels = statiques ; positions de cartes d’exemple = démonstration.
+Titres statiques : `Composer une séance` en création, `Modifier une séance` en modification. Noms/paramètres = dynamiques ; titres structurels = statiques ; positions de cartes d’exemple = démonstration.
 
 ### 7. Structure de l’écran
 
@@ -2507,17 +2521,17 @@ Noms/classements/paramètres des sources dynamiques ; titres Choisir une séance
 
 ### 7. Structure de l’écran
 
-Modale avec titre/fermeture et liste défilante de cartes radio ; aucun pied de validation. Arrière-plan visible mais inactif.
+Modale avec titre/fermeture, segmenté `Exercices / Séances` puis liste défilante de cartes radio ; aucun pied de validation. Arrière-plan visible mais inactif.
 
 ### 8. Éléments obligatoires
 
-Radio de sélection ; pas de badge durée, Lecture ou Déployer ; titre/classement/valeurs, état sélectionné ou non.
+Deux options de type seulement, aucun Parcours ni troisième emplacement ; radio de sélection ; pas de badge durée, Lecture ou Déployer ; titre/classement/valeurs, état sélectionné ou non.
 
 ### 9. Layout déterministe
 
 Composants actifs et propriété Durée : [DSF cartes du07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.
 
-Largeur 354, marges 24 sur 402, hauteur 91 ; radio côté droit ; zones d’Exercice : cadre de coupe à8 px du radio ; Séance : minimum20 conservé ; titre 15/pastilles 20/valeurs 16.
+Segmenté354×42, options171×34, libellés16/20, styles communs§4.5bis. Cartes de largeur354, marges24 sur402, hauteur91 ; radio côté droit ; zones d’Exercice : cadre de coupe à8 px du radio ; Séance : minimum20 conservé ; titre 15/pastilles 20/valeurs 16.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -2529,7 +2543,7 @@ Aucune/une sélection ; longue liste ; texte tronqué ; exercice avec/sans médi
 
 ### 12. Contrôles et interactions
 
-Tap carte/radio choisit exactement une source et ferme ; pas de seconde validation. Cette action ne crée pas de Routine et ne copie pas de SessionActivity. Case et Sélectionner restent propres à CE-T03-07.
+Le segment de type change la liste affichée, sans sélectionner une source ni fermer la modale. Tap carte/radio choisit exactement une source et ferme ; pas de seconde validation. Cette action ne crée pas de Routine et ne copie pas de SessionActivity. Case et Sélectionner restent propres à CE-T03-07.
 
 ### 13. Gestes
 
@@ -2537,7 +2551,7 @@ Gestes existants du chapitre 06 ; appuis D-237, action immédiate au relâchemen
 
 ### 14. Validation
 
-Source persistante active et planifiable SESSION/ACTIVITY ; recontrôler disponibilité avant choix et à Enregistrer. Parcours non sélectionnable au MVP.
+Source persistante active et planifiable SESSION/ACTIVITY ; recontrôler disponibilité avant choix et à Enregistrer. Aucun segment Parcours au MVP.
 
 ### 15. Brouillon et persistance
 
@@ -2553,7 +2567,7 @@ RG-3 : séance sans photo. Choix d’Exercice : gouttière permanente 64, photo 
 
 ### 18. Accessibilité
 
-Nom/type et état sélectionné annoncés ; texte complet accessible ; radio cible 44 minimum.
+Deux options de type annoncées avec leur état sélectionné ; aucune troisième option accessible. Nom/type et état sélectionné annoncés ; texte complet accessible ; radio cible 44 minimum.
 
 ### 19. Invariants
 
@@ -2561,7 +2575,7 @@ Même variante Calendrier/Planification, aucun contexte Choix planification dist
 
 ### 20. Recette déterministe
 
-Tap une source→fermeture immédiate et formulaire actualisé ; fermer sans choix→source antérieure ; source disparue/archivée→pas de choix fantôme ;0/1/N, longue liste, deux types, radio accessible. Aucun CTA bas ni badge durée/Lecture/Déployer ; média/place réservée sans agrandir carte.
+Vérifier exactement Exercices/Séances et leur bascule sans choix implicite ni espace/annonce Parcours. Tap une source→fermeture immédiate et formulaire actualisé ; fermer sans choix→source antérieure ; source disparue/archivée→pas de choix fantôme ;0/1/N, longue liste, deux types, radio accessible. Aucun CTA bas ni badge durée/Lecture/Déployer ; média/place réservée sans agrandir carte.
 
 Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans les emplacements de durée existants ; conserver masquages des cartes de choix, aucune formule locale et aucune photo de Séance/liste mixte.
 
@@ -3208,7 +3222,7 @@ Stepper Bip permanent0..10,0 libellé Aucun ; contrôle actif même à0. Aucun i
 
 ### 9. Layout déterministe
 
-À402 : Bip au premier niveau x36, séparateur330 ; Séries variables/cible/Pause et Ordre/PC indentés x52, séparateur314. Bip juste au-dessus du total ou avant Compte à rebours si total absent. Retrait du total raccourcit la feuille de42px par le haut, bas ancré. Valeurs/steppers à droite ; marges adaptées, pas de coordonnées absolues sur toutes largeurs. Voile#1F2129 à34%, distinct de l’ombre.
+À402 : Bip au premier niveau x36, séparateur330 ; Séries variables/cible/Pause et Ordre/PC indentés x52, séparateur314. Bip juste au-dessus du total ou avant Compte à rebours si total absent. Retrait du total raccourcit la feuille de42px par le haut, bas ancré. Valeurs/steppers à droite ; marges adaptées, pas de coordonnées absolues sur toutes largeurs. Voile modal `overlayScrim` (`color/overlay/scrim`) #1F2129 à 34 %, distinct de `compositionDraggedCardShadow`, qui ne sert jamais de voile.
 
 Référence longue7119:27855 :224caractères, cinq lignes/100px à largeur324, carte193px en AUTO. Contenu et contrôles suivants suivent la hauteur intrinsèque, sans plafond.
 
@@ -3328,10 +3342,10 @@ Le comportement utilisateur est déjà fixé. L’exclusion d’une occurrence i
 
 | ID | Contenu élémentaire |
 |---|---|
-| E01 | Catalogue multi-type `Exercices / Séances / Parcours` |
+| E01 | Catalogue multi-type `Exercices / Séances` |
 | E02 | Séances sélectionné par défaut/relaunch |
 | E03 | Exercices actif T03 |
-| E04 | Parcours visible disabled |
+| E04 | aucun troisième segment |
 | E05 | Navigation basse `Catalogues` |
 | E06 | Icônes navigation conformes DSF |
 | E07 | Lister ActivityDefinition |

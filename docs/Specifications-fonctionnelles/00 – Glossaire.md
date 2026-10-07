@@ -60,7 +60,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 - La **direction propre** est persistée sur l’Exercice : `UNILATERAL`, `RIGHT_LEFT` ou `LEFT_RIGHT`.
 - Le Circuit et ses Tours ne portent aucun changement de côté. Une bilatéralité éventuelle est définie au niveau de l’Exercice.
-- Pour un Exercice bilatéral hors de toute règle de Circuit, un Exercice proprement bilatérale affiche `D→G` ou `G→D` dans le petit indicateur de sa carte ; seul le texte de la Synthèse de l’écran Ajouter/Modifier un Exercice développe `à droite, puis à gauche` ou `à gauche, puis à droite`.
+- Pour un Exercice bilatéral hors de toute règle de Circuit, un Exercice proprement bilatérale affiche `D→G` ou `G→D` dans le petit indicateur de sa carte ; seul le texte de la Synthèse des écrans Créer un exercice / Modifier un exercice développe `à droite, puis à gauche` ou `à gauche, puis à droite`.
 
 ## 4. Concepts de planification
 
@@ -98,7 +98,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | --- | --- |
 | **Catalogue des séances** | Écran du Catalogue lorsque le segment `Séances` est sélectionné. Il est le segment par défaut à l’ouverture initiale et après relance complète. |
 | **Catalogue des exercices** | Destination MVP livrée en T03 du Catalogue multi-type. Elle liste les Exercices persistantes, permet de les créer, consulter, modifier, archiver/restaurer, sélectionner pour une Séance ou exécuter directement. |
-| **Catalogue des parcours** | État du Catalogue associé au segment `Parcours`, visible mais désactivé dans T03. |
+| **Catalogue des parcours** | Concept post-MVP ; aucun segment ni état de navigation `Parcours` n’est exposé dans les Catalogues ou sélecteurs de type de contenu du MVP (D-324). |
 | **Catalogues** | Libellé permanent de la destination correspondante dans la navigation basse, indépendamment du segment Catalogue actif. |
 | **Toutes** | Valeur du filtre de Catalogue affichant les Séances non archivées. |
 | **Planifiées** | Valeur du filtre de Catalogue affichant les Séances possédant au moins une Routine. |
@@ -213,3 +213,14 @@ Références normatives : Bip v2 et paramètres v13. Circuit reste la structure 
 | Terme | Définition |
 |---|---|
 | Bip de cadence | Signal sonore périodique pendant les Séries des trois modes. Intervalle entier0..10s ;0=Aucun. Ne compte pas les répétitions et ne termine pas la Série. |
+
+## Titres affichés — 07/10/2026
+
+| Contexte | Titre visible | Contrat |
+|---|---|---|
+| Création d’Exercice | Créer un exercice | CE-T03-04 |
+| Modification d’Exercice | Modifier un exercice | CE-T03-04 |
+| Composition d’une nouvelle Séance | Composer une séance | CE-T03-08 |
+| Modification d’une Séance | Modifier une séance | CE-T03-08 |
+
+Les noms de frames Figma et annotations restent des références techniques : ils peuvent conserver « Ajouter un exercice » ou « Composition d’une séance ». Ils ne prescrivent pas le titre affiché. Les actions Ajouter gardent leur sens et leur destination définis par le contrat ; aucun arbre de création supplémentaire. « Créer une activité » n’est pas concerné. D-325.

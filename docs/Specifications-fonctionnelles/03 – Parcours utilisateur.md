@@ -107,7 +107,7 @@ Il peut créer une séance entièrement nouvelle ou partir d'une copie d'une sé
 
 L'utilisateur crée une nouvelle séance depuis le Catalogue.
 
-Dans l’écran unique `Composition d’une séance`, il renseigne son nom, sélectionne éventuellement son Étiquette — dont la couleur devient la couleur affichée de la Séance — puis construit progressivement la Composition. La Composition peut contenir un Point d’arrêt déplaçable ; son attente ne compte pas dans la durée. Un Exercice peut définir son propre Compte à rebours et sa propre Fin d’exercice, distincts des phases structurelles de la Séance. Les Exercices peuvent être placées avant le Circuit, dans le Circuit ou après le Circuit. Le premier Exercice ajouté est inséré après le Compte à rebours initial et avant le Circuit. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
+Dans l’écran unique `Composer une séance`, il renseigne son nom, sélectionne éventuellement son Étiquette — dont la couleur devient la couleur affichée de la Séance — puis construit progressivement la Composition. La Composition peut contenir un Point d’arrêt déplaçable ; son attente ne compte pas dans la durée. Un Exercice peut définir son propre Compte à rebours et sa propre Fin d’exercice, distincts des phases structurelles de la Séance. Les Exercices peuvent être placées avant le Circuit, dans le Circuit ou après le Circuit. Le premier Exercice ajouté est inséré après le Compte à rebours initial et avant le Circuit. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
 
 Pour chaque Exercice, un écran unique permet de renseigner le nom, la Catégorie, les Zones corporelles, le mode Durée, Répétitions ou À l’échec, la cible éventuelle, le nombre de Séries, la Pause après chaque série, le Changement de côté, la **Pause entre les côtés** lorsque l’Exercice est bilatéral, le Compte à rebours propre et la Fin d’exercice propre. La Description reste facultative. L’action `Terminer` enregistre l’Exercice.
 
@@ -350,7 +350,7 @@ Les filtres et la position de défilement appartiennent à l’état du Catalogu
 2. dans le Catalogue `Séances`, `Créer` ouvre directement une nouvelle Composition de Séance ;
 3. dans le Catalogue `Parcours`, le même principe ouvre directement la création d’un Parcours lorsque ce Catalogue devient fonctionnel.
 
-Dans T03/MVP, `Parcours` reste désactivé : cette règle n’active ni le Catalogue ni la création de Parcours.
+Dans T03/MVP, le segment `Parcours` est supprimé : aucune troisième option, même désactivée. Le concept post-MVP reste défini sans entrée de navigation active.
 
 ## Créer ou modifier un Exercice
 

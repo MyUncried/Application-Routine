@@ -53,13 +53,13 @@ Le `Catalogue des séances` est l’état par défaut de l’espace `Catalogues`
 
 ### Catalogue des exercices — T03
 
-T03 rend le segment `Exercices` fonctionnel. Il permet de créer, consulter, modifier, archiver, restaurer et supprimer définitivement un Exercice persistant, de l’ajouter à une Séance par copie indépendante, de l’exécuter directement **et de la planifier directement** au même titre qu’une Séance. Le segment `Parcours` reste visible mais désactivé.
+T03 rend le segment `Exercices` fonctionnel. Il permet de créer, consulter, modifier, archiver, restaurer et supprimer définitivement un Exercice persistant, de l’ajouter à une Séance par copie indépendante, de l’exécuter directement **et de la planifier directement** au même titre qu’une Séance. Le segment `Parcours` est absent du Catalogue et des sélecteurs de type de contenu au MVP.
 
 Un Exercice créé uniquement dans une Séance ne rejoint pas automatiquement le Catalogue. Une Exécution directe d’Exercice utilise l’origine `ACTIVITY`, un instantané autonome et une préparation fixe de `5 s`, sans Séance artificielle ni `SESSION_END`.
 
 ### Création et composition
 
-La création est réalisée dans un écran unique `Composition d’une séance`. Une Séance possède obligatoirement un nom et une couleur choisie dans une palette prédéfinie de 12 couleurs. Elle devient validable lorsqu’elle contient au moins un Exercice valide.
+La création est réalisée dans un écran unique `Composer une séance`. Une Séance possède obligatoirement un nom et une couleur choisie dans une palette prédéfinie de 12 couleurs. Elle devient validable lorsqu’elle contient au moins un Exercice valide.
 
 Une Séance contient :
 
@@ -132,7 +132,7 @@ Ces perspectives orientent l’architecture, mais ne doivent pas être présent�
 
 ### Catalogue multi-type
 
-Le Catalogue constitue l’accès central aux contenus. Il distingue `Exercices`, `Séances` et `Parcours`. `Séances` est sélectionné par défaut à l’ouverture initiale et après relance complète ; `Exercices` est fonctionnel à partir de T03 ; `Parcours` reste visible mais désactivé. Une version post-MVP rendra les Parcours fonctionnels sans créer de destination principale supplémentaire.
+Le Catalogue constitue l’accès central aux contenus. Il distingue `Exercices` et `Séances`. `Séances` est sélectionné par défaut à l’ouverture initiale et après relance complète ; `Exercices` est fonctionnel à partir de T03 ; `Parcours` est absent du sélecteur. Une version post-MVP rendra les Parcours fonctionnels sans créer de destination principale supplémentaire.
 
 ### Catalogue des exercices — MVP T03
 
