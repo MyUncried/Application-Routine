@@ -181,4 +181,7 @@ Aucun instantané n’existe dans ces suites ; aucun n’a été régénéré.
 
 ## 11. Commit final et état Git
 
-ETAT_GIT
+- Commit de livraison (code, documentation, tests, rapport) : `ed013d48` — `feat(ui): aligner la présentation du code sur le DSF Figma du 07/10`, parent `72d1bf47`.
+- Commit documentaire final rattaché : celui qui renseigne la présente section (son hash est donné dans la description de la PR et dans le message de clôture, un fichier ne pouvant contenir le hash de son propre commit).
+- Branche `feat/alignement-dsf-figma-2026-10-07`, poussée sur `origin` ; PR ouverte vers `main`, **non fusionnée**. Aucune publication Routine Dev.
+- Arbre de travail du worktree propre après commit (`git status --porcelain` vide). Checkout principal `C:DevApplication-routine` non modifié (modifications locales préexistantes intactes). Worktree de base `C:DevApplication-routine-dsf-baseline` (détaché, sans modification) conservé pour reproduire la comparaison ; il peut être retiré par `git worktree remove`.
