@@ -5,9 +5,9 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "IMPLEMENTATION_REVIEW_PASS_FINALIZATION_READY",
+  "current_stage": "CYCLE_CLOSED",
   "request_id": "afa92cf0-b265-4839-b5c6-823f39bdf1b5",
-  "generation": 101,
+  "generation": 102,
   "previous_terminal_generation": 77,
   "previous_closed_issue": 324,
   "reuse_previous_closure_as_new_cycle": false,
@@ -215,12 +215,18 @@
     },
     {
       "stage": "GITHUB_EFFECTIVE_CLOSURE",
-      "status": "READY",
+      "status": "PASS",
       "issue": 329,
       "pr": 330,
       "head": "3db2ac6129f0aaf5b6e47bf1d3030a1fe8a57609",
       "request_id": "afa92cf0-b265-4839-b5c6-823f39bdf1b5",
-      "generation": 101
+      "generation": 101,
+      "run_id": 37688962970,
+      "run_attempt": 1,
+      "source_head": "38e3152b53c6f2b8c206514b341bdd308f67df0f",
+      "final_output_comment_id": "6047126653",
+      "slice_closed_comment_id": "6047127635",
+      "operational_closure_certified": true
     }
   ],
   "excluded": [
@@ -233,10 +239,10 @@
     "automatic_visual_validation"
   ],
   "active_run_ids": [],
-  "next_action": "Launch the existing serialized FINALIZE_DELIVERY workflow for new issue329/PR330 exactly once.",
+  "next_action": "NONE: full cycle effectively closed; disable only this completed continuation automation. Documentation modals remains out of scope.",
   "controller_head": "e21c9a142ed41d4863f1273d22bd1f43643adcbd",
   "qualification_branch": "qualification/vnext-full-cycle-historical-sequence-3b3a2190-20261007",
-  "observed_at": "2026-10-07T21:20:55.110932+00:00",
+  "observed_at": "2026-10-07T21:27:30.338615+00:00",
   "documentation_modals": "WAIT_FOR_USER_COMPLETION_SIGNAL",
   "pending_initial_request": {
     "stage": "EXECUTE_INITIAL",
@@ -260,11 +266,11 @@
     "approval_target_hash": "b4cd9e23325716ca96fbb443b2c7fa61ac3405c385d93f0437c5b01228bfc639",
     "qualification_run_id": 37612631759
   },
-  "auto_continue": true,
+  "auto_continue": false,
   "automation_id": "6ac62299aa5c819198996171d4a1ff13",
   "automation_title": "Enchaîner le cycle VNext",
   "automation_trigger": "PR269_COMMIT_UPDATES",
-  "automatic_continuation_status": "FINALIZE_DELIVERY_ADMITTED",
+  "automatic_continuation_status": "CYCLE_CLOSED",
   "initial_binding_requires_new_qualified_source_head": false,
   "previous_initial_gate": {
     "comment_id": 6035666121,
@@ -276,24 +282,27 @@
   "completed_controls_run": 37605050877,
   "transition": {
     "schema_version": "kodjo.vnext.cycle-transition.v1",
-    "status": "FINALIZE_DELIVERY_ADMITTED",
+    "status": "CYCLE_CLOSED",
     "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
     "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
     "slice_id": "VNEXT-12-QUALIF",
     "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:a0fe36c3-246b-4ffb-b962-a6c4a527fce0:37680862427:1",
     "request_id": "a0fe36c3-246b-4ffb-b962-a6c4a527fce0",
     "generation": 99,
-    "source_head": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
-    "observed_signal_head": "d6511d088125b720917007f96a12a0c82ddcd6df",
-    "run_id": 37680862427,
+    "source_head": "38e3152b53c6f2b8c206514b341bdd308f67df0f",
+    "observed_signal_head": "a75e921e268d0134370adcbc6605e114f8347d5a",
+    "run_id": 37688962970,
     "run_attempt": 1,
     "claimed_at": "2026-10-07T21:10:30.873704+00:00",
     "controller": "WORK_WEBHOOK_HISTORICAL_COMPLETION",
-    "operational_closure_certified": false,
+    "operational_closure_certified": true,
     "next_request_id": "afa92cf0-b265-4839-b5c6-823f39bdf1b5",
     "next_generation": 101,
     "new_issue": 329,
-    "new_pr": 330
+    "new_pr": 330,
+    "final_signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:afa92cf0-b265-4839-b5c6-823f39bdf1b5:37688962970:1",
+    "final_request_id": "afa92cf0-b265-4839-b5c6-823f39bdf1b5",
+    "final_generation": 102
   },
   "pending_incident_request": {
     "stage": "CERTIFY_INCIDENTS",
@@ -423,6 +432,12 @@
       "request_id": "a0fe36c3-246b-4ffb-b962-a6c4a527fce0",
       "generation": 100,
       "outcome": "HISTORICAL_PASS_IMPLEMENTATION_REVIEW_CLAIMED"
+    },
+    {
+      "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:afa92cf0-b265-4839-b5c6-823f39bdf1b5:37688962970:1",
+      "request_id": "afa92cf0-b265-4839-b5c6-823f39bdf1b5",
+      "generation": 102,
+      "outcome": "NEW_FULL_CYCLE_CLOSURE_VERIFIED"
     }
   ],
   "real_test_success": {
@@ -1432,7 +1447,12 @@
     "preserved_historical_head": "b4dbde78215b4ff1adb1443a0ed6d581716eb38b",
     "historical_head_is_ancestor": true,
     "product_merge": false,
-    "operational_closure_certified": false
+    "operational_closure_certified": true,
+    "issue_state": "closed",
+    "pr_state": "open_draft_unmerged",
+    "closure_run_id": 37688962970,
+    "final_output_comment_id": "6047126653",
+    "slice_closed_comment_id": "6047127635"
   },
   "pending_finalization_request": {
     "stage": "FINALIZE_DELIVERY",
@@ -1461,5 +1481,53 @@
     "finalization_manifest": ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/new-delivery-329/finalization-manifest.json",
     "source_historical_run_id": 37680862427,
     "source_historical_signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:a0fe36c3-246b-4ffb-b962-a6c4a527fce0:37680862427:1"
-  }
+  },
+  "completed_at": "2026-10-07T21:27:30.338615+00:00",
+  "closure": {
+    "schema_version": "kodjo.vnext.full-cycle-closure-evidence.v1",
+    "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+    "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+    "slice_id": "VNEXT-12-QUALIF",
+    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:afa92cf0-b265-4839-b5c6-823f39bdf1b5:37688962970:1",
+    "request_id": "afa92cf0-b265-4839-b5c6-823f39bdf1b5",
+    "generation": 101,
+    "source_head": "38e3152b53c6f2b8c206514b341bdd308f67df0f",
+    "run_id": 37688962970,
+    "run_attempt": 1,
+    "run_conclusion": "SUCCESS",
+    "artifact_id": 11511723983,
+    "artifact_sha256": "ff9693690067faa35748af729c3de59a188396e2c8a11c1f288cc7bab7a855fe",
+    "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/closure-37688962970/archive.zip",
+    "new_issue": 329,
+    "new_pr": 330,
+    "delivery_head": "3db2ac6129f0aaf5b6e47bf1d3030a1fe8a57609",
+    "finalization_hash": "c901ce75d16cb354a105c7ec0211efdf22ea8e0ccf006d1f4c62a6484f637b51",
+    "final_output_comment_id": "6047126653",
+    "slice_closed_comment_id": "6047127635",
+    "closure_verified_from_actual_github": true,
+    "recovery": "REUSED_EXISTING_CLOSURE_WITHOUT_NEW_RECORDS",
+    "historical_closure_preserved": {
+      "issue": 324,
+      "state": "closed",
+      "pr": 325,
+      "state_pr": "closed",
+      "head": "b4dbde78215b4ff1adb1443a0ed6d581716eb38b",
+      "reopened_or_replayed": false
+    },
+    "operational_closure_certified": true,
+    "scope": "CURRENT_CYCLE_NEW_GITHUB_CERTIFICATION_DELIVERY_ONLY",
+    "application_published": false,
+    "visual_compliance_attested": false,
+    "accessibility_compliance_attested": false,
+    "human_review_performed": false,
+    "limits": [
+      "Figma frozen Git capture only; no fresh acquisition",
+      "No visual or accessibility conformity certified",
+      "Synthetic delivery; no product merge/publication or activation",
+      "Historical unavailable recovery retains NON_CERTIFIED_ARTIFACT_UNAVAILABLE"
+    ],
+    "observed_at": "2026-10-07T21:27:30.338615+00:00"
+  },
+  "automation_disable_status": "READY_AFTER_DURABLE_FINAL_BALANCE",
+  "operational_closure_certified": true
 }
