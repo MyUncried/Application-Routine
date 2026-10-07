@@ -106,6 +106,16 @@ test('incident 2: unrelated baseline, missing target and different approved head
     assert.equal(Final.finalize({...f.args,retainedTargets:['baseline-keep.js']}).delivery_coverage.current_files[0].path,'baseline-keep.js');
   } finally { f.cleanup(); }
 });
+test('incident 2: unchanged non-UI targets require an exact retained-target declaration', () => {
+  const f=fixture();try{
+    const Entry=require('../../scripts/kodjo/finalize-vnext-delivery');
+    const requirements=[{change_targets:['baseline-keep.js','delivered.js']}];
+    const input={baselineHead:f.args.baselineHead,head:f.head,retained_non_ui_targets:['baseline-keep.js']};
+    assert.deepEqual(Entry.validateRetainedNonUiTargets(input,requirements,f.cwd),['baseline-keep.js']);
+    assert.throws(()=>Entry.validateRetainedNonUiTargets({...input,retained_non_ui_targets:[]},requirements,f.cwd),/RETAINED_NON_UI_INCOMPLETE/);
+    assert.throws(()=>Entry.validateRetainedNonUiTargets({...input,retained_non_ui_targets:['outside.js']},requirements,f.cwd),/RETAINED_NON_UI_SCOPE_REFUSED/);
+  }finally{f.cleanup();}
+});
 test('incident 3: technical restart retains exact original decision and reserves, rejects a different delivery', () => {
   const f = fixture(); try {
     const originDecision = f.args.acceptance;

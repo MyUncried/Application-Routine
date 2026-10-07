@@ -25,5 +25,12 @@
       "clean": "PASS"
     }
   },
-  "approvedPlanBlobOid": "014987f69b9738fbed839f9300733539b00505ca"
+  "approvedPlanBlobOid": "014987f69b9738fbed839f9300733539b00505ca",
+  "retained_non_ui_targets": [
+    "src/domain/body-zones/index.ts",
+    "src/domain/categories/index.ts",
+    "src/domain/labels/index.ts",
+    "src/domain/preferences/index.ts",
+    "src/domain/sessions/defaults.ts"
+  ]
 }

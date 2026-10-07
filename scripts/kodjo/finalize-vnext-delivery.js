@@ -10,6 +10,26 @@ const Delivery = require('./lib/vnext-delivery-preservation');
 const { extractTaggedJson } = require('./lib/plan-impact');
 const { matrixFingerprint } = require('./lib/ui-criteria-contract');
 const Source = require('./verify-source-comment');
+function validateRetainedNonUiTargets(input, requirements, cwd) {
+  const declared = input.retained_non_ui_targets ?? [];
+  if (!Array.isArray(declared) || new Set(declared).size !== declared.length
+      || declared.some(file => typeof file !== 'string' || !file.trim())) V.fail('VNEXT_FINAL_RETAINED_NON_UI_INVALID');
+  const required = [...new Set(requirements.flatMap(row => row.change_targets))].sort();
+  for (const file of declared) {
+    require('./lib/vnext-figma-source').safePath(file);
+    if (!required.includes(file)) V.fail('VNEXT_FINAL_RETAINED_NON_UI_SCOPE_REFUSED');
+  }
+  const changed = new Set(execFileSync('git', ['diff', '--no-renames', '--name-only', input.baselineHead, input.head],
+    { cwd, encoding:'utf8', windowsHide:true }).trim().split('\n').filter(Boolean));
+  const expected = required.filter(file => !changed.has(file));
+  if (V.canonicalStringify([...declared].sort()) !== V.canonicalStringify(expected)) V.fail('VNEXT_FINAL_RETAINED_NON_UI_INCOMPLETE');
+  for (const file of expected) {
+    const before = execFileSync('git', ['rev-parse', input.baselineHead + ':' + file], { cwd, encoding:'utf8', windowsHide:true }).trim();
+    const after = execFileSync('git', ['rev-parse', input.head + ':' + file], { cwd, encoding:'utf8', windowsHide:true }).trim();
+    if (before !== after) V.fail('VNEXT_FINAL_RETAINED_NON_UI_DRIFT');
+  }
+  return expected;
+}
 function verifyReviewSource(comment,input) {
   const origin=input.reviewSource;
   if(!origin)return Source.verify(comment,{repository:input.repository,issue:input.issue,id:input.reviewId});
@@ -35,6 +55,7 @@ function execute(input, { cwd, directory, github }) {
   const matrix = Delivery.merge(initialMatrix, preservation);
   const nonUiRequirements = plan.includes('<KODJO_REQUIREMENT_CONTRACT_JSON>')
     ? require('./lib/requirement-contract').verifyEmbedded(plan).requirement_contract.requirements.filter(r=>r.domain==='NON_UI') : [];
+  const retainedNonUiTargets = validateRetainedNonUiTargets(input, nonUiRequirements, cwd);
   const reviewComment = verifyReviewSource(github.comment(input.repository,input.reviewId),input);
   const heads = [...reviewComment.body.replace(/\r\n/g,'\n').matchAll(/^head=([^\n]+)$/gm)].map(m=>m[1].trim());
   if (heads.length !== 1 || heads[0] !== input.head) V.fail('VNEXT_FINAL_REVIEW_HEAD_MISMATCH');
@@ -43,7 +64,7 @@ function execute(input, { cwd, directory, github }) {
   const review = extractTaggedJson(reviewComment.body,'KODJO_UI_IMPLEMENTATION_REVIEW_JSON');
   if (input.checksReceipt?.head !== input.head) V.fail('VNEXT_FINAL_CHECKS_HEAD_MISMATCH');
   const result = Final.finalize({...input,cwd,matrix,review,nonUiRequirements,checks:input.checksReceipt.checks,
-    retainedTargets:preservation?.retained_criteria.flatMap(c=>c.change_targets) || [],
+    retainedTargets:[...(preservation?.retained_criteria.flatMap(c=>c.change_targets) || []),...retainedNonUiTargets],
     acceptance: input.decisionId ? github.comment(input.repository,input.decisionId) : null,
     originDecision: input.originDecisionId ? github.comment(input.repository,input.originDecisionId) : null});
   const unsigned={...result,plan_blob_oid:input.approvedPlanBlobOid};delete unsigned.contract_hash;
@@ -60,4 +81,4 @@ if (require.main === module) {
     execute(JSON.parse(fs.readFileSync(manifest,'utf8')),{cwd:process.cwd(),directory:path.resolve(directory),github});
   } catch (error) { console.error(error.message); process.exitCode=1; }
 }
-module.exports = {execute,verifyReviewSource};
+module.exports = {execute,verifyReviewSource,validateRetainedNonUiTargets};
