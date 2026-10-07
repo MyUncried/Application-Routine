@@ -192,7 +192,9 @@ describe("AbandonCreationModal", () => {
 
       const backdrop = screen.getByTestId("abandon-creation-backdrop");
       const backdropStyle = StyleSheet.flatten(backdrop.props.style);
-      expect(backdropStyle.backgroundColor).toBe("rgba(20, 20, 20, 0.5)");
+      // Complément d'alignement du 07/10 (ajout A) : voile modal unique.
+      expect(backdropStyle.backgroundColor).toBe(colors.overlayScrim);
+      expect(backdropStyle.backgroundColor).toBe("rgba(31, 33, 41, 0.34)");
       expect(backdropStyle.alignItems).toBe("center");
       expect(backdropStyle.justifyContent).toBe("center");
     });

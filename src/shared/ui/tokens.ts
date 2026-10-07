@@ -145,13 +145,21 @@ export const colors = {
   // Alignement DSF 07/10 (D3) : ramené à `surface` ; l'ancienne valeur
   // `#F7F7FF` est historique.
   exerciseContextBandBackground: canonical.surface,
-  // T01-S09 correction VISUAL (point D) — voile d'arrière-plan de la
-  // superposition plein écran, transversale à tout sélecteur numérique à
-  // roulette (`WheelPickerOverlay.tsx`) : approximation raisonnée à partir
-  // de `colors.textPrimary` (`#141414`) à `50%` d'opacité, en l'absence
-  // d'un accès Figma direct pour cette correction (disclosed, non vérifié
-  // visuellement — voir le rapport de mission).
-  overlayScrim: "rgba(20, 20, 20, 0.5)",
+  // Voile modal UNIQUE (complément d'alignement du 07/10, ajout A) :
+  // variable Figma `color/overlay/scrim` = `#1F2129` à 34 %, pour tous les
+  // voiles existants (dialogues de décision, feuilles de sélection,
+  // roulettes, options de création). Remplace l'ancienne approximation
+  // `rgba(20, 20, 20, 0.5)`. Ne pas confondre avec
+  // `compositionDraggedCardShadow` (`color/overlay-scrim`, `#14171F` plein),
+  // réservé à la teinte d'ombre de la carte déplacée.
+  overlayScrim: "rgba(31, 33, 41, 0.34)",
+  // Contrôle segmenté standard (`DSF / Controls / Segmenté`, variante
+  // `Deux options — 1 sélectionné` `7388:13779`, ajout C) : cadre blanc à
+  // 50 % (`color/background` `2290:54`, opacité du remplissage 0,5 — jamais
+  // une opacité du conteneur) et fond des options inactives `#EAEAFF`
+  // (peinture locale du maître, sans variable Figma).
+  segmentedSurface: "rgba(255, 255, 255, 0.5)",
+  segmentedInactiveSurface: "#EAEAFF",
   // T01-S09, correction VISUAL (2e contre-recette suivante, commentaire de
   // revue post-`1f28a09`) — `Controls / Disclosure — Source exact`
   // (`12 – Architecture technique.md`, `2537:1033` `State=Collapsed` /
@@ -269,6 +277,10 @@ export const type = {
   // token propre plutôt qu'une réutilisation approximative (même principe
   // que `dialogMessage` en son temps).
   contextLine: { ...regular, fontSize: 14, lineHeight: 17 },
+  // Libellés des contrôles segmentés (ajout C) : style Figma `KODJO / Section
+  // title`, Inter Semi Bold 16 à interligne EXPLICITE 20 (vérifié sur
+  // `7388:13781`), pour l'option sélectionnée comme pour les inactives.
+  segmentedLabel: { ...semiBold, fontSize: 16, lineHeight: 20 },
 } as const;
 
 export const spacing = {
@@ -406,13 +418,15 @@ export const dimensions = {
   // `Forms / Text Field — Source exact` (`2537:1075`, `Type=Single line`).
   exerciseTextField: { height: 46, radius: 8, paddingHorizontal: 14 },
   // `Controls / Segmented` (`2586:2759`) : conteneur `354×42`, padding `4`,
-  // écart entre segments `14`, chaque segment `166×34` (strictement égaux),
-  // rayon interne `10`, rayon externe `12`.
+  // chaque segment `34` de haut (strictement égaux), rayon interne `10`.
+  // Ajout C (07/10, `DSF / Controls / Segmenté` `7388:13779`) : rayon
+  // externe `12` → `14`, écart entre segments `14` → `4`, cadre sans
+  // contour.
   segmentedControl: {
     height: 42,
-    containerRadius: 12,
+    containerRadius: 14,
     padding: 4,
-    gap: 14,
+    gap: 4,
     segmentHeight: 34,
     segmentRadius: 10,
   },

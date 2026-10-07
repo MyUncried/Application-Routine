@@ -663,8 +663,10 @@ describe("ExerciseScreen — segment Mode d'exécution (Controls / Segmented)", 
     const containerStyle = StyleSheet.flatten(container.props.style);
     expect(containerStyle.width).toBe("100%");
     expect(containerStyle.height).toBe(42);
-    expect(containerStyle.backgroundColor).toBe(colors.background);
-    expect(containerStyle.borderColor).toBe(colors.border);
+    // Complément d'alignement du 07/10 (ajout C) : cadre blanc à 50 %, sans
+    // contour.
+    expect(containerStyle.backgroundColor).toBe(colors.segmentedSurface);
+    expect(containerStyle.borderWidth).toBe(0);
 
     const durationStyle = StyleSheet.flatten(
       screen.getByLabelText(t.executionMode.duration).props.style,

@@ -3,7 +3,7 @@ import { describe, expect, it, jest } from "@jest/globals";
 import { StyleSheet } from "react-native";
 
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
-import { dimensions } from "@/shared/ui/tokens";
+import { colors, dimensions, type } from "@/shared/ui/tokens";
 
 describe("SegmentedControl", () => {
   const options = [
@@ -86,7 +86,8 @@ describe("SegmentedControl", () => {
 
       const indicator = screen.getByTestId("seg-indicator");
       const flattenedTop = StyleSheet.flatten(indicator.props.style).top as number;
-      const containerBorderWidth = 1;
+      // Complément d'alignement du 07/10 (ajout C) : cadre sans contour.
+      const containerBorderWidth = 0;
       const expectedTop =
         (dimensions.segmentedControl.height -
           containerBorderWidth * 2 -
@@ -99,6 +100,50 @@ describe("SegmentedControl", () => {
 
       expect(flattenedTop).toBe(expectedTop);
       expect(marginBottom).toBe(flattenedTop);
+    });
+  });
+
+  // Complément d'alignement du 07/10 (ajout C, `DSF / Controls / Segmenté`
+  // `7388:13779`) : style visuel seulement — mêmes options, mêmes valeurs.
+  describe("style visuel standard (ajout C)", () => {
+    it("draws a #EAEAFF tile (radius 10) under every option, beneath the selection indicator, without giving the pressable segments a background", () => {
+      render(<SegmentedControl options={options} value="sessions" onChange={jest.fn()} testID="seg" />);
+      fireEvent(screen.getByTestId("seg"), "layout", {
+        nativeEvent: { layout: { x: 0, y: 0, width: 354, height: 42 } },
+      });
+
+      for (const option of options) {
+        const tile = StyleSheet.flatten(screen.getByTestId(`seg-tile-${option.value}`).props.style);
+        expect(tile.backgroundColor).toBe(colors.segmentedInactiveSurface);
+        expect(tile.borderRadius).toBe(10);
+        expect(tile.height).toBe(34);
+        expect(StyleSheet.flatten(screen.getByTestId(`seg-${option.value}`).props.style).backgroundColor).toBeUndefined();
+      }
+      expect(colors.segmentedInactiveSurface).toBe("#EAEAFF");
+    });
+
+    it("uses a borderless white 50 % frame of radius 14 with a 4 gap", () => {
+      render(<SegmentedControl options={options} value="sessions" onChange={jest.fn()} testID="seg" />);
+      const frame = StyleSheet.flatten(screen.getByTestId("seg").props.style);
+      expect(frame.backgroundColor).toBe("rgba(255, 255, 255, 0.5)");
+      expect(frame.borderWidth).toBe(0);
+      expect(frame.borderRadius).toBe(14);
+      expect(frame.gap).toBe(4);
+      expect(frame.padding).toBe(4);
+      expect(frame.height).toBe(42);
+    });
+
+    it("renders every label in Semi Bold 16/20, text-label when inactive and white when selected", () => {
+      render(<SegmentedControl options={options} value="sessions" onChange={jest.fn()} testID="seg" />);
+      const inactive = StyleSheet.flatten(screen.getByText("Activités").props.style);
+      const selected = StyleSheet.flatten(screen.getByText("Séances").props.style);
+      for (const style of [inactive, selected]) {
+        expect(style.fontSize).toBe(type.segmentedLabel.fontSize);
+        expect(style.lineHeight).toBe(20);
+        expect(style.fontWeight).toBe("600");
+      }
+      expect(inactive.color).toBe(colors.textLabel);
+      expect(selected.color).toBe(colors.background);
     });
   });
 });
