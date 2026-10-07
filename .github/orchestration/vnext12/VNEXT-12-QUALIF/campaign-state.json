@@ -2675,6 +2675,8 @@
     "slice_closed_comment_id": "6047127635",
     "evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/closure-37688962970/evidence.json",
     "completed_at": "2026-10-07T21:27:30.338615+00:00",
-    "auto_continue": false
+    "auto_continue": false,
+    "automation_is_enabled": false,
+    "automation_disabled_at": "2026-10-07T21:28:54.619442+00:00"
   }
 }

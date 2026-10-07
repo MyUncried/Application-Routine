@@ -1528,6 +1528,8 @@
     ],
     "observed_at": "2026-10-07T21:27:30.338615+00:00"
   },
-  "automation_disable_status": "READY_AFTER_DURABLE_FINAL_BALANCE",
-  "operational_closure_certified": true
+  "automation_disable_status": "DISABLED_AFTER_EFFECTIVE_CLOSURE",
+  "operational_closure_certified": true,
+  "automation_disabled_at": "2026-10-07T21:28:54.619442+00:00",
+  "automation_is_enabled": false
 }
