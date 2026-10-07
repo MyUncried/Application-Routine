@@ -319,7 +319,7 @@
     },
     {
       "path": ".github/workflows/kodjo-v2-next-evolution-independent-audit.yml",
-      "blob_oid": "5cad4a7e1fe285002a34af9139c6c4be4d13c24f",
+      "blob_oid": "ae568ff8ed738b80ac0536ecf3db45324dcdcdc4",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
