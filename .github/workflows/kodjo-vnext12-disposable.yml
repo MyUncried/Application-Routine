@@ -32,7 +32,7 @@ jobs:
           node - <<'JS'
           const fs = require('fs');
           const c = JSON.parse(fs.readFileSync('.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json'));
-          if (!['PREPARE_INITIAL', 'EXECUTE_INITIAL', 'EXECUTE_REVISION', 'QUALIFY_ONLY', 'PREPARE_REVISION', 'FIGMA_INITIAL', 'CERTIFY_INCIDENTS'].includes(c.stage) || c.pre1_in_scope !== false || c.final_audit_authorized !== false || c.revision_limit !== 1) throw Error('VNEXT12_STAGE_REFUSED');
+          if (!['PREPARE_INITIAL', 'EXECUTE_INITIAL', 'EXECUTE_REVISION', 'QUALIFY_ONLY', 'PREPARE_REVISION', 'FIGMA_INITIAL', 'CERTIFY_INCIDENTS', 'TARGETED_RESULT_RECORDED'].includes(c.stage) || c.pre1_in_scope !== false || c.final_audit_authorized !== false || c.revision_limit !== 1) throw Error('VNEXT12_STAGE_REFUSED');
           if (c.stage === 'CERTIFY_INCIDENTS') require('./scripts/kodjo/certify-vnext-incidents').validateConfig(c);
           if (c.stage === 'FIGMA_INITIAL') require('./scripts/kodjo/qualify-vnext-figma-real-path').validateConfig(c);
           if (['EXECUTE_INITIAL', 'EXECUTE_REVISION'].includes(c.stage)) require('./scripts/kodjo/execute-vnext12').validateConfig(c);

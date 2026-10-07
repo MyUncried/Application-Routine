@@ -75,3 +75,47 @@ La vérification supplémentaire finalisation VNext → import de baseline repro
 Tests complémentaires : finalisation → baseline → préservation suivante, absence de gate visuel pour l’acceptation fonctionnelle, falsification de résolution refusée ; relecture des données réelles jusqu’à l’admission de baseline PASS. Le passage suivant réutilise les 82 réussites et exécute seulement les deux suites affectées et ce rejeu étendu. La clôture GitHub VNext reste NON OBTENUE.
 
 Précision de reprise : les scripts V2 étaient relus depuis main, mais les contrôleurs VNext sont gelés à la tête de leur événement. Une correction de script VNext exige donc aussi un nouvel événement si la tête initiale est ancienne ; une relance du même run ne suffit pas. Le sélecteur et son test expriment cette distinction. Le runtime approuvé et la décision applicable demeurent inchangés. Vérification complémentaire locale : **26 PASS, 0 FAIL, 0 SKIP**.
+
+## Résultat final ciblé et état durable
+
+Complément publié en `363e3d16eb821a4fc60b9763869405f805bb4fb8`, run [37559490452](https://github.com/MyUncried/Application-Routine/actions/runs/37559490452) : **26 PASS, 0 FAIL, 0 SKIP**, seules les suites finalization-incidents et delivery-preservation ont été exécutées. Le run réutilise explicitement #37557921183 ; les nombres se recouvrent et ne doivent pas être additionnés. Rejeu réel PASS, consommateur suivant `DELIVERY_BASELINE_ADMITTED`. Archives relues et digests vérifiés ; second ZIP 11455948259, 31 053 octets, SHA-256 `9bfa0d8182aa7be596394a792d07b06afa9f51995a14d14dd435fde00eba1ef1`.
+
+Les provenances conservent séparément le workflow réellement chargé depuis refs/pull/269/merge et le contrôleur depuis la tête de PR. Dans ce passage en lecture seule, le champ runtime identifie l’entrée de finalisation exécutée ; il ne déclare pas une nouvelle exécution de l’application ni un nouveau développement Claude.
+
+Correction écrite : oui. Tests automatiques et rejeu réel ciblé : réussis. Consommateur suivant : raccordé et vérifié. **Clôture GitHub opérationnelle VNext : non certifiée.** Le parcours réel actuel reste une livraison locale sans publication applicative, et la politique VNext n’autorise pas de writer de clôture produit. Le cas END reste ouvert ; une fixture SLICE_CLOSED locale et le succès V2 ancien ne le remplacent pas. Aucun changement de cette frontière n’est inclus dans la mission.
+
+La demande passe à TARGETED_RESULT_RECORDED : publication du bilan et futurs commits documentaires ne doivent pas réexécuter les contrôles ni consommer de nouveau la demande. Aucun nouveau job ou déclencheur manuel n’est ajouté. Le dispatch terminal fait seulement sélectionner cet état ; les jobs de test et de développement restent ignorés.
+
+État Git local propre après commit du présent bilan ; publications sélectives sans force-push. Le commit contenant ce bilan final est communiqué avec le lien du rapport après publication.
+
+### Fichiers exacts de cette mission
+
+- `.github/orchestration/KODJO_VNEXT_REMOTE_WRITE_POLICY.json`
+- `.github/orchestration/reports/2026-10-07_VNEXT_THREE_INCIDENTS.md`
+- `.github/orchestration/reports/evidence/vnext-incidents-20261007/37557921183/certification.json`
+- `.github/orchestration/reports/evidence/vnext-incidents-20261007/37557921183/execution-provenance.json`
+- `.github/orchestration/reports/evidence/vnext-incidents-20261007/37557921183/execution.zip`
+- `.github/orchestration/reports/evidence/vnext-incidents-20261007/37559490452/certification.json`
+- `.github/orchestration/reports/evidence/vnext-incidents-20261007/37559490452/execution-provenance.json`
+- `.github/orchestration/reports/evidence/vnext-incidents-20261007/37559490452/execution.zip`
+- `.github/orchestration/reports/evidence/vnext-incidents-20261007/consumer-before.log`
+- `.github/orchestration/reports/evidence/vnext-incidents-20261007/consumer-completion.log`
+- `.github/orchestration/reports/evidence/vnext-incidents-20261007/real-data-manifest.json`
+- `.github/orchestration/reports/evidence/vnext-incidents-20261007/real-data-replay.json`
+- `.github/orchestration/reports/evidence/vnext-incidents-20261007/source-attempts.json`
+- `.github/orchestration/reports/evidence/vnext-incidents-20261007/source-comments.json`
+- `.github/orchestration/reports/evidence/vnext-incidents-20261007/targeted-tests.log`
+- `.github/orchestration/reports/evidence/vnext-incidents-20261007/wiring-tests.log`
+- `.github/orchestration/vnext12/VNEXT-12-QUALIF/campaign-state.json`
+- `.github/orchestration/vnext12/VNEXT-12-QUALIF/incidents/certification-cases.json`
+- `.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json`
+- `.github/workflows/kodjo-vnext12-disposable.yml`
+- `scripts/kodjo/certify-vnext-incidents.js`
+- `scripts/kodjo/execute-vnext12.js`
+- `scripts/kodjo/finalize-vnext-delivery.js`
+- `scripts/kodjo/lib/vnext-delivery-preservation.js`
+- `scripts/kodjo/lib/vnext-execution-provenance.js`
+- `scripts/kodjo/lib/vnext-finalization.js`
+- `scripts/kodjo/lib/vnext-publication.js`
+- `scripts/kodjo/qualify-vnext-figma-real-path.js`
+- `tests/kodjo/vnext-finalization-incidents.pilot.js`

@@ -9,81 +9,117 @@
       "description": "ACCESSIBILITY pending admitted, resolved functionally with reserves",
       "incident": 1,
       "test_path": "tests/kodjo/vnext-finalization-incidents.pilot.js",
-      "automatic_status": "PASS_LOCAL",
-      "real_data_replay": "AVAILABLE_READ_ONLY",
-      "operational_vnext_certification": "NOT_OBTAINED"
+      "automatic_status": "PASS_TARGETED_RUNNER",
+      "real_data_replay": "PASS_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED",
+      "evidence_runs": [
+        37557921183,
+        37559490452
+      ]
     },
     {
       "id": "I1-B",
       "description": "Failed or missing technical proof refused",
       "incident": 1,
       "test_path": "tests/kodjo/vnext-proof-lifecycle.pilot.js",
-      "automatic_status": "PASS_LOCAL",
-      "real_data_replay": "AVAILABLE_READ_ONLY",
-      "operational_vnext_certification": "NOT_OBTAINED"
+      "automatic_status": "PASS_TARGETED_RUNNER",
+      "real_data_replay": "PASS_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED",
+      "evidence_runs": [
+        37557921183,
+        37559490452
+      ]
     },
     {
       "id": "I1-C",
       "description": "Waiver preserved; no manufactured PASS",
       "incident": 1,
       "test_path": "tests/kodjo/vnext-proof-lifecycle.pilot.js",
-      "automatic_status": "PASS_LOCAL",
-      "real_data_replay": "AVAILABLE_READ_ONLY",
-      "operational_vnext_certification": "NOT_OBTAINED"
+      "automatic_status": "PASS_TARGETED_RUNNER",
+      "real_data_replay": "PASS_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED",
+      "evidence_runs": [
+        37557921183,
+        37559490452
+      ]
     },
     {
       "id": "I2-A",
       "description": "Initial delivery followed by multiple corrections",
       "incident": 2,
       "test_path": "tests/kodjo/vnext-finalization-incidents.pilot.js",
-      "automatic_status": "PASS_LOCAL",
-      "real_data_replay": "AVAILABLE_READ_ONLY",
-      "operational_vnext_certification": "NOT_OBTAINED"
+      "automatic_status": "PASS_TARGETED_RUNNER",
+      "real_data_replay": "PASS_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED",
+      "evidence_runs": [
+        37557921183,
+        37559490452
+      ]
     },
     {
       "id": "I2-B",
       "description": "Retained file recognized; missing/deleted/regressed refused",
       "incident": 2,
       "test_path": "tests/kodjo/vnext-delivery-preservation.pilot.js",
-      "automatic_status": "PASS_LOCAL",
-      "real_data_replay": "AVAILABLE_READ_ONLY",
-      "operational_vnext_certification": "NOT_OBTAINED"
+      "automatic_status": "PASS_TARGETED_RUNNER",
+      "real_data_replay": "PASS_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED",
+      "evidence_runs": [
+        37557921183,
+        37559490452
+      ]
     },
     {
       "id": "I2-C",
       "description": "Unrelated baseline and unapproved head refused",
       "incident": 2,
       "test_path": "tests/kodjo/vnext-finalization-incidents.pilot.js",
-      "automatic_status": "PASS_LOCAL",
-      "real_data_replay": "AVAILABLE_READ_ONLY",
-      "operational_vnext_certification": "NOT_OBTAINED"
+      "automatic_status": "PASS_TARGETED_RUNNER",
+      "real_data_replay": "PASS_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED",
+      "evidence_runs": [
+        37557921183,
+        37559490452
+      ]
     },
     {
       "id": "I3-A",
       "description": "Executed workflow, controller, runtime and contracts identities",
       "incident": 3,
       "test_path": "tests/kodjo/vnext-finalization-incidents.pilot.js",
-      "automatic_status": "PASS_LOCAL",
-      "real_data_replay": "AVAILABLE_READ_ONLY",
-      "operational_vnext_certification": "NOT_OBTAINED"
+      "automatic_status": "PASS_TARGETED_RUNNER",
+      "real_data_replay": "PASS_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED",
+      "evidence_runs": [
+        37557921183,
+        37559490452
+      ]
     },
     {
       "id": "I3-B",
       "description": "Decision provenance and reserves retained on restart",
       "incident": 3,
       "test_path": "tests/kodjo/vnext-finalization-incidents.pilot.js",
-      "automatic_status": "PASS_LOCAL",
-      "real_data_replay": "AVAILABLE_READ_ONLY",
-      "operational_vnext_certification": "NOT_OBTAINED"
+      "automatic_status": "PASS_TARGETED_RUNNER",
+      "real_data_replay": "PASS_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED",
+      "evidence_runs": [
+        37557921183,
+        37559490452
+      ]
     },
     {
       "id": "I3-C",
       "description": "No double consumption or local closure after interruption",
       "incident": 3,
       "test_path": "tests/kodjo/disposable-consumption.pilot.js",
-      "automatic_status": "PASS_LOCAL",
-      "real_data_replay": "AVAILABLE_READ_ONLY",
-      "operational_vnext_certification": "NOT_OBTAINED"
+      "automatic_status": "PASS_TARGETED_RUNNER",
+      "real_data_replay": "PASS_READ_ONLY",
+      "operational_vnext_certification": "NOT_OBTAINED",
+      "evidence_runs": [
+        37557921183,
+        37559490452
+      ]
     },
     {
       "id": "END",
@@ -94,5 +130,9 @@
       "real_data_replay": "NOT_EXECUTED",
       "operational_vnext_certification": "NOT_OBTAINED"
     }
+  ],
+  "targeted_runs": [
+    37557921183,
+    37559490452
   ]
 }

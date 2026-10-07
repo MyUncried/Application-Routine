@@ -1,9 +1,9 @@
 {
-  "stage": "CERTIFY_INCIDENTS",
+  "stage": "TARGETED_RESULT_RECORDED",
   "slice_id": "VNEXT-12-QUALIF",
   "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
   "revision_limit": 1,
-  "generation": 73,
+  "generation": 74,
   "final_audit_authorized": false,
   "pre1_in_scope": false,
   "qualification_policy": "TARGETED_EXISTING_CERTIFICATION",
@@ -16,5 +16,6 @@
   "source_gate_ref": "issue_comment:6027571827",
   "source_approval_target_hash": "1f89bbd6e487faec2bf014809c6495bec3105762c7e8e553d62d16fe1caa6ad6",
   "consumer_completion_only": true,
-  "reused_targeted_run": 37557921183
+  "reused_targeted_run": 37557921183,
+  "last_targeted_run": 37559490452
 }

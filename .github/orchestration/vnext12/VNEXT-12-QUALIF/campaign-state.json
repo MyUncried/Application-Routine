@@ -146,7 +146,7 @@
   "user_instruction": "Mener la campagne jusqu'au résultat réel, diagnostiquer/corriger/relancer les échecs techniques ; solliciter uniquement une validation métier.",
   "code_head_before_checkpoint": "df2cfc406ac67c0b29b61bc6a4c7bfc9ae011bca",
   "controller_stage": "FIGMA_INITIAL_REQUESTED_AFTER_ABSOLUTE_PATH_CLARIFICATION_NO_DISPOSABLE_PREFLIGHT",
-  "controller_generation": 107,
+  "controller_generation": 108,
   "initial_qualification_reference_correction": {
     "failed_run": 37112240984,
     "failed_job": 111172374634,
@@ -521,6 +521,12 @@
       "status": "completed",
       "conclusion": "success",
       "head_sha": "564acba33a19214032742c46a46f7c3ea431a32a"
+    },
+    {
+      "run_id": 37559490452,
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "363e3d16eb821a4fc60b9763869405f805bb4fb8"
     }
   ],
   "obsolete_runs": [
@@ -2587,8 +2593,8 @@
     "platform_coverage": "MAPPED_ASSERTIONS_PASS_ON_AT_LEAST_ONE_PLATFORM_RECOVERED_FROM_ACTUAL_ARTIFACTS",
     "historical_local_windows": "SKIPPED_NOT_CLAIMED_EXECUTED"
   },
-  "stage": "CERTIFY_INCIDENTS",
-  "next_action": "TARGETED_THREE_INCIDENTS_CERTIFICATION",
+  "stage": "TARGETED_RESULT_RECORDED",
+  "next_action": "VNEXT_LIVE_CLOSURE_STILL_OPEN",
   "incidents_20261007": {
     "source_revision_run": 37548553181,
     "source_initial_run": 37538282108,
@@ -2611,6 +2617,16 @@
       "real_data_replay": "PASS",
       "next_consumer_gap_found": true
     },
-    "consumer_completion_only": true
+    "consumer_completion_only": true,
+    "consumer_completion": {
+      "run": 37559490452,
+      "pass": 26,
+      "fail": 0,
+      "skip": 0,
+      "previous_success_reused": 37557921183,
+      "real_data_replay": "PASS",
+      "next_consumer": "DELIVERY_BASELINE_ADMITTED",
+      "vnext_live_closure_certified": false
+    }
   }
 }
