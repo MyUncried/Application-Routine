@@ -5,7 +5,7 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "QUALIFICATION_RELAY_GITHUB_INTERNAL_ERROR_BLOCKED",
+  "current_stage": "QUALIFICATION_SUCCESS_SIGNAL_RECOVERY_REQUIRED",
   "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
   "generation": 92,
   "previous_terminal_generation": 77,
@@ -160,10 +160,10 @@
     "automatic_visual_validation"
   ],
   "active_run_ids": [],
-  "next_action": "Recover the GitHub scheduling/continuation failure without duplicating successful qualification jobs. A completed SUCCESS run and a fresh causal signal remain required before real-test admission.",
+  "next_action": "Recover the skipped qualification signal with an explicit verified descendant-head handoff, preserving exact qualified source_head and request identity. Do not rerun acquired controls or launch an unready phase.",
   "controller_head": "a467a5b34c1cb3e362c6e27b4b622c9ede632be7",
   "qualification_branch": "qualification/vnext-full-cycle-real-stdin-232ae5f7-20261007",
-  "observed_at": "2026-10-07T15:33:41.991Z",
+  "observed_at": "2026-10-07T16:51:38.061Z",
   "documentation_modals": "WAIT_FOR_USER_COMPLETION_SIGNAL",
   "pending_initial_request": {
     "stage": "EXECUTE_INITIAL",
@@ -191,7 +191,7 @@
   "automation_id": "6ac62299aa5c819198996171d4a1ff13",
   "automation_title": "Enchaîner le cycle VNext",
   "automation_trigger": "PR269_COMMIT_UPDATES",
-  "automatic_continuation_status": "QUALIFICATION_RELAY_GITHUB_INTERNAL_ERROR_BLOCKED",
+  "automatic_continuation_status": "QUALIFICATION_SUCCESS_SIGNAL_RECOVERY_REQUIRED",
   "initial_binding_requires_new_qualified_source_head": false,
   "previous_initial_gate": {
     "comment_id": 6035666121,
@@ -725,5 +725,53 @@
     },
     "admission": "REFUSED_RUN_CONCLUSION_FAILURE",
     "evidence_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/qualification-relay-failure-37641572717/evidence.json"
+  },
+  "qualification_relay_recovery": {
+    "run_id": 37641572717,
+    "run_attempt": 2,
+    "source_head": "42d10d8a7500a55d69ddeb26866fea7b625affa0",
+    "run_conclusion": "SUCCESS",
+    "jobs": [
+      {
+        "id": 112894878733,
+        "name": "qualification (ubuntu-latest)",
+        "conclusion": "success",
+        "head_sha": "42d10d8a7500a55d69ddeb26866fea7b625affa0"
+      },
+      {
+        "id": 112894879057,
+        "name": "qualification (windows-latest)",
+        "conclusion": "success",
+        "head_sha": "42d10d8a7500a55d69ddeb26866fea7b625affa0"
+      },
+      {
+        "id": 112894880920,
+        "name": "historical-equivalence",
+        "conclusion": "skipped",
+        "head_sha": "42d10d8a7500a55d69ddeb26866fea7b625affa0"
+      },
+      {
+        "id": 112894882794,
+        "name": "historical-platform-coverage",
+        "conclusion": "skipped",
+        "head_sha": "42d10d8a7500a55d69ddeb26866fea7b625affa0"
+      },
+      {
+        "id": 112898503472,
+        "name": "Signal exact VNext cycle controls to Work",
+        "conclusion": "success",
+        "head_sha": "42d10d8a7500a55d69ddeb26866fea7b625affa0"
+      },
+      {
+        "id": 112898505611,
+        "name": "architecture-audit",
+        "conclusion": "skipped",
+        "head_sha": "42d10d8a7500a55d69ddeb26866fea7b625affa0"
+      }
+    ],
+    "relay_status": "SKIPPED_CONTROLLER_MOVED",
+    "observed_controller_head": "6a7e62d83fa9f8bc12ebb58300f3aa9c2bc1104f",
+    "qualification_signal_published": false,
+    "implementation_invoked": false
   }
 }
