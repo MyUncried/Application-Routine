@@ -5,9 +5,9 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "REVISION_PREPARATION_REQUESTED",
-  "request_id": "db5ed26b-e1f7-4e0c-a417-1ee1f44748a4",
-  "generation": 85,
+  "current_stage": "REVISION_EXACT_HEAD_QUALIFICATION_PENDING",
+  "request_id": "6db62fdd-31b6-4c00-8097-d85af9f675b8",
+  "generation": 86,
   "previous_terminal_generation": 77,
   "previous_closed_issue": 324,
   "reuse_previous_closure_as_new_cycle": false,
@@ -73,8 +73,14 @@
     },
     {
       "stage": "NEGATIVE_PLAN_AND_CAUSAL_REVISION",
-      "status": "REQUESTED",
-      "generation": 85
+      "status": "PASS",
+      "generation": 85,
+      "run_id": 37618992223,
+      "base_verdict": "REVISE",
+      "revision_verdict": "APPROVE",
+      "outcome": "RESOLVED",
+      "revision_count": 1,
+      "revision_limit": 1
     },
     {
       "stage": "DISPOSABLE_REVISION",
@@ -111,7 +117,7 @@
     "automatic_visual_validation"
   ],
   "active_run_ids": [],
-  "next_action": "Wait for the unique PREPARE_REVISION workflow from generation 85. Require genuine base REVISE, revised APPROVE, RESOLVED, correction_count 1/limit 1, then publish the exact revision dossier plus fresh transport and qualify that published head before EXECUTE_REVISION.",
+  "next_action": "Wait for exact revision dossier qualification Linux/Windows, then authorize exact EXECUTE_REVISION under existing delegated technical test scope. Never rerun PREPARE_REVISION 37618992223.",
   "controller_head": "03188df4ef54e19af65facb614e3f90071dd3238",
   "qualification_branch": "qualification/vnext-full-cycle-initial-de2b9683-20261007",
   "observed_at": "2026-10-07T12:09:02.223Z",
@@ -142,7 +148,7 @@
   "automation_id": "6ac62299aa5c819198996171d4a1ff13",
   "automation_title": "Enchaîner le cycle VNext",
   "automation_trigger": "PR269_COMMIT_UPDATES",
-  "automatic_continuation_status": "PREPARE_REVISION_PUBLISHED",
+  "automatic_continuation_status": "REVISION_DOSSIER_RECOVERED_PENDING_QUALIFICATION",
   "initial_binding_requires_new_qualified_source_head": false,
   "previous_initial_gate": {
     "comment_id": 6035666121,
@@ -195,6 +201,11 @@
       "request_id": "db5ed26b-e1f7-4e0c-a417-1ee1f44748a4",
       "generation": 85,
       "outcome": "PREPARE_REVISION_PUBLISHED"
+    },
+    {
+      "signal_key": "RECOVER_PREPARE_REVISION:37618992223:1",
+      "generation": 86,
+      "outcome": "SUCCESSFUL_PREPARATION_REUSED_FAILED_SIGNAL_PRESERVED"
     }
   ],
   "initial_failure": {
@@ -292,17 +303,55 @@
     ]
   },
   "pending_revision_request": {
-    "stage": "PREPARE_REVISION",
+    "stage": "EXECUTE_REVISION",
     "slice_id": "VNEXT-12-QUALIF",
     "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
     "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
     "revision_limit": 1,
-    "generation": 85,
-    "preflight_format": "VNEXT_EXECUTION_REQUEST",
+    "generation": 86,
     "final_audit_authorized": false,
     "pre1_in_scope": false,
     "revision_scenario": "DECLARED_NEGATIVE_PLAN_THEN_ONE_CAUSAL_CORRECTION",
     "qualification_policy": "FULL_CYCLE_USER_REQUEST",
-    "auto_continue": true
+    "auto_continue": true,
+    "repository": "MyUncried/Application-Routine",
+    "request_id": "6db62fdd-31b6-4c00-8097-d85af9f675b8",
+    "human_review_performed": false,
+    "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
+    "execution_request_id": "6db62fdd-31b6-4c00-8097-d85af9f675b8",
+    "execution_created_at": "2026-10-07T12:39:34.915326+00:00",
+    "preparation_run_id": 37618992223,
+    "created_at": "2026-10-07T12:39:34.915326+00:00"
+  },
+  "revision_preparation": {
+    "run_id": 37618992223,
+    "run_attempt": 1,
+    "source_head": "061660b233e58719d3963a2efd9092880c9f3961",
+    "run_conclusion": "FAILURE",
+    "preparation_job_conclusion": "SUCCESS",
+    "artifact_id": 11481608895,
+    "artifact_sha256": "06dd964bd6c171328300a386affa2cce7d0dacc0a7d0aa2ccef849e9af111060",
+    "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/full-cycle-20261007/revision-preparation-37618992223/preparation.zip",
+    "status": "REVIEWED_REVISION_PENDING_HANDOFF",
+    "candidate_head": "061660b233e58719d3963a2efd9092880c9f3961",
+    "base_verdict": "REVISE",
+    "revision_verdict": "APPROVE",
+    "base_session": "1e6b07b7-d415-4c17-882e-9a7cb6b5e590",
+    "revision_session": "9e0591f4-e0c7-4b1e-ba9d-6692b7c668ae",
+    "revision_count": 1,
+    "revision_limit": 1,
+    "implementation_invoked": false,
+    "final_audit_invoked": false,
+    "revision_outcome": "RESOLVED"
+  },
+  "revision_signal_failure": {
+    "job_id": 112791516494,
+    "diagnostic": "VNEXT_CYCLE_CONTINUATION_SCOPE_REFUSED",
+    "missing_fields": [
+      "repository",
+      "request_id",
+      "human_review_performed"
+    ],
+    "recovery": "Persist verified completed preparation and a complete terminal request; qualify new exact dossier. No replay of completed Claude reviews."
   }
 }
