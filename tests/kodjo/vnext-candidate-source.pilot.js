@@ -12,9 +12,12 @@ test('candidate publication verifies refreshed historical sources in its tree ra
   assert.throws(() => H.validateInventory(inventory, H.readSourcesAtRevision(inventory, { cwd, revision: expectedParent })), /SOURCE_CHANGED/);
   assert.equal(H.validateInventory(inventory, H.readSourcesAtRevision(inventory, { cwd, revision: candidateTree })), true);
   // This fixture exercises the real inventory and correspondence validators.
-  // External subprocess checks are mocked here; CI executes the native parsers.
+  // Execute YAML reads with implicit encodings forbidden. Other subprocess
+  // checks remain mocked here; CI executes the native PowerShell parser.
   const result = P.validateTree({ cwd, expectedParent, candidateTree,
-    run: (_bin, args) => args[0] === '-c' ? '[]' : '' });
+    run: (bin, args, options) => args[0] === '-c'
+      ? execFileSync(bin, ['-X', 'warn_default_encoding', '-W', 'error::EncodingWarning', ...args], options)
+      : '' });
   assert.equal(result.status, 'VALIDATED');
   assert.equal(result.historical_subjects, inventory.incidents.length + inventory.tests.length + inventory.normative_paragraphs.length);
 });

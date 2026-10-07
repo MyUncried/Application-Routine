@@ -81,7 +81,7 @@ function validateTree({ cwd, expectedParent, candidateTree, run = execFileSync }
       const old = path.join(temporary, 'old-workflow.yml');
       let before = ''; try { before = git('show', expectedParent + ':' + file); } catch (_) { /* new workflow */ }
       fs.writeFileSync(old, before);
-      const script = "import yaml,json,sys; a=yaml.safe_load(open(sys.argv[1])) or {}; b=yaml.safe_load(open(sys.argv[2])) or {}; runs=lambda d:[s.get('run') for j in d.get('jobs',{}).values() for s in j.get('steps',[]) if s.get('run') and s.get('shell',j.get('defaults',d.get('defaults',{})).get('run',{}).get('shell','')) in ['powershell','pwsh']]; print(json.dumps([x for x in runs(b) if x not in runs(a)]))";
+      const script = "import yaml,json,sys; a=yaml.safe_load(open(sys.argv[1],encoding='utf-8')) or {}; b=yaml.safe_load(open(sys.argv[2],encoding='utf-8')) or {}; runs=lambda d:[s.get('run') for j in d.get('jobs',{}).values() for s in j.get('steps',[]) if s.get('run') and s.get('shell',j.get('defaults',d.get('defaults',{})).get('run',{}).get('shell','')) in ['powershell','pwsh']]; print(json.dumps([x for x in runs(b) if x not in runs(a)]))";
       const blocks = JSON.parse(invoke(process.env.KODJO_PYTHON || 'python', ['-c', script, old, path.join(temporary, file)]));
       for (const block of blocks) { const name = 'changed-block-' + psFiles.length + '.ps1'; fs.writeFileSync(path.join(temporary, name), renderGithubExpressionsForSyntax(block)); psFiles.push(name); }
       fs.rmSync(old);
