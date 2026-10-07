@@ -183,5 +183,47 @@ Aucun instantané n’existe dans ces suites ; aucun n’a été régénéré.
 
 - Commit de livraison (code, documentation, tests, rapport) : `ed013d48` — `feat(ui): aligner la présentation du code sur le DSF Figma du 07/10`, parent `72d1bf47`.
 - Commit documentaire final rattaché : celui qui renseigne la présente section (son hash est donné dans la description de la PR et dans le message de clôture, un fichier ne pouvant contenir le hash de son propre commit).
-- Branche `feat/alignement-dsf-figma-2026-10-07`, poussée sur `origin` ; PR ouverte vers `main`, **non fusionnée**. Aucune publication Routine Dev.
-- Arbre de travail du worktree propre après commit (`git status --porcelain` vide). Checkout principal `C:DevApplication-routine` non modifié (modifications locales préexistantes intactes). Worktree de base `C:DevApplication-routine-dsf-baseline` (détaché, sans modification) conservé pour reproduire la comparaison ; il peut être retiré par `git worktree remove`.
+- Branche `feat/alignement-dsf-figma-2026-10-07`, poussée sur `origin` ; PR ouverte vers `main`, non fusionnée au moment de ce commit, sans publication Routine Dev à ce moment-là (voir § 12 pour la clôture).
+- Arbre de travail du worktree propre après commit (`git status --porcelain` vide). Checkout principal `C:/Dev/Application-routine` non modifié (modifications locales préexistantes intactes). Worktree de base `C:/Dev/Application-routine-dsf-baseline` (détaché, sans modification) conservé pour reproduire la comparaison ; il peut être retiré par `git worktree remove`.
+
+## 12. Clôture — acceptation avec réserves (2026-10-07)
+
+**Décision d’Hermann** : le premier alignement technique livré dans la PR #326 est **accepté avec réserves visuelles** et clôturé sans nouveau cycle de correction. Cette acceptation **n’atteste pas** une conformité exhaustive à Figma. Le complément d’alignement fera l’objet d’une mission séparée.
+
+### 12.1 Réserve constatée et reportée
+
+| Réserve | Constat | Décision |
+|---|---|---|
+| Stepper du Profil | Sur iPhone, le stepper **ne s’ouvre pas sur la même ligne que son libellé**, contrairement à la cible Figma (`Profil — Stepper Pause changement de côté` `1992:474`) et à l’intention du code (§ 4, `ProfileStepper` : ligne `openLine` en `flexDirection: "row"`). | Écart connu, **reporté**. Non corrigé et non diagnostiqué dans cette mission. |
+
+### 12.2 Ce qui est établi, et à quel titre
+
+| Catégorie | Contenu | Portée |
+|---|---|---|
+| **Propriétés contrôlées dans le code** | Valeurs de `tokens.ts` comparées au chapitre 12 par `tokensSpecification.test` ; styles et comportements des composants modifiés par leurs tests (§ 7.2 et § 7.5) ; manifeste d’icônes par `visualAssets.test` ; Profil par `ProfileScreen.test` avec substitut temporaire du sélecteur de photo (§ 7.3). | Preuve de **valeurs et de structure dans le code**, pas de rendu. |
+| **Observations sur iPhone** | Une seule observation rapportée par Hermann : la réserve du § 12.1. | Aucune autre observation n’est consignée. |
+| **Non vérifiés** | Tous les autres points du § 8 restent **non vérifiés** : durée des cartes de séance et police agrandie, carte d’exercice sans chevron, valeurs fermées et bornes du stepper du Profil, interlignes réduits, dialogues, séparateurs et bouton Retour, ainsi que les hypothèses du § 10. | L’acceptation d’Hermann **ne vaut pas** réussite de ces points. La liste du § 8 ne constitue ni une extension de périmètre ni une recette fonctionnelle. |
+
+Aucun test manuel supplémentaire n’a été lancé, notamment sur les règles de « Pause au changement de côté ». Aucun cycle V2/VNext, aucune nouvelle revue et aucun correctif visuel ou fonctionnel n’ont été réalisés pour cette clôture.
+
+### 12.3 Contrôles techniques avant fusion
+
+`main` a avancé depuis la base de la PR (`72d1bf47` → `ce7d641d`, PR #327, documentation seule, dont les chapitres 06 et 12). Les contrôles ont donc été rejoués sur le **résultat de fusion local** `origin/main` (`ce7d641d`) + tête applicative `6399a62d` (fusion sans conflit, worktree temporaire, non poussé), avec les mêmes `node_modules` que la base :
+
+| Contrôle | Résultat sur le résultat de fusion | Comparaison avec la base `72d1bf47` (§ 7.1) |
+|---|---|---|
+| `tsc --noEmit` | 1 erreur : `expo-image-picker` introuvable | identique, aucune nouvelle erreur |
+| `expo lint` | 1 erreur, même cause | identique |
+| `jest --ci` | 85 suites, 3 en échec ; 1498 tests, 1497 réussis, 1 échec (`targetSchema`, CRLF) ; `ProfileScreen.test` et `profilePhoto.test` non chargés (`expo-image-picker`) | mêmes échecs, aucun nouveau |
+| `tokensSpecification.test` sur le chapitre 12 fusionné avec #327 | réussi | — |
+
+Aucune nouvelle défaillance technique. La PR n’a aucun contrôle GitHub requis (aucun workflow ne s’applique à ses chemins) ; état GitHub avant fusion : `MERGEABLE`, `CLEAN`. Ce commit de rapport ne modifie que ce fichier : le code fusionné est celui de `6399a62d`.
+
+### 12.4 Éléments restant ouverts
+
+- Réserve du § 12.1 (stepper sur une ligne) et tous les points non vérifiés du § 12.2.
+- Points du § 6 (voile modal à arbitrer, anatomie complète des cartes, gouttière photo, Roboto Condensed, etc.).
+- Le rapport séparé de la publication Routine Dev de la PR #326 n’a pas été écrit : son écriture a été refusée par le contrôle des permissions, et cette publication n’est pas documentée dans le présent rapport.
+- Échecs d’environnement préexistants (§ 7.1).
+
+Le commit de fusion est communiqué dans le message de clôture et dans un commentaire de la PR #326 (un fichier ne peut contenir le hash du commit qui le fusionne).
