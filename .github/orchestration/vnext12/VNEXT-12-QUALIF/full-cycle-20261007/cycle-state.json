@@ -5,9 +5,9 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "REVISION_EXECUTION_REQUESTED",
-  "request_id": "6db62fdd-31b6-4c00-8097-d85af9f675b8",
-  "generation": 87,
+  "current_stage": "FIGMA_INITIAL_REQUESTED",
+  "request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
+  "generation": 88,
   "previous_terminal_generation": 77,
   "previous_closed_issue": 324,
   "reuse_previous_closure_as_new_cycle": false,
@@ -84,12 +84,50 @@
     },
     {
       "stage": "DISPOSABLE_REVISION",
-      "status": "REQUESTED",
-      "generation": 87
+      "status": "PASS",
+      "generation": 87,
+      "request_id": "6db62fdd-31b6-4c00-8097-d85af9f675b8",
+      "run_id": 37625815436,
+      "run_attempt": 1,
+      "source_head": "bccc1d0cc8b00936af1aa3277f5a0c325224294b",
+      "approved_protocol_head": "53ebeae733286b55b6d96478cd27c76276e5a346",
+      "verdict": "REVISION_PASS",
+      "implementation_status": "IMPLEMENTED_AND_VERIFIED",
+      "session_id": "d868ca2f-bc6d-489f-b2ce-a622f4de7d25",
+      "observed_value": 2,
+      "targeted_jest_exit_code": 0,
+      "modified_files": [
+        "scripts/kodjo/fixtures/vnext12/core.js",
+        "tests/fixtures/vnext12/core.test.js"
+      ],
+      "preserve_keep_js": "INTACT",
+      "cleanup": "SUCCESS",
+      "historical_same_run": {
+        "linux": {
+          "job_id": 112814513222,
+          "result": "SUCCESS",
+          "tests": 1152,
+          "passed": 1151,
+          "failed": 0,
+          "skipped": 1
+        },
+        "windows": {
+          "job_id": 112814513066,
+          "result": "SUCCESS",
+          "tests": 1152,
+          "passed": 1149,
+          "failed": 0,
+          "skipped": 3
+        },
+        "platform_coverage": "SKIPPED",
+        "persistent_windows": "SKIPPED"
+      }
     },
     {
       "stage": "REAL_CLAUDE_FIGMA_FROZEN_SOURCE",
-      "status": "PENDING"
+      "status": "REQUESTED",
+      "request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
+      "generation": 88
     },
     {
       "stage": "THREE_INCIDENTS_TARGETED_CERTIFICATION",
@@ -118,10 +156,10 @@
     "automatic_visual_validation"
   ],
   "active_run_ids": [],
-  "next_action": "Wait for the unique EXECUTE_REVISION run from generation 87. Require REVISION_PASS, IMPLEMENTED_AND_VERIFIED, the exact two-file delta, keep.js intact, checks and cleanup before continuing to FIGMA_INITIAL.",
+  "next_action": "Wait for the unique FIGMA_INITIAL run from generation 88. Require the frozen Git capture, real Claude sessions, functional negative refusal and bounded correction, preservation, tests, evidence and cleanup before CERTIFY_INCIDENTS.",
   "controller_head": "03188df4ef54e19af65facb614e3f90071dd3238",
   "qualification_branch": "qualification/vnext-full-cycle-revision-6db62fdd-20261007",
-  "observed_at": "2026-10-07T13:01:58Z",
+  "observed_at": "2026-10-07T13:36:00Z",
   "documentation_modals": "WAIT_FOR_USER_COMPLETION_SIGNAL",
   "pending_initial_request": {
     "stage": "EXECUTE_INITIAL",
@@ -149,7 +187,7 @@
   "automation_id": "6ac62299aa5c819198996171d4a1ff13",
   "automation_title": "Enchaîner le cycle VNext",
   "automation_trigger": "PR269_COMMIT_UPDATES",
-  "automatic_continuation_status": "EXECUTE_REVISION_PUBLISHED",
+  "automatic_continuation_status": "FIGMA_INITIAL_PUBLISHED",
   "initial_binding_requires_new_qualified_source_head": false,
   "previous_initial_gate": {
     "comment_id": 6035666121,
@@ -162,22 +200,24 @@
   "transition": {
     "schema_version": "kodjo.vnext.cycle-transition.v1",
     "status": "CLAIMED_BEFORE_LAUNCH",
-    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:6db62fdd-31b6-4c00-8097-d85af9f675b8:37622823611:1",
+    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:6db62fdd-31b6-4c00-8097-d85af9f675b8:37625815436:1",
     "request_id": "6db62fdd-31b6-4c00-8097-d85af9f675b8",
-    "generation": 86,
+    "generation": 87,
     "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
-    "source_head": "53ebeae733286b55b6d96478cd27c76276e5a346",
-    "observed_signal_head": "b8db0c6d45d225b9c6002b5d6bea25086bbd63f7",
-    "run_id": 37622823611,
+    "source_head": "bccc1d0cc8b00936af1aa3277f5a0c325224294b",
+    "observed_signal_head": "5c3d2411b410229051c704d420562b2c85e63221",
+    "run_id": 37625815436,
     "run_attempt": 1,
-    "next_stage": "EXECUTE_REVISION",
-    "published_generation": 87,
-    "controller_id": "webhook-192e7a30-c24e-11f1-807e-2426f500b798",
-    "claimed_at": "2026-10-07T13:01:58Z",
-    "claim_time_basis": "orchestrator UTC clock",
+    "next_stage": "FIGMA_INITIAL",
+    "next_request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
+    "published_generation": 88,
+    "controller_id": "webhook-c8207340-c253-11f1-848a-174421e9c0b6",
+    "claimed_at": "2026-10-07T13:36:00Z",
     "qualification_verified": true,
-    "approval_observation_verified": true,
-    "admission": "AUTHORIZED"
+    "execution_verified": true,
+    "historical_linux_verified": true,
+    "historical_windows_verified": true,
+    "admission": "DIRECT_USER_AUTHORIZATION"
   },
   "processed_signals": [
     {
@@ -214,6 +254,13 @@
       "request_id": "6db62fdd-31b6-4c00-8097-d85af9f675b8",
       "generation": 87,
       "outcome": "EXECUTE_REVISION_PUBLISHED"
+    },
+    {
+      "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:6db62fdd-31b6-4c00-8097-d85af9f675b8:37625815436:1",
+      "request_id": "6db62fdd-31b6-4c00-8097-d85af9f675b8",
+      "next_request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
+      "generation": 88,
+      "outcome": "FIGMA_INITIAL_PUBLISHED"
     }
   ],
   "initial_failure": {
@@ -397,5 +444,82 @@
       "human_review_performed": false
     },
     "admission": "AUTHORIZED"
+  },
+  "revision_success": {
+    "run_id": 37625815436,
+    "run_attempt": 1,
+    "execution_job_id": 112807411355,
+    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:6db62fdd-31b6-4c00-8097-d85af9f675b8:37625815436:1",
+    "source_head": "bccc1d0cc8b00936af1aa3277f5a0c325224294b",
+    "approved_protocol_head": "53ebeae733286b55b6d96478cd27c76276e5a346",
+    "artifact_id": 11484617950,
+    "artifact_sha256": "9ce6844cfc53dff431b06ec4f73e54cc5f68e274cc3c6c57d48796803395c022",
+    "verdict": "REVISION_PASS",
+    "status": "IMPLEMENTED_AND_VERIFIED",
+    "session_id": "d868ca2f-bc6d-489f-b2ce-a622f4de7d25",
+    "claude_exit_code": 0,
+    "observed_value": 2,
+    "targeted_jest_exit_code": 0,
+    "checks": {
+      "jest": {
+        "passed": 1257,
+        "failed": 0,
+        "total": 1257
+      },
+      "typescript": "PASS",
+      "lint": "PASS"
+    },
+    "modified_files": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "keep_js_before_after_sha256": "db387ac0aab607cda76e230c38f08a343d1d3d6281c2062b48bf023f06331f56",
+    "cleanup": true,
+    "historical_artifacts": {
+      "linux": {
+        "job_id": 112814513222,
+        "artifact_id": 11485820118,
+        "sha256": "2e4379df7a933d12683ee605510ade1d2f39b02065c818ead1f0624bf5600f71",
+        "tests": 1152,
+        "passed": 1151,
+        "failed": 0,
+        "skipped": 1
+      },
+      "windows": {
+        "job_id": 112814513066,
+        "artifact_id": 11485732462,
+        "sha256": "572b062d5b363b6bbaca26c5e4f3db82bb051697cccab627275ec77bcb3fee46",
+        "tests": 1152,
+        "passed": 1149,
+        "failed": 0,
+        "skipped": 3
+      }
+    },
+    "limitations": [
+      "historical-platform-coverage job SKIPPED in this REVISION run",
+      "persistent Windows historical job SKIPPED in this REVISION run",
+      "historical readiness remains NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT until the dedicated full-coverage stage"
+    ]
+  },
+  "pending_figma_request": {
+    "stage": "FIGMA_INITIAL",
+    "slice_id": "VNEXT-12-QUALIF",
+    "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+    "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+    "revision_limit": 1,
+    "generation": 88,
+    "final_audit_authorized": false,
+    "pre1_in_scope": false,
+    "qualification_policy": "DIRECT_REAL_USER_REQUEST",
+    "auto_continue": true,
+    "repository": "MyUncried/Application-Routine",
+    "request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
+    "human_review_performed": false,
+    "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
+    "created_at": "2026-10-07T13:36:00Z",
+    "source_revision_run_id": 37625815436,
+    "source_revision_signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:6db62fdd-31b6-4c00-8097-d85af9f675b8:37625815436:1",
+    "live_figma_acquisition": "NOT_EXERCISED_FROZEN_GIT_CAPTURE_REPLAY",
+    "visual_validation": "NOT_EXECUTED_USER_ONLY"
   }
 }
