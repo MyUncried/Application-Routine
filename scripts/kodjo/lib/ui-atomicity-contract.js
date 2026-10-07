@@ -4,7 +4,11 @@ const V = require('./vnext-contract');
 const RequirementRegistry = require('./requirement-registry');
 const Impact = require('./impact-graph');
 const Plan = require('./plan-contract');
-const { isUiPath } = require('./ui-criteria-contract');
+// VNext owns this conservative path guard; source UI requirements remain primary.
+function isUiPath(value) {
+  return /^(?:app\/|src\/features\/|src\/shared\/ui\/|src\/shared\/i18n\/|assets\/icons\/)/.test(value)
+    && !/(?:^|\/)(__tests__|tests?)\/|\.(?:test|spec)\.[^.]+$/.test(value);
+}
 
 const SCHEMA = 'kodjo.vnext.ui-criteria.v2';
 
@@ -46,6 +50,16 @@ function requirementIndex(requirementRegistry) {
     requirement.requirement_id,
     requirement,
   ]));
+}
+
+// Source-first UI requirements cover effects outside the historical UI roots.
+// Keep the path guard as an additional conservative check, never as an exemption.
+function uiChangeItems(requirementRegistry, planContract, candidateManifest) {
+  const requirements = requirementIndex(requirementRegistry);
+  const candidates = new Map(candidateManifest.candidates.map(row => [row.candidate_id, row]));
+  return planContract.plan_items.flatMap(item => item.change_items.filter(change =>
+    candidates.get(change.candidate_id)?.candidate_kind !== 'TEST'
+    && (requirements.get(item.requirement_id)?.kind === 'UI' || isUiPath(change.path))));
 }
 
 function planIndex(planContract) {
@@ -162,7 +176,7 @@ function normalizeReuse(input, candidateById, label) {
     const candidate = candidateById.get(candidateId);
     if (!candidate) V.fail('VNEXT_UI_REUSE_CANDIDATE_UNKNOWN', candidateId);
     if (candidate.origin !== 'GIT_TREE') V.fail('VNEXT_UI_REUSE_CANDIDATE_NOT_EXISTING', candidateId);
-    if (!isUiPath(candidate.path)) V.fail('VNEXT_UI_REUSE_CANDIDATE_NOT_UI', candidate.path);
+    if (!isUiPath(candidate.path) && !['CODE', 'ASSET', 'CREATE_SLOT'].includes(candidate.candidate_kind)) V.fail('VNEXT_UI_REUSE_CANDIDATE_NOT_UI', candidate.path);
   }
 
   if (!COMPONENT_DECISIONS.includes(input.component_decision)) {
@@ -225,7 +239,7 @@ function normalizeAssertions({
         'subject', 'property_type', 'expected',
         'proof_ids', 'covered_change_impact_ids',
       ],
-      [],
+      ['figma_reference','figma_document_state'],
       'VNEXT_UI_ASSERTION_KEYS_INVALID',
     );
 
@@ -281,6 +295,8 @@ function normalizeAssertions({
       assertion.expected,
       proofIds,
       coveredChangeImpactIds,
+      ...(assertion.figma_reference ? [assertion.figma_reference] : []),
+      ...(assertion.figma_document_state ? [assertion.figma_document_state] : []),
     ]);
     if (seen.has(assertionId)) V.fail('VNEXT_UI_ASSERTION_DUPLICATE', assertionId);
     seen.add(assertionId);
@@ -294,6 +310,8 @@ function normalizeAssertions({
       proof_ids: proofIds,
       proof_required: [...new Set(proofTypes)].sort(),
       covered_change_impact_ids: coveredChangeImpactIds,
+      ...(assertion.figma_reference ? {figma_reference:assertion.figma_reference} : {}),
+      ...(assertion.figma_document_state ? {figma_document_state:assertion.figma_document_state} : {}),
     };
   }).sort((a, b) => a.assertion_id.localeCompare(b.assertion_id));
 
@@ -322,6 +340,7 @@ function buildUiAtomicityContract({
   candidateManifest,
   planContract,
   criteria,
+  figmaReferences = [],
 }) {
   RequirementRegistry.assertReady(requirementRegistry);
   Impact.validateCandidateManifest(candidateManifest);
@@ -340,10 +359,11 @@ function buildUiAtomicityContract({
 
   const uiChangeImpactIds = [];
   const uiChangeByRequirement = new Map();
+  const uiChanges = new Set(uiChangeItems(requirementRegistry, planContract, candidateManifest).map(row => row.impact_id));
 
   for (const planItem of planContract.plan_items) {
     for (const change of planItem.change_items) {
-      if (!isUiPath(change.path)) continue;
+      if (!uiChanges.has(change.impact_id)) continue;
       uiChangeImpactIds.push(change.impact_id);
       const list = uiChangeByRequirement.get(planItem.requirement_id) || [];
       list.push(change.impact_id);
@@ -496,6 +516,8 @@ function buildUiAtomicityContract({
     V.fail('VNEXT_UI_ASSERTION_GLOBAL_DUPLICATE');
   }
 
+  if (figmaReferences.length) require('./vnext-figma-source').validateCoverage(figmaReferences,normalizedCriteria,requirementRegistry);
+  else if (normalizedCriteria.some(c=>c.assertions.some(a=>a.figma_reference||a.figma_document_state))) V.fail('VNEXT_FIGMA_REFERENCE_REQUIRED');
   return V.sealContract({
     schema_version: SCHEMA,
     requirement_registry_hash: requirementRegistry.contract_hash,
@@ -508,6 +530,7 @@ function buildUiAtomicityContract({
     assertion_count: assertionIds.length,
     assertion_ids_sha256: V.canonicalHash([...assertionIds].sort()),
     criteria: normalizedCriteria,
+    ...(figmaReferences.length ? {figma_references:figmaReferences} : {}),
   });
 }
 
@@ -533,7 +556,7 @@ function validateUiAtomicityContract(contract, {
       'criteria',
       'contract_hash',
     ],
-    [],
+    ['figma_references'],
     'VNEXT_UI_CONTRACT_KEYS_INVALID',
   );
   if (contract.schema_version !== SCHEMA) V.fail('VNEXT_UI_CONTRACT_SCHEMA_INVALID');
@@ -569,6 +592,8 @@ function validateUiAtomicityContract(contract, {
       expected: assertion.expected,
       proof_ids: assertion.proof_ids,
       covered_change_impact_ids: assertion.covered_change_impact_ids,
+      ...(assertion.figma_reference ? {figma_reference:assertion.figma_reference} : {}),
+      ...(assertion.figma_document_state ? {figma_document_state:assertion.figma_document_state} : {}),
     })),
   }));
 
@@ -578,6 +603,7 @@ function validateUiAtomicityContract(contract, {
     candidateManifest,
     planContract,
     criteria: criteriaInput,
+    figmaReferences: contract.figma_references || [],
   });
 
   if (V.canonicalStringify(rebuilt) !== V.canonicalStringify(contract)) {
@@ -587,6 +613,7 @@ function validateUiAtomicityContract(contract, {
 }
 
 module.exports = {
+  uiChangeItems,
   SCHEMA,
   RISK_TYPES,
   COMPONENT_DECISIONS,

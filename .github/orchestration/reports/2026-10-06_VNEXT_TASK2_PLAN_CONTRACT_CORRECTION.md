@@ -1,0 +1,51 @@
+# Tâche 2 — correction du contrat de revue et du plan
+
+Mission VNEXT_TASK2_PLAN_CONTRACT_CORRECTION. Autorisation du 6 octobre 2026 à 02:30 Paris : diagnostiquer, corriger et relancer le test ; priorité au parcours fonctionnel. Départ local `39be5974d41fc3967ba799e676fce8de9fe23614`, distant `297c875f3bad9c95a1ad004b18bea933ae4763f0`. Branche `protocol/vnext-proof-stability-20260930`, PR #269 draft. Tâche 2 isolée uniquement ; aucune extension à tâche 3, clôture, activation, V2, PRE-2, PRE-3 ou application réelle.
+
+## Diagnostic établi
+
+Le run `37391444927` a achevé son appel Claude, puis échoué avant implementation : premier finding `PRESERVATION_RISK` ciblant `PLAN_CONTRACT`, combinaison interdite par le validateur canonique. Le schéma de réponse énumérait séparément les catégories et les types sans encoder leur compatibilité. Ce défaut préexistait à la supervision de flux ; la dernière modification ne permet pas de lui attribuer la régression fonctionnelle. Les quatre alertes brutes sont conservées intégralement dans l’archive précédente et ne sont ni réétiquetées ni traitées comme une approbation.
+
+Les alertes de fond ont été confrontées aux objets produits et au conducteur réel : préservation du fichier dépendance sans obligation explicite de conserver son export dans Screen ; preuve FUNCTIONAL_TEST demandant une géométrie rendue à un test Node sans navigateur ; tableau de risques vide malgré la convention pt/px et l’exclusion native ; sujet documentaire STATE-1 sans point d’observation explicite du booléen.
+
+## Correction bornée
+
+Le schéma structuré impose maintenant la matrice canonique catégorie/type via des branches anyOf. Le dossier fournit cette même matrice et demande une cible appartenant au catalogue de ce type. Le validateur final et son refus initial restent stricts. La réduction des enums de transport pour Windows, la couverture complète, les dépendances indexées et le timeout INITIAL de 600 000 ms restent en vigueur.
+
+Le constructeur générique reçoit un contrat optionnel pour cette qualification : conservation de l’import/export Existing ; assertion exécutée d’égalité avec le dépendant ; contrôles de markup dans Node et mesures exactes dans la preuve VISUAL_COMPARE séparée ; limites explicites pt/px, navigateur sans certification native et booléen sans sélection de chips. Le comportement des recettes sans ce contrat reste inchangé.
+
+Le document source de la fixture jetable précise le booléen initialement off et les deux transitions off/on puis on/off. Les assertions pointent sur Screen.toggle() ; le document, les exigences et les états restent cohérents. Cette précision décrit le périmètre déjà exécuté et n’ajoute aucune UX de production. Les trois propriétés visuelles et les deux scénarios sont conservés. La capture Figma originale demeure identique (`4660193f894fb911a15495f09b8a9a90c4ebb1bdd09031b31b626b87f50a1ee1`, 3 884 450 octets).
+
+Le conducteur vérifie effectivement que Screen.Existing est présent et strictement égal à Existing du dépendant, avant toute observation initiale et après correction. La vérification byte pour byte du dépendant et du périmètre d’écriture reste active. Aucun code applicatif réel modifié.
+
+## Vérification et publication
+
+Tests ciblés : 45 cas, 44 PASS, zéro FAIL, 1 SKIP (navigateur absent localement). Le schéma exclut le couple exact ayant échoué ; le validateur le refuse encore. Un export supprimé provoque un échec réel de processus Node. La projection du contrat impose préservation, preuves adéquates, risques et sujet observable. Précheck réel de préparation PASS sans appel de modèle : 3 exigences, 4 assertions, 2 scénarios.
+
+La première passe élargie a refusé les empreintes historiques des tests modifiés : cinq correspondances exactes sont mises à jour (hash et lignes), sans modifier sujets, protections, IDs ou limites historiques. Nouvelle passe complète : 334 cas, 333 PASS, zéro FAIL, 1 SKIP (navigateur local absent). Invariants des workflows PASS et whitespace PASS. Journaux complets conservés avec leur empreinte. Qualification exacte Linux/Windows et parcours réel à effectuer. Les preuves précédentes restent conservées ; aucun résultat positif de tâche 2 revendiqué.
+
+PRESERVE : contrats et validations strictes, capture Figma, scope, consommateurs, historique, UUID consommé. CHANGE : schéma/dossier reviewer, contrat de qualification du plan, conducteur/test associé, correspondances de tests, branche de qualification dédiée, checkpoint et rapport. FORBIDDEN : récupération par réétiquetage, couverture raccourcie, rejeu de demande, extension ou promotion.
+
+Seconde passe indépendante effectuée avant publication : diff final, compatibilité sans contrat optionnel, transport Windows borné, source documentaire cohérente, tests exacts, arbre/fenêtre de publication. Le hash final, l’état Git et le lancement observé seront consignés après les étapes correspondantes. Le commit de ce rapport est consultable par `git log -1 --format=%H -- .github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_CONTRACT_CORRECTION.md`.
+
+Relecture séparée : absence de contrat optionnel conserve les anciennes obligations et justification ; la matrice reste présente dans la copie de schéma transport ; les tests de chaîne vérifient que la commande reste inférieure à 8 000 caractères. Document, état et exigence sont issus des mêmes octets. Les alertes initiales ont été corrigées à leur source sans réutiliser la réponse rejetée.
+
+## Qualification lancée
+
+Correctif publié sur SHA 67d18be21e865846fac780351b34bc6cd4c636a3, arbre ebfbbcf1fcbd41ef98e3d35a42e5e0d806aeba85 identique au candidat local. Validation du tree : 420 sujets historiques, politique writers PASS_WITH_FROZEN_LEGACY, aucun bloc PowerShell changé. Fenêtre HEAD/checkpoint et pagination de 186 runs vérifiées avant publication. Branche dédiée créée une fois ; qualification 37395284603 sur le SHA exact, événement create. Aucun nouvel UUID runtime ni appel Claude encore lancé. Checkpoint et preuves de lancement conservés localement pendant cette qualification.
+
+## Qualification acquise et nouvelle demande
+
+Run 37395284603 entièrement SUCCESS, candidat exact 67d18be21e865846fac780351b34bc6cd4c636a3, attempt 1 et cinq jobs requis VERIFIED par le validateur canonique. Contrats : 318/318 PASS sur Linux et Windows, zéro échec et zéro SKIP. Correspondance historique : 1 085 cas, Linux 1 084 PASS/1 SKIP, Windows 1 082 PASS/3 SKIP ; réserves historiques conservées. Archives des deux plateformes téléchargées, intégrité ZIP, empreintes GitHub et SHA exact vérifiés. Comparaison finale croisée PASS.
+
+Nouvelle demande 96c53d61-f780-41dc-afb7-3c1f992c910f, génération 51, même campagne FIGMA_INITIAL et même limite d’une correction causale. Ancien UUID 7576668a-8e6a-4678-a9b9-36698847d7f1 consommé, jamais rejoué. Publication runtime encore à effectuer après validation du tree, fenêtre HEAD/checkpoint/runs et identité exacte du code qualifié.
+
+## Parcours réel relancé — état observé
+
+Contrôleur publié une fois sur 5b2047bbd9b2ab0b7254e1b0d7bd600d53e6015a, code identique au candidat qualifié 67d18be21e865846fac780351b34bc6cd4c636a3. Nouvelle demande 96c53d61-f780-41dc-afb7-3c1f992c910f, génération 51. Run 37396415216, attempt 1, job 112053405854 IN_PROGRESS sur KODJO-LOCAL-RUNNER dans « Qualify admission then execute the disposable Figma path once ». Démarrage réel du conducteur observé ; claim interne et activité Claude non encore accessibles. Aucun verdict ou succès de tâche 2 revendiqué. Les deux CI automatiques du même commit sont des vérifications, pas des rejouements de la demande.
+
+Seconde passe de livraison : PR HEAD exact, UUID/génération, qualification attempt/cinq jobs, fingerprint du code contrôleur, arbre/fenêtre de publication et job réel confrontés. Preuves finales et checkpoint conservés dans un commit local pendant les runs actifs ; aucune publication concurrente de ce bilan. Git propre après ce commit, hash final communiqué en conversation. Prochaine action : collecter le résultat de ce run, sans nouvel appel ni relance automatique. Aucun résultat sur application ou appareil réel.
+
+## Résultat terminal du parcours relancé
+
+Run 37396415216 FAILURE : revue Claude interrompue à 600 077 ms, ETIMEDOUT ; 432 événements, aucun résultat final, aucune implémentation ou correction. L’admission était VERIFIED et le code exact. La correction catégorie/type n’a pas reçu de verdict réel sur ce run. Cause précise du timeout non établie. Preuves et analyse conservées dans 2026-10-06_VNEXT_TASK2_RUN_37396415216_RESULT.md. Fixture nettoyée, checkout inchangé, bundle vérifié. Aucune opération de branche active, aucune nouvelle relance.

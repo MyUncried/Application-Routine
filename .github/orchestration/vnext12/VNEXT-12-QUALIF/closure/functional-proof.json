@@ -1,0 +1,10 @@
+{
+  "observed_value": 2,
+  "targeted_jest_exit_code": 0,
+  "preserve_before_sha256": "db387ac0aab607cda76e230c38f08a343d1d3d6281c2062b48bf023f06331f56",
+  "preserve_after_sha256": "db387ac0aab607cda76e230c38f08a343d1d3d6281c2062b48bf023f06331f56",
+  "modified_files": [
+    "scripts/kodjo/fixtures/vnext12/core.js",
+    "tests/fixtures/vnext12/core.test.js"
+  ]
+}

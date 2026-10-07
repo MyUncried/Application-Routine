@@ -95,7 +95,7 @@ function resolveClaudeBinary(env = process.env, platform = process.platform) {
   return 'claude';
 }
 
-function normalizeRequest(raw, repoRoot) {
+function normalizeRequest(raw, repoRoot, vnextAdmission = null) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('REQUEST_INVALID');
   if (raw.schema_version !== 'kodjo.protocol.v2.local-implementation.0.6.12') {
     throw new Error('REQUEST_SCHEMA_UNSUPPORTED');
@@ -140,7 +140,13 @@ function normalizeRequest(raw, repoRoot) {
   if (identity.hash !== String(raw.slice_bootstrap_sha256 || '')) throw new Error('SLICE_BOOTSTRAP_REQUEST_HASH_MISMATCH');
 
   const promptFile = path.resolve(repoRoot, String(raw.prompt_file || ''));
-  if (!promptFile.startsWith(repoRoot + path.sep) || !fs.statSync(promptFile).isFile()) {
+  if (!promptFile.startsWith(repoRoot + path.sep)) throw new Error('PROMPT_FILE_INVALID');
+  if (vnextAdmission) {
+    if (vnextAdmission.projection?.legacy_queue_request.prompt_file !== raw.prompt_file
+        || vnextAdmission.executionRequest?.protocol_head !== protocolSourceHead) throw new Error('VNEXT_RUNTIME_PLAN_MISSION_MISMATCH');
+    require('./vnext-runtime-plan').verify(vnextAdmission, { cwd: repoRoot,
+      missionBytes: ProtocolSource.readFileAtHead(raw.prompt_file, protocolSourceHead, repoRoot) });
+  } else if (!fs.statSync(promptFile).isFile()) {
     throw new Error('PROMPT_FILE_INVALID');
   }
   const scopes = Array.isArray(raw.scope_allow) ? raw.scope_allow.map(String) : [];

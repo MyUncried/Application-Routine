@@ -1,0 +1,1694 @@
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+✔ VNext preserved writer: mode and designated writer are explicit and change invalidates approval (564.3219ms)
+✔ VNext preserved native: an exact target still requires explicit exception approval before execution (611.6414ms)
+✔ VNext-08 construit une cible d’approbation sur l’exécution exacte (419.1966ms)
+✔ VNext-08 refuse de demander une approbation tant que la review n’est pas APPROVE (442.0106ms)
+✔ VNext-08 produit un message actionnable lié à l’objet canonique (451.987ms)
+✔ VNext-08 le transport du message ne change pas l’identité de la cible approuvée (472.8478ms)
+✔ VNext-08 exige une action utilisateur explicite liée au hash exact (429.3748ms)
+✔ VNext-08 refuse un ApprovalTarget re-signé avec une identité interne falsifiée (425.1901ms)
+✔ VNext-08 refuse un ApprovalRecord re-signé avec une identité interne falsifiée (440.8025ms)
+✔ VNext-08 une décision REJECTED bloque toujours le handoff (436.5955ms)
+✔ VNext-08 construit le handoff canonique bit-for-bit depuis l’approbation (511.9709ms)
+✔ VNext-08 refuse une approbation devenue obsolète après modification du plan (460.336ms)
+✔ VNext-08 refuse un DirectImportScan différent de celui revu (405.9143ms)
+✔ VNext-08 refuse le handoff si le HEAD applicatif a bougé (435.6456ms)
+✔ VNext-08 refuse le handoff si le HEAD produit a bougé (416.8867ms)
+✔ VNext-08 invalide l’approbation si la version protocolaire change (436.0052ms)
+✔ VNext-08 refuse tout élargissement manuel du write_scope dans ExecutionRequest (561.2213ms)
+✔ VNext-08 refuse un transport d’approbation non reconnu (407.5471ms)
+✔ VNext-08 ne permet aucun path libre ni scope libre en entrée de handoff (0.529ms)
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+✔ architecture: approval refuses a resealed context whose target catalog was emptied (585.2735ms)
+✔ architecture: runtime binds observed Git tree and cumulative proof gate (871.1554ms)
+✔ architecture: source UI requirement applies outside legacy roots and ignores test candidates (0.8548ms)
+✔ architecture: REST destination preserves owner names containing s (1.2764ms)
+✔ architecture: actual Markdown CRLF conversion is rejected without canonical LF bytes (496.7625ms)
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+✔ architecture: final audit refuses a different protocol candidate and forged context (9.2544ms)
+✔ VNext-11 interdit la fermeture d’un finding par simple disparition (1.4207ms)
+✔ VNext-11 ferme explicitement un finding avec preuve de résolution (0.9028ms)
+✔ VNext-11 refuse de résoudre un finding qui persiste encore (0.7607ms)
+✔ VNext-11 exige la couverture complète du manifeste d’audit figé (0.5257ms)
+✔ VNext-11 un critère REQUIRED ne peut pas devenir NOT_APPLICABLE pendant l’audit (0.4636ms)
+✔ VNext-11 refuse un finding bloquant sans source normative préexistante (2.7717ms)
+✔ VNext-11 une recommandation nouvelle reste SUGGESTION et ne bloque pas (2.5793ms)
+✔ VNext-11 un axe CHECKED_FAIL doit être relié à un finding (2.6097ms)
+✔ VNext-11 le dernier REVISE devient terminal et ne déclenche aucune réentrée (4.0866ms)
+✔ VNext-11 un rapport final ne peut pas être transféré vers un manifeste d’audit modifié (2.1907ms)
+✔ VNext-11 refuse une provenance normative re-signée mais supprimée (3.0383ms)
+✔ VNext unavailable evidence remains distinct and cannot produce FINAL_APPROVED (5.7063ms)
+✔ runtime history waits for a successful selected Claude job and never runs after refusal or cancellation (8.3865ms)
+✔ automatic admission does not claim full validation before historical jobs (1.3469ms)
+✔ historical V2 preflight is reusable after Claude while independent VNext PR repeats are skipped (3.1089ms)
+✔ event routing reuses VNext admission and preserves unrelated legacy events (2.9293ms)
+✔ read-only historical callee preserves exact legacy checks and excludes its privileged disposable job (2.6429ms)
+✔ independent workflow parser rejects nested write permissions even for a skipped callee job (134.1347ms)
+✔ native syntax preparation expands GitHub templates while preserving PowerShell interpolation and invalid code (1.0134ms)
+✔ stabilization audit is read-only, waits for both automatic platforms, and launches no runtime or history (3.5997ms)
+✔ VNext-10 état réel : PRE-1 actif bloque l’activation mais pas la préparation (6489.1296ms)
+✔ VNext-10 avant activation toutes les slices restent LEGACY (6357.4157ms)
+✔ VNext-10 PRE-1 fermé rend le plan READY sans modifier les autres slices actives (5657.6243ms)
+✔ VNext-10 activation exige une approbation explicite du plan exact (5506.229ms)
+✔ VNext-10 activation refuse un registre legacy ayant dérivé après préparation (5691.1861ms)
+✔ VNext-10 après activation les slices legacy existantes restent LEGACY et une nouvelle slice passe VNEXT (5773.7241ms)
+✔ VNext-10 une slice legacy ne change jamais de protocole en cours de cycle (5294.1859ms)
+✔ VNext-10 refuse un CutoverPlan re-signé qui masque artificiellement PRE-1 (5224.7148ms)
+✔ VNext-10 refuse un ActivationRecord re-signé qui retire une slice legacy grandfathered (5279.6751ms)
+✔ VNext-10 rollback remet les nouvelles slices en LEGACY sans interrompre les cycles VNext actifs (5276.7701ms)
+✔ VNext-10 rollback exige une approbation explicite liée à l’activation exacte (5322.2941ms)
+✔ VNext-10 ne modifie aucun workflow actif dans le lot de préparation (0.4532ms)
+✔ F-01 — le cutover est bloqué si les dernières slices legacy ferment sans retrait des anciens writers (5727.457ms)
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prior-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/preferences/profilePhoto.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/profile.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prior-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/preferences/profilePhoto.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/profile.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prior-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/preferences/profilePhoto.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/profile.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prior-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/preferences/profilePhoto.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/profile.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prior-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/preferences/profilePhoto.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/profile.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prior-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/preferences/profilePhoto.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/profile.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prior-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/preferences/profilePhoto.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/profile.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prior-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/preferences/profilePhoto.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/profile.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prior-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/preferences/profilePhoto.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/profile.test.js', LF will be replaced by CRLF the next time Git touches it
+✔ frozen workflow consumer prepares and validates retained delivery criteria independently of application code (1514.2446ms)
+✔ delivered criterion outside correction scope is reviewed and finalized without expanding write authority (1689.3728ms)
+✔ real modification outside correction scope is refused even if mentioned by a delivered criterion (747.3064ms)
+✔ regression in a retained previously conforming criterion blocks approval and finalization (1479.7336ms)
+✔ delivery evidence rejects wrong authors, altered proof binding and incomplete retained coverage (883.0112ms)
+✔ atomic retained assertions keep coverage through planning review and implementation finalization (1349.6072ms)
+✔ a changed criterion requires the profile in the explicit correction scope and replaces its old version (1129.6043ms)
+✔ a subsequent correction observes the complete delivered matrix, including retained criteria (948.0337ms)
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+✔ projection blob OIDs agree with independent Git bytes for LF CRLF Unicode and empty input (54.3787ms)
+✔ projection emits real lines and refuses Windows traversal and absolute paths (1.3225ms)
+✔ VNext-09 E2E INITIAL atteint HANDOFF_READY et se projette sans élargissement (1104.5983ms)
+✔ VNext-09 runtime refuse un snapshot re-signé avec statut d’étape falsifié (622.9341ms)
+✔ VNext-09 projection refuse un scope legacy élargi même si le JSON est re-signé (447.5017ms)
+✔ VNext-09 projection refuse un fichier de compatibilité re-signé mais altéré (411.7682ms)
+✔ VNext-09 projection refuse un changement de checks (494.5341ms)
+✔ VNext-09 projection legacy exige le transport GITHUB_REACTION compatible avec la queue active (459.473ms)
+✔ VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY après résolution (1249.1279ms)
+✔ VNext-09 runtime refuse une REVISION sans preuve de résolution bornée (825.684ms)
+✔ VNext-09 inventaire anti-régression : 24 invariants, 165 incidents, 138 tests, sans trou (2.1802ms)
+✔ resource integrity is computed from actual files without a model consultation declaration (5217.7274ms)
+✔ an execution artifact included in a legacy consultation list cannot reject valid resource bytes (5161.9126ms)
+✔ actual resource tampering still rejects a review without a consultation declaration (6759.573ms)
+✔ generic launch automatically orders capture, reconciliation, freeze and requirements before planning (6494.6234ms)
+✔ a declared Figma slice cannot skip source preparation or change the frozen requirement set (4293.1124ms)
+✔ new launch identity and different file/frame IDs are generic, not Zones-specific (9811.5585ms)
+✔ capture failure, foreign scope and rewritten observations stop before persistence (4551.6682ms)
+✔ documentary state needs scenarios and every scenario needs an allocated executable proof (4725.7598ms)
+✔ review automatically consumes approved references and compares executed artifact facts (6185.7302ms)
+✔ missing/wrong measurement, forged value and wrong delivery head block review (5301.8326ms)
+✔ omitted scenario, failed proof, changed artifact and changed approved plan block review (4333.8947ms)
+✔ a model cannot approve omitted assertions or blocking findings (5975.5195ms)
+✔ frozen Git serialization survives reordered logical reconstruction and byte drift is still refused (7523.6906ms)
+✔ authoritative document inventory forbids missing states, scenario omission and rewritten documents (6391.8412ms)
+✔ measurement extras and altered reference destinations are refused without overwrite (6654.2761ms)
+✔ operational produce entry refuses a Figma recipe without launch even when scope is omitted (6839.986ms)
+✔ the original real-reference precheck completes through generic launchAndProduce without any model call (16622.9076ms)
+✔ document-only conditional/persistence state is generated and cannot disappear behind the graphic inventory (5576.766ms)
+✔ existing VNext operational review entry prepares the exact dossier locally without invoking a model (9739.8437ms)
+✔ real Figma driver requires the same campaign, bounded scope and explicit technical delegation (2.0025ms)
+✔ qualification and current PR head precede an exclusive persistent claim; duplicate calls cannot reclaim it (3446.9654ms)
+✔ delivery bundle and uncommitted working delta remain recoverable after fixture cleanup (5954.2654ms)
+✔ reviewed functional artifact contains the executed Node gate receipt and rejects source drift (4857.1893ms)
+✔ delivered inline child tests pass the post-execution write boundary (4093.2909ms)
+✔ post-execution boundary refuses untracked helper (2559.4383ms)
+✔ post-execution boundary refuses tracked dependency mutation (4483.8026ms)
+✔ real driver imports the Boolean behaviour as DOCUMENT_ONLY and retains both scenarios (3963.5115ms)
+✔ write boundary accepts a functional module without any rendering surface (5768.3646ms)
+✔ functional observer executes transitions and rejects the injected fault without rendering (4846.8293ms)
+✔ functional gate receipt identifies the executed target and identifies isolated Node scenario output (4421.2248ms)
+✔ test execution cannot change its own target source and retain a passing receipt (4886.4795ms)
+✔ browser and automatic rendering are absent from the executable qualification path (0.4866ms)
+✔ Figma nominal: frozen Git -> source units -> requirements -> plan -> assertions -> review -> all consumers (15925.6613ms)
+✔ negative 1: omitted element blocks independently of declared assertions (2.477ms)
+✔ negative 2: omitted property or false source disposition cannot disappear from coverage (4420.2015ms)
+✔ negative 3: a vague expected string or unstructured relational predicate is refused (4513.2359ms)
+✔ negative 4: wrong frame, property, reference hash or screenshot dimensions is refused (7379.4722ms)
+✔ negative 5: unresolved mixed conflict blocks planning; domain precedence does not silently resolve it (6017.9199ms)
+✔ negative 6: an existing reused component with a measured radius below the target fails (1.5965ms)
+✔ negative 7: forgotten variant, required assertion or documentary-only state blocks (16444.7719ms)
+✔ negative 8: inaccessible, truncated or changed-after-approval sources require recovery or requalification (4370.2616ms)
+✔ negative 9: corrupt or missing transported screenshot/properties/resources blocks effective byte consumption (6166.0413ms)
+✔ real qualification frame 4478:7209: complete inventory, aliases, vectors, resources and lossless compact transport (384.7066ms)
+✔ VNext-01 canonical JSON is deterministic and fail-closed (2.523ms)
+✔ VNext-01 stable IDs are machine-derived and source-sensitive (0.3924ms)
+✔ VNext-01 Unicode is preserved exactly and degraded forms are rejected (1.1912ms)
+✔ VNext-01 SourceManifest seals sources and units with deterministic IDs (1.373ms)
+✔ VNext-01 SourceManifest refuses duplicate physical source identity (0.3961ms)
+✔ VNext-01 INITIAL PlanningEnvelope forbids revision causal state (1.267ms)
+✔ VNext-01 REVISION PlanningEnvelope requires exact causal base and findings (0.7889ms)
+✔ VNext-01 DecisionRecord: a question alone is never a durable decision (1.2977ms)
+✔ VNext-01 DecisionRecord refuses an answer outside the offered options (0.4845ms)
+✔ VNext-01 common error policy is deterministic and never retries an unknown error (0.5396ms)
+✔ VNext-01 specification fixes the foundational anti-regression rules (0.6409ms)
+✔ generated plan, real reference delivery, independent probes and reviewer-accessible dossier agree (6788.6347ms)
+✔ preservation restores shared export and cache entries after success (3.1696ms)
+✔ preservation restores shared export and cache entries after a failed sentinel assertion (4.2554ms)
+✔ independent preservation refuses constant shared value even if delivered test passes (6682.1264ms)
+✔ independent preservation refuses missing shared export even if delivered test passes (8091.6761ms)
+✔ independent preservation refuses replaced shared module even if delivered test passes (8505.1704ms)
+✔ real generated dossier refuses always true despite a passing delivered Node test (10260.872ms)
+✔ real generated dossier refuses wrong initial state despite a passing delivered Node test (11947.748ms)
+✔ real generated dossier refuses injected functional fault despite a passing delivered Node test (6411.5074ms)
+✔ receipt corruption and changed shared source cannot reach the reviewer (10628.0265ms)
+✔ functional fault is rejected and exact causal correction restores the same generated dossier (8182.1765ms)
+✔ positive dossier cannot omit delivered gate, including direct reviewer preparation (9084.3755ms)
+✔ preservation observations are mandatory reviewer coverage and reject altered fact (7575.618ms)
+✔ batch reads preserve exact Git bytes across chunks, packing and changed checkout with bounded process count (9751.8365ms)
+✔ batch refuses absent paths, altered bytes, wrong objects, truncation and trailing data (3583.2109ms)
+✔ historical coverage inventories each original incident/test and exact normative paragraph (67.5658ms)
+✔ historical cardinality cannot certify individual coverage or launch VNext-12 (62.4577ms)
+✔ historical ready flags cannot replace resolved per-subject evidence at the candidate commit (133.2103ms)
+✔ historical inventory rejects same-cardinality substituted IDs and changed sources (40.3675ms)
+✔ historical rows preserve source meaning across eight, nine and six-column layouts (40.2356ms)
+✔ historical normative coverage refuses omitted prose or reference-format units (142.2365ms)
+✔ historical fingerprints use Git bytes rather than converted CRLF checkout bytes (541.2762ms)
+✔ historical equivalence binds all 420 exact source subjects and named test locations (805.4448ms)
+✔ historical equivalence refuses stale candidate, forged stdout and incomplete summary (0.5605ms)
+✔ historical equivalence preserves SKIP and refuses operational certification from fixture PASS (0.2202ms)
+✔ historical structured reporter ignores stdout that imitates a passing assertion (25.1633ms)
+✔ historical reporter preserves the actual test runner failure and nested browser diagnostic (146.4584ms)
+warning: in the working copy of 'docs/readme.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/c.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/écran.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/readme.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/c.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/écran.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/readme.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/c.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/écran.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/readme.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/c.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/écran.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/readme.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/c.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/écran.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/readme.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/c.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/écran.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/readme.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/c.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/écran.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/readme.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/c.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/écran.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/readme.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/c.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/écran.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/readme.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/c.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/écran.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/readme.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/c.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/écran.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/readme.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/c.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/écran.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+✔ VNext-03 inventorie mécaniquement les chemins Git et les slots CREATE (527.2525ms)
+✔ VNext-03 refuse CREATE sur un fichier existant et hors racine autorisée (663.2503ms)
+✔ VNext-03 scanne uniquement les importeurs directs, sans fermeture transitive (1081.2146ms)
+✔ VNext-03 construit ImpactGraph avec classification par candidate_id, jamais par path libre (495.9684ms)
+✔ VNext-03 refuse un importeur direct non classé (642.46ms)
+✔ VNext-03 refuse un candidate_id inventé (660.6292ms)
+✔ VNext-03 autorise CREATE uniquement via un slot machine validé (1062.0859ms)
+✔ VNext-03 autorise DELETE uniquement sur un fichier existant (615.7659ms)
+✔ VNext-03 accepte NO_CHANGE au niveau exigence avec justification (492.9667ms)
+✔ VNext-03 refuse une exigence sans impact ni NO_CHANGE (502.9458ms)
+✔ VNext-03 lie le scan direct au même CandidateManifest et au même target set (827.7066ms)
+✔ VNext-03 refuse un RequirementRegistry bloqué avant analyse d’impact (585.6851ms)
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/functional.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/implementation-mission.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/independent-review.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/technical-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/functional.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/implementation-mission.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/independent-review.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/technical-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/functional.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/implementation-mission.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/independent-review.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/technical-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/functional.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/implementation-mission.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/independent-review.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/technical-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/functional.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/implementation-mission.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/independent-review.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/technical-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-0.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-1.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-10.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-100.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-101.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-102.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-103.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-104.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-105.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-106.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-107.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-108.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-109.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-11.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-110.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-111.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-112.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-113.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-114.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-115.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-116.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-117.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-118.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-119.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-12.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-120.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-121.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-122.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-123.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-124.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-125.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-126.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-127.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-128.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-129.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-13.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-130.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-131.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-132.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-133.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-134.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-135.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-136.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-137.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-138.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-139.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-14.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-140.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-141.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-142.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-143.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-144.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-145.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-146.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-147.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-148.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-149.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-15.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-150.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-151.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-152.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-153.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-154.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-155.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-156.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-157.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-158.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-159.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-16.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-160.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-161.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-162.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-163.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-164.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-165.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-166.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-167.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-168.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-169.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-17.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-170.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-171.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-172.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-173.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-174.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-175.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-176.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-177.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-178.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-179.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-18.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-180.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-181.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-182.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-183.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-184.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-185.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-186.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-187.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-188.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-189.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-19.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-190.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-191.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-192.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-193.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-194.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-195.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-196.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-197.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-198.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-199.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-2.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-20.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-200.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-201.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-202.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-203.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-204.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-205.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-206.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-207.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-208.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-209.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-21.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-210.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-211.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-212.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-213.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-214.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-215.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-216.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-217.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-218.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-219.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-22.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-220.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-221.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-222.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-223.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-224.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-225.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-226.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-227.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-228.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-229.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-23.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-230.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-231.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-232.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-233.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-234.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-235.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-236.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-237.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-238.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-239.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-24.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-240.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-241.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-242.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-243.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-244.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-245.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-246.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-247.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-248.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-249.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-25.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-250.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-251.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-252.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-253.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-254.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-255.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-256.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-257.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-258.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-259.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-26.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-260.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-261.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-262.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-263.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-264.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-265.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-266.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-267.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-268.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-269.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-27.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-270.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-271.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-272.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-273.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-274.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-275.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-276.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-277.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-278.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-279.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-28.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-280.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-281.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-282.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-283.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-284.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-285.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-286.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-287.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-288.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-289.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-29.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-290.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-291.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-292.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-293.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-294.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-295.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-296.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-297.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-298.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-299.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-3.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-30.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-300.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-301.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-302.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-303.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-304.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-305.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-306.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-307.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-308.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-309.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-31.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-310.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-311.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-312.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-313.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-314.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-315.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-316.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-317.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-318.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-319.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-32.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-320.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-321.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-322.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-323.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-324.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-325.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-326.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-327.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-328.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-329.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-33.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-330.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-331.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-332.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-333.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-334.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-335.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-336.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-337.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-338.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-339.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-34.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-340.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-341.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-342.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-343.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-344.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-345.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-346.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-347.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-348.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-349.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-35.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-350.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-351.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-352.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-353.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-354.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-355.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-356.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-357.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-358.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-359.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-36.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-360.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-361.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-362.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-363.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-364.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-365.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-366.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-367.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-368.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-369.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-37.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-370.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-371.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-372.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-373.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-374.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-375.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-376.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-377.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-378.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-379.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-38.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-380.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-381.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-382.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-383.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-384.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-385.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-386.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-387.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-388.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-389.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-39.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-390.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-391.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-392.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-393.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-394.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-395.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-396.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-397.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-398.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-399.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-4.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-40.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-400.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-401.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-402.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-403.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-404.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-405.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-406.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-407.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-408.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-409.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-41.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-410.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-411.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-412.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-413.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-414.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-415.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-416.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-417.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-418.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-419.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-42.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-420.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-421.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-422.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-423.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-424.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-425.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-426.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-427.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-428.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-429.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-43.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-430.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-431.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-432.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-433.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-434.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-435.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-436.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-437.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-438.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-439.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-44.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-440.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-441.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-442.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-443.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-444.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-445.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-446.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-447.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-448.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-449.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-45.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-450.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-451.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-452.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-453.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-454.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-455.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-456.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-457.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-458.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-459.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-46.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-460.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-461.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-462.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-463.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-464.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-465.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-466.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-467.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-468.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-469.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-47.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-470.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-471.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-472.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-473.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-474.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-475.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-476.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-477.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-478.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-479.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-48.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-480.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-481.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-482.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-483.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-484.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-485.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-486.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-487.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-488.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-489.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-49.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-490.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-491.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-492.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-493.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-494.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-495.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-496.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-497.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-498.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-499.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-5.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-50.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-500.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-501.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-502.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-503.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-504.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-505.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-506.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-507.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-508.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-509.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-51.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-510.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-511.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-512.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-513.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-514.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-515.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-516.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-517.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-518.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-519.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-52.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-520.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-521.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-522.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-523.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-524.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-525.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-526.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-527.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-528.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-529.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-53.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-530.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-531.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-532.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-533.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-534.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-535.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-536.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-537.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-538.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-539.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-54.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-540.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-541.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-542.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-543.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-544.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-545.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-546.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-547.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-548.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-549.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-55.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-550.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-551.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-552.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-553.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-554.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-555.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-556.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-557.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-558.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-559.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-56.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-560.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-561.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-562.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-563.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-564.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-565.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-566.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-567.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-568.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-569.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-57.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-570.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-571.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-572.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-573.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-574.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-575.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-576.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-577.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-578.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-579.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-58.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-580.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-581.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-582.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-583.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-584.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-585.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-586.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-587.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-588.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-589.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-59.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-590.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-591.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-592.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-593.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-594.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-595.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-596.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-597.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-598.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-599.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-6.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-60.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-600.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-601.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-602.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-603.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-604.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-605.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-606.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-607.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-608.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-609.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-61.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-610.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-611.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-612.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-613.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-614.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-615.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-616.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-617.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-618.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-619.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-62.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-620.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-621.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-622.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-623.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-624.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-625.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-626.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-627.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-628.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-629.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-63.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-630.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-631.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-632.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-633.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-634.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-635.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-636.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-637.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-638.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-639.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-64.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-640.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-641.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-642.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-643.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-644.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-645.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-646.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-647.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-648.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-649.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-65.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-650.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-651.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-652.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-653.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-654.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-655.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-656.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-657.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-658.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-659.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-66.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-660.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-661.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-662.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-663.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-664.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-665.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-666.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-667.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-668.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-669.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-67.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-670.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-671.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-672.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-673.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-674.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-675.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-676.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-677.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-678.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-679.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-68.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-680.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-681.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-682.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-683.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-684.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-685.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-686.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-687.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-688.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-689.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-69.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-690.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-691.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-692.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-693.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-694.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-695.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-696.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-697.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-698.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-699.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-7.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-70.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-71.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-72.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-73.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-74.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-75.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-76.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-77.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-78.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-79.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-8.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-80.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-81.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-82.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-83.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-84.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-85.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-86.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-87.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-88.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-89.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-9.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-90.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-91.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-92.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-93.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-94.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-95.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-96.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-97.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-98.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'catalog/entry-99.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/functional.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/implementation-mission.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/independent-review.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/technical-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/functional.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/implementation-mission.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/independent-review.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/technical-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/functional.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/implementation-mission.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/independent-review.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/technical-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/functional.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/implementation-mission.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/independent-review.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/technical-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/functional.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/implementation-mission.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/independent-review.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/technical-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/functional.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/implementation-mission.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/independent-review.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/technical-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/functional.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/implementation-mission.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/independent-review.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/technical-plan.md', LF will be replaced by CRLF the next time Git touches it
+✔ live chain: observed Git sources, structured reviewer, exact approval and real queue authorization compose (16046.689ms)
+✔ live chain: revoked, edited, mismatched approval and altered queue are refused (18759.6349ms)
+✔ live chain: source bytes and unobserved native proof cannot be asserted by flags (12957.7689ms)
+✔ live chain: direct implementation runner refuses before invoking Claude when queue authority is absent (16836.319ms)
+✔ live chain: real queue preflight validates VNext plan mission and runtime identity without legacy UI blocks (44040.9028ms)
+✔ live chain: large immutable target catalog travels on stdin and unknown reviewer targets remain refused (30002.6095ms)
+✔ compact review coverage refuses omission, duplicate, out-of-range, wrong catalog and mixed formats (21462.7384ms)
+✔ review process captures an actual interrupted child, bounds output and redacts inherited credentials (306.0852ms)
+✔ review diagnostics survive a failed invocation outside the checkout and retain no approval (12071.6198ms)
+✔ quoted markers and old machine blocks remain lossless data through downstream transport (10342.3539ms)
+✔ complete raw review survives semantic rejection and recovery never invokes the model (13237.6872ms)
+✔ semantic failure remains primary when its diagnostic archive also fails (13294.2263ms)
+✔ malformed response and interrupted process are retained but cannot become a review (16169.8316ms)
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/other.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/other.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/other.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/other.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/other.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/other.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/other.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/other.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/other.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/other.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/other.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/other.test.js', LF will be replaced by CRLF the next time Git touches it
+✔ VNext-04 construit la chaîne Requirement → Impact → Change → Test → Proof → Boundary (470.964ms)
+✔ VNext-04 dérive les paths exclusivement depuis ImpactGraph (598.5367ms)
+✔ VNext-04 refuse un changement sans implementation intent (677.3053ms)
+✔ VNext-04 refuse un changement non couvert par un test (1393.7097ms)
+✔ VNext-04 refuse un changement non couvert par une preuve (1813.5111ms)
+✔ VNext-04 refuse un test affecté qui n’a pas son propre impact (469.091ms)
+✔ VNext-04 refuse une preuve FUNCTIONAL_TEST qui ne correspond pas au test déclaré (464.1529ms)
+✔ VNext-04 exige une preuve alternative pour un test supprimé (1013.9902ms)
+✔ VNext-04 refuse une boundary à la fois CHANGE et PRESERVE (699.3386ms)
+✔ VNext-04 exige un plan item pour chaque requirement (686.1775ms)
+✔ VNext-04 supporte un requirement NO_CHANGE avec testability explicite (487.4154ms)
+✔ VNext-04 génère une projection Markdown déterministe du seul contrat canonique (939.1358ms)
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+▶ post-acceptance revision integration uses owner gaps, preserves APPROVE and prepares an authorized correction
+  ✔ nominal: approved delivery -> acceptance gaps -> revision -> review -> immutable plan -> runtime admission (6168.6073ms)
+  ✔ owner identity, issue, exact delivered head and old review identity are mandatory (0.5922ms)
+  ✔ a genuine correction outside the owner-authorized paths is refused (1.6047ms)
+  ✔ missing, duplicate or unresolved gap resolutions cannot yield an approved revised plan (2.5414ms)
+  ✔ technical failures and omitted retained assertions cannot enter the pre-closure baseline (1.2059ms)
+  ✔ the old approved plan bytes and independent receipt remain bound, not replaceable by a fake REVISE (5367.1841ms)
+  ✔ recovery revalidates the saved response without another model call or a new approval target (2794.6916ms)
+✔ post-acceptance revision integration uses owner gaps, preserves APPROVE and prepares an authorized correction (31814.9758ms)
+✔ lost reservation response after server creation is reconciled without a second POST (10.7545ms)
+✔ unknown reservation and duplicate exact remote matches stop without another creation (3.3125ms)
+✔ reservation keeps the raw server response before final receipt persistence (2.3266ms)
+✔ lost approval PATCH response reuses the exact reserved comment without resetting its timestamp (1.0634ms)
+✔ CLI approval requires the reserved gate and handoff cannot silently mint a new retry identity (1.8482ms)
+✔ valid response survives validation archival failure and recovers exact bytes without a new model call (10615.5263ms)
+✔ delivery correction cannot be routed as INITIAL and a REVISION cannot prepare without its causal evidence (7998.636ms)
+✔ a decision source requires the actual owner and exact repository/issue before planning (2.7328ms)
+✔ native preservation: every UI criterion needs an explicit sourced native assessment and branch assertion (3.7162ms)
+✔ native preservation: style or Jest difficulty cannot authorize a substitute and functional proof must be scoped (1.7442ms)
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+✔ accessibility PASS: real review CLI -> exact user approval -> finalization -> VNext retained baseline (162.3835ms)
+✔ accessibility PENDING_DEVICE: real review CLI -> exact user approval -> finalization -> VNext retained baseline (834.5361ms)
+✔ review proof policy FUNCTIONAL_TEST / PASS (238.4693ms)
+✔ review proof policy FUNCTIONAL_TEST / FAIL (236.0813ms)
+✔ review proof policy FUNCTIONAL_TEST / NON_VERIFIABLE (234.4282ms)
+✔ review proof policy FUNCTIONAL_TEST / PENDING_DEVICE (226.3217ms)
+✔ review proof policy STATIC_ANALYSIS / PASS (236.4248ms)
+✔ review proof policy STATIC_ANALYSIS / FAIL (225.0898ms)
+✔ review proof policy STATIC_ANALYSIS / NON_VERIFIABLE (233.7611ms)
+✔ review proof policy STATIC_ANALYSIS / PENDING_DEVICE (234.9892ms)
+✔ review proof policy VISUAL_COMPARE / PASS (227.6888ms)
+✔ review proof policy VISUAL_COMPARE / FAIL (231.3969ms)
+✔ review proof policy VISUAL_COMPARE / NON_VERIFIABLE (229.0907ms)
+✔ review proof policy VISUAL_COMPARE / PENDING_DEVICE (243.7722ms)
+✔ review proof policy DEVICE_CHECK / PASS (228.2256ms)
+✔ review proof policy DEVICE_CHECK / FAIL (396.2499ms)
+✔ review proof policy DEVICE_CHECK / NON_VERIFIABLE (229.3771ms)
+✔ review proof policy DEVICE_CHECK / PENDING_DEVICE (242.4891ms)
+✔ review proof policy ACCESSIBILITY_CHECK / PASS (235.9479ms)
+✔ review proof policy ACCESSIBILITY_CHECK / FAIL (235.2417ms)
+✔ review proof policy ACCESSIBILITY_CHECK / NON_VERIFIABLE (228.7756ms)
+✔ review proof policy ACCESSIBILITY_CHECK / PENDING_DEVICE (355.1587ms)
+✔ missing technical evidence and unjustified pending-to-PASS conversion are refused (562.722ms)
+✔ retained assertion proofs are rechecked even after resealing a forged finalization (151.3113ms)
+✔ scoped explicit waiver closes only its pending proof and retains NOT_EXECUTED reservations (552.1706ms)
+✔ post-acceptance revision preserves pending assertions and explicit waiver without laundering failures (15796.2518ms)
+✔ unsupported resolver syntax is NON_VERIFIABLE even if caller claims PASS or FAIL (1.9531ms)
+✔ demonstrated defect, unavailable proof and nonrequired proof have separate gate consequences (0.3368ms)
+✔ accepted reserve persists if absent from subsequent bounded audit (2.7038ms)
+✔ new wording or new auditor cannot escalate unchanged subject (0.9447ms)
+✔ unchanged defect cannot be removed from its gate or severity downgraded without cause (0.5882ms)
+✔ proof unavailability cannot become a defect without new evidence (0.3387ms)
+✔ changed target reopens reserve with causal trace (0.839ms)
+✔ change of applicable phase is explicit and severity remains independent of gate necessity (0.5871ms)
+✔ closure requires success evidence and authorized owner, never disappearance (0.877ms)
+✔ retry limit cannot be enlarged during a cycle and exhausted retry is terminal (0.5567ms)
+✔ producer packet includes boundary validators in actual transitive closure and LF/CRLF transport preserves exact packet (801.1269ms)
+✔ producer packet rejects dynamic consumer dependency instead of claiming complete coverage (401.5463ms)
+✔ absence of legacy writers cannot attest retirement without pending/replay inventory (2.0481ms)
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/implementation-mission.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/independent-review.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/technical-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/implementation-mission.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/independent-review.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/technical-plan.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/implementation-mission.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/independent-review.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext-runtime/V2-VNEXT-09/technical-plan.md', LF will be replaced by CRLF the next time Git touches it
+✔ queue admission: pre-approval Git files stay identical after exact commit approval and reach the real consumer (1684.1745ms)
+✔ queue admission: approval evidence must authenticate the exact target and owner reaction (7229.1732ms)
+✔ queue admission: missing committed mission, altered queue and resealed projection are refused (4140.6373ms)
+✔ F-01 — le dépôt VNext courant est entièrement inventorié sans filtre de préfixe (6388.8555ms)
+✔ F-01 — un workflow arbitrairement nommé avec écriture non déclarée est refusé (686.5775ms)
+✔ F-01 — un script appelé pouvant pousser au dépôt est refusé même si le workflow ne porte pas le préfixe historique (519.7848ms)
+✔ F-01 — une écriture REST repository non déclarée est refusée (465.094ms)
+✔ F-01 — une surface legacy exacte peut coexister uniquement tant qu’une slice legacy reste active (209.7828ms)
+✔ F-01 — ajouter une écriture à un workflow legacy figé invalide son empreinte (309.1612ms)
+✔ F-01 — un writer VNext doit déclarer producteur, destination, condition et job exact (232.5195ms)
+✔ F-01 — VNext interdit une permission write au niveau workflow (235.2253ms)
+✔ VNext-02 construit un registre source-first complet incluant UI et non-UI (17.1069ms)
+✔ VNext-02 refuse toute unité REQUIREMENT_SOURCE oubliée (0.955ms)
+✔ VNext-02 refuse une exigence sans source connue (0.534ms)
+✔ VNext-02 interdit de fabriquer une exigence depuis CONTEXT_ONLY (2.7431ms)
+✔ VNext-02 exige CLARIFICATION_REQUIRED pour toute source AMBIGUOUS (0.7236ms)
+✔ VNext-02 rend les conflits symétriques et bloquants (1.1537ms)
+✔ VNext-02 dérive mécaniquement les relations entre exigences (0.8718ms)
+✔ VNext-02 refuse les doublons de requirement_id calculé (2.0215ms)
+✔ VNext-02 lie le registre au SourceManifest exact (0.9373ms)
+✔ VNext-02 consomme une décision résolue comme source normative (1.5051ms)
+✔ VNext-02 refuse un registre sans aucune unité normative (0.5819ms)
+✔ VNext-02 interdit structurellement la dérivation circulaire depuis les critères UI (0.9548ms)
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/ExampleScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/__tests__/ExampleScreen.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/ExistingOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/ExampleScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/__tests__/ExampleScreen.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/ExistingOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+✔ VNext-06 INITIAL et REVISION utilisent le même contrat de review (3054.6801ms)
+✔ VNext-06 sans finding produit APPROVE mécaniquement (1599.3642ms)
+✔ VNext-06 un finding bloquant produit REVISE et réentrée calculée (1545.3316ms)
+✔ VNext-06 PRODUCT_AMBIGUITY produit CLARIFICATION_REQUIRED (887.8305ms)
+✔ VNext-06 une suggestion seule ne bloque pas APPROVE (845.339ms)
+✔ VNext-06 refuse verdict, blocking, finding_id ou reentry fournis par l’IA (900.0127ms)
+✔ VNext-06 refuse un target_id inventé (970.7222ms)
+✔ VNext-06 refuse une catégorie associée à un mauvais type de cible (756.6957ms)
+✔ VNext-06 refuse les findings identiques dupliqués (532.8378ms)
+✔ VNext-06 le schéma reviewer borne les IDs et ne contient aucun verdict libre (723.3173ms)
+✔ VNext-06 exécute les validations mécaniques avant de produire le contexte reviewer (731.1741ms)
+✔ VNext-06 exige le contrat atomique avant review d’un plan UI (6070.7766ms)
+✔ VNext-06 accepte des findings ciblant Criterion et Assertion réels (6408.3016ms)
+✔ VNext-06 finding_id est déterministe et lié au contexte exact (698.7195ms)
+✔ D7 no findings cannot stand in for missing, partial, duplicate or unknown review coverage (1336.3599ms)
+✔ stream supervisor preserves the exact final result and records metadata without content (151.9353ms)
+✔ interrupted review keeps observed progress and never promotes an absent result (603.0006ms)
+✔ duplicate or malformed final streams fail closed (301.8393ms)
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/b.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/b.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/b.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/b.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/b.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/b.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/b.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/b.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/b.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/b.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/b.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/b.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/b.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/a.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/b.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/a.test.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/b.test.js', LF will be replaced by CRLF the next time Git touches it
+✔ VNext-07 construit un AllowedChangeSet borné et préserve le plan item non ciblé (723.6647ms)
+✔ VNext-07 refuse un finding PLAN_CONTRACT trop large sans dépendances ciblées (870.8771ms)
+✔ VNext-07 calcule la réentrée la plus amont quand plusieurs findings coexistent (768.3467ms)
+✔ VNext-07 SOURCE_UNIT reste un anchor et non un objet librement mutable (592.2974ms)
+✔ VNext-07 refuse une correction sur une cible hors AllowedChangeSet (703.7121ms)
+✔ VNext-07 exige que chaque finding bloquant soit couvert par le RevisionPatch (747.962ms)
+✔ VNext-07 produit une application bornée sans exposer les cibles dérivées à l’IA (6302.6184ms)
+✔ VNext-07 accepte une correction ciblée et vérifie la préservation exacte (6419.1541ms)
+✔ VNext-07 autorise un nouvel objet dérivé uniquement sous la cible corrigée (1368.418ms)
+✔ VNext-07 détecte une modification d’un objet préservé (813.7985ms)
+✔ VNext-07 détecte REVISION_STALLED si le même finding persiste (1441.1357ms)
+✔ VNext-07 détecte un nouveau finding bloquant sur un objet préservé (936.7019ms)
+✔ VNext-07 finding_id reste stable entre INITIAL et REVISION pour le même problème (793.097ms)
+✔ VNext-07 le schéma de correction ne permet ni verdict ni path libre (456.907ms)
+warning: in the working copy of 'src/core.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/keep.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/core.test.js', LF will be replaced by CRLF the next time Git touches it
+▶ approved revised plan transmission on an existing application PR
+  ✔ existing PR routing and missing local mission retain the exact approved plan authority (4354.8624ms)
+  ✔ new exact plan is supplied at the old path; repeated filesystem and Git reads use the approved bytes (472.6296ms)
+  ✔ a supplied plan or mission different from the admitted identity stops before application writes (219.4211ms)
+  ✔ unavailable approved plan stops without falling back to the readable old plan (371.2719ms)
+  ✔ interrupted view recovery preserves existing application work; installation and execution lock cannot be duplicated (613.9557ms)
+  ✔ tampered view is refused, its evidence is retained and the old file is restored (123.1522ms)
+✔ approved revised plan transmission on an existing application PR (29831.5962ms)
+C:\Users\RUNNER~1\AppData\Local\Temp\kodjo-publication-FzS1BX\.github\workflows\broken.yml: while parsing a flow sequence
+  in "<unicode string>", line 2, column 5:
+    on: [unterminated
+        ^
+expected ',' or ']', but got '<stream end>'
+  in "<unicode string>", line 3, column 1:
+
+    ^
+C:\Users\RUNNER~1\AppData\Local\Temp\kodjo-publication-OpH8tI\.github\workflows\broken.yaml: while parsing a flow sequence
+  in "<unicode string>", line 2, column 5:
+    on: [unterminated
+        ^
+expected ',' or ']', but got '<stream end>'
+  in "<unicode string>", line 3, column 1:
+
+    ^
+Extent ErrorId              Message                                                    IncompleteInput
+------ -------              -------                                                    ---------------
+{      MissingEndCurlyBrace Missing closing '}' in statement block or type definition.            True
+At C:\Users\runneradmin\AppData\Local\Temp\kodjo-publication-J15YlE\parse-changed-powershell.ps1:1 char:297
++ ... ile($f,[ref]$t,[ref]$e)|Out-Null;if($e.Count){throw ($e|Out-String)}}
++                                                   ~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (
+Extent ErrorI...     True
+:String) [], RuntimeException
+    + FullyQualifiedErrorId :
+Extent ErrorId              Message                                                    IncompleteInput
+------ -------              -------                                                    ---------------
+{      MissingEndCurlyBrace Missing closing '}' in statement block or type definition.            True
+
+✔ qualification admission refuses stale, incomplete, failed or wrong workflow evidence (2.1506ms)
+✔ dedicated branch qualification preserves exact-head and every-job admission gates (0.4519ms)
+✔ publication admission refuses a moved parent, checkpoint or active phase including later API pages (1.3239ms)
+✔ prepublication validation refuses malformed workflow bytes before publication (7126.7737ms)
+✔ prepublication validation refuses exact writer blob drift (10500.6855ms)
+✔ prepublication validation refuses stale historical test correspondence (13113.8266ms)
+✔ environmental and unknown failures request technical diagnosis without automatic retry (0.5661ms)
+✔ changed PowerShell must be parsed and invalid or unavailable parsing refuses publication (12234.1974ms)
+✔ execution qualification binds a separately changed controller and refuses missing controller proof (328.0742ms)
+✔ changed frozen Figma source requires a qualification of the changed controller (371.3746ms)
+warning: in the working copy of 'src/features/example/ExampleScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/__tests__/ExampleScreen.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/ExistingOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/OtherControl.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/ExampleScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/__tests__/ExampleScreen.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/ExistingOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/OtherControl.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/ExampleScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/__tests__/ExampleScreen.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/ExistingOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/OtherControl.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/ExampleScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/__tests__/ExampleScreen.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/ExistingOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/OtherControl.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/ExampleScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/__tests__/ExampleScreen.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/ExistingOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/OtherControl.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/ExampleScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/__tests__/ExampleScreen.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/ExistingOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/OtherControl.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/ExampleScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/__tests__/ExampleScreen.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/ExistingOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/OtherControl.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/ExampleScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/__tests__/ExampleScreen.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/ExistingOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/OtherControl.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/ExampleScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/__tests__/ExampleScreen.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/ExistingOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/OtherControl.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/ExampleScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/__tests__/ExampleScreen.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/ExistingOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/OtherControl.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/ExampleScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/__tests__/ExampleScreen.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/ExistingOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/OtherControl.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/ExampleScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/__tests__/ExampleScreen.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/ExistingOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/OtherControl.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/ExampleScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/__tests__/ExampleScreen.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/ExistingOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/OtherControl.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/ExampleScreen.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/example/__tests__/ExampleScreen.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/ExistingOverlay.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/shared/ui/OtherControl.tsx', LF will be replaced by CRLF the next time Git touches it
+✔ VNext-05 construit Requirement → Criterion → Atomic Assertions avec IDs mécaniques (636.4668ms)
+✔ VNext-05 refuse les IDs de critère fournis par l’IA (855.1364ms)
+✔ VNext-05 impose VISUAL_COMPARE aux propriétés visuelles (558.7847ms)
+✔ VNext-05 interdit une propriété visuelle sans source VISUAL ou DECISION (533.4518ms)
+✔ VNext-05 accepte INTERACTION uniquement avec source fonctionnelle et preuve fonctionnelle (525.0532ms)
+✔ VNext-05 interdit une preuve d’assertion absente du critère parent (518.5821ms)
+✔ VNext-05 exige que chaque preuve du critère soit allouée à une assertion (463.1357ms)
+✔ VNext-05 exige que les assertions couvrent tous les changements du critère (862.4177ms)
+✔ VNext-05 exige que chaque changement UI soit couvert par un critère (673.568ms)
+✔ VNext-05 refuse qu’un requirement non-UI porte silencieusement un changement UI (528.1034ms)
+✔ VNext-05 limite la recherche de réutilisation aux candidats UI (520.1631ms)
+✔ VNext-05 impose une recherche de réutilisation et lie REUSE/EXTEND au candidat sélectionné (1514.595ms)
+✔ VNext-05 CREATE ne peut pas prétendre réutiliser un composant existant (503.7842ms)
+✔ VNext-05 lie le contrat atomique au PlanContract exact (557.9301ms)
+✔ VNext-05 ne réintroduit aucune dérivation Requirement depuis Criterion/Assertion (0.5398ms)
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+✔ D2 source evidence rejects foreign authors, issues, repositories and comment IDs (1.4751ms)
+✔ D11 ignored files and Git executable metadata cannot change invisibly (168.2667ms)
+✔ D11 safe Git commands suppress a real pre-commit hook (267.4263ms)
+✔ D9 scanner detects concatenated REST destinations and Git writes behind safety options (3.0236ms)
+✔ D16 a comment marker cannot authorize an executable legacy push (131.2273ms)
+✔ D4 two skipped platforms never satisfy mapped historical coverage (0.6896ms)
+✔ D15 simultaneous stale-lock reclaimers produce exactly one owner (186.3504ms)
+✔ D8 UI projection retains atomic assertions and an exact component path/export binding (27.0462ms)
+✔ fresh INITIAL cannot reuse legacy approval or substitute a revision admission (2.1976ms)
+✔ fresh disposable preparation replaces only the verified prior slice activation (1.7417ms)
+warning: in the working copy of '.github/orchestration/v2-activation-registry.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/v2-slices/VNEXT-12-QUALIF/slice-bootstrap.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext12/VNEXT-12-QUALIF/revision/implementation-mission.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext12/VNEXT-12-QUALIF/revision/independent-review.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext12/VNEXT-12-QUALIF/revision/prepared.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of '.github/orchestration/vnext12/VNEXT-12-QUALIF/revision/technical-plan.md', LF will be replaced by CRLF the next time Git touches it
+✔ revision supervisor preserves immutable source, scope and causal findings through exactly one correction (9372.42ms)
+✔ revision publication prepares an exact new dossier and preserves all other registered slices (44276.858ms)
+✔ revision supervisor refuses an approved negative benchmark instead of inventing a REVISE (5330.6369ms)
+✔ revision supervisor refuses a corrected plan still rejected by the reviewer (7697.4145ms)
+✔ revision supervisor refuses an unrelated change outside the authorized plan correction (14953.903ms)
+✔ revision benchmark accepts real-shaped dependency evidence while changing only the plan intents (10355.7076ms)
+✔ revision benchmark refuses a blocking finding directly targeting a dependency (4907.4722ms)
+✔ live revision handoff binds both real-format receipts without rewriting the reviewed proposal (17585.4498ms)
+✔ D5 preserved base receipt is reused only for the exact produced candidate (5448.8668ms)
+✔ D8 canonical VNext projection reaches the common requirement review and finalizer without empty-plan approval (12023.0169ms)
+✔ revision benchmark links a TEST finding to its exact plan intent without altering its obligation (25580.2427ms)
+✔ disposable supervisor refuses a moved approval or unauthorized stage before runtime (2.8922ms)
+✔ disposable supervisor rejects remote publishing origins (0.6946ms)
+✔ revision execution uses a new exact approval and requires the admitted one-correction proof (0.9094ms)
+✔ disposable supervisor requires the two actual expected changes and no neighboring change (0.2467ms)
+✔ disposable clone preserves actual Git bytes despite global Windows autocrlf=true (538.9342ms)
+✔ consumption uses the verified stored owner credential rather than the Actions token (1.1196ms)
+✔ a configured consumption credential does not fall back to another account (0.3139ms)
+✔ a pre-invocation API refusal remains the primary failure rather than an empty delta (0.3693ms)
+✔ runtime evidence copy preserves regular files and excludes a dangling junction without following it (7.7884ms)
+ℹ tests 369
+ℹ suites 0
+ℹ pass 369
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 432010.8456

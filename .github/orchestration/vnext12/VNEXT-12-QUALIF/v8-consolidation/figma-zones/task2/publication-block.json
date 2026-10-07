@@ -1,0 +1,20 @@
+{
+  "observed_at": "2026-10-05T12:35:38.557Z",
+  "expected_parent": "73787f296d78ab3c435fa04ef993f0ef8382141f",
+  "checkpoint_sha": "dd54f6eca23208617cd103e3999de20b700c8801",
+  "branch_runs_checked": 177,
+  "active_runs": [
+    {
+      "id": 37307334786,
+      "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
+      "status": "queued"
+    }
+  ],
+  "diagnostic": "VNEXT_PUBLICATION_PHASE_ACTIVE",
+  "publication_performed": false,
+  "runner_job_id": 111755046302,
+  "runner_assigned": false,
+  "direct_runner_health": "NOT_ACCESSIBLE_THROUGH_CONNECTOR",
+  "current_local_claude_processes": "NOT_VERIFIABLE_FROM_THIS_ENVIRONMENT",
+  "task3_started": false
+}

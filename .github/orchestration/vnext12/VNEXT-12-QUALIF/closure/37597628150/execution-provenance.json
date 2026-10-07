@@ -1,0 +1,35 @@
+{
+  "schema_version": "kodjo.vnext.execution-provenance.v1",
+  "run_id": "37597628150",
+  "run_attempt": "1",
+  "workflow_ref": "MyUncried/Application-Routine/.github/workflows/kodjo-vnext12-disposable.yml@refs/pull/269/merge",
+  "workflow": {
+    "path": ".github/workflows/kodjo-vnext12-disposable.yml",
+    "revision": "c97bfc4c65464a646491ed2bf410126a7c12cbeb",
+    "sha256": "f7daefb591799a9a149e5b212e5e468f4c5cd82f58a4918585106307ad7c21ff"
+  },
+  "controller_loading": "IMMUTABLE_EVENT_HEAD",
+  "controller": {
+    "path": "scripts/kodjo/close-vnext-github-delivery.js",
+    "revision": "166ee58dee2d9343de44f49958f84c774aeb7b23",
+    "sha256": "83fb012d9578cd1caa84cfbe0e38a8fe6712c8c0d9fabee522b3d524804d2acc"
+  },
+  "runtime": {
+    "path": "scripts/kodjo/finalize-vnext-delivery.js",
+    "revision": "166ee58dee2d9343de44f49958f84c774aeb7b23",
+    "sha256": "f27568533d2c25da8a9fae51a9d4a0bfe2d2b069bf1e1240fc4af694478f6ac1"
+  },
+  "contracts": [
+    {
+      "path": "scripts/kodjo/lib/vnext-contract.js",
+      "revision": "166ee58dee2d9343de44f49958f84c774aeb7b23",
+      "sha256": "043cb8aa01b0aecbf62f4123c402e158bc7b7edf7725c25aca9a805eb0d5f371"
+    },
+    {
+      "path": "scripts/kodjo/lib/vnext-legacy-queue-adapter.js",
+      "revision": "166ee58dee2d9343de44f49958f84c774aeb7b23",
+      "sha256": "01e0a38ae8c5ca9f14c9f214bb3cb4f407a0fb0150c315f68491d3e380c43855"
+    }
+  ],
+  "contract_hash": "3f9e93e469b8c8313d529defec7ee18ca0ccf0ed9d4338397fa02792c63c5e2a"
+}

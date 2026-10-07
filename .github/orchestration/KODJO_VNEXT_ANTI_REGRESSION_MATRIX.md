@@ -52,7 +52,8 @@ Dispositions autorisées :
 2. Une disposition `REMPLACÉE_ÉQUIVALENTE` exige que le nouveau mécanisme soit exécuté dans l’E2E VNext avant cutover.
 3. Aucune disposition ne vaut preuve à elle seule : le test associé doit PASS.
 4. Toute absence d’un invariant `INV-001..INV-024`, d’un incident `INC-001..INC-165` ou d’un test `T-001..T-138` dans le registre canonique bloque la qualification.
-5. Le cutover ne peut supprimer un mécanisme `CONSERVÉE` tant qu’une disposition nouvelle n’a pas été explicitement validée.\n6. Le cutover exige une attestation RemoteWritePolicy PASS liée au CutoverPlan ; après fermeture de la dernière slice legacy, seul `PASS_RETIRED` est recevable.
+5. Le cutover ne peut supprimer un mécanisme `CONSERVÉE` tant qu’une disposition nouvelle n’a pas été explicitement validée.
+6. Le cutover exige une attestation RemoteWritePolicy PASS liée au CutoverPlan ; après fermeture de la dernière slice legacy, seul `PASS_RETIRED` est recevable.
 
 ## Conclusion du lot
 
@@ -62,3 +63,25 @@ VNext-09 peut être déclaré `CUTOVER_CANDIDATE` uniquement si :
 - l’E2E INITIAL et l’E2E REVISION passent ;
 - la projection Lean Queue ne modifie ni scope, ni checks, ni HEAD autorisés ;
 - les suites KODJO existantes restent vertes sur leur périmètre.
+
+## Complément ciblé des écueils PRE-1
+
+La [couverture des six axes](KODJO_VNEXT_PRE1_COVERAGE.md) distingue conception,
+implémentation contractuelle, tests et activation effective. Contrôles :
+`vnext-proof-stability.pilot.js` et extension
+`vnext-audit-convergence.pilot.js`. Les tests ne clôturent pas la matrice
+individuelle 165/138. Restent à prouver : intégration producteurs/résolution,
+registre cumulatif dans tous les gates, transport authentifié, déclenchement
+CI distant et collecte réelle de retrait/replay legacy. Aucun PASS global ni
+cutover ne se déduit des tests de contrat de ce complément.
+
+## Disposition individuelle et lecture de l’architecture
+
+La [matrice individuelle](KODJO_VNEXT_HISTORICAL_DISPOSITION.md) complète les
+24 invariants, sans certifier ses équivalences encore ouvertes. La présence
+des 165/138 lignes ne vaut pas readiness. Le validateur historique refuse
+la certification tant que les responsabilités et preuves individuelles ne
+sont pas fermées. Les paragraphes inclusifs AI_ORCHESTRATION restent à
+qualifier en clauses applicables.
+
+[Traitement de l’audit anticipé](reports/2026-09-30_VNEXT_ARCHITECTURE_CLOSURE.md).

@@ -5,6 +5,7 @@ const { spawnSync } = require('node:child_process');
 const path = require('node:path');
 
 const V = require('./vnext-contract');
+const Perf = require('./vnext-performance');
 const RequirementRegistry = require('./requirement-registry');
 const { normalizeScopeCandidate } = require('./scope-path');
 const { extractSpecifiers, resolveSpecifier } = require('./plan-impact');
@@ -19,14 +20,15 @@ const CREATE_CHANGE_KINDS = Object.freeze(['CREATE', 'NO_CHANGE']);
 const CREATE_ROOTS = Object.freeze(['app/', 'src/', 'tests/', 'assets/', 'docs/', 'scripts/', '.github/']);
 const SOURCE_EXTENSIONS = Object.freeze(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']);
 
-function git(args, cwd, encoding = 'utf8') {
-  const result = spawnSync('git', args, {
+function git(args, cwd, encoding = 'utf8', input) {
+  const result = Perf.measure('git.' + args[0], () => spawnSync('git', args, {
     cwd,
     encoding,
     windowsHide: true,
     shell: false,
     maxBuffer: 64 * 1024 * 1024,
-  });
+    input: encoding === 'buffer' && typeof input === 'string' ? Buffer.from(input, 'utf8') : input,
+  }));
   if (result.error || result.status !== 0) {
     V.fail(
       'VNEXT_IMPACT_GIT_FAILED',
@@ -241,9 +243,13 @@ function scanOneLevelDirectImporters({
     .filter((file) => SOURCE_EXTENSIONS.some((ext) => file.endsWith(ext)))
     .sort();
 
-  for (const file of sourceFiles) {
-    if (targetPathSet.has(file)) continue;
-    const source = String(git(['show', candidateManifest.revision + ':' + file], cwd));
+  const scannedFiles = sourceFiles.filter(file => !targetPathSet.has(file));
+  const contents = Perf.measure('impact.read-source-blobs', () => require('./vnext-git-batch').readBlobs({
+    revision: candidateManifest.revision, files: scannedFiles,
+    run: (args, input) => git(args, cwd, 'buffer', input),
+  }), { files: scannedFiles.length });
+  for (const file of scannedFiles) {
+    const source = contents.get(file).toString('utf8');
     const triggeredPaths = extractSpecifiers(source)
       .map((specifier) => resolveSpecifier(file, specifier, fileSet))
       .filter((resolved) => resolved && targetPathSet.has(resolved));
@@ -288,6 +294,18 @@ function validateDirectImportScan(scan, candidateManifest) {
   }
   if (!Array.isArray(scan.importers) || scan.importer_count !== scan.importers.length) {
     V.fail('VNEXT_DIRECT_IMPORT_COUNT_MISMATCH');
+  }
+  return true;
+}
+
+function verifyDirectImportScanAtHead(scan, candidateManifest, { cwd = process.cwd() } = {}) {
+  verifyCandidateManifestAtHead(candidateManifest, { cwd });
+  validateDirectImportScan(scan, candidateManifest);
+  const rebuilt = scanOneLevelDirectImporters({
+    cwd, candidateManifest, modifyCandidateIds: scan.target_candidate_ids,
+  });
+  if (V.canonicalStringify(scan) !== V.canonicalStringify(rebuilt)) {
+    V.fail('VNEXT_DIRECT_IMPORT_SCAN_REBUILD_MISMATCH');
   }
   return true;
 }
@@ -516,6 +534,7 @@ function validateImpactGraph(graph, { requirementRegistry, candidateManifest, di
 }
 
 module.exports = {
+  verifyDirectImportScanAtHead,
   CANDIDATE_SCHEMA,
   DIRECT_SCAN_SCHEMA,
   IMPACT_SCHEMA,

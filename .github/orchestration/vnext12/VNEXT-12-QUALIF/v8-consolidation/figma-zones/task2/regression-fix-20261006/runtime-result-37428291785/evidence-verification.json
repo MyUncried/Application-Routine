@@ -1,0 +1,11 @@
+{
+  "artifact_sha256": "f6d5d2d6cc9e178527b2cad067b99e849aa989e200d841145008c599d22b763a",
+  "archive_integrity": "PASS",
+  "admission_request": "VERIFIED",
+  "raw_stdout_sha256": "VERIFIED",
+  "review_target_count": 436,
+  "self_dependencies": 0,
+  "verdict": "REVISE",
+  "blocking_findings": 3,
+  "not_a_runtime_success": true
+}

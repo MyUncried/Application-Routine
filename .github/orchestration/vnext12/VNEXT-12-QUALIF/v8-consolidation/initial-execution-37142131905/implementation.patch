@@ -1,0 +1,18 @@
+diff --git a/scripts/kodjo/fixtures/vnext12/core.js b/scripts/kodjo/fixtures/vnext12/core.js
+index 34218917..37452ce0 100644
+--- a/scripts/kodjo/fixtures/vnext12/core.js
++++ b/scripts/kodjo/fixtures/vnext12/core.js
+@@ -1,2 +1,2 @@
+ 'use strict';
+-module.exports = { value: () => 1 };
++module.exports = { value: () => 2 };
+diff --git a/tests/fixtures/vnext12/core.test.js b/tests/fixtures/vnext12/core.test.js
+index a292ebd3..c1c358f2 100644
+--- a/tests/fixtures/vnext12/core.test.js
++++ b/tests/fixtures/vnext12/core.test.js
+@@ -1,4 +1,4 @@
+ const { value } = require('../../../scripts/kodjo/fixtures/vnext12/core');
+ test('VNext-12 disposable value', () => {
+-  expect(value()).toBe(1);
++  expect(value()).toBe(2);
+ });

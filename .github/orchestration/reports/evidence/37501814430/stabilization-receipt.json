@@ -1,0 +1,7 @@
+{
+  "candidate_sha": "cc35919d408759ee26c2e37033ba85374fad37f1",
+  "session_id": "4e75c736-57dd-41b1-b592-a7e73b020435",
+  "raw_sha256": "f793484fe6ba70d91acb654696141a196a380272be1ca0ef51362114c8bc5996",
+  "input_sha256": "9f8d15914ab42553efa27dfe5909b1ef962d18c13b780c1225ad3fa4c25764bf",
+  "status": "READ_ONLY_AUDIT_RETURNED_NOT_RUNTIME_APPROVAL"
+}

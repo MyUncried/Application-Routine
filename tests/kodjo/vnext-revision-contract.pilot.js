@@ -76,7 +76,7 @@ function envelope(sourceManifest, mode = 'INITIAL', base = {}) {
     base_review_hash: mode === 'REVISION' ? base.review_hash : null,
     causal_findings: mode === 'REVISION' ? base.finding_ids : [],
     created_from: mode === 'REVISION'
-      ? { kind: 'PLAN_REVIEW_REVISE', refs: ['issue_comment:2'] }
+      ? { kind: 'PLAN_REVIEW_REVISE', refs: ['issue_comment:2', ...(base.patch_hash ? ['revision_patch:' + base.patch_hash] : [])] }
       : { kind: 'INITIAL_REQUEST', refs: ['issue_comment:1'] },
   });
 }
@@ -187,6 +187,7 @@ function buildArtifacts({ mode = 'INITIAL', baseReview = null, planMutators = {}
         plan_hash: baseReview.plan_hash,
         review_hash: baseReview.review_hash,
         finding_ids: baseReview.finding_ids,
+        patch_hash: baseReview.patch_hash,
       }
       : { application_head: repo.revision },
   );
@@ -280,21 +281,22 @@ function semanticFinding(targetType, targetId, overrides = {}) {
 function baseWithPlanFinding() {
   const base = buildArtifacts();
   const itemA = base.planContract.plan_items.find((item) => item.requirement_id === base.reqA.requirement_id);
-  const report = Review.buildReviewReport({
+  const report = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: base.reviewContext,
     semanticReview: {
       findings: [semanticFinding('PLAN_ITEM', itemA.plan_item_id)],
     },
-  });
+  }));
   assert.equal(report.verdict, 'REVISE');
   return { base, itemA, report };
 }
 
-function makeRevisionBaseInfo(base, report) {
+function makeRevisionBaseInfo(base, report, patch = null) {
   return {
     plan_hash: base.planContract.contract_hash,
     review_hash: report.contract_hash,
     finding_ids: report.findings.filter((row) => row.blocking).map((row) => row.finding_id),
+    patch_hash: patch?.contract_hash || null,
   };
 }
 
@@ -322,12 +324,12 @@ test('VNext-07 construit un AllowedChangeSet borné et préserve le plan item no
 
 test('VNext-07 refuse un finding PLAN_CONTRACT trop large sans dépendances ciblées', () => {
   const base = buildArtifacts();
-  const report = Review.buildReviewReport({
+  const report = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: base.reviewContext,
     semanticReview: {
       findings: [semanticFinding('PLAN_CONTRACT', base.planContract.contract_hash)],
     },
-  });
+  }));
 
   assert.throws(() => Revision.buildAllowedChangeSet({
     reviewContext: base.reviewContext,
@@ -342,7 +344,7 @@ test('VNext-07 refuse un finding PLAN_CONTRACT trop large sans dépendances cibl
 test('VNext-07 calcule la réentrée la plus amont quand plusieurs findings coexistent', () => {
   const base = buildArtifacts();
   const itemB = base.planContract.plan_items.find((item) => item.requirement_id === base.reqB.requirement_id);
-  const report = Review.buildReviewReport({
+  const report = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: base.reviewContext,
     semanticReview: {
       findings: [
@@ -354,7 +356,7 @@ test('VNext-07 calcule la réentrée la plus amont quand plusieurs findings coex
         semanticFinding('PLAN_ITEM', itemB.plan_item_id),
       ],
     },
-  });
+  }));
 
   const allowed = Revision.buildAllowedChangeSet({
     reviewContext: base.reviewContext,
@@ -370,7 +372,7 @@ test('VNext-07 calcule la réentrée la plus amont quand plusieurs findings coex
 test('VNext-07 SOURCE_UNIT reste un anchor et non un objet librement mutable', () => {
   const base = buildArtifacts();
   const unitId = base.requirementRegistry.coverage[0].unit_id;
-  const report = Review.buildReviewReport({
+  const report = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: base.reviewContext,
     semanticReview: {
       findings: [semanticFinding('SOURCE_UNIT', unitId, {
@@ -379,7 +381,7 @@ test('VNext-07 SOURCE_UNIT reste un anchor et non un objet librement mutable', (
         required_correction: 'Ajouter l’exigence manquante depuis cette source.',
       })],
     },
-  });
+  }));
   const allowed = Revision.buildAllowedChangeSet({
     reviewContext: base.reviewContext,
     reviewReport: report,
@@ -424,7 +426,7 @@ test('VNext-07 exige que chaque finding bloquant soit couvert par le RevisionPat
   const base = buildArtifacts();
   const itemA = base.planContract.plan_items.find((item) => item.requirement_id === base.reqA.requirement_id);
   const itemB = base.planContract.plan_items.find((item) => item.requirement_id === base.reqB.requirement_id);
-  const report = Review.buildReviewReport({
+  const report = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: base.reviewContext,
     semanticReview: {
       findings: [
@@ -432,7 +434,7 @@ test('VNext-07 exige que chaque finding bloquant soit couvert par le RevisionPat
         semanticFinding('PLAN_ITEM', itemB.plan_item_id, { finding: 'B incomplet.' }),
       ],
     },
-  });
+  }));
   const allowed = Revision.buildAllowedChangeSet({
     reviewContext: base.reviewContext,
     reviewReport: report,
@@ -500,7 +502,7 @@ test('VNext-07 accepte une correction ciblée et vérifie la préservation exact
     }],
   });
 
-  const baseInfo = makeRevisionBaseInfo(base, report);
+  const baseInfo = makeRevisionBaseInfo(base, report, patch);
   const next = buildArtifacts({
     mode: 'REVISION',
     baseReview: baseInfo,
@@ -511,10 +513,10 @@ test('VNext-07 accepte une correction ciblée et vérifie la préservation exact
       },
     },
   });
-  const nextReport = Review.buildReviewReport({
+  const nextReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: next.reviewContext,
     semanticReview: { findings: [] },
-  });
+  }));
 
   const outcome = Revision.verifyRevisionOutcome({
     allowedChangeSet: allowed,
@@ -525,6 +527,19 @@ test('VNext-07 accepte une correction ciblée et vérifie la préservation exact
     nextReviewReport: nextReport,
   });
   assert.equal(outcome.status, 'RESOLVED');
+  assert.throws(()=>Revision.verifyRevisionOutcome({allowedChangeSet:allowed,revisionPatch:patch,baseArtifacts:base,
+    nextArtifacts:{...next,planningEnvelope:{...next.planningEnvelope,created_from:{...next.planningEnvelope.created_from,refs:[]}}},
+    nextReviewContext:next.reviewContext,nextReviewReport:nextReport}),/PATCH_NOT_BOUND/);
+  const unchanged=buildArtifacts({mode:'REVISION',baseReview:baseInfo,repoFixture:{cwd:base.cwd,revision:base.revision}});
+  const attestation=require('./helpers/review-attestation-fixture').semantic(unchanged.reviewContext);
+  const unchangedReport=Review.buildReviewReport({reviewContext:unchanged.reviewContext,semanticReview:attestation});
+  assert.throws(()=>Revision.verifyRevisionOutcome({allowedChangeSet:allowed,revisionPatch:patch,baseArtifacts:base,
+    nextArtifacts:unchanged,nextReviewContext:unchanged.reviewContext,nextReviewReport:unchangedReport}),/CORRECTION_NOT_APPLIED/);
+  assert.throws(()=>Review.buildReviewReport({reviewContext:unchanged.reviewContext,semanticReview:{...attestation,finding_resolutions:[]}}),/CAUSAL_RESOLUTION_COVERAGE/);
+  const openReport=Review.buildReviewReport({reviewContext:unchanged.reviewContext,semanticReview:{...attestation,
+    finding_resolutions:attestation.finding_resolutions.map(row=>({...row,status:'OPEN'}))}});
+  assert.equal(openReport.verdict,'REVISE');
+
 
   const nextItemB = next.planContract.plan_items.find((item) => item.requirement_id === next.reqB.requirement_id);
   assert.equal(nextItemB.plan_item_id, itemB.plan_item_id);
@@ -550,7 +565,7 @@ test('VNext-07 autorise un nouvel objet dérivé uniquement sous la cible corrig
     }],
   });
 
-  const baseInfo = makeRevisionBaseInfo(base, report);
+  const baseInfo = makeRevisionBaseInfo(base, report, patch);
   const next = buildArtifacts({
     mode: 'REVISION',
     baseReview: baseInfo,
@@ -562,10 +577,10 @@ test('VNext-07 autorise un nouvel objet dérivé uniquement sous la cible corrig
     },
     extraProofFor: base.reqA.requirement_id,
   });
-  const nextReport = Review.buildReviewReport({
+  const nextReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: next.reviewContext,
     semanticReview: { findings: [] },
-  });
+  }));
 
   const outcome = Revision.verifyRevisionOutcome({
     allowedChangeSet: allowed,
@@ -599,7 +614,7 @@ test('VNext-07 détecte une modification d’un objet préservé', () => {
     }],
   });
 
-  const baseInfo = makeRevisionBaseInfo(base, report);
+  const baseInfo = makeRevisionBaseInfo(base, report, patch);
   const next = buildArtifacts({
     mode: 'REVISION',
     baseReview: baseInfo,
@@ -609,10 +624,10 @@ test('VNext-07 détecte une modification d’un objet préservé', () => {
       [base.reqB.requirement_id]: (input) => { input.rationale = 'B modifié sans autorisation.'; },
     },
   });
-  const nextReport = Review.buildReviewReport({
+  const nextReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: next.reviewContext,
     semanticReview: { findings: [] },
-  });
+  }));
 
   assert.throws(() => Revision.verifyRevisionOutcome({
     allowedChangeSet: allowed,
@@ -644,7 +659,7 @@ test('VNext-07 détecte REVISION_STALLED si le même finding persiste', () => {
     }],
   });
 
-  const baseInfo = makeRevisionBaseInfo(base, report);
+  const baseInfo = makeRevisionBaseInfo(base, report, patch);
   const next = buildArtifacts({
     mode: 'REVISION',
     baseReview: baseInfo,
@@ -654,12 +669,12 @@ test('VNext-07 détecte REVISION_STALLED si le même finding persiste', () => {
     },
   });
   const nextItemA = next.planContract.plan_items.find((item) => item.requirement_id === next.reqA.requirement_id);
-  const nextReport = Review.buildReviewReport({
+  const nextReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: next.reviewContext,
     semanticReview: {
       findings: [semanticFinding('PLAN_ITEM', nextItemA.plan_item_id)],
     },
-  });
+  }));
   assert.equal(nextReport.findings[0].finding_id, report.findings[0].finding_id);
 
   assert.throws(() => Revision.verifyRevisionOutcome({
@@ -693,7 +708,7 @@ test('VNext-07 détecte un nouveau finding bloquant sur un objet préservé', ()
     }],
   });
 
-  const baseInfo = makeRevisionBaseInfo(base, report);
+  const baseInfo = makeRevisionBaseInfo(base, report, patch);
   const next = buildArtifacts({
     mode: 'REVISION',
     baseReview: baseInfo,
@@ -702,7 +717,7 @@ test('VNext-07 détecte un nouveau finding bloquant sur un objet préservé', ()
       [base.reqA.requirement_id]: (input) => { input.rationale = 'A corrigé.'; },
     },
   });
-  const nextReport = Review.buildReviewReport({
+  const nextReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: next.reviewContext,
     semanticReview: {
       findings: [semanticFinding('PLAN_ITEM', itemB.plan_item_id, {
@@ -710,7 +725,7 @@ test('VNext-07 détecte un nouveau finding bloquant sur un objet préservé', ()
         required_correction: 'Modifier B.',
       })],
     },
-  });
+  }));
 
   assert.throws(() => Revision.verifyRevisionOutcome({
     allowedChangeSet: allowed,
@@ -725,18 +740,18 @@ test('VNext-07 détecte un nouveau finding bloquant sur un objet préservé', ()
 test('VNext-07 finding_id reste stable entre INITIAL et REVISION pour le même problème', () => {
   const first = buildArtifacts();
   const firstItem = first.planContract.plan_items.find((item) => item.requirement_id === first.reqA.requirement_id);
-  const firstReport = Review.buildReviewReport({
+  const firstReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: first.reviewContext,
     semanticReview: { findings: [semanticFinding('PLAN_ITEM', firstItem.plan_item_id)] },
-  });
+  }));
 
   const baseInfo = makeRevisionBaseInfo(first, firstReport);
   const second = buildArtifacts({ mode: 'REVISION', baseReview: baseInfo, repoFixture: { cwd: first.cwd, revision: first.revision } });
   const secondItem = second.planContract.plan_items.find((item) => item.requirement_id === second.reqA.requirement_id);
-  const secondReport = Review.buildReviewReport({
+  const secondReport = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: second.reviewContext,
     semanticReview: { findings: [semanticFinding('PLAN_ITEM', secondItem.plan_item_id)] },
-  });
+  }));
 
   assert.equal(firstItem.plan_item_id, secondItem.plan_item_id);
   assert.equal(firstReport.findings[0].finding_id, secondReport.findings[0].finding_id);

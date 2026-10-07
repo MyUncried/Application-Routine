@@ -1,0 +1,24 @@
+{
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "controller_head": "564acba33a19214032742c46a46f7c3ea431a32a",
+  "source_revision_run": 37548553181,
+  "qualification_scope": "TARGETED_INCIDENTS_ONLY",
+  "claude_invoked": false,
+  "browser_invoked": false,
+  "v2_modified": false,
+  "pre2_reopened": false,
+  "github_issue_closed": false,
+  "application_published": false,
+  "tests_status": "PASS",
+  "real_data_replay": "PASS",
+  "vnext_live_closure_certified": false,
+  "real_data_replay_scope": "V2_INCIDENT_DATA_THROUGH_VNEXT_ENTRY_READ_ONLY",
+  "increment_count": 28,
+  "cumulative_count": 146,
+  "real_data_finalization_hash": "a9871a8a139654053374921e2808166bc752e33ca4c6865bb337efa49adc810e",
+  "limits": [
+    "Synthetic cases prove validators, not a new VNext GitHub closure.",
+    "Read-only replay proves compatibility with the actual incident data; it neither reopens V2 nor certifies operational VNext.",
+    "Existing INITIAL and REVISION runtime successes are retained; effective VNext GitHub closure remains to be exercised."
+  ]
+}

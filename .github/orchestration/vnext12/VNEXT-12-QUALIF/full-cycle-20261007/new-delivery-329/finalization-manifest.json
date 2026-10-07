@@ -1,0 +1,35 @@
+{
+  "repository": "MyUncried/Application-Routine",
+  "issue": 329,
+  "sliceId": "VNEXT-12-QUALIF",
+  "reviewId": 6047064806,
+  "head": "3db2ac6129f0aaf5b6e47bf1d3030a1fe8a57609",
+  "approvedHead": "3db2ac6129f0aaf5b6e47bf1d3030a1fe8a57609",
+  "baselineHead": "53ebeae733286b55b6d96478cd27c76276e5a346",
+  "incrementHead": "53ebeae733286b55b6d96478cd27c76276e5a346",
+  "planRevision": "53ebeae733286b55b6d96478cd27c76276e5a346",
+  "planPath": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/technical-plan.md",
+  "approvedPlanBlobOid": "4f79546a7afc8e8e2f7203c66b75a4d39dd22986",
+  "reservations": [],
+  "checksReceipt": {
+    "head": "3db2ac6129f0aaf5b6e47bf1d3030a1fe8a57609",
+    "tested_tree_oid": "85fca7ca1de91639ed5e23ecfaa7311ddba07b29",
+    "source_run": 37625815436,
+    "source_artifact": 11484617950,
+    "source_archive_sha256": "9ce6844cfc53dff431b06ec4f73e54cc5f68e274cc3c6c57d48796803395c022",
+    "reuse_basis": "IDENTICAL_COMPLETE_TESTED_TREE",
+    "checks": {
+      "jest": "PASS",
+      "typescript": "PASS",
+      "lint": "PASS",
+      "head": "PASS",
+      "clean": "PASS"
+    }
+  },
+  "reviewSource": {
+    "kind": "CONNECTOR_TECHNICAL_REVIEW",
+    "actor": "MyUncried",
+    "application_slug": "chatgpt-codex-connector",
+    "body_sha256": "b79f81274a826888af28912c0c6b85dbcf4eb3232f5c1af503bfa940eb98a62d"
+  }
+}

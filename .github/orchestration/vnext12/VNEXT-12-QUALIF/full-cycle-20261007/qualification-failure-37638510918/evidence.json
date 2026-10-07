@@ -1,0 +1,46 @@
+{
+  "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+  "request_id": "232ae5f7-dd22-4c95-af90-403e9f9149a4",
+  "source_head": "e4faa5dd855af2ef2726870bebcb6b51714218e3",
+  "run_id": 37638510918,
+  "run_attempt": 1,
+  "status": "FAILURE",
+  "linux": {
+    "job_id": 112850957830,
+    "pass": 408,
+    "fail": 1,
+    "skip": 0,
+    "artifact_id": 11489899366,
+    "sha256": "ed2cc0771e0e79e619d9e5cac4e8d9b7268bec16363f3a03c79d3de3bfe61159"
+  },
+  "windows": {
+    "job_id": 112850957547,
+    "pass": 409,
+    "fail": 0,
+    "skip": 0,
+    "artifact_id": 11491154663,
+    "sha256": "9546af8b23558f8893eec189584352376a54a5222de83817c3b9f0f246d10679"
+  },
+  "diagnostic": "VNEXT_LIVE_PROCESS_FAILED: VNEXT_REVIEW_STDIN_FAILED",
+  "last_comparable_success": {
+    "run_id": 37632486111,
+    "source_head": "9411096c1d78d9b930346af02a30b077b4ccc7e3"
+  },
+  "history": "Supervisor and failing test unchanged since 434adee; no change to these files between the last successful qualification and this failure.",
+  "cause": "Success fixture exits without consuming stdin; supervisor EOF can race child exit on Linux. Empty prompt transport remains strict.",
+  "correction": "Successful fixture consumes stdin and waits for end before emitting final result. Production supervisor unchanged; errors still fail closed.",
+  "local_checks": {
+    "targeted": {
+      "pass": 3,
+      "fail": 0
+    },
+    "vnext": {
+      "pass": 409,
+      "fail": 0,
+      "skip": 0
+    }
+  },
+  "next_qualification_branch": "qualification/vnext-full-cycle-real-stdin-232ae5f7-20261007",
+  "observed_at": "2026-10-07T15:00:33.257Z",
+  "implementation_invoked": false
+}

@@ -1,0 +1,33 @@
+{
+  "status": "VERIFIED",
+  "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+  "candidate_head": "4280eefa7f94c0989154d626e038b6d0c18fb9c3",
+  "run_id": "37533961912",
+  "run_attempt": 1,
+  "jobs": [
+    {
+      "id": 112510065419,
+      "name": "qualification (ubuntu-latest)",
+      "conclusion": "success"
+    },
+    {
+      "id": 112510065782,
+      "name": "qualification (windows-latest)",
+      "conclusion": "success"
+    }
+  ],
+  "observed_at": "2026-10-06T21:35:31.509Z",
+  "controls": {
+    "Linux": {
+      "pass": 369,
+      "fail": 0,
+      "skip": 0
+    },
+    "Windows": {
+      "pass": 369,
+      "fail": 0,
+      "skip": 0
+    }
+  },
+  "protocol_fingerprint": "5f58a0a6d3a3766118aca4ac2e19ca781afc5957e5951ec0523e04621ffd524f"
+}

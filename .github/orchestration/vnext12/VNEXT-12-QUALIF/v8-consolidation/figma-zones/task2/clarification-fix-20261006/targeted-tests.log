@@ -1,0 +1,31 @@
+✔ generic launch automatically orders capture, reconciliation, freeze and requirements before planning (1761.197903ms)
+✔ a declared Figma slice cannot skip source preparation or change the frozen requirement set (443.613514ms)
+✔ new launch identity and different file/frame IDs are generic, not Zones-specific (638.794368ms)
+✔ capture failure, foreign scope and rewritten observations stop before persistence (276.039924ms)
+✔ documentary state needs scenarios and every scenario needs an allocated executable proof (417.249257ms)
+✔ review automatically consumes approved references and compares executed artifact facts (876.445509ms)
+✔ missing/wrong measurement, forged value and wrong delivery head block review (926.602094ms)
+✔ omitted scenario, failed proof, changed artifact and changed approved plan block review (784.970542ms)
+✔ a model cannot approve omitted assertions or blocking findings (1168.834239ms)
+✔ frozen Git serialization survives reordered logical reconstruction and byte drift is still refused (1184.735733ms)
+✔ authoritative document inventory forbids missing states, scenario omission and rewritten documents (325.943495ms)
+✔ measurement extras and altered reference destinations are refused without overwrite (875.539822ms)
+✔ operational produce entry refuses a Figma recipe without launch even when scope is omitted (757.815083ms)
+✔ the original real-reference precheck completes through generic launchAndProduce without any model call (8636.663388ms)
+✔ document-only conditional/persistence state is generated and cannot disappear behind the graphic inventory (368.366958ms)
+✔ existing VNext operational review entry prepares the exact dossier locally without invoking a model (924.135091ms)
+✔ real Figma driver requires the same campaign, bounded scope and explicit technical delegation (1.426968ms)
+✔ qualification and current PR head precede an exclusive persistent claim; duplicate calls cannot reclaim it (447.415915ms)
+✔ delivery bundle and uncommitted working delta remain recoverable after fixture cleanup (851.971214ms)
+✔ delivered inline child tests pass the post-execution write boundary (958.943992ms)
+✔ post-execution boundary refuses untracked helper (389.888345ms)
+✔ post-execution boundary refuses tracked dependency mutation (435.029479ms)
+✔ real driver imports the Boolean behaviour as DOCUMENT_ONLY and retains both scenarios (283.835817ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 20588.589048

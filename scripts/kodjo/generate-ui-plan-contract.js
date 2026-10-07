@@ -10,7 +10,7 @@ function schemaFor(phase) {
     ui_criteria_matrix:matrixSchema,
     plan_status:{type:'string',enum:['READY_FOR_INDEPENDENT_REVIEW','CLARIFICATION_REQUIRED']},
   };
-  if (phase==='draft') properties.modified_modules=array(object({path:text,change:{type:'string',enum:['MODIFY','CREATE']}}),1);
+  if (phase==='draft') properties.modified_modules=array(object({path:text,change:{type:'string',enum:['MODIFY','CREATE','DELETE']}}),1);
   else properties.decisions=array(object({path:text,classification:{type:'string',enum:['MODIFY','TEST_MUST_ADAPT','CONSUMER_UNAFFECTED','TEST_UNAFFECTED','REQUIRES_CLARIFICATION']},justification:text}));
   return object(properties);
 }

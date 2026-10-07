@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const GitIntegrity = require('./lib/git-runtime-integrity');
 const { acquire: acquireExecutionLock, release: releaseExecutionLock } = require('./lib/execution-lock');
 const { initialize: initializeRunDiagnostic } = require('./initialize-run-diagnostic');
 const { consumeLiveToken, verifyLiveTarget } = require('./verify-preflight-live-target');
@@ -12,6 +13,21 @@ const { verifyLocalFreshness } = require('./lib/preflight-freshness');
 const Source = require('./lib/preflight-source');
 const { normalizeScopeCandidate, normalizeScopeRule, inScope } = require('./lib/scope-path');
 const { certifyRecoverySourceMigration } = require('./lib/recovery-migration');
+
+// Keep checks attached to the implementing session until their result is read.
+const CLAUDE_FOREGROUND_CHECK_ENV = Object.freeze({
+  CLAUDE_CODE_DISABLE_BACKGROUND_TASKS: '1',
+  BASH_DEFAULT_TIMEOUT_MS: '900000',
+  BASH_MAX_TIMEOUT_MS: '900000',
+});
+function claudeEnvironment(inherited, request) {
+  const env = { ...inherited, KODJO_MUTATION_SCOPE_JSON: JSON.stringify(request.scope_allow), ...CLAUDE_FOREGROUND_CHECK_ENV };
+  delete env.KODJO_VNEXT_PLAN_READ_JSON;
+  return env;
+}
+function claudeSettings() {
+  return { disableAllHooks: true, env: { ...CLAUDE_FOREGROUND_CHECK_ENV } };
+}
 
 const { runCheck } = require('./lib/checks');
 const {
@@ -25,6 +41,7 @@ function die(code, message) {
 }
 
 function command(bin, args, cwd, env, timeout) {
+  if (bin === 'git') args = GitIntegrity.safeArgs(args);
   return spawnSync(bin, args, {
     cwd, env, encoding: 'utf8', windowsHide: true, shell: false,
     timeout, maxBuffer: 64 * 1024 * 1024,
@@ -400,7 +417,7 @@ function restoreFromPackage(packageDir, repoRoot, request, migrationEvidence) {
       manifest.baseline_head !== request.baseline_head) {
     throw new Error('RECOVERY_PACKAGE_PROVENANCE_MISMATCH');
   }
-  if (manifest.integrity_status && manifest.integrity_status !== 'INTACT') {
+  if (manifest.integrity_status !== 'INTACT') {
     throw new Error('RECOVERY_INTEGRITY_REFUSED: ' + manifest.integrity_status);
   }
   const patch = fs.readFileSync(patchPath, 'utf8');
@@ -515,7 +532,7 @@ function restoreRecovery(stateRoot, repoRoot, request) {
   for (const file of candidates) {
     const candidate = readRecoveryCandidate(file);
     if (!candidate || !sameProvenance(candidate, request)) continue;
-    if (candidate.integrity_status && candidate.integrity_status !== 'INTACT') {
+    if (candidate.integrity_status !== 'INTACT') {
       mutatedSeen = true;
       process.stderr.write('[KODJO_V2] RECOVERY_INTEGRITY_REFUSED: ' + file +
         ' (' + candidate.integrity_status + ') — conserve pour diagnostic, jamais restaure\n');
@@ -625,9 +642,20 @@ function main() {
   const repoRoot = path.resolve(git(['rev-parse', '--show-toplevel'], process.cwd()));
   let request;
   let rawRequest;
+  let assertVNextAdmission = () => null;
+  let vnextAdmission = null;
   try {
     rawRequest = JSON.parse(fs.readFileSync(path.resolve(requestPath), 'utf8').replace(/^\uFEFF/, ''));
-    request = normalizeRequest(rawRequest, repoRoot);
+    // Defense in depth: a direct runner invocation must also re-observe the
+    // exact VNext authorization, before normalization, locks or Claude.
+    const vnextGithub = require('./verify-authorizations').ghClient({
+      env: liveToken ? { ...process.env, GH_TOKEN: liveToken } : process.env,
+    });
+    assertVNextAdmission = () => (vnextAdmission = require('./lib/vnext-live-chain').guardLocalRequest(rawRequest, {
+      cwd: repoRoot, github: vnextGithub, queueFile: process.env.KODJO_VNEXT_QUEUE_FILE,
+    }));
+    assertVNextAdmission();
+    request = normalizeRequest(rawRequest, repoRoot, vnextAdmission);
   } catch (err) {
     return die('REQUEST_REFUSED', err.message);
   }
@@ -683,6 +711,12 @@ function main() {
     return writeFailure('PROMPT_PATH_INVALID', promptRelative);
   }
   const promptBuffer = Source.readFileAtHead(promptRelative, request.protocol_source_head, repoRoot);
+  // VNext only: verify the admitted plan before recovery can touch application files.
+  const RuntimePlan = require('./lib/vnext-runtime-plan');
+  if (vnextAdmission) {
+    try { RuntimePlan.verify(vnextAdmission, { cwd: repoRoot, missionBytes: promptBuffer }); }
+    catch (error) { return writeFailure(error.message, 'approved runtime plan refused before recovery or Claude'); }
+  }
   const promptExistsInExecutionTree = fs.existsSync(request.prompt_file);
   const promptWorktreeHashBefore = promptExistsInExecutionTree ? sha256(fs.readFileSync(request.prompt_file)) : null;
   const initialChanges = changedFiles(repoRoot).filter((f) =>
@@ -751,8 +785,17 @@ function main() {
     return normalized !== promptRelative && path.resolve(file) !== path.resolve(requestPath);
   });
   const restoredDeltaFingerprint = deltaFingerprint(repoRoot, restoredDeltaFiles);
-  let result, beforeRefs, promptBytes, claudeStartedAt, claudeFinishedAt, claudeDurationMs;
+  let result, beforeRefs, beforeGitIntegrity, promptBytes, claudeStartedAt, claudeFinishedAt, claudeDurationMs;
+  let runtimePlan = null, runtimePlanFailure = null;
   const interrupt = (signal) => {
+    if (runtimePlan) {
+      try { RuntimePlan.restore(runtimePlan); }
+      catch (error) { runtimePlanFailure = error.message; }
+    }
+    if (runtimePlan && runtimePlan.identity.state !== 'RESTORED') {
+      writeFailure('VNEXT_RUNTIME_PLAN_RESTORE_REQUIRED', signal, { lock_state: 'RETAINED_CONSERVATIVELY' });
+      process.exit(130);
+    }
     const released = releaseExecutionLock(lock);
     writeFailure('CLAUDE_EXECUTION_INTERRUPTED', signal, { lock_state: released ? 'RELEASED_BY_OWNER' : 'RETAINED_CONSERVATIVELY' });
     process.exit(130);
@@ -767,7 +810,16 @@ function main() {
     fs.chmodSync(path.join(runDir, 'kodjo-file-mutation.js'), 0o500);
     fs.chmodSync(path.join(runDir, 'scope-path.js'), 0o400);
     fs.writeFileSync(path.join(runDir, 'mcp.json'), '{"mcpServers":{}}\n', 'utf8');
-    fs.writeFileSync(path.join(runDir, 'settings.json'), '{"disableAllHooks":true}\n', 'utf8');
+    fs.writeFileSync(path.join(runDir, 'settings.json'), JSON.stringify(claudeSettings()) + '\n', 'utf8');
+    if (vnextAdmission) {
+      try { runtimePlan = RuntimePlan.install(vnextAdmission, { cwd: repoRoot, runDir, missionBytes: promptBuffer }); }
+      catch (error) {
+        runtimePlan = error.runtime_plan || null;
+        return writeFailure(error.message, 'approved plan read view could not be installed; Claude not invoked',
+          { plan_restore_error: error.restore_error || null,
+            plan_journal: runtimePlan?.journalFile || null });
+      }
+    }
     const taskText = promptBuffer.toString('utf8');
     const prompt = buildPrompt(request, taskText, runDir);
     promptBytes = Buffer.byteLength(prompt, 'utf8');
@@ -775,6 +827,7 @@ function main() {
       return writeFailure('PROMPT_BUDGET_EXCEEDED', promptBytes + ' octets');
     }
     beforeRefs = refs(repoRoot);
+    beforeGitIntegrity = GitIntegrity.snapshot(repoRoot, [path.resolve(stateRoot)]);
     const restartProof = verifyInitialRestart(lock);
     const intent = {
       schema_version: 'kodjo.protocol.v2.claude-invocation.0.6.11',
@@ -783,6 +836,8 @@ function main() {
       initial_restart: request.initial_restart || null, initial_restart_proof: restartProof,
       execution_environment: {runner_name:process.env.RUNNER_NAME || null, user_home:os.homedir(), state_root:stateRoot, claude_config_root:path.resolve(process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), '.claude'))},
       source_head: request.source_head, mode: request.mode, prompt_bytes: promptBytes,
+      // Non-secret values supplied at launch, not a claim about Claude's internals.
+      foreground_check_environment: { ...CLAUDE_FOREGROUND_CHECK_ENV },
       config: adapterConfig(), effective_allowed_tools: require('./lib/claude-local').concreteAllowedTools(runDir),
       // KV2-13 : les bornes effectives restent séparées des valeurs par défaut.
       // KV2-24 : aucune borne de tours n'est imposée par KODJO ; la preuve
@@ -790,6 +845,7 @@ function main() {
       limits_effective: request.limits,
       turn_limit_effective: TURN_LIMIT_POLICY,
       recovery_source_head_migration: sourceHeadMigration,
+      ...(runtimePlan ? { approved_plan: runtimePlan.identity } : {}),
       claude_adapter_defaults_sha256: adapterConfigHash(),
       claude_adapter_config_sha256: sha256(JSON.stringify({
         config: adapterConfig(), limits_effective: request.limits,
@@ -807,13 +863,13 @@ function main() {
     intent.state = 'EXTERNAL_CALL_SENT';
     intent.command_sha256 = sha256(JSON.stringify([claudeBin, ...claudePrefix, ...args.slice(0, -1), '[PROMPT]']));
     fs.writeFileSync(path.join(runDir, 'invocation.json'), JSON.stringify(intent, null, 2) + '\n', 'utf8');
-    const claudeEnv = {
-      ...process.env,
-      KODJO_MUTATION_SCOPE_JSON: JSON.stringify(request.scope_allow),
-    };
+    const claudeEnv = claudeEnvironment(process.env, request);
+    if (runtimePlan) Object.assign(claudeEnv, RuntimePlan.environment(runtimePlan));
     assertLiveTarget();
     const claudeStartedMs = Date.now();
     claudeStartedAt = new Date(claudeStartedMs).toISOString();
+    assertVNextAdmission();
+    if (runtimePlan) RuntimePlan.assertView(runtimePlan);
     result = command(claudeBin, [...claudePrefix, ...args], repoRoot, claudeEnv, request.limits.max_duration_seconds * 1000);
     const claudeFinishedMs = Date.now();
     claudeFinishedAt = new Date(claudeFinishedMs).toISOString();
@@ -823,7 +879,11 @@ function main() {
   } finally {
     process.removeListener('SIGINT', interrupt);
     process.removeListener('SIGTERM', interrupt);
-    releaseExecutionLock(lock);
+    if (runtimePlan) {
+      try { RuntimePlan.restore(runtimePlan); }
+      catch (error) { runtimePlanFailure = error.message; }
+    }
+    if (!runtimePlan || runtimePlan.identity.state === 'RESTORED') releaseExecutionLock(lock);
   }
 
   delete process.env.CLAUDE_CODE_OAUTH_TOKEN;
@@ -832,11 +892,19 @@ function main() {
   // produit sur une base mutee est conserve pour diagnostic, puis refuse comme
   // source de reprise. On ne detruit plus le travail pour sanctionner l'etat.
   const afterRefs = refs(repoRoot);
+  const gitIntegrityChanges = GitIntegrity.compare(beforeGitIntegrity,
+    GitIntegrity.snapshot(repoRoot, [path.resolve(stateRoot)]));
+  fs.writeFileSync(path.join(runDir, 'git-runtime-integrity.json'), JSON.stringify({
+    schema_version: 'kodjo.git-runtime-integrity-evidence.v1',
+    before_sha256: beforeGitIntegrity.fingerprint,
+    changed_paths: gitIntegrityChanges, status: gitIntegrityChanges.length ? 'MUTATED' : 'INTACT',
+  }, null, 2) + '\n');
   const refsMutated = beforeRefs !== afterRefs;
   const promptMutated = promptExistsInExecutionTree
     ? (!fs.existsSync(request.prompt_file) || sha256(fs.readFileSync(request.prompt_file)) !== promptWorktreeHashBefore)
     : fs.existsSync(request.prompt_file);
-  const integrityStatus = refsMutated ? 'REFS_MUTATED' : (promptMutated ? 'PROMPT_MUTATED' : 'INTACT');
+  const integrityStatus = gitIntegrityChanges.length ? 'GIT_METADATA_OR_IGNORED_MUTATED'
+    : refsMutated ? 'REFS_MUTATED' : (promptMutated ? 'PROMPT_MUTATED' : 'INTACT');
   const protocolPath = (f) =>
     path.resolve(repoRoot, f) !== path.resolve(requestPath);
   const files = changedFiles(repoRoot).filter(protocolPath);
@@ -851,6 +919,28 @@ function main() {
     recoveryFiles = writeRecovery(runDir, repoRoot, request, files, { runId, integrityStatus });
   } catch (err) {
     return die('RECOVERY_WRITE_FAILED', err.message);
+  }
+
+  if (runtimePlanFailure) {
+    fs.writeFileSync(path.join(runDir, 'result.json'), JSON.stringify({
+      request_id: request.request_id, source_head: request.source_head,
+      status: 'IMPLEMENTATION_INTEGRITY_REFUSED', diagnostic: runtimePlanFailure,
+      modified_files: files, recovery_files: recoveryFiles, recovery_package: null,
+      claude_invoked: true, checks: [], publishable_paths: [],
+      approved_plan: runtimePlan.identity,
+    }, null, 2) + '\n');
+    return die(runtimePlanFailure, 'raw application delta and plan diagnostic conserved; publication refused');
+  }
+
+  if (gitIntegrityChanges.length) {
+    fs.writeFileSync(path.join(runDir, 'result.json'), JSON.stringify({
+      request_id: request.request_id, source_head: request.source_head,
+      integrity_status: integrityStatus, modified_files: files,
+      checks: [], publishable_paths: [], status: 'IMPLEMENTATION_INTEGRITY_REFUSED',
+      git_integrity_changed_paths: gitIntegrityChanges,
+      recovery_package: null,
+    }, null, 2) + '\n');
+    return die('GIT_METADATA_OR_IGNORED_MUTATION_DETECTED', 'raw delta conserved; Git staging, publication and recovery package refused');
   }
 
   let recoveryPackage = null;
@@ -942,6 +1032,7 @@ function main() {
   }
 
   if (integrityStatus !== 'INTACT') {
+    if (gitIntegrityChanges.length) return die('GIT_METADATA_OR_IGNORED_MUTATION_DETECTED', 'delta conserved; publication and recovery refused');
     process.stderr.write('[KODJO_V2] ' + (refsMutated ? 'FUNCTIONAL_REF_MUTATION_DETECTED' : 'PROMPT_MUTATION_DETECTED') +
       ' — delta conserve dans ' + path.join(runDir, 'recovery.json') + ', reprise automatique refusee\n');
     return die(refsMutated ? 'FUNCTIONAL_REF_MUTATION_DETECTED' : 'PROMPT_MUTATION_DETECTED',
@@ -960,6 +1051,8 @@ function main() {
   } catch (err) {
     return die('POST_CHECK_DELTA_UNREADABLE', err.message);
   }
+  const postCheckIntegrity = GitIntegrity.compare(beforeGitIntegrity, GitIntegrity.snapshot(repoRoot, [path.resolve(stateRoot)]));
+  if (postCheckIntegrity.length) return die('POST_CHECK_GIT_INTEGRITY_MUTATED', postCheckIntegrity.join(','));
   const postOutside = postCheckFiles.filter((f) => !inCumulativeScope(f, request));
   const scopeClear = !outsideMutation.length && !outside.length && !postOutside.length;
   const deltaStable = drift.length === 0;
@@ -1026,6 +1119,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  CLAUDE_FOREGROUND_CHECK_ENV, claudeEnvironment, claudeSettings,
   inScope, changedFiles, changedEntries, entryPaths, refs,
   exactRecoveryPaths, inCumulativeScope, mutationPathsSinceRestore, patchPathsFromNumstat,
   recoveryPayload, writeRecovery, restoreRecovery, applyRecovery, consumeLegacyBootstrap,

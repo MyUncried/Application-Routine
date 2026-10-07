@@ -1,0 +1,21 @@
+{
+  "status": "VALIDATED",
+  "expected_parent": "d1746b16bbe957861e369c66b72823579e2ed05e",
+  "candidate_tree": "83a3607867c7fbc5b769a1eb27a9cf8278ef1589",
+  "changed_paths": [
+    ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_TWO_HOURS_RELAUNCH.md",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/campaign-state.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/two-hours-relaunch-20261006/publication-window.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/two-hours-relaunch-20261006/qualification-failure-Linux-37400585436.zip",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/two-hours-relaunch-20261006/qualification-launch.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/two-hours-relaunch-20261006/stale-test-local-checks.zip",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/two-hours-relaunch-20261006/stale-test-local-evidence.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/two-hours-relaunch-20261006/tree-validation.json",
+    ".github/workflows/kodjo-vnext-proof-stability.yml",
+    "tests/kodjo/vnext12-revision-supervisor.pilot.js"
+  ],
+  "targeted_tests": [],
+  "powershell_changed_units": 0,
+  "writer_policy": "PASS_WITH_FROZEN_LEGACY",
+  "historical_subjects": 420
+}

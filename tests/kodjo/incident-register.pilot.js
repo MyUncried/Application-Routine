@@ -142,7 +142,8 @@ test('qualification jetable: cache Jest isolée et cache lint désactivée dans 
   assert.ok(pilotWorkflow.includes('.github/orchestration/v2-slices/*/technical-plan.md|.github/orchestration/v2-slices/*/independent-review.md|.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'));
   assert.ok(pilotWorkflow.includes("- '!.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'"));
   assert.ok(pilotWorkflow.includes("if: needs.protocol.outputs.full_windows_required == 'true'"));
-  assert.ok(pilotWorkflow.includes('timeout-minutes: 25'));
+  const windowsJob = pilotWorkflow.split('  protocol-windows-preflight:')[1].split('\n  disposable-qualification:')[0];
+  assert.match(windowsJob, /timeout-minutes: 60/);
   assert.match(pilotWorkflow, /needs: \[protocol, protocol-windows-preflight\]/);
 });
 

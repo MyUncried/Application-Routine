@@ -1,0 +1,53 @@
+{
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "request_id": "6ea7b481-9de4-463a-a79b-26327a2bbcca",
+  "controller_head": "32893aad0f934c29fdccbb4ced9c5a7e231567df",
+  "qualified_head": "83a192883b78d6df09f4a9d74135524f1f57c4ce",
+  "run_id": "37446216690",
+  "run_attempt": "1",
+  "qualifications": {
+    "approved": {
+      "status": "VERIFIED",
+      "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+      "candidate_head": "83a192883b78d6df09f4a9d74135524f1f57c4ce",
+      "run_id": "37444999937",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 112207578721,
+          "name": "qualification (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112207578928,
+          "name": "qualification (windows-latest)",
+          "conclusion": "success"
+        }
+      ],
+      "observed_at": "2026-10-06T09:55:58.127Z"
+    },
+    "controller": {
+      "status": "VERIFIED",
+      "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+      "candidate_head": "83a192883b78d6df09f4a9d74135524f1f57c4ce",
+      "run_id": "37444999937",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 112207578721,
+          "name": "qualification (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112207578928,
+          "name": "qualification (windows-latest)",
+          "conclusion": "success"
+        }
+      ],
+      "observed_at": "2026-10-06T09:55:58.127Z",
+      "controller_head": "32893aad0f934c29fdccbb4ced9c5a7e231567df",
+      "relation": "EXACT_SAME_PROTOCOL_CODE"
+    }
+  },
+  "started_at": "2026-10-06T09:55:58.340Z"
+}

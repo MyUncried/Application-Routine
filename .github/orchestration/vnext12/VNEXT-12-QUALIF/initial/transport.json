@@ -1,0 +1,9 @@
+{
+  "slice_bootstrap_file": ".github/orchestration/v2-slices/VNEXT-12-QUALIF/slice-bootstrap.json",
+  "slice_bootstrap_sha256": "92aeffd4150e80d2d1ea260bbe30b0a23c1377129b1d7218d0c2b6e63ddbb3f7",
+  "plan_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/initial/technical-plan.md",
+  "review_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/initial/independent-review.md",
+  "prompt_file": ".github/orchestration/vnext12/VNEXT-12-QUALIF/initial/implementation-mission.md",
+  "request_id": "db5ed26b-e1f7-4e0c-a417-1ee1f44748a4",
+  "created_at": "2026-10-07T10:45:50.134507+00:00"
+}

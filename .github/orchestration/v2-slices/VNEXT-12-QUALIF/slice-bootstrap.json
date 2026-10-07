@@ -1,0 +1,27 @@
+{
+  "schema_version": "kodjo.protocol.v2.slice-bootstrap.0.6.12",
+  "protocol": "VNEXT",
+  "vnext_chain_file": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/prepared.json",
+  "slice_id": "VNEXT-12-QUALIF",
+  "issue_number": 269,
+  "repository": "MyUncried/Application-Routine",
+  "target_branch": "protocol/vnext-proof-stability-20260930",
+  "baseline_head": "061660b233e58719d3963a2efd9092880c9f3961",
+  "protocol_version": "0.6.12",
+  "protocol_commit": "061660b233e58719d3963a2efd9092880c9f3961",
+  "previous_slice_id": null,
+  "previous_checkpoint": null,
+  "product_sources": [
+    {
+      "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requirement.md",
+      "sha256": "4a9e1c9ced7cd6125c65012293f2941f4d24e1d198405f7c111e7443ae92014e"
+    }
+  ],
+  "authorized_actors": [
+    "MyUncried",
+    "claude-local"
+  ],
+  "created_at": "2026-10-07T09:34:49.499Z",
+  "activation_registry": ".github/orchestration/v2-activation-registry.json",
+  "slice_bootstrap_sha256": "f6fb8948d421014b5883094bba6671cf684ec5d341977fa0f1692371ae50f2b7"
+}

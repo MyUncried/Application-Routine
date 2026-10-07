@@ -1,0 +1,49 @@
+✔ generic recipe requires a concrete binding and projects a created surface without extending a preserved dependency (1134.484683ms)
+✔ review dependency indices resolve exact catalog IDs while ambiguity, unknown types and bounds stay refused (1.063225ms)
+✔ browser refusal is explicit and no normal browser profile is opened by binary discovery (0.214093ms)
+﹣ actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta (0.315226ms) # SKIP
+﹣ disposable fixed geometry refuses a viewport-relative counterexample at an independent viewport (0.101614ms) # SKIP
+✔ browser cleanup waits for the actual process and profile descendants before removal (326.487882ms)
+✔ browser cleanup failure retains stderr, primary error and isolated profile diagnostics (2.145629ms)
+✔ packaged Chrome precedes Chromium on Linux while an explicit browser remains authoritative (0.319292ms)
+✔ early browser exit retains executable, exit code and actual stderr in the failure (16.285675ms)
+✔ preservation proves a live re-export and rejects a hardcoded equal primitive (2.289756ms)
+✔ Windows termination races are accepted only after root and profile are gone (200.775721ms)
+✔ Windows cleanup inventories profile before waiting for forced root exit (0.617452ms)
+✔ provenance attestation rejects a substituted document or mounted fragment without a browser (0.446394ms)
+✔ browser host resolves only the declared shared import and refuses unrelated modules (4.101981ms)
+✔ generic launch automatically orders capture, reconciliation, freeze and requirements before planning (809.074564ms)
+✔ a declared Figma slice cannot skip source preparation or change the frozen requirement set (230.377595ms)
+✔ new launch identity and different file/frame IDs are generic, not Zones-specific (469.499859ms)
+✔ capture failure, foreign scope and rewritten observations stop before persistence (207.607618ms)
+✔ documentary state needs scenarios and every scenario needs an allocated executable proof (289.913845ms)
+✔ review automatically consumes approved references and compares executed artifact facts (495.448364ms)
+✔ missing/wrong measurement, forged value and wrong delivery head block review (430.007251ms)
+✔ omitted scenario, failed proof, changed artifact and changed approved plan block review (419.755644ms)
+✔ a model cannot approve omitted assertions or blocking findings (382.151207ms)
+✔ frozen Git serialization survives reordered logical reconstruction and byte drift is still refused (665.279444ms)
+✔ authoritative document inventory forbids missing states, scenario omission and rewritten documents (198.547873ms)
+✔ measurement extras and altered reference destinations are refused without overwrite (431.674162ms)
+✔ operational produce entry refuses a Figma recipe without launch even when scope is omitted (309.119348ms)
+✔ the original real-reference precheck completes through generic launchAndProduce without any model call (4532.556315ms)
+✔ document-only conditional/persistence state is generated and cannot disappear behind the graphic inventory (214.874741ms)
+✔ existing VNext operational review entry prepares the exact dossier locally without invoking a model (527.285649ms)
+✔ real Figma driver requires the same campaign, bounded scope and explicit technical delegation (1.867879ms)
+✔ qualification and current PR head precede an exclusive persistent claim; duplicate calls cannot reclaim it (332.871422ms)
+✔ delivery bundle and uncommitted working delta remain recoverable after fixture cleanup (363.628054ms)
+✔ delivered inline child tests pass the post-execution write boundary (442.87586ms)
+✔ post-execution boundary refuses untracked helper (282.952318ms)
+✔ post-execution boundary refuses tracked dependency mutation (287.600673ms)
+✔ real driver imports the Boolean behaviour as DOCUMENT_ONLY and retains both scenarios (259.309593ms)
+✔ write boundary accepts stylesheet geometry and a nested title without an HTML gate (280.699016ms)
+✔ fault injection targets the frame independently of the original CSS declaration syntax (2.856281ms)
+✔ functional gate receipt identifies the executed target and does not masquerade as browser scenario output (319.583265ms)
+✔ test execution cannot change its own target source and retain a passing receipt (346.615136ms)
+ℹ tests 41
+ℹ suites 0
+ℹ pass 39
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 2
+ℹ todo 0
+ℹ duration_ms 10775.257091

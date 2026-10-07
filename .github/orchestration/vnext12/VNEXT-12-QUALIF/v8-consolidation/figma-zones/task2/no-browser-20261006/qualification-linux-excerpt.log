@@ -1,0 +1,16 @@
+2026-10-06T15:48:49.6479154Z ✔ reviewed functional artifact contains the executed Node gate receipt and rejects source drift (389.015959ms)
+2026-10-06T15:48:49.6486445Z ✔ functional observer executes transitions and rejects the injected fault without rendering (304.27173ms)
+2026-10-06T15:48:49.6488112Z ✔ functional gate receipt identifies the executed target and identifies isolated Node scenario output (302.498103ms)
+2026-10-06T15:48:49.6489480Z ✔ test execution cannot change its own target source and retain a passing receipt (296.592077ms)
+2026-10-06T15:48:49.6490722Z ✔ browser and automatic rendering are absent from the executable qualification path (0.416202ms)
+2026-10-06T15:48:49.6544410Z ✔ historical reporter preserves the actual test runner failure and nested browser diagnostic (101.64929ms)
+2026-10-06T15:49:13.0047987Z   ✔ the old approved plan bytes and independent receipt remain bound, not replaceable by a fake REVISE (862.524362ms)
+2026-10-06T15:49:13.0051344Z ✔ reservation keeps the raw server response before final receipt persistence (1.211597ms)
+2026-10-06T15:49:13.0353222Z ℹ tests 329
+2026-10-06T15:49:13.0353311Z ℹ suites 0
+2026-10-06T15:49:13.0353401Z ℹ pass 329
+2026-10-06T15:49:13.0353479Z ℹ fail 0
+2026-10-06T15:49:13.0353573Z ℹ cancelled 0
+2026-10-06T15:49:13.0353656Z ℹ skipped 0
+2026-10-06T15:49:13.0353739Z ℹ todo 0
+2026-10-06T15:49:13.0353855Z ℹ duration_ms 37816.481315

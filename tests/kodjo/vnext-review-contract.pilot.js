@@ -299,10 +299,10 @@ test('VNext-06 INITIAL et REVISION utilisent le même contrat de review', () => 
 
 test('VNext-06 sans finding produit APPROVE mécaniquement', () => {
   const fx = buildFixture();
-  const report = Review.buildReviewReport({
+  const report = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: fx.reviewContext,
     semanticReview: { findings: [] },
-  });
+  }));
   assert.equal(report.verdict, 'APPROVE');
   assert.equal(report.blocking_finding_count, 0);
   assert.deepEqual(report.reentry_stages, []);
@@ -312,12 +312,12 @@ test('VNext-06 sans finding produit APPROVE mécaniquement', () => {
 test('VNext-06 un finding bloquant produit REVISE et réentrée calculée', () => {
   const fx = buildFixture();
   const planItem = fx.planContract.plan_items[0];
-  const report = Review.buildReviewReport({
+  const report = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: fx.reviewContext,
     semanticReview: {
       findings: [finding('PLAN_ITEM', planItem.plan_item_id)],
     },
-  });
+  }));
   assert.equal(report.verdict, 'REVISE');
   assert.equal(report.findings[0].blocking, true);
   assert.equal(report.findings[0].reentry_stage, 'PLAN');
@@ -326,7 +326,7 @@ test('VNext-06 un finding bloquant produit REVISE et réentrée calculée', () =
 
 test('VNext-06 PRODUCT_AMBIGUITY produit CLARIFICATION_REQUIRED', () => {
   const fx = buildFixture();
-  const report = Review.buildReviewReport({
+  const report = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: fx.reviewContext,
     semanticReview: {
       findings: [finding('REQUIREMENT', fx.reqId, {
@@ -335,14 +335,14 @@ test('VNext-06 PRODUCT_AMBIGUITY produit CLARIFICATION_REQUIRED', () => {
         required_correction: 'Obtenir une décision produit explicite.',
       })],
     },
-  });
+  }));
   assert.equal(report.verdict, 'CLARIFICATION_REQUIRED');
   assert.equal(report.findings[0].reentry_stage, 'USER_DECISION');
 });
 
 test('VNext-06 une suggestion seule ne bloque pas APPROVE', () => {
   const fx = buildFixture();
-  const report = Review.buildReviewReport({
+  const report = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: fx.reviewContext,
     semanticReview: {
       findings: [finding('PLAN_CONTRACT', fx.planContract.contract_hash, {
@@ -351,7 +351,7 @@ test('VNext-06 une suggestion seule ne bloque pas APPROVE', () => {
         required_correction: 'Aucune correction bloquante.',
       })],
     },
-  });
+  }));
   assert.equal(report.verdict, 'APPROVE');
   assert.equal(report.findings[0].blocking, false);
   assert.equal(report.findings[0].reentry_stage, 'NONE');
@@ -365,7 +365,7 @@ test('VNext-06 refuse verdict, blocking, finding_id ou reentry fournis par l’I
     { finding_id: 'FND-forced' },
     { reentry_stage: 'NONE' },
   ]) {
-    assert.throws(() => Review.buildReviewReport({
+    assert.throws(() => Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
       reviewContext: fx.reviewContext,
       semanticReview: {
         findings: [{
@@ -373,39 +373,39 @@ test('VNext-06 refuse verdict, blocking, finding_id ou reentry fournis par l’I
           ...extra,
         }],
       },
-    }), /VNEXT_REVIEW_FINDING_KEYS_INVALID/);
+    })), /VNEXT_REVIEW_FINDING_KEYS_INVALID/);
   }
 });
 
 test('VNext-06 refuse un target_id inventé', () => {
   const fx = buildFixture();
-  assert.throws(() => Review.buildReviewReport({
+  assert.throws(() => Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: fx.reviewContext,
     semanticReview: {
       findings: [finding('PLAN_ITEM', 'PLAN-ffffffffffffffffffffffff')],
     },
-  }), /VNEXT_REVIEW_FINDING_TARGET_UNKNOWN/);
+  })), /VNEXT_REVIEW_FINDING_TARGET_UNKNOWN/);
 });
 
 test('VNext-06 refuse une catégorie associée à un mauvais type de cible', () => {
   const fx = buildFixture();
-  assert.throws(() => Review.buildReviewReport({
+  assert.throws(() => Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: fx.reviewContext,
     semanticReview: {
       findings: [finding('PLAN_ITEM', fx.planContract.plan_items[0].plan_item_id, {
         category: 'MISSING_REQUIREMENT',
       })],
     },
-  }), /VNEXT_REVIEW_FINDING_TARGET_TYPE_INCOMPATIBLE/);
+  })), /VNEXT_REVIEW_FINDING_TARGET_TYPE_INCOMPATIBLE/);
 });
 
 test('VNext-06 refuse les findings identiques dupliqués', () => {
   const fx = buildFixture();
   const row = finding('PLAN_ITEM', fx.planContract.plan_items[0].plan_item_id);
-  assert.throws(() => Review.buildReviewReport({
+  assert.throws(() => Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: fx.reviewContext,
     semanticReview: { findings: [row, { ...row }] },
-  }), /VNEXT_REVIEW_FINDING_DUPLICATE/);
+  })), /VNEXT_REVIEW_FINDING_DUPLICATE/);
 });
 
 test('VNext-06 le schéma reviewer borne les IDs et ne contient aucun verdict libre', () => {
@@ -414,6 +414,15 @@ test('VNext-06 le schéma reviewer borne les IDs et ne contient aucun verdict li
   const findingSchema = schema.properties.findings.items;
   assert.ok(findingSchema.properties.target_id.enum.includes(fx.reqId));
   assert.ok(findingSchema.properties.target_id.enum.includes(fx.planContract.contract_hash));
+  assert.deepEqual(findingSchema.anyOf.map(branch => [branch.properties.category.const, branch.properties.target_type.enum]),
+    Review.FINDING_CATEGORIES.map(category => [category, [...Review.CATEGORY_TARGETS[category]]]));
+  const preservation = findingSchema.anyOf.find(branch => branch.properties.category.const === 'PRESERVATION_RISK');
+  assert.ok(preservation.properties.target_type.enum.includes('PLAN_ITEM'));
+  assert.equal(preservation.properties.target_type.enum.includes('PLAN_CONTRACT'), false);
+  assert.throws(() => Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
+    reviewContext: fx.reviewContext,
+    semanticReview: { findings: [finding('PLAN_CONTRACT', fx.planContract.contract_hash, { category: 'PRESERVATION_RISK' })] },
+  })), /VNEXT_REVIEW_FINDING_TARGET_TYPE_INCOMPATIBLE/);
   assert.equal(Object.hasOwn(findingSchema.properties, 'verdict'), false);
   assert.equal(Object.hasOwn(findingSchema.properties, 'blocking'), false);
   assert.equal(Object.hasOwn(findingSchema.properties, 'finding_id'), false);
@@ -453,7 +462,7 @@ test('VNext-06 accepte des findings ciblant Criterion et Assertion réels', () =
   const fx = buildFixture({ ui: true });
   const criterion = fx.uiAtomicityContract.criteria[0];
   const assertion = criterion.assertions[0];
-  const report = Review.buildReviewReport({
+  const report = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
     reviewContext: fx.reviewContext,
     semanticReview: {
       findings: [
@@ -469,7 +478,7 @@ test('VNext-06 accepte des findings ciblant Criterion et Assertion réels', () =
         }),
       ],
     },
-  });
+  }));
   assert.equal(report.verdict, 'REVISE');
   assert.equal(report.findings.every((x) => x.reentry_stage === 'PLAN'), true);
 });
@@ -479,8 +488,17 @@ test('VNext-06 finding_id est déterministe et lié au contexte exact', () => {
   const semanticReview = {
     findings: [finding('PLAN_ITEM', fx.planContract.plan_items[0].plan_item_id)],
   };
-  const a = Review.buildReviewReport({ reviewContext: fx.reviewContext, semanticReview });
-  const b = Review.buildReviewReport({ reviewContext: fx.reviewContext, semanticReview });
+  const a = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({ reviewContext: fx.reviewContext, semanticReview }));
+  const b = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({ reviewContext: fx.reviewContext, semanticReview }));
   assert.equal(a.findings[0].finding_id, b.findings[0].finding_id);
   assert.match(a.findings[0].finding_id, /^FND-[0-9a-f]{24}$/);
+});
+
+test('D7 no findings cannot stand in for missing, partial, duplicate or unknown review coverage', () => {
+  const fx=buildFixture();
+  const full=require('./helpers/review-attestation-fixture').semantic(fx.reviewContext);
+  for(const ids of [undefined,[],full.reviewed_target_ids.slice(1),[...full.reviewed_target_ids,full.reviewed_target_ids[0]],[...full.reviewed_target_ids,'unknown']]){
+    assert.throws(()=>Review.buildReviewReport({reviewContext:fx.reviewContext,semanticReview:{...full,reviewed_target_ids:ids}}),/VNEXT_REVIEW_/);
+  }
+  assert.equal(Review.buildReviewReport({reviewContext:fx.reviewContext,semanticReview:full}).verdict,'APPROVE');
 });

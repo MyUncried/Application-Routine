@@ -1,0 +1,38 @@
+✔ runtime history waits for a successful selected Claude job and never runs after refusal or cancellation (6.027891ms)
+✔ automatic admission does not claim full validation before historical jobs (1.235045ms)
+✔ historical V2 preflight is reusable after Claude while independent VNext PR repeats are skipped (7.162655ms)
+✔ event routing reuses VNext admission and preserves unrelated legacy events (2.678794ms)
+✔ read-only historical callee preserves exact legacy checks and excludes its privileged disposable job (2.394285ms)
+✔ independent workflow parser rejects nested write permissions even for a skipped callee job (74.134049ms)
+✔ native syntax preparation expands GitHub templates while preserving PowerShell interpolation and invalid code (0.892587ms)
+✔ stabilization audit is read-only, waits for both automatic platforms, and launches no runtime or history (6.023995ms)
+✔ real Figma driver requires the same campaign, bounded scope and explicit technical delegation (1.597942ms)
+✔ qualification and current PR head precede an exclusive persistent claim; duplicate calls cannot reclaim it (252.28422ms)
+✔ delivery bundle and uncommitted working delta remain recoverable after fixture cleanup (332.059154ms)
+✔ reviewed functional artifact contains the executed Node gate receipt and rejects source drift (453.502539ms)
+✔ delivered inline child tests pass the post-execution write boundary (373.056681ms)
+✔ post-execution boundary refuses untracked helper (402.559641ms)
+✔ post-execution boundary refuses tracked dependency mutation (268.4818ms)
+✔ real driver imports the Boolean behaviour as DOCUMENT_ONLY and retains both scenarios (198.77726ms)
+✔ write boundary accepts a functional module without any rendering surface (254.311755ms)
+✔ functional observer executes transitions and rejects the injected fault without rendering (337.746648ms)
+✔ functional gate receipt identifies the executed target and identifies isolated Node scenario output (316.18787ms)
+✔ test execution cannot change its own target source and retain a passing receipt (316.940927ms)
+✔ browser and automatic rendering are absent from the executable qualification path (0.315566ms)
+✔ disposable supervisor refuses a moved approval or unauthorized stage before runtime (1.333874ms)
+✔ disposable supervisor rejects remote publishing origins (0.253553ms)
+✔ revision execution uses a new exact approval and requires the admitted one-correction proof (0.415838ms)
+✔ disposable supervisor requires the two actual expected changes and no neighboring change (0.16527ms)
+✔ disposable clone preserves actual Git bytes despite global Windows autocrlf=true (38.205173ms)
+✔ consumption uses the verified stored owner credential rather than the Actions token (0.739967ms)
+✔ a configured consumption credential does not fall back to another account (0.217659ms)
+✔ a pre-invocation API refusal remains the primary failure rather than an empty delta (1.263999ms)
+✔ runtime evidence copy preserves regular files and excludes a dangling junction without following it (1.860209ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3638.023705

@@ -46,6 +46,30 @@ function canonical(value) {
 function sha256(value) {
   return crypto.createHash('sha256').update(typeof value === 'string' ? value : canonical(value), 'utf8').digest('hex');
 }
+const DevicePolicy = require('./lib/device-proof-policy');
+const DEVICE_PROOF_TYPES = DevicePolicy.DEFERABLE_PROOFS;
+// True when there is at least one proof and every proof is either a technical PASS or a device
+// proof still PENDING_DEVICE (a device PASS before the human gate is never accepted).
+function devicePendingOnly(proofs) {
+  const rows = Array.isArray(proofs) ? proofs : [];
+  for (const proof of rows) {
+    const type = String(proof && proof.proof_type || '');
+    const status = String(proof && proof.status || '');
+    if (type === 'VISUAL_COMPARE' || type === 'DEVICE_CHECK' || DevicePolicy.isDeferred(proof)) {
+      if (status !== 'PENDING_DEVICE') return false;
+    } else if (status !== 'PASS') {
+      return false;
+    }
+  }
+  return rows.length > 0;
+}
+function hasPendingDeviceProof(criterion) {
+  const rows = [...(Array.isArray(criterion.proof_results) ? criterion.proof_results : []),
+    ...(Array.isArray(criterion.assertion_results) ? criterion.assertion_results : [])
+      .flatMap((assertion) => Array.isArray(assertion && assertion.proof_results) ? assertion.proof_results : [])];
+  return rows.some((proof) => DEVICE_PROOF_TYPES.has(String(proof && proof.proof_type || '')) &&
+    String(proof && proof.status || '') === 'PENDING_DEVICE');
+}
 
 function verify(args) {
   const [reviewFile, implementationFile, visualFile, queueFile, issueRaw, reviewId, visualId, outputFile] = args;
@@ -140,6 +164,8 @@ function verify(args) {
   let criterionIdsHash = null;
   let technicalReviewHash = null;
   let reviewMode = 'VISUAL_CORRECTION_DELTA';
+  const pendingDeviceProofs = [];
+  let notExecutedProofs = [];
 
   if (operationKind === 'IMPLEMENT') {
     const reviewContract = taggedJson(review, 'KODJO_UI_IMPLEMENTATION_REVIEW_JSON');
@@ -155,19 +181,65 @@ function verify(args) {
     const ids = criteria.map((item) => String(item && item.criterion_id || ''));
     if (ids.some((id) => !id) || new Set(ids).size !== ids.length) fail('V2_FINAL_CRITERIA_INVALID');
     for (const criterion of criteria) {
-      if (criterion.implementation_status !== 'CONFORME' || criterion.preserve_status !== 'PASS') {
+      // Since the review derives each criterion from its assertions (PRE-1, 2026-10-01), a criterion
+      // whose only gaps are device proofs still pending is NON_VERIFIABLE before the human gate.
+      // The human device approval closes exactly those gaps; every technical proof must still PASS.
+      const closedByDeviceGate = deviceGateRequired &&
+        criterion.implementation_status === 'NON_VERIFIABLE' &&
+        hasPendingDeviceProof(criterion) &&
+        devicePendingOnly(criterion.proof_results) &&
+        (Array.isArray(criterion.assertion_results) ? criterion.assertion_results : []).every((assertion) =>
+          ['CONFORME', 'PENDING_DEVICE'].includes(String(assertion && assertion.status || '')) &&
+          devicePendingOnly(assertion.proof_results));
+      if ((criterion.implementation_status !== 'CONFORME' && !closedByDeviceGate) || criterion.preserve_status !== 'PASS') {
         fail('V2_FINAL_CRITERION_NOT_CLOSED', String(criterion.criterion_id));
       }
       const proofs = Array.isArray(criterion.proof_results) ? criterion.proof_results : [];
       for (const proof of proofs) {
         const type = String(proof.proof_type || '');
         const status = String(proof.status || '');
-        if (type === 'VISUAL_COMPARE' || type === 'DEVICE_CHECK') {
+        if (type === 'VISUAL_COMPARE' || type === 'DEVICE_CHECK' || DevicePolicy.isDeferred(proof)) {
           if (status !== 'PENDING_DEVICE') fail('V2_FINAL_DEVICE_PROOF_PRE_GATE_INVALID', String(criterion.criterion_id) + ':' + type);
+          if (!deviceGateRequired) fail('V2_FINAL_DEVICE_GATE_MISMATCH');
+          pendingDeviceProofs.push({ ...proof, criterion_id: criterion.criterion_id,
+            implementation_status: criterion.implementation_status });
         } else if (status !== 'PASS') {
           fail('V2_FINAL_TECHNICAL_PROOF_NOT_PASS', String(criterion.criterion_id) + ':' + type);
         }
       }
+    }
+    const nonUi = reviewContract.non_ui_plan_assessment;
+    if (!criteria.length && (!nonUi || !Array.isArray(nonUi.requirements) || !nonUi.requirements.length)) fail('V2_FINAL_NON_UI_ASSESSMENT_REQUIRED');
+    if (nonUi) {
+      if (nonUi.status !== 'CONFORME' || !Array.isArray(nonUi.requirements) || !nonUi.requirements.length) fail('V2_FINAL_NON_UI_NOT_CLOSED');
+      const seen = new Set();
+      for (const requirement of nonUi.requirements) {
+        const id = String(requirement.requirement_id || requirement.plan_requirement || '');
+        if (!id || seen.has(id) || !String(requirement.evidence || '').trim()) fail('V2_FINAL_NON_UI_INVALID');
+        seen.add(id);
+        const proofs = requirement.proof_results;
+        if (requirement.requirement_id && (!Array.isArray(proofs) || !proofs.length)) fail('V2_FINAL_NON_UI_PROOF_MISSING', id);
+        const gap = deviceGateRequired && requirement.status === 'NON_VERIFIABLE' && DevicePolicy.deviceOnlyGap(proofs, true);
+        if (requirement.status !== 'CONFORME' && !gap) fail('V2_FINAL_NON_UI_NOT_CLOSED', id);
+        for (const proof of proofs || []) {
+          if (DevicePolicy.isDeferred(proof)) {
+            if (!deviceGateRequired) fail('V2_FINAL_DEVICE_GATE_MISMATCH');
+            pendingDeviceProofs.push({...proof, requirement_id: id});
+          } else if (proof.status !== 'PASS') fail('V2_FINAL_TECHNICAL_PROOF_NOT_PASS', id);
+        }
+      }
+    }
+    notExecutedProofs = Array.isArray(reviewContract.device_check_derogations)
+      ? reviewContract.device_check_derogations.map(row => ({...row})) : [];
+    if (notExecutedProofs.some(row => row.status !== 'NOT_EXECUTED')) fail('V2_FINAL_DEROGATION_STATUS_INVALID');
+    for(const derogation of notExecutedProofs){
+      const requirement=nonUi?.requirements?.find(row=>row.requirement_id===derogation.requirement_id);
+      if(!requirement||derogation.proof_type!=='DEVICE_CHECK'||!requirement.proof_results?.some(row=>row.proof_type==='DEVICE_CHECK'&&row.status==='PENDING_DEVICE'))fail('V2_FINAL_DEROGATION_SCOPE_INVALID');
+    }
+    if(reviewContract.delivery_preservation_reference){
+      const reference=reviewContract.delivery_preservation_reference;
+      if(!SHA40.test(reference.head)||reference.head!==baseHead||reference.proof_policy!=='FRESH_REVIEW_ALL_RETAINED_CRITERIA'||!Array.isArray(reference.not_executed_proofs)||reference.not_executed_proofs.some(row=>row.status!=='NOT_EXECUTED'))fail('VNEXT_DELIVERY_HISTORICAL_PROOF_REFERENCE_INVALID');
+      notExecutedProofs.push(...reference.not_executed_proofs.map(row=>({...row,origin_head:reference.head,evidence_scope:'PREVIOUS_DELIVERY_REFERENCE'})));
     }
     const boundaries = Array.isArray(reviewContract.boundary_results) ? reviewContract.boundary_results : [];
     if (boundaries.some((row) => String(row && row.status || '') !== 'PASS')) fail('V2_FINAL_BOUNDARY_NOT_PASS');
@@ -201,6 +273,10 @@ function verify(args) {
     criterion_ids_sha256: criterionIdsHash,
     technical_review_sha256: technicalReviewHash,
     device_evidence_satisfied: true,
+    device_evidence_scope: 'USER_APPROVAL_OF_EXACT_DELIVERY',
+    pending_device_proofs: pendingDeviceProofs,
+    not_executed_proofs: notExecutedProofs,
+    all_device_proofs_executed: pendingDeviceProofs.length === 0 && notExecutedProofs.length === 0,
     final_status: 'READY_TO_CLOSE',
   };
   if (targeted) {
@@ -216,6 +292,7 @@ function verify(args) {
     result.global_conformance='NON_CONFORME';
     result.final_status='REQUALIFICATION_REQUIRED';
     result.device_evidence_satisfied=false;
+    result.device_evidence_scope='USER_APPROVAL_OF_EXACT_DELTA';
     result.targeted_device_evidence_satisfied=true;
     result.global_approval=false;
     result.merge_authorized=false;

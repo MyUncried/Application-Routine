@@ -58,6 +58,11 @@ function buildArtifactGraph({
     ));
   }
 
+  for (const criterion of planContract.delivery_preservation?.retained_criteria || []) {
+    add(record('CRITERION', criterion.criterion_id, criterion));
+    for (const assertion of criterion.assertions || []) add(record('ASSERTION', assertion.assertion_id, assertion, [criterion.criterion_id]));
+  }
+
   const impactsByRequirement = new Map();
   for (const impact of impactGraph.impacts || []) {
     const list = impactsByRequirement.get(impact.requirement_id) || [];
@@ -679,6 +684,10 @@ function verifyRevisionOutcome({
   const nextGraph = buildArtifactGraph(nextArtifacts);
   assertContextArtifactHashes(nextReviewContext, nextArtifacts);
   assertCatalogMatches(nextReviewContext, nextGraph);
+  const envelope = nextArtifacts.planningEnvelope;
+  if (!envelope?.created_from?.refs?.includes('revision_patch:' + revisionPatch.contract_hash)) V.fail('VNEXT_REVISION_PATCH_NOT_BOUND');
+  if (V.canonicalStringify(nextReviewReport.finding_resolutions.map(row => row.finding_id).sort())
+      !== V.canonicalStringify([...allowedChangeSet.blocking_finding_ids].sort())) V.fail('VNEXT_REVISION_RESOLUTION_COVERAGE');
 
   for (const preserved of allowedChangeSet.preserved_targets) {
     const next = nextGraph.records.get(preserved.target_id);
@@ -692,6 +701,12 @@ function verifyRevisionOutcome({
     ...allowedChangeSet.derived_targets.map((row) => row.target_id),
   ]);
   const newAllowed = allowedNewTargets(baseGraph, nextGraph, mutableBaseIds);
+  for (const correction of revisionPatch.corrections) {
+    const before = baseGraph.records.get(correction.target_id);
+    const candidates = [...nextGraph.records.values()].filter(row => row.target_id === before.target_id
+      || (row.target_type === before.target_type && sameParent(row, before)));
+    if (!candidates.some(row => row.object_hash !== before.object_hash)) V.fail('VNEXT_REVISION_CORRECTION_NOT_APPLIED', correction.target_id);
+  }
 
   for (const row of nextGraph.records.values()) {
     if (baseGraph.records.has(row.target_id)) continue;

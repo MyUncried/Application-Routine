@@ -533,11 +533,43 @@ test('run 34943819818 — le plan réel passe sur la PR #131 et échoue sur le H
   const reviewBody = fs.readFileSync(path.join(root,
     '.github/orchestration/v2-slices/V2-BILAT-01/independent-review.md'), 'utf8');
   assert.equal(A.resolveImpactApplicationHead(bootstrap, planBody), applicationHead);
-  assert.equal(P.verifyPlanAtRevision({
+  // Preserve the historical proof with its exact old scanner. D12 extends the
+  // fingerprint to assets/tsconfig, so an old approval must not silently admit
+  // under the new algorithm. The next matrix/review below are UNIT_TEST_ONLY.
+  const reference = '952b23b3c0bbe258edb93a155abde5c58a5795e0:scripts/kodjo/lib/plan-impact.js';
+  const oldSource = spawnSync('git', ['show', reference], { cwd: root, encoding: 'utf8' });
+  assert.equal(oldSource.status, 0, oldSource.stderr);
+  const oldBytes = Buffer.from(oldSource.stdout);
+  assert.equal(crypto.createHash('sha1').update(Buffer.concat([
+    Buffer.from('blob ' + oldBytes.length + '\0'), oldBytes,
+  ])).digest('hex'), '6c69cae39422986233e053c12e9544bb5fab05df');
+  const historicalModule = { exports: {} };
+  require('node:vm').runInNewContext(oldSource.stdout, {
+    require, module: historicalModule, Buffer, process,
+  });
+  const historical = historicalModule.exports;
+  assert.equal(historical.verifyPlanAtRevision({
     cwd: root, sourceHead: applicationHead, planMarkdown: planBody, reviewMarkdown: reviewBody,
   }).replay_scan.scan_revision, applicationHead);
-  assert.throws(() => P.verifyPlanAtRevision({
+  assert.throws(() => historical.verifyPlanAtRevision({
     cwd: root, sourceHead: protocolHead, planMarkdown: planBody, reviewMarkdown: reviewBody,
+  }), /PLAN_SCAN_(?:PATH_INVALID|STALE)/);
+  assert.throws(() => P.verifyPlanAtRevision({
+    cwd: root, sourceHead: applicationHead, planMarkdown: planBody, reviewMarkdown: reviewBody,
+  }), /PLAN_SCOPE_CONTRADICTION/);
+  const matrix = P.extractTaggedJson(planBody, 'KODJO_PLAN_IMPACT_JSON');
+  const scan = P.scanDirectImporters({ cwd: root, revision: applicationHead, modifiedModules: matrix.modified_modules });
+  matrix.scan_sha256 = P.sha256(scan);
+  const verified = P.verifyImpactMatrix(matrix, scan, matrix.scan_revision);
+  const currentPlan = planBody.replace(/<KODJO_PLAN_IMPACT_JSON>[\s\S]*?<\/KODJO_PLAN_IMPACT_JSON>/,
+    '<KODJO_PLAN_IMPACT_JSON>\n' + JSON.stringify(matrix) + '\n</KODJO_PLAN_IMPACT_JSON>');
+  const currentReview = reviewBody.replace(/<KODJO_PLAN_IMPACT_REVIEW_JSON>[\s\S]*?<\/KODJO_PLAN_IMPACT_REVIEW_JSON>/,
+    '<KODJO_PLAN_IMPACT_REVIEW_JSON>\n' + JSON.stringify(P.buildReviewProof(verified)) + '\n</KODJO_PLAN_IMPACT_REVIEW_JSON>');
+  assert.equal(P.verifyPlanAtRevision({
+    cwd: root, sourceHead: applicationHead, planMarkdown: currentPlan, reviewMarkdown: currentReview,
+  }).replay_scan.scan_revision, applicationHead);
+  assert.throws(() => P.verifyPlanAtRevision({
+    cwd: root, sourceHead: protocolHead, planMarkdown: currentPlan, reviewMarkdown: currentReview,
   }), /PLAN_SCAN_(?:PATH_INVALID|STALE)/);
 });
 

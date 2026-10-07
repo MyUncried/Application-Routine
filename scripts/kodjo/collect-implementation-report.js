@@ -15,6 +15,7 @@ function collect(runDir,requestId,sourceHead){
     report_present:text.includes('KODJO_IMPLEMENTATION_CONFORMANCE'),
     stop_marker_present:/^KODJO_STOP_STATUS:\s*[A-Z_]+\s*$/m.test(text),
     original_text_sha256:crypto.createHash('sha256').update(text).digest('hex'),
+    machine_evidence:{modified_files:result.modified_files||[],checks:result.checks||[],out_of_scope_files:result.out_of_scope_files||[],post_check_drift:result.post_check_drift||[]},
     structural_assessment:{status:assessment.status,errors:assessment.errors.slice(0,20).map(error=>error.slice(0,200)),criterion_count:assessment.criterion_ids.length},truncated:false,report_text:text};
   // Keep the comment under GitHub's size bound without silently claiming that
   // a shortened report is complete. Full stdout remains in diagnostic evidence.

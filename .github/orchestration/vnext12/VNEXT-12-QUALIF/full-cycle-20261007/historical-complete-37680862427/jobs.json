@@ -1,0 +1,1094 @@
+[
+  {
+    "id": 112996226794,
+    "run_id": 37680862427,
+    "workflow_name": "KODJO VNext-12 disposable preparation",
+    "head_branch": "protocol/vnext-proof-stability-20260930",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37680862427",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaTxmW6g",
+    "head_sha": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/112996226794",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37680862427/job/112996226794",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-10-07T20:17:22Z",
+    "started_at": "2026-10-07T20:17:24Z",
+    "completed_at": "2026-10-07T20:17:30Z",
+    "name": "select-stage",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-10-07T20:17:24Z",
+        "completed_at": "2026-10-07T20:17:25Z"
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-10-07T20:17:25Z",
+        "completed_at": "2026-10-07T20:17:28Z"
+      },
+      {
+        "name": "Select the explicitly requested stage",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-10-07T20:17:28Z",
+        "completed_at": "2026-10-07T20:17:28Z"
+      },
+      {
+        "name": "Check the disposable supervisor before any runtime execution",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 4,
+        "started_at": "2026-10-07T20:17:28Z",
+        "completed_at": "2026-10-07T20:17:28Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-10-07T20:17:28Z",
+        "completed_at": "2026-10-07T20:17:28Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-10-07T20:17:28Z",
+        "completed_at": "2026-10-07T20:17:28Z"
+      }
+    ],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/112996226794",
+    "labels": [
+      "ubuntu-latest"
+    ],
+    "runner_id": 1000001955,
+    "runner_name": "GitHub Actions 1000001955",
+    "runner_group_id": 0,
+    "runner_group_name": "GitHub Actions"
+  },
+  {
+    "id": 112996292648,
+    "run_id": 37680862427,
+    "workflow_name": "KODJO VNext-12 disposable preparation",
+    "head_branch": "protocol/vnext-proof-stability-20260930",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37680862427",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaTxqYKA",
+    "head_sha": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/112996292648",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37680862427/job/112996292648",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-10-07T20:17:31Z",
+    "started_at": "2026-10-07T20:17:33Z",
+    "completed_at": "2026-10-07T20:32:35Z",
+    "name": "3 - Historical assertions (windows-latest)",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-10-07T20:17:34Z",
+        "completed_at": "2026-10-07T20:17:36Z"
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-10-07T20:17:36Z",
+        "completed_at": "2026-10-07T20:17:48Z"
+      },
+      {
+        "name": "Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-10-07T20:17:48Z",
+        "completed_at": "2026-10-07T20:18:18Z"
+      },
+      {
+        "name": "Install isolated pinned tokenizer",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-10-07T20:18:18Z",
+        "completed_at": "2026-10-07T20:18:29Z"
+      },
+      {
+        "name": "Run actions/setup-python@v5",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-10-07T20:18:29Z",
+        "completed_at": "2026-10-07T20:18:30Z"
+      },
+      {
+        "name": "Install independent YAML parser",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-10-07T20:18:30Z",
+        "completed_at": "2026-10-07T20:18:41Z"
+      },
+      {
+        "name": "Execute full historical assertions after the successful runtime",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-10-07T20:18:41Z",
+        "completed_at": "2026-10-07T20:32:29Z"
+      },
+      {
+        "name": "Resolve retained assertions on the exact candidate",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-10-07T20:32:29Z",
+        "completed_at": "2026-10-07T20:32:30Z"
+      },
+      {
+        "name": "Preserve historical evidence and actual diagnostics",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-10-07T20:32:30Z",
+        "completed_at": "2026-10-07T20:32:31Z"
+      },
+      {
+        "name": "Post Run actions/setup-python@v5",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 16,
+        "started_at": "2026-10-07T20:32:31Z",
+        "completed_at": "2026-10-07T20:32:31Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 17,
+        "started_at": "2026-10-07T20:32:31Z",
+        "completed_at": "2026-10-07T20:32:31Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 18,
+        "started_at": "2026-10-07T20:32:31Z",
+        "completed_at": "2026-10-07T20:32:33Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 19,
+        "started_at": "2026-10-07T20:32:33Z",
+        "completed_at": "2026-10-07T20:32:33Z"
+      }
+    ],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/112996292648",
+    "labels": [
+      "windows-latest"
+    ],
+    "runner_id": 1000001957,
+    "runner_name": "GitHub Actions 1000001957",
+    "runner_group_id": 0,
+    "runner_group_name": "GitHub Actions"
+  },
+  {
+    "id": 112996292742,
+    "run_id": 37680862427,
+    "workflow_name": "KODJO VNext-12 disposable preparation",
+    "head_branch": "protocol/vnext-proof-stability-20260930",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37680862427",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaTxqYhg",
+    "head_sha": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/112996292742",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37680862427/job/112996292742",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-10-07T20:17:31Z",
+    "started_at": "2026-10-07T20:17:33Z",
+    "completed_at": "2026-10-07T20:19:29Z",
+    "name": "3 - Historical assertions (ubuntu-latest)",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-10-07T20:17:33Z",
+        "completed_at": "2026-10-07T20:17:34Z"
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-10-07T20:17:34Z",
+        "completed_at": "2026-10-07T20:17:38Z"
+      },
+      {
+        "name": "Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-10-07T20:17:38Z",
+        "completed_at": "2026-10-07T20:17:39Z"
+      },
+      {
+        "name": "Install isolated pinned tokenizer",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-10-07T20:17:39Z",
+        "completed_at": "2026-10-07T20:17:40Z"
+      },
+      {
+        "name": "Run actions/setup-python@v5",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-10-07T20:17:40Z",
+        "completed_at": "2026-10-07T20:17:40Z"
+      },
+      {
+        "name": "Install independent YAML parser",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-10-07T20:17:40Z",
+        "completed_at": "2026-10-07T20:17:42Z"
+      },
+      {
+        "name": "Execute full historical assertions after the successful runtime",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-10-07T20:17:42Z",
+        "completed_at": "2026-10-07T20:19:25Z"
+      },
+      {
+        "name": "Resolve retained assertions on the exact candidate",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-10-07T20:19:25Z",
+        "completed_at": "2026-10-07T20:19:26Z"
+      },
+      {
+        "name": "Preserve historical evidence and actual diagnostics",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-10-07T20:19:26Z",
+        "completed_at": "2026-10-07T20:19:27Z"
+      },
+      {
+        "name": "Post Run actions/setup-python@v5",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 16,
+        "started_at": "2026-10-07T20:19:27Z",
+        "completed_at": "2026-10-07T20:19:27Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 17,
+        "started_at": "2026-10-07T20:19:27Z",
+        "completed_at": "2026-10-07T20:19:27Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 18,
+        "started_at": "2026-10-07T20:19:27Z",
+        "completed_at": "2026-10-07T20:19:27Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 19,
+        "started_at": "2026-10-07T20:19:27Z",
+        "completed_at": "2026-10-07T20:19:27Z"
+      }
+    ],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/112996292742",
+    "labels": [
+      "ubuntu-latest"
+    ],
+    "runner_id": 1000001956,
+    "runner_name": "GitHub Actions 1000001956",
+    "runner_group_id": 0,
+    "runner_group_name": "GitHub Actions"
+  },
+  {
+    "id": 112996292921,
+    "run_id": 37680862427,
+    "workflow_name": "KODJO VNext-12 disposable preparation",
+    "head_branch": "protocol/vnext-proof-stability-20260930",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37680862427",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaTxqZOQ",
+    "head_sha": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/112996292921",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37680862427/job/112996292921",
+    "status": "completed",
+    "conclusion": "skipped",
+    "created_at": "2026-10-07T20:17:31Z",
+    "started_at": "2026-10-07T20:17:31Z",
+    "completed_at": "2026-10-07T20:17:31Z",
+    "name": "Finalize the published VNext certification delivery",
+    "steps": [],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/112996292921",
+    "labels": [
+      "ubuntu-latest"
+    ],
+    "runner_id": null,
+    "runner_name": null,
+    "runner_group_id": null,
+    "runner_group_name": null
+  },
+  {
+    "id": 112996293152,
+    "run_id": 37680862427,
+    "workflow_name": "KODJO VNext-12 disposable preparation",
+    "head_branch": "protocol/vnext-proof-stability-20260930",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37680862427",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaTxqaIA",
+    "head_sha": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/112996293152",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37680862427/job/112996293152",
+    "status": "completed",
+    "conclusion": "skipped",
+    "created_at": "2026-10-07T20:17:31Z",
+    "started_at": "2026-10-07T20:17:31Z",
+    "completed_at": "2026-10-07T20:17:31Z",
+    "name": "Continue VNext certification - three incidents only",
+    "steps": [],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/112996293152",
+    "labels": [
+      "self-hosted",
+      "Windows",
+      "X64",
+      "kodjo-claude-local"
+    ],
+    "runner_id": null,
+    "runner_name": null,
+    "runner_group_id": null,
+    "runner_group_name": null
+  },
+  {
+    "id": 112996293304,
+    "run_id": 37680862427,
+    "workflow_name": "KODJO VNext-12 disposable preparation",
+    "head_branch": "protocol/vnext-proof-stability-20260930",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37680862427",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaTxqauA",
+    "head_sha": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/112996293304",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37680862427/job/112996293304",
+    "status": "completed",
+    "conclusion": "skipped",
+    "created_at": "2026-10-07T20:17:31Z",
+    "started_at": "2026-10-07T20:17:31Z",
+    "completed_at": "2026-10-07T20:17:31Z",
+    "name": "Real Figma INITIAL and one bounded correction",
+    "steps": [],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/112996293304",
+    "labels": [
+      "self-hosted",
+      "Windows",
+      "X64",
+      "kodjo-claude-local"
+    ],
+    "runner_id": null,
+    "runner_name": null,
+    "runner_group_id": null,
+    "runner_group_name": null
+  },
+  {
+    "id": 112996293406,
+    "run_id": 37680862427,
+    "workflow_name": "KODJO VNext-12 disposable preparation",
+    "head_branch": "protocol/vnext-proof-stability-20260930",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37680862427",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaTxqbHg",
+    "head_sha": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/112996293406",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37680862427/job/112996293406",
+    "status": "completed",
+    "conclusion": "skipped",
+    "created_at": "2026-10-07T20:17:31Z",
+    "started_at": "2026-10-07T20:17:31Z",
+    "completed_at": "2026-10-07T20:17:31Z",
+    "name": "1 - Verify exact automatic controls",
+    "steps": [],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/112996293406",
+    "labels": [
+      "ubuntu-latest"
+    ],
+    "runner_id": null,
+    "runner_name": null,
+    "runner_group_id": null,
+    "runner_group_name": null
+  },
+  {
+    "id": 112996293708,
+    "run_id": 37680862427,
+    "workflow_name": "KODJO VNext-12 disposable preparation",
+    "head_branch": "protocol/vnext-proof-stability-20260930",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37680862427",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaTxqcTA",
+    "head_sha": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/112996293708",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37680862427/job/112996293708",
+    "status": "completed",
+    "conclusion": "skipped",
+    "created_at": "2026-10-07T20:17:31Z",
+    "started_at": "2026-10-07T20:17:31Z",
+    "completed_at": "2026-10-07T20:17:31Z",
+    "name": "qualify-driver",
+    "steps": [],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/112996293708",
+    "labels": [],
+    "runner_id": null,
+    "runner_name": null,
+    "runner_group_id": null,
+    "runner_group_name": null
+  },
+  {
+    "id": 112996293892,
+    "run_id": 37680862427,
+    "workflow_name": "KODJO VNext-12 disposable preparation",
+    "head_branch": "protocol/vnext-proof-stability-20260930",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37680862427",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaTxqdBA",
+    "head_sha": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/112996293892",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37680862427/job/112996293892",
+    "status": "completed",
+    "conclusion": "skipped",
+    "created_at": "2026-10-07T20:17:31Z",
+    "started_at": "2026-10-07T20:17:31Z",
+    "completed_at": "2026-10-07T20:17:31Z",
+    "name": "Execute approved disposable INITIAL or REVISION",
+    "steps": [],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/112996293892",
+    "labels": [
+      "self-hosted",
+      "Windows",
+      "X64",
+      "kodjo-claude-local"
+    ],
+    "runner_id": null,
+    "runner_name": null,
+    "runner_group_id": null,
+    "runner_group_name": null
+  },
+  {
+    "id": 112996294263,
+    "run_id": 37680862427,
+    "workflow_name": "KODJO VNext-12 disposable preparation",
+    "head_branch": "protocol/vnext-proof-stability-20260930",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37680862427",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaTxqedw",
+    "head_sha": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/112996294263",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37680862427/job/112996294263",
+    "status": "completed",
+    "conclusion": "skipped",
+    "created_at": "2026-10-07T20:17:31Z",
+    "started_at": "2026-10-07T20:17:31Z",
+    "completed_at": "2026-10-07T20:17:31Z",
+    "name": "prepare-initial",
+    "steps": [],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/112996294263",
+    "labels": [
+      "self-hosted",
+      "Windows",
+      "X64",
+      "kodjo-claude-local"
+    ],
+    "runner_id": null,
+    "runner_name": null,
+    "runner_group_id": null,
+    "runner_group_name": null
+  },
+  {
+    "id": 112996294318,
+    "run_id": 37680862427,
+    "workflow_name": "KODJO VNext-12 disposable preparation",
+    "head_branch": "protocol/vnext-proof-stability-20260930",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37680862427",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaTxqerg",
+    "head_sha": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/112996294318",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37680862427/job/112996294318",
+    "status": "completed",
+    "conclusion": "skipped",
+    "created_at": "2026-10-07T20:17:31Z",
+    "started_at": "2026-10-07T20:17:31Z",
+    "completed_at": "2026-10-07T20:17:31Z",
+    "name": "prepare-revision",
+    "steps": [],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/112996294318",
+    "labels": [
+      "self-hosted",
+      "Windows",
+      "X64",
+      "kodjo-claude-local"
+    ],
+    "runner_id": null,
+    "runner_name": null,
+    "runner_group_id": null,
+    "runner_group_name": null
+  },
+  {
+    "id": 113002842871,
+    "run_id": 37680862427,
+    "workflow_name": "KODJO VNext-12 disposable preparation",
+    "head_branch": "protocol/vnext-proof-stability-20260930",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37680862427",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaT36K9w",
+    "head_sha": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/113002842871",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37680862427/job/113002842871",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-10-07T20:32:35Z",
+    "started_at": "2026-10-07T20:32:37Z",
+    "completed_at": "2026-10-07T20:32:44Z",
+    "name": "historical-platform-coverage",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-10-07T20:32:38Z",
+        "completed_at": "2026-10-07T20:32:39Z"
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-10-07T20:32:39Z",
+        "completed_at": "2026-10-07T20:32:41Z"
+      },
+      {
+        "name": "Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-10-07T20:32:41Z",
+        "completed_at": "2026-10-07T20:32:42Z"
+      },
+      {
+        "name": "Run actions/download-artifact@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-10-07T20:32:42Z",
+        "completed_at": "2026-10-07T20:32:42Z"
+      },
+      {
+        "name": "Require every mapped assertion to pass on at least one OS",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-10-07T20:32:42Z",
+        "completed_at": "2026-10-07T20:32:42Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-10-07T20:32:42Z",
+        "completed_at": "2026-10-07T20:32:42Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-10-07T20:32:42Z",
+        "completed_at": "2026-10-07T20:32:43Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-10-07T20:32:43Z",
+        "completed_at": "2026-10-07T20:32:43Z"
+      }
+    ],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/113002842871",
+    "labels": [
+      "ubuntu-latest"
+    ],
+    "runner_id": 1000001958,
+    "runner_name": "GitHub Actions 1000001958",
+    "runner_group_id": 0,
+    "runner_group_name": "GitHub Actions"
+  },
+  {
+    "id": 113002911137,
+    "run_id": 37680862427,
+    "workflow_name": "KODJO VNext-12 disposable preparation",
+    "head_branch": "protocol/vnext-proof-stability-20260930",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37680862427",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaT3-VoQ",
+    "head_sha": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/113002911137",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37680862427/job/113002911137",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-10-07T20:32:45Z",
+    "started_at": "2026-10-07T20:32:47Z",
+    "completed_at": "2026-10-07T20:33:03Z",
+    "name": "3 - Historical checks on the persistent Windows runner / protocol",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-10-07T20:32:48Z",
+        "completed_at": "2026-10-07T20:32:49Z"
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-10-07T20:32:49Z",
+        "completed_at": "2026-10-07T20:32:54Z"
+      },
+      {
+        "name": "Set up independent workflow syntax parser",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-10-07T20:32:54Z",
+        "completed_at": "2026-10-07T20:32:54Z"
+      },
+      {
+        "name": "Parse workflow YAML independently",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-10-07T20:32:54Z",
+        "completed_at": "2026-10-07T20:32:56Z"
+      },
+      {
+        "name": "Classify protocol change",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-10-07T20:32:56Z",
+        "completed_at": "2026-10-07T20:32:56Z"
+      },
+      {
+        "name": "Install isolated planning tokenizer",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-10-07T20:32:56Z",
+        "completed_at": "2026-10-07T20:32:57Z"
+      },
+      {
+        "name": "Qualify authenticated private HEAD lookup on Linux",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-10-07T20:32:57Z",
+        "completed_at": "2026-10-07T20:32:59Z"
+      },
+      {
+        "name": "Run complete KODJO pilot suite",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 8,
+        "started_at": "2026-10-07T20:32:59Z",
+        "completed_at": "2026-10-07T20:32:59Z"
+      },
+      {
+        "name": "Validate executable workflow invariants",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-10-07T20:32:59Z",
+        "completed_at": "2026-10-07T20:32:59Z"
+      },
+      {
+        "name": "Build immutable complete source snapshot",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 10,
+        "started_at": "2026-10-07T20:32:59Z",
+        "completed_at": "2026-10-07T20:32:59Z"
+      },
+      {
+        "name": "Preserve complete source snapshot",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 11,
+        "started_at": "2026-10-07T20:32:59Z",
+        "completed_at": "2026-10-07T20:32:59Z"
+      },
+      {
+        "name": "Post Set up independent workflow syntax parser",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 21,
+        "started_at": "2026-10-07T20:32:59Z",
+        "completed_at": "2026-10-07T20:32:59Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 22,
+        "started_at": "2026-10-07T20:32:59Z",
+        "completed_at": "2026-10-07T20:33:00Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 23,
+        "started_at": "2026-10-07T20:33:00Z",
+        "completed_at": "2026-10-07T20:33:00Z"
+      }
+    ],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/113002911137",
+    "labels": [
+      "ubuntu-latest"
+    ],
+    "runner_id": 1000001959,
+    "runner_name": "GitHub Actions 1000001959",
+    "runner_group_id": 0,
+    "runner_group_name": "GitHub Actions"
+  },
+  {
+    "id": 113003046010,
+    "run_id": 37680862427,
+    "workflow_name": "KODJO VNext-12 disposable preparation",
+    "head_branch": "protocol/vnext-proof-stability-20260930",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37680862427",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaT4Gkeg",
+    "head_sha": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/113003046010",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37680862427/job/113003046010",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-10-07T20:33:03Z",
+    "started_at": "2026-10-07T20:33:05Z",
+    "completed_at": "2026-10-07T21:04:26Z",
+    "name": "3 - Historical checks on the persistent Windows runner / protocol-windows-preflight",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-10-07T20:33:07Z",
+        "completed_at": "2026-10-07T20:33:18Z"
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-10-07T20:33:18Z",
+        "completed_at": "2026-10-07T20:33:52Z"
+      },
+      {
+        "name": "Set up independent workflow syntax parser on Windows",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-10-07T20:33:52Z",
+        "completed_at": "2026-10-07T20:33:55Z"
+      },
+      {
+        "name": "Install independent YAML parser on Windows",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-10-07T20:33:55Z",
+        "completed_at": "2026-10-07T20:34:02Z"
+      },
+      {
+        "name": "Record Windows toolchain",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-10-07T20:34:02Z",
+        "completed_at": "2026-10-07T20:34:05Z"
+      },
+      {
+        "name": "Qualify authenticated private HEAD lookup on Windows",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-10-07T20:34:05Z",
+        "completed_at": "2026-10-07T20:34:13Z"
+      },
+      {
+        "name": "Certify real persistent runner lock before Claude boundary",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-10-07T20:34:13Z",
+        "completed_at": "2026-10-07T20:34:26Z"
+      },
+      {
+        "name": "Preserve real runner certification",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-10-07T20:34:26Z",
+        "completed_at": "2026-10-07T20:34:30Z"
+      },
+      {
+        "name": "Parse every PowerShell protocol script with Windows PowerShell",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-10-07T20:34:30Z",
+        "completed_at": "2026-10-07T20:34:33Z"
+      },
+      {
+        "name": "Install isolated planning tokenizer on Windows",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-10-07T20:34:33Z",
+        "completed_at": "2026-10-07T20:34:41Z"
+      },
+      {
+        "name": "Run complete KODJO pilot suite on Windows",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-10-07T20:34:41Z",
+        "completed_at": "2026-10-07T20:52:09Z"
+      },
+      {
+        "name": "Run isolated queue path with Windows PowerShell 5.1",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-10-07T20:52:10Z",
+        "completed_at": "2026-10-07T20:54:05Z"
+      },
+      {
+        "name": "Run full disposable preflight without Claude",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-10-07T20:54:05Z",
+        "completed_at": "2026-10-07T21:04:05Z"
+      },
+      {
+        "name": "Preserve disposable preflight evidence",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 14,
+        "started_at": "2026-10-07T21:04:05Z",
+        "completed_at": "2026-10-07T21:04:07Z"
+      },
+      {
+        "name": "Download the real run 16 recovery package",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15,
+        "started_at": "2026-10-07T21:04:07Z",
+        "completed_at": "2026-10-07T21:04:10Z"
+      },
+      {
+        "name": "Certify historical run 16 recovery without gating the disposable slice",
+        "status": "completed",
+        "conclusion": "skipped",
+        "number": 16,
+        "started_at": "2026-10-07T21:04:10Z",
+        "completed_at": "2026-10-07T21:04:10Z"
+      },
+      {
+        "name": "Preserve real recovery certification",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 17,
+        "started_at": "2026-10-07T21:04:10Z",
+        "completed_at": "2026-10-07T21:04:11Z"
+      },
+      {
+        "name": "Record unavailable historical recovery as a separate reserve",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 18,
+        "started_at": "2026-10-07T21:04:11Z",
+        "completed_at": "2026-10-07T21:04:11Z"
+      },
+      {
+        "name": "Upload real recovery certification",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 19,
+        "started_at": "2026-10-07T21:04:11Z",
+        "completed_at": "2026-10-07T21:04:14Z"
+      },
+      {
+        "name": "Post Set up independent workflow syntax parser on Windows",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 37,
+        "started_at": "2026-10-07T21:04:14Z",
+        "completed_at": "2026-10-07T21:04:16Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 38,
+        "started_at": "2026-10-07T21:04:16Z",
+        "completed_at": "2026-10-07T21:04:23Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 39,
+        "started_at": "2026-10-07T21:04:23Z",
+        "completed_at": "2026-10-07T21:04:23Z"
+      }
+    ],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/113003046010",
+    "labels": [
+      "self-hosted",
+      "Windows",
+      "X64",
+      "kodjo-claude-local"
+    ],
+    "runner_id": 26,
+    "runner_name": "KODJO-LOCAL-RUNNER",
+    "runner_group_id": 1,
+    "runner_group_name": "Default"
+  },
+  {
+    "id": 113016478244,
+    "run_id": 37680862427,
+    "workflow_name": "KODJO VNext-12 disposable preparation",
+    "head_branch": "protocol/vnext-proof-stability-20260930",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37680862427",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaUE6aJA",
+    "head_sha": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/113016478244",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37680862427/job/113016478244",
+    "status": "completed",
+    "conclusion": "success",
+    "created_at": "2026-10-07T21:04:27Z",
+    "started_at": "2026-10-07T21:04:29Z",
+    "completed_at": "2026-10-07T21:04:40Z",
+    "name": "Signal the completed VNext stage to Work",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-10-07T21:04:30Z",
+        "completed_at": "2026-10-07T21:04:30Z"
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-10-07T21:04:30Z",
+        "completed_at": "2026-10-07T21:04:33Z"
+      },
+      {
+        "name": "Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-10-07T21:04:33Z",
+        "completed_at": "2026-10-07T21:04:33Z"
+      },
+      {
+        "name": "Publish only a deduplicated completion signal",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-10-07T21:04:33Z",
+        "completed_at": "2026-10-07T21:04:38Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-10-07T21:04:38Z",
+        "completed_at": "2026-10-07T21:04:38Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-10-07T21:04:38Z",
+        "completed_at": "2026-10-07T21:04:39Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-10-07T21:04:39Z",
+        "completed_at": "2026-10-07T21:04:39Z"
+      }
+    ],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/113016478244",
+    "labels": [
+      "ubuntu-latest"
+    ],
+    "runner_id": 1000001961,
+    "runner_name": "GitHub Actions 1000001961",
+    "runner_group_id": 0,
+    "runner_group_name": "GitHub Actions"
+  }
+]

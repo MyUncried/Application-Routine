@@ -61,6 +61,14 @@
       "planning_application_head": "e216294506bed87dd80855937e3fabfbfa322b82",
       "bootstrap_path": ".github/orchestration/v2-slices/V2-PRE-1/slice-bootstrap.json",
       "slice_bootstrap_sha256": "8ba79d4b71b029ce78cf0d380d34425b7094b4ddbea18c6e00b4b35d0e4f0776"
+    },
+    {
+      "slice_id": "VNEXT-12-QUALIF",
+      "status": "ACTIVE",
+      "issue_number": 269,
+      "baseline_head": "061660b233e58719d3963a2efd9092880c9f3961",
+      "bootstrap_path": ".github/orchestration/v2-slices/VNEXT-12-QUALIF/slice-bootstrap.json",
+      "slice_bootstrap_sha256": "f6fb8948d421014b5883094bba6671cf684ec5d341977fa0f1692371ae50f2b7"
     }
   ]
 }

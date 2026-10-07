@@ -7,10 +7,11 @@ const Impact = require('./impact-graph');
 const Plan = require('./plan-contract');
 const Review = require('./review-contract');
 const Ui = require('./ui-atomicity-contract');
+const Preserved = require('./vnext-preserved-controls');
 
-const APPROVAL_TARGET_SCHEMA = 'kodjo.vnext.approval-target.v1';
-const APPROVAL_RECORD_SCHEMA = 'kodjo.vnext.approval-record.v1';
-const EXECUTION_REQUEST_SCHEMA = 'kodjo.vnext.execution-request.v1';
+const APPROVAL_TARGET_SCHEMA = 'kodjo.vnext.approval-target.v2';
+const APPROVAL_RECORD_SCHEMA = 'kodjo.vnext.approval-record.v2';
+const EXECUTION_REQUEST_SCHEMA = 'kodjo.vnext.execution-request.v2';
 
 const APPROVAL_DECISIONS = Object.freeze(['APPROVED', 'REJECTED']);
 const APPROVAL_TRANSPORTS = Object.freeze([
@@ -23,13 +24,15 @@ const IMPLEMENTATION_CHECKS = Object.freeze(['jest', 'typescript', 'lint']);
 function validateCurrentHeads(planningEnvelope, currentState) {
   V.assertExactKeys(
     currentState,
-    ['product_head', 'application_head', 'protocol_head'],
+    ['product_head', 'application_head', 'protocol_head', 'execution_context', 'native_primitive_decisions'],
     [],
     'VNEXT_HANDOFF_CURRENT_STATE_KEYS_INVALID',
   );
   V.assertSha40(currentState.product_head, 'VNEXT_HANDOFF_PRODUCT_HEAD_INVALID', 'product_head');
   V.assertSha40(currentState.application_head, 'VNEXT_HANDOFF_APPLICATION_HEAD_INVALID', 'application_head');
   V.assertSha40(currentState.protocol_head, 'VNEXT_HANDOFF_PROTOCOL_HEAD_INVALID', 'protocol_head');
+  Preserved.validateExecutionContext(currentState.execution_context);
+  Preserved.validateNativeShape(currentState.native_primitive_decisions);
 
   if (currentState.product_head !== planningEnvelope.product_head) {
     V.fail('VNEXT_APPROVAL_PRODUCT_HEAD_STALE');
@@ -37,10 +40,14 @@ function validateCurrentHeads(planningEnvelope, currentState) {
   if (currentState.application_head !== planningEnvelope.application_head) {
     V.fail('VNEXT_APPROVAL_APPLICATION_HEAD_STALE');
   }
+  if (currentState.execution_context.delivery_target
+      && currentState.execution_context.delivery_target.application_head !== currentState.application_head) V.fail('VNEXT_DELIVERY_APPLICATION_HEAD_MISMATCH');
   return Object.freeze({
     product_head: currentState.product_head,
     application_head: currentState.application_head,
     protocol_head: currentState.protocol_head,
+    execution_context: Preserved.validateExecutionContext(currentState.execution_context),
+    native_primitive_decisions: currentState.native_primitive_decisions,
   });
 }
 
@@ -64,6 +71,10 @@ function validateApprovedArtifacts({
     directImportScan,
   });
   Review.validateReviewContext(reviewContext);
+  Review.verifyReviewContext(reviewContext, {
+    planningEnvelope, requirementRegistry, impactGraph, candidateManifest,
+    directImportScan, planContract, uiAtomicityContract,
+  });
   Review.validateReviewReport(reviewReport, reviewContext);
 
   if (reviewContext.planning_envelope_hash !== planningEnvelope.contract_hash) {
@@ -129,6 +140,7 @@ function buildExecutionCore({
   reviewReport,
   uiAtomicityContract = null,
   currentState,
+  resolveNativeEvidence = null,
 }) {
   Plan.validatePlanContract(planContract, {
     requirementRegistry,
@@ -165,6 +177,8 @@ function buildExecutionCore({
     product_head: planningEnvelope.product_head,
     application_head: planningEnvelope.application_head,
     protocol_head: current.protocol_head,
+    execution_context: current.execution_context,
+    native_primitive_decisions: Preserved.buildNativeDecisions(current.native_primitive_decisions, { uiAtomicityContract, requirementRegistry, sourceManifest: planningEnvelope.source_manifest, applicationHead: current.application_head, resolveNativeEvidence }),
     planning_mode: planningEnvelope.planning_mode,
     planning_envelope_hash: planningEnvelope.contract_hash,
     direct_import_scan_hash: directImportScan ? directImportScan.contract_hash : null,
@@ -191,6 +205,8 @@ function validateExecutionCore(core) {
       'application_head',
       'protocol_head',
       'planning_mode',
+      'execution_context',
+      'native_primitive_decisions',
       'planning_envelope_hash',
       'direct_import_scan_hash',
       'plan_contract_hash',
@@ -207,10 +223,14 @@ function validateExecutionCore(core) {
     'VNEXT_EXECUTION_CORE_KEYS_INVALID',
   );
   V.assertSliceId(core.slice_id, 'VNEXT_EXECUTION_CORE_SLICE_INVALID');
+  Preserved.validateExecutionContext(core.execution_context);
+  Preserved.validateNativeShape(core.native_primitive_decisions);
   V.assertUnicodeExactText(core.issue_id, 'VNEXT_EXECUTION_CORE_ISSUE_INVALID', 'issue_id');
   V.assertSha40(core.baseline_head, 'VNEXT_EXECUTION_CORE_BASELINE_INVALID', 'baseline_head');
   V.assertSha40(core.product_head, 'VNEXT_EXECUTION_CORE_PRODUCT_HEAD_INVALID', 'product_head');
   V.assertSha40(core.application_head, 'VNEXT_EXECUTION_CORE_APPLICATION_HEAD_INVALID', 'application_head');
+  if (core.execution_context.delivery_target
+      && core.execution_context.delivery_target.application_head !== core.application_head) V.fail('VNEXT_DELIVERY_APPLICATION_HEAD_MISMATCH');
   V.assertSha40(core.protocol_head, 'VNEXT_EXECUTION_CORE_PROTOCOL_HEAD_INVALID', 'protocol_head');
   if (!['INITIAL', 'REVISION'].includes(core.planning_mode)) {
     V.fail('VNEXT_EXECUTION_CORE_MODE_INVALID', core.planning_mode);
@@ -228,6 +248,11 @@ function validateExecutionCore(core) {
   }
   if (core.ui_atomicity_hash !== null) {
     V.assertSha64(core.ui_atomicity_hash, 'VNEXT_EXECUTION_CORE_UI_HASH_INVALID', 'ui_atomicity_hash');
+  }
+  if ((core.ui_atomicity_hash === null) !== (core.native_primitive_decisions.length === 0)) V.fail('VNEXT_NATIVE_CORE_SCOPE_MISMATCH');
+  for (const row of core.native_primitive_decisions) {
+    V.assertSha64(row.assessment_evidence_hash, 'VNEXT_NATIVE_PROOF_HASH_REQUIRED', 'assessment_evidence_hash');
+    V.assertUnicodeExactText(row.assessment_evidence_ref, 'VNEXT_NATIVE_PROOF_REFERENCE_REQUIRED', 'assessment_evidence_ref');
   }
   if (core.operation_kind !== 'IMPLEMENT') V.fail('VNEXT_EXECUTION_CORE_OPERATION_INVALID');
   if (!Array.isArray(core.write_scope) || core.write_scope.length === 0) {
@@ -357,7 +382,7 @@ function buildApprovalRecord({ approvalTarget, evidence }) {
       'approved_target_hash',
       'observed_at',
     ],
-    [],
+    ['native_exception_approvals'],
     'VNEXT_APPROVAL_EVIDENCE_KEYS_INVALID',
   );
   if (!APPROVAL_DECISIONS.includes(evidence.decision)) {
@@ -377,6 +402,8 @@ function buildApprovalRecord({ approvalTarget, evidence }) {
   if (evidence.approved_target_hash !== approvalTarget.contract_hash) {
     V.fail('VNEXT_APPROVAL_TARGET_REFERENCE_MISMATCH');
   }
+  const nativeApprovals = Preserved.validateExceptionApprovals(approvalTarget.execution_core.native_primitive_decisions,
+    evidence.native_exception_approvals, evidence.decision);
 
   return V.sealContract({
     schema_version: APPROVAL_RECORD_SCHEMA,
@@ -395,6 +422,7 @@ function buildApprovalRecord({ approvalTarget, evidence }) {
     transport: evidence.transport,
     evidence_ref: evidence.evidence_ref,
     observed_at: evidence.observed_at,
+    native_exception_approvals: nativeApprovals,
   });
 }
 
@@ -412,6 +440,7 @@ function validateApprovalRecord(record, approvalTarget) {
       'transport',
       'evidence_ref',
       'observed_at',
+      'native_exception_approvals',
       'contract_hash',
     ],
     [],
@@ -440,6 +469,8 @@ function validateApprovalRecord(record, approvalTarget) {
     V.fail('VNEXT_APPROVAL_TRANSPORT_INVALID', record.transport);
   }
   V.assertIsoDate(record.observed_at, 'VNEXT_APPROVAL_OBSERVED_AT_INVALID', 'observed_at');
+  Preserved.validateExceptionApprovals(approvalTarget.execution_core.native_primitive_decisions,
+    record.native_exception_approvals, record.decision);
   const expectedRecordId = V.stableId('APRV', [
     approvalTarget.contract_hash,
     record.actor_id,
@@ -503,6 +534,8 @@ function validateExecutionRequest(request, {
       'application_head',
       'protocol_head',
       'planning_mode',
+      'execution_context',
+      'native_primitive_decisions',
       'planning_envelope_hash',
       'direct_import_scan_hash',
       'plan_contract_hash',
@@ -545,12 +578,16 @@ function renderApprovalMessage(approvalTarget, { approvalUrl = null } = {}) {
     'approval_target_id=' + approvalTarget.approval_target_id,
     'approval_target_hash=' + approvalTarget.contract_hash,
     'execution_fingerprint=' + approvalTarget.execution_fingerprint,
+    'execution_context=' + V.canonicalStringify(core.execution_context),
     'application_head=' + core.application_head,
     'plan_contract_hash=' + core.plan_contract_hash,
     'review_report_hash=' + core.review_report_hash,
     'write_scope_count=' + core.write_scope.length,
     'action_expected=APPROVE_EXACT_EXECUTION',
   ];
+  for (const row of core.native_primitive_decisions) lines.push('native_primitive_decision=' + V.canonicalStringify(row));
+  for (const id of Preserved.exceptionIds(core.native_primitive_decisions)) lines.push('native_primitive_exception_request=' + id);
+  if (Preserved.exceptionIds(core.native_primitive_decisions).length) lines.push('Action requise : autoriser explicitement les exceptions natives listées, ou conserver l’arrêt NATIVE_PRIMITIVE_EXCEPTION_REQUIRED.');
   if (approvalUrl !== null) lines.push('approval_url=' + approvalUrl);
   lines.push(
     '',

@@ -1,0 +1,1916 @@
+✔ implementation review: prépare toutes les exigences du plan et détecte le gate device (103.639547ms)
+✔ implementation review: refuse un change_target approuvé absent du diff (97.407785ms)
+✔ implementation review: accepte approbation technique avec preuves device explicitement en attente (116.837427ms)
+✔ implementation review: refuse qu une revue automatisée certifie une preuve device (107.089957ms)
+✔ implementation review: un défaut fonctionnel impose REVISE (104.634641ms)
+✔ implementation review: PARTIELLEMENT_CONFORME ou NON_VERIFIABLE ne peut pas être approuvé (91.353416ms)
+✔ implementation review: refuse une frontière PRESERVE ou FORBIDDEN non démontrée (88.734918ms)
+✔ workflow: V2 ajoute le contrat de revue sans modifier le transport ni le chemin legacy (2.113092ms)
+✔ audit F14: device proof table preserves only PENDING_DEVICE or demonstrated FAIL (1355.924684ms)
+✔ delta review: le diff immédiat affecte uniquement ses critères et hérite les autres (109.614271ms)
+✔ delta review: un critère hérité ne peut pas être réinterprété (185.130506ms)
+✔ delta review: PENDING_DEVICE accessibilité ne bloque pas une approbation technique (170.672297ms)
+✔ non-UI report labels do not masquerade as UI IDs; independent full-plan assessment is mandatory (274.485517ms)
+✔ non-UI integrity, structure, stop and duplicate checks remain blocking (1539.708473ms)
+✔ non-UI semantic defects and unknown evidence cannot be approved with empty UI criteria (489.819884ms)
+✔ non-UI assessment refuses empty, duplicate or unsubstantiated requirements (332.887462ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ VNext preserved writer: mode and designated writer are explicit and change invalidates approval (91.388699ms)
+✔ VNext preserved native: an exact target still requires explicit exception approval before execution (58.329478ms)
+✔ VNext-08 construit une cible d’approbation sur l’exécution exacte (49.923169ms)
+✔ VNext-08 refuse de demander une approbation tant que la review n’est pas APPROVE (63.499606ms)
+✔ VNext-08 produit un message actionnable lié à l’objet canonique (57.881857ms)
+✔ VNext-08 le transport du message ne change pas l’identité de la cible approuvée (68.448055ms)
+✔ VNext-08 exige une action utilisateur explicite liée au hash exact (48.778791ms)
+✔ VNext-08 refuse un ApprovalTarget re-signé avec une identité interne falsifiée (54.780672ms)
+✔ VNext-08 refuse un ApprovalRecord re-signé avec une identité interne falsifiée (65.75828ms)
+✔ VNext-08 une décision REJECTED bloque toujours le handoff (49.641058ms)
+✔ VNext-08 construit le handoff canonique bit-for-bit depuis l’approbation (64.329966ms)
+✔ VNext-08 refuse une approbation devenue obsolète après modification du plan (51.192816ms)
+✔ VNext-08 refuse un DirectImportScan différent de celui revu (50.628646ms)
+✔ VNext-08 refuse le handoff si le HEAD applicatif a bougé (47.773722ms)
+✔ VNext-08 refuse le handoff si le HEAD produit a bougé (49.559106ms)
+✔ VNext-08 invalide l’approbation si la version protocolaire change (45.669743ms)
+✔ VNext-08 refuse tout élargissement manuel du write_scope dans ExecutionRequest (58.152025ms)
+✔ VNext-08 refuse un transport d’approbation non reconnu (48.699498ms)
+✔ VNext-08 ne permet aucun path libre ni scope libre en entrée de handoff (0.448176ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ architecture: approval refuses a resealed context whose target catalog was emptied (105.757837ms)
+✔ architecture: runtime binds observed Git tree and cumulative proof gate (123.656579ms)
+✔ architecture: source UI requirement applies outside legacy roots and ignores test candidates (1.275437ms)
+✔ architecture: REST destination preserves owner names containing s (1.552539ms)
+✔ architecture: actual Markdown CRLF conversion is rejected without canonical LF bytes (73.809042ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ architecture: final audit refuses a different protocol candidate and forged context (11.328065ms)
+✔ VNext-11 interdit la fermeture d’un finding par simple disparition (1.523936ms)
+✔ VNext-11 ferme explicitement un finding avec preuve de résolution (0.871757ms)
+✔ VNext-11 refuse de résoudre un finding qui persiste encore (0.872437ms)
+✔ VNext-11 exige la couverture complète du manifeste d’audit figé (0.60515ms)
+✔ VNext-11 un critère REQUIRED ne peut pas devenir NOT_APPLICABLE pendant l’audit (0.427466ms)
+✔ VNext-11 refuse un finding bloquant sans source normative préexistante (3.694263ms)
+✔ VNext-11 une recommandation nouvelle reste SUGGESTION et ne bloque pas (2.68981ms)
+✔ VNext-11 un axe CHECKED_FAIL doit être relié à un finding (5.936188ms)
+✔ VNext-11 le dernier REVISE devient terminal et ne déclenche aucune réentrée (5.067074ms)
+✔ VNext-11 un rapport final ne peut pas être transféré vers un manifeste d’audit modifié (1.948016ms)
+✔ VNext-11 refuse une provenance normative re-signée mais supprimée (5.341153ms)
+✔ VNext unavailable evidence remains distinct and cannot produce FINAL_APPROVED (9.047154ms)
+✔ VNext-10 état réel : PRE-1 actif bloque l’activation mais pas la préparation (959.282965ms)
+✔ VNext-10 avant activation toutes les slices restent LEGACY (1130.941288ms)
+✔ VNext-10 PRE-1 fermé rend le plan READY sans modifier les autres slices actives (794.865484ms)
+✔ VNext-10 activation exige une approbation explicite du plan exact (784.5974ms)
+✔ VNext-10 activation refuse un registre legacy ayant dérivé après préparation (799.803543ms)
+✔ VNext-10 après activation les slices legacy existantes restent LEGACY et une nouvelle slice passe VNEXT (729.048717ms)
+✔ VNext-10 une slice legacy ne change jamais de protocole en cours de cycle (728.207561ms)
+✔ VNext-10 refuse un CutoverPlan re-signé qui masque artificiellement PRE-1 (716.277667ms)
+✔ VNext-10 refuse un ActivationRecord re-signé qui retire une slice legacy grandfathered (729.206922ms)
+✔ VNext-10 rollback remet les nouvelles slices en LEGACY sans interrompre les cycles VNext actifs (794.697219ms)
+✔ VNext-10 rollback exige une approbation explicite liée à l’activation exacte (768.34543ms)
+✔ VNext-10 ne modifie aucun workflow actif dans le lot de préparation (0.475166ms)
+✔ F-01 — le cutover est bloqué si les dernières slices legacy ferment sans retrait des anciens writers (736.813015ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ frozen workflow consumer prepares and validates retained delivery criteria independently of application code (714.311232ms)
+✔ delivered criterion outside correction scope is reviewed and finalized without expanding write authority (1462.262737ms)
+✔ real modification outside correction scope is refused even if mentioned by a delivered criterion (186.667146ms)
+✔ regression in a retained previously conforming criterion blocks approval and finalization (734.551354ms)
+✔ delivery evidence rejects wrong authors, altered proof binding and incomplete retained coverage (109.376894ms)
+✔ atomic retained assertions keep coverage through planning review and implementation finalization (598.289827ms)
+✔ a changed criterion requires the profile in the explicit correction scope and replaces its old version (331.579199ms)
+✔ a subsequent correction observes the complete delivered matrix, including retained criteria (111.072619ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ projection blob OIDs agree with independent Git bytes for LF CRLF Unicode and empty input (12.794015ms)
+✔ projection emits real lines and refuses Windows traversal and absolute paths (1.756622ms)
+✔ VNext-09 E2E INITIAL atteint HANDOFF_READY et se projette sans élargissement (209.901723ms)
+✔ VNext-09 runtime refuse un snapshot re-signé avec statut d’étape falsifié (108.734889ms)
+✔ VNext-09 projection refuse un scope legacy élargi même si le JSON est re-signé (64.7426ms)
+✔ VNext-09 projection refuse un fichier de compatibilité re-signé mais altéré (59.941826ms)
+✔ VNext-09 projection refuse un changement de checks (67.257075ms)
+✔ VNext-09 projection legacy exige le transport GITHUB_REACTION compatible avec la queue active (68.856342ms)
+✔ VNext-09 E2E REVISION conserve la causalité et atteint HANDOFF_READY après résolution (154.789539ms)
+✔ VNext-09 runtime refuse une REVISION sans preuve de résolution bornée (87.973256ms)
+✔ VNext-09 inventaire anti-régression : 24 invariants, 165 incidents, 138 tests, sans trou (3.01574ms)
+✔ generic launch automatically orders capture, reconciliation, freeze and requirements before planning (2724.987264ms)
+✔ a declared Figma slice cannot skip source preparation or change the frozen requirement set (854.788738ms)
+✔ new launch identity and different file/frame IDs are generic, not Zones-specific (1590.998022ms)
+✔ capture failure, foreign scope and rewritten observations stop before persistence (732.085532ms)
+✔ documentary state needs scenarios and every scenario needs an allocated executable proof (1353.745628ms)
+✔ review automatically consumes approved references and compares executed artifact facts (1686.25517ms)
+✔ missing/wrong measurement, forged value and wrong delivery head block review (1556.870944ms)
+✔ omitted scenario, failed proof, changed artifact and changed approved plan block review (1621.870678ms)
+✔ a model cannot approve omitted assertions or blocking findings (1409.212715ms)
+✔ frozen Git serialization survives reordered logical reconstruction and byte drift is still refused (2228.025833ms)
+✔ authoritative document inventory forbids missing states, scenario omission and rewritten documents (742.448053ms)
+✔ measurement extras and altered reference destinations are refused without overwrite (1412.781352ms)
+✔ operational produce entry refuses a Figma recipe without launch even when scope is omitted (770.760047ms)
+✔ the original real-reference precheck completes through generic launchAndProduce without any model call (7116.584213ms)
+✔ document-only conditional/persistence state is generated and cannot disappear behind the graphic inventory (878.609005ms)
+✔ existing VNext operational review entry prepares the exact dossier locally without invoking a model (1760.146216ms)
+✔ Figma nominal: frozen Git -> source units -> requirements -> plan -> assertions -> review -> all consumers (7890.228448ms)
+✔ negative 1: omitted element blocks independently of declared assertions (1.673117ms)
+✔ negative 2: omitted property or false source disposition cannot disappear from coverage (806.051764ms)
+✔ negative 3: a vague expected string or unstructured relational predicate is refused (1432.331473ms)
+✔ negative 4: wrong frame, property, reference hash or screenshot dimensions is refused (1459.270427ms)
+✔ negative 5: unresolved mixed conflict blocks planning; domain precedence does not silently resolve it (798.375217ms)
+✔ negative 6: an existing reused component with a measured radius below the target fails (2.42162ms)
+✔ negative 7: forgotten variant, required assertion or documentary-only state blocks (2642.114768ms)
+✔ negative 8: inaccessible, truncated or changed-after-approval sources require recovery or requalification (1421.83153ms)
+✔ negative 9: corrupt or missing transported screenshot/properties/resources blocks effective byte consumption (1399.473256ms)
+✔ real qualification frame 4478:7209: complete inventory, aliases, vectors, resources and lossless compact transport (512.425996ms)
+✔ VNext-01 canonical JSON is deterministic and fail-closed (2.217298ms)
+✔ VNext-01 stable IDs are machine-derived and source-sensitive (0.607704ms)
+✔ VNext-01 Unicode is preserved exactly and degraded forms are rejected (0.455618ms)
+✔ VNext-01 SourceManifest seals sources and units with deterministic IDs (1.3851ms)
+✔ VNext-01 SourceManifest refuses duplicate physical source identity (0.34299ms)
+✔ VNext-01 INITIAL PlanningEnvelope forbids revision causal state (1.376577ms)
+✔ VNext-01 REVISION PlanningEnvelope requires exact causal base and findings (2.442182ms)
+✔ VNext-01 DecisionRecord: a question alone is never a durable decision (1.642773ms)
+✔ VNext-01 DecisionRecord refuses an answer outside the offered options (3.673462ms)
+✔ VNext-01 common error policy is deterministic and never retries an unknown error (0.498ms)
+✔ VNext-01 specification fixes the foundational anti-regression rules (0.516347ms)
+✔ historical coverage inventories each original incident/test and exact normative paragraph (72.029346ms)
+✔ historical cardinality cannot certify individual coverage or launch VNext-12 (76.234524ms)
+✔ historical ready flags cannot replace resolved per-subject evidence at the candidate commit (125.067676ms)
+✔ historical inventory rejects same-cardinality substituted IDs and changed sources (38.333123ms)
+✔ historical rows preserve source meaning across eight, nine and six-column layouts (50.188362ms)
+✔ historical normative coverage refuses omitted prose or reference-format units (119.966026ms)
+✔ historical fingerprints use Git bytes rather than converted CRLF checkout bytes (298.003498ms)
+✔ historical equivalence binds all 420 exact source subjects and named test locations (801.051118ms)
+✔ historical equivalence refuses stale candidate, forged stdout and incomplete summary (0.847901ms)
+✔ historical equivalence preserves SKIP and refuses operational certification from fixture PASS (0.305985ms)
+✔ historical structured reporter ignores stdout that imitates a passing assertion (3.523699ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ VNext-03 inventorie mécaniquement les chemins Git et les slots CREATE (61.947048ms)
+✔ VNext-03 refuse CREATE sur un fichier existant et hors racine autorisée (42.880009ms)
+✔ VNext-03 scanne uniquement les importeurs directs, sans fermeture transitive (54.076675ms)
+✔ VNext-03 construit ImpactGraph avec classification par candidate_id, jamais par path libre (69.081352ms)
+✔ VNext-03 refuse un importeur direct non classé (61.187197ms)
+✔ VNext-03 refuse un candidate_id inventé (44.44311ms)
+✔ VNext-03 autorise CREATE uniquement via un slot machine validé (49.83726ms)
+✔ VNext-03 autorise DELETE uniquement sur un fichier existant (65.360083ms)
+✔ VNext-03 accepte NO_CHANGE au niveau exigence avec justification (68.157003ms)
+✔ VNext-03 refuse une exigence sans impact ni NO_CHANGE (56.72759ms)
+✔ VNext-03 lie le scan direct au même CandidateManifest et au même target set (60.743959ms)
+✔ VNext-03 refuse un RequirementRegistry bloqué avant analyse d’impact (58.740511ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ live chain: observed Git sources, structured reviewer, exact approval and real queue authorization compose (8669.183389ms)
+✔ live chain: revoked, edited, mismatched approval and altered queue are refused (7879.784488ms)
+✔ live chain: source bytes and unobserved native proof cannot be asserted by flags (4137.812526ms)
+✔ live chain: direct implementation runner refuses before invoking Claude when queue authority is absent (3607.050734ms)
+✔ live chain: real queue preflight validates VNext plan mission and runtime identity without legacy UI blocks (8479.488685ms)
+✔ live chain: large immutable target catalog travels on stdin and unknown reviewer targets remain refused (19737.181381ms)
+✔ compact review coverage refuses omission, duplicate, out-of-range, wrong catalog and mixed formats (4029.786453ms)
+✔ review process captures an actual interrupted child, bounds output and redacts inherited credentials (305.420314ms)
+✔ review diagnostics survive a failed invocation outside the checkout and retain no approval (4564.332074ms)
+✔ quoted markers and old machine blocks remain lossless data through downstream transport (3511.735426ms)
+✔ complete raw review survives semantic rejection and recovery never invokes the model (6067.500035ms)
+✔ semantic failure remains primary when its diagnostic archive also fails (4357.563531ms)
+✔ malformed response and interrupted process are retained but cannot become a review (6665.436644ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ VNext-04 construit la chaîne Requirement → Impact → Change → Test → Proof → Boundary (98.987784ms)
+✔ VNext-04 dérive les paths exclusivement depuis ImpactGraph (62.156228ms)
+✔ VNext-04 refuse un changement sans implementation intent (61.547634ms)
+✔ VNext-04 refuse un changement non couvert par un test (59.941946ms)
+✔ VNext-04 refuse un changement non couvert par une preuve (58.533567ms)
+✔ VNext-04 refuse un test affecté qui n’a pas son propre impact (56.975875ms)
+✔ VNext-04 refuse une preuve FUNCTIONAL_TEST qui ne correspond pas au test déclaré (60.96929ms)
+✔ VNext-04 exige une preuve alternative pour un test supprimé (66.433444ms)
+✔ VNext-04 refuse une boundary à la fois CHANGE et PRESERVE (63.119061ms)
+✔ VNext-04 exige un plan item pour chaque requirement (61.872237ms)
+✔ VNext-04 supporte un requirement NO_CHANGE avec testability explicite (43.772421ms)
+✔ VNext-04 génère une projection Markdown déterministe du seul contrat canonique (60.822521ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+▶ post-acceptance revision integration uses owner gaps, preserves APPROVE and prepares an authorized correction
+  ✔ nominal: approved delivery -> acceptance gaps -> revision -> review -> immutable plan -> runtime admission (3627.163126ms)
+  ✔ owner identity, issue, exact delivered head and old review identity are mandatory (0.707913ms)
+  ✔ a genuine correction outside the owner-authorized paths is refused (1.700949ms)
+  ✔ missing, duplicate or unresolved gap resolutions cannot yield an approved revised plan (2.45448ms)
+  ✔ technical failures and omitted retained assertions cannot enter the pre-closure baseline (1.611006ms)
+  ✔ the old approved plan bytes and independent receipt remain bound, not replaceable by a fake REVISE (2955.645264ms)
+  ✔ recovery revalidates the saved response without another model call or a new approval target (1509.614087ms)
+✔ post-acceptance revision integration uses owner gaps, preserves APPROVE and prepares an authorized correction (14723.811279ms)
+✔ lost reservation response after server creation is reconciled without a second POST (4.313474ms)
+✔ unknown reservation and duplicate exact remote matches stop without another creation (1.476045ms)
+✔ reservation keeps the raw server response before final receipt persistence (1.612078ms)
+✔ lost approval PATCH response reuses the exact reserved comment without resetting its timestamp (1.138524ms)
+✔ CLI approval requires the reserved gate and handoff cannot silently mint a new retry identity (1.752936ms)
+✔ valid response survives validation archival failure and recovers exact bytes without a new model call (2859.726357ms)
+✔ delivery correction cannot be routed as INITIAL and a REVISION cannot prepare without its causal evidence (3532.204731ms)
+✔ a decision source requires the actual owner and exact repository/issue before planning (1.939263ms)
+✔ native preservation: every UI criterion needs an explicit sourced native assessment and branch assertion (2.679985ms)
+✔ native preservation: style or Jest difficulty cannot authorize a substitute and functional proof must be scoped (1.171733ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ accessibility PASS: real review CLI -> exact user approval -> finalization -> VNext retained baseline (165.138393ms)
+✔ accessibility PENDING_DEVICE: real review CLI -> exact user approval -> finalization -> VNext retained baseline (390.131121ms)
+✔ review proof policy FUNCTIONAL_TEST / PASS (259.26908ms)
+✔ review proof policy FUNCTIONAL_TEST / FAIL (251.090112ms)
+✔ review proof policy FUNCTIONAL_TEST / NON_VERIFIABLE (272.563133ms)
+✔ review proof policy FUNCTIONAL_TEST / PENDING_DEVICE (263.108634ms)
+✔ review proof policy STATIC_ANALYSIS / PASS (270.029455ms)
+✔ review proof policy STATIC_ANALYSIS / FAIL (266.33592ms)
+✔ review proof policy STATIC_ANALYSIS / NON_VERIFIABLE (268.124609ms)
+✔ review proof policy STATIC_ANALYSIS / PENDING_DEVICE (282.407048ms)
+✔ review proof policy VISUAL_COMPARE / PASS (262.575276ms)
+✔ review proof policy VISUAL_COMPARE / FAIL (265.749964ms)
+✔ review proof policy VISUAL_COMPARE / NON_VERIFIABLE (263.327353ms)
+✔ review proof policy VISUAL_COMPARE / PENDING_DEVICE (259.71942ms)
+✔ review proof policy DEVICE_CHECK / PASS (284.955316ms)
+✔ review proof policy DEVICE_CHECK / FAIL (247.772744ms)
+✔ review proof policy DEVICE_CHECK / NON_VERIFIABLE (278.837507ms)
+✔ review proof policy DEVICE_CHECK / PENDING_DEVICE (283.324511ms)
+✔ review proof policy ACCESSIBILITY_CHECK / PASS (281.984921ms)
+✔ review proof policy ACCESSIBILITY_CHECK / FAIL (244.870374ms)
+✔ review proof policy ACCESSIBILITY_CHECK / NON_VERIFIABLE (261.055526ms)
+✔ review proof policy ACCESSIBILITY_CHECK / PENDING_DEVICE (265.009719ms)
+✔ missing technical evidence and unjustified pending-to-PASS conversion are refused (635.579474ms)
+✔ retained assertion proofs are rechecked even after resealing a forged finalization (200.266028ms)
+✔ scoped explicit waiver closes only its pending proof and retains NOT_EXECUTED reservations (607.655261ms)
+✔ post-acceptance revision preserves pending assertions and explicit waiver without laundering failures (4775.182797ms)
+✔ unsupported resolver syntax is NON_VERIFIABLE even if caller claims PASS or FAIL (2.337725ms)
+✔ demonstrated defect, unavailable proof and nonrequired proof have separate gate consequences (0.45726ms)
+✔ accepted reserve persists if absent from subsequent bounded audit (1.932212ms)
+✔ new wording or new auditor cannot escalate unchanged subject (1.172433ms)
+✔ unchanged defect cannot be removed from its gate or severity downgraded without cause (0.815783ms)
+✔ proof unavailability cannot become a defect without new evidence (0.560623ms)
+✔ changed target reopens reserve with causal trace (1.120185ms)
+✔ change of applicable phase is explicit and severity remains independent of gate necessity (0.529016ms)
+✔ closure requires success evidence and authorized owner, never disappearance (1.041418ms)
+✔ retry limit cannot be enlarged during a cycle and exhausted retry is terminal (0.580053ms)
+✔ producer packet includes boundary validators in actual transitive closure and LF/CRLF transport preserves exact packet (122.990212ms)
+✔ producer packet rejects dynamic consumer dependency instead of claiming complete coverage (24.792869ms)
+✔ absence of legacy writers cannot attest retirement without pending/replay inventory (1.665846ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ queue admission: pre-approval Git files stay identical after exact commit approval and reach the real consumer (262.576091ms)
+✔ queue admission: approval evidence must authenticate the exact target and owner reaction (468.401124ms)
+✔ queue admission: missing committed mission, altered queue and resealed projection are refused (178.858429ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ F-01 — le dépôt VNext courant est entièrement inventorié sans filtre de préfixe (789.665995ms)
+✔ F-01 — un workflow arbitrairement nommé avec écriture non déclarée est refusé (24.135515ms)
+✔ F-01 — un script appelé pouvant pousser au dépôt est refusé même si le workflow ne porte pas le préfixe historique (15.934395ms)
+✔ F-01 — une écriture REST repository non déclarée est refusée (19.36837ms)
+✔ F-01 — une surface legacy exacte peut coexister uniquement tant qu’une slice legacy reste active (25.922247ms)
+✔ F-01 — ajouter une écriture à un workflow legacy figé invalide son empreinte (26.358365ms)
+✔ F-01 — un writer VNext doit déclarer producteur, destination, condition et job exact (36.867689ms)
+✔ F-01 — VNext interdit une permission write au niveau workflow (25.213067ms)
+✔ VNext-02 construit un registre source-first complet incluant UI et non-UI (16.537641ms)
+✔ VNext-02 refuse toute unité REQUIREMENT_SOURCE oubliée (0.99582ms)
+✔ VNext-02 refuse une exigence sans source connue (1.852584ms)
+✔ VNext-02 interdit de fabriquer une exigence depuis CONTEXT_ONLY (0.676426ms)
+✔ VNext-02 exige CLARIFICATION_REQUIRED pour toute source AMBIGUOUS (0.798197ms)
+✔ VNext-02 rend les conflits symétriques et bloquants (0.853409ms)
+✔ VNext-02 dérive mécaniquement les relations entre exigences (0.756855ms)
+✔ VNext-02 refuse les doublons de requirement_id calculé (0.662064ms)
+✔ VNext-02 lie le registre au SourceManifest exact (2.002708ms)
+✔ VNext-02 consomme une décision résolue comme source normative (1.631245ms)
+✔ VNext-02 refuse un registre sans aucune unité normative (0.45071ms)
+✔ VNext-02 interdit structurellement la dérivation circulaire depuis les critères UI (0.475306ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ VNext-06 INITIAL et REVISION utilisent le même contrat de review (120.258471ms)
+✔ VNext-06 sans finding produit APPROVE mécaniquement (44.519044ms)
+✔ VNext-06 un finding bloquant produit REVISE et réentrée calculée (55.789314ms)
+✔ VNext-06 PRODUCT_AMBIGUITY produit CLARIFICATION_REQUIRED (50.768204ms)
+✔ VNext-06 une suggestion seule ne bloque pas APPROVE (45.416117ms)
+✔ VNext-06 refuse verdict, blocking, finding_id ou reentry fournis par l’IA (47.337604ms)
+✔ VNext-06 refuse un target_id inventé (51.735547ms)
+✔ VNext-06 refuse une catégorie associée à un mauvais type de cible (50.316607ms)
+✔ VNext-06 refuse les findings identiques dupliqués (47.439415ms)
+✔ VNext-06 le schéma reviewer borne les IDs et ne contient aucun verdict libre (45.885045ms)
+✔ VNext-06 exécute les validations mécaniques avant de produire le contexte reviewer (70.496422ms)
+✔ VNext-06 exige le contrat atomique avant review d’un plan UI (68.913506ms)
+✔ VNext-06 accepte des findings ciblant Criterion et Assertion réels (61.069964ms)
+✔ VNext-06 finding_id est déterministe et lié au contexte exact (48.61012ms)
+✔ D7 no findings cannot stand in for missing, partial, duplicate or unknown review coverage (42.909136ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ VNext-07 construit un AllowedChangeSet borné et préserve le plan item non ciblé (91.179832ms)
+✔ VNext-07 refuse un finding PLAN_CONTRACT trop large sans dépendances ciblées (53.117116ms)
+✔ VNext-07 calcule la réentrée la plus amont quand plusieurs findings coexistent (47.677805ms)
+✔ VNext-07 SOURCE_UNIT reste un anchor et non un objet librement mutable (52.6258ms)
+✔ VNext-07 refuse une correction sur une cible hors AllowedChangeSet (49.955888ms)
+✔ VNext-07 exige que chaque finding bloquant soit couvert par le RevisionPatch (49.340181ms)
+✔ VNext-07 produit une application bornée sans exposer les cibles dérivées à l’IA (50.689441ms)
+✔ VNext-07 accepte une correction ciblée et vérifie la préservation exacte (88.469527ms)
+✔ VNext-07 autorise un nouvel objet dérivé uniquement sous la cible corrigée (63.389488ms)
+✔ VNext-07 détecte une modification d’un objet préservé (68.59121ms)
+✔ VNext-07 détecte REVISION_STALLED si le même finding persiste (66.335588ms)
+✔ VNext-07 détecte un nouveau finding bloquant sur un objet préservé (60.379943ms)
+✔ VNext-07 finding_id reste stable entre INITIAL et REVISION pour le même problème (58.295424ms)
+✔ VNext-07 le schéma de correction ne permet ni verdict ni path libre (40.929928ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+▶ approved revised plan transmission on an existing application PR
+  ✔ existing PR routing and missing local mission retain the exact approved plan authority (2432.967631ms)
+  ✔ new exact plan is supplied at the old path; repeated filesystem and Git reads use the approved bytes (205.240079ms)
+  ✔ a supplied plan or mission different from the admitted identity stops before application writes (13.565594ms)
+  ✔ unavailable approved plan stops without falling back to the readable old plan (4.473653ms)
+  ✔ interrupted view recovery preserves existing application work; installation and execution lock cannot be duplicated (79.848245ms)
+  ✔ tampered view is refused, its evidence is retained and the old file is restored (15.129189ms)
+✔ approved revised plan transmission on an existing application PR (13354.136628ms)
+/tmp/kodjo-publication-3joMNv/.github/workflows/broken.yml: while parsing a flow sequence
+  in "<unicode string>", line 2, column 5:
+    on: [unterminated
+        ^
+expected ',' or ']', but got '<stream end>'
+  in "<unicode string>", line 3, column 1:
+
+    ^
+/tmp/kodjo-publication-F7VxU5/.github/workflows/broken.yaml: while parsing a flow sequence
+  in "<unicode string>", line 2, column 5:
+    on: [unterminated
+        ^
+expected ',' or ']', but got '<stream end>'
+  in "<unicode string>", line 3, column 1:
+
+    ^
+✔ qualification admission refuses stale, incomplete, failed or wrong workflow evidence (2.590872ms)
+✔ publication admission refuses a moved parent, checkpoint or active phase including later API pages (0.639701ms)
+✔ prepublication validation refuses malformed workflow bytes before publication (1416.174361ms)
+✔ prepublication validation refuses exact writer blob drift (1629.560855ms)
+✔ prepublication validation refuses stale historical test correspondence (1729.854078ms)
+✔ environmental and unknown failures request technical diagnosis without automatic retry (0.56501ms)
+✔ changed PowerShell must be parsed and invalid or unavailable parsing refuses publication (1632.19721ms)
+✔ execution qualification binds a separately changed controller and refuses missing controller proof (36.051337ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ VNext-05 construit Requirement → Criterion → Atomic Assertions avec IDs mécaniques (71.378464ms)
+✔ VNext-05 refuse les IDs de critère fournis par l’IA (49.368397ms)
+✔ VNext-05 impose VISUAL_COMPARE aux propriétés visuelles (41.042467ms)
+✔ VNext-05 interdit une propriété visuelle sans source VISUAL ou DECISION (50.057608ms)
+✔ VNext-05 accepte INTERACTION uniquement avec source fonctionnelle et preuve fonctionnelle (54.946855ms)
+✔ VNext-05 interdit une preuve d’assertion absente du critère parent (48.23604ms)
+✔ VNext-05 exige que chaque preuve du critère soit allouée à une assertion (45.706118ms)
+✔ VNext-05 exige que les assertions couvrent tous les changements du critère (49.00297ms)
+✔ VNext-05 exige que chaque changement UI soit couvert par un critère (50.317978ms)
+✔ VNext-05 refuse qu’un requirement non-UI porte silencieusement un changement UI (52.528817ms)
+✔ VNext-05 limite la recherche de réutilisation aux candidats UI (51.882439ms)
+✔ VNext-05 impose une recherche de réutilisation et lie REUSE/EXTEND au candidat sélectionné (55.658457ms)
+✔ VNext-05 CREATE ne peut pas prétendre réutiliser un composant existant (47.864582ms)
+✔ VNext-05 lie le contrat atomique au PlanContract exact (41.218038ms)
+✔ VNext-05 ne réintroduit aucune dérivation Requirement depuis Criterion/Assertion (0.385844ms)
+✔ D2 source evidence rejects foreign authors, issues, repositories and comment IDs (1.765884ms)
+✔ D11 ignored files and Git executable metadata cannot change invisibly (31.221728ms)
+✔ D11 safe Git commands suppress a real pre-commit hook (20.708512ms)
+✔ D9 scanner detects concatenated REST destinations and Git writes behind safety options (2.915473ms)
+✔ D16 a comment marker cannot authorize an executable legacy push (93.458144ms)
+✔ D4 two skipped platforms never satisfy mapped historical coverage (0.80744ms)
+✔ D15 simultaneous stale-lock reclaimers produce exactly one owner (80.882807ms)
+✔ D8 UI projection retains atomic assertions and an exact component path/export binding (15.912963ms)
+ℹ tests 318
+ℹ suites 0
+ℹ pass 318
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 84273.833587

@@ -1,0 +1,20 @@
+{
+  "status": "VALIDATED",
+  "expected_parent": "988bd1da798b8290135adc122ceb960f69745de1",
+  "candidate_tree": "a973c1dd314787bc3aa4509a9753a0fa49706a90",
+  "changed_paths": [
+    ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_PROOF_FIX.md",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/campaign-state.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/request.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-proof-fix-20261006/publication-window.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-proof-fix-20261006/qualification-Linux.zip",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-proof-fix-20261006/qualification-Windows.zip",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-proof-fix-20261006/qualification-admission.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-proof-fix-20261006/qualification-snapshot.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-proof-fix-20261006/tree-validation.json"
+  ],
+  "targeted_tests": [],
+  "powershell_changed_units": 0,
+  "writer_policy": "PASS_WITH_FROZEN_LEGACY",
+  "historical_subjects": 420
+}

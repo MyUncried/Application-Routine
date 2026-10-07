@@ -626,3 +626,19 @@ test('INITIAL causal preserves its distinct provenance through the local supervi
   const repeated = fixture({initial_restart:{...initial_restart,source_request_id:f.request.request_id}});
   assert.throws(()=>C.normalizeRequest(repeated.request,repeated.root),/INITIAL_RESTART_CAUSALITY_INVALID/);
 });
+
+test('D18 recovery accepts only explicit INTACT, never unknown or missing integrity', () => {
+  const f=fixture(),stateRoot=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-integrity-status-'));
+  const runDir=path.join(stateRoot,'runs','UNIT');fs.mkdirSync(runDir,{recursive:true});
+  fs.mkdirSync(path.join(f.root,'src'),{recursive:true});fs.writeFileSync(path.join(f.root,'src/restored.ts'),'fixture');
+  f.request.generated_session_id='550e8400-e29b-41d4-a716-446655440000';
+  L.writeRecovery(runDir,f.root,f.request,['src/restored.ts'],{runId:'UNIT',integrityStatus:'INTACT'});
+  const file=path.join(runDir,'recovery.json'),base=JSON.parse(fs.readFileSync(file,'utf8'));
+  const resume={...f.request,mode:'RESUME_DELTA',session_id:f.request.generated_session_id};delete resume.generated_session_id;
+  try {
+    for(const integrity_status of ['REFS_MUTATED','PROMPT_MUTATED','GIT_METADATA_OR_IGNORED_MUTATED','UNKNOWN',null,undefined]){
+      fs.writeFileSync(file,JSON.stringify({...base,integrity_status}));
+      assert.throws(()=>L.restoreRecovery(stateRoot,f.root,resume),/RECOVERY_INTEGRITY_REFUSED|RECOVERY_NOT_FOUND/);
+    }
+  }finally{fs.rmSync(stateRoot,{recursive:true,force:true});fs.rmSync(f.root,{recursive:true,force:true});}
+});

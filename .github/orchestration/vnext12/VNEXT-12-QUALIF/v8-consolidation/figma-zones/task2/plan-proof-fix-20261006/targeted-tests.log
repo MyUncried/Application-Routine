@@ -1,0 +1,36 @@
+✔ generic recipe requires a concrete binding and projects a created surface without extending a preserved dependency (1385.880727ms)
+✔ review dependency indices resolve exact catalog IDs while ambiguity, unknown types and bounds stay refused (2.560692ms)
+✔ browser refusal is explicit and no normal browser profile is opened by binary discovery (0.827049ms)
+✔ disposable markup checks exact dimension values rather than declaration presence (1.633572ms)
+﹣ actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta (1.007667ms) # SKIP
+﹣ disposable fixed geometry refuses a viewport-relative counterexample at an independent viewport (0.164753ms) # SKIP
+✔ browser cleanup waits for the actual process and profile descendants before removal (333.572183ms)
+✔ browser cleanup failure retains stderr, primary error and isolated profile diagnostics (3.213219ms)
+✔ packaged Chrome precedes Chromium on Linux while an explicit browser remains authoritative (0.445731ms)
+✔ early browser exit retains executable, exit code and actual stderr in the failure (19.845502ms)
+✔ preservation proves a live re-export and rejects a hardcoded equal primitive (3.358354ms)
+✔ Windows termination races are accepted only after root and profile are gone (201.959654ms)
+✔ generic launch automatically orders capture, reconciliation, freeze and requirements before planning (1000.158687ms)
+✔ a declared Figma slice cannot skip source preparation or change the frozen requirement set (321.935403ms)
+✔ new launch identity and different file/frame IDs are generic, not Zones-specific (676.528295ms)
+✔ capture failure, foreign scope and rewritten observations stop before persistence (241.594515ms)
+✔ documentary state needs scenarios and every scenario needs an allocated executable proof (379.203734ms)
+✔ review automatically consumes approved references and compares executed artifact facts (831.372782ms)
+✔ missing/wrong measurement, forged value and wrong delivery head block review (597.792218ms)
+✔ omitted scenario, failed proof, changed artifact and changed approved plan block review (642.001947ms)
+✔ a model cannot approve omitted assertions or blocking findings (789.494504ms)
+✔ frozen Git serialization survives reordered logical reconstruction and byte drift is still refused (1374.963993ms)
+✔ authoritative document inventory forbids missing states, scenario omission and rewritten documents (310.99293ms)
+✔ measurement extras and altered reference destinations are refused without overwrite (629.824176ms)
+✔ operational produce entry refuses a Figma recipe without launch even when scope is omitted (391.697998ms)
+✔ the original real-reference precheck completes through generic launchAndProduce without any model call (8914.525329ms)
+✔ document-only conditional/persistence state is generated and cannot disappear behind the graphic inventory (344.04994ms)
+✔ existing VNext operational review entry prepares the exact dossier locally without invoking a model (1125.927006ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 2
+ℹ todo 0
+ℹ duration_ms 18771.829822

@@ -90,7 +90,7 @@ function createExclusive(file, value) {
   fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n', { encoding: 'utf8', mode: 0o600, flag: 'wx' });
 }
 
-function acquire(lockPath, identity, inspect = processIdentity, scanClaude = claudeProcessState) {
+function acquireLocked(lockPath, identity, inspect = processIdentity, scanClaude = claudeProcessState) {
   fs.mkdirSync(path.dirname(lockPath), { recursive: true });
   const current = inspect(process.pid);
   if (current.state !== 'ALIVE' || !current.started_at) throw new Error('LOCK_OWNER_IDENTITY_AMBIGUOUS');
@@ -135,7 +135,7 @@ function acquire(lockPath, identity, inspect = processIdentity, scanClaude = cla
   return { path: lockPath, record, disposition: observed.state === 'DEAD' ? 'STALE_REPLACED' : 'PID_REUSED_REPLACED' };
 }
 
-function release(handle) {
+function releaseLocked(handle) {
   if (!handle || !fs.existsSync(handle.path)) return false;
   let current;
   try { current = JSON.parse(fs.readFileSync(handle.path, 'utf8').replace(/^\uFEFF/, '')); }
@@ -145,6 +145,28 @@ function release(handle) {
   return true;
 }
 
+// Serialize every create / stale replacement / release. The original token
+// recheck alone left an unlink/create race between two reclaimers. A crashed
+// transition guard fails closed; it must never be auto-unlinked by a contender.
+function withTransitionGuard(lockPath, action) {
+  fs.mkdirSync(path.dirname(lockPath), { recursive: true });
+  const guard = lockPath + '.transition';
+  let fd;
+  try { fd = fs.openSync(guard, 'wx', 0o600); }
+  catch (err) {
+    if (err.code === 'EEXIST') throw new Error('CLAUDE_EXECUTION_LOCK_TRANSITION_BUSY');
+    throw err;
+  }
+  try { return action(); }
+  finally { fs.closeSync(fd); fs.unlinkSync(guard); }
+}
+function acquire(lockPath, identity, inspect = processIdentity, scanClaude = claudeProcessState) {
+  return withTransitionGuard(lockPath, () => acquireLocked(lockPath, identity, inspect, scanClaude));
+}
+function release(handle) {
+  if (!handle) return false;
+  return withTransitionGuard(handle.path, () => releaseLocked(handle));
+}
 module.exports = {
   LOCK_SCHEMA, processIdentity, claudeProcessState, acquire, release,
   parseWindowsSnapshot, classifyClaudeProcesses, windowsProcessSnapshot, managedClaudeMarkers,

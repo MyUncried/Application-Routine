@@ -1,0 +1,47 @@
+failing tests:
+2026-10-06T09:06:14.9355318Z
+2026-10-06T09:06:14.9355470Z test at tests/kodjo/vnext-figma-browser-observer.pilot.js:50:1
+2026-10-06T09:06:14.9356052Z ✖ actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta (9548.901108ms)
+2026-10-06T09:06:14.9356526Z   Error: VNEXT_FIGMA_BROWSER_CDP:{"code":-32000,"message":"Content unavailable. Resource was not cached"}
+2026-10-06T09:06:14.9357211Z       at WebSocket.<anonymous> (/home/runner/work/Application-Routine/Application-Routine/scripts/kodjo/lib/vnext-figma-browser-observer.js:102:201)
+2026-10-06T09:06:14.9357678Z       at [nodejs.internal.kHybridDispatch] (node:internal/event_target:848:20)
+2026-10-06T09:06:14.9357971Z       at WebSocket.dispatchEvent (node:internal/event_target:789:26)
+2026-10-06T09:06:14.9358223Z       at fireEvent (node:internal/deps/undici/undici:14438:14)
+2026-10-06T09:06:14.9358468Z       at #onMessage (node:internal/deps/undici/undici:15762:9)
+2026-10-06T09:06:14.9358716Z       at Object.onMessage (node:internal/deps/undici/undici:15469:76)
+2026-10-06T09:06:14.9359005Z       at websocketMessageReceived (node:internal/deps/undici/undici:14442:15)
+2026-10-06T09:06:14.9359255Z       at node:internal/deps/undici/undici:15171:21
+2026-10-06T09:06:14.9359453Z       at node:internal/deps/undici/undici:14951:11
+2026-10-06T09:06:14.9359667Z       at afterWrite (node:internal/streams/writable:712:5)
+2026-10-06T09:06:14.9359795Z
+2026-10-06T09:06:14.9359936Z test at tests/kodjo/vnext-figma-browser-observer.pilot.js:66:1
+2026-10-06T09:06:14.9360383Z ✖ disposable fixed geometry refuses a viewport-relative counterexample at an independent viewport (700.560326ms)
+2026-10-06T09:06:14.9360972Z   Error: VNEXT_LIVE_PROCESS_FAILED: /opt/hostedtoolcache/node/24.21.0/x64/bin/node: VNEXT_FIGMA_BROWSER_CDP:{"code":-32000,"message":"Content unavailable. Resource was not cached"}
+2026-10-06T09:06:14.9361364Z
+2026-10-06T09:06:14.9361671Z       at Object.fail (/home/runner/work/Application-Routine/Application-Routine/scripts/kodjo/lib/vnext-contract.js:11:17)
+2026-10-06T09:06:14.9362176Z       at Object.command (/home/runner/work/Application-Routine/Application-Routine/scripts/kodjo/lib/vnext-live-chain.js:38:36)
+2026-10-06T09:06:14.9362708Z       at Object.observe (/home/runner/work/Application-Routine/Application-Routine/scripts/kodjo/qualify-vnext-figma-real-path.js:76:32)
+2026-10-06T09:06:14.9363287Z       at TestContext.<anonymous> (/home/runner/work/Application-Routine/Application-Routine/tests/kodjo/vnext-figma-browser-observer.pilot.js:73:24)
+2026-10-06T09:06:14.9363692Z       at Test.runInAsyncScope (node:async_hooks:227:14)
+2026-10-06T09:06:14.9363910Z       at Test.run (node:internal/test_runner/test:1402:25)
+2026-10-06T09:06:14.9364169Z       at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+2026-10-06T09:06:14.9364676Z       at Test.postRun (node:internal/test_runner/test:1542:19)
+2026-10-06T09:06:14.9365005Z       at Test.run (node:internal/test_runner/test:1467:12)
+2026-10-06T09:06:14.9365289Z       at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+2026-10-06T09:06:14.9365552Z     code: 'VNEXT_LIVE_PROCESS_FAILED'
+2026-10-06T09:06:14.9365696Z   }
+2026-10-06T09:06:14.9372545Z ##[error]Process completed with exit code 1.
+2026-10-06T09:06:14.9456166Z Post job cleanup.
+2026-10-06T09:06:15.0048931Z [command]/usr/bin/git version
+2026-10-06T09:06:15.0085686Z git version 2.55.0
+2026-10-06T09:06:15.0114169Z Temporarily overriding HOME='/home/runner/work/_temp/c23e5b75-bd80-48ed-93bd-62f0ec1b4c95' before making global git config changes
+2026-10-06T09:06:15.0115019Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-06T09:06:15.0118987Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Application-Routine/Application-Routine
+2026-10-06T09:06:15.0154662Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-06T09:06:15.0186312Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-06T09:06:15.0407271Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-06T09:06:15.0439165Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-06T09:06:15.0667701Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-06T09:06:15.0699132Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-10-06T09:06:15.1030530Z Cleaning up orphan processes
+2026-10-06T09:06:15.1301016Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

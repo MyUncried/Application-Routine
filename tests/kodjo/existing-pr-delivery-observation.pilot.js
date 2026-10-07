@@ -9,7 +9,7 @@ const root = path.resolve(__dirname, '..', '..');
 const supervisorPath = path.join(root, 'scripts', 'kodjo', 'run-queued-request.ps1');
 
 function deliveryBlock() {
-  const source = fs.readFileSync(supervisorPath, 'utf8');
+  const source = require('./helpers/normalized-git-source')(fs.readFileSync(supervisorPath, 'utf8'));
   const start = source.indexOf('git push origin $pushRefspec');
   const end = source.indexOf('$metadataPath = [string]$env:KODJO_VISUAL_DELIVERY_METADATA_FILE');
   assert.ok(start >= 0, 'existing-PR push block must exist');

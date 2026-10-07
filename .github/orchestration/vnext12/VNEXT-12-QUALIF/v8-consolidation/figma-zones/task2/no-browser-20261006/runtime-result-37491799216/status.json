@@ -1,0 +1,34 @@
+{
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "stage": "FIGMA_INITIAL",
+  "status": "FAILED",
+  "code_head": "37e85e0e6dc6b7cd7785c1e285a2a38245ace779",
+  "live_figma_acquisition": "NOT_EXERCISED_FROZEN_GIT_CAPTURE_REPLAY",
+  "human_review_performed": false,
+  "application_published": false,
+  "diagnostic": "VNEXT_LIVE_REVIEW_NOT_APPROVED: REVISE",
+  "preserved_delivery": {
+    "head": "abde643df1daba3124e7d882b422a0dc5e511bbf",
+    "bundle_sha256": "9fa213804f6be9cbb0faa57626c749ad90c23f94e2ee12b590587bd584fbb164",
+    "files": [
+      {
+        "file": "src/features/example/Screen.js",
+        "sha256": "6fa9f3f28cd7c1f46314a93ba8940037659fffd0ff7b4f9a4b378791e80d01ab"
+      },
+      {
+        "file": "tests/ui.test.js",
+        "sha256": "ed7ca67fdcfd55c6f8f06dff16c707f7dc6b48efd8c91c41188708a69c6f00f9"
+      },
+      {
+        "file": "src/shared/ui/Existing.js",
+        "sha256": "22de78c984ee61c2d554310eb3c8f5578e55847cba15428adc3eaf21de884ddb"
+      },
+      {
+        "file": "docs/frozen-figma.json",
+        "sha256": "7845b4b8be01f949980fc165254da743ea231fcbcbdaa9084e7b9881859b5e7e"
+      }
+    ],
+    "dirty": ""
+  },
+  "disposable_cleanup": true
+}

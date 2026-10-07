@@ -1,0 +1,22 @@
+{
+  "status": "VALIDATED",
+  "expected_parent": "cf80c57c69a1f74e0ff3e4b6c62da169a1fd30c9",
+  "candidate_tree": "5cbed405864e97949feec8dae5d7145fcb613291",
+  "changed_paths": [
+    ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_REGRESSION_FIX.md",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/campaign-state.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/request.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/regression-fix-20261006/contracts-browser-verification.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/regression-fix-20261006/publication-window.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/regression-fix-20261006/qualification-Linux.zip",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/regression-fix-20261006/qualification-Windows.zip",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/regression-fix-20261006/qualification-admission.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/regression-fix-20261006/qualification-launch.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/regression-fix-20261006/qualification-snapshot.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/regression-fix-20261006/tree-validation.json"
+  ],
+  "targeted_tests": [],
+  "powershell_changed_units": 0,
+  "writer_policy": "PASS_WITH_FROZEN_LEGACY",
+  "historical_subjects": 420
+}
