@@ -1,0 +1,45 @@
+{
+  "schema_version": "kodjo.vnext.historical-connector-qualification.v1",
+  "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+  "source_request_id": "81a107ff-5c61-4df1-a2c0-fed949a331bc",
+  "run_id": 37674851193,
+  "run_attempt": 1,
+  "source_head": "88516d91bdc7ff266c1fe9e730662969748d3719",
+  "branch": "qualification/vnext-full-cycle-historical-relay-terminal-81a107ff-20261007",
+  "workflow_path": ".github/workflows/kodjo-vnext-proof-stability.yml",
+  "event": "create",
+  "run_conclusion": "SUCCESS",
+  "jobs": [
+    {
+      "id": 112975603527,
+      "name": "qualification (ubuntu-latest)",
+      "conclusion": "SUCCESS",
+      "artifact_id": 11506581787,
+      "artifact_sha256": "fb1365248da7177f7b760a477907a720ebf47c03d3f2bcbbeeabe4d58a757ff1"
+    },
+    {
+      "id": 112975604149,
+      "name": "qualification (windows-latest)",
+      "conclusion": "SUCCESS",
+      "artifact_id": 11506233337,
+      "artifact_sha256": "4d23f50743561e3a6c051a8fdc26b9b5829fb2c3cde118d4427eb1d61816c630"
+    },
+    {
+      "id": 112979561845,
+      "name": "Signal exact VNext cycle controls to Work",
+      "conclusion": "SUCCESS",
+      "result": "SKIPPED_SCOPE_NOT_READY",
+      "reason": "TERMINAL_REQUEST"
+    }
+  ],
+  "controls_per_platform": {
+    "pass": 412,
+    "fail": 0,
+    "skip": 0
+  },
+  "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+  "historical_jobs_started": false,
+  "continuation_signal_written": false,
+  "admission": "EXACT_PROTOCOL_CODE_QUALIFIED",
+  "observed_at": "2026-10-07T19:38:38Z"
+}
