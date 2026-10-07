@@ -17,7 +17,7 @@ function ghClient(){return(endpoint,method='GET',data)=>JSON.parse(execFileSync(
 function signal(c,{api,head,runId,attempt,kind,results}){
  validate(c);
  if(!/^[a-f0-9]{40}$/.test(head)||!Number.isSafeInteger(runId)||runId<1||!Number.isSafeInteger(attempt)||attempt<1)throw Error('VNEXT_CYCLE_SIGNAL_IDENTITY_INVALID');
- const stages=['PREPARE_INITIAL','EXECUTE_INITIAL','PREPARE_REVISION','EXECUTE_REVISION','FIGMA_INITIAL','CERTIFY_INCIDENTS','FINALIZE_DELIVERY'];
+ const stages=['PREPARE_INITIAL','EXECUTE_INITIAL','PREPARE_REVISION','EXECUTE_REVISION','FIGMA_INITIAL','CERTIFY_INCIDENTS','CERTIFY_HISTORICAL','FINALIZE_DELIVERY'];
  if(kind==='QUALIFICATION'){
   if(!['qualification'].every(k=>results[k]?.result==='success'))throw Error('VNEXT_CYCLE_QUALIFICATION_SIGNAL_NOT_READY');
  }else if(kind!=='OPERATIONAL'||!stages.includes(c.stage))throw Error('VNEXT_CYCLE_SIGNAL_STAGE_REFUSED');

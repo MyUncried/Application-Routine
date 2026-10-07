@@ -183,3 +183,12 @@ Le run [37665950253](https://github.com/MyUncried/Application-Routine/actions/ru
 La comparaison du plan approuvé et de la livraison réelle isole cinq cibles non-UI présentes mais volontairement inchangées depuis la baseline : les index body-zones, categories, labels, preferences et `sessions/defaults.ts`. Le finaliseur savait lier ce cas pour la préservation UI, pas pour le contrat non-UI. La correction ajoute au manifeste figé leur déclaration exacte et refuse toute liste hors périmètre, incomplète ou dont les OID Git diffèrent. Elle ne transforme pas une cible absente ou modifiée en preuve de livraison.
 
 Le run de qualification [37667669032](https://github.com/MyUncried/Application-Routine/actions/runs/37667669032), événement `create`, branche `qualification/vnext-full-cycle-incidents-retention-ee55d53d-20261007`, tête exacte `fe4e36eca5ccab54d0a8abfbaee4f2cb166bfb28`, est SUCCESS. Linux et Windows passent chacun 410/410 contrôles, 0 échec et 0 skip. Archives recalculées : Linux `563dad2a0cd57bf613bcc36c8091221bd17748303038e5def385da60b578ed0c`, Windows `c75f983ce3ca411efc5352275d14908790946c91f0920946dcb20d31ca829d45`. La demande en échec est rendue terminale avant toute nouvelle demande ; aucun retry identique n'est lancé.
+
+
+## Certification des trois incidents réussie et raccordement historique borné (2026-10-07T18:58:30Z)
+
+Le run 37670103040 est terminé SUCCESS, tentative 1, sur la tête exacte 9d227479be7fad533fdec4454c008eb22946a130. Les six suites ciblées sont PASS et le rejeu en lecture seule des données historiques est PASS. Le consommateur suivant est DELIVERY_BASELINE_ADMITTED ; aucune clôture opérationnelle n'est encore revendiquée. Aucun appel Claude, navigateur, changement V2/PRE-2/PRE-3 ni publication applicative n'a eu lieu.
+
+L'artefact 11505705096 est conservé sous le SHA-256 bad2d4200832f28811a1a7f60dccb2c129c59ac2a1e581112708a5a3e46e459d. La finalisation réelle lie les cinq dépendances non-UI conservées par leurs OID Git inchangés. Le signal de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:81a107ff-5c61-4df1-a2c0-fed949a331bc:37670103040:1 est revendiqué une seule fois.
+
+Le passage suivant exige l'agrégation historique Linux/Windows et le contrôle Windows persistant. Ces jobs existent déjà, mais leur condition de lancement ne couvrait que les sorties INITIAL/Figma. Le correctif minimal ajoute un état CERTIFY_HISTORICAL qui réutilise exactement ces jobs et leur ordre existants. La demande est terminale pendant la qualification Linux/Windows de ce raccordement ; aucun test acquis n'est relancé avant SUCCESS.
