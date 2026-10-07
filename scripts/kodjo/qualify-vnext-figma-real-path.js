@@ -11,7 +11,10 @@ const CAMPAIGN='628b3349-88b4-4bf1-be6b-50bc09e7d245';
 const BINDING={decision:'CREATE',justification:'CREATE refers only to the new toggle() behaviour/export, not a new file or replacement module. MODIFY the existing Screen file and preserve its Existing import/re-export from the unchanged shared dependency.'};
 const SCREEN='src/features/example/Screen.js',TEST='tests/ui.test.js',KEEP='src/shared/ui/Existing.js';
 const DOCUMENT='Selection toggles off to on and on to off. In this disposable protocol test, selection is the observable Boolean returned by Screen.toggle(), initially off; it is not a rendered chip selection and certifies no production interaction.\n';
-const DOCUMENTARY_STATES=[{state_id:'STATE-1',origin:'DOCUMENT_ONLY',disposition:'REQUIRED',expected:DOCUMENT.trim(),reason:'Boolean toggle observable defined exclusively in docs/spec.md for the disposable driver; not a Figma chip state.',scenarios:[{scenario_id:'toggle-off-on',given:'Selection is off',when:'Activate the toggle',then:'Selection is on',proof_required:['FUNCTIONAL_TEST']},{scenario_id:'toggle-on-off',given:'Selection is on',when:'Activate the toggle again',then:'Selection is off',proof_required:['FUNCTIONAL_TEST']}]}];
+const DOCUMENTARY_STATES=[
+ {state_id:'zones-reference',origin:'FIGMA',disposition:'CONTEXT_ONLY',expected:'Frozen Figma frame retained as source context only.',reason:'Frozen frame identity is retained without binding it to the disposable Boolean behaviour or certifying visual properties.'},
+ {state_id:'DOC-toggle-boolean',origin:'DOCUMENT_ONLY',disposition:'REQUIRED',expected:DOCUMENT.trim(),reason:'Boolean toggle observable defined exclusively in docs/spec.md for the disposable driver; not a Figma chip state.',scenarios:[{scenario_id:'toggle-off-on',given:'Selection is off',when:'Activate the toggle',then:'Selection is on',proof_required:['FUNCTIONAL_TEST']},{scenario_id:'toggle-on-off',given:'Selection is on',when:'Activate the toggle again',then:'Selection is off',proof_required:['FUNCTIONAL_TEST']}]}
+];
 const QUALIFICATION_CONTRACT={
  preservation_constraint:'Keep the Existing import and re-export in '+SCREEN+' identical to the export from '+KEEP+'.',
 observer_constraint:'This disposable test is functional only. Screen exports Existing and toggle() as CommonJS. Only Screen.js and tests/ui.test.js may change. The delivered tests/ui.test.js MUST be executable from the repository root by node tests/ui.test.js, using only Node built-in modules, with no installed dependency, package.json or test framework globals such as describe/it/expect. Exit status 0 means success and any assertion failure MUST produce a non-zero exit status. Orchestration executes this exact command and independently calls toggle twice in a fresh Node process. No render(), HTML, browser, geometry, screenshots or automatic visual comparison is required. Visual acceptance belongs exclusively to the user; this run does not certify it.',
@@ -26,7 +29,7 @@ const NEGATIVE_FUNCTIONAL_FAULT='\n// VNEXT_DISPOSABLE_FUNCTIONAL_FAULT_BEGIN\nm
 function seal(p){const x=structuredClone(p);delete x.contract_hash;return V.sealContract(x);}
 function scopedPacket(observed,doc){
  const p=structuredClone(observed);
- p.documents=[doc];p.frames=p.frames.map((f,i)=>({...f,state_id:'STATE-'+(i+1)}));
+ p.documents=[doc];
  p.states=Launch.documentStates([doc]);
  p.conflicts=[];
  for(const d of p.decisions){d.document_ids=[doc.document_id];d.disposition='OBSERVED_ONLY';d.rule=null;d.reason='Frozen Figma context retained. Automatic rendering controls removed by user instruction; visual validation belongs exclusively to the user and is not certified by this functional run.';}

@@ -5,9 +5,9 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "FIGMA_INITIAL_REQUESTED",
+  "current_stage": "REAL_TEST_CORRECTION_QUALIFICATION_PENDING",
   "request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
-  "generation": 88,
+  "generation": 89,
   "previous_terminal_generation": 77,
   "previous_closed_issue": 324,
   "reuse_previous_closure_as_new_cycle": false,
@@ -125,9 +125,13 @@
     },
     {
       "stage": "REAL_CLAUDE_FIGMA_FROZEN_SOURCE",
-      "status": "REQUESTED",
+      "status": "FAILED_PRE_IMPLEMENTATION",
       "request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
-      "generation": 88
+      "generation": 88,
+      "run_id": 37629963561,
+      "review_verdict": "CLARIFICATION_REQUIRED",
+      "implementation_invoked": false,
+      "correction_status": "PENDING_EXACT_HEAD_QUALIFICATION"
     },
     {
       "stage": "THREE_INCIDENTS_TARGETED_CERTIFICATION",
@@ -156,10 +160,10 @@
     "automatic_visual_validation"
   ],
   "active_run_ids": [],
-  "next_action": "Wait for the unique FIGMA_INITIAL run from generation 88. Require the frozen Git capture, real Claude sessions, functional negative refusal and bounded correction, preservation, tests, evidence and cleanup before CERTIFY_INCIDENTS.",
+  "next_action": "Qualify the two bounded real-test contract corrections on the exact candidate head for Linux and Windows. After SUCCESS, publish one fresh FIGMA_INITIAL request with a new request_id; do not replay run 37629963561.",
   "controller_head": "03188df4ef54e19af65facb614e3f90071dd3238",
   "qualification_branch": "qualification/vnext-full-cycle-revision-6db62fdd-20261007",
-  "observed_at": "2026-10-07T13:36:00Z",
+  "observed_at": "2026-10-07T14:02:00Z",
   "documentation_modals": "WAIT_FOR_USER_COMPLETION_SIGNAL",
   "pending_initial_request": {
     "stage": "EXECUTE_INITIAL",
@@ -187,7 +191,7 @@
   "automation_id": "6ac62299aa5c819198996171d4a1ff13",
   "automation_title": "Enchaîner le cycle VNext",
   "automation_trigger": "PR269_COMMIT_UPDATES",
-  "automatic_continuation_status": "FIGMA_INITIAL_PUBLISHED",
+  "automatic_continuation_status": "REAL_TEST_CORRECTION_QUALIFICATION_PENDING",
   "initial_binding_requires_new_qualified_source_head": false,
   "previous_initial_gate": {
     "comment_id": 6035666121,
@@ -261,6 +265,12 @@
       "next_request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
       "generation": 88,
       "outcome": "FIGMA_INITIAL_PUBLISHED"
+    },
+    {
+      "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8:37629963561:1",
+      "request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
+      "generation": 89,
+      "outcome": "REAL_TEST_FAILURE_RECORDED_CORRECTION_PENDING_QUALIFICATION"
     }
   ],
   "initial_failure": {
@@ -521,5 +531,27 @@
     "source_revision_signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:6db62fdd-31b6-4c00-8097-d85af9f675b8:37625815436:1",
     "live_figma_acquisition": "NOT_EXERCISED_FROZEN_GIT_CAPTURE_REPLAY",
     "visual_validation": "NOT_EXECUTED_USER_ONLY"
+  },
+  "real_test_failure": {
+    "run_id": 37629963561,
+    "run_attempt": 1,
+    "source_head": "69a050ded3320c8f17df6c4b676974c98307f5b8",
+    "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8:37629963561:1",
+    "artifact_id": 11485863934,
+    "artifact_sha256": "e5133d2b471a45f62424d722ba877abe3efe2bc84225c1289adc43537049b541",
+    "status": "FAILED_PRE_IMPLEMENTATION",
+    "diagnostic": "VNEXT_LIVE_REVIEW_NOT_APPROVED: CLARIFICATION_REQUIRED",
+    "review_session_id": "afac53af-27ec-4798-a327-6c2568b88cda",
+    "review_verdict": "CLARIFICATION_REQUIRED",
+    "blocking_findings": 2,
+    "implementation_invoked": false,
+    "application_published": false,
+    "disposable_cleanup": true,
+    "correction": {
+      "state_identity": "Frozen frame remains zones-reference/FIGMA/CONTEXT_ONLY; documentary Boolean uses DOC-toggle-boolean/DOCUMENT_ONLY/REQUIRED.",
+      "child_process_gate": "Every child must have no error, null signal and status 0; stdout/stderr are surfaced and the parent exits non-zero on failure.",
+      "local_controls": "46/46 targeted and 408/408 VNext PASS; 65 workflow YAML files accepted; runtime workflow validator and diff check PASS.",
+      "qualification": "PENDING_LINUX_WINDOWS_EXACT_HEAD"
+    }
   }
 }
