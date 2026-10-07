@@ -3,21 +3,22 @@
   "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
   "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
   "slice_id": "VNEXT-12-QUALIF",
-  "request_id": "81a107ff-5c61-4df1-a2c0-fed949a331bc",
-  "generation": 95,
-  "stage": "CERTIFY_INCIDENTS",
+  "request_id": "3b3a2190-3862-4f69-8b17-6dee73e5bf1b",
+  "generation": 97,
+  "stage": "CERTIFY_HISTORICAL",
   "kind": "OPERATIONAL",
-  "run_id": 37670103040,
+  "run_id": 37676699196,
   "run_attempt": 1,
-  "source_head": "9d227479be7fad533fdec4454c008eb22946a130",
-  "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:81a107ff-5c61-4df1-a2c0-fed949a331bc:37670103040:1",
+  "source_head": "97e8232afbc77576a8e3d311f06ae34636aeebca",
+  "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:3b3a2190-3862-4f69-8b17-6dee73e5bf1b:37676699196:1",
   "job_results": {
     "select-stage": {
       "result": "success",
       "outputs": {
-        "stage": "CERTIFY_INCIDENTS",
+        "approved_head": "88516d91bdc7ff266c1fe9e730662969748d3719",
         "qualification_policy": "FULL_CYCLE_USER_REQUEST",
-        "auto_continue": "true"
+        "auto_continue": "true",
+        "stage": "CERTIFY_HISTORICAL"
       }
     },
     "prepare-initial": {
@@ -37,7 +38,7 @@
       "outputs": {}
     },
     "certify-incidents": {
-      "result": "success",
+      "result": "skipped",
       "outputs": {}
     },
     "close-vnext-delivery": {
