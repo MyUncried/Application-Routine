@@ -232,3 +232,8 @@ Le run [37679156484](https://github.com/MyUncried/Application-Routine/actions/ru
 Le relais qualification termine SUCCESS avec `SKIPPED_SCOPE_NOT_READY` / `TERMINAL_REQUEST`; il n'a publié aucun signal. Le marqueur durable réserve avant lancement la demande `a0fe36c3-246b-4ffb-b962-a6c4a527fce0`, génération 99, sous la clé `de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:3b3a2190-3862-4f69-8b17-6dee73e5bf1b:37679156484:1`. La demande opérationnelle reste à publier par une avance CAS distincte.
 
 La demande unique `CERTIFY_HISTORICAL`, génération 99, ID `a0fe36c3-246b-4ffb-b962-a6c4a527fce0`, est liée à la qualification exacte 37679156484 et à la tête approuvée `e21c9a142ed41d4863f1273d22bd1f43643adcbd`. Elle est publiée après le marqueur durable et après terminaison du réveil terminal 37680698130. Elle n'appelle pas Claude et doit produire les quatre résultats historiques requis avant tout signal admissible.
+
+
+## Historique complet réussi et revue revendiquée (2026-10-07T21:10:30.873704+00:00)
+
+Le run 37680862427, tentative 1, est SUCCESS sur 4fd0d112. Linux 1157 PASS/0 FAIL/1 SKIP et Windows 1155 PASS/0 FAIL/3 SKIP sur 1158. Agrégation SUCCESS ; Windows persistant SUCCESS, Jest 1257/1257, TypeScript/lint/cleanup PASS. Les cinq archives sont téléchargées et leurs empreintes recalculées identiques à GitHub. Le signal causal unique de génération 99 est traité avec marqueur durable avant la revue. Demande terminale génération 100 pendant la préparation de la livraison. Aucune clôture nouvelle encore revendiquée. La récupération historique indisponible demeure NON_CERTIFIED ; ni rendu ni conformité native ne sont attestés. Les preuves sont dans full-cycle-20261007/historical-complete-37680862427.

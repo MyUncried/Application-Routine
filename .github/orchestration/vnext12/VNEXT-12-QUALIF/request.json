@@ -1,14 +1,14 @@
 {
-  "stage": "CERTIFY_HISTORICAL",
+  "stage": "TARGETED_RESULT_RECORDED",
   "slice_id": "VNEXT-12-QUALIF",
   "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
   "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
   "revision_limit": 1,
-  "generation": 99,
+  "generation": 100,
   "final_audit_authorized": false,
   "pre1_in_scope": false,
   "qualification_policy": "FULL_CYCLE_USER_REQUEST",
-  "auto_continue": true,
+  "auto_continue": false,
   "repository": "MyUncried/Application-Routine",
   "request_id": "a0fe36c3-246b-4ffb-b962-a6c4a527fce0",
   "human_review_performed": false,
@@ -33,5 +33,7 @@
   "source_historical_incomplete_signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:3b3a2190-3862-4f69-8b17-6dee73e5bf1b:37676699196:1",
   "historical_evidence_scope": "FULL_ASSERTIONS_PLATFORM_COVERAGE_AND_PERSISTENT_WINDOWS",
   "operational_closure_certified": false,
-  "result": "HISTORICAL_CERTIFICATION_PENDING"
+  "result": "HISTORICAL_COMPLETE_PASS_REVIEW_PENDING",
+  "historical_run_id": 37680862427,
+  "historical_signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:a0fe36c3-246b-4ffb-b962-a6c4a527fce0:37680862427:1"
 }
