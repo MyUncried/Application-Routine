@@ -21,6 +21,7 @@ jobs:
       approved_head: ${{ steps.stage.outputs.approved_head }}
       qualification_policy: ${{ steps.stage.outputs.qualification_policy }}
       delivery_head: ${{ steps.stage.outputs.delivery_head }}
+      auto_continue: ${{ steps.stage.outputs.auto_continue }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,6 +35,7 @@ jobs:
           const fs = require('fs');
           const c = JSON.parse(fs.readFileSync('.github/orchestration/vnext12/VNEXT-12-QUALIF/request.json'));
           if (!['PREPARE_INITIAL', 'EXECUTE_INITIAL', 'EXECUTE_REVISION', 'QUALIFY_ONLY', 'PREPARE_REVISION', 'FIGMA_INITIAL', 'CERTIFY_INCIDENTS', 'TARGETED_RESULT_RECORDED', 'FINALIZE_DELIVERY'].includes(c.stage) || c.pre1_in_scope !== false || c.final_audit_authorized !== false || c.revision_limit !== 1) throw Error('VNEXT12_STAGE_REFUSED');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'auto_continue=' + (c.auto_continue === true) + '\n');
           if (c.stage === 'FINALIZE_DELIVERY') require('./scripts/kodjo/lib/vnext-github-closure').validateConfig(c);
           if (c.stage === 'CERTIFY_INCIDENTS') require('./scripts/kodjo/certify-vnext-incidents').validateConfig(c);
           if (c.stage === 'FIGMA_INITIAL') require('./scripts/kodjo/qualify-vnext-figma-real-path').validateConfig(c);
@@ -458,3 +460,28 @@ jobs:
     uses: ./.github/workflows/kodjo-vnext-historical-checks.yml
     with:
       sequenced_vnext: true
+
+  wake-orchestrator:
+    name: Signal the completed VNext stage to Work
+    needs: [select-stage, prepare-initial, prepare-revision, execute-initial, figma-initial, certify-incidents, close-vnext-delivery, historical-platform-coverage, historical-local-windows]
+    if: always() && needs.select-stage.result == 'success' && needs.select-stage.outputs.auto_continue == 'true' && needs.select-stage.outputs.stage != 'TARGETED_RESULT_RECORDED' && needs.select-stage.outputs.stage != 'QUALIFY_ONLY'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Publish only a deduplicated completion signal
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CONTROLLER_HEAD: ${{ github.event.pull_request.head.sha }}
+          VNEXT_CONTINUATION_JOB: wake-orchestrator
+          VNEXT_RUN_KIND: OPERATIONAL
+          VNEXT_JOB_RESULTS: ${{ toJson(needs) }}
+        run: node scripts/kodjo/signal-vnext-cycle-continuation.js

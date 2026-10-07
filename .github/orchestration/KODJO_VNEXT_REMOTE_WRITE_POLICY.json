@@ -858,8 +858,8 @@
   "declared_vnext_writers": [
     {
       "producer": ".github/workflows/kodjo-vnext12-disposable.yml",
-      "producer_blob_oid": "7ee0a66541d9dc1950370af61ea001957b827d8d",
-      "authorization_condition": "EXACT_OWNER_APPROVED_INITIAL_OR_SERIALIZED_CERTIFICATION_CLOSURE_ONLY",
+      "producer_blob_oid": "a130aa1245e1f24fe486668c42d2f9358f7a5f02",
+      "authorization_condition": "EXACT_APPROVED_EXECUTION_SERIALIZED_CERTIFICATION_CLOSURE_OR_ISOLATED_CYCLE_SIGNAL_ONLY",
       "required_job": null,
       "capabilities": [
         {
@@ -871,6 +871,11 @@
           "capability": "GITHUB_PERMISSION_WRITE:issues",
           "destination": "github-token:issues",
           "scope": "JOB:close-vnext-delivery"
+        },
+        {
+          "capability": "GITHUB_PERMISSION_WRITE:contents",
+          "destination": "github-token:contents",
+          "scope": "JOB:wake-orchestrator"
         }
       ]
     },
@@ -878,6 +883,32 @@
       "producer": "scripts/kodjo/close-vnext-github-delivery.js",
       "producer_blob_oid": "e655111cddc1b81e2867a204ab2342217cb4c7c6",
       "authorization_condition": "SERIALIZED_FINALIZE_DELIVERY_EXACT_CERTIFICATION_TARGET_ONLY",
+      "required_job": null,
+      "capabilities": [
+        {
+          "capability": "REST_REPOSITORY_WRITE",
+          "destination": "static-source-line",
+          "scope": "SCRIPT"
+        }
+      ]
+    },
+    {
+      "producer": ".github/workflows/kodjo-vnext-proof-stability.yml",
+      "producer_blob_oid": "34bf5eb7a8bed71a3a34d152d91ced137f8cdd93",
+      "authorization_condition": "EXACT_SUCCESSFUL_CYCLE_CONTROLS_ISOLATED_SIGNAL_ONLY",
+      "required_job": "wake-orchestrator",
+      "capabilities": [
+        {
+          "capability": "GITHUB_PERMISSION_WRITE:contents",
+          "destination": "github-token:contents",
+          "scope": "JOB:wake-orchestrator"
+        }
+      ]
+    },
+    {
+      "producer": "scripts/kodjo/signal-vnext-cycle-continuation.js",
+      "producer_blob_oid": "1560fb0bb44d96d629955215bea43129ffd7c901",
+      "authorization_condition": "SERIALIZED_EXISTING_CAMPAIGN_SINGLE_SIGNAL_PATH_NONFORCED_HEAD_CHECK_ONLY",
       "required_job": null,
       "capabilities": [
         {

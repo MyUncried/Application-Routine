@@ -5,9 +5,9 @@
   "requested_at": "2026-10-07T09:16:57.515747+00:00",
   "starting_published_head": "0081ebc482d36669bf82fc45537bb56eb08b0d56",
   "starting_local_head": "9c028929cb8e83fcf729630e9ea74fe391f62c0c",
-  "current_stage": "INITIAL_DOSSIER_APPROVED_AWAITING_EXACT_PUBLISHED_HEAD_CONTROLS",
+  "current_stage": "AUTO_CONTINUATION_AND_FRESH_TRANSPORT_AWAITING_QUALIFICATION",
   "request_id": "11bea52c-4396-457a-8093-19073dc2d112",
-  "generation": 79,
+  "generation": 81,
   "previous_terminal_generation": 77,
   "previous_closed_issue": 324,
   "reuse_previous_closure_as_new_cycle": false,
@@ -19,8 +19,9 @@
     },
     {
       "stage": "EXACT_HEAD_QUALIFICATION",
-      "status": "PASS_CODE_BEFORE_DOSSIER_PUBLICATION",
-      "run_id": 37599709262
+      "status": "PASS_PREVIOUS_CODE_NEW_SIGNAL_CODE_REQUIRES_QUALIFICATION",
+      "run_id": 37599709262,
+      "approved_dossier_run_id": 37605050877
     },
     {
       "stage": "DISPOSABLE_INITIAL",
@@ -65,9 +66,41 @@
     "automatic_visual_validation"
   ],
   "active_run_ids": [],
-  "next_action": "Qualify newly published approved dossier HEAD then exact technical delegated approval and EXECUTE_INITIAL. Preserve every subsequent real runtime result.",
-  "controller_head": "3bb64be15d7662a76160bbe918a3bac297731935",
-  "qualification_branch": "qualification/vnext-full-cycle-de2b9683-20261007",
+  "next_action": "Qualify this newly published code via qualification/vnext-full-cycle-auto-*; completion signal awakens Work to bind and publish exact EXECUTE_INITIAL, then PREPARE_REVISION and EXECUTE_REVISION automatically after actual success.",
+  "controller_head": "ab68c2de3d98a4247d3d18fde53f802fa1466837",
+  "qualification_branch": "qualification/vnext-full-cycle-initial-de2b9683-20261007",
   "observed_at": "2026-10-07T09:19:22.154762+00:00",
-  "documentation_modals": "WAIT_FOR_USER_COMPLETION_SIGNAL"
+  "documentation_modals": "WAIT_FOR_USER_COMPLETION_SIGNAL",
+  "pending_initial_request": {
+    "stage": "EXECUTE_INITIAL",
+    "slice_id": "VNEXT-12-QUALIF",
+    "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+    "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+    "revision_limit": 1,
+    "generation": 80,
+    "final_audit_authorized": false,
+    "pre1_in_scope": false,
+    "qualification_policy": "FULL_CYCLE_USER_REQUEST",
+    "request_id": "db5ed26b-e1f7-4e0c-a417-1ee1f44748a4",
+    "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
+    "human_review_performed": false,
+    "repository": "MyUncried/Application-Routine",
+    "preparation_run_id": 37599633548,
+    "auto_continue": true,
+    "created_at": "2026-10-07T10:45:50.134507+00:00"
+  },
+  "auto_continue": true,
+  "automation_id": "6ac62299aa5c819198996171d4a1ff13",
+  "automation_title": "Encha\u00eener le cycle VNext",
+  "automation_trigger": "PR269_COMMIT_UPDATES",
+  "automatic_continuation_status": "CONFIGURED_NOT_YET_DEMONSTRATED",
+  "initial_binding_requires_new_qualified_source_head": true,
+  "previous_initial_gate": {
+    "comment_id": 6035666121,
+    "reaction_id": 434530859,
+    "target_hash": "5e3843f8cd16a4fe0594d05a7534ea56cafacd3a8981990d2f87de89a04d973c",
+    "human_review_performed": false,
+    "status": "SUPERSEDED_HEAD_NOT_REUSABLE"
+  },
+  "completed_controls_run": 37605050877
 }

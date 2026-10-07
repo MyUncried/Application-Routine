@@ -4,7 +4,7 @@
   "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
   "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
   "revision_limit": 1,
-  "generation": 79,
+  "generation": 81,
   "final_audit_authorized": false,
   "pre1_in_scope": false,
   "qualification_policy": "FULL_CYCLE_USER_REQUEST",
@@ -13,5 +13,8 @@
   "human_review_performed": false,
   "repository": "MyUncried/Application-Routine",
   "preparation_run_id": 37599633548,
-  "qualification_run_id": 37599709262
+  "qualification_run_id": 37599709262,
+  "auto_continue": true,
+  "execution_request_id": "db5ed26b-e1f7-4e0c-a417-1ee1f44748a4",
+  "execution_created_at": "2026-10-07T10:45:50.134507+00:00"
 }
