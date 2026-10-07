@@ -1,29 +1,15 @@
 {
-  "stage": "TARGETED_RESULT_RECORDED",
+  "stage": "PREPARE_INITIAL",
   "slice_id": "VNEXT-12-QUALIF",
   "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
   "revision_limit": 1,
-  "generation": 77,
+  "generation": 78,
   "final_audit_authorized": false,
   "pre1_in_scope": false,
-  "qualification_policy": "TARGETED_EXISTING_CERTIFICATION",
-  "request_id": "241b97ea-c97a-45a8-86fd-b9d0ebe5c2f2",
-  "authorization_basis": "USER_20261007_102954_PARIS_FINALIZE_GITHUB_CLOSURE",
+  "qualification_policy": "FULL_CYCLE_USER_REQUEST",
+  "request_id": "11bea52c-4396-457a-8093-19073dc2d112",
+  "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
   "human_review_performed": false,
-  "repository": "MyUncried/Application-Routine",
-  "closure_scope": "GITHUB_CERTIFICATION_DELIVERY",
-  "issue_number": 324,
-  "delivery_pr_number": 325,
-  "delivery_branch": "certification/vnext/628b3349-88b4-4bf1-be6b-50bc09e7d245",
-  "delivery_head": "b4dbde78215b4ff1adb1443a0ed6d581716eb38b",
-  "issue_body_sha256": "dd73869df5ab2ddfdc34b4253f0e453fb5641e7facf48822d797f5f018dd9a7c",
-  "finalization_manifest": ".github/orchestration/vnext12/VNEXT-12-QUALIF/closure/finalization-manifest.json",
-  "reused_targeted_runs": [
-    37557921183,
-    37559490452
-  ],
-  "source_revision_run": 37548553181,
-  "previous_closure_run": 37596957178,
-  "last_closure_run": 37597628150,
-  "closure_result": "GITHUB_CERTIFICATION_DELIVERY_CLOSED"
+  "repository": "MyUncried/Application-Routine"
 }
