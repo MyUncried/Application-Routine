@@ -72,4 +72,39 @@ Aucune régression introduite. Les échecs listés sont préexistants et relève
 
 ## 9. Commit et état Git
 
-Le hash du commit de livraison et l’état Git final sont communiqués dans la description de la PR et le message de clôture (un fichier ne peut contenir le hash de son propre commit).
+- Commit de livraison : `5b3fff072bac93356ee7d9ca73157f62523df302` (parent `a0a07602`), PR #331 ouverte vers `main`, **non fusionnée**.
+- Le présent paragraphe et le § 10 sont ajoutés par un commit documentaire ultérieur, rattaché à `5b3fff07` ; il ne modifie que ce rapport.
+
+## 10. Prévisualisation Routine Dev
+
+**Autorisation** : Hermann a choisi la publication locale (« Local comme pour #326 ») et autorisé explicitement, le 2026-10-07, la publication OTA de la tête `5b3fff07` de la PR #331 sur le canal `review` de Routine Dev.
+
+**Méthode** : le workflow `kodjo-routine-dev-environment-sync.yml` n’est pas applicable (il exige un run de revue V2 approuvé). Ses étapes de publication ont été reproduites à l’identique en local, sans modifier ni lancer de workflow : worktree détaché propre à `5b3fff07` (tête et propreté vérifiées), `npm ci`, vérification de la configuration Routine Dev (mêmes assertions que le workflow), puis `eas update --channel review --platform ios --environment development --non-interactive --json` avec `APP_VARIANT=development` et `eas-cli@21.7.1`. Il n’existe donc pas de run GitHub Actions pour cette publication.
+
+| Contrôle préalable | Résultat |
+|---|---|
+| Tête de la PR #331 | `5b3fff072bac93356ee7d9ca73157f62523df302`, ouverte |
+| Opérations actives | aucun run en cours ; aucune autre publication Routine Dev |
+| Compatibilité avec le build installé (build iOS 5 `0a3ff6a7-a994-412d-aa07-cd11296ee8a7`, commit `10ac761e`, `runtimeVersion 1.1.0`) | `OTA_COMPATIBLE` (`classify-environment-update.js`), aucun fichier natif modifié ; `runtimeVersion` de la tête : `1.1.0` — **aucun build natif nécessaire** |
+| Configuration Routine Dev | nom, bundle `com.ankusha.kodjo.dev`, projet EAS, URL de mise à jour, profil `review` autonome : conformes |
+
+| Résultat | Valeur |
+|---|---|
+| Statut | **Publié** (« Published! », code 0) |
+| Mise à jour EAS iOS | `01a1184a-65db-7b4d-8264-74e82e3b9af5` |
+| Groupe | `bb450c53-5915-4f57-b173-eb2e400d53b0` |
+| Canal / branche | `review` / `review` |
+| Commit publié | `5b3fff072bac93356ee7d9ca73157f62523df302` (`gitCommitHash` enregistré par EAS) |
+| Manifeste | https://u.expo.dev/update/01a1184a-65db-7b4d-8264-74e82e3b9af5 |
+| Créée le | 2026-10-07T21:34:51Z |
+| Contrôle après publication | `eas channel:view review` : mise à jour la plus récente du canal |
+
+Non fait : fusion de la PR #331, modification de Routine stable, cycle V2/VNext. Le worktree temporaire de publication a été retiré.
+
+**Charger la mise à jour sur iPhone** : ouvrir Routine Dev (build 5) avec le réseau actif, attendre 10 à 20 secondes, fermer complètement l’app depuis le sélecteur d’apps, la rouvrir ; recommencer une fois si rien ne change. Repère : le titre « Composer une séance » en création de séance.
+
+**Vérifications iPhone limitées aux propriétés modifiées** (non vérifiées à ce jour) :
+
+1. A — voile plus clair et légèrement bleuté (`#1F2129` à 34 %) derrière les dialogues d’abandon, la roulette, les feuilles Catégorie, Zones corporelles et Étiquettes, et les options de création du Catalogue.
+2. C — sélecteur du Catalogue et Mode d’exécution de la Création d’activité : cadre blanc translucide sans contour, options inactives lavande `#EAEAFF`, libellés Semi Bold 16, sélection indigo qui glisse comme avant ; « Parcours » toujours grisé et inactif.
+3. D — titres « Composer une séance » et « Créer un exercice ».
