@@ -1,0 +1,19 @@
+{
+  "stage": "FINALIZE_DELIVERY",
+  "repository": "MyUncried/Application-Routine",
+  "slice_id": "VNEXT-12-QUALIF",
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "revision_limit": 1,
+  "pre1_in_scope": false,
+  "final_audit_authorized": false,
+  "closure_scope": "GITHUB_CERTIFICATION_DELIVERY",
+  "issue_number": 335,
+  "delivery_pr_number": 330,
+  "delivery_branch": "certification/vnext/628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "base_branch": "protocol/vnext-proof-stability-20260930",
+  "issue_body_sha256": "4d0d41bb8ba5ece728f06c2d41de8a243b531fb724973d232600a80d2ef0e1cd",
+  "delivery_head": "3db2ac6129f0aaf5b6e47bf1d3030a1fe8a57609",
+  "finalization_manifest": ".github/orchestration/vnext-closure/finalization-335.json",
+  "authorization_basis": "USER_20261008_142827_PARIS_TEST_REAL_CLOSURE",
+  "human_review_performed": false
+}

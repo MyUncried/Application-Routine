@@ -1,0 +1,20 @@
+{
+  "repository": "MyUncried/Application-Routine",
+  "issue": 335,
+  "sliceId": "VNEXT-12-QUALIF",
+  "reviewId": 6059909117,
+  "head": "3db2ac6129f0aaf5b6e47bf1d3030a1fe8a57609",
+  "approvedHead": "3db2ac6129f0aaf5b6e47bf1d3030a1fe8a57609",
+  "baselineHead": "53ebeae733286b55b6d96478cd27c76276e5a346",
+  "incrementHead": "53ebeae733286b55b6d96478cd27c76276e5a346",
+  "planRevision": "53ebeae733286b55b6d96478cd27c76276e5a346",
+  "planPath": ".github/orchestration/vnext12/VNEXT-12-QUALIF/revision/technical-plan.md",
+  "approvedPlanBlobOid": "4f79546a7afc8e8e2f7203c66b75a4d39dd22986",
+  "reservations": [],
+  "reviewSource": {
+    "kind": "CONNECTOR_TECHNICAL_REVIEW",
+    "actor": "MyUncried",
+    "application_slug": "chatgpt-codex-connector",
+    "body_sha256": "2d1fe2b5470571fc675ed9a07a2992926b8deccc508c913403f38015bbf2d0eb"
+  }
+}
