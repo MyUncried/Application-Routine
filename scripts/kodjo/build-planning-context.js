@@ -6,11 +6,7 @@ const crypto=require('node:crypto');
 const digest=s=>crypto.createHash('sha256').update(s).digest('hex');
 const normalize=s=>String(s||'').replace(/\r/g,'');
 function taggedJson(body,tag,required=false){
-  const escaped=tag.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  const hits=[...normalize(body).matchAll(new RegExp('<'+escaped+'>\\s*([\\s\\S]*?)\\s*</'+escaped+'>','g'))];
-  if(hits.length===0&&!required)return null;
-  if(hits.length!==1)throw new Error('CONTEXT_TAG_INVALID:'+tag);
-  return JSON.parse(hits[0][1]);
+  return require('./lib/machine-block').parse(body,tag,{required,code:'CONTEXT_TAG_INVALID:'+tag});
 }
 function field(body,key,required=false) {
   const hits=[...normalize(body).matchAll(new RegExp('^'+key+'=([^\\n]+)$','gm'))];
@@ -102,13 +98,12 @@ function select({comments,command,commandId,issueUrl,slice,sourceHead,applicatio
     // No candidate yet: the committed approved plan/review remain the base.
     const checkpoints=eligible.filter(c=>matches(c,'[KODJO_V2] TARGETED_VALIDATION_OUTPUT'));
     const checkpoint=latest(checkpoints.filter(c=>{
-      const tag=normalize(c.body).match(/<KODJO_TARGETED_VALIDATION_JSON>\s*([\s\S]*?)\s*<\/KODJO_TARGETED_VALIDATION_JSON>/);
-      if(!tag) throw new Error('CONTEXT_TARGETED_PROOF_INVALID');
-      const p=JSON.parse(tag[1]);return p.head===applicationHead && String(p.application_pr)===String(applicationPr);
+      const p=taggedJson(c.body,'KODJO_TARGETED_VALIDATION_JSON',true);
+      return p.head===applicationHead && String(p.application_pr)===String(applicationPr);
     }));
     if(checkpoint) {
       add('TARGETED_VALIDATION_ONLY',checkpoint);
-      const proof=JSON.parse(normalize(checkpoint.body).match(/<KODJO_TARGETED_VALIDATION_JSON>\s*([\s\S]*?)\s*<\/KODJO_TARGETED_VALIDATION_JSON>/)[1]);
+      const proof=taggedJson(checkpoint.body,'KODJO_TARGETED_VALIDATION_JSON',true);
       if(proof.global_approval!==false || proof.merge_authorized!==false || proof.close_authorized!==false || proof.final_status!=='REQUALIFICATION_REQUIRED') throw new Error('CONTEXT_TARGETED_SCOPE_INVALID');
       add('TARGETED_HUMAN_EVIDENCE',eligible.find(c=>String(c.id)===String(proof.human_device_approval_comment_id)),'MyUncried');
     }

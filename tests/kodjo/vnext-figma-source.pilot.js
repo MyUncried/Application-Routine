@@ -99,3 +99,18 @@ test('real qualification frame 4478:7209: complete inventory, aliases, vectors, 
  assert.ok(p.decisions.filter(d=>d.property==='characters'&&!labels.includes(d)).every(d=>d.disposition==='OBSERVED_ONLY'));
  assert.deepEqual(labels.map(d=>d.rule.value).sort(),['Créer une zone corporelle','Zones corporelles'].sort());
 });
+
+test('IA-F02 every Figma consumer tolerates identical blocks and refuses conflicts before materializing assets',t=>{
+ const f=withFixture(t),body=plan(f.produce());
+ for(const stage of ['PLANNER','IMPLEMENTER','IMPLEMENTATION_REVIEWER']) for(const tag of ['KODJO_VNEXT_UI_ATOMICITY_JSON','KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON']){
+  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'figma-block-chain-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+  const block=require('../../scripts/kodjo/lib/machine-block').parse(body,tag);
+  const duplicate='<'+tag+'>'+JSON.stringify(block)+'</'+tag+'>';
+  assert.equal(F.consume(body+'\n'+duplicate,dir,stage).stage,stage);
+  const badDir=fs.mkdtempSync(path.join(os.tmpdir(),'figma-block-conflict-'));t.after(()=>fs.rmSync(badDir,{recursive:true,force:true}));
+  const changed={...block,contract_hash:'f'.repeat(64)};
+  assert.throws(()=>F.consume(body+'\n<'+tag+'>'+JSON.stringify(changed)+'</'+tag+'>',badDir,stage),/CONFLICTING_BLOCKS/);
+  assert.deepEqual(fs.readdirSync(badDir),[]);
+  assert.throws(()=>F.consume(body+'\n<'+tag+'>invalid</'+tag+'>',badDir,stage),/TRANSPORT_REQUIRED/);
+ }
+});

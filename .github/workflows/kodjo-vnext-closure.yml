@@ -1,0 +1,109 @@
+name: KODJO VNext generic delivery closure
+on:
+  pull_request:
+    paths:
+      - '.github/orchestration/vnext-closure/**'
+  workflow_dispatch:
+    inputs:
+      request_path:
+        description: Committed closure request with exact delivery and finalization bindings
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: kodjo-vnext-generic-closure
+  cancel-in-progress: false
+jobs:
+  test-delivery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    permissions:
+      contents: read
+    outputs:
+      artifact_id: ${{ steps.proof.outputs.artifact-id }}
+      artifact_digest: ${{ steps.proof.outputs.artifact-digest }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate the exact delivery request before testing
+        id: request
+        env:
+          REQUEST_PATH: ${{ inputs.request_path || '.github/orchestration/vnext-closure/request.json' }}
+        run: node scripts/kodjo/validate-vnext-closure-request.js
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.request.outputs.delivery_head }}
+          path: _checks-delivery
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Install locked delivery dependencies
+        working-directory: _checks-delivery
+        run: npm ci
+      - name: Execute Jest TypeScript and lint on the exact delivery tree
+        env:
+          VNEXT_TEST_JOB: test-delivery
+          VNEXT_CONTROLLER_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/kodjo/produce-vnext-test-evidence.js _checks-delivery "$RUNNER_TEMP/vnext-delivery-tests/test-evidence.json"
+      - uses: actions/upload-artifact@v4
+        id: proof
+        if: always()
+        with:
+          name: vnext-delivery-tests-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vnext-delivery-tests/test-evidence.json
+          retention-days: 14
+          if-no-files-found: error
+  close-vnext-delivery:
+    needs: test-delivery
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+      actions: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate closure request and slice routing
+        id: request
+        env:
+          REQUEST_PATH: ${{ inputs.request_path || '.github/orchestration/vnext-closure/request.json' }}
+        run: node scripts/kodjo/validate-vnext-closure-request.js
+      - name: Verify closure regressions before any write
+        run: node --test tests/kodjo/vnext-github-closure.pilot.js tests/kodjo/vnext-audit-tolerance.pilot.js tests/kodjo/vnext-finalization-incidents.pilot.js
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.request.outputs.delivery_head }}
+          path: _closure-delivery
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Revalidate original evidence and close the exact bound issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VNEXT_CLOSURE_JOB: close-vnext-delivery
+          VNEXT_TEST_ARTIFACT_ID: ${{ needs.test-delivery.outputs.artifact_id }}
+          VNEXT_TEST_ARTIFACT_DIGEST: ${{ needs.test-delivery.outputs.artifact_digest }}
+          VNEXT_DELIVERY_CWD: _closure-delivery
+          REQUEST_PATH: ${{ steps.request.outputs.request_path }}
+        run: node scripts/kodjo/close-vnext-github-delivery.js "$REQUEST_PATH" "$RUNNER_TEMP/vnext-generic-closure-${{ github.run_id }}-${{ github.run_attempt }}"
+      - name: Preserve observed closure and replay evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-vnext-closure-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vnext-generic-closure-${{ github.run_id }}-${{ github.run_attempt }}/**
+          retention-days: 14
+          if-no-files-found: error

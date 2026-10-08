@@ -95,7 +95,17 @@ function collectTargets({
   for (const row of requirementRegistry.coverage || []) catalog.SOURCE_UNIT.push(row.unit_id);
   for (const row of requirementRegistry.requirements || []) catalog.REQUIREMENT.push(row.requirement_id);
   for (const row of impactGraph.impacts || []) catalog.IMPACT.push(row.impact_id);
-  for (const row of candidateManifest.candidates || []) catalog.CANDIDATE.push(row.candidate_id);
+  // Review only candidates actually referenced by this plan, its impacts or preservation.
+  const relevant = new Set([
+    ...(impactGraph.impacts || []).flatMap(row => [row.candidate_id,
+      ...(row.tests_affected_candidate_ids || []), ...(row.preservation_candidate_ids || [])]),
+    ...(planContract.boundaries?.write_scope || []).map(row => row.candidate_id),
+    ...(planContract.boundaries?.preserve_scope || []).map(row => row.candidate_id),
+    ...(uiAtomicityContract?.criteria || []).flatMap(row => [row.selected_component_candidate_id, ...(row.reuse_search_candidate_ids || [])]),
+  ].filter(Boolean));
+  for (const row of candidateManifest.candidates || []) {
+    if (relevant.has(row.candidate_id)) catalog.CANDIDATE.push(row.candidate_id);
+  }
   for (const item of planContract.plan_items || []) {
     catalog.PLAN_ITEM.push(item.plan_item_id);
     for (const test of item.test_obligations || []) catalog.TEST.push(test.test_id);
@@ -229,6 +239,15 @@ function buildReviewContext({
     ui_applicable: uiApplicable,
     mechanical_checks: mechanicalChecks,
     target_catalog: targetCatalog,
+    coverage_policy: {
+      // Only preserve-only candidates can be left pending within this tolerance.
+      optional_target_ids: targetCatalog.CANDIDATE.filter(id =>
+        (planContract.boundaries?.preserve_scope || []).some(row => row.candidate_id === id)
+        && !(impactGraph.impacts || []).some(row => row.candidate_id === id
+          || (row.tests_affected_candidate_ids || []).includes(id))),
+      max_pending_targets: 3,
+      max_pending_ratio: 0.02,
+    },
   });
 }
 
@@ -251,7 +270,7 @@ function validateReviewContext(context) {
       'target_catalog',
       'contract_hash',
     ],
-    ['acceptance_gaps'],
+    ['acceptance_gaps', 'coverage_policy'],
     'VNEXT_REVIEW_CONTEXT_KEYS_INVALID',
   );
   if (context.schema_version !== CONTEXT_SCHEMA) V.fail('VNEXT_REVIEW_CONTEXT_SCHEMA_INVALID');
@@ -273,7 +292,14 @@ function validateReviewContext(context) {
     if (check.status !== 'PASS') V.fail('VNEXT_REVIEW_MECHANICAL_CHECK_NOT_PASS', check.check_id);
     V.assertSha64(check.evidence_hash, 'VNEXT_REVIEW_MECHANICAL_EVIDENCE_INVALID', check.check_id);
   }
-  validateCatalog(context.target_catalog);
+  const targets = validateCatalog(context.target_catalog);
+  if (context.coverage_policy) {
+    const p = context.coverage_policy;
+    V.assertExactKeys(p, ['optional_target_ids','max_pending_targets','max_pending_ratio'], [], 'VNEXT_REVIEW_TOLERANCE_INVALID');
+    if (p.max_pending_targets !== 3 || p.max_pending_ratio !== 0.02
+        || !Array.isArray(p.optional_target_ids) || new Set(p.optional_target_ids).size !== p.optional_target_ids.length
+        || p.optional_target_ids.some(id => !targets.has(id) || !context.target_catalog.CANDIDATE.includes(id))) V.fail('VNEXT_REVIEW_TOLERANCE_INVALID');
+  }
   return true;
 }
 
@@ -441,8 +467,14 @@ function buildReviewReport({ reviewContext, semanticReview }) {
   }
 
   const allTargets = validateCatalog(reviewContext.target_catalog);
-  const reviewedTargets = V.uniqueStrings(semanticReview.reviewed_target_ids, 'VNEXT_REVIEW_COVERAGE_INVALID', 'reviewed_target_ids').sort();
-  if (V.canonicalStringify(reviewedTargets) !== V.canonicalStringify([...allTargets].sort())) V.fail('VNEXT_REVIEW_COVERAGE_INCOMPLETE');
+  const reviewedTargets = V.uniqueStrings(semanticReview.reviewed_target_ids, 'VNEXT_REVIEW_COVERAGE_INVALID', 'reviewed_target_ids', {allowEmpty:true}).sort();
+  if (reviewedTargets.some(id => !allTargets.has(id))) V.fail('VNEXT_REVIEW_COVERAGE_UNKNOWN');
+  const pendingTargets = [...allTargets].filter(id => !reviewedTargets.includes(id)).sort();
+  const policy = reviewContext.coverage_policy;
+  if (pendingTargets.length && (!policy
+      || pendingTargets.some(id => !policy.optional_target_ids.includes(id))
+      || pendingTargets.length > policy.max_pending_targets
+      || pendingTargets.length / allTargets.size > policy.max_pending_ratio)) V.fail('VNEXT_REVIEW_COVERAGE_INCOMPLETE');
   if (!Array.isArray(semanticReview.finding_resolutions)) V.fail('VNEXT_REVIEW_RESOLUTIONS_INVALID');
   const seenResolutions = new Set();
   const resolutions = semanticReview.finding_resolutions.map(row => {
@@ -497,6 +529,8 @@ function buildReviewReport({ reviewContext, semanticReview }) {
     reentry_stages: reentryStages,
     findings,
     reviewed_target_ids: reviewedTargets,
+    ...(policy ? {coverage_status: pendingTargets.length ? 'ACCEPTED_WITH_PENDING_SECONDARY_TARGETS' : 'COMPLETE',
+      pending_target_ids: pendingTargets} : {}),
     finding_resolutions: resolutions,
     ...(acceptanceResolutions ? {acceptance_resolutions:acceptanceResolutions} : {}),
   });
@@ -521,7 +555,7 @@ function validateReviewReport(report, reviewContext) {
       'finding_resolutions',
       'contract_hash',
     ],
-    reviewContext.acceptance_gaps ? ['acceptance_resolutions'] : [],
+    [...(reviewContext.acceptance_gaps ? ['acceptance_resolutions'] : []), ...(reviewContext.coverage_policy ? ['coverage_status','pending_target_ids'] : [])],
     'VNEXT_REVIEW_REPORT_KEYS_INVALID',
   );
   if (report.schema_version !== REPORT_SCHEMA) V.fail('VNEXT_REVIEW_REPORT_SCHEMA_INVALID');
@@ -563,6 +597,7 @@ function buildReviewerPacket({ root, revision, reviewContext }) {
 }
 
 module.exports = {
+  collectTargets,
   buildReviewerPacket,
   CONTEXT_SCHEMA,
   REPORT_SCHEMA,

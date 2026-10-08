@@ -1,0 +1,92 @@
+name: KODJO VNext tolerance real review qualification
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - '.github/orchestration/vnext-audit-tolerance/qualification-request.json'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: kodjo-vnext-tolerance-real-review
+  cancel-in-progress: false
+jobs:
+  qualify-exact-head:
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Require exact successful Linux Windows and historical controls
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/kodjo/wait-vnext-audit-qualification.js
+  real-plan-revision:
+    needs: qualify-exact-head
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 120
+    env:
+      CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+          path: _vnext-tolerance/${{ github.run_id }}
+      - name: Require refreshed Claude authentication before another real review
+        working-directory: _vnext-tolerance/${{ github.run_id }}
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $preflight=Join-Path $env:RUNNER_TEMP 'vnext-tolerance-preflight-${{ github.run_id }}-${{ github.run_attempt }}'
+          New-Item -ItemType Directory -Force -Path $preflight | Out-Null
+          $receipt=Join-Path $preflight 'auth-status.json'
+          $raw='{}'
+          $authExit=1
+          try {
+            $claude=Get-Command claude.cmd -ErrorAction Stop
+            $raw=(& $claude.Source auth status 2>&1 | Out-String)
+            $authExit=$LASTEXITCODE
+          } catch { $raw='{"loggedIn":false}' }
+          $raw | & node scripts/kodjo/verify-claude-auth-status.js $receipt $authExit
+          if ($LASTEXITCODE -ne 0) { throw 'VNEXT_REVIEW_AUTH_PREFLIGHT_FAILED: see sanitized receipt' }
+          Write-Host 'Claude CLI reports logged in; no model invoked by this check.'
+      - name: Verify explicit request and exact clean checkout then use existing real revision benchmark
+        working-directory: _vnext-tolerance/${{ github.run_id }}
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'VNEXT_TOLERANCE_RUNNER_MISMATCH' }
+          if ((git rev-parse HEAD).Trim() -ne '${{ github.event.pull_request.head.sha }}') { throw 'VNEXT_TOLERANCE_HEAD_MISMATCH' }
+          if (-not [string]::IsNullOrWhiteSpace((git status --porcelain --untracked-files=all))) { throw 'VNEXT_TOLERANCE_CHECKOUT_DIRTY' }
+          $request=Get-Content -LiteralPath '.github/orchestration/vnext-audit-tolerance/qualification-request.json' -Raw -Encoding UTF8 | ConvertFrom-Json
+          if ($request.scope -ne 'IA_001_TO_004_TARGETED_CORRECTION' -or $request.product_execution_authorized -ne $false -or $request.model_calls_limit -ne 2) { throw 'VNEXT_TOLERANCE_REQUEST_INVALID' }
+          Remove-Item Env:GH_TOKEN -ErrorAction SilentlyContinue
+          Remove-Item Env:GITHUB_TOKEN -ErrorAction SilentlyContinue
+          $evidence=Join-Path $env:RUNNER_TEMP 'vnext-tolerance-${{ github.run_id }}'
+          if (Test-Path -LiteralPath $evidence) { throw 'VNEXT_TOLERANCE_EVIDENCE_EXISTS_RECOVER_BEFORE_RETRY' }
+          & node scripts/kodjo/prepare-vnext12-revision.js review $evidence
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve genuine review sessions causal revision and outcome
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-vnext12-revision-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/vnext-tolerance-${{ github.run_id }}/*
+            ${{ runner.temp }}/vnext-tolerance-preflight-${{ github.run_id }}-${{ github.run_attempt }}/*
+          retention-days: 14
+          if-no-files-found: error

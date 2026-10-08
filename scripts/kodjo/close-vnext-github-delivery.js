@@ -19,13 +19,15 @@ function ghClient() {
   };
 }
 function main(configFile,directory,{github=ghClient(),env=process.env,cwd=process.cwd()}={}) {
-  const c=Closure.validateConfig(JSON.parse(fs.readFileSync(configFile,'utf8')));
+  const c=Closure.validateConfig(JSON.parse(fs.readFileSync(configFile,'utf8')),{cwd});
   if(env.GITHUB_ACTIONS!=='true' || env.GITHUB_REPOSITORY!==c.repository
       || env.VNEXT_CLOSURE_JOB!=='close-vnext-delivery' || !env.GITHUB_RUN_ID) throw Error('VNEXT_GITHUB_CLOSURE_SERIALIZED_WORKFLOW_REQUIRED');
   fs.mkdirSync(directory,{recursive:true});
   const controllerHead=execFileSync('git',['rev-parse','HEAD'],{cwd,encoding:'utf8'}).trim();
+  const workflowPath=env.GITHUB_WORKFLOW_REF?.split('@')[0].slice((c.repository+'/').length);
+  if(!env.GITHUB_WORKFLOW_REF?.startsWith(c.repository+'/') || !['.github/workflows/kodjo-vnext12-disposable.yml','.github/workflows/kodjo-vnext-closure.yml'].includes(workflowPath)) throw Error('VNEXT_GITHUB_CLOSURE_WORKFLOW_REFUSED');
   const provenance=require('./lib/vnext-execution-provenance').observe({controllerCwd:cwd,approvedCwd:cwd,
-    controllerHead,approvedHead:controllerHead,env,controllerScript:'scripts/kodjo/close-vnext-github-delivery.js',
+    controllerHead,approvedHead:controllerHead,env,workflowPath,controllerScript:'scripts/kodjo/close-vnext-github-delivery.js',
     runtimeScript:'scripts/kodjo/finalize-vnext-delivery.js'});
   fs.writeFileSync(path.join(directory,'execution-provenance.json'),JSON.stringify(provenance,null,2)+'\n');
   const input=JSON.parse(fs.readFileSync(path.join(cwd,c.finalization_manifest),'utf8'));
@@ -34,11 +36,18 @@ function main(configFile,directory,{github=ghClient(),env=process.env,cwd=proces
   Closure.observe(c,github);
   const deliveryCwd=path.resolve(cwd,env.VNEXT_DELIVERY_CWD || '.');
   const git=(...args)=>execFileSync('git',args,{cwd:deliveryCwd,encoding:'utf8'}).trim();
+  // A current producer job supplies observed proof, never declared PASS literals.
+  if(workflowPath==='.github/workflows/kodjo-vnext-closure.yml'){
+    input.checksReceipt={head:c.delivery_head,tested_tree_oid:git('rev-parse','HEAD^{tree}'),
+      source_run:env.GITHUB_RUN_ID,source_artifact:env.VNEXT_TEST_ARTIFACT_ID,
+      source_archive_sha256:(env.VNEXT_TEST_ARTIFACT_DIGEST||'').replace(/^sha256:/,'')};
+  }
   if(git('rev-parse','HEAD')!==c.delivery_head || git('rev-parse','HEAD^{tree}')!==input.checksReceipt?.tested_tree_oid
       || git('status','--porcelain','--untracked-files=all')) throw Error('VNEXT_GITHUB_CLOSURE_TESTED_TREE_MISMATCH');
   // Always revalidate Git objects, the original review, decision and reserves;
   // a previously sealed JSON alone is never sufficient to authorize a write.
-  const final=Final.execute(input,{cwd:deliveryCwd,directory,github:{comment:github.sourceComment}});
+  const final=Final.execute(input,{cwd:deliveryCwd,controllerCwd:cwd,directory,env,
+    github:{...require('./lib/vnext-test-evidence').githubClient(),...github,comment:github.sourceComment}});
   const result=Closure.close(c,final,github);
   fs.writeFileSync(path.join(directory,'github-closure.json'),JSON.stringify(result,null,2)+'\n');
   const resumed=Closure.close(c,final,github);

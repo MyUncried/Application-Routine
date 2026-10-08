@@ -2389,6 +2389,36 @@ Les marqueurs machine sont émis par le renderer. Dans les champs narratifs de l
 
 Les drivers de préparation et le CLI `vnext-chain review` conservent la réponse complète avant validation dans un répertoire de preuves extérieur au checkout. Le fichier `initial-review-response.json` ou `revision-review-response.json` lie stdout/stderr, l'empreinte stdout, l'état du processus, le produced_chain_hash et le reviewer_packet_hash dans un contrat scellé. Le diagnostic borné et expurgé reste séparé. Une sortie reçue avant timeout est conservée, mais un processus interrompu ne peut être converti en revue acceptée.
 
-`reviewOrRecover` et la commande explicite `recover-review` rejouent uniquement la validation d'une réponse existante du même dossier exact, sans appel modèle ni publication. Toute modification du dossier, mauvaise empreinte, réponse ambiguë, couverture manquante ou processus incomplet bloque. Aucun réparateur de format génératif ou nettoyage automatique n'est ajouté. Une réponse rejetée reste rejetée ; une nouvelle invocation nécessite une reprise explicitement décidée et un nouveau répertoire de preuves, sans écraser les preuves existantes.
+`reviewOrRecover` et la commande explicite `recover-review` rejouent uniquement la validation d'une réponse existante du même dossier exact, sans appel modèle ni publication. Toute modification du dossier, mauvaise empreinte, réponse ambiguë, couverture essentielle manquante ou dépassement de la tolérance secondaire, ou processus incomplet bloque. Aucun réparateur de format génératif ou nettoyage automatique n'est ajouté. Une réponse rejetée reste rejetée ; une nouvelle invocation nécessite une reprise explicitement décidée et un nouveau répertoire de preuves, sans écraser les preuves existantes.
 
 Une erreur secondaire de sauvegarde/finalisation ne remplace pas l'erreur primaire ; le diagnostic remonté conserve les deux. Une indisponibilité totale du stockage ou l'échec d'upload GitHub ne peut garantir la durabilité de données que le système n'a pas pu écrire. Cela interdit d'affirmer une preuve archivée ; ce cas demande une reprise de conservation, pas une régénération implicite du plan. Les artefacts capturés sont conservés par l'étape d'upload existante ; aucune infrastructure supplémentaire n'est ajoutée.
+
+
+## Tolérance de revue et clôture générique — correction IA-001 à IA-004 (2026-10-08)
+
+Cette règle remplace l’exigence de restitution du catalogue complet de l’application pour les nouveaux contextes de revue. Les anciens reçus conservent leur format archivé.
+
+Le catalogue de revue est calculé depuis les impacts, les cibles d’écriture, les cibles de préservation, les tests affectés et les composants de réutilisation examinés. Les autres fichiers de l’application restent dans le manifeste de candidats et dans les contrôles de frontières ; leur présence n’impose pas une revue sémantique individuelle sans rapport avec le plan.
+
+Le reviewer déclare les cibles effectivement examinées par plages inclusives d’indices `reviewed_target_ranges`, liées au `target_catalog_hash`. Le contrôleur reconstruit les identifiants : aucune longue recopie d’identifiants n’est demandée au modèle. Une plage ne prouve pas à elle seule la qualité de l’analyse ; elle constitue l’attestation du reviewer, dont les constats et preuves restent contrôlés.
+
+Une revue partielle peut poursuivre avec des réserves explicites si les omissions portent uniquement sur des candidats secondaires de préservation, sans impact direct ni test affecté, dans les deux limites cumulatives suivantes : **au plus 3 cibles et au plus 2 % du catalogue de revue**. Les exigences, sources, impacts, éléments du plan, tests, preuves et assertions restent essentiels. Les omissions sont enregistrées dans `pending_target_ids` et le statut `ACCEPTED_WITH_PENDING_SECONDARY_TARGETS` ; elles ne sont jamais converties en preuves d’examen. Les valeurs de tolérance sont une politique versionnée du contrôleur, pas une décision libre de l’IA.
+
+Les doublons de blocs machine JSON sémantiquement identiques sont acceptés comme une duplication de transport. Tous les blocs sont lus avant filtrage de tranche. Des blocs contradictoires ou mal formés sont signalés ; le premier bloc n’est jamais choisi arbitrairement.
+
+La clôture accepte toute identité VNext liée à une issue, une PR, une branche et une tête exactes. `GITHUB_CERTIFICATION_DELIVERY` conserve les garde-fous des livraisons jetables. `GITHUB_SLICE_DELIVERY` utilise une branche produit distincte de `main`, une PR vers `main` et une issue portant le binding `SLICE_DELIVERY`. Le workflow `kodjo-vnext-closure.yml` consomme une demande committée sous `.github/orchestration/vnext-closure/` ; le finaliseur revérifie le plan approuvé, la revue, les décisions et les tests sur l’arbre exact avant écriture. La clôture ne publie pas l’application et ne fusionne pas la PR. Les attestations visuelles et d’accessibilité restent `false` dans le finaliseur et dans le consommateur de clôture pour les deux portées ; aucune valeur `true` n’est acceptée sans un futur producteur de preuve humaine/appareil explicitement qualifié.
+
+Classification des incidents : distinguer **effet sur la livraison**, **probabilité ou occurrence observée**, et **décision d’acceptation de la fusion**. Un risque qui peut arrêter la livraison porte un effet « risque de blocage », même si son occurrence n’a pas encore été observée et si la fusion a été acceptée.
+
+
+### Vérification des tests avant clôture — IA-F01 (2026-10-08)
+
+Un `checksReceipt` déclarant `PASS` n’autorise aucune clôture. Le workflow générique exécute d’abord Jest, TypeScript et lint dans un job `test-delivery` en lecture seule, sur la tête et l’arbre exacts de livraison. Le producteur conserve les commandes, codes de sortie, dates et empreintes des sorties ; les statuts sont calculés à partir de ces observations. L’évidence reste hors du checkout testé.
+
+Le finaliseur et la clôture utilisent le même vérificateur. Il relit le run et sa tentative, exige le succès du job producteur, vérifie les versions du workflow et du producteur, l’identité et la disponibilité de l’artefact, son empreinte SHA-256 calculée sur les octets ZIP, puis le reçu et l’arbre Git. Un run externe doit être terminé et réussi. Dans le run de clôture courant, encore actif, seul un job producteur déjà terminé et réussi est recevable ; aucune exécution incomplète du producteur n’est acceptée. Le `FINAL_OUTPUT` conserve la provenance vérifiée.
+
+Les anciennes preuves archivées restent des archives : un manifeste littéral ou un artefact d’un autre workflow n’est pas implicitement converti au nouveau contrat de tests exécutés. La disponibilité de cette capacité ne prouve pas une clôture réelle d’une tranche produit.
+
+### Préparation des corrections de protocole
+
+Pour une correction, relever avant publication les producteurs, formats transportés, consommateurs directs et indirects, gates, snapshots de dépendances, politiques d’artefacts, inventaires normatifs et tests affectés. Vérifier une chaîne nominale et les refus/récupérations pertinents, puis la suite de régression et les métadonnées exactes de qualification. Les corrections restent limitées aux dépendances démontrées. Les constats existants sont suivis dans un registre unique ; un succès ciblé ne ferme pas les constats sans preuve et une publication ne déclenche pas une nouvelle revue globale.

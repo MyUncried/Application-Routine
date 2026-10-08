@@ -188,13 +188,17 @@ function assertContextArtifactHashes(reviewContext, {
   return true;
 }
 
-function assertCatalogMatches(reviewContext, graph) {
+function assertCatalogMatches(reviewContext, graph, artifacts) {
+  if (reviewContext.coverage_policy) {
+    const expected = Review.collectTargets(artifacts);
+    if (V.canonicalStringify(expected) !== V.canonicalStringify(reviewContext.target_catalog)) V.fail('VNEXT_REVISION_TARGET_CATALOG_COUNT_MISMATCH');
+  }
   Review.validateReviewContext(reviewContext);
   const catalogIds = new Set();
   for (const type of Review.TARGET_TYPES) {
     for (const id of reviewContext.target_catalog[type] || []) catalogIds.add(id);
   }
-  const graphIds = new Set(graph.records.keys());
+  const graphIds = new Set([...graph.records].filter(([id,row]) => !reviewContext.coverage_policy || row.target_type !== 'CANDIDATE' || catalogIds.has(id)).map(([id]) => id));
   if (catalogIds.size !== graphIds.size) {
     V.fail('VNEXT_REVISION_TARGET_CATALOG_COUNT_MISMATCH');
   }
@@ -266,7 +270,7 @@ function buildAllowedChangeSet({
     planContract,
     uiAtomicityContract,
   });
-  assertCatalogMatches(reviewContext, graph);
+  assertCatalogMatches(reviewContext, graph, {requirementRegistry,impactGraph,candidateManifest,planContract,uiAtomicityContract});
 
   const blocking = reviewReport.findings.filter((finding) => finding.blocking);
   if (blocking.length === 0) V.fail('VNEXT_REVISION_BLOCKING_FINDING_REQUIRED');
@@ -683,7 +687,7 @@ function verifyRevisionOutcome({
   }
   const nextGraph = buildArtifactGraph(nextArtifacts);
   assertContextArtifactHashes(nextReviewContext, nextArtifacts);
-  assertCatalogMatches(nextReviewContext, nextGraph);
+  assertCatalogMatches(nextReviewContext, nextGraph, nextArtifacts);
   const envelope = nextArtifacts.planningEnvelope;
   if (!envelope?.created_from?.refs?.includes('revision_patch:' + revisionPatch.contract_hash)) V.fail('VNEXT_REVISION_PATCH_NOT_BOUND');
   if (V.canonicalStringify(nextReviewReport.finding_resolutions.map(row => row.finding_id).sort())

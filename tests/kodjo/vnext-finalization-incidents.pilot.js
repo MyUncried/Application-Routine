@@ -11,6 +11,7 @@ function fixture() {
   git('init', '-q'); git('config', 'user.name', 'Fixture'); git('config', 'user.email', 'fixture@example.invalid');
   const commit = text => { fs.writeFileSync(path.join(cwd, 'correction.js'), text); git('add', '.'); git('commit', '-qm', text); return git('rev-parse', 'HEAD'); };
   fs.writeFileSync(path.join(cwd,'baseline-keep.js'),'unchanged');
+  require('./helpers/vnext-test-evidence-fixture').install(cwd);
   const baselineHead = commit('baseline');
   fs.writeFileSync(path.join(cwd, 'delivered.js'), 'module.exports = 1;\n');
   const first = commit('initial delivery'), second = commit('first correction'), head = commit('second correction');
@@ -170,11 +171,16 @@ test('VNext entry reads the approved Git plan and actual comment bindings instea
     const reviewComment={id:501,user:{login:'github-actions[bot]'},issue_url:f.args.acceptance.issue_url,
       body:'slice_id='+f.args.sliceId+'\nhead='+f.head+'\n<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'+JSON.stringify(f.args.review)+'</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'};
     const input={...f.args,planRevision:revision,planPath:'plan.md',approvedPlanBlobOid:require('../../scripts/kodjo/lib/vnext-legacy-queue-adapter').gitBlobOid(plan),decisionId:502,checksReceipt:{head:f.head,checks:f.args.checks}};
-    const options={cwd:f.cwd,directory:path.join(f.cwd,'evidence'),github:{comment:(_r,id)=>String(id)==='501'?reviewComment:f.args.acceptance}};
+    const proof=require('./helpers/vnext-test-evidence-fixture').fixture(f.cwd,f.head);input.checksReceipt=proof.receipt;
+    const options={cwd:f.cwd,directory:path.join(f.cwd,'evidence'),github:{...proof.github,comment:(_r,id)=>String(id)==='501'?reviewComment:f.args.acceptance}};
     const Entry=require('../../scripts/kodjo/finalize-vnext-delivery');
     f.args.review.schema='kodjo.ui-implementation-review.v1';
     reviewComment.body='slice_id='+f.args.sliceId+'\nhead='+f.head+'\n<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'+JSON.stringify(f.args.review)+'</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>';
     const finalized=Entry.execute(input,options);
+    assert.equal(finalized.test_evidence.status,'VERIFIED_EXECUTED_TESTS');
+    proof.run.conclusion='failure';
+    assert.throws(()=>Entry.execute(input,options),/TEST_RUN_NOT_VERIFIED/);
+    proof.run.conclusion='success';
     assert.equal(finalized.final_status,'READY_TO_CLOSE');
     const baseline=V.sealContract({reference:{},matrix,review:f.args.review,finalization:finalized,plan_blob_oid:input.approvedPlanBlobOid});
     const Delivery=require('../../scripts/kodjo/lib/vnext-delivery-preservation');Delivery.validateBaseline(baseline);

@@ -26,6 +26,7 @@ test('architecture: final audit refuses a different protocol candidate and forge
     reviewArtifacts: { ...reviewArtifacts, currentState: { ...reviewArtifacts.currentState, protocol_head: 'd'.repeat(40) } } }), /CANDIDATE_MISMATCH/);
   const context = structuredClone(reviewContext());
   Object.keys(context.target_catalog).forEach(key => { context.target_catalog[key] = []; });
+  context.coverage_policy.optional_target_ids=[];
   delete context.contract_hash;
   assert.throws(() => Convergence.buildFinalAuditReport({ ...args, reviewContext: V.sealContract(context) }), /CONTEXT_REBUILD_MISMATCH/);
 });

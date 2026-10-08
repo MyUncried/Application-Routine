@@ -32,6 +32,7 @@ test('architecture: approval refuses a resealed context whose target catalog was
   try {
     const changed = JSON.parse(JSON.stringify(f.artifacts.reviewContext));
     for (const key of Object.keys(changed.target_catalog)) changed.target_catalog[key] = [];
+    changed.coverage_policy.optional_target_ids=[];
     delete changed.contract_hash;
     const reviewContext = V.sealContract(changed);
     assert.throws(() => Approval.buildApprovalTarget({ ...f.artifacts, reviewContext,

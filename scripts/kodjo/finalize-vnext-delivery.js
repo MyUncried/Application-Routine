@@ -41,7 +41,7 @@ function verifyReviewSource(comment,input) {
       || !/^reviewer=ChatGPT$/m.test(comment.body) || !/^human_review_performed=false$/m.test(comment.body)) V.fail('VNEXT_FINAL_REVIEW_SOURCE_INVALID');
   return Source.verify(comment,{repository:input.repository,issue:input.issue,id:input.reviewId,actor:origin.actor});
 }
-function execute(input, { cwd, directory, github }) {
+function execute(input, { cwd, directory, github, controllerCwd=cwd, env=process.env }) {
   const read = (revision, file) => execFileSync('git', ['show', revision + ':' + file], { cwd, encoding:'utf8', windowsHide:true, maxBuffer:32*1024*1024 });
   V.assertSha40(input.planRevision, 'VNEXT_FINAL_PLAN_REVISION_REQUIRED');
   require('./lib/vnext-figma-source').safePath(input.planPath);
@@ -63,11 +63,13 @@ function execute(input, { cwd, directory, github }) {
   if(slices.length!==1||slices[0]!==input.sliceId)V.fail('VNEXT_FINAL_REVIEW_SLICE_MISMATCH');
   const review = extractTaggedJson(reviewComment.body,'KODJO_UI_IMPLEMENTATION_REVIEW_JSON');
   if (input.checksReceipt?.head !== input.head) V.fail('VNEXT_FINAL_CHECKS_HEAD_MISMATCH');
-  const result = Final.finalize({...input,cwd,matrix,review,nonUiRequirements,checks:input.checksReceipt.checks,
+  const testEvidence=require('./lib/vnext-test-evidence').verify(input.checksReceipt,{repository:input.repository,head:input.head,cwd,controllerCwd,
+    github:github.run?github:undefined,env});
+  const result = Final.finalize({...input,cwd,matrix,review,nonUiRequirements,checks:testEvidence.checks,
     retainedTargets:[...(preservation?.retained_criteria.flatMap(c=>c.change_targets) || []),...retainedNonUiTargets],
     acceptance: input.decisionId ? github.comment(input.repository,input.decisionId) : null,
     originDecision: input.originDecisionId ? github.comment(input.repository,input.originDecisionId) : null});
-  const unsigned={...result,plan_blob_oid:input.approvedPlanBlobOid};delete unsigned.contract_hash;
+  const unsigned={...result,plan_blob_oid:input.approvedPlanBlobOid,test_evidence:testEvidence};delete unsigned.contract_hash;
   const bound=V.sealContract(unsigned);
   fs.mkdirSync(directory,{recursive:true});
   fs.writeFileSync(path.join(directory,'finalization.json'),JSON.stringify(bound,null,2)+'\n');

@@ -14,7 +14,16 @@ function command(bin, args, cwd, input, env, timeoutMs, { onResult, progressPath
   if (r.error || r.status !== 0) V.fail('VNEXT_REVIEW_SUPERVISOR_FAILED', r.error?.message || r.stderr);
   const result = JSON.parse(r.stdout);
   if (onResult) onResult(result);
-  if (result.error_code || result.status !== 0) V.fail('VNEXT_LIVE_PROCESS_FAILED', result.error_code || result.stderr);
+  let terminal;
+  try { terminal = JSON.parse(result.stdout); } catch { /* Stream errors keep their existing classification. */ }
+  if (result.error_code || result.status !== 0 || terminal?.is_error === true) {
+    // Claude can put its failure in the final stdout event with empty stderr.
+    // Reuse the existing failure classifier, without exposing arbitrary output.
+    const failure = require('./claude-local').classifyClaudeFailure(result);
+    const code = failure === 'KODJO-V2-CLAUDE-AUTH' ? 'VNEXT_REVIEW_AUTHENTICATION_REQUIRED'
+      : failure === 'KODJO-V2-CLAUDE-USAGE-LIMIT' ? 'VNEXT_REVIEW_USAGE_LIMIT' : 'VNEXT_LIVE_PROCESS_FAILED';
+    V.fail(code, result.error_code || (code === 'VNEXT_LIVE_PROCESS_FAILED' ? 'reviewer exited without a usable result' : undefined));
+  }
   return result.stdout;
 }
 

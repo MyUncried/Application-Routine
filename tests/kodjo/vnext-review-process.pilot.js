@@ -25,7 +25,9 @@ test('interrupted review keeps observed progress and never promotes an absent re
   const progressPath = path.join(dir, 'progress.json'); let observed;
   assert.throws(() => Process.command(process.execPath,
     ['-e', "process.stdout.write('{\"type\":\"system\"}\\n');setInterval(()=>{},1000)"],
-    process.cwd(), '', process.env, 500, { progressPath, onResult: row => { observed = row; } }), /ETIMEDOUT/);
+    // Preserve the real interruption path, but leave enough time for Windows
+    // to schedule the fixture and deliver its first pipe event under CI load.
+    process.cwd(), '', process.env, 5000, { progressPath, onResult: row => { observed = row; } }), /ETIMEDOUT/);
   assert.equal(observed.error_code, 'ETIMEDOUT'); assert.equal(observed.stdout, '');
   const progress = JSON.parse(fs.readFileSync(progressPath));
   assert.equal(progress.event_count, 1); assert.equal(progress.error_code, 'ETIMEDOUT');
@@ -34,5 +36,21 @@ test('duplicate or malformed final streams fail closed', () => {
   for (const lines of ['{"type":"result"}\n{"type":"result"}\n', 'invalid\n']) {
     assert.throws(() => Process.command(process.execPath,
       ['-e', `process.stdout.write(${JSON.stringify(lines)})`], process.cwd(), '', process.env, 5000), /STREAM_DUPLICATE_RESULT|STREAM_INVALID/);
+  }
+});
+test('terminal stdout errors preserve evidence and distinguish expired OAuth from process failure', () => {
+  for (const [message, status, expected] of [
+    ['Failed to authenticate: OAuth session expired and could not be refreshed', 1, 'VNEXT_REVIEW_AUTHENTICATION_REQUIRED'],
+    ['usage limit reached', 1, 'VNEXT_REVIEW_USAGE_LIMIT'],
+    ['internal execution failure', 1, 'VNEXT_LIVE_PROCESS_FAILED'],
+    ['Failed to authenticate: OAuth session expired', 0, 'VNEXT_REVIEW_AUTHENTICATION_REQUIRED'],
+  ]) {
+    const terminal = { type: 'result', is_error: true, result: message };
+    const code = `process.stdin.resume();process.stdin.on('end',()=>{process.stdout.write(JSON.stringify(${JSON.stringify(terminal)})+'\\n');process.exitCode=${status};});`;
+    let observed;
+    assert.throws(() => Process.command(process.execPath, ['-e', code], process.cwd(), '', process.env, 5000,
+      { onResult: value => { observed = value; } }), error => error.code === expected);
+    assert.deepEqual(JSON.parse(observed.stdout), terminal);
+    assert.equal(observed.stderr, '');
   }
 });

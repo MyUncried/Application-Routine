@@ -95,10 +95,10 @@ function recover(comment, repository, get = api(repository), protocolRoot = proc
   const plan = bytes.toString('utf8');
   const statuses = [...normalize(plan).matchAll(/^PLAN_STATUS: ([A-Z_]+)\s*$/gm)].map((m) => m[1]);
   need(statuses.length === 1 && statuses[0] === 'READY_FOR_INDEPENDENT_REVIEW', 'PLAN_PUBLICATION_PLAN_NOT_REVIEWABLE');
-  const impact = normalize(plan).match(/<KODJO_PLAN_IMPACT_JSON>\s*([\s\S]*?)\s*<\/KODJO_PLAN_IMPACT_JSON>/);
-  need(impact && JSON.parse(impact[1]).scan_revision === (revision ? applicationHead : sourceHead), 'PLAN_PUBLICATION_SCAN_REVISION_MISMATCH');
-  const ui = normalize(plan).match(/<KODJO_UI_PLAN_CONTRACT_JSON>\s*([\s\S]*?)\s*<\/KODJO_UI_PLAN_CONTRACT_JSON>/);
-  need(ui && JSON.parse(ui[1]).schema === UI_CONTRACT_SCHEMA, 'PLAN_PUBLICATION_UI_CONTRACT_INVALID');
+  const impact = require('./lib/machine-block').parse(plan, 'KODJO_PLAN_IMPACT_JSON', {code:'PLAN_PUBLICATION_SCAN_REVISION_MISMATCH'});
+  need(impact.scan_revision === (revision ? applicationHead : sourceHead), 'PLAN_PUBLICATION_SCAN_REVISION_MISMATCH');
+  const ui = require('./lib/machine-block').parse(plan, 'KODJO_UI_PLAN_CONTRACT_JSON', {code:'PLAN_PUBLICATION_UI_CONTRACT_INVALID'});
+  need(ui.schema === UI_CONTRACT_SCHEMA, 'PLAN_PUBLICATION_UI_CONTRACT_INVALID');
   if (revision) {
     need(/<KODJO_PLAN_REVISION_STATUS_JSON>/.test(plan), 'PLAN_PUBLICATION_REVISION_STATUS_MISSING');
     // Same header as kodjo-v2-slice-plan.yml « Publish candidate V2 plan » (no planning_mode: non-INITIAL downstream).
@@ -119,9 +119,7 @@ const CLOSURE_FIELDS = ['prior_review_comment_id', 'prior_findings_path', 'prior
 function sha256(bytes) { return crypto.createHash('sha256').update(bytes).digest('hex'); }
 function hasField(body, name) { return new RegExp('^' + name + '=', 'm').test(normalize(body)); }
 function taggedFindings(body) {
-  const m = normalize(body).match(/<KODJO_PLAN_REVIEW_FINDINGS_JSON>\s*([\s\S]*?)\s*<\/KODJO_PLAN_REVIEW_FINDINGS_JSON>/);
-  need(m, 'PLAN_CLOSURE_PRIOR_FINDINGS_BLOCK_MISSING');
-  return JSON.parse(m[1]);
+  return require('./lib/machine-block').parse(body, 'KODJO_PLAN_REVIEW_FINDINGS_JSON', {code:'PLAN_CLOSURE_PRIOR_FINDINGS_BLOCK_MISSING'});
 }
 function closureInputs(comment, repository, get = api(repository), protocolRoot = process.cwd()) {
   const body = normalize(comment && comment.body);

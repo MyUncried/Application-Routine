@@ -231,7 +231,7 @@ Ces fichiers participent aux points d’entrée existants ou à leurs dépendanc
 | `scripts/kodjo/recover-published-pre1-plan.js` | Entrée ou dépendance figée conservée |
 | `scripts/kodjo/verify-pre1-closure-review.js` | Entrée ou dépendance figée conservée |
 
-## Dépendances conservées pour l’intégration VNext
+## Entrées de routage VNext
 
 Ces fichiers participent aux points d’entrée existants ou à leurs dépendances figées. Leur présence dans le paquet ne vaut pas activation ni qualification du candidat intégré.
 
@@ -241,3 +241,20 @@ Ces fichiers participent aux points d’entrée existants ou à leurs dépendanc
 | `scripts/kodjo/start-kodjo-slice.js` | Entrée de planification des nouvelles tranches VNext |
 | `scripts/kodjo/lib/slice-protocol-routing.js` | Routage depuis les contrats d’activation committés |
 | `.github/orchestration/KODJO_VNEXT_ACTIVATION.md` | Usage et limites du basculement |
+
+## Sources normatives VNext
+
+- `.github/orchestration/KODJO_PROTOCOL_VNEXT_SPEC.md`
+- `.github/orchestration/KODJO_VNEXT_ANTI_REGRESSION_MATRIX.md`
+- `.github/orchestration/KODJO_VNEXT_HISTORICAL_DISPOSITION.json`
+- `.github/orchestration/KODJO_VNEXT_HISTORICAL_DISPOSITION.md`
+- `.github/orchestration/KODJO_VNEXT_HISTORICAL_EQUIVALENCE.json`
+- `.github/orchestration/KODJO_VNEXT_REMOTE_WRITE_POLICY.json`
+- `.github/orchestration/KODJO_VNEXT_ACTIVATION.md`
+
+- `scripts/kodjo/lib/machine-block.js` — consommateur partagé de blocs sans sélection arbitraire du premier.
+- `scripts/kodjo/validate-vnext-closure-request.js` — demande de clôture générique et routage.
+- `scripts/kodjo/wait-vnext-audit-qualification.js` — attente en lecture seule des preuves exactes.
+
+- `scripts/kodjo/produce-vnext-test-evidence.js` — observation des tests exécutés sur la livraison exacte.
+- `scripts/kodjo/lib/vnext-test-evidence.js` — vérification partagée du run, du job, de l’artefact et de l’arbre testé avant finalisation/clôture.
