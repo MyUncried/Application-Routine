@@ -194,7 +194,7 @@ Elle ne contient pas directement :
 - l’historique ;
 - les préférences globales ;
 - les résultats ou états d’exécution ;
-- les médias physiques, hors périmètre du MVP.
+- les fichiers médias physiques, stockés séparément des entités et non dupliqués dans les instantanés (D-333).
 
 ## Attributs fonctionnels
 
@@ -466,11 +466,11 @@ Elle ne contient pas directement :
 
 # 09.6 Entité Média
 
-> **Périmètre :** consultation des médias déjà associés pendant l’Exécution incluse au MVP (D-203). Cette entité prépare l’acquisition et le stockage régis par D-066/D-068 ; ces mécanismes ne sont pas activés implicitement.
+> **Périmètre :** consultation des médias pendant l’Exécution incluse au MVP (D-203). L’ajout/import et le stockage local sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333). Les règles de partage des fichiers et de conservation de D-066/D-068 sont conservées ; seul leur report post-MVP est remplacé.
 
 ## Définition
 
-Un **Média** est une ressource visuelle qui pourra être associée à un Exercice après le MVP. Aucune association Média n’est créée ni exposée dans le MVP.
+Un **Média** est une ressource visuelle locale associée à un Exercice. L’import/ajout et la persistance de ces associations sont livrés dans PRE-3 au MVP (D-333), avant leur consultation pendant l’Exécution.
 
 ## Périmètre
 
@@ -584,7 +584,7 @@ Contient notamment :
 - L’Instantané est immuable après sa création.
 - Toute modification, archivage ou suppression ultérieure de la source est sans effet sur l’Instantané.
 - L’Exécution conserve la référence à sa source lorsqu’elle existe, mais son historique est reconstruit exclusivement à partir de l’Instantané.
-- Les fichiers médias ne sont pas dupliqués dans l’Instantané ; leurs associations ordonnées et références stables y sont conservées en V2.
+- Les fichiers médias ne sont pas dupliqués dans l’Instantané ; leurs associations ordonnées et références stables y sont conservées dès l’introduction des médias au MVP (D-333).
 - Toute modification ultérieure de la routine est sans effet.
 - Une seule exécution peut être en cours simultanément.
 - Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir l’action de reprise ou l’action d’arrêt adaptée à son origine. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. L’arrêt clôt l’Exécution avec le statut `Interrompue` puis ouvre la fin minimale dans T04, ou la Synthèse lorsqu’elle est livrée.
@@ -598,12 +598,12 @@ Contient notamment :
 |---|---|---|
 | `ActivityDefinition` | MVP T03 | Référence persistante autonome sans type d’Exercice, directement exécutable et copiable dans une Séance. |
 | `SessionActivity` | MVP | Copie complète appartenant à une seule Séance ; contient sa position et son ordre. |
-| `MediaAsset` | V2 | Fichier local immuable et métadonnées techniques ; peut être partagé. |
-| `ActivityMedia` | V2 | Association ordonnée entre un exercice et un `MediaAsset`. |
+| `MediaAsset` | MVP PRE-3 | Fichier local immuable et métadonnées techniques ; peut être partagé. |
+| `ActivityMedia` | MVP PRE-3 | Association ordonnée entre un exercice et un `MediaAsset`. |
 
 ## Contraintes d’Exercice
 
-`executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}`. `DURATION` exige une durée cible et interdit les répétitions cibles ; `REPETITIONS` exige des répétitions cibles et interdit la durée cible ; `TO_FAILURE` interdit les deux. Pause, nombre de Séries et Récupération restent disponibles dans les trois modes. La Durée totale est dérivée : DURATION sans symbole, omise seulement si redondante (N1 unilatéral) ; REPETITIONS avec cadence Ri×Ci et ≈, sans bip omitted ; TO_FAILURE sans total d’Exercice. Bip entier0..10 par Série, réglage commun valide dans les trois modes. La phrase elle-même n’est pas persistée comme source de vérité (D-232).
+`executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}`. `DURATION` exige une durée cible et interdit les répétitions cibles ; `REPETITIONS` exige des répétitions cibles et interdit la durée cible ; `TO_FAILURE` interdit les deux. Pause, nombre de Séries et Récupération restent disponibles dans les trois modes. La Durée totale est dérivée : DURATION sans symbole, omise seulement si redondante (N1 unilatéral sans pause) ; REPETITIONS avec cadence Ri×Ci et ≈, sans bip omitted ; TO_FAILURE sans total d’Exercice. Bip entier0..10 par Série, réglage commun valide dans les trois modes. La phrase elle-même n’est pas persistée comme source de vérité (D-232).
 
 L’ajout d’une définition copie nom, description, zones corporelles, mode, durée ou répétitions, Séries, Pause, Récupération et associations média. La copie n’a plus de lien fonctionnel avec la définition. La position `BEFORE_TOUR`, `IN_TOUR` ou `AFTER_TOUR` n’existe que sur `SessionActivity`.
 

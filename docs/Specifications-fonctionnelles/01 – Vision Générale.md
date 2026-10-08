@@ -26,6 +26,7 @@ La classification est dissociée : une **Étiquette** qualifie la Séance et por
 - un espace `Catalogues` pour les contenus ;
 - la création et la modification de Séances structurées ;
 - à partir de T03, un Catalogue des exercices persistants et leur Exécution directe ;
+- dans PRE-3, l’import/ajout de photos ou vidéos locales ordonnées associées aux Exercices, avant le moteur d’exécution (D-333) ;
 - un calendrier et la planification individuelle ;
 - une Exécution guidée, adaptée aux Exercices chronométrés, en Répétitions ou À l’échec ;
 - des signaux sonores, des annonces vocales et des vibrations fonctionnelles configurables ;
@@ -121,7 +122,6 @@ Les évolutions envisagées comprennent notamment :
 - comptes, synchronisation et sauvegarde distante ;
 - partage de Séances et groupes ;
 - interface destinée aux professionnels ;
-- ajout de `0..n` photos ou vidéos ordonnées par Exercice ;
 - statistiques, filtres et tableaux de bord ;
 - connexions à des calendriers et services de santé ;
 - prise en charge de langues supplémentaires.

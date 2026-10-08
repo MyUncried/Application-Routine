@@ -86,7 +86,7 @@ Services applicatifs
         ├── Notifications
         ├── Audio / voix
         ├── Vibrations
-        ├── Médias (adaptateur post-MVP)
+        ├── Médias (adaptateur local MVP PRE-3)
         └── Horloge / temps
 ```
 
@@ -390,17 +390,17 @@ L’application ne demande pas l’autorisation de notification au lancement. El
 
 ## 12.14 Médias
 
-Les médias sont hors périmètre du MVP. Aucune image ou vidéo n’est associée aux Exercices dans cette version.
+L’import/ajout de photos ou vidéos locales et leur association aux Exercices sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333).
 
-L’architecture doit permettre `0..n` associations média ordonnées par Exercice en V2. La copie d’un Exercice ou d’une Séance ne duplique pas le fichier physique : plusieurs associations peuvent référencer le même fichier local immuable.
+L’architecture doit permettre `0..n` associations média ordonnées par Exercice au MVP dans PRE-3 (D-333). La copie d’un Exercice ou d’une Séance ne duplique pas le fichier physique : plusieurs associations peuvent référencer le même fichier local immuable.
 
-Lors de cette évolution, le stockage local privilégiera la **non-duplication des données volumineuses**. Les fichiers médias ne seront pas intégrés physiquement aux Instantanés historiques ; leurs associations ordonnées et références stables le seront.
+Le stockage local privilégie la **non-duplication des données volumineuses**. Les fichiers médias ne seront pas intégrés physiquement aux Instantanés historiques ; leurs associations ordonnées et références stables le seront.
 
-Le schéma MVP peut réserver l’extension future sans imposer de table ou de fichier Média tant que la fonctionnalité n’est pas développée.
+PRE-3 complète les tables et associations médias existantes par une migration additive si nécessaire ; les fichiers restent hors SQLite. Le schéma physique exact est déterminé dans le plan technique à partir de la baseline réelle.
 
 Les fichiers binaires volumineux ne sont pas stockés directement dans les entités métier.
 
-Les futurs fichiers médias ne seront pas copiés dans les Instantanés d’Exécution ; les associations ordonnées et références stables nécessaires à l’historique y seront conservées.
+Les fichiers médias ne sont pas copiés dans les Instantanés d’Exécution ; les associations ordonnées et références stables nécessaires à l’historique y seront conservées.
 
 La suppression ou la modification ultérieure d’un média ne doit pas compromettre la lisibilité fonctionnelle de l’historique.
 
@@ -689,9 +689,9 @@ Les rappels utilisent des notifications locales afin de :
 - ne nécessiter aucun backend ;
 - rester cohérents avec l’approche local-first.
 
-### Médias — préparation post-MVP
+### Médias — MVP PRE-3
 
-La consultation des médias déjà associés pendant l’Exécution est incluse au MVP (D-203). L’acquisition et le stockage restent régis par D-066/D-068 ; pour cette évolution, les fichiers resteront dans le système de fichiers et SQLite conservera uniquement leur référence et leurs métadonnées nécessaires.
+La consultation des médias déjà associés pendant l’Exécution est incluse au MVP (D-203). L’import/ajout et le stockage local sont inclus au MVP dans PRE-3 (D-333) ; les règles de D-066/D-068 sont conservées. Les fichiers restent dans le système de fichiers et SQLite conserve uniquement leur référence et leurs métadonnées nécessaires.
 
 ### Tests
 
@@ -828,10 +828,10 @@ Les contraintes de contexte déjà validées restent applicables ; les noms ci-d
 | Composition | Référence conservée par contrat ; ancien nom de provenance : `Composition / Tour Section — Source exact` | section Tour, synthèse calculée des exercices et répétition contextuelle |
 | Composition | Référence conservée par contrat ; ancien nom de provenance : `Composition / Boundary Activity — Source exact` | `Type=Initial countdown/End session` |
 | Exercice | Référence conservée par contrat ; ancien nom de provenance : États de calcul (`3580:4733`, `3580:4845`, `3580:4957`) | respectivement Séries pilote, Durée totale pilote et durée cible ajustée ; le pilote confirmé reçoit un contour lié à `color/selection` |
-| Média | Référence conservée par contrat ; ancien nom de provenance : `Action / Add Media — Source exact` (`3382:60`) | visible mais désactivé dans le MVP ; actif en V2 ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais un caractère typographique `+` |
+| Média | Référence conservée par contrat ; ancien nom de provenance : `Action / Add Media — Source exact` (`3382:60`) | actif pour l’import/ajout au MVP dans PRE-3 (D-333) ; icône vectorielle `icon/ajouter` (`3382:61`) en `16 × 16`, jamais un caractère typographique `+` |
 | Média | Référence conservée par contrat ; ancien nom de provenance : `Media / Preview` (`3382:59`) | aperçu Photo ou Vidéo |
 | Média | Référence conservée par contrat ; ancien nom de provenance : `Media / Gallery — Source exact` (`3382:64`) | liste horizontale ordonnée avec aperçu suivant tronqué |
-| Média | Référence conservée par contrat ; ancien nom de provenance : `Media / Section — Source exact` (`3382:71`) | section masquée dans le MVP ; conteneur de galerie en V2 |
+| Média | Référence conservée par contrat ; ancien nom de provenance : `Media / Section — Source exact` (`3382:71`) | section média visible au MVP ; associations ordonnées importables dans PRE-3 (D-333) |
 | Stepper entier simple | Référence conservée par contrat ; ancien nom de provenance : Composant standard/DSF compatible React Native/Expo | Stepper permanent pour Séries/Répétitions dans CE-UI-10 et Tours dans Composition ; bornes métier appliquées ; pas de roulette entière |
 
 Disclosure `5544:4650` : six variantes État(Replié/Déployé/Désactivé) × Cadre(Oui/Non), Oui par défaut ; cibles `48 × 48` relues le 08/10. Cadre interne 28×28, habillage retiré avec Cadre Non . Les anciennes variantes 2537:1033/1038 sont archivées. Réutiliser le master courant, sans copie graphique locale ; les destinations relèvent du contrat hôte.

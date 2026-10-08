@@ -167,12 +167,13 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 5. enregistrer son ressenti ;
 6. retrouver une trace fidèle de l’Exécution dans le Suivi.
 
+**Question à clarifier pour PRE-3 (D-333) :** sources système d’import, formats acceptés et éventuelles limites de taille/durée des photos et vidéos locales. Ces éléments ne sont plus reportés automatiquement après le MVP ; aucun seuil arbitraire n’est décidé ici.
+
 ## 7. Questions reportées après le MVP
 
 - Quelles fonctions nécessiteront un compte ou une synchronisation distante ?
 - Comment partager une Séance tout en maîtrisant les droits et la confidentialité ?
 - Comment gérer les versions lorsqu’une Séance partagée évolue ?
-- Quelles limites techniques de taille, de durée et de formats appliquer aux médias multiples en V2 ?
 - Quelles statistiques et quels filtres apporteront une valeur réelle ?
 - Quelles intégrations calendrier, santé ou sport seront prioritaires ?
 - Quelles langues seront proposées après le français ?

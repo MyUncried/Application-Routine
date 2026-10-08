@@ -101,9 +101,9 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 | D-063 | Après interruption technique d’une Exécution `En cours`, l’utilisateur doit choisir Reprendre ou Arrêter avant toute nouvelle Exécution. | Validée | Oui |
 | D-064 | Une occurrence future exécutée en avance est persistée immédiatement avec sa date/heure planifiées et son lien vers l’Exécution réelle. | Validée | Oui |
 | D-065 | L’Instantané est un JSON immuable ; les champs nécessaires à l’affichage chronologique du Suivi MVP sont accessibles efficacement. Les index spécifiques à la recherche, au tri et aux filtres avancés sont reportés avec ces fonctions. | Révisée post-Figma | Oui |
-| D-066 | Hors MVP : lorsqu’un média sera introduit, la duplication pourra réutiliser un même fichier physique et sa suppression retirera ses associations sans supprimer les Exercices/Séances. | Reportée post-MVP | Oui |
+| D-066 | La duplication réutilise un même fichier physique immuable ; retirer un média supprime son association sans supprimer les Exercices/Séances. | Report post-MVP remplacé par D-333 ; règles de copie/conservation maintenues au MVP PRE-3 | Oui |
 | D-067 | Les rappels périodiques utilisent une fenêtre glissante de notifications locales. | Validée | Oui |
-| D-068 | Hors MVP : le stockage local des médias privilégiera la non-duplication des fichiers volumineux. | Reportée post-MVP | Oui |
+| D-068 | Le stockage local des médias privilégie la non-duplication des fichiers volumineux. | Report post-MVP remplacé par D-333 ; règle de stockage maintenue au MVP PRE-3 | Oui |
 
 ## Décisions relatives aux règles de calcul du MVP
 
@@ -145,8 +145,8 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 | D-112 | **Amendée le06/10 : voir D-268 à D-298 (cadence, incertitude, phrase), autres dispositions conservées.** La durée estimée d’exécution et la durée synthétique des Exercices deviennent chacune une borne minimale `≥` lorsqu’elles comprennent un Exercice en Répétitions ou À l’échec ; chaque métrique additionne uniquement les temps connus de son propre périmètre. | Révisée par D-131 | Oui |
 | D-113 | En V2, un Exercice de référence persistante est ajoutée à une Séance par copie indépendante. Les copies ne figurent pas dans le catalogue et aucune propagation ultérieure n’existe. | Validée | Oui |
 | D-114 | La première version de la bibliothèque ne propose pas `Enregistrer dans mes exercices`; un Exercice créé dans une Séance reste uniquement dans cette Séance. | Validée | Oui |
-| D-115 | En V2, un Exercice associe `0..n` photos ou vidéos ordonnées. Les associations sont copiées indépendamment mais partagent les fichiers physiques immuables, supprimés seulement lorsqu’ils ne sont plus référencés. | Validée | Oui |
-| D-116 | Dans le MVP, `+ Ajouter un média` est visible mais désactivé et la section Médias est masquée. Les médias sont fonctionnels en V2. | Supersédée par D-185 | Oui |
+| D-115 | Un Exercice associe `0..n` photos ou vidéos ordonnées. Les associations sont copiées indépendamment mais partagent les fichiers physiques immuables, supprimés seulement lorsqu’ils ne sont plus référencés. | Inclusion au MVP PRE-3 par D-333 ; règles d’ordre/copie/conservation maintenues | Oui |
+| D-116 | Ancienne règle : ajout média désactivé et section Médias masquée au MVP. | Historique supersédée par D-185 pour la section, puis D-333 pour l’import au MVP PRE-3 | Oui |
 | D-117 | **HISTORIQUE SUPERSÉDÉ LE 08/10/2026 PAR D-328** —  Un Parcours V2 possède nom, couleur et au moins deux étapes ordonnées référençant des Séances ; une Séance peut apparaître plusieurs fois et une étape n’a pas de compteur de répétition. | Supersédée par D-328 le 08/10/2026 | Oui |
 | D-118 | **HISTORIQUE SUPERSÉDÉ LE 08/10/2026 PAR D-328** —  Un Parcours reflète ses Séances jusqu’au lancement. L’Exécution de Parcours fige un instantané et relie une Exécution de Séance par étape commencée. | Supersédée par D-328 le 08/10/2026 | Oui |
 | D-119 | **Historique remplacé par D-328 le 08/10.** L’écran de transition entre Séances est obligatoire. Il attend une action en manuel ou passe automatiquement après une durée globale de `30 s` par défaut ; le compte à rebours de la Séance suivante reste exécuté. | Supersédée par D-328 | Oui |
@@ -228,7 +228,7 @@ Les identifiants suivants ne correspondent à aucune décision active et ne doiv
 | D-180 | La migration T03 crée les structures persistantes nécessaires à `ActivityDefinition`, aux relations associées et à l’origine d’Exécution `ACTIVITY`, sans convertir automatiquement les `SessionActivity` historiques en références de Catalogue. | Validée | Règle de migration T03 |
 | D-181 | Ancienne règle : `Durée totale` visible en Répétitions et À l’échec sous forme de borne `≥`. | **Supersédée par D-204** | Ancienne précision de D-155 |
 | D-182 | Le nom de l’Exercice est en gras dans la Synthèse de l’écran Ajouter/Modifier un Exercice uniquement. Cette correction n’ajoute aucun texte de direction développé aux cartes de Composition. | Validée | Précision éditeur T03 |
-| D-183 | D-166 est consolidée ainsi : T03 = Catalogue des exercices, cycle de vie persistant, création/consultation/modification/archives, création contextuelle depuis le Catalogue, sélection multiple, copie indépendante dans une Séance, Exécution directe autonome et corrections UX associées. L’ancien T03 Moteur d’Exécution des Séances devient T04 ; l’ancien T04 devient T05 et les tranches suivantes sont décalées sans extension implicite. Parcours fonctionnels et médias multiples restent hors MVP. | Révisée par D-187 | Réécrit et consolide D-166 |
+| D-183 | D-166 est consolidée ainsi : T03 = Catalogue des exercices, cycle de vie persistant, création/consultation/modification/archives, création contextuelle depuis le Catalogue, sélection multiple, copie indépendante dans une Séance, Exécution directe autonome et corrections UX associées. L’ancien T03 Moteur d’Exécution des Séances devient T04 ; l’ancien T04 devient T05 et les tranches suivantes sont décalées sans extension implicite. Anciennes exclusions : Parcours fonctionnels et médias multiples. | Révisée par D-187 ; exclusion médias remplacée par D-333, cible autonome Parcours retirée par D-328 | Réécrit et consolide D-166 |
 | D-184 | La rangée `Créer / Filtrer / Trier` est commune aux Catalogues et conserve sa géométrie Figma de référence. | Révisée par D-187 et D-192 | D-187 pour `Créer` ; D-192 pour `Filtrer` |
 | D-185 | Pour V2-CAT-01/T03, la section Médias de l’éditeur d’Exercice est visible et repliable. | Supersédée partiellement par D-195 | D-116 |
 | D-186 | Dans l’arbre `Créer` des Catalogues, le libellé fonctionnel exact de la première option était `Une nouvelle exercice`. Les frames `3787:5148` et `3841:8375` ont été resynchronisées le 17 septembre 2026 et affichent `Une nouvelle exercice`. | Supersédée par D-187 | Décision historique sur un écran intermédiaire désormais supprimé |
@@ -540,3 +540,9 @@ CF1/CF2/CF3 sont déjà résolus par les règles publiées ; CF4 reste un contr�
 Clarification propriétaire 08/10 : retirer « Éléments planifiés » dans Figma. Réalisé sur les deux pages (calques 7594:34636 et 7510:33124). Disclosure : six variantes 48×48 ;28×28 est le cadre interne, pas une réduction de cible tactile. Les cinq points ouverts du brief restent ouverts.
 
 Les règles historiques D-023/D-024/D-206 d’archivage et de repère visuel mono-source ne déterminent pas à elles seules le traitement d’une liste mixte. Ces compléments restent ouverts dans la spécification du 08/10.
+
+## Inclusion de l’import de médias au MVP — 08/10/2026
+
+| ID | Décision | Statut | Portée |
+|---|---|---|---|
+| D-333 | L’ajout/import de médias associés à un Exercice est inclus au MVP et livré dans PRE-3, avant le moteur d’exécution qui utilise ces médias. Les règles documentées de fichiers locaux, associations ordonnées, copies indépendantes et conservation tant qu’une référence existe restent applicables. | Validée explicitement par Hermann le08/10/2026 dans la préparation PRE-3 | Remplace le report post-MVP de D-066/D-068 et l’exclusion d’import de CE-T03-04 ; complète D-203 sans changer ses règles de consultation. Le détail du parcours d’import et ses preuves sont à établir dans le plan PRE-3, sans inventer de caméra ou de limites fonctionnelles. |

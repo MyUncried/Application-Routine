@@ -577,7 +577,7 @@ Phrase longue7119:27855 et Bip7059:13302 ;7061:13383 supprimé ; copies9b/10b706
 
 ### 2. Finalité fonctionnelle
 
-Créer/modifier un Exercice avec paramètres saisis dans la feuille basse. Le résumé de la carte est dérivé et sert de raccourci ; il ne contient aucun contrôle de saisie inline. Ajout/import média toujours hors périmètre MVP.
+Créer/modifier un Exercice avec paramètres saisis dans la feuille basse. Le résumé de la carte est dérivé et sert de raccourci ; il ne contient aucun contrôle de saisie inline. Ajout/import de médias inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333).
 
 ### 3. Contexte d’entrée
 
@@ -591,9 +591,11 @@ Terminer valide et persiste puis retourne au contexte appelant. Carte Paramètre
 
 Phrase selon les276 cas v15, total fourni par le calcul métier. Générateur → segments ordonnés `{texte, gras}`, valeurs et unités en gras, aucun redécoupage de chaîne. Terme « pause après chaque série », y compris N=1 ; clause de pauses variables omise conformément au corpus.
 
-Brouillon parent : nom, référentiels, description, paramètres validés par la feuille et médias existants. Aucun texte de démonstration codé en dur.
+Brouillon parent : nom, référentiels, description, paramètres validés par la feuille et associations médias ordonnées, existantes ou ajoutées dans PRE-3 (D-333). Aucun texte de démonstration codé en dur.
 
 Paramètres étendus : uniforme/variable, liste ordonnée de cibles/Pauses, Ordre des côtés ; copie complète vers CE-UI-10.
+
+Import média : accès depuis la zone Média et sauvegarde avec l’Exercice. Tester import nominal/annulé/en erreur, conservation à la réouverture, ordre et copies indépendantes selon D-333. Sources système, formats, permissions et présentation des états non représentés : À CLARIFIER dans le plan, sans inventer de caméra ni de limite.
 
 La collection inclut la bip commun0..10 de chaque Série. Phrase dérivée des paramètres appliqués et du résultat de calcul intrinsèque, jamais sauvegardée comme vérité indépendante.
 
@@ -665,7 +667,7 @@ Un focus pour la zone de phrase, label Modifier les paramètres d’exécution, 
 
 ### 19. Invariants
 
-Aucune édition inline de la phrase. Mode/nom exclus de la phrase intrinsèque ; pas de total À l’échec. Calculs v13, D-248 ; D-242 supersédée ; aucun import média ajouté. Aucun enregistrement à la simple fermeture de feuille.
+Aucune édition inline de la phrase. Mode/nom exclus de la phrase intrinsèque ; pas de total À l’échec. Calculs v13, D-248 ; D-242 supersédée ; import de médias livré dans PRE-3 selon D-333, sans anticiper le moteur de lecture en exécution. Aucun enregistrement à la simple fermeture de feuille.
 
 ### 20. Recette déterministe
 
@@ -3403,7 +3405,7 @@ Le comportement utilisateur est déjà fixé. L’exclusion d’une occurrence i
 | E68 | Segment Séances sélectionné |
 | E69 | Transition canonique droite→gauche |
 | E70 | Migration sans promotion SessionActivity |
-| E71 | Consultation galerie média MVP ; ajout/import non activés par D-203 |
+| E71 | Consultation galerie média MVP selon D-203 ; ajout/import activés dans PRE-3 par D-333 |
 | E72 | Parcours fonctionnels hors T03 |
 | E73 | Valeurs Figma démo non codées en dur |
 
