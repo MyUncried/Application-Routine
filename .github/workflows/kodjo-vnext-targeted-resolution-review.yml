@@ -1,0 +1,64 @@
+name: KODJO VNext existing findings resolution review
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - '.github/orchestration/vnext-targeted-review/**'
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+concurrency:
+  group: kodjo-vnext-existing-findings-resolution
+  cancel-in-progress: false
+jobs:
+  review-existing-findings:
+    if: github.head_ref == 'qualification/vnext-resolution-review-20261008'
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 35
+    env:
+      CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+    steps:
+      - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+          path: _targeted-review-controller/${{ github.run_id }}
+      - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+        with:
+          ref: b9f6e34acffe0576c4cd2c624de3e7ffdf42a09e
+          persist-credentials: false
+          fetch-depth: 0
+          path: _targeted-review-candidate/${{ github.run_id }}
+      - name: Verify genuine proofs then independently review only IA-F01 to IA-F04
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'TARGETED_REVIEW_RUNNER_MISMATCH' }
+          $controller=Join-Path $env:GITHUB_WORKSPACE '_targeted-review-controller/${{ github.run_id }}'
+          $candidate=Join-Path $env:GITHUB_WORKSPACE '_targeted-review-candidate/${{ github.run_id }}'
+          $out=Join-Path $env:RUNNER_TEMP 'vnext-targeted-resolution-${{ github.run_id }}-${{ github.run_attempt }}'
+          if (Test-Path -LiteralPath $out) { throw 'TARGETED_REVIEW_EVIDENCE_EXISTS_RECOVER_BEFORE_RETRY' }
+          & node (Join-Path $controller '.github/orchestration/vnext-targeted-review/review.js') $candidate $out
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve genuine response verified proofs and targeted finding disposition
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-vnext12-implementation-review-resolution-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vnext-targeted-resolution-${{ github.run_id }}-${{ github.run_attempt }}/**
+          retention-days: 14
+          if-no-files-found: error
