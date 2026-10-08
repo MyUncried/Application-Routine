@@ -166,7 +166,9 @@ test('VNext entry reads the approved Git plan and actual comment bindings instea
     const matrix=require('../../scripts/kodjo/lib/plan-impact').extractTaggedJson(require('./helpers/vnext-proof-lifecycle-fixture').planFixture(true,true),'KODJO_UI_CRITERIA_MATRIX_JSON');
     matrix.criteria[0].criterion_id='UI-1';matrix.criteria[0].change_targets=['delivered.js'];
     const contract={matrix_sha256:require('../../scripts/kodjo/lib/ui-criteria-contract').matrixFingerprint(matrix)};
-    const plan='<KODJO_UI_CRITERIA_MATRIX_JSON>'+JSON.stringify(matrix)+'</KODJO_UI_CRITERIA_MATRIX_JSON>\n<KODJO_UI_PLAN_CONTRACT_JSON>'+JSON.stringify(contract)+'</KODJO_UI_PLAN_CONTRACT_JSON>';
+    const coverageFixture=require('./helpers/vnext-coverage-fixture').evidence();
+    const coveragePlan='plan_contract_hash='+coverageFixture.report.plan_contract_hash+'\n<KODJO_VNEXT_REVIEW_COVERAGE_JSON>'+JSON.stringify(coverageFixture)+'</KODJO_VNEXT_REVIEW_COVERAGE_JSON>\n';
+    const plan=coveragePlan+'<KODJO_UI_CRITERIA_MATRIX_JSON>'+JSON.stringify(matrix)+'</KODJO_UI_CRITERIA_MATRIX_JSON>\n<KODJO_UI_PLAN_CONTRACT_JSON>'+JSON.stringify(contract)+'</KODJO_UI_PLAN_CONTRACT_JSON>';
     fs.writeFileSync(path.join(f.cwd,'plan.md'),plan);const revision=f.commit('versioned plan');
     const reviewComment={id:501,user:{login:'github-actions[bot]'},issue_url:f.args.acceptance.issue_url,
       body:'slice_id='+f.args.sliceId+'\nhead='+f.head+'\n<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'+JSON.stringify(f.args.review)+'</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'};
@@ -178,6 +180,9 @@ test('VNext entry reads the approved Git plan and actual comment bindings instea
     reviewComment.body='slice_id='+f.args.sliceId+'\nhead='+f.head+'\n<KODJO_UI_IMPLEMENTATION_REVIEW_JSON>'+JSON.stringify(f.args.review)+'</KODJO_UI_IMPLEMENTATION_REVIEW_JSON>';
     const finalized=Entry.execute(input,options);
     assert.equal(finalized.test_evidence.status,'VERIFIED_EXECUTED_TESTS');
+    assert.deepEqual(finalized.review_coverage.pending_target_ids,coverageFixture.report.pending_target_ids);
+    assert.equal(finalized.review_coverage.coverage_status,'ACCEPTED_WITH_PENDING_SECONDARY_TARGETS');
+    assert.deepEqual(Final.closeLocally(path.join(f.cwd,'local-closure'),finalized).review_coverage,finalized.review_coverage);
     proof.run.conclusion='failure';
     assert.throws(()=>Entry.execute(input,options),/TEST_RUN_NOT_VERIFIED/);
     proof.run.conclusion='success';

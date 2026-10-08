@@ -66,9 +66,13 @@ function projectUi(planContract, uiAtomicityContract = null, candidateManifest =
   legacy.validateMatrix(matrix, { scope: new Set(planContract.boundaries.write_scope.map(row => row.path)), uiPaths });
   return { matrix, uiPaths };
 }
-function renderCompatibilityPlan(executionRequest, planContract, uiAtomicityContract = null, requirementRegistry = null, candidateManifest = null) {
+function renderCompatibilityPlan(executionRequest, planContract, uiAtomicityContract = null, requirementRegistry = null, candidateManifest = null, reviewEvidence = null) {
   Plan.verifyMarkdownProjection(Plan.renderMarkdown(planContract), planContract);
   const { matrix, uiPaths } = projectUi(planContract, uiAtomicityContract, candidateManifest);
+  if (reviewEvidence) {
+    require('./review-contract').validateReviewReport(reviewEvidence.report, reviewEvidence.context);
+    if (reviewEvidence.report.verdict !== 'APPROVE' || reviewEvidence.report.plan_contract_hash !== planContract.contract_hash) V.fail('VNEXT_QUEUE_REVIEW_COVERAGE_BINDING');
+  }
   const preservation = planContract.delivery_preservation;
   if (preservation) {
     require('./vnext-delivery-preservation').validate(preservation, planContract.plan_items, planContract.boundaries.write_scope);
@@ -110,6 +114,7 @@ function renderCompatibilityPlan(executionRequest, planContract, uiAtomicityCont
     '<KODJO_UI_PLAN_CONTRACT_JSON>', json(contract), '</KODJO_UI_PLAN_CONTRACT_JSON>',
     ...(uiAtomicityContract?.figma_references?.length ? ['Références Figma figées : lire KODJO_VNEXT_UI_ATOMICITY_JSON.figma_references, matérialiser les ressources avec scripts/kodjo/consume-vnext-figma.js avant toute comparaison. Examiner chaque propriété et chaque état documentaire ; aucune attestation de conformité ne résulte de la seule lecture des octets. Les noms et sélections de démonstration ne sont pas des règles métier. Une modification du Figma vivant exige une nouvelle extraction et une requalification explicites.'] : []),
     ...(preservation ? tagged('KODJO_VNEXT_DELIVERY_PRESERVATION_JSON', preservation) : []),
+    ...(reviewEvidence ? tagged('KODJO_VNEXT_REVIEW_COVERAGE_JSON', reviewEvidence) : []),
     ...tagged('KODJO_VNEXT_SCOPE_JSON', {schema: 'kodjo.vnext.downstream-scope.v1', plan_contract_hash: planContract.contract_hash, scope_allow: planContract.boundaries.write_scope.map(row => row.path)}),
     ...tagged('KODJO_NON_UI_REQUIREMENTS_JSON', nonUi),
     ...tagged('KODJO_REQUIREMENT_CONTRACT_JSON', requirementContract),
@@ -189,7 +194,7 @@ function prepareCompatibilityFiles(args) {
   const { planContract, reviewReport, transport } = args;
   const request = Approval.buildExecutionCore(args);
   const bodies = {
-    plan: [transport.plan_path, renderCompatibilityPlan(request, planContract, args.uiAtomicityContract, args.requirementRegistry, args.candidateManifest)],
+    plan: [transport.plan_path, renderCompatibilityPlan(request, planContract, args.uiAtomicityContract, args.requirementRegistry, args.candidateManifest, {context:args.reviewContext,report:reviewReport})],
     review: [transport.review_path, renderCompatibilityReview(request, reviewReport, transport.plan_path)],
     mission: [transport.prompt_file, renderCompatibilityMission(request, planContract, transport.plan_path)],
   };
@@ -235,7 +240,7 @@ function buildLegacyQueueProjection(args) {
       || !executionRequest.execution_context.writer_id.startsWith('CLAUDE:')) V.fail('VNEXT_QUEUE_WRITER_UNSUPPORTED');
   if (!issue) V.fail('VNEXT_QUEUE_ISSUE_ID_UNSUPPORTED', executionRequest.issue_id);
 
-  const planBody = renderCompatibilityPlan(executionRequest, planContract, uiAtomicityContract, requirementRegistry, candidateManifest);
+  const planBody = renderCompatibilityPlan(executionRequest, planContract, uiAtomicityContract, requirementRegistry, candidateManifest, {context:reviewContext,report:reviewReport});
   const reviewBody = renderCompatibilityReview(executionRequest, reviewReport, transport.plan_path);
   const missionBody = renderCompatibilityMission(executionRequest, planContract, transport.plan_path);
   const planBlobOid = gitBlobOid(planBody);

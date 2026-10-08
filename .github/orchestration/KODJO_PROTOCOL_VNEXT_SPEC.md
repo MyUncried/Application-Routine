@@ -2422,3 +2422,13 @@ Les anciennes preuves archivées restent des archives : un manifeste littéral o
 ### Préparation des corrections de protocole
 
 Pour une correction, relever avant publication les producteurs, formats transportés, consommateurs directs et indirects, gates, snapshots de dépendances, politiques d’artefacts, inventaires normatifs et tests affectés. Vérifier une chaîne nominale et les refus/récupérations pertinents, puis la suite de régression et les métadonnées exactes de qualification. Les corrections restent limitées aux dépendances démontrées. Les constats existants sont suivis dans un registre unique ; un succès ciblé ne ferme pas les constats sans preuve et une publication ne déclenche pas une nouvelle revue globale.
+
+### Clôture des réserves IA-F06 / IA-F07 / IA-F09 (2026-10-08)
+
+La base de certification est `main` ou `protocol/vnext-proof-stability-20260930`. Une autre base exige dans la demande Git versionnée `certification_base_justification` avec la branche exacte, le `campaign_id` exact et une raison non vide. La justification et la base observée sont conservées dans le record durable ; la clôture ne fusionne jamais la PR. Une base différente sans cette justification est refusée avant écriture.
+
+Le transport canonique du plan approuvé conserve le contexte et le rapport de revue scellés dans `KODJO_VNEXT_REVIEW_COVERAGE_JSON`. Le finaliseur les relit depuis le blob Git approuvé, vérifie le rapport contre son contexte et le hash du plan, puis dérive `review_coverage` : phase PLANNING, `coverage_status`, `pending_target_ids`, empreintes du contexte/rapport/plan, taille du catalogue et politique. Ces éléments atteignent la finalisation, FINAL_OUTPUT, SLICE_CLOSED et la clôture locale. La couverture COMPLETE n’est pas inventée pour les anciens plans sans cette preuve : ils portent NOT_RECORDED et pending_target_ids=null. Le champ fourni dans une demande de finalisation ne remplace jamais la preuve du plan. La couverture de planification ne vaut pas couverture de revue d’implémentation.
+
+La tolérance reste au plus 3 omissions secondaires ET 2 % du catalogue ; les exigences essentielles restent couvertes. Les omissions sont des limites d’examen persistantes, jamais des preuves PASS. La reprise idempotente compare le record complet, omissions incluses.
+
+Dans le diagnostic historique VNext, l’absence de l’ancien paquet donne SKIP/HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE. Lorsque le téléchargement réussit, un échec de certification donne FAIL/HISTORICAL_RECOVERY_CERTIFICATION_FAILED et fait échouer le job. Seul le téléchargement peut tolérer une erreur. Les workflows legacy V2 figés restent hors du chantier VNext ; leurs diagnostics ne qualifient aucune livraison VNext.

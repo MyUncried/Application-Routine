@@ -20,6 +20,12 @@ function validateConfig(c, {cwd=process.cwd()} = {}) {
       || (product && c.base_branch !== 'main')
       || !/^[0-9a-f]{64}$/.test(c.issue_body_sha256 || '')) V.fail('VNEXT_GITHUB_CLOSURE_CONFIG_REFUSED');
   if (c.base_branch && (!/^[a-zA-Z0-9][a-zA-Z0-9/_.-]+$/.test(c.base_branch) || c.base_branch.includes('..') || c.base_branch === c.delivery_branch)) V.fail('VNEXT_GITHUB_CLOSURE_CONFIG_REFUSED');
+  const base = c.base_branch || 'protocol/vnext-proof-stability-20260930';
+  if (certification && !['main','protocol/vnext-proof-stability-20260930'].includes(base)) {
+    const approval = c.certification_base_justification;
+    if (!approval || approval.base_branch !== base || approval.campaign_id !== c.campaign_id
+        || typeof approval.reason !== 'string' || !approval.reason.trim()) V.fail('VNEXT_CERTIFICATION_BASE_JUSTIFICATION_REQUIRED');
+  }
   V.assertSha40(c.delivery_head, 'VNEXT_GITHUB_CLOSURE_HEAD_REQUIRED');
   require('./vnext-figma-source').safePath(c.finalization_manifest);
   if (product && require('./slice-protocol-routing').resolve(c.slice_id,{cwd}) !== 'VNEXT') V.fail('VNEXT_CLOSURE_LEGACY_SLICE_REFUSED');
@@ -57,6 +63,8 @@ function prepare(c, finalization) {
     proof_resolutions:finalization.proof_resolutions, not_executed_proofs:finalization.not_executed_proofs,
     acceptance_scope:finalization.acceptance_scope, scope:c.closure_scope,
     test_evidence:finalization.test_evidence,
+    review_coverage:finalization.review_coverage || {coverage_status:'NOT_RECORDED',pending_target_ids:null},
+    certification_base: c.closure_scope === 'GITHUB_CERTIFICATION_DELIVERY' ? {base_branch:c.base_branch || 'protocol/vnext-proof-stability-20260930', justification:c.certification_base_justification || null} : null,
     application_published:false, visual_compliance_attested:finalization.visual_compliance_attested, accessibility_compliance_attested:finalization.accessibility_compliance_attested};
   const key = c.campaign_id + ':' + c.slice_id;
   const body = tag => `[KODJO_VNEXT] ${tag}\nclosure_key=${key}\n\n\`\`\`json\n${JSON.stringify(record,null,2)}\n\`\`\`\n`;

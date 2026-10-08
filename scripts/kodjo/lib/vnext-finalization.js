@@ -130,6 +130,7 @@ function closeLocally(directory, finalization) {
   const file = path.join(directory, 'slice-closed.json');
   const record = { schema_version: 'kodjo.vnext.local-closure.v1', slice_id: finalization.slice_id,
     head: finalization.head, finalization_hash: finalization.contract_hash, status: 'SLICE_CLOSED',
+    review_coverage: finalization.review_coverage || {coverage_status:'NOT_RECORDED',pending_target_ids:null},
     scope: 'LOCAL_CERTIFICATION_DELIVERY', github_issue_closed: false, application_published: false };
   try { fs.writeFileSync(file, JSON.stringify(record, null, 2) + '\n', { flag: 'wx' }); }
   catch (error) {

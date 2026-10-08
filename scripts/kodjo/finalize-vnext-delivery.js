@@ -69,7 +69,7 @@ function execute(input, { cwd, directory, github, controllerCwd=cwd, env=process
     retainedTargets:[...(preservation?.retained_criteria.flatMap(c=>c.change_targets) || []),...retainedNonUiTargets],
     acceptance: input.decisionId ? github.comment(input.repository,input.decisionId) : null,
     originDecision: input.originDecisionId ? github.comment(input.repository,input.originDecisionId) : null});
-  const unsigned={...result,plan_blob_oid:input.approvedPlanBlobOid,test_evidence:testEvidence};delete unsigned.contract_hash;
+  const unsigned={...result,plan_blob_oid:input.approvedPlanBlobOid,test_evidence:testEvidence,review_coverage:require('./lib/vnext-review-coverage').fromPlan(plan)};delete unsigned.contract_hash;
   const bound=V.sealContract(unsigned);
   fs.mkdirSync(directory,{recursive:true});
   fs.writeFileSync(path.join(directory,'finalization.json'),JSON.stringify(bound,null,2)+'\n');
