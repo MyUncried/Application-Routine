@@ -43,7 +43,8 @@ concurrency:
 
 jobs:
   await_qualified_head:
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    # Qualification updates do not authorize another global model audit.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     # Qualification includes Linux plus the bounded 60-minute Windows preflight.
     # The former 21-minute polling window could expire immediately before PASS.

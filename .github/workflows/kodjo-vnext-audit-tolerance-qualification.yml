@@ -47,20 +47,23 @@ jobs:
           fetch-depth: 0
           path: _vnext-tolerance/${{ github.run_id }}
       - name: Require refreshed Claude authentication before another real review
+        working-directory: _vnext-tolerance/${{ github.run_id }}
         shell: powershell
         run: |
           $ErrorActionPreference='Stop'
-          $credentialPath=Join-Path $env:CLAUDE_CONFIG_DIR '.credentials.json'
-          if (-not (Test-Path -LiteralPath $credentialPath)) { throw 'VNEXT_REVIEW_AUTHENTICATION_REQUIRED' }
-          # The preserved failed call proved this exact session could not refresh.
-          # Require credentials updated after that failure; never print tokens.
-          if ((Get-Item -LiteralPath $credentialPath).LastWriteTimeUtc -le [datetime]'2026-10-08T07:03:49Z') { throw 'VNEXT_REVIEW_AUTHENTICATION_REQUIRED: reconnect Claude on the runner PC' }
-          $claude=Get-Command claude.cmd -ErrorAction Stop
-          $raw=(& $claude.Source auth status 2>&1 | Out-String)
-          $authExit=$LASTEXITCODE
-          try { $auth=$raw | ConvertFrom-Json } catch { throw 'VNEXT_REVIEW_AUTH_STATUS_INVALID' }
-          if ($authExit -ne 0 -or $auth.loggedIn -ne $true) { throw 'VNEXT_REVIEW_AUTHENTICATION_REQUIRED' }
-          Write-Host 'Claude authentication refreshed; no model invoked by this check.'
+          $preflight=Join-Path $env:RUNNER_TEMP 'vnext-tolerance-preflight-${{ github.run_id }}-${{ github.run_attempt }}'
+          New-Item -ItemType Directory -Force -Path $preflight | Out-Null
+          $receipt=Join-Path $preflight 'auth-status.json'
+          $raw='{}'
+          $authExit=1
+          try {
+            $claude=Get-Command claude.cmd -ErrorAction Stop
+            $raw=(& $claude.Source auth status 2>&1 | Out-String)
+            $authExit=$LASTEXITCODE
+          } catch { $raw='{"loggedIn":false}' }
+          $raw | & node scripts/kodjo/verify-claude-auth-status.js $receipt $authExit
+          if ($LASTEXITCODE -ne 0) { throw 'VNEXT_REVIEW_AUTH_PREFLIGHT_FAILED: see sanitized receipt' }
+          Write-Host 'Claude CLI reports logged in; no model invoked by this check.'
       - name: Verify explicit request and exact clean checkout then use existing real revision benchmark
         working-directory: _vnext-tolerance/${{ github.run_id }}
         shell: powershell
@@ -82,6 +85,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: kodjo-vnext12-revision-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/vnext-tolerance-${{ github.run_id }}/*
+          path: |
+            ${{ runner.temp }}/vnext-tolerance-${{ github.run_id }}/*
+            ${{ runner.temp }}/vnext-tolerance-preflight-${{ github.run_id }}-${{ github.run_attempt }}/*
           retention-days: 14
           if-no-files-found: error
