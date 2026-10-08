@@ -1,0 +1,49 @@
+{
+  "method": "git show exact versions; presence checks verified; no runtime reproduction",
+  "versions": [
+    {
+      "commit": "c1ea9aef65e7f61662cb91eee8c5fa8d93032c09",
+      "preservation_primitive_equality": false,
+      "preservation_obligation": false,
+      "secondary_viewport": false,
+      "source_only_visual_expected": true,
+      "browser_observer": false,
+      "browser_subject_adjustment": false,
+      "taskkill_tree": false,
+      "cleanup_named": false
+    },
+    {
+      "commit": "b0bf7edf616b5a585b5cfddf08c4b121289af75c",
+      "preservation_primitive_equality": false,
+      "preservation_obligation": false,
+      "secondary_viewport": false,
+      "source_only_visual_expected": true,
+      "browser_observer": true,
+      "browser_subject_adjustment": true,
+      "taskkill_tree": false,
+      "cleanup_named": false
+    },
+    {
+      "commit": "67d18be21e865846fac780351b34bc6cd4c636a3",
+      "preservation_primitive_equality": true,
+      "preservation_obligation": true,
+      "secondary_viewport": false,
+      "source_only_visual_expected": true,
+      "browser_observer": true,
+      "browser_subject_adjustment": true,
+      "taskkill_tree": false,
+      "cleanup_named": false
+    },
+    {
+      "commit": "cf80c57c69a1f74e0ff3e4b6c62da169a1fd30c9",
+      "preservation_primitive_equality": true,
+      "preservation_obligation": true,
+      "secondary_viewport": true,
+      "source_only_visual_expected": true,
+      "browser_observer": true,
+      "browser_subject_adjustment": false,
+      "taskkill_tree": true,
+      "cleanup_named": true
+    }
+  ]
+}

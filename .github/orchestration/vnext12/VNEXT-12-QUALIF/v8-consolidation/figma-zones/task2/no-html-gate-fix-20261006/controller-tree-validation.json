@@ -1,0 +1,22 @@
+{
+  "status": "VALIDATED",
+  "expected_parent": "187b8846ff22981c9c79662eb453ec77fdc3fd32",
+  "candidate_tree": "dd59e53f60022eb587ebd5a2ba90b7f9f54424a3",
+  "changed_paths": [
+    ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_COMPLETION_FIX.md",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/campaign-state.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/request.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/no-html-gate-fix-20261006/final-targeted-tests.log",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/no-html-gate-fix-20261006/native-tree-validation.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/no-html-gate-fix-20261006/precheck.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/no-html-gate-fix-20261006/qualification-admission.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/no-html-gate-fix-20261006/qualification-jobs.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/no-html-gate-fix-20261006/qualification-linux-excerpt.log",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/no-html-gate-fix-20261006/qualification-windows-excerpt.log",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/no-html-gate-fix-20261006/targeted-tests.log"
+  ],
+  "targeted_tests": [],
+  "powershell_changed_units": 0,
+  "writer_policy": "PASS_WITH_FROZEN_LEGACY",
+  "historical_subjects": 420
+}

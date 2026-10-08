@@ -1,0 +1,881 @@
+{
+  "schema_version": "kodjo.vnext.finalization.v1",
+  "schema": "kodjo.ui-final-verification.v1",
+  "slice_id": "V2-PRE-2",
+  "repository": "MyUncried/Application-Routine",
+  "issue_number": 288,
+  "head": "3780eb9287cf8bc60c79dc322c1662542469a389",
+  "review_comment_id": "5984104726",
+  "review_sha256": "392a786da579ef957413bd280e705d7b953ed5e8907317e9dbb92bc1112e17e3",
+  "delivery_coverage": {
+    "baseline_head": "53cb05c782e17eb19d269f2724a0db3cfbceb1a2",
+    "increment_head": "10ac761ef453f360110bf7b668b3998487b071b3",
+    "head": "3780eb9287cf8bc60c79dc322c1662542469a389",
+    "increment_files": [
+      "assets/icons/label-outline.svg",
+      "src/domain/preferences/Profile.ts",
+      "src/domain/preferences/__tests__/Profile.test.ts",
+      "src/features/activities/ActivityEditorForm.tsx",
+      "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "src/features/preferences/ProfileEditScreen.tsx",
+      "src/features/preferences/ProfileScreen.tsx",
+      "src/features/preferences/__tests__/ProfileEditScreen.test.tsx",
+      "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+      "src/features/preferences/__tests__/ProfileService.test.ts",
+      "src/features/reference-data/BodyZonePickerModal.tsx",
+      "src/features/reference-data/CategoryPickerModal.tsx",
+      "src/features/reference-data/LabelPickerModal.tsx",
+      "src/features/reference-data/ReferenceValueDialog.tsx",
+      "src/features/reference-data/ReferentialServiceContext.tsx",
+      "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+      "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+      "src/features/reference-data/__tests__/LabelPickerModal.test.tsx",
+      "src/features/reference-data/__tests__/ReferenceValueDialog.test.tsx",
+      "src/features/sessions/ColorPalette.tsx",
+      "src/features/sessions/CompositionScreen.tsx",
+      "src/features/sessions/ExerciseScreen.tsx",
+      "src/features/sessions/__tests__/ColorPalette.test.tsx",
+      "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "src/shared/i18n/index.test.ts",
+      "src/shared/i18n/resources/fr.ts",
+      "src/shared/ui/KodjoIcon.tsx"
+    ],
+    "cumulative_files": [
+      "\"docs/Specifications-fonctionnelles/00 \\342\\200\\223 Glossaire.md\"",
+      "\"docs/Specifications-fonctionnelles/01 \\342\\200\\223 Vision G\\303\\251n\\303\\251rale.md\"",
+      "\"docs/Specifications-fonctionnelles/03 \\342\\200\\223 Parcours utilisateur.md\"",
+      "\"docs/Specifications-fonctionnelles/04 \\342\\200\\223 Mod\\303\\250le fonctionnel.md\"",
+      "\"docs/Specifications-fonctionnelles/05 \\342\\200\\223 Versions du produit.md\"",
+      "\"docs/Specifications-fonctionnelles/06 \\342\\200\\223 Ecrans et navigation de la V1.md\"",
+      "\"docs/Specifications-fonctionnelles/07 \\342\\200\\223 Registre des d\\303\\251cisions de conception.md\"",
+      "\"docs/Specifications-fonctionnelles/08 \\342\\200\\223 Conception fonctionnelle d\\303\\251taill\\303\\251e.md\"",
+      "\"docs/Specifications-fonctionnelles/09 \\342\\200\\223 Mod\\303\\250le de donn\\303\\251es fonctionnel.md\"",
+      "\"docs/Specifications-fonctionnelles/10 \\342\\200\\223 Processus m\\303\\251tier et r\\303\\250gles m\\303\\251tier transverses.md\"",
+      "\"docs/Specifications-fonctionnelles/11 \\342\\200\\223 API fonctionnelles.md\"",
+      "\"docs/Specifications-fonctionnelles/12 \\342\\200\\223 Architecture technique.md\"",
+      "\"docs/Specifications-fonctionnelles/13 \\342\\200\\223 Contrats d\\342\\200\\231\\303\\251cran.md\"",
+      ".github/orchestration/PACKAGE_MANIFEST.md",
+      ".github/orchestration/v2-activation-registry.json",
+      ".github/orchestration/v2-slices/V2-PRE-2/closure-review-37136337819/correction-register.md",
+      ".github/orchestration/v2-slices/V2-PRE-2/closure-review-37136337819/prior-findings.json",
+      ".github/orchestration/v2-slices/V2-PRE-2/closure-review-37136337819/technical-plan.md",
+      ".github/orchestration/v2-slices/V2-PRE-2/implementation-mission.md",
+      ".github/orchestration/v2-slices/V2-PRE-2/independent-review.md",
+      ".github/orchestration/v2-slices/V2-PRE-2/plan-publication/technical-plan.md",
+      ".github/orchestration/v2-slices/V2-PRE-2/planning-mission.md",
+      ".github/orchestration/v2-slices/V2-PRE-2/slice-bootstrap.json",
+      ".github/orchestration/v2-slices/V2-PRE-2/technical-plan.md",
+      ".github/workflows/kodjo-slice-implementation-review.yml",
+      ".github/workflows/kodjo-v2-slice-initial-plan-review.yml",
+      "app/(tabs)/profile.tsx",
+      "app/__tests__/rootLayoutGesture.test.tsx",
+      "app/_layout.tsx",
+      "app/profile-edit.tsx",
+      "assets/icons/label-outline.svg",
+      "docs/DSF-CARTES-ICONES-APPUIS-2026-09-30.md",
+      "docs/DSF-V2-MOTIFS-LOT-3.md",
+      "docs/INDEX.md",
+      "docs/MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md",
+      "docs/MATRICE-ECRANS-CARTES-2026-09-30.md",
+      "docs/PRODUCT.md",
+      "docs/Specifications-fonctionnelles/images/README-T03-FIGMA.md",
+      "docs/Specifications-fonctionnelles/images/ecran-11-suivi-condense.png",
+      "docs/Specifications-fonctionnelles/images/ecran-12-catalogue-activites-liste.png",
+      "docs/Specifications-fonctionnelles/images/ecran-14-selection-activites-existantes.png",
+      "docs/Specifications-fonctionnelles/images/ecran-7a-calendrier-semaine.png",
+      "docs/Specifications-fonctionnelles/images/ecran-7f-calendrier-jour-apres-planification.png",
+      "docs/Specifications-fonctionnelles/images/ecran-7g-calendrier-jour-suivant.png",
+      "docs/Specifications-fonctionnelles/images/ecran-7h-calendrier-semaine-mardi.png",
+      "docs/Specifications-fonctionnelles/images/ecran-7i-calendrier-semaine-deployee.png",
+      "docs/Specifications-fonctionnelles/images/ecran-7j-calendrier-semaine-actions.png",
+      "docs/Specifications-fonctionnelles/images/ecran-7l-calendrier-apres-suppression.png",
+      "docs/Specifications-fonctionnelles/images/figma-4544-6344.png",
+      "docs/Specifications-fonctionnelles/images/figma-4544-6651.png",
+      "docs/Specifications-fonctionnelles/images/figma-4738-6209.png",
+      "docs/Specifications-fonctionnelles/images/figma-5451-4272.png",
+      "docs/Specifications-fonctionnelles/images/modale-4-suppression-planification-unique.png",
+      "scripts/kodjo/materialize-approved-plan-handoff.js",
+      "scripts/kodjo/recover-published-plan.js",
+      "scripts/kodjo/verify-plan-closure-review.js",
+      "src/domain/activities/ActivityDefinition.ts",
+      "src/domain/activities/__tests__/ActivityDefinition.test.ts",
+      "src/domain/body-zones/BodyZone.ts",
+      "src/domain/body-zones/BodyZoneRepository.ts",
+      "src/domain/body-zones/__tests__/BodyZone.test.ts",
+      "src/domain/categories/CategoryRepository.ts",
+      "src/domain/categories/__tests__/validation.test.ts",
+      "src/domain/categories/errors.ts",
+      "src/domain/labels/Label.ts",
+      "src/domain/labels/LabelRepository.ts",
+      "src/domain/labels/__tests__/Label.test.ts",
+      "src/domain/preferences/Profile.ts",
+      "src/domain/preferences/ProfileRepository.ts",
+      "src/domain/preferences/__tests__/Profile.test.ts",
+      "src/domain/sessions/SessionDraft.ts",
+      "src/domain/sessions/__tests__/SessionDraft.test.ts",
+      "src/domain/sessions/__tests__/composition.test.ts",
+      "src/features/activities/ActivityEditorForm.tsx",
+      "src/features/activities/ActivitySelectionScreen.tsx",
+      "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+      "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+      "src/features/preferences/ProfileEditScreen.tsx",
+      "src/features/preferences/ProfileScreen.tsx",
+      "src/features/preferences/ProfileService.ts",
+      "src/features/preferences/ProfileServiceContext.tsx",
+      "src/features/preferences/__tests__/ProfileEditScreen.test.tsx",
+      "src/features/preferences/__tests__/ProfileScreen.test.tsx",
+      "src/features/preferences/__tests__/ProfileService.test.ts",
+      "src/features/preferences/__tests__/profilePhoto.test.ts",
+      "src/features/preferences/notificationPermission.ts",
+      "src/features/preferences/profilePhoto.ts",
+      "src/features/reference-data/BodyZonePickerModal.tsx",
+      "src/features/reference-data/CategoryPickerModal.tsx",
+      "src/features/reference-data/LabelPickerModal.tsx",
+      "src/features/reference-data/ReferenceValueDialog.tsx",
+      "src/features/reference-data/ReferentialService.ts",
+      "src/features/reference-data/ReferentialServiceContext.tsx",
+      "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+      "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+      "src/features/reference-data/__tests__/LabelPickerModal.test.tsx",
+      "src/features/reference-data/__tests__/ReferenceValueDialog.test.tsx",
+      "src/features/reference-data/__tests__/ReferentialService.test.ts",
+      "src/features/sessions/BodyZoneSelector.tsx",
+      "src/features/sessions/ColorPalette.tsx",
+      "src/features/sessions/CompositionScreen.tsx",
+      "src/features/sessions/ExerciseScreen.tsx",
+      "src/features/sessions/SessionDraftContext.tsx",
+      "src/features/sessions/SessionDraftProvider.tsx",
+      "src/features/sessions/SessionService.ts",
+      "src/features/sessions/SessionServiceProvider.tsx",
+      "src/features/sessions/__tests__/BodyZoneSelector.test.tsx",
+      "src/features/sessions/__tests__/CatalogueCompositionEditFlow.integration.test.tsx",
+      "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "src/features/sessions/__tests__/ColorPalette.test.tsx",
+      "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "src/features/sessions/__tests__/CompositionScreen.test.tsx",
+      "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+      "src/features/sessions/__tests__/SessionDraftContext.test.tsx",
+      "src/features/sessions/__tests__/SessionDraftProvider.test.tsx",
+      "src/features/sessions/__tests__/SessionService.test.ts",
+      "src/features/sessions/__tests__/SessionServiceProvider.test.tsx",
+      "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+      "src/infrastructure/database/__tests__/SqliteBodyZoneRepository.test.ts",
+      "src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts",
+      "src/infrastructure/database/__tests__/SqliteLabelRepository.test.ts",
+      "src/infrastructure/database/__tests__/SqliteProfileRepository.test.ts",
+      "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+      "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "src/infrastructure/database/__tests__/targetSchema.test.ts",
+      "src/infrastructure/database/constants.ts",
+      "src/infrastructure/database/migrateDatabase.ts",
+      "src/infrastructure/database/migrations/migration008.ts",
+      "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+      "src/infrastructure/database/repositories/SqliteBodyZoneRepository.ts",
+      "src/infrastructure/database/repositories/SqliteCategoryRepository.ts",
+      "src/infrastructure/database/repositories/SqliteLabelRepository.ts",
+      "src/infrastructure/database/repositories/SqliteProfileRepository.ts",
+      "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+      "src/infrastructure/database/types/DatabaseRows.ts",
+      "src/shared/i18n/index.test.ts",
+      "src/shared/i18n/resources/fr.ts",
+      "src/shared/ui/BodyZoneIcon.tsx",
+      "src/shared/ui/KodjoIcon.tsx",
+      "src/shared/ui/ProfileStepper.tsx",
+      "src/shared/ui/__tests__/BodyZoneIcon.test.tsx",
+      "src/shared/ui/__tests__/ProfileStepper.test.tsx",
+      "tests/kodjo/environment-sync-sidecars.pilot.js",
+      "tests/kodjo/generic-closure-review.pilot.js",
+      "tests/kodjo/generic-plan-publication.pilot.js",
+      "tests/kodjo/plan-review-publication-retry.pilot.js"
+    ],
+    "current_files": [
+      {
+        "path": "app/(tabs)/profile.tsx",
+        "blob_oid": "89a54f374d7f578c521c7200d1d9f6663ad05eeb"
+      },
+      {
+        "path": "app/_layout.tsx",
+        "blob_oid": "7d7fd3fab8fcb01133d25b9df48f694fe32b10e0"
+      },
+      {
+        "path": "app/profile-edit.tsx",
+        "blob_oid": "9dcd2406e9a1696a61a29fced487dbb41d7e1b84"
+      },
+      {
+        "path": "assets/icons/label-outline.svg",
+        "blob_oid": "a573a07698cde1a368c95905678946e3e38ba2d7"
+      },
+      {
+        "path": "src/domain/activities/ActivityDefinition.ts",
+        "blob_oid": "ee49e3bdb1f79efa4cabbbd9a3a28e6dae193c76"
+      },
+      {
+        "path": "src/features/activities/ActivityEditorForm.tsx",
+        "blob_oid": "f76bb3ee6f3130f21ffe83d88d7df83b221641e6"
+      },
+      {
+        "path": "src/features/activities/ActivitySelectionScreen.tsx",
+        "blob_oid": "e08147a40683325ef2f4dbefef449ef9853f9f46"
+      },
+      {
+        "path": "src/features/preferences/ProfileEditScreen.tsx",
+        "blob_oid": "494aaaa4e38d55cb14b425c551f5c32090c8cffc"
+      },
+      {
+        "path": "src/features/preferences/ProfileScreen.tsx",
+        "blob_oid": "1e35b81b499b05e8f04925b1b7cd97f7158eeae9"
+      },
+      {
+        "path": "src/features/preferences/ProfileService.ts",
+        "blob_oid": "7da21568171c713396ef349f96e5dc9ec4eb5637"
+      },
+      {
+        "path": "src/features/preferences/ProfileServiceContext.tsx",
+        "blob_oid": "f9037b067d3fd760ac7223c439b8d8cce6fb92a7"
+      },
+      {
+        "path": "src/features/preferences/notificationPermission.ts",
+        "blob_oid": "51d45c042e36b908be9ed51c0b656a2ba195eea2"
+      },
+      {
+        "path": "src/features/preferences/profilePhoto.ts",
+        "blob_oid": "c98656ba529dd65c978b630c529dc20d3d4dc62f"
+      },
+      {
+        "path": "src/features/reference-data/BodyZonePickerModal.tsx",
+        "blob_oid": "aa8c23a78c7c272128d751774ff6256d457166e1"
+      },
+      {
+        "path": "src/features/reference-data/CategoryPickerModal.tsx",
+        "blob_oid": "9af0f9259b97b36e182b2ccdc2196607b48ffddb"
+      },
+      {
+        "path": "src/features/reference-data/LabelPickerModal.tsx",
+        "blob_oid": "4b10264a9f0a7465cff31af7e00c6829e63100d9"
+      },
+      {
+        "path": "src/features/reference-data/ReferenceValueDialog.tsx",
+        "blob_oid": "b570b60746c4167700d96701b13cc55ddd71171e"
+      },
+      {
+        "path": "src/features/reference-data/ReferentialService.ts",
+        "blob_oid": "59b8671ef2e9b4225614835de74ebc8da8caeded"
+      },
+      {
+        "path": "src/features/reference-data/ReferentialServiceContext.tsx",
+        "blob_oid": "7b5de6d896d2e91ddb53baf1b3a149688b98f3fd"
+      },
+      {
+        "path": "src/features/sessions/BodyZoneSelector.tsx",
+        "blob_oid": "817c41aed67476984624460d7255ecc45b549ce6"
+      },
+      {
+        "path": "src/features/sessions/ColorPalette.tsx",
+        "blob_oid": "eb98bd34925f1f44283893a1cbe510a37b3f1b2e"
+      },
+      {
+        "path": "src/features/sessions/CompositionScreen.tsx",
+        "blob_oid": "0a99b360cab1603cc1bf0d070ec9f57f06dbe915"
+      },
+      {
+        "path": "src/features/sessions/ExerciseScreen.tsx",
+        "blob_oid": "62ef45ab7e4afac3a5d44f22adcff698098dfcc7"
+      },
+      {
+        "path": "src/features/sessions/SessionDraftContext.tsx",
+        "blob_oid": "616824819acfc65cc7a3c6958da420741b8169bc"
+      },
+      {
+        "path": "src/features/sessions/SessionDraftProvider.tsx",
+        "blob_oid": "8046ee14bf851f4bd0c31d1f461329911dbdbbb5"
+      },
+      {
+        "path": "src/features/sessions/SessionService.ts",
+        "blob_oid": "de036adb3d5c8fc47366f7e7dcdf95eb63b2b7e9"
+      },
+      {
+        "path": "src/features/sessions/SessionServiceProvider.tsx",
+        "blob_oid": "a8485eb6bfd8ed99a8ecb67bc7f4a393a3b8dde1"
+      },
+      {
+        "path": "src/shared/i18n/resources/fr.ts",
+        "blob_oid": "9110edb8fb4bf493094f8ee6c544dc6ed3014249"
+      },
+      {
+        "path": "src/shared/ui/BodyZoneIcon.tsx",
+        "blob_oid": "8b96a5d9a9c1a8ad30a07905dd176acb42afccbe"
+      },
+      {
+        "path": "src/shared/ui/KodjoIcon.tsx",
+        "blob_oid": "6f3aded122616363b6ae3beb4726a777ee87aef1"
+      },
+      {
+        "path": "src/shared/ui/ProfileStepper.tsx",
+        "blob_oid": "5ba117536728e645dbb6d1dcf2e0b028e6cbd0b2"
+      }
+    ]
+  },
+  "technical_review_sha256": "392a786da579ef957413bd280e705d7b953ed5e8907317e9dbb92bc1112e17e3",
+  "implementation_review_comment_id": "5984104726",
+  "human_device_approval_comment_id": "5990475371",
+  "criterion_count": 6,
+  "criterion_ids_sha256": "0e07c93292cb5bbfe478af44e384d4afeee4fcb827bbed3d90ae6856f2bf9b13",
+  "acceptance": {
+    "comment_id": "5990475371",
+    "updated_at": "2026-10-05T08:01:13Z",
+    "actor": "MyUncried",
+    "body": "[KODJO_SLICE] VISUAL_APPROVED\nslice_id=V2-PRE-2\nsource_review_comment_id=5984104726\nhead=3780eb9287cf8bc60c79dc322c1662542469a389\n\nDécision de Hermann inchangée : voir le marqueur d'origine https://github.com/MyUncried/Application-Routine/issues/288#issuecomment-5985692286 (acceptation fonctionnelle uniquement, conformité Figma non vérifiée, réserves visuelles maintenues pour PRE-3).\nRepublié à la demande explicite de Hermann pour une raison technique : le routeur ne réagit qu'à la création d'un commentaire, et une relance réutilise le workflow figé avant les correctifs #320 et #321. Ce marqueur ne porte aucune nouvelle décision.\n",
+    "body_sha256": "4fe1df065adbfaffadcb8a2eb35fd433d2393f719429630cc812d8bc27c12cb8"
+  },
+  "original_decision": {
+    "comment_id": "5985692286",
+    "updated_at": "2026-10-04T23:42:36Z",
+    "actor": "MyUncried",
+    "body": "[KODJO_SLICE] VISUAL_APPROVED\nslice_id=V2-PRE-2\nsource_review_comment_id=5984104726\nhead=3780eb9287cf8bc60c79dc322c1662542469a389\n\nDécision de Hermann, publiée à sa demande explicite : acceptation FONCTIONNELLE de V2-PRE-2 (PR #303, tête 3780eb92, revue indépendante APPROVE 5984104726) sur la base de sa recette iPhone.\nCe marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée. Les écarts visuels sont importants ; l'extraction et la transmission des propriétés visuelles Figma n'ont pas été suffisamment établies dans ce cycle V2. Hermann décide explicitement que ces écarts ne bloquent pas la clôture fonctionnelle de PRE-2 (dérogation limitée à PRE-2). Les preuves VISUAL_COMPARE et ACCESSIBILITY_CHECK en PENDING_DEVICE sont levées au titre de cette acceptation fonctionnelle, sans valoir certification visuelle.\nLes réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext). Cela n'autorise aucune refonte visuelle générale : leur affectation devra être explicitée dans le périmètre de PRE-3. Référence Figma relevée : frame 4478:7209 « Ajouter un exercice — Zones corporelles » (fichier G6RY5Ebhgwb4AHIOYDwwvg).\nPrécision de Hermann sur le nom vide (création d'une zone corporelle) : le bouton Ajouter reste inactif ; aucun message d'erreur n'est attendu. Cette précision affine CE-UI-09 §17 (« Nom vide … : message ») sans modifier le comportement validé ; la reformulation du contrat reste à reporter dans la documentation.\n",
+    "body_sha256": "b08a88ae4ae8f5fb740ef85bcb26e0b457104fdf3b16da3e0ef11bf9ef5f1ae4"
+  },
+  "reservations": [
+    "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+    "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+  ],
+  "pending_proofs": [
+    {
+      "target_id": "UI-3D89E598F31D",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "status": "PENDING_DEVICE",
+      "evidence": "Les rôles, libellés et retours de focus sont couverts structurellement par Jest, mais le focus natif et VoiceOver/TalkBack ne sont pas certifiables dans l’environnement fourni."
+    },
+    {
+      "target_id": "UI-3D89E598F31D",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Aucun accès device/Figma fourni pour comparer les frames prévues."
+    },
+    {
+      "target_id": "UI-3D89E598F31D-A30952ACCEE22",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Comparaison visuelle device/Figma non exécutée."
+    },
+    {
+      "target_id": "UI-3D89E598F31D-A39FF697ED918",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Vérification responsive avec clavier et texte agrandi non exécutée sur device."
+    },
+    {
+      "target_id": "UI-3D89E598F31D-AEE8F212827AE",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "status": "PENDING_DEVICE",
+      "evidence": "Les tests structurels de rôle/header et AccessibilityInfo passent, mais la résolution de nœud natif et le focus runtime ne sont pas vérifiables ici."
+    },
+    {
+      "target_id": "UI-3D89E598F31D-A4255F88073DB",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Aucun accès device/Figma fourni."
+    },
+    {
+      "target_id": "UI-5F3D94866D30",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "status": "PENDING_DEVICE",
+      "evidence": "Les rôles, headers et retours de focus sont vérifiés structurellement, mais VoiceOver/TalkBack et le focus natif ne sont pas certifiables ici."
+    },
+    {
+      "target_id": "UI-5F3D94866D30",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Comparaison avec les frames Catégorie non exécutée."
+    },
+    {
+      "target_id": "UI-5F3D94866D30-A2B92152E7B5A",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "status": "PENDING_DEVICE",
+      "evidence": "Les tests structurels passent, mais aucune recette VoiceOver/TalkBack n’est fournie."
+    },
+    {
+      "target_id": "UI-5F3D94866D30-A4BEE35F8C506",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Recette responsive device non exécutée."
+    },
+    {
+      "target_id": "UI-5F3D94866D30-A5329EB33376E",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Aucune comparaison Figma/device fournie."
+    },
+    {
+      "target_id": "UI-5F3D94866D30-AB9BD9AC9991B",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Comparaison visuelle de la pilule non exécutée."
+    },
+    {
+      "target_id": "UI-60B2C84BF572",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "status": "PENDING_DEVICE",
+      "evidence": "Les rôles, hints et focus programmatique ont une couverture structurelle; VoiceOver/TalkBack et le focus natif restent non vérifiés."
+    },
+    {
+      "target_id": "UI-60B2C84BF572",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Comparaison aux frames Étiquette non exécutée."
+    },
+    {
+      "target_id": "UI-60B2C84BF572-A9605C517EBC0",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Comparaison visuelle de l’actif et de la pilule non exécutée."
+    },
+    {
+      "target_id": "UI-60B2C84BF572-AEC754D3ABC2D",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Recette responsive device non exécutée."
+    },
+    {
+      "target_id": "UI-60B2C84BF572-A7552EF457EC4",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "status": "PENDING_DEVICE",
+      "evidence": "Tests structurels PASS, mais pas de VoiceOver/TalkBack réel."
+    },
+    {
+      "target_id": "UI-60B2C84BF572-AE0DDBADC6EBD",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Aucune comparaison Figma/device fournie."
+    },
+    {
+      "target_id": "UI-82B1544AE5AE",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "status": "PENDING_DEVICE",
+      "evidence": "La structure accessible des interrupteurs et steppers est testée, mais le comportement d’assistance runtime n’est pas certifiable ici."
+    },
+    {
+      "target_id": "UI-82B1544AE5AE",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Aucune comparaison visuelle device des groupes, séparateurs et steppers."
+    },
+    {
+      "target_id": "UI-82B1544AE5AE-A52DF543B99EA",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Comparaison visuelle non exécutée."
+    },
+    {
+      "target_id": "UI-82B1544AE5AE-A7FA3A379BF2A",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "status": "PENDING_DEVICE",
+      "evidence": "Tests structurels PASS, mais VoiceOver/TalkBack non disponible."
+    },
+    {
+      "target_id": "UI-82B1544AE5AE-ABADF584DFF42",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Comparaison visuelle non exécutée."
+    },
+    {
+      "target_id": "UI-82B1544AE5AE-AF03239AB16DE",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Recette device texte agrandi non exécutée."
+    },
+    {
+      "target_id": "UI-82B1544AE5AE-AA246BAA18DCA",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Aucune comparaison visuelle fournie."
+    },
+    {
+      "target_id": "UI-96E7FD739BF0",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "status": "PENDING_DEVICE",
+      "evidence": "Les états et libellés sont testés structurellement, mais VoiceOver/TalkBack et la navigation focus réelle ne sont pas vérifiables ici."
+    },
+    {
+      "target_id": "UI-96E7FD739BF0",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Aucune comparaison aux frames de Modifier le profil."
+    },
+    {
+      "target_id": "UI-96E7FD739BF0-A7EFE96EAC23A",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Comparaison visuelle device non exécutée."
+    },
+    {
+      "target_id": "UI-96E7FD739BF0-AB155053543ED",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "status": "PENDING_DEVICE",
+      "evidence": "Tests structurels PASS; VoiceOver/TalkBack non disponible."
+    },
+    {
+      "target_id": "UI-96E7FD739BF0-A202F52482AC0",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Recette responsive device non exécutée."
+    },
+    {
+      "target_id": "UI-96E7FD739BF0-AC99FCD6BEC3F",
+      "proof_type": "VISUAL_COMPARE",
+      "status": "PENDING_DEVICE",
+      "evidence": "Aucune comparaison visuelle fournie."
+    }
+  ],
+  "not_executed_proofs": [],
+  "proof_resolutions": [
+    {
+      "target_id": "UI-3D89E598F31D",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-3D89E598F31D",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-3D89E598F31D-A30952ACCEE22",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-3D89E598F31D-A39FF697ED918",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-3D89E598F31D-AEE8F212827AE",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-3D89E598F31D-A4255F88073DB",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-5F3D94866D30",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-5F3D94866D30",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-5F3D94866D30-A2B92152E7B5A",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-5F3D94866D30-A4BEE35F8C506",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-5F3D94866D30-A5329EB33376E",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-5F3D94866D30-AB9BD9AC9991B",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-60B2C84BF572",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-60B2C84BF572",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-60B2C84BF572-A9605C517EBC0",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-60B2C84BF572-AEC754D3ABC2D",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-60B2C84BF572-A7552EF457EC4",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-60B2C84BF572-AE0DDBADC6EBD",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-82B1544AE5AE",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-82B1544AE5AE",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-82B1544AE5AE-A52DF543B99EA",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-82B1544AE5AE-A7FA3A379BF2A",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-82B1544AE5AE-ABADF584DFF42",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-82B1544AE5AE-AF03239AB16DE",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-82B1544AE5AE-AA246BAA18DCA",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-96E7FD739BF0",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-96E7FD739BF0",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-96E7FD739BF0-A7EFE96EAC23A",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-96E7FD739BF0-AB155053543ED",
+      "proof_type": "ACCESSIBILITY_CHECK",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-96E7FD739BF0-A202F52482AC0",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    },
+    {
+      "target_id": "UI-96E7FD739BF0-AC99FCD6BEC3F",
+      "proof_type": "VISUAL_COMPARE",
+      "original_status": "PENDING_DEVICE",
+      "resolution": "USER_WAIVER",
+      "decision_comment_id": "5985692286",
+      "reservations": [
+        "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+        "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+      ]
+    }
+  ],
+  "all_device_proofs_executed": false,
+  "acceptance_scope": "FUNCTIONAL_ACCEPTANCE_WITH_RESERVES",
+  "visual_compliance_attested": false,
+  "accessibility_compliance_attested": false,
+  "final_status": "READY_TO_CLOSE",
+  "plan_blob_oid": "014987f69b9738fbed839f9300733539b00505ca",
+  "contract_hash": "22dcfaff4823b9a5bbd99453f4fc5fb828dafca41bb2e6906524af339b55076f"
+}

@@ -1,0 +1,53 @@
+{
+  "schema_version": "kodjo.vnext.full-cycle-evidence.v1",
+  "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "request_id": "d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8",
+  "generation": 88,
+  "run_id": 37629963561,
+  "run_attempt": 1,
+  "source_head": "69a050ded3320c8f17df6c4b676974c98307f5b8",
+  "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:d6a8f4c1-2e73-4b95-8c4a-1f907b62e3d8:37629963561:1",
+  "stage_contract": "FIGMA_INITIAL",
+  "test_category": "REAL",
+  "status": "FAILED_PRE_IMPLEMENTATION",
+  "diagnostic": "VNEXT_LIVE_REVIEW_NOT_APPROVED: CLARIFICATION_REQUIRED",
+  "review": {
+    "session_id": "afac53af-27ec-4798-a327-6c2568b88cda",
+    "verdict": "CLARIFICATION_REQUIRED",
+    "finding_count": 2,
+    "blocking_finding_count": 2,
+    "findings": [
+      {
+        "finding_id": "FND-04e10d19ebc219cb19156349",
+        "category": "PRODUCT_AMBIGUITY",
+        "cause": "The frozen frame and the documentary Boolean behavior shared STATE-1 with contradictory origins.",
+        "correction": "Preserve the frozen frame state as zones-reference/FIGMA/CONTEXT_ONLY and bind the Boolean behavior to DOC-toggle-boolean/DOCUMENT_ONLY/REQUIRED."
+      },
+      {
+        "finding_id": "FND-4b5d78ae432be284e3e46295",
+        "category": "TEST_GAP",
+        "cause": "The delivered parent test did not explicitly have to propagate child process errors, signals, status, stdout and stderr.",
+        "correction": "Require no spawn error, null signal and status 0 for each child, surface stdout/stderr on failure and exit non-zero."
+      }
+    ]
+  },
+  "implementation_invoked": false,
+  "application_published": false,
+  "live_figma_acquisition": "NOT_EXERCISED_FROZEN_GIT_CAPTURE_REPLAY",
+  "visual_validation": "NOT_EXECUTED_USER_ONLY",
+  "disposable_cleanup": true,
+  "preserved_delivery_head": "47083331231b9398202f8cc54d55f36f2a59847c",
+  "artifact_id": 11485863934,
+  "artifact_sha256": "e5133d2b471a45f62424d722ba877abe3efe2bc84225c1289adc43537049b541",
+  "artifact_locator": "github_actions_artifact:11485863934",
+  "artifact_archive_sha256_verified": true,
+  "local_correction_controls": {
+    "targeted": {"pass": 46, "fail": 0, "skip": 0},
+    "vnext_full": {"pass": 408, "fail": 0, "skip": 0},
+    "workflow_runtime_validation": "PASS",
+    "workflow_yaml_validation": {"status": "PASS", "workflows": 65},
+    "diff_check": "PASS"
+  },
+  "next_gate": "EXACT_HEAD_LINUX_WINDOWS_QUALIFICATION"
+}

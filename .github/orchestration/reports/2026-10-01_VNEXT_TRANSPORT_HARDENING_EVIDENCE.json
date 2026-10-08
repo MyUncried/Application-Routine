@@ -1,0 +1,999 @@
+{
+  "schema_version": "kodjo.vnext.transport-hardening-evidence.v1",
+  "recorded_at": "2026-10-01T19:17:40.176571+00:00",
+  "repository": "MyUncried/Application-Routine",
+  "pull_request": 269,
+  "candidate_head": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+  "candidate_tree": "af272ead1c5aef5bff7b622a8a85dcf394cb009d",
+  "base_head": "6af6455be9f1ab703727bfee021d188a0333a70c",
+  "status": "QUALIFIED_LINUX_WINDOWS",
+  "runs": [
+    {
+      "id": 36908061869,
+      "name": "KODJO VNext proof stability and architecture",
+      "path": ".github/workflows/kodjo-vnext-proof-stability.yml",
+      "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061869",
+      "updated_at": "2026-10-01T18:58:57Z",
+      "jobs": [
+        {
+          "id": 110523506702,
+          "name": "historical-equivalence (ubuntu-latest)",
+          "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-01T18:36:19Z",
+          "completed_at": "2026-10-01T18:39:17Z",
+          "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061869/job/110523506702",
+          "log_sha256": "70b6c842097416cf9233a6c994e74775d88e67ca344d17fe4caf14768f30117a",
+          "historical_identity": {
+            "candidate_head": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+            "platform": "linux",
+            "counts": {
+              "tests": 921,
+              "failed": 0,
+              "passed": 920,
+              "cancelled": 0,
+              "skipped": 1,
+              "todo": 0,
+              "topLevel": 921,
+              "suites": 0
+            },
+            "readiness": "NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT"
+          }
+        },
+        {
+          "id": 110523506728,
+          "name": "qualification (ubuntu-latest)",
+          "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-01T18:36:19Z",
+          "completed_at": "2026-10-01T18:37:48Z",
+          "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061869/job/110523506728",
+          "log_sha256": "4a7c27aebe1e9c2f9961d0e86a414e53806f116223241c829f2041d9306ac93e",
+          "counts": {
+            "tests": 202,
+            "pass": 202,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0
+          }
+        },
+        {
+          "id": 110523506851,
+          "name": "historical-equivalence (windows-latest)",
+          "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-01T18:36:19Z",
+          "completed_at": "2026-10-01T18:58:56Z",
+          "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061869/job/110523506851",
+          "log_sha256": "47581f6fa4a692c7de4ec11b65ceced7b622a7f6070154c20149f321dec27fc9",
+          "historical_identity": {
+            "candidate_head": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+            "platform": "win32",
+            "counts": {
+              "tests": 921,
+              "failed": 0,
+              "passed": 918,
+              "cancelled": 0,
+              "skipped": 3,
+              "todo": 0,
+              "topLevel": 921,
+              "suites": 0
+            },
+            "readiness": "NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT"
+          }
+        },
+        {
+          "id": 110523507101,
+          "name": "qualification (windows-latest)",
+          "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-01T18:36:22Z",
+          "completed_at": "2026-10-01T18:50:22Z",
+          "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061869/job/110523507101",
+          "log_sha256": "ffba0916b9f99987d2512d2aeb25d30b7510bf78d73d573f82f0079f3ab15636",
+          "counts": {
+            "tests": 202,
+            "pass": 202,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0
+          }
+        },
+        {
+          "id": 110529407678,
+          "name": "architecture-audit",
+          "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-10-01T18:50:23Z",
+          "completed_at": "2026-10-01T18:50:22Z",
+          "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061869/job/110529407678"
+        }
+      ]
+    },
+    {
+      "id": 36908061970,
+      "name": "KODJO V2 pilot tests",
+      "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
+      "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061970",
+      "updated_at": "2026-10-01T19:08:49Z",
+      "jobs": [
+        {
+          "id": 110523506069,
+          "name": "protocol",
+          "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-01T18:36:19Z",
+          "completed_at": "2026-10-01T18:39:45Z",
+          "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061970/job/110523506069",
+          "log_sha256": "bc2aaf537ea0bec69e5dfe45c3bf8a501823d30078388d8a6109d2d2dc884753",
+          "counts": {
+            "tests": 921,
+            "pass": 920,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 1
+          }
+        },
+        {
+          "id": 110524949366,
+          "name": "protocol-windows-preflight",
+          "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-01T18:39:47Z",
+          "completed_at": "2026-10-01T19:08:48Z",
+          "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061970/job/110524949366",
+          "log_sha256": "5a28abab96329af4d3c8520063f65f2938c1818acbc93effd8ec5740b12e0390",
+          "counts": {
+            "tests": 921,
+            "pass": 917,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 4
+          }
+        },
+        {
+          "id": 110537070538,
+          "name": "disposable-qualification",
+          "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-10-01T19:08:49Z",
+          "completed_at": "2026-10-01T19:08:49Z",
+          "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061970/job/110537070538"
+        }
+      ]
+    },
+    {
+      "id": 36908061861,
+      "name": "KODJO VNext-12 disposable preparation",
+      "path": ".github/workflows/kodjo-vnext12-disposable.yml",
+      "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+      "run_attempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061861",
+      "updated_at": "2026-10-01T18:52:04Z",
+      "jobs": [
+        {
+          "id": 110523506427,
+          "name": "select-stage",
+          "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-01T18:36:19Z",
+          "completed_at": "2026-10-01T18:37:10Z",
+          "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061861/job/110523506427"
+        },
+        {
+          "id": 110523871067,
+          "name": "qualify-driver (windows-latest)",
+          "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-01T18:37:15Z",
+          "completed_at": "2026-10-01T18:52:03Z",
+          "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061861/job/110523871067",
+          "log_sha256": "b68ac9e9f8d7bff14ac2bf150cdfd6fdb236f0db9c01d51d6da6356aeb3ff9fe",
+          "counts": {
+            "tests": 202,
+            "pass": 202,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0
+          }
+        },
+        {
+          "id": 110523871393,
+          "name": "qualify-driver (ubuntu-latest)",
+          "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-01T18:37:13Z",
+          "completed_at": "2026-10-01T18:38:42Z",
+          "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061861/job/110523871393",
+          "log_sha256": "3ad3e73c198e088f920b858d077249c6588b8a0f12ed55f6d58981470c26328a",
+          "counts": {
+            "tests": 202,
+            "pass": 202,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0
+          }
+        },
+        {
+          "id": 110523873911,
+          "name": "Execute approved disposable INITIAL or REVISION",
+          "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-10-01T18:37:10Z",
+          "completed_at": "2026-10-01T18:37:10Z",
+          "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061861/job/110523873911"
+        },
+        {
+          "id": 110530102189,
+          "name": "prepare-revision",
+          "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-10-01T18:52:04Z",
+          "completed_at": "2026-10-01T18:52:03Z",
+          "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061861/job/110530102189"
+        },
+        {
+          "id": 110530107310,
+          "name": "prepare-initial",
+          "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-10-01T18:52:04Z",
+          "completed_at": "2026-10-01T18:52:03Z",
+          "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/36908061861/job/110530107310"
+        }
+      ]
+    }
+  ],
+  "qualification_admission": {
+    "status": "VERIFIED",
+    "candidate_head": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+    "run_id": "36908061869",
+    "run_attempt": 1,
+    "jobs": [
+      {
+        "id": 110523506702,
+        "name": "historical-equivalence (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 110523506728,
+        "name": "qualification (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 110523506851,
+        "name": "historical-equivalence (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 110523507101,
+        "name": "qualification (windows-latest)",
+        "conclusion": "success"
+      }
+    ],
+    "observed_at": "2026-10-01T19:16:14.007Z",
+    "observation_source": "REAL_GITHUB_CONNECTOR_RESPONSES"
+  },
+  "archive": {
+    "path": ".github/orchestration/reports/2026-10-01_VNEXT_TRANSPORT_HARDENING_LOGS.zip",
+    "sha256": "54b6c9da63764bb04e41e183a79b343a3c8695eb73b014e795d938e54c5bd9d0",
+    "git_blob_oid": "01b83cb08c6eef944f78b5dbf60cf0fc79399829",
+    "bytes": 1227944,
+    "members": [
+      {
+        "path": "logs/110486847129.log",
+        "sha256": "453aaf0fb5285c927c56eeb186ba380f8f66de33b2b98e6484bec0f57a7eb920",
+        "bytes": 584718
+      },
+      {
+        "path": "logs/110486848162.log",
+        "sha256": "0f5be48f82bbb7904a77cb50feb75a164789d63a6b744d6bf9d6c0f44ecde680",
+        "bytes": 61645
+      },
+      {
+        "path": "logs/110486848458.log",
+        "sha256": "21a5046ee3a08f9dfa14be4ea073ef63bdc7c168648b68785d791a5b7e9ba486",
+        "bytes": 199243
+      },
+      {
+        "path": "logs/110486848562.log",
+        "sha256": "8827a0b987dd9bf268e9392f02422e6a0d2cc9e4981a863ca3f09e50c17fbbde",
+        "bytes": 61763
+      },
+      {
+        "path": "logs/110486848632.log",
+        "sha256": "4762e4ce24f849c823ccbf5f252f4af2ef4ccedf42bcf80d961983a1d0e32a4d",
+        "bytes": 253910
+      },
+      {
+        "path": "logs/110498575131.log",
+        "sha256": "2f1f4987b379e78575d04719961e27e7f1bdbd924791bb51e4087e252616d0bf",
+        "bytes": 546559
+      },
+      {
+        "path": "logs/110498575377.log",
+        "sha256": "db39387cf6a7fe90062d66e83fc9cff79cd0cfb4a34bb784d97c25c3f003b48f",
+        "bytes": 601177
+      },
+      {
+        "path": "logs/110498575635.log",
+        "sha256": "951b9cac7edd55f79307e7da6e2045b0f3f8c9ea1d79455fa2517e34779387cb",
+        "bytes": 199755
+      },
+      {
+        "path": "logs/closure-log-110523506069.log",
+        "sha256": "bc2aaf537ea0bec69e5dfe45c3bf8a501823d30078388d8a6109d2d2dc884753",
+        "bytes": 546606
+      },
+      {
+        "path": "logs/closure-log-110523506702.log",
+        "sha256": "70b6c842097416cf9233a6c994e74775d88e67ca344d17fe4caf14768f30117a",
+        "bytes": 601173
+      },
+      {
+        "path": "logs/closure-log-110523506728.log",
+        "sha256": "4a7c27aebe1e9c2f9961d0e86a414e53806f116223241c829f2041d9306ac93e",
+        "bytes": 199743
+      },
+      {
+        "path": "logs/closure-log-110523506851.log",
+        "sha256": "47581f6fa4a692c7de4ec11b65ceced7b622a7f6070154c20149f321dec27fc9",
+        "bytes": 601872
+      },
+      {
+        "path": "logs/closure-log-110523507101.log",
+        "sha256": "ffba0916b9f99987d2512d2aeb25d30b7510bf78d73d573f82f0079f3ab15636",
+        "bytes": 254460
+      },
+      {
+        "path": "logs/closure-log-110523871067.log",
+        "sha256": "b68ac9e9f8d7bff14ac2bf150cdfd6fdb236f0db9c01d51d6da6356aeb3ff9fe",
+        "bytes": 248809
+      },
+      {
+        "path": "logs/closure-log-110523871393.log",
+        "sha256": "3ad3e73c198e088f920b858d077249c6588b8a0f12ed55f6d58981470c26328a",
+        "bytes": 194552
+      },
+      {
+        "path": "logs/closure-log-110524949366.log",
+        "sha256": "5a28abab96329af4d3c8520063f65f2938c1818acbc93effd8ec5740b12e0390",
+        "bytes": 1065257
+      },
+      {
+        "path": "logs/final-110499633207.log",
+        "sha256": "a82d59bfc76b6cc6e1a4c05015a77e974ec4183f9984f1312679ad0ceb18c894",
+        "bytes": 369444
+      },
+      {
+        "path": "logs/transport-log-110498575126.log",
+        "sha256": "e5a197872da05f62987fd6e01067fe876240a1d5f5407bac6cff1d7334a9b1da",
+        "bytes": 254461
+      },
+      {
+        "path": "logs/transport-log-110498575602.log",
+        "sha256": "bcfe84409c1090b3fbfd57a5e629405bbf4af3a81f196b948f021a211ffbf3e2",
+        "bytes": 601873
+      },
+      {
+        "path": "logs/transport-log-110498851494.log",
+        "sha256": "30d9a87cb639b3380d4dd286cf92e933650ff4a548be59e50e4ab5b913ebd3ea",
+        "bytes": 250042
+      },
+      {
+        "path": "logs/transport-log-110498851508.log",
+        "sha256": "b25cae4fd5913f4a7664829b8e28986a3e085facd2f8da5ae4094bc9647f88c2",
+        "bytes": 194555
+      },
+      {
+        "path": "github/closure-api-artifacts.json",
+        "sha256": "b8576f85bb46718c2f13c4dd86ea778f3d5e3a74b17c660cc7de677c1a87c9a9",
+        "bytes": 2919
+      },
+      {
+        "path": "github/closure-api-commit.json",
+        "sha256": "b413fc2193734d90c8f6c414cc62e2592ab55794ed8c1a7a6342f10d2ba45fdc",
+        "bytes": 1520
+      },
+      {
+        "path": "github/closure-api-jobs-36908061861.json",
+        "sha256": "e69526eb1adfd931eb4c898c9365d6828bf361e5485ea9a276155d13ffa95b7e",
+        "bytes": 10759
+      },
+      {
+        "path": "github/closure-api-jobs-36908061869.json",
+        "sha256": "1f75b5a08c3dbdce9eb814b13cbd18f82d65817b17ef708b1214cdd80250fa97",
+        "bytes": 13324
+      },
+      {
+        "path": "github/closure-api-jobs-36908061970.json",
+        "sha256": "653954eb4e54709d3ab27e309afeb6ed75416fa2ff148144e97fa3899b3153bf",
+        "bytes": 9432
+      },
+      {
+        "path": "github/closure-api-run-36908061861.json",
+        "sha256": "0efadd70c9842742b02f031428c894b2d087b2ef5d953c4f373ad03c3e0c22e0",
+        "bytes": 13953
+      },
+      {
+        "path": "github/closure-api-run-36908061869.json",
+        "sha256": "8c6e492337a35e061c96900bcdef27006e753aaebd20e95e18a29d17d641a1c2",
+        "bytes": 13963
+      },
+      {
+        "path": "github/closure-api-run-36908061970.json",
+        "sha256": "7883fd7d7495e7701b95abc3fb541f6f5d5a209205b225140802648c7950cd3c",
+        "bytes": 13933
+      },
+      {
+        "path": "github/closure-api-state.json",
+        "sha256": "0b37df6f9a85453a6fcef962834b865e2981df0f4566d007ffb37fb0529b44a7",
+        "bytes": 11901
+      },
+      {
+        "path": "qualification-admission.json",
+        "sha256": "81c6e4c44817c833c431e32532d02e6d7ca31f35a10d9e480ebd20b53af3ba48",
+        "bytes": 741
+      },
+      {
+        "path": "artifacts/qualification-11187251912.zip",
+        "sha256": "c563d5e7dc147550eb652cd9dde5ec562625ac69b1f1e520c0f634476b81fd0d",
+        "bytes": 9926
+      },
+      {
+        "path": "artifacts/qualification-11186757350.zip",
+        "sha256": "1b539bdafd5c6583bf194be3134c7b01248fbef9e37b1107d2f7386ee091e5b3",
+        "bytes": 357
+      },
+      {
+        "path": "artifacts/qualification-11185917322.zip",
+        "sha256": "7a7a98e7cfc0b6a904fa0095e67d9674800000b139655e10d7a9d22378e2eec5",
+        "bytes": 831
+      }
+    ]
+  },
+  "artifacts": [
+    {
+      "id": 11187251912,
+      "sha256": "c563d5e7dc147550eb652cd9dde5ec562625ac69b1f1e520c0f634476b81fd0d",
+      "members": [
+        {
+          "path": "baseline/typescript.json",
+          "sha256": "121ea2a904dab2510c2b19e4d38cf1d7903c0057193f419b4b200e62b9cf5610",
+          "bytes": 367,
+          "content": {
+            "check": "typescript",
+            "command": "npx --no-install tsc --noEmit",
+            "status": "PASS",
+            "exit_code": 0,
+            "started_at": "2026-10-01T19:06:59.136Z",
+            "finished_at": "2026-10-01T19:07:04.903Z",
+            "duration_ms": 5766,
+            "reason": null,
+            "passed_tests": null,
+            "failed_tests": null,
+            "total_tests": null,
+            "log_excerpt": "",
+            "rerun_in_this_attempt": true
+          }
+        },
+        {
+          "path": "baseline/jest.json",
+          "sha256": "4b15a2041ee6116da905482544bd69a940f5b05acc5488d6c8c069f961a59865",
+          "bytes": 4843,
+          "content": {
+            "check": "jest",
+            "command": "npm test --silent -- --cacheDirectory \"C:\\\\actions-runner\\\\_work\\\\_temp\\\\kodjo-qualif-36908061970-1\\\\check-cache\\\\jest\"",
+            "status": "PASS",
+            "exit_code": 0,
+            "started_at": "2026-10-01T19:05:08.449Z",
+            "finished_at": "2026-10-01T19:06:58.971Z",
+            "duration_ms": 110522,
+            "reason": null,
+            "passed_tests": 1257,
+            "failed_tests": 0,
+            "total_tests": 1257,
+            "log_excerpt": "tState() call inside `SessionServiceProvider`, follow the stack trace as described in https://react.dev/link/setstate-in-render\n\n    \u001b[0m \u001b[90m 79 |\u001b[39m   \u001b[90m// en développement) laissent l’état inchangé après le premier, sans\u001b[39m\n     \u001b[90m 80 |\u001b[39m   \u001b[90m// effet de bord supplémentaire.\u001b[39m\n    \u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 81 |\u001b[39m   \u001b[36mconst\u001b[39m handleDatabaseReady \u001b[33m=\u001b[39m useCallback(() \u001b[33m=>\u001b[39m setDatabaseReady(\u001b[36mtrue\u001b[39m)\u001b[33m,\u001b[39m [])\u001b[33m;\u001b[39m\n     \u001b[90m    |\u001b[39m                                                 \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n     \u001b[90m 82 |\u001b[39m   \u001b[36mconst\u001b[39m handleRootError \u001b[33m=\u001b[39m useCallback((error\u001b[33m:\u001b[39m \u001b[33mError\u001b[39m) \u001b[33m=>\u001b[39m setRootError(error)\u001b[33m,\u001b[39m [])\u001b[33m;\u001b[39m\n     \u001b[90m 83 |\u001b[39m\n     \u001b[90m 84 |\u001b[39m   \u001b[36mconst\u001b[39m fontsSettled \u001b[33m=\u001b[39m fontsLoaded \u001b[33m||\u001b[39m \u001b[33mBoolean\u001b[39m(fontError)\u001b[33m;\u001b[39m\u001b[0m\n\n      at scheduleUpdateOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12071:25)\n      at dispatchSetStateInternal (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:6208:13)\n      at dispatchSetState (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:6165:7)\n      at setDatabaseReady (app/_layout.tsx:81:49)\n      at onReady (app/__tests__/rootLayoutGesture.test.tsx:60:5)\n      at Object.react_stack_bottom_frame (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15670:20)\n      at renderWithHooks (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4863:22)\n      at updateFunctionComponent (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7018:19)\n      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8499:18)\n      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2315:13)\n      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13224:22)\n      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13068:41)\n      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13049:11)\n      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12181:11)\n      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2908:7)\n      at flushActQueue (node_modules/react/cjs/react.development.js:590:34)\n      at Object.<anonymous>.process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:884:10)\n      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)\n      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)\n      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)\n      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)\n      at Object.<anonymous> (app/__tests__/rootLayoutGesture.test.tsx:71:11)\n\nPASS src/features/activities/__tests__/ActivityCard.test.tsx\nPASS src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts\nPASS src/features/sessions/__tests__/SessionDraftContext.test.tsx\nPASS src/features/activities/__tests__/ActivityCatalogueList.test.tsx\nPASS src/features/sessions/__tests__/SessionServiceContext.test.tsx\nPASS src/shared/ui/__tests__/navigationLayout.test.ts\nPASS src/features/reference-data/__tests__/bodyZones.test.ts\nPASS src/shared/ui/__tests__/RootErrorBoundary.test.tsx\nPASS src/features/sessions/__tests__/WheelPickerOverlay.test.tsx\nPASS src/domain/categories/__tests__/matching.test.ts\nPASS src/shared/ui/__tests__/RootErrorFallback.test.tsx\nPASS tests/kodjo-prod-qualif/preflight.test.ts\nPASS tests/fixtures/vnext12/core.test.js\n\nTest Suites: 64 passed, 64 total\nTests:       1257 passed, 1257 total\nSnapshots:   0 total\nTime:        108.126 s\nRan all test suites.\n",
+            "rerun_in_this_attempt": true
+          }
+        },
+        {
+          "path": "baseline/checks.json",
+          "sha256": "a8518428d5a47f6bf6e2e4f3c32249cda2c0e7c4809c3a04b79e3b9e1d83e939",
+          "bytes": 6411,
+          "content": {
+            "jest": {
+              "check": "jest",
+              "command": "npm test --silent -- --cacheDirectory \"C:\\\\actions-runner\\\\_work\\\\_temp\\\\kodjo-qualif-36908061970-1\\\\check-cache\\\\jest\"",
+              "status": "PASS",
+              "exit_code": 0,
+              "started_at": "2026-10-01T19:05:08.449Z",
+              "finished_at": "2026-10-01T19:06:58.971Z",
+              "duration_ms": 110522,
+              "reason": null,
+              "passed_tests": 1257,
+              "failed_tests": 0,
+              "total_tests": 1257,
+              "log_excerpt": "tState() call inside `SessionServiceProvider`, follow the stack trace as described in https://react.dev/link/setstate-in-render\n\n    \u001b[0m \u001b[90m 79 |\u001b[39m   \u001b[90m// en développement) laissent l’état inchangé après le premier, sans\u001b[39m\n     \u001b[90m 80 |\u001b[39m   \u001b[90m// effet de bord supplémentaire.\u001b[39m\n    \u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 81 |\u001b[39m   \u001b[36mconst\u001b[39m handleDatabaseReady \u001b[33m=\u001b[39m useCallback(() \u001b[33m=>\u001b[39m setDatabaseReady(\u001b[36mtrue\u001b[39m)\u001b[33m,\u001b[39m [])\u001b[33m;\u001b[39m\n     \u001b[90m    |\u001b[39m                                                 \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n     \u001b[90m 82 |\u001b[39m   \u001b[36mconst\u001b[39m handleRootError \u001b[33m=\u001b[39m useCallback((error\u001b[33m:\u001b[39m \u001b[33mError\u001b[39m) \u001b[33m=>\u001b[39m setRootError(error)\u001b[33m,\u001b[39m [])\u001b[33m;\u001b[39m\n     \u001b[90m 83 |\u001b[39m\n     \u001b[90m 84 |\u001b[39m   \u001b[36mconst\u001b[39m fontsSettled \u001b[33m=\u001b[39m fontsLoaded \u001b[33m||\u001b[39m \u001b[33mBoolean\u001b[39m(fontError)\u001b[33m;\u001b[39m\u001b[0m\n\n      at scheduleUpdateOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12071:25)\n      at dispatchSetStateInternal (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:6208:13)\n      at dispatchSetState (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:6165:7)\n      at setDatabaseReady (app/_layout.tsx:81:49)\n      at onReady (app/__tests__/rootLayoutGesture.test.tsx:60:5)\n      at Object.react_stack_bottom_frame (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15670:20)\n      at renderWithHooks (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4863:22)\n      at updateFunctionComponent (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7018:19)\n      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8499:18)\n      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2315:13)\n      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13224:22)\n      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13068:41)\n      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13049:11)\n      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12181:11)\n      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2908:7)\n      at flushActQueue (node_modules/react/cjs/react.development.js:590:34)\n      at Object.<anonymous>.process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:884:10)\n      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)\n      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)\n      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)\n      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)\n      at Object.<anonymous> (app/__tests__/rootLayoutGesture.test.tsx:71:11)\n\nPASS src/features/activities/__tests__/ActivityCard.test.tsx\nPASS src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts\nPASS src/features/sessions/__tests__/SessionDraftContext.test.tsx\nPASS src/features/activities/__tests__/ActivityCatalogueList.test.tsx\nPASS src/features/sessions/__tests__/SessionServiceContext.test.tsx\nPASS src/shared/ui/__tests__/navigationLayout.test.ts\nPASS src/features/reference-data/__tests__/bodyZones.test.ts\nPASS src/shared/ui/__tests__/RootErrorBoundary.test.tsx\nPASS src/features/sessions/__tests__/WheelPickerOverlay.test.tsx\nPASS src/domain/categories/__tests__/matching.test.ts\nPASS src/shared/ui/__tests__/RootErrorFallback.test.tsx\nPASS tests/kodjo-prod-qualif/preflight.test.ts\nPASS tests/fixtures/vnext12/core.test.js\n\nTest Suites: 64 passed, 64 total\nTests:       1257 passed, 1257 total\nSnapshots:   0 total\nTime:        108.126 s\nRan all test suites.\n",
+              "rerun_in_this_attempt": true
+            },
+            "typescript": {
+              "check": "typescript",
+              "command": "npx --no-install tsc --noEmit",
+              "status": "PASS",
+              "exit_code": 0,
+              "started_at": "2026-10-01T19:06:59.136Z",
+              "finished_at": "2026-10-01T19:07:04.903Z",
+              "duration_ms": 5766,
+              "reason": null,
+              "passed_tests": null,
+              "failed_tests": null,
+              "total_tests": null,
+              "log_excerpt": "",
+              "rerun_in_this_attempt": true
+            },
+            "lint": {
+              "check": "lint",
+              "command": "npm run lint --silent -- --no-cache",
+              "status": "PASS",
+              "exit_code": 0,
+              "started_at": "2026-10-01T19:07:05.052Z",
+              "finished_at": "2026-10-01T19:07:27.030Z",
+              "duration_ms": 21978,
+              "reason": null,
+              "passed_tests": null,
+              "failed_tests": null,
+              "total_tests": null,
+              "log_excerpt": "",
+              "rerun_in_this_attempt": true
+            }
+          }
+        },
+        {
+          "path": "baseline/lint.json",
+          "sha256": "333ebd194c3e837b8a1acc303a6fe46c8c9c2a8995c639a99a3e636f8abb2a6a",
+          "bytes": 368,
+          "content": {
+            "check": "lint",
+            "command": "npm run lint --silent -- --no-cache",
+            "status": "PASS",
+            "exit_code": 0,
+            "started_at": "2026-10-01T19:07:05.052Z",
+            "finished_at": "2026-10-01T19:07:27.030Z",
+            "duration_ms": 21978,
+            "reason": null,
+            "passed_tests": null,
+            "failed_tests": null,
+            "total_tests": null,
+            "log_excerpt": "",
+            "rerun_in_this_attempt": true
+          }
+        },
+        {
+          "path": "disposable-local-bench.json",
+          "sha256": "1a8696206c9964b16a671f84d6425407b44eef97784dc77ac0cb412f91abf968",
+          "bytes": 5422,
+          "content": {
+            "schema_version": "kodjo.protocol.v2.disposable-local-bench.0.6.21",
+            "node": "v24.19.0",
+            "platform": "win32",
+            "repo": "C:\\actions-runner\\_work\\_temp\\kodjo-qualif-36908061970-1\\work",
+            "scenarios": [
+              {
+                "id": "S1",
+                "label": "delta nominal et préservation",
+                "status": "PASS",
+                "exit_code": 0,
+                "error": null,
+                "output_sha256": "59753356c11ff63f22b4a163ab01829f0efcd63f401a8c2f228ff08a3f25818c",
+                "stdout": "✔ T02-PRES-001 — Jest en echec : patch conserve, IMPLEMENTED_WITH_FAILED_CHECKS, run rouge apres upload (5692.4665ms)\n✔ T02-PRES-009 — l artefact de recuperation est televerse avant Jest, TypeScript, lint et scope (4871.9136ms)\nℹ tests 2\nℹ suites 0\nℹ pass 2\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 10766.622\n",
+                "stderr": ""
+              },
+              {
+                "id": "S2",
+                "label": "perte locale et reprise",
+                "status": "PASS",
+                "exit_code": 0,
+                "error": null,
+                "output_sha256": "63ab1557d34900032a274a456d9a01f1b6d7015b63dc19df075926b00965078b",
+                "stdout": "✔ T02-PRES-006 — TARGETED_FIX : reprise depuis l artefact de recuperation, controles cibles, cumulatif (9881.1881ms)\n✔ T02-PRES-010 — perte du runner apres l upload : le delta reste integralement recuperable (3436.9869ms)\nℹ tests 2\nℹ suites 0\nℹ pass 2\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 13563.1626\n",
+                "stderr": ""
+              },
+              {
+                "id": "S3",
+                "label": "migration de HEAD",
+                "status": "PASS",
+                "exit_code": 0,
+                "error": null,
+                "output_sha256": "b493dd43731f9920d17e8644f081a11365ba3e0f7f3c5b2eab454fe176f80857",
+                "stdout": "✔ tests\\kodjo\\claude-local.pilot.js (168.4272ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 178.5399\n",
+                "stderr": ""
+              },
+              {
+                "id": "S4",
+                "label": "classification des contrôles",
+                "status": "PASS",
+                "exit_code": 0,
+                "error": null,
+                "output_sha256": "37d2bd3dbf68e0c305b216be57afaedfd3751fcf9293b57fda228fcab041c62e",
+                "stdout": "✔ status — un controle non execute n est jamais compte comme reussi (2.7129ms)\n✔ status — un controle absent est signale NOT_RUN et bloque IMPLEMENTED_AND_VERIFIED (0.1298ms)\n✔ perimetre — un allowlist absent donne NOT_RUN, jamais PASS (934.0741ms)\n✔ classification — une chaine d outils indisponible est NOT_RUN, pas un verdict FAIL (0.6403ms)\n✔ run-check — une commande introuvable est NOT_RUN, jamais PASS (823.3175ms)\nℹ tests 5\nℹ suites 0\nℹ pass 5\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1929.1453\n",
+                "stderr": ""
+              },
+              {
+                "id": "S5",
+                "label": "verrou et diagnostic courant",
+                "status": "PASS",
+                "exit_code": 0,
+                "error": null,
+                "output_sha256": "1173f65c25b02162810d007c40d4eaa2e8f4dbb2458458411ceea3bad242942d",
+                "stdout": "✔ verrou: acquisition et libération nominales (18.8451ms)\n✔ verrou: finally après erreur libère le propriétaire exact (3.4311ms)\n✔ verrou: annulation simulée libère seulement le jeton propriétaire (2.0362ms)\n✔ verrou: résiduel remplacé seulement si propriétaire démontré absent (3.2147ms)\n✔ verrou: processus vivant, PID réutilisé et état ambigu (3.8016ms)\n✔ diagnostic: résolution exclusivement par run GitHub courant (6.621ms)\nℹ tests 6\nℹ suites 0\nℹ pass 6\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 216.3827\n",
+                "stderr": ""
+              },
+              {
+                "id": "S6",
+                "label": "publication et anti-rejeu",
+                "status": "PASS",
+                "exit_code": 0,
+                "error": null,
+                "output_sha256": "00dab260c42ad010e1f278a2d9f4e35d0fb63265ef2cbd3b6d80022bb8f4f9b1",
+                "stdout": "✔ publication — issue_number contenant une injection est refuse sans aucune execution (5366.1348ms)\n✔ publication — seuls des entiers decimaux positifs sont acceptes comme issue_number (0.4492ms)\n✔ publication — un repository invalide est refuse (0.1867ms)\n✔ publication — une publication normale utilise gh, shell:false et des arguments structures (1.6391ms)\n✔ publication — le recu enregistre l executable et des arguments non sensibles, sans ligne de commande (4815.6177ms)\n✔ publication — les chaines de type identifiant sont expurgees des traces conservees (0.5036ms)\n✔ publication — une commande de publication arbitraire est refusee hors mode test (4750.0279ms)\n✔ publication — un echec produit toujours son recu et ne masque pas l artefact (4797.3443ms)\nℹ tests 8\nℹ suites 0\nℹ pass 8\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 19961.311\n",
+                "stderr": ""
+              },
+              {
+                "id": "S7",
+                "label": "absence de plafond de tours",
+                "status": "PASS",
+                "exit_code": 0,
+                "error": null,
+                "output_sha256": "25f0349c636a23c7ec7db898815500b57e378022381e7cd239b0067aa54164dd",
+                "stdout": "✔ arguments effectifs: restricted, non interactif, aucun MCP et aucun plafond de tours (8.6497ms)\n✔ invocation et résultat publient la gouvernance effective des tours (0.8595ms)\nℹ tests 2\nℹ suites 0\nℹ pass 2\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 190.8503\n",
+                "stderr": ""
+              }
+            ],
+            "verdict": "PASS"
+          }
+        },
+        {
+          "path": "prod-qualification-scope.json",
+          "sha256": "64113356f0f9c909cc8b843f081083c8320b2175052aec050da151c2c1ae5bc2",
+          "bytes": 518,
+          "content": {
+            "schema_version": "kodjo.protocol.v2.prod-qualification-scope.0.6.22",
+            "target": "tests/kodjo-prod-qualif/preflight.test.ts",
+            "jest": {
+              "status": 0,
+              "collected": true,
+              "error": null
+            },
+            "typescript": {
+              "status": 0,
+              "collected": true,
+              "error": null
+            },
+            "lint": {
+              "status": 0,
+              "collected": true,
+              "error": null
+            },
+            "application": {
+              "entry": "expo-router/entry",
+              "outside_application_entry": true,
+              "references_from_src_or_app": []
+            },
+            "status": "PASS"
+          }
+        },
+        {
+          "path": "runner-lock-certification.json",
+          "sha256": "59adb4837e5e81a85161fc37657318dd31738a732e43c4fe37c80db07d448002",
+          "bytes": 1224,
+          "content": {
+            "schema_version": "kodjo.protocol.v2.runner-lock-certification.0.6.18",
+            "github_run_id": "36908061970",
+            "github_run_attempt": "1",
+            "runner_name": "KODJO-LOCAL-RUNNER",
+            "runner_os": "Windows",
+            "powershell": "5.1.26100.9457",
+            "state_root": "C:\\Users\\hadjo\\.kodjo-v2",
+            "lock_before": {
+              "exists": false
+            },
+            "claude_invoked": false,
+            "checks": [
+              "REAL_CIM_NO_SELF_MATCH=PASS",
+              "PERSISTENT_LOCK_ACQUIRE=PASS",
+              "PERSISTENT_LOCK_RELEASE=PASS",
+              "REAL_ACTIVE_PROCESS_DETECTED=PASS",
+              "ACTIVE_LOCK_PRESERVED=PASS",
+              "TEST_PROCESS_CLEANUP=PASS"
+            ],
+            "status": "PASS",
+            "initial_scan": {
+              "state": "NONE",
+              "evidence": "CIM_NO_MANAGED_CLAUDE",
+              "external_claude_count": 1
+            },
+            "acquire_disposition": "ACQUIRED",
+            "marker_pid": 33072,
+            "active_scan": {
+              "state": "ACTIVE",
+              "evidence": "33072|/Date(1790881381346)/|node.exe|\"C:\\Program Files\\nodejs\\node.exe\" -e setTimeout(()=>{},30000) c:\\users\\hadjo\\appdata\\roaming\\npm\\node_modules\\@anthropic-ai\\claude-code\\certification-marker.js"
+            },
+            "final_scan": {
+              "state": "NONE",
+              "evidence": "CIM_NO_MANAGED_CLAUDE",
+              "external_claude_count": 1
+            },
+            "lock_after": {
+              "exists": false
+            }
+          }
+        },
+        {
+          "path": "qualification-manifest.json",
+          "sha256": "efc210fb65c9a97ba122021573b3f99bb99b507b25dcd08860d690b4fe0aae01",
+          "bytes": 10531,
+          "content": {
+            "schema_version": "kodjo.protocol.v2.disposable-qualification.0.6.21",
+            "repository": "MyUncried/Application-Routine",
+            "slice_id": "V2-QUALIF-00",
+            "github_run_id": "36908061970",
+            "github_run_attempt": "1",
+            "expected_head": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+            "observed_head": "9c630f17e4addbbda6f222fd3e153fd1bd970527",
+            "claude_invoked": false,
+            "protocol_status": "PREFLIGHT_ONLY",
+            "workflow_technical_status": "SUCCESS",
+            "local_delta": false,
+            "recovery_preserved": false,
+            "remote_branch_created": false,
+            "pull_request_created": false,
+            "integrated_in_main": false,
+            "preflight_only": true,
+            "baseline_checks": {
+              "jest": {
+                "check": "jest",
+                "command": "npm test --silent -- --cacheDirectory \"C:\\\\actions-runner\\\\_work\\\\_temp\\\\kodjo-qualif-36908061970-1\\\\check-cache\\\\jest\"",
+                "status": "PASS",
+                "exit_code": 0,
+                "started_at": "2026-10-01T19:05:08.449Z",
+                "finished_at": "2026-10-01T19:06:58.971Z",
+                "duration_ms": 110522,
+                "reason": null,
+                "passed_tests": 1257,
+                "failed_tests": 0,
+                "total_tests": 1257,
+                "log_excerpt": "tState() call inside `SessionServiceProvider`, follow the stack trace as described in https://react.dev/link/setstate-in-render\n\n    \u001b[0m \u001b[90m 79 |\u001b[39m   \u001b[90m// en développement) laissent l’état inchangé après le premier, sans\u001b[39m\n     \u001b[90m 80 |\u001b[39m   \u001b[90m// effet de bord supplémentaire.\u001b[39m\n    \u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 81 |\u001b[39m   \u001b[36mconst\u001b[39m handleDatabaseReady \u001b[33m=\u001b[39m useCallback(() \u001b[33m=>\u001b[39m setDatabaseReady(\u001b[36mtrue\u001b[39m)\u001b[33m,\u001b[39m [])\u001b[33m;\u001b[39m\n     \u001b[90m    |\u001b[39m                                                 \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n     \u001b[90m 82 |\u001b[39m   \u001b[36mconst\u001b[39m handleRootError \u001b[33m=\u001b[39m useCallback((error\u001b[33m:\u001b[39m \u001b[33mError\u001b[39m) \u001b[33m=>\u001b[39m setRootError(error)\u001b[33m,\u001b[39m [])\u001b[33m;\u001b[39m\n     \u001b[90m 83 |\u001b[39m\n     \u001b[90m 84 |\u001b[39m   \u001b[36mconst\u001b[39m fontsSettled \u001b[33m=\u001b[39m fontsLoaded \u001b[33m||\u001b[39m \u001b[33mBoolean\u001b[39m(fontError)\u001b[33m;\u001b[39m\u001b[0m\n\n      at scheduleUpdateOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12071:25)\n      at dispatchSetStateInternal (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:6208:13)\n      at dispatchSetState (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:6165:7)\n      at setDatabaseReady (app/_layout.tsx:81:49)\n      at onReady (app/__tests__/rootLayoutGesture.test.tsx:60:5)\n      at Object.react_stack_bottom_frame (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:15670:20)\n      at renderWithHooks (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4863:22)\n      at updateFunctionComponent (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7018:19)\n      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8499:18)\n      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2315:13)\n      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13224:22)\n      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13068:41)\n      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13049:11)\n      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12181:11)\n      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2908:7)\n      at flushActQueue (node_modules/react/cjs/react.development.js:590:34)\n      at Object.<anonymous>.process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:884:10)\n      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)\n      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)\n      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)\n      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)\n      at Object.<anonymous> (app/__tests__/rootLayoutGesture.test.tsx:71:11)\n\nPASS src/features/activities/__tests__/ActivityCard.test.tsx\nPASS src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts\nPASS src/features/sessions/__tests__/SessionDraftContext.test.tsx\nPASS src/features/activities/__tests__/ActivityCatalogueList.test.tsx\nPASS src/features/sessions/__tests__/SessionServiceContext.test.tsx\nPASS src/shared/ui/__tests__/navigationLayout.test.ts\nPASS src/features/reference-data/__tests__/bodyZones.test.ts\nPASS src/shared/ui/__tests__/RootErrorBoundary.test.tsx\nPASS src/features/sessions/__tests__/WheelPickerOverlay.test.tsx\nPASS src/domain/categories/__tests__/matching.test.ts\nPASS src/shared/ui/__tests__/RootErrorFallback.test.tsx\nPASS tests/kodjo-prod-qualif/preflight.test.ts\nPASS tests/fixtures/vnext12/core.test.js\n\nTest Suites: 64 passed, 64 total\nTests:       1257 passed, 1257 total\nSnapshots:   0 total\nTime:        108.126 s\nRan all test suites.\n",
+                "rerun_in_this_attempt": true
+              },
+              "typescript": {
+                "check": "typescript",
+                "command": "npx --no-install tsc --noEmit",
+                "status": "PASS",
+                "exit_code": 0,
+                "started_at": "2026-10-01T19:06:59.136Z",
+                "finished_at": "2026-10-01T19:07:04.903Z",
+                "duration_ms": 5766,
+                "reason": null,
+                "passed_tests": null,
+                "failed_tests": null,
+                "total_tests": null,
+                "log_excerpt": "",
+                "rerun_in_this_attempt": true
+              },
+              "lint": {
+                "check": "lint",
+                "command": "npm run lint --silent -- --no-cache",
+                "status": "PASS",
+                "exit_code": 0,
+                "started_at": "2026-10-01T19:07:05.052Z",
+                "finished_at": "2026-10-01T19:07:27.030Z",
+                "duration_ms": 21978,
+                "reason": null,
+                "passed_tests": null,
+                "failed_tests": null,
+                "total_tests": null,
+                "log_excerpt": "",
+                "rerun_in_this_attempt": true
+              }
+            },
+            "prod_qualification_scope_preflight": {
+              "schema_version": "kodjo.protocol.v2.prod-qualification-scope.0.6.22",
+              "target": "tests/kodjo-prod-qualif/preflight.test.ts",
+              "jest": {
+                "status": 0,
+                "collected": true,
+                "error": null
+              },
+              "typescript": {
+                "status": 0,
+                "collected": true,
+                "error": null
+              },
+              "lint": {
+                "status": 0,
+                "collected": true,
+                "error": null
+              },
+              "application": {
+                "entry": "expo-router/entry",
+                "outside_application_entry": true,
+                "references_from_src_or_app": []
+              },
+              "status": "PASS"
+            },
+            "check_comparison": null,
+            "isolated_check_caches": true,
+            "result": null,
+            "tree_drift_outside_fixture": [],
+            "verdict": "PASS",
+            "finished_at": "2026-10-01T19:08:19.7593745Z",
+            "cleanup_status": "PASS",
+            "cleanup_diagnostics": []
+          }
+        }
+      ]
+    },
+    {
+      "id": 11186757350,
+      "sha256": "1b539bdafd5c6583bf194be3134c7b01248fbef9e37b1107d2f7386ee091e5b3",
+      "members": [
+        {
+          "path": "real-recovery-certification.json",
+          "sha256": "0b4b339fdd9b17cc45640d388abf8fee2900a9e5b746473b72698d30cb3fe740",
+          "bytes": 224,
+          "content": {
+            "status": "NON_CERTIFIED",
+            "reason": "HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE",
+            "claude_invoked": false,
+            "run_id": "36908061970",
+            "run_attempt": "1",
+            "source_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527"
+          }
+        }
+      ]
+    },
+    {
+      "id": 11185917322,
+      "sha256": "7a7a98e7cfc0b6a904fa0095e67d9674800000b139655e10d7a9d22378e2eec5",
+      "members": [
+        {
+          "path": "kodjo-v2-runner-certification-36908061970-1.json",
+          "sha256": "9f6c9cb38c677da2b3ff053a2e1d9e4678fc84db915011920b50db52fd838679",
+          "bytes": 1224,
+          "content": {
+            "schema_version": "kodjo.protocol.v2.runner-lock-certification.0.6.18",
+            "github_run_id": "36908061970",
+            "github_run_attempt": "1",
+            "runner_name": "KODJO-LOCAL-RUNNER",
+            "runner_os": "Windows",
+            "powershell": "5.1.26100.9457",
+            "state_root": "C:\\Users\\hadjo\\.kodjo-v2",
+            "lock_before": {
+              "exists": false
+            },
+            "claude_invoked": false,
+            "checks": [
+              "REAL_CIM_NO_SELF_MATCH=PASS",
+              "PERSISTENT_LOCK_ACQUIRE=PASS",
+              "PERSISTENT_LOCK_RELEASE=PASS",
+              "REAL_ACTIVE_PROCESS_DETECTED=PASS",
+              "ACTIVE_LOCK_PRESERVED=PASS",
+              "TEST_PROCESS_CLEANUP=PASS"
+            ],
+            "status": "PASS",
+            "initial_scan": {
+              "state": "NONE",
+              "evidence": "CIM_NO_MANAGED_CLAUDE",
+              "external_claude_count": 1
+            },
+            "acquire_disposition": "ACQUIRED",
+            "marker_pid": 19132,
+            "active_scan": {
+              "state": "ACTIVE",
+              "evidence": "19132|/Date(1790880083410)/|node.exe|\"C:\\Program Files\\nodejs\\node.exe\" -e setTimeout(()=>{},30000) c:\\users\\hadjo\\appdata\\roaming\\npm\\node_modules\\@anthropic-ai\\claude-code\\certification-marker.js"
+            },
+            "final_scan": {
+              "state": "NONE",
+              "evidence": "CIM_NO_MANAGED_CLAUDE",
+              "external_claude_count": 1
+            },
+            "lock_after": {
+              "exists": false
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "source_archive": {
+    "id": 11184888793,
+    "name": "kodjo-v2-complete-source-9c630f17e4addbbda6f222fd3e153fd1bd970527",
+    "size_in_bytes": 11103714,
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11184888793",
+    "archive_download_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11184888793/zip",
+    "expired": false,
+    "created_at": "2026-10-01T18:39:42Z",
+    "expires_at": "2026-10-15T18:36:16Z",
+    "updated_at": "2026-10-01T18:39:42Z",
+    "digest": "sha256:f52e57fd69286ae03872550df41985f1cdb3534557585e8533990eb66a2f3760",
+    "workflow_run": {
+      "id": 36908061970,
+      "repository_id": 1322287555,
+      "head_repository_id": 1322287555,
+      "head_branch": "protocol/vnext-proof-stability-20260930",
+      "head_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527"
+    }
+  },
+  "preserved_failures": [
+    {
+      "head": "57aa9f1b25fd57770784860c4ba4efcbb4965553",
+      "pilot_run_id": 36897140188,
+      "pilot_job_id": 110486847129,
+      "status": "FAILURE",
+      "tests": 921,
+      "passed": 919,
+      "failed": 1,
+      "skipped": 1,
+      "cause": "Inherited workflow assertion requires continue-on-error immediately after certification step name; reorder properties without modifying its test or protection.",
+      "equivalence_linux_job_id": 110486848562
+    },
+    {
+      "candidate": "1d001a52baaf016863d6de8a1ba455d60e959652",
+      "pilot_run_id": 36900625861,
+      "pilot_job_id": 110499633207,
+      "status": "FAILURE",
+      "tests": 921,
+      "passed": 914,
+      "failed": 3,
+      "skipped": 4,
+      "cancelled": 0,
+      "cause": "Self-hosted Windows job did not install Python for new independent parser; reserve step invoked unavailable Bash. Added pinned Python/PyYAML setup and shell cmd Node reserve producer. No gates removed.",
+      "log_sha256": "a82d59bfc76b6cc6e1a4c05015a77e974ec4183f9984f1312679ad0ceb18c894",
+      "qualification_run_id": 36900625848,
+      "qualification_status": "SUCCESS_LINUX_WINDOWS",
+      "driver_run_id": 36900625816,
+      "driver_status": "SUCCESS_LINUX_WINDOWS",
+      "runtime_execution": "SKIPPED"
+    }
+  ],
+  "historical_readiness": "NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT",
+  "historical_subjects": 420,
+  "initial_revision_replayed": false,
+  "claude_invoked": false,
+  "final_invoked": false,
+  "cutover_invoked": false,
+  "merged": false,
+  "legacy_recovery_reserve": {
+    "status": "NON_CERTIFIED",
+    "reason": "HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE",
+    "claude_invoked": false,
+    "run_id": "36908061970",
+    "run_attempt": "1",
+    "source_sha": "9c630f17e4addbbda6f222fd3e153fd1bd970527"
+  }
+}

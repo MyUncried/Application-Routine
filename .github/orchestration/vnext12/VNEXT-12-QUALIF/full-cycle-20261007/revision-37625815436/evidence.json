@@ -1,0 +1,58 @@
+{
+  "schema_version": "kodjo.vnext.full-cycle.revision-evidence.v1",
+  "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+  "run_id": 37625815436,
+  "run_attempt": 1,
+  "source_head": "bccc1d0cc8b00936af1aa3277f5a0c325224294b",
+  "request_id": "6db62fdd-31b6-4c00-8097-d85af9f675b8",
+  "status": "REVISION_PASS",
+  "implementation_status": "IMPLEMENTED_AND_VERIFIED",
+  "session_id": "d868ca2f-bc6d-489f-b2ce-a622f4de7d25",
+  "claude_exit_code": 0,
+  "observed_value": 2,
+  "targeted_jest_exit_code": 0,
+  "modified_files": [
+    "scripts/kodjo/fixtures/vnext12/core.js",
+    "tests/fixtures/vnext12/core.test.js"
+  ],
+  "keep_js_before_after_sha256": "db387ac0aab607cda76e230c38f08a343d1d3d6281c2062b48bf023f06331f56",
+  "checks": {
+    "jest": {
+      "passed": 1257,
+      "failed": 0,
+      "total": 1257
+    },
+    "typescript": "PASS",
+    "lint": "PASS"
+  },
+  "cleanup": "SUCCESS",
+  "artifacts": {
+    "execution": {
+      "id": 11484617950,
+      "sha256": "9ce6844cfc53dff431b06ec4f73e54cc5f68e274cc3c6c57d48796803395c022"
+    },
+    "historical_linux": {
+      "id": 11485820118,
+      "sha256": "2e4379df7a933d12683ee605510ade1d2f39b02065c818ead1f0624bf5600f71",
+      "counts": {
+        "tests": 1152,
+        "passed": 1151,
+        "failed": 0,
+        "skipped": 1
+      },
+      "readiness": "NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT"
+    },
+    "historical_windows": {
+      "id": 11485732462,
+      "sha256": "572b062d5b363b6bbaca26c5e4f3db82bb051697cccab627275ec77bcb3fee46",
+      "counts": {
+        "tests": 1152,
+        "passed": 1149,
+        "failed": 0,
+        "skipped": 3
+      },
+      "readiness": "NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT"
+    }
+  },
+  "verified_at": "2026-10-07T13:36:00Z"
+}

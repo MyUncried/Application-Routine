@@ -1,0 +1,8 @@
+2026-10-06T09:44:21.4041912Z ✔ read-only historical callee preserves exact legacy checks and excludes its privileged disposable job (11.878608ms)
+2026-10-06T09:44:21.4043869Z ✔ independent workflow parser rejects nested write permissions even for a skipped callee job (161.465635ms)
+2026-10-06T09:44:21.4045774Z ✔ native syntax preparation expands GitHub templates while preserving PowerShell interpolation and invalid code (1.682436ms)
+2026-10-06T09:45:15.5738017Z ℹ tests 333
+2026-10-06T09:45:15.5738235Z ℹ pass 333
+2026-10-06T09:45:15.5738333Z ℹ fail 0
+2026-10-06T09:45:15.5738546Z ℹ skipped 0
+2026-10-06T09:45:15.5738931Z ℹ duration_ms 55531.393151

@@ -1,0 +1,37 @@
+{
+  "observed_at": "2026-10-05T12:09:56.777Z",
+  "head": "621263540738675ef4ab1726c5d490d420d7315e",
+  "driver": {
+    "run_id": 37302526996,
+    "job_id": 111738826202,
+    "conclusion": "failure",
+    "diagnostic": "Git LF compared to checkout CRLF in approved-plan-unavailability assertion; corrected in 73787f296d78ab3c435fa04ef993f0ef8382141f"
+  },
+  "historical": {
+    "run_id": 37302526795,
+    "job_id": 111738394435,
+    "conclusion": "failure",
+    "artifact_id": 11343390636,
+    "archive_sha256": "0cf180f4b70f145dbe9fc504c56090d361ccc97f6e303355e26a580bebef25f4",
+    "failures": [
+      "unavailable approved plan stops without falling back to the readable old plan",
+      "approved revised plan transmission on an existing application PR"
+    ]
+  },
+  "local_runner": {
+    "run_id": 37302526730,
+    "job_id": 111739485552,
+    "runner": "KODJO-LOCAL-RUNNER",
+    "started_at": "2026-10-05T11:25:44Z",
+    "completed_at": "2026-10-05T12:05:50Z",
+    "conclusion": "failure",
+    "last_observed_step": "Run complete KODJO pilot suite on Windows",
+    "last_observed_step_status": "in_progress",
+    "final_log": "NOT_ACCESSIBLE_GITHUB_LOG_BLOB_NOT_FOUND",
+    "cause": "NOT_VERIFIABLE_FROM_AVAILABLE_EVIDENCE",
+    "complete_suite_result": "NOT_VERIFIABLE",
+    "queue_and_disposable_preflight": "NOT_OBSERVED_EXECUTED"
+  },
+  "real_initial_claude_calls": 0,
+  "independent_closure_started": false
+}

@@ -181,3 +181,63 @@ Ces composants sont livrés au même HEAD que ce manifeste. Leur présence ne va
 | `scripts/kodjo/verify-artifact-retention.js` | Contrôle exécutable des rétentions déclarées des uploads KODJO |
 | `tests/kodjo/causal-runtime-boundaries.pilot.js` | Régressions du runtime IMPLEMENT, reprises causales et frontières cumulatives |
 | `scripts/kodjo/lib/ui-criteria-contract.js` | Validation et schémas des contrats UI et frontières structurées |
+
+## Dépendances conservées pour l’intégration VNext
+
+Ces fichiers participent aux points d’entrée existants ou à leurs dépendances figées. Leur présence dans le paquet ne vaut pas activation ni qualification du candidat intégré.
+
+| Fichier | Rôle |
+|---|---|
+| `scripts/kodjo/lib/log.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/slice-identity.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/vnext-delivery-preservation.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/vnext-contract.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/vnext-post-acceptance.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/device-proof-policy.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/verify-source-comment.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/vnext-legacy-queue-adapter.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/approval-handoff-contract.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/planning-envelope.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/source-manifest.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/requirement-registry.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/impact-graph.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/vnext-performance.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/vnext-git-batch.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/plan-contract.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/review-contract.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/ui-atomicity-contract.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/vnext-figma-source.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/vnext-producer-packet.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/vnext-preserved-controls.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/queue-contract.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/initial-restart.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/preflight-contract.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/vnext-audit-register.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/vnext-finalization.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/yaml.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/vnext-remote-write-security.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/git.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/hash.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/json.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/delivery.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/tar.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/checks.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/status.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/lib/adapters.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/materialize-boundary-file.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/record-unavailable-recovery.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/resolve-claude-binary.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/run-plan-review-cli.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/recover-published-pre1-plan.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/verify-pre1-closure-review.js` | Entrée ou dépendance figée conservée |
+
+## Dépendances conservées pour l’intégration VNext
+
+Ces fichiers participent aux points d’entrée existants ou à leurs dépendances figées. Leur présence dans le paquet ne vaut pas activation ni qualification du candidat intégré.
+
+| Fichier | Rôle |
+|---|---|
+| `scripts/kodjo/resolve-slice-protocol.js` | Entrée ou dépendance figée conservée |
+| `scripts/kodjo/start-kodjo-slice.js` | Entrée de planification des nouvelles tranches VNext |
+| `scripts/kodjo/lib/slice-protocol-routing.js` | Routage depuis les contrats d’activation committés |
+| `.github/orchestration/KODJO_VNEXT_ACTIVATION.md` | Usage et limites du basculement |

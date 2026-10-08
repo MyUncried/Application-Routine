@@ -1,0 +1,42 @@
+{
+  "schema_version": "kodjo.vnext.figma-initial-integrity.v1",
+  "status": "INITIAL_BYTES_CHECKED_NOT_OPERATIONALLY_QUALIFIED",
+  "inventory_count": 149,
+  "property_count": 149,
+  "batches": 15,
+  "master_root_count": 11,
+  "variable_count": 28,
+  "action_svg_count": 3,
+  "screenshot_dimensions": [
+    402,
+    874
+  ],
+  "screenshot_bytes": 86951,
+  "files": [
+    {
+      "path": "actions.json",
+      "bytes": 3059,
+      "sha256": "24d1a525a418e2bde9a032ffd672f99fbf5dd0cd70945917979da2a64f206e6d"
+    },
+    {
+      "path": "documentary-reconciliation.json",
+      "bytes": 6669,
+      "sha256": "35879070b9f3f93914539202a50dc7fe658c03c6a752d5484a368dd687946639"
+    },
+    {
+      "path": "frame.png",
+      "bytes": 86951,
+      "sha256": "740962f17a355f8cc1fe208e2cdf0639bad3709430849f12d3dd4f4c76ec5649"
+    },
+    {
+      "path": "observed-frame.json",
+      "bytes": 351259,
+      "sha256": "612fe041cf8e9461da412e76873e5dab208ff0a7afcaf52a2857b460859018ac"
+    },
+    {
+      "path": "variables.json",
+      "bytes": 12709,
+      "sha256": "fca2b47c88304a9c98b8d1c722b9006370bd4da11f18b31384e686df850733c9"
+    }
+  ]
+}

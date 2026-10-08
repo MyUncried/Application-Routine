@@ -1,0 +1,90 @@
+{
+  "schema_version": "kodjo.vnext.incident-certification-failure.v1",
+  "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "request_id": "ee55d53d-448b-4dbb-b403-bab1b7cd4487",
+  "generation": 94,
+  "run_id": 37665950253,
+  "run_attempt": 1,
+  "source_head": "ada406f9cc690fe4c9557038f21a19b864f0a0da",
+  "workflow_path": ".github/workflows/kodjo-vnext12-disposable.yml",
+  "run_conclusion": "FAILURE",
+  "job_id": 112945167675,
+  "job_conclusion": "FAILURE",
+  "signal_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:ee55d53d-448b-4dbb-b403-bab1b7cd4487:37665950253:1",
+  "artifact": {
+    "id": 11502622229,
+    "name": "kodjo-vnext12-incidents-37665950253-1",
+    "sha256": "027731628e3afc11e0f21d4b73773c116e1a2815974b0f157bb95a2c8c764efe"
+  },
+  "observed_result": {
+    "targeted_tests": "PASS",
+    "real_data_replay": "NOT_RUN",
+    "diagnostic": "VNEXT_FINAL_TARGET_NOT_DELIVERED",
+    "claude_invoked": false,
+    "browser_invoked": false,
+    "v2_modified": false,
+    "application_published": false,
+    "operational_closure_certified": false
+  },
+  "comparison": {
+    "last_comparable_targeted_success_run": 37559490452,
+    "first_failure_run": 37665950253,
+    "first_failure_head": "ada406f9cc690fe4c9557038f21a19b864f0a0da",
+    "controller_commit_range": "ada406f9cc690fe4c9557038f21a19b864f0a0da..1d3b7c6a72f21690ee0564f3e01db88f2858627d",
+    "controller_delta": "COMPLETION_SIGNAL_ONLY",
+    "regression_commit": "ffdd724a"
+  },
+  "cause": {
+    "classification": "VNEXT_REAL_DATA_REPLAY_RETENTION_BINDING_MISSING",
+    "detail": "The approved V2 plan names five non-UI targets that are intentionally unchanged between baselineHead and head. The VNext finalizer required every non-UI target to appear in the cumulative diff, while only UI delivery preservation could declare an unchanged retained target.",
+    "unchanged_non_ui_targets": [
+      "src/domain/body-zones/index.ts",
+      "src/domain/categories/index.ts",
+      "src/domain/labels/index.ts",
+      "src/domain/preferences/index.ts",
+      "src/domain/sessions/defaults.ts"
+    ]
+  },
+  "bounded_correction": {
+    "files": [
+      ".github/orchestration/reports/evidence/vnext-incidents-20261007/real-data-manifest.json",
+      "scripts/kodjo/finalize-vnext-delivery.js",
+      "tests/kodjo/vnext-finalization-incidents.pilot.js"
+    ],
+    "policy": "Declare the exact unchanged non-UI targets in the frozen replay manifest; verify scope, completeness and identical Git blob OIDs before admitting them as retained.",
+    "local_targeted_tests": {
+      "total": 83,
+      "passed": 82,
+      "failed": 0,
+      "skipped": 1
+    },
+    "full_local_suite": "ENVIRONMENT_BLOCKED_MISSING_JS_TIKTOKEN_RUNTIME",
+    "qualification_required": true,
+    "qualification": {
+      "run_id": 37667669032,
+      "run_attempt": 1,
+      "source_head": "fe4e36eca5ccab54d0a8abfbaee4f2cb166bfb28",
+      "workflow_path": ".github/workflows/kodjo-vnext-proof-stability.yml",
+      "event": "create",
+      "conclusion": "SUCCESS",
+      "linux": {
+        "job_id": 112950960124,
+        "artifact_id": 11503722766,
+        "sha256": "563dad2a0cd57bf613bcc36c8091221bd17748303038e5def385da60b578ed0c",
+        "pass": 410,
+        "fail": 0,
+        "skip": 0
+      },
+      "windows": {
+        "job_id": 112950959939,
+        "artifact_id": 11503089774,
+        "sha256": "c75f983ce3ca411efc5352275d14908790946c91f0920946dcb20d31ca829d45",
+        "pass": 410,
+        "fail": 0,
+        "skip": 0
+      }
+    }
+  },
+  "retry_policy": "NEW_REQUEST_ONLY_AFTER_EXACT_HEAD_LINUX_WINDOWS_QUALIFICATION"
+}

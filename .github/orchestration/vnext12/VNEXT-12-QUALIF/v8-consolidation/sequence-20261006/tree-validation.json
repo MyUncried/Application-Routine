@@ -1,0 +1,27 @@
+{
+  "status": "VALIDATED",
+  "expected_parent": "4b623a022b731880980bb71cfc6f66eb48c7c301",
+  "candidate_tree": "545ee68d73703b75c08ae91f9d4e538c14fc382d",
+  "changed_paths": [
+    ".github/orchestration/KODJO_VNEXT_REMOTE_WRITE_POLICY.json",
+    ".github/orchestration/reports/2026-10-06_VNEXT_TASK2_PLAN_PROOF_FIX.md",
+    ".github/orchestration/reports/2026-10-06_VNEXT_TEST_SEQUENCE.md",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/campaign-state.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-proof-fix-20261006/runtime-launch.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-proof-fix-20261006/runtime-publication-window.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/plan-proof-fix-20261006/runtime-tree-validation.json",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/sequence-20261006/routing-tests.log",
+    ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/sequence-20261006/targeted-tests.log",
+    ".github/workflows/kodjo-v2-pilot-tests.yml",
+    ".github/workflows/kodjo-vnext-proof-stability.yml",
+    ".github/workflows/kodjo-vnext12-disposable.yml",
+    "scripts/kodjo/lib/vnext-github-qualification.js",
+    "tests/kodjo/vnext-campaign-sequence.pilot.js"
+  ],
+  "targeted_tests": [
+    "tests/kodjo/incident-register.pilot.js"
+  ],
+  "powershell_changed_units": 0,
+  "writer_policy": "PASS_WITH_FROZEN_LEGACY",
+  "historical_subjects": 420
+}

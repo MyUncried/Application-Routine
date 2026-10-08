@@ -1,0 +1,22 @@
+✔ publication — issue_number contenant une injection est refuse sans aucune execution (2097.402461ms)
+✔ publication — seuls des entiers decimaux positifs sont acceptes comme issue_number (0.632469ms)
+✔ publication — un repository invalide est refuse (0.203206ms)
+✔ publication — une publication normale utilise gh, shell:false et des arguments structures (1.146371ms)
+✔ publication — le recu enregistre l executable et des arguments non sensibles, sans ligne de commande (1992.227429ms)
+✔ publication — les chaines de type identifiant sont expurgees des traces conservees (0.479508ms)
+✔ publication — une commande de publication arbitraire est refusee hors mode test (2279.100563ms)
+✔ publication — un echec produit toujours son recu et ne masque pas l artefact (2199.609355ms)
+✔ exception shell — le scanner signale shell:true sauf l exception justifiee (2111.282612ms)
+✔ exception shell — aucune entree de workflow ne peut remplacer les commandes fixes (7.015416ms)
+✔ runtime history waits for a successful selected Claude job and never runs after refusal or cancellation (9.847416ms)
+✔ automatic admission does not claim full validation before historical jobs (1.965175ms)
+✔ historical V2 preflight is reusable after Claude while independent VNext PR repeats are skipped (14.990919ms)
+✔ event routing reuses VNext admission and preserves unrelated legacy events (6.373443ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10857.252462

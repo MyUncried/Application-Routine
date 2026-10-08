@@ -117,6 +117,7 @@ test('lot A: shadow preflight produit une attestation PASS sans toucher au runti
   const result=runPreflight({cwd:f.dir,queuePath:f.rel,before:f.before,after:f.after,runAttempt:1,probes:probes(f.queue)});
   assert.equal(result.status,'PASS');
   assert.equal(result.schema_version,'kodjo.protocol.v2.queue-preflight.v1');
+  assert.equal(Object.hasOwn(result,'freshness_guards_required'),false,'D17: no unobserved PF-023..028 declaration');
   assert.equal(result.queue_path,f.rel);
   assert.equal(result.request_id,f.queue.request_id);
   assert.equal(result.protocol_head,f.queue.source_head);

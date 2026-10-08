@@ -1,6 +1,13 @@
 'use strict';
 
 const POLICIES = [
+  { pattern: /^kodjo-vnext-(?:architecture|closure)-/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 14, critical: true },
+  { pattern: /^kodjo-vnext12-incidents-/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 14, critical: true },
+  { pattern: /^(?:qualification-controls|historical-equivalence)-/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 14, critical: true },
+  { pattern: /^kodjo-vnext12-(?:revision|preparation)-/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 14, critical: true },
+  { pattern: /^kodjo-vnext12-(?:execution|figma|implementation-review)-/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 14, critical: true },
+  { pattern: /^kodjo-v2-complete-source-/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 7, critical: true },
+  { pattern: /^kodjo-vnext12-(?:source-snapshot|complete-source)-/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 7, critical: true },
   { pattern: /^kodjo-smoke-[0-9]+-recovery$/, role: 'DIAGNOSTIC', retention_days: 7, critical: false },
   { pattern: /^(?:kodjo-slice-(?:implementation|plan)(?:-review)?-|s09-implementation-review-)/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 7, critical: true },
   { pattern: /^KODJO-CLAUDE-SESSION-RESUME-01-(?:BASE|RESUME)-execution$/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 30, critical: true },

@@ -13,7 +13,7 @@ const INPUT_SCHEMA = 'kodjo.ui-implementation-review-input.v1';
 const REVIEW_SCHEMA = 'kodjo.ui-implementation-review.v1';
 const BLOCKING_PROOFS = new Set(['FUNCTIONAL_TEST','STATIC_ANALYSIS']);
 const DEVICE_PROOFS = new Set(['VISUAL_COMPARE','DEVICE_CHECK']);
-const DEFERABLE_PROOFS = new Set([...DEVICE_PROOFS,'ACCESSIBILITY_CHECK']);
+const { DEFERABLE_PROOFS } = require('./lib/device-proof-policy');
 const IMPLEMENTATION_STATUSES = new Set(['CONFORME','PARTIELLEMENT_CONFORME','NON_CONFORME','NON_VERIFIABLE']);
 const ASSERTION_STATUSES = new Set(['CONFORME','NON_CONFORME','NON_VERIFIABLE','PENDING_DEVICE']);
 const PROOF_STATUSES = new Set(['PASS','FAIL','PENDING_DEVICE','NON_VERIFIABLE']);
@@ -83,8 +83,15 @@ function buildInput(planBody, changedFiles, previousReview, deliveredFiles) {
     .filter((row)=>row.domain==='UI'&&row.ui_binding&&row.ui_binding.criterion_id)
     .map((row)=>[String(row.ui_binding.criterion_id),row]):[]);
 
-  const assertionMode = [MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3].includes(matrix.schema);
-  const criteria = Array.isArray(matrix.criteria) ? matrix.criteria : [];
+  const Delivery=require('./lib/vnext-delivery-preservation');
+  const deliveryPreservation=Delivery.fromMarkdown(planBody);
+  const fullMatrix=Delivery.merge(matrix,deliveryPreservation);
+  const assertionMode = [MATRIX_SCHEMA_V2,MATRIX_SCHEMA_V3].includes(fullMatrix.schema);
+  const criteria = Array.isArray(fullMatrix.criteria) ? fullMatrix.criteria : [];
+  if(deliveryPreservation && previousReview){
+    if(canonicalJson(previousReview)!==canonicalJson(deliveryPreservation.baseline.review))fail('VNEXT_DELIVERY_PREVIOUS_REVIEW_MISMATCH');
+    previousReview=null; // Fresh review of every retained criterion; no inherited PASS.
+  }
   const criterionIds = criteria.map((c) => String(c && c.criterion_id || '')).sort();
   if (criterionIds.some((id) => !id) || new Set(criterionIds).size !== criterionIds.length) {
     fail('UI_IMPLEMENTATION_REVIEW_CRITERIA_INVALID', 'criterion_id absent ou duplique');
@@ -106,6 +113,7 @@ function buildInput(planBody, changedFiles, previousReview, deliveredFiles) {
   const deliveredSet = Array.isArray(deliveredFiles) ? new Set(deliveredFiles.map(String)) : null;
   // Component evidence on an existing PR: a component created or extended by an earlier delivery of the slice stays proven.
   const evidenceSet = deliveredSet ? new Set([...changedSet, ...deliveredSet]) : changedSet;
+  if(deliveryPreservation && changed.some(p=>!deliveryPreservation.correction_write_scope.includes(p)))fail('VNEXT_DELIVERY_WRITE_OUTSIDE_CORRECTION');
   const uiApplicable = Boolean(planContract.ui_applicable);
   if (!uiApplicable && criteria.length) fail('NON_UI_PLAN_HAS_UI_CRITERIA', 'contrat non UI contradictoire');
 
@@ -161,7 +169,8 @@ function buildInput(planBody, changedFiles, previousReview, deliveredFiles) {
     const tests = Array.isArray(criterion.tests) ? [...criterion.tests].map(String).sort() : [];
     const affectedPaths = [...new Set([...targets, ...tests].filter((target) => changedSet.has(target)))].sort();
     const reviewScope = previousById && affectedPaths.length === 0 ? 'INHERITED' : 'AFFECTED';
-    if (!previousById && uiApplicable && missingTargets.length) {
+    const retained=deliveryPreservation?.retained_criteria.some(c=>c.criterion_id===id);
+    if (!previousById && uiApplicable && missingTargets.length && !retained) {
       fail('UI_IMPLEMENTATION_REVIEW_TARGET_NOT_DELIVERED', id + ': ' + missingTargets.join(','));
     }
     const proofs = unique(criterion.proof_required || [], 'UI_IMPLEMENTATION_REVIEW_PROOF_INVALID', id + '.proof_required').sort();
@@ -191,6 +200,7 @@ function buildInput(planBody, changedFiles, previousReview, deliveredFiles) {
         : proofs.some((p) => DEFERABLE_PROOFS.has(p)),
       review_scope: reviewScope,
       affected_paths: affectedPaths,
+      ...(retained ? {delivery_role: 'RETAINED', previous_head: Delivery.state(deliveryPreservation.baseline).head, previous_result: deliveryPreservation.baseline.review.criteria.find(c=>c.criterion_id===id)} : {}),
     };
     if (reviewScope === 'INHERITED') normalized.inherited_result = normalizeInheritedResult(previousById.get(id));
     return normalized;
@@ -212,6 +222,7 @@ function buildInput(planBody, changedFiles, previousReview, deliveredFiles) {
 
   return {
     schema: INPUT_SCHEMA,
+    ...(deliveryPreservation ? {delivery_preservation_hash:deliveryPreservation.contract_hash,previous_delivery_head:Delivery.state(deliveryPreservation.baseline).head,historical_not_executed_proofs:Delivery.state(deliveryPreservation.baseline).not_executed_proofs || [],proof_policy:deliveryPreservation.proof_policy} : {}),
     review_mode: (previousById||previousRequirementById) ? 'DELTA_WITH_INHERITANCE' : 'FULL',
     assertion_mode: assertionMode,
     legacy_proof_policy: matrix.schema==='kodjo.ui-criteria.v1' && !hasRequirementContract ? 'HISTORICAL_V1_ONLY' : 'EXACT_CONTRACT_REQUIRED',
@@ -420,8 +431,11 @@ function enforceMachineProof(input,id,type,status){
   if(expected==='NON_VERIFIABLE'&&status==='PASS')fail('UI_IMPLEMENTATION_MACHINE_PROOF_MISMATCH',id+':'+type+': preuve exacte absente');
 }
 function validateReview(input, review) {
+  input={...input,device_gate_required:require('./lib/device-proof-policy').effectiveDeviceGate(input.device_gate_required,review)};
   if (!review || review.schema !== REVIEW_SCHEMA) fail('UI_IMPLEMENTATION_REVIEW_OUTPUT_INVALID', 'schema review invalide');
   review.device_gate_required = Boolean(input.device_gate_required);
+  if(input.delivery_preservation_hash) review.delivery_preservation_reference={contract_hash:input.delivery_preservation_hash,head:input.previous_delivery_head,proof_policy:input.proof_policy,not_executed_proofs:input.historical_not_executed_proofs};
+  else if(review.delivery_preservation_reference) fail('VNEXT_DELIVERY_UNBOUND_REVIEW_REFERENCE');
   const results = Array.isArray(review.criteria) ? review.criteria : null;
   if (!results) fail('UI_IMPLEMENTATION_REVIEW_OUTPUT_INVALID', 'criteria absent');
   const expectedIds = input.criteria.map((c) => c.criterion_id).sort();
@@ -583,6 +597,10 @@ function validateReview(input, review) {
     review.scope_status='SCOPE_EXPANSION_REQUIRED';
   }
   review.report_status=input.implementation_report?.status||'NOT_AVAILABLE';
+  const verdict=String(review.verdict||'');
+  if(input.delivery_preservation_hash && !['APPROVE','REVISE'].includes(verdict))fail('UI_IMPLEMENTATION_REVIEW_VERDICT_INVALID',verdict);
+  if(input.delivery_preservation_hash && blocking && verdict!=='REVISE')fail('UI_IMPLEMENTATION_REVIEW_VERDICT_INCONSISTENT','blocking => REVISE');
+  if(input.delivery_preservation_hash && !blocking && verdict!=='APPROVE')fail('UI_IMPLEMENTATION_REVIEW_VERDICT_INCONSISTENT','non-blocking => APPROVE');
   review.verdict=blocking?'REVISE':'APPROVE';
   return review;
 }

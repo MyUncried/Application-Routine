@@ -11,6 +11,8 @@ permissions:
 jobs:
   e2e-review-bridge:
     if: >
+      github.event_name == 'issue_comment' &&
+      github.event.comment.user.login == 'MyUncried' &&
       github.event.issue.number == 17 &&
       contains(github.event.comment.body, '[KODJO_E2E_AUTOMATION_TEST]')
     runs-on: ubuntu-latest

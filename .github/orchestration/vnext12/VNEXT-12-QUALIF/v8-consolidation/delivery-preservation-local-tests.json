@@ -1,0 +1,15 @@
+{
+  "schema_version": "kodjo.vnext.delivery-preservation-local-tests.v1",
+  "recorded_at": "2026-10-04T10:08:10.137688+00:00",
+  "parent_head": "d29d59a1dbf1d84cc9172a4a2e1726fcb63bfb1b",
+  "results": {
+    "pass": 290,
+    "fail": 0,
+    "skip": 0,
+    "focused_pass": 7
+  },
+  "log_sha256": "5223820b3975625c35ed1337066535e27d8c4f357323837a2188af85c8ea6140",
+  "synthetic_review_fixtures": true,
+  "real_claude_invoked": false,
+  "real_device_validation": "NOT_EXECUTED"
+}

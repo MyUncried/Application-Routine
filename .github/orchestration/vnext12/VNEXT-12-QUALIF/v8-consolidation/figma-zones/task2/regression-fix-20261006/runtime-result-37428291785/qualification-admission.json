@@ -1,0 +1,81 @@
+{
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "request_id": "99afa62c-632d-4670-9bd1-f3ed857b1d87",
+  "controller_head": "4311eabe62bf83de724eb99ef5056c34ce21307c",
+  "qualified_head": "cf80c57c69a1f74e0ff3e4b6c62da169a1fd30c9",
+  "run_id": "37428291785",
+  "run_attempt": "1",
+  "qualifications": {
+    "approved": {
+      "status": "VERIFIED",
+      "candidate_head": "cf80c57c69a1f74e0ff3e4b6c62da169a1fd30c9",
+      "run_id": "37426909256",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 112148540840,
+          "name": "historical-equivalence (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112148541071,
+          "name": "qualification (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112148541192,
+          "name": "qualification (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112148541208,
+          "name": "historical-equivalence (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112152291217,
+          "name": "historical-platform-coverage",
+          "conclusion": "success"
+        }
+      ],
+      "observed_at": "2026-10-06T07:13:50.383Z"
+    },
+    "controller": {
+      "status": "VERIFIED",
+      "candidate_head": "cf80c57c69a1f74e0ff3e4b6c62da169a1fd30c9",
+      "run_id": "37426909256",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 112148540840,
+          "name": "historical-equivalence (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112148541071,
+          "name": "qualification (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112148541192,
+          "name": "qualification (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112148541208,
+          "name": "historical-equivalence (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112152291217,
+          "name": "historical-platform-coverage",
+          "conclusion": "success"
+        }
+      ],
+      "observed_at": "2026-10-06T07:13:50.383Z",
+      "controller_head": "4311eabe62bf83de724eb99ef5056c34ce21307c",
+      "relation": "EXACT_SAME_PROTOCOL_CODE"
+    }
+  },
+  "started_at": "2026-10-06T07:13:50.552Z"
+}

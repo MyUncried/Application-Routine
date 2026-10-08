@@ -1,0 +1,14 @@
+{
+  "tests": 321,
+  "pass": 321,
+  "fail": 0,
+  "skip": 0,
+  "raw_log_sha256": "bc4206d9ee903db7cd0193f8983bcd93d5330eecffeb6381765214d8cc017f15",
+  "raw_log_bytes": 106102,
+  "targeted_shell_tests": 11,
+  "packed_object_tests": 7,
+  "yaml_workflows": 64,
+  "workflow_invariants": "PASS",
+  "real_claude_calls": 0,
+  "real_initial_status": "FAILED_BEFORE_NODE_ENTRY_NOT_REPLAYED"
+}

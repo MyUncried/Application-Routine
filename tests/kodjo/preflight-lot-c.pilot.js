@@ -129,7 +129,7 @@ test('queue checkout preserves Git blob bytes despite inherited Windows autocrlf
 });
 
 test('lot C: les validations stables sont dédupliquées uniquement sur le chemin attesté',()=>{
-  const runner=fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8');
+  const runner=require('./helpers/normalized-git-source')(fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8'));
   assert.match(runner,/\$preflightVerified = \$true/);
   assert.match(runner,/else \{[\s\S]*KODJO_QUEUE_SCHEMA_REFUSED[\s\S]*KODJO_QUEUE_SOURCE_NOT_ANCESTOR[\s\S]*project-queued-request\.js/);
   assert.match(runner,/if \(-not \$preflightVerified\) \{[\s\S]*verify-implementation-mission\.js/);
@@ -148,7 +148,7 @@ test('lot C: VISUAL_CORRECTION refuse une PR fermée, une branche déplacée ou 
   assert.throws(()=>verifyQueueTarget(queue,{...nominal,state:'closed'}),/KODJO_QUEUE_APPLICATION_PR_NOT_OPEN/);
   assert.throws(()=>verifyQueueTarget(queue,{...nominal,head:{...nominal.head,ref:'other'}}),/KODJO_QUEUE_APPLICATION_BRANCH_MISMATCH/);
   assert.throws(()=>verifyQueueTarget(queue,{...nominal,head:{...nominal.head,sha:'b'.repeat(40)}}),/KODJO_QUEUE_APPLICATION_HEAD_MOVED/);
-  const runner=fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8');
+  const runner=require('./helpers/normalized-git-source')(fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8'));
   const preflight=runner.indexOf('verify-preflight-attestation.js');
   const live=runner.indexOf('verify-preflight-live-target.js');
   const checkout=runner.indexOf('git switch --detach $applicationHead');
@@ -191,7 +191,7 @@ test('lot C: lock reste acquis atomiquement à la frontière Claude même si le 
 
 test('lot C: IMPLEMENT, RESUME_DELTA et VISUAL_CORRECTION gardent leurs chemins E2E',()=>{
   const preflight=fs.readFileSync(path.join(root,'scripts','kodjo','verify-queue-preflight.js'),'utf8');
-  const runner=fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8');
+  const runner=require('./helpers/normalized-git-source')(fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8'));
   const finalizer=fs.readFileSync(path.join(root,'scripts','kodjo','verify-v2-finalization.js'),'utf8');
   assert.match(preflight,/VISUAL_CORRECTION/);
   assert.match(preflight,/RESUME_DELTA/);

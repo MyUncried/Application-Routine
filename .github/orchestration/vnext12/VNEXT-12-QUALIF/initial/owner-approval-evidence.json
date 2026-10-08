@@ -1,0 +1,196 @@
+{
+  "schema_version": "kodjo.vnext.disposable-owner-gate-evidence.v1",
+  "approved_protocol_head": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
+  "gate_ref": "issue_comment:5967139304",
+  "approval_target": {
+    "schema_version": "kodjo.vnext.approval-target.v2",
+    "approval_target_id": "APRT-fd5de4555e61af6bf8cb76fe",
+    "action_expected": "APPROVE_EXACT_EXECUTION",
+    "execution_fingerprint": "4f541f894034d1542054bb6b455e42090ab58277b1192d34e48b2cd5ec06ffaa",
+    "execution_core": {
+      "slice_id": "VNEXT-12-QUALIF",
+      "issue_id": "github_issue:MyUncried/Application-Routine#269",
+      "baseline_head": "070722462d9ac6edb797072e9c74c4817dee0601",
+      "product_head": "070722462d9ac6edb797072e9c74c4817dee0601",
+      "application_head": "070722462d9ac6edb797072e9c74c4817dee0601",
+      "protocol_head": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1",
+      "execution_context": {
+        "mode": "LOCAL",
+        "writer_id": "CLAUDE:kodjo-local-vnext12"
+      },
+      "native_primitive_decisions": [],
+      "planning_mode": "INITIAL",
+      "planning_envelope_hash": "00696090bbb86374f0445dc7fae80717bd23efc248abea99fd28fc49593f6b1d",
+      "direct_import_scan_hash": "97e2533d497e1d7a646ecfaeb4db87b503e9128d2c83f6f77bdb055cae61bd49",
+      "plan_contract_hash": "a0058e265238f489a8e3f15db8b11a68ee7365298973b3f20dc684cea0a1c3b4",
+      "review_context_hash": "9546bcec4ba4e164f4f6a01114d5cf6358602af886f01ed6c88bbf638c80cec0",
+      "review_report_hash": "5e7e07d2db31e5547ebcba62a637b1c9553e29eab9cf1d94621821ef64d3c33f",
+      "ui_atomicity_hash": null,
+      "operation_kind": "IMPLEMENT",
+      "write_scope": [
+        {
+          "candidate_id": "CAND-7ead98a505d571b06c78013d",
+          "path": "scripts/kodjo/fixtures/vnext12/core.js",
+          "change_kind": "MODIFY"
+        },
+        {
+          "candidate_id": "CAND-8c35fcefd6b9b68bf24422be",
+          "path": "tests/fixtures/vnext12/core.test.js",
+          "change_kind": "MODIFY"
+        }
+      ],
+      "preserve_scope": [
+        {
+          "candidate_id": "CAND-1cb705f7d0fc5290b3c5755c",
+          "path": "scripts/kodjo/fixtures/vnext12/keep.js"
+        }
+      ],
+      "forbidden_policy": "ALL_OUTSIDE_WRITE_SCOPE",
+      "checks": [
+        "jest",
+        "typescript",
+        "lint"
+      ]
+    },
+    "summary": {
+      "write_scope_count": 2,
+      "preserve_scope_count": 1,
+      "check_count": 3
+    },
+    "contract_hash": "8ffcc4f74def32ea445410197a0a50a27a1029c9a0821958df0fbba1d7ea2509"
+  },
+  "exact_comment": {
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/comments/5967139304",
+    "html_url": "https://github.com/MyUncried/Application-Routine/pull/269#issuecomment-5967139304",
+    "issue_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/269",
+    "id": 5967139304,
+    "node_id": "IC_kwDOTtCBw88AAAABY6tR6A",
+    "user": {
+      "login": "MyUncried",
+      "id": 312719496,
+      "node_id": "U_kgDOEqO4iA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/MyUncried",
+      "html_url": "https://github.com/MyUncried",
+      "followers_url": "https://api.github.com/users/MyUncried/followers",
+      "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+      "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+      "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+      "repos_url": "https://api.github.com/users/MyUncried/repos",
+      "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "created_at": "2026-10-03T08:22:39Z",
+    "updated_at": "2026-10-03T09:09:03Z",
+    "author_association": "OWNER",
+    "body": "08cb8b936f91a19b33aa47b5a00b1f8dfd73ddb1\n[KODJO_VNEXT] USER_APPROVAL_REQUIRED\napproval_target_id=APRT-fd5de4555e61af6bf8cb76fe\napproval_target_hash=8ffcc4f74def32ea445410197a0a50a27a1029c9a0821958df0fbba1d7ea2509\nexecution_fingerprint=4f541f894034d1542054bb6b455e42090ab58277b1192d34e48b2cd5ec06ffaa\nexecution_context={\"mode\":\"LOCAL\",\"writer_id\":\"CLAUDE:kodjo-local-vnext12\"}\napplication_head=070722462d9ac6edb797072e9c74c4817dee0601\nplan_contract_hash=a0058e265238f489a8e3f15db8b11a68ee7365298973b3f20dc684cea0a1c3b4\nreview_report_hash=5e7e07d2db31e5547ebcba62a637b1c9553e29eab9cf1d94621821ef64d3c33f\nwrite_scope_count=2\naction_expected=APPROVE_EXACT_EXECUTION\n\nAction requise : approuver explicitement cet objet exact, ou ne pas approuver.",
+    "reactions": {
+      "url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/comments/5967139304/reactions",
+      "total_count": 1,
+      "+1": 1,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "performed_via_github_app": {
+      "id": 1144995,
+      "slug": "chatgpt-codex-connector",
+      "node_id": "A_kwHOAOQ6Gs4AEXij",
+      "owner": {
+        "login": "openai",
+        "id": 14957082,
+        "node_id": "MDEyOk9yZ2FuaXphdGlvbjE0OTU3MDgy",
+        "avatar_url": "https://avatars.githubusercontent.com/u/14957082?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/openai",
+        "html_url": "https://github.com/openai",
+        "followers_url": "https://api.github.com/users/openai/followers",
+        "following_url": "https://api.github.com/users/openai/following{/other_user}",
+        "gists_url": "https://api.github.com/users/openai/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/openai/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/openai/subscriptions",
+        "organizations_url": "https://api.github.com/users/openai/orgs",
+        "repos_url": "https://api.github.com/users/openai/repos",
+        "events_url": "https://api.github.com/users/openai/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/openai/received_events",
+        "type": "Organization",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "name": "ChatGPT Codex Connector",
+      "description": "Bring ChatGPT and Codex to your GitHub repositories.",
+      "external_url": "https://www.chatgpt.com",
+      "html_url": "https://github.com/apps/chatgpt-codex-connector",
+      "created_at": "2025-02-14T01:37:05Z",
+      "updated_at": "2026-09-23T18:52:59Z",
+      "permissions": {
+        "actions": "write",
+        "checks": "read",
+        "contents": "write",
+        "emails": "read",
+        "issues": "write",
+        "metadata": "read",
+        "pull_requests": "write",
+        "statuses": "read",
+        "workflows": "write"
+      },
+      "events": [
+        "check_run",
+        "check_suite",
+        "commit_comment",
+        "issues",
+        "issue_comment",
+        "pull_request",
+        "pull_request_review",
+        "pull_request_review_comment",
+        "pull_request_review_thread",
+        "repository",
+        "status",
+        "sub_issues"
+      ]
+    },
+    "minimized": null,
+    "pin": null
+  },
+  "observed_reactions": [
+    {
+      "id": 431397815,
+      "node_id": "REA_lALOTtCBw88AAAABY6tR6M4Ztpu3",
+      "user": {
+        "login": "MyUncried",
+        "name": null,
+        "email": null,
+        "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+        "id": 312719496
+      },
+      "content": "+1",
+      "created_at": "2026-10-03T09:09:04Z"
+    }
+  ],
+  "verified_reaction": {
+    "id": 431397815,
+    "node_id": "REA_lALOTtCBw88AAAABY6tR6M4Ztpu3",
+    "user": {
+      "login": "MyUncried",
+      "name": null,
+      "email": null,
+      "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+      "id": 312719496
+    },
+    "content": "+1",
+    "created_at": "2026-10-03T09:09:04Z"
+  },
+  "observed_at": "2026-10-03T09:09:35.157Z",
+  "authorization_basis": "CODEX_USER_DELEGATION_FOR_DISPOSABLE_TECHNICAL_TEST_ONLY",
+  "human_review_performed": false
+}

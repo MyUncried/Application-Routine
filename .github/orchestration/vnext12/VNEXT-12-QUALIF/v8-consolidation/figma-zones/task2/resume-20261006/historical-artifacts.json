@@ -1,0 +1,38 @@
+[
+  {
+    "os": "Windows",
+    "sha256": "966ab369acbef0a80ac3fd4155a6c241da50c87c2245f8fb10a3a6091937a11b",
+    "counts": {
+      "tests": 1082,
+      "failed": 0,
+      "passed": 1079,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0,
+      "topLevel": 1069,
+      "suites": 0
+    },
+    "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/resume-20261006/qualification-Windows.zip",
+    "members": [
+      "historical-Windows.json"
+    ]
+  },
+  {
+    "os": "Linux",
+    "sha256": "c086a2fc8a630a91c8fb1ea0a1f86c3173f0f2570b9a5a8dfd1833216c15df71",
+    "counts": {
+      "tests": 1082,
+      "failed": 0,
+      "passed": 1081,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0,
+      "topLevel": 1069,
+      "suites": 0
+    },
+    "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/resume-20261006/qualification-Linux.zip",
+    "members": [
+      "historical-Linux.json"
+    ]
+  }
+]

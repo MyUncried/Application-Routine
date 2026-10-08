@@ -1,0 +1,34 @@
+{
+  "candidate_head": "cf80c57c69a1f74e0ff3e4b6c62da169a1fd30c9",
+  "qualification_run": 37426909256,
+  "platforms": {
+    "Linux": {
+      "job": 112148541071,
+      "tests": 322,
+      "pass": 322,
+      "fail": 0,
+      "skip": 0
+    },
+    "Windows": {
+      "job": 112148541192,
+      "tests": 322,
+      "pass": 322,
+      "fail": 0,
+      "skip": 0
+    }
+  },
+  "browser_cases": {
+    "Linux": [
+      "2026-10-06T06:59:53.2926122Z ✔ actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta (4376.857997ms)",
+      "2026-10-06T06:59:53.2928129Z ✔ disposable fixed geometry refuses a viewport-relative counterexample at an independent viewport (3678.75084ms)",
+      "2026-10-06T06:59:53.2929887Z ✔ browser cleanup waits for the actual process and profile descendants before removal (282.849755ms)",
+      "2026-10-06T06:59:53.2931539Z ✔ browser cleanup failure retains stderr, primary error and isolated profile diagnostics (2.174292ms)"
+    ],
+    "Windows": [
+      "2026-10-06T07:02:19.4256058Z ✔ actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta (18539.6846ms)\r",
+      "2026-10-06T07:02:19.4258125Z ✔ disposable fixed geometry refuses a viewport-relative counterexample at an independent viewport (16192.4512ms)\r",
+      "2026-10-06T07:02:19.4259880Z ✔ browser cleanup waits for the actual process and profile descendants before removal (306.6569ms)\r",
+      "2026-10-06T07:02:19.4261289Z ✔ browser cleanup failure retains stderr, primary error and isolated profile diagnostics (7.8614ms)\r"
+    ]
+  }
+}

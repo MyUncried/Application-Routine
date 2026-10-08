@@ -361,6 +361,6 @@ test('exception shell — aucune entree de workflow ne peut remplacer les comman
   // Les commandes fixes du depot sont bien celles du package.json.
   const { DEFAULT_COMMANDS } = require(path.join(H.SCRIPTS, 'lib', 'checks.js'));
   assert.equal(DEFAULT_COMMANDS.jest, 'npm test --silent');
-  assert.equal(DEFAULT_COMMANDS.lint, 'npm run lint --silent');
+  assert.equal(DEFAULT_COMMANDS.lint, 'npm run lint --silent -- --no-cache');
   assert.match(DEFAULT_COMMANDS.typescript, /^npx --no-install tsc --noEmit$/);
 });

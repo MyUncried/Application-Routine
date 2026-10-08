@@ -49,7 +49,7 @@ const ps=process.platform==='win32'?'powershell':'pwsh';
 const native=cp.spawnSync(ps,['-NoProfile','-Command','$PSVersionTable.PSVersion.ToString()']).status===0;
 test('F12: execute the actual runner evidence block with native PowerShell and real collector',{skip:!native?'Native PowerShell required on CI':false},()=>{
   const dir=fixture();try{
-    const runner=fs.readFileSync(path.join(root,'scripts/kodjo/run-queued-request.ps1'),'utf8').replace(/\r\n/g,'\n');
+    const runner=require('./helpers/normalized-git-source')(fs.readFileSync(path.join(root,'scripts/kodjo/run-queued-request.ps1'),'utf8')).replace(/\r\n/g,'\n');
     const start=runner.indexOf('  if (-not $isVisual) {\n    $reportPath');assert.ok(start>=0);
     const end=runner.indexOf('\n  }',start)+4;assert.ok(end>start);
     const block=runner.slice(start,end);
@@ -86,6 +86,8 @@ test('F12: protocol consumer remains effective when application HEAD contains an
       'scripts/kodjo/lib/ui-identities.js',
       'scripts/kodjo/lib/component-evidence.js',
     ]) assert.ok(sources.includes(required), 'missing frozen reviewer dependency '+required);
+    assert.ok(sources.length>=5);
+    assert.ok(sources.includes('scripts/kodjo/lib/device-proof-policy.js'));
     const runtime=path.join(dir,'frozen');fs.mkdirSync(path.join(runtime,'lib'),{recursive:true});
     for(const source of sources)fs.copyFileSync(path.join(root,source),path.join(runtime,source.replace('scripts/kodjo/','')));
     fs.mkdirSync(path.join(dir,'scripts/kodjo'),{recursive:true});

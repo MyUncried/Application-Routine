@@ -1,0 +1,27 @@
+{
+  "comment": {
+    "id": 6036950170,
+    "issue_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/269",
+    "html_url": "https://github.com/MyUncried/Application-Routine/pull/269#issuecomment-6036950170",
+    "created_at": "2026-10-07T11:27:56Z",
+    "updated_at": "2026-10-07T11:27:56Z",
+    "user": {
+      "login": "MyUncried"
+    },
+    "body": "661bdba157cab2f791c2941125f2867058bc1ace\n[KODJO_VNEXT] USER_APPROVAL_REQUIRED\napproval_target_id=APRT-39b0e6d12ec5172c3f7508fe\napproval_target_hash=b4cd9e23325716ca96fbb443b2c7fa61ac3405c385d93f0437c5b01228bfc639\nexecution_fingerprint=a1e76c5d85d801ad4c983423931946d947ba752361d2b9fae99e559ef36396b3\nexecution_context={\"mode\":\"LOCAL\",\"writer_id\":\"CLAUDE:kodjo-local-vnext12\"}\napplication_head=3bb64be15d7662a76160bbe918a3bac297731935\nplan_contract_hash=10c0874fa012c538b0ac92d7b14e46b09f17eb5da727821ffcbc1bcc56102557\nreview_report_hash=67472c8b3b00e7b616e419375c73d4cbf3995cf2430983b5801d50e8f23710a8\nwrite_scope_count=2\naction_expected=APPROVE_EXACT_EXECUTION\n\nAction requise : approuver explicitement cet objet exact, ou ne pas approuver."
+  },
+  "reactions": [
+    {
+      "id": 434588487,
+      "content": "+1",
+      "user": {
+        "login": "MyUncried"
+      },
+      "created_at": "2026-10-07T11:28:00Z"
+    }
+  ],
+  "observed_at": "2026-10-07T11:31:27.860Z",
+  "authorization_basis": "CODEX_USER_DELEGATION_TASK2_DISPOSABLE_ONLY",
+  "human_review_performed": false,
+  "delegated_technical_approval": true
+}

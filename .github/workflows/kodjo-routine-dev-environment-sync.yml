@@ -1,6 +1,6 @@
 name: KODJO — Routine Dev environment sync
 
-run-name: Routine Dev sync — review run ${{ github.event.workflow_run.id || inputs.review_run_id }}
+run-name: Routine Dev sync — review run ${{ inputs.review_run_id || github.event.workflow_run.id }} attempt ${{ inputs.review_run_attempt || github.event.workflow_run.run_attempt }}
 
 on:
   workflow_call:
@@ -35,7 +35,7 @@ permissions:
   pull-requests: read
 
 concurrency:
-  group: routine-dev-sync-${{ github.event.workflow_run.id || inputs.review_run_id }}-${{ github.event.workflow_run.run_attempt || inputs.review_run_attempt }}
+  group: routine-dev-sync-${{ inputs.review_run_id || github.event.workflow_run.id }}-${{ inputs.review_run_attempt || github.event.workflow_run.run_attempt }}
   cancel-in-progress: false
 
 jobs:
@@ -44,6 +44,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
+      REVIEW_RUN_ID: ${{ inputs.review_run_id || github.event.workflow_run.id }}
+      REVIEW_RUN_ATTEMPT: ${{ inputs.review_run_attempt || github.event.workflow_run.run_attempt }}
       GH_TOKEN: ${{ github.token }}
       EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       APP_VARIANT: development
@@ -63,7 +65,7 @@ jobs:
         run: |
           set -euo pipefail
           meta="${RUNNER_TEMP}/routine-dev-sync.json"
-          node scripts/kodjo/resolve-review-run-environment-sync.js "$GITHUB_REPOSITORY" "${{ github.event.workflow_run.id || inputs.review_run_id }}" "${{ github.event.workflow_run.run_attempt || inputs.review_run_attempt }}" "$meta"
+          node scripts/kodjo/resolve-review-run-environment-sync.js "$GITHUB_REPOSITORY" "$REVIEW_RUN_ID" "$REVIEW_RUN_ATTEMPT" "$meta"
           applicable="$(jq -r 'if (.applicable | type) == "boolean" then .applicable else error("ENV_SYNC_APPLICABILITY_INVALID") end' "$meta")"
           {
             echo "meta=$meta"

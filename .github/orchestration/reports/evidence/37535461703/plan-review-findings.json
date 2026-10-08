@@ -1,0 +1,29 @@
+{
+  "verdict": "REVISE",
+  "blocking_finding_count": 1,
+  "finding_count": 1,
+  "findings": [
+    {
+      "finding_id": "FND-70be24fa8f542cd3c5de057b",
+      "category": "TECHNICAL_RISK",
+      "target_type": "PLAN_ITEM",
+      "target_id": "PLAN-bcf2808306497b1d2681d595",
+      "blocking": true,
+      "finding": "The plan mandates inline-subprocess probes with no helper files, but specifies no module-path resolution rule for that inline source. Node resolves relative require() inside `node -e` against process.cwd(), not against the directory of tests/ui.test.js. The natural mirror of the test file's own specifier ('../src/features/example/Screen', which is what the existing tests/ui.test.js uses at line 1) therefore throws MODULE_NOT_FOUND inside the child, while only the cwd-relative form ('./src/features/example/Screen') resolves. The same hidden cwd coupling applies to the shared module required by the preservation probe. Because the plan also requires that any failure produce a non-zero exit status, a fully correct implementation of toggle() and of the preserved re-export can be recorded as a requirement failure purely because of probe path resolution. The risk is not hypothetical: the only pre-existing in-repo example of how to require Screen is the '../src/...' form that breaks under `-e`.",
+      "evidence": [
+        "Repository observation at d82ef80, src/features/example/Screen.js line 1: const {Existing}=require('../../shared/ui/Existing'); — the shared module that the preservation probe must also resolve from the child process.",
+        "Repository observation at d82ef80, tests/ui.test.js line 1: const s=require('../src/features/example/Screen'); — the in-repo precedent is the '../' form, which is exactly the form that fails when passed to `node -e` from the repository root.",
+        "planContract change_items[CHG-00cd2c42afb152dab76e491c].intent and test_obligations[TEST-2e53f13123459f93ccf5fec4].expected: 'In one fresh child Node process, require Screen once...' / 'clear both Screen and shared module cache entries, require the shared module again, require Screen' / 'Use inline subprocess source; create no helper files.' — no absolute-path or require.resolve requirement.",
+        "planContract implementation_constraints: 'The delivered tests/ui.test.js MUST be executable from the repository root by node tests/ui.test.js, using only Node built-in modules, with no installed dependency, package.json or test framework globals' — execution is pinned to repo-root cwd but no resolution rule is given for the child source.",
+        "proof_obligations[PROOF-2b0d6a50f0bca5806d3e9361].expected: 'The trusted orchestration independently executes both probes against the implementation' — the independent orchestration probes inherit the identical cwd-relative resolution assumption."
+      ],
+      "required_correction": "Amend change_items[CHG-00cd2c42afb152dab76e491c].intent and test_obligations[TEST-2e53f13123459f93ccf5fec4].expected to require that the parent test resolve both module paths itself (require.resolve from __dirname) and inject those absolute paths into the inline subprocess source (for example via JSON.stringify into the source or via process.argv), so that the toggle probe and the normal/sentinel preservation probe resolve Screen and src/shared/ui/Existing.js independently of process.cwd(). Mirror the same absolute-path rule in proof_obligations[PROOF-2b0d6a50f0bca5806d3e9361].expected for the independently executed orchestration probes. Do not weaken the existing 'no helper files' or 'fail-closed non-zero exit' obligations, which are correct as written.",
+      "dependency_target_ids": [
+        "IMP-02265ab4f693cc3b443667fa",
+        "PROOF-2b0d6a50f0bca5806d3e9361",
+        "TEST-2e53f13123459f93ccf5fec4"
+      ],
+      "reentry_stage": "PLAN"
+    }
+  ]
+}

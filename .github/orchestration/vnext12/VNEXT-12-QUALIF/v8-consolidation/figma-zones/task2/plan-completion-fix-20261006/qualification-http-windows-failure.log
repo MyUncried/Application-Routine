@@ -1,0 +1,37 @@
+failing tests:
+2026-10-06T09:21:39.3967159Z
+2026-10-06T09:21:39.3967406Z test at tests\kodjo\vnext-figma-browser-observer.pilot.js:50:1
+2026-10-06T09:21:39.3968247Z ✖ actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta (10836.2612ms)
+2026-10-06T09:21:39.3968858Z   ReferenceError: digest is not defined
+2026-10-06T09:21:39.3969496Z       at Object.observe (D:\a\Application-Routine\Application-Routine\scripts\kodjo\lib\vnext-figma-browser-observer.js:129:3)
+2026-10-06T09:21:39.3970435Z       at async TestContext.<anonymous> (D:\a\Application-Routine\Application-Routine\tests\kodjo\vnext-figma-browser-observer.pilot.js:57:14)
+2026-10-06T09:21:39.3971129Z       at async Test.run (node:internal/test_runner/test:1409:7)
+2026-10-06T09:21:39.3971668Z       at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+2026-10-06T09:21:39.3971957Z
+2026-10-06T09:21:39.3972229Z test at tests\kodjo\vnext-figma-browser-observer.pilot.js:66:1
+2026-10-06T09:21:39.3972960Z ✖ disposable fixed geometry refuses a viewport-relative counterexample at an independent viewport (5004.0363ms)
+2026-10-06T09:21:39.3973715Z   Error: VNEXT_LIVE_PROCESS_FAILED: C:\hostedtoolcache\windows\node\24.21.0\x64\node.exe: digest is not defined
+2026-10-06T09:21:39.3974241Z
+2026-10-06T09:21:39.3974709Z       at Object.fail (D:\a\Application-Routine\Application-Routine\scripts\kodjo\lib\vnext-contract.js:11:17)
+2026-10-06T09:21:39.3975660Z       at Object.command (D:\a\Application-Routine\Application-Routine\scripts\kodjo\lib\vnext-live-chain.js:38:36)
+2026-10-06T09:21:39.3977146Z       at Object.observe (D:\a\Application-Routine\Application-Routine\scripts\kodjo\qualify-vnext-figma-real-path.js:76:32)
+2026-10-06T09:21:39.3978076Z       at TestContext.<anonymous> (D:\a\Application-Routine\Application-Routine\tests\kodjo\vnext-figma-browser-observer.pilot.js:73:24)
+2026-10-06T09:21:39.3978753Z       at Test.runInAsyncScope (node:async_hooks:227:14)
+2026-10-06T09:21:39.3979176Z       at Test.run (node:internal/test_runner/test:1402:25)
+2026-10-06T09:21:39.3979651Z       at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+2026-10-06T09:21:39.3980140Z       at Test.postRun (node:internal/test_runner/test:1542:19)
+2026-10-06T09:21:39.3980589Z       at Test.run (node:internal/test_runner/test:1467:12)
+2026-10-06T09:21:39.3981093Z       at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+2026-10-06T09:21:39.3981577Z     code: 'VNEXT_LIVE_PROCESS_FAILED'
+2026-10-06T09:21:39.3981880Z   }
+2026-10-06T09:21:39.3999879Z ##[error]Process completed with exit code 1.
+2026-10-06T09:21:39.4319957Z Post job cleanup.
+2026-10-06T09:21:39.6310541Z [command]"C:\Program Files\Git\bin\git.exe" version
+2026-10-06T09:21:39.6607639Z git version 2.55.0.windows.5
+2026-10-06T09:21:39.6683589Z Temporarily overriding HOME='D:\a\_temp\18bf6ab2-c5b4-45fb-b4fc-bad9d426263d' before making global git config changes
+2026-10-06T09:21:39.6684744Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-06T09:21:39.6696798Z [command]"C:\Program Files\Git\bin\git.exe" config --global --add safe.directory D:\a\Application-Routine\Application-Routine
+2026-10-06T09:21:39.7040594Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-10-06T09:21:39.7370803Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-10-06T09:21:40.2951690Z [command]"C:\Program Files\Git\bin\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-06T09:21:40.3310063Z [command]"C:\Program Files\Git\bin\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'ht

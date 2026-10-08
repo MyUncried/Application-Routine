@@ -1,0 +1,57 @@
+{
+  "schema_version": "kodjo.vnext.historical-connector-qualification-failure.v1",
+  "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+  "request_id": "81a107ff-5c61-4df1-a2c0-fed949a331bc",
+  "run_id": 37671322228,
+  "run_attempt": 1,
+  "source_head": "9b57e713ce4d14d1664caddbac916799100ad44d",
+  "workflow_path": ".github/workflows/kodjo-vnext-proof-stability.yml",
+  "event": "create",
+  "run_conclusion": "FAILURE",
+  "jobs": [
+    {
+      "id": 112963503831,
+      "name": "qualification (ubuntu-latest)",
+      "conclusion": "failure",
+      "failed_step": "Execute VNext contracts on exact candidate"
+    },
+    {
+      "id": 112963504135,
+      "name": "qualification (windows-latest)",
+      "conclusion": "failure",
+      "failed_step": "Validate the exact candidate tree with native Windows PowerShell 5.1"
+    }
+  ],
+  "diagnostic": {
+    "code": "VNEXT_PUBLICATION_WRITER_POLICY_INVALID",
+    "findings": [
+      {
+        "code": "VNEXT_REMOTE_WRITE_DECLARED_PRODUCER_DRIFT",
+        "producer": ".github/workflows/kodjo-vnext12-disposable.yml",
+        "observed_blob_oid": "6b5a2942c52e995c8766f323de724f889b7962f8"
+      },
+      {
+        "code": "VNEXT_REMOTE_WRITE_DECLARED_PRODUCER_DRIFT",
+        "producer": "scripts/kodjo/signal-vnext-cycle-continuation.js",
+        "observed_blob_oid": "e927151528307e8dfda5129cc9025aa1995bb8cc"
+      }
+    ],
+    "cause": "The historical connector changed two declared VNext writers without renewing their exact producer_blob_oid entries.",
+    "correction": "Renew only the two exact declared writer OIDs; keep capabilities and authorization conditions unchanged."
+  },
+  "comparison": {
+    "last_comparable_success_run_id": 37667669032,
+    "last_comparable_source_head": "fe4e36eca5ccab54d0a8abfbaee4f2cb166bfb28",
+    "first_failure_run_id": 37671322228
+  },
+  "artifact": {
+    "id": 11504782620,
+    "name": "qualification-controls-Linux",
+    "sha256": "d2eebed720ce7f71ad117b147e224d9fe3279534a768d0894006e944413c42c3",
+    "github_digest": "sha256:d2eebed720ce7f71ad117b147e224d9fe3279534a768d0894006e944413c42c3"
+  },
+  "historical_jobs_started": false,
+  "claude_invoked": false,
+  "incident_replay_invoked": false,
+  "observed_at": "2026-10-07T19:02:25.938Z"
+}

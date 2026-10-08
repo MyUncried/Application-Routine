@@ -1,0 +1,19 @@
+{
+  "scope": "STEP_1_LOCAL_IMPLEMENTATION_VERIFICATION_ONLY",
+  "baseline_published_commit": "f14cadb75d41b8b9171dc9c1bb164c1bf342c068",
+  "platform": "Linux",
+  "node_version": "v24.19.0",
+  "command": "node --test tests/kodjo/vnext-*.pilot.js tests/kodjo/claude-local.pilot.js tests/kodjo/queued-runtime-freeze.pilot.js",
+  "results": {
+    "tests": 239,
+    "pass": 239,
+    "fail": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "log_sha256": "0ad9277d67e36c6bd1fd0581d02169891d2042f88c857940f40e92105119b5e8",
+  "operational_vnext12_executed": false,
+  "new_commit_cross_platform_qualified": false,
+  "claude_and_github_responses_in_integration_tests": "EXPLICIT_TEST_DOUBLES",
+  "changed_test_source_sha256": "32774d264ba86a457e9d9f6219e42686dab631ff32f8a6f260a7e465d2354070"
+}

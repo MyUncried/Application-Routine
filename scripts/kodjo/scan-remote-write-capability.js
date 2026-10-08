@@ -25,7 +25,7 @@ const PATTERNS = [
   { id: 'GIT_TAG', re: /\bgit\s+(?:-[^\s]+\s+)*tag\b/ },
   { id: 'GIT_UPDATE_REF', re: /\bgit\s+(?:-[^\s]+\s+)*update-ref\b/ },
   { id: 'GIT_BRANCH_CREATE', re: /\bgit\s+(?:-[^\s]+\s+)*(?:branch|checkout\s+-b|switch\s+-c)\b/ },
-  { id: 'GIT_MERGE', re: /\bgit\s+(?:-[^\s]+\s+)*(?:merge|rebase|cherry-pick)\b/ },
+  { id: 'GIT_MERGE', re: /\bgit\s+(?:(?:-c\s+(?:"[^"]*"|'[^']*'|\S+)|-[^\s]+)\s+)*(?:merge|rebase|cherry-pick)(?=\s|[;|&]|$)/ },
   { id: 'CONTENTS_WRITE', re: /contents\s*:\s*write/ },
   { id: 'PERSIST_CREDENTIALS_TRUE', re: /persist-credentials\s*:\s*true/ },
   // KV2-09 : un en-tete d'autorisation ecrit dans .git/config echappait au
@@ -101,10 +101,14 @@ function isCommentRouterDelegation(filePath, lines, index, patternId, root) {
 }
 
 function isExempt(filePath, line, root) {
-  if (line.includes(ALLOWLIST_MARKER)) return true;
+  // A marker in executable code is not an authorization. Only pure comments
+  // can mention forbidden verbs without creating a capability.
+  if (/^\s*(?:#|\/\/|\*|\/\*)/.test(line)) return true;
   const rel = path.relative(root, filePath).replace(/\\/g, '/');
   // The guard module and this scanner necessarily name the forbidden verbs.
-  return rel === 'scripts/kodjo/lib/git.js' || rel === 'scripts/kodjo/scan-remote-write-capability.js';
+  return rel === 'scripts/kodjo/lib/git.js' ||
+    rel === 'scripts/kodjo/scan-remote-write-capability.js' ||
+    rel === 'scripts/kodjo/lib/vnext-remote-write-security.js';
 }
 
 /**
@@ -241,6 +245,15 @@ function declaredRestWriter(rel,source){
 
 function main() {
   const root = path.resolve(process.argv[2] || process.cwd());
+  const policyFile = path.join(root, '.github/orchestration/KODJO_VNEXT_REMOTE_WRITE_POLICY.json');
+  if (fs.existsSync(policyFile)) {
+    const security = require('./lib/vnext-remote-write-security');
+    const result = security.evaluateRemoteWriteSecurity({ root, policy: JSON.parse(fs.readFileSync(policyFile, 'utf8')),
+      legacyActivationRegistry: JSON.parse(fs.readFileSync(path.join(root, '.github/orchestration/v2-activation-registry.json'), 'utf8')) });
+    if (result.findings.length) { process.stderr.write(JSON.stringify(result.findings) + '\n'); return 1; }
+    // Preserve the independent shell-execution guard even when exact writer
+    // authorization is supplied by the VNext policy.
+  }
   const files = collectFiles(root);
   const findings = [];
   const exemptionsUsed = new Set();
@@ -259,6 +272,7 @@ function main() {
       if (isExempt(file, line, root)) return;
       const code = line.split('#')[0];
       for (const p of PATTERNS) {
+        if (fs.existsSync(policyFile) && p.id !== 'SHELL_EXECUTION') continue;
         if (!p.re.test(code)) continue;
         if (isCommentRouterDelegation(file, lines, i, p.id, root)) continue;
         if (isDisposableConsumptionPermission(file, lines, i, p.id, root)) continue;

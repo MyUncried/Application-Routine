@@ -106,6 +106,7 @@ jobs:
           APPLICATION_PR=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^application_pr=//p' | head -n1)
           APPLICATION_HEAD=$(printf '%s\n' "$TRIGGER_BODY" | sed -n 's/^application_head=//p' | head -n1)
           test -n "$SLICE_ID"
+          node scripts/kodjo/resolve-slice-protocol.js "$SLICE_ID" --require-legacy
           test "$BOOTSTRAP_PATH" = ".github/orchestration/v2-slices/$SLICE_ID/slice-bootstrap.json"
           printf '%s' "$SOURCE_HEAD" | grep -Eq '^[0-9a-f]{40}$'
           printf '%s' "$APPLICATION_PR" | grep -Eq '^[1-9][0-9]*$'

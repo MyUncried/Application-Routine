@@ -1,0 +1,36 @@
+{
+  "repository": "MyUncried/Application-Routine",
+  "issue": 288,
+  "sliceId": "V2-PRE-2",
+  "head": "3780eb9287cf8bc60c79dc322c1662542469a389",
+  "approvedHead": "3780eb9287cf8bc60c79dc322c1662542469a389",
+  "baselineHead": "53cb05c782e17eb19d269f2724a0db3cfbceb1a2",
+  "incrementHead": "10ac761ef453f360110bf7b668b3998487b071b3",
+  "planRevision": "a37aab2844aa79cefd536abf7c3509ef418ba6cd",
+  "planPath": ".github/orchestration/v2-slices/V2-PRE-2/technical-plan.md",
+  "reviewId": "5984104726",
+  "decisionId": "5990475371",
+  "originDecisionId": "5985692286",
+  "reservations": [
+    "Ce marqueur n'atteste PAS la conformité visuelle à Figma, qui n'a pas été vérifiée.",
+    "Les réserves visuelles restent ouvertes et seront reprises dans la préparation de PRE-3 (VNext)."
+  ],
+  "checksReceipt": {
+    "head": "3780eb9287cf8bc60c79dc322c1662542469a389",
+    "checks": {
+      "jest": "PASS",
+      "typescript": "PASS",
+      "lint": "PASS",
+      "head": "PASS",
+      "clean": "PASS"
+    }
+  },
+  "approvedPlanBlobOid": "014987f69b9738fbed839f9300733539b00505ca",
+  "retained_non_ui_targets": [
+    "src/domain/body-zones/index.ts",
+    "src/domain/categories/index.ts",
+    "src/domain/labels/index.ts",
+    "src/domain/preferences/index.ts",
+    "src/domain/sessions/defaults.ts"
+  ]
+}

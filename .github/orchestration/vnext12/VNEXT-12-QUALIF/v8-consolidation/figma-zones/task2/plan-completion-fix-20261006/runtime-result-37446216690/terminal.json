@@ -1,0 +1,238 @@
+{
+  "run": {
+    "id": 37446216690,
+    "status": "completed",
+    "conclusion": "failure",
+    "head_sha": "32893aad0f934c29fdccbb4ced9c5a7e231567df"
+  },
+  "jobs": [
+    {
+      "id": 112211566274,
+      "name": "select-stage",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-06T09:54:50Z",
+          "completed_at": "2026-10-06T09:54:51Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-06T09:54:51Z",
+          "completed_at": "2026-10-06T09:54:54Z"
+        },
+        {
+          "name": "Select the explicitly requested stage",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-06T09:54:54Z",
+          "completed_at": "2026-10-06T09:54:54Z"
+        },
+        {
+          "name": "Check the disposable supervisor before any runtime execution",
+          "status": "completed",
+          "conclusion": "skipped",
+          "number": 4,
+          "started_at": "2026-10-06T09:54:54Z",
+          "completed_at": "2026-10-06T09:54:54Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-06T09:54:54Z",
+          "completed_at": "2026-10-06T09:54:54Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-06T09:54:54Z",
+          "completed_at": "2026-10-06T09:54:54Z"
+        }
+      ]
+    },
+    {
+      "id": 112211616416,
+      "name": "1 - Verify exact automatic controls",
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-06T09:54:58Z",
+          "completed_at": "2026-10-06T09:54:59Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-06T09:54:59Z",
+          "completed_at": "2026-10-06T09:55:03Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-10-06T09:55:03Z",
+          "completed_at": "2026-10-06T09:55:04Z"
+        },
+        {
+          "name": "Require successful exact-code Linux and Windows controls before Claude",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-10-06T09:55:04Z",
+          "completed_at": "2026-10-06T09:55:05Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-10-06T09:55:05Z",
+          "completed_at": "2026-10-06T09:55:05Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-06T09:55:05Z",
+          "completed_at": "2026-10-06T09:55:06Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-06T09:55:06Z",
+          "completed_at": "2026-10-06T09:55:06Z"
+        }
+      ]
+    },
+    {
+      "id": 112211617886,
+      "name": "qualify-driver",
+      "status": "completed",
+      "conclusion": "skipped",
+      "steps": []
+    },
+    {
+      "id": 112211618894,
+      "name": "prepare-initial",
+      "status": "completed",
+      "conclusion": "skipped",
+      "steps": []
+    },
+    {
+      "id": 112211619294,
+      "name": "prepare-revision",
+      "status": "completed",
+      "conclusion": "skipped",
+      "steps": []
+    },
+    {
+      "id": 112211692144,
+      "name": "Real Figma INITIAL and one bounded correction",
+      "status": "completed",
+      "conclusion": "failure",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-10-06T09:55:14Z",
+          "completed_at": "2026-10-06T09:55:19Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-10-06T09:55:19Z",
+          "completed_at": "2026-10-06T09:55:51Z"
+        },
+        {
+          "name": "Qualify admission then execute the disposable Figma path once",
+          "status": "completed",
+          "conclusion": "cancelled",
+          "number": 3,
+          "started_at": "2026-10-06T09:55:51Z",
+          "completed_at": "2026-10-06T10:52:40Z"
+        },
+        {
+          "name": "Preserve Figma sessions, exact delivery, comparisons and reservations",
+          "status": "completed",
+          "conclusion": "failure",
+          "number": 4,
+          "started_at": "2026-10-06T10:52:40Z",
+          "completed_at": "2026-10-06T10:52:43Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8,
+          "started_at": "2026-10-06T10:52:43Z",
+          "completed_at": "2026-10-06T10:52:49Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9,
+          "started_at": "2026-10-06T10:52:49Z",
+          "completed_at": "2026-10-06T10:52:49Z"
+        }
+      ]
+    },
+    {
+      "id": 112211693686,
+      "name": "Execute approved disposable INITIAL or REVISION",
+      "status": "completed",
+      "conclusion": "skipped",
+      "steps": []
+    },
+    {
+      "id": 112217683239,
+      "name": "3 - Historical assertions (${{ matrix.os }})",
+      "status": "completed",
+      "conclusion": "skipped",
+      "steps": []
+    },
+    {
+      "id": 112217684122,
+      "name": "historical-platform-coverage",
+      "status": "completed",
+      "conclusion": "skipped",
+      "steps": []
+    },
+    {
+      "id": 112217686027,
+      "name": "3 - Historical checks on the persistent Windows runner",
+      "status": "completed",
+      "conclusion": "skipped",
+      "steps": []
+    }
+  ],
+  "artifacts": [],
+  "annotation": "The self-hosted runner lost communication with the server. Verify the machine is running and has a healthy network connection. Anything in your workflow that terminates the runner process, starves it for CPU/Memory, or blocks its network access can cause this error.",
+  "observed_at": "2026-10-06T10:54:29.059Z"
+}

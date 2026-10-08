@@ -1,0 +1,21 @@
+{
+  "schema_version": "kodjo.vnext.post-acceptance-local-tests.v1",
+  "observed_at": "2026-10-04T10:30:28.974831+00:00",
+  "parent_head": "d29d59a1dbf1d84cc9172a4a2e1726fcb63bfb1b",
+  "regression": {
+    "tests": 297,
+    "pass": 297,
+    "fail": 0,
+    "skip": 0,
+    "log_sha256": "3ab5f06f3b5192093d3db2435395fc63ff2f39c960dabd07e802c7da2948cf55"
+  },
+  "targeted_final": {
+    "tests": 8,
+    "pass": 8,
+    "fail": 0,
+    "log_sha256": "d7189645b2b273b24004133bda7e63e58865008126262bdd6f8b14b36d6e99a4"
+  },
+  "model_calls": "INJECTED_FIXTURES_ONLY",
+  "real_external_qualification": false,
+  "full_post_acceptance_nominal": "ABSENT_UNTIL_ORIGIN_AND_UNCLOSED_BASELINE_DESIGNED"
+}

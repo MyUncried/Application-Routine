@@ -1,0 +1,70 @@
+{
+  "note": "Inclusive timings overlap; process totals are not wall-clock duration. No command arguments or source contents recorded.",
+  "operations": {
+    "chain.produce": {
+      "calls": 44,
+      "total_ms": 17574.06096399999,
+      "max_ms": 2641.545871999999
+    },
+    "impact.read-source-blobs": {
+      "calls": 350,
+      "total_ms": 16701.91502100004,
+      "max_ms": 423.1349250000021
+    },
+    "git.cat-file": {
+      "calls": 1125,
+      "total_ms": 15244.107606999984,
+      "max_ms": 266.15057
+    },
+    "git.batch.blobs": {
+      "calls": 619,
+      "total_ms": 12036.693089999962,
+      "max_ms": 266.2236559999999
+    },
+    "git.ls-tree": {
+      "calls": 1375,
+      "total_ms": 10711.246185000025,
+      "max_ms": 70.82689400000027
+    },
+    "chain.git.show": {
+      "calls": 864,
+      "total_ms": 6323.756418999972,
+      "max_ms": 131.39561200000003
+    },
+    "chain.git.status": {
+      "calls": 63,
+      "total_ms": 782.957922999989,
+      "max_ms": 43.53387700000167
+    },
+    "chain.git.ls-files": {
+      "calls": 61,
+      "total_ms": 460.4408739999974,
+      "max_ms": 29.66551699999991
+    },
+    "chain.git.rev-parse": {
+      "calls": 56,
+      "total_ms": 447.9604769999899,
+      "max_ms": 44.36527100000001
+    },
+    "chain.git.diff": {
+      "calls": 63,
+      "total_ms": 443.6137679999947,
+      "max_ms": 42.655079000000114
+    },
+    "chain.process": {
+      "calls": 1,
+      "total_ms": 304.9125150000036,
+      "max_ms": 304.9125150000036
+    },
+    "fixture.copy-producer": {
+      "calls": 12,
+      "total_ms": 248.02306800000278,
+      "max_ms": 55.64115799999999
+    },
+    "chain.git.-c": {
+      "calls": 5,
+      "total_ms": 196.3374170000002,
+      "max_ms": 150.19484899999998
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "run": {
+    "id": 37612631759,
+    "run_attempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "event": "create",
+    "head_branch": "qualification/vnext-full-cycle-initial-bytefix-de2b9683-20261007",
+    "head_sha": "661bdba157cab2f791c2941125f2867058bc1ace",
+    "path": ".github/workflows/kodjo-vnext-proof-stability.yml"
+  },
+  "qualification": {
+    "status": "VERIFIED",
+    "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+    "candidate_head": "661bdba157cab2f791c2941125f2867058bc1ace",
+    "run_id": "37612631759",
+    "run_attempt": 1,
+    "workflow_path": ".github/workflows/kodjo-vnext-proof-stability.yml",
+    "event": "create",
+    "branch": "qualification/vnext-full-cycle-initial-bytefix-de2b9683-20261007",
+    "jobs": [
+      {
+        "id": 112763320606,
+        "name": "qualification (ubuntu-latest)",
+        "conclusion": "success",
+        "tests": 407,
+        "pass": 407,
+        "fail": 0,
+        "skip": 0,
+        "artifact_id": 11478224555,
+        "artifact_sha256": "6c6a504f06305749a673491ab469e16ff2c64883ad86a4f63eb7b7163164336d"
+      },
+      {
+        "id": 112763320236,
+        "name": "qualification (windows-latest)",
+        "conclusion": "success",
+        "tests": 407,
+        "pass": 407,
+        "fail": 0,
+        "skip": 0,
+        "artifact_id": 11479336318,
+        "artifact_sha256": "d4e5d2f90680bd9bff21ee9c6ab0e55bed4551694a29267198139e8168e937ff"
+      }
+    ],
+    "observed_at": "2026-10-07T11:31:27.860Z"
+  },
+  "artifact_digests_recomputed": true,
+  "observed_at": "2026-10-07T11:31:27.860Z"
+}

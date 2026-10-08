@@ -1,0 +1,22 @@
+{
+  "run_id": 37435583811,
+  "artifact_id": 11399780380,
+  "bytes": 2235442,
+  "sha256": "1c80bc1b77fc9091611de2a234e2a6812192354850d2c369d1fc780d9ca7bdf3",
+  "github_digest_matches": true,
+  "zip_integrity": "PASS",
+  "controller_head": "4b623a022b731880980bb71cfc6f66eb48c7c301",
+  "proof_run": {
+    "id": 37435583814,
+    "conclusion": "success"
+  },
+  "pilot_run": {
+    "id": 37435583847,
+    "conclusion": "failure",
+    "windows_job": 112177160722,
+    "tests": 1091,
+    "pass": 1085,
+    "fail": 2,
+    "skip": 4
+  }
+}

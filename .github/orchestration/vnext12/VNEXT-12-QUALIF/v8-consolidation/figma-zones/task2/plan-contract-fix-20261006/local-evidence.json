@@ -1,0 +1,19 @@
+{
+  "targeted": {
+    "tests": 45,
+    "pass": 44,
+    "fail": 0,
+    "skip": 1
+  },
+  "full": {
+    "tests": 334,
+    "pass": 333,
+    "fail": 0,
+    "skip": 1
+  },
+  "precheck": "PASS",
+  "workflow_invariants": "PASS",
+  "historical_case_bindings_updated": 5,
+  "logs_sha256": "8afb1c21a74e2b34bdd0fdf2f4ac5f4c39e34b50962209630f2d0625ef889f48",
+  "real_model_calls": 0
+}

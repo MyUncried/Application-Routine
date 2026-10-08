@@ -96,6 +96,7 @@ function runPreflight(options = {}) {
   let promptHash = null;
   let promptFileHash = null;
   let planBody = null;
+  let vnextAdmission = null;
 
   add('PF-001','verify-queue-admission.js',()=>{
     if (!SHA40.test(before) || !SHA40.test(after)) throw new Error('PREFLIGHT_EVENT_BOUNDARY_INVALID');
@@ -144,7 +145,7 @@ function runPreflight(options = {}) {
   add('PF-006','verify-authorizations.js',()=>{
     const result = probes.verifyAuthorizations
       ? probes.verifyAuthorizations(queuePath,{cwd})
-      : verifyAuthorizations(queuePath,{cwd});
+      : verifyAuthorizations(queuePath,{cwd, github: options.github});
     return result;
   },['PF-004']);
 
@@ -171,6 +172,19 @@ function runPreflight(options = {}) {
   if (queue && String(queue.operation_kind || 'IMPLEMENT').toUpperCase() === 'IMPLEMENT') {
     add('PF-010','verify-plan-contract-consistency.js',()=>{
       if (probes.planContract) return probes.planContract(queue,cwd);
+      // The immutable VNext bootstrap selects its complete canonical admission.
+      // A caller flag or a forged legacy marker cannot authorize this branch.
+      vnextAdmission = require('./lib/vnext-live-chain').guard(queuePath, { cwd, github: options.github });
+      if (vnextAdmission) {
+        planBody = git(['cat-file','blob',String(queue.authorized_plan.plan_blob_oid)],cwd);
+        const approved = vnextAdmission.projection.compatibility_files.plan;
+        if (planBody !== approved.content.trimEnd()) throw new Error('VNEXT_PREFLIGHT_PLAN_BYTES_MISMATCH');
+        return { schema_version:'kodjo.vnext.preflight-plan.v1',
+          admission_hash:vnextAdmission.admission.contract_hash,
+          runtime_snapshot_hash:vnextAdmission.admission.runtime_snapshot_hash,
+          plan_contract_hash:vnextAdmission.executionRequest.plan_contract_hash,
+          authority:'VNEXT_EXECUTION_REQUEST' };
+      }
       const planBlob = String(queue.authorized_plan && queue.authorized_plan.plan_blob_oid || '');
       if (!SHA40.test(planBlob)) throw new Error('PREFLIGHT_PLAN_BLOB_INVALID');
       planBody = git(['cat-file','blob',planBlob],cwd);
@@ -192,6 +206,16 @@ function runPreflight(options = {}) {
 
     add('PF-009','verify-implementation-mission.js',()=>{
       if (probes.implementationMission) return probes.implementationMission(queue,cwd);
+      if (vnextAdmission) {
+        const approved = vnextAdmission.projection.compatibility_files.mission;
+        const actual = fs.readFileSync(path.resolve(cwd, String(queue.prompt_file)), 'utf8');
+        if (actual !== approved.content) throw new Error('VNEXT_PREFLIGHT_MISSION_BYTES_MISMATCH');
+        return { schema_version:'kodjo.vnext.preflight-mission.v1',
+          admission_hash:vnextAdmission.admission.contract_hash,
+          mission_sha256:approved.content_sha256,
+          plan_contract_hash:vnextAdmission.executionRequest.plan_contract_hash,
+          authority:'VNEXT_EXECUTION_REQUEST' };
+      }
       if (!planBody) {
         const planBlob = String(queue.authorized_plan.plan_blob_oid);
         planBody = git(['cat-file','blob',planBlob],cwd);
@@ -289,7 +313,7 @@ function runPreflight(options = {}) {
       const candidates = fs.readdirSync(runsRoot,{withFileTypes:true}).filter((e)=>e.isDirectory()).map((e)=>path.join(runsRoot,e.name,'recovery.json')).filter((f)=>fs.existsSync(f));
       for (const file of candidates) {
         const candidate = readRecoveryCandidate(file);
-        if (candidate && candidate.integrity_status !== 'MUTATED' &&
+        if (candidate && candidate.integrity_status === 'INTACT' &&
             String(candidate.slice_id) === String(normalized.slice_id) &&
             String(candidate.session_id) === String(normalized.session_id) &&
             String(candidate.baseline_head) === String(normalized.baseline_head) &&
@@ -300,7 +324,8 @@ function runPreflight(options = {}) {
     }
     const packageDir = String(process.env.KODJO_SOURCE_RECOVERY_DIR || '').trim();
     if (packageDir && fs.existsSync(path.join(packageDir,'manifest.json'))) {
-      JSON.parse(fs.readFileSync(path.join(packageDir,'manifest.json'),'utf8').replace(/^\uFEFF/,''));
+      const manifest=JSON.parse(fs.readFileSync(path.join(packageDir,'manifest.json'),'utf8').replace(/^\uFEFF/,''));
+      if(manifest.integrity_status !== 'INTACT') throw new Error('RECOVERY_INTEGRITY_REFUSED');
       return {status:'SOURCE_PACKAGE_FOUND'};
     }
     if (normalized.allow_legacy_recovery_bootstrap) return {status:'LEGACY_BOOTSTRAP_ALLOWED'};
@@ -388,7 +413,6 @@ function runPreflight(options = {}) {
     operation_kind:queue ? String(queue.operation_kind || 'IMPLEMENT').toUpperCase() : '',
     mode:queue ? String(queue.mode || '').toUpperCase() : '',
     bindings,
-    freshness_guards_required:['PF-023','PF-024','PF-025','PF-026','PF-027','PF-028'],
     projection_sha256:projected ? P.sha256(projected) : null,
     prompt_sha256:promptHash,
     prompt_file_sha256:promptFileHash,

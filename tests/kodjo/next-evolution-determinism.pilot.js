@@ -298,7 +298,7 @@ test('PE-37/38 prevent obsolete and report-only heavy pilot work',()=>{
   assert.match(w,/!\.github\/orchestration\/reports\/\*\*/);
   assert.doesNotMatch(w,/!\.github\/orchestration\/reports\/2026-09-29_PROTOCOL_DETERMINISM_MATRIX\.md/);
   assert.doesNotMatch(w,/!\.github\/orchestration\/reports\/2026-09-29_PROTOCOL_DETERMINISM_AUDIT\.md/);
-  assert.doesNotMatch(w,/kodjo-v2-complete-source-/);
+  assert.match(w,/if: github.event_name == 'workflow_dispatch' && inputs.preserve_complete_source == true/);
 });
 
 test('DET-08 model no longer owns review aggregate verdict/device flag',()=>{

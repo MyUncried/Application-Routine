@@ -1,0 +1,23 @@
+{
+  "head": "3c81c9f31549d849bca42d9dad100c347f800ba0",
+  "bundle_sha256": "6c67cc7d8bbea4c6778715542e993072c20d6f5b1a25efc218c1ec50a6b77360",
+  "files": [
+    {
+      "file": "src/features/example/Screen.js",
+      "sha256": "32c5c5f84c5e31b6cac87e5d990cfe55dd1f86ca5fc35105be755bd3677b7aba"
+    },
+    {
+      "file": "tests/ui.test.js",
+      "sha256": "83656b91730b4c7513347184946ce18c0c67efc1026f3fa81b7e3ee1670dd007"
+    },
+    {
+      "file": "src/shared/ui/Existing.js",
+      "sha256": "22de78c984ee61c2d554310eb3c8f5578e55847cba15428adc3eaf21de884ddb"
+    },
+    {
+      "file": "docs/frozen-figma.json",
+      "sha256": "1a8fcdb197b86bcf665226152eb286a3389a92f43e4819283ddac8d8b7154f03"
+    }
+  ],
+  "dirty": ""
+}

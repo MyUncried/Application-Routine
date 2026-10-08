@@ -1,0 +1,29 @@
+{
+  "resources": [
+    {
+      "node_id": "5331:4821",
+      "name": "Action / Cancel — Classification",
+      "format": "svg",
+      "width": 48,
+      "height": 53,
+      "content": "<svg width=\"53\" height=\"58\" viewBox=\"0 0 53 58\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g filter=\"url(#filter0_d_5331_4821)\">\n<circle cx=\"24\" cy=\"27\" r=\"19\" fill=\"#FCFCFE\"/>\n<circle cx=\"24\" cy=\"27\" r=\"18.5\" stroke=\"white\"/>\n</g>\n<path d=\"M18 21L30 33M30 21L18 33\" stroke=\"#141414\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n<defs>\n<filter id=\"filter0_d_5331_4821\" x=\"-5\" y=\"0\" width=\"58\" height=\"58\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\">\n<feFlood flood-opacity=\"0\" result=\"BackgroundImageFix\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"2\"/>\n<feGaussianBlur stdDeviation=\"5\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0.1 0 0 0 0 0.1 0 0 0 0 0.15 0 0 0 0.08 0\"/>\n<feBlend mode=\"normal\" in2=\"BackgroundImageFix\" result=\"effect1_dropShadow_5331_4821\"/>\n<feBlend mode=\"normal\" in=\"SourceGraphic\" in2=\"effect1_dropShadow_5331_4821\" result=\"shape\"/>\n</filter>\n</defs>\n</svg>\n"
+    },
+    {
+      "node_id": "4953:6610",
+      "name": "Action / Validate — Classification",
+      "format": "svg",
+      "width": 48,
+      "height": 53,
+      "content": "<svg width=\"56\" height=\"58\" viewBox=\"0 0 56 58\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<g filter=\"url(#filter0_d_4953_6610)\">\n<circle cx=\"29\" cy=\"27\" r=\"19\" fill=\"#0508E5\"/>\n<circle cx=\"29\" cy=\"27\" r=\"18.5\" stroke=\"white\"/>\n</g>\n<path d=\"M22 27.4999L26.2 31.6999L36 21.8999\" stroke=\"white\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n<defs>\n<filter id=\"filter0_d_4953_6610\" x=\"0\" y=\"0\" width=\"58\" height=\"58\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\">\n<feFlood flood-opacity=\"0\" result=\"BackgroundImageFix\"/>\n<feColorMatrix in=\"SourceAlpha\" type=\"matrix\" values=\"0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0\" result=\"hardAlpha\"/>\n<feOffset dy=\"2\"/>\n<feGaussianBlur stdDeviation=\"5\"/>\n<feColorMatrix type=\"matrix\" values=\"0 0 0 0 0.1 0 0 0 0 0.1 0 0 0 0 0.15 0 0 0 0.18 0\"/>\n<feBlend mode=\"normal\" in2=\"BackgroundImageFix\" result=\"effect1_dropShadow_4953_6610\"/>\n<feBlend mode=\"normal\" in=\"SourceGraphic\" in2=\"effect1_dropShadow_4953_6610\" result=\"shape\"/>\n</filter>\n</defs>\n</svg>\n"
+    },
+    {
+      "node_id": "I4953:6624;4173:6716",
+      "name": "Icon / Add",
+      "format": "svg",
+      "width": 16,
+      "height": 16,
+      "content": "<svg width=\"18\" height=\"18\" viewBox=\"0 0 18 18\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M9 1V17M1 9H17\" stroke=\"#0508E5\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n</svg>\n"
+    }
+  ],
+  "end": true
+}
