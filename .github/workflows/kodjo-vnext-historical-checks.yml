@@ -280,9 +280,8 @@ jobs:
           path: ${{ runner.temp }}/kodjo-real-run-16-recovery
           github-token: ${{ github.token }}
           run-id: 34606534268
-      - name: Certify historical run 16 recovery without gating the disposable slice
+      - name: Certify present historical run 16 recovery package
         if: steps.historical_recovery.outcome == 'success'
-        continue-on-error: true
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
         run: |
@@ -299,8 +298,8 @@ jobs:
         run: |
           if (-not (Test-Path -LiteralPath 'real-recovery-certification.json')) {
             $proof = [ordered]@{
-              status = 'FAIL'
-              reason = 'HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE_OR_CERTIFICATION_FAILED'
+              status = if ('${{ steps.historical_recovery.outcome }}' -eq 'success') { 'FAIL' } else { 'SKIP' }
+              reason = if ('${{ steps.historical_recovery.outcome }}' -eq 'success') { 'HISTORICAL_RECOVERY_CERTIFICATION_FAILED' } else { 'HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE' }
               claude_invoked = $false
               run_id = '${{ github.run_id }}'
               run_attempt = '${{ github.run_attempt }}'

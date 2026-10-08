@@ -1,0 +1,80 @@
+name: KODJO VNext existing minor findings resolution review
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - '.github/orchestration/vnext-targeted-review/review-minors.js'
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+concurrency:
+  group: kodjo-vnext-existing-findings-resolution
+  cancel-in-progress: false
+jobs:
+  qualify-exact-head:
+    if: github.head_ref == 'fix/vnext-minor-reserves-20261008'
+    runs-on: ubuntu-latest
+    timeout-minutes: 85
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Require successful Linux Windows and historical controls on the exact candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/kodjo/wait-vnext-audit-qualification.js
+  review-existing-findings:
+    needs: qualify-exact-head
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 35
+    env:
+      CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+    steps:
+      - uses: actions/checkout@v4
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+          path: _targeted-review-candidate/${{ github.run_id }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install the parser required by the targeted workflow test
+        run: python -m pip install PyYAML==6.0.3
+      - name: Independently review only existing IA-F05 to IA-F09
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha }}
+          EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+        run: |
+          $ErrorActionPreference='Stop'
+          if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'TARGETED_REVIEW_RUNNER_MISMATCH' }
+          $candidate=Join-Path $env:GITHUB_WORKSPACE '_targeted-review-candidate/${{ github.run_id }}'
+          $out=Join-Path $env:RUNNER_TEMP 'vnext-targeted-resolution-${{ github.run_id }}-${{ github.run_attempt }}'
+          if (Test-Path -LiteralPath $out) { throw 'TARGETED_REVIEW_EVIDENCE_EXISTS_RECOVER_BEFORE_RETRY' }
+          & node (Join-Path $candidate '.github/orchestration/vnext-targeted-review/review-minors.js') $candidate $out
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve genuine reviewer response and targeted finding disposition
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-vnext12-implementation-review-resolution-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vnext-targeted-resolution-${{ github.run_id }}-${{ github.run_attempt }}/**
+          retention-days: 14
+          if-no-files-found: error

@@ -47,6 +47,16 @@ test('read-only historical callee preserves exact legacy checks and excludes its
  const legacy=workflow('kodjo-v2-pilot-tests.yml'),callee=workflow('kodjo-vnext-historical-checks.yml');
  assert.deepEqual(Object.keys(callee.jobs),['classify','protocol','protocol-windows-preflight']);
  assert.deepEqual(callee.permissions,{contents:'read',actions:'read','pull-requests':'read'});
+ const legacyCertification=legacy.jobs['protocol-windows-preflight'].steps.find(s=>s.name==='Certify historical run 16 recovery without gating the disposable slice');
+ const certification=callee.jobs['protocol-windows-preflight'].steps.find(s=>s.name==='Certify present historical run 16 recovery package');
+ assert.equal(certification['continue-on-error'],undefined);assert.equal(legacyCertification['continue-on-error'],true);
+ assert.deepEqual({...certification,name:legacyCertification.name,'continue-on-error':true},legacyCertification);
+ // Only the proven IA-F09 diagnostic difference is exempted from byte-equivalent checks.
+ const steps=callee.jobs['protocol-windows-preflight'].steps;
+ steps[steps.indexOf(certification)]={...legacyCertification};
+ const proof=steps.find(s=>s.name==='Preserve real recovery certification'),oldProof=legacy.jobs['protocol-windows-preflight'].steps.find(s=>s.name===proof.name);
+ assert.match(proof.run,/HISTORICAL_RECOVERY_CERTIFICATION_FAILED/);assert.match(proof.run,/HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE/);
+ steps[steps.indexOf(proof)]={...oldProof};
  for(const name of Object.keys(callee.jobs))assert.deepEqual(callee.jobs[name],legacy.jobs[name]);
 });
 test('independent workflow parser rejects nested write permissions even for a skipped callee job',t=>{

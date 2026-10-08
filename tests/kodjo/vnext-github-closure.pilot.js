@@ -40,7 +40,7 @@ test('non-UI finalization covers exact required proofs and delivered targets',()
 });
 
 test('IA-004 closure accepts another certification campaign with exact destination',()=>{
- const x=fixture();x.c.campaign_id='12345678-1234-1234-1234-123456789abc';x.c.slice_id='VNEXT-TOLERANCE-QUALIF';x.c.delivery_branch='certification/vnext/'+x.c.campaign_id;x.c.base_branch='fix/vnext-audit-tolerance-20261008';
+ const x=fixture();x.c.campaign_id='12345678-1234-1234-1234-123456789abc';x.c.slice_id='VNEXT-TOLERANCE-QUALIF';x.c.delivery_branch='certification/vnext/'+x.c.campaign_id;x.c.base_branch='fix/vnext-audit-tolerance-20261008';x.c.certification_base_justification={base_branch:x.c.base_branch,campaign_id:x.c.campaign_id,reason:'Versioned disposable qualification against the exact repair branch'};
  x.issue.body=C.binding(x.c)+'Another disposable campaign';x.c.issue_body_sha256=V.sha256(x.issue.body);x.pr.head.ref=x.c.delivery_branch;x.pr.base.ref=x.c.base_branch;
  const f={...x.f,slice_id:x.c.slice_id};delete f.contract_hash;
  assert.equal(C.close(x.c,V.sealContract(f),x.github).slice_id,x.c.slice_id);
@@ -70,4 +70,22 @@ test('IA-F04 product closure refuses unsupported visual and accessibility attest
  const f={...x.f,slice_id:'PRE-3',[field]:true};delete f.contract_hash;
  assert.throws(()=>C.close(x.c,V.sealContract(f),x.github),/FINALIZATION_BINDING/);assert.deepEqual(x.writes,[]);
  }
+});
+
+test('IA-F06 alternate certification base requires campaign-bound versioned justification',()=>{
+ const x=fixture();assert.equal(C.validateConfig(x.c),x.c);
+ x.c.base_branch='main';assert.equal(C.validateConfig(x.c),x.c);
+ x.c.base_branch='fix/repair';
+ for(const justification of [undefined,{reason:'why'},{base_branch:x.c.base_branch,campaign_id:x.c.campaign_id,reason:' '},{base_branch:'other',campaign_id:x.c.campaign_id,reason:'why'}]) {
+  x.c.certification_base_justification=justification;assert.throws(()=>C.close(x.c,x.f,x.github),/BASE_JUSTIFICATION_REQUIRED/);assert.deepEqual(x.writes,[]);
+ }
+ x.c.certification_base_justification={base_branch:x.c.base_branch,campaign_id:x.c.campaign_id,reason:'Isolated repair certification'};x.pr.base.ref=x.c.base_branch;
+ assert.deepEqual(C.close(x.c,x.f,x.github).certification_base.justification,x.c.certification_base_justification);
+});
+test('IA-F07 omissions survive both durable publications and idempotent recovery',()=>{
+ const x=fixture(),coverage=require('./helpers/vnext-coverage-fixture').coverage();
+ const f={...x.f,review_coverage:coverage};delete f.contract_hash;const sealed=V.sealContract(f);
+ const result=C.close(x.c,sealed,x.github);assert.deepEqual(result.review_coverage,coverage);
+ for(const comment of x.comments) assert.deepEqual(JSON.parse(comment.body.split('```json\n')[1].split('\n```')[0]).review_coverage,coverage);
+ x.writes.length=0;assert.deepEqual(C.close(x.c,sealed,x.github),result);assert.deepEqual(x.writes,[]);
 });

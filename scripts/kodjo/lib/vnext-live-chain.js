@@ -509,7 +509,10 @@ function postAcceptanceEvidence(prepared, artifacts, cwd, github) {
   if(previousReport.verdict!=='APPROVE')V.fail('VNEXT_ACCEPTANCE_BASE_PLAN_NOT_APPROVED');
   const baseline=artifacts.planContract.delivery_preservation.baseline;
   if(baseline.acceptance.base_plan_hash!==base.planContract.contract_hash || baseline.acceptance.base_review_hash!==previousReport.contract_hash)V.fail('VNEXT_ACCEPTANCE_PRIOR_PLAN_REVIEW_MISMATCH');
-  const priorPlan=Adapter.renderCompatibilityPlan({application_head:base.planningEnvelope.application_head,plan_contract_hash:base.planContract.contract_hash},base.planContract,base.uiAtomicityContract,base.requirementRegistry,base.candidateManifest);
+  let priorPlan=Adapter.renderCompatibilityPlan({application_head:base.planningEnvelope.application_head,plan_contract_hash:base.planContract.contract_hash},base.planContract,base.uiAtomicityContract,base.requirementRegistry,base.candidateManifest,{context:base.reviewContext,report:previousReport});
+  // Historical approved blobs precede coverage transport. Match their exact
+  // projection; never rewrite an approved plan or call missing coverage complete.
+  if(Adapter.gitBlobOid(priorPlan)!==baseline.plan_blob_oid) priorPlan=Adapter.renderCompatibilityPlan({application_head:base.planningEnvelope.application_head,plan_contract_hash:base.planContract.contract_hash},base.planContract,base.uiAtomicityContract,base.requirementRegistry,base.candidateManifest);
   if(Adapter.gitBlobOid(priorPlan)!==baseline.plan_blob_oid)V.fail('VNEXT_ACCEPTANCE_PRIOR_PLAN_BYTES_MISMATCH');
   const baseRegister=Register.buildRegister({...e.base_produced.register_input,candidateHead:e.base_produced.producer_revision,lot:base.planningEnvelope.slice_id,phase:'REVIEW'});
   if(V.canonicalStringify(prepared.produced.register_input.previous)!==V.canonicalStringify(baseRegister))V.fail('VNEXT_ACCEPTANCE_PREVIOUS_REGISTER_MISMATCH');
