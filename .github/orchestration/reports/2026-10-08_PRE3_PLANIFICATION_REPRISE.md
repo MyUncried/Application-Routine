@@ -110,3 +110,10 @@ La reprise doit traiter uniquement la capacité de représentation/lecture/publi
 - Fichiers modifiés dans cette reprise : contrat d’écran 13 ; oracle-attendus.py ; attendus-phrases-276.json ; construire-paquet-vnext.cjs ; preuve-lecture-source-vnext.json ; ce rapport.
 - **État VNext : préparation source avant PLAN, BLOCKED**. PlanContract final non produit, revue indépendante non lancée, validation propriétaire non sollicitée. Suivi unique : https://github.com/MyUncried/Application-Routine/issues/340 ; aucun run PRE-3 à suivre.
 - Commit contenant ce rapport : commit de publication de cette section, identifié par l’historique Git et #340. L’état Git est vérifié propre après synchronisation de la publication ; aucun changement src/app/package/lock/scripts.
+
+
+### Seconde passe sur la source réellement committée
+
+Le reproducteur a été exécuté depuis **1dd10209d763fcd983aa0f1fcbb5c7f83418f7cc**, qui contient le constructeur et l’inventaire autoritatif. Le contrat d’écran a été lu par `git show` à ce SHA exact, et non depuis un fichier de travail. Résultat : schéma source et inventaire **PASS**, 270258821 octets, SHA-256 **4b958596fcf1dcf798da5dda1edf77303e7a90a6083cd163de004089098793d4**, contract_hash **c73f0c49a81e77d0da0f8a5001a9dc45beb165501aa3f24254309ae84a6e227a**. Le véritable `readGit` reproduit **ENOBUFS** sur ces octets : le problème est distinct de l’inventaire initial non committé. Le reçu versionné remplace le premier reçu provisoire, conservé dans le commit 1dd10209. Pour reproduire les empreintes exactement, checkout de **1dd10209** puis commande documentée ci-dessus ; le Git commit local conteneur peut différer à cause de son timestamp, mais le blob et les empreintes du paquet doivent être identiques.
+
+Oracle et vérificateur de planification recontrôlés depuis ce commit : PASS dans leur portée de préparation. Git propre et zéro diff applicatif/protocole avant publication de cette seconde preuve. L’opération reste **#340, BLOCKED avant PLAN** ; aucun identifiant de run PRE-3 ou de revue n’existe. La validation propriétaire d’un plan final reste future, pas demandée sur un draft.

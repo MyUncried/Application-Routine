@@ -2,21 +2,21 @@
   "scope": "REAL_PRE3_SOURCE_PREPARATION_ONLY",
   "applicationConformance": false,
   "independentReview": false,
-  "source_revision": "acc07c1f0c0c46e2e1e4798e5fec6d88579d1e58",
+  "source_revision": "1dd10209d763fcd983aa0f1fcbb5c7f83418f7cc",
   "node_count": 7369,
   "screen_nodes": 6725,
   "property_count": 471135,
   "realize_count": 243879,
   "frame_count": 41,
   "byte_length": 270258821,
-  "sha256": "417c0e450aadf48d8727c7420a969ac762b6938f5bd7e0580d5999cf843b6a09",
-  "contract_hash": "2ecf00cc2ba53c9d115aa66bd80279d5f39d1bcc83b87868a2596edc1a549667",
+  "sha256": "4b958596fcf1dcf798da5dda1edf77303e7a90a6083cd163de004089098793d4",
+  "contract_hash": "c73f0c49a81e77d0da0f8a5001a9dc45beb165501aa3f24254309ae84a6e227a",
   "packet_schema_validation": "PASS",
   "inventory_document_validation": "PASS",
   "image_reference_semantics": "Full frame PNG evidences IMAGE-painted nodes within that frame; it is not the original image asset or a distributable product demo.",
-  "git_blob": "0660868117b72afcc5497e92768828d905d22515",
-  "local_evidence_tree": "2edbb8acc5056120fefa128bfa12c3b9a5a4b40e",
-  "local_evidence_commit": "7c75e6df3b2e193005ac2f44a229b10442b321c3",
+  "git_blob": "e92d997e50ee77aa2fd1b77c3fbea1bf9db1ceb1",
+  "local_evidence_tree": "02a2de7f51fb6e55a45c6bfd24732c856e936460",
+  "local_evidence_commit": "ef76e299715367cd6c357fead4efd1a8d6fcb522",
   "operation": "vnext-live-chain.readGit(cwd, local_evidence_commit, figma-source.json)",
   "production_limit_bytes": 67108864,
   "result": "BLOCKED",
@@ -26,8 +26,14 @@
   },
   "git_observation_and_launch_completed": false,
   "notes": [
-    "The source packet and documentary inventory pass schema validation. Documentary content has not yet been committed at its stated source_revision; this is NOT a completed Launch checkpoint.",
-    "The actual production Git read fails before parsing or source fingerprint verification. The local evidence commit is an unreferenced container for the real generated source bytes, not a remote workflow or campaign.",
-    "No PlanContract or independent review has been declared complete."
-  ]
+    "The documentary source is read from its exact committed Git revision. Schema/inventory validation is distinct from the failing production Git byte observation.",
+    "The local evidence commit is an unreferenced container for actual source bytes, not a workflow, branch, certification or remote operation.",
+    "No PlanContract or independent review is declared complete."
+  ],
+  "reviewer_transport": {
+    "resolver_result": "claude",
+    "version_probe_error_code": "ENOENT",
+    "review_invoked": false,
+    "workflow_note": "kodjo-vnext12-disposable is fixed to PR269 / VNEXT-12-QUALIF; not a PRE-3 dispatcher"
+  }
 }
