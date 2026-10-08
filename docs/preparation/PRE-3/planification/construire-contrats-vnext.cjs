@@ -2,7 +2,7 @@
 // Canonical constructor inputs for PRE-3. No application implementation or review.
 const fs=require('node:fs'),path=require('node:path');
 const root=path.resolve(__dirname,'../../../..'),lib=n=>require(path.join(root,'scripts/kodjo/lib',n));
-const V=lib('vnext-contract'),F=lib('vnext-figma-source'),Source=lib('source-manifest'),Envelope=lib('planning-envelope'),Req=lib('requirement-registry'),Impact=lib('impact-graph'),Plan=lib('plan-contract'),Ui=lib('ui-atomicity-contract'),Chain=lib('vnext-live-chain');
+const Bundle=lib('vnext-file-bundle'),V=lib('vnext-contract'),F=lib('vnext-figma-source'),Source=lib('source-manifest'),Envelope=lib('planning-envelope'),Req=lib('requirement-registry'),Impact=lib('impact-graph'),Plan=lib('plan-contract'),Ui=lib('ui-atomicity-contract'),Chain=lib('vnext-live-chain');
 const BASE='1ddfb6d144552f578388257adc78db47ab5992c8',base=__dirname;
 const read=n=>JSON.parse(fs.readFileSync(path.join(base,n),'utf8'));
 const baselineCache=new Map();
@@ -11,11 +11,11 @@ const output=process.argv[2],launchFile=process.argv[3];
 if(!output||!path.isAbsolute(output)||!launchFile||!path.isAbsolute(launchFile))throw Error('Usage: output absolute directory, exact Launch file absolute path');
 fs.mkdirSync(output,{recursive:true});
 const stageLog=[];
-function write(name,value){const content=JSON.stringify(value);fs.writeFileSync(path.join(output,name+'.json'),content);stageLog.push({stage:name,result:'PASS',bytes:Buffer.byteLength(content),contract_hash:value.contract_hash||null});fs.writeFileSync(path.join(output,'construction-progress.json'),JSON.stringify(stageLog,null,2)+'\n');console.log(JSON.stringify(stageLog.at(-1)));}
+function write(name,value){let bytes=0;V.writeCanonical(value,c=>{bytes+=Buffer.byteLength(c);});const transport=Bundle.write(path.join(output,name+'.json'),value);stageLog.push({stage:name,result:'PASS',bytes,transport:transport.format,contract_hash:value.contract_hash||null});fs.writeFileSync(path.join(output,'construction-progress.json'),JSON.stringify(stageLog,null,2)+'\n');console.log(JSON.stringify(stageLog.at(-1)));}
 function append(n,values){for(const v of values)if(!n.includes(v))n.push(v);}
 function testPath(p){return /(?:^|\/)(?:__tests__|tests?)\//.test(p)||/\.(?:test|spec)\.[^.]+$/.test(p);}
 try{
- const checkpoint=JSON.parse(fs.readFileSync(launchFile,'utf8')),packet=F.snapshotPacket(checkpoint.frozen.content),sourceManifest=Source.build(checkpoint.sourceManifestInput);
+ const checkpoint=Bundle.read(launchFile),packet=F.snapshotPacket(checkpoint.frozen.content),sourceManifest=Source.build(checkpoint.sourceManifestInput);
  // Reobserve the committed bytes, not an uncommitted extraction or fixture.
  if(Chain.readGit(root,checkpoint.frozen.revision,checkpoint.frozen.path)!==checkpoint.frozen.content)throw Error('Frozen source byte drift');
  const planningInput={slice_id:'PRE-3',planning_mode:'INITIAL',baseline_head:BASE,product_head:sourceManifest.product_head,application_head:BASE,issue_id:'github_issue:MyUncried/Application-Routine#340',base_plan_hash:null,base_review_hash:null,causal_findings:[],created_from:{kind:'INITIAL_REQUEST',refs:['figma_launch:'+checkpoint.contract_hash]}};

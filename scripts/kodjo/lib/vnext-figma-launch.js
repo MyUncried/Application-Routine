@@ -4,7 +4,7 @@
 const V=require('./vnext-contract'),F=require('./vnext-figma-source'),Freeze=require('../freeze-vnext-figma');
 const Source=require('./source-manifest');
 const SCHEMA='kodjo.vnext.figma-launch.v1';
-function equal(a,b,code){if(V.canonicalStringify(a)!==V.canonicalStringify(b))V.fail(code);}
+function equal(a,b,code){if(V.canonicalHash(a)!==V.canonicalHash(b))V.fail(code);}
 function validateScope(scope){
  V.assertExactKeys(scope,['slice_id','launch_id','file_key','frames','documents'],[],'VNEXT_FIGMA_LAUNCH_SCOPE_INVALID');
  for(const k of ['slice_id','launch_id','file_key'])V.assertUnicodeExactText(scope[k],'VNEXT_FIGMA_LAUNCH_SCOPE_REQUIRED');
@@ -52,7 +52,8 @@ function requirements(packet,revision,packetPath,content){
  const unique=[...new Map(sources.map(s=>[V.canonicalStringify(s),s])).values()];
  const manifest=Source.build({slice_id:'SOURCE-PREPARATION',product_head:revision,sources:unique});
  const visual=manifest.sources.find(s=>s.source_kind==='FIGMA');
- const rows=visual.units.filter(u=>u.disposition==='REQUIREMENT_SOURCE').map(u=>({source_id:visual.source_id,unit_id:u.unit_id,kind:'UI',statement:'Presentation '+u.locator+' : '+V.canonicalStringify(packet.decisions.filter(d=>'ELEMENT:'+d.element_id===u.locator&&['REALIZE','PRESERVE'].includes(d.disposition))),priority:'MUST',status:'ACTIVE',rationale:'Observed Figma presentation, kept separate from documentary behavior.',related_unit_ids:[],conflict_unit_ids:[]}));
+ const look=F.lookup(packet);
+ const rows=visual.units.filter(u=>u.disposition==='REQUIREMENT_SOURCE').map(u=>({source_id:visual.source_id,unit_id:u.unit_id,kind:'UI',statement:'Presentation '+u.locator+' : '+V.canonicalStringify((look.byElement.get(u.locator.slice(8))||[]).filter(d=>['REALIZE','PRESERVE'].includes(d.disposition))),priority:'MUST',status:'ACTIVE',rationale:'Observed Figma presentation, kept separate from documentary behavior.',related_unit_ids:[],conflict_unit_ids:[]}));
  for(const state of packet.states.filter(s=>s.disposition==='REQUIRED')){
   const doc=packet.documents.find(d=>state.document_ids.includes(d.document_id)&&d.content.includes(state.expected));
   const source=manifest.sources.find(s=>s.authority==='FUNCTIONAL'&&s.locator===doc.path&&s.revision===doc.revision&&s.fingerprint===doc.fingerprint);

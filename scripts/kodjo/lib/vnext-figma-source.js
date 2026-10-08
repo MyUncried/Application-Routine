@@ -157,16 +157,21 @@ function validate(packet,{ready=false}={}){
   return packet;
 }
 function build(input){const packet=V.sealContract({schema_version:SCHEMA,...input});validate(packet);return packet;}
-function propertyUnit(packet,propertyId){
-  const d=packet.decisions.find(d=>d.property_id===propertyId);if(!d)V.fail('VNEXT_FIGMA_PROPERTY_UNKNOWN');
-  return {reference_hash:packet.contract_hash,...d,observed:packet.nodes.find(n=>n.id===d.element_id).properties[d.property]};
+function lookup(packet){
+ const nodes=new Map(packet.nodes.map(n=>[n.id,n])),decisions=new Map(),byElement=new Map();
+ for(const d of packet.decisions){decisions.set(d.property_id,d);const rows=byElement.get(d.element_id)||[];rows.push(d);byElement.set(d.element_id,rows);}
+ return {nodes,decisions,byElement};
 }
-function unitText(packet,locator){
+function propertyUnit(packet,propertyId,look=null){
+  const d=look?look.decisions.get(propertyId):packet.decisions.find(d=>d.property_id===propertyId);if(!d)V.fail('VNEXT_FIGMA_PROPERTY_UNKNOWN');
+  return {reference_hash:packet.contract_hash,...d,observed:(look?look.nodes.get(d.element_id):packet.nodes.find(n=>n.id===d.element_id)).properties[d.property]};
+}
+function unitText(packet,locator,look=null){
   if(locator==='FULL_FILE')V.fail('VNEXT_FIGMA_PROPERTY_UNIT_REQUIRED');
-  if(locator.startsWith('PROPERTY:'))return V.canonicalStringify(propertyUnit(packet,locator.slice(9)));
+  if(locator.startsWith('PROPERTY:'))return V.canonicalStringify(propertyUnit(packet,locator.slice(9),look));
   if(locator.startsWith('ELEMENT:')){
-    const node=packet.nodes.find(n=>n.id===locator.slice(8));if(!node)V.fail('VNEXT_FIGMA_ELEMENT_UNKNOWN');
-    return V.canonicalStringify({reference_hash:packet.contract_hash,node,decisions:packet.decisions.filter(d=>d.element_id===node.id)});
+    const node=look?look.nodes.get(locator.slice(8)):packet.nodes.find(n=>n.id===locator.slice(8));if(!node)V.fail('VNEXT_FIGMA_ELEMENT_UNKNOWN');
+    return V.canonicalStringify({reference_hash:packet.contract_hash,node,decisions:look?(look.byElement.get(node.id)||[]):packet.decisions.filter(d=>d.element_id===node.id)});
   }
   V.fail('VNEXT_FIGMA_UNIT_LOCATOR_INVALID');
 }
@@ -204,8 +209,9 @@ function snapshotPacket(content,{verifySerialization=true}={}){
 function sourceInput(packet,revision,packetPath,content=snapshotContent(packet)){
   validate(packet,{ready:true});V.assertSha40(revision,'VNEXT_FIGMA_FROZEN_REVISION_REQUIRED');
   eq(snapshotPacket(content),packet,'VNEXT_FIGMA_LAUNCH_FROZEN_BYTES_MISMATCH');
+  const look=lookup(packet);
   return {source_kind:'FIGMA',authority:'VISUAL',locator:'figma-snapshot:'+safePath(packetPath),revision,fingerprint:V.sha256(content),
-    units:packet.nodes.map(n=>({locator:'ELEMENT:'+n.id,fingerprint:V.sha256(unitText(packet,'ELEMENT:'+n.id)),disposition:packet.decisions.some(d=>d.element_id===n.id&&['REALIZE','PRESERVE'].includes(d.disposition))?'REQUIREMENT_SOURCE':'CONTEXT_ONLY'}))};
+    units:packet.nodes.map(n=>({locator:'ELEMENT:'+n.id,fingerprint:V.sha256(unitText(packet,'ELEMENT:'+n.id,look)),disposition:(look.byElement.get(n.id)||[]).some(d=>['REALIZE','PRESERVE'].includes(d.disposition))?'REQUIREMENT_SOURCE':'CONTEXT_ONLY'}))};
 }
 function observe(source,{cwd,readGit}){
   if(source.authority!=='VISUAL'||!source.locator.startsWith('figma-snapshot:'))V.fail('VNEXT_FIGMA_FROZEN_REFERENCE_REQUIRED');
@@ -215,8 +221,9 @@ function observe(source,{cwd,readGit}){
   const packet=snapshotPacket(content,{verifySerialization:false});
   validate(packet,{ready:true});
   eq(source.units.map(u=>u.locator).sort(),packet.nodes.map(n=>'ELEMENT:'+n.id).sort(),'VNEXT_FIGMA_SOURCE_UNIT_OMITTED');
+  const look=lookup(packet);
   for(const n of packet.nodes){const unit=source.units.find(u=>u.locator==='ELEMENT:'+n.id);
-    if(unit.disposition!==(packet.decisions.some(d=>d.element_id===n.id&&['REALIZE','PRESERVE'].includes(d.disposition))?'REQUIREMENT_SOURCE':'CONTEXT_ONLY'))V.fail('VNEXT_FIGMA_SOURCE_DISPOSITION_DRIFT');}
+    if(unit.disposition!==((look.byElement.get(n.id)||[]).some(d=>['REALIZE','PRESERVE'].includes(d.disposition))?'REQUIREMENT_SOURCE':'CONTEXT_ONLY'))V.fail('VNEXT_FIGMA_SOURCE_DISPOSITION_DRIFT');}
   for(const d of packet.documents){const bytes=readGit(cwd,d.revision,d.path);if(d.locator==='FULL_FILE'&&V.sha256(bytes)!==d.fingerprint)V.fail('VNEXT_FIGMA_DOCUMENT_STALE');
     if(d.locator!=='FULL_FILE'&&!bytes.includes(d.content))V.fail('VNEXT_FIGMA_DOCUMENT_STALE');}
   return {content,packet};
@@ -229,16 +236,18 @@ function validateRegistry(references,registry){
   }
 }
 function validateCoverage(references,criteria,registry){
+  const requirementById=new Map(registry.requirements.map(r=>[r.requirement_id,r]));
   const seen=new Set();for(const ref of references){
     validate(ref.packet,{ready:true});if(seen.has(ref.source_id))V.fail('VNEXT_FIGMA_REFERENCE_DUPLICATE');seen.add(ref.source_id);
+    const look=lookup(ref.packet);
     const expected=new Set(required(ref.packet).map(d=>d.property_id)),covered=new Set();
     for(const c of criteria)for(const a of c.assertions){
       if(a.figma_reference?.source_id!==ref.source_id)continue;
-      const binding=a.figma_reference,d=ref.packet.decisions.find(d=>d.property_id===binding.property_id);
+      const binding=a.figma_reference,d=look.decisions.get(binding.property_id);
       V.assertExactKeys(binding,['source_id','reference_hash','property_id','observable'],[],'VNEXT_FIGMA_ASSERTION_BINDING_INVALID');
       if(!d||!expected.has(d.property_id)||binding.reference_hash!==ref.packet.contract_hash)V.fail('VNEXT_FIGMA_ASSERTION_REFERENCE_MISMATCH');
       if(a.expected!==V.canonicalStringify(d.rule)||V.canonicalStringify(a.figma_reference.observable)!==V.canonicalStringify(d.rule))V.fail('VNEXT_FIGMA_ASSERTION_VAGUE');
-      const r=registry.requirements.find(r=>r.requirement_id===c.requirement_id);
+      const r=requirementById.get(c.requirement_id);
       if(!r||r.source_id!==ref.source_id||r.source.unit_locator!=='ELEMENT:'+d.element_id)V.fail('VNEXT_FIGMA_ASSERTION_SOURCE_MISMATCH');
       if(!a.proof_required.includes('VISUAL_COMPARE'))V.fail('VNEXT_FIGMA_ASSERTION_PROOF_REQUIRED');
       covered.add(d.property_id);
@@ -249,7 +258,7 @@ function validateCoverage(references,criteria,registry){
       if(!assertions.length)V.fail('VNEXT_FIGMA_DOCUMENT_STATE_UNCOVERED',state.state_id);
       for(const {c,a}of assertions){
         V.assertExactKeys(a.figma_document_state,['source_id','reference_hash','state_id'],['scenario_ids'],'VNEXT_FIGMA_DOCUMENT_BINDING_INVALID');
-        const r=registry.requirements.find(r=>r.requirement_id===c.requirement_id),docs=ref.packet.documents.filter(d=>state.document_ids.includes(d.document_id));
+        const r=requirementById.get(c.requirement_id),docs=ref.packet.documents.filter(d=>state.document_ids.includes(d.document_id));
         if(a.figma_document_state.reference_hash!==ref.packet.contract_hash||a.expected!==state.expected||!r||r.source.authority!=='FUNCTIONAL'
             ||!docs.some(d=>d.path===r.source.locator&&d.revision===r.source.revision))V.fail('VNEXT_FIGMA_DOCUMENT_ASSERTION_MISMATCH');
         if(!a.proof_required.some(p=>['FUNCTIONAL_TEST','STATIC_ANALYSIS'].includes(p)))V.fail('VNEXT_FIGMA_DOCUMENT_PROOF_REQUIRED');
@@ -319,16 +328,19 @@ function unpack(transport){
 function packUi(ui){return {...ui,figma_references:ui.figma_references.map(r=>({...r,packet:pack(r.packet)}))};}
 function unpackUi(ui){return {...ui,figma_references:ui.figma_references.map(r=>({...r,packet:unpack(r.packet)}))};}
 function consume(planBody,directory,stage){
-  if(!['PLANNER','IMPLEMENTER','IMPLEMENTATION_REVIEWER'].includes(stage))V.fail('VNEXT_FIGMA_CONSUMER_STAGE_INVALID');
   const parsed=require('./machine-block').parse(planBody,'KODJO_VNEXT_UI_ATOMICITY_JSON',{code:'VNEXT_FIGMA_TRANSPORT_REQUIRED'});
-  if(!Array.isArray(parsed.figma_references))V.fail('VNEXT_FIGMA_TRANSPORT_REQUIRED');const ui=unpackUi(parsed),references=ui.figma_references;
+  const registry=require('./machine-block').parse(planBody,'KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON',{code:'VNEXT_FIGMA_REGISTRY_TRANSPORT_REQUIRED'});
+  return consumeArtifacts(unpackUi(parsed),registry,directory,stage,V.sha256(planBody));
+}
+function consumeArtifacts(ui,registry,directory,stage,planHash=null){
+  if(!['PLANNER','IMPLEMENTER','IMPLEMENTATION_REVIEWER'].includes(stage))V.fail('VNEXT_FIGMA_CONSUMER_STAGE_INVALID');
+  const references=ui.figma_references;
   if(!Array.isArray(references)||!references.length)V.fail('VNEXT_FIGMA_TRANSPORT_REQUIRED');
   V.verifyContractHash(ui,'VNEXT_FIGMA_UI_TRANSPORT_HASH_INVALID');
-  const registry=require('./machine-block').parse(planBody,'KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON',{code:'VNEXT_FIGMA_REGISTRY_TRANSPORT_REQUIRED'});
   V.verifyContractHash(registry,'VNEXT_FIGMA_REGISTRY_TRANSPORT_HASH_INVALID');
   validateCoverage(references,ui.criteria,registry);
   const base=fs.realpathSync(directory),observed=[];
-  for(const ref of references){validate(ref.packet,{ready:true});const assets=[];
+  for(const ref of references){validate(ref.packet,{ready:true});const assets=[],look=lookup(ref.packet);
     for(const r of ref.packet.resources){const target=path.resolve(base,safePath(r.path));
       // Reject existing symlink parents before writing even within a disposable view.
       let parent=path.dirname(target);while(parent!==base){if(fs.existsSync(parent)&&fs.lstatSync(parent).isSymbolicLink())V.fail('VNEXT_FIGMA_RESOURCE_SYMLINK');parent=path.dirname(parent);}
@@ -336,8 +348,8 @@ function consume(planBody,directory,stage){
       if(fs.existsSync(target)){if(!fs.readFileSync(target).equals(checkResource(r)))V.fail('VNEXT_FIGMA_RESOURCE_DESTINATION_CHANGED');}
       else{fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,checkResource(r),{flag:'wx'});}
       if(!fs.readFileSync(target).equals(checkResource(r)))V.fail('VNEXT_FIGMA_RESOURCE_MATERIALIZATION_MISMATCH');assets.push({resource_id:r.resource_id,path:target,sha256:r.sha256});}
-    observed.push({source_id:ref.source_id,reference_hash:ref.packet.contract_hash,documentary_states:ref.packet.states,properties:required(ref.packet).map(d=>propertyUnit(ref.packet,d.property_id)),assets});
+    observed.push({source_id:ref.source_id,reference_hash:ref.packet.contract_hash,documentary_states:ref.packet.states,properties:required(ref.packet).map(d=>propertyUnit(ref.packet,d.property_id,look)),assets});
   }
-  return V.sealContract({schema_version:'kodjo.vnext.figma-consumer-observation.v1',stage,plan_sha256:V.sha256(planBody),references:observed,semantic_use:'NOT_ATTESTED_BY_BYTE_OBSERVATION'});
+  return V.sealContract({schema_version:'kodjo.vnext.figma-consumer-observation.v1',stage,plan_sha256:planHash||V.canonicalHash({ui_contract_hash:ui.contract_hash,requirement_registry_hash:registry.contract_hash}),references:observed,semantic_use:'NOT_ATTESTED_BY_BYTE_OBSERVATION'});
 }
-module.exports={SCHEMA,id,safePath,build,validate,sourceInput,observe,unitText,propertyUnit,required,validateRegistry,validateCoverage,assertCurrent,verifyMeasurements,pack,unpack,packUi,unpackUi,consume,snapshotContent,snapshotPacket};
+module.exports={lookup,SCHEMA,id,safePath,build,validate,sourceInput,observe,unitText,propertyUnit,required,validateRegistry,validateCoverage,assertCurrent,verifyMeasurements,pack,unpack,packUi,unpackUi,consume,consumeArtifacts,snapshotContent,snapshotPacket};
