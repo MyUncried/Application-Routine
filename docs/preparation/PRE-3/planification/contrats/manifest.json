@@ -1,0 +1,349 @@
+{
+  "schema": "kodjo.pre3.artifact-storage.v1",
+  "status": "BLOCKED_BEFORE_REVIEW",
+  "source_revision": "3019c5f8c4a38efb83865635e0a8d67d48a5b5ab",
+  "application_baseline": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "entries": [
+    {
+      "name": "planning-envelope",
+      "encoding": "gzip-base64-parts",
+      "parts": [
+        {
+          "file": "planning-envelope.part-001.gz.b64",
+          "sha256": "d2064c878246274308819e45df30789b657af58de1c0556cba1a817ecab88dbe"
+        }
+      ],
+      "byte_length": 1450145,
+      "sha256": "84f8653aa74f34434b0e15bccb9c7af2d89be31fef13a5670d583855b077a457"
+    },
+    {
+      "name": "requirement-registry",
+      "encoding": "gzip-base64-parts",
+      "parts": [
+        {
+          "file": "requirement-registry.part-001.gz.b64",
+          "sha256": "9a2fb7187c4fe0c41ab6f225e7e091214bb500790a0bfdbf0468694a2647f3b6"
+        },
+        {
+          "file": "requirement-registry.part-002.gz.b64",
+          "sha256": "47f96895bbd29e77d96f4cd7d65774614b9ba9caca137b8f3d99bc8385db03e6"
+        },
+        {
+          "file": "requirement-registry.part-003.gz.b64",
+          "sha256": "887a3582ebe7a18900edeb78c0a19449311433e435e3c7e6e67316cf3545c259"
+        },
+        {
+          "file": "requirement-registry.part-004.gz.b64",
+          "sha256": "c1ba4770232cea2311c7a7dccde27df981e62d7828c67fc6315d54c5dd763b41"
+        },
+        {
+          "file": "requirement-registry.part-005.gz.b64",
+          "sha256": "01b272be8c1a0124f39b0a3c078d7a1a31011bb169bda968bc102cc675e7a96c"
+        },
+        {
+          "file": "requirement-registry.part-006.gz.b64",
+          "sha256": "9afda01c79045f67fe3b706a8c5c21780b04bbf79ff451804ebc99b76eda1885"
+        },
+        {
+          "file": "requirement-registry.part-007.gz.b64",
+          "sha256": "3214cef9f0e02998bd92a8859696720163e7dd42b8b80c3d158bc3a396914618"
+        },
+        {
+          "file": "requirement-registry.part-008.gz.b64",
+          "sha256": "6d206f783bc790d8ea9413d61f0adfcc2f400195607440366f3e11dbd8648420"
+        },
+        {
+          "file": "requirement-registry.part-009.gz.b64",
+          "sha256": "8a8648e3a66f872f42bf8672e39e190bba88249d505324851b7adc639ee160ca"
+        },
+        {
+          "file": "requirement-registry.part-010.gz.b64",
+          "sha256": "80a4dc32e3b3bdcecc249f21cdcd4c12630578fd93920c97feec32cbb959ebc4"
+        }
+      ],
+      "byte_length": 117534334,
+      "sha256": "fb5b566466ff14830c2d88c05c47685b1a93ca91e6d0a55b565613605a70dc62"
+    },
+    {
+      "name": "candidate-manifest",
+      "encoding": "gzip-base64-parts",
+      "parts": [
+        {
+          "file": "candidate-manifest.part-001.gz.b64",
+          "sha256": "9203d2c25652ce9d10e7ff38515c6737bb6e485af2df3a307620a70610f09a73"
+        }
+      ],
+      "byte_length": 651136,
+      "sha256": "83046e21b8ac4c7dfe319886317f89923c5a78feef9911c0d0df9ac2e20e0446"
+    },
+    {
+      "name": "direct-import-scan",
+      "encoding": "gzip-base64-parts",
+      "parts": [
+        {
+          "file": "direct-import-scan.part-001.gz.b64",
+          "sha256": "740d6e58745a42f975e51a4ade90e5ee4d4ba0eddbcb3ddcff21657bb4abd423"
+        }
+      ],
+      "byte_length": 28928,
+      "sha256": "426eb2b4706a0364671a462da60c9960bf9bdfc4d22e706de4d89999f740eb89"
+    },
+    {
+      "name": "impact-graph",
+      "encoding": "gzip-base64-parts",
+      "parts": [
+        {
+          "file": "impact-graph.part-001.gz.b64",
+          "sha256": "5d26a0abe3b94da4857e2f72e2d3c3838277a4afd3160ff43f1406af6073df24"
+        }
+      ],
+      "byte_length": 16846085,
+      "sha256": "18fc7a5784a159db2cb8128b95df1a5e7b4ffda67d3a5b9a8440b510ab0224fa"
+    },
+    {
+      "name": "plan-contract",
+      "encoding": "gzip-base64-parts",
+      "parts": [
+        {
+          "file": "plan-contract.part-001.gz.b64",
+          "sha256": "d0e00d4901a19bcfb41f96908f1ccc791ddd42e01e44b94cd5d2f474a11215b7"
+        },
+        {
+          "file": "plan-contract.part-002.gz.b64",
+          "sha256": "2f5525aa21b6bda203a54382ad2d993e017a629abcdae1d1257bec1f5a91ecf7"
+        },
+        {
+          "file": "plan-contract.part-003.gz.b64",
+          "sha256": "9ba70f6c2771e55f4e9608bd83ec00deffd313a3ccecbadc4ef5ecf5f5c18ea0"
+        },
+        {
+          "file": "plan-contract.part-004.gz.b64",
+          "sha256": "1043f29f453753eae0dea0dd6deaa641da5e988a8e9a54877a5cc0604b09654c"
+        }
+      ],
+      "byte_length": 31332498,
+      "sha256": "bff4180cb501a1758c242b32cc665e9d0effcab5145f1fffea53f1033365558b"
+    },
+    {
+      "name": "ui-atomicity-contract",
+      "encoding": "gzip-base64-parts",
+      "parts": [
+        {
+          "file": "ui-atomicity-contract.part-001.gz.b64",
+          "sha256": "feaa53a8b9b8fc009962f5b5aefa90eb50bf35f720ed851c9a8a36cf1a0cd6a8"
+        },
+        {
+          "file": "ui-atomicity-contract.part-002.gz.b64",
+          "sha256": "0fd182f533f3f881c9af78e1ac402ca0fea721e2c61786e89f15c501d56a5bd2"
+        },
+        {
+          "file": "ui-atomicity-contract.part-003.gz.b64",
+          "sha256": "1c0cbe31c262effc3c45cc59ebd56f6eba16a26faf8026f4e85b40f513e69d3d"
+        },
+        {
+          "file": "ui-atomicity-contract.part-004.gz.b64",
+          "sha256": "d5c97a3a60c72c3263ddf3bc1dac5fa982f668a6b3aa14c7046c5a6059b3a8e4"
+        },
+        {
+          "file": "ui-atomicity-contract.part-005.gz.b64",
+          "sha256": "8d8ab804449869985a4e52471615235107a44a73ca9f25f4ea599d7454f32b4c"
+        },
+        {
+          "file": "ui-atomicity-contract.part-006.gz.b64",
+          "sha256": "3c18a37973312591a382ba1d5cb6bd8d758f487612e60082fd57ab1f4d6fc66d"
+        },
+        {
+          "file": "ui-atomicity-contract.part-007.gz.b64",
+          "sha256": "38a42af9b77f44d0569b7c0492726cbd93f5058e9c4891034e9ebf9514ee78d1"
+        },
+        {
+          "file": "ui-atomicity-contract.part-008.gz.b64",
+          "sha256": "e11888a0db2aacf5114f9549e4e71f5a3ff103dd176eb2eeb582f7f06965e285"
+        },
+        {
+          "file": "ui-atomicity-contract.part-009.gz.b64",
+          "sha256": "d70d7e976347a6e3fed68b96cdb1250b8355bfab75c394fd7952763d526cd034"
+        },
+        {
+          "file": "ui-atomicity-contract.part-010.gz.b64",
+          "sha256": "cfa799f705f625cc0a086013bb6dbd41c7ade4da425acf1cac0fa08860740b84"
+        },
+        {
+          "file": "ui-atomicity-contract.part-011.gz.b64",
+          "sha256": "acdb0dfdf207675443a55184b555105460e9333261b112f60f1e4e4ceabda1dd"
+        },
+        {
+          "file": "ui-atomicity-contract.part-012.gz.b64",
+          "sha256": "9c3ac21ec79460c61d74bdc50cbe90e180f0f747bc669b2a85c342772bca6210"
+        },
+        {
+          "file": "ui-atomicity-contract.part-013.gz.b64",
+          "sha256": "b6a29aab1648ad8b24146937427e9f763144d6c9c41e7da8a1a08defc19acd85"
+        },
+        {
+          "file": "ui-atomicity-contract.part-014.gz.b64",
+          "sha256": "ab26036e6917302bdb49a162d84825fbb936ef58081656bf284b5702d440c86a"
+        },
+        {
+          "file": "ui-atomicity-contract.part-015.gz.b64",
+          "sha256": "bd031e8d818a157ae6f52e9dc324c1bc470a2e2e00b00bf85c5d5e571b4364a8"
+        },
+        {
+          "file": "ui-atomicity-contract.part-016.gz.b64",
+          "sha256": "d0cd36e6752bc813573ed0ce053f74cd9ffc75ef6881a2e951c3aa0f4ab6fbc9"
+        },
+        {
+          "file": "ui-atomicity-contract.part-017.gz.b64",
+          "sha256": "6c66b91679ceb7e1ad9d17f4076a11d7fe64339d68499b003bd90a2d4eaa8095"
+        },
+        {
+          "file": "ui-atomicity-contract.part-018.gz.b64",
+          "sha256": "0b0fd92639a6d5b5cab68590eb659e34cc38c6be434110017c2cd1c5b7a17da3"
+        },
+        {
+          "file": "ui-atomicity-contract.part-019.gz.b64",
+          "sha256": "fe27fafcc5e56197a1de77249120d2894855c61368cc2fc30e41bf23dc3d9ec4"
+        },
+        {
+          "file": "ui-atomicity-contract.part-020.gz.b64",
+          "sha256": "7252c4e70181d0d2280866a8eb5343d3ecdb19342116eb6d1a2ea3326b6cb429"
+        },
+        {
+          "file": "ui-atomicity-contract.part-021.gz.b64",
+          "sha256": "65dc352b80c7d2f5a71c12c0e781c96f24427202f9ac62c486a5bd8c6ab4ce1e"
+        },
+        {
+          "file": "ui-atomicity-contract.part-022.gz.b64",
+          "sha256": "c415fa7b44ff8ec651d1321a05af411659569ca7da04cc2b670409ec2a1a231e"
+        },
+        {
+          "file": "ui-atomicity-contract.part-023.gz.b64",
+          "sha256": "71e5bf8fe64748ddfc74c6241042f38e72a06cffb32db96af0946789a4e08f11"
+        },
+        {
+          "file": "ui-atomicity-contract.part-024.gz.b64",
+          "sha256": "19a13f9283a4382bbb48b4da6a866ac86a1c5e9e06cf710c0a580674fae9792d"
+        },
+        {
+          "file": "ui-atomicity-contract.part-025.gz.b64",
+          "sha256": "9e030aa7c6d9de761afb24276d560d929bf6bc674fdb9247d4034a378deae44b"
+        },
+        {
+          "file": "ui-atomicity-contract.part-026.gz.b64",
+          "sha256": "b91fdf07bac4d1c73bf3c19c0e7147f034293e4e329bbeda543aac4823922cb0"
+        },
+        {
+          "file": "ui-atomicity-contract.part-027.gz.b64",
+          "sha256": "4b0bd586a8e1fc808c7a953751108fc6361c8d270c437974dc3870b0f086fab5"
+        },
+        {
+          "file": "ui-atomicity-contract.part-028.gz.b64",
+          "sha256": "adf708c8dd0e7407782512a4322d84d073f2fbf60c8adeb10a3564173150b2b4"
+        },
+        {
+          "file": "ui-atomicity-contract.part-029.gz.b64",
+          "sha256": "7191d7ac2e9c0a879d92f7c098a59a99c7bdfc35bb599e9bb058327ab36e69be"
+        },
+        {
+          "file": "ui-atomicity-contract.part-030.gz.b64",
+          "sha256": "0d364a02a403f91ccd88aaed4458e4d2ecdb7430d63071659539fb97a34e5823"
+        },
+        {
+          "file": "ui-atomicity-contract.part-031.gz.b64",
+          "sha256": "8ee79fc155e938d0f873d55f12010a9b7fecf5fbb3f794f3671cf32d699ca34b"
+        },
+        {
+          "file": "ui-atomicity-contract.part-032.gz.b64",
+          "sha256": "a206ade4d03dc3500d57503d63377f4a1315f0d72bd7a79d276ec96acc2c62be"
+        },
+        {
+          "file": "ui-atomicity-contract.part-033.gz.b64",
+          "sha256": "aeddd528dc401bb72c22905c229db09198d3c57e76ba56cbcd7467b14d15a27d"
+        },
+        {
+          "file": "ui-atomicity-contract.part-034.gz.b64",
+          "sha256": "09dfc44c974774ebe95758dfa9cddb35c24cfd53e8ca0d0e3a94de1698a822ca"
+        },
+        {
+          "file": "ui-atomicity-contract.part-035.gz.b64",
+          "sha256": "a36d10c5f492aa28d13000d9143e548f3c5478ef8971fd478fa2386c42a1380a"
+        },
+        {
+          "file": "ui-atomicity-contract.part-036.gz.b64",
+          "sha256": "f27b46d7a26d5124b8d50930b1338cc6ad7b258ab31286077ebde59fe9097fbc"
+        },
+        {
+          "file": "ui-atomicity-contract.part-037.gz.b64",
+          "sha256": "29239acf6ae9d2bbea5b8954e71340cf17a7d12de8b993dd5ef3587aa5f4b7f6"
+        },
+        {
+          "file": "ui-atomicity-contract.part-038.gz.b64",
+          "sha256": "e3d138827eda9547dc3736ff5c36a323643b2a0f258473009248862e8d4cc6aa"
+        },
+        {
+          "file": "ui-atomicity-contract.part-039.gz.b64",
+          "sha256": "41b5dc9196f5a72b0af55e8018abf85f989b857c2d98e94b301f6b03cadc1724"
+        },
+        {
+          "file": "ui-atomicity-contract.part-040.gz.b64",
+          "sha256": "a9de7ae7be20f1812647facb188c85c3969e80f61f06de5eb0c45bb70169408b"
+        },
+        {
+          "file": "ui-atomicity-contract.part-041.gz.b64",
+          "sha256": "4a90ada367d08a39d208f23b06000d195497aa785fa7c0343a3fc02e616d5f8d"
+        },
+        {
+          "file": "ui-atomicity-contract.part-042.gz.b64",
+          "sha256": "ab8ea4f20f22e4481d0ab28f1e3e6109a9f61f663a4a4c01be82fe3dd4c5089f"
+        },
+        {
+          "file": "ui-atomicity-contract.part-043.gz.b64",
+          "sha256": "65ef72ecae46b4fcb31e59c1a327c3bf2bcc6da22e0db1b74c98f12522569681"
+        },
+        {
+          "file": "ui-atomicity-contract.part-044.gz.b64",
+          "sha256": "eb44b56b95ebfe3c1df6a103d21c55abae67a36ea3656fd7353f52056628b9ed"
+        },
+        {
+          "file": "ui-atomicity-contract.part-045.gz.b64",
+          "sha256": "7ada576adb95592aab12b907341aa53068b81dd7a818d6ae08c15520d5327617"
+        }
+      ],
+      "byte_length": 493901942,
+      "sha256": "445bd4ab5ec51342ff7b7ce3fffe4659b726750017116b93f33893b3f2c3be25"
+    },
+    {
+      "name": "tracabilite-canonique",
+      "encoding": "gzip-base64-parts",
+      "parts": [
+        {
+          "file": "tracabilite-canonique.part-001.gz.b64",
+          "sha256": "e7f9e40ed090ab8dc4288918025d626ac01d026fc41c2a3296f1749727be9986"
+        },
+        {
+          "file": "tracabilite-canonique.part-002.gz.b64",
+          "sha256": "01b5c095acd6fadfbf3ceab917dbc5dfc9d8e0098ca3bd69f991852b860db031"
+        },
+        {
+          "file": "tracabilite-canonique.part-003.gz.b64",
+          "sha256": "b0042e16d6655dd3e91be092696623016bf94c8bc2e17c558bf3fac89feaeb57"
+        },
+        {
+          "file": "tracabilite-canonique.part-004.gz.b64",
+          "sha256": "216675234857c0954aa6bc9957b169be1b6805f824c0c5471733d5893bfca653"
+        },
+        {
+          "file": "tracabilite-canonique.part-005.gz.b64",
+          "sha256": "d5fbe6d0cec88950197f5c0f05fb7aef672955c5aed9b06839aa05615162cda3"
+        },
+        {
+          "file": "tracabilite-canonique.part-006.gz.b64",
+          "sha256": "96814fe7a60d5886aca08ee79c08eab24746882be1935adf7b3fbc671b3c74d4"
+        }
+      ],
+      "byte_length": 8623212,
+      "sha256": "5315560eea24785f1119e9b441cd5fd27c3cebac6f8dc7f884c2e3f4514d7827"
+    }
+  ],
+  "blocker": "../preuve-blocage-produced.json"
+}

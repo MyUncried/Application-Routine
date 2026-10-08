@@ -1,0 +1,62 @@
+[
+  {
+    "stage": "planning-envelope",
+    "result": "PASS",
+    "bytes": 1450145,
+    "contract_hash": "ccd55a65da1f71346fb883267294caf3dd8ed133e0bee2415a8e017191d066cd"
+  },
+  {
+    "stage": "requirement-registry",
+    "result": "PASS",
+    "bytes": 117534334,
+    "contract_hash": "efa418ec5b9c9d32b2254e805245f8d0c9ad63777240c4a09a3093a2934f8584"
+  },
+  {
+    "stage": "candidate-manifest",
+    "result": "PASS",
+    "bytes": 651136,
+    "contract_hash": "180f99336682309f06796a2174218cc3ceba559aeedb60eab5e225b16f155ef7"
+  },
+  {
+    "stage": "direct-import-scan",
+    "result": "PASS",
+    "bytes": 28928,
+    "contract_hash": "11cfcd026d525fef27e3b4c4e53e669b377ebb1ab027fb3ffc0b583eca0c0e8a"
+  },
+  {
+    "stage": "impact-graph",
+    "result": "PASS",
+    "bytes": 16846085,
+    "contract_hash": "06cca9048e8d9dcb992815f6c042ea047cde227603406cb78be8c38e6bffebfe"
+  },
+  {
+    "stage": "plan-contract",
+    "result": "PASS",
+    "bytes": 31332498,
+    "contract_hash": "5145cbd30860f9ddef041ed33b97a71697517a3ef248229112bb0f5f7b92006f"
+  },
+  {
+    "stage": "ui-input",
+    "result": "PASS",
+    "bytes": 168687609,
+    "contract_hash": null
+  },
+  {
+    "stage": "ui-atomicity-contract",
+    "result": "PASS",
+    "bytes": 493901942,
+    "contract_hash": "d4aa55ad8a0752ae4083a33a96d5d006491258ab1dee5bf2856610ec9399e4c9"
+  },
+  {
+    "stage": "recipe",
+    "result": "PASS",
+    "bytes": 448135542,
+    "contract_hash": null
+  },
+  {
+    "stage": "tracabilite-canonique",
+    "result": "PASS",
+    "bytes": 8623212,
+    "contract_hash": null
+  }
+]

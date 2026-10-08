@@ -2,7 +2,7 @@
 
 Issue : #340. Baseline exclusive : `1ddfb6d144552f578388257adc78db47ab5992c8`.
 Étape : REQUIREMENTS / IMPACT → préparation PLAN. Statut : travail non approuvé ; aucune autorisation d’implémentation.
-Ce document prépare les entrées du contrat JSON VNext. Il n’est pas une projection d’un PlanContract déjà produit et ne doit pas être utilisé comme plan approuvé.
+Ce document conserve les entrées du contrat JSON VNext. Le PlanContract effectivement produit et sa projection sont référencés dans plancontract-publie.md. Aucune approbation n’est acquise.
 
 ## 1. Résultat et frontières
 

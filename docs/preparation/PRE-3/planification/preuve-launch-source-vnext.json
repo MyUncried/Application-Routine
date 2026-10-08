@@ -1,10 +1,10 @@
 {
   "stage": "SOURCE_PREPARATION",
   "launch_id": "PRE3-EXTRACTION-333-REUSE",
-  "source_revision": "4e41c46f6b66687d48ff1db7b1a0182f08c55f4a",
-  "document_revision": "a221ab963169bc99a9c3261e1830c834ce86f956",
-  "contract_hash": "da65ec7030c6836ef98202c11fe5af2700fa4393b9f12bdde7d071416073e174",
-  "reference_hash": "4373280fd2b309bc9f150ea0b4f1462df0c19a370dd03e0c15142c061d83fcf9",
+  "source_revision": "3019c5f8c4a38efb83865635e0a8d67d48a5b5ab",
+  "document_revision": "2f509f942e6c3f051dced34482e4a951880e0120",
+  "contract_hash": "a7a20032c1b1e2bf4597c303f23f2aa60e4447cd900b168e0233fdac6aefe2f0",
+  "reference_hash": "5822f240c81b319c21d79751a36f3329f78681f121a9299eb5fad771b7f4d2f0",
   "stages": [
     "CAPTURE",
     "RECONCILE",
@@ -15,7 +15,7 @@
   "requirements": 6384,
   "states": 95,
   "frames": 41,
-  "bytes": 121634124,
+  "bytes": 121634636,
   "result": "PASS",
   "applicationConformance": false,
   "planContractCompleted": false,
