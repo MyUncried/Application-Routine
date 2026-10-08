@@ -1,6 +1,6 @@
 # PRE-3 — Périmètre détaillé et matrice de couverture
 
-Date : 8 octobre 2026. Version de préparation : 3 — périmètre validé, préparation GitHub et import de médias inclus.
+Date : 8 octobre 2026. Version de préparation : 4 — rapprochement avec main et Figma actuels, import de médias inclus.
 **Objet : traduire le périmètre validé par Hermann en une définition exploitable pour la planification.**
 Ce document n’est ni un plan technique approuvé, ni une autorisation de développement.
 
@@ -14,7 +14,7 @@ L’interface des surfaces listées ici fait partie du résultat. Une validation
 
 ## 2. Références et préséance
 
-Référence Git vérifiée : MyUncried/Application-Routine, commit `3b325bf1f47b9ac427da2378a604e44fd66af9e5`.
+Référence Git vérifiée : MyUncried/Application-Routine, commit `17d9774a31429bc2bee4eb834e4ed1e9aafa68ec`.
 Référence Figma consultée : fichier Application-Routine, page Prototype MVP. Figma reste modifiable : ses propriétés devront être figées dans le dossier de préparation du plan.
 
 Ordre d’autorité :
@@ -25,23 +25,23 @@ Ordre d’autorité :
 
 Les exemples numériques et couleurs de données dans Figma ne deviennent pas des règles métier. Les 276 cas v15 servent de référence rédactionnelle ; leurs montants ne remplacent pas le calcul métier.
 
-**Amendement explicite du 08/10 :** Hermann inclut l’import de médias au MVP, avant le moteur d’exécution. Cette décision remplace l’exclusion écrite dans CE-T03-04 §2 (« Ajout/import média toujours hors périmètre MVP. ») et §19 (« aucun import média ajouté »). La PR de préparation propose l’amendement correspondant de CE-T03-04 et du modèle documentaire, avec la décision D-327 ; ces modifications ne sont pas encore fusionnées. Le plan doit reprendre les règles médias déjà documentées et identifier précisément les formats, sources d’import, ordre, suppression et conservation ; aucune règle manquante ne sera inventée.
+**Amendement explicite du 08/10 :** Hermann inclut l’import de médias au MVP, avant le moteur d’exécution. Cette décision remplace l’exclusion écrite dans CE-T03-04 §2 (« Ajout/import média toujours hors périmètre MVP. ») et §19 (« aucun import média ajouté »). La PR de préparation propose l’amendement correspondant de CE-T03-04 et des documents transverses, avec la décision D-333 ; ces modifications ne sont pas encore fusionnées. D-327 désigne désormais la grille DSF générale dans main : seul l’identifiant de la décision médias de l’ancienne préparation a été réconcilié, sans changer la décision propriétaire. Le plan doit reprendre les règles médias déjà documentées et identifier précisément les formats, sources d’import, ordre, suppression et conservation ; aucune règle manquante ne sera inventée.
 
 Sources épinglées :
 
 | Source | Blob Git | Lien |
 |---|---|---|
-| 04 – Modèle fonctionnel.md | `4241690770f78be9d9446c64acd6221257726c49` | [Lire](https://github.com/MyUncried/Application-Routine/blob/3b325bf1f47b9ac427da2378a604e44fd66af9e5/docs/Specifications-fonctionnelles/04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md) |
-| 06 – Ecrans et navigation de la V1.md | `d10d5b8f4225ea012b4378baa43826a4d6516260` | [Lire](https://github.com/MyUncried/Application-Routine/blob/3b325bf1f47b9ac427da2378a604e44fd66af9e5/docs/Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md) |
-| 08 – Conception fonctionnelle détaillée.md | `85cdd8039e3817ae447e2ae5da3b72ebc1cd02cf` | [Lire](https://github.com/MyUncried/Application-Routine/blob/3b325bf1f47b9ac427da2378a604e44fd66af9e5/docs/Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md) |
-| 09 – Modèle de données fonctionnel.md | `05d3442e4449fb2b9d30bfda0e8ad9558fffb2f4` | [Lire](https://github.com/MyUncried/Application-Routine/blob/3b325bf1f47b9ac427da2378a604e44fd66af9e5/docs/Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md) |
-| 13 – Contrats d’écran.md | `64b94341e65dfa13f6062dc3b4f8c0e18e4a0a23` | [Lire](https://github.com/MyUncried/Application-Routine/blob/3b325bf1f47b9ac427da2378a604e44fd66af9e5/docs/Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md) |
-| SPECIFICATION-PARAMETRES-MODALE-v13.md | `f28d3f9b4f44c0db262f2c9e9f58d474f334959d` | [Lire](https://github.com/MyUncried/Application-Routine/blob/3b325bf1f47b9ac427da2378a604e44fd66af9e5/docs/Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md) |
-| SPECIFICATION-BIP-CADENCE-v2.md | `47c98cc75728527a4ad19235420138951971ba32` | [Lire](https://github.com/MyUncried/Application-Routine/blob/3b325bf1f47b9ac427da2378a604e44fd66af9e5/docs/Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md) |
-| SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md | `991575b002f5ae23965da636fdcbc2243209e25f` | [Lire](https://github.com/MyUncried/Application-Routine/blob/3b325bf1f47b9ac427da2378a604e44fd66af9e5/docs/Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md) |
-| SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md | `e9531523d366008dc86ce18b5c224490cc3c3c8d` | [Lire](https://github.com/MyUncried/Application-Routine/blob/3b325bf1f47b9ac427da2378a604e44fd66af9e5/docs/Specifications-fonctionnelles/SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md) |
-| DSF-BIP-CADENCE-2026-10-07.md | `e77523d4f6d3e81e698e5cd746c5ea5acdde7c81` | [Lire](https://github.com/MyUncried/Application-Routine/blob/3b325bf1f47b9ac427da2378a604e44fd66af9e5/docs/DSF-BIP-CADENCE-2026-10-07.md) |
-| phrases-276.json | `17e61b1466837ff996c3c86ec5a05089dcec8fdf` | [Lire](https://github.com/MyUncried/Application-Routine/blob/3b325bf1f47b9ac427da2378a604e44fd66af9e5/docs/archives/evolutions-v15-2026-10-07/phrases-276.json) |
+| 04 – Modèle fonctionnel.md | `d97b7f0e7a7fc836da73d4e816b4873a00ddb496` | [Lire](https://github.com/MyUncried/Application-Routine/blob/17d9774a31429bc2bee4eb834e4ed1e9aafa68ec/docs/Specifications-fonctionnelles/04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md) |
+| 06 – Ecrans et navigation de la V1.md | `899d88aeae3ff65c390cb3e2412ebb7be2dbb561` | [Lire](https://github.com/MyUncried/Application-Routine/blob/17d9774a31429bc2bee4eb834e4ed1e9aafa68ec/docs/Specifications-fonctionnelles/06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md) |
+| 08 – Conception fonctionnelle détaillée.md | `3a05413b3d17d3b618513e66004e1df0aa5c6a09` | [Lire](https://github.com/MyUncried/Application-Routine/blob/17d9774a31429bc2bee4eb834e4ed1e9aafa68ec/docs/Specifications-fonctionnelles/08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md) |
+| 09 – Modèle de données fonctionnel.md | `cb9344029830f32d1d0b32521fab8a7843f88174` | [Lire](https://github.com/MyUncried/Application-Routine/blob/17d9774a31429bc2bee4eb834e4ed1e9aafa68ec/docs/Specifications-fonctionnelles/09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md) |
+| 13 – Contrats d’écran.md | `b0caf784f1cea6dc2a5b9e5171f2efea955cc1b6` | [Lire](https://github.com/MyUncried/Application-Routine/blob/17d9774a31429bc2bee4eb834e4ed1e9aafa68ec/docs/Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md) |
+| SPECIFICATION-PARAMETRES-MODALE-v13.md | `f28d3f9b4f44c0db262f2c9e9f58d474f334959d` | [Lire](https://github.com/MyUncried/Application-Routine/blob/17d9774a31429bc2bee4eb834e4ed1e9aafa68ec/docs/Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v13.md) |
+| SPECIFICATION-BIP-CADENCE-v2.md | `47c98cc75728527a4ad19235420138951971ba32` | [Lire](https://github.com/MyUncried/Application-Routine/blob/17d9774a31429bc2bee4eb834e4ed1e9aafa68ec/docs/Specifications-fonctionnelles/SPECIFICATION-BIP-CADENCE-v2.md) |
+| SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md | `991575b002f5ae23965da636fdcbc2243209e25f` | [Lire](https://github.com/MyUncried/Application-Routine/blob/17d9774a31429bc2bee4eb834e4ed1e9aafa68ec/docs/Specifications-fonctionnelles/SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md) |
+| SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md | `e9531523d366008dc86ce18b5c224490cc3c3c8d` | [Lire](https://github.com/MyUncried/Application-Routine/blob/17d9774a31429bc2bee4eb834e4ed1e9aafa68ec/docs/Specifications-fonctionnelles/SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md) |
+| DSF-BIP-CADENCE-2026-10-07.md | `e77523d4f6d3e81e698e5cd746c5ea5acdde7c81` | [Lire](https://github.com/MyUncried/Application-Routine/blob/17d9774a31429bc2bee4eb834e4ed1e9aafa68ec/docs/DSF-BIP-CADENCE-2026-10-07.md) |
+| phrases-276.json | `17e61b1466837ff996c3c86ec5a05089dcec8fdf` | [Lire](https://github.com/MyUncried/Application-Routine/blob/17d9774a31429bc2bee4eb834e4ed1e9aafa68ec/docs/archives/evolutions-v15-2026-10-07/phrases-276.json) |
 
 Contrats hôtes : **CE-T03-04** (éditeur), **CE-UI-10** (Paramètres), **CE-UI-09** (Catégorie et Zones). Contrats Catalogue/Composition : intégration des données et régression, sans refonte générale de leur présentation.
 
@@ -143,6 +143,7 @@ Fonction pure produisant des segments ordonnés `{texte, gras}`. Les valeurs et 
 - Aucun texte de phrase ou segment persisté : génération depuis les paramètres à chaque affichage, notamment après ✓.
 - Corpus **276 cas v15** ; les montants sont injectés depuis un calcul métier indépendant du classeur.
 - Jusqu’à trois cibles variables : énumération ; au-delà : min/max. La phrase des variables omet les pauses conformément au corpus, sans les supprimer des données ou du calcul.
+- En mode Durée, le total de la phrase est omis uniquement pour une seule Série unilatérale sans pause ; une pause positive rend le total non redondant, même à N=1. Le calcul reste exact et la carte Catalogue conserve sa durée.
 - Terminologie « pause après chaque série », y compris N=1. Les clauses de bip de la phrase suivent le corpus ; le champ reste pourtant présent dans les trois modes.
 - Zone entière ouvrant Paramètres ; aucun chiffre de la phrase ne devient un contrôle autonome.
 - Texte long intégral, hauteur intrinsèque, aucun plafonnement ni troncature. Français MVP ; aucun nouveau moteur de traduction.
@@ -257,7 +258,7 @@ Les résultats attendus sont écrits avant le développement. Les tests techniqu
 | Voile et segmentés déjà alignés | Réutiliser les tokens validés ; contrôler les nouveaux consommateurs |
 | Stepper du Profil sur une autre ligne | Hors PRE-3, reste reporté |
 | Présentation générale Profil/Étiquettes/Séances/Calendrier | Hors PRE-3, à affecter à leur tranche |
-| Cartes Catalogue et changement à deux options | PRE-5 ou mission dédiée ; aucun élargissement automatique |
+| Cartes Catalogue et changement à deux options | PRE-5 ou mission dédiée ; décision D-324 conservée, aucun élargissement automatique |
 | Accessibilité générale non certifiée | Pas d’attestation globale ; contrôles ciblés des surfaces PRE-3 seulement |
 | Import média | Inclus dans PRE-3 par décision de Hermann du 08/10 ; exclusion de CE-T03-04 à amender |
 | Chronomètre / audio / lecture de médias pendant l’exécution | Pas de réalisation anticipée du moteur dans PRE-3 |
@@ -277,11 +278,13 @@ Non réalisé :
 
 **Prochaine étape concrète : préparer le plan technique PRE-3 à partir de ce périmètre, avec l’extraction Figma atomique exhaustive en entrée.** Le dossier doit relier chaque ligne P3 aux règles, aux éléments visuels et aux fichiers réellement concernés. Il doit déclarer les différences documentaires résiduelles et résoudre les ambiguïtés techniques à partir des sources, avant toute implémentation.
 
+Rapprochement actualisé le 08/10 : les 41 frames sont présentes, leurs textes et accès médias ont été interrogés directement, et quatre surfaces ont été contrôlées visuellement. Voir [preuves Figma](verification-figma-2026-10-08.json) et [bilan par axe](rapprochement-main-figma.md). Ces preuves ne sont pas une extraction atomique exhaustive.
+
 La préparation conserve les décisions validées ; elle ne rouvre ni PRE-1 ni PRE-2 et n’introduit aucune refonte globale.
 
 
 ## 13. Reprise de préparation
 
-État : périmètre validé par Hermann, import compris. Aucun plan technique approuvé ni autorisation d’implémentation.
+État : périmètre validé par Hermann, import compris. Rapprochement daté dans [rapprochement-main-figma.md](rapprochement-main-figma.md). Aucun plan technique approuvé ni autorisation d’implémentation.
 
-La préparation est publiée sous docs/preparation/PRE-3/ afin de ne pas activer implicitement une identité legacy V2. VNext est en cours d’intégration dans #332 ; cette PR de préparation ne modifie pas ce chantier et n’atteste pas sa qualification finale. Le prochain dossier de planification doit consommer le périmètre, l’analyse de l’existant et le manifeste Figma atomique exhaustif encore à établir.
+La préparation est publiée sous docs/preparation/PRE-3/ afin de ne pas activer implicitement une identité legacy V2. VNext est intégré et activé dans main ; les corrections et qualifications de #334 constituent un chantier séparé. Cette PR de préparation ne modifie ni ce chantier ni les preuves d’activation et n’atteste pas la qualification des correctifs. Le prochain dossier de planification doit consommer le périmètre, l’analyse de l’existant et le manifeste Figma atomique exhaustif encore à établir.

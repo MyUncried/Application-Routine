@@ -1,0 +1,142 @@
+{
+  "observed_at": "2026-10-06T00:55:49.899Z",
+  "controller_head": "5b2047bbd9b2ab0b7254e1b0d7bd600d53e6015a",
+  "qualified_head": "67d18be21e865846fac780351b34bc6cd4c636a3",
+  "request_id": "96c53d61-f780-41dc-afb7-3c1f992c910f",
+  "generation": 51,
+  "launch_count": 1,
+  "run_id": 37396415216,
+  "run_attempt": 1,
+  "run_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37396415216",
+  "status": "in_progress",
+  "job_id": 112053405854,
+  "runner": "KODJO-LOCAL-RUNNER",
+  "steps": [
+    {
+      "name": "Set up job",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 1,
+      "started_at": "2026-10-06T00:54:31Z",
+      "completed_at": "2026-10-06T00:54:34Z"
+    },
+    {
+      "name": "Run actions/checkout@v4",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 2,
+      "started_at": "2026-10-06T00:54:34Z",
+      "completed_at": "2026-10-06T00:54:54Z"
+    },
+    {
+      "name": "Qualify admission then execute the disposable Figma path once",
+      "status": "in_progress",
+      "conclusion": null,
+      "number": 3,
+      "started_at": "2026-10-06T00:54:54Z",
+      "completed_at": null
+    },
+    {
+      "name": "Preserve Figma sessions, exact delivery, comparisons and reservations",
+      "status": "pending",
+      "conclusion": null,
+      "number": 4,
+      "started_at": null,
+      "completed_at": null
+    },
+    {
+      "name": "Post Run actions/checkout@v4",
+      "status": "pending",
+      "conclusion": null,
+      "number": 8,
+      "started_at": null,
+      "completed_at": null
+    }
+  ],
+  "internal_request_claim": "NOT_YET_OBSERVED",
+  "claude_activity": "NOT_YET_OBSERVED",
+  "other_automatic_ci": [
+    {
+      "id": 37396415463,
+      "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
+      "status": "in_progress"
+    },
+    {
+      "id": 37396415222,
+      "path": ".github/workflows/kodjo-vnext-proof-stability.yml",
+      "status": "in_progress"
+    }
+  ],
+  "qualifications": {
+    "approved": {
+      "status": "VERIFIED",
+      "candidate_head": "67d18be21e865846fac780351b34bc6cd4c636a3",
+      "run_id": "37395284603",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 112049678601,
+          "name": "historical-equivalence (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112049678833,
+          "name": "qualification (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112049678839,
+          "name": "historical-equivalence (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112049678902,
+          "name": "qualification (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112052651881,
+          "name": "historical-platform-coverage",
+          "conclusion": "success"
+        }
+      ],
+      "observed_at": "2026-10-06T00:55:50.739Z"
+    },
+    "controller": {
+      "status": "VERIFIED",
+      "candidate_head": "67d18be21e865846fac780351b34bc6cd4c636a3",
+      "run_id": "37395284603",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 112049678601,
+          "name": "historical-equivalence (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112049678833,
+          "name": "qualification (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112049678839,
+          "name": "historical-equivalence (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112049678902,
+          "name": "qualification (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112052651881,
+          "name": "historical-platform-coverage",
+          "conclusion": "success"
+        }
+      ],
+      "observed_at": "2026-10-06T00:55:50.739Z",
+      "controller_head": "5b2047bbd9b2ab0b7254e1b0d7bd600d53e6015a",
+      "relation": "EXACT_SAME_PROTOCOL_CODE"
+    }
+  }
+}

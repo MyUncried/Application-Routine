@@ -1,5 +1,8 @@
 # Écrans modifiés — traçabilité des cartes, icônes et appuis
 
+> Actualisation 08/10 : les règles générales d’interface sont définies dans [DSF-INTERFACE-GENERALE-2026-10-08](DSF-INTERFACE-GENERALE-2026-10-08.md). Pour la planification, la [matrice du 08/10](MATRICE-PLANIFICATION-2026-10-08.md) remplace les anciennes références et leur statut ; les lignes datées antérieures restent un inventaire historique, pas la preuve des nouvelles captures.
+
+
 **État antérieur au lot Bip de cadence.** La [matrice Bip du07/10](MATRICE-BIP-FIGMA-2026-10-07.md) porte les références courantes et remplace les états de captures en attente.
 
 **Inventaire historique.** La [matrice du 07/10](MATRICE-FIGMA-2026-10-07.md) porte les références actives, notamment le remplacement de 4893:6675.
@@ -182,4 +185,5 @@ Le chapitre13 compte29 contrats de21 sections. CE-T03-16 appartient à Compositi
 ## Paramètres — consolidation du02/10/2026
 
 Référence courante : [v12](Specifications-fonctionnelles/SPECIFICATION-PARAMETRES-MODALE-v12.md), [DSF](DSF-SERIES-VARIABLES-2026-10-02.md), [matrice](MATRICE-SERIES-VARIABLES-2026-10-02.md) et [rapport](RAPPORT-MISE-A-JOUR-SERIES-VARIABLES-2026-10-02.md). D-247 à D-255 remplacent les anciennes formules et descriptions uniformes sur ce périmètre. Les règles de cartes sans rapport avec les paramètres restent conservées. Les nouvelles copies fournissent le layout ; elles ne prouvent ni intégration DSF ni conformité du moteur.
+
 

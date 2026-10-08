@@ -1,0 +1,14 @@
+✔ runtime history waits for a successful selected Claude job and never runs after refusal or cancellation (8.779574ms)
+✔ automatic admission does not claim full validation before historical jobs (1.959955ms)
+✔ historical V2 preflight is reusable after Claude while independent VNext PR repeats are skipped (4.949481ms)
+✔ event routing reuses VNext admission and preserves unrelated legacy events (6.513068ms)
+✔ read-only historical callee preserves exact legacy checks and excludes its privileged disposable job (4.375604ms)
+✔ independent workflow parser rejects nested write permissions even for a skipped callee job (148.889138ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 373.334115

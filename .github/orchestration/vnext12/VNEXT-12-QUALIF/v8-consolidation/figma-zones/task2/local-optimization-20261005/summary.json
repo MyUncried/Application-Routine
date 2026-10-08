@@ -1,0 +1,30 @@
+{
+  "status": "LOCAL_PASS_WAITING_USER_RUN_SIGNAL",
+  "tests": 327,
+  "pass": 326,
+  "fail": 0,
+  "skip": 1,
+  "duration_ms": 71537.66688,
+  "concurrency": 4,
+  "skipped": "Actual browser unavailable locally; Windows browser qualification remains required",
+  "targeted_tests": 14,
+  "targeted_pass": 14,
+  "yaml_workflows": 64,
+  "precheck": "LOCAL_PRECHECK_PASS",
+  "real_claude_calls_this_optimization": 0,
+  "remote_launches": 0,
+  "code_hashes": {
+    "scripts/kodjo/lib/impact-graph.js": "b287df303b293e90ef95aa58015f320c53a2b5641f602449a18ed86df51c2ddf",
+    "scripts/kodjo/lib/vnext-git-batch.js": "12cbdea36fcffb3a8f8036f7e81e5eb84cd2db0cebb2d70d2c35421504af0021",
+    "scripts/kodjo/lib/vnext-performance.js": "919ed5a60b0bd5b8776670f0fbd3afe18b9ea5e200213cf5745ec5339234eee3",
+    "scripts/kodjo/lib/vnext-live-chain.js": "4d773a385c28d06f9d1377cbfcb1d2ccd9e33941522c26417a607132f3d4cfb6",
+    "scripts/kodjo/test-vnext.js": "db4eb29ba149e656c844aefc675f593b26c35b6e95558a5157f1e7e7a4fb9598"
+  },
+  "evidence": {
+    "profile-summary.json": "ededf209db990b978bc7d5bcd2535909315387b780394712adcb6bade0c7a3fe",
+    "precheck.json": "52696d40abefae449318f08950eff5eed43d6feb79d9f3cf3b78466588828a6a",
+    "targeted-tests.log.gz": "e621f3571e5fbb1dbe26146d1f315fd955465e07c990f6c019a010b1d4116611",
+    "benchmark.json": "7df6285baeb8bcffa12263f2bb29304bed385dc959e7ff3c082680ed46b98e28",
+    "local-tests.log.gz": "7768cd83bd4c3a7b16f13eb1c8206caaec3e2bb86063b720eed36521bcedd250"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "run_id": 37300068646,
+  "job_id": 111730424464,
+  "controller_head": "06dda327a1684a989de35086b5df51b7f01703bf",
+  "diagnostic": "ENOENT in negative-test setup reading .git/objects/82/8c32e88e039036b24a74e2a3b8f63acb700009",
+  "test": "unavailable approved plan stops without falling back to the readable old plan",
+  "demonstrated_root_cause": "Test assumes approved commit is stored as a loose object. Explicit repack removes that pathname while git cat-file still reads the commit.",
+  "ci_packing_actor": "NOT_OBSERVED_FROM_AVAILABLE_LOGS",
+  "correction": "Use a packed object store containing old delivery ancestry only, assert old plan readable and approved commit absent, then require APPROVED_FILE_UNAVAILABLE; restore original Git environment.",
+  "production_gate_changed": false,
+  "local_targeted_tests": {
+    "tests": 7,
+    "pass": 7,
+    "fail": 0,
+    "skip": 0
+  },
+  "reproduction": {
+    "head": "e97aa3449b494f3f99d7242a79468f44c5bdcf59",
+    "loose_before": true,
+    "loose_after_repack": false,
+    "commit_still_available": true
+  }
+}

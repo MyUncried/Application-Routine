@@ -1,0 +1,317 @@
+{
+  "schema_version": "kodjo.vnext.v8.dossier-qualification-evidence.v1",
+  "observed_at": "2026-10-03T17:49:58.183Z",
+  "candidate_head": "16b70bab70fad2adc64b0ea7a0069cbc206eee17",
+  "runs": [
+    {
+      "id": 37139109519,
+      "head": "16b70bab70fad2adc64b0ea7a0069cbc206eee17",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 111249664790,
+          "name": "protocol",
+          "conclusion": "success"
+        },
+        {
+          "id": 111249966064,
+          "name": "protocol-windows-preflight",
+          "conclusion": "success"
+        },
+        {
+          "id": 111255675167,
+          "name": "disposable-qualification",
+          "conclusion": "skipped"
+        }
+      ]
+    },
+    {
+      "id": 37139109523,
+      "head": "16b70bab70fad2adc64b0ea7a0069cbc206eee17",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 111249664990,
+          "name": "qualification (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 111249665055,
+          "name": "qualification (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 111249665095,
+          "name": "historical-equivalence (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 111249665117,
+          "name": "historical-equivalence (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 111251107079,
+          "name": "architecture-audit",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 111252371335,
+          "name": "historical-platform-coverage",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 37139109517,
+      "head": "16b70bab70fad2adc64b0ea7a0069cbc206eee17",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        {
+          "id": 111249664884,
+          "name": "select-stage",
+          "conclusion": "success"
+        },
+        {
+          "id": 111249827777,
+          "name": "qualify-driver (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 111249827814,
+          "name": "qualify-driver (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 111249828649,
+          "name": "Execute approved disposable INITIAL or REVISION",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 111251640175,
+          "name": "prepare-revision",
+          "conclusion": "skipped"
+        },
+        {
+          "id": 111251640232,
+          "name": "prepare-initial",
+          "conclusion": "skipped"
+        }
+      ]
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 11280068746,
+      "name": "kodjo-v2-real-recovery-certification-37139109519-1",
+      "size_in_bytes": 356,
+      "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11280068746",
+      "archive_download_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11280068746/zip",
+      "expired": false,
+      "created_at": "2026-10-03T17:36:38Z",
+      "expires_at": "2026-10-17T17:03:24Z",
+      "updated_at": "2026-10-03T17:36:38Z",
+      "digest": "sha256:87677587cfb320480eb193208d22d6059efca5dd2763c0218d6a6b5d98b0a904",
+      "workflow_run": {
+        "id": 37139109519,
+        "repository_id": 1322287555,
+        "head_repository_id": 1322287555,
+        "head_branch": "protocol/vnext-proof-stability-20260930",
+        "head_sha": "16b70bab70fad2adc64b0ea7a0069cbc206eee17"
+      },
+      "sha256": "87677587cfb320480eb193208d22d6059efca5dd2763c0218d6a6b5d98b0a904",
+      "downloaded_hash_verified": true,
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-16b70bab/artifact-11280068746.zip"
+    },
+    {
+      "id": 11280038703,
+      "name": "kodjo-v2-disposable-preflight-37139109519-1",
+      "size_in_bytes": 9912,
+      "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11280038703",
+      "archive_download_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11280038703/zip",
+      "expired": false,
+      "created_at": "2026-10-03T17:36:33Z",
+      "expires_at": "2026-10-17T17:03:24Z",
+      "updated_at": "2026-10-03T17:36:33Z",
+      "digest": "sha256:a6dd770dbc4341861769886de4915e9ba0da86d16d3b86c23cba3528986cc256",
+      "workflow_run": {
+        "id": 37139109519,
+        "repository_id": 1322287555,
+        "head_repository_id": 1322287555,
+        "head_branch": "protocol/vnext-proof-stability-20260930",
+        "head_sha": "16b70bab70fad2adc64b0ea7a0069cbc206eee17"
+      },
+      "sha256": "a6dd770dbc4341861769886de4915e9ba0da86d16d3b86c23cba3528986cc256",
+      "downloaded_hash_verified": true,
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-16b70bab/artifact-11280038703.zip"
+    },
+    {
+      "id": 11279691996,
+      "name": "kodjo-v2-runner-certification-37139109519-1",
+      "size_in_bytes": 832,
+      "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11279691996",
+      "archive_download_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11279691996/zip",
+      "expired": false,
+      "created_at": "2026-10-03T17:05:54Z",
+      "expires_at": "2026-10-17T17:03:24Z",
+      "updated_at": "2026-10-03T17:05:54Z",
+      "digest": "sha256:fcf5153e2b718905dc2b0787975724f7acfafd3f8e24c61d42ee2e3bfff4375d",
+      "workflow_run": {
+        "id": 37139109519,
+        "repository_id": 1322287555,
+        "head_repository_id": 1322287555,
+        "head_branch": "protocol/vnext-proof-stability-20260930",
+        "head_sha": "16b70bab70fad2adc64b0ea7a0069cbc206eee17"
+      },
+      "sha256": "fcf5153e2b718905dc2b0787975724f7acfafd3f8e24c61d42ee2e3bfff4375d",
+      "downloaded_hash_verified": true,
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-16b70bab/artifact-11279691996.zip"
+    },
+    {
+      "id": 11279932741,
+      "name": "historical-equivalence-Linux",
+      "size_in_bytes": 70125,
+      "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11279932741",
+      "archive_download_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11279932741/zip",
+      "expired": false,
+      "created_at": "2026-10-03T17:05:29Z",
+      "expires_at": "2026-10-17T17:03:24Z",
+      "updated_at": "2026-10-03T17:05:29Z",
+      "digest": "sha256:d8de7d6b2764aec8d3c7350d4dddc005d623fecc4c1c100af56c9caf92908703",
+      "workflow_run": {
+        "id": 37139109523,
+        "repository_id": 1322287555,
+        "head_repository_id": 1322287555,
+        "head_branch": "protocol/vnext-proof-stability-20260930",
+        "head_sha": "16b70bab70fad2adc64b0ea7a0069cbc206eee17"
+      },
+      "sha256": "d8de7d6b2764aec8d3c7350d4dddc005d623fecc4c1c100af56c9caf92908703",
+      "downloaded_hash_verified": true,
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-16b70bab/artifact-11279932741.zip"
+    },
+    {
+      "id": 11279714408,
+      "name": "historical-equivalence-Windows",
+      "size_in_bytes": 70185,
+      "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11279714408",
+      "archive_download_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/artifacts/11279714408/zip",
+      "expired": false,
+      "created_at": "2026-10-03T17:18:33Z",
+      "expires_at": "2026-10-17T17:03:24Z",
+      "updated_at": "2026-10-03T17:18:33Z",
+      "digest": "sha256:3011e603c09cd3e672d59f8719685c75ca79f2ae8de187351087210e7bebab55",
+      "workflow_run": {
+        "id": 37139109523,
+        "repository_id": 1322287555,
+        "head_repository_id": 1322287555,
+        "head_branch": "protocol/vnext-proof-stability-20260930",
+        "head_sha": "16b70bab70fad2adc64b0ea7a0069cbc206eee17"
+      },
+      "sha256": "3011e603c09cd3e672d59f8719685c75ca79f2ae8de187351087210e7bebab55",
+      "downloaded_hash_verified": true,
+      "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/qualification-16b70bab/artifact-11279714408.zip"
+    }
+  ],
+  "log_excerpts": [
+    {
+      "job_id": 111249664790,
+      "lines": [
+        "2026-10-03T17:05:03.3105519Z # tests 977",
+        "2026-10-03T17:05:03.3106129Z # pass 976",
+        "2026-10-03T17:05:03.3106362Z # fail 0",
+        "2026-10-03T17:05:03.3106828Z # skipped 1"
+      ]
+    },
+    {
+      "job_id": 111249966064,
+      "lines": [
+        "2026-10-03T17:29:18.3995941Z ℹ tests 977\r",
+        "2026-10-03T17:29:18.3997546Z ℹ pass 973\r",
+        "2026-10-03T17:29:18.3998361Z ℹ fail 0\r",
+        "2026-10-03T17:29:18.3999731Z ℹ skipped 4\r"
+      ]
+    },
+    {
+      "job_id": 111249664990,
+      "lines": [
+        "2026-10-03T17:11:29.0081248Z ℹ tests 211\r",
+        "2026-10-03T17:11:29.0081593Z ℹ pass 211\r",
+        "2026-10-03T17:11:29.0081755Z ℹ fail 0\r",
+        "2026-10-03T17:11:29.0082105Z ℹ skipped 0\r"
+      ]
+    },
+    {
+      "job_id": 111249665055,
+      "lines": [
+        "2026-10-03T17:04:33.0455139Z ℹ tests 211",
+        "2026-10-03T17:04:33.0455560Z ℹ pass 211",
+        "2026-10-03T17:04:33.0455769Z ℹ fail 0",
+        "2026-10-03T17:04:33.0456348Z ℹ skipped 0"
+      ]
+    },
+    {
+      "job_id": 111252371335,
+      "lines": [
+        "2026-10-03T17:18:44.4248209Z {\"candidate_head\":\"16b70bab70fad2adc64b0ea7a0069cbc206eee17\",\"status\":\"MAPPED_ASSERTIONS_PASS_ON_AT_LEAST_ONE_PLATFORM\",\"case_count\":402,\"individual_equivalence_proven\":false,\"readiness\":\"NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT\"}"
+      ]
+    },
+    {
+      "job_id": 111249827777,
+      "lines": [
+        "2026-10-03T17:14:26.9203836Z ℹ tests 211\r",
+        "2026-10-03T17:14:26.9204380Z ℹ pass 211\r",
+        "2026-10-03T17:14:26.9204642Z ℹ fail 0\r",
+        "2026-10-03T17:14:26.9205200Z ℹ skipped 0\r"
+      ]
+    },
+    {
+      "job_id": 111249827814,
+      "lines": [
+        "2026-10-03T17:05:20.8393718Z ℹ tests 211",
+        "2026-10-03T17:05:20.8394054Z ℹ pass 211",
+        "2026-10-03T17:05:20.8394218Z ℹ fail 0",
+        "2026-10-03T17:05:20.8394569Z ℹ skipped 0"
+      ]
+    }
+  ],
+  "runtime_initial_revision": "NOT_EXECUTED",
+  "legacy_recovery": "NON_CERTIFIED",
+  "historical_readiness": "NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT",
+  "admission": {
+    "status": "VERIFIED",
+    "candidate_head": "16b70bab70fad2adc64b0ea7a0069cbc206eee17",
+    "run_id": "37139109523",
+    "run_attempt": 1,
+    "jobs": [
+      {
+        "id": 111249664990,
+        "name": "qualification (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 111249665055,
+        "name": "qualification (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 111249665095,
+        "name": "historical-equivalence (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 111249665117,
+        "name": "historical-equivalence (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 111252371335,
+        "name": "historical-platform-coverage",
+        "conclusion": "success"
+      }
+    ],
+    "observed_at": "2026-10-03T17:50:55.994Z"
+  }
+}

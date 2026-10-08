@@ -17,9 +17,8 @@ function taggedFinal(body){
   const text=normalized(body);
   if(text.split('\n')[0] !== '[KODJO_SLICE] FINAL_OUTPUT') return null;
   if(!/^STATUT : READY_TO_CLOSE$/m.test(text)) return null;
-  const match=text.match(/<KODJO_UI_FINAL_VERIFICATION_JSON>\s*([\s\S]*?)\s*<\/KODJO_UI_FINAL_VERIFICATION_JSON>/);
-  if(!match) return null;
-  let meta; try{meta=JSON.parse(match[1]);}catch(_){return null;}
+  const meta=require('./lib/machine-block').parse(text,'KODJO_UI_FINAL_VERIFICATION_JSON',{required:false,code:'ENV_SYNC_FINAL_BLOCK_INVALID'});
+  if(!meta) return null;
   return {text,meta};
 }
 function resolve(pr, issueComments) {

@@ -9,7 +9,7 @@ if(manifest.schema!=='kodjo.normative-inputs.v1'||!Array.isArray(manifest.files)
 const NORMATIVE_FILES=new Set(manifest.files);
 const CATEGORIES=new Set(['RUNTIME_PROTOCOL_CHANGE','NORMATIVE_PROTOCOL_CHANGE','NON_NORMATIVE_DOCUMENTATION','UNKNOWN']);
 function classifyPath(file){
-  if(/^(?:scripts\/kodjo\/|tests\/kodjo\/|\.github\/workflows\/kodjo(?:-v2|-slice)[^/]*\.ya?ml$)/.test(file))return 'RUNTIME_PROTOCOL_CHANGE';
+  if(/^(?:scripts\/kodjo\/|tests\/kodjo\/|\.github\/workflows\/kodjo(?:-v2|-slice|-vnext)[^/]*\.ya?ml$)/.test(file))return 'RUNTIME_PROTOCOL_CHANGE';
   if(NORMATIVE_FILES.has(file)||/^\.github\/orchestration\/(?:KODJO_PROTOCOL_V2_SPEC[^/]*\.md|v2-slices\/[^/]+\/(?:slice-bootstrap\.json|technical-plan\.md|planning-mission\.md|independent-review\.md))$/.test(file))return 'NORMATIVE_PROTOCOL_CHANGE';
   if(file==='.github/orchestration/PROTOCOL_EVOLUTION_BACKLOG.md'||file.startsWith('.github/orchestration/reports/'))return 'NON_NORMATIVE_DOCUMENTATION';
   return 'UNKNOWN';

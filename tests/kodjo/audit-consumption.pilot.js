@@ -50,7 +50,7 @@ test('F10/D1: unavailable API, lost creation response and failed readback never 
   }
 });
 test('F10/D1: runner consumes after preflight and before checkout/agent without releasing the receipt',()=>{
-  const runner=fs.readFileSync(path.join(root,'scripts/kodjo/run-queued-request.ps1'),'utf8');
+  const runner=require('./helpers/normalized-git-source')(fs.readFileSync(path.join(root,'scripts/kodjo/run-queued-request.ps1'),'utf8'));
   const consumeIndex=runner.indexOf("'consume-queue-request.js'");
   assert.ok(consumeIndex>runner.indexOf("'verify-preflight-attestation.js'"));
   assert.ok(consumeIndex<runner.indexOf('git switch'));assert.match(runner,/KODJO_QUEUE_CONSUMPTION_REFUSED/);

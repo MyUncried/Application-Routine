@@ -9,6 +9,8 @@ permissions:
 jobs:
   revise-plan:
     if: >
+      github.event_name == 'issue_comment' &&
+      github.event.comment.user.login == 'MyUncried' &&
       github.event.issue.number == 17 &&
       contains(github.event.comment.body, '@claude-t01-s09-plan-revision-v1-3')
     runs-on: ubuntu-latest

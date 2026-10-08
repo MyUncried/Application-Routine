@@ -167,12 +167,13 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 5. enregistrer son ressenti ;
 6. retrouver une trace fidèle de l’Exécution dans le Suivi.
 
+**Question à clarifier pour PRE-3 (D-333) :** sources système d’import, formats acceptés et éventuelles limites de taille/durée des photos et vidéos locales. Ces éléments ne sont plus reportés automatiquement après le MVP ; aucun seuil arbitraire n’est décidé ici.
+
 ## 7. Questions reportées après le MVP
 
 - Quelles fonctions nécessiteront un compte ou une synchronisation distante ?
 - Comment partager une Séance tout en maîtrisant les droits et la confidentialité ?
 - Comment gérer les versions lorsqu’une Séance partagée évolue ?
-- Quelles limites techniques de taille, de durée et de formats appliquer aux médias multiples en V2 ?
 - Quelles statistiques et quels filtres apporteront une valeur réelle ?
 - Quelles intégrations calendrier, santé ou sport seront prioritaires ?
 - Quelles langues seront proposées après le français ?
@@ -182,8 +183,8 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 - Créer dans le MVP T03 un Exercice de référence indépendamment d’une Séance, avec sa Pause et sa Récupération éventuelles.
 - Ajouter cette référence à plusieurs Séances sous forme de copies indépendantes qui n’encombrent pas le catalogue.
 - Associer `0..n` photos ou vidéos à un Exercice, les réordonner et les consulter hors ligne.
-- Créer en V2 un Parcours d’au moins deux Séances, l’ordonner et l’exécuter manuellement.
-- Planifier les Parcours seulement en V3.
+- Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
+- Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
 - Exécuter dès le MVP un Exercice `À l’échec` avec le même geste `Suivant` que le mode Répétitions.
 - Configurer un Exercice ou un Tour en unilatéral, droite-gauche ou gauche-droite, sans créer de zones corporelles latéralisées.
 - Comprendre le côté courant pendant l’Exécution grâce au sous-titre `Côté droit` ou `Côté gauche`, sans compteur supplémentaire.
@@ -214,7 +215,7 @@ Le besoin détaillé est consolidé dans `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 #### Planifier un Parcours — cible post-MVP
 
-Lorsqu’un Parcours est fonctionnel, l’utilisateur doit pouvoir le planifier avec les mêmes principes qu’une Séance ou un Exercice : planification unique ou périodique, rappel facultatif et affichage dans le Calendrier. Cette capacité reste hors MVP tant que la version Parcours planifiable n’est pas livrée.
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 #### Régler les récupérations
 
@@ -238,3 +239,8 @@ Le parcours existant permet maintenant des Séries variables dans la même feuil
 
 Pour un entraînement ou une rééducation, prescrire un intervalle entre répétitions et disposer de signaux réguliers, tout en gardant la maîtrise de la fin de Série. La cadence est facultative ; aucune mesure automatique des répétitions ni preuve de mouvement effectué n’est promise. La Synthèse conserve le temps actif réel et la prescription de l’instantané.
 
+
+
+## Conception de planification du 08/10/2026
+
+Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](SPECIFICATION-PLANIFICATION-2026-10-08.md), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md).

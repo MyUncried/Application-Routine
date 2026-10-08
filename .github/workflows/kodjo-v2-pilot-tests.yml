@@ -21,8 +21,19 @@ on:
       - '.github/AI_ORCHESTRATION_CONTINUITY.md'
       - 'scripts/kodjo/**'
       - 'tests/kodjo/**'
+  workflow_call:
+    inputs:
+      sequenced_vnext:
+        description: Historical Windows checks after a successful VNext runtime
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
+      preserve_complete_source:
+        description: 'Preserve an exact source snapshot only when needed for forensic recovery'
+        required: true
+        type: boolean
+        default: false
       run_disposable_qualification:
         description: 'Run the real V2-QUALIF-00 slice on the persistent Windows runner'
         required: true
@@ -66,7 +77,7 @@ jobs:
           echo "full_required=$full" >> "$GITHUB_OUTPUT"
   protocol:
     needs: classify
-    if: needs.classify.outputs.full_required == 'true'
+    if: needs.classify.outputs.full_required == 'true' && (github.event_name != 'pull_request' || github.head_ref != 'protocol/vnext-proof-stability-20260930' || inputs.sequenced_vnext == true)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
@@ -117,6 +128,8 @@ jobs:
             gh api "repos/$GITHUB_REPOSITORY/pulls?state=all&per_page=1" --jq '.[0] | (.number > 0) and (.head.sha | test("^[0-9a-f]{40}$")) and (.base.ref | length > 0)' | grep -Fx true
           fi
       - name: Run complete KODJO pilot suite
+        # Sequenced VNext already ran this exact Linux suite in the historical matrix.
+        if: inputs.sequenced_vnext != true
         run: node tests/kodjo/run-all.js
       - name: Validate executable workflow invariants
         run: node scripts/kodjo/validate-workflows.js
@@ -134,13 +147,34 @@ jobs:
           printf 'source_sha=%s\n' "$SOURCE_SHA" >> "$GITHUB_STEP_SUMMARY"
           git ls-tree -r "$SOURCE_SHA" | sha256sum | awk '{print "source_tree_manifest_sha256=" $1}' >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Build immutable complete source snapshot
+        if: github.event_name == 'workflow_dispatch' && inputs.preserve_complete_source == true
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          tar --exclude=.git --exclude=node_modules -czf "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz" .
+          sha256sum "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz" > "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz.sha256"
+      - name: Preserve complete source snapshot
+        if: github.event_name == 'workflow_dispatch' && inputs.preserve_complete_source == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-complete-source-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/Application-Routine-${{ github.event.pull_request.head.sha || github.sha }}.tar.gz
+            ${{ runner.temp }}/Application-Routine-${{ github.event.pull_request.head.sha || github.sha }}.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 7
+
+
   protocol-windows-preflight:
     needs: protocol
-    if: needs.protocol.outputs.full_windows_required == 'true'
+    if: needs.protocol.outputs.full_windows_required == 'true' && (inputs.sequenced_vnext == true || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository))
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
-    # Le préflight complet inclut npm ci et la suite applicative sous Windows.
-    # 20 minutes coupait le job sans verdict lors des passages réels chargés.
-    timeout-minutes: 25
+    # Run 36841216722 exhausted 25 minutes during the complete Windows suite.
+    # Retain all controls and leave a bounded budget for suite + preflight.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
         with:
@@ -148,6 +182,14 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           path: _qualification/${{ github.run_id }}
+      - name: Set up independent workflow syntax parser on Windows
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent YAML parser on Windows
+        shell: cmd
+        working-directory: _qualification/${{ github.run_id }}
+        run: python -m pip install PyYAML==6.0.3
       - name: Record Windows toolchain
         shell: powershell
         working-directory: _qualification/${{ github.run_id }}
@@ -304,6 +346,11 @@ jobs:
             $proofJson = ($proof | ConvertTo-Json -Depth 5).Replace("`r`n", "`n") + "`n"
             [IO.File]::WriteAllText('real-recovery-certification.json', $proofJson, (New-Object Text.UTF8Encoding($false)))
           }
+      - name: Record unavailable historical recovery as a separate reserve
+        if: always() && steps.historical_recovery.outcome != 'success'
+        shell: cmd
+        working-directory: _qualification/${{ github.run_id }}
+        run: node scripts/kodjo/record-unavailable-recovery.js real-recovery-certification.json
       - name: Upload real recovery certification
         if: always()
         uses: actions/upload-artifact@v4

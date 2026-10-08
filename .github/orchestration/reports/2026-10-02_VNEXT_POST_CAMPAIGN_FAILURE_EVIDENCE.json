@@ -1,0 +1,177 @@
+{
+  "schema_version": "kodjo.vnext.post-campaign-failure-evidence.v1",
+  "recorded_at": "2026-10-02T12:40:52.743Z",
+  "candidate_head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+  "runs": [
+    {
+      "id": 37003243468,
+      "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+      "attempt": 1,
+      "conclusion": "success",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37003243468",
+      "jobs": [
+        {
+          "id": 110825516146,
+          "name": "select-stage",
+          "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+          "conclusion": "success",
+          "failed_steps": []
+        },
+        {
+          "id": 110825753987,
+          "name": "qualify-driver (ubuntu-latest)",
+          "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+          "conclusion": "success",
+          "failed_steps": []
+        },
+        {
+          "id": 110825754015,
+          "name": "qualify-driver (windows-latest)",
+          "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+          "conclusion": "success",
+          "failed_steps": []
+        },
+        {
+          "id": 110825755313,
+          "name": "Execute approved disposable INITIAL or REVISION",
+          "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+          "conclusion": "skipped",
+          "failed_steps": []
+        },
+        {
+          "id": 110829940416,
+          "name": "prepare-initial",
+          "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+          "conclusion": "skipped",
+          "failed_steps": []
+        },
+        {
+          "id": 110829941023,
+          "name": "prepare-revision",
+          "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+          "conclusion": "skipped",
+          "failed_steps": []
+        }
+      ]
+    },
+    {
+      "id": 37003243573,
+      "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+      "attempt": 1,
+      "conclusion": "failure",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37003243573",
+      "jobs": [
+        {
+          "id": 110825512776,
+          "name": "protocol",
+          "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+          "conclusion": "failure",
+          "failed_steps": [
+            "Run complete KODJO pilot suite"
+          ]
+        },
+        {
+          "id": 110826396503,
+          "name": "protocol-windows-preflight",
+          "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+          "conclusion": "skipped",
+          "failed_steps": []
+        },
+        {
+          "id": 110826396943,
+          "name": "disposable-qualification",
+          "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+          "conclusion": "skipped",
+          "failed_steps": []
+        }
+      ]
+    },
+    {
+      "id": 37003243489,
+      "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+      "attempt": 1,
+      "conclusion": "failure",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37003243489",
+      "jobs": [
+        {
+          "id": 110825512843,
+          "name": "historical-equivalence (windows-latest)",
+          "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+          "conclusion": "failure",
+          "failed_steps": [
+            "Execute structured historical assertion evidence",
+            "Resolve each historical assertion on the exact candidate"
+          ]
+        },
+        {
+          "id": 110825512889,
+          "name": "qualification (ubuntu-latest)",
+          "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+          "conclusion": "success",
+          "failed_steps": []
+        },
+        {
+          "id": 110825512946,
+          "name": "qualification (windows-latest)",
+          "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+          "conclusion": "success",
+          "failed_steps": []
+        },
+        {
+          "id": 110825512994,
+          "name": "historical-equivalence (ubuntu-latest)",
+          "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+          "conclusion": "failure",
+          "failed_steps": [
+            "Execute structured historical assertion evidence",
+            "Resolve each historical assertion on the exact candidate"
+          ]
+        },
+        {
+          "id": 110828238534,
+          "name": "architecture-audit",
+          "head": "a54db08a69fe31f4087e03b3ebe2d8f30fa3001f",
+          "conclusion": "skipped",
+          "failed_steps": []
+        }
+      ]
+    }
+  ],
+  "pilot": {
+    "tests": 928,
+    "pass": 926,
+    "fail": 1,
+    "skip": 1,
+    "failed_test": "0.6.24 — le diagnostic durable sépare reprise et mutation",
+    "test_file": "tests/kodjo/protocol-0.6.24.pilot.js",
+    "test_line": 87,
+    "observed_assertion": "KODJO_MUTATION_SCOPE_JSON: JSON.stringify(request.scope_allow)",
+    "cause": "Post-campaign helper refactor serialized scope rather than request.scope_allow; inherited static historical assertion did not match. Actual failed full pilot result preserved.",
+    "resolution": "Helper takes original request and serializes request.scope_allow explicitly; foreground settings unchanged; no historical test modified."
+  },
+  "historical": {
+    "linux_job": 110825512994,
+    "windows_job": 110825512843,
+    "diagnostic": "VNEXT_EQ_EXECUTION_INCOMPLETE",
+    "detailed_case_result_available": false,
+    "cause_limit": "Raw job logs show structured execution exit 1 and incomplete-evidence rejection. No artifacts uploaded; per-case historical failure is not independently observed."
+  },
+  "initial_revision_replayed": false,
+  "original_and_fresh_runtime_passes_preserved": true,
+  "log_members": {
+    "110825512776": {
+      "sha256": "1a2412421fee9ecafc1356c11b322e10e7a832a83ce0104d7ca04d8f5e41dc5f",
+      "bytes": 648954
+    },
+    "110825512994": {
+      "sha256": "d11c523ddf1e6b97cffe92d98e54ecebb1cfbbde0d90b8b71359abaaf7c6d3bc",
+      "bytes": 63710
+    },
+    "110825512843": {
+      "sha256": "a4b7734bc6aadcba7fd4c4ca5fd8cdd54c6942c0d2bab23ee49c3c7f2e03b9cf",
+      "bytes": 63605
+    }
+  },
+  "log_archive_sha256": "8bdc474e8cc11c739d3b2e5ccd87116bbe449b5635756c317924cac898776b12",
+  "log_archive_path": ".github/orchestration/reports/2026-10-02_VNEXT_POST_CAMPAIGN_FAILURE_LOGS.zip"
+}

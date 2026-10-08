@@ -1,0 +1,85 @@
+{
+  "schema_version": "kodjo.vnext12.exact-revision-authorization.v1",
+  "recorded_at": "2026-10-01T15:03:50.565Z",
+  "approved_protocol_head": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+  "approval_target_hash": "c670199c72c128ee0ef2e397aceb7975e268c69e82a29256889d23898f3572e6",
+  "gate_ref": "issue_comment:5932536175",
+  "request_id": "be4f7b4b-77d0-4d43-a49f-d3d9f999e2cf",
+  "comment": {
+    "id": 5932536175,
+    "body": "3a931996ab57c8595d34ebd0bda9cb58e679880d\n[KODJO_VNEXT] USER_APPROVAL_REQUIRED\napproval_target_id=APRT-476c769c79c0cd505b5759b8\napproval_target_hash=c670199c72c128ee0ef2e397aceb7975e268c69e82a29256889d23898f3572e6\nexecution_fingerprint=547ad34b7b740ae9f07039b3529bad2363eb522aefe9ce4e76a90912038bbd76\nexecution_context={\"mode\":\"LOCAL\",\"writer_id\":\"CLAUDE:kodjo-local-vnext12\"}\napplication_head=f7350762ce44a593a9cc5c85e2f22d46c4f8ae74\nplan_contract_hash=cd9b08ffb365f0c8128f56eef884264c318db5d6a03370da6d60ebdde62a5484\nreview_report_hash=151c63028c659db819c70407263e0bf8708a89beb099bb488afcce155c972f4e\nwrite_scope_count=2\naction_expected=APPROVE_EXACT_EXECUTION\n\nAction requise : approuver explicitement cet objet exact, ou ne pas approuver.",
+    "updated_at": "2026-10-01T15:01:56Z",
+    "issue_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/269",
+    "performed_via_github_app_id": 1144995
+  },
+  "reaction": {
+    "id": 429910266,
+    "node_id": "REA_lALOTtCBw88AAAABYZtRb84Zn-j6",
+    "user": {
+      "login": "MyUncried",
+      "name": null,
+      "email": null,
+      "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+      "id": 312719496
+    },
+    "content": "+1",
+    "created_at": "2026-10-01T15:02:12Z"
+  },
+  "delegation": {
+    "actor": "CODEX_ON_BEHALF_OF_USER",
+    "user_instruction": "mène cette campagne de test jusqu'à son terme, diagnostique, explique corrige et relance le test lorsqu'un échec intervient. Ne m'implique que lorsqu'une validation métier est nécessaire.",
+    "scope": "TECHNICAL_DISPOSABLE_VNEXT12_REVISION",
+    "human_review_performed": false,
+    "actual_reaction_created_by_connector_under_delegation": true
+  },
+  "qualification": {
+    "run_id": 36869925039,
+    "head_sha": "3a931996ab57c8595d34ebd0bda9cb58e679880d",
+    "jobs": [
+      {
+        "id": 110394766196,
+        "name": "historical-equivalence (ubuntu-latest)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 110394766452,
+        "name": "qualification (ubuntu-latest)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 110394766571,
+        "name": "historical-equivalence (windows-latest)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 110394766660,
+        "name": "qualification (windows-latest)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 110400311690,
+        "name": "architecture-audit",
+        "status": "completed",
+        "conclusion": "skipped"
+      }
+    ],
+    "contract_tests_each_os": 194,
+    "contract_fail_each_os": 0,
+    "contract_skip_each_os": 0,
+    "qualify_only_run": 36869924976,
+    "qualify_only_success": true,
+    "pilot_run": 36869925135,
+    "pilot_status": "FAILURE_HISTORICAL_RECOVERY_ARTIFACT_MISSING",
+    "windows_full_pilot": {
+      "tests": 913,
+      "pass": 909,
+      "fail": 0,
+      "skip": 4
+    },
+    "historical_recovery_certification": "NOT_CERTIFIED"
+  }
+}

@@ -1,5 +1,7 @@
 # PRE-3 — Rapport de préparation du périmètre et des médias
 
+Rapport de préparation initiale, complété lors du rapprochement du 08/10 : la décision médias initialement numérotée D-327 est désormais D-333, car main a attribué D-327 à la grille DSF. Le bilan courant est dans docs/preparation/PRE-3/rapprochement-main-figma.md. Les états VNext ci-dessous sont ceux de la préparation initiale et ne sont pas le statut courant.
+
 Date : 08/10/2026. Mission : PRE3_SCOPE_PREPARATION.
 Objectif : publier le périmètre validé, intégrer l’import de médias au MVP et préparer les entrées du plan technique.
 Branche : docs/pre3-perimetre-medias-20261008.
@@ -15,7 +17,7 @@ Hermann a validé le périmètre PRE-3, puis l’inclusion de l’import de méd
 - Inventaire de41frames/états Figma concernés, noms humains et liens.
 - Consultation directe de la page Prototype MVP et du contexte/captures de trois frames : Séries variables Durée scénario A, Répétitions avec cadence, Zones corporelles.
 - Lecture ciblée de12fichiers applicatifs du modèle, éditeur, calculs, services et persistance des médias.
-- Décision D-327 enregistrée ; CE-T03-04, conception fonctionnelle et modèle Média amendés quant au périmètre MVP.
+- Décision D-333 enregistrée ; CE-T03-04, conception fonctionnelle et modèle Média amendés quant au périmètre MVP.
 - Analyse des écarts techniques existant/cible et état de reprise durable.
 
 ## Constats

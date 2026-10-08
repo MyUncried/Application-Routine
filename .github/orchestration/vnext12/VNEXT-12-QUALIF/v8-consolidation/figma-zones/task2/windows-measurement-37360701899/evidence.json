@@ -1,0 +1,139 @@
+{
+  "schema_version": "kodjo.vnext.targeted-windows-measurement.v1",
+  "run_id": 37360701899,
+  "job_id": 111934288612,
+  "candidate_head": "5f8763dfade776f2bfa8139dea7ff1f23fc3aee3",
+  "status": "DIAGNOSTIC_FAILED_TIMEOUT_CONCURRENCY_1",
+  "run_attempt": 1,
+  "launch_count": 1,
+  "trigger_correction": "pull_request:labeled suppressed with skip ci replaced by scoped create branch trigger",
+  "diagnostic_branch": "diagnostic/vnext-performance-task2-20261005",
+  "job_duration_seconds": 342,
+  "measurement_duration_seconds": 295,
+  "scanner": {
+    "before_ms": 50307.5571,
+    "after_ms": 439.5282,
+    "json_equivalent": true,
+    "contract_hash_equivalent": true,
+    "files": 700,
+    "importers": 70
+  },
+  "targeted_tests": {
+    "concurrency": 1,
+    "duration_ms": 240015.9276,
+    "error": "ETIMEDOUT",
+    "exit_code": null,
+    "complete_results_available": false,
+    "concurrencies_2_and_4": "NOT_EXECUTED",
+    "root_cause_of_slowness": "UNKNOWN",
+    "assertion_failure_proven": false
+  },
+  "artifact": {
+    "id": 11366354331,
+    "path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/windows-measurement-37360701899/artifact.zip",
+    "sha256": "660fd623c8f06c9f72ffecf291d21cc111fd252cac1c11c124da732946fcbd9f",
+    "integrity_checked": true
+  },
+  "job_log": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/figma-zones/task2/windows-measurement-37360701899/job.log.gz",
+  "disposition": "AUTOMATIC_MEASUREMENT_WORKFLOW_REMOVED_PER_USER_CONDITIONAL_INSTRUCTION",
+  "optimization_preserved": true,
+  "rerun": false,
+  "full_qualification": false,
+  "figma_path": false,
+  "claude_invoked": false,
+  "v2_pre2_pre3_changed": false,
+  "task3_or_closure_started": false,
+  "limits": [
+    "Single synthetic scanner observation only",
+    "No complete targeted Windows suite verdict",
+    "No optimal concurrency or end-to-end gain claim"
+  ],
+  "timing_source": "GitHub actual job/step timestamps and preserved summary.json",
+  "job": {
+    "id": 111934288612,
+    "run_id": 37360701899,
+    "workflow_name": "KODJO VNext targeted Windows performance",
+    "head_branch": "diagnostic/vnext-performance-task2-20261005",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37360701899",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaD82y5A",
+    "head_sha": "5f8763dfade776f2bfa8139dea7ff1f23fc3aee3",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/111934288612",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37360701899/job/111934288612",
+    "status": "completed",
+    "conclusion": "failure",
+    "created_at": "2026-10-05T19:04:13Z",
+    "started_at": "2026-10-05T19:04:16Z",
+    "completed_at": "2026-10-05T19:09:58Z",
+    "name": "measure",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-10-05T19:04:16Z",
+        "completed_at": "2026-10-05T19:04:20Z"
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-10-05T19:04:20Z",
+        "completed_at": "2026-10-05T19:04:50Z"
+      },
+      {
+        "name": "Install only the pinned planning tokenizer used by fixture tests",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-10-05T19:04:50Z",
+        "completed_at": "2026-10-05T19:04:52Z"
+      },
+      {
+        "name": "Measure only scanner and targeted fixture concurrency without Claude",
+        "status": "completed",
+        "conclusion": "failure",
+        "number": 4,
+        "started_at": "2026-10-05T19:04:52Z",
+        "completed_at": "2026-10-05T19:09:47Z"
+      },
+      {
+        "name": "Preserve diagnostic results even on a bounded failure",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-10-05T19:09:47Z",
+        "completed_at": "2026-10-05T19:09:50Z"
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-10-05T19:09:50Z",
+        "completed_at": "2026-10-05T19:09:55Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-10-05T19:09:55Z",
+        "completed_at": "2026-10-05T19:09:55Z"
+      }
+    ],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/111934288612",
+    "labels": [
+      "self-hosted",
+      "Windows",
+      "X64",
+      "kodjo-claude-local"
+    ],
+    "runner_id": 26,
+    "runner_name": "KODJO-LOCAL-RUNNER",
+    "runner_group_id": 1,
+    "runner_group_name": "Default"
+  }
+}

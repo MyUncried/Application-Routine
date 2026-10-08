@@ -79,7 +79,7 @@ Un **Circuit** est le groupe ordonné d’Exercices contenu dans le Cycle techni
 
 ## Exercice
 
-Un **Exercice** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, il peut exister comme définition persistante autonome du Catalogue des exercices (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération`. Il distingue désormais la **Pause entre les côtés**, propriété intrinsèque éventuelle d’un Exercice bilatéral, et la **Récupération après exercice**, propriété contextuelle d’une occurrence `SessionActivity`/occurrence de Parcours.
+Un **Exercice** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, il peut exister comme définition persistante autonome du Catalogue des exercices (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération`. Il distingue désormais la **Pause entre les côtés**, propriété intrinsèque éventuelle d’un Exercice bilatéral, et la **Récupération après exercice**, propriété contextuelle d’une occurrence `SessionActivity`.
 
 Un Exercice possède un nombre de **Séries** propre, entier et supérieur ou égal à 1.
 
@@ -99,7 +99,7 @@ Chaque Exercice possède notamment :
 - une Fin d’exercice facultative ;
 - une Durée totale calculée ou estimée ;
 - une consigne facultative ;
-- un média associé est affiché dans la gouttière permanente de la carte du Catalogue dans le MVP, sans déploiement ; les capacités d’import/capture restent régies par leur périmètre propre.
+- un média associé est affiché dans la gouttière permanente de la carte du Catalogue dans le MVP, sans déploiement ; l’import/ajout local et les associations ordonnées sont inclus dans PRE-3 au MVP (D-333), sans activation implicite de la caméra.
 
 La Pause et la Pause entre les côtés sont indépendantes. Avec `Aucun`, `sideRecoverySeconds` est sans objet. En bilatéral, l’ordre est : successions définies par l’Ordre des côtés (v13 §4).
 
@@ -117,23 +117,15 @@ La suppression définitive d’une `ActivityDefinition` ne cascade pas vers les 
 
 ## Routine
 
-Une routine est une **planification d’un contenu planifiable**.
+Une Routine représente un créneau portant une **liste ordonnée de contenus**, Séances (`SESSION`), Exercices persistants (`ACTIVITY`) ou mélange des deux. Le créneau produit les occurrences ; chaque contenu les filtre par sa fréquence sans unité **x fois sur n** et ses positions retenues. Le cas x=n s’affiche « à chaque fois ».
 
-Dans le MVP, sa source est exactement l’un des deux types suivants :
-- `SESSION` : une Séance persistante ;
-- `ACTIVITY` : un Exercice persistant du Catalogue des exercices.
+Programme facultatif (« Aucun » par défaut) précède Début le. Répétition désactivée produit un créneau unique ; activée, elle expose Jour/Semaine/Mois et une borne **jusqu’au** (date) ou **pendant** (nombre d’unités). Aucun/Aucune ne sont plus des options de Rappel/Répétition : des interrupteurs portent leur absence. Rappel reste facultatif,0..1 par Routine.
 
-Elle définit :
-- le type de source et la source concernée ;
-- sa date de début ;
-- son heure d'exécution ;
-- son mode de planification affiché : `Aucune` ou `Périodique` ;
-- pour une planification périodique, sa fréquence hebdomadaire, les jours de la semaine concernés et sa date de fin ;
-- un rappel éventuel (0 ou 1 maximum).
+La sélection utilise des cases à cocher et « Ajouter 1 élément » / « Ajouter n éléments », avec les espaces et accords usuels. Le formulaire porte Planifier sans contenu, Planifier une séance/un exercice à contenu unique, Planifier un parcours à plusieurs contenus. **Parcours est uniquement un libellé**, sans entité, catalogue ni exécution autonome. Circuit reste le groupe interne à une Séance, répété en Tours.
 
-Une routine périodique définit une seule heure d'exécution. Plusieurs exécutions d’une même source à des horaires différents sont représentées par plusieurs routines distinctes.
+La spécification du 08/10 définit le comportement cible et ses points ouverts ; elle ne certifie pas une implémentation. Une Routine peut toujours partager ses sources avec d’autres Routines. Les données historiques ne sont pas réécrites.
 
-Une routine ne contient jamais le contenu de sa source. Une même Séance ou une même Exercice persistant peut être associée à plusieurs routines.
+Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 ## Exécution
 
@@ -189,7 +181,7 @@ Une Séance comprend, dans l'ordre :
 5. zéro, une ou plusieurs Exercices après le Circuit ;
 6. une Fin de séance.
 
-Dans le Plan d’Exécution d’une Séance, ces phases sont typées `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et `SESSION_END`. `SIDE_RECOVERY` appartient à l’Exercice bilatéral ; `POST_ACTIVITY_RECOVERY` appartient à l’occurrence de Séance/Parcours. Aucune de ces phases n’est un Exercice autonome. Seule l’expiration de `SESSION_END`, immédiate lorsque sa durée vaut `0 s`, termine normalement l’Exécution de Séance et autorise son enregistrement final.
+Dans le Plan d’Exécution d’une Séance, ces phases sont typées `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et `SESSION_END`. `SIDE_RECOVERY` appartient à l’Exercice bilatéral ; `POST_ACTIVITY_RECOVERY` appartient à l’occurrence de Séance. Aucune de ces phases n’est un Exercice autonome. Seule l’expiration de `SESSION_END`, immédiate lorsque sa durée vaut `0 s`, termine normalement l’Exécution de Séance et autorise son enregistrement final.
 
 Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Exercices. Leur durée peut être égale à `0 s`. Ils ne sont jamais déplaçables et n’acceptent aucun appui long de réorganisation.
 
@@ -344,7 +336,7 @@ Ne sont pas inclus dans le MVP :
 - exceptions de planification ;
 - notifications avancées ;
 - intelligence artificielle ;
-- Parcours fonctionnels ;
+- Ancienne cible de Parcours autonome retirée par D-328 ;
 - médias multiples fonctionnels.
 
 # 4.11 Extension validée du modèle
@@ -355,9 +347,9 @@ Un Exercice accepte `Durée`, `Répétitions` ou `À l’échec`. Le troisième 
 
 L’Exécution directe d’Exercice T03 développe uniquement le sous-ensemble autonome nécessaire aux Séries, Pauses, côtés et Récupération. T04 porte l’orchestration complète des Séances, notamment les Tours du Circuit et les passages bilatéraux décrits dans le Plan d’Exécution.
 
-Le Média est un actif local associé à un Exercice. Dans le MVP, le Catalogue affiche le média associé dans la gouttière permanente de la carte d’Exercice, sans déploiement (D-260/D-261). Les capacités d’import, capture et gestion multiple restent régies par leur périmètre propre.
+Le Média est un actif local associé à un Exercice. Dans le MVP, le Catalogue affiche le média associé dans la gouttière permanente de la carte d’Exercice, sans déploiement (D-260/D-261). L’import/ajout local et la gestion des associations ordonnées sont inclus dans PRE-3 au MVP (D-333). La capture caméra n’est pas implicitement activée.
 
-Le Parcours est une racine persistante préparée pour une version post-MVP, possédant nom, couleur, mode de transition et liste ordonnée d’Étapes de Parcours. Chaque étape référence une Séance ; une même Séance peut apparaître plusieurs fois. Aucun Parcours n’est fonctionnel dans T03.
+Le modèle autonome Parcours est retiré (D-328). Le mot parcours désigne plusieurs contenus liés sur un créneau, sans objet propre ; le Circuit interne à une Séance reste conservé.
 
 ## Modèle fonctionnel de bilatéralité
 
@@ -386,7 +378,7 @@ Voir `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 ## Extension du contenu planifiable — Parcours
 
-Le modèle de Routine est conçu pour être extensible à une troisième source fonctionnelle : le **Parcours**. Dans le MVP, seules `SESSION` et `ACTIVITY` sont actives. Lorsque la planification des Parcours est livrée, une Routine pourra référencer une source fonctionnelle `PARCOURS`, portée techniquement par l’identifiant existant `CIRCUIT` tant que le code n’est pas renommé. Les règles de date, récurrence, rappel, occurrence et historisation restent communes.
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 ### Récupération après exercice portée par l’occurrence
 
@@ -394,7 +386,7 @@ Une `SessionActivity` porte toujours `postActivityRecoverySeconds`. La valeur `0
 
 ## Consolidation du modèle — D-209 à D-217
 
-Une Séance contient un **Circuit** ordonné ; un **Tour** est une répétition de ce Circuit. `Parcours` désigne exclusivement l’entité autonome correspondante du Catalogue. Un Exercice valide possède exactement une Catégorie et une ou plusieurs Zones corporelles ; une Séance possède zéro ou une Étiquette. Ces référentiels sont classificatoires et n’influencent pas le Plan d’Exécution.
+Une Séance contient un **Circuit** ordonné ; un **Tour** est une répétition de ce Circuit. `parcours` désigne seulement plusieurs contenus liés sur un créneau, sans entité autonome. Un Exercice valide possède exactement une Catégorie et une ou plusieurs Zones corporelles ; une Séance possède zéro ou une Étiquette. Ces référentiels sont classificatoires et n’influencent pas le Plan d’Exécution.
 
 La suppression d’une valeur de référentiel la rend inactive pour les nouvelles affectations mais conserve les références existantes. Les couleurs d’Étiquette/Catégorie restent portées par le référentiel et toute modification de couleur se reflète sur les objets associés.
 
@@ -447,3 +439,4 @@ Une durée prévisionnelle déterminable ne signifie pas une fin automatique : R
 ## Propagation Pauses et symboles — 07/10
 
 La Composition possède des pauses explicites recovery et breakpoint. recovery appartient à une occurrence ; breakpoint conserve une position structurelle. Une projection R=0 pour absence ne crée pas d’objet. La présence et la durée0 sont distinctes, les phases0s ne sont pas générées.
+

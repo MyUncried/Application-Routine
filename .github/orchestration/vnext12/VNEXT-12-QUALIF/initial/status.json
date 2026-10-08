@@ -1,0 +1,9 @@
+{
+  "status": "PREPARED_FOR_PUBLICATION",
+  "candidate_head": "070722462d9ac6edb797072e9c74c4817dee0601",
+  "review_verdict": "APPROVE",
+  "claude_session_id": "11f9ef31-2af7-4b86-8e52-07d2cf03d5bc",
+  "implementation_invoked": false,
+  "user_approval_observed": false,
+  "revision_limit": 1
+}

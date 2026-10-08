@@ -1,5 +1,8 @@
 # 1. Principes généraux
 
+> Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la spécification du 08/10 et son registre de points ouverts.
+
+
 **Mise à jour du07/10 — cartes, pauses et phrases :** [matrice de traçabilité](../MATRICE-CARTES-PHRASES-2026-10-07.md), [DSF des cartes](../DSF-CARTES-DUREE-2026-10-07.md), [phrase v15](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md). Captures reprises pour les cartes, modales Bip et résumés ; chiffres Figma illustratifs.
 
 **Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
@@ -153,7 +156,7 @@ Cet instantané est utilisé pour garantir la cohérence de l'historique, même 
 
 Une Séance **ou un Exercice persistant** peut être associée à zéro, une ou plusieurs Routines.
 
-Chaque Routine possède sa propre planification et référence exactement une source de type `SESSION` ou `ACTIVITY`.
+Chaque Routine possède sa propre règle de créneau et une liste ordonnée de références SESSION/ACTIVITY (D-328).
 
 La suppression d'une Routine n'a aucun effet sur sa source. La modification de la source est prise en compte par les occurrences futures ; au démarrage d’une Exécution, un Instantané immuable de la source est créé.
 
@@ -187,13 +190,13 @@ Une Séance peut donc être simultanément `Active`, planifiée et déjà exécu
 
 ## 2 bis.1 Catalogue multi-type
 
-Le Catalogue distingue `Exercices` et `Séances`. `Séances` reste le type actif par défaut ; `Exercices` devient également actif dans le MVP à partir de T03. Dans le MVP T03, sélectionner `Exercices` charge les références persistantes ; sélectionner `Parcours` charge les Parcours persistants lorsque cette capacité est livrée.
+Le Catalogue distingue `Exercices` et `Séances`. `Séances` reste le type actif par défaut ; `Exercices` devient également actif dans le MVP à partir de T03. Dans le MVP T03, sélectionner `Exercices` charge les références persistantes ; aucun segment ni objet autonome Parcours n’est prévu (D-328).
 
 La liste des Exercices conserve recherche, filtres, tri et position de défilement dans l’état de navigation. Chaque carte utilise une pastille de Catégorie colorée, sans barre verticale. Sa surface ouvre la consultation ou la modification ; le bouton Lecture lance uniquement l’Exécution directe. Le contrôle `Déployer` est actif dans le MVP et affiche ou masque le média associé. Un glissement gauche expose `Planifier / Dupliquer / Archiver` sur les Exercices actives et `Supprimer` dans les archives. Aucune poignée de déplacement n’est affichée.
 
 ## 2 bis.2 Créer, consulter ou modifier un Exercice de référence
 
-Dans chaque Catalogue, `Créer` est contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant, sans écran ni arbre intermédiaire. Dans le Catalogue des Exercices, il ouvre directement l’éditeur de création d’un Exercice persistant ; dans le Catalogue des Séances, il ouvre directement une nouvelle Composition. Le même principe s’applique au Catalogue des Parcours lorsqu’il devient fonctionnel ; T03/MVP ne l’active pas.
+Dans chaque Catalogue, `Créer` est contextuel et ouvre directement la création de l’objet correspondant au Catalogue courant, sans écran ni arbre intermédiaire. Dans le Catalogue des Exercices, il ouvre directement l’éditeur de création d’un Exercice persistant ; dans le Catalogue des Séances, il ouvre directement une nouvelle Composition. Aucun Catalogue Parcours n’est prévu (D-328).
 
 La création d’un Exercice depuis le Catalogue réutilise l’éditeur unifié. Le champ Nom est le premier élément du bandeau bleu. Le Mode propose trois segments égaux : Durée, Répétitions, À l’échec. La carte ouvre CE-UI-10 : Séries → Séries variables → cible/Pause communes ou tableau → Changement de côté → Ordre des côtés → Pause entre les côtés → Total applicable. Les sections Description, Zone corporelle, Mode et Médias suivent les contrats de l’Écran 4.
 
@@ -219,7 +222,7 @@ La Synthèse affiche les données compatibles d’un Exercice seul. Le Ressenti 
 
 ## 2 bis.5 Médias d’Exercice
 
-Dans le MVP, le Catalogue affiche le média associé dans la gouttière permanente de la carte d’Exercice, sans déploiement ; sans média, cette même gouttière affiche l’icône de nature (D-260/D-261). Dans l’éditeur, la zone Média suit le Figma courant et reste sous la Synthèse en cas de chevauchement. Cette décision ne crée pas implicitement de nouveau mécanisme d’import ou de capture. En V2 média, un Exercice peut porter `0..n` associations ordonnées vers des photos ou vidéos locales ; une vidéo ne démarre jamais automatiquement. L’ajout/import et la persistance des médias sont désormais inclus au MVP dans PRE-3, avant le moteur d’exécution (D-327) ; les règles de consultation en exécution sont conservées.
+Dans le MVP, le Catalogue affiche le média associé dans la gouttière permanente de la carte d’Exercice, sans déploiement ; sans média, cette même gouttière affiche l’icône de nature (D-260/D-261). Dans l’éditeur, la zone Média suit le Figma courant et reste sous la Synthèse en cas de chevauchement. Cette décision ne crée pas implicitement de nouveau mécanisme d’import ou de capture. Dans le MVP, un Exercice peut porter `0..n` associations ordonnées vers des photos ou vidéos locales ; une vidéo ne démarre jamais automatiquement. L’ajout/import et la persistance des médias sont désormais inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333) ; les règles de consultation en exécution sont conservées.
 
 ## 2 bis.6 Bilatéralité
 
@@ -229,7 +232,7 @@ Un Exercice bilatéral exécute toutes les Séries du premier côté puis toutes
 
 ## 2 bis.7 Limite Parcours
 
-Le Catalogue peut proposer `Un parcours` dans son arbre V2. Le formulaire Parcours exige un nom, une couleur et au moins deux étapes référençant des Séances. Une même Séance peut apparaître plusieurs fois. L’exécution manuelle appartient à la V2 ; la planification des Parcours appartient à la V3. **Cette planification réutilise le même modèle de Routine et le même parcours fonctionnel que pour les Séances et Exercices**, avec le Parcours comme source. Le contrat d’écran détaillé du formulaire Parcours reste à finaliser avant développement.
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 # 3. Composition d'une séance
 
@@ -271,7 +274,7 @@ Un exercice possède notamment :
 - Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
 - une **Pause entre les côtés** facultative, visible uniquement en `D→G/G→D` et exécutée selon l’Ordre des côtés (une fois par Exercice ou une fois par Série) ;
 - une Description facultative et une ou plusieurs Zones corporelles obligatoires ;
-- un média associé est affiché dans la gouttière permanente de la carte du Catalogue dans le MVP, sans déploiement ; les mécanismes d’import/capture et la gestion multiple restent régis par leur périmètre propre.
+- un média associé est affiché dans la gouttière permanente de la carte du Catalogue dans le MVP, sans déploiement ; l’import/ajout local et les associations ordonnées sont inclus au MVP dans PRE-3 (D-333), sans activation implicite de la caméra.
 
 Les exercices sont exécutés dans l'ordre où elles apparaissent dans la séance.
 
@@ -287,7 +290,7 @@ Elle peut être définie :
 
 Elle peut être associée à une ou plusieurs zones corporelles.
 
-Le modèle distingue deux récupérations. La **Pause entre les côtés** (`sideRecoverySeconds`) est une propriété intrinsèque facultative, uniquement pertinente pour un Exercice bilatéral ; lorsqu’elle est positive, `SIDE_RECOVERY` intervient selon l’Ordre des côtés (une fois par Exercice ou une fois par Série). La **Récupération après exercice** (`postActivityRecoverySeconds`) est contextuelle à chaque occurrence de Séance/Parcours, existe y compris à `0 s` et, lorsqu’elle est positive, produit `POST_ACTIVITY_RECOVERY` après l’occurrence. Une `ActivityDefinition` n’en possède jamais.
+Le modèle distingue deux récupérations. La **Pause entre les côtés** (`sideRecoverySeconds`) est une propriété intrinsèque facultative, uniquement pertinente pour un Exercice bilatéral ; lorsqu’elle est positive, `SIDE_RECOVERY` intervient selon l’Ordre des côtés (une fois par Exercice ou une fois par Série). La **Récupération après exercice** (`postActivityRecoverySeconds`) est contextuelle à chaque occurrence de Séance, existe y compris à `0 s` et, lorsqu’elle est positive, produit `POST_ACTIVITY_RECOVERY` après l’occurrence. Une `ActivityDefinition` n’en possède jamais.
 
 Un Exercice dont le nom ou l’intention fonctionnelle est « Récupération » reste possible : elle utilise le même modèle et les mêmes modes que toute autre Exercice ; aucun traitement particulier n’est associé à son nom.
 
@@ -354,7 +357,7 @@ Le calcul tient compte :
 - de toutes les occurrences d'Exercices chronométrés ;
 - des Pauses entre Séries effectivement insérées dans le plan ;
 - de `sideRecoverySeconds` dans la durée intrinsèque de chaque Exercice bilatéral ;
-- de `postActivityRecoverySeconds` après chaque occurrence de Séance/Parcours, répété avec l’occurrence lorsqu’elle appartient au Circuit, à chaque Tour ;
+- de `postActivityRecoverySeconds` après chaque occurrence de Séance, répété avec l’occurrence lorsqu’elle appartient au Circuit, à chaque Tour ;
 - des Séries ;
 - des Tours du Circuit ;
 - des répétitions du Cycle ;
@@ -589,7 +592,7 @@ Chaque exécution enregistre notamment :
 - l’instantané fonctionnel de la séance ;
 - les informations propres à chaque exercice exécuté.
 
-Cet instantané est suffisamment complet pour restituer la structure, les paramètres et les libellés de la Séance exécutée, mais il reste volontairement léger. En V2, il conserve les associations média ordonnées et leurs références stables sans dupliquer les fichiers physiques.
+Cet instantané est suffisamment complet pour restituer la structure, les paramètres et les libellés de la Séance exécutée, mais il reste volontairement léger. Dès leur introduction au MVP dans PRE-3 (D-333), il conserve les associations média ordonnées et leurs références stables sans dupliquer les fichiers physiques.
 
 Une exécution n'est jamais modifiée après son enregistrement.
 
@@ -605,129 +608,25 @@ L'exécution d'une séance repose sur les principes suivants :
 
 # 5. Planification d'une routine
 
-## 5.1 Principe général
+Une Routine représente un créneau portant une **liste ordonnée de contenus**, Séances (`SESSION`), Exercices persistants (`ACTIVITY`) ou mélange des deux. Le créneau produit les occurrences ; chaque contenu les filtre par sa fréquence sans unité **x fois sur n** et ses positions retenues. Le cas x=n s’affiche « à chaque fois ».
 
-Une Routine est la planification d’une source autonome, de type `SESSION` ou `ACTIVITY`.
+Programme facultatif (« Aucun » par défaut) précède Début le. Répétition désactivée produit un créneau unique ; activée, elle expose Jour/Semaine/Mois et une borne **jusqu’au** (date) ou **pendant** (nombre d’unités). Aucun/Aucune ne sont plus des options de Rappel/Répétition : des interrupteurs portent leur absence. Rappel reste facultatif,0..1 par Routine.
 
-Elle permet d'associer une Séance ou un Exercice persistant à une ou plusieurs dates d'exécution selon une fréquence définie par l'utilisateur.
+La sélection utilise des cases à cocher et « Ajouter 1 élément » / « Ajouter n éléments », avec les espaces et accords usuels. Le formulaire porte Planifier sans contenu, Planifier une séance/un exercice à contenu unique, Planifier un parcours à plusieurs contenus. **Parcours est uniquement un libellé**, sans entité, catalogue ni exécution autonome. Circuit reste le groupe interne à une Séance, répété en Tours.
 
-Une même source peut être associée à zéro, une ou plusieurs Routines.
+La spécification du 08/10 définit le comportement cible et ses points ouverts ; elle ne certifie pas une implémentation. Une Routine peut toujours partager ses sources avec d’autres Routines. Les données historiques ne sont pas réécrites.
 
-Chaque Routine est totalement indépendante des autres, même lorsqu'elles utilisent la même source.
+Le créneau produit d’abord sa suite d’occurrences. Chaque contenu retient ensuite les positions définies par son motif x/n ; changer Jour en Semaine ne change pas le motif. L’origine de l’index et son évolution après modification restent à préciser, pas à inférer du calendrier dessiné.
 
-## 5.2 Création d'une routine
+Sans répétition : une date/heure. Avec répétition : Jour/Semaine/Mois. Pour Semaine, conserver l’ancrage sur la semaine contenant le début, le multiplicateur 1..12 et les dates inclusives du calcul existant. Ne pas utiliser ce calcul comme définition du mode Mois ou de la conversion pendant/jusqu’au.
 
-La création d'une Routine est réalisée depuis le Calendrier ou depuis l’action `Planifier` d’une carte de Catalogue.
+Rappel : interrupteur puis 5 min/15 min/30 min/1 h/Autre, choix égaux sur la largeur. Aucun n’est plus une option ; Autre ouvre le réglage personnalisé. Les règles de permission et le plafond personnalisé 24 h existants restent conservés.
 
-Elle se déroule en deux étapes fonctionnelles :
+La modification agit sur le futur ; suppression de Routine conserve sources et histoire. L’agrégation des états de plusieurs contenus, les exclusions d’occurrence et l’archivage d’un contenu de liste nécessitent les compléments explicitement ouverts dans la spécification. Ne pas créer d’Exécution fictive pour un contenu non réalisé.
 
-1. sélection de la source à planifier, sauf lorsqu’elle est déjà préremplie depuis le Catalogue ;
-2. définition des paramètres de planification.
+Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
-À l'issue de la validation, la Routine est immédiatement créée.
-
-Les occurrences correspondantes deviennent visibles dans le calendrier.
-
-## 5.3 Paramètres de planification
-
-Chaque Routine possède les paramètres suivants :
-
-- la séance associée ;
-- la date de début ;
-- l'heure d'exécution ;
-- le mode de planification :
-    - **Aucune** : une seule occurrence est planifiée à la date définie ;
-    - **Périodique** : dans le MVP, la Séance est répétée selon une périodicité hebdomadaire définie par une fréquence en semaines ;
-- pour une planification périodique :
-    - la fréquence en semaines, entière de 1 à 12 ;
-    - un ou plusieurs jours de la semaine ;
-    - une date de fin obligatoire ;
-- un rappel facultatif, avec **0 ou 1 rappel maximum** par Routine.
-
-La présentation UI est compacte : `Date de début` et `Heure` sont des libellés de blocs au même niveau visuel, sans titre intermédiaire `Quand ?`. Pour une répétition hebdomadaire, l'écran affiche `Toutes les`, puis `X semaine(s) jusqu'au <date>`, avec les jours sélectionnés en dessous.
-
-Le choix du rappel est extensible. `Aucun` et `Personnalisé` sont des options fixes, toujours visibles. Les délais rapides prédéfinis sont une collection ordonnée affichée dans une zone horizontale défilante entre ces deux options. Le MVP initialise cette collection avec `5 min`, `15 min`, `30 min` et `1 h`. L’ajout ultérieur d’un délai rapide ne modifie ni le modèle de données — toujours zéro ou un rappel — ni l’accessibilité des options fixes.
-
-Il n'existe pas de mode `Quotidien` distinct : sélectionner les sept jours avec une fréquence d'une semaine produit un comportement quotidien.
-
-La fréquence hebdomadaire définit l’intervalle entre deux semaines d’exécution.  
-Exemple : une fréquence de `2` signifie que la Routine est exécutée toutes les deux semaines, uniquement les jours sélectionnés.
-
-Ces paramètres peuvent être modifiés à tout moment.
-
-## 5.4 Modification
-
-Une routine peut être modifiée à tout moment.
-
-Toute modification est immédiatement prise en compte pour les occurrences futures.
-Les occurrences déjà exécutées ne sont jamais modifiées.
-Le MVP ne permet pas de modifier une occurrence individuellement.
-Toute modification s'applique à l'ensemble de la routine.
-
-## 5.5 Calcul des occurrences
-
-Les occurrences sont calculées dynamiquement à partir des paramètres de la routine.
-
-Pour une Routine en mode `Périodique`, la semaine contenant la **Date de début** constitue la semaine d'ancrage n°1.
-
-Pour une fréquence de `N` semaines :
-
-- seules les semaines dont l'écart avec la semaine d'ancrage est un multiple de `N` génèrent des occurrences ;
-- dans chacune de ces semaines, une occurrence est générée pour chaque jour de la semaine sélectionné ;
-- aucune occurrence n'est générée avant la Date de début ;
-- la Date de fin est **incluse** : une occurrence située ce jour-là est générée si le jour est sélectionné ;
-- toutes les occurrences utilisent l'Heure définie par la Routine.
-
-Exemple : si la Date de début est un mercredi et que lundi et jeudi sont sélectionnés, le lundi de cette première semaine n'est pas généré car il précède la Date de début ; le jeudi l'est.
-
-Ce calcul dynamique concerne les occurrences futures. Lorsqu'une occurrence arrive à échéance, elle est historisée avec son résultat afin de conserver la trace des séances exécutées et non exécutées.
-Le calendrier calcule uniquement les occurrences correspondant à la période consultée.
-Les occurrences ne peuvent pas être modifiées individuellement.
-Toute modification de la date de début, de l'heure, de la fréquence hebdomadaire, des jours sélectionnés ou de la date de fin s'applique à l'ensemble de la Routine et recalcule les occurrences futures.
-
-Les détails techniques de ce calcul sont décrits dans le chapitre **12 – Architecture technique**.
-
-## 5.6 Exécution d'une occurrence
-
-Une occurrence future peut être exécutée en avance depuis l’action **Démarrer** affichée sur sa carte.
-
-Cette action ouvre l'écran d'Exécution sans démarrer automatiquement la premier Exercice.
-
-Lorsqu'une occurrence future est exécutée en avance, elle est considérée comme exécutée pour cette occurrence et n'est plus proposée à l'horaire initial.
-
-Une occurrence qui arrive à échéance sans Exécution disparaît de l'interface et n'apparaît pas dans le Suivi du MVP.
-
-## 5.7 Suppression
-
-Une Routine peut être supprimée à tout moment.  
-Une confirmation est systématiquement demandée.
-
-La suppression d'une Routine :
-- met fin au calcul de ses occurrences futures ;
-- conserve toutes les occurrences déjà historisées, qu'elles soient `Exécutées` ou `Non exécutées` ;
-- ne supprime jamais la source associée ;
-- ne supprime jamais les Exécutions déjà enregistrées.
-
-## 5.8 Relation avec la source
-
-Une Routine référence toujours une seule source : une Séance (`SESSION`) ou un Exercice persistant (`ACTIVITY`).
-Toute modification apportée à la source est prise en compte par les occurrences futures qui n’ont pas encore démarré.
-
-Les Exécutions déjà enregistrées conservent leur propre Instantané.
-
-## 5.9 Principes de conception
-
-La planification repose sur les principes suivants :
-- une Routine ne contient jamais une copie de sa source ;
-- une Routine référence toujours une source active existante ;
-- plusieurs Routines peuvent utiliser la même source ;
-- les occurrences ne sont pas modifiables individuellement dans le MVP ;
-- l'archivage d'une Séance **ou d’un Exercice persistant** supprime les Routines futures qui lui sont associées ;
-- la restauration d’une source archivée ne recrée ni ne restaure ses anciennes Routines ;
-- la suppression d'une Routine ne supprime jamais sa source ;
-- la suppression définitive d’une source archivée ne supprime jamais les Exécutions et Instantanés historiques ;
-- l'historique des Exécutions est totalement indépendant des Routines.
-
+La règle de réinitialisation de la fréquence remet toutes les pastilles au gris à chaque changement de x ou n. L’utilisateur choisit les positions ; aucune troncature ni motif automatique n’est décidé. Le formulaire masque entièrement la liste des contenus à contenu unique ; à partir de deux contenus, les lignes sont réordonnables et n’ont pas de titre.
 
 # 6. Suivi et historique des séances
 
@@ -964,7 +863,7 @@ L’Étiquette est gérée directement dans la Composition via une modale basse.
 | Pause entre les côtés | Stepper permanent CE-UI-10 | Visible uniquement en `D→G/G→D` | Non | Copie de la valeur courante du Profil (initialement 10 s) | 0..5min ; tap1s, maintien DSF Bip | Activité | Sélection | `sideRecoverySeconds`; une phase entre les côtés selon l’Ordre des côtés ; aucune récupération post-activité dans l’éditeur |
 | Bip de cadence | Stepper | Trois modes, réglage commun | Non | Aucun (0) | Entier0..10s | Série | ± dans le brouillon ;0 retire le bip | Propagation à toutes les Séries ; conservation au changement de mode |
 | Durée totale | Valeur calculée | Durée/Répétitions | Non | Calculée | Formules v13 §5 | Calcul | Roulette en Durée uniforme seulement | Variable : lecture seule, — si incomplet ; Répétitions cadencées ≈ / non cadencées ≥ ; À l’échec absente |
-| Médias                    | Zone média | Selon état | Non | Vide | Le média associé est présenté dans la gouttière permanente de 64 px de la carte Catalogue ; aucun déploiement de carte d’Exercice n’est accessible au MVP (D-260/D-261) ; les capacités d’import/capture suivent leur périmètre propre | Activité | Afficher / masquer | La Synthèse reste au-dessus en cas de chevauchement dans l’éditeur |
+| Médias                    | Zone média | Selon état | Non | Vide | Le média associé est présenté dans la gouttière permanente de 64 px de la carte Catalogue ; aucun déploiement de carte d’Exercice n’est accessible au MVP (D-260/D-261) ; l’import/ajout local est inclus au MVP dans PRE-3 (D-333), sans activation implicite de la caméra | Activité | Afficher / masquer | La Synthèse reste au-dessus en cas de chevauchement dans l’éditeur |
 | Bouton Terminer           | Bouton            | Toujours                           | Oui         | Désactivé si activité invalide | Nom, une Catégorie, au moins une Zone et un mode obligatoires ; cible valide selon le mode (D-211/D-232) | Statique | Enregistrer | Remplace l’ancien libellé `Valider` puisqu’il n’existe plus de second écran |
 
 **Règle transverse des roulettes numériques :** chaque changement effectif de valeur déclenche un retour haptique léger et bref, une seule fois par cran. Ce feedback est systématique et indépendant de la préférence `Vibrations` du Profil.
@@ -1109,11 +1008,11 @@ Dans les modales de sélection `Étiquettes`, `Catégorie` et `Zones corporelles
 
 ## Planifier une Séance ou un Exercice
 
-Les sélecteurs ouverts `Heure` et `Rappel personnalisé` conservent la géométrie propre à leur référence Figma, d’environ `310 × 201`, adaptée à la largeur disponible. Chaque colonne numérique possède son propre cadre de sélection gris `56 × 34`, rayon `17`, limité aux chiffres. Le `Nombre de semaines` utilise `Type=Numeric wheel` (`144 × 203`) à une seule colonne. Annuler, à gauche, abandonne le brouillon ; Confirmer, à droite, applique les valeurs centrées au formulaire. Les actions utilisent respectivement un cercle gris neutre et un cercle bleu primaire de `38 × 38`, une icône `24 × 24` et une cible tactile de `48 × 48`. Le cadre de mise en page `48 × 53` conserve les marges autour du cercle sans modifier la cible tactile.
+Les sélecteurs ouverts `Heure` et `Rappel personnalisé` conservent la géométrie propre à leur référence Figma, d’environ `310 × 201`, adaptée à la largeur disponible. Chaque colonne numérique possède son propre cadre de sélection gris `56 × 34`, rayon `17`, limité aux chiffres. Le nombre de semaines utilise désormais un stepper intégré (frame 1992:7537), sans roulette dédiée. Annuler, à gauche, abandonne le brouillon ; Confirmer, à droite, applique les valeurs centrées au formulaire. Les actions utilisent respectivement un cercle gris neutre et un cercle bleu primaire de `38 × 38`, une icône `24 × 24` et une cible tactile de `48 × 48`. Le cadre de mise en page `48 × 53` conserve les marges autour du cercle sans modifier la cible tactile.
 
 ### Règles liées à la couleur
 
-- La Routine reprend le repère visuel de sa source : couleur d’Étiquette pour une Séance ; couleur de Catégorie pour un Exercice lorsqu’elle existe.
+- À contenu unique, la Routine reprend le repère visuel de sa source ; la représentation agrégée de plusieurs contenus reste à préciser : couleur d’Étiquette pour une Séance ; couleur de Catégorie pour un Exercice lorsqu’elle existe.
 - Le champ couleur n’est pas affiché dans l’écran de planification.
 - La couleur n’est jamais modifiée depuis la planification ; elle provient de la source.
 
@@ -1186,7 +1085,7 @@ La Composition porte `postActivityRecoverySeconds` sur chaque occurrence. Hors p
 
 ## Consolidation détaillée — D-209 à D-217
 
-La Composition présente un **Circuit** interne à la Séance et un nombre de **Tours**. Le terme `Parcours` est réservé au contenu autonome du Catalogue. Le réglage global de Séance `Appliquer compte à rebours et fin des exercices` est activé par défaut et agit sur tous les Exercices de la Séance ; aucun contrôle équivalent n’est ajouté sur chaque occurrence.
+La Composition présente un **Circuit** interne à la Séance et un nombre de **Tours**. Le mot parcours désigne une planification multi-contenus sans objet autonome (D-328). Le réglage global de Séance `Appliquer compte à rebours et fin des exercices` est activé par défaut et agit sur tous les Exercices de la Séance ; aucun contrôle équivalent n’est ajouté sur chaque occurrence.
 
 L’éditeur d’Exercice exige exactement une Catégorie et au moins une Zone corporelle. Dans la phrase de synthèse, `Durée totale` est omise en mode Durée avec une seule Série conformément à D-232. Les valeurs Profil utilisées à la création deviennent propres à l’Exercice après initialisation.
 
@@ -1251,3 +1150,4 @@ Lorsque deux Exercices consécutifs n’ont ni pause effective de transition ni 
 ## Propagation Pauses et symboles — 07/10
 
 Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). Sélection multiple, ouverture immédiate de la durée, sous-brouillon atomique et retrait par bulle selon la spécification consolidée. Les frontières du Point d’arrêt ne deviennent pas celles de toutes les récupérations.
+

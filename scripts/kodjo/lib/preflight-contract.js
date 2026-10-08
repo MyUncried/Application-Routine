@@ -38,7 +38,6 @@ function fingerprintInput(attestation) {
     operation_kind: attestation.operation_kind,
     mode: attestation.mode,
     bindings: attestation.bindings,
-    freshness_guards_required: [...attestation.freshness_guards_required].sort(),
     projection_sha256: attestation.projection_sha256,
     prompt_sha256: attestation.prompt_sha256,
     prompt_file_sha256: attestation.prompt_file_sha256 || null,

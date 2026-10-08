@@ -119,7 +119,8 @@ function tagged(markdown,tag,required=true){
   catch(error){if(!required&&String(error.code||'').includes('OPTIONAL'))return null;throw error;}
 }
 function verifyEmbedded(markdown) {
-  const impact=extractTaggedJson(markdown,'KODJO_PLAN_IMPACT_JSON');
+  const impact=extractTaggedJson(markdown, markdown.includes('<KODJO_VNEXT_SCOPE_JSON>') ? 'KODJO_VNEXT_SCOPE_JSON' : 'KODJO_PLAN_IMPACT_JSON');
+  if(markdown.includes('<KODJO_VNEXT_SCOPE_JSON>') && (impact.schema !== 'kodjo.vnext.downstream-scope.v1' || !/^[0-9a-f]{64}$/.test(impact.plan_contract_hash)))fail('VNEXT_DOWNSTREAM_SCOPE_INVALID');
   const ui=extractTaggedJson(markdown,'KODJO_UI_CRITERIA_MATRIX_JSON');
   const nonUi=extractTaggedJson(markdown,'KODJO_NON_UI_REQUIREMENTS_JSON');
   const scope=new Set((impact.scope_allow||[]).map(p=>normalizeRepoPath(p,'scope_allow')));
@@ -127,7 +128,10 @@ function verifyEmbedded(markdown) {
     const {validateMatrix,isUiPath}=require('./ui-criteria-contract');
     validateMatrix(ui,{scope,uiPaths:[...scope].filter(isUiPath),requireAssertions:true});
   }
-  const expectedReq=buildRequirementContract(ui,nonUi,scope);
+  const Delivery=require('./vnext-delivery-preservation');
+  const preservation=Delivery.fromMarkdown(markdown);
+  if(preservation && canonicalJson([...scope].sort())!==canonicalJson([...preservation.correction_write_scope].sort()))fail('VNEXT_DELIVERY_CORRECTION_SCOPE_DRIFT');
+  const expectedReq=buildRequirementContract(Delivery.merge(ui,preservation),nonUi,scope);
   const expectedTests=buildTestContract(expectedReq);
   const expectedBoundaries=buildBoundaryContract(ui);
   const actualReq=extractTaggedJson(markdown,'KODJO_REQUIREMENT_CONTRACT_JSON');

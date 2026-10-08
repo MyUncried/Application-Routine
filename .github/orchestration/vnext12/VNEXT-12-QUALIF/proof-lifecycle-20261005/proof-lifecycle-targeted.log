@@ -1,0 +1,230 @@
+✔ the versioned PRE-1 derogation is nominative, NOT_EXECUTED and not satisfied by VISUAL_APPROVED (2.437888ms)
+✔ only a device-check-only gap is waived; any other gap still blocks (0.314628ms)
+✔ a derogation for an unknown requirement or another proof type is refused (1.24335ms)
+✔ the workflow freezes the slice derogation, informs the reviewer and passes it to every validation (0.580714ms)
+✔ the published review states the non-executed derogated proof in clear text (0.473555ms)
+✔ the finalization replay of the review receives the same derogation from the protocol checkout (0.346265ms)
+✔ E2E UI: plan/review technique + approbation humaine exact HEAD => READY_TO_CLOSE (144.463585ms)
+✔ E2E UI: approbation humaine sur un autre HEAD est refusée (147.072502ms)
+✔ E2E UI: approbation humaine liée à une autre revue est refusée (143.435675ms)
+✔ E2E UI: la finalisation refuse un faux PASS device avant gate humain (141.946133ms)
+✔ delta/global: legacy VISUAL_APPROVED cannot close a differential correction (126.308648ms)
+✔ delta/global: targeted success is retained while the entire slice requires requalification (157.510139ms)
+✔ delta/global: rejects invalid scope (126.6732ms)
+✔ delta/global: rejects invalid global conformity (142.724947ms)
+✔ delta/global: rejects invalid partial requalification (151.027472ms)
+✔ delta/global: rejects invalid head (138.344549ms)
+✔ delta/global: rejects invalid review (127.175458ms)
+✔ delta/global: rejects invalid duplicate scope (137.987807ms)
+✔ delta/global: rejects invalid missing target (137.809633ms)
+✔ E2E UI: le workflow final conserve le canal VISUAL_APPROVED et le chemin legacy (0.732711ms)
+✔ D2: VISUAL_APPROVED never replaces technical, functional or preservation evidence (908.041343ms)
+✔ delta/global: record, idempotent replay and canonical planning entry require no queue mutation (73.682421ms)
+✔ delta/global: canonical entry replays evidence before generating a plan (0.196743ms)
+✔ delta/global: old complete reviews cannot bypass a recorded global requalification (0.862864ms)
+✔ device gap: actual review APPROVE -> exact user validation -> closure preserves unexecuted SQLite evidence (128.741839ms)
+✔ device gap: user validation absent refuses closure (135.385205ms)
+✔ device gap: user validation wrong head refuses closure (173.18914ms)
+✔ device gap: user validation wrong review refuses closure (131.714107ms)
+✔ device gap: user validation wrong slice refuses closure (138.540164ms)
+✔ device gap: functional FAIL is still blocked despite visual approval (138.719113ms)
+✔ device gap: functional unavailable is still blocked despite visual approval (137.045032ms)
+✔ device gap: functional deferred is still blocked despite visual approval (134.279819ms)
+✔ device gap: preservation FAIL is still blocked despite visual approval (133.357365ms)
+✔ device gap: boundary FAIL is still blocked despite visual approval (147.356374ms)
+✔ device gap: partial conformity is still blocked despite visual approval (128.474075ms)
+✔ device gap: non conformity is still blocked despite visual approval (147.855698ms)
+✔ device gap: accessibility failed is still blocked despite visual approval (134.295246ms)
+✔ device gap: no proofs is still blocked despite visual approval (157.500589ms)
+✔ device gap: no pending device gap is still blocked despite visual approval (123.332219ms)
+✔ device gap: disabling the required device gate refuses closure (147.723206ms)
+✔ device gap: actual GitHub workflow requires owner and current delivery HEAD (0.370992ms)
+✔ D1 ACCESSIBILITY pending review reaches finalization only through exact device approval (253.292629ms)
+✔ PRE-1 actual versioned SQLite derogation remains NOT_EXECUTED after exact visual approval (134.825995ms)
+✔ implementation review: prépare toutes les exigences du plan et détecte le gate device (76.181765ms)
+✔ implementation review: refuse un change_target approuvé absent du diff (72.114783ms)
+✔ implementation review: accepte approbation technique avec preuves device explicitement en attente (94.744352ms)
+✔ implementation review: refuse qu une revue automatisée certifie une preuve device (71.574805ms)
+✔ implementation review: un défaut fonctionnel impose REVISE (82.858441ms)
+✔ implementation review: PARTIELLEMENT_CONFORME ou NON_VERIFIABLE ne peut pas être approuvé (81.600939ms)
+✔ implementation review: refuse une frontière PRESERVE ou FORBIDDEN non démontrée (67.034417ms)
+✔ workflow: V2 ajoute le contrat de revue sans modifier le transport ni le chemin legacy (0.650909ms)
+✔ audit F14: device proof table preserves only PENDING_DEVICE or demonstrated FAIL (924.143305ms)
+✔ delta review: le diff immédiat affecte uniquement ses critères et hérite les autres (79.32284ms)
+✔ delta review: un critère hérité ne peut pas être réinterprété (129.601123ms)
+✔ delta review: PENDING_DEVICE accessibilité ne bloque pas une approbation technique (143.30881ms)
+✔ non-UI report labels do not masquerade as UI IDs; independent full-plan assessment is mandatory (196.042695ms)
+✔ non-UI integrity, structure, stop and duplicate checks remain blocking (1228.109698ms)
+✔ non-UI semantic defects and unknown evidence cannot be approved with empty UI criteria (412.553786ms)
+✔ non-UI assessment refuses empty, duplicate or unsubstantiated requirements (247.0354ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ frozen workflow consumer prepares and validates retained delivery criteria independently of application code (511.58226ms)
+✔ delivered criterion outside correction scope is reviewed and finalized without expanding write authority (691.779745ms)
+✔ real modification outside correction scope is refused even if mentioned by a delivered criterion (131.433343ms)
+✔ regression in a retained previously conforming criterion blocks approval and finalization (546.77588ms)
+✔ delivery evidence rejects wrong authors, altered proof binding and incomplete retained coverage (65.303451ms)
+✔ atomic retained assertions keep coverage through planning review and implementation finalization (422.262089ms)
+✔ a changed criterion requires the profile in the explicit correction scope and replaces its old version (242.722076ms)
+✔ a subsequent correction observes the complete delivered matrix, including retained criteria (84.075999ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+▶ post-acceptance revision integration uses owner gaps, preserves APPROVE and prepares an authorized correction
+  ✔ nominal: approved delivery -> acceptance gaps -> revision -> review -> immutable plan -> runtime admission (2607.273831ms)
+  ✔ owner identity, issue, exact delivered head and old review identity are mandatory (0.628735ms)
+  ✔ a genuine correction outside the owner-authorized paths is refused (1.169841ms)
+  ✔ missing, duplicate or unresolved gap resolutions cannot yield an approved revised plan (2.270669ms)
+  ✔ technical failures and omitted retained assertions cannot enter the pre-closure baseline (1.049422ms)
+  ✔ the old approved plan bytes and independent receipt remain bound, not replaceable by a fake REVISE (2191.661862ms)
+  ✔ recovery revalidates the saved response without another model call or a new approval target (1191.785421ms)
+✔ post-acceptance revision integration uses owner gaps, preserves APPROVE and prepares an authorized correction (10697.853233ms)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint:
+hint: 	git config --global init.defaultBranch <name>
+hint:
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint:
+hint: 	git branch -m <name>
+hint:
+hint: Disable this message with "git config set advice.defaultBranchName false"
+✔ accessibility PASS: real review CLI -> exact user approval -> finalization -> VNext retained baseline (150.754501ms)
+✔ accessibility PENDING_DEVICE: real review CLI -> exact user approval -> finalization -> VNext retained baseline (311.930438ms)
+✔ review proof policy FUNCTIONAL_TEST / PASS (208.917178ms)
+✔ review proof policy FUNCTIONAL_TEST / FAIL (199.043962ms)
+✔ review proof policy FUNCTIONAL_TEST / NON_VERIFIABLE (193.414461ms)
+✔ review proof policy FUNCTIONAL_TEST / PENDING_DEVICE (209.571246ms)
+✔ review proof policy STATIC_ANALYSIS / PASS (203.314982ms)
+✔ review proof policy STATIC_ANALYSIS / FAIL (189.879947ms)
+✔ review proof policy STATIC_ANALYSIS / NON_VERIFIABLE (195.399495ms)
+✔ review proof policy STATIC_ANALYSIS / PENDING_DEVICE (204.658286ms)
+✔ review proof policy VISUAL_COMPARE / PASS (200.289821ms)
+✔ review proof policy VISUAL_COMPARE / FAIL (190.327503ms)
+✔ review proof policy VISUAL_COMPARE / NON_VERIFIABLE (195.489038ms)
+✔ review proof policy VISUAL_COMPARE / PENDING_DEVICE (241.087245ms)
+✔ review proof policy DEVICE_CHECK / PASS (209.190939ms)
+✔ review proof policy DEVICE_CHECK / FAIL (208.710531ms)
+✔ review proof policy DEVICE_CHECK / NON_VERIFIABLE (199.569997ms)
+✔ review proof policy DEVICE_CHECK / PENDING_DEVICE (201.081011ms)
+✔ review proof policy ACCESSIBILITY_CHECK / PASS (199.241664ms)
+✔ review proof policy ACCESSIBILITY_CHECK / FAIL (209.424336ms)
+✔ review proof policy ACCESSIBILITY_CHECK / NON_VERIFIABLE (208.251407ms)
+✔ review proof policy ACCESSIBILITY_CHECK / PENDING_DEVICE (210.334185ms)
+✔ missing technical evidence and unjustified pending-to-PASS conversion are refused (489.318427ms)
+✔ retained assertion proofs are rechecked even after resealing a forged finalization (126.052695ms)
+✔ scoped explicit waiver closes only its pending proof and retains NOT_EXECUTED reservations (499.172884ms)
+✔ post-acceptance revision preserves pending assertions and explicit waiver without laundering failures (3724.330769ms)
+ℹ tests 101
+ℹ suites 0
+ℹ pass 101
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16357.334143

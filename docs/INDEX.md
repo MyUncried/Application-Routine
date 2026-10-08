@@ -223,7 +223,7 @@ Le cycle de vie d’une `ActivityDefinition` comprend archivage, restauration et
 
 La migration T03 crée les structures de Catalogue et l’origine `ACTIVITY` sans promouvoir les `SessionActivity` historiques.
 
-Les Parcours fonctionnels restent hors MVP. La consultation des médias déjà associés à un Exercice pendant l’Exécution est incluse au MVP par D-203 ; l’ajout/import et le stockage des médias restent gouvernés par D-066/D-068.
+Les Parcours fonctionnels restent hors MVP. La consultation des médias déjà associés à un Exercice pendant l’Exécution est incluse au MVP par D-203 ; l’ajout/import et le stockage local sont inclus au MVP dans PRE-3 par D-333, en conservant les règles de D-066/D-068.
 
 ## 11. Matrices et rapports de traçabilité
 
@@ -242,9 +242,9 @@ Les Parcours fonctionnels restent hors MVP. La consultation des médias déjà a
 
 Conception fonctionnelle et UX de la consultation des médias pendant l’Exécution : bascule Information/Média, galerie ordonnée, vidéo, plein écran, mémoire limitée à la séance et cadre flottant d’Exécution. Les évidences Figma sont `5021:5994`, `5581:4257`, `4997:6113`, `5588:4363` et `5009:6069`.
 
-La consultation média pendant l’Exécution décrite ici est **incluse au MVP** (confirmation du 28/09/2026). L’ajout/import dans l’éditeur n’est pas couvert par cette décision.
+La consultation média pendant l’Exécution décrite ici est **incluse au MVP** (confirmation du 28/09/2026). L’ajout/import dans l’éditeur est inclus séparément au MVP dans PRE-3 par D-333.
 
-> Décision du 28 septembre 2026 — D-203 : les états de consultation média pendant l’Exécution `4997:6113` et `5009:6069` font partie du MVP ; l’ajout/import dans l’éditeur n’est pas inclus.  
+> Décision du 28 septembre 2026 — D-203 : les états de consultation média pendant l’Exécution `4997:6113` et `5009:6069` font partie du MVP ; l’ajout/import dans l’éditeur est désormais inclus au MVP dans PRE-3 par D-333.
 > Décision du 25 septembre 2026 — D-206 : une Séance et un Exercice persistant sont tous deux des contenus autonomes exécutables et planifiables directement. Les Routines utilisent une source générique `SESSION` ou `ACTIVITY`; les Catalogues peuvent afficher conditionnellement la prochaine planification pour les deux types. Les anciennes formulations limitant la planification aux seules Séances sont supersédées.
 
 > Décision du 25 septembre 2026 — D-207 : la notion de contenu planifiable est commune aux **Séances, Exercices persistants et Parcours**. Le MVP planifie `SESSION` et `ACTIVITY`; la planification d’un Parcours reste dans sa version prévue (actuellement V3) et réutilisera la même entité Routine avec la source technique `CIRCUIT`, sans second moteur de planification.
@@ -346,3 +346,17 @@ v12 et v10.2 sont historiques ; leurs règles remplacées ne doivent pas être u
 
 - [Report des dernières décisions : H-08 et H-09](../.github/orchestration/reports/2026-10-06_REPORT_DECISIONS_H08_H09.md) — rectifie l’interprétation de D-238 dans les rapports antérieurs ; décisions H-03/H-10 déjà conservées.
 
+
+
+## Mise à jour du 08/10/2026 — interface et planification
+
+- [DSF général](DSF-INTERFACE-GENERALE-2026-10-08.md) : grille, CTA, modales, blocs et composants communs.
+- [Spécification de planification](Specifications-fonctionnelles/SPECIFICATION-PLANIFICATION-2026-10-08.md) : créneau multi-contenus, fréquence, répétition, Programme et points ouverts.
+- [Matrice et captures](MATRICE-PLANIFICATION-2026-10-08.md) : traçabilité P01–P15, états et réserves.
+- [Rapport de mission](../.github/orchestration/reports/2026-10-08_PLANIFICATION_ANALYSE_PROPAGATION.md).
+
+Les anciennes références de planification mono-source, de l’objet autonome Parcours et des contrôles Aucune/Aucun sont supersédées. Les notes historiques ne valent pas nouvelle prescription.
+
+## Préparation PRE-3 — 08/10/2026
+
+[Périmètre et couverture](preparation/PRE-3/perimetre-et-couverture.md), [analyse de l’existant](preparation/PRE-3/analyse-existant.md) et [rapprochement des sources](preparation/PRE-3/rapprochement-main-figma.md). D-333 inclut l’import/ajout de médias au MVP avant le moteur d’exécution. Ce dossier prépare la planification ; il ne constitue ni une autorisation d’implémentation ni une livraison applicative.

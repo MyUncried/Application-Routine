@@ -185,8 +185,42 @@ jobs:
             scripts/kodjo/verify-plan-contract-consistency.js \
             scripts/kodjo/verify-plan-impact.js \
             scripts/kodjo/lib/plan-impact.js \
-            scripts/kodjo/lib/requirement-contract.js \
+            scripts/kodjo/lib/requirement-contract.js scripts/kodjo/lib/vnext-delivery-preservation.js scripts/kodjo/lib/vnext-contract.js scripts/kodjo/lib/vnext-post-acceptance.js \
             scripts/kodjo/lib/ui-criteria-contract.js \
+            scripts/kodjo/lib/log.js \
+            scripts/kodjo/lib/slice-identity.js \
+            scripts/kodjo/lib/device-proof-policy.js \
+            scripts/kodjo/verify-source-comment.js \
+            scripts/kodjo/lib/vnext-legacy-queue-adapter.js \
+            scripts/kodjo/lib/approval-handoff-contract.js \
+            scripts/kodjo/lib/planning-envelope.js \
+            scripts/kodjo/lib/source-manifest.js \
+            scripts/kodjo/lib/requirement-registry.js \
+            scripts/kodjo/lib/impact-graph.js \
+            scripts/kodjo/lib/vnext-performance.js \
+            scripts/kodjo/lib/scope-path.js \
+            scripts/kodjo/lib/vnext-git-batch.js \
+            scripts/kodjo/lib/plan-contract.js \
+            scripts/kodjo/lib/review-contract.js \
+            scripts/kodjo/lib/ui-atomicity-contract.js \
+            scripts/kodjo/lib/vnext-figma-source.js scripts/kodjo/lib/machine-block.js \
+            scripts/kodjo/lib/vnext-producer-packet.js \
+            scripts/kodjo/lib/vnext-preserved-controls.js \
+            scripts/kodjo/lib/queue-contract.js \
+            scripts/kodjo/lib/initial-restart.js \
+            scripts/kodjo/lib/preflight-contract.js \
+            scripts/kodjo/lib/vnext-audit-register.js \
+            scripts/kodjo/lib/vnext-finalization.js \
+            scripts/kodjo/lib/yaml.js \
+            scripts/kodjo/lib/vnext-remote-write-security.js \
+            scripts/kodjo/lib/git.js \
+            scripts/kodjo/lib/hash.js \
+            scripts/kodjo/lib/json.js \
+            scripts/kodjo/lib/delivery.js \
+            scripts/kodjo/lib/tar.js \
+            scripts/kodjo/lib/checks.js \
+            scripts/kodjo/lib/status.js \
+            scripts/kodjo/lib/adapters.js \
             scripts/kodjo/lib/ui-identities.js; do
             dest="${CONTROL}/${file#scripts/kodjo/}"
             mkdir -p "$(dirname "${dest}")"

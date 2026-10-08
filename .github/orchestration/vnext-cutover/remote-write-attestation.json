@@ -1,0 +1,2100 @@
+{
+  "schema_version": "kodjo.vnext.remote-write-attestation.v2",
+  "policy_hash": "7216c70184aa98945a9fed4fab55bae71ae2b9bc8d94713d7dfa1e267eea541b",
+  "retirement_observation": null,
+  "scanned_file_count": 281,
+  "observed_capability_count": 260,
+  "active_legacy_slice_ids": [
+    "V2-CAT-01",
+    "V2-E2E-20260919",
+    "V2-PROD-00",
+    "V2-QUALIF-00",
+    "V2-QUALIF-01",
+    "VNEXT-12-QUALIF"
+  ],
+  "status": "PASS_WITH_FROZEN_LEGACY",
+  "findings": [],
+  "observed_capabilities": [
+    {
+      "producer": ".github/workflows/kodjo-base-evidence-recovery.yml",
+      "line": 107,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "repos/$GITHUB_REPOSITORY/contents/$PROOF_PATH",
+      "scope": "JOB:verify",
+      "capability_key": "f31e07ba0ca1ee4a075d184b1f0010354fd8bee41031e9ff7cb68d8ca8ac9969"
+    },
+    {
+      "producer": ".github/workflows/kodjo-base-evidence-recovery.yml",
+      "line": 21,
+      "capability": "GITHUB_PERMISSION_WRITE:actions",
+      "destination": "github-token:actions",
+      "scope": "WORKFLOW",
+      "capability_key": "ebd692947aa4df53767e72d16c4028bfbe01add7966e2e2a039029d172a7a1b1"
+    },
+    {
+      "producer": ".github/workflows/kodjo-base-evidence-recovery.yml",
+      "line": 22,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "e8205dd0daf04950ba1b64117d5ab5680560484c48d2000021ad6d16ab9e1e4a"
+    },
+    {
+      "producer": ".github/workflows/kodjo-base-evidence-recovery.yml",
+      "line": 79,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "repos/$GITHUB_REPOSITORY/contents/$RESULT_PATH",
+      "scope": "JOB:recover",
+      "capability_key": "69791476e9e280ae6ad1adefe3e24b3bab20a0bfe4874290ba61bf403e0e7d2b"
+    },
+    {
+      "producer": ".github/workflows/kodjo-base-recovery-verifier.yml",
+      "line": 10,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "23d9951cf3bef8dd45dd59dbcd6b5e670a783f65ed91aad6b92d6054bf60ccc1"
+    },
+    {
+      "producer": ".github/workflows/kodjo-base-recovery-verifier.yml",
+      "line": 42,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "repos/$GITHUB_REPOSITORY/contents/$PROOF_PATH",
+      "scope": "JOB:verify",
+      "capability_key": "ee13e4e4483cb9bcb5518437f2113986ee62d1ded2a057df24e1e8bed43758dd"
+    },
+    {
+      "producer": ".github/workflows/kodjo-claude-local-runner-preflight.yml",
+      "line": 18,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "5301780ae750b786afdaf09b15d446d8fbf2340e89550c363202ab6b1b5213e9"
+    },
+    {
+      "producer": ".github/workflows/kodjo-claude-local-session-resume-02.yml",
+      "line": 17,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "2cbfe218eb6cf2e42108d9775b85567eeebceec7fb3eb69a9fbd9a919c83dd31"
+    },
+    {
+      "producer": ".github/workflows/kodjo-claude-local-session-resume-03.yml",
+      "line": 17,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "d6c553aee77d7ef10ec5a726f80949e2080739ed611e4cd0c44dc582a64edcdf"
+    },
+    {
+      "producer": ".github/workflows/kodjo-claude-local-session-resume-test.yml",
+      "line": 17,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "927fe67ff4005939c9f35b7d0ac94c4bcee0ff0d42902d78f7fa99003548b8e4"
+    },
+    {
+      "producer": ".github/workflows/kodjo-claude-session-resume-test.yml",
+      "line": 103,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "repos/$GITHUB_REPOSITORY/contents/$RESULT_PATH",
+      "scope": "JOB:base",
+      "capability_key": "e0eda282bda36f10a959de450874dc98614f1a1540946b9391802d2d60b4caef"
+    },
+    {
+      "producer": ".github/workflows/kodjo-claude-session-resume-test.yml",
+      "line": 146,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "repos/$GITHUB_REPOSITORY/contents/$CLAIM_PATH",
+      "scope": "JOB:resume",
+      "capability_key": "a0b882e166f5fd7a00883ee5d8c0b8ed6624fc40aa5093315696040ea278c119"
+    },
+    {
+      "producer": ".github/workflows/kodjo-claude-session-resume-test.yml",
+      "line": 187,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "repos/$GITHUB_REPOSITORY/contents/$RESULT_PATH",
+      "scope": "JOB:resume",
+      "capability_key": "4236805ac3c9053bbe26b4340383f6b513158b006264fa8ed94178582573aa4e"
+    },
+    {
+      "producer": ".github/workflows/kodjo-claude-session-resume-test.yml",
+      "line": 23,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "cb514ad06a6852d9a8521911fe35d069058506ecf955d65f528bc95240167257"
+    },
+    {
+      "producer": ".github/workflows/kodjo-claude-session-resume-test.yml",
+      "line": 25,
+      "capability": "GITHUB_PERMISSION_WRITE:actions",
+      "destination": "github-token:actions",
+      "scope": "WORKFLOW",
+      "capability_key": "b3bd699a15787552b0d98ca7de7bd48ebd8f1ac2df792afdff10d949200f7931"
+    },
+    {
+      "producer": ".github/workflows/kodjo-claude-session-resume-test.yml",
+      "line": 60,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "repos/$GITHUB_REPOSITORY/contents/$CLAIM_PATH",
+      "scope": "JOB:base",
+      "capability_key": "5e6efdfecc7b2da8d68a848c72766bf4d2e8158a8e3b8cc32d840d36348f83e9"
+    },
+    {
+      "producer": ".github/workflows/kodjo-durable-store-preflight.yml",
+      "line": 20,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "69badbd2f777a5af9a675e5249982ed95f52c1317cc658e34434229e9c8e8e47"
+    },
+    {
+      "producer": ".github/workflows/kodjo-durable-store-preflight.yml",
+      "line": 21,
+      "capability": "GITHUB_PERMISSION_WRITE:actions",
+      "destination": "github-token:actions",
+      "scope": "WORKFLOW",
+      "capability_key": "5f4bf1f860a3f92bfaabb1590c65c851ffc57022500f07965db80236cb12c21a"
+    },
+    {
+      "producer": ".github/workflows/kodjo-durable-store-preflight.yml",
+      "line": 45,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "repos/$GITHUB_REPOSITORY/contents/$PATH_IN_REPO",
+      "scope": "JOB:write",
+      "capability_key": "db35c2e337b323e1b9945343b40e1d6b402ca01593fbead54218e8993a941ebe"
+    },
+    {
+      "producer": ".github/workflows/kodjo-durable-store-preflight.yml",
+      "line": 73,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "repos/$GITHUB_REPOSITORY/contents/$PROOF_PATH",
+      "scope": "JOB:read",
+      "capability_key": "15cce834922e19b8a51ea77d000b05775e719b5350f3372f4392ab120022df51"
+    },
+    {
+      "producer": ".github/workflows/kodjo-e2e-chain-completion-v1-3.yml",
+      "line": 10,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "173691a9da5a1c96a3cf35a7ac20b743ae5b23b48f1c02095a91cc9a6069b9ee"
+    },
+    {
+      "producer": ".github/workflows/kodjo-e2e-chain-completion-v1-3.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "f469f9974032b7f96c1250bab15de926765f5ae0c7c5865c02f177554f9528d7"
+    },
+    {
+      "producer": ".github/workflows/kodjo-e2e-claude-stub-v1-3.yml",
+      "line": 10,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "d8ce9d87610f28d42eef3593f32f5edb04217f79bf53e8c607359fcd9e41ea33"
+    },
+    {
+      "producer": ".github/workflows/kodjo-e2e-orchestration-test-v1-3.yml",
+      "line": 133,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:e2e-review-bridge",
+      "capability_key": "541e17b0827f39218c006e62a2e99078c26d3f0a4bd5d9248e550a192d8afc30"
+    },
+    {
+      "producer": ".github/workflows/kodjo-e2e-orchestration-test-v1-3.yml",
+      "line": 139,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:e2e-review-bridge",
+      "capability_key": "541e17b0827f39218c006e62a2e99078c26d3f0a4bd5d9248e550a192d8afc30"
+    },
+    {
+      "producer": ".github/workflows/kodjo-e2e-orchestration-test-v1-3.yml",
+      "line": 8,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "4a0168b9a2a0d064d306da3d3293eea000a919b7540f6e04f6b0426264bbcab0"
+    },
+    {
+      "producer": ".github/workflows/kodjo-e2e-orchestration-test-v1-3.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "3b4a89326786d88813d3e8351b25351489f6a1bf70a684427f6e524b9189af50"
+    },
+    {
+      "producer": ".github/workflows/kodjo-e2e-t1-t6-v1-3.yml",
+      "line": 10,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "b628b6b607e3c47f5fd457a5dd5bafd260c92e40cf904ba470a8b73f5ee4c3e3"
+    },
+    {
+      "producer": ".github/workflows/kodjo-e2e-t1-t6-v1-3.yml",
+      "line": 11,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "caa87156925e8f937f8689a451d45fca4506d7b782613d2ef6e3f72c4b3e1b42"
+    },
+    {
+      "producer": ".github/workflows/kodjo-e2e-t1-t6-v1-3.yml",
+      "line": 122,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:t2-to-t3",
+      "capability_key": "ece114c2651181c73fd02af8d1835b8d4d81148c67c77c6288d8c5fb8526411a"
+    },
+    {
+      "producer": ".github/workflows/kodjo-e2e-t1-t6-v1-3.yml",
+      "line": 39,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:t1-to-t2",
+      "capability_key": "a129e0aefa78a4dbeda6d18248a360e7f89d63859123c86b46c799da1e8571bf"
+    },
+    {
+      "producer": ".github/workflows/kodjo-e2e-t4-openai-fullchain-v1-3.yml",
+      "line": 10,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "00dbd3930dfadd9878a490337c7aa8aeeeb14956096bc81cd746c7a5cffb6188"
+    },
+    {
+      "producer": ".github/workflows/kodjo-e2e-t4-openai-fullchain-v1-3.yml",
+      "line": 84,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:t4-to-t5",
+      "capability_key": "8e201273d88bc9e2b93cd7d7d1ec79fa766f7e81421c23ab3daa726d6cd0784d"
+    },
+    {
+      "producer": ".github/workflows/kodjo-e2e-t4-openai-fullchain-v1-3.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "ad82b32dabbbac1d09a9de491036413b94083e7e565a8f8ec615587bad373df2"
+    },
+    {
+      "producer": ".github/workflows/kodjo-event-router-v1-3.yml",
+      "line": 237,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:route-event",
+      "capability_key": "a6790796f1a2a22559dcd5a6a8b873e658305e2a9545928ec7df16ce8c96fdb0"
+    },
+    {
+      "producer": ".github/workflows/kodjo-event-router-v1-3.yml",
+      "line": 8,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "54f75c507e4c4a10809a85fbce34bc49a63f54a9b2b2da880b508ac8ad62f124"
+    },
+    {
+      "producer": ".github/workflows/kodjo-resume-forensic-recovery.yml",
+      "line": 11,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "b42bc4dbefae1d8cc5b897a7b8607119170d56c82d74535053d6293ef3d48796"
+    },
+    {
+      "producer": ".github/workflows/kodjo-resume-forensic-recovery.yml",
+      "line": 66,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "repos/$GITHUB_REPOSITORY/contents/$path",
+      "scope": "JOB:recover",
+      "capability_key": "411d95fc3afa8a1e5e879583c2d4437ea83bf8e93a398e1ab3dd81bfebc2bf20"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-finalize.yml",
+      "line": 250,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:finalize",
+      "capability_key": "f779c6519ddd9a42849c5c09108345943b0717a6c7213a9bb739b80e7859f424"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-finalize.yml",
+      "line": 400,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "repos/$env:GITHUB_REPOSITORY/contents/.github/orchestration/v2-activation-registry.json",
+      "scope": "JOB:finalize",
+      "capability_key": "5354e27c14352dc7c74e4cfaa6eb3d750fb887cc8029bebe84c59c93f1adf40e"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-finalize.yml",
+      "line": 8,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "9e6f38ab2f2eac92f4ba929917a277fba812a2349a2bca43eac23aa432cbeba8"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-finalize.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "adfa40c85cfb101298755ac5f6be7371d8e09fac8b7d96a8f29a1bfe860e178f"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-implementation-publication-recovery.yml",
+      "line": 146,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:recover",
+      "capability_key": "b018edfef704c01f9b28f60088dd938c8b4d7bcbab34e797f0e7634604445bd2"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-implementation-publication-recovery.yml",
+      "line": 150,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:recover",
+      "capability_key": "b018edfef704c01f9b28f60088dd938c8b4d7bcbab34e797f0e7634604445bd2"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-implementation-publication-recovery.yml",
+      "line": 8,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "522e8275fe55c7b3dd6068f84371a11248e5cd382498d59625cffe49b794ef36"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-implementation-publication-recovery.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "7daa79a33cf3716216acb99f623519ab140fe9753815c8318b4d2d35d4b449cc"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-implementation-review.yml",
+      "line": 12,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "233af00902cd99e4f5a770b71faad1b630501326ab01e99bdd9e1e59eac2eeeb"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-implementation.yml",
+      "line": 106,
+      "capability": "PERSIST_CREDENTIALS_TRUE",
+      "destination": "actions-checkout:persist-credentials",
+      "scope": "JOB:implement",
+      "capability_key": "26255c59471aa3e2620fd433886a53e25a3083833f7e629579cde30733312183"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-implementation.yml",
+      "line": 207,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:implement",
+      "capability_key": "c8cc1457408ceeaf4ddaa17458d59d22e2744aa1bd2d418baf216556a61e79df"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-implementation.yml",
+      "line": 213,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:implement",
+      "capability_key": "c8cc1457408ceeaf4ddaa17458d59d22e2744aa1bd2d418baf216556a61e79df"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-implementation.yml",
+      "line": 252,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "JOB:implement",
+      "capability_key": "dc9bf81d39c8ed4d0b517ad17141b22d3df8efeb5ae45343e20c8a1cf74ee0f2"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-implementation.yml",
+      "line": 258,
+      "capability": "GIT_PUSH",
+      "destination": "origin \"HEAD:$env:TARGET_BRANCH\"",
+      "scope": "JOB:implement",
+      "capability_key": "81d0fda67c0ef7545bacd33a0d9b293057c190931445ec1ea7dab18bc357b841"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-implementation.yml",
+      "line": 267,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:implement",
+      "capability_key": "c8cc1457408ceeaf4ddaa17458d59d22e2744aa1bd2d418baf216556a61e79df"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-implementation.yml",
+      "line": 280,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:implement",
+      "capability_key": "c8cc1457408ceeaf4ddaa17458d59d22e2744aa1bd2d418baf216556a61e79df"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-implementation.yml",
+      "line": 284,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:implement",
+      "capability_key": "c8cc1457408ceeaf4ddaa17458d59d22e2744aa1bd2d418baf216556a61e79df"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-implementation.yml",
+      "line": 34,
+      "capability": "PERSIST_CREDENTIALS_TRUE",
+      "destination": "actions-checkout:persist-credentials",
+      "scope": "JOB:implement",
+      "capability_key": "26255c59471aa3e2620fd433886a53e25a3083833f7e629579cde30733312183"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-implementation.yml",
+      "line": 8,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "98f42f3e448886bcf223248e232075a42e6050a8799ac17d65759e321f7de223"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-implementation.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "02c718ebc9117e5d6f9c4b3f72b84ae320885cb6dd5de94fecdce1b0ffd3df0d"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-plan-review.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "0ef1e360ee36c62f160ba25c80c78702f23d14b1704cc17b07887498028a1ce7"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-plan.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "6ca2c7d60542570eb2d8dd4f6ac50f51ca6c4a9861d31c9ceb9b9676fda93793"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-recover.yml",
+      "line": 68,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "JOB:recover",
+      "capability_key": "702c3d57b04aa4c5192448b4fe087c8155e5ead2accfda8be6b317a46497ef1b"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-recover.yml",
+      "line": 73,
+      "capability": "GIT_PUSH",
+      "destination": "origin \"HEAD:$($m.target_branch)\"",
+      "scope": "JOB:recover",
+      "capability_key": "cba80a53e553cfbd412abbd1d98a3739cf92e2294ae93ebbe9d56f5ab4572dfe"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-recover.yml",
+      "line": 8,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "8f127cadea7024e53894d3a4098b1a0666c78f80c42510fc4af4428de66c9575"
+    },
+    {
+      "producer": ".github/workflows/kodjo-slice-recover.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "7d45170835583be599c779dafed263a33544cfb648e6ce5c12487636e7651452"
+    },
+    {
+      "producer": ".github/workflows/kodjo-t8-work-arbitration.yml",
+      "line": 10,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "c65e1393c610f133d138c2a133a2cfbb402751152871ce3e39ae4c3c7450d66e"
+    },
+    {
+      "producer": ".github/workflows/kodjo-t8-work-arbitration.yml",
+      "line": 11,
+      "capability": "GITHUB_PERMISSION_WRITE:pull-requests",
+      "destination": "github-token:pull-requests",
+      "scope": "WORKFLOW",
+      "capability_key": "35f4b16690a5957834547e1dc2055d81cbaf5e54d131fc34600b559943765004"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v1-3-integrated-t1-t9.yml",
+      "line": 10,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "7a9839ca4e1753443dde6dc99969cc05c9e6b06941c1ea9ede3cbdc60b65bd56"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v1-3-integrated-t1-t9.yml",
+      "line": 11,
+      "capability": "GITHUB_PERMISSION_WRITE:pull-requests",
+      "destination": "github-token:pull-requests",
+      "scope": "WORKFLOW",
+      "capability_key": "c357c914733e47a1940cc31895b978b3ad79beb49f65a149701e11d6100d4dcf"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v1-3-integrated-t1-t9.yml",
+      "line": 394,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:claude-transition",
+      "capability_key": "dd5e087dab9c8117b05c98b34e81471f384fd0deaf20ee5f557f9f7d3c697432"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v1-3-integrated-t1-t9.yml",
+      "line": 447,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "JOB:claude-transition",
+      "capability_key": "922e499d5934e25e0aa65e42dfa3acaf4b8f9bb8bd0c5e112fe4d793fc893781"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v1-3-integrated-t1-t9.yml",
+      "line": 448,
+      "capability": "GIT_PUSH",
+      "destination": "origin \"HEAD:$TEST_BRANCH\"",
+      "scope": "JOB:claude-transition",
+      "capability_key": "8cc2b4d77e081461f8384993d185566dd08421ceebaa8429781e10186ac6f9c1"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v1-3-integrated-t1-t9.yml",
+      "line": 527,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "JOB:resume-after-transport-fix",
+      "capability_key": "fa4f7a8e279a382fdf5e7f532dcd916b43a63eb934172c7e70d9f9c50aa153b5"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v1-3-integrated-t1-t9.yml",
+      "line": 528,
+      "capability": "GIT_PUSH",
+      "destination": "origin \"HEAD:$TEST_BRANCH\"",
+      "scope": "JOB:resume-after-transport-fix",
+      "capability_key": "0cc5eaeb2720ed6c6e9ba616bcf3ccd89b09f099f0e1397c6c4f9fd7be0edd08"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v1-3-integrated-t1-t9.yml",
+      "line": 591,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "JOB:signal-existing-retest",
+      "capability_key": "3ca37ed48ea1e33a59f022e6e1c7d2ab5530c48a44b3a18d93fe6afca6a5b962"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v1-3-integrated-t1-t9.yml",
+      "line": 592,
+      "capability": "GIT_PUSH",
+      "destination": "origin \"HEAD:$TEST_BRANCH\"",
+      "scope": "JOB:signal-existing-retest",
+      "capability_key": "42610de2ba4adb64dbe1156e550918c417d2636cd2af770d5942b4356bfbc331"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v1-3-integrated-t1-t9.yml",
+      "line": 641,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:advance-arbitration",
+      "capability_key": "ecf02fe15f7bb5bbd6b006c2ce809b577c3b93c0d4083aab4b90cd62a0f4d0b0"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v1-3-integrated-t1-t9.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "dd16ff41d0e604a8b80a24848e650ae83c275803c0f5f2d2dcaedecd0a2477ae"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-local-e2e-recover.yml",
+      "line": 8,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "f33a333c33a91671b47a432b1addab478fb6ef36e69dc2027bf1204ababb4c15"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-local-e2e-recover.yml",
+      "line": 90,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "JOB:recover",
+      "capability_key": "8cbe60726b407b15ff8a5989029295f0325a2f20c18c0be3f9c46cf20874bd71"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-local-e2e-recover.yml",
+      "line": 92,
+      "capability": "GIT_CREDENTIAL_HEADER",
+      "destination": "git-config:http.extraheader",
+      "scope": "JOB:recover",
+      "capability_key": "f61ca5f0ab2a644590c5a7bae45c5624152655e144873b8afe65282d957cfd66"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-local-e2e-recover.yml",
+      "line": 92,
+      "capability": "GIT_PUSH",
+      "destination": "git-config:http.extraheader",
+      "scope": "JOB:recover",
+      "capability_key": "d879d953d709ad4264c7b5256e3a0653b52d07ea819c50bc525a939cfd78d5e5"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-local-e2e.yml",
+      "line": 115,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "JOB:execute",
+      "capability_key": "ab2aa19e2a1b385a6aa86655780d71ec46955393374536a417bc7fcb249304f1"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-local-e2e.yml",
+      "line": 116,
+      "capability": "GIT_PUSH",
+      "destination": "origin \"HEAD:$env:EXPECTED_TARGET_REF\"",
+      "scope": "JOB:execute",
+      "capability_key": "445e7c58e1a882008348b8e19578e661ef27d9db5e9e162ccd1fa31b1dcd68ba"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-local-e2e.yml",
+      "line": 19,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "95c365492e4606992bc753ac73711f113161af5ad51de9ee9f8d4daf4bb46970"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-local-e2e.yml",
+      "line": 204,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "JOB:execute",
+      "capability_key": "ab2aa19e2a1b385a6aa86655780d71ec46955393374536a417bc7fcb249304f1"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-local-e2e.yml",
+      "line": 205,
+      "capability": "GIT_PUSH",
+      "destination": "origin \"HEAD:$env:EXPECTED_TARGET_REF\"",
+      "scope": "JOB:execute",
+      "capability_key": "445e7c58e1a882008348b8e19578e661ef27d9db5e9e162ccd1fa31b1dcd68ba"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-local-e2e.yml",
+      "line": 47,
+      "capability": "PERSIST_CREDENTIALS_TRUE",
+      "destination": "actions-checkout:persist-credentials",
+      "scope": "JOB:execute",
+      "capability_key": "99d32cade999a365a5b9ace4d408334e909c8e556617a5d4fd44b625a4f51739"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-dev.yml",
+      "line": 39,
+      "capability": "PERSIST_CREDENTIALS_TRUE",
+      "destination": "actions-checkout:persist-credentials",
+      "scope": "JOB:dev",
+      "capability_key": "71a8c56c7896bac6779623becbe49612af4e393a71b6d0412b64329ba8b9a325"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-dev.yml",
+      "line": 8,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "e329a7f9813c5cf25f0e632e27c13c17eb7cf5e439390f3698ea053c59f9244e"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-dev.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "d45297a14d69438084c7084b02bfeebdcd85677d3c0ef2e4ed95e0ad5efd9a07"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-finalize.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "c9c468c980e025102822542ffbcc747d3c80181f3b1261f1c8a11bb2d0a132b6"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-implementation-local.yml",
+      "line": 176,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "JOB:implement",
+      "capability_key": "ff5fe2b471db31d480a54de78b3d0eab9f904076340487fa69e5bc5a484d11d1"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-implementation-local.yml",
+      "line": 181,
+      "capability": "GIT_PUSH",
+      "destination": "origin \"HEAD:$env:TARGET_BRANCH\"; if($LASTEXITCODE -ne 0){throw 'Push failed'}",
+      "scope": "JOB:implement",
+      "capability_key": "b4c7195a5a723a442aa6879f21b165ffa65c106ce64b25a4555ace94c1a8dd63"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-implementation-local.yml",
+      "line": 5,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "30c27d4f0e056c713c1ae20021dc8c9e1f92502e680c4d792d25924f7f8b515e"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-implementation-local.yml",
+      "line": 50,
+      "capability": "PERSIST_CREDENTIALS_TRUE",
+      "destination": "actions-checkout:persist-credentials",
+      "scope": "JOB:implement",
+      "capability_key": "7b94bc75264591739959fc3a5adfa1a689cf75fe41c7bba12fcf192e2c65f067"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-implementation-local.yml",
+      "line": 6,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "2b1d49cc8c3ee13b9194ac7191bc545e1f34d4097ecee8836f516faf5ea62b75"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-plan-local.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "c2bd9a90f5623fa319dacd1ec7e1adbb50b927e7241301b42c7dd7bdbb364459"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-plan-review-independent.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "19561873ab80703a5e41ed1bd150686e5d3c6231c6760b7510851f880d2fa644"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-protocol-audit.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "0ea14821ef9c81168aab30a166c54ac93396cac2209497ead20ae087e8d51cf5"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-recover-worktree.yml",
+      "line": 187,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "JOB:repair",
+      "capability_key": "34922d1081b678e7931b083b96b6148859bac1b44b539599b79e51f9c4b7fe43"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-recover-worktree.yml",
+      "line": 189,
+      "capability": "GIT_PUSH",
+      "destination": "origin \"HEAD:$env:RECOVERY_BRANCH\"; if($LASTEXITCODE -ne 0){throw 'Recovery branch push failed'}",
+      "scope": "JOB:repair",
+      "capability_key": "1f60c624e8ecbbe47318ab5779206387fdfe0315eacadec8ce969021d8198487"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-recover-worktree.yml",
+      "line": 190,
+      "capability": "GIT_PUSH",
+      "destination": "origin \"HEAD:$env:TARGET_BRANCH\"; if($LASTEXITCODE -ne 0){throw 'Target branch push failed'}",
+      "scope": "JOB:repair",
+      "capability_key": "ebeae06a78ec81635b604cf96ddc8795a751b9d9f8d939ed3d03745c114df46f"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-recover-worktree.yml",
+      "line": 5,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "f3a910d555605ea30dc95f8267c8f0fded235d85210ed98e8e131fe2afecdb16"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-recover-worktree.yml",
+      "line": 6,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "e1075e3f745f46a0408ee98db43a0b3c3455541f1e126584e6b34cf5a79b17e3"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-recover-worktree.yml",
+      "line": 77,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "JOB:recover",
+      "capability_key": "8a6bb7078600444b985a9889bbfa0a38757ef923f54ebf20c1967316f6387d11"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-recover-worktree.yml",
+      "line": 79,
+      "capability": "GIT_PUSH",
+      "destination": "--force-with-lease origin \"HEAD:$env:RECOVERY_BRANCH\"; if($LASTEXITCODE -ne 0){throw 'Recovery branch push failed'}",
+      "scope": "JOB:recover",
+      "capability_key": "d1908e9cde8d7f412ba721df4ddad5fac24d42d711e4b7e2cbd1a028d62387ef"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-recover-worktree.yml",
+      "line": 91,
+      "capability": "GIT_PUSH",
+      "destination": "origin \"HEAD:$env:TARGET_BRANCH\"; if($LASTEXITCODE -ne 0){throw 'Target branch push failed'}",
+      "scope": "JOB:recover",
+      "capability_key": "bd3a4f02e3615b8f110e6cbedf0fd9fb937a091b4143899122d2dcb37777b74e"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-review.yml",
+      "line": 7,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "6cedfebbbf2d88f58f0061abcc22bd7dfd51f745610c0b0158ed8400d45414c4"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v14-s09-validate-integration.yml",
+      "line": 8,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "f568dbb7479977f317c233e10d678c2b47136b2d157e69f91f5c790b152a8c27"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 105,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:slice-recover",
+      "capability_key": "0aca4b1498924d106614c5e3dd34205175513c706f5f9ab71f407f82aec707d4"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 106,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:slice-recover",
+      "capability_key": "43309d7c0a1cb2be15cd26c9e45562177696cb8259fe93a73f543e8004e1c36a"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 115,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:t8-work-arbitration",
+      "capability_key": "bebb608f8748dada27816f87444a17f4a347c14613c4e4db97bb8fb59bf0b19a"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 116,
+      "capability": "GITHUB_PERMISSION_WRITE:pull-requests",
+      "destination": "github-token:pull-requests",
+      "scope": "JOB:t8-work-arbitration",
+      "capability_key": "907edfc25632addebea414e7618b54482d015076427eb1f9270c2c0272053715"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 125,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:v1-3-integrated-t1-t9",
+      "capability_key": "0db802035e87fe9e6be6444ffba34dc2bbe2647eadbf03b37683466bc682047c"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 126,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v1-3-integrated-t1-t9",
+      "capability_key": "1f5fdf5b861f1b7c02ecd47e6c5f20821a0ac041bbb698adf9a2901bd43504e8"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 127,
+      "capability": "GITHUB_PERMISSION_WRITE:pull-requests",
+      "destination": "github-token:pull-requests",
+      "scope": "JOB:v1-3-integrated-t1-t9",
+      "capability_key": "8624041eb9b2e27c84c62e552975b164e8863e2e22b7ccc1988288e02c9e98db"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 136,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:v14-s09-dev",
+      "capability_key": "dba78051117e06e0586208ff39996e0867ca63d2e0e205d161357ce7a2dc0930"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 137,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v14-s09-dev",
+      "capability_key": "b6e188779ceb531e011c103c7f4049ba68a52fcd95edfdee3b6fa4119bc57ca9"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 146,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v14-s09-finalize",
+      "capability_key": "d0dbe422d61a50bef9789d6cad6f6f590f792e68c2760801cdb696a8bb3df3df"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 154,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:v14-s09-implementation-local",
+      "capability_key": "bd7fc0f2ed255e14f7b99ddc3fdea04ca5449b03d56a6a0b26f77fcdaa22cf21"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 155,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v14-s09-implementation-local",
+      "capability_key": "754445f2eed91679520dfd1951ae00d7a895a83e092df3b84e81aa79bf8d654e"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 164,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v14-s09-plan-local",
+      "capability_key": "988119a79c75e1ebe7f5a025c17e9f53f91959f93f8620642e3b90032c4bf72b"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 173,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v14-s09-plan-review-independent",
+      "capability_key": "33f0eca4ee812be59671d11b436a636624762143f05fe5126c664bdf0ecaeed6"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 18,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:e2e-orchestration-test-v1-3",
+      "capability_key": "0edbbd17449108909c5310fb10ccfd4519bdce35045f4cc02dcfba5613e1cfe7"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 182,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v14-s09-protocol-audit",
+      "capability_key": "0f510c33047e9c5cb7c87a477ed1672bb4657a5c6bc34d84e09abec42daa77e9"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 19,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:e2e-orchestration-test-v1-3",
+      "capability_key": "55436fc046abb7ea4b56866f2770e48fbaa1e9520f956a17e6d14aab3c773312"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 190,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:v14-s09-recover-worktree",
+      "capability_key": "3a28f81d09d7e42d82cd483c71b2da48161e47180a7ae5f8ca0d31c52ca874a5"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 191,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v14-s09-recover-worktree",
+      "capability_key": "6ea150b559db18ba1cdcb300013406201a7b32c1563a8681b1120ed9233b6a0b"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 200,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v14-s09-review",
+      "capability_key": "fd9cfad72e6a4711ceeafd8508c34e102c0e07824c58b9075e53f162cdfef23e"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 209,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v14-s09-validate-integration",
+      "capability_key": "0e80bd62e190006733a29474c8efe2d8fabe1b73f3ef7a56432e33aa08416d41"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 217,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:v2-plan-handoff-materialize",
+      "capability_key": "1f18ee468c6294a836c147325e5389b260f18cd7f3fa67b4172a2220aefb28f3"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 218,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v2-plan-handoff-materialize",
+      "capability_key": "c22137f39123676662667e18dfb15151f17eb690a9dfb5c2fd514795681e47c8"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 227,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:v2-plan-handoff-queue",
+      "capability_key": "b345b8ed8f1c3cf69d857e528bf01353bf7035f7318ca998e91b14b8c60b211e"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 228,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v2-plan-handoff-queue",
+      "capability_key": "b11a3de277c332f8402b1f8d8bb1855215f3190ae195c0bf4c72879797c65452"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 230,
+      "capability": "GITHUB_PERMISSION_WRITE:actions",
+      "destination": "github-token:actions",
+      "scope": "JOB:v2-plan-handoff-queue",
+      "capability_key": "c69e835c742551fca8164572ec8ad63767c1b3af07201f9be44e7226be94c942"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 239,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v2-review-existing-delivery-bridge",
+      "capability_key": "9b890bab01cd0df18503f276e235d82b0a9198cd5c84685fd30cd937638b2879"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 249,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v2-slice-initial-plan-review",
+      "capability_key": "bdb2b570f893acb950618a9af2f1c75d251496770f4afb4a6c35691219038e11"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 250,
+      "capability": "GITHUB_PERMISSION_WRITE:actions",
+      "destination": "github-token:actions",
+      "scope": "JOB:v2-slice-initial-plan-review",
+      "capability_key": "101ddc98d4f2bd602d21f0d74aec26cd5581a9e84f747bba466b8a6c45930381"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 259,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v2-slice-initial-plan",
+      "capability_key": "aade03244c108df200b9f18886deed6bdc834800fbb9fc28608a642c8b45a3f9"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 260,
+      "capability": "GITHUB_PERMISSION_WRITE:actions",
+      "destination": "github-token:actions",
+      "scope": "JOB:v2-slice-initial-plan",
+      "capability_key": "ac3aebc8e5ed75f72ab6edc27cf3f290b2992fe34d24815b713a902dd67bece2"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 269,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v2-slice-minor-plan-clarification",
+      "capability_key": "2d1c29e6ca57957ff75b1a788dff0c84df912de7ffa560b07327122cbec0cae3"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 27,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:e2e-t1-t6-v1-3",
+      "capability_key": "7905c853b3a7d66fbb9e16c8c5c6a16bf8ff052b367906cdf354e0f4046657b2"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 278,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v2-slice-plan-review",
+      "capability_key": "684813547505aacf0ecc9058fa5051c7983943302f011c36666e41f986ffee8b"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 279,
+      "capability": "GITHUB_PERMISSION_WRITE:actions",
+      "destination": "github-token:actions",
+      "scope": "JOB:v2-slice-plan-review",
+      "capability_key": "b857e99fb84448611946f3382c007573aa5b7b0084ce381d7782c1351cf8dce9"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 28,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:e2e-t1-t6-v1-3",
+      "capability_key": "d9ac818043f689280fcbdf268e6bb8b29198a13f604fad54e112da88a0f8b0ca"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 289,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v2-slice-plan",
+      "capability_key": "300817483af6e9809b1b922efef900300b66ee4237ad816a03b29eb33e239efa"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 291,
+      "capability": "GITHUB_PERMISSION_WRITE:actions",
+      "destination": "github-token:actions",
+      "scope": "JOB:v2-slice-plan",
+      "capability_key": "0813ce42572268f7c7b013b1dfea3f0d31bc3a55bdd890f4f2132e2465919091"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 300,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:v2-targeted-requalification",
+      "capability_key": "04ec05b5cffcb63608b1a6ea88788cdd5021dc491097daf9b3f790e55359594e"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 302,
+      "capability": "GITHUB_PERMISSION_WRITE:actions",
+      "destination": "github-token:actions",
+      "scope": "JOB:v2-targeted-requalification",
+      "capability_key": "4b82b57a11f1ec038c53677fb652b97e34016f3d7782655d00e917eb7a30246b"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 310,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:t01-s09-implementation-v1-3-temporary",
+      "capability_key": "40fa4acd62700b933e94139d94853191f6da368ff743c486788a7a264b0d9f3f"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 311,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:t01-s09-implementation-v1-3-temporary",
+      "capability_key": "54707ec1a650de5a2988a2892db8cca7a4404925622d1df4d9fb22bf79699fa1"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 321,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:t01-s09-plan-revision-v1-3-temporary",
+      "capability_key": "143678d5f0eb7537bb250c66436c3ab1cd45b829ae0cb9efad4fd91d08b713fa"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 37,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:event-router-v1-3",
+      "capability_key": "530946f3b2f6412f270407d6315fe5a8d07d9361d5d3e8c4849c5a0a0ad49ee4"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 46,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:slice-finalize",
+      "capability_key": "2f33288ff51e6a68ccdc722a0b5da5bfadffa5cf37b6453bd46e260404cdc47e"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 47,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:slice-finalize",
+      "capability_key": "bcb8b906f497d52932e36d23800ce524328de19fc567f03cc482bb063dbd18b3"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 57,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:slice-implementation-publication-recovery",
+      "capability_key": "38bd156b7129b6f2b9ac60a7d0981d7dcd244249dc927428f9305c0e547f07dd"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 58,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:slice-implementation-publication-recovery",
+      "capability_key": "01d2f3eb00d28fc197808cb8870b6b94d8d1a68e3c2ae34f4c5ad39cf5743495"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 69,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:implementation-review",
+      "capability_key": "b17d9e8b0f836a4961818e5357632f61dbea2cb8a6f74d17433d67c1fe378d60"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 78,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:slice-implementation",
+      "capability_key": "3b2e351c603ce8d3d2c31aa4f66ba9387453e4489457a67909a0a43bc1c2932f"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 79,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:slice-implementation",
+      "capability_key": "c8c5e8ba0b03e458d96c7af86ae8e0ad23166b4e8020617b78940dcc0d26f90c"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 88,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:slice-plan-review",
+      "capability_key": "5f6bbbcc6931d76c56ccd3d94ba5831ec3674055502c246226d7b4f25cfa8482"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-comment-router.yml",
+      "line": 97,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:slice-plan",
+      "capability_key": "7e66bfa6f1f2638d34f900a6e8cdb2e9db6b06522dc513d28ec399188dd40555"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-disposable-qualification.yml",
+      "line": 40,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:qualify",
+      "capability_key": "a6d05bd63ac6d1cb2d09788d31ac23f3f4667c987b7bace14b9caf7e38e3d2ab"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-implementation-artifact.yml",
+      "line": 109,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "8b005e670d10187d2e74d16243799c656141ac06041ab9e707cf7569edb6b28d"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "line": 13,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "1e5e1557d04dbeb4fa38b12d99cc35b8db4d86d1f8fb6873165fa248d7cb5ca3"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "line": 14,
+      "capability": "GITHUB_PERMISSION_WRITE:pull-requests",
+      "destination": "github-token:pull-requests",
+      "scope": "WORKFLOW",
+      "capability_key": "d2a4ea3293b622f5f8783a8ee388de5bf22c82ff0eef65ed139c7e5ccf583fb3"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "line": 15,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "142b3c0fd1f1f2e038a8622a110cbb5b21e250da9789090d9cad2a50fd5370bb"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "line": 255,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "repos/$env:GITHUB_REPOSITORY/contents/$queuePath",
+      "scope": "JOB:execute",
+      "capability_key": "93e2f6ca6866e229a2f60d76ed0b49a06c09f41ed750b91a85165a1c1ca65620"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "line": 264,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:execute",
+      "capability_key": "9998178681736f301c9066c28959bb01af485f8acebc21ee9eeea4c37e0bd286"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "line": 281,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:execute",
+      "capability_key": "9998178681736f301c9066c28959bb01af485f8acebc21ee9eeea4c37e0bd286"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-lean-queue.yml",
+      "line": 323,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:execute",
+      "capability_key": "9998178681736f301c9066c28959bb01af485f8acebc21ee9eeea4c37e0bd286"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-next-evolution-independent-audit.yml",
+      "line": 290,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:publish-evidence",
+      "capability_key": "55291660455c933086ef70245bb18b11e7d19a67a952904dbde251e82fb5c0b0"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-next-evolution-independent-audit.yml",
+      "line": 291,
+      "capability": "GITHUB_PERMISSION_WRITE:pull-requests",
+      "destination": "github-token:pull-requests",
+      "scope": "JOB:publish-evidence",
+      "capability_key": "03c04bdad612dce84a5bc76edaf590ac9edd67711082dd5a44acdc25263a8609"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-next-evolution-independent-audit.yml",
+      "line": 292,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:publish-evidence",
+      "capability_key": "45f31236890af05b1c162d78795da308d3c9542bc05c736d369e682209850b00"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-pilot-tests.yml",
+      "line": 369,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:disposable-qualification",
+      "capability_key": "06ec9bc99cc5916430e93b665a1e038b9cac7ba2e783fae6df4bc2f3c14c1924"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-handoff-materialize.yml",
+      "line": 116,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "JOB:materialize",
+      "capability_key": "5df6f766e8aef3f33bfd13f0ac616e86ed76ffb692727ce5321b286ea788e0ec"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-handoff-materialize.yml",
+      "line": 117,
+      "capability": "GIT_PUSH",
+      "destination": "origin HEAD:main",
+      "scope": "JOB:materialize",
+      "capability_key": "584a38126bed1401201d44011fb5716aafc20ccf2fe9c67c8dd3f4eeffb91447"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-handoff-materialize.yml",
+      "line": 15,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "513f22292f904e209e907095b3a74d7e699c11a57f0feff9a7b93c5b4ef91fef"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-handoff-materialize.yml",
+      "line": 159,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:materialize",
+      "capability_key": "066ce29b78a8d76a0d20fd12bdd662651b889bdb121174289d8584c1810bfd0c"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-handoff-materialize.yml",
+      "line": 16,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "7c30cda55ac7b7572221325f404f3f4485e8053a2bba4610c45243693d5f7728"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-handoff-materialize.yml",
+      "line": 171,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:materialize",
+      "capability_key": "066ce29b78a8d76a0d20fd12bdd662651b889bdb121174289d8584c1810bfd0c"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-handoff-materialize.yml",
+      "line": 50,
+      "capability": "PERSIST_CREDENTIALS_TRUE",
+      "destination": "actions-checkout:persist-credentials",
+      "scope": "JOB:materialize",
+      "capability_key": "97ed52a39d0faac738be6b47dee0b7342174fd9b9077a5e2d2024e78f10a6e1e"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-handoff-queue.yml",
+      "line": 10,
+      "capability": "GITHUB_PERMISSION_WRITE:actions",
+      "destination": "github-token:actions",
+      "scope": "WORKFLOW",
+      "capability_key": "1f082a70d4cf7c7cf96782e5513db3271c7c136ba80de36cd9a04e7c3454f574"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-handoff-queue.yml",
+      "line": 117,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "JOB:handoff",
+      "capability_key": "ca5ede3d5dbb4457c881fcc8d70530e49d0a5c28f72faeab99ce83b43fefce6f"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-handoff-queue.yml",
+      "line": 118,
+      "capability": "GIT_PUSH",
+      "destination": "origin HEAD:main",
+      "scope": "JOB:handoff",
+      "capability_key": "e1c6385066cdb42a1ed383da990be2c37dcbb10ccd40180c5f1e616f895dd481"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-handoff-queue.yml",
+      "line": 35,
+      "capability": "PERSIST_CREDENTIALS_TRUE",
+      "destination": "actions-checkout:persist-credentials",
+      "scope": "JOB:handoff",
+      "capability_key": "d867337c037fd1033e20b26cfae36e267abdb43f77b71f72a88690ba9b8121c5"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-handoff-queue.yml",
+      "line": 7,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "7869c0b567619c211ea4d0aa901f3a4e890017593b533d3eea9807fbb612f990"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-handoff-queue.yml",
+      "line": 8,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "ffa0c7760ba4a91f0f183c6785931cd05cfb48824fd0521b937089ed9099abb0"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-handoff-queue.yml",
+      "line": 85,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "JOB:handoff",
+      "capability_key": "ca5ede3d5dbb4457c881fcc8d70530e49d0a5c28f72faeab99ce83b43fefce6f"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-review-republish.yml",
+      "line": 21,
+      "capability": "GITHUB_PERMISSION_WRITE:actions",
+      "destination": "github-token:actions",
+      "scope": "WORKFLOW",
+      "capability_key": "f99933510ac90f10377b4211a003361822f344e132e9d53bf29e08503beadbbd"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-review-republish.yml",
+      "line": 23,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "e0859c97ee964b7908bd3c958284f6a7a1dcb0d8d130dd8c2ed20230fbd3cf9d"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-review-republish.yml",
+      "line": 64,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:republish",
+      "capability_key": "663d7e80c3291704f76ba83ea442ea6839f4de557157695297a1f6cde14944d5"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-plan-review-republish.yml",
+      "line": 75,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:republish",
+      "capability_key": "663d7e80c3291704f76ba83ea442ea6839f4de557157695297a1f6cde14944d5"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-review-existing-delivery-bridge.yml",
+      "line": 168,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:bridge",
+      "capability_key": "adbf6ee6da3105f7350ff4e4d6473da10ea6d580a0a40a8f1e4a335f8a1b509a"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-review-existing-delivery-bridge.yml",
+      "line": 8,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "8309356c76aa7b9a7c73d7a95049d4a0374d43ffcaf33d30c4be6b537d31bf45"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-initial-plan-review.yml",
+      "line": 26,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "b9b95d691cc4cf5fea1469bd8857b79ab24b83b68b9682a5f427479c7a2a0953"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-initial-plan-review.yml",
+      "line": 27,
+      "capability": "GITHUB_PERMISSION_WRITE:actions",
+      "destination": "github-token:actions",
+      "scope": "WORKFLOW",
+      "capability_key": "1d59f51336662e0554983d5093821a0b69455a5bcff91277b8c440afda91f873"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-initial-plan-review.yml",
+      "line": 460,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:review",
+      "capability_key": "22f9992541da96ec00500c6005317cb86c68e1dc0586799cecb7b49e942424b6"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-initial-plan-review.yml",
+      "line": 486,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:review",
+      "capability_key": "22f9992541da96ec00500c6005317cb86c68e1dc0586799cecb7b49e942424b6"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-initial-plan.yml",
+      "line": 26,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "8afc5d2e41fdb10bc896e78c205094fd616b4890fe617f7d162b0bb1c868ecc3"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-initial-plan.yml",
+      "line": 27,
+      "capability": "GITHUB_PERMISSION_WRITE:actions",
+      "destination": "github-token:actions",
+      "scope": "WORKFLOW",
+      "capability_key": "4d5fa9a1de29c1031af8cfde977b93198a4436042d577cfd822ac440db035dcd"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-initial-plan.yml",
+      "line": 292,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:plan",
+      "capability_key": "7f383f1f6075fd2a19ae5bd3f37ae6fc9c7ba221ed66349d3e149a3a83234631"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-minor-plan-clarification.yml",
+      "line": 227,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:light-review",
+      "capability_key": "b1e60cfeeca58a7db4e7d862f47a98b50a47da6a01e7a1f6cf4d83a076638d4f"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-minor-plan-clarification.yml",
+      "line": 237,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:light-review",
+      "capability_key": "b1e60cfeeca58a7db4e7d862f47a98b50a47da6a01e7a1f6cf4d83a076638d4f"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-minor-plan-clarification.yml",
+      "line": 248,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:light-review",
+      "capability_key": "b1e60cfeeca58a7db4e7d862f47a98b50a47da6a01e7a1f6cf4d83a076638d4f"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-minor-plan-clarification.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "d10dd874b1c3c595d9330438a550e8fb784f0c8d4742dd2e8e52954963d17222"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-plan-review.yml",
+      "line": 26,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "3fab05d11a6fc38423803c28dc31086ec7c38bb650c05dfdb8b62cb28d0e3818"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-plan-review.yml",
+      "line": 27,
+      "capability": "GITHUB_PERMISSION_WRITE:actions",
+      "destination": "github-token:actions",
+      "scope": "WORKFLOW",
+      "capability_key": "c695d4ac6de1287b99597313aca944c6f882bc2c3d11769266a6aa31a67959f9"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-plan-review.yml",
+      "line": 295,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:review",
+      "capability_key": "c2677c897c6168dbdfe12193bef5fc419b5dbea72ae1a9f035df6b4f89ce445b"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-plan-review.yml",
+      "line": 306,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:review",
+      "capability_key": "c2677c897c6168dbdfe12193bef5fc419b5dbea72ae1a9f035df6b4f89ce445b"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-plan-review.yml",
+      "line": 320,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:review",
+      "capability_key": "c2677c897c6168dbdfe12193bef5fc419b5dbea72ae1a9f035df6b4f89ce445b"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-plan.yml",
+      "line": 23,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "22aa0b33385cfa2b7ad3e544e9c4b2aca4660a3506805bcb688d6103747b0416"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-plan.yml",
+      "line": 25,
+      "capability": "GITHUB_PERMISSION_WRITE:actions",
+      "destination": "github-token:actions",
+      "scope": "WORKFLOW",
+      "capability_key": "d1cb38c73e78f46db00eca09cc70cf3353005c0f5c3df8849be8fea39be31e86"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-slice-plan.yml",
+      "line": 335,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "JOB:plan",
+      "capability_key": "87626d13dd89e813a5ca38872c16433d5e9584a138057b27f2a3aaded6e59f0e"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-targeted-requalification.yml",
+      "line": 6,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "4385f2211f30d48afdbb4b750553ffcda5de614cb61b42bbb3eba15f3094830e"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-targeted-requalification.yml",
+      "line": 8,
+      "capability": "GITHUB_PERMISSION_WRITE:actions",
+      "destination": "github-token:actions",
+      "scope": "WORKFLOW",
+      "capability_key": "5e37d884907ba3c7f0a2186ca4e3d612e962e8b73d36cf6b7d2e4e8c1c4ffdd6"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-transition.yml",
+      "line": 100,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "JOB:evidence_writer",
+      "capability_key": "f48c3fedf03a405be5db1f5f4d0f1da83b8f67de66e2a14c83bc99de19f9bf05"
+    },
+    {
+      "producer": ".github/workflows/kodjo-v2-transition.yml",
+      "line": 104,
+      "capability": "GIT_PUSH",
+      "destination": "origin \"HEAD:refs/heads/kodjo/protocol-evidence-v2\"",
+      "scope": "JOB:evidence_writer",
+      "capability_key": "a9615701f3e1428f1bc40b9c4231e94e840ded6318f5eb65ed5db67e73966e8a"
+    },
+    {
+      "producer": ".github/workflows/kodjo-vnext-proof-stability.yml",
+      "line": 230,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:wake-orchestrator",
+      "capability_key": "a0525030560ed2e341bf2c9c9868f7d953168e3ffc94217ec18670308c7484d6"
+    },
+    {
+      "producer": ".github/workflows/kodjo-vnext12-disposable.yml",
+      "line": 226,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:execute-initial",
+      "capability_key": "7e65adccf03604c77344977bf7ec395b5ed238be1b1c0240d44ff7a828bdb6d1"
+    },
+    {
+      "producer": ".github/workflows/kodjo-vnext12-disposable.yml",
+      "line": 366,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "JOB:close-vnext-delivery",
+      "capability_key": "9d853ab15448280bbd504341a6434455162f452b516f3298ed2179a568a8b8bf"
+    },
+    {
+      "producer": ".github/workflows/kodjo-vnext12-disposable.yml",
+      "line": 476,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "JOB:wake-orchestrator",
+      "capability_key": "76e5c11ff42f4543603e94d5262268ecd710993e3e59ff5f3aa72fb718b63891"
+    },
+    {
+      "producer": ".github/workflows/t01-s09-implementation-v1-3-temporary.yml",
+      "line": 197,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "JOB:implement",
+      "capability_key": "13366167522855349b795881dec7d2dbcfe9038cac9623a3ca34c4a34cd34d5d"
+    },
+    {
+      "producer": ".github/workflows/t01-s09-implementation-v1-3-temporary.yml",
+      "line": 199,
+      "capability": "GIT_PUSH",
+      "destination": "origin HEAD:feat/creation-seance-catalogue",
+      "scope": "JOB:implement",
+      "capability_key": "cb2f2103efbcccae6b902836d4d13580161ed24ba65288579416fa0fa84a3300"
+    },
+    {
+      "producer": ".github/workflows/t01-s09-implementation-v1-3-temporary.yml",
+      "line": 8,
+      "capability": "GITHUB_PERMISSION_WRITE:contents",
+      "destination": "github-token:contents",
+      "scope": "WORKFLOW",
+      "capability_key": "b62cd0d517923f231dce0fe688040035e2c5a85e6846356ff64454d9d1ba29f8"
+    },
+    {
+      "producer": ".github/workflows/t01-s09-implementation-v1-3-temporary.yml",
+      "line": 9,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "3b53a093a219d60d703b2aa98eef322173a6195e8c3b2d6cebb42a1ab3042833"
+    },
+    {
+      "producer": ".github/workflows/t01-s09-plan-revision-v1-3-temporary.yml",
+      "line": 7,
+      "capability": "GITHUB_PERMISSION_WRITE:issues",
+      "destination": "github-token:issues",
+      "scope": "WORKFLOW",
+      "capability_key": "1eca58d10bac5d685749856c175af3025c37d8f36709afbec61cd8b1e0163dad"
+    },
+    {
+      "producer": "scripts/kodjo/close-vnext-github-delivery.js",
+      "line": 14,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "0b51925f2c07e586342cc119095c1cde3032ca2bb9af21a7883f50a543b43b9c"
+    },
+    {
+      "producer": "scripts/kodjo/close-vnext-github-delivery.js",
+      "line": 15,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "0b51925f2c07e586342cc119095c1cde3032ca2bb9af21a7883f50a543b43b9c"
+    },
+    {
+      "producer": "scripts/kodjo/consume-queue-request.js",
+      "line": 29,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "094673333f7da09ece42c3a1ea548d4d571d99c396fba47a89ee14147f60aa48"
+    },
+    {
+      "producer": "scripts/kodjo/consume-queue-request.js",
+      "line": 32,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "094673333f7da09ece42c3a1ea548d4d571d99c396fba47a89ee14147f60aa48"
+    },
+    {
+      "producer": "scripts/kodjo/openai-plan-request.js",
+      "line": 87,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "13708fffcded7bdd961e124e1d1e75d1be781b4ee3e24857617762c3f8f4234f"
+    },
+    {
+      "producer": "scripts/kodjo/publish-independent-protocol-audit.js",
+      "line": 43,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "3e8daf9df8b09c2d5f8e5e55f7a7b356158513e8f7a2fa3e543140fd4dea4aa9"
+    },
+    {
+      "producer": "scripts/kodjo/publish-independent-protocol-audit.js",
+      "line": 56,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "3e8daf9df8b09c2d5f8e5e55f7a7b356158513e8f7a2fa3e543140fd4dea4aa9"
+    },
+    {
+      "producer": "scripts/kodjo/publish-independent-protocol-audit.js",
+      "line": 85,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "3e8daf9df8b09c2d5f8e5e55f7a7b356158513e8f7a2fa3e543140fd4dea4aa9"
+    },
+    {
+      "producer": "scripts/kodjo/run-queued-request.ps1",
+      "line": 113,
+      "capability": "GIT_CREDENTIAL_HEADER",
+      "destination": "git-config:http.extraheader",
+      "scope": "SCRIPT",
+      "capability_key": "86d74d16bf7ffedbc229a52d81f078c223d6459b16a49d7550ad5dbc9a23f669"
+    },
+    {
+      "producer": "scripts/kodjo/run-queued-request.ps1",
+      "line": 217,
+      "capability": "GIT_CREDENTIAL_HEADER",
+      "destination": "git-config:http.extraheader",
+      "scope": "SCRIPT",
+      "capability_key": "86d74d16bf7ffedbc229a52d81f078c223d6459b16a49d7550ad5dbc9a23f669"
+    },
+    {
+      "producer": "scripts/kodjo/run-queued-request.ps1",
+      "line": 217,
+      "capability": "GIT_PUSH",
+      "destination": "git-config:http.extraheader",
+      "scope": "SCRIPT",
+      "capability_key": "387bc6440e3b6b93c9ee43ed9668e975ac78d74883f39d37628e00b6644410de"
+    },
+    {
+      "producer": "scripts/kodjo/run-queued-request.ps1",
+      "line": 292,
+      "capability": "GIT_CREDENTIAL_HEADER",
+      "destination": "git-config:http.extraheader",
+      "scope": "SCRIPT",
+      "capability_key": "86d74d16bf7ffedbc229a52d81f078c223d6459b16a49d7550ad5dbc9a23f669"
+    },
+    {
+      "producer": "scripts/kodjo/run-queued-request.ps1",
+      "line": 292,
+      "capability": "GIT_PUSH",
+      "destination": "git-config:http.extraheader",
+      "scope": "SCRIPT",
+      "capability_key": "387bc6440e3b6b93c9ee43ed9668e975ac78d74883f39d37628e00b6644410de"
+    },
+    {
+      "producer": "scripts/kodjo/run-queued-request.ps1",
+      "line": 366,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "25856f60c6b13e70917721436b5f537f978854ca3987ddc8a668b5dceab64404"
+    },
+    {
+      "producer": "scripts/kodjo/run-queued-request.ps1",
+      "line": 383,
+      "capability": "GIT_CREDENTIAL_HEADER",
+      "destination": "git-config:http.extraheader",
+      "scope": "SCRIPT",
+      "capability_key": "86d74d16bf7ffedbc229a52d81f078c223d6459b16a49d7550ad5dbc9a23f669"
+    },
+    {
+      "producer": "scripts/kodjo/scan-remote-write-capability.js",
+      "line": 124,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "6e5bd95ff3a19782a9bbed8dc0cb909b2a48e5aa992a4df8167faca49736c8c3"
+    },
+    {
+      "producer": "scripts/kodjo/scan-remote-write-capability.js",
+      "line": 125,
+      "capability": "GIT_PUSH",
+      "destination": "origin \"HEAD:refs/heads/kodjo/protocol-evidence-v2\"';",
+      "scope": "SCRIPT",
+      "capability_key": "56af3e28b8aa77f987b7f8c1c578a90e74d208dd802a0c8e64e35b6779b480a8"
+    },
+    {
+      "producer": "scripts/kodjo/scan-remote-write-capability.js",
+      "line": 146,
+      "capability": "GIT_CREDENTIAL_HEADER",
+      "destination": "git-config:http.extraheader",
+      "scope": "SCRIPT",
+      "capability_key": "9422c773bcec43452d61a93d84d6a54767687250a08fb37ceb5b34c35b596b32"
+    },
+    {
+      "producer": "scripts/kodjo/scan-remote-write-capability.js",
+      "line": 147,
+      "capability": "GIT_CREDENTIAL_HEADER",
+      "destination": "git-config:http.extraheader",
+      "scope": "SCRIPT",
+      "capability_key": "9422c773bcec43452d61a93d84d6a54767687250a08fb37ceb5b34c35b596b32"
+    },
+    {
+      "producer": "scripts/kodjo/scan-remote-write-capability.js",
+      "line": 153,
+      "capability": "GIT_PUSH",
+      "destination": "--set-upstream origin $branch';",
+      "scope": "SCRIPT",
+      "capability_key": "7469b6fe539fb7474028b124fd586546072275c5ba7602bc44cfe283fef2c901"
+    },
+    {
+      "producer": "scripts/kodjo/scan-remote-write-capability.js",
+      "line": 170,
+      "capability": "PERSIST_CREDENTIALS_TRUE",
+      "destination": "actions-checkout:persist-credentials",
+      "scope": "SCRIPT",
+      "capability_key": "8d83b2a7624d6aba324195672b201567ef88ba79ea713863062dc2db3d8919be"
+    },
+    {
+      "producer": "scripts/kodjo/scan-remote-write-capability.js",
+      "line": 172,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "6e5bd95ff3a19782a9bbed8dc0cb909b2a48e5aa992a4df8167faca49736c8c3"
+    },
+    {
+      "producer": "scripts/kodjo/scan-remote-write-capability.js",
+      "line": 174,
+      "capability": "GIT_PUSH",
+      "destination": "origin HEAD:main';",
+      "scope": "SCRIPT",
+      "capability_key": "9da2911e21181a1e8665774925661937841c94acdb260ff085e728210ac81543"
+    },
+    {
+      "producer": "scripts/kodjo/scan-remote-write-capability.js",
+      "line": 176,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "6e5bd95ff3a19782a9bbed8dc0cb909b2a48e5aa992a4df8167faca49736c8c3"
+    },
+    {
+      "producer": "scripts/kodjo/scan-remote-write-capability.js",
+      "line": 177,
+      "capability": "GIT_COMMIT",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "6e5bd95ff3a19782a9bbed8dc0cb909b2a48e5aa992a4df8167faca49736c8c3"
+    },
+    {
+      "producer": "scripts/kodjo/scan-remote-write-capability.js",
+      "line": 179,
+      "capability": "GIT_PUSH",
+      "destination": "origin HEAD:main';",
+      "scope": "SCRIPT",
+      "capability_key": "9da2911e21181a1e8665774925661937841c94acdb260ff085e728210ac81543"
+    },
+    {
+      "producer": "scripts/kodjo/scan-remote-write-capability.js",
+      "line": 267,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "repos/$env:GITHUB_REPOSITORY/contents/$queuePath",
+      "scope": "SCRIPT",
+      "capability_key": "1dbee2af5c0a6df80ffa87c8e8873b006a7b4fa8cf753b39f2c8a7244ed698be"
+    },
+    {
+      "producer": "scripts/kodjo/scan-remote-write-capability.js",
+      "line": 33,
+      "capability": "GIT_CREDENTIAL_HEADER",
+      "destination": "git-config:http.extraheader",
+      "scope": "SCRIPT",
+      "capability_key": "9422c773bcec43452d61a93d84d6a54767687250a08fb37ceb5b34c35b596b32"
+    },
+    {
+      "producer": "scripts/kodjo/signal-vnext-cycle-continuation.js",
+      "line": 48,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "892924594c47b9af9301fe9901aae44fcc62655b3c5371372ba3eec4ee556d20"
+    },
+    {
+      "producer": "scripts/kodjo/signal-vnext-cycle-continuation.js",
+      "line": 49,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "892924594c47b9af9301fe9901aae44fcc62655b3c5371372ba3eec4ee556d20"
+    },
+    {
+      "producer": "scripts/kodjo/signal-vnext-cycle-continuation.js",
+      "line": 50,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "892924594c47b9af9301fe9901aae44fcc62655b3c5371372ba3eec4ee556d20"
+    },
+    {
+      "producer": "scripts/kodjo/signal-vnext-cycle-continuation.js",
+      "line": 51,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "892924594c47b9af9301fe9901aae44fcc62655b3c5371372ba3eec4ee556d20"
+    },
+    {
+      "producer": "scripts/kodjo/targeted-requalification.js",
+      "line": 33,
+      "capability": "REST_REPOSITORY_WRITE",
+      "destination": "static-source-line",
+      "scope": "SCRIPT",
+      "capability_key": "f569c6b6e31b6dbff53547483920d31dd2c606a4915487594dde6f85d03a0fb1"
+    }
+  ],
+  "contract_hash": "4791f96098cd9be4ad53073fa936f9b0c65b568f85a83afe9311c74fb7a0ee67"
+}

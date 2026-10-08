@@ -1,0 +1,25 @@
+{
+  "schema_version": "kodjo.vnext.revision-diagnostic-evidence.v1",
+  "run_id": 37158701286,
+  "job_id": 111308667776,
+  "candidate_head": "ffd7e415ebb37be9eb44e17204302fd16417cb5f",
+  "phase": "BOUNDED_CORRECTION",
+  "error": "VNEXT12_REVISION_REQUIRES_DIAGNOSIS",
+  "timed_out": false,
+  "artifact_id": 11287781961,
+  "artifact_sha256": "5fd246524d194eec989f8bec7bd5f51350d6b0fd7cfed1a244fa059fe15c80ac",
+  "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/v8-consolidation/revision-diagnostic-37158701286/failure-artifact.zip",
+  "downloaded_hash_verified": true,
+  "session_id": "0574798a-937b-4c1c-b9aa-911e97d53b97",
+  "base_verdict": "REVISE",
+  "blocking_findings": [
+    "FND-0617bba6eda320d40e8f354c",
+    "FND-5a380a08501c21e6a6118b0a"
+  ],
+  "base_review_duration_ms": 511893,
+  "revision_review_invoked": false,
+  "implementation_invoked": false,
+  "new_revision_timeout_exercised": false,
+  "cause": "TEST_GAP cites the test change intent and its PLAN_ITEM dependency; benchmark previously rejected all non-PLAN_ITEM finding targets.",
+  "old_receipt_reusable_for_new_candidate": false
+}

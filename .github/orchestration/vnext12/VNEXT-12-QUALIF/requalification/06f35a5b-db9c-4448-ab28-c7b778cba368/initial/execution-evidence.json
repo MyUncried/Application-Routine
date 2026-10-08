@@ -1,0 +1,367 @@
+{
+  "schema_version": "kodjo.vnext12.requalification-initial-execution-evidence.v1",
+  "status": "INITIAL_PASS",
+  "campaign_id": "06f35a5b-db9c-4448-ab28-c7b778cba368",
+  "run_id": 36930459022,
+  "job_id": 110598428318,
+  "completed_at": "2026-10-01T22:32:02Z",
+  "artifact_id": 11197084650,
+  "artifact_sha256": "9815cde44fb2e74d7e07187d509eb2e4cf01dd988842cf8ed93efb2d17359862",
+  "archive_path": ".github/orchestration/vnext12/VNEXT-12-QUALIF/requalification/06f35a5b-db9c-4448-ab28-c7b778cba368/initial/execution-artifact.zip",
+  "artifact_members": {
+    "admission-before-runtime.json": "5626a16ca341f11edb2b875c13c2a8672e1b3df4f42b4c266836c2d059c89785",
+    "application-delta/tests/fixtures/vnext12/core.test.js": "e91bb83e5a5af744137d68d9ca2571ac6e92ee8b385a0c4937725c5615646a9f",
+    "application-delta/scripts/kodjo/fixtures/vnext12/core.js": "63d9832d775e3b06b4a75bf56af1e065ce70ef82392293fa696c2de541a25a54",
+    "admission-before-install.json": "4edc5cfd7350556848b22c97a3b9220d302aa0c226a0c774a95c79abee2095bc",
+    "approved-queue.json": "ef5b0cf3190edaa633102ea98236f1d2c6730d5930e04e920325349195d851da",
+    "baseline-checks.json": "374aae5f495048b3268ee383dc07730d0afa9d18f049d1ef351fd9023fc36634",
+    "baseline-jest.json": "9c315e21bc7cab083d50dbb0f86d4aa8da917f999baf7573f00460e459e41f8f",
+    "baseline-lint.json": "fc4b5ab55860ddd0ac3e47bd57ece1f55ec6c255ef57230113b6d09a2788d13c",
+    "baseline-typescript.json": "46bdd56a05a18b725338fdb4316d3af42d826a965d679cb34c9c36230a7582c2",
+    "command-001.log": "ca5f2d724a1e84936af66a300243ab0c5d709cd8164b91326711e25486e247db",
+    "command-002.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-003.log": "73e83e8e247354405ac91825eec316491e3be74c2a14f70a673a798a0f525232",
+    "command-004.log": "6f587d2023a2a2e534374077f87cc6600c58111704982de38223b597125fd99a",
+    "command-005.log": "24bc5f5a0333f92f3337d2b4927d50f6ed3c7d44400e94efa698220b68db294c",
+    "command-006.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-007.log": "550703e9c78f1e1c3c686616808e4ab6659a880a7806673f21fd8976fe0d7434",
+    "command-008.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-009.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-010.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-011.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-012.log": "1672f9385720568fb3bf639bdad692d81994942dd0f37d718c856dc93754f090",
+    "command-013.log": "21380c3163152e3147e3e53a6a12ea883c5e03ba42966c10d33e855140c16711",
+    "command-014.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-015.log": "f1827ea5cfda5ab6b7787d1ceea9b2eebcb4a804a9688489028b818f666c04aa",
+    "command-016.log": "087426252c1c9db3d7de93c70d3e25d1199043b134b06235221923ed1f505fba",
+    "command-017.log": "0b17e80d4bd9d5b428ff56d8b2de86e23965a370ffda004aa1a7d7e36a720dd2",
+    "command-018.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-019.log": "847a152012325f462c85293974bfa38de30274f245b12b3449ad767e92bcfe0b",
+    "command-020.log": "656970d14fe166cef0cfdb2ab2069f315c63f58c57f11d425366caf2873d392a",
+    "command-021.log": "d2d930ff2bfafd21f79851310067b9d27fa76d7b5456f07b8f4605e9819c745e",
+    "command-022.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "command-023.log": "2d52a5b4f647a91939280c50d8486bffab1cd30f63e8886a0ea2ff184bc9e40b",
+    "consumed-request.json": "82d9d9540053ecad71b5cd4ccdc6fc912ac2e442f94523c01ff5d3797e0c8aed",
+    "consumption-credential.json": "3b2a6032de32846e429ce34202c109757348170d2b51d349be5f4802a6c251d3",
+    "consumption.json": "129458277585a10e55bbaa1f1d6d2cd6f374ca4e8d3b38b6b2668ad0d52a4184",
+    "functional-proof.json": "74e3d694a953a285f7794a02dc00af8f37e00f260872faf6c9c3aeab1bdc9b22",
+    "handoff-runtime.json": "de9502fcb161c4e58acdec0e4f0402de3d86ba84c9e3814e0ce40aca87de2fb0",
+    "implementation.patch": "656970d14fe166cef0cfdb2ab2069f315c63f58c57f11d425366caf2873d392a",
+    "local-request.json": "c8f2c2da4ca2eaa17adcd4499fcb5aab824692cd6ff91cca78b1a6778aa12e59",
+    "negative-before-claude.json": "f9f6d9e8d0495d95719e40b738a69862ec898c453b09a232a6eca54f098e4795",
+    "negative-missing-review-proof.json": "64554d48658f4a5fbaa7ec778703e7d67eba3ba96190da5fd3e7dcb7cff23a7c",
+    "qualification-admission.json": "5fb107cba0690f18e8bad1ceeb784d7cd01f3dfc495ce90cc73b00035b95a175",
+    "runner-lock-certification.json": "3ea985776335a75369ad8e8d841b3188f039ff042df2cec1a57d84fdc49a5a47",
+    "runtime/claude-output.json": "ecbc94b23b9a395cb0e32439d816bec97c22b077129de1942fd8be64ec04b3a5",
+    "runtime/claude-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runtime/consumed-request.json": "82d9d9540053ecad71b5cd4ccdc6fc912ac2e442f94523c01ff5d3797e0c8aed",
+    "runtime/consumption.json": "129458277585a10e55bbaa1f1d6d2cd6f374ca4e8d3b38b6b2668ad0d52a4184",
+    "runtime/invocation.json": "0222738209e0ccbd6403a34f4c2b3fa84a9b63a81fa536bcfd022ee3ab850899",
+    "runtime/kodjo-check-runner.js": "bc878a5a0d5c432112abe3f98ac2e78e5195ff6874b5aa62bb4bdc3f86ca0148",
+    "runtime/kodjo-file-mutation.js": "5f813907e25232cc4a307a0a092d795b5d9dbb57209a74b0af697361c5d7c4f4",
+    "runtime/kodjo-git-read.js": "a1ad532fb4c504a1ce5aa1dff9c97460c92516912a8000b4233919b4a03740d1",
+    "runtime/mcp.json": "e93fc8db2b1bd77107fe6c758bca9545fa864cf7cce8ab93a7b2b93a1d566a7b",
+    "runtime/recovery-package/implementation.patch": "1ca1806e5657edfce6b2864b0d2a55fc94f7d4b27a8a2da543d436e2d31f39fb",
+    "runtime/recovery-package/manifest.json": "8bbace5290f6b6bf74cafb9faa66d3b7935ce596a35303ae93d56566efcc6f42",
+    "runtime/recovery.json": "0f08b7e10b3629cb788f1a6c8961bf45bea1d71892c01bd73d86b8c7cf099282",
+    "runtime/result.json": "1b4d76c025848fb1087a1ce7c1d173e6a595c0b4eb289d43b41cb719ac6a3d42",
+    "runtime/run-context.json": "969357953e7d32a1a447ea3f1c0c1c68fb1a8f607890bc5a7bc4bd0a18de644a",
+    "runtime/scope-path.js": "d11236b8b1ec97a85f518dc562716573dc50414509071e4e875ed9589ebd6620",
+    "runtime/settings.json": "79ce827cfe1b577235a440271ebd5c93af5ed812a7a4561f253c7f0a031f04de",
+    "runtime-copy.json": "49804765a6d15c572e5c913d7692ed909bd2aace02ecb68f89e0d6acb6a2a636",
+    "runtime-result.json": "1b4d76c025848fb1087a1ce7c1d173e6a595c0b4eb289d43b41cb719ac6a3d42",
+    "status.json": "203473e2959818ba90c23bdaf6561bace1347c73c72d292472201fea15fefb8d"
+  },
+  "status_observation": {
+    "schema_version": "kodjo.vnext.disposable-initial-evidence.v1",
+    "approved_protocol_head": "0e95e9deb18c0a8226df114773d63b2589e57395",
+    "controller_head": "8970d49862acdf5022639976cf9b00bddbfe5baa",
+    "gate_ref": "issue_comment:5940186046",
+    "approval_target_hash": "e601b5db91a198c26c24b7390a20e4088bb8720be1082254c4014fb6b4cb3ac6",
+    "revision_limit": 1,
+    "implementation_invoked": true,
+    "application_published": false,
+    "pre1_in_scope": false,
+    "final_audit_invoked": false,
+    "initial_status": "IMPLEMENTED_AND_VERIFIED",
+    "verdict": "INITIAL_PASS",
+    "planning_mode": "INITIAL",
+    "disposable_cleanup": true
+  },
+  "runtime_result": {
+    "schema_version": "kodjo.protocol.v2.local-result.0.6.11",
+    "run_id": "github-36930459022-1",
+    "request_id": "b2af3723-0ce8-4f7f-8488-cf4498eb9d92",
+    "session_id": "f6571f37-d20c-437e-8253-e995c923e738",
+    "claude_exit_code": 0,
+    "claude_error": null,
+    "claude_failure": null,
+    "claude_started_at": "2026-10-01T22:27:13.811Z",
+    "claude_finished_at": "2026-10-01T22:30:19.581Z",
+    "claude_duration_ms": 185770,
+    "timed_out": false,
+    "source_head": "0e95e9deb18c0a8226df114773d63b2589e57395",
+    "package_lock_sha256": "8b1eeb9718adc2a4dfe45612eacfa91c971518916a031224a4a4a72a53e4b42a",
+    "modified_files": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "recovered_files": [],
+    "recovery_files": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "recovery_scope_paths": [],
+    "mutation_scope_allow": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "agent_mutation_files": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "integrity_status": "INTACT",
+    "recovery_package": {
+      "schema_version": "kodjo.protocol.v2.recovery-package.0.6.16",
+      "slice_id": "VNEXT-12-QUALIF",
+      "session_id": "f6571f37-d20c-437e-8253-e995c923e738",
+      "source_head": "0e95e9deb18c0a8226df114773d63b2589e57395",
+      "baseline_head": "b8f871001f21ecf6f3444479f845bc9aae59e5a3",
+      "run_id": "github-36930459022-1",
+      "github_run_id": "36930459022",
+      "request_id": "b2af3723-0ce8-4f7f-8488-cf4498eb9d92",
+      "integrity_status": "INTACT",
+      "scope_allow": [
+        "scripts/kodjo/fixtures/vnext12/core.js",
+        "tests/fixtures/vnext12/core.test.js"
+      ],
+      "recovery_paths": [],
+      "paths": [
+        "scripts/kodjo/fixtures/vnext12/core.js",
+        "tests/fixtures/vnext12/core.test.js"
+      ],
+      "patch_sha256": "1ca1806e5657edfce6b2864b0d2a55fc94f7d4b27a8a2da543d436e2d31f39fb",
+      "patch_bytes": 849,
+      "created_at": "2026-10-01T22:30:19.989Z"
+    },
+    "recovery_source_head_migration": null,
+    "legacy_recovery_bootstrap_consumed": false,
+    "out_of_scope_files": [],
+    "post_check_files": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "post_check_drift": [],
+    "checks": [
+      {
+        "check": "jest",
+        "command": "npm test --silent -- --cacheDirectory \"C:\\\\actions-runner\\\\_work\\\\_temp\\\\kodjo-vnext12-initial-36930459022-1\\\\check-cache\\\\jest\"",
+        "status": "PASS",
+        "exit_code": 0,
+        "started_at": "2026-10-01T22:30:19.991Z",
+        "finished_at": "2026-10-01T22:31:07.060Z",
+        "duration_ms": 47069,
+        "reason": null,
+        "passed_tests": 1257,
+        "failed_tests": 0,
+        "total_tests": 1257,
+        "log_excerpt": "sx\nPASS src/shared/ui/__tests__/SegmentedControl.test.tsx\n  ● Console\n\n    console.error\n      An update to Animated(View) inside a test was not wrapped in act(...).\n      \n      When testing, code that causes React state updates should be wrapped into act(...):\n      \n      act(() => {\n        /* fire events that update state */\n      });\n      /* assert on the output */\n      \n      This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n\n      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14402:19\n      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2315:13)\n      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14401:9)\n      at scheduleUpdateOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12086:9)\n      at dispatchReducerAction (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:6155:13)\n      at Object.scheduleUpdate [as current] (node_modules/react-native/src/private/animated/createAnimatedPropsHook.js:131:20)\n      at AnimatedProps._callback (node_modules/react-native/src/private/animated/createAnimatedPropsHook.js:71:36)\n      at AnimatedProps._callback [as update] (node_modules/react-native/Libraries/Animated/nodes/AnimatedProps.js:237:10)\n      at update (node_modules/react-native/Libraries/Animated/nodes/AnimatedValue.js:67:31)\n          at Set.forEach (<anonymous>)\n      at forEach (node_modules/react-native/Libraries/Animated/nodes/AnimatedValue.js:67:10)\n      at AnimatedValue.flushValue [as _updateValue] (node_modules/react-native/Libraries/Animated/nodes/AnimatedValue.js:361:7)\n      at TimingAnimation._updateValue [as _onUpdate] (node_modules/react-native/Libraries/Animated/nodes/AnimatedValue.js:325:14)\n      at TimingAnimation._onUpdate [as onUpdate] (node_modules/react-native/Libraries/Animated/animations/TimingAnimation.js:157:10)\n      at onUpdate (node_modules/react-native/Libraries/Animated/animations/TimingAnimation.js:132:67)\n      at Timeout.callback [as _onTimeout] (node_modules/@react-native/jest-preset/jest/setup.js:61:31)\n\nPASS src/features/sessions/__tests__/BodyZoneSelector.test.tsx\nPASS src/features/sessions/__tests__/WheelPickerOverlay.test.tsx\nPASS src/features/sessions/__tests__/useCompositionExitGuard.test.ts\nPASS src/domain/sessions/__tests__/SessionDraft.test.ts\nPASS src/features/sessions/__tests__/SessionDraftContext.test.tsx\nPASS src/features/sessions/__tests__/useSessionCatalogue.test.ts\nPASS src/features/sessions/__tests__/SessionServiceContext.test.tsx\nPASS src/shared/ui/__tests__/RootErrorBoundary.test.tsx\nPASS src/domain/sessions/__tests__/calculations.test.ts\nPASS src/shared/ui/__tests__/RootErrorFallback.test.tsx\nPASS src/infrastructure/database/__tests__/initializeDatabase.test.ts\nPASS src/shared/ui/__tests__/visualAssets.test.ts\nPASS src/shared/i18n/index.test.ts\nPASS src/infrastructure/database/__tests__/SqliteCategoryRepository.test.ts\nPASS src/domain/sessions/__tests__/sideMode.test.ts\nPASS src/features/activities/__tests__/ActivityDefinitionService.test.ts\nPASS app/__tests__/creationLayout.test.tsx\nPASS src/features/sessions/__tests__/wheelPickerMath.test.ts\nPASS src/features/sessions/__tests__/compositionGesture.test.ts\nPASS src/domain/activities/__tests__/ActivityDefinition.test.ts\nPASS src/features/sessions/__tests__/formatSessionSummary.test.ts\nPASS tests/fixtures/vnext12/core.test.js\nPASS src/domain/categories/__tests__/validation.test.ts\nPASS src/domain/categories/__tests__/matching.test.ts\nPASS src/features/reference-data/__tests__/bodyZones.test.ts\nPASS tests/kodjo-prod-qualif/preflight.test.ts\nPASS src/shared/ui/__tests__/navigationLayout.test.ts\n\nTest Suites: 64 passed, 64 total\nTests:       1257 passed, 1257 total\nSnapshots:   0 total\nTime:        45.831 s, estimated 68 s\nRan all test suites.\n",
+        "rerun_in_this_attempt": true
+      },
+      {
+        "check": "typescript",
+        "command": "npx --no-install tsc --noEmit",
+        "status": "PASS",
+        "exit_code": 0,
+        "started_at": "2026-10-01T22:31:07.062Z",
+        "finished_at": "2026-10-01T22:31:12.866Z",
+        "duration_ms": 5804,
+        "reason": null,
+        "passed_tests": null,
+        "failed_tests": null,
+        "total_tests": null,
+        "log_excerpt": "",
+        "rerun_in_this_attempt": true
+      },
+      {
+        "check": "lint",
+        "command": "npm run lint --silent -- --no-cache",
+        "status": "PASS",
+        "exit_code": 0,
+        "started_at": "2026-10-01T22:31:12.867Z",
+        "finished_at": "2026-10-01T22:31:31.032Z",
+        "duration_ms": 18165,
+        "reason": null,
+        "passed_tests": null,
+        "failed_tests": null,
+        "total_tests": null,
+        "log_excerpt": "",
+        "rerun_in_this_attempt": true
+      }
+    ],
+    "limits_effective": {
+      "max_ai_calls": 1,
+      "max_duration_seconds": 3600,
+      "max_prompt_bytes": 32768,
+      "max_total_prompt_bytes": 32768,
+      "max_rollovers": 0
+    },
+    "turn_limit_effective": {
+      "source": "CLAUDE_SUBSCRIPTION",
+      "protocol_max_turns": null,
+      "cli_argument_emitted": false
+    },
+    "claude_invoked": true,
+    "status": "IMPLEMENTED_AND_VERIFIED",
+    "publishable_paths": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ],
+    "publishable_pathspec_file": null
+  },
+  "functional_proof": {
+    "observed_value": 2,
+    "targeted_jest_exit_code": 0,
+    "preserve_before_sha256": "db387ac0aab607cda76e230c38f08a343d1d3d6281c2062b48bf023f06331f56",
+    "preserve_after_sha256": "db387ac0aab607cda76e230c38f08a343d1d3d6281c2062b48bf023f06331f56",
+    "modified_files": [
+      "scripts/kodjo/fixtures/vnext12/core.js",
+      "tests/fixtures/vnext12/core.test.js"
+    ]
+  },
+  "negative_probes": {
+    "fault_injection": true,
+    "production_runner": "C:\\actions-runner\\_work\\Application-Routine\\Application-Routine\\_vnext12-approved\\36930459022\\scripts\\kodjo\\run-local-claude.js",
+    "missing_authority": {
+      "refused": true,
+      "exit_code": 1,
+      "diagnostic": "VNEXT_LOCAL_QUEUE_AUTHORITY_REQUIRED"
+    },
+    "missing_review_proof": {
+      "refused": true,
+      "exit_code": 1,
+      "diagnostic": "VNEXT_QUEUE_ADMISSION_REQUEST_MISMATCH"
+    },
+    "runtime_state_created": false,
+    "claude_invoked": false
+  },
+  "qualification_admission": {
+    "approved": {
+      "status": "VERIFIED",
+      "candidate_head": "0e95e9deb18c0a8226df114773d63b2589e57395",
+      "run_id": "36924310800",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 110577767070,
+          "name": "qualification (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 110577767236,
+          "name": "qualification (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 110577767281,
+          "name": "historical-equivalence (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 110577767434,
+          "name": "historical-equivalence (ubuntu-latest)",
+          "conclusion": "success"
+        }
+      ],
+      "observed_at": "2026-10-01T22:18:57.742Z"
+    },
+    "controller": {
+      "status": "VERIFIED",
+      "candidate_head": "0e95e9deb18c0a8226df114773d63b2589e57395",
+      "run_id": "36924310800",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 110577767070,
+          "name": "qualification (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 110577767236,
+          "name": "qualification (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 110577767281,
+          "name": "historical-equivalence (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 110577767434,
+          "name": "historical-equivalence (ubuntu-latest)",
+          "conclusion": "success"
+        }
+      ],
+      "observed_at": "2026-10-01T22:18:57.742Z",
+      "controller_head": "8970d49862acdf5022639976cf9b00bddbfe5baa",
+      "relation": "EXACT_SAME_PROTOCOL_CODE"
+    }
+  },
+  "consumption": {
+    "ref": "refs/tags/kodjo-consumed/b2af3723-0ce8-4f7f-8488-cf4498eb9d92",
+    "tag_oid": "9d09225f0bbbba24ee7ef296fc5648e107f1fae9",
+    "schema": "kodjo.disposable-consumption.v1",
+    "evidence_kind": "DISPOSABLE_LOCAL_REQUEST",
+    "repository": "MyUncried/Application-Routine",
+    "request_id": "b2af3723-0ce8-4f7f-8488-cf4498eb9d92",
+    "queue_commit": "0e95e9deb18c0a8226df114773d63b2589e57395",
+    "queue_blob_oid": "18535617c85e3618301deac732aca4db272c3fca",
+    "queue_path": null,
+    "request": {
+      "schema_version": "kodjo.protocol.v2.local-implementation.0.6.12",
+      "slice_id": "VNEXT-12-QUALIF",
+      "source_head": "0e95e9deb18c0a8226df114773d63b2589e57395",
+      "protocol_source_head": "0e95e9deb18c0a8226df114773d63b2589e57395",
+      "baseline_head": "b8f871001f21ecf6f3444479f845bc9aae59e5a3",
+      "slice_bootstrap_file": ".github/orchestration/v2-slices/VNEXT-12-QUALIF/slice-bootstrap.json",
+      "slice_bootstrap_sha256": "232c09337a2e2eabf4f7e0dbe87c78115d6075cc9b0f8c6e72a25a2bac582688",
+      "mode": "INITIAL",
+      "operation_kind": "IMPLEMENT",
+      "delivery_target": null,
+      "session_id": null,
+      "prompt_file": ".github/orchestration/vnext12/VNEXT-12-QUALIF/initial/implementation-mission.md",
+      "scope_allow": [
+        "scripts/kodjo/fixtures/vnext12/core.js",
+        "tests/fixtures/vnext12/core.test.js"
+      ],
+      "checks": [
+        "jest",
+        "typescript",
+        "lint"
+      ],
+      "request_id": "b2af3723-0ce8-4f7f-8488-cf4498eb9d92"
+    },
+    "session_id": "f6571f37-d20c-437e-8253-e995c923e738",
+    "source_head": "0e95e9deb18c0a8226df114773d63b2589e57395",
+    "run_id": "36930459022",
+    "run_attempt": "1",
+    "mode": "INITIAL",
+    "retry_of_run_id": null,
+    "retry_reason": null
+  },
+  "consumption_ref_observation": {
+    "ref": "refs/tags/kodjo-consumed/b2af3723-0ce8-4f7f-8488-cf4498eb9d92",
+    "node_id": "REF_kwDOTtCBw9oAPXJlZnMvdGFncy9rb2Rqby1jb25zdW1lZC9iMmFmMzcyMy0wY2U4LTRmN2YtODQ4OC1jZjQ0OThlYjlkOTI",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/git/refs/tags/kodjo-consumed/b2af3723-0ce8-4f7f-8488-cf4498eb9d92",
+    "object": {
+      "sha": "9d09225f0bbbba24ee7ef296fc5648e107f1fae9",
+      "type": "tag",
+      "url": "https://api.github.com/repos/MyUncried/Application-Routine/git/tags/9d09225f0bbbba24ee7ef296fc5648e107f1fae9"
+    }
+  },
+  "raw_claude_result_sha256": "ecbc94b23b9a395cb0e32439d816bec97c22b077129de1942fd8be64ec04b3a5",
+  "human_review_performed": false,
+  "replay_forbidden": true,
+  "background_failure_observed": false,
+  "background_failure_absence_is_not_a_prevention_guarantee": true
+}

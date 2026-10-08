@@ -1,0 +1,324 @@
+name: KODJO VNext read-only historical checks
+on:
+  workflow_call:
+    inputs:
+      sequenced_vnext:
+        type: boolean
+        default: true
+      preserve_complete_source:
+        type: boolean
+        default: false
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    outputs:
+      full_required: ${{ steps.change_class.outputs.full_required }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Classify protocol change
+        id: change_class
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          full=true
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            classification=$(node scripts/kodjo/classify-protocol-impact.js "$BASE_SHA" "$HEAD_SHA")
+            full=$(jq -r '.full_windows_required' <<< "$classification")
+            jq . <<< "$classification" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "full_required=$full" >> "$GITHUB_OUTPUT"
+  protocol:
+    needs: classify
+    if: needs.classify.outputs.full_required == 'true' && (github.event_name != 'pull_request' || github.head_ref != 'protocol/vnext-proof-stability-20260930' || inputs.sequenced_vnext == true)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      full_windows_required: ${{ needs.classify.outputs.full_required }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Set up independent workflow syntax parser
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Parse workflow YAML independently
+        shell: bash
+        run: |
+          python -m pip install PyYAML==6.0.3
+          python scripts/kodjo/validate-workflow-syntax.py
+      - name: Install isolated planning tokenizer
+        run: npm ci --prefix scripts/kodjo/openai-runtime --ignore-scripts --no-audit --no-fund
+      - name: Qualify authenticated private HEAD lookup on Linux
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          EVENT_PR_BASE: ${{ github.event.pull_request.base.ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          ACTUAL=$(node scripts/kodjo/resolve-private-head.js "$GITHUB_REPOSITORY" main)
+          printf '%s' "$ACTUAL" | grep -Eq '^[0-9a-f]{40}$'
+          if env -u GH_TOKEN node scripts/kodjo/resolve-private-head.js "$GITHUB_REPOSITORY" main; then
+            echo 'missing token was accepted' >&2
+            exit 1
+          fi
+          if node scripts/kodjo/resolve-private-head.js "$GITHUB_REPOSITORY" "__kodjo_missing_${GITHUB_RUN_ID}"; then
+            echo 'missing branch was accepted' >&2
+            exit 1
+          fi
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/pulls/$EVENT_PR_NUMBER" > "$RUNNER_TEMP/kodjo-pr-permission.json"
+            test "$(jq -r .state "$RUNNER_TEMP/kodjo-pr-permission.json")" = open
+            test "$(jq -r .head.sha "$RUNNER_TEMP/kodjo-pr-permission.json")" = "$EVENT_PR_HEAD"
+            test "$(jq -r .base.ref "$RUNNER_TEMP/kodjo-pr-permission.json")" = "$EVENT_PR_BASE"
+          else
+            gh api "repos/$GITHUB_REPOSITORY/pulls?state=all&per_page=1" --jq '.[0] | (.number > 0) and (.head.sha | test("^[0-9a-f]{40}$")) and (.base.ref | length > 0)' | grep -Fx true
+          fi
+      - name: Run complete KODJO pilot suite
+        # Sequenced VNext already ran this exact Linux suite in the historical matrix.
+        if: inputs.sequenced_vnext != true
+        run: node tests/kodjo/run-all.js
+      - name: Validate executable workflow invariants
+        run: node scripts/kodjo/validate-workflows.js
+      - name: Verify artifact retention contracts
+        env:
+          KODJO_RECOVERY_RETENTION_DAYS: ${{ vars.KODJO_RECOVERY_RETENTION_DAYS || 90 }}
+        run: node scripts/kodjo/verify-artifact-retention.js
+      - name: Record immutable qualification identity
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          printf 'source_sha=%s\n' "$SOURCE_SHA" >> "$GITHUB_STEP_SUMMARY"
+          git ls-tree -r "$SOURCE_SHA" | sha256sum | awk '{print "source_tree_manifest_sha256=" $1}' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Build immutable complete source snapshot
+        if: github.event_name == 'workflow_dispatch' && inputs.preserve_complete_source == true
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          tar --exclude=.git --exclude=node_modules -czf "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz" .
+          sha256sum "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz" > "$RUNNER_TEMP/Application-Routine-${SOURCE_SHA}.tar.gz.sha256"
+      - name: Preserve complete source snapshot
+        if: github.event_name == 'workflow_dispatch' && inputs.preserve_complete_source == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-complete-source-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/Application-Routine-${{ github.event.pull_request.head.sha || github.sha }}.tar.gz
+            ${{ runner.temp }}/Application-Routine-${{ github.event.pull_request.head.sha || github.sha }}.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 7
+
+
+  protocol-windows-preflight:
+    needs: protocol
+    if: needs.protocol.outputs.full_windows_required == 'true' && (inputs.sequenced_vnext == true || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository))
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    # Run 36841216722 exhausted 25 minutes during the complete Windows suite.
+    # Retain all controls and leave a bounded budget for suite + preflight.
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: _qualification/${{ github.run_id }}
+      - name: Set up independent workflow syntax parser on Windows
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install independent YAML parser on Windows
+        shell: cmd
+        working-directory: _qualification/${{ github.run_id }}
+        run: python -m pip install PyYAML==6.0.3
+      - name: Record Windows toolchain
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          $PSVersionTable.PSVersion.ToString()
+          git --version
+          node --version
+      - name: Preflight GitHub Actions artifact budget
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $inventory=Join-Path $env:RUNNER_TEMP ('kodjo-pilot-artifact-inventory-'+$env:GITHUB_RUN_ID+'.json')
+          $raw=gh api --paginate --slurp "repos/$env:GITHUB_REPOSITORY/actions/artifacts?per_page=100"
+          if($LASTEXITCODE-ne0){throw 'Artifact inventory unavailable'}
+          [IO.File]::WriteAllText($inventory,($raw -join "`n"),(New-Object Text.UTF8Encoding($false)))
+          node scripts/kodjo/check-artifact-budget.js $inventory
+          if($LASTEXITCODE-ne0){exit $LASTEXITCODE}
+      - name: Qualify authenticated private HEAD lookup on Windows
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          EVENT_PR_BASE: ${{ github.event.pull_request.base.ref }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $actual=& node scripts/kodjo/resolve-private-head.js $env:GITHUB_REPOSITORY main
+          if ($LASTEXITCODE -ne 0 -or [string]$actual -notmatch '^[0-9a-f]{40}$') { throw 'Authenticated private HEAD lookup failed' }
+          $token=$env:GH_TOKEN
+          Remove-Item Env:GH_TOKEN
+          & node scripts/kodjo/resolve-private-head.js $env:GITHUB_REPOSITORY main
+          if ($LASTEXITCODE -eq 0) { throw 'Missing token was accepted' }
+          $env:GH_TOKEN=$token
+          & node scripts/kodjo/resolve-private-head.js $env:GITHUB_REPOSITORY "__kodjo_missing_${{ github.run_id }}"
+          if ($LASTEXITCODE -eq 0) { throw 'Missing branch was accepted' }
+          if ($env:EVENT_NAME -eq 'pull_request') {
+            $application=gh api "repos/$env:GITHUB_REPOSITORY/pulls/$env:EVENT_PR_NUMBER" | ConvertFrom-Json
+            if ($application.state -ne 'open' -or [string]$application.head.sha -ne $env:EVENT_PR_HEAD -or [string]$application.base.ref -ne $env:EVENT_PR_BASE) {
+              throw 'Authenticated pull request lookup mismatch'
+            }
+          } else {
+            $application=@(gh api "repos/$env:GITHUB_REPOSITORY/pulls?state=all&per_page=1" | ConvertFrom-Json)
+            if ($application.Count -ne 1 -or [string]$application[0].head.sha -notmatch '^[0-9a-f]{40}$' -or -not [string]$application[0].base.ref) {
+              throw 'Authenticated pull request lookup failed'
+            }
+          }
+          exit 0
+      - name: Certify real persistent runner lock before Claude boundary
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          $runnerProof = Join-Path '${{ runner.temp }}' 'kodjo-v2-runner-certification-${{ github.run_id }}-${{ github.run_attempt }}.json'
+          node scripts/kodjo/certify-persistent-runner-lock.js $runnerProof
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve real runner certification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-runner-certification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/kodjo-v2-runner-certification-${{ github.run_id }}-${{ github.run_attempt }}.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Parse every PowerShell protocol script with Windows PowerShell
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          $failed = $false
+          Get-ChildItem scripts/kodjo -Recurse -Filter *.ps1 | ForEach-Object {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+            if ($errors.Count -gt 0) {
+              $failed = $true
+              $errors | ForEach-Object { Write-Error ("{0}: {1}" -f $_.Extent.File, $_.Message) }
+            }
+          }
+          if ($failed) { exit 1 }
+      - name: Install isolated planning tokenizer on Windows
+        working-directory: _qualification/${{ github.run_id }}
+        shell: powershell
+        run: |
+          npm ci --prefix scripts/kodjo/openai-runtime --ignore-scripts --no-audit --no-fund
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Run complete KODJO pilot suite on Windows
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: node tests/kodjo/run-all.js
+      - name: Run isolated queue path with Windows PowerShell 5.1
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          $bash = 'C:\Program Files\Git\bin\bash.exe'
+          if (-not (Test-Path -LiteralPath $bash)) { throw 'GIT_BASH_NOT_FOUND' }
+          $env:PWSH = 'powershell.exe'
+          & $bash tests/kodjo/queue-integration/run-bench.sh
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Run full disposable preflight without Claude
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          & scripts/kodjo/run-disposable-qualification.ps1 `
+            -ExpectedHead '${{ github.event.pull_request.head.sha || github.sha }}' `
+            -EvidenceDirectory 'disposable-preflight-evidence' `
+            -PreflightOnly
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve disposable preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-disposable-preflight-${{ github.run_id }}-${{ github.run_attempt }}
+          path: _qualification/${{ github.run_id }}/disposable-preflight-evidence
+          if-no-files-found: error
+          retention-days: 7
+      - name: Download the real run 16 recovery package
+        id: historical_recovery
+        continue-on-error: true # Expired historical diagnostic is recorded, not a gate for the current HEAD.
+        uses: actions/download-artifact@v4
+        with:
+          name: kodjo-v2-recovery-34606534268-1
+          path: ${{ runner.temp }}/kodjo-real-run-16-recovery
+          github-token: ${{ github.token }}
+          run-id: 34606534268
+      - name: Certify historical run 16 recovery without gating the disposable slice
+        if: steps.historical_recovery.outcome == 'success'
+        continue-on-error: true
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          node scripts/kodjo/certify-recovery-artifact.js `
+            "${{ runner.temp }}/kodjo-real-run-16-recovery" `
+            "$PWD" `
+            "${{ github.event.pull_request.head.sha || github.sha }}" `
+            "real-recovery-certification.json"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Preserve real recovery certification
+        if: always()
+        shell: powershell
+        working-directory: _qualification/${{ github.run_id }}
+        run: |
+          if (-not (Test-Path -LiteralPath 'real-recovery-certification.json')) {
+            $proof = [ordered]@{
+              status = 'FAIL'
+              reason = 'HISTORICAL_RECOVERY_ARTIFACT_UNAVAILABLE_OR_CERTIFICATION_FAILED'
+              claude_invoked = $false
+              run_id = '${{ github.run_id }}'
+              run_attempt = '${{ github.run_attempt }}'
+              source_sha = '${{ github.event.pull_request.head.sha || github.sha }}'
+            }
+            $proofJson = ($proof | ConvertTo-Json -Depth 5).Replace("`r`n", "`n") + "`n"
+            [IO.File]::WriteAllText('real-recovery-certification.json', $proofJson, (New-Object Text.UTF8Encoding($false)))
+          }
+      - name: Record unavailable historical recovery as a separate reserve
+        if: always() && steps.historical_recovery.outcome != 'success'
+        shell: cmd
+        working-directory: _qualification/${{ github.run_id }}
+        run: node scripts/kodjo/record-unavailable-recovery.js real-recovery-certification.json
+      - name: Upload real recovery certification
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kodjo-v2-real-recovery-certification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: _qualification/${{ github.run_id }}/real-recovery-certification.json
+          if-no-files-found: error
+          retention-days: 7

@@ -1,0 +1,22 @@
+{
+  "scope": "LOCAL_ONLY_NO_CLAUDE_NO_WINDOWS_REAL_PATH_NO_CLOSURE_REVIEW",
+  "command": "node --test tests/kodjo/vnext-*.pilot.js tests/kodjo/ui-implementation-review.pilot.js",
+  "tests": 318,
+  "pass": 318,
+  "fail": 0,
+  "skip": 0,
+  "log_sha256": "5f28cb43646abc4a836fec361db124d6aa829c784ba4bda5276cfd931c7c9cb7",
+  "workflow_syntax": {
+    "accepted": 64
+  },
+  "workflow_invariants": "PASS",
+  "remote_writer_policy": {
+    "status": "PASS_WITH_FROZEN_LEGACY",
+    "findings": []
+  },
+  "real_model_calls": 0,
+  "native_certification": false,
+  "fresh_figma_acquisition": false,
+  "raw_log_sha256": "e071e17b6ebef7433aaa8f76c4b2c151e93fae3b218ebedf9a5add2812b9fb60",
+  "log_normalization": "Trailing whitespace removed for Git; test results unchanged."
+}

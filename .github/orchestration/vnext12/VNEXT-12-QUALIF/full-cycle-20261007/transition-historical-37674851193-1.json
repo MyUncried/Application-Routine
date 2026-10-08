@@ -1,0 +1,21 @@
+{
+  "schema_version": "kodjo.vnext.cycle-transition.v1",
+  "status": "HISTORICAL_REQUEST_PUBLISHED_PENDING_RUN",
+  "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+  "source_request_id": "81a107ff-5c61-4df1-a2c0-fed949a331bc",
+  "source_generation": 96,
+  "qualification_key": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3:81a107ff-5c61-4df1-a2c0-fed949a331bc:37674851193:1",
+  "qualification_run_id": 37674851193,
+  "qualification_run_attempt": 1,
+  "qualification_source_head": "88516d91bdc7ff266c1fe9e730662969748d3719",
+  "next_stage": "CERTIFY_HISTORICAL",
+  "next_request_id": "3b3a2190-3862-4f69-8b17-6dee73e5bf1b",
+  "next_generation": 97,
+  "auto_continue": true,
+  "human_review_performed": false,
+  "claimed_at": "2026-10-07T19:40:08.107Z",
+  "marker_head": "bc38355a5e38e5fc668e2c9ef9b0b7de4b91d34d",
+  "historical_started": false,
+  "implementation_authorized": false,
+  "business_write": false
+}

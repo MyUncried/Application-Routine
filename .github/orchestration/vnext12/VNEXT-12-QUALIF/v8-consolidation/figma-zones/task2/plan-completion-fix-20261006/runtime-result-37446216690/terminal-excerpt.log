@@ -1,0 +1,49 @@
+﻿2026-10-06T09:55:14.2285265Z Current runner version: '2.337.0'
+2026-10-06T09:55:52.0302923Z ##[group]Run node scripts/kodjo/qualify-vnext-figma-real-path.js initial "%RUNNER_TEMP%/vnext12-figma-37446216690-1" .github/orchestration/vnext12/VNEXT-12-QUALIF/request.json
+2026-10-06T09:55:52.0318844Z [36;1mnode scripts/kodjo/qualify-vnext-figma-real-path.js initial "%RUNNER_TEMP%/vnext12-figma-37446216690-1" .github/orchestration/vnext12/VNEXT-12-QUALIF/request.json[0m
+2026-10-06T09:55:52.0410086Z shell: C:\Windows\system32\cmd.EXE /D /E:ON /V:OFF /S /C "CALL "{0}""
+2026-10-06T09:55:52.0415079Z env:
+2026-10-06T09:55:52.0418825Z   CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+2026-10-06T09:55:52.0421464Z   EXPECTED_RUNNER_NAME: KODJO-LOCAL-RUNNER
+2026-10-06T09:55:52.0424158Z   KODJO_FIGMA_CONTROLLER_HEAD: 32893aad0f934c29fdccbb4ced9c5a7e231567df
+2026-10-06T09:55:52.0454058Z   GH_TOKEN: ***
+2026-10-06T09:55:52.0456470Z ##[endgroup]
+2026-10-06T10:52:40.8180309Z Terminer le programme de commandes (O/N) ?
+2026-10-06T10:52:40.8251191Z ^C
+2026-10-06T10:52:40.8859541Z ##[error]The operation was canceled.
+2026-10-06T10:52:41.0565218Z ##[group]Run actions/upload-artifact@v4
+2026-10-06T10:52:41.0566521Z with:
+2026-10-06T10:52:41.0567350Z   name: kodjo-vnext12-figma-37446216690-1
+2026-10-06T10:52:41.0568654Z   path: C:\actions-runner\_work\_temp/vnext12-figma-37446216690-1/**
+2026-10-06T10:52:41.0569800Z   retention-days: 90
+2026-10-06T10:52:41.0570572Z   if-no-files-found: error
+2026-10-06T10:52:41.0571422Z   compression-level: 6
+2026-10-06T10:52:41.0572122Z   overwrite: false
+2026-10-06T10:52:41.0572914Z   include-hidden-files: false
+2026-10-06T10:52:41.0574144Z env:
+2026-10-06T10:52:41.0574854Z   CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+2026-10-06T10:52:41.0575844Z   EXPECTED_RUNNER_NAME: KODJO-LOCAL-RUNNER
+2026-10-06T10:52:41.0577058Z   KODJO_FIGMA_CONTROLLER_HEAD: 32893aad0f934c29fdccbb4ced9c5a7e231567df
+2026-10-06T10:52:41.0578259Z ##[endgroup]
+2026-10-06T10:52:42.5440220Z (node:37308) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-06T10:52:42.5445986Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-06T10:52:42.5694479Z With the provided path, there will be 5 files uploaded
+2026-10-06T10:52:42.5705567Z Artifact name is valid!
+2026-10-06T10:52:42.5711297Z Root directory input is valid!
+2026-10-06T10:52:42.5832160Z ##[warning]Retention days cannot be greater than the maximum allowed retention set within the repository. Using 14 instead.
+2026-10-06T10:52:43.0324143Z ##[error]Failed to CreateArtifact: Received non-retryable error: Failed request: (403) Forbidden: job is completed
+2026-10-06T10:52:43.2597639Z Post job cleanup.
+2026-10-06T10:52:43.7515472Z [command]"C:\Program Files\Git\cmd\git.exe" version
+2026-10-06T10:52:43.8494607Z git version 2.55.0.windows.3
+2026-10-06T10:52:43.8599949Z Copying 'C:\Users\hadjo\.gitconfig' to 'C:\actions-runner\_work\_temp\b12730e1-476e-4ef2-92d8-6f8e40dc8601\.gitconfig'
+2026-10-06T10:52:43.8658539Z Temporarily overriding HOME='C:\actions-runner\_work\_temp\b12730e1-476e-4ef2-92d8-6f8e40dc8601' before making global git config changes
+2026-10-06T10:52:43.8672325Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-06T10:52:43.8697079Z [command]"C:\Program Files\Git\cmd\git.exe" config --global --add safe.directory C:\actions-runner\_work\Application-Routine\Application-Routine\_vnext12-figma\37446216690
+2026-10-06T10:52:43.9733767Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp core\.sshCommand
+2026-10-06T10:52:44.0608399Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\""
+2026-10-06T10:52:45.4984599Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-06T10:52:45.5708796Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "sh -c \"git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\""
+2026-10-06T10:52:47.2459761Z [command]"C:\Program Files\Git\cmd\git.exe" config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-10-06T10:52:47.3426943Z [command]"C:\Program Files\Git\cmd\git.exe" submodule foreach --recursive "git config --local --show-origin --name-only --get-regexp remote.origin.url"
+2026-10-06T10:52:49.4346839Z Cleaning up orphan processes
+2026-10-06T10:52:49.8261925Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

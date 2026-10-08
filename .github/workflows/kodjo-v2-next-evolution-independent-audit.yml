@@ -43,9 +43,12 @@ concurrency:
 
 jobs:
   await_qualified_head:
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    # Qualification updates do not authorize another global model audit.
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # Qualification includes Linux plus the bounded 60-minute Windows preflight.
+    # The former 21-minute polling window could expire immediately before PASS.
+    timeout-minutes: 90
     outputs:
       owner_accepted: ${{ steps.owner_disposition.outputs.owner_accepted }}
     steps:
@@ -64,7 +67,7 @@ jobs:
             test "$(jq -r '.head.sha' <<< "$pr")" = "$CANDIDATE_SHA"
             branch=$(jq -r '.head.ref' <<< "$pr")
           fi
-          for attempt in $(seq 1 65); do
+          for attempt in $(seq 1 240); do
             selected=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/kodjo-v2-pilot-tests.yml/runs?event=pull_request&branch=$branch&per_page=100" |
               jq -c --arg sha "$CANDIDATE_SHA" '[.workflow_runs[] | select(.head_sha == $sha)] | if length == 0 then null else max_by(.run_number) end')
             state=$(jq -r 'if . == null then "NONE" else (.status + ":" + (.conclusion // "NONE")) end' <<< "$selected")
@@ -161,6 +164,17 @@ jobs:
           $ErrorActionPreference='Stop'
           npm ci --prefix scripts/kodjo/openai-runtime --ignore-scripts --no-audit --no-fund
           if($LASTEXITCODE-ne0){throw 'Planning tokenizer installation failed'}
+
+      - name: Set up independent workflow syntax parser for audit
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pinned YAML parser before deterministic pre-audit
+        run: |
+          $ErrorActionPreference='Stop'
+          python -m pip install PyYAML==6.0.3
+          if($LASTEXITCODE-ne0){throw 'Audit YAML parser installation failed'}
 
       - name: Verify exact checkout and deterministic pre-audit
         env:

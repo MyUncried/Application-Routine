@@ -1,0 +1,10 @@
+{
+  "automation_id": "6ac62299aa5c819198996171d4a1ff13",
+  "is_enabled": false,
+  "updated_at": "2026-10-07T21:28:54.619442+00:00",
+  "cycle_id": "de2b9683-7c6d-4ba3-9dc4-4664dbaee0c3",
+  "reason": "USER_REQUESTED_DISABLE_AFTER_VERIFIED_NEW_CYCLE_CLOSURE",
+  "closure_run_id": 37688962970,
+  "issue_number": 329,
+  "durable_final_balance_commit": "40c065ab17fbf696fc55faba926c9ee1772ad0c9"
+}

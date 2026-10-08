@@ -1,0 +1,962 @@
+{
+  "observed_at": "2026-10-08",
+  "fileKey": "G6RY5Ebhgwb4AHIOYDwwvg",
+  "pageId": "510:101",
+  "purpose": "Références et caractéristiques générales du périmètre PRE-3 ; pas une extraction atomique exhaustive.",
+  "frames": [
+    {
+      "id": "3542:4656",
+      "name": "Création activité — Avant Paramètres d'exécution",
+      "width": 402,
+      "height": 874,
+      "textCount": 14,
+      "instanceCount": 7,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13340",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    },
+    {
+      "id": "3943:6064",
+      "name": "Ajouter un exercice — Initial",
+      "width": 402,
+      "height": 874,
+      "textCount": 12,
+      "instanceCount": 10,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13346",
+          "name": "Icône photo — ajouter"
+        },
+        {
+          "id": "7025:13352",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    },
+    {
+      "id": "4217:6980",
+      "name": "Ajouter un exercice — Nom Description Media",
+      "width": 402,
+      "height": 874,
+      "textCount": 12,
+      "instanceCount": 9,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13358",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    },
+    {
+      "id": "5088:6398",
+      "name": "Ajouter un exercice — Catégorie renseignée",
+      "width": 402,
+      "height": 874,
+      "textCount": 13,
+      "instanceCount": 8,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13364",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    },
+    {
+      "id": "4734:6342",
+      "name": "Modifier un exercice",
+      "width": 402,
+      "height": 874,
+      "textCount": 11,
+      "instanceCount": 7,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13370",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    },
+    {
+      "id": "4332:7095",
+      "name": "Ajouter un exercice — Catégories",
+      "width": 402,
+      "height": 874,
+      "textCount": 24,
+      "instanceCount": 14,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13376",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    },
+    {
+      "id": "4474:7157",
+      "name": "Ajouter un exercice — Nouvelle catégorie",
+      "width": 402,
+      "height": 874,
+      "textCount": 60,
+      "instanceCount": 12,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13382",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    },
+    {
+      "id": "4478:7209",
+      "name": "Ajouter un exercice — Zones corporelles",
+      "width": 402,
+      "height": 874,
+      "textCount": 26,
+      "instanceCount": 24,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13388",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    },
+    {
+      "id": "4683:6336",
+      "name": "Ajouter un exercice — Nouvelle zone corporelle",
+      "width": 402,
+      "height": 874,
+      "textCount": 62,
+      "instanceCount": 22,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13394",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    },
+    {
+      "id": "4714:6241",
+      "name": "Modal — Abandonner la création de l’activité",
+      "width": 402,
+      "height": 874,
+      "textCount": 19,
+      "instanceCount": 8,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13400",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    },
+    {
+      "id": "4861:6259",
+      "name": "Ajouter un exercice — Catégorie — Appui long — Confirmation suppression",
+      "width": 402,
+      "height": 874,
+      "textCount": 28,
+      "instanceCount": 15,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13406",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    },
+    {
+      "id": "4861:6348",
+      "name": "Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression",
+      "width": 402,
+      "height": 874,
+      "textCount": 28,
+      "instanceCount": 25,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13412",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    },
+    {
+      "id": "6407:9458",
+      "name": "Création activité — Paramètres en modale — 1 Champ vide",
+      "width": 402,
+      "height": 874,
+      "textCount": 14,
+      "instanceCount": 7,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13418",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    },
+    {
+      "id": "6407:9551",
+      "name": "Création activité — Paramètres en modale — 2 Modale ouverte (champs vides)",
+      "width": 402,
+      "height": 874,
+      "textCount": 42,
+      "instanceCount": 22,
+      "bip": true,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13424",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6413:9906",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 474
+        }
+      ]
+    },
+    {
+      "id": "6407:9702",
+      "name": "Création activité — Paramètres en modale — 3 Texte affiché",
+      "width": 402,
+      "height": 874,
+      "textCount": 15,
+      "instanceCount": 7,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13430",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    },
+    {
+      "id": "6407:9805",
+      "name": "Création activité — Paramètres en modale — 4 Modale complète — mode activé",
+      "width": 402,
+      "height": 874,
+      "textCount": 48,
+      "instanceCount": 24,
+      "bip": true,
+      "total": [
+        {
+          "id": "6413:10019",
+          "text": "Durée totale"
+        }
+      ],
+      "media": [
+        {
+          "id": "7025:13436",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6413:9968",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 570
+        }
+      ]
+    },
+    {
+      "id": "6407:9966",
+      "name": "Création activité — Paramètres en modale — 5 Modale complète — steppers (séries, pauses)",
+      "width": 402,
+      "height": 874,
+      "textCount": 45,
+      "instanceCount": 23,
+      "bip": true,
+      "total": [
+        {
+          "id": "6413:10085",
+          "text": "Durée totale"
+        }
+      ],
+      "media": [
+        {
+          "id": "7025:13442",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6413:10041",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 516
+        }
+      ]
+    },
+    {
+      "id": "6407:10127",
+      "name": "Création activité — Paramètres en modale — 6 Durée activée (roulette ouverte)",
+      "width": 402,
+      "height": 874,
+      "textCount": 57,
+      "instanceCount": 24,
+      "bip": true,
+      "total": [
+        {
+          "id": "6413:10166",
+          "text": "Durée totale"
+        }
+      ],
+      "media": [
+        {
+          "id": "7025:13448",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6413:10107",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 674
+        }
+      ]
+    },
+    {
+      "id": "6407:10481",
+      "name": "Création activité — Paramètres en modale — 8 Changement de côté activé (contrôle segmenté)",
+      "width": 402,
+      "height": 874,
+      "textCount": 48,
+      "instanceCount": 24,
+      "bip": true,
+      "total": [
+        {
+          "id": "6413:10319",
+          "text": "Durée totale"
+        }
+      ],
+      "media": [
+        {
+          "id": "7025:13454",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6413:10269",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 570
+        }
+      ]
+    },
+    {
+      "id": "6411:9546",
+      "name": "Création activité — Paramètres en modale — 7 Durée totale activée (roulette ouverte)",
+      "width": 402,
+      "height": 874,
+      "textCount": 57,
+      "instanceCount": 24,
+      "bip": true,
+      "total": [
+        {
+          "id": "6413:10232",
+          "text": "Durée totale"
+        }
+      ],
+      "media": [
+        {
+          "id": "7025:13460",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6413:10188",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 674
+        }
+      ]
+    },
+    {
+      "id": "6411:9649",
+      "name": "Création activité — Paramètres en modale — 9 Avec changement de côté (pause au changement de côté)",
+      "width": 402,
+      "height": 874,
+      "textCount": 51,
+      "instanceCount": 25,
+      "bip": true,
+      "total": [
+        {
+          "id": "6413:10400",
+          "text": "Durée totale"
+        }
+      ],
+      "media": [
+        {
+          "id": "7025:13466",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6413:10341",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 600
+        }
+      ]
+    },
+    {
+      "id": "6419:9847",
+      "name": "Création activité — Paramètres en modale — 10 Répétitions (mode activé)",
+      "width": 402,
+      "height": 874,
+      "textCount": 48,
+      "instanceCount": 23,
+      "bip": true,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13472",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6419:9951",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 528
+        }
+      ]
+    },
+    {
+      "id": "6419:10028",
+      "name": "Création activité — Paramètres en modale — 11 À l’échec (mode activé)",
+      "width": 402,
+      "height": 874,
+      "textCount": 44,
+      "instanceCount": 22,
+      "bip": true,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13478",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6419:10132",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 486
+        }
+      ]
+    },
+    {
+      "id": "6423:9953",
+      "name": "Création activité — Paramètres en modale — 12 Modale complète — steppers (séries, pauses) avec message de durée totale ajustée",
+      "width": 402,
+      "height": 874,
+      "textCount": 46,
+      "instanceCount": 23,
+      "bip": true,
+      "total": [
+        {
+          "id": "6423:10068",
+          "text": "Durée totale"
+        }
+      ],
+      "media": [
+        {
+          "id": "7025:13484",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6423:10049",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 578
+        }
+      ]
+    },
+    {
+      "id": "6665:24616",
+      "name": "Séries variables — 2 Durée variable (scénario A)",
+      "width": 402,
+      "height": 874,
+      "textCount": 62,
+      "instanceCount": 34,
+      "bip": true,
+      "total": [
+        {
+          "id": "6665:24726",
+          "text": "Durée totale"
+        }
+      ],
+      "media": [
+        {
+          "id": "7025:13490",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6665:24700",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 590
+        }
+      ]
+    },
+    {
+      "id": "6665:24844",
+      "name": "Séries variables — 3 Répétitions variables (scénario E)",
+      "width": 402,
+      "height": 874,
+      "textCount": 60,
+      "instanceCount": 34,
+      "bip": true,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13496",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6665:24928",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 548
+        }
+      ]
+    },
+    {
+      "id": "6665:25072",
+      "name": "Séries variables — 4 À l’échec variable (scénario F)",
+      "width": 402,
+      "height": 874,
+      "textCount": 53,
+      "instanceCount": 31,
+      "bip": true,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13502",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6665:25152",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 548
+        }
+      ]
+    },
+    {
+      "id": "6665:25277",
+      "name": "Séries variables — 5 Douze séries (défilement — haut)",
+      "width": 402,
+      "height": 874,
+      "textCount": 125,
+      "instanceCount": 70,
+      "bip": true,
+      "total": [
+        {
+          "id": "6665:25405",
+          "text": "Durée totale"
+        }
+      ],
+      "media": [
+        {
+          "id": "7025:13508",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6665:25361",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 824
+        }
+      ]
+    },
+    {
+      "id": "6665:26185",
+      "name": "Ordre des côtés — 7 Sélection : Un côté après l’autre",
+      "width": 402,
+      "height": 874,
+      "textCount": 56,
+      "instanceCount": 26,
+      "bip": true,
+      "total": [
+        {
+          "id": "6665:26311",
+          "text": "Durée totale"
+        }
+      ],
+      "media": [
+        {
+          "id": "7025:13514",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6665:26282",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 686
+        }
+      ]
+    },
+    {
+      "id": "6665:26575",
+      "name": "Séries variables + Les deux côtés à chaque série — 9 (scénario D)",
+      "width": 402,
+      "height": 874,
+      "textCount": 68,
+      "instanceCount": 36,
+      "bip": true,
+      "total": [
+        {
+          "id": "6665:26697",
+          "text": "Durée totale"
+        }
+      ],
+      "media": [
+        {
+          "id": "7025:13520",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6665:26665",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 674
+        }
+      ]
+    },
+    {
+      "id": "6665:26822",
+      "name": "Une seule série — 10 Options sans effet",
+      "width": 402,
+      "height": 874,
+      "textCount": 51,
+      "instanceCount": 25,
+      "bip": true,
+      "total": [
+        {
+          "id": "6665:26944",
+          "text": "Durée totale"
+        }
+      ],
+      "media": [
+        {
+          "id": "7025:13526",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6665:26916",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 600
+        }
+      ]
+    },
+    {
+      "id": "6665:27008",
+      "name": "Changement de mode — 11 Cibles à renseigner",
+      "width": 402,
+      "height": 874,
+      "textCount": 60,
+      "instanceCount": 34,
+      "bip": true,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13532",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6665:27088",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 548
+        }
+      ]
+    },
+    {
+      "id": "6665:27232",
+      "name": "Validation impossible — 12 Série incomplète",
+      "width": 402,
+      "height": 874,
+      "textCount": 62,
+      "instanceCount": 34,
+      "bip": true,
+      "total": [
+        {
+          "id": "6665:27340",
+          "text": "Durée totale"
+        }
+      ],
+      "media": [
+        {
+          "id": "7025:13538",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6665:27312",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 589
+        }
+      ]
+    },
+    {
+      "id": "6665:27458",
+      "name": "Séries variables — 13 Tableau masqué",
+      "width": 402,
+      "height": 874,
+      "textCount": 39,
+      "instanceCount": 21,
+      "bip": true,
+      "total": [
+        {
+          "id": "6665:27559",
+          "text": "Durée totale"
+        }
+      ],
+      "media": [
+        {
+          "id": "7025:13544",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6665:27542",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 432
+        }
+      ]
+    },
+    {
+      "id": "6665:27608",
+      "name": "Séries variables — 14 Déplacement d’une série",
+      "width": 402,
+      "height": 874,
+      "textCount": 62,
+      "instanceCount": 34,
+      "bip": true,
+      "total": [
+        {
+          "id": "6665:27721",
+          "text": "Durée totale"
+        }
+      ],
+      "media": [
+        {
+          "id": "7025:13550",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "6665:27692",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 590
+        }
+      ]
+    },
+    {
+      "id": "6665:27862",
+      "name": "Résumé — 15 Durée variable bilatérale Par série",
+      "width": 402,
+      "height": 874,
+      "textCount": 15,
+      "instanceCount": 7,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13556",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    },
+    {
+      "id": "6665:28050",
+      "name": "Résumé — 17 À l’échec variable",
+      "width": 402,
+      "height": 874,
+      "textCount": 15,
+      "instanceCount": 7,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7025:13562",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    },
+    {
+      "id": "7059:13302",
+      "name": "Création activité — Paramètres en modale — 13 Répétitions avec cadence",
+      "width": 402,
+      "height": 874,
+      "textCount": 47,
+      "instanceCount": 22,
+      "bip": true,
+      "total": [
+        {
+          "id": "7059:13396",
+          "text": "Durée totale ≈"
+        }
+      ],
+      "media": [
+        {
+          "id": "7059:13369",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "7059:13376",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 516
+        }
+      ]
+    },
+    {
+      "id": "7069:13464",
+      "name": "Création activité — Paramètres en modale — 9b Avec changement de côté (copie)",
+      "width": 402,
+      "height": 874,
+      "textCount": 51,
+      "instanceCount": 25,
+      "bip": true,
+      "total": [
+        {
+          "id": "7069:13558",
+          "text": "Durée totale"
+        }
+      ],
+      "media": [
+        {
+          "id": "7069:13531",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "7069:13538",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 600
+        }
+      ]
+    },
+    {
+      "id": "7069:13573",
+      "name": "Création activité — Paramètres en modale — 10b Répétitions (copie)",
+      "width": 402,
+      "height": 874,
+      "textCount": 45,
+      "instanceCount": 22,
+      "bip": true,
+      "total": [],
+      "media": [
+        {
+          "id": "7069:13640",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": [
+        {
+          "id": "7069:13647",
+          "name": "Modale — Paramètres d’exécution",
+          "width": 402,
+          "height": 474
+        }
+      ]
+    },
+    {
+      "id": "7119:27855",
+      "name": "Création activité — Phrase longue (224 caractères)",
+      "width": 402,
+      "height": 874,
+      "textCount": 15,
+      "instanceCount": 7,
+      "bip": false,
+      "total": [],
+      "media": [
+        {
+          "id": "7119:27909",
+          "name": "Icône photo — ajouter"
+        }
+      ],
+      "modal": []
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "approved": {
+    "status": "VERIFIED",
+    "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+    "candidate_head": "8e6aafebd659dcbbf5a7890dad07bbf4def524dc",
+    "run_id": "37459797714",
+    "run_attempt": 1,
+    "jobs": [
+      {
+        "id": 112256226455,
+        "name": "qualification (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 112256226841,
+        "name": "qualification (ubuntu-latest)",
+        "conclusion": "success"
+      }
+    ],
+    "observed_at": "2026-10-06T12:05:23.402Z"
+  },
+  "controller": {
+    "status": "VERIFIED",
+    "qualification_scope": "AUTOMATIC_CONTROLS_ONLY",
+    "candidate_head": "8e6aafebd659dcbbf5a7890dad07bbf4def524dc",
+    "run_id": "37459797714",
+    "run_attempt": 1,
+    "jobs": [
+      {
+        "id": 112256226455,
+        "name": "qualification (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 112256226841,
+        "name": "qualification (ubuntu-latest)",
+        "conclusion": "success"
+      }
+    ],
+    "observed_at": "2026-10-06T12:05:23.402Z",
+    "controller_head": "8e6aafebd659dcbbf5a7890dad07bbf4def524dc",
+    "relation": "EXACT_SAME_PROTOCOL_CODE"
+  }
+}

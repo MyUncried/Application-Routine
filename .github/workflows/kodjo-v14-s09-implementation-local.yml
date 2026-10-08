@@ -15,7 +15,7 @@ env:
 
 jobs:
   implement:
-    if: github.event.issue.number == 17 && (contains(github.event.comment.body, '[KODJO_V14_S09] PLAN_APPROVED') || contains(github.event.comment.body, '[KODJO_V14_S09] IMPLEMENTATION_REVISION') || contains(github.event.comment.body, '[KODJO_V14_S09] VISUAL_CORRECTION') || contains(github.event.comment.body, '[KODJO_V14_S09] CORRECT'))
+    if: github.event_name == 'issue_comment' && github.event.comment.user.login == 'MyUncried' && github.event.issue.number == 17 && (contains(github.event.comment.body, '[KODJO_V14_S09] PLAN_APPROVED') || contains(github.event.comment.body, '[KODJO_V14_S09] IMPLEMENTATION_REVISION') || contains(github.event.comment.body, '[KODJO_V14_S09] VISUAL_CORRECTION') || contains(github.event.comment.body, '[KODJO_V14_S09] CORRECT'))
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     env:
       EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}

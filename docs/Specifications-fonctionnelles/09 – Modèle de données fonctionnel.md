@@ -1,5 +1,8 @@
 # 09.0 Vue d'ensemble
 
+> Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la spécification du 08/10 et son registre de points ouverts.
+
+
 **Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
 
 ## Objectif et périmètre
@@ -25,7 +28,7 @@ Dans le MVP, toutes les données sont stockées localement sur l'appareil.
 Le modèle de données fonctionnel est indépendant de la technologie de persistance. Les identifiants des entités sont stables et doivent rester compatibles avec l’ajout ultérieur d’une synchronisation cloud ou multi-appareils. Le choix du stockage local et des mécanismes de persistance relève du chapitre 12 – Architecture technique.
 
 - Une **Séance** décrit le contenu d'un entraînement.
-- Une **Routine** planifie l'exécution d'une séance.
+- Une **Routine** porte un créneau et une liste ordonnée de contenus SESSION/ACTIVITY.
 - Une même séance peut être associée à plusieurs routines.
 - Une séance contient un **cycle**.
 - Un cycle contient un **Tour**.
@@ -48,7 +51,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | Séance | Définition réutilisable d'un entraînement | Principale |
 | Cycle | Structure ordonnée de la séance portant son propre nombre de répétitions | Structure interne de séance |
 | Tour | Conteneur ordonné d'exercices portant son propre nombre de répétitions | Structure interne de séance |
-| Routine | Planification d’un contenu source `SESSION` ou `ACTIVITY` | Principale |
+| Routine | Créneau et liste ordonnée de références `SESSION`/`ACTIVITY` | Principale |
 | Occurrence planifiée | Trace historisée d'une planification arrivée à échéance | Principale |
 | Exercice | Action élémentaire d'une séance | Principale |
 | Média | Média associé à un Exercice ; affichable dans le Catalogue MVP | Métier |
@@ -67,7 +70,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-003 | Une séance contient un cycle unique.                                                                                                                                                                         | V1             |
 | DM-004 | Un cycle contient un Circuit unique.                                                                                                                                                                            | V1             |
 | DM-005 | Le cycle et le Tour sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
-| DM-006 | Une même Séance ou une même `ActivityDefinition` peut être planifiée par plusieurs Routines ; chaque Routine référence exactement une source `SESSION` ou `ACTIVITY`. | MVP — D-206 |
+| DM-006 | Une même Séance ou une même `ActivityDefinition` peut être planifiée par plusieurs Routines ; chaque Routine porte une liste ordonnée de références SESSION/ACTIVITY (D-328). | MVP — D-206 |
 | DM-007 | Une Exécution crée automatiquement un Instantané fonctionnel immuable et allégé de sa source (`SESSION` ou `ACTIVITY`).                                                                                                                                       | V1             |
 | DM-008 | Les occurrences futures sont calculées dynamiquement à partir des Routines et ne sont pas stockées. À leur échéance, elles sont historisées afin de conserver leur résultat.                                 | V1             |
 | DM-009 | Les exceptions de planification sont prévues pour une version ultérieure.                                                                                                                                    | V2             |
@@ -103,7 +106,7 @@ UTILISATEUR
 │       └── contient 0..n EXERCICES APRÈS LE CYCLE ET AVANT LA FIN DE SÉANCE
 │
 ├── possède 0..n ROUTINES
-│       └── planifie 1 SÉANCE
+│       └── porte 1..n ENTRÉES ordonnées → SÉANCE ou EXERCICE PERSISTANT
 │
 ├── possède 0..n EXÉCUTIONS
 │       ├── possède 1 ORIGINE `SESSION` ou `ACTIVITY`
@@ -191,7 +194,7 @@ Elle ne contient pas directement :
 - l’historique ;
 - les préférences globales ;
 - les résultats ou états d’exécution ;
-- les médias physiques, hors périmètre du MVP.
+- les fichiers médias physiques, stockés séparément des entités et non dupliqués dans les instantanés (D-333).
 
 ## Attributs fonctionnels
 
@@ -313,157 +316,37 @@ Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieu
 
 # 09.3 Entité Routine
 
-## Définition
+La Routine porte le créneau et une liste ordonnée de références, non les contenus d’entraînement eux-mêmes. Chaque entrée référence une Séance active ou un Exercice persistant actif du même utilisateur. Le type et l’identifiant de source appartiennent désormais à **chaque entrée**, pas à un unique couple sur la Routine.
 
-Une **Routine** est une entité métier qui planifie l'exécution d’un contenu planifiable.
+| Donnée fonctionnelle | Porteur | Règle |
+|---|---|---|
+| Identité, propriétaire, dates de création/modification | Routine | Identité stable ; aucun objet Parcours ajouté |
+| Liste de contenus | Routine | Ordonnée, mixte SESSION/ACTIVITY ; une ou plusieurs entrées à la validation |
+| Type et référence de contenu, rang | Entrée de la liste | Référence source ; pas de copie SessionActivity lors du choix |
+| x, n, positions retenues | Entrée de la liste | Filtre sans unité ; n positions affichées ; valeur initiale à chaque fois |
+| Programme | Routine | Facultatif ; fenêtre borne les dates ; source Programme V1.2 à retrouver |
+| Début, heure | Routine | Une seule heure par créneau |
+| Répétition activée | Routine | Non : unique ; Oui : paramètres de récurrence |
+| Unité, multiplicateur | Routine | Jour/Semaine/Mois ; bornes Jour/Mois à préciser |
+| Jours sélectionnés | Récurrence hebdomadaire | Au moins un jour pour Semaine ; usage sous Jour/Mois ouvert |
+| Type de borne | Routine | jusqu’au/date ou pendant/nombre d’unités ; conversion ouverte |
+| Rappel activé, délai | Routine |0..1 ; permission système requise pour activation |
 
-Elle ne décrit jamais le contenu d'un entraînement. Elle référence exactement une source existante de type `SESSION` ou `ACTIVITY` et définit les règles selon lesquelles celle-ci doit être proposée ou exécutée.
-## Périmètre
+Le schéma physique, les identifiants d’entrée et les liens aux exécutions devront être spécifiés avant développement. Ces noms fonctionnels ne sont pas un schéma SQL livré. Les occurrences futures restent dérivées ; aucun stockage de phrase récapitulative comme vérité métier. Une mise à jour ne réécrit pas les exécutions/instantanés passés. Les règles mono-source d’archivage ou suppression ne sont pas généralisées à une liste sans préciser l’effet sur les autres entrées.
 
-Une routine possède directement :
-
-- le type de source (`SESSION` ou `ACTIVITY`) ;
-- l’identifiant de la source référencée ;
-- le repère visuel hérité de la source (non stocké) ;
-- sa date de début ;
-- sa date de fin éventuelle ;
-- son heure d'exécution ;
-- son mode de planification ;
-- pour une planification périodique, sa fréquence hebdomadaire, ses jours de la semaine et sa date de fin ;
-- un rappel éventuel.
-
-Elle ne contient pas directement :
-
-- le contenu de la source ;
-- les copies de Séance éventuelles ;
-- les Exécutions ;
-- les occurrences futures du calendrier, calculées à la demande ;
-## Attributs fonctionnels
-
-| Attribut               | Description                                        |  Caractère   | Règle principale                                                                                  |
-| ---------------------- | -------------------------------------------------- | :----------: | ------------------------------------------------------------------------------------------------- |
-| Identifiant            | Identifiant unique de la routine                   | Obligatoire  | Stable pendant toute la durée de vie de la routine                                                |
-| Type de source         | Type du contenu planifié                            | Obligatoire  | `SESSION` ou `ACTIVITY` |
-| Source                  | Contenu planifié par la Routine                     | Obligatoire  | Référence une seule Séance active ou une seule `ActivityDefinition` active appartenant au même Utilisateur |
-| Date de début          | Première date à laquelle la routine s’applique     | Obligatoire  | Ne peut pas être postérieure à la date de fin                                                     |
-| Heure d’exécution      | Heure prévue pour l’occurrence                     | Obligatoire  | Identique pour toutes les occurrences de la routine dans le MVP                                   |
-| Rappel                 | Rappel associé à la Routine                        |  Facultatif  | Zéro ou un rappel maximum ; délai appliqué à chaque occurrence                                    |
-| Date de création       | Date de création de la routine                     | Obligatoire  | Générée automatiquement                                                                           |
-| Mode de planification  | Définit si la Routine est répétée                  | Obligatoire  | Libellés UI : `Aucune` ou `Périodique`                                                            |
-| Date de fin            | Dernière date d'application de la Routine          | Conditionnel | Obligatoire pour une planification périodique ; doit être postérieure ou égale à la date de début |
-| Fréquence hebdomadaire | Nombre de semaines entre deux périodes d’exécution | Conditionnel | Entier de 1 à 12 ; obligatoire pour une planification périodique                                        |
-| Jours de la semaine    | Jours d'exécution de la Routine                    | Conditionnel | Au moins un jour obligatoire pour une planification périodique                                    |
-## Règles métier
-
-- Une routine appartient à un seul utilisateur.
-- Une Routine référence toujours une seule source, de type `SESSION` ou `ACTIVITY`.
-- Une Routine reprend le repère visuel de sa source : couleur d’Étiquette pour une Séance, couleur de Catégorie pour un Exercice lorsqu’elle existe.
-- Une Routine peut être créée uniquement à partir d’une source active appartenant au même Utilisateur.
-- Une Séance ou une `ActivityDefinition` peut être planifiée par zéro, une ou plusieurs Routines.
-- Une Séance ou une `ActivityDefinition` peut être exécutée directement sans être associée à une Routine.
-- Une routine définit une seule règle de planification.
-- Une Routine utilise le mode affiché `Aucune` ou `Périodique`. Dans le MVP, le mode `Périodique` utilise uniquement une périodicité hebdomadaire.
-- Une Routine périodique possède une date de fin obligatoire.  
-- Une Routine périodique possède une fréquence hebdomadaire supérieure ou égale à 1 et au moins un jour de la semaine sélectionné.  
-- Plusieurs exécutions d'une même source à des horaires différents, y compris le même jour, sont représentées par plusieurs Routines distinctes.
-- Une Routine génère des occurrences pendant sa période de validité tant qu'elle existe.
-- Les occurrences futures du calendrier sont calculées à la demande à partir des attributs de la Routine et ne sont pas stockées. Une occurrence est historisée lorsqu'elle arrive à échéance afin de conserver son résultat.
-- Plusieurs Routines peuvent générer des occurrences pour une même source.
-- Plusieurs routines peuvent générer une occurrence le même jour ou à la même heure.
-- Les conflits entre routines ne sont pas bloquants dans le MVP.
-- Une modification de la Routine s'applique uniquement au calcul des occurrences futures. Elle ne modifie pas les occurrences déjà historisées.
-- Une modification de la Routine n’a aucun effet sur les Exécutions déjà créées.
-- La suppression d'une Routine met fin au calcul de ses occurrences futures. Les occurrences déjà historisées et les Exécutions déjà enregistrées sont conservées.
-- La suppression d’une Routine ne supprime jamais la source référencée.
-- La suppression d’une Routine ne supprime jamais les Exécutions déjà enregistrées.
+Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 # 09.3.1 Règles de planification
 
-## Objectif
+Le créneau produit d’abord sa suite d’occurrences. Chaque contenu retient ensuite les positions définies par son motif x/n ; changer Jour en Semaine ne change pas le motif. L’origine de l’index et son évolution après modification restent à préciser, pas à inférer du calendrier dessiné.
 
-Ce chapitre définit les règles de fonctionnement des routines de planification.
+Sans répétition : une date/heure. Avec répétition : Jour/Semaine/Mois. Pour Semaine, conserver l’ancrage sur la semaine contenant le début, le multiplicateur 1..12 et les dates inclusives du calcul existant. Ne pas utiliser ce calcul comme définition du mode Mois ou de la conversion pendant/jusqu’au.
 
-Il précise la génération des occurrences, les règles de récurrence, les rappels ainsi que le comportement de la planification dans les principales situations fonctionnelles.
+Rappel : interrupteur puis 5 min/15 min/30 min/1 h/Autre, choix égaux sur la largeur. Aucun n’est plus une option ; Autre ouvre le réglage personnalisé. Les règles de permission et le plafond personnalisé 24 h existants restent conservés.
 
-## Types de planification
+La modification agit sur le futur ; suppression de Routine conserve sources et histoire. L’agrégation des états de plusieurs contenus, les exclusions d’occurrence et l’archivage d’un contenu de liste nécessitent les compléments explicitement ouverts dans la spécification. Ne pas créer d’Exécution fictive pour un contenu non réalisé.
 
-Le MVP prend en charge deux modes de planification :
-
-- **Aucune** : une seule occurrence est créée à la date et à l'heure définies.
-- **Périodique** : les occurrences sont générées selon une périodicité hebdomadaire définie par :
-    - une fréquence en semaines entière de 1 à 12 ;
-    - un ou plusieurs jours de la semaine ;
-    - une date de fin obligatoire.
-
-Sélectionner les sept jours de la semaine permet d'obtenir une exécution quotidienne. Il n'existe donc pas de type de récurrence `Quotidienne` distinct.
-
-Une Routine ne définit qu'une seule heure d'exécution. Pour planifier plusieurs exécutions d'une même source à des horaires différents, l'utilisateur crée plusieurs Routines.
-
-Les autres formes de récurrence, notamment mensuelles, annuelles ou personnalisées, ne sont pas prises en charge dans le MVP.
-
-## Génération des occurrences
-
-Les occurrences futures d'une Routine ne sont pas stockées. Elles sont calculées dynamiquement à partir des paramètres de la Routine.
-
-Lorsqu'une occurrence arrive à échéance, elle est historisée afin de conserver son résultat.
-
-Le calcul dynamique est effectué chaque fois que l'application doit afficher les occurrences futures ou déterminer les prochaines planifications de Séances ou d’Exercices.
-
-Elles sont calculées dynamiquement à partir :
-
-- de la date de début ;
-- du type de planification ;
-- des paramètres de récurrence ;
-- de la date de fin éventuelle.
-
-Le calcul est effectué chaque fois que l'application doit afficher les occurrences ou déterminer les prochaines planifications.
-
-## Rappels
-
-Chaque routine peut définir un rappel facultatif.
-
-Le MVP propose les valeurs suivantes :
-
-- Aucun ;
-- 5 minutes avant ;
-- 10 minutes avant ;
-- 30 minutes avant ;
-- 1 heure avant ;
-- Personnalisé.
-
-Le mode **Personnalisé** permet de choisir librement le délai précédant chaque occurrence.
-
-## Occurrence non exécutée
-
-Lorsqu'une occurrence planifiée arrive à échéance sans que la Séance ait été démarrée, aucune Exécution n'est créée.
-
-L'occurrence est alors historisée avec le statut **Non exécutée**.
-
-Dans le MVP, cette occurrence n'est toutefois pas exposée dans l'interface : elle disparaît du Calendrier une fois passée et n'apparaît pas dans le Suivi.
-
-Cette occurrence historisée permet de conserver la trace d'une séance planifiée mais non réalisée.
-
-## Modification d'une routine
-
-Toute modification d'une Routine s'applique uniquement au calcul des occurrences futures.
-Les occurrences déjà historisées ne sont jamais modifiées.
-Les exécutions de séance déjà réalisées restent inchangées.
-
-## Suppression d'une routine
-
-La suppression d'une routine :
-
-- met fin au calcul de ses occurrences futures ;
-- conserve toutes les occurrences déjà historisées, qu'elles soient `Exécutées` ou `Non exécutées` ;
-- ne supprime jamais la source associée ;
-- ne supprime jamais les Exécutions déjà enregistrées.
-
-## Affichage dans l'agenda
-
-Les occurrences sont affichées dans l'agenda.
-Les jours comportant au moins une occurrence sont identifiés par un indicateur visuel.
-Le repère visuel de cet indicateur correspond à la source planifiée : couleur d’Étiquette pour une Séance, couleur de Catégorie pour un Exercice lorsqu’elle existe.
-Lorsque plusieurs occurrences sont prévues le même jour, plusieurs indicateurs sont affichés, dans la limite de l'espace disponible.
+Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 # 09.4 Entité Occurrence planifiée
 ### Définition
@@ -473,7 +356,9 @@ Les occurrences futures calculées dynamiquement ne constituent pas des objets p
  
 ### Périmètre
 
-Une Occurrence planifiée possède directement :
+**Cas à contenu unique :** le modèle historique ci-dessous reste la référence de ce cas. Pour plusieurs contenus, la date/heure reste produite par le créneau ; l’identité des réalisations par entrée et l’agrégation des statuts doivent être complétées avant implémentation. Ne pas appliquer le statut d’une seule Exécution à toute la liste.
+
+Une Occurrence planifiée à contenu unique possède directement :
 
 - la Routine qui l'a générée ;
 - le type de source et la source concernée ;
@@ -581,11 +466,11 @@ Elle ne contient pas directement :
 
 # 09.6 Entité Média
 
-> **Périmètre :** consultation des médias pendant l’Exécution incluse au MVP (D-203). L’ajout/import et le stockage local sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-327). Les règles de partage des fichiers et de conservation de D-066/D-068 sont conservées ; seul leur report post-MVP est remplacé.
+> **Périmètre :** consultation des médias pendant l’Exécution incluse au MVP (D-203). L’ajout/import et le stockage local sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333). Les règles de partage des fichiers et de conservation de D-066/D-068 sont conservées ; seul leur report post-MVP est remplacé.
 
 ## Définition
 
-Un **Média** est une ressource visuelle locale associée à un Exercice. L’import/ajout et la persistance de ces associations sont livrés dans PRE-3 au MVP (D-327), avant leur consultation pendant l’Exécution.
+Un **Média** est une ressource visuelle locale associée à un Exercice. L’import/ajout et la persistance de ces associations sont livrés dans PRE-3 au MVP (D-333), avant leur consultation pendant l’Exécution.
 
 ## Périmètre
 
@@ -627,7 +512,7 @@ Une Exécution possède directement :
 
 - une origine immuable `SESSION` ou `ACTIVITY` ;
 - la référence facultative à la source persistante ;
-- la Routine éventuelle, uniquement pour une origine `SESSION` ;
+- la Routine éventuelle pour une origine `SESSION` ou `ACTIVITY` ;
 - un instantané immuable de la source ;
 - un état d’Exécution ;
 - ses informations de début et de fin.
@@ -699,7 +584,7 @@ Contient notamment :
 - L’Instantané est immuable après sa création.
 - Toute modification, archivage ou suppression ultérieure de la source est sans effet sur l’Instantané.
 - L’Exécution conserve la référence à sa source lorsqu’elle existe, mais son historique est reconstruit exclusivement à partir de l’Instantané.
-- Les fichiers médias ne sont pas dupliqués dans l’Instantané ; leurs associations ordonnées et références stables y sont conservées en V2.
+- Les fichiers médias ne sont pas dupliqués dans l’Instantané ; leurs associations ordonnées et références stables y sont conservées dès l’introduction des médias au MVP (D-333).
 - Toute modification ultérieure de la routine est sans effet.
 - Une seule exécution peut être en cours simultanément.
 - Après une interruption technique alors que l’Exécution était `En cours`, elle n’est pas clôturée automatiquement. Au retour dans l’application, l’utilisateur doit choisir l’action de reprise ou l’action d’arrêt adaptée à son origine. Tant que ce choix n’est pas effectué, aucune nouvelle Exécution ne peut démarrer. L’arrêt clôt l’Exécution avec le statut `Interrompue` puis ouvre la fin minimale dans T04, ou la Synthèse lorsqu’elle est livrée.
@@ -715,14 +600,10 @@ Contient notamment :
 | `SessionActivity` | MVP | Copie complète appartenant à une seule Séance ; contient sa position et son ordre. |
 | `MediaAsset` | MVP PRE-3 | Fichier local immuable et métadonnées techniques ; peut être partagé. |
 | `ActivityMedia` | MVP PRE-3 | Association ordonnée entre un exercice et un `MediaAsset`. |
-| `Parcours` | V2 | Racine persistante avec nom, couleur et configuration de transition. |
-| `CircuitSession` | V2 | Étape ordonnée référençant une Séance ; plusieurs lignes peuvent viser la même Séance. |
-| `CircuitExecution` | V2 | Exécution globale et instantané immuable du Parcours. |
-| `CircuitSessionExecution` | V2 | Lien ordonné entre l’Exécution de Parcours et chaque Exécution de Séance commencée. |
 
 ## Contraintes d’Exercice
 
-`executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}`. `DURATION` exige une durée cible et interdit les répétitions cibles ; `REPETITIONS` exige des répétitions cibles et interdit la durée cible ; `TO_FAILURE` interdit les deux. Pause, nombre de Séries et Récupération restent disponibles dans les trois modes. La Durée totale est dérivée : DURATION sans symbole, omise seulement si redondante (N1 unilatéral) ; REPETITIONS avec cadence Ri×Ci et ≈, sans bip omitted ; TO_FAILURE sans total d’Exercice. Bip entier0..10 par Série, réglage commun valide dans les trois modes. La phrase elle-même n’est pas persistée comme source de vérité (D-232).
+`executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}`. `DURATION` exige une durée cible et interdit les répétitions cibles ; `REPETITIONS` exige des répétitions cibles et interdit la durée cible ; `TO_FAILURE` interdit les deux. Pause, nombre de Séries et Récupération restent disponibles dans les trois modes. La Durée totale est dérivée : DURATION sans symbole, omise seulement si redondante (N1 unilatéral sans pause) ; REPETITIONS avec cadence Ri×Ci et ≈, sans bip omitted ; TO_FAILURE sans total d’Exercice. Bip entier0..10 par Série, réglage commun valide dans les trois modes. La phrase elle-même n’est pas persistée comme source de vérité (D-232).
 
 L’ajout d’une définition copie nom, description, zones corporelles, mode, durée ou répétitions, Séries, Pause, Récupération et associations média. La copie n’a plus de lien fonctionnel avec la définition. La position `BEFORE_TOUR`, `IN_TOUR` ou `AFTER_TOUR` n’existe que sur `SessionActivity`.
 
@@ -732,10 +613,7 @@ Un Exercice possède `0..n` lignes `ActivityMedia`, chacune avec une position un
 
 ## Contraintes Parcours
 
-Un Parcours validé possède au moins deux `CircuitSession`. Il n’existe aucun compteur de répétition d’étape. `transitionMode ∈ {MANUAL, AUTOMATIC}` ; `transitionDurationSeconds` est absent en manuel, obligatoire en automatique et vaut `30` par défaut. Une Séance archivée demeure valable dans un Parcours existant mais n’est plus proposée ; sa suppression définitive est bloquée tant qu’un Parcours la référence.
-
-Au lancement, l’instantané contient le Parcours ordonné et l’instantané de chaque Séance. Une Exécution interrompue conserve les étapes terminées, l’étape courante interrompue et aucune ligne d’Exécution de Séance pour les étapes non commencées.
-
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 # 09.7.1 Résultat d’Exercice exécuté
 
@@ -804,7 +682,7 @@ Le Compte à rebours initial structurellement présent, éventuellement instanta
 - Toute modification ultérieure de la séance ou de la routine est sans effet.
 - La fin de le dernier Exercice active `SESSION_END`. L’Exécution n’est terminée qu’après l’achèvement de cette dernière étape ; une durée de `0 s` l’achève immédiatement.
 - Les Tours du Circuit et du cycle sont résolues lors de la génération.
-- Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` n’existe qu’entre Séries successives. `SIDE_RECOVERY` est insérée entre les côtés si nécessaire ; `POST_ACTIVITY_RECOVERY` est insérée après chaque occurrence de Séance/Parcours si sa durée contextuelle est positive.
+- Chaque Série produit une phase `ACTIVITY`. Une phase `SERIES_PAUSE` n’existe qu’entre Séries successives. `SIDE_RECOVERY` est insérée entre les côtés si nécessaire ; `POST_ACTIVITY_RECOVERY` est insérée après chaque occurrence de Séance si sa durée contextuelle est positive.
 - T04 développe les Séries multiples, les répétitions de Tour et les passages de côté avant démarrage. Le Plan obtenu est figé dans l’instantané.
 - Les préférences globales sont appliquées pendant l'exécution sans modifier le plan.
 
@@ -1000,7 +878,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 - Toute `SessionActivity` appartient à une seule Séance et occupe une seule position structurelle ; seules les copies techniquement `Dans Tour` appartiennent au conteneur `Tour` représentant le Circuit pour l’exécution structurelle. Une `ActivityDefinition` du MVP T03 reste autonome.
 - Tout Tour appartient à un seul cycle.
 - Tout cycle appartient à une seule séance.
-- Toute Routine référence exactement une source `SESSION` ou `ACTIVITY`.
+- Toute Routine porte une liste ordonnée de références SESSION/ACTIVITY (D-328).
 - Toute Exécution référence exactement une source selon son origine.
 - Toute Étiquette et toute Catégorie appartient au référentiel de l’Utilisateur local ; l’origine initiale ou personnalisée n’affecte pas les droits de suppression.
 - Une Séance référence au plus une Étiquette ; un nouvel Exercice valide référence exactement une Catégorie.
@@ -1110,7 +988,7 @@ Création → Modification → Suppression
 
 ### Règles métier
 
-- Une Routine est créée à partir d’une source active existante, de type `SESSION` ou `ACTIVITY`.
+- Une Routine est créée avec une ou plusieurs références actives SESSION/ACTIVITY, ordonnées et munies de leur motif.
 - La suppression d’une Routine ne supprime jamais sa source ni les Exécutions.
 
 ## Cycle de vie d’une Exécution
@@ -1193,7 +1071,7 @@ Une validation sans sélection ne crée aucune donnée.
 
 ## Frontière d’évolution
 
-La gestion multiple ordonnée des médias et les mécanismes d’acquisition média suivent leur périmètre propre. Les Parcours fonctionnels restent hors du périmètre T03. Les structures T03 ne doivent pas empêcher ces évolutions ultérieures.
+La gestion multiple ordonnée des médias et les mécanismes d’acquisition média suivent leur périmètre propre. L’ancien objet autonome Parcours est retiré par D-328 ; le libellé de planification ne le réintroduit pas.
 
 ## Données cibles — état média de l’Exécution
 
@@ -1206,7 +1084,7 @@ La face et l’index ne sont pas persistés entre séances, ne sont pas copiés 
 
 ## Extension future de Routine — source Parcours
 
-D-207 étend le modèle cible sans modifier le périmètre MVP : le discriminateur de source de Routine accepte aujourd’hui `SESSION` et `ACTIVITY`; il devra accepter la source Parcours lorsque cette capacité est livrée. Tant que le nommage technique historique est conservé, cette valeur est `CIRCUIT`. La cardinalité reste exactement une source par Routine. Les occurrences et l’Exécution issue de l’occurrence conservent le type de source et son identifiant.
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 ## Données D-208 — récupérations
 
@@ -1301,3 +1179,4 @@ Français uniquement au MVP. Internationalisation ultérieure : gabarits et règ
 ## Précision de modèle — source du07/10, v15
 
 Une récupération explicite de0s est un objet conservé, distinct de l’absence ; seul Retirer la supprime. Elle ne crée aucune phase positive ni suppression dePN. Le scalaire historique ActivityDefinition.pauseSeconds ne devient pas une récupération : sa valeur est portée dans SeriesParameters.pauseSeconds lors de la refonte. Les pauses recovery/breakpoint de Composition restent une collection distincte. Aucun schéma physique ou migration exécutée dans ce lot.
+

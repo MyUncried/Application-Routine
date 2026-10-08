@@ -253,7 +253,7 @@ test('rapport sans modification et checks non exécutés reste structuré sans f
 test('implementation contract: aucun nouveau canal Lean Queue n est ajouté', () => {
   const materializer = fs.readFileSync(path.join(root,'scripts','kodjo','materialize-approved-plan-handoff.js'),'utf8');
   const generator = fs.readFileSync(path.join(root,'scripts','kodjo','generate-approved-plan-lean-request.js'),'utf8');
-  const runner = fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8');
+  const runner = require('./helpers/normalized-git-source')(fs.readFileSync(path.join(root,'scripts','kodjo','run-queued-request.ps1'),'utf8'));
   assert.match(materializer,/renderImplementationMission/);
   assert.match(generator,/verifyImplementationMission/);
   assert.match(runner,/verify-implementation-mission\.js/);

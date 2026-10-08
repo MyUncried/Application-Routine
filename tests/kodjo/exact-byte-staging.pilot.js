@@ -61,10 +61,10 @@ test('capture et publication conservent exactement CRLF sous core.autocrlf=true'
 });
 
 test('le chemin PowerShell de publication neutralise aussi autocrlf', () => {
-  const source = fs.readFileSync(
+  const source = require('./helpers/normalized-git-source')(fs.readFileSync(
     path.resolve(__dirname, '..', '..', 'scripts', 'kodjo', 'run-queued-request.ps1'),
     'utf8'
-  );
+  ));
   assert.match(source,
     /git -c core\.autocrlf=false add --all --pathspec-from-file=\$publishPathspec --pathspec-file-nul/);
   assert.match(source,

@@ -1,0 +1,24 @@
+✖ VNext entry reads the approved Git plan and actual comment bindings instead of trusting a supplied review object (95.402812ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 176.832121
+
+✖ failing tests:
+
+test at tests/kodjo/vnext-finalization-incidents.pilot.js:152:1
+✖ VNext entry reads the approved Git plan and actual comment bindings instead of trusting a supplied review object (95.402812ms)
+  Error: VNEXT_DELIVERY_BASELINE_NOT_APPROVED
+      at Object.fail (/workspace/scratch/2190f7a471f1/vnext/scripts/kodjo/lib/vnext-contract.js:11:17)
+      at Object.validateBaseline (/workspace/scratch/2190f7a471f1/vnext/scripts/kodjo/lib/vnext-delivery-preservation.js:13:109)
+      at TestContext.<anonymous> (/workspace/scratch/2190f7a471f1/vnext/tests/kodjo/vnext-finalization-incidents.pilot.js:169:68)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1382:25)
+      at Test.start (node:internal/test_runner/test:1242:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    code: 'VNEXT_DELIVERY_BASELINE_NOT_APPROVED'
+  }

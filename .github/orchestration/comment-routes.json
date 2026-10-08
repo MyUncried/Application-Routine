@@ -2,7 +2,7 @@
   {
     "id": "e2e-orchestration-test-v1-3",
     "path": ".github/workflows/kodjo-e2e-orchestration-test-v1-3.yml",
-    "gate": "(github.event.issue.number == 17 && contains(github.event.comment.body, '[KODJO_E2E_AUTOMATION_TEST]'))",
+    "gate": "(github.event_name == 'issue_comment' && github.event.comment.user.login == 'MyUncried' && github.event.issue.number == 17 && contains(github.event.comment.body, '[KODJO_E2E_AUTOMATION_TEST]'))",
     "permissions": {
       "contents": "write",
       "issues": "write"
@@ -11,7 +11,7 @@
   {
     "id": "e2e-t1-t6-v1-3",
     "path": ".github/workflows/kodjo-e2e-t1-t6-v1-3.yml",
-    "gate": "(github.event_name == 'issue_comment' && github.event.issue.number == 17 && contains(github.event.comment.body, '[KODJO_E2E_T1_T6_REAL_CLAUDE_TEST]')) || (github.event_name == 'repository_dispatch' && github.event.action == 'kodjo-e2e-t2-claude-real')",
+    "gate": "(github.event_name == 'issue_comment' && github.event.comment.user.login == 'MyUncried' && github.event.issue.number == 17 && contains(github.event.comment.body, '[KODJO_E2E_T1_T6_REAL_CLAUDE_TEST]')) || (github.event_name == 'repository_dispatch' && (github.actor == 'MyUncried' || github.actor == 'github-actions[bot]') && github.event.action == 'kodjo-e2e-t2-claude-real')",
     "permissions": {
       "contents": "write",
       "issues": "write",
@@ -137,7 +137,7 @@
   {
     "id": "v14-s09-implementation-local",
     "path": ".github/workflows/kodjo-v14-s09-implementation-local.yml",
-    "gate": "(github.event.issue.number == 17 && (contains(github.event.comment.body, '[KODJO_V14_S09] PLAN_APPROVED') || contains(github.event.comment.body, '[KODJO_V14_S09] IMPLEMENTATION_REVISION') || contains(github.event.comment.body, '[KODJO_V14_S09] VISUAL_CORRECTION') || contains(github.event.comment.body, '[KODJO_V14_S09] CORRECT')))",
+    "gate": "(github.event_name == 'issue_comment' && github.event.comment.user.login == 'MyUncried' && github.event.issue.number == 17 && (contains(github.event.comment.body, '[KODJO_V14_S09] PLAN_APPROVED') || contains(github.event.comment.body, '[KODJO_V14_S09] IMPLEMENTATION_REVISION') || contains(github.event.comment.body, '[KODJO_V14_S09] VISUAL_CORRECTION') || contains(github.event.comment.body, '[KODJO_V14_S09] CORRECT')))",
     "permissions": {
       "contents": "write",
       "issues": "write"
@@ -293,7 +293,7 @@
   {
     "id": "t01-s09-implementation-v1-3-temporary",
     "path": ".github/workflows/t01-s09-implementation-v1-3-temporary.yml",
-    "gate": "(github.event.issue.number == 17 && contains(github.event.comment.body, '@claude-t01-s09-implement-v1-3-phase-a'))",
+    "gate": "(github.event_name == 'issue_comment' && github.event.comment.user.login == 'MyUncried' && github.event.issue.number == 17 && contains(github.event.comment.body, '@claude-t01-s09-implement-v1-3-phase-a'))",
     "permissions": {
       "contents": "write",
       "issues": "write",
@@ -303,7 +303,7 @@
   {
     "id": "t01-s09-plan-revision-v1-3-temporary",
     "path": ".github/workflows/t01-s09-plan-revision-v1-3-temporary.yml",
-    "gate": "(github.event.issue.number == 17 && contains(github.event.comment.body, '@claude-t01-s09-plan-revision-v1-3'))",
+    "gate": "(github.event_name == 'issue_comment' && github.event.comment.user.login == 'MyUncried' && github.event.issue.number == 17 && contains(github.event.comment.body, '@claude-t01-s09-plan-revision-v1-3'))",
     "permissions": {
       "contents": "read",
       "issues": "write",

@@ -1,5 +1,8 @@
 ## 11.0 Objet et périmètre
 
+> Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la spécification du 08/10 et son registre de points ouverts.
+
+
 **Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
 
 Ce chapitre définit les API fonctionnelles internes nécessaires au fonctionnement du MVP.
@@ -30,7 +33,7 @@ Les intégrations avec des services externes, notamment les calendriers Apple, G
 
 Les API fonctionnelles respectent les principes suivants :
 - une Séance représente un contenu exécutable ; dans le MVP T03, un Exercice persistant valide peut aussi constituer directement une source d’Exécution ;
-- dans le MVP, une Routine représente la planification d’une source `SESSION` ou `ACTIVITY` ; la même famille `API-ROU-*` s’étend au Parcours lors de sa version planifiable ;
+- Une Routine porte une liste ordonnée de références SESSION/ACTIVITY ; API-ROU définit le contrat cible multi-contenus (D-328).
 - une Exécution représente la réalisation effective d’une source `SESSION` ou `ACTIVITY` ;
 - les occurrences futures d’une Routine sont calculées dynamiquement et ne sont pas persistées ;
 - une occurrence arrivée à échéance est historisée avec le statut `Exécutée` ou `Non exécutée` ;
@@ -78,31 +81,23 @@ Les API fonctionnelles respectent les principes suivants :
 |API-ACT-07|Dupliquer un Exercice de Séance|ID Exercice source|Nouvelle Exercice de Séance indépendante|Nouvel identifiant ; copie des propriétés intrinsèques dont Pause et `sideRecoverySeconds`, ainsi que du `postActivityRecoverySeconds` contextuel de l’occurrence ; insertion immédiatement après la source dans la même zone ; aucune création dans le catalogue|Exercice, Composition, associations Média|
 ## 11.5 API Routines et Planification
 
-| ID         | Opération                                    | Entrées principales                                                                             | Résultat                                   | Règles / validations                                                                                                                                                    | Objets impactés                            |
-| ---------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| API-ROU-01 | Créer une routine                            | Type de source (`SESSION` ou `ACTIVITY`), ID source, date de début, heure, mode de planification, paramètres hebdomadaires éventuels, rappel | Nouvelle Routine avec identifiant          | Libellé UI `Aucune` ou `Périodique` ; dans le MVP, si `Périodique` : périodicité hebdomadaire, fréquence ≥ 1, au moins un jour sélectionné, date de fin obligatoire ; une Routine définit une seule heure | Routine                                    |
-| API-ROU-02 | Lire une routine                             | ID Routine                                                                                      | Routine et paramètres de planification     | La Routine doit exister                                                                                                                                                 | Routine                                    |
-| API-ROU-03 | Modifier une routine                         | ID Routine, paramètres à modifier                                                               | Routine mise à jour                        | Les modifications ne concernent que le calcul des occurrences futures ; les occurrences historisées restent inchangées                                                  | Routine                                    |
-| API-ROU-04 | Supprimer une routine                        | ID Routine                                                                                      | Routine supprimée et arrêt du calcul futur | Les occurrences déjà historisées sont conservées ; les Exécutions sont conservées ; la source planifiée n’est pas supprimée                                             | Routine                                    |
-| API-ROU-05 | Calculer les occurrences futures             | Routine, début de période, fin de période                                                       | Occurrences futures calculées              | Les occurrences futures ne sont pas persistées ; le calcul respecte fréquence, jours, date de début et date de fin                                                      | Aucun objet persistant                     |
-| API-ROU-06 | Récupérer la prochaine occurrence            | Type + ID source, ou ID Routine                                                                 | Prochaine date et heure planifiées         | Calcul dynamique ; aucune occurrence future persistée                                                                                                                   | Aucun objet persistant                     |
-| API-ROU-07 | Historiser une occurrence arrivée à échéance | Routine, type + ID source, date/heure prévues, Exécution éventuelle                                       | Occurrence historisée                      | Si une Exécution existe : statut `Exécutée` ; sinon : `Non exécutée`                                                                                                    | Occurrence planifiée, Exécution éventuelle |
-| API-ROU-08 | Définir ou supprimer le rappel local          | ID Routine, délai de rappel ou absence de rappel                                                 | Rappel local planifié, modifié ou supprimé | Lors de la première activation d’un rappel, demander l’autorisation système ; en cas de refus, ne pas activer le rappel ; aucune notification distante dans le MVP | Routine, Préférences globales |
-| API-ROU-09 | Préparer la duplication d’une Routine         | ID Routine source                                                                                | Brouillon de Routine prérempli ouvert en modification | Reprend la même source (`SESSION` ou `ACTIVITY`) et tous les paramètres de planification ; ne persiste aucune Routine avant validation explicite par API-ROU-01 | Brouillon de Routine |
-### Règles de gestion des occurrences
+Ces opérations conservent leurs identifiants, avec une entrée étendue à la liste ordonnée de contenus. Contrat fonctionnel cible, pas signature d’API implémentée.
 
-Les occurrences futures sont calculées dynamiquement à partir des paramètres de la Routine et ne sont pas persistées.
+| ID | Opération | Entrées et résultat | Contraintes |
+|---|---|---|---|
+| API-ROU-01 | Créer | Paramètres du créneau, Programme facultatif, liste ordonnée avec type/référence/fréquence/motif, rappel → Routine | Validation globale ; aucune écriture au simple choix d’une carte |
+| API-ROU-02 | Lire | IDRoutine → créneau et ses entrées ordonnées | Respecter le propriétaire et les références |
+| API-ROU-03 | Modifier | IDRoutine, brouillon complet → Routine actualisée | Préserver l’échu ; règles de conversion et de motif ouvertes |
+| API-ROU-04 | Supprimer | IDRoutine → arrêt du calcul futur | Ne supprime ni sources ni exécutions historiques |
+| API-ROU-05 | Calculer | Créneau, période → occurrences avec contenus retenus dans leur ordre | Génération puis filtrage ; un contenu ne crée pas d’occurrence |
+| API-ROU-06 | Prochaine occurrence | Type/IDcontenu ou IDRoutine → prochaine occurrence applicable | Le motif du contenu doit être respecté |
+| API-ROU-07 | Historiser | Occurrence et résultats des contenus | Modèle d’identité et d’agrégation multi-contenus à préciser avant implémentation |
+| API-ROU-08 | Définir/retirer rappel | IDRoutine, activation, délai → rappel local | Permission système ; rappel facultatif unique |
+| API-ROU-09 | Préparer duplication | IDRoutine → brouillon incluant liste, ordre, motifs et paramètres | Pas de création avant validation explicite |
 
-Lorsqu’une occurrence arrive à échéance :
-- elle est historisée ;
-- son statut est `Exécutée` si une Exécution associée a été démarrée ;
-- son statut est `Non exécutée` si aucune Exécution n’a été démarrée.
+Le mode d’exécution de chaque source reste SESSION ou ACTIVITY ; le mot parcours ne crée pas un troisième moteur. La suppression du modèle autonome Parcours retire ses anciennes API-CIR de la cible. L’enchaînement et les états d’une occurrence à plusieurs contenus doivent être spécifiés avant livraison ; ne pas reprendre par défaut l’ancienne Exécution de Parcours.
 
-La modification ou la suppression d’une Routine :
-- ne modifie jamais les occurrences déjà historisées ;
-- ne modifie jamais les Exécutions déjà enregistrées.
-
-Une même Séance ou un même Exercice persistant peut être associé à plusieurs Routines afin de permettre plusieurs horaires ou règles de planification distincts.
+Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 ## 11.6 API Exécution
 
@@ -152,7 +147,7 @@ Le MVP expose la liste chronologique des Séances/Exécutions et leur détail. L
 
 Les modifications ultérieures d’une Séance ou d’une Routine ne doivent pas rendre illisibles les Exécutions et occurrences déjà historisées.
 
-Chaque Exécution repose sur un **Instantané fonctionnel immuable** créé au démarrage. Cet instantané conserve les informations nécessaires pour restituer fidèlement la Séance exécutée et, en V2, les associations et références média stables, sans dupliquer les fichiers physiques.
+Chaque Exécution repose sur un **Instantané fonctionnel immuable** créé au démarrage. Cet instantané conserve les informations nécessaires pour restituer fidèlement la Séance exécutée et, dès l’introduction des médias au MVP (D-333), les associations et références média stables, sans dupliquer les fichiers physiques.
 
 Le choix du format et du mode de persistance de cet instantané relève du chapitre `12 – Architecture technique`.
 
@@ -260,7 +255,7 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 
 - Une Exécution lancée depuis une occurrence planifiée conserve le lien avec cette occurrence et la date/heure initialement prévues.
 - L’Instantané d’Exécution est un JSON immuable ; les champs nécessaires à la recherche et au tri chronologique du Suivi MVP sont accessibles efficacement. Les index dédiés aux filtres avancés sont reportés avec cette évolution.
-- Les API Média sont hors MVP ; leur introduction en V2 accepte `0..n` médias ordonnés par Exercice.
+- Les API Média sont incluses au MVP dans PRE-3 (D-333) pour importer/associer, lister, réordonner et retirer `0..n` photos ou vidéos locales ; la capture caméra n’est pas implicitement activée.
 
 ## 11.13 API du Catalogue des Exercices, des Médias et des Parcours
 
@@ -268,12 +263,9 @@ Ces intégrations feront l’objet de spécifications dédiées lorsqu’elles e
 |---|---|---|---|
 | `API-ACT-REF-01..05` | MVP T03 | définition d’Exercice | Créer, lire, lister, modifier, archiver/supprimer une référence autonome. Si des Routines ciblent l’Exercice, l’archivage arrête leurs occurrences futures selon la même règle que pour une Séance ; les occurrences historisées et Exécutions restent conservées. |
 | `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une copie complète indépendante ; aucune association fonctionnelle durable à la référence. |
-| `API-MED-01..05` | V2 | exercice, fichier ou position | Capturer/choisir, associer, lister, réordonner et retirer `0..n` médias ; nettoyage physique seulement sans référence. |
-| `API-CAT-01` | MVP T03 / V2 | type, filtre, tri | Avant T03, accepte uniquement `SESSION`; dans le MVP T03, accepte également `ACTIVITY`; `CIRCUIT` reste hors MVP. Défaut : non archivés, dernière modification décroissante. |
-| `API-CIR-01..06` | V2 | Parcours et étapes | Créer, lire, modifier, lister, archiver/supprimer et lancer manuellement un Parcours. |
-| `API-CIR-EXE-01` | V2 | ID Parcours | Fige l’instantané et crée l’Exécution globale. |
-| `API-CIR-EXE-02` | V2 | ID Exécution | Termine une étape et ouvre la transition manuelle/automatique. |
-| `API-CIR-EXE-03` | V2 | ID Exécution, confirmation | Interrompt le Parcours et l’étape courante ; conserve les résultats existants. |
+| `API-MED-01..05` | MVP PRE-3 | exercice, fichier ou position | Importer/choisir, associer, lister, réordonner et retirer `0..n` médias locaux (D-333) ; nettoyage physique seulement sans référence. Capture caméra à clarifier, sans activation implicite. |
+| `API-CAT-01` | MVP T03 / V2 | type, filtre, tri | Avant T03, accepte uniquement `SESSION`; dans le MVP T03, accepte également `ACTIVITY`; l’ancien type autonome `CIRCUIT` n’est pas réintroduit par la planification multi-contenus. Défaut : non archivés, dernière modification décroissante. |
+| API-CIR (ancienne famille) | Retirée 08/10 | Sans nouvelle implémentation | L’objet autonome Parcours et son exécution globale ne font plus partie de la cible. |
 
 `API-EXE-05` couvre aussi `TO_FAILURE` : comme pour `REPETITIONS`, `Suivant` constitue une fin normale de Série sans confirmation. Les DTO d’Exercice acceptent `DURATION`, `REPETITIONS`, `TO_FAILURE` et appliquent les contraintes d’exclusivité du chapitre 09.
 
@@ -324,7 +316,7 @@ La face courante, l’index de galerie et l’état de lecture sont des états d
 
 ### Extension future des API Routine — Parcours
 
-Lorsque la planification des Parcours est livrée, `API-ROU-*` accepte une troisième source correspondant au Parcours. Fonctionnellement, la source est `PARCOURS`; techniquement, la valeur reste `CIRCUIT` tant que les identifiants existants ne sont pas renommés. Les opérations Créer/Lire/Modifier/Supprimer, Calculer les occurrences, Récupérer la prochaine occurrence, Historiser une occurrence et Gérer le rappel restent communes ; aucune API parallèle de planification des Parcours n’est créée.
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 ### API de récupération contextuelle — D-208
 
@@ -402,3 +394,4 @@ La [spécification de phrase](SPECIFICATION-PHRASE-PARAMETRES-EXECUTION-v1.md) g
 Aucune colonne phrase ni sérialisation des segments dans définition/occurrence/snapshot. Génération à chaque affichage depuis les paramètres ; ✓ applique le brouillon, ne persiste pas le texte. Un changement rédactionnel est visible au prochain rendu des objets existants. Paramètres historiques et temps réalisés préservés.
 
 Français uniquement au MVP. Internationalisation ultérieure : gabarits et règles de pluriel/genre/ordre par locale, avec recette dédiée ; prévoir la réécriture de la grammaire française, pas une traduction des segments isolés. Corpus276 utilisé uniquement pour les phrases, valeurs totales injectées par le calcul métier.
+

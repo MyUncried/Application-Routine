@@ -1,0 +1,227 @@
+{
+  "observation": {
+    "repository": "MyUncried/Application-Routine",
+    "issueNumber": 269,
+    "head": "16b70bab70fad2adc64b0ea7a0069cbc206eee17",
+    "target": {
+      "schema_version": "kodjo.vnext.approval-target.v2",
+      "approval_target_id": "APRT-d3dfd663890e4e03a01dcf18",
+      "action_expected": "APPROVE_EXACT_EXECUTION",
+      "execution_fingerprint": "81247dd6d5b34eeeefc9d1b667c4d0770ae8ac808b85d48e8de5b83b601a9566",
+      "execution_core": {
+        "slice_id": "VNEXT-12-QUALIF",
+        "issue_id": "github_issue:MyUncried/Application-Routine#269",
+        "baseline_head": "7fac320080f83eb74359272b9d039e7b1d8fac5f",
+        "product_head": "7fac320080f83eb74359272b9d039e7b1d8fac5f",
+        "application_head": "7fac320080f83eb74359272b9d039e7b1d8fac5f",
+        "protocol_head": "16b70bab70fad2adc64b0ea7a0069cbc206eee17",
+        "execution_context": {
+          "mode": "LOCAL",
+          "writer_id": "CLAUDE:kodjo-local-vnext12"
+        },
+        "native_primitive_decisions": [],
+        "planning_mode": "INITIAL",
+        "planning_envelope_hash": "c995c2e16fc775129ed360447420fe24365af4d4df8f63fdc51fbc02354793bc",
+        "direct_import_scan_hash": "d7e96f08c50dad96657ab2c13640be31b7649c3df30c368b85bfabf6b64226ab",
+        "plan_contract_hash": "03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7ace",
+        "review_context_hash": "7fa9e720b4dc429edeee46af52fd93b53d95b7a838d29cdba3b628f2d0002bf1",
+        "review_report_hash": "8c93a512137d2ac5be758c21924c12a672a866e354efacb6a90b0a8c28dc9b72",
+        "ui_atomicity_hash": null,
+        "operation_kind": "IMPLEMENT",
+        "write_scope": [
+          {
+            "candidate_id": "CAND-be60773f2e3e5a208de31c53",
+            "path": "scripts/kodjo/fixtures/vnext12/core.js",
+            "change_kind": "MODIFY"
+          },
+          {
+            "candidate_id": "CAND-35e0bb8cab320b2411e4958e",
+            "path": "tests/fixtures/vnext12/core.test.js",
+            "change_kind": "MODIFY"
+          }
+        ],
+        "preserve_scope": [
+          {
+            "candidate_id": "CAND-30ceff46ee0ac607974766df",
+            "path": "scripts/kodjo/fixtures/vnext12/keep.js"
+          }
+        ],
+        "forbidden_policy": "ALL_OUTSIDE_WRITE_SCOPE",
+        "checks": [
+          "jest",
+          "typescript",
+          "lint"
+        ]
+      },
+      "summary": {
+        "write_scope_count": 2,
+        "preserve_scope_count": 1,
+        "check_count": 3
+      },
+      "contract_hash": "a606e75fcb7a9bd07838c0479be0ffd939772df48e11aeb7453265aca57f5e21"
+    },
+    "gateRef": "issue_comment:5971337496",
+    "comment": {
+      "url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/comments/5971337496",
+      "html_url": "https://github.com/MyUncried/Application-Routine/pull/269#issuecomment-5971337496",
+      "issue_url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/269",
+      "id": 5971337496,
+      "node_id": "IC_kwDOTtCBw88AAAABY-thGA",
+      "user": {
+        "login": "MyUncried",
+        "id": 312719496,
+        "node_id": "U_kgDOEqO4iA",
+        "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/MyUncried",
+        "html_url": "https://github.com/MyUncried",
+        "followers_url": "https://api.github.com/users/MyUncried/followers",
+        "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+        "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+        "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+        "repos_url": "https://api.github.com/users/MyUncried/repos",
+        "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "created_at": "2026-10-03T16:59:15Z",
+      "updated_at": "2026-10-03T17:48:53Z",
+      "author_association": "OWNER",
+      "body": "16b70bab70fad2adc64b0ea7a0069cbc206eee17\n[KODJO_VNEXT] USER_APPROVAL_REQUIRED\napproval_target_id=APRT-d3dfd663890e4e03a01dcf18\napproval_target_hash=a606e75fcb7a9bd07838c0479be0ffd939772df48e11aeb7453265aca57f5e21\nexecution_fingerprint=81247dd6d5b34eeeefc9d1b667c4d0770ae8ac808b85d48e8de5b83b601a9566\nexecution_context={\"mode\":\"LOCAL\",\"writer_id\":\"CLAUDE:kodjo-local-vnext12\"}\napplication_head=7fac320080f83eb74359272b9d039e7b1d8fac5f\nplan_contract_hash=03d939de35bef9acdcef79338674b0e567765d6877f56492d647006fa8ce7ace\nreview_report_hash=8c93a512137d2ac5be758c21924c12a672a866e354efacb6a90b0a8c28dc9b72\nwrite_scope_count=2\naction_expected=APPROVE_EXACT_EXECUTION\n\nAction requise : approuver explicitement cet objet exact, ou ne pas approuver.",
+      "reactions": {
+        "url": "https://api.github.com/repos/MyUncried/Application-Routine/issues/comments/5971337496/reactions",
+        "total_count": 1,
+        "+1": 1,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "performed_via_github_app": {
+        "id": 1144995,
+        "slug": "chatgpt-codex-connector",
+        "node_id": "A_kwHOAOQ6Gs4AEXij",
+        "owner": {
+          "login": "openai",
+          "id": 14957082,
+          "node_id": "MDEyOk9yZ2FuaXphdGlvbjE0OTU3MDgy",
+          "avatar_url": "https://avatars.githubusercontent.com/u/14957082?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/openai",
+          "html_url": "https://github.com/openai",
+          "followers_url": "https://api.github.com/users/openai/followers",
+          "following_url": "https://api.github.com/users/openai/following{/other_user}",
+          "gists_url": "https://api.github.com/users/openai/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/openai/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/openai/subscriptions",
+          "organizations_url": "https://api.github.com/users/openai/orgs",
+          "repos_url": "https://api.github.com/users/openai/repos",
+          "events_url": "https://api.github.com/users/openai/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/openai/received_events",
+          "type": "Organization",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "name": "ChatGPT Codex Connector",
+        "description": "Bring ChatGPT and Codex to your GitHub repositories.",
+        "external_url": "https://www.chatgpt.com",
+        "html_url": "https://github.com/apps/chatgpt-codex-connector",
+        "created_at": "2025-02-14T01:37:05Z",
+        "updated_at": "2026-09-23T18:52:59Z",
+        "permissions": {
+          "actions": "write",
+          "checks": "read",
+          "contents": "write",
+          "emails": "read",
+          "issues": "write",
+          "metadata": "read",
+          "pull_requests": "write",
+          "statuses": "read",
+          "workflows": "write"
+        },
+        "events": [
+          "check_run",
+          "check_suite",
+          "commit_comment",
+          "issues",
+          "issue_comment",
+          "pull_request",
+          "pull_request_review",
+          "pull_request_review_comment",
+          "pull_request_review_thread",
+          "repository",
+          "status",
+          "sub_issues"
+        ]
+      },
+      "minimized": null,
+      "pin": null
+    },
+    "reactions": [
+      {
+        "id": 431576097,
+        "node_id": "REA_lALOTtCBw88AAAABY-thGM4ZuVQh",
+        "user": {
+          "login": "MyUncried",
+          "id": 312719496,
+          "node_id": "U_kgDOEqO4iA",
+          "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/MyUncried",
+          "html_url": "https://github.com/MyUncried",
+          "followers_url": "https://api.github.com/users/MyUncried/followers",
+          "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+          "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+          "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+          "repos_url": "https://api.github.com/users/MyUncried/repos",
+          "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+          "type": "User",
+          "user_view_type": "public",
+          "site_admin": false
+        },
+        "content": "+1",
+        "created_at": "2026-10-03T17:48:59Z"
+      }
+    ],
+    "observedAt": "2026-10-03T17:49:17.096Z"
+  },
+  "reaction": {
+    "id": 431576097,
+    "node_id": "REA_lALOTtCBw88AAAABY-thGM4ZuVQh",
+    "user": {
+      "login": "MyUncried",
+      "id": 312719496,
+      "node_id": "U_kgDOEqO4iA",
+      "avatar_url": "https://avatars.githubusercontent.com/u/312719496?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/MyUncried",
+      "html_url": "https://github.com/MyUncried",
+      "followers_url": "https://api.github.com/users/MyUncried/followers",
+      "following_url": "https://api.github.com/users/MyUncried/following{/other_user}",
+      "gists_url": "https://api.github.com/users/MyUncried/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/MyUncried/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/MyUncried/subscriptions",
+      "organizations_url": "https://api.github.com/users/MyUncried/orgs",
+      "repos_url": "https://api.github.com/users/MyUncried/repos",
+      "events_url": "https://api.github.com/users/MyUncried/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/MyUncried/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "content": "+1",
+    "created_at": "2026-10-03T17:48:59Z"
+  },
+  "authorization_basis": "CODEX_USER_DELEGATION_FOR_DISPOSABLE_TECHNICAL_TEST_ONLY",
+  "human_review_performed": false
+}

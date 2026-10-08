@@ -1,0 +1,12 @@
+{
+  "status": "REVIEWED_REVISION_PENDING_HANDOFF",
+  "candidate_head": "061660b233e58719d3963a2efd9092880c9f3961",
+  "base_verdict": "REVISE",
+  "revision_verdict": "APPROVE",
+  "base_session": "1e6b07b7-d415-4c17-882e-9a7cb6b5e590",
+  "revision_session": "9e0591f4-e0c7-4b1e-ba9d-6692b7c668ae",
+  "revision_count": 1,
+  "revision_limit": 1,
+  "implementation_invoked": false,
+  "final_audit_invoked": false
+}

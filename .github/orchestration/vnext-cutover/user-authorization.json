@@ -1,0 +1,19 @@
+{
+  "schema_version": "kodjo.vnext.session-authorization.v1",
+  "authority": "USER_INSTRUCTION_IN_CHATGPT",
+  "actor_id": "user:current-chatgpt-session",
+  "instruction_date": "2026-10-07",
+  "recorded_at": "2026-10-08T00:20:59.161Z",
+  "instruction_exact": "On peut réaliser ces deux étapes pendant que Claude code termine l'alignement du code avec Figma (c'est hors process V2)",
+  "authorized_actions": [
+    "INTEGRATE_CERTIFIED_VNEXT_IN_MAIN",
+    "ACTIVATE_VNEXT_FOR_NEW_SLICES"
+  ],
+  "constraints": [
+    "PRESERVE_CURRENT_APPLICATION_AND_DOCUMENTATION",
+    "KEEP_EXISTING_SLICES_LEGACY",
+    "DO_NOT_START_A_PRODUCT_CYCLE"
+  ],
+  "execution_cutover_plan_hash": "0cc6c54a23e1f0c7750b746fa31ce687ac4b4ad3bd279d156f5e2baca5323c03",
+  "binding_origin": "Plan hash calculated during execution of the authorized actions; not a separate GitHub approval."
+}

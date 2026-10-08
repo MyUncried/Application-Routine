@@ -1,0 +1,27 @@
+{
+  "schema_version": "kodjo.vnext.v8-consolidation-diagnostic.v1",
+  "observed_at": "2026-10-03T13:03:04.555Z",
+  "candidate_head": "e26105b15ae049de68349d2bf2a18638cc109cea",
+  "native_parser": {
+    "run": 37124235671,
+    "job": 111206211230,
+    "status": "FAIL",
+    "reason": "OpenBraceNeedsToBeBackTickedInVariableName",
+    "cause": "A GitHub run_id expression in a double-quoted PowerShell string is not valid raw PowerShell before GitHub expansion.",
+    "correction": "Use env:GITHUB_RUN_ID in the preserved-artifact lookup; retain strict native parser.",
+    "log_excerpt": "2026-10-03T12:52:38.8284251Z Extent ErrorId                                    Message                                IncompleteInput\r\n2026-10-03T12:52:38.8285563Z ------ -------                                    -------                                ---------------\r\n2026-10-03T12:52:38.8297688Z        OpenBraceNeedsToBeBackTickedInVariableName Use `{ instead of { in variable names.           False\r\n2026-10-03T12:52:38.8300370Z At C:\\Users\\runneradmin\\AppData\\Local\\Temp\\kodjo-publication-Yz07Te\\parse-changed-powershell.ps1:1 char:297\r\n2026-10-03T12:52:38.8306669Z + ... ile($f,[ref]$t,[ref]$e)|Out-Null;if($e.Count){throw ($e|Out-String)}}\r\n2026-10-03T12:52:38.8308168Z +                                                   ~~~~~~~~~~~~~~~~~~~~~\r\n2026-10-03T12:52:38.8309357Z     + CategoryInfo          : OperationStopped: (\r\n2026-10-03T12:52:38.8310129Z Extent ErrorI...    False\r\n2026-10-03T12:52:38.8311371Z :String) [], RuntimeException\r\n2026-10-03T12:52:38.8312094Z     + FullyQualifiedErrorId : \r\n2026-10-03T12:52:38.8313392Z Extent ErrorId                                    Message                                IncompleteInput\r\n2026-10-03T12:52:38.8315073Z ------ -------                                    -------                                ---------------\r\n2026-10-03T12:52:38.8316519Z        OpenBraceNeedsToBeBackTickedInVariableName Use `{ instead of { in variable names.           False\r\n2026-10-03T12:52:38.8317965Z  \r\n2026-10-03T12:52:39.2261442Z D:\\a\\Application-Routine\\Application-Routine\\scripts\\kodjo\\lib\\vnext-contract.js:13\r\n2026-10-03T12:52:39.2262774Z   throw error;\r\n2026-10-03T12:52:39.2283750Z   ^\r\n2026-10-03T12:52:39.2287893Z \r\n2026-10-03T12:52:39.2299362Z Error: VNEXT_PUBLICATION_POWERSHELL_VALIDATION_REQUIRED\r"
+  },
+  "historical_matrix": {
+    "run": 37124235652,
+    "job": 111206210980,
+    "status": "FAIL",
+    "reason": "PLAN_SCOPE_CONTRADICTION: scan_sha256 differe du rejeu",
+    "cause": "D12 expands the source tree fingerprint; the immutable old reviewed plan carries the previous algorithm's fingerprint.",
+    "correction": "Keep the original documents and historical scanner proof; current scanner must refuse old receipt and accept only a freshly scanned/reviewed test matrix at exact application HEAD.",
+    "unit_test_only_regenerated_matrix": true,
+    "old_documents_modified": false,
+    "log_excerpt": "2026-10-03T12:52:37.8110902Z   ...\n2026-10-03T12:52:37.8112179Z # Subtest: run 34943819818 — le plan réel passe sur la PR \\#131 et échoue sur le HEAD protocolaire\n2026-10-03T12:52:37.8114147Z not ok 532 - run 34943819818 — le plan réel passe sur la PR \\#131 et échoue sur le HEAD protocolaire\n2026-10-03T12:52:37.8115284Z   ---\n2026-10-03T12:52:37.8115923Z   duration_ms: 462.887534\n2026-10-03T12:52:37.8116618Z   type: 'test'\n2026-10-03T12:52:37.8117789Z   location: '/home/runner/work/Application-Routine/Application-Routine/tests/kodjo/queue-contract.pilot.js:519:1'\n2026-10-03T12:52:37.8119194Z   failureType: 'testCodeFailure'\n2026-10-03T12:52:37.8120109Z   error: 'PLAN_SCOPE_CONTRADICTION: scan_sha256 differe du rejeu'\n2026-10-03T12:52:37.8121246Z   code: 'PLAN_SCOPE_CONTRADICTION'\n2026-10-03T12:52:37.8122261Z   stack: |-\n2026-10-03T12:52:37.8123360Z     fail (/home/runner/work/Application-Routine/Application-Routine/scripts/kodjo/lib/plan-impact.js:19:17)\n2026-10-03T12:52:37.8125267Z     verifyImpactMatrix (/home/runner/work/Application-Routine/Application-Routine/scripts/kodjo/lib/plan-impact.js:191:42)\n2026-10-03T12:52:37.8127342Z     Object.verifyPlanAtRevision (/home/runner/work/Application-Routine/Application-Routine/scripts/kodjo/lib/plan-impact.js:264:20)\n2026-10-03T12:52:37.8129460Z     TestContext.<anonymous> (/home/runner/work/Application-Routine/Application-Routine/tests/kodjo/queue-contract.pilot.js:536:18)\n2026-10-03T12:52:37.8130979Z     Test.runInAsyncScope (node:async_hooks:214:14)\n2026-10-03T12:52:37.8132171Z     Test.run (node:internal/test_runner/test:1047:25)\n2026-10-03T12:52:37.8133239Z     Test.processPendingSubtests (node:internal/test_runner/test:744:18)\n2026-10-03T12:52:37.8134333Z     Test.postRun (node:internal/test_runner/test:1173:19)\n2026-10-03T12:52:37.8135265Z     Test.run (node:internal/test_runner/test:1101:12)\n2026-10-03T12:52:37.8136346Z     async Test.processPendingSubtests (node:internal/test_runner/test:744:7)\n2026-10-03T12:52:37.8137357Z   ...\n2026-10-03T12:52:37.8138529Z # Subtest: admission prospective réelle — les trois HEAD restent distincts avant Claude\n2026-10-03T12:52:37.8140095Z ok 533 - admission prospective réelle — les trois HEAD restent distincts avant Claude\n2026-10-03T12:52:37.8141165Z   ---\n2026-10-03T12:52:37.8142010Z   duration_ms: 12.192296\n2026-10-03T12:52:37.8142702Z   type: 'test'"
+  },
+  "runtime_execution": "SKIPPED",
+  "request_consumed": false
+}

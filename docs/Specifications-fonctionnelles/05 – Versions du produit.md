@@ -18,7 +18,7 @@ Permettre à un utilisateur de créer des Séances structurées et des Exercices
 - Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
   - une Pause entre les côtés éventuelle, uniquement pour un Exercice bilatéral ;
   - en mode Durée, une Durée totale calculée et dépendante du nombre de Séries ;
-- afficher dans le MVP la vignette média associée à l’Exercice ; aucun Déployer avec ou sans média (D-261) ; la gestion multiple et les mécanismes d’acquisition suivent leur périmètre propre ;
+- afficher dans le MVP la vignette média associée à l’Exercice ; aucun Déployer avec ou sans média (D-261) ; l’import/ajout et la persistance de `0..n` photos ou vidéos locales ordonnées sont inclus au MVP dans PRE-3 par D-333 ;
 - ordonner les exercices d’un Tour ;
 - utiliser un Cycle technique unique, toujours fixé à une répétition et jamais affiché ;
 - ordonner les Exercices dans le Circuit visible, dont le nombre de répétitions est compris entre 1 et 99 ;
@@ -61,7 +61,7 @@ Toutes les données sont enregistrées uniquement sur l’appareil.
 La V1 permet également :
 - de créer une Routine ;
 - d'associer une Séance **ou un Exercice persistant** à une Routine ;
-- de définir une planification `Aucune` ou `Périodique` ; dans le MVP, le mode Périodique utilise une périodicité hebdomadaire jusqu'à une date de fin ;
+- de définir un créneau unique ou répété via un interrupteur, avec unité Jour/Semaine/Mois et borne jusqu’au/pendant ; voir la spécification du 08/10 et ses points ouverts ;
 - d'ajouter un rappel facultatif (0 ou 1 rappel par Routine).
 
 Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → Tour → Exercice.
@@ -90,7 +90,6 @@ Enrichir rapidement la construction et l’exécution des routines, sans modifie
 - enregistrer les structures imbriquées et les éléments réellement effectués.
 - ajouter des filtres avancés du Suivi (catégories, zones corporelles, période, statut) et, si utile, des critères de tri supplémentaires.
 - ajouter la Vue d’ensemble analytique et activer les commandes `Filtrer` et `Trier` déjà visibles dans le MVP ;
-- permettre l’association de `0..n` photos ou vidéos ordonnées par Exercice ;
 - l'activation/la désactivation du bip grave à chaque seconde pendant les exercices chronométrés devient paramétrable dans les Préférences.
 
 #### Internationalisation
@@ -195,7 +194,11 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - carte d’Exercice à gouttière permanente au MVP, photo ou icône de nature, sans Déployer quel que soit le média (D-260/D-261) ; l’activation de cet affichage n’implique pas de nouveau mécanisme d’import ou de capture.
 - nouvelle structure d’édition d’un Exercice : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Pause entre les côtés / Durée totale`, la Pause entre les côtés étant conditionnelle à `D→G/G→D` ;
 - référentiels Étiquettes / Catégories / Zones corporelles administrables dans le MVP : toutes les valeurs, initiales comme personnalisées, sont supprimables par appui long puis confirmation ; création et renommage suivent les parcours propres à chaque référentiel ;
-- modèle D-208 : `ActivityDefinition` porte seulement la Pause entre les côtés éventuelle ; chaque occurrence de Séance/Parcours porte sa récupération après exercice, y compris à `0 s`, exécutée après l’occurrence et exclue de la durée intrinsèque de l’Exercice.
+- modèle D-208 : `ActivityDefinition` porte seulement la Pause entre les côtés éventuelle ; chaque occurrence de Séance porte sa récupération après exercice, y compris à `0 s`, exécutée après l’occurrence et exclue de la durée intrinsèque de l’Exercice.
+
+### MVP — complément PRE-3 (D-333)
+
+- import/ajout de `0..n` photos ou vidéos locales ordonnées, avant le moteur d’exécution ; la photothèque est la source déjà mentionnée dans la cible médias du 06/09. L’ancienne mention « capture ou photothèque » était portée en V2 : l’inclusion de la capture caméra dans PRE-3 reste À CLARIFIER, sans la déduire de la seule décision d’import.
 
 ### MVP — complément T03
 
@@ -206,13 +209,12 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 
 ### V2
 
-- `0..n` photos ou vidéos ordonnées, ajoutées par capture ou photothèque, stockées localement et lisibles manuellement ;
-- création, modification, archivage, suppression et exécution manuelle des Parcours ;
-- écran de transition obligatoire entre Séances, manuel ou automatique avec durée globale de `30 s` par défaut.
+- Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
+- Ancienne transition de Parcours autonome retirée avec D-119/D-328 ; l’enchaînement multi-contenus reste à spécifier.
 
 ### V3
 
-- planification, récurrences, calendrier, rappels et notifications des Parcours, **via le même mécanisme de Routine que les Séances et Exercices**, avec une source Parcours distincte.
+- Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
 
 ## Roadmap des tranches MVP après arbitrage du 14 septembre 2026
 
@@ -275,3 +277,8 @@ Le parcours existant permet maintenant des Séries variables dans la même feuil
 
 Cible documentée, non déclarée livrée : Bip de cadence0..10 dans trois modes, steppers et calculs Bip v2. Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé.
 
+
+
+## Conception de planification du 08/10/2026
+
+Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](SPECIFICATION-PLANIFICATION-2026-10-08.md), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md).

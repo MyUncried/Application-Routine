@@ -1,0 +1,34 @@
+{
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "controller_head": "9d227479be7fad533fdec4454c008eb22946a130",
+  "source_revision_run": 37548553181,
+  "qualification_scope": "TARGETED_INCIDENTS_ONLY",
+  "claude_invoked": false,
+  "browser_invoked": false,
+  "v2_modified": false,
+  "pre2_reopened": false,
+  "github_issue_closed": false,
+  "application_published": false,
+  "tests_status": "PASS",
+  "real_data_replay": "PASS",
+  "vnext_live_closure_certified": false,
+  "reused_targeted_run": null,
+  "executed_test_paths": [
+    "tests/kodjo/vnext-proof-lifecycle.pilot.js",
+    "tests/kodjo/vnext-delivery-preservation.pilot.js",
+    "tests/kodjo/vnext-post-acceptance.pilot.js",
+    "tests/kodjo/vnext-finalization-incidents.pilot.js",
+    "tests/kodjo/disposable-consumption.pilot.js",
+    "tests/kodjo/vnext-post-delivery-revision.pilot.js"
+  ],
+  "real_data_next_consumer": "DELIVERY_BASELINE_ADMITTED",
+  "real_data_replay_scope": "V2_INCIDENT_DATA_THROUGH_VNEXT_ENTRY_READ_ONLY",
+  "increment_count": 28,
+  "cumulative_count": 146,
+  "real_data_finalization_hash": "a78bbc6895c1702731e0bf963b3d9d3cc62d3ea895eeb23bc0668298938bd4ed",
+  "limits": [
+    "Synthetic cases prove validators, not a new VNext GitHub closure.",
+    "Read-only replay proves compatibility with the actual incident data; it neither reopens V2 nor certifies operational VNext.",
+    "Existing INITIAL and REVISION runtime successes are retained; effective VNext GitHub closure remains to be exercised."
+  ]
+}

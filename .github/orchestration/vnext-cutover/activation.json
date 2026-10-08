@@ -1,0 +1,20 @@
+{
+  "schema_version": "kodjo.vnext.cutover-activation.v1",
+  "cutover_plan_hash": "0cc6c54a23e1f0c7750b746fa31ce687ac4b4ad3bd279d156f5e2baca5323c03",
+  "candidate_head": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+  "activated_at_protocol_head": "68539d0fb1e040f98bea5fccb6e3b54c9df8da31",
+  "default_protocol": "VNEXT",
+  "grandfathered_legacy_slice_ids": [
+    "V2-CAT-01",
+    "V2-E2E-20260919",
+    "V2-PROD-00",
+    "V2-QUALIF-00",
+    "V2-QUALIF-01",
+    "VNEXT-12-QUALIF"
+  ],
+  "actor_id": "user:current-chatgpt-session",
+  "evidence_ref": ".github/orchestration/vnext-cutover/user-authorization.json",
+  "observed_at": "2026-10-08T00:20:59.161Z",
+  "status": "ACTIVATED",
+  "contract_hash": "c3cbf8be5c89f215aa25cfb13208c76ec0143359f4f256430f82cc05560ae15c"
+}

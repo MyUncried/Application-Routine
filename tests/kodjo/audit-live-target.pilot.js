@@ -29,7 +29,7 @@ test('audit F07: unchanged target can pass repeatedly; IMPLEMENT is guarded only
   assert.throws(()=>verifyLiveTarget(targeted,{...options,fetchRemoteHead:()=>other}),/KODJO_QUEUE_REMOTE_HEAD_MOVED/);
 });
 test('audit F07: guards are wired immediately before mutable boundaries and agent gets no supervisor token',()=>{
-  const ps=fs.readFileSync(path.join(root,'scripts/kodjo/run-queued-request.ps1'),'utf8');
+  const ps=require('./helpers/normalized-git-source')(fs.readFileSync(path.join(root,'scripts/kodjo/run-queued-request.ps1'),'utf8'));
   assert.match(ps,/Assert-LiveTarget\s+git switch --detach \$applicationHead/);
   assert.match(ps,/Assert-LiveTarget\s+git reset --quiet/);
   assert.match(ps,/Assert-LiveTarget\s+git -c user.name=/);

@@ -1,0 +1,47 @@
+✔ registre canonique 3.64.0: incidents uniques, complets et à valeurs contrôlées (33.717109ms)
+✔ registre canonique: tests, aliases et invariants sans trou ni duplication (1.645026ms)
+✔ validateur shell du registre dérive version et cardinalités du contenu (0.525407ms)
+✔ gouvernance: un seul registre canonique visible à la racine (1.28898ms)
+✔ backlog protocolaire: IDs uniques et statuts fermés (0.395688ms)
+✔ superviseur sans double encodage UTF-8 connu (0.992699ms)
+✔ workflow pilote qualifie et archive le HEAD de PR, pas le merge temporaire (0.339493ms)
+✔ workflow jetable: dispatch manuel, consommation durable déclarée et aucune publication de code (6.405247ms)
+✔ qualification jetable: cache Jest isolée et cache lint désactivée dans les deux chemins réels (1.343758ms)
+✔ qualification RESUME_DELTA: nettoyage Windows borné, réessayé et diagnostiqué (0.691477ms)
+✔ qualification RESUME_DELTA: une migration non requise est une preuve valide (0.520232ms)
+✔ real Figma driver requires the same campaign, bounded scope and explicit technical delegation (2.10667ms)
+✔ qualification and current PR head precede an exclusive persistent claim; duplicate calls cannot reclaim it (375.298048ms)
+✔ delivery bundle and uncommitted working delta remain recoverable after fixture cleanup (514.721453ms)
+/tmp/kodjo-publication-kT8uA0/.github/workflows/broken.yml: while parsing a flow sequence
+  in "<unicode string>", line 2, column 5:
+    on: [unterminated
+        ^
+expected ',' or ']', but got '<stream end>'
+  in "<unicode string>", line 3, column 1:
+    
+    ^
+/tmp/kodjo-publication-sfySmg/.github/workflows/broken.yaml: while parsing a flow sequence
+  in "<unicode string>", line 2, column 5:
+    on: [unterminated
+        ^
+expected ',' or ']', but got '<stream end>'
+  in "<unicode string>", line 3, column 1:
+    
+    ^
+✔ qualification admission refuses stale, incomplete, failed or wrong workflow evidence (3.00898ms)
+✔ dedicated branch qualification preserves exact-head and every-job admission gates (0.52405ms)
+✔ publication admission refuses a moved parent, checkpoint or active phase including later API pages (0.677662ms)
+✔ prepublication validation refuses malformed workflow bytes before publication (1971.640756ms)
+✔ prepublication validation refuses exact writer blob drift (2112.838519ms)
+✔ prepublication validation refuses stale historical test correspondence (2224.768873ms)
+✔ environmental and unknown failures request technical diagnosis without automatic retry (0.607984ms)
+✔ changed PowerShell must be parsed and invalid or unavailable parsing refuses publication (2408.190584ms)
+✔ execution qualification binds a separately changed controller and refuses missing controller proof (60.901962ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8921.033943

@@ -1,0 +1,996 @@
+{
+  "schema_version": "kodjo.vnext.figma-recovery-qualification.v1",
+  "recorded_at": "2026-10-05T08:04:04.670Z",
+  "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+  "qualified_code_head": "12041962da5d3283a889dea6f3868014da4dfff3",
+  "status": "REMOTE_LINUX_WINDOWS_TECHNICAL_PASS_REAL_FIGMA_PATH_PENDING",
+  "runs": [
+    {
+      "id": 37251628601,
+      "head_sha": "12041962da5d3283a889dea6f3868014da4dfff3",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "event": "pull_request",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37251628601",
+      "jobs": [
+        {
+          "id": 111583475514,
+          "name": "qualification (ubuntu-latest)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 37251628601,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Parse all workflow syntax independently",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Validate the exact candidate tree with native Windows PowerShell 5.1",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 6
+            },
+            {
+              "name": "Execute VNext contracts on exact candidate",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Validate executable workflow invariants",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Check patch whitespace",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 16
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19
+            }
+          ]
+        },
+        {
+          "id": 111583475629,
+          "name": "historical-equivalence (ubuntu-latest)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 37251628601,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Install isolated pinned tokenizer for inherited fixture assertions",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Install independent YAML parser",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Execute structured historical assertion evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Resolve each historical assertion on the exact candidate",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Preserve exact candidate platform evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Preserve actual assertion diagnostics if qualification fails",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 10
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 20
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 21
+            }
+          ]
+        },
+        {
+          "id": 111583475650,
+          "name": "historical-equivalence (windows-latest)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 37251628601,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Install isolated pinned tokenizer for inherited fixture assertions",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Install independent YAML parser",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Execute structured historical assertion evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Resolve each historical assertion on the exact candidate",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Preserve exact candidate platform evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Preserve actual assertion diagnostics if qualification fails",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 10
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 20
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 21
+            }
+          ]
+        },
+        {
+          "id": 111583475653,
+          "name": "qualification (windows-latest)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 37251628601,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Parse all workflow syntax independently",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Validate the exact candidate tree with native Windows PowerShell 5.1",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Execute VNext contracts on exact candidate",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Validate executable workflow invariants",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Check patch whitespace",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 16
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19
+            }
+          ]
+        },
+        {
+          "id": 111586924440,
+          "name": "architecture-audit",
+          "status": "completed",
+          "conclusion": "skipped",
+          "run_id": 37251628601,
+          "logs_url": null,
+          "steps": null
+        },
+        {
+          "id": 111587817697,
+          "name": "historical-platform-coverage",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 37251628601,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run actions/download-artifact@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Require each mapped assertion to pass on at least one OS",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 37251628495,
+      "head_sha": "12041962da5d3283a889dea6f3868014da4dfff3",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "event": "pull_request",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37251628495",
+      "jobs": [
+        {
+          "id": 111582806283,
+          "name": "select-stage",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 37251628495,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Select the explicitly requested stage",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Check the disposable supervisor before any runtime execution",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            }
+          ]
+        },
+        {
+          "id": 111583022350,
+          "name": "qualify-driver (ubuntu-latest)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 37251628495,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Install independent YAML parser",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Validate the operational recipe without Claude",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Verify inherited VNext contracts",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 14
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 15
+            }
+          ]
+        },
+        {
+          "id": 111583022360,
+          "name": "qualify-driver (windows-latest)",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 37251628495,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Install independent YAML parser",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Validate the operational recipe without Claude",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Verify inherited VNext contracts",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Post Run actions/setup-python@v5",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Post Run actions/setup-node@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 14
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 15
+            }
+          ]
+        },
+        {
+          "id": 111583023117,
+          "name": "Execute approved disposable INITIAL or REVISION",
+          "status": "completed",
+          "conclusion": "skipped",
+          "run_id": 37251628495,
+          "logs_url": null,
+          "steps": null
+        },
+        {
+          "id": 111586496036,
+          "name": "prepare-initial",
+          "status": "completed",
+          "conclusion": "skipped",
+          "run_id": 37251628495,
+          "logs_url": null,
+          "steps": null
+        },
+        {
+          "id": 111586496194,
+          "name": "prepare-revision",
+          "status": "completed",
+          "conclusion": "skipped",
+          "run_id": 37251628495,
+          "logs_url": null,
+          "steps": null
+        }
+      ]
+    },
+    {
+      "id": 37251628493,
+      "head_sha": "12041962da5d3283a889dea6f3868014da4dfff3",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "event": "pull_request",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37251628493",
+      "jobs": [
+        {
+          "id": 111580279749,
+          "name": "protocol",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 37251628493,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Set up independent workflow syntax parser",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Parse workflow YAML independently",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Classify protocol change",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Install isolated planning tokenizer",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Qualify authenticated private HEAD lookup on Linux",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Run complete KODJO pilot suite",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Validate executable workflow invariants",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Build immutable complete source snapshot",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 10
+            },
+            {
+              "name": "Preserve complete source snapshot",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 11
+            },
+            {
+              "name": "Post Set up independent workflow syntax parser",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 21
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 22
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 23
+            }
+          ]
+        },
+        {
+          "id": 111580712401,
+          "name": "protocol-windows-preflight",
+          "status": "completed",
+          "conclusion": "success",
+          "run_id": 37251628493,
+          "logs_url": null,
+          "steps": [
+            {
+              "name": "Set up job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 1
+            },
+            {
+              "name": "Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 2
+            },
+            {
+              "name": "Set up independent workflow syntax parser on Windows",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 3
+            },
+            {
+              "name": "Install independent YAML parser on Windows",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 4
+            },
+            {
+              "name": "Record Windows toolchain",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 5
+            },
+            {
+              "name": "Qualify authenticated private HEAD lookup on Windows",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 6
+            },
+            {
+              "name": "Certify real persistent runner lock before Claude boundary",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 7
+            },
+            {
+              "name": "Preserve real runner certification",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 8
+            },
+            {
+              "name": "Parse every PowerShell protocol script with Windows PowerShell",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 9
+            },
+            {
+              "name": "Install isolated planning tokenizer on Windows",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 10
+            },
+            {
+              "name": "Run complete KODJO pilot suite on Windows",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 11
+            },
+            {
+              "name": "Run isolated queue path with Windows PowerShell 5.1",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 12
+            },
+            {
+              "name": "Run full disposable preflight without Claude",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 13
+            },
+            {
+              "name": "Preserve disposable preflight evidence",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 14
+            },
+            {
+              "name": "Download the real run 16 recovery package",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 15
+            },
+            {
+              "name": "Certify historical run 16 recovery without gating the disposable slice",
+              "status": "completed",
+              "conclusion": "skipped",
+              "number": 16
+            },
+            {
+              "name": "Preserve real recovery certification",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 17
+            },
+            {
+              "name": "Record unavailable historical recovery as a separate reserve",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 18
+            },
+            {
+              "name": "Upload real recovery certification",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 19
+            },
+            {
+              "name": "Post Set up independent workflow syntax parser on Windows",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 37
+            },
+            {
+              "name": "Post Run actions/checkout@v4",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 38
+            },
+            {
+              "name": "Complete job",
+              "status": "completed",
+              "conclusion": "success",
+              "number": 39
+            }
+          ]
+        },
+        {
+          "id": 111597791841,
+          "name": "disposable-qualification",
+          "status": "completed",
+          "conclusion": "skipped",
+          "run_id": 37251628493,
+          "logs_url": null,
+          "steps": null
+        }
+      ]
+    }
+  ],
+  "log_observations": [
+    {
+      "job_id": 111583475514,
+      "summary": [
+        "2026-10-05T01:47:37.3097547Z ℹ tests 286",
+        "2026-10-05T01:47:37.3097662Z ℹ pass 286",
+        "2026-10-05T01:47:37.3097720Z ℹ fail 0",
+        "2026-10-05T01:47:37.3097783Z ℹ cancelled 0",
+        "2026-10-05T01:47:37.3097839Z ℹ skipped 0",
+        "2026-10-05T01:47:37.3097970Z ℹ duration_ms 78651.92095"
+      ]
+    },
+    {
+      "job_id": 111583475653,
+      "summary": [
+        "2026-10-05T02:04:22.3720460Z ℹ tests 286\r",
+        "2026-10-05T02:04:22.3721000Z ℹ pass 286\r",
+        "2026-10-05T02:04:22.3721244Z ℹ fail 0\r",
+        "2026-10-05T02:04:22.3721495Z ℹ cancelled 0\r",
+        "2026-10-05T02:04:22.3721760Z ℹ skipped 0\r",
+        "2026-10-05T02:04:22.3722287Z ℹ duration_ms 1031435.101\r"
+      ]
+    },
+    {
+      "job_id": 111580712401,
+      "summary": [
+        "2026-10-05T02:52:37.1588015Z ℹ tests 1053\r",
+        "2026-10-05T02:52:37.1589668Z ℹ pass 1049\r",
+        "2026-10-05T02:52:37.1590460Z ℹ fail 0\r",
+        "2026-10-05T02:52:37.1591293Z ℹ cancelled 0\r",
+        "2026-10-05T02:52:37.1592118Z ℹ skipped 4\r",
+        "2026-10-05T02:52:37.1593746Z ℹ duration_ms 2310477.7102\r",
+        "2026-10-05T02:59:08.2691709Z Artifact kodjo-v2-disposable-preflight-37251628493-1.zip successfully finalized. Artifact ID 11322744765\r",
+        "2026-10-05T02:59:08.2694580Z Artifact kodjo-v2-disposable-preflight-37251628493-1 has been successfully uploaded! Final size is 9903 bytes. Artifact ID is 11322744765\r"
+      ]
+    }
+  ],
+  "local_recheck": {
+    "command": "node --test tests/kodjo/vnext-*.pilot.js",
+    "tests": 286,
+    "pass": 286,
+    "fail": 0,
+    "skip": 0,
+    "duration_ms": 80061.146469
+  },
+  "real_claude_invoked_in_recovery": false,
+  "new_workflows_launched": false,
+  "application_or_v2_changes": false,
+  "real_figma_measurements": "NOT_EXECUTED",
+  "implementation_reviewer_hook": "NOT_CONNECTED",
+  "next_action": "Complete VNext-only implementation review hookup and qualify a real Figma-bearing plan through INITIAL/REVISION/post-acceptance; existing QUALIFY_ONLY recipe does not exercise these paths.",
+  "execution_capability_limit": "Installed GitHub connector has read and rerun tools but no new workflow_dispatch tool; local Claude executable unavailable. No rerun or old consumed-request replay substitutes for the required new real path.",
+  "certified": false
+}

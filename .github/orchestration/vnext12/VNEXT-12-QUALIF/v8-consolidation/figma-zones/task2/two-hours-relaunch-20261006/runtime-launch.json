@@ -1,0 +1,175 @@
+{
+  "controller_head": "bb6dcf7b0927242a0612c6ac11cdc7de99109b09",
+  "approved_protocol_head": "abecf87e88abbf387c1e22e319cda1374762018d",
+  "runtime_run": 37402330192,
+  "runtime_attempt": 1,
+  "runtime_launch_count": 1,
+  "runtime_job": {
+    "id": 112072091323,
+    "run_id": 37402330192,
+    "workflow_name": "KODJO VNext-12 disposable preparation",
+    "head_branch": "protocol/vnext-proof-stability-20260930",
+    "run_url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/runs/37402330192",
+    "run_attempt": 1,
+    "node_id": "CR_kwDOTtCBw88AAAAaGARmuw",
+    "head_sha": "bb6dcf7b0927242a0612c6ac11cdc7de99109b09",
+    "url": "https://api.github.com/repos/MyUncried/Application-Routine/actions/jobs/112072091323",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37402330192/job/112072091323",
+    "status": "in_progress",
+    "conclusion": null,
+    "created_at": "2026-10-06T02:04:25Z",
+    "started_at": "2026-10-06T02:04:26Z",
+    "completed_at": null,
+    "name": "Real Figma INITIAL and one bounded correction",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-10-06T02:04:27Z",
+        "completed_at": "2026-10-06T02:04:30Z"
+      },
+      {
+        "name": "Run actions/checkout@v4",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-10-06T02:04:30Z",
+        "completed_at": "2026-10-06T02:04:50Z"
+      },
+      {
+        "name": "Qualify admission then execute the disposable Figma path once",
+        "status": "in_progress",
+        "conclusion": null,
+        "number": 3,
+        "started_at": "2026-10-06T02:04:50Z",
+        "completed_at": null
+      },
+      {
+        "name": "Preserve Figma sessions, exact delivery, comparisons and reservations",
+        "status": "pending",
+        "conclusion": null,
+        "number": 4,
+        "started_at": null,
+        "completed_at": null
+      },
+      {
+        "name": "Post Run actions/checkout@v4",
+        "status": "pending",
+        "conclusion": null,
+        "number": 8,
+        "started_at": null,
+        "completed_at": null
+      }
+    ],
+    "check_run_url": "https://api.github.com/repos/MyUncried/Application-Routine/check-runs/112072091323",
+    "labels": [
+      "self-hosted",
+      "Windows",
+      "X64",
+      "kodjo-claude-local"
+    ],
+    "runner_id": 26,
+    "runner_name": "KODJO-LOCAL-RUNNER",
+    "runner_group_id": 1,
+    "runner_group_name": "Default"
+  },
+  "request_generation": 52,
+  "request_id": "55015f80-1d0e-4333-941d-e0dbdab8600d",
+  "runs": [
+    {
+      "id": 37402330270,
+      "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
+      "status": "in_progress",
+      "conclusion": null
+    },
+    {
+      "id": 37402330072,
+      "path": ".github/workflows/kodjo-vnext-proof-stability.yml",
+      "status": "in_progress",
+      "conclusion": null
+    },
+    {
+      "id": 37402330192,
+      "path": ".github/workflows/kodjo-vnext12-disposable.yml",
+      "status": "in_progress",
+      "conclusion": null
+    }
+  ],
+  "internal_claim": "NOT_YET_OBSERVED",
+  "claude_activity": "NOT_YET_OBSERVED",
+  "observed_at": "2026-10-06T02:05:46.617Z",
+  "qualifications": {
+    "approved": {
+      "status": "VERIFIED",
+      "candidate_head": "abecf87e88abbf387c1e22e319cda1374762018d",
+      "run_id": "37401096314",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 112068226863,
+          "name": "qualification (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112068227051,
+          "name": "qualification (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112068227066,
+          "name": "historical-equivalence (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112068227107,
+          "name": "historical-equivalence (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112071257584,
+          "name": "historical-platform-coverage",
+          "conclusion": "success"
+        }
+      ],
+      "observed_at": "2026-10-06T02:05:47.455Z"
+    },
+    "controller": {
+      "status": "VERIFIED",
+      "candidate_head": "abecf87e88abbf387c1e22e319cda1374762018d",
+      "run_id": "37401096314",
+      "run_attempt": 1,
+      "jobs": [
+        {
+          "id": 112068226863,
+          "name": "qualification (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112068227051,
+          "name": "qualification (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112068227066,
+          "name": "historical-equivalence (ubuntu-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112068227107,
+          "name": "historical-equivalence (windows-latest)",
+          "conclusion": "success"
+        },
+        {
+          "id": 112071257584,
+          "name": "historical-platform-coverage",
+          "conclusion": "success"
+        }
+      ],
+      "observed_at": "2026-10-06T02:05:47.455Z",
+      "controller_head": "bb6dcf7b0927242a0612c6ac11cdc7de99109b09",
+      "relation": "EXACT_SAME_PROTOCOL_CODE"
+    }
+  }
+}

@@ -1,7 +1,7 @@
 # PRE-3 — Analyse ciblée de l’existant et suite de la planification
 
-Date : 08/10/2026. Baseline lue : 3b325bf1f47b9ac427da2378a604e44fd66af9e5.
-Statut : préparation technique ; aucun fichier applicatif modifié et aucun plan approuvé.
+Date : 08/10/2026. Baseline lue : 17d9774a31429bc2bee4eb834e4ed1e9aafa68ec.
+Relecture ciblée le 08/10 sur main après #338 : les constats ci-dessous restent présents. Statut : préparation technique ; aucun fichier applicatif modifié et aucun plan approuvé.
 
 ## Constats vérifiés dans le code
 
@@ -22,7 +22,7 @@ Ces constats expliquent les adaptations nécessaires ; ils ne sont pas un diagno
 
 ## Médias : acquis documentaires à conserver
 
-Sources : chapitre09 §§09.6/09.14, D-033, D-066/D-068 amendées quant au périmètre par D-327, D-264.
+Sources : chapitre09 §§09.6/09.14, D-033, D-066/D-068 amendées quant au périmètre par D-333, D-264.
 
 - Photos ou vidéos locales ; zéro à plusieurs associations ordonnées.
 - Nouveau média en dernière position ; réorganisation de l’association, pas modification du fichier.
@@ -32,7 +32,7 @@ Sources : chapitre09 §§09.6/09.14, D-033, D-066/D-068 amendées quant au péri
 - Vignette du premier média ; couverture si vidéo. Ne pas traiter cette règle comme autorisation de refonte générale des cartes.
 - Consultation en exécution et règles audio restent le périmètre du futur moteur ; PRE-3 prépare des données utilisables.
 
-La décision D-327 autorise l’import dans le MVP avant le moteur. Elle ne choisit pas à elle seule une capacité caméra, des codecs, des plafonds de taille/nombre, ni une politique de conversion. Ces éléments doivent être retrouvés dans les sources existantes avant de solliciter un arbitrage réellement nécessaire. Aucune nouvelle limite arbitraire n’est proposée ici.
+La décision D-333 autorise l’import dans le MVP avant le moteur. Source retrouvée au chapitre05 : ancienne cible du06/09 « capture ou photothèque » en V2 ; photothèque utilisable comme référence d’import, capture caméra dans PRE-3 à clarifier. Elle ne choisit pas à elle seule une capacité caméra, des codecs, des plafonds de taille/nombre, ni une politique de conversion. Ces éléments doivent être retrouvés dans les sources existantes avant de solliciter un arbitrage réellement nécessaire. Aucune nouvelle limite arbitraire n’est proposée ici.
 
 ## Fichiers structurants effectivement lus
 

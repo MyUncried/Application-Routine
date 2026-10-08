@@ -1,0 +1,21 @@
+✔ generic recipe requires a concrete binding and projects a created surface without extending a preserved dependency (1374.824705ms)
+✔ review dependency indices resolve exact catalog IDs while ambiguity, unknown types and bounds stay refused (0.985779ms)
+✔ browser refusal is explicit and no normal browser profile is opened by binary discovery (0.163894ms)
+✔ disposable markup checks exact dimension values rather than declaration presence (1.311118ms)
+﹣ actual browser measures DOM geometry rather than numeric exports, preserves screenshot and detects injected delta (0.427279ms) # SKIP
+﹣ disposable fixed geometry refuses a viewport-relative counterexample at an independent viewport (0.121954ms) # SKIP
+✔ browser cleanup waits for the actual process and profile descendants before removal (322.077079ms)
+✔ browser cleanup failure retains stderr, primary error and isolated profile diagnostics (3.47449ms)
+✔ packaged Chrome precedes Chromium on Linux while an explicit browser remains authoritative (0.442023ms)
+✔ early browser exit retains executable, exit code and actual stderr in the failure (27.449345ms)
+✔ preservation proves a live re-export and rejects a hardcoded equal primitive (1.793116ms)
+✔ Windows termination races are accepted only after root and profile are gone (203.673428ms)
+✔ Windows cleanup inventories profile before waiting for forced root exit (0.51846ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 2
+ℹ todo 0
+ℹ duration_ms 2130.681821

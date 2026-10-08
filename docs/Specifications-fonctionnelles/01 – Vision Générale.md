@@ -26,6 +26,7 @@ La classification est dissociée : une **Étiquette** qualifie la Séance et por
 - un espace `Catalogues` pour les contenus ;
 - la création et la modification de Séances structurées ;
 - à partir de T03, un Catalogue des exercices persistants et leur Exécution directe ;
+- dans PRE-3, l’import/ajout de photos ou vidéos locales ordonnées associées aux Exercices, avant le moteur d’exécution (D-333) ;
 - un calendrier et la planification individuelle ;
 - une Exécution guidée, adaptée aux Exercices chronométrés, en Répétitions ou À l’échec ;
 - des signaux sonores, des annonces vocales et des vibrations fonctionnelles configurables ;
@@ -73,7 +74,7 @@ Un Exercice peut également porter son propre Compte à rebours et sa propre Fin
 
 Le Cycle est conservé uniquement dans le modèle technique pour l’évolutivité. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur.
 
-Un Exercice est une action exécutée en mode Durée, Répétitions ou À l’échec. Elle comprend au moins une Série et peut inclure une Pause après chaque série. Un Exercice bilatéral peut en outre définir une **Pause entre les côtés**, exécutée selon l’Ordre des côtés. La **Récupération après exercice** n’est pas intrinsèque à l’Exercice : elle appartient à son occurrence lorsqu’elle est placée dans une Séance ou un Parcours.
+Un Exercice est une action exécutée en mode Durée, Répétitions ou À l’échec. Elle comprend au moins une Série et peut inclure une Pause après chaque série. Un Exercice bilatéral peut en outre définir une **Pause entre les côtés**, exécutée selon l’Ordre des côtés. La **Récupération après exercice** n’est pas intrinsèque à l’Exercice : elle appartient à son occurrence lorsqu’elle est placée dans une Séance.
 
 Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durées selon Bip v2 et paramètres v13 : Durée exacte ; Répétitions avec bip estimées ≈ ; Répétitions sans bip et À l’échec omitted au niveau Exercice. ≥ réservé à la Séance contenant du travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 
@@ -121,7 +122,6 @@ Les évolutions envisagées comprennent notamment :
 - comptes, synchronisation et sauvegarde distante ;
 - partage de Séances et groupes ;
 - interface destinée aux professionnels ;
-- ajout de `0..n` photos ou vidéos ordonnées par Exercice ;
 - statistiques, filtres et tableaux de bord ;
 - connexions à des calendriers et services de santé ;
 - prise en charge de langues supplémentaires.
@@ -132,7 +132,7 @@ Ces perspectives orientent l’architecture, mais ne doivent pas être présent�
 
 ### Catalogue multi-type
 
-Le Catalogue constitue l’accès central aux contenus. Il distingue `Exercices` et `Séances`. `Séances` est sélectionné par défaut à l’ouverture initiale et après relance complète ; `Exercices` est fonctionnel à partir de T03 ; `Parcours` est absent du sélecteur. Une version post-MVP rendra les Parcours fonctionnels sans créer de destination principale supplémentaire.
+Le Catalogue constitue l’accès central aux contenus. Il distingue `Exercices` et `Séances`. `Séances` est sélectionné par défaut à l’ouverture initiale et après relance complète ; `Exercices` est fonctionnel à partir de T03 ; `Parcours` est absent du sélecteur. L’ancien objet autonome Parcours est retiré (D-328).
 
 ### Catalogue des exercices — MVP T03
 
@@ -144,7 +144,7 @@ L’Exécution directe réutilise le sous-ensemble moteur autonome avec une orig
 
 ### Parcours — post-MVP
 
-Les Parcours restent préparés conceptuellement et techniquement mais ne sont ni créables ni exécutables dans T03. Leur planification appartient à une évolution ultérieure distincte.
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 ## Vision de la bilatéralité
 
@@ -158,11 +158,11 @@ Cette cible est conçue mais n’est pas ajoutée au périmètre MVP courant san
 
 ### Cible de planification commune
 
-La cible produit considère **Séances, Exercices persistants et Parcours** comme des contenus autonomes pouvant être planifiés directement. Le MVP active cette capacité pour les Séances et les Exercices ; la planification des Parcours reste rattachée à la version prévue pour cette fonctionnalité. Le principe fonctionnel demeure unique : une Routine planifie une source, quel que soit son type.
+Une Routine planifie une liste ordonnée de Séances et/ou Exercices persistants. Les contenus filtrent les occurrences du créneau ; parcours est un libellé sans entité autonome (D-328).
 
 ## Consolidation du 26 septembre 2026
 
-La terminologie cible distingue **Parcours** (contenu autonome), **Circuit** (groupe répété interne à une Séance) et **Tour** (une répétition du Circuit). La classification n’influence pas l’Exécution : un Exercice requiert une Catégorie et au moins une Zone corporelle ; l’Étiquette de Séance reste facultative. Les préférences Profil initialisent les nouveaux objets sans rétroactivité. Une Séance peut globalement appliquer ou ignorer les Compte à rebours et Fins propres à ses Exercices.
+La terminologie cible distingue **parcours** (libellé de planification à plusieurs contenus), **Circuit** (groupe répété interne à une Séance) et **Tour** (une répétition du Circuit). La classification n’influence pas l’Exécution : un Exercice requiert une Catégorie et au moins une Zone corporelle ; l’Étiquette de Séance reste facultative. Les préférences Profil initialisent les nouveaux objets sans rétroactivité. Une Séance peut globalement appliquer ou ignorer les Compte à rebours et Fins propres à ses Exercices.
 
 
 
@@ -177,3 +177,8 @@ La référence active est [Paramètres en modale v13](SPECIFICATION-PARAMETRES-M
 
 Les trois modes peuvent émettre un Bip de cadence, intervalle0..10s,0=Aucun, sans quatrième mode. Chronomètre croissant et signaux guident l’utilisateur ; Suivant conserve la fin normale de Série, même après la fin nominale. KODJO ne détecte ni ne demande les répétitions effectivement accomplies. Référence : [Bip v2](SPECIFICATION-BIP-CADENCE-v2.md).
 
+
+
+## Conception de planification du 08/10/2026
+
+Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](SPECIFICATION-PLANIFICATION-2026-10-08.md), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md).

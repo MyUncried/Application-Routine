@@ -19,7 +19,8 @@ const REQUIRED_CHECKS = ['jest', 'typescript', 'lint', 'scope'];
 const DEFAULT_COMMANDS = {
   jest: 'npm test --silent',
   typescript: 'npx --no-install tsc --noEmit',
-  lint: 'npm run lint --silent',
+  // A repository-local cache would mutate the ignored-file integrity baseline.
+  lint: 'npm run lint --silent -- --no-cache',
   scope: 'node ' + JSON.stringify(path.join(__dirname, '..', 'check-scope.js')),
 };
 
@@ -76,7 +77,6 @@ function commandFor(name, env) {
     if (cacheRoot) return command + ' -- --cacheDirectory ' + JSON.stringify(path.join(cacheRoot, 'jest'));
     return command + ' -- --no-cache';
   }
-  if (name === 'lint') return command + ' -- --no-cache';
   return command;
 }
 

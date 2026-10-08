@@ -35,11 +35,15 @@ Elle possède notamment :
 
 ### Routine
 
-Une Routine est la planification d’un **contenu planifiable**. Dans le MVP, une Routine cible soit une Séance (`SESSION`), soit un Exercice persistant du Catalogue des exercices (`ACTIVITY`). Lorsqu’un Parcours deviendra fonctionnel et planifiable, il utilisera le **même mécanisme de Routine** ; son type technique de source restera `CIRCUIT` tant que les identifiants techniques ne sont pas renommés.
+Une Routine représente un créneau portant une **liste ordonnée de contenus**, Séances (`SESSION`), Exercices persistants (`ACTIVITY`) ou mélange des deux. Le créneau produit les occurrences ; chaque contenu les filtre par sa fréquence sans unité **x fois sur n** et ses positions retenues. Le cas x=n s’affiche « à chaque fois ».
 
-Une même Séance ou une même Exercice peut être utilisée par plusieurs Routines. Une Routine ne contient pas de copie de sa source : elle référence la source persistante et ses occurrences utilisent son état courant jusqu’au démarrage de l’Exécution, moment où l’Instantané immuable est créé.
+Programme facultatif (« Aucun » par défaut) précède Début le. Répétition désactivée produit un créneau unique ; activée, elle expose Jour/Semaine/Mois et une borne **jusqu’au** (date) ou **pendant** (nombre d’unités). Aucun/Aucune ne sont plus des options de Rappel/Répétition : des interrupteurs portent leur absence. Rappel reste facultatif,0..1 par Routine.
 
-Dans le MVP, une Routine possède zéro ou un rappel.
+La sélection utilise des cases à cocher et « Ajouter 1 élément » / « Ajouter n éléments », avec les espaces et accords usuels. Le formulaire porte Planifier sans contenu, Planifier une séance/un exercice à contenu unique, Planifier un parcours à plusieurs contenus. **Parcours est uniquement un libellé**, sans entité, catalogue ni exécution autonome. Circuit reste le groupe interne à une Séance, répété en Tours.
+
+La spécification du 08/10 définit le comportement cible et ses points ouverts ; elle ne certifie pas une implémentation. Une Routine peut toujours partager ses sources avec d’autres Routines. Les données historiques ne sont pas réécrites.
+
+Voir [la spécification](Specifications-fonctionnelles/SPECIFICATION-PLANIFICATION-2026-10-08.md).
 
 ### Exercice
 
@@ -142,7 +146,7 @@ Dans la phrase de synthèse des paramètres d’exécution, le mode est affiché
 
 Le Compte à rebours initial et la Fin de séance sont structurels et non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
 
-Dans le MVP, les médias déjà associés à un Exercice peuvent être consultés dans le Catalogue et pendant l’Exécution. Pendant l’Exécution, la galerie ordonnée, la pagination et le plein écran suivent D-203. Cette décision n’introduit pas de mécanisme d’ajout/import dans l’éditeur ; les décisions de stockage et de non-duplication restent portées par D-066/D-068.
+Dans le MVP, les médias déjà associés à un Exercice peuvent être consultés dans le Catalogue et pendant l’Exécution. Pendant l’Exécution, la galerie ordonnée, la pagination et le plein écran suivent D-203. L’ajout/import de photos ou vidéos locales, leurs associations ordonnées et leur persistance sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333). Les règles de stockage et de non-duplication de D-066/D-068 sont conservées.
 
 ### Exécution d’une Séance
 
@@ -164,7 +168,7 @@ Pour un Exercice en mode Répétitions ou À l’échec, le bouton `Suivant` ter
 
 Un Exercice bilatéral exécute toutes ses Séries du premier côté puis toutes celles du second. La modale générique de passage anticipé reste inchangée : depuis le premier côté, confirmer conserve le résultat partiel de ce côté et conduit au second. Une réinitialisation ne concerne que le côté courant et préserve le résultat de l’autre côté.
 
-Le moteur distingue deux phases de récupération. `SIDE_RECOVERY`, lorsqu’elle existe, intervient selon l’Ordre des côtés (une fois par Exercice ou une fois par Série) d’un Exercice bilatéral. `POST_ACTIVITY_RECOVERY`, lorsqu’elle existe, intervient après l’occurrence d’Exercice dans une Séance/Parcours. Une phase de récupération chronométrée annonce `Récupération`, se termine automatiquement à zéro et peut être quittée avec `Exercice suivant` après confirmation ; l’Exercice reste alors terminé et la récupération est enregistrée partiellement. `Réinitialiser la récupération` recommence uniquement la phase courante. Un arrêt pendant une phase de récupération produit une Exécution `Interrompue`.
+Le moteur distingue deux phases de récupération. `SIDE_RECOVERY`, lorsqu’elle existe, intervient selon l’Ordre des côtés (une fois par Exercice ou une fois par Série) d’un Exercice bilatéral. `POST_ACTIVITY_RECOVERY`, lorsqu’elle existe, intervient après l’occurrence d’Exercice dans une Séance. Une phase de récupération chronométrée annonce `Récupération`, se termine automatiquement à zéro et peut être quittée avec `Exercice suivant` après confirmation ; l’Exercice reste alors terminé et la récupération est enregistrée partiellement. `Réinitialiser la récupération` recommence uniquement la phase courante. Un arrêt pendant une phase de récupération produit une Exécution `Interrompue`.
 
 Un arrêt volontaire confirmé produit une Exécution `Interrompue` et ouvre la Synthèse. Une interruption technique ou système peut produire une Exécution `Interrompue` sans affichage de la Synthèse et donc sans Ressenti.
 
@@ -216,23 +220,17 @@ En arrière-plan ou écran verrouillé, le Plan d’Exécution continue selon se
 
 ### Planification et Calendrier
 
-La planification est incluse dans le MVP.
+Une Routine représente un créneau portant une **liste ordonnée de contenus**, Séances (`SESSION`), Exercices persistants (`ACTIVITY`) ou mélange des deux. Le créneau produit les occurrences ; chaque contenu les filtre par sa fréquence sans unité **x fois sur n** et ses positions retenues. Le cas x=n s’affiche « à chaque fois ».
 
-Le MVP permet de :
-- créer une Routine depuis le Calendrier ou depuis l’action `Planifier` d’une carte de Catalogue ;
-- sélectionner ou conserver la source planifiée, qui est soit une Séance soit un Exercice persistant ;
-- définir une Date de début et une Heure ;
-- choisir entre `Aucune` et `Périodique` ;
-- pour `Périodique`, définir une fréquence en semaines, sélectionner un ou plusieurs jours et définir une Date de fin obligatoire ;
-- configurer zéro ou un rappel ;
-- modifier ou supprimer une Routine ;
-- consulter les occurrences dans les vues Jour, Semaine et Mois.
+Programme facultatif (« Aucun » par défaut) précède Début le. Répétition désactivée produit un créneau unique ; activée, elle expose Jour/Semaine/Mois et une borne **jusqu’au** (date) ou **pendant** (nombre d’unités). Aucun/Aucune ne sont plus des options de Rappel/Répétition : des interrupteurs portent leur absence. Rappel reste facultatif,0..1 par Routine.
 
-Pour une Routine périodique, la semaine contenant la Date de début est la semaine d’ancrage. Les Date de début et Date de fin sont inclusives.
+La sélection utilise des cases à cocher et « Ajouter 1 élément » / « Ajouter n éléments », avec les espaces et accords usuels. Le formulaire porte Planifier sans contenu, Planifier une séance/un exercice à contenu unique, Planifier un parcours à plusieurs contenus. **Parcours est uniquement un libellé**, sans entité, catalogue ni exécution autonome. Circuit reste le groupe interne à une Séance, répété en Tours.
 
-Une Routine ne possède pas d’état actif/inactif dans le MVP : elle existe ou est supprimée.
+La spécification du 08/10 définit le comportement cible et ses points ouverts ; elle ne certifie pas une implémentation. Une Routine peut toujours partager ses sources avec d’autres Routines. Les données historiques ne sont pas réécrites.
 
-Les occurrences futures sont calculées dynamiquement. Pour une planification périodique, la suppression propose `Cette occurrence` ou `Cette occurrence et les suivantes` ; les Exécutions historiques sont conservées.
+Depuis Catalogue ou Calendrier, les changements restent dans un brouillon jusqu’à Enregistrer. Une Routine définit une seule heure ; plusieurs créneaux peuvent répondre à plusieurs horaires. Les occurrences futures sont calculées dynamiquement ; le contenu filtre cette suite sans ajouter de dates. Les règles hebdomadaires existantes restent propres à Semaine.
+
+Voir [la spécification](Specifications-fonctionnelles/SPECIFICATION-PLANIFICATION-2026-10-08.md) pour les limites Jour/Mois, le motif par contenu, les écrans Programme manquants et les règles de suppression/archivage à compléter pour plusieurs contenus.
 
 ### Suivi et historique
 
@@ -291,7 +289,6 @@ Le composant DSF canonique de navigation est `Navigation / Bottom` (`6298:12462`
 - structures comportant plusieurs Tours ou plusieurs Cycles ;
 - modification individuelle d’une occurrence de Calendrier ;
 - Parcours fonctionnels ;
-- médias multiples fonctionnels ;
 - options avancées de filtre/tri Catalogue non encore arbitrées.
 
 ## 7. Principes métier structurants
@@ -372,9 +369,8 @@ Les versions futures pourront notamment introduire :
 - signalement détaillé de douleur ou de gêne ;
 - structures de Séances plus complexes ;
 - réglages sonores plus fins ;
-- association de `0..n` photos ou vidéos ordonnées par Exercice ;
 
-- Parcours persistants composés d’au moins deux Séances ordonnées et exécutables manuellement ; leur planification est reportée en V3 ;
+- Ancienne cible de Parcours autonome retirée ; la planification multi-contenus relève de la spécification du 08/10 ;
 - planification périodique étendue, notamment mensuelle ;
 - intelligence artificielle d’aide à la création, à l’adaptation et à l’analyse des Séances.
 
@@ -392,7 +388,7 @@ Un Exercice de Catalogue est une référence persistante `ActivityDefinition`. L
 
 Son insertion dans une Séance copie toutes les propriétés métier applicables au moment de l’insertion — nom, Description, mode/cible, Séries, Pause, Récupération, Zones corporelles, direction propre et autres champs persistants applicables. La `SessionActivity` appartient ensuite à la Séance et évolue indépendamment. Un Exercice créé dans une Séance ne rejoint pas automatiquement le Catalogue. La migration T03 ne transforme pas les `SessionActivity` historiques en `ActivityDefinition`.
 
-Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Exercice persistant depuis `Exercices`, Séance depuis `Séances`, et Parcours depuis `Parcours` lorsque ce Catalogue devient fonctionnel. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Parcours dans T03/MVP. Depuis `Ajouter un exercice` dans une Composition, le parcours actuellement exposé ouvre la sélection d’Exercices du Catalogue. La capacité existante de création directe d’un Exercice local à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans cet enchaînement. La sélection multiple insère les Exercices selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
+Dans les Catalogues, `Créer` ouvre directement la création de l’objet correspondant au Catalogue courant : Exercice persistant depuis `Exercices`, Séance depuis `Séances` ; aucun Catalogue Parcours. Aucun écran ni arbre intermédiaire n’est affiché. Cette règle n’active pas les Parcours dans T03/MVP. Depuis `Ajouter un exercice` dans une Composition, le parcours actuellement exposé ouvre la sélection d’Exercices du Catalogue. La capacité existante de création directe d’un Exercice local à la Séance reste conservée fonctionnellement et techniquement mais n’est pas exposée dans cet enchaînement. La sélection multiple insère les Exercices selon leur ordre visible dans la liste filtrée au moment de la validation, indépendamment de l’ordre des touchers.
 
 Les cartes du Catalogue des exercices portent la couleur de leur Catégorie. La surface principale ouvre la consultation/modification. Le bouton Lecture lance exclusivement l’Exécution directe. Aucun contrôle `Déployer` n’est accessible sur les cartes d’Exercice. La gouttière permanente présente la photo associée ou l’icône de nature en son absence (D-260/D-261). Un glissement gauche expose `Planifier`, `Dupliquer` et `Archiver` sur un Exercice active ; dans la liste des Exercices archivées, il expose `Supprimer`. Aucune poignée de déplacement n’est affichée.
 
@@ -412,13 +408,13 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 - après validation de la Composition, la cible est `Catalogue des séances`, segment `Séances` ;
 - la navigation d’avancement canonique fait entrer la cible depuis la droite et sortir l’écran courant vers la gauche ;
 - dans le Catalogue, la rangée `Créer / Filtrer / Trier` suit la géométrie commune validée ; les options de `Filtrer` sont contextuelles et `Trier` reste visible disabled dans T03 ;
-- dans l’éditeur Exercice, `Renforcement du genou` est une donnée de démonstration et l’état vide affiche `Nom de l’exercice` ; dans la phrase de synthèse, Répétitions affiche `Durée totale {symbole éventuel}{total fourni}` (bip positif : ≈, prévision Ri×b ; bip nul : durée omise), tandis que Durée avec une seule Série unilatérale, ainsi qu’À l’échec n’affichent pas de clause Durée totale (D-298).
+- dans l’éditeur Exercice, `Renforcement du genou` est une donnée de démonstration et l’état vide affiche `Nom de l’exercice` ; dans la phrase de synthèse, Répétitions affiche `Durée totale {symbole éventuel}{total fourni}` (bip positif : ≈, prévision Ri×b ; bip nul : durée omise), tandis que Durée avec une seule Série unilatérale sans pause, ainsi qu’À l’échec n’affichent pas de clause Durée totale (D-298).
 
 ### Médias et Parcours
 
-L’affichage du média associé dans la gouttière permanente de la carte du Catalogue des Exercices appartient au MVP, sans déploiement (D-260/D-261). Les médias multiples ordonnés ainsi que les mécanismes d’import/capture suivent leur périmètre d’évolution propre.
+L’affichage du média associé dans la gouttière permanente de la carte du Catalogue des Exercices appartient au MVP, sans déploiement (D-260/D-261). L’import/ajout de `0..n` photos ou vidéos locales ordonnées est inclus au MVP dans PRE-3 (D-333). La capture caméra n’est pas implicitement décidée par cet amendement.
 
-Un Parcours reste conceptualisé et préparé dans le modèle/architecture, mais T03 ne développe ni création, ni modification, ni Exécution, ni planification de Parcours. Le segment `Parcours` est absent au MVP. **La cible fonctionnelle prévoit qu’un Parcours soit, lui aussi, directement planifiable** lorsqu’il entrera dans la version qui livre cette capacité ; cette planification réutilisera les Routines communes et ne créera pas un système distinct. **La cible fonctionnelle prévoit qu’un Parcours soit, lui aussi, directement planifiable** lorsqu’il entrera dans la version qui livre cette capacité ; cette planification réutilisera les Routines communes et ne créera pas un système distinct.
+Le modèle autonome Parcours est retiré (D-328). Le mot parcours désigne plusieurs contenus liés sur un créneau, sans objet propre ; le Circuit interne à une Séance reste conservé.
 
 ## 12. Roadmap des tranches MVP
 
@@ -463,11 +459,11 @@ Pendant l’Exécution MVP, l’utilisateur peut basculer entre les faces Inform
 
 L’état de face et le média courant sont mémorisés uniquement pendant la séance en cours et sont réinitialisés entre deux séances. Une vidéo ne démarre jamais automatiquement. Le son vidéo est actif par défaut et son volume est temporairement abaissé pendant les annonces vocales KODJO.
 
-Les états média `4997:6113` et `5009:6069` font partie du MVP selon la confirmation du 28/09/2026. L’ajout/import de média dans l’éditeur n’est pas inclus ; les règles de stockage restent définies par D-068.
+Les états média `4997:6113` et `5009:6069` font partie du MVP selon la confirmation du 28/09/2026. L’ajout/import de média dans l’éditeur est inclus au MVP dans PRE-3 (D-333) ; les règles de stockage de D-068 sont conservées.
 
 Référence de conception : [CONCEPTION-EXECUTION-MEDIA.md](./CONCEPTION-EXECUTION-MEDIA.md).
 
-### Récupération après occurrence dans une Séance ou un Parcours — D-208
+### Récupération après occurrence dans une Séance — D-208
 
 Une récupération est ajoutée explicitement après une occurrence et reste distincte de la définition d’Exercice. Absente par défaut, elle se déplace et se duplique avec l’occurrence ; sa suppression rétablit la Pause terminale configurée. Une valeur positive est exécutée après l’occurrence, y compris en fin de Séance, et à chaque Tour si elle appartient au Circuit. Le défaut Profil est proposé à l’ajout explicite, sans effet rétroactif. postActivityRecoverySeconds est une projection de calcul, égale à 0 en son absence. À 0 s, aucune information ni phase de récupération ; le trait reste visible hors placement (D-303 à D-307).
 
@@ -475,13 +471,13 @@ Une récupération est ajoutée explicitement après une occurrence et reste dis
 
 ## Consolidation fonctionnelle — 26 septembre 2026
 
-- Terminologie fonctionnelle : **Exercice** est le terme UX ; **Circuit** est le groupe ordonné d’Exercices interne à une Séance ; un **Tour** est une répétition de ce Circuit ; **Parcours** reste l’entité autonome du Catalogue.
+- Terminologie fonctionnelle : **Exercice** est le terme UX ; **Circuit** est le groupe ordonné d’Exercices interne à une Séance ; un **Tour** est une répétition de ce Circuit ; **parcours** est le libellé de plusieurs contenus planifiés, sans entité autonome.
 - Un nouvel Exercice valide possède exactement **une Catégorie** et **une ou plusieurs Zones corporelles**. L’Étiquette de Séance reste facultative.
 - Étiquettes, Catégories et Zones corporelles sont des métadonnées de classification/reporting sans effet sur l’Exécution. Une valeur supprimée sort des choix futurs mais reste conservée sur les objets qui la référencent déjà. Pour Étiquette/Catégorie, nom et dernière couleur sont préservés.
 - La couleur est une propriété de l’Étiquette/Catégorie, source de vérité commune : modifier la couleur modifie l’affichage de tous les objets qui la référencent. Les Zones corporelles n’ont pas de couleur.
 - Les valeurs du Profil sont des valeurs initiales proposées, sans rétroactivité : Pause entre les côtés, Compte à rebours d’exercice et Fin d’exercice pour un nouvel Exercice ; Récupération après exercice pour une nouvelle occurrence de Séance.
 - Une Séance possède un réglage global unique, **activé par défaut**, pour appliquer ou ignorer ensemble les Compte à rebours d’exercice et Fin d’exercice de tous ses Exercices. Aucun réglage occurrence par occurrence n’est exposé.
-- La phrase de synthèse suit D-298 : champ vide sans mode ; mode hors phrase ; Durée totale en mode Durée sauf redondance réelle (N1 unilatéral) ; Répétitions : ≈ avec bip positif, omission sans bip ; À l’échec = aucune Durée totale.
+- La phrase de synthèse suit D-298 : champ vide sans mode ; mode hors phrase ; Durée totale en mode Durée sauf redondance réelle (N1 unilatéral sans pause) ; Répétitions : ≈ avec bip positif, omission sans bip ; À l’échec = aucune Durée totale.
 - Point d’arrêt : ordre `Exercice → Récupération après exercice → Point d’arrêt → suite`; interdit immédiatement après le Compte à rebours initial et immédiatement avant la Fin de séance ; autorisé aux frontières et à l’intérieur du Circuit ; lorsqu’il est dans le Circuit, il est exécuté à chaque Tour.
 - Média d’Exécution compact : le bouton Lecture central disparaît pendant la lecture vidéo ; le retour à Information met la vidéo en pause ; le plein écran n’interrompt pas l’Exécution.
 
@@ -494,7 +490,7 @@ Une récupération est ajoutée explicitement après une occurrence et reste dis
 
 ### Clôture Figma / DSF du 28 septembre 2026
 
-Le Prototype MVP comporte exactement quatre destinations principales : `Catalogues`, `Calendrier`, `Suivi`, `Profil`. Les écrans de recherche globale sont archivés et aucune recherche locale n’est incluse dans le MVP (D-221). Une sélection simple d’objet en modale se valide au toucher et ferme la modale sans CTA bas ; la sélection multiple de Composition conserve les cases à cocher et `Sélectionner` (D-222). Le titre de planification est `Planifier` tant que le type n’est pas connu, puis `Planifier une séance` ou `Planifier un exercice` selon le contexte (D-223).
+Le Prototype MVP comporte exactement quatre destinations principales : `Catalogues`, `Calendrier`, `Suivi`, `Profil`. Les écrans de recherche globale sont archivés et aucune recherche locale n’est incluse dans le MVP (D-221). En planification, les cases à cocher et le CTA « Ajouter 1 élément » / « Ajouter n éléments » remplacent la validation immédiate ; les titres dépendent du nombre et du type de contenus (D-222/D-223 révisées le 08/10). Les référentiels conservent leurs propres contrats.
 
 Les fondations visuelles et composants communs suivent DSF V2 : fonds et zones de contexte D-224, navigation basse D-225, actions flottantes et boutons circulaires D-226, steppers/badges D-227, modales D-228, roulettes et modale Planifier D-229, listes et états spécialisés D-230. Ces prescriptions sont des contraintes de rendu/recette lorsqu’elles ne portent pas un comportement métier.
 
@@ -520,4 +516,5 @@ Référence courante : [v13](Specifications-fonctionnelles/SPECIFICATION-PARAMET
 Les trois modes acceptent Bip de cadence0..10s,0=Aucun par défaut. Répétitions/À l’échec gardent le chronomètre croissant et la fin manuelle ; Durée garde son minuteur. Le bip ne modifie pas ces terminaisons. La phrase de paramètres est unique, valeurs en gras, issue des paramètres validés et d’un total calculé par la spécification. Exercice : exact en Durée, ≈ en Répétitions avec bip, omitted en Répétitions sans bip et À l’échec. Séance : exact si tout exact, ≈ avec estimation sans inconnu, ≥ avec travail inconnu. Bip v2 gouverne calculs et périmètres.
 
 Références actives : paramètres v13, Bip v2, Phrase v1, chapitre13 et DSF-CADENCE-2026-10-06. Cible à implémenter/qualifier ; aucune annonce de livraison. Les règles photos, Circuit/Tour, pauses et récupération restent conservées. Le classeur v13 est exclusivement rédactionnel.
+
 

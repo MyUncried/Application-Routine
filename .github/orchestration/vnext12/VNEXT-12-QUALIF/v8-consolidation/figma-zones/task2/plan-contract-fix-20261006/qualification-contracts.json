@@ -1,0 +1,30 @@
+[
+  {
+    "job_id": 112049678833,
+    "name": "qualification (windows-latest)",
+    "candidate_head": "67d18be21e865846fac780351b34bc6cd4c636a3",
+    "started_at": "2026-10-06T00:41:11Z",
+    "completed_at": "2026-10-06T00:48:16Z",
+    "counts": {
+      "tests": 318,
+      "pass": 318,
+      "fail": 0,
+      "skipped": 0,
+      "duration_ms": 376026.9121
+    }
+  },
+  {
+    "job_id": 112049678902,
+    "name": "qualification (ubuntu-latest)",
+    "candidate_head": "67d18be21e865846fac780351b34bc6cd4c636a3",
+    "started_at": "2026-10-06T00:41:13Z",
+    "completed_at": "2026-10-06T00:42:05Z",
+    "counts": {
+      "tests": 318,
+      "pass": 318,
+      "fail": 0,
+      "skipped": 0,
+      "duration_ms": 36352.363112
+    }
+  }
+]

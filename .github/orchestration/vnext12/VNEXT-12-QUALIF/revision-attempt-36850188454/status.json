@@ -1,0 +1,7 @@
+{
+  "status": "FAILED",
+  "phase": "BOUNDED_CORRECTION",
+  "error": "VNEXT12_REVISION_REQUIRES_DIAGNOSIS",
+  "implementation_invoked": false,
+  "final_audit_invoked": false
+}
