@@ -172,11 +172,30 @@ function unitText(packet,locator){
 }
 // The existing lossless UI transport can also be the frozen Git source.
 // Old pretty-printed source bytes stay admissible and retain their fingerprints.
-function snapshotContent(packet,{packed=false}={}){
+const STORAGE_SCHEMA='kodjo.vnext.figma-storage.v1';
+function snapshotContent(packet,{packed=false,gzip=false}={}){
+  if(gzip){
+    const compact=JSON.stringify(pack(packet))+'\n';
+    return JSON.stringify({schema_version:STORAGE_SCHEMA,encoding:'gzip-base64',uncompressed_sha256:V.sha256(compact),data:require('node:zlib').gzipSync(Buffer.from(compact),{level:9}).toString('base64')})+'\n';
+  }
   return packed ? JSON.stringify(pack(packet))+'\n' : JSON.stringify(packet,null,2)+'\n';
 }
 function snapshotPacket(content,{verifySerialization=true}={}){
   let serialized;try{serialized=JSON.parse(content);}catch(_){V.fail('VNEXT_FIGMA_SNAPSHOT_TRUNCATED');}
+  const compressed=serialized.schema_version===STORAGE_SCHEMA;
+  if(compressed){
+    V.assertExactKeys(serialized,['schema_version','encoding','uncompressed_sha256','data'],[],'VNEXT_FIGMA_STORAGE_INVALID');
+    if(serialized.encoding!=='gzip-base64'||typeof serialized.data!=='string'||!serialized.data.length)V.fail('VNEXT_FIGMA_STORAGE_INVALID');
+    const buffer=Buffer.from(serialized.data,'base64');
+    if(buffer.toString('base64')!==serialized.data)V.fail('VNEXT_FIGMA_STORAGE_INVALID');
+    let compact;try{compact=require('node:zlib').gunzipSync(buffer,{maxOutputLength:64*1024*1024}).toString('utf8');}catch(_){V.fail('VNEXT_FIGMA_STORAGE_DECOMPRESSION_FAILED');}
+    if(V.sha256(compact)!==serialized.uncompressed_sha256)V.fail('VNEXT_FIGMA_STORAGE_HASH_MISMATCH');
+    if(verifySerialization&&content!==JSON.stringify(serialized)+'\n')V.fail('VNEXT_FIGMA_LAUNCH_FROZEN_BYTES_MISMATCH');
+    // Decode the original compact source with its own contract and serialization checks.
+    let inner;try{inner=JSON.parse(compact);}catch(_){V.fail('VNEXT_FIGMA_SNAPSHOT_TRUNCATED');}
+    if(inner.schema_version!=='kodjo.vnext.figma-transport.v1')V.fail('VNEXT_FIGMA_STORAGE_INVALID');
+    return snapshotPacket(compact);
+  }
   const packed=serialized.schema_version==='kodjo.vnext.figma-transport.v1';
   const packet=unpack(serialized);
   if(verifySerialization&&content!==(packed?JSON.stringify(serialized)+'\n':JSON.stringify(serialized,null,2)+'\n'))V.fail('VNEXT_FIGMA_LAUNCH_FROZEN_BYTES_MISMATCH');

@@ -25,9 +25,9 @@ test('changed packed value, missing property and noncanonical source bytes are r
  assert.throws(()=>F.snapshotPacket(F.snapshotContent(packet,{packed:true}).trim()),/FROZEN_BYTES_MISMATCH/);
  assert.throws(()=>F.snapshotPacket(JSON.stringify(JSON.parse(F.snapshotContent(packet,{packed:true})),null,2)+'\n'),/FROZEN_BYTES_MISMATCH/);
 });
-test('packed frozen Git source is observed by the real chain without changing semantics',async t=>{
+for(const gzip of [false,true])test('frozen Git source is observed without changing semantics (gzip='+gzip+')',async t=>{
  const f=Fixture.fixture({launchMode:true});t.after(()=>f.cleanup());
- const content=F.snapshotContent(f.snapshot,{packed:true});
+ const content=F.snapshotContent(f.snapshot,{packed:true,gzip});
  require('node:fs').writeFileSync(require('node:path').join(f.cwd,f.packetPath),content);
  f.git('add',f.packetPath);f.git('commit','-qm','freeze compact source');f.head=f.git('rev-parse','HEAD').trim();
  const legacy=f.recipe.sourceManifestInput.sources.find(s=>s.source_kind==='FIGMA');
@@ -42,4 +42,15 @@ test('packed frozen Git source is observed by the real chain without changing se
  Launch.validate(checkpoint);assert.equal(checkpoint.reference_hash,p.contract_hash);assert.equal(checkpoint.frozen.content,content);
  const Source=require('../../scripts/kodjo/lib/source-manifest');const manifest=Source.build(checkpoint.sourceManifestInput);
  const observations=Chain.observeSources(manifest,f.cwd);assert.equal(observations.find(o=>manifest.sources.find(s=>s.source_id===o.source_id)?.source_kind==='FIGMA').content,content);
+});
+
+test('compressed source preserves all data and refuses byte, payload and digest corruption',()=>{
+ const packet=Fixture.packet('a'.repeat(40)),content=F.snapshotContent(packet,{gzip:true});
+ assert.deepEqual(F.snapshotPacket(content),packet);
+ assert.equal(F.sourceInput(packet,'a'.repeat(40),'snapshot.json',content).fingerprint,V.sha256(content));
+ const changed=JSON.parse(content);changed.uncompressed_sha256='0'.repeat(64);
+ assert.throws(()=>F.snapshotPacket(JSON.stringify(changed)+'\n'),/STORAGE_HASH_MISMATCH/);
+ changed.data='AA==';assert.throws(()=>F.snapshotPacket(JSON.stringify(changed)+'\n'),/DECOMPRESSION_FAILED/);
+ assert.throws(()=>F.snapshotPacket(content.trim()),/FROZEN_BYTES_MISMATCH/);
+ const extra={...JSON.parse(content),extra:true};assert.throws(()=>F.snapshotPacket(JSON.stringify(extra)+'\n'),/STORAGE_INVALID/);
 });
