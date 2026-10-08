@@ -38,3 +38,19 @@ test('duplicate or malformed final streams fail closed', () => {
       ['-e', `process.stdout.write(${JSON.stringify(lines)})`], process.cwd(), '', process.env, 5000), /STREAM_DUPLICATE_RESULT|STREAM_INVALID/);
   }
 });
+test('terminal stdout errors preserve evidence and distinguish expired OAuth from process failure', () => {
+  for (const [message, status, expected] of [
+    ['Failed to authenticate: OAuth session expired and could not be refreshed', 1, 'VNEXT_REVIEW_AUTHENTICATION_REQUIRED'],
+    ['usage limit reached', 1, 'VNEXT_REVIEW_USAGE_LIMIT'],
+    ['internal execution failure', 1, 'VNEXT_LIVE_PROCESS_FAILED'],
+    ['Failed to authenticate: OAuth session expired', 0, 'VNEXT_REVIEW_AUTHENTICATION_REQUIRED'],
+  ]) {
+    const terminal = { type: 'result', is_error: true, result: message };
+    const code = `process.stdin.resume();process.stdin.on('end',()=>{process.stdout.write(JSON.stringify(${JSON.stringify(terminal)})+'\\n');process.exitCode=${status};});`;
+    let observed;
+    assert.throws(() => Process.command(process.execPath, ['-e', code], process.cwd(), '', process.env, 5000,
+      { onResult: value => { observed = value; } }), error => error.code === expected);
+    assert.deepEqual(JSON.parse(observed.stdout), terminal);
+    assert.equal(observed.stderr, '');
+  }
+});
