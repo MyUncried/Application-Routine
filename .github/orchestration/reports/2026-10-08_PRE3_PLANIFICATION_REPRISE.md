@@ -154,3 +154,10 @@ node --max-old-space-size=4096 docs/preparation/PRE-3/planification/lancer-sourc
 ```
 
 Cette preuve clôt le blocage de préparation source, pas PRE-3. Le PlanContract/UIContract finaux restent à construire par le pilote ChatGPT ; la revue indépendante reste à lancer par le chemin réel VNext. Claude absent de cet environnement et absence de dispatch du connecteur restent le défaut de transport identifié. Aucun run distant ni surveillance en arrière-plan, aucune approbation propriétaire demandée.
+
+
+## Demande du 9 octobre : production des contrats et procédure de revue
+
+Reprise sur 4c9eae11, baseline main 1ddfb6d144552f578388257adc78db47ab5992c8, branche et suivi #340 inchangés, aucun run actif. La construction réelle du RequirementRegistry sur le Launch existant refuse `VNEXT_REQUIREMENT_ID_DUPLICATE` : quatre états P3-01 ont le même expected mais leurs parcours/Given/When diffèrent. Le Launch source PASS précédent ne démontrait pas la validité du registre ; ses 6384 lignes étaient des entrées candidates, pas des exigences déjà admises.
+
+Correction de données documentaires : qualifier chacune de ces quatre attentes par son parcours Catalogue création/modification ou Séance création/modification de copie, conserver tous les scénarios, règles, états et propriétés. Aucun correctif protocole, nouvelle extraction, audit ni qualification. L’inventaire autoritatif et sa copie de préparation restent concordants. La source et le Launch seront régénérés après publication de cette qualification. Aucun PlanContract ou fichier produced déclaré publié avant validation du constructeur.

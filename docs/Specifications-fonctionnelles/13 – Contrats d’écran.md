@@ -4327,14 +4327,14 @@ Projection vérifiable des états et scénarios déjà spécifiés ci-dessus, da
       "state_id": "PRE3-DOC-P3-01-Catalogue:create",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "expected": "Catalogue — création : All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
       "reason": "Scénario fonctionnel P3-01 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
       "scenarios": [
         {
           "scenario_id": "PRE3-DOC-P3-01-Catalogue:create-CHECK",
           "given": "Parent persisted or new according to route Catalogue:create",
           "when": "Open, change target/cadence/order/media, apply, finish, reopen",
-          "then": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+          "then": "Catalogue — création : All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -4345,14 +4345,14 @@ Projection vérifiable des états et scénarios déjà spécifiés ci-dessus, da
       "state_id": "PRE3-DOC-P3-01-Catalogue:edit",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "expected": "Catalogue — modification : All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
       "reason": "Scénario fonctionnel P3-01 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
       "scenarios": [
         {
           "scenario_id": "PRE3-DOC-P3-01-Catalogue:edit-CHECK",
           "given": "Parent persisted or new according to route Catalogue:edit",
           "when": "Open, change target/cadence/order/media, apply, finish, reopen",
-          "then": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+          "then": "Catalogue — modification : All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -4363,14 +4363,14 @@ Projection vérifiable des états et scénarios déjà spécifiés ci-dessus, da
       "state_id": "PRE3-DOC-P3-01-Session:create",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "expected": "Séance — création de copie : All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
       "reason": "Scénario fonctionnel P3-01 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
       "scenarios": [
         {
           "scenario_id": "PRE3-DOC-P3-01-Session:create-CHECK",
           "given": "Parent persisted or new according to route Session:create",
           "when": "Open, change target/cadence/order/media, apply, finish, reopen",
-          "then": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+          "then": "Séance — création de copie : All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
@@ -4381,14 +4381,14 @@ Projection vérifiable des états et scénarios déjà spécifiés ci-dessus, da
       "state_id": "PRE3-DOC-P3-01-Session:edit",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "expected": "Séance — modification de copie : All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
       "reason": "Scénario fonctionnel P3-01 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
       "scenarios": [
         {
           "scenario_id": "PRE3-DOC-P3-01-Session:edit-CHECK",
           "given": "Parent persisted or new according to route Session:edit",
           "when": "Open, change target/cadence/order/media, apply, finish, reopen",
-          "then": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+          "then": "Séance — modification de copie : All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
           "proof_required": [
             "FUNCTIONAL_TEST"
           ]
