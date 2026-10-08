@@ -291,7 +291,7 @@ Le moteur gère ensuite :
 - les Séries propres à chaque Exercice ;
 - Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : Bip v2§3 et paramètres v13§§4–5.
 - l’insertion éventuelle d’une phase `SIDE_RECOVERY` entre les deux côtés lorsque `sideRecoverySeconds > 0` ;
-- l’insertion d’une phase `POST_ACTIVITY_RECOVERY` après chaque occurrence de Séance/Parcours lorsque `postActivityRecoverySeconds > 0` ;
+- l’insertion d’une phase `POST_ACTIVITY_RECOVERY` après chaque occurrence de Séance lorsque `postActivityRecoverySeconds > 0` ;
 - la progression dans le Circuit au cours du Tour courant ;
 - la progression interne du Cycle, non exposée dans l’interface MVP ;
 - les temps écoulés ;
@@ -599,7 +599,7 @@ Les technologies du MVP sont évaluées selon les critères suivants :
 - Les tests audio sur appareils physiques iOS et Android sont réalisés dans le second lot T04.
 - L’ajout de `expo-audio`, `expo-speech` et de leur configuration native impose la production d’un nouveau development build iOS et Android ; Expo Go ne constitue pas la preuve finale pour ces comportements natifs.
 - T02-S02 et sa migration `004` constituent désormais un **état historique** supersédé sur la récupération par D-208. Le schéma cible n’utilise plus une récupération générique attachée à l’Exercice.
-- Pour D-208, la base de développement peut être **réinitialisée** : le schéma cible doit être créé directement avec `side_recovery_seconds` sur l’Exercice et `post_activity_recovery_seconds` sur l’occurrence de Séance/Parcours. Aucune exigence de migration utilisateur de l’ancien `recovery_seconds` n’est portée par cette conception.
+- Pour D-208, la base de développement peut être **réinitialisée** : le schéma cible doit être créé directement avec `side_recovery_seconds` sur l’Exercice et `post_activity_recovery_seconds` sur l’occurrence de Séance. Aucune exigence de migration utilisateur de l’ancien `recovery_seconds` n’est portée par cette conception.
 - Les migrations `005`/`006` restent des traces de l’état technique antérieur et des évolutions déjà réalisées ; elles ne doivent pas être interprétées comme le scénario cible de migration D-208. Lors de l’implémentation de D-208, la version de schéma et les éventuels scripts techniques doivent être recalés sur la baseline de base réinitialisée.
 - L’archivage, la restauration et la suppression restent hors du périmètre de livraison T04 ; leur modèle existant n’est pas supprimé.
 | Backend | **Aucun dans le MVP** | Architecture local-first et réduction de la complexité |
@@ -834,7 +834,7 @@ Les contraintes de contexte déjà validées restent applicables ; les noms ci-d
 | Média | Référence conservée par contrat ; ancien nom de provenance : `Media / Section — Source exact` (`3382:71`) | section masquée dans le MVP ; conteneur de galerie en V2 |
 | Stepper entier simple | Référence conservée par contrat ; ancien nom de provenance : Composant standard/DSF compatible React Native/Expo | Stepper permanent pour Séries/Répétitions dans CE-UI-10 et Tours dans Composition ; bornes métier appliquées ; pas de roulette entière |
 
-Disclosure `5544:4650` : Replié / Déployé / Désactivé, cibles `48 × 48` relues. Les anciennes variantes 2537:1033/1038 sont archivées. Réutiliser le master courant, sans copie graphique locale ; les destinations relèvent du contrat hôte.
+Disclosure `5544:4650` : six variantes État(Replié/Déployé/Désactivé) × Cadre(Oui/Non), Oui par défaut ; cibles `48 × 48` relues le 08/10. Cadre interne 28×28, habillage retiré avec Cadre Non . Les anciennes variantes 2537:1033/1038 sont archivées. Réutiliser le master courant, sans copie graphique locale ; les destinations relèvent du contrat hôte.
 
 ### Règles de réutilisation et de contrôle
 
@@ -1348,9 +1348,9 @@ Si l’application est interrompue alors qu’une Exécution est `En cours`, cel
 
 ## 12.34 Architecture cible — Exercices, Médias et Parcours
 
-SQLite porte les définitions d’Exercices, les copies de Séance, les associations ordonnées, les Parcours, leurs étapes et les métadonnées média. Les photos et vidéos résident dans le stockage interne de l’application sous URI stable ; aucun binaire n’est enregistré en base. Un service de références compte les usages actifs et historiques avant tout nettoyage physique.
+SQLite porte les définitions d’Exercices, les copies de Séance, les associations ordonnées et les métadonnées média ; la cible de Routine multi-contenus est décrite ci-dessous, sans entité Parcours. Les photos et vidéos résident dans le stockage interne de l’application sous URI stable ; aucun binaire n’est enregistré en base. Un service de références compte les usages actifs et historiques avant tout nettoyage physique.
 
-Le domaine sépare `ActivityDefinitionRepository`, `SessionActivityRepository`, `MediaAssetRepository` et `CircuitRepository`. `CompositionService` orchestre la copie complète d’une définition dans une Séance. `CircuitExecutionService` fige les instantanés, crée les Exécutions de Séance liées et pilote l’écran de transition.
+Le domaine sépare `ActivityDefinitionRepository`, `SessionActivityRepository`, `MediaAssetRepository`. `CompositionService` orchestre la copie complète d’une définition dans une Séance. L’ancien service d’Exécution de Parcours n’est plus une cible à introduire (D-328).
 
 Le schéma d’`ActivityDefinition` utilise `executionMode ∈ {DURATION, REPETITIONS, TO_FAILURE}` et persiste le nombre de Séries canonique, la Pause après chaque série, `sideRecoverySeconds` et `sideMode`. `SessionActivity` ajoute `postActivityRecoverySeconds`. La Durée totale et le pilote Séries/Durée totale restent dérivés. Les Résultats distinguent les métriques des phases `SIDE_RECOVERY` et `POST_ACTIVITY_RECOVERY`. Les migrations conservent les Exercices MVP comme `SessionActivity`; elles ne créent pas silencieusement de références de catalogue. Les médias de la cible post-T05 utilisent capture ou photothèque, copie locale, miniature vidéo et lecture manuelle. La synchronisation distante reste séparée.
 
@@ -1360,7 +1360,6 @@ Le schéma d’`ActivityDefinition` utilise `executionMode ∈ {DURATION, REPETI
 |---|---|---|
 | Exercices | désactivé, aucune requête | `ActivityDefinitionRepository` |
 | Séances | `SessionRepository` | `SessionRepository` |
-| Parcours (concept post-MVP, pas de segment MVP) | absent de l’interface, aucune requête | `CircuitRepository` |
 
 Le filtrage et le tri sont des paramètres de requête indépendants du segment. L’ordre par défaut est `updatedAt DESC`; l’exécution d’une Séance ne modifie jamais `updatedAt`.
 
@@ -1434,17 +1433,31 @@ Cette cible reste post-MVP tant qu’une tranche d’implémentation n’est pas
 
 ## 12.35 Source polymorphe des Routines — D-206
 
-La persistance des Routines doit représenter une **source discriminée** : `SESSION` ou `ACTIVITY`, avec exactement un identifiant de source associé. Le choix physique des colonnes reste technique, mais le modèle ne doit pas dupliquer deux moteurs de planification distincts.
+La Routine porte le créneau et une liste ordonnée de références, non les contenus d’entraînement eux-mêmes. Chaque entrée référence une Séance active ou un Exercice persistant actif du même utilisateur. Le type et l’identifiant de source appartiennent désormais à **chaque entrée**, pas à un unique couple sur la Routine.
 
-Les services de calcul d’occurrences, rappels locaux, prochaine occurrence et historique d’occurrence consomment cette source générique. Au démarrage depuis une occurrence :
-- une source `SESSION` crée une Exécution d’origine `SESSION` et son Instantané de Séance ;
-- une source `ACTIVITY` crée une Exécution d’origine `ACTIVITY` et son Instantané autonome d’Exercice.
+| Donnée fonctionnelle | Porteur | Règle |
+|---|---|---|
+| Identité, propriétaire, dates de création/modification | Routine | Identité stable ; aucun objet Parcours ajouté |
+| Liste de contenus | Routine | Ordonnée, mixte SESSION/ACTIVITY ; une ou plusieurs entrées à la validation |
+| Type et référence de contenu, rang | Entrée de la liste | Référence source ; pas de copie SessionActivity lors du choix |
+| x, n, positions retenues | Entrée de la liste | Filtre sans unité ; n positions affichées ; valeur initiale à chaque fois |
+| Programme | Routine | Facultatif ; fenêtre borne les dates ; source Programme V1.2 à retrouver |
+| Début, heure | Routine | Une seule heure par créneau |
+| Répétition activée | Routine | Non : unique ; Oui : paramètres de récurrence |
+| Unité, multiplicateur | Routine | Jour/Semaine/Mois ; bornes Jour/Mois à préciser |
+| Jours sélectionnés | Récurrence hebdomadaire | Au moins un jour pour Semaine ; usage sous Jour/Mois ouvert |
+| Type de borne | Routine | jusqu’au/date ou pendant/nombre d’unités ; conversion ouverte |
+| Rappel activé, délai | Routine |0..1 ; permission système requise pour activation |
 
-La suppression ou l’archivage de la source doit arrêter ses occurrences futures selon les règles métier, sans supprimer les Exécutions ni Instantanés historiques. Les noms physiques de champs et migrations seront définis au développement ; l’exigence produit est l’unicité de la source et l’absence de second système de planification propre aux Exercices.
+Le schéma physique, les identifiants d’entrée et les liens aux exécutions devront être spécifiés avant développement. Ces noms fonctionnels ne sont pas un schéma SQL livré. Les occurrences futures restent dérivées ; aucun stockage de phrase récapitulative comme vérité métier. Une mise à jour ne réécrit pas les exécutions/instantanés passés. Les règles mono-source d’archivage ou suppression ne sont pas généralisées à une liste sans préciser l’effet sur les autres entrées.
+
+Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
+
+Un seul service génère les occurrences du créneau puis applique les filtres par entrée. Les sources restent discriminées SESSION/ACTIVITY. Aucun CircuitRepository ou CircuitExecutionService ne doit être ajouté pour un objet Parcours ; les éventuels noms techniques historiques ne sont pas supprimés sans analyse d’implémentation.
 
 ## 12.36 Extensibilité de la source Routine — Parcours
 
-Le discriminateur de source de Routine doit rester extensible. L’implémentation MVP couvre `SESSION` et `ACTIVITY`; la version qui livre la planification des Parcours ajoute `CIRCUIT` comme troisième valeur technique. Cette extension doit réutiliser le même stockage de Routine, le même calcul d’occurrences, le même ordonnanceur de rappels et les mêmes services de Calendrier. Aucun schéma ou moteur parallèle dédié aux Parcours ne doit être introduit.
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 ## 12.37 Schéma cible des récupérations — D-208
 
@@ -1452,13 +1465,13 @@ Le champ historique générique `recovery_seconds` ne constitue plus le schéma 
 - `ActivityDefinition.side_recovery_seconds` — récupération intrinsèque entre côtés, pertinente uniquement en bilatéral ;
 - `SessionActivity.post_activity_recovery_seconds` — récupération contextuelle après occurrence, valeur obligatoire pouvant être `0`.
 
-Le même principe s’applique aux occurrences d’Exercice d’un Parcours lorsque ce modèle est livré. La base étant réinitialisable pour cette évolution, aucune migration utilisateur n’est exigée dans la documentation cible ; l’implémentation doit néanmoins produire directement le schéma cible.
+La base étant réinitialisable pour cette évolution, aucune migration utilisateur n’est exigée dans la documentation cible ; l’implémentation doit néanmoins produire directement le schéma cible.
 
 Le moteur ne déduit jamais une récupération post-exercice à partir de l’adjacence. Il lit la valeur portée par l’occurrence. Une Exécution directe d’`ActivityDefinition` ignore toute récupération post-exercice et ne peut produire que `SIDE_RECOVERY` lorsqu’elle est bilatérale.
 
 ## 12.38 Impacts techniques de la consolidation D-209 à D-217
 
-Le schéma cible doit pouvoir représenter : (1) le Circuit interne et son nombre de Tours sans confondre ce concept avec l’entité autonome Parcours ; (2) Catégorie obligatoire et associations Zones corporelles `1..n` sur `ActivityDefinition`; (3) retrait logique d’une valeur de référentiel tout en conservant les références existantes et, pour Étiquette/Catégorie, sa couleur ; (4) un booléen de Séance activé par défaut pour inclure/exclure ensemble les phases Compte à rebours d’exercice et Fin d’exercice.
+Le schéma cible doit pouvoir représenter : (1) le Circuit interne et son nombre de Tours sans confondre ce concept avec le libellé parcours de planification ; (2) Catégorie obligatoire et associations Zones corporelles `1..n` sur `ActivityDefinition`; (3) retrait logique d’une valeur de référentiel tout en conservant les références existantes et, pour Étiquette/Catégorie, sa couleur ; (4) un booléen de Séance activé par défaut pour inclure/exclure ensemble les phases Compte à rebours d’exercice et Fin d’exercice.
 
 Les défauts Profil sont lus à la création uniquement : aucune synchronisation réactive ni indicateur d’héritage n’est requis. Le générateur de Plan développe les Points d’arrêt internes au Circuit à chaque Tour et ordonne, après un Exercice, `POST_ACTIVITY_RECOVERY` avant le Point d’arrêt. Les identifiants techniques historiques peuvent rester inchangés jusqu’à une refactorisation explicitement planifiée.
 
@@ -1568,3 +1581,10 @@ La suppression du troisième segment est une évolution fonctionnelle [FUNC-SEG-
 ## Écart d’implémentation constaté lors de la fusion documentaire — 07/10/2026
 
 La cible normative de `color.overlayScrim` est `rgba(31, 33, 41, 0.34)`, conformément au brief de voile appliqué et au relevé Figma de cette mission. La mention « cible à arbitrer » de la PR #326 est dépassée. Le code de `src/shared/ui/tokens.ts` au commit `a0a07602` conserve `rgba(20, 20, 20, 0.5)` : son alignement reste à réaliser dans une intervention de développement. Le test `tokensSpecification.test.ts`, qui compare le code au présent registre, signalera cet écart tant que le code ne sera pas aligné. Cette fusion documentaire ne modifie pas le code et ne clôture pas cet écart d’implémentation.
+
+
+## Interface générale — règles du 08/10/2026
+
+La référence générale est le [DSF du 08/10](../DSF-INTERFACE-GENERALE-2026-10-08.md). Elle remplace les anciens écarts de contexte/sections, positions de CTA et habillages de blocs incompatibles. Elle ne remplace pas les espacements internes des composants. Fond blanc de modale et voile 34 % sont distincts. Le registre des tokens de code ne vaut pas preuve que la nouvelle grille a été implémentée : cette mission est documentaire.
+
+La planification applique [sa spécification](SPECIFICATION-PLANIFICATION-2026-10-08.md) et les contrats CE-UI-04/05/11. L’ordre et les coordonnées observés ne fournissent aucune formule de récurrence.

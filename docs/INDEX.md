@@ -346,3 +346,13 @@ v12 et v10.2 sont historiques ; leurs règles remplacées ne doivent pas être u
 
 - [Report des dernières décisions : H-08 et H-09](../.github/orchestration/reports/2026-10-06_REPORT_DECISIONS_H08_H09.md) — rectifie l’interprétation de D-238 dans les rapports antérieurs ; décisions H-03/H-10 déjà conservées.
 
+
+
+## Mise à jour du 08/10/2026 — interface et planification
+
+- [DSF général](DSF-INTERFACE-GENERALE-2026-10-08.md) : grille, CTA, modales, blocs et composants communs.
+- [Spécification de planification](Specifications-fonctionnelles/SPECIFICATION-PLANIFICATION-2026-10-08.md) : créneau multi-contenus, fréquence, répétition, Programme et points ouverts.
+- [Matrice et captures](MATRICE-PLANIFICATION-2026-10-08.md) : traçabilité P01–P15, états et réserves.
+- [Rapport de mission](../.github/orchestration/reports/2026-10-08_PLANIFICATION_ANALYSE_PROPAGATION.md).
+
+Les anciennes références de planification mono-source, de l’objet autonome Parcours et des contrôles Aucune/Aucun sont supersédées. Les notes historiques ne valent pas nouvelle prescription.

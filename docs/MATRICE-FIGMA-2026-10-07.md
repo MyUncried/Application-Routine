@@ -1,5 +1,8 @@
 # Inventaire courant des références Figma — 07/10/2026
 
+> Actualisation 08/10 : les règles générales d’interface sont définies dans [DSF-INTERFACE-GENERALE-2026-10-08](DSF-INTERFACE-GENERALE-2026-10-08.md). Pour la planification, la [matrice du 08/10](MATRICE-PLANIFICATION-2026-10-08.md) remplace les anciennes références et leur statut ; les lignes datées antérieures restent un inventaire historique, pas la preuve des nouvelles captures.
+
+
 **Relevé historique du lot précédent.** La [matrice v15](MATRICE-EVOLUTIONS-V15-2026-10-07.md) porte la référence courante, les derniers noms/captures et les limites vérifiées. Les empreintes ci-dessous décrivent leur lot daté.
 
 **État antérieur au lot Bip de cadence.** La [matrice Bip du07/10](MATRICE-BIP-FIGMA-2026-10-07.md) porte les références courantes et remplace les états de captures en attente.
@@ -162,3 +165,4 @@ Les nouveaux états 7167:13503, 7173:13521 et 7296:13696 sont intégrés au chap
 | [7174:13554 — Icônes retenues — Récupération / Durée / Point d’arrêt / Générique](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7174-13554) | Capture non disponible : quota Figma | Référence DSF (pas un écran applicatif) | Lien Figma uniquement |
 | [7245:13718 — Boutons d’action contextuelle — repos et activé](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7245-13718) | Capture actualisée et PNG vérifié | Référence DSF (pas un écran applicatif) | [PNG](Specifications-fonctionnelles/images/figma-7245-13718.png) ; b98e1b9f2270d11777b4723f2cd7e2ab6c81043c |
 | [7296:13696 — Composition séance — Retirer une récupération](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7296-13696) | Capture actualisée et PNG vérifié | Composition ; CE-T03-08 | [PNG](Specifications-fonctionnelles/images/figma-7296-13696.png) ; 12ff799817f251ae051f9a71583b6cc4659b6418 |
+

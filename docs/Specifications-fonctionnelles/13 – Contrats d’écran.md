@@ -1,5 +1,8 @@
 # 13 — Contrats d’écran
 
+> Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la spécification du 08/10 et son registre de points ouverts.
+
+
 **Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
 
 > **Règle documentaire :** le chapitre 13 ne contient aucune copie d’écran. Les captures et copies physiques d’écrans/modales sont centralisées exclusivement dans le chapitre 06. Le chapitre 13 conserve uniquement les contrats, états, règles et références de nodes Figma nécessaires à la recette.
@@ -205,6 +208,12 @@ Les durées des contrats Catalogue/Composition/Calendrier utilisent leur périm�
 
 Bip de cadence : shell et préférences Profil conservés ; stepper0..10 dans les trois modes,0=Aucun. États d’exécution sans nouveau layout ; Bip v2 gouverne les signaux périodiques, nominal, Pause/Reprise et sécurité. L’ancien écran7061:13383 de roulette est supprimé.
 
+### 4.15 Interface générale du 08/10/2026
+
+Tous les contrats appliquent le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md) pour les quatre relations verticales 18/20/13/12, les pieds d’action, les surfaces blanches des modales et les blocs de section gris sans trait. Exception 20du Profil conservée. Les dimensions internes des cartes ne sont pas remplacées par cette grille ; les cibles tactiles et Safe Areas restent indépendantes. Les coordonnées sont celles du gabarit 402×874 et se traduisent par les ancrages du shell sur les autres tailles.
+
+La suppression du titre des contenus de planification est confirmée par le propriétaire le 08/10. Les états Calendrier multi-contenus et Programme PROG2/3 restent en construction : CE-UI-02/03 ne certifient pas leur recette ; le modèle cible et les limites figurent dans la spécification dédiée.
+
 ## Inventaire des contrats actifs
 
 | Contrat | Famille |
@@ -231,7 +240,7 @@ Bip de cadence : shell et préférences Profil conservés ; stepper0..10 dans le
 | CE-UI-01 | Profil — préférence silhouette |
 | CE-UI-02 | Calendrier — Jour compact |
 | CE-UI-03 | Calendrier — Semaine et structure Mois |
-| CE-UI-04 | Calendrier et planification — choisir une source |
+| CE-UI-04 | Calendrier et planification — choisir des contenus |
 | CE-UI-05 | Planification — formulaire et états de paramètres |
 | CE-UI-06 | Splash KODJO |
 | CE-UI-07 | Profil — préférences et défauts d’exécution |
@@ -239,6 +248,8 @@ Bip de cadence : shell et préférences Profil conservés ; stepper0..10 dans le
 | CE-UI-08 | Synthèse de Séance |
 | CE-UI-09 | Référentiels d’Exercice — Catégorie et Zones corporelles |
 | CE-UI-10 | Paramètres d’exécution — feuille basse |
+| CE-UI-11 | Planification — fréquence d’un contenu |
+
 
 ## CE-T03-01 — Catalogue des séances — état T03
 
@@ -277,7 +288,7 @@ Durée et symbole viennent du calcul commun : Durée exacte, Répétitions avec 
 
 ### 7. Structure de l’écran
 
-Header fixe → segmenté trois types → rangée commandes Catalogue (`Créer`, `Filtrer`, `Trier`) → liste/état vide → Bottom Navigation.
+Header fixe → segmenté deux types → rangée commandes Catalogue (`Créer`, `Filtrer`, `Trier`) → liste/état vide → Bottom Navigation.
 
 ### 8. Éléments obligatoires
 
@@ -2491,201 +2502,181 @@ Chapitre 06 Calendrier ; D-206/D-233–239 ;1992:5101/5237/5365/5962/6102/6389,2
 
 Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figma ; maintien des rubriques sans changement fonctionnel lorsque non concernées. Les captures sont centralisées au chapitre06, aucun test applicatif présumé.
 
-## CE-UI-04 — Calendrier et planification — choisir une source
+## CE-UI-04 — Calendrier et planification — choisir des contenus
 
 ### 1. Identification
 
-Calendrier et Planification — choix de source ; frames 1992:6249,1992:7861,5451:4272 ; variante Choix calendrier ou planification.
+CE-UI-04 ; sélection de contenus pour planification. Frames MVP 7599:14197 et 7594:34809 ; homologues communautaires 7599:14753 et 7600:14108. Un seul composant de choix avec des états de décompte différents.
 
 ### 2. Finalité fonctionnelle
 
-Choisir une seule source SESSION ou ACTIVITY pour la planification.
+Choisir une ou plusieurs Séances et/ou Exercices persistants pour un même créneau ; aucune entité Parcours créée.
 
 ### 3. Contexte d’entrée
 
-Planifier depuis Calendrier ; changer la source du formulaire.
+Calendrier → Planifier ; formulaire CE-UI-05 → Changer ; sélection initiale éventuellement préremplie depuis une carte Catalogue.
 
 ### 4. Contexte de sortie / destinations
 
-Toucher une source valide met à jour le brouillon et ferme immédiatement vers CE-UI-05. Fermer sans choix restitue l’appelant et sa source précédente. Aucun CTA Sélectionner.
+« Ajouter 1 élément » / « Ajouter n éléments » valide la sélection dans le brouillon et revient au formulaire. Fermer sans valider conserve la liste antérieure. Le toucher d’une carte ne ferme pas la modale.
 
 ### 5. Données affichées et source de vérité
 
-Séances/Exercices persistants sélectionnables ; identifiant choisi dans le brouillon.
-
-Durée et symbole viennent du calcul commun : Durée exacte, Répétitions avec bip ≈, sans bip et À l’échec omis à l’Exercice ; ≥ seulement à la Séance avec travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Sources actives SESSION/ACTIVITY appartenant à l’utilisateur ; collection d’identifiants retenus. Aucun contenu de démonstration injecté en liste vide. Conserver les règles existantes de classement et les paramètres de carte sans durée/Lecture/Déployer.
 
 ### 6. Classification des valeurs Figma
 
-Noms/classements/paramètres des sources dynamiques ; titres Choisir une séance/Choisir un exercice et fermeture statiques ; aucune date/couleur d’événement issue de cette sélection.
+Choisir des séances/Choisir des exercices dépendent du segment actif ; décompte et contenus dynamiques. Les noms et coches des exemples ne sont pas des règles de sélection.
 
 ### 7. Structure de l’écran
 
-Modale avec titre/fermeture, segmenté `Exercices / Séances` puis liste défilante de cartes radio ; aucun pied de validation. Arrière-plan visible mais inactif.
+Titre et fermeture → segmenté Exercices/Séances → liste défilante avec cases → CTA de décompte en bas. Pas de segment Parcours.
 
 ### 8. Éléments obligatoires
 
-Deux options de type seulement, aucun Parcours ni troisième emplacement ; radio de sélection ; pas de badge durée, Lecture ou Déployer ; titre/classement/valeurs, état sélectionné ou non.
+Cases à cocher même pour un seul élément. Ajouter 1 élément au singulier ; Ajouter n éléments au pluriel. Le titre de la modale suit le segment actif.
 
 ### 9. Layout déterministe
 
-Composants actifs et propriété Durée : [DSF cartes du07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.
-
-Segmenté354×42, options171×34, libellés16/20, styles communs§4.5bis. Cartes de largeur354, marges24 sur402, hauteur91 ; radio côté droit ; zones d’Exercice : cadre de coupe à8 px du radio ; Séance : minimum20 conservé ; titre 15/pastilles 20/valeurs 16.
+Marges 24 et largeur 354 sur 402 ; CTA de référence y 802,354×48, libellé centré. Cartes de choix issues du DSF courant, sans durée ni Lecture/Déployer. Cases à droite ; pas de radios. États de sélection du contrôle de planification : retenu #5F60EE/texte blanc Semi Bold ; non retenu #F9FAFC/texte #141414 Regular.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Références 360/402/440, Safe Areas existantes ; texte agrandi sans réduction de police, scroll utile et contrôles accessibles. Les dimensions de référence 402 ne figent pas les coordonnées sur tous les appareils.
+Référence 402×874, adaptations 360/440 et Safe Areas conservées. Texte agrandi sans réduction de police ; liste/formulaire défilant ; CTA ancré dans le pied sûr. Les coordonnées Figma ne sont pas des constantes absolues sur tous les appareils.
 
 ### 11. États de l’écran
 
-Aucune/une sélection ; longue liste ; texte tronqué ; exercice avec/sans média.
+Zéro, un, plusieurs éléments retenus ; liste vide/longue ; segment Séances/Exercices ; retour au brouillon ; source devenue indisponible. À zéro, ne pas créer une Routine vide ; libellé/présentation précise du CTA zéro non représentés.
 
 ### 12. Contrôles et interactions
 
-Le segment de type change la liste affichée, sans sélectionner une source ni fermer la modale. Tap carte/radio choisit exactement une source et ferme ; pas de seconde validation. Cette action ne crée pas de Routine et ne copie pas de SessionActivity. Case et Sélectionner restent propres à CE-T03-07.
+Toucher carte/case sélectionne ou désélectionne sans fermeture. Basculer le segment change les choix affichés sans valider ; la sélection doit pouvoir contenir les deux types. Ajouter valide l’ensemble. Aucune copie SessionActivity.
 
 ### 13. Gestes
 
-Gestes existants du chapitre 06 ; appuis D-237, action immédiate au relâchement, annulation hors cible, opacité seule si réduction des animations.
+Tap et scroll ; animation Discret/action au relâchement D-237. Pas d’action d’exécution dans la modale.
 
 ### 14. Validation
 
-Source persistante active et planifiable SESSION/ACTIVITY ; recontrôler disponibilité avant choix et à Enregistrer. Aucun segment Parcours au MVP.
+Au moins un contenu actif et disponible à validation ; recontrôler les références à Enregistrer. L’ordre initial de la sélection mixte est à préciser ; le formulaire permet ensuite de réordonner. Ne pas importer implicitement l’ordre propre à la Composition.
 
 ### 15. Brouillon et persistance
 
-Source dans le brouillon seulement ; aucune copie SessionActivity par cette sélection.
+Sélection locale puis transfert au brouillon ; aucune écriture Routine avant Enregistrer. Annuler restaure la sélection d’entrée.
 
 ### 16. Navigation et conservation d’état
 
-Annuler conserve source antérieure ; retour au formulaire avec nouvelle source validée.
+Retour CE-UI-05 sans perdre dates, répétition, rappel et Programme déjà saisis. Le titre final est calculé depuis les types et le nombre, non le dernier segment visité.
 
 ### 17. Erreurs et cas limites
 
-RG-3 : séance sans photo. Choix d’Exercice : gouttière permanente 64, photo associée ou icône de nature ; sans hausse de hauteur. Aucun visuel de Séance ou de liste mixte (D-260). Source indisponible : pas de sélection fantôme.
+Source archivée/supprimée : signaler et revalider sans référence fantôme. Liste mixte sans photo pour tous ; Séance jamais de photo. Ne pas activer des objets autonomes Parcours.
 
 ### 18. Accessibilité
 
-Deux options de type annoncées avec leur état sélectionné ; aucune troisième option accessible. Nom/type et état sélectionné annoncés ; texte complet accessible ; radio cible 44 minimum.
+Rôle checkbox, nom/type et état coché annoncés ; texte complet accessible ; cibles minimales communes conservées et dimensions spécifiques de 48 points maintenues. Focus modal et CTA décompté accessibles.
 
 ### 19. Invariants
 
-Même variante Calendrier/Planification, aucun contexte Choix planification distinct ; aucune action d’exécution sur carte.
+Même sélection pour 1 ou N ; le nombre ne change pas le mécanisme de validation. Aucun troisième type autonome ; aucune persistance au toucher.
 
 ### 20. Recette déterministe
 
-Vérifier exactement Exercices/Séances et leur bascule sans choix implicite ni espace/annonce Parcours. Tap une source→fermeture immédiate et formulaire actualisé ; fermer sans choix→source antérieure ; source disparue/archivée→pas de choix fantôme ;0/1/N, longue liste, deux types, radio accessible. Aucun CTA bas ni badge durée/Lecture/Déployer ; média/place réservée sans agrandir carte.
-
-Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans les emplacements de durée existants ; conserver masquages des cartes de choix, aucune formule locale et aucune photo de Séance/liste mixte.
+Tester 0/1/2, mêmes types et mixte, bascule de segment sans perte, cocher/décocher, fermer/valider, source disparue, longues listes, libellés singulier/pluriel, absence de radio et de fermeture automatique. Vérifier titre suivant pour 0/1/N.
 
 ### 21. Traçabilité
 
-Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
-
-D-206/D-222/D-223/D-238 ;1992:6249/7861,5451:4272 ; CE-UI-05 ; distinction multisélection CE-T03-07.
+D-222/D-223 révisées, D-327 à D-332 ; [spécification](SPECIFICATION-PLANIFICATION-2026-10-08.md), [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md), [matrice du 08/10](../MATRICE-PLANIFICATION-2026-10-08.md). Conception cible ; tests applicatifs non exécutés.
 
 ---
-
-Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figma ; maintien des rubriques sans changement fonctionnel lorsque non concernées. Les captures sont centralisées au chapitre06, aucun test applicatif présumé.
 
 ## CE-UI-05 — Planification — formulaire et états de paramètres
 
 ### 1. Identification
 
-Planifier une séance ou un exercice ; frames 1992:6838,1992:6622,1992:7187,1992:7369,1992:7537,1992:7716 ; sélection CE-UI-04.
+CE-UI-05 ; formulaire de Routine à un ou plusieurs contenus. Frames 1992:6838/6622/7187/7369/7537/7716 et 7594:34531 ; fréquence CE-UI-11 ; sélection CE-UI-04.
 
 ### 2. Finalité fonctionnelle
 
-Créer/modifier une Routine pour SESSION/ACTIVITY en conservant les règles existantes.
+Créer/modifier un créneau, sa liste ordonnée, sa récurrence, son rappel et son rattachement facultatif à un Programme.
 
 ### 3. Contexte d’entrée
 
-Catalogue Planifier avec source préremplie ; Calendrier ; modification de Routine.
+Calendrier, action Planifier du Catalogue avec contenu prérempli, modification ou duplication de Routine.
 
 ### 4. Contexte de sortie / destinations
 
-Enregistrer réussit → écran appelant Catalogue ou Calendrier, occurrence recalculée ; abandon → appelant inchangé ; choisir/changer source → CE-UI-04 puis même brouillon.
+Enregistrer réussi → appelant actualisé ; abandon → appelant inchangé ; Changer → CE-UI-04 ; fréquence d’une ligne → CE-UI-11. Les destinations Programme non représentées ne sont pas inventées.
 
 ### 5. Données affichées et source de vérité
 
-Source, début, heure, périodicité, fin et rappel du brouillon.
-
-Durée et symbole viennent du calcul commun : Durée exacte, Répétitions avec bip ≈, sans bip et À l’échec omis à l’Exercice ; ≥ seulement à la Séance avec travail inconnu ; périmètre intrinsèque ACTIVITY ou occurrence SESSION selon§4.14. Ne rien ajouter dans les choix où la durée est masquée.
+Liste ordonnée de références, motifs par contenu, début/heure, répétition/unité/multiplicateur/borne, rappel, Programme. Récapitulatif dérivé de ces paramètres. Valeurs historiques non réécrites.
 
 ### 6. Classification des valeurs Figma
 
-Noms, dates, durées et couleurs d’événement sont des données ; les exemples Figma ne deviennent pas des constantes ni des règles de déduction.
+Libellés de structure statiques ; titre dépend du nombre/type ; noms, dates, montants et durées illustratifs dynamiques. Figma ne fournit aucune règle de calcul.
 
 ### 7. Structure de l’écran
 
-Titre Planifier sans type puis Planifier une séance/un exercice ; source → Date de début → Heure → Aucune/Périodique → fréquence/jours/fin conditionnels → Rappel → récapitulatif dérivé → Enregistrer.
+Bloc sans titre : Programme puis Début le → Répétition → lignes de contenus si N ≥ 2, sans titre → Rappel → zone protégée du récapitulatif → Enregistrer. En-tête contextuel : Planifier, Planifier une séance, Planifier un exercice ou Planifier un parcours.
 
 ### 8. Éléments obligatoires
 
-Source SESSION/ACTIVITY ; une date et une heure ; mode Aucune ou Périodique. Périodique : fréquence entière de 1 à 12 semaines,≥1jour, fin obligatoire≥début. Rappel unique facultatif : Aucun,5 min,15 min,30 min,1h,Autre. Autre ouvre le délai personnalisé. Les anciens 10 min/Personnalisé ne sont pas les labels cibles D-229.
+Programme : Aucun par défaut, facultatif. Une date et une heure. Interrupteurs Répétition/Rappel. Répétition sur Oui : Jour/Semaine/Mois, multiplicateur, borne jusqu’au/pendant ; jours de semaine pour Semaine. Rappel sur Oui : 5 min/15 min/30 min/1 h/Autre. Poignées 12×18 et fréquence générique pour chaque ligne à N ≥ 2.
 
 ### 9. Layout déterministe
 
-Composants actifs et propriété Durée : [DSF cartes du07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.
-
-Shell Modal Fullscreen ; blocs sur marges 24 ; Date de début/Heure au même niveau, pas de titre Quand ?. Rappel : Aucun/Autre fixes aux extrémités, choix rapides défilants. Récapitulatif multi-ligne dans son cadre ; fréquence par stepper inline, date/heure/rappel dans leurs sélecteurs dédiés.
+Shell ModalFullscreen ; surface blanche de y 36 au bas y 874 sur référence 402×874, coins supérieurs carrés. Appliquer le DSF général pour les blocs gris, rayon 12, sans trait et espacements. Préfixe de récurrence au-dessus de la ligne porteuse ; titres Semi Bold 16, valeurs 16, libellés Medium 14, liaisons Medium 12. Récapitulatif 16 px au-dessus du CTA ; hauteur adaptée au texte ; dégradé de 40 px au-dessus, fond opaque jusqu’au bas. Le formulaire défile sous cette zone.
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Références 360/402/440, Safe Areas existantes ; texte agrandi sans réduction de police, scroll utile et contrôles accessibles. Les dimensions de référence 402 ne figent pas les coordonnées sur tous les appareils.
+Référence 402×874, adaptations 360/440 et Safe Areas conservées. Texte agrandi sans réduction de police ; liste/formulaire défilant ; CTA ancré dans le pied sûr. Les coordonnées Figma ne sont pas des constantes absolues sur tous les appareils. Le récapitulatif et le CTA restent visibles, aucun chevauchement. Le contenu peut dépasser la hauteur du formulaire ; ne pas imposer un plafond arbitraire.
 
 ### 11. États de l’écran
 
-Création sans source/avec source ; édition/duplication ; Aucune/Périodique ; date/heure/rappel ouverts ; rappel refusé ; semaine modifiée ; champ invalide ; enregistrement/erreur. Aucune n’exige ni jours ni date de fin.
+Sans contenu/un/multiple ; Répétition sur Non (section repliée) / Oui ; Jour/Semaine/Mois ; borne date/durée ; Rappel sur Non / Oui/Autre ; Programme : Aucun/choisi ; date/heure/stepper ouverts ; erreur/enregistrement. Les états encore non dessinés restent identifiés comme tels.
 
 ### 12. Contrôles et interactions
 
-Changer source conserve autres paramètres ; changer fréquence/jours met à jour le récapitulatif depuis les mêmes valeurs, sans phrase codée. Annuler un sélecteur restaure sa valeur ; Confirmer met à jour le brouillon. Enregistrer persiste une seule Routine ; première activation rappel demande permission système, refus remet rappel désactivé et informe.
+Interrupteur Répétition sur Non replie et retire toute récurrence du résumé. Activer expose les réglages ; chevron gère le repli sans être un nouvel état d’activation. Réordonner les contenus par poignée. Toucher fréquence ouvre CE-UI-11. Modifier une valeur actualise le brouillon et le résumé. Première activation rappel demande la permission ; refus le désactive et informe.
 
 ### 13. Gestes
 
-Tap/stepper/roulette/scroll ; D-237 action au relâchement. Pas de roulette pour fréquence entière. Le scroll des raccourcis de rappel ne déplace pas Aucun/Autre.
+Tap, scroll, poignée de réordonnancement, steppers et sélecteurs dédiés ; D-237 conservée. La bascule jusqu’au/pendant nécessite une conversion non encore spécifiée ; ne pas en inventer une.
 
 ### 14. Validation
 
-Source disponible ; date/heure valides ; Aucune=une occurrence ; Périodique=fréquence entière 1..12, jours non vides, fin≥début inclusive. Semaine contenant début = ancrage ; bornes de dates inclusives. Pas d’occurrence historique réécrite. Un rappel n’est actif qu’avec permission ; délai personnalisé validé selon unité du picker. Rappel personnalisé strictement positif, maximum 24 h ; fréquence maximum 12 semaines (§6 R-02).
+Contenus disponibles, date/heure valides, bornes cohérentes avec Programme. Semaine : multiplicateur 1..12, au moins un jour, bornes inclusives. Rappel personnalisé positif, maximum 24 h conservé. Bornes Jour/Mois et conversion ouvertes. Pas de sauvegarde avec motif incohérent ; interaction de sélection de x ouverte.
 
 ### 15. Brouillon et persistance
 
-Brouillon distinct de Routine ; ouvertures/choix/roulettes ne persistent rien avant Enregistrer. Écriture et recalcul des notifications cohérents ; double soumission bloquée. Erreur conserve brouillon.
+Tout reste en brouillon jusqu’à Enregistrer ; enregistrer la Routine et ses entrées de façon cohérente, sans Routine partielle ; double soumission empêchée. Une phrase de récapitulatif ne devient pas une donnée métier stockée.
 
 ### 16. Navigation et conservation d’état
 
-Conserver les champs pendant sélection source et paramètres ; annulation du formulaire restaure le contexte appelant. Succès conserve vue/date Calendrier ou filtre/scroll Catalogue ; pas de ligne prochaine planification sur carte Catalogue.
+Conserver les réglages au retour de sélection/fréquence/date/rappel. Annuler restaure l’état antérieur du sélecteur. Succès restitue vue/date du Calendrier ou filtre/défilement du Catalogue.
 
 ### 17. Erreurs et cas limites
 
-Source disparue, dates inversées, aucun jour, fréquence invalide : indiquer champ et empêcher sauvegarde. Permission refusée : ne pas prétendre avoir planifié un rappel. Erreur persistance : rester, réactiver Enregistrer, aucune Routine partielle.
+Sources supprimées, fenêtre du Programme incompatible, dates inversées, motif incomplet, permission refusée, persistance échouée : ne pas prétendre au succès. Traitement d’archivage d’un seul contenu et statut multi-contenus à compléter. PROG2/3 ne constituent pas les parcours finalisés.
 
 ### 18. Accessibilité
 
-Unités et sélection annoncées ; focus de modale ; réduction des animations sans dilatation.
+Interrupteurs annoncés avec leur état ; unité et sélection annoncées ; focus modal, pastilles/jours nommés ; cible Disclosure 48 × 48 distincte du cadre de 28 points. Texte agrandi, récapitulatif intégral, réduction des animations.
 
 ### 19. Invariants
 
-Aucun second moteur de planification ; occurrence passée non réécrite. Paramètres fonctionnels inchangés par la revue des cartes.
+Le créneau produit les occurrences, les contenus filtrent. Parcours n’est pas un objet. Aucune unité Heure ; aucune création persistante à l’ouverture ; aucune modification de l’échu.
 
 ### 20. Recette déterministe
 
-SESSION/ACTIVITY depuis chaque entrée ; Aucune et Périodique 1/2 semaines avec un/sept jours ; bornes début/fin inclusives et semaine d’ancrage ; date fin manquante/inversée ; rappel Aucun/rapide/Autre, permission accordée/refusée ; annuler/confirmer pickers ; récapitulatif reflète 2 semaines ; double tap/erreur ; retour appelant et historique inchangé.
-
-Comparer sources Durée, Répétitions avec/sans cadence et À l’échec dans les emplacements de durée existants ; conserver masquages des cartes de choix, aucune formule locale et aucune photo de Séance/liste mixte.
+Tester contenu unique Séance/Exercice et liste mixte, ordre, suppression du titre des lignes, masquage complet à N = 1, répétition désactivée sans récurrence dans résumé, rappel oui/non, dates invalides, permission refusée, défilement long/résumé protégé, texte agrandi. Scénarios Mois, conversion et x marqués en attente des règles manquantes ; pas de PASS inventé.
 
 ### 21. Traçabilité
 
-Clarification du07/10 : D-314 à D-320 ; [matrice de traçabilité et captures](../MATRICE-CARTES-PHRASES-2026-10-07.md).
-
-D-206/D-222/D-223/D-229 ; chapitre 06 Planifier et 08 calcul des occurrences ;1992:6622/6838/7187/7369/7537/7716 ; CE-UI-04. Les valeurs de démonstration incohérentes ne sont pas recopiées dans le récapitulatif.
+D-222/D-223 révisées, D-327 à D-332 ; [spécification](SPECIFICATION-PLANIFICATION-2026-10-08.md), [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md), [matrice du 08/10](../MATRICE-PLANIFICATION-2026-10-08.md). Conception cible ; tests applicatifs non exécutés.
 
 ---
-
-Relecture documentaire06/10 : règles transverses§4.14 et matrice courante Figma ; maintien des rubriques sans changement fonctionnel lorsque non concernées. Les captures sont centralisées au chapitre06, aucun test applicatif présumé.
 
 ## CE-UI-06 — Splash KODJO
 
@@ -3443,7 +3434,7 @@ Chaque contenu E01–E73 est rattaché ci-dessus ; E08 est rattaché à CE-T03-0
 
 ## 8. Frontière de réalisation et recette
 
-T03 décrit l’Exécution ACTIVITY autonome : préparation 5 s, phases propres, Séries/pauses/côtés, Pause entre les côtés, Synthèse et Suivi. T04 porte l’orchestration SESSION : Circuit/Tours, phases structurelles, récupération post-occurrence, points d’arrêt et progression globale. Ajouter leurs contrats ne déclenche ni développement ni changement de tranche. Parcours autonome et recherche restent hors MVP.
+T03 décrit l’Exécution ACTIVITY autonome : préparation 5 s, phases propres, Séries/pauses/côtés, Pause entre les côtés, Synthèse et Suivi. T04 porte l’orchestration SESSION : Circuit/Tours, phases structurelles, récupération post-occurrence, points d’arrêt et progression globale. Ajouter leurs contrats ne déclenche ni développement ni changement de tranche. Ancien objet Parcours autonome retiré ; recherche hors MVP.
 
 Pour chaque contrat : tester nominal/alternatifs/négatifs, comparer le rendu 402 à la preuve lorsqu’elle existe, vérifier 360/402/440 et texte agrandi, accessibilité, données réelles, persistance/annulation, erreurs et absence d’activation hors périmètre. Consigner séparément conformité documentaire, conformité visuelle et recette interactive. Les règles §6 et preuves manquantes §5 ne sont jamais marquées CONFORME en exécution par la seule présence de 21 sections.
 
@@ -3451,3 +3442,93 @@ Pour chaque contrat : tester nominal/alternatifs/négatifs, comparer le rendu 40
 ## Mise à jour des références visuelles — 07/10, corrections rédactionnelles
 
 Les références de CE-T03-02 (catalogue), CE-T03-04 (éditeur et abandon), CE-UI-09 (zones corporelles) et CE-UI-10 (paramètres) ont été recapturées après correction du libellé de carte et des19 phrases. [Inventaire exact](../CLOTURE-CAPTURES-PHRASES-2026-10-07.md). Les comportements, champs et règles métier de ces contrats restent ceux déjà validés ; aucune nouvelle décision de conception.
+
+
+## CE-UI-11 — Planification — fréquence d’un contenu
+
+### 1. Identification
+
+CE-UI-11 — Planification — fréquence d’un contenu. Frame MVP 7594:34653, communautaire 7567:13761. Feuille au-dessus de CE-UI-05.
+
+### 2. Finalité fonctionnelle
+
+Définir combien et quelles occurrences du créneau retient le contenu ciblé.
+
+### 3. Contexte d’entrée
+
+Toucher la fréquence générique d’une ligne de contenu dans CE-UI-05.
+
+### 4. Contexte de sortie / destinations
+
+Valider → brouillon de CE-UI-05 ; fermeture/annulation → fréquence antérieure conservée. Le parent reste inactif sous la feuille.
+
+### 5. Données affichées et source de vérité
+
+Contenu ciblé, entiers x/n, motif des positions 1..n ; aucune unité de temps dans le motif.
+
+### 6. Classification des valeurs Figma
+
+Fréquence, fois sur, Valider sont structurels ; nom, x/n et pastilles sont dynamiques. Le contenu de démonstration de la feuille ne détermine pas l’identité métier ciblée.
+
+### 7. Structure de l’écran
+
+Titre Fréquence et nom → stepper x, liaison « fois sur », stepper n → n pastilles numérotées → Valider.
+
+### 8. Éléments obligatoires
+
+Deux steppers, n pastilles, état gris/sélectionné, validation. Pas de texte explicatif supplémentaire ; libellés de groupe figurant dans Figma conservés. Pas de variante 2n avec séparateur.
+
+### 9. Layout déterministe
+
+Feuille blanche, voile commun 34 %. Respecter les positions et styles de la frame de référence sans redessin. Retenu #5F60EE, texte blanc Semi Bold ; non retenu #F9FAFC, texte #141414 Regular. Liaison « fois sur » plus grande que les libellés voisins. Composants de stepper et cibles communes conservés.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Référence 402×874, adaptations 360/440 et Safe Areas conservées. Texte agrandi sans réduction de police ; liste/formulaire défilant ; CTA ancré dans le pied sûr. Les coordonnées Figma ne sont pas des constantes absolues sur tous les appareils. Grand n : comportement de retour à la ligne/scroll et borne maximale à spécifier ; ne pas tronquer des pastilles.
+
+### 11. États de l’écran
+
+À chaque fois ; motif partiel ; après changement de x/n : toutes grisées ; sélection incomplète ; validation/annulation.
+
+### 12. Contrôles et interactions
+
+Changer x ou n remet toutes les pastilles au gris. Sélectionner les positions voulues. Le contrôle « plafond x ou mise à jour de x » reste explicitement ouvert ; ne pas choisir silencieusement. x=n s’affiche à chaque fois dans la liste.
+
+### 13. Gestes
+
+Toucher d’un stepper ou d’une pastille, action au relâchement ; aucun geste de réordonnancement dans le motif.
+
+### 14. Validation
+
+Le motif final doit représenter x positions parmi n. Bornes des steppers et règle précise de validation pendant une sélection incomplète à compléter avec le point ouvert sur x. Pas de sélection automatique après changement.
+
+### 15. Brouillon et persistance
+
+Brouillon local de fréquence ; Valider transmet au parent ; seule la sauvegarde finale de la Routine persiste.
+
+### 16. Navigation et conservation d’état
+
+Retour conserve position de la liste et autres paramètres ; annulation ne remplace pas le motif antérieur.
+
+### 17. Erreurs et cas limites
+
+Contenu retiré pendant l’édition, grand n, motif vidé après modification d’un stepper : revalider sans références fantômes. Ne pas généraliser la fréquence d’une entrée à toute la Routine.
+
+### 18. Accessibilité
+
+Annoncer la position et l’état de chaque pastille ; steppers accessibles avec valeur ; texte complet et focus modal ; cibles minimales conservées.
+
+### 19. Invariants
+
+n pastilles ; fréquence sans unité ; aucune occurrence ajoutée au créneau ; détails du motif seulement ici et au Calendrier.
+
+### 20. Recette déterministe
+
+Tester 1 sur 2, 2 sur 3 avec positions 1/3 ou 1/2, x=n, chaque stepper réinitialisant toutes les pastilles, annuler/valider, indépendance des contenus. Les tests du comportement de x et des bornes attendent leur spécification.
+
+### 21. Traçabilité
+
+D-222/D-223 révisées, D-327 à D-332 ; [spécification](SPECIFICATION-PLANIFICATION-2026-10-08.md), [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md), [matrice du 08/10](../MATRICE-PLANIFICATION-2026-10-08.md). Conception cible ; tests applicatifs non exécutés.
+
+---
+
