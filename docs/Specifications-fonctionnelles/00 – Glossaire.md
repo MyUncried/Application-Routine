@@ -18,7 +18,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | --- | --- | --- |
 | **Utilisateur** | Propriétaire local des données. Dans le MVP, un seul Utilisateur local existe, sans compte distant obligatoire. | Utilisateur de l’appareil |
 | **Séance** | Modèle de contenu exécutable. Elle possède un nom, une couleur et une Composition comprenant un Compte à rebours initial, des Exercices organisés avant, dans ou après un Circuit répété en Tours, et une Fin de séance. Elle peut être exécutée directement ou planifiée par une Routine. | `Renforcement du genou` |
-| **Exercice** | Plus petite unité fonctionnelle définie par l’utilisateur. Elle est exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec. Elle porte une Pause après chaque série et peut porter une **Pause entre les côtés** lorsqu’elle est bilatérale. Une `ActivityDefinition` ne porte jamais de Récupération après exercice ; cette dernière appartient uniquement à l’occurrence contextualisée dans une Séance/Parcours. Dans le MVP T03, l’Exercice existe soit comme `ActivityDefinition` persistante autonome du Catalogue, soit comme `SessionActivity` propre à une Séance. | 3 Séries de 12 squats |
+| **Exercice** | Plus petite unité fonctionnelle définie par l’utilisateur. Elle est exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec. Elle porte une Pause après chaque série et peut porter une **Pause entre les côtés** lorsqu’elle est bilatérale. Une `ActivityDefinition` ne porte jamais de Récupération après exercice ; cette dernière appartient uniquement à l’occurrence contextualisée dans une Séance. Dans le MVP T03, l’Exercice existe soit comme `ActivityDefinition` persistante autonome du Catalogue, soit comme `SessionActivity` propre à une Séance. | 3 Séries de 12 squats |
 | **Point d’arrêt** | Élément de Composition qui suspend l’enchaînement jusqu’à une reprise explicite, sans écran dédié. Le temps passé au Point d’arrêt n’entre pas dans la durée de la Séance. | |
 | **Compte à rebours d’Exercice** | Phase optionnelle propre à un Exercice, distincte du Compte à rebours initial de la Séance. | |
 | **Fin d’exercice** | Phase optionnelle propre à un Exercice, distincte de la Fin de séance. | |
@@ -26,10 +26,10 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Pause après chaque série** | Pi configurée et exécutée après chaque Série, dernière comprise, même à N=1. Seule la dernière Pause est remplacée par la récupération positive qui suit l’Exercice. Pause de série et pause de changement de côté se cumulent à leur frontière. | 15s après chaque Série |
 | **Pause entre les côtés** | Durée intrinsèque facultative d’un Exercice bilatéral, portée par `sideRecoverySeconds`. Elle n’a de sens qu’avec `D→G` ou `G→D`, s’exécute selon l’Ordre des côtés : une fois entre les blocs ou une fois à l’intérieur de chaque paire, et entre dans la durée intrinsèque de l’Exercice. Avec `Aucun`, elle est sans objet. Sa valeur initiale lors de l’activation bilatérale provient du défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) et reste modifiable dans l’éditeur de l’Exercice. | 30 s entre côté droit et côté gauche |
 | **Récupération après exercice** | Pause chronométrée ajoutée explicitement à une occurrence, absente par défaut ; jamais sur ActivityDefinition. Attachée à l’occurrence lors des opérations. À 0s : aucune information de récupération ni phase ; trait indépendant D-303. | Récupération30s ajoutée |
-| **Phase de récupération** | Phase d’Exécution positive matérialisée soit par `SIDE_RECOVERY`, entre les deux côtés d’un Exercice bilatéral, soit par `POST_ACTIVITY_RECOVERY`, après une occurrence de Séance/Parcours. Elles ont des porteurs et positions distincts et ne sont pas comptées comme des Exercices. | |
+| **Phase de récupération** | Phase d’Exécution positive matérialisée soit par `SIDE_RECOVERY`, entre les deux côtés d’un Exercice bilatéral, soit par `POST_ACTIVITY_RECOVERY`, après une occurrence de Séance. Elles ont des porteurs et positions distincts et ne sont pas comptées comme des Exercices. | |
 | **Durée totale de l’Exercice** | Total intrinsèque calculé suivant v13 §5 : exact en Durée, estimé ≈ avec cadence, borne omission sans bip à l’Exercice, omis À l’échec. Inclut les Pauses et PC applicables ; exclut R contextuelle, Compte à rebours et Fin propres. |  |
 | **Cycle** | Structure technique unique qui enveloppe les Exercices placés avant le Circuit, le Circuit et les Exercices placés après le Circuit. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur. | Cycle technique × 1 |
-| **Routine** | Planification d’un contenu autonome. Dans le MVP, la source est une Séance ou un Exercice persistant ; lorsqu’un Parcours devient planifiable, il utilise la même Routine. Elle est unique ou périodique et possède zéro ou un rappel. | Squats chaque lundi à 8 h |
+| **Routine** | Créneau de planification portant une liste ordonnée de Séances et/ou Exercices persistants, une règle de récurrence éventuelle, un rappel facultatif et un Programme facultatif. |
 | **Occurrence planifiée** | Instance temporelle calculée à partir d’une Routine, pour une Séance ou un Exercice. Une occurrence future peut être exécutée en avance ; une occurrence passée sans Exécution disparaît de l’interface du MVP. | Exercice prévu mardi à 18 h |
 | **Exécution** ou **Exécution de séance** | Réalisation effective d’un contenu. Une Exécution d’origine `SESSION` repose sur un Instantané de séance ; une Exécution directe d’origine `ACTIVITY` repose sur un Instantané autonome d’Exercice. | Exécution démarrée à 18 h 03 |
 | **Résultat d’Exercice** | Résultat enregistré pour une occurrence d’Exercice effectivement atteinte dans le Plan d’Exécution. | Gainage terminé en 30 s |
@@ -98,7 +98,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | --- | --- |
 | **Catalogue des séances** | Écran du Catalogue lorsque le segment `Séances` est sélectionné. Il est le segment par défaut à l’ouverture initiale et après relance complète. |
 | **Catalogue des exercices** | Destination MVP livrée en T03 du Catalogue multi-type. Elle liste les Exercices persistantes, permet de les créer, consulter, modifier, archiver/restaurer, sélectionner pour une Séance ou exécuter directement. |
-| **Catalogue des parcours** | Concept post-MVP ; aucun segment ni état de navigation `Parcours` n’est exposé dans les Catalogues ou sélecteurs de type de contenu du MVP (D-324). |
+| **Catalogue des parcours** | Ancien concept retiré ; aucun onglet ou segment Parcours. |
 | **Catalogues** | Libellé permanent de la destination correspondante dans la navigation basse, indépendamment du segment Catalogue actif. |
 | **Toutes** | Valeur du filtre de Catalogue affichant les Séances non archivées. |
 | **Planifiées** | Valeur du filtre de Catalogue affichant les Séances possédant au moins une Routine. |
@@ -123,7 +123,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Bloc** | Ancienne appellation non retenue pour la structure répétable. |
 | **Mes séances** | Ancienne appellation de l’écran désormais nommé **Catalogue des séances**. |
 | **Sans répétition** | Ancien libellé du choix de planification unique ; l’interface utilise **Aucune**. |
-| **Routine** pour désigner un contenu | Usage incorrect. Une Routine désigne la planification d’une source : Séance ou Exercice persistant dans le MVP, et Parcours lorsque sa planification est livrée. |
+| **Routine** pour désigner un contenu | Usage incorrect : la Routine est le créneau de planification et sa liste ordonnée de références, pas une Séance ni un Exercice. |
 
 ## 9. Concepts ajoutés — Exercices, Médias et Parcours
 
@@ -135,9 +135,9 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Contrôle pilote** | Parmi `Séries` et `Durée totale`, contrôle dont la dernière valeur confirmée détermine le calcul de l’autre. Il reçoit un contour `color/selection` renforcé. Le choix n’est pas persisté. |
 | **Contrôle calculé** | Contrôle dépendant recalculé depuis le contrôle pilote. Il conserve son apparence standard, reste tactile et peut devenir pilote après validation de sa roulette. |
 | **Média** | Photo ou vidéo déjà associée à un Exercice, consultable dans le MVP dans les présentations de carte applicables et pendant l’Exécution : galerie ordonnée, vidéo et plein écran (D-203). L’ajout/import dans l’éditeur n’est pas activé par D-203. La vignette de carte et la galerie d’Exécution sont deux présentations distinctes ; Photo retire Déployer selon D-238. |
-| **Parcours** | Contenu autonome persistant post-MVP composé d’au moins deux étapes ordonnées référençant des Séances. Une même Séance peut apparaître plusieurs fois. Le Parcours est distinct du Circuit interne à la Composition d’une Séance. |
-| **Étape de Parcours** | Occurrence ordonnée d’une Séance dans un Parcours ; elle ne possède pas de nombre de répétitions. |
-| **Exécution de Parcours** | Exécution globale d’un Parcours, fondée sur un instantané et liée aux Exécutions de Séance de ses étapes. |
+| **Parcours** | Libellé du résultat d’une planification à plusieurs contenus liés sur un même créneau ; aucune identité, persistance, fiche ou exécution autonome. |
+| **Étape de Parcours** | Ancien concept retiré. Une entrée ordonnée de contenu appartient à la Routine, pas à une entité Parcours. |
+| **Exécution de Parcours** | Ancien concept retiré ; aucun nouvel agrégat d’exécution autonome n’est décidé par le libellé parcours. |
 
 `Toutes`, `Planifiées`, `Non planifiées` et `Archivées` désignent des valeurs du filtre de Catalogue, jamais les segments de sélection du type de contenu.
 
@@ -200,7 +200,7 @@ Référence normative ciblée : [DSF — Cartes, icônes et appuis](../DSF-CARTE
 | Temps actif cumulé | Temps réellement dépensé, incluant fractions abandonnées et tentatives réinitialisées ; distinct du chronomètre de la tentative courante. |
 | Incertitude de durée | Déterminable : sans symbole ; approximation :≈ ; composante non estimable :≥ pour les agrégats. Le total d’Exercice À l’échec reste omis. |
 
-Références normatives : Bip v2 et paramètres v13. Circuit reste la structure interne de Séance, Tour son nombre de passages, Parcours l’objet autonome post-MVP ; aucun ancien arbre de création n’est réintroduit.
+Références normatives : Bip v 2 et paramètres v 13. Circuit reste la structure interne de Séance, Tour son nombre de passages, parcours le libellé de plusieurs contenus planifiés ; aucun ancien arbre de création n’est réintroduit.
 
 
 ## Vocabulaire complémentaire — 07/10
@@ -224,3 +224,14 @@ Références normatives : Bip v2 et paramètres v13. Circuit reste la structure 
 | Modification d’une Séance | Modifier une séance | CE-T03-08 |
 
 Les noms de frames Figma et annotations restent des références techniques : ils peuvent conserver « Ajouter un exercice » ou « Composition d’une séance ». Ils ne prescrivent pas le titre affiché. Les actions Ajouter gardent leur sens et leur destination définis par le contrat ; aucun arbre de création supplémentaire. « Créer une activité » n’est pas concerné. D-325.
+
+
+## Planification — concepts du 08/10/2026
+
+| Terme | Définition |
+|---|---|
+| **Fréquence de contenu** | Motif x fois sur n occurrences du créneau ; aucune unité de temps. |
+| **Programme** | Conteneur réel facultatif avec fenêtre temporelle bornant les dates ; distinct du simple libellé parcours. Parcours de création/rattachement à compléter. |
+| **Borne de fin** | Paramètre jusqu’au (date) ou pendant (nombre d’unités) ; conversion encore ouverte. |
+
+Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.

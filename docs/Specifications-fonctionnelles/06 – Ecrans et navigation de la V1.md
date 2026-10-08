@@ -227,7 +227,7 @@ Les modales `Étiquettes`, `Catégorie` et `Zones corporelles` utilisent la mêm
 | Catalogue, Calendrier, Suivi, Profil | En-tête et navigation basse fixes ; seule la zone centrale défile. Les listes conservent un espace final d’au moins `16` points avant la séparation ou la navigation, en plus de l’inset inférieur applicable. |
 | Composition, Exercice, Planification | En-tête et action finale fixes ; le formulaire central défile. Avec le clavier ouvert, l’action reste atteignable sans recouvrir le champ actif. |
 | Exercice | Aucun contrôle de type n’est affiché. Les accès `Catégorie` et `Zones corporelles`, le `Mode d’exécution` et la zone Média suivent le Figma courant. Le segment `Durée / Répétitions / À l’échec` utilise trois zones égales. Le résumé et la feuille de paramètres suivent D-247 à D-255/v13 et CE-T03-04/CE-UI-10 ; aucune ancienne double rangée fixe de synthèse. L’action `Terminer` reste accessible avec le clavier et le texte agrandi. |
-| Planification | `Aucun` et `Autre` restent fixes aux extrémités du contrôle de rappel. Les raccourcis intermédiaires occupent une zone horizontale défilante et extensible. Le récapitulatif de planification reste contenu dans son cadre avec ses marges internes. |
+| Planification | Rappel par interrupteur, options égales ; récapitulatif protégé et pied fixe. Voir CE-UI-05 et spécification 08/10. |
 | Calendrier Semaine | La barre des jours reste lisible sur la largeur compacte ; les sept jours se répartissent la largeur disponible sans défilement horizontal. La liste journalière défile verticalement, utilise `8` points entre ses cartes et s’arrête `16` points avant la séparation de navigation. |
 | Calendrier Mois | Les sept colonnes se répartissent la largeur disponible ; une cellule peut grandir verticalement mais ne défile pas horizontalement. |
 | Exécution | Les commandes essentielles restent visibles sans défilement à la taille de texte standard. Le libellé du temps écoulé est séparé de la progression par Tours de `24` points. Avec agrandissement accessible, le contenu peut défiler, mais l’Exercice courant, le temps et les commandes restent atteignables. |
@@ -355,10 +355,10 @@ L’utilisateur ne peut pas revenir à un Exercice déjà exécuté.
 Les mêmes termes sont utilisés dans toute l’application :
 
 - `Séance` : contenu complet d’un entraînement ;
-- `Routine` : planification d’une Séance ou d’un Exercice persistant ;
+- `Routine` : créneau portant une liste ordonnée de Séances et/ou Exercices persistants ;
 - `Exercice` : action élémentaire exécutée en mode Durée, Répétitions ou À l’échec, avec Pause après chaque série et, en bilatéral, Pause entre les côtés éventuelle ;
 - `Pause entre les côtés` : durée intrinsèque facultative d’un Exercice bilatéral, exécutée selon l’Ordre des côtés ;
-- `Récupération après exercice` : durée contextuelle portée par chaque occurrence d’Exercice dans une Séance/Parcours, non affichée sur les cartes (D-238) et exécutée après l’occurrence lorsqu’elle est positive ;
+- `Récupération après exercice` : durée contextuelle portée par chaque occurrence d’Exercice dans une Séance, non affichée sur les cartes (D-238) et exécutée après l’occurrence lorsqu’elle est positive ;
 - `Série` : répétition propre à un Exercice ;
 - `Circuit` : groupe ordonné d’Exercices exécuté intégralement un nombre défini de fois ;
 - `Cycle` : structure technique unique, fixée à une répétition et jamais affichée dans le MVP ; elle ordonne les Exercices placés avant le Circuit, le Circuit et les Exercices placés après le Circuit ;
@@ -1450,7 +1450,7 @@ En vue Jour, un glissement horizontal de la grille vers la gauche affiche le jou
 | Jour : initial, appui long, après planification, créneau, jour suivant | Carte à x=80 ; séance 298 × 46, exercice 298 × 48 ; hauteur ajustable selon événement ; barre couleur de l’événement 4 ; nature26 ; titre13 gras ; heure/durée11 (`08 h · 13 min`) ; Lecture26 ; aucun Déployer | CE-UI-02 |
 | Semaine : liste, mardi sélectionné, suppression et actions glissées | Carte354 × 95,5, sans barre ; nature26 liste/tai-chi ; badge heure `08:00` ; classement catégorie puis étiquette (séance) ou zones (exercice) ; durée et sablier sur ligne des valeurs | CE-UI-03 |
 | Semaine : séance déployée | Hauteur de référence254,5 ; détail des exercices et ligne de récurrence avec calendrier ; badge heure et durée conservés | CE-UI-03 |
-| Choisir séance/exercice depuis Calendrier | Cartes de choix354 × 91, radio, sans durée ni Déployer/Lecture ; zones d’Exercice : cadre de coupe à8 px du radio ; Séance : minimum20 conservé | CE-UI-04 |
+| Choisir séance/exercice depuis Calendrier | Cartes de choix à cases à cocher, sans durée ni Déployer/Lecture ; état courant CE-UI-04 et matrice du 08/10 | CE-UI-04 |
 | Mois et état vide | Conserver leur structure fonctionnelle ; appliquer segmenté/navigation communs ; ne pas ajouter une carte Jour à une cellule Mois | CE-UI-03 |
 
 Les séances restent sans photo. En Semaine comme en Jour, les cartes d’Exercice restent sans photo et conservent leur icône de nature, même si un média est associé (D-260). Les deux modales de suppression conservent les cartes Semaine actualisées en arrière-plan.
@@ -1459,7 +1459,7 @@ Le segmenté Jour/Semaine/Mois mesure354 sur référence402 : padding4, gaps4, o
 
 ### Comportement
 
-En vue Jour, toucher une carte ouvre sa planification ; aucune action glissée n’est proposée. En vue Semaine, toucher la zone principale d’une occurrence ouvre la modification de sa Routine dans l’écran de planification prérempli. La carte possède également une zone distincte pour la déployer ou la replier, une zone `Démarrer`, et révèle uniquement `Dupliquer` et `Supprimer` par glissement gauche. `Dupliquer` identifie la Routine source à partir de l’occurrence, crée un brouillon reprenant la même source (`SESSION` ou `ACTIVITY`) et tous ses paramètres de planification, puis ouvre ce brouillon en modification. Aucune nouvelle Routine n’est persistée avant validation explicite de l’utilisateur.
+En vue Jour, toucher une carte ouvre sa planification ; aucune action glissée n’est proposée. En vue Semaine, toucher la zone principale d’une occurrence ouvre la modification de sa Routine dans l’écran de planification prérempli. La carte possède également une zone distincte pour la déployer ou la replier, une zone `Démarrer`, et révèle uniquement `Dupliquer` et `Supprimer` par glissement gauche. `Dupliquer` identifie la Routine source à partir de l’occurrence, crée un brouillon reprenant la liste ordonnée des contenus, leurs motifs et tous ses paramètres de planification, puis ouvre ce brouillon en modification. Aucune nouvelle Routine n’est persistée avant validation explicite de l’utilisateur.
 
 L’état obtenu par glissement ne remplace pas la liste : il décale la carte concernée pour révéler ses actions. Les autres jours et occurrences restent rendus à leur position chronologique.
 
@@ -1595,151 +1595,76 @@ Mardi placé en tête ; lundi se trouve au-dessus et n’est plus visible
 
 ![Modal — Supprimer des occurrences — Calendrier](images/modale-4a-suppression-occurrences.png)
 
-## Planifier une séance ou un exercice
+## Planifier une séance, un exercice ou plusieurs contenus
 
-### Choix et remplacement de la source
+Le parcours commence depuis Calendrier ou Planifier sur une carte. Les choix utilisent la même modale à cases et CTA « Ajouter 1 élément » / « Ajouter n éléments » (CE-UI-04). Le formulaire CE-UI-05 organise Programme facultatif puis Début, Répétition, contenus si N ≥ 2 sans titre, Rappel ; récapitulatif protégé au-dessus d’Enregistrer. Le mot parcours ne crée pas un objet autonome. La fréquence d’un contenu relève de CE-UI-11.
 
-La sélection de Séance ou d’Exercice réutilise exactement les variantes `Choix calendrier ou planification` (CE-UI-04), sans variante spécifique Planification. Largeur354, marges24 sur402 ; titre15 Semi Bold, classement en pastilles20, valeurs16 ; radio à droite, sans badge durée ni Lecture/Déployer. Exercice : cadre des zones arrêté à8 px du radio (D-263) ; Séance : minimum20 conservé. Séance sans vignette ; Exercice à gouttière permanente : photo associée ou icône de nature, règles RG-11 à RG-13 révisées par D-260. Aucun visuel en liste mixte. La source `SESSION`/`ACTIVITY` vient de la donnée, jamais du titre.
+Règles métier, validations et points ouverts : [spécification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md). Règles générales de mise en page : [DSF commun](../DSF-INTERFACE-GENERALE-2026-10-08.md). Les titres et compteurs dépendent des données ; les exemples Figma ne déterminent aucun calcul. Programme PROG2/3 restent en construction hors MVP.
 
-Tous les états du formulaire (création, date, heure, rappel, semaines, aucune répétition) utilisent les icônes communes, l’animation Discret sur champs/steppers et la navigation DSF lorsqu’elle est présente. Ils conservent leurs contrôles, validation et persistance existants. La correction des segmentés354 concerne les contrôles à trois choix de ce gabarit, pas les roulettes ou le sélecteur de rappel à deux extrémités fixes. Contrat CE-UI-05.
+### États de référence actuels
 
-### Objectif
-
-Créer ou modifier une Routine, c’est-à-dire la planification d’une **Séance ou d’un Exercice persistant**.
-
-### Ouverture
-
-L’écran est accessible :
-
-- depuis `Calendrier > + Planifier` ;
-- depuis `Modifier la planification` sur une Routine existante ;
-- depuis l’action glissée `Planifier` d’une Séance active ou d’un Exercice actif dans son Catalogue.
-
-### Paramètres
-
-La planification comporte :
-
-- la source associée, de type `SESSION` ou `ACTIVITY` ;
-- la date de début ;
-- l’heure ;
-- le mode de répétition ;
-- les paramètres de périodicité lorsque nécessaire ;
-- une date de fin lorsque nécessaire ;
-- le rappel ;
-- le bouton `Enregistrer`.
-
-### Modes de planification
-
-Le MVP propose :
-
-- `Aucune` : une seule occurrence ;
-- `Périodique` : répétition selon une périodicité hebdomadaire définie par une fréquence en semaines et un ou plusieurs jours de la semaine. Dans le MVP, seule cette périodicité hebdomadaire est disponible.
-
-Il n’existe pas de mode `Quotidien` distinct. Une planification périodique sélectionnant les sept jours toutes les semaines équivaut à une exécution quotidienne.
-
-En mode périodique :
-
-- la fréquence est un entier supérieur ou égal à 1 ;
-- un ou plusieurs jours sont sélectionnés ;
-- la date de fin est obligatoire.
-
-Dans l’interface, la répétition est présentée de manière compacte avec `Toutes les`, puis `X semaine(s) jusqu’au <date>`, et les jours sélectionnés en dessous. Aucun niveau de titre `Quand ?` n’est affiché ; `Date de début` et `Heure` sont des libellés de blocs au même niveau visuel.
-
-Le contrôle de rappel comporte deux options fixes : `Aucun` à gauche et `Autre` à droite. Les choix rapides intermédiaires (`5 min`, `15 min`, `30 min`, `1 h` dans le MVP) sont placés dans une zone horizontale défilante. Cette zone peut recevoir de nouveaux choix rapides sans déplacer les deux options fixes ni réduire la taille des libellés. Le récapitulatif de planification est multi-ligne et reste intégralement contenu dans son cadre.
-
-La flèche ouvrant le détail du `Rappel` est alignée sur la marge droite du contenu, comme les autres commandes de section. Son pictogramme reste centré dans une boîte visuelle de `24 × 24` et dans une cible tactile d’au moins `48 × 48`.
-
-Une Routine ne possède qu’une seule heure d’Exécution. Si l’utilisateur souhaite plusieurs horaires pour une même source, il crée plusieurs Routines distinctes.
-
-### Validation
-
-`Enregistrer` crée ou met à jour la Routine.
-
-Les occurrences futures sont recalculées à partir de la nouvelle planification. Les occurrences déjà historisées ne sont pas modifiées.
-
-### Planification depuis les Catalogues — D-206
-
-Une Séance et un Exercice persistant sont tous deux planifiables directement. L’action `Planifier` d’une carte ouvre le même parcours de planification avec la source préremplie. Le parcours depuis le Calendrier permet de choisir une source planifiable parmi les Séances et les Exercices persistants. La famille d’écran historiquement nommée `Planifier une séance` est donc un gabarit de planification générique ; les frames Figma actuellement nommées avec `séance` constituent l’évidence visuelle de cette variante, mais ne limitent plus le comportement fonctionnel aux seules Séances.
-
-### Prochaine planification dans les Catalogues — D-206 révisée par D-238
-
-Les cartes des deux Catalogues n’affichent aucune prochaine planification et ne réservent aucun espace à cette information, même si une occurrence future existe. La source SESSION/ACTIVITY reste directement planifiable et le calcul des occurrences reste disponible.
-
-### Extension future du parcours de planification — Parcours
-
-Le parcours générique de planification est conçu pour accepter à terme un Parcours comme troisième source. Dans le MVP, les sources actives sont Séance et Exercice ; l’option Parcours est absente du sélecteur tant que la version correspondante n’est pas livrée. Lorsqu’elle le sera, aucune nouvelle famille d’écran de planification ne devra être créée : le même gabarit est réutilisé avec la source Parcours.
-
-### Modales, panneaux et confirmations
-
-#### Modal — Choisir une séance — Planification — Liste longue
-
-[Source Figma — `1992:6249`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6249)
-
-![Modal — Choisir une séance — Planification — Liste longue](images/ecran-7d-calendrier-choisir-seance.png)
-
-Bottom sheet défilant ouvert par `+ Planifier`
-
-#### Planifier une séance — Test picker date ouvert
-
-[Source Figma — `1992:6622`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6622)
-
-![Planifier une séance — Test picker date ouvert](images/ecran-8a-planifier-date-ouverte.png)
-
-Sélecteur de date compact
-
-#### Planifier une séance — Test picker rappel personnalisé ouvert
-
-[Source Figma — `1992:7187`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7187)
-
-![Planifier une séance — Test picker rappel personnalisé ouvert](images/ecran-8c-planifier-rappel-ouvert.png)
-
-Réglage compact du délai de rappel avec validation explicite
-
-#### Planifier une séance — Chioisir la séance
-
-[Source Figma — `1992:7861`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7861)
-
-![Planifier une séance — Chioisir la séance](images/ecran-8g-planifier-changer-seance.png)
-
-Liste de remplacement de la Séance associée
-
-#### Modal — Choisir un exercice — Planification — Liste longue
-
-[Source Figma — `5451:4272`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5451-4272)
-
-![Modal — Choisir un exercice — Planification — Liste longue](images/figma-5451-4272.png)
-
-### Vues principales et états intégrés
+Captures du 08/10 sauf réserve explicite dans la matrice. Le retrait de « Éléments planifiés » a été réalisé à la demande du propriétaire. Après correction de Claude confirmée terminée, Planifier un parcours et Fréquence ont été relus et leurs captures reprises.
 
 #### Planifier une séance — Création
 
-[Source Figma — `1992:6838`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6838)
+Frame `1992:6838` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6838).
 
-![Planifier une séance — Création](images/ecran-8-planifier-seance.png)
+![Planifier une séance — Création](images/figma-1992-6838.png)
 
-#### Planifier une séance — Test rappel personnalisé sélectionné
+#### Modal — Planifier une séance — Sélectionner une séance
 
-[Source Figma — `1992:7369`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7369)
+Frame `7599:14197` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7599-14197).
 
-![Planifier une séance — Test rappel personnalisé sélectionné](images/ecran-8d-planifier-rappel-selectionne.png)
+![Modal — Planifier une séance — Sélectionner une séance](images/figma-7599-14197.png)
 
-Valeur répercutée dans le formulaire avant enregistrement
+#### Planifier une séance — Sélecteur de date ouvert
 
-#### Planifier une séance — Stepper Nombre de semaines
+Frame `1992:6622` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6622).
 
-[Source Figma — `1992:7537`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7537)
+![Planifier une séance — Sélecteur de date ouvert](images/figma-1992-6622.png)
 
-![Planifier une séance — Stepper Nombre de semaines](images/ecran-8e-planifier-semaines-ouvert.png)
+#### Planifier une séance — Rappel personnalisé ouvert
 
-Stepper intégré − / valeur / +, sans modale de roulette
+Frame `1992:7187` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7187).
 
-#### Planifier une séance — Aucune répétition
+![Planifier une séance — Rappel personnalisé ouvert](images/figma-1992-7187.png)
 
-[Source Figma — `1992:7716`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7716)
+#### Planifier une séance — Stepper du nombre de semaines
 
-![Planifier une séance — Aucune répétition](images/ecran-8f-planifier-sans-repetition.png)
+Frame `1992:7537` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7537).
 
-Variante de planification unique
+![Planifier une séance — Stepper du nombre de semaines](images/figma-1992-7537.png)
+
+#### Planifier une séance — Rappel personnalisé sélectionné
+
+Frame `1992:7369` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7369).
+
+![Planifier une séance — Rappel personnalisé sélectionné](images/figma-1992-7369.png)
+
+#### Planifier une séance — Sans répétition
+
+Frame `1992:7716` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-7716).
+
+![Planifier une séance — Sans répétition](images/figma-1992-7716.png)
+
+#### Modal — Planifier un parcours — Sélectionner plusieurs séances
+
+Frame `7594:34809` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7594-34809).
+
+![Modal — Planifier un parcours — Sélectionner plusieurs séances](images/figma-7594-34809.png)
+
+#### Planifier un parcours
+
+Frame `7594:34531` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7594-34531).
+
+![Planifier un parcours](images/figma-7594-34531.png)
+
+#### Modal — Planifier un parcours — Fréquence
+
+Frame `7594:34653` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7594-34653).
+
+![Modal — Planifier un parcours — Fréquence](images/figma-7594-34653.png)
+
 
 ## Exécution — séance ou exercice
 
@@ -1747,7 +1672,7 @@ Variante de planification unique
 
 Le vocabulaire d’interface attendu est **Exercice** (glossaire : anciennement Activité). Les captures Figma sont conservées sans retouche : les confirmations `1992:8224` et `1992:8326`, ainsi que certains contrôles de sélection, affichent encore « activité ». Leur rendu n’est donc pas une preuve de conformité terminologique. Les identifiants techniques `ActivityDefinition`, `SessionActivity` et `ACTIVITY` ne sont pas renommés.
 
-**Circuit et Tour — D-209** : le Circuit est le conteneur ordonné d’exercices ; un Tour est une exécution de ce Circuit. Le nombre de Tours règle ses répétitions. Le Parcours reste autonome. Les 17 occurrences du libellé de Composition ont été corrigées en « Circuit » le 05/10/2026 (journal, §8). Les anciens états archivés restent historiques ; cette correction ne renomme pas l’entité autonome Parcours.
+**Circuit et Tour — D-209** : le Circuit est le conteneur ordonné d’exercices ; un Tour est une exécution de ce Circuit. Le nombre de Tours règle ses répétitions. Le mot parcours ne désigne plus un objet autonome (D-328). Les 17 occurrences du libellé de Composition ont été corrigées en « Circuit » le 05/10/2026 (journal, §8). Les anciens états archivés restent historiques ; le libellé parcours suit désormais D-328.
 
 ### Objectif
 
@@ -2495,7 +2420,7 @@ Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est re
 
 ## Clôture Figma / DSF — 28 septembre 2026
 - **Navigation** : quatre destinations actives seulement — `Catalogues`, `Calendrier`, `Suivi`, `Profil`. Les écrans de Recherche globale sont archivés ; aucune recherche locale de Catalogue n’est active (D-221/D-225).
-- **Sélection en modale** : sélection simple = radio exclusif, validation au toucher et fermeture immédiate, sans CTA bas ; sélection multiple de Composition = cases à cocher + `Sélectionner` ; filtres = validation explicite + `Réinitialiser` (D-222/D-228).
+- **Sélection en modale** : la planification utilise des cases à cocher et Ajouter n éléments, même pour un seul choix (D-222 révisée). Les référentiels conservent leurs contrats de sélection simple ; la Composition conserve cases à cocher + `Sélectionner` ; filtres = validation explicite + `Réinitialiser`.
 - **Planifier** : titre `Planifier` avant connaissance du type, puis `Planifier une séance` ou `Planifier un exercice`. La modale suit le gabarit D-229.
 - **Fondations DSF** : fond `#FFFFFF` sauf Splash `#0006F1` et média plein écran `#0A0A0C`; zone de contexte `#EAEAFF`→transparent sur les familles couvertes ; navigation, halo, boutons circulaires, steppers et badges selon D-224 à D-227.
 - **Listes/modales** : listes scrollables avec rognage ; feuilles longues alignées en haut sur la zone de contexte ; comportements et dégradés bas selon D-228.
@@ -2614,3 +2539,8 @@ Ensemble6451:10942, export06/10 ; pas un écran autonome.
 | Modification d’une Séance | Modifier une séance | CE-T03-08 |
 
 Les noms de frames Figma et annotations restent des références techniques : ils peuvent conserver « Ajouter un exercice » ou « Composition d’une séance ». Ils ne prescrivent pas le titre affiché. Les actions Ajouter gardent leur sens et leur destination définis par le contrat ; aucun arbre de création supplémentaire. « Créer une activité » n’est pas concerné. D-325.
+
+
+## Règles générales d’interface —08/10/2026
+
+Les espaces de contexte et de section, les pieds d’action et les surfaces de modales/blocs suivent le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md). Les captures hors de la galerie de planification n’ont pas été réexportées dans cette passe : leurs mesures antérieures ne remplacent pas ces règles.

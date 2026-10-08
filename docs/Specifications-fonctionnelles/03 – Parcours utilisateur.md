@@ -1,5 +1,8 @@
 # Objectif de cette note
 
+> Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la spécification du 08/10 et son registre de points ouverts.
+
+
 **Référence courante 07/10 :** [Pauses et symboles](SPECIFICATION-PAUSES-SYMBOLES-2026-10-07.md). Placement explicite et distinction contenu/trait conservés. **Bip de cadence et durées : la spécification Bip v2 du07/10 remplace les dispositions antérieures.**
 
 Décrire, du point de vue de l'utilisateur, les principaux parcours permettant de créer, planifier, exécuter et suivre ses séances dans l'application.
@@ -33,11 +36,11 @@ Le MVP permet à l'utilisateur :
 | T03              | Exécuter directement un Exercice             | Préparation de 5 s, Exécution, Synthèse obligatoire et retour au Catalogue     | Spécifié MVP          |
 | T04              | Exécuter une Séance                           | Exécution guidée fondamentale, auparavant T03                                  | Spécifié MVP          |
 | T05 et suivantes | Dupliquer, planifier et suivre les Séances    | Parcours complémentaires 1 à 4                                                 | Spécifié MVP          |
-| Hors MVP         | Créer et exécuter un Parcours                  | Parcours de création et d’exécution d’un Parcours                                                               | Partiel — à compléter |
+| Évolution 08/10 | Planifier plusieurs contenus sur un créneau | Sélection commune → formulaire → fréquence par contenu | Conception cible, points ouverts tracés |
 ## Principes communs
 
 - Une Séance ou un Exercice persistant définit un contenu pouvant être exécuté directement.
-- Dans le MVP, une Routine définit la planification d’une source `SESSION` ou `ACTIVITY` ; la même logique s’étend au Parcours lorsqu’il devient planifiable.
+- Une Routine porte une liste ordonnée de références SESSION/ACTIVITY ; API-ROU définit le contrat cible multi-contenus (D-328).
 - Une Exécution conserve le déroulement réel de la source exécutée.
 - Une Séance ou un Exercice persistant peut être exécuté sans être planifié.
 - Une Séance ou un Exercice persistant peut être associé à plusieurs Routines.
@@ -199,22 +202,21 @@ L'utilisateur crée rapidement une nouvelle séance en s'appuyant sur une séanc
 Permettre à l'utilisateur de planifier l'exécution de ses séances, de modifier leur planification ou de supprimer une routine.
 ## Situation de départ
 
-L'utilisateur dispose d'au moins une séance enregistrée.
+L’utilisateur dispose d’au moins une Séance ou d’un Exercice persistant actif.
 Il souhaite programmer son exécution à une date précise ou de manière récurrente.
 ## Parcours
 
 ### Créer une routine
 
-1. Ouvrir le calendrier, affiché par défaut en vue Jour.
-2. Choisir **+ Planifier**.
-3. Sélectionner la séance à planifier.
-4. Définir :
-   - la date de début ;
-   - l'heure ;
-   - le mode de planification et, le cas échéant, les paramètres de répétition hebdomadaire ;
-   - la date de fin éventuelle ;
-   - le rappel.
-5. Enregistrer.
+1. Ouvrir le Calendrier puis **+ Planifier**, ou choisir **Planifier** sur une carte de Catalogue.
+2. Cocher une ou plusieurs Séances et/ou Exercices ; valider avec **Ajouter 1 élément** ou **Ajouter n éléments**.
+3. Choisir éventuellement un Programme, puis définir la date et l’heure de début.
+4. Activer ou non Répétition ; si elle est activée, choisir Jour/Semaine/Mois, le multiplicateur et la borne jusqu’au/pendant. Les règles encore ouvertes sont tracées dans la spécification du 08/10.
+5. Avec plusieurs contenus, réordonner les lignes sans titre et régler leur fréquence x fois sur n si nécessaire.
+6. Activer et régler éventuellement le Rappel, vérifier le récapitulatif, puis **Enregistrer**.
+
+Les étapes intermédiaires modifient le brouillon uniquement.
+
 ### Modifier une routine
 
 1. Sélectionner une routine dans le calendrier.
@@ -348,9 +350,9 @@ Les filtres et la position de défilement appartiennent à l’état du Catalogu
 
 1. dans le Catalogue `Exercices`, `Créer` ouvre directement le formulaire de création d’un Exercice persistant ;
 2. dans le Catalogue `Séances`, `Créer` ouvre directement une nouvelle Composition de Séance ;
-3. dans le Catalogue `Parcours`, le même principe ouvre directement la création d’un Parcours lorsque ce Catalogue devient fonctionnel.
+3. Aucun troisième Catalogue : parcours est seulement un libellé de planification.
 
-Dans T03/MVP, le segment `Parcours` est supprimé : aucune troisième option, même désactivée. Le concept post-MVP reste défini sans entrée de navigation active.
+Dans T03/MVP, le segment `Parcours` est supprimé : aucune troisième option, même désactivée. L’ancien objet autonome est retiré par D-328.
 
 ## Créer ou modifier un Exercice
 
@@ -374,7 +376,7 @@ Les paramètres métier restent identiques entre création et modification ; seu
 
 ### Déroulement d’un Exercice
 
-Lorsqu’elle est exécutée, l’Exercice suit son propre enchaînement intrinsèque : Compte à rebours d’Exercice éventuel → Séries du premier côté → Pause entre les côtés éventuelle → Séries du second côté → Fin d’exercice éventuelle. Les Pauses n’existent qu’entre Séries successives d’un même côté. Dans une Séance/Parcours, la Récupération après exercice de l’occurrence est exécutée ensuite ; en Exécution directe, elle n’existe pas.
+Lorsqu’elle est exécutée, l’Exercice suit son propre enchaînement intrinsèque : Compte à rebours d’Exercice éventuel → Séries du premier côté → Pause entre les côtés éventuelle → Séries du second côté → Fin d’exercice éventuelle. Les Pauses n’existent qu’entre Séries successives d’un même côté. Dans une Séance, la Récupération après exercice de l’occurrence est exécutée ensuite ; en Exécution directe, elle n’existe pas.
 
 ## Ajouter un Exercice depuis une Composition
 
@@ -398,18 +400,11 @@ Un Exercice créé directement dans une Séance ne rejoint pas le catalogue. L�
 
 ## Exécuter un Exercice À l’échec — MVP
 
-L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La Pause configurée s’exécute après chaque Série, selon l’Ordre des côtés, dernière Pause comprise (Bip v2). Si l’Exercice est bilatéral, la Pause entre les côtés éventuelle intervient entre les deux passages. En Exécution directe, aucune Récupération après exercice n’est ajoutée ; dans une Séance/Parcours, la Récupération après exercice appartient à l’occurrence et s’exécute après celle-ci.
+L’utilisateur démarre une Série sans objectif temporel ni nombre de répétitions cible. Il sélectionne `Suivant` pour terminer la Série, exactement comme en mode Répétitions. La Pause configurée s’exécute après chaque Série, selon l’Ordre des côtés, dernière Pause comprise (Bip v 2). Si l’Exercice est bilatéral, la Pause entre les côtés éventuelle intervient entre les deux passages. En Exécution directe, aucune Récupération après exercice n’est ajoutée ; dans une Séance, la Récupération après exercice appartient à l’occurrence et s’exécute après celle-ci.
 
 ## Créer et exécuter un Parcours — hors MVP, conception partielle
 
-1. Renseigner un nom et une couleur.
-2. Ajouter au moins deux étapes, chacune référençant une Séance ; une même Séance peut être ajoutée plusieurs fois.
-3. Choisir une transition manuelle ou automatique ; l’automatique utilise une durée commune, `30 s` par défaut.
-4. Lancer manuellement le Parcours. Le lancement fige un instantané.
-5. Après chaque Séance intermédiaire, remplacer son écran de fin par l’écran de transition ; conserver ensuite le compte à rebours initial de la Séance suivante.
-6. Après la dernière Séance, afficher la fin du Parcours et conserver l’Exécution globale ainsi que les Exécutions de Séance liées.
-
-En cas d’arrêt confirmé, le Parcours, la Séance courante et les résultats déjà produits sont enregistrés comme interrompus selon leur niveau ; aucune Exécution de Séance n’est créée pour les étapes non commencées.
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 ## Parcours bilatéral
 
@@ -513,11 +508,7 @@ Référence : `../CONCEPTION-EXECUTION-MEDIA.md`.
 
 ## Planifier un Parcours — cible future
 
-Un Parcours fonctionnel pourra être planifié directement. Le parcours utilisateur réutilise celui des Routines : sélection ou préremplissage de la source, paramètres de planification, validation, occurrences dans le Calendrier. Aucun parcours parallèle spécifique aux Parcours n’est introduit.
-
-### Règles de Composition liées à la récupération après exercice
-
-Toute `SessionActivity` possède `postActivityRecoverySeconds`. La valeur `0 s` est valide et reste représentée. La dernière occurrence avant `SESSION_END` conserve et exécute sa récupération. Lorsque l’occurrence appartient au Circuit, chaque occurrence exécute sa récupération à chaque passage. L’insertion d’une référence du Catalogue crée une nouvelle valeur contextuelle depuis le défaut global ; elle ne copie aucune récupération post-exercice depuis l’`ActivityDefinition`.
+**Ancienne cible autonome retirée le 08/10/2026.** Parcours est désormais le libellé d’un créneau à plusieurs contenus, sans identité, persistance, étapes ou exécution globale propres. Programme est un conteneur distinct ; Circuit reste interne à la Séance. Voir la [spécification de planification du 08/10](SPECIFICATION-PLANIFICATION-2026-10-08.md), y compris ses points ouverts ; aucune règle manquante ne se déduit des valeurs Figma.
 
 ## Parcours consolidés — 26 septembre 2026
 
@@ -526,7 +517,7 @@ Création Exercice : choisir exactement une Catégorie et au moins une Zone corp
 
 ### Clôture de parcours Figma — 28 septembre 2026
 
-Le MVP ne comporte aucune recherche globale ni recherche locale dans les Catalogues (D-221). La sélection simple d’une Séance ou d’un Exercice à planifier se valide au toucher et ferme la modale ; la sélection multiple utilisée pour composer une Séance conserve les cases à cocher et le CTA `Sélectionner` (D-222). Le titre de planification devient `Planifier une séance` ou `Planifier un exercice` lorsque le type de source est connu (D-223).
+Le MVP ne comporte aucune recherche globale ni recherche locale dans les Catalogues (D-221). La planification utilise désormais des cases à cocher et Ajouter n éléments, y compris pour un seul contenu (D-222 révisée). Son titre dépend du nombre et du type des contenus (D-223 révisée). La Composition conserve son contrat propre.
 
 ## Parcours visuels des cartes — 30 septembre 2026
 
@@ -556,3 +547,8 @@ En direct comme en Séance, la première répétition commence immédiatement, p
 ## Propagation Pauses et symboles — 07/10
 
 Entrer en placement Pause depuis Composition → sélectionner plusieurs emplacements/types → renseigner immédiatement la durée des récupérations → Confirmer N pauses ajoutées ou Annuler → retour au brouillon. Retrait par bulle. Continuer seul persiste.
+
+
+## Conception de planification du 08/10/2026
+
+Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](SPECIFICATION-PLANIFICATION-2026-10-08.md), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md).

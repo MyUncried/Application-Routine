@@ -61,7 +61,7 @@ Toutes les données sont enregistrées uniquement sur l’appareil.
 La V1 permet également :
 - de créer une Routine ;
 - d'associer une Séance **ou un Exercice persistant** à une Routine ;
-- de définir une planification `Aucune` ou `Périodique` ; dans le MVP, le mode Périodique utilise une périodicité hebdomadaire jusqu'à une date de fin ;
+- de définir un créneau unique ou répété via un interrupteur, avec unité Jour/Semaine/Mois et borne jusqu’au/pendant ; voir la spécification du 08/10 et ses points ouverts ;
 - d'ajouter un rappel facultatif (0 ou 1 rappel par Routine).
 
 Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → Tour → Exercice.
@@ -195,7 +195,7 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 - carte d’Exercice à gouttière permanente au MVP, photo ou icône de nature, sans Déployer quel que soit le média (D-260/D-261) ; l’activation de cet affichage n’implique pas de nouveau mécanisme d’import ou de capture.
 - nouvelle structure d’édition d’un Exercice : suppression du type, accès `Catégorie` et `Zones corporelles`, Mode déployé par défaut, paramètres `Séries / cible / Pause`, puis `Changement de côté / Pause entre les côtés / Durée totale`, la Pause entre les côtés étant conditionnelle à `D→G/G→D` ;
 - référentiels Étiquettes / Catégories / Zones corporelles administrables dans le MVP : toutes les valeurs, initiales comme personnalisées, sont supprimables par appui long puis confirmation ; création et renommage suivent les parcours propres à chaque référentiel ;
-- modèle D-208 : `ActivityDefinition` porte seulement la Pause entre les côtés éventuelle ; chaque occurrence de Séance/Parcours porte sa récupération après exercice, y compris à `0 s`, exécutée après l’occurrence et exclue de la durée intrinsèque de l’Exercice.
+- modèle D-208 : `ActivityDefinition` porte seulement la Pause entre les côtés éventuelle ; chaque occurrence de Séance porte sa récupération après exercice, y compris à `0 s`, exécutée après l’occurrence et exclue de la durée intrinsèque de l’Exercice.
 
 ### MVP — complément T03
 
@@ -207,12 +207,12 @@ Le contenu exact de la V4 sera priorisé après les retours obtenus sur les vers
 ### V2
 
 - `0..n` photos ou vidéos ordonnées, ajoutées par capture ou photothèque, stockées localement et lisibles manuellement ;
-- création, modification, archivage, suppression et exécution manuelle des Parcours ;
-- écran de transition obligatoire entre Séances, manuel ou automatique avec durée globale de `30 s` par défaut.
+- Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
+- Ancienne transition de Parcours autonome retirée avec D-119/D-328 ; l’enchaînement multi-contenus reste à spécifier.
 
 ### V3
 
-- planification, récurrences, calendrier, rappels et notifications des Parcours, **via le même mécanisme de Routine que les Séances et Exercices**, avec une source Parcours distincte.
+- Ancienne cible de Parcours autonome retirée par D-328 ; voir la planification multi-contenus du 08/10.
 
 ## Roadmap des tranches MVP après arbitrage du 14 septembre 2026
 
@@ -275,3 +275,8 @@ Le parcours existant permet maintenant des Séries variables dans la même feuil
 
 Cible documentée, non déclarée livrée : Bip de cadence0..10 dans trois modes, steppers et calculs Bip v2. Dépendances : SeriesParameters, pauses explicites, migration, ordonnanceur audio périodique, snapshots et qualification mobile. L’écran de roulette est supprimé ; les cinq modales modifiées sont reprises ; les autres modes restent à compléter visuellement. Le layout d’exécution est conservé.
 
+
+
+## Conception de planification du 08/10/2026
+
+Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments → Programme facultatif, Début, Répétition, contenus ordonnés si plusieurs, Rappel → Enregistrer. Chaque contenu filtre les occurrences du créneau par son motif x fois sur n. Les modalités ouvertes ne sont pas considérées livrées. Voir la [spécification](SPECIFICATION-PLANIFICATION-2026-10-08.md), les contrats CE-UI-04/05/11 et le [DSF général](../DSF-INTERFACE-GENERALE-2026-10-08.md).

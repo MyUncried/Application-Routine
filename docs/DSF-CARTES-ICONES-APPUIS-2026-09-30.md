@@ -1,5 +1,8 @@
 # DSF — Cartes, icônes et animations d’appui
 
+> Actualisation 08/10 : les règles générales d’interface sont définies dans [DSF-INTERFACE-GENERALE-2026-10-08](DSF-INTERFACE-GENERALE-2026-10-08.md). Pour la planification, la [matrice du 08/10](MATRICE-PLANIFICATION-2026-10-08.md) remplace les anciennes références et leur statut ; les lignes datées antérieures restent un inventaire historique, pas la preuve des nouvelles captures.
+
+
 **État courant06/10 :** [DSF Cadence et corrections](DSF-CADENCE-2026-10-06.md), [matrice courante](MATRICE-CADENCE-FIGMA-2026-10-06.md). Les mesures/captures datées ci-dessous restent historiques lorsqu’elles sont remplacées ; règles cartes média conservées. Cadence commune REPS et phrase unique selon paramètres v13, Phrase v1.
 
 ## Références et portée
@@ -274,3 +277,4 @@ Correction du04/10/2026 : conteneurs Titre + durée totale `6214:4075`/`6214:411
 ## Durée des cartes — complément du07/10
 
 [Référence normative courante](DSF-CARTES-DUREE-2026-10-07.md) : durée Catalogue sans cadre/padding, Inter Semi Bold12, droite16 ; propriété Durée ; titre250/lignes basses207 en Exercice, coupes60/69/145 fondées sur207. Composants actifs6214:7278 et6214:7276 ; anciennes cartes5544 ne sont pas les références.
+
