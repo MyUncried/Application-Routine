@@ -38,3 +38,28 @@ test('non-UI finalization covers exact required proofs and delivered targets',()
  assert.throws(()=>F.finalize({...args,nonUiRequirements:[{...requirement,proof_required:['FUNCTIONAL_TEST','STATIC_ANALYSIS']}]}),/NON_UI_PROOF_COVERAGE_INVALID/);
  }finally{fs.rmSync(cwd,{recursive:true,force:true});}
 });
+
+test('IA-004 closure accepts another certification campaign with exact destination',()=>{
+ const x=fixture();x.c.campaign_id='12345678-1234-1234-1234-123456789abc';x.c.slice_id='VNEXT-TOLERANCE-QUALIF';x.c.delivery_branch='certification/vnext/'+x.c.campaign_id;x.c.base_branch='fix/vnext-audit-tolerance-20261008';
+ x.issue.body=C.binding(x.c)+'Another disposable campaign';x.c.issue_body_sha256=V.sha256(x.issue.body);x.pr.head.ref=x.c.delivery_branch;x.pr.base.ref=x.c.base_branch;
+ const f={...x.f,slice_id:x.c.slice_id};delete f.contract_hash;
+ assert.equal(C.close(x.c,V.sealContract(f),x.github).slice_id,x.c.slice_id);
+});
+test('IA-004 product closure preserves actual attestations and never publishes the app',()=>{
+ const x=fixture();x.c.closure_scope='GITHUB_SLICE_DELIVERY';x.c.slice_id='PRE-3';x.c.base_branch='main';x.c.delivery_branch='feat/pre3';
+ x.issue.body=C.binding(x.c)+'Product fixture only';x.c.issue_body_sha256=V.sha256(x.issue.body);x.pr.head.ref=x.c.delivery_branch;x.pr.base.ref='main';
+ const f={...x.f,slice_id:'PRE-3',visual_compliance_attested:true};delete f.contract_hash;
+ const result=C.close(x.c,V.sealContract(f),x.github);assert.equal(result.scope,'GITHUB_SLICE_DELIVERY');assert.equal(result.visual_compliance_attested,true);assert.equal(result.application_published,false);
+ x.writes.length=0;C.close(x.c,V.sealContract(f),x.github);assert.deepEqual(x.writes,[]);
+});
+
+test('IA-004 generic closure request refuses unsafe paths repository and legacy product slices',()=>{
+ const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),Request=require('../../scripts/kodjo/validate-vnext-closure-request');
+ const cwd=fs.mkdtempSync(path.join(os.tmpdir(),'vnext-closure-request-'));const file='.github/orchestration/vnext-closure/request.json';
+ try{const x=fixture();fs.mkdirSync(path.join(cwd,path.dirname(file)),{recursive:true});fs.writeFileSync(path.join(cwd,file),JSON.stringify(x.c));
+ assert.equal(Request.validate(file,{cwd,repository:x.c.repository}).slice_id,x.c.slice_id);
+ assert.throws(()=>Request.validate(file,{cwd,repository:'foreign/repo'}),/REPOSITORY_MISMATCH/);
+ for(const bad of ['../request.json','.github/orchestration/request.json']) assert.throws(()=>Request.validate(bad,{cwd,repository:x.c.repository}),/PATH/);
+ for(const id of ['V2-PRE-1','V2-PRE-2']) assert.throws(()=>C.validateConfig({...x.c,slice_id:id}),/CONFIG_REFUSED/);
+ }finally{fs.rmSync(cwd,{recursive:true,force:true});}
+});

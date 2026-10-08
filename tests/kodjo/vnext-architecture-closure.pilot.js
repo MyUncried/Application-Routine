@@ -35,7 +35,7 @@ test('architecture: approval refuses a resealed context whose target catalog was
     delete changed.contract_hash;
     const reviewContext = V.sealContract(changed);
     assert.throws(() => Approval.buildApprovalTarget({ ...f.artifacts, reviewContext,
-      reviewReport: f.report, currentState: f.state }), /REVIEW_CONTEXT_REBUILD_MISMATCH/);
+      reviewReport: f.report, currentState: f.state }), /REVIEW_CONTEXT_REBUILD_MISMATCH|REVIEW_TOLERANCE_INVALID/);
   } finally { fs.rmSync(f.repo.cwd, { recursive: true, force: true }); }
 });
 

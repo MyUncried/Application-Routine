@@ -56,7 +56,7 @@ function fixture({ largeCatalog = false } = {}) {
     assert.equal(compactFields.dependency_target_indices.items.type, 'integer');
     assert.ok(args.includes('--add-dir'));
     assert.equal(compact.properties.semantic_review.properties.reviewed_target_ids, undefined);
-    assert.equal(compact.properties.semantic_review.properties.reviewed_target_indices.items.type, 'integer');
+    assert.equal(compact.properties.semantic_review.properties.reviewed_target_ranges.items.items.type, 'integer');
     assert.ok(args.join(' ').length < 8000, 'review command line must stay bounded');
     if (largeCatalog) {
       const original = JSON.stringify({ produced, output_schema: require('../../scripts/kodjo/lib/review-contract').reviewerOutputSchema(produced.artifacts.reviewContext) });

@@ -1,0 +1,8 @@
+{
+  "scope": "IA_001_TO_004_TARGETED_CORRECTION",
+  "authorization_basis": "USER_REQUEST_2026_10_08_08_10_EUROPE_PARIS",
+  "authorization_text": "Maintenant procède à la correction de ces 4 fragilités, et relance les tests de qualification, jetables et réels si il faut en passer par la.",
+  "model_calls_limit": 2,
+  "product_execution_authorized": false,
+  "purpose": "Réutiliser le benchmark réel de révision de plan existant : vraie revue négative, correction causale unique et vraie revue révisée avec le transport ciblé par plages. Aucun bootstrap publié, aucune demande d’implémentation consommée, aucune modification PRE-3."
+}

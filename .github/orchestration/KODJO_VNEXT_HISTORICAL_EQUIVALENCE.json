@@ -95,7 +95,7 @@
         "scripts/kodjo/lib/ui-atomicity-contract.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "fb14b3e635f59d6c235c23236517b5bd0ef77bfdf0baa0abbd126483e94d2cfb"
+      "test_source_sha256": "7f80c3daace07af68a0fac41f54d8e8a280031b69e7cf8dce6155a9ac85bc8db"
     },
     {
       "id": "CASE-eedcd22844a83c98",
@@ -113,7 +113,7 @@
         "scripts/kodjo/lib/ui-atomicity-contract.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "fb14b3e635f59d6c235c23236517b5bd0ef77bfdf0baa0abbd126483e94d2cfb"
+      "test_source_sha256": "7f80c3daace07af68a0fac41f54d8e8a280031b69e7cf8dce6155a9ac85bc8db"
     },
     {
       "id": "CASE-24ed78f19ab1f14d",
@@ -131,7 +131,7 @@
         "scripts/kodjo/lib/ui-atomicity-contract.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "fb14b3e635f59d6c235c23236517b5bd0ef77bfdf0baa0abbd126483e94d2cfb"
+      "test_source_sha256": "7f80c3daace07af68a0fac41f54d8e8a280031b69e7cf8dce6155a9ac85bc8db"
     },
     {
       "id": "CASE-feaadf94237c92db",
@@ -621,7 +621,7 @@
         "scripts/kodjo/lib/ui-atomicity-contract.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "fb14b3e635f59d6c235c23236517b5bd0ef77bfdf0baa0abbd126483e94d2cfb"
+      "test_source_sha256": "7f80c3daace07af68a0fac41f54d8e8a280031b69e7cf8dce6155a9ac85bc8db"
     },
     {
       "id": "CASE-c4b9d55bf0f4f0ae",
@@ -639,7 +639,7 @@
         "scripts/kodjo/lib/ui-atomicity-contract.js",
         "scripts/kodjo/lib/vnext-contract.js"
       ],
-      "test_source_sha256": "fb14b3e635f59d6c235c23236517b5bd0ef77bfdf0baa0abbd126483e94d2cfb"
+      "test_source_sha256": "7f80c3daace07af68a0fac41f54d8e8a280031b69e7cf8dce6155a9ac85bc8db"
     },
     {
       "id": "CASE-ba01d5ea610237ee",

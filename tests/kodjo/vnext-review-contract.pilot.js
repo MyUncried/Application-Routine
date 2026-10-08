@@ -502,3 +502,35 @@ test('D7 no findings cannot stand in for missing, partial, duplicate or unknown 
   }
   assert.equal(Review.buildReviewReport({reviewContext:fx.reviewContext,semanticReview:full}).verdict,'APPROVE');
 });
+
+// These synthetic contexts test scale and thresholds, never attest a live review.
+test('IA-001 scoped review excludes unrelated application candidates', () => {
+ const fx=buildFixture({ui:true});
+ const relevant=new Set(fx.impactGraph.impacts.flatMap(row=>[row.candidate_id,...row.tests_affected_candidate_ids,...row.preservation_candidate_ids]));
+ for(const row of fx.uiAtomicityContract.criteria) for(const id of row.reuse_search_candidate_ids) relevant.add(id);
+ assert.deepEqual(fx.reviewContext.target_catalog.CANDIDATE,[...relevant].sort());
+});
+test('IA-001 2259 targets use one attested range and preserve all exact IDs', () => {
+ const context=structuredClone(buildFixture().reviewContext);delete context.contract_hash;
+ context.target_catalog.CANDIDATE=Array.from({length:2259},(_,i)=>'SCALE-CAND-'+i);
+ context.coverage_policy.optional_target_ids=context.target_catalog.CANDIDATE.slice(-4);
+ const sealed=V.sealContract(context),targets=Object.values(sealed.target_catalog).flat();
+ const input={findings:[],finding_resolutions:[],target_catalog_hash:V.canonicalHash(targets),reviewed_target_ranges:[[0,targets.length-1]]};
+ const decoded=require('../../scripts/kodjo/lib/vnext-live-chain').decodeReviewOutput(sealed,input);
+ assert.ok(JSON.stringify(input).length<250);
+ const report=Review.buildReviewReport({reviewContext:sealed,semanticReview:decoded});
+ assert.equal(report.coverage_status,'COMPLETE');assert.equal(report.reviewed_target_ids.length,targets.length);
+ Review.validateReviewReport(report,sealed);
+ for(const ranges of [[[0,0],[0,2]],[[0,targets.length]],[[2,1]]]) assert.throws(()=>require('../../scripts/kodjo/lib/vnext-live-chain').decodeReviewOutput(sealed,{...input,reviewed_target_ranges:ranges}),/RANGE_INVALID/);
+});
+test('IA-001 pending secondary coverage accepts bounded gaps without inventing review', () => {
+ const context=structuredClone(buildFixture().reviewContext);delete context.contract_hash;
+ context.target_catalog.CANDIDATE=Array.from({length:200},(_,i)=>'SECONDARY-'+i);
+ context.coverage_policy.optional_target_ids=context.target_catalog.CANDIDATE.slice(-4);
+ const sealed=V.sealContract(context),full=require('./helpers/review-attestation-fixture').semantic(sealed);
+ const omitted=sealed.coverage_policy.optional_target_ids.slice(0,3);
+ const report=Review.buildReviewReport({reviewContext:sealed,semanticReview:{...full,reviewed_target_ids:full.reviewed_target_ids.filter(id=>!omitted.includes(id))}});
+ assert.equal(report.verdict,'APPROVE');assert.equal(report.coverage_status,'ACCEPTED_WITH_PENDING_SECONDARY_TARGETS');assert.deepEqual(report.pending_target_ids,omitted.sort());
+ Review.validateReviewReport(report,sealed);
+ for(const missing of [sealed.coverage_policy.optional_target_ids,[sealed.target_catalog.REQUIREMENT[0]]]) assert.throws(()=>Review.buildReviewReport({reviewContext:sealed,semanticReview:{...full,reviewed_target_ids:full.reviewed_target_ids.filter(id=>!missing.includes(id))}}),/COVERAGE_INCOMPLETE/);
+});

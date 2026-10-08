@@ -27,7 +27,7 @@ test('architecture: final audit refuses a different protocol candidate and forge
   const context = structuredClone(reviewContext());
   Object.keys(context.target_catalog).forEach(key => { context.target_catalog[key] = []; });
   delete context.contract_hash;
-  assert.throws(() => Convergence.buildFinalAuditReport({ ...args, reviewContext: V.sealContract(context) }), /CONTEXT_REBUILD_MISMATCH/);
+  assert.throws(() => Convergence.buildFinalAuditReport({ ...args, reviewContext: V.sealContract(context) }), /CONTEXT_REBUILD_MISMATCH|REVIEW_TOLERANCE_INVALID/);
 });
 
 function semanticFinding(overrides = {}) {

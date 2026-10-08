@@ -25,3 +25,8 @@ Lorsque la planification comporte Figma, utiliser le stade `launch` avec la conf
 La suite du cycle utilise les stades existants de `vnext-chain.js` : revue, préparation, approbation explicite, admission et exécution locale. Les validations de sources, de plan approuvé, de périmètre, de preuves et de livraison restent applicables. L’activation ne vaut aucune approbation de plan ou de livraison.
 
 Le chargement du routage lit les blobs du commit courant. Une modification locale non committée ne change pas le protocole. Une activation partielle ou altérée échoue explicitement. Un rollback scellé conserve les cycles VNext déjà engagés selon le contrat existant.
+
+
+La clôture des nouvelles tranches peut être préparée via `kodjo-vnext-closure.yml`, avec une demande committée dans `.github/orchestration/vnext-closure/`. Elle n’utilise plus les identités figées de `VNEXT-12-QUALIF`. Cette capacité ne vaut pas preuve de parcours réel tant que la qualification de la correction IA-004 n’est pas enregistrée dans son rapport.
+
+Les réserves secondaires de revue suivent la politique versionnée décrite dans la spécification VNext ; une revue partielle n’arrête pas systématiquement le parcours. Les éléments non examinés restent explicites.
