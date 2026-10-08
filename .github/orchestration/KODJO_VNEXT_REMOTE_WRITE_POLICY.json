@@ -901,7 +901,7 @@
     },
     {
       "producer": "scripts/kodjo/close-vnext-github-delivery.js",
-      "producer_blob_oid": "e655111cddc1b81e2867a204ab2342217cb4c7c6",
+      "producer_blob_oid": "bf55e946d7f41ec8d13abab1526b72f1e5f61226",
       "authorization_condition": "SERIALIZED_FINALIZE_DELIVERY_EXACT_BOUND_CERTIFICATION_OR_VNEXT_SLICE_TARGET_ONLY",
       "required_job": null,
       "capabilities": [

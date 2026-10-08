@@ -24,8 +24,10 @@ function main(configFile,directory,{github=ghClient(),env=process.env,cwd=proces
       || env.VNEXT_CLOSURE_JOB!=='close-vnext-delivery' || !env.GITHUB_RUN_ID) throw Error('VNEXT_GITHUB_CLOSURE_SERIALIZED_WORKFLOW_REQUIRED');
   fs.mkdirSync(directory,{recursive:true});
   const controllerHead=execFileSync('git',['rev-parse','HEAD'],{cwd,encoding:'utf8'}).trim();
+  const workflowPath=env.GITHUB_WORKFLOW_REF?.split('@')[0].slice((c.repository+'/').length);
+  if(!env.GITHUB_WORKFLOW_REF?.startsWith(c.repository+'/') || !['.github/workflows/kodjo-vnext12-disposable.yml','.github/workflows/kodjo-vnext-closure.yml'].includes(workflowPath)) throw Error('VNEXT_GITHUB_CLOSURE_WORKFLOW_REFUSED');
   const provenance=require('./lib/vnext-execution-provenance').observe({controllerCwd:cwd,approvedCwd:cwd,
-    controllerHead,approvedHead:controllerHead,env,controllerScript:'scripts/kodjo/close-vnext-github-delivery.js',
+    controllerHead,approvedHead:controllerHead,env,workflowPath,controllerScript:'scripts/kodjo/close-vnext-github-delivery.js',
     runtimeScript:'scripts/kodjo/finalize-vnext-delivery.js'});
   fs.writeFileSync(path.join(directory,'execution-provenance.json'),JSON.stringify(provenance,null,2)+'\n');
   const input=JSON.parse(fs.readFileSync(path.join(cwd,c.finalization_manifest),'utf8'));

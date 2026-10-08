@@ -47,3 +47,16 @@ Seconde passe ciblée : paramètres de tolérance verrouillés, recomposition du
 - Push vers `MyUncried/Application-Routine`, branche `fix/vnext-audit-tolerance-20261008`, rejeté par le contrôle automatique d’approbation. Motif déclaré : destination externe non explicitement autorisée par la demande de correction et de tests ; risque de publication de code potentiellement sensible.
 - Relecture GitHub du ref demandé : absent (404). Aucune PR ni qualification GitHub ni invocation réelle du reviewer lancée par cette mission.
 - Aucun contournement ni méthode alternative de publication utilisé. Autorisation explicite de publication nécessaire pour poursuivre les opérations externes. PRE-3 reste inchangée.
+
+## Publication autorisée et qualifications lancées
+
+Le 8 octobre 2026, l’utilisateur a répondu « oui » à la demande explicite de publication de la branche, ouverture de PR et lancement des qualifications/tests réels. Le refus précédent reste une trace historique, et ne décrit plus l’état courant. Le push shell a ensuite échoué faute de credentials ; la publication autorisée a réussi via le connecteur GitHub.
+
+- PR : https://github.com/MyUncried/Application-Routine/pull/334 ; candidat `0df1a9b3188fa022063aac004227ae399cc1c834`.
+- Arbre publié égal à l’arbre local testé : `402d63b4e476537937152ec1a2c1199e17498a18`.
+- Qualification complète exacte : run `37738297203` ; contrats Linux et équivalence historique Linux SUCCESS, Windows encore actif au relevé.
+- Pilotes Linux/Windows : run `37738297210` ; Linux SUCCESS, préflight Windows actif.
+- Audit indépendant : run `37738297267` ; attente du pilote exact.
+- Benchmark réel : run `37738297359` ; attente de la qualification complète exacte. Aucune invocation du reviewer attestée à ce relevé.
+
+Seconde passe du raccordement de clôture : la provenance héritée désignait systématiquement le workflow disposable. Correction additionnelle préparée : sélection explicite du workflow réel parmi les deux workflows autorisés, vérification de ses bytes au SHA de l’événement, refus d’un workflow différent ou obsolète. Le comportement historique par défaut est conservé. 44 tests ciblés PASS, 0 FAIL. Cette correction change le code du contrôleur : elle doit être publiée et qualifiée à son propre SHA avant utilisation réelle. Ne pas assimiler les résultats du candidat initial à cette qualification additionnelle.
