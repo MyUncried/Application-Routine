@@ -474,6 +474,8 @@ Un **Média** est une ressource visuelle locale associée à un Exercice. L’im
 
 ## Périmètre
 
+Source d’acquisition PRE-3 : photothèque seule, photos et vidéos (D-334). Ce choix ne change ni les associations ordonnées ni le partage et la conservation des fichiers.
+
 Un `MediaAsset` possède son identité et ses informations techniques. Les liens vers les Exercices sont portés par des associations `ActivityMedia` ordonnées.
 
 ## Attributs fonctionnels

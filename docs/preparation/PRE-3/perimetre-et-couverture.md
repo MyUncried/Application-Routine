@@ -288,3 +288,7 @@ La préparation conserve les décisions validées ; elle ne rouvre ni PRE-1 ni P
 État : périmètre validé par Hermann, import compris. Rapprochement daté dans [rapprochement-main-figma.md](rapprochement-main-figma.md). Aucun plan technique approuvé ni autorisation d’implémentation.
 
 La préparation est publiée sous docs/preparation/PRE-3/ afin de ne pas activer implicitement une identité legacy V2. VNext est intégré et activé dans main ; les corrections et qualifications de #334 constituent un chantier séparé. Cette PR de préparation ne modifie ni ce chantier ni les preuves d’activation et n’atteste pas la qualification des correctifs. Le prochain dossier de planification doit consommer le périmètre, l’analyse de l’existant et le [manifeste Figma détaillé](figma/manifest.json) établi dans cette préparation.
+
+## Arbitrage de reprise PRE-3 — source d’import
+
+Le08/10/2026, Hermann choisit la **photothèque seule** (D-334, issue #340). Photos et vidéos locales restent incluses. Les mentions précédentes « caméra / sources système à clarifier » décrivent la préparation antérieure et sont remplacées sur ce seul point. Formats/compatibilité, permissions effectives et présentation des états/gestes manquants restent à finaliser dans le plan ; aucune limite arbitraire ajoutée.

@@ -73,3 +73,7 @@ L’[extraction détaillée du08/10](extraction-figma.md) est terminée pour les
 - active_operations: trois contrôles sur cette branche ; aucune opération PRE-3 observée dans la liste in_progress
 
 La publication de cette analyse ne qualifie pas VNext, ne démarre pas V2 et ne transforme pas la préparation en autorisation de développement.
+
+## Arbitrage de reprise PRE-3 — source d’import
+
+Le08/10/2026, Hermann choisit la **photothèque seule** (D-334, issue #340). Photos et vidéos locales restent incluses. Les mentions précédentes « caméra / sources système à clarifier » décrivent la préparation antérieure et sont remplacées sur ce seul point. Formats/compatibilité, permissions effectives et présentation des états/gestes manquants restent à finaliser dans le plan ; aucune limite arbitraire ajoutée.

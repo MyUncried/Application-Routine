@@ -208,7 +208,7 @@ sans modifier les règles métier ni coupler le domaine à SQLite ou à un fourn
 
 La technologie cloud et la stratégie précise de synchronisation ne sont pas choisies dans le MVP. Elles seront définies lorsqu’une version nécessitera effectivement des données partagées ou multi-appareils.
 
-Après le MVP, les médias ne seront pas stockés comme blobs dans SQLite : la base conservera leurs métadonnées et leurs références locales ou distantes.
+Dès leur introduction au MVP par PRE-3 (D-333), les médias ne sont pas stockés comme blobs dans SQLite : la base conserve leurs métadonnées et références locales. Les références distantes relèvent d’une évolution ultérieure.
 
 ## 12.7 Identité utilisateur
 
@@ -391,6 +391,8 @@ L’application ne demande pas l’autorisation de notification au lancement. El
 ## 12.14 Médias
 
 L’import/ajout de photos ou vidéos locales et leur association aux Exercices sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333).
+
+La source d’acquisition retenue est la photothèque seule (D-334), sans capture caméra ni sélecteur de fichiers. Les formats compatibles et les états d’import non documentés restent à préciser dans le plan PRE-3.
 
 L’architecture doit permettre `0..n` associations média ordonnées par Exercice au MVP dans PRE-3 (D-333). La copie d’un Exercice ou d’une Séance ne duplique pas le fichier physique : plusieurs associations peuvent référencer le même fichier local immuable.
 

@@ -1,0 +1,535 @@
+{
+  "schema": "PRE3_WORKING_TRACEABILITY_NOT_VNEXT_CONTRACT",
+  "baseline": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "requirements": [
+    {
+      "id": "P3-01",
+      "exigence": "Quatre entrées créer/modifier × Catalogue/Séance ; copies indépendantes",
+      "preuveAvantRecette": "Intégration navigation/services",
+      "recetteCiblee": "Parcours et retour",
+      "proposedModules": [
+        "ExerciseScreen",
+        "ActivitySelectionScreen",
+        "ActivityDefinitionService",
+        "SessionDraft"
+      ],
+      "expectedAssertions": [
+        "navigation",
+        "creating",
+        "editing",
+        "independent-copy",
+        "no-writeback"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-02",
+      "exigence": "Éditeur complet et actions accessibles",
+      "preuveAvantRecette": "Tests de rendu + comparaison Figma",
+      "recetteCiblee": "Clavier, scroll, sauvegarde",
+      "proposedModules": [
+        "ActivityEditorForm",
+        "ExerciseScreen"
+      ],
+      "expectedAssertions": [
+        "full-editor",
+        "keyboard",
+        "scroll",
+        "save-return"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-03",
+      "exigence": "Catégorie/Zones fidèles, valeurs conservées",
+      "preuveAvantRecette": "Rendu, sélection, persistance, comparaison",
+      "recetteCiblee": "Choix et réouverture",
+      "proposedModules": [
+        "CategoryPickerModal",
+        "BodyZonePickerModal"
+      ],
+      "expectedAssertions": [
+        "selection",
+        "reopen",
+        "retired-associations",
+        "empty-name-disabled"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-04",
+      "exigence": "Mode et cibles corrects dans trois modes",
+      "preuveAvantRecette": "Tests de validation et transition",
+      "recetteCiblee": "Champs conditionnels",
+      "proposedModules": [
+        "ExecutionParameters",
+        "ExecutionParametersDraft",
+        "validation"
+      ],
+      "expectedAssertions": [
+        "three-modes",
+        "incompatible-target-null",
+        "bounds"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-05",
+      "exigence": "Uniforme/variable explicite, copie/restauration",
+      "preuveAvantRecette": "Tests de machine de brouillon",
+      "recetteCiblee": "Bascules puis Annuler",
+      "proposedModules": [
+        "ExecutionParametersDraft"
+      ],
+      "expectedAssertions": [
+        "explicit-variable",
+        "equal-values",
+        "uniform-first-row",
+        "temporary-restoration"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-06",
+      "exigence": "Augmentation/réduction/restauration de N",
+      "preuveAvantRecette": "Tests d’ordre et contenu",
+      "recetteCiblee": "Réduire puis rétablir",
+      "proposedModules": [
+        "ExecutionParametersDraft"
+      ],
+      "expectedAssertions": [
+        "shrink",
+        "restore-order",
+        "extend-clone-last",
+        "commit-discards-hidden"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-07",
+      "exigence": "Déplacement, nouvelle première/dernière ligne",
+      "preuveAvantRecette": "Tests d’ordre, pause finale, annulation",
+      "recetteCiblee": "Réordonner",
+      "proposedModules": [
+        "ExecutionParametersDraft",
+        "calculations"
+      ],
+      "expectedAssertions": [
+        "move-target-and-pause",
+        "first-last",
+        "terminal-pause",
+        "cancel"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-08",
+      "exigence": "N=1 normalisé immédiatement",
+      "preuveAvantRecette": "Tests état, calcul, sauvegarde",
+      "recetteCiblee": "Contrôles grisés",
+      "proposedModules": [
+        "ExecutionParametersDraft",
+        "ExecutionParameters",
+        "calculations"
+      ],
+      "expectedAssertions": [
+        "N1-effective-now",
+        "N1-saved-uniform",
+        "restore-before-apply"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-09",
+      "exigence": "Directions et deux ordres bilatéraux",
+      "preuveAvantRecette": "Tests croisés modes/ordres",
+      "recetteCiblee": "Sélection et affichage",
+      "proposedModules": [
+        "ExecutionParameters",
+        "calculations",
+        "ActivityParametersSheet"
+      ],
+      "expectedAssertions": [
+        "both-directions",
+        "both-orders",
+        "PC-zero",
+        "N1-order"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-10",
+      "exigence": "Défauts Profil copiés sans réécriture",
+      "preuveAvantRecette": "Tests création/activation/édition",
+      "recetteCiblee": "Nouveau puis existant",
+      "proposedModules": [
+        "ExecutionParameters",
+        "ExerciseScreen",
+        "ActivityDefinition"
+      ],
+      "expectedAssertions": [
+        "defaults-new-only",
+        "PC-on-activation",
+        "no-profile-backfill"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-11",
+      "exigence": "Bip 0..10 dans trois modes",
+      "preuveAvantRecette": "Bornes, copie, persistance",
+      "recetteCiblee": "Aucun/positif, bascule",
+      "proposedModules": [
+        "ExecutionParameters",
+        "ExecutionParametersDraft"
+      ],
+      "expectedAssertions": [
+        "cadence-0-1-10",
+        "reject-minus1-11-fraction",
+        "preserve-all-modes"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-12",
+      "exigence": "Totaux exact/estimé/omis corrects",
+      "preuveAvantRecette": "Cas numériques indépendants",
+      "recetteCiblee": "Présence, valeur, symbole",
+      "proposedModules": [
+        "calculations",
+        "ActivityCard",
+        "compositionPresentation"
+      ],
+      "expectedAssertions": [
+        "A195",
+        "C405",
+        "D375",
+        "reps-300",
+        "duration-300",
+        "omitted-not-zero"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-13",
+      "exigence": "R remplace PN ; calcul Séance sans doublon",
+      "preuveAvantRecette": "Intégration calcul/copie/duplication",
+      "recetteCiblee": "Totaux d’un exemple connu",
+      "proposedModules": [
+        "calculations",
+        "SessionDraft",
+        "SqliteSessionRepository"
+      ],
+      "expectedAssertions": [
+        "B285",
+        "N1-220",
+        "N1-with-R235",
+        "R0-keeps-PN",
+        "R-once",
+        "tours",
+        "known-partial"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-14",
+      "exigence": "Inversion Durée uniforme",
+      "preuveAvantRecette": "Limites N, égalités, normalisation N=1",
+      "recetteCiblee": "Total ajusté et message",
+      "proposedModules": [
+        "calculations",
+        "ActivityParametersSheet"
+      ],
+      "expectedAssertions": [
+        "enumerate-N1-99",
+        "nearest",
+        "tie-largestN",
+        "normalized-N1",
+        "message-if-adjusted"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-15",
+      "exigence": "Phrase et gras conformes aux 276 gabarits",
+      "preuveAvantRecette": "Comparaison des segments et montants injectés",
+      "recetteCiblee": "Phrase courte/longue",
+      "proposedModules": [
+        "executionParameterPhrase",
+        "ActivityEditorForm"
+      ],
+      "expectedAssertions": [
+        "276-v15",
+        "independent-amounts",
+        "ordered-bold-segments",
+        "no-storage",
+        "N1-pause",
+        "exception",
+        "min-max",
+        "long-text"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-16",
+      "exigence": "Brouillons atomiques et erreurs conservées",
+      "preuveAvantRecette": "Annulation, double validation, échec DB",
+      "recetteCiblee": "Abandon/restauration",
+      "proposedModules": [
+        "ExecutionParametersDraft",
+        "ExerciseScreen",
+        "SessionDraft"
+      ],
+      "expectedAssertions": [
+        "cancel",
+        "nested-apply",
+        "parent-save",
+        "doubletap",
+        "transaction-failure",
+        "retains-draft"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-17",
+      "exigence": "Persistance et migration compatibles",
+      "preuveAvantRecette": "SQL réel de test, repositories, anciennes données",
+      "recetteCiblee": "Enregistrer/relancer/rouvrir",
+      "proposedModules": [
+        "migration009",
+        "migrateDatabase",
+        "SqliteActivityDefinitionRepository",
+        "SqliteSessionRepository"
+      ],
+      "expectedAssertions": [
+        "real-sqlite",
+        "fresh",
+        "upgrade-v8",
+        "repeat",
+        "rollback",
+        "foreignkeys",
+        "reopen",
+        "IDs-preserved"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-18",
+      "exigence": "Copie/duplication/instantané incluent tous les paramètres",
+      "preuveAvantRecette": "Tests d’intégration et historique immuable",
+      "recetteCiblee": "Copie dans Séance",
+      "proposedModules": [
+        "ActivityDefinition",
+        "SessionDraft",
+        "SessionService",
+        "ExecutionParameters"
+      ],
+      "expectedAssertions": [
+        "all-fields",
+        "independent-copy",
+        "duplicate",
+        "ordered-media",
+        "immutable-serialization"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-19",
+      "exigence": "Steppers/roulettes/repli/scroll fonctionnels",
+      "preuveAvantRecette": "Temps simulé, limites, rendu adapté",
+      "recetteCiblee": "Maintien et accès au bas",
+      "proposedModules": [
+        "ActivityParametersSheet",
+        "ProfileStepper",
+        "DurationWheelPicker",
+        "WheelPickerOverlay"
+      ],
+      "expectedAssertions": [
+        "hold-500ms",
+        "tick150ms",
+        "thresholds2s4s",
+        "clamp",
+        "directional-rounding",
+        "no-release-tap",
+        "exclusive-open",
+        "fold-no-data"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-20",
+      "exigence": "Surfaces visuelles bornées conformes",
+      "preuveAvantRecette": "Comparaisons par état, properties mesurées",
+      "recetteCiblee": "Écarts résiduels explicités",
+      "proposedModules": [
+        "ActivityEditorForm",
+        "ActivityParametersSheet",
+        "CategoryPickerModal",
+        "BodyZonePickerModal"
+      ],
+      "expectedAssertions": [
+        "41-state-mapping",
+        "per-element-tokens",
+        "360-402-440",
+        "font-enlarged",
+        "named-deviations"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-21",
+      "exigence": "Accessibilité des nouveaux contrôles",
+      "preuveAvantRecette": "Rôles, labels, focus, alternatives au drag",
+      "recetteCiblee": "VoiceOver ciblé, aucun contrôle SQLite technique délégué à Hermann",
+      "proposedModules": [
+        "ActivityEditorForm",
+        "ActivityParametersSheet"
+      ],
+      "expectedAssertions": [
+        "labels",
+        "roles",
+        "disabled",
+        "modal-focus",
+        "return-focus",
+        "full-phrase",
+        "accessible-move-target44"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-22",
+      "exigence": "Frontières respectées, consommateurs préservés",
+      "preuveAvantRecette": "Impact, tests de régression, diff de périmètre",
+      "recetteCiblee": "Catalogue/Composition non refondus",
+      "proposedModules": [
+        "graphe-consommateurs"
+      ],
+      "expectedAssertions": [
+        "preserve-PRE1-PRE2",
+        "Profile",
+        "Composition",
+        "Catalogue",
+        "no-engine",
+        "no-PRE4-PRE5"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    },
+    {
+      "id": "P3-23",
+      "exigence": "Import de médias depuis l’éditeur, association persistante et données disponibles pour la future exécution",
+      "preuveAvantRecette": "Import nominal/annulé/en erreur, conservation après redémarrage, copie et ordre selon les règles médias documentées",
+      "recetteCiblee": "Ajouter, enregistrer, relancer et rouvrir un Exercice avec média",
+      "proposedModules": [
+        "ActivityMediaImportService",
+        "MediaRepository",
+        "SqliteMediaRepository",
+        "ActivityDefinition",
+        "SessionDraft"
+      ],
+      "expectedAssertions": [
+        "photos-videos",
+        "library",
+        "import",
+        "cancel-error",
+        "reopen",
+        "ordering",
+        "shared-files",
+        "reference-preservation"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "source": "../perimetre-et-couverture.md §10",
+      "canonicalVNextIds": null,
+      "testPathsFinalized": false,
+      "evidenceProduced": false
+    }
+  ],
+  "scopeNote": "All 23 requirements retained; shorthand assertions must be expanded atomically with source units, exact paths/tests/proofs before canonical plan review"
+}

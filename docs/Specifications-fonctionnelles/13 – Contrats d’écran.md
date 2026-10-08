@@ -595,7 +595,7 @@ Brouillon parent : nom, référentiels, description, paramètres validés par la
 
 Paramètres étendus : uniforme/variable, liste ordonnée de cibles/Pauses, Ordre des côtés ; copie complète vers CE-UI-10.
 
-Import média : accès depuis la zone Média et sauvegarde avec l’Exercice. Tester import nominal/annulé/en erreur, conservation à la réouverture, ordre et copies indépendantes selon D-333. Sources système, formats, permissions et présentation des états non représentés : À CLARIFIER dans le plan, sans inventer de caméra ni de limite.
+Import média : accès depuis la zone Média et sauvegarde avec l’Exercice. Tester import nominal/annulé/en erreur, conservation à la réouverture, ordre et copies indépendantes selon D-333. Source système : photothèque seule, photos et vidéos (D-334). Formats, permissions et présentation des états non représentés : À CLARIFIER dans le plan, sans inventer de limite.
 
 La collection inclut la bip commun0..10 de chaque Série. Phrase dérivée des paramètres appliqués et du résultat de calcul intrinsèque, jamais sauvegardée comme vérité indépendante.
 
