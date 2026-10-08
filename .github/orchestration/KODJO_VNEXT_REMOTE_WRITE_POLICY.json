@@ -219,7 +219,7 @@
     },
     {
       "path": ".github/workflows/kodjo-v2-implementation-artifact.yml",
-      "blob_oid": "b4058b78698cf998ab185f529b4df507f64d71ba",
+      "blob_oid": "7bf2cc39b935ce951e741014da4e1c9c26eec5f6",
       "authorization_condition": "LEGACY_FROZEN_EXACT_BLOB_ONLY"
     },
     {
@@ -901,7 +901,7 @@
     },
     {
       "producer": "scripts/kodjo/close-vnext-github-delivery.js",
-      "producer_blob_oid": "bf55e946d7f41ec8d13abab1526b72f1e5f61226",
+      "producer_blob_oid": "705e2f604cec7f158a5243b17d4067987e79299a",
       "authorization_condition": "SERIALIZED_FINALIZE_DELIVERY_EXACT_BOUND_CERTIFICATION_OR_VNEXT_SLICE_TARGET_ONLY",
       "required_job": null,
       "capabilities": [
@@ -940,7 +940,7 @@
     },
     {
       "producer": ".github/workflows/kodjo-vnext-closure.yml",
-      "producer_blob_oid": "f268bfb5f9869cce7872ca9bd171070e389c41e0",
+      "producer_blob_oid": "cc69cd106eff257e412e4f9eaf7685e227fbf3cc",
       "authorization_condition": "SERIALIZED_EXACT_FINALIZATION_REVALIDATED_SLICE_CLOSURE_ONLY",
       "required_job": "close-vnext-delivery",
       "capabilities": [

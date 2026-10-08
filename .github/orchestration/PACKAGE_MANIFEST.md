@@ -255,3 +255,6 @@ Ces fichiers participent aux points d’entrée existants ou à leurs dépendanc
 - `scripts/kodjo/lib/machine-block.js` — consommateur partagé de blocs sans sélection arbitraire du premier.
 - `scripts/kodjo/validate-vnext-closure-request.js` — demande de clôture générique et routage.
 - `scripts/kodjo/wait-vnext-audit-qualification.js` — attente en lecture seule des preuves exactes.
+
+- `scripts/kodjo/produce-vnext-test-evidence.js` — observation des tests exécutés sur la livraison exacte.
+- `scripts/kodjo/lib/vnext-test-evidence.js` — vérification partagée du run, du job, de l’artefact et de l’arbre testé avant finalisation/clôture.

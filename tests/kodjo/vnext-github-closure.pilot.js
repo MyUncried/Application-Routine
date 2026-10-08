@@ -5,7 +5,7 @@ function fixture(){
  const c={stage:'FINALIZE_DELIVERY',repository:'MyUncried/Application-Routine',slice_id:'VNEXT-12-QUALIF',campaign_id:'628b3349-88b4-4bf1-be6b-50bc09e7d245',closure_scope:'GITHUB_CERTIFICATION_DELIVERY',pre1_in_scope:false,final_audit_authorized:false,revision_limit:1,issue_number:900,delivery_pr_number:901,delivery_branch:'certification/vnext/628b3349-88b4-4bf1-be6b-50bc09e7d245',delivery_head:'a'.repeat(40),finalization_manifest:'docs/finalization.json'};
  const issue={state:'open',html_url:`https://github.com/${c.repository}/issues/900`,body:C.binding(c)+'Fixture only, no real GitHub writes.'};c.issue_body_sha256=V.sha256(issue.body);
  const pr={state:'open',merged:false,html_url:`https://github.com/${c.repository}/pull/901`,head:{sha:c.delivery_head,ref:c.delivery_branch,repo:{full_name:c.repository}},base:{ref:'protocol/vnext-proof-stability-20260930',repo:{full_name:c.repository}}};
- const f=V.sealContract({schema_version:'kodjo.vnext.finalization.v1',final_status:'READY_TO_CLOSE',repository:c.repository,issue_number:c.issue_number,slice_id:c.slice_id,head:c.delivery_head,review_comment_id:'902',original_decision:{comment_id:'903',body:'Functional only; pending device'},reservations:['pending device'],pending_proofs:[{status:'PENDING_DEVICE'}],proof_resolutions:[{resolution:'USER_WAIVER'}],not_executed_proofs:[],acceptance_scope:'FUNCTIONAL_ACCEPTANCE_WITH_RESERVES',visual_compliance_attested:false,accessibility_compliance_attested:false});
+ const f=V.sealContract({schema_version:'kodjo.vnext.finalization.v1',final_status:'READY_TO_CLOSE',repository:c.repository,issue_number:c.issue_number,slice_id:c.slice_id,head:c.delivery_head,test_evidence:{status:'VERIFIED_EXECUTED_TESTS',head:c.delivery_head},review_comment_id:'902',original_decision:{comment_id:'903',body:'Functional only; pending device'},reservations:['pending device'],pending_proofs:[{status:'PENDING_DEVICE'}],proof_resolutions:[{resolution:'USER_WAIVER'}],not_executed_proofs:[],acceptance_scope:'FUNCTIONAL_ACCEPTANCE_WITH_RESERVES',visual_compliance_attested:false,accessibility_compliance_attested:false});
  const comments=[],writes=[];const github={issue:()=>structuredClone(issue),pull:()=>structuredClone(pr),comments:()=>structuredClone(comments),comment:(r,n,body)=>{const x={id:1000+comments.length,body,user:{login:'github-actions[bot]'}};comments.push(x);writes.push('comment');return x;},closeIssue:()=>{writes.push('close');issue.state='closed';issue.state_reason='completed';}};
  return{c,f,issue,pr,comments,writes,github};
 }
@@ -45,11 +45,11 @@ test('IA-004 closure accepts another certification campaign with exact destinati
  const f={...x.f,slice_id:x.c.slice_id};delete f.contract_hash;
  assert.equal(C.close(x.c,V.sealContract(f),x.github).slice_id,x.c.slice_id);
 });
-test('IA-004 product closure preserves actual attestations and never publishes the app',()=>{
+test('IA-004 product closure preserves conservative attestations and never publishes the app',()=>{
  const x=fixture();x.c.closure_scope='GITHUB_SLICE_DELIVERY';x.c.slice_id='PRE-3';x.c.base_branch='main';x.c.delivery_branch='feat/pre3';
  x.issue.body=C.binding(x.c)+'Product fixture only';x.c.issue_body_sha256=V.sha256(x.issue.body);x.pr.head.ref=x.c.delivery_branch;x.pr.base.ref='main';
- const f={...x.f,slice_id:'PRE-3',visual_compliance_attested:true};delete f.contract_hash;
- const result=C.close(x.c,V.sealContract(f),x.github);assert.equal(result.scope,'GITHUB_SLICE_DELIVERY');assert.equal(result.visual_compliance_attested,true);assert.equal(result.application_published,false);
+ const f={...x.f,slice_id:'PRE-3',visual_compliance_attested:false};delete f.contract_hash;
+ const result=C.close(x.c,V.sealContract(f),x.github);assert.equal(result.scope,'GITHUB_SLICE_DELIVERY');assert.equal(result.visual_compliance_attested,false);assert.equal(result.application_published,false);
  x.writes.length=0;C.close(x.c,V.sealContract(f),x.github);assert.deepEqual(x.writes,[]);
 });
 
@@ -62,4 +62,12 @@ test('IA-004 generic closure request refuses unsafe paths repository and legacy 
  for(const bad of ['../request.json','.github/orchestration/request.json']) assert.throws(()=>Request.validate(bad,{cwd,repository:x.c.repository}),/PATH/);
  for(const id of ['V2-PRE-1','V2-PRE-2']) assert.throws(()=>C.validateConfig({...x.c,slice_id:id}),/CONFIG_REFUSED/);
  }finally{fs.rmSync(cwd,{recursive:true,force:true});}
+});
+
+test('IA-F04 product closure refuses unsupported visual and accessibility attestations before any write',()=>{
+ for(const field of ['visual_compliance_attested','accessibility_compliance_attested']){
+ const x=fixture();x.c.closure_scope='GITHUB_SLICE_DELIVERY';x.c.slice_id='PRE-3';x.c.base_branch='main';x.c.delivery_branch='feat/pre3';
+ const f={...x.f,slice_id:'PRE-3',[field]:true};delete f.contract_hash;
+ assert.throws(()=>C.close(x.c,V.sealContract(f),x.github),/FINALIZATION_BINDING/);assert.deepEqual(x.writes,[]);
+ }
 });

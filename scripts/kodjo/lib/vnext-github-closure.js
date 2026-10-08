@@ -3,7 +3,7 @@ const V = require('./vnext-contract');
 
 // The finalizer supplies the verification. This consumer never manufactures
 // a review, a human decision, a proof status, or a product publication.
-function validateConfig(c) {
+function validateConfig(c, {cwd=process.cwd()} = {}) {
   const certification = c.closure_scope === 'GITHUB_CERTIFICATION_DELIVERY';
   const product = c.closure_scope === 'GITHUB_SLICE_DELIVERY';
   if (c.stage !== 'FINALIZE_DELIVERY' || c.repository !== 'MyUncried/Application-Routine'
@@ -22,6 +22,7 @@ function validateConfig(c) {
   if (c.base_branch && (!/^[a-zA-Z0-9][a-zA-Z0-9/_.-]+$/.test(c.base_branch) || c.base_branch.includes('..') || c.base_branch === c.delivery_branch)) V.fail('VNEXT_GITHUB_CLOSURE_CONFIG_REFUSED');
   V.assertSha40(c.delivery_head, 'VNEXT_GITHUB_CLOSURE_HEAD_REQUIRED');
   require('./vnext-figma-source').safePath(c.finalization_manifest);
+  if (product && require('./slice-protocol-routing').resolve(c.slice_id,{cwd}) !== 'VNEXT') V.fail('VNEXT_CLOSURE_LEGACY_SLICE_REFUSED');
   return c;
 }
 function binding(c) {
@@ -46,14 +47,16 @@ function prepare(c, finalization) {
       || finalization.final_status !== 'READY_TO_CLOSE' || finalization.repository !== c.repository
       || finalization.issue_number !== c.issue_number || finalization.slice_id !== c.slice_id
       || finalization.head !== c.delivery_head
-      || typeof finalization.visual_compliance_attested !== 'boolean' || typeof finalization.accessibility_compliance_attested !== 'boolean'
-      || (c.closure_scope === 'GITHUB_CERTIFICATION_DELIVERY' && (finalization.visual_compliance_attested || finalization.accessibility_compliance_attested))) V.fail('VNEXT_GITHUB_CLOSURE_FINALIZATION_BINDING');
+      || finalization.test_evidence?.status !== 'VERIFIED_EXECUTED_TESTS'
+      || finalization.test_evidence?.head !== c.delivery_head
+      || finalization.visual_compliance_attested !== false || finalization.accessibility_compliance_attested !== false) V.fail('VNEXT_GITHUB_CLOSURE_FINALIZATION_BINDING');
   const record = {campaign_id:c.campaign_id, slice_id:c.slice_id, issue_number:c.issue_number,
     delivery_pr_number:c.delivery_pr_number, head:c.delivery_head, finalization_hash:finalization.contract_hash,
     review_comment_id:finalization.review_comment_id, original_decision:finalization.original_decision,
     reservations:finalization.reservations, pending_proofs:finalization.pending_proofs,
     proof_resolutions:finalization.proof_resolutions, not_executed_proofs:finalization.not_executed_proofs,
     acceptance_scope:finalization.acceptance_scope, scope:c.closure_scope,
+    test_evidence:finalization.test_evidence,
     application_published:false, visual_compliance_attested:finalization.visual_compliance_attested, accessibility_compliance_attested:finalization.accessibility_compliance_attested};
   const key = c.campaign_id + ':' + c.slice_id;
   const body = tag => `[KODJO_VNEXT] ${tag}\nclosure_key=${key}\n\n\`\`\`json\n${JSON.stringify(record,null,2)}\n\`\`\`\n`;

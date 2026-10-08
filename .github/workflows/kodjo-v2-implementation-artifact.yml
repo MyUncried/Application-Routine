@@ -203,7 +203,7 @@ jobs:
             scripts/kodjo/lib/plan-contract.js \
             scripts/kodjo/lib/review-contract.js \
             scripts/kodjo/lib/ui-atomicity-contract.js \
-            scripts/kodjo/lib/vnext-figma-source.js \
+            scripts/kodjo/lib/vnext-figma-source.js scripts/kodjo/lib/machine-block.js \
             scripts/kodjo/lib/vnext-producer-packet.js \
             scripts/kodjo/lib/vnext-preserved-controls.js \
             scripts/kodjo/lib/queue-contract.js \

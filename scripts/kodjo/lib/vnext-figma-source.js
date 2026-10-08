@@ -288,13 +288,11 @@ function packUi(ui){return {...ui,figma_references:ui.figma_references.map(r=>({
 function unpackUi(ui){return {...ui,figma_references:ui.figma_references.map(r=>({...r,packet:unpack(r.packet)}))};}
 function consume(planBody,directory,stage){
   if(!['PLANNER','IMPLEMENTER','IMPLEMENTATION_REVIEWER'].includes(stage))V.fail('VNEXT_FIGMA_CONSUMER_STAGE_INVALID');
-  const tag=/<KODJO_VNEXT_UI_ATOMICITY_JSON>\s*([\s\S]*?)\s*<\/KODJO_VNEXT_UI_ATOMICITY_JSON>/.exec(planBody);
-  if(!tag)V.fail('VNEXT_FIGMA_TRANSPORT_REQUIRED');const parsed=JSON.parse(tag[1]);
+  const parsed=require('./machine-block').parse(planBody,'KODJO_VNEXT_UI_ATOMICITY_JSON',{code:'VNEXT_FIGMA_TRANSPORT_REQUIRED'});
   if(!Array.isArray(parsed.figma_references))V.fail('VNEXT_FIGMA_TRANSPORT_REQUIRED');const ui=unpackUi(parsed),references=ui.figma_references;
   if(!Array.isArray(references)||!references.length)V.fail('VNEXT_FIGMA_TRANSPORT_REQUIRED');
   V.verifyContractHash(ui,'VNEXT_FIGMA_UI_TRANSPORT_HASH_INVALID');
-  const registryTag=/<KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON>\s*([\s\S]*?)\s*<\/KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON>/.exec(planBody);
-  if(!registryTag)V.fail('VNEXT_FIGMA_REGISTRY_TRANSPORT_REQUIRED');const registry=JSON.parse(registryTag[1]);
+  const registry=require('./machine-block').parse(planBody,'KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON',{code:'VNEXT_FIGMA_REGISTRY_TRANSPORT_REQUIRED'});
   V.verifyContractHash(registry,'VNEXT_FIGMA_REGISTRY_TRANSPORT_HASH_INVALID');
   validateCoverage(references,ui.criteria,registry);
   const base=fs.realpathSync(directory),observed=[];

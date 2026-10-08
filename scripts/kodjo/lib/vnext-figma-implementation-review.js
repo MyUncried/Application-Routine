@@ -43,7 +43,7 @@ function prepare(planBody,{cwd,approvedPlanSha256,deliveryHead,evidenceDirectory
  if(!Array.isArray(measurements)||!Array.isArray(scenarioResults))V.fail('VNEXT_FIGMA_REVIEW_OBSERVATIONS_REQUIRED');
  fs.mkdirSync(evidenceDirectory,{recursive:true});const assets=path.join(evidenceDirectory,'references');fs.mkdirSync(assets,{recursive:true});
  const observation=F.consume(planBody,assets,'IMPLEMENTATION_REVIEWER');
- const ui=F.unpackUi(extractTaggedJson(planBody,'KODJO_VNEXT_UI_ATOMICITY_JSON'));
+ const ui=F.unpackUi(require('./machine-block').parse(planBody,'KODJO_VNEXT_UI_ATOMICITY_JSON',{code:'VNEXT_FIGMA_TRANSPORT_REQUIRED'}));
  if(!ui.figma_references?.length)V.fail('VNEXT_FIGMA_REVIEW_REFERENCE_REQUIRED');
  const observedFiles=new Map();
  const preservationResults=new Map();

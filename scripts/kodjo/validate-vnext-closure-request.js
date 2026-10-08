@@ -4,9 +4,8 @@ const fs=require('node:fs');
 function validate(file,{cwd=process.cwd(),repository=process.env.GITHUB_REPOSITORY}={}) {
   require('./lib/vnext-figma-source').safePath(file);
   if(!file.startsWith('.github/orchestration/vnext-closure/') || !file.endsWith('.json')) throw Error('VNEXT_CLOSURE_REQUEST_PATH_INVALID');
-  const c=require('./lib/vnext-github-closure').validateConfig(JSON.parse(fs.readFileSync(require('node:path').join(cwd,file),'utf8')));
+  const c=require('./lib/vnext-github-closure').validateConfig(JSON.parse(fs.readFileSync(require('node:path').join(cwd,file),'utf8')),{cwd});
   if(repository!==c.repository) throw Error('VNEXT_CLOSURE_REPOSITORY_MISMATCH');
-  if(c.closure_scope==='GITHUB_SLICE_DELIVERY' && require('./lib/slice-protocol-routing').resolve(c.slice_id,{cwd})!=='VNEXT') throw Error('VNEXT_CLOSURE_LEGACY_SLICE_REFUSED');
   return c;
 }
 if(require.main===module)try{
