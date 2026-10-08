@@ -141,3 +141,16 @@ Tentative réelle de `github.create_blob` sur le paquet compact : refus HTTP400 
 Sur la source normative committée a221ab96 : **7184414 octets**, SHA256 **b70da22f85019d3cb390c90006294286aa57b2f074afcf2c2fc8f8d54f31ee56**, même contract_hash **4373280fd2b309bc9f150ea0b4f1462df0c19a370dd03e0c15142c061d83fcf9** ; reconstruction intégrale PASS. Lecture `vnext-live-chain.readGit` réelle PASS sur un conteneur Git local non référencé ; `github.create_blob` réel PASS, SHA Git **552b30d35fed8681e768ed074376f182a276c1dc**. Les **41 frames / 6725 éléments d’écran / 7369 nœuds / 471135 propriétés / 95 états** restent identiques. Source destinée à `docs/preparation/PRE-3/planification/figma-source-vnext.json`. Reçu séparé `preuve-stockage-compresse-vnext.json`.
 
 Tests ciblés définitifs : les mêmes trois fichiers, **37/37 PASS** (dont lectures Git, Launch et observeSources dans les deux formats), sans nouvelle certification. Aucun code applicatif modifié. Les étapes ImpactGraph/PlanContract/UIContract et revue réelle restent distinctes de cette preuve de transfert ; elles ne sont pas déclarées réalisées. Le transport Claude reste absent ici et doit être établi par le pilote avec un payload exact, jamais par réutilisation de PR269 ou d’un workflow V2.
+
+
+### Launch source canonique réellement exécuté
+
+`Launch.launch` a exécuté dans l’ordre CAPTURE / RECONCILE / INVENTORY_AND_SCENARIOS_VALIDATED / GIT_FREEZE / ATOMIC_REQUIREMENTS, avec `persist` lisant les octets réels de **4e41c46f** par le lecteur Git VNext. La capture réutilise l’extraction #333 avec ses compléments/fraîcheur ; aucune nouvelle capture globale ou lecture Figma temps réel n’est prétendue. Document autoritatif a221ab96, référence logique 4373280fd2b309bc9f150ea0b4f1462df0c19a370dd03e0c15142c061d83fcf9.
+
+Résultat **PASS : 6384 exigences / 95 états / 41 frames**, checkpoint contract_hash **da65ec7030c6836ef98202c11fe5af2700fa4393b9f12bdde7d071416073e174**. Reçu `preuve-launch-source-vnext.json` ; reproducteur `lancer-source-vnext.cjs` avec dossier absolu extérieur au checkout. Le checkpoint complet local mesure 121634124 octets ; il n’est pas présenté comme publié en Git, ni comme PlanContract. La commande n’appelle pas `produce`, `review`, un workflow ou Claude.
+
+```sh
+node --max-old-space-size=4096 docs/preparation/PRE-3/planification/lancer-source-vnext.cjs /tmp/pre3-canonical-reproduction
+```
+
+Cette preuve clôt le blocage de préparation source, pas PRE-3. Le PlanContract/UIContract finaux restent à construire par le pilote ChatGPT ; la revue indépendante reste à lancer par le chemin réel VNext. Claude absent de cet environnement et absence de dispatch du connecteur restent le défaut de transport identifié. Aucun run distant ni surveillance en arrière-plan, aucune approbation propriétaire demandée.
