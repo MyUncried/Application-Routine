@@ -167,7 +167,7 @@ Une personne seule doit pouvoir, sans compte et sans aide professionnelle :
 5. enregistrer son ressenti ;
 6. retrouver une trace fidèle de l’Exécution dans le Suivi.
 
-**Question à clarifier pour PRE-3 (D-333) :** formats acceptés et éventuelles limites de taille/durée des photos et vidéos locales. Source arbitrée : photothèque seule, photos et vidéos (D-334). Ces éléments ne sont plus reportés automatiquement après le MVP ; aucun seuil arbitraire n’est décidé ici.
+**Import PRE-3 (D-333/D-334/D-335) :** photothèque seule, photos et vidéos en sélection multiple ; fichiers compatibles conservés sans conversion systématique ni plafond produit arbitraire. Annulation sans erreur ; import visible ; erreur locale avec Réessayer et brouillon conservé ; retrait/réordonnancement accessibles. Compatibilité et permissions système sont vérifiées techniquement.
 
 ## 7. Questions reportées après le MVP
 

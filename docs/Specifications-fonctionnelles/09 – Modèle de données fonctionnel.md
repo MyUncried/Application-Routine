@@ -474,7 +474,7 @@ Un **Média** est une ressource visuelle locale associée à un Exercice. L’im
 
 ## Périmètre
 
-Source d’acquisition PRE-3 : photothèque seule, photos et vidéos (D-334). Ce choix ne change ni les associations ordonnées ni le partage et la conservation des fichiers.
+Source d’acquisition PRE-3 : photothèque seule, photos et vidéos (D-334). Ce choix ne change ni les associations ordonnées ni le partage et la conservation des fichiers. L’import PRE-3 utilise la sélection multiple de photos et vidéos de la photothèque (D-335). Les fichiers compatibles sont conservés sans conversion systématique ni plafond produit arbitraire. Annulation sans erreur ; état d’import visible ; erreur locale avec Réessayer et brouillon conservé ; commandes accessibles Retirer/Monter/Descendre. La compatibilité et les permissions système sont vérifiées techniquement ; aucun fichier encore référencé n’est supprimé.
 
 Un `MediaAsset` possède son identité et ses informations techniques. Les liens vers les Exercices sont portés par des associations `ActivityMedia` ordonnées.
 

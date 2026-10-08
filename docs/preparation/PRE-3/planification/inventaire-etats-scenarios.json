@@ -1,0 +1,1754 @@
+{
+  "schema_version": "kodjo.screen-states.v1",
+  "states": [
+    {
+      "state_id": "PRE3-FIG-3542-4656",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Le shell et les champs de création sont conservés ; cette référence antérieure ne retire ni la carte Paramètres ni les médias exigés dans PRE-3.",
+      "reason": "État de référence PRE-3 : Création activité — Avant Paramètres d'exécution ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-3542-4656-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Avant Paramètres d'exécution », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Le shell et les champs de création sont conservés ; cette référence antérieure ne retire ni la carte Paramètres ni les médias exigés dans PRE-3.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-3943-6064",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Le formulaire initial présente nom, description, médias, Catégorie, Zones et Paramètres ; aucune persistance avec les champs requis incomplets.",
+      "reason": "État de référence PRE-3 : Ajouter un exercice — Initial ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-3943-6064-RENDER",
+          "given": "Éditeur ouvert dans l’état « Ajouter un exercice — Initial », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Le formulaire initial présente nom, description, médias, Catégorie, Zones et Paramètres ; aucune persistance avec les champs requis incomplets.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-4217-6980",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Nom, description et médias renseignés restent dans le brouillon ; ouvrir un sélecteur puis revenir les conserve.",
+      "reason": "État de référence PRE-3 : Ajouter un exercice — Nom Description Media ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-4217-6980-RENDER",
+          "given": "Éditeur ouvert dans l’état « Ajouter un exercice — Nom Description Media », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Nom, description et médias renseignés restent dans le brouillon ; ouvrir un sélecteur puis revenir les conserve.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-5088-6398",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "La Catégorie choisie est affichée avec son identité ; elle est appliquée au brouillon et conservée à la sauvegarde/réouverture.",
+      "reason": "État de référence PRE-3 : Ajouter un exercice — Catégorie renseignée ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-5088-6398-RENDER",
+          "given": "Éditeur ouvert dans l’état « Ajouter un exercice — Catégorie renseignée », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "La Catégorie choisie est affichée avec son identité ; elle est appliquée au brouillon et conservée à la sauvegarde/réouverture.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-4734-6342",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Modifier charge tous les paramètres et médias ordonnés existants ; Terminer modifie uniquement le propriétaire ouvert.",
+      "reason": "État de référence PRE-3 : Modifier un exercice ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-4734-6342-RENDER",
+          "given": "Éditeur ouvert dans l’état « Modifier un exercice », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Modifier charge tous les paramètres et médias ordonnés existants ; Terminer modifie uniquement le propriétaire ouvert.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-4332-7095",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Le sélecteur Catégorie ouvre une sélection simple et la création ; fermer annule cette ouverture et valider applique au parent.",
+      "reason": "État de référence PRE-3 : Ajouter un exercice — Catégories ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-4332-7095-RENDER",
+          "given": "Éditeur ouvert dans l’état « Ajouter un exercice — Catégories », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Le sélecteur Catégorie ouvre une sélection simple et la création ; fermer annule cette ouverture et valider applique au parent.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-4474-7157",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Créer une Catégorie conserve nom et couleur choisis ; nom vide désactive Ajouter sans erreur ; doublon/réactivation suivent PRE-2.",
+      "reason": "État de référence PRE-3 : Ajouter un exercice — Nouvelle catégorie ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-4474-7157-RENDER",
+          "given": "Éditeur ouvert dans l’état « Ajouter un exercice — Nouvelle catégorie », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Créer une Catégorie conserve nom et couleur choisis ; nom vide désactive Ajouter sans erreur ; doublon/réactivation suivent PRE-2.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-4478-7209",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Les Zones se choisissent en pastilles textuelles sans silhouette répétée ; en-tête ✕/titre/✓ ; la sélection multiple reste isolée jusqu’à validation.",
+      "reason": "État de référence PRE-3 : Ajouter un exercice — Zones corporelles ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-4478-7209-RENDER",
+          "given": "Éditeur ouvert dans l’état « Ajouter un exercice — Zones corporelles », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Les Zones se choisissent en pastilles textuelles sans silhouette répétée ; en-tête ✕/titre/✓ ; la sélection multiple reste isolée jusqu’à validation.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-4683-6336",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Créer une Zone conserve le nom saisi ; nom vide désactive Ajouter sans erreur ; doublon/réactivation suivent PRE-2.",
+      "reason": "État de référence PRE-3 : Ajouter un exercice — Nouvelle zone corporelle ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-4683-6336-RENDER",
+          "given": "Éditeur ouvert dans l’état « Ajouter un exercice — Nouvelle zone corporelle », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Créer une Zone conserve le nom saisi ; nom vide désactive Ajouter sans erreur ; doublon/réactivation suivent PRE-2.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-4714-6241",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Annuler l’abandon conserve l’intégralité du brouillon ; confirmer l’abandon ne sauvegarde aucun Exercice partiel.",
+      "reason": "État de référence PRE-3 : Modal — Abandonner la création de l’activité ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-4714-6241-RENDER",
+          "given": "Éditeur ouvert dans l’état « Modal — Abandonner la création de l’activité », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Annuler l’abandon conserve l’intégralité du brouillon ; confirmer l’abandon ne sauvegarde aucun Exercice partiel.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-4861-6259",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "L’appui long Catégorie ne modifie pas la sélection ; Annuler garde la valeur ; suppression confirmée préserve les affectations existantes.",
+      "reason": "État de référence PRE-3 : Ajouter un exercice — Catégorie — Appui long — Confirmation suppression ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-4861-6259-RENDER",
+          "given": "Éditeur ouvert dans l’état « Ajouter un exercice — Catégorie — Appui long — Confirmation suppression », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "L’appui long Catégorie ne modifie pas la sélection ; Annuler garde la valeur ; suppression confirmée préserve les affectations existantes.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-4861-6348",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "L’appui long Zone ne modifie pas la sélection ; Annuler garde la valeur ; suppression confirmée préserve les affectations existantes.",
+      "reason": "État de référence PRE-3 : Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-4861-6348-RENDER",
+          "given": "Éditeur ouvert dans l’état « Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "L’appui long Zone ne modifie pas la sélection ; Annuler garde la valeur ; suppression confirmée préserve les affectations existantes.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6407-9458",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "La carte Paramètres ouvre la feuille depuis toute sa zone ; aucune valeur de cible absente n’est inventée.",
+      "reason": "État de référence PRE-3 : Création activité — Paramètres en modale — 1 Champ vide ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6407-9458-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Paramètres en modale — 1 Champ vide », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "La carte Paramètres ouvre la feuille depuis toute sa zone ; aucune valeur de cible absente n’est inventée.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6407-9551",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "La feuille avec cibles non renseignées interdit ✓ ; ✕/retour ferme sans mutation du parent ; les champs actifs requis restent identifiables.",
+      "reason": "État de référence PRE-3 : Création activité — Paramètres en modale — 2 Modale ouverte (champs vides) ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6407-9551-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Paramètres en modale — 2 Modale ouverte (champs vides) », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "La feuille avec cibles non renseignées interdit ✓ ; ✕/retour ferme sans mutation du parent ; les champs actifs requis restent identifiables.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6407-9702",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Après ✓ valide, la phrase est régénérée depuis le parent et affichée intégralement ; ✓ ne persiste pas l’Exercice.",
+      "reason": "État de référence PRE-3 : Création activité — Paramètres en modale — 3 Texte affiché ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6407-9702-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Paramètres en modale — 3 Texte affiché », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Après ✓ valide, la phrase est régénérée depuis le parent et affichée intégralement ; ✓ ne persiste pas l’Exercice.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6407-9805",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Le contrôle de mode sélectionne exactement Durée, Répétitions ou À l’échec ; changer de mode conserve N, pauses et bip.",
+      "reason": "État de référence PRE-3 : Création activité — Paramètres en modale — 4 Modale complète — mode activé ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6407-9805-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Paramètres en modale — 4 Modale complète — mode activé », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Le contrôle de mode sélectionne exactement Durée, Répétitions ou À l’échec ; changer de mode conserve N, pauses et bip.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6407-9966",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Nombre de Séries et Pauses utilisent les contrôles prescrits, leurs bornes et leur maintien ; aucun arrondi au chargement.",
+      "reason": "État de référence PRE-3 : Création activité — Paramètres en modale — 5 Modale complète — steppers (séries, pauses) ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6407-9966-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Paramètres en modale — 5 Modale complète — steppers (séries, pauses) », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Nombre de Séries et Pauses utilisent les contrôles prescrits, leurs bornes et leur maintien ; aucun arrondi au chargement.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6407-10127",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "La roulette de cible Durée est ouverte inline ; une autre roulette ou un segmenté la remplace ; en-tête et bas restent accessibles.",
+      "reason": "État de référence PRE-3 : Création activité — Paramètres en modale — 6 Durée activée (roulette ouverte) ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6407-10127-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Paramètres en modale — 6 Durée activée (roulette ouverte) », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "La roulette de cible Durée est ouverte inline ; une autre roulette ou un segmenté la remplace ; en-tête et bas restent accessibles.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6407-10481",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Le contrôle de changement de côté sélectionne sans changement, droite puis gauche ou gauche puis droite ; ouverture exclusive des contrôles inline.",
+      "reason": "État de référence PRE-3 : Création activité — Paramètres en modale — 8 Changement de côté activé (contrôle segmenté) ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6407-10481-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Paramètres en modale — 8 Changement de côté activé (contrôle segmenté) », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Le contrôle de changement de côté sélectionne sans changement, droite puis gauche ou gauche puis droite ; ouverture exclusive des contrôles inline.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6411-9546",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "En Durée uniforme seulement, la roulette du total recherche N1..99 réalisable ; le total n’est pas un champ concurrent persisté.",
+      "reason": "État de référence PRE-3 : Création activité — Paramètres en modale — 7 Durée totale activée (roulette ouverte) ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6411-9546-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Paramètres en modale — 7 Durée totale activée (roulette ouverte) », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "En Durée uniforme seulement, la roulette du total recherche N1..99 réalisable ; le total n’est pas un champ concurrent persisté.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6411-9649",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "En bilatéral, l’ordre et la Pause entre côtés sont affichés ; PC contribue une fois par succession de côtés ou N fois par paire.",
+      "reason": "État de référence PRE-3 : Création activité — Paramètres en modale — 9 Avec changement de côté (pause au changement de côté) ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6411-9649-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Paramètres en modale — 9 Avec changement de côté (pause au changement de côté) », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "En bilatéral, l’ordre et la Pause entre côtés sont affichés ; PC contribue une fois par succession de côtés ou N fois par paire.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6419-9847",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "En Répétitions, cibles1..100 et bip0..10 restent réglables ; sans bip, toute durée d’Exercice est omise.",
+      "reason": "État de référence PRE-3 : Création activité — Paramètres en modale — 10 Répétitions (mode activé) ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6419-9847-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Paramètres en modale — 10 Répétitions (mode activé) », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "En Répétitions, cibles1..100 et bip0..10 restent réglables ; sans bip, toute durée d’Exercice est omise.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6419-10028",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "À l’échec, aucune cible numérique ni durée d’Exercice ; pauses, bip, compte à rebours et fin restent disponibles.",
+      "reason": "État de référence PRE-3 : Création activité — Paramètres en modale — 11 À l’échec (mode activé) ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6419-10028-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Paramètres en modale — 11 À l’échec (mode activé) », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "À l’échec, aucune cible numérique ni durée d’Exercice ; pauses, bip, compte à rebours et fin restent disponibles.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6423-9953",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Un total demandé irréalisable choisit le plus proche, égalité vers N supérieur ; message uniquement si le total réalisé diffère.",
+      "reason": "État de référence PRE-3 : Création activité — Paramètres en modale — 12 Modale complète — steppers (séries, pauses) avec message de durée totale ajustée ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6423-9953-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Paramètres en modale — 12 Modale complète — steppers (séries, pauses) avec message de durée totale ajustée », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Un total demandé irréalisable choisit le plus proche, égalité vers N supérieur ; message uniquement si le total réalisé diffère.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6665-24616",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Durée variable30/45/60 avec pauses10/20/30 reste explicitement variable ; total exact195s ; phrase énumérée avec puis.",
+      "reason": "État de référence PRE-3 : Séries variables — 2 Durée variable (scénario A) ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6665-24616-RENDER",
+          "given": "Éditeur ouvert dans l’état « Séries variables — 2 Durée variable (scénario A) », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Durée variable30/45/60 avec pauses10/20/30 reste explicitement variable ; total exact195s ; phrase énumérée avec puis.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6665-24844",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Répétitions variables12/10/8 avec bip0 omettent la durée intrinsèque ; pauses30/45/60 contribuent135s connus en Séance.",
+      "reason": "État de référence PRE-3 : Séries variables — 3 Répétitions variables (scénario E) ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6665-24844-RENDER",
+          "given": "Éditeur ouvert dans l’état « Séries variables — 3 Répétitions variables (scénario E) », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Répétitions variables12/10/8 avec bip0 omettent la durée intrinsèque ; pauses30/45/60 contribuent135s connus en Séance.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6665-25072",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "À l’échec variable conserve les pauses par ligne ; bip nul ou positif ne rend pas sa durée calculable.",
+      "reason": "État de référence PRE-3 : Séries variables — 4 À l’échec variable (scénario F) ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6665-25072-RENDER",
+          "given": "Éditeur ouvert dans l’état « Séries variables — 4 À l’échec variable (scénario F) », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "À l’échec variable conserve les pauses par ligne ; bip nul ou positif ne rend pas sa durée calculable.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6665-25277",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Douze lignes variables sont accessibles par défilement ; phrase min/max intégrale, en-tête maintenu, validation disponible sans perte des lignes.",
+      "reason": "État de référence PRE-3 : Séries variables — 5 Douze séries (défilement — haut) ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6665-25277-RENDER",
+          "given": "Éditeur ouvert dans l’état « Séries variables — 5 Douze séries (défilement — haut) », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Douze lignes variables sont accessibles par défilement ; phrase min/max intégrale, en-tête maintenu, validation disponible sans perte des lignes.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6665-26185",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Un côté après l’autre exécute toutes les Séries du premier côté puis toutes celles du second ; N est par côté.",
+      "reason": "État de référence PRE-3 : Ordre des côtés — 7 Sélection : Un côté après l’autre ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6665-26185-RENDER",
+          "given": "Éditeur ouvert dans l’état « Ordre des côtés — 7 Sélection : Un côté après l’autre », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Un côté après l’autre exécute toutes les Séries du premier côté puis toutes celles du second ; N est par côté.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6665-26575",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Durées30/45/60, pauses10/20/30, PC15 par paire donnent375s ; chaque ligne conserve sa cible et sa Pause.",
+      "reason": "État de référence PRE-3 : Séries variables + Les deux côtés à chaque série — 9 (scénario D) ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6665-26575-RENDER",
+          "given": "Éditeur ouvert dans l’état « Séries variables + Les deux côtés à chaque série — 9 (scénario D) », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Durées30/45/60, pauses10/20/30, PC15 par paire donnent375s ; chaque ligne conserve sa cible et sa Pause.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6665-26822",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "N1 normalise immédiatement uniforme et succession des côtés ; options sans effet grisées ; 90/P15/PC10 bilatéral donne220s.",
+      "reason": "État de référence PRE-3 : Une seule série — 10 Options sans effet ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6665-26822-RENDER",
+          "given": "Éditeur ouvert dans l’état « Une seule série — 10 Options sans effet », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "N1 normalise immédiatement uniforme et succession des côtés ; options sans effet grisées ; 90/P15/PC10 bilatéral donne220s.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6665-27008",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Changer de mode rend les cibles incompatibles non renseignées ; ✓ interdit ; revenir avant ✓ restaure les cibles temporaires.",
+      "reason": "État de référence PRE-3 : Changement de mode — 11 Cibles à renseigner ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6665-27008-RENDER",
+          "given": "Éditeur ouvert dans l’état « Changement de mode — 11 Cibles à renseigner », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Changer de mode rend les cibles incompatibles non renseignées ; ✓ interdit ; revenir avant ✓ restaure les cibles temporaires.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6665-27232",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Une Série incomplète interdit ✓ même tableau replié ; le message identifie la Série et permet sa correction.",
+      "reason": "État de référence PRE-3 : Validation impossible — 12 Série incomplète ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6665-27232-RENDER",
+          "given": "Éditeur ouvert dans l’état « Validation impossible — 12 Série incomplète », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Une Série incomplète interdit ✓ même tableau replié ; le message identifie la Série et permet sa correction.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6665-27458",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Replier le tableau ne change ni lignes, ordre, validité ni total ; développer restitue toutes les lignes.",
+      "reason": "État de référence PRE-3 : Séries variables — 13 Tableau masqué ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6665-27458-RENDER",
+          "given": "Éditeur ouvert dans l’état « Séries variables — 13 Tableau masqué », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Replier le tableau ne change ni lignes, ordre, validité ni total ; développer restitue toutes les lignes.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6665-27608",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Déplacer une Série transporte cible et Pause, renumérote, change PN selon la nouvelle dernière ligne ; ✕ annule le déplacement.",
+      "reason": "État de référence PRE-3 : Séries variables — 14 Déplacement d’une série ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6665-27608-RENDER",
+          "given": "Éditeur ouvert dans l’état « Séries variables — 14 Déplacement d’une série », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Déplacer une Série transporte cible et Pause, renumérote, change PN selon la nouvelle dernière ligne ; ✕ annule le déplacement.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6665-27862",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "La carte parent résume Durée variable bilatérale par Série après ✓, depuis les paramètres actuels ; phrase jamais tronquée.",
+      "reason": "État de référence PRE-3 : Résumé — 15 Durée variable bilatérale Par série ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6665-27862-RENDER",
+          "given": "Éditeur ouvert dans l’état « Résumé — 15 Durée variable bilatérale Par série », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "La carte parent résume Durée variable bilatérale par Série après ✓, depuis les paramètres actuels ; phrase jamais tronquée.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-6665-28050",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "La carte parent résume À l’échec variable sans durée, sans cible numérique et sans clause ajoutée de pauses variables.",
+      "reason": "État de référence PRE-3 : Résumé — 17 À l’échec variable ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-6665-28050-RENDER",
+          "given": "Éditeur ouvert dans l’état « Résumé — 17 À l’échec variable », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "La carte parent résume À l’échec variable sans durée, sans cible numérique et sans clause ajoutée de pauses variables.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-7059-13302",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "Quatre Séries de15 répétitions avec bip4 et pause15 donnent≈300s ; Bip est au premier niveau et reste commun.",
+      "reason": "État de référence PRE-3 : Création activité — Paramètres en modale — 13 Répétitions avec cadence ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-7059-13302-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Paramètres en modale — 13 Répétitions avec cadence », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "Quatre Séries de15 répétitions avec bip4 et pause15 donnent≈300s ; Bip est au premier niveau et reste commun.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-7069-13464",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "La variante copiée conserve les règles du bilatéral, ordre et PC ; elle ne crée pas une seconde règle métier.",
+      "reason": "État de référence PRE-3 : Création activité — Paramètres en modale — 9b Avec changement de côté (copie) ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-7069-13464-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Paramètres en modale — 9b Avec changement de côté (copie) », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "La variante copiée conserve les règles du bilatéral, ordre et PC ; elle ne crée pas une seconde règle métier.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-7069-13573",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "La variante copiée Répétitions conserve cible/bip et omission applicable ; elle ne crée pas une seconde règle métier.",
+      "reason": "État de référence PRE-3 : Création activité — Paramètres en modale — 10b Répétitions (copie) ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-7069-13573-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Paramètres en modale — 10b Répétitions (copie) », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "La variante copiée Répétitions conserve cible/bip et omission applicable ; elle ne crée pas une seconde règle métier.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-FIG-7119-27855",
+      "origin": "FIGMA",
+      "disposition": "REQUIRED",
+      "expected": "La phrase longue224 caractères reste intégrale, en texte imbriqué et hauteur intrinsèque ; un seul libellé accessible complet ouvre Paramètres.",
+      "reason": "État de référence PRE-3 : Création activité — Phrase longue (224 caractères) ; données d’exemple séparées des règles et propriétés visuelles portées par le paquet Figma.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-FIG-7119-27855-RENDER",
+          "given": "Éditeur ouvert dans l’état « Création activité — Phrase longue (224 caractères) », depuis un des quatre parcours selon son contexte.",
+          "when": "Afficher cet état et exercer son action ou sa transition décrite.",
+          "then": "La phrase longue224 caractères reste intégrale, en texte imbriqué et hauteur intrinsèque ; un seul libellé accessible complet ouvre Paramètres.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-01-Catalogue:create",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "reason": "Scénario fonctionnel P3-01 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-01-Catalogue:create-CHECK",
+          "given": "Parent persisted or new according to route Catalogue:create",
+          "when": "Open, change target/cadence/order/media, apply, finish, reopen",
+          "then": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-01-Catalogue:edit",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "reason": "Scénario fonctionnel P3-01 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-01-Catalogue:edit-CHECK",
+          "given": "Parent persisted or new according to route Catalogue:edit",
+          "when": "Open, change target/cadence/order/media, apply, finish, reopen",
+          "then": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-01-Session:create",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "reason": "Scénario fonctionnel P3-01 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-01-Session:create-CHECK",
+          "given": "Parent persisted or new according to route Session:create",
+          "when": "Open, change target/cadence/order/media, apply, finish, reopen",
+          "then": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-01-Session:edit",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "reason": "Scénario fonctionnel P3-01 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-01-Session:edit-CHECK",
+          "given": "Parent persisted or new according to route Session:edit",
+          "when": "Open, change target/cadence/order/media, apply, finish, reopen",
+          "then": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-01-copy-isolation",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Other occurrence and definition/occurrence snapshots keep their own complete values and ordered media.",
+      "reason": "Scénario fonctionnel P3-01 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-01-copy-isolation-CHECK",
+          "given": "A saved definition and two copied occurrences",
+          "when": "Change one occurrence then change the definition",
+          "then": "Other occurrence and definition/occurrence snapshots keep their own complete values and ordered media.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-02-editor-fields",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Name, description, media and all required selectors accessible; finish disabled or validation prevents write until required values complete; completed save returns to its host.",
+      "reason": "Scénario fonctionnel P3-02 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-02-editor-fields-CHECK",
+          "given": "New empty editor",
+          "when": "Enter name/description; choose category/zones; open parameters",
+          "then": "Name, description, media and all required selectors accessible; finish disabled or validation prevents write until required values complete; completed save returns to its host.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-02-keyboard-scroll",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Focused field and Terminer remain reachable; safe areas/header respected; no fixed height clips text.",
+      "reason": "Scénario fonctionnel P3-02 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-02-keyboard-scroll-CHECK",
+          "given": "Small viewport and keyboard visible",
+          "when": "Focus final field and scroll",
+          "then": "Focused field and Terminer remain reachable; safe areas/header respected; no fixed height clips text.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE",
+            "DEVICE_CHECK"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-03-reference-retired",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Original withdrawn assignments retained under PRE-2 policy; no implicit replacement/removal.",
+      "reason": "Scénario fonctionnel P3-03 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-03-reference-retired-CHECK",
+          "given": "Existing Exercise references withdrawn category/zone",
+          "when": "Open, change description and save",
+          "then": "Original withdrawn assignments retained under PRE-2 policy; no implicit replacement/removal.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-03-empty-create-name",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Ajouter inactive, no error message for empty name; valid name follows PRE-2 uniqueness/reactivation rules.",
+      "reason": "Scénario fonctionnel P3-03 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-03-empty-create-name-CHECK",
+          "given": "Creation form for category then zone; empty/whitespace name",
+          "when": "Open form without typing, then clear typed name",
+          "then": "Ajouter inactive, no error message for empty name; valid name follows PRE-2 uniqueness/reactivation rules.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-03-zones-presentation",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Text pills and header cross/title/check match reference; no silhouette repeated per option; selections survive parent round trip.",
+      "reason": "Scénario fonctionnel P3-03 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-03-zones-presentation-CHECK",
+          "given": "Zones sheet with several values",
+          "when": "Select/remove/reopen",
+          "then": "Text pills and header cross/title/check match reference; no silhouette repeated per option; selections survive parent round trip.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-04-mode-targets",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "N, pauses and cadence conserved; incompatible targets null, failure has no numeric target; prior mode targets restored only during this opening.",
+      "reason": "Scénario fonctionnel P3-04 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-04-mode-targets-CHECK",
+          "given": "Complete duration variable draft",
+          "when": "Switch to repetitions and failure, then return before check",
+          "then": "N, pauses and cadence conserved; incompatible targets null, failure has no numeric target; prior mode targets restored only during this opening.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-04-bounds",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "D1..5999, Rep1..100, N1..99, P/PC0..300, b0..10, CR/Fin0..60 accepted exactly; invalid values identify field and series; null numeric target is incomplete.",
+      "reason": "Scénario fonctionnel P3-04 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-04-bounds-CHECK",
+          "given": "Each field at lower/upper bound and immediately outside; integer/fraction/null cases",
+          "when": "Validate active parameters",
+          "then": "D1..5999, Rep1..100, N1..99, P/PC0..300, b0..10, CR/Fin0..60 accepted exactly; invalid values identify field and series; null numeric target is incomplete.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-05-equal-variable",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Saved kind remains VARIABLE; equality never forces uniform; all three rows and their order survive.",
+      "reason": "Scénario fonctionnel P3-05 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-05-equal-variable-CHECK",
+          "given": "N3 uniform target30/P10",
+          "when": "Activate variable; leave all values equal; save/reopen",
+          "then": "Saved kind remains VARIABLE; equality never forces uniform; all three rows and their order survive.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-05-toggle-restoration",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Uniform uses current first (60,30); variable restores (60,30),(30,10),(45,20).",
+      "reason": "Scénario fonctionnel P3-05 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-05-toggle-restoration-CHECK",
+          "given": "Variable rows (30,10),(45,20),(60,30)",
+          "when": "Move last row first, go uniform, return variable before check",
+          "then": "Uniform uses current first (60,30); variable restores (60,30),(30,10),(45,20).",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-06-shrink-regrow",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "A/B stay active, C/D return in relative order, fifth clones last active D; no equality inference.",
+      "reason": "Scénario fonctionnel P3-06 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-06-shrink-regrow-CHECK",
+          "given": "Rows A/B/C/D with distinct target and pause",
+          "when": "N4→2→5 during one opening",
+          "then": "A/B stay active, C/D return in relative order, fifth clones last active D; no equality inference.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-06-commit-hidden",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Temporary removed C/D not persisted; new rows are clones of effective last row B.",
+      "reason": "Scénario fonctionnel P3-06 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-06-commit-hidden-CHECK",
+          "given": "Rows A/B/C/D reduced to N2",
+          "when": "Check, close, reopen, increase to N4",
+          "then": "Temporary removed C/D not persisted; new rows are clones of effective last row B.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-07-move-terminal",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Rows C/A/B; intrinsic195 unchanged; occurrence195−20+120=295 because new final pause20; cancel restores prior occurrence285.",
+      "reason": "Scénario fonctionnel P3-07 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-07-move-terminal-CHECK",
+          "given": "A30/P10 B45/P20 C60/P30 and explicit R120",
+          "when": "Move C first",
+          "then": "Rows C/A/B; intrinsic195 unchanged; occurrence195−20+120=295 because new final pause20; cancel restores prior occurrence285.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-07-move-accessible",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Moves target and pause together, renumbers, respects first/last boundaries and yields same draft as drag.",
+      "reason": "Scénario fonctionnel P3-07 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-07-move-accessible-CHECK",
+          "given": "Variable three rows",
+          "when": "Use Monter/Descendre rather than drag",
+          "then": "Moves target and pause together, renumbers, respects first/last boundaries and yields same draft as drag.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "ACCESSIBILITY_CHECK",
+            "DEVICE_CHECK"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-08-immediate-N1",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Effective kind UNIFORM and BY_SIDE immediately; controls without effect disabled; intrinsic220; requested old order not used by calculation.",
+      "reason": "Scénario fonctionnel P3-08 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-08-immediate-N1-CHECK",
+          "given": "Variable N3, bilateral BY_SERIES, first90/P15, PC10",
+          "when": "Reduce to N1 without pressing check",
+          "then": "Effective kind UNIFORM and BY_SIDE immediately; controls without effect disabled; intrinsic220; requested old order not used by calculation.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-08-restoration-N1",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "First path restores temporary rows/order; committed1 opens as uniform/BY_SIDE without stale reserve.",
+      "reason": "Scénario fonctionnel P3-08 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-08-restoration-N1-CHECK",
+          "given": "Previous N3 variable/BY_SERIES",
+          "when": "N3→1→3 before check then separately commit at1",
+          "then": "First path restores temporary rows/order; committed1 opens as uniform/BY_SIDE without stale reserve.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-09-directions",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Totals independent of starting side; phrase states correct direction/order; PC contributes once BY_SIDE, N times BY_SERIES.",
+      "reason": "Scénario fonctionnel P3-09 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-09-directions-CHECK",
+          "given": "Same targets/pauses for RIGHT_LEFT then LEFT_RIGHT",
+          "when": "Select each order BY_SIDE/BY_SERIES at N3",
+          "then": "Totals independent of starting side; phrase states correct direction/order; PC contributes once BY_SIDE, N times BY_SERIES.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-09-unilateral-controls",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Side order/PC have no effect on unilateral calculation; hidden/inactive controls cannot inject PC.",
+      "reason": "Scénario fonctionnel P3-09 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-09-unilateral-controls-CHECK",
+          "given": "Bilateral data with PC15",
+          "when": "Select no side change",
+          "then": "Side order/PC have no effect on unilateral calculation; hidden/inactive controls cannot inject PC.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-10-profile-new-only",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "New creation snapshots defaults; PC initialized on activation; saved 7/3/2 unchanged after Profile changes; no retroactive migration.",
+      "reason": "Scénario fonctionnel P3-10 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-10-profile-new-only-CHECK",
+          "given": "Profile PC10 CR10 Fin5; saved Exercise with PC7 CR3 Fin2",
+          "when": "Create new; activate side; change Profile; reopen saved",
+          "then": "New creation snapshots defaults; PC initialized on activation; saved 7/3/2 unchanged after Profile changes; no retroactive migration.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-11-all-modes-bip",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Bip present and common in all modes, same valid integer retained across save/copy; no execution sound introduced.",
+      "reason": "Scénario fonctionnel P3-11 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-11-all-modes-bip-CHECK",
+          "given": "Each of three modes",
+          "when": "Set cadence0/1/10; reject −1/11/fraction; switch modes; save/reopen/copy",
+          "then": "Bip present and common in all modes, same valid integer retained across save/copy; no execution sound introduced.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-12-normative-totals",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "A195 exact C405 exact D375 exact Rep cadence≈300 Duration cadence300 exact; no historical2s fallback.",
+      "reason": "Scénario fonctionnel P3-12 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-12-normative-totals-CHECK",
+          "given": "attendus-numeriques.json cases A/C/D/CADENCE/DURATION_BEEP",
+          "when": "Calculate independently and render editor",
+          "then": "A195 exact C405 exact D375 exact Rep cadence≈300 Duration cadence300 exact; no historical2s fallback.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-12-omission",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "No exercise duration line/value/0/dash/≥; known135 retained for Session; invalid targets cause validation error rather than omitted result.",
+      "reason": "Scénario fonctionnel P3-12 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-12-omission-CHECK",
+          "given": "Reps b0 or Failure b0/4 with P30/45/60",
+          "when": "Render editor and summary",
+          "then": "No exercise duration line/value/0/dash/≥; known135 retained for Session; invalid targets cause validation error rather than omitted result.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-13-R-terminal",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "A285, N1235; R0/absent leaves A195/N1220; replace only terminal physical pause once.",
+      "reason": "Scénario fonctionnel P3-13 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-13-R-terminal-CHECK",
+          "given": "A195 finalP30 and N1 bilateral220 finalP15",
+          "when": "Apply R120 to A, R30 to N1, then R0/absent",
+          "then": "A285, N1235; R0/absent leaves A195/N1220; replace only terminal physical pause once.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-13-unknown-known",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Known totals built from event ledger; unilateral225; BY_SIDE345 with R120; BY_SERIES240 with R120; unknown flag retained, no invented work.",
+      "reason": "Scénario fonctionnel P3-13 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-13-unknown-known-CHECK",
+          "given": "Unknown-work E/F P30/45/60",
+          "when": "Apply R120 and bilateral BY_SIDE PC15, separately BY_SERIES",
+          "then": "Known totals built from event ledger; unilateral225; BY_SIDE345 with R120; BY_SERIES240 with R120; unknown flag retained, no invented work.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-13-tours-cycles-list",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Existing structural repetition semantics preserved; applicable CR/Fin once per complete Exercise; list total equals full read calculated by one domain authority; symbols exact/≈/≥ correct.",
+      "reason": "Scénario fonctionnel P3-13 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-13-tours-cycles-list-CHECK",
+          "given": "Session with exercises before/in/after Circuit and Tours1/99, explicit R and mixed known/estimated/unknown",
+          "when": "Create/read/list/duplicate and aggregate",
+          "then": "Existing structural repetition semantics preserved; applicable CR/Fin once per complete Exercise; list total equals full read calculated by one domain authority; symbols exact/≈/≥ correct.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-13-no-auto-R",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "New R0/absent, existing R30 unchanged; Profile default used only by explicit recovery insertion outside PRE-3.",
+      "reason": "Scénario fonctionnel P3-13 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-13-no-auto-R-CHECK",
+          "given": "New occurrence; another existing R30 occurrence",
+          "when": "Add definition/create local then save existing Session",
+          "then": "New R0/absent, existing R30 unchanged; Profile default used only by explicit recovery insertion outside PRE-3.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-14-inverse-enumeration",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "N2 gives80 and N3 gives120 equally close; choose N3, show adjustment120; exact request80 choosesN2 with no adjustment.",
+      "reason": "Scénario fonctionnel P3-14 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-14-inverse-enumeration-CHECK",
+          "given": "Duration uniform D30 P10 UNI; requested total100",
+          "when": "Invert total",
+          "then": "N2 gives80 and N3 gives120 equally close; choose N3, show adjustment120; exact request80 choosesN2 with no adjustment.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-14-inverse-boundaries",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Enumerate all N1..99 independently with normalized N1; nearest feasible selected, no0/100; inverse disabled in variable/repetition/failure.",
+      "reason": "Scénario fonctionnel P3-14 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-14-inverse-boundaries-CHECK",
+          "given": "Duration uniform bilateral BY_SERIES with PC and N1 normalization",
+          "when": "Try totals below min, at min/max and above max",
+          "then": "Enumerate all N1..99 independently with normalized N1; nearest feasible selected, no0/100; inverse disabled in variable/repetition/failure.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-15-corpus-276",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Concat equals all276 expectedText; 140 no total/46 estimated/90 exact template distribution; sample amounts never read as oracle; numeric tokens/units bold, grammatical tokens normal.",
+      "reason": "Scénario fonctionnel P3-15 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-15-corpus-276-CHECK",
+          "given": "attendus-phrases-276.json representative parameter inputs",
+          "when": "Generate segments from application with independent oracle result",
+          "then": "Concat equals all276 expectedText; 140 no total/46 estimated/90 exact template distribution; sample amounts never read as oracle; numeric tokens/units bold, grammatical tokens normal.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-15-grammar-edges",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "P0 omits only redundant total; P15 includes45; enumerate <=3 with puis, >3 true min/max; variable pause clause omitted without data loss; direction/order/cadence grammar correct.",
+      "reason": "Scénario fonctionnel P3-15 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-15-grammar-edges-CHECK",
+          "given": "N1 UNI D30 P0 thenP15; variable2/3/4 including equal rows and reordered targets",
+          "when": "Generate phrase and render",
+          "then": "P0 omits only redundant total; P15 includes45; enumerate <=3 with puis, >3 true min/max; variable pause clause omitted without data loss; direction/order/cadence grammar correct.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-15-no-storage",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "No phrase or segments columns/JSON stored; generation at display; history parameters/actual durations unmodified.",
+      "reason": "Scénario fonctionnel P3-15 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-15-no-storage-CHECK",
+          "given": "Definition/occurrence/snapshot serializers with phrase-shaped extraneous values",
+          "when": "Save/read/regenerate under new grammar",
+          "then": "No phrase or segments columns/JSON stored; generation at display; history parameters/actual durations unmodified.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-15-long-phrase",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Full phrase flowing nested Text, intrinsic height, no ellipsis/max-lines/overflow; full unique VoiceOver phrase; card opens sheet.",
+      "reason": "Scénario fonctionnel P3-15 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-15-long-phrase-CHECK",
+          "given": "Case144/224 characters and narrow/enlarged text",
+          "when": "Render parameters card",
+          "then": "Full phrase flowing nested Text, intrinsic height, no ellipsis/max-lines/overflow; full unique VoiceOver phrase; card opens sheet.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE",
+            "ACCESSIBILITY_CHECK",
+            "DEVICE_CHECK"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-16-sheet-boundary",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Cancel leaves byte-equivalent parent; check atomically applies only valid effective params, no SQLite/service save; phrase updates.",
+      "reason": "Scénario fonctionnel P3-16 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-16-sheet-boundary-CHECK",
+          "given": "Parent draft with known values",
+          "when": "Open sheet, modify, cancel/system back; repeat then check",
+          "then": "Cancel leaves byte-equivalent parent; check atomically applies only valid effective params, no SQLite/service save; phrase updates.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-16-fold-incomplete",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "No apply/write; message identifies Série2, visible/reachable correction; folding never clears rows/validation.",
+      "reason": "Scénario fonctionnel P3-16 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-16-fold-incomplete-CHECK",
+          "given": "Variable row2 target null, table collapsed",
+          "when": "Press check",
+          "then": "No apply/write; message identifies Série2, visible/reachable correction; folding never clears rows/validation.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-16-parent-guard",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Annuler retains full params/media/draft; confirm abandons; sheet cancel distinct from parent guard.",
+      "reason": "Scénario fonctionnel P3-16 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-16-parent-guard-CHECK",
+          "given": "Changed parent with ordered media",
+          "when": "Request abandon; choose Annuler then confirm later",
+          "then": "Annuler retains full params/media/draft; confirm abandons; sheet cancel distinct from parent guard.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-16-failure-doubletap",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "One in-flight operation; rollback complete; draft/media retained; retry produces one Exercise/occurrence without partial duplicate.",
+      "reason": "Scénario fonctionnel P3-16 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-16-failure-doubletap-CHECK",
+          "given": "Valid draft; database deliberately fails midway",
+          "when": "Double tap Terminer; retry after error",
+          "then": "One in-flight operation; rollback complete; draft/media retained; retry produces one Exercise/occurrence without partial duplicate.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-18-copy-complete",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "New occurrence/link IDs; full params/category/media metadata/order conserved; same physical assets; mutation of one copy cannot mutate source/snapshot.",
+      "reason": "Scénario fonctionnel P3-18 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-18-copy-complete-CHECK",
+          "given": "Canonical definition with variable rows and photo/video in custom order",
+          "when": "Select, duplicate occurrence, serialize immutable snapshot",
+          "then": "New occurrence/link IDs; full params/category/media metadata/order conserved; same physical assets; mutation of one copy cannot mutate source/snapshot.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-18-historical-immutability",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Original serialized data/actual duration unchanged; derived phrase regenerates; no execution engine/history Repository invented.",
+      "reason": "Scénario fonctionnel P3-18 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-18-historical-immutability-CHECK",
+          "given": "Serialized old object including actual duration",
+          "when": "Change Profile, grammar and catalogue definition",
+          "then": "Original serialized data/actual duration unchanged; derived phrase regenerates; no execution engine/history Repository invented.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-19-hold",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Tap1; no repeated change before500ms; repeat150ms; prescribed step1/5/10; directional multiples/clamping; immediate stop, no release tap.",
+      "reason": "Scénario fonctionnel P3-19 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-19-hold-CHECK",
+          "given": "Stepper value37; prescribed accelerated field",
+          "when": "Press and hold across500ms/2s/4s; release/cancel",
+          "then": "Tap1; no repeated change before500ms; repeat150ms; prescribed step1/5/10; directional multiples/clamping; immediate stop, no release tap.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-19-non-accelerated",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Bip/CR/Fin stay step1; Profile keeps its existing policy; no propagation of PRE-3 acceleration by accident.",
+      "reason": "Scénario fonctionnel P3-19 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-19-non-accelerated-CHECK",
+          "given": "Bip/CR/Fin and existing Profile consumer",
+          "when": "Hold each for >4s",
+          "then": "Bip/CR/Fin stay step1; Profile keeps its existing policy; no propagation of PRE-3 acceleration by accident.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-19-exclusive-scroll",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Only one inline control open, height unmounted when absent; header reachable; bottom values/check accessible; no draft mutation through fold.",
+      "reason": "Scénario fonctionnel P3-19 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-19-exclusive-scroll-CHECK",
+          "given": "Sheet rows99, wheel then segmented control",
+          "when": "Open another control; collapse; scroll to bottom",
+          "then": "Only one inline control open, height unmounted when absent; header reachable; bottom values/check accessible; no draft mutation through fold.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE",
+            "DEVICE_CHECK"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-20-all-surfaces",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Per-element geometry/style/text tokens/master variants checked; system décor separately classified; no global visual postponement; each residual deviation named with impact/status/decision.",
+      "reason": "Scénario fonctionnel P3-20 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-20-all-surfaces-CHECK",
+          "given": "41 frozen frame states and applicable mapping-elements-ui.jsonl rows",
+          "when": "Compare delivered reference states at402 and adapt360/440",
+          "then": "Per-element geometry/style/text tokens/master variants checked; system décor separately classified; no global visual postponement; each residual deviation named with impact/status/decision.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-20-sheet-specific",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Overlay #1F2129 alpha.34; Bip first-level before applicable total else countdown; at402 x36/sep330 vs indented x52/sep314; adaptive relations at360/440; header fixed body scroll.",
+      "reason": "Scénario fonctionnel P3-20 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-20-sheet-specific-CHECK",
+          "given": "Duration/repetition/failure with/without total and bilateral groups",
+          "when": "Render",
+          "then": "Overlay #1F2129 alpha.34; Bip first-level before applicable total else countdown; at402 x36/sep330 vs indented x52/sep314; adaptive relations at360/440; header fixed body scroll.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "VISUAL_COMPARE"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-21-accessible-controls",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Complete labels, disabled states, current values, grouped phrase; focus enters modal and returns to launcher; equivalent non-drag ordering; touch44 minimum per targeted contracts.",
+      "reason": "Scénario fonctionnel P3-21 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-21-accessible-controls-CHECK",
+          "given": "Sheet/editor/sortable rows/media with disabled controls",
+          "when": "Query roles/labels/states/actions then run VoiceOver",
+          "then": "Complete labels, disabled states, current values, grouped phrase; focus enters modal and returns to launcher; equivalent non-drag ordering; touch44 minimum per targeted contracts.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "ACCESSIBILITY_CHECK",
+            "DEVICE_CHECK"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-22-scope-regression",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Existing Profile/reference withdrawal/duplicate rules/navigation preserved; no engine/timer/audio/execution media/Composition-PRE4/Catalogue-PRE5/calendar/tag rewrite; minimal adaptations traced.",
+      "reason": "Scénario fonctionnel P3-22 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-22-scope-regression-CHECK",
+          "given": "PRE-1/PRE-2 baseline tests and actual consumer graph",
+          "when": "Run suites and inspect every changed shared consumer",
+          "then": "Existing Profile/reference withdrawal/duplicate rules/navigation preserved; no engine/timer/audio/execution media/Composition-PRE4/Catalogue-PRE5/calendar/tag rewrite; minimal adaptations traced.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-23-import-multiple",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Three durable ordered associations to internal files; visible import state; no automatic camera/source expansion/conversion/product limit; custom order persists.",
+      "reason": "Scénario fonctionnel P3-23 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-23-import-multiple-CHECK",
+          "given": "Photo+video+photo from photothèque; native representations returned",
+          "when": "Import, reorder, finish, restart and reopen",
+          "then": "Three durable ordered associations to internal files; visible import state; no automatic camera/source expansion/conversion/product limit; custom order persists.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "DEVICE_CHECK"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-23-cancel-local-error",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Cancellation no error; other accepted items retained; failed item visible with Réessayer and draft intact; retry does not duplicate successful items.",
+      "reason": "Scénario fonctionnel P3-23 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-23-cancel-local-error-CHECK",
+          "given": "Multiple chosen media with second incompatible/copy failure/full storage",
+          "when": "Cancel picker separately; import then retry failed item",
+          "then": "Cancellation no error; other accepted items retained; failed item visible with Réessayer and draft intact; retry does not duplicate successful items.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-23-permissions",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "No camera/microphone request; limited accepted; actionable refusal/settings; Android pending result consumed once; null name/assetId alone not fatal.",
+      "reason": "Scénario fonctionnel P3-23 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-23-permissions-CHECK",
+          "given": "iOS access limited/refused/permanent denial; Android picker pending result",
+          "when": "Invoke import at user action",
+          "then": "No camera/microphone request; limited accepted; actionable refusal/settings; Android pending result consumed once; null name/assetId alone not fatal.",
+          "proof_required": [
+            "FUNCTIONAL_TEST",
+            "DEVICE_CHECK"
+          ]
+        }
+      ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-23-file-preservation",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "Referenced bytes never deleted; only confirmed unreferenced prepared files owned by this draft eligible for cleanup; no crash global purge.",
+      "reason": "Scénario fonctionnel P3-23 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-23-file-preservation-CHECK",
+          "given": "One media physically shared by definition, two occurrences and an active draft",
+          "when": "Remove one link, cancel/confirm parent, DB failure, duplicate",
+          "then": "Referenced bytes never deleted; only confirmed unreferenced prepared files owned by this draft eligible for cleanup; no crash global purge.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
+    }
+  ]
+}

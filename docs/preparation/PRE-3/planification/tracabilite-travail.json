@@ -24,7 +24,23 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-01/Catalogue:create",
+        "assertions-recette.json#/P3-01/Catalogue:edit",
+        "assertions-recette.json#/P3-01/Session:create",
+        "assertions-recette.json#/P3-01/Session:edit",
+        "assertions-recette.json#/P3-01/copy-isolation"
+      ],
+      "proposedTestPaths": [
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-02",
@@ -45,7 +61,20 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-02/editor-fields",
+        "assertions-recette.json#/P3-02/keyboard-scroll"
+      ],
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "proofRequired": [
+        "DEVICE_CHECK",
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ]
     },
     {
       "id": "P3-03",
@@ -66,7 +95,23 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-03/reference-retired",
+        "assertions-recette.json#/P3-03/empty-create-name",
+        "assertions-recette.json#/P3-03/zones-presentation"
+      ],
+      "proposedTestPaths": [
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ]
     },
     {
       "id": "P3-04",
@@ -87,7 +132,18 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-04/mode-targets",
+        "assertions-recette.json#/P3-04/bounds"
+      ],
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-05",
@@ -107,7 +163,18 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-05/equal-variable",
+        "assertions-recette.json#/P3-05/toggle-restoration"
+      ],
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-06",
@@ -127,7 +194,18 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-06/shrink-regrow",
+        "assertions-recette.json#/P3-06/commit-hidden"
+      ],
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-07",
@@ -148,7 +226,21 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-07/move-terminal",
+        "assertions-recette.json#/P3-07/move-accessible"
+      ],
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK",
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-08",
@@ -169,7 +261,20 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-08/immediate-N1",
+        "assertions-recette.json#/P3-08/restoration-N1"
+      ],
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-09",
@@ -191,7 +296,19 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-09/directions",
+        "assertions-recette.json#/P3-09/unilateral-controls"
+      ],
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-10",
@@ -212,7 +329,19 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-10/profile-new-only",
+        "assertions-recette.json#/P3-10/legacy-neutral-proposal"
+      ],
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-11",
@@ -232,7 +361,19 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-11/all-modes-bip"
+      ],
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-12",
@@ -256,7 +397,18 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-12/normative-totals",
+        "assertions-recette.json#/P3-12/omission"
+      ],
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-13",
@@ -281,7 +433,23 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-13/R-terminal",
+        "assertions-recette.json#/P3-13/unknown-known",
+        "assertions-recette.json#/P3-13/tours-cycles-list",
+        "assertions-recette.json#/P3-13/no-auto-R"
+      ],
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/features/sessions/__tests__/formatSessionSummary.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-14",
@@ -303,7 +471,18 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-14/inverse-enumeration",
+        "assertions-recette.json#/P3-14/inverse-boundaries"
+      ],
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-15",
@@ -328,7 +507,26 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-15/corpus-276",
+        "assertions-recette.json#/P3-15/grammar-edges",
+        "assertions-recette.json#/P3-15/no-storage",
+        "assertions-recette.json#/P3-15/long-phrase"
+      ],
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK",
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ]
     },
     {
       "id": "P3-16",
@@ -352,7 +550,23 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-16/sheet-boundary",
+        "assertions-recette.json#/P3-16/fold-incomplete",
+        "assertions-recette.json#/P3-16/parent-guard",
+        "assertions-recette.json#/P3-16/failure-doubletap"
+      ],
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-17",
@@ -379,7 +593,22 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-17/migration-real",
+        "assertions-recette.json#/P3-17/canonical-roundtrip",
+        "assertions-recette.json#/P3-17/corrupt-version",
+        "assertions-recette.json#/P3-17/transaction-FK"
+      ],
+      "proposedTestPaths": [
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/infrastructure/database/__tests__/migrateDatabase.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-18",
@@ -403,7 +632,19 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-18/copy-complete",
+        "assertions-recette.json#/P3-18/historical-immutability"
+      ],
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-19",
@@ -430,7 +671,21 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-19/hold",
+        "assertions-recette.json#/P3-19/non-accelerated",
+        "assertions-recette.json#/P3-19/exclusive-scroll"
+      ],
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/shared/ui/__tests__/ProfileStepper.test.ts"
+      ],
+      "proofRequired": [
+        "DEVICE_CHECK",
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ]
     },
     {
       "id": "P3-20",
@@ -454,7 +709,21 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-20/all-surfaces",
+        "assertions-recette.json#/P3-20/sheet-specific"
+      ],
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ]
     },
     {
       "id": "P3-21",
@@ -478,7 +747,19 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-21/accessible-controls"
+      ],
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK",
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-22",
@@ -500,7 +781,19 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-22/scope-regression"
+      ],
+      "proposedTestPaths": [
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/sessions/__tests__/compositionPresentation.test.ts",
+        "src/shared/ui/__tests__/ProfileStepper.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ]
     },
     {
       "id": "P3-23",
@@ -528,7 +821,27 @@
       "source": "../perimetre-et-couverture.md §10",
       "canonicalVNextIds": null,
       "testPathsFinalized": false,
-      "evidenceProduced": false
+      "evidenceProduced": false,
+      "expectedAssertionRefs": [
+        "assertions-recette.json#/P3-23/import-multiple",
+        "assertions-recette.json#/P3-23/cancel-local-error",
+        "assertions-recette.json#/P3-23/permissions",
+        "assertions-recette.json#/P3-23/file-preservation",
+        "assertions-recette.json#/P3-23/video-thumbnail"
+      ],
+      "proposedTestPaths": [
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/media/__tests__/VideoPoster.test.ts"
+      ],
+      "proofRequired": [
+        "DEVICE_CHECK",
+        "FUNCTIONAL_TEST"
+      ]
     }
   ],
   "scopeNote": "All 23 requirements retained; shorthand assertions must be expanded atomically with source units, exact paths/tests/proofs before canonical plan review"

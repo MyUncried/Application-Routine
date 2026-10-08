@@ -65,3 +65,5 @@ Passe distincte après modification : vérifier D-333 et l’absence de collisio
 ## Arbitrage de reprise PRE-3 — source d’import
 
 Le08/10/2026, Hermann choisit la **photothèque seule** (D-334, issue #340). Photos et vidéos locales restent incluses. Les mentions précédentes « caméra / sources système à clarifier » décrivent la préparation antérieure et sont remplacées sur ce seul point. Formats/compatibilité, permissions effectives et présentation des états/gestes manquants restent à finaliser dans le plan ; aucune limite arbitraire ajoutée.
+
+Modalités d’import désormais validées par D-335 (choix A, reprise du08/10) : L’import PRE-3 utilise la sélection multiple de photos et vidéos de la photothèque (D-335). Les fichiers compatibles sont conservés sans conversion systématique ni plafond produit arbitraire. Annulation sans erreur ; état d’import visible ; erreur locale avec Réessayer et brouillon conservé ; commandes accessibles Retirer/Monter/Descendre. La compatibilité et les permissions système sont vérifiées techniquement ; aucun fichier encore référencé n’est supprimé.

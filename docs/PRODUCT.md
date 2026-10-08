@@ -412,7 +412,7 @@ Le Ressenti est obligatoire lorsque la Synthèse est présentée ; le Commentair
 
 ### Médias et Parcours
 
-L’affichage du média associé dans la gouttière permanente de la carte du Catalogue des Exercices appartient au MVP, sans déploiement (D-260/D-261). L’import/ajout de `0..n` photos ou vidéos locales ordonnées est inclus au MVP dans PRE-3 (D-333). La source retenue est la photothèque seule, sans sélecteur de fichiers ni capture caméra (D-334).
+L’affichage du média associé dans la gouttière permanente de la carte du Catalogue des Exercices appartient au MVP, sans déploiement (D-260/D-261). L’import/ajout de `0..n` photos ou vidéos locales ordonnées est inclus au MVP dans PRE-3 (D-333). La source retenue est la photothèque seule, sans sélecteur de fichiers ni capture caméra (D-334). L’import PRE-3 utilise la sélection multiple de photos et vidéos de la photothèque (D-335). Les fichiers compatibles sont conservés sans conversion systématique ni plafond produit arbitraire. Annulation sans erreur ; état d’import visible ; erreur locale avec Réessayer et brouillon conservé ; commandes accessibles Retirer/Monter/Descendre. La compatibilité et les permissions système sont vérifiées techniquement ; aucun fichier encore référencé n’est supprimé.
 
 Le modèle autonome Parcours est retiré (D-328). Le mot parcours désigne plusieurs contenus liés sur un créneau, sans objet propre ; le Circuit interne à une Séance reste conservé.
 

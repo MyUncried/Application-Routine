@@ -595,7 +595,7 @@ Brouillon parent : nom, référentiels, description, paramètres validés par la
 
 Paramètres étendus : uniforme/variable, liste ordonnée de cibles/Pauses, Ordre des côtés ; copie complète vers CE-UI-10.
 
-Import média : accès depuis la zone Média et sauvegarde avec l’Exercice. Tester import nominal/annulé/en erreur, conservation à la réouverture, ordre et copies indépendantes selon D-333. Source système : photothèque seule, photos et vidéos (D-334). Formats, permissions et présentation des états non représentés : À CLARIFIER dans le plan, sans inventer de limite.
+Import média : accès depuis la zone Média et sauvegarde avec l’Exercice. Tester import nominal/annulé/en erreur, conservation à la réouverture, ordre et copies indépendantes selon D-333. Source système : photothèque seule, photos et vidéos (D-334). D-335 valide la sélection multiple, la conservation des fichiers compatibles sans conversion systématique ni plafond produit arbitraire, l’annulation sans erreur, l’import visible et l’erreur locale avec Réessayer sans perdre le brouillon. Retirer/Monter/Descendre ont des équivalents accessibles. Compatibilité et permissions système font l’objet des contrôles techniques du plan.
 
 La collection inclut la bip commun0..10 de chaque Série. Phrase dérivée des paramètres appliqués et du résultat de calcul intrinsèque, jamais sauvegardée comme vérité indépendante.
 

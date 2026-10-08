@@ -392,7 +392,7 @@ L’application ne demande pas l’autorisation de notification au lancement. El
 
 L’import/ajout de photos ou vidéos locales et leur association aux Exercices sont inclus au MVP dans PRE-3, avant le moteur d’exécution (D-333).
 
-La source d’acquisition retenue est la photothèque seule (D-334), sans capture caméra ni sélecteur de fichiers. Les formats compatibles et les états d’import non documentés restent à préciser dans le plan PRE-3.
+La source d’acquisition retenue est la photothèque seule (D-334), sans capture caméra ni sélecteur de fichiers. L’import PRE-3 utilise la sélection multiple de photos et vidéos de la photothèque (D-335). Les fichiers compatibles sont conservés sans conversion systématique ni plafond produit arbitraire. Annulation sans erreur ; état d’import visible ; erreur locale avec Réessayer et brouillon conservé ; commandes accessibles Retirer/Monter/Descendre. La compatibilité et les permissions système sont vérifiées techniquement ; aucun fichier encore référencé n’est supprimé.
 
 L’architecture doit permettre `0..n` associations média ordonnées par Exercice au MVP dans PRE-3 (D-333). La copie d’un Exercice ou d’une Séance ne duplique pas le fichier physique : plusieurs associations peuvent référencer le même fichier local immuable.
 

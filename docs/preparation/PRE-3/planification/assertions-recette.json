@@ -1,0 +1,998 @@
+{
+  "schema": "kodjo.pre3.expected-assertions.work.v1",
+  "baseline": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "scopeIds": [
+    "P3-01",
+    "P3-02",
+    "P3-03",
+    "P3-04",
+    "P3-05",
+    "P3-06",
+    "P3-07",
+    "P3-08",
+    "P3-09",
+    "P3-10",
+    "P3-11",
+    "P3-12",
+    "P3-13",
+    "P3-14",
+    "P3-15",
+    "P3-16",
+    "P3-17",
+    "P3-18",
+    "P3-19",
+    "P3-20",
+    "P3-21",
+    "P3-22",
+    "P3-23"
+  ],
+  "status": "PLANNED_NOT_EXECUTED",
+  "note": "Concrete expected outcomes written before application development. Proposed test paths and assertions must be bound to canonical VNext IDs/impacts; this is not a PlanContract or test evidence. Legacy neutral CR/Fin is a proposal pending reviewed-plan approval.",
+  "assertions": [
+    {
+      "assertionId": "P3-01/Catalogue:create",
+      "scopeId": "P3-01",
+      "given": "Parent persisted or new according to route Catalogue:create",
+      "when": "Open, change target/cadence/order/media, apply, finish, reopen",
+      "expected": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-01/Catalogue:edit",
+      "scopeId": "P3-01",
+      "given": "Parent persisted or new according to route Catalogue:edit",
+      "when": "Open, change target/cadence/order/media, apply, finish, reopen",
+      "expected": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-01/Session:create",
+      "scopeId": "P3-01",
+      "given": "Parent persisted or new according to route Session:create",
+      "when": "Open, change target/cadence/order/media, apply, finish, reopen",
+      "expected": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-01/Session:edit",
+      "scopeId": "P3-01",
+      "given": "Parent persisted or new according to route Session:edit",
+      "when": "Open, change target/cadence/order/media, apply, finish, reopen",
+      "expected": "All fields reopen; Catalogue writes definition only; Session applies isolated occurrence to Composition and persists only through its existing Continue action; no source write-back.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-01/copy-isolation",
+      "scopeId": "P3-01",
+      "given": "A saved definition and two copied occurrences",
+      "when": "Change one occurrence then change the definition",
+      "expected": "Other occurrence and definition/occurrence snapshots keep their own complete values and ordered media.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/domain/sessions/__tests__/SessionDraft.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-02/editor-fields",
+      "scopeId": "P3-02",
+      "given": "New empty editor",
+      "when": "Enter name/description; choose category/zones; open parameters",
+      "expected": "Name, description, media and all required selectors accessible; finish disabled or validation prevents write until required values complete; completed save returns to its host.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-02/keyboard-scroll",
+      "scopeId": "P3-02",
+      "given": "Small viewport and keyboard visible",
+      "when": "Focus final field and scroll",
+      "expected": "Focused field and Terminer remain reachable; safe areas/header respected; no fixed height clips text.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "DEVICE_CHECK"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-03/reference-retired",
+      "scopeId": "P3-03",
+      "given": "Existing Exercise references withdrawn category/zone",
+      "when": "Open, change description and save",
+      "expected": "Original withdrawn assignments retained under PRE-2 policy; no implicit replacement/removal.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-03/empty-create-name",
+      "scopeId": "P3-03",
+      "given": "Creation form for category then zone; empty/whitespace name",
+      "when": "Open form without typing, then clear typed name",
+      "expected": "Ajouter inactive, no error message for empty name; valid name follows PRE-2 uniqueness/reactivation rules.",
+      "proposedTestPaths": [
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-03/zones-presentation",
+      "scopeId": "P3-03",
+      "given": "Zones sheet with several values",
+      "when": "Select/remove/reopen",
+      "expected": "Text pills and header cross/title/check match reference; no silhouette repeated per option; selections survive parent round trip.",
+      "proposedTestPaths": [
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-04/mode-targets",
+      "scopeId": "P3-04",
+      "given": "Complete duration variable draft",
+      "when": "Switch to repetitions and failure, then return before check",
+      "expected": "N, pauses and cadence conserved; incompatible targets null, failure has no numeric target; prior mode targets restored only during this opening.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-04/bounds",
+      "scopeId": "P3-04",
+      "given": "Each field at lower/upper bound and immediately outside; integer/fraction/null cases",
+      "when": "Validate active parameters",
+      "expected": "D1..5999, Rep1..100, N1..99, P/PC0..300, b0..10, CR/Fin0..60 accepted exactly; invalid values identify field and series; null numeric target is incomplete.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-05/equal-variable",
+      "scopeId": "P3-05",
+      "given": "N3 uniform target30/P10",
+      "when": "Activate variable; leave all values equal; save/reopen",
+      "expected": "Saved kind remains VARIABLE; equality never forces uniform; all three rows and their order survive.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-05/toggle-restoration",
+      "scopeId": "P3-05",
+      "given": "Variable rows (30,10),(45,20),(60,30)",
+      "when": "Move last row first, go uniform, return variable before check",
+      "expected": "Uniform uses current first (60,30); variable restores (60,30),(30,10),(45,20).",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-06/shrink-regrow",
+      "scopeId": "P3-06",
+      "given": "Rows A/B/C/D with distinct target and pause",
+      "when": "N4→2→5 during one opening",
+      "expected": "A/B stay active, C/D return in relative order, fifth clones last active D; no equality inference.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-06/commit-hidden",
+      "scopeId": "P3-06",
+      "given": "Rows A/B/C/D reduced to N2",
+      "when": "Check, close, reopen, increase to N4",
+      "expected": "Temporary removed C/D not persisted; new rows are clones of effective last row B.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-07/move-terminal",
+      "scopeId": "P3-07",
+      "given": "A30/P10 B45/P20 C60/P30 and explicit R120",
+      "when": "Move C first",
+      "expected": "Rows C/A/B; intrinsic195 unchanged; occurrence195−20+120=295 because new final pause20; cancel restores prior occurrence285.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-07/move-accessible",
+      "scopeId": "P3-07",
+      "given": "Variable three rows",
+      "when": "Use Monter/Descendre rather than drag",
+      "expected": "Moves target and pause together, renumbers, respects first/last boundaries and yields same draft as drag.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-08/immediate-N1",
+      "scopeId": "P3-08",
+      "given": "Variable N3, bilateral BY_SERIES, first90/P15, PC10",
+      "when": "Reduce to N1 without pressing check",
+      "expected": "Effective kind UNIFORM and BY_SIDE immediately; controls without effect disabled; intrinsic220; requested old order not used by calculation.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-08/restoration-N1",
+      "scopeId": "P3-08",
+      "given": "Previous N3 variable/BY_SERIES",
+      "when": "N3→1→3 before check then separately commit at1",
+      "expected": "First path restores temporary rows/order; committed1 opens as uniform/BY_SIDE without stale reserve.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-09/directions",
+      "scopeId": "P3-09",
+      "given": "Same targets/pauses for RIGHT_LEFT then LEFT_RIGHT",
+      "when": "Select each order BY_SIDE/BY_SERIES at N3",
+      "expected": "Totals independent of starting side; phrase states correct direction/order; PC contributes once BY_SIDE, N times BY_SERIES.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-09/unilateral-controls",
+      "scopeId": "P3-09",
+      "given": "Bilateral data with PC15",
+      "when": "Select no side change",
+      "expected": "Side order/PC have no effect on unilateral calculation; hidden/inactive controls cannot inject PC.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-10/profile-new-only",
+      "scopeId": "P3-10",
+      "given": "Profile PC10 CR10 Fin5; saved Exercise with PC7 CR3 Fin2",
+      "when": "Create new; activate side; change Profile; reopen saved",
+      "expected": "New creation snapshots defaults; PC initialized on activation; saved 7/3/2 unchanged after Profile changes; no retroactive migration.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-10/legacy-neutral-proposal",
+      "scopeId": "P3-10",
+      "given": "Old scalar Exercise without CR/Fin",
+      "when": "Read after migration",
+      "expected": "No current Profile read or backfill; proposed neutral0 must pass plan review/owner validation; legacy targets/pauses/direction conserved.",
+      "proposedTestPaths": [
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-11/all-modes-bip",
+      "scopeId": "P3-11",
+      "given": "Each of three modes",
+      "when": "Set cadence0/1/10; reject −1/11/fraction; switch modes; save/reopen/copy",
+      "expected": "Bip present and common in all modes, same valid integer retained across save/copy; no execution sound introduced.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-12/normative-totals",
+      "scopeId": "P3-12",
+      "given": "attendus-numeriques.json cases A/C/D/CADENCE/DURATION_BEEP",
+      "when": "Calculate independently and render editor",
+      "expected": "A195 exact C405 exact D375 exact Rep cadence≈300 Duration cadence300 exact; no historical2s fallback.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-12/omission",
+      "scopeId": "P3-12",
+      "given": "Reps b0 or Failure b0/4 with P30/45/60",
+      "when": "Render editor and summary",
+      "expected": "No exercise duration line/value/0/dash/≥; known135 retained for Session; invalid targets cause validation error rather than omitted result.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-13/R-terminal",
+      "scopeId": "P3-13",
+      "given": "A195 finalP30 and N1 bilateral220 finalP15",
+      "when": "Apply R120 to A, R30 to N1, then R0/absent",
+      "expected": "A285, N1235; R0/absent leaves A195/N1220; replace only terminal physical pause once.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-13/unknown-known",
+      "scopeId": "P3-13",
+      "given": "Unknown-work E/F P30/45/60",
+      "when": "Apply R120 and bilateral BY_SIDE PC15, separately BY_SERIES",
+      "expected": "Known totals built from event ledger; unilateral225; BY_SIDE345 with R120; BY_SERIES240 with R120; unknown flag retained, no invented work.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-13/tours-cycles-list",
+      "scopeId": "P3-13",
+      "given": "Session with exercises before/in/after Circuit and Tours1/99, explicit R and mixed known/estimated/unknown",
+      "when": "Create/read/list/duplicate and aggregate",
+      "expected": "Existing structural repetition semantics preserved; applicable CR/Fin once per complete Exercise; list total equals full read calculated by one domain authority; symbols exact/≈/≥ correct.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/features/sessions/__tests__/formatSessionSummary.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-13/no-auto-R",
+      "scopeId": "P3-13",
+      "given": "New occurrence; another existing R30 occurrence",
+      "when": "Add definition/create local then save existing Session",
+      "expected": "New R0/absent, existing R30 unchanged; Profile default used only by explicit recovery insertion outside PRE-3.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-14/inverse-enumeration",
+      "scopeId": "P3-14",
+      "given": "Duration uniform D30 P10 UNI; requested total100",
+      "when": "Invert total",
+      "expected": "N2 gives80 and N3 gives120 equally close; choose N3, show adjustment120; exact request80 choosesN2 with no adjustment.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-14/inverse-boundaries",
+      "scopeId": "P3-14",
+      "given": "Duration uniform bilateral BY_SERIES with PC and N1 normalization",
+      "when": "Try totals below min, at min/max and above max",
+      "expected": "Enumerate all N1..99 independently with normalized N1; nearest feasible selected, no0/100; inverse disabled in variable/repetition/failure.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-15/corpus-276",
+      "scopeId": "P3-15",
+      "given": "attendus-phrases-276.json representative parameter inputs",
+      "when": "Generate segments from application with independent oracle result",
+      "expected": "Concat equals all276 expectedText; 140 no total/46 estimated/90 exact template distribution; sample amounts never read as oracle; numeric tokens/units bold, grammatical tokens normal.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionPhrase.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-15/grammar-edges",
+      "scopeId": "P3-15",
+      "given": "N1 UNI D30 P0 thenP15; variable2/3/4 including equal rows and reordered targets",
+      "when": "Generate phrase and render",
+      "expected": "P0 omits only redundant total; P15 includes45; enumerate <=3 with puis, >3 true min/max; variable pause clause omitted without data loss; direction/order/cadence grammar correct.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-15/no-storage",
+      "scopeId": "P3-15",
+      "given": "Definition/occurrence/snapshot serializers with phrase-shaped extraneous values",
+      "when": "Save/read/regenerate under new grammar",
+      "expected": "No phrase or segments columns/JSON stored; generation at display; history parameters/actual durations unmodified.",
+      "proposedTestPaths": [
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/domain/activities/__tests__/exerciseSnapshot.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-15/long-phrase",
+      "scopeId": "P3-15",
+      "given": "Case144/224 characters and narrow/enlarged text",
+      "when": "Render parameters card",
+      "expected": "Full phrase flowing nested Text, intrinsic height, no ellipsis/max-lines/overflow; full unique VoiceOver phrase; card opens sheet.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-16/sheet-boundary",
+      "scopeId": "P3-16",
+      "given": "Parent draft with known values",
+      "when": "Open sheet, modify, cancel/system back; repeat then check",
+      "expected": "Cancel leaves byte-equivalent parent; check atomically applies only valid effective params, no SQLite/service save; phrase updates.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-16/fold-incomplete",
+      "scopeId": "P3-16",
+      "given": "Variable row2 target null, table collapsed",
+      "when": "Press check",
+      "expected": "No apply/write; message identifies Série2, visible/reachable correction; folding never clears rows/validation.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-16/parent-guard",
+      "scopeId": "P3-16",
+      "given": "Changed parent with ordered media",
+      "when": "Request abandon; choose Annuler then confirm later",
+      "expected": "Annuler retains full params/media/draft; confirm abandons; sheet cancel distinct from parent guard.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-16/failure-doubletap",
+      "scopeId": "P3-16",
+      "given": "Valid draft; database deliberately fails midway",
+      "when": "Double tap Terminer; retry after error",
+      "expected": "One in-flight operation; rollback complete; draft/media retained; retry produces one Exercise/occurrence without partial duplicate.",
+      "proposedTestPaths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-17/migration-real",
+      "scopeId": "P3-17",
+      "given": "Fresh DB and v8 populated incl old outside-new-bounds values/withdrawn references",
+      "when": "Migrate through009 then repeat",
+      "expected": "Real SQLite preserves IDs/dates/old values and links; no modification001..008; repeat idempotent; PRAGMA foreign_key_check empty.",
+      "proposedTestPaths": [
+        "src/infrastructure/database/__tests__/migrateDatabase.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-17/canonical-roundtrip",
+      "scopeId": "P3-17",
+      "given": "All modes, variable equal rows, bounds, side order, CR/Fin/media",
+      "when": "Save on real SQLite, close database, reopen",
+      "expected": "All canonical fields/order preserved and JSON authoritative over scalar projections; failure target null; reps100 accepted; count99.",
+      "proposedTestPaths": [
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-17/corrupt-version",
+      "scopeId": "P3-17",
+      "given": "Rows with malformed canonical JSON/unknown version; another null legacy JSON row",
+      "when": "Read",
+      "expected": "Malformed/unknown throws explicit data error, never scalar fallback; null legacy maps conservatively without Profil.",
+      "proposedTestPaths": [
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-17/transaction-FK",
+      "scopeId": "P3-17",
+      "given": "Create/update media assets+owner+links+positions with injected error at each statement",
+      "when": "Commit/rollback then query physical DB",
+      "expected": "No partial assets/owners/links/reordering; valid FK, unique positions; retry atomic; existing ID/created_at stable.",
+      "proposedTestPaths": [
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-18/copy-complete",
+      "scopeId": "P3-18",
+      "given": "Canonical definition with variable rows and photo/video in custom order",
+      "when": "Select, duplicate occurrence, serialize immutable snapshot",
+      "expected": "New occurrence/link IDs; full params/category/media metadata/order conserved; same physical assets; mutation of one copy cannot mutate source/snapshot.",
+      "proposedTestPaths": [
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-18/historical-immutability",
+      "scopeId": "P3-18",
+      "given": "Serialized old object including actual duration",
+      "when": "Change Profile, grammar and catalogue definition",
+      "expected": "Original serialized data/actual duration unchanged; derived phrase regenerates; no execution engine/history Repository invented.",
+      "proposedTestPaths": [
+        "src/domain/activities/__tests__/exerciseSnapshot.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-19/hold",
+      "scopeId": "P3-19",
+      "given": "Stepper value37; prescribed accelerated field",
+      "when": "Press and hold across500ms/2s/4s; release/cancel",
+      "expected": "Tap1; no repeated change before500ms; repeat150ms; prescribed step1/5/10; directional multiples/clamping; immediate stop, no release tap.",
+      "proposedTestPaths": [
+        "src/shared/ui/__tests__/ProfileStepper.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-19/non-accelerated",
+      "scopeId": "P3-19",
+      "given": "Bip/CR/Fin and existing Profile consumer",
+      "when": "Hold each for >4s",
+      "expected": "Bip/CR/Fin stay step1; Profile keeps its existing policy; no propagation of PRE-3 acceleration by accident.",
+      "proposedTestPaths": [
+        "src/shared/ui/__tests__/ProfileStepper.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-19/exclusive-scroll",
+      "scopeId": "P3-19",
+      "given": "Sheet rows99, wheel then segmented control",
+      "when": "Open another control; collapse; scroll to bottom",
+      "expected": "Only one inline control open, height unmounted when absent; header reachable; bottom values/check accessible; no draft mutation through fold.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE",
+        "DEVICE_CHECK"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-20/all-surfaces",
+      "scopeId": "P3-20",
+      "given": "41 frozen frame states and applicable mapping-elements-ui.jsonl rows",
+      "when": "Compare delivered reference states at402 and adapt360/440",
+      "expected": "Per-element geometry/style/text tokens/master variants checked; system décor separately classified; no global visual postponement; each residual deviation named with impact/status/decision.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-20/sheet-specific",
+      "scopeId": "P3-20",
+      "given": "Duration/repetition/failure with/without total and bilateral groups",
+      "when": "Render",
+      "expected": "Overlay #1F2129 alpha.34; Bip first-level before applicable total else countdown; at402 x36/sep330 vs indented x52/sep314; adaptive relations at360/440; header fixed body scroll.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-21/accessible-controls",
+      "scopeId": "P3-21",
+      "given": "Sheet/editor/sortable rows/media with disabled controls",
+      "when": "Query roles/labels/states/actions then run VoiceOver",
+      "expected": "Complete labels, disabled states, current values, grouped phrase; focus enters modal and returns to launcher; equivalent non-drag ordering; touch44 minimum per targeted contracts.",
+      "proposedTestPaths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "ACCESSIBILITY_CHECK",
+        "DEVICE_CHECK"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-22/scope-regression",
+      "scopeId": "P3-22",
+      "given": "PRE-1/PRE-2 baseline tests and actual consumer graph",
+      "when": "Run suites and inspect every changed shared consumer",
+      "expected": "Existing Profile/reference withdrawal/duplicate rules/navigation preserved; no engine/timer/audio/execution media/Composition-PRE4/Catalogue-PRE5/calendar/tag rewrite; minimal adaptations traced.",
+      "proposedTestPaths": [
+        "src/shared/ui/__tests__/ProfileStepper.test.ts",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/sessions/__tests__/compositionPresentation.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-23/import-multiple",
+      "scopeId": "P3-23",
+      "given": "Photo+video+photo from photothèque; native representations returned",
+      "when": "Import, reorder, finish, restart and reopen",
+      "expected": "Three durable ordered associations to internal files; visible import state; no automatic camera/source expansion/conversion/product limit; custom order persists.",
+      "proposedTestPaths": [
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "DEVICE_CHECK"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-23/cancel-local-error",
+      "scopeId": "P3-23",
+      "given": "Multiple chosen media with second incompatible/copy failure/full storage",
+      "when": "Cancel picker separately; import then retry failed item",
+      "expected": "Cancellation no error; other accepted items retained; failed item visible with Réessayer and draft intact; retry does not duplicate successful items.",
+      "proposedTestPaths": [
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-23/permissions",
+      "scopeId": "P3-23",
+      "given": "iOS access limited/refused/permanent denial; Android picker pending result",
+      "when": "Invoke import at user action",
+      "expected": "No camera/microphone request; limited accepted; actionable refusal/settings; Android pending result consumed once; null name/assetId alone not fatal.",
+      "proposedTestPaths": [
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "DEVICE_CHECK"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-23/file-preservation",
+      "scopeId": "P3-23",
+      "given": "One media physically shared by definition, two occurrences and an active draft",
+      "when": "Remove one link, cancel/confirm parent, DB failure, duplicate",
+      "expected": "Referenced bytes never deleted; only confirmed unreferenced prepared files owned by this draft eligible for cleanup; no crash global purge.",
+      "proposedTestPaths": [
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    },
+    {
+      "assertionId": "P3-23/video-thumbnail",
+      "scopeId": "P3-23",
+      "given": "Stable saved native video file",
+      "when": "Reopen editor and obtain poster; close screen",
+      "expected": "Poster regenerated with verified SDK API; no persisted native SharedRef/fake URI; native object released; no autoplay/audio/execution playback.",
+      "proposedTestPaths": [
+        "src/infrastructure/media/__tests__/VideoPoster.test.ts"
+      ],
+      "proofRequired": [
+        "FUNCTIONAL_TEST",
+        "DEVICE_CHECK"
+      ],
+      "status": "PLANNED_NOT_EXECUTED",
+      "canonicalAssertionId": null
+    }
+  ]
+}
