@@ -65,3 +65,48 @@ Opération : #340 réutilisée, branche `plan/pre3-vnext-20261008`. Main recontr
 À poursuivre : inventaire documentaire autoritatif exigé par `vnext-figma-launch` (le tag normatif n’est pas encore publié), paquet Figma VNext complet, classification/ImpactGraph/PlanContract et atomicité UI, puis revue réelle Claude et validation propriétaire exacte. Les exécutables `claude` et `gh` ne sont pas présents dans cet environnement ; le connecteur GitHub n’expose pas de dispatch workflow. Cette limite de transport devra être résolue au déclenchement concret, sans substitution par une auto-revue ni parcours legacy.
 
 État Git avant publication du complément : changements documentaires uniquement ; aucun src/app/package/lock/migration historique modifié. Le commit porteur du complément sera identifié dans #340 après publication et vérification de l’arbre distant ; la baseline reste celle indiquée en tête. L’état final propre sera vérifié après synchronisation du commit publié.
+
+
+## Reprise demandée : PlanContract puis revue indépendante
+
+Objectif : poursuivre #340 sur la branche `plan/pre3-vnext-20261008`, départ `acc07c1f0c0c46e2e1e4798e5fec6d88579d1e58`, sans doublon ni développement. Recontrôle GitHub : main inchangée `1ddfb6d144552f578388257adc78db47ab5992c8`, branche inchangée, #340 sans nouveau commentaire, aucun run in_progress ni opération PRE-3 nouvelle ; seule ancienne queue V2 34748621746, hors PRE-3 et non modifiée. Les préalables #334/#339 et le registre final restent satisfaits.
+
+Travail effectué :
+- Inventaire autoritatif des 94 états/scénarios ajouté au contrat d’écran existant 13, dans le tag exact VNext ; aucun second document normatif concurrent.
+- 276 attendus de segments `{texte,gras}` ajoutés à l’oracle reproductible, avec nombres/unités et côtés en gras conformément aux textSegments Figma observés. Les montants restent issus du ledger indépendant. Ce sont des attendus, pas un résultat de l’application.
+- Construction complète du paquet source par `docs/preparation/PRE-3/planification/construire-paquet-vnext.cjs` : 41 frames, 6725 éléments d’écran et fermeture jusqu’à 7369 nœuds ; 471135 propriétés classifiées, dont 243879 REALIZE. Les 65 descendants masqués sont conservés. Les 47 maîtres, ensembles/variantes et compléments critiques déjà acquis sont réutilisés. Aucune réextraction ni mutation Figma.
+- Les PNG de frame servent également de référence des nœuds peints IMAGE qu’ils contiennent ; ils ne sont pas déclarés fichiers photo originaux ni médias de démonstration à distribuer.
+
+### Blocage constaté avant le PlanContract
+
+Le paquet complet sérialisé selon le format exact obligatoire `JSON.stringify(packet,null,2)+'\n'` mesure **270258821 octets** dans la première observation locale. `F.build`, `F.validate({ready:true})` et `Launch.validateDocumentCoverage` passent. La lecture de ces vrais octets par **`vnext-live-chain.readGit`** échoue : **`VNEXT_LIVE_PROCESS_FAILED: git: spawnSync git ENOBUFS`**. La fonction `command` impose `maxBuffer: 64 * 1024 * 1024`, soit **67108864 octets**. L’échec survient avant le parsing et la vérification des empreintes par `observeSources`, donc avant `produce` et le PlanContract. La première observation comportait un inventaire documentaire encore non committé à sa revision déclarée : elle prouve le refus de lecture, pas un Launch canonique complet. Le reproducteur versionné lit désormais le document depuis HEAD committé ; sa seconde observation est publiée séparément dans `preuve-lecture-source-vnext.json`.
+
+La classification détaillée constitue encore un candidat de préparation : sa validation de schéma ne vaut ni revue de pertinence/atomicité ni conformité visuelle. La projection conserve tous les champs capturés au lieu de supprimer des éléments, propriétés ou exigences pour entrer dans le transport. Ce constat porte sur la représentation effectivement construite ; il ne prétend pas démontrer l’impossibilité de toute représentation conforme alternative. Aucun PlanContract incomplet n’est rebaptisé final et aucune approbation n’est demandée sur un objet inexistant.
+
+### Comparaison historique, sans correction ni nouvelle campagne
+
+Le mécanisme 64 MiB existe dès `93f5274de8f0a14d3b4777b585572afd9d0f5085` (introduction de `vnext-live-chain.js`, 30 septembre), constaté par `git log -S` et lecture du fichier de ce commit. Il n’a pas été introduit par les derniers correctifs #334/#339 ; aucune attribution aux optimisations récentes. Le paquet historique conservé `v8-consolidation/figma-zones/frozen-source.json` mesure **4519795 octets**, 1 frame, 222 nœuds et 8425 décisions. Le driver historique classe ensuite toutes ces propriétés OBSERVED_ONLY pour le test booléen jetable. Il ne constitue donc pas un succès comparable au paquet PRE-3 complet avec assertions visuelles. Les succès de qualification/résolution 37825871323/37825871378 et le cycle historique clôturé sont conservés, sans reclassification ni nouvelle exécution ; ils ne prouvent pas la capacité de ce transport à 258 MiB. Premier échec conservé à ce volume : reçu PRE-3 ci-joint. Attribution du seuil : démontrée ; existence d’un succès antérieur comparable à 41 frames : non démontrée. Aucun correctif protocole, certification ou audit global lancé dans cette reprise.
+
+### Transport de revue indépendant
+
+Le résolveur courant retourne `claude`, mais `spawnSync(claude,['--version'])` donne **ENOENT** dans cet environnement ; aucun reviewer réel invoqué. Le connecteur GitHub n’offre pas de workflow dispatch. Le workflow existant `kodjo-vnext12-disposable.yml` est explicitement verrouillé sur PR269/branche `protocol/vnext-proof-stability-20260930` et son driver sur VNEXT-12-QUALIF : il ne doit pas être recyclé pour PRE-3. Ce défaut de transport est distinct du refus de lecture et ne constitue pas un verdict de revue. Aucune revue simulée, aucun appel au parcours legacy, aucune surveillance d’arrière-plan.
+
+### Reproduction et reprise sûres
+
+Après checkout du commit de publication contenant cet inventaire :
+```sh
+node --max-old-space-size=4096 docs/preparation/PRE-3/planification/construire-paquet-vnext.cjs /tmp/pre3-full-vnext-source --prove-read
+```
+Le script ne modifie pas les branches ni l’application ; il écrit le paquet et les reçus dans le dossier absolu fourni. `--prove-read` ajoute uniquement des objets Git locaux non référencés pour appeler le vrai lecteur canonique sur les octets construits. L’identifiant de ce conteneur local n’est pas un identifiant de run. Il ne déclenche aucune qualification, revue ni écriture distante. Sous Windows, fournir un dossier absolu extérieur au checkout.
+
+La reprise doit traiter uniquement la capacité de représentation/lecture/publication de cette source complète et le transport réel Claude requis ; elle doit conserver les empreintes, toutes les propriétés nécessaires, la couverture documentaire et les invariants de lecture du protocole. Le simple relèvement d’un timeout ou une sélection d’écrans réduite ne résout pas le refus de buffer. Les autres limites possibles (taille des objets produits, publication GitHub, budget de revue) n’ont pas été testées et ne sont pas présentées comme des échecs démontrés. Une fois le paquet effectivement observé en Git, terminer Launch/ImpactGraph/PlanContract/UI atomicité, appeler `vnext-chain.js review` sur le `produced_file` exact et conserver le reçu extérieur au checkout ; ensuite seulement présenter le plan revu pour validation propriétaire. Aucun fichier produced ni configuration de revue factice n’est publié avant cette construction.
+
+### Contrôles de cette reprise et état de livraison
+
+- Oracle : **13 cas normatifs / 276 fixtures avec segments cohérents**, PASS de préparation, applicationTested=false. Le premier contrôle après annotation a détecté une dérive du générateur ; l’oracle a été mis à jour, puis régénéré et recontrôlé avec succès.
+- Vérificateur de planification : **23 IDs / 59 assertions / 94 états / 6725 mappings**, PASS de cohérence seule.
+- Syntaxe du constructeur : `node --check`, PASS. Schéma Figma et inventaire : PASS sur les données construites ; lecteur Git réel : **BLOCKED/ENOBUFS**.
+- Aucun nouveau test applicatif pertinent : aucun code applicatif modifié ; les 219 tests baseline précédemment exécutés ne sont pas annoncés comme preuve PRE-3. Aucun contrôle visuel/perceptif ou appareil exécuté, aucune action iPhone nécessaire à ce blocage.
+- Fichiers modifiés dans cette reprise : contrat d’écran 13 ; oracle-attendus.py ; attendus-phrases-276.json ; construire-paquet-vnext.cjs ; preuve-lecture-source-vnext.json ; ce rapport.
+- **État VNext : préparation source avant PLAN, BLOCKED**. PlanContract final non produit, revue indépendante non lancée, validation propriétaire non sollicitée. Suivi unique : https://github.com/MyUncried/Application-Routine/issues/340 ; aucun run PRE-3 à suivre.
+- Commit contenant ce rapport : commit de publication de cette section, identifié par l’historique Git et #340. L’état Git est vérifié propre après synchronisation de la publication ; aucun changement src/app/package/lock/scripts.

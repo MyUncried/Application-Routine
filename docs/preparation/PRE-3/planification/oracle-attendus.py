@@ -6,6 +6,7 @@ not the implementation. Run --write to produce the 276 grammatical fixtures.
 """
 import argparse
 import json
+import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -107,17 +108,34 @@ def fixtures():
             assert result['kind'] == 'omitted' or (
                 mode == 'DURATION' and count == 1 and parameters['side'] == 'UNILATERAL'
                 and parameters['pauses'] == [0])
+        # Golden annotation is independent of the future product emitter.
+        # The product must emit tokens directly, not parse its final string.
+        pattern = re.compile(r'≈ ?\d+(?: min(?: \d+ s)?| s)|\d+ min(?: \d+ s)?|\d+ (?:répétitions?|séries?|s)|\b(?:droite|gauche)\b')
+        segments, last = [], 0
+        for match in pattern.finditer(expected):
+            if match.start() > last:
+                segments.append({'texte': expected[last:match.start()], 'gras': False})
+            segments.append({'texte': match.group(), 'gras': True})
+            last = match.end()
+        if last < len(expected):
+            segments.append({'texte': expected[last:], 'gras': False})
+        assert ''.join(segment['texte'] for segment in segments) == expected
         output.append({'corpusId': row['id'], 'sourceCell': row['cell'],
                        'parameters': parameters, 'expectedIntrinsic': result,
-                       'expectedText': expected, 'expectedSegmentsStatus': 'TO_BIND_GRAMMAR_TOKENS',
-                       'proofStatus': 'PLANNED_NOT_EXECUTED'})
+                       'expectedText': expected,
+                       'expectedSegmentsStatus': 'EXPECTED_GRAMMAR_AND_FIGMA_BOLD_NOT_APPLICATION_RESULT',
+                       'proofStatus': 'PLANNED_NOT_EXECUTED', 'expectedSegments': segments})
     assert len(output) == 276
     return {'schema': 'kodjo.pre3.phrase-fixtures.work.v1',
             'purpose': 'Expected fixtures, not application results or a VNext contract',
             'inputPolicy': 'Representative targets explicitly chosen here; N3 matches normative examples. '
                            'N6 lists are test inputs matching the corpus range, not recovered Excel inputs. '
                            'Totals are event-ledger sums independent of Excel and application code.',
-            'cases': output}
+            'cases': output,
+            'segmentPolicy': 'Golden fixture annotation only, independently of future product emitter. '
+                             'Values with their units, series counts and named sides are bold, matching actual Figma textSegments; '
+                             'connecting grammar and punctuation are normal. Product must emit structured segments directly, '
+                             'never parse or replace its final sentence.'}
 
 
 def verify_normative_cases():

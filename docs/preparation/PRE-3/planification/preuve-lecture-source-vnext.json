@@ -1,0 +1,33 @@
+{
+  "scope": "REAL_PRE3_SOURCE_PREPARATION_ONLY",
+  "applicationConformance": false,
+  "independentReview": false,
+  "source_revision": "acc07c1f0c0c46e2e1e4798e5fec6d88579d1e58",
+  "node_count": 7369,
+  "screen_nodes": 6725,
+  "property_count": 471135,
+  "realize_count": 243879,
+  "frame_count": 41,
+  "byte_length": 270258821,
+  "sha256": "417c0e450aadf48d8727c7420a969ac762b6938f5bd7e0580d5999cf843b6a09",
+  "contract_hash": "2ecf00cc2ba53c9d115aa66bd80279d5f39d1bcc83b87868a2596edc1a549667",
+  "packet_schema_validation": "PASS",
+  "inventory_document_validation": "PASS",
+  "image_reference_semantics": "Full frame PNG evidences IMAGE-painted nodes within that frame; it is not the original image asset or a distributable product demo.",
+  "git_blob": "0660868117b72afcc5497e92768828d905d22515",
+  "local_evidence_tree": "2edbb8acc5056120fefa128bfa12c3b9a5a4b40e",
+  "local_evidence_commit": "7c75e6df3b2e193005ac2f44a229b10442b321c3",
+  "operation": "vnext-live-chain.readGit(cwd, local_evidence_commit, figma-source.json)",
+  "production_limit_bytes": 67108864,
+  "result": "BLOCKED",
+  "error": {
+    "code": "VNEXT_LIVE_PROCESS_FAILED",
+    "message": "VNEXT_LIVE_PROCESS_FAILED: git: spawnSync git ENOBUFS"
+  },
+  "git_observation_and_launch_completed": false,
+  "notes": [
+    "The source packet and documentary inventory pass schema validation. Documentary content has not yet been committed at its stated source_revision; this is NOT a completed Launch checkpoint.",
+    "The actual production Git read fails before parsing or source fingerprint verification. The local evidence commit is an unreferenced container for the real generated source bytes, not a remote workflow or campaign.",
+    "No PlanContract or independent review has been declared complete."
+  ]
+}
