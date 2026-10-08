@@ -59,8 +59,11 @@ for(const r of resources)r.sha256=require('node:crypto').createHash('sha256').up
 const tokens=read(path.join(base,'tokens.json'));
 const input={file_key:manifest.fileKey,captured_at:manifest.extractedAtUtc,frames:manifest.frames.map(f=>({frame_id:f.id,page_id:manifest.pageId,state_id:'PRE3-FIG-'+f.id.replace(':','-')})),nodes:captured,variables:tokens.variables.map(v=>({...v,collection_id:v.variableCollectionId})),collections:tokens.collections,resources,documents:[document],states,decisions,conflicts:[]};
 const packet=F.build(input);F.validate(packet,{ready:true});
-const bytes=JSON.stringify(packet,null,2)+'\n',packetPath=path.join(output,'figma-source.json');fs.writeFileSync(packetPath,bytes);
+const packed=process.argv.includes('--packed');
+const bytes=F.snapshotContent(packet,{packed}),packetPath=path.join(output,'figma-source.json');fs.writeFileSync(packetPath,bytes);
 const receipt={scope:'REAL_PRE3_SOURCE_PREPARATION_ONLY',applicationConformance:false,independentReview:false,source_revision:docRevision,node_count:captured.length,screen_nodes:records.length,property_count:decisions.length,realize_count:decisions.filter(d=>d.disposition==='REALIZE').length,frame_count:manifest.frames.length,byte_length:Buffer.byteLength(bytes),sha256:V.sha256(bytes),contract_hash:packet.contract_hash,packet_schema_validation:'PASS',inventory_document_validation:'NOT_YET_RUN',image_reference_semantics:'Full frame PNG evidences IMAGE-painted nodes within that frame; it is not the original image asset or a distributable product demo.'};
+receipt.storage_format=packed?'kodjo.vnext.figma-transport.v1':'kodjo.vnext.figma-source.v1';
+if(packed){const reconstructed=F.snapshotPacket(bytes);receipt.reconstruction_hash_equal=reconstructed.contract_hash===packet.contract_hash;if(!receipt.reconstruction_hash_equal)throw Error('Source reconstruction mismatch');}
 try{Launch.validateDocumentCoverage(packet);receipt.inventory_document_validation='PASS';}catch(e){receipt.inventory_document_validation=e.code||e.message;}
 fs.writeFileSync(path.join(output,'receipt.json'),JSON.stringify(receipt,null,2)+'\n');process.stdout.write(JSON.stringify(receipt)+'\n');
 if(process.argv.includes('--prove-read')){

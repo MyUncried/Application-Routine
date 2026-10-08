@@ -111,7 +111,7 @@ function produceInternal(recipe, { cwd, github } = {}) {
   }
   const sourceManifest = Source.build(recipe.sourceManifestInput);
   const sourceObservations = observeSources(sourceManifest, cwd, github, recipe.planningInput.issue_id);
-  const figmaReferences=sourceManifest.sources.filter(s=>s.source_kind==='FIGMA').map(s=>({source_id:s.source_id,packet:JSON.parse(sourceObservations.find(o=>o.source_id===s.source_id).content)}));
+  const figmaReferences=sourceManifest.sources.filter(s=>s.source_kind==='FIGMA').map(s=>({source_id:s.source_id,packet:require('./vnext-figma-source').snapshotPacket(sourceObservations.find(o=>o.source_id===s.source_id).content)}));
   if(figmaReferences.length&&!recipe.uiInput)V.fail('VNEXT_FIGMA_UI_MAPPING_REQUIRED');
   const planningEnvelope = Envelope.build({ ...recipe.planningInput, source_manifest: sourceManifest });
   if (recipe.deliveryCorrection && planningEnvelope.planning_mode !== 'REVISION') V.fail('VNEXT_DELIVERY_CORRECTION_REQUIRES_REVISION');
@@ -176,7 +176,7 @@ function verifyProduced(produced, cwd, github) {
   const packet = Review.buildReviewerPacket({ root: cwd, revision: produced.producer_revision, reviewContext: a.reviewContext });
   if (V.canonicalStringify(packet) !== V.canonicalStringify(produced.reviewer_packet)) V.fail('VNEXT_REVIEW_PRODUCER_PACKET_STALE');
   const observed = observeSources(a.planningEnvelope.source_manifest, cwd, github, a.planningEnvelope.issue_id);
-  const refs=observed.filter(o=>a.planningEnvelope.source_manifest.sources.find(s=>s.source_id===o.source_id)?.source_kind==='FIGMA').map(o=>({source_id:o.source_id,packet:JSON.parse(o.content)}));
+  const refs=observed.filter(o=>a.planningEnvelope.source_manifest.sources.find(s=>s.source_id===o.source_id)?.source_kind==='FIGMA').map(o=>({source_id:o.source_id,packet:require('./vnext-figma-source').snapshotPacket(o.content)}));
   if(refs.length&&V.canonicalStringify(refs)!==V.canonicalStringify(a.uiAtomicityContract?.figma_references))V.fail('VNEXT_FIGMA_PLAN_REFERENCE_MISMATCH');
   if (V.canonicalStringify(observed) !== V.canonicalStringify(produced.source_observations)) V.fail('VNEXT_SOURCE_OBSERVATION_STALE');
   if (V.canonicalStringify(observeCandidates(a, cwd)) !== V.canonicalStringify(produced.candidate_observations)) V.fail('VNEXT_CANDIDATE_OBSERVATION_STALE');

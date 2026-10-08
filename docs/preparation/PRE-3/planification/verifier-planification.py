@@ -26,10 +26,11 @@ for r in trace:
     assert r['canonicalVNextIds'] is None and not r['evidenceProduced']
 
 states = read(HERE / 'inventaire-etats-scenarios.json')['states']
-assert len(states) == len({s['state_id'] for s in states}) == 94
+assert len(states) == len({s['state_id'] for s in states}) == 95
 assert sum(s['origin'] == 'FIGMA' for s in states) == 41
+assert {r for r in scope if any(r in s['state_id'] for s in states)} == scope
 scenarios = [x for s in states for x in s['scenarios']]
-assert len(scenarios) == len({s['scenario_id'] for s in scenarios}) == 94
+assert len(scenarios) == len({s['scenario_id'] for s in scenarios}) == 95
 
 # Use newline only: a JSON string may contain an actual U+2028 separator.
 mapping = [json.loads(line) for line in (HERE / 'mapping-elements-ui.jsonl').read_text().split('\n')
@@ -66,5 +67,5 @@ masters = read(HERE / 'controle-fraicheur-maitres.json')['actual']
 assert masters['linksCompared'] == 881 and masters['changedLinks'] == []
 
 print(json.dumps({'status': 'PLANNING_COHERENCE_ONLY', 'scopeIds': 23,
-                  'expectedAssertions': 59, 'statesAndScenarios': 94, 'mappedNodes': len(rows),
+                  'expectedAssertions': 59, 'statesAndScenarios': 95, 'mappedNodes': len(rows),
                   'applicationConformance': False, 'independentVNextReview': False}))

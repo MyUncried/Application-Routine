@@ -45,9 +45,9 @@ function validateScenarios(packet){
   }
  }
 }
-function requirements(packet,revision,packetPath){
+function requirements(packet,revision,packetPath,content){
  if(packet.documents.some(d=>d.locator!=='FULL_FILE'))V.fail('VNEXT_FIGMA_LAUNCH_FULL_DOCUMENT_SOURCE_REQUIRED');
- const sources=[F.sourceInput(packet,revision,packetPath),...packet.documents.map(d=>({source_kind:'MARKDOWN',authority:'FUNCTIONAL',locator:d.path,revision:d.revision,fingerprint:d.fingerprint,units:[{locator:d.locator,fingerprint:d.fingerprint,disposition:'REQUIREMENT_SOURCE'}]}))];
+ const sources=[F.sourceInput(packet,revision,packetPath,content),...packet.documents.map(d=>({source_kind:'MARKDOWN',authority:'FUNCTIONAL',locator:d.path,revision:d.revision,fingerprint:d.fingerprint,units:[{locator:d.locator,fingerprint:d.fingerprint,disposition:'REQUIREMENT_SOURCE'}]}))];
  // Exact duplicates are shared, never used to silently pick one authority.
  const unique=[...new Map(sources.map(s=>[V.canonicalStringify(s),s])).values()];
  const manifest=Source.build({slice_id:'SOURCE-PREPARATION',product_head:revision,sources:unique});
@@ -78,10 +78,10 @@ async function launch(scope,{capture,reconcile,persist}){
  const frozen=await persist(packet);V.assertSha40(frozen.revision,'VNEXT_FIGMA_LAUNCH_FROZEN_REVISION_REQUIRED');F.safePath(frozen.path);
  // Git's serialized object order is authoritative for the byte fingerprint.
  // Rebuilding a logically identical object must not silently change its bytes.
- const persisted=JSON.parse(frozen.content);F.validate(persisted,{ready:true});
+ const persisted=F.snapshotPacket(frozen.content);F.validate(persisted,{ready:true});
  equal(persisted,packet,'VNEXT_FIGMA_LAUNCH_FROZEN_BYTES_MISMATCH');
- if(frozen.content!==JSON.stringify(persisted,null,2)+'\n')V.fail('VNEXT_FIGMA_LAUNCH_FROZEN_BYTES_MISMATCH');stages.push('GIT_FREEZE');
- const prepared=requirements(persisted,frozen.revision,frozen.path);stages.push('ATOMIC_REQUIREMENTS');
+ stages.push('GIT_FREEZE');
+ const prepared=requirements(persisted,frozen.revision,frozen.path,frozen.content);stages.push('ATOMIC_REQUIREMENTS');
  return V.sealContract({schema_version:SCHEMA,scope,reference_hash:packet.contract_hash,frozen,stages,sourceManifestInput:{slice_id:scope.slice_id,product_head:frozen.revision,sources:prepared.sources},requirementInput:prepared.requirementInput,scenario_ids:packet.states.flatMap(s=>(s.scenarios||[]).map(x=>x.scenario_id))});
 }
 function validate(checkpoint,recipe){
@@ -89,13 +89,12 @@ function validate(checkpoint,recipe){
  if(checkpoint.schema_version!==SCHEMA)V.fail('VNEXT_FIGMA_LAUNCH_SCHEMA_INVALID');
  equal(checkpoint.stages,['CAPTURE','RECONCILE','INVENTORY_AND_SCENARIOS_VALIDATED','GIT_FREEZE','ATOMIC_REQUIREMENTS'],'VNEXT_FIGMA_LAUNCH_ORDER_INVALID');
  V.assertSha40(checkpoint.frozen.revision,'VNEXT_FIGMA_LAUNCH_FROZEN_REVISION_REQUIRED');F.safePath(checkpoint.frozen.path);
- const packet=JSON.parse(checkpoint.frozen.content);
- if(checkpoint.frozen.content!==JSON.stringify(packet,null,2)+'\n')V.fail('VNEXT_FIGMA_LAUNCH_FROZEN_BYTES_MISMATCH');
+ const packet=F.snapshotPacket(checkpoint.frozen.content);
  equal(packet.documents,checkpoint.scope.documents,'VNEXT_FIGMA_LAUNCH_DOCUMENT_AUTHORITY_CHANGED');
  F.validate(packet,{ready:true});validateScenarios(packet);validateDocumentCoverage(packet);
  if(checkpoint.reference_hash!==packet.contract_hash||checkpoint.scope.file_key!==packet.file_key)V.fail('VNEXT_FIGMA_LAUNCH_REFERENCE_MISMATCH');
  equal(checkpoint.scope.frames,packet.frames,'VNEXT_FIGMA_LAUNCH_FRAME_SCOPE_MISMATCH');
- const expected=requirements(packet,checkpoint.frozen.revision,checkpoint.frozen.path);
+ const expected=requirements(packet,checkpoint.frozen.revision,checkpoint.frozen.path,checkpoint.frozen.content);
  equal(checkpoint.sourceManifestInput,{slice_id:checkpoint.scope.slice_id,product_head:checkpoint.frozen.revision,sources:expected.sources},'VNEXT_FIGMA_LAUNCH_SOURCES_MISMATCH');
  equal(checkpoint.requirementInput,expected.requirementInput,'VNEXT_FIGMA_LAUNCH_REQUIREMENTS_MISMATCH');
  equal(checkpoint.scenario_ids,packet.states.flatMap(s=>(s.scenarios||[]).map(x=>x.scenario_id)),'VNEXT_FIGMA_LAUNCH_SCENARIOS_MISMATCH');

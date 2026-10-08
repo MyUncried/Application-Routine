@@ -170,9 +170,21 @@ function unitText(packet,locator){
   }
   V.fail('VNEXT_FIGMA_UNIT_LOCATOR_INVALID');
 }
-function sourceInput(packet,revision,packetPath){
+// The existing lossless UI transport can also be the frozen Git source.
+// Old pretty-printed source bytes stay admissible and retain their fingerprints.
+function snapshotContent(packet,{packed=false}={}){
+  return packed ? JSON.stringify(pack(packet))+'\n' : JSON.stringify(packet,null,2)+'\n';
+}
+function snapshotPacket(content,{verifySerialization=true}={}){
+  let serialized;try{serialized=JSON.parse(content);}catch(_){V.fail('VNEXT_FIGMA_SNAPSHOT_TRUNCATED');}
+  const packed=serialized.schema_version==='kodjo.vnext.figma-transport.v1';
+  const packet=unpack(serialized);
+  if(verifySerialization&&content!==(packed?JSON.stringify(serialized)+'\n':JSON.stringify(serialized,null,2)+'\n'))V.fail('VNEXT_FIGMA_LAUNCH_FROZEN_BYTES_MISMATCH');
+  return packet;
+}
+function sourceInput(packet,revision,packetPath,content=snapshotContent(packet)){
   validate(packet,{ready:true});V.assertSha40(revision,'VNEXT_FIGMA_FROZEN_REVISION_REQUIRED');
-  const content=JSON.stringify(packet,null,2)+'\n';
+  eq(snapshotPacket(content),packet,'VNEXT_FIGMA_LAUNCH_FROZEN_BYTES_MISMATCH');
   return {source_kind:'FIGMA',authority:'VISUAL',locator:'figma-snapshot:'+safePath(packetPath),revision,fingerprint:V.sha256(content),
     units:packet.nodes.map(n=>({locator:'ELEMENT:'+n.id,fingerprint:V.sha256(unitText(packet,'ELEMENT:'+n.id)),disposition:packet.decisions.some(d=>d.element_id===n.id&&['REALIZE','PRESERVE'].includes(d.disposition))?'REQUIREMENT_SOURCE':'CONTEXT_ONLY'}))};
 }
@@ -180,7 +192,8 @@ function observe(source,{cwd,readGit}){
   if(source.authority!=='VISUAL'||!source.locator.startsWith('figma-snapshot:'))V.fail('VNEXT_FIGMA_FROZEN_REFERENCE_REQUIRED');
   V.assertSha40(source.revision,'VNEXT_FIGMA_FROZEN_REVISION_REQUIRED');
   const content=readGit(cwd,source.revision,safePath(source.locator.slice(15)));
-  let packet;try{packet=JSON.parse(content);}catch(_){V.fail('VNEXT_FIGMA_SNAPSHOT_TRUNCATED');}
+  // Byte fingerprints are checked by observeSources after decoding, as before.
+  const packet=snapshotPacket(content,{verifySerialization:false});
   validate(packet,{ready:true});
   eq(source.units.map(u=>u.locator).sort(),packet.nodes.map(n=>'ELEMENT:'+n.id).sort(),'VNEXT_FIGMA_SOURCE_UNIT_OMITTED');
   for(const n of packet.nodes){const unit=source.units.find(u=>u.locator==='ELEMENT:'+n.id);
@@ -308,4 +321,4 @@ function consume(planBody,directory,stage){
   }
   return V.sealContract({schema_version:'kodjo.vnext.figma-consumer-observation.v1',stage,plan_sha256:V.sha256(planBody),references:observed,semantic_use:'NOT_ATTESTED_BY_BYTE_OBSERVATION'});
 }
-module.exports={SCHEMA,id,safePath,build,validate,sourceInput,observe,unitText,propertyUnit,required,validateRegistry,validateCoverage,assertCurrent,verifyMeasurements,pack,unpack,packUi,unpackUi,consume};
+module.exports={SCHEMA,id,safePath,build,validate,sourceInput,observe,unitText,propertyUnit,required,validateRegistry,validateCoverage,assertCurrent,verifyMeasurements,pack,unpack,packUi,unpackUi,consume,snapshotContent,snapshotPacket};

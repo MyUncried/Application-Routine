@@ -15,7 +15,7 @@ function build(cwd,checkpoint,{applicationPath,testPath,componentPath,issueId,in
   for(const key of ['preservation_constraint','observer_constraint','preservation_test_expected','visual_test_expected','visual_proof_expected','documentary_subject'])V.assertUnicodeExactText(qualificationContract[key],'VNEXT_FIGMA_RECIPE_QUALIFICATION_CONTRACT_INVALID');
   V.uniqueStrings(qualificationContract.residual_risks,'VNEXT_FIGMA_RECIPE_QUALIFICATION_RISKS_INVALID','residual_risks');
  }
- const head=require('./vnext-live-chain').command('git',['rev-parse','HEAD'],cwd).trim(),manifest=Source.build(checkpoint.sourceManifestInput),packet=JSON.parse(checkpoint.frozen.content);
+ const head=require('./vnext-live-chain').command('git',['rev-parse','HEAD'],cwd).trim(),manifest=Source.build(checkpoint.sourceManifestInput),packet=F.snapshotPacket(checkpoint.frozen.content);
  const planningInput={slice_id:manifest.slice_id,planning_mode:'INITIAL',baseline_head:head,product_head:manifest.product_head,application_head:head,issue_id:issueId,base_plan_hash:null,base_review_hash:null,causal_findings:[],created_from:{kind:'INITIAL_REQUEST',refs:['figma_launch:'+checkpoint.contract_hash]}};
  const envelope=Envelope.build({...planningInput,source_manifest:manifest}),registry=Req.build({...checkpoint.requirementInput,source_manifest:manifest,planning_envelope_hash:envelope.contract_hash}),candidates=Impact.buildCandidateManifest({cwd,revision:head});
  const at=p=>{const row=candidates.candidates.find(c=>c.path===p);if(!row)V.fail('VNEXT_FIGMA_RECIPE_TARGET_MISSING',p);return row;},screen=at(applicationPath),test=at(testPath),component=at(componentPath);

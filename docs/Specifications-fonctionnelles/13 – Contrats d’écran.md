@@ -5292,6 +5292,24 @@ Projection vérifiable des états et scénarios déjà spécifiés ci-dessus, da
           ]
         }
       ]
+    },
+    {
+      "state_id": "PRE3-DOC-P3-17-persistence-reopening",
+      "origin": "DOCUMENT_ONLY",
+      "disposition": "REQUIRED",
+      "expected": "L’enregistrement puis la réouverture conservent les paramètres et les médias dans leur ordre ; les données déjà présentes restent compatibles et l’historique n’est pas réécrit.",
+      "reason": "P3-17 du périmètre validé : persistance et migration compatibles ; état fonctionnel de réouverture, sans imposer un schéma technique dans la source normative.",
+      "scenarios": [
+        {
+          "scenario_id": "PRE3-DOC-P3-17-persistence-reopening-CHECK",
+          "given": "Un Exercice enregistré, des médias ordonnés et des données préexistantes dans les quatre parcours Catalogue/Séance.",
+          "when": "Enregistrer, relancer puis rouvrir ; vérifier également la réouverture des données antérieures.",
+          "then": "L’enregistrement puis la réouverture conservent les paramètres et les médias dans leur ordre ; les données déjà présentes restent compatibles et l’historique n’est pas réécrit.",
+          "proof_required": [
+            "FUNCTIONAL_TEST"
+          ]
+        }
+      ]
     }
   ]
 }

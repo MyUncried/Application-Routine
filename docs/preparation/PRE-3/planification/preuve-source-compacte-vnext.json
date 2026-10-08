@@ -1,0 +1,41 @@
+{
+  "scope": "REAL_PRE3_SOURCE_PREPARATION_ONLY",
+  "applicationConformance": false,
+  "independentReview": false,
+  "source_revision": "2e2b10731bfbba53783968b6c7d4ea31d4d2458c",
+  "node_count": 7369,
+  "screen_nodes": 6725,
+  "property_count": 471135,
+  "realize_count": 243879,
+  "frame_count": 41,
+  "byte_length": 27548991,
+  "sha256": "91c473876bd705ccd370bdb73ec639b436662721840989c193ba486af041f2c4",
+  "contract_hash": "6cb9ed6084bf8facc20da3590aee9fe9e4677d83c60dd47328044dc8f7fff2fe",
+  "packet_schema_validation": "PASS",
+  "inventory_document_validation": "PASS",
+  "image_reference_semantics": "Full frame PNG evidences IMAGE-painted nodes within that frame; it is not the original image asset or a distributable product demo.",
+  "storage_format": "kodjo.vnext.figma-transport.v1",
+  "reconstruction_hash_equal": true,
+  "git_blob": "53a24ee420d26c16500424547c72d1b1538b0043",
+  "local_evidence_tree": "8f7c6033e3bcd3bfb6c08f7a19350fc538d7c207",
+  "local_evidence_commit": "dada045b3f30aa7b6e38d5e5a73f05e45cecfa96",
+  "operation": "vnext-live-chain.readGit(cwd, local_evidence_commit, figma-source.json)",
+  "production_limit_bytes": 67108864,
+  "result": "PASS",
+  "error": null,
+  "git_observation_and_launch_completed": false,
+  "notes": [
+    "The documentary source is read from its exact committed Git revision. Schema/inventory validation and actual Git byte observation both PASS; canonical Launch remains to be produced.",
+    "The local evidence commit is an unreferenced container for actual source bytes, not a workflow, branch, certification or remote operation.",
+    "No PlanContract or independent review is declared complete."
+  ],
+  "requirements_preparation": {
+    "result": "PASS",
+    "requirement_count": 6383,
+    "unit_count": 7369,
+    "elapsed_ms": 152049,
+    "bytes": 114100888,
+    "canonical_launch_completed": false,
+    "note": "Constructor preparation only, before publication of the source path; this is not a frozen Launch."
+  }
+}
