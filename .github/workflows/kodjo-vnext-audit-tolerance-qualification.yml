@@ -28,7 +28,30 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CANDIDATE_HEAD: ${{ github.event.pull_request.head.sha }}
         run: node scripts/kodjo/wait-vnext-audit-qualification.js
+  recover-prior-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: kodjo-vnext12-revision-37738297359-1
+          run-id: 37738297359
+          github-token: ${{ github.token }}
+          path: prior-evidence
+      - name: Read preserved process diagnosis without invoking reviewer
+        run: |
+          python - <<'PYDIAG'
+          import json
+          from pathlib import Path
+          for p in sorted(Path("prior-evidence").glob("*.json")):
+            if p.name == "status.json" or "process" in p.name or "response" in p.name:
+              value=json.loads(p.read_text())
+              if "response" in p.name:
+                value={k:value[k] for k in ("process_result","stderr","stdout") if k in value}
+              print(p.name, json.dumps(value,ensure_ascii=False)[:24000])
+          PYDIAG
   real-plan-revision:
+    if: ${{ false }} # Diagnostic recovery only; no repeated reviewer call before root cause.
     needs: qualify-exact-head
     runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
     timeout-minutes: 120

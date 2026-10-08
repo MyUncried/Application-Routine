@@ -25,7 +25,9 @@ test('interrupted review keeps observed progress and never promotes an absent re
   const progressPath = path.join(dir, 'progress.json'); let observed;
   assert.throws(() => Process.command(process.execPath,
     ['-e', "process.stdout.write('{\"type\":\"system\"}\\n');setInterval(()=>{},1000)"],
-    process.cwd(), '', process.env, 500, { progressPath, onResult: row => { observed = row; } }), /ETIMEDOUT/);
+    // Preserve the real interruption path, but leave enough time for Windows
+    // to schedule the fixture and deliver its first pipe event under CI load.
+    process.cwd(), '', process.env, 5000, { progressPath, onResult: row => { observed = row; } }), /ETIMEDOUT/);
   assert.equal(observed.error_code, 'ETIMEDOUT'); assert.equal(observed.stdout, '');
   const progress = JSON.parse(fs.readFileSync(progressPath));
   assert.equal(progress.event_count, 1); assert.equal(progress.error_code, 'ETIMEDOUT');

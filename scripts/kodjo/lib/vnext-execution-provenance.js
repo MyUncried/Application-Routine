@@ -10,21 +10,22 @@ function blob(cwd, head, file) {
   return { path: file, revision: head, sha256: V.sha256(bytes) };
 }
 function observe({ controllerCwd, approvedCwd, controllerHead, approvedHead, env = process.env,
-  controllerScript = 'scripts/kodjo/execute-vnext12.js', runtimeScript = 'scripts/kodjo/run-local-claude.js' }) {
+  controllerScript = 'scripts/kodjo/execute-vnext12.js', runtimeScript = 'scripts/kodjo/run-local-claude.js', workflowPath = WORKFLOW }) {
+  if (![WORKFLOW, '.github/workflows/kodjo-vnext-closure.yml'].includes(workflowPath)) V.fail('VNEXT_EXECUTED_WORKFLOW_PATH_REFUSED');
   const workflowHead = env.GITHUB_WORKFLOW_SHA;
   V.assertSha40(workflowHead, 'VNEXT_EXECUTED_WORKFLOW_VERSION_REQUIRED');
   let workflow;
-  try { workflow = blob(controllerCwd, workflowHead, WORKFLOW); }
+  try { workflow = blob(controllerCwd, workflowHead, workflowPath); }
   catch (error) {
     // A pull_request workflow can live at GitHub's merge ref, outside the head
     // checkout ancestry. Read that exact object with the existing read token;
     // checkout deliberately does not persist Git credentials on this runner.
     if(env.GITHUB_REPOSITORY!=='MyUncried/Application-Routine') V.fail('VNEXT_EXECUTED_WORKFLOW_REPOSITORY_INVALID');
-    const file=require('./vnext-github-qualification').readGithub('repos/'+env.GITHUB_REPOSITORY+'/contents/'+WORKFLOW+'?ref='+workflowHead);
+    const file=require('./vnext-github-qualification').readGithub('repos/'+env.GITHUB_REPOSITORY+'/contents/'+workflowPath+'?ref='+workflowHead);
     if(file.encoding!=='base64'||typeof file.content!=='string') V.fail('VNEXT_EXECUTED_WORKFLOW_UNAVAILABLE');
-    workflow={path:WORKFLOW,revision:workflowHead,sha256:V.sha256(Buffer.from(file.content,'base64'))};
+    workflow={path:workflowPath,revision:workflowHead,sha256:V.sha256(Buffer.from(file.content,'base64'))};
   }
-  const expected = blob(controllerCwd, controllerHead, WORKFLOW);
+  const expected = blob(controllerCwd, controllerHead, workflowPath);
   // GitHub reruns retain the workflow at the original event. A newer checkout
   // of a controller script does not change those executable workflow bytes.
   if (workflow.sha256 !== expected.sha256) V.fail('VNEXT_EXECUTED_WORKFLOW_STALE_NEW_EVENT_REQUIRED');
