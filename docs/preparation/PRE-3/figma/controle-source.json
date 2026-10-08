@@ -1,0 +1,406 @@
+{
+  "fields": [
+    "visible",
+    "opacity",
+    "x",
+    "y",
+    "width",
+    "height",
+    "rotation",
+    "absoluteTransform",
+    "relativeTransform",
+    "constraints",
+    "layoutMode",
+    "layoutWrap",
+    "layoutSizingHorizontal",
+    "layoutSizingVertical",
+    "layoutPositioning",
+    "layoutAlign",
+    "layoutGrow",
+    "primaryAxisSizingMode",
+    "counterAxisSizingMode",
+    "primaryAxisAlignItems",
+    "counterAxisAlignItems",
+    "paddingLeft",
+    "paddingRight",
+    "paddingTop",
+    "paddingBottom",
+    "itemSpacing",
+    "counterAxisSpacing",
+    "clipsContent",
+    "overflowDirection",
+    "fills",
+    "strokes",
+    "strokeWeight",
+    "strokeAlign",
+    "strokeCap",
+    "strokeJoin",
+    "dashPattern",
+    "cornerRadius",
+    "topLeftRadius",
+    "topRightRadius",
+    "bottomLeftRadius",
+    "bottomRightRadius",
+    "effects",
+    "fillStyleId",
+    "strokeStyleId",
+    "effectStyleId",
+    "boundVariables",
+    "explicitVariableModes",
+    "resolvedVariableModes",
+    "isMask",
+    "maskType",
+    "blendMode",
+    "reactions",
+    "componentPropertyReferences",
+    "minWidth",
+    "minHeight",
+    "maxWidth",
+    "maxHeight",
+    "strokeTopWeight",
+    "strokeBottomWeight",
+    "strokeLeftWeight",
+    "strokeRightWeight",
+    "strokeMiterLimit",
+    "cornerSmoothing",
+    "layoutGrids",
+    "exportSettings",
+    "counterAxisAlignContent",
+    "itemReverseZIndex",
+    "strokesIncludedInLayout",
+    "numberOfFixedChildren",
+    "gridRowCount",
+    "gridColumnCount",
+    "gridRowSizes",
+    "gridColumnSizes",
+    "gridRowGap",
+    "gridColumnGap",
+    "gridChildHorizontalAlign",
+    "gridChildVerticalAlign",
+    "gridRowAnchorIndex",
+    "gridColumnAnchorIndex",
+    "gridRowSpan",
+    "gridColumnSpan",
+    "componentProperties",
+    "variantProperties",
+    "textStyleId",
+    "characters",
+    "fontName",
+    "fontSize",
+    "fontWeight",
+    "textAutoResize",
+    "textAlignHorizontal",
+    "textAlignVertical",
+    "lineHeight",
+    "letterSpacing",
+    "paragraphSpacing",
+    "paragraphIndent",
+    "textCase",
+    "textDecoration",
+    "maxLines",
+    "textTruncation",
+    "textSegments",
+    "vectorPaths"
+  ],
+  "checks": [
+    {
+      "id": "3542:4656",
+      "total": 82,
+      "hash": "b1d0e391",
+      "expected": "b1d0e391",
+      "match": true
+    },
+    {
+      "id": "3943:6064",
+      "total": 80,
+      "hash": "f5ee5df8",
+      "expected": "f5ee5df8",
+      "match": true
+    },
+    {
+      "id": "4217:6980",
+      "total": 91,
+      "hash": "96465ac9",
+      "expected": "96465ac9",
+      "match": true
+    },
+    {
+      "id": "5088:6398",
+      "total": 86,
+      "hash": "7de562ff",
+      "expected": "7de562ff",
+      "match": true
+    },
+    {
+      "id": "4734:6342",
+      "total": 72,
+      "hash": "5984a25b",
+      "expected": "5984a25b",
+      "match": true
+    },
+    {
+      "id": "4332:7095",
+      "total": 145,
+      "hash": "6511a406",
+      "expected": "6511a406",
+      "match": true
+    },
+    {
+      "id": "4474:7157",
+      "total": 242,
+      "hash": "a97ca590",
+      "expected": "a97ca590",
+      "match": true
+    },
+    {
+      "id": "4478:7209",
+      "total": 137,
+      "hash": "38c8945b",
+      "expected": "38c8945b",
+      "match": true
+    },
+    {
+      "id": "4683:6336",
+      "total": 216,
+      "hash": "5f5563d4",
+      "expected": "5f5563d4",
+      "match": true
+    },
+    {
+      "id": "4714:6241",
+      "total": 92,
+      "hash": "63992753",
+      "expected": "63992753",
+      "match": true
+    },
+    {
+      "id": "4861:6259",
+      "total": 154,
+      "hash": "2df52806",
+      "expected": "2df52806",
+      "match": true
+    },
+    {
+      "id": "4861:6348",
+      "total": 133,
+      "hash": "c87a8d3b",
+      "expected": "c87a8d3b",
+      "match": true
+    },
+    {
+      "id": "6407:9458",
+      "total": 82,
+      "hash": "58052144",
+      "expected": "58052144",
+      "match": true
+    },
+    {
+      "id": "6407:9551",
+      "total": 159,
+      "hash": "a7bb7fa2",
+      "expected": "a7bb7fa2",
+      "match": true
+    },
+    {
+      "id": "6407:9702",
+      "total": 83,
+      "hash": "710d1978",
+      "expected": "710d1978",
+      "match": true
+    },
+    {
+      "id": "6407:9805",
+      "total": 172,
+      "hash": "fc307fa8",
+      "expected": "fc307fa8",
+      "match": true
+    },
+    {
+      "id": "6407:9966",
+      "total": 164,
+      "hash": "a7b7fd93",
+      "expected": "a7b7fd93",
+      "match": true
+    },
+    {
+      "id": "6407:10127",
+      "total": 179,
+      "hash": "3023e037",
+      "expected": "3023e037",
+      "match": true
+    },
+    {
+      "id": "6407:10481",
+      "total": 171,
+      "hash": "aabc66db",
+      "expected": "aabc66db",
+      "match": true
+    },
+    {
+      "id": "6411:9546",
+      "total": 179,
+      "hash": "202734e4",
+      "expected": "202734e4",
+      "match": true
+    },
+    {
+      "id": "6411:9649",
+      "total": 177,
+      "hash": "c8d21052",
+      "expected": "c8d21052",
+      "match": true
+    },
+    {
+      "id": "6419:9847",
+      "total": 173,
+      "hash": "551144da",
+      "expected": "551144da",
+      "match": true
+    },
+    {
+      "id": "6419:10028",
+      "total": 164,
+      "hash": "a48cfc9d",
+      "expected": "a48cfc9d",
+      "match": true
+    },
+    {
+      "id": "6423:9953",
+      "total": 166,
+      "hash": "bdb95394",
+      "expected": "bdb95394",
+      "match": true
+    },
+    {
+      "id": "6665:24616",
+      "total": 228,
+      "hash": "84025430",
+      "expected": "84025430",
+      "match": true
+    },
+    {
+      "id": "6665:24844",
+      "total": 226,
+      "hash": "d18d65b1",
+      "expected": "d18d65b1",
+      "match": true
+    },
+    {
+      "id": "6665:25072",
+      "total": 227,
+      "hash": "abc83c9a",
+      "expected": "abc83c9a",
+      "match": true
+    },
+    {
+      "id": "6665:25277",
+      "total": 445,
+      "hash": "9fa4908e",
+      "expected": "9fa4908e",
+      "match": true
+    },
+    {
+      "id": "6665:26185",
+      "total": 186,
+      "hash": "49a60f81",
+      "expected": "49a60f81",
+      "match": true
+    },
+    {
+      "id": "6665:26575",
+      "total": 241,
+      "hash": "22e3bf9c",
+      "expected": "22e3bf9c",
+      "match": true
+    },
+    {
+      "id": "6665:26822",
+      "total": 178,
+      "hash": "c75453cf",
+      "expected": "c75453cf",
+      "match": true
+    },
+    {
+      "id": "6665:27008",
+      "total": 226,
+      "hash": "a0cc1728",
+      "expected": "a0cc1728",
+      "match": true
+    },
+    {
+      "id": "6665:27232",
+      "total": 228,
+      "hash": "2b55203b",
+      "expected": "2b55203b",
+      "match": true
+    },
+    {
+      "id": "6665:27458",
+      "total": 153,
+      "hash": "ef6d70c5",
+      "expected": "ef6d70c5",
+      "match": true
+    },
+    {
+      "id": "6665:27608",
+      "total": 229,
+      "hash": "15c874b0",
+      "expected": "15c874b0",
+      "match": true
+    },
+    {
+      "id": "6665:27862",
+      "total": 83,
+      "hash": "dc0351d4",
+      "expected": "dc0351d4",
+      "match": true
+    },
+    {
+      "id": "6665:28050",
+      "total": 83,
+      "hash": "918521e9",
+      "expected": "918521e9",
+      "match": true
+    },
+    {
+      "id": "7059:13302",
+      "total": 168,
+      "hash": "df6e083d",
+      "expected": "df6e083d",
+      "match": true
+    },
+    {
+      "id": "7069:13464",
+      "total": 177,
+      "hash": "879d514b",
+      "expected": "879d514b",
+      "match": true
+    },
+    {
+      "id": "7069:13573",
+      "total": 165,
+      "hash": "e607ae3b",
+      "expected": "e607ae3b",
+      "match": true
+    },
+    {
+      "id": "7119:27855",
+      "total": 83,
+      "hash": "4c07d418",
+      "expected": "4c07d418",
+      "match": true
+    }
+  ],
+  "algorithm": "FNV-1a 32-bit over JSON.stringify([id,type,name,parent,children|null,fields.map([present,value])])",
+  "excludedFromSignature": [
+    "master"
+  ],
+  "note": "Composants maîtres résolus séparément ; empreinte de relecture, non cryptographique. SHA-256 des fichiers dans le manifeste.",
+  "settings": {
+    "skipInvisibleInstanceChildren": false
+  },
+  "correctedOmission": {
+    "initialSetting": true,
+    "addedNodes": 65
+  }
+}

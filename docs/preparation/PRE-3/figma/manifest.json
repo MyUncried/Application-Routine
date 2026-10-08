@@ -1,0 +1,1089 @@
+{
+  "schemaVersion": 1,
+  "extractedAtUtc": "2026-10-08T18:31:21.448879+00:00",
+  "fileKey": "G6RY5Ebhgwb4AHIOYDwwvg",
+  "pageId": "510:101",
+  "sourceVersionId": null,
+  "mainBaseline": "17d9774a31429bc2bee4eb834e4ed1e9aafa68ec",
+  "preparationBaseline": "63121772773e79df0ace142c5d650b794506a81f",
+  "counts": {
+    "frames": 41,
+    "nodes": 6725,
+    "visibleSelonArbre": 6660,
+    "hiddenSelonArbre": 65,
+    "texts": 1719,
+    "instances": 881,
+    "masters": 47,
+    "sets": 17,
+    "variants": 75,
+    "styles": 22,
+    "variablesWithAliasClosure": 134,
+    "collections": 2,
+    "pagesCensused": 11,
+    "uses": 3345,
+    "usesInsidePre3": 881,
+    "captures": 41,
+    "readErrors": 0
+  },
+  "recordIdentity": "<frameId>/<nodeId>",
+  "layoutJoin": "index-elements.jsonl.layoutSchema -> complements-layout.json.schemas[index]",
+  "capturedProperties": [
+    "visible",
+    "opacity",
+    "x",
+    "y",
+    "width",
+    "height",
+    "rotation",
+    "absoluteTransform",
+    "relativeTransform",
+    "constraints",
+    "layoutMode",
+    "layoutWrap",
+    "layoutSizingHorizontal",
+    "layoutSizingVertical",
+    "layoutPositioning",
+    "layoutAlign",
+    "layoutGrow",
+    "primaryAxisSizingMode",
+    "counterAxisSizingMode",
+    "primaryAxisAlignItems",
+    "counterAxisAlignItems",
+    "paddingLeft",
+    "paddingRight",
+    "paddingTop",
+    "paddingBottom",
+    "itemSpacing",
+    "counterAxisSpacing",
+    "clipsContent",
+    "overflowDirection",
+    "fills",
+    "strokes",
+    "strokeWeight",
+    "strokeAlign",
+    "strokeCap",
+    "strokeJoin",
+    "dashPattern",
+    "cornerRadius",
+    "topLeftRadius",
+    "topRightRadius",
+    "bottomLeftRadius",
+    "bottomRightRadius",
+    "effects",
+    "fillStyleId",
+    "strokeStyleId",
+    "effectStyleId",
+    "boundVariables",
+    "explicitVariableModes",
+    "resolvedVariableModes",
+    "isMask",
+    "maskType",
+    "blendMode",
+    "reactions",
+    "componentPropertyReferences",
+    "minWidth",
+    "minHeight",
+    "maxWidth",
+    "maxHeight",
+    "strokeTopWeight",
+    "strokeBottomWeight",
+    "strokeLeftWeight",
+    "strokeRightWeight",
+    "strokeMiterLimit",
+    "cornerSmoothing",
+    "layoutGrids",
+    "exportSettings",
+    "counterAxisAlignContent",
+    "itemReverseZIndex",
+    "strokesIncludedInLayout",
+    "numberOfFixedChildren",
+    "gridRowCount",
+    "gridColumnCount",
+    "gridRowSizes",
+    "gridColumnSizes",
+    "gridRowGap",
+    "gridColumnGap",
+    "gridChildHorizontalAlign",
+    "gridChildVerticalAlign",
+    "gridRowAnchorIndex",
+    "gridColumnAnchorIndex",
+    "gridRowSpan",
+    "gridColumnSpan",
+    "componentProperties",
+    "variantProperties",
+    "textStyleId",
+    "characters",
+    "fontName",
+    "fontSize",
+    "fontWeight",
+    "textAutoResize",
+    "textAlignHorizontal",
+    "textAlignVertical",
+    "lineHeight",
+    "letterSpacing",
+    "paragraphSpacing",
+    "paragraphIndent",
+    "textCase",
+    "textDecoration",
+    "maxLines",
+    "textTruncation",
+    "textSegments",
+    "vectorPaths"
+  ],
+  "independentSourceRead": {
+    "frames": 41,
+    "matching": 41,
+    "algorithm": "FNV-1a 32-bit over JSON.stringify([id,type,name,parent,children|null,fields.map([present,value])])",
+    "evidence": "controle-source.json"
+  },
+  "frames": [
+    {
+      "id": "3542:4656",
+      "name": "Création activité — Avant Paramètres d'exécution",
+      "nodes": 82,
+      "visibleSelonArbre": 81,
+      "texts": 14,
+      "instances": 7,
+      "json": "ecrans/3542-4656.json",
+      "capture": "captures/3542-4656.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "3943:6064",
+      "name": "Ajouter un exercice — Initial",
+      "nodes": 80,
+      "visibleSelonArbre": 79,
+      "texts": 12,
+      "instances": 10,
+      "json": "ecrans/3943-6064.json",
+      "capture": "captures/3943-6064.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "4217:6980",
+      "name": "Ajouter un exercice — Nom Description Media",
+      "nodes": 91,
+      "visibleSelonArbre": 90,
+      "texts": 12,
+      "instances": 9,
+      "json": "ecrans/4217-6980.json",
+      "capture": "captures/4217-6980.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "5088:6398",
+      "name": "Ajouter un exercice — Catégorie renseignée",
+      "nodes": 86,
+      "visibleSelonArbre": 85,
+      "texts": 13,
+      "instances": 8,
+      "json": "ecrans/5088-6398.json",
+      "capture": "captures/5088-6398.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "4734:6342",
+      "name": "Modifier un exercice",
+      "nodes": 72,
+      "visibleSelonArbre": 71,
+      "texts": 11,
+      "instances": 7,
+      "json": "ecrans/4734-6342.json",
+      "capture": "captures/4734-6342.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "4332:7095",
+      "name": "Ajouter un exercice — Catégories",
+      "nodes": 145,
+      "visibleSelonArbre": 144,
+      "texts": 24,
+      "instances": 14,
+      "json": "ecrans/4332-7095.json",
+      "capture": "captures/4332-7095.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "4474:7157",
+      "name": "Ajouter un exercice — Nouvelle catégorie",
+      "nodes": 242,
+      "visibleSelonArbre": 241,
+      "texts": 60,
+      "instances": 12,
+      "json": "ecrans/4474-7157.json",
+      "capture": "captures/4474-7157.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "4478:7209",
+      "name": "Ajouter un exercice — Zones corporelles",
+      "nodes": 137,
+      "visibleSelonArbre": 136,
+      "texts": 26,
+      "instances": 24,
+      "json": "ecrans/4478-7209.json",
+      "capture": "captures/4478-7209.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "4683:6336",
+      "name": "Ajouter un exercice — Nouvelle zone corporelle",
+      "nodes": 216,
+      "visibleSelonArbre": 215,
+      "texts": 62,
+      "instances": 22,
+      "json": "ecrans/4683-6336.json",
+      "capture": "captures/4683-6336.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "4714:6241",
+      "name": "Modal — Abandonner la création de l’activité",
+      "nodes": 92,
+      "visibleSelonArbre": 90,
+      "texts": 19,
+      "instances": 8,
+      "json": "ecrans/4714-6241.json",
+      "capture": "captures/4714-6241.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "4861:6259",
+      "name": "Ajouter un exercice — Catégorie — Appui long — Confirmation suppression",
+      "nodes": 154,
+      "visibleSelonArbre": 152,
+      "texts": 28,
+      "instances": 15,
+      "json": "ecrans/4861-6259.json",
+      "capture": "captures/4861-6259.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "4861:6348",
+      "name": "Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression",
+      "nodes": 133,
+      "visibleSelonArbre": 131,
+      "texts": 28,
+      "instances": 25,
+      "json": "ecrans/4861-6348.json",
+      "capture": "captures/4861-6348.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6407:9458",
+      "name": "Création activité — Paramètres en modale — 1 Champ vide",
+      "nodes": 82,
+      "visibleSelonArbre": 81,
+      "texts": 14,
+      "instances": 7,
+      "json": "ecrans/6407-9458.json",
+      "capture": "captures/6407-9458.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6407:9551",
+      "name": "Création activité — Paramètres en modale — 2 Modale ouverte (champs vides)",
+      "nodes": 159,
+      "visibleSelonArbre": 158,
+      "texts": 42,
+      "instances": 22,
+      "json": "ecrans/6407-9551.json",
+      "capture": "captures/6407-9551.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6407:9702",
+      "name": "Création activité — Paramètres en modale — 3 Texte affiché",
+      "nodes": 83,
+      "visibleSelonArbre": 82,
+      "texts": 15,
+      "instances": 7,
+      "json": "ecrans/6407-9702.json",
+      "capture": "captures/6407-9702.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6407:9805",
+      "name": "Création activité — Paramètres en modale — 4 Modale complète — mode activé",
+      "nodes": 172,
+      "visibleSelonArbre": 171,
+      "texts": 48,
+      "instances": 24,
+      "json": "ecrans/6407-9805.json",
+      "capture": "captures/6407-9805.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6407:9966",
+      "name": "Création activité — Paramètres en modale — 5 Modale complète — steppers (séries, pauses)",
+      "nodes": 164,
+      "visibleSelonArbre": 163,
+      "texts": 45,
+      "instances": 23,
+      "json": "ecrans/6407-9966.json",
+      "capture": "captures/6407-9966.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6407:10127",
+      "name": "Création activité — Paramètres en modale — 6 Durée activée (roulette ouverte)",
+      "nodes": 179,
+      "visibleSelonArbre": 178,
+      "texts": 57,
+      "instances": 24,
+      "json": "ecrans/6407-10127.json",
+      "capture": "captures/6407-10127.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6407:10481",
+      "name": "Création activité — Paramètres en modale — 8 Changement de côté activé (contrôle segmenté)",
+      "nodes": 171,
+      "visibleSelonArbre": 170,
+      "texts": 48,
+      "instances": 24,
+      "json": "ecrans/6407-10481.json",
+      "capture": "captures/6407-10481.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6411:9546",
+      "name": "Création activité — Paramètres en modale — 7 Durée totale activée (roulette ouverte)",
+      "nodes": 179,
+      "visibleSelonArbre": 178,
+      "texts": 57,
+      "instances": 24,
+      "json": "ecrans/6411-9546.json",
+      "capture": "captures/6411-9546.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6411:9649",
+      "name": "Création activité — Paramètres en modale — 9 Avec changement de côté (pause au changement de côté)",
+      "nodes": 177,
+      "visibleSelonArbre": 176,
+      "texts": 51,
+      "instances": 25,
+      "json": "ecrans/6411-9649.json",
+      "capture": "captures/6411-9649.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6419:9847",
+      "name": "Création activité — Paramètres en modale — 10 Répétitions (mode activé)",
+      "nodes": 173,
+      "visibleSelonArbre": 172,
+      "texts": 48,
+      "instances": 23,
+      "json": "ecrans/6419-9847.json",
+      "capture": "captures/6419-9847.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6419:10028",
+      "name": "Création activité — Paramètres en modale — 11 À l’échec (mode activé)",
+      "nodes": 164,
+      "visibleSelonArbre": 163,
+      "texts": 44,
+      "instances": 22,
+      "json": "ecrans/6419-10028.json",
+      "capture": "captures/6419-10028.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6423:9953",
+      "name": "Création activité — Paramètres en modale — 12 Modale complète — steppers (séries, pauses) avec message de durée totale ajustée",
+      "nodes": 166,
+      "visibleSelonArbre": 165,
+      "texts": 46,
+      "instances": 23,
+      "json": "ecrans/6423-9953.json",
+      "capture": "captures/6423-9953.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6665:24616",
+      "name": "Séries variables — 2 Durée variable (scénario A)",
+      "nodes": 228,
+      "visibleSelonArbre": 227,
+      "texts": 62,
+      "instances": 34,
+      "json": "ecrans/6665-24616.json",
+      "capture": "captures/6665-24616.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6665:24844",
+      "name": "Séries variables — 3 Répétitions variables (scénario E)",
+      "nodes": 226,
+      "visibleSelonArbre": 225,
+      "texts": 60,
+      "instances": 34,
+      "json": "ecrans/6665-24844.json",
+      "capture": "captures/6665-24844.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6665:25072",
+      "name": "Séries variables — 4 À l’échec variable (scénario F)",
+      "nodes": 227,
+      "visibleSelonArbre": 205,
+      "texts": 62,
+      "instances": 34,
+      "json": "ecrans/6665-25072.json",
+      "capture": "captures/6665-25072.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6665:25277",
+      "name": "Séries variables — 5 Douze séries (défilement — haut)",
+      "nodes": 445,
+      "visibleSelonArbre": 444,
+      "texts": 125,
+      "instances": 70,
+      "json": "ecrans/6665-25277.json",
+      "capture": "captures/6665-25277.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6665:26185",
+      "name": "Ordre des côtés — 7 Sélection : Un côté après l’autre",
+      "nodes": 186,
+      "visibleSelonArbre": 185,
+      "texts": 56,
+      "instances": 26,
+      "json": "ecrans/6665-26185.json",
+      "capture": "captures/6665-26185.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6665:26575",
+      "name": "Séries variables + Les deux côtés à chaque série — 9 (scénario D)",
+      "nodes": 241,
+      "visibleSelonArbre": 240,
+      "texts": 68,
+      "instances": 36,
+      "json": "ecrans/6665-26575.json",
+      "capture": "captures/6665-26575.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6665:26822",
+      "name": "Une seule série — 10 Options sans effet",
+      "nodes": 178,
+      "visibleSelonArbre": 177,
+      "texts": 51,
+      "instances": 25,
+      "json": "ecrans/6665-26822.json",
+      "capture": "captures/6665-26822.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6665:27008",
+      "name": "Changement de mode — 11 Cibles à renseigner",
+      "nodes": 226,
+      "visibleSelonArbre": 225,
+      "texts": 60,
+      "instances": 34,
+      "json": "ecrans/6665-27008.json",
+      "capture": "captures/6665-27008.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6665:27232",
+      "name": "Validation impossible — 12 Série incomplète",
+      "nodes": 228,
+      "visibleSelonArbre": 227,
+      "texts": 62,
+      "instances": 34,
+      "json": "ecrans/6665-27232.json",
+      "capture": "captures/6665-27232.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6665:27458",
+      "name": "Séries variables — 13 Tableau masqué",
+      "nodes": 153,
+      "visibleSelonArbre": 152,
+      "texts": 39,
+      "instances": 21,
+      "json": "ecrans/6665-27458.json",
+      "capture": "captures/6665-27458.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6665:27608",
+      "name": "Séries variables — 14 Déplacement d’une série",
+      "nodes": 229,
+      "visibleSelonArbre": 228,
+      "texts": 62,
+      "instances": 34,
+      "json": "ecrans/6665-27608.json",
+      "capture": "captures/6665-27608.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6665:27862",
+      "name": "Résumé — 15 Durée variable bilatérale Par série",
+      "nodes": 83,
+      "visibleSelonArbre": 82,
+      "texts": 15,
+      "instances": 7,
+      "json": "ecrans/6665-27862.json",
+      "capture": "captures/6665-27862.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "6665:28050",
+      "name": "Résumé — 17 À l’échec variable",
+      "nodes": 83,
+      "visibleSelonArbre": 82,
+      "texts": 15,
+      "instances": 7,
+      "json": "ecrans/6665-28050.json",
+      "capture": "captures/6665-28050.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "7059:13302",
+      "name": "Création activité — Paramètres en modale — 13 Répétitions avec cadence",
+      "nodes": 168,
+      "visibleSelonArbre": 167,
+      "texts": 47,
+      "instances": 22,
+      "json": "ecrans/7059-13302.json",
+      "capture": "captures/7059-13302.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "7069:13464",
+      "name": "Création activité — Paramètres en modale — 9b Avec changement de côté (copie)",
+      "nodes": 177,
+      "visibleSelonArbre": 176,
+      "texts": 51,
+      "instances": 25,
+      "json": "ecrans/7069-13464.json",
+      "capture": "captures/7069-13464.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "7069:13573",
+      "name": "Création activité — Paramètres en modale — 10b Répétitions (copie)",
+      "nodes": 165,
+      "visibleSelonArbre": 164,
+      "texts": 45,
+      "instances": 22,
+      "json": "ecrans/7069-13573.json",
+      "capture": "captures/7069-13573.png",
+      "width": 402,
+      "height": 874
+    },
+    {
+      "id": "7119:27855",
+      "name": "Création activité — Phrase longue (224 caractères)",
+      "nodes": 83,
+      "visibleSelonArbre": 82,
+      "texts": 15,
+      "instances": 7,
+      "json": "ecrans/7119-27855.json",
+      "capture": "captures/7119-27855.png",
+      "width": 402,
+      "height": 874
+    }
+  ],
+  "sourceSettings": {
+    "skipInvisibleInstanceChildren": false
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 9774,
+      "sha256": "67bcb0cc971c667f834f5ab724725c23d19fe01d43c3499329c030a333f28544"
+    },
+    {
+      "path": "captures/3542-4656.png",
+      "bytes": 95520,
+      "sha256": "8b94e2d4b13be2865d93daee798aaf45f6fd7f575ff4ec3e5344592d72ce9614"
+    },
+    {
+      "path": "captures/3943-6064.png",
+      "bytes": 48642,
+      "sha256": "c2ee5d50a6c9468b3da5490283535473d9a4321206f27637f08a2fc316f89975"
+    },
+    {
+      "path": "captures/4217-6980.png",
+      "bytes": 93020,
+      "sha256": "5e53baa29219ca687a7dab4f46f09ad9003bd02e93b8146cce22ef94699af8ee"
+    },
+    {
+      "path": "captures/4332-7095.png",
+      "bytes": 77273,
+      "sha256": "3cbc1b732022e07e460106f1a1a63a35abc644cdcf3020bd65bff3bb6ffef074"
+    },
+    {
+      "path": "captures/4474-7157.png",
+      "bytes": 58820,
+      "sha256": "fe495bcc8fcb3e2aa40eb4329a755074ce5771c01d672cdddb82104395440183"
+    },
+    {
+      "path": "captures/4478-7209.png",
+      "bytes": 85156,
+      "sha256": "58054b786b753b88fc696ff0cf13daf41ae931211553a8d59dd36ec8d72fa46a"
+    },
+    {
+      "path": "captures/4683-6336.png",
+      "bytes": 63548,
+      "sha256": "d95db792cc57301be092bc713c8e9d71fb97151407ae2e7ab2cc3427acdfc8d3"
+    },
+    {
+      "path": "captures/4714-6241.png",
+      "bytes": 111353,
+      "sha256": "8e4d6cb61cd9a7bad24c145aeaa25675b05b99074f172630373a651ddc7baeda"
+    },
+    {
+      "path": "captures/4734-6342.png",
+      "bytes": 96782,
+      "sha256": "2c22e7ee14906f29fd8bb5488eaf00192d71cdcd56893406440f4988bda098c8"
+    },
+    {
+      "path": "captures/4861-6259.png",
+      "bytes": 95569,
+      "sha256": "dc45ff23b208906dfb40040a02051ca8a3282e77c8721c234fd5203c81cea9b1"
+    },
+    {
+      "path": "captures/4861-6348.png",
+      "bytes": 103254,
+      "sha256": "2ba6f48953f924d283120bcf68d31cd2c424cdde7f9d7406771fc2637555d988"
+    },
+    {
+      "path": "captures/5088-6398.png",
+      "bytes": 93811,
+      "sha256": "b0c9997169d870b5109a52e72b1a9219edc82a832be568c1a0b134496dcf8cf0"
+    },
+    {
+      "path": "captures/6407-10127.png",
+      "bytes": 83328,
+      "sha256": "20441b2d5fa0fff8acbd9d5e6f9bdf5ecb3578decdb30f076d54d1c016ba5708"
+    },
+    {
+      "path": "captures/6407-10481.png",
+      "bytes": 81918,
+      "sha256": "5af80a0beaf9394a3326849c0d670dfb5c31382d4c7bf46df79df521d47fa5d6"
+    },
+    {
+      "path": "captures/6407-9458.png",
+      "bytes": 95520,
+      "sha256": "8b94e2d4b13be2865d93daee798aaf45f6fd7f575ff4ec3e5344592d72ce9614"
+    },
+    {
+      "path": "captures/6407-9551.png",
+      "bytes": 73297,
+      "sha256": "d03d3f1a00639f642d1d6fcf6bee8898a57c349fc6da0036e4cc2808eb5ff90b"
+    },
+    {
+      "path": "captures/6407-9702.png",
+      "bytes": 99294,
+      "sha256": "0f8c8906faa2ca0014a4ec2ca31b92cc2ca92c82b608e1fd72eb4985b7b425d9"
+    },
+    {
+      "path": "captures/6407-9805.png",
+      "bytes": 80528,
+      "sha256": "a3f073d517d4b2d2253915706e2795ea39718981c28ecb113e118dcb000b912e"
+    },
+    {
+      "path": "captures/6407-9966.png",
+      "bytes": 80992,
+      "sha256": "b8596955661b72da5015fef619067740f7db8eb4f6d56f943fec154cf70ac3e6"
+    },
+    {
+      "path": "captures/6411-9546.png",
+      "bytes": 83773,
+      "sha256": "5a1a1ac524ad0af648011b29148aaa902c72a3720a979fc63c4c05c52cfb09a8"
+    },
+    {
+      "path": "captures/6411-9649.png",
+      "bytes": 77519,
+      "sha256": "72561ce341cee9043938ea915a4ae770a1bf0cfb496dffcc06827000851d8a91"
+    },
+    {
+      "path": "captures/6419-10028.png",
+      "bytes": 79235,
+      "sha256": "ccadc4efbfb721a2921b1d9ef9d2ae6b2142299aa180e52a47c8f66433ddaaca"
+    },
+    {
+      "path": "captures/6419-9847.png",
+      "bytes": 83116,
+      "sha256": "599aa80b1b58fb97ab4b01bc30bcafdffe27ac5316dc1fa8e3a3eaae9a79b1f4"
+    },
+    {
+      "path": "captures/6423-9953.png",
+      "bytes": 86515,
+      "sha256": "931b0b83614f75484003fbdd31e0049932abc3803ef9943dbde4ddc25a176422"
+    },
+    {
+      "path": "captures/6665-24616.png",
+      "bytes": 77922,
+      "sha256": "b64ef0cfe78abbf43f90c29aef53c76156be7f1ea5c46e7e265cc5bf84b979fc"
+    },
+    {
+      "path": "captures/6665-24844.png",
+      "bytes": 80449,
+      "sha256": "811a72bd4b255c65d2bcf00603790c4d6767b6e6b81fb12b55cb7eea3b007502"
+    },
+    {
+      "path": "captures/6665-25072.png",
+      "bytes": 79206,
+      "sha256": "ef9db95293bfbcd1b80d53b058c9941cf6f9ed7aa46b5ff49b96424436bf3070"
+    },
+    {
+      "path": "captures/6665-25277.png",
+      "bytes": 62653,
+      "sha256": "b2c804ef53e980906c6a81779782e54a46a0f3c1185d222417a439a13bdebe13"
+    },
+    {
+      "path": "captures/6665-26185.png",
+      "bytes": 85700,
+      "sha256": "5ea341417537528c030aecb9f2c277d5606c6fc272edacde40d7c46c05ec7887"
+    },
+    {
+      "path": "captures/6665-26575.png",
+      "bytes": 76575,
+      "sha256": "4021281573762e81f85e69691d9a8071ac7ead30899a3718eb44caeda66241d5"
+    },
+    {
+      "path": "captures/6665-26822.png",
+      "bytes": 77642,
+      "sha256": "1cc2d9ca8145d858d777e19c7024d894fa0a7ea4b45a5706d54cf3b692fd978e"
+    },
+    {
+      "path": "captures/6665-27008.png",
+      "bytes": 79519,
+      "sha256": "d165ecd66b219f5657146afb99526ecd932c2155e9dd60e11b8a699cce8ef2c2"
+    },
+    {
+      "path": "captures/6665-27232.png",
+      "bytes": 77964,
+      "sha256": "f55169020eefc9e7580d1541557f968e3c6c5381f6cc9705785f52da3b4dc0a7"
+    },
+    {
+      "path": "captures/6665-27458.png",
+      "bytes": 80795,
+      "sha256": "56ae88eb1688f395e2c5ab3cbbd724a9e8293f2b50e16db7e4835ea2c08eb8d3"
+    },
+    {
+      "path": "captures/6665-27608.png",
+      "bytes": 82429,
+      "sha256": "4e9a4e142881e11ae7e7d3a800c6eb96f83924b260616d8c50ba9f995c9f0b4b"
+    },
+    {
+      "path": "captures/6665-27862.png",
+      "bytes": 102397,
+      "sha256": "17a661c44384d4ca17b250776982ae763068c48f933f9ad0624998e6f4847f79"
+    },
+    {
+      "path": "captures/6665-28050.png",
+      "bytes": 96992,
+      "sha256": "6c34018f3fe921d4374a8dff99a96ff61f5a37248b1ed50cec883704c37290e7"
+    },
+    {
+      "path": "captures/7059-13302.png",
+      "bytes": 83172,
+      "sha256": "6e9a0c33b7d6573119c3fff6aad05f64a576ef033a7eb7ad264303401ee03089"
+    },
+    {
+      "path": "captures/7069-13464.png",
+      "bytes": 77527,
+      "sha256": "31519a411431a61a0e29b7ca0c477cb1d4204b22ca1f6b34de1b3639366f321a"
+    },
+    {
+      "path": "captures/7069-13573.png",
+      "bytes": 79721,
+      "sha256": "69e9bfd0de8d9d0929fc50e584800302e9f52b503c342bc71adef4228cc680d2"
+    },
+    {
+      "path": "captures/7119-27855.png",
+      "bytes": 103883,
+      "sha256": "387862a1e76af60447ecaacc104662edd964e3b4ce99890aea910bbc171eb879"
+    },
+    {
+      "path": "complements-layout.json",
+      "bytes": 440539,
+      "sha256": "407cd60b414246548fca505a0823034b64786ca7d3981bcf235775cda5dcc2cc"
+    },
+    {
+      "path": "consommateurs.json",
+      "bytes": 1808051,
+      "sha256": "a04517ad9bbe7524fccf0a6ca8104c17ebe67ab5f626e8a231c77dfd2f6b8abc"
+    },
+    {
+      "path": "controle-source.json",
+      "bytes": 8144,
+      "sha256": "f90139922e5b0e7ffc5de7da2bbe6523809fe4625be084f6d97dbc18f888b7fa"
+    },
+    {
+      "path": "ecrans/3542-4656.json",
+      "bytes": 160263,
+      "sha256": "18159dd5abb6a3088469809de94aea754c1c38c6050e03fa2484552be9184b44"
+    },
+    {
+      "path": "ecrans/3943-6064.json",
+      "bytes": 159714,
+      "sha256": "a669420231a91f197aed49671d70fea06cdd6af24d1bac67611e775a154b741e"
+    },
+    {
+      "path": "ecrans/4217-6980.json",
+      "bytes": 175664,
+      "sha256": "772ee405cb87d30fe5cd69205837770d373f1b807a468a57b4e62ea6747d22f9"
+    },
+    {
+      "path": "ecrans/4332-7095.json",
+      "bytes": 275697,
+      "sha256": "87074d1161fe35ad923d4cc4c8289ddd292bb30242bb51bee67bfd43c00a9996"
+    },
+    {
+      "path": "ecrans/4474-7157.json",
+      "bytes": 441034,
+      "sha256": "9e0960856ee9051cd3c626806a0aed7044bf33260665fadb37c981e8f20cf5b2"
+    },
+    {
+      "path": "ecrans/4478-7209.json",
+      "bytes": 269189,
+      "sha256": "cd653178862d6508a053a0951556fcdfe63d5e82d978ad347055e2e025a881b9"
+    },
+    {
+      "path": "ecrans/4683-6336.json",
+      "bytes": 414341,
+      "sha256": "b8f5d24bc0b355dd8ff71ec6d079e2ade497416a290cb400bc2374e6f5077dec"
+    },
+    {
+      "path": "ecrans/4714-6241.json",
+      "bytes": 184660,
+      "sha256": "130e56db5ef833b9530f11f17f7a42c0305015e7ef3dc7c6061649d9a3fb8104"
+    },
+    {
+      "path": "ecrans/4734-6342.json",
+      "bytes": 145765,
+      "sha256": "1927ca7f9ffe608313ba6a906e4dc275496631fd0f9397872844e6c4a8cde40c"
+    },
+    {
+      "path": "ecrans/4861-6259.json",
+      "bytes": 293077,
+      "sha256": "9953d402cf800d16395350bdde67c2e41eb5e8bbff2bc8749babf6a4eb01ccd0"
+    },
+    {
+      "path": "ecrans/4861-6348.json",
+      "bytes": 266577,
+      "sha256": "d7da399e9c0370594f66ecd05e9a8d0568ab1d932885ff7f4a86fa8234df6253"
+    },
+    {
+      "path": "ecrans/5088-6398.json",
+      "bytes": 168170,
+      "sha256": "d0f572e834fa174b3a3d2fddd12d3d9759e15ca80ae553e9b928ebbf2ec851e6"
+    },
+    {
+      "path": "ecrans/6407-10127.json",
+      "bytes": 360920,
+      "sha256": "5b1099506e30c579d7989e8effd3af4f85c57b61dfe105548dc71d4df57c8165"
+    },
+    {
+      "path": "ecrans/6407-10481.json",
+      "bytes": 343384,
+      "sha256": "3cdcf1eef2c433ed3c684fab0c7374e602bd06102e3cafa0625b31ab3fcc2788"
+    },
+    {
+      "path": "ecrans/6407-9458.json",
+      "bytes": 160668,
+      "sha256": "3265e7b4d4a04c0a67cbfdb51857c2a7325dc75142b74c7c9a89db3ed93afde4"
+    },
+    {
+      "path": "ecrans/6407-9551.json",
+      "bytes": 312994,
+      "sha256": "2688c2f9bfc3950fabecbe628966c47d4a1332054d5275c2e094a8959630e2c9"
+    },
+    {
+      "path": "ecrans/6407-9702.json",
+      "bytes": 166616,
+      "sha256": "b019e9e7ad731e2590d7e8af7407b8be7cc278851fe96a8e7d23b1c9921c6ade"
+    },
+    {
+      "path": "ecrans/6407-9805.json",
+      "bytes": 345765,
+      "sha256": "a9387c1c558336d3a6a1c41917d9b7c819502889af396eff40588d6fc1efb779"
+    },
+    {
+      "path": "ecrans/6407-9966.json",
+      "bytes": 330969,
+      "sha256": "510138bb29804f7997390ae0c720aab0f865f5c3ad5905281d3c233eb034a2c9"
+    },
+    {
+      "path": "ecrans/6411-9546.json",
+      "bytes": 361340,
+      "sha256": "bb346c14eebfbe4339cd9c8fc23166ab7846aaecc771bbd89e9dfe968a5dc60a"
+    },
+    {
+      "path": "ecrans/6411-9649.json",
+      "bytes": 357421,
+      "sha256": "2258e05024b345b1eae567037e5002cb7896675019d46a8adb433c6e84c00ccc"
+    },
+    {
+      "path": "ecrans/6419-10028.json",
+      "bytes": 326617,
+      "sha256": "e2184f9a6650a1054db070ca61c7851b9fe887f351c369b0f72d52dceb409426"
+    },
+    {
+      "path": "ecrans/6419-9847.json",
+      "bytes": 343944,
+      "sha256": "0ce5ea77e2f3275a3570f062551ffd217748556d6da0e6e34b4f813b7f506ca5"
+    },
+    {
+      "path": "ecrans/6423-9953.json",
+      "bytes": 331987,
+      "sha256": "c75ff6dbbc75a9d63afd7642d78a070edb8aab8e0392fa3dc9272271614ab02f"
+    },
+    {
+      "path": "ecrans/6665-24616.json",
+      "bytes": 441578,
+      "sha256": "c7658e71bef3a3a2b11fcc76d1558f6b1fb5003c35dc1d27ba763c41ee15c97c"
+    },
+    {
+      "path": "ecrans/6665-24844.json",
+      "bytes": 435546,
+      "sha256": "23c988c949d2ce11a7a16211972277c3e22e3e74507f5a77cffa169d6a3b0d30"
+    },
+    {
+      "path": "ecrans/6665-25072.json",
+      "bytes": 446168,
+      "sha256": "a21a47c8b138c20543a9199ce1861dd2474a9532e54230d372b724aa513acb31"
+    },
+    {
+      "path": "ecrans/6665-25277.json",
+      "bytes": 827979,
+      "sha256": "65635cc1152a0308c63c3308a8457bb7cef791fb3e5d95b58a3832b740db4c89"
+    },
+    {
+      "path": "ecrans/6665-26185.json",
+      "bytes": 377347,
+      "sha256": "e154db3cb5bdb52e273425425c58bcd0fd992affdf7695820522a9b60714944b"
+    },
+    {
+      "path": "ecrans/6665-26575.json",
+      "bytes": 470938,
+      "sha256": "1fe656ae32b0f7167b96a357f69dbb223a189a66a2bae1021ce0bea6cf92ff7a"
+    },
+    {
+      "path": "ecrans/6665-26822.json",
+      "bytes": 358300,
+      "sha256": "5ef2e723c97f3b9bb521ff306cc21c61836937d65d49a74294747912ca1b3a85"
+    },
+    {
+      "path": "ecrans/6665-27008.json",
+      "bytes": 432120,
+      "sha256": "5ba19282f96672455a73d9d0c9588a97284f82c38a2ce7cb4e3b4599550b6c4b"
+    },
+    {
+      "path": "ecrans/6665-27232.json",
+      "bytes": 440714,
+      "sha256": "2dbe69a09a216f078157dde514369494096c541d69b66d1ef27d687dab3bc05f"
+    },
+    {
+      "path": "ecrans/6665-27458.json",
+      "bytes": 305160,
+      "sha256": "0c171a1793fdeada268ac86dc7b092f0165904bb2a3f63779a2383208ce153e2"
+    },
+    {
+      "path": "ecrans/6665-27608.json",
+      "bytes": 443037,
+      "sha256": "cac43afd5ba797c6cd145eead5877e4b0d7cd6802ee81a1f230e98369f8c9b73"
+    },
+    {
+      "path": "ecrans/6665-27862.json",
+      "bytes": 170184,
+      "sha256": "5c72c79b4ff2831e765d77933aaaeb485d9ebd99ec330fcb34bbf92bef3dcfe2"
+    },
+    {
+      "path": "ecrans/6665-28050.json",
+      "bytes": 163846,
+      "sha256": "ac5bb18dc5c9c58485503134ff658ba2781c12c77bfda6dc29513bbdab333100"
+    },
+    {
+      "path": "ecrans/7059-13302.json",
+      "bytes": 334390,
+      "sha256": "97376241fa615d23c562e80cee6c2d2ca14f27f94689fb9d29197947f64ecde0"
+    },
+    {
+      "path": "ecrans/7069-13464.json",
+      "bytes": 357708,
+      "sha256": "86e887ebdcfcb5a56efe32478a65c5fdb3ab70bc473f10a7e754c8e305acb317"
+    },
+    {
+      "path": "ecrans/7069-13573.json",
+      "bytes": 326013,
+      "sha256": "6ca23feb10f583c7a27b9ce4d56108032c821fc2dce30f0289bce666846c6f5c"
+    },
+    {
+      "path": "ecrans/7119-27855.json",
+      "bytes": 171131,
+      "sha256": "2ffd42eae9a16cb2eb2f10d653e7a8c600ac73601c8974830e6ef1bc194130a6"
+    },
+    {
+      "path": "index-elements.jsonl",
+      "bytes": 2198205,
+      "sha256": "f27704373bd92903049a44fc47bdb330559898955a8b09a36a5372ba6ef673a4"
+    },
+    {
+      "path": "masters.json",
+      "bytes": 544196,
+      "sha256": "14874c10538076b6f1e4edd5319a65c89ccab928ae87beb5c00175012837b36b"
+    },
+    {
+      "path": "tokens.json",
+      "bytes": 133230,
+      "sha256": "40e48ed70805d8641f324fe36ec8f11858d983abef0a53395d425d64db71429a"
+    },
+    {
+      "path": "verifier-extraction.py",
+      "bytes": 6724,
+      "sha256": "c4e61c2901cac5cd9cc4fe89b59c0819f6fa529d00ebe41c902c6dea4649535f"
+    }
+  ],
+  "snapshotSha256": "231649ad5ada50b1d2e0adf1aaa698a81b536bc771ee1cbe3f567132d82c61cf"
+}

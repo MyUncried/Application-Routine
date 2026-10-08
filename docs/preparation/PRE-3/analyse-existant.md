@@ -49,13 +49,16 @@ La décision D-333 autorise l’import dans le MVP avant le moteur. Source retro
 - src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts
 - src/infrastructure/database/repositories/SqliteMediaRepository.ts
 
+## Entrée Figma disponible
+
+L’[extraction détaillée du08/10](extraction-figma.md) est terminée pour les 41 écrans : 6 725 éléments, 41 captures, composants/variantes, tokens et recensement des consommateurs Figma. Elle ne remplace pas le graphe des consommateurs applicatifs.
+
 ## Ordre de préparation restant
 
 1. Compléter la lecture des services, repositories de Séance et des consommateurs des calculs/résumés ; produire le graphe d’impact et la liste de tests réellement concernés.
-2. Extraire exhaustivement les composants, tokens, variantes et propriétés des frames du périmètre ; joindre captures et références figées. Les trois contextes Figma déjà lus ne constituent pas cette extraction complète.
-3. Définir le schéma cible et sa migration, la normalisation des paramètres anciens, le brouillon de feuille, le lifecycle des médias et les adaptateurs des quatre parcours.
-4. Écrire les assertions atomiques et les preuves attendues, reliées aux 23 exigences P3 du périmètre. Distinguer preuve technique, comparaison visuelle avant recette, et contrôles perceptifs iPhone.
-5. Assembler un plan canonique sur le chemin VNext réellement intégré et qualifié ; demander sa revue indépendante. Aucun appel modèle ou lancement de chaîne n’est réalisé dans cette préparation.
+2. Définir le schéma cible et sa migration, la normalisation des paramètres anciens, le brouillon de feuille, le lifecycle des médias et les adaptateurs des quatre parcours.
+3. Écrire les assertions atomiques et les preuves attendues, reliées aux 23 exigences P3 du périmètre. Distinguer preuve technique, comparaison visuelle avant recette, et contrôles perceptifs iPhone.
+4. Assembler un plan canonique sur le chemin VNext réellement intégré et qualifié ; demander sa revue indépendante. Aucun appel modèle ou lancement de chaîne n’est réalisé dans cette préparation.
 
 ## Reprise enregistrée
 

@@ -359,4 +359,4 @@ Les anciennes références de planification mono-source, de l’objet autonome P
 
 ## Préparation PRE-3 — 08/10/2026
 
-[Périmètre et couverture](preparation/PRE-3/perimetre-et-couverture.md), [analyse de l’existant](preparation/PRE-3/analyse-existant.md) et [rapprochement des sources](preparation/PRE-3/rapprochement-main-figma.md). D-333 inclut l’import/ajout de médias au MVP avant le moteur d’exécution. Ce dossier prépare la planification ; il ne constitue ni une autorisation d’implémentation ni une livraison applicative.
+[Périmètre et couverture](preparation/PRE-3/perimetre-et-couverture.md), [analyse de l’existant](preparation/PRE-3/analyse-existant.md), [rapprochement des sources](preparation/PRE-3/rapprochement-main-figma.md) et [extraction détaillée Figma](preparation/PRE-3/extraction-figma.md). D-333 inclut l’import/ajout de médias au MVP avant le moteur d’exécution. Ce dossier prépare la planification ; il ne constitue ni une autorisation d’implémentation ni une livraison applicative.

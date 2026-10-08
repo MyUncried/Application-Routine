@@ -271,14 +271,14 @@ Réalisé ici :
 - Définition du périmètre et des preuves de sortie.
 
 Non réalisé :
-- Extraction atomique exhaustive de toutes les frames et variantes ; les exemples de propriétés ci-dessus ne sont pas ce paquet complet.
+- Plan technique final, graphe applicatif complet et assertions de livraison ; l’extraction détaillée Figma est désormais disponible dans [le paquet du08/10](extraction-figma.md).
 - Audit exhaustif du code et liste finale des fichiers d’écriture, migrations et tests à adapter. Une première analyse ciblée du modèle, de l’éditeur, des calculs et des médias est disponible dans analyse-existant.md.
 - Vérification de la qualification actuelle de VNext, détenue dans le chantier séparé.
 - Activation de tranche, appel de reviewer ou développement. La PR documentaire de préparation ne constitue aucun de ces événements.
 
 **Prochaine étape concrète : préparer le plan technique PRE-3 à partir de ce périmètre, avec l’extraction Figma atomique exhaustive en entrée.** Le dossier doit relier chaque ligne P3 aux règles, aux éléments visuels et aux fichiers réellement concernés. Il doit déclarer les différences documentaires résiduelles et résoudre les ambiguïtés techniques à partir des sources, avant toute implémentation.
 
-Rapprochement actualisé le 08/10 : les 41 frames sont présentes, leurs textes et accès médias ont été interrogés directement, et quatre surfaces ont été contrôlées visuellement. Voir [preuves Figma](verification-figma-2026-10-08.json) et [bilan par axe](rapprochement-main-figma.md). Ces preuves ne sont pas une extraction atomique exhaustive.
+Rapprochement actualisé le 08/10 : les 41 frames sont présentes, leurs textes et accès médias ont été interrogés directement, et quatre surfaces ont été contrôlées visuellement. Voir [preuves Figma](verification-figma-2026-10-08.json) et [bilan par axe](rapprochement-main-figma.md). Le relevé initial est complété par [l’extraction détaillée](extraction-figma.md) : 41 écrans, 6 725 éléments dont 65 descendants masqués, 41 captures, maîtres/variantes et fermeture des tokens ; seconde lecture concordante sur les 41 arbres.
 
 La préparation conserve les décisions validées ; elle ne rouvre ni PRE-1 ni PRE-2 et n’introduit aucune refonte globale.
 
@@ -287,4 +287,4 @@ La préparation conserve les décisions validées ; elle ne rouvre ni PRE-1 ni P
 
 État : périmètre validé par Hermann, import compris. Rapprochement daté dans [rapprochement-main-figma.md](rapprochement-main-figma.md). Aucun plan technique approuvé ni autorisation d’implémentation.
 
-La préparation est publiée sous docs/preparation/PRE-3/ afin de ne pas activer implicitement une identité legacy V2. VNext est intégré et activé dans main ; les corrections et qualifications de #334 constituent un chantier séparé. Cette PR de préparation ne modifie ni ce chantier ni les preuves d’activation et n’atteste pas la qualification des correctifs. Le prochain dossier de planification doit consommer le périmètre, l’analyse de l’existant et le manifeste Figma atomique exhaustif encore à établir.
+La préparation est publiée sous docs/preparation/PRE-3/ afin de ne pas activer implicitement une identité legacy V2. VNext est intégré et activé dans main ; les corrections et qualifications de #334 constituent un chantier séparé. Cette PR de préparation ne modifie ni ce chantier ni les preuves d’activation et n’atteste pas la qualification des correctifs. Le prochain dossier de planification doit consommer le périmètre, l’analyse de l’existant et le [manifeste Figma détaillé](figma/manifest.json) établi dans cette préparation.
