@@ -1,0 +1,36 @@
+{
+  "schema_version": "kodjo.vnext.cutover-plan.v1",
+  "candidate_head": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+  "candidate_pr": 332,
+  "qualification_run_id": 37701620897,
+  "qualification_status": "QUALIFIED_ON_VNEXT_PERIMETER",
+  "remote_write_security_hash": "4791f96098cd9be4ad53073fa936f9b0c65b568f85a83afe9311c74fb7a0ee67",
+  "remote_write_security_status": "PASS_WITH_FROZEN_LEGACY",
+  "legacy_registry_hash": "47a871f5d602836d372020e81326bee50f5a048c0a984d4041fec0a4106bd143",
+  "protected_legacy_slice_ids": [
+    "V2-PRE-1",
+    "V2-PRE-2"
+  ],
+  "blocking_slice_ids": [],
+  "grandfathered_legacy_slice_ids": [
+    "V2-CAT-01",
+    "V2-E2E-20260919",
+    "V2-PROD-00",
+    "V2-QUALIF-00",
+    "V2-QUALIF-01",
+    "VNEXT-12-QUALIF"
+  ],
+  "routing_before_activation": {
+    "default_protocol": "LEGACY",
+    "existing_legacy_slices": "LEGACY",
+    "new_slices": "LEGACY"
+  },
+  "routing_after_activation": {
+    "default_protocol": "VNEXT",
+    "existing_legacy_slices": "LEGACY",
+    "new_slices": "VNEXT"
+  },
+  "activation_readiness": "READY_FOR_ACTIVATION",
+  "active_workflow_change_allowed": false,
+  "contract_hash": "0cc6c54a23e1f0c7750b746fa31ce687ac4b4ad3bd279d156f5e2baca5323c03"
+}

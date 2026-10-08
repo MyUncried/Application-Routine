@@ -1,0 +1,599 @@
+{
+  "candidate_head": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+  "candidate_pr": 332,
+  "qualification_scope": "REGRESSION_CONTROLS_ON_CERTIFIED_VNEXT_DESCENDANT",
+  "historical_external_scenarios_replayed_on_integration_head": false,
+  "original_certification": {
+    "issue_number": 329,
+    "issue_state": "closed",
+    "closure_comment_url": "https://github.com/MyUncried/Application-Routine/issues/329#issuecomment-6047127635",
+    "finalization_run": {
+      "id": 37688962970,
+      "head_sha": "38e3152b53c6f2b8c206514b341bdd308f67df0f",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "event": "pull_request",
+      "path": ".github/workflows/kodjo-vnext12-disposable.yml",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37688962970",
+      "created_at": "2026-10-07T21:22:45Z",
+      "updated_at": "2026-10-07T21:23:38Z"
+    },
+    "historical_run": {
+      "id": 37680862427,
+      "head_sha": "4fd0d112cdd37de8a8866c7392f2951a034639b4",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "event": "pull_request",
+      "path": ".github/workflows/kodjo-vnext12-disposable.yml",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37680862427",
+      "created_at": "2026-10-07T20:17:21Z",
+      "updated_at": "2026-10-07T21:04:41Z"
+    },
+    "campaign_id": "628b3349-88b4-4bf1-be6b-50bc09e7d245",
+    "slice_id": "VNEXT-12-QUALIF",
+    "delivery_pr_number": 330,
+    "head": "3db2ac6129f0aaf5b6e47bf1d3030a1fe8a57609",
+    "finalization_hash": "c901ce75d16cb354a105c7ec0211efdf22ea8e0ccf006d1f4c62a6484f637b51",
+    "review_comment_id": "6047064806",
+    "original_decision": null,
+    "reservations": [],
+    "pending_proofs": [],
+    "proof_resolutions": [],
+    "not_executed_proofs": [],
+    "acceptance_scope": "TECHNICAL_VERIFICATION",
+    "scope": "GITHUB_CERTIFICATION_DELIVERY",
+    "application_published": false,
+    "visual_compliance_attested": false,
+    "accessibility_compliance_attested": false
+  },
+  "independent_audit": {
+    "id": 37701620805,
+    "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+    "status": "completed",
+    "conclusion": "success",
+    "run_attempt": 1,
+    "event": "pull_request",
+    "path": ".github/workflows/kodjo-v2-next-evolution-independent-audit.yml",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620805",
+    "created_at": "2026-10-07T23:19:37Z",
+    "updated_at": "2026-10-08T00:16:43Z"
+  },
+  "independent_audit_jobs": [
+    {
+      "id": 113066160080,
+      "name": "await_qualified_head",
+      "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620805/job/113066160080",
+      "started_at": "2026-10-07T23:20:03Z",
+      "completed_at": "2026-10-07T23:41:52Z"
+    },
+    {
+      "id": 113073004072,
+      "name": "independent-audit",
+      "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620805/job/113073004072",
+      "started_at": "2026-10-07T23:41:54Z",
+      "completed_at": "2026-10-08T00:16:24Z"
+    },
+    {
+      "id": 113083242965,
+      "name": "publish-evidence",
+      "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620805/job/113083242965",
+      "started_at": "2026-10-08T00:16:27Z",
+      "completed_at": "2026-10-08T00:16:42Z"
+    }
+  ],
+  "independent_audit_verdict": "APPROVE",
+  "independent_audit_report": {
+    "commit": "39c40a4d3a563cb857dc306931eabcfb61047eaa",
+    "path": ".github/orchestration/reports/2026-10-07_INDEPENDENT_AUDIT_37701620805_1.md",
+    "sha256": "a3c49636e2050cb64d6231a7b6ca9739a2bd2e64e6e015cf4d211665802d2bf8",
+    "url": "https://github.com/MyUncried/Application-Routine/blob/39c40a4d3a563cb857dc306931eabcfb61047eaa/.github/orchestration/reports/2026-10-07_INDEPENDENT_AUDIT_37701620805_1.md",
+    "comment_id": 6049482301,
+    "comment_url": "https://github.com/MyUncried/Application-Routine/pull/332#issuecomment-6049482301",
+    "summary": {
+      "schema": "kodjo.protocol-independent-audit.v1",
+      "verdict": "APPROVE",
+      "blocking_findings": 0,
+      "major_findings": 1,
+      "minor_findings": 3,
+      "matrix_ids_total": 64,
+      "matrix_ids_covered": 56,
+      "matrix_ids_partial": 7,
+      "matrix_ids_not_covered": 1,
+      "matrix_ids_non_verifiable": 0,
+      "matrix_rows": [
+        {
+          "id": "P-01",
+          "status": "COVERED",
+          "evidence": "planning-envelope.js:22-30 asserts SHA40 heads and binds source_manifest slice_id/product_head; validate() enforces rebuild equality"
+        },
+        {
+          "id": "P-02",
+          "status": "COVERED",
+          "evidence": "impact-graph.js:86-102 derives candidates only from git ls-tree -r -z; normalizeClassification:354 refuses an unknown candidate_id; the model never emits a path"
+        },
+        {
+          "id": "P-03",
+          "status": "COVERED",
+          "evidence": "validateCandidateManifest:154-159 recomputes candidate_id from the path; verifyCandidateManifestAtHead:196-201 refuses an absent GIT_TREE path and an existing CREATE_SLOT"
+        },
+        {
+          "id": "P-04",
+          "status": "COVERED",
+          "evidence": "classification key is (requirement_id, candidate_id) over closed sets; allowed_change_kinds gate at impact-graph.js:356; rebuild equality at :524-532"
+        },
+        {
+          "id": "P-05",
+          "status": "PARTIAL",
+          "evidence": "plan-impact.js resolveSpecifier handles relative specifiers, @/ and @/assets (specific prefix first) and directory/index, and fails PLAN_SCAN_PATH_AMBIGUOUS on multiple matches; tsconfig-wide aliases and dynamic forms remain outside the regex resolver - deferred in audit-deferrals.json"
+        },
+        {
+          "id": "P-06",
+          "status": "COVERED",
+          "evidence": "plan-contract.js buildBoundaries:339-358 derives write_scope from change impacts only; verify-staged-scope.js:60-71 enforces an exact bidirectional index match"
+        },
+        {
+          "id": "P-07",
+          "status": "COVERED",
+          "evidence": "ui-atomicity-contract.js builds criteria and assertions from registry+impact+plan with closed proof ids; validateUiAtomicityContract enforces rebuild equality"
+        },
+        {
+          "id": "P-08",
+          "status": "COVERED",
+          "evidence": "ui-atomicity-contract.js:456 criterion_id=stableId(CRT,[requirement_id,statement,changeImpactIds,proofIds]); :291 assertion_id carries no list index"
+        },
+        {
+          "id": "P-09",
+          "status": "COVERED",
+          "evidence": "normalizeReuse binds selected_component to a real candidate; VNEXT_UI_CREATE_EXISTING_COMPONENT_FORBIDDEN at :209"
+        },
+        {
+          "id": "P-10",
+          "status": "COVERED",
+          "evidence": "plan-contract.js:168-192 VNEXT_PLAN_CHANGED_TEST_UNBOUND and VNEXT_PLAN_AFFECTED_TEST_UNBOUND bind every changed and every affected test"
+        },
+        {
+          "id": "P-11",
+          "status": "COVERED",
+          "evidence": "impact-graph.js validateCreateSlot:57-79 bounds CREATE to CREATE_ROOTS, refuses an existing path and binds policy_id+policy_hash into the candidate_id"
+        },
+        {
+          "id": "P-12",
+          "status": "COVERED",
+          "evidence": "plan-contract.js CHANGE_WITHOUT_TEST_COVERAGE:179, CHANGE_WITHOUT_PROOF_COVERAGE:295, FUNCTIONAL_PROOF_MISSING:289 and ALTERNATIVE_PROOF_REQUIRED:300 close requirement/test/proof"
+        },
+        {
+          "id": "P-13",
+          "status": "COVERED",
+          "evidence": "requirement-registry.js:87-93 derives requirement_id from source+unit+unit fingerprint+kind+statement; :150-158 requires every REQUIREMENT_SOURCE/AMBIGUOUS unit to be covered and disposed units to carry none"
+        },
+        {
+          "id": "P-14",
+          "status": "COVERED",
+          "evidence": "buildBoundaries derives write and preserve scope; preserve must be GIT_TREE origin (:336) and cannot overlap write scope (:333); ui-criteria-contract.js:247 refuses a path or symbol disguised as SEMANTIC"
+        },
+        {
+          "id": "P-15",
+          "status": "COVERED",
+          "evidence": "requirement-registry.js:207-219 derives registry_status READY/BLOCKED from blocking reasons; assertReady:276 raises CLARIFICATION_REQUIRED"
+        },
+        {
+          "id": "P-16",
+          "status": "COVERED",
+          "evidence": "plan-contract.js renderMarkdown:547 and verifyMarkdownProjection:610 project the contract into Markdown and refuse drift; the machine block remains authoritative"
+        },
+        {
+          "id": "P-17",
+          "status": "COVERED",
+          "evidence": "validatePlanContract:534-543 and validateImpactGraph:524-532 rebuild the artifact and compare canonically"
+        },
+        {
+          "id": "P-18",
+          "status": "COVERED",
+          "evidence": "review-contract.js normalizeFinding:346-428 applies a closed category/target matrix, restricts target_id to the catalog, derives finding_id and derives reentry_stage"
+        },
+        {
+          "id": "P-19",
+          "status": "COVERED",
+          "evidence": "revision-contract.js:283-303 authorizes only blocking finding targets plus their declared dependencies; VNEXT_REVISION_PLAN_ROOT_TOO_BROAD refuses an unanchored PLAN_CONTRACT root; preserved targets carry object_hash"
+        },
+        {
+          "id": "P-20",
+          "status": "COVERED",
+          "evidence": "review-contract.js:475-481 computes the plan review verdict mechanically; reviewerOutputSchema:293-343 exposes no verdict field at all"
+        },
+        {
+          "id": "P-21",
+          "status": "COVERED",
+          "evidence": "a PRODUCT_AMBIGUITY finding forces CLARIFICATION_REQUIRED (review-contract.js:476) and an AMBIGUOUS source unit forces registry BLOCKED; the product decision itself is not mechanised"
+        },
+        {
+          "id": "D-01",
+          "status": "COVERED",
+          "evidence": "vnext-legacy-queue-adapter.js:61 derives the request forbidden policy from planContract.boundaries; the request is bound to the plan hashes"
+        },
+        {
+          "id": "D-02",
+          "status": "COVERED",
+          "evidence": "the implementation mission is rendered from the contracts; verify-implementation-mission.js is invoked from the frozen runtime at run-queued-request.ps1:141"
+        },
+        {
+          "id": "D-03",
+          "status": "PARTIAL",
+          "evidence": "plan-contract.js:81-84 requires exactly one implementation_intent per changed impact (VNEXT_PLAN_IMPLEMENTATION_INTENT_MISSING); fine ordering within equivalent dependencies stays agent-side, which is the declared matrix target"
+        },
+        {
+          "id": "D-04",
+          "status": "COVERED",
+          "evidence": "verify-staged-scope.js:56-71 compares the real index against the authorized pathspec in both directions"
+        },
+        {
+          "id": "D-05",
+          "status": "COVERED",
+          "evidence": "verify-staged-scope.js:39-53 consumes diff --cached --name-status -z and counts both paths of a rename or copy"
+        },
+        {
+          "id": "D-06",
+          "status": "COVERED",
+          "evidence": "REUSE binds a selected_component candidate id and real usage is resolved through resolveSpecifier with directory/index and alias support"
+        },
+        {
+          "id": "D-07",
+          "status": "COVERED",
+          "evidence": "EXTEND binds path and symbol to an existing candidate of the manifest rather than to free prose"
+        },
+        {
+          "id": "D-08",
+          "status": "COVERED",
+          "evidence": "validateCreateSlot:68 and verifyCandidateManifestAtHead:199 require absence at base; vnext-finalization.js coverage():26-38 requires presence at head and real delivery"
+        },
+        {
+          "id": "D-09",
+          "status": "COVERED",
+          "evidence": "vnext-finalization.js coverage():23-40 records current_files blob oids and computes cumulative_files from baselineHead, not only from the last increment"
+        },
+        {
+          "id": "D-10",
+          "status": "COVERED",
+          "evidence": "forbidden_policy ALL_OUTSIDE_WRITE_SCOPE at plan-contract.js:23 plus verify-staged-scope.js:60 refusing any unauthorized staged path, creations included"
+        },
+        {
+          "id": "D-11",
+          "status": "PARTIAL",
+          "evidence": "observable stops are derived by the supervisor (staged scope violation, execution lock, preflight); CLARIFICATION_REQUIRED and CHANGE_REQUEST_REQUIRED remain agent-declared, which is the declared matrix target"
+        },
+        {
+          "id": "D-12",
+          "status": "COVERED",
+          "evidence": "collect-implementation-report.js is invoked from the frozen runtime at run-queued-request.ps1:359 and the delta is read from Git rather than from agent prose"
+        },
+        {
+          "id": "D-13",
+          "status": "COVERED",
+          "evidence": "execute-vnext12.js:260 persists targeted_jest_exit_code from the real runner invocation; vnext-proof-result.js:11 refuses PASS without support"
+        },
+        {
+          "id": "D-14",
+          "status": "COVERED",
+          "evidence": "vnext-proof-result.js:11,20 derives status and gate; unsupported or UNAVAILABLE becomes NON_VERIFIABLE and WAIT_FOR_PROOF"
+        },
+        {
+          "id": "D-15",
+          "status": "COVERED",
+          "evidence": "the human summary feeds no gate; finalize and closure consume contracts, proof results and the verbatim user decision only"
+        },
+        {
+          "id": "T-01",
+          "status": "COVERED",
+          "evidence": "lib/checks.js holds the fixed command set; the adapter override is gated behind KODJO_ALLOW_TEST_ADAPTER which no workflow sets, as reported by scan-remote-write-capability.js executed at this HEAD"
+        },
+        {
+          "id": "T-02",
+          "status": "COVERED",
+          "evidence": "the jest exit code is captured as a machine field at execute-vnext12.js:260 and retained in closure/functional-proof.json"
+        },
+        {
+          "id": "T-03",
+          "status": "COVERED",
+          "evidence": "the TypeScript exit code is consumed from the fixed npx tsc invocation in lib/checks.js"
+        },
+        {
+          "id": "T-04",
+          "status": "COVERED",
+          "evidence": "lint and diff-check exit codes are consumed from the same fixed command set in lib/checks.js"
+        },
+        {
+          "id": "T-05",
+          "status": "COVERED",
+          "evidence": "verify-staged-scope.js refuses out-of-scope staged paths before any publication"
+        },
+        {
+          "id": "T-06",
+          "status": "COVERED",
+          "evidence": "plan-contract.js:237-250 ties each FUNCTIONAL_TEST proof to an existing non-REMOVE test obligation and requires the covered change impacts to match"
+        },
+        {
+          "id": "T-07",
+          "status": "COVERED",
+          "evidence": "vnext-proof-result.js builds STATIC_ANALYSIS results from outcome and supported with mandatory evidence_refs; there is no model-declared PASS"
+        },
+        {
+          "id": "T-08",
+          "status": "COVERED",
+          "evidence": "the AFFECTED/INHERITED intersection is preserved and plan-contract.js:479 retains delivery_preservation criteria through vnext-delivery-preservation.build"
+        },
+        {
+          "id": "T-09",
+          "status": "COVERED",
+          "evidence": "calculable boundaries are executed before the reviewer; ui-criteria-contract.js:247 refuses semantic laundering of an addressable target"
+        },
+        {
+          "id": "T-10",
+          "status": "PARTIAL",
+          "evidence": "review-contract.js:444-445 hands the reviewer the exact target catalog and refuses any omission or invention via VNEXT_REVIEW_COVERAGE_INCOMPLETE, so no requirement can disappear between plan and review; but coverage is attested by re-emitting the entire catalog (2259 candidate ids, 72289 bytes, measured at this HEAD) rather than being derived, and the only executed review (run 37516102783) ran at 187 candidates - see finding IA-001"
+        },
+        {
+          "id": "T-11",
+          "status": "COVERED",
+          "evidence": "mechanical_checks are sealed into the review context at review-contract.js:202-206 and :273, and validateReviewReport:547-550 rebuild equality prevents the model from altering any machine fact"
+        },
+        {
+          "id": "T-12",
+          "status": "COVERED",
+          "evidence": "verify-ui-implementation-review.js:220 and :436 derive device_gate_required; device-proof-policy.js effectiveDeviceGate:12-15 can only escalate; the field is absent from the model output schema"
+        },
+        {
+          "id": "T-13",
+          "status": "COVERED",
+          "evidence": "review-contract.js:475-481 aggregates the implementation verdict mechanically from findings and resolutions"
+        },
+        {
+          "id": "T-14",
+          "status": "COVERED",
+          "evidence": "device-proof-policy.js:4-7 keeps VISUAL_COMPARE deferrable and never auto-PASS; vnext-finalization.js requires visual_compliance_attested to be false"
+        },
+        {
+          "id": "T-15",
+          "status": "COVERED",
+          "evidence": "DEVICE_CHECK follows the same policy; vnext-finalization.js:51-63 binds the verbatim user decision comment to the exact head, slice_id and source review comment id"
+        },
+        {
+          "id": "T-16",
+          "status": "PARTIAL",
+          "evidence": "ACCESSIBILITY_CHECK is a distinct proof type and escalates the device gate when PENDING_DEVICE at device-proof-policy.js:15; the full static versus runtime split per atomic assertion is not completed, which the matrix rates P1"
+        },
+        {
+          "id": "T-17",
+          "status": "PARTIAL",
+          "evidence": "targeted replay remains coarse and full qualification stays mandatory before closure - deferred in audit-deferrals.json"
+        },
+        {
+          "id": "T-18",
+          "status": "COVERED",
+          "evidence": "vnext-finalization.js finalize:74-78 refuses a non-APPROVE review, requires criterion coverage equality and validates UI and non-UI proofs before closure"
+        },
+        {
+          "id": "DET-01",
+          "status": "COVERED",
+          "evidence": "decision keys form a closed dynamic set built from the candidate manifest and scan; cardinality and ordering are enforced by rebuild equality in validateImpactGraph"
+        },
+        {
+          "id": "DET-02",
+          "status": "COVERED",
+          "evidence": "requirement-registry.js unifies UI and non-UI requirements behind derived ids with bidirectional coverage closure"
+        },
+        {
+          "id": "DET-03",
+          "status": "COVERED",
+          "evidence": "review-contract.js structured findings combined with the revision-contract.js:296-303 authorized, machine-derived and preserved partition"
+        },
+        {
+          "id": "DET-04",
+          "status": "COVERED",
+          "evidence": "plan-contract.js closes requirement to test to proof through test_obligations and proof_obligations with mutual coverage checks"
+        },
+        {
+          "id": "DET-05",
+          "status": "COVERED",
+          "evidence": "boundaries are machine-addressable, forbidden is the ALL_OUTSIDE_WRITE_SCOPE policy, and verify-staged-scope.js enforces it on the real index"
+        },
+        {
+          "id": "DET-06",
+          "status": "COVERED",
+          "evidence": "frozen runtime collectors produce the Git and runner facts; the require closure of the six frozen entry points (66 modules) contains no repo-root-relative access, verified at this HEAD"
+        },
+        {
+          "id": "DET-07",
+          "status": "COVERED",
+          "evidence": "the review context carries sealed machine facts and the reviewer output schema is limited to findings, coverage and resolutions"
+        },
+        {
+          "id": "DET-08",
+          "status": "COVERED",
+          "evidence": "plan_status, plan review verdict, implementation verdict and the device flag are all derived; no model aggregate is requested anywhere"
+        },
+        {
+          "id": "DET-09",
+          "status": "PARTIAL",
+          "evidence": "correction is bounded (vnext-proof-result.js auto_retry false; vnext-github-closure.js:10 revision_limit 1) and reentry_stage is derived; the end-to-end supervised retry is proven only on the disposable VNEXT-12 harness"
+        },
+        {
+          "id": "DET-10",
+          "status": "NOT_COVERED",
+          "evidence": "the AST/TypeScript dependency resolver is not implemented and the regex resolver in plan-impact.js remains in place; explicitly DEFERRED in the matrix lot table and in audit-deferrals.json"
+        }
+      ]
+    }
+  },
+  "retained_non_blocking_findings": [
+    {
+      "id": "IA-001",
+      "severity": "MAJOR",
+      "description": "Review coverage requires echoing the full candidate catalog; application-scale execution above 187 candidates remains unproven."
+    },
+    {
+      "id": "IA-002",
+      "severity": "MINOR",
+      "description": "Normative inventory omits part of the VNext corpus with fail-safe UNKNOWN classification; the package manifest has a duplicate heading."
+    },
+    {
+      "id": "IA-003",
+      "severity": "MINOR",
+      "description": "Four inherited machine-block consumers select the first block; the auditor could not demonstrate a reachable injection."
+    },
+    {
+      "id": "IA-004",
+      "severity": "MINOR",
+      "description": "The certified GitHub closure wrapper is specific to the VNEXT-12-QUALIF campaign."
+    }
+  ],
+  "observed_at": "2026-10-08T00:19:38.464Z",
+  "vnext": {
+    "id": 37701620897,
+    "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+    "status": "completed",
+    "conclusion": "success",
+    "run_attempt": 1,
+    "event": "pull_request",
+    "path": ".github/workflows/kodjo-vnext-proof-stability.yml",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620897",
+    "created_at": "2026-10-07T23:19:37Z",
+    "updated_at": "2026-10-07T23:32:14Z"
+  },
+  "vnext_jobs": [
+    {
+      "id": 113066160291,
+      "name": "historical-equivalence (ubuntu-latest)",
+      "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620897/job/113066160291",
+      "started_at": "2026-10-07T23:19:39Z",
+      "completed_at": "2026-10-07T23:21:47Z"
+    },
+    {
+      "id": 113066160549,
+      "name": "historical-equivalence (windows-latest)",
+      "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620897/job/113066160549",
+      "started_at": "2026-10-07T23:19:40Z",
+      "completed_at": "2026-10-07T23:32:03Z"
+    },
+    {
+      "id": 113066160638,
+      "name": "qualification (ubuntu-latest)",
+      "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620897/job/113066160638",
+      "started_at": "2026-10-07T23:19:40Z",
+      "completed_at": "2026-10-07T23:20:51Z"
+    },
+    {
+      "id": 113066160639,
+      "name": "qualification (windows-latest)",
+      "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620897/job/113066160639",
+      "started_at": "2026-10-07T23:19:40Z",
+      "completed_at": "2026-10-07T23:30:21Z"
+    },
+    {
+      "id": 113069523833,
+      "name": "architecture-audit",
+      "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+      "status": "completed",
+      "conclusion": "skipped",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620897/job/113069523833",
+      "started_at": "2026-10-07T23:30:21Z",
+      "completed_at": "2026-10-07T23:30:21Z"
+    },
+    {
+      "id": 113069523859,
+      "name": "Signal exact VNext cycle controls to Work",
+      "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+      "status": "completed",
+      "conclusion": "skipped",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620897/job/113069523859",
+      "started_at": "2026-10-07T23:30:21Z",
+      "completed_at": "2026-10-07T23:30:21Z"
+    },
+    {
+      "id": 113070054013,
+      "name": "historical-platform-coverage",
+      "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620897/job/113070054013",
+      "started_at": "2026-10-07T23:32:05Z",
+      "completed_at": "2026-10-07T23:32:13Z"
+    }
+  ],
+  "pilot": {
+    "id": 37701620830,
+    "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+    "status": "completed",
+    "conclusion": "success",
+    "run_attempt": 1,
+    "event": "pull_request",
+    "path": ".github/workflows/kodjo-v2-pilot-tests.yml",
+    "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620830",
+    "created_at": "2026-10-07T23:19:37Z",
+    "updated_at": "2026-10-07T23:41:38Z"
+  },
+  "pilot_jobs": [
+    {
+      "id": 113066160459,
+      "name": "classify",
+      "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620830/job/113066160459",
+      "started_at": "2026-10-07T23:19:40Z",
+      "completed_at": "2026-10-07T23:19:47Z"
+    },
+    {
+      "id": 113066212647,
+      "name": "protocol",
+      "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620830/job/113066212647",
+      "started_at": "2026-10-07T23:19:55Z",
+      "completed_at": "2026-10-07T23:22:12Z"
+    },
+    {
+      "id": 113066983646,
+      "name": "protocol-windows-preflight",
+      "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620830/job/113066983646",
+      "started_at": "2026-10-07T23:22:14Z",
+      "completed_at": "2026-10-07T23:41:37Z"
+    },
+    {
+      "id": 113072928447,
+      "name": "disposable-qualification",
+      "head_sha": "9ecd3ec729dd9443462a53e03d9ed6b37f02746c",
+      "status": "completed",
+      "conclusion": "skipped",
+      "html_url": "https://github.com/MyUncried/Application-Routine/actions/runs/37701620830/job/113072928447",
+      "started_at": "2026-10-07T23:41:38Z",
+      "completed_at": "2026-10-07T23:41:37Z"
+    }
+  ]
+}
