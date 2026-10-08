@@ -60,3 +60,18 @@ Le 8 octobre 2026, l’utilisateur a répondu « oui » à la demande explicite 
 - Benchmark réel : run `37738297359` ; attente de la qualification complète exacte. Aucune invocation du reviewer attestée à ce relevé.
 
 Seconde passe du raccordement de clôture : la provenance héritée désignait systématiquement le workflow disposable. Correction additionnelle préparée : sélection explicite du workflow réel parmi les deux workflows autorisés, vérification de ses bytes au SHA de l’événement, refus d’un workflow différent ou obsolète. Le comportement historique par défaut est conservé. 44 tests ciblés PASS, 0 FAIL. Cette correction change le code du contrôleur : elle doit être publiée et qualifiée à son propre SHA avant utilisation réelle. Ne pas assimiler les résultats du candidat initial à cette qualification additionnelle.
+
+## Résultats initiaux distants et diagnostic avant nouvelle tête
+
+Le candidat publié `0df1a9b3188fa022063aac004227ae399cc1c834` a terminé ses quatre exécutions initiales :
+
+- qualification exacte `37738297203` : SUCCESS, contrats et équivalence historique sur Linux et Windows ;
+- pilotes `37738297210` : SUCCESS, suite Linux et préflight Windows compris ;
+- audit indépendant `37738297267` : FAILURE avant tout appel reviewer ;
+- benchmark réel `37738297359` : FAILURE pendant le premier appel reviewer, avant verdict.
+
+L’audit indépendant a exécuté la suite complète sur le runner Windows pendant environ 31 minutes : 1 411 PASS, 2 FAIL, 4 SKIP. Les deux échecs sont des fixtures d’interruption qui imposaient 300 ms et 500 ms à un nouveau processus Node. Sous cette charge, le processus n’a pas eu le temps de publier ses octets/son premier événement avant la terminaison. Les mêmes contrôles avaient réussi dans le pilote Windows précédent. La correction conserve une vraie interruption et porte les deux délais de fixture à 5 secondes ; elle ne change ni le timeout du reviewer réel ni ses règles d’acceptation.
+
+Le benchmark réel a passé le gate de qualification exacte, puis `prepare-vnext12-revision.js review` s’est arrêté après 37 secondes avec `VNEXT_LIVE_PROCESS_FAILED`. Aucun verdict REVISE ou APPROVE n’est revendiqué. L’artifact `11533009017`, digest `sha256:2ddcf21a98f54168b6a55e0a332b553fd57ac6a59102d5bf9faed30e78ed02a9`, conserve sept fichiers. Le connecteur a fourni la référence de téléchargement mais le stockage temporaire a répondu HTTP 502 lors des tentatives de lecture. Ce défaut est traité comme une indisponibilité transitoire de récupération : aucun second appel reviewer identique n’est lancé avant lecture du statut et de la réponse conservés.
+
+La prochaine tête doit inclure à la fois la correction de provenance IA-004 et la stabilisation des deux fixtures. Les qualifications acquises sur `0df1a9b3` ne seront pas réutilisées comme preuve du nouveau contrôleur.

@@ -188,10 +188,13 @@ test('compact review coverage refuses omission, duplicate, out-of-range, wrong c
 test('review process captures an actual interrupted child, bounds output and redacts inherited credentials', () => {
   let observed;
   assert.throws(() => Chain.command(process.execPath, ['-e', "process.stdout.write('partial'); setInterval(()=>{},1000)"],
-    process.cwd(), undefined, process.env, 300, { onResult: row => { observed = row; } }), /ETIMEDOUT/);
+    // Windows can take more than 300 ms to schedule a fresh Node child when the
+    // complete pilot suite is already saturating the self-hosted runner. Keep
+    // this a real timeout while allowing the child to emit its observed bytes.
+    process.cwd(), undefined, process.env, 5000, { onResult: row => { observed = row; } }), /ETIMEDOUT/);
   assert.equal(observed.error_code, 'ETIMEDOUT');
   assert.equal(observed.stdout, 'partial');
-  assert.ok(observed.duration_ms >= 250);
+  assert.ok(observed.duration_ms >= 4500);
   assert.equal(Chain.boundedReviewOutput('x'.repeat(150000)).truncated, true);
   assert.ok(Buffer.byteLength(Chain.boundedReviewOutput('x'.repeat(150000)).text) <= 128 * 1024);
   assert.equal(Chain.boundedReviewOutput('ghp_UNIT_TEST_TOKEN').text, '[REDACTED]');
