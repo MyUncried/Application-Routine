@@ -1,43 +1,62 @@
-# PRE-3 — Revue indépendante VNext : blocage avant lancement
+# PRE-3 — lancement de la revue indépendante après correction de volume
 
-Statut : BLOCKED_BEFORE_REVIEW. Claude n'a pas été invoqué. Le propriétaire n'a aucun lancement de revue valide à effectuer actuellement. Aucun plan n'est approuvé.
+Opération unique : [#340](https://github.com/MyUncried/Application-Routine/issues/340). Reprise autorisée le 09/10/2026 par Hermann. Aucun développement ni approbation anticipée.
 
-## Preuve et responsabilité
+## Référence exacte
 
-Le PlanContract, le registre, le graphe et le contrat UI ont été réellement construits. [preuve-blocage-produced.json](preuve-blocage-produced.json) mesure les objets réels : les trois champs obligatoires `figma_launch`, `requirementRegistry` et `uiAtomicityContract` représentent au minimum **726 368 365 unités UTF-16**, hors autres champs. Node v24.19.0 limite une chaîne à **536 870 888 unités**. Le dépassement minimal est **189 497 477**. Le script `verifier-borne-produced.py <dossier JSON restitués> <launch.json réel>` reproduit ce calcul en lecture streaming ; sa seconde exécution sur les objets restitués a confirmé les mêmes nombres.
+La revue porte sur les objets reconstruits par le protocole corrigé au commit **1d42479181586d926a9970867a41d35d44cc4661**, fusion de #341 dans la branche existante `plan/pre3-vnext-20261008`. #342 a intégré le correctif dans main ; son registre final est au commit `9c6ff9fa3fdae72cdc44e7dca49b753746394d2e`.
 
-`vnext-live-chain.js` assemble ces objets dans `produceInternal`. `vnext-contract.js` scelle par `canonicalHash` → `canonicalStringify` → `JSON.stringify(canonicalize(value))`. Cette chaîne logique complète ne tient pas dans une chaîne V8. Le transport gzip/base64 ne change pas ce calcul. Augmenter le heap, le délai ou lancer Claude sur le poste ne résout pas cette limite.
+La baseline applicative reste `1ddfb6d144552f578388257adc78db47ab5992c8` : le correctif main n'a changé aucun fichier src/app/package/lock. La source figée reste `3019c5f8c4a38efb83865635e0a8d67d48a5b5ab`, avec P3-01..23, D-334/D-335, 41 frames et 95 états. Les contrôles ciblés de fraîcheur du 08/10 sont réutilisés ; ce redémarrage ne prétend pas à une nouvelle lecture live de Figma. Recontrôler les évolutions pertinentes avant de figer la référence de livraison.
 
-La preuve est une borne exacte de sérialisation calculée sur les objets effectivement construits ; elle ne prétend pas être une réponse de Claude ni un échec du modèle. La fondation de ce calcul est présente depuis le commit `558f59648394f5cb3b1ec5f414ef11111bd3216e` ; les anciennes qualifications sur des paquets plus petits ne prouvent pas la capacité à traiter PRE-3 complet.
+Les constructeurs sont rejoués, pas modifiés. Le nouveau conteneur porte l'empreinte **603de045f94fec3f14aa2198edaaad0b91020b79adddb19041b06314cc725e16** et mesure 844623228 octets logiques. PlanContract/UI/registre conservent leurs empreintes publiées ; le changement d'empreinte du conteneur lie notamment la nouvelle révision du producteur et ses consommateurs. Voir [preuve de reprise](preuve-reprise-plan.json). La construction et la navigation ne prouvent aucune revue sémantique.
 
-La correction relève de l'agent responsable du producteur VNext, avant toute action du propriétaire : fournir un scellement canonique et un transport/une lecture du conteneur entier sans matérialiser une chaîne supérieure à la limite, conserver tous les champs et toutes les preuves, puis vérifier les consommateurs de revue et d'admission. Aucun correctif de ce type ni nouvelle campagne de certification n'est livré ici. Réduire les états, propriétés ou exigences n'est pas une solution admissible.
+## Ce qui est préparé
 
-## Point d'entrée canonique vérifié dans le dépôt
+- Launch Git réel et reconstruction complète : conteneur scellé, huit objets de planification, recette et traçabilité canonique.
+- 6384 requirements, 243974 assertions, 23 exigences de périmètre. Aucun montant de calcul applicatif ni migration future déclaré testé.
+- Extraction et cohérence locales : 41/41 captures, 6725 éléments, 95 états, 59 assertions de recette ; oracle de préparation 13 cas et 276 fixtures cohérents.
+- [Plan lisible](plancontract-publie.md), [objets canoniques publiés](contrats/manifest.json), [schéma/writers](schema-et-ecritures.md), [attendus](assertions-recette.json).
+- [Lanceur local](lancer-revue-poste.cjs) : contrôle Node 24+, Git et le binaire exact résolu par VNext, vérifie `claude auth status`, crée un checkout détaché de la révision fixée, reconstruit hors checkout puis refuse toute divergence des empreintes avant `vnext-chain.js review`.
 
-Le CLI courant accepte exactement :
+Le lanceur ne démarre ni développement, demande d'approbation, file d'implémentation, audit global ou qualification jetable. Une répétition refuse le dossier d'opération déjà présent. Aucun `--dangerously-skip-permissions` ni adaptateur de test.
 
-```text
-node scripts/kodjo/vnext-chain.js review <config.json> <receipt.json>
+## Action unique sur le poste de Hermann
+
+Après récupération de cette publication dans un checkout propre (la procédure exacte avec le SHA de publication figure dans #340), exécuter depuis ce checkout :
+
+```powershell
+node docs/preparation/PRE-3/planification/lancer-revue-poste.cjs
 ```
 
-La configuration doit contenir `produced_file` (chemin absolu d'un conteneur VNext complet scellé) et `evidence_directory` (chemin absolu hors checkout). **Le premier fichier manque : il ne peut pas être produit dans ce format pour ce périmètre. Cette syntaxe de référence n'est donc pas une commande de revue à exécuter.** Passer le PlanContract seul, la recette ou le manifeste de stockage à sa place contournerait le protocole et serait rejeté.
+Le checkout utilisé pour la revue sera un second worktree détaché, à `1d424791`, afin de conserver exactement le producteur qualifié. Le checkout courant et ses fichiers applicatifs ne sont pas modifiés. Le dossier de l'opération est `%TEMP%\p3-1d424791`, avec `checkout`, `evidence`, `operation.json` et `review-config.json`. Les chemins absolus et fichiers de configuration sont créés par le lanceur, sans paramètre fictif. Sortie attendue : `evidence\review-receipt.json` ; conserver aussi `evidence\claude-review`.
 
-Après résolution réelle du blocage, préparer un checkout isolé au commit publié, un `produced_file` scellé dont les références correspondent exactement à ce checkout, et la configuration absolue avant de fournir la commande finale sans paramètres fictifs. Le CLI vérifie les sources et la stabilité du checkout et produit les preuves de progression/réponse ainsi qu'un reçu durable. Le délai Claude configuré est de deux heures ; une interruption doit être reprise par le mécanisme VNext prévu, sans doublon.
+L'authentification/installations du poste ne sont pas vérifiables depuis ChatGPT : elles sont contrôlées avant la construction. Le binaire Windows imposé par le helper courant est `%APPDATA%\npm\node_modules\@anthropic-ai\claude-code\bin\claude.exe`. Si absent ou non authentifié, le lanceur s'arrête avant de créer l'opération ; transmettre seulement l'erreur, jamais un secret. La commande `auth status` et ses codes de sortie sont vérifiés dans [la documentation officielle Claude Code](https://code.claude.com/docs/en/cli-reference), consultée le 09/10.
 
-## Prérequis vérifiés et limites de vérification
+Prévoir la mémoire pour un tas Node plafonné à 7 GiB et ses allocations supplémentaires, l'espace des objets complets et de leurs vues lisibles, garder le poste éveillé et le terminal ouvert. Ces volumes sont des ressources techniques de revue, pas des plafonds fonctionnels KODJO. Aucune disponibilité actuelle du poste n'est présumée. Ne pas installer les dépendances applicatives pour cette seule revue : les constructeurs utilisent les modules Node du dépôt.
 
-| Prérequis | État actuel |
-|---|---|
-| Main VNext actif et baseline application | Vérifiés : `1ddfb6d144552f578388257adc78db47ab5992c8` ; aucune nouvelle campagne |
-| Suivi PRE-3 | #340 réutilisé ; aucune autre opération créée |
-| Source Figma et documentaire | Lecture Git réelle à `3019c5f8c4a38efb83865635e0a8d67d48a5b5ab` PASS ; 41 écrans / 95 états |
-| Plan, registre, graphe, contrat UI | Constructeurs courants PASS ; revue sémantique non faite |
-| Conteneur `produced_file` complet scellé | Bloqué par la borne de sérialisation ci-dessus |
-| Claude dans cet environnement | Indisponible ; aucune substitution à la revue indépendante |
-| Claude sur le poste propriétaire | Installation/authentification actuelles non vérifiables à distance |
-| Résolution Windows dans le code | `%APPDATA%\npm\node_modules\@anthropic-ai\claude-code\bin\claude.exe` |
-| Vérifications locales sans appel au modèle, lorsque le paquet sera prêt | `node --version`, `git --version`, chemin Claude résolu par le helper ; `claude --version`, `claude auth status` (sortie JSON par défaut, code 0 si authentifié) |
-| Accès GitHub pour la revue de ce manifeste | Sources FIGMA/MARKDOWN figées ; ne pas imposer un jeton GitHub sans besoin démontré |
-| Permissions du reviewer | Read/Glob/Grep ; pas d'édition, Bash ou MCP ; vérification avant/après du checkout |
+## Suivi et interruption
 
-Documentation CLI d'authentification : https://code.claude.com/docs/en/cli-reference. Ne pas affirmer que les prérequis du poste sont validés avant leurs résultats locaux. Aucune action iPhone, test de base de données ou de calcul n'est demandée au propriétaire pour ce jalon.
+Il ne s'agit pas d'un run GitHub Actions : la revue s'exécute sur le poste authentifié. Le terminal affiche son dossier exact. Dans une seconde fenêtre PowerShell :
+
+```powershell
+Get-Content (Join-Path $env:TEMP 'p3-1d424791\evidence\claude-review\initial-review-progress.json')
+Get-Content (Join-Path $env:TEMP 'p3-1d424791\evidence\claude-review\initial-review-process.json')
+```
+
+Ces fichiers n'apparaissent qu'après construction et préparation du dossier. Les étapes précédentes sont visibles dans le terminal et `evidence\construction-progress.json`. Le budget canonique Claude est deux heures. Aucune surveillance ChatGPT en arrière-plan n'est annoncée.
+
+Si une réponse durable existe mais pas le reçu, attendre la fin du processus puis exécuter depuis le checkout du lanceur :
+
+```powershell
+node docs/preparation/PRE-3/planification/lancer-revue-poste.cjs --recover
+```
+
+Cette commande utilise `recover-review`, sans nouvel appel modèle. Elle refuse l'absence de `initial-review-response.json` ou un reçu déjà présent. Ne pas supprimer les preuves ni relancer le lancement initial. Une construction interrompue ou une revue sans réponse durable nécessite diagnostic à partir du dossier conservé, pas un retry automatique.
+
+## Prochain jalon
+
+Transmettre le reçu et les preuves du processus pour validation et publication dans #340. ChatGPT traite les constats selon le cycle causal VNext puis prépare l'approbation exacte du plan. Hermann valide seulement le plan final revu. Les 304638 cibles restent dans la revue ; capacité de consultation complète non démontrée avant cet appel réel. Aucun verdict, omission acceptée ou conformité ne découle d'une empreinte.
+
+## Historique du blocage remplacé
+
+[preuve-blocage-produced.json](preuve-blocage-produced.json) conserve la borne de 726368365 unités UTF-16 pour trois champs et la limite V8 de 536870888. Le scellement par flux et les file-bundles intégrés par #341/#342 corrigent cette matérialisation. Le blocage de chaîne n'est plus un motif d'arrêt ; la disponibilité du reviewer authentifié et le résultat réel de sa revue restent distincts.
