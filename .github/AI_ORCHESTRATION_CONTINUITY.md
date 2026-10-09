@@ -206,3 +206,9 @@ Avant de publier `PLAN_APPROVED`, ChatGPT effectue un contrôle indépendant pon
 ## Parité V1.2
 
 V1.3 affirme conserver les barrières V1.2 explicitement listées dans le protocole principal. Cette affirmation ne constitue pas une preuve d’une comparaison ligne à ligne exhaustive avec le texte V1.2. Tant qu’un audit différentiel dédié n’a pas été exécuté avec V1.2 comme source, la parité textuelle exhaustive V1.2 reste `NON VÉRIFIABLE` ; cela n’autorise ni suppression ni affaiblissement d’une barrière connue.
+
+## VNext piloté par ChatGPT — relais du plan PRE-4
+
+Pour PRE-4 uniquement, le pilote ChatGPT utilise l'extension `.github/orchestration/KODJO_VNEXT_CHATGPT_PRE4_REVIEW_RELAY.md` : une demande immuable publiée dans GitHub déclenche le reviewer Claude existant sur le runner ; ChatGPT récupère et vérifie le reçu depuis les artefacts GitHub. Aucun transfert de commande, identifiant ou rapport n'est demandé à l'utilisateur. Un incident de publication se reprend depuis la réponse sauvegardée ; une tentative ambiguë ne permet pas de rappeler Claude implicitement.
+
+La fusion de cette extension est autorisée par l’utilisateur le 9 octobre après validation des correctifs parallèles. Son exécution reste préparatoire jusqu'à clôture de PRE-3 (#340) et instruction explicite de démarrage PRE-4. Elle ne change pas les portes humaines, les contrôles VNext ni la variante pilotée par Claude (#344). Elle n'ajoute pas de réveil automatique Work et ne transforme pas les preuves historiques V1.3 en qualification PRE-4.

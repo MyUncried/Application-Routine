@@ -268,3 +268,7 @@ Dépendance VNext de clôture (IA-F07) : `scripts/kodjo/lib/vnext-review-coverag
 | `scripts/kodjo/lib/vnext-file-bundle.js` | Transport intégral borné, restitution et contrôle des empreintes ; dépendance du gate partagé |
 | `scripts/kodjo/lib/vnext-plan-bundles.js` | Lecture des parties du plan autorisé à la révision protocolaire figée |
 | `.gitattributes` | Conservation des octets exacts des manifestes et parties de transport sous Windows, même avec core.autocrlf=true |
+
+## Extension préparatoire PRE-4 — pilote ChatGPT
+
+Relais de revue du plan : `.github/orchestration/KODJO_VNEXT_CHATGPT_PRE4_REVIEW_RELAY.md`, workflow `kodjo-vnext-chatgpt-plan-review.yml`, CLI `scripts/kodjo/chatgpt-plan-review.js` et tests `tests/kodjo/vnext-chatgpt-plan-review.pilot.js`. Cette extension indépendante de #344 ne s'active pas avant clôture PRE-3 et instruction PRE-4. Rapport : `.github/orchestration/reports/2026-10-09_VNEXT_CHATGPT_PRE4_REVIEW_RELAY.md`. Tests locaux de transport seuls ; parcours réel et réveil de conversation non qualifiés.
