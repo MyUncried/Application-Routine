@@ -1,0 +1,1347 @@
+{
+  "scopes": [
+    {
+      "scope_id": "P3-01",
+      "requirement": "Quatre entrées créer/modifier × Catalogue/Séance ; copies indépendantes",
+      "rule_ids": [
+        "REQ-e364498ec10106655ef06f59",
+        "REQ-fe24039cf7c16a77ec518ce4",
+        "REQ-f6bee7203790bb25a5a580c8",
+        "REQ-ebbfb991e0db61abbfe6028a",
+        "REQ-d6ebd1f90959566548021436",
+        "REQ-4afcac6ca21cf55c67976e3f"
+      ],
+      "assertion_ids": [
+        "P3-01/Catalogue:create",
+        "P3-01/Catalogue:edit",
+        "P3-01/Session:create",
+        "P3-01/Session:edit",
+        "P3-01/copy-isolation"
+      ],
+      "tests": [
+        "P3-01/Catalogue:create@src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "P3-01/Catalogue:create@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-01/Catalogue:create@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-01/Catalogue:create@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-01/Catalogue:edit@src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "P3-01/Catalogue:edit@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-01/Catalogue:edit@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-01/Catalogue:edit@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-01/Session:create@src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "P3-01/Session:create@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-01/Session:create@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-01/Session:create@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-01/Session:edit@src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "P3-01/Session:edit@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-01/Session:edit@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-01/Session:edit@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-01/copy-isolation@src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "P3-01/copy-isolation@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-01/copy-isolation@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-01/copy-isolation@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "test_paths": [
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "figma_frames": [
+        "4734:6342"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-02",
+      "requirement": "Éditeur complet et actions accessibles",
+      "rule_ids": [
+        "REQ-dca8fcbffab81bce5b3ece33",
+        "REQ-2ea2a56239f1033cccdbf611",
+        "REQ-e4b10065aa3f1026c872fd05",
+        "REQ-24dbf849725a379c24c07e5e",
+        "REQ-ed77f2c4feff23fe60841493",
+        "REQ-c71e67953322876214d58940"
+      ],
+      "assertion_ids": [
+        "P3-02/editor-fields",
+        "P3-02/keyboard-scroll"
+      ],
+      "tests": [
+        "P3-02/editor-fields@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "P3-02/editor-fields@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-02/keyboard-scroll@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "P3-02/keyboard-scroll@src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "test_paths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "figma_frames": [
+        "3542:4656",
+        "3943:6064",
+        "4217:6980",
+        "6407:9458"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-03",
+      "requirement": "Catégorie/Zones fidèles, valeurs conservées",
+      "rule_ids": [
+        "REQ-7d6f0fbe60947abaf8cef325",
+        "REQ-11afeea84007ba06481d9c18",
+        "REQ-7175c3316e66ca41f86ad2c6",
+        "REQ-be564aaa2f7c19c7e1d585bd",
+        "REQ-1beebac6f77da62e13102794",
+        "REQ-633430d3fc581041382d6255",
+        "REQ-00a0fe9c695098f078c1d984",
+        "REQ-f8e28f157ecf85e42ea488ea",
+        "REQ-b46b9f500ffd60197b579858",
+        "REQ-7e501f13b5be0568ed26cbfd"
+      ],
+      "assertion_ids": [
+        "P3-03/reference-retired",
+        "P3-03/empty-create-name",
+        "P3-03/zones-presentation"
+      ],
+      "tests": [
+        "P3-03/reference-retired@src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "P3-03/reference-retired@src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "P3-03/empty-create-name@src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "P3-03/empty-create-name@src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "P3-03/zones-presentation@src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
+      ],
+      "test_paths": [
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
+      ],
+      "figma_frames": [
+        "5088:6398",
+        "4332:7095",
+        "4474:7157",
+        "4478:7209",
+        "4683:6336",
+        "4861:6259",
+        "4861:6348"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-04",
+      "requirement": "Mode et cibles corrects dans trois modes",
+      "rule_ids": [
+        "REQ-c9b6f13e688fc0e6259904d3",
+        "REQ-c4fa2d106ec4af29be0dfc0e",
+        "REQ-a677b64e9545005ad109ea9a",
+        "REQ-f7c5bb3ef511e9989e4f099e",
+        "REQ-b7885d39b5a1037d823db03b",
+        "REQ-78dac76be735853f808d186b",
+        "REQ-0df6c21eb87c3578fefed717",
+        "REQ-e088044aa96e4c6bd8245bd7"
+      ],
+      "assertion_ids": [
+        "P3-04/mode-targets",
+        "P3-04/bounds"
+      ],
+      "tests": [
+        "P3-04/mode-targets@src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "P3-04/mode-targets@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "P3-04/mode-targets@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-04/bounds@src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "P3-04/bounds@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "P3-04/bounds@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "test_paths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "figma_frames": [
+        "6407:9551",
+        "6407:9805",
+        "6419:9847",
+        "6419:10028",
+        "6665:27008",
+        "7069:13573"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-05",
+      "requirement": "Uniforme/variable explicite, copie/restauration",
+      "rule_ids": [
+        "REQ-5893fa2b29b1dd40cf0eb808",
+        "REQ-2265beb4a6aaaf5c2873f04b",
+        "REQ-7492af67b63727fc5d83832f",
+        "REQ-a7798423c0cd9fc513582b3b",
+        "REQ-0660e28b740b08db0e1bdc76"
+      ],
+      "assertion_ids": [
+        "P3-05/equal-variable",
+        "P3-05/toggle-restoration"
+      ],
+      "tests": [
+        "P3-05/equal-variable@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "P3-05/equal-variable@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-05/toggle-restoration@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "P3-05/toggle-restoration@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "figma_frames": [
+        "6665:24616",
+        "6665:24844",
+        "6665:25072"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-06",
+      "requirement": "Augmentation/réduction/restauration de N",
+      "rule_ids": [
+        "REQ-3fb09caea44a28a9f7c9ea38",
+        "REQ-4f991a3080b6e0079fd43642",
+        "REQ-13af3d257fcb7de6d1fd540b",
+        "REQ-394f00aae78a8e85f04839cb"
+      ],
+      "assertion_ids": [
+        "P3-06/shrink-regrow",
+        "P3-06/commit-hidden"
+      ],
+      "tests": [
+        "P3-06/shrink-regrow@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "P3-06/shrink-regrow@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-06/commit-hidden@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "P3-06/commit-hidden@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "figma_frames": [
+        "6407:9966",
+        "6665:25277"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-07",
+      "requirement": "Déplacement, nouvelle première/dernière ligne",
+      "rule_ids": [
+        "REQ-fb496a9e3eb4e15571883cae",
+        "REQ-f42071c62338233ed7797395",
+        "REQ-a1c3235c5f4b460d6fbfd4fb"
+      ],
+      "assertion_ids": [
+        "P3-07/move-terminal",
+        "P3-07/move-accessible"
+      ],
+      "tests": [
+        "P3-07/move-terminal@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "P3-07/move-terminal@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-07/move-terminal@src/domain/activities/__tests__/executionCalculations.test.ts",
+        "P3-07/move-accessible@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "P3-07/move-accessible@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-07/move-accessible@src/domain/activities/__tests__/executionCalculations.test.ts"
+      ],
+      "test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/domain/activities/__tests__/executionCalculations.test.ts"
+      ],
+      "figma_frames": [
+        "6665:27608"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-08",
+      "requirement": "N=1 normalisé immédiatement",
+      "rule_ids": [
+        "REQ-4b6244645bac808d76f9246b",
+        "REQ-eb51b0a869e39accf16ca563",
+        "REQ-e27f4bfa2c3a94e8ea005cc4"
+      ],
+      "assertion_ids": [
+        "P3-08/immediate-N1",
+        "P3-08/restoration-N1"
+      ],
+      "tests": [
+        "P3-08/immediate-N1@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "P3-08/immediate-N1@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-08/immediate-N1@src/domain/activities/__tests__/executionCalculations.test.ts",
+        "P3-08/restoration-N1@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "P3-08/restoration-N1@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-08/restoration-N1@src/domain/activities/__tests__/executionCalculations.test.ts"
+      ],
+      "test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/domain/activities/__tests__/executionCalculations.test.ts"
+      ],
+      "figma_frames": [
+        "6665:26822"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-09",
+      "requirement": "Directions et deux ordres bilatéraux",
+      "rule_ids": [
+        "REQ-d52c65c3b0b5b8a6b4d79296",
+        "REQ-47282d1851bc3e68d1884356",
+        "REQ-1f233784566b10f1075da3d3",
+        "REQ-dbc1f5e9343a9a2f9b285311",
+        "REQ-ca6937cd18dd2f8d3a658ff8",
+        "REQ-cd1671aefa87e4c55589d6a5",
+        "REQ-2d9ef4c4ec65b091c41e714e",
+        "REQ-36c7c7983f87b5a43aa994ce"
+      ],
+      "assertion_ids": [
+        "P3-09/directions",
+        "P3-09/unilateral-controls"
+      ],
+      "tests": [
+        "P3-09/directions@src/domain/activities/__tests__/executionCalculations.test.ts",
+        "P3-09/directions@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-09/unilateral-controls@src/domain/activities/__tests__/executionCalculations.test.ts",
+        "P3-09/unilateral-controls@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "figma_frames": [
+        "6407:10481",
+        "6411:9649",
+        "6665:26185",
+        "6665:26575",
+        "6665:27862",
+        "7069:13464"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-10",
+      "requirement": "Défauts Profil copiés sans réécriture",
+      "rule_ids": [
+        "REQ-e6e85ed715a71bb13e47b1ca"
+      ],
+      "assertion_ids": [
+        "P3-10/profile-new-only",
+        "P3-10/legacy-neutral-proposal"
+      ],
+      "tests": [
+        "P3-10/profile-new-only@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-10/profile-new-only@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-10/profile-new-only@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-10/legacy-neutral-proposal@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-10/legacy-neutral-proposal@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-10/legacy-neutral-proposal@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "test_paths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "figma_frames": [],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-11",
+      "requirement": "Bip 0..10 dans trois modes",
+      "rule_ids": [
+        "REQ-c4fa2d106ec4af29be0dfc0e",
+        "REQ-a677b64e9545005ad109ea9a",
+        "REQ-f7c5bb3ef511e9989e4f099e",
+        "REQ-7492af67b63727fc5d83832f",
+        "REQ-7e467f0483ddc28e3330de81",
+        "REQ-78dac76be735853f808d186b",
+        "REQ-f9cb0657666acfdae7fc6770"
+      ],
+      "assertion_ids": [
+        "P3-11/all-modes-bip"
+      ],
+      "tests": [
+        "P3-11/all-modes-bip@src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "P3-11/all-modes-bip@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "P3-11/all-modes-bip@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-11/all-modes-bip@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "test_paths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "figma_frames": [
+        "6407:9805",
+        "6419:9847",
+        "6419:10028",
+        "6665:25072",
+        "7059:13302",
+        "7069:13573"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-12",
+      "requirement": "Totaux exact/estimé/omis corrects",
+      "rule_ids": [
+        "REQ-99bc3dfceb001f925437209f",
+        "REQ-47282d1851bc3e68d1884356",
+        "REQ-a677b64e9545005ad109ea9a",
+        "REQ-f7c5bb3ef511e9989e4f099e",
+        "REQ-30b44b8b8eded65d2e28f9a9",
+        "REQ-5893fa2b29b1dd40cf0eb808",
+        "REQ-2265beb4a6aaaf5c2873f04b",
+        "REQ-7492af67b63727fc5d83832f",
+        "REQ-dbc1f5e9343a9a2f9b285311",
+        "REQ-4b6244645bac808d76f9246b",
+        "REQ-b216b89bd2cb6d270937c135",
+        "REQ-7e467f0483ddc28e3330de81",
+        "REQ-78dac76be735853f808d186b",
+        "REQ-42658704adaaefceca42eeab",
+        "REQ-360330540685103cd8744e65"
+      ],
+      "assertion_ids": [
+        "P3-12/normative-totals",
+        "P3-12/omission"
+      ],
+      "tests": [
+        "P3-12/normative-totals@src/domain/activities/__tests__/executionCalculations.test.ts",
+        "P3-12/normative-totals@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-12/omission@src/domain/activities/__tests__/executionCalculations.test.ts",
+        "P3-12/omission@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-12/numeric/A",
+        "P3-12/numeric/B",
+        "P3-12/numeric/C",
+        "P3-12/numeric/D",
+        "P3-12/numeric/E",
+        "P3-12/numeric/F0",
+        "P3-12/numeric/F4",
+        "P3-12/numeric/CADENCE",
+        "P3-12/numeric/DURATION_BEEP",
+        "P3-12/numeric/N1_SIDE",
+        "P3-12/numeric/N1_SIDE_R",
+        "P3-12/numeric/N1_WITH_PAUSE",
+        "P3-12/numeric/N1_NO_PAUSE"
+      ],
+      "test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "figma_frames": [
+        "6411:9546",
+        "6411:9649",
+        "6419:9847",
+        "6419:10028",
+        "6423:9953",
+        "6665:24616",
+        "6665:24844",
+        "6665:25072",
+        "6665:26575",
+        "6665:26822",
+        "6665:28050",
+        "7059:13302",
+        "7069:13573"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-13",
+      "requirement": "R remplace PN ; calcul Séance sans doublon",
+      "rule_ids": [
+        "REQ-2265beb4a6aaaf5c2873f04b",
+        "REQ-fb496a9e3eb4e15571883cae",
+        "REQ-335d9ca70d2a7405f846289b",
+        "REQ-742773db7e3644671c9c1dc6",
+        "REQ-fc1fb882be0b8158bf0502c9",
+        "REQ-4aaedf0fd0a2ed253c3469d4"
+      ],
+      "assertion_ids": [
+        "P3-13/R-terminal",
+        "P3-13/unknown-known",
+        "P3-13/tours-cycles-list",
+        "P3-13/no-auto-R"
+      ],
+      "tests": [
+        "P3-13/R-terminal@src/domain/activities/__tests__/executionCalculations.test.ts",
+        "P3-13/R-terminal@src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "P3-13/R-terminal@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-13/R-terminal@src/features/sessions/__tests__/formatSessionSummary.test.ts",
+        "P3-13/R-terminal@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-13/unknown-known@src/domain/activities/__tests__/executionCalculations.test.ts",
+        "P3-13/unknown-known@src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "P3-13/unknown-known@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-13/unknown-known@src/features/sessions/__tests__/formatSessionSummary.test.ts",
+        "P3-13/unknown-known@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-13/tours-cycles-list@src/domain/activities/__tests__/executionCalculations.test.ts",
+        "P3-13/tours-cycles-list@src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "P3-13/tours-cycles-list@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-13/tours-cycles-list@src/features/sessions/__tests__/formatSessionSummary.test.ts",
+        "P3-13/tours-cycles-list@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-13/no-auto-R@src/domain/activities/__tests__/executionCalculations.test.ts",
+        "P3-13/no-auto-R@src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "P3-13/no-auto-R@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-13/no-auto-R@src/features/sessions/__tests__/formatSessionSummary.test.ts",
+        "P3-13/no-auto-R@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/features/sessions/__tests__/formatSessionSummary.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "figma_frames": [
+        "6665:24844",
+        "6665:27608"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-14",
+      "requirement": "Inversion Durée uniforme",
+      "rule_ids": [
+        "REQ-99bc3dfceb001f925437209f",
+        "REQ-30b44b8b8eded65d2e28f9a9",
+        "REQ-fa7135f1ed4e134cd3352957",
+        "REQ-74d203d9c959b7ba2208f9f4"
+      ],
+      "assertion_ids": [
+        "P3-14/inverse-enumeration",
+        "P3-14/inverse-boundaries"
+      ],
+      "tests": [
+        "P3-14/inverse-enumeration@src/domain/activities/__tests__/executionCalculations.test.ts",
+        "P3-14/inverse-enumeration@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-14/inverse-boundaries@src/domain/activities/__tests__/executionCalculations.test.ts",
+        "P3-14/inverse-boundaries@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-14/inverse-explicit"
+      ],
+      "test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "figma_frames": [
+        "6411:9546",
+        "6423:9953"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-15",
+      "requirement": "Phrase et gras conformes aux 276 gabarits",
+      "rule_ids": [
+        "REQ-a55910e5ec475c7f4ff50aa2",
+        "REQ-5893fa2b29b1dd40cf0eb808",
+        "REQ-4f991a3080b6e0079fd43642",
+        "REQ-ca6937cd18dd2f8d3a658ff8",
+        "REQ-b216b89bd2cb6d270937c135",
+        "REQ-dffcbea4cdc23f986389b210",
+        "REQ-c1f64d5b502d4fa0a1f0df82",
+        "REQ-b9d2adab09887ccbe45ca531",
+        "REQ-21bef031be084e8e02e5642e",
+        "REQ-03626af0a0094638bfb59c8c"
+      ],
+      "assertion_ids": [
+        "P3-15/corpus-276",
+        "P3-15/grammar-edges",
+        "P3-15/no-storage",
+        "P3-15/long-phrase"
+      ],
+      "tests": [
+        "P3-15/corpus-276@src/domain/activities/__tests__/executionPhrase.test.ts",
+        "P3-15/corpus-276@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "P3-15/corpus-276@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-15/grammar-edges@src/domain/activities/__tests__/executionPhrase.test.ts",
+        "P3-15/grammar-edges@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "P3-15/grammar-edges@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-15/no-storage@src/domain/activities/__tests__/executionPhrase.test.ts",
+        "P3-15/no-storage@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "P3-15/no-storage@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-15/long-phrase@src/domain/activities/__tests__/executionPhrase.test.ts",
+        "P3-15/long-phrase@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "P3-15/long-phrase@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-15/corpus/1",
+        "P3-15/corpus/2",
+        "P3-15/corpus/3",
+        "P3-15/corpus/4",
+        "P3-15/corpus/5",
+        "P3-15/corpus/6",
+        "P3-15/corpus/7",
+        "P3-15/corpus/8",
+        "P3-15/corpus/9",
+        "P3-15/corpus/10",
+        "P3-15/corpus/11",
+        "P3-15/corpus/12",
+        "P3-15/corpus/13",
+        "P3-15/corpus/14",
+        "P3-15/corpus/15",
+        "P3-15/corpus/16",
+        "P3-15/corpus/17",
+        "P3-15/corpus/18",
+        "P3-15/corpus/19",
+        "P3-15/corpus/20",
+        "P3-15/corpus/21",
+        "P3-15/corpus/22",
+        "P3-15/corpus/23",
+        "P3-15/corpus/24",
+        "P3-15/corpus/25",
+        "P3-15/corpus/26",
+        "P3-15/corpus/27",
+        "P3-15/corpus/28",
+        "P3-15/corpus/29",
+        "P3-15/corpus/30",
+        "P3-15/corpus/31",
+        "P3-15/corpus/32",
+        "P3-15/corpus/33",
+        "P3-15/corpus/34",
+        "P3-15/corpus/35",
+        "P3-15/corpus/36",
+        "P3-15/corpus/37",
+        "P3-15/corpus/38",
+        "P3-15/corpus/39",
+        "P3-15/corpus/40",
+        "P3-15/corpus/41",
+        "P3-15/corpus/42",
+        "P3-15/corpus/43",
+        "P3-15/corpus/44",
+        "P3-15/corpus/45",
+        "P3-15/corpus/46",
+        "P3-15/corpus/47",
+        "P3-15/corpus/48",
+        "P3-15/corpus/49",
+        "P3-15/corpus/50",
+        "P3-15/corpus/51",
+        "P3-15/corpus/52",
+        "P3-15/corpus/53",
+        "P3-15/corpus/54",
+        "P3-15/corpus/55",
+        "P3-15/corpus/56",
+        "P3-15/corpus/57",
+        "P3-15/corpus/58",
+        "P3-15/corpus/59",
+        "P3-15/corpus/60",
+        "P3-15/corpus/61",
+        "P3-15/corpus/62",
+        "P3-15/corpus/63",
+        "P3-15/corpus/64",
+        "P3-15/corpus/65",
+        "P3-15/corpus/66",
+        "P3-15/corpus/67",
+        "P3-15/corpus/68",
+        "P3-15/corpus/69",
+        "P3-15/corpus/70",
+        "P3-15/corpus/71",
+        "P3-15/corpus/72",
+        "P3-15/corpus/73",
+        "P3-15/corpus/74",
+        "P3-15/corpus/75",
+        "P3-15/corpus/76",
+        "P3-15/corpus/77",
+        "P3-15/corpus/78",
+        "P3-15/corpus/79",
+        "P3-15/corpus/80",
+        "P3-15/corpus/81",
+        "P3-15/corpus/82",
+        "P3-15/corpus/83",
+        "P3-15/corpus/84",
+        "P3-15/corpus/85",
+        "P3-15/corpus/86",
+        "P3-15/corpus/87",
+        "P3-15/corpus/88",
+        "P3-15/corpus/89",
+        "P3-15/corpus/90",
+        "P3-15/corpus/91",
+        "P3-15/corpus/92",
+        "P3-15/corpus/93",
+        "P3-15/corpus/94",
+        "P3-15/corpus/95",
+        "P3-15/corpus/96",
+        "P3-15/corpus/97",
+        "P3-15/corpus/98",
+        "P3-15/corpus/99",
+        "P3-15/corpus/100",
+        "P3-15/corpus/101",
+        "P3-15/corpus/102",
+        "P3-15/corpus/103",
+        "P3-15/corpus/104",
+        "P3-15/corpus/105",
+        "P3-15/corpus/106",
+        "P3-15/corpus/107",
+        "P3-15/corpus/108",
+        "P3-15/corpus/109",
+        "P3-15/corpus/110",
+        "P3-15/corpus/111",
+        "P3-15/corpus/112",
+        "P3-15/corpus/113",
+        "P3-15/corpus/114",
+        "P3-15/corpus/115",
+        "P3-15/corpus/116",
+        "P3-15/corpus/117",
+        "P3-15/corpus/118",
+        "P3-15/corpus/119",
+        "P3-15/corpus/120",
+        "P3-15/corpus/121",
+        "P3-15/corpus/122",
+        "P3-15/corpus/123",
+        "P3-15/corpus/124",
+        "P3-15/corpus/125",
+        "P3-15/corpus/126",
+        "P3-15/corpus/127",
+        "P3-15/corpus/128",
+        "P3-15/corpus/129",
+        "P3-15/corpus/130",
+        "P3-15/corpus/131",
+        "P3-15/corpus/132",
+        "P3-15/corpus/133",
+        "P3-15/corpus/134",
+        "P3-15/corpus/135",
+        "P3-15/corpus/136",
+        "P3-15/corpus/137",
+        "P3-15/corpus/138",
+        "P3-15/corpus/139",
+        "P3-15/corpus/140",
+        "P3-15/corpus/141",
+        "P3-15/corpus/142",
+        "P3-15/corpus/143",
+        "P3-15/corpus/144",
+        "P3-15/corpus/145",
+        "P3-15/corpus/146",
+        "P3-15/corpus/147",
+        "P3-15/corpus/148",
+        "P3-15/corpus/149",
+        "P3-15/corpus/150",
+        "P3-15/corpus/151",
+        "P3-15/corpus/152",
+        "P3-15/corpus/153",
+        "P3-15/corpus/154",
+        "P3-15/corpus/155",
+        "P3-15/corpus/156",
+        "P3-15/corpus/157",
+        "P3-15/corpus/158",
+        "P3-15/corpus/159",
+        "P3-15/corpus/160",
+        "P3-15/corpus/161",
+        "P3-15/corpus/162",
+        "P3-15/corpus/163",
+        "P3-15/corpus/164",
+        "P3-15/corpus/165",
+        "P3-15/corpus/166",
+        "P3-15/corpus/167",
+        "P3-15/corpus/168",
+        "P3-15/corpus/169",
+        "P3-15/corpus/170",
+        "P3-15/corpus/171",
+        "P3-15/corpus/172",
+        "P3-15/corpus/173",
+        "P3-15/corpus/174",
+        "P3-15/corpus/175",
+        "P3-15/corpus/176",
+        "P3-15/corpus/177",
+        "P3-15/corpus/178",
+        "P3-15/corpus/179",
+        "P3-15/corpus/180",
+        "P3-15/corpus/181",
+        "P3-15/corpus/182",
+        "P3-15/corpus/183",
+        "P3-15/corpus/184",
+        "P3-15/corpus/185",
+        "P3-15/corpus/186",
+        "P3-15/corpus/187",
+        "P3-15/corpus/188",
+        "P3-15/corpus/189",
+        "P3-15/corpus/190",
+        "P3-15/corpus/191",
+        "P3-15/corpus/192",
+        "P3-15/corpus/193",
+        "P3-15/corpus/194",
+        "P3-15/corpus/195",
+        "P3-15/corpus/196",
+        "P3-15/corpus/197",
+        "P3-15/corpus/198",
+        "P3-15/corpus/199",
+        "P3-15/corpus/200",
+        "P3-15/corpus/201",
+        "P3-15/corpus/202",
+        "P3-15/corpus/203",
+        "P3-15/corpus/204",
+        "P3-15/corpus/205",
+        "P3-15/corpus/206",
+        "P3-15/corpus/207",
+        "P3-15/corpus/208",
+        "P3-15/corpus/209",
+        "P3-15/corpus/210",
+        "P3-15/corpus/211",
+        "P3-15/corpus/212",
+        "P3-15/corpus/213",
+        "P3-15/corpus/214",
+        "P3-15/corpus/215",
+        "P3-15/corpus/216",
+        "P3-15/corpus/217",
+        "P3-15/corpus/218",
+        "P3-15/corpus/219",
+        "P3-15/corpus/220",
+        "P3-15/corpus/221",
+        "P3-15/corpus/222",
+        "P3-15/corpus/223",
+        "P3-15/corpus/224",
+        "P3-15/corpus/225",
+        "P3-15/corpus/226",
+        "P3-15/corpus/227",
+        "P3-15/corpus/228",
+        "P3-15/corpus/229",
+        "P3-15/corpus/230",
+        "P3-15/corpus/231",
+        "P3-15/corpus/232",
+        "P3-15/corpus/233",
+        "P3-15/corpus/234",
+        "P3-15/corpus/235",
+        "P3-15/corpus/236",
+        "P3-15/corpus/237",
+        "P3-15/corpus/238",
+        "P3-15/corpus/239",
+        "P3-15/corpus/240",
+        "P3-15/corpus/241",
+        "P3-15/corpus/242",
+        "P3-15/corpus/243",
+        "P3-15/corpus/244",
+        "P3-15/corpus/245",
+        "P3-15/corpus/246",
+        "P3-15/corpus/247",
+        "P3-15/corpus/248",
+        "P3-15/corpus/249",
+        "P3-15/corpus/250",
+        "P3-15/corpus/251",
+        "P3-15/corpus/252",
+        "P3-15/corpus/253",
+        "P3-15/corpus/254",
+        "P3-15/corpus/255",
+        "P3-15/corpus/256",
+        "P3-15/corpus/257",
+        "P3-15/corpus/258",
+        "P3-15/corpus/259",
+        "P3-15/corpus/260",
+        "P3-15/corpus/261",
+        "P3-15/corpus/262",
+        "P3-15/corpus/263",
+        "P3-15/corpus/264",
+        "P3-15/corpus/265",
+        "P3-15/corpus/266",
+        "P3-15/corpus/267",
+        "P3-15/corpus/268",
+        "P3-15/corpus/269",
+        "P3-15/corpus/270",
+        "P3-15/corpus/271",
+        "P3-15/corpus/272",
+        "P3-15/corpus/273",
+        "P3-15/corpus/274",
+        "P3-15/corpus/275",
+        "P3-15/corpus/276"
+      ],
+      "test_paths": [
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "figma_frames": [
+        "6407:9702",
+        "6665:24616",
+        "6665:25277",
+        "6665:27862",
+        "6665:28050",
+        "7119:27855"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-16",
+      "requirement": "Brouillons atomiques et erreurs conservées",
+      "rule_ids": [
+        "REQ-2ea2a56239f1033cccdbf611",
+        "REQ-e4b10065aa3f1026c872fd05",
+        "REQ-11afeea84007ba06481d9c18",
+        "REQ-be564aaa2f7c19c7e1d585bd",
+        "REQ-986f9ebd32fb8064c798a617",
+        "REQ-24dbf849725a379c24c07e5e",
+        "REQ-c9b6f13e688fc0e6259904d3",
+        "REQ-a55910e5ec475c7f4ff50aa2",
+        "REQ-b7885d39b5a1037d823db03b",
+        "REQ-1b9d902ab46d9e11e1db4046",
+        "REQ-3dd1e56c7dd541640c2caf10",
+        "REQ-fb496a9e3eb4e15571883cae",
+        "REQ-ca6937cd18dd2f8d3a658ff8",
+        "REQ-a21693802324acf3f17b1be5",
+        "REQ-514b489a9cf30114b782b094",
+        "REQ-0236cc7bab0de9af20e004a6",
+        "REQ-0e23418cff2d60d57118b91d"
+      ],
+      "assertion_ids": [
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap"
+      ],
+      "tests": [
+        "P3-16/sheet-boundary@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "P3-16/sheet-boundary@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-16/sheet-boundary@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-16/fold-incomplete@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "P3-16/fold-incomplete@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-16/fold-incomplete@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-16/parent-guard@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "P3-16/parent-guard@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-16/parent-guard@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-16/failure-doubletap@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "P3-16/failure-doubletap@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-16/failure-doubletap@src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "figma_frames": [
+        "3943:6064",
+        "4217:6980",
+        "4332:7095",
+        "4478:7209",
+        "4714:6241",
+        "6407:9458",
+        "6407:9551",
+        "6407:9702",
+        "6665:27008",
+        "6665:27232",
+        "6665:27458",
+        "6665:27608",
+        "6665:27862"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-17",
+      "requirement": "Persistance et migration compatibles",
+      "rule_ids": [
+        "REQ-7d6f0fbe60947abaf8cef325",
+        "REQ-e364498ec10106655ef06f59",
+        "REQ-5b34a61e1bba57ca4cc09932"
+      ],
+      "assertion_ids": [
+        "P3-17/migration-real",
+        "P3-17/canonical-roundtrip",
+        "P3-17/corrupt-version",
+        "P3-17/transaction-FK"
+      ],
+      "tests": [
+        "P3-17/migration-real@src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+        "P3-17/migration-real@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-17/migration-real@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-17/migration-real@src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+        "P3-17/canonical-roundtrip@src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+        "P3-17/canonical-roundtrip@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-17/canonical-roundtrip@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-17/canonical-roundtrip@src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+        "P3-17/corrupt-version@src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+        "P3-17/corrupt-version@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-17/corrupt-version@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-17/corrupt-version@src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+        "P3-17/transaction-FK@src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+        "P3-17/transaction-FK@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-17/transaction-FK@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-17/transaction-FK@src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+        "P3-17/migration/fresh-v9",
+        "P3-17/migration/populated-v8-v9",
+        "P3-17/migration/idempotent",
+        "P3-17/migration/foreign-key-position",
+        "P3-17/migration/malformed-unknown-json",
+        "P3-17/migration/scalar-projection",
+        "P3-17/migration/legacy-out-of-bounds",
+        "P3-17/migration/per-statement-rollback"
+      ],
+      "test_paths": [
+        "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts"
+      ],
+      "figma_frames": [
+        "5088:6398",
+        "4734:6342"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-18",
+      "requirement": "Copie/duplication/instantané incluent tous les paramètres",
+      "rule_ids": [
+        "REQ-8749cb64aacab3fb0714f950",
+        "REQ-a1828a86de25d6951ab73a9d"
+      ],
+      "assertion_ids": [
+        "P3-18/copy-complete",
+        "P3-18/historical-immutability"
+      ],
+      "tests": [
+        "P3-18/copy-complete@src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "P3-18/copy-complete@src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+        "P3-18/copy-complete@src/domain/sessions/__tests__/composition.test.ts",
+        "P3-18/historical-immutability@src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "P3-18/historical-immutability@src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+        "P3-18/historical-immutability@src/domain/sessions/__tests__/composition.test.ts"
+      ],
+      "test_paths": [
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+        "src/domain/sessions/__tests__/composition.test.ts"
+      ],
+      "figma_frames": [],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-19",
+      "requirement": "Steppers/roulettes/repli/scroll fonctionnels",
+      "rule_ids": [
+        "REQ-3fb09caea44a28a9f7c9ea38",
+        "REQ-c0653265fd8e6e6ed3b3f7e0",
+        "REQ-d52c65c3b0b5b8a6b4d79296",
+        "REQ-4f991a3080b6e0079fd43642",
+        "REQ-3dd1e56c7dd541640c2caf10",
+        "REQ-93bf9d29adf8b6f89b7a4a30",
+        "REQ-160d96a8656ca6a5c9e9ac27",
+        "REQ-0f77798651993abe63946c9b"
+      ],
+      "assertion_ids": [
+        "P3-19/hold",
+        "P3-19/non-accelerated",
+        "P3-19/exclusive-scroll"
+      ],
+      "tests": [
+        "P3-19/hold@src/shared/ui/__tests__/ProfileStepper.test.ts",
+        "P3-19/hold@src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "P3-19/hold@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-19/non-accelerated@src/shared/ui/__tests__/ProfileStepper.test.ts",
+        "P3-19/non-accelerated@src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "P3-19/non-accelerated@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-19/exclusive-scroll@src/shared/ui/__tests__/ProfileStepper.test.ts",
+        "P3-19/exclusive-scroll@src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "P3-19/exclusive-scroll@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "test_paths": [
+        "src/shared/ui/__tests__/ProfileStepper.test.ts",
+        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "figma_frames": [
+        "6407:9966",
+        "6407:10127",
+        "6407:10481",
+        "6665:25277",
+        "6665:27458"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-20",
+      "requirement": "Surfaces visuelles bornées conformes",
+      "rule_ids": [
+        "REQ-6de6b2934cac2f72a5d7fced",
+        "REQ-06d67949ecd01647b731d3c9"
+      ],
+      "assertion_ids": [
+        "P3-20/all-surfaces",
+        "P3-20/sheet-specific"
+      ],
+      "tests": [
+        "P3-20/all-surfaces@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "P3-20/all-surfaces@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-20/all-surfaces@src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "P3-20/all-surfaces@src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "P3-20/all-surfaces@src/shared/ui/__tests__/tokens.test.ts",
+        "P3-20/all-surfaces@src/shared/i18n/__tests__/index.test.ts",
+        "P3-20/sheet-specific@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "P3-20/sheet-specific@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-20/sheet-specific@src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "P3-20/sheet-specific@src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "P3-20/sheet-specific@src/shared/ui/__tests__/tokens.test.ts",
+        "P3-20/sheet-specific@src/shared/i18n/__tests__/index.test.ts"
+      ],
+      "test_paths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/shared/ui/__tests__/tokens.test.ts",
+        "src/shared/i18n/__tests__/index.test.ts"
+      ],
+      "figma_frames": [
+        "3542:4656",
+        "3943:6064",
+        "4217:6980",
+        "5088:6398",
+        "4734:6342",
+        "4332:7095",
+        "4474:7157",
+        "4478:7209",
+        "4683:6336",
+        "4714:6241",
+        "4861:6259",
+        "4861:6348",
+        "6407:9458",
+        "6407:9551",
+        "6407:9702",
+        "6407:9805",
+        "6407:9966",
+        "6407:10127",
+        "6407:10481",
+        "6411:9546",
+        "6411:9649",
+        "6419:9847",
+        "6419:10028",
+        "6423:9953",
+        "6665:24616",
+        "6665:24844",
+        "6665:25072",
+        "6665:25277",
+        "6665:26185",
+        "6665:26575",
+        "6665:26822",
+        "6665:27008",
+        "6665:27232",
+        "6665:27458",
+        "6665:27608",
+        "6665:27862",
+        "6665:28050",
+        "7059:13302",
+        "7069:13464",
+        "7069:13573",
+        "7119:27855"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST",
+        "VISUAL_COMPARE"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-21",
+      "requirement": "Accessibilité des nouveaux contrôles",
+      "rule_ids": [
+        "REQ-dffcbea4cdc23f986389b210",
+        "REQ-be6e7d796429be1c0f364017"
+      ],
+      "assertion_ids": [
+        "P3-21/accessible-controls"
+      ],
+      "tests": [
+        "P3-21/accessible-controls@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "P3-21/accessible-controls@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-21/accessible-controls@src/features/activities/__tests__/ActivityMediaList.test.tsx"
+      ],
+      "test_paths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/activities/__tests__/ActivityMediaList.test.tsx"
+      ],
+      "figma_frames": [
+        "7119:27855"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST",
+        "ACCESSIBILITY_CHECK"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-22",
+      "requirement": "Frontières respectées, consommateurs préservés",
+      "rule_ids": [
+        "REQ-633430d3fc581041382d6255",
+        "REQ-00a0fe9c695098f078c1d984",
+        "REQ-0dd4ace68df07f4ae660be2d"
+      ],
+      "assertion_ids": [
+        "P3-22/scope-regression"
+      ],
+      "tests": [
+        "P3-22/scope-regression@src/domain/sessions/__tests__/calculations.test.ts",
+        "P3-22/scope-regression@src/domain/sessions/__tests__/validation.test.ts",
+        "P3-22/scope-regression@src/domain/sessions/__tests__/composition.test.ts",
+        "P3-22/scope-regression@src/features/activities/__tests__/ActivityCard.test.tsx",
+        "P3-22/scope-regression@src/features/sessions/__tests__/SessionCard.test.tsx",
+        "P3-22/scope-regression@src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts"
+      ],
+      "test_paths": [
+        "src/domain/sessions/__tests__/calculations.test.ts",
+        "src/domain/sessions/__tests__/validation.test.ts",
+        "src/domain/sessions/__tests__/composition.test.ts",
+        "src/features/activities/__tests__/ActivityCard.test.tsx",
+        "src/features/sessions/__tests__/SessionCard.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts"
+      ],
+      "figma_frames": [
+        "4861:6259",
+        "4861:6348"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    },
+    {
+      "scope_id": "P3-23",
+      "requirement": "Import de médias depuis l’éditeur, association persistante et données disponibles pour la future exécution",
+      "rule_ids": [
+        "REQ-2ea2a56239f1033cccdbf611",
+        "REQ-e4b10065aa3f1026c872fd05",
+        "REQ-e364498ec10106655ef06f59",
+        "REQ-4b5ff122ecc65b4ab59d834d",
+        "REQ-b21a196c714a22c5a7a681e6",
+        "REQ-b5634c649f29da401380c7d7",
+        "REQ-1b17ad539ed0d149b2ce988f"
+      ],
+      "assertion_ids": [
+        "P3-23/import-multiple",
+        "P3-23/cancel-local-error",
+        "P3-23/permissions",
+        "P3-23/file-preservation",
+        "P3-23/video-thumbnail"
+      ],
+      "tests": [
+        "P3-23/import-multiple@src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "P3-23/import-multiple@src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "P3-23/import-multiple@src/infrastructure/media/__tests__/VideoPoster.test.ts",
+        "P3-23/import-multiple@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-23/import-multiple@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-23/import-multiple@src/features/activities/__tests__/ActivityMediaList.test.tsx",
+        "P3-23/cancel-local-error@src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "P3-23/cancel-local-error@src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "P3-23/cancel-local-error@src/infrastructure/media/__tests__/VideoPoster.test.ts",
+        "P3-23/cancel-local-error@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-23/cancel-local-error@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-23/cancel-local-error@src/features/activities/__tests__/ActivityMediaList.test.tsx",
+        "P3-23/permissions@src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "P3-23/permissions@src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "P3-23/permissions@src/infrastructure/media/__tests__/VideoPoster.test.ts",
+        "P3-23/permissions@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-23/permissions@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-23/permissions@src/features/activities/__tests__/ActivityMediaList.test.tsx",
+        "P3-23/file-preservation@src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "P3-23/file-preservation@src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "P3-23/file-preservation@src/infrastructure/media/__tests__/VideoPoster.test.ts",
+        "P3-23/file-preservation@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-23/file-preservation@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-23/file-preservation@src/features/activities/__tests__/ActivityMediaList.test.tsx",
+        "P3-23/video-thumbnail@src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "P3-23/video-thumbnail@src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "P3-23/video-thumbnail@src/infrastructure/media/__tests__/VideoPoster.test.ts",
+        "P3-23/video-thumbnail@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-23/video-thumbnail@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-23/video-thumbnail@src/features/activities/__tests__/ActivityMediaList.test.tsx"
+      ],
+      "test_paths": [
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/media/__tests__/VideoPoster.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/features/activities/__tests__/ActivityMediaList.test.tsx"
+      ],
+      "figma_frames": [
+        "3943:6064",
+        "4217:6980",
+        "4734:6342"
+      ],
+      "visual_ref": "ui-criteria.json",
+      "proofs": [
+        "FUNCTIONAL_TEST"
+      ],
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW"
+    }
+  ]
+}
