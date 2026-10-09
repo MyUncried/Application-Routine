@@ -99,3 +99,36 @@ test('existing VNext operational review entry prepares the exact dossier locally
  const out=path.join(root,'dossier.json'),r=spawnSync(process.execPath,[path.resolve(__dirname,'../../scripts/kodjo/vnext-chain.js'),'prepare-implementation-review',path.join(root,'config.json'),out],{cwd:f.cwd,encoding:'utf8'});
  assert.equal(r.status,0,r.stderr);const d=JSON.parse(fs.readFileSync(out));assert.equal(d.observation.stage,'IMPLEMENTATION_REVIEWER');assert.equal(d.observation.plan_sha256,V.sha256(body));assert.equal(d.scenario_ids.length,2);
 });
+test('documentary requirement kinds are explicit, frozen and separate from visual requirements',t=>{
+ const f=setup(t),kinds=['FUNCTIONAL','DATA','MIGRATION','PRESERVATION','TECHNICAL','NON_FUNCTIONAL'];
+ const states=kinds.map((kind,i)=>({state_id:'TYPED-'+i,origin:i?'DOCUMENT_ONLY':'FIGMA',disposition:'REQUIRED',requirement_kind:kind,expected:'Typed requirement '+kind,reason:'TEST authoritative classification',scenarios:[{scenario_id:'typed-'+i,given:'Baseline',when:'Apply change',then:'Expected '+kind,proof_required:['FUNCTIONAL_TEST']}]}));
+ const p=structuredClone(f.snapshot),d=p.documents[0];
+ d.content='<KODJO_SCREEN_STATES_JSON>'+JSON.stringify({schema_version:'kodjo.screen-states.v1',states})+'</KODJO_SCREEN_STATES_JSON>';d.fingerprint=V.sha256(d.content);
+ p.states=Launch.documentStates(p.documents);p.frames[0].state_id=states[0].state_id;
+ const packet=seal(p);Launch.validateDocumentCoverage(packet);
+ const c=Launch.requirements(packet,f.head,f.packetPath);
+ for(const state of states)assert.equal(c.requirementInput.requirements.find(r=>r.statement===state.expected).kind,state.requirement_kind);
+ assert.ok(c.requirementInput.requirements.filter(r=>r.statement.startsWith('Presentation ')).every(r=>r.kind==='UI'));
+ const changed=structuredClone(packet);changed.states[0].requirement_kind='UI';
+ assert.throws(()=>Launch.validateDocumentCoverage(changed),/INVENTORY_COVERAGE_MISMATCH/);
+ const invalid=structuredClone(d);invalid.content=invalid.content.replace('"FUNCTIONAL"','"INVALID_KIND"');
+ assert.throws(()=>Launch.documentStates([invalid]),/DOCUMENT_REQUIREMENT_KIND_INVALID/);
+});
+test('legacy inventories retain UI kind and full candidate observations include reuse content',t=>{
+ const f=setup(t),p=f.produce(),ReviewContract=require('../../scripts/kodjo/lib/review-contract');
+ assert.ok(p.artifacts.requirementRegistry.requirements.every(r=>r.kind==='UI'));
+ assert.equal(p.candidate_observation_scope,'REVIEW_CATALOG');
+ assert.deepEqual(p.candidate_observations.map(r=>r.candidate_id).sort(),ReviewContract.collectTargets(p.artifacts).CANDIDATE.slice().sort());
+ const reused=p.candidate_observations.find(r=>r.path==='src/shared/ui/Existing.js');assert.ok(reused);
+ assert.ok(!p.artifacts.planContract.boundaries.write_scope.some(r=>r.candidate_id===reused.candidate_id));
+ assert.equal(reused.content,Chain.readGit(f.cwd,reused.revision,reused.path));assert.equal(reused.content_sha256,V.sha256(reused.content));
+ Chain.verifyProduced(p,f.cwd);
+ const bad=structuredClone(p);bad.candidate_observations.find(r=>r.candidate_id===reused.candidate_id).content='forged';delete bad.contract_hash;
+ assert.throws(()=>Chain.verifyProduced(V.sealContract(bad),f.cwd),/CANDIDATE_OBSERVATION_STALE/);
+ const invalid=structuredClone(p);invalid.candidate_observation_scope='UNKNOWN';delete invalid.contract_hash;
+ assert.throws(()=>Chain.verifyProduced(V.sealContract(invalid),f.cwd),/CANDIDATE_OBSERVATION_SCOPE_INVALID/);
+ const legacy=structuredClone(p),ids=new Set([...p.artifacts.planContract.boundaries.write_scope,...p.artifacts.planContract.boundaries.preserve_scope].map(r=>r.candidate_id));
+ delete legacy.candidate_observation_scope;delete legacy.contract_hash;
+ legacy.candidate_observations=legacy.candidate_observations.filter(r=>ids.has(r.candidate_id)).map(({content_sha256,...r})=>r);
+ Chain.verifyProduced(V.sealContract(legacy),f.cwd);
+});
