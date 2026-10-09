@@ -1,0 +1,964 @@
+{
+  "interactions": [
+    {
+      "assertion_id": "INTERACTION/wheel",
+      "property_type": "INTERACTION",
+      "source_authority": "FUNCTIONAL",
+      "source_scope": "P3-19",
+      "source_assertions": [
+        "P3-19/hold",
+        "P3-19/non-accelerated",
+        "P3-19/exclusive-scroll"
+      ],
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "expected": "Ouvrir une roulette inline, sélectionner une valeur valide ; une autre roulette/segmenté remplace la première ; ✓ applique au parent et ✕ annule.",
+      "risk_types": [
+        "FUNCTIONAL",
+        "ACCESSIBILITY",
+        "DEVICE"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "test_paths": [
+        "src/shared/ui/__tests__/ProfileStepper.test.ts",
+        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "native_primitive": "SwiftUI.Picker.wheel",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "assertion_id": "INTERACTION/stepper",
+      "property_type": "INTERACTION",
+      "source_authority": "FUNCTIONAL",
+      "source_scope": "P3-19",
+      "source_assertions": [
+        "P3-19/hold",
+        "P3-19/non-accelerated",
+        "P3-19/exclusive-scroll"
+      ],
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "expected": "Tap une fois ; début maintien 500 ms, répétition 150 ms, paliers normatifs, bornes, arrêt immédiat et aucun tap au relâchement ; Bip/CR/Fin pas 1 ; Profil préservé.",
+      "risk_types": [
+        "FUNCTIONAL",
+        "ACCESSIBILITY",
+        "DEVICE"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "test_paths": [
+        "src/shared/ui/__tests__/ProfileStepper.test.ts",
+        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "native_primitive": null,
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "assertion_id": "INTERACTION/variable-toggle",
+      "property_type": "INTERACTION",
+      "source_authority": "FUNCTIONAL",
+      "source_scope": "P3-05",
+      "source_assertions": [
+        "P3-05/equal-variable",
+        "P3-05/toggle-restoration"
+      ],
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "expected": "Copie uniforme→lignes ; première ligne actuelle vers uniforme ; restauration temporaire ; N=1 effectif immédiat ; égalité ne change pas VARIABLE.",
+      "risk_types": [
+        "FUNCTIONAL",
+        "ACCESSIBILITY"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "native_primitive": null,
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "assertion_id": "INTERACTION/sortable-rows",
+      "property_type": "INTERACTION",
+      "source_authority": "FUNCTIONAL",
+      "source_scope": "P3-07",
+      "source_assertions": [
+        "P3-07/move-terminal",
+        "P3-07/move-accessible"
+      ],
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "expected": "Déplacer cible et Pause ensemble ; Monter/Descendre accessibles identiques au drag ; renuméroter et recalculer PN ; ✕ annule.",
+      "risk_types": [
+        "FUNCTIONAL",
+        "ACCESSIBILITY"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/domain/activities/__tests__/executionCalculations.test.ts"
+      ],
+      "native_primitive": null,
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "assertion_id": "INTERACTION/sheet-check-cross",
+      "property_type": "INTERACTION",
+      "source_authority": "FUNCTIONAL",
+      "source_scope": "P3-16",
+      "source_assertions": [
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete",
+        "P3-16/parent-guard",
+        "P3-16/failure-doubletap"
+      ],
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "expected": "✓ atomique et sans SQLite ; cible active incomplète interdit ✓ même tableau replié ; ✕/retour restaure le parent.",
+      "risk_types": [
+        "FUNCTIONAL",
+        "ACCESSIBILITY"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "native_primitive": null,
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "assertion_id": "INTERACTION/parameter-card",
+      "property_type": "INTERACTION",
+      "source_authority": "FUNCTIONAL",
+      "source_scope": "P3-15",
+      "source_assertions": [
+        "P3-15/corpus-276",
+        "P3-15/grammar-edges",
+        "P3-15/no-storage",
+        "P3-15/long-phrase"
+      ],
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "expected": "Toute la carte ouvre Paramètres ; phrase complète, segments en flux, un seul libellé accessible ; génération à chaque affichage sans stockage.",
+      "risk_types": [
+        "FUNCTIONAL",
+        "ACCESSIBILITY"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "test_paths": [
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "native_primitive": null,
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "assertion_id": "INTERACTION/editor-finish",
+      "property_type": "INTERACTION",
+      "source_authority": "FUNCTIONAL",
+      "source_scope": "P3-01",
+      "source_assertions": [
+        "P3-01/Catalogue:create",
+        "P3-01/Catalogue:edit",
+        "P3-01/Session:create",
+        "P3-01/Session:edit",
+        "P3-01/copy-isolation"
+      ],
+      "path": "src/features/sessions/ExerciseScreen.tsx",
+      "expected": "Quatre parcours ; Terminer écrit Catalogue ou applique copie au brouillon Composition, Continuer persiste Séance ; double tap/échec conserve brouillon et médias.",
+      "risk_types": [
+        "FUNCTIONAL",
+        "ACCESSIBILITY"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "test_paths": [
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "native_primitive": null,
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "assertion_id": "INTERACTION/media-list",
+      "property_type": "INTERACTION",
+      "source_authority": "FUNCTIONAL",
+      "source_scope": "P3-23",
+      "source_assertions": [
+        "P3-23/import-multiple",
+        "P3-23/cancel-local-error",
+        "P3-23/permissions",
+        "P3-23/file-preservation",
+        "P3-23/video-thumbnail"
+      ],
+      "path": "src/features/activities/ActivityMediaList.tsx",
+      "expected": "Ajouter multiple photo/vidéo ; annulation neutre ; import visible ; Réessayer local sans doublon ; Retirer/Monter/Descendre ; ordre conservé après réouverture/copie.",
+      "risk_types": [
+        "FUNCTIONAL",
+        "ACCESSIBILITY",
+        "DEVICE"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "test_paths": [
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/media/__tests__/VideoPoster.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/features/activities/__tests__/ActivityMediaList.test.tsx"
+      ],
+      "native_primitive": null,
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "assertion_id": "INTERACTION/category",
+      "property_type": "INTERACTION",
+      "source_authority": "FUNCTIONAL",
+      "source_scope": "P3-03",
+      "source_assertions": [
+        "P3-03/reference-retired",
+        "P3-03/empty-create-name",
+        "P3-03/zones-presentation"
+      ],
+      "path": "src/features/reference-data/CategoryPickerModal.tsx",
+      "expected": "Sélection simple et validation isolée ; nom vide désactive Ajouter sans erreur ; suppression/réactivation PRE-2 conservées.",
+      "risk_types": [
+        "FUNCTIONAL",
+        "ACCESSIBILITY"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "test_paths": [
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
+      ],
+      "native_primitive": null,
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "assertion_id": "INTERACTION/zones",
+      "property_type": "INTERACTION",
+      "source_authority": "FUNCTIONAL",
+      "source_scope": "P3-03",
+      "source_assertions": [
+        "P3-03/reference-retired",
+        "P3-03/empty-create-name",
+        "P3-03/zones-presentation"
+      ],
+      "path": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "expected": "Sélection multiple de pastilles textuelles ; ✓/✕ isolés ; nom vide désactive Ajouter sans erreur ; affectations retirées conservées.",
+      "risk_types": [
+        "FUNCTIONAL",
+        "ACCESSIBILITY"
+      ],
+      "proof_required": [
+        "FUNCTIONAL_TEST"
+      ],
+      "test_paths": [
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
+      ],
+      "native_primitive": null,
+      "status": "PLANNED_NOT_EXECUTED"
+    }
+  ],
+  "accessibility": [
+    {
+      "proof_id": "ACCESSIBILITY/wheel",
+      "kind": "ACCESSIBILITY_CHECK",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables avec texte agrandi et défilement.",
+      "automated": [
+        "src/shared/ui/__tests__/ProfileStepper.test.ts",
+        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "proof_id": "ACCESSIBILITY/stepper",
+      "kind": "ACCESSIBILITY_CHECK",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables avec texte agrandi et défilement.",
+      "automated": [
+        "src/shared/ui/__tests__/ProfileStepper.test.ts",
+        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "proof_id": "ACCESSIBILITY/variable-toggle",
+      "kind": "ACCESSIBILITY_CHECK",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables avec texte agrandi et défilement.",
+      "automated": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "proof_id": "ACCESSIBILITY/sortable-rows",
+      "kind": "ACCESSIBILITY_CHECK",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; ordre accessible Monter/Descendre équivalent au drag ; messages et actions atteignables avec texte agrandi et défilement.",
+      "automated": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/domain/activities/__tests__/executionCalculations.test.ts"
+      ],
+      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "proof_id": "ACCESSIBILITY/sheet-check-cross",
+      "kind": "ACCESSIBILITY_CHECK",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables avec texte agrandi et défilement.",
+      "automated": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "proof_id": "ACCESSIBILITY/parameter-card",
+      "kind": "ACCESSIBILITY_CHECK",
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; phrase intégrale annoncée une seule fois ; messages et actions atteignables avec texte agrandi et défilement.",
+      "automated": [
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "proof_id": "ACCESSIBILITY/editor-finish",
+      "kind": "ACCESSIBILITY_CHECK",
+      "path": "src/features/sessions/ExerciseScreen.tsx",
+      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables avec texte agrandi et défilement.",
+      "automated": [
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "proof_id": "ACCESSIBILITY/media-list",
+      "kind": "ACCESSIBILITY_CHECK",
+      "path": "src/features/activities/ActivityMediaList.tsx",
+      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables avec texte agrandi et défilement.",
+      "automated": [
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/media/__tests__/VideoPoster.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/features/activities/__tests__/ActivityMediaList.test.tsx"
+      ],
+      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "proof_id": "ACCESSIBILITY/category",
+      "kind": "ACCESSIBILITY_CHECK",
+      "path": "src/features/reference-data/CategoryPickerModal.tsx",
+      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables avec texte agrandi et défilement.",
+      "automated": [
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
+      ],
+      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "proof_id": "ACCESSIBILITY/zones",
+      "kind": "ACCESSIBILITY_CHECK",
+      "path": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables avec texte agrandi et défilement.",
+      "automated": [
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
+      ],
+      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "status": "PLANNED_NOT_EXECUTED"
+    }
+  ],
+  "visual_states": [
+    {
+      "frame_id": "3542:4656",
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "scopes": [
+        "P3-02",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/3542-4656.json",
+      "capture": "../../figma/captures/3542-4656.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "3943:6064",
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "scopes": [
+        "P3-02",
+        "P3-16",
+        "P3-23",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/3943-6064.json",
+      "capture": "../../figma/captures/3943-6064.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "4217:6980",
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "scopes": [
+        "P3-02",
+        "P3-16",
+        "P3-23",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/4217-6980.json",
+      "capture": "../../figma/captures/4217-6980.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "5088:6398",
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "scopes": [
+        "P3-03",
+        "P3-17",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/5088-6398.json",
+      "capture": "../../figma/captures/5088-6398.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "4734:6342",
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "scopes": [
+        "P3-01",
+        "P3-17",
+        "P3-23",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/4734-6342.json",
+      "capture": "../../figma/captures/4734-6342.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "4332:7095",
+      "path": "src/features/reference-data/CategoryPickerModal.tsx",
+      "scopes": [
+        "P3-03",
+        "P3-16",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/4332-7095.json",
+      "capture": "../../figma/captures/4332-7095.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "4474:7157",
+      "path": "src/features/reference-data/CategoryPickerModal.tsx",
+      "scopes": [
+        "P3-03",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/4474-7157.json",
+      "capture": "../../figma/captures/4474-7157.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "4478:7209",
+      "path": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "scopes": [
+        "P3-03",
+        "P3-16",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/4478-7209.json",
+      "capture": "../../figma/captures/4478-7209.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "4683:6336",
+      "path": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "scopes": [
+        "P3-03",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/4683-6336.json",
+      "capture": "../../figma/captures/4683-6336.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "4714:6241",
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "scopes": [
+        "P3-16",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/4714-6241.json",
+      "capture": "../../figma/captures/4714-6241.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "4861:6259",
+      "path": "src/features/reference-data/CategoryPickerModal.tsx",
+      "scopes": [
+        "P3-03",
+        "P3-22",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/4861-6259.json",
+      "capture": "../../figma/captures/4861-6259.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "4861:6348",
+      "path": "src/features/reference-data/BodyZonePickerModal.tsx",
+      "scopes": [
+        "P3-03",
+        "P3-22",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/4861-6348.json",
+      "capture": "../../figma/captures/4861-6348.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6407:9458",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-02",
+        "P3-16",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6407-9458.json",
+      "capture": "../../figma/captures/6407-9458.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6407:9551",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-04",
+        "P3-16",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6407-9551.json",
+      "capture": "../../figma/captures/6407-9551.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6407:9702",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-15",
+        "P3-16",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6407-9702.json",
+      "capture": "../../figma/captures/6407-9702.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6407:9805",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-04",
+        "P3-11",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6407-9805.json",
+      "capture": "../../figma/captures/6407-9805.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6407:9966",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-06",
+        "P3-19",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6407-9966.json",
+      "capture": "../../figma/captures/6407-9966.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6407:10127",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-19",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6407-10127.json",
+      "capture": "../../figma/captures/6407-10127.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6407:10481",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-09",
+        "P3-19",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6407-10481.json",
+      "capture": "../../figma/captures/6407-10481.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6411:9546",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-14",
+        "P3-12",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6411-9546.json",
+      "capture": "../../figma/captures/6411-9546.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6411:9649",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-09",
+        "P3-12",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6411-9649.json",
+      "capture": "../../figma/captures/6411-9649.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6419:9847",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-04",
+        "P3-11",
+        "P3-12",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6419-9847.json",
+      "capture": "../../figma/captures/6419-9847.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6419:10028",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-04",
+        "P3-11",
+        "P3-12",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6419-10028.json",
+      "capture": "../../figma/captures/6419-10028.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6423:9953",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-14",
+        "P3-12",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6423-9953.json",
+      "capture": "../../figma/captures/6423-9953.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6665:24616",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-05",
+        "P3-12",
+        "P3-15",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6665-24616.json",
+      "capture": "../../figma/captures/6665-24616.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6665:24844",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-05",
+        "P3-12",
+        "P3-13",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6665-24844.json",
+      "capture": "../../figma/captures/6665-24844.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6665:25072",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-05",
+        "P3-11",
+        "P3-12",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6665-25072.json",
+      "capture": "../../figma/captures/6665-25072.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6665:25277",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-06",
+        "P3-15",
+        "P3-19",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6665-25277.json",
+      "capture": "../../figma/captures/6665-25277.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6665:26185",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-09",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6665-26185.json",
+      "capture": "../../figma/captures/6665-26185.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6665:26575",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-09",
+        "P3-12",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6665-26575.json",
+      "capture": "../../figma/captures/6665-26575.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6665:26822",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-08",
+        "P3-12",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6665-26822.json",
+      "capture": "../../figma/captures/6665-26822.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6665:27008",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-04",
+        "P3-16",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6665-27008.json",
+      "capture": "../../figma/captures/6665-27008.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6665:27232",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-16",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6665-27232.json",
+      "capture": "../../figma/captures/6665-27232.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6665:27458",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-16",
+        "P3-19",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6665-27458.json",
+      "capture": "../../figma/captures/6665-27458.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6665:27608",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-07",
+        "P3-13",
+        "P3-16",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6665-27608.json",
+      "capture": "../../figma/captures/6665-27608.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6665:27862",
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "scopes": [
+        "P3-09",
+        "P3-15",
+        "P3-16",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6665-27862.json",
+      "capture": "../../figma/captures/6665-27862.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "6665:28050",
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "scopes": [
+        "P3-12",
+        "P3-15",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/6665-28050.json",
+      "capture": "../../figma/captures/6665-28050.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "7059:13302",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-11",
+        "P3-12",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/7059-13302.json",
+      "capture": "../../figma/captures/7059-13302.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "7069:13464",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-09",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/7069-13464.json",
+      "capture": "../../figma/captures/7069-13464.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "7069:13573",
+      "path": "src/features/activities/ExecutionParametersSheet.tsx",
+      "scopes": [
+        "P3-04",
+        "P3-11",
+        "P3-12",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/7069-13573.json",
+      "capture": "../../figma/captures/7069-13573.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    },
+    {
+      "frame_id": "7119:27855",
+      "path": "src/features/activities/ActivityEditorForm.tsx",
+      "scopes": [
+        "P3-15",
+        "P3-21",
+        "P3-20"
+      ],
+      "source": "../../figma/ecrans/7119-27855.json",
+      "capture": "../../figma/captures/7119-27855.png",
+      "expected": "Fidélité des propriétés observables de cet état ; comportements selon exigences fonctionnelles liées ; chaque écart a impact/justification/statut/décision.",
+      "status": "PLANNED_NOT_EXECUTED"
+    }
+  ],
+  "native_assessments": {
+    "primitive": "SwiftUI.Picker.wheel",
+    "interaction_assertion_ref": "INTERACTION/wheel",
+    "baseline_path": "src/features/sessions/DurationWheelPicker.tsx",
+    "existing_four_available_assessments": "Rattachées à INTERACTION/wheel pour preuve de sélection/annulation/exclusivité ; aucune nouvelle roue native."
+  },
+  "capture_aliases": {
+    "3542:4656": "6407:9458",
+    "policy": "PNG identiques historiquement ne prouvent pas une équivalence sémantique ; conserver deux contrôles d’état/shell distincts, ne pas fusionner automatiquement."
+  }
+}
