@@ -1,0 +1,392 @@
+{
+  "original_control": {
+    "exit": 1,
+    "output": ""
+  },
+  "extended_control": {
+    "check": "PRE3_SCOPE_WITH_REVIEW1_EXTENSION",
+    "start": "ae50aaedc1aaf506dccbb81c4e406e127af9824b",
+    "head": "11447e6dc8b706ee3424e1e2e5c961f0f833b26b",
+    "approved_plan": "43e7b344937a2d60b04b987f19636faebb5aee06",
+    "extension_source": "docs/preparation/PRE-3/planification/execution/preuves/mission-correction-revue1.md",
+    "extension": [
+      "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+      "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+      "app.json"
+    ],
+    "counts": {
+      "DOCUMENTARY": 16,
+      "EXTENSION_REVUE1": 3,
+      "WRITE_SCOPE_43e7b344": 72
+    },
+    "unexpected": [],
+    "app_json_only_photos_permission": true,
+    "result": "PASS",
+    "paths": [
+      {
+        "path": ".github/orchestration/reports/2026-10-09_PRE3-340_IMPLEMENTATION.md",
+        "class": "DOCUMENTARY"
+      },
+      {
+        "path": ".github/orchestration/reports/2026-10-10_PRE3-340_CORRECTION-REVUE1.md",
+        "class": "DOCUMENTARY"
+      },
+      {
+        "path": ".github/orchestration/reports/2026-10-10_PRE3-340_REVUE-IMPLEMENTATION-1.md",
+        "class": "DOCUMENTARY"
+      },
+      {
+        "path": "app.json",
+        "class": "EXTENSION_REVUE1"
+      },
+      {
+        "path": "docs/preparation/PRE-3/planification/execution/preuves/comparaison-visuelle-revue1.md",
+        "class": "DOCUMENTARY"
+      },
+      {
+        "path": "docs/preparation/PRE-3/planification/execution/preuves/comparaison-visuelle.md",
+        "class": "DOCUMENTARY"
+      },
+      {
+        "path": "docs/preparation/PRE-3/planification/execution/preuves/config-expo-revue1.json",
+        "class": "DOCUMENTARY"
+      },
+      {
+        "path": "docs/preparation/PRE-3/planification/execution/preuves/controle-portee-revue1.json",
+        "class": "DOCUMENTARY"
+      },
+      {
+        "path": "docs/preparation/PRE-3/planification/execution/preuves/couverture-obligations-revue1.json",
+        "class": "DOCUMENTARY"
+      },
+      {
+        "path": "docs/preparation/PRE-3/planification/execution/preuves/couverture-obligations.json",
+        "class": "DOCUMENTARY"
+      },
+      {
+        "path": "docs/preparation/PRE-3/planification/execution/preuves/demarrage-verifie.json",
+        "class": "DOCUMENTARY"
+      },
+      {
+        "path": "docs/preparation/PRE-3/planification/execution/preuves/mission-correction-revue1.md",
+        "class": "DOCUMENTARY"
+      },
+      {
+        "path": "docs/preparation/PRE-3/planification/execution/preuves/procedure-appareil-revue1.md",
+        "class": "DOCUMENTARY"
+      },
+      {
+        "path": "docs/preparation/PRE-3/planification/execution/preuves/procedure-appareil.md",
+        "class": "DOCUMENTARY"
+      },
+      {
+        "path": "docs/preparation/PRE-3/planification/execution/preuves/resultats-tests-revue1.json",
+        "class": "DOCUMENTARY"
+      },
+      {
+        "path": "docs/preparation/PRE-3/planification/execution/preuves/resultats-tests.json",
+        "class": "DOCUMENTARY"
+      },
+      {
+        "path": "docs/preparation/PRE-3/planification/execution/preuves/revue-independent-transitions.repro.tsx",
+        "class": "DOCUMENTARY"
+      },
+      {
+        "path": "package-lock.json",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "package.json",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/activities/ActivityDefinition.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/activities/ExecutionParameters.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/activities/ExecutionParametersDraft.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/activities/executionCalculations.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/activities/executionPhrase.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/activities/exerciseSnapshot.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/media/ActivityMedia.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/media/ActivityMediaImportService.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/media/MediaAsset.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/media/MediaDraftLeases.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/media/MediaRepository.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/sessions/Session.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/sessions/SessionDraft.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/sessions/__tests__/calculations.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/sessions/calculations.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/sessions/composition.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/domain/sessions/validation.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/activities/ActivityCard.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/activities/ActivityDefinitionService.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/activities/ActivityEditorForm.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/activities/ActivityMediaList.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/activities/ActivitySelectionScreen.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/activities/ExecutionParametersSheet.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/activities/__tests__/ActivityCard.test.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/activities/__tests__/ActivityDefinitionService.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/activities/__tests__/ActivityMediaList.test.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/reference-data/BodyZonePickerModal.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/reference-data/CategoryPickerModal.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/sessions/ExerciseScreen.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/sessions/SessionCard.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/sessions/SessionServiceProvider.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/sessions/__tests__/CategoriesSaveFlow.integration.test.tsx",
+        "class": "EXTENSION_REVUE1"
+      },
+      {
+        "path": "src/features/sessions/__tests__/CompositionExerciseFlow.integration.test.tsx",
+        "class": "EXTENSION_REVUE1"
+      },
+      {
+        "path": "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/sessions/__tests__/compositionPresentation.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/sessions/__tests__/formatSessionSummary.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/sessions/compositionPresentation.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/features/sessions/formatSessionSummary.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/infrastructure/database/constants.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/infrastructure/database/migrateDatabase.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/infrastructure/database/migrations/migration009.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/infrastructure/database/repositories/SqliteMediaRepository.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/infrastructure/database/types/DatabaseRows.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/infrastructure/media/LocalMediaStore.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/infrastructure/media/PhotoLibraryPicker.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/infrastructure/media/VideoPoster.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/infrastructure/media/__tests__/VideoPoster.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/shared/i18n/index.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/shared/i18n/index.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/shared/ui/ProfileStepper.tsx",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/shared/ui/__tests__/ProfileStepper.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      },
+      {
+        "path": "src/shared/ui/__tests__/tokensSpecification.test.ts",
+        "class": "WRITE_SCOPE_43e7b344"
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "command": "npx expo config --type introspect",
+  "ios_usage_keys": [
+    "NSLocalNetworkUsageDescription",
+    "NSPhotoLibraryUsageDescription"
+  ],
+  "NSPhotoLibraryUsageDescription": "Routine accède à vos photos et vidéos pour choisir la photo de votre profil et ajouter des médias à vos exercices.",
+  "camera_key_present": false,
+  "microphone_key_present": false,
+  "android_permissions": [
+    "android.permission.READ_EXTERNAL_STORAGE",
+    "android.permission.WRITE_EXTERNAL_STORAGE",
+    "android.permission.INTERNET"
+  ],
+  "note": "NSLocalNetworkUsageDescription préexistant (non lié à PRE-3). Contrôle de configuration générée uniquement : la build native et l'invite réelle restent à vérifier sur appareil."
+}
