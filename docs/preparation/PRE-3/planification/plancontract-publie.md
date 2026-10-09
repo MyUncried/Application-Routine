@@ -59,7 +59,7 @@ Séparer tests de rendu/navigation/focus/alternatives au drag, comparaisons mesu
 | P3-22 | Frontières respectées, consommateurs préservés | 1 références ; IDs/fichiers/tests/preuves dans la trace canonique | Planifié, à revoir |
 | P3-23 | Import de médias depuis l’éditeur, association persistante et données disponibles pour la future exécution | 5 références ; IDs/fichiers/tests/preuves dans la trace canonique | Planifié, à revoir |
 
-## Restitution et blocage de revue
+## Restitution et revue après correction de volume
 
 À la racine du checkout de cette publication, avec Node :
 
@@ -69,4 +69,4 @@ node docs/preparation/PRE-3/planification/materialiser-contrats-vnext.cjs C:\Tem
 
 Le dossier cible doit être hors checkout et sans fichiers homonymes. La commande restitue et vérifie chaque octet ; elle ne déclenche aucun modèle ni revue. Les contrats UI et registre sont volumineux : prévoir au moins 1 Go disponible pour les JSON restitués.
 
-Le [diagnostic et la procédure de revue](revue-independante.md) identifient le blocage qui empêche actuellement de fournir une commande de lancement valide. Ne pas approuver le plan avant la revue indépendante prescrite.
+Le [lancement de revue](revue-independante.md) est désormais préparé sur le producteur corrigé `1d42479181586d926a9970867a41d35d44cc4661`. Les objets ont été reconstruits avec les mêmes empreintes PlanContract/UI/registre ; le nouveau conteneur scellé est identifié par `603de045f94fec3f14aa2198edaaad0b91020b79adddb19041b06314cc725e16`. Voir [preuve de reprise](preuve-reprise-plan.json). Claude est absent ici (ENOENT) : la revue réelle nécessite le poste authentifié. Le plan attend toujours son verdict puis la validation explicite du propriétaire.
