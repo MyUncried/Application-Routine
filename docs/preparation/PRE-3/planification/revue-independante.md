@@ -2,6 +2,12 @@
 
 Opération unique : [#340](https://github.com/MyUncried/Application-Routine/issues/340). Reprise autorisée le 09/10/2026 par Hermann. Aucun développement ni approbation anticipée.
 
+## État courant après revue réelle — CLARIFICATION_REQUIRED
+
+La revue indépendante a terminé sur le paquet exact et son reçu est vérifié. Session `ebde720a-8c4a-4685-95b4-407b2116ff58`, reçu `56568e7ae81d44c60cb5185d0b69f3099fb64650953804dbf322e478d3845ce9` : 15 constats dont 13 bloquants, couverture structurelle COMPLETE. Voir [résultat et corrections](resultat-revue-initiale-et-corrections.md), [projection du rapport](revue-initiale-rapport.json), [réponse brute](revue-initiale-resultat-claude.json) et [registre causal de travail](registre-corrections-revue-initiale.json).
+
+Aucun APPROVE ni validation propriétaire du plan. La révision canonique attend la décision ponctuelle sur le constat PRODUCT_AMBIGUITY ; [DecisionRecord ouvert](decision-revue-numeriques-ouverte.json). Ne pas relancer les commandes de première revue ci-dessous : elles constituent la procédure et son historique, pas une nouvelle opération active.
+
 ## Référence exacte
 
 La revue porte sur les objets reconstruits par le protocole corrigé au commit **1d42479181586d926a9970867a41d35d44cc4661**, fusion de #341 dans la branche existante `plan/pre3-vnext-20261008`. #342 a intégré le correctif dans main ; son registre final est au commit `9c6ff9fa3fdae72cdc44e7dca49b753746394d2e`.
