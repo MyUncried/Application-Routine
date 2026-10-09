@@ -1,3 +1,5 @@
+> État actualisé du 09/10/2026 : ce document conserve les propositions techniques de travail. La construction du PlanContract, du contrat UI et de la trace est maintenant terminée sur le protocole corrigé ; voir [plan publié](plancontract-publie.md), [preuve de reprise](preuve-reprise-plan.json) et [procédure de revue](revue-independante.md). Les mentions historiques « reste à construire » ne décrivent plus le blocage actuel. La revue indépendante et la validation propriétaire restent requises.
+
 # PRE-3 — Plan technique de travail
 
 Issue : #340. Baseline exclusive : `1ddfb6d144552f578388257adc78db47ab5992c8`.
