@@ -1,0 +1,56 @@
+{
+  "operation": 340,
+  "scope": "Targeted correction of clarified PRE-3 revision entry; no general VNext recertification",
+  "status": "MERGED_VERIFIED",
+  "qualified_candidate": "8378cf4a99403bff74337e25406633e4666c967e",
+  "merge_commit": "aaa5d495b0b4b3c1fec51ad3255450e565ea7880",
+  "pr": "https://github.com/MyUncried/Application-Routine/pull/343",
+  "merged_files_equal_qualified_candidate": true,
+  "runs": [
+    {
+      "id": 37929798905,
+      "result": "SUCCESS",
+      "qualification": [
+        "ubuntu",
+        "windows"
+      ],
+      "historical": {
+        "linux": {
+          "tests": 1465,
+          "pass": 1463,
+          "skip": 2,
+          "fail": 0
+        },
+        "windows": {
+          "tests": 1465,
+          "pass": 1462,
+          "skip": 3,
+          "fail": 0
+        },
+        "mapped_assertions_pass_on_at_least_one_platform": 453,
+        "individual_equivalence_proven": false
+      }
+    },
+    {
+      "id": 37929798826,
+      "result": "SUCCESS",
+      "purpose": "Existing pilot suite"
+    }
+  ],
+  "local_tests": {
+    "targeted": 64,
+    "vnext_total": 478,
+    "fail": 0
+  },
+  "real_pre3_reentry": {
+    "result": "PASS",
+    "stage": "REQUIREMENTS",
+    "allowed_change_set_hash": "481f2b88d48c128a01c14014fdc4e952a17d6bd985952ea20fad9faab93d2d39",
+    "authorized_targets": 30,
+    "derived_targets": 411,
+    "preserved_targets": 306444
+  },
+  "owner_plan_approval": false,
+  "implementation_started": false,
+  "pre3_closed": false
+}

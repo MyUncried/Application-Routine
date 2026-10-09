@@ -284,6 +284,7 @@ function buildAllowedChangeSet({
   uiAtomicityContract = null,
   clarification = null,
   planningEnvelope = null,
+  scopeRefinement = null,
 }) {
   Review.validateReviewReport(reviewReport, reviewContext);
   if (reviewReport.verdict !== 'REVISE' && !(reviewReport.verdict==='CLARIFICATION_REQUIRED'&&clarification)) {
@@ -341,6 +342,11 @@ function buildAllowedChangeSet({
     }
   }
 
+  if(scopeRefinement){
+    const additions=require('./vnext-review-scope').validateReceipt(scopeRefinement,{reviewContext,reviewReport,artifactGraph:graph});
+    for(const addition of additions)for(const id of addition.target_ids)authorize(id,addition.finding_id);
+  }
+
   const authorizedIds = new Set(authorizedReasons.keys());
   const derivedSeeds = new Set(
     [...authorizedIds].filter((id) => !ANCHOR_TYPES.has(graph.records.get(id).target_type)),
@@ -382,6 +388,7 @@ function buildAllowedChangeSet({
     review_context_hash: reviewContext.contract_hash,
     review_report_hash: reviewReport.contract_hash,
     ...(clarification?{clarification}:{}),
+    ...(scopeRefinement?{scope_refinement:scopeRefinement}:{}),
     base_plan_contract_hash: planContract.contract_hash,
     base_ui_atomicity_hash: uiAtomicityContract ? uiAtomicityContract.contract_hash : null,
     base_target_graph_hash: graphFingerprint(graph),
@@ -414,7 +421,7 @@ function validateAllowedChangeSet(allowedChangeSet) {
       'preservation_hash',
       'contract_hash',
     ],
-    ['clarification'],
+    ['clarification','scope_refinement'],
     'VNEXT_ALLOWED_CHANGE_SET_KEYS_INVALID',
   );
   if (allowedChangeSet.schema_version !== ALLOWED_SCHEMA) {
@@ -426,6 +433,15 @@ function validateAllowedChangeSet(allowedChangeSet) {
   V.assertSha64(allowedChangeSet.review_context_hash, 'VNEXT_ALLOWED_CHANGE_SET_REVIEW_CONTEXT_HASH_INVALID');
   V.assertSha64(allowedChangeSet.review_report_hash, 'VNEXT_ALLOWED_CHANGE_SET_REVIEW_REPORT_HASH_INVALID');
   if(allowedChangeSet.clarification)validateClarification(allowedChangeSet.clarification);
+  if(allowedChangeSet.scope_refinement){
+    const receipt=allowedChangeSet.scope_refinement;
+    require('./vnext-review-scope').validateReceipt(receipt);
+    if(receipt.request.review_context_hash!==allowedChangeSet.review_context_hash||receipt.request.review_report_hash!==allowedChangeSet.review_report_hash||receipt.request.base_target_graph_hash!==allowedChangeSet.base_target_graph_hash)V.fail('VNEXT_SCOPE_ALLOWED_BASE_MISMATCH');
+    for(const addition of receipt.additions)for(const id of addition.target_ids){
+      const target=allowedChangeSet.authorized_targets.find(t=>t.target_id===id);
+      if(!target?.finding_ids.includes(addition.finding_id))V.fail('VNEXT_SCOPE_ALLOWED_DEPENDENCY_MISSING',id);
+    }
+  }
   V.assertSha64(allowedChangeSet.base_plan_contract_hash, 'VNEXT_ALLOWED_CHANGE_SET_PLAN_HASH_INVALID');
   if (allowedChangeSet.base_ui_atomicity_hash !== null) {
     V.assertSha64(allowedChangeSet.base_ui_atomicity_hash, 'VNEXT_ALLOWED_CHANGE_SET_UI_HASH_INVALID');
@@ -797,6 +813,7 @@ function verifyRevisionOutcome({
 }
 
 module.exports = {
+  graphFingerprint,
   ALLOWED_SCHEMA,
   PATCH_SCHEMA,
   APPLICATION_SCHEMA,

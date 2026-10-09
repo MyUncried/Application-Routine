@@ -1,6 +1,7 @@
 'use strict';
 
 const POLICIES = [
+  { pattern: /^vnext-chatgpt-review-[0-9]+-[0-9]+$/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 30, critical: true },
   { pattern: /^vnext-delivery-tests-[0-9]+-[0-9]+$/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 14, critical: true },
   { pattern: /^kodjo-vnext-(?:architecture|closure)-/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 14, critical: true },
   { pattern: /^kodjo-vnext12-incidents-/, role: 'DURABLE_EVIDENCE_SOURCE', retention_days: 14, critical: true },

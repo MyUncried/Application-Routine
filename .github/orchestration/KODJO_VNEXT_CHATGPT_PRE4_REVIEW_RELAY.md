@@ -1,6 +1,6 @@
 # PRE-4 — relais de revue du plan, pilote ChatGPT
 
-Cette extension concerne exclusivement le VNext de `main`, piloté par ChatGPT. La variante Claude de #344 évolue séparément. Ne pas fusionner ni utiliser cette extension avant clôture de PRE-3 (#340). La préparation du protocole n'active pas PRE-4 ; le démarrage demande une instruction utilisateur explicite.
+Cette extension concerne exclusivement le VNext de `main`, piloté par ChatGPT. La variante Claude de #344 évolue séparément. Fusion autorisée par l’utilisateur le 9 octobre, après validation des correctifs parallèles ; ne pas utiliser cette extension avant clôture de PRE-3 (#340). La préparation du protocole n'active pas PRE-4 ; le démarrage demande une instruction utilisateur explicite.
 
 ## Responsabilités
 
