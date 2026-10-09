@@ -9,7 +9,9 @@ function materialize(body,directory,{cwd,revision}) {
   const readText=file=>{
     const relative=path.relative(root,file).replace(/\\/g,'/');
     if(!relative.startsWith('.github/orchestration/vnext-contracts/') || relative.split('/').some(p=>!p||p==='..'||p==='.') )throw Error('VNEXT_PLAN_BUNDLE_PATH_INVALID');
-    const bytes=Source.readFileAtHead(relative,revision,root),target=path.resolve(destination,relative);
+    // cat-file avoids Git show treating a long revision:path as a filesystem path.
+    const observed=Source.command('git',['cat-file','blob',String(revision)+':'+relative],root,process.env,null);
+    const bytes=observed.ok?Buffer.from(observed.stdout):Source.readFileAtHead(relative,revision,root),target=path.resolve(destination,relative);
     if(!target.startsWith(destination+path.sep))throw Error('VNEXT_PLAN_BUNDLE_PATH_INVALID');
     for(let parent=target;parent!==destination;parent=path.dirname(parent)){
       if(fs.existsSync(parent)&&fs.lstatSync(parent).isSymbolicLink())throw Error('VNEXT_PLAN_BUNDLE_SYMLINK_REFUSED');

@@ -47,7 +47,7 @@ function relative(file) {
 }
 function readGit(cwd, head, file) {
   V.assertSha40(head, 'VNEXT_LIVE_HEAD_INVALID');
-  return git(cwd, 'show', head + ':' + relative(file));
+  return git(cwd, 'cat-file', 'blob', head + ':' + relative(file));
 }
 function unitText(content, locator) {
   if (locator === 'FULL_FILE') return content;
