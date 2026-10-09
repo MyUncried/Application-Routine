@@ -1,12 +1,14 @@
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import type { ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
+import { formatPhraseDuration } from "@/domain/activities/executionPhrase";
 import {
+  computeActivityDurationResult,
   computeEstimatedDurationSeconds,
-  computeTotalDurationSeconds,
   computeZoneDurationFacts,
 } from "@/domain/sessions/calculations";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
-import { sideMultiplier, type SideMode } from "@/domain/sessions/sideMode";
+import type { SideMode } from "@/domain/sessions/sideMode";
 import { formatActivityCount, formatEstimatedDuration } from "@/features/sessions/formatSessionSummary";
 import { formatTwoDigits, fromTotalSeconds } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
@@ -127,10 +129,13 @@ export function formatCompositionSummary(facts: CompositionSummaryFacts): string
     isLowerBoundEstimate: inTourOccurrence.isLowerBoundEstimate,
   });
 
-  const formattedDuration = formatEstimatedDuration(totalSeconds);
-  const durationLabel = inTourOccurrence.isLowerBoundEstimate
-    ? `≥ ${formattedDuration}`
-    : formattedDuration;
+  // PRE-3 : symbole issu de l'autorité Domaine — « ≥ » si un travail est
+  // inconnu, « ≈ » si une contribution est estimée (Répétitions avec bip),
+  // aucun symbole sinon.
+  const durationLabel = formatEstimatedDuration(
+    totalSeconds,
+    inTourOccurrence.isLowerBoundEstimate ? "lowerBound" : inTourOccurrence.isEstimated ? "estimated" : "exact",
+  );
 
   return `${formatActivityCount(inTourExercises.length)}${COMPACT_LIST_SEPARATOR}${durationLabel}`;
 }
@@ -175,6 +180,14 @@ export type ExerciseRowSummaryFacts = {
    * bilateral base » exige explicitement une direction PROPRE.
    */
   readonly isSideModeInherited?: boolean;
+  /**
+   * PRE-3 : paramètres canoniques de l'Exercice. Optionnels : absents, la
+   * synthèse est celle des scalaires (identique à avant PRE-3). Des Séries
+   * VARIABLES produisent « {N} séries variables » suivi de l'étendue des
+   * cibles, sans clause de Pause (les Pauses variables ne sont pas
+   * énumérées dans une carte compacte).
+   */
+  readonly executionParameters?: ExecutionParametersInput | null;
 };
 
 /**
@@ -237,6 +250,34 @@ export function formatExerciseRowSummary(facts: ExerciseRowSummaryFacts): string
   const recap = strings.screens.exercise.recap;
 
   const isOwnBilateral = (facts.sideMode ?? "UNILATERAL") !== "UNILATERAL" && !facts.isSideModeInherited;
+
+  const parameters = facts.executionParameters;
+  if (parameters && parameters.series.kind === "VARIABLE") {
+    const summary = strings.executionParameters.summary;
+    const count = parameters.series.rows.length;
+    const base = (isOwnBilateral ? summary.variableSeriesPerSide : summary.variableSeries).replace(
+      "{n}",
+      String(count),
+    );
+    if (parameters.mode === "TO_FAILURE") {
+      return `${base} ${exerciseRow.toFailure}`;
+    }
+    const targets = parameters.series.rows
+      .map((row) => row.target)
+      .filter((target): target is number => target !== null);
+    if (targets.length === 0 || parameters.mode === null) {
+      return base;
+    }
+    const format = (value: number) =>
+      parameters.mode === "DURATION"
+        ? formatPhraseDuration(value)
+        : formatCountWithUnit(value, exerciseRow.repetitionSingular, exerciseRow.repetitionPlural);
+    const min = Math.min(...targets);
+    const max = Math.max(...targets);
+    return min === max
+      ? `${base} ${exerciseRow.of} ${format(min)}`
+      : `${base}, ${summary.range.replace("{min}", format(min)).replace("{max}", format(max))}`;
+  }
 
   const seriesLabel = `${formatCountWithUnit(
     facts.seriesCount,
@@ -416,22 +457,27 @@ function formatRecoveryClause(postActivityRecoverySeconds: number): string {
  * cas : en mode non chronométré, `A` vaut `0`, ce qui EST exactement la
  * définition de la borne minimale — jamais une seconde formule parallèle.
  */
-export function formatExerciseDurationLine(facts: ExerciseRecapFacts): string {
+export function formatExerciseDurationLine(facts: ExerciseRecapFacts): string | null {
+  // PRE-3 : délégation à l'autorité Domaine unique (registre d'événements) —
+  // exact sans symbole, estimé « ≈ », omis → aucune ligne (ni zéro, ni « ≥ »).
   const exercise = strings.screens.exercise;
-  const isLowerBound = facts.executionMode !== "DURATION";
-  const totalSeconds = computeTotalDurationSeconds(
-    facts.seriesCount,
-    {
-      durationSeconds: isLowerBound ? 0 : (facts.durationSeconds ?? 0),
-      pauseSeconds: facts.pauseSeconds,
-      postActivityRecoverySeconds: facts.postActivityRecoverySeconds ?? 0,
-    },
-    sideMultiplier(facts.sideMode ?? "UNILATERAL"),
-  );
-  const formatted = formatCompactDuration(totalSeconds);
-
-  return isLowerBound
-    ? `${exercise.recap.totalDurationLabel} : ≥ ${formatted}`
+  const result = computeActivityDurationResult({
+    type: "EXERCISE",
+    executionMode: facts.executionMode,
+    durationSeconds: facts.durationSeconds,
+    repetitionCount: facts.repetitionCount,
+    seriesCount: facts.seriesCount,
+    pauseSeconds: facts.pauseSeconds,
+    postActivityRecoverySeconds: facts.postActivityRecoverySeconds ?? 0,
+    sideMode: facts.sideMode ?? "UNILATERAL",
+    executionParameters: facts.executionParameters ?? undefined,
+  });
+  if (result.seconds === undefined) {
+    return null;
+  }
+  const formatted = formatCompactDuration(result.seconds);
+  return result.kind === "estimated"
+    ? `${exercise.recap.totalDurationLabel} : ≈ ${formatted}`
     : `${exercise.recap.totalDurationLabel} : ${formatted}`;
 }
 

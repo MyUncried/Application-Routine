@@ -480,3 +480,35 @@ describe("strings", () => {
     );
   });
 });
+
+/**
+ * PRE-3 (P3-20/contract-i18n) — libellés français des surfaces Paramètres,
+ * médias et cartes ; les groupes existants restent intacts.
+ */
+describe("strings — PRE-3", () => {
+  it("P3-20/contract-i18n — libellés PRE-3 des surfaces, modes et erreurs ; groupes existants conservés", () => {
+    const pre3 = strings.executionParameters;
+    expect(pre3.sheet.title).toBe("Paramètres d’exécution");
+    expect(pre3.sheet.modes).toEqual({ DURATION: "Durée", REPETITIONS: "Répétitions", TO_FAILURE: "À l’échec" });
+    expect(pre3.sheet.sideModes).toEqual({
+      UNILATERAL: "Sans changement",
+      RIGHT_LEFT: "Droite puis gauche",
+      LEFT_RIGHT: "Gauche puis droite",
+    });
+    expect(pre3.sheet.sideOrders).toEqual({
+      BY_SIDE: "Un côté après l’autre",
+      BY_SERIES: "Les deux côtés à chaque série",
+    });
+    for (const label of [pre3.sheet.pause, pre3.sheet.beep, pre3.sheet.sideRecovery, pre3.sheet.countdown, pre3.sheet.end]) {
+      expect(label.length).toBeGreaterThan(0);
+    }
+    expect(pre3.sheet.incompleteSeries.DURATION.replace("{n}", "2")).toBe("Série 2 : renseignez la durée.");
+    expect(pre3.sheet.adjusted).toContain("{duration}");
+    expect(Object.keys(pre3.media.errors).sort()).toEqual(["COPY_FAILED", "ERROR", "INCOMPATIBLE", "STORAGE_FULL"]);
+    expect(pre3.card.chooseMode).toBe("Choisir un mode");
+    // Groupes existants conservés à l'identique.
+    expect(strings.nav.sessions).toBe("Séances");
+    expect(strings.screens.activities.editor.titleAdd).toBe("Créer un exercice");
+    expect(strings.screens.exercise.finishAction).toBe("Terminer");
+  });
+});

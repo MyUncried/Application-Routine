@@ -13,6 +13,7 @@ import {
   formatExerciseRowSummary,
 } from "@/features/sessions/compositionPresentation";
 import { BODY_ZONES } from "@/features/reference-data/bodyZones";
+import type { ExecutionParameters } from "@/domain/activities/ExecutionParameters";
 
 /**
  * V2-PRE-1 (plan §3.1, UI-CDBCCFD16078) : `formatExerciseBodyZones` reçoit
@@ -75,12 +76,14 @@ describe("formatCompositionSummary", () => {
     ).toBe("1 exercice · 2 min");
   });
 
-  it("treats a null exercise duration as 0 seconds in the formula", () => {
+  // PRE-3 (P3-12) : une cible Durée absente est un travail INCONNU — jamais
+  // un zéro présenté comme exact ; seule la borne minimale connue (« ≥ »).
+  it("treats a null exercise duration as unknown work (lower bound), never as an exact 0", () => {
     expect(
       formatCompositionSummary({
         exercises: [{ ...inTourExercise("ex-1"), name: "Gainage", durationSeconds: null }],
       }),
-    ).toBe("1 exercice · 0 min");
+    ).toBe("1 exercice · ≥ 0 min");
   });
 
   /**
@@ -964,7 +967,10 @@ describe("formatExerciseDurationLine (T02-S02)", () => {
     ).toBe("Durée totale : 2 min 20 s");
   });
 
-  it("shows a '≥' lower bound in Répétitions mode, counting only the pauses and the Récupération", () => {
+  // PRE-3 (P3-12, périmètre §6) : Répétitions sans bip et À l'échec → durée
+  // d'Exercice OMISE dans l'éditeur (aucune ligne, ni zéro, ni « ≥ ») ; les
+  // pauses connues restent comptées au niveau Séance (borne « ≥ »).
+  it("omits the line in Répétitions mode without beep (no value, no zero, no '≥')", () => {
     expect(
       formatExerciseDurationLine({
         name: "Squats",
@@ -975,11 +981,10 @@ describe("formatExerciseDurationLine (T02-S02)", () => {
         pauseSeconds: 10,
         postActivityRecoverySeconds: 25,
       }),
-      // Récupération présente : 3×10 + 25 = 55 s.
-    ).toBe("Durée totale : ≥ 55 s");
+    ).toBeNull();
   });
 
-  it("counts the pause after EVERY series when no Récupération replaces the last one", () => {
+  it("omits the line in Répétitions mode without beep, even without Récupération", () => {
     expect(
       formatExerciseDurationLine({
         name: "Squats",
@@ -990,12 +995,10 @@ describe("formatExerciseDurationLine (T02-S02)", () => {
         pauseSeconds: 10,
         postActivityRecoverySeconds: 0,
       }),
-      // 4 × 10 = 40 s — une Pause de plus que la variante avec Récupération
-      // ci-dessus, exactement celle que la Récupération remplaçait.
-    ).toBe("Durée totale : ≥ 40 s");
+    ).toBeNull();
   });
 
-  it("shows a '≥' lower bound in À l'échec mode as well (D-112)", () => {
+  it("omits the line in À l'échec mode as well", () => {
     expect(
       formatExerciseDurationLine({
         name: "Tractions",
@@ -1006,8 +1009,7 @@ describe("formatExerciseDurationLine (T02-S02)", () => {
         pauseSeconds: 30,
         postActivityRecoverySeconds: 0,
       }),
-      // Aucune Récupération : la Pause suit CHAQUE Série — 2 × 30 = 60 s.
-    ).toBe("Durée totale : ≥ 1 min");
+    ).toBeNull();
   });
 
   it("never invents a conventional duration for the Exercise itself in a non-timed mode", () => {
@@ -1182,7 +1184,11 @@ describe("V2-BILAT-01 / V2-PRE-1 — side mode in the Tour summary and the exerc
     });
 
     it("doubles the Series + Pauses part but never the Récupération", () => {
-      // 3×30 + 2×15 = 120 ; × 2 = 240 ; + 20 (jamais doublée) = 260 s.
+      // PRE-3 (registre d'événements, « un côté après l'autre ») : chaque côté
+      // porte ses Séries ET leurs Pauses : 2 × (3×30 + 3×15) = 270 ; la
+      // Récupération (20, jamais doublée) remplace la seule Pause terminale :
+      // 270 − 15 + 20 = 275 s (l'ancienne formule omettait la Pause finale
+      // du premier côté).
       expect(
         formatExerciseDurationLine({
           name: "Gainage",
@@ -1194,7 +1200,7 @@ describe("V2-BILAT-01 / V2-PRE-1 — side mode in the Tour summary and the exerc
           postActivityRecoverySeconds: 20,
           sideMode: "RIGHT_LEFT",
         }),
-      ).toBe("Durée totale : 4 min 20 s");
+      ).toBe("Durée totale : 4 min 35 s");
     });
   });
 
@@ -1356,5 +1362,85 @@ describe("V2-BILAT-01 / V2-PRE-1 — side mode in the Tour summary and the exerc
       expect(inherited).not.toContain("par côté");
       expect(inherited).not.toContain("à droite");
     });
+  });
+});
+
+/**
+ * PRE-3 — adaptations minimales des consommateurs partagés (P3-22).
+ */
+describe("PRE-3 — synthèses de Composition (adaptation minimale, P3-22)", () => {
+  const canonical = (overrides: Partial<ExecutionParameters> = {}): ExecutionParameters => ({
+    version: 1,
+    mode: "DURATION",
+    series: {
+      kind: "VARIABLE",
+      rows: [
+        { target: 30, pauseSeconds: 10 },
+        { target: 45, pauseSeconds: 20 },
+        { target: 60, pauseSeconds: 30 },
+      ],
+    },
+    sideMode: "UNILATERAL",
+    sideOrder: "BY_SIDE",
+    sideRecoverySeconds: 0,
+    cadenceBeepIntervalSeconds: 0,
+    countdownSeconds: 10,
+    endSeconds: 5,
+    ...overrides,
+  });
+
+  it("P3-22/scope-regression — carte : séries variables résumées sans refonte ; scalaires inchangés sans paramètres canoniques ; ≈ pour un travail estimé", () => {
+    const base = {
+      executionMode: "DURATION" as const,
+      durationSeconds: 30,
+      repetitionCount: null,
+      seriesCount: 3,
+      pauseSeconds: 10,
+    };
+    // Sans paramètres canoniques : synthèse historique rigoureusement inchangée.
+    expect(formatExerciseRowSummary(base)).toBe("3 séries de 30 s avec 10 s de pause par série");
+    expect(formatExerciseRowSummary({ ...base, executionParameters: canonical() })).toBe(
+      "3 séries variables, de 30 s à 1 min",
+    );
+    expect(
+      formatExerciseRowSummary({
+        ...base,
+        sideMode: "RIGHT_LEFT",
+        executionParameters: canonical({ sideMode: "RIGHT_LEFT" }),
+      }),
+    ).toBe("3 séries variables par côté, de 30 s à 1 min");
+    expect(
+      formatExerciseRowSummary({
+        ...base,
+        executionMode: "TO_FAILURE",
+        executionParameters: canonical({
+          mode: "TO_FAILURE",
+          series: { kind: "VARIABLE", rows: [{ target: null, pauseSeconds: 10 }, { target: null, pauseSeconds: 20 }] },
+        }),
+      }),
+    ).toBe("2 séries variables jusqu’à l’échec");
+
+    // Répétitions avec bip : contribution ESTIMÉE (≈) ; sans bip : borne (≥).
+    const reps = {
+      ...inTourExercise("ex-r"),
+      executionMode: "REPETITIONS" as const,
+      durationSeconds: null,
+      repetitionCount: 15,
+      seriesCount: 4,
+      pauseSeconds: 15,
+      executionParameters: canonical({
+        mode: "REPETITIONS",
+        series: { kind: "UNIFORM", count: 4, target: 15, pauseSeconds: 15 },
+        cadenceBeepIntervalSeconds: 4,
+      }),
+    };
+    expect(formatCompositionSummary({ exercises: [reps] })).toBe("1 exercice · ≈ 5 min");
+    expect(
+      formatCompositionSummary({
+        exercises: [{ ...reps, executionParameters: { ...reps.executionParameters, cadenceBeepIntervalSeconds: 0 } }],
+      }),
+    ).toBe("1 exercice · ≥ 1 min");
+    // Ligne de durée : délégation à l'autorité Domaine (≈ 300 s).
+    expect(formatExerciseDurationLine({ ...reps, name: "Squats" })).toBe("Durée totale : ≈ 5 min");
   });
 });
