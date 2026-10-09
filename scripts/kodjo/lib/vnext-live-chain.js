@@ -544,6 +544,24 @@ function postAcceptanceEvidence(prepared, artifacts, cwd, github) {
   return {...artifacts,revisionArtifacts:{origin:'POST_ACCEPTANCE',base_register:baseRegister,outcome}};
 }
 
+function observeClarification(evidence, base, next, actor, cwd) {
+  V.assertExactKeys(evidence,['decision_sources'],[],'VNEXT_LIVE_CLARIFICATION_KEYS_INVALID');
+  if(!Array.isArray(evidence.decision_sources)||!evidence.decision_sources.length)V.fail('VNEXT_REVISION_USER_DECISION_REQUIRED');
+  const decision_records=evidence.decision_sources.map(ref=>{
+    V.assertExactKeys(ref,['path','revision','content_sha256','decision_id'],[],'VNEXT_LIVE_DECISION_SOURCE_KEYS_INVALID');
+    V.assertSha40(ref.revision,'VNEXT_LIVE_DECISION_REVISION_INVALID');
+    V.assertSha64(ref.content_sha256,'VNEXT_LIVE_DECISION_HASH_INVALID');
+    if(spawnSync('git',['merge-base','--is-ancestor',ref.revision,next.product_head],{cwd,windowsHide:true}).status!==0)V.fail('VNEXT_LIVE_DECISION_NOT_IN_PRODUCT_HISTORY');
+    const content=readGit(cwd,ref.revision,relative(ref.path));
+    if(V.sha256(content)!==ref.content_sha256)V.fail('VNEXT_LIVE_DECISION_SOURCE_MISMATCH');
+    const record=JSON.parse(content);require('./decision-record').validate(record);
+    if(record.decision_id!==ref.decision_id)V.fail('VNEXT_LIVE_DECISION_ID_MISMATCH');
+    if(!next.created_from.refs.includes('decision:'+record.contract_hash))V.fail('VNEXT_LIVE_DECISION_ENVELOPE_UNBOUND');
+    return record;
+  });
+  return {slice_id:base.slice_id,authorized_actor:actor,decision_records};
+}
+
 function revisionEvidenceArtifacts(prepared, artifacts, cwd, github) {
   const evidence = prepared.revision_evidence;
   if (artifacts.planningEnvelope.planning_mode === 'INITIAL') {
@@ -552,10 +570,12 @@ function revisionEvidenceArtifacts(prepared, artifacts, cwd, github) {
   }
   if (!evidence) V.fail('VNEXT_LIVE_REVISION_EVIDENCE_REQUIRED');
   if (artifacts.planningEnvelope.created_from.kind === 'ACCEPTANCE_GAPS') return postAcceptanceEvidence(prepared, artifacts, cwd, github);
-  V.assertExactKeys(evidence, ['base_produced', 'base_review_receipt', 'revision_artifacts'], [], 'VNEXT_LIVE_REVISION_EVIDENCE_KEYS_INVALID');
+  V.assertExactKeys(evidence, ['base_produced', 'base_review_receipt', 'revision_artifacts'], ['clarification'], 'VNEXT_LIVE_REVISION_EVIDENCE_KEYS_INVALID');
   const base = verifyProduced(evidence.base_produced, cwd, github);
   const previousReport = verifyReceipt(evidence.base_produced, evidence.base_review_receipt);
-  if (previousReport.verdict !== 'REVISE' || base.planningEnvelope.planning_mode !== 'INITIAL') V.fail('VNEXT_LIVE_REVISION_BASE_NOT_REVISE');
+  const clarified=artifacts.planningEnvelope.created_from.kind==='CLARIFICATION_RESOLVED';
+  if ((clarified?previousReport.verdict!=='CLARIFICATION_REQUIRED':previousReport.verdict!=='REVISE') || base.planningEnvelope.planning_mode !== 'INITIAL') V.fail('VNEXT_LIVE_REVISION_BASE_NOT_REVISE');
+  if(clarified!==Object.hasOwn(evidence,'clarification'))V.fail('VNEXT_LIVE_CLARIFICATION_EVIDENCE_REQUIRED');
   // The later outcome is separate from the immutable bytes actually reviewed.
   if (artifacts.revisionArtifacts !== null) V.fail('VNEXT_LIVE_REVIEWED_OUTCOME_MUST_BE_SEPARATE');
   const bundle = evidence.revision_artifacts;
@@ -569,7 +589,8 @@ function revisionEvidenceArtifacts(prepared, artifacts, cwd, github) {
   const nextRegister = Register.buildRegister({ ...prepared.produced.register_input,
     candidateHead: prepared.produced.producer_revision, lot: artifacts.planningEnvelope.slice_id, phase: 'REVISION' });
   if (nextRegister.revision_count !== previous.revision_count + 1 || nextRegister.revision_count > nextRegister.revision_limit) V.fail('VNEXT_LIVE_REVISION_BOUND_INVALID');
-  const allowed = Revision.buildAllowedChangeSet({ ...base, reviewReport: previousReport });
+  const clarification=clarified?observeClarification(evidence.clarification,base.planningEnvelope,artifacts.planningEnvelope,previous.authorized_actor,cwd):null;
+  const allowed = Revision.buildAllowedChangeSet({ ...base, reviewReport: previousReport, clarification });
   exact(bundle.allowed_change_set, allowed, 'VNEXT_LIVE_REVISION_ALLOWED_SET_MISMATCH');
   const outcome = Revision.verifyRevisionOutcome({ allowedChangeSet: allowed, revisionPatch: bundle.revision_patch,
     baseArtifacts: bundle.base_artifacts, nextArtifacts: { ...artifacts, cumulativeRegister: nextRegister },
@@ -708,5 +729,5 @@ function guardLocalRequest(raw, { cwd, queueFile, github } = {}) {
   return admit(queueFile, { cwd, github, allowExternalQueueFile: true });
 }
 
-module.exports = { readGitObject, SCHEMA, CLAUDE_TIMEOUT_MS, command, relative, readGit, unitText, observeSources, launchAndProduce, produce, verifyProduced,
+module.exports = { readGitObject, SCHEMA, CLAUDE_TIMEOUT_MS, command, relative, readGit, unitText, observeSources, observeClarification, launchAndProduce, produce, verifyProduced,
   compactReviewDossier, materializeReviewDossier, decodeReviewOutput, boundedReviewOutput, validateReviewResponse, recoverReview, reviewOrRecover, preserveFailure, review, verifyReceipt, validateReceipt, nativeResolver, preparedArtifacts, prepare, approvalTarget, deriveQueue, admit, guard, guardLocalRequest };
