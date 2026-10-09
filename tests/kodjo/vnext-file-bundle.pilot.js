@@ -32,10 +32,10 @@ test('authorized plan bundles are materialized from pinned Git, refusing changed
   const file='.github/orchestration/vnext-contracts/'+'a'.repeat(64)+'/'+tag+'.json',value={complete:['é😀',1,2]},reference=B.describe(file,value,(name,text)=>{fs.mkdirSync(path.dirname(path.join(dir,name)),{recursive:true});fs.writeFileSync(path.join(dir,name),text);});
   const body='<'+tag+'>'+JSON.stringify({schema_version:'kodjo.vnext.block-bundle.v1',block_tag:tag,...reference})+'</'+tag+'>';
   git('add','.');git('commit','-qm','pinned bundle');const head=git('rev-parse','HEAD').trim();
-  const stored=JSON.parse(git('show',head+':'+file)),storedLeaf=firstLeaf(stored.root);
+  const stored=JSON.parse(git('cat-file','blob',head+':'+file)),storedLeaf=firstLeaf(stored.root);
   const storedPart=path.posix.join(path.posix.dirname(file),stored.folder,storedLeaf.file);
   assert.ok(path.join(dir,storedPart).length<260,'fixture must exercise default Windows Git without long-path configuration');
-  assert.equal(V.sha256(git('show',head+':'+storedPart)),storedLeaf.sha256);
+  assert.equal(V.sha256(git('cat-file','blob',head+':'+storedPart)),storedLeaf.sha256);
   fs.rmSync(path.join(dir,storedPart));git('checkout',head,'--',storedPart);
   assert.equal(V.sha256(fs.readFileSync(path.join(dir,storedPart))),storedLeaf.sha256);
   fs.writeFileSync(path.join(dir,file),'FORGED WORKING COPY');
@@ -43,8 +43,8 @@ test('authorized plan bundles are materialized from pinned Git, refusing changed
   const written=materialize(body,view,{cwd:dir,revision:head});assert.ok(written.length>1);assert.deepEqual(require('../../scripts/kodjo/lib/machine-block').parse(body,tag,{cwd:view}),value);
   assert.throws(()=>materialize(body,path.join(temp(t),'bad'),{cwd:dir,revision:'f'.repeat(40)}),/PREFLIGHT_HEAD_FILE_UNREADABLE/);
   const link=path.join(temp(t),'link');fs.symlinkSync(view,link,'dir');assert.throws(()=>materialize(body,link,{cwd:dir,revision:head}),/SYMLINK_REFUSED/);
-  const manifest=JSON.parse(git('show',head+':'+file)),leaf=firstLeaf(manifest.root),part=path.posix.join(path.posix.dirname(file),manifest.folder,leaf.file);
-  fs.writeFileSync(path.join(dir,file),git('show',head+':'+file));fs.writeFileSync(path.join(dir,part),'{}');git('add','.');git('commit','-qm','changed part');
+  const manifest=JSON.parse(git('cat-file','blob',head+':'+file)),leaf=firstLeaf(manifest.root),part=path.posix.join(path.posix.dirname(file),manifest.folder,leaf.file);
+  fs.writeFileSync(path.join(dir,file),git('cat-file','blob',head+':'+file));fs.writeFileSync(path.join(dir,part),'{}');git('add','.');git('commit','-qm','changed part');
   assert.throws(()=>materialize(body,path.join(temp(t),'changed'),{cwd:dir,revision:git('rev-parse','HEAD').trim()}),{code:'VNEXT_BUNDLE_PART_HASH_INVALID'});
 });
 
