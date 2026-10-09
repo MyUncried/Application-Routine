@@ -47,6 +47,10 @@ test('lost local cache cannot bypass an earlier GitHub invocation by republishin
  const current=reseal({...f.request,source_head:previous}),command=(bin,args,cwd)=>bin==='gh'?JSON.stringify({workflow_runs:[{id:'previous-run',display_title:'VNext PRE-4 plan review / '+previous}]}):Chain.command(bin,args,cwd);
  const priorAttempt=()=>Agent.priorInvocation(current,'f'.repeat(40),f.cwd,command);
  assert.equal(priorAttempt(),true);assert.throws(()=>Agent.execute(current,{...f.options,priorAttempt}),/PRIOR_INVOCATION_UNKNOWN_NO_RETRY/);assert.equal(f.counts().calls,0);
+ const legacy=V.sealContract({schema_version:'kodjo.vnext.chatgpt-plan-review-request.v1',pilot:'CHATGPT_WORK',slice_id:'VNEXT-PRE-4',repository:f.request.repository,issue_number:999,source_head:'a'.repeat(40),produced_file:'produced.json',produced_chain_hash:'d'.repeat(64),causal_file:null});
+ B.write(path.join(f.cwd,'.github/orchestration/requests/vnext-plan-review/'+legacy.contract_hash+'.json'),legacy);git('add','.');git('commit','-m','TEST legacy request');const oldCommit=git('rev-parse','HEAD');
+ const oldCommand=(bin,args,cwd)=>bin==='gh'?JSON.stringify({workflow_runs:[{id:'old-run',display_title:'VNext PRE-4 plan review / '+oldCommit}]}):Chain.command(bin,args,cwd);
+ assert.equal(Agent.priorInvocation({...legacy,operation:'plan-review',operation_hash:legacy.produced_chain_hash},'f'.repeat(40),f.cwd,oldCommand),true);
 });
 test('exact screenshot refusal publishes the raw scope reply and recovery reproduces the refusal without invoking again',t=>{
  const f=setup(t),request=V.sealContract({schema_version:'kodjo.vnext.review-scope-request.v1',review_context_hash:'a'.repeat(64),review_report_hash:'b'.repeat(64),base_target_graph_hash:'c'.repeat(64),requests:[{finding_id:'FND-test',targets:[{target_id:'test'}]}]});
@@ -119,4 +123,6 @@ test('generic plan adapter preserves the live review validator and its REVISE ve
  const request=Agent.create({source_head:repo.git('rev-parse','HEAD'),inputs_file:'inputs.json',operation:'plan-review',slice_id:'VNEXT-PRE-4',repository:f.request.repository,issue_number:999},repo.cwd);
  let calls=0;const adapter=Agent.adapterFor(request,repo.cwd,{invoke:()=>{calls++;return JSON.stringify({type:'result',session_id:'TEST',structured_output:{native_assessment_observations:[],semantic_review:require('./helpers/review-attestation-fixture').semantic(a.reviewContext,[{category:'MISSING_REQUIREMENT',target_type:'SOURCE_UNIT',target_id:a.requirementRegistry.coverage[0].unit_id,finding:'TEST missing requirement',evidence:['TEST'],required_correction:'TEST correct requirement',dependency_target_ids:[]}])}});}});
  Agent.execute(request,{...f.options,cwd:repo.cwd,adapter});assert.equal(calls,1);assert.equal(Agent.verify(request,f.options.outputDirectory,{cwd:repo.cwd}).verdict,'REVISE');
+ const Legacy=require('../../scripts/kodjo/chatgpt-plan-review'),oldRequest=Legacy.create({source_head:request.source_head,produced_file:'produced.json',causal_file:null},repo.cwd);
+ Legacy.execute(oldRequest,{...f.options,cwd:repo.cwd,chain:{...Chain,review:()=>{throw Error('must not invoke the same dossier through the compatibility entry');}}});assert.equal(calls,1);
 });

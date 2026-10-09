@@ -100,17 +100,9 @@ function main(args = process.argv.slice(2)) {
         || Chain.command('git',['status','--porcelain'],cwd).trim()) throw Error('CHATGPT_REVIEW_CHECKOUT_MISMATCH');
     if(process.env.GITHUB_REPOSITORY !== request.repository) throw Error('CHATGPT_REVIEW_REPOSITORY_MISMATCH');
     const issueState = number => JSON.parse(Chain.command('gh',['api','repos/'+request.repository+'/issues/'+number],cwd)).state;
-    const priorAttempt = () => {
-      if (Number(process.env.GITHUB_RUN_ATTEMPT) > 1) return true;
-      for (let page=1;page<=100;page++) {
-        const rows=JSON.parse(Chain.command('gh',['api','repos/'+request.repository+
-          '/actions/workflows/kodjo-vnext-chatgpt-plan-review.yml/runs?per_page=100&page='+page],cwd)).workflow_runs;
-        if (!Array.isArray(rows)) throw Error('CHATGPT_REVIEW_PRIOR_RUN_SCAN_INVALID');
-        if (rows.some(r=>String(r.id)!==process.env.GITHUB_RUN_ID && ['VNext PRE-4 plan review / '+input,'VNext PRE-4 agent operation / '+input].includes(r.display_title))) return true;
-        if (rows.length<100) return false;
-      }
-      throw Error('CHATGPT_REVIEW_PRIOR_RUN_SCAN_INCOMPLETE');
-    };
+    const priorAttempt = () => require('./agent-relay').priorInvocation(
+      {...request,operation:'plan-review',operation_hash:request.produced_chain_hash},input,cwd);
+
     return execute(request,{cwd,evidenceRoot:process.env.KODJO_REVIEW_CACHE,
       outputDirectory:process.env.KODJO_REVIEW_OUTPUT,issueState,priorAttempt});
   }
