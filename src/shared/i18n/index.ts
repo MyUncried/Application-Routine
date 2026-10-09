@@ -40,6 +40,7 @@ const executionParameters = {
     rowPause: "Série {n}, pause",
     moveUp: "Monter la série {n}",
     moveDown: "Descendre la série {n}",
+    moveHandle: "Déplacer la série {n}",
     sideMode: "Changement de côté",
     sideModes: {
       UNILATERAL: "Sans changement",
@@ -62,6 +63,13 @@ const executionParameters = {
       DURATION: "Série {n} : renseignez la durée.",
       REPETITIONS: "Série {n} : renseignez les répétitions.",
     },
+    incompleteUniform: {
+      DURATION: "Renseignez la durée d’une série.",
+      REPETITIONS: "Renseignez les répétitions.",
+    },
+    invalidHint: "Valeur à renseigner",
+    validateUnavailableSuffix: "indisponible tant qu’une valeur requise manque",
+    failureTarget: "À l’échec",
     adjusted: "Durée ajustée à {duration} pour respecter un nombre entier de séries.",
     disabledSuffix: "sans effet pour une seule série",
   },
@@ -75,6 +83,11 @@ const executionParameters = {
     remove: "Retirer {item}",
     moveUp: "Monter {item}",
     moveDown: "Descendre {item}",
+    menuRemove: "Retirer",
+    menuMoveUp: "Monter",
+    menuMoveDown: "Descendre",
+    menuCancel: "Annuler",
+    menuHint: "Ouvre les actions Retirer, Monter et Descendre",
     retry: "Réessayer",
     retryAccessibilityLabel: "Réessayer l’import de {item}",
     errors: {
@@ -91,7 +104,10 @@ const executionParameters = {
   summary: {
     variableSeries: "{n} séries variables",
     variableSeriesPerSide: "{n} séries variables par côté",
-    range: "de {min} à {max}",
+  },
+  referenceSheets: {
+    categoryTitle: "Catégorie de l’exercice",
+    zoneCreateAction: "Créer une zone corporelle",
   },
 } as const;
 

@@ -107,3 +107,37 @@ export function moveDraftMedia(
   next.splice(to, 0, moved!);
   return next;
 }
+
+/** Voisins de sélection d'un média importé : identités choisies avant et après lui, dans l'ordre de sélection. */
+export type MediaSelectionNeighbours = {
+  readonly before: readonly string[];
+  readonly after: readonly string[];
+};
+
+/** Voisins de chaque élément d'une sélection ordonnée (clés = identités d'assets). */
+export function selectionNeighbours(keys: readonly string[], key: string): MediaSelectionNeighbours {
+  const index = keys.indexOf(key);
+  return index < 0 ? { before: [], after: [] } : { before: keys.slice(0, index), after: keys.slice(index + 1) };
+}
+
+/**
+ * Place un média importé après un réessai (P3-23, revue 1 REV-03) : avant
+ * le premier voisin SUIVANT de sa sélection encore présent, sinon après le
+ * dernier voisin PRÉCÉDENT présent, sinon en fin. L'ordre courant (y compris
+ * un réordonnancement ou un retrait explicite de l'utilisateur) n'est jamais
+ * modifié ; un média déjà présent n'est jamais dupliqué.
+ */
+export function placeRetriedMedia(
+  items: readonly DraftMediaItem[],
+  retried: DraftMediaItem,
+  neighbours: MediaSelectionNeighbours | undefined,
+): readonly DraftMediaItem[] {
+  if (items.some((item) => item.assetId === retried.assetId)) {
+    return items;
+  }
+  const positionOf = (key: string) => items.findIndex((item) => item.assetId === key);
+  const next = neighbours?.after.map(positionOf).find((position) => position >= 0);
+  const previous = (neighbours?.before ?? []).map(positionOf).filter((position) => position >= 0);
+  const at = next !== undefined ? next : previous.length > 0 ? Math.max(...previous) + 1 : items.length;
+  return [...items.slice(0, at), retried, ...items.slice(at)];
+}

@@ -1,7 +1,9 @@
 import { useContext, useEffect, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import type { ActivityDefinition } from "@/domain/activities";
+import { resolveDefinitionExecutionParameters, type ActivityDefinition } from "@/domain/activities";
+import { computeIntrinsicDuration } from "@/domain/activities/executionCalculations";
+import { formatPhraseDuration } from "@/domain/activities/executionPhrase";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import {
@@ -95,19 +97,35 @@ export type ActivityCardProps = {
  * - le chevron Déployer, qui n'était qu'un contrôle désactivé sans action,
  *   est retiré : Figma ne le porte plus sur aucune carte d'Exercice ;
  * - titre Inter Semi Bold 15 (`CardTitleLine`, colonne de texte sans
- *   gouttière : 16 de chaque côté) ; la durée y est un champ optionnel que
- *   cette carte ne renseigne pas — règle d'affichage actuelle inchangée ;
+ *   gouttière : 16 de chaque côté) ; PRE-3 : la durée intrinsèque y est
+ *   renseignée selon `catalogueDuration` (exacte, ≈ ou absente) ;
  * - Lecture reste visible et désactivée, en bas à droite ;
  * - conteneur : fond `color/surface-subtle`, contour 0,5
  *   `color/cards/border`, rayon 8.
  * La gouttière photo/icône de nature (64 × 64) n'est pas ajoutée : elle
  * dépend de la vignette du premier média (D-264), non implémentée.
  */
+/**
+ * PRE-3 (DSF cartes-durée 07/10, phrase v1 §4) : durée INTRINSÈQUE de la
+ * définition, par l'autorité Domaine — exacte sans symbole, « ≈ » si
+ * estimée (Répétitions avec bip), absente si omise (Répétitions sans bip,
+ * À l'échec) : jamais un zéro, un tiret ou un libellé de remplacement.
+ */
+export function catalogueDuration(definition: ActivityDefinition): string | null {
+  const result = computeIntrinsicDuration(resolveDefinitionExecutionParameters(definition));
+  if (result.seconds === undefined) {
+    return null;
+  }
+  const amount = formatPhraseDuration(result.seconds);
+  return result.kind === "estimated" ? `≈ ${amount}` : amount;
+}
+
 export function ActivityCard({ definition, onOpen }: ActivityCardProps) {
   const t = strings.screens.activities.card;
   const bodyZonesReferential = useBodyZonesReferential();
   const bodyZones = formatExerciseBodyZones(definition.bodyZoneIds, bodyZonesReferential);
   const summary = formatExerciseRowSummary(definition);
+  const duration = catalogueDuration(definition);
 
   return (
     <View style={styles.container} testID={`activity-card-${definition.id}`}>
@@ -115,7 +133,7 @@ export function ActivityCard({ definition, onOpen }: ActivityCardProps) {
       <View style={styles.body}>
         <View style={styles.mainRow}>
           <ActivityCardMainArea onOpen={onOpen}>
-            <CardTitleLine title={definition.name} testID={`activity-card-${definition.id}`} />
+            <CardTitleLine title={definition.name} duration={duration} testID={`activity-card-${definition.id}`} />
             {bodyZones !== null ? (
               <Text
                 style={styles.secondaryLine}

@@ -205,7 +205,8 @@ describe("CategoryPickerModal — R4/R10 (palette en flux, défilement, en-tête
     renderModal(service);
 
     await screen.findByTestId("category-picker-card");
-    const title = screen.getByText("Catégorie");
+    // PRE-3 (Figma 4332:7095) : titre de feuille « Catégorie de l’exercice ».
+    const title = screen.getByText("Catégorie de l’exercice");
     expect(title.props.accessibilityRole).toBe("header");
   });
 
@@ -273,16 +274,23 @@ describe("CategoryPickerModal — PRE-3", () => {
     expect(screen.getByTestId("category-picker-new-add").props.accessibilityState).toMatchObject({ disabled: false });
   });
 
-  it("P3-20/all-surfaces — feuille ancrée en bas, voile #1F2129 à 34 %, en-tête ✕ / titre / ✓, pastilles 30 rayon 16", async () => {
+  it("P3-20/all-surfaces — feuille ancrée en bas, voile #1F2129 à 34 %, en-tête ✕ / titre sans coche (D-222, chapitre 06), pastilles 30 rayon 16, action Créer 32", async () => {
     renderModal(fakeReferentialService(), { selectedId: "cardio" });
     const tag = await screen.findByTestId("category-picker-tag-cardio");
     const backdrop = StyleSheet.flatten(screen.getByTestId("category-picker-backdrop").props.style);
     expect(backdrop).toMatchObject({ backgroundColor: "rgba(31, 33, 41, 0.34)", justifyContent: "flex-end" });
     expect(screen.getByTestId("category-picker-header")).toBeTruthy();
     expect(screen.getByTestId("category-picker-close")).toBeTruthy();
-    expect(screen.getByTestId("category-picker-confirm")).toBeTruthy();
+    // « Une coche de validation encore visible dans la maquette Catégorie est un écart de rendu, pas une nouvelle règle. »
+    expect(screen.queryByTestId("category-picker-confirm")).toBeNull();
+    expect(screen.getByText("Catégorie de l’exercice")).toBeTruthy();
     const pill = StyleSheet.flatten(tag.props.style);
     expect(pill).toMatchObject({ height: 30, borderRadius: 16, backgroundColor: "#E5F0FF", borderColor: "#8283F2" });
+    expect(StyleSheet.flatten(screen.getByTestId("category-picker-create-action").props.style)).toMatchObject({
+      height: 32,
+      borderRadius: 16,
+      borderColor: "#8283F2",
+    });
   });
 
   it("P3-22/scope-regression — valeurs retirées absentes de la liste, menu d'appui long et sélection par appui court conservés", async () => {
@@ -301,25 +309,29 @@ describe("CategoryPickerModal — PRE-3", () => {
     expect(onSelect).not.toHaveBeenCalled();
   });
 
-  it("INTERACTION/category — sélection simple isolée : ✕ ferme sans sélectionner, ✓ ferme en conservant la sélection courante", async () => {
+  it("INTERACTION/category — sélection simple validée au toucher (D-222) ; ✕ ferme sans sélectionner", async () => {
     const onSelect = jest.fn();
     const onClose = jest.fn();
-    renderModal(fakeReferentialService(), { selectedId: "cardio", onSelect, onClose });
+    renderModal(fakeReferentialService(), { selectedId: null, onSelect, onClose });
     await screen.findByTestId("category-picker-tag-cardio");
     fireEvent.press(screen.getByTestId("category-picker-close"));
-    fireEvent.press(screen.getByTestId("category-picker-confirm"));
     expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("category-picker-tag-cardio"));
+    });
+    expect(onSelect).toHaveBeenCalledWith("cardio");
     expect(onClose).toHaveBeenCalledTimes(2);
   });
 
-  it("ACCESSIBILITY/category — nom et état sélectionné, ✕/✓ nommés, titre en-tête, Ajouter annoncé désactivé sans erreur", async () => {
+  it("ACCESSIBILITY/category — nom et état sélectionné, ✕ nommé (aucune coche), titre en-tête, Ajouter annoncé désactivé sans erreur", async () => {
     renderModal(fakeReferentialService(), { selectedId: "cardio" });
     const tag = await screen.findByTestId("category-picker-tag-cardio");
     expect(tag.props.accessibilityLabel).toContain("Cardio");
     expect(tag.props.accessibilityState).toMatchObject({ selected: true });
     expect(screen.getByTestId("category-picker-close").props.accessibilityLabel.length).toBeGreaterThan(0);
-    expect(screen.getByTestId("category-picker-confirm").props.accessibilityLabel).toBe("Valider la catégorie");
-    expect(screen.getByRole("header")).toBeTruthy();
+    expect(screen.queryByTestId("category-picker-confirm")).toBeNull();
+    expect(screen.getByRole("header").props.children).toBe("Catégorie de l’exercice");
     fireEvent.press(screen.getByTestId("category-picker-create-action"));
     expect(screen.getByTestId("category-picker-new-add").props.accessibilityState).toMatchObject({ disabled: true });
   });

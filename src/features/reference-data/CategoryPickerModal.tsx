@@ -172,18 +172,9 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
               <KodjoIcon name="wheel-action-cancel" />
             </Pressable>
             <Text style={styles.sheetTitle} accessibilityRole="header" numberOfLines={1}>
-              {t.title}
+              {strings.executionParameters.referenceSheets.categoryTitle}
             </Text>
-            <Pressable
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel={strings.executionParameters.sheet.validateAccessibilityLabel.replace("les paramètres", "la catégorie")}
-              hitSlop={5}
-              style={styles.sheetValidate}
-              testID="category-picker-confirm"
-            >
-              <KodjoIcon name="wheel-action-validate" />
-            </Pressable>
+            <View style={styles.sheetHeaderSpacer} />
           </View>
         <ScrollView
           contentContainerStyle={styles.cardContent}
@@ -344,7 +335,7 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
               style={styles.createAction}
               testID="category-picker-create-action"
             >
-              <KodjoIcon name="action-add" testID="category-picker-create-icon" />
+              <KodjoIcon name="action-add" size={16} testID="category-picker-create-icon" />
               <Text style={styles.createActionLabel}>{t.createAction}</Text>
             </Pressable>
           )}
@@ -408,13 +399,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.surfaceSubtle,
   },
-  sheetValidate: {
+  // Sélection validée au toucher (D-222) : aucune coche ; réserve la largeur pour centrer le titre.
+  sheetHeaderSpacer: {
     width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.primary,
   },
   card: {
     width: "100%",
@@ -466,21 +453,22 @@ const styles = StyleSheet.create({
     ...type.supporting,
     color: colors.textPrimary,
   },
+  // PRE-3 (Figma « Créer une … ») : pilule 32, contour primarySoft, Regular 12 primary, icône 16.
   createAction: {
     alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: spacing[6],
-    height: dimensions.compactSecondaryButton.visualHeight,
-    paddingHorizontal: spacing[16],
-    borderRadius: dimensions.compactSecondaryButton.radius,
+    gap: spacing[4],
+    height: 32,
+    paddingHorizontal: spacing[8],
+    borderRadius: fixedRadii[16],
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: colors.primarySoft,
     backgroundColor: colors.background,
   },
   createActionLabel: {
-    ...type.button,
+    ...type.supporting,
     color: colors.primary,
   },
   newEntryContainer: {

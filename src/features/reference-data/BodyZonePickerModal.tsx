@@ -12,7 +12,7 @@ import {
 import { BodyZoneSelector } from "@/features/sessions/BodyZoneSelector";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, fixedRadii, spacing, type } from "@/shared/ui/tokens";
 
 export type BodyZonePickerModalProps = {
   selectedIds: readonly string[];
@@ -341,8 +341,8 @@ export function BodyZonePickerModal({
               style={styles.createAction}
               testID="body-zone-picker-create-action"
             >
-              <KodjoIcon name="action-add" testID="body-zone-picker-create-icon" />
-              <Text style={styles.createActionLabel}>{t.createAction}</Text>
+              <KodjoIcon name="action-add" size={16} testID="body-zone-picker-create-icon" />
+              <Text style={styles.createActionLabel}>{strings.executionParameters.referenceSheets.zoneCreateAction}</Text>
             </Pressable>
           )}
 
@@ -432,21 +432,22 @@ const styles = StyleSheet.create({
     ...type.body,
     color: colors.danger,
   },
+  // PRE-3 (Figma « Créer une … ») : pilule 32, contour primarySoft, Regular 12 primary, icône 16.
   createAction: {
     alignSelf: "center",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: spacing[6],
-    height: dimensions.compactSecondaryButton.visualHeight,
-    paddingHorizontal: spacing[16],
-    borderRadius: dimensions.compactSecondaryButton.radius,
+    gap: spacing[4],
+    height: 32,
+    paddingHorizontal: spacing[8],
+    borderRadius: fixedRadii[16],
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: colors.primarySoft,
     backgroundColor: colors.background,
   },
   createActionLabel: {
-    ...type.button,
+    ...type.supporting,
     color: colors.primary,
   },
   newEntryContainer: {

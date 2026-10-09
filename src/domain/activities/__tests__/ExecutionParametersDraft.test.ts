@@ -214,3 +214,106 @@ describe("P3-14 — inversion depuis la feuille", () => {
     expect(applyRequestedTotal(openSheetDraft(parameters(variable(row(30, 10), row(30, 10)))), 100)).toBeNull();
   });
 });
+
+/**
+ * Correction revue 1 (REV-01/REV-02) — transitions croisées : une réserve
+ * créée dans un mode ne fournit jamais de cible active dans un autre mode ;
+ * l'inversion du total s'applique dès que l'état EFFECTIF est Durée uniforme.
+ */
+describe("REV-01 — réserves par mode et par identité de ligne", () => {
+  const durations = () => openSheetDraft(parameters(variable(row(30, 10), row(60, 20)), { cadenceBeepIntervalSeconds: 3 }));
+  const targets = (rows: readonly SeriesRow[]) => rows.map((entry) => entry.target);
+
+  it("tableau réservé (uniforme) → autre mode → réactivation : cibles « — », Pauses/N/bip conservés, ✓ refusé", () => {
+    let draft = setVariable(durations(), false);
+    draft = setMode(draft, "REPETITIONS");
+    draft = setVariable(draft, true);
+    expect(targets(draft.rows)).toEqual([null, null]);
+    expect(draft.rows.map((entry) => entry.pauseSeconds)).toEqual([10, 20]);
+    expect(draft.count).toBe(2);
+    expect(draft.cadenceBeepIntervalSeconds).toBe(3);
+    const result = commitSheetDraft(draft);
+    expect(result.ok).toBe(false);
+    expect(result.ok ? null : firstIncompleteSeries(result.violations)).toBe(1);
+  });
+
+  it("passage par À l'échec puis Répétitions puis Durée : jamais de conversion ; le retour en Durée restaure 30/60, y compris dans la réserve", () => {
+    let draft = setMode(durations(), "TO_FAILURE");
+    expect(targets(draft.rows)).toEqual([null, null]);
+    expect(commitSheetDraft(draft).ok).toBe(true);
+    draft = setMode(draft, "REPETITIONS");
+    expect(targets(draft.rows)).toEqual([null, null]);
+    draft = setVariable(draft, false);
+    draft = setMode(draft, "DURATION");
+    expect(draft.uniform.target).toBe(30);
+    draft = setVariable(draft, true);
+    expect(targets(draft.rows)).toEqual([30, 60]);
+  });
+
+  it("lignes retirées (N réduit) puis changement de mode : la restauration de N rend « — » dans le nouveau mode, puis 60 au retour en Durée", () => {
+    let draft = setSeriesCount(durations(), 1);
+    draft = setMode(draft, "REPETITIONS");
+    draft = setRowTarget(draft, 0, 12);
+    draft = setSeriesCount(draft, 2);
+    expect(targets(draft.rows)).toEqual([12, null]);
+    draft = setMode(draft, "DURATION");
+    expect(targets(draft.rows)).toEqual([30, 60]);
+    draft = setMode(draft, "REPETITIONS");
+    expect(targets(draft.rows)).toEqual([12, null]);
+  });
+
+  it("déplacement puis changement de mode : les cibles suivent l'identité de la ligne, pas sa position", () => {
+    let draft = moveRow(durations(), 1, 0);
+    draft = setMode(draft, "REPETITIONS");
+    draft = setRowTarget(draft, 0, 8);
+    draft = setMode(draft, "DURATION");
+    expect(targets(draft.rows)).toEqual([60, 30]);
+    draft = moveRow(draft, 0, 1);
+    draft = setMode(draft, "REPETITIONS");
+    expect(targets(draft.rows)).toEqual([null, 8]);
+  });
+
+  it("clone de la dernière ligne au-delà des réserves : reprend les cibles mémorisées de cette ligne, mode par mode", () => {
+    let draft = setMode(durations(), "REPETITIONS");
+    draft = setRowTarget(draft, 1, 15);
+    draft = setSeriesCount(draft, 3);
+    expect(targets(draft.rows)).toEqual([null, 15, 15]);
+    draft = setMode(draft, "DURATION");
+    expect(targets(draft.rows)).toEqual([30, 60, 60]);
+  });
+
+  it("✓ n'applique que l'état effectif valide, sans identité ni réserve ; une réouverture ne garde aucune réserve", () => {
+    let draft = setMode(durations(), "REPETITIONS");
+    draft = setRowTarget(setRowTarget(draft, 0, 10), 1, 12);
+    const value = committed(draft);
+    expect(value.series).toEqual(variable(row(10, 10), row(12, 20)));
+    expect(Object.keys(value.series.kind === "VARIABLE" ? value.series.rows[0]! : {})).toEqual(["target", "pauseSeconds"]);
+    const reopened = setMode(openSheetDraft(value), "DURATION");
+    expect(targets(reopened.rows)).toEqual([null, null]);
+  });
+});
+
+describe("REV-02 — inversion cohérente avec la normalisation N=1", () => {
+  it("variable ramené à N=1 : inversion appliquée sur la première ligne effective, tableau réservé, total réalisé = total annoncé", () => {
+    let draft = openSheetDraft(parameters(variable(row(30, 10), row(60, 20))));
+    draft = moveRow(draft, 1, 0);
+    draft = setSeriesCount(draft, 1);
+    const result = applyRequestedTotal(draft, 160);
+    expect(result).not.toBeNull();
+    expect(result!.inversion).toEqual({ seriesCount: 2, totalSeconds: 160, adjusted: false });
+    const value = committed(result!.draft);
+    expect(value.series).toEqual({ kind: "UNIFORM", count: 2, target: 60, pauseSeconds: 20 });
+    // Réactivation avant ✓ : le dernier tableau variable est restitué.
+    const restored = setVariable(result!.draft, true);
+    expect(restored.rows).toEqual([row(60, 20), row(30, 10)]);
+  });
+
+  it("inversion indisponible en variable N≥2, Répétitions, À l'échec ou cible non renseignée", () => {
+    const base = openSheetDraft(parameters(variable(row(30, 10), row(60, 20))));
+    expect(applyRequestedTotal(base, 100)).toBeNull();
+    expect(applyRequestedTotal(setMode(setVariable(base, false), "REPETITIONS"), 100)).toBeNull();
+    expect(applyRequestedTotal(setMode(setVariable(base, false), "TO_FAILURE"), 100)).toBeNull();
+    const empty = openSheetDraft(parameters({ kind: "UNIFORM", count: 1, target: null, pauseSeconds: 0 }));
+    expect(applyRequestedTotal(empty, 100)).toBeNull();
+  });
+});

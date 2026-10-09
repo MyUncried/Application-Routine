@@ -5,6 +5,9 @@ import { StyleSheet } from "react-native";
 
 import type { ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import type { DraftMediaItem } from "@/domain/media/ActivityMedia";
+import type { ImportItem, ImportResult, PickedMedia } from "@/domain/media/ActivityMediaImportService";
+import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import {
   ActivityEditorForm,
   isActivityEditorFormValid,
@@ -73,6 +76,7 @@ function Harness({
   category = null,
   onOpenCategory = jest.fn(),
   onBodyZonesPickerClose,
+  mediaService = null,
 }: {
   initial?: Partial<ActivityEditorFormValue>;
   onChangeSpy?: (patch: Partial<ActivityEditorFormValue>) => void;
@@ -82,6 +86,7 @@ function Harness({
   category?: EditorCategory;
   onOpenCategory?: () => void;
   onBodyZonesPickerClose?: () => void;
+  mediaService?: ActivityDefinitionService | null;
 }) {
   const [value, setValue] = useState<ActivityEditorFormValue>(baseValue(initial));
   return (
@@ -98,7 +103,7 @@ function Harness({
           category={category}
           onOpenCategory={onOpenCategory}
           profileSideRecoverySecondsDefault={10}
-          mediaService={null}
+          mediaService={mediaService}
           mediaDraftId="draft-test"
           finishLabel="Terminer"
           onFinish={onFinish}
@@ -113,8 +118,17 @@ function Harness({
   );
 }
 
-/** Texte intégral de la phrase (segments imbriqués concaténés). */
+/**
+ * Texte intégral CANONIQUE de la phrase (segments imbriqués concaténés) : le
+ * retour de ligne de présentation avant « Durée totale » (phrase v1 §5) est
+ * ramené à l'espace du corpus v15.
+ */
 function phrase(): string {
+  return renderedPhrase().replace("\nDurée totale : ", " Durée totale : ");
+}
+
+/** Texte tel que rendu (retour de ligne de présentation compris). */
+function renderedPhrase(): string {
   const node = screen.getByTestId("exercise-parameters-phrase");
   const flatten = (children: unknown): string =>
     Array.isArray(children)
@@ -331,5 +345,110 @@ describe("ActivityEditorForm — PRE-3", () => {
     );
     const nested = screen.getByTestId("exercise-parameters-phrase").props.children as { props?: { accessible?: boolean; accessibilityRole?: string } }[];
     expect(nested.filter((child) => typeof child === "object" && child?.props?.accessibilityRole).length).toBe(0);
+  });
+});
+
+/**
+ * Correction revue 1 — REV-03 (ordre de sélection après échec/réessai) et
+ * phrase v1 §5 (retour de ligne de présentation avant « Durée totale »).
+ */
+describe("ActivityEditorForm — correction revue 1", () => {
+  const picked: PickedMedia = {
+    uri: "file:///cache/x.jpg",
+    kind: "PHOTO",
+    mimeType: "image/jpeg",
+    fileName: null,
+    sizeBytes: 1,
+    durationMs: null,
+    width: 1,
+    height: 1,
+    nativeAssetId: null,
+  };
+  const ready = (id: string): ImportItem => ({
+    key: id,
+    state: "READY",
+    picked,
+    media: { assetId: id, asset: { id, uri: `kodjo-media/${id}.jpg`, createdAt: "now", kind: "PHOTO" } },
+  });
+  const failed = (id: string): ImportItem => ({ key: id, state: "FAILED", picked, error: "COPY_FAILED" });
+
+  function mediaService(results: ImportResult[], retries: Record<string, ImportItem[]>) {
+    return {
+      supportsMediaImport: true,
+      resolveMediaUri: (uri: string) => uri,
+      leaseDraftMedia: jest.fn(),
+      importPendingMedia: jest.fn(async () => null),
+      importMedia: jest.fn(async () => results.shift()!),
+      retryMediaImport: jest.fn(async (_draft: string, item: ImportItem) => retries[item.key]!.shift()!),
+    } as unknown as ActivityDefinitionService;
+  }
+
+  function renderWithMedia(service: ActivityDefinitionService) {
+    let latest: readonly DraftMediaItem[] = [];
+    render(<Harness mediaService={service} onChangeSpy={(patch) => patch.media && (latest = patch.media)} />);
+    return () => latest.map((item) => item.assetId);
+  }
+
+  async function press(testID: string) {
+    await act(async () => {
+      fireEvent.press(screen.getByTestId(testID));
+    });
+  }
+
+  it("REV-03 — A, B, C avec A et C en échec : réessais (C puis A, A deux fois) → A, B, C ; une sélection ultérieure reste en fin ; annulation neutre ; aucun doublon", async () => {
+    const service = mediaService(
+      [
+        { status: "IMPORTED", limitedAccess: false, items: [failed("a"), ready("b"), failed("c")] },
+        { status: "CANCELED" },
+        { status: "IMPORTED", limitedAccess: false, items: [ready("d")] },
+      ],
+      { a: [failed("a"), ready("a")], c: [ready("c")] },
+    );
+    const order = renderWithMedia(service);
+    await press("media-add");
+    expect(order()).toEqual(["b"]);
+    expect(screen.getByTestId("media-pending-1-retry")).toBeTruthy();
+    expect(screen.getByTestId("media-pending-2-retry")).toBeTruthy();
+    await press("media-add"); // annulation : rien ne change, échecs conservés
+    expect(order()).toEqual(["b"]);
+    expect(screen.getByTestId("media-pending-2-retry")).toBeTruthy();
+    await press("media-add"); // sélection ultérieure D
+    expect(order()).toEqual(["b", "d"]);
+    expect(screen.getByTestId("media-pending-2-retry")).toBeTruthy();
+    await press("media-pending-2-retry"); // C
+    expect(order()).toEqual(["b", "c", "d"]);
+    await press("media-pending-1-retry"); // A échoue encore
+    expect(order()).toEqual(["b", "c", "d"]);
+    expect(screen.getByTestId("media-pending-1-error")).toBeTruthy();
+    await press("media-pending-1-retry"); // A réussit
+    expect(order()).toEqual(["a", "b", "c", "d"]);
+    expect(screen.queryByTestId("media-pending-1")).toBeNull();
+  });
+
+  it("REV-03 — un réordonnancement ou un retrait explicite avant le réessai est conservé", async () => {
+    const service = mediaService(
+      [{ status: "IMPORTED", limitedAccess: false, items: [failed("a"), ready("b"), ready("c")] }],
+      { a: [ready("a")] },
+    );
+    const order = renderWithMedia(service);
+    await press("media-add");
+    expect(order()).toEqual(["b", "c"]);
+    fireEvent(screen.getByTestId("media-item-2"), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+    expect(order()).toEqual(["c", "b"]);
+    fireEvent(screen.getByTestId("media-item-2"), "accessibilityAction", { nativeEvent: { actionName: "remove" } });
+    expect(order()).toEqual(["c"]);
+    await press("media-pending-1-retry");
+    // B retiré : A se place avant le premier voisin suivant encore présent (C).
+    expect(order()).toEqual(["a", "c"]);
+  });
+
+  it("phrase v1 §5 — retour de ligne de présentation avant « Durée totale », texte canonique inchangé pour l'accessibilité", () => {
+    render(<Harness />);
+    expect(renderedPhrase()).toBe(
+      "3 séries de 1 min 30 s, avec 15 s de pause après chaque série.\nDurée totale : 5 min 15 s.",
+    );
+    expect(screen.getByTestId("exercise-parameters-card").props.accessibilityLabel).toContain(
+      "après chaque série. Durée totale : 5 min 15 s.",
+    );
   });
 });

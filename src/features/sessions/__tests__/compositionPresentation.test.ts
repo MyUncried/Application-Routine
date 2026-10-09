@@ -1389,7 +1389,7 @@ describe("PRE-3 — synthèses de Composition (adaptation minimale, P3-22)", () 
     ...overrides,
   });
 
-  it("P3-22/scope-regression — carte : séries variables résumées sans refonte ; scalaires inchangés sans paramètres canoniques ; ≈ pour un travail estimé", () => {
+  it("P3-22/scope-regression — carte : indicateur « N séries variables » sans détail des valeurs (v13 §7) ; scalaires inchangés sans paramètres canoniques ; ≈ pour un travail estimé", () => {
     const base = {
       executionMode: "DURATION" as const,
       durationSeconds: 30,
@@ -1399,16 +1399,14 @@ describe("PRE-3 — synthèses de Composition (adaptation minimale, P3-22)", () 
     };
     // Sans paramètres canoniques : synthèse historique rigoureusement inchangée.
     expect(formatExerciseRowSummary(base)).toBe("3 séries de 30 s avec 10 s de pause par série");
-    expect(formatExerciseRowSummary({ ...base, executionParameters: canonical() })).toBe(
-      "3 séries variables, de 30 s à 1 min",
-    );
+    expect(formatExerciseRowSummary({ ...base, executionParameters: canonical() })).toBe("3 séries variables");
     expect(
       formatExerciseRowSummary({
         ...base,
         sideMode: "RIGHT_LEFT",
         executionParameters: canonical({ sideMode: "RIGHT_LEFT" }),
       }),
-    ).toBe("3 séries variables par côté, de 30 s à 1 min");
+    ).toBe("3 séries variables par côté");
     expect(
       formatExerciseRowSummary({
         ...base,
@@ -1418,7 +1416,7 @@ describe("PRE-3 — synthèses de Composition (adaptation minimale, P3-22)", () 
           series: { kind: "VARIABLE", rows: [{ target: null, pauseSeconds: 10 }, { target: null, pauseSeconds: 20 }] },
         }),
       }),
-    ).toBe("2 séries variables jusqu’à l’échec");
+    ).toBe("2 séries variables");
 
     // Répétitions avec bip : contribution ESTIMÉE (≈) ; sans bip : borne (≥).
     const reps = {

@@ -114,3 +114,61 @@ describe("ActivityCard", () => {
     expect(screen.queryByTestId(`activity-card-body-zones-${DEFINITION.id}`)).toBeNull();
   });
 });
+
+/**
+ * PRE-3 (DSF cartes-durée 07/10, phrase v1 §4, v13 §7) — durée intrinsèque
+ * de la définition sur la carte Catalogue ; indicateur compact des Séries
+ * variables ; aucune refonte de la carte.
+ */
+describe("ActivityCard — PRE-3", () => {
+  const canonical = (overrides: Partial<NonNullable<ActivityDefinition["executionParameters"]>>) => ({
+    version: 1 as const,
+    mode: "DURATION" as const,
+    series: { kind: "UNIFORM" as const, count: 3, target: 90, pauseSeconds: 15 },
+    sideMode: "UNILATERAL" as const,
+    sideOrder: "BY_SIDE" as const,
+    sideRecoverySeconds: 0,
+    cadenceBeepIntervalSeconds: 0,
+    countdownSeconds: 10,
+    endSeconds: 5,
+    ...overrides,
+  });
+
+  it("durée exacte, ≈ en Répétitions avec bip, absente sans bip ou À l'échec ; « N séries variables » sans valeurs", () => {
+    const { unmount } = renderCard(<ActivityCard definition={{ ...DEFINITION, executionParameters: canonical({}) }} onOpen={jest.fn()} />);
+    expect(screen.getByTestId(`activity-card-${DEFINITION.id}-duration`).props.children).toBe("5 min 15 s");
+    unmount();
+
+    const reps = renderCard(
+      <ActivityCard
+        definition={{
+          ...DEFINITION,
+          executionParameters: canonical({
+            mode: "REPETITIONS",
+            series: { kind: "UNIFORM", count: 4, target: 15, pauseSeconds: 15 },
+            cadenceBeepIntervalSeconds: 4,
+          }),
+        }}
+        onOpen={jest.fn()}
+      />,
+    );
+    expect(screen.getByTestId(`activity-card-${DEFINITION.id}-duration`).props.children).toBe("≈ 5 min");
+    reps.unmount();
+
+    const failure = renderCard(
+      <ActivityCard
+        definition={{
+          ...DEFINITION,
+          executionParameters: canonical({
+            mode: "TO_FAILURE",
+            series: { kind: "VARIABLE", rows: [{ target: null, pauseSeconds: 10 }, { target: null, pauseSeconds: 20 }] },
+          }),
+        }}
+        onOpen={jest.fn()}
+      />,
+    );
+    expect(screen.queryByTestId(`activity-card-${DEFINITION.id}-duration`)).toBeNull();
+    expect(screen.getByText("2 séries variables")).toBeTruthy();
+    failure.unmount();
+  });
+});

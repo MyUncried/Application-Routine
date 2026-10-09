@@ -21,7 +21,13 @@ import {
 } from "@/domain/activities/ExecutionParameters";
 import { generateExecutionPhrase, phraseText } from "@/domain/activities/executionPhrase";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
-import { moveDraftMedia, type DraftMediaItem } from "@/domain/media/ActivityMedia";
+import {
+  moveDraftMedia,
+  placeRetriedMedia,
+  selectionNeighbours,
+  type DraftMediaItem,
+  type MediaSelectionNeighbours,
+} from "@/domain/media/ActivityMedia";
 import type { ImportItem, ImportResult } from "@/domain/media/ActivityMediaImportService";
 import type { Silhouette } from "@/domain/preferences/Profile";
 import { INSTRUCTION_MAX_LENGTH, NAME_MAX_LENGTH, validateExerciseName } from "@/domain/sessions/validation";
@@ -111,6 +117,16 @@ export function isActivityEditorFormValid(
 }
 
 const card = strings.executionParameters.card;
+
+/**
+ * Phrase v1 §5 : « retour de ligne de présentation avant Durée totale sans
+ * changement de grammaire ». Seul le rendu change ; le texte canonique
+ * (recette, libellé accessible) garde l'espace du corpus v15.
+ */
+const TOTAL_CLAUSE = / Durée totale : $/;
+function presentationText(texte: string): string {
+  return texte.replace(TOTAL_CLAUSE, "\nDurée totale : ");
+}
 
 export function ActivityEditorForm({
   value,
@@ -266,7 +282,7 @@ export function ActivityEditorForm({
                           {segment.texte}
                         </Text>
                       ) : (
-                        segment.texte
+                        presentationText(segment.texte)
                       ),
                     )
                   : phrase}
@@ -369,10 +385,15 @@ export function ActivityEditorForm({
 }
 
 /**
- * Import de médias du brouillon : éléments prêts AJOUTÉS EN FIN de la liste
- * (ordre de sélection conservé), éléments en cours / en erreur gardés à part
- * avec Réessayer ; annulation sans effet ; refus d'accès actionnable.
- * Aucune écriture SQLite : l'enregistrement reste celui de « Terminer ».
+ * Import de médias du brouillon (P3-23, D-335). Chaque sélection garde son
+ * identité et sa place : les éléments prêts sont ajoutés en fin, dans
+ * l'ordre de sélection ; un élément en échec mémorise ses voisins de
+ * sélection et, une fois réessayé avec succès, est réinséré avant le premier
+ * voisin suivant encore présent (sinon après le dernier précédent) — un
+ * réordonnancement ou un retrait explicite de l'utilisateur n'est jamais
+ * annulé (REV-03). Les échecs d'imports antérieurs restent visibles avec
+ * Réessayer ; une annulation est neutre. Aucune écriture SQLite :
+ * l'enregistrement reste celui de « Terminer ».
  */
 function useMediaImport(
   service: ActivityDefinitionService | null,
@@ -384,23 +405,42 @@ function useMediaImport(
   const [notice, setNotice] = useState<MediaNotice>(null);
   const mediaRef = useRef(media);
   const onMediaRef = useRef(onMedia);
+  const neighboursRef = useRef(new Map<string, MediaSelectionNeighbours>());
   useEffect(() => {
     mediaRef.current = media;
     onMediaRef.current = onMedia;
   });
 
-  function append(items: readonly DraftMediaItem[]) {
-    if (items.length === 0) return;
-    const known = new Set(mediaRef.current.map((item) => item.assetId));
-    const next = [...mediaRef.current, ...items.filter((item) => !known.has(item.assetId))];
+  function commit(next: readonly DraftMediaItem[]) {
     mediaRef.current = next;
     onMediaRef.current(next);
+  }
+
+  function append(items: readonly DraftMediaItem[]) {
+    const known = new Set(mediaRef.current.map((item) => item.assetId));
+    const fresh = items.filter((item) => !known.has(item.assetId));
+    if (fresh.length > 0) commit([...mediaRef.current, ...fresh]);
+  }
+
+  function insertRetried(item: DraftMediaItem) {
+    const neighbours = neighboursRef.current.get(item.assetId);
+    neighboursRef.current.delete(item.assetId);
+    const next = placeRetriedMedia(mediaRef.current, item, neighbours);
+    if (next !== mediaRef.current) commit(next);
+  }
+
+  /** Remplace/ajoute les éléments d'un lot sans perdre les échecs des lots précédents. */
+  function mergeBatch(batch: readonly ImportItem[], keepReady: boolean) {
+    setPending((current) => {
+      const batchKeys = new Set(batch.map((entry) => entry.key));
+      const others = current.filter((entry) => !batchKeys.has(entry.key));
+      return [...others, ...batch.filter((entry) => keepReady || entry.state !== "READY")];
+    });
   }
 
   function handleResult(result: ImportResult | null) {
     if (!result) return;
     if (result.status === "CANCELED") {
-      setPending([]);
       return;
     }
     if (result.status === "PERMISSION_DENIED") {
@@ -412,15 +452,21 @@ function useMediaImport(
       return;
     }
     setNotice(result.limitedAccess ? "LIMITED" : null);
+    const keys = result.items.map((item) => item.key);
+    for (const item of result.items) {
+      if (item.state === "FAILED") {
+        neighboursRef.current.set(item.key, selectionNeighbours(keys, item.key));
+      }
+    }
     append(result.items.flatMap((item) => (item.state === "READY" ? [item.media] : [])));
-    setPending(result.items.filter((item) => item.state === "FAILED"));
+    mergeBatch(result.items, false);
   }
 
   // Android : un résultat du sélecteur en attente (activité recréée) est importé une seule fois.
   useEffect(() => {
     if (!service) return;
     service.leaseDraftMedia(draftId, mediaRef.current.map((item) => item.assetId));
-    service.importPendingMedia(draftId, setPending).then(handleResult, () => undefined);
+    service.importPendingMedia(draftId, (items) => mergeBatch(items, true)).then(handleResult, () => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [service, draftId]);
 
@@ -430,7 +476,7 @@ function useMediaImport(
     importFromLibrary: () => {
       if (!service) return;
       setNotice(null);
-      service.importMedia(draftId, setPending).then(handleResult, () => setNotice("ERROR"));
+      service.importMedia(draftId, (items) => mergeBatch(items, true)).then(handleResult, () => setNotice("ERROR"));
     },
     retry: (item: ImportItem) => {
       if (!service) return;
@@ -440,7 +486,7 @@ function useMediaImport(
       service.retryMediaImport(draftId, item).then(
         (result) => {
           if (result.state === "READY") {
-            append([result.media]);
+            insertRetried(result.media);
             setPending((current) => current.filter((entry) => entry.key !== item.key));
           } else {
             setPending((current) => current.map((entry) => (entry.key === item.key ? result : entry)));

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { Platform } from "react-native";
 
-import { moveDraftMedia } from "@/domain/media/ActivityMedia";
+import { moveDraftMedia, placeRetriedMedia, selectionNeighbours, type DraftMediaItem } from "@/domain/media/ActivityMedia";
 import {
   ActivityMediaImportService,
   readyMedia,
@@ -207,5 +207,39 @@ describe("ActivityMediaImportService — PRE-3", () => {
 
     expect(mockLaunchCameraAsync).not.toHaveBeenCalled();
     expect(mockRequestCameraPermissionsAsync).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Correction revue 1 (REV-03) — place d'un média réessayé : sélection A,B,C
+ * conservée malgré échecs/réessais ; réordonnancement et retrait explicites
+ * de l'utilisateur jamais annulés ; aucun doublon.
+ */
+describe("REV-03 — placement d'un média après réessai", () => {
+  const item = (id: string) => ({ assetId: id, asset: { id, uri: `kodjo-media/${id}.jpg`, createdAt: "now", kind: "PHOTO" as const } });
+  const ids = (items: readonly { assetId: string }[]) => items.map((entry) => entry.assetId);
+  const keys = ["a", "b", "c"];
+
+  it("échec en tête, au milieu et en fin : réinsertion à la place de sélection", () => {
+    expect(ids(placeRetriedMedia([item("b"), item("c")], item("a"), selectionNeighbours(keys, "a")))).toEqual(["a", "b", "c"]);
+    expect(ids(placeRetriedMedia([item("a"), item("c")], item("b"), selectionNeighbours(keys, "b")))).toEqual(["a", "b", "c"]);
+    expect(ids(placeRetriedMedia([item("a"), item("b")], item("c"), selectionNeighbours(keys, "c")))).toEqual(["a", "b", "c"]);
+  });
+
+  it("plusieurs réessais dans un ordre quelconque, sélection ultérieure ajoutée en fin entre-temps", () => {
+    let media: DraftMediaItem[] = [item("b"), item("d")]; // A et C ont échoué ; D vient d'une sélection ultérieure.
+    media = [...placeRetriedMedia(media, item("c"), selectionNeighbours(keys, "c"))];
+    expect(ids(media)).toEqual(["b", "c", "d"]);
+    media = [...placeRetriedMedia(media, item("a"), selectionNeighbours(keys, "a"))];
+    expect(ids(media)).toEqual(["a", "b", "c", "d"]);
+  });
+
+  it("réordonnancement et retrait explicites conservés ; voisins absents → fin ; aucun doublon", () => {
+    expect(ids(placeRetriedMedia([item("c"), item("b")], item("a"), selectionNeighbours(keys, "a")))).toEqual(["c", "a", "b"]);
+    expect(ids(placeRetriedMedia([item("c")], item("a"), selectionNeighbours(keys, "a")))).toEqual(["a", "c"]);
+    expect(ids(placeRetriedMedia([item("x")], item("a"), selectionNeighbours(keys, "a")))).toEqual(["x", "a"]);
+    expect(ids(placeRetriedMedia([item("x")], item("a"), undefined))).toEqual(["x", "a"]);
+    const present = [item("a"), item("b")];
+    expect(placeRetriedMedia(present, item("a"), selectionNeighbours(keys, "a"))).toBe(present);
   });
 });

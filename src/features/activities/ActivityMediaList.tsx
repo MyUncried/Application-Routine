@@ -1,6 +1,17 @@
 import { Image } from "expo-image";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  ActionSheetIOS,
+  ActivityIndicator,
+  Alert,
+  Linking,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import type { DraftMediaItem } from "@/domain/media/ActivityMedia";
 import type { ImportItem } from "@/domain/media/ActivityMediaImportService";
@@ -67,50 +78,16 @@ export function ActivityMediaList({
         {media.map((item, index) => {
           const label = itemLabel(item.asset.kind, index + 1, total);
           return (
-            <View key={item.assetId} style={styles.tile} testID={`media-item-${index + 1}`}>
-              <View style={styles.preview} accessible accessibilityRole="image" accessibilityLabel={label}>
-                {item.asset.kind === "VIDEO" ? (
-                  <VideoPreview uri={resolveUri(item.asset.uri)} />
-                ) : (
-                  <Image
-                    source={{ uri: resolveUri(item.asset.uri) }}
-                    style={styles.image}
-                    contentFit="cover"
-                    accessible={false}
-                    testID={`media-item-${index + 1}-image`}
-                  />
-                )}
-                {item.asset.kind === "VIDEO" ? (
-                  <Text style={styles.kindBadge}>{m.video}</Text>
-                ) : null}
-              </View>
-              <View style={styles.actions}>
-                <MediaAction
-                  label={m.moveUp.replace("{item}", label)}
-                  icon="control-chevron-up"
-                  disabled={index === 0}
-                  onPress={() => onMove(index, index - 1)}
-                  testID={`media-item-${index + 1}-up`}
-                />
-                <MediaAction
-                  label={m.moveDown.replace("{item}", label)}
-                  icon="control-chevron-down"
-                  disabled={index === total - 1}
-                  onPress={() => onMove(index, index + 1)}
-                  testID={`media-item-${index + 1}-down`}
-                />
-                <Pressable
-                  onPress={() => onRemove(index)}
-                  accessibilityRole="button"
-                  accessibilityLabel={m.remove.replace("{item}", label)}
-                  hitSlop={8}
-                  style={styles.removeAction}
-                  testID={`media-item-${index + 1}-remove`}
-                >
-                  <Text style={styles.removeLabel}>{m.remove.replace(" {item}", "")}</Text>
-                </Pressable>
-              </View>
-            </View>
+            <MediaTile
+              key={item.assetId}
+              item={item}
+              index={index}
+              total={total}
+              label={label}
+              uri={resolveUri(item.asset.uri)}
+              onRemove={() => onRemove(index)}
+              onMove={(to) => onMove(index, to)}
+            />
           );
         })}
 
@@ -187,33 +164,84 @@ export function ActivityMediaList({
   );
 }
 
-function MediaAction({
+/**
+ * Aperçu d'un média (D-335 : menu par média Retirer / Monter / Descendre).
+ * Un appui ouvre le menu natif (feuille d'actions iOS, alerte ailleurs) ;
+ * VoiceOver expose les mêmes actions nommées pour CE média, bornes
+ * exclues. Aucun bouton supplémentaire n'est dessiné sur la galerie.
+ */
+function MediaTile({
+  item,
+  index,
+  total,
   label,
-  icon,
-  disabled,
-  onPress,
-  testID,
+  uri,
+  onRemove,
+  onMove,
 }: {
+  item: DraftMediaItem;
+  index: number;
+  total: number;
   label: string;
-  icon: "control-chevron-up" | "control-chevron-down";
-  disabled: boolean;
-  onPress: () => void;
-  testID: string;
+  uri: string;
+  onRemove: () => void;
+  onMove: (to: number) => void;
 }) {
+  const options = [
+    { key: "remove", label: m.menuRemove, run: onRemove, destructive: true },
+    ...(index > 0 ? [{ key: "moveUp", label: m.menuMoveUp, run: () => onMove(index - 1), destructive: false }] : []),
+    ...(index < total - 1 ? [{ key: "moveDown", label: m.menuMoveDown, run: () => onMove(index + 1), destructive: false }] : []),
+  ];
+  function openMenu() {
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title: label,
+          options: [...options.map((option) => option.label), m.menuCancel],
+          cancelButtonIndex: options.length,
+          destructiveButtonIndex: 0,
+        },
+        (selected) => options[selected]?.run(),
+      );
+      return;
+    }
+    Alert.alert(label, undefined, [
+      ...options.map((option) => ({
+        text: option.label,
+        style: option.destructive ? ("destructive" as const) : ("default" as const),
+        onPress: option.run,
+      })),
+      { text: m.menuCancel, style: "cancel" as const },
+    ]);
+  }
+  const actionLabels: Record<string, string> = {
+    remove: m.remove.replace("{item}", label),
+    moveUp: m.moveUp.replace("{item}", label),
+    moveDown: m.moveDown.replace("{item}", label),
+  };
   return (
     <Pressable
-      onPress={onPress}
-      disabled={disabled}
+      onPress={openMenu}
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={{ disabled }}
-      hitSlop={8}
-      style={styles.iconAction}
-      testID={testID}
+      accessibilityHint={m.menuHint}
+      accessibilityActions={options.map((option) => ({ name: option.key, label: actionLabels[option.key] }))}
+      onAccessibilityAction={(event) => options.find((option) => option.key === event.nativeEvent.actionName)?.run()}
+      style={styles.preview}
+      testID={`media-item-${index + 1}`}
     >
-      <View style={styles.horizontalChevron}>
-        <KodjoIcon name={icon} size={20} opacity={disabled ? 0.3 : 1} />
-      </View>
+      {item.asset.kind === "VIDEO" ? (
+        <VideoPreview uri={uri} />
+      ) : (
+        <Image
+          source={{ uri }}
+          style={styles.image}
+          contentFit="cover"
+          accessible={false}
+          testID={`media-item-${index + 1}-image`}
+        />
+      )}
+      {item.asset.kind === "VIDEO" ? <Text style={styles.kindBadge}>{m.video}</Text> : null}
     </Pressable>
   );
 }
@@ -302,30 +330,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     paddingHorizontal: spacing[6],
     paddingVertical: 2,
-  },
-  actions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[4],
-  },
-  iconAction: {
-    minWidth: minTouchTarget,
-    minHeight: minTouchTarget,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  horizontalChevron: {
-    transform: [{ rotate: "-90deg" }],
-  },
-  removeAction: {
-    marginLeft: "auto",
-    minHeight: minTouchTarget,
-    justifyContent: "center",
-    paddingHorizontal: spacing[8],
-  },
-  removeLabel: {
-    ...type.button,
-    color: colors.danger,
   },
   pendingText: {
     ...type.body,

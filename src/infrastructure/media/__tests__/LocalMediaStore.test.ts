@@ -3,7 +3,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 
-import { moveDraftMedia, type DraftMediaItem } from "@/domain/media/ActivityMedia";
+import { moveDraftMedia, placeRetriedMedia, selectionNeighbours, type DraftMediaItem } from "@/domain/media/ActivityMedia";
 import { ActivityMediaImportService, readyMedia, type MediaPickerPort, type PickedMedia } from "@/domain/media/ActivityMediaImportService";
 import { MediaDraftLeases } from "@/domain/media/MediaDraftLeases";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
@@ -214,6 +214,56 @@ describe("LocalMediaStore — PRE-3 (fichiers temporaires réels)", () => {
       expect(fs.existsSync(shared)).toBe(true);
     } finally {
       database.close();
+    }
+  });
+});
+
+/**
+ * Correction revue 1 (REV-03) — ordre de sélection préservé après échec et
+ * réessai, prouvé jusqu'à la base SQLite FICHIER rouverte et aux octets.
+ */
+describe("LocalMediaStore — REV-03 (fichiers et SQLite réels)", () => {
+  it("sélection A, B, C ; A et C échouent puis réussissent au réessai → liens A, B, C relus après réouverture ; fichiers intacts", async () => {
+    const failing = new Set<string>();
+    const store = new LocalMediaStore(nodeFileSystem(documents, { failCopyOf: failing }));
+    const a = cacheFile("a.jpg", "A");
+    const b = cacheFile("b.jpg", "B");
+    const c = cacheFile("c.jpg", "C");
+    failing.add(a);
+    failing.add(c);
+    const service = new ActivityMediaImportService(
+      pickerOf([pickedFrom(a, "PHOTO"), pickedFrom(b, "PHOTO"), pickedFrom(c, "PHOTO")]),
+      store,
+      uuid,
+      now,
+    );
+    const result = await service.importFromLibrary("draft-1");
+    const items = result.status === "IMPORTED" ? result.items : [];
+    const keys = items.map((item) => item.key);
+    let media: readonly DraftMediaItem[] = readyMedia(items);
+    expect(media.map((item) => item.asset.uri)).toEqual(["kodjo-media/id-2.jpg"]);
+
+    failing.clear();
+    for (const failed of [items[2]!, items[0]!]) {
+      const retried = await service.retry("draft-1", failed);
+      if (retried.state !== "READY") throw new Error("retry failed");
+      media = placeRetriedMedia(media, retried.media, selectionNeighbours(keys, retried.key));
+    }
+    expect(media.map((item) => item.assetId)).toEqual(keys);
+
+    const databasePath = path.join(tmp, "order.db");
+    const database = NodeSqliteDatabase.openFile(databasePath);
+    await migrateDatabase(database);
+    await seed(database);
+    await database.withExclusiveTransactionAsync((transaction) => replaceDefinitionMediaLinks(transaction, "def-1", media, uuid));
+    database.close();
+    const reopened = NodeSqliteDatabase.openFile(databasePath);
+    try {
+      const listed = await new SqliteMediaRepository(reopened).listForActivityDefinition("def-1");
+      expect(listed.map((item) => item.assetId)).toEqual(keys);
+      expect(listed.map((item) => fs.readFileSync(store.resolveUri(item.asset.uri), "utf8"))).toEqual(["A", "B", "C"]);
+    } finally {
+      reopened.close();
     }
   });
 });

@@ -1,6 +1,5 @@
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
-import { formatPhraseDuration } from "@/domain/activities/executionPhrase";
 import {
   computeActivityDurationResult,
   computeEstimatedDurationSeconds,
@@ -183,9 +182,8 @@ export type ExerciseRowSummaryFacts = {
   /**
    * PRE-3 : paramètres canoniques de l'Exercice. Optionnels : absents, la
    * synthèse est celle des scalaires (identique à avant PRE-3). Des Séries
-   * VARIABLES produisent « {N} séries variables » suivi de l'étendue des
-   * cibles, sans clause de Pause (les Pauses variables ne sont pas
-   * énumérées dans une carte compacte).
+   * VARIABLES produisent l'indicateur compact « {N} séries variables », sans
+   * détail des valeurs (v13 §7, DSF Séries variables « Ligne de Séance »).
    */
   readonly executionParameters?: ExecutionParametersInput | null;
 };
@@ -259,24 +257,7 @@ export function formatExerciseRowSummary(facts: ExerciseRowSummaryFacts): string
       "{n}",
       String(count),
     );
-    if (parameters.mode === "TO_FAILURE") {
-      return `${base} ${exerciseRow.toFailure}`;
-    }
-    const targets = parameters.series.rows
-      .map((row) => row.target)
-      .filter((target): target is number => target !== null);
-    if (targets.length === 0 || parameters.mode === null) {
-      return base;
-    }
-    const format = (value: number) =>
-      parameters.mode === "DURATION"
-        ? formatPhraseDuration(value)
-        : formatCountWithUnit(value, exerciseRow.repetitionSingular, exerciseRow.repetitionPlural);
-    const min = Math.min(...targets);
-    const max = Math.max(...targets);
-    return min === max
-      ? `${base} ${exerciseRow.of} ${format(min)}`
-      : `${base}, ${summary.range.replace("{min}", format(min)).replace("{max}", format(max))}`;
+    return base;
   }
 
   const seriesLabel = `${formatCountWithUnit(

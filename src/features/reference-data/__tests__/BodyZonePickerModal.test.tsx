@@ -223,6 +223,7 @@ describe("BodyZonePickerModal — PRE-3", () => {
     expect(screen.queryByTestId("body-zone-selector-icon-cou")).toBeNull();
     expect(screen.queryByTestId("body-zone-selector-icon-epaules")).toBeNull();
     expect(screen.getByTestId("body-zone-picker-header")).toBeTruthy();
+    expect(screen.getByText("Créer une zone corporelle")).toBeTruthy();
     fireEvent.press(screen.getByTestId("body-zone-selector-tag-epaules"));
     fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
     expect(onConfirm).toHaveBeenCalledWith(["cou", "epaules"]);

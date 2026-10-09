@@ -495,7 +495,7 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
     const first = canonicalOccurrence({ id: "occ-1" });
     const second = canonicalOccurrence({ id: "occ-2" });
     const { updateDraft } = renderRoute({ params: { exerciseId: "occ-1" }, exercises: [first, second] });
-    fireEvent.press(screen.getByTestId("media-item-1-remove"));
+    fireEvent(screen.getByTestId("media-item-1"), "accessibilityAction", { nativeEvent: { actionName: "remove" } });
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
     const [updatedFirst, untouchedSecond] = updateDraft.mock.calls[0]![0].exercises!;
     expect(updatedFirst!.media).toEqual([]);
@@ -582,7 +582,7 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
     const existing = canonicalOccurrence();
     const { service } = renderRoute({ params: { exerciseId: "occ-1" }, exercises: [existing] });
     expect(lastGuardBlock()).toBe(false);
-    fireEvent.press(screen.getByTestId("media-item-1-remove"));
+    fireEvent(screen.getByTestId("media-item-1"), "accessibilityAction", { nativeEvent: { actionName: "remove" } });
     expect(lastGuardBlock()).toBe(true);
     const onConfirmExit = mockExitGuard.mock.calls.at(-1)![1] as () => void;
     mockExitGuard.mockReturnValue({ isPendingExit: true, cancelExit, confirmExit });

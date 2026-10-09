@@ -155,6 +155,10 @@ export type InlineStepperProps = {
   readonly disabled?: boolean;
   /** Valeur posée lorsqu'une cible non renseignée (`null`) reçoit un premier pas. */
   readonly emptyStart?: number;
+  /** Largeur fixe du stepper (DSF : 137 en premier niveau, 128 dans le tableau, à 402). */
+  readonly width?: number;
+  /** Cellule signalée (cible active requise non renseignée, v13 §6). */
+  readonly invalid?: boolean;
   readonly testID: string;
 };
 
@@ -175,6 +179,8 @@ export function InlineStepper({
   accessibilityLabel,
   disabled = false,
   emptyStart,
+  width,
+  invalid = false,
   testID,
 }: InlineStepperProps) {
   const t = strings.screens.profile.stepper;
@@ -212,12 +218,18 @@ export function InlineStepper({
 
   return (
     <View
-      style={[styles.controls, disabled ? styles.controlsDisabled : null]}
+      style={[
+        styles.controls,
+        width !== undefined ? { width, justifyContent: "space-between" } : null,
+        invalid ? styles.controlsInvalid : null,
+        disabled ? styles.controlsDisabled : null,
+      ]}
       accessible
       accessibilityRole="adjustable"
       accessibilityLabel={accessibilityLabel}
       accessibilityValue={value === null ? { text: display } : { min, max, now: value, text: display }}
       accessibilityState={{ disabled }}
+      accessibilityHint={invalid ? strings.executionParameters.sheet.invalidHint : undefined}
       accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
       onAccessibilityAction={(event) => {
         if (disabled) return;
@@ -482,6 +494,10 @@ const styles = StyleSheet.create({
   },
   controlsDisabled: {
     opacity: 0.45,
+  },
+  controlsInvalid: {
+    borderWidth: 1,
+    borderColor: colors.danger,
   },
   controls: {
     flexDirection: "row",

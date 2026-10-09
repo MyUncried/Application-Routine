@@ -1,6 +1,5 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
-  AccessibilityInfo,
   Modal,
   Pressable,
   ScrollView,
@@ -26,6 +25,7 @@ import {
   commitSheetDraft,
   effectiveParameters,
   firstIncompleteSeries,
+  isRequestedTotalEditable,
   isSingleSeries,
   moveRow,
   openSheetDraft,
@@ -44,11 +44,7 @@ import {
   setVariable,
   type ExecutionSheetDraft,
 } from "@/domain/activities/ExecutionParametersDraft";
-import {
-  computeIntrinsicDuration,
-  isTotalDurationInvertible,
-  totalDurationRange,
-} from "@/domain/activities/executionCalculations";
+import { computeIntrinsicDuration, totalDurationRange } from "@/domain/activities/executionCalculations";
 import { formatPhraseDuration } from "@/domain/activities/executionPhrase";
 import type { SideMode } from "@/domain/sessions/sideMode";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
@@ -57,6 +53,7 @@ import {
   WHEEL_TOTAL_DURATION_SECONDS_MAX,
 } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
+import { DisclosureControl } from "@/shared/ui/DisclosureControl";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import {
   EXECUTION_ACCELERATED_HOLD_POLICY,
@@ -64,24 +61,25 @@ import {
   InlineStepper,
 } from "@/shared/ui/ProfileStepper";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
-import { TransientNotification } from "@/shared/ui/TransientNotification";
+import { TRANSIENT_NOTIFICATION_DURATION_MS } from "@/shared/ui/TransientNotification";
 import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
- * PRE-3 (CE-UI-10, SPECIFICATION-PARAMETRES-MODALE-v13) — feuille
- * « Paramètres d'exécution » : sous-brouillon ISOLÉ du parent.
+ * PRE-3 (CE-UI-10, SPECIFICATION-PARAMETRES-MODALE-v13, DSF Séries
+ * variables / Bip de cadence) — feuille « Paramètres d'exécution » :
+ * sous-brouillon ISOLÉ du parent.
  *
  * - Ouverture : copie des paramètres du parent (`openSheetDraft`).
- * - ✕ / retour système : abandon de toute l'ouverture (`onCancel`), parent
- *   inchangé, réserves temporaires détruites avec le composant.
- * - ✓ : validation de l'état EFFECTIF (`commitSheetDraft`) ; succès →
- *   `onApply` remplace atomiquement les paramètres du parent, SANS aucune
- *   écriture SQLite ni appel de service ; échec → message nommant la Série,
- *   tableau redéployé pour rendre la correction atteignable.
+ * - ✕ / retour système : abandon de toute l'ouverture (`onCancel`).
+ * - ✓ : **grisé tant que le mode ou une cible active exigée est invalide**
+ *   (v13 §6) ; la cellule concernée est signalée et un message en ligne
+ *   nomme la Série à renseigner, même tableau replié. Valide → `onApply`
+ *   remplace atomiquement les paramètres du parent, sans écriture SQLite.
  * - Un seul contrôle en place ouvert à la fois (roulette native ou
  *   segmenté), démonté à la fermeture ; en-tête fixe, corps défilant.
- * - Steppers en place : politique PRE-3 (accélération 1/5/10, Bip / Compte
- *   à rebours / Fin au pas 1), sans écriture.
+ * - Tableau variable rattaché à l'interrupteur dans un groupe : poignée de
+ *   glisser, numéro aligné à droite, steppers cible/Pause ; déplacement
+ *   aussi offert par actions accessibles (même ordre métier).
  */
 export type ExecutionParametersSheetProps = {
   readonly parent: ExecutionParametersInput;
@@ -94,6 +92,17 @@ export type ExecutionParametersSheetProps = {
 type InlineControl = "mode" | "uniformDuration" | "sideMode" | "sideOrder" | "total" | null;
 
 const t = strings.executionParameters.sheet;
+
+/** Hauteur de ligne du tableau variable (DSF : 42 à 402). */
+export const TABLE_ROW_HEIGHT = 42;
+/** Largeurs DSF des steppers à 402 : premier niveau 137, tableau 128. */
+const STEPPER_WIDTH = 137;
+const TABLE_STEPPER_WIDTH = 128;
+
+/** Destination d'un glisser vertical de `dy` points depuis la ligne `from`, bornée au tableau. */
+export function dragDestination(from: number, dy: number, rowHeight: number, count: number): number {
+  return Math.min(count - 1, Math.max(0, from + Math.round(dy / rowHeight)));
+}
 
 function seriesLabel(count: number | null): string {
   if (count === null) return t.unset;
@@ -116,17 +125,48 @@ export function ExecutionParametersSheet({
   const [draft, setDraft] = useState<ExecutionSheetDraft>(() => openSheetDraft(parent));
   const [openControl, setOpenControl] = useState<InlineControl>(null);
   const [isTableFolded, setIsTableFolded] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [adjustment, setAdjustment] = useState<{ message: string; previousCount: number } | null>(null);
+  const [adjustment, setAdjustment] = useState<{ message: string; previous: ExecutionSheetDraft } | null>(null);
+
+  useEffect(() => {
+    if (!adjustment) return;
+    const timer = setTimeout(() => setAdjustment(null), TRANSIENT_NOTIFICATION_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [adjustment]);
 
   const effective = effectiveParameters(draft);
+  const effectiveFirst = seriesRowsOf(effective)[0] ?? { target: null, pauseSeconds: 0 };
   const single = isSingleSeries(draft);
   const bilateral = isBilateral(draft.sideMode);
-  const duration = effective.mode === null ? null : computeIntrinsicDuration(effective);
-  const invertible = isTotalDurationInvertible(effective);
+  const showVariableTable = draft.variable && !single;
+  const totalEditable = isRequestedTotalEditable(draft);
+
+  const validation = commitSheetDraft(draft);
+  const incompleteSeries = validation.ok ? null : firstIncompleteSeries(validation.violations);
+  const invalidRows = new Set(
+    validation.ok
+      ? []
+      : validation.violations
+          .filter((violation) => violation.field === "target" && violation.seriesNumber)
+          .map((violation) => violation.seriesNumber! - 1),
+  );
+  const uniformTargetInvalid =
+    !validation.ok && !showVariableTable && validation.violations.some((violation) => violation.field === "target");
+  const message =
+    validation.ok || effective.mode === null || effective.mode === "TO_FAILURE"
+      ? null
+      : showVariableTable && incompleteSeries !== null
+        ? t.incompleteSeries[effective.mode].replace("{n}", String(incompleteSeries))
+        : uniformTargetInvalid
+          ? t.incompleteUniform[effective.mode]
+          : null;
+
+  // Total applicable (v13 §6 ligne 8) : Durée, ou Répétitions avec bip ; « — » si incomplet.
+  const totalApplicable =
+    effective.mode === "DURATION" || (effective.mode === "REPETITIONS" && effective.cadenceBeepIntervalSeconds > 0);
+  const duration = totalApplicable && validation.ok ? computeIntrinsicDuration(effective) : null;
+  const totalText = duration?.seconds !== undefined ? formatPhraseDuration(duration.seconds) : t.unset;
 
   function update(next: ExecutionSheetDraft) {
-    setMessage(null);
     setAdjustment(null);
     setDraft(next);
   }
@@ -136,34 +176,19 @@ export function ExecutionParametersSheet({
   }
 
   function handleValidate() {
-    const result = commitSheetDraft(draft);
-    if (result.ok) {
-      onApply(result.value);
-      return;
+    if (validation.ok) {
+      onApply(validation.value);
     }
-    const series = firstIncompleteSeries(result.violations);
-    const text =
-      effective.mode === null
-        ? t.incompleteMode
-        : series !== null && effective.mode !== "TO_FAILURE"
-          ? t.incompleteSeries[effective.mode].replace("{n}", String(series))
-          : t.incompleteMode;
-    // Le repli ne masque jamais une correction : le tableau est redéployé.
-    setIsTableFolded(false);
-    setMessage(text);
-    AccessibilityInfo.announceForAccessibility(text);
   }
 
   function handleTotalValidated(requestedSeconds: number) {
     setOpenControl(null);
-    const previousCount = draft.count;
     const applied = applyRequestedTotal(draft, requestedSeconds);
     if (!applied) return;
-    setMessage(null);
     setDraft(applied.draft);
     setAdjustment(
       applied.inversion.adjusted
-        ? { message: t.adjusted.replace("{duration}", formatPhraseDuration(applied.inversion.totalSeconds)), previousCount }
+        ? { message: t.adjusted.replace("{duration}", formatPhraseDuration(applied.inversion.totalSeconds)), previous: draft }
         : null,
     );
   }
@@ -171,7 +196,9 @@ export function ExecutionParametersSheet({
   const targetMax = effective.mode === "REPETITIONS" ? EXECUTION_BOUNDS.repetitionTarget.max : EXECUTION_BOUNDS.durationTarget.max;
   const targetMin = effective.mode === "REPETITIONS" ? EXECUTION_BOUNDS.repetitionTarget.min : EXECUTION_BOUNDS.durationTarget.min;
   const targetLabel = effective.mode === "REPETITIONS" ? repetitionsLabel : secondsLabel;
-  const showVariableTable = draft.variable && !single;
+  const validateLabel = validation.ok
+    ? t.validateAccessibilityLabel
+    : `${t.validateAccessibilityLabel}, ${t.validateUnavailableSuffix}`;
 
   return (
     <Modal transparent visible animationType="slide" onRequestClose={onCancel} testID="execution-sheet-modal">
@@ -198,10 +225,12 @@ export function ExecutionParametersSheet({
             </Text>
             <Pressable
               onPress={handleValidate}
+              disabled={!validation.ok}
               accessibilityRole="button"
-              accessibilityLabel={t.validateAccessibilityLabel}
+              accessibilityLabel={validateLabel}
+              accessibilityState={{ disabled: !validation.ok }}
               hitSlop={(minTouchTarget - 38) / 2}
-              style={styles.validateCircle}
+              style={[styles.validateCircle, validation.ok ? null : styles.validateCircleDisabled]}
               testID="execution-sheet-validate"
             >
               <KodjoIcon name="wheel-action-validate" />
@@ -215,12 +244,6 @@ export function ExecutionParametersSheet({
             keyboardShouldPersistTaps="handled"
             testID="execution-sheet-body"
           >
-            {message ? (
-              <Text style={styles.errorMessage} accessibilityLiveRegion="polite" testID="execution-sheet-message">
-                {message}
-              </Text>
-            ) : null}
-
             <View style={styles.group}>
               {/* Mode d'exécution */}
               <Row label={t.mode} selected={openControl === "mode"} testID="execution-sheet-row-mode">
@@ -259,59 +282,66 @@ export function ExecutionParametersSheet({
                   formatValue={seriesLabel}
                   onChange={(count) => update(setSeriesCount(draft, count))}
                   accessibilityLabel={t.series}
+                  width={STEPPER_WIDTH}
                   testID="execution-sheet-series"
                 />
               </Row>
-              <Separator indented />
-              <View style={[styles.indented, single ? styles.withoutEffect : null]}>
-                <View style={styles.row} testID="execution-sheet-row-variable">
-                  <Text style={styles.label}>{t.variable}</Text>
-                  {showVariableTable ? (
-                    <Pressable
-                      onPress={() => setIsTableFolded((folded) => !folded)}
-                      accessibilityRole="button"
-                      accessibilityLabel={isTableFolded ? t.showTable : t.hideTable}
-                      accessibilityState={{ expanded: !isTableFolded }}
-                      hitSlop={8}
-                      style={styles.foldButton}
-                      testID="execution-sheet-table-toggle"
-                    >
-                      <KodjoIcon name={isTableFolded ? "control-chevron-down" : "control-chevron-up"} />
-                    </Pressable>
-                  ) : null}
-                  <View style={styles.spacer} />
-                  <Switch
-                    value={draft.variable && !single}
-                    disabled={single}
-                    onValueChange={(next) => update(setVariable(draft, next))}
-                    trackColor={{ false: colors.disabled, true: colors.selection }}
-                    accessibilityLabel={single ? `${t.variable}, ${t.disabledSuffix}` : t.variable}
-                    testID="execution-sheet-variable-switch"
-                  />
-                </View>
-              </View>
 
-              {showVariableTable && !isTableFolded ? (
-                <VariableTable
-                  draft={draft}
-                  mode={effective.mode}
-                  targetMin={targetMin}
-                  targetMax={targetMax}
-                  formatTarget={targetLabel}
-                  onDraft={update}
-                />
-              ) : null}
+              {/* Groupe Séries variables : interrupteur + tableau rattaché (DSF). */}
+              <View style={showVariableTable ? styles.variableGroup : null} testID="execution-sheet-variable-group">
+                {showVariableTable ? null : <Separator indented />}
+                <View style={[styles.indented, single ? styles.withoutEffect : null]}>
+                  <View style={styles.row} testID="execution-sheet-row-variable">
+                    <Text style={styles.label}>{t.variable}</Text>
+                    {showVariableTable ? (
+                      <DisclosureControl
+                        expanded={!isTableFolded}
+                        onPress={() => setIsTableFolded((folded) => !folded)}
+                        accessibilityLabel={isTableFolded ? t.showTable : t.hideTable}
+                        testID="execution-sheet-table-toggle"
+                      />
+                    ) : null}
+                    <View style={styles.spacer} />
+                    <Switch
+                      value={draft.variable && !single}
+                      disabled={single}
+                      onValueChange={(next) => update(setVariable(draft, next))}
+                      trackColor={{ false: colors.disabled, true: colors.selection }}
+                      accessibilityLabel={single ? `${t.variable}, ${t.disabledSuffix}` : t.variable}
+                      testID="execution-sheet-variable-switch"
+                    />
+                  </View>
+                </View>
+                {message && showVariableTable ? <InlineMessage text={message} /> : null}
+                {showVariableTable && !isTableFolded ? (
+                  <VariableTable
+                    draft={draft}
+                    mode={effective.mode}
+                    targetMin={targetMin}
+                    targetMax={targetMax}
+                    formatTarget={targetLabel}
+                    invalidRows={invalidRows}
+                    onDraft={update}
+                  />
+                ) : null}
+              </View>
 
               {!showVariableTable ? (
                 <>
                   {effective.mode === "DURATION" ? (
                     <>
                       <Separator indented />
-                      <Row label={t.durationTarget} indented testID="execution-sheet-row-target">
+                      <Row
+                        label={t.durationTarget}
+                        indented
+                        selected={openControl === "uniformDuration"}
+                        testID="execution-sheet-row-target"
+                      >
                         <ValuePill
-                          value={secondsLabel(draft.uniform.target)}
-                          accessibilityLabel={`${t.durationTarget}, ${secondsLabel(draft.uniform.target)}`}
+                          value={secondsLabel(effectiveFirst.target)}
+                          accessibilityLabel={`${t.durationTarget}, ${secondsLabel(effectiveFirst.target)}`}
                           expanded={openControl === "uniformDuration"}
+                          invalid={uniformTargetInvalid}
                           onPress={() => toggle("uniformDuration")}
                           testID="execution-sheet-target-value"
                         />
@@ -319,7 +349,7 @@ export function ExecutionParametersSheet({
                       {openControl === "uniformDuration" ? (
                         <View style={styles.inlineControl} testID="execution-sheet-target-wheel">
                           <DurationWheelPicker
-                            totalSeconds={draft.uniform.target ?? 0}
+                            totalSeconds={effectiveFirst.target ?? 0}
                             maxTotalSeconds={WHEEL_EXERCISE_DURATION_SECONDS_MAX}
                             onValidate={(seconds) => {
                               setOpenControl(null);
@@ -340,7 +370,7 @@ export function ExecutionParametersSheet({
                       <Separator indented />
                       <Row label={t.repetitionsTarget} indented testID="execution-sheet-row-target">
                         <InlineStepper
-                          value={draft.uniform.target}
+                          value={effectiveFirst.target}
                           min={EXECUTION_BOUNDS.repetitionTarget.min}
                           max={EXECUTION_BOUNDS.repetitionTarget.max}
                           policy={EXECUTION_ACCELERATED_HOLD_POLICY}
@@ -348,21 +378,25 @@ export function ExecutionParametersSheet({
                           onChange={(value) => update(setUniformTarget(draft, value))}
                           accessibilityLabel={t.repetitionsTarget}
                           emptyStart={1}
+                          width={STEPPER_WIDTH}
+                          invalid={uniformTargetInvalid}
                           testID="execution-sheet-target-stepper"
                         />
                       </Row>
                     </>
                   ) : null}
+                  {message ? <InlineMessage text={message} /> : null}
                   <Separator indented />
                   <Row label={t.pause} indented testID="execution-sheet-row-pause">
                     <InlineStepper
-                      value={draft.uniform.pauseSeconds}
+                      value={effectiveFirst.pauseSeconds}
                       min={EXECUTION_BOUNDS.pauseSeconds.min}
                       max={EXECUTION_BOUNDS.pauseSeconds.max}
                       policy={EXECUTION_ACCELERATED_HOLD_POLICY}
                       formatValue={pauseLabel}
                       onChange={(value) => update(setUniformPause(draft, value))}
                       accessibilityLabel={`${t.pause}, ${t.secondsUnit}`}
+                      width={STEPPER_WIDTH}
                       testID="execution-sheet-pause"
                     />
                   </Row>
@@ -429,7 +463,7 @@ export function ExecutionParametersSheet({
                     </View>
                   ) : null}
                   <Separator indented />
-                  <Row label={t.sideRecovery} indented testID="execution-sheet-row-side-recovery">
+                  <Row label={t.sideRecovery} indented longLabel testID="execution-sheet-row-side-recovery">
                     <InlineStepper
                       value={draft.sideRecoverySeconds}
                       min={EXECUTION_BOUNDS.sideRecoverySeconds.min}
@@ -438,6 +472,7 @@ export function ExecutionParametersSheet({
                       formatValue={pauseLabel}
                       onChange={(value) => update(setSideRecovery(draft, value))}
                       accessibilityLabel={`${t.sideRecovery}, ${t.secondsUnit}`}
+                      width={STEPPER_WIDTH}
                       testID="execution-sheet-side-recovery"
                     />
                   </Row>
@@ -455,33 +490,34 @@ export function ExecutionParametersSheet({
                   formatValue={beepLabel}
                   onChange={(value) => update(setCadenceBeep(draft, value))}
                   accessibilityLabel={`${t.beep}, ${t.secondsUnit}`}
+                  width={STEPPER_WIDTH}
                   testID="execution-sheet-beep"
                 />
               </Row>
 
-              {duration && duration.kind !== "omitted" && duration.seconds !== undefined ? (
+              {totalApplicable ? (
                 <>
                   <Separator />
                   <Row
-                    label={duration.kind === "estimated" ? t.totalEstimated : t.total}
+                    label={duration?.kind === "estimated" ? t.totalEstimated : t.total}
                     selected={openControl === "total"}
                     testID="execution-sheet-row-total"
                   >
-                    {invertible ? (
+                    {totalEditable && duration?.seconds !== undefined ? (
                       <ValuePill
-                        value={formatPhraseDuration(duration.seconds)}
-                        accessibilityLabel={`${t.totalEditAccessibilityLabel}, ${formatPhraseDuration(duration.seconds)}`}
+                        value={totalText}
+                        accessibilityLabel={`${t.totalEditAccessibilityLabel}, ${totalText}`}
                         expanded={openControl === "total"}
                         onPress={() => toggle("total")}
                         testID="execution-sheet-total"
                       />
                     ) : (
                       <Text style={styles.staticValue} testID="execution-sheet-total-text">
-                        {formatPhraseDuration(duration.seconds)}
+                        {totalText}
                       </Text>
                     )}
                   </Row>
-                  {openControl === "total" && invertible ? (
+                  {openControl === "total" && totalEditable && duration?.seconds !== undefined ? (
                     <View style={styles.inlineControl} testID="execution-sheet-total-wheel">
                       <DurationWheelPicker
                         totalSeconds={Math.min(duration.seconds, WHEEL_TOTAL_DURATION_SECONDS_MAX)}
@@ -493,6 +529,24 @@ export function ExecutionParametersSheet({
                         cancelAccessibilityLabel={strings.screens.exercise.wheelPicker.cancelAccessibilityLabel}
                         validateAccessibilityLabel={strings.screens.exercise.wheelPicker.validateAccessibilityLabel}
                       />
+                    </View>
+                  ) : null}
+                  {adjustment ? (
+                    <View style={styles.adjustment} accessibilityLiveRegion="polite" testID="execution-sheet-adjusted">
+                      <Text style={styles.adjustmentText}>{adjustment.message}</Text>
+                      <Pressable
+                        onPress={() => {
+                          const previous = adjustment.previous;
+                          setAdjustment(null);
+                          setDraft(previous);
+                        }}
+                        accessibilityRole="button"
+                        accessibilityLabel={strings.screens.exercise.adjustedTotalDurationUndoAction}
+                        hitSlop={8}
+                        testID="execution-sheet-adjusted-undo"
+                      >
+                        <Text style={styles.adjustmentAction}>{strings.screens.exercise.adjustedTotalDurationUndoAction}</Text>
+                      </Pressable>
                     </View>
                   ) : null}
                 </>
@@ -508,6 +562,7 @@ export function ExecutionParametersSheet({
                   formatValue={pauseLabel}
                   onChange={(value) => update(setCountdown(draft, value))}
                   accessibilityLabel={`${t.countdown}, ${t.secondsUnit}`}
+                  width={STEPPER_WIDTH}
                   testID="execution-sheet-countdown"
                 />
               </Row>
@@ -521,25 +576,12 @@ export function ExecutionParametersSheet({
                   formatValue={pauseLabel}
                   onChange={(value) => update(setEnd(draft, value))}
                   accessibilityLabel={`${t.end}, ${t.secondsUnit}`}
+                  width={STEPPER_WIDTH}
                   testID="execution-sheet-end"
                 />
               </Row>
             </View>
           </ScrollView>
-
-          <View style={styles.notificationSlot} pointerEvents="box-none">
-            <TransientNotification
-              message={adjustment?.message ?? null}
-              actionLabel={strings.screens.exercise.adjustedTotalDurationUndoAction}
-              onAction={() => {
-                const previous = adjustment?.previousCount;
-                setAdjustment(null);
-                if (previous !== undefined) setDraft((current) => setSeriesCount(current, previous));
-              }}
-              onDismiss={() => setAdjustment(null)}
-              testID="execution-sheet-adjusted"
-            />
-          </View>
         </View>
       </View>
     </Modal>
@@ -552,6 +594,7 @@ function VariableTable({
   targetMin,
   targetMax,
   formatTarget,
+  invalidRows,
   onDraft,
 }: {
   draft: ExecutionSheetDraft;
@@ -559,9 +602,10 @@ function VariableTable({
   targetMin: number;
   targetMax: number;
   formatTarget: (value: number | null) => string;
+  invalidRows: ReadonlySet<number>;
   onDraft: (next: ExecutionSheetDraft) => void;
 }) {
-  const rows = seriesRowsOf({ series: { kind: "VARIABLE", rows: draft.rows } });
+  const rows = draft.rows;
   const hasTarget = mode === "DURATION" || mode === "REPETITIONS";
   return (
     <View style={styles.table} testID="execution-sheet-table">
@@ -570,66 +614,123 @@ function VariableTable({
         {hasTarget ? <Text style={styles.columnHeader}>{t.columns[mode]}</Text> : <View style={styles.flex} />}
         <Text style={styles.columnHeader}>{t.columns.pause}</Text>
       </View>
-      {rows.map((row, index) => {
-        const number = index + 1;
-        return (
-          <View key={index} style={styles.tableRow} testID={`execution-sheet-table-row-${number}`}>
-            <View style={styles.rowNumberColumn}>
-              <Pressable
-                disabled={index === 0}
-                onPress={() => onDraft(moveRow(draft, index, index - 1))}
-                accessibilityRole="button"
-                accessibilityLabel={t.moveUp.replace("{n}", String(number))}
-                accessibilityState={{ disabled: index === 0 }}
-                hitSlop={6}
-                testID={`execution-sheet-table-row-${number}-up`}
-              >
-                <KodjoIcon name="control-chevron-up" size={16} opacity={index === 0 ? 0.3 : 1} />
-              </Pressable>
-              <Text style={styles.rowNumber} accessibilityLabel={t.row.replace("{n}", String(number))}>
-                {number}
-              </Text>
-              <Pressable
-                disabled={index === rows.length - 1}
-                onPress={() => onDraft(moveRow(draft, index, index + 1))}
-                accessibilityRole="button"
-                accessibilityLabel={t.moveDown.replace("{n}", String(number))}
-                accessibilityState={{ disabled: index === rows.length - 1 }}
-                hitSlop={6}
-                testID={`execution-sheet-table-row-${number}-down`}
-              >
-                <KodjoIcon name="control-chevron-down" size={16} opacity={index === rows.length - 1 ? 0.3 : 1} />
-              </Pressable>
-            </View>
-            {hasTarget ? (
-              <InlineStepper
-                value={row.target}
-                min={targetMin}
-                max={targetMax}
-                policy={EXECUTION_ACCELERATED_HOLD_POLICY}
-                formatValue={formatTarget}
-                onChange={(value) => onDraft(setRowTarget(draft, index, value))}
-                accessibilityLabel={t.rowTarget.replace("{n}", String(number)).replace("{field}", t.columns[mode])}
-                emptyStart={mode === "DURATION" ? 30 : 1}
-                testID={`execution-sheet-table-row-${number}-target`}
-              />
-            ) : (
-              <View style={styles.flex} />
-            )}
+      {rows.map((row, index) => (
+        <DraggableRow
+          key={draft.rowIds[index] ?? index}
+          index={index}
+          count={rows.length}
+          onMove={(to) => onDraft(moveRow(draft, index, to))}
+        >
+          {hasTarget ? (
             <InlineStepper
-              value={row.pauseSeconds}
-              min={EXECUTION_BOUNDS.pauseSeconds.min}
-              max={EXECUTION_BOUNDS.pauseSeconds.max}
+              value={row.target}
+              min={targetMin}
+              max={targetMax}
               policy={EXECUTION_ACCELERATED_HOLD_POLICY}
-              formatValue={pauseLabel}
-              onChange={(value) => onDraft(setRowPause(draft, index, value))}
-              accessibilityLabel={t.rowPause.replace("{n}", String(number))}
-              testID={`execution-sheet-table-row-${number}-pause`}
+              formatValue={formatTarget}
+              onChange={(value) => onDraft(setRowTarget(draft, index, value))}
+              accessibilityLabel={t.rowTarget.replace("{n}", String(index + 1)).replace("{field}", t.columns[mode])}
+              emptyStart={mode === "DURATION" ? 30 : 1}
+              width={TABLE_STEPPER_WIDTH}
+              invalid={invalidRows.has(index)}
+              testID={`execution-sheet-table-row-${index + 1}-target`}
             />
-          </View>
-        );
-      })}
+          ) : (
+            <View style={styles.flex} />
+          )}
+          <InlineStepper
+            value={row.pauseSeconds}
+            min={EXECUTION_BOUNDS.pauseSeconds.min}
+            max={EXECUTION_BOUNDS.pauseSeconds.max}
+            policy={EXECUTION_ACCELERATED_HOLD_POLICY}
+            formatValue={pauseLabel}
+            onChange={(value) => onDraft(setRowPause(draft, index, value))}
+            accessibilityLabel={t.rowPause.replace("{n}", String(index + 1))}
+            width={TABLE_STEPPER_WIDTH}
+            testID={`execution-sheet-table-row-${index + 1}-pause`}
+          />
+        </DraggableRow>
+      ))}
     </View>
+  );
+}
+
+/**
+ * Ligne du tableau : poignée de glisser (geste vertical, destination bornée)
+ * + numéro aligné à droite. La poignée expose aussi les actions accessibles
+ * Monter / Descendre, qui produisent exactement le même déplacement métier.
+ */
+function DraggableRow({
+  index,
+  count,
+  onMove,
+  children,
+}: {
+  index: number;
+  count: number;
+  onMove: (to: number) => void;
+  children: ReactNode;
+}) {
+  const number = index + 1;
+  // Même mécanique que la Composition : responder natif + état de translation, sans bibliothèque.
+  const [drag, setDrag] = useState<{ readonly startY: number; readonly dy: number } | null>(null);
+  const actions = [
+    ...(index > 0 ? [{ name: "moveUp", label: t.moveUp.replace("{n}", String(number)) }] : []),
+    ...(index < count - 1 ? [{ name: "moveDown", label: t.moveDown.replace("{n}", String(number)) }] : []),
+  ];
+  return (
+    <View
+      style={[styles.tableRow, drag ? { transform: [{ translateY: drag.dy }] } : null]}
+      testID={`execution-sheet-table-row-${number}`}
+    >
+      <View style={styles.rowNumberColumn}>
+        <View
+          onStartShouldSetResponder={() => true}
+          onMoveShouldSetResponder={() => true}
+          onResponderTerminationRequest={() => false}
+          onResponderGrant={(event) => setDrag({ startY: event.nativeEvent.pageY, dy: 0 })}
+          onResponderMove={(event) =>
+            setDrag((current) => (current ? { ...current, dy: event.nativeEvent.pageY - current.startY } : current))
+          }
+          onResponderRelease={(event) => {
+            const dy = drag ? event.nativeEvent.pageY - drag.startY : 0;
+            setDrag(null);
+            const to = dragDestination(index, dy, TABLE_ROW_HEIGHT, count);
+            if (to !== index) onMove(to);
+          }}
+          onResponderTerminate={() => setDrag(null)}
+          accessible
+          accessibilityLabel={t.moveHandle.replace("{n}", String(number))}
+          accessibilityActions={actions}
+          onAccessibilityAction={(event) => {
+            if (event.nativeEvent.actionName === "moveUp") onMove(index - 1);
+            if (event.nativeEvent.actionName === "moveDown") onMove(index + 1);
+          }}
+          hitSlop={{ top: 12, bottom: 12, left: 8, right: 8 }}
+          style={styles.dragHandle}
+          testID={`execution-sheet-table-row-${number}-handle`}
+        >
+          {[0, 1, 2].map((line) => (
+            <View key={line} style={styles.dragDotsLine}>
+              <View style={styles.dragDot} />
+              <View style={styles.dragDot} />
+            </View>
+          ))}
+        </View>
+        <Text style={styles.rowNumber} accessibilityLabel={t.row.replace("{n}", String(number))}>
+          {number}
+        </Text>
+      </View>
+      {children}
+    </View>
+  );
+}
+
+function InlineMessage({ text }: { text: string }) {
+  return (
+    <Text style={styles.inlineMessage} accessibilityLiveRegion="polite" testID="execution-sheet-message">
+      {text}
+    </Text>
   );
 }
 
@@ -637,18 +738,20 @@ function Row({
   label,
   indented = false,
   selected = false,
+  longLabel = false,
   children,
   testID,
 }: {
   label: string;
   indented?: boolean;
   selected?: boolean;
+  longLabel?: boolean;
   children: ReactNode;
   testID: string;
 }) {
   return (
     <View style={[styles.row, indented ? styles.indented : null, selected ? styles.rowSelected : null]} testID={testID}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, longLabel ? styles.longLabel : null]}>{label}</Text>
       {children}
     </View>
   );
@@ -659,6 +762,7 @@ function ValuePill({
   accessibilityLabel,
   expanded,
   disabled = false,
+  invalid = false,
   onPress,
   testID,
 }: {
@@ -666,6 +770,7 @@ function ValuePill({
   accessibilityLabel: string;
   expanded: boolean;
   disabled?: boolean;
+  invalid?: boolean;
   onPress: () => void;
   testID: string;
 }) {
@@ -675,9 +780,10 @@ function ValuePill({
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityHint={invalid ? t.invalidHint : undefined}
       accessibilityState={{ expanded, disabled }}
       hitSlop={{ top: 10, bottom: 10 }}
-      style={styles.valuePill}
+      style={[styles.valuePill, invalid ? styles.valuePillInvalid : null]}
       testID={testID}
     >
       <Text style={[styles.valuePillText, disabled ? styles.valuePillTextDisabled : null]} testID={`${testID}-text`}>
@@ -705,10 +811,11 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     backgroundColor: colors.overlayScrim,
   },
+  // DSF : feuille blanche ancrée en bas, coins supérieurs 24, rognage.
   sheet: {
     backgroundColor: colors.background,
-    borderTopLeftRadius: fixedRadii[16] + 8,
-    borderTopRightRadius: fixedRadii[16] + 8,
+    borderTopLeftRadius: fixedRadii[24],
+    borderTopRightRadius: fixedRadii[24],
     overflow: "hidden",
   },
   handle: {
@@ -748,6 +855,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.wheelActionValidateBackground,
   },
+  validateCircleDisabled: {
+    backgroundColor: colors.disabled,
+  },
   headerDivider: {
     height: 1,
     marginHorizontal: spacing[12],
@@ -768,6 +878,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: GROUP_PADDING,
     paddingVertical: spacing[4],
   },
+  // DSF Séries variables : fond et contour rattachent l'interrupteur au tableau.
+  variableGroup: {
+    marginHorizontal: -GROUP_PADDING,
+    paddingHorizontal: GROUP_PADDING,
+    borderRadius: fixedRadii[12],
+    borderWidth: 1.5,
+    borderColor: colors.selection,
+    backgroundColor: colors.surface,
+  },
   row: {
     flexDirection: "row",
     alignItems: "center",
@@ -775,6 +894,7 @@ const styles = StyleSheet.create({
     minHeight: 42,
     gap: spacing[8],
   },
+  // DSF : ligne sélectionnée (roulette ou segmenté) bord 2 primary, rayon 12.
   rowSelected: {
     backgroundColor: colors.stepperSurface,
     borderRadius: fixedRadii[12],
@@ -794,23 +914,25 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     flexShrink: 1,
   },
+  // DSF : « Pause entre les côtés » sur deux lignes, largeur 180 à 402.
+  longLabel: {
+    maxWidth: 180,
+  },
   spacer: {
     flex: 1,
   },
   flex: {
     flex: 1,
   },
-  foldButton: {
-    minWidth: minTouchTarget,
-    minHeight: minTouchTarget,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   valuePill: {
     backgroundColor: colors.surface,
     borderRadius: fixedRadii[10],
     paddingVertical: spacing[4],
     paddingHorizontal: spacing[10],
+  },
+  valuePillInvalid: {
+    borderWidth: 1,
+    borderColor: colors.danger,
   },
   valuePillText: {
     ...type.editableValue,
@@ -834,6 +956,33 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[8],
     alignItems: "center",
   },
+  inlineMessage: {
+    ...type.body,
+    color: colors.danger,
+    marginLeft: INDENT,
+    paddingVertical: spacing[4],
+  },
+  // DSF : message temporaire sous la ligne concernée, à 4 pt ; fond snackbar, rayon 16.
+  adjustment: {
+    marginTop: spacing[4],
+    marginBottom: spacing[4],
+    backgroundColor: colors.snackbar,
+    borderRadius: fixedRadii[16],
+    paddingVertical: spacing[10],
+    paddingHorizontal: spacing[16],
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[12],
+  },
+  adjustmentText: {
+    ...type.body,
+    color: colors.background,
+    flex: 1,
+  },
+  adjustmentAction: {
+    ...type.button,
+    color: colors.background,
+  },
   table: {
     marginLeft: INDENT,
     paddingBottom: spacing[8],
@@ -856,29 +1005,35 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    minHeight: 42,
+    height: TABLE_ROW_HEIGHT,
     gap: spacing[4],
   },
   rowNumberColumn: {
     width: 40,
     flexDirection: "row",
     alignItems: "center",
-    gap: 2,
+  },
+  dragHandle: {
+    width: 12,
+    height: 18,
+    justifyContent: "space-between",
+    paddingVertical: 2,
+  },
+  dragDotsLine: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 2,
+  },
+  dragDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: colors.textSecondary,
   },
   rowNumber: {
     ...type.label,
     color: colors.textPrimary,
-    minWidth: 14,
-    textAlign: "center",
-  },
-  errorMessage: {
-    ...type.body,
-    color: colors.danger,
-  },
-  notificationSlot: {
-    position: "absolute",
-    left: spacing[24],
-    right: spacing[24],
-    bottom: spacing[24],
+    flex: 1,
+    textAlign: "right",
   },
 });
