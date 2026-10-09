@@ -1,0 +1,95 @@
+name: KODJO VNext — ChatGPT PRE-4 plan review
+run-name: VNext PRE-4 plan review / ${{ inputs.request_commit || github.sha }}
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/orchestration/requests/vnext-plan-review/*.json']
+  workflow_dispatch:
+    inputs:
+      request_commit:
+        description: Immutable commit containing the ChatGPT review request
+        required: true
+        type: string
+      request_path:
+        description: Immutable request path derived by ChatGPT
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  issues: read
+  actions: read
+
+concurrency:
+  group: kodjo-claude-local-execution
+  cancel-in-progress: false
+
+jobs:
+  review:
+    if: github.ref == 'refs/heads/main' && github.actor == 'MyUncried'
+    runs-on: [self-hosted, Windows, X64, kodjo-claude-local]
+    timeout-minutes: 135
+    env:
+      EXPECTED_RUNNER_NAME: ${{ vars.KODJO_LOCAL_RUNNER_NAME }}
+      CLAUDE_CONFIG_DIR: C:\Users\hadjo\.claude
+      GH_TOKEN: ${{ github.token }}
+      REQUEST_COMMIT: ${{ inputs.request_commit || github.sha }}
+      REQUEST_PATH: ${{ inputs.request_path || '' }}
+      PUSH_BEFORE: ${{ github.event.before || '' }}
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      - name: Validate runner and request locator before checkout
+        run: |
+          $ErrorActionPreference='Stop'
+          if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'CHATGPT_REVIEW_RUNNER_MISMATCH' }
+          if ($env:REQUEST_COMMIT -notmatch '^[0-9a-f]{40}$') { throw 'CHATGPT_REVIEW_COMMIT_INVALID' }
+          if ($env:REQUEST_PATH -and $env:REQUEST_PATH -notmatch '^\.github/orchestration/requests/vnext-plan-review/[0-9a-f]{64}\.json$') { throw 'CHATGPT_REVIEW_PATH_INVALID' }
+      - name: Checkout trusted protocol
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          path: _protocol
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Select exactly one newly committed request
+        if: github.event_name == 'push'
+        working-directory: _protocol
+        run: |
+          $ErrorActionPreference='Stop'
+          if ($env:PUSH_BEFORE -notmatch '^[0-9a-f]{40}$' -or $env:PUSH_BEFORE -eq ('0'*40)) { throw 'CHATGPT_REVIEW_BEFORE_INVALID' }
+          $delta=@(git diff --name-status $env:PUSH_BEFORE $env:REQUEST_COMMIT)
+          if ($LASTEXITCODE -ne 0 -or $delta.Count -ne 1) { throw 'CHATGPT_REVIEW_SINGLE_REQUEST_COMMIT_REQUIRED' }
+          $fields=$delta[0] -split "`t"
+          if ($fields.Count -ne 2 -or $fields[0] -ne 'A' -or $fields[1] -notmatch '^\.github/orchestration/requests/vnext-plan-review/[0-9a-f]{64}\.json$') { throw 'CHATGPT_REVIEW_NEW_REQUEST_REQUIRED' }
+          "REQUEST_PATH=$($fields[1])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Checkout immutable request and source objects
+        uses: actions/checkout@v6
+        env:
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.autocrlf
+          GIT_CONFIG_VALUE_0: 'false'
+        with:
+          ref: ${{ inputs.request_commit || github.sha }}
+          path: _request
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Review or recover with the trusted protocol
+        working-directory: _request
+        run: |
+          $ErrorActionPreference='Stop'
+          $env:KODJO_REVIEW_CACHE=Join-Path (Split-Path -Parent $env:RUNNER_TEMP) '_kodjo_vnext_pre4_reviews'
+          $env:KODJO_REVIEW_OUTPUT=Join-Path $env:RUNNER_TEMP 'vnext-chatgpt-review-${{ github.run_id }}-${{ github.run_attempt }}'
+          $script=Join-Path $env:GITHUB_WORKSPACE '_protocol/scripts/kodjo/chatgpt-plan-review.js'
+          & node $script execute $env:REQUEST_COMMIT $env:REQUEST_PATH
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Publish result and diagnostics even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vnext-chatgpt-review-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/vnext-chatgpt-review-${{ github.run_id }}-${{ github.run_attempt }}/
+          if-no-files-found: error
+          retention-days: 30
