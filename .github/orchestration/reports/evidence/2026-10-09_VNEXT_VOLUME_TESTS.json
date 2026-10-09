@@ -1,0 +1,56 @@
+{
+  "schema": "kodjo.volume.regression-evidence.v1",
+  "code_revision": "7914c99b",
+  "commands": [
+    "node --test <12 associated suites>",
+    "npm ci --prefix scripts/kodjo/openai-runtime --ignore-scripts --no-audit --no-fund",
+    "node --test --test-concurrency=4 tests/kodjo/*.pilot.js"
+  ],
+  "scope": "PROTOCOL_REGRESSIONS_ONLY_NO_PRE3_LAUNCH",
+  "results": [
+    {
+      "stage": "targeted",
+      "exit_code": 0,
+      "log_sha256": "87d8382607f431b406017f5c5cd57bab144a89dc410fbbddd7d5f99d14ce9ae8",
+      "summary": {
+        "tests": 99,
+        "pass": 99,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "stage": "transversal_initial",
+      "exit_code": 1,
+      "log_sha256": "0d783461a056dddc1f1d1edf72b151417440c4018fa02dffc6f0278c4376bfad",
+      "summary": {
+        "tests": 1457,
+        "pass": 1439,
+        "fail": 13,
+        "skipped": 5
+      }
+    },
+    {
+      "stage": "environment_and_manifest",
+      "exit_code": 0,
+      "log_sha256": "f890d6a30fd8621502098067f411c73b7db9eb116c77b56acc2b52920cc69921",
+      "summary": {
+        "tests": 44,
+        "pass": 44,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "stage": "transversal_final",
+      "exit_code": 0,
+      "log_sha256": "77db45abc04206e6ac8634112679faf73bb33229a5d59afd56e8c81c32d90c97",
+      "summary": {
+        "tests": 1457,
+        "pass": 1452,
+        "fail": 0,
+        "skipped": 5
+      }
+    }
+  ]
+}

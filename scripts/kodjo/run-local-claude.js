@@ -167,7 +167,7 @@ function entryPaths(entries) {
  * Dépose le plan autorisé dans l'arbre de travail (Read est confiné à ce répertoire en mode --restricted), en lecture
  * seule et exclu de Git par .git/info/exclude : ni les contrôles de périmètre ni la publication ne le voient.
  */
-function materializeAuthorizedPlan(repoRoot, buffer) {
+function materializeAuthorizedPlan(repoRoot, buffer, protocolRevision = null) {
   const { AUTHORIZED_PLAN_DIR, authorizedPlanPath } = require('./lib/claude-local');
   const exclude = path.resolve(repoRoot, gitRaw(['rev-parse', '--git-path', 'info/exclude'], repoRoot).trim());
   fs.mkdirSync(path.dirname(exclude), { recursive: true });
@@ -179,6 +179,7 @@ function materializeAuthorizedPlan(repoRoot, buffer) {
   if (fs.existsSync(file)) { fs.chmodSync(file, 0o600); fs.rmSync(file); }
   fs.writeFileSync(file, buffer, { mode: 0o400 });
   fs.chmodSync(file, 0o400);
+  if (protocolRevision) require('./lib/vnext-plan-bundles').materialize(buffer.toString('utf8'),path.dirname(file),{cwd:repoRoot,revision:protocolRevision});
   return file;
 }
 
@@ -759,7 +760,7 @@ function main() {
   if (initialChanges.length) return writeFailure('WORKTREE_NOT_CLEAN', initialChanges.join(', '));
   let authorizedPlanFile = null;
   if (authorizedPlanBuffer) {
-    try { authorizedPlanFile = materializeAuthorizedPlan(repoRoot, authorizedPlanBuffer); }
+    try { authorizedPlanFile = materializeAuthorizedPlan(repoRoot, authorizedPlanBuffer, vnextAdmission ? request.protocol_source_head : null); }
     catch (err) { return writeFailure('AUTHORIZED_PLAN_MATERIALIZATION_FAILED', err.message); }
     const visible = changedFiles(repoRoot).filter((f) => path.resolve(f) !== path.resolve(requestPath));
     if (visible.length) return writeFailure('AUTHORIZED_PLAN_NOT_EXCLUDED', visible.join(', '));
