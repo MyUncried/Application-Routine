@@ -1,5 +1,7 @@
 # PRE-4 — relais de revue du plan, pilote ChatGPT
 
+**Parcours de transport remplacé par le relais commun décrit dans [KODJO_VNEXT_CHATGPT_AGENT_RELAY.md](KODJO_VNEXT_CHATGPT_AGENT_RELAY.md).** Ce document conserve le contexte de la première livraison et de son CLI compatible. Le pilote utilise désormais la demande générique pour les revues de plan, compléments de portée et revues d’implémentation.
+
 Cette extension concerne exclusivement le VNext de `main`, piloté par ChatGPT. La variante Claude de #344 évolue séparément. Fusion autorisée par l’utilisateur le 9 octobre, après validation des correctifs parallèles ; ne pas utiliser cette extension avant clôture de PRE-3 (#340). La préparation du protocole n'active pas PRE-4 ; le démarrage demande une instruction utilisateur explicite.
 
 ## Responsabilités

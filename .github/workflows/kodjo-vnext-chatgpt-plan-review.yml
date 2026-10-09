@@ -1,10 +1,10 @@
-name: KODJO VNext — ChatGPT PRE-4 plan review
-run-name: VNext PRE-4 plan review / ${{ inputs.request_commit || github.sha }}
+name: KODJO VNext — ChatGPT PRE-4 agent relay
+run-name: VNext PRE-4 agent operation / ${{ inputs.request_commit || github.sha }}
 
 on:
   push:
     branches: [main]
-    paths: ['.github/orchestration/requests/vnext-plan-review/*.json']
+    paths: ['.github/orchestration/requests/vnext-plan-review/*.json', '.github/orchestration/requests/vnext-agent/*.json']
   workflow_dispatch:
     inputs:
       request_commit:
@@ -46,7 +46,7 @@ jobs:
           $ErrorActionPreference='Stop'
           if ('${{ runner.name }}' -ne $env:EXPECTED_RUNNER_NAME) { throw 'CHATGPT_REVIEW_RUNNER_MISMATCH' }
           if ($env:REQUEST_COMMIT -notmatch '^[0-9a-f]{40}$') { throw 'CHATGPT_REVIEW_COMMIT_INVALID' }
-          if ($env:REQUEST_PATH -and $env:REQUEST_PATH -notmatch '^\.github/orchestration/requests/vnext-plan-review/[0-9a-f]{64}\.json$') { throw 'CHATGPT_REVIEW_PATH_INVALID' }
+          if ($env:REQUEST_PATH -and $env:REQUEST_PATH -notmatch '^\.github/orchestration/requests/(vnext-plan-review|vnext-agent)/[0-9a-f]{64}\.json$') { throw 'CHATGPT_REVIEW_PATH_INVALID' }
       - name: Checkout trusted protocol
         uses: actions/checkout@v6
         with:
@@ -63,7 +63,7 @@ jobs:
           $delta=@(git diff --name-status $env:PUSH_BEFORE $env:REQUEST_COMMIT)
           if ($LASTEXITCODE -ne 0 -or $delta.Count -ne 1) { throw 'CHATGPT_REVIEW_SINGLE_REQUEST_COMMIT_REQUIRED' }
           $fields=$delta[0] -split "`t"
-          if ($fields.Count -ne 2 -or $fields[0] -ne 'A' -or $fields[1] -notmatch '^\.github/orchestration/requests/vnext-plan-review/[0-9a-f]{64}\.json$') { throw 'CHATGPT_REVIEW_NEW_REQUEST_REQUIRED' }
+          if ($fields.Count -ne 2 -or $fields[0] -ne 'A' -or $fields[1] -notmatch '^\.github/orchestration/requests/(vnext-plan-review|vnext-agent)/[0-9a-f]{64}\.json$') { throw 'CHATGPT_REVIEW_NEW_REQUEST_REQUIRED' }
           "REQUEST_PATH=$($fields[1])" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
       - name: Checkout immutable request and source objects
         uses: actions/checkout@v6
@@ -82,7 +82,8 @@ jobs:
           $ErrorActionPreference='Stop'
           $env:KODJO_REVIEW_CACHE=Join-Path (Split-Path -Parent $env:RUNNER_TEMP) '_kodjo_vnext_pre4_reviews'
           $env:KODJO_REVIEW_OUTPUT=Join-Path $env:RUNNER_TEMP 'vnext-chatgpt-review-${{ github.run_id }}-${{ github.run_attempt }}'
-          $script=Join-Path $env:GITHUB_WORKSPACE '_protocol/scripts/kodjo/chatgpt-plan-review.js'
+          if ($env:REQUEST_PATH -match '/vnext-agent/') { $entry='agent-relay.js' } else { $entry='chatgpt-plan-review.js' }
+          $script=Join-Path $env:GITHUB_WORKSPACE "_protocol/scripts/kodjo/$entry"
           & node $script execute $env:REQUEST_COMMIT $env:REQUEST_PATH
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Publish result and diagnostics even on failure

@@ -77,7 +77,7 @@ test('workflow triggers only exact requests or dispatch, uses trusted main code,
   const workflow=require('../../scripts/kodjo/lib/yaml').parse(fs.readFileSync(path.resolve(__dirname,'../../.github/workflows/kodjo-vnext-chatgpt-plan-review.yml'),'utf8'));
   assert.deepEqual(Object.keys(workflow.on),['push','workflow_dispatch']);
   assert.deepEqual(workflow.on.push.branches,['main']);
-  assert.deepEqual(workflow.on.push.paths,['.github/orchestration/requests/vnext-plan-review/*.json']);
+  assert.deepEqual(workflow.on.push.paths,['.github/orchestration/requests/vnext-plan-review/*.json','.github/orchestration/requests/vnext-agent/*.json']);
   assert.match(workflow.jobs.review.steps.find(s=>s.name==='Select exactly one newly committed request').run,/SINGLE_REQUEST_COMMIT_REQUIRED/);
   assert.deepEqual(workflow.permissions,{contents:'read',issues:'read',actions:'read'});
   assert.match(workflow.jobs.review.if,/refs\/heads\/main/);

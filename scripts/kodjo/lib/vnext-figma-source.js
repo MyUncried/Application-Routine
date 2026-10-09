@@ -330,9 +330,9 @@ function unpack(transport){
 }
 function packUi(ui){return {...ui,figma_references:ui.figma_references.map(r=>({...r,packet:pack(r.packet)}))};}
 function unpackUi(ui){return {...ui,figma_references:ui.figma_references.map(r=>({...r,packet:unpack(r.packet)}))};}
-function consume(planBody,directory,stage){
-  const parsed=require('./machine-block').parse(planBody,'KODJO_VNEXT_UI_ATOMICITY_JSON',{code:'VNEXT_FIGMA_TRANSPORT_REQUIRED'});
-  const registry=require('./machine-block').parse(planBody,'KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON',{code:'VNEXT_FIGMA_REGISTRY_TRANSPORT_REQUIRED'});
+function consume(planBody,directory,stage,{cwd,readText}={}){
+  const parsed=require('./machine-block').parse(planBody,'KODJO_VNEXT_UI_ATOMICITY_JSON',{code:'VNEXT_FIGMA_TRANSPORT_REQUIRED',cwd,readText});
+  const registry=require('./machine-block').parse(planBody,'KODJO_VNEXT_REQUIREMENT_REGISTRY_JSON',{code:'VNEXT_FIGMA_REGISTRY_TRANSPORT_REQUIRED',cwd,readText});
   return consumeArtifacts(unpackUi(parsed),registry,directory,stage,V.sha256(planBody));
 }
 function consumeArtifacts(ui,registry,directory,stage,planHash=null){
