@@ -22,6 +22,8 @@ else{
  const claude=require(path.join(checkout,'scripts/kodjo/lib/claude-local')).resolveClaudeBinary();command(claude,['--version'],checkout,true);
  let auth;try{auth=JSON.parse(command(claude,['auth','status'],checkout));}catch{throw Error('Claude authentication status unavailable; preserve operation folder.');}if(!auth.loggedIn)throw Error('Claude local login required; no reviewer invoked.');console.log('Claude authenticated; account details omitted.');
  command(process.execPath,['--max-old-space-size=7168',path.join(__dirname,'preparer-complement-portee.cjs'),produced,receipt,evidence,checkout],root,true);
+ const prepared=JSON.parse(fs.readFileSync(path.join(evidence,'scope-preparation-result.json'),'utf8'));
+ if(prepared.request_hash!=='f11d5172f9cfbca39bb162163da8d8c50ed2857d974f7bb31eb7d6c844edbb19')throw Error('Reconstructed scope proposal differs from the published exact proposal. No invocation.');
  console.log('Starting independent scope supplement. Follow '+path.join(evidence,'claude-scope','scope-review-progress.json'));
  command(process.execPath,['--max-old-space-size=7168','scripts/kodjo/vnext-chain.js','review-scope',config,output],checkout,true);
  console.log('Completed scope receipt: '+output+'; findings remain open until correction and plan review.');
