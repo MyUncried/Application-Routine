@@ -267,3 +267,4 @@ Dépendance VNext de clôture (IA-F07) : `scripts/kodjo/lib/vnext-review-coverag
 |---|---|
 | `scripts/kodjo/lib/vnext-file-bundle.js` | Transport intégral borné, restitution et contrôle des empreintes ; dépendance du gate partagé |
 | `scripts/kodjo/lib/vnext-plan-bundles.js` | Lecture des parties du plan autorisé à la révision protocolaire figée |
+| `.gitattributes` | Conservation des octets exacts des manifestes et parties de transport sous Windows, même avec core.autocrlf=true |

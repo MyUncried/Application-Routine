@@ -8,6 +8,9 @@ const crypto = require('node:crypto');
 const V = require('./vnext-contract');
 const SCHEMA = 'kodjo.vnext.file-bundle.v1';
 const LIMIT = 8 * 1024 * 1024;
+// Full SHA-256 leaf names already identify immutable bytes. A shared short
+// directory avoids repeating the manifest name and logical hash in Windows paths.
+const PARTS_FOLDER = 'parts';
 
 function boundedJson(value, limit = LIMIT) {
   const overflow = {};
@@ -52,7 +55,7 @@ function write(file, value, { exclusive = false, forceBundle = false, pretty = f
     }
   }
   const logicalHash = V.canonicalHash(value);
-  const folder = path.basename(absolute) + '.parts-' + logicalHash;
+  const folder = PARTS_FOLDER;
   const directory = path.join(path.dirname(absolute), folder);
   if (fs.existsSync(directory) && fs.lstatSync(directory).isSymbolicLink()) V.fail('VNEXT_BUNDLE_SYMLINK');
   fs.mkdirSync(directory, { recursive: true });
@@ -74,7 +77,7 @@ function write(file, value, { exclusive = false, forceBundle = false, pretty = f
 
 function describe(file, value, onFile = () => {}) {
   const logicalHash = V.canonicalHash(value);
-  const folder = path.basename(file) + '.parts-' + logicalHash;
+  const folder = PARTS_FOLDER;
   const directory = path.join(path.dirname(file), folder);
   const leaf = text => {
     const hash = V.sha256(text), name = hash + '.json';
@@ -98,7 +101,7 @@ function read(file, { readText } = {}) {
   V.assertExactKeys(parsed, ['schema_version', 'logical_sha256', 'folder', 'root', 'contract_hash'], [], 'VNEXT_BUNDLE_MANIFEST_INVALID');
   V.verifyContractHash(parsed, 'VNEXT_BUNDLE_MANIFEST_HASH_INVALID');
   V.assertSha64(parsed.logical_sha256, 'VNEXT_BUNDLE_LOGICAL_HASH_INVALID');
-  if (parsed.folder !== path.basename(file) + '.parts-' + parsed.logical_sha256) V.fail('VNEXT_BUNDLE_PATH_INVALID');
+  if (parsed.folder !== PARTS_FOLDER && parsed.folder !== path.basename(file) + '.parts-' + parsed.logical_sha256) V.fail('VNEXT_BUNDLE_PATH_INVALID');
   const directory = path.join(path.dirname(file), parsed.folder);
   if (!readText && fs.lstatSync(directory).isSymbolicLink()) V.fail('VNEXT_BUNDLE_SYMLINK');
   let count = 0;

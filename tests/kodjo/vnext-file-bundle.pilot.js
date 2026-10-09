@@ -11,13 +11,33 @@ const Chain = require('../../scripts/kodjo/lib/vnext-live-chain');
 function temp(t) { const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vnext-bundle-')); t.after(() => fs.rmSync(dir, { recursive: true, force: true })); return dir; }
 function firstLeaf(root) { if (root.kind === 'file') return root; for (const item of root.fields?.map(x => x[1]) || root.parts || root.items || []) { const found = firstLeaf(item); if (found) return found; } }
 
+test('compact part storage shares immutable full-hash leaves and accepts historical folder manifests', t => {
+  const dir=temp(t),first=path.join(dir,'first.json'),second=path.join(dir,'second.json');
+  const a={name:'premier',rows:[1,2,3]},b={name:'second',rows:[1,2,3]};
+  B.write(first,a,{forceBundle:true});B.write(second,b,{forceBundle:true});
+  assert.deepEqual(B.read(first),a);assert.deepEqual(B.read(second),b);
+  const current=JSON.parse(fs.readFileSync(first)),oldFolder='first.json.parts-'+current.logical_sha256;
+  fs.cpSync(path.join(dir,current.folder),path.join(dir,oldFolder),{recursive:true});
+  const {contract_hash,...unsigned}=current;
+  fs.writeFileSync(first,JSON.stringify(V.sealContract({...unsigned,folder:oldFolder})));
+  assert.deepEqual(B.read(first),a);assert.deepEqual(B.read(second),b);
+});
+
 test('authorized plan bundles are materialized from pinned Git, refusing changed parts and symlink destinations', t => {
   const dir=temp(t),view=path.join(temp(t),'view'),tag='KODJO_VNEXT_PLAN_CONTRACT_JSON';
   const git=(...args)=>execFileSync('git',args,{cwd:dir,encoding:'utf8',stdio:['ignore','pipe','pipe']});
   git('init','-q');git('config','user.email','test@example.invalid');git('config','user.name','test');
+  git('config','core.longpaths','false');git('config','core.autocrlf','true');
+  fs.writeFileSync(path.join(dir,'.gitattributes'),fs.readFileSync(path.resolve(__dirname,'../../.gitattributes')));
   const file='.github/orchestration/vnext-contracts/'+'a'.repeat(64)+'/'+tag+'.json',value={complete:['é😀',1,2]},reference=B.describe(file,value,(name,text)=>{fs.mkdirSync(path.dirname(path.join(dir,name)),{recursive:true});fs.writeFileSync(path.join(dir,name),text);});
   const body='<'+tag+'>'+JSON.stringify({schema_version:'kodjo.vnext.block-bundle.v1',block_tag:tag,...reference})+'</'+tag+'>';
   git('add','.');git('commit','-qm','pinned bundle');const head=git('rev-parse','HEAD').trim();
+  const stored=JSON.parse(git('show',head+':'+file)),storedLeaf=firstLeaf(stored.root);
+  const storedPart=path.posix.join(path.posix.dirname(file),stored.folder,storedLeaf.file);
+  assert.ok(path.join(dir,storedPart).length<260,'fixture must exercise default Windows Git without long-path configuration');
+  assert.equal(V.sha256(git('show',head+':'+storedPart)),storedLeaf.sha256);
+  fs.rmSync(path.join(dir,storedPart));git('checkout',head,'--',storedPart);
+  assert.equal(V.sha256(fs.readFileSync(path.join(dir,storedPart))),storedLeaf.sha256);
   fs.writeFileSync(path.join(dir,file),'FORGED WORKING COPY');
   const materialize=require('../../scripts/kodjo/lib/vnext-plan-bundles').materialize;
   const written=materialize(body,view,{cwd:dir,revision:head});assert.ok(written.length>1);assert.deepEqual(require('../../scripts/kodjo/lib/machine-block').parse(body,tag,{cwd:view}),value);
@@ -73,7 +93,7 @@ test('transport refuses substitution even with a newly sealed manifest', t => {
   B.write(file, { a: 1 }, { forceBundle: true });
   const manifest = JSON.parse(fs.readFileSync(file)); delete manifest.contract_hash;
   manifest.logical_sha256 = 'f'.repeat(64); manifest.folder = 'produced.json.parts-' + manifest.logical_sha256;
-  const old = fs.readdirSync(dir).find(x => x.startsWith('produced.json.parts-'));
+  const old = 'parts';
   fs.renameSync(path.join(dir, old), path.join(dir, manifest.folder));
   fs.writeFileSync(file, JSON.stringify(V.sealContract(manifest)));
   assert.throws(() => B.read(file), { code: 'VNEXT_BUNDLE_LOGICAL_HASH_INVALID' });

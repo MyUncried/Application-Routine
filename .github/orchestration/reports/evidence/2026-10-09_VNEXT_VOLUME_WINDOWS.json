@@ -1,0 +1,44 @@
+{
+  "schema": "kodjo.volume.windows-correction-evidence.v1",
+  "parent_revision": "1585197317ad63bb64de26261bdd1b7686f6648a",
+  "scope": "PROTOCOL_ONLY_NO_PRE3_EXECUTION",
+  "failure": {
+    "run_id": 37891362932,
+    "job_id": 113692792348,
+    "artifact_id": 11598656413,
+    "zip_sha256": "36fefc1eb7844d2917be0fc20ceda51abb2a36469aa7e6805e7f984b22988967",
+    "test": "authorized plan bundles are materialized from pinned Git, refusing changed parts and symlink destinations",
+    "error": "PREFLIGHT_HEAD_FILE_UNREADABLE",
+    "relative_path_characters": 279,
+    "tests": 470,
+    "pass": 469,
+    "fail": 1
+  },
+  "correction": {
+    "relative_path_characters": 178,
+    "full_sha256_leaf_names": true,
+    "historical_manifests_accepted": true,
+    "global_git_configuration_changed": false,
+    "exact_transport_bytes_attributes": true
+  },
+  "local_validation": {
+    "associated": {
+      "pass": 37,
+      "fail": 0,
+      "log_sha256": "96ec1afb7886e976e9b0874b6622d39f42df9db1cd6ea29ce295b48ed2691dd3"
+    },
+    "transversal": {
+      "tests": 1458,
+      "pass": 1453,
+      "fail": 0,
+      "skipped": 5,
+      "exit_code": 0,
+      "log_sha256": "e6e0865a0caa3e743f05071bbde30b6b08306d192b8aafb126a81ae9f3672b9f"
+    }
+  },
+  "remote_validation": "PENDING_NEW_CANDIDATE",
+  "independent_review": false,
+  "pre3_reconstruction": false,
+  "pre3_model_review": false,
+  "application_changes": false
+}
