@@ -1,5 +1,5 @@
 'use strict';
-function parse(body, tag, {required = true, code = 'MACHINE_BLOCK_INVALID', cwd = process.cwd()} = {}) {
+function parse(body, tag, {required = true, code = 'MACHINE_BLOCK_INVALID', cwd = process.cwd(), readText} = {}) {
   if (!/^[A-Z0-9_]+$/.test(tag)) throw Error(code);
   const text = String(body || '').replace(/\r\n?/g, '\n');
   const opens = text.split('<' + tag + '>').length - 1;
@@ -19,9 +19,10 @@ function parse(body, tag, {required = true, code = 'MACHINE_BLOCK_INVALID', cwd 
   V.assertSha64(reference.logical_sha256, code);
   const fs = require('node:fs'), path = require('node:path');
   const base = fs.realpathSync(cwd), file = path.resolve(base, reference.file);
-  if (!fs.realpathSync(file).startsWith(base + path.sep)) throw Error(code + ':BUNDLE_PATH_INVALID');
-  if (V.sha256(fs.readFileSync(file, 'utf8')) !== reference.manifest_sha256) throw Error(code + ':BUNDLE_MANIFEST_MISMATCH');
-  const value = require('./vnext-file-bundle').read(file);
+  if (!readText && !fs.realpathSync(file).startsWith(base + path.sep)) throw Error(code + ':BUNDLE_PATH_INVALID');
+  const textOf = readText || (file => fs.readFileSync(file, 'utf8'));
+  if (V.sha256(textOf(file)) !== reference.manifest_sha256) throw Error(code + ':BUNDLE_MANIFEST_MISMATCH');
+  const value = require('./vnext-file-bundle').read(file, readText ? {readText} : {});
   if (V.canonicalHash(value) !== reference.logical_sha256) throw Error(code + ':BUNDLE_LOGICAL_MISMATCH');
   return value;
 }

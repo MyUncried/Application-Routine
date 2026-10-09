@@ -11,6 +11,23 @@ const Chain = require('../../scripts/kodjo/lib/vnext-live-chain');
 function temp(t) { const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'vnext-bundle-')); t.after(() => fs.rmSync(dir, { recursive: true, force: true })); return dir; }
 function firstLeaf(root) { if (root.kind === 'file') return root; for (const item of root.fields?.map(x => x[1]) || root.parts || root.items || []) { const found = firstLeaf(item); if (found) return found; } }
 
+test('authorized plan bundles are materialized from pinned Git, refusing changed parts and symlink destinations', t => {
+  const dir=temp(t),view=path.join(temp(t),'view'),tag='KODJO_VNEXT_PLAN_CONTRACT_JSON';
+  const git=(...args)=>execFileSync('git',args,{cwd:dir,encoding:'utf8',stdio:['ignore','pipe','pipe']});
+  git('init','-q');git('config','user.email','test@example.invalid');git('config','user.name','test');
+  const file='.github/orchestration/vnext-contracts/'+'a'.repeat(64)+'/'+tag+'.json',value={complete:['é😀',1,2]},reference=B.describe(file,value,(name,text)=>{fs.mkdirSync(path.dirname(path.join(dir,name)),{recursive:true});fs.writeFileSync(path.join(dir,name),text);});
+  const body='<'+tag+'>'+JSON.stringify({schema_version:'kodjo.vnext.block-bundle.v1',block_tag:tag,...reference})+'</'+tag+'>';
+  git('add','.');git('commit','-qm','pinned bundle');const head=git('rev-parse','HEAD').trim();
+  fs.writeFileSync(path.join(dir,file),'FORGED WORKING COPY');
+  const materialize=require('../../scripts/kodjo/lib/vnext-plan-bundles').materialize;
+  const written=materialize(body,view,{cwd:dir,revision:head});assert.ok(written.length>1);assert.deepEqual(require('../../scripts/kodjo/lib/machine-block').parse(body,tag,{cwd:view}),value);
+  assert.throws(()=>materialize(body,path.join(temp(t),'bad'),{cwd:dir,revision:'f'.repeat(40)}),/PREFLIGHT_HEAD_FILE_UNREADABLE/);
+  const link=path.join(temp(t),'link');fs.symlinkSync(view,link,'dir');assert.throws(()=>materialize(body,link,{cwd:dir,revision:head}),/SYMLINK_REFUSED/);
+  const manifest=JSON.parse(git('show',head+':'+file)),leaf=firstLeaf(manifest.root),part=path.posix.join(path.posix.dirname(file),manifest.folder,leaf.file);
+  fs.writeFileSync(path.join(dir,file),git('show',head+':'+file));fs.writeFileSync(path.join(dir,part),'{}');git('add','.');git('commit','-qm','changed part');
+  assert.throws(()=>materialize(body,path.join(temp(t),'changed'),{cwd:dir,revision:git('rev-parse','HEAD').trim()}),{code:'VNEXT_BUNDLE_PART_HASH_INVALID'});
+});
+
 test('bounded transport retains every logical field and historical hash', t => {
   const dir = temp(t), file = path.join(dir, 'produced.json');
   const value = V.sealContract({ unicode: 'é😀', rows: Array(10000).fill({ text: 'x'.repeat(2000), id: 1 }) });
