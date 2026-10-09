@@ -48,3 +48,7 @@ Relecture ciblée : chemins et fermeture du gate, hachage canonique/Unicode, sto
 Candidate 00d20df0 Windows VNext qualification had 470 PASS and one failure: Git show probed revision:path as a filesystem path and refused it as too long, despite the actual compact part path fitting. Artifact 11600035018 SHA-256: 8482431270f91e9c74806e515e92a239ca49a839a522a80fba17b1167776e7a5. VNext Git object reads and bundle materialization now use cat-file blob for exact pinned bytes; the frozen legacy preflight-source remains unchanged.
 
 Main candidate 877cbce7 Linux pilot run 37894307114 had 1454 PASS, two cleanup ENOTEMPTY failures in finalization fixtures and two skips. Disable automatic Git maintenance in those disposable fixtures and retry bounded cleanup; assertions and production finalization gates remain unchanged. The initial associated regression passed 42 tests. These failures remain recorded; new exact-head CI is required before integration. No PRE-3 execution.
+
+## Clôture publiée après qualification native
+
+Les statuts provisoires ci-dessus sont historiques. La correction est intégrée : PR #342 vers main (f532f21918975293c11ae36442a5ea778f808e36) et PR #341 vers plan/pre3-vnext-20261008 (1d42479181586d926a9970867a41d35d44cc4661). Les quatre runs finaux sont SUCCESS. PRE-3 reste en pause. La baseline applicative Jest Windows comporte une réserve CRLF et aucun PASS applicatif global n'est revendiqué. Voir [registre final](2026-10-09_VNEXT_VOLUME_CLOSURE.md) et [preuves structurées](evidence/2026-10-09_VNEXT_VOLUME_CLOSURE.json).
