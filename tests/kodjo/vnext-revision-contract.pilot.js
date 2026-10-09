@@ -300,6 +300,24 @@ function makeRevisionBaseInfo(base, report, patch = null) {
   };
 }
 
+test('PRE-3 diagnostic: CLARIFICATION_RESOLVED envelope exists but the revision constructor rejects its original clarification report', () => {
+  const base = buildArtifacts();
+  const report = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
+    reviewContext: base.reviewContext,
+    semanticReview: { findings: [semanticFinding('REQUIREMENT', base.reqA.requirement_id, {category:'PRODUCT_AMBIGUITY'})] },
+  }));
+  assert.equal(report.verdict, 'CLARIFICATION_REQUIRED');
+  const {schema_version,contract_hash,...input} = base.planningEnvelope;
+  const envelope = PlanningEnvelope.build({
+    ...input,
+    planning_mode:'REVISION', base_plan_hash:base.planContract.contract_hash,
+    base_review_hash:report.contract_hash, causal_findings:report.findings.map(r=>r.finding_id),
+    created_from:{kind:'CLARIFICATION_RESOLVED',refs:['decision:TEST-RESOLVED']},
+  });
+  assert.equal(envelope.created_from.kind, 'CLARIFICATION_RESOLVED');
+  assert.throws(()=>Revision.buildAllowedChangeSet({...base,reviewReport:report}), /VNEXT_REVISION_REVISE_REPORT_REQUIRED/);
+});
+
 test('VNext-07 construit un AllowedChangeSet borné et préserve le plan item non ciblé', () => {
   const { base, itemA, report } = baseWithPlanFinding();
   const itemB = base.planContract.plan_items.find((item) => item.requirement_id === base.reqB.requirement_id);
