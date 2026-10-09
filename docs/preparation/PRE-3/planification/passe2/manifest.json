@@ -1,0 +1,144 @@
+{
+  "schema": "kodjo.pre3.corrected-review-dossier.v1",
+  "operation": 340,
+  "application_baseline": "1ddfb6d144552f578388257adc78db47ab5992c8",
+  "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW",
+  "protocol_exception": {
+    "authority": "Owner instruction 2026-10-09: corriger le plan, relancer la revue Claude, voir après ; contourner le verrou si nécessaire.",
+    "scope": "Bypass blocked AllowedChangeSet scope-supplement admission for this planning revision only. This dossier replaces the old planning projections for review; it is NOT a canonical VNext produced/receipt nor a development admission.",
+    "owner_plan_approval": false,
+    "implementation_started": false
+  },
+  "previous_produced_hash": "603de045f94fec3f14aa2198edaaad0b91020b79adddb19041b06314cc725e16",
+  "source_version": "Git frozen extraction #333, no new global Figma extraction",
+  "counts": {
+    "documentary_states": 95,
+    "figma_frames": 41,
+    "elements": 6725,
+    "blocking_findings": 13,
+    "numeric_cases": 13,
+    "phrase_cases": 276,
+    "baseline_blobs": 156
+  },
+  "files": [
+    {
+      "path": "baseline-blobs.json",
+      "bytes": 827378,
+      "sha256": "f1daa806d22a139f0e59e603075743269618d246aa519702ac00ea2225452a82"
+    },
+    {
+      "path": "baseline-observations.json",
+      "bytes": 59319,
+      "sha256": "42fd0fe60d2ae1ecdb397e79961805daf1eb4104c21ab8f52cc0a5a90695706c"
+    },
+    {
+      "path": "creation-observations.json",
+      "bytes": 7990,
+      "sha256": "9a9354dbb188b33a7dfc7a1dfef3a0ee30494e60da25414c12030a5072811f55"
+    },
+    {
+      "path": "finding-resolutions.json",
+      "bytes": 10457,
+      "sha256": "e04607290e9d7817e96c0989d16b5e9ad9a2f5dee50b09c37dbcfaabc250a0df"
+    },
+    {
+      "path": "mission-claude.md",
+      "bytes": 3634,
+      "sha256": "f820bf0b1d1a4caf2dcdb2dcb71b1180c292832764791c4e51e143377a32f8ff"
+    },
+    {
+      "path": "original-plan-index.json",
+      "bytes": 116530,
+      "sha256": "d2b93ecfe1460e12e2284fb1855a6ed45fd127c328c09903acc57db1f9f4e56c"
+    },
+    {
+      "path": "plan-technique-corrige.md",
+      "bytes": 23243,
+      "sha256": "3c9aa87f68366bcbdf23a8fc230e9a492684d0769e289e82a7a7cb688ef9cdb8"
+    },
+    {
+      "path": "requirements.json",
+      "bytes": 181936,
+      "sha256": "36ea82710a637f4ff69455cb509067207c3e806ea593487e5b53bf9d96be8bdf"
+    },
+    {
+      "path": "tests-and-preservation.json",
+      "bytes": 1206118,
+      "sha256": "b9ce7de9964339644981b0367bb87b17c2a83d5c4eb3ce90eda98eea96f30450"
+    },
+    {
+      "path": "traceability.json",
+      "bytes": 53192,
+      "sha256": "774eeafe5e54fd392bcad3f3280af32114351ede975289c3d3cd32c8a840567b"
+    },
+    {
+      "path": "ui-criteria.json",
+      "bytes": 40356,
+      "sha256": "b3bd9c1e7b4d14644f6800a4a038d198871dc243e5b4f1201da62d2a600b72a2"
+    },
+    {
+      "path": "ui-elements.json",
+      "bytes": 2032354,
+      "sha256": "8f5d3c235f683b0476fcb2bbfc2442573bcb812e140e2c4ac0e506a1905ac258"
+    },
+    {
+      "path": "verifier-passe2.cjs",
+      "bytes": 4882,
+      "sha256": "011481105443966361fe146eebf2ae417b5409012d9059c8616176b0bafe9eea"
+    }
+  ],
+  "source_inputs": [
+    {
+      "path": "../schema-et-ecritures.md",
+      "sha256": "6e3296f8b2ada6a397da82882faaf8ddecd7d022584650a5448bdd1f546bdaa5"
+    },
+    {
+      "path": "../plan-technique-travail.md",
+      "sha256": "553b7125f367d63080f377c8dbf5304a5b508dc62099908dc6da192fd991aeb2"
+    },
+    {
+      "path": "../attendus-numeriques.json",
+      "sha256": "af7f71fefd1cb0381c9ae5b17dba651845910ed285a27cfd3651594c49750ace"
+    },
+    {
+      "path": "../attendus-phrases-276.json",
+      "sha256": "fc3298e54dbba830f730d8185a1b555b64d2f94d0939bd1b0d6ce84a3069d597"
+    },
+    {
+      "path": "../tracabilite-travail.json",
+      "sha256": "224415f8c5937b99a43e0e14b5c7f25412acc58a11d736fa8fbecea5affc2ab9"
+    },
+    {
+      "path": "../inventaire-etats-scenarios.json",
+      "sha256": "20fb0dfb1ccc3a9ac47fab6b151515af6c1512aa4186281b7294a6d3ec2d4c59"
+    },
+    {
+      "path": "../mapping-elements-ui.jsonl",
+      "sha256": "39cd2cc05cf86cac7032022aec9037f918273cb1439ed5bc7f30b3de1a500ee7"
+    },
+    {
+      "path": "../assertions-recette.json",
+      "sha256": "0ffccfc2b8764d26dfc3a5153a4fd970c85661532cafaa14f05f8fd5a6916424"
+    },
+    {
+      "path": "../direct-import-scan.json",
+      "sha256": "c7dfe5cec4f4907c0844dd9eeeda189d99987790e97d6e046ece90476ebfecd2"
+    },
+    {
+      "path": "../candidate-manifest.json",
+      "sha256": "064eae2a84d38cddb535086ab9d626fa58cd18988d21f06b70e3a1a18f2c7f85"
+    },
+    {
+      "path": "../fichiers-cible-proposes.json",
+      "sha256": "a2699016afd9b06f9daab7ddf6b3a8696c98361a7c2a9cd7576c23ee6429db59"
+    },
+    {
+      "path": "../registre-corrections-revue-initiale.json",
+      "sha256": "7918e223f917b07f0104efdd241dd3ac34750bc75602a2df2d3df0141a751d45"
+    },
+    {
+      "path": "../decision-revue-numeriques-resolue.json",
+      "sha256": "ade5c9d0cc933a1f77b6f4da94fba435aff0d6b862f9b668c80096e7ea96b540"
+    }
+  ]
+}
