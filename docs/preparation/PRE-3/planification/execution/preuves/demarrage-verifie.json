@@ -1,0 +1,29 @@
+{
+  "stage": "PRE3_IMPLEMENTATION_START_PREPARATION",
+  "result": "PASS",
+  "start_revision": "ae50aaedc1aaf506dccbb81c4e406e127af9824b",
+  "main_revision": "46b91bd279424899a02c099a68b2729f6d710809",
+  "approved_plan": "43e7b344937a2d60b04b987f19636faebb5aee06",
+  "manifest_sha256": "16c155548ba161778f8780e664c65561b7c0d7e27666ca34481ec33a75cc08ff",
+  "documentary_checks": 2143,
+  "application_and_protocol_diff_empty": true,
+  "scope_checker_tests": {
+    "approved_product_path": "PASS",
+    "documentary_evidence_path": "PASS",
+    "outside_committed": "REJECTED",
+    "outside_staged": "REJECTED",
+    "outside_working": "REJECTED",
+    "outside_untracked": "REJECTED",
+    "protocol_path": "REJECTED",
+    "real_worktree_probe": "REJECTED_AND_REMOVED"
+  },
+  "worktree_clean": true,
+  "application_tested": false,
+  "writer_invoked": false,
+  "vnext_canonical_admission": false,
+  "limitations": [
+    "Scope checker detects changes before publication when invoked; it does not physically prevent every write.",
+    "No product behavior or visual/device conformance tested at this preparation stage.",
+    "Claude Code authenticated on owner's workstation is not invocable from this environment."
+  ]
+}
