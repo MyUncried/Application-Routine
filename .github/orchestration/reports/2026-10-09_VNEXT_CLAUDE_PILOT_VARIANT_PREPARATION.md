@@ -109,4 +109,7 @@ Aucune : changement de protocole sans effet applicatif.
 
 ## 10. Commit final et état Git
 
-Branche locale `protocol/vnext-claude-pilot-variant-20261009`, **non poussée**. Le hash du commit et l’état final sont communiqués dans la réponse de clôture.
+- Commit de la variante : `f0360c5d80eed02b633870034ec28dddedde2742`.
+- Sur instruction de Hermann du 2026-10-09 (« oui merci »), la branche a été poussée et la **PR brouillon #344** ouverte vers `main` : https://github.com/MyUncried/Application-Routine/pull/344. Elle ne doit pas être fusionnée avant la clôture de PRE-3.
+- La poussée et la PR déclenchent les workflows `create` et `pull_request` habituels de la CI. Aucun workflow manuel, aucune qualification et aucune opération PRE-3 n’ont été lancés.
+- La branche du diagnostic du 8 octobre (`docs/vnext-claude-pilot-transfer-diagnostic-20261008`, `117183c0`) reste locale.
