@@ -8,7 +8,7 @@ const V = require('../../scripts/kodjo/lib/vnext-contract');
 function fixture() {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'vnext-final-'));
   const git = (...args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore','pipe','pipe'] }).trim();
-  git('init', '-q'); git('config', 'user.name', 'Fixture'); git('config', 'user.email', 'fixture@example.invalid');
+  git('init', '-q'); git('config', 'gc.auto', '0'); git('config', 'maintenance.auto', 'false'); git('config', 'user.name', 'Fixture'); git('config', 'user.email', 'fixture@example.invalid');
   const commit = text => { fs.writeFileSync(path.join(cwd, 'correction.js'), text); git('add', '.'); git('commit', '-qm', text); return git('rev-parse', 'HEAD'); };
   fs.writeFileSync(path.join(cwd,'baseline-keep.js'),'unchanged');
   require('./helpers/vnext-test-evidence-fixture').install(cwd);
@@ -23,7 +23,7 @@ function fixture() {
   const acceptance = { id: 502, user: { login: 'MyUncried' }, issue_url: `https://api.github.com/repos/${repository}/issues/${issue}`, body };
   const args = { cwd, matrix, review, baselineHead, incrementHead: second, head, approvedHead: head, repository, issue, sliceId, reviewId,
     acceptance, reservations: ['Accessibility not executed; no conformity attested.'], checks: { jest:'PASS', typescript:'PASS', lint:'PASS', head:'PASS', clean:'PASS' } };
-  return { cwd, git, commit, first, second, head, args, cleanup: () => fs.rmSync(cwd, { recursive: true, force: true }) };
+  return { cwd, git, commit, first, second, head, args, cleanup: () => fs.rmSync(cwd, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 }) };
 }
 test('incident 1: admitted accessibility waiting closes functionally with original reserves and no fabricated PASS', () => {
   const f = fixture(); try {

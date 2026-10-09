@@ -65,7 +65,8 @@ Limite connue : GitHub ne distingue pas un commentaire posté par Hermann sur le
 1. Le script refuse l’exécution si le pilote désigné n’est pas `CLAUDE_CODE` (`PILOT_NOT_DESIGNATED`).
 2. Il refuse toute étape absente de la liste du moteur (`PILOT_STAGE_INVALID`).
 3. Pour `reserve-gate` et `request-approval`, il exige une revue indépendante du plan (`PILOT_INDEPENDENT_PLAN_REVIEW_REQUIRED`). Cette revue est un commentaire MyUncried publié via `chatgpt-codex-connector` sur l’issue de la tranche. Il commence par `[KODJO_VNEXT] INDEPENDENT_PLAN_REVIEW` et porte, chacune exactement une fois, les lignes `slice_id=`, `prepared_chain_hash=<contract_hash du dossier préparé>`, `reviewer=ChatGPT`, `verdict=APPROVE` et `human_review_performed=false`.
-4. Il appelle ensuite `vnext-chain.js` avec les arguments transmis à l’identique.
+4. Il recherche les commentaires de revue directement dans GitHub, avec pagination complète. Le commentaire authentifié le plus récemment modifié pour la tranche et le hash exact fait autorité : un refus ou une réponse invalide interdit de réutiliser un ancien APPROVE. L'option `--independent-plan-review` reste compatible mais refuse un identifiant supersédé ; elle n'est plus nécessaire.
+5. Il appelle ensuite `vnext-chain.js` avec les arguments transmis à l’identique.
 
 `status <SLICE>` affiche le pilote courant, en lecture seule.
 
@@ -93,3 +94,28 @@ Limite connue : GitHub ne distingue pas un commentaire posté par Hermann sur le
 Cette variante ne doit pas être fusionnée sur `main` avant la clôture de PRE-3. Les approbations VNext portent sur une tête de protocole (`protocol_head`). Si la branche de PRE-3 se resynchronisait avec `main` après la fusion, ses gates en cours deviendraient périmés (`VNEXT_HANDOFF_APPROVAL_STALE`) : c’est un risque plausible, non démontré, évité en retardant la fusion. Le premier usage, sur PRE-4, exige une instruction explicite de Hermann.
 
 Rapport de préparation : `.github/orchestration/reports/2026-10-09_VNEXT_CLAUDE_PILOT_VARIANT_PREPARATION.md`.
+
+## 8. Passage de relais sans transfert de rapport — PRE-4 (#345)
+
+Le changement de pilote ne supprime pas les revues ChatGPT du plan et de la livraison. Il ne fournit pas de mécanisme de réveil automatique d'une conversation ChatGPT. Ne pas confondre demande publiée, revue effectuée, résultat récupéré et reprise du pilote.
+
+### Plan
+
+1. Claude conserve et publie les artefacts sur la branche de tranche autorisée avant le transfert.
+2. `plan-review-request-body <SLICE> <reserve-gate|request-approval> <config>` produit une demande portant le commit et le chemin du dossier préparé, son hash exact et l'acteur attendu. Le dossier doit être committé et son intégrité est contrôlée. Cette commande n'écrit pas dans GitHub.
+3. Le pilote publie cette demande sur l'issue de tranche via le transport déjà autorisé, sans solliciter Hermann pour en recopier le texte. Il réutilise une demande existante pour le même dossier plutôt que d'en créer une nouvelle. Si ce transport n'est pas disponible, il enregistre un défaut d'orchestration, sans prétendre à un réveil automatique.
+4. Lors d'une reprise ChatGPT, la demande et le dossier sont lus directement dans GitHub. ChatGPT réalise la revue en relecteur, publie les constats et le verdict au format de la section 4, puis laisse le pilotage à Claude. Une demande seule ne prouve ni la couverture ni une approbation.
+5. `plan-review-status` retrouve la revue sans identifiant fourni par Hermann. Absence de revue : `WAITING_FOR_INDEPENDENT_PLAN_REVIEW`, avec lien de l'issue et `next_actor=CHATGPT_REVIEWER`. Le pilote conserve cet état dans son checkpoint ; aucune relance IA ni polling ne sont ajoutés.
+6. Après APPROVE, `run ... reserve-gate` / `request-approval` récupère directement la revue depuis GitHub avant d'appeler le moteur. Toute modification du dossier impose une revue de son nouveau hash.
+
+Si les conversations sont inactives, un message court de reprise peut encore être nécessaire dans chacune ; aucun rapport, JSON, SHA ou commande ne doit être transporté par l'utilisateur. La désignation directe du pilote et le 👍 du gate restent les validations explicitement conservées dans cette variante ; le présent ajout ne les transforme pas en autorisations automatiques.
+
+### Livraison et autres étapes
+
+Claude publie la livraison, les résultats des tests, les reçus et le checkpoint dans GitHub. ChatGPT lit les références publiées et y dépose sa revue finale. Claude récupère le commentaire et prépare le manifeste de finalisation lui-même ; aucun copier-coller du rapport par Hermann. Les gardes de `finalize-vnext-delivery.js` restent inchangées. Ce parcours est prescrit mais n'est pas qualifié par les tests du relais de plan.
+
+### Limites avant PRE-4
+
+- Aucun réveil automatique de ChatGPT ou de Claude n'est implémenté ; aucune API facturée ni automation n'est ajoutée.
+- La variante a été réconciliée avec `main` `9c6ff9fa` (#342). Les lecteurs du pilote utilisent désormais `vnext-file-bundle`, y compris pour les parts lues au commit Git exact. Les tests couvrent le dossier découpé et le refus des parts corrompues ; ils ne prétendent pas réexécuter le dossier PRE-3 de plusieurs centaines de Mo.
+- La qualification réelle des deux publications de revue et de leur reprise appartient au premier usage autorisé ; les tests locaux du relais ne constituent pas cette preuve.

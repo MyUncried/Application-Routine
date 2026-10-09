@@ -1,0 +1,26 @@
+{
+  "baseline": "8e8006e34dac8aef0dddaef816828674f3b8756b",
+  "rows": [
+    {
+      "path": "scripts/kodjo/run-local-claude.js",
+      "old_blob": "bd924975d1759e31777d6c0bf8d4b01fc6e566b8",
+      "new_blob": "d7278c45a1e621eb0373e643541f87f80cf55cc1",
+      "capabilities_unchanged": true,
+      "capabilities": []
+    },
+    {
+      "path": ".github/workflows/kodjo-v2-implementation-artifact.yml",
+      "old_blob": "7bf2cc39b935ce951e741014da4e1c9c26eec5f6",
+      "new_blob": "730e1e5b20eca161d219e21a7ce0a96f83a8e136",
+      "capabilities_unchanged": true,
+      "capabilities": [
+        {
+          "producer": ".github/workflows/kodjo-v2-implementation-artifact.yml",
+          "capability": "GITHUB_PERMISSION_WRITE:issues",
+          "destination": "github-token:issues",
+          "scope": "WORKFLOW"
+        }
+      ]
+    }
+  ]
+}

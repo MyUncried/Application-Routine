@@ -1,0 +1,275 @@
+{
+  "schema_version": "kodjo.vnext.volume-correction-closure.v1",
+  "date": "2026-10-09",
+  "scope": "Protocol correction only; PRE-3 stays paused",
+  "main": {
+    "pr": 342,
+    "candidate": "1f2d59e930a63ea00116345e431593352259516a",
+    "tree": "7bc8494e23c2deb4b96de5c4c779d4e5b67f7711",
+    "merge": "f532f21918975293c11ae36442a5ea778f808e36",
+    "qualification_run": 37894915206,
+    "pilot_run": 37894915185
+  },
+  "planning": {
+    "pr": 341,
+    "branch": "plan/pre3-vnext-20261008",
+    "base": "8e8006e34dac8aef0dddaef816828674f3b8756b",
+    "candidate": "ad5b9086ec66a714166ab7923a3c26a57ba93c36",
+    "tree": "77873287f7e0ba9b3b42c85cc2c94ce0116edbef",
+    "qualification_run": 37894899370,
+    "pilot_run": 37894899464,
+    "merge": "1d42479181586d926a9970867a41d35d44cc4661"
+  },
+  "local": {
+    "tests": 1458,
+    "passed": 1453,
+    "failed": 0,
+    "skipped": 5
+  },
+  "native_vnext_windows": {
+    "main": {
+      "tests": 471,
+      "passed": 471,
+      "failed": 0,
+      "skipped": 0
+    },
+    "planning": {
+      "tests": 471,
+      "passed": 471,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "main_historical_windows": {
+    "tests": 1458,
+    "passed": 1455,
+    "failed": 0,
+    "skipped": 3,
+    "readiness": "NOT_CERTIFIED_FOR_OPERATIONAL_VNEXT"
+  },
+  "review": {
+    "targeted_agent_code_review": true,
+    "independent_model_review": false,
+    "global_audit": false
+  },
+  "existing_packet": {
+    "operation": "READ_EXISTING_HISTORICAL_BUNDLE_ONLY",
+    "production": false,
+    "model_call": false,
+    "requirements": 6384,
+    "assertions": 243974,
+    "chain_hash": "0b9ab5f0a45b0fa86c061d181f4f275a77ed18e6a03ef3e9e985c4e26acbfd66",
+    "plan_hash": "5145cbd30860f9ddef041ed33b97a71697517a3ef248229112bb0f5f7b92006f",
+    "ui_hash": "d4aa55ad8a0752ae4083a33a96d5d006491258ab1dee5bf2856610ec9399e4c9"
+  },
+  "pre3": {
+    "issue": 340,
+    "execution_started": false,
+    "plan_reconstructed": false,
+    "review_started": false,
+    "owner_approval": false,
+    "functional_scope_changed": false,
+    "source_revision": "3019c5f8c4a38efb83865635e0a8d67d48a5b5ab",
+    "requirements": "P3-01..P3-23",
+    "decisions": {
+      "D334": "Phototheque seule",
+      "D335": "A - selection multiple"
+    },
+    "frames": 41,
+    "documentary_states": 54,
+    "total_states": 95
+  },
+  "reserves": [
+    {
+      "kind": "APPLICATION_BASELINE_WINDOWS",
+      "test": "targetSchema migration001..006 FILE_UNCHANGED",
+      "passed": 1526,
+      "failed": 1,
+      "cause": "CRLF checkout changes raw source-byte hash",
+      "git_blob_changed": false,
+      "lf_sha256": "2b3b1bab6399ef0cd688886d8530588ab73eef377e0bb90335dff48ddfa66add",
+      "crlf_sha256": "15df08e3b406243a946edd4b8513748e57d202f01c35f24a5df309c13a4c67bf",
+      "typescript": "PASS",
+      "lint": "PASS"
+    },
+    {
+      "kind": "HISTORICAL_RUN_16_RECOVERY",
+      "status": "ARTIFACT_UNAVAILABLE_RESERVE",
+      "certified": false
+    },
+    {
+      "kind": "PRE3_INDEPENDENT_REVIEW_CAPACITY",
+      "status": "NOT_PROVEN",
+      "review_targets": 304638
+    }
+  ],
+  "artifacts": {
+    "main_qualification": [
+      {
+        "id": 11600655830,
+        "name": "historical-equivalence-Linux",
+        "digest": "sha256:efd65508cd0938cf82e237961f59d482725f842315a98bd9a6515e45ebdd183b"
+      },
+      {
+        "id": 11600438400,
+        "name": "historical-equivalence-Windows",
+        "digest": "sha256:edc60ff64fc0748351ae5cfc1db87db2f8c60cee649b2cffce5efe314bfd4248"
+      },
+      {
+        "id": 11600263749,
+        "name": "qualification-controls-Windows",
+        "digest": "sha256:cf0d1f801a8ae9f33dd4b33172614eaf009344a99bb26db0e7cabd0ed6ffeab0"
+      },
+      {
+        "id": 11599833059,
+        "name": "qualification-controls-Linux",
+        "digest": "sha256:123655fb78aeb3ca3aec83a2d05ed17c9628f528cc7af6415b890ada40de3bc4"
+      }
+    ],
+    "planning_qualification": [
+      {
+        "id": 11600401828,
+        "name": "qualification-controls-Windows",
+        "digest": "sha256:f740b3154cb17d4925a2f7e4f143f9717ccd9aa1eab84dd9853361daa44995fd"
+      },
+      {
+        "id": 11600262888,
+        "name": "historical-equivalence-Windows",
+        "digest": "sha256:4aa16ce8168b5c2b9f65aea08f1ad899adb91c53b6513af76323e17350cd4def"
+      },
+      {
+        "id": 11600260837,
+        "name": "historical-equivalence-Linux",
+        "digest": "sha256:21fdd04bed332fa07b1f5273d8bcf53c33387a20d62943b4a3cf40c8c03feb74"
+      },
+      {
+        "id": 11598834548,
+        "name": "qualification-controls-Linux",
+        "digest": "sha256:f55c94a703b1beba50a02e53a346d1cedcc104f52672ee05da8deb70f16ce470"
+      }
+    ],
+    "main_pilot": [
+      {
+        "id": 11601035283,
+        "name": "kodjo-v2-disposable-preflight-37894915185-1",
+        "digest": "sha256:035660d8bad819d6c91de7c71aede091af122d117b6b19edbcd52a0304326946"
+      },
+      {
+        "id": 11600553469,
+        "name": "kodjo-v2-real-recovery-certification-37894915185-1",
+        "digest": "sha256:e5709381cd4029c3b03fcdac2f3e319bf8812b2895b08e9dfb0cf126564281e8"
+      },
+      {
+        "id": 11599309088,
+        "name": "kodjo-v2-runner-certification-37894915185-1",
+        "digest": "sha256:6f7cf8e8783d16a343d5dca5205ec71f5cac6a23ea51e203bc0d9660cebcfe2f"
+      }
+    ],
+    "planning_pilot": [
+      {
+        "id": 11600824124,
+        "name": "kodjo-v2-real-recovery-certification-37894899464-1",
+        "digest": "sha256:76ab409943c8c8451f805f193de82d81f5730d8e7e9667a9679c969396843074"
+      },
+      {
+        "id": 11600569926,
+        "name": "kodjo-v2-disposable-preflight-37894899464-1",
+        "digest": "sha256:0b34321f559f04c200a905b62ec067c0be3f3fcd4709cc6e947a55a2220c3101"
+      },
+      {
+        "id": 11600334328,
+        "name": "kodjo-v2-runner-certification-37894899464-1",
+        "digest": "sha256:484645da1d483947882dda7da2301a90199b8cc6b1155a7c95a60eebc757536e"
+      }
+    ]
+  },
+  "status": "PROTOCOL_CORRECTION_INTEGRATED_PRE3_PAUSED",
+  "preflight": {
+    "main": {
+      "status": "PASS",
+      "mode": "PREFLIGHT_ONLY",
+      "claude_invoked": false
+    },
+    "planning": {
+      "status": "PASS",
+      "mode": "PREFLIGHT_ONLY",
+      "claude_invoked": false
+    }
+  },
+  "jobs": {
+    "main": [
+      {
+        "id": 113705917953,
+        "name": "historical-equivalence (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113705918104,
+        "name": "qualification (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113705918166,
+        "name": "historical-equivalence (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113705918237,
+        "name": "qualification (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113709470848,
+        "name": "Signal exact VNext cycle controls to Work",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 113709471287,
+        "name": "architecture-audit",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 113709941385,
+        "name": "historical-platform-coverage",
+        "conclusion": "success"
+      }
+    ],
+    "planning": [
+      {
+        "id": 113703927773,
+        "name": "historical-equivalence (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113703927991,
+        "name": "historical-equivalence (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113703928013,
+        "name": "qualification (ubuntu-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113703928083,
+        "name": "qualification (windows-latest)",
+        "conclusion": "success"
+      },
+      {
+        "id": 113707101650,
+        "name": "architecture-audit",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 113707101965,
+        "name": "Signal exact VNext cycle controls to Work",
+        "conclusion": "skipped"
+      },
+      {
+        "id": 113707931067,
+        "name": "historical-platform-coverage",
+        "conclusion": "success"
+      }
+    ]
+  }
+}

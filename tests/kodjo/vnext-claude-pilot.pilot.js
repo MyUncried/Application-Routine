@@ -4,6 +4,7 @@ const fs = require('node:fs'), os = require('node:os'), path = require('node:pat
 const { execFileSync } = require('node:child_process');
 const Pilot = require('../../scripts/kodjo/lib/vnext-pilot-designation');
 const Cli = require('../../scripts/kodjo/claude-pilot');
+const Relay = require('../../scripts/kodjo/lib/vnext-pilot-review-relay');
 
 const REPO = 'MyUncried/Application-Routine';
 const ISSUE_URL = n => 'https://api.github.com/repos/' + REPO + '/issues/' + n;
@@ -22,7 +23,8 @@ function fixture(t, { sliceId = 'V2-PRE-4', issue = 400 } = {}) {
   write('chain/prepared.json', { contract_hash: HASH });
   const base = commit();
   const comments = {};
-  const github = { comment: (_repo, id) => { if (!comments[id]) throw Error('GITHUB_READ_FAILED'); return comments[id]; } };
+  const github = { comment: (_repo, id) => { if (!comments[id]) throw Error('GITHUB_READ_FAILED'); return comments[id]; },
+    comments: () => Object.values(comments) };
   const owner = (id, body, app = null) => { comments[id] = { id: Number(id), issue_url: ISSUE_URL(issue), user: { login: 'MyUncried' }, performed_via_github_app: app, body }; };
   const entry = (sequence, from, to, id, checkpoint = base) => ({ sequence, from_pilot: from, to_pilot: to, checkpoint_commit: checkpoint,
     authorization_comment_id: String(id), recorded_at: '2026-10-09T08:00:00.000Z', open_operations: [] });
@@ -93,6 +95,7 @@ test('gate stages require an exact independent ChatGPT plan review before the un
   const e = f.entry(1, 'CHATGPT_WORK', 'CLAUDE_CODE', 41); f.authorize(e); f.designate([e]);
   f.write('reserve.json', { prepared_file: 'chain/prepared.json' });
   const review = (overrides = {}) => ({ id: 42, issue_url: ISSUE_URL(f.issue), user: { login: 'MyUncried' },
+    created_at: '2026-10-09T09:00:00Z', updated_at: '2026-10-09T09:00:00Z',
     performed_via_github_app: { slug: Pilot.CONNECTOR_SLUG }, body: ['[KODJO_VNEXT] INDEPENDENT_PLAN_REVIEW', 'slice_id=' + f.sliceId,
       'prepared_chain_hash=' + HASH, 'reviewer=ChatGPT', 'verdict=APPROVE', 'human_review_performed=false'].join('\n'), ...overrides });
   const calls = [];
@@ -113,8 +116,10 @@ test('gate stages require an exact independent ChatGPT plan review before the un
   const result = Cli.main(['run', f.sliceId, '--independent-plan-review=42', 'reserve-gate', 'reserve.json', 'out.json'], deps);
   assert.equal(result.independent_plan_review.prepared_chain_hash, HASH);
   assert.deepEqual(calls, [['reserve-gate', 'reserve.json', 'out.json']], 'engine arguments are passed through unchanged');
+  Cli.main(['run', f.sliceId, 'reserve-gate', 'reserve.json', 'auto.json'], deps);
+  assert.deepEqual(calls[1], ['reserve-gate', 'reserve.json', 'auto.json'], 'no comment identifier has to be copied');
   Cli.main(['run', f.sliceId, 'produce', 'recipe.json', 'produced.json'], deps);
-  assert.deepEqual(calls[1], ['produce', 'recipe.json', 'produced.json']);
+  assert.deepEqual(calls[2], ['produce', 'recipe.json', 'produced.json']);
   assert.throws(() => Cli.main(['run', f.sliceId, 'publish-anything', 'c.json'], deps), /PILOT_STAGE_INVALID/);
 });
 
@@ -127,8 +132,88 @@ test('designation-body renders the exact text the owner must post for the next h
 
 test('the pilot variant only reads GitHub and never commits, pushes, reacts or edits the engine', () => {
   const root = path.resolve(__dirname, '../..');
-  for (const file of ['scripts/kodjo/claude-pilot.js', 'scripts/kodjo/lib/vnext-pilot-designation.js']) {
+  for (const file of ['scripts/kodjo/claude-pilot.js', 'scripts/kodjo/lib/vnext-pilot-designation.js', 'scripts/kodjo/lib/vnext-pilot-review-relay.js']) {
     const source = fs.readFileSync(path.join(root, file), 'utf8');
     assert.doesNotMatch(source, /--method['"]?\s*,\s*['"](?:POST|PATCH|PUT|DELETE)|['"](?:commit|push|tag|update-ref|switch|checkout)['"]|reactions/i, file);
   }
+});
+
+const binding = { repository: REPO, issueNumber: 400, sliceId: 'V2-PRE-4', preparedChainHash: HASH };
+function relayComment(id, verdict = 'APPROVE', overrides = {}) {
+  return { id, issue_url: ISSUE_URL(400), user: { login: 'MyUncried' },
+    performed_via_github_app: { slug: Pilot.CONNECTOR_SLUG },
+    created_at: '2026-10-09T09:00:00Z', updated_at: '2026-10-09T09:00:00Z',
+    body: `[KODJO_VNEXT] INDEPENDENT_PLAN_REVIEW\nslice_id=V2-PRE-4\nprepared_chain_hash=${HASH}\nreviewer=ChatGPT\nverdict=${verdict}\nhuman_review_performed=false`, ...overrides };
+}
+
+test('review relay waits without invoking a model and ignores other issues, hashes and authors', () => {
+  const rows = [relayComment(1, 'APPROVE', { issue_url: ISSUE_URL(401) }),
+    relayComment(2, 'APPROVE', { user: { login: 'someone-else' } }),
+    relayComment(3, 'APPROVE', { performed_via_github_app: null }),
+    relayComment(4, 'APPROVE', { body: relayComment(4).body.replace(HASH, 'b'.repeat(64)) })];
+  assert.equal(Relay.discover(rows, binding).status, 'WAITING_FOR_INDEPENDENT_PLAN_REVIEW');
+  assert.equal(Relay.discover([relayComment(5)], binding).comment_id, '5');
+});
+
+test('a newer refusal or an edited earlier refusal cannot be bypassed by an older approval', () => {
+  assert.throws(() => Relay.discover([relayComment(10), relayComment(11, 'REVISE')], binding), /PILOT_INDEPENDENT_PLAN_REVIEW_REQUIRED/);
+  assert.throws(() => Relay.discover([relayComment(10, 'REVISE', { updated_at: '2026-10-09T10:00:00Z' }), relayComment(11)], binding), /PILOT_INDEPENDENT_PLAN_REVIEW_REQUIRED/);
+  const duplicate = relayComment(12); duplicate.body += '\nprepared_chain_hash=' + HASH;
+  assert.throws(() => Relay.discover([relayComment(10), duplicate], binding), /PILOT_INDEPENDENT_PLAN_REVIEW_REQUIRED/);
+});
+
+test('review comments are paginated completely and a failed later page never yields partial approval', () => {
+  const calls = [];
+  const rows = Relay.listComments(REPO, 400, route => { calls.push(route); return calls.length === 1 ? Array(100).fill({}) : [relayComment(1001)]; });
+  assert.equal(rows.length, 101); assert.match(calls[1], /page=2$/);
+  assert.throws(() => Relay.listComments(REPO, 400, route => { if (route.endsWith('page=1')) return Array(100).fill(relayComment(1)); throw Error('NETWORK_DOWN'); }), /NETWORK_DOWN/);
+});
+
+test('an explicit stale comment identifier cannot override the discovered review', t => {
+  const f = fixture(t); const e = f.entry(1, 'CHATGPT_WORK', 'CLAUDE_CODE', 11); f.authorize(e); f.designate([e]);
+  f.write('reserve.json', { prepared_file: 'chain/prepared.json' });
+  f.comments['51'] = relayComment(51); f.comments['52'] = relayComment(52);
+  let invoked = false;
+  assert.throws(() => Cli.main(['run', f.sliceId, '--independent-plan-review=51', 'reserve-gate', 'reserve.json'],
+    { ...f.opts, invoke: () => { invoked = true; return 0; } }), /PILOT_INDEPENDENT_PLAN_REVIEW_SUPERSEDED/);
+  assert.equal(invoked, false);
+  assert.equal(Cli.main(['plan-review-status', f.sliceId, 'reserve-gate', 'reserve.json'], f.opts).comment_id, '52');
+});
+
+test('review request names immutable committed bytes and rejects uncommitted or corrupt plans', t => {
+  const f = fixture(t); const e = f.entry(1, 'CHATGPT_WORK', 'CLAUDE_CODE', 11); f.authorize(e); f.designate([e]);
+  const V = require('../../scripts/kodjo/lib/vnext-contract');
+  const prepared = V.sealContract({ schema_version: 'relay-test', slice_id: f.sliceId });
+  f.write('chain/prepared.json', prepared); const head = f.commit();
+  f.write('reserve.json', { prepared_file: 'chain/prepared.json' });
+  const request = Cli.main(['plan-review-request-body', f.sliceId, 'reserve-gate', 'reserve.json'], f.opts);
+  assert.match(request.body, new RegExp('source_head=' + head));
+  assert.match(request.body, new RegExp('prepared_chain_hash=' + prepared.contract_hash));
+  assert.equal(request.issue_url, 'https://github.com/' + REPO + '/issues/400');
+  f.write('chain/prepared.json', V.sealContract({ schema_version: 'relay-test', slice_id: 'OTHER' }));
+  assert.throws(() => Cli.main(['plan-review-request-body', f.sliceId, 'reserve-gate', 'reserve.json'], f.opts), /PILOT_REVIEW_PREPARED_NOT_COMMITTED/);
+  f.write('chain/prepared.json', { ...prepared, contract_hash: 'b'.repeat(64) }); f.commit();
+  assert.throws(() => Cli.main(['plan-review-request-body', f.sliceId, 'reserve-gate', 'reserve.json'], f.opts), /PILOT_REVIEW_PREPARED_HASH_INVALID/);
+});
+
+test('both gate stages use bounded transport and pinned Git parts; corrupted local parts are refused', t => {
+  const f = fixture(t); const e = f.entry(1, 'CHATGPT_WORK', 'CLAUDE_CODE', 11); f.authorize(e); f.designate([e]);
+  const V = require('../../scripts/kodjo/lib/vnext-contract');
+  const Bundle = require('../../scripts/kodjo/lib/vnext-file-bundle');
+  const prepared = V.sealContract({ schema_version: 'relay-bundle-test', slice_id: f.sliceId, values: [1, 2, 3] });
+  const file = path.join(f.cwd, 'chain/prepared.json');
+  Bundle.write(file, prepared, { forceBundle: true }); f.commit();
+  const manifest = JSON.parse(fs.readFileSync(file, 'utf8'));
+  f.write('reserve.json', { prepared_file: 'chain/prepared.json' });
+  f.write('approval.json', { bootstrap_file: Pilot.bootstrapFile(f.sliceId) });
+  f.comments['71'] = relayComment(71, 'APPROVE', { body: relayComment(71).body.replace(HASH, prepared.contract_hash) });
+  const deps = { ...f.opts, invoke: () => 0 };
+  for (const [stage, config] of [['reserve-gate', 'reserve.json'], ['request-approval', 'approval.json']]) {
+    assert.equal(Cli.main(['run', f.sliceId, stage, config], deps).independent_plan_review.prepared_chain_hash, prepared.contract_hash);
+    assert.match(Cli.main(['plan-review-request-body', f.sliceId, stage, config], f.opts).body, new RegExp('prepared_chain_hash=' + prepared.contract_hash));
+  }
+  f.write('chain/' + manifest.folder + '/' + manifest.root.file, '{}');
+  assert.throws(() => Cli.main(['run', f.sliceId, 'reserve-gate', 'reserve.json'], deps), /VNEXT_BUNDLE_PART_HASH_INVALID/);
+  assert.equal(Cli.main(['run', f.sliceId, 'request-approval', 'approval.json'], deps).engine_exit_code, 0,
+    'request-approval reads the immutable Git blobs, not altered working parts');
 });
