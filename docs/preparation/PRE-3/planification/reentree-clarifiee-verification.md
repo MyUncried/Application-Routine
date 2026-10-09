@@ -4,7 +4,7 @@ Cette publication remplace le diagnostic de blocage du 09/10 après la décision
 
 ## Correctif et qualification
 
-PR technique limitée : https://github.com/MyUncried/Application-Routine/pull/343 ; candidat 6a0241aba0da2764269304f4a8aef6e010df4303. Sept fichiers de protocole/tests, aucun développement PRE-3. Opération existante #340.
+PR technique limitée : https://github.com/MyUncried/Application-Routine/pull/343 ; candidat 8378cf4a99403bff74337e25406633e4666c967e. Huit fichiers de protocole/tests, aucun développement PRE-3. Opération existante #340.
 
 Le constructeur accepte maintenant CLARIFICATION_REQUIRED avec une décision résolue liée à la tranche, à l’acteur autorisé, aux sources, aux exigences et au constat. La validation de préparation/admission relit les décisions Git, vérifie leurs SHA-256 et leur liaison à l’enveloppe. L’AllowedChangeSet scellé conserve la décision et le hash du rapport initial ; l’approbation du plan reste séparée.
 
@@ -30,3 +30,9 @@ Correction de diagnostic : FND-8b2fcbd1b778ea06ee6cb2f0 possède six dependency_
 Le défaut de passage après clarification est corrigé et sa réentrée sur le paquet réel est vérifiée localement. Son activation sur main attend la qualification GitHub Linux/Windows de #343 et la fusion vérifiée. Aucune conformité PRE-3 ni résolution des 13 constats n’est déclarée.
 
 La révision des exigences, impacts, plan et critères UI doit appliquer les constats dans les bornes du contrat obtenu, conserver le registre original, puis passer la revue indépendante et la validation explicite du plan par le propriétaire. Le PlanContract et le paquet figé initiaux restent des preuves historiques, sans approbation anticipée.
+
+## Qualification GitHub et liaison historique
+
+Le run 37929185468 a échoué sur VNEXT_EQ_CASE_SOURCE_CHANGED : quatre références à vnext-revision-contract.pilot.js conservaient l’ancien hash et les anciennes lignes après les ajouts de tests. Le contrôle complet local a reproduit ce seul échec (477 PASS, 1 FAIL). Les quatre références ont été actualisées, sans changement des sujets, identifiants, assertions et règles historiques. Huit champs de métadonnées changent au total ; les lignes d’origine du fichier de tests restent intégrales et dans leur ordre.
+
+Après correction : node --test --test-reporter=spec tests/kodjo/vnext*.pilot.js : **478/478 PASS**, 0 échec/ignoré. Le nouveau candidat est 8378cf4a99403bff74337e25406633e4666c967e. La PR a automatiquement déclenché le run VNext 37929798905, https://github.com/MyUncried/Application-Routine/actions/runs/37929798905, et la suite pilote 37929798826. Il n’y a pas de relance de l’ancien candidat, de recertification générale ou d’appel Claude. Résultats distants encore attendus ; pas de fusion annoncée.
