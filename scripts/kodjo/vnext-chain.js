@@ -107,6 +107,11 @@ function main(args = process.argv.slice(2)) {
     else if(stage==='verify-implementation-review')write(output,R.verifyReceipt(planBody,options,read(config.receipt_file),fs.readFileSync(config.response_file,'utf8')));
     else write(output,R.review(planBody,options));
   }
+  else if (stage === 'review-scope' || stage === 'recover-review-scope') {
+    if(fs.existsSync(output))throw Error('VNEXT_CHAIN_OUTPUT_EXISTS');
+    const scope=require('./lib/vnext-review-scope');
+    write(output,scope.run({produced:read(config.produced_file),baseReceipt:read(config.review_receipt_file),request:read(config.scope_request_file),cwd,evidenceDirectory:config.evidence_directory,recover:stage==='recover-review-scope'}));
+  }
   else if (stage === 'review' || stage === 'recover-review') {
     const produced = read(config.produced_file);
     const options = { cwd, evidenceDirectory: config.evidence_directory };

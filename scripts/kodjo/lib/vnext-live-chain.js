@@ -570,7 +570,7 @@ function revisionEvidenceArtifacts(prepared, artifacts, cwd, github) {
   }
   if (!evidence) V.fail('VNEXT_LIVE_REVISION_EVIDENCE_REQUIRED');
   if (artifacts.planningEnvelope.created_from.kind === 'ACCEPTANCE_GAPS') return postAcceptanceEvidence(prepared, artifacts, cwd, github);
-  V.assertExactKeys(evidence, ['base_produced', 'base_review_receipt', 'revision_artifacts'], ['clarification'], 'VNEXT_LIVE_REVISION_EVIDENCE_KEYS_INVALID');
+  V.assertExactKeys(evidence, ['base_produced', 'base_review_receipt', 'revision_artifacts'], ['clarification','scope_refinement'], 'VNEXT_LIVE_REVISION_EVIDENCE_KEYS_INVALID');
   const base = verifyProduced(evidence.base_produced, cwd, github);
   const previousReport = verifyReceipt(evidence.base_produced, evidence.base_review_receipt);
   const clarified=artifacts.planningEnvelope.created_from.kind==='CLARIFICATION_RESOLVED';
@@ -590,7 +590,8 @@ function revisionEvidenceArtifacts(prepared, artifacts, cwd, github) {
     candidateHead: prepared.produced.producer_revision, lot: artifacts.planningEnvelope.slice_id, phase: 'REVISION' });
   if (nextRegister.revision_count !== previous.revision_count + 1 || nextRegister.revision_count > nextRegister.revision_limit) V.fail('VNEXT_LIVE_REVISION_BOUND_INVALID');
   const clarification=clarified?observeClarification(evidence.clarification,base.planningEnvelope,artifacts.planningEnvelope,previous.authorized_actor,cwd):null;
-  const allowed = Revision.buildAllowedChangeSet({ ...base, reviewReport: previousReport, clarification });
+  const scopeRefinement=evidence.scope_refinement?observeScopeRefinement(evidence.scope_refinement,artifacts.planningEnvelope,cwd):null;
+  const allowed = Revision.buildAllowedChangeSet({ ...base, reviewReport: previousReport, clarification, scopeRefinement });
   exact(bundle.allowed_change_set, allowed, 'VNEXT_LIVE_REVISION_ALLOWED_SET_MISMATCH');
   const outcome = Revision.verifyRevisionOutcome({ allowedChangeSet: allowed, revisionPatch: bundle.revision_patch,
     baseArtifacts: bundle.base_artifacts, nextArtifacts: { ...artifacts, cumulativeRegister: nextRegister },
@@ -602,6 +603,18 @@ function revisionEvidenceArtifacts(prepared, artifacts, cwd, github) {
   exact([...envelope.causal_findings].sort(), [...allowed.blocking_finding_ids].sort(), 'VNEXT_LIVE_REVISION_CAUSAL_FINDINGS_MISMATCH');
   Convergence.validateFindingLedger(bundle.finding_ledger, previousReport, prepared.review_receipt.review_report);
   return { ...artifacts, revisionArtifacts: bundle };
+}
+
+function observeScopeRefinement(ref,envelope,cwd){
+  V.assertExactKeys(ref,['path','revision','content_sha256'],[],'VNEXT_SCOPE_GIT_REF_KEYS');
+  V.assertSha40(ref.revision,'VNEXT_SCOPE_GIT_REVISION');V.assertSha64(ref.content_sha256,'VNEXT_SCOPE_GIT_HASH');
+  const file=relative(ref.path);
+  command('git',['merge-base','--is-ancestor',ref.revision,envelope.product_head],cwd);
+  const content=readGit(cwd,ref.revision,file);
+  if(V.sha256(content)!==ref.content_sha256)V.fail('VNEXT_SCOPE_GIT_CONTENT_MISMATCH');
+  const receipt=JSON.parse(content);require('./vnext-review-scope').validateReceipt(receipt);
+  if(!envelope.created_from.refs.includes('review_scope:'+receipt.contract_hash))V.fail('VNEXT_SCOPE_ENVELOPE_UNBOUND');
+  return receipt;
 }
 
 function nativeResolver(produced, receipt, cwd) {
@@ -730,4 +743,4 @@ function guardLocalRequest(raw, { cwd, queueFile, github } = {}) {
 }
 
 module.exports = { readGitObject, SCHEMA, CLAUDE_TIMEOUT_MS, command, relative, readGit, unitText, observeSources, observeClarification, launchAndProduce, produce, verifyProduced,
-  compactReviewDossier, materializeReviewDossier, decodeReviewOutput, boundedReviewOutput, validateReviewResponse, recoverReview, reviewOrRecover, preserveFailure, review, verifyReceipt, validateReceipt, nativeResolver, preparedArtifacts, prepare, approvalTarget, deriveQueue, admit, guard, guardLocalRequest };
+  compactReviewDossier, materializeReviewDossier, decodeReviewOutput, boundedReviewOutput, validateReviewResponse, recoverReview, reviewOrRecover, preserveFailure, review, verifyReceipt, validateReceipt, observeScopeRefinement, nativeResolver, preparedArtifacts, prepare, approvalTarget, deriveQueue, admit, guard, guardLocalRequest };
