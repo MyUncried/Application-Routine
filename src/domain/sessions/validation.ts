@@ -24,6 +24,14 @@ import {
   type ValidationResult,
   type ValidationViolation,
 } from "./errors";
+import {
+  projectLegacyScalars,
+  validateExecutionParameters,
+  type ExecutionParameters,
+  type ExecutionParametersInput,
+  type ExecutionParametersViolation,
+} from "@/domain/activities/ExecutionParameters";
+
 import { DEFAULT_SIDE_MODE } from "./defaults";
 import { isSideMode, type SideMode } from "./sideMode";
 
@@ -377,6 +385,29 @@ export function validateInstruction(
   return ok(normalized);
 }
 
+/**
+ * PRE-3 : rattache une violation des paramètres canoniques au champ de
+ * violation de Séance le plus proche (le registre `ValidationField` est
+ * partagé avec PRE-1/PRE-2) — défense en profondeur, la feuille Paramètres
+ * n'applique jamais au parent des paramètres invalides.
+ */
+function toSessionViolation(
+  violation: ExecutionParametersViolation,
+  mode: ExerciseExecutionMode | null,
+): ValidationViolation {
+  const field: ValidationField =
+    violation.field === "seriesCount"
+      ? "exercise.seriesCount"
+      : violation.field === "target"
+        ? mode === "REPETITIONS"
+          ? "exercise.repetitionCount"
+          : "exercise.durationSeconds"
+        : violation.field === "pauseSeconds"
+          ? "exercise.pauseSeconds"
+          : "exercise.executionMode";
+  return { code: violation.code, field, ...(violation.details ? { details: violation.details } : {}) };
+}
+
 function unwrap<T>(
   result: ValidationResult<T>,
   violations: ValidationViolation[],
@@ -403,6 +434,8 @@ type ActivityParameterInput = {
   /** V2-PRE-1 : récupération post-exercice de l'occurrence (`0..5999`). */
   readonly postActivityRecoverySeconds: number;
   readonly bodyZoneIds: readonly string[];
+  /** PRE-3 : autorité canonique, quand présente. */
+  readonly executionParameters?: ExecutionParametersInput;
 };
 
 type ActivityParameterValues = {
@@ -413,6 +446,10 @@ type ActivityParameterValues = {
   readonly pauseSeconds: number;
   readonly postActivityRecoverySeconds: number;
   readonly bodyZoneIds: readonly string[];
+  /** PRE-3 : paramètres canoniques validés et normalisés (N=1 effectif). */
+  readonly executionParameters?: ExecutionParameters;
+  /** PRE-3 : direction projetée depuis les paramètres canoniques. */
+  readonly sideMode?: SideMode;
 };
 
 /**
@@ -502,6 +539,44 @@ function validateActivityParameters(
   }
 
   bodyZoneIds = activity.bodyZoneIds;
+
+  // PRE-3 : paramètres canoniques = autorité (bornes PRE-3) ; les colonnes
+  // historiques ne reçoivent que leurs projections. Récupération inchangée :
+  // portée par l'occurrence, jamais par les paramètres.
+  if (activity.executionParameters !== undefined) {
+    const canonical = validateExecutionParameters(activity.executionParameters);
+    postActivityRecoverySeconds =
+      unwrap(validatePostActivityRecoverySeconds(activity.postActivityRecoverySeconds), violations) ?? 0;
+    if (!canonical.ok) {
+      violations.push(
+        ...canonical.violations.map((violation) =>
+          toSessionViolation(violation, activity.executionParameters?.mode ?? null),
+        ),
+      );
+      return {
+        executionMode,
+        durationSeconds,
+        repetitionCount,
+        seriesCount,
+        pauseSeconds,
+        postActivityRecoverySeconds,
+        bodyZoneIds,
+      };
+    }
+    const projection = projectLegacyScalars(canonical.value);
+    return {
+      executionMode: projection.executionMode,
+      durationSeconds: projection.durationSeconds,
+      repetitionCount: projection.repetitionCount,
+      seriesCount: projection.seriesCount,
+      pauseSeconds: projection.pauseSeconds,
+      postActivityRecoverySeconds,
+      bodyZoneIds,
+      executionParameters: canonical.value,
+      sideMode: projection.sideMode,
+    };
+  }
+
   if (activity.executionMode === null) {
     violations.push({ code: "REQUIRED", field: "exercise.executionMode" });
   } else {
@@ -608,8 +683,30 @@ function validateSessionActivityInput(
     postActivityRecoverySeconds: parameters.postActivityRecoverySeconds,
     instruction: instruction === undefined ? null : instruction,
     bodyZoneIds: parameters.bodyZoneIds,
-    sideMode: normalizeSideMode(activity.sideMode),
+    sideMode: parameters.sideMode ?? normalizeSideMode(activity.sideMode),
+    ...pre3Transport(activity, parameters),
   });
+}
+
+/**
+ * PRE-3 : champs transportés tels quels après validation — paramètres
+ * canoniques normalisés, Catégorie (`""` normalisée en `null`), médias
+ * ordonnés (l'intégrité référentielle reste au Repository : FK réelle).
+ */
+function pre3Transport(
+  activity: {
+    readonly categoryId?: string | null;
+    readonly media?: CreateSessionActivityInput["media"];
+  },
+  parameters: ActivityParameterValues,
+) {
+  return {
+    ...(parameters.executionParameters ? { executionParameters: parameters.executionParameters } : {}),
+    ...(activity.categoryId !== undefined
+      ? { categoryId: activity.categoryId && activity.categoryId.trim().length > 0 ? activity.categoryId : null }
+      : {}),
+    ...(activity.media !== undefined ? { media: activity.media } : {}),
+  };
 }
 
 /**
@@ -743,7 +840,8 @@ export function validateUpdateSessionActivityInput(
     postActivityRecoverySeconds: parameters.postActivityRecoverySeconds,
     instruction: instruction === undefined ? null : instruction,
     bodyZoneIds: parameters.bodyZoneIds,
-    sideMode: normalizeSideMode(activity.sideMode),
+    sideMode: parameters.sideMode ?? normalizeSideMode(activity.sideMode),
+    ...pre3Transport(activity, parameters),
   });
 }
 

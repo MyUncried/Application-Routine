@@ -17,6 +17,8 @@
  * tenir cohérent.
  */
 
+import { cloneExecutionParameters } from "@/domain/activities/ExecutionParameters";
+
 import type { StructuralPosition } from "./Session";
 import type { SessionDraftExercise } from "./SessionDraft";
 
@@ -229,6 +231,14 @@ export function duplicateActivity(
     // Les Zones corporelles sont recopiées comme une NOUVELLE collection :
     // la copie ne doit jamais partager la référence de tableau de sa source.
     bodyZoneIds: [...source.bodyZoneIds],
+    // PRE-3 (P3-18) : duplication COMPLÈTE et indépendante — paramètres
+    // canoniques clonés en profondeur, Catégorie, médias dans le même ordre
+    // (mêmes fichiers physiques ; de nouveaux liens seront créés pour la
+    // copie à l'enregistrement). La Récupération existante est conservée.
+    ...(source.executionParameters
+      ? { executionParameters: cloneExecutionParameters(source.executionParameters) }
+      : {}),
+    ...(source.media ? { media: source.media.map((item) => ({ assetId: item.assetId, asset: { ...item.asset } })) } : {}),
   };
 
   const next = [...activities];

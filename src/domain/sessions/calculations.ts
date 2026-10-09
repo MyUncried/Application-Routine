@@ -3,71 +3,45 @@
  * estimée.
  *
  * Ces fonctions n'acceptent qu'une entrée métier minimale (« Facts »),
- * jamais une ligne SQL ni un type d'infrastructure. Deux chemins équivalents
- * peuvent alimenter ces Facts, sans requête supplémentaire :
- * - une projection depuis l'agrégat `Session` (`toEstimatedDurationFacts`,
- *   `toActivityCountFacts`) ;
- * - une conversion directe des valeurs déjà extraites par une projection
- *   SQL de résumé (ex. `listActive`), effectuée par l'appelant.
+ * jamais une ligne SQL ni un type d'infrastructure.
  *
  * **T02-S01 — structure réelle des trois zones** (CE-T02-01 « Calculs »,
- * AC-10, et clarifications autoritatives du verdict `PLAN_REVIEW_APPROVED`
- * de la tranche) :
+ * AC-10) — conservée par PRE-3 :
  *
  * 1. le NOMBRE d'Activités est celui des Activités RÉELLEMENT COMPOSÉES —
  *    chaque Activité compte UNE SEULE FOIS, quelle que soit sa zone et quel
- *    que soit `tourRepeatCount` ; ce compteur ne représente jamais des
- *    occurrences d'Exécution (celles-ci restent
- *    `computeTotalActivitiesToExecute`, RM-075, hors périmètre du moteur) ;
+ *    que soit `tourRepeatCount` ;
  * 2. la DURÉE estimée compte une fois les Activités `BEFORE_TOUR`, multiplie
  *    les Activités `IN_TOUR` par `tourRepeatCount`, puis compte une fois les
  *    Activités `AFTER_TOUR` ;
  * 3. le Compte à rebours initial et la Fin de séance sont EXCLUS de cette
- *    durée affichée — ils ne figurent donc plus dans les Facts. (Le
- *    paragraphe « Calculs » de CE-T02-01 les décrivait comme contribuant à
- *    « la durée globale » ; le verdict de revue de la tranche, qui prime
- *    explicitement « sur toute formulation contradictoire », les exclut. La
- *    contradiction documentaire est consignée dans le rapport de mission.)
+ *    durée affichée.
  *
- * **T02-S02 — formule canonique CONDITIONNELLE** (RM-129, DM-015, `04 –
- * Modèle fonctionnel.md`, `08` §« Durée totale calculée », CE-T01-13 ; règle
- * confirmée par l'autorisation de continuation après recette visuelle) :
- *
- * ```text
- * R = 0 :  D = C × A + C × B
- * R > 0 :  D = C × A + (C − 1) × B + R
- * ```
- *
- * avec `A` la durée d'une Série, `B` la Pause, `C` le nombre de Séries et `R`
- * la Récupération ATTACHÉE.
- *
- * 1. **La Récupération REMPLACE la dernière Pause**, elle ne s'y ajoute
- *    jamais. Sans Récupération, la Pause est donc développée `C` fois — le
- *    repos qui suit la dernière Série existe toujours, il est simplement
- *    porté par l'autre paramètre selon les cas. Ceci révise la règle
- *    intermédiaire de cette même tranche (`C − 1` sans condition), qui
- *    supprimait ce repos final lorsque `R = 0` ;
- * 2. la Récupération attachée `R` est ajoutée **une seule fois**, après
- *    toutes les Séries, et ne compte jamais comme une Activité
- *    supplémentaire (`computeActivityCount` inchangé).
- *
- * En modes Répétitions et « À l'échec », aucune durée conventionnelle n'est
- * attribuée à l'Exercice lui-même (`A` est inconnu) : seules les parts
- * DÉTERMINABLES — les Pauses entre Séries et la Récupération — sont comptées,
- * et le total est une BORNE MINIMALE `≥` (RM-072/RM-132/D-112), jamais une
- * valeur exacte.
+ * **PRE-3 — autorité unique de la durée d'un Exercice** (v13 §5, Bip v2
+ * §2–3) : la durée d'une occurrence n'est plus une formule scalaire locale
+ * (ancienne substitution `C − 1`, multiplicateur de côté sans Pause entre
+ * les côtés, convention de borne minimale à l'Exercice) mais le résultat
+ * typé de `executionCalculations.ts`, à partir des paramètres canoniques de
+ * l'occurrence (ou de l'adaptateur conservateur d'un ancien objet) et de sa
+ * Récupération explicite, qui remplace UNIQUEMENT la Pause terminale. Une
+ * zone porte la somme des contributions connues et la nature du total
+ * (exact / ≈ / ≥) ; la projection SQL de liste ne recalcule plus rien.
  */
+
+import {
+  resolveExecutionParameters,
+  type ExecutionParametersInput,
+} from "@/domain/activities/ExecutionParameters";
+import {
+  aggregateSessionDuration,
+  computeOccurrenceDuration,
+  type ExerciseDurationResult,
+  type SessionDurationContribution,
+  type SessionDurationResult,
+} from "@/domain/activities/executionCalculations";
 
 import type { Activity, ActivityType, ExerciseExecutionMode, Session } from "./Session";
-import { sideMultiplier, type SideMode } from "./sideMode";
-
-/**
- * Modes sans durée conventionnelle (RM-072/D-112) : la durée estimée qui les
- * contient est une BORNE MINIMALE, jamais une valeur exacte.
- */
-export function isLowerBoundExecutionMode(mode: ExerciseExecutionMode | null): boolean {
-  return mode === "REPETITIONS" || mode === "TO_FAILURE";
-}
+import type { SideMode } from "./sideMode";
 
 /**
  * Entrée minimale du calcul de durée d'UNE Activité — satisfaite aussi bien
@@ -79,253 +53,51 @@ export type ActivityDurationFacts = {
   readonly type: ActivityType;
   readonly executionMode: ExerciseExecutionMode | null;
   readonly durationSeconds: number | null;
+  readonly repetitionCount?: number | null;
   readonly seriesCount: number | null;
   readonly pauseSeconds: number;
-  /**
-   * V2-PRE-1 : récupération post-exercice de l'occurrence, exécutée une
-   * seule fois après toutes les Séries (`0` = aucune), indépendante de la
-   * définition source (plan §3.2). OPTIONNELLE ici pour la même raison que
-   * `sideMode` ci-dessous (compatibilité structurelle avec `Activity`, dont
-   * ce champ est optionnel sur le type LU) — `?? 0` couvre son absence.
-   */
+  /** Récupération explicite de l'occurrence (`0` = aucune) — remplace la seule Pause terminale. */
   readonly postActivityRecoverySeconds?: number;
-  /**
-   * V2-BILAT-01, portée exclusivement par l'Exercice (V2-PRE-1, plan §3.3) :
-   * direction PROPRE de cette Activité — OPTIONNELLE, une Facts antérieure à
-   * cette tranche (sans ce champ) équivaut à `UNILATERAL`, sans aucun
-   * changement de comportement (`?? "UNILATERAL"`, `computeZoneDurationFacts`
-   * ci-dessous). `computeActivityDurationSeconds` reste agnostique de
-   * `SideMode` et reçoit son multiplicateur déjà résolu.
-   */
   readonly sideMode?: SideMode;
+  /** PRE-3 : paramètres canoniques — autorité quand présents. */
+  readonly executionParameters?: ExecutionParametersInput;
 };
 
 /**
- * Nombre de Pauses réellement exécutées pour `seriesCount` Séries, selon que
- * l'Activité porte ou non une Récupération attachée.
- *
- * **Règle métier confirmée (T02-S02, continuation après recette visuelle) —
- * la Récupération REMPLACE la dernière Pause lorsqu'elle existe :**
- *
- * | Récupération | Pauses développées | Durée |
- * | --- | --- | --- |
- * | `R = 0` | `C` | `D = C × A + C × B` |
- * | `R > 0` | `C − 1` | `D = C × A + (C − 1) × B + R` |
- *
- * Elle remplace la règle précédente (`C − 1` sans condition), qui supprimait
- * la Pause finale même en l'absence de Récupération : le temps de repos après
- * la dernière Série disparaissait alors purement et simplement. Désormais, ce
- * repos existe toujours — il est porté par la Pause quand aucune Récupération
- * n'est définie, et par la Récupération sinon. Les deux ne se cumulent JAMAIS.
- *
- * Extraite en fonction nommée pour que cette règle soit prouvable en un point
- * unique plutôt que réécrite à chaque appelant (Domaine, projection SQL,
- * présentation).
+ * Résultat typé de la durée d'UNE occurrence (`exact | estimated |
+ * omitted`), contributions connues comprises. Une ancienne Activité
+ * `RECOVERY` autonome (convertie par `migration004`, plus jamais produite)
+ * reste lue défensivement comme une durée exacte.
  */
-export function computePauseOccurrences(
-  seriesCount: number | null,
-  postActivityRecoverySeconds: number,
-): number {
-  const series = Math.max(seriesCount ?? 0, 0);
-  return postActivityRecoverySeconds > 0 ? Math.max(series - 1, 0) : series;
-}
-
-/**
- * Durée estimée d'UNE Activité, hors répétitions du Tour — voir
- * `computePauseOccurrences` pour la formule conditionnelle exacte.
- *
- * En modes Répétitions et « À l'échec », le terme `C × A` est omis (aucune
- * durée conventionnelle n'est inventée) ; les Pauses et la Récupération
- * restent comptées et le résultat est une borne MINIMALE.
- *
- * **V2-BILAT-01 — multiplicateur de côté `L` déjà RÉSOLU.** Cette fonction
- * reste agnostique de `SideMode` : `sideMultiplierValue` (`L`, défaut `1`,
- * comportement T02-S02 inchangé) et `recoveryMultiplier` (défaut `1`) sont
- * fournis DÉJÀ RÉSOLUS par l'appelant (`computeZoneDurationFacts` pour une
- * collection, `ExerciseScreen`/`compositionPresentation.ts` pour une
- * Activité isolée) — jamais recalculés ici, pour qu'aucun appelant ne
- * puisse appliquer deux fois le même multiplicateur.
- *
- * Formule « autonome » du plan (`D = L × [C × A + occurrences × B] + R`) :
- * `L` multiplie la part Séries + Pauses, la Récupération `R` reste ajoutée
- * UNE SEULE FOIS (`recoveryMultiplier` défaut `1`) — sauf lorsque c'est le
- * TOUR LUI-MÊME qui est bilatéral (« Tour bilatéral : … `Ri` est comptée une
- * fois PAR PASSAGE de côté »), seul cas où l'appelant transmet
- * `recoveryMultiplier = L`.
- */
-export function computeActivityDurationSeconds(
-  activity: ActivityDurationFacts,
-  sideMultiplierValue: number = 1,
-  recoveryMultiplier: number = 1,
-): number {
-  // Chemin défensif : ancienne Activité `RECOVERY` autonome (D-041), que
-  // `migration004` a convertie et supprimée — plus jamais produite par le
-  // Domaine, conservée ici pour ne pas mal calculer une donnée inattendue.
-  // Une Récupération n'est jamais elle-même côtée (D-041) : aucun
-  // multiplicateur ne s'y applique.
+export function computeActivityDurationResult(activity: ActivityDurationFacts): ExerciseDurationResult {
   if (activity.type === "RECOVERY") {
-    return activity.durationSeconds ?? 0;
+    const seconds = activity.durationSeconds ?? 0;
+    return { kind: "exact", knownSeconds: seconds, events: [], seconds };
   }
-  const seriesCount = activity.seriesCount ?? 0;
-  const targetSeconds = isLowerBoundExecutionMode(activity.executionMode)
-    ? 0
-    : seriesCount * (activity.durationSeconds ?? 0);
-  const postActivityRecoverySeconds = activity.postActivityRecoverySeconds ?? 0;
-  const perPassSeconds =
-    targetSeconds + computePauseOccurrences(seriesCount, postActivityRecoverySeconds) * activity.pauseSeconds;
-  const L = sideMultiplierValue > 0 ? sideMultiplierValue : 1;
-  const R = recoveryMultiplier > 0 ? recoveryMultiplier : 1;
-  return perPassSeconds * L + postActivityRecoverySeconds * R;
+  const parameters = resolveExecutionParameters({
+    executionMode: activity.executionMode,
+    durationSeconds: activity.durationSeconds,
+    repetitionCount: activity.repetitionCount ?? null,
+    seriesCount: activity.seriesCount,
+    pauseSeconds: activity.pauseSeconds,
+    sideMode: activity.sideMode,
+    executionParameters: activity.executionParameters,
+  });
+  if (parameters.mode === null) {
+    return { kind: "omitted", knownSeconds: 0, events: [] };
+  }
+  return computeOccurrenceDuration(parameters, activity.postActivityRecoverySeconds ?? 0);
 }
 
-/**
- * Entrée de la dépendance bidirectionnelle `Séries ↔ Durée totale`
- * (`06` §« Dépendance Séries / Durée totale », RM-130, API-ACT-02) — mode
- * Durée UNIQUEMENT : `A` (durée d'une Série), `B` (Pause), `R`
- * (Récupération attachée).
- */
-export type TotalDurationFacts = {
-  /** `A` — durée d'une Série, en secondes. */
-  readonly durationSeconds: number;
-  /** `B` — Pause entre Séries, en secondes. */
-  readonly pauseSeconds: number;
-  /** `R` — récupération post-exercice de l'occurrence, en secondes. */
-  readonly postActivityRecoverySeconds: number;
-};
-
-/** Bornes canoniques du nombre de Séries (D-092) — partagées par le calcul inverse. */
-export const SERIES_COUNT_MIN = 1;
-export const SERIES_COUNT_MAX = 99;
-
-/**
- * Durée totale d'une occurrence d'Activité en mode Durée. Sens DIRECT :
- * `Séries` pilote, `Durée totale` est dérivée.
- *
- * - `R = 0` : `D = C × A + C × B` ;
- * - `R > 0` : `D = C × A + (C − 1) × B + R`.
- *
- * Voir `computePauseOccurrences` — la Récupération remplace la dernière
- * Pause, elle ne s'y ajoute jamais.
- *
- * **V2-BILAT-01** — formule « autonome » du plan (`D = L × [C × A +
- * occurrences × B] + R`) : `sideMultiplierValue` (`L`, défaut `1`,
- * comportement T02-S02 inchangé) multiplie la part Séries + Pauses ; la
- * Récupération reste ajoutée une seule fois, jamais multipliée — cette
- * occurrence est toujours celle d'UNE Activité isolée (`ExerciseScreen`),
- * jamais celle, gouvernée par le Tour, de `computeZoneDurationFacts`.
- */
-export function computeTotalDurationSeconds(
-  seriesCount: number,
-  facts: TotalDurationFacts,
-  sideMultiplierValue: number = 1,
-): number {
-  const L = sideMultiplierValue > 0 ? sideMultiplierValue : 1;
-  return (
-    (seriesCount * facts.durationSeconds +
-      computePauseOccurrences(seriesCount, facts.postActivityRecoverySeconds) * facts.pauseSeconds) *
-      L +
-    facts.postActivityRecoverySeconds
-  );
-}
-
-/**
- * Calcul INVERSE (RM-130, API-ACT-02) : `Durée totale` pilote, `Séries` est
- * dérivé. Il inverse EXACTEMENT la formule conditionnelle directe :
- *
- * - `R = 0` : `D = C × (A + B)` donc `Cth = D / (A + B)` ;
- * - `R > 0` : `D = C × A + (C − 1) × B + R` donc
- *   `Cth = (D − R + B) / (A + B)`.
- *
- * Le terme `+ B` du numérateur n'existe donc QUE dans la branche avec
- * Récupération : l'appliquer inconditionnellement (règle précédente)
- * surestimerait `C` d'une Série entière dès que `B > 0` et `R = 0`.
- *
- * Arrondi à l'entier le PLUS PROCHE, `.5` VERS LE HAUT, puis borné à
- * `[1, 99]` (D-092). `Math.floor(x + 0.5)` — jamais `Math.round`, dont le
- * comportement sur les valeurs négatives arrondit `.5` vers zéro (donc vers
- * le bas) ; la borne basse rend ce cas inatteignable ici, mais la règle
- * documentaire est « `.5` vers le haut » sans condition de signe et doit être
- * exprimée telle quelle.
- *
- * `A + B === 0` est impossible depuis l'interface (la durée d'une Série est
- * bornée `1..5999`, `validation.ts`) ; le garde retourne néanmoins le minimum
- * plutôt que `NaN`/`Infinity`.
- *
- * **V2-BILAT-01** — inverse EXACT de la formule directe étendue par `L`
- * (plan `## Calculs`, `Cth = ((D − R) / L + B) / (A + B)` pour la branche
- * `R > 0` ; `R = 0` : `D = L × C × (A+B)` donc `Cth = D / (L × (A+B))`) —
- * `sideMultiplierValue` défaut `1`, comportement T02-S02 inchangé.
- */
-export function computeSeriesCountForTotalDuration(
-  targetTotalSeconds: number,
-  facts: TotalDurationFacts,
-  sideMultiplierValue: number = 1,
-): number {
-  const L = sideMultiplierValue > 0 ? sideMultiplierValue : 1;
-  const denominator = facts.durationSeconds + facts.pauseSeconds;
-  if (denominator <= 0) {
-    return SERIES_COUNT_MIN;
-  }
-  const rounded =
-    facts.postActivityRecoverySeconds > 0
-      ? Math.floor(
-          ((targetTotalSeconds - facts.postActivityRecoverySeconds) / L + facts.pauseSeconds) /
-            denominator +
-            0.5,
-        )
-      : Math.floor(targetTotalSeconds / (L * denominator) + 0.5);
-  if (rounded < SERIES_COUNT_MIN) {
-    return SERIES_COUNT_MIN;
-  }
-  if (rounded > SERIES_COUNT_MAX) {
-    return SERIES_COUNT_MAX;
-  }
-  return rounded;
-}
-
-/**
- * Résultat complet d'une confirmation de `Durée totale` cible : le nombre de
- * Séries canonique retenu, la durée RÉELLEMENT ATTEIGNABLE recalculée depuis
- * ce nombre entier, et le fait que la cible ait dû être ajustée.
- *
- * `wasAdjusted` pilote le message temporaire `Durée ajustée à {D} pour
- * respecter un nombre entier de Séries.` (`06`, CE-T01-13) — il n'est jamais
- * déduit d'une comparaison de chaînes formatées côté présentation.
- */
-export type AdjustedTotalDuration = {
-  readonly seriesCount: number;
-  readonly totalDurationSeconds: number;
-  readonly wasAdjusted: boolean;
-};
-
-/**
- * Applique une `Durée totale` cible confirmée (RM-130) : calcul inverse,
- * bornage, puis RECALCUL de la durée atteignable. Seul `seriesCount` est
- * persistable — `totalDurationSeconds` reste dérivé (DM-015/DM-016).
- */
-export function applyTargetTotalDuration(
-  targetTotalSeconds: number,
-  facts: TotalDurationFacts,
-  sideMultiplierValue: number = 1,
-): AdjustedTotalDuration {
-  const seriesCount = computeSeriesCountForTotalDuration(
-    targetTotalSeconds,
-    facts,
-    sideMultiplierValue,
-  );
-  const totalDurationSeconds = computeTotalDurationSeconds(seriesCount, facts, sideMultiplierValue);
-  return {
-    seriesCount,
-    totalDurationSeconds,
-    wasAdjusted: totalDurationSeconds !== targetTotalSeconds,
-  };
+/** Contributions chronométrées connues d'UNE occurrence (montant exact, estimé, ou partiel si omis). */
+export function computeActivityDurationSeconds(activity: ActivityDurationFacts): number {
+  return computeActivityDurationResult(activity).knownSeconds;
 }
 
 /**
  * Durées par zone structurelle (T02-S01) — trois colonnes distinctes, jamais
  * un total déjà agrégé : seule la zone `IN_TOUR` est multipliée par
- * `tourRepeatCount`. La projection SQL `listActive` produit exactement ces
- * trois colonnes, par zone (clarification n° 5 du verdict de revue).
+ * `tourRepeatCount`.
  */
 export type EstimatedDurationFacts = {
   readonly beforeTourDurationSeconds: number;
@@ -333,8 +105,10 @@ export type EstimatedDurationFacts = {
   readonly afterTourDurationSeconds: number;
   /** Répétition du Tour, entier `1..99` (D-058). */
   readonly tourRepeatCount: number;
-  /** `true` dès qu'au moins un Exercice contribuant à ces durées est en mode Répétitions ou « À l'échec » (RM-072/D-112). */
+  /** `true` dès qu'au moins une occurrence contributrice a un travail inconnu (total ≥). */
   readonly isLowerBoundEstimate: boolean;
+  /** PRE-3 : `true` dès qu'au moins une occurrence contributrice est estimée (≈). */
+  readonly isEstimated?: boolean;
 };
 
 /**
@@ -372,9 +146,7 @@ export function computeActivityCount(facts: ActivityCountFacts): number {
 /**
  * Nombre total d'Activités à exécuter (RM-075), après développement des
  * répétitions du Tour : les zones hors Tour comptent une fois, la zone du
- * Tour `tourRepeatCount` fois. Métrique du Plan d'Exécution — distincte du
- * nombre d'Activités composées ci-dessus, jamais affichée par le Catalogue
- * ni par la synthèse de Composition en T02.
+ * Tour `tourRepeatCount` fois.
  */
 export function computeTotalActivitiesToExecute(facts: ActivityCountFacts): number {
   return (
@@ -384,43 +156,72 @@ export function computeTotalActivitiesToExecute(facts: ActivityCountFacts): numb
   );
 }
 
-/** Durée cumulée d'une COLLECTION d'Activités, et caractère « borne minimale » du total. */
+/** Durée cumulée d'une COLLECTION d'Activités, et nature du total. */
 export type ZoneDurationFacts = {
   readonly seconds: number;
+  /** Au moins un travail inconnu : total ≥ contributions connues. */
   readonly isLowerBoundEstimate: boolean;
+  /** PRE-3 : présent et vrai dès qu'au moins une occurrence est estimée (≈) ; absent sinon. */
+  readonly isEstimated?: boolean;
 };
 
 /**
- * Somme des durées d'Activité d'une zone (ou de toute autre collection), et
- * indicateur de borne minimale.
- *
- * **T02-S02** : exportée et généralisée à `ActivityDurationFacts` (au lieu de
- * `Activity` seul) pour que la présentation partage exactement cette
- * implémentation plutôt que d'en réécrire une boucle équivalente
- * (`compositionPresentation.ts`, parité domaine/présentation testée).
- *
- * **V2-PRE-1 (plan §3.3)** : « Le `sideMode` du Circuit ne possède plus
- * aucune influence fonctionnelle. » Chaque Activité contribue donc avec SA
- * PROPRE direction (`activity.sideMode ?? UNILATERAL`), jamais dérivée d'un
- * Circuit ; la récupération post-exercice n'est jamais multipliée par côté
- * (`recoveryMultiplier` fixé à `1`).
+ * Somme des contributions connues d'une zone (ou de toute autre collection)
+ * et nature du total — partagée par la présentation (Composition) et
+ * l'agrégat, jamais réécrite ailleurs. Chaque occurrence contribue avec SES
+ * propres paramètres et SA Récupération explicite.
  */
 export function computeZoneDurationFacts(
   activities: readonly ActivityDurationFacts[],
 ): ZoneDurationFacts {
   let seconds = 0;
   let isLowerBoundEstimate = false;
+  let isEstimated = false;
   for (const activity of activities) {
-    if (activity.type === "EXERCISE" && isLowerBoundExecutionMode(activity.executionMode)) {
-      isLowerBoundEstimate = true;
-    }
-    seconds += computeActivityDurationSeconds(
-      activity,
-      sideMultiplier(activity.sideMode ?? "UNILATERAL"),
-      1,
-    );
+    const result = computeActivityDurationResult(activity);
+    seconds += result.knownSeconds;
+    isLowerBoundEstimate = isLowerBoundEstimate || result.kind === "omitted";
+    isEstimated = isEstimated || result.kind === "estimated";
   }
-  return { seconds, isLowerBoundEstimate };
+  return isEstimated ? { seconds, isLowerBoundEstimate, isEstimated } : { seconds, isLowerBoundEstimate };
+}
+
+export type StructuredActivities<T extends ActivityDurationFacts> = {
+  readonly beforeTour: readonly T[];
+  readonly inTour: readonly T[];
+  readonly afterTour: readonly T[];
+  readonly tourRepeatCount: number;
+};
+
+/**
+ * PRE-3 (P3-13/tours-cycles-list) : total typé de la Séance — exact / ≈ /
+ * ≥ — en développant les répétitions du Circuit sur la seule zone
+ * `IN_TOUR`. Autorité unique partagée par la lecture complète, la liste
+ * (`listActive`) et la Composition.
+ */
+export function computeStructuredSessionDuration<T extends ActivityDurationFacts>(
+  structure: StructuredActivities<T>,
+): SessionDurationResult {
+  const contributions: SessionDurationContribution[] = [];
+  const add = (activities: readonly T[], multiplicity: number) => {
+    for (const activity of activities) {
+      contributions.push({ result: computeActivityDurationResult(activity), multiplicity });
+    }
+  };
+  add(structure.beforeTour, 1);
+  add(structure.inTour, structure.tourRepeatCount);
+  add(structure.afterTour, 1);
+  return aggregateSessionDuration(contributions);
+}
+
+/** Total typé d'une Séance persistée (lecture complète). */
+export function toSessionDurationResult(session: Session): SessionDurationResult {
+  return computeStructuredSessionDuration({
+    beforeTour: session.cycle.beforeTour ?? [],
+    inTour: session.cycle.tour.exercises,
+    afterTour: session.cycle.afterTour ?? [],
+    tourRepeatCount: session.cycle.tour.repeatCount,
+  });
 }
 
 function zoneDurationSeconds(activities: readonly Activity[]): ZoneDurationFacts {
@@ -441,6 +242,7 @@ export function toEstimatedDurationFacts(session: Session): EstimatedDurationFac
       beforeTour.isLowerBoundEstimate ||
       inTour.isLowerBoundEstimate ||
       afterTour.isLowerBoundEstimate,
+    ...(beforeTour.isEstimated || inTour.isEstimated || afterTour.isEstimated ? { isEstimated: true } : {}),
   };
 }
 

@@ -1,3 +1,7 @@
+import type { ExecutionParameters, ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
+import type { SessionDurationKind } from "@/domain/activities/executionCalculations";
+import type { MediaLinkInput, SessionActivityMediaWithAsset } from "@/domain/media/ActivityMedia";
+
 import type { SideMode } from "./sideMode";
 import type { StopPoint } from "./StopPoint";
 
@@ -130,6 +134,17 @@ export type Activity = {
    * sont retirés du Domaine).
    */
   sideMode?: SideMode;
+  /**
+   * PRE-3 : paramètres canoniques de l'OCCURRENCE (JSON persisté). Absent
+   * pour une occurrence antérieure à PRE-3 : le consommateur applique
+   * l'adaptateur conservateur (`resolveActivityExecutionParameters`), jamais
+   * le Profil courant. Optionnel sur ce type LU (fixtures hors périmètre).
+   */
+  executionParameters?: ExecutionParameters;
+  /** PRE-3 : Catégorie transportée par la copie (`null` pour une ancienne copie sans Catégorie). */
+  categoryId?: string | null;
+  /** PRE-3 : médias ordonnés de l'occurrence (liens propres, fichiers partagés). */
+  media?: readonly SessionActivityMediaWithAsset[];
 };
 
 /** @deprecated Ancien alias T01-S01 à Activité unique figée — conservé uniquement pour ne pas casser un import externe déjà publié ; `Activity` est désormais le type de référence. */
@@ -245,6 +260,12 @@ export type CreateSessionActivityInput = {
   readonly bodyZoneIds: readonly string[];
   /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`) — optionnel, `DEFAULT_SIDE_MODE` si absent. */
   readonly sideMode?: SideMode;
+  /** PRE-3 : paramètres canoniques — autorité, scalaires projetés par la validation. */
+  readonly executionParameters?: ExecutionParametersInput;
+  /** PRE-3 : Catégorie de la copie (`null` = aucune). */
+  readonly categoryId?: string | null;
+  /** PRE-3 : médias ordonnés ; l'ordre du tableau est la position. */
+  readonly media?: readonly MediaLinkInput[];
 };
 
 /** @deprecated Nom historique de `CreateSessionActivityInput` (T01, quand la création ne produisait que des Exercices) — conservé pour ne pas casser un import déjà publié. */
@@ -325,6 +346,12 @@ export type UpdateSessionActivityInput = {
   readonly bodyZoneIds: readonly string[];
   /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`) — optionnel, `DEFAULT_SIDE_MODE` si absent. */
   readonly sideMode?: SideMode;
+  /** PRE-3 : voir `CreateSessionActivityInput.executionParameters`. */
+  readonly executionParameters?: ExecutionParametersInput;
+  /** PRE-3 : `undefined` conserve la Catégorie persistée d'une occurrence existante. */
+  readonly categoryId?: string | null;
+  /** PRE-3 : `undefined` conserve les liens persistés ; `[]` explicite les retire (jamais l'asset). */
+  readonly media?: readonly MediaLinkInput[];
 };
 
 /**
@@ -372,6 +399,13 @@ export type SessionSummary = {
    * d'en tirer un préfixe `≥` plutôt que de le coder ici.
    */
   isEstimatedDurationApproximate: boolean;
+  /**
+   * PRE-3 (Bip v2 §2) : nature du total calculé par l'autorité unique du
+   * Domaine — `exact`, `estimated` (≈) ou `lowerBound` (≥). Optionnel
+   * sur ce type LU (fixtures hors périmètre) : absent, le consommateur
+   * retombe sur `isEstimatedDurationApproximate`.
+   */
+  durationKind?: SessionDurationKind;
   /** T01-S10 : répétition réelle du Circuit (`1..99`, D-058). Reste `1` pour toute Séance créée avant S10. */
   tourRepeatCount: number;
   updatedAt: string;
