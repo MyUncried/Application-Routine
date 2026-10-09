@@ -1298,7 +1298,7 @@
       "scenarios": [
         {
           "scenario_id": "PRE3-DOC-P3-13-tours-cycles-list-CHECK",
-          "given": "Session with exercises before/in/after Circuit and Tours1/99, explicit R and mixed known/estimated/unknown",
+          "given": "Session with exercises before/in/after Circuit and Tours 1/99, explicit R and mixed known/estimated/unknown",
           "when": "Create/read/list/duplicate and aggregate",
           "then": "Existing structural repetition semantics preserved; applicable CR/Fin once per complete Exercise; list total equals full read calculated by one domain authority; symbols exact/≈/≥ correct.",
           "proof_required": [
@@ -1610,7 +1610,7 @@
         {
           "scenario_id": "PRE3-DOC-P3-20-all-surfaces-CHECK",
           "given": "41 frozen frame states and applicable mapping-elements-ui.jsonl rows",
-          "when": "Compare delivered reference states at402 and adapt360/440",
+          "when": "Compare delivered reference states at 402 and adapt 360/440",
           "then": "Per-element geometry/style/text tokens/master variants checked; system décor separately classified; no global visual postponement; each residual deviation named with impact/status/decision.",
           "proof_required": [
             "FUNCTIONAL_TEST",
@@ -1623,14 +1623,14 @@
       "state_id": "PRE3-DOC-P3-20-sheet-specific",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Overlay #1F2129 alpha.34; Bip first-level before applicable total else countdown; at402 x36/sep330 vs indented x52/sep314; adaptive relations at360/440; header fixed body scroll.",
+      "expected": "Overlay #1F2129 alpha 0.34; Bip first-level before applicable total else countdown; at 402 x 36 / separator 330 vs indented x 52 / separator 314; adaptive relations at 360/440; header fixed body scroll.",
       "reason": "Scénario fonctionnel P3-20 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
       "scenarios": [
         {
           "scenario_id": "PRE3-DOC-P3-20-sheet-specific-CHECK",
           "given": "Duration/repetition/failure with/without total and bilateral groups",
           "when": "Render",
-          "then": "Overlay #1F2129 alpha.34; Bip first-level before applicable total else countdown; at402 x36/sep330 vs indented x52/sep314; adaptive relations at360/440; header fixed body scroll.",
+          "then": "Overlay #1F2129 alpha 0.34; Bip first-level before applicable total else countdown; at 402 x 36 / separator 330 vs indented x 52 / separator 314; adaptive relations at 360/440; header fixed body scroll.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "VISUAL_COMPARE"
@@ -1642,14 +1642,14 @@
       "state_id": "PRE3-DOC-P3-21-accessible-controls",
       "origin": "DOCUMENT_ONLY",
       "disposition": "REQUIRED",
-      "expected": "Complete labels, disabled states, current values, grouped phrase; focus enters modal and returns to launcher; equivalent non-drag ordering; touch44 minimum per targeted contracts.",
+      "expected": "Complete labels, disabled states, current values, grouped phrase; focus enters modal and returns to launcher; equivalent non-drag ordering; touch 44 minimum per targeted contracts.",
       "reason": "Scénario fonctionnel P3-21 dérivé du périmètre validé, des contrats CE-T03-04/CE-UI-09/10 et des spécifications Paramètres/Bip/Phrase courantes ; aucune nouvelle règle technique.",
       "scenarios": [
         {
           "scenario_id": "PRE3-DOC-P3-21-accessible-controls-CHECK",
           "given": "Sheet/editor/sortable rows/media with disabled controls",
           "when": "Query roles/labels/states/actions then run VoiceOver",
-          "then": "Complete labels, disabled states, current values, grouped phrase; focus enters modal and returns to launcher; equivalent non-drag ordering; touch44 minimum per targeted contracts.",
+          "then": "Complete labels, disabled states, current values, grouped phrase; focus enters modal and returns to launcher; equivalent non-drag ordering; touch 44 minimum per targeted contracts.",
           "proof_required": [
             "FUNCTIONAL_TEST",
             "ACCESSIBILITY_CHECK",
