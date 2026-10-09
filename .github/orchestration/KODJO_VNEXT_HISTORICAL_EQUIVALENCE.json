@@ -137,7 +137,7 @@
       "id": "CASE-feaadf94237c92db",
       "test_path": "tests/kodjo/vnext-revision-contract.pilot.js",
       "test_name": "VNext-07 accepte une correction ciblée et vérifie la préservation exacte",
-      "source_line": 484,
+      "source_line": 533,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/impact-graph.js",
@@ -148,13 +148,13 @@
         "scripts/kodjo/lib/revision-contract.js",
         "scripts/kodjo/lib/source-manifest.js"
       ],
-      "test_source_sha256": "140e93f8eb22da454ed7e65b60a1161fe7920a72a940a60411bf7afbfc0d9a25"
+      "test_source_sha256": "9905a4492689379ef22a45f68ae6b60bca81a7750b5f4fde638f4be679f35936"
     },
     {
       "id": "CASE-174e9617b69d78d5",
       "test_path": "tests/kodjo/vnext-revision-contract.pilot.js",
       "test_name": "VNext-07 détecte une modification d’un objet préservé",
-      "source_line": 597,
+      "source_line": 646,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/impact-graph.js",
@@ -165,7 +165,7 @@
         "scripts/kodjo/lib/revision-contract.js",
         "scripts/kodjo/lib/source-manifest.js"
       ],
-      "test_source_sha256": "140e93f8eb22da454ed7e65b60a1161fe7920a72a940a60411bf7afbfc0d9a25"
+      "test_source_sha256": "9905a4492689379ef22a45f68ae6b60bca81a7750b5f4fde638f4be679f35936"
     },
     {
       "id": "CASE-cba0dbbfb3977055",
@@ -1885,7 +1885,7 @@
       "id": "CASE-f8f1393a82d1f076",
       "test_path": "tests/kodjo/vnext-revision-contract.pilot.js",
       "test_name": "VNext-07 refuse une correction sur une cible hors AllowedChangeSet",
-      "source_line": 402,
+      "source_line": 451,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/impact-graph.js",
@@ -1896,7 +1896,7 @@
         "scripts/kodjo/lib/revision-contract.js",
         "scripts/kodjo/lib/source-manifest.js"
       ],
-      "test_source_sha256": "140e93f8eb22da454ed7e65b60a1161fe7920a72a940a60411bf7afbfc0d9a25"
+      "test_source_sha256": "9905a4492689379ef22a45f68ae6b60bca81a7750b5f4fde638f4be679f35936"
     },
     {
       "id": "CASE-d7775b7066978ceb",
@@ -6191,7 +6191,7 @@
       "id": "CASE-da7bae63dea9736b",
       "test_path": "tests/kodjo/vnext-revision-contract.pilot.js",
       "test_name": "VNext-07 détecte REVISION_STALLED si le même finding persiste",
-      "source_line": 642,
+      "source_line": 691,
       "assertion_kind": "EXECUTABLE_OR_FIXTURE",
       "mechanism_paths": [
         "scripts/kodjo/lib/impact-graph.js",
@@ -6202,7 +6202,7 @@
         "scripts/kodjo/lib/revision-contract.js",
         "scripts/kodjo/lib/source-manifest.js"
       ],
-      "test_source_sha256": "140e93f8eb22da454ed7e65b60a1161fe7920a72a940a60411bf7afbfc0d9a25"
+      "test_source_sha256": "9905a4492689379ef22a45f68ae6b60bca81a7750b5f4fde638f4be679f35936"
     },
     {
       "id": "CASE-c34a3566de558655",

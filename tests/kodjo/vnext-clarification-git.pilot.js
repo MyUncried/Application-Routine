@@ -1,0 +1,23 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const {execFileSync}=require('node:child_process');
+const F=require('./helpers/vnext-planning-fixture'),V=require('../../scripts/kodjo/lib/vnext-contract');
+const D=require('../../scripts/kodjo/lib/decision-record'),Chain=require('../../scripts/kodjo/lib/vnext-live-chain');
+test('clarification admission reads immutable Git decision bytes and refuses forged bindings',t=>{
+ const repo=F.fixtureRepo();t.after(()=>fs.rmSync(repo.cwd,{recursive:true,force:true}));
+ const git=(...args)=>execFileSync('git',args,{cwd:repo.cwd,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
+ const opened=D.createOpen({slice_id:'PRE-3',question:'Rédaction seulement ?',options:[{label:'Oui'},{label:'Non'}],source_ids:['SRC-test'],affected_requirement_ids:['REQ-test'],created_at:'2026-10-09T12:00:00Z',causal_evidence:['finding:TEST-ONLY']});
+ const decision=D.resolve(opened,{selected_option_id:opened.options[0].option_id,response_text:'Oui',responded_by:'MyUncried',resolved_at:'2026-10-09T12:01:00Z',resolution_evidence:['owner_message:TEST-ONLY']});
+ const file='decision.json',content=JSON.stringify(decision)+'\n';fs.writeFileSync(path.join(repo.cwd,file),content);git('add',file);git('commit','-m','TEST resolved owner clarification');const revision=git('rev-parse','HEAD');
+ const ref={path:file,revision,content_sha256:V.sha256(content),decision_id:decision.decision_id};
+ const base={slice_id:'PRE-3'},next={product_head:revision,created_from:{refs:['decision:'+decision.contract_hash]}};
+ const observe=(e={decision_sources:[ref]},n=next)=>Chain.observeClarification(e,base,n,'MyUncried',repo.cwd);
+ assert.deepEqual(observe().decision_records,[decision]);
+ fs.writeFileSync(path.join(repo.cwd,file),'local worktree tampering');assert.deepEqual(observe().decision_records,[decision]);
+ assert.throws(()=>observe({decision_sources:[{...ref,content_sha256:'0'.repeat(64)}]}),/SOURCE_MISMATCH/);
+ assert.throws(()=>observe({decision_sources:[{...ref,decision_id:'DEC-other'}]}),/ID_MISMATCH/);
+ assert.throws(()=>observe({decision_sources:[{...ref,revision:'f'.repeat(40)}]}),/NOT_IN_PRODUCT_HISTORY/);
+ assert.throws(()=>observe(undefined,{...next,created_from:{refs:[]}}),/ENVELOPE_UNBOUND/);
+ assert.throws(()=>observe({decision_sources:[]}),/USER_DECISION_REQUIRED/);
+ assert.throws(()=>observe({decision_sources:[{...ref,path:'../outside.json'}]}),/PATH_INVALID/);
+});
