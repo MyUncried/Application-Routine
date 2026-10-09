@@ -13,7 +13,7 @@ import { ReferenceValueDialog } from "@/features/reference-data/ReferenceValueDi
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, fixedRadii, spacing, type } from "@/shared/ui/tokens";
 
 export type CategoryPickerModalProps = {
   /** Catégorie actuellement affectée — `null` si aucune (D-211 : toujours requise avant `Terminer`, mais l'ouverture de la modale ne présuppose rien). */
@@ -158,15 +158,38 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
   return (
     <Modal transparent visible animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop} testID="category-picker-backdrop">
+        <View style={styles.card} accessibilityViewIsModal testID="category-picker-sheet">
+          <View style={styles.sheetHandle} />
+          <View style={styles.sheetHeader} testID="category-picker-header">
+            <Pressable
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel={t.closeAccessibilityLabel}
+              hitSlop={5}
+              style={styles.sheetCancel}
+              testID="category-picker-close"
+            >
+              <KodjoIcon name="wheel-action-cancel" />
+            </Pressable>
+            <Text style={styles.sheetTitle} accessibilityRole="header" numberOfLines={1}>
+              {t.title}
+            </Text>
+            <Pressable
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel={strings.executionParameters.sheet.validateAccessibilityLabel.replace("les paramètres", "la catégorie")}
+              hitSlop={5}
+              style={styles.sheetValidate}
+              testID="category-picker-confirm"
+            >
+              <KodjoIcon name="wheel-action-validate" />
+            </Pressable>
+          </View>
         <ScrollView
-          style={styles.card}
           contentContainerStyle={styles.cardContent}
           keyboardShouldPersistTaps="handled"
           testID="category-picker-card"
         >
-          <Text style={styles.title} accessibilityRole="header">
-            {t.title}
-          </Text>
 
           {retiredNotice ? (
             <Text style={styles.retiredNotice} testID="category-picker-retired-notice">
@@ -326,16 +349,8 @@ export function CategoryPickerModal({ selectedId, onSelect, onClose }: CategoryP
             </Pressable>
           )}
 
-          <Pressable
-            onPress={onClose}
-            accessibilityRole="button"
-            accessibilityLabel={t.closeAccessibilityLabel}
-            style={styles.closeAction}
-            testID="category-picker-close"
-          >
-            <Text style={styles.closeActionLabel}>{t.closeAccessibilityLabel}</Text>
-          </Pressable>
         </ScrollView>
+        </View>
       </View>
 
       {longPressTarget ? (
@@ -357,27 +372,64 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: colors.overlayScrim,
+    justifyContent: "flex-end",
+  },
+  // PRE-3 (Figma « Modale — … de l'exercice ») : feuille ancrée en bas,
+  // poignée, en-tête ✕ / titre / ✓ séparé par un trait, voile commun.
+  sheetHandle: {
+    alignSelf: "center",
+    width: 50,
+    height: 4,
+    borderRadius: 2,
+    marginTop: spacing[8],
+    backgroundColor: colors.disabled,
+  },
+  sheetHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    height: 56,
+    marginHorizontal: spacing[12],
+    paddingHorizontal: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+  },
+  sheetTitle: {
+    ...type.modalTitle,
+    color: colors.textPrimary,
+    flexShrink: 1,
+    textAlign: "center",
+  },
+  sheetCancel: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: "center",
     justifyContent: "center",
-    padding: spacing[24],
+    backgroundColor: colors.surfaceSubtle,
+  },
+  sheetValidate: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
   },
   card: {
     width: "100%",
-    maxWidth: 420,
     // R4 (§4.10 L133 ; CE-UI-09 L2808) : hauteur bornée — la liste des
     // Catégories et la carte de création/modification défilent toujours,
     // quel que soit le nombre d'entrées ou l'ouverture du clavier.
     maxHeight: "90%",
-    borderRadius: dimensions.standardCard.radius,
+    borderTopLeftRadius: dimensions.standardCard.radius,
+    borderTopRightRadius: dimensions.standardCard.radius,
     backgroundColor: colors.background,
+    paddingBottom: spacing[24],
   },
   cardContent: {
     padding: spacing[24],
     gap: spacing[16],
-  },
-  title: {
-    ...type.sectionTitle,
-    color: colors.textPrimary,
   },
   retiredNotice: {
     ...type.body,
@@ -388,19 +440,21 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: spacing[8],
   },
+  // PRE-3 (Figma « Visual / Pill ») : pastille 30, rayon 16, fond
+  // surface-subtle, libellé Regular 12 ; sélection lavande, contour primarySoft.
   tag: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing[6],
+    gap: spacing[4],
     height: dimensions.categoryTag.visualHeight,
-    paddingHorizontal: spacing[12],
-    borderRadius: dimensions.categoryTag.radius,
+    paddingHorizontal: spacing[8],
+    borderRadius: fixedRadii[16],
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceSubtle,
   },
   tagSelected: {
-    borderColor: colors.selection,
+    borderColor: colors.primarySoft,
     backgroundColor: colors.selectionSurface,
   },
   swatch: {
@@ -409,7 +463,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   tagLabel: {
-    ...type.label,
+    ...type.supporting,
     color: colors.textPrimary,
   },
   createAction: {
@@ -479,14 +533,5 @@ const styles = StyleSheet.create({
   primaryActionLabel: {
     ...type.button,
     color: colors.background,
-  },
-  closeAction: {
-    alignSelf: "center",
-    paddingVertical: spacing[8],
-    paddingHorizontal: spacing[16],
-  },
-  closeActionLabel: {
-    ...type.button,
-    color: colors.textSecondary,
   },
 });

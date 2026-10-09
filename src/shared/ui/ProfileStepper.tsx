@@ -21,6 +21,96 @@ const STEPPER_VALUE_WIDTH = 50;
 const INITIAL_REPEAT_DELAY_MS = 450;
 const REPEAT_INTERVAL_MS = 150;
 
+/**
+ * PRE-3 (P3-19, `perimetre-et-couverture.md` §8) — politique de geste
+ * OPTIONNELLE des steppers de la feuille Paramètres. La politique du Profil
+ * (`PROFILE_HOLD_POLICY`, D-227) reste celle de `ProfileStepper`, inchangée ;
+ * aucune accélération PRE-3 n'est propagée au Profil.
+ *
+ * - tap : un pas de 1, immédiat ;
+ * - maintien : aucune répétition avant 500 ms, puis toutes les 150 ms ;
+ * - champs accélérés : pas 1, puis 5 après 2 s, puis 10 après 4 s de
+ *   maintien, en multiples directionnels (37 → 40 → 45 au pas 5) ;
+ * - Bip, Compte à rebours, Fin : pas 1 quel que soit le maintien ;
+ * - relâchement : arrêt immédiat, aucun pas supplémentaire.
+ */
+export type StepperHoldPolicy = {
+  readonly initialDelayMs: number;
+  readonly intervalMs: number;
+  /** Pas applicable après `elapsedMs` de maintien. */
+  readonly stepAfter: (elapsedMs: number) => number;
+};
+
+export const PROFILE_HOLD_POLICY: StepperHoldPolicy = {
+  initialDelayMs: INITIAL_REPEAT_DELAY_MS,
+  intervalMs: REPEAT_INTERVAL_MS,
+  stepAfter: () => 1,
+};
+
+export const EXECUTION_ACCELERATED_HOLD_POLICY: StepperHoldPolicy = {
+  initialDelayMs: 500,
+  intervalMs: 150,
+  stepAfter: (elapsedMs) => (elapsedMs >= 4000 ? 10 : elapsedMs >= 2000 ? 5 : 1),
+};
+
+export const EXECUTION_UNIT_HOLD_POLICY: StepperHoldPolicy = {
+  initialDelayMs: 500,
+  intervalMs: 150,
+  stepAfter: () => 1,
+};
+
+/**
+ * Valeur suivante en multiples DIRECTIONNELS du pas, bornée : au pas 5, 37
+ * monte à 40 et descend à 35 ; au pas 1, ±1.
+ */
+export function steppedValue(current: number, direction: 1 | -1, stepSize: number, min: number, max: number): number {
+  const next =
+    stepSize <= 1
+      ? current + direction
+      : direction === 1
+        ? Math.floor(current / stepSize) * stepSize + stepSize
+        : Math.ceil(current / stepSize) * stepSize - stepSize;
+  return Math.min(max, Math.max(min, next));
+}
+
+export type HoldRepeater = {
+  start(direction: 1 | -1): void;
+  stop(): void;
+};
+
+/**
+ * Contrôleur de maintien (minuteries JS) : `onStep(direction, pas)` reçoit
+ * le tap initial puis chaque répétition ; `stop` coupe immédiatement toute
+ * minuterie, sans pas au relâchement.
+ */
+export function createHoldRepeater(
+  policy: StepperHoldPolicy,
+  onStep: (direction: 1 | -1, stepSize: number) => void,
+  now: () => number = Date.now,
+): HoldRepeater {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  let interval: ReturnType<typeof setInterval> | null = null;
+  const clear = () => {
+    if (timeout) clearTimeout(timeout);
+    if (interval) clearInterval(interval);
+    timeout = null;
+    interval = null;
+  };
+  return {
+    start(direction) {
+      clear();
+      const startedAt = now();
+      onStep(direction, 1);
+      timeout = setTimeout(() => {
+        const tick = () => onStep(direction, policy.stepAfter(now() - startedAt));
+        tick();
+        interval = setInterval(tick, policy.intervalMs);
+      }, policy.initialDelayMs);
+    },
+    stop: clear,
+  };
+}
+
 export type ProfileStepperProps = {
   readonly label: string;
   readonly unit: string;
@@ -50,6 +140,129 @@ export type ProfileStepperProps = {
  * après 450 ms puis toutes les 150 ms, jusqu'au relâchement, où une seule
  * écriture est tentée.
  */
+export type InlineStepperProps = {
+  /** Valeur courante du brouillon (contrôlée) ; `null` = cible non renseignée. */
+  readonly value: number | null;
+  readonly min: number;
+  readonly max: number;
+  readonly policy: StepperHoldPolicy;
+  /** Texte affiché pour la valeur (`"3 séries"`, `"15 s"`, `"Aucun"`, `"—"`). */
+  readonly formatValue: (value: number | null) => string;
+  /** Appelé à CHAQUE pas (tap ou répétition) — le parent met à jour son brouillon, sans écriture. */
+  readonly onChange: (value: number) => void;
+  /** Nom du réglage (avec unité) annoncé par l'ajustable. */
+  readonly accessibilityLabel: string;
+  readonly disabled?: boolean;
+  /** Valeur posée lorsqu'une cible non renseignée (`null`) reçoit un premier pas. */
+  readonly emptyStart?: number;
+  readonly testID: string;
+};
+
+/**
+ * Stepper EN PLACE de la feuille Paramètres (PRE-3) — même rendu DSF
+ * `Stepper` (pilule 36, cercles 28, valeur Semi Bold 13) que le Profil, mais
+ * toujours ouvert et sans écriture : chaque pas met à jour le brouillon de
+ * la feuille. Exposé à VoiceOver comme un réglage ajustable (incrémenter /
+ * décrémenter), valeur et bornes annoncées.
+ */
+export function InlineStepper({
+  value,
+  min,
+  max,
+  policy,
+  formatValue,
+  onChange,
+  accessibilityLabel,
+  disabled = false,
+  emptyStart,
+  testID,
+}: InlineStepperProps) {
+  const t = strings.screens.profile.stepper;
+  const valueRef = useRef(value);
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    valueRef.current = value;
+    onChangeRef.current = onChange;
+  });
+  const repeaterRef = useRef<HoldRepeater | null>(null);
+
+  function applyStep(direction: 1 | -1, stepSize: number) {
+    const current = valueRef.current;
+    const next =
+      current === null
+        ? Math.min(max, Math.max(min, emptyStart ?? min))
+        : steppedValue(current, direction, stepSize, min, max);
+    if (next === current) {
+      return;
+    }
+    valueRef.current = next;
+    onChangeRef.current(next);
+  }
+
+  function repeater(): HoldRepeater {
+    repeaterRef.current ??= createHoldRepeater(policy, applyStep);
+    return repeaterRef.current;
+  }
+
+  useEffect(() => () => repeaterRef.current?.stop(), []);
+
+  const atMin = disabled || (value !== null && value <= min);
+  const atMax = disabled || (value !== null && value >= max);
+  const display = formatValue(value);
+
+  return (
+    <View
+      style={[styles.controls, disabled ? styles.controlsDisabled : null]}
+      accessible
+      accessibilityRole="adjustable"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityValue={value === null ? { text: display } : { min, max, now: value, text: display }}
+      accessibilityState={{ disabled }}
+      accessibilityActions={[{ name: "increment" }, { name: "decrement" }]}
+      onAccessibilityAction={(event) => {
+        if (disabled) return;
+        if (event.nativeEvent.actionName === "increment") applyStep(1, 1);
+        if (event.nativeEvent.actionName === "decrement") applyStep(-1, 1);
+      }}
+      testID={testID}
+    >
+      <Pressable
+        disabled={atMin}
+        onPressIn={() => repeater().start(-1)}
+        onPressOut={() => repeater().stop()}
+        accessibilityRole="button"
+        accessibilityLabel={
+          atMin && !disabled ? `${t.decrementAccessibilityLabel} — ${t.minimumReachedSuffix}` : t.decrementAccessibilityLabel
+        }
+        accessibilityState={{ disabled: atMin }}
+        hitSlop={(minTouchTarget - STEP_CIRCLE) / 2}
+        style={styles.stepButton}
+        testID={`${testID}-decrement`}
+      >
+        <KodjoIcon name="stepper-minus" tintColor={atMin ? colors.disabled : colors.primary} />
+      </Pressable>
+      <Text style={styles.openValue} testID={`${testID}-value`}>
+        {display}
+      </Text>
+      <Pressable
+        disabled={atMax}
+        onPressIn={() => repeater().start(1)}
+        onPressOut={() => repeater().stop()}
+        accessibilityRole="button"
+        accessibilityLabel={
+          atMax && !disabled ? `${t.incrementAccessibilityLabel} — ${t.maximumReachedSuffix}` : t.incrementAccessibilityLabel
+        }
+        accessibilityState={{ disabled: atMax }}
+        hitSlop={(minTouchTarget - STEP_CIRCLE) / 2}
+        style={styles.stepButton}
+        testID={`${testID}-increment`}
+      >
+        <KodjoIcon name="stepper-plus" tintColor={atMax ? colors.disabled : colors.primary} />
+      </Pressable>
+    </View>
+  );
+}
+
 export function ProfileStepper({
   label,
   unit,
@@ -266,6 +479,9 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     paddingVertical: spacing[4],
     paddingHorizontal: spacing[10],
+  },
+  controlsDisabled: {
+    opacity: 0.45,
   },
   controls: {
     flexDirection: "row",

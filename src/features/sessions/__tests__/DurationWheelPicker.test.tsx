@@ -590,3 +590,62 @@ describe("DurationWheelPicker — chemin iOS natif (NativeAppleDurationWheelPick
     });
   });
 });
+
+/**
+ * PRE-3 (R-1) — obligations effectives de la roulette utilisée EN PLACE dans
+ * la feuille Paramètres (Durée d'une série, Durée totale). Seules les
+ * propriétés simulables sont prouvées ici ; l'annonce VoiceOver native de
+ * `SwiftUI.Picker(.wheel)` reste une vérification sur appareil.
+ */
+describe("DurationWheelPicker — PRE-3 R-1 (roulette en place de la feuille Paramètres)", () => {
+  let originalPlatformOS: typeof Platform.OS;
+
+  beforeEach(() => {
+    originalPlatformOS = Platform.OS;
+    Platform.OS = "ios";
+  });
+
+  afterEach(() => {
+    Platform.OS = originalPlatformOS;
+  });
+
+  it("R-1/native-delegation — iOS délègue à SwiftUI Picker(.wheel) avec la borne Exercice 5999 s ; aucun ScrollView de substitution", () => {
+    const { UNSAFE_root } = render(<DurationWheelPicker {...renderProps({ totalSeconds: 90, maxTotalSeconds: 5999 })} />);
+    const minutes = screen.getByTestId("duration-wheel-minutes");
+    const modifiers = minutes.props.modifiers as { $type: string; style?: string }[];
+    expect(modifiers.some((modifier) => modifier.$type === "pickerStyle")).toBe(true);
+    expect(minutes.props.selection).toBe(1);
+    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(30);
+    expect(UNSAFE_root.findAllByType(ScrollView)).toHaveLength(0);
+  });
+
+  it("R-1/distinct-actions — Valider et Annuler sont deux actions distinctes nommées ; aucun commit au démontage", () => {
+    const props = renderProps({ totalSeconds: 30, maxTotalSeconds: 5999 });
+    const { unmount } = render(<DurationWheelPicker {...props} />);
+    fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 2 } });
+    const cancel = screen.getByTestId("duration-wheel-cancel");
+    const validate = screen.getByTestId("duration-wheel-validate");
+    expect(cancel.props.accessibilityLabel).toBe(CANCEL_LABEL);
+    expect(validate.props.accessibilityLabel).toBe(VALIDATE_LABEL);
+    expect(cancel).not.toBe(validate);
+    // Fermeture de la feuille / démontage sans action : rien n'est validé ni annulé.
+    unmount();
+    expect(props.onValidate).not.toHaveBeenCalled();
+    expect(props.onCancel).not.toHaveBeenCalled();
+  });
+
+  it("R-1/accessibility-props — chaque colonne porte un nom simulable (minutes / secondes) ; Valider renvoie la valeur centrée exacte", () => {
+    const props = renderProps({ totalSeconds: 0, maxTotalSeconds: 5999 });
+    render(<DurationWheelPicker {...props} />);
+    const labelOf = (testID: string) =>
+      (screen.getByTestId(testID).props.modifiers as { $type: string; label?: string }[]).find(
+        (modifier) => modifier.$type === "accessibilityLabel",
+      );
+    expect(labelOf("duration-wheel-minutes")).toBeDefined();
+    expect(labelOf("duration-wheel-seconds")).toBeDefined();
+    fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 99 } });
+    fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 59 } });
+    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+    expect(props.onValidate).toHaveBeenCalledWith(5999);
+  });
+});

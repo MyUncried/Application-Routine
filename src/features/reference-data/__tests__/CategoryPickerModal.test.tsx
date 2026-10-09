@@ -5,6 +5,7 @@ import type { Category } from "@/domain/categories/Category";
 import { CategoryPickerModal } from "@/features/reference-data/CategoryPickerModal";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
+import { StyleSheet } from "react-native";
 
 function aCategory(overrides: Partial<Category> = {}): Category {
   return {
@@ -251,5 +252,75 @@ describe("CategoryPickerModal — predefined categories are administrable like c
       fireEvent(tag, "longPress");
     });
     expect(screen.getByTestId("category-picker-long-press-delete")).toBeTruthy();
+  });
+});
+
+/**
+ * PRE-3 — feuille « Catégorie de l'exercice » (Figma 4332:7095, 4474:7157) ;
+ * comportements PRE-2 conservés (appui court = sélection, D2/D4).
+ */
+describe("CategoryPickerModal — PRE-3", () => {
+  it("P3-03/empty-create-name — nom vide ou blanc : Ajouter inactif, aucun message d'erreur ; un nom valide l'active", async () => {
+    renderModal(fakeReferentialService());
+    fireEvent.press(await screen.findByTestId("category-picker-create-action"));
+    const add = screen.getByTestId("category-picker-new-add");
+    expect(add.props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.changeText(screen.getByTestId("category-picker-new-name-input"), "   ");
+    expect(screen.getByTestId("category-picker-new-add").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.queryByTestId("category-picker-new-error")).toBeNull();
+    expect(screen.queryByTestId("category-picker-write-error")).toBeNull();
+    fireEvent.changeText(screen.getByTestId("category-picker-new-name-input"), "Danse");
+    expect(screen.getByTestId("category-picker-new-add").props.accessibilityState).toMatchObject({ disabled: false });
+  });
+
+  it("P3-20/all-surfaces — feuille ancrée en bas, voile #1F2129 à 34 %, en-tête ✕ / titre / ✓, pastilles 30 rayon 16", async () => {
+    renderModal(fakeReferentialService(), { selectedId: "cardio" });
+    const tag = await screen.findByTestId("category-picker-tag-cardio");
+    const backdrop = StyleSheet.flatten(screen.getByTestId("category-picker-backdrop").props.style);
+    expect(backdrop).toMatchObject({ backgroundColor: "rgba(31, 33, 41, 0.34)", justifyContent: "flex-end" });
+    expect(screen.getByTestId("category-picker-header")).toBeTruthy();
+    expect(screen.getByTestId("category-picker-close")).toBeTruthy();
+    expect(screen.getByTestId("category-picker-confirm")).toBeTruthy();
+    const pill = StyleSheet.flatten(tag.props.style);
+    expect(pill).toMatchObject({ height: 30, borderRadius: 16, backgroundColor: "#E5F0FF", borderColor: "#8283F2" });
+  });
+
+  it("P3-22/scope-regression — valeurs retirées absentes de la liste, menu d'appui long et sélection par appui court conservés", async () => {
+    const onSelect = jest.fn();
+    const service = fakeReferentialService({
+      listCategories: jest.fn(async () => [
+        aCategory(),
+        aCategory({ id: "old", name: "Ancienne", canonicalKey: "ancienne", isActive: false }),
+      ]),
+    });
+    renderModal(service, { onSelect });
+    await screen.findByTestId("category-picker-tag-cardio");
+    expect(screen.queryByTestId("category-picker-tag-old")).toBeNull();
+    fireEvent(screen.getByTestId("category-picker-tag-cardio"), "longPress");
+    expect(await screen.findByTestId("category-picker-long-press-cancel")).toBeTruthy();
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it("INTERACTION/category — sélection simple isolée : ✕ ferme sans sélectionner, ✓ ferme en conservant la sélection courante", async () => {
+    const onSelect = jest.fn();
+    const onClose = jest.fn();
+    renderModal(fakeReferentialService(), { selectedId: "cardio", onSelect, onClose });
+    await screen.findByTestId("category-picker-tag-cardio");
+    fireEvent.press(screen.getByTestId("category-picker-close"));
+    fireEvent.press(screen.getByTestId("category-picker-confirm"));
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it("ACCESSIBILITY/category — nom et état sélectionné, ✕/✓ nommés, titre en-tête, Ajouter annoncé désactivé sans erreur", async () => {
+    renderModal(fakeReferentialService(), { selectedId: "cardio" });
+    const tag = await screen.findByTestId("category-picker-tag-cardio");
+    expect(tag.props.accessibilityLabel).toContain("Cardio");
+    expect(tag.props.accessibilityState).toMatchObject({ selected: true });
+    expect(screen.getByTestId("category-picker-close").props.accessibilityLabel.length).toBeGreaterThan(0);
+    expect(screen.getByTestId("category-picker-confirm").props.accessibilityLabel).toBe("Valider la catégorie");
+    expect(screen.getByRole("header")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("category-picker-create-action"));
+    expect(screen.getByTestId("category-picker-new-add").props.accessibilityState).toMatchObject({ disabled: true });
   });
 });

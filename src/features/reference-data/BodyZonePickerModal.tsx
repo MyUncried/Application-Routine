@@ -19,7 +19,11 @@ export type BodyZonePickerModalProps = {
   /** « Confirmer » applique la sélection — jamais appelé en fermant sans confirmer (ABA5D2662CA69). */
   onConfirm: (ids: readonly string[]) => void;
   onClose: () => void;
-  /** Silhouette du Profil — icône de Zone (CE-UI-09 L2805, T13). */
+  /**
+   * Silhouette du Profil (CE-UI-09 L2805, T13). PRE-3 (Figma « Zones
+   * corporelles ») : elle reste portée par le contrôle d'accès de l'éditeur,
+   * jamais répétée dans chaque option — prop conservée pour les appelants.
+   */
   silhouette?: Silhouette | null;
 };
 
@@ -34,7 +38,6 @@ export function BodyZonePickerModal({
   selectedIds,
   onConfirm,
   onClose,
-  silhouette,
 }: BodyZonePickerModalProps) {
   const referentialService = useReferentialService();
   const [zones, setZones] = useState<readonly BodyZone[] | null>(null);
@@ -177,15 +180,38 @@ export function BodyZonePickerModal({
   return (
     <Modal transparent visible animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop} testID="body-zone-picker-backdrop">
+        <View style={styles.card} accessibilityViewIsModal testID="body-zone-picker-sheet">
+          <View style={styles.sheetHandle} />
+          <View style={styles.sheetHeader} testID="body-zone-picker-header">
+            <Pressable
+              onPress={onClose}
+              accessibilityRole="button"
+              accessibilityLabel={t.closeAccessibilityLabel}
+              hitSlop={5}
+              style={styles.sheetCancel}
+              testID="body-zone-picker-close"
+            >
+              <KodjoIcon name="wheel-action-cancel" />
+            </Pressable>
+            <Text style={styles.sheetTitle} accessibilityRole="header" numberOfLines={1}>
+              {t.title}
+            </Text>
+            <Pressable
+              onPress={handleConfirm}
+              accessibilityRole="button"
+              accessibilityLabel={t.confirmAction}
+              hitSlop={5}
+              style={styles.sheetValidate}
+              testID="body-zone-picker-confirm"
+            >
+              <KodjoIcon name="wheel-action-validate" />
+            </Pressable>
+          </View>
         <ScrollView
-          style={styles.card}
           contentContainerStyle={styles.cardContent}
           keyboardShouldPersistTaps="handled"
           testID="body-zone-picker-card"
         >
-          <Text style={styles.title} accessibilityRole="header">
-            {t.title}
-          </Text>
 
           {writeError ? (
             <Text style={styles.errorText} testID="body-zone-picker-write-error">
@@ -205,7 +231,6 @@ export function BodyZonePickerModal({
               selectedIds={working}
               onToggle={handleToggle}
               accessibilityLabel={t.title}
-              silhouette={silhouette ?? null}
               onLongPressZone={(zone) => {
                 setLongPressTarget(zone);
                 void openDeleteConfirm(zone);
@@ -321,27 +346,8 @@ export function BodyZonePickerModal({
             </Pressable>
           )}
 
-          <View style={styles.bottomActionsRow}>
-            <Pressable
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel={t.closeAccessibilityLabel}
-              style={styles.neutralAction}
-              testID="body-zone-picker-close"
-            >
-              <Text style={styles.neutralActionLabel}>{t.closeAccessibilityLabel}</Text>
-            </Pressable>
-            <Pressable
-              onPress={handleConfirm}
-              accessibilityRole="button"
-              accessibilityLabel={t.confirmAction}
-              style={styles.primaryAction}
-              testID="body-zone-picker-confirm"
-            >
-              <Text style={styles.primaryActionLabel}>{t.confirmAction}</Text>
-            </Pressable>
-          </View>
         </ScrollView>
+        </View>
       </View>
 
       {longPressTarget ? (
@@ -363,27 +369,64 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: colors.overlayScrim,
+    justifyContent: "flex-end",
+  },
+  // PRE-3 (Figma « Modale — … de l'exercice ») : feuille ancrée en bas,
+  // poignée, en-tête ✕ / titre / ✓ séparé par un trait, voile commun.
+  sheetHandle: {
+    alignSelf: "center",
+    width: 50,
+    height: 4,
+    borderRadius: 2,
+    marginTop: spacing[8],
+    backgroundColor: colors.disabled,
+  },
+  sheetHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    height: 56,
+    marginHorizontal: spacing[12],
+    paddingHorizontal: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+  },
+  sheetTitle: {
+    ...type.modalTitle,
+    color: colors.textPrimary,
+    flexShrink: 1,
+    textAlign: "center",
+  },
+  sheetCancel: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: "center",
     justifyContent: "center",
-    padding: spacing[24],
+    backgroundColor: colors.surfaceSubtle,
+  },
+  sheetValidate: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.primary,
   },
   card: {
     width: "100%",
-    maxWidth: 420,
     // R4 (CE-UI-09 L2796, L2808) : hauteur bornée — la liste des Zones et
     // la carte de création/renommage défilent toujours, quel que soit le
     // nombre d'entrées ou l'ouverture du clavier.
     maxHeight: "90%",
-    borderRadius: dimensions.standardCard.radius,
+    borderTopLeftRadius: dimensions.standardCard.radius,
+    borderTopRightRadius: dimensions.standardCard.radius,
     backgroundColor: colors.background,
+    paddingBottom: spacing[24],
   },
   cardContent: {
     padding: spacing[24],
     gap: spacing[16],
-  },
-  title: {
-    ...type.sectionTitle,
-    color: colors.textPrimary,
   },
   notice: {
     ...type.body,
@@ -429,12 +472,6 @@ const styles = StyleSheet.create({
   errorText: {
     ...type.caption,
     color: colors.danger,
-  },
-  bottomActionsRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: spacing[12],
   },
   neutralAction: {
     height: dimensions.categoryTag.visualHeight,

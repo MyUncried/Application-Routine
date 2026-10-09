@@ -84,3 +84,18 @@ describe("tokens.ts ↔ chapitre 12, Design tokens canoniques", () => {
     );
   });
 });
+
+/**
+ * PRE-3 (P3-20/contract-tokens) — les surfaces PRE-3 réutilisent les tokens
+ * canoniques existants : aucune nouvelle couleur ni typographie canonique.
+ */
+describe("tokens.ts — PRE-3 (contrat de réutilisation)", () => {
+  it("P3-20/contract-tokens — voile color.overlayScrim documenté et inchangé ; l'ensemble des tokens reste celui du chapitre 12", () => {
+    expect(colors.overlayScrim).toBe("rgba(31, 33, 41, 0.34)");
+    expect(specification).toContain("| `color.overlayScrim` | `rgba(31, 33, 41, 0.34)` |");
+    const documented = tableRows("color");
+    for (const name of Object.keys(colors)) {
+      expect(documented.has(name)).toBe(true);
+    }
+  });
+});

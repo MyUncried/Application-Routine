@@ -1,168 +1,116 @@
-import { useState, type ReactNode } from "react";
-import { Keyboard, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import {
+  AccessibilityInfo,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  findNodeHandle,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import {
+  validateExecutionParameters,
+  type ExecutionParameters,
+  type ExecutionParametersInput,
+} from "@/domain/activities/ExecutionParameters";
+import { generateExecutionPhrase, phraseText } from "@/domain/activities/executionPhrase";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import { moveDraftMedia, type DraftMediaItem } from "@/domain/media/ActivityMedia";
+import type { ImportItem, ImportResult } from "@/domain/media/ActivityMediaImportService";
 import type { Silhouette } from "@/domain/preferences/Profile";
-import {
-  applyTargetTotalDuration,
-  computeTotalDurationSeconds,
-  type TotalDurationFacts,
-} from "@/domain/sessions/calculations";
-import { DEFAULT_EXERCISE_DURATION_SECONDS, DEFAULT_REPETITION_COUNT } from "@/domain/sessions/defaults";
-import type { SessionDraftExerciseExecutionMode } from "@/domain/sessions/SessionDraft";
-import { sideMultiplier, type SideMode } from "@/domain/sessions/sideMode";
-import {
-  INSTRUCTION_MAX_LENGTH,
-  NAME_MAX_LENGTH,
-  validateExerciseDurationSeconds,
-  validateExerciseName,
-  validateRepetitionCount,
-} from "@/domain/sessions/validation";
+import { INSTRUCTION_MAX_LENGTH, NAME_MAX_LENGTH, validateExerciseName } from "@/domain/sessions/validation";
+import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
+import { ActivityMediaList, type MediaNotice } from "@/features/activities/ActivityMediaList";
+import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import { BodyZonePickerModal } from "@/features/reference-data/BodyZonePickerModal";
-import {
-  formatCompactDuration,
-  formatDurationRowValue,
-  formatExerciseBodyZones,
-  formatExerciseDurationLine,
-  formatExerciseRecap,
-} from "@/features/sessions/compositionPresentation";
-import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
-import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
-import { SideModeControl } from "@/features/sessions/SideModeControl";
-import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
-import {
-  WHEEL_EXERCISE_DURATION_SECONDS_MAX,
-  WHEEL_PAUSE_SECONDS_MAX,
-  WHEEL_TOTAL_DURATION_SECONDS_MAX,
-} from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
-import { DisclosureControl } from "@/shared/ui/DisclosureControl";
+import { BodyZoneIcon } from "@/shared/ui/BodyZoneIcon";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { SegmentedControl } from "@/shared/ui/SegmentedControl";
-import { TransientNotification } from "@/shared/ui/TransientNotification";
-import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
- * Formulaire COMMUN d'une Activité (V2-CAT-01, revue indépendante 5732014381,
- * obligation 5 : « extraire et réutiliser le formulaire complet existant
- * d'ExerciseScreen pour Composition ET Catalogue, ne pas maintenir deux
- * éditeurs »).
+ * Éditeur COMMUN d'un Exercice (CE-T03-04, PRE-3) — partagé par les quatre
+ * parcours créer/modifier × définition Catalogue / copie de Séance
+ * (`ExerciseScreen.tsx`). Composant contrôlé : il ne connaît ni la cible
+ * d'enregistrement ni la Séance ; chaque adaptateur fournit `value` /
+ * `onChange` et décide seul de « Terminer ».
  *
- * Extrait à l'IDENTIQUE de l'ancien corps de `ExerciseScreen` (roulettes
- * natives, sections repliables, rangée de paramètres compacte, contrôle
- * `Côté`, pilotage `Séries ↔ Durée totale`, synthèse ancrée en bas) —
- * composant purement contrôlé : ne connaît ni `SessionDraftContext` ni
- * `ActivityDefinitionService`. Chaque adaptateur (`CompositionExerciseEditor`
- * pour la Composition, `CatalogueActivityEditorScreen` pour le Catalogue)
- * lui fournit `value`/`onChange` et décide seul de la cible d'enregistrement
- * (D-137) — aucune règle de validation ou de calcul n'est dupliquée.
- *
- * Le nom de l'Activité n'est mis en GRAS que dans la synthèse ancrée en bas
- * (revue 5732014381, obligation 5) — jamais dans le champ de saisie lui-même.
+ * PRE-3 :
+ * - zone bleue : Nom, puis Catégorie et Zones corporelles (pilules) ;
+ * - carte « Paramètres d'exécution » : phrase COMPLÈTE générée à
+ *   l'affichage (segments `{texte, gras}` en `Text` imbriqués, en flux, sans
+ *   troncature), Compte à rebours et Fin ; la zone entière ouvre la feuille ;
+ * - la feuille (`ExecutionParametersSheet`) est un sous-brouillon : ✓
+ *   remplace atomiquement `executionParameters`, ✕ ne change rien ;
+ * - Description ; Médias ordonnés importés depuis la photothèque.
  */
 export type ActivityEditorFormValue = {
   readonly name: string;
   readonly instruction: string | null;
-  readonly executionMode: SessionDraftExerciseExecutionMode;
-  readonly durationSeconds: number | null;
-  readonly repetitionCount: number | null;
-  readonly seriesCount: number;
-  readonly pauseSeconds: number;
+  readonly executionParameters: ExecutionParametersInput;
   readonly bodyZoneIds: readonly string[];
-  readonly sideMode: SideMode;
+  readonly media: readonly DraftMediaItem[];
 };
+
+export type EditorCategory = { readonly name: string; readonly color: string | null } | null;
 
 export type ActivityEditorFormProps = {
   value: ActivityEditorFormValue;
   onChange: (patch: Partial<ActivityEditorFormValue>) => void;
-  /**
-   * Référentiel persistant des Zones corporelles (V2-PRE-1, plan §3.1,
-   * UI-1652FFC3B512) — chargé par l'appelant (`ExerciseScreen.tsx`), jamais
-   * importé statiquement ici (`BODY_ZONES` n'est plus l'autorité runtime).
-   */
+  /** Référentiel persistant des Zones corporelles (chargé par l'appelant). */
   bodyZones: readonly BodyZone[];
-  /**
-   * R6 (CE-UI-09 L2784, L2816, L2840) : appelé à la fermeture de
-   * `BodyZonePickerModal` (Confirmer ou fermeture sans confirmer), en plus
-   * du repli interne de la sélection — permet à l'appelant de relire le
-   * référentiel `bodyZones` après une création, un renommage ou une
-   * suppression éventuels dans la modale, sans fermer ni rouvrir cet
-   * éditeur. Optionnel : `undefined` préserve le comportement existant.
-   */
   onBodyZonesPickerClose?: () => void;
-  /** V2-PRE-2 (plan §6.5, T13) : silhouette du Profil — icône de Zone dans la modale de sélection (CE-UI-09 L2805). `null`/absente affiche homme. */
   silhouette?: Silhouette | null;
-  /**
-   * V2-BILAT-01 : `true` uniquement pour une Activité `IN_TOUR` de la
-   * Composition gouvernée par un Tour déjà bilatéral (le contrôle `Côté`
-   * devient alors désactivé, la direction du Tour prévalant). `false` par
-   * défaut — le Catalogue n'a pas de notion de Tour.
-   */
-  isSideModeInherited?: boolean;
-  /**
-   * VISUAL_CORRECTION (revue indépendante 5753653735, point 3) : la section
-   * `Médias`, visible et repliable, est désormais affichée IDENTIQUEMENT
-   * quelle que soit l'origine (Composition ET Catalogue) — `true` par
-   * défaut. Le bouton `+ Ajouter un média` unique de la zone bleue
-   * contextuelle (D-105) reste le seul point d'action média, la section
-   * elle-même n'en portant plus aucun (aucune fonction média réelle).
-   */
-  showMediaSection?: boolean;
-  /** Libellé de l'action finale (« Terminer »), identique dans les deux contextes. */
+  /** Catégorie affichée (résolue par l'adaptateur) et ouverture de son sélecteur. */
+  category: EditorCategory;
+  onOpenCategory: () => void;
+  /** Pause entre les côtés du Profil, copiée à l'activation du changement de côté. */
+  profileSideRecoverySecondsDefault: number;
+  /** Service portant l'import de médias ; `null` : section en lecture seule. */
+  mediaService: ActivityDefinitionService | null;
+  /** Identité stable du brouillon (prêts des fichiers préparés). */
+  mediaDraftId: string;
   finishLabel: string;
   onFinish: () => void;
-  /** Contrainte ADDITIONNELLE à la validité du formulaire (ex. sauvegarde Catalogue en cours). */
   isFinishDisabled?: boolean;
-  /** Message d'erreur de sauvegarde (Catalogue uniquement) — rendu au-dessus du bouton, brouillon conservé. */
   errorMessage?: string | null;
   finishSlotTestID: string;
   finishActionTestID: string;
   errorTestID?: string;
 };
 
-type OverlayKind =
-  | "duration"
-  | "repetitionCount"
-  | "pauseSeconds"
-  | "seriesCount"
-  | "totalDuration";
-
-type SectionKey = "description" | "bodyZones" | "executionMode" | "media";
-
 /**
- * Activité valide ⇔ Nom + cible du mode (Durée / Répétitions) valides. Le
- * mode « À l'échec » (T01-S10, D-111) n'a AUCUNE cible : le seul Nom suffit.
- * Description et Zone corporelle restent entièrement facultatives. Exportée
- * pour que chaque adaptateur gouverne l'action finale (`Terminer`) sans
- * dupliquer cette règle.
+ * Validité du brouillon d'Exercice : Nom valide et paramètres canoniques
+ * valides (mode et cibles actifs complets). `requireReferences` (nouvel
+ * Exercice, et toute définition Catalogue) exige aussi une Catégorie et au
+ * moins une Zone (périmètre §5).
  */
-export function isActivityEditorFormValid(value: ActivityEditorFormValue): boolean {
+export function isActivityEditorFormValid(
+  value: ActivityEditorFormValue,
+  options: { readonly requireReferences: boolean; readonly hasCategory: boolean } = {
+    requireReferences: false,
+    hasCategory: true,
+  },
+): boolean {
   if (!validateExerciseName(value.name).ok) {
     return false;
   }
-  if (value.executionMode === "TO_FAILURE") {
-    return true;
+  if (!validateExecutionParameters(value.executionParameters).ok) {
+    return false;
   }
-  if (value.executionMode === "DURATION") {
-    return value.durationSeconds !== null && validateExerciseDurationSeconds(value.durationSeconds).ok;
+  if (options.requireReferences && (!options.hasCategory || value.bodyZoneIds.length === 0)) {
+    return false;
   }
-  return value.repetitionCount !== null && validateRepetitionCount(value.repetitionCount).ok;
+  return true;
 }
 
-/**
- * Facteurs `A`/`B`/`R` de la formule canonique conditionnelle
- * (`calculations.ts`). V2-PRE-1 (plan §3.1) : une `ActivityDefinition` ne
- * porte plus aucune récupération propre — `R` reste `0` (formule `D = L ×
- * [C × A + C × B]`), jamais réintroduite par ce formulaire commun.
- */
-function totalDurationFacts(value: ActivityEditorFormValue): TotalDurationFacts {
-  return {
-    durationSeconds: value.executionMode === "DURATION" ? (value.durationSeconds ?? 0) : 0,
-    pauseSeconds: value.pauseSeconds,
-    postActivityRecoverySeconds: 0,
-  };
-}
+const card = strings.executionParameters.card;
 
 export function ActivityEditorForm({
   value,
@@ -170,8 +118,11 @@ export function ActivityEditorForm({
   bodyZones,
   onBodyZonesPickerClose,
   silhouette = null,
-  isSideModeInherited = false,
-  showMediaSection = true,
+  category,
+  onOpenCategory,
+  profileSideRecoverySecondsDefault,
+  mediaService,
+  mediaDraftId,
   finishLabel,
   onFinish,
   isFinishDisabled = false,
@@ -181,690 +132,337 @@ export function ActivityEditorForm({
   errorTestID,
 }: ActivityEditorFormProps) {
   const insets = useSafeAreaInsets();
-  const [openOverlay, setOpenOverlay] = useState<OverlayKind | null>(null);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isBodyZonePickerOpen, setIsBodyZonePickerOpen] = useState(false);
-  // CE-T01-15 : Description et Zone corporelle FERMÉES par défaut, Mode
-  // d'exécution DÉPLOYÉ par défaut ; Médias (Catalogue) fermée par défaut.
-  const [expandedSections, setExpandedSections] = useState<Record<SectionKey, boolean>>({
-    description: false,
-    bodyZones: false,
-    executionMode: true,
-    media: false,
-  });
-  /**
-   * Ajustement de la `Durée totale` à un nombre entier de Séries (D-136) —
-   * non persisté, effacé dès que n'importe quel autre paramètre change.
-   */
-  const [adjustment, setAdjustment] = useState<{
-    readonly message: string;
-    readonly previousSeriesCount: number;
-  } | null>(null);
+  const parametersCardRef = useRef<View>(null);
+  const media = useMediaImport(mediaService, mediaDraftId, value.media, (next) => onChange({ media: next }));
 
   const t = strings.screens.exercise;
-  const mediaStrings = strings.screens.activities.editor.media;
+  const editor = strings.screens.activities.editor;
+  const parameters = value.executionParameters;
+  const segments = parameters.mode === null ? null : generateExecutionPhrase(parameters);
+  const phrase = segments ? phraseText(segments) : parameters.mode === null ? "" : card.incomplete;
+  const zoneNames = bodyZones.filter((zone) => value.bodyZoneIds.includes(zone.id)).map((zone) => zone.name);
+  const finishDisabled = isFinishDisabled;
 
-  function closeOverlay() {
-    setOpenOverlay(null);
-  }
-
-  function toggleOverlay(kind: OverlayKind) {
+  function openSheet() {
     Keyboard.dismiss();
-    setOpenOverlay((current) => (current === kind ? null : kind));
+    setIsSheetOpen(true);
   }
 
-  function toggleSection(key: SectionKey) {
-    Keyboard.dismiss();
-    closeOverlay();
-    setExpandedSections((current) => ({ ...current, [key]: !current[key] }));
-  }
-
-  function patch(next: Partial<ActivityEditorFormValue>) {
-    setAdjustment(null);
-    onChange(next);
-  }
-
-  function handleExecutionModeChange(mode: SessionDraftExerciseExecutionMode) {
-    if (mode === value.executionMode) {
-      return;
-    }
-    closeOverlay();
-    if (mode === "DURATION") {
-      patch({
-        executionMode: "DURATION",
-        durationSeconds: value.durationSeconds ?? DEFAULT_EXERCISE_DURATION_SECONDS,
-        repetitionCount: null,
-      });
-    } else if (mode === "REPETITIONS") {
-      patch({
-        executionMode: "REPETITIONS",
-        repetitionCount: value.repetitionCount ?? DEFAULT_REPETITION_COUNT,
-        durationSeconds: null,
-      });
-    } else {
-      patch({ executionMode: "TO_FAILURE", durationSeconds: null, repetitionCount: null });
+  function closeSheet() {
+    setIsSheetOpen(false);
+    // Le focus revient au déclencheur (P3-21).
+    const node = findNodeHandle(parametersCardRef.current);
+    if (node !== null) {
+      AccessibilityInfo.setAccessibilityFocus(node);
     }
   }
 
-  /**
-   * Confirmation d'une `Durée totale` CIBLE : n'écrit jamais la durée
-   * elle-même (DM-015/DM-016) — elle pilote `seriesCount` par le calcul
-   * inverse, puis la durée réellement atteignable est recalculée par la
-   * formule directe.
-   */
-  function handleTotalDurationConfirmed(targetTotalSeconds: number) {
-    const previousSeriesCount = value.seriesCount;
-    const adjusted = applyTargetTotalDuration(
-      targetTotalSeconds,
-      totalDurationFacts(value),
-      sideMultiplier(value.sideMode),
-    );
-    patch({ seriesCount: adjusted.seriesCount });
-    closeOverlay();
-    if (adjusted.wasAdjusted) {
-      setAdjustment({
-        message: strings.screens.exercise.adjustedTotalDurationMessage.replace(
-          "{duration}",
-          formatCompactDuration(adjusted.totalDurationSeconds),
-        ),
-        previousSeriesCount,
-      });
-    }
+  function applyParameters(next: ExecutionParameters) {
+    onChange({ executionParameters: next });
+    closeSheet();
   }
-
-  function handleUndoAdjustment() {
-    const restored = adjustment?.previousSeriesCount;
-    setAdjustment(null);
-    if (restored !== undefined) {
-      onChange({ seriesCount: restored });
-    }
-  }
-
-  const sideModeStrings = strings.shared.sideMode;
-  const sideModeAccessibilityLabel = isSideModeInherited
-    ? `${sideModeStrings.activity.accessibilityLabels[value.sideMode]} — ${sideModeStrings.activity.inheritedAccessibilitySuffix}`
-    : sideModeStrings.activity.accessibilityLabels[value.sideMode];
-
-  const recapFacts = {
-    name: value.name,
-    executionMode: value.executionMode,
-    durationSeconds: value.durationSeconds,
-    repetitionCount: value.repetitionCount,
-    seriesCount: value.seriesCount,
-    pauseSeconds: value.pauseSeconds,
-    sideMode: value.sideMode,
-    isSideModeInherited,
-  };
-  const totalDurationSeconds = computeTotalDurationSeconds(
-    value.seriesCount,
-    totalDurationFacts(value),
-    sideMultiplier(value.sideMode),
-  );
-  const formattedTotalDuration = formatDurationRowValue(
-    totalDurationSeconds,
-    Math.max(WHEEL_TOTAL_DURATION_SECONDS_MAX, totalDurationSeconds),
-  );
-  const isTotalDurationDriveable = value.executionMode === "DURATION";
-  const isValid = isActivityEditorFormValid(value);
-  const finishDisabled = !isValid || isFinishDisabled;
 
   return (
     <>
-      {/*
-       * Zone bleue contextuelle (D-105 ; T01-S10, doc13 §8) : accolée sans
-       * espace au séparateur de l'en-tête, fixe (frère du `ScrollView`,
-       * jamais son descendant). Commence par le champ `Nom de l'activité`,
-       * suivi de `+ Ajouter un média` (visible mais désactivé).
-       */}
       <View style={styles.contextBand} testID="exercise-context-band">
         <TextInput
           value={value.name}
-          onChangeText={(text) => patch({ name: text })}
-          onFocus={closeOverlay}
-          placeholder={t.name}
+          onChangeText={(text) => onChange({ name: text })}
+          placeholder={editor.name}
           placeholderTextColor={colors.textSecondary}
-          accessibilityLabel={t.name}
+          accessibilityLabel={editor.name}
           maxLength={NAME_MAX_LENGTH}
           style={styles.nameInput}
           testID="exercise-name-input"
         />
-
-        <Pressable
-          disabled
-          accessibilityRole="button"
-          accessibilityState={{ disabled: true }}
-          accessibilityLabel={t.addMediaUnavailableAccessibilityLabel}
-          style={styles.addMediaButton}
-          testID="exercise-add-media"
-        >
-          <KodjoIcon name="action-add" testID="exercise-add-media-icon" />
-          <Text style={styles.addMediaLabel}>{t.addMedia}</Text>
-        </Pressable>
-      </View>
-
-      <ScrollView
-        style={styles.body}
-        contentContainerStyle={styles.bodyContent}
-        keyboardShouldPersistTaps="handled"
-        testID="exercise-body"
-      >
-        <CollapsibleSection
-          testID="exercise-section-description"
-          title={t.sections.description}
-          expanded={expandedSections.description}
-          onToggle={() => toggleSection("description")}
-        >
-          <TextInput
-            value={value.instruction ?? ""}
-            onChangeText={(text) => patch({ instruction: text.length > 0 ? text : null })}
-            onFocus={closeOverlay}
-            placeholder={t.instruction.label}
-            placeholderTextColor={colors.textSecondary}
-            accessibilityLabel={t.instruction.label}
-            maxLength={INSTRUCTION_MAX_LENGTH}
-            multiline
-            style={styles.instructionInput}
-            testID="exercise-instruction-input"
-          />
-        </CollapsibleSection>
-
-        <CollapsibleSection
-          testID="exercise-section-body-zones"
-          title={t.sections.bodyZones}
-          expanded={expandedSections.bodyZones}
-          onToggle={() => toggleSection("bodyZones")}
-        >
-          {/*
-           * V2-PRE-2 (plan §6.5, CE-UI-09 L2769-2857) : la sélection multiple
-           * s'ouvre désormais dans `BodyZonePickerModal` (validation explicite
-           * par `Confirmer`) — jamais le bascule immédiat historique.
-           */}
+        <View style={styles.referenceRow}>
           <Pressable
-            onPress={() => setIsBodyZonePickerOpen(true)}
+            onPress={onOpenCategory}
             accessibilityRole="button"
-            accessibilityLabel={t.bodyZones.accessibilityLabel}
-            style={styles.bodyZonesSummaryRow}
+            accessibilityLabel={
+              category ? `${editor.category.label} ${category.name}` : editor.category.unsetAccessibilityLabel
+            }
+            hitSlop={5}
+            style={[styles.referencePill, category ? null : styles.referenceIconOnly]}
+            testID="activity-editor-category-button"
+          >
+            {category ? (
+              <>
+                {category.color ? (
+                  <View style={[styles.categorySwatch, { backgroundColor: category.color }]} testID="activity-editor-category-swatch" />
+                ) : null}
+                <Text style={styles.referenceLabel}>{category.name}</Text>
+              </>
+            ) : (
+              <KodjoIcon name="icon-tour" testID="activity-editor-category-icon" />
+            )}
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              Keyboard.dismiss();
+              setIsBodyZonePickerOpen(true);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={
+              zoneNames.length > 0
+                ? `${t.bodyZones.accessibilityLabel} ${zoneNames.join(", ")}`
+                : t.bodyZones.accessibilityLabel
+            }
+            hitSlop={5}
+            style={[styles.referencePill, zoneNames.length > 0 ? null : styles.referenceIconOnly]}
             testID="exercise-body-zones-open"
           >
-            <Text style={styles.bodyZonesSummaryText}>
-              {formatExerciseBodyZones(value.bodyZoneIds, bodyZones) ?? t.bodyZones.accessibilityLabel}
-            </Text>
+            {zoneNames.length > 0 ? (
+              <Text style={styles.referenceLabel} numberOfLines={1}>
+                {zoneNames.join(" · ")}
+              </Text>
+            ) : (
+              <BodyZoneIcon silhouette={silhouette} size={26} />
+            )}
           </Pressable>
-        </CollapsibleSection>
-
-        <CollapsibleSection
-          testID="exercise-section-execution-mode"
-          title={t.sections.executionMode}
-          expanded={expandedSections.executionMode}
-          onToggle={() => toggleSection("executionMode")}
-        >
-          <View style={styles.executionModeGroup} testID="exercise-execution-mode-group">
-            {/*
-             * V2-CAT-01 (UI-CAT-R-004) : primitive `SegmentedControl`
-             * partagée (`@/shared/ui/SegmentedControl`) — remplace le
-             * segment local `SegmentButton`/`styles.segment*`, sans toucher
-             * aux règles métier de changement de mode (`handleExecutionModeChange`,
-             * inchangée).
-             */}
-            <SegmentedControl
-              options={[
-                { value: "DURATION", label: t.executionMode.duration },
-                { value: "REPETITIONS", label: t.executionMode.repetitions },
-                { value: "TO_FAILURE", label: t.executionMode.toFailure },
-              ]}
-              value={value.executionMode}
-              onChange={handleExecutionModeChange}
-              accessibilityLabel={t.executionMode.label}
-              testID="exercise-execution-mode-segmented-control"
-            />
-
-            <View style={styles.parameterCard} testID="exercise-parameter-card">
-              <View style={styles.parameterRow} testID="exercise-parameter-row">
-                <ParameterField
-                  testID="exercise-field-seriesCount"
-                  width={dimensions.exerciseParameterRow.narrowColumnWidth}
-                  label={t.seriesCount.compactLabel}
-                  accessibilityLabel={t.seriesCount.accessibilityLabel}
-                  value={String(value.seriesCount)}
-                  isOpen={openOverlay === "seriesCount"}
-                  onPress={() => toggleOverlay("seriesCount")}
-                />
-                {value.executionMode === "DURATION" ? (
-                  <ParameterField
-                    testID="exercise-field-duration"
-                    width={dimensions.exerciseParameterRow.wideColumnWidth}
-                    label={t.duration.label}
-                    accessibilityLabel={t.duration.accessibilityLabel}
-                    value={formatDurationRowValue(
-                      value.durationSeconds ?? 0,
-                      WHEEL_EXERCISE_DURATION_SECONDS_MAX,
-                    )}
-                    isOpen={openOverlay === "duration"}
-                    onPress={() => toggleOverlay("duration")}
-                  />
-                ) : null}
-                {value.executionMode === "REPETITIONS" ? (
-                  <ParameterField
-                    testID="exercise-field-repetitionCount"
-                    width={dimensions.exerciseParameterRow.wideColumnWidth}
-                    label={t.repetitionCount.compactLabel}
-                    accessibilityLabel={t.repetitionCount.accessibilityLabel}
-                    value={String(value.repetitionCount ?? DEFAULT_REPETITION_COUNT)}
-                    isOpen={openOverlay === "repetitionCount"}
-                    onPress={() => toggleOverlay("repetitionCount")}
-                  />
-                ) : null}
-                {value.executionMode === "TO_FAILURE" ? (
-                  <StaticParameterField
-                    testID="exercise-field-toFailure"
-                    width={dimensions.exerciseParameterRow.wideColumnWidth}
-                    label={null}
-                    value={t.executionMode.toFailure}
-                    accessibilityLabel={t.executionMode.toFailure}
-                  />
-                ) : null}
-                <ParameterField
-                  testID="exercise-field-pauseSeconds"
-                  width={dimensions.exerciseParameterRow.wideColumnWidth}
-                  label={t.pauseSeconds.compactLabel}
-                  accessibilityLabel={t.pauseSeconds.accessibilityLabel}
-                  value={formatDurationRowValue(value.pauseSeconds, WHEEL_PAUSE_SECONDS_MAX)}
-                  isOpen={openOverlay === "pauseSeconds"}
-                  onPress={() => toggleOverlay("pauseSeconds")}
-                />
-              </View>
-
-              <View style={styles.parameterRow} testID="exercise-parameter-row-secondary">
-                <SideModeControl
-                  value={value.sideMode}
-                  onChange={(next) => patch({ sideMode: next })}
-                  title={sideModeStrings.activity.label}
-                  accessibilityLabel={sideModeAccessibilityLabel}
-                  disabled={isSideModeInherited}
-                  testID="exercise-side-mode"
-                />
-                {isTotalDurationDriveable ? (
-                  <ParameterField
-                    testID="exercise-field-totalDuration"
-                    width={dimensions.exerciseParameterRow.wideColumnWidth}
-                    label={t.totalDuration.compactLabel}
-                    accessibilityLabel={t.totalDuration.accessibilityLabel}
-                    value={formattedTotalDuration}
-                    isOpen={openOverlay === "totalDuration"}
-                    onPress={() => toggleOverlay("totalDuration")}
-                  />
-                ) : (
-                  <StaticParameterField
-                    testID="exercise-field-totalDuration"
-                    width={dimensions.exerciseParameterRow.wideColumnWidth}
-                    label={t.totalDuration.compactLabelLowerBound}
-                    value={formattedTotalDuration}
-                    accessibilityLabel={t.totalDuration.accessibilityLabelLowerBound}
-                  />
-                )}
-              </View>
-            </View>
-          </View>
-        </CollapsibleSection>
-
-        {/*
-         * VISUAL_CORRECTION (revue indépendante 5753653735, point 3) :
-         * section `Médias` — présentation IDENTIQUE quelle que soit
-         * l'origine (Composition ET Catalogue, `showMediaSection` par
-         * défaut `true` désormais). Le texte d'état vide (« Aucun média
-         * pour cette activité ») et le bouton `Ajouter un média` REDONDANT
-         * de cette section sont retirés — celui de la zone bleue
-         * contextuelle, sous le nom (`exercise-add-media`), reste le seul,
-         * conformément à D-105. Visible et repliable, aucune fonction
-         * média réelle.
-         */}
-        {showMediaSection ? (
-          <CollapsibleSection
-            testID="activity-editor-section-media"
-            title={mediaStrings.label}
-            expanded={expandedSections.media}
-            onToggle={() => toggleSection("media")}
-          >
-            {null}
-          </CollapsibleSection>
-        ) : null}
-      </ScrollView>
-
-      {/*
-       * Synthèse FIXE et NON DÉFILANTE (CE-T01-13). Le nom de l'Activité est
-       * en GRAS uniquement ici (revue 5732014381, obligation 5) — jamais
-       * dans le champ de saisie.
-       */}
-      <View style={styles.summaryCard} testID="exercise-summary-card">
-        <Text style={styles.summaryText}>
-          <BoldenedName recap={formatExerciseRecap(recapFacts)} name={value.name} />
-        </Text>
-        <Text style={styles.summaryDurationText} testID="exercise-summary-duration">
-          {formatExerciseDurationLine(recapFacts)}
-        </Text>
+        </View>
       </View>
 
-      <WheelPickerOverlay visible={openOverlay !== null}>
-        {openOverlay === "duration" ? (
-          <DurationWheelPicker
-            totalSeconds={value.durationSeconds ?? DEFAULT_EXERCISE_DURATION_SECONDS}
-            onValidate={(totalSeconds) => {
-              patch({ durationSeconds: totalSeconds });
-              closeOverlay();
-            }}
-            onCancel={closeOverlay}
-            maxTotalSeconds={WHEEL_EXERCISE_DURATION_SECONDS_MAX}
-            minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
-            secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
-            cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
-            validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
-          />
-        ) : null}
-        {openOverlay === "repetitionCount" ? (
-          <NumberWheelPicker
-            value={value.repetitionCount ?? DEFAULT_REPETITION_COUNT}
-            onValidate={(next) => {
-              patch({ repetitionCount: next });
-              closeOverlay();
-            }}
-            onCancel={closeOverlay}
-            accessibilityLabel={t.repetitionCount.wheelAccessibilityLabel}
-            cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
-            validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
-            testID="exercise-repetition-count-wheel"
-          />
-        ) : null}
-        {openOverlay === "pauseSeconds" ? (
-          <DurationWheelPicker
-            totalSeconds={value.pauseSeconds}
-            onValidate={(totalSeconds) => {
-              patch({ pauseSeconds: totalSeconds });
-              closeOverlay();
-            }}
-            onCancel={closeOverlay}
-            maxTotalSeconds={WHEEL_PAUSE_SECONDS_MAX}
-            minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
-            secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
-            cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
-            validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
-          />
-        ) : null}
-        {openOverlay === "seriesCount" ? (
-          <NumberWheelPicker
-            value={value.seriesCount}
-            onValidate={(next) => {
-              patch({ seriesCount: next });
-              closeOverlay();
-            }}
-            onCancel={closeOverlay}
-            accessibilityLabel={t.seriesCount.wheelAccessibilityLabel}
-            cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
-            validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
-            testID="exercise-series-count-wheel"
-          />
-        ) : null}
-        {openOverlay === "totalDuration" && isTotalDurationDriveable ? (
-          <DurationWheelPicker
-            totalSeconds={Math.min(totalDurationSeconds, WHEEL_TOTAL_DURATION_SECONDS_MAX)}
-            onValidate={handleTotalDurationConfirmed}
-            onCancel={closeOverlay}
-            maxTotalSeconds={WHEEL_TOTAL_DURATION_SECONDS_MAX}
-            minutesAccessibilityLabel={t.wheelPicker.minutesAccessibilityLabel}
-            secondsAccessibilityLabel={t.wheelPicker.secondsAccessibilityLabel}
-            cancelAccessibilityLabel={t.wheelPicker.cancelAccessibilityLabel}
-            validateAccessibilityLabel={t.wheelPicker.validateAccessibilityLabel}
-          />
-        ) : null}
-      </WheelPickerOverlay>
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <ScrollView
+          style={styles.body}
+          contentContainerStyle={styles.bodyContent}
+          keyboardShouldPersistTaps="handled"
+          testID="exercise-body"
+        >
+          <View style={styles.parametersBlock}>
+            <View style={styles.parametersHeader}>
+              <Text style={styles.sectionTitle} accessibilityRole="header">
+                {card.title}
+              </Text>
+              <Pressable
+                onPress={openSheet}
+                accessibilityRole="button"
+                accessibilityLabel={card.openAccessibilityLabel}
+                hitSlop={9}
+                style={styles.valuePill}
+                testID="exercise-parameters-mode"
+              >
+                <Text style={styles.valuePillText}>
+                  {parameters.mode === null ? card.chooseMode : strings.executionParameters.sheet.modes[parameters.mode]}
+                </Text>
+              </Pressable>
+            </View>
+            <Pressable
+              ref={parametersCardRef}
+              onPress={openSheet}
+              accessibilityRole="button"
+              accessibilityLabel={`${card.openAccessibilityLabel}. ${phrase} ${card.countdown} ${parameters.countdownSeconds} s, ${card.end} ${parameters.endSeconds} s.`}
+              style={styles.parametersCard}
+              testID="exercise-parameters-card"
+            >
+              <Text style={styles.phrase} testID="exercise-parameters-phrase">
+                {segments
+                  ? segments.map((segment, index) =>
+                      segment.gras ? (
+                        <Text key={index} style={styles.phraseBold}>
+                          {segment.texte}
+                        </Text>
+                      ) : (
+                        segment.texte
+                      ),
+                    )
+                  : phrase}
+              </Text>
+              <View style={styles.cardSeparator} />
+              <View style={styles.phasesRow}>
+                <View style={styles.phase}>
+                  <Text style={styles.phaseLabel}>{card.countdown}</Text>
+                  <Text style={styles.phaseValue} testID="exercise-parameters-countdown">
+                    {`${parameters.countdownSeconds} s`}
+                  </Text>
+                </View>
+                <View style={styles.phase}>
+                  <Text style={styles.phaseLabel}>{card.end}</Text>
+                  <Text style={styles.phaseValue} testID="exercise-parameters-end">
+                    {`${parameters.endSeconds} s`}
+                  </Text>
+                </View>
+              </View>
+            </Pressable>
+          </View>
+
+          <View style={styles.section} testID="exercise-section-description">
+            <Text style={styles.sectionTitle} accessibilityRole="header">
+              {t.instruction.label}
+            </Text>
+            <TextInput
+              value={value.instruction ?? ""}
+              onChangeText={(text) => onChange({ instruction: text.length > 0 ? text : null })}
+              placeholder={card.descriptionPlaceholder}
+              placeholderTextColor={colors.textSecondary}
+              accessibilityLabel={t.instruction.label}
+              maxLength={INSTRUCTION_MAX_LENGTH}
+              multiline
+              style={styles.instructionInput}
+              testID="exercise-instruction-input"
+            />
+          </View>
+
+          <View style={styles.section} testID="activity-editor-section-media">
+            <Text style={styles.sectionTitle} accessibilityRole="header">
+              {strings.executionParameters.media.section}
+            </Text>
+            <ActivityMediaList
+              media={value.media}
+              pending={media.pending}
+              notice={media.notice}
+              canImport={mediaService !== null && mediaService.supportsMediaImport}
+              resolveUri={(uri) => (mediaService ? mediaService.resolveMediaUri(uri) : uri)}
+              onAdd={media.importFromLibrary}
+              onRemove={(index) => onChange({ media: value.media.filter((_, position) => position !== index) })}
+              onMove={(from, to) => onChange({ media: moveDraftMedia(value.media, from, to) })}
+              onRetry={media.retry}
+            />
+          </View>
+        </ScrollView>
+
+        <View style={[styles.finishActionSlot, { marginBottom: insets.bottom + spacing[16] }]} testID={finishSlotTestID}>
+          {errorMessage ? (
+            <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID={errorTestID}>
+              {errorMessage}
+            </Text>
+          ) : null}
+          <Pressable
+            disabled={finishDisabled}
+            onPress={onFinish}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: finishDisabled }}
+            accessibilityLabel={finishLabel}
+            style={[styles.primaryAction, finishDisabled ? styles.primaryActionDisabled : null]}
+            testID={finishActionTestID}
+          >
+            <Text style={styles.primaryActionLabel}>{finishLabel}</Text>
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
+
+      {isSheetOpen ? (
+        <ExecutionParametersSheet
+          parent={parameters}
+          profileSideRecoverySecondsDefault={profileSideRecoverySecondsDefault}
+          onApply={applyParameters}
+          onCancel={closeSheet}
+        />
+      ) : null}
 
       {isBodyZonePickerOpen ? (
         <BodyZonePickerModal
           selectedIds={value.bodyZoneIds}
-          onConfirm={(ids) => patch({ bodyZoneIds: ids })}
+          onConfirm={(ids) => onChange({ bodyZoneIds: ids })}
           onClose={() => {
             setIsBodyZonePickerOpen(false);
-            // R6 : relit `bodyZones` (référentiel de l'appelant) après une
-            // création, un renommage ou une suppression dans la modale.
             onBodyZonesPickerClose?.();
           }}
           silhouette={silhouette}
         />
       ) : null}
-
-      {/*
-       * Action finale unique (D-137) : `Terminer`. Enveloppée dans un
-       * conteneur de POSITIONNEMENT (`finishActionSlot`) qui sert aussi de
-       * repère à la notification temporaire, laquelle le recouvre
-       * EXACTEMENT. Un message d'erreur de sauvegarde (Catalogue) reste
-       * visible au-dessus du bouton, sans perdre le brouillon local.
-       */}
-      <View
-        style={[styles.finishActionSlot, { marginBottom: insets.bottom + spacing[16] }]}
-        testID={finishSlotTestID}
-      >
-        {errorMessage ? (
-          <Text style={styles.saveErrorText} testID={errorTestID}>
-            {errorMessage}
-          </Text>
-        ) : null}
-        <Pressable
-          disabled={finishDisabled}
-          onPress={onFinish}
-          accessibilityRole="button"
-          accessibilityState={{ disabled: finishDisabled }}
-          accessibilityLabel={finishLabel}
-          style={[styles.primaryAction, finishDisabled ? styles.primaryActionDisabled : null]}
-          testID={finishActionTestID}
-        >
-          <Text style={styles.primaryActionLabel}>{finishLabel}</Text>
-        </Pressable>
-
-        <TransientNotification
-          message={adjustment?.message ?? null}
-          actionLabel={t.adjustedTotalDurationUndoAction}
-          onAction={handleUndoAdjustment}
-          onDismiss={() => setAdjustment(null)}
-          testID="exercise-adjustment-notification"
-        />
-      </View>
     </>
   );
 }
 
 /**
- * Rend `recap` en mettant en gras la première occurrence de `name` — le
- * nom de l'Activité, seul élément en gras de la synthèse (revue 5732014381,
- * obligation 5). Un nom vide (encore invalide, `Terminer` désactivé) rend le
- * texte intégral sans mise en forme particulière.
+ * Import de médias du brouillon : éléments prêts AJOUTÉS EN FIN de la liste
+ * (ordre de sélection conservé), éléments en cours / en erreur gardés à part
+ * avec Réessayer ; annulation sans effet ; refus d'accès actionnable.
+ * Aucune écriture SQLite : l'enregistrement reste celui de « Terminer ».
  */
-function BoldenedName({ recap, name }: { recap: string; name: string }): ReactNode {
-  if (name.length === 0) {
-    return recap;
+function useMediaImport(
+  service: ActivityDefinitionService | null,
+  draftId: string,
+  media: readonly DraftMediaItem[],
+  onMedia: (next: readonly DraftMediaItem[]) => void,
+) {
+  const [pending, setPending] = useState<readonly ImportItem[]>([]);
+  const [notice, setNotice] = useState<MediaNotice>(null);
+  const mediaRef = useRef(media);
+  const onMediaRef = useRef(onMedia);
+  useEffect(() => {
+    mediaRef.current = media;
+    onMediaRef.current = onMedia;
+  });
+
+  function append(items: readonly DraftMediaItem[]) {
+    if (items.length === 0) return;
+    const known = new Set(mediaRef.current.map((item) => item.assetId));
+    const next = [...mediaRef.current, ...items.filter((item) => !known.has(item.assetId))];
+    mediaRef.current = next;
+    onMediaRef.current(next);
   }
-  const index = recap.indexOf(name);
-  if (index === -1) {
-    return recap;
+
+  function handleResult(result: ImportResult | null) {
+    if (!result) return;
+    if (result.status === "CANCELED") {
+      setPending([]);
+      return;
+    }
+    if (result.status === "PERMISSION_DENIED") {
+      setNotice(result.canAskAgain ? "PERMISSION_DENIED" : "PERMISSION_DENIED_FINAL");
+      return;
+    }
+    if (result.status === "ERROR") {
+      setNotice("ERROR");
+      return;
+    }
+    setNotice(result.limitedAccess ? "LIMITED" : null);
+    append(result.items.flatMap((item) => (item.state === "READY" ? [item.media] : [])));
+    setPending(result.items.filter((item) => item.state === "FAILED"));
   }
-  const before = recap.slice(0, index);
-  const after = recap.slice(index + name.length);
-  return (
-    <>
-      {before}
-      <Text style={styles.summaryTextBoldName} testID="exercise-summary-name">
-        {name}
-      </Text>
-      {after}
-    </>
-  );
-}
 
-function CollapsibleSection({
-  testID,
-  title,
-  expanded,
-  onToggle,
-  children,
-}: {
-  testID: string;
-  title: string;
-  expanded: boolean;
-  onToggle: () => void;
-  children: ReactNode;
-}) {
-  const sections = strings.screens.exercise.sections;
-  const headerAccessibilityLabel = `${expanded ? sections.collapseAction : sections.expandAction} ${title}`;
+  // Android : un résultat du sélecteur en attente (activité recréée) est importé une seule fois.
+  useEffect(() => {
+    if (!service) return;
+    service.leaseDraftMedia(draftId, mediaRef.current.map((item) => item.assetId));
+    service.importPendingMedia(draftId, setPending).then(handleResult, () => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [service, draftId]);
 
-  return (
-    <View testID={testID}>
-      <Pressable
-        onPress={onToggle}
-        accessibilityRole="button"
-        accessibilityState={{ expanded }}
-        accessibilityLabel={headerAccessibilityLabel}
-        style={styles.sectionHeader}
-        testID={`${testID}-header`}
-      >
-        <Text style={styles.sectionTitle}>{title}</Text>
-        <DisclosureControl
-          expanded={expanded}
-          onPress={onToggle}
-          decorative
-          testID={`${testID}-disclosure`}
-        />
-      </Pressable>
-      {expanded ? (
-        <View style={styles.sectionContent} testID={`${testID}-content`}>
-          {children}
-        </View>
-      ) : null}
-    </View>
-  );
-}
-
-const LABEL_PLACEHOLDER = " ";
-
-const PARAMETER_CONTROL_HIT_SLOP = {
-  top: (minTouchTarget - dimensions.exerciseParameterRow.controlHeight) / 2,
-  bottom: (minTouchTarget - dimensions.exerciseParameterRow.controlHeight) / 2,
-  left: 0,
-  right: 0,
-} as const;
-
-function ParameterField({
-  testID,
-  width,
-  label,
-  value,
-  isOpen,
-  onPress,
-  accessibilityLabel,
-}: {
-  testID: string;
-  width: number;
-  label: string;
-  value: string;
-  isOpen: boolean;
-  onPress: () => void;
-  accessibilityLabel: string;
-}) {
-  return (
-    <View style={{ width, gap: dimensions.exerciseParameterRow.labelGap }} testID={testID}>
-      <Text style={styles.parameterLabel} numberOfLines={1}>
-        {label}
-      </Text>
-      <Pressable
-        onPress={onPress}
-        accessibilityRole="button"
-        accessibilityLabel={accessibilityLabel}
-        accessibilityState={{ expanded: isOpen }}
-        hitSlop={PARAMETER_CONTROL_HIT_SLOP}
-        style={[styles.parameterControl, { width }]}
-        testID={`${testID}-control`}
-      >
-        <Text style={styles.parameterValue} numberOfLines={1}>
-          {value}
-        </Text>
-        <View style={styles.parameterChevronBox} testID={`${testID}-chevron-box`}>
-          <KodjoIcon name="select-field-chevron" testID={`${testID}-chevron`} />
-        </View>
-      </Pressable>
-    </View>
-  );
-}
-
-function StaticParameterField({
-  testID,
-  width,
-  label,
-  value,
-  accessibilityLabel,
-}: {
-  testID: string;
-  width: number;
-  label: string | null;
-  value: string;
-  accessibilityLabel: string;
-}) {
-  return (
-    <View style={{ width, gap: dimensions.exerciseParameterRow.labelGap }} testID={testID}>
-      {label === null ? (
-        <Text
-          style={styles.parameterLabel}
-          numberOfLines={1}
-          accessible={false}
-          importantForAccessibility="no-hide-descendants"
-          testID={`${testID}-label-spacer`}
-        >
-          {LABEL_PLACEHOLDER}
-        </Text>
-      ) : (
-        <Text style={styles.parameterLabel} numberOfLines={1}>
-          {label}
-        </Text>
-      )}
-      <View
-        style={[styles.parameterControl, styles.parameterControlStatic, { width }]}
-        accessibilityRole="text"
-        accessibilityLabel={accessibilityLabel}
-        testID={`${testID}-control`}
-      >
-        <Text style={styles.parameterValueStatic} numberOfLines={1}>
-          {value}
-        </Text>
-      </View>
-    </View>
-  );
+  return {
+    pending,
+    notice,
+    importFromLibrary: () => {
+      if (!service) return;
+      setNotice(null);
+      service.importMedia(draftId, setPending).then(handleResult, () => setNotice("ERROR"));
+    },
+    retry: (item: ImportItem) => {
+      if (!service) return;
+      setPending((current) =>
+        current.map((entry) => (entry.key === item.key ? { key: entry.key, state: "IMPORTING", picked: entry.picked } : entry)),
+      );
+      service.retryMediaImport(draftId, item).then(
+        (result) => {
+          if (result.state === "READY") {
+            append([result.media]);
+            setPending((current) => current.filter((entry) => entry.key !== item.key));
+          } else {
+            setPending((current) => current.map((entry) => (entry.key === item.key ? result : entry)));
+          }
+        },
+        () => setPending((current) => current.map((entry) => (entry.key === item.key ? item : entry))),
+      );
+    },
+  };
 }
 
 const styles = StyleSheet.create({
-  body: {
+  flex: {
     flex: 1,
-  },
-  bodyContent: {
-    flexGrow: 1,
-    paddingHorizontal: spacing[24],
-    paddingTop: spacing[16],
-    paddingBottom: spacing[16],
-    gap: spacing[24],
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  sectionTitle: {
-    ...type.sectionTitle,
-    color: colors.textPrimary,
-  },
-  sectionContent: {
-    marginTop: spacing[12],
   },
   contextBand: {
     backgroundColor: colors.exerciseContextBandBackground,
     paddingHorizontal: spacing[24],
-    height: dimensions.contextBand.height,
+    minHeight: dimensions.contextBand.height,
     paddingTop: dimensions.contextBand.paddingTop,
     paddingBottom: dimensions.contextBand.paddingBottom,
-    justifyContent: "space-between",
+    gap: spacing[12],
   },
   nameInput: {
     ...type.screenTitle,
@@ -872,136 +470,154 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     borderWidth: 1,
     borderColor: colors.sessionNameBorder,
-    borderRadius: dimensions.exerciseTextField.radius,
-    height: dimensions.exerciseTextField.height,
+    borderRadius: fixedRadii[10],
+    minHeight: 42,
     paddingHorizontal: dimensions.exerciseTextField.paddingHorizontal,
   },
-  instructionInput: {
-    ...type.body,
-    color: colors.textPrimary,
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: spacing[16],
-    paddingVertical: spacing[12],
-    minHeight: 120,
-    textAlignVertical: "top",
-  },
-  parameterCard: {
-    width: dimensions.exerciseParameterRow.cardWidth,
-    padding: dimensions.exerciseParameterRow.cardPadding,
-    borderRadius: dimensions.exerciseParameterRow.cardRadius,
-    backgroundColor: colors.exerciseParameterCardBackground,
-    gap: dimensions.exerciseParameterRow.columnGap,
-  },
-  parameterRow: {
+  referenceRow: {
     flexDirection: "row",
-    width: dimensions.exerciseParameterRow.rowWidth,
-    height: dimensions.exerciseParameterRow.rowHeight,
-    gap: dimensions.exerciseParameterRow.columnGap,
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: spacing[8],
   },
-  parameterLabel: {
-    ...type.parameterColumnLabel,
-    color: colors.exerciseParameterLabelText,
+  referencePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[6],
+    minHeight: 32,
+    maxWidth: "100%",
+    paddingLeft: spacing[4],
+    paddingRight: spacing[12],
+    borderRadius: fixedRadii[16],
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: colors.background,
   },
-  parameterControl: {
+  referenceIconOnly: {
+    width: 34,
+    height: 34,
+    paddingLeft: 0,
+    paddingRight: 0,
+    borderRadius: fixedRadii[17],
+    justifyContent: "center",
+  },
+  categorySwatch: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+  },
+  referenceLabel: {
+    ...type.button,
+    color: colors.primary,
+    flexShrink: 1,
+  },
+  body: {
+    flex: 1,
+  },
+  bodyContent: {
+    flexGrow: 1,
+    paddingHorizontal: spacing[24],
+    paddingTop: spacing[14],
+    paddingBottom: spacing[12],
+    gap: spacing[16],
+  },
+  parametersBlock: {
+    gap: spacing[8],
+  },
+  parametersHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    height: dimensions.exerciseParameterRow.controlHeight,
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.exerciseParameterControlBorder,
-    borderRadius: dimensions.exerciseParameterRow.controlRadius,
-    paddingLeft: dimensions.exerciseParameterRow.controlPaddingLeft,
-    paddingRight: dimensions.exerciseParameterRow.controlPaddingRight,
-  },
-  parameterValue: {
-    ...type.label,
-    color: colors.exerciseParameterValueText,
-  },
-  parameterControlStatic: {
-    justifyContent: "center",
-    backgroundColor: "transparent",
-  },
-  parameterValueStatic: {
-    ...type.label,
-    color: colors.selection,
-  },
-  parameterChevronBox: {
-    width: dimensions.exerciseParameterRow.chevronBox,
-    height: dimensions.exerciseParameterRow.chevronBox,
-    borderRadius: dimensions.exerciseParameterRow.chevronBoxRadius,
-    backgroundColor: colors.tourSurface,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  executionModeGroup: {
     gap: spacing[8],
   },
-  bodyZonesSummaryRow: {
-    minHeight: minTouchTarget,
-    justifyContent: "center",
-    paddingVertical: spacing[8],
-    paddingHorizontal: spacing[12],
-    borderRadius: 20,
+  sectionTitle: {
+    ...type.sectionTitle,
+    color: colors.textPrimary,
+    flexShrink: 1,
+  },
+  valuePill: {
+    backgroundColor: colors.surface,
+    borderRadius: fixedRadii[10],
+    paddingVertical: spacing[4],
+    paddingHorizontal: spacing[10],
+  },
+  valuePillText: {
+    ...type.button,
+    lineHeight: 18,
+    color: colors.primary,
+  },
+  parametersCard: {
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.surface,
+    borderRadius: fixedRadii[12],
+    paddingHorizontal: spacing[14],
+    paddingVertical: spacing[12],
+    gap: spacing[4],
+    backgroundColor: colors.background,
   },
-  bodyZonesSummaryText: {
-    ...type.body,
+  // Phrase : Inter 13, interligne 20, valeurs Semi Bold ; hauteur intrinsèque, jamais tronquée.
+  phrase: {
+    ...type.exerciseFieldValue,
+    lineHeight: 20,
     color: colors.textPrimary,
   },
-  addMediaButton: {
-    alignSelf: "center",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing[6],
-    height: dimensions.compactSecondaryButton.visualHeight,
-    borderRadius: dimensions.compactSecondaryButton.radius,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing[16],
-  },
-  addMediaLabel: {
-    ...type.button,
-    color: colors.textSecondary,
-  },
-  summaryCard: {
-    marginHorizontal: spacing[24],
-    marginTop: spacing[8],
-    borderWidth: 1,
-    borderColor: colors.tourSurface,
-    borderRadius: dimensions.exerciseSummaryCard.radius,
-    paddingHorizontal: dimensions.exerciseSummaryCard.paddingHorizontal,
-    paddingVertical: dimensions.exerciseSummaryCard.paddingVertical,
-    gap: dimensions.exerciseSummaryCard.paddingVertical,
-  },
-  summaryText: {
-    ...type.body,
-    color: colors.exerciseParameterValueText,
-  },
-  summaryTextBoldName: {
-    ...type.body,
+  phraseBold: {
     fontFamily: "Inter_600SemiBold",
     fontWeight: "600",
-    color: colors.exerciseParameterValueText,
   },
-  summaryDurationText: {
-    ...type.label,
+  cardSeparator: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginTop: spacing[4],
+  },
+  phasesRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    columnGap: spacing[24],
+    rowGap: spacing[4],
+    paddingTop: spacing[4],
+  },
+  phase: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[6],
+  },
+  phaseLabel: {
+    ...type.exerciseFieldValue,
     color: colors.textPrimary,
+  },
+  phaseValue: {
+    ...type.editableValue,
+    color: colors.primary,
+    backgroundColor: colors.surface,
+    borderRadius: fixedRadii[6],
+    overflow: "hidden",
+    paddingHorizontal: spacing[8],
+    paddingVertical: 2,
+  },
+  section: {
+    gap: spacing[8],
+  },
+  instructionInput: {
+    ...type.exerciseFieldValue,
+    color: colors.textPrimary,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.disabled,
+    borderRadius: fixedRadii[8],
+    padding: spacing[14],
+    minHeight: 44,
+    textAlignVertical: "top",
   },
   finishActionSlot: {
     position: "relative",
-    marginTop: spacing[16],
+    marginTop: spacing[8],
     marginHorizontal: spacing[24],
   },
   primaryAction: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: spacing[12],
+    minHeight: 48,
     borderRadius: 24,
     backgroundColor: colors.primary,
   },
@@ -1019,3 +635,5 @@ const styles = StyleSheet.create({
     marginBottom: spacing[8],
   },
 });
+
+export const EDITOR_MIN_TOUCH_TARGET = minTouchTarget;

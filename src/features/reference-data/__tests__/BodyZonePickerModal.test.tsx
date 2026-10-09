@@ -5,6 +5,7 @@ import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { BodyZonePickerModal } from "@/features/reference-data/BodyZonePickerModal";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
+import { StyleSheet } from "react-native";
 
 function aZone(overrides: Partial<BodyZone> = {}): BodyZone {
   return {
@@ -195,5 +196,80 @@ describe("BodyZonePickerModal — R4/R10 (défilement, en-tête accessible, éch
 
     expect(screen.getByTestId("body-zone-picker-write-error")).toBeTruthy();
     expect(screen.getByTestId("body-zone-picker-new-name-input").props.value).toBe("Avant-bras");
+  });
+});
+
+/**
+ * PRE-3 — feuille « Zones corporelles » (Figma 4478:7209, 4683:6336) ;
+ * règles PRE-2 conservées (sélection multiple, confirmation explicite, D2/D4).
+ */
+describe("BodyZonePickerModal — PRE-3", () => {
+  it("P3-03/empty-create-name — nom vide ou blanc : Ajouter inactif, aucun message d'erreur ; un nom valide l'active", async () => {
+    renderModal(fakeReferentialService());
+    fireEvent.press(await screen.findByTestId("body-zone-picker-create-action"));
+    expect(screen.getByTestId("body-zone-picker-new-add").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.changeText(screen.getByTestId("body-zone-picker-new-name-input"), "  ");
+    expect(screen.getByTestId("body-zone-picker-new-add").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.queryByTestId("body-zone-picker-new-error")).toBeNull();
+    expect(screen.queryByTestId("body-zone-picker-write-error")).toBeNull();
+    fireEvent.changeText(screen.getByTestId("body-zone-picker-new-name-input"), "Avant-bras");
+    expect(screen.getByTestId("body-zone-picker-new-add").props.accessibilityState).toMatchObject({ disabled: false });
+  });
+
+  it("P3-03/zones-presentation — pastilles textuelles sans silhouette répétée ; en-tête ✕ / titre / ✓ ; sélections conservées après aller-retour", async () => {
+    const onConfirm = jest.fn();
+    renderModal(fakeReferentialService(), { selectedIds: ["cou"], onConfirm, silhouette: "femme" });
+    await screen.findByTestId("body-zone-selector-tag-cou");
+    expect(screen.queryByTestId("body-zone-selector-icon-cou")).toBeNull();
+    expect(screen.queryByTestId("body-zone-selector-icon-epaules")).toBeNull();
+    expect(screen.getByTestId("body-zone-picker-header")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("body-zone-selector-tag-epaules"));
+    fireEvent.press(screen.getByTestId("body-zone-picker-confirm"));
+    expect(onConfirm).toHaveBeenCalledWith(["cou", "epaules"]);
+  });
+
+  it("P3-20/all-surfaces — feuille ancrée en bas, voile #1F2129 à 34 %, en-tête au-dessus du contenu défilant", async () => {
+    renderModal(fakeReferentialService());
+    await screen.findByTestId("body-zone-selector-tag-cou");
+    const backdrop = StyleSheet.flatten(screen.getByTestId("body-zone-picker-backdrop").props.style);
+    expect(backdrop).toMatchObject({ backgroundColor: "rgba(31, 33, 41, 0.34)", justifyContent: "flex-end" });
+    const sheet = screen.getByTestId("body-zone-picker-sheet");
+    expect(sheet.props.children[1].props.testID).toBe("body-zone-picker-header");
+  });
+
+  it("P3-22/scope-regression — Zones retirées absentes, dernière Zone non décochable, appui long conservé", async () => {
+    const service = fakeReferentialService({
+      listBodyZones: jest.fn(async () => [aZone(), aZone({ id: "old", name: "Ancienne", canonicalKey: "ancienne", isActive: false })]),
+    });
+    renderModal(service, { selectedIds: ["cou"] });
+    await screen.findByTestId("body-zone-selector-tag-cou");
+    expect(screen.queryByTestId("body-zone-selector-tag-old")).toBeNull();
+    fireEvent.press(screen.getByTestId("body-zone-selector-tag-cou"));
+    expect(screen.getByTestId("body-zone-picker-at-least-one-notice")).toBeTruthy();
+    fireEvent(screen.getByTestId("body-zone-selector-tag-cou"), "longPress");
+    expect(await screen.findByTestId("body-zone-picker-long-press-cancel")).toBeTruthy();
+  });
+
+  it("INTERACTION/zones — sélection multiple ; ✕ sans effet ; ✓ applique ; nom vide sans erreur", async () => {
+    const onConfirm = jest.fn();
+    const onClose = jest.fn();
+    renderModal(fakeReferentialService(), { selectedIds: [], onConfirm, onClose });
+    await screen.findByTestId("body-zone-selector-tag-cou");
+    fireEvent.press(screen.getByTestId("body-zone-selector-tag-cou"));
+    fireEvent.press(screen.getByTestId("body-zone-selector-tag-epaules"));
+    fireEvent.press(screen.getByTestId("body-zone-picker-close"));
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it("ACCESSIBILITY/zones — chaque pastille expose son nom et son état coché ; les autres sélections restent ; ✕/✓ nommés", async () => {
+    renderModal(fakeReferentialService(), { selectedIds: ["epaules"] });
+    const cou = await screen.findByTestId("body-zone-selector-tag-cou");
+    expect(cou.props.accessibilityRole).toBe("checkbox");
+    fireEvent.press(cou);
+    expect(screen.getByTestId("body-zone-selector-tag-cou").props.accessibilityState).toMatchObject({ checked: true });
+    expect(screen.getByTestId("body-zone-selector-tag-epaules").props.accessibilityState).toMatchObject({ checked: true });
+    expect(screen.getByTestId("body-zone-picker-close").props.accessibilityLabel).toBe("Fermer");
+    expect(screen.getByTestId("body-zone-picker-confirm").props.accessibilityLabel).toBe("Confirmer");
   });
 });
