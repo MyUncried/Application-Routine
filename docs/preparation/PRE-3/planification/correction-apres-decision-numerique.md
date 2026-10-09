@@ -1,3 +1,5 @@
+> État historique remplacé par [reentree-clarifiee-verification.md](reentree-clarifiee-verification.md). Le passage après clarification est corrigé, 64 tests PASS et réentrée réelle PASS ; qualification GitHub en cours dans #343. Le diagnostic de cibles absentes a été corrigé ci-dessous.
+
 # PRE-3 — décision numérique résolue et correction ciblée après revue
 
 ## Décision propriétaire
@@ -29,7 +31,7 @@ L’enveloppe planning-envelope.js accepte REVISION avec created_from.kind = CLA
 
 Le test « PRE-3 diagnostic » reproduit cette incompatibilité entre l’enveloppe et le constructeur. Il est volontairement une preuve du comportement actuel, pas une preuve de réparation. Le DecisionRecord résolu ne dispose pas encore d’une liaison vérifiée dans cette chaîne de révision.
 
-Un second garde-fou demeure : FND-8b2fcbd1b778ea06ee6cb2f0 cible PLAN_CONTRACT sans dependency_target_ids ; buildAllowedChangeSet le refuse avec VNEXT_REVISION_PLAN_ROOT_TOO_BROAD. Ses cibles doivent être précisées avec une preuve indépendante, sans remplacer ni réécrire le rapport original.
+Correction de diagnostic après lecture canonique : FND-8b2fcbd1b778ea06ee6cb2f0 possède six dependency_target_ids. La mention antérieure de dépendances absentes était erronée ; PLAN_ROOT_TOO_BROAD ne bloque pas le constat réel.
 
 Impact : impossibilité de finaliser une révision VNext canonique admissible, même si la rédaction est clarifiée. Statut : blocage technique démontré, non résolu. Aucun lancement Claude supplémentaire n’est justifié par les seuls correctifs publiés ici. Aucune nouvelle action du propriétaire ni approbation du plan n’est demandée.
 
