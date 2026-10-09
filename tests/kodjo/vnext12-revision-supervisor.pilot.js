@@ -40,6 +40,38 @@ function setup(t) {
   const correction = Driver.deriveCorrection(cwd, base, report), next = Chain.produce(correction.recipe, { cwd });
   return { cwd, base, report, correction, next };
 }
+test('resolved clarification traverses canonical revision preparation and retains the separate owner approval gate',t=>{
+ const cwd=fixture(t),D=require('../../scripts/kodjo/lib/decision-record'),Revision=require('../../scripts/kodjo/lib/revision-contract'),Register=require('../../scripts/kodjo/lib/vnext-audit-register'),Convergence=require('../../scripts/kodjo/lib/audit-convergence-contract');
+ const git=(...args)=>execFileSync('git',args,{cwd,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
+ const baseRecipe=Driver.benchmarkRecipe(cwd);const base=Chain.produce(baseRecipe,{cwd});
+ const finding={category:'PRODUCT_AMBIGUITY',target_type:'REQUIREMENT',target_id:base.artifacts.requirementRegistry.requirements[0].requirement_id,finding:'Rédaction à préciser.',evidence:['source TEST'],required_correction:'Préciser la justification sans changer la règle.',dependency_target_ids:[]};
+ const preliminary=receipt(cwd,base,[finding]),req=base.artifacts.requirementRegistry.requirements[0];
+ const opened=D.createOpen({slice_id:base.artifacts.planningEnvelope.slice_id,question:'Rédaction seulement ?',options:[{label:'Oui'},{label:'Non'}],source_ids:[req.source_id],affected_requirement_ids:[req.requirement_id],created_at:'2026-10-09T12:00:00Z',causal_evidence:['finding:'+preliminary.review_report.findings[0].finding_id]});
+ const decision=D.resolve(opened,{selected_option_id:opened.options[0].option_id,response_text:'Oui',responded_by:'MyUncried',resolved_at:'2026-10-09T12:01:00Z',resolution_evidence:['owner_message:TEST-ONLY']});
+ const content=JSON.stringify(decision)+'\n';fs.writeFileSync(path.join(cwd,'resolved-decision.json'),content);git('add','resolved-decision.json');git('commit','-m','TEST clarification source');const head=git('rev-parse','HEAD');
+ const initial=preliminary;
+ assert.equal(initial.review_report.findings[0].finding_id,preliminary.review_report.findings[0].finding_id);
+ const clarification={slice_id:base.artifacts.planningEnvelope.slice_id,authorized_actor:'MyUncried',decision_records:[decision]};
+ const allowed=Revision.buildAllowedChangeSet({...base.artifacts,reviewReport:initial.review_report,clarification});
+ const patch=Revision.buildRevisionPatch({allowedChangeSet:allowed,corrections:[{target_type:'REQUIREMENT',target_id:req.requirement_id,finding_ids:allowed.blocking_finding_ids,correction:'Rédaction confirmée dans la justification.'}]});
+ const recipe=structuredClone(baseRecipe),previous=Register.buildRegister({...base.register_input,candidateHead:base.producer_revision,lot:clarification.slice_id,phase:'REVIEW'});
+ recipe.sourceManifestInput.product_head=head;recipe.planningInput.product_head=head;
+ recipe.requirementInput.requirements[0].rationale+=' Clarification propriétaire : rédaction seulement.';
+ recipe.planningInput={...recipe.planningInput,planning_mode:'REVISION',base_plan_hash:base.artifacts.planContract.contract_hash,base_review_hash:initial.review_report.contract_hash,causal_findings:allowed.blocking_finding_ids,created_from:{kind:'CLARIFICATION_RESOLVED',refs:['decision:'+decision.contract_hash,'revision_patch:'+patch.contract_hash]}};
+ recipe.registerInput={...recipe.registerInput,previous,revisionCount:1};
+ const next=Chain.produce(recipe,{cwd}),reviewed=receipt(cwd,next,[]),baseArtifacts={...base.artifacts,cumulativeRegister:previous},nextArtifacts={...next.artifacts,cumulativeRegister:Register.buildRegister({...next.register_input,candidateHead:head,lot:clarification.slice_id,phase:'REVISION'})};
+ const outcome=Revision.verifyRevisionOutcome({allowedChangeSet:allowed,revisionPatch:patch,baseArtifacts,nextArtifacts,nextReviewContext:next.artifacts.reviewContext,nextReviewReport:reviewed.review_report});
+ const ledger=Convergence.buildFindingLedger({previousReviewReport:initial.review_report,nextReviewReport:reviewed.review_report,resolutions:reviewed.review_report.finding_resolutions});
+ const revisionEvidence={base_produced:base,base_review_receipt:initial,clarification:{decision_sources:[{path:'resolved-decision.json',revision:head,content_sha256:V.sha256(content),decision_id:decision.decision_id}]},revision_artifacts:{base_artifacts:baseArtifacts,allowed_change_set:allowed,revision_patch:patch,revision_outcome:outcome,previous_review_report:initial.review_report,finding_ledger:ledger}};
+ const ready=Chain.prepare(next,reviewed,F.transport(),{cwd,revisionEvidence});
+ assert.equal(ready.prepared.review_receipt.review_report.verdict,'APPROVE');
+ assert.equal(initial.review_report.verdict,'CLARIFICATION_REQUIRED');
+ assert.ok(Chain.approvalTarget(ready.prepared,{cwd,protocolHead:head}).execution_core);
+ const missing=structuredClone(revisionEvidence);delete missing.clarification;
+ assert.throws(()=>Chain.prepare(next,reviewed,F.transport(),{cwd,revisionEvidence:missing}),/CLARIFICATION_EVIDENCE_REQUIRED/);
+ const forged=structuredClone(revisionEvidence);forged.clarification.decision_sources[0].content_sha256='0'.repeat(64);
+ assert.throws(()=>Chain.prepare(next,reviewed,F.transport(),{cwd,revisionEvidence:forged}),/DECISION_SOURCE_MISMATCH/);
+});
 test('revision supervisor preserves immutable source, scope and causal findings through exactly one correction', t => {
   const f = setup(t), nextReceipt = receipt(f.cwd, f.next, []);
   const artifacts = Driver.completeRevision(f.base, f.report, f.correction, f.next, nextReceipt);
