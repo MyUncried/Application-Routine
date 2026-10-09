@@ -19,26 +19,27 @@
         "P3-01/copy-isolation"
       ],
       "tests": [
-        "P3-01/Catalogue:create@src/domain/sessions/__tests__/SessionDraft.test.ts",
         "P3-01/Catalogue:create@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
         "P3-01/Catalogue:create@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
         "P3-01/Catalogue:create@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
-        "P3-01/Catalogue:edit@src/domain/sessions/__tests__/SessionDraft.test.ts",
         "P3-01/Catalogue:edit@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
         "P3-01/Catalogue:edit@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
         "P3-01/Catalogue:edit@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
-        "P3-01/Session:create@src/domain/sessions/__tests__/SessionDraft.test.ts",
         "P3-01/Session:create@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
         "P3-01/Session:create@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
         "P3-01/Session:create@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
-        "P3-01/Session:edit@src/domain/sessions/__tests__/SessionDraft.test.ts",
         "P3-01/Session:edit@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
         "P3-01/Session:edit@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
         "P3-01/Session:edit@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
         "P3-01/copy-isolation@src/domain/sessions/__tests__/SessionDraft.test.ts",
         "P3-01/copy-isolation@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
-        "P3-01/copy-isolation@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-        "P3-01/copy-isolation@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+        "INTERACTION/editor-finish"
+      ],
+      "assertion_test_paths": [
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
       ],
       "test_paths": [
         "src/domain/sessions/__tests__/SessionDraft.test.ts",
@@ -73,8 +74,11 @@
       "tests": [
         "P3-02/editor-fields@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
         "P3-02/editor-fields@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
-        "P3-02/keyboard-scroll@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
-        "P3-02/keyboard-scroll@src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+        "P3-02/keyboard-scroll@src/features/activities/__tests__/ActivityEditorForm.test.tsx"
+      ],
+      "assertion_test_paths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
       ],
       "test_paths": [
         "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
@@ -114,15 +118,28 @@
         "P3-03/zones-presentation"
       ],
       "tests": [
-        "P3-03/reference-retired@src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
-        "P3-03/reference-retired@src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
-        "P3-03/empty-create-name@src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "P3-03/reference-retired@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-03/reference-retired@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-03/reference-retired@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
         "P3-03/empty-create-name@src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
-        "P3-03/zones-presentation@src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
+        "P3-03/empty-create-name@src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "P3-03/zones-presentation@src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "INTERACTION/category",
+        "INTERACTION/zones"
+      ],
+      "assertion_test_paths": [
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
       ],
       "test_paths": [
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
         "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
-        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
       ],
       "figma_frames": [
         "5088:6398",
@@ -158,17 +175,16 @@
         "P3-04/bounds"
       ],
       "tests": [
-        "P3-04/mode-targets@src/domain/activities/__tests__/ExecutionParameters.test.ts",
         "P3-04/mode-targets@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "P3-04/mode-targets@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "P3-04/bounds@src/domain/activities/__tests__/ExecutionParameters.test.ts",
-        "P3-04/bounds@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "P3-04/bounds@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+        "P3-04/bounds@src/domain/activities/__tests__/ExecutionParameters.test.ts"
+      ],
+      "assertion_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts"
       ],
       "test_paths": [
         "src/domain/activities/__tests__/ExecutionParameters.test.ts",
-        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts"
       ],
       "figma_frames": [
         "6407:9551",
@@ -200,13 +216,18 @@
       ],
       "tests": [
         "P3-05/equal-variable@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "P3-05/equal-variable@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-05/equal-variable@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
         "P3-05/toggle-restoration@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "P3-05/toggle-restoration@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+        "INTERACTION/variable-toggle"
+      ],
+      "assertion_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
       ],
       "test_paths": [
         "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
       ],
       "figma_frames": [
         "6665:24616",
@@ -234,13 +255,16 @@
       ],
       "tests": [
         "P3-06/shrink-regrow@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "P3-06/shrink-regrow@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
         "P3-06/commit-hidden@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "P3-06/commit-hidden@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+        "P3-06/commit-hidden@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "assertion_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
       ],
       "test_paths": [
         "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
       ],
       "figma_frames": [
         "6407:9966",
@@ -266,16 +290,19 @@
       ],
       "tests": [
         "P3-07/move-terminal@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "P3-07/move-terminal@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
         "P3-07/move-terminal@src/domain/activities/__tests__/executionCalculations.test.ts",
-        "P3-07/move-accessible@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
         "P3-07/move-accessible@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "P3-07/move-accessible@src/domain/activities/__tests__/executionCalculations.test.ts"
+        "INTERACTION/sortable-rows"
+      ],
+      "assertion_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
       ],
       "test_paths": [
         "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "src/domain/activities/__tests__/executionCalculations.test.ts"
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
       ],
       "figma_frames": [
         "6665:27608"
@@ -300,16 +327,22 @@
       ],
       "tests": [
         "P3-08/immediate-N1@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "P3-08/immediate-N1@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
         "P3-08/immediate-N1@src/domain/activities/__tests__/executionCalculations.test.ts",
+        "P3-08/immediate-N1@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
         "P3-08/restoration-N1@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "P3-08/restoration-N1@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "P3-08/restoration-N1@src/domain/activities/__tests__/executionCalculations.test.ts"
+        "P3-08/restoration-N1@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "assertion_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
       ],
       "test_paths": [
         "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
         "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "src/domain/activities/__tests__/executionCalculations.test.ts"
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
       ],
       "figma_frames": [
         "6665:26822"
@@ -339,12 +372,19 @@
       ],
       "tests": [
         "P3-09/directions@src/domain/activities/__tests__/executionCalculations.test.ts",
+        "P3-09/directions@src/domain/activities/__tests__/executionPhrase.test.ts",
         "P3-09/directions@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
         "P3-09/unilateral-controls@src/domain/activities/__tests__/executionCalculations.test.ts",
         "P3-09/unilateral-controls@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
       ],
+      "assertion_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
       "test_paths": [
         "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
         "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
       ],
       "figma_frames": [
@@ -374,10 +414,13 @@
       "tests": [
         "P3-10/profile-new-only@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
         "P3-10/profile-new-only@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-        "P3-10/profile-new-only@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
-        "P3-10/legacy-neutral-proposal@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
         "P3-10/legacy-neutral-proposal@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
         "P3-10/legacy-neutral-proposal@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "assertion_test_paths": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
       ],
       "test_paths": [
         "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
@@ -411,6 +454,12 @@
         "P3-11/all-modes-bip@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
         "P3-11/all-modes-bip@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
         "P3-11/all-modes-bip@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
+      ],
+      "assertion_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParameters.test.ts",
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts"
       ],
       "test_paths": [
         "src/domain/activities/__tests__/ExecutionParameters.test.ts",
@@ -458,9 +507,9 @@
       ],
       "tests": [
         "P3-12/normative-totals@src/domain/activities/__tests__/executionCalculations.test.ts",
-        "P3-12/normative-totals@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-12/normative-totals@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
         "P3-12/omission@src/domain/activities/__tests__/executionCalculations.test.ts",
-        "P3-12/omission@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "P3-12/omission@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
         "P3-12/numeric/A",
         "P3-12/numeric/B",
         "P3-12/numeric/C",
@@ -475,9 +524,13 @@
         "P3-12/numeric/N1_WITH_PAUSE",
         "P3-12/numeric/N1_NO_PAUSE"
       ],
+      "assertion_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx"
+      ],
       "test_paths": [
         "src/domain/activities/__tests__/executionCalculations.test.ts",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx"
       ],
       "figma_frames": [
         "6411:9546",
@@ -519,25 +572,20 @@
       ],
       "tests": [
         "P3-13/R-terminal@src/domain/activities/__tests__/executionCalculations.test.ts",
-        "P3-13/R-terminal@src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
-        "P3-13/R-terminal@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
-        "P3-13/R-terminal@src/features/sessions/__tests__/formatSessionSummary.test.ts",
-        "P3-13/R-terminal@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
         "P3-13/unknown-known@src/domain/activities/__tests__/executionCalculations.test.ts",
-        "P3-13/unknown-known@src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
-        "P3-13/unknown-known@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
-        "P3-13/unknown-known@src/features/sessions/__tests__/formatSessionSummary.test.ts",
-        "P3-13/unknown-known@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
         "P3-13/tours-cycles-list@src/domain/activities/__tests__/executionCalculations.test.ts",
-        "P3-13/tours-cycles-list@src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
-        "P3-13/tours-cycles-list@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
         "P3-13/tours-cycles-list@src/features/sessions/__tests__/formatSessionSummary.test.ts",
         "P3-13/tours-cycles-list@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
-        "P3-13/no-auto-R@src/domain/activities/__tests__/executionCalculations.test.ts",
         "P3-13/no-auto-R@src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
         "P3-13/no-auto-R@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
-        "P3-13/no-auto-R@src/features/sessions/__tests__/formatSessionSummary.test.ts",
         "P3-13/no-auto-R@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      ],
+      "assertion_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ActivitySelectionScreen.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/features/sessions/__tests__/formatSessionSummary.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
       ],
       "test_paths": [
         "src/domain/activities/__tests__/executionCalculations.test.ts",
@@ -576,6 +624,10 @@
         "P3-14/inverse-boundaries@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
         "P3-14/inverse-explicit"
       ],
+      "assertion_test_paths": [
+        "src/domain/activities/__tests__/executionCalculations.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
       "test_paths": [
         "src/domain/activities/__tests__/executionCalculations.test.ts",
         "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
@@ -613,17 +665,12 @@
       ],
       "tests": [
         "P3-15/corpus-276@src/domain/activities/__tests__/executionPhrase.test.ts",
-        "P3-15/corpus-276@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
-        "P3-15/corpus-276@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
         "P3-15/grammar-edges@src/domain/activities/__tests__/executionPhrase.test.ts",
         "P3-15/grammar-edges@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
-        "P3-15/grammar-edges@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "P3-15/no-storage@src/domain/activities/__tests__/executionPhrase.test.ts",
-        "P3-15/no-storage@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
-        "P3-15/no-storage@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "P3-15/long-phrase@src/domain/activities/__tests__/executionPhrase.test.ts",
+        "P3-15/no-storage@src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+        "P3-15/no-storage@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-15/no-storage@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
         "P3-15/long-phrase@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
-        "P3-15/long-phrase@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
         "P3-15/corpus/1",
         "P3-15/corpus/2",
         "P3-15/corpus/3",
@@ -899,12 +946,22 @@
         "P3-15/corpus/273",
         "P3-15/corpus/274",
         "P3-15/corpus/275",
-        "P3-15/corpus/276"
+        "P3-15/corpus/276",
+        "INTERACTION/parameter-card"
+      ],
+      "assertion_test_paths": [
+        "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
       ],
       "test_paths": [
         "src/domain/activities/__tests__/executionPhrase.test.ts",
+        "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
         "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
       ],
       "figma_frames": [
         "6407:9702",
@@ -950,22 +1007,28 @@
       ],
       "tests": [
         "P3-16/sheet-boundary@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "P3-16/sheet-boundary@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
         "P3-16/sheet-boundary@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
         "P3-16/fold-incomplete@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
         "P3-16/fold-incomplete@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "P3-16/fold-incomplete@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
-        "P3-16/parent-guard@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "P3-16/parent-guard@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
         "P3-16/parent-guard@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
-        "P3-16/failure-doubletap@src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "P3-16/failure-doubletap@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "P3-16/failure-doubletap@src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+        "P3-16/failure-doubletap@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "P3-16/failure-doubletap@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-16/failure-doubletap@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "INTERACTION/sheet-check-cross"
+      ],
+      "assertion_test_paths": [
+        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
       ],
       "test_paths": [
         "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
         "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
       ],
       "figma_frames": [
         "3943:6064",
@@ -1004,21 +1067,13 @@
       ],
       "tests": [
         "P3-17/migration-real@src/infrastructure/database/__tests__/migrateDatabase.test.ts",
-        "P3-17/migration-real@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-        "P3-17/migration-real@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
-        "P3-17/migration-real@src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
-        "P3-17/canonical-roundtrip@src/infrastructure/database/__tests__/migrateDatabase.test.ts",
         "P3-17/canonical-roundtrip@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
         "P3-17/canonical-roundtrip@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
-        "P3-17/canonical-roundtrip@src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
-        "P3-17/corrupt-version@src/infrastructure/database/__tests__/migrateDatabase.test.ts",
         "P3-17/corrupt-version@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
         "P3-17/corrupt-version@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
-        "P3-17/corrupt-version@src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
-        "P3-17/transaction-FK@src/infrastructure/database/__tests__/migrateDatabase.test.ts",
         "P3-17/transaction-FK@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-        "P3-17/transaction-FK@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
         "P3-17/transaction-FK@src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+        "P3-17/transaction-FK@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
         "P3-17/migration/fresh-v9",
         "P3-17/migration/populated-v8-v9",
         "P3-17/migration/idempotent",
@@ -1028,11 +1083,17 @@
         "P3-17/migration/legacy-out-of-bounds",
         "P3-17/migration/per-statement-rollback"
       ],
-      "test_paths": [
-        "src/infrastructure/database/__tests__/migrateDatabase.test.ts",
+      "assertion_test_paths": [
         "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
         "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
-        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts"
+        "src/infrastructure/database/__tests__/migrateDatabase.test.ts"
+      ],
+      "test_paths": [
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/infrastructure/database/__tests__/migrateDatabase.test.ts"
       ],
       "figma_frames": [
         "5088:6398",
@@ -1056,17 +1117,20 @@
         "P3-18/historical-immutability"
       ],
       "tests": [
-        "P3-18/copy-complete@src/domain/sessions/__tests__/SessionDraft.test.ts",
         "P3-18/copy-complete@src/domain/activities/__tests__/exerciseSnapshot.test.ts",
-        "P3-18/copy-complete@src/domain/sessions/__tests__/composition.test.ts",
-        "P3-18/historical-immutability@src/domain/sessions/__tests__/SessionDraft.test.ts",
-        "P3-18/historical-immutability@src/domain/activities/__tests__/exerciseSnapshot.test.ts",
-        "P3-18/historical-immutability@src/domain/sessions/__tests__/composition.test.ts"
+        "P3-18/copy-complete@src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "P3-18/copy-complete@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "P3-18/historical-immutability@src/domain/activities/__tests__/exerciseSnapshot.test.ts"
+      ],
+      "assertion_test_paths": [
+        "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
       ],
       "test_paths": [
-        "src/domain/sessions/__tests__/SessionDraft.test.ts",
         "src/domain/activities/__tests__/exerciseSnapshot.test.ts",
-        "src/domain/sessions/__tests__/composition.test.ts"
+        "src/domain/sessions/__tests__/SessionDraft.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
       ],
       "figma_frames": [],
       "visual_ref": "ui-criteria.json",
@@ -1094,20 +1158,21 @@
         "P3-19/exclusive-scroll"
       ],
       "tests": [
-        "P3-19/hold@src/shared/ui/__tests__/ProfileStepper.test.ts",
-        "P3-19/hold@src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
         "P3-19/hold@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "P3-19/non-accelerated@src/shared/ui/__tests__/ProfileStepper.test.ts",
-        "P3-19/non-accelerated@src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
+        "P3-19/hold@src/shared/ui/__tests__/ProfileStepper.test.ts",
         "P3-19/non-accelerated@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "P3-19/exclusive-scroll@src/shared/ui/__tests__/ProfileStepper.test.ts",
-        "P3-19/exclusive-scroll@src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
-        "P3-19/exclusive-scroll@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+        "P3-19/non-accelerated@src/shared/ui/__tests__/ProfileStepper.test.ts",
+        "P3-19/exclusive-scroll@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "INTERACTION/wheel",
+        "INTERACTION/stepper"
+      ],
+      "assertion_test_paths": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/shared/ui/__tests__/ProfileStepper.test.ts"
       ],
       "test_paths": [
-        "src/shared/ui/__tests__/ProfileStepper.test.ts",
-        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/shared/ui/__tests__/ProfileStepper.test.ts"
       ],
       "figma_frames": [
         "6407:9966",
@@ -1137,24 +1202,25 @@
       "tests": [
         "P3-20/all-surfaces@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
         "P3-20/all-surfaces@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "P3-20/all-surfaces@src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
         "P3-20/all-surfaces@src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
-        "P3-20/all-surfaces@src/shared/ui/__tests__/tokens.test.ts",
-        "P3-20/all-surfaces@src/shared/i18n/__tests__/index.test.ts",
-        "P3-20/sheet-specific@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "P3-20/all-surfaces@src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
         "P3-20/sheet-specific@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "P3-20/sheet-specific@src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
-        "P3-20/sheet-specific@src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
-        "P3-20/sheet-specific@src/shared/ui/__tests__/tokens.test.ts",
-        "P3-20/sheet-specific@src/shared/i18n/__tests__/index.test.ts"
+        "P3-20/contract-i18n",
+        "P3-20/contract-tokens"
+      ],
+      "assertion_test_paths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx"
       ],
       "test_paths": [
         "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
         "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
         "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
-        "src/shared/ui/__tests__/tokens.test.ts",
-        "src/shared/i18n/__tests__/index.test.ts"
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/shared/i18n/index.test.ts",
+        "src/shared/ui/__tests__/tokensSpecification.test.ts"
       ],
       "figma_frames": [
         "3542:4656",
@@ -1219,12 +1285,28 @@
       "tests": [
         "P3-21/accessible-controls@src/features/activities/__tests__/ActivityEditorForm.test.tsx",
         "P3-21/accessible-controls@src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "P3-21/accessible-controls@src/features/activities/__tests__/ActivityMediaList.test.tsx"
+        "ACCESSIBILITY/wheel",
+        "ACCESSIBILITY/stepper",
+        "ACCESSIBILITY/variable-toggle",
+        "ACCESSIBILITY/sortable-rows",
+        "ACCESSIBILITY/sheet-check-cross",
+        "ACCESSIBILITY/parameter-card",
+        "ACCESSIBILITY/editor-finish",
+        "ACCESSIBILITY/media-list",
+        "ACCESSIBILITY/category",
+        "ACCESSIBILITY/zones"
+      ],
+      "assertion_test_paths": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
       ],
       "test_paths": [
         "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
+        "src/features/activities/__tests__/ActivityMediaList.test.tsx",
         "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "src/features/activities/__tests__/ActivityMediaList.test.tsx"
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
       ],
       "figma_frames": [
         "7119:27855"
@@ -1248,20 +1330,22 @@
         "P3-22/scope-regression"
       ],
       "tests": [
-        "P3-22/scope-regression@src/domain/sessions/__tests__/calculations.test.ts",
-        "P3-22/scope-regression@src/domain/sessions/__tests__/validation.test.ts",
-        "P3-22/scope-regression@src/domain/sessions/__tests__/composition.test.ts",
-        "P3-22/scope-regression@src/features/activities/__tests__/ActivityCard.test.tsx",
-        "P3-22/scope-regression@src/features/sessions/__tests__/SessionCard.test.tsx",
-        "P3-22/scope-regression@src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts"
+        "P3-22/scope-regression@src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "P3-22/scope-regression@src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "P3-22/scope-regression@src/features/sessions/__tests__/compositionPresentation.test.ts",
+        "P3-22/scope-regression@src/shared/ui/__tests__/ProfileStepper.test.ts"
+      ],
+      "assertion_test_paths": [
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/sessions/__tests__/compositionPresentation.test.ts",
+        "src/shared/ui/__tests__/ProfileStepper.test.ts"
       ],
       "test_paths": [
-        "src/domain/sessions/__tests__/calculations.test.ts",
-        "src/domain/sessions/__tests__/validation.test.ts",
-        "src/domain/sessions/__tests__/composition.test.ts",
-        "src/features/activities/__tests__/ActivityCard.test.tsx",
-        "src/features/sessions/__tests__/SessionCard.test.tsx",
-        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts"
+        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx",
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
+        "src/features/sessions/__tests__/compositionPresentation.test.ts",
+        "src/shared/ui/__tests__/ProfileStepper.test.ts"
       ],
       "figma_frames": [
         "4861:6259",
@@ -1294,43 +1378,36 @@
       ],
       "tests": [
         "P3-23/import-multiple@src/domain/media/__tests__/ActivityMediaImportService.test.ts",
-        "P3-23/import-multiple@src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
-        "P3-23/import-multiple@src/infrastructure/media/__tests__/VideoPoster.test.ts",
         "P3-23/import-multiple@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-        "P3-23/import-multiple@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
-        "P3-23/import-multiple@src/features/activities/__tests__/ActivityMediaList.test.tsx",
+        "P3-23/import-multiple@src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
         "P3-23/cancel-local-error@src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "P3-23/cancel-local-error@src/features/sessions/__tests__/ExerciseScreen.test.tsx",
         "P3-23/cancel-local-error@src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
-        "P3-23/cancel-local-error@src/infrastructure/media/__tests__/VideoPoster.test.ts",
-        "P3-23/cancel-local-error@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-        "P3-23/cancel-local-error@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
-        "P3-23/cancel-local-error@src/features/activities/__tests__/ActivityMediaList.test.tsx",
         "P3-23/permissions@src/domain/media/__tests__/ActivityMediaImportService.test.ts",
-        "P3-23/permissions@src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
-        "P3-23/permissions@src/infrastructure/media/__tests__/VideoPoster.test.ts",
-        "P3-23/permissions@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-        "P3-23/permissions@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
-        "P3-23/permissions@src/features/activities/__tests__/ActivityMediaList.test.tsx",
-        "P3-23/file-preservation@src/domain/media/__tests__/ActivityMediaImportService.test.ts",
-        "P3-23/file-preservation@src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
-        "P3-23/file-preservation@src/infrastructure/media/__tests__/VideoPoster.test.ts",
-        "P3-23/file-preservation@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "P3-23/file-preservation@src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
         "P3-23/file-preservation@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
-        "P3-23/file-preservation@src/features/activities/__tests__/ActivityMediaList.test.tsx",
-        "P3-23/video-thumbnail@src/domain/media/__tests__/ActivityMediaImportService.test.ts",
-        "P3-23/video-thumbnail@src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "P3-23/file-preservation@src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
         "P3-23/video-thumbnail@src/infrastructure/media/__tests__/VideoPoster.test.ts",
-        "P3-23/video-thumbnail@src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-        "P3-23/video-thumbnail@src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
-        "P3-23/video-thumbnail@src/features/activities/__tests__/ActivityMediaList.test.tsx"
+        "INTERACTION/media-list"
+      ],
+      "assertion_test_paths": [
+        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
+        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/media/__tests__/VideoPoster.test.ts"
       ],
       "test_paths": [
         "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
-        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
-        "src/infrastructure/media/__tests__/VideoPoster.test.ts",
+        "src/features/activities/__tests__/ActivityMediaList.test.tsx",
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
         "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
+        "src/infrastructure/database/__tests__/SqliteMediaRepository.test.ts",
         "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
-        "src/features/activities/__tests__/ActivityMediaList.test.tsx"
+        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
+        "src/infrastructure/media/__tests__/VideoPoster.test.ts"
       ],
       "figma_frames": [
         "3943:6064",

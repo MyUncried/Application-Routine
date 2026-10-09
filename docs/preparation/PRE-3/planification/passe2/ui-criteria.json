@@ -6,8 +6,6 @@
       "source_authority": "FUNCTIONAL",
       "source_scope": "P3-19",
       "source_assertions": [
-        "P3-19/hold",
-        "P3-19/non-accelerated",
         "P3-19/exclusive-scroll"
       ],
       "path": "src/features/activities/ExecutionParametersSheet.tsx",
@@ -21,9 +19,8 @@
         "FUNCTIONAL_TEST"
       ],
       "test_paths": [
-        "src/shared/ui/__tests__/ProfileStepper.test.ts",
-        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx"
       ],
       "native_primitive": "SwiftUI.Picker.wheel",
       "status": "PLANNED_NOT_EXECUTED"
@@ -35,8 +32,7 @@
       "source_scope": "P3-19",
       "source_assertions": [
         "P3-19/hold",
-        "P3-19/non-accelerated",
-        "P3-19/exclusive-scroll"
+        "P3-19/non-accelerated"
       ],
       "path": "src/features/activities/ExecutionParametersSheet.tsx",
       "expected": "Tap une fois ; début maintien 500 ms, répétition 150 ms, paliers normatifs, bornes, arrêt immédiat et aucun tap au relâchement ; Bip/CR/Fin pas 1 ; Profil préservé.",
@@ -49,9 +45,8 @@
         "FUNCTIONAL_TEST"
       ],
       "test_paths": [
-        "src/shared/ui/__tests__/ProfileStepper.test.ts",
-        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/shared/ui/__tests__/ProfileStepper.test.ts"
       ],
       "native_primitive": null,
       "status": "PLANNED_NOT_EXECUTED"
@@ -63,7 +58,8 @@
       "source_scope": "P3-05",
       "source_assertions": [
         "P3-05/equal-variable",
-        "P3-05/toggle-restoration"
+        "P3-05/toggle-restoration",
+        "P3-08/immediate-N1"
       ],
       "path": "src/features/activities/ExecutionParametersSheet.tsx",
       "expected": "Copie uniforme→lignes ; première ligne actuelle vers uniforme ; restauration temporaire ; N=1 effectif immédiat ; égalité ne change pas VARIABLE.",
@@ -75,7 +71,6 @@
         "FUNCTIONAL_TEST"
       ],
       "test_paths": [
-        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
         "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
       ],
       "native_primitive": null,
@@ -87,8 +82,8 @@
       "source_authority": "FUNCTIONAL",
       "source_scope": "P3-07",
       "source_assertions": [
-        "P3-07/move-terminal",
-        "P3-07/move-accessible"
+        "P3-07/move-accessible",
+        "P3-07/move-terminal"
       ],
       "path": "src/features/activities/ExecutionParametersSheet.tsx",
       "expected": "Déplacer cible et Pause ensemble ; Monter/Descendre accessibles identiques au drag ; renuméroter et recalculer PN ; ✕ annule.",
@@ -100,9 +95,7 @@
         "FUNCTIONAL_TEST"
       ],
       "test_paths": [
-        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "src/domain/activities/__tests__/executionCalculations.test.ts"
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
       ],
       "native_primitive": null,
       "status": "PLANNED_NOT_EXECUTED"
@@ -114,9 +107,7 @@
       "source_scope": "P3-16",
       "source_assertions": [
         "P3-16/sheet-boundary",
-        "P3-16/fold-incomplete",
-        "P3-16/parent-guard",
-        "P3-16/failure-doubletap"
+        "P3-16/fold-incomplete"
       ],
       "path": "src/features/activities/ExecutionParametersSheet.tsx",
       "expected": "✓ atomique et sans SQLite ; cible active incomplète interdit ✓ même tableau replié ; ✕/retour restaure le parent.",
@@ -128,9 +119,7 @@
         "FUNCTIONAL_TEST"
       ],
       "test_paths": [
-        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
       ],
       "native_primitive": null,
       "status": "PLANNED_NOT_EXECUTED"
@@ -141,10 +130,8 @@
       "source_authority": "FUNCTIONAL",
       "source_scope": "P3-15",
       "source_assertions": [
-        "P3-15/corpus-276",
-        "P3-15/grammar-edges",
-        "P3-15/no-storage",
-        "P3-15/long-phrase"
+        "P3-15/long-phrase",
+        "P3-15/grammar-edges"
       ],
       "path": "src/features/activities/ActivityEditorForm.tsx",
       "expected": "Toute la carte ouvre Paramètres ; phrase complète, segments en flux, un seul libellé accessible ; génération à chaque affichage sans stockage.",
@@ -156,9 +143,7 @@
         "FUNCTIONAL_TEST"
       ],
       "test_paths": [
-        "src/domain/activities/__tests__/executionPhrase.test.ts",
-        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx"
       ],
       "native_primitive": null,
       "status": "PLANNED_NOT_EXECUTED"
@@ -173,7 +158,7 @@
         "P3-01/Catalogue:edit",
         "P3-01/Session:create",
         "P3-01/Session:edit",
-        "P3-01/copy-isolation"
+        "P3-16/failure-doubletap"
       ],
       "path": "src/features/sessions/ExerciseScreen.tsx",
       "expected": "Quatre parcours ; Terminer écrit Catalogue ou applique copie au brouillon Composition, Continuer persiste Séance ; double tap/échec conserve brouillon et médias.",
@@ -185,10 +170,7 @@
         "FUNCTIONAL_TEST"
       ],
       "test_paths": [
-        "src/domain/sessions/__tests__/SessionDraft.test.ts",
-        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
-        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
       ],
       "native_primitive": null,
       "status": "PLANNED_NOT_EXECUTED"
@@ -201,9 +183,7 @@
       "source_assertions": [
         "P3-23/import-multiple",
         "P3-23/cancel-local-error",
-        "P3-23/permissions",
-        "P3-23/file-preservation",
-        "P3-23/video-thumbnail"
+        "P3-23/file-preservation"
       ],
       "path": "src/features/activities/ActivityMediaList.tsx",
       "expected": "Ajouter multiple photo/vidéo ; annulation neutre ; import visible ; Réessayer local sans doublon ; Retirer/Monter/Descendre ; ordre conservé après réouverture/copie.",
@@ -216,11 +196,6 @@
         "FUNCTIONAL_TEST"
       ],
       "test_paths": [
-        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
-        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
-        "src/infrastructure/media/__tests__/VideoPoster.test.ts",
-        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
         "src/features/activities/__tests__/ActivityMediaList.test.tsx"
       ],
       "native_primitive": null,
@@ -232,9 +207,8 @@
       "source_authority": "FUNCTIONAL",
       "source_scope": "P3-03",
       "source_assertions": [
-        "P3-03/reference-retired",
         "P3-03/empty-create-name",
-        "P3-03/zones-presentation"
+        "P3-03/reference-retired"
       ],
       "path": "src/features/reference-data/CategoryPickerModal.tsx",
       "expected": "Sélection simple et validation isolée ; nom vide désactive Ajouter sans erreur ; suppression/réactivation PRE-2 conservées.",
@@ -246,8 +220,7 @@
         "FUNCTIONAL_TEST"
       ],
       "test_paths": [
-        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
-        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx"
       ],
       "native_primitive": null,
       "status": "PLANNED_NOT_EXECUTED"
@@ -258,9 +231,9 @@
       "source_authority": "FUNCTIONAL",
       "source_scope": "P3-03",
       "source_assertions": [
-        "P3-03/reference-retired",
         "P3-03/empty-create-name",
-        "P3-03/zones-presentation"
+        "P3-03/zones-presentation",
+        "P3-03/reference-retired"
       ],
       "path": "src/features/reference-data/BodyZonePickerModal.tsx",
       "expected": "Sélection multiple de pastilles textuelles ; ✓/✕ isolés ; nom vide désactive Ajouter sans erreur ; affectations retirées conservées.",
@@ -272,7 +245,6 @@
         "FUNCTIONAL_TEST"
       ],
       "test_paths": [
-        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
         "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
       ],
       "native_primitive": null,
@@ -284,131 +256,251 @@
       "proof_id": "ACCESSIBILITY/wheel",
       "kind": "ACCESSIBILITY_CHECK",
       "path": "src/features/activities/ExecutionParametersSheet.tsx",
-      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables avec texte agrandi et défilement.",
-      "automated": [
-        "src/shared/ui/__tests__/ProfileStepper.test.ts",
-        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      "source_refs": [
+        "../../perimetre-et-couverture.md#P3-21",
+        "P3-19/exclusive-scroll"
       ],
-      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "expected": "Valeur de la roulette annoncée par SwiftUI.Picker.wheel ; nom du réglage et unité identifiables ; Valider/Annuler nommés et atteignables ; retour du focus au réglage après fermeture.",
+      "semantic_cases": [
+        "nom du réglage et unité",
+        "valeur courante transmise à la primitive native",
+        "Valider/Annuler atteignables",
+        "retour au réglage après fermeture"
+      ],
+      "touch_target": "Au moins 44 pt selon le contrat ciblé ; garder les cibles existantes de 48 pt, aucune réduction.",
+      "automated": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx"
+      ],
+      "automated_expected": "Propriétés accessibles, états, actions, messages et ordre/focus demandés par cette surface ; une simulation ne prouve pas la perception VoiceOver native.",
+      "device": "VoiceOver : ouvrir Durée, ajuster la valeur native, entendre valeur/unité, atteindre Valider puis Annuler sur une seconde ouverture ; vérifier le retour au réglage.",
       "status": "PLANNED_NOT_EXECUTED"
     },
     {
       "proof_id": "ACCESSIBILITY/stepper",
       "kind": "ACCESSIBILITY_CHECK",
       "path": "src/features/activities/ExecutionParametersSheet.tsx",
-      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables avec texte agrandi et défilement.",
-      "automated": [
-        "src/shared/ui/__tests__/ProfileStepper.test.ts",
-        "src/features/sessions/__tests__/DurationWheelPicker.test.tsx",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      "source_refs": [
+        "../../perimetre-et-couverture.md#P3-21",
+        "P3-19/hold",
+        "P3-19/non-accelerated"
       ],
-      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "expected": "Valeur du champ exposée comme ajustable avec nom/unité ; actions incrémenter et décrémenter accessibles ; état de borne annoncé et respecté ; Bip/Compte à rebours/Fin restent au pas 1 ; politique Profil conservée.",
+      "semantic_cases": [
+        "rôle ajustable et nom/unité",
+        "valeur courante",
+        "incrément/décrément aux bornes",
+        "pas 1 pour Bip/Compte à rebours/Fin"
+      ],
+      "touch_target": "Au moins 44 pt selon le contrat ciblé ; garder les cibles existantes de 48 pt, aucune réduction.",
+      "automated": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
+        "src/shared/ui/__tests__/ProfileStepper.test.ts"
+      ],
+      "automated_expected": "Propriétés accessibles, états, actions, messages et ordre/focus demandés par cette surface ; une simulation ne prouve pas la perception VoiceOver native.",
+      "device": "VoiceOver : utiliser les gestes ajustables et les boutons nommés aux deux bornes ; vérifier valeur/unité et arrêt au relâchement sur les champs concernés, puis non-régression Profil.",
       "status": "PLANNED_NOT_EXECUTED"
     },
     {
       "proof_id": "ACCESSIBILITY/variable-toggle",
       "kind": "ACCESSIBILITY_CHECK",
       "path": "src/features/activities/ExecutionParametersSheet.tsx",
-      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables avec texte agrandi et défilement.",
+      "source_refs": [
+        "../../perimetre-et-couverture.md#P3-21",
+        "P3-05/equal-variable",
+        "P3-05/toggle-restoration",
+        "P3-08/immediate-N1"
+      ],
+      "expected": "Séries uniformes/variables exposées avec leur sélection effective ; N=1 rend le choix sans effet inactif et annoncé ; des valeurs égales ne changent pas la sélection VARIABLE ; lignes actives restent dans l’ordre de lecture.",
+      "semantic_cases": [
+        "nom Séries uniformes/variables",
+        "état sélectionné effectif",
+        "inactif à N=1",
+        "égalité sans perte de VARIABLE"
+      ],
+      "touch_target": "Au moins 44 pt selon le contrat ciblé ; garder les cibles existantes de 48 pt, aucune réduction.",
       "automated": [
-        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
         "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
       ],
-      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "automated_expected": "Propriétés accessibles, états, actions, messages et ordre/focus demandés par cette surface ; une simulation ne prouve pas la perception VoiceOver native.",
+      "device": "VoiceOver : basculer le mode, parcourir les lignes puis réduire N à 1 ; vérifier sélection/inactivité annoncées et absence de contrôles fantômes dans le parcours.",
       "status": "PLANNED_NOT_EXECUTED"
     },
     {
       "proof_id": "ACCESSIBILITY/sortable-rows",
       "kind": "ACCESSIBILITY_CHECK",
       "path": "src/features/activities/ExecutionParametersSheet.tsx",
-      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; ordre accessible Monter/Descendre équivalent au drag ; messages et actions atteignables avec texte agrandi et défilement.",
-      "automated": [
-        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "src/domain/activities/__tests__/executionCalculations.test.ts"
+      "source_refs": [
+        "../../perimetre-et-couverture.md#P3-21",
+        "P3-07/move-accessible",
+        "P3-07/move-terminal"
       ],
-      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "expected": "Chaque Série est identifiée par son rang avec cible et Pause ; Monter/Descendre portent ce rang et transportent la même ligne que le drag ; action hors première/dernière borne inactive ; rangs accessibles actualisés après déplacement.",
+      "semantic_cases": [
+        "rang Série, cible et Pause groupés",
+        "Monter/Descendre nommés par Série",
+        "actions aux bornes inactives",
+        "nouvel ordre et rangs annoncés"
+      ],
+      "touch_target": "Au moins 44 pt selon le contrat ciblé ; garder les cibles existantes de 48 pt, aucune réduction.",
+      "automated": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "automated_expected": "Propriétés accessibles, états, actions, messages et ordre/focus demandés par cette surface ; une simulation ne prouve pas la perception VoiceOver native.",
+      "device": "VoiceOver sans drag : déplacer une Série par Monter/Descendre ; entendre le nouveau rang et retrouver cible/Pause, puis vérifier première/dernière bornes.",
       "status": "PLANNED_NOT_EXECUTED"
     },
     {
       "proof_id": "ACCESSIBILITY/sheet-check-cross",
       "kind": "ACCESSIBILITY_CHECK",
       "path": "src/features/activities/ExecutionParametersSheet.tsx",
-      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables avec texte agrandi et défilement.",
-      "automated": [
-        "src/domain/activities/__tests__/ExecutionParametersDraft.test.ts",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx",
-        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      "source_refs": [
+        "../../perimetre-et-couverture.md#P3-21",
+        "P3-16/sheet-boundary",
+        "P3-16/fold-incomplete"
       ],
-      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "expected": "Actions Valider les paramètres et Annuler les paramètres nommées ; cible active incomplète empêche Valider, même repliée ; message nommant la Série incomplète annoncé et focus placé sur la correction atteignable ; Annuler restitue le focus au déclencheur.",
+      "semantic_cases": [
+        "Valider/Annuler les paramètres nommés",
+        "Série incomplète annoncée",
+        "focus sur la correction même tableau replié",
+        "retour à la carte après annulation"
+      ],
+      "touch_target": "Au moins 44 pt selon le contrat ciblé ; garder les cibles existantes de 48 pt, aucune réduction.",
+      "automated": [
+        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      ],
+      "automated_expected": "Propriétés accessibles, états, actions, messages et ordre/focus demandés par cette surface ; une simulation ne prouve pas la perception VoiceOver native.",
+      "device": "VoiceOver : laisser Série 2 incomplète, replier et tenter Valider ; entendre Série 2 et atteindre sa correction ; Annuler puis contrôler le retour à la carte Paramètres.",
       "status": "PLANNED_NOT_EXECUTED"
     },
     {
       "proof_id": "ACCESSIBILITY/parameter-card",
       "kind": "ACCESSIBILITY_CHECK",
       "path": "src/features/activities/ActivityEditorForm.tsx",
-      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; phrase intégrale annoncée une seule fois ; messages et actions atteignables avec texte agrandi et défilement.",
-      "automated": [
-        "src/domain/activities/__tests__/executionPhrase.test.ts",
-        "src/features/activities/__tests__/ActivityEditorForm.test.tsx",
-        "src/features/activities/__tests__/ExecutionParametersSheet.test.tsx"
+      "source_refs": [
+        "../../perimetre-et-couverture.md#P3-21",
+        "P3-15/long-phrase",
+        "P3-15/grammar-edges"
       ],
-      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "expected": "Une seule cible accessible nommée Paramètres contient la phrase intégrale annoncée une seule fois ; les segments Text imbriqués ne deviennent pas des cibles répétées ; activation ouvre la feuille, fermeture retourne à la carte ; texte agrandi sans troncature.",
+      "semantic_cases": [
+        "une seule cible Paramètres",
+        "phrase complète sans annonces dupliquées",
+        "activation ouvre la feuille",
+        "phrase longue accessible en texte agrandi"
+      ],
+      "touch_target": "Au moins 44 pt selon le contrat ciblé ; garder les cibles existantes de 48 pt, aucune réduction.",
+      "automated": [
+        "src/features/activities/__tests__/ActivityEditorForm.test.tsx"
+      ],
+      "automated_expected": "Propriétés accessibles, états, actions, messages et ordre/focus demandés par cette surface ; une simulation ne prouve pas la perception VoiceOver native.",
+      "device": "VoiceOver : parcourir une phrase longue, entendre toute la phrase une fois, ouvrir Paramètres et revenir ; répéter avec texte agrandi sans ellipse ni perte du bas.",
       "status": "PLANNED_NOT_EXECUTED"
     },
     {
       "proof_id": "ACCESSIBILITY/editor-finish",
       "kind": "ACCESSIBILITY_CHECK",
       "path": "src/features/sessions/ExerciseScreen.tsx",
-      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables avec texte agrandi et défilement.",
-      "automated": [
-        "src/domain/sessions/__tests__/SessionDraft.test.ts",
-        "src/features/sessions/__tests__/ExerciseScreen.test.tsx",
-        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts"
+      "source_refs": [
+        "../../perimetre-et-couverture.md#P3-21",
+        "P3-01/Catalogue:create",
+        "P3-01/Catalogue:edit",
+        "P3-01/Session:create",
+        "P3-01/Session:edit",
+        "P3-16/failure-doubletap"
       ],
-      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "expected": "Nom, description et Terminer identifiables dans les quatre parcours ; état indisponible/en cours de Terminer exposé et double activation neutralisée ; erreur de sauvegarde annoncée sans perdre le brouillon ; action et champ corrigé atteignables avec clavier.",
+      "semantic_cases": [
+        "Nom/Description/Terminer nommés",
+        "état indisponible ou en cours exposé",
+        "erreur de sauvegarde annoncée",
+        "Terminer et champ accessibles avec clavier"
+      ],
+      "touch_target": "Au moins 44 pt selon le contrat ciblé ; garder les cibles existantes de 48 pt, aucune réduction.",
+      "automated": [
+        "src/features/sessions/__tests__/ExerciseScreen.test.tsx"
+      ],
+      "automated_expected": "Propriétés accessibles, états, actions, messages et ordre/focus demandés par cette surface ; une simulation ne prouve pas la perception VoiceOver native.",
+      "device": "VoiceOver : parcourir Créer/Modifier Catalogue et copie Séance, atteindre Terminer avec clavier ouvert, entendre son état et une erreur injectée ; aucun abandon du brouillon.",
       "status": "PLANNED_NOT_EXECUTED"
     },
     {
       "proof_id": "ACCESSIBILITY/media-list",
       "kind": "ACCESSIBILITY_CHECK",
       "path": "src/features/activities/ActivityMediaList.tsx",
-      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables avec texte agrandi et défilement.",
+      "source_refs": [
+        "../../perimetre-et-couverture.md#P3-21",
+        "P3-23/import-multiple",
+        "P3-23/cancel-local-error",
+        "P3-23/file-preservation",
+        "../../perimetre-et-couverture.md#D-335"
+      ],
+      "expected": "Chaque média est identifié par son rang/type ; actions Retirer/Monter/Descendre nommées pour ce média et bornes inactives ; état Importation et erreur locale annoncés ; Réessayer atteignable pour le seul élément échoué ; ordre accessible actualisé.",
+      "semantic_cases": [
+        "rang/type du média",
+        "Retirer/Monter/Descendre identifiables",
+        "Importation et erreur locale annoncées",
+        "Réessayer local atteignable",
+        "nouvel ordre après déplacement"
+      ],
+      "touch_target": "Au moins 44 pt selon le contrat ciblé ; garder les cibles existantes de 48 pt, aucune réduction.",
       "automated": [
-        "src/domain/media/__tests__/ActivityMediaImportService.test.ts",
-        "src/infrastructure/media/__tests__/LocalMediaStore.test.ts",
-        "src/infrastructure/media/__tests__/VideoPoster.test.ts",
-        "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
-        "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
         "src/features/activities/__tests__/ActivityMediaList.test.tsx"
       ],
-      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "automated_expected": "Propriétés accessibles, états, actions, messages et ordre/focus demandés par cette surface ; une simulation ne prouve pas la perception VoiceOver native.",
+      "device": "VoiceOver avec photo/vidéo : entendre Importation, parcourir les actions par média, provoquer une erreur locale et atteindre Réessayer ; déplacer puis retirer un média sans drag.",
       "status": "PLANNED_NOT_EXECUTED"
     },
     {
       "proof_id": "ACCESSIBILITY/category",
       "kind": "ACCESSIBILITY_CHECK",
       "path": "src/features/reference-data/CategoryPickerModal.tsx",
-      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables avec texte agrandi et défilement.",
-      "automated": [
-        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
-        "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
+      "source_refs": [
+        "../../perimetre-et-couverture.md#P3-21",
+        "P3-03/empty-create-name",
+        "P3-03/reference-retired"
       ],
-      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "expected": "Chaque catégorie porte son nom et l’état de sélection simple ; Valider/Annuler nommés ; formulaire Nom et Ajouter identifiables ; nom vide annonce Ajouter désactivé sans message d’erreur ; retour du focus au déclencheur Catégorie.",
+      "semantic_cases": [
+        "nom et état sélectionné simple",
+        "Valider/Annuler nommés",
+        "Nom/Ajouter identifiables",
+        "Ajouter désactivé sans erreur si nom vide",
+        "retour au déclencheur Catégorie"
+      ],
+      "touch_target": "Au moins 44 pt selon le contrat ciblé ; garder les cibles existantes de 48 pt, aucune réduction.",
+      "automated": [
+        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx"
+      ],
+      "automated_expected": "Propriétés accessibles, états, actions, messages et ordre/focus demandés par cette surface ; une simulation ne prouve pas la perception VoiceOver native.",
+      "device": "VoiceOver : choisir une catégorie, ouvrir Nouvelle catégorie avec nom vide et entendre Ajouter désactivé sans erreur ; annuler puis vérifier le retour au bouton Catégorie.",
       "status": "PLANNED_NOT_EXECUTED"
     },
     {
       "proof_id": "ACCESSIBILITY/zones",
       "kind": "ACCESSIBILITY_CHECK",
       "path": "src/features/reference-data/BodyZonePickerModal.tsx",
-      "expected": "Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt selon contrat ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables avec texte agrandi et défilement.",
+      "source_refs": [
+        "../../perimetre-et-couverture.md#P3-21",
+        "P3-03/empty-create-name",
+        "P3-03/zones-presentation",
+        "P3-03/reference-retired"
+      ],
+      "expected": "Chaque pastille expose le nom de la zone et son état sélectionné multiple ; changement d’une zone conserve les autres sélections ; Valider/Annuler nommés ; dans Nouvelle zone, Ajouter désactivé sans erreur pour nom vide ; retour au déclencheur Zones.",
+      "semantic_cases": [
+        "nom et état sélectionné de chaque zone",
+        "sélection multiple conservée",
+        "Valider/Annuler nommés",
+        "Ajouter désactivé sans erreur si nom vide",
+        "retour au déclencheur Zones"
+      ],
+      "touch_target": "Au moins 44 pt selon le contrat ciblé ; garder les cibles existantes de 48 pt, aucune réduction.",
       "automated": [
-        "src/features/reference-data/__tests__/CategoryPickerModal.test.tsx",
         "src/features/reference-data/__tests__/BodyZonePickerModal.test.tsx"
       ],
-      "device": "VoiceOver iPhone, focus réel et geste natif de cette surface",
+      "automated_expected": "Propriétés accessibles, états, actions, messages et ordre/focus demandés par cette surface ; une simulation ne prouve pas la perception VoiceOver native.",
+      "device": "VoiceOver : sélectionner deux zones, désélectionner une seule et entendre les états ; ouvrir Nouvelle zone vide, contrôler Ajouter sans erreur, annuler et retrouver Zones.",
       "status": "PLANNED_NOT_EXECUTED"
     }
   ],

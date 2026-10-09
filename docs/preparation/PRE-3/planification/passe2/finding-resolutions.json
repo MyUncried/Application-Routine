@@ -6,40 +6,55 @@
       "original_required_correction": "Add INTERACTION assertions, sourced from the FUNCTIONAL documentary requirements, for each new or reused interactive control (wheel, steppers, Séries variables toggle, row reordering and its non-drag alternative, sheet ✓/✕, media add/remove/retry), with proof_required including FUNCTIONAL_TEST, and make the four AVAILABLE native assessments reference the INTERACTION assertion that names SwiftUI.Picker.wheel.",
       "original_target": "CRT-2a3b884df55e9028860cbc93",
       "correction_applied": "INTERACTION assertions with FUNCTIONAL authority and native wheel binding: ui-criteria.json#/interactions",
-      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW",
-      "resolution_accepted": false
+      "status": "RESOLVED",
+      "resolution_accepted": true,
+      "independent_review_ref": "reviews/2026-10-09_revue-passe2-claude.json",
+      "review_revision": "c0c900f50879ea955c7ca1b1a5f5961eb949c438",
+      "independent_justification": "Dix assertions INTERACTION couvrent chaque contrôle demandé : roulette, stepper, bascule Séries variables, lignes triables avec Monter/Descendre, ✓/✕ de feuille et liste de médias (ajout/retrait/Réessayer). S'y ajoutent carte Paramètres, Terminer, Catégorie et Zones. Toutes ont source_authority=FUNCTIONAL, des source_assertions fonctionnelles et proof_required contenant FUNCTIONAL_TEST. INTERACTION/wheel porte native_primitive=SwiftUI.Picker.wheel ; native_assessments.interaction_assertion_ref=INTERACTION/wheel. Le blob baseline confirme la primitive SwiftUI native. Réserve non bloquante : les quatre évaluations AVAILABLE ne sont pas énumérées individuellement ; le rattachement est déclaré collectivement. test_paths de INTERACTION/wheel inclut ProfileStepper.test.ts, qui n'est pas propriétaire d'une roulette (voir REG-01)."
     },
     {
       "finding_id": "FND-2aa59b7187ade34c38f136a7",
       "original_required_correction": "Restore the separators in assertions-recette.json, inventaire-etats-scenarios.json and schema-et-ecritures.md, then rebuild the registry, plan, criteria and assertions so that every frozen numeric expectation reads unambiguously (migration 009, 001..008, 100 repetitions, 99 series, 402 px, alpha 0.34, x 36 / separator 330, 44 pt touch target).",
       "original_target": "REQ-5b34a61e1bba57ca4cc09932",
       "correction_applied": "Explicit numeric separators, normative values unchanged: requirements.json#/assertions; requirements.json#/documentary_requirements; existing resolved numeric Decision A retained.",
-      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW",
-      "resolution_accepted": false
+      "status": "RESOLVED",
+      "resolution_accepted": true,
+      "independent_review_ref": "reviews/2026-10-09_revue-passe2-claude.json",
+      "review_revision": "c0c900f50879ea955c7ca1b1a5f5961eb949c438",
+      "independent_justification": "Toutes les valeurs listées par le constat se lisent désormais sans ambiguïté dans les données d'acceptation structurées (exigences, assertions, obligations), et les valeurs normatives restent inchangées conformément à la Décision A. Les lignes de schema-et-ecritures.md citées par le constat sont séparées. Résidus typographiques non bloquants, hors données d'acceptation : plan-technique-corrige.md l.75-76 (« tap1, maintien500ms, cadence150ms, paliers2s/4s, pas1 », « largeurs360/402/440 », hérités de plan-technique-travail.md) ; « cadence0/1/10 » dans requirements.json#/assertions (P3-11, champ when) ; « cadence0/positive », « R0/positive », « le08/10/2026 » dans schema-et-ecritures.md. Les sources figées assertions-recette.json et inventaire-etats-scenarios.json gardent les formes collées (« A195 exact C405 … », « N1235 ») ; le dossier passe2 les remplace pour la revue."
     },
     {
       "finding_id": "FND-45a23a9dc1c196e22ec192fd",
       "original_required_correction": "Re-register the requirements derived from UNIT-d27f377c24336720e09fd06b with their actual kinds: MIGRATION for the 009 scenarios, DATA for the canonical ExecutionParameters representation and its scalar projections, FUNCTIONAL for the calculation/phrase/draft rules, and PRESERVATION for the PRE-1/PRE-2 and out-of-scope-consumer conservation statements, so that at least the PRESERVATION requirements carry preservation=REQUIRED. Keep kind UI only for requirements whose statement is a presentation property.",
       "original_target": "UNIT-d27f377c24336720e09fd06b",
       "correction_applied": "95 documentary requirements retyped; DATA canonical representation, eight MIGRATION requirements, PRESERVATION REQUIRED: requirements.json",
-      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW",
-      "resolution_accepted": false
+      "status": "RESOLVED",
+      "resolution_accepted": true,
+      "independent_review_ref": "reviews/2026-10-09_revue-passe2-claude.json",
+      "review_revision": "c0c900f50879ea955c7ca1b1a5f5961eb949c438",
+      "independent_justification": "Les 95 identifiants sont conservés (correspondance 1:1 avec l'index initial). UI est réservé à P3-20/all-surfaces et P3-20/sheet-specific, deux énoncés de présentation. Les 41 états Figma, dont l'énoncé est comportemental, deviennent FUNCTIONAL avec presentation_scope=P3-20. Les huit scénarios 009 deviennent des exigences MIGRATION distinctes. La représentation canonique devient DATA, et chaque exigence PRESERVATION porte preservation=REQUIRED. Aucune régression de typage observée."
     },
     {
       "finding_id": "FND-50bc1bd53db4592408b49677",
       "original_required_correction": "Split the P3-17 obligation into one test obligation per named migration scenario (fresh→v9, populated v8→v9, idempotent re-run, FK/position integrity, malformed/unknown JSON version, scalar projection, out-of-bounds legacy preservation, per-statement rollback) and raise executionCalculations.test.ts and executionPhrase.test.ts obligations to the granularity of attendus-numeriques.json and the 276 phrase cases.",
       "original_target": "TEST-31c97ccdbec9fe8d8a0408dc",
       "correction_applied": "Eight separate migration tests, 13 numeric fixtures, 276 text+bold+amount fixtures: tests-and-preservation.json#/test_obligations",
-      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW",
-      "resolution_accepted": false
+      "status": "RESOLVED",
+      "resolution_accepted": true,
+      "independent_review_ref": "reviews/2026-10-09_revue-passe2-claude.json",
+      "review_revision": "c0c900f50879ea955c7ca1b1a5f5961eb949c438",
+      "independent_justification": "Les huit scénarios nommés par le constat sont des obligations distinctes sur base SQLite réelle. Les 13 cas numériques ont été recalculés indépendamment à la main : A 195, B 285, C 405, D 375, E/F0/F4 omis avec 135 connus, CADENCE ≈ 300, DURATION_BEEP 300, N1_SIDE 220, N1_SIDE_R 235, N1_WITH_PAUSE 45, N1_NO_PAUSE 30 ; tous concordent. Les 276 phrases ont un montant indépendant (somme d'événements). La distribution 140 sans total / 46 estimés / 90 exacts concorde avec P3-15/corpus-276 ; les deux cas N=1 sans Pause sont exacts mais sans total affiché."
     },
     {
       "finding_id": "FND-50fdbd72bbdd504a27290581",
       "original_required_correction": "Materialise the exact blob at 1ddfb6d144552f578388257adc78db47ab5992c8 for src/features/sessions/DurationWheelPicker.tsx and for the remaining 105 unobserved catalog candidates, with their content hashes, so the NO_CHANGE classifications and the native-reuse decision can be verified against observed objects rather than references.",
       "original_target": "CAND-d6b8ab7056e4aae59bce9fb2",
       "correction_applied": "Exact baseline blobs materialized for all changed files/direct consumers/reuse targets: baseline-observations.json + baseline-blobs.json",
-      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW",
-      "resolution_accepted": false
+      "status": "RESOLVED",
+      "resolution_accepted": true,
+      "independent_review_ref": "reviews/2026-10-09_revue-passe2-claude.json",
+      "review_revision": "c0c900f50879ea955c7ca1b1a5f5961eb949c438",
+      "independent_justification": "Les objets matérialisés sont les blobs Git exacts de la baseline, y compris DurationWheelPicker.tsx (SwiftUI wheel natif). Chaque cible MODIFY, consommateur direct et cible de réutilisation est observé. La matérialisation est correcte. Le choix de créer i18n/__tests__/index.test.ts et tokens.test.ts au lieu d'adapter les suites existantes est traité dans REG-02."
     },
     {
       "finding_id": "FND-5b6a6d10170c7a649a2c3861",
@@ -47,31 +62,43 @@
       "original_target": "REQ-be6e7d796429be1c0f364017",
       "correction_applied": "Ten per-control/surface ACCESSIBILITY obligations with individual expected data, device/native separation: ui-criteria.json#/accessibility",
       "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW",
-      "resolution_accepted": false
+      "resolution_accepted": false,
+      "independent_review_ref": "reviews/2026-10-09_revue-passe2-claude.json",
+      "review_revision": "c0c900f50879ea955c7ca1b1a5f5961eb949c438",
+      "independent_justification": "Le découpage par surface et la déclaration ACCESSIBILITY/DEVICE dans les risk_types sont faits. En revanche, le constat exigeait des obligations « with their own expected data, so that accessibility is not proven by one aggregate check ». Huit des dix champs expected sont la même chaîne : « Rôle/nom/valeur/état disabled accessibles ; cible tactile ≥ 44 pt ; focus entre dans la surface et revient au déclencheur ; messages et actions atteignables… ». Seules sortable-rows (Monter/Descendre) et parameter-card (phrase annoncée une fois) ont un attendu propre. Le champ device est aussi identique partout. Le contrôle agrégé est donc recopié dix fois, sans attendu par surface. Correction minimale proposée, fondée sur les sources existantes (aucune décision produit) : media-list → actions accessibles Retirer/Monter/Descendre (D-335), état Importation et erreur locale annoncés, Réessayer atteignable ; stepper → rôle ajustable avec incrément/décrément accessibles et valeur courante ; wheel → valeur annoncée par la primitive native et ✓/✕ atteignables ; sheet-check-cross → message nommant la Série incomplète annoncé et focus sur la correction ; category/zones → état sélectionné, bouton Ajouter désactivé annoncé sans message d'erreur."
     },
     {
       "finding_id": "FND-6bcfecf4fd3ab1c1e7461630",
       "original_required_correction": "Filter the Figma property projection so that only attributes observable on the delivered surface become assertions, and either drop the vector/blend node attributes or reclassify them as non-asserted source context with an explicit note, so VISUAL_COMPARE has a dischargeable scope.",
       "original_target": "AST-0783cac256376fe41da5ccfc",
       "correction_applied": "Vector/compositing metadata explicitly source context only; rendered outline/shape preserved as visual comparison: ui-elements.json#/reference_policy",
-      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW",
-      "resolution_accepted": false
+      "status": "RESOLVED",
+      "resolution_accepted": true,
+      "independent_review_ref": "reviews/2026-10-09_revue-passe2-claude.json",
+      "review_revision": "c0c900f50879ea955c7ca1b1a5f5961eb949c438",
+      "independent_justification": "Les éléments ne portent plus de projection d'attributs Figma en assertions : la source brute n'est référencée que par empreinte. La politique sépare explicitement le rendu observable asserté (géométrie relative, dimensions, typographie, couleur/opacité/effets, coins, contour et forme visibles comparés sur PNG) des métadonnées vectorielles et de compositing, classées contexte de source. VISUAL_COMPARE a donc un périmètre déchargeable. Les 65 descendants masqués et l'extraction figée sont conservés, sans nouvelle extraction globale."
     },
     {
       "finding_id": "FND-8b2fcbd1b778ea06ee6cb2f0",
       "original_required_correction": "Either add the baseline test files of every MODIFY target to write_scope with an explicit ADAPT test obligation and a stated conservation expectation, or amend schema-et-ecritures.md to state that the old calculation tests are not revised and explain how the replaced duration contract stays proven.",
       "original_target": "5145cbd30860f9ddef041ed33b97a71697517a3ef248229112bb0f5f7b92006f",
       "correction_applied": "Six baseline suites present in ADAPT write scope and conservation expectations: tests-and-preservation.json#/write_scope",
-      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW",
-      "resolution_accepted": false
+      "status": "RESOLVED",
+      "resolution_accepted": true,
+      "independent_review_ref": "reviews/2026-10-09_revue-passe2-claude.json",
+      "review_revision": "c0c900f50879ea955c7ca1b1a5f5961eb949c438",
+      "independent_justification": "La suite visée par le constat (calculations.test.ts, auparavant NO_CHANGE et donc interdite d'écriture) est désormais ADAPT, avec l'attente « conserver les scénarios baseline, adapter seulement les attentes remplacées par les règles PRE-3, sans supprimer PRE-1/PRE-2 ». Les cinq autres suites citées suivent la même règle. Les autres suites baseline des cibles MODIFY restent RUN_EXISTING (exemples : ProfileStepper.test.tsx, targetSchema.test.ts et initializeDatabase.test.ts, qui suivent DATABASE_VERSION). C'est cohérent lorsque le contrat n'est pas remplacé. Quatre ADAPT (compositionPresentation, ActivityDefinitionService, SessionService, SessionServiceProvider) n'ont pas de champ preservation_expected, mais leur intent énonce la conservation. Non bloquant."
     },
     {
       "finding_id": "FND-aa97db96722333411e8d8c28",
       "original_required_correction": "Populate preservation_candidate_ids on the impacts of every MODIFY candidate whose public contract must be preserved, so that boundaries.preserve_scope lists the baseline suites and out-of-scope consumers, and attach an explicit regression test obligation (action RUN_EXISTING or ADAPT) to each NO_CHANGE direct importer instead of leaving tests_affected_candidate_ids empty.",
       "original_target": "CAND-2915d264e742171ae2260c95",
       "correction_applied": "Every MODIFY boundary has baseline preservation suites; every NO_CHANGE importer has RUN_EXISTING obligations: tests-and-preservation.json",
-      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW",
-      "resolution_accepted": false
+      "status": "RESOLVED",
+      "resolution_accepted": true,
+      "independent_review_ref": "reviews/2026-10-09_revue-passe2-claude.json",
+      "review_revision": "c0c900f50879ea955c7ca1b1a5f5961eb949c438",
+      "independent_justification": "Chaque cible MODIFY a des suites de préservation et chaque importeur NO_CHANGE a une obligation RUN_EXISTING. La fermeture vérifiée indépendamment ne laisse aucun importeur direct sans obligation. Faiblesse non bloquante : les 56 listes de préservation et les 59 importeurs de code NO_CHANGE ajoutent tous un même lot générique de six suites (calculations, composition, validation, ActivityCard, SessionCard, SqliteMediaRepository). Les listes par cible omettent certaines suites directes : par exemple i18n/index.ts ne cite pas src/shared/i18n/index.test.ts, et SessionDraft.ts ne cite pas CompositionScreen.test.tsx. Ces suites sont toutefois obligées ailleurs (RUN_EXISTING ou ADAPT)."
     },
     {
       "finding_id": "FND-c3c9529d7f622ac36707b163",
@@ -79,29 +106,55 @@
       "original_target": "PLAN-5c40029786e01ae64d0b6222",
       "correction_applied": "Domain, repository, migration, i18n/tokens and screen owners separated; sheet test expected is rendering/actions only: tests-and-preservation.json#/test_obligations",
       "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW",
-      "resolution_accepted": false
+      "resolution_accepted": false,
+      "independent_review_ref": "reviews/2026-10-09_revue-passe2-claude.json",
+      "review_revision": "c0c900f50879ea955c7ca1b1a5f5961eb949c438",
+      "independent_justification": "La partie « feuille » est corrigée : le test de la feuille n'affirme plus que son rendu et ses actions, et les propriétaires Domaine, SQLite et migration existent. Mais la redistribution vers « the boundary that actually owns each expectation » n'est pas obtenue. (1) Les obligations résultent d'un produit cartésien par scope, et non de la propriété par assertion : des propriétaires SQLite réels sont retirés d'assertions de persistance, et des attentes de rendu sont attachées à des tests Domaine, de stepper ou de roulette (REG-01). (2) Les propriétaires i18n et tokens pointent vers deux fichiers nouveaux et parallèles, alors que les vrais propriétaires baseline existent et restent NO_CHANGE (REG-02). La règle à appliquer, sans arbitrage propriétaire : propriétaire = proposedTestPaths de l'assertion source, et suite baseline existante de la frontière modifiée."
     },
     {
       "finding_id": "FND-d9a6d1286f3e1a2ae2ca7bbf",
       "original_required_correction": "Rebind this requirement to the P3-14/P3-12 assertions of assertions-recette.json (and to P3-20 only for the message's visual rendering), and review the scope mapping of all 95 documentary requirements so that a state whose expected value is a behavioural rule is not attached to the visual-conformity scope.",
       "original_target": "REQ-30b44b8b8eded65d2e28f9a9",
       "correction_applied": "95 state mappings explicit; inverse states bound to P3-14/P3-12, visual message separately P3-20: requirements.json; traceability.json",
-      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW",
-      "resolution_accepted": false
+      "status": "RESOLVED",
+      "resolution_accepted": true,
+      "independent_review_ref": "reviews/2026-10-09_revue-passe2-claude.json",
+      "review_revision": "c0c900f50879ea955c7ca1b1a5f5961eb949c438",
+      "independent_justification": "L'exigence est rattachée à P3-14/P3-12, et P3-20 n'est plus que la portée de présentation du message. Sur les 95, aucun état FIG ne porte P3-20 dans scope_ids : les 41 ont presentation_scope=P3-20, et P3-20 ne contient que ses deux exigences UI tout en gardant les 41 frames pour VISUAL_COMPARE. L'observabilité visuelle est donc conservée. Les autres rattachements sont comportementaux et cohérents avec les énoncés (lecture des 95). Réserve : functional_test_paths est l'union des tests du scope (même mécanisme que REG-01)."
     },
     {
       "finding_id": "FND-f5a1a0b6656cdff169dd0517",
       "original_required_correction": "Rewrite the intent of change_id CHG-3799d2af179d978595188a7c (and of CHG-cdff2e38720ea4cf1a482d60, CHG-193f99990de37c39bb6ce28c, CHG-3f6220b7add2b580e293a90e in plan item PLAN-5c40029786e01ae64d0b6222) so that each states only what its own file must deliver, and keep the P3-20 sheet-specific expectations on the sheet change_item and its test obligation. The TEST obligations are correct and must not be weakened.",
       "original_target": "IMP-aecfea642459679b73564da0",
       "correction_applied": "File-specific intents preserved from proposed source; i18n/tokens own intents corrected, geometry resides on surface: tests-and-preservation.json#/write_scope",
-      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW",
-      "resolution_accepted": false
+      "status": "RESOLVED",
+      "resolution_accepted": true,
+      "independent_review_ref": "reviews/2026-10-09_revue-passe2-claude.json",
+      "review_revision": "c0c900f50879ea955c7ca1b1a5f5961eb949c438",
+      "independent_justification": "Chaque intent ne décrit plus que ce que son fichier livre : tokens.ts → « Rôles et tokens PRE-3 observés uniquement ; consommateurs existants conservés » ; i18n/index.ts → « Libellés et messages PRE-3 uniquement ». La géométrie propre à la feuille ne figure dans l'intent d'aucun autre fichier. Le constat portait sur les intents. La dispersion de l'obligation de test P3-20/sheet-specific vers CategoryPickerModal, BodyZonePickerModal, ActivityEditorForm, tokens.test.ts et index.test.ts relève de REG-01 et REG-02."
     },
     {
       "finding_id": "FND-f86f8d67160a71a69c7cfcd7",
       "original_required_correction": "Add a test obligation on src/domain/activities/__tests__/executionCalculations.test.ts for this requirement, with expected values taken from attendus-numeriques.json (nearest achievable total, tie resolved toward the higher N, message emitted only when the realised total differs), and keep the ExecutionParametersSheet obligation for the message rendering only.",
       "original_target": "PLAN-3a545aa403b0a20b160a625a",
       "correction_applied": "Explicit inverse domain test, nearest total/tie higher N/message predicate; separate sheet rendering: tests-and-preservation.json#P3-14/inverse-explicit",
+      "status": "RESOLVED",
+      "resolution_accepted": true,
+      "independent_review_ref": "reviews/2026-10-09_revue-passe2-claude.json",
+      "review_revision": "c0c900f50879ea955c7ca1b1a5f5961eb949c438",
+      "independent_justification": "L'obligation Domaine existe et contient les trois prédicats : total le plus proche, égalité résolue vers le N supérieur, message seulement si le total réalisé diffère. Oracle : demandé 100 s → N=3, 120 s, avec message ; demandé 80 s → N=2, sans message ; énumération N=1..99 avec N=1 normalisé. Vérifié : avec une Durée uniforme où T+P=40 s, N=2 donne 80 s et N=3 donne 120 s, et 100 s est équidistant, d'où N=3. Le test de feuille ne garde que le rendu du message. Réserve non bloquante : l'oracle n'est pas dans attendus-numeriques.json (aucun cas inverse dans ce fichier) et ne fixe pas explicitement T et P. Il reste déterminé, car le total ne dépend que de T+P=40 s. Recommandation : expliciter T=30, P=10 (ou le cas 6423-9953 : T=90, P=15, demandé 5 min 15 s)."
+    }
+  ],
+  "regressions": [
+    {
+      "regression_id": "REG-01",
+      "required_correction": "Générer les obligations par assertion à partir de proposedTestPaths (source et requirements.json#/assertions). N'ajouter un propriétaire que s'il est justifié par sa frontière. Appliquer la même règle à functional_test_paths.",
+      "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW",
+      "resolution_accepted": false
+    },
+    {
+      "regression_id": "REG-02",
+      "required_correction": "Remplacer ces deux CREATE par ADAPT de src/shared/i18n/index.test.ts et src/shared/ui/__tests__/tokensSpecification.test.ts, et ajouter ces suites à la préservation de i18n/index.ts et tokens.ts. Soit déclarer qu'aucun nouveau token n'est créé, soit inclure la ligne correspondante du chapitre 12 dans le périmètre.",
       "status": "CORRECTED_PENDING_INDEPENDENT_REVIEW",
       "resolution_accepted": false
     }

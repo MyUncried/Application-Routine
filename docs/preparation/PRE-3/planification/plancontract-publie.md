@@ -1,4 +1,4 @@
-> État du 09/10 : cette projection scellée est le plan INITIAL historique. La version corrigée à soumettre à la seconde revue est [passe2/plan-technique-corrige.md](https://github.com/MyUncried/Application-Routine/blob/c0c900f50879ea955c7ca1b1a5f5961eb949c438/docs/preparation/PRE-3/planification/passe2/plan-technique-corrige.md), commit `c0c900f50879ea955c7ca1b1a5f5961eb949c438`. Contournement limité du verrou de portée VNext autorisé par le propriétaire et tracé dans son manifeste. Aucun développement ni plan approuvé.
+> État du 09/10 : cette projection scellée est le plan INITIAL historique. La seconde revue publiée au commit `bf6a8cbc0d770031d7940f1aafe209f427f5f627` a résolu onze constats. La [révision pour la troisième revue ciblée](passe2/plan-technique-corrige.md) corrige uniquement FND-5b6a, FND-c3c9 et REG-01/REG-02 ; son [manifeste](passe2/manifest.json) fixe les fichiers à lire. Les anciens reçus restent historiques ; aucun protocole ou code applicatif modifié, aucun plan approuvé ni développement commencé.
 
 # PRE-3 — PlanContract publié, en attente de revue indépendante
 

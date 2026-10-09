@@ -1,17 +1,26 @@
 {
   "stage": "CORRECTED_PLAN_DOSSIER_INTEGRITY",
   "result": "PASS",
-  "checks": 1626,
+  "checks": 2143,
   "counts": {
     "documentary_states": 95,
     "figma_frames": 41,
     "elements": 6725,
-    "blocking_findings": 13,
+    "original_blocking_findings": 13,
+    "open_findings": 2,
+    "pending_regressions": 2,
     "numeric_cases": 13,
     "phrase_cases": 276,
     "baseline_blobs": 156
   },
-  "manifest_sha256": "04505e969144e9660c8afab4cb1a2e3cc2d0d50800e467eb47ff8ac98a4deb22",
+  "manifest_sha256": "16c155548ba161778f8780e664c65561b7c0d7e27666ca34481ec33a75cc08ff",
   "application_tested": false,
-  "independent_review": false
+  "independent_review": false,
+  "previous_review_resolved": 11,
+  "current_review_scope": [
+    "FND-5b6a6d10170c7a649a2c3861",
+    "FND-c3c9529d7f622ac36707b163",
+    "REG-01",
+    "REG-02"
+  ]
 }
