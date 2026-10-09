@@ -300,6 +300,55 @@ function makeRevisionBaseInfo(base, report, patch = null) {
   };
 }
 
+test('PRE-3 diagnostic: CLARIFICATION_RESOLVED envelope exists but the revision constructor rejects its original clarification report', () => {
+  const base = buildArtifacts();
+  const report = Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({
+    reviewContext: base.reviewContext,
+    semanticReview: { findings: [semanticFinding('REQUIREMENT', base.reqA.requirement_id, {category:'PRODUCT_AMBIGUITY'})] },
+  }));
+  assert.equal(report.verdict, 'CLARIFICATION_REQUIRED');
+  const {schema_version,contract_hash,...input} = base.planningEnvelope;
+  const envelope = PlanningEnvelope.build({
+    ...input,
+    planning_mode:'REVISION', base_plan_hash:base.planContract.contract_hash,
+    base_review_hash:report.contract_hash, causal_findings:report.findings.map(r=>r.finding_id),
+    created_from:{kind:'CLARIFICATION_RESOLVED',refs:['decision:TEST-RESOLVED']},
+  });
+  assert.equal(envelope.created_from.kind, 'CLARIFICATION_RESOLVED');
+  assert.throws(()=>Revision.buildAllowedChangeSet({...base,reviewReport:report}), /VNEXT_REVISION_REVISE_REPORT_REQUIRED/);
+});
+
+function clarifiedFixture() {
+  const base=buildArtifacts(),D=require('../../scripts/kodjo/lib/decision-record');
+  const report=Review.buildReviewReport(require('./helpers/review-attestation-fixture').attested({reviewContext:base.reviewContext,
+    semanticReview:{findings:[semanticFinding('REQUIREMENT',base.reqA.requirement_id,{category:'PRODUCT_AMBIGUITY'})]}}));
+  const opened=D.createOpen({slice_id:base.planningEnvelope.slice_id,question:'Clarifier la rédaction à valeurs constantes.',options:[{label:'Séparateurs seulement'},{label:'Valeur à préciser'}],source_ids:[base.reqA.source_id],affected_requirement_ids:[base.reqA.requirement_id],created_at:'2026-10-09T12:00:00Z',causal_evidence:['finding:'+report.findings[0].finding_id]});
+  const decision=D.resolve(opened,{selected_option_id:opened.options[0].option_id,response_text:'Option A',responded_by:'MyUncried',resolved_at:'2026-10-09T12:01:00Z',resolution_evidence:['owner_message:TEST-ONLY']});
+  return {base,report,opened,decision,clarification:{slice_id:base.planningEnvelope.slice_id,authorized_actor:'MyUncried',decision_records:[decision]}};
+}
+test('resolved clarification permits bounded requirements reentry without rewriting the original review',()=>{
+  const {base,report,clarification}=clarifiedFixture(),V=require('../../scripts/kodjo/lib/vnext-contract'),before=V.canonicalHash(report);
+  const allowed=Revision.buildAllowedChangeSet({...base,reviewReport:report,clarification});
+  assert.equal(allowed.reentry_stage,'REQUIREMENTS');
+  assert.equal(allowed.review_report_hash,report.contract_hash);
+  assert.equal(report.verdict,'CLARIFICATION_REQUIRED');assert.equal(V.canonicalHash(report),before);
+  assert.equal(Revision.validateAllowedChangeSet(allowed),true);
+  assert.ok(allowed.preserved_targets.some(r=>r.target_id===base.reqB.requirement_id));
+});
+test('clarification refuses open, unauthorised, unrelated, duplicated and unbound decision records',()=>{
+  const {base,report,opened,decision,clarification}=clarifiedFixture(),V=require('../../scripts/kodjo/lib/vnext-contract');
+  const seal=row=>{const copy=structuredClone(row);delete copy.contract_hash;return V.sealContract(copy);};
+  const check=(records,error,extra={})=>assert.throws(()=>Revision.buildAllowedChangeSet({...base,reviewReport:report,clarification:{...clarification,...extra,decision_records:records}}),error);
+  check([opened],/USER_DECISION_REQUIRED/);
+  check([seal({...decision,response:{...decision.response,responded_by:'other'}})],/AUTHORITY_MISMATCH/);
+  check([seal({...decision,source_ids:['SRC-unrelated']})],/DECISION_ID_MISMATCH|FINDING_UNBOUND/);
+  check([seal({...decision,affected_requirement_ids:[base.reqB.requirement_id]})],/FINDING_UNBOUND/);
+  check([seal({...decision,causal_evidence:['finding:other']})],/FINDING_UNBOUND/);
+  check([decision,decision],/DUPLICATE/);
+  check([decision],/SLICE_MISMATCH/,{slice_id:'OTHER'});
+  assert.throws(()=>Revision.buildAllowedChangeSet({...base,planningEnvelope:null,reviewReport:report,clarification}),/ENVELOPE_REQUIRED/);
+});
+
 test('VNext-07 construit un AllowedChangeSet borné et préserve le plan item non ciblé', () => {
   const { base, itemA, report } = baseWithPlanFinding();
   const itemB = base.planContract.plan_items.find((item) => item.requirement_id === base.reqB.requirement_id);
